@@ -43,7 +43,7 @@ jobs:
       - run: npm run build:elements
       - run: npm pack
       - name: Stage the package on npm, for a maintainer to approve
-        run: npm stage publish --provenance
+        run: npm stage publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: The GitHub release
