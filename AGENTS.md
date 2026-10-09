@@ -104,7 +104,9 @@ niet.
     ook de JSDoc waaruit de tag-referentie komt, en ook bestanden, mappen, slugs en
     URL-parameters van het design system en de stijlgids. Alles wat een gebruiker in de interface
     leest en elk `.md`-bestand is Nederlands; de voorbeeldapplicaties in `examples/` zijn
-    implementaties en mogen Nederlandse namen hebben.
+    implementaties en mogen Nederlandse namen hebben. Ook commitberichten, pull requests (titel
+    en beschrijving) en issues zijn Nederlands: een squash-merge neemt de titel en de beschrijving
+    van de pull request als commitbericht.
 24. **CSS volgt BEM.** `lintje-<block>`, `__<element>`, `--<modifier>`; toestanden zijn
     `is-*`-klassen, vastgemaakt aan een BEM-klasse. Geen typeselectors in een blok. Wat het
     *element* nodig heeft (`:host`), staat boven de `/* --- */`-scheiding; de eigen regels van
