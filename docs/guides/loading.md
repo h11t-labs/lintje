@@ -4,11 +4,10 @@
 bouw hem in je pipeline en serveer hem in zijn geheel als statische bestanden. Link `tokens.css` in
 `<head>` en laad de elementen als module; de import is de registratie.
 
-Lintje komt als npm-pakket `lintje`, maar staat daar nog niet. Het bevat dan dezelfde
-map, met een naam per ingang: `lintje` is `lintje.js`, `lintje/core` is
-`core.js`, `lintje/<category>` een categorie, `lintje/tag/<name>` één tag,
-en `lintje/tokens.css`, `/fonts.css` en `/icons/<name>.svg` de bestanden ernaast. Het
-heeft geen verplichte dependencies: Lit en Leaflet zitten in de build. `lit` 3 is een optionele
+Het npm-pakket `lintje` (`npm install lintje`) bevat dezelfde map, met een naam per ingang:
+`lintje` is `lintje.js`, `lintje/core` is `core.js`, `lintje/<category>` een categorie,
+`lintje/tag/<name>` één tag, en `lintje/tokens.css`, `/fonts.css` en `/icons/<name>.svg` de
+bestanden ernaast. Het heeft geen verplichte dependencies: Lit en Leaflet zitten in de build. `lit` 3 is een optionele
 peer, alleen voor de typen van de geërfde leden van een element.
 
 ## Twee manieren van laden, en een pagina kiest er één

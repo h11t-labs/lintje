@@ -125,6 +125,8 @@ niet.
 - Een browsertest hoort bij een mechanisme, niet bij een component: een element dat een gedeeld
   mechanisme gebruikt (trap, popover, focus bij weggaan, breekpunt, plakken), krijgt een rij in diens
   contract in `src/bundle/contracts/`. Zie Tests in [`CONTRIBUTING.md`](CONTRIBUTING.md).
+- Elke pull request zet een regel in `CHANGELOG.md` onder `[Unreleased]`, met zijn nummer
+  erachter (`(#12)`); open de pull request eerst als je het nummer nog niet weet.
 - Commentaar en docs beschrijven wat is, in de tegenwoordige tijd.
 - Commentaar zegt waarom, in een regel of twee, en alleen wat de code en de docs nog niet zeggen.
   Geen verwijzingen naar secties in de docs, geen vertelling van de volgende regels, geen lange

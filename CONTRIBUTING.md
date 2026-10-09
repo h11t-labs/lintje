@@ -20,8 +20,8 @@ Een bijdrage is welkom. Welke weg ze neemt, hangt af van wat ze verandert:
 Een pull request slaagt voor `npm run typecheck`, `npm run lint`, `npm run format:check`,
 `npm test` en `npm run build:elements` — de CI draait ze ook, in Chromium, WebKit en Firefox.
 Het is bekeken in de styleguide, in licht **en** donker, op 1440 **en** 390 px; een nieuw element
-of een nieuwe toestand heeft zijn specimen, en wat een host merkt staat in
-[`CHANGELOG.md`](CHANGELOG.md).
+of een nieuwe toestand heeft zijn specimen, en het zet een regel in [`CHANGELOG.md`](CHANGELOG.md)
+onder `[Unreleased]`, met zijn nummer erachter — ook een kleine fout of een wijziging aan de CI.
 Je hebt Node 20.19+ of 22.12+ nodig.
 
 De projectregels staan in [`AGENTS.md`](AGENTS.md). De naam komt van de AI-assistenten die ze
@@ -291,8 +291,9 @@ De styleguide is de referentie: een wijziging aan een component wordt daar gecon
 
 ## Uitbrengen
 
-Een release is een tag. Wat een host merkt, komt tijdens het werk in [`CHANGELOG.md`](CHANGELOG.md)
-onder `[Unreleased]`, een brekende wijziging met **Brekend:** ervoor. Uitbrengen is dan:
+Een release is een tag. Elke pull request zet tijdens het werk een regel in
+[`CHANGELOG.md`](CHANGELOG.md) onder `[Unreleased]`, met zijn nummer (`(#12)`), een brekende
+wijziging met **Brekend:** ervoor. Uitbrengen is dan:
 
 ```bash
 npm run release 0.2.0            # [Unreleased] wordt [0.2.0] - datum, package.json neemt de versie, één commit
