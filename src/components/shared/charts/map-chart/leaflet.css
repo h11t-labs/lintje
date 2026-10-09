@@ -1,0 +1,145 @@
+/* The map on a basemap; everything here is under `.lintje-map-chart--basemap`. */
+
+.lintje-map-chart__leaflet {
+  position: absolute;
+  inset: 0;
+  /* Leaflet numbers its panes up to 700 and its controls to 1000; without a stacking
+     context the tile's own overlays would end up under the tiles. */
+  z-index: 0;
+}
+
+.lintje-map-chart--basemap .lintje-map-chart__layers,
+.lintje-map-chart--basemap .lintje-map-chart__zoom,
+.lintje-map-chart--basemap .lintje-map-chart__legend,
+.lintje-map-chart--basemap .lintje-map-chart__selection { z-index: 1; }
+
+/* --- Leaflet's own chrome ------------------------------------------------- */
+
+.lintje-map-chart--basemap .leaflet-container {
+  background: var(--color-map-water);
+  font: var(--text-small);
+}
+/* Inside: the map area clips everything outside the map. */
+.lintje-map-chart--basemap .leaflet-container:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: calc(var(--focus-width) * -1);
+}
+/* The focus ring is a stroke: an outline does not follow an SVG path. */
+.lintje-map-chart--basemap .leaflet-interactive:focus { outline: none; }
+.lintje-map-chart--basemap .leaflet-interactive:focus-visible {
+  stroke: var(--color-focus);
+  stroke-width: var(--focus-width);
+}
+
+.lintje-map-chart--basemap .leaflet-control-attribution {
+  background: var(--color-bg-surface);
+  color: var(--color-text-muted);
+  font: var(--text-small);
+  padding: 2px 6px;
+  border: 1px solid var(--color-border-default);
+  border-right: 0;
+  border-bottom: 0;
+}
+/* Underlined: the link differs from the credit around it by 1.24:1 in colour alone. */
+.lintje-map-chart--basemap .leaflet-control-attribution a { color: var(--color-link); text-decoration: underline; }
+
+/* The legend and selection panel lift over the attribution strip; the credit is a condition
+   of using the service's tiles. */
+.lintje-map-chart--basemap .lintje-map-chart__legend,
+.lintje-map-chart--basemap .lintje-map-chart__selection { bottom: calc(var(--space-2) + 20px); }
+/* On a phone the credit needs two lines. */
+.lintje-map-chart--basemap.lintje-map-chart--mobile .lintje-map-chart__legend,
+.lintje-map-chart--basemap.lintje-map-chart--mobile .lintje-map-chart__selection {
+  bottom: calc(var(--space-2) + 36px);
+}
+
+/* --- The data on top ------------------------------------------------------ */
+
+.lintje-map-leaflet__area {
+  stroke: var(--color-map-border);
+  cursor: pointer;
+  fill-opacity: .85;
+  transition: fill-opacity var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-map-leaflet__area:hover { fill-opacity: 1; stroke: var(--color-text-primary); }
+.lintje-map-leaflet__area--class-1 { fill: var(--color-chart-seq-1); }
+.lintje-map-leaflet__area--class-2 { fill: var(--color-chart-seq-2); }
+.lintje-map-leaflet__area--class-3 { fill: var(--color-chart-seq-3); }
+.lintje-map-leaflet__area--class-4 { fill: var(--color-chart-seq-4); }
+.lintje-map-leaflet__area--class-5 { fill: var(--color-chart-seq-5); }
+/* No `fill` for the missing case: the hatch pattern is an attribute, its id generated per map. */
+.lintje-map-leaflet__area--no-data { fill-opacity: 1; }
+
+.lintje-map-leaflet__flow {
+  fill: none;
+  stroke: var(--color-chart-default);
+  stroke-linecap: round;
+  opacity: .75;
+  cursor: pointer;
+  transition: opacity var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-map-leaflet__flow:hover { opacity: 1; }
+
+.lintje-map-leaflet__destination {
+  fill: var(--color-attention);
+  fill-opacity: 1;
+  stroke: var(--color-bg-surface);
+}
+
+.lintje-map-leaflet__point {
+  fill-opacity: .55;
+  stroke: var(--color-chart-default);
+  cursor: pointer;
+  transition: fill-opacity var(--dur-hover) var(--ease-in-motion);
+}
+/* No figure, no data colour (rule 15): the hatch is the fill attribute Leaflet writes, which a
+   `fill` here would cover, and the outline is the hatch's grey, as on the svg map. */
+.lintje-map-leaflet__point:not(.lintje-map-leaflet__point--no-data) { fill: var(--color-chart-default); }
+.lintje-map-leaflet__point:hover { fill-opacity: .8; }
+.lintje-map-leaflet__point--no-data { fill-opacity: 1; stroke: var(--color-chart-hatch); }
+
+/* `--lintje-series` is set through the CSSOM (`leaflet.ts`). */
+.lintje-map-leaflet__mark { cursor: pointer; }
+.lintje-map-leaflet__mark-shape {
+  fill: var(--lintje-series-fill, var(--lintje-series));
+  fill-opacity: .65;
+  stroke: var(--lintje-series);
+  stroke-width: 1;
+  transition: fill-opacity var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-map-leaflet__mark:hover .lintje-map-leaflet__mark-shape { fill-opacity: .9; }
+.lintje-map-leaflet__mark--no-data .lintje-map-leaflet__mark-shape { fill-opacity: 1; }
+.lintje-map-leaflet__mark.is-selected .lintje-map-leaflet__mark-shape {
+  stroke: var(--color-text-primary);
+  stroke-width: 2;
+  fill-opacity: .85;
+}
+/* The marker is an HTML box: the ring stands around it, 2 px off the shape, so an orange shape
+   keeps it. */
+.lintje-map-leaflet__mark:focus-visible { outline: var(--focus-width) solid var(--color-focus); outline-offset: 2px; }
+
+.lintje-map-leaflet__area.is-selected,
+.lintje-map-leaflet__point.is-selected {
+  stroke: var(--color-text-primary);
+  stroke-width: 2;
+}
+.lintje-map-leaflet__point.is-selected { fill-opacity: .85; }
+.lintje-map-leaflet__flow.is-muted { opacity: .22; }
+/* A focused flow is its ring: at full strength, also while another is chosen. */
+.lintje-map-leaflet__flow:focus-visible { opacity: 1; }
+
+/* Forced colours: the data over the tiles keeps its colours; chosen is CanvasText, focus
+   Highlight. */
+@media (forced-colors: active) {
+  .lintje-map-leaflet__area,
+  .lintje-map-leaflet__flow,
+  .lintje-map-leaflet__destination,
+  .lintje-map-leaflet__point,
+  .lintje-map-leaflet__mark-shape { forced-color-adjust: none; }
+  .lintje-map-chart--basemap .leaflet-container:focus-visible { outline-color: Highlight; }
+  .lintje-map-leaflet__area.is-selected,
+  .lintje-map-leaflet__point.is-selected,
+  .lintje-map-leaflet__mark.is-selected .lintje-map-leaflet__mark-shape { stroke: CanvasText; }
+  .lintje-map-chart--basemap .leaflet-interactive:focus-visible { stroke: Highlight; }
+  .lintje-map-leaflet__mark:focus-visible { outline-color: Highlight; }
+}

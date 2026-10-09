@@ -1,0 +1,69 @@
+:host {
+  display: block;
+}
+:host([hidden]) { display: none; }
+
+/* --- */
+
+.lintje-page-header {
+  background: var(--color-bg-title);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--space-5) var(--space-6) 18px;
+}
+/* The actions stand level with the title; under a description, level with its last line. */
+.lintje-page-header__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+}
+.lintje-page-header__row.is-described { align-items: flex-end; }
+.lintje-page-header__heading { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lintje-page-header__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.lintje-page-header__actions.is-empty { display: none; }
+.lintje-page-header__title { font: var(--text-h1); color: var(--color-text-primary); }
+/* The pencil shows while the title is pointed at or the pencil has the focus; a touch screen
+   always shows it. */
+.lintje-page-header__title-row { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.lintje-page-header__edit { flex: none; opacity: 0; transition: opacity var(--dur-hover) var(--ease-in-motion); }
+.lintje-page-header__title-row:hover .lintje-page-header__edit,
+.lintje-page-header__edit:focus-within { opacity: 1; }
+@media (hover: none) {
+  .lintje-page-header__edit { opacity: 1; }
+}
+.lintje-page-header__description {
+  margin-top: 6px;
+  max-width: var(--w-text);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+.lintje-page-header__meta {
+  margin-top: var(--space-2);
+  font: var(--text-small);
+  color: var(--color-text-muted);
+}
+.lintje-page-header__more { color: var(--color-link); font-weight: 700; text-decoration: underline; }
+
+.lintje-page-header__kicker {
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 767px) {
+  .lintje-page-header { padding: var(--space-4) var(--space-4) 14px; gap: 4px; }
+  .lintje-page-header__title { font: var(--text-h1-mobile); }
+  .lintje-page-header__meta { font: var(--text-meta); margin-top: 0; }
+}
+
+/* In the shell: flush in the content column, the trail and the title row closer together. */
+.lintje-page-header--shell { padding: 0; gap: var(--space-2); }
+.lintje-page-header--shell .lintje-page-header__heading { gap: var(--space-1); }
+.lintje-page-header--shell .lintje-page-header__title { overflow-wrap: anywhere; }
+.lintje-page-header--shell .lintje-page-header__description { margin-top: 0; }

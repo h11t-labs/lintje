@@ -1,0 +1,186 @@
+:host { display: block; min-width: 0; min-height: 100vh; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/*
+ * The page's left edge, for what pins itself to the viewport (the filter bar): the menu's width
+ * beside the page, nothing above it. Custom properties reach the slotted content.
+ */
+.lintje-shell {
+  --lintje-shell-left: 0px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: inherit;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+/* A specimen's bars (z-index 25–31) would otherwise cover the outer shell's open menus. */
+.lintje-shell.is-nested { isolation: isolate; }
+.lintje-shell--side { --lintje-shell-left: var(--w-rail); flex-direction: row; }
+@media (min-width: 1440px) {
+  .lintje-shell--side:not(.is-unpinned) { --lintje-shell-left: var(--w-nav); }
+}
+.lintje-shell--side:where(.is-phone) { --lintje-shell-left: 0px; }
+.lintje-shell__column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* "Naar de inhoud": hidden until focused. The ring is drawn inside the box (`focus-inset`):
+   outside it would lie on the theme fill (1.89:1, on Defensie 1:1); inside, its neighbour is
+   white. */
+.lintje-shell__skip {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--h-touch);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-bg-surface);
+  color: var(--color-link);
+  font: var(--text-ui);
+  text-decoration: underline;
+  box-shadow: var(--shadow-popover);
+}
+.lintje-shell__skip:not(:focus) {
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+/* The main region takes the skip link's focus; it is not a control and draws no ring. */
+.lintje-shell__main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  min-width: 0;
+}
+.lintje-shell__main:focus { outline: none; }
+/* Without content the last edge-to-edge part takes the room left: a conversation keeps its
+   question box at the bottom of a short page. */
+.lintje-shell__main.is-bare ::slotted([slot='full']) { flex: 1 0 auto; }
+
+/* The content keeps to the design system's maximum width, as the bars above it do. */
+.lintje-shell__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--grid-gutter);
+  padding: var(--page-pad-y) calc(var(--page-pad-x) + var(--page-gutter)) var(--space-10);
+}
+.lintje-shell__content[hidden] { display: none; }
+:where(.lintje-shell.is-phone) .lintje-shell__content { padding: var(--space-4) var(--space-4) var(--space-8); gap: var(--space-3); }
+
+/*
+ * Top layout. The navigation bar cannot be `sticky`: it would stick inside the header's own box
+ * and leave with it, so its slot keeps the bar's height (`--h-navbar`) and the bar is pinned
+ * once the slot has left the viewport.
+ */
+.lintje-shell__sentinel { height: 1px; margin-bottom: -1px; }
+.lintje-shell__nav { position: relative; z-index: 25; min-height: var(--h-navbar); }
+.lintje-shell__nav.is-stuck .lintje-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+/* Below 768 px the mobile header is the bar under the logo bar; its slot keeps the height. */
+.lintje-shell__mobile-bar { height: var(--h-topbar); }
+.lintje-shell__mobile-pin { position: relative; z-index: 25; }
+.lintje-shell__mobile-bar.is-stuck .lintje-shell__mobile-pin {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+.lintje-shell--top .lintje-mobile-header {
+  position: static;
+  height: var(--h-topbar);
+  align-items: center;
+  gap: var(--space-3);
+}
+.lintje-shell--top .lintje-mobile-header__actions { margin-top: 0; flex: none; }
+.lintje-shell--top .lintje-mobile-menu {
+  position: absolute;
+  inset: 100% 0 auto 0;
+  height: calc(100dvh - var(--h-topbar));
+}
+/* 16 px so two lines fit inside the 56 px bar; longer is cut with an ellipsis. */
+.lintje-mobile-header__title {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-nav-text);
+  font: var(--text-dashboard);
+  font-size: 1rem;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+/* The logo bar already shows the environment. */
+.lintje-shell--top .lintje-mobile-menu__environment { display: none; }
+
+/* The page's one h1; cut before it can push the entries out. */
+.lintje-shell__name {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 24rem;
+  margin: 0;
+  padding: 0 var(--space-5);
+  overflow: hidden;
+  color: var(--color-nav-text);
+  font: var(--text-dashboard);
+  line-height: var(--h-navbar);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Bare glyphs in a bar; on the navigation bar their ring is the on-theme one (`header.css`). */
+.lintje-shell__tool {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--h-touch);
+  height: var(--lintje-tool-height, var(--h-touch));
+  color: var(--color-nav-text);
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-shell__tool:hover { background: var(--color-nav-hover); }
+.lintje-shell__tool--text {
+  width: auto;
+  padding: 0 var(--space-3);
+  font: var(--text-ui);
+}
+.lintje-navbar .lintje-shell__tool { height: var(--h-navbar); }
+
+/* The panels hang from the bar, not the tool. They stand on the page's surface: standard ring. */
+.lintje-navbar .lintje-view,
+.lintje-navbar .lintje-share { position: static; }
+.lintje-navbar .lintje-view__popover,
+.lintje-navbar .lintje-share__popover {
+  top: 100%;
+  right: calc(var(--space-3) + var(--page-gutter));
+}
+.lintje-navbar .lintje-view__popover :focus-visible,
+.lintje-navbar .lintje-share__popover :focus-visible { outline-color: var(--color-focus); }
+
+.lintje-shell__sheet-user { border-top: 1px solid var(--color-nav-line); }
+
+@media print { .lintje-shell__skip { display: none; } }
+
+@media (forced-colors: active) {
+  .lintje-navbar .lintje-view__popover :focus-visible,
+  .lintje-navbar .lintje-share__popover :focus-visible { outline-color: Highlight; }
+}

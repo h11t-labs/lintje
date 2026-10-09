@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="nl" data-mode="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lintje — dashboard</title>
+    <!--
+      A dashboard as a host composes it: the shell with its menu, the filter bar with the
+      "Je ziet" sentence, and one overview page — page header, announcement, KPI row, charts,
+      table, map, note and explainer. Under it, every event that leaves an element. Like every
+      example it consumes the design system and adds nothing to it. No framework and no
+      bundler — the only scripts are the built bundle and the module below, so any static
+      server rooted at the repository will do:
+
+        (npm run build:elements)
+        npm run dev    # or: python3 -m http.server, at the repo root
+        open http://localhost:5180/examples/dashboard/
+
+      The shell's "Weergave" holds every setting — light or dark, where the menu stands and the
+      theme — and each one lives in the URL: `?mode=dark`, `?menu=unpinned`, `?layout=top` (the
+      navigation above the page) and `?theme=<name>` (one of the six, `rijksoverheid` by default).
+      Put one filter bar on a page: two would both write the count in the mobile header and
+      both own the sheet.
+
+      The figures come from `../_data/*.json` — plain files, fetched by `../_data/load.js`. The
+      page loads no TypeScript: the chart specs below are built here from those same files.
+    -->
+    <link rel="stylesheet" href="../../src/tokens/fonts.css" />
+    <link rel="stylesheet" href="../../dist-elements/tokens.css" />
+    <style>
+      /* Layout only: every visual pattern on this page is an element's own. */
+      body {
+        margin: 0;
+        background: var(--color-bg-page);
+        color: var(--color-text-primary);
+        font: var(--text-ui);
+        font-family: var(--font-ui);
+        font-variant-numeric: tabular-nums;
+        -webkit-font-smoothing: antialiased;
+      }
+      .demo__grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--grid-gutter);
+      }
+      /* The event log scrolls when it grows. */
+      .demo__log { max-height: 260px; overflow: auto; }
+      @media (max-width: 767.98px) {
+        .demo__grid { grid-template-columns: minmax(0, 1fr); }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- The shell holds the page: the menu beside it (or with `?layout=top` above it), the
+         filter bar edge to edge, and the content at the page's width. -->
+    <lintje-shell id="shell">
+      <!-- The filter bar pins itself under the top bar. -->
+      <lintje-filter-bar id="filters" slot="full"></lintje-filter-bar>
+      <!--
+        The dashboard page: page header, announcement, KPI row, charts, table,
+        map, note and explainer — an overview page as a host composes it.
+      -->
+      <lintje-page-header id="page-header"></lintje-page-header>
+      <lintje-announcement id="announcement"></lintje-announcement>
+      <lintje-kpi-row id="kpis"></lintje-kpi-row>
+      <div class="demo__grid">
+        <lintje-chart-tile id="chart-hours"></lintje-chart-tile>
+        <lintje-chart-tile id="chart-rejections"></lintje-chart-tile>
+      </div>
+      <lintje-data-table id="table"></lintje-data-table>
+      <div class="demo__grid">
+        <lintje-map-tile id="map"></lintje-map-tile>
+        <lintje-note id="note"></lintje-note>
+      </div>
+      <lintje-explainer id="explainer"></lintje-explainer>
+
+      <!-- What a host hears: one line per event. -->
+      <lintje-tile
+        heading="Gebeurtenissen"
+        subtitle="Elke lintje-*-gebeurtenis die een element verlaat, zoals een host ze hoort: één regel per handeling"
+      >
+        <lintje-code class="demo__log" id="log" wrap label="Gebeurtenissen"></lintje-code>
+      </lintje-tile>
+    </lintje-shell>
+
+    <script type="module">
+      // One import: the built bundle, which registers every tag.
+      const bundle = await import('../../dist-elements/lintje.js')
+
+      // The fictional figures, shared by the examples.
+      const { meta, hourly, desks, regions, breakdowns, origin, number } = await import('../_data/load.js')
+      const { themeOf, modeOf, emblem, carry, shellSettingsOf, searchWith, answerLogout } = await import(
+        '../_shared/settings.js'
+      )
+      const column = (key) => hourly.map((row) => row[key])
+      const breakdown = (name) => breakdowns.filter((row) => row.breakdown === name)
+
+      // Icons whose name comes from data — a menu entry — are fetched one file at a time.
+      bundle.setIconSource({ base: '../../dist-icons/' })
+
+      /* The event log ------------------------------------------------------- */
+      // Every event that leaves an element, under the name a host listens for.
+      const log = document.getElementById('log')
+      log.text = 'Nog niets gebeurd.'
+      const lines = []
+      const record = (name, event) => {
+        const target = event.target
+        lines.unshift(
+          `${new Date().toLocaleTimeString('nl-NL')}  ${name}  ${target.tagName.toLowerCase()}${
+            target.id ? `#${target.id}` : ''
+          }  ${event.detail === undefined ? '' : JSON.stringify(event.detail)}`,
+        )
+        log.text = lines.slice(0, 40).join('\n')
+      }
+      for (const name of ['lintje-navigate', 'lintje-values-change', 'lintje-filters-open-change', 'lintje-sort-change',
+                          'lintje-row-click', 'lintje-checked-change', 'lintje-mark-select', 'lintje-layer-change',
+                          'lintje-tile-expand', 'lintje-tile-download', 'lintje-close', 'lintje-download-csv', 'lintje-download-png',
+                          'lintje-action', 'lintje-suggestion-select', 'lintje-message-edit', 'lintje-answer-retry',
+                          'lintje-answer-rate', 'lintje-strip-change', 'lintje-message-send', 'lintje-answer-stop',
+                          'lintje-sources-change', 'lintje-draft-change', 'lintje-view-change', 'lintje-logout']) {
+        document.addEventListener(name, (event) => record(name, event))
+      }
+
+      /* The shell ----------------------------------------------------------- */
+      // A menu as a host builds it, with the icons named by their file: every one of them from
+      // the house set in `dist-icons/`. `page` is this page's own route; an entry without
+      // `page` or `href` has no page yet.
+      const MENU = [
+        { label: 'Overzicht', icon: 'functioneel-home', page: '/' },
+        // "Vraag het de data" is the chat example, a page of this same fictional dashboard.
+        { label: 'Vraag het de data', icon: 'communicatie-tekstballonnen', href: '../chat/' },
+        {
+          label: 'Vergunningen',
+          links: [
+            { label: 'Aanvragen', icon: 'op-kantoor-document-met-lijnen-en-lint', page: '/requests', metric: { value: '148.230', label: 'afgehandeld vandaag' } },
+            { label: 'Wachttijden', icon: 'functioneel-klok', metric: { value: '11 min', label: 'gemiddeld · norm 15' } },
+            { label: 'Afwijzingen', icon: 'functioneel-kruis', metric: { value: '37', label: 'vandaag · ▲ 6' } },
+            { label: 'Buitenland', icon: 'functioneel-locatiemarker', metric: { value: number(origin.reduce((sum, place) => sum + place.value, 0)), label: 'aanvragen uit het buitenland' }, badge: { value: 3, tone: 'action' } },
+            { label: 'Bezetting', icon: 'personen-groep-5-personen', metric: { value: '92%', label: 'ingezet / beschikbaar' }, badge: { value: 'NIEUW', tone: 'new' } },
+          ],
+        },
+        {
+          label: 'Overig',
+          links: [
+            { label: 'Toezicht en handhaving', icon: 'functioneel-klok', metric: { value: '3', label: 'meldingen 24 u' } },
+            { label: 'Bezwaar en beroep', icon: 'op-kantoor-document-met-golvende-lijnen-en-lint', noAccess: true },
+            { label: 'Capaciteit en inzet', icon: 'op-kantoor-grafiek', metric: { value: '5,1%', label: 'verzuim' } },
+          ],
+        },
+        {
+          label: 'Beheer',
+          links: [
+            { label: 'Operationele monitoring', icon: 'symbolen-en-abstract-opsomming', page: '/monitoring' },
+            { label: 'Aanlevering en datakwaliteit', icon: 'computer-en-internet-database', page: '/data-quality' },
+          ],
+        },
+        // Not the dashboard's own: the way back to the other examples.
+        {
+          label: 'Lintje',
+          links: [
+            { label: 'Startpagina', icon: 'functioneel-menu', href: '../' },
+            { label: 'Stijlgids', icon: 'functioneel-tegelweergave', href: '../styleguide/' },
+          ],
+        },
+      ]
+
+      /** The URL is the filter state: the host writes it back. The route is the page's own in
+          the menu, not the address's, so "Overzicht" is the active entry. */
+      let route = '/'
+      let search = location.search
+
+      /** A route of this page is a link to this address with the route as its hash; a page of
+          another example carries the reader's settings, so it opens the way this one looks. */
+      const link = ({ page, href, ...entry }) => ({
+        ...entry,
+        href: page ? `${location.pathname}${search}#${page}` : href && carry(href, search),
+        active: page === route,
+      })
+      const navigation = () =>
+        MENU.map((entry) => (entry.links ? { ...entry, links: entry.links.map(link) } : link(entry)))
+
+      const shell = document.getElementById('shell')
+      answerLogout(shell)
+      const pageHeader = document.getElementById('page-header')
+      const filterBar = document.getElementById('filters')
+
+      const renderLocation = () => {
+        shell.data = {
+          name: 'Dashboard Vergunningen',
+          // The theme's emblem, by name: the ribbon, with the organisation's name as text.
+          // `logo:` (a URL, drawn as an image) is still there for a host with its own file.
+          emblem: emblem(themeOf(search)),
+          home: `${location.pathname}${search}#/`,
+          navigation: navigation(),
+          // "Weergave" offers where the menu stands and the theme too.
+          ...shellSettingsOf(search, { layoutChoice: true }),
+          share: true,
+          user: { initials: 'JV', name: 'J. Vermeer', role: 'Analist · Dienst Vergunningen' },
+          pageName: 'Overzicht',
+        }
+        // The bar's values are the query's: this is the host's answer to a change.
+        filterBar.data = { filters: filters() }
+        applySettings()
+      }
+
+      /* The filters ---------------------------------------------------------- */
+      // Declared once, without a value: the value of each is read from the query, under
+      // the filter's own key. The figures below stay the same fictional figures whatever
+      // the filters say — there is no backend to ask; a host fetches with these values
+      // and sets the tiles' `data` again.
+      const FILTERS = [
+        {
+          key: 'region', label: 'Regio', kind: 'select', default: 'alle',
+          options: [{ value: 'alle', label: 'Alle regio’s' },
+                    ...regions.map((region) => ({ value: region.id, label: region.name }))],
+        },
+        {
+          key: 'kind', label: 'Soort loket', kind: 'segmented', default: 'alle',
+          options: [{ value: 'alle', label: 'Alle' }, { value: 'counter', label: 'Balie' },
+                    { value: 'service', label: 'Servicepunt' }, { value: 'mobile', label: 'Mobiel' }],
+        },
+        {
+          key: 'period', label: 'Periode', kind: 'date-range',
+          default: { from: '2026-09-01', to: '2026-09-08' },
+          max: '2026-09-08',
+        },
+      ]
+
+      // A value as the query holds it: an option's own string, and a date range as
+      // `from..to` in ISO dates. What the query does not hold, or holds wrongly — an
+      // unknown option, a date that does not exist, a range past `max` — is the default.
+      const isDate = (text) => {
+        const date = new Date(`${text}T00:00:00Z`)
+        return /^\d{4}-\d{2}-\d{2}$/.test(text) && !Number.isNaN(date.getTime()) && date.toISOString().startsWith(text)
+      }
+      const toParam = (filter, value) =>
+        filter.kind === 'date-range' ? `${value.from}..${value.to}` : value
+      const fromParam = (filter, text) => {
+        if (filter.kind === 'date-range') {
+          const [from, to, ...rest] = (text ?? '').split('..')
+          const valid = rest.length === 0 && isDate(from) && isDate(to) && from <= to && to <= filter.max
+          return valid ? { from, to } : filter.default
+        }
+        return filter.options.some((option) => option.value === text) ? text : filter.default
+      }
+      const filters = () => {
+        const params = new URLSearchParams(search)
+        return FILTERS.map((filter) => ({ ...filter, value: fromParam(filter, params.get(filter.key)) }))
+      }
+
+      /* A navigation, setting or filter change: write the URL and feed it back --- */
+      // Heard on the bar itself: an input with a `name` sends the same event.
+      filterBar.addEventListener('lintje-values-change', (event) => {
+        const params = new URLSearchParams(search)
+        for (const filter of FILTERS) {
+          if (!(filter.key in event.detail)) continue
+          const text = toParam(filter, event.detail[filter.key])
+          // A default is not written: a link without the key follows the default.
+          if (text === toParam(filter, filter.default)) params.delete(filter.key)
+          else params.set(filter.key, text)
+        }
+        const query = params.toString()
+        setSearch(query ? `?${query}` : '')
+      })
+
+      // "Weergave" and the pin: the shell asks, the URL holds the answer.
+      shell.addEventListener('lintje-view-change', (event) => setSearch(searchWith(search, event.detail)))
+
+      // A route of this page is this page's to draw; any other link the browser follows.
+      shell.addEventListener('lintje-navigate', (event) => {
+        const hash = new URL(event.detail.href, location.href).hash
+        if (!hash.startsWith('#/')) return
+        event.preventDefault()
+        route = hash.slice(1)
+        renderLocation()
+      })
+
+      /* Mode, menu and theme live in the query, as they do in the app */
+      // The page puts mode and theme on <html>, so the elements *and* the page's own
+      // content follow.
+      const root = document.documentElement
+
+      function applySettings() {
+        root.dataset.mode = modeOf(search)
+        root.dataset.theme = themeOf(search)
+      }
+
+      function setSearch(next) {
+        search = next
+        history.replaceState(null, '', `${location.pathname}${search}`)
+        renderLocation()
+      }
+
+      renderLocation()
+
+      /* The page ------------------------------------------------------------ */
+      const kpi = meta.kpi
+      pageHeader.data = {
+        kicker: 'Dashboard Vergunningen',
+        title: 'Overzicht',
+        description:
+          'Aanvragen, wachttijden en afwijzingen bij de loketten, per regio en loket.',
+        asOf: `${meta.as_of.date} ${meta.as_of.time}`,
+        source: meta.as_of.source,
+        more: { href: '#explainer' },
+      }
+
+      document.getElementById('announcement').data = {
+        kind: 'warning',
+        title: 'Let op',
+        text: `Twee loketten leveren vertraagd aan: ${kpi.coverage.overdue.join(' en ')}. De cijfers van vandaag zijn voor die loketten onvolledig.`,
+        meta: `Gemeld om ${meta.as_of.time}`,
+      }
+
+      document.getElementById('kpis').data = {
+        kpis: [
+          {
+            label: 'Afgehandelde aanvragen', variable: 'sky-blue',
+            value: number(kpi.requests.value),
+            trend: { direction: 'up', sentence: 'Gestegen ten opzichte van vorige week' },
+            detail: `Vorige week ${number(kpi.requests.previous)} (+${kpi.requests.change}%)`,
+          },
+          {
+            label: 'Gemiddelde wachttijd', variable: 'dark-yellow',
+            value: `${kpi.wait_time.value} min`,
+            trend: { direction: 'down', sentence: 'Gedaald ten opzichte van gisteren', inverted: true },
+            detail: `Norm ${kpi.wait_time.threshold} min · piek ${kpi.wait_time.peak} min om ${kpi.wait_time.peak_time}`,
+          },
+          {
+            label: 'Afwijzingen', variable: 'red', value: kpi.rejections.value,
+            trend: { direction: 'up', sentence: 'Gestegen ten opzichte van gisteren', inverted: true },
+            detail: `Gisteren ${kpi.rejections.yesterday} · ${kpi.rejections.in_progress} nog in behandeling`,
+          },
+          {
+            label: 'Bezetting loketten', variable: 'green', value: `${kpi.staffing.value}%`,
+            trend: { direction: 'flat', sentence: 'Op sterkte, gelijk aan gisteren' },
+            detail: `${kpi.staffing.staffed} van ${kpi.staffing.total} posities bezet`,
+          },
+          {
+            label: 'Loketten met complete gegevens', variable: 'coverage',
+            value: kpi.coverage.complete, suffix: `van ${kpi.coverage.total}`,
+            note: 'Twee loketten leveren vertraagd aan',
+            detail: `${kpi.coverage.overdue.join(', ')} · zie Let op`,
+          },
+        ],
+      }
+
+      document.getElementById('chart-hours').data = {
+        chart: {
+          kind: 'line',
+          labels: column('hour'),
+          unit: 'aanvragen',
+          axisTitle: 'Afgehandelde aanvragen per uur',
+          asOfIndex: meta.national_complete_until,
+          asOfLabel: meta.as_of.time,
+          pendingHours: meta.national_pending_hours,
+          series: [
+            { label: 'Vandaag', values: column('requests'), area: true },
+            { label: 'Vorige week', values: column('requests_last_week'), comparison: true },
+          ],
+        },
+        description:
+          'Aanvragen per uur, landelijk, vandaag. De laatste twee uren zijn nog niet compleet en staan gearceerd.',
+        title: 'Aanvragen per uur',
+        subtitle: 'Aanvragen per uur · vandaag · gearceerd = nog niet compleet',
+        footnote: `Bron: ${meta.as_of.source} · waarde van ${meta.as_of.time}`,
+        expandable: true,
+        download: { filename: 'aanvragen-per-uur' },
+      }
+
+      document.getElementById('chart-rejections').data = {
+        chart: {
+          kind: 'pie',
+          donut: true,
+          size: 180,
+          labelHeader: 'Grond',
+          legendTable: true,
+          segments: breakdown('rejection_grounds').map((row) => ({ label: row.label, value: row.value })),
+        },
+        description:
+          'Afwijzingen naar grond: onvolledig dossier 14, niet aan voorwaarden voldaan 9, termijn verstreken 6, onjuiste gegevens 5, overig 3.',
+        title: 'Afwijzingen naar grond',
+        subtitle: `Vandaag · ${kpi.rejections.value} afwijzingen`,
+        footnote: `Bron: Dossierregistratie · ${kpi.rejections.in_progress} nog in behandeling`,
+        expandable: true,
+        download: { filename: 'afwijzingen-naar-grond' },
+      }
+
+      const tableData = {
+        caption: 'Loketten met aanvragen, wachttijd, afwijzingen en gegevensstatus',
+        title: 'Loketten',
+        subtitle: 'Vandaag · klik op een rij voor het loket',
+        mobileSubtitle: 'Vandaag · tik op een rij',
+        columns: [
+          { key: 'name', header: 'Loket' },
+          { key: 'requests', header: 'Aanvragen', align: 'right' },
+          {
+            key: 'waitTime', header: 'Wachttijd (min)', align: 'right', mobileMeasure: true,
+            threshold: {
+              value: meta.thresholds.wait_time_threshold,
+              caution: meta.thresholds.wait_time_caution,
+            },
+          },
+          { key: 'change', header: 'T.o.v. vorige week', align: 'right', format: 'change' },
+          { key: 'rejections', header: 'Afwijzingen', align: 'right' },
+          { key: 'dataStatus', header: 'Gegevens', format: 'status' },
+        ],
+        rows: desks.map((point) => ({
+          id: point.id,
+          name: point.name,
+          requests: point.requests,
+          waitTime: point.wait_time,
+          change: point.change,
+          rejections: point.rejections,
+          dataStatus: point.data_status,
+        })),
+        rowKey: 'id',
+        defaultSort: { key: 'waitTime', direction: 'desc' },
+        mobileSublineTemplate: '{requests} aanvragen',
+        clickable: true,
+        pageSize: 10,
+        expandable: true,
+        download: { filename: 'loketten' },
+      }
+      document.getElementById('table').data = tableData
+
+      // "Overig" has no coordinates in the demo data: it counts towards the scale
+      // and draws no flow.
+      const mapData = {
+        variant: 'flows',
+        geo: 'world',
+        unit: 'aanvragen',
+        height: 320,
+        destination: { lon: meta.head_office.lon, lat: meta.head_office.lat, label: meta.head_office.label },
+        values: origin.map((place) => ({
+          id: place.id ?? 'other',
+          label: place.label,
+          value: place.value,
+          detail: `${place.files} dossiers`,
+          lon: place.lon ?? undefined,
+          lat: place.lat ?? undefined,
+        })),
+        description:
+          'Aanvragen uit het buitenland, van de woonplaats van de aanvrager naar het hoofdkantoor in Den Haag; de lijndikte is het aantal aanvragen.',
+        title: 'Aanvragen uit het buitenland',
+        subtitle: 'Vandaag · naar woonplaats van de aanvrager',
+        footnote: `Bron: ${meta.as_of.source}`,
+      }
+      document.getElementById('map').data = mapData
+
+      document.getElementById('note').data = {
+        title: 'Duiding van de analist',
+        date: meta.analyst_note.date,
+        text: meta.analyst_note.text,
+        author: meta.analyst_note.author,
+      }
+
+      document.getElementById('explainer').data = {
+        title: 'Hoe deze cijfers worden berekend',
+        items: meta.calculation_notes.map((note) => ({
+          term: note.term,
+          description: note.description,
+        })),
+      }
+    </script>
+  </body>
+</html>

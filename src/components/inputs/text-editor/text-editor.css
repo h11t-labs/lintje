@@ -1,0 +1,97 @@
+/* The text editor: a frame with the toolbar on top and the editing surface under it. */
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+
+/* --- */
+
+/* 1 px field border; with the focus in the surface the ring goes round the whole frame. */
+.lintje-text-editor {
+  display: flex; flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--color-border-field);
+  background: var(--color-bg-surface);
+}
+.lintje-text-editor:has(.lintje-text-editor__surface:focus-visible) {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+.lintje-text-editor.is-error { border: 2px solid var(--color-error); }
+/* Disabled wins over error: after it, the whole border back to 1 px strong. */
+.lintje-text-editor.is-disabled { border: 1px solid var(--color-border-strong); }
+
+/* --- The toolbar --------------------------------------------------------- */
+/* The row gap keeps the buttons' hit areas from overlapping. */
+.lintje-text-editor__toolbar {
+  display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-1);
+  padding: var(--space-1);
+  background: var(--color-bg-page);
+  border-bottom: 1px solid var(--color-border-default);
+}
+/* A transparent hit area, above and below only, reaches the target height. */
+.lintje-text-editor__tool {
+  position: relative;
+  flex: none;
+  width: var(--h-icon-button); height: var(--h-icon-button);
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-text-editor__tool::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+.lintje-text-editor__tool--bold,
+.lintje-text-editor__tool--heading { font-weight: 700; }
+.lintje-text-editor__tool--italic { font-style: italic; }
+/* The text fallback while an icon has no file. */
+.lintje-text-editor__tool--word {
+  width: auto; min-width: var(--h-icon-button);
+  padding: 0 var(--space-2);
+  font-size: 0.875rem; font-weight: 700;
+}
+.lintje-text-editor__tool:hover:not(:disabled):not(.is-idle) { background: var(--color-bg-subtle); }
+/* The border keeps an edge in dark. */
+.lintje-text-editor__tool.is-pressed {
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  border-color: var(--color-action-primary-border);
+}
+.lintje-text-editor__tool.is-pressed:hover:not(:disabled) { background: var(--color-action-primary); }
+.lintje-text-editor__tool.is-idle,
+.lintje-text-editor__tool:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
+
+/* --- The surface --------------------------------------------------------- */
+.lintje-text-editor__surface {
+  min-height: 132px;
+  padding: var(--space-3);
+  overflow-wrap: anywhere;
+}
+/* The ring is the frame's, not the surface's. */
+.lintje-text-editor__surface:focus-visible { outline: none; }
+.lintje-text-editor.is-disabled .lintje-text-editor__surface {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+/* The prose sheet colours its headings itself. */
+.lintje-text-editor.is-disabled .lintje-text-editor__surface * { color: inherit; }
+
+/* --- The link field ------------------------------------------------------ */
+.lintje-text-editor__link { width: 280px; max-width: 100%; padding: var(--space-4); }
+
+/* Below 768 px the toolbar scrolls sideways; at 48 px high the hit areas stay whole. */
+@media (max-width: 767px) {
+  .lintje-text-editor__toolbar { flex-wrap: nowrap; overflow-x: auto; }
+}
+
+/* Forced colours drop the fill: the border turns Highlight, 2 px inside the fixed box. */
+@media (forced-colors: active) {
+  .lintje-text-editor__tool.is-pressed { border: 2px solid Highlight; }
+}

@@ -1,0 +1,75 @@
+{
+  "description": "All data is fictional demo data; not operational information.",
+  "as_of": {
+    "date": "di 8 sep 2026",
+    "time": "08:15",
+    "source": "Zaaksysteem (ZS)"
+  },
+  "kpi": {
+    "requests": {
+      "value": 148230,
+      "previous": 142260,
+      "change": 4.2
+    },
+    "wait_time": {
+      "value": 11,
+      "threshold": 15,
+      "peak": 24,
+      "peak_time": "07:20"
+    },
+    "rejections": {
+      "value": 37,
+      "yesterday": 31,
+      "in_progress": 12
+    },
+    "staffing": {
+      "value": 92,
+      "staffed": 184,
+      "total": 200
+    },
+    "coverage": {
+      "complete": 13,
+      "total": 15,
+      "overdue": [
+        "Middelburg",
+        "Leeuwarden"
+      ]
+    }
+  },
+  "thresholds": {
+    "wait_time_threshold": 15,
+    "wait_time_caution": 12
+  },
+  "national_complete_until": 21,
+  "national_pending_hours": 2,
+  "desk_complete_until": 7,
+  "desk_pending_hours": 16,
+  "desk_day_scale": 2200,
+  "desk_as_of_label": "07:00",
+  "total_desks": 15,
+  "head_office": {
+    "id": "head-office",
+    "label": "Den Haag",
+    "lon": 4.3007,
+    "lat": 52.0705
+  },
+  "analyst_note": {
+    "date": "7 sept · 07:50",
+    "text": "De ochtendpiek bij Loket Amsterdam Centrum viel samen met de sluitingsdatum van twee regelingen. De bezetting is om 06:50 met vier balies verhoogd; de wachttijd zakte binnen een half uur onder de norm. Rotterdam en Den Haag liepen tegelijk op, maar bleven onder de norm. Voor de middagpiek staan in Amsterdam zes extra balies gepland.",
+    "author": "Afdeling Analyse"
+  },
+  "calculation_notes": [
+    {
+      "term": "Aanvragen",
+      "description": "aantal aanvragen dat in het zaaksysteem is afgehandeld, per kalenderdag. Ingetrokken aanvragen tellen niet mee."
+    },
+    {
+      "term": "Wachttijd",
+      "description": "tijd tussen aanmelden bij het loket en het begin van het gesprek, gemeten per loket; het uurgemiddelde is gewogen naar aantal aanvragen."
+    },
+    {
+      "term": "Complete gegevens",
+      "description": "een loket telt als compleet wanneer alle bronsystemen binnen 30 minuten na het uur hebben aangeleverd."
+    }
+  ]
+}

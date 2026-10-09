@@ -1,0 +1,178 @@
+/* The action is a `lintje-menu-button`; here it is only shown or hidden, never restyled. */
+:host { display: block; min-width: 0; container-type: inline-size; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-list {
+  list-style: none; margin: 0; padding: 0;
+  border-top: 1px solid var(--color-border-default);
+  font: var(--text-ui);
+}
+
+.lintje-list__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: 'main facts actions';
+  align-items: center;
+  column-gap: var(--space-3);
+  min-height: var(--h-target);
+  padding: 10px var(--lintje-inset, var(--space-3));
+  border-bottom: 1px solid var(--color-border-default);
+  cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-list__row.has-icon {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: 'icon main facts actions';
+}
+/* Renaming in place: the field and its two buttons take the whole row. */
+.lintje-list__row.is-renaming { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'main'; }
+.lintje-list__rename { grid-area: main; display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+/* The field is as low as the buttons under it: a name in a row, not a form. */
+.lintje-list__rename lintje-text-input { --h-control: var(--h-button-compact); }
+.lintje-list__rename-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
+/* A data colour along the row says whose it is; the title beside it names it. */
+.lintje-list__row.has-swatch {
+  position: relative;
+  padding-left: calc(var(--lintje-inset, var(--space-3)) + var(--space-2));
+}
+.lintje-list__row.has-swatch::before {
+  content: '';
+  position: absolute;
+  top: var(--space-2);
+  bottom: var(--space-2);
+  left: 0;
+  width: var(--space-1);
+  background: var(--lintje-swatch);
+}
+.lintje-list__row:hover { background: var(--color-bg-subtle); }
+.lintje-list__row.is-static { cursor: auto; }
+.lintje-list__row.is-static:hover { background: none; }
+.lintje-list__row.is-selected {
+  background: var(--color-bg-selected);
+  box-shadow: inset 4px 0 0 var(--color-accent-line);
+}
+/* The ring goes inside the whole row: the outside would be cut off by the list's container. */
+.lintje-list__row:has(.lintje-list__title:focus-visible) {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: calc(var(--focus-width) * -1);
+}
+.lintje-list__title:focus-visible { outline: none; }
+
+.lintje-list__main {
+  grid-area: main;
+  display: flex; flex-direction: column;
+  min-width: 0;
+}
+/* One line, so every row is as high as the next, where a pointer finds the whole title in the
+   tooltip; below 768 px, without hover and under the keyboard's focus it wraps. Dark, not
+   the link colour: the row is the target, and a column of blue reads as a column of links. */
+.lintje-list__title {
+  align-self: flex-start;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  font: var(--text-ui);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-align: left;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* A tooltip needs a pointer: with the keyboard on the title, or the focus in a row whose title is
+   no stop, the whole title stands in it. */
+.lintje-list__row:has(.lintje-list__title:focus-visible) .lintje-list__title,
+.lintje-list__row.is-static:focus-within .lintje-list__title { white-space: normal; overflow-wrap: anywhere; }
+.lintje-list__row:not(.is-static):hover .lintje-list__title,
+.lintje-list__title[href]:hover { text-decoration: underline; }
+.lintje-list__sub { font: var(--text-small); color: var(--color-text-muted); }
+.lintje-list__progress { margin-top: var(--space-1); }
+.lintje-list__icon { grid-area: icon; color: var(--color-text-muted); }
+.lintje-list__facts { grid-area: facts; display: flex; align-items: center; gap: var(--space-3); }
+.lintje-list__meta {
+  font: var(--text-meta);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.lintje-list__actions { grid-area: actions; display: flex; align-items: center; gap: var(--space-1); }
+.lintje-list__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--h-target);
+  font: var(--text-ui);
+  font-weight: 700;
+  color: var(--color-link);
+  text-decoration: underline;
+}
+.lintje-list__link:hover { color: var(--color-link-hover); }
+
+/* A run's heading: the moment its rows share. The list under it draws no second top line. */
+.lintje-list__group {
+  padding: var(--space-2) var(--lintje-inset, var(--space-3));
+  border-top: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--color-border-default);
+  background: var(--color-bg-subtle);
+  font: var(--text-meta);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+.lintje-list__group + .lintje-list,
+.lintje-list + .lintje-list__group,
+.lintje-list + .lintje-list { border-top: 0; }
+
+@media (hover: hover) {
+  .lintje-list__action { opacity: 0; transition: opacity var(--dur-hover) var(--ease-in-motion); }
+  .lintje-list__row:hover .lintje-list__action,
+  .lintje-list__row:focus-within .lintje-list__action,
+  .lintje-list__action[open] { opacity: 1; }
+}
+
+@media (max-width: 767px) {
+  .lintje-list__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'main actions' 'facts actions';
+  }
+  .lintje-list__row.has-icon {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'icon main actions' 'icon facts actions';
+  }
+  .lintje-list__icon { align-self: start; }
+  .lintje-list__facts { flex-wrap: wrap; gap: var(--space-1) var(--space-2); margin-top: var(--space-2); }
+  .lintje-list__meta { white-space: normal; }
+  .lintje-list__action { opacity: 1; }
+}
+
+/* A narrow column beside other content: the same two lines as on a phone. */
+@container (max-width: 32rem) {
+  .lintje-list__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'main actions' 'facts actions';
+  }
+  .lintje-list__row.has-icon {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'icon main actions' 'icon facts actions';
+  }
+  .lintje-list__icon { align-self: start; }
+  .lintje-list__facts { flex-wrap: wrap; gap: var(--space-1) var(--space-2); margin-top: var(--space-2); }
+  .lintje-list__meta { white-space: normal; }
+}
+
+/* Below 768 px (set from script) and without hover there is no tooltip: the title wraps. */
+.lintje-list__row.is-narrow .lintje-list__title { white-space: normal; overflow-wrap: anywhere; }
+@media (hover: none) {
+  .lintje-list__title { white-space: normal; overflow-wrap: anywhere; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lintje-list__row,
+  .lintje-list__action { transition: none; }
+}
+
+/* Forced colours: the fill and inset bar are dropped. The bar becomes a real border (Canvas at
+   rest, Highlight when chosen), so choosing a row moves nothing. */
+@media (forced-colors: active) {
+  .lintje-list__row { border-left: 4px solid Canvas; }
+  .lintje-list__row.is-selected { border-left-color: Highlight; }
+}

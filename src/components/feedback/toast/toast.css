@@ -1,0 +1,57 @@
+:host {
+  display: contents;
+}
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-toast {
+  position: fixed;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  min-width: 320px;
+  max-width: 480px;
+  font: var(--text-ui);
+  box-shadow: var(--shadow-popover);
+  animation: lintje-rise var(--dur-toast) var(--ease-in-motion);
+}
+.lintje-toast--ok   { background: var(--color-success-bg); color: var(--color-text-primary); }
+.lintje-toast--error { background: var(--color-error-bg);   color: var(--color-text-primary); }
+
+.lintje-toast__icon { flex: none; display: flex; }
+.lintje-toast--ok    .lintje-toast__icon { color: var(--color-success-line); }
+.lintje-toast--error .lintje-toast__icon { color: var(--color-error-line); }
+
+.lintje-toast__text { flex: 1; }
+.lintje-toast__action { position: relative; font-weight: 700; text-decoration: underline; color: var(--color-link-on-status); flex: none; }
+/* The close and the action reach the target height through a transparent hit area; the gap
+   between them keeps the hit areas apart. */
+.lintje-toast__close {
+  position: relative;
+  width: var(--h-icon-button); height: var(--h-icon-button);
+  color: var(--color-text-muted);
+  display: flex; align-items: center; justify-content: center; flex: none;
+}
+.lintje-toast__close::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2));
+}
+.lintje-toast__action::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+
+@media (max-width: 767px) {
+  .lintje-toast { left: var(--space-4); right: var(--space-4); bottom: var(--space-4); min-width: 0; max-width: none; }
+}
+
+/* Forced colours: the fill and shadow are dropped, so the toast takes a CanvasText line. */
+@media (forced-colors: active) {
+  .lintje-toast { outline: 1px solid CanvasText; outline-offset: -1px; }
+}

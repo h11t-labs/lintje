@@ -1,0 +1,26 @@
+:host { display: inline-flex; flex-direction: column; align-items: center; gap: var(--space-3); }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* The padding is the code's quiet zone, light in both modes. The square takes the element's
+   width, at least 12.5rem; the image's own size does not count toward it. */
+.lintje-qr-code__zone {
+  width: 100%; min-width: 12.5rem; aspect-ratio: 1;
+  contain: inline-size;
+  padding: var(--space-6);
+  background: var(--color-qr-bg);
+  border: 1px solid var(--color-border-default);
+  forced-color-adjust: none;
+}
+.lintje-qr-code__image { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+/* Stands where the code would, on the same light zone in both modes. */
+.lintje-qr-code__hint {
+  display: grid; place-items: center; height: 100%; margin: 0;
+  text-align: center; color: var(--color-text-on-light-fill);
+}
+
+/* One cell as wide as the longer label, so the width holds when the label changes. */
+.lintje-qr-code__labels { display: inline-grid; }
+.lintje-qr-code__label { grid-area: 1 / 1; text-align: center; }
+.lintje-qr-code__label.is-hidden { visibility: hidden; }

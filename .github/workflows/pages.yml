@@ -1,0 +1,52 @@
+# Publishes the examples and the style guide on GitHub Pages when a version tag (v0.2.0) is pushed,
+# so the site shows a released version; "Run workflow" publishes main by hand. The site mirrors the
+# repository root, because every page reaches back to dist-elements/, dist-icons/ and
+# src/tokens/fonts.css by a relative path, and fonts.css in turn to the fonts in node_modules/.
+name: Pages
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build:elements
+      - name: Assemble the site
+        run: |
+          mkdir -p _site/src/tokens _site/node_modules/@nl-rvo/assets
+          cp -r examples dist-elements dist-icons _site/
+          cp src/tokens/fonts.css _site/src/tokens/
+          cp -r node_modules/@nl-rvo/assets/fonts _site/node_modules/@nl-rvo/assets/
+          printf '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=examples/"><title>Lintje</title><a href="examples/">Lintje</a>\n' > _site/index.html
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

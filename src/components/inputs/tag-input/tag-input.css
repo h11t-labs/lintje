@@ -1,0 +1,111 @@
+/* The keyword field: chips and the typing part in one box that grows in height. */
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+/* Below 768 px: the touch height and the full width, as `stacked`. */
+@media (max-width: 767px) {
+  :host {
+    width: 100%;
+    --h-control: var(--h-touch);
+  }
+}
+
+/* --- */
+
+/* The padding centres a chip in the control height; wrapped chips grow the box. */
+.lintje-tag-input {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 6px;
+  min-height: var(--h-control);
+  padding: calc((var(--h-control) - var(--h-chip-field)) / 2 - 1px) var(--space-2);
+  border: 1px solid var(--color-border-field);
+  border-radius: var(--radius);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+}
+/* The ring is around the whole field; a chip draws it around itself when its cross has the focus. */
+.lintje-tag-input:has(.lintje-tag-input__input:focus-visible),
+.lintje-tag-input__chip:has(.lintje-tag-input__remove:focus-visible) {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+.lintje-tag-input__input:focus-visible,
+.lintje-tag-input__remove:focus-visible { outline: none; }
+/* The padding gives back the pixel the 2 px error border takes. */
+.lintje-tag-input.is-error {
+  border: 2px solid var(--color-error);
+  padding: calc((var(--h-control) - var(--h-chip-field)) / 2 - 2px) calc(var(--space-2) - 1px);
+}
+/* Disabled wins over error: placed after it. */
+.lintje-tag-input.is-disabled {
+  border: 1px solid var(--color-border-strong);
+  padding: calc((var(--h-control) - var(--h-chip-field)) / 2 - 1px) var(--space-2);
+  background: var(--color-bg-subtle);
+  cursor: not-allowed;
+}
+
+.lintje-tag-input__chips { display: contents; }
+.lintje-tag-input__item { display: flex; min-width: 0; }
+.lintje-tag-input__chip {
+  display: inline-flex; align-items: center;
+  min-width: 0;
+  height: var(--h-chip-field);
+  padding: 0 0 0 var(--space-2);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-default);
+  font-size: 0.875rem; white-space: nowrap;
+}
+.lintje-tag-input.is-disabled .lintje-tag-input__chip { padding-right: var(--space-2); }
+/* A word typed twice flashes its chip. */
+.lintje-tag-input__chip.is-flash { border-color: var(--color-accent-line); }
+.lintje-tag-input.is-disabled .lintje-tag-input__chip { color: var(--color-text-disabled); }
+/* A transparent hit area, above and below only, reaches the target height. */
+.lintje-tag-input__remove {
+  position: relative;
+  flex: none;
+  width: var(--space-6); align-self: stretch;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--color-text-muted);
+}
+.lintje-tag-input__remove:hover { color: var(--color-text-primary); }
+.lintje-tag-input__remove::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((var(--h-chip-field) - var(--h-target)) / 2)) 0;
+}
+
+.lintje-tag-input__input {
+  flex: 1 1 60px; min-width: 0;
+  height: var(--h-chip-field);
+  padding: 0 var(--space-1);
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 1rem;
+}
+.lintje-tag-input__input::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+.lintje-tag-input__input:disabled { cursor: not-allowed; }
+
+.lintje-tag-input__list {
+  max-height: calc(7 * var(--h-option) + var(--space-2));
+  overflow-y: auto;
+  padding: var(--space-1) 0;
+  font: var(--text-ui);
+}
+.lintje-tag-input__option {
+  display: flex; align-items: center;
+  min-height: var(--h-option);
+  padding: 0 14px;
+  cursor: pointer;
+}
+.lintje-tag-input__option:hover,
+.lintje-tag-input__option.is-active { background: var(--color-bg-subtle); }
+/* The option the keys stand on: the fill alone is about 1.1:1, so the focus ring inside the row. */
+.lintje-tag-input__option.is-active {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: calc(var(--focus-width) * -1);
+}
+
+/* Forced colours drop the fill: the row takes an edge inside, keeping its size. */
+@media (forced-colors: active) {
+  .lintje-tag-input__option.is-active { outline: 1px solid CanvasText; outline-offset: -1px; }
+}

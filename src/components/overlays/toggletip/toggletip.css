@@ -1,0 +1,30 @@
+/* The trigger is the icon button's drawing (`icon-button.css`); what stands here is the popover. */
+:host {
+  display: inline-flex;
+  vertical-align: middle;
+}
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* Closed, the `role="status"` region is empty and `.visually-hidden`, never `display: none`:
+   a region that appeared together with its text would not be announced. */
+
+/* Fixed to the viewport, so a scrolling tile or table cannot cut it off. It stands on the
+   popover's layer (85): above a modal's or a drawer's scrim, under the tooltip (90). */
+.lintje-toggletip__popover.is-open {
+  position: fixed;
+  z-index: 85;
+  min-width: min(12rem, calc(100vw - 2 * var(--space-2)));
+  max-width: min(20rem, calc(100vw - 2 * var(--space-2)));
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-popover);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-popover);
+  font: var(--text-small);
+  color: var(--color-text-primary);
+  text-align: start;
+  white-space: normal;
+  animation: lintje-popover-in var(--dur-popover) var(--ease-in-motion);
+}

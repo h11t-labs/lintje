@@ -1,0 +1,36 @@
+/*
+ * Written with `:host(…)` and `::slotted()`: a selector from outside cannot reach into an item's
+ * own root. An item's width comes from `--lintje-span`, so a media rule can override `grid-column`.
+ */
+
+/* --- The grid ------------------------------------------------------------ */
+:host {
+  display: grid;
+  grid-template-columns: repeat(var(--lintje-grid-columns, 12), minmax(0, 1fr));
+  gap: var(--grid-gutter);
+  align-items: stretch;
+}
+:host([hidden]) { display: none; }
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  :host([variant='kpi-row']) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  :host { grid-template-columns: minmax(0, 1fr); }
+  :host([variant='kpi-row']) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* --- Every item its column ------------------------------------------------ */
+
+::slotted([span]) {
+  min-width: 0;
+  grid-column: span var(--lintje-span, 1);
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  ::slotted([span='4']) { grid-column: span 6; }
+  ::slotted([span='8']) { grid-column: span 12; }
+}
+@media (max-width: 767px) {
+  ::slotted([span]) { grid-column: span 1; }
+}

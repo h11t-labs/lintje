@@ -1,0 +1,49 @@
+:host { display: inline-flex; vertical-align: middle; }
+:host([stacked]) { display: flex; justify-content: center; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--text-ui);
+  color: var(--color-text-primary);
+}
+.lintje-spinner--stacked { flex-direction: column; gap: var(--space-3); }
+
+/* A line on a surface (3:1): the accent line, not the fill. */
+.lintje-spinner__ring {
+  flex: none;
+  width: 1rem; height: 1rem;
+  border: 2px solid var(--color-accent-line);
+  border-top-color: transparent;
+  border-radius: var(--radius-round);
+  animation: lintje-spin var(--dur-skeleton) linear infinite;
+}
+/* 16, 24 and 40 px: 1, 1.5 and 2.5rem, so the ring grows with the text beside it. */
+.lintje-spinner--24 .lintje-spinner__ring { width: 1.5rem; height: 1.5rem; }
+.lintje-spinner--40 .lintje-spinner__ring { width: 2.5rem; height: 2.5rem; border-width: 3px; }
+.lintje-spinner--current .lintje-spinner__ring {
+  border-color: currentColor;
+  border-top-color: transparent;
+}
+
+/* A keyframe only works in the root that uses it. */
+@keyframes lintje-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lintje-spinner__ring { animation: none; }
+}
+
+/* Forced colours: the ring draws in CanvasText with its open quarter in Canvas, so it still turns. */
+@media (forced-colors: active) {
+  .lintje-spinner__ring,
+  .lintje-spinner--current .lintje-spinner__ring {
+    border-color: CanvasText;
+    border-top-color: Canvas;
+  }
+}

@@ -1,0 +1,16 @@
+:host { display: inline-flex; vertical-align: middle; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-status { display: inline-flex; align-items: center; gap: var(--space-2); font: var(--text-small); }
+.lintje-status__dot { border-radius: var(--radius-round); flex: none; display: block; }
+.lintje-status__dot--complete  { background: var(--color-success); }
+.lintje-status__dot--delayed { background: var(--color-warning); }
+.lintje-status__dot--outage   { background: var(--color-error); }
+.lintje-status__dot--no-data { background: var(--color-text-muted); }
+
+/* Forced colours: the dot's fill is dropped, so it keeps its drawing as one CanvasText dot. */
+@media (forced-colors: active) {
+  .lintje-status__dot { forced-color-adjust: none; background: CanvasText; }
+}

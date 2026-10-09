@@ -1,0 +1,167 @@
+/*
+ * Above the divider: what the element itself needs (`lintje-button` is the box the page lays
+ * out). Below it: the block's own BEM CSS, in the shadow root.
+ */
+:host {
+  display: inline-flex;
+  vertical-align: middle;
+}
+:host([hidden]) { display: none; }
+:host(.lintje-button--block),
+:host([block]) { display: flex; }
+:host([block]) .lintje-button { width: 100%; }
+:host([span]) .lintje-button { width: 100%; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-button {
+  /* Never wider than its place: in a narrow cell the label is cut with an ellipsis. */
+  max-width: 100%;
+  min-width: 0;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--h-button);
+  padding: 0 var(--space-4);
+  border: 1px solid transparent;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background var(--dur-hover) var(--ease-in-motion),
+              color var(--dur-hover) var(--ease-in-motion),
+              border-color var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-button__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lintje-button--compact { height: var(--h-button-compact); padding: 0 var(--space-3); }
+.lintje-button--chrome  { height: var(--h-button-chrome);  padding: 0 14px; }
+/* The compact and chrome button reach the 48 px target through a transparent hit area, 4 px out
+   on each side. A row of them keeps 8 px between the boxes, so hit areas never overlap. */
+.lintje-button--compact::after,
+.lintje-button--chrome::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+
+/* The 1 px border is transparent, so the primary fill fills it in light; in dark it draws the
+   tint, the only thing that separates a #0E3B6E box from a #282828 page (1.31:1). */
+.lintje-button--primary {
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  border-color: var(--color-action-primary-border);
+}
+.lintje-button--primary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-action-primary-hover); }
+
+.lintje-button--secondary {
+  background: var(--color-bg-surface);
+  color: var(--color-accent-text);
+  border-color: var(--color-action-secondary-border);
+}
+.lintje-button--secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-bg-selected); }
+
+.lintje-button--tertiary {
+  background: transparent;
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+.lintje-button--tertiary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-bg-subtle); }
+
+/* The destructive weight; in dark the border is the red's tint, the only thing reaching 3:1. */
+.lintje-button--danger {
+  background: var(--color-action-danger);
+  color: var(--color-text-on-fill);
+  border-color: var(--color-action-danger-border);
+}
+.lintje-button--danger:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-action-danger-hover); }
+
+/* `danger-secondary`: the quieter destructive form, for a row where the fill would shout. The
+   colour is `--color-action-danger-text`. The hover is the tertiary's `--color-bg-subtle`:
+   the red word on `--color-error-bg` was 3.96:1 in light. */
+.lintje-button--danger-secondary {
+  background: var(--color-bg-surface);
+  color: var(--color-action-danger-text);
+  border-color: var(--color-action-danger-text);
+}
+.lintje-button--danger-secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-bg-subtle); }
+
+.lintje-button--link {
+  height: auto;
+  padding: 0;
+  color: var(--color-link);
+  text-decoration: underline;
+  background: none;
+}
+.lintje-button--link:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { color: var(--color-link-hover); }
+/* The link reaches the text target (24 px) through a transparent hit area. */
+.lintje-button--link::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target-text)) / 2)) 0;
+}
+
+/* Disabled is `aria-disabled`: the button keeps its tab order and focus ring. A busy button is
+   not `is-disabled`: it keeps its variant's colours. Native `<button>`s with these classes get
+   the look from `:disabled` or `aria-disabled`, without the class. */
+.lintje-button.is-disabled,
+.lintje-button:disabled,
+.lintje-button[aria-disabled='true']:not(.is-busy) {
+  opacity: 1;
+  cursor: not-allowed;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-disabled);
+  border-color: var(--color-border-default);
+}
+.lintje-button--link.is-disabled,
+.lintje-button--link:disabled,
+.lintje-button--link[aria-disabled='true']:not(.is-busy) {
+  background: none;
+  border-color: transparent;
+  text-decoration: none;
+}
+
+/* --- Busy --------------------------------------------------------------- */
+/*
+ * An action that round-trips. The button keeps its width: label and icons only lose their ink,
+ * and the ring is drawn over the middle, so nothing re-flows. The label is transparent, not
+ * `visibility: hidden`, so the focused button keeps its name.
+ */
+.lintje-button.is-busy { cursor: progress; }
+.lintje-button.is-busy .lintje-button__label { opacity: 0; }
+.lintje-button.is-busy .lintje-button__icon { visibility: hidden; }
+.lintje-button__busy {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 16px; height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--radius-round);
+  opacity: 0.85;
+  animation: lintje-spin var(--dur-skeleton) linear infinite;
+}
+/* A keyframe only works in the root that uses it. */
+@keyframes lintje-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+/* Reduced motion: the ring stands still; `aria-busy` carries the state. */
+@media (prefers-reduced-motion: reduce) {
+  .lintje-button__busy { animation: none; }
+}
+
+/* Forced colours: `aria-disabled` is not grayed out by the browser. */
+@media (forced-colors: active) {
+  .lintje-button.is-disabled,
+  .lintje-button:disabled,
+  .lintje-button[aria-disabled='true']:not(.is-busy) { color: GrayText; border-color: GrayText; }
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "id": "londen",
+    "label": "Londen",
+    "value": 1240,
+    "files": 310,
+    "lon": -0.1276,
+    "lat": 51.5072
+  },
+  {
+    "id": "berlijn",
+    "label": "Berlijn",
+    "value": 980,
+    "files": 240,
+    "lon": 13.405,
+    "lat": 52.52
+  },
+  {
+    "id": "brussel",
+    "label": "Brussel",
+    "value": 860,
+    "files": 220,
+    "lon": 4.3517,
+    "lat": 50.8503
+  },
+  {
+    "id": "warschau",
+    "label": "Warschau",
+    "value": 620,
+    "files": 150,
+    "lon": 21.0122,
+    "lat": 52.2297
+  },
+  {
+    "id": "madrid",
+    "label": "Madrid",
+    "value": 310,
+    "files": 80,
+    "lon": -3.7038,
+    "lat": 40.4168
+  },
+  {
+    "id": "istanbul",
+    "label": "Istanbul",
+    "value": 290,
+    "files": 70,
+    "lon": 28.9784,
+    "lat": 41.0082
+  },
+  {
+    "id": "new-york",
+    "label": "New York",
+    "value": 240,
+    "files": 60,
+    "lon": -74.006,
+    "lat": 40.7128
+  },
+  {
+    "id": "paramaribo",
+    "label": "Paramaribo",
+    "value": 210,
+    "files": 50,
+    "lon": -55.2038,
+    "lat": 5.852
+  },
+  {
+    "id": "jakarta",
+    "label": "Jakarta",
+    "value": 120,
+    "files": 30,
+    "lon": 106.8456,
+    "lat": -6.2088
+  },
+  {
+    "id": null,
+    "label": "Overig",
+    "value": 90,
+    "files": 20,
+    "lon": null,
+    "lat": null
+  }
+]

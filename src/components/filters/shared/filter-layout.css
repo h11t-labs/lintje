@@ -1,0 +1,32 @@
+/*
+ * Layout rules across component boundaries, adopted by the filter bar: `.lintje-select` sits in
+ * `lintje-select`'s shadow root, so the rules are written by tag. An outer rule beats the
+ * control's own `:host` rule, so no `!important`.
+ */
+
+lintje-filter-zone lintje-field,
+lintje-filter-sheet lintje-field { min-width: 0; }
+
+/* 1024-1439: narrower selects, so four controls fit on one line. */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  lintje-filter-zone lintje-select { width: 148px; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  lintje-filter-zone lintje-select,
+  lintje-filter-zone lintje-multiselect { width: 100%; }
+}
+
+/* The host takes the control height and centres the toggle's pill in it. */
+lintje-filter-zone lintje-toggle {
+  display: grid;
+  align-items: center;
+  min-height: var(--h-control);
+}
+
+/* A select's width, so the placeholder stays on one line. */
+lintje-filter-zone lintje-multiselect { width: 180px; }
+
+:host {
+  display: block;
+}
+:host([hidden]) { display: none; }

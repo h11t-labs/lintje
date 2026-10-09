@@ -1,0 +1,94 @@
+/* The multi-select's trigger, chips and list. */
+
+/* --- Multi-select --------------------------------------------------------- */
+.lintje-multiselect { position: relative; }
+.lintje-multiselect__field {
+  display: flex; align-items: center; gap: 6px; flex-wrap: nowrap;
+  width: 100%; min-height: var(--h-control);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border-field);
+  background: var(--color-bg-surface);
+  text-align: left;
+  overflow: hidden;
+}
+.lintje-multiselect__shown { display: contents; }
+.lintje-multiselect__field.is-error { border: 2px solid var(--color-error); }
+.lintje-multiselect__field:disabled {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+.lintje-multiselect__summary {
+  flex: 1 1 auto; min-width: 0;
+  padding-left: var(--space-1);
+  font: var(--text-ui);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lintje-multiselect__placeholder { color: var(--color-text-placeholder); font-size: 1rem; padding-left: 6px; }
+.lintje-multiselect__chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: var(--h-chip-field);
+  padding: 0 0 0 var(--space-2);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-default);
+  font-size: 0.875rem; white-space: nowrap;
+  /* The label shortens with an ellipsis, the cross and counter never shrink; the whole
+     selection is in the field's `title`. */
+  flex: 0 1 auto; min-width: 0;
+}
+.lintje-multiselect__chip-label { overflow: hidden; text-overflow: ellipsis; min-width: 2ch; }
+/* A transparent hit area reaches the target height, not sideways: the label opens the list. */
+.lintje-multiselect__chip-remove {
+  position: relative;
+  flex: none;
+  width: var(--space-6); align-self: stretch;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--color-text-muted); font-size: 1rem;
+}
+.lintje-multiselect__chip-remove::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((var(--h-chip-field) - var(--h-target)) / 2)) 0;
+}
+.lintje-multiselect__overflow { font-size: 0.875rem; color: var(--color-text-muted); flex: none; }
+.lintje-multiselect__scrim { position: fixed; inset: 0; z-index: 45; }
+/* Fixed to the viewport: an absolute popover is cut off by a scrolling box around it. A column,
+   so the list shrinks when the room is short. */
+.lintje-multiselect__popover {
+  position: fixed; z-index: 46;
+  min-width: 260px;
+  max-height: var(--lintje-multiselect-space, none);
+  display: flex; flex-direction: column;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-popover);
+  box-shadow: var(--shadow-popover);
+  animation: lintje-popover-in var(--dur-popover) var(--ease-in-motion);
+}
+.lintje-multiselect__search { flex: none; padding: var(--space-2); border-bottom: 1px solid var(--color-border-default); }
+.lintje-multiselect__search-input {
+  width: 100%; height: var(--h-control); padding: 0 var(--space-2);
+  border: 1px solid var(--color-border-field);
+  background: var(--color-bg-surface); color: var(--color-text-primary); font-size: 1rem;
+}
+.lintje-multiselect__search-input::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+.lintje-multiselect__list {
+  flex: 1 1 auto; min-height: 0;
+  max-height: 220px; overflow-y: auto;
+  padding: var(--space-2);
+  display: flex; flex-direction: column; gap: 2px;
+}
+/* The `lintje-checkbox` row reads `--h-target` in its shadow root: point it at the option height. */
+.lintje-multiselect__option { --h-target: var(--h-option); }
+.lintje-multiselect__no-results { font: var(--text-small); color: var(--color-text-muted); padding: var(--space-2); }
+.lintje-multiselect__footer {
+  flex: none;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--color-border-default);
+  font: var(--text-small); color: var(--color-text-muted);
+}
+.lintje-multiselect__clear {
+  min-height: var(--h-target);
+  color: var(--color-link); font-weight: 700; text-decoration: underline;
+}

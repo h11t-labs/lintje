@@ -1,0 +1,78 @@
+/* The drop zone and the list of files under it. */
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+:host([fill]) { height: 100%; }
+:host([fill]) .lintje-field { height: 100%; }
+
+/* --- */
+
+/* The zone itself does not answer the pointer: only the button does. Its content stands centred,
+   so a wide zone does not leave it huddled in one corner. */
+.lintje-file-upload {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  border: 2px dashed var(--color-border-heavy);
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font: var(--text-ui);
+  text-align: center;
+}
+.lintje-file-upload__icon { flex: none; }
+.lintje-file-upload--fill {
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  min-height: calc(4 * var(--h-control));
+  text-align: center;
+}
+.lintje-file-upload--fill .lintje-file-upload__meta { flex-basis: auto; }
+.lintje-file-upload__meta {
+  flex-basis: 100%;
+  font: var(--text-meta);
+  color: var(--color-text-muted);
+}
+
+.lintje-file-upload.is-dragging {
+  border-style: solid;
+  border-color: var(--color-accent-line);
+  background: var(--color-bg-selected);
+}
+.lintje-file-upload.is-error { border-style: solid; border-color: var(--color-error); }
+.lintje-file-upload.is-disabled {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-disabled);
+}
+.lintje-file-upload.is-disabled .lintje-file-upload__meta { color: var(--color-text-disabled); }
+
+/* --- The files ----------------------------------------------------------- */
+.lintje-file-upload__list { display: flex; flex-direction: column; gap: var(--space-3); }
+.lintje-file-upload__row { display: flex; flex-direction: column; gap: 6px; }
+.lintje-file-upload__row-head {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.lintje-file-upload__row-icon { flex: none; }
+.lintje-file-upload__row.is-busy .lintje-file-upload__row-icon { color: var(--color-text-muted); }
+.lintje-file-upload__row.is-done .lintje-file-upload__row-icon { color: var(--color-success); }
+.lintje-file-upload__row.is-error .lintje-file-upload__row-icon { color: var(--color-error); }
+.lintje-file-upload__name {
+  flex: 1 1 120px; min-width: 0;
+  font: var(--text-ui);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+.lintje-file-upload__detail { color: var(--color-text-muted); }
+.lintje-file-upload__reason {
+  display: block;
+  font: var(--text-meta);
+  font-weight: 700;
+  color: var(--color-error-text);
+}
+
+/* Below 768 px nobody drags: the words go and the button takes the full width. */
+@media (max-width: 767px) {
+  .lintje-file-upload__text { display: none; }
+  .lintje-file-upload.is-dragging .lintje-file-upload__text { display: inline; }
+  .lintje-file-upload__button { flex: 1 1 100%; --h-button: var(--h-touch); }
+}

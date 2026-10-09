@@ -1,0 +1,128 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* `position: relative` makes the row the tabs' offset parent, for scrolling the chosen tab into sight. */
+.lintje-tabs__list {
+  position: relative;
+  display: flex; flex-wrap: wrap;
+  border-bottom: 1px solid var(--color-border-heavy);
+}
+
+/* A transparent bottom edge in reserve, so the chosen tab's line takes no space of its own. */
+.lintje-tabs__tab {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  height: var(--h-touch);
+  padding: 0 var(--space-4);
+  background: transparent;
+  color: var(--color-text-primary);
+  border-bottom: 3px solid transparent;
+  font: var(--text-ui);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--dur-hover) var(--ease-in-motion),
+              border-color var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-tabs__tab:hover:not(.is-active):not(.is-disabled) {
+  background: var(--color-bg-subtle);
+  border-bottom-color: var(--color-border-heavy);
+}
+
+/* The chosen tab: the line is a line (3:1) and the word is text (4.5:1), hence two tokens. */
+.lintje-tabs__tab.is-active {
+  border-bottom-color: var(--color-accent-line);
+  color: var(--color-accent-text);
+  font-weight: 700;
+}
+
+.lintje-tabs__tab.is-disabled { color: var(--color-text-disabled); cursor: not-allowed; }
+
+.lintje-tabs__panel { padding-top: var(--space-4); }
+.lintje-tabs__panel.is-pressed:focus-visible { outline: none; }
+
+@media (max-width: 767px) {
+  .lintje-tabs__list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .lintje-tabs__list::-webkit-scrollbar { display: none; }
+  .lintje-tabs__tab { flex: 0 0 auto; }
+  .lintje-tabs__list.is-scroll-start { box-shadow: var(--shadow-scroll-start); }
+  .lintje-tabs__list.is-scroll-end { box-shadow: var(--shadow-scroll-end); }
+  .lintje-tabs__list.is-scroll-start.is-scroll-end {
+    box-shadow: var(--shadow-scroll-start), var(--shadow-scroll-end);
+  }
+}
+
+/* Forced colours: the chosen tab's line turns Highlight, a disabled tab GrayText. */
+@media (forced-colors: active) {
+  .lintje-tabs__tab.is-active { border-bottom-color: Highlight; }
+  .lintje-tabs__tab.is-disabled { color: GrayText; }
+}
+
+/* --- The panel variant --------------------------------------------------------
+   Large tabs that head a bordered panel. The chosen tab is the panel's own surface and runs into
+   it; the others stand on the subtle fill. No line: surface, accent word and weight say it. */
+.lintje-tabs--panel {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+}
+.lintje-tabs--panel .lintje-tabs__list {
+  flex-wrap: nowrap;
+  background: var(--color-bg-subtle);
+  border-bottom-color: var(--color-border-default);
+}
+.lintje-tabs--panel .lintje-tabs__tab {
+  flex: 1 1 0;
+  min-width: 0;
+  height: auto;
+  min-height: var(--h-touch);
+  margin-bottom: -1px;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-right: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--color-border-default);
+  white-space: normal;
+  text-align: left;
+}
+.lintje-tabs--panel .lintje-tabs__tab:last-child { border-right: 0; }
+.lintje-tabs--panel .lintje-tabs__tab:hover:not(.is-active):not(.is-disabled) {
+  background: var(--color-bg-subtle);
+  border-bottom-color: var(--color-border-default);
+}
+.lintje-tabs--panel .lintje-tabs__tab:hover:not(.is-active):not(.is-disabled) .lintje-tabs__label {
+  text-decoration: underline;
+}
+/* The bottom edge takes the surface, so the tab and the panel are one shape. */
+.lintje-tabs--panel .lintje-tabs__tab.is-active {
+  background: var(--color-bg-surface);
+  border-bottom-color: var(--color-bg-surface);
+  color: var(--color-accent-text);
+}
+.lintje-tabs__icon { flex: none; }
+.lintje-tabs__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.lintje-tabs__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); }
+.lintje-tabs__hint { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-tabs--panel .lintje-tabs__panel { padding: var(--space-6); }
+
+@media (max-width: 767px) {
+  .lintje-tabs--panel .lintje-tabs__tab {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-2);
+    text-align: center;
+  }
+  .lintje-tabs--panel .lintje-tabs__text { align-items: center; }
+  .lintje-tabs--panel .lintje-tabs__head { justify-content: center; }
+  .lintje-tabs--panel .lintje-tabs__hint { display: none; }
+  .lintje-tabs--panel .lintje-tabs__panel { padding: var(--space-4); }
+}
+
+/* Forced colours drop the surface: the chosen tab's label is underlined instead. */
+@media (forced-colors: active) {
+  .lintje-tabs--panel .lintje-tabs__tab.is-active .lintje-tabs__label { text-decoration: underline; }
+}

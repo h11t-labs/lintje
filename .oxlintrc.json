@@ -1,0 +1,58 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "ignorePatterns": [
+    "src/icons/register.ts",
+    "src/components/actions/qr-code/qrcodegen.ts",
+    "dist-elements/",
+    "assets/"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "src/core/**",
+        "src/tokens/**",
+        "src/icons/**",
+        "src/primitives/**",
+        "src/components/**",
+        "src/categories.ts"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/bundle/**", "**/bundle"],
+                "message": "The design system imports nothing from the entry bundle/ (AGENTS.md rule 17)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["**/*.test.ts"],
+      "rules": {
+        "typescript/no-extraneous-class": "off"
+      }
+    }
+  ],
+  "rules": {
+    "no-unused-vars": [
+      "error",
+      {
+        "caughtErrors": "none",
+        "argsIgnorePattern": "^_"
+      }
+    ],
+    "unicorn/consistent-function-scoping": "off",
+    "unicorn/no-array-sort": "off",
+    "unicorn/no-array-reverse": "off",
+    "no-underscore-dangle": "off",
+    "unicorn/prefer-add-event-listener": "off"
+  }
+}

@@ -1,0 +1,60 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-activity-log {
+  font: var(--text-ui);
+  color: var(--color-text-primary);
+}
+.lintje-activity-log__heading {
+  margin: 0 0 var(--space-3);
+  font: var(--text-tile-title);
+}
+.lintje-activity-log__list { list-style: none; margin: 0; padding: 0; }
+
+.lintje-activity-log__entry { display: flex; gap: var(--space-3); }
+.lintje-activity-log__rail {
+  flex: 0 0 10px;
+  display: flex; flex-direction: column; align-items: center;
+}
+/* The square sits on the sentence's first line; this stub joins it to the square above. */
+.lintje-activity-log__rail::before {
+  content: '';
+  flex: 0 0 6px;
+  width: 2px;
+  background: var(--color-border-default);
+}
+.lintje-activity-log__entry.is-newest .lintje-activity-log__rail::before { visibility: hidden; }
+.lintje-activity-log__mark {
+  flex: none;
+  width: 10px; height: 10px;
+  background: var(--color-border-heavy);
+}
+.lintje-activity-log__entry.is-newest .lintje-activity-log__mark { background: var(--color-accent-line); }
+.lintje-activity-log__line {
+  flex: 1 1 auto;
+  width: 2px;
+  background: var(--color-border-default);
+}
+.lintje-activity-log__entry.is-last .lintje-activity-log__line { visibility: hidden; }
+
+.lintje-activity-log__body { min-width: 0; padding-bottom: var(--space-4); }
+.lintje-activity-log__entry.is-last .lintje-activity-log__body { padding-bottom: 0; }
+.lintje-activity-log__what { margin: 0; }
+.lintje-activity-log__who { font-weight: 700; }
+.lintje-activity-log__when {
+  display: block;
+  font: var(--text-meta);
+  color: var(--color-text-muted);
+}
+
+.lintje-activity-log__more { margin-top: var(--space-3); }
+
+/* Forced colours drop fills, so the rail is drawn in the text colour. */
+@media (forced-colors: active) {
+  .lintje-activity-log__rail::before,
+  .lintje-activity-log__mark,
+  .lintje-activity-log__line { forced-color-adjust: none; background: CanvasText; }
+  .lintje-activity-log__entry.is-newest .lintje-activity-log__mark { background: Highlight; }
+}

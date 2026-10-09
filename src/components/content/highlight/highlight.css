@@ -1,0 +1,47 @@
+:host { display: inline; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* `clone`: a marking that wraps paints its fill and line on every line it covers. */
+.lintje-highlight {
+  font: inherit;
+  color: var(--color-text-primary);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.lintje-highlight--uncertain {
+  background: var(--color-attention-bg);
+  border-bottom: 2px dotted var(--color-attention);
+}
+
+.lintje-highlight--term {
+  background: var(--color-bg-selected);
+  border: 0;
+  border-bottom: 2px solid var(--color-accent-line);
+  padding: 0;
+}
+.lintje-highlight--control { cursor: help; }
+.lintje-highlight--control:hover { background: var(--color-bg-subtle); }
+
+.lintje-highlight--match {
+  background: var(--color-warning);
+  color: var(--color-text-on-light-fill);
+}
+.lintje-highlight--match.is-current { outline: 2px solid var(--color-text-primary); }
+
+.lintje-highlight--removed {
+  background: var(--color-error-bg);
+  text-decoration: line-through;
+}
+.lintje-highlight--added {
+  background: var(--color-success-bg);
+  text-decoration: underline;
+}
+
+/* Forced colours: a match is only a fill, so it takes the system's marking colours. */
+@media (forced-colors: active) {
+  .lintje-highlight--match { forced-color-adjust: none; background: Mark; color: MarkText; }
+  .lintje-highlight--match.is-current { outline-color: CanvasText; }
+}

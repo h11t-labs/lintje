@@ -1,0 +1,33 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* The cells are the description list's; what stands here is the connection's own meter. */
+.lintje-recording-status__connection { display: flex; align-items: center; gap: var(--space-3); font-weight: 400; }
+
+/* The connection: four rising steps, as many lit as it is strong. */
+.lintje-recording-status__signal {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: var(--space-6);
+}
+.lintje-recording-status__step {
+  width: 5px;
+  background: var(--color-border-default);
+}
+.lintje-recording-status__step:nth-child(1) { height: 30%; }
+.lintje-recording-status__step:nth-child(2) { height: 55%; }
+.lintje-recording-status__step:nth-child(3) { height: 78%; }
+.lintje-recording-status__step:nth-child(4) { height: 100%; }
+.is-good .lintje-recording-status__step.is-lit { background: var(--color-success); }
+.is-weak .lintje-recording-status__step.is-lit { background: var(--color-warning); }
+.lintje-recording-status__words { display: flex; flex-direction: column; line-height: 1.2; }
+.lintje-recording-status__sub { font: var(--text-meta); color: var(--color-text-muted); }
+
+/* Forced colours drop the fills: the bars keep a border, the words carry the rest. */
+@media (forced-colors: active) {
+  .lintje-recording-status__step.is-lit { background: CanvasText; }
+  .lintje-recording-status__step { border: 1px solid CanvasText; }
+}

@@ -1,0 +1,54 @@
+/* The number field with its stepper. */
+
+/* --- Number field --------------------------------------------------------- */
+.lintje-number-input {
+  display: flex; align-items: stretch;
+  height: var(--h-control);
+  border: 1px solid var(--color-border-field);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius);
+}
+.lintje-number-input.is-error { border: 2px solid var(--color-error); }
+.lintje-number-input.is-readonly { border: 1px solid var(--color-border-strong); background: var(--color-bg-subtle); }
+.lintje-number-input.is-readonly .lintje-number-input__step {
+  border-color: var(--color-border-strong);
+  color: var(--color-text-disabled);
+  cursor: default;
+}
+.lintje-number-input.is-readonly .lintje-number-input__step:hover { background: none; }
+.lintje-number-input.is-readonly .lintje-number-input__control { cursor: default; }
+.lintje-number-input.is-disabled { border: 1px solid var(--color-border-strong); background: var(--color-bg-subtle); }
+.lintje-number-input__step {
+  width: var(--h-control); flex: none;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--color-text-primary);
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-number-input__step--down { border-right: 1px solid var(--color-border-field); }
+.lintje-number-input__step--up { border-left: 1px solid var(--color-border-field); }
+.lintje-number-input.is-disabled .lintje-number-input__step { border-color: var(--color-border-strong); }
+.lintje-number-input__step:hover:not(:disabled):not(.is-limit) { background: var(--color-bg-subtle); }
+/* At `min` or `max` the step keeps the focus (`aria-disabled`) and looks disabled. */
+.lintje-number-input__step:disabled,
+.lintje-number-input__step.is-limit { color: var(--color-text-disabled); cursor: not-allowed; }
+.lintje-number-input__control {
+  flex: 1; min-width: 0;
+  border: none; background: none;
+  padding: 0 var(--space-2);
+  text-align: center;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+/* The browser's own spinner would sit beside the design's. */
+.lintje-number-input__control::-webkit-outer-spin-button,
+.lintje-number-input__control::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.lintje-number-input__control:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
+.lintje-number-input--unit .lintje-number-input__control { text-align: left; padding-left: 14px; }
+.lintje-number-input__unit {
+  display: flex; align-items: center; flex: none;
+  padding-right: 14px;
+  font-size: 1rem; color: var(--color-text-muted);
+}

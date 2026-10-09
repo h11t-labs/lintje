@@ -1,0 +1,68 @@
+/*
+ * The parts both players draw (`player.ts`). Adopted next to `button.css` and `icon-button.css`,
+ * which draw the buttons and their disabled look; this sheet only sizes them.
+ */
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-player__media { display: none; }
+
+.lintje-player__play { width: var(--h-touch); height: var(--h-touch); padding: 0; flex: none; }
+
+.lintje-player__icon-button { width: var(--h-touch); height: var(--h-touch); }
+
+.lintje-player__time {
+  flex: none;
+  font: var(--text-ui);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+}
+.lintje-player__position { font-weight: 700; }
+.lintje-player__duration,
+.lintje-player__time.is-muted { color: var(--color-text-muted); }
+
+/* A transparent area above and below the line takes the pointer, never beside it. */
+.lintje-player__bar {
+  position: relative;
+  flex: 1 1 140px;
+  min-width: 0;
+  height: 6px;
+  background: var(--color-border-default);
+  cursor: pointer;
+  touch-action: none;
+}
+.lintje-player__bar::before {
+  content: '';
+  position: absolute;
+  inset: calc((100% - var(--h-target)) / 2) 0;
+}
+.lintje-player__bar.is-disabled { cursor: not-allowed; }
+.lintje-player__bar-fill {
+  height: 100%;
+  background: var(--color-accent-line);
+  pointer-events: none;
+}
+/* The head marks where the recording stands, drawn as the audio player's (`__head`). */
+.lintje-player__bar-handle {
+  position: absolute;
+  top: 50%;
+  width: var(--space-1);
+  height: var(--space-4);
+  transform: translate(-50%, -50%);
+  background: var(--color-text-primary);
+  pointer-events: none;
+}
+.lintje-player__bar.is-disabled .lintje-player__bar-handle { display: none; }
+
+/* Forced colours drop fills; the track and stretch keep their drawing in system colours. */
+@media (forced-colors: active) {
+  .lintje-player__bar,
+  .lintje-player__bar-fill,
+  .lintje-player__bar-handle { forced-color-adjust: none; }
+  .lintje-player__bar { background: CanvasText; }
+  .lintje-player__bar-fill { background: Highlight; }
+  .lintje-player__bar-handle { background: Highlight; outline: 1px solid Canvas; }
+  .lintje-player__bar.is-disabled,
+  .lintje-player__bar.is-disabled .lintje-player__bar-fill { background: GrayText; }
+}

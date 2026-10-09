@@ -1,0 +1,7 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* The rows are the work list's (`lintje-list`); the job list adds no look of its own. */
+.lintje-job-list { display: block; }

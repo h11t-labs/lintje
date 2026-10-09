@@ -1,0 +1,28 @@
+{
+  "//": [
+    "The tree compiles with `useDefineForClassFields: false`.",
+    "Lit installs its reactive properties as accessors on the prototype; with",
+    "`define` semantics a class field would shadow them and every property would",
+    "stop being reactive. Vite (esbuild) resolves this file for every source in",
+    "`src/`, so the builds and `npm run typecheck` agree on the semantics.",
+    "Typecheck: `tsc --noEmit`."
+  ],
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": false,
+    "experimentalDecorators": false,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "types": ["vite/client", "node"]
+  },
+  "include": ["src", "vite.config.*.ts", "vitest.config.ts"]
+}

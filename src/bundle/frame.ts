@@ -1,0 +1,12 @@
+/** The frame category (Paginakader): importing it defines its tags. */
+import '../components/frame/shell/shell'
+import '../components/frame/page-header/page-header'
+import '../components/frame/breadcrumbs/breadcrumbs'
+import '../components/frame/sub-nav/sub-nav'
+import '../components/frame/hero/hero'
+import '../components/frame/footer/footer'
+import '../components/frame/user-menu/user-menu'
+import '../components/frame/app-search/app-search'
+import '../components/frame/notifications/notifications'
+import '../components/frame/shortcuts/shortcuts'
+import '../components/frame/session-expiry/session-expiry'

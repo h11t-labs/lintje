@@ -1,0 +1,46 @@
+:host {
+  display: block;
+  min-width: 0;
+  width: 120px;
+}
+:host([hidden]) { display: none; }
+:host([stacked]) {
+  width: 100%;
+  --h-control: var(--h-touch);
+}
+@media (max-width: 767px) {
+  :host {
+    width: 100%;
+    --h-control: var(--h-touch);
+  }
+}
+
+/* --- */
+
+.lintje-time-input { position: relative; display: flex; align-items: center; }
+.lintje-time-input__control {
+  width: 100%; height: var(--h-control);
+  padding: 0 var(--space-10) 0 14px;
+  border: 1px solid var(--color-border-field);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  border-radius: var(--radius);
+}
+.lintje-time-input__control::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+.lintje-time-input__control.is-error { border: 2px solid var(--color-error); }
+/* Disabled wins over error: after it, the whole border back to 1 px strong. */
+.lintje-time-input__control:disabled {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+/* A sign, not a button: the pointer goes through it to the field. */
+.lintje-time-input__icon {
+  position: absolute; right: var(--space-3);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+.lintje-time-input__control:disabled + .lintje-time-input__icon { color: var(--color-text-disabled); }

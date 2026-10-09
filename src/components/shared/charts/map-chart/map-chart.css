@@ -1,0 +1,324 @@
+/* Map fixed elements: legend bottom left, zoom/home top right, layer
+   switcher top left, selection panel bottom right. The design places those
+   four as overlays on the map area; the source line sits in the tile footer,
+   not here. */
+
+.lintje-map-chart__area {
+  position: relative;
+  background: var(--color-map-water);
+  border: 1px solid var(--color-border-default);
+  overflow: hidden;
+}
+.lintje-map-chart__svg { display: block; }
+/* The map takes the focus when a cleared mark is gone; the area clips a ring outside it. */
+.lintje-map-chart__svg:focus-visible { outline-offset: calc(var(--focus-width) * -1); }
+
+/* --- Shapes --------------------------------------------------------------- */
+
+.lintje-map-chart__land {
+  stroke: var(--color-map-border);
+  stroke-width: 0.5;
+  vector-effect: non-scaling-stroke;
+}
+.lintje-map-chart__land.is-clickable { cursor: pointer; }
+.lintje-map-chart__land.is-clickable:hover { stroke: var(--color-text-primary); stroke-width: 1.5; }
+.lintje-map-chart__land.is-selected { stroke: var(--color-text-primary); stroke-width: 2; }
+/* An area with a figure is outlined at 3:1 against the land and the lightest class, which are
+   1.1:1 apart: the lightest class would otherwise read as no data at all. */
+.lintje-map-chart__land--data { stroke: var(--color-map-border-data); stroke-width: 1; }
+/* A clicked area gets the browser's own box, though `:focus-visible` does not match; the keyboard
+   keeps the outline of every control. Points and flows drop it outright: their ring is a stroke. */
+.lintje-map-chart__land:focus:not(:focus-visible),
+.lintje-map-chart__flow:focus,
+.lintje-map-chart__point:focus { outline: none; }
+
+/* An area with its own outline is drawn as a point is: a ring behind the shape for the focus,
+   and without a figure the surface under the hatch, so the ring never shows through it. Its
+   edges are those of an area. */
+.lintje-map-chart__polygon { cursor: pointer; }
+.lintje-map-chart__polygon-shape {
+  stroke: var(--color-map-border);
+  stroke-width: 0.5;
+  vector-effect: non-scaling-stroke;
+}
+.lintje-map-chart__polygon-shape--data { stroke: var(--color-map-border-data); stroke-width: 1; }
+.lintje-map-chart__polygon-shape--empty { fill: var(--color-bg-surface); }
+.lintje-map-chart__polygon-hatch { pointer-events: none; }
+.lintje-map-chart__polygon:hover .lintje-map-chart__polygon-shape { stroke: var(--color-text-primary); stroke-width: 1.5; }
+.lintje-map-chart__polygon.is-selected .lintje-map-chart__polygon-shape { stroke: var(--color-text-primary); stroke-width: 2; }
+.lintje-map-chart__polygon-ring { fill: none; stroke: none; vector-effect: non-scaling-stroke; }
+.lintje-map-chart__polygon:focus-visible { outline: none; }
+.lintje-map-chart__polygon:focus-visible .lintje-map-chart__polygon-ring {
+  stroke: var(--color-focus);
+  stroke-width: calc(var(--focus-width) * 2 + 2px);
+}
+.lintje-map-chart__polygon:focus-visible .lintje-map-chart__polygon-shape {
+  stroke: var(--color-bg-surface);
+  stroke-width: 2;
+}
+
+.lintje-map-chart__flow {
+  fill: none;
+  stroke: var(--color-chart-default);
+  stroke-linecap: round;
+  opacity: .75;
+  cursor: pointer;
+  vector-effect: non-scaling-stroke;
+  transition: opacity var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-map-chart__flow:hover,
+.lintje-map-chart__flow.is-selected { opacity: 1; }
+.lintje-map-chart__flow.is-muted { opacity: .22; }
+/* A flow is a line: on focus the line itself is the ring, in the focus colour at full strength. */
+.lintje-map-chart__flow:focus-visible { stroke: var(--color-focus); opacity: 1; }
+.lintje-map-chart__destination { fill: var(--color-attention); stroke: var(--color-bg-surface); stroke-width: 2; }
+
+.lintje-map-chart__point { cursor: pointer; }
+.lintje-map-chart__point-shape {
+  fill: var(--color-chart-default);
+  fill-opacity: .55;
+  stroke: var(--color-chart-default);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  transition: fill-opacity var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-map-chart__point:hover .lintje-map-chart__point-shape { fill-opacity: .8; }
+/* A point with a series carries its own colour, handed in as `--lintje-series` so
+   the selected and focused outlines below — which are more specific — still win
+   over it. The opacity and the hover are the point's own, as always. */
+.lintje-map-chart__point-shape--series {
+  fill: var(--lintje-series);
+  stroke: var(--lintje-series);
+  fill-opacity: .65;
+}
+.lintje-map-chart__point:hover .lintje-map-chart__point-shape--series { fill-opacity: .9; }
+/* No figure: no data colour either. The surface underneath and the hatch over it
+   are what the legend's "geen meting" swatch shows. */
+.lintje-map-chart__point-shape--empty {
+  fill: var(--color-bg-surface);
+  fill-opacity: 1;
+  stroke: var(--color-chart-hatch);
+}
+/* The hatch is a fill attribute on its own path; a `fill` in this sheet would cover it. */
+.lintje-map-chart__point-hatch { pointer-events: none; }
+.lintje-map-chart__point.is-selected .lintje-map-chart__point-shape { stroke: var(--color-text-primary); stroke-width: 2; fill-opacity: .85; }
+/* The focus ring: a wide stroke on a copy of the shape behind it, of which the 3 px outside a
+   1 px edge in the surface show — so an orange point keeps its ring. The shape is opaque while
+   focused, or the ring would show through it. */
+.lintje-map-chart__point-ring { fill: none; stroke: none; vector-effect: non-scaling-stroke; }
+.lintje-map-chart__point:focus-visible .lintje-map-chart__point-ring {
+  stroke: var(--color-focus);
+  stroke-width: calc(var(--focus-width) * 2 + 2px);
+}
+.lintje-map-chart__point:focus-visible .lintje-map-chart__point-shape {
+  stroke: var(--color-bg-surface);
+  stroke-width: 2;
+  fill-opacity: 1;
+}
+
+/* The base map stands at once. Areas with a figure fade from the land color to their
+   class; flows are drawn from origin to destination and points grow, both west to east with the timing
+   of the bars (starts spread over 40 % of the draw, each mark the other 60 %). Fill mode `backwards`
+   throughout, so hover, muted and selected win once the draw is done. Paused until the map is in view;
+   the paused declarations follow the shorthands, see chart.css. */
+@media (prefers-reduced-motion: no-preference) {
+  .lintje-map-chart__land--data,
+  .lintje-map-chart__polygon-shape--data { animation: lintje-map-area var(--dur-draw) ease-in-out backwards; }
+  .lintje-map-chart__flow,
+  .lintje-map-chart__point {
+    animation-duration: calc(var(--dur-draw) * 0.6);
+    animation-timing-function: var(--ease-in-motion);
+    animation-delay: calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0));
+    animation-fill-mode: backwards;
+  }
+  .lintje-map-chart__flow { animation-name: lintje-map-draw; }
+  .lintje-map-chart__point { transform-box: fill-box; transform-origin: 50% 50%; animation-name: lintje-map-grow; }
+
+  .lintje-map-chart__land--data,
+  .lintje-map-chart__polygon-shape--data,
+  .lintje-map-chart__flow,
+  .lintje-map-chart__point { animation-play-state: paused; }
+  [data-in-view] .lintje-map-chart__land--data,
+  [data-in-view] .lintje-map-chart__polygon-shape--data,
+  [data-in-view] .lintje-map-chart__flow,
+  [data-in-view] .lintje-map-chart__point { animation-play-state: running; }
+}
+@keyframes lintje-map-area { from { fill: var(--color-map-land); } }
+/* With pathLength="1": a dash as long as the flow and a longer gap, started just past the gap's edge, so
+   the round caps of the hidden dash leave no dot at either end on the first frame. */
+@keyframes lintje-map-draw {
+  from { stroke-dasharray: 1 1.2; stroke-dashoffset: 1.1; }
+  to   { stroke-dasharray: 1 1.2; stroke-dashoffset: 0; }
+}
+@keyframes lintje-map-grow { from { transform: scale(0); } }
+
+/* --- Overlays ------------------------------------------------------------- */
+
+.lintje-map-chart__layers,
+.lintje-map-chart__zoom,
+.lintje-map-chart__legend,
+.lintje-map-chart__selection { position: absolute; }
+
+.lintje-map-chart__layers { top: var(--space-2); left: var(--space-2); display: flex; }
+/* The overlays are 48 px targets. The layers and zoom buttons touch, like the
+   segments of a segmented control, so they are their own target, without a hit area. */
+.lintje-map-chart__layer {
+  height: var(--h-target); padding: 0 10px;
+  font: var(--text-small);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong);
+  margin-left: -1px;
+  cursor: pointer;
+}
+.lintje-map-chart__layer:first-child { margin-left: 0; }
+.lintje-map-chart__layer.is-active {
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  /* The button's own 1 px border: the primary in light, the tint in dark, so the
+     chosen layer does not melt into the map. */
+  border-color: var(--color-action-primary-border);
+  font-weight: 700;
+}
+
+.lintje-map-chart__zoom { top: var(--space-2); right: var(--space-2); display: flex; flex-direction: column; }
+.lintje-map-chart__zoom-button {
+  width: var(--h-target); height: var(--h-target);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong);
+  margin-top: -1px;
+  cursor: pointer;
+}
+.lintje-map-chart__zoom-button:first-child { margin-top: 0; }
+.lintje-map-chart__zoom-button:hover { background: var(--color-bg-subtle); }
+
+.lintje-map-chart__legend { left: var(--space-2); bottom: var(--space-2); }
+.lintje-map-chart__legend-toggle {
+  height: var(--h-target); padding: 0 10px;
+  font: var(--text-small);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong);
+  cursor: pointer;
+}
+.lintje-map-chart__legend-content {
+  display: flex; align-items: center; gap: var(--space-2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
+  padding: 6px 10px;
+  font: var(--text-small);
+  color: var(--color-text-secondary);
+}
+.lintje-map-chart--mobile .lintje-map-chart__legend-content { margin-top: 4px; }
+/* A stacked map has a line per layer, each with its own glyph. */
+.lintje-map-chart__legend-content--plots { flex-direction: column; align-items: flex-start; gap: var(--space-1); }
+.lintje-map-chart__legend-row { display: flex; align-items: center; gap: var(--space-2); }
+
+.lintje-map-chart__scale,
+.lintje-map-chart__thickness,
+.lintje-map-chart__bubbles { display: flex; align-items: center; gap: 2px; }
+.lintje-map-chart__scale-swatch { width: 16px; height: 10px; display: block; }
+.lintje-map-chart__thickness-sample {
+  display: block; width: 14px; background: var(--color-chart-default);
+}
+.lintje-map-chart__thickness-sample:nth-child(1) { height: 1px; }
+.lintje-map-chart__thickness-sample:nth-child(2) { height: 3px; }
+.lintje-map-chart__thickness-sample:nth-child(3) { height: 6px; }
+.lintje-map-chart__bubble {
+  display: block; border-radius: 50%;
+  background: var(--color-chart-default); opacity: .55;
+}
+.lintje-map-chart__bubble:nth-child(1) { width: 5px; height: 5px; }
+.lintje-map-chart__bubble:nth-child(2) { width: 9px; height: 9px; }
+.lintje-map-chart__bubble:nth-child(3) { width: 14px; height: 14px; }
+
+.lintje-map-chart__no-data { display: flex; align-items: center; gap: 5px; }
+.lintje-map-chart__no-data-swatch {
+  width: 16px; height: 10px; display: block;
+  background: repeating-linear-gradient(45deg,
+    var(--color-chart-hatch) 0 2px, transparent 2px 6px);
+  border: 1px solid var(--color-border-default);
+}
+
+/* Series legend above the map (chart grammar: legend above). One line per data
+   colour a point uses; the swatch carries the same shape the point does, so the
+   colour is never alone (rule 13). */
+.lintje-map-chart__series-legend {
+  display: flex; flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  list-style: none;
+  font: var(--text-small);
+}
+.lintje-map-chart__series-item { display: flex; align-items: center; gap: 6px; }
+.lintje-map-chart__series-swatch { width: 14px; height: 14px; display: block; flex: none; }
+
+.lintje-map-chart__selection {
+  right: var(--space-2); bottom: var(--space-2);
+  width: 200px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
+  padding: 10px 12px;
+  font-size: 0.875rem;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.lintje-map-chart__selection-title {
+  font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.lintje-map-chart__selection-value { color: var(--color-text-secondary); }
+.lintje-map-chart__selection-series { display: flex; align-items: center; gap: 5px; }
+/* The way out of a selection, top right of the panel; the title keeps its room. An icon
+   button: a 40 px box whose transparent hit area takes the target to 48. */
+.lintje-map-chart__selection-close {
+  position: absolute; top: 0; right: 0;
+  width: var(--h-icon-button); height: var(--h-icon-button);
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: 0; padding: 0;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.lintje-map-chart__selection-close:hover { color: var(--color-text-primary); }
+.lintje-map-chart__selection-close::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2));
+}
+.lintje-map-chart__selection-title { padding-right: var(--space-8); }
+.lintje-map-chart__set-scope {
+  min-height: var(--h-target);
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: 0; padding: 0;
+  font: 700 0.875rem/1.4 var(--font-ui);
+  color: var(--color-link);
+  cursor: pointer;
+}
+.lintje-map-chart__set-scope:hover { text-decoration: underline; }
+
+@media (max-width: 767px) {
+  .lintje-map-chart__legend-content { flex-wrap: wrap; }
+}
+
+/* Forced colours: the map's colours are its content, so the drawing and the legend's swatches
+   keep them (`forced-color-adjust: none`). The chosen area or point is outlined in CanvasText,
+   the focused one in Highlight. The chosen layer's fill is dropped, so its border turns Highlight. */
+@media (forced-colors: active) {
+  .lintje-map-chart__svg,
+  .lintje-map-chart__scale-swatch,
+  .lintje-map-chart__thickness-sample,
+  .lintje-map-chart__bubble,
+  .lintje-map-chart__no-data-swatch,
+  .lintje-map-chart__series-swatch { forced-color-adjust: none; }
+  .lintje-map-chart__land.is-selected,
+  .lintje-map-chart__polygon.is-selected .lintje-map-chart__polygon-shape,
+  .lintje-map-chart__point.is-selected .lintje-map-chart__point-shape { stroke: CanvasText; }
+  .lintje-map-chart__point:focus-visible .lintje-map-chart__point-ring,
+  .lintje-map-chart__polygon:focus-visible .lintje-map-chart__polygon-ring,
+  .lintje-map-chart__flow:focus-visible { stroke: Highlight; }
+  .lintje-map-chart__point:focus-visible .lintje-map-chart__point-shape,
+  .lintje-map-chart__polygon:focus-visible .lintje-map-chart__polygon-shape { stroke: Canvas; }
+  .lintje-map-chart__layer.is-active { border-color: Highlight; }
+}

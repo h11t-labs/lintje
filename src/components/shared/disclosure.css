@@ -1,0 +1,119 @@
+/*
+ * The disclosure shared by `lintje-expander` and `lintje-explainer`: the surface stays with each
+ * element. The body unfolds with `grid-template-rows: 0fr -> 1fr`, as the filter zone does;
+ * `--dur-collapse` is 0 ms under reduced motion (`tokens/base.css`).
+ */
+:host(lintje-expander) {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+
+/* --- */
+
+.lintje-disclosure__heading { margin: 0; font: inherit; }
+.lintje-disclosure__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: var(--h-target);
+  gap: var(--space-3);
+  text-align: left;
+}
+/* Spans, because a button holds phrasing content only. */
+.lintje-disclosure__title { display: block; font: var(--text-tile-title); color: var(--color-text-primary); }
+/* A grid only with an icon or subtitle: the subtitle then sits under the title text. */
+.lintje-disclosure__label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-width: 0;
+}
+.lintje-disclosure__label--plain { display: block; }
+.lintje-disclosure__icon { grid-row: 1; }
+.lintje-disclosure__label .lintje-disclosure__title,
+.lintje-disclosure__label .lintje-disclosure__sub { grid-column: 2; }
+.lintje-disclosure__label--plain .lintje-disclosure__title,
+.lintje-disclosure__label--plain .lintje-disclosure__sub { grid-column: auto; }
+.lintje-disclosure__sub { display: block; font: var(--text-tile-sub); color: var(--color-text-muted); margin-top: 2px; }
+
+/* --- Opening and closing -------------------------------------------------- */
+.lintje-disclosure__body {
+  display: grid;
+  grid-template-rows: 0fr;
+  /* Named column: an implicit `auto` track takes the max-content width, so a code block with
+     `wrap: false` would run out of the box instead of scrolling. */
+  grid-template-columns: minmax(0, 1fr);
+  transition: grid-template-rows var(--dur-collapse) var(--ease-in-motion);
+}
+.lintje-disclosure.is-open .lintje-disclosure__body { grid-template-rows: 1fr; }
+
+.lintje-disclosure__body-inner {
+  min-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  /* Closed: out of the tab order and the accessibility tree; hiding waits for the collapse. */
+  visibility: hidden;
+  transition:
+    opacity var(--dur-collapse) var(--ease-in-motion),
+    visibility 0s linear var(--dur-collapse);
+}
+.lintje-disclosure.is-open .lintje-disclosure__body-inner {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity var(--dur-collapse) var(--ease-in-motion), visibility 0s;
+}
+/* Standing open, nothing clips: slotted content may hang a popover out of the box. */
+.lintje-disclosure.is-open.is-settled .lintje-disclosure__body-inner { overflow: visible; }
+
+/* Inside the clipped box: on the body it would show under a closed disclosure. */
+.lintje-disclosure__content { margin-top: var(--space-3); }
+
+.lintje-disclosure__chevron {
+  flex: none;
+  transform-origin: 50% 50%;
+  transition: transform var(--dur-collapse) var(--ease-in-motion);
+}
+.lintje-disclosure.is-open .lintje-disclosure__chevron { transform: rotate(180deg); }
+/* Leading: the chevron first, the title after it, and the content in line with the title. */
+.lintje-disclosure--leading .lintje-disclosure__header { justify-content: flex-start; align-items: flex-start; padding-top: var(--space-3); }
+/* The chevron stands in line with the title's first line, not between title and subtitle. */
+.lintje-disclosure--leading .lintje-disclosure__chevron { margin-top: calc((1lh - 16px) / 2); }
+.lintje-disclosure--leading .lintje-disclosure__label { flex: 1 1 auto; }
+.lintje-disclosure--leading .lintje-disclosure__content { margin-left: calc(16px + var(--space-3)); }
+
+/* Columns: the title in its own column, the content beside it in the text's column, the actions
+   at the end; the host's width decides, so a narrow one stacks again. */
+:host([columns]) { container-type: inline-size; }
+.lintje-expander--columns {
+  display: grid;
+  grid-template-columns: var(--lintje-expander-label, calc(4 * var(--space-10))) minmax(0, 1fr) auto;
+  grid-template-areas: 'head body actions';
+  column-gap: var(--space-5);
+  align-items: start;
+}
+.lintje-expander--columns .lintje-expander__top { display: contents; }
+.lintje-expander--columns .lintje-disclosure__heading { grid-area: head; }
+.lintje-expander--columns .lintje-expander__actions { grid-area: actions; }
+.lintje-expander--columns .lintje-disclosure__body { grid-area: body; }
+.lintje-expander--columns .lintje-disclosure__content { margin: 0; padding-top: var(--space-3); }
+@container (max-width: 40rem) {
+  .lintje-expander--columns {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'head actions' 'body body';
+  }
+  .lintje-expander--columns .lintje-disclosure__content { margin-left: calc(16px + var(--space-3)); padding-top: 0; }
+}
+
+.lintje-expander {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  padding: var(--tile-pad-y) var(--tile-pad-x);
+}
+/* `flat`: an expander inside a tile is not a second card. */
+.lintje-expander--flat { background: none; border: none; padding: 0; }
+.lintje-expander__content { font: var(--text-body); color: var(--color-text-secondary); }
+/* The actions stand beside the title's button, never inside it. */
+.lintje-expander__top { display: flex; align-items: flex-start; gap: var(--space-2); }
+.lintje-expander__top .lintje-disclosure__heading { flex: 1 1 auto; min-width: 0; }
+.lintje-expander__actions { display: flex; flex: none; align-items: center; gap: var(--space-1); }

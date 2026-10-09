@@ -1,0 +1,282 @@
+[
+  {
+    "weekday": "ma",
+    "hour": "06:00",
+    "value": 70
+  },
+  {
+    "weekday": "ma",
+    "hour": "08:00",
+    "value": 180
+  },
+  {
+    "weekday": "ma",
+    "hour": "10:00",
+    "value": 140
+  },
+  {
+    "weekday": "ma",
+    "hour": "12:00",
+    "value": 130
+  },
+  {
+    "weekday": "ma",
+    "hour": "14:00",
+    "value": 150
+  },
+  {
+    "weekday": "ma",
+    "hour": "16:00",
+    "value": 190
+  },
+  {
+    "weekday": "ma",
+    "hour": "18:00",
+    "value": 160
+  },
+  {
+    "weekday": "ma",
+    "hour": "20:00",
+    "value": 90
+  },
+  {
+    "weekday": "di",
+    "hour": "06:00",
+    "value": 68
+  },
+  {
+    "weekday": "di",
+    "hour": "08:00",
+    "value": 175
+  },
+  {
+    "weekday": "di",
+    "hour": "10:00",
+    "value": 138
+  },
+  {
+    "weekday": "di",
+    "hour": "12:00",
+    "value": 128
+  },
+  {
+    "weekday": "di",
+    "hour": "14:00",
+    "value": 148
+  },
+  {
+    "weekday": "di",
+    "hour": "16:00",
+    "value": 185
+  },
+  {
+    "weekday": "di",
+    "hour": "18:00",
+    "value": 155
+  },
+  {
+    "weekday": "di",
+    "hour": "20:00",
+    "value": 88
+  },
+  {
+    "weekday": "wo",
+    "hour": "06:00",
+    "value": 72
+  },
+  {
+    "weekday": "wo",
+    "hour": "08:00",
+    "value": 182
+  },
+  {
+    "weekday": "wo",
+    "hour": "10:00",
+    "value": 141
+  },
+  {
+    "weekday": "wo",
+    "hour": "12:00",
+    "value": 132
+  },
+  {
+    "weekday": "wo",
+    "hour": "14:00",
+    "value": 151
+  },
+  {
+    "weekday": "wo",
+    "hour": "16:00",
+    "value": 192
+  },
+  {
+    "weekday": "wo",
+    "hour": "18:00",
+    "value": 162
+  },
+  {
+    "weekday": "wo",
+    "hour": "20:00",
+    "value": 92
+  },
+  {
+    "weekday": "do",
+    "hour": "06:00",
+    "value": 75
+  },
+  {
+    "weekday": "do",
+    "hour": "08:00",
+    "value": 188
+  },
+  {
+    "weekday": "do",
+    "hour": "10:00",
+    "value": 145
+  },
+  {
+    "weekday": "do",
+    "hour": "12:00",
+    "value": 135
+  },
+  {
+    "weekday": "do",
+    "hour": "14:00",
+    "value": 155
+  },
+  {
+    "weekday": "do",
+    "hour": "16:00",
+    "value": 198
+  },
+  {
+    "weekday": "do",
+    "hour": "18:00",
+    "value": 168
+  },
+  {
+    "weekday": "do",
+    "hour": "20:00",
+    "value": 95
+  },
+  {
+    "weekday": "vr",
+    "hour": "06:00",
+    "value": 80
+  },
+  {
+    "weekday": "vr",
+    "hour": "08:00",
+    "value": 195
+  },
+  {
+    "weekday": "vr",
+    "hour": "10:00",
+    "value": 150
+  },
+  {
+    "weekday": "vr",
+    "hour": "12:00",
+    "value": 140
+  },
+  {
+    "weekday": "vr",
+    "hour": "14:00",
+    "value": 160
+  },
+  {
+    "weekday": "vr",
+    "hour": "16:00",
+    "value": 210
+  },
+  {
+    "weekday": "vr",
+    "hour": "18:00",
+    "value": 175
+  },
+  {
+    "weekday": "vr",
+    "hour": "20:00",
+    "value": 100
+  },
+  {
+    "weekday": "za",
+    "hour": "06:00",
+    "value": 95
+  },
+  {
+    "weekday": "za",
+    "hour": "08:00",
+    "value": 210
+  },
+  {
+    "weekday": "za",
+    "hour": "10:00",
+    "value": 170
+  },
+  {
+    "weekday": "za",
+    "hour": "12:00",
+    "value": 150
+  },
+  {
+    "weekday": "za",
+    "hour": "14:00",
+    "value": 165
+  },
+  {
+    "weekday": "za",
+    "hour": "16:00",
+    "value": 205
+  },
+  {
+    "weekday": "za",
+    "hour": "18:00",
+    "value": 180
+  },
+  {
+    "weekday": "za",
+    "hour": "20:00",
+    "value": 110
+  },
+  {
+    "weekday": "zo",
+    "hour": "06:00",
+    "value": 85
+  },
+  {
+    "weekday": "zo",
+    "hour": "08:00",
+    "value": 190
+  },
+  {
+    "weekday": "zo",
+    "hour": "10:00",
+    "value": 160
+  },
+  {
+    "weekday": "zo",
+    "hour": "12:00",
+    "value": 145
+  },
+  {
+    "weekday": "zo",
+    "hour": "14:00",
+    "value": 158
+  },
+  {
+    "weekday": "zo",
+    "hour": "16:00",
+    "value": 200
+  },
+  {
+    "weekday": "zo",
+    "hour": "18:00",
+    "value": 172
+  },
+  {
+    "weekday": "zo",
+    "hour": "20:00",
+    "value": 98
+  }
+]

@@ -1,0 +1,30 @@
+/* The radio group's stack; the radio itself is the shared `choice`. */
+
+.lintje-radio-group { display: flex; flex-direction: column; }
+/* Cards: the options side by side, each with a line under its label. The chosen one is quiet, as
+   in the segmented control: the choice's wash and an edge in the accent line. */
+.lintje-radio-group--cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(6 * var(--space-10))), 1fr));
+  gap: var(--space-2);
+}
+.lintje-radio-group__card {
+  align-items: flex-start;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+}
+.lintje-radio-group__card:hover:not(.is-chosen, .is-disabled) { background: var(--color-bg-subtle); }
+.lintje-radio-group__card.is-chosen {
+  background: var(--color-choice-active-bg);
+  border-color: var(--color-accent-line);
+  box-shadow: inset 0 0 0 1px var(--color-accent-line);
+}
+.lintje-radio-group__card .lintje-choice__label { display: flex; flex-direction: column; font-weight: 700; }
+.lintje-radio-group__description { font: var(--text-small); font-weight: 400; color: var(--color-text-muted); }
+
+/* Below 768 px the two text fields take the touch height; the choice rows already have it. */
+@media (max-width: 767px) {
+  :host(lintje-text-input),
+  :host(lintje-number-input) { --h-control: var(--h-touch); }
+}

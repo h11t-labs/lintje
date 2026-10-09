@@ -1,0 +1,53 @@
+:host { display: contents; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-confirm-dialog__scrim {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background: var(--color-overlay-page);
+  animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
+}
+
+.lintje-confirm-dialog {
+  width: min(440px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-popover);
+  animation: lintje-rise var(--dur-modal) var(--ease-in-motion);
+}
+/* The window takes focus only when the trap pulls stray focus back; it draws no ring. */
+.lintje-confirm-dialog:focus { outline: none; }
+.lintje-confirm-dialog__heading { font: var(--text-h2); }
+.lintje-confirm-dialog__text { font: var(--text-body); }
+
+.lintje-confirm-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+/* Phone: the buttons stack, the confirm on top and the safe one at the bottom. */
+@media (max-width: 767px) {
+  .lintje-confirm-dialog__scrim { padding: var(--space-4); }
+  .lintje-confirm-dialog { width: 100%; }
+  .lintje-confirm-dialog__actions { flex-direction: column; }
+  .lintje-confirm-dialog__confirm { order: 1; }
+  .lintje-confirm-dialog__action { order: 2; }
+  .lintje-confirm-dialog__cancel { order: 3; }
+}

@@ -1,0 +1,70 @@
+.lintje-announcement {
+  container-type: inline-size;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius);
+}
+.lintje-announcement.is-compact { padding: 10px var(--space-3); gap: var(--space-2); }
+
+.lintje-announcement__icon {
+  width: 20px; height: 20px;
+  flex: none;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--color-text-primary);
+  margin-top: 1px;
+}
+.lintje-announcement__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.lintje-announcement__content { min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.lintje-announcement__title { font: var(--text-tile-title); color: var(--color-text-primary); }
+.lintje-announcement__text { font: var(--text-ui); line-height: 1.45; color: var(--color-text-primary); }
+.lintje-announcement__meta { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-announcement__link { color: var(--color-link-on-status); font-weight: 700; }
+/* The `action` slot keeps its own width: under the text, or beside it where the announcement is wide. */
+.lintje-announcement__action::slotted(*) { align-self: flex-start; }
+.lintje-announcement__media::slotted(*) { flex: none; max-width: 40%; height: auto; }
+@container (min-width: 560px) {
+  .lintje-announcement__body { flex-direction: row; align-items: center; gap: var(--space-4); }
+  .lintje-announcement__content { flex: 1; }
+  .lintje-announcement__action::slotted(*) { align-self: center; flex: none; }
+}
+
+/* The margin pulls the button's middle in line with the icon box; the hit area reaches the target. */
+.lintje-announcement__close {
+  position: relative;
+  width: var(--h-icon-button); height: var(--h-icon-button); flex: none;
+  display: flex; align-items: center; justify-content: center;
+  --lintje-close-pull: calc((var(--space-5) - var(--h-icon-button)) / 2);
+  margin: var(--lintje-close-pull) var(--lintje-close-pull) var(--lintje-close-pull) 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+.lintje-announcement__close:hover { background: var(--color-bg-subtle); }
+.lintje-announcement__close::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2));
+}
+
+.lintje-announcement--warning { background: var(--color-attention-bg); }
+.lintje-announcement--warning .lintje-announcement__icon { color: var(--color-attention-line); }
+.lintje-announcement--outage { background: var(--color-error-bg); }
+.lintje-announcement--outage .lintje-announcement__icon { color: var(--color-error-line); }
+.lintje-announcement--info { background: var(--color-info-bg); }
+.lintje-announcement--info .lintje-announcement__icon { color: var(--color-info-line); }
+.lintje-announcement--ok { background: var(--color-success-bg); }
+.lintje-announcement--ok .lintje-announcement__icon { color: var(--color-success-line); }
+
+@media (max-width: 767px) {
+  .lintje-announcement { padding: 10px var(--space-3); gap: var(--space-2); }
+  .lintje-announcement__title { font: var(--text-tile-title); color: var(--color-text-primary); }
+.lintje-announcement__text { font: var(--text-small); }
+}
+
+/* Forced colours drop the fill, so the announcement takes an outline. */
+@media (forced-colors: active) {
+  .lintje-announcement { outline: 1px solid CanvasText; outline-offset: -1px; }
+}

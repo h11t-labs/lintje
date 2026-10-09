@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="nl" data-mode="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vertalen — Lintje</title>
+    <!--
+      Vertalen: a small application built from Lintje's elements on a plain page. A text
+      translated while you type, documents translated in a queue and each opened beside its
+      translation, and a history page with everything translated before; the start shows the
+      latest of it. There is no backend: `app.js` plays the server
+      (the stream, the queue, the uploads) with timers. The texts are short and fictional; the
+      example server only knows its one sample text, from English to Dutch and back.
+
+      Serve the repository root with any static server and open /examples/vertalen/.
+        ?van=en&naar=nl                the languages, kept in the URL by the page
+        ?tab=document                  the documents (or ?tab=live); without it the text
+        ?document=d1                   a translated document beside its original
+        ?view=geschiedenis             the history: every text and document translated before
+        ?mode=dark                     dark mode (without it the reader's system decides)
+        ?theme=marechaussee            one of the six themes
+        ?demo=1                        a telling state on load: a translation half streamed
+    -->
+    <link rel="stylesheet" href="../../src/tokens/fonts.css" />
+    <link rel="stylesheet" href="../../dist-elements/tokens.css" />
+    <style>
+      body {
+        margin: 0;
+        background: var(--color-bg-page);
+        color: var(--color-text-primary);
+        font: var(--text-ui);
+        font-family: var(--font-ui);
+        -webkit-font-smoothing: antialiased;
+      }
+      .view { display: flex; flex-direction: column; gap: var(--grid-gutter); }
+      .view[hidden] { display: none; }
+
+      .documents { display: flex; flex-direction: column; gap: var(--space-6); }
+      .start { display: flex; flex-direction: column; gap: var(--grid-gutter); }
+      @media (min-width: 1280px) {
+        .start:has(> lintje-tile:not([hidden])) {
+          display: grid;
+          grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+          align-items: start;
+        }
+      }
+      .pane { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+    </style>
+  </head>
+  <body>
+    <lintje-shell id="shell">
+      <!-- The start: a text, documents or a conversation, under one band. -->
+      <lintje-hero slot="full" id="hero" heading="Wat wil je vertalen?"
+        description="Typ of plak een tekst, upload een document of voer een gesprek dat live wordt vertaald."
+        action="Eerder vertaald" href="?view=geschiedenis">
+        <lintje-icon slot="aside" id="hero-icon" size="160"></lintje-icon>
+        <!-- On a wide screen what was translated before stands beside the tabs, below that under them. -->
+        <div slot="overlap" class="start">
+          <lintje-tabs id="tabs" variant="panel" label="Wat wil je vertalen?">
+            <lintje-translator slot="tekst" id="translator" maxlength="5000" placeholder="Typ of plak de tekst die je wilt vertalen">
+              <lintje-combobox slot="source-language" id="from" label="Brontaal" hide-label empty-label="Geen taal gevonden voor"></lintje-combobox>
+              <lintje-combobox slot="target-language" id="to" label="Doeltaal" hide-label empty-label="Geen taal gevonden voor"></lintje-combobox>
+              <lintje-icon-button slot="source-actions" id="dictate" label="Inspreken" variant="flat"></lintje-icon-button>
+              <lintje-streaming-text slot="target" id="translation" variant="plain" label="Bezig met vertalen"></lintje-streaming-text>
+              <lintje-empty-state slot="target" id="nothing" compact hidden text="De vertaling verschijnt hier terwijl je typt.">
+                <lintje-button id="sample" variant="link">Voorbeeldtekst invullen</lintje-button>
+              </lintje-empty-state>
+              <lintje-ai-label slot="target-note" id="label"></lintje-ai-label>
+              <lintje-icon-button slot="target-actions" id="speak" label="Vertaling voorlezen" variant="flat"></lintje-icon-button>
+              <lintje-copy-button slot="target-actions" id="copy" variant="primary" size="compact"></lintje-copy-button>
+            </lintje-translator>
+
+            <lintje-translator slot="document" variant="documents" id="documenten">
+              <lintje-combobox slot="source-language" id="doc-from" label="Brontaal" hide-label empty-label="Geen taal gevonden voor"></lintje-combobox>
+              <lintje-combobox slot="target-language" id="doc-to" label="Doeltaal" hide-label empty-label="Geen taal gevonden voor"></lintje-combobox>
+              <lintje-file-upload id="upload" label="Documenten" hide-label accept=".docx,.pdf,.txt"
+                max-size="20971520" hint="Een document wordt in de wachtrij vertaald, met de opmaak van het origineel."></lintje-file-upload>
+              <!-- What is being translated now; a finished document moves to the block below. -->
+              <lintje-job-list id="queue" hidden></lintje-job-list>
+            </lintje-translator>
+
+            <lintje-empty-state slot="live" id="live" heading="Live gesprek"
+              text="Binnenkort: jullie praten met elkaar, en de vertaling loopt mee."></lintje-empty-state>
+          </lintje-tabs>
+
+          <!-- What was translated before, texts and documents mixed; on the history page the texts. -->
+          <lintje-tile id="history" flush heading="Eerder vertaald" footnote="Je geschiedenis blijft op dit apparaat." hidden>
+            <lintje-button slot="actions" id="history-all" variant="link" size="compact" href="?view=geschiedenis">Alles bekijken</lintje-button>
+            <lintje-list id="history-list" heading-level="4" label="Eerder vertaalde teksten" empty-text="Nog niets vertaald."></lintje-list>
+          </lintje-tile>
+
+          <!-- The documents translated before, on the history page. -->
+          <lintje-tile id="done-docs" flush heading="Eerder vertaalde documenten" hidden>
+            <lintje-button slot="actions" id="docs-all" variant="link" size="compact" href="?view=geschiedenis">Alles bekijken</lintje-button>
+            <div class="documents">
+              <lintje-job-list id="jobs" heading-level="4"></lintje-job-list>
+              <lintje-pagination id="pager" page="1" page-size="5" page-sizes="5, 10, 20" unit="documenten" unit-one="document"></lintje-pagination>
+            </div>
+          </lintje-tile>
+        </div>
+      </lintje-hero>
+
+      <!-- The title row of a page of its own: the history, or a document beside its translation. -->
+      <lintje-page-header slot="header" id="page-header" hidden>
+        <lintje-breadcrumbs slot="breadcrumbs" id="crumbs"></lintje-breadcrumbs>
+        <lintje-copy-button slot="actions" id="doc-copy" for="doc-translation"></lintje-copy-button>
+        <lintje-button slot="actions" id="doc-download" variant="primary" icon="functioneel-downloaden">Vertaling downloaden</lintje-button>
+      </lintje-page-header>
+      <div class="view" id="doc-view" hidden>
+        <lintje-split-pane start-label="Origineel" end-label="Vertaling">
+          <div slot="start" class="pane">
+            <lintje-document-viewer id="viewer"></lintje-document-viewer>
+          </div>
+          <div slot="end" class="pane">
+            <lintje-ai-label id="doc-label"></lintje-ai-label>
+            <lintje-prose id="doc-translation"></lintje-prose>
+          </div>
+        </lintje-split-pane>
+      </div>
+
+    </lintje-shell>
+    <lintje-app-search id="search" label="Zoeken in je vertalingen"></lintje-app-search>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

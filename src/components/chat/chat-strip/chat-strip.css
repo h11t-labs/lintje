@@ -1,0 +1,126 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-chat-strip {
+  border-top: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--color-border-default);
+  color: var(--color-text-primary);
+}
+.lintje-chat-strip__row {
+  display: flex; flex-wrap: wrap; align-items: flex-end;
+  gap: var(--space-2) var(--space-6);
+  padding: var(--space-2) 0;
+}
+.lintje-chat-strip__items {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; flex-wrap: wrap; align-items: flex-end;
+  gap: var(--space-2) var(--space-6);
+  margin: 0;
+}
+.lintje-chat-strip__item { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); min-width: 0; }
+.lintje-chat-strip__label {
+  font-size: var(--label-size); font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.lintje-chat-strip__value { margin: 0; min-width: 0; font: var(--text-ui); }
+
+/* Every form of a value is one line, so a row of mixed forms shares a baseline. */
+.lintje-chat-strip__text,
+.lintje-chat-strip__term,
+.lintje-chat-strip__suggestion {
+  display: inline-flex; align-items: center;
+  min-height: var(--h-chip-field);
+  font: var(--text-ui);
+  color: var(--color-text-primary);
+}
+
+.lintje-chat-strip__term,
+.lintje-chat-strip__suggestion.is-pressed {
+  background: var(--color-term-bg);
+  border-bottom: 2px solid var(--color-term-line);
+}
+.lintje-chat-strip__term {
+  position: relative;
+  gap: var(--space-1);
+  padding: 0 0 0 var(--space-1);
+}
+/* The native select lies invisibly over the drawing for pointer, keyboard and the phone's picker.
+   It reaches the target height above and below only, never over a neighbouring value. */
+.lintje-chat-strip__select {
+  position: absolute; inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+  width: 100%; height: auto;
+  opacity: 0;
+  cursor: pointer;
+  appearance: none;
+}
+.lintje-chat-strip__term:focus-within {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+/* Dashed while only a suggestion. Like the select, it and the toggle get a transparent hit area. */
+.lintje-chat-strip__suggestion,
+.lintje-chat-strip__toggle { position: relative; }
+.lintje-chat-strip__suggestion::after,
+.lintje-chat-strip__toggle::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+.lintje-chat-strip__suggestion {
+  padding: 0 var(--space-1);
+  border-bottom: 2px dashed var(--color-border-suggestion);
+  transition: background var(--dur-hover);
+}
+.lintje-chat-strip__suggestion:hover { background: var(--color-bg-subtle); }
+.lintje-chat-strip__suggestion.is-pressed:hover { background: var(--color-term-bg); }
+
+.lintje-chat-strip__toggle {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  min-height: var(--h-chip-field);
+  margin-left: auto;
+  font: var(--text-small); font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.lintje-chat-strip__details {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0 0 var(--space-3);
+  font: var(--text-ui);
+}
+.lintje-chat-strip__detail { display: contents; }
+.lintje-chat-strip__detail-term { color: var(--color-text-muted); }
+.lintje-chat-strip__detail-text { margin: 0; color: var(--color-text-primary); }
+
+/* Below 768 px the strip switches representation (rule 9). */
+@media (max-width: 767px) {
+  .lintje-chat-strip__row { display: block; padding: var(--space-1) 0 0; }
+  .lintje-chat-strip__items {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 var(--space-4);
+    align-items: stretch;
+  }
+  .lintje-chat-strip__item { justify-content: center; min-height: var(--h-touch); }
+  .lintje-chat-strip__item--fixed { grid-column: 1 / -1; }
+  .lintje-chat-strip__select,
+  .lintje-chat-strip__suggestion::after { inset: calc(var(--space-6) * -1) 0 calc(var(--space-2) * -1); }
+  .lintje-chat-strip__toggle {
+    width: 100%; min-height: var(--h-touch);
+    justify-content: space-between;
+    margin: var(--space-1) 0 0;
+    border-top: 1px solid var(--color-border-default);
+    font: var(--text-ui); font-weight: 700;
+  }
+  .lintje-chat-strip__details { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .lintje-chat-strip__detail-text { margin-bottom: var(--space-2); }
+}

@@ -1,0 +1,45 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-chat-answer { display: flex; flex-direction: column; gap: var(--space-6); min-width: 0; }
+.lintje-chat-answer__body { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+
+.lintje-chat-answer__lead { font-weight: 700; }
+
+/* The dashboard's 12-column grid, so two tiles with a `span` stand side by side. */
+.lintje-chat-answer__blocks {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-3) var(--grid-gutter);
+  min-width: 0;
+}
+.lintje-chat-answer__blocks > :not([span]) { grid-column: 1 / -1; }
+@media (max-width: 767px) {
+  .lintje-chat-answer__blocks { grid-template-columns: minmax(0, 1fr); }
+}
+
+.lintje-chat-answer__stopped,
+.lintje-chat-answer__note,
+.lintje-chat-answer__reasons-label { font: var(--text-small); color: var(--color-text-muted); }
+.lintje-chat-answer__status { align-self: flex-start; }
+.lintje-chat-answer__retry { margin-top: var(--space-2); }
+
+/* The gap keeps the hit areas apart; the margin aligns the first glyph with the text's edge. */
+.lintje-chat-answer__actions {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--space-2);
+  margin-left: calc((16px - var(--h-icon-button)) / 2);
+  color: var(--color-text-primary);
+}
+.lintje-chat-answer__note { margin-left: var(--space-2); }
+.lintje-chat-answer__reasons {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--space-2);
+  animation: lintje-fade-in var(--dur-base) var(--ease-in-motion) both;
+}
+.lintje-chat-answer__reasons-label { margin-right: var(--space-1); }

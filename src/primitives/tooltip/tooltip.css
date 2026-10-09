@@ -1,0 +1,19 @@
+/* A box of its own for the pointer and focus to enter; inline, so flow is unchanged. */
+:host { display: inline-flex; vertical-align: middle; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* The pointer can rest on it, to read it at a larger zoom; Escape takes it away. */
+.lintje-tooltip {
+  position: fixed;
+  z-index: 90;
+  max-width: 15rem;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-popover);
+  box-shadow: var(--shadow-popover);
+  font: var(--text-small);
+  animation: lintje-fade-in var(--dur-hover) var(--ease-in-motion);
+}

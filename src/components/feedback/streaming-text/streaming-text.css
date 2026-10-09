@@ -1,0 +1,62 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+/* Plain takes the type of where it stands, past the UI type every element sets on itself. */
+:host([variant='plain']) { font: inherit; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-streaming-text { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+
+.lintje-streaming-text__box {
+  padding: var(--space-3);
+  background: var(--color-bg-page);
+  border: 1px solid var(--color-border-default);
+  font: var(--text-body);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+/* Keeps a line break the server sends; slotted prose keeps its own rules. */
+.lintje-streaming-text__plain { white-space: pre-wrap; }
+.lintje-streaming-text__box--waiting {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--text-ui);
+}
+.lintje-streaming-text__waiting { color: var(--color-text-muted); }
+
+.lintje-streaming-text__caret {
+  display: inline-block;
+  width: 8px;
+  height: 18px;
+  margin-left: var(--space-1);
+  vertical-align: text-bottom;
+  background: var(--color-accent-line);
+  animation: lintje-caret-blink var(--dur-skeleton) steps(1, end) infinite;
+}
+/* A keyframe only works in the root that uses it. */
+@keyframes lintje-caret-blink {
+  0%   { opacity: 1; }
+  50%  { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lintje-streaming-text__caret { animation: none; }
+}
+
+/* Plain: the surface around it is the box. */
+.lintje-streaming-text--plain .lintje-streaming-text__box {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font: inherit;
+}
+.lintje-streaming-text--plain .lintje-streaming-text__box--waiting { font: var(--text-ui); }
+
+.lintje-streaming-text__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+.lintje-streaming-text__note { font: var(--text-small); color: var(--color-text-muted); }
+.lintje-streaming-text__note--error { font: var(--text-meta); font-weight: 700; color: var(--color-error-text); }

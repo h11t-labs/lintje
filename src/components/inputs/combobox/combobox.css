@@ -1,0 +1,75 @@
+/* The combobox: the text field with the chevron, and the list slotted into a `lintje-popover`. */
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+/* Below 768 px: the touch height and the full width, as `stacked`. */
+@media (max-width: 767px) {
+  :host {
+    width: 100%;
+    --h-control: var(--h-touch);
+  }
+}
+
+/* --- */
+
+.lintje-combobox { position: relative; display: flex; align-items: center; }
+.lintje-combobox__control {
+  width: 100%; height: var(--h-control);
+  padding: 0 var(--space-10) 0 14px;
+  border: 1px solid var(--color-border-field);
+  border-radius: var(--radius);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+}
+.lintje-combobox__control::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+.lintje-combobox__control.is-error { border: 2px solid var(--color-error); }
+/* Disabled wins over error: after it, the whole border back to 1 px strong. */
+.lintje-combobox__control:disabled {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+/* The chevron is drawing, not a control: a press on it lands in the field. */
+.lintje-combobox__chevron {
+  position: absolute; right: var(--space-3);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+/* A dense list (`--h-option`): at most seven rows in view, then it scrolls. */
+.lintje-combobox__list {
+  max-height: calc(7 * var(--h-option) + var(--space-2));
+  overflow-y: auto;
+  padding: var(--space-1) 0;
+  font: var(--text-ui);
+}
+.lintje-combobox__option {
+  display: flex; align-items: center;
+  min-height: var(--h-option);
+  padding: 0 14px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+.lintje-combobox__option:hover,
+.lintje-combobox__option.is-active { background: var(--color-bg-subtle); }
+/* The option the keys stand on: the fill alone is about 1.1:1, so the focus ring inside the row. */
+.lintje-combobox__option.is-active {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: calc(var(--focus-width) * -1);
+}
+.lintje-combobox__option.is-selected { background: var(--color-bg-selected); font-weight: 700; }
+.lintje-combobox__match { font-weight: 700; }
+
+.lintje-combobox__status,
+.lintje-combobox__empty {
+  padding: 10px 14px;
+  font: var(--text-ui);
+  color: var(--color-text-muted);
+}
+
+/* Forced colours drop fills: both rows take an edge inside the row, so none changes size. */
+@media (forced-colors: active) {
+  .lintje-combobox__option.is-active { outline: 1px solid CanvasText; outline-offset: -1px; }
+  .lintje-combobox__option.is-selected { outline: 2px solid Highlight; outline-offset: -2px; }
+}

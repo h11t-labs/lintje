@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": false,
+  "singleQuote": true,
+  "printWidth": 100,
+  "trailingComma": "all",
+  "arrowParens": "always",
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "src/icons/register.ts",
+    "src/components/actions/qr-code/qrcodegen.ts",
+    "assets/",
+    "dist-elements/",
+    "examples/",
+    "node_modules/",
+    "package-lock.json",
+    "*.css",
+    "*.md"
+  ],
+  "embeddedLanguageFormatting": "off"
+}

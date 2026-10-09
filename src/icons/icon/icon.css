@@ -1,0 +1,9 @@
+/* `<lintje-icon>`'s own box: the host is the flex child; the glyph inside is a plain block. */
+:host {
+  display: inline-flex;
+  flex: none;
+}
+:host([hidden]) { display: none; }
+.lintje-icon {
+  display: block;
+}

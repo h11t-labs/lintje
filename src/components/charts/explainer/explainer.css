@@ -1,0 +1,29 @@
+/* The disclosure itself is `shared/disclosure.css`, adopted next to this sheet (rule 2). */
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-explainer {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  padding: var(--tile-pad-y) var(--tile-pad-x);
+}
+.lintje-explainer__list {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(0, 72ch);
+  column-gap: var(--space-5);
+  row-gap: var(--space-3);
+  font: var(--text-body);
+}
+.lintje-explainer__term { grid-column: 1; font-weight: 700; color: var(--color-text-primary); }
+.lintje-explainer__description { grid-column: 2; margin: 0; color: var(--color-text-secondary); }
+
+@media (max-width: 767px) {
+  .lintje-explainer__list { display: block; }
+  .lintje-explainer__description { margin-top: 2px; }
+  .lintje-explainer__description + .lintje-explainer__term { margin-top: var(--space-3); }
+}

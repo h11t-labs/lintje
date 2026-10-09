@@ -1,0 +1,48 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* The frame takes the focus after a failed attempt and keeps its own red under the ring. */
+.lintje-error-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-error);
+  border-radius: var(--radius);
+}
+.lintje-error-summary__icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-error);
+}
+.lintje-error-summary__body { min-width: 0; }
+.lintje-error-summary__heading {
+  margin: 0 0 var(--space-1);
+  font: var(--text-tile-title);
+}
+
+.lintje-error-summary__list {
+  margin: 0;
+  padding-left: var(--space-5);
+  list-style: disc;
+  font: var(--text-ui);
+}
+.lintje-error-summary__link {
+  color: var(--color-link);
+  text-decoration: underline;
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-error-summary__link:hover { color: var(--color-link-hover); }
+
+.lintje-error-summary__message {
+  margin: 0;
+  font: var(--text-ui);
+}
+
+@media (max-width: 767px) {
+  .lintje-error-summary { padding: var(--space-3) var(--space-4); }
+}

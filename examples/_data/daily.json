@@ -1,0 +1,44 @@
+[
+  {
+    "weekday": "ma",
+    "requests": 138420,
+    "requests_last_week": 132180,
+    "completeness": 99.2
+  },
+  {
+    "weekday": "di",
+    "requests": 141260,
+    "requests_last_week": 134920,
+    "completeness": 99.6
+  },
+  {
+    "weekday": "wo",
+    "requests": 139880,
+    "requests_last_week": 136410,
+    "completeness": 98.1
+  },
+  {
+    "weekday": "do",
+    "requests": 144310,
+    "requests_last_week": 138760,
+    "completeness": 99.4
+  },
+  {
+    "weekday": "vr",
+    "requests": 152640,
+    "requests_last_week": 146220,
+    "completeness": 97.8
+  },
+  {
+    "weekday": "za",
+    "requests": 168020,
+    "requests_last_week": 159340,
+    "completeness": 99.1
+  },
+  {
+    "weekday": "zo",
+    "requests": 149380,
+    "requests_last_week": 142260,
+    "completeness": 93.4
+  }
+]

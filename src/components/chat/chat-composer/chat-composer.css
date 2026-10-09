@@ -1,0 +1,151 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-chat-composer { position: relative; }
+
+/* The frame is the field, so it takes the field's resting border (3:1). */
+.lintje-chat-composer__frame {
+  display: flex; flex-direction: column;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-field);
+}
+
+/* Grows with the text and scrolls at four lines, the captions with it. A line this tall leaves
+   a term's caption room above the word. */
+.lintje-chat-composer__field {
+  position: relative;
+  max-height: calc(var(--h-control) * 4 + var(--space-5));
+  overflow-y: auto;
+}
+.lintje-chat-composer__input {
+  display: block;
+  min-height: calc(var(--h-control) + var(--space-5));
+  padding: var(--space-3) var(--space-4) var(--space-2);
+  font: var(--text-body);
+  line-height: var(--h-control);
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.lintje-chat-composer__input.is-empty::before {
+  /* The field's `aria-placeholder` says it; the empty alternative keeps it from being read twice. */
+  content: attr(data-placeholder);
+  content: attr(data-placeholder) / '';
+  position: absolute;
+  color: var(--color-text-placeholder);
+  opacity: 1;
+  pointer-events: none;
+}
+/* The frame takes the ring; without `:has()` the field keeps its own. */
+@supports selector(:has(*)) {
+  .lintje-chat-composer__input:focus-visible { outline: none; }
+  .lintje-chat-composer__frame:has(.lintje-chat-composer__input:focus-visible) {
+    outline: var(--focus-width) solid var(--color-focus);
+    outline-offset: var(--focus-offset);
+  }
+}
+
+/* Dashed gray marks an uncertain term: ambiguous, or of a source that is switched off. */
+.lintje-chat-composer__input::highlight(lintje-term) {
+  background-color: var(--color-term-bg);
+  text-decoration: underline solid var(--color-term-line);
+  text-decoration-thickness: 2px;
+  text-underline-offset: var(--space-1);
+}
+.lintje-chat-composer__input::highlight(lintje-term-uncertain) {
+  text-decoration: underline dashed var(--color-border-suggestion);
+  text-decoration-thickness: 2px;
+  text-underline-offset: var(--space-1);
+}
+
+.lintje-chat-composer__captions { position: absolute; inset: 0; pointer-events: none; }
+.lintje-chat-composer__caption {
+  position: absolute;
+  transform: translateY(-100%);
+  font-size: var(--label-size); font-weight: var(--label-weight);
+  line-height: 1;
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+  color: var(--color-accent-text);
+}
+.lintje-chat-composer__caption.is-uncertain { color: var(--color-text-muted); }
+
+.lintje-chat-composer__bar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-2);
+}
+.lintje-chat-composer__sources { flex: 0 1 auto; width: auto; min-width: 0; }
+.lintje-chat-composer__hint {
+  flex: 1 1 auto; min-width: 0;
+  font: var(--text-meta);
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+/* A joined group is drawn at the target height itself, so both halves are as tall as "Versturen". */
+.lintje-chat-composer__send { position: relative; flex: none; display: flex; gap: 1px; }
+.lintje-chat-composer__send-half { --h-icon-button: var(--h-button); }
+
+.lintje-chat-composer__scrim { position: fixed; inset: 0; z-index: 45; }
+.lintje-chat-composer__options {
+  position: absolute; right: 0; bottom: calc(100% + var(--space-2)); z-index: 46;
+  width: 320px; max-width: calc(100vw - 2 * var(--space-4));
+  display: flex; flex-direction: column; gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-popover);
+  box-shadow: var(--shadow-popover);
+  color: var(--color-text-primary);
+  animation: lintje-rise var(--dur-popover) var(--ease-in-motion);
+}
+.lintje-chat-composer__shortcuts { display: flex; flex-direction: column; gap: var(--space-2); }
+.lintje-chat-composer__shortcuts-label { font: var(--text-small); font-weight: 700; }
+.lintje-chat-composer__keys {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin: 0;
+  font: var(--text-ui);
+}
+.lintje-chat-composer__key { margin: 0; }
+
+.lintje-chat-composer__completions {
+  position: absolute; left: 0; bottom: calc(100% + var(--space-2)); z-index: 46;
+  width: 360px; max-width: 100%;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-popover);
+  box-shadow: var(--shadow-popover);
+  animation: lintje-rise var(--dur-popover) var(--ease-in-motion);
+}
+.lintje-chat-composer__completion {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--h-option);
+  padding: 0 var(--space-3);
+  border-bottom: 1px solid var(--color-border-default);
+  font: var(--text-ui);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+.lintje-chat-composer__completion:last-child { border-bottom: 0; }
+.lintje-chat-composer__completion:hover,
+.lintje-chat-composer__completion.is-active { background: var(--color-bg-subtle); }
+.lintje-chat-composer__completion-kind { font: var(--text-meta); color: var(--color-text-muted); }
+
+/* A phone: the field stays at 1rem, since a smaller size makes iOS zoom in on focus. */
+@media (max-width: 767px) {
+  .lintje-chat-composer__input { padding: var(--space-3) var(--space-3) var(--space-1); }
+  .lintje-chat-composer__hint:not(:empty) { flex-basis: 100%; order: -1; text-align: left; }
+}
+
+/* Forced colours drop the chosen completion's fill, so it takes an outline. */
+@media (forced-colors: active) {
+  .lintje-chat-composer__completion.is-active { outline: 1px solid Highlight; outline-offset: -1px; }
+}

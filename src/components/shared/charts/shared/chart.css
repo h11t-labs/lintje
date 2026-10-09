@@ -1,0 +1,351 @@
+.lintje-chart { display: flex; flex-direction: column; gap: 6px; min-width: 0; margin: 0; }
+/* Charts that are as high as their rows (horizontal bars, target progress) center in a taller
+   tile instead of leaving the space below them empty. */
+.lintje-chart--rows { margin-block: auto; }
+.lintje-chart__axis-title { font: var(--text-axis); color: var(--color-text-muted); }
+.lintje-chart__svg {
+  width: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.lintje-chart__axis-label {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 400;
+  fill: var(--color-chart-axis);
+}
+/* Data labels are bold so they read as values rather than axis labels. */
+.lintje-chart__data-label {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  fill: var(--color-text-primary);
+}
+/* On a mark the label takes the text of the fill it stands on: white on a dark rung, ink on a
+   light one. The fills are the same in both modes, so the label is too. */
+.lintje-chart__data-label--inside { fill: var(--color-text-on-fill); }
+.lintje-chart__data-label--inside-light { fill: var(--color-text-on-light-fill); }
+/* On a threshold line (horizontal bars): a halo in the surface color. Invisible on the tile, it cuts the
+   dotted line where a value just under the norm puts its label across it. */
+.lintje-chart__data-label--halo {
+  stroke: var(--color-bg-surface);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+}
+.lintje-chart__as-of-label {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  fill: var(--color-text-primary);
+}
+.lintje-chart__as-of-note {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  fill: var(--color-text-muted);
+}
+
+.lintje-chart__line { stroke-width: 2.5; fill: none; stroke-linejoin: round; }
+/* 1 px either side of the line, under it (`lineCasing`). */
+.lintje-chart__line--casing { stroke-width: 4.5; }
+
+/* Bars. transform-box: fill-box puts the origin in the bar's own box instead of the svg's:
+   a bar widens around its own middle. A horizontal bar is anchored at the category axis. */
+.lintje-chart__bar {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform var(--dur-hover) var(--ease-in-motion), filter var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-chart__bar--horizontal { transform-origin: 0 50%; }
+
+/* The bar under the pointer widens a little and lifts with a light
+   shadow, so it is clear what the tooltip describes — the same lift as a pie segment. Only the
+   width grows: the length carries the value. A stacked column lifts as a whole. */
+.lintje-chart__bar-group:hover .lintje-chart__bar,
+.lintje-chart__bar-group.is-hovered .lintje-chart__bar {
+  transform: scaleX(1.06);
+  filter: drop-shadow(var(--shadow-chart-hover));
+}
+.lintje-chart__bar-row:hover .lintje-chart__bar--horizontal,
+.lintje-chart__bar-row.is-hovered .lintje-chart__bar--horizontal {
+  transform: scaleY(1.12);
+  filter: drop-shadow(var(--shadow-chart-hover));
+}
+
+/* A mark that drills. The same three states wherever a mark can carry a
+   href — bars, stacked segments, pie slices — and the same ones the map draws: the chosen
+   mark takes the text colour as a 2 px outline (the outline is the carrier, not the colour,
+   rule 13) and every other mark steps back so it reads against them; .45 is the legend's own
+   dimming. The focus ring is the orange 3 px of every other control, around the shape with
+   a 1 px gap in the surface (`renderFocusRing`, axes.ts), so an orange mark keeps it too: the
+   box an outline draws around a slice or a stacked segment is not the shape the reader is on. */
+.lintje-chart__mark.is-clickable { cursor: pointer; }
+.lintje-chart__mark.is-selected { stroke: var(--color-text-primary); stroke-width: 2; }
+.lintje-chart__mark.is-muted { fill-opacity: .45; }
+/* A focused SVG element with a tabindex gets the browser's own box even where `:focus-visible`
+   does not match, after a click: the ring below is the only one. */
+.lintje-chart__mark:focus { outline: none; }
+/* Weighs as much as the hover's lift and stands after it, so the ring is what a focused bar
+   under the pointer shows. Only a clickable mark takes the focus. */
+.lintje-chart__mark.is-clickable:focus-visible {
+  outline: none;
+  filter: var(--lintje-focus-ring);
+}
+.lintje-chart__focus-ring { flood-color: var(--color-focus); }
+.lintje-chart__focus-gap { flood-color: var(--color-bg-surface); }
+/* Stacked segments and slices of neighbouring tints part with a 1 px line in the surface:
+   two rungs of the ladder differ by 1.2–1.5:1. */
+.lintje-chart__segment { stroke: var(--color-bg-surface); stroke-width: 1px; }
+
+/* Draw-in takes 900 ms for data marks only. Axes, grid and titles appear immediately. */
+@media (prefers-reduced-motion: no-preference) {
+  /* A line and the area below it are uncovered together from left to right. The clip opens over the box
+     of the series; the negative insets leave room for the stroke outside that box. */
+  .lintje-chart__reveal { animation: lintje-reveal var(--dur-draw) var(--ease-in-motion) backwards; }
+  /* Bars grow from the axis one after another: left to right, or top to bottom when horizontal
+     --lintje-stagger (0 to 1, set per bar) spreads the starts over the first
+     40 % of the draw and each bar grows in the other 60 %, so all are done at --dur-draw. A
+     column grows as a whole, so stacked segments stay together. Fill mode `backwards`, not
+     `both`: a transform held after the end would override the hover transform. */
+  .lintje-chart__bar-group,
+  .lintje-chart__bar--horizontal {
+    animation-duration: calc(var(--dur-draw) * 0.6);
+    animation-timing-function: var(--ease-in-motion);
+    animation-delay: calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0));
+    animation-fill-mode: backwards;
+  }
+  .lintje-chart__bar-group {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation-name: lintje-grow;
+  }
+  .lintje-chart__bar--horizontal { animation-name: lintje-grow-x; }
+  /* Data labels fade in once the marks are drawn, eased at both ends. */
+  .lintje-chart__data-label { animation: lintje-fade-in var(--dur-data-label) ease-in-out var(--dur-draw) both; }
+
+  /* Draw in only once the chart comes into view. By default the marks are
+     paused on their first frame (series covered, bar flat, label gone); as soon
+     as usePlotArea sets data-in-view on the outermost chart element, they run.
+     These rules come after the `animation` shorthands above: those set
+     animation-play-state back to running and would otherwise win at equal
+     specificity. They sit inside this media block because with reduced motion
+     there is no animation — and a paused fill-mode would keep the marks
+     invisible there. */
+  .lintje-chart__reveal,
+  .lintje-chart__bar-group,
+  .lintje-chart__bar--horizontal,
+  .lintje-chart__data-label { animation-play-state: paused; }
+  [data-in-view] .lintje-chart__reveal,
+  [data-in-view] .lintje-chart__bar-group,
+  [data-in-view] .lintje-chart__bar--horizontal,
+  [data-in-view] .lintje-chart__data-label { animation-play-state: running; }
+}
+@keyframes lintje-reveal {
+  from { clip-path: inset(-8px calc(100% + 8px) -8px -8px); }
+  to   { clip-path: inset(-8px); }
+}
+@keyframes lintje-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes lintje-grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* --- Legend -------------------------------------------------------------- */
+.lintje-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  font: var(--text-small);
+  color: var(--color-text-primary);
+}
+/* A legend above the chart keeps 12 px to the axis title below it. */
+.lintje-chart-wrap > .lintje-legend { margin-bottom: var(--space-3); }
+.lintje-legend--right { flex-direction: column; flex-wrap: nowrap; }
+.lintje-legend__item { display: flex; align-items: center; gap: 6px; }
+.lintje-legend__button { display: flex; align-items: center; gap: 6px; font: inherit; color: inherit; }
+/* A series switched off: the marker steps back and the name is struck through, at full
+   contrast — the strike and `aria-pressed` carry the state, not a faded word. */
+.lintje-legend__item.is-hidden .lintje-legend__marker { opacity: 0.45; }
+.lintje-legend__item.is-hidden .lintje-legend__label { text-decoration: line-through; }
+
+.lintje-legend__marker { flex: none; display: block; }
+.lintje-legend__marker--symbol { width: 14px; height: 14px; }
+.lintje-legend__marker--square    { width: 12px; height: 12px; background: currentColor; }
+.lintje-legend__marker--line  { width: 14px; height: 3px;  background: currentColor; }
+.lintje-legend__marker--dashed {
+  width: 14px; height: 0;
+  border-top: 2px dashed currentColor;
+}
+
+/* --- Tooltip ------------------------------------------------------------- */
+.lintje-chart-tooltip {
+  position: absolute;
+  z-index: 55;
+  pointer-events: none;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-popover);
+  box-shadow: var(--shadow-popover);
+  padding: var(--space-2) 10px;
+  font: var(--text-small);
+  min-width: 160px;
+  /* Its own width, whatever its position: shrink-to-fit narrowed it near the right edge. */
+  width: max-content;
+  max-width: 320px;
+}
+.lintje-chart-tooltip__title { font-weight: 700; margin-bottom: 4px; }
+.lintje-chart-tooltip__row { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+.lintje-chart-tooltip__label { display: flex; align-items: center; gap: 6px; }
+.lintje-chart-tooltip__marker { width: 10px; height: 10px; flex: none; }
+.lintje-chart-tooltip__value { font-weight: 700; margin-left: var(--space-3); }
+
+.lintje-chart-wrap { position: relative; min-width: 0; }
+
+/* Chart tooltip anchor: coordinates and positioning both share this element. */
+[data-tooltip-anchor] { position: relative; }
+
+/* Hover point on a line: 4 px in the series color — the size of the as-of point —
+   with a ring in the surface color, so it stays legible on the line and on the
+   filled area below it. No animation: hover does not redraw. */
+.lintje-chart__hover-point { stroke: var(--color-bg-surface); stroke-width: 2; pointer-events: none; }
+
+
+/* --- States -------------------------------------------------------------- */
+.lintje-chart-state {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+}
+.lintje-chart-state--empty { text-align: center; font: var(--text-small); color: var(--color-text-muted); gap: var(--space-3); }
+/* An announcement measures as a container, so it has no width of its own to centre by. */
+.lintje-chart-state--error { justify-content: flex-start; align-items: stretch; gap: var(--space-4); }
+.lintje-chart-state__last-known { font: var(--text-small); color: var(--color-text-muted); text-align: center; }
+
+/* Loading uses a skeleton per chart type, exactly as tall as the chart it stands in for. */
+/* The stand-in grows into a tile that is taller than it: a tile that holds its height
+   while it fetches again or stretches to its row. `height` stays
+   the basis, so where there is no room to take nothing changes; in a held box that is
+   shorter than the stand-in it shrinks to fit. */
+.lintje-chart-skeleton { position: relative; min-width: 0; overflow: hidden; flex: 1 1 auto; min-height: 0; }
+/* Line, area and bars: "assen echt, datavlak één glanzend blok". Real axis lines around one
+   shimmering block, in the charts' plot area (left 52, right 8, top 16, bottom 28). The axis
+   labels load with the data: four bars in the gutter, from the top line to the zero line where
+   the labels sit, and three below the axis, so the gutter doesn't read as empty. */
+.lintje-chart-skeleton__plot {
+  position: absolute;
+  top: 16px; right: 8px; bottom: 28px; left: 52px;
+  border-left: 1px solid var(--color-chart-grid);
+  border-bottom: 1px solid var(--color-chart-zero);
+}
+.lintje-chart-skeleton__fill { position: absolute; inset: 0; }
+.lintje-chart-skeleton__y-labels {
+  position: absolute;
+  top: 11px; bottom: 23px; left: 0; width: 44px;
+  display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end;
+}
+.lintje-chart-skeleton__x-labels {
+  position: absolute;
+  right: 8px; bottom: 7px; left: 52px;
+  display: flex; justify-content: space-between;
+}
+/* Pie and donut: "ring + drie legendaregels", a disc for the pie and a ring
+   with a 62 % hole for the donut, beside three lines. The skeleton is a size container: the disc
+   is never taller than the skeleton, never wider than 60 % of it and at most 200 px, so the lines
+   keep their room in a narrow tile. */
+.lintje-chart-skeleton--pie,
+.lintje-chart-skeleton--donut { container-type: size; display: flex; align-items: center; gap: var(--space-5); }
+.lintje-chart-skeleton__disc {
+  position: relative;
+  flex: none;
+  aspect-ratio: 1;
+  border-radius: var(--radius-round);
+}
+.lintje-chart-skeleton--donut .lintje-chart-skeleton__disc::after {
+  content: '';
+  position: absolute;
+  inset: 19%;
+  border-radius: var(--radius-round);
+  background: var(--color-bg-surface);
+}
+.lintje-chart-skeleton__lines {
+  flex: 1;
+  min-width: 0;
+  max-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+/* Heatmap: "cellen glanzen individueel" — cells with the heatmap's 3 px gutter, each with its
+   own sweep. */
+.lintje-chart-skeleton--heatmap {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  gap: 3px;
+}
+/* Map: "kaartvlak glanst, overlays echt" — the map area shimmers; the zoom buttons are drawn
+   as on the map (48 px, top right). */
+.lintje-chart-skeleton__zoom {
+  position: absolute;
+  top: var(--space-2); right: var(--space-2);
+  display: flex;
+  flex-direction: column;
+}
+.lintje-chart-skeleton__zoom-button {
+  width: var(--h-target); height: var(--h-target);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong);
+  margin-top: -1px;
+}
+.lintje-chart-skeleton__zoom-button:first-child { margin-top: 0; }
+/* Table: "5 rijen" — five rows at the table's row height. */
+.lintje-chart-skeleton--table { display: flex; flex-direction: column; }
+.lintje-chart-skeleton__row {
+  flex: none;
+  height: var(--h-table-row);
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: 0 var(--space-3);
+  border-bottom: 1px solid var(--color-border-default);
+}
+.lintje-chart-skeleton__measure { margin-left: auto; }
+
+/* --- Forced colours ------------------------------------------------------- */
+/* One colour per variable is what tells the series apart, and the legend's
+   marker is what ties a colour to a name: with the reader's palette they would
+   all come out one colour. So the data marks and the markers keep their drawing
+   (`forced-color-adjust: none`) — the bars, segments and slices, the lines and
+   their areas, the hover point, the legend's and the tooltip's markers — and
+   nothing else does: the axes, the grid, the labels and the titles take the
+   reader's palette. A data label is forced again even where it stands in a
+   group that is not (the stacked column), except one drawn ON a mark, which keeps
+   its own colour against that mark. The halo behind a label is the surface, so
+   Canvas, and so are the gap between segments and the one inside the focus
+   ring. The chosen mark is outlined in CanvasText and the focused one ringed in
+   Highlight. */
+@media (forced-colors: active) {
+  .lintje-chart__bar,
+  .lintje-chart__mark,
+  .lintje-chart__line,
+  .lintje-chart__reveal,
+  .lintje-chart__hover-point,
+  .lintje-legend__marker,
+  .lintje-chart-tooltip__marker { forced-color-adjust: none; }
+  .lintje-chart__data-label { forced-color-adjust: auto; }
+  /* Text in the reader's palette by name, not left to the engine: not every
+     engine repaints an SVG `fill`, and near-black on a black Canvas is nothing. */
+  .lintje-chart__axis-label,
+  .lintje-chart__data-label,
+  .lintje-chart__as-of-label,
+  .lintje-chart__as-of-note { fill: CanvasText; }
+  .lintje-chart__data-label--inside { forced-color-adjust: none; fill: var(--color-text-on-fill); }
+  .lintje-chart__data-label--inside-light { forced-color-adjust: none; fill: var(--color-text-on-light-fill); }
+  .lintje-chart__data-label--halo { stroke: Canvas; }
+  .lintje-chart__segment { stroke: Canvas; }
+  .lintje-chart__mark.is-selected { stroke: CanvasText; }
+  .lintje-chart__focus-ring { flood-color: Highlight; }
+  .lintje-chart__focus-gap { flood-color: Canvas; }
+}

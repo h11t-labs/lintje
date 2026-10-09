@@ -1,0 +1,117 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-video-player {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+}
+
+/* No surface token stays black in dark, so the surface takes the ink on a light fill. */
+.lintje-video-player__stage {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-text-on-light-fill);
+  overflow: hidden;
+}
+.lintje-video-player__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: var(--color-text-on-light-fill);
+}
+
+/* What stands on the picture has a white edge, so the fill keeps apart from the dark. */
+.lintje-video-player__big-play.lintje-button,
+.lintje-video-player__retry.lintje-button {
+  position: relative;
+  border: 2px solid var(--color-text-on-fill);
+}
+.lintje-video-player__big-play.lintje-button { width: 64px; height: 64px; padding: 0; }
+.lintje-video-player__big-play.lintje-button.is-disabled {
+  border-color: var(--color-text-on-fill);
+}
+
+/* A failed load says so where the picture would be: the announcement's light fill would float. */
+.lintje-video-player__failed {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-6);
+  text-align: center;
+  color: var(--color-text-on-fill);
+}
+.lintje-video-player__failed-mark {
+  width: var(--space-6);
+  height: var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-error);
+  color: var(--color-text-inverse);
+}
+.lintje-video-player__failed-text { margin: 0; font: var(--text-ui); font-weight: 700; }
+
+.lintje-video-player__caption {
+  position: absolute;
+  left: var(--space-4);
+  right: var(--space-4);
+  bottom: var(--space-4);
+  text-align: center;
+  pointer-events: none;
+}
+.lintje-video-player__caption-text {
+  padding: 2px var(--space-2);
+  background: var(--color-text-on-light-fill);
+  color: var(--color-text-on-fill);
+  font: var(--text-body);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Two lines at every width: the time beside the bar keeps the buttons on one line in a tile. */
+.lintje-video-player__controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) var(--space-2);
+}
+.lintje-video-player__timeline { display: flex; align-items: center; gap: var(--space-3); }
+.lintje-video-player__buttons { display: flex; align-items: center; gap: var(--space-1); }
+.lintje-video-player__speed {
+  flex: none;
+  padding: 0 var(--space-1);
+  background: var(--color-term-bg);
+  color: var(--color-accent-text);
+  font: var(--text-small);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+/* The menu's trigger takes the 48 px of the player's other buttons. */
+.lintje-video-player__more { margin-left: auto; --h-icon-button: var(--h-touch); }
+
+.lintje-video-player:fullscreen { display: flex; flex-direction: column; border: 0; }
+.lintje-video-player:fullscreen .lintje-video-player__stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+
+@media (max-width: 767px) {
+  .lintje-video-player { border-left: 0; border-right: 0; }
+}
+
+/* Forced colours drop the fills: the speed and the mark keep an outline. */
+@media (forced-colors: active) {
+  .lintje-video-player__speed,
+  .lintje-video-player__failed-mark { outline: 1px solid CanvasText; }
+}

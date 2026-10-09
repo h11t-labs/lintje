@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": "src",
+    "outDir": "dist-elements/types"
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "src/bundle/browser-setup.ts", "src/core/test-keys.ts"]
+}

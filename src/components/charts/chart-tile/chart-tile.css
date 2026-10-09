@@ -1,0 +1,8 @@
+/* ------------------------------------------------------------------------ */
+
+.lintje-chart-tile__view { flex: none; }
+
+/* Below 768 px it is a row of its own at the touch height. */
+@media (max-width: 767px) {
+  .lintje-chart-tile__view { --h-control: var(--h-touch); width: 100%; }
+}

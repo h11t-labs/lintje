@@ -1,0 +1,20 @@
+/*
+ * A keyboard key, drawn the same wherever a component shows one: `<kbd class="lintje-key">`.
+ */
+/* ------------------------------------------------------------------------ */
+
+/* The UI face, not mono: mono draws the arrow keys at half the size of the letters. */
+.lintje-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--space-6);
+  height: var(--space-6);
+  padding: 0 var(--space-1);
+  border: 1px solid var(--color-border-heavy);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: var(--text-meta);
+  line-height: 1;
+  white-space: nowrap;
+}

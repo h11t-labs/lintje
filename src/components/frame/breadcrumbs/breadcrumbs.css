@@ -1,0 +1,37 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-breadcrumbs { font: var(--text-small); color: var(--color-text-muted); }
+.lintje-breadcrumbs__list {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--space-2);
+}
+.lintje-breadcrumbs__item { display: inline-flex; align-items: center; gap: var(--space-2); min-width: 0; }
+
+/* A transparent hit area reaches the target height up and down; sideways stands other content. */
+.lintje-breadcrumbs__link {
+  position: relative;
+  color: var(--color-link);
+  text-decoration: underline;
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-breadcrumbs__link::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+.lintje-breadcrumbs__link:hover { color: var(--color-link-hover); }
+.lintje-breadcrumbs__current { color: var(--color-text-primary); }
+
+/* Below 768 px only the way back stays. */
+.lintje-breadcrumbs__back {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  min-height: var(--h-touch);
+  font: var(--text-ui);
+  font-weight: 700;
+  color: var(--color-link);
+  text-decoration: none;
+}
+.lintje-breadcrumbs__back:hover { color: var(--color-link-hover); }

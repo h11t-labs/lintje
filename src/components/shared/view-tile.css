@@ -1,0 +1,17 @@
+/*
+ * A view element around a tile: the tile fills the host, so the footnote
+ * (`margin-top: auto`) reaches the bottom of the grid cell.
+ * `display: block` because a standalone custom element is inline.
+ */
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) {
+  display: none;
+}
+/* `min-height: inherit`: a held host has a min-height and no height, so `100%` resolves to auto. */
+lintje-tile {
+  height: 100%;
+  min-height: inherit;
+}

@@ -1,0 +1,104 @@
+/* A grid, so the chat fills a host box that is taller than the conversation. */
+:host {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* In the flow: it grows with the conversation and scrolls with what scrolls around it. */
+.lintje-chat {
+  display: flex; flex-direction: column;
+  min-width: 0;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+
+.lintje-chat__log { flex: 1 0 auto; min-width: 0; display: flex; flex-direction: column; }
+
+.lintje-chat__list,
+.lintje-chat__start {
+  width: 100%;
+  max-width: calc(var(--w-text) + 2 * var(--space-6));
+  margin: 0 auto;
+  padding: var(--space-6);
+  display: flex; flex-direction: column;
+  gap: var(--space-10);
+}
+.lintje-chat__start { margin: auto; }
+.lintje-chat__turn { display: flex; flex-direction: column; gap: var(--space-6); }
+
+/* The question sticks while its answer scrolls under it, painting the page behind itself so
+   nothing shows through. Not on a phone (it would keep a fifth of the screen), nor while edited. */
+@media (min-width: 768px) {
+  .lintje-chat__message:not([editing]) {
+    position: sticky; top: 0; z-index: 3;
+    margin: calc(var(--space-2) * -1) 0;
+    padding: var(--space-2) 0;
+    background: var(--color-bg-page);
+  }
+  /* The page scrolls: the shell's pinned bar stands over the top of the viewport. */
+  .lintje-chat--page .lintje-chat__message:not([editing]) {
+    top: var(--h-topbar);
+  }
+}
+
+.lintje-chat__answer { transition: opacity var(--dur-base) var(--ease-in-motion); }
+.lintje-chat__answer.is-replaced { opacity: 0.45; }
+
+/* Floats over the conversation, above the question box; only the button takes the pointer. */
+.lintje-chat__latest {
+  position: absolute; left: 0; right: 0; bottom: calc(100% + var(--space-4));
+  display: flex; justify-content: center;
+  pointer-events: none;
+  animation: lintje-fade-in var(--dur-base) var(--ease-in-motion) both;
+}
+.lintje-chat__latest-button {
+  display: inline-flex;
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-popover);
+  pointer-events: auto;
+}
+
+/* Stays in view at the bottom of what scrolls; the conversation passes under it. */
+.lintje-chat__footer {
+  flex: none;
+  position: sticky; bottom: 0; z-index: 4;
+  padding: var(--space-4) var(--space-6) var(--space-5);
+  background: var(--color-bg-surface);
+  border-top: 1px solid var(--color-border-default);
+}
+.lintje-chat__composer { max-width: var(--w-text); margin: 0 auto; }
+
+/* --- The start screen --- */
+.lintje-chat__intro { display: flex; flex-direction: column; gap: var(--space-4); max-width: 640px; }
+.lintje-chat__title { font: var(--text-h1-display); color: var(--color-text-primary); }
+.lintje-chat__lede { font: var(--text-body); margin-top: calc(var(--space-2) * -1); }
+.lintje-chat__note { font: var(--text-small); color: var(--color-text-muted); }
+
+.lintje-chat__sources {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+}
+.lintje-chat__sources-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.lintje-chat__sources-title { font: var(--text-tile-title); }
+.lintje-chat__source {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  min-height: var(--h-button-chrome);
+  border-top: 1px solid var(--color-border-default);
+  font: var(--text-ui);
+}
+.lintje-chat__source-meta { font: var(--text-small); color: var(--color-text-muted); }
+
+@media (max-width: 767px) {
+  .lintje-chat__list,
+  .lintje-chat__start { padding: var(--space-4); gap: var(--space-8); }
+  .lintje-chat__title { font: var(--text-h1); }
+  .lintje-chat__footer { padding: var(--space-3) var(--space-4) var(--space-4); }
+  .lintje-chat__sources { padding: var(--space-3) var(--space-4); }
+}

@@ -1,0 +1,118 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+.lintje-kpi { height: 100%; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-top: 4px solid var(--color-text-muted);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-5);
+  text-align: left;
+  animation: lintje-rise var(--dur-kpi) var(--ease-in-motion) both;
+}
+
+.lintje-kpi__label { font: var(--text-tile-title); color: var(--color-text-primary); }
+/* With an icon the KPI is a two-column grid: the glyph on the label's first line, everything else
+   over the full width. The icon stays in every state and takes the text colour. */
+.lintje-kpi--icon {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: start;
+}
+.lintje-kpi--icon > * { grid-column: 1 / -1; min-width: 0; }
+.lintje-kpi--icon > .lintje-kpi__icon {
+  grid-column: 1; grid-row: 1;
+  display: flex; align-items: center;
+  height: 1lh;
+  font: var(--text-tile-title);
+  color: var(--color-text-primary);
+}
+/* The gap is the glyph's own margin, not a `column-gap`: a name with no file draws nothing, and
+   a gap between tracks would indent the label beside an empty column. */
+.lintje-kpi--icon > .lintje-kpi__icon { margin-right: var(--space-2); }
+.lintje-kpi--icon > .lintje-kpi__icon:empty { display: none; }
+.lintje-kpi--icon > .lintje-kpi__label { grid-column: 2; grid-row: 1; }
+.lintje-kpi__value {
+  font: var(--text-kpi);
+  letter-spacing: var(--kpi-tracking);
+  /* After the shorthand, which resets it to normal. */
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+}
+.lintje-kpi__suffix { font-size: 1.25rem; font-weight: 400; color: var(--color-text-muted); margin-left: 6px; }
+/* The final value is transparent but keeps the width, so the suffix does not move while counting. */
+.lintje-kpi__count { display: inline-grid; }
+.lintje-kpi__count-final,
+.lintje-kpi__count-live { grid-area: 1 / 1; }
+.lintje-kpi__count-final { opacity: 0; }
+.lintje-kpi__note { font: var(--text-small); color: var(--color-text-primary); }
+.lintje-kpi__note--error { display: flex; align-items: center; gap: 6px; }
+.lintje-kpi__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-attention); flex: none; }
+.lintje-kpi__detail { font: var(--text-meta); color: var(--color-text-muted); }
+
+/* The wrapper is the query container, so a row can stack in a narrow KPI without containing it. */
+.lintje-kpi__figures { container-type: inline-size; }
+.lintje-kpi__items { display: flex; flex-direction: column; gap: var(--space-2); }
+.lintje-kpi__item {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  column-gap: var(--space-4); min-width: 0;
+}
+.lintje-kpi__item--comparison .lintje-kpi__value { color: var(--color-text-secondary); }
+.lintje-kpi__period { font: var(--text-small); color: var(--color-text-muted); }
+.lintje-kpi__divider { display: block; height: 1px; background: var(--color-border-default); }
+.lintje-kpi__items--row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: end; gap: var(--space-4); }
+.lintje-kpi__items--row.lintje-kpi__items--divided { grid-auto-columns: minmax(0, 1fr) 1px; }
+.lintje-kpi__items--row .lintje-kpi__item { display: block; }
+.lintje-kpi__items--row .lintje-kpi__divider { height: auto; align-self: stretch; }
+@container (width < 318px) {
+  .lintje-kpi__items--row { display: flex; align-items: stretch; gap: var(--space-2); }
+  .lintje-kpi__items--row .lintje-kpi__item { display: flex; }
+  .lintje-kpi__items--row .lintje-kpi__divider { height: 1px; }
+}
+.lintje-kpi--primary .lintje-kpi__divider { margin-block: var(--space-1); }
+.lintje-kpi__secondary-value {
+  font: var(--text-kpi-secondary);
+  letter-spacing: var(--kpi-tracking);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+.lintje-kpi__skeleton { display: flex; flex-direction: column; gap: var(--space-2); }
+
+@media (max-width: 767px) {
+  .lintje-kpi { padding: 12px 14px; gap: var(--space-1); }
+  .lintje-kpi__value { font: var(--text-kpi-mobile); font-variant-numeric: tabular-nums; }
+}
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .lintje-kpi__value { font-size: 1.75rem; }
+}
+
+/* --- The trend line -------------------------------------------------------- */
+.lintje-trend {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  font: var(--text-small);
+  color: var(--color-text-primary);
+}
+.lintje-trend__glyph { font-size: 1rem; font-weight: 700; line-height: 1.2; flex: none; }
+.lintje-trend__glyph--good     { color: var(--color-success); }
+.lintje-trend__glyph--bad   { color: var(--color-error); }
+.lintje-trend__glyph--neutral { color: var(--color-text-muted); }
+.lintje-trend__detail { font: var(--text-meta); color: var(--color-text-muted); }
+
+/* Forced colours: the divider and the error dot are fills, which the browser drops. */
+@media (forced-colors: active) {
+  .lintje-kpi__divider,
+  .lintje-kpi__dot { forced-color-adjust: none; background: CanvasText; }
+}

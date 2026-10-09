@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="nl" data-mode="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lintje stijlgids</title>
+    <!--
+      The style guide: every element of the design system in its states, one category at a
+      time. Each element stands once, in the page's own mode — the mode control in the top
+      bar shows it in light and in dark. It is the reference every change is checked against:
+      under each element stand its properties, events and slots. It is an example that
+      *consumes* the design system, not part of it. No framework and no bundler for the page
+      itself — `index.js` imports the built bundle and the specimen modules in `specimens/`,
+      so any static server rooted at the repository will do:
+
+        (npm run build:elements)
+        npm run dev    # or: python3 -m http.server, at the repo root
+        open http://localhost:5180/examples/styleguide/
+
+      `?category=<name>` is the category, `?theme=<name>` one of the six themes, `?mode=dark`
+      the mode, `?layout=top` the navigation above the page (the shell's "Weergave" offers it);
+      `#el-<tag>` opens the category that holds that element. `/` or the search icon in the bar
+      searches every element on every page.
+    -->
+    <link rel="stylesheet" href="../../src/tokens/fonts.css" />
+    <link rel="stylesheet" href="../../dist-elements/tokens.css" />
+    <style>
+      /* Layout, and the guide's own tooling: the line around a specimen, its label, the placeholders
+         and the icon names. Every other visual pattern on this page is an element's own. */
+      body {
+        margin: 0;
+        background: var(--color-bg-page);
+        color: var(--color-text-primary);
+        font: var(--text-ui);
+        font-family: var(--font-ui);
+        font-variant-numeric: tabular-nums;
+        -webkit-font-smoothing: antialiased;
+      }
+      .guide__elements { display: flex; flex-direction: column; gap: var(--grid-gutter); }
+
+      /* One section per element: a tile, and in it the specimens in columns. */
+      .guide__element { scroll-margin-top: var(--h-sticky); }
+      .guide__specimens {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+        gap: var(--space-6);
+        align-items: start;
+      }
+      .guide__specimens--max-2 {
+        grid-template-columns: repeat(auto-fill, minmax(max(min(100%, 300px), calc((100% - var(--space-6)) / 2)), 1fr));
+      }
+      .guide__specimens--max-3 {
+        grid-template-columns: repeat(auto-fill, minmax(max(min(100%, 300px), calc((100% - 2 * var(--space-6)) / 3)), 1fr));
+      }
+      /* The tile's own footnote rule: what is under it is about the element, not the element. */
+      .guide__reference {
+        margin-top: var(--space-6);
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--color-border-default);
+      }
+      .guide__specimen { min-width: 0; margin: 0; }
+      .guide__specimen--wide { grid-column: 1 / -1; }
+      .guide__label { margin-bottom: var(--space-2); font: var(--text-small); font-weight: 700; color: var(--color-text-muted); }
+      /* The stage is framed: what stands inside the line is the element, what stands outside it the guide. */
+      .guide__stage {
+        padding: var(--space-4);
+        border: 1px solid var(--color-border-default);
+        font: var(--text-ui);
+        color: var(--color-text-primary);
+      }
+
+      /* What a specimen may lay its parts out with. */
+      .guide__row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+      .guide__stack { display: flex; flex-direction: column; gap: var(--space-3); }
+      .guide__pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--grid-gutter); }
+      .guide__fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: var(--space-4);
+        align-items: start;
+      }
+      /* What the host heard, under a specimen: a code block that scrolls when it grows. */
+      .guide__log { margin-top: var(--space-2); max-height: 260px; overflow: auto; }
+      .guide__placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        min-height: calc(2 * var(--space-10));
+        background: var(--color-bg-subtle);
+        font: var(--text-small);
+        color: var(--color-text-muted);
+      }
+      .guide__popover-body { width: 280px; padding: var(--space-4); }
+      /* The chat scrolls with what scrolls around it: here a box of a fixed height that scrolls,
+         and a grid, so a short conversation keeps its question box at the box's bottom. */
+      .guide__chat { display: grid; height: 760px; overflow-y: auto; border: 1px solid var(--color-border-default); }
+      .guide__chat--start { height: 620px; }
+      .guide__icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: var(--space-3); }
+      .guide__icon {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        min-width: 0;
+        font: var(--text-meta);
+        color: var(--color-text-secondary);
+      }
+      .guide__icon span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+      @media (max-width: 767.98px) {
+        .guide__stage { padding: var(--space-2); }
+        .guide__pair { grid-template-columns: minmax(0, 1fr); }
+        .guide__chat { height: 640px; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- The shell's menu holds the categories; with `?layout=top` it stands above the page. -->
+    <lintje-shell id="shell">
+      <lintje-page-header slot="header" id="page-header">
+        <lintje-breadcrumbs slot="breadcrumbs" id="crumbs"></lintje-breadcrumbs>
+      </lintje-page-header>
+      <!-- The way to each element on this page, straight under the title. -->
+      <nav class="guide__row" id="index" aria-label="Op deze pagina"></nav>
+      <div class="guide__elements" id="elements"></div>
+    </lintje-shell>
+    <lintje-app-search id="search" label="Zoeken in de stijlgids"></lintje-app-search>
+
+    <script type="module" src="index.js"></script>
+  </body>
+</html>

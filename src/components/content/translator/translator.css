@@ -1,0 +1,117 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* The halves stretch to one height: the taller text sets both. The plain field has no edge of
+   its own, so the surface's is the field's (3:1). */
+.lintje-translator {
+  display: flex;
+  border: 1px solid var(--color-border-field);
+  background: var(--color-bg-surface);
+}
+.lintje-translator__half {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font: var(--text-translation);
+  color: var(--color-text-primary);
+}
+/* Inset, not subtle: the fields and buttons on it are the surface, so in dark it steps down. */
+.lintje-translator__half--target {
+  position: relative;
+  background: var(--color-bg-inset);
+  border-left: 1px solid var(--color-border-default);
+}
+
+.lintje-translator__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: calc(var(--h-control) + 2 * var(--space-4));
+  box-sizing: border-box;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-default);
+  font: var(--text-ui);
+}
+/* A language choice keeps a readable width; on a phone it takes the row. What else stands in the
+   bar keeps its own width. */
+.lintje-translator__bar ::slotted(lintje-combobox) { flex: 0 1 var(--w-translator-language); min-width: 0; }
+/* The languages flank the swap, which stands half in each bar: the source at the line, the
+   target after it, so the pair reads as one "from ⇄ to". */
+.lintje-translator__bar--source { justify-content: flex-end; padding-right: var(--space-10); }
+.lintje-translator__half--target .lintje-translator__bar { padding-left: var(--space-10); }
+
+.lintje-translator__body {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4);
+}
+.lintje-translator__body--source { padding-right: calc(var(--space-4) + var(--h-icon-button)); }
+/* The source body is the field: the text fills it, and the ring goes round it, inside the edge. */
+.lintje-translator__text { flex: 1; }
+.lintje-translator__body--source:has(.lintje-translator__text:focus-within) {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: calc(var(--focus-width) * -1);
+}
+.lintje-translator__clear { position: absolute; top: var(--space-2); right: var(--space-2); }
+
+.lintje-translator__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-height: var(--h-touch);
+  /* As far from the sides and the bottom as the language choices stand from the top. */
+  padding: var(--space-1) var(--space-4) var(--space-4);
+  font: var(--text-ui);
+}
+.lintje-translator__actions { display: flex; align-items: center; gap: var(--space-1); margin-left: auto; }
+/* The AI label belongs to the text it marks: right under it, so the foot holds only actions and
+   stands level with the source's at every width. A hidden label leaves no gap. */
+.lintje-translator__body ::slotted([slot='target-note']) { align-self: flex-start; margin-top: var(--space-4); }
+/* The counter stands on the source's foot line, right, level with its tools; the text keeps
+   the body. */
+.lintje-translator__text::part(counter) {
+  position: absolute;
+  top: calc(100% + var(--space-1) + var(--h-icon-button) / 2);
+  right: var(--space-4);
+  transform: translateY(-50%);
+}
+
+/* Documents: the languages in one row, the content under them at full width. */
+.lintje-translator--documents { flex-direction: column; }
+.lintje-translator__bars { display: flex; }
+.lintje-translator__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  font: var(--text-ui);
+}
+
+/* On the line between the halves, level with the language choices. */
+.lintje-translator__swap {
+  position: absolute;
+  z-index: 1;
+  top: calc(var(--space-4) + (var(--h-control) - var(--h-icon-button)) / 2);
+  left: 0;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 767px) {
+  .lintje-translator, .lintje-translator__bars { flex-direction: column; }
+  .lintje-translator__content { padding: var(--space-4); }
+  .lintje-translator__half--target { border-left: 0; border-top: 1px solid var(--color-border-default); }
+  .lintje-translator__bar ::slotted(lintje-combobox) { flex: 1 1 100%; }
+  .lintje-translator__bar--source { padding-right: var(--space-4); }
+  .lintje-translator__swap { top: 0; left: 50%; transform: translate(-50%, -50%); }
+  .lintje-translator__half--target .lintje-translator__bar {
+    padding-top: calc(var(--space-2) + var(--h-icon-button) / 2);
+    padding-left: var(--space-4);
+  }
+}

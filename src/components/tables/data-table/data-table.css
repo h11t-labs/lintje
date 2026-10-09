@@ -1,0 +1,388 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+/* On the page there is no tile padding to bleed into below 768 px: the rows keep the page's edge. */
+:host([plain]) { --tile-pad-x: 0px; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-data-table { min-width: 0; }
+
+.lintje-data-table__full { width: 100%; border-collapse: collapse; font: var(--text-table); }
+.lintje-data-table__mobile { display: none; width: 100%; border-collapse: collapse; font: var(--text-table); }
+
+/* A shadow marks each side where columns are hidden; it sits on the frame so it doesn't scroll. */
+.lintje-data-table__frame { position: relative; }
+.lintje-data-table__frame::before,
+.lintje-data-table__frame::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: var(--space-4);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-data-table__frame::before { left: 0; box-shadow: var(--shadow-scroll-start); }
+.lintje-data-table__frame::after { right: 0; box-shadow: var(--shadow-scroll-end); }
+.lintje-data-table__frame.is-scrollable-start::before,
+.lintje-data-table__frame.is-scrollable-end::after { opacity: 1; }
+/* Positioned, so an absolute visually hidden label is clipped with its cell. */
+.lintje-data-table__scroller { position: relative; overflow-x: auto; }
+/* A styled scrollbar is a classic one: it doesn't hide between scrolls like an overlay one. */
+.lintje-data-table__scroller::-webkit-scrollbar { height: 8px; }
+.lintje-data-table__scroller::-webkit-scrollbar-track { background: var(--color-bg-subtle); }
+.lintje-data-table__scroller::-webkit-scrollbar-thumb { background: var(--color-border-heavy); }
+@supports not selector(::-webkit-scrollbar) {
+  .lintje-data-table__scroller { scrollbar-width: thin; scrollbar-color: var(--color-border-heavy) var(--color-bg-subtle); }
+}
+
+.lintje-data-table__header-cell,
+.lintje-data-table__name,
+.lintje-data-table__mobile-cell { text-align: left; }
+
+.lintje-data-table__header-cell {
+  font: var(--text-table-head);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  background: var(--color-bg-surface);
+  padding: 10px var(--space-3);
+  border-bottom: 2px solid var(--color-border-heavy);
+}
+/* The sorted column: its label is text (4.5:1), the rule under it a line (3:1). */
+.lintje-data-table__header-cell.is-active {
+  color: var(--color-accent-text);
+  border-bottom-color: var(--color-accent-line);
+}
+/* The button takes the cell's padding, so the whole cell sorts. */
+.lintje-data-table__header-cell--sortable { padding: 0; }
+.lintje-data-table__sort-button {
+  display: flex; align-items: center; gap: 6px;
+  width: 100%;
+  min-height: var(--h-target);
+  padding: 0 var(--space-3);
+  font: inherit; color: inherit; text-align: inherit;
+  /* A button resets these; the header's label style must reach the label. */
+  text-transform: inherit; letter-spacing: inherit;
+}
+.lintje-data-table__header-cell--align-right .lintje-data-table__sort-button { justify-content: flex-end; }
+/* Tracking also follows the last letter; it widened the table 1 px past its tile at 1024 px.
+   Giving that trailing step back keeps the gap at 6 px. */
+.lintje-data-table__sort-label { margin-inline-end: calc(var(--label-tracking) * -1); }
+.lintje-data-table__sort-button:hover { background: var(--color-bg-subtle); }
+/* The scroller clips the ring, so it sits inside the cell. */
+.lintje-data-table__sort-button:focus-visible { outline-offset: -3px; }
+/* The arrows are a glyph, outside the type scale. */
+.lintje-data-table__sort-icon { font-size: 10px; color: var(--color-text-muted); }
+.lintje-data-table__header-cell.is-active .lintje-data-table__sort-icon { color: var(--color-accent-text); }
+
+.lintje-data-table__row { border-bottom: 1px solid var(--color-border-default); }
+/* Filler rows keep a short last page as tall as a full one. */
+.lintje-data-table__row--filler { border-bottom-color: transparent; }
+/* A row is one line: no cell wraps, not even at a hyphen ("04-10-2026"). */
+.lintje-data-table__cell {
+  padding: 0 var(--space-3);
+  height: var(--h-table-row);
+  font-weight: 400;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+.lintje-data-table__name { font-weight: 700 !important; }
+/* The name that opens its row: a link's colour and line, the cell's weight and size. */
+.lintje-data-table__open {
+  padding: 0;
+  font: inherit; text-align: inherit;
+  color: var(--color-link);
+  text-decoration: underline;
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-data-table__open:hover { color: var(--color-link-hover); }
+.lintje-data-table__header-cell--align-right,
+.lintje-data-table__cell--align-right,
+.lintje-data-table__mobile-cell--align-right { text-align: right !important; }
+.lintje-data-table__cell--align-right { font-variant-numeric: tabular-nums; }
+/* A `truncate` column: `width: 1%` keeps the auto layout from handing it surplus width, so it is as
+   wide as its longest value up to the cap, and a longer value ends in an ellipsis (the heatmap's
+   label column does the same). */
+.lintje-data-table__cell--truncate { width: 1%; }
+.lintje-data-table__cell-text { display: block; max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+/* The `title` needs a pointer: under the keyboard's focus and without hover the value wraps whole. */
+.lintje-data-table__row:focus-visible .lintje-data-table__cell-text,
+.lintje-data-table__row:has(:focus-visible) .lintje-data-table__cell-text { white-space: normal; overflow-wrap: anywhere; }
+@media (hover: none) {
+  .lintje-data-table__cell-text { white-space: normal; overflow-wrap: anywhere; }
+}
+
+.lintje-data-table__row.is-clickable { cursor: pointer; }
+.lintje-data-table__row.is-clickable:hover,
+.lintje-data-table__mobile-row.is-clickable:hover { background: var(--color-bg-subtle); }
+/* Selected and hover share a surface; the 4 px edge is the only carrier, so it must stay visible. */
+.lintje-data-table__row.is-selected,
+.lintje-data-table__mobile-row.is-selected {
+  background: var(--color-bg-selected);
+  box-shadow: inset 4px 0 0 var(--color-accent-line);
+}
+/* A checked row takes the selected background without the bar: the bar means drilldown. */
+.lintje-data-table__check-cell { width: 24px; padding-right: var(--space-3); }
+.lintje-data-table__header-cell.lintje-data-table__check-cell { padding-block: 0; }
+.lintje-data-table__check-cell .lintje-choice,
+.lintje-data-table__mobile-check .lintje-choice { gap: 0; }
+.lintje-data-table__mobile-check { display: flex; align-items: center; gap: var(--space-3); }
+.lintje-data-table__mobile-identity { min-width: 0; }
+.lintje-data-table__row.is-checked,
+.lintje-data-table__mobile-row.is-checked { background: var(--color-bg-selected); }
+.lintje-data-table__row:focus-visible,
+.lintje-data-table__mobile-row:focus-visible { outline-offset: -3px; }
+
+.lintje-threshold-cell {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--space-1);
+  min-width: 44px;
+  padding: 4px var(--space-2);
+  font-weight: 700;
+}
+.lintje-threshold-cell__icon { flex: none; }
+.lintje-threshold-cell--good       { background: transparent; }
+.lintje-threshold-cell--caution     { background: var(--color-warning); color: var(--color-text-on-light-fill); }
+.lintje-threshold-cell--above-threshold { background: var(--color-error); color: var(--color-text-on-fill); }
+
+.lintje-data-table__muted { color: var(--color-text-muted); }
+
+/* Tones are modifiers, not inline colours: the host's `style-src 'self'` drops `style`. */
+.lintje-data-table__change { font-weight: 700; }
+.lintje-data-table__change--flat { color: var(--color-text-muted); }
+.lintje-data-table__change--up   { color: var(--color-success-text); }
+.lintje-data-table__change--down { color: var(--color-error-text); }
+
+/* Each representation has its own pager; the phone's is hidden on desktop. */
+.lintje-data-table__pagination { padding-top: var(--space-3); }
+.lintje-data-table__pagination--mobile { display: none; }
+
+/* --- Editing a cell (editing.ts) ------------------------------------------ */
+/* The pencil sits at the end of the text, at the start for a number. */
+.lintje-data-table__cell--editable { position: relative; }
+.lintje-data-table__cell--editable:hover { background: var(--color-bg-subtle); }
+.lintje-data-table__edit-icon {
+  position: absolute;
+  top: 50%; right: var(--space-1);
+  translate: 0 -50%;
+  color: var(--color-text-muted);
+  visibility: hidden;
+}
+.lintje-data-table__cell--align-right .lintje-data-table__edit-icon { right: auto; left: var(--space-1); }
+.lintje-data-table__cell--editable:hover .lintje-data-table__edit-icon { visibility: visible; }
+.lintje-data-table__cell--editable.is-editing { padding: 2px; vertical-align: top; }
+.lintje-data-table__cell--editable.is-editing:hover { background: transparent; }
+.lintje-data-table__editor {
+  display: block;
+  width: 100%; height: var(--h-control);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border-field);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: var(--text-table);
+  font-weight: 400;
+  text-align: inherit;
+}
+.lintje-data-table__cell--align-right .lintje-data-table__editor { font-variant-numeric: tabular-nums; }
+.lintje-data-table__editor::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+.lintje-data-table__editor.is-error { border: 2px solid var(--color-error); }
+.lintje-data-table__edit-error {
+  display: block;
+  padding: 2px var(--space-2) var(--space-1);
+  font-size: 0.875rem; font-weight: 700;
+  color: var(--color-error-text);
+  text-align: left;
+}
+.lintje-data-table__busy {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+/* --- Row actions and the selection bar (actions.ts) ------------------------ */
+.lintje-data-table__action-cell { width: var(--h-icon-button); text-align: right; }
+.lintje-data-table__selection {
+  position: sticky; top: var(--h-sticky); z-index: 1;
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-selected);
+  border-top: 2px solid var(--color-accent-line);
+  font: var(--text-table);
+  color: var(--color-text-primary);
+}
+.lintje-data-table__selection-count { font-weight: 700; }
+.lintje-data-table__selection-clear { margin-left: auto; }
+
+/* --- Filters and the column chooser (filters.ts) ---------------------------- */
+.lintje-data-table__toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  padding-bottom: var(--space-3);
+}
+.lintje-data-table__toolbar--quiet,
+.lintje-data-table__sheet-button,
+.lintje-data-table__sort-menu { display: none; }
+.lintje-data-table__chips {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2);
+  font: var(--text-small);
+}
+.lintje-data-table__chip {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  height: var(--h-chip);
+  padding: 0 var(--space-1) 0 var(--space-2);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+/* A transparent hit area reaches the target height up and down; sideways stands other content. */
+.lintje-data-table__chip-clear {
+  position: relative;
+  width: var(--h-chip-field); height: var(--h-chip-field);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--color-text-muted);
+}
+.lintje-data-table__chip-clear::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+.lintje-data-table__chip-clear:hover { color: var(--color-text-primary); }
+.lintje-data-table__filter-total { color: var(--color-text-muted); }
+
+.lintje-data-table__header-cell--filterable { padding-block: 0; }
+.lintje-data-table__header-inner {
+  display: flex; align-items: center; gap: var(--space-2);
+  min-height: var(--h-control);
+}
+.lintje-data-table__header-cell--sortable .lintje-data-table__header-inner { padding-right: var(--space-2); }
+.lintje-data-table__header-inner .lintje-data-table__sort-button { flex: 1; min-width: 0; }
+.lintje-data-table__header-cell.is-filtered {
+  background: var(--color-bg-subtle);
+  color: var(--color-accent-text);
+}
+.lintje-data-table__header-label { display: inline-flex; align-items: center; gap: 6px; }
+.lintje-data-table__filter-dot {
+  display: inline-block;
+  width: 6px; height: 6px; flex: none;
+  border-radius: 50%;
+  background: var(--color-attention);
+}
+/* A transparent hit area reaches the target height up and down; on its left stands the sort button. */
+.lintje-data-table__funnel {
+  position: relative;
+  width: var(--h-chip); height: var(--h-chip); flex: none;
+  display: flex; align-items: center; justify-content: center;
+  margin-left: auto;
+  border: 1px solid transparent;
+  color: var(--color-text-muted);
+}
+.lintje-data-table__funnel::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+.lintje-data-table__funnel:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
+/* As wide as the row menus under it, so their icons line up. The phone row's toggle is the same. */
+.lintje-data-table__chooser-button,
+.lintje-data-table__mobile-toggle {
+  width: var(--h-icon-button); height: var(--h-icon-button);
+  display: flex; align-items: center; justify-content: center;
+  margin-left: auto;
+  border: 1px solid transparent;
+  color: var(--color-text-muted);
+}
+.lintje-data-table__chooser-button:hover,
+.lintje-data-table__mobile-toggle:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
+.lintje-data-table__funnel.is-filtered {
+  background: var(--color-action-primary);
+  border-color: var(--color-action-primary-border);
+  color: var(--color-action-primary-text);
+}
+
+.lintje-data-table__filter-panel {
+  display: flex; flex-direction: column; gap: var(--space-3);
+  width: 260px; max-width: 100%;
+  padding: var(--space-4);
+  font: var(--text-table);
+  color: var(--color-text-primary);
+}
+.lintje-data-table__filter-name { font-size: 0.875rem; font-weight: 700; }
+.lintje-data-table__filter-options { display: flex; flex-direction: column; }
+.lintje-data-table__filter-option { min-height: var(--h-option); }
+.lintje-data-table__filter-count { margin-left: auto; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.lintje-data-table__filter-search {
+  width: 100%; height: var(--h-control);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-field);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+}
+.lintje-data-table__filter-search::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+/* "Wissen" clears the field; it draws no cross of its own. */
+.lintje-data-table__filter-search::-webkit-search-cancel-button,
+.lintje-data-table__filter-search::-webkit-search-decoration { appearance: none; }
+.lintje-data-table__filter-actions {
+  display: flex; justify-content: flex-end; gap: var(--space-2);
+  padding-top: var(--space-1);
+}
+.lintje-data-table__filter-section {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+.lintje-data-table__chooser-note { font: var(--text-small); color: var(--color-text-muted); }
+
+/* --- Below 768 px the representation switches ---------------------------- */
+/* Below 768 px, from the media controller's `is-phone`: WebKit does not re-apply a shadow root's
+   media query after a resize, and the script already decides by MOBILE. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__toolbar { padding: 0 var(--tile-pad-x) var(--space-3); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__toolbar--quiet { display: flex; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__sheet-button,
+:where(.lintje-data-table.is-phone) .lintje-data-table__sort-menu { display: inline-flex; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__selection--mobile { top: auto; bottom: 0; margin-top: var(--space-3); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__frame { display: none; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile { display: table; }
+.lintje-data-table:where(.is-phone) { margin: 0 calc(var(--tile-pad-x) * -1); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile { padding: 10px var(--tile-pad-x); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__header-cell--sortable { padding: 0; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile .lintje-data-table__sort-button { padding: 0 var(--tile-pad-x); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-row { border-bottom: 1px solid var(--color-border-default); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-row--filler,
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-row.is-open { border-bottom-color: transparent; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-detail { border-bottom: 1px solid var(--color-border-default); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-detail > .lintje-data-table__mobile-cell { padding-top: 0; }
+/* The toggle and the row menu sit at the row's end, on the name's first line. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell--actions { width: 1%; padding-inline-start: 0; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-actions { display: flex; align-items: center; justify-content: flex-end; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell {
+  padding: var(--space-2) var(--tile-pad-x);
+  vertical-align: top;
+  font-weight: 400;
+}
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-name { display: block; font-size: 0.875rem; font-weight: 700; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-sub { display: block; font-size: 0.875rem; color: var(--color-text-muted); margin-top: 2px; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-measure { display: block; font-size: 0.875rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-status { display: block; font-size: 0.875rem; margin-top: 2px; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-status--within { color: var(--color-text-muted); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-status--outside { color: var(--color-error-text); font-weight: 700; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__pagination--full { display: none; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__pagination--mobile { display: block; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__pagination { padding: var(--space-3) var(--tile-pad-x) 0; }
+
+/* Forced colours drop the selected row's fill and inset bar. A real 4 px border on the first
+   cell (Canvas at rest, Highlight when selected) replaces the bar without moving a column. */
+@media (forced-colors: active) {
+  .lintje-data-table__row > :first-child,
+  .lintje-data-table__mobile-row > :first-child { border-left: 4px solid Canvas; }
+  .lintje-data-table__row.is-selected > :first-child,
+  .lintje-data-table__mobile-row.is-selected > :first-child { border-left-color: Highlight; }
+  .lintje-data-table__header-cell.is-active { border-bottom-color: Highlight; }
+  .lintje-data-table__funnel.is-filtered { border-color: Highlight; }
+}

@@ -1,0 +1,58 @@
+.lintje-pie-chart {
+  display: flex; gap: var(--space-8); align-items: center; justify-content: center; flex-wrap: wrap;
+  padding-top: var(--space-3);
+}
+.lintje-pie-chart--expanded { gap: var(--space-10); height: 100%; padding-top: 0; }
+.lintje-pie-chart--expanded .lintje-pie-chart__table { flex: 0 1 440px; min-width: 260px; }
+.lintje-pie-chart__center { font-family: var(--font-ui); font-size: 1.5rem; font-weight: 700; fill: var(--color-text-primary); }
+.lintje-pie-chart__table { flex: 1; min-width: 200px; border-collapse: collapse; font: var(--text-small); }
+.lintje-pie-chart__column-label,
+.lintje-pie-chart__label,
+.lintje-pie-chart__value,
+.lintje-pie-chart__total-label,
+.lintje-pie-chart__total { padding: 5px 0; text-align: left; font-weight: 400; }
+.lintje-pie-chart__column-label {
+  font-size: var(--label-size); font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border-default);
+}
+/* The numeric columns sit right-aligned under their heading, a fixed step from their neighbour. */
+.lintje-pie-chart__column-label--numeric,
+.lintje-pie-chart__value,
+.lintje-pie-chart__total { padding-left: var(--space-4); text-align: right; }
+.lintje-pie-chart__value,
+.lintje-pie-chart__total { font-variant-numeric: tabular-nums; }
+.lintje-pie-chart__label { display: flex; align-items: center; gap: 6px; }
+.lintje-pie-chart__total-label,
+.lintje-pie-chart__total {
+  font-weight: 700; border-top: 1px solid var(--color-border-default); padding-top: 6px;
+}
+.lintje-pie-chart__marker { width: 10px; height: 10px; flex: none; display: block; }
+
+/* Hover scales the segment around the center, so its side edges keep their angle. The shadow
+   sits on a copy on top (`__lift`); the segment itself only scales and eases back. */
+.lintje-pie-chart__svg { overflow: visible; flex: none; }
+.lintje-pie-chart__segment { transition: transform var(--dur-hover) var(--ease-in-motion); }
+.lintje-pie-chart__segment.is-hovered { transform: scale(1.03); }
+.lintje-pie-chart__lift {
+  pointer-events: none;
+  transform: scale(1.03);
+  filter: drop-shadow(var(--shadow-chart-hover));
+  animation: lintje-pie-lift var(--dur-hover) var(--ease-in-motion) backwards;
+}
+@keyframes lintje-pie-lift { from { transform: none; filter: none; } }
+.lintje-pie-chart__row.is-hovered { background: var(--color-bg-subtle); }
+/* The chosen row carries the outline the chosen slice has (rule 13). */
+.lintje-pie-chart__row.is-muted .lintje-pie-chart__marker { opacity: .45; }
+.lintje-pie-chart__row.is-selected .lintje-pie-chart__marker { outline: 2px solid var(--color-text-primary); }
+.lintje-pie-chart__row.is-selected .lintje-pie-chart__label { font-weight: 700; }
+
+/* Forced colours: the slices, the lifted copy and the table's swatches keep their colours (as
+   `chart.css`); the chosen row's swatch is outlined in CanvasText. */
+@media (forced-colors: active) {
+  .lintje-pie-chart__lift,
+  .lintje-pie-chart__marker { forced-color-adjust: none; }
+  .lintje-pie-chart__center { fill: CanvasText; }
+  .lintje-pie-chart__row.is-selected .lintje-pie-chart__marker { outline-color: CanvasText; }
+}

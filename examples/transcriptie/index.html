@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="nl" data-mode="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transcriptie — Lintje</title>
+    <!--
+      Transcriptie: a small application built from Lintje's elements on a plain page. One
+      recording, live or afterwards: a hero with a tab for live and one for a file; it starts with one press — the kind of conversation sets the
+      rest, and a name is suggested from what is said — or from a phone on the same account, and
+      it is read along while it records. Afterwards the player and the transcript follow each
+      other, the speakers are named and merged beside the text, and the AI work (summary, minutes,
+      action points, people and places) stands above the text under the note that a model made it,
+      each to fold away or hide. There is no
+      backend: `app.js` plays the server (uploads, the queue, the live session, the AI work) with
+      timers, and every name and figure is fictional.
+
+      Serve the repository root with any static server and open /examples/transcriptie/.
+        ?opname=j2                  the opened recording; without it the start page
+        ?pagina=opnames             every recording
+        ?soort=hoorzitting          the kind of conversation for a new recording
+        ?nieuw=bestand              the hero's tab: a file instead of a live recording
+        ?bron=telefoon              a live recording from the phone; its start is a button here
+        ?microfoon=stil             the microphone's state: eerste-keer, stil or geen-toegang
+        ?q=rooster                  the search in the transcript
+        ?mode=dark                  dark mode (without it the reader's system decides)
+        ?theme=marechaussee         one of the six themes
+        ?pagina=woordenlijsten      the word lists; ?pagina=instellingen the settings
+        ?demo=1                     a telling state on load: j2 open with a search, a job half way
+    -->
+    <link rel="stylesheet" href="../../src/tokens/fonts.css" />
+    <link rel="stylesheet" href="../../dist-elements/tokens.css" />
+    <style>
+      body {
+        margin: 0;
+        background: var(--color-bg-page);
+        color: var(--color-text-primary);
+        font: var(--text-ui);
+        font-family: var(--font-ui);
+        -webkit-font-smoothing: antialiased;
+      }
+      .view { display: flex; flex-direction: column; gap: var(--grid-gutter); }
+      .view[hidden],
+      .view [hidden],
+      .panel[hidden],
+      .panel [hidden] { display: none; }
+      .panel { display: flex; flex-direction: column; gap: var(--space-4); }
+      .panel__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+      .section-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+
+      .panel--roomy { gap: var(--space-6); }
+      /* The recordings stand beside the new one where there is room for both; else under it. */
+      .start-grid { display: grid; gap: var(--grid-gutter); align-items: start; }
+      @media (min-width: 1280px) {
+        .start-grid { grid-template-columns: minmax(0, 1fr) minmax(0, calc(10 * var(--space-10))); }
+      }
+      .panel--tight { gap: var(--space-2); }
+      /* The two choices of a live recording side by side: what kind of conversation, and where. */
+      .choices {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-6) var(--space-10);
+        align-items: start;
+      }
+      #live-status { max-width: calc(16 * var(--space-10)); }
+      /* In the hero the status takes the whole column, not only what its cells need. */
+      #running { align-self: stretch; }
+      .live-head__line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+      .mic-cell { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); font-weight: 400; }
+      /* For the phone: the code to scan, under a rule. */
+      .phone-start {
+        padding-top: var(--space-5);
+        border-top: 1px solid var(--color-border-default);
+      }
+      /* Under "Deze opname": why it can or cannot start, and the one button that starts it. */
+      .start-foot {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: var(--space-3) var(--space-5);
+      }
+      .phone-start { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: var(--space-6); }
+      .adjust-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-4) var(--space-5);
+        align-items: start;
+      }
+      .adjust-grid__wide { grid-column: 1 / -1; }
+      .adjust-grid__field { width: 100%; }
+
+      /* An opened recording: the text, with what leads into it on the right. */
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+        gap: var(--grid-gutter);
+        align-items: start;
+      }
+      .split--nav { grid-template-columns: minmax(0, 300px) minmax(0, 1fr); }
+      .split__main { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+      .split__side { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+      /* The text with its tools, and the speakers beside it in the same surface, behind a line. */
+      /* The tools take the tile's top: their own padding is the same above and below them. */
+      .reading {
+        margin-top: calc(-1 * var(--tile-pad-y));
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, calc(9 * var(--space-10)));
+        align-items: stretch;
+      }
+      .reading.is-single { grid-template-columns: minmax(0, 1fr); }
+      .reading.is-single > .reading__side { display: none; }
+      .reading__main { display: flex; flex-direction: column; min-width: 0; }
+      .reading__side {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+        min-width: 0;
+        padding: var(--space-3) var(--tile-pad-x) var(--tile-pad-y);
+        border-left: 1px solid var(--color-border-default);
+      }
+      /* The tools stay under the top bar while the text scrolls under them, as the filters do. */
+      .tools {
+        position: sticky;
+        top: var(--h-topbar);
+        z-index: 2;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--space-3) var(--space-5);
+        padding: var(--space-3) var(--tile-pad-x);
+        background: var(--color-bg-surface);
+        border-bottom: 1px solid var(--color-border-default);
+      }
+      .tools__search,
+      .tools__view { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-2) var(--space-4); }
+      .tools__search { flex: 1 1 calc(9 * var(--space-10)); }
+      .tools__field { flex: 1 1 auto; max-width: calc(10 * var(--space-10)); }
+      .searchbar { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-2); padding: var(--space-3) var(--tile-pad-x); }
+      #replaced,
+      #no-match { margin: var(--space-3) var(--tile-pad-x) 0; }
+      .pending { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4) var(--tile-pad-x); }
+      /* Reading back while it records: the way to now stays at the bottom of the text. */
+      .catch-up { position: sticky; bottom: var(--space-4); margin: var(--space-3) var(--tile-pad-x); }
+
+      /* The player: a bar the width of the page that stays in reach while the text scrolls. */
+      .dock {
+        position: sticky;
+        bottom: 0;
+        z-index: 3;
+        background: var(--color-bg-surface);
+        border-top: 1px solid var(--color-border-default);
+      }
+      .dock__inner { max-width: var(--w-content); margin: 0 auto; padding: var(--space-3) var(--grid-gutter); }
+
+      @media (max-width: 1023.98px) {
+        .choices,
+        .split,
+        .split--nav,
+        .adjust-grid { grid-template-columns: minmax(0, 1fr); }
+        .reading { grid-template-columns: minmax(0, 1fr); }
+        .reading__side { padding-top: var(--tile-pad-y); border-left: 0; border-top: 1px solid var(--color-border-default); }
+      }
+      @media (max-width: 767.98px) {
+        /* On a phone the tools would cover half the text: they scroll away with it. */
+        .tools { position: static; }
+        .tools__field { max-width: none; }
+        /* On the phone itself a code to scan with the phone is of no use. */
+        .phone__qr { display: none; }
+        .phone-start { grid-template-columns: minmax(0, 1fr); }
+        /* On a phone the player would cover the text it plays; it stands under it. */
+        .dock { position: static; }
+      }
+    </style>
+  </head>
+  <body>
+    <lintje-shell id="shell">
+      <lintje-page-header slot="header" id="page-header">
+        <script type="application/json">{ "title": "Opnames" }</script>
+        <lintje-breadcrumbs slot="breadcrumbs" id="crumbs" hidden></lintje-breadcrumbs>
+        <lintje-button slot="actions" id="pause" variant="secondary" hidden>Pauzeren</lintje-button>
+        <lintje-button slot="actions" id="stop" variant="primary" hidden>Stoppen en bewaren</lintje-button>
+        <lintje-button slot="actions" id="reprocess" variant="tertiary" hidden>Opnieuw verwerken</lintje-button>
+        <lintje-menu-button slot="actions" id="ai-menu" label="AI-bewerkingen" leading-icon="gereedschap-half-tandwiel-half-brein" placement="bottom-end" hidden></lintje-menu-button>
+        <lintje-menu-button slot="actions" id="export" split variant="primary" label="Downloaden" action="docx" leading-icon="functioneel-downloaden" accessible-label="Andere manieren om te downloaden of te kopiëren" placement="bottom-end" hidden></lintje-menu-button>
+      </lintje-page-header>
+
+      <!-- Without ?opname: the hero asks what to transcribe, with a tab per way in; while the phone
+           records, the hero names that recording instead. -->
+      <lintje-hero slot="full" id="hero" action="Of bekijk al je opnames" href="?pagina=opnames">
+        <lintje-badge slot="status" id="running-badge" tone="live" hidden>Neemt op</lintje-badge>
+        <div class="panel" id="running" hidden>
+          <lintje-recording-status id="running-status" connection="good" delay="1"></lintje-recording-status>
+          <div class="panel__actions">
+            <lintje-button id="phone-follow" variant="primary">Meelezen</lintje-button>
+            <lintje-button id="phone-stop" variant="secondary">Stoppen en bewaren</lintje-button>
+          </div>
+        </div>
+        <!-- Beside the hero while a recording runs; app.js puts it in and takes it out. -->
+        <lintje-tile slot="panel" id="running-preview" heading="Wat er nu gezegd wordt"
+          footnote="Met Meelezen zie je alles en zet je het meteen goed.">
+          <div class="panel">
+            <lintje-ai-label></lintje-ai-label>
+            <lintje-transcript readonly></lintje-transcript>
+          </div>
+        </lintje-tile>
+        <!-- A new recording, and beside it on a large screen the latest recordings. -->
+        <div slot="overlap" class="start-grid">
+        <lintje-tabs id="way" variant="panel" label="Nieuwe opname">
+          <div slot="live" class="panel panel--roomy">
+            <div class="choices" id="choices">
+              <lintje-segmented id="soort" label="Soort gesprek"></lintje-segmented>
+              <div class="panel panel--tight">
+                <lintje-segmented id="bron" label="Opnemen met"></lintje-segmented>
+                <lintje-prose id="source-status" tone="muted"></lintje-prose>
+              </div>
+            </div>
+            <lintje-announcement id="live-busy" hidden></lintje-announcement>
+            <!-- The phone's way in: the code to scan, three steps, and what happens now. -->
+            <div class="phone-start" id="phone-info">
+              <lintje-qr-code class="phone__qr" src="qr-telefoon.svg" label="QR-code die Transcriptie op je telefoon opent"></lintje-qr-code>
+              <div class="panel panel--tight">
+                <lintje-prose id="phone-steps"></lintje-prose>
+                <!-- What happens now, set apart from the steps: it waits for the phone. -->
+                <lintje-announcement id="phone-wait" compact>
+                  <lintje-button slot="action" id="phone-simulate" variant="link" size="compact">Voorbeeld: start de opname op je telefoon</lintje-button>
+                </lintje-announcement>
+                <lintje-prose id="phone-address" tone="muted"></lintje-prose>
+              </div>
+            </div>
+            <!-- What this recording will be: the kind's defaults, and what was changed for it. -->
+            <div class="panel" id="this-recording">
+              <!-- No frame of its own: it already stands in the tab's panel. -->
+              <div class="section-head">
+                <lintje-prose id="summary-head"></lintje-prose>
+                <lintje-button id="adjust-open" variant="secondary" size="compact">Instellingen aanpassen</lintje-button>
+              </div>
+              <lintje-description-list id="this-summary" layout="grid">
+                <!-- The microphone's cell: what it hears, and what to do when that is nothing. -->
+                <div slot="mic" class="mic-cell">
+                  <lintje-level-meter id="mic-level"></lintje-level-meter>
+                  <lintje-prose id="mic-help" tone="muted"></lintje-prose>
+                  <lintje-button id="mic-action" variant="secondary" size="compact"></lintje-button>
+                </div>
+              </lintje-description-list>
+            </div>
+            <div class="start-foot" id="start-foot">
+              <lintje-prose id="start-note" tone="muted"></lintje-prose>
+              <lintje-button id="record" variant="primary">Opname starten</lintje-button>
+            </div>
+          </div>
+          <div slot="bestand" class="panel">
+            <lintje-file-upload id="upload" label="Audio- of videobestanden" hide-label
+              accept=".mp3,.m4a,.wav,.mp4,.mov" max-size="524288000" fill></lintje-file-upload>
+            <lintje-prose id="upload-note" tone="muted"></lintje-prose>
+          </div>
+        </lintje-tabs>
+          <!-- Every recording as a work list: what runs, what is done, what went wrong. -->
+          <lintje-tile id="recent" flush heading="Recente opnames">
+            <lintje-button slot="actions" id="all-recordings" variant="link" size="compact" href="?pagina=opnames">Alle opnames</lintje-button>
+            <lintje-job-list id="queue"></lintje-job-list>
+          </lintje-tile>
+        </div>
+      </lintje-hero>
+
+      <!-- ?pagina=opnames: every recording, what runs and what is done. -->
+      <div class="view" id="recordings-view" hidden>
+        <lintje-tile flush heading="Alle opnames" subtitle="Live opgenomen en geüpload, de nieuwste bovenaan">
+          <lintje-job-list id="all-jobs"></lintje-job-list>
+        </lintje-tile>
+      </div>
+
+      <!-- With ?opname: one recording, live or afterwards. -->
+      <div class="view" id="rec-view" hidden>
+        <!-- While it records: that it does, how it does and where; the name it suggested. -->
+        <div class="panel panel--tight" id="live-head" hidden>
+          <div class="live-head__line">
+            <lintje-badge id="live-badge" tone="live">Neemt op</lintje-badge>
+            <lintje-prose id="live-where" tone="muted"></lintje-prose>
+          </div>
+          <lintje-recording-status id="live-status"></lintje-recording-status>
+          <div class="live-head__line" id="live-named" hidden>
+            <lintje-prose id="live-name-note" tone="muted"></lintje-prose>
+            <lintje-button id="live-rename" variant="link" size="compact">Wijzigen</lintje-button>
+          </div>
+        </div>
+        <lintje-tile id="progress-tile" heading="Bezig met transcriberen">
+          <lintje-progress-bar id="progress" label="Transcriberen"
+            detail="Je kunt verder werken: je krijgt een melding zodra het transcript klaar is."></lintje-progress-bar>
+        </lintje-tile>
+        <lintje-announcement id="failed">
+          <lintje-button id="retry" slot="action" variant="link" size="compact">Opnieuw transcriberen</lintje-button>
+        </lintje-announcement>
+
+        <!-- One surface: the tools, the text with the AI work above it, and the speakers beside it. -->
+        <lintje-tile id="rec-panel" flush>
+          <div class="reading">
+            <div class="reading__main">
+              <div class="tools">
+                <div class="tools__search">
+                  <lintje-text-input id="search" class="tools__field" type="search" commit="input"
+                    label="Zoek in het transcript" hide-label placeholder="Zoek in het transcript"></lintje-text-input>
+                  <lintje-icon-button id="search-prev" label="Vorige treffer" hidden></lintje-icon-button>
+                  <lintje-icon-button id="search-next" label="Volgende treffer" hidden></lintje-icon-button>
+                  <lintje-button id="replace-toggle" variant="link" size="compact" hidden>Vervangen…</lintje-button>
+                </div>
+                <div class="tools__view">
+                  <lintje-toggle id="follow" label="Meescrollen met de live tekst" checked hidden></lintje-toggle>
+                  <lintje-menu-button id="view-menu" label="Weergave" leading-icon="functioneel-filters" placement="bottom-end"></lintje-menu-button>
+                </div>
+              </div>
+              <div class="searchbar" id="replace-row" hidden>
+                <lintje-text-input id="replace" class="tools__field" label="Vervangen door" hide-label placeholder="Vervangen door"></lintje-text-input>
+                <lintje-button id="replace-one" variant="secondary" size="compact">Deze</lintje-button>
+                <lintje-button id="replace-all" variant="secondary" size="compact">Alle</lintje-button>
+              </div>
+              <lintje-announcement id="replaced" compact hidden>
+                <lintje-button id="replace-undo" slot="action" variant="link" size="compact">Ongedaan maken</lintje-button>
+              </lintje-announcement>
+              <!-- The note is the first row of the text, as it is the first lines of every download. -->
+              <lintje-transcript id="transcript">
+                <lintje-ai-label slot="note-label" hint=""></lintje-ai-label>
+                <span slot="note">Het transcript en de AI-bewerkingen zijn automatisch gemaakt en kunnen fouten bevatten. Controleer de juistheid en volledigheid voordat je ze gebruikt. Toets ook of verder gebruik, voor analyse of een ander doel, is toegestaan; daar ben je zelf verantwoordelijk voor. Deze melding staat ook bovenaan elke download.</span>
+                <div slot="lead" id="processing" hidden>
+                  <lintje-progress-bar id="processing-bar" label="Bezig met transcriberen"
+                    detail="Wat al klaar is, staat hieronder en de audio kun je al afspelen. Je mag deze pagina sluiten: je krijgt een melding zodra het transcript klaar is."></lintje-progress-bar>
+                </div>
+              </lintje-transcript>
+              <div class="pending" id="pending" hidden>
+                <lintje-skeleton height="16"></lintje-skeleton>
+                <lintje-skeleton width="70%" height="16"></lintje-skeleton>
+                <lintje-skeleton width="85%" height="16"></lintje-skeleton>
+              </div>
+              <lintje-empty-state id="no-match" compact hidden text="">
+                <lintje-button id="clear-search" variant="link">Zoekopdracht wissen</lintje-button>
+              </lintje-empty-state>
+              <lintje-announcement id="catch-up" class="catch-up" compact hidden>
+                <lintje-button id="catch-up-now" slot="action" variant="link" size="compact">Naar de live tekst</lintje-button>
+              </lintje-announcement>
+            </div>
+            <div class="reading__side">
+              <lintje-prose id="speakers-heading"></lintje-prose>
+              <lintje-list id="speakers" label="Sprekers"></lintje-list>
+              <div class="panel__actions">
+                <lintje-button id="speaker-add" variant="link" size="compact">Spreker toevoegen</lintje-button>
+              </div>
+            </div>
+          </div>
+        </lintje-tile>
+      </div>
+
+      <!-- ?pagina=woordenlijsten: the words recognition listens for, and the words to find. -->
+      <div class="view" id="words-view" hidden>
+        <lintje-segmented id="words-kind" label="Soort lijst"></lintje-segmented>
+        <div class="split split--nav">
+          <div class="split__side">
+            <lintje-tile id="words-lists-tile" heading="Lijsten">
+              <lintje-button slot="actions" id="words-new" variant="tertiary" size="compact">Nieuwe lijst</lintje-button>
+              <lintje-list id="words-lists"></lintje-list>
+            </lintje-tile>
+          </div>
+          <div class="split__main">
+            <lintje-tile id="words-tile">
+              <div class="panel">
+                <lintje-announcement id="words-readonly" compact hidden></lintje-announcement>
+                <lintje-tag-input id="words" label="Woorden" placeholder="Typ een woord en druk op Enter; een geplakte lijst komt in één keer"></lintje-tag-input>
+                <lintje-progress-bar id="words-room"></lintje-progress-bar>
+                <lintje-toggle id="words-fuzzy" label="Ook bijna-gelijke spellingen vinden" hint="Zoals Jansen en Janssen, of een woord dat net verkeerd is verstaan."></lintje-toggle>
+                <lintje-select id="words-share" class="adjust-grid__field" label="Gedeeld met"></lintje-select>
+                <lintje-description-list id="words-facts"></lintje-description-list>
+              </div>
+            </lintje-tile>
+          </div>
+        </div>
+      </div>
+
+      <!-- ?pagina=instellingen: what holds for every recording, and the kinds of conversation. -->
+      <div class="view" id="settings-view" hidden>
+        <div class="split split--nav">
+          <div class="split__side">
+            <lintje-sub-nav id="settings-nav" label="Instellingen"></lintje-sub-nav>
+          </div>
+          <div class="split__main">
+            <lintje-prose id="settings-heading"></lintje-prose>
+            <div class="panel" id="settings-kind">
+              <lintje-form-section variant="tile" heading="Herkenning">
+                <lintje-select id="st-language" layout="row" label="Taal" hint="Ook per opname aan te passen."></lintje-select>
+                <lintje-toggle id="st-soft" layout="row" label="Zachte spraak versterken" hint="Voor iemand die zacht of ver van de microfoon praat. Ook per opname aan te passen."></lintje-toggle>
+                <lintje-multiselect id="st-lists" layout="row" label="Woordenlijsten" placeholder="Geen woordenlijst" hint="Namen, afkortingen en plaatsen die de herkenning anders verkeerd verstaat."></lintje-multiselect>
+              </lintje-form-section>
+              <lintje-form-section variant="tile" heading="Sprekers">
+                <lintje-segmented id="st-spk-mode" layout="row" label="Sprekers herkennen"></lintje-segmented>
+                <lintje-range id="st-spk-range" layout="row" label="Aantal sprekers" hint="Tussen hoeveel sprekers de herkenning kiest; een kleinere marge geeft betere resultaten."></lintje-range>
+                <lintje-range id="st-spk-one" layout="row" single label="Aantal sprekers" hint="Precies zoveel sprekers worden onderscheiden."></lintje-range>
+                <lintje-toggle id="st-roles" layout="row" label="Rollen voorstellen met AI" hint="Bijvoorbeeld Voorzitter en Bezwaarmaker in plaats van Spreker 1 en 2; altijd gemarkeerd als voorstel."></lintje-toggle>
+                <lintje-toggle id="st-unknown" layout="row" label="Bij twijfel ‘Onbekend’ als spreker" hint="In plaats van te gokken; via de naam bij het fragment geef je het een spreker."></lintje-toggle>
+              </lintje-form-section>
+              <lintje-form-section variant="tile" heading="Na afloop">
+                <lintje-select id="st-summary" layout="row" label="Samenvatting maken"></lintje-select>
+                <lintje-toggle id="st-english" layout="row" label="Ook een Engelse vertaling maken"></lintje-toggle>
+              </lintje-form-section>
+            </div>
+            <div class="panel" id="settings-all" hidden>
+              <lintje-form-section variant="tile" heading="AI-bewerkingen">
+                <lintje-toggle id="st-think" layout="row" label="Grondiger nadenken" hint="Betere samenvattingen, actiepunten en notulen, maar het duurt langer."></lintje-toggle>
+              </lintje-form-section>
+              <lintje-form-section variant="tile" heading="Downloaden">
+                <lintje-select id="st-format" layout="row" label="Formaat dat voorgeselecteerd staat" hint="Bij het downloaden kies je altijd nog zelf."></lintje-select>
+                <lintje-select id="st-layout" layout="row" label="Opmaak" hint="Geldt voor .txt en .docx; het bewaarde transcript verandert niet. OVC-indeling kan alleen bij een opname in OVC-formaat."></lintje-select>
+                <lintje-toggle id="st-top" layout="row" label="Samenvatting bovenaan het bestand" hint="Met de vermelding dat hij door AI is gemaakt."></lintje-toggle>
+                <lintje-toggle id="st-merge" layout="row" label="Meerdere opnames in één bestand" hint="Bij Alles downloaden: één bestand in plaats van een zip met een bestand per opname."></lintje-toggle>
+              </lintje-form-section>
+            </div>
+            <div class="panel__actions">
+              <lintje-button id="settings-reset" variant="link" size="compact">Terugzetten naar de standaard</lintje-button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div slot="footer" class="dock" id="dock" hidden>
+        <div class="dock__inner">
+          <lintje-audio-player id="player" flush no-legend></lintje-audio-player>
+        </div>
+      </div>
+    </lintje-shell>
+
+    <lintje-modal id="rename-modal" narrow heading="Naam wijzigen">
+      <lintje-text-input id="rename-input" class="adjust-grid__field" label="Naam van de opname"></lintje-text-input>
+      <lintje-button slot="actions" id="rename-cancel" variant="tertiary">Annuleren</lintje-button>
+      <lintje-button slot="actions" id="rename-save" variant="primary">Opslaan</lintje-button>
+    </lintje-modal>
+
+
+    <lintje-modal id="merge-modal" narrow heading="Sprekers samenvoegen">
+      <lintje-select id="merge-into" class="adjust-grid__field" label="Samenvoegen met"></lintje-select>
+      <lintje-button slot="actions" id="merge-cancel" variant="tertiary">Annuleren</lintje-button>
+      <lintje-button slot="actions" id="merge-save" variant="primary">Samenvoegen</lintje-button>
+    </lintje-modal>
+
+    <!-- Zelf samenstellen: what goes in, in which format, and always the note on top. -->
+    <lintje-modal id="download-modal" narrow heading="Downloaden">
+      <div class="panel panel--roomy">
+        <div class="panel panel--tight">
+          <lintje-prose data-heading="Wat wil je downloaden?"></lintje-prose>
+          <lintje-checkbox id="dl-transcript" label="Transcript" hint="Alle fragmenten, met je verbeteringen" checked></lintje-checkbox>
+          <lintje-checkbox id="dl-ai" label="AI-bewerkingen" checked></lintje-checkbox>
+          <lintje-checkbox id="dl-audio" label="Audio" hint="De opname zelf"></lintje-checkbox>
+        </div>
+        <lintje-radio-group id="dl-format" variant="cards" label="Formaat van de tekst"></lintje-radio-group>
+        <div class="panel panel--tight" id="dl-in-text">
+          <lintje-prose data-heading="In de tekst"></lintje-prose>
+          <div class="panel__actions">
+            <lintje-checkbox id="dl-times" label="Tijden" checked></lintje-checkbox>
+            <lintje-checkbox id="dl-names" label="Sprekernamen" checked></lintje-checkbox>
+          </div>
+        </div>
+        <lintje-ai-label id="dl-note" hint="Staat bovenaan elk tekstbestand, met de melding dat de tekst fouten kan bevatten."></lintje-ai-label>
+      </div>
+      <span slot="footer" id="dl-result"></span>
+      <lintje-button slot="actions" id="dl-cancel" variant="tertiary">Annuleren</lintje-button>
+      <lintje-button slot="actions" id="dl-save" variant="primary" icon="functioneel-downloaden">Downloaden</lintje-button>
+    </lintje-modal>
+
+    <lintje-drawer id="adjust" heading="Instellingen voor deze opname">
+      <div class="panel">
+        <lintje-text-input id="own-name" class="adjust-grid__field" label="Naam" hint="Mag leeg blijven; dan wordt een naam voorgesteld uit het gesprek."></lintje-text-input>
+        <lintje-select id="language" class="adjust-grid__field" label="Taal van het gesprek" hint="Automatisch herkent één taal per opname."></lintje-select>
+        <lintje-segmented id="spk-mode" label="Sprekers" hint="Een vast aantal maakt het herkennen nauwkeuriger."></lintje-segmented>
+        <lintje-range id="spk-range" class="adjust-grid__field" label="Tussen hoeveel sprekers"></lintje-range>
+        <lintje-range id="spk-one" class="adjust-grid__field" single label="Aantal sprekers" hidden></lintje-range>
+        <lintje-select id="mic" class="adjust-grid__field" label="Microfoon"></lintje-select>
+        <lintje-level-meter id="drawer-level"></lintje-level-meter>
+        <lintje-multiselect id="lists" class="adjust-grid__field" label="Woordenlijsten" hint="Namen en afkortingen die dan goed geschreven worden." placeholder="Geen woordenlijst"></lintje-multiselect>
+        <lintje-toggle id="soft" label="Zachte spraak versterken" hint="Voor wie zacht of ver van de microfoon praat."></lintje-toggle>
+      </div>
+      <lintje-button slot="footer" id="adjust-reset" variant="tertiary">Terug naar de standaard</lintje-button>
+      <lintje-button slot="footer" id="adjust-done" variant="primary">Klaar</lintje-button>
+    </lintje-drawer>
+
+    <lintje-drawer id="reprocess-drawer" heading="Opnieuw verwerken" subtitle="Met andere instellingen. Het transcript wordt opnieuw gemaakt; je eigen verbeteringen vervallen.">
+      <div class="panel">
+        <lintje-select id="re-language" label="Taal"></lintje-select>
+        <lintje-number-input id="re-speakers" label="Aantal sprekers" min="1" max="12" value="3"></lintje-number-input>
+        <lintje-checkbox label="Woordenlijst: Afkortingen Rijksoverheid" checked></lintje-checkbox>
+        <lintje-checkbox label="Woordenlijst: Namen team Planning" checked></lintje-checkbox>
+        <lintje-checkbox label="Zachte spraak versterken"></lintje-checkbox>
+      </div>
+      <lintje-button slot="footer" id="re-cancel" variant="tertiary">Annuleren</lintje-button>
+      <lintje-button slot="footer" id="re-start" variant="primary">Opnieuw verwerken</lintje-button>
+    </lintje-drawer>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

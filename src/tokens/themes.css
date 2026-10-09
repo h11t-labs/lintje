@@ -1,0 +1,57 @@
+/* ============================================================================
+   Lintje — colour themes
+
+   Document level only: linked by the page next to `tokens.css`, never imported into TypeScript,
+   so the two properties are declared once on the document and inherit into every shadow root.
+   `tokens.css` must not declare them: a re-declaration on an element host would beat the
+   inherited value.
+
+   A theme sets exactly `--primary` and `--accent`. The dark tints are derived in `tokens.css`
+   at a fixed lightness, sized for the themes here.
+
+   To add a theme: one block here and its row in `SPECIFICATION` in `colour-scheme.test.ts`,
+   which checks that its tints clear their floors.
+   ========================================================================= */
+
+/* The default theme: a page that sets no `data-theme` still has a primary. */
+:root {
+  --primary: #01689B;
+  --accent: #E17000;
+}
+
+/* Rijksoverheid — donkerblauw. Not lintblauw (`#154273`): the ribbon's own colour would vanish. */
+[data-theme='rijksoverheid'] {
+  --primary: #01689B;
+  --accent: #E17000;
+}
+
+/* Koninklijke Marechaussee — Nassau blue. */
+[data-theme='marechaussee'] {
+  --primary: #0E3B6E;
+  --accent: #E17000;
+}
+
+/* Koninklijke Landmacht — dark green. */
+[data-theme='landmacht'] {
+  --primary: #00423C;
+  --accent: #E17000;
+}
+
+/* Koninklijke Marine — mid blue. */
+[data-theme='marine'] {
+  --primary: #0E61AA;
+  --accent: #E17000;
+}
+
+/* Koninklijke Luchtmacht — deep blue. */
+[data-theme='luchtmacht'] {
+  --primary: #005187;
+  --accent: #E17000;
+}
+
+/* Defensie — orange primary, so the accent is the blue instead. Lighter than the line tint's
+   lightness, so its line is the primary itself. */
+[data-theme='defensie'] {
+  --primary: #E17000;
+  --accent: #007BC7;
+}

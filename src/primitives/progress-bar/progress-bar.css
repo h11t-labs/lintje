@@ -1,0 +1,50 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-progress { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.lintje-progress__head {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: var(--space-1) var(--space-4);
+  font: var(--text-small);
+}
+.lintje-progress__label { font-weight: 700; color: var(--color-text-primary); }
+.lintje-progress__detail { color: var(--color-text-muted); }
+.lintje-progress__mark { margin-right: var(--space-1); vertical-align: -0.125em; }
+.lintje-progress--done .lintje-progress__mark { color: var(--color-success-line); }
+.lintje-progress--error .lintje-progress__mark { color: var(--color-error-line); }
+.lintje-progress--paused .lintje-progress__mark { color: var(--color-text-muted); }
+
+/* The accent LINE, not the fill colour, keeps 3:1 on the dark surface. */
+.lintje-progress__track { height: 6px; background: var(--color-border-default); overflow: hidden; }
+.lintje-progress__fill {
+  height: 100%;
+  background: var(--color-accent-line);
+  transition: width var(--dur-base) var(--ease-in-motion);
+}
+
+.lintje-progress--done .lintje-progress__fill { background: var(--color-success); }
+.lintje-progress--error .lintje-progress__fill { background: var(--color-error); }
+.lintje-progress--error .lintje-progress__label { color: var(--color-error-text); }
+.lintje-progress--paused .lintje-progress__fill { background: var(--color-text-muted); }
+
+.lintje-progress__track.is-indeterminate .lintje-progress__fill {
+  width: 30%;
+  animation: lintje-progress-slide var(--dur-skeleton) linear infinite alternate;
+}
+@keyframes lintje-progress-slide {
+  from { margin-left: 0; }
+  to   { margin-left: 70%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lintje-progress__fill { transition: none; }
+  .lintje-progress__track.is-indeterminate .lintje-progress__fill { animation: none; margin-left: 35%; }
+}
+
+/* Forced colours: the browser drops fills, so the track keeps a CanvasText edge and the fill
+   draws as Highlight. */
+@media (forced-colors: active) {
+  .lintje-progress__track { outline: 1px solid CanvasText; outline-offset: -1px; }
+  .lintje-progress__fill { forced-color-adjust: none; background: Highlight; }
+}

@@ -1,0 +1,116 @@
+/* The host is the bell's box; the panel is fixed and takes no space. */
+:host { display: inline-flex; flex: none; vertical-align: middle; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-notifications__bell {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  width: var(--h-touch); height: var(--lintje-tool-height, var(--h-touch));
+  color: var(--color-nav-text);
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-notifications__bell:hover,
+.lintje-notifications__bell.is-open { background: var(--color-nav-hover); }
+
+/* The counter is placed from the bell's middle, so a bell as high as the bar does not carry it
+   up to the bar's edge. */
+.lintje-notifications__count {
+  position: absolute;
+  top: calc(50% - var(--h-touch) / 2 + var(--space-1)); right: var(--space-1);
+}
+/* The keyed figure is a new element per value, so the rise plays once per change. */
+.lintje-notifications__figure { display: inline-block; }
+.lintje-notifications__figure.is-replaced {
+  animation: lintje-rise var(--dur-badge) var(--ease-in-motion) both;
+}
+
+.lintje-notifications__panel {
+  width: 440px;
+  max-width: 100%;
+  max-height: 480px;
+  overflow-y: auto;
+  font: var(--text-ui);
+  color: var(--color-text-primary);
+}
+
+.lintje-notifications__head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-default);
+}
+.lintje-notifications__heading { font: var(--text-tile-title); }
+/* The link-style button reaches the target height through a hit area above and below only. */
+.lintje-notifications__read {
+  position: relative;
+  min-height: var(--space-6);
+  margin-left: auto;
+  color: var(--color-link);
+  font-size: 0.875rem; font-weight: 700;
+  text-decoration: underline;
+}
+.lintje-notifications__read::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+.lintje-notifications__read:hover { color: var(--color-link-hover); }
+
+.lintje-notifications__list { margin: 0; padding: 0; list-style: none; }
+.lintje-notifications__item {
+  display: flex; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-default);
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-notifications__item:last-child { border-bottom: 0; }
+.lintje-notifications__item.is-unread { background: var(--color-bg-selected); }
+.lintje-notifications__item:hover { background: var(--color-bg-subtle); }
+
+.lintje-notifications__dot,
+.lintje-notifications__dot-space { flex: 0 0 8px; height: 8px; margin-top: 7px; }
+.lintje-notifications__dot { border-radius: var(--radius-round); background: var(--color-accent-line); }
+
+.lintje-notifications__body { min-width: 0; }
+.lintje-notifications__title {
+  display: inline;
+  padding: 0;
+  color: var(--color-link);
+  font-size: 1rem; font-weight: 400;
+  text-align: left;
+  text-decoration: underline;
+}
+.lintje-notifications__title:hover { color: var(--color-link-hover); }
+.lintje-notifications__item.is-unread .lintje-notifications__title { font-weight: 700; }
+.lintje-notifications__text { margin: 0; font-size: 0.875rem; overflow-wrap: anywhere; }
+.lintje-notifications__when { margin: 0; font-size: 0.875rem; color: var(--color-text-muted); }
+
+.lintje-notifications__empty {
+  margin: 0;
+  padding: var(--space-6) var(--space-4);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Phone: the sheet takes focus only when the trap pulls back stray focus, and draws no ring. */
+.lintje-notifications__sheet {
+  position: fixed;
+  z-index: 85;
+  inset: 0;
+  overflow-y: auto;
+  background: var(--color-bg-surface);
+  animation: lintje-fade-in var(--dur-popover) var(--ease-in-motion);
+}
+.lintje-notifications__sheet:focus { outline: none; }
+.lintje-notifications__panel.is-sheet { width: 100%; max-height: none; }
+.lintje-notifications__close { margin-right: calc(var(--space-2) * -1); }
+.lintje-notifications__close:hover { color: var(--color-text-primary); }
+.lintje-notifications__panel.is-sheet .lintje-notifications__head { padding-top: 0; padding-bottom: 0; min-height: var(--h-mobile-header); }
+
+/* Forced colours: the unread surface is dropped, so the dot keeps a system-colour fill. */
+@media (forced-colors: active) {
+  .lintje-notifications__dot { forced-color-adjust: none; background: CanvasText; }
+  .lintje-notifications__bell.is-open { outline: 1px solid Highlight; outline-offset: -1px; }
+}

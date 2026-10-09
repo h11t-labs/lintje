@@ -1,0 +1,96 @@
+/* Above the divider: what the element itself needs. Below it: the block's own BEM CSS. */
+:host {
+  display: inline-flex;
+  vertical-align: middle;
+}
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-icon-button {
+  position: relative;
+  width: var(--h-icon-button);
+  height: var(--h-icon-button);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border-radius: var(--radius);
+  transition: opacity var(--dur-hover) var(--ease-in-motion),
+              background var(--dur-hover) var(--ease-in-motion);
+}
+/* The target reaches `--h-target` through a transparent hit area; 100 % is the box's own size,
+   so the label variant's wider box only grows it upwards and downwards. */
+.lintje-icon-button::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2));
+}
+/* Without a file for its icon the label becomes the text; the square grows as wide as the word. */
+.lintje-icon-button--text { width: auto; min-width: var(--h-icon-button); padding: 0 var(--space-3); }
+.lintje-icon-button__label { font-size: 0.875rem; font-weight: 700; white-space: nowrap; }
+
+/* The box is a line (3:1), the glyph stands in for a word (4.5:1): different tokens. */
+.lintje-icon-button--outlined {
+  border: 1px solid var(--color-accent-line);
+  background: var(--color-bg-surface);
+  color: var(--color-accent-text);
+}
+.lintje-icon-button--outlined:not(.is-disabled):hover { background: var(--color-bg-selected); }
+
+.lintje-icon-button--flat { background: transparent; color: var(--color-text-primary); }
+.lintje-icon-button--flat:not(.is-disabled):hover { background: var(--color-bg-subtle); }
+
+/* Tile actions stand back in the muted text colour, never below 3:1; hover and focus darken them. */
+.lintje-icon-button--tile { background: transparent; color: var(--color-text-muted); }
+.lintje-icon-button--tile:not(.is-disabled):hover, .lintje-icon-button--tile:focus-visible { color: var(--color-text-primary); }
+
+/* The active button takes the primary-fill border, so the square keeps an edge in dark. */
+.lintje-icon-button.is-active {
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  border-color: var(--color-action-primary-border);
+}
+
+/* Live: it listens or speaks now. The primary fill with its border, and bars that move beside
+   the icon, so the state is never colour alone; the box grows to hold them. */
+.lintje-icon-button.is-live {
+  width: auto;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-action-primary-border);
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+}
+.lintje-icon-button.is-live:not(.is-disabled):hover { background: var(--color-action-primary-hover); }
+.lintje-icon-button__waves { display: inline-flex; align-items: center; gap: 2px; height: 16px; }
+.lintje-icon-button__wave {
+  width: 2px;
+  height: 100%;
+  background: currentColor;
+  animation: lintje-icon-button-wave var(--dur-wave) var(--ease-in-motion) infinite alternate;
+}
+.lintje-icon-button__wave:nth-child(2) { animation-delay: calc(var(--dur-wave) * -0.5); }
+.lintje-icon-button__wave:nth-child(3) { animation-delay: calc(var(--dur-wave) * -0.25); }
+.lintje-icon-button__wave:nth-child(4) { animation-delay: calc(var(--dur-wave) * -0.75); }
+@keyframes lintje-icon-button-wave {
+  from { transform: scaleY(0.25); }
+  to { transform: scaleY(1); }
+}
+/* Without motion the bars stand still at different heights: still a wave, never a pulse. */
+@media (prefers-reduced-motion: reduce) {
+  .lintje-icon-button__wave { animation: none; transform: scaleY(0.5); }
+  .lintje-icon-button__wave:nth-child(2) { transform: scaleY(1); }
+  .lintje-icon-button__wave:nth-child(4) { transform: scaleY(0.75); }
+}
+
+/* Disabled is `aria-disabled`: tab order and focus ring stay. After is-active, so it loses the fill. */
+.lintje-icon-button.is-disabled { cursor: not-allowed; color: var(--color-text-disabled); }
+.lintje-icon-button--outlined.is-disabled { background: var(--color-bg-surface); border-color: var(--color-border-default); }
+
+/* Forced colours: the active fill is dropped, so its border turns Highlight. */
+@media (forced-colors: active) {
+  .lintje-icon-button.is-active,
+  .lintje-icon-button.is-live { border-color: Highlight; }
+  .lintje-icon-button.is-disabled { color: GrayText; border-color: GrayText; }
+}

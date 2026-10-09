@@ -1,0 +1,236 @@
+/* Header of the top layout, drawn by `header.ts` inside the caller's shadow root. */
+
+/* The logo bar sits above the veil, so an open submenu does not dim it. A box wider than a narrow
+   phone is cut at both sides alike, which keeps the ribbon centred. */
+.lintje-logobar {
+  position: relative;
+  z-index: 31;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: var(--h-logobar);
+  overflow: hidden;
+  background: var(--color-logobar-bg);
+  color: var(--color-logobar-text);
+}
+.lintje-logobar__home { display: block; flex: none; color: inherit; }
+/* The logo link's ring is drawn inside its box (`focus-inset`): the bar cuts what stands outside
+   its top edge. */
+
+/* The environment outside production: the accent, not a status. */
+.lintje-logobar__environment {
+  position: absolute;
+  top: var(--space-6);
+  right: calc(var(--page-pad-x) + var(--page-gutter));
+  height: var(--h-chip);
+  margin: 0;
+  padding: 0 var(--space-3);
+  background: var(--color-nav-environment-bg);
+  color: var(--color-nav-environment-text);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  line-height: var(--h-chip);
+  white-space: nowrap;
+}
+.lintje-logobar__environment-short { display: none; }
+/* On a phone the organisation's name reaches the right edge: the block shrinks to three letters above it. */
+:where(.lintje-shell.is-phone) .lintje-logobar__environment {
+  top: var(--space-2);
+  right: var(--space-4);
+  height: var(--h-chip-field);
+  line-height: var(--h-chip-field);
+}
+/* The full name stays for a screen reader; the three letters are only seen. */
+:where(.lintje-shell.is-phone) .lintje-logobar__environment-label {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+:where(.lintje-shell.is-phone) .lintje-logobar__environment-short { display: inline; }
+
+/* The bar is the submenu's positioning context, which is why a group is not one. Hover, active
+   and edge are set on the bar for what inherits, and on each element at its end, because an
+   element with a shadow root declares the tokens again on its own host. */
+.lintje-navbar,
+.lintje-navbar__end > * {
+  --color-nav-hover: var(--color-navbar-hover);
+  --color-nav-active: var(--color-navbar-active);
+  --color-nav-active-edge: var(--color-navbar-active-edge);
+}
+.lintje-navbar__end > * { --lintje-tool-height: var(--h-navbar); }
+/* The colour runs to the edges; the content keeps to `--page-gutter`. */
+.lintje-navbar {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0 var(--space-4);
+  height: var(--h-navbar);
+  padding: 0 calc(var(--space-3) + var(--page-gutter)) 0
+    calc(var(--page-pad-x) - var(--space-5) + var(--page-gutter));
+  background: var(--color-nav-bg);
+  color: var(--color-nav-text);
+}
+/* Both widths are measured (`SubmenuController`): neither may depend on whether the entries or
+   "Menu" stand there. */
+.lintje-navbar__start { display: flex; flex: 1 1 auto; align-items: stretch; min-width: 0; }
+.lintje-navbar__entries { display: flex; flex: 1 1 0; align-items: stretch; min-width: 0; }
+.lintje-navbar__list { display: flex; flex: none; align-items: stretch; width: max-content; }
+/* Hanging from the bar's end, the overflow falls off the left, where the page gains no scroll. */
+.lintje-navbar__list.is-hidden {
+  position: absolute;
+  top: 0;
+  right: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.lintje-navbar__group { display: flex; }
+.lintje-navbar__end { display: flex; flex: none; align-items: center; gap: var(--space-1); }
+/* The orange ring disappears on the theme's fill, so the bar takes `--color-focus-on-theme`. The
+   open entry and the submenu stand on the page's surface and keep the standard ring. */
+.lintje-navbar :focus-visible { outline-color: var(--color-focus-on-theme); }
+.lintje-navbar .lintje-navbar__entry.is-open:focus-visible,
+.lintje-navbar .lintje-navbar__submenu :focus-visible { outline-color: var(--color-focus); }
+
+/* The edge is always there on both sides so the word stays centred; transparent until active. */
+.lintje-navbar__entry {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  height: var(--h-navbar);
+  padding: 0 var(--space-5);
+  border-top: var(--nav-edge) solid transparent;
+  border-bottom: var(--nav-edge) solid transparent;
+  color: var(--color-nav-text);
+  font: var(--text-body);
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-navbar__entry:hover:not(.is-unavailable) { background: var(--color-navbar-hover); }
+.lintje-navbar__entry:hover:not(.is-unavailable) .lintje-navbar__label { text-decoration: underline; }
+/* Not bold: the bold cut sets narrower and reads as another size beside its neighbours. */
+.lintje-navbar__entry.is-active {
+  background: var(--color-navbar-active);
+  border-bottom-color: var(--color-navbar-active-edge);
+  color: var(--color-nav-active-text);
+}
+.lintje-navbar__entry.is-open,
+.lintje-navbar__entry.is-open:hover {
+  background: var(--color-bg-surface);
+  border-bottom-color: transparent;
+  color: var(--color-navbar-open-text);
+}
+.lintje-navbar__entry.is-open .lintje-navbar__label { text-decoration: none; }
+.lintje-navbar__entry.is-unavailable { color: var(--color-nav-disabled); cursor: default; }
+
+/* The shadow falls down only: `clip-path` cuts what would fall on the bar, so the open entry and
+   the panel stay one shape. `--lintje-navbar-room` is measured. */
+.lintje-navbar__submenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  padding: var(--space-8) calc(var(--page-pad-x) + var(--page-gutter)) var(--space-10);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-default);
+  box-shadow: var(--shadow-popover);
+  clip-path: inset(0 0 -32px 0);
+  max-height: var(--lintje-navbar-room, calc(100dvh - var(--h-navbar)));
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.lintje-navbar__heading {
+  margin: var(--space-6) 0 var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+.lintje-navbar__heading:first-child { margin-top: 0; }
+.lintje-navbar__pages {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation:
+    lintje-fade-in var(--dur-popover) linear,
+    lintje-drop-in var(--dur-submenu) ease;
+}
+@media (max-width: 1023px) {
+  .lintje-navbar__pages { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.lintje-navbar__item { display: flex; }
+
+/* The 1 px edge is always there, so hover moves nothing. */
+.lintje-navbar__page {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 4rem;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-subtle);
+  border: 1px solid transparent;
+  color: var(--color-text-primary);
+  font: var(--text-body);
+  text-decoration: none;
+  transition: border-color var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-navbar__page-text { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.lintje-navbar__page .lintje-navbar__label { font-weight: 700; }
+.lintje-navbar__metric { color: var(--color-text-muted); font: var(--text-small); }
+.lintje-navbar__metric-value { color: var(--color-text-primary); }
+.lintje-navbar__page:hover:not(.is-unavailable) { border-color: var(--color-accent-line); }
+.lintje-navbar__page:hover:not(.is-unavailable) .lintje-navbar__label { text-decoration: underline; }
+.lintje-navbar__page.is-active {
+  box-shadow: inset var(--nav-edge) 0 0 var(--color-accent-line);
+  color: var(--color-accent-text);
+}
+.lintje-navbar__page.is-unavailable,
+.lintje-navbar__page.is-unavailable .lintje-navbar__metric-value { color: var(--color-text-muted); cursor: default; }
+.lintje-navbar__page.is-no-access .lintje-navbar__label { text-decoration: line-through; }
+
+/* Fixed to the viewport: the header may stand in a box of its own height above the page. */
+.lintje-header-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: var(--color-overlay-nav);
+  pointer-events: none;
+  animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
+}
+
+@media print {
+  .lintje-logobar, .lintje-navbar, .lintje-header-scrim { display: none; }
+}
+
+/* Forced colours: the browser drops the fill that carries the active page and the open group. */
+@media (forced-colors: active) {
+  .lintje-navbar { border-bottom: 1px solid CanvasText; }
+  .lintje-navbar__entry.is-active { border-bottom-color: Highlight; }
+  .lintje-navbar__entry.is-open { outline: 1px solid CanvasText; outline-offset: -1px; }
+  .lintje-navbar__entry.is-unavailable,
+  .lintje-navbar__page.is-unavailable { color: GrayText; }
+  .lintje-navbar__page { border-color: CanvasText; }
+  .lintje-navbar__page.is-active { border-left: var(--nav-edge) solid Highlight; }
+  .lintje-navbar__page.is-unavailable { border-color: GrayText; }
+  .lintje-navbar__submenu { border: 1px solid CanvasText; }
+  .lintje-navbar :focus-visible,
+  .lintje-navbar .lintje-navbar__entry.is-open:focus-visible,
+  .lintje-navbar .lintje-navbar__submenu :focus-visible { outline-color: Highlight; }
+}

@@ -1,0 +1,26 @@
+/* The select. Its width is the host's, set from outside by tag. */
+:host { display: block; width: 180px; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-select { position: relative; display: flex; align-items: center; }
+.lintje-select__control {
+  appearance: none;
+  width: 100%;
+  height: var(--h-control);
+  padding: 0 34px 0 14px;
+  border: 1px solid var(--color-border-field);
+  background: var(--color-bg-surface);
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  border-radius: var(--radius);
+}
+.lintje-select__control.is-bold { font-weight: 700; }
+.lintje-select__control.is-error { border: 2px solid var(--color-error); }
+.lintje-select__control:disabled {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+.lintje-select__control:disabled { border: 1px solid var(--color-border-strong); }
+.lintje-select__icon { position: absolute; right: 12px; pointer-events: none; color: var(--color-text-primary); }

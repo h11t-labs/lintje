@@ -1,0 +1,99 @@
+/* The host is the full width of where it stands: what the steps are measured against. */
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-stepper { font: var(--text-ui); color: var(--color-text-primary); }
+
+/* The row never wraps: its overflow is what tells the element to stand the steps up. */
+.lintje-stepper__list { display: flex; }
+.lintje-stepper__list--row { flex-direction: row; gap: var(--space-2); overflow: hidden; }
+.lintje-stepper__list--column { flex-direction: column; }
+
+/* The label's line is as tall as the pointer target: the row's `overflow: hidden` would cut off more. */
+.lintje-stepper__step {
+  position: relative;
+  display: flex; align-items: flex-start; gap: var(--space-3);
+  flex: none;
+}
+.lintje-stepper__list--row .lintje-stepper__step { flex: 1 1 auto; white-space: nowrap; }
+.lintje-stepper__list--row .lintje-stepper__step:last-child { flex: none; }
+.lintje-stepper__list--column .lintje-stepper__step:not(:last-child) { padding-bottom: var(--space-4); }
+
+/* The line to the next step: drawn through from a done step, dashed from the current one on. */
+.lintje-stepper__line { border: 0 dashed var(--color-border-heavy); }
+.lintje-stepper__step--done .lintje-stepper__line { border-style: solid; border-color: var(--color-accent-line); }
+/* In the row the line fills the room up to the next marker. */
+.lintje-stepper__list--row .lintje-stepper__body { flex: 1 1 auto; }
+.lintje-stepper__list--row .lintje-stepper__line {
+  flex: 1 1 0;
+  min-width: var(--space-8);
+  border-top-width: 2px;
+}
+/* In the column it runs from the marker's foot to the top of the next one. */
+.lintje-stepper__list--column .lintje-stepper__line {
+  position: absolute;
+  top: calc((var(--h-target) + var(--h-chip-field)) / 2);
+  bottom: calc((var(--h-chip-field) - var(--h-target)) / 2);
+  left: calc(var(--h-chip-field) / 2 - 1px);
+  border-left-width: 2px;
+}
+
+.lintje-stepper__body { display: flex; flex-direction: column; }
+.lintje-stepper__list--column .lintje-stepper__body { min-width: 0; }
+.lintje-stepper__head {
+  display: flex; align-items: center; gap: var(--space-2);
+  min-height: var(--h-target);
+}
+/* What stands under the label starts level with the marker's foot. */
+.lintje-stepper__head + .lintje-stepper__description,
+.lintje-stepper__head + .lintje-stepper__meta { margin-top: calc((var(--h-chip-field) - var(--h-target)) / 2); }
+.lintje-stepper__description { margin: 0 0 var(--space-1); color: var(--color-text-secondary); }
+.lintje-stepper__meta { font: var(--text-meta); color: var(--color-text-secondary); }
+
+.lintje-stepper__marker {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none;
+  width: var(--h-chip-field); height: var(--h-chip-field);
+  margin-top: calc((var(--h-target) - var(--h-chip-field)) / 2);
+  border: 1px solid transparent;
+  font-size: 0.875rem; font-weight: 700;
+}
+.lintje-stepper__marker--next { border-color: var(--color-text-muted); color: var(--color-text-muted); font-weight: 400; }
+.lintje-stepper__step--next .lintje-stepper__name { color: var(--color-text-muted); }
+.lintje-stepper__marker--current {
+  background: var(--color-action-primary);
+  border-color: var(--color-action-primary-border);
+  color: var(--color-action-primary-text);
+}
+.lintje-stepper__step--current .lintje-stepper__name { font-weight: 700; }
+/* Done: the frame is a line (3:1), the check stands for a word (4.5:1). */
+.lintje-stepper__marker--done { border-color: var(--color-accent-line); color: var(--color-accent-text); }
+.lintje-stepper__marker--done.is-error { border-color: var(--color-error); color: var(--color-error); }
+
+.lintje-stepper__name--link {
+  position: relative;
+  color: var(--color-link);
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-stepper__name--link::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+.lintje-stepper__name--link:hover { color: var(--color-link-hover); }
+
+.lintje-stepper__errors { font: var(--text-meta); font-weight: 700; color: var(--color-error-text); }
+
+.lintje-stepper--phone { display: flex; flex-direction: column; gap: var(--space-2); }
+.lintje-stepper__summary {
+  display: flex; justify-content: space-between; gap: var(--space-3);
+}
+.lintje-stepper__current { font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lintje-stepper__count { flex: none; color: var(--color-text-muted); }
+
+/* Forced colours: the current step's fill is dropped, so its border turns Highlight. */
+@media (forced-colors: active) {
+  .lintje-stepper__marker--current { border-color: Highlight; }
+}

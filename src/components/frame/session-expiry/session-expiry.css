@@ -1,0 +1,10 @@
+/* The warning is a fixed window in `confirm-dialog.css`'s frame. */
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+@media (max-width: 767px) {
+  .lintje-session-expiry__primary { order: 1; }
+  .lintje-session-expiry__logout { order: 2; }
+}

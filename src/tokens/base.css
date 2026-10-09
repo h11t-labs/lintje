@@ -1,0 +1,99 @@
+/*
+ * The reset every shadow root needs, adopted once as one shared `CSSStyleSheet`.
+ *
+ * `background` and `color` are deliberately not on `:host`: every element has a `:host`, so
+ * they would cut the inheritance chain at each boundary (an icon in the navigation would lose
+ * its white `currentColor`). Page-level rules (`html, body`) belong to the host page.
+ */
+
+:host {
+  font: var(--text-ui);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+h1, h2, h3, h4, h5, h6, p, figure { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+a { color: var(--color-link); }
+
+input, select, textarea { font: inherit; color: inherit; }
+
+/* Focus: always orange 3 px, never animated. */
+:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+/* Where the outside would be clipped (tiles in a grid, table rows) the ring sits inside. */
+.focus-inset:focus-visible { outline-offset: calc(var(--focus-width) * -1); }
+
+[hidden] { display: none !important; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes lintje-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes lintje-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes lintje-sheet-in {
+  from { transform: translateY(100%); }
+  to   { transform: none; }
+}
+@keyframes lintje-menu-in {
+  from { transform: translateY(-100%); }
+  to   { transform: none; }
+}
+@keyframes lintje-menu-out {
+  from { transform: none; }
+  to   { transform: translateY(-100%); }
+}
+@keyframes lintje-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lintje-drop-in { from { transform: translateY(-10px); } to { transform: none; } }
+@keyframes lintje-popover-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* prefers-reduced-motion: all durations 0 except opacity (80 ms). */
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    --dur-base: 0ms; --dur-hover: 0ms; --dur-popover: 0ms; --dur-submenu: 0ms; --dur-toast: 0ms; --dur-scrim: 0ms; --dur-rail: 0ms; --dur-collapse: 0ms;
+    --dur-modal: 0ms; --dur-sheet: 0ms; --dur-kpi: 0ms; --dur-badge: 0ms; --dur-draw: 0ms;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 80ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Forced colours: the browser replaces every colour and drops shadows; what every root shares
+   is the focus ring, in the system's Highlight. */
+@media (forced-colors: active) {
+  :focus-visible { outline-color: Highlight; }
+}

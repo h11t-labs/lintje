@@ -1,0 +1,84 @@
+.lintje-heatmap { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.lintje-heatmap__grid { border-collapse: separate; border-spacing: 3px; width: 100%; }
+.lintje-heatmap__column-label,
+.lintje-heatmap__row-label {
+  font: var(--text-axis);
+  font-weight: 400;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 2px;
+}
+/* `width: 1%` keeps the auto table layout from handing the label column surplus width; a longer
+   label ends in an ellipsis. */
+.lintje-heatmap__row-label { text-align: right; padding-right: var(--space-2); white-space: nowrap; width: 1%; }
+.lintje-heatmap__row-label-text { display: block; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+.lintje-heatmap__slot { padding: 0; }
+
+.lintje-heatmap__cell {
+  width: 100%;
+  height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  /* The class range is the same in both modes, so the text on it is too: ink up to the fourth
+     rung (5.9:1), white on the darkest (4.5:1). */
+  background: var(--lintje-cell);
+  color: var(--color-text-on-light-fill);
+  transition: background-color var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-heatmap__cell--class-4 { color: var(--color-text-on-fill); }
+.lintje-heatmap__cell--class-0 { box-shadow: inset 0 0 0 1px var(--color-border-default); }
+.lintje-heatmap__cell.is-selected { outline: 2px solid currentColor; outline-offset: -2px; }
+/* A cell steps back by its fill alone, mixed into the surface; the figure stays in the text
+   colour, which reaches 4.5:1 on every rung so mixed, in both modes. */
+.lintje-heatmap__cell.is-dimmed {
+  background: color-mix(in srgb, var(--lintje-cell) 25%, var(--color-bg-surface));
+  color: var(--color-text-primary);
+}
+/* A drilling cell that is not chosen steps back while a cell is chosen; less than the legend's
+   dimming, which answers "show me this class". */
+.lintje-heatmap__cell.is-muted {
+  background: color-mix(in srgb, var(--lintje-cell) 40%, var(--color-bg-surface));
+  color: var(--color-text-primary);
+}
+.lintje-heatmap__cell.is-empty { background: var(--color-bg-subtle); }
+
+/* Cells fade in left to right, then top to bottom. Fill mode `backwards`: a held opacity would
+   override a dimmed class. The paused declaration follows the shorthand, see chart.css. */
+@media (prefers-reduced-motion: no-preference) {
+  .lintje-heatmap__cell:not(.is-empty) {
+    animation: lintje-fade-in calc(var(--dur-draw) * 0.6) ease-in-out calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0)) backwards;
+    animation-play-state: paused;
+  }
+  [data-in-view] .lintje-heatmap__cell:not(.is-empty) { animation-play-state: running; }
+}
+
+.lintje-heatmap__selection {
+  min-height: var(--h-touch);
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 var(--space-3);
+  background: var(--color-bg-subtle);
+  font: var(--text-small);
+}
+
+.lintje-heatmap__legend { display: flex; gap: var(--space-2) var(--space-4); flex-wrap: wrap; font: var(--text-small); }
+.lintje-heatmap__legend-item {
+  display: flex; align-items: center; gap: 6px;
+  font: inherit; color: var(--color-text-primary);
+}
+.lintje-heatmap__legend-item[aria-pressed='true'] { font-weight: 700; }
+/* Only the swatch steps back: the word keeps its contrast. */
+.lintje-heatmap__legend-item.is-dimmed .lintje-heatmap__swatch { opacity: 0.45; }
+.lintje-heatmap__swatch {
+  width: 12px; height: 12px; display: block; flex: none;
+  transition: opacity var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-heatmap__swatch--class-0 { box-shadow: inset 0 0 0 1px var(--color-border-default); }
+
+/* Forced colours: the class colours are the heatmap, so cells and swatches keep them
+   (`forced-color-adjust: none`). */
+@media (forced-colors: active) {
+  .lintje-heatmap__cell,
+  .lintje-heatmap__swatch { forced-color-adjust: none; }
+}

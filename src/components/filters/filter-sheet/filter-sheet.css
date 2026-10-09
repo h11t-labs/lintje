@@ -1,0 +1,57 @@
+/* The filter sheet's own box. Control sizes are set in `filter-layout.css`. */
+:host {
+  display: block;
+}
+
+/* --- */
+
+.lintje-filter-sheet__scrim {
+  position: fixed; inset: 0; z-index: 60;
+  background: var(--color-overlay-page);
+  animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
+}
+.lintje-filter-sheet {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 61;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-filter);
+  border-top: 1px solid var(--color-border-filter);
+  animation: lintje-sheet-in var(--dur-sheet) var(--ease-in-motion);
+}
+.lintje-filter-sheet:focus { outline: none; }
+
+.lintje-filter-sheet__header {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-filter);
+}
+.lintje-filter-sheet__title { font: var(--text-h2); }
+.lintje-filter-sheet__hint { font: var(--text-small); color: var(--color-text-muted); flex: 1; }
+
+.lintje-filter-sheet__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.lintje-filter-sheet__summary {
+  display: flex; align-items: flex-start; gap: var(--space-2);
+  font: var(--text-ui); line-height: 1.4;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-filter);
+}
+
+.lintje-filter-sheet__footer {
+  display: flex; gap: var(--space-3);
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border-filter);
+  background: var(--color-bg-surface);
+}
+/* The <button> reading the height is in the `lintje-button` shadow root: set the token here. */
+.lintje-filter-sheet__action { flex: 1; height: var(--h-touch); --h-button: var(--h-touch); }

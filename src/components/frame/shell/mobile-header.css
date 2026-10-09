@@ -1,0 +1,132 @@
+
+/* One region: the open menu's dialog and the box its focus trap keeps Tab inside. It shows no
+   ring when the trap pulls back stray focus. The region sticks, not the header: a sticky box
+   stays inside its parent, and this one is as tall as the header. */
+.lintje-mobile-chrome { flex: none; position: sticky; top: 0; z-index: 25; }
+.lintje-mobile-chrome:focus { outline: none; }
+
+.lintje-mobile-header {
+  display: none;
+  height: var(--h-mobile-header);
+  flex: none;
+  background: var(--color-nav-bg);
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0 var(--space-4);
+  /* Tools that do not fit must not widen the page, or a phone zooms out and they seem to fit
+     (`headerCompact`). Sideways only: the focus ring stays inside the padding. */
+  overflow-x: clip;
+}
+:where(.lintje-shell.is-phone) .lintje-mobile-header { display: flex; }
+/* On the theme fill the ring is the on-theme one, as in the desktop menu. */
+.lintje-mobile-header :focus-visible,
+.lintje-mobile-menu :focus-visible { outline-color: var(--color-focus-on-theme); }
+/* "Weergave" and "Delen" open from this header as sheets on the page's surface: standard ring. */
+.lintje-mobile-header .lintje-view__popover :focus-visible,
+.lintje-mobile-header .lintje-share__popover :focus-visible { outline-color: var(--color-focus); }
+
+.lintje-mobile-header__actions { margin-top: var(--space-3); display: flex; gap: var(--space-2); }
+.lintje-mobile-header__button {
+  height: var(--h-touch);
+  padding: 0 var(--space-3);
+  background: var(--color-nav-active);
+  color: var(--color-nav-text);
+  border: 1px solid var(--color-nav-line);
+  font-size: 0.875rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center; gap: var(--space-2);
+  /* Square when only the glyph shows (`headerCompact`). */
+  min-width: var(--h-touch);
+}
+/* Without room the words are read, not shown: the glyph and the badge stay. */
+.lintje-mobile-header.is-compact .lintje-mobile-header__word {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+/* The modified-filters count is the primitive badge's `attention` tone: near-black on the
+   orange, because white on #E17000 is 3.2:1. */
+
+.lintje-mobile-menu {
+  position: fixed;
+  inset: var(--h-mobile-header) 0 0 0;
+  z-index: 24;
+  background: var(--color-nav-bg);
+  color: var(--color-nav-text);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  animation: lintje-menu-in var(--dur-sheet) var(--ease-in-motion);
+}
+.lintje-mobile-menu.is-leaving {
+  animation: lintje-menu-out var(--dur-sheet) var(--ease-out-motion) forwards;
+  pointer-events: none;
+}
+.lintje-mobile-menu__list { flex: 1; padding-bottom: var(--space-4); }
+.lintje-mobile-menu__heading {
+  font-size: var(--label-size); font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+  color: var(--color-nav-text-sub);
+  padding: 22px var(--space-5) 6px;
+}
+.lintje-mobile-menu__item {
+  height: var(--h-touch);
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: 0 var(--space-5);
+  border-left: var(--nav-edge) solid transparent;
+  color: var(--color-nav-text);
+  font-size: 1rem;
+  text-decoration: none;
+}
+.lintje-mobile-menu__item.is-active {
+  background: var(--color-nav-active);
+  border-left-color: var(--color-nav-active-edge);
+  color: var(--color-nav-active-text);
+  /* Not bold: the bold cut sets narrower and reads as another font size beside its neighbours. */
+}
+.lintje-mobile-menu__item.is-muted { color: var(--color-nav-disabled); }
+.lintje-mobile-menu__label { flex: 1; }
+.lintje-mobile-menu__meta { font-size: 0.875rem; color: var(--color-nav-disabled); flex: none; }
+/* The environment band and the feedback row with the version: below 768 px there is no rail,
+   and a page's own footer is the host's, so this is the only place they can stand. */
+.lintje-mobile-menu__environment {
+  flex: none;
+  height: 2rem;
+  margin: 0;
+  background: var(--color-nav-environment-bg);
+  color: var(--color-nav-environment-text);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 2rem;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.lintje-mobile-menu__feedback { flex: none; margin: 0; }
+.lintje-mobile-menu__version {
+  flex: none;
+  margin-left: auto;
+  font-family: var(--font-mono); font-size: 0.875rem; letter-spacing: .02em;
+  color: var(--color-nav-text-sub);
+}
+
+.lintje-mobile-header__home { display: block; flex: none; color: var(--color-nav-text); }
+
+
+@media print { .lintje-mobile-header, .lintje-mobile-menu { display: none; } }
+
+/* Forced colours: the active row's 4 px edge is Highlight, a muted row GrayText. */
+@media (forced-colors: active) {
+  .lintje-mobile-header :focus-visible,
+  .lintje-mobile-menu :focus-visible { outline-color: Highlight; }
+  .lintje-mobile-header .lintje-view__popover :focus-visible,
+  .lintje-mobile-header .lintje-share__popover :focus-visible { outline-color: Highlight; }
+  .lintje-mobile-menu__item { border-left-color: Canvas; }
+  .lintje-mobile-menu__item.is-active { border-left-color: Highlight; }
+  .lintje-mobile-menu__item.is-muted { color: GrayText; }
+}

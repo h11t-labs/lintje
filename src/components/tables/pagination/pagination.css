@@ -1,0 +1,112 @@
+/* "Vorige" and "Volgende" wear `.lintje-button--link` from the button's sheet. */
+/* In a flush tile the pages keep the heading's indent, as the rows above them do, and the tile's
+   padding below them when no footnote follows. */
+:host {
+  display: block; min-width: 0;
+  padding-inline: var(--lintje-inset, 0px);
+  padding-block-end: var(--lintje-inset-end, 0px);
+}
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* Three zones: the count left, the pages centred under what they page, the size choice right.
+   Stacked, the pages take the first line and the count and the choice share the second. */
+.lintje-pagination {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  grid-template-areas: "count nav size";
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+.lintje-pagination.is-stacked {
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "nav nav" "count size";
+}
+
+.lintje-pagination__nav {
+  grid-area: nav; justify-self: center;
+  display: flex; flex-wrap: wrap; align-items: center;
+  font: var(--text-ui);
+}
+.lintje-pagination__pages { display: contents; }
+
+/* The chevron and the bold word make a step a control without an underline at rest. */
+.lintje-pagination__step {
+  height: var(--h-target);
+  padding: 0 var(--space-3);
+  gap: var(--space-1);
+  text-decoration: none;
+}
+.lintje-pagination__step:not(:disabled):hover { text-decoration: underline; }
+/* Without its word a step is a square chevron, as large as a number. */
+.lintje-pagination.is-compact .lintje-pagination__step { width: var(--h-target); padding: 0; }
+
+/* Flat: a box around every number weighs more than the one that matters. */
+.lintje-pagination__page {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: var(--h-target); height: var(--h-target);
+  padding: 0 var(--space-1);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-link);
+  font: var(--text-ui);
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-pagination__page:hover { background: var(--color-bg-subtle); color: var(--color-link-hover); }
+
+/* The one filled square; its edge is the primary button's, the tint that carries it in dark. */
+.lintje-pagination__page.is-current {
+  background: var(--color-action-primary);
+  border-color: var(--color-action-primary-border);
+  color: var(--color-action-primary-text);
+  font-weight: 700;
+  cursor: default;
+}
+/* Choosing the current page does nothing, so it does not answer the pointer. */
+.lintje-pagination__page.is-current:hover { background: var(--color-action-primary); }
+
+/* As wide as a number, so the seven slots keep one length. */
+.lintje-pagination__gap {
+  min-width: var(--h-target);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.lintje-pagination__where { display: none; color: var(--color-text-primary); white-space: nowrap; }
+
+.lintje-pagination__count {
+  grid-area: count; justify-self: start;
+  margin: 0;
+  white-space: nowrap;
+  font: var(--text-small);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.lintje-pagination__size { grid-area: size; justify-self: end; white-space: nowrap; }
+
+@media (max-width: 767px) {
+  .lintje-pagination {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "nav nav" "count size";
+  }
+  .lintje-pagination__nav {
+    justify-self: stretch;
+    flex-wrap: nowrap; justify-content: space-between;
+  }
+  .lintje-pagination__pages { display: none; }
+  .lintje-pagination__where { display: block; }
+  .lintje-pagination__step { flex: 0 0 auto; padding: 0 var(--space-2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lintje-pagination__page { transition: none; }
+}
+
+/* Forced colours: the current page's fill is dropped, so its border turns Highlight. */
+@media (forced-colors: active) {
+  .lintje-pagination__page.is-current { border-color: Highlight; }
+}

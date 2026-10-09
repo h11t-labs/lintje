@@ -1,0 +1,97 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* The side padding is the content column's, taken of the full width the band stands in. */
+.lintje-hero__band {
+  padding: calc(var(--space-10) + var(--space-4)) calc(var(--page-pad-x) + var(--page-gutter))
+    calc(var(--space-10) + var(--space-2));
+  background: var(--color-hero-bg);
+  color: var(--color-hero-text);
+}
+/* With an aside the text keeps its column and the picture takes the room to its right. */
+.lintje-hero.has-aside .lintje-hero__band {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+}
+.lintje-hero.has-overlap .lintje-hero__band {
+  padding-bottom: calc(var(--space-10) + var(--space-2) + var(--hero-overlap));
+}
+.lintje-hero__band :focus-visible { outline-color: var(--color-hero-focus); }
+
+.lintje-hero__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-6);
+}
+
+.lintje-hero__aside {
+  flex: 0 1 var(--w-hero-aside);
+  min-width: 0;
+  display: flex; justify-content: flex-end;
+}
+.lintje-hero__aside ::slotted(*) { max-width: 100%; }
+/* A picture keeps its proportions when the column narrows it. */
+.lintje-hero__aside ::slotted(img) { height: auto; }
+.lintje-hero:not(.has-aside) .lintje-hero__aside { display: none; }
+
+/* Below 1024 px the text needs the room; the picture only supports it. */
+@media (max-width: 1023px) {
+  .lintje-hero.has-aside .lintje-hero__band { display: block; }
+  .lintje-hero__aside { display: none; }
+  .lintje-hero__panel { margin-top: var(--space-8); }
+}
+
+/* Content beside the text takes the other half from 1024 px; below it, it follows the text. */
+.lintje-hero:not(.has-panel) .lintje-hero__panel { display: none; }
+.lintje-hero__panel { display: flex; flex-direction: column; min-width: 0; }
+.lintje-hero__panel ::slotted(*) { flex: 1 1 auto; }
+.lintje-hero.has-panel .lintje-hero__aside { display: none; }
+@media (min-width: 1024px) {
+  .lintje-hero.has-panel .lintje-hero__band {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    gap: var(--space-10);
+  }
+}
+.lintje-hero__heading { display: flex; flex-direction: column; gap: var(--space-3); }
+.lintje-hero__title { margin: 0; font: var(--text-h1-display); }
+.lintje-hero__description {
+  margin: 0;
+  max-width: var(--w-text);
+  font-size: 1.25rem;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.lintje-hero__action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--h-touch);
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.lintje-hero__action:hover { text-decoration-thickness: 2px; }
+
+/* Pulled up by the room the band keeps for it; without content it takes no space. */
+.lintje-hero__overlap {
+  position: relative;
+  margin-top: calc(-1 * var(--hero-overlap));
+  padding: 0 calc(var(--page-pad-x) + var(--page-gutter));
+}
+.lintje-hero:not(.has-overlap) .lintje-hero__overlap { display: none; }
+
+@media (max-width: 767px) {
+  .lintje-hero__band { padding-top: var(--space-8); padding-bottom: var(--space-8); }
+  .lintje-hero.has-overlap .lintje-hero__band {
+    padding-bottom: calc(var(--space-8) + var(--hero-overlap));
+  }
+  .lintje-hero__title { font: var(--text-h1); }
+  .lintje-hero__description { font-size: 1.125rem; }
+}

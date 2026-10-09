@@ -1,0 +1,180 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-audio-player {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+}
+.lintje-audio-player--compact {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-3);
+}
+
+/* Flush: the bar the page draws is the frame; the content keeps its own rhythm. */
+.lintje-audio-player--flush { padding-inline: 0; border: 0; background: none; }
+
+/* Play stands in the middle of the row, whatever stands beside it; on a narrow row the sides
+   keep their content and the middle gives way a little. */
+.lintje-audio-player__controls {
+  display: grid;
+  grid-template-columns: minmax(min-content, 1fr) auto minmax(min-content, 1fr);
+  align-items: center;
+  gap: var(--space-2);
+}
+.lintje-audio-player__start { display: flex; align-items: center; min-width: 0; }
+/* The speed keeps its distance from the volume bar, so it does not read as the bar's value. */
+.lintje-audio-player__end { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-4); }
+.lintje-audio-player__transport { display: flex; align-items: center; gap: var(--space-2); flex: none; }
+.lintje-audio-player--compact .lintje-audio-player__transport { gap: var(--space-1); }
+
+/* The set has no 15-second icon: the step stands under the arrows as text. */
+.lintje-audio-player__skip { flex-direction: column; }
+.lintje-audio-player__step { font: var(--text-axis); font-weight: 700; }
+
+.lintje-audio-player__times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: calc(-1 * var(--space-2));
+  font: var(--text-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.lintje-audio-player__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: var(--text-small);
+}
+.lintje-audio-player--compact .lintje-audio-player__legend { flex-basis: 100%; }
+.lintje-audio-player__speaker { display: flex; align-items: center; gap: var(--space-2); }
+.lintje-audio-player__speaker.is-current { font-weight: 700; }
+.lintje-audio-player__swatch { width: var(--space-3); height: var(--space-3); flex: none; }
+.lintje-audio-player__now { font-weight: 400; color: var(--color-text-muted); }
+
+.lintje-audio-player__wave {
+  position: relative;
+  flex: none;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  overflow: visible;
+  cursor: pointer;
+  touch-action: none;
+}
+.lintje-audio-player__peak {
+  flex: 0 1 4px;
+  min-height: 2px;
+  background: var(--color-border-heavy);
+  pointer-events: none;
+}
+.lintje-audio-player__peak.is-played { background: var(--color-accent-line); }
+
+/* The bar thickens under the pointer into its own margin, so nothing around it moves; its hit
+   area (`player.css`) stays 48 px. */
+.lintje-audio-player__bar {
+  flex: none;
+  transition: height var(--dur-hover) var(--ease-in-motion), margin var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-audio-player__bar:hover { height: var(--space-2); margin-block: calc((6px - var(--space-2)) / 2); }
+.lintje-audio-player__stretch { position: absolute; top: 0; bottom: 0; pointer-events: none; }
+.lintje-audio-player__head {
+  position: absolute;
+  top: 50%;
+  width: var(--space-1);
+  height: var(--space-4);
+  transform: translate(-50%, -50%);
+  background: var(--color-text-primary);
+  pointer-events: none;
+}
+
+/* One colour per speaker (`--lintje-speaker`, set per bar); what is still to come is quieter. */
+.lintje-audio-player__peak.has-speaker,
+.lintje-audio-player__stretch,
+.lintje-audio-player__swatch { background: var(--lintje-speaker); }
+.lintje-audio-player__peak.has-speaker:not(.is-played),
+.lintje-audio-player__stretch:not(.is-played) { opacity: 0.4; }
+
+.lintje-audio-player__cursor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-text-primary);
+  pointer-events: none;
+}
+.lintje-audio-player__bar .lintje-audio-player__cursor { top: calc(-1 * var(--space-2)); bottom: calc(-1 * var(--space-2)); }
+.lintje-audio-player__cursor-time {
+  position: absolute;
+  bottom: calc(100% + var(--space-1));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-popover);
+  box-shadow: var(--shadow-popover);
+  font: var(--text-small);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+}
+
+.lintje-audio-player__volume { display: flex; align-items: center; gap: var(--space-1); flex: none; }
+/* A transparent area above and below the line takes the pointer, as on the position bar. */
+.lintje-audio-player__level {
+  position: relative;
+  width: calc(2 * var(--space-10));
+  height: 6px;
+  background: var(--color-border-default);
+  cursor: pointer;
+  touch-action: none;
+}
+.lintje-audio-player__level::before {
+  content: '';
+  position: absolute;
+  inset: calc((100% - var(--h-target)) / 2) 0;
+}
+.lintje-audio-player__level-fill { height: 100%; background: var(--color-accent-line); pointer-events: none; }
+
+.lintje-audio-player__skeleton,
+.lintje-audio-player__alert { flex: none; }
+/* On one line the slider takes the room the buttons leave. */
+.lintje-audio-player--compact .lintje-audio-player__wave,
+.lintje-audio-player--compact .lintje-audio-player__bar,
+.lintje-audio-player--compact .lintje-audio-player__skeleton,
+.lintje-audio-player--compact .lintje-audio-player__alert { flex: 1 1 240px; min-width: 0; }
+.lintje-audio-player__speed { flex: none; }
+
+/* Forced colours drop fills; the bars keep their drawing in system colours. */
+@media (forced-colors: active) {
+  .lintje-audio-player__peak,
+  .lintje-audio-player__stretch,
+  .lintje-audio-player__swatch,
+  .lintje-audio-player__head,
+  .lintje-audio-player__cursor,
+  .lintje-audio-player__level,
+  .lintje-audio-player__level-fill { forced-color-adjust: none; background: CanvasText; }
+  .lintje-audio-player__peak.is-played,
+  .lintje-audio-player__stretch.is-played,
+  .lintje-audio-player__level-fill { background: Highlight; }
+}
+
+/* A phone of 320 px still fits mute, the three buttons and the speed: each keeps its 48 px. */
+@media (max-width: 767px) {
+  .lintje-audio-player__controls,
+  .lintje-audio-player__transport { gap: 0; }
+}

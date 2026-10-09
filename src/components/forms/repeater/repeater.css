@@ -1,0 +1,31 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+
+/* --- */
+
+.lintje-repeater {
+  min-width: 0;
+  margin: 0; padding: 0; border: 0;
+}
+/* The legend stands above its rows as a field's label does above its control; the gap lives in
+   the body, because browsers differ on whether a legend takes part in a fieldset's flex gap. */
+.lintje-repeater__legend {
+  padding: 0 0 6px;
+  font-size: 0.875rem; font-weight: 700;
+  color: var(--color-text-primary);
+}
+.lintje-repeater__body { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+:host([disabled]) .lintje-repeater__legend { color: var(--color-text-disabled); }
+.lintje-repeater__rows { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.lintje-repeater__foot {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+.lintje-repeater__count { font: var(--text-meta); color: var(--color-text-muted); }
+
+@media (max-width: 767px) {
+  .lintje-repeater__rows { gap: var(--space-5); }
+}

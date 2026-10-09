@@ -1,0 +1,303 @@
+
+/* Dark is its own surface, not an inversion: every colour here is a `--color-nav-*` token. */
+.lintje-nav {
+  width: var(--w-nav);
+  flex: none;
+  /* `align-self: flex-start`: a stretched flex child would make sticky do nothing. */
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  background: var(--color-nav-bg);
+  color: var(--color-nav-text);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Above the page also while the rail collapses: with a z-index only while expanded,
+     later positioned content (charts, KPI tiles) painted over the shrinking menu. */
+  z-index: 30;
+  box-shadow: var(--shadow-nav);
+  /* The margin mirrors the width growth, so width + margin-right is 72 px at every moment;
+     otherwise the content jumps 216 px for one frame. */
+  transition:
+    width var(--dur-rail) var(--ease-in-motion),
+    margin-right var(--dur-rail) var(--ease-in-motion);
+}
+/* The orange ring disappears into the theme fill: the menu takes the on-theme ring. */
+.lintje-nav :focus-visible { outline-color: var(--color-focus-on-theme); }
+.lintje-nav--rail { width: var(--w-rail); margin-right: 0; }
+/* Expanding lies on top of the content: 288 px drawn, 72 px taken. A negative right margin does
+   that; `fixed` or `absolute` would make the page jump. */
+.lintje-nav--rail.is-expanded {
+  width: var(--w-nav);
+  margin-right: calc(var(--w-rail) - var(--w-nav));
+}
+/* The overlay behind the expanded rail. A sibling of the nav: inside its stacking context it
+   would darken the menu itself. */
+.lintje-nav__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 29;
+  background: var(--color-overlay-nav);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-rail) var(--ease-in-motion);
+}
+.lintje-nav__scrim.is-visible { opacity: 1; }
+
+.lintje-nav__header {
+  height: var(--h-nav-head);
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0 var(--space-4) 0 12px;
+}
+
+.lintje-nav__pin {
+  position: relative;
+  width: var(--h-icon-button); height: var(--h-icon-button);
+  margin-top: 12px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--color-nav-text);
+  background: transparent;
+  flex: none;
+}
+.lintje-nav__pin--text {
+  width: auto;
+  padding: 0 var(--space-2);
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+/* The pin and Afmelden: a transparent hit area takes the target to 48 px. */
+.lintje-nav__pin::after,
+.lintje-nav__logout-button::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2));
+}
+.lintje-nav__pin { transition: background var(--dur-hover) var(--ease-in-motion); }
+.lintje-nav__pin:hover { background: var(--color-nav-hover); }
+
+/* No native bar: a styled one takes width in every browser and the rows' fill would stop short
+   of the menu's edge. `NavScrollbar` sizes and places the thumb drawn instead. */
+.lintje-nav__list { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+.lintje-nav__list::-webkit-scrollbar { display: none; }
+.lintje-nav__thumb {
+  position: absolute;
+  top: 0; right: 0;
+  width: var(--space-2);
+  height: 0;
+  /* The menu's second ink reads on its fill and on a hovered row. */
+  background: var(--color-nav-text-sub);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-hover) var(--ease-in-motion);
+}
+/* There while the pointer is on the menu or a drag lasts; the keyboard's focus shows it at once. */
+.lintje-nav:hover .lintje-nav__thumb,
+.lintje-nav__thumb.is-dragging,
+.lintje-nav__list:focus-within + .lintje-nav__thumb { opacity: 1; pointer-events: auto; }
+.lintje-nav__list:focus-within + .lintje-nav__thumb { transition: none; }
+.lintje-nav__group { display: flex; flex-direction: column; }
+
+/* The same height in both modes, so every row below stays in place when the rail expands. */
+.lintje-nav__section-heading {
+  position: relative;
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--color-nav-text-sub);
+  padding: 22px var(--space-5) 6px;
+  white-space: nowrap;
+  margin: 0;
+}
+/* A line in the rail, text once it expands: the text fades in 80 ms after the width starts. */
+.lintje-nav__section-label {
+  display: block;
+  transition: opacity 160ms var(--ease-in-motion) 80ms, transform var(--dur-base) var(--ease-in-motion) 80ms;
+}
+.lintje-nav--rail:not(.is-expanded) .lintje-nav__section-label {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 60ms var(--ease-out-motion), transform 0ms linear 60ms;
+}
+.lintje-nav__separator {
+  position: absolute;
+  left: 14px; right: 14px;
+  top: 50%;
+  height: 1px;
+  background: var(--color-nav-line);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 140ms var(--ease-out-motion), opacity 0ms linear 140ms;
+}
+.lintje-nav--rail:not(.is-expanded) .lintje-nav__separator {
+  opacity: 1;
+  transform: none;
+  transition: transform 160ms var(--ease-in-motion) 60ms;
+}
+
+/* One row in every mode. A 4 px border + 22 px padding centres the 20 px icon in the 72 px rail,
+   in line with the logo. Expanding animates only the width, so the icon stays in place. */
+.lintje-nav__item {
+  position: relative;
+  height: var(--h-nav-row);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-3);
+  padding: 0 22px;
+  border-left: var(--nav-edge) solid transparent;
+  font-size: 1rem;
+  color: var(--color-nav-text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-nav__item:hover:not(.is-no-page):not(.is-no-access) {
+  background: var(--color-nav-hover);
+}
+.lintje-nav__item.is-active {
+  background: var(--color-nav-active);
+  border-left-color: var(--color-nav-active-edge);
+  color: var(--color-nav-active-text);
+  /* Not bold: the bold cut sets narrower and reads as another font size beside its neighbours. */
+}
+.lintje-nav__item:focus-visible { outline-offset: -3px; }
+
+.lintje-nav__item.is-no-page { color: var(--color-nav-disabled); cursor: default; }
+.lintje-nav__item.is-no-access { color: var(--color-nav-disabled); text-decoration: line-through; cursor: not-allowed; }
+
+.lintje-nav__label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.lintje-nav--rail.is-expanded .lintje-nav__label,
+.lintje-nav--rail.is-expanded .lintje-nav__metric {
+  animation: lintje-nav-text-in var(--dur-base) var(--ease-in-motion) 80ms backwards;
+}
+@keyframes lintje-nav-text-in { from { opacity: 0; transform: translateX(-8px); } }
+.lintje-nav__metric { font-size: 0.875rem; color: var(--color-nav-text-sub); flex: none; }
+.lintje-nav__item.is-no-access .lintje-nav__metric { text-decoration: none; }
+.lintje-nav__item.is-no-page .lintje-nav__metric { color: var(--color-nav-disabled); }
+
+/* The badge is the primitive's (`badge.css` adopted by the shell). In the rail a word ("NIEUW")
+   does not fit: it becomes a dot, so the rail does not overflow. */
+.lintje-nav--rail:not(.is-expanded) .lintje-nav__badge {
+  position: absolute; top: 2px; right: var(--space-1);
+}
+.lintje-nav--rail:not(.is-expanded) .lintje-nav__badge--new {
+  min-width: 8px; width: 8px; height: 8px; padding: 0;
+  border-radius: 999px;
+  font-size: 0; overflow: hidden;
+}
+
+/* Environment band, only outside production. Its fill is the theme's accent, not the attention
+   status: on `defensie` (menu `#E17000`) the accent draws a blue band that reads against it. */
+.lintje-nav__environment {
+  position: relative;
+  flex: none;
+  height: 2rem;
+  margin: 0;
+  background: var(--color-nav-environment-bg);
+  color: var(--color-nav-environment-text);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 2rem;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.lintje-nav__environment-label,
+.lintje-nav__environment-short { position: absolute; inset: 0; }
+.lintje-nav__environment-label {
+  transition: opacity 160ms var(--ease-in-motion) 80ms;
+}
+.lintje-nav__environment-short { opacity: 0; transition: opacity 60ms var(--ease-out-motion); }
+.lintje-nav--rail:not(.is-expanded) .lintje-nav__environment-label { opacity: 0; transition: opacity 60ms var(--ease-out-motion); }
+.lintje-nav--rail:not(.is-expanded) .lintje-nav__environment-short { opacity: 1; transition: opacity 160ms var(--ease-in-motion) 80ms; }
+
+.lintje-nav__feedback { flex: none; }
+.lintje-nav__version { font-family: var(--font-mono); font-size: 0.875rem; letter-spacing: .02em; margin-left: auto; }
+/* Without a contact the version gets a row with the menu row's geometry, so the user block does
+   not move; not `.lintje-nav__item`, which carries a hover. */
+.lintje-nav__version-row {
+  flex: none;
+  height: var(--h-nav-row);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 22px;
+  border-left: var(--nav-edge) solid transparent;
+}
+
+/* "Afmelden": a real form, because signing out is a POST that leaves the page. */
+/* The form is `hidden` in the rail, not transparent, so the button is out of the tab order. */
+.lintje-nav__logout { flex: none; margin-left: auto; }
+.lintje-nav__logout[hidden] { display: none; }
+.lintje-nav__logout-button {
+  position: relative;
+  width: var(--h-icon-button); height: var(--h-icon-button);
+  display: flex; align-items: center; justify-content: center;
+  /* Quiet at rest; full text colour on hover and focus. */
+  color: var(--color-nav-text-sub);
+  background: transparent;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-nav__logout-button:hover,
+.lintje-nav__logout-button:focus-visible { background: var(--color-nav-hover); color: var(--color-nav-text); }
+.lintje-nav__logout-text { font-size: 0.875rem; font-weight: 700; white-space: nowrap; padding: 0 var(--space-2); }
+
+.lintje-nav__footer {
+  flex: none;
+  display: flex; align-items: center; gap: 10px;
+  padding: var(--space-4) var(--space-5) var(--space-5) var(--space-4);
+  border-top: 1px solid var(--color-nav-line);
+  font-size: 1rem;
+}
+/* As high as name and role together (two 1.25rem lines); the left padding keeps it centred in
+   the rail. */
+.lintje-nav__avatar {
+  width: 2.5rem; height: 2.5rem; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-round);
+  background: var(--color-nav-avatar-bg);
+  color: var(--color-nav-avatar-text);
+  font-size: 1rem; font-weight: 700;
+}
+/* Name and role fade and slide in like the headings; `nowrap` keeps one line. */
+.lintje-nav__user {
+  display: flex; flex-direction: column; line-height: 1.25rem;
+  min-width: 0; flex: 1 1 auto; white-space: nowrap;
+  transition: opacity 160ms var(--ease-in-motion) 80ms, transform var(--dur-base) var(--ease-in-motion) 80ms;
+}
+.lintje-nav--rail:not(.is-expanded) .lintje-nav__user { opacity: 0; transform: translateX(-8px); transition: none; }
+.lintje-nav__user > b,
+.lintje-nav__role { overflow: hidden; text-overflow: ellipsis; }
+.lintje-nav__role { font-size: 0.875rem; color: var(--color-nav-text-sub); }
+
+:where(.lintje-shell.is-phone) .lintje-nav,
+:where(.lintje-shell.is-phone) .lintje-nav__scrim { display: none; }
+
+/* An emblem's black, if it has any, draws in the menu's text colour (`currentColor`). */
+.lintje-nav__home { display: block; flex: none; color: var(--color-nav-text); }
+
+
+@media print { .lintje-nav, .lintje-nav__scrim { display: none; } }
+
+/* Forced colours: the active row is a fill and a 4 px edge; the fill is dropped and the edge
+   turns Highlight. A row without a page or access is GrayText. The ring is Highlight. The
+   shadow is dropped, so an outline keeps the menu's edge against the page. */
+@media (forced-colors: active) {
+  .lintje-nav { outline: 1px solid CanvasText; }
+  .lintje-nav :focus-visible { outline-color: Highlight; }
+  .lintje-nav__item { border-left-color: Canvas; }
+  .lintje-nav__item.is-active { border-left-color: Highlight; }
+  .lintje-nav__item.is-no-page,
+  .lintje-nav__item.is-no-access { color: GrayText; }
+  .lintje-nav__avatar { border: 1px solid CanvasText; }
+  .lintje-nav__thumb { forced-color-adjust: none; background: CanvasText; }
+}

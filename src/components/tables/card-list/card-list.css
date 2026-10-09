@@ -1,0 +1,28 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-card-list {
+  --card-list-min: var(--w-card);
+  list-style: none; margin: 0; padding: 0;
+  display: grid;
+  /* A column is never narrower than a card, nor narrower than its share of the most columns. */
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(
+      max(
+        min(100%, var(--card-list-min)),
+        calc((100% - (var(--card-list-columns) - 1) * var(--grid-gutter)) / var(--card-list-columns))
+      ),
+      1fr
+    )
+  );
+  gap: var(--grid-gutter);
+}
+:host([layout='horizontal']) .lintje-card-list { --card-list-min: var(--w-card-wide); }
+.lintje-card-list__item { min-width: 0; }
+
+@media (max-width: 767px) {
+  .lintje-card-list { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+}

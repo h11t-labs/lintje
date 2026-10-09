@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="nl" data-mode="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vraag het de data — Lintje</title>
+    <!--
+      Chat with data as a page of a dashboard: the shell, and as its content one
+      `<lintje-chat>` that scrolls with the page. There is no backend: `app.js` keeps the conversation and
+      plays every answer with timers, from the fictional figures in `../_data/`.
+
+      Serve the repository root with any static server and open /examples/chat/.
+        ?demo=1               opens on a conversation of two turns instead of the start screen
+        ?mode=dark            dark mode (the shell's own toggle writes it)
+        ?theme=marechaussee   one of the six themes
+        ?layout=top           the navigation above the page (the shell's "Weergave" offers it)
+    -->
+    <link rel="stylesheet" href="../../src/tokens/fonts.css" />
+    <link rel="stylesheet" href="../../dist-elements/tokens.css" />
+    <style>
+      /* Layout only: every visual pattern on this page is an element's own. */
+      body {
+        margin: 0;
+        background: var(--color-bg-page);
+        color: var(--color-text-primary);
+        font: var(--text-ui);
+        font-family: var(--font-ui);
+        font-variant-numeric: tabular-nums;
+        -webkit-font-smoothing: antialiased;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- The conversation runs edge to edge: the line over its question box crosses the whole
+         room, as the bars above it do, and the conversation keeps its own measure. With
+         nothing else on the page it takes the room the shell leaves, so a short conversation
+         still has its question box at the bottom of the window. -->
+    <lintje-shell id="shell">
+      <lintje-chat id="chat" slot="full"></lintje-chat>
+    </lintje-shell>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

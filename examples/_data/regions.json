@@ -1,0 +1,27 @@
+[
+  {
+    "id": "reg-noordwest",
+    "name": "Regio Noordwest",
+    "region": "Noord-Holland en Utrecht"
+  },
+  {
+    "id": "reg-zuidwest",
+    "name": "Regio Zuidwest",
+    "region": "Zuid-Holland en Zeeland"
+  },
+  {
+    "id": "reg-zuid",
+    "name": "Regio Zuid",
+    "region": "Noord-Brabant en Limburg"
+  },
+  {
+    "id": "reg-oost",
+    "name": "Regio Oost",
+    "region": "Gelderland en Overijssel"
+  },
+  {
+    "id": "reg-noord",
+    "name": "Regio Noord",
+    "region": "Groningen, Friesland en Drenthe"
+  }
+]

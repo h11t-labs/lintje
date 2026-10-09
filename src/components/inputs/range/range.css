@@ -1,0 +1,82 @@
+/* The range slider. */
+
+/* --- Range slider --------------------------------------------------------- */
+.lintje-range { position: relative; height: var(--h-target); display: flex; align-items: center; }
+/* With `hide-label` the slider takes the control height, so its handles are on the line of
+   the other controls; the tick labels hang below it. */
+:host([hide-label]) .lintje-range { height: var(--h-control); }
+.lintje-range__track {
+  position: absolute; left: 0; right: 0; height: 4px;
+  background: var(--color-border-default);
+}
+/* `--color-accent-line`, not the primary: in dark the 4 px fill would be darker than its track
+   and the handles' outline 1.25:1. */
+.lintje-range__fill { position: absolute; height: 4px; background: var(--color-accent-line); }
+.lintje-range__input {
+  --lintje-range-edge: var(--color-accent-line);
+  position: absolute; left: 0; right: 0; width: 100%;
+  height: var(--h-target-text);
+  margin: 0; background: none; pointer-events: none;
+  -webkit-appearance: none; appearance: none;
+}
+/* A 24 px target drawn as the 20 px handle: a transparent 2 px edge around the ring. Firefox's
+   thumb is `content-box` by default, which would make the target 28 px. */
+.lintje-range__input::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  box-sizing: border-box;
+  width: var(--h-target-text); height: var(--h-target-text);
+  border: 2px solid transparent;
+  background: var(--color-bg-surface) padding-box;
+  box-shadow: inset 0 0 0 2px var(--lintje-range-edge);
+  pointer-events: auto; cursor: grab;
+}
+.lintje-range__input::-moz-range-thumb {
+  box-sizing: border-box;
+  width: var(--h-target-text); height: var(--h-target-text);
+  border: 2px solid transparent;
+  background: var(--color-bg-surface) padding-box;
+  box-shadow: inset 0 0 0 2px var(--lintje-range-edge);
+  border-radius: 0; pointer-events: auto; cursor: grab;
+}
+.lintje-range__input.is-raised { z-index: 1; }
+/* Two handles: only the thumbs take the pointer, the track's press is the element's. One
+   handle: the input takes the whole track. */
+:host(:not([single]):not([disabled])) .lintje-range { cursor: pointer; }
+:host([single]) .lintje-range__input { pointer-events: auto; cursor: pointer; }
+/* Error marks the handle, not the track: a red track would fight the chosen stretch. */
+.lintje-range.is-error .lintje-range__input { --lintje-range-edge: var(--color-error); }
+:host([disabled]) .lintje-range__fill { background: var(--color-border-strong); }
+:host([disabled]) .lintje-range__input { --lintje-range-edge: var(--color-border-strong); }
+:host([disabled]) .lintje-range__input::-webkit-slider-thumb { cursor: not-allowed; }
+:host([disabled]) .lintje-range__input::-moz-range-thumb { cursor: not-allowed; }
+.lintje-range__values { font: var(--text-small); color: var(--color-text-muted); }
+.lintje-range__scale {
+  position: relative; height: 20px;
+  font: var(--text-axis); color: var(--color-text-muted);
+}
+.lintje-range__mark {
+  position: absolute; top: 0;
+  width: 1px; height: var(--space-1);
+  transform: translateX(-50%);
+  background: var(--color-border-default);
+}
+.lintje-range__mark.is-labelled { background: var(--color-border-strong); }
+.lintje-range__step { position: absolute; top: var(--space-2); white-space: nowrap; }
+.lintje-range__step.is-active { font-weight: 700; color: var(--color-text-primary); }
+:host([disabled]) .lintje-range__values,
+:host([disabled]) .lintje-range__step { color: var(--color-text-disabled); }
+
+/* Forced colours drop the 4 px fills: they keep their drawing in system colours. */
+@media (forced-colors: active) {
+  .lintje-range__track,
+  .lintje-range__fill { forced-color-adjust: none; }
+  .lintje-range__track { background: CanvasText; }
+  .lintje-range__fill { background: Highlight; }
+  :host([disabled]) .lintje-range__track,
+  :host([disabled]) .lintje-range__fill { background: GrayText; }
+  /* The ring is a shadow, which forced colours drop: the edge draws it instead. */
+  .lintje-range__input::-webkit-slider-thumb { border-color: CanvasText; }
+  .lintje-range__input::-moz-range-thumb { border-color: CanvasText; }
+  :host([disabled]) .lintje-range__input::-webkit-slider-thumb { border-color: GrayText; }
+  :host([disabled]) .lintje-range__input::-moz-range-thumb { border-color: GrayText; }
+}

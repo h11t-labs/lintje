@@ -1,0 +1,151 @@
+/* The host is the trigger's box, with the busy sentence beside it; the menu is a fixed popover
+   and takes no space. */
+:host {
+  display: inline-flex; flex-wrap: wrap; align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-width: 0;
+  vertical-align: middle;
+}
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-menu-button__trigger.lintje-button--secondary.is-open { background: var(--color-bg-selected); }
+.lintje-menu-button__trigger.lintje-button--tertiary.is-open { background: var(--color-bg-subtle); }
+.lintje-menu-button__trigger.lintje-icon-button--outlined.is-open { background: var(--color-bg-selected); }
+.lintje-menu-button__trigger.lintje-icon-button--flat.is-open { background: var(--color-bg-subtle); }
+
+
+.lintje-menu-button__trigger.lintje-button { padding-right: var(--space-3); }
+.lintje-menu-button__trigger--flat.lintje-button { padding: 0 var(--space-2); border-color: transparent; }
+/* Split: two halves of one button, the page showing through the 1 px between them. */
+.lintje-menu-button__split { display: inline-flex; gap: 1px; min-width: 0; }
+.lintje-menu-button__split .lintje-menu-button__trigger--split.lintje-button { width: var(--h-button); padding: 0; }
+/* Busy, a split button's ring takes its icon's square: the label stays and nothing moves. */
+.lintje-menu-button__busy {
+  flex: none;
+  width: 16px; height: 16px;
+  margin: 2px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--radius-round);
+  animation: lintje-spin var(--dur-skeleton) linear infinite;
+}
+.lintje-menu-button__split .is-working { cursor: progress; }
+@media (prefers-reduced-motion: reduce) {
+  .lintje-menu-button__busy { animation: none; }
+}
+.lintje-menu-button__trigger.lintje-button--primary.is-open { background: var(--color-action-primary-hover); }
+/* Disabled, like the link button, it only loses its ink. */
+.lintje-menu-button__trigger--flat.lintje-button.is-disabled { background: none; border-color: transparent; }
+
+/* Without a sentence the live region stays in the tree but takes no room, and no gap. */
+.lintje-menu-button__status { position: absolute; }
+.lintje-menu-button__status.is-busy {
+  position: static;
+  display: flex; align-items: center; gap: var(--space-2);
+  font: var(--text-ui);
+  color: var(--color-text-primary);
+}
+
+/* The breadcrumbs' "…" sits in a line of text, so it reaches the 48 px target upwards and
+   downwards only, through a transparent hit area. */
+.lintje-menu-button__trigger--ellipsis {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: var(--h-chip-field); height: var(--h-chip-field);
+  padding: 0 var(--space-2);
+  background: var(--color-bg-subtle);
+  color: var(--color-accent-text);
+  font: var(--text-small);
+  font-weight: 700;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-menu-button__trigger--ellipsis::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+.lintje-menu-button__trigger--ellipsis:hover:not(.is-disabled),
+.lintje-menu-button__trigger--ellipsis.is-open { background: var(--color-bg-selected); }
+.lintje-menu-button__trigger--ellipsis.is-disabled { color: var(--color-text-disabled); cursor: not-allowed; }
+
+.lintje-menu {
+  display: flex; flex-direction: column;
+  min-width: 240px;
+  padding: var(--space-1) 0;
+}
+
+.lintje-menu__row {
+  display: flex; align-items: center; gap: var(--space-2);
+  width: 100%;
+  height: var(--h-control);
+  padding: 0 var(--space-4);
+  font: var(--text-ui);
+  color: var(--color-text-primary);
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-menu__row:hover:not(.is-disabled) { background: var(--color-bg-subtle); }
+.lintje-menu__icon { flex: none; }
+.lintje-menu__slot { width: 16px; height: 16px; }
+.lintje-menu__check { color: var(--color-accent-text); }
+/* One of a choice: the form's radio, at the size of the menu's icons. */
+.lintje-menu__radio {
+  box-sizing: border-box;
+  width: 16px; height: 16px;
+  border: 2px solid var(--color-border-choice);
+  border-radius: var(--radius-round);
+  background: var(--color-bg-surface);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.lintje-menu__radio.is-checked { border-color: var(--color-accent-line); }
+.lintje-menu__radio.is-checked::after {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: var(--radius-round);
+  background: var(--color-accent);
+}
+@media (forced-colors: active) {
+  .lintje-menu__radio.is-checked::after { forced-color-adjust: none; background: Highlight; }
+}
+.lintje-menu__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.lintje-menu__hint {
+  flex: none;
+  margin-left: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.lintje-menu__row.is-disabled { color: var(--color-text-disabled); cursor: not-allowed; }
+.lintje-menu__row.is-disabled .lintje-menu__hint { color: var(--color-text-disabled); }
+.lintje-menu__row.is-danger { color: var(--color-error-text); font-weight: 700; }
+
+.lintje-menu__separator {
+  height: 1px;
+  margin: var(--space-1) 0;
+  background: var(--color-border-default);
+}
+
+.lintje-menu__tip { display: flex; }
+
+/* The heading stands in line with the labels: the row's padding, the icon and the gap. */
+/* A group's name stands at the menu's edge, over the checks and circles of its rows. */
+.lintje-menu__heading {
+  padding: var(--space-1) var(--space-4);
+  font: var(--text-small);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 767px) {
+  .lintje-menu__row { height: var(--h-touch); }
+}
+
+/* Forced colours: the disabled "…" is `aria-disabled`, so the browser does not gray it. */
+@media (forced-colors: active) {
+  .lintje-menu-button__trigger--ellipsis.is-disabled { color: GrayText; }
+}

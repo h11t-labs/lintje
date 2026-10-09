@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="nl" data-mode="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Datacatalogus — Lintje</title>
+    <!--
+      Datacatalogus: every product of a data platform in one place — data products, AI services
+      and dashboards — whether the reader has access or not, with the owner and the way in. A
+      start page with a hero and the question box, the catalogue with its filters, a product's
+      own page and a page about the platform. The shell's search finds a product from anywhere. There is
+      no backend: `app.js` holds a fictional list of products.
+
+      Serve the repository root with any static server and open /examples/catalogus/.
+        ?pagina=catalogus                 the catalogue; its filters (soort, toegang, eigenaar) and
+                                          a question (q) stand in the URL beside it
+        ?q=…                              on the start page: the question, answered above the rest
+        ?pagina=over                      the page about the platform
+        ?favoriet=ja                      in the catalogue: the reader's favourites only
+        ?product=vertalen                 one product's page
+        ?mode=dark, ?theme=marechaussee   as in the other examples; without ?theme
+                                          the page wears the application's own purple
+    -->
+    <link rel="stylesheet" href="../../src/tokens/fonts.css" />
+    <link rel="stylesheet" href="../../dist-elements/tokens.css" />
+    <style>
+      /* The application's own purple, as a host adds a theme: the two properties and nothing else.
+         In dark a lighter step of it, as Lintje's dark tints lift a purple too little to reach 3:1
+         for a line. */
+      [data-theme='catalogus'] {
+        --primary: #603A96;
+        --accent: #E17000;
+      }
+      [data-theme='catalogus'][data-mode='dark'] {
+        --primary: #865FC1;
+      }
+      body {
+        margin: 0;
+        background: var(--color-bg-page);
+        color: var(--color-text-primary);
+        font: var(--text-ui);
+        font-family: var(--font-ui);
+        -webkit-font-smoothing: antialiased;
+      }
+      .view { display: flex; flex-direction: column; gap: var(--space-10); }
+      .view[hidden] { display: none; }
+      .section { display: flex; flex-direction: column; gap: var(--space-4); }
+      .section[hidden] { display: none; }
+
+      /* The question box takes the hero's whole text column. */
+      .ask { align-self: stretch; }
+
+      /* The answer to a question: the words, the products that answer it, the way on. */
+      .answer { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+      .answer > lintje-list { align-self: stretch; }
+
+      /* About the platform: the text in its column, the facts beside it. */
+      .about { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--grid-gutter); align-items: start; }
+
+      /* A product's page: what it is beside how to get in. */
+      .product { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--grid-gutter); align-items: start; }
+      .product__main { display: flex; flex-direction: column; gap: var(--grid-gutter); min-width: 0; }
+      .access { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+      .access__ways { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+      @media (max-width: 1023.98px) {
+        .product, .about { grid-template-columns: minmax(0, 1fr); }
+      }
+    </style>
+  </head>
+  <body>
+    <lintje-shell id="shell">
+      <lintje-hero slot="full" id="hero" heading="Wat zoek je?"
+        description="Stel je vraag in gewone taal. De catalogus zoekt in alle dataproducten, AI-diensten en dashboards — ook die waar je nog geen toegang toe hebt."
+        action="Of blader door de hele catalogus">
+        <lintje-chat-composer id="question" class="ask" plain
+          placeholder="Bijvoorbeeld: is er data over verzuim die ik mag gebruiken?"></lintje-chat-composer>
+        <lintje-chat-suggestions id="examples" align="start" label="Je kunt bijvoorbeeld vragen"></lintje-chat-suggestions>
+      </lintje-hero>
+      <lintje-filter-bar slot="full" id="filters" hidden></lintje-filter-bar>
+
+      <lintje-page-header slot="header" id="page-header" hidden>
+        <lintje-breadcrumbs slot="breadcrumbs" id="crumbs" hidden></lintje-breadcrumbs>
+        <lintje-button slot="actions" id="clear-question" icon="functioneel-kruis" hidden>Vraag wissen</lintje-button>
+        <lintje-icon-button slot="actions" id="favourite" variant="outlined" hidden></lintje-icon-button>
+      </lintje-page-header>
+
+      <!-- The start page: the hero above, then the kinds and what is used most. -->
+      <div class="view" id="start-view">
+        <!-- The answer to the question in the URL (?q=), above the rest. -->
+        <lintje-tile id="answer" hidden>
+          <lintje-button slot="actions" id="answer-clear" variant="tertiary" size="compact">Nieuwe vraag</lintje-button>
+          <div class="answer">
+            <lintje-ai-label hint="Controleer het antwoord voor je het gebruikt"></lintje-ai-label>
+            <lintje-prose id="answer-text"></lintje-prose>
+            <lintje-list id="answer-products" label="Producten bij je vraag"></lintje-list>
+            <lintje-button id="answer-more" variant="link" icon-right="functioneel-delta-rechts"></lintje-button>
+          </div>
+        </lintje-tile>
+        <!-- The reader's favourites, once there are any. -->
+        <section class="section" id="favourites-section" aria-labelledby="favourites-title" hidden>
+          <lintje-prose><h2 id="favourites-title">Je favorieten</h2></lintje-prose>
+          <lintje-card-list id="favourites" heading-level="3"></lintje-card-list>
+        </section>
+        <section class="section" aria-labelledby="kinds-title">
+          <lintje-prose><h2 id="kinds-title">Bladeren per soort</h2></lintje-prose>
+          <lintje-card-list id="kinds" heading-level="3"></lintje-card-list>
+        </section>
+        <section class="section" aria-labelledby="popular-title">
+          <lintje-prose><h2 id="popular-title">Veel gebruikt deze maand</h2></lintje-prose>
+          <lintje-card-list id="popular" heading-level="3"></lintje-card-list>
+        </section>
+      </div>
+
+      <!-- The catalogue: every product, across, filtered by the bar above. -->
+      <div class="view" id="catalogue-view" hidden>
+        <lintje-card-list id="catalogue" layout="horizontal" label="Producten" heading-level="2"
+          empty-text="Geen product past bij je zoekterm en filters.">
+          <lintje-button slot="empty" id="reset" variant="link">Alle filters wissen</lintje-button>
+        </lintje-card-list>
+      </div>
+
+      <!-- About the platform: what it is, and who to ask. -->
+      <div class="view" id="about-view" hidden>
+        <div class="about">
+          <lintje-prose>
+            <h2>Wat is het dataplatform?</h2>
+            <p>Het dataplatform brengt gegevens, AI-diensten en dashboards samen op één plek, zodat je niet hoeft te zoeken wie wat heeft en hoe je eraan komt.</p>
+            <p>In de catalogus staat elk product dat op het platform draait, ook als je er nog geen toegang toe hebt. Zo zie je wat er bestaat, wie de eigenaar is en hoe je toegang vraagt.</p>
+            <h2>Wat staat er in de catalogus?</h2>
+            <ul>
+              <li><strong>Dataproducten</strong>: gegevens om zelf mee te analyseren, met afspraken over het gebruik en over hoe vaak ze worden ververst.</li>
+              <li><strong>AI-diensten</strong>: diensten die tekst, spraak en documenten voor je verwerken, zoals vertalen en transcriptie.</li>
+              <li><strong>Dashboards</strong>: stuurinformatie per organisatieonderdeel, zoals voor vergunningverlening en toezicht.</li>
+            </ul>
+            <h2>Hoe krijg ik toegang?</h2>
+            <p>Toegang geeft de eigenaar van een product, niet het platform. Op de pagina van een product staat hoe je het aanvraagt: in het aanvraagsysteem of per mail aan de contactpersoon. Vermeld waarvoor je het product nodig hebt en voor hoe lang.</p>
+            <h2>Een product aanmelden</h2>
+            <p>Beheer je zelf een dataproduct, dienst of dashboard dat op het platform draait? Meld het aan bij het team Dataplatform, dan komt het in de catalogus. Je blijft zelf eigenaar en beslist over toegang.</p>
+          </lintje-prose>
+          <lintje-tile heading="Contact">
+            <lintje-description-list id="about-facts" layout="column"></lintje-description-list>
+          </lintje-tile>
+        </div>
+      </div>
+
+      <!-- One product: what it is, and how to get in. -->
+      <div class="view" id="product-view" hidden>
+        <div class="product">
+          <div class="product__main">
+            <lintje-tile id="screens" heading="Zo ziet het eruit" hidden>
+              <lintje-gallery id="gallery"></lintje-gallery>
+            </lintje-tile>
+            <lintje-tile id="about" heading="Over dit product">
+              <lintje-description-list id="facts"></lintje-description-list>
+            </lintje-tile>
+          </div>
+          <lintje-tile id="toegang" heading="Toegang">
+            <div class="access">
+              <lintje-badge id="access-badge"></lintje-badge>
+              <lintje-prose id="access-text"></lintje-prose>
+              <div class="access__ways" id="access-ways"></div>
+            </div>
+          </lintje-tile>
+        </div>
+      </div>
+      <lintje-footer slot="footer" id="footer"></lintje-footer>
+    </lintje-shell>
+    <lintje-app-search id="search" label="Zoeken in de catalogus"></lintje-app-search>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

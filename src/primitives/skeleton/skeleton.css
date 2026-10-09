@@ -1,0 +1,24 @@
+/* The size is on the host so a percentage has a box to resolve against. */
+:host { display: block; }
+:host(lintje-skeleton) .lintje-skeleton { width: 100%; height: 100%; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-skeleton {
+  display: block;
+  background: linear-gradient(90deg,
+    var(--color-bg-subtle) 25%,
+    var(--color-border-default) 37%,
+    var(--color-bg-subtle) 63%);
+  background-size: 200% 100%;
+  animation: lintje-shimmer var(--dur-skeleton) linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lintje-skeleton { animation: none; background: var(--color-bg-subtle); }
+}
+
+/* Forced colours: the gradient is dropped, so the placeholder keeps a 1 px GrayText line. */
+@media (forced-colors: active) {
+  .lintje-skeleton { outline: 1px solid GrayText; outline-offset: -1px; }
+}

@@ -1,0 +1,27 @@
+/* One row of a repeater: the host's fields side by side, then the remove icon button. */
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+@media (max-width: 767px) {
+  :host(:not([index='0'])) {
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-border-default);
+  }
+}
+
+/* --- */
+
+/* The button aligns with the controls' bottom edge when a field carries its label above it. */
+.lintje-repeater-row { display: flex; align-items: flex-end; gap: var(--space-2); min-width: 0; }
+.lintje-repeater-row__fields { flex: 1; min-width: 0; display: flex; gap: var(--space-2); }
+.lintje-repeater-row__fields ::slotted(*) { flex: 1 1 0; min-width: 0; }
+/* A square as high as the controls beside it. */
+.lintje-repeater-row__remove { flex: none; --h-icon-button: var(--h-control); }
+
+/* Below 768 px the fields stack and the remove button stands beside the first. */
+@media (max-width: 767px) {
+  .lintje-repeater-row { align-items: flex-start; }
+  .lintje-repeater-row__fields { flex-direction: column; }
+}

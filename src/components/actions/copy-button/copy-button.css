@@ -1,0 +1,9 @@
+:host { display: inline-flex; vertical-align: middle; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* One cell as wide as the longer label, so the width holds when the label changes. */
+.lintje-copy-button__labels { display: inline-grid; }
+.lintje-copy-button__label { grid-area: 1 / 1; text-align: center; }
+.lintje-copy-button__label.is-hidden { visibility: hidden; }

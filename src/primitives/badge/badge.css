@@ -1,0 +1,93 @@
+/*
+ * The badge's drawing, shared by `<lintje-badge>` and every root that draws one through
+ * `renderBadge()`. It holds no `:host` rule; the element's own box is `badge-host.css`.
+ */
+
+.lintje-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none;
+  box-sizing: border-box;
+  height: 1.5rem;
+  padding: 0 var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-family: var(--font-ui);
+  font-size: 0.875rem; font-weight: 700; line-height: 1;
+  white-space: nowrap;
+}
+
+/* Neutral: a line and a word, for what has not started. Subtle: the gray surface, for what is over. */
+.lintje-badge--neutral {
+  color: var(--color-text-primary);
+  border-color: var(--color-text-muted);
+}
+.lintje-badge--subtle {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
+}
+.lintje-badge--busy {
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  border-color: var(--color-action-primary-border);
+}
+/* A saturated status fill carries white text (success 4.52:1, error 5.01, info 4.51). */
+.lintje-badge--success { background: var(--color-success); color: var(--color-text-on-fill); }
+.lintje-badge--error { background: var(--color-error); color: var(--color-text-on-fill); }
+.lintje-badge--info { background: var(--color-info); color: var(--color-text-on-fill); }
+/* Yellow and orange take dark text in both modes: white on the orange is 3.2:1, near-black 5.54:1. */
+.lintje-badge--warning { background: var(--color-warning); color: var(--color-text-on-light-fill); }
+.lintje-badge--attention { background: var(--color-attention); color: var(--color-text-on-light-fill); }
+/* Live: the fill says it records now, the dot says it again for whoever does not see the colour. */
+.lintje-badge--live { gap: var(--space-2); background: var(--color-error); color: var(--color-text-on-fill); }
+.lintje-badge--live::before {
+  content: '';
+  width: 0.5rem; height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* The quiet counter. The 2 px at its foot lift the figure 1 px: the house font's digits sit low. */
+.lintje-badge--count,
+.lintje-badge--unread {
+  min-width: 1.5rem;
+  padding: 0 var(--space-1) 2px;
+}
+.lintje-badge--count {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
+}
+/* Smaller than a label: it sits on a glyph's corner and must not cover it. At 12 px the
+   digits need no lift. */
+.lintje-badge--unread {
+  height: 1.25rem; min-width: 1.25rem;
+  padding: 0 var(--space-1);
+  font-size: 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-nav-badge-bg);
+  color: var(--color-nav-badge-text);
+  animation: lintje-badge-pop var(--dur-badge) var(--ease-in-motion) both;
+}
+
+/* A new unread count pops in: past its size and back, so the eye catches it. It plays when the
+   badge appears; a changing figure is the host's to animate. */
+@keyframes lintje-badge-pop {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.2); }
+  100% { transform: none; }
+}
+
+/* On the menu's surface: the menu's text colour as the fill and its surface as the ink. After
+   `--unread`, so the menu's count wins over the unread colours. */
+.lintje-badge--nav { background: var(--color-nav-text); color: var(--color-nav-bg); border: 0; }
+.lintje-badge--nav.lintje-badge--label { letter-spacing: 0.04em; }
+.lintje-badge--nav.is-muted { background: var(--color-nav-disabled); color: var(--color-nav-bg); }
+
+/* Forced colours: a fill is dropped, so every badge keeps a CanvasText edge in its border. */
+@media (forced-colors: active) {
+  .lintje-badge { border-color: CanvasText; }
+  .lintje-badge--unread,
+  .lintje-badge--nav { outline: 1px solid CanvasText; outline-offset: -1px; }
+}

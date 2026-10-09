@@ -1,0 +1,223 @@
+/*
+ * The filter zone's own box: header, controls row, sentence and summary bar. Rules that reach
+ * into a control live in `filter-layout.css`, adopted by the elements that own the controls.
+ */
+:host {
+  display: block;
+}
+
+/* --- */
+
+.lintje-filter-bar {
+  background: var(--color-bg-filter);
+  border-top: 1px solid var(--color-border-filter);
+}
+
+.lintje-filter-bar__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: var(--h-contextbar);
+  padding: 0 calc(var(--space-6) + var(--page-gutter));
+  /* An inset shadow, not a border: a border would shift the toggle half a pixel off the
+     summary bar's. */
+  box-shadow: inset 0 -1px 0 var(--color-border-filter);
+}
+.lintje-filter-bar__title { font-size: 1rem; font-weight: 700; }
+.lintje-filter-bar__hint  { font: var(--text-small); color: var(--color-text-muted); }
+.lintje-filter-bar__spacer   { flex: 1; }
+
+.lintje-filter-bar__counter {
+  display: flex; align-items: center; gap: 6px;
+  font: var(--text-small); color: var(--color-text-primary);
+}
+.lintje-filter-bar__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-attention); flex: none;
+}
+.lintje-filter-bar__reset {
+  display: flex; align-items: center;
+  min-height: var(--h-target);
+  font-size: 0.875rem; font-weight: 700;
+  color: var(--color-link); text-decoration: underline;
+  margin: 0 var(--space-2);
+}
+
+/* --- Opening and closing -------------------------------------------------- */
+/* `0fr -> 1fr` transitions to the content height without measuring it in JS. The body stays
+   in the DOM, so the fade is a transition, not a keyframe. */
+.lintje-filter-bar__body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-collapse) var(--ease-in-motion);
+}
+.lintje-filter-bar.is-open .lintje-filter-bar__body { grid-template-rows: 1fr; }
+
+.lintje-filter-bar__body-inner {
+  min-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  /* Closed, out of the tab order and the accessibility tree; hiding waits for the collapse. */
+  visibility: hidden;
+  transition:
+    opacity var(--dur-collapse) var(--ease-in-motion),
+    visibility 0s linear var(--dur-collapse);
+}
+.lintje-filter-bar.is-open .lintje-filter-bar__body-inner {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity var(--dur-collapse) var(--ease-in-motion), visibility 0s;
+}
+/* Standing open, nothing clips: popovers hang out of the zone. */
+.lintje-filter-bar.is-settled .lintje-filter-bar__body-inner { overflow: visible; }
+
+.lintje-filter-bar__header,
+.lintje-summary-bar {
+  animation: lintje-fade-in var(--dur-collapse) var(--ease-in-motion);
+}
+
+/* Aligned at the top: what a control carries below its box (the range's ticks) hangs below the
+   line instead of pushing its neighbours down. */
+.lintje-filter-bar__controls {
+  display: flex;
+  gap: var(--grid-gutter);
+  padding: 14px calc(var(--space-6) + var(--page-gutter)) 18px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 1440px) {
+  .lintje-filter-bar__controls { flex-wrap: nowrap; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .lintje-filter-bar__controls { display: grid; grid-template-columns: 1fr 1fr; }
+}
+
+.lintje-filter-bar__summary {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 calc(var(--space-6) + var(--page-gutter)) 14px;
+  font: var(--text-ui);
+  color: var(--color-text-primary);
+}
+
+/* --- Collapsed summary bar (48 px) -------------------------------------- */
+.lintje-summary-bar {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: var(--h-contextbar);
+  padding: 0 calc(var(--space-6) + var(--page-gutter));
+}
+.lintje-summary-bar__sentence {
+  display: flex; align-items: center; gap: 10px;
+  font: var(--text-ui);
+  color: var(--color-text-primary);
+  min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  text-align: left;
+  padding: 0 6px; margin: 0 -6px;
+  height: 100%;
+}
+.lintje-summary-bar__sentence:hover { background: var(--color-bg-subtle); }
+.lintje-summary-bar__sentence .lintje-filter-summary__text { overflow: hidden; text-overflow: ellipsis; }
+.lintje-summary-bar__spacer { flex: 1; }
+.lintje-summary-bar__counter {
+  display: flex; align-items: center; gap: 6px;
+  font: var(--text-small); color: var(--color-text-muted); flex: none;
+}
+.lintje-summary-bar__dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--color-attention); flex: none;
+}
+.lintje-summary-bar__reset {
+  display: flex; align-items: center;
+  min-height: var(--h-target);
+  font-size: 0.875rem; font-weight: 700;
+  color: var(--color-link); text-decoration: underline;
+  margin: 0 var(--space-2);
+}
+/* --- The one filter toggle ----------------------------------------------- */
+/* Last in the row in both states, so the second click lands on the toggle again. */
+.lintje-filter-toggle {
+  position: relative;
+  display: flex; align-items: center; gap: var(--space-2);
+  height: var(--h-button-compact);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  font-size: 0.875rem; font-weight: 400;
+  color: var(--color-text-primary);
+  flex: none;
+  transition: background var(--dur-hover) var(--ease-in-motion),
+              border-color var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-filter-toggle:hover { background: var(--color-bg-subtle); }
+/* A transparent hit area above and below reaches the full target height. */
+.lintje-filter-toggle::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+.lintje-filter-toggle__chevron {
+  transform-origin: 50% 50%;
+  transition: transform var(--dur-collapse) var(--ease-in-motion);
+}
+.lintje-filter-toggle.is-expanded .lintje-filter-toggle__chevron { transform: rotate(180deg); }
+
+/* Before the filter bar: 1 px tall for the observer, -1 px margin so layout is unchanged. */
+.lintje-filter-bar__sentinel { height: 1px; margin-bottom: -1px; }
+/* Scrolled: the collapsed zone sticks below the top bar. */
+.lintje-filter-bar.is-sticky {
+  position: sticky;
+  top: var(--h-topbar);
+  z-index: 19;
+  box-shadow: inset 0 -1px 0 var(--color-border-filter), var(--shadow-sticky);
+  /* Stuck, the top bar's line is the separator; this one goes transparent, keeping its pixel. */
+  border-top-color: transparent;
+}
+
+/* Stuck and expanded: the zone unfolds where it stands; the z-index stays under the menu's 30. */
+.lintje-filter-bar.is-stuck-open {
+  max-height: calc(100vh - var(--h-topbar));
+}
+/* Only when the panel does not fit (`LintjeFilterZone` measures it): scrolling clips popovers. */
+.lintje-filter-bar.is-stuck-open.is-scrollable { overflow-y: auto; }
+
+/* --- Mobile -------------------------------------------------------------- */
+.lintje-filter-bar--mobile {
+  border-bottom: 1px solid var(--color-border-default);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-sticky);
+  position: sticky;
+  top: var(--h-mobile-header);
+  z-index: 19;
+}
+.lintje-filter-bar__mobile-summary {
+  display: flex; align-items: flex-start; gap: 10px;
+  font: var(--text-ui); line-height: 1.4;
+}
+.lintje-filter-bar__mobile-summary .lintje-filter-summary__icon { margin-top: 2px; }
+
+/* --- Pinned instead of sticky ---------------------------------------------- */
+.lintje-filter-bar--fixed.is-sticky {
+  position: fixed;
+  left: var(--lintje-shell-left, 0px);
+  right: 0;
+}
+.lintje-filter-bar__placeholder { height: var(--h-contextbar); }
+
+/* --- More than four filters ------------------------------------------------ */
+/* The one-line rule from 1440 px fits four controls; more wrap. */
+.lintje-filter-bar--wrap .lintje-filter-bar__controls { flex-wrap: wrap; }
+
+
+@media print {
+  .lintje-filter-bar.is-sticky, .lintje-filter-bar--fixed.is-sticky { position: static; box-shadow: none; }
+  .lintje-filter-toggle, .lintje-filter-bar__reset, .lintje-filter-bar__counter { display: none; }
+}
+
+/* Forced colours drop the fill and the inset shadow, so the row takes a real border. */
+@media (forced-colors: active) {
+  .lintje-filter-bar__header { border-bottom: 1px solid CanvasText; }
+}

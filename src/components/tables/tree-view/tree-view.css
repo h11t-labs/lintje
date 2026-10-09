@@ -1,0 +1,60 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-tree,
+.lintje-tree__group { list-style: none; margin: 0; padding: 0; }
+.lintje-tree { font: var(--text-ui); color: var(--color-text-primary); }
+
+/* The treeitem holds its row and its children, so the ring is drawn inside the row alone. */
+.lintje-tree__item:focus-visible { outline: none; }
+.lintje-tree__item:focus-visible > .lintje-tree__row {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: calc(var(--focus-width) * -1);
+}
+
+.lintje-tree__row {
+  display: flex; align-items: center;
+  gap: var(--space-1);
+  height: var(--h-option);
+  padding: 0 var(--space-2) 0 calc(var(--space-2) + var(--lintje-tree-depth, 0) * var(--space-5));
+  cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-tree__row:hover { background: var(--color-bg-subtle); }
+.lintje-tree__row.is-selected {
+  background: var(--color-bg-selected);
+  box-shadow: inset 4px 0 0 var(--color-accent-line);
+  font-weight: 700;
+}
+
+.lintje-tree__arrow {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px;
+  color: var(--color-text-muted);
+}
+/* The fold target reaches 24 × 24 px with a transparent hit area; it stays inside the gap. */
+.lintje-tree__arrow--toggle { position: relative; }
+.lintje-tree__arrow--toggle::after {
+  content: '';
+  position: absolute;
+  inset: calc(var(--space-1) * -1);
+}
+.lintje-tree__label {
+  min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lintje-tree__count { flex: none; font-weight: 400; color: var(--color-text-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lintje-tree__row { transition: none; }
+}
+
+/* Forced colours: the fill and inset bar are dropped. The bar becomes a real border (Canvas at
+   rest, Highlight when selected), so selecting moves nothing. */
+@media (forced-colors: active) {
+  .lintje-tree__row { border-left: 4px solid Canvas; }
+  .lintje-tree__row.is-selected { border-left-color: Highlight; }
+}

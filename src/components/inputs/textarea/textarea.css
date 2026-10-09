@@ -1,0 +1,72 @@
+/* The multi-line text field. */
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+/* Plain takes the type of where it stands, past the UI type every element sets on itself, and
+   fills the height the surface gives it. */
+:host([variant='plain']) { display: flex; flex-direction: column; font: inherit; }
+/* Below 768 px: the full width, as `stacked`. */
+@media (max-width: 767px) {
+  :host { width: 100%; }
+}
+
+/* --- */
+
+/* `rows` lines at least (three by default); grows with its content up to twelve, then scrolls. */
+.lintje-textarea__control {
+  display: block;
+  width: 100%;
+  min-height: calc(var(--lintje-rows, 3) * 1lh + var(--space-4) + 2px);
+  max-height: calc(12lh + var(--space-4) + 2px);
+  field-sizing: content;
+  padding: var(--space-2) 14px;
+  border: 1px solid var(--color-border-field);
+  border-radius: var(--radius);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: var(--text-body);
+  resize: vertical;
+  overflow-y: auto;
+}
+.lintje-textarea__control::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+/* The padding gives back the pixel the 2 px error border takes. */
+.lintje-textarea__control.is-error { border: 2px solid var(--color-error); padding: 7px 13px; }
+/* Disabled wins over read-only, read-only over error. */
+.lintje-textarea__control.is-readonly {
+  border: 1px solid var(--color-border-strong);
+  padding: var(--space-2) 14px;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-primary);
+  cursor: default;
+}
+.lintje-textarea__control:disabled {
+  border: 1px solid var(--color-border-strong);
+  padding: var(--space-2) 14px;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+/* Plain: the surface around it is the field, and draws the focus ring around itself, so the
+   ring does not sit tight against the text. It keeps growing; the surface decides the height. */
+:host([variant='plain']) .lintje-field { flex: 1; }
+.lintje-textarea__control--plain { flex: 1; }
+.lintje-textarea__control--plain:focus-visible { outline: none; }
+.lintje-textarea__control--plain,
+.lintje-textarea__control--plain.is-readonly,
+.lintje-textarea__control--plain:disabled {
+  min-height: calc(var(--lintje-rows, 3) * 1lh);
+  max-height: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  resize: none;
+}
+.lintje-textarea__control--plain.is-error { padding: 0 0 var(--space-1); border: 0; border-bottom: 2px solid var(--color-error); }
+
+.lintje-textarea__counter {
+  align-self: flex-end;
+  font: var(--text-meta);
+  color: var(--color-text-muted);
+}
+.lintje-textarea__counter.is-over { color: var(--color-error-text); font-weight: 700; }

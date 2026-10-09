@@ -1,0 +1,224 @@
+/*
+ * The fields' own boxes and the `.lintje-choice` rules of the checkbox, radio and toggle.
+ * `lintje-data-table` adopts this sheet too for its selectable rows' checkbox; the
+ * `:host(lintje-multiselect)` blocks do not match there.
+ */
+:host(lintje-multiselect) {
+  display: block;
+  min-width: 0;
+  width: 180px;
+}
+:host(lintje-range) {
+  display: block;
+  min-width: 0;
+  width: 180px;
+}
+:host(lintje-text-input),
+:host(lintje-number-input),
+:host(lintje-checkbox),
+:host(lintje-toggle),
+:host(lintje-radio-group) {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+
+/* --- */
+
+/* Order matters in every field sheet: disabled wins over read-only, read-only over error, at
+   equal specificity. A disabled control cannot be in error, so its rule sets the whole border. */
+
+.lintje-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lintje-label {
+  display: flex; align-items: baseline; gap: var(--space-2);
+  font-size: 0.875rem; font-weight: 700; color: var(--color-text-primary);
+  padding: 0;
+}
+.lintje-label.is-modified { color: var(--color-accent-text); }
+.lintje-label__dot {
+  width: 6px; height: 6px; border-radius: var(--radius-round);
+  background: var(--color-attention);
+  flex: none; align-self: center;
+}
+:host([disabled]) .lintje-label { color: var(--color-text-disabled); }
+.lintje-label__optional { font-weight: 400; color: var(--color-text-muted); }
+:host([disabled]) .lintje-label__optional { color: var(--color-text-disabled); }
+/* A value and its unit stay together when a long label wraps. */
+.lintje-field__value { font-weight: 400; color: var(--color-text-muted); white-space: nowrap; }
+.lintje-field__hint { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-field__error {
+  display: flex; align-items: center; gap: 6px;
+  font: var(--text-meta); color: var(--color-error-text); font-weight: 700;
+}
+
+/* --- A setting's row: name and hint on the left, the control on the right ----- */
+/* A row reads its own width, not the screen's: in a drawer it stays a column. */
+:host([layout='row']) { width: 100%; container-type: inline-size; }
+@container (min-width: 35rem) {
+  :host([layout='row']) .lintje-field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, calc(8 * var(--space-10)));
+    gap: var(--space-1) var(--space-8);
+    align-items: center;
+  }
+  :host([layout='row']) .lintje-field > * { grid-column: 2; }
+  /* Regular weight: the bold above it is the section's heading, the grey under it the hint. */
+  :host([layout='row']) .lintje-field > .lintje-label {
+    grid-column: 1; grid-row: 1;
+    font: var(--text-ui);
+  }
+  :host([layout='row']) .lintje-field > .lintje-field__hint,
+  :host([layout='row']) .lintje-field > .lintje-field__error { grid-column: 1; grid-row: 2; align-self: start; }
+  :host([layout='row']) .lintje-field > .lintje-field__reset { grid-column: 1; grid-row: 3; }
+  /* A switch is its own label: the row is the label, the switch stands at its right edge. */
+  :host([layout='row']) .lintje-field > .lintje-choice {
+    grid-column: 1 / -1; grid-row: 1;
+    flex-direction: row-reverse; justify-content: space-between;
+  }
+}
+
+/* Back to the default: a link, so it stays quieter than the field it belongs to. */
+.lintje-field__reset {
+  align-self: flex-start;
+  justify-self: start;
+  min-height: var(--h-target);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-link);
+  font: var(--text-meta);
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.lintje-field__reset:hover { color: var(--color-link-hover); }
+
+/* --- Checkbox, radio, toggle ---------------------------------------------- */
+.lintje-choice {
+  display: flex; align-items: center; gap: 10px;
+  min-height: var(--h-target);
+  font-size: 1rem;
+  cursor: pointer;
+}
+.lintje-choice__input { position: absolute; opacity: 0; width: 0; height: 0; }
+.lintje-choice__label.is-modified { color: var(--color-accent-text); font-weight: 700; }
+
+.lintje-choice__box {
+  width: 24px; height: 24px; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--color-border-choice);
+  background: var(--color-bg-surface);
+  color: var(--color-action-primary-text); font-size: 0.875rem; font-weight: 700; line-height: 1;
+  transition: background-color var(--dur-hover) var(--ease-in-motion),
+    border-color var(--dur-hover) var(--ease-in-motion);
+}
+/* The mark is always drawn and grows in when the box is checked, so checking and unchecking both move. */
+.lintje-choice__mark {
+  opacity: 0; transform: scale(0.4);
+  transition: opacity var(--dur-hover) var(--ease-in-motion),
+    transform var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-choice__input:checked ~ .lintje-choice__box .lintje-choice__mark,
+.lintje-choice__input:indeterminate ~ .lintje-choice__box .lintje-choice__mark {
+  opacity: 1; transform: none;
+}
+/* The border takes the primary-fill border: in dark the tint, so the box is no dark square. */
+.lintje-choice__input:checked ~ .lintje-choice__box,
+.lintje-choice__input:indeterminate ~ .lintje-choice__box {
+  background: var(--color-accent); border-color: var(--color-action-primary-border);
+}
+.lintje-choice__input:focus-visible ~ .lintje-choice__box,
+.lintje-choice__input:focus-visible ~ .lintje-choice__radio,
+.lintje-choice__input:focus-visible ~ .lintje-choice__switch {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+.lintje-choice__radio {
+  width: 24px; height: 24px; flex: none;
+  border: 2px solid var(--color-border-choice);
+  border-radius: 50%;
+  background: var(--color-bg-surface);
+  display: flex; align-items: center; justify-content: center;
+}
+/* Ring and dot take the line accent: the dot stands on the surface by itself, so the primary
+   fill would sink into the dark surface. */
+.lintje-choice__input:checked ~ .lintje-choice__radio { border-color: var(--color-accent-line); }
+.lintje-choice__input:checked ~ .lintje-choice__radio::after {
+  content: ''; width: 12px; height: 12px; border-radius: 50%; background: var(--color-accent-line);
+}
+
+/* Off: edged with the field's edge (3:1, WCAG 1.4.11) as an inset ring, keeping the box size. */
+.lintje-choice__switch {
+  box-sizing: border-box;
+  width: 40px; height: 22px; flex: none;
+  border-radius: 11px;
+  /* Off is a filled track, not a pale one with a ring: the fill alone reaches 3:1. */
+  background: var(--color-border-field);
+  display: flex; align-items: center;
+  padding: 2px;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-choice__knob {
+  width: 18px; height: 18px; display: block;
+  border-radius: 50%;
+  background: var(--color-bg-surface);
+  transition: transform var(--dur-hover) var(--ease-in-motion);
+}
+/* An inset ring, not a border: a border would eat into the knob's inset and travel. */
+.lintje-choice__input:checked ~ .lintje-choice__switch {
+  background: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-action-primary-border);
+}
+.lintje-choice__input:checked ~ .lintje-choice__switch .lintje-choice__knob { transform: translateX(18px); }
+
+.lintje-choice.is-disabled { color: var(--color-text-disabled); cursor: not-allowed; }
+.lintje-choice__input:disabled ~ .lintje-choice__box,
+.lintje-choice__input:disabled ~ .lintje-choice__radio {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-disabled);
+}
+.lintje-choice__input:disabled:checked ~ .lintje-choice__box {
+  background: var(--color-border-strong);
+}
+.lintje-choice__input:disabled:checked ~ .lintje-choice__radio::after {
+  background: var(--color-border-strong);
+}
+/* After the checked rule, so a disabled switch also loses its inset ring. */
+.lintje-choice__input:disabled ~ .lintje-choice__switch { background: var(--color-border-default); box-shadow: none; }
+
+/* --- Stacked in the filter sheet ----------------------------------------- */
+:host([stacked]) {
+  width: 100%;
+  --h-control: var(--h-touch);
+}
+
+/* --- Forced colours ------------------------------------------------------- */
+/* Fills and box-shadows are dropped: the dot, pill and knob keep their drawing in system
+   colours. The pill takes a 1 px border and gives up 1 px of its inset, so the knob's travel stays. */
+@media (forced-colors: active) {
+  .lintje-label__dot { forced-color-adjust: none; background: CanvasText; }
+
+  .lintje-choice__input:focus-visible ~ .lintje-choice__box,
+  .lintje-choice__input:focus-visible ~ .lintje-choice__radio,
+  .lintje-choice__input:focus-visible ~ .lintje-choice__switch { outline-color: Highlight; }
+
+  .lintje-choice__input:checked ~ .lintje-choice__box,
+  .lintje-choice__input:indeterminate ~ .lintje-choice__box,
+  .lintje-choice__input:checked ~ .lintje-choice__radio { border-color: Highlight; }
+  .lintje-choice__radio::after { forced-color-adjust: none; }
+  .lintje-choice__input:checked ~ .lintje-choice__radio::after { background: Highlight; }
+
+  .lintje-choice__switch { border: 1px solid CanvasText; padding: 1px; }
+  .lintje-choice__input:checked ~ .lintje-choice__switch { border-color: Highlight; }
+  .lintje-choice__knob { forced-color-adjust: none; background: CanvasText; }
+  .lintje-choice__input:checked ~ .lintje-choice__switch .lintje-choice__knob { background: Highlight; }
+
+  .lintje-choice__input:disabled ~ .lintje-choice__box,
+  .lintje-choice__input:disabled ~ .lintje-choice__radio,
+  .lintje-choice__input:disabled ~ .lintje-choice__switch { border-color: GrayText; }
+  .lintje-choice__input:disabled:checked ~ .lintje-choice__radio::after,
+  .lintje-choice__input:disabled ~ .lintje-choice__switch .lintje-choice__knob { background: GrayText; }
+  .lintje-choice.is-disabled { color: GrayText; }
+}

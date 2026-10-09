@@ -1,0 +1,43 @@
+/* One icon, drawn inline in the root that shows it: the glyph is the layout box. */
+.lintje-icon {
+  display: inline-flex;
+  flex: none;
+}
+/* A host-resolved SVG file, painted as a mask in the text color so nothing inside it runs. */
+.lintje-icon--file {
+  background-color: currentColor;
+}
+
+/* --- An icon that leads a line of text ----------------------------------- */
+/* One line high (`1lh`), so it stays on the first line of a wrapping title; centred on the line
+   box, where a 20 px glyph reads as level with the title. */
+.lintje-leading-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  align-self: start;
+  font: var(--text-tile-title);
+  height: 1.3em;
+  height: 1lh;
+  /* The gap is a margin, not a grid `column-gap`: an icon without a file draws nothing and a gap
+     would indent the title. */
+  margin-right: var(--space-2);
+  color: var(--color-text-primary);
+}
+/* An icon known to be absent draws nothing; the heading is then the heading without an icon. */
+.lintje-leading-icon:empty { display: none; }
+
+/* `transform-origin` is explicit: the initial value for an `<svg>` differs between contexts. */
+.lintje-icon--rotate-90,
+.lintje-icon--rotate-180,
+.lintje-icon--rotate-270,
+.lintje-icon--flip-x,
+.lintje-icon--flip-y {
+  transform-origin: 50% 50%;
+}
+.lintje-icon--rotate-90 { transform: rotate(90deg); }
+.lintje-icon--rotate-180 { transform: rotate(180deg); }
+.lintje-icon--rotate-270 { transform: rotate(270deg); }
+.lintje-icon--flip-x { transform: scaleX(-1); }
+.lintje-icon--flip-y { transform: scaleY(-1); }

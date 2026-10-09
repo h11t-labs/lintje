@@ -1,0 +1,94 @@
+/*
+ * The host is the avatar button's `--h-touch` box in the navigation bar; the menu is a fixed popover
+ * and takes no space. `inline`, it is a block at the bottom of the mobile navigation.
+ * `menu-button.css` is adopted beside this file: the rows are its `.lintje-menu__row`.
+ */
+:host { display: inline-flex; flex: none; vertical-align: middle; }
+:host([inline]) { display: block; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* The avatar and the chevron that says it opens a menu; at least `--h-touch` high. */
+.lintje-user-menu__trigger {
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--space-2);
+  min-width: var(--h-touch); height: var(--lintje-tool-height, var(--h-touch));
+  padding: 0 var(--space-3);
+  color: var(--color-nav-text);
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-user-menu__trigger:hover,
+.lintje-user-menu__trigger.is-open { background: var(--color-nav-hover); }
+
+.lintje-user-menu__avatar {
+  display: flex; align-items: center; justify-content: center;
+  flex: none;
+  width: 2rem; height: 2rem;
+  border-radius: var(--radius-round);
+  background: var(--color-nav-avatar-bg);
+  color: var(--color-nav-avatar-text);
+  font-size: 0.875rem; font-weight: 700;
+}
+
+.lintje-user-menu__panel {
+  width: 17.5rem;
+  max-width: 100%;
+  font: var(--text-ui);
+  color: var(--color-text-primary);
+}
+
+.lintje-user-menu__who {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-default);
+}
+.lintje-user-menu__names { min-width: 0; }
+.lintje-user-menu__name { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+.lintje-user-menu__role { margin: 0; font-size: 0.875rem; color: var(--color-text-muted); }
+
+.lintje-user-menu__group { display: flex; flex-direction: column; padding: var(--space-1) 0; }
+.lintje-user-menu__group--logout { border-top: 1px solid var(--color-border-default); }
+.lintje-user-menu__group:first-child.lintje-user-menu__group--logout { border-top: 0; }
+.lintje-user-menu__logout { display: flex; flex-direction: column; margin: 0; }
+.lintje-user-menu__logout-row { font-weight: 700; }
+
+.lintje-user-menu__version {
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--color-border-default);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.lintje-user-menu__panel.is-inline { width: 100%; color: var(--color-nav-text); }
+.lintje-user-menu__panel.is-inline .lintje-user-menu__who,
+.lintje-user-menu__panel.is-inline .lintje-user-menu__group--logout,
+.lintje-user-menu__panel.is-inline .lintje-user-menu__version { border-color: var(--color-nav-line); }
+.lintje-user-menu__panel.is-inline .lintje-user-menu__who { padding: var(--space-4) var(--space-5); }
+/* Small text on the theme fill takes the menu's own ink: the sub tint is 3.82:1 on #01689B. */
+.lintje-user-menu__panel.is-inline .lintje-user-menu__role,
+.lintje-user-menu__panel.is-inline .lintje-user-menu__version,
+.lintje-user-menu__panel.is-inline .lintje-menu__hint { color: var(--color-nav-text); }
+.lintje-user-menu__panel.is-inline .lintje-user-menu__version { padding: var(--space-2) var(--space-5); }
+.lintje-user-menu__panel.is-inline .lintje-menu__row {
+  height: var(--h-touch);
+  padding: 0 var(--space-5);
+  color: var(--color-nav-text);
+}
+.lintje-user-menu__panel.is-inline .lintje-menu__row:hover { background: var(--color-nav-hover); }
+.lintje-user-menu__panel.is-inline .lintje-menu__row.is-disabled,
+.lintje-user-menu__panel.is-inline .lintje-menu__row.is-disabled .lintje-menu__hint { color: var(--color-nav-disabled); }
+.lintje-user-menu__panel.is-inline .lintje-menu__separator { background: var(--color-nav-line); }
+
+/* On the theme fill the orange ring disappears: the on-theme ring, as the side menu. */
+.lintje-user-menu__trigger:focus-visible,
+.lintje-user-menu__panel.is-inline :focus-visible { outline-color: var(--color-focus-on-theme); }
+
+/* Forced colours: the open button keeps a Highlight edge, the avatar a CanvasText ring. */
+@media (forced-colors: active) {
+  .lintje-user-menu__trigger:focus-visible,
+  .lintje-user-menu__panel.is-inline :focus-visible { outline-color: Highlight; }
+  .lintje-user-menu__trigger.is-open:not(:focus-visible) { outline: 1px solid Highlight; outline-offset: -1px; }
+  .lintje-user-menu__avatar { border: 1px solid CanvasText; }
+}

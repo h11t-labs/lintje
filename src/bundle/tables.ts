@@ -1,0 +1,10 @@
+/** The tables category (Tabellen en lijsten): importing it defines its tags. */
+import '../components/tables/data-table/data-table'
+import '../components/tables/pagination/pagination'
+import '../components/tables/list/list'
+import '../components/tables/card/card'
+import '../components/tables/card-list/card-list'
+import '../components/tables/description-list/description-list'
+import '../components/tables/tree-view/tree-view'
+import '../components/tables/sortable-list/sortable-list'
+import '../components/tables/activity-log/activity-log'

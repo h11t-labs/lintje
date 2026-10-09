@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="nl" data-mode="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meldingen</title>
+    <!--
+      "Meldingen": a small application built from Lintje's elements, on a plain page. The
+      overview is the data table as a worksheet: cells edit in place, rows are chosen for a bulk
+      action, a report's title opens it in a drawer, columns filter, sort, hide and page. A new
+      report is registered in three steps (Melding → Opvolging → Controleren en versturen) and
+      lands in the table. The page plays the server. No framework, no bundler: the only scripts
+      are the built files this page uses — three categories and a handful of tags, not the whole
+      bundle — and `app.js`, so any static server rooted at the repository will do:
+
+        (npm run build:elements)
+        npm run dev    # or: python3 -m http.server --protocol HTTP/1.1, at the repo root
+        open http://localhost:5180/examples/meldingen/
+
+      The URL holds what can be shared: `?tab=open`, `?pagina=nieuw&stap=1|2|3`,
+      `?theme=<name>` and `?mode=dark`. The draft never goes into the URL:
+      `lintje-form` keeps it in localStorage, so it survives a reload. The demo states are listed
+      at the top of `app.js`.
+    -->
+    <link rel="stylesheet" href="../../src/tokens/fonts.css" />
+    <link rel="stylesheet" href="../../dist-elements/tokens.css" />
+    <style>
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        margin: 0;
+        background: var(--color-bg-page);
+        color: var(--color-text-primary);
+        font: var(--text-ui);
+        font-family: var(--font-ui);
+        font-variant-numeric: tabular-nums;
+        -webkit-font-smoothing: antialiased;
+      }
+      .panel {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-5);
+      }
+      .page {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-8);
+      }
+      /* The form and the summary beside it; the summary drops under the form when it no longer fits. */
+      .page__columns {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: var(--space-8);
+      }
+      .page__main {
+        flex: 999 1 560px;
+        min-width: 0;
+      }
+      .page__aside {
+        flex: 1 1 300px;
+        min-width: 0;
+      }
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-5);
+      }
+      .stack--wide {
+        gap: var(--space-8);
+      }
+      @media (max-width: 767px) {
+        .page,
+        .page__columns {
+          gap: var(--space-6);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <lintje-shell id="shell">
+      <lintje-page-header slot="header" id="page-header">
+        <lintje-breadcrumbs slot="breadcrumbs" id="crumbs"></lintje-breadcrumbs>
+        <lintje-menu-button slot="actions" id="export" label="Exporteren" variant="secondary" placement="bottom-end"></lintje-menu-button>
+        <lintje-button slot="actions" id="new" variant="primary" icon="functioneel-plus">Nieuwe melding</lintje-button>
+      </lintje-page-header>
+      <div id="overview" class="stack">
+        <lintje-announcement id="draft" hidden>
+          <lintje-button slot="action" id="draft-continue" variant="secondary" size="compact">Verder met het concept</lintje-button>
+        </lintje-announcement>
+        <lintje-tabs id="tabs" label="Meldingen per status">
+          <div class="panel" id="panel">
+            <lintje-data-table id="table" plain></lintje-data-table>
+          </div>
+        </lintje-tabs>
+      </div>
+      <div id="new-report" class="page" hidden></div>
+    </lintje-shell>
+
+    <lintje-drawer id="drawer" heading="Melding">
+      <lintje-form id="edit">
+        <lintje-description-list id="facts"></lintje-description-list>
+        <lintje-text-input name="title" label="Titel" commit="input"></lintje-text-input>
+        <lintje-select name="category" label="Categorie"></lintje-select>
+        <lintje-select name="severity" label="Ernst"></lintje-select>
+        <lintje-select name="status" label="Status"></lintje-select>
+        <lintje-select name="owner" label="Behandelaar"></lintje-select>
+        <lintje-textarea name="note" label="Notitie" optional maxlength="500" commit="input"></lintje-textarea>
+      </lintje-form>
+      <lintje-button slot="footer" variant="tertiary" id="drawer-cancel">Annuleren</lintje-button>
+      <lintje-button slot="footer" variant="primary" id="drawer-save">Opslaan</lintje-button>
+    </lintje-drawer>
+
+    <lintje-confirm-dialog id="confirm" confirm-label="Verwijderen"></lintje-confirm-dialog>
+    <lintje-confirm-dialog id="discard" heading="Wijzigingen weggooien?" confirm-label="Weggooien" cancel-label="Verder bewerken">
+      Je hebt deze melding gewijzigd en nog niet opgeslagen.
+    </lintje-confirm-dialog>
+    <lintje-confirm-dialog
+      id="leave"
+      tone="primary"
+      heading="Wijzigingen niet opgeslagen"
+      action-label="Weggooien"
+      cancel-label="Hier blijven"
+      confirm-label="Concept opslaan"
+    >
+      Je verlaat dit formulier. Wil je het concept bewaren?
+    </lintje-confirm-dialog>
+    <lintje-app-search id="search" label="Zoeken in Meldingen"></lintje-app-search>
+    <lintje-shortcuts id="shortcuts"></lintje-shortcuts>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

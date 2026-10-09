@@ -1,0 +1,10 @@
+/** The content category (Tekst en media): importing it defines its tags. */
+import '../components/content/prose/prose'
+import '../components/content/code/code'
+import '../components/content/highlight/highlight'
+import '../components/content/translator/translator'
+import '../components/content/audio-player/audio-player'
+import '../components/content/video-player/video-player'
+import '../components/content/transcript/transcript'
+import '../components/content/document-viewer/document-viewer'
+import '../components/content/gallery/gallery'

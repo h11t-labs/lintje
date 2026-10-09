@@ -1,0 +1,794 @@
+/* ============================================================================
+   Lintje — design tokens
+
+   Colour is in three groups: themable UI colour (a theme sets only `--primary` and `--accent`, in
+   `themes.css`), fixed data colour (`--data-*`, identical in every
+   mode and theme except the two grays) and fixed status colour (`--status-*`).
+
+   Three layers, one direction: component -> semantic (`--color-*`) -> primitives. Only the
+   primitive blocks may hold a colour literal. To change a colour in one mode, re-point the
+   layer-2 name inside `[data-mode='dark']`.
+
+   `color-mix(in srgb, …)` and the relative `oklch(from …)` need Chrome/Edge 122+, Firefox 128+
+   or Safari 18+;
+   `colour-scheme.test.ts` repeats the arithmetic. The `@font-face` rules live in `fonts.css`:
+   they cannot work inside a shadow root.
+   ========================================================================= */
+
+/* ============================================================================
+   Layer 1 — primitives (the only literals)
+   ========================================================================= */
+:root {
+  /* --- Neutral (light). The one mode-dependent primitive family ----------
+     Neutral-5 is the cool-grey step 600, not 500, because it carries muted TEXT:
+     #64748B is 4.34:1 on neutral-2, #475569 is 6.92:1. */
+  --neutral-0: #FFFFFF;
+  --neutral-1: #F8FAFC;
+  --neutral-2: #F1F5F9;
+  --neutral-3: #E2E8F0;
+  --neutral-4: #94A3B8;
+  --neutral-5: #475569;
+  --neutral-6: #0F172A;
+
+  /* --- Fixed ink ---------------------------------------------------------
+     The same in both modes because it sits on a fill, not on the page. */
+  --ink-white: #FFFFFF;
+  --ink-black: #0F172A;
+  --alpha-white-82: rgba(255, 255, 255, 0.82);
+  --alpha-white-45: rgba(255, 255, 255, 0.45);
+
+  /* --- Focus -------------------------------------------------------------
+     Its own constant: it must not move with the accent or the attention status. */
+  --focus-orange: #E17000;
+
+  /* --- The ribbon --------------------------------------------------------
+     Lintblauw, and the Rijkshuisstijl's own lighter tint for the ribbon in the logo in dark. */
+  --ribbon-blue: #154273;
+  --ribbon-blue-dark: #004A8D;
+
+  /* --- Data (fixed Rijkshuisstijl, identical in light, dark and every theme)
+     The two grays follow the mode: as fixed literals the comparison line landed at 2.69:1
+     on the dark surface. Light #475569 / #94A3B8, dark #B0B0B0 / #7A7A7A. The variables
+     stand in the order of `tokens/colors.ts`, the one list of their names. */
+  --data-sky-blue: #007BC7;
+  --data-dark-yellow: #FFB612;
+  --data-red: #D52B1E;
+  --data-green: #39870C;
+  --data-mint-green: #76D2B6;
+  --data-violet: #A90061;
+  --data-orange: #E17000;
+  --data-pink: #F092CD;
+  --data-dark-green: #275937;
+  --data-purple: #42145F;
+  --data-ruby-red: #CA005D;
+  --data-yellow: #F9E11E;
+  --data-dark-brown: #673328;
+  --data-brown: #94710A;
+  --data-dark-blue: #01689B;
+  --data-light-blue: #8FCAE7;
+  --data-moss-green: #777B00;
+  /* Sky blue's ladder is written out: the map's areas draw in from the land to these classes,
+     and Chromium interpolates a `color-mix()` target wrongly (the land's RGB numbers taken as
+     oklab), so the areas flash yellow. The values are its mix with white; the test checks. */
+  --data-sky-blue-75: #409CD5;
+  --data-sky-blue-60: #66B0DD;
+  --data-sky-blue-45: #8CC4E6;
+  --data-sky-blue-30: #B2D7EE;
+  --data-sky-blue-15: #D9EBF7;
+  --data-comparison: var(--neutral-5);
+  --data-other: var(--neutral-4);
+  /* Yellow as TEXT fails contrast on white: light writes a wait time in this dark gold. */
+  --data-dark-yellow-text: #B07A00;
+  /* Grid and emphasis follow the surface, like the two grays. */
+  --data-grid: var(--neutral-3);
+  --data-emphasis: var(--neutral-6);
+
+  /* --- Status (fixed) ---------------------------------------------------- */
+  --status-success: #39870C;
+  --status-warning: #FFB612;
+  --status-attention: #E17000;
+  --status-error: #D52B1E;
+  --status-info: #007BC7;
+
+  /* Black at the alphas the shadows and overlays use; the digits are the alpha in percent. */
+  --alpha-black-08: rgba(0, 0, 0, 0.08);
+  --alpha-black-14: rgba(0, 0, 0, 0.14);
+  --alpha-black-16: rgba(0, 0, 0, 0.16);
+  --alpha-black-18: rgba(0, 0, 0, 0.18);
+  --alpha-black-22: rgba(0, 0, 0, 0.22);
+  --alpha-black-40: rgba(0, 0, 0, 0.4);
+  --alpha-black-55: rgba(0, 0, 0, 0.55);
+  --alpha-black-60: rgba(0, 0, 0, 0.6);
+}
+
+/* ============================================================================
+   Layer 1 — derivations
+
+   Mixes of the primitives and of the theme's two properties. The tint ladder is 75 / 60 / 45
+   / 30 / 15 % of the base over white; every data colour carries the complete ladder.
+   ========================================================================= */
+:root {
+  /* Darker than the primary in light: a lighter fill under white text lost contrast (2.80:1 on
+     orange). The dark block re-declares it lighter. */
+  --primary-hover: color-mix(in srgb, var(--primary), black 30%);
+  --primary-line: color-mix(in srgb, var(--primary), white 22%);
+  /* The dark tints lift only the perceived lightness, so they keep the primary's colour; a mix
+     with white greys it. Each lightness is the smallest hundredth that clears its floor in every
+     theme: 3:1 on #282828 for a line, 4.5:1 on #333333 (neutral-2), the lightest neutral
+     surface a word stands on, for text. A primary that is lighter already keeps its own. */
+  --primary-tint: oklch(from var(--primary) max(l, 0.55) c h);
+  --primary-tint-text: oklch(from var(--primary) max(l, 0.71) c h);
+  /* A wash behind a word or under a band, never a colour that reads by itself. Fixed in
+     perceived lightness, so it is equally light in every theme and keeps the primary's hue; an
+     sRGB mix with white greys a dark primary. The chroma cap keeps every theme inside sRGB. */
+  --primary-wash: oklch(from var(--primary) 0.955 min(c, 0.02) h);
+
+  --data-dark-yellow-75: color-mix(in srgb, var(--data-dark-yellow) 75%, white);
+  --data-dark-yellow-60: color-mix(in srgb, var(--data-dark-yellow) 60%, white);
+  --data-dark-yellow-45: color-mix(in srgb, var(--data-dark-yellow) 45%, white);
+  --data-dark-yellow-30: color-mix(in srgb, var(--data-dark-yellow) 30%, white);
+  --data-dark-yellow-15: color-mix(in srgb, var(--data-dark-yellow) 15%, white);
+
+  --data-red-75: color-mix(in srgb, var(--data-red) 75%, white);
+  --data-red-60: color-mix(in srgb, var(--data-red) 60%, white);
+  --data-red-45: color-mix(in srgb, var(--data-red) 45%, white);
+  --data-red-30: color-mix(in srgb, var(--data-red) 30%, white);
+  --data-red-15: color-mix(in srgb, var(--data-red) 15%, white);
+
+  --data-green-75: color-mix(in srgb, var(--data-green) 75%, white);
+  --data-green-60: color-mix(in srgb, var(--data-green) 60%, white);
+  --data-green-45: color-mix(in srgb, var(--data-green) 45%, white);
+  --data-green-30: color-mix(in srgb, var(--data-green) 30%, white);
+  --data-green-15: color-mix(in srgb, var(--data-green) 15%, white);
+
+  --data-mint-green-75: color-mix(in srgb, var(--data-mint-green) 75%, white);
+  --data-mint-green-60: color-mix(in srgb, var(--data-mint-green) 60%, white);
+  --data-mint-green-45: color-mix(in srgb, var(--data-mint-green) 45%, white);
+  --data-mint-green-30: color-mix(in srgb, var(--data-mint-green) 30%, white);
+  --data-mint-green-15: color-mix(in srgb, var(--data-mint-green) 15%, white);
+
+  --data-violet-75: color-mix(in srgb, var(--data-violet) 75%, white);
+  --data-violet-60: color-mix(in srgb, var(--data-violet) 60%, white);
+  --data-violet-45: color-mix(in srgb, var(--data-violet) 45%, white);
+  --data-violet-30: color-mix(in srgb, var(--data-violet) 30%, white);
+  --data-violet-15: color-mix(in srgb, var(--data-violet) 15%, white);
+
+  --data-orange-75: color-mix(in srgb, var(--data-orange) 75%, white);
+  --data-orange-60: color-mix(in srgb, var(--data-orange) 60%, white);
+  --data-orange-45: color-mix(in srgb, var(--data-orange) 45%, white);
+  --data-orange-30: color-mix(in srgb, var(--data-orange) 30%, white);
+  --data-orange-15: color-mix(in srgb, var(--data-orange) 15%, white);
+
+  --data-pink-75: color-mix(in srgb, var(--data-pink) 75%, white);
+  --data-pink-60: color-mix(in srgb, var(--data-pink) 60%, white);
+  --data-pink-45: color-mix(in srgb, var(--data-pink) 45%, white);
+  --data-pink-30: color-mix(in srgb, var(--data-pink) 30%, white);
+  --data-pink-15: color-mix(in srgb, var(--data-pink) 15%, white);
+
+  --data-dark-green-75: color-mix(in srgb, var(--data-dark-green) 75%, white);
+  --data-dark-green-60: color-mix(in srgb, var(--data-dark-green) 60%, white);
+  --data-dark-green-45: color-mix(in srgb, var(--data-dark-green) 45%, white);
+  --data-dark-green-30: color-mix(in srgb, var(--data-dark-green) 30%, white);
+  --data-dark-green-15: color-mix(in srgb, var(--data-dark-green) 15%, white);
+
+  --data-purple-75: color-mix(in srgb, var(--data-purple) 75%, white);
+  --data-purple-60: color-mix(in srgb, var(--data-purple) 60%, white);
+  --data-purple-45: color-mix(in srgb, var(--data-purple) 45%, white);
+  --data-purple-30: color-mix(in srgb, var(--data-purple) 30%, white);
+  --data-purple-15: color-mix(in srgb, var(--data-purple) 15%, white);
+
+  --data-ruby-red-75: color-mix(in srgb, var(--data-ruby-red) 75%, white);
+  --data-ruby-red-60: color-mix(in srgb, var(--data-ruby-red) 60%, white);
+  --data-ruby-red-45: color-mix(in srgb, var(--data-ruby-red) 45%, white);
+  --data-ruby-red-30: color-mix(in srgb, var(--data-ruby-red) 30%, white);
+  --data-ruby-red-15: color-mix(in srgb, var(--data-ruby-red) 15%, white);
+
+  --data-yellow-75: color-mix(in srgb, var(--data-yellow) 75%, white);
+  --data-yellow-60: color-mix(in srgb, var(--data-yellow) 60%, white);
+  --data-yellow-45: color-mix(in srgb, var(--data-yellow) 45%, white);
+  --data-yellow-30: color-mix(in srgb, var(--data-yellow) 30%, white);
+  --data-yellow-15: color-mix(in srgb, var(--data-yellow) 15%, white);
+
+  --data-dark-brown-75: color-mix(in srgb, var(--data-dark-brown) 75%, white);
+  --data-dark-brown-60: color-mix(in srgb, var(--data-dark-brown) 60%, white);
+  --data-dark-brown-45: color-mix(in srgb, var(--data-dark-brown) 45%, white);
+  --data-dark-brown-30: color-mix(in srgb, var(--data-dark-brown) 30%, white);
+  --data-dark-brown-15: color-mix(in srgb, var(--data-dark-brown) 15%, white);
+
+  --data-brown-75: color-mix(in srgb, var(--data-brown) 75%, white);
+  --data-brown-60: color-mix(in srgb, var(--data-brown) 60%, white);
+  --data-brown-45: color-mix(in srgb, var(--data-brown) 45%, white);
+  --data-brown-30: color-mix(in srgb, var(--data-brown) 30%, white);
+  --data-brown-15: color-mix(in srgb, var(--data-brown) 15%, white);
+
+  --data-dark-blue-75: color-mix(in srgb, var(--data-dark-blue) 75%, white);
+  --data-dark-blue-60: color-mix(in srgb, var(--data-dark-blue) 60%, white);
+  --data-dark-blue-45: color-mix(in srgb, var(--data-dark-blue) 45%, white);
+  --data-dark-blue-30: color-mix(in srgb, var(--data-dark-blue) 30%, white);
+  --data-dark-blue-15: color-mix(in srgb, var(--data-dark-blue) 15%, white);
+
+  --data-light-blue-75: color-mix(in srgb, var(--data-light-blue) 75%, white);
+  --data-light-blue-60: color-mix(in srgb, var(--data-light-blue) 60%, white);
+  --data-light-blue-45: color-mix(in srgb, var(--data-light-blue) 45%, white);
+  --data-light-blue-30: color-mix(in srgb, var(--data-light-blue) 30%, white);
+  --data-light-blue-15: color-mix(in srgb, var(--data-light-blue) 15%, white);
+
+  --data-moss-green-75: color-mix(in srgb, var(--data-moss-green) 75%, white);
+  --data-moss-green-60: color-mix(in srgb, var(--data-moss-green) 60%, white);
+  --data-moss-green-45: color-mix(in srgb, var(--data-moss-green) 45%, white);
+  --data-moss-green-30: color-mix(in srgb, var(--data-moss-green) 30%, white);
+  --data-moss-green-15: color-mix(in srgb, var(--data-moss-green) 15%, white);
+
+  /* 15 % of the status colour over the surface, so one declaration covers both modes. */
+  --status-success-bg: color-mix(in srgb, var(--status-success) 15%, var(--neutral-0));
+  --status-warning-bg: color-mix(in srgb, var(--status-warning) 15%, var(--neutral-0));
+  --status-attention-bg: color-mix(in srgb, var(--status-attention) 15%, var(--neutral-0));
+  --status-error-bg: color-mix(in srgb, var(--status-error) 15%, var(--neutral-0));
+  --status-info-bg: color-mix(in srgb, var(--status-info) 15%, var(--neutral-0));
+}
+
+/* ============================================================================
+   Layers 2 and 3 — semantic and component tokens (light)
+
+   No colour literal below this line.
+   ========================================================================= */
+:root {
+  /* --- Typography -------------------------------------------------------- */
+  --font-ui: 'RijksSans', 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Source Code Pro', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-dashboard: 700 1.25rem/1.2 var(--font-ui);
+  --text-h1: 700 1.75rem/1.2 var(--font-ui);
+  --text-h1-mobile: 700 1.5rem/1.15 var(--font-ui);
+  --text-h1-display: 700 2.5rem/1.1 var(--font-ui);
+  --text-h2: 700 1.25rem/1.25 var(--font-ui);
+  --text-tile-title: 700 1rem/1.3 var(--font-ui);
+  --text-tile-sub: 400 0.875rem/1.35 var(--font-ui);
+  --text-kpi: 700 2rem/1.1 var(--font-ui);
+  --text-kpi-mobile: 700 1.5rem/1.1 var(--font-ui);
+  --text-kpi-secondary: 700 1.25rem/1.1 var(--font-ui);
+  --text-body: 400 1rem/1.5 var(--font-ui);
+  /* The text being translated and its translation: larger than body, read at a glance. */
+  --text-translation: 400 1.25rem/1.5 var(--font-ui);
+  --text-ui: 400 1rem/1.4 var(--font-ui);
+  --text-small: 400 0.875rem/1.45 var(--font-ui);
+  --text-meta: 400 0.875rem/1.4 var(--font-ui);
+  --text-table: 400 1rem/1.4 var(--font-ui);
+  --text-table-head: 700 0.875rem/1.3 var(--font-ui);
+  --text-axis: 400 0.75rem/1.2 var(--font-ui);
+
+  --label-size: 0.875rem;
+  --label-weight: 700;
+  --label-tracking: 0.08em;
+  --kpi-tracking: -0.02em;
+
+  /* --- Spacing (4 px scale) --------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* --- Component sizes --------------------------------------------------- */
+  --h-topbar: 3.5rem;
+  --h-contextbar: 3rem;
+  --h-mobile-header: 4.5rem;
+  --h-control: 3rem;
+  --h-button: 3rem;
+  --h-button-compact: 2.5rem;
+  --h-button-chrome: 2.5rem;
+  --h-icon-button: 2.5rem;
+  --h-chip: 2rem;
+  --h-chip-field: 1.75rem;
+  --h-nav-row: 3rem;
+  --h-nav-head: 6.5rem;
+  --h-table-row: 3rem;
+  --h-touch: 3rem;
+  /* The smallest pointer target. A box that draws smaller reaches it through a
+     transparent hit area (`::after`, negative inset). */
+  --h-target: 3rem;
+  /* A link in a list of text links: one line of text, the WCAG AA floor, as on rijksoverheid.nl. */
+  --h-target-text: 1.5rem;
+  /* The two dense exceptions to the target: a date picker day cell and a listbox option row. */
+  --h-option: 2.5rem;
+
+  --w-nav: 288px;
+  --w-rail: 72px;
+  --w-text: 760px;
+  --w-message: 560px;
+  /* A language choice in the translator's bar. */
+  --w-translator-language: 18rem;
+  /* The widest the page's content gets. A host sets `--lintje-content-width` to change it. */
+  --w-content: 1360px;
+  --nav-edge: 4px;
+  /* The ribbon is the unit: 48 px, 40 on a phone. Both bars are in rem, so they grow with the
+     reader's text size. */
+  --w-ribbon: 3rem;
+  --h-logobar: calc(2.5 * var(--w-ribbon));
+  /* The top bar's height: what pins under the bar measures `--h-topbar`. */
+  --h-navbar: var(--h-topbar);
+  /* How far what follows the hero stands over its band's lower edge. */
+  --hero-overlap: var(--space-10);
+  /* The widest the picture beside the hero's text gets: four of the twelve columns at 1440. */
+  --w-hero-aside: 400px;
+  /* The narrowest a card gets in a card list before the list drops a column. */
+  --w-card: 320px;
+  /* The same for a horizontal card, whose picture takes a column of its own. */
+  --w-card-wide: 480px;
+  --w-card-media: 200px;
+  --w-card-logo: 3.5rem;
+  --w-card-logo-wide: 5rem;
+  /* The narrowest thumbnail under a gallery's large picture. */
+  --w-gallery-thumb: 120px;
+  /* The narrowest column of links in a footer before the columns stand under each other. */
+  --w-footer-column: 220px;
+
+  --page-pad-y: 32px;
+  --page-pad-x: 24px;
+  /* What a full-width bar or the content adds to its side padding so what stands in it keeps to
+     `--w-content`; the percentage is taken of the box the bar stands in. */
+  --page-gutter: max(
+    0px,
+    calc((100% - var(--lintje-content-width, var(--w-content)) - 2 * var(--page-pad-x)) / 2)
+  );
+  --grid-gutter: 24px;
+  --tile-pad-y: 20px;
+  --tile-pad-x: 24px;
+  --chart-h-main: 260px;
+  --chart-h-small: 180px;
+  --chart-h-expanded: 560px;
+
+  /* Sticky context = top bar + summary bar. */
+  --h-sticky: calc(var(--h-topbar) + var(--h-contextbar));
+
+  --radius: 0px;
+  --radius-round: 50%;
+
+  --shadow-sticky: 0 2px 6px var(--alpha-black-08);
+  --shadow-popover: 0 4px 16px var(--alpha-black-14);
+  --shadow-nav: 2px 0 8px var(--alpha-black-08);
+  --shadow-chart-hover: 0 1px 4px var(--alpha-black-22);
+  --shadow-scroll-start: inset 12px 0 10px -10px var(--alpha-black-18);
+  --shadow-scroll-end: inset -12px 0 10px -10px var(--alpha-black-18);
+
+  --color-overlay-page: var(--alpha-black-60);
+  --color-overlay-nav: var(--alpha-black-16);
+
+  --focus-width: 3px;
+  --focus-offset: 2px;
+
+  /* --- Motion ------------------------------------------------------------ */
+  /* `@kind other` marks these for design tooling as neither colors, sizes nor type; the library
+     CSS ships unminified so the notes reach it. */
+  --ease-in-motion: cubic-bezier(0.2, 0, 0, 1); /* @kind other */
+  --ease-out-motion: cubic-bezier(0.4, 0, 1, 1); /* @kind other */
+  --dur-base: 200ms; /* @kind other */
+  --dur-hover: 120ms; /* @kind other */
+  --dur-popover: var(--dur-base); /* @kind other */
+  --dur-submenu: 300ms; /* @kind other */
+  --dur-toast: var(--dur-base); /* @kind other */
+  --dur-scrim: var(--dur-base); /* @kind other */
+  --dur-rail: var(--dur-base); /* @kind other */
+  --dur-collapse: var(--dur-base); /* @kind other */
+  --dur-modal: var(--dur-base); /* @kind other */
+  --dur-sheet: var(--dur-base); /* @kind other */
+  --dur-kpi: var(--dur-base); /* @kind other */
+  --dur-badge: 300ms; /* @kind other */
+  --dur-draw: 900ms; /* @kind other */
+  --dur-data-label: 300ms; /* @kind other */
+  --dur-skeleton: 1200ms; /* @kind other */
+  --dur-wave: 600ms; /* @kind other */
+
+  /* --- Semantic: surfaces ------------------------------------------------ */
+  --color-bg-page: var(--neutral-1);
+  --color-bg-surface: var(--neutral-0);
+  --color-bg-subtle: var(--neutral-2);
+  --color-bg-title: var(--neutral-1);
+  /* Between steps 2 and 3: on the cool-grey ramp neutral-2 sits too close to the page to read
+     as a band. */
+  --color-bg-filter: color-mix(in srgb, var(--neutral-2), var(--neutral-3));
+  --color-bg-selected: var(--neutral-2);
+  --color-bg-inset: var(--neutral-2);
+
+  /* --- Semantic: text ---------------------------------------------------- */
+  --color-text-primary: var(--neutral-6);
+  --color-text-secondary: var(--neutral-6);
+  --color-text-muted: var(--neutral-5);
+  --color-text-inverse: var(--neutral-0);
+  --color-text-disabled: var(--neutral-4);
+  /* A placeholder must stay readable: 4.5:1 on the surface in both modes. */
+  --color-text-placeholder: var(--neutral-5);
+  --color-text-on-fill: var(--ink-white);
+  --color-text-on-light-fill: var(--ink-black);
+  --color-qr-bg: var(--ink-white);
+  --color-qr-fg: var(--ink-black);
+
+  /* --- Semantic: borders ------------------------------------------------- */
+  --color-border-default: var(--neutral-3);
+  --color-border-strong: var(--neutral-3);
+  --color-border-filter: var(--neutral-3);
+  --color-border-heavy: var(--neutral-4);
+  /* The resting edge of a field box: 3:1 (WCAG 1.4.11) on the surface and the filter band. */
+  --color-border-field: var(--neutral-5);
+  /* The 2 px edge of a checkbox and a radio: 3:1 on the surface; dark re-points it. */
+  --color-border-choice: var(--neutral-5);
+  /* In dark a sheet is the same #282828 as the tile under it, so this line separates them. */
+  --color-border-popover: var(--neutral-3);
+  /* A DASHED outline (a suggestion, an uncertain term): neutral-5, because a dashed line has half
+     the ink of a solid one and must still reach 3:1. */
+  --color-border-suggestion: var(--neutral-5);
+
+  /* --- Semantic: action -------------------------------------------------- */
+  --color-action-primary: var(--primary);
+  --color-action-primary-hover: var(--primary-hover);
+  --color-action-primary-text: var(--ink-white);
+  /* A primary fill in dark is a dark box on a dark page (WCAG 1.4.11): it gets a tint border. */
+  --color-action-primary-border: var(--primary);
+  --color-action-secondary-border: var(--primary);
+  /* The destructive fill: the error red, white text on it (5.01:1). Hover is darker in light,
+     lighter in dark. In dark the border is a tint, because #D52B1E is 2.94:1 on #282828. */
+  --color-action-danger: var(--status-error);
+  --color-action-danger-hover: color-mix(in srgb, var(--status-error), black 30%);
+  --color-action-danger-border: var(--status-error);
+  /* The word of the outlined danger button; dark re-points it (the red is 2.94:1 on #282828). */
+  --color-action-danger-text: var(--status-error);
+  --color-link: var(--primary);
+  --color-link-hover: var(--primary-hover);
+  /* A link on a status background: in dark no tint of the primary reaches 4.5:1 there, so it
+     reads in the text colour. It is bold and underlined, so colour never carried it alone. */
+  --color-link-on-status: var(--primary);
+
+  /* The accent splits in three, because a fill, a line and a word have different floors:
+     fill (the primary), line (non-text, 3:1: `--primary-tint` in dark) and text (4.5:1:
+     `--primary-tint-text` in dark). A word in the line token fails: it is sized for 3:1. */
+  --color-accent: var(--primary);
+  --color-accent-line: var(--primary);
+  --color-accent-text: var(--primary);
+
+  --color-focus: var(--focus-orange);
+
+  /* --- Semantic: status -------------------------------------------------- */
+  --color-attention: var(--status-attention);
+  --color-success: var(--status-success);
+  --color-warning: var(--status-warning);
+  --color-error: var(--status-error);
+  --color-info: var(--status-info);
+
+  --color-warning-bg: var(--status-warning-bg);
+  --color-attention-bg: var(--status-attention-bg);
+  --color-error-bg: var(--status-error-bg);
+  --color-info-bg: var(--status-info-bg);
+  --color-success-bg: var(--status-success-bg);
+
+  /* A status mark on its own tint: the status colour, nudged to 3:1 where it falls short. */
+  --color-attention-line: color-mix(in srgb, var(--status-attention), black 10%);
+  --color-error-line: var(--status-error);
+  --color-info-line: var(--status-info);
+  --color-success-line: var(--status-success);
+  /* A status WORD at 4.5:1 on the surface and on `--color-bg-subtle`: the red itself, the green
+     5 % darker (4.13:1 on neutral-2); dark lifts both. A glyph or an edge keeps the line token. */
+  --color-error-text: var(--status-error);
+  --color-success-text: color-mix(in srgb, var(--status-success), black 5%);
+
+  /* --- Navigation (the theme fill; neutral in dark) ---------------------- */
+  --color-nav-bg: var(--primary);
+  --color-nav-text: var(--ink-white);
+  --color-nav-text-sub: var(--alpha-white-82);
+  --color-nav-hover: var(--primary-hover);
+  --color-nav-active: var(--primary-hover);
+  --color-nav-active-edge: var(--ink-white);
+  --color-nav-active-text: var(--ink-white);
+  --color-nav-line: var(--primary-line);
+  --color-nav-disabled: var(--alpha-white-45);
+  --color-nav-badge-bg: var(--status-error);
+  --color-nav-badge-text: var(--ink-white);
+  /* The avatar is white with black initials wherever it stands, in both modes. */
+  --color-nav-avatar-bg: var(--ink-white);
+  --color-nav-avatar-text: var(--ink-black);
+  /* Orange fails on the theme fill (1.89:1 on #01689B, 1:1 on #E17000); white reaches 3:1 on
+     all six primaries. Dark re-points it to the orange. */
+  --color-focus-on-theme: var(--ink-white);
+  /* The theme's ACCENT, not the attention status: on `defensie` the menu is `#E17000` and the
+     status colour made the band disappear. `--accent` is document level only. */
+  --color-nav-environment-bg: var(--accent);
+  --color-nav-environment-text: var(--color-text-on-fill);
+  /* The page's surface in both modes. The navigation bar under it is the menu turned a quarter,
+     on `--color-nav-*`. */
+  --color-logobar-bg: var(--color-bg-surface);
+  --color-logobar-text: var(--color-text-primary);
+  /* The ribbon in the emblem; only the logo re-points it in dark, never lintblauw elsewhere. */
+  --color-logo-ribbon: var(--ribbon-blue);
+  /* What marks an entry in that bar. They name the primitives, never `--color-nav-*`: the bar
+     points those at these, and the two would refer to each other. */
+  --color-navbar-hover: var(--primary-hover);
+  --color-navbar-active: var(--primary-hover);
+  --color-navbar-active-edge: var(--ink-white);
+  --color-navbar-open-text: var(--color-accent-text);
+  /* The start page's band is the primary's wash, so it never reads as the menu. The orange ring
+     misses 3:1 on it; the ring takes the text colour. */
+  --color-hero-bg: var(--primary-wash);
+  --color-hero-text: var(--color-text-primary);
+  --color-hero-focus: var(--color-text-primary);
+  /* The site's foot stands on the menu's own fill, as on rijksoverheid.nl; in dark it follows the menu. */
+  --color-footer-bg: var(--color-nav-bg);
+  --color-footer-text: var(--color-nav-text);
+  --color-footer-line: var(--color-nav-line);
+  --color-footer-focus: var(--color-focus-on-theme);
+
+  /* The box behind a recognised term: the primary's wash; dark re-points it. */
+  --color-term-bg: var(--primary-wash);
+  /* The chosen option of a row of options: the primary's wash; dark re-points it. */
+  --color-choice-active-bg: var(--primary-wash);
+  /* The 2 px line under a term; dark takes the text tint, as the line tint falls short on it. */
+  --color-term-line: var(--color-accent-line);
+
+  /* --- Data colors ------------------------------------------------------- */
+  /* One colour per variable, named after the Rijkshuisstijl colour. */
+  --color-chart-sky-blue: var(--data-sky-blue);
+  --color-chart-dark-yellow: var(--data-dark-yellow);
+  --color-chart-dark-yellow-text: var(--data-dark-yellow-text);
+  --color-chart-red: var(--data-red);
+  --color-chart-green: var(--data-green);
+  --color-chart-mint-green: var(--data-mint-green);
+  --color-chart-violet: var(--data-violet);
+  --color-chart-orange: var(--data-orange);
+  --color-chart-pink: var(--data-pink);
+  --color-chart-dark-green: var(--data-dark-green);
+  --color-chart-purple: var(--data-purple);
+  --color-chart-ruby-red: var(--data-ruby-red);
+  --color-chart-yellow: var(--data-yellow);
+  --color-chart-dark-brown: var(--data-dark-brown);
+  --color-chart-brown: var(--data-brown);
+  --color-chart-dark-blue: var(--data-dark-blue);
+  --color-chart-light-blue: var(--data-light-blue);
+  --color-chart-moss-green: var(--data-moss-green);
+  --color-chart-secondary: var(--data-comparison); /* comparison, context */
+  --color-chart-other: var(--data-other);          /* "Overig" */
+  --color-chart-remainder: var(--neutral-3);       /* the rest of a whole, e.g. a donut's open part */
+  --color-chart-emphasis: var(--data-emphasis);    /* trend, threshold, target */
+  --color-chart-grid: var(--data-grid);
+  --color-chart-axis: var(--neutral-5);
+  /* The zero line (darker than the grid) and the hatch of missing data carry meaning, so they
+     reach 3:1 on the surface: a fifth of the way from neutral-4 to neutral-5 (3.1:1; 4.0:1 dark). */
+  --color-chart-zero: color-mix(in srgb, var(--neutral-5) 20%, var(--neutral-4));
+  --color-chart-hatch: color-mix(in srgb, var(--neutral-5) 20%, var(--neutral-4));
+  /* A speaker's colour under a whole fragment: this share of it over the surface, so text keeps
+     its contrast in light and in dark. */
+  --tint-speaker: 12%;
+
+  /* These map colours stay deliberately neutral so the data is the only colour on the map. */
+  --color-map-water: var(--neutral-0);
+  --color-map-land: var(--neutral-2);
+  --color-map-border: var(--neutral-4);
+  /* An area with a figure: 3:1 against the land and the lightest class, which are 1.1:1 apart. */
+  --color-map-border-data: var(--neutral-5);
+
+  /* The variable a figure draws when its data names none: the first colour of the list, the
+     same decision as `DEFAULT_SERIES_COLOR` in `charts/shared/colors.ts`. */
+  --color-chart-default: var(--color-chart-sky-blue);
+
+  /* Subdivision of one variable: its colour in its tint ladder, strongest first, on the steps
+     100 / 75 / 60 / 45 / 30. Every colour carries its ladder, so a figure that brings a colour
+     brings its tints: a renderer names `--color-chart-<colour>` and
+     `--color-chart-<colour>-tint-N`, never a --data-* colour. */
+  --color-chart-sky-blue-tint-2: var(--data-sky-blue-75);
+  --color-chart-sky-blue-tint-3: var(--data-sky-blue-60);
+  --color-chart-sky-blue-tint-4: var(--data-sky-blue-45);
+  --color-chart-sky-blue-tint-5: var(--data-sky-blue-30);
+
+  --color-chart-dark-yellow-tint-2: var(--data-dark-yellow-75);
+  --color-chart-dark-yellow-tint-3: var(--data-dark-yellow-60);
+  --color-chart-dark-yellow-tint-4: var(--data-dark-yellow-45);
+  --color-chart-dark-yellow-tint-5: var(--data-dark-yellow-30);
+
+  --color-chart-red-tint-2: var(--data-red-75);
+  --color-chart-red-tint-3: var(--data-red-60);
+  --color-chart-red-tint-4: var(--data-red-45);
+  --color-chart-red-tint-5: var(--data-red-30);
+
+  --color-chart-green-tint-2: var(--data-green-75);
+  --color-chart-green-tint-3: var(--data-green-60);
+  --color-chart-green-tint-4: var(--data-green-45);
+  --color-chart-green-tint-5: var(--data-green-30);
+
+  --color-chart-mint-green-tint-2: var(--data-mint-green-75);
+  --color-chart-mint-green-tint-3: var(--data-mint-green-60);
+  --color-chart-mint-green-tint-4: var(--data-mint-green-45);
+  --color-chart-mint-green-tint-5: var(--data-mint-green-30);
+
+  --color-chart-violet-tint-2: var(--data-violet-75);
+  --color-chart-violet-tint-3: var(--data-violet-60);
+  --color-chart-violet-tint-4: var(--data-violet-45);
+  --color-chart-violet-tint-5: var(--data-violet-30);
+
+  --color-chart-orange-tint-2: var(--data-orange-75);
+  --color-chart-orange-tint-3: var(--data-orange-60);
+  --color-chart-orange-tint-4: var(--data-orange-45);
+  --color-chart-orange-tint-5: var(--data-orange-30);
+
+  --color-chart-pink-tint-2: var(--data-pink-75);
+  --color-chart-pink-tint-3: var(--data-pink-60);
+  --color-chart-pink-tint-4: var(--data-pink-45);
+  --color-chart-pink-tint-5: var(--data-pink-30);
+
+  --color-chart-dark-green-tint-2: var(--data-dark-green-75);
+  --color-chart-dark-green-tint-3: var(--data-dark-green-60);
+  --color-chart-dark-green-tint-4: var(--data-dark-green-45);
+  --color-chart-dark-green-tint-5: var(--data-dark-green-30);
+
+  --color-chart-purple-tint-2: var(--data-purple-75);
+  --color-chart-purple-tint-3: var(--data-purple-60);
+  --color-chart-purple-tint-4: var(--data-purple-45);
+  --color-chart-purple-tint-5: var(--data-purple-30);
+
+  --color-chart-ruby-red-tint-2: var(--data-ruby-red-75);
+  --color-chart-ruby-red-tint-3: var(--data-ruby-red-60);
+  --color-chart-ruby-red-tint-4: var(--data-ruby-red-45);
+  --color-chart-ruby-red-tint-5: var(--data-ruby-red-30);
+
+  --color-chart-yellow-tint-2: var(--data-yellow-75);
+  --color-chart-yellow-tint-3: var(--data-yellow-60);
+  --color-chart-yellow-tint-4: var(--data-yellow-45);
+  --color-chart-yellow-tint-5: var(--data-yellow-30);
+
+  --color-chart-dark-brown-tint-2: var(--data-dark-brown-75);
+  --color-chart-dark-brown-tint-3: var(--data-dark-brown-60);
+  --color-chart-dark-brown-tint-4: var(--data-dark-brown-45);
+  --color-chart-dark-brown-tint-5: var(--data-dark-brown-30);
+
+  --color-chart-brown-tint-2: var(--data-brown-75);
+  --color-chart-brown-tint-3: var(--data-brown-60);
+  --color-chart-brown-tint-4: var(--data-brown-45);
+  --color-chart-brown-tint-5: var(--data-brown-30);
+
+  --color-chart-dark-blue-tint-2: var(--data-dark-blue-75);
+  --color-chart-dark-blue-tint-3: var(--data-dark-blue-60);
+  --color-chart-dark-blue-tint-4: var(--data-dark-blue-45);
+  --color-chart-dark-blue-tint-5: var(--data-dark-blue-30);
+
+  --color-chart-light-blue-tint-2: var(--data-light-blue-75);
+  --color-chart-light-blue-tint-3: var(--data-light-blue-60);
+  --color-chart-light-blue-tint-4: var(--data-light-blue-45);
+  --color-chart-light-blue-tint-5: var(--data-light-blue-30);
+
+  --color-chart-moss-green-tint-2: var(--data-moss-green-75);
+  --color-chart-moss-green-tint-3: var(--data-moss-green-60);
+  --color-chart-moss-green-tint-4: var(--data-moss-green-45);
+  --color-chart-moss-green-tint-5: var(--data-moss-green-30);
+
+  /* The default ladder, for a figure that names no colour: the sky blue's. */
+  --color-chart-tint-1: var(--color-chart-sky-blue);
+  --color-chart-tint-2: var(--color-chart-sky-blue-tint-2);
+  --color-chart-tint-3: var(--color-chart-sky-blue-tint-3);
+  --color-chart-tint-4: var(--color-chart-sky-blue-tint-4);
+  --color-chart-tint-5: var(--color-chart-sky-blue-tint-5);
+
+  /* Sequential scale for ordinal classes (heatmap, choropleth), lightest first. A component names
+     these, never a --data-* colour directly. */
+  --color-chart-seq-1: var(--data-sky-blue-15);
+  --color-chart-seq-2: var(--data-sky-blue-30);
+  --color-chart-seq-3: var(--data-sky-blue-45);
+  --color-chart-seq-4: var(--data-sky-blue-75);
+  --color-chart-seq-5: var(--data-sky-blue);
+}
+
+/* ============================================================================
+   Dark mode — the Logius range, no inversion
+
+   Redefines the seven `--neutral-*` primitives, re-declares `--primary-hover` lighter and
+   re-points the layer-2/3 names whose meaning changes; everything that merely follows a
+   neutral is absent on purpose. Page and tiles are both #282828, the border separates them: the
+   step below is the menu's, so it stays a band beside the page and under the logo bar.
+   ========================================================================= */
+[data-mode='dark'] {
+  --neutral-0: #282828;
+  --neutral-1: #1D1D1D;
+  --neutral-2: #333333;
+  --neutral-3: #4A4A4A;
+  --neutral-4: #7A7A7A;
+  --neutral-5: #B0B0B0;
+  --neutral-6: #FFFFFF;
+
+  /* The hover goes UP in dark: the light mix would put a near-black fill on the near-black page. */
+  --primary-hover: color-mix(in srgb, var(--primary), white 12%);
+
+  --color-bg-page: var(--neutral-0);
+  --color-bg-title: var(--neutral-0);
+  /* The hero's wash sits halfway between the menu (L 0.231) and the page (L 0.277), below the
+     page as in light: a panel or tab on it is lighter than its ground. */
+  --primary-wash: oklch(from var(--primary) 0.254 min(c, 0.02) h);
+
+  /* The filter zone must read as a band, so in dark it steps UP to neutral-2 (neutral-1 turned
+     the fields in it into light boxes). `--color-bg-inset` keeps neutral-1: "sunken". */
+  --color-bg-filter: var(--neutral-2);
+  --color-bg-inset: var(--neutral-1);
+
+  --color-text-inverse: var(--neutral-1);
+
+  /* Colour that must read by itself on #282828 becomes the tint; a FILL keeps the primary. */
+  --color-action-primary-border: var(--primary-tint);
+  --color-action-secondary-border: var(--primary-tint);
+  /* Danger hover: 8 % white is the most that keeps white text at 4.5:1 (4.56:1). The border and
+     the word lift the red as the primary's tints do, to 3:1 on #282828 and 4.5:1 on #333333,
+     the hover surface; the word's chroma cap keeps it inside sRGB. */
+  --color-action-danger-hover: color-mix(in srgb, var(--status-error), white 8%);
+  --color-action-danger-border: oklch(from var(--status-error) max(l, 0.58) c h);
+  --color-action-danger-text: oklch(from var(--status-error) max(l, 0.71) min(c, 0.18) h);
+  /* A status mark at 3:1 on its own tint. */
+  --color-attention-line: var(--status-attention);
+  --color-error-line: oklch(from var(--status-error) max(l, 0.6) c h);
+  --color-info-line: oklch(from var(--status-info) max(l, 0.58) c h);
+  --color-success-line: oklch(from var(--status-success) max(l, 0.57) c h);
+  /* A status word at 4.5:1 on #333333, lifted as the danger word is. */
+  --color-error-text: oklch(from var(--status-error) max(l, 0.71) min(c, 0.18) h);
+  --color-success-text: oklch(from var(--status-success) max(l, 0.68) min(c, 0.18) h);
+  /* A link is text: the text tint, not the line tint. The hover stays white. */
+  --color-link: var(--primary-tint-text);
+  --color-link-hover: var(--neutral-6);
+  --color-link-on-status: var(--neutral-6);
+  --color-accent-line: var(--primary-tint);
+  --color-accent-text: var(--primary-tint-text);
+
+  /* Lintblauw has too little contrast on the dark surface; the house style lightens it. */
+  --color-logo-ribbon: var(--ribbon-blue-dark);
+
+  /* The menu is neutral in dark: near-black, in the rail and in the bar alike, so in the top
+     layout it stays its own band under the logo bar. Hover and active are one step up, as they
+     are one fill in light; the edge is the text tint, as the line tint is 3:1 on neutral-0 only. */
+  --color-nav-bg: var(--neutral-1);
+  --color-nav-text: var(--neutral-6);
+  --color-nav-text-sub: var(--neutral-5);
+  --color-nav-hover: var(--neutral-2);
+  --color-nav-active: var(--neutral-2);
+  --color-nav-active-edge: var(--primary-tint-text);
+  --color-navbar-hover: var(--neutral-2);
+  --color-navbar-active: var(--neutral-2);
+  --color-navbar-active-edge: var(--primary-tint-text);
+  /* The open entry's word stands on the panel's surface: full text contrast, not the tint. */
+  --color-navbar-open-text: var(--color-text-primary);
+  /* The label is 16 px text: the tint is 3.0:1 and needs 4.5:1. The edge keeps the tint. */
+  --color-nav-active-text: var(--neutral-6);
+  /* The sheet is told from the page by its shadow and this quiet line; 1.66:1 is accepted here. */
+  --color-border-popover: var(--neutral-3);
+  --color-nav-line: var(--neutral-2);
+  --color-nav-disabled: var(--neutral-4);
+  /* The menu is neutral here, so its ring is the orange of every other surface. */
+  --color-focus-on-theme: var(--color-focus);
+  /* The choice edge keeps neutral-4 in dark: it already reaches 3:1 there (3.43:1 on #282828). */
+  --color-border-choice: var(--neutral-4);
+
+  /* A term's box is the subtle surface: behind a word on #282828 the dark wash would be a hole. */
+  --color-term-bg: var(--neutral-2);
+  --color-choice-active-bg: var(--neutral-2);
+  --color-hero-focus: var(--color-focus);
+  --color-term-line: var(--primary-tint-text);
+
+  /* Yellow as text works on the dark surface, so the dark gold is not needed. */
+  --color-chart-dark-yellow-text: var(--data-dark-yellow);
+  --color-map-water: var(--neutral-1);
+
+  --shadow-sticky: 0 2px 6px var(--alpha-black-40);
+  --shadow-popover: 0 4px 16px var(--alpha-black-55);
+  --shadow-nav: 2px 0 8px var(--alpha-black-40);
+  --shadow-chart-hover: 0 1px 4px var(--alpha-black-60);
+  --shadow-scroll-start: inset 12px 0 10px -10px var(--alpha-black-60);
+  --shadow-scroll-end: inset -12px 0 10px -10px var(--alpha-black-60);
+  --color-overlay-nav: var(--alpha-black-40);
+}
+
+/* ============================================================================
+   Below 768 px the gutter follows the page padding and every pointer target is the touch
+   floor.
+   ========================================================================= */
+@media (max-width: 767px) {
+  :root {
+    --grid-gutter: 16px;
+    --h-target: var(--h-touch);
+    --h-option: var(--h-touch);
+    --chart-h-expanded: 320px;
+    --w-ribbon: 2.5rem;
+  }
+}

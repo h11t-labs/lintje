@@ -1,0 +1,63 @@
+:host { display: contents; }
+
+/* ------------------------------------------------------------------------ */
+
+/* The modal's z-index: above the shell's menu. */
+.lintje-drawer__scrim {
+  position: fixed; inset: 0; z-index: 80;
+  background: var(--color-overlay-page);
+  animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
+}
+
+.lintje-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 81;
+  width: min(480px, 100vw);
+  display: flex; flex-direction: column;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border-left: 1px solid var(--color-border-strong);
+  box-shadow: var(--shadow-popover);
+  animation: lintje-drawer-in var(--dur-sheet) var(--ease-in-motion);
+}
+.lintje-drawer:focus { outline: none; }
+
+.lintje-drawer__header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3);
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--color-border-default);
+}
+.lintje-drawer__heading { min-width: 0; }
+.lintje-drawer__title { font: var(--text-h2); }
+.lintje-drawer__subtitle { font: var(--text-small); color: var(--color-text-muted); margin-top: var(--space-1); }
+/* No hover while the close button is unavailable. */
+.lintje-drawer__close:not([aria-disabled='true']):hover { color: var(--color-text-primary); }
+
+.lintje-drawer__body {
+  flex: 1; min-height: 0; overflow-y: auto;
+  padding: var(--space-5) var(--space-6);
+  display: flex; flex-direction: column; gap: var(--space-4);
+}
+
+.lintje-drawer__footer {
+  display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border-top: 1px solid var(--color-border-default);
+}
+
+/* A keyframe only works in the root that uses it. */
+@keyframes lintje-drawer-in {
+  from { transform: translateX(100%); }
+  to   { transform: none; }
+}
+
+@media (max-width: 767px) {
+  .lintje-drawer {
+    inset: 0;
+    width: 100%;
+    border-left: 0;
+    animation-name: lintje-sheet-in;
+  }
+  .lintje-drawer__header,
+  .lintje-drawer__body,
+  .lintje-drawer__footer { padding-left: var(--space-4); padding-right: var(--space-4); }
+}

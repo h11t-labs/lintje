@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img">
+  <title>Lintje</title>
+  <path fill="#154273" d="M9 0H27V40H9Z"/>
+  <path fill="#0D2845" d="M9 40H27V58Z"/>
+  <path fill="#154273" d="M27 40H55V58H27Z"/>
+</svg>

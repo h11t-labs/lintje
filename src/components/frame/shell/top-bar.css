@@ -1,0 +1,204 @@
+/* The bar, the two toggle groups and the share popover are all drawn by the shell itself. */
+
+.lintje-top-bar {
+  height: var(--h-topbar);
+  flex: none;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border-default);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 calc(var(--space-6) + var(--page-gutter));
+}
+/* The name and the page's name share a baseline and stand in the middle of the bar as one. */
+.lintje-top-bar__name { display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
+.lintje-top-bar__words { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+/* The dashboard's name is a word, not a line, so it uses `--color-accent-text`. */
+.lintje-top-bar__dashboard {
+  font: var(--text-dashboard);
+  color: var(--color-accent-text);
+  white-space: nowrap;
+}
+.lintje-top-bar__page {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  opacity: 0;
+  transition: opacity var(--dur-hover) var(--ease-in-motion);
+  white-space: nowrap;
+}
+.lintje-top-bar__page.is-visible { opacity: 1; }
+
+.lintje-top-bar__actions { display: flex; flex: none; align-items: center; gap: var(--space-3); }
+.lintje-top-bar__key { margin-left: var(--space-1); }
+/* The tools of the navigation bar stand here on the page's surface; an element with a shadow
+   root declares the tokens again on its own host, so they are set on each one too. */
+.lintje-top-bar__actions,
+.lintje-top-bar__actions > * {
+  --color-nav-text: var(--color-text-primary);
+  --color-nav-hover: var(--color-bg-subtle);
+  --lintje-tool-height: var(--h-button-chrome);
+}
+
+.lintje-toggle-group {
+  display: flex;
+  height: var(--h-button-chrome);
+  border: 1px solid var(--color-border-strong);
+}
+.lintje-toggle-group__option {
+  position: relative;
+  width: var(--h-button-chrome);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--color-text-primary);
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+/* Without a file for its icon the option shows its short Dutch word instead.
+   The group keeps its height; only the option gets as wide as the word. */
+.lintje-toggle-group__option--text {
+  width: auto;
+  padding: 0 var(--space-3);
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.lintje-toggle-group__option:hover { background: var(--color-bg-subtle); }
+/* A 40 px option reaches the 48 px target through a transparent hit area 4 px above and
+   below; the options of a group touch, so it does not reach sideways. */
+.lintje-toggle-group__option::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+/* The chosen half has no border of its own — the group draws one around both —
+   so the primary-fill border is an inset ring: the same
+   1 px line, drawn inside the box, so neither half moves a pixel. Invisible in
+   light (the token is the primary there), the tint in dark. */
+.lintje-toggle-group__option.is-active {
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  box-shadow: inset 0 0 0 1px var(--color-action-primary-border);
+}
+
+/* The panels' side inset: their own as they hang from a tool, the filter sheet's as a sheet. */
+.lintje-view__popover,
+.lintje-share__popover { --lintje-panel-inset: 14px; }
+
+/* "Weergave": the share menu's panel, with a group of words under each heading. */
+.lintje-view { position: relative; }
+/* A panel sets the text colour of its surface: on the navigation bar it would take the bar's. */
+.lintje-view__popover {
+  position: absolute;
+  right: 0; top: calc(100% + 4px);
+  z-index: 41;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-popover);
+  box-shadow: var(--shadow-popover);
+  padding: var(--space-2) 0;
+  animation: lintje-popover-in var(--dur-popover) var(--ease-in-motion);
+}
+.lintje-view__row { display: flex; padding: var(--space-1) var(--lintje-panel-inset) var(--space-2); }
+/* A theme's name stays one line; the panel grows to it. */
+.lintje-view__themes { white-space: nowrap; }
+
+.lintje-share { position: relative; }
+.lintje-share__scrim { position: fixed; inset: 0; z-index: 40; }
+.lintje-share__popover {
+  position: absolute;
+  right: 0; top: calc(100% + 4px);
+  z-index: 41;
+  width: 18.75rem;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-popover);
+  box-shadow: var(--shadow-popover);
+  padding: var(--space-2) 0;
+  animation: lintje-popover-in var(--dur-popover) var(--ease-in-motion);
+}
+.lintje-share__heading {
+  font-size: var(--label-size); font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: var(--space-3) var(--lintje-panel-inset) 4px;
+}
+.lintje-share__item {
+  width: 100%;
+  display: flex; align-items: center; gap: 10px;
+  min-height: var(--h-target);
+  padding: 0 var(--lintje-panel-inset);
+  font-size: 1rem;
+  text-align: left;
+  color: var(--color-text-primary);
+}
+.lintje-share__item:hover { background: var(--color-bg-subtle); }
+/* Where an icon is still missing: the label keeps the column's text edge. */
+.lintje-share__gap { width: 16px; flex: none; }
+.lintje-share__qr {
+  display: flex; flex-direction: column; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--lintje-panel-inset) var(--space-3);
+}
+.lintje-share__hint { text-align: center; }
+.lintje-share__code { align-self: stretch; }
+.lintje-share__footer {
+  font: var(--text-meta); color: var(--color-text-muted);
+  padding: var(--space-2) var(--lintje-panel-inset) 0;
+  margin-top: var(--space-2);
+  border-top: 1px solid var(--color-border-default);
+}
+
+:where(.lintje-shell.is-phone) .lintje-top-bar { display: none; }
+
+/* Below 768 px "Weergave" and "Delen" open from below, as the filter sheet does. A phone has its
+   own way to a phone, so the QR code is not offered there. */
+:where(.lintje-shell.is-phone) .lintje-share__scrim {
+  z-index: 60;
+  background: var(--color-overlay-page);
+  animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
+}
+:where(.lintje-shell.is-phone) .lintje-view__popover,
+:where(.lintje-shell.is-phone) .lintje-share__popover,
+:where(.lintje-shell.is-phone) .lintje-navbar .lintje-view__popover,
+:where(.lintje-shell.is-phone) .lintje-navbar .lintje-share__popover {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 61;
+  width: auto;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding-bottom: var(--space-4);
+  border: 0;
+  border-top: 1px solid var(--color-border-popover);
+  box-shadow: none;
+  animation: lintje-sheet-in var(--dur-sheet) var(--ease-in-motion);
+}
+:where(.lintje-shell.is-phone) .lintje-view__popover,
+:where(.lintje-shell.is-phone) .lintje-share__popover { padding-top: 0; --lintje-panel-inset: var(--space-4); }
+:where(.lintje-shell.is-phone) .lintje-view__popover:focus,
+:where(.lintje-shell.is-phone) .lintje-share__popover:focus { outline: none; }
+:where(.lintje-shell.is-phone) .lintje-share__phone { display: none; }
+/* The filter sheet's head; it stays while the sheet scrolls. */
+.lintje-share__header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex; align-items: center; gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border-popover);
+}
+.lintje-share__title { flex: 1; margin: 0; font: var(--text-h2); }
+
+
+/* On paper the chrome is not part of the page. */
+@media print { .lintje-top-bar { display: none; } }
+
+/* Forced colours: the chosen half is carried by its fill and an inset
+   ring, both of which the browser drops. Every half takes a 1 px border inside
+   its own box — Canvas at rest, Highlight when chosen — so nothing moves. */
+@media (forced-colors: active) {
+  .lintje-toggle-group__option { border: 1px solid Canvas; }
+  .lintje-toggle-group__option.is-active { border-color: Highlight; }
+}

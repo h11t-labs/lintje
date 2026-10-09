@@ -1,0 +1,29 @@
+/* `min-width: 0`, or a grid item overflows. */
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+:host([stacked]) { width: 100%; --h-control: var(--h-touch); }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-filter-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lintje-filter-field__label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.lintje-filter-field__label.is-modified { color: var(--color-accent-text); }
+.lintje-filter-field__dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--color-attention);
+  flex: none;
+}
+
+:host([stacked]) .lintje-filter-field { gap: var(--space-2); }
+
+/* Forced colours drop the label colour; the dot keeps its drawing in CanvasText. */
+@media (forced-colors: active) {
+  .lintje-filter-field__dot { forced-color-adjust: none; background: CanvasText; }
+}

@@ -1,0 +1,242 @@
+[
+  {
+    "hour": "00:00",
+    "requests": 410,
+    "requests_last_week": 381,
+    "wait_time": 2,
+    "desk_requests": 40,
+    "desk_requests_last_week": 36,
+    "desk_wait_time": 2,
+    "desk_wait_time_last_week": 2
+  },
+  {
+    "hour": "01:00",
+    "requests": 260,
+    "requests_last_week": 252,
+    "wait_time": 2,
+    "desk_requests": 20,
+    "desk_requests_last_week": 24,
+    "desk_wait_time": 2,
+    "desk_wait_time_last_week": 1
+  },
+  {
+    "hour": "02:00",
+    "requests": 180,
+    "requests_last_week": 182,
+    "wait_time": 1,
+    "desk_requests": 10,
+    "desk_requests_last_week": 12,
+    "desk_wait_time": 1,
+    "desk_wait_time_last_week": 1
+  },
+  {
+    "hour": "03:00",
+    "requests": 210,
+    "requests_last_week": 197,
+    "wait_time": 2,
+    "desk_requests": 30,
+    "desk_requests_last_week": 26,
+    "desk_wait_time": 2,
+    "desk_wait_time_last_week": 2
+  },
+  {
+    "hour": "04:00",
+    "requests": 980,
+    "requests_last_week": 960,
+    "wait_time": 4,
+    "desk_requests": 180,
+    "desk_requests_last_week": 168,
+    "desk_wait_time": 4,
+    "desk_wait_time_last_week": 4
+  },
+  {
+    "hour": "05:00",
+    "requests": 4120,
+    "requests_last_week": 4202,
+    "wait_time": 9,
+    "desk_requests": 720,
+    "desk_requests_last_week": 690,
+    "desk_wait_time": 9,
+    "desk_wait_time_last_week": 8
+  },
+  {
+    "hour": "06:00",
+    "requests": 8960,
+    "requests_last_week": 8512,
+    "wait_time": 16,
+    "desk_requests": 1640,
+    "desk_requests_last_week": 1520,
+    "desk_wait_time": 16,
+    "desk_wait_time_last_week": 13
+  },
+  {
+    "hour": "07:00",
+    "requests": 11240,
+    "requests_last_week": 11128,
+    "wait_time": 18,
+    "desk_requests": 1980,
+    "desk_requests_last_week": 1810,
+    "desk_wait_time": 18,
+    "desk_wait_time_last_week": 15
+  },
+  {
+    "hour": "08:00",
+    "requests": 10180,
+    "requests_last_week": 10485,
+    "wait_time": 15,
+    "desk_requests": null,
+    "desk_requests_last_week": 1640,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 14
+  },
+  {
+    "hour": "09:00",
+    "requests": 8740,
+    "requests_last_week": 8390,
+    "wait_time": 11,
+    "desk_requests": null,
+    "desk_requests_last_week": 1280,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 11
+  },
+  {
+    "hour": "10:00",
+    "requests": 7960,
+    "requests_last_week": 7960,
+    "wait_time": 9,
+    "desk_requests": null,
+    "desk_requests_last_week": 1140,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 9
+  },
+  {
+    "hour": "11:00",
+    "requests": 8310,
+    "requests_last_week": 7728,
+    "wait_time": 10,
+    "desk_requests": null,
+    "desk_requests_last_week": 1220,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 10
+  },
+  {
+    "hour": "12:00",
+    "requests": 8900,
+    "requests_last_week": 8633,
+    "wait_time": 11,
+    "desk_requests": null,
+    "desk_requests_last_week": 1310,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 11
+  },
+  {
+    "hour": "13:00",
+    "requests": 9240,
+    "requests_last_week": 9332,
+    "wait_time": 12,
+    "desk_requests": null,
+    "desk_requests_last_week": 1380,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 12
+  },
+  {
+    "hour": "14:00",
+    "requests": 8120,
+    "requests_last_week": 7633,
+    "wait_time": 10,
+    "desk_requests": null,
+    "desk_requests_last_week": 1190,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 10
+  },
+  {
+    "hour": "15:00",
+    "requests": 7480,
+    "requests_last_week": 7330,
+    "wait_time": 9,
+    "desk_requests": null,
+    "desk_requests_last_week": 1080,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 9
+  },
+  {
+    "hour": "16:00",
+    "requests": 9310,
+    "requests_last_week": 9496,
+    "wait_time": 13,
+    "desk_requests": null,
+    "desk_requests_last_week": 1420,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 12
+  },
+  {
+    "hour": "17:00",
+    "requests": 11020,
+    "requests_last_week": 10469,
+    "wait_time": 17,
+    "desk_requests": null,
+    "desk_requests_last_week": 1680,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 15
+  },
+  {
+    "hour": "18:00",
+    "requests": 10460,
+    "requests_last_week": 10355,
+    "wait_time": 14,
+    "desk_requests": null,
+    "desk_requests_last_week": 1540,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 13
+  },
+  {
+    "hour": "19:00",
+    "requests": 8190,
+    "requests_last_week": 8436,
+    "wait_time": 11,
+    "desk_requests": null,
+    "desk_requests_last_week": 1180,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 10
+  },
+  {
+    "hour": "20:00",
+    "requests": 6240,
+    "requests_last_week": 5990,
+    "wait_time": 8,
+    "desk_requests": null,
+    "desk_requests_last_week": 890,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 7
+  },
+  {
+    "hour": "21:00",
+    "requests": 4120,
+    "requests_last_week": 4120,
+    "wait_time": 6,
+    "desk_requests": null,
+    "desk_requests_last_week": 610,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 5
+  },
+  {
+    "hour": "22:00",
+    "requests": null,
+    "requests_last_week": 3860,
+    "wait_time": null,
+    "desk_requests": null,
+    "desk_requests_last_week": 340,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 3
+  },
+  {
+    "hour": "23:00",
+    "requests": null,
+    "requests_last_week": 1940,
+    "wait_time": null,
+    "desk_requests": null,
+    "desk_requests_last_week": 150,
+    "desk_wait_time": null,
+    "desk_wait_time_last_week": 2
+  }
+]

@@ -1,0 +1,50 @@
+/* Slotted children keep clear of the sticky top bar when the error summary scrolls to them. */
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+::slotted(*) { scroll-margin-top: var(--h-sticky); }
+
+/* ------------------------------------------------------------------------ */
+
+/* The legend floats at full width so it lays out as a block, not on the fieldset's border. */
+.lintje-form-section {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  border: 0;
+}
+.lintje-form-section__legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  font: var(--text-h2);
+  color: var(--color-text-primary);
+}
+.lintje-form-section__description {
+  clear: both;
+  padding-top: var(--space-2);
+  font: var(--text-small);
+  color: var(--color-text-muted);
+}
+.lintje-form-section__fields {
+  clear: both;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-top: var(--space-5);
+}
+
+/* Setting rows read as a list: a line between two of them. */
+.lintje-form-section__fields ::slotted([layout='row']:not(:first-child)) {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border-default);
+}
+
+.lintje-form-section--tile {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
+  padding: var(--tile-pad-y) var(--tile-pad-x);
+}
+.lintje-form-section--tile .lintje-form-section__legend { font: var(--text-tile-title); }
+/* The heading takes the legend's look; it is there for the outline, not to restyle. */
+.lintje-form-section__heading { margin: 0; font: inherit; color: inherit; }

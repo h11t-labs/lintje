@@ -1,0 +1,109 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* Typographic, as the Rijkshuisstijl's side-nav: links in the link colour, the reader's page in
+   the text colour and bold, groups apart by space alone. No fill and no edge. */
+.lintje-sub-nav { font: var(--text-ui); }
+
+.lintje-sub-nav__group + .lintje-sub-nav__group { margin-top: var(--space-6); }
+
+.lintje-sub-nav__heading {
+  margin: 0;
+  padding: var(--space-3) 0 var(--space-1);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.lintje-sub-nav__list { list-style: none; margin: 0; padding: 0; }
+
+/* The second level hangs from a line, the width of the separators the house style draws. */
+.lintje-sub-nav__list--nested {
+  margin-bottom: var(--space-1);
+  padding-left: calc(var(--space-6) - 2px);
+  border-left: 2px solid var(--color-border-default);
+}
+
+/* The row reaches past the text column on both sides, so the inset focus ring clears the word. */
+.lintje-sub-nav__link {
+  display: flex; align-items: flex-start; gap: var(--space-2);
+  box-sizing: border-box;
+  min-height: var(--h-nav-row);
+  margin: 0 calc(var(--space-2) * -1);
+  padding: var(--space-3) var(--space-2);
+  border: 0;
+  background: none;
+  font: inherit;
+  line-height: 1.5;
+  color: var(--color-link);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-sub-nav__link--action { width: calc(100% + var(--space-2) * 2); }
+
+/* Only the word is underlined: an icon or a count under a line reads as part of the link text. */
+.lintje-sub-nav__label { min-width: 0; text-underline-offset: 0.2em; }
+.lintje-sub-nav__link:hover { color: var(--color-link-hover); }
+.lintje-sub-nav__link:hover .lintje-sub-nav__label { text-decoration: underline; }
+
+/* Bold carries the reader's page beside the colour (rule 13); on a fill, the side menu does not. */
+.lintje-sub-nav__link.is-current { color: var(--color-text-primary); font-weight: 700; cursor: default; }
+.lintje-sub-nav__link.is-current .lintje-sub-nav__label { text-decoration: none; }
+.lintje-sub-nav__link.is-ancestor { color: var(--color-text-primary); }
+
+.lintje-sub-nav__link.is-no-page,
+.lintje-sub-nav__link.is-no-access { color: var(--color-text-disabled); cursor: default; }
+.lintje-sub-nav__link.is-no-access { cursor: not-allowed; }
+.lintje-sub-nav__link.is-no-access .lintje-sub-nav__label { text-decoration: line-through; }
+
+/* Icon, lock and count stand on the first line of a label that wraps. */
+.lintje-sub-nav__icon { flex: none; margin-top: 2px; }
+.lintje-sub-nav__lock { flex: none; margin-top: var(--space-1); }
+.lintje-sub-nav__count { flex: none; }
+
+/* Below 768 px: one button with the reader's page, which opens the list in place. */
+.lintje-sub-nav__toggle {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  width: 100%;
+  min-height: var(--h-control);
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-field);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-sub-nav__toggle:hover { background: var(--color-bg-subtle); }
+.lintje-sub-nav__toggle-text { display: flex; flex-direction: column; min-width: 0; }
+.lintje-sub-nav__toggle-group { font: var(--text-small); color: var(--color-text-muted); }
+.lintje-sub-nav__toggle-current { font-weight: 700; }
+.lintje-sub-nav__toggle-icon { flex: none; transition: transform var(--dur-hover) var(--ease-in-motion); }
+.lintje-sub-nav__toggle.is-open .lintje-sub-nav__toggle-icon { transform: rotate(180deg); }
+
+.lintje-sub-nav__panel {
+  padding: var(--space-1) var(--space-6) var(--space-2);
+  border: 1px solid var(--color-border-field);
+  border-top: 0;
+  background: var(--color-bg-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lintje-sub-nav__link,
+  .lintje-sub-nav__toggle,
+  .lintje-sub-nav__toggle-icon { transition: none; }
+}
+
+@media (forced-colors: active) {
+  .lintje-sub-nav__link.is-current { text-decoration: underline; }
+  .lintje-sub-nav__link.is-no-page,
+  .lintje-sub-nav__link.is-no-access { color: GrayText; }
+}

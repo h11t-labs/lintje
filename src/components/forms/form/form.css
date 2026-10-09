@@ -1,0 +1,14 @@
+/* Slotted children keep clear of the sticky top bar when the error summary scrolls to them. */
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+::slotted(*) { scroll-margin-top: var(--h-sticky); }
+/* A section that follows something gets the 12 px the field gap lacks (32 px in all). */
+::slotted(lintje-form-section:not(:first-child)) { margin-top: var(--space-3); }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}

@@ -1,0 +1,25 @@
+/*
+ * The close button shared by every dialog; each keeps its own class beside it (a BEM mix:
+ * `lintje-dialog-close lintje-modal__close`) for what is its own.
+ */
+/* ------------------------------------------------------------------------ */
+
+.lintje-dialog-close {
+  position: relative;
+  width: var(--h-icon-button); height: var(--h-icon-button); flex: none;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--color-text-muted);
+}
+.lintje-dialog-close::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2));
+}
+
+/* `aria-disabled` keeps its place in the tab order; the dialog ignores the press. */
+.lintje-dialog-close[aria-disabled='true'] { cursor: not-allowed; color: var(--color-text-disabled); }
+
+/* `aria-disabled` is not grayed by the browser in forced colours. */
+@media (forced-colors: active) {
+  .lintje-dialog-close[aria-disabled='true'] { color: GrayText; }
+}

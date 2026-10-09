@@ -1,0 +1,196 @@
+[
+  {
+    "name": "frame",
+    "heading": "Pagina",
+    "label": "Paginakader",
+    "icon": "computer-en-internet-website",
+    "intro": "Wat om elke pagina heen staat: de schil met zijn menu, naast of boven de pagina, de paginakop met het kruimelpad, het submenu naast de inhoud, de hero van een startpagina, de voet, en wat rechtsboven in de balk hoort.",
+    "elements": [
+      "shell",
+      "page-header",
+      "breadcrumbs",
+      "sub-nav",
+      "hero",
+      "footer",
+      "user-menu",
+      "app-search",
+      "notifications",
+      "shortcuts",
+      "session-expiry"
+    ]
+  },
+  {
+    "name": "layout",
+    "heading": "Pagina",
+    "label": "Indeling",
+    "icon": "functioneel-tegelweergave",
+    "intro": "Waar inhoud in staat: het raster van twaalf kolommen, de tegel, tabs, de uitklapper en twee panelen naast elkaar.",
+    "elements": ["grid", "grid-item", "tile", "tabs", "expander", "split-pane"]
+  },
+  {
+    "name": "overlays",
+    "heading": "Pagina",
+    "label": "Vensters en panelen",
+    "icon": "functioneel-foto-vergroten",
+    "intro": "Wat boven de pagina komt te staan: het venster, de bevestiging, het paneel opzij, het zwevende paneel, de tooltip en de toelichting op een klik.",
+    "elements": ["modal", "confirm-dialog", "drawer", "popover", "tooltip", "toggletip"]
+  },
+  {
+    "name": "actions",
+    "heading": "Basis",
+    "label": "Knoppen en iconen",
+    "icon": "functioneel-plus",
+    "intro": "Alles waar een gebruiker op drukt om iets te doen, kopiëren ook als QR-code voor een telefoon, het icoon uit de huisset op naam van zijn bestand, het register dat de bundel zelf draagt, en het beeldmerk van de organisatie.",
+    "elements": [
+      "button",
+      "icon-button",
+      "menu-button",
+      "copy-button",
+      "qr-code",
+      "icon",
+      "icons",
+      "logo"
+    ]
+  },
+  {
+    "name": "content",
+    "heading": "Basis",
+    "label": "Tekst en media",
+    "icon": "op-kantoor-document-met-lijnen",
+    "intro": "Lopende tekst, code en een gemarkeerde zoekterm; een tekst en zijn vertaling; audio, video, het transcript dat meeloopt, een document op het scherm en afbeeldingen om door te bladeren.",
+    "elements": [
+      "prose",
+      "code",
+      "highlight",
+      "translator",
+      "audio-player",
+      "video-player",
+      "transcript",
+      "document-viewer",
+      "gallery"
+    ]
+  },
+  {
+    "name": "feedback",
+    "heading": "Basis",
+    "label": "Meldingen en status",
+    "icon": "functioneel-bel",
+    "intro": "Wat de app de gebruiker laat weten, en hoe iets ervoor staat: een mededeling, een korte bevestiging, een conflict, een lege toestand, een status als woord of stip, laden, voortgang en tekst die binnenkomt.",
+    "elements": [
+      "announcement",
+      "toast",
+      "conflict-alert",
+      "empty-state",
+      "badge",
+      "status-dot",
+      "spinner",
+      "skeleton",
+      "progress-bar",
+      "job-list",
+      "streaming-text",
+      "ai-label",
+      "level-meter",
+      "recording-status"
+    ]
+  },
+  {
+    "name": "inputs",
+    "heading": "Invoer",
+    "label": "Invoervelden",
+    "icon": "functioneel-bewerken",
+    "intro": "Elk veld waarin een gebruiker iets invult of kiest, in al zijn toestanden: rust, gewijzigd, fout en uitgeschakeld, en het label erboven.",
+    "elements": [
+      "field",
+      "text-input",
+      "textarea",
+      "number-input",
+      "select",
+      "combobox",
+      "multiselect",
+      "tag-input",
+      "checkbox",
+      "radio-group",
+      "toggle",
+      "segmented",
+      "range",
+      "date-input",
+      "time-input",
+      "date-range",
+      "file-upload",
+      "text-editor"
+    ]
+  },
+  {
+    "name": "forms",
+    "heading": "Invoer",
+    "label": "Formulier",
+    "icon": "op-kantoor-document-met-potlood",
+    "intro": "Het formulier om de velden heen: secties, stappen door een taak, een groep velden die zich herhaalt, de samenvatting van fouten en de knoppen onderaan.",
+    "elements": [
+      "form",
+      "form-section",
+      "stepper",
+      "repeater",
+      "repeater-row",
+      "error-summary",
+      "form-actions"
+    ]
+  },
+  {
+    "name": "filters",
+    "heading": "Invoer",
+    "label": "Filters",
+    "icon": "functioneel-filters",
+    "intro": "De filterbalk met de “Je ziet”-zin, en de onderdelen waaruit hij bestaat: de zone en het blad op een telefoon.",
+    "elements": ["filter-bar", "filter-zone", "filter-sheet"]
+  },
+  {
+    "name": "charts",
+    "heading": "Gegevens",
+    "label": "Kerncijfers en grafieken",
+    "icon": "op-kantoor-grafiek",
+    "intro": "De cijfers bovenaan een pagina, elke grafieksoort uit de vaste grammatica in een tegel met haar toestanden, en de tekst die duidt en uitlegt.",
+    "elements": ["kpi-row", "kpi", "chart-tile", "note", "explainer"]
+  },
+  {
+    "name": "map",
+    "heading": "Gegevens",
+    "label": "Kaart",
+    "icon": "navigatie-route-met-locatiemarker",
+    "intro": "De kaart in een tegel: stromen, punten en een choropleet, ook op een ondergrond.",
+    "elements": ["map-tile", "map-basemap"]
+  },
+  {
+    "name": "tables",
+    "heading": "Gegevens",
+    "label": "Tabellen en lijsten",
+    "icon": "symbolen-en-abstract-opsomming",
+    "intro": "De tabel als overzicht en als werkblad, met het bladeren eronder, en gegevens die geen tabel zijn: een lijst, kaarten voor een verzameling, eigenschappen met hun waarde, een boom, een volgorde en een logboek.",
+    "elements": [
+      "data-table",
+      "pagination",
+      "list",
+      "card",
+      "card-list",
+      "description-list",
+      "tree-view",
+      "sortable-list",
+      "activity-log"
+    ]
+  },
+  {
+    "name": "chat",
+    "heading": "Gegevens",
+    "label": "Chat met data",
+    "icon": "communicatie-tekstballonnen",
+    "intro": "Een gesprek over de gegevens: de vraag, het antwoord met cijfers en grafieken, en elke toestand van elk onderdeel.",
+    "elements": [
+      "chat",
+      "chat-message",
+      "chat-answer",
+      "chat-composer",
+      "chat-strip",
+      "chat-suggestions"
+    ]
+  }
+]

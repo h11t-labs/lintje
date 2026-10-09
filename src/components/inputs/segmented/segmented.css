@@ -1,0 +1,80 @@
+/* The segmented control keeps `min-width: auto`: it never shrinks below its options. */
+:host { display: block; }
+
+/* ------------------------------------------------------------------------ */
+
+/* The frame hugs its options: a wider host leaves its room outside the border, not in it. It
+   never grows past its room, so the element can read that room off the frame. */
+.lintje-segmented {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  height: var(--h-control);
+  border: 1px solid var(--color-border-field);
+  background: var(--color-bg-surface);
+}
+.lintje-segmented.is-error { border: 2px solid var(--color-error); }
+/* Disabled keeps the quiet border, also over an error. */
+:host([disabled]) .lintje-segmented { border: 1px solid var(--color-border-strong); }
+.lintje-segmented__option {
+  display: flex; align-items: center;
+  padding: 0 var(--space-3);
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-segmented__option:hover:not(.is-active) { background: var(--color-bg-subtle); }
+.lintje-segmented__option:disabled {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+.lintje-segmented__option:disabled:hover { background: var(--color-bg-subtle); }
+/* Chosen is quiet, not filled: a filled surface is the page's one primary action. The edge is a
+   ring half inside, half over the frame, so it covers the frame's line instead of standing in it;
+   a real border would push the neighbouring segments over. */
+.lintje-segmented__option.is-active {
+  position: relative;
+  z-index: 1;
+  background: var(--color-choice-active-bg);
+  color: var(--color-accent-text);
+  box-shadow: 0 0 0 1px var(--color-accent-line), inset 0 0 0 1px var(--color-accent-line);
+  font-weight: 700;
+}
+.lintje-segmented__option:disabled.is-active {
+  background: var(--color-border-strong);
+  color: var(--color-text-disabled);
+  box-shadow: none;
+}
+
+.lintje-segmented__description {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-subtle);
+  font: var(--text-small);
+  color: var(--color-text-primary);
+}
+
+/* The bar cannot reach into the shadow root, so the control carries the bar's breakpoints. */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  :host(:not([stacked])) .lintje-segmented__option { padding: 0 10px; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  :host { width: 100%; }
+  .lintje-segmented { width: 100%; }
+  .lintje-segmented__option { flex: 1; justify-content: center; }
+}
+:host([stacked]) .lintje-segmented { width: 100%; }
+:host([stacked]) .lintje-segmented__option { flex: 1; justify-content: center; }
+
+/* A row wider than its room: the options stand under each other, each the full width. */
+.lintje-segmented.is-column { flex-direction: column; width: 100%; height: auto; }
+.lintje-segmented.is-column .lintje-segmented__option { min-height: var(--h-touch); }
+
+/* Forced colours drop the fill and ring: every segment has a 1 px border, so nothing moves. */
+@media (forced-colors: active) {
+  .lintje-segmented__option { border: 1px solid Canvas; }
+  .lintje-segmented__option.is-active { border-color: Highlight; }
+  :host([disabled]) .lintje-segmented__option.is-active { border-color: GrayText; }
+}

@@ -1,0 +1,21 @@
+/*
+ * The two `@font-face` rules. A shadow root ignores `@font-face` (Chromium), so they work only
+ * on the page; the build writes this file to `dist-elements/fonts.css`.
+ */
+
+/* RijksSans from RVO's assets (`@nl-rvo/assets`): variable (weight 200–800), upright and italic.
+   The build copies both files to `fonts/` beside `fonts.css`. */
+@font-face {
+  font-family: 'RijksSans';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('../../node_modules/@nl-rvo/assets/fonts/RijksSansWeb-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'RijksSans';
+  font-style: italic;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('../../node_modules/@nl-rvo/assets/fonts/RijksSansWeb-Italic.woff2') format('woff2');
+}

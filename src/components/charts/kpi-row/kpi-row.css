@@ -1,0 +1,35 @@
+/* The KPIs render in this root, so these rules reach the items directly (no `::slotted()`). */
+:host { display: block; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--grid-gutter);
+  align-items: stretch;
+  /* A view's held `min-height` is taken by the grid too, so the items fill the held box. */
+  min-height: inherit;
+}
+
+/* Lower bound 768 on purpose: the one-column rule below it has lower specificity. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .lintje-grid > [style*='span 4']  { grid-column: span 6 !important; }
+  .lintje-grid > [style*='span 8']  { grid-column: span 12 !important; }
+}
+/* Grid sets grid-template-columns inline, so only !important beats it. */
+@media (max-width: 767px) {
+  .lintje-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .lintje-grid > * { grid-column: span 1 !important; }
+}
+
+/* After the fallback rules above, so at equal specificity this wins on source order. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .lintje-grid--kpi-row { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .lintje-grid--kpi-row > * { grid-column: span 1 !important; }
+}
+@media (max-width: 767px) {
+  .lintje-grid--kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .lintje-grid--kpi-row > * { grid-column: span 1 !important; }
+}

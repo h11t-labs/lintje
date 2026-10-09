@@ -1,0 +1,47 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* The first panel's share is `--lintje-split` (a percentage, set through the CSSOM). */
+.lintje-split-pane {
+  display: flex;
+  border: 1px solid var(--color-border-default);
+}
+.lintje-split-pane__pane { min-width: 0; padding: var(--space-4); overflow: auto; }
+.lintje-split-pane__pane--start { flex: 0 0 calc((100% - 9px) * var(--lintje-split, 50) / 100); }
+.lintje-split-pane__pane--end { flex: 1 1 0; }
+
+.lintje-split-pane__strip {
+  flex: 0 0 9px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-bg-subtle);
+  border-left: 1px solid var(--color-border-default);
+  border-right: 1px solid var(--color-border-default);
+  cursor: col-resize;
+  touch-action: none;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-split-pane__handle {
+  flex: none;
+  width: 7px; height: var(--h-touch);
+  background: var(--color-border-heavy);
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-split-pane__strip:hover .lintje-split-pane__handle,
+.lintje-split-pane.is-dragging .lintje-split-pane__handle { background: var(--color-accent-line); }
+
+/* Dragging: no text is selected until release. */
+.lintje-split-pane.is-dragging { user-select: none; cursor: col-resize; }
+.lintje-split-pane.is-dragging .lintje-split-pane__strip { background: var(--color-bg-selected); transition: none; }
+
+.lintje-split-pane__choice { display: block; margin-bottom: var(--space-3); }
+.lintje-split-pane--phone { display: block; border: 0; }
+.lintje-split-pane--phone .lintje-split-pane__pane { padding: 0; }
+
+/* Forced colours: the grip is a fill, which the mode drops; it is drawn in the text colour. */
+@media (forced-colors: active) {
+  .lintje-split-pane__handle { forced-color-adjust: none; background: CanvasText; }
+  .lintje-split-pane__strip:hover .lintje-split-pane__handle,
+  .lintje-split-pane.is-dragging .lintje-split-pane__handle { background: Highlight; }
+}

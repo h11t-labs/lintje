@@ -1,0 +1,103 @@
+/*
+ * Above the divider: the host, the grid item the tile fills by its height or, when the host has
+ * only a floor, by `min-height: inherit`. Below it: the block's BEM CSS.
+ */
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+.lintje-tile {
+  height: 100%;
+  min-height: inherit;
+}
+.lintje-chart-state {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+}
+.lintje-chart-state--empty { text-align: center; font: var(--text-small); color: var(--color-text-muted); gap: var(--space-3); }
+/* An announcement measures as a container, so it has no width of its own to centre by. */
+.lintje-chart-state--error { justify-content: flex-start; align-items: stretch; gap: var(--space-4); }
+.lintje-chart-state__last-known { font: var(--text-small); color: var(--color-text-muted); text-align: center; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
+  padding: var(--tile-pad-y) var(--tile-pad-x);
+}
+
+.lintje-tile__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+.lintje-tile__heading { min-width: 0; }
+/* With an icon the heading becomes two columns, which centres the icon on the title's line and
+   keeps the subtitle under the title text. */
+.lintje-tile__heading--icon {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+/* Only the placement is the tile's; the alignment is `.lintje-leading-icon`. */
+.lintje-tile__icon { grid-row: 1; }
+.lintje-tile__heading--icon .lintje-tile__title,
+.lintje-tile__heading--icon .lintje-tile__sub { grid-column: 2; }
+.lintje-tile__title { font: var(--text-tile-title); color: var(--color-text-primary); }
+.lintje-tile__sub { font: var(--text-tile-sub); color: var(--color-text-muted); margin-top: 2px; }
+.lintje-tile__actions { display: flex; gap: var(--space-2); flex: none; }
+/* Expand and download appear only while the tile is hovered or holds keyboard focus; without
+   hover they stay visible. The tile only hides the action; how the visible action looks is the
+   icon button's own. */
+.lintje-tile:not(:hover):not(:focus-within) lintje-icon-button[variant='tile'] { opacity: 0; }
+@media (hover: none) {
+  .lintje-tile:not(:hover):not(:focus-within) lintje-icon-button[variant='tile'] { opacity: 1; }
+}
+
+.lintje-tile__intro { font: var(--text-small); color: var(--color-text-secondary); }
+
+/* Body and content are flex columns, so slotted content can place itself in a taller tile. */
+.lintje-tile__body { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.lintje-tile__content { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+/* A tile with a height of its own scrolls what does not fit (`content-scroll`). */
+:host([content-scroll]) .lintje-tile__content { overflow: auto; }
+.lintje-tile__body--aside { flex-direction: row; gap: var(--space-5); align-items: stretch; }
+.lintje-tile__body--aside .lintje-tile__content { flex: 1; min-width: 0; }
+.lintje-tile__aside { flex: none; display: flex; flex-direction: column; justify-content: center; }
+/* On a phone the content keeps its full width and the key figure leads above it. */
+@media (max-width: 767px) {
+  .lintje-tile__body--aside { flex-direction: column; }
+}
+
+.lintje-tile__footnote {
+  font: var(--text-meta);
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border-default);
+  padding-top: var(--space-2);
+  margin-top: auto;
+}
+
+/* Flush: the rows' lines reach the frame, and what they draw keeps the heading's indent through
+   --lintje-inset, as does a pager under them. The last row's line is the footnote's rule. */
+.lintje-tile--flush .lintje-tile__body {
+  margin-inline: calc(var(--tile-pad-x) * -1);
+  --lintje-inset: var(--tile-pad-x);
+}
+.lintje-tile--flush .lintje-tile__footnote { border-top: 0; padding-top: 0; }
+/* Without a footnote the last row's line is the frame's: no empty strip under it. A pager under
+   the rows gives the strip back through --lintje-inset-end. */
+.lintje-tile--flush:has(> .lintje-tile__footnote[hidden]) > .lintje-tile__body {
+  margin-bottom: calc(var(--tile-pad-y) * -1 - 1px);
+  --lintje-inset-end: calc(var(--tile-pad-y) + 1px);
+}

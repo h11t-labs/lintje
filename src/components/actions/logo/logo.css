@@ -1,0 +1,37 @@
+/* The emblem's own box: `display: block; flex: none` on `:host`, the drawing fills it. */
+:host {
+  display: block;
+  flex: none;
+}
+:host([hidden]) { display: none; }
+.lintje-logo { display: block; }
+/* The emblem file's lintblauw ribbon; in dark it takes the house style's lighter tint. */
+.lintje-logo [fill='#154273' i] { fill: var(--color-logo-ribbon); }
+/* The frame is the window on the drawing; it narrows to the ribbon on the menu's duration. */
+.lintje-logo__frame {
+  display: block;
+  overflow: hidden;
+  transition: width var(--dur-rail, 180ms) var(--ease-in-motion, ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lintje-logo__frame { transition: none; }
+}
+
+/* The name hangs outside the drawing's box, so the ribbon keeps its place whatever the name's
+   length. Its left is set inline, in px, from the ribbon's width. */
+.lintje-logo__lockup { position: relative; display: block; }
+.lintje-logo__name {
+  position: absolute;
+  top: 55%;
+  display: flex;
+  flex-direction: column;
+  margin-left: var(--space-3);
+  width: max-content;
+  max-width: 20rem;
+  font: 700 1rem/1.2 var(--font-ui);
+  color: inherit;
+}
+.lintje-logo__byline { font-weight: 400; font-style: italic; }
+@media (max-width: 767px) {
+  .lintje-logo__name { max-width: 9rem; font-size: 0.875rem; }
+}

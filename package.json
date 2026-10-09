@@ -1,0 +1,137 @@
+{
+  "name": "lintje",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Lintje: the Rijkshuisstijl design system as Lit web components",
+  "license": "EUPL-1.2",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/h11t-labs/lintje.git"
+  },
+  "files": [
+    "dist-elements",
+    "dist-icons",
+    "NOTICE.md"
+  ],
+  "types": "./dist-elements/lintje.d.ts",
+  "customElements": "./dist-elements/custom-elements.json",
+  "exports": {
+    ".": {
+      "types": "./dist-elements/lintje.d.ts",
+      "default": "./dist-elements/lintje.js"
+    },
+    "./core": {
+      "types": "./dist-elements/core.d.ts",
+      "default": "./dist-elements/core.js"
+    },
+    "./dev": {
+      "types": "./dist-elements/dev.d.ts",
+      "default": "./dist-elements/dev.js"
+    },
+    "./frame": {
+      "types": "./dist-elements/frame.d.ts",
+      "default": "./dist-elements/frame.js"
+    },
+    "./layout": {
+      "types": "./dist-elements/layout.d.ts",
+      "default": "./dist-elements/layout.js"
+    },
+    "./overlays": {
+      "types": "./dist-elements/overlays.d.ts",
+      "default": "./dist-elements/overlays.js"
+    },
+    "./actions": {
+      "types": "./dist-elements/actions.d.ts",
+      "default": "./dist-elements/actions.js"
+    },
+    "./content": {
+      "types": "./dist-elements/content.d.ts",
+      "default": "./dist-elements/content.js"
+    },
+    "./feedback": {
+      "types": "./dist-elements/feedback.d.ts",
+      "default": "./dist-elements/feedback.js"
+    },
+    "./inputs": {
+      "types": "./dist-elements/inputs.d.ts",
+      "default": "./dist-elements/inputs.js"
+    },
+    "./forms": {
+      "types": "./dist-elements/forms.d.ts",
+      "default": "./dist-elements/forms.js"
+    },
+    "./filters": {
+      "types": "./dist-elements/filters.d.ts",
+      "default": "./dist-elements/filters.js"
+    },
+    "./charts": {
+      "types": "./dist-elements/charts.d.ts",
+      "default": "./dist-elements/charts.js"
+    },
+    "./map": {
+      "types": "./dist-elements/map.d.ts",
+      "default": "./dist-elements/map.js"
+    },
+    "./tables": {
+      "types": "./dist-elements/tables.d.ts",
+      "default": "./dist-elements/tables.js"
+    },
+    "./chat": {
+      "types": "./dist-elements/chat.d.ts",
+      "default": "./dist-elements/chat.js"
+    },
+    "./tag/*": {
+      "types": "./dist-elements/tag/*.d.ts",
+      "default": "./dist-elements/tag/*.js"
+    },
+    "./tokens.css": "./dist-elements/tokens.css",
+    "./fonts.css": "./dist-elements/fonts.css",
+    "./fonts/*": "./dist-elements/fonts/*",
+    "./custom-elements.json": "./dist-elements/custom-elements.json",
+    "./icons/*": "./dist-icons/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "dev": "python3 scripts/dev-server.py",
+    "prepare": "node scripts/build-icons.mjs",
+    "typecheck": "tsc --noEmit",
+    "build:icons": "node scripts/build-icons.mjs",
+    "build:geo": "node scripts/build-geo.mjs",
+    "build:elements": "vite build --config vite.config.elements.ts && vite build --config vite.config.elements.ts --mode split && node scripts/build-manifest.mjs && tsc -p tsconfig.types.json && node scripts/build-types.mjs",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project 'browser*'",
+    "test:browser:all": "LINTJE_BROWSERS=chromium,webkit vitest run --project 'browser*'",
+    "test:watch": "vitest --project unit",
+    "lint": "oxlint",
+    "format": "oxfmt",
+    "release": "node scripts/release.mjs",
+    "format:check": "oxfmt --check"
+  },
+  "peerDependencies": {
+    "lit": "^3"
+  },
+  "peerDependenciesMeta": {
+    "lit": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@nl-rvo/assets": "1.2.1",
+    "@types/leaflet": "^1.9.22",
+    "@vitest/browser-playwright": "^5.0.3",
+    "axe-core": "^4.14.0",
+    "happy-dom": "^20.14.6",
+    "leaflet": "1.9.4",
+    "lit": "3.3.3",
+    "oxfmt": "^0.72.0",
+    "oxlint": "^1.87.0",
+    "playwright": "^1.64.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.3"
+  }
+}

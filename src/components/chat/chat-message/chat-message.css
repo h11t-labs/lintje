@@ -1,0 +1,68 @@
+/* The host is a full-width block, so a view can make it stick while its answer scrolls. */
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* Visual order is reversed from document order, so the question is read first. The gaps keep
+   the edit button's hit area off the time and the bar. */
+.lintje-chat-message {
+  display: flex; flex-direction: row-reverse; align-items: center;
+  gap: var(--space-2);
+  max-width: var(--w-message);
+  margin-left: auto;
+}
+.lintje-chat-message__text {
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-subtle);
+  font: var(--text-body);
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.lintje-chat-message__meta {
+  flex: none;
+  display: flex; flex-direction: row-reverse; align-items: center;
+  gap: var(--space-2);
+}
+.lintje-chat-message__time { font: var(--text-meta); color: var(--color-text-muted); }
+
+/* A term is underlined, never recoloured; dashed gray marks an uncertain one. */
+.lintje-chat-message__term {
+  text-decoration: underline solid var(--color-term-line);
+  text-decoration-thickness: 2px;
+  text-underline-offset: var(--space-1);
+}
+.lintje-chat-message__term.is-uncertain {
+  text-decoration-style: dashed;
+  text-decoration-color: var(--color-border-suggestion);
+}
+
+.lintje-chat-message--editing {
+  flex-direction: column; align-items: flex-end;
+  gap: var(--space-2);
+  width: 100%;
+}
+.lintje-chat-message__head { display: flex; align-items: baseline; gap: var(--space-2); }
+.lintje-chat-message__label {
+  font-size: var(--label-size); font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.lintje-chat-message__frame { align-self: stretch; }
+.lintje-chat-message__note { font: var(--text-small); color: var(--color-text-muted); }
+
+/* A phone keeps room on the left so the bar reads as the reader's side. */
+@media (max-width: 767px) {
+  .lintje-chat-message { flex-direction: column; align-items: flex-end; margin-left: var(--space-10); }
+  .lintje-chat-message--editing { margin-left: 0; }
+}
+
+/* Forced colours drop the bar's fill; a line keeps the question apart from the answer. */
+@media (forced-colors: active) {
+  .lintje-chat-message__text { outline: 1px solid CanvasText; outline-offset: -1px; }
+}

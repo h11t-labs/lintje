@@ -1,0 +1,52 @@
+[
+  {
+    "id": "GB",
+    "label": "Verenigd Koninkrijk",
+    "value": 1240
+  },
+  {
+    "id": "DE",
+    "label": "Duitsland",
+    "value": 980
+  },
+  {
+    "id": "BE",
+    "label": "België",
+    "value": 860
+  },
+  {
+    "id": "PL",
+    "label": "Polen",
+    "value": 620
+  },
+  {
+    "id": "ES",
+    "label": "Spanje",
+    "value": 310
+  },
+  {
+    "id": "TR",
+    "label": "Turkije",
+    "value": 290
+  },
+  {
+    "id": "US",
+    "label": "Verenigde Staten",
+    "value": 240
+  },
+  {
+    "id": "SR",
+    "label": "Suriname",
+    "value": 210
+  },
+  {
+    "id": "ID",
+    "label": "Indonesië",
+    "value": 120
+  },
+  {
+    "id": "MA",
+    "label": "Marokko",
+    "value": null
+  }
+]

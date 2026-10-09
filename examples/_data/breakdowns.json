@@ -1,0 +1,82 @@
+[
+  {
+    "breakdown": "rejection_grounds",
+    "label": "Onvolledig dossier",
+    "value": 14
+  },
+  {
+    "breakdown": "rejection_grounds",
+    "label": "Niet aan voorwaarden voldaan",
+    "value": 9
+  },
+  {
+    "breakdown": "rejection_grounds",
+    "label": "Termijn verstreken",
+    "value": 6
+  },
+  {
+    "breakdown": "rejection_grounds",
+    "label": "Onjuiste gegevens",
+    "value": 5
+  },
+  {
+    "breakdown": "rejection_grounds",
+    "label": "Overig",
+    "value": 3
+  },
+  {
+    "breakdown": "staffing_per_region",
+    "label": "Noordwest",
+    "value": 94
+  },
+  {
+    "breakdown": "staffing_per_region",
+    "label": "Zuidwest",
+    "value": 92
+  },
+  {
+    "breakdown": "staffing_per_region",
+    "label": "Zuid",
+    "value": 88
+  },
+  {
+    "breakdown": "staffing_per_region",
+    "label": "Oost",
+    "value": 102
+  },
+  {
+    "breakdown": "staffing_per_region",
+    "label": "Noord",
+    "value": 84
+  },
+  {
+    "breakdown": "wait_time_last_hour",
+    "label": "Amsterdam Centrum",
+    "value": 18
+  },
+  {
+    "breakdown": "wait_time_last_hour",
+    "label": "Rotterdam",
+    "value": 14
+  },
+  {
+    "breakdown": "wait_time_last_hour",
+    "label": "Den Haag",
+    "value": 13
+  },
+  {
+    "breakdown": "wait_time_last_hour",
+    "label": "Utrecht",
+    "value": 12
+  },
+  {
+    "breakdown": "wait_time_last_hour",
+    "label": "Amsterdam Zuidoost",
+    "value": 11
+  },
+  {
+    "breakdown": "wait_time_last_hour",
+    "label": "Middelburg",
+    "value": 10
+  }
+]

@@ -1,0 +1,6 @@
+/*
+ * `<lintje-badge>`'s own box: inline, on the text line it stands in. The drawing is `badge.css`,
+ * which the element adopts beside this file and which other roots adopt without it.
+ */
+:host { display: inline-flex; vertical-align: middle; }
+:host([hidden]) { display: none; }

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="nl" data-mode="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lintje</title>
+    <!--
+      The start page: what Lintje is, a card per category of the style guide and one per example
+      application. Like every example it consumes the design system and adds nothing to it — the
+      only scripts are the built bundle and the module below, so any static server rooted at the
+      repository will do.
+
+      The shell's "Weergave" holds every setting — light or dark, where the menu stands and the
+      theme — and each one lives in the URL (`?mode=`, `?menu=`, `?layout=`, `?theme=`). The
+      menu's entries are real links that carry those along, so the page a reader opens looks
+      the way this one does.
+    -->
+    <link rel="stylesheet" href="../src/tokens/fonts.css" />
+    <link rel="stylesheet" href="../dist-elements/tokens.css" />
+    <style>
+      /* Layout only: every visual pattern on this page is an element's own. */
+      body {
+        margin: 0;
+        background: var(--color-bg-page);
+        color: var(--color-text-primary);
+        font: var(--text-ui);
+        font-family: var(--font-ui);
+        font-variant-numeric: tabular-nums;
+        -webkit-font-smoothing: antialiased;
+      }
+      /* The shell pads the page; the sections stand further apart than the shell's tiles. */
+      .pagina { display: flex; flex-direction: column; gap: var(--space-8); }
+      .deel { display: flex; flex-direction: column; gap: var(--space-4); }
+      /* A section's heading stands on the left edge of the text in the tiles under it. */
+      .tekst { max-width: var(--w-text); padding-inline: var(--tile-pad-x); }
+
+      @media (max-width: 767.98px) {
+        .pagina { gap: var(--space-6); }
+      }
+    </style>
+  </head>
+  <body>
+    <lintje-shell id="shell">
+      <!-- The style guide has its own section below, so the hero's one link is the source. -->
+      <lintje-hero slot="full" heading="De Rijkshuisstijl als web components"
+        description="Voor applicaties en websites van de Rijksoverheid. De stijlgids toont elk element op zichzelf, de voorbeelden laten zien wat je ermee bouwt."
+        action="Bekijk de broncode op GitHub" href="https://github.com/h11t-labs/lintje"></lintje-hero>
+      <div class="pagina">
+        <lintje-kpi-row id="feiten"></lintje-kpi-row>
+
+        <section class="deel" aria-labelledby="deel-stijlgids">
+          <lintje-prose class="tekst">
+            <h2 id="deel-stijlgids">Stijlgids</h2>
+            <p>Elk element op zichzelf, in al zijn toestanden, met eronder wat je erop kunt instellen
+            en wat het terugmeldt.</p>
+          </lintje-prose>
+          <lintje-card-list id="categorieen" compact label="Categorieën van de stijlgids"></lintje-card-list>
+        </section>
+
+        <section class="deel" aria-labelledby="deel-voorbeelden">
+          <lintje-prose class="tekst">
+            <h2 id="deel-voorbeelden">Voorbeelden</h2>
+            <p>Kleine, werkende applicaties, elk op een gewone HTML-pagina. Alle gegevens zijn
+            verzonnen.</p>
+          </lintje-prose>
+          <lintje-card-list id="voorbeelden" label="Voorbeelden"></lintje-card-list>
+        </section>
+
+        <section class="deel" aria-labelledby="deel-gebruik">
+          <lintje-prose class="tekst">
+            <h2 id="deel-gebruik">Op je eigen pagina</h2>
+            <p>Eén stylesheet, één module en gewone HTML. Het maakt niet uit wat de pagina maakt:
+            PHP, Python, een statisch bestand of een JavaScript-applicatie.</p>
+          </lintje-prose>
+          <lintje-grid>
+            <lintje-tile id="tegel-gebruik" span="12" heading="Een pagina die een server rendert">
+              <lintje-code id="gebruik" language="html" label="Een minimale pagina"></lintje-code>
+            </lintje-tile>
+          </lintje-grid>
+        </section>
+      </div>
+    </lintje-shell>
+
+    <script type="module">
+      const bundle = await import('../dist-elements/lintje.js')
+      const settings = await import('./_shared/settings.js')
+      const { MENU } = await import('./styleguide/menu.js')
+      // The emblem and every icon are read one file at a time from the house set.
+      bundle.setIconSource({ base: '../dist-icons/' })
+
+      /* What the page links to ------------------------------------------------- */
+      const GUIDE = { href: 'styleguide/', label: 'Stijlgids', icon: 'op-kantoor-boek-opengeslagen' }
+      const EXAMPLES = [
+        {
+          href: 'dashboard/',
+          icon: 'functioneel-tegelweergave',
+          label: 'Dashboard',
+          text: 'Een overzichtspagina met menu, filters met de “Je ziet”-zin, kerncijfers, grafieken, een kaart en een tabel.',
+        },
+        {
+          href: 'chat/',
+          icon: 'communicatie-tekstballonnen',
+          label: 'Chat met data',
+          text: 'Een vraag stellen over de cijfers van het dashboard. Het antwoord komt in tekst, kerncijfers, een grafiek of een tabel.',
+        },
+        {
+          href: 'meldingen/',
+          icon: 'op-kantoor-document-met-potlood',
+          label: 'Meldingen',
+          text: 'Een register als werkblad: filteren, cellen bewerken, acties op meerdere rijen en een detailpaneel opzij. Een nieuwe melding registreer je in stappen, met een concept dat bewaard blijft.',
+        },
+        {
+          href: 'transcriptie/',
+          icon: 'beeld-en-geluid-microfoon',
+          label: 'Transcriptie',
+          text: 'Live opnemen met één druk, hier of op je telefoon, en achteraf het transcript nalopen terwijl de audio meeloopt, met AI-bewerkingen die als zodanig gemarkeerd zijn.',
+        },
+        {
+          href: 'vertalen/',
+          icon: 'communicatie-tekstballonnen-met-internationaal-gesprek',
+          label: 'Vertalen',
+          text: 'Brontekst en vertaling naast elkaar, met een scheiding die je zelf verschuift, en het resultaat exporteren.',
+        },
+        {
+          href: 'catalogus/',
+          icon: 'op-kantoor-map-vol-documenten',
+          label: 'Productcatalogus',
+          action: 'Open de catalogus',
+          text: 'Alle producten van een dataplatform op één plek, ook waar je nog geen toegang toe hebt: een startpagina met een vraag, de catalogus met filters en een productpagina.',
+          tags: 'lintje-hero · lintje-card-list · lintje-card · lintje-filter-bar · lintje-description-list',
+        },
+      ]
+
+      // The reader's settings travel along to the page a link opens. `menu` and `layout` mean
+      // nothing to the applications, whose menu always stands above the page.
+      const APP_PAGES = ['meldingen/', 'transcriptie/', 'vertalen/', 'catalogus/']
+      const carry = (href) =>
+        settings.carry(
+          href,
+          location.search,
+          APP_PAGES.some((path) => href.startsWith(path)) ? settings.CARRIED_TO_APPS : settings.CARRIED,
+        )
+
+      // Named here and not in the markup: an icon is fetched from the folder set above.
+      document.getElementById('tegel-gebruik').icon = 'computer-en-internet-computercode'
+
+      document.getElementById('gebruik').text = `<link rel="stylesheet" href="/lintje/tokens.css" />
+<script type="module" src="/lintje/lintje.js"><\/script>
+
+<lintje-shell>
+  <script type="application/json">
+    { "name": "Meldingen", "navigation": [{ "label": "Overzicht", "href": "/overzicht" }] }
+  <\/script>
+
+  <form method="post" action="/meldingen">
+    <lintje-text-input name="naam" label="Naam"></lintje-text-input>
+    <lintje-button type="submit" variant="primary">Versturen</lintje-button>
+  </form>
+</lintje-shell>`
+
+      /* The settings: all of them in the URL ---------------------------------- */
+      const { THEMES } = settings
+      const root = document.documentElement
+      const shell = document.getElementById('shell')
+      settings.answerLogout(shell)
+      const theme = () => settings.themeOf(location.search)
+
+      function render() {
+        root.dataset.mode = settings.modeOf(location.search)
+        root.dataset.theme = theme()
+
+        // Real addresses: the browser follows an entry by itself, with the settings behind it.
+        const page = ({ label, icon, href }) => ({ label, icon, href: carry(href) })
+        shell.data = {
+          name: 'Lintje',
+          emblem: settings.emblem(theme()),
+          home: carry('./'),
+          ...settings.shellSettingsOf(location.search, { layoutChoice: true }),
+          share: true,
+          navigation: [
+            { label: 'Start', icon: 'functioneel-home', href: carry('./'), active: true },
+            { label: 'Verkennen', links: [page(GUIDE)] },
+            { label: 'Voorbeelden', links: EXAMPLES.map(page) },
+          ],
+          user: { initials: 'LS', name: 'Lintje', role: `${bundle.LINTJE_TAGS.length} elementen` },
+          pageName: 'Start',
+        }
+        document.getElementById('feiten').data = {
+          columns: 4,
+          kpis: [
+            { label: 'Elementen', icon: 'functioneel-tegelweergave', value: bundle.LINTJE_TAGS.length, detail: 'Per categorie in de stijlgids' },
+            { label: 'Thema’s', icon: 'symbolen-en-abstract-ster', value: THEMES.length, detail: 'Elk in licht en donker' },
+            { label: 'Voorbeelden', icon: 'computer-en-internet-applicatie', value: EXAMPLES.length, detail: 'Werkende applicaties' },
+            { label: 'Smalste scherm', icon: 'communicatie-mobiel-in-hand', value: 390, suffix: 'px', detail: 'Elk element werkt op een telefoon' },
+          ],
+        }
+        // A card is a link; its address carries the settings, so it is drawn again with them.
+        document.getElementById('categorieen').items = MENU.flatMap((group) =>
+          group.items.map((item) => ({
+            id: item.name,
+            title: item.label,
+            meta: [group.heading],
+            href: carry(`styleguide/?category=${item.name}`),
+          })),
+        )
+        document.getElementById('voorbeelden').items = EXAMPLES.map((example) => ({
+          id: example.href,
+          title: example.label,
+          description: example.text,
+          href: carry(example.href),
+        }))
+      }
+
+      // An entry of the menu is a link the browser follows. A setting is this page again.
+      shell.addEventListener('lintje-view-change', (event) => {
+        history.replaceState(null, '', `${location.pathname}${settings.searchWith(location.search, event.detail)}`)
+        render()
+      })
+
+      render()
+    </script>
+  </body>
+</html>
