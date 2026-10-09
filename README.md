@@ -5,6 +5,11 @@
 
 # Lintje
 
+[![npm](https://img.shields.io/npm/v/lintje)](https://www.npmjs.com/package/lintje)
+[![Release](https://github.com/h11t-labs/lintje/actions/workflows/release.yml/badge.svg)](https://github.com/h11t-labs/lintje/actions/workflows/release.yml)
+[![Pages](https://github.com/h11t-labs/lintje/actions/workflows/pages.yml/badge.svg)](https://h11t-labs.github.io/lintje/)
+[![Licentie: EUPL-1.2](https://img.shields.io/npm/l/lintje)](LICENSE)
+
 De Rijkshuisstijl als standaard **custom elements**, geschreven met [Lit 3](https://lit.dev) —
 genoemd naar het lint van het logo van de Rijksoverheid. Eén module registreert de
 `lintje-*`-tags; een pagina schrijft een tag en zet zijn attributen of properties.
@@ -35,9 +40,16 @@ Versie 0.x: de tags, hun properties en events en `src/types.ts` kunnen vóór 1.
 [`CHANGELOG.md`](CHANGELOG.md) markeert elke brekende wijziging. Lintje wordt getest in Chromium,
 WebKit en Firefox.
 
-Lintje komt als npm-package `lintje`, maar staat daar nog niet. Tot dan bouwt een host
-deze repository en serveert `dist-elements/`. Wat de pagina rendert maakt niet uit — PHP, Python,
-een statisch bestand, een JavaScript-applicatie:
+Lintje staat op npm als [`lintje`](https://www.npmjs.com/package/lintje); de styleguide en de
+voorbeelden van de laatste versie staan op [h11t-labs.github.io/lintje](https://h11t-labs.github.io/lintje/).
+
+```bash
+npm install lintje
+```
+
+Een host met een bundler importeert `lintje` of een van zijn ingangen; een host zonder serveert
+`node_modules/lintje/dist-elements/`, of bouwt deze repository. Wat de pagina rendert maakt niet
+uit — PHP, Python, een statisch bestand, een JavaScript-applicatie:
 
 - **Een pagina die een server rendert, heeft geen eigen script nodig.** De browser volgt links,
   de invoer post in een native `<form>`, en rijke data is een JSON-script in het element:
