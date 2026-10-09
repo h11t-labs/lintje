@@ -1,6 +1,7 @@
 # Changelog
 
-Wat er voor een host veranderde, per versie, de nieuwste bovenaan. De opzet volgt
+Wat er veranderde, per versie, de nieuwste bovenaan. Elke pull request zet hier een regel onder
+`[Unreleased]`, ook een kleine, met zijn nummer erachter: `(#12)`. De opzet volgt
 [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) en de versies
 [Semantic Versioning](https://semver.org/lang/nl/): de kopjes zijn de zes soorten van Keep a
 Changelog in het Nederlands (Toegevoegd, Gewijzigd, Verouderd, Verwijderd, Opgelost, Beveiliging).
@@ -8,6 +9,19 @@ Changelog in het Nederlands (Toegevoegd, Gewijzigd, Verouderd, Verwijderd, Opgel
 hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:**.
 
 ## [Unreleased]
+
+### Gewijzigd
+
+- De README en `docs/guides/loading.md` noemen het npm-pakket (`npm install lintje`); de README
+  heeft badges voor de versie, de release, Pages en de licentie. (#6)
+- Elke pull request zet een regel in deze changelog, met zijn nummer. (#6)
+- Commitberichten, pull requests en issues zijn Nederlands. (#5)
+- Check draait één keer per pull request, niet meer ook bij elke push en op `main` na een merge.
+  (#4)
+
+### Opgelost
+
+- Drie verdwaalde screenshots (`undefined/dashboard*.png`) zijn uit de repository. (#3)
 
 ## [0.1.0] - 2026-10-09
 
