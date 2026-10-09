@@ -55,7 +55,7 @@ categorie** (regel 6 en 20).
 
 ## Ze draaien
 
-Elke versietag (`v0.2.0`) publiceert de voorbeelden op GitHub Pages
+Elke geslaagde release (een versietag, `v0.2.0`) publiceert de voorbeelden op GitHub Pages
 ([`.github/workflows/pages.yml`](../.github/workflows/pages.yml)), onder
 `https://h11t-labs.github.io/lintje/examples/`. Lokaal wordt de bundel niet gecommit, dus bouw hem eerst:
 

@@ -1,12 +1,13 @@
-# Publishes the examples and the style guide on GitHub Pages when a version tag (v0.2.0) is pushed,
-# so the site shows a released version; "Run workflow" publishes main by hand. The site mirrors the
-# repository root, because every page reaches back to dist-elements/, dist-icons/ and
+# Publishes the examples and the style guide on GitHub Pages once release.yml has published a
+# version, so the site shows a released version; "Run workflow" publishes main by hand. The site
+# mirrors the repository root, because every page reaches back to dist-elements/, dist-icons/ and
 # src/tokens/fonts.css by a relative path, and fonts.css in turn to the fonts in node_modules/.
 name: Pages
 
 on:
-  push:
-    tags: ['v*']
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -20,10 +21,14 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          # After a release: the released commit, not the default branch.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: actions/setup-node@v7
         with:
           node-version: 20

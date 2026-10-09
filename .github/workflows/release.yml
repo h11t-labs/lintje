@@ -1,8 +1,9 @@
-# Publishes a release when a version tag (v0.2.0) is pushed: the package to npm, and a GitHub
-# release with the tarball and the changelog section of that version as its notes. The tag must
-# equal the version in package.json and have its section in CHANGELOG.md, and the release passes
-# the same checks as check.yml first. Needs the repository secret NPM_TOKEN; --provenance links
-# the package to this run.
+# Publishes a release when a version tag (v0.2.0) is pushed: the package is staged on npm for a
+# maintainer to approve with 2FA (`npm stage publish`), and a GitHub release carries the tarball
+# and the changelog section of that version as its notes. The tag must equal the version in
+# package.json and have its section in CHANGELOG.md, and the release passes the same checks as
+# check.yml first. Needs the repository secret NPM_TOKEN, a granular token with stage-only access;
+# --provenance links the package to this run.
 name: Release
 
 on:
@@ -21,9 +22,11 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          # Staging needs npm 11.15 on Node 22.14; the npm that comes with Node is older.
+          node-version: 22
           cache: npm
           registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@latest
       - run: npm ci
       - name: The tag is the version
         run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
@@ -39,7 +42,8 @@ jobs:
           LINTJE_BROWSERS: chromium,webkit,firefox
       - run: npm run build:elements
       - run: npm pack
-      - run: npm publish --provenance --access public
+      - name: Stage the package on npm, for a maintainer to approve
+        run: npm stage publish --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: The GitHub release
