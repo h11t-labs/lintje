@@ -2,11 +2,11 @@
 # build the examples load.
 name: Check
 
-# A tag runs release.yml, which repeats these checks before it publishes.
+# Once per pull request: main only takes merged pull requests, and a tag runs release.yml, which
+# repeats these checks before it publishes. "Run workflow" checks any branch by hand.
 on:
-  push:
-    branches: ['**']
   pull_request:
+  workflow_dispatch:
 
 jobs:
   check:
