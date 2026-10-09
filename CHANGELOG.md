@@ -10,6 +10,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-09
+
 ### Gewijzigd
 
 - De README en `docs/guides/loading.md` noemen het npm-pakket (`npm install lintje`); de README
@@ -31,5 +33,6 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/h11t-labs/lintje/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/h11t-labs/lintje/releases/tag/v0.1.0
