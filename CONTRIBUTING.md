@@ -25,8 +25,8 @@ of een nieuwe toestand heeft zijn specimen, en wat een host merkt staat in
 Je hebt Node 20.19+ of 22.12+ nodig.
 
 De projectregels staan in [`AGENTS.md`](AGENTS.md). De naam komt van de AI-assistenten die ze
-ook lezen; ze gelden voor iedereen. Code en commentaar zijn Engels, de interface en de documentatie
-Nederlands (regel 23).
+ook lezen; ze gelden voor iedereen. Code en commentaar zijn Engels; de interface, de documentatie,
+commitberichten en pull requests Nederlands (regel 23).
 
 Een bijdrage valt onder dezelfde licentie als Lintje, de [EUPL-1.2](LICENSE). Met een pull request
 verklaar je dat je het recht hebt het werk zo in te brengen.
