@@ -306,7 +306,8 @@ git fetch origin && git tag v0.2.0 origin/main && git push origin v0.2.0
 
 De workflow weigert een tag die niet gelijk is aan de versie in `package.json` of geen sectie in
 de changelog heeft, draait dezelfde checks als `check.yml`, publiceert het pakket `lintje` op npm
-en maakt de GitHub-release met de tarball en die sectie als tekst. Een versie is
+en maakt de GitHub-release met de tarball en die sectie als tekst; daarna zet `pages.yml` de
+styleguide en de voorbeelden van die versie op GitHub Pages. Een versie is
 [Semantic Versioning](https://semver.org/lang/nl/): vóór 1.0 verhoogt een brekende wijziging het
 tweede getal.
 
