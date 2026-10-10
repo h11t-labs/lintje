@@ -512,6 +512,11 @@ wordt de reeks afgekapt bij het laatste volledige punt en zegt een peilmomentlij
 houden de volledige periode en schaal, zodat de vorm herkenbaar blijft en een ochtend niet wordt
 opgeblazen tot een piek.
 
+**Gebeurtenissen.** Wat er op een moment gebeurde, is een genummerd vierkantje boven zijn
+categorie met een doorgetrokken lijn tot de nullijn, apart van de gestreepte peilmomentlijn; de
+reeksen liggen eroverheen. De tekst staat altijd in een lijst onder de grafiek, ook op een
+telefoon, en in de tooltip, de tabel en de CSV: de tekening alleen draagt de betekenis nooit.
+
 **Klassen** (heatmap, choropleet) krijgen hun grenzen uit de getoonde data, afgerond op stappen
 die een lezer herkent. Een host zet de grenzen vast als twee perioden op kleur vergelijkbaar
 moeten zijn.

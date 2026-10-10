@@ -54,6 +54,14 @@ export function renderTooltip(controller: ChartController): TemplateResult | typ
         </p>
       `,
       )}
+      ${content.events?.map(
+        (event) => html`
+        <p class="lintje-chart-tooltip__event">
+          <span class="lintje-event-number">${event.number}</span>
+          <span>${event.label}</span>
+        </p>
+      `,
+      )}
     </div>
   `
 }

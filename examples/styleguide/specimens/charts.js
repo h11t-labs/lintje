@@ -103,6 +103,17 @@ const foldedDesks = deskParts.reduce((sum, part) => sum + part.value, 0)
   - largestDesks.reduce((sum, part) => sum + part.value, 0)
 const staffing = meta.kpi.staffing
 
+// Requests per week this year against last year, weeks 14 to 39, with what happened.
+const WEEKS = Array.from({ length: 26 }, (_, i) => `wk ${14 + i}`)
+const THIS_YEAR = [
+  920, 940, 930, 960, 955, 970, 980, 990, 1180, 1210, 1240, 1230, 1260,
+  1250, 1270, 1290, 1300, 820, 1150, 1280, 1300, 1310, 1295, 1320, 1330, 1340,
+]
+const LAST_YEAR = [
+  950, 960, 955, 970, 980, 975, 990, 1000, 1010, 1005, 1020, 1015, 1030,
+  1025, 1040, 1035, 1050, 1045, 1060, 1055, 1070, 1065, 1080, 1075, 1090, 1085,
+]
+
 const CHARTS = [
   {
     id: 'line', title: 'Lijn met vergelijking en peilmoment',
@@ -116,6 +127,22 @@ const CHARTS = [
       series: [
         { label: 'Vandaag', values: column('requests'), area: true },
         { label: 'Vorige week', values: column('requests_last_week'), comparison: true },
+      ],
+    },
+  },
+  {
+    id: 'line-events', title: 'Aanvragen per week',
+    subtitle: 'Dit jaar tegen vorig jaar, met wat er gebeurde',
+    description: 'Aanvragen per week dit jaar tegen vorig jaar, week 14 tot en met 39.',
+    spec: {
+      kind: 'line', labels: WEEKS, axisTitle: 'aanvragen',
+      series: [
+        { label: '2026', values: THIS_YEAR, area: true },
+        { label: '2025', values: LAST_YEAR, comparison: true },
+      ],
+      events: [
+        { index: 8, label: 'Online aanvragen open voor iedereen' },
+        { index: 17, label: 'Storing inlogdienst, twee dagen' },
       ],
     },
   },
@@ -246,6 +273,7 @@ const CHARTS = [
 // The Dutch name of each kind, for the specimen's label.
 const KIND_NAMES = {
   line: 'Lijn',
+  'line-events': 'Lijn · gebeurtenissen',
   bar: 'Staven',
   'horizontal-bar': 'Horizontale staven',
   'target-progress': 'Voortgang',
@@ -289,6 +317,7 @@ const chartSpecimen = (chart) => ({
       chart: chart.spec,
       description: chart.description,
       title: chart.title,
+      subtitle: chart.subtitle,
       footnote: 'Bron: fictieve demogegevens',
       expandable: true,
       download: { filename: `demo-${chart.id}` },

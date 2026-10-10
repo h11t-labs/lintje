@@ -1,6 +1,6 @@
 /**
- * Line and area chart with comparison, hatching and as-of time. Missing data is never drawn
- * as 0 (rule 15): `null` points are skipped and the missing part is hatched or cut off.
+ * Line and area chart with comparison, hatching, as-of time and events. Missing data is never
+ * drawn as 0 (rule 15): `null` points are skipped and the missing part is hatched or cut off.
  */
 import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
@@ -22,6 +22,11 @@ import type { ChartSpec } from '../shared/types'
 
 type LineSpec = Extract<ChartSpec, { kind: 'line' }>
 
+/** An event's numbered square, 2 px below the top; the plot moves down to make room for it. */
+const EVENT_CHIP = 18
+const EVENT_GAP = 8
+const EVENT_TOP = 2 + EVENT_CHIP + EVENT_GAP
+
 export function renderLineChart(spec: LineSpec, options: ChartOptions): TemplateResult {
   const { controller, description } = options
   const {
@@ -34,6 +39,12 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
     fixedMax,
     small = false,
   } = spec
+  // Numbered in the host's order; one outside the labels draws nothing.
+  const events = (spec.events ?? [])
+    .map((event, i) => ({ ...event, number: i + 1 }))
+    .filter(
+      (event) => Number.isInteger(event.index) && event.index >= 0 && event.index < labels.length,
+    )
   const id = controller.id
 
   controller.measure({
@@ -67,7 +78,10 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
     fontFamily: controller.fontFamily,
     minimum: Math.ceil(textWidth(labels[0] ?? '', controller.fontFamily) / 2),
   })
-  const area = chartArea(options, { left: axis.width })
+  const area = chartArea(options, {
+    left: axis.width,
+    ...(events.length ? { top: EVENT_TOP } : {}),
+  })
 
   const isEarly = pendingHours > 6
   const lastKnown = asOfIndex ?? labels.length - 1
@@ -89,6 +103,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
     .filter((label) => label.i % step === 0)
 
   function contentAt(i: number): TooltipContent {
+    const here = events.filter((event) => event.index === i)
     return {
       title: labels[i],
       rows: visible.map((row) => ({
@@ -96,6 +111,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
         value: row.values[i] == null ? 'geen gegevens' : formatNumber(row.values[i]!),
         color: colorOf(row),
       })),
+      ...(here.length ? { events: here } : {}),
     }
   }
   const keys = plotKeys(controller, labels.length, (i) => {
@@ -120,6 +136,22 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
                            height=${area.height - area.top - area.bottom}
                            fill="url(#hatch-${id})" />`
         })()
+      : nothing,
+
+    // Under the area and the lines, and drawn at once like the axes: no reveal.
+    events.length
+      ? svg`<g>${events.map((event) => {
+          const x = xPosition(event.index, labels.length, area)
+          const top = area.top - EVENT_GAP - EVENT_CHIP
+          return svg`
+            <line class="lintje-chart__event-line" x1=${x} x2=${x}
+                  y1=${area.top - EVENT_GAP} y2=${area.height - area.bottom} />
+            <rect class="lintje-chart__event-chip" x=${x - EVENT_CHIP / 2} y=${top}
+                  width=${EVENT_CHIP} height=${EVENT_CHIP} />
+            <text class="lintje-chart__event-number" x=${x} y=${top + 13.5}
+                  text-anchor="middle">${event.number}</text>
+          `
+        })}</g>`
       : nothing,
 
     svg`<g class="lintje-chart__reveal">
@@ -240,11 +272,31 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
           formatTick: axis.format,
           axisTitle: axisTitle ?? unit,
           xLabels,
-          description,
+          // The drawing names its events too; the list below says them again.
+          description: events.length
+            ? `${description} ${events
+                .map(
+                  (event) => `Gebeurtenis ${event.number}, ${labels[event.index]}: ${event.label}.`,
+                )
+                .join(' ')}`
+            : description,
           keys,
         },
         marks,
       )}
+      ${
+        events.length
+          ? html`<ol class="lintje-chart-events" aria-label="Gebeurtenissen">
+              ${events.map(
+                (event) => html`<li class="lintje-chart-events__item">
+                  <span class="lintje-event-number">${event.number}</span>
+                  <span><span class="lintje-chart-events__category">${labels[event.index]}</span> ·
+                    ${event.label}</span>
+                </li>`,
+              )}
+            </ol>`
+          : nothing
+      }
       ${renderTooltip(controller)}
       ${renderPlotStatus(controller)}
     </div>

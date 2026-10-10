@@ -49,6 +49,8 @@ export interface TooltipRow {
 export interface TooltipContent {
   title: string
   rows: TooltipRow[]
+  /** The events at this category, under the values: their number and text. */
+  events?: { number: number; label: string }[]
 }
 export interface TooltipState {
   x: number

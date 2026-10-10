@@ -1,7 +1,7 @@
 /**
  * The line chart: a missing value breaks the line (rule 15), two lines in colour carry a shape
- * besides it (rule 13), a dark-yellow line has an edge that reaches 3:1, and a switched-off
- * series keeps its name at full contrast.
+ * besides it (rule 13), a dark-yellow line has an edge that reaches 3:1, a switched-off
+ * series keeps its name at full contrast, and an event never hangs on the drawing alone.
  */
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -133,5 +133,79 @@ describe('the line chart', () => {
     expect(css).toMatch(
       /\.lintje-legend__item\.is-hidden \.lintje-legend__label \{ text-decoration/,
     )
+  })
+
+  describe('events', () => {
+    const spec: LineSpec = {
+      kind: 'line',
+      labels: ['wk 1', 'wk 2', 'wk 3', 'wk 4'],
+      series: [{ label: 'A', values: [1, 2, 3, 4], area: true }],
+      events: [
+        { index: 1, label: 'Open voor iedereen' },
+        { index: 3, label: 'Storing' },
+        { index: 9, label: 'Buiten de labels' },
+      ],
+    }
+
+    it('draws a numbered square per event with a line to the zero line, under the series', () => {
+      const { host } = draw(spec)
+      const numbers = [...host.querySelectorAll('.lintje-chart__event-number')]
+      expect(numbers.map((number) => number.textContent?.trim())).toEqual(['1', '2'])
+      expect(host.querySelector('.lintje-chart__reveal .lintje-chart__event-chip')).toBeNull()
+
+      const line = host.querySelector('.lintje-chart__event-line')!
+      const chip = host.querySelector('.lintje-chart__event-chip')!
+      const chipBottom = Number(chip.getAttribute('y')) + Number(chip.getAttribute('height'))
+      expect(Number(line.getAttribute('y1'))).toBe(chipBottom)
+      const zero = host.querySelector('line[stroke="var(--color-chart-zero)"]')!
+      expect(line.getAttribute('y2')).toBe(zero.getAttribute('y1'))
+
+      // The event lines lie under the area and the lines.
+      const order = [...host.querySelectorAll('.lintje-chart__event-line, polygon')]
+      expect(order[0].classList.contains('lintje-chart__event-line')).toBe(true)
+    })
+
+    it('moves the plot down only when there are events', () => {
+      const top = (host: Element) =>
+        Math.min(
+          ...[...host.querySelectorAll('line[stroke="var(--color-chart-grid)"]')].map((line) =>
+            Number(line.getAttribute('y1')),
+          ),
+        )
+      const without = draw({ ...spec, events: undefined }).host
+      expect(without.querySelector('.lintje-chart__event-chip')).toBeNull()
+      expect(without.querySelector('.lintje-chart-events')).toBeNull()
+      expect(top(draw(spec).host)).toBeGreaterThan(top(without))
+    })
+
+    it('lists every event under the chart and names them in the description', () => {
+      const { host } = draw(spec)
+      const items = [...host.querySelectorAll('.lintje-chart-events__item')]
+      expect(items.map((item) => item.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
+        '1 wk 2 · Open voor iedereen',
+        '2 wk 4 · Storing',
+      ])
+      expect(host.querySelector('desc')?.textContent).toBe(
+        'Een lijn. Gebeurtenis 1, wk 2: Open voor iedereen. Gebeurtenis 2, wk 4: Storing.',
+      )
+    })
+
+    it('shows the event in the tooltip of its category, and nowhere else', () => {
+      const { host, controller } = draw(spec)
+      const svg = host.querySelector('svg.lintje-chart__svg') as SVGElement
+      svg.dispatchEvent(new FocusEvent('focus'))
+      svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
+      svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
+      expect(controller.tooltip?.content.events).toEqual([
+        { index: 1, label: 'Open voor iedereen', number: 1 },
+      ])
+      expect(controller.status).toBe('wk 2: A 2. Gebeurtenis 1: Open voor iedereen')
+      expect(host.querySelector('.lintje-chart-tooltip__event')?.textContent).toContain(
+        'Open voor iedereen',
+      )
+      svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
+      expect(controller.tooltip?.content.events).toBeUndefined()
+      expect(host.querySelector('.lintje-chart-tooltip__event')).toBeNull()
+    })
   })
 })

@@ -88,14 +88,27 @@ function stateHeight(chart: ChartSpec): string | undefined {
 /** The rows of the CSV download, header first; the table view shows the same rows. */
 function csvRows(chart: ChartSpec): CsvCell[][] {
   switch (chart.kind) {
-    case 'line':
+    case 'line': {
+      const events = chart.events ?? []
+      // A category without an event is empty, not missing (rule 15 is about values).
+      const eventAt = (i: number) =>
+        events
+          .filter((event) => event.index === i)
+          .map((event) => event.label)
+          .join('; ')
       return [
-        ['', ...chart.series.map((series) => series.label)],
+        [
+          '',
+          ...chart.series.map((series) => series.label),
+          ...(events.length ? ['Gebeurtenis'] : []),
+        ],
         ...chart.labels.map((label, i) => [
           label,
           ...chart.series.map((series) => series.values[i]),
+          ...(events.length ? [eventAt(i)] : []),
         ]),
       ]
+    }
     case 'bar':
       return [
         ['', chart.axisTitle ?? 'Waarde', ...(chart.trend ? ['Trend'] : [])],
@@ -155,7 +168,8 @@ function chartTable(chart: ChartSpec, caption: string): DataTableData {
   const [header = [], ...body] = csvRows(chart)
   const columns = header.map((cell, index) => {
     const values = body.map((row) => (row[index] ?? null) as CellValue)
-    return index === 0
+    // The first column and one of words (an event) are text, the rest figures.
+    return index === 0 || values.some((value) => typeof value === 'string')
       ? { key: `c${index}`, header: String(cell ?? ''), format: 'text' as const, sortable: false }
       : {
           key: `c${index}`,

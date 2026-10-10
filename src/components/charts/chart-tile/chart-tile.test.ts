@@ -117,6 +117,21 @@ describe('lintje-chart-tile table switch', () => {
     expect(wednesday[1]).not.toContain('0')
     expect(wednesday[2]).toBe('101')
   })
+
+  it('adds a column "Gebeurtenis" with the text on its category\'s row', async () => {
+    const chart = { ...DATA.chart, events: [{ index: 1, label: 'Storing inlogdienst' }] }
+    const element = await tile({ ...DATA, chart, tableSwitch: true })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    const head = [...found.renderRoot.querySelectorAll('.lintje-data-table__full thead th')]
+    expect(head.map((cell) => cell.textContent?.trim())).toEqual([
+      '',
+      'Deze week',
+      'Vorige week',
+      'Gebeurtenis',
+    ])
+    expect(cells(found).map((row) => row[3])).toEqual(['', 'Storing inlogdienst', ''])
+  })
 })
 
 describe('lintje-chart-tile error state', () => {
