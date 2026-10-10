@@ -39,7 +39,7 @@ export interface ScatterPoint {
   /** null = no data, never 0 (rule 15): the point is not drawn and stays in the table. */
   x: number | null
   y: number | null
-  /** The identity a click carries; without it the label. */
+  /** The identity a click carries; without it the series' label and its own: `Loket · Utrecht`. */
   id?: string
   href?: string
 }
