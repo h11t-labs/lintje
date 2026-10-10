@@ -3,7 +3,8 @@
  * Admin-0 1:10m and CBS's `landsdeel` regions on PDOK, cached in `.cache/geo/`. Kadaster's
  * `landgebied` is not used: it fills the Wadden Sea and the IJsselmeer. Overridable for a closed
  * network: `LINTJE_GEO_NATURAL_EARTH_URL`, `LINTJE_GEO_PDOK_URL` (or `--natural-earth=`, `--pdok=`).
- * Output: `world.json` and `netherlands.json` pre-projected, `*.lonlat.json` for Leaflet.
+ * Output: `world.lonlat.json` and `netherlands.lonlat.json`, unprojected; the map projects them
+ * itself (Web Mercator, as every web map).
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
@@ -84,19 +85,6 @@ function area(ring) {
   return Math.abs(s / 2)
 }
 
-/* --- Projections ---------------------------------------------------------- */
-
-/** Mercator, clamped at ±83° so the poles do not blow up the scale. */
-function mercator([lon, lat]) {
-  const f = (Math.max(-83, Math.min(83, lat)) * Math.PI) / 180
-  return [lon, (Math.log(Math.tan(Math.PI / 4 + f / 2)) * 180) / Math.PI]
-}
-
-/** The Rijksdriehoeksmeting as an affine transform (under a pixel off), as `map-chart.ts`. */
-function rd([lon, lat]) {
-  return [(lon - 5.38763) * Math.cos((lat * Math.PI) / 180), lat - 52.15616]
-}
-
 /* --- Conversion ----------------------------------------------------------- */
 
 function rings(geometry) {
@@ -126,51 +114,7 @@ function shapesOf(features, { tolerance, minArea, ringFilter }) {
   return shapes
 }
 
-/** Projects and scales to a plane of 1000 × height, with one scale in x and y. */
-function build(features, { projection, tolerance, minArea, margin = 8, ringFilter }) {
-  const shapes = shapesOf(features, { tolerance, minArea, ringFilter }).map((v) => ({
-    ...v,
-    pieces: v.pieces.map((ring) => ring.map(projection)),
-  }))
-
-  const all = shapes.flatMap((v) => v.pieces.flat())
-  const xs = all.map((p) => p[0])
-  const ys = all.map((p) => p[1])
-  const x0 = Math.min(...xs),
-    x1 = Math.max(...xs)
-  const y0 = Math.min(...ys),
-    y1 = Math.max(...ys)
-  const scale = (1000 - 2 * margin) / (x1 - x0)
-  const height = Math.round((y1 - y0) * scale + 2 * margin)
-  const toPlane = ([x, y]) => [
-    Math.round((x - x0) * scale * 10) / 10 + margin,
-    Math.round((y1 - y) * scale * 10) / 10 + margin, // flip y: SVG grows downward
-  ]
-
-  return {
-    width: 1000,
-    height,
-    // Kept so standalone points get the same projection.
-    projection: { x0, y1, scale, margin, kind: projection === rd ? 'rd' : 'mercator' },
-    shapes: shapes.map((v) => ({
-      id: v.id,
-      name: v.name,
-      d: v.pieces
-        .map(
-          (s) =>
-            'M' +
-            s
-              .map(toPlane)
-              .map(([x, y]) => `${x} ${y}`)
-              .join('L') +
-            'Z',
-        )
-        .join(''),
-    })),
-  }
-}
-
-/** The same shapes as unprojected GeoJSON for Leaflet. Coordinates are rounded below the tolerance. */
+/** The shapes as GeoJSON. Coordinates are rounded below the tolerance. */
 function geojson(features, { tolerance, minArea, ringFilter, precision = 3 }) {
   const factor = 10 ** precision
   const round = (n) => Math.round(n * factor) / factor
@@ -249,16 +193,15 @@ const newest = regions.features.filter((f) => f.properties.jaarcode === year)
 mkdirSync(OUT, { recursive: true })
 
 // Antarctica is left out: it fills the bottom of the frame without meaning anything.
-// The tolerance is the finest that keeps `world.json` within 150 kB as counted below: 0.16°
-// weighs 145.6 kB, 0.155° already 150.1 kB. A new release means tuning it again.
+// The tolerance is the finest that keeps the world within 200 kB as counted below; a new
+// release means tuning it again.
 const WORLD = {
   features: countries.features.filter((f) => f.properties.ISO_A2 !== 'AQ'),
   options: { tolerance: 0.16, minArea: 1.2, precision: 2 },
 }
 
 // The Netherlands separately and finer; its four regions become one outline. Its budget is
-// 25 kB and it stays well under, as CBS publishes every year: 0.004° weighs 15.2 kB, 0.003°
-// 19.3 kB for no visible gain on the 1000-unit plane, 0.002° 27.6 kB.
+// 25 kB and it stays well under, as CBS publishes every year.
 const NETHERLANDS = {
   features: [
     {
@@ -274,23 +217,6 @@ const NETHERLANDS = {
     ringFilter: (ring) => ring.every(([lon]) => lon > 0),
   },
 }
-const world = build(WORLD.features, { projection: mercator, ...WORLD.options })
-const netherlands = build(NETHERLANDS.features, { projection: rd, ...NETHERLANDS.options })
-
-for (const [name, obj] of [
-  ['world', world],
-  ['netherlands', netherlands],
-]) {
-  const json = JSON.stringify(obj)
-  writeFileSync(`${OUT}/${name}.json`, json)
-  const points = obj.shapes.reduce((n, v) => n + (v.d.match(/L/g)?.length ?? 0), 0)
-  console.log(
-    `${name.padEnd(12)} ${obj.shapes.length.toString().padStart(4)} shapes · ` +
-      `${points.toString().padStart(6)} points · ${(json.length / 1024).toFixed(1)} kB · ` +
-      `plane 1000×${obj.height}`,
-  )
-}
-
 for (const [name, source] of [
   ['world', WORLD],
   ['netherlands', NETHERLANDS],

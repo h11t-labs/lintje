@@ -21,7 +21,7 @@ export interface Category {
 export const CATEGORIES: readonly Category[] = list
 
 /** The style guide's sections that show no single tag. */
-export const SECTIONS: readonly string[] = ['icons', 'map-basemap']
+export const SECTIONS: readonly string[] = ['icons']
 
 /** A category's tags, with their prefix. */
 export const tagsOf = (category: Category): string[] =>

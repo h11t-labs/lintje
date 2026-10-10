@@ -124,9 +124,14 @@ function mapSetup(map, extra = {}) {
       footnote: 'Bron: fictieve demogegevens',
       expandable: true,
       download: { filename: map.id },
+      controls: { lasso: true, circle: true, rect: true },
     }
     const say = log(stage)
-    for (const name of ['lintje-mark-select', 'lintje-layer-change']) {
+    // A host keeps the area in its URL and sends it back; the specimen does the same.
+    tile.addEventListener('lintje-area-select', (event) => {
+      tile.data = { ...tile.data, selectedArea: event.detail.area }
+    })
+    for (const name of ['lintje-mark-select', 'lintje-layer-change', 'lintje-area-select']) {
       tile.addEventListener(name, (event) => say(`${name} ${JSON.stringify(event.detail)}`))
     }
   }
@@ -145,20 +150,17 @@ export default {
   elements: [
     {
       tag: 'lintje-map',
-      title: 'Tegel met een kaart: stromen, punten, reeksen, choropleet, vlakken en lagen',
-      specimens: MAPS.map((map) => ({ label: map.label, html: MAP_TILE, wide: true, setup: mapSetup(map) })),
-    },
-    {
-      id: 'map-basemap',
-      title: 'Dezelfde kaarten op een ondergrond (Leaflet, WMS)',
-      short: 'kaart op ondergrond',
-      specimens: MAPS.map((map) => ({
-        label: `${map.label} · ondergrond`,
-        html: MAP_TILE,
-        wide: true,
-        // No `height`: the map takes its own, 400 px and 220 on a phone.
-        setup: mapSetup(map, { basemap: DEMO_BASEMAP, height: undefined, title: `${map.title} · ondergrond` }),
-      })),
+      title: 'Tegel met een kaart: stromen, punten, reeksen, choropleet, vlakken en lagen, ook op een ondergrond (WMS)',
+      specimens: [
+        ...MAPS.map((map) => ({ label: map.label, html: MAP_TILE, wide: true, setup: mapSetup(map) })),
+        ...MAPS.map((map) => ({
+          label: `${map.label} · ondergrond`,
+          html: MAP_TILE,
+          wide: true,
+          // No `height`: the map takes its own, 400 px and 280 on a phone.
+          setup: mapSetup(map, { basemap: DEMO_BASEMAP, height: undefined, title: `${map.title} · ondergrond` }),
+        })),
+      ],
     },
   ],
 }

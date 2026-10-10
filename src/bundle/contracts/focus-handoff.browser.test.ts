@@ -1399,6 +1399,8 @@ const REDRAWN_ROWS: Row[] = [
       const close = (): HTMLElement | null =>
         tile.shadowRoot!.querySelector<HTMLElement>('.lintje-map-chart__selection-close')
       await drawn(close)
+      // The marks come a frame after the panel: the map draws once its box is measured.
+      await drawn(() => tile.shadowRoot!.querySelector('[data-mark-id="zwo"]'))
       close()!.focus()
       await userEvent.keyboard('{Enter}')
       return () => tile.shadowRoot!.querySelector('[data-mark-id="zwo"]')

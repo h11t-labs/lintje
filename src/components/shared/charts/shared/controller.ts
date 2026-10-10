@@ -8,6 +8,7 @@ import { DEFAULT_PLOT_AREA, type PlotArea } from './scale'
 import type { LeafletSurface } from '../map-chart/leaflet'
 import type { ChartSelection } from './mark-select'
 import type { SeriesKey } from './series-shapes'
+import type { MapArea, MapTool } from './types'
 
 /** What every `render*` takes besides its data. */
 export interface ChartOptions {
@@ -96,26 +97,38 @@ export class ChartController {
   /** What the keyboard's tooltip says, for the chart's status region; empty otherwise. */
   status = ''
   hiddenSeries: string[] = []
+  /** The layers of a stacked map switched off in its legend, by their place in the stack. */
+  hiddenLayers: number[] = []
   hoverSegment: number | null = null
   selectedCell: { row: number; column: number } | null = null
   dimmedClass: number | null = null
-  zoom = 1
-  /** The centre of the zoomed svg map, in its own units; `null` is the map's middle. */
-  mapCentre: { x: number; y: number } | null = null
-  /** How far a revealed mark moved the view past the map's edge, in its units; `null` for none. */
-  mapNudge: { x: number; y: number } | null = null
+  /** What a wheel without its modifier shows, until its timer clears it. */
+  mapHint: string | null = null
+  mapHintTimer: ReturnType<typeof setTimeout> | null = null
   mapSelection: string | null = null
+  /** The drawing tool that is on: a pointer on the map then draws instead of panning. */
+  mapTool: MapTool | null = null
+  /** The tool the map's one select button shows: the last one used, until a shape is chosen. */
+  mapLastTool: MapTool | null = null
+  /** The menu of tools stands open, and which row takes the focus once it has drawn. */
+  mapMenuOpen = false
+  mapMenuFocus: 'first' | 'last' | 'checked' | null = null
+  /** A legend of more than three layers is unfolded. */
+  mapLegendOpen = false
+  /** The area that chose marks, and the last one the host sent, compared as JSON. */
+  mapArea: MapArea | null = null
+  hostArea: string | undefined = undefined
   // The last `selectedId` the host sent: the map adopts a new one but owns its selection in
   // between, or the host's value would win every render and a click could never clear it.
   hostSelection: string | null | undefined = undefined
-  legendOpen: boolean | null = null
-  /** The Leaflet map, created lazily when the data carries a basemap; `detach()` destroys it. */
+  /** The map's surface, created on the first render; `detach()` destroys it. */
   leaflet: LeafletSurface | null = null
   /** Centre and zoom of the Leaflet map. `detach()` keeps it so a re-attach does not reset. */
   leafletView: { lat: number; lon: number; zoom: number } | null = null
 
   private readonly notify: () => void
-  private element: HTMLElement | null = null
+  /** The chart's box, once attached; the map finds its own buttons in it. */
+  element: HTMLElement | null = null
   private measuring: MeasureSpec = {}
   private resizeObserver: ResizeObserver | null = null
   private intersectionObserver: IntersectionObserver | null = null
@@ -185,6 +198,8 @@ export class ChartController {
   /** Stop observing; the host calls it when the chart leaves the DOM for good. */
   detach(): void {
     this.unwatch()
+    if (this.mapHintTimer) clearTimeout(this.mapHintTimer)
+    this.mapHintTimer = null
     this.leaflet?.destroy()
     this.leaflet = null
   }
@@ -269,6 +284,13 @@ export class ChartController {
     if (!this.watching) return
     this.watching = false
     window.removeEventListener('keydown', this.onWindowKey)
+  }
+
+  toggleLayer(index: number): void {
+    this.hiddenLayers = this.hiddenLayers.includes(index)
+      ? this.hiddenLayers.filter((x) => x !== index)
+      : [...this.hiddenLayers, index]
+    this.requestUpdate()
   }
 
   toggleSeries(label: string): void {

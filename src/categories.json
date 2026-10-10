@@ -159,7 +159,7 @@
     "label": "Kaart",
     "icon": "navigatie-route-met-locatiemarker",
     "intro": "De kaart in een tegel: stromen, punten en een choropleet, ook op een ondergrond.",
-    "elements": ["map", "map-basemap"]
+    "elements": ["map"]
   },
   {
     "name": "tables",
