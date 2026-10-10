@@ -33,6 +33,27 @@ export interface BarSeriesData {
   links?: (ChartLink | null)[]
 }
 
+/** One point of a scatter plot: a named record, clickable with a `href` like a table row. */
+export interface ScatterPoint {
+  label: string
+  /** null = no data, never 0 (rule 15): the point is not drawn and stays in the table. */
+  x: number | null
+  y: number | null
+  /** The identity a click carries; without it the series' label and its own: `Loket · Utrecht`. */
+  id?: string
+  href?: string
+}
+
+/**
+ * A series of a scatter plot: a colour and the shape that colour has on a map (rule 13).
+ * Without a colour the series take the data colours in their order.
+ */
+export interface ScatterSeriesData {
+  label: string
+  color?: ChartColor
+  points: ScatterPoint[]
+}
+
 export type ChartSpec =
   | {
       kind: 'line'
@@ -131,6 +152,22 @@ export type ChartSpec =
       small?: boolean
     }
   | {
+      kind: 'scatter'
+      series: ScatterSeriesData[]
+      /** The vertical axis: its title above the chart, in the tooltip and as a table column. */
+      axisTitle: string
+      unit?: string
+      /** The horizontal axis: its title under its labels, right-aligned. */
+      xTitle: string
+      xUnit?: string
+      /** A horizontal norm on the vertical axis, dashed in the emphasis colour. */
+      threshold?: number
+      thresholdLabel?: string
+      /** The labels of the points that show their name; all of them, or none when one does not fit. */
+      dataLabels?: string[]
+      small?: boolean
+    }
+  | {
       kind: 'heatmap'
       columnLabels: string[]
       rowLabels: string[]
@@ -153,12 +190,38 @@ export type ChartSpec =
         links?: (ChartLink | null)[][]
       }
     }
+  | {
+      kind: 'histogram'
+      /**
+       * The classes in ascending order, each starting where the one before ends. `to: null` is
+       * an open last class ("30+"); `count: null` is no data, never 0 (rule 15).
+       */
+      bins: { from: number; to: number | null; count: number | null }[]
+      /** What the classes count, in the legend and the tooltip. Default "Aantal". */
+      label?: string
+      color?: ChartColor
+      /** Above the y-axis, e.g. "aanvragen per twee dagen". */
+      axisTitle?: string
+      /** Under the x labels, right-aligned, e.g. "doorlooptijd in dagen". */
+      xTitle?: string
+      /** The unit of the x-axis, e.g. "dagen": in the tooltip and beside the lines. */
+      unit?: string
+      /** A solid emphasis line at this x value. */
+      median?: number
+      /** The text beside the median line; default "mediaan" with its value and unit. */
+      medianLabel?: string
+      /** A dashed emphasis line at this x value. */
+      threshold?: number
+      /** The text beside the threshold line; default "norm" with its value and unit. */
+      thresholdLabel?: string
+      small?: boolean
+    }
 
 export type ChartKind = ChartSpec['kind']
 
 /**
  * What a map draws. `polygons` are areas that carry their own outline (`MapValue.polygon`);
- * `plots` stacks several drawings, from `MapTileData.plots`.
+ * `plots` stacks several drawings, from `MapSpec.plots`.
  */
 export type MapVariant = 'flows' | 'points' | 'choropleth' | 'polygons' | 'plots' | 'scope-picker'
 
@@ -227,8 +290,8 @@ export interface MapPlotData {
   seriesLabels?: Partial<Record<MapSeriesKey, string>>
 }
 
-/** The map's data, as `MapTileData` in `src/types.ts` carries it, without the tile fields. */
-export interface MapTileData {
+/** The map's data, as `MapData` in `src/types.ts` carries it, without the tile fields. */
+export interface MapSpec {
   variant: MapVariant
   geo?: 'world' | 'netherlands'
   /** The marks of a one-variant map; empty with `variant: 'plots'`. */

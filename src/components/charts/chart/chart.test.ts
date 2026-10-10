@@ -1,19 +1,19 @@
 /**
- * `<lintje-chart-tile>`: the chart/table switch of `tableSwitch`.
+ * `<lintje-chart>`: the chart/table switch of `tableSwitch`.
  *
  * What is checked is the markup: no control without the field, the control with
  * it, and the table it switches to — a caption and the CSV's own numbers, a
  * missing value as "—", never 0 (rule 15).
  */
 import { describe, expect, it } from 'vitest'
-import './chart-tile'
-import type { LintjeChartTile } from './chart-tile'
+import './chart'
+import type { LintjeChart } from './chart'
 import type { LintjeAnnouncement } from '../../feedback/announcement/announcement'
 import type { LintjeDataTable } from '../../tables/data-table/data-table'
 import type { LintjeSegmented } from '../../inputs/segmented/segmented'
-import type { ChartTileData } from '../../../types'
+import type { ChartData } from '../../../types'
 
-const DATA: ChartTileData = {
+const DATA: ChartData = {
   title: 'Aanvragen per dag',
   description: 'Aanvragen per dag deze week.',
   chart: {
@@ -26,18 +26,18 @@ const DATA: ChartTileData = {
   },
 }
 
-async function tile(data: ChartTileData): Promise<LintjeChartTile> {
-  const element = document.createElement('lintje-chart-tile')
+async function tile(data: ChartData): Promise<LintjeChart> {
+  const element = document.createElement('lintje-chart')
   element.data = data
   document.body.append(element)
   await element.updateComplete
   return element
 }
 
-const control = (element: LintjeChartTile): LintjeSegmented | null =>
+const control = (element: LintjeChart): LintjeSegmented | null =>
   element.renderRoot.querySelector('lintje-segmented')
 
-async function switchTo(element: LintjeChartTile, view: 'chart' | 'table'): Promise<void> {
+async function switchTo(element: LintjeChart, view: 'chart' | 'table'): Promise<void> {
   const segmented = control(element)
   if (!segmented) throw new Error('no control')
   await segmented.updateComplete
@@ -48,7 +48,7 @@ async function switchTo(element: LintjeChartTile, view: 'chart' | 'table'): Prom
   await element.updateComplete
 }
 
-async function table(element: LintjeChartTile): Promise<LintjeDataTable | null> {
+async function table(element: LintjeChart): Promise<LintjeDataTable | null> {
   const found = element.renderRoot.querySelector<LintjeDataTable>('lintje-tile lintje-data-table')
   if (found) await found.updateComplete
   return found
@@ -61,7 +61,7 @@ function cells(found: LintjeDataTable): string[][] {
   )
 }
 
-describe('lintje-chart-tile table switch', () => {
+describe('lintje-chart table switch', () => {
   it('draws no control without the field', async () => {
     const element = await tile(DATA)
     expect(control(element)).toBeNull()
@@ -118,6 +118,36 @@ describe('lintje-chart-tile table switch', () => {
     expect(wednesday[2]).toBe('101')
   })
 
+  it('gives a scatter plot a row per point: series and name as text, the two values as numbers', async () => {
+    const element = await tile({
+      ...DATA,
+      tableSwitch: true,
+      chart: {
+        kind: 'scatter',
+        axisTitle: 'wachttijd',
+        unit: 'min',
+        xTitle: 'aanvragen',
+        series: [
+          { label: 'Loket', points: [{ label: 'Utrecht', x: 15120, y: 12 }] },
+          { label: 'Servicepunt', points: [{ label: 'Breda', x: 6210, y: null }] },
+        ],
+      },
+    })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    const head = [...found.renderRoot.querySelectorAll('.lintje-data-table__full thead th')]
+    expect(head.map((cell) => cell.textContent?.trim())).toEqual([
+      'Reeks',
+      'Naam',
+      'Aanvragen',
+      'Wachttijd (min)',
+    ])
+    const [utrecht, breda] = cells(found)
+    expect(utrecht).toEqual(['Loket', 'Utrecht', '15.120', '12'])
+    expect(breda.slice(0, 3)).toEqual(['Servicepunt', 'Breda', '6.210'])
+    expect(breda[3]).toContain('—')
+  })
+
   it('gives a stacked area a column per part and a total, missing where a part is', async () => {
     const element = await tile({
       ...DATA,
@@ -162,7 +192,42 @@ describe('lintje-chart-tile table switch', () => {
   })
 })
 
-describe('lintje-chart-tile error state', () => {
+describe('lintje-chart table of a histogram', () => {
+  it('names each class, writes its bounds as numbers, and never reads an open bound as missing', async () => {
+    const element = await tile({
+      title: 'Doorlooptijd',
+      description: 'Doorlooptijd in klassen.',
+      tableSwitch: true,
+      chart: {
+        kind: 'histogram',
+        unit: 'dagen',
+        bins: [
+          { from: 0, to: 2.5, count: 4 },
+          { from: 2.5, to: 5, count: null },
+          { from: 5, to: null, count: 7 },
+        ],
+      },
+    })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    const head = [...found.renderRoot.querySelectorAll('.lintje-data-table__full thead th')]
+    expect(head.map((cell) => cell.textContent?.trim())).toEqual([
+      'Klasse',
+      'Van (dagen)',
+      'Tot (dagen)',
+      'Aantal',
+    ])
+    const rows = cells(found)
+    expect(rows[0]).toEqual(['0 tot 2,5 dagen', '0,0', '2,5', '4'])
+    // A missing count is missing; the open bound is an empty cell, not "geen gegevens".
+    expect(rows[1][3]).toContain('geen gegevens')
+    expect(rows[2]).toEqual(['5 dagen of meer', '5,0', '', '7'])
+    const open = found.renderRoot.querySelectorAll('.lintje-data-table__full tbody tr')[2]
+    expect(open.children[2].textContent).not.toContain('geen gegevens')
+  })
+})
+
+describe('lintje-chart error state', () => {
   it('is the compact warning, a live region: the load failed just now', async () => {
     const element = await tile({ ...DATA, state: 'error', message: 'De bron reageerde niet.' })
     const notice = element.renderRoot.querySelector<LintjeAnnouncement>(
@@ -181,13 +246,13 @@ describe('lintje-chart-tile error state', () => {
   })
 })
 
-describe('lintje-chart-tile focus after a clear', () => {
+describe('lintje-chart focus after a clear', () => {
   it('lands on the drawing, focusable from a script only, when the cleared mark is gone', async () => {
     const segments = [
       { label: 'Noord', value: 12, id: 'noord', href: '/p?r=noord' },
       { label: 'Zuid', value: 8 },
     ]
-    const data: ChartTileData = {
+    const data: ChartData = {
       description: 'Een taart.',
       chart: { kind: 'pie', segments },
       selectedId: 'noord',

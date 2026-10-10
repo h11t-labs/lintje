@@ -5,7 +5,7 @@
  * names come from their one list, `tokens/colors.ts`.
  */
 import type { DataColor } from './tokens/colors'
-import type { ChartSpec, MapTileData } from './components/shared/charts/shared/types'
+import type { ChartSpec, MapSpec } from './components/shared/charts/shared/types'
 import type { MenuEntry } from './components/actions/menu-button/menu-button'
 import type { NotificationItem } from './components/frame/notifications/notifications'
 
@@ -15,11 +15,13 @@ export type {
   ChartKind,
   ChartSpec,
   LineSeriesData,
-  MapTileData,
+  MapSpec,
   MapValue,
   MapPlotData,
   MapPlotVariant,
   MapVariant,
+  ScatterPoint,
+  ScatterSeriesData,
   WmsBasemap,
 } from './components/shared/charts/shared/types'
 export type { DataColor } from './tokens/colors'
@@ -67,6 +69,32 @@ export interface KpiTrend {
   inverted?: boolean
 }
 
+/**
+ * The figure's own recent values as a small line with the area under it: no axes, scaled from
+ * the lowest to the highest value, in the variable's colour. A `null` breaks the line (rule 15).
+ */
+export interface KpiSparkline {
+  /** The values in order, the current one last; at least two numbers draw a line. */
+  values: (number | null)[]
+  /** A readable summary with the unit, the line's `<desc>`: the accessible alternative. */
+  description: string
+}
+
+/** Where the figure stands on a scale, drawn under or around the value. */
+export interface KpiGauge {
+  /** `arc`: a half circle with the value in its mouth. `linear`: a bar under the value. */
+  shape?: 'arc' | 'linear'
+  /** Where the scale starts; default 0. */
+  min?: number
+  max: number
+  /** The figure on the scale; default the number in the KPI's `value`. `null` draws no fill. */
+  value?: number | null
+  /** A dashed mark on the scale, in the emphasis colour. */
+  target?: number
+  /** The word before the target's number: "doel" (default) or "norm". */
+  targetLabel?: string
+}
+
 export interface KpiData {
   label: string
   /** An icon file name (`dist-icons/`, without `.svg`). Decorative. */
@@ -78,8 +106,11 @@ export interface KpiData {
   emphasis?: 'equal' | 'primary'
   dividers?: boolean
   trend?: KpiTrend
+  sparkline?: KpiSparkline
   note?: string
   detail?: string
+  /** A single figure on its scale; ignored with `items`. */
+  gauge?: KpiGauge
   variable?: KpiVariable
   state?: KpiState
 }
@@ -119,7 +150,7 @@ export interface TileData {
  * Events: `lintje-mark-select` `{id, label, href}` when a mark with a `href` is clicked,
  * `{id: null, href: clearHref}` when the selection is undone.
  */
-export interface ChartTileData extends FrameSettings, TileData, ContentState {
+export interface ChartData extends FrameSettings, TileData, ContentState {
   chart: ChartSpec
   /** The chart's `<desc>`: a readable summary, the accessible alternative. Required. */
   description: string
@@ -137,7 +168,7 @@ export interface ChartTileData extends FrameSettings, TileData, ContentState {
  * Events: `lintje-mark-select` `{id, label, href?}` on a click on an area or point,
  * `{id: null, href: clearHref}` when undone; `lintje-layer-change` with the chosen layer.
  */
-export interface MapTileViewData extends FrameSettings, TileData, ContentState, MapTileData {}
+export interface MapData extends FrameSettings, TileData, ContentState, MapSpec {}
 
 /* Data table --------------------------------------------------------------- */
 
@@ -568,7 +599,7 @@ export interface ChatStripData {
 export type ChatBlock =
   | { kind: 'prose'; text?: string; html?: string }
   | { kind: 'kpi-row'; data: KpiRowData }
-  | { kind: 'chart-tile'; data: ChartTileData }
+  | { kind: 'chart'; data: ChartData }
   | { kind: 'data-table'; data: DataTableData }
 
 /** Where an answer stands. `out-of-scope` needs a source on; `needs-clarification` asks back. */
@@ -660,6 +691,7 @@ export type { FormValues, FormErrors, StoredDraft } from './components/forms/for
 export type { ErrorSummaryItem } from './components/forms/error-summary/error-summary'
 export type { UploadFile } from './components/inputs/file-upload/file-upload'
 export type { DateRange } from './components/inputs/date-range/date-range'
+export type { SlotDay, TimeSlot } from './components/inputs/slot-picker/slot-picker'
 export type { TabItem } from './components/layout/tabs/tabs'
 export type { Step, StepState, StepperOrientation } from './components/forms/stepper/stepper'
 export type { MenuEntry, MenuHeading, MenuItem } from './components/actions/menu-button/menu-button'

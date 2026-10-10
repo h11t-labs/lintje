@@ -3,6 +3,9 @@
    tile instead of leaving the space below them empty. */
 .lintje-chart--rows { margin-block: auto; }
 .lintje-chart__axis-title { font: var(--text-axis); color: var(--color-text-muted); }
+/* The title of the x axis (`xTitle` in `renderChartFrame`): the axis title's type, in the
+   drawing, under the x labels at the right. */
+.lintje-chart__x-title { font: var(--text-axis); fill: var(--color-text-muted); }
 .lintje-chart__svg {
   width: 100%;
   display: block;
@@ -26,9 +29,10 @@
    light one. The fills are the same in both modes, so the label is too. */
 .lintje-chart__data-label--inside { fill: var(--color-text-on-fill); }
 .lintje-chart__data-label--inside-light { fill: var(--color-text-on-light-fill); }
-/* On a threshold line (horizontal bars): a halo in the surface color. Invisible on the tile, it cuts the
-   dotted line where a value just under the norm puts its label across it. */
-.lintje-chart__data-label--halo {
+/* On a threshold line (horizontal bars) or beside one (histogram, scatter): a halo in the surface color.
+   Invisible on the tile, it cuts a line or a bar where the label crosses it. */
+.lintje-chart__data-label--halo,
+.lintje-chart__axis-label--halo {
   stroke: var(--color-bg-surface);
   stroke-width: 4px;
   stroke-linejoin: round;
@@ -66,6 +70,12 @@
 .lintje-chart__bar-group.is-hovered .lintje-chart__bar {
   transform: scaleX(1.06);
   filter: drop-shadow(var(--shadow-chart-hover));
+}
+/* A histogram's classes touch: its lift is a copy drawn over its neighbours. */
+.lintje-chart__bar--lifted {
+  transform: scaleX(1.06);
+  filter: drop-shadow(var(--shadow-chart-hover));
+  pointer-events: none;
 }
 .lintje-chart__bar-row:hover .lintje-chart__bar--horizontal,
 .lintje-chart__bar-row.is-hovered .lintje-chart__bar--horizontal {
@@ -121,8 +131,21 @@
     animation-name: lintje-grow;
   }
   .lintje-chart__bar--horizontal { animation-name: lintje-grow-x; }
+  .lintje-chart__bar--lifted { animation: lintje-lift var(--dur-hover) var(--ease-in-motion) backwards; }
   /* Data labels fade in once the marks are drawn, eased at both ends. */
   .lintje-chart__data-label { animation: lintje-fade-in var(--dur-data-label) ease-in-out var(--dur-draw) both; }
+  /* A reference line comes in with its label once the marks are drawn, as a data label does;
+     a data label inside it does not fade a second time. */
+  .lintje-chart__reference { animation: lintje-fade-in var(--dur-data-label) ease-in-out var(--dur-draw) both; }
+  /* A scatter point grows from its middle as a map point does, one after another along x, with
+     the bars' timing. */
+  .lintje-chart__point {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    animation: lintje-point-grow calc(var(--dur-draw) * 0.6) var(--ease-in-motion)
+      calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0)) backwards;
+  }
+  .lintje-chart__reference .lintje-chart__data-label { animation: none; }
 
   /* Draw in only once the chart comes into view. By default the marks are
      paused on their first frame (series covered, bar flat, label gone); as soon
@@ -135,17 +158,22 @@
   .lintje-chart__reveal,
   .lintje-chart__bar-group,
   .lintje-chart__bar--horizontal,
-  .lintje-chart__data-label { animation-play-state: paused; }
+  .lintje-chart__data-label,
+  .lintje-chart__reference,
+  .lintje-chart__point { animation-play-state: paused; }
   [data-in-view] .lintje-chart__reveal,
   [data-in-view] .lintje-chart__bar-group,
   [data-in-view] .lintje-chart__bar--horizontal,
-  [data-in-view] .lintje-chart__data-label { animation-play-state: running; }
+  [data-in-view] .lintje-chart__data-label,
+  [data-in-view] .lintje-chart__reference,
+  [data-in-view] .lintje-chart__point { animation-play-state: running; }
 }
 @keyframes lintje-reveal {
   from { clip-path: inset(-8px calc(100% + 8px) -8px -8px); }
   to   { clip-path: inset(-8px); }
 }
 @keyframes lintje-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes lintje-lift { from { transform: none; filter: none; } }
 @keyframes lintje-grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 /* --- Legend -------------------------------------------------------------- */
@@ -194,6 +222,7 @@
 .lintje-chart-tooltip__row { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
 .lintje-chart-tooltip__label { display: flex; align-items: center; gap: 6px; }
 .lintje-chart-tooltip__marker { width: 10px; height: 10px; flex: none; }
+.lintje-chart-tooltip__marker--symbol { width: 14px; height: 14px; }
 .lintje-chart-tooltip__row--divider {
   border-top: 1px solid var(--color-border-popover);
   margin-top: var(--space-1);
@@ -210,6 +239,15 @@
    with a ring in the surface color, so it stays legible on the line and on the
    filled area below it. No animation: hover does not redraw. */
 .lintje-chart__hover-point { stroke: var(--color-bg-surface); stroke-width: 2; pointer-events: none; }
+/* A point of a series the legend hides keeps its node, so it does not grow again. */
+.lintje-chart__point.is-hidden { visibility: hidden; }
+/* The edge of a dark-yellow hover point (`lineCasing`), over its ring. */
+.lintje-chart__hover-casing { fill: none; stroke-width: 1; pointer-events: none; }
+
+/* The scatter plot's one pointer target, under its points: the nearest point within half of
+   --h-target answers (`pick`, scatter-chart.ts), so a small point is a full target. */
+.lintje-chart__hit { fill: transparent; }
+.lintje-chart__hit.is-clickable { cursor: pointer; }
 
 
 /* --- States -------------------------------------------------------------- */
@@ -337,6 +375,8 @@
   .lintje-chart__line,
   .lintje-chart__reveal,
   .lintje-chart__hover-point,
+  .lintje-chart__hover-casing,
+  .lintje-chart__hit,
   .lintje-legend__marker,
   .lintje-chart-tooltip__marker { forced-color-adjust: none; }
   .lintje-chart__data-label { forced-color-adjust: auto; }
@@ -345,10 +385,12 @@
   .lintje-chart__axis-label,
   .lintje-chart__data-label,
   .lintje-chart__as-of-label,
-  .lintje-chart__as-of-note { fill: CanvasText; }
+  .lintje-chart__as-of-note,
+  .lintje-chart__x-title { fill: CanvasText; }
   .lintje-chart__data-label--inside { forced-color-adjust: none; fill: var(--color-text-on-fill); }
   .lintje-chart__data-label--inside-light { forced-color-adjust: none; fill: var(--color-text-on-light-fill); }
-  .lintje-chart__data-label--halo { stroke: Canvas; }
+  .lintje-chart__data-label--halo,
+  .lintje-chart__axis-label--halo { stroke: Canvas; }
   .lintje-chart__segment { stroke: Canvas; }
   .lintje-chart__mark.is-selected { stroke: CanvasText; }
   .lintje-chart__focus-ring { flood-color: Highlight; }

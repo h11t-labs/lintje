@@ -116,6 +116,7 @@
       "date-input",
       "time-input",
       "date-range",
+      "slot-picker",
       "file-upload",
       "text-editor"
     ]
@@ -150,7 +151,7 @@
     "label": "Kerncijfers en grafieken",
     "icon": "op-kantoor-grafiek",
     "intro": "De cijfers bovenaan een pagina, elke grafieksoort uit de vaste grammatica in een tegel met haar toestanden, en de tekst die duidt en uitlegt.",
-    "elements": ["kpi-row", "kpi", "chart-tile", "note", "explainer"]
+    "elements": ["kpi-row", "kpi", "chart", "note", "explainer"]
   },
   {
     "name": "map",
@@ -158,7 +159,7 @@
     "label": "Kaart",
     "icon": "navigatie-route-met-locatiemarker",
     "intro": "De kaart in een tegel: stromen, punten en een choropleet, ook op een ondergrond.",
-    "elements": ["map-tile", "map-basemap"]
+    "elements": ["map", "map-basemap"]
   },
   {
     "name": "tables",

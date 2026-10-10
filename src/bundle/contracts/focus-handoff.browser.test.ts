@@ -4,7 +4,7 @@ import { page, userEvent } from 'vitest/browser'
 import '../../components/tables/activity-log/activity-log'
 import '../../components/feedback/announcement/announcement'
 import '../../components/content/audio-player/audio-player'
-import '../../components/charts/chart-tile/chart-tile'
+import '../../components/charts/chart/chart'
 import '../../components/chat/chat/chat'
 import '../../components/chat/chat-answer/chat-answer'
 import '../../components/chat/chat-composer/chat-composer'
@@ -14,6 +14,7 @@ import '../../components/tables/data-table/data-table'
 import '../../components/filters/filter-zone/filter-zone'
 import '../../components/forms/form/form'
 import '../../components/inputs/date-input/date-input'
+import '../../components/inputs/time-input/time-input'
 import '../../components/inputs/date-range/date-range'
 import '../../components/inputs/file-upload/file-upload'
 import '../../components/inputs/segmented/segmented'
@@ -23,7 +24,7 @@ import '../../components/inputs/text-input/text-input'
 import '../../components/inputs/toggle/toggle'
 import '../../components/feedback/job-list/job-list'
 import '../../components/tables/list/list'
-import '../../components/map/map-tile/map-tile'
+import '../../components/map/map/map'
 import '../../components/frame/notifications/notifications'
 import '../../components/tables/pagination/pagination'
 import '../../components/forms/repeater/repeater'
@@ -681,6 +682,20 @@ const INPUT_ROWS: Row[] = [
     },
   },
   {
+    name: 'lintje-time-input :: a time picked closes the list and hands its focus to the field',
+    run: async () => {
+      const time = await mount<HTMLElement & { value: string | null }>('lintje-time-input', {
+        label: 'Aanvang',
+        value: '09:00',
+      })
+      time.shadowRoot!.querySelector<HTMLElement>('.lintje-time-input__toggle')!.focus()
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(() => active()?.classList.contains('lintje-time-input__option')).toBe(true)
+      await userEvent.keyboard('{Enter}')
+      return () => time.shadowRoot!.querySelector('.lintje-time-input__control')
+    },
+  },
+  {
     name: 'lintje-date-range :: "Toepassen" closes the calendar and hands its focus to the field',
     run: async () => {
       const range = await mount<HTMLElement>('lintje-date-range', {
@@ -1260,7 +1275,7 @@ async function filterPanel(which: 0 | 1): Promise<TableElement> {
   return table
 }
 
-type ChartTile = HTMLElement & { data: Record<string, unknown> }
+type ChartElement = HTMLElement & { data: Record<string, unknown> }
 
 const SLICES = [
   { label: 'Noord', value: 12, id: 'noord', href: '/p?r=noord' },
@@ -1270,7 +1285,7 @@ const SLICES = [
 /** The chosen slice, focused; the host answers its clear with `answer`. */
 async function chosenSlice(
   answer: (data: Record<string, unknown>) => Record<string, unknown>,
-): Promise<ChartTile> {
+): Promise<ChartElement> {
   const data = {
     title: 'Aanvragen per regio',
     description: 'Noord 12, Zuid 8.',
@@ -1278,7 +1293,7 @@ async function chosenSlice(
     selectedId: 'noord',
     clearHref: '/p',
   }
-  const tile = await mount<ChartTile>('lintje-chart-tile', { data })
+  const tile = await mount<ChartElement>('lintje-chart', { data })
   tile.addEventListener('lintje-mark-select', (event) => {
     if ((event as CustomEvent<{ id: string | null }>).detail.id === null) tile.data = answer(data)
   })
@@ -1345,14 +1360,14 @@ const REDRAWN_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-chart-tile :: the chosen mark, cleared, keeps the focus on that mark',
+    name: 'lintje-chart :: the chosen mark, cleared, keeps the focus on that mark',
     run: async () => {
       const tile = await chosenSlice((data) => ({ ...data, selectedId: null }))
       return () => tile.shadowRoot!.querySelector('[data-mark-id="noord"]')
     },
   },
   {
-    name: 'lintje-chart-tile :: the chosen mark, cleared and gone, hands its focus to the drawing',
+    name: 'lintje-chart :: the chosen mark, cleared and gone, hands its focus to the drawing',
     run: async () => {
       const tile = await chosenSlice((data) => ({
         ...data,
@@ -1369,9 +1384,9 @@ const REDRAWN_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-map-tile :: the selection’s "Selectie opheffen" hands its focus to the chosen mark',
+    name: 'lintje-map :: the selection’s "Selectie opheffen" hands its focus to the chosen mark',
     run: async () => {
-      const tile = await mount<HTMLElement & { data: unknown }>('lintje-map-tile', {
+      const tile = await mount<HTMLElement & { data: unknown }>('lintje-map', {
         data: {
           variant: 'points',
           geo: 'netherlands',

@@ -96,6 +96,40 @@ const KINDS: { name: string; spec: ChartSpec; first: string; second: string }[] 
     },
   },
   {
+    name: 'scatter',
+    first: 'Noord',
+    second: 'Zuid',
+    spec: {
+      kind: 'scatter',
+      axisTitle: 'wachttijd',
+      xTitle: 'aanvragen',
+      series: [
+        {
+          label: 'Loket',
+          points: [
+            { label: 'Zuid', x: 20, y: 4 },
+            { label: 'Noord', x: 10, y: 6 },
+            { label: 'Oost', x: 15, y: null },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    name: 'histogram',
+    first: '0 tot 2 dagen',
+    second: '2 tot 4 dagen',
+    spec: {
+      kind: 'histogram',
+      unit: 'dagen',
+      bins: [
+        { from: 0, to: 2, count: 3 },
+        { from: 2, to: 4, count: null },
+        { from: 4, to: null, count: 1 },
+      ],
+    },
+  },
+  {
     name: 'horizontal-bar',
     first: 'Noord',
     second: 'Zuid',

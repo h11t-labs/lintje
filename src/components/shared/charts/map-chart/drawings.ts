@@ -3,7 +3,7 @@
  * svg map, the basemap and the tile's CSV read the same list, so a figure always speaks the unit
  * and the series names of its own layer.
  */
-import type { MapSeriesKey, MapTileData, MapValue, MapVariant } from '../shared/types'
+import type { MapSeriesKey, MapSpec, MapValue, MapVariant } from '../shared/types'
 
 export type DrawingVariant = Exclude<MapVariant, 'plots'>
 
@@ -31,7 +31,7 @@ const maxOf = (values: MapValue[]): number =>
   Math.max(1, ...values.map((value) => value.value ?? 0))
 
 /** The drawings in the order they draw, bottom first; `unit` is the map's own. */
-export function mapDrawings(data: MapTileData, unit: string): MapDrawing[] {
+export function mapDrawings(data: MapSpec, unit: string): MapDrawing[] {
   if (data.variant !== 'plots') {
     const values = data.values ?? []
     return [

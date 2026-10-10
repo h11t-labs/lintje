@@ -3,11 +3,19 @@ import { meta, number, daily, heatmap, desks, breakdowns, hourly } from '../../_
 
 const kpi = meta.kpi
 
+// The week's requests per day as the sparkline of the first KPI; `null` breaks the line.
+const requestsPerDay = daily.map((row) => row.requests)
+const REQUESTS_SPARKLINE = {
+  values: requestsPerDay,
+  description: `Afgehandelde aanvragen per dag, afgelopen week: van ${number(requestsPerDay[0])} op maandag tot ${number(requestsPerDay.at(-1))} op zondag, piek ${number(Math.max(...requestsPerDay))}`,
+}
+
 const KPIS = [
   {
     label: 'Afgehandelde aanvragen', variable: 'sky-blue',
     value: number(kpi.requests.value),
     trend: { direction: 'up', sentence: 'Gestegen ten opzichte van vorige week' },
+    sparkline: REQUESTS_SPARKLINE,
     detail: `Vorige week ${number(kpi.requests.previous)} (+${kpi.requests.change}%)`,
   },
   {
@@ -50,13 +58,31 @@ const COLOUR_KPIS = NEWER_COLOURS.map(([variable, name], i) => ({
   label: name, variable, value: number(1200 + i * 345), detail: `variable: ${variable}`,
 }))
 
-/** One KPI on its own: the attributes of the first entry that carry, and its trend as a property. */
+// A figure on its scale: occupancy against its norm as an arc, wait time against its norm as a bar.
+const GAUGE_ARC = {
+  label: 'Bezetting loketten', variable: 'sky-blue', value: `${kpi.staffing.value}%`,
+  gauge: { max: 120, target: 100, targetLabel: 'norm' },
+  trend: { direction: 'down', sentence: `${100 - kpi.staffing.value} punten onder de norm van 100%` },
+  detail: `${kpi.staffing.staffed} van ${kpi.staffing.total} posities bezet`,
+}
+const GAUGE_LINEAR = {
+  label: 'Gemiddelde wachttijd', variable: 'dark-yellow', value: kpi.wait_time.value, suffix: 'min',
+  gauge: { shape: 'linear', max: 30, target: kpi.wait_time.threshold, targetLabel: 'norm' },
+  trend: {
+    direction: 'down', inverted: true,
+    sentence: `${kpi.wait_time.threshold - kpi.wait_time.value} min onder de norm van ${kpi.wait_time.threshold} min`,
+  },
+}
+
+/** One KPI on its own: the attributes that carry, and its trend, gauge and sparkline as properties. */
 function single(data) {
   return (stage) => {
     const element = stage.querySelector('lintje-kpi')
-    const { trend, ...attributes } = data
+    const { trend, gauge, sparkline, ...attributes } = data
     for (const [name, value] of Object.entries(attributes)) element.setAttribute(name, value)
     if (trend) element.trend = trend
+    if (gauge) element.gauge = gauge
+    if (sparkline) element.sparkline = sparkline
   }
 }
 
@@ -72,6 +98,17 @@ const heatmapWeekdays = [...new Set(heatmap.map((row) => row.weekday))]
 
 const heatmapValue = (weekday, hour) =>
   heatmap.find((row) => row.weekday === weekday && row.hour === hour)?.value ?? null
+
+// Processing time of 1,900 requests in classes of two days; the last class is open ("30+").
+const processingDays = [40, 120, 260, 310, 280, 220, 170, 130, 95, 70, 52, 40, 30, 22, 16, 45].map(
+  (count, i, counts) => ({ from: i * 2, to: i === counts.length - 1 ? null : i * 2 + 2, count }),
+)
+
+const processingTime = (bins) => ({
+  kind: 'histogram', bins, label: 'Aanvragen', unit: 'dagen',
+  axisTitle: 'aanvragen per twee dagen', xTitle: 'doorlooptijd in dagen',
+  median: 9.6, threshold: 21, thresholdLabel: 'termijn 21 dagen',
+})
 
 // Requests per region split by the kind of desk: one variable in tints, which is what a
 // stacked bar is for (rule 10).
@@ -111,6 +148,29 @@ const largestDesks = [...deskParts].sort((a, b) => b.value - a.value).slice(0, 4
 const foldedDesks = deskParts.reduce((sum, part) => sum + part.value, 0)
   - largestDesks.reduce((sum, part) => sum + part.value, 0)
 const staffing = meta.kpi.staffing
+
+// Every desk as a point, requests against waiting time, one series per kind of desk; the desks
+// that deliver late have no waiting time yet in the second specimen (rule 15).
+const DESK_SERIES = [
+  { key: 'counter', label: 'Loket' },
+  { key: 'service', label: 'Servicepunt' },
+]
+const deskScatter = (missing = false) => ({
+  kind: 'scatter',
+  axisTitle: 'gemiddelde wachttijd in minuten', unit: 'min',
+  xTitle: 'aanvragen per kwartaal',
+  threshold: meta.thresholds.wait_time_threshold,
+  dataLabels: ['Amsterdam Centrum'],
+  series: DESK_SERIES.map((kind) => ({
+    label: kind.label,
+    points: desks.filter((desk) => desk.kind === kind.key).map((desk) => ({
+      label: desk.map_label, id: desk.id, href: `?loket=${desk.id}`,
+      x: desk.requests,
+      y: missing && desk.data_status === 'delayed' ? null : desk.wait_time,
+    })),
+  })),
+})
+const lateDesks = desks.filter((desk) => desk.data_status === 'delayed').map((desk) => desk.map_label)
 
 const CHARTS = [
   {
@@ -247,6 +307,11 @@ const CHARTS = [
     },
   },
   {
+    id: 'scatter', title: 'Wachttijd tegen drukte',
+    description: 'Gemiddelde wachttijd tegen het aantal aanvragen per loket, voor loketten en servicepunten, tegen de norm van 15 minuten. Amsterdam Centrum is het drukst en wacht het langst, 18 minuten.',
+    spec: deskScatter(),
+  },
+  {
     id: 'heatmap', title: 'Heatmap met klassenlegenda',
     description: 'Aanvragen per uur naar dag van de week en uur van de dag, in vijf klassen.',
     spec: {
@@ -259,6 +324,11 @@ const CHARTS = [
         values: hours.map((hour) => heatmapWeekdays.map((weekday) => heatmapValue(weekday, hour))),
       },
     },
+  },
+  {
+    id: 'histogram', title: 'Doorlooptijd van aanvragen',
+    description: 'Doorlooptijd van 1.900 afgehandelde aanvragen in klassen van twee dagen. De mediaan is 9,6 dagen, de termijn 21 dagen; 153 aanvragen duurden 22 dagen of langer.',
+    spec: processingTime(processingDays),
   },
 ]
 
@@ -278,7 +348,9 @@ const KIND_NAMES = {
   'pie-folded': 'Taart · meer dan vijf delen',
   'donut-remainder': 'Donut · remainder',
   'dual-axis': 'Twee assen',
+  scatter: 'Spreiding',
   heatmap: 'Heatmap',
+  histogram: 'Histogram',
 }
 
 // The three states a chart tile can be in: the tile keeps its size in all of them, so a page
@@ -298,14 +370,14 @@ const CHART_STATES = [
   },
 ]
 
-const TILE = '<lintje-chart-tile></lintje-chart-tile>'
+const TILE = '<lintje-chart></lintje-chart>'
 
 const chartSpecimen = (chart) => ({
   label: `${KIND_NAMES[chart.id]} · kind: ${chart.spec.kind}`,
   html: TILE,
   wide: true,
   setup(stage) {
-    stage.querySelector('lintje-chart-tile').data = {
+    stage.querySelector('lintje-chart').data = {
       chart: chart.spec,
       description: chart.description,
       title: chart.title,
@@ -323,7 +395,7 @@ const stateSpecimen = ({ label, state, description, message, lastKnown }) => ({
   wide: true,
   setup(stage) {
     // The spec still travels: the skeleton is drawn for the kind that is coming.
-    stage.querySelector('lintje-chart-tile').data = {
+    stage.querySelector('lintje-chart').data = {
       chart: CHARTS[0].spec,
       description,
       title: `Staat · ${label.toLowerCase()}`,
@@ -341,7 +413,7 @@ const tableSwitch = {
   html: TILE,
   wide: true,
   setup(stage) {
-    stage.querySelector('lintje-chart-tile').data = {
+    stage.querySelector('lintje-chart').data = {
       chart: {
         kind: 'line', labels: weekdays, axisTitle: 'Afgehandelde aanvragen per dag',
         series: [
@@ -381,12 +453,22 @@ const missingValues = [
     description: 'Afgehandelde aanvragen per dag deze week. Donderdag ontbreekt.',
     chart: { kind: 'bar', labels: weekdays, values: share(1), axisTitle: 'Afgehandelde aanvragen per dag' },
   },
+  {
+    label: 'Ontbrekende waarde · spreiding',
+    description: `Gemiddelde wachttijd tegen het aantal aanvragen per loket. ${lateDesks.join(' en ')} leveren vertraagd aan: hun wachttijd ontbreekt, dus ze staan niet in de grafiek.`,
+    chart: deskScatter(true),
+  },
+  {
+    label: 'Ontbrekende waarde · histogram',
+    description: 'Doorlooptijd van afgehandelde aanvragen in klassen van twee dagen. Van de klasse 6 tot 8 dagen ontbreekt het aantal.',
+    chart: processingTime(processingDays.map((bin, i) => (i === 3 ? { ...bin, count: null } : bin))),
+  },
 ].map(({ label, description, chart }) => ({
   label,
   html: TILE,
   wide: true,
   setup(stage) {
-    stage.querySelector('lintje-chart-tile').data = {
+    stage.querySelector('lintje-chart').data = {
       chart,
       description,
       title: label,
@@ -407,6 +489,16 @@ export default {
           wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-kpi-row').data = { kpis: KPIS }
+          },
+        },
+        {
+          label: 'Met kerncijfers op een schaal · gauge',
+          html: '<lintje-kpi-row></lintje-kpi-row>',
+          wide: true,
+          setup: (stage) => {
+            stage.querySelector('lintje-kpi-row').data = {
+              kpis: [GAUGE_ARC, KPIS[0], GAUGE_LINEAR, KPIS[2]],
+            }
           },
         },
         {
@@ -434,9 +526,52 @@ export default {
           setup: single(KPIS[1]),
         },
         {
+          label: 'Met verloop',
+          html: '<lintje-kpi></lintje-kpi>',
+          setup: single(KPIS[0]),
+        },
+        {
+          label: 'Verloop met een ontbrekende dag',
+          html: '<lintje-kpi></lintje-kpi>',
+          setup: single({
+            label: 'Afwijzingen', variable: 'red', value: kpi.rejections.value,
+            trend: { direction: 'up', sentence: 'Gestegen ten opzichte van gisteren', inverted: true },
+            sparkline: {
+              values: [29, 33, null, 30, 34, 31, kpi.rejections.value],
+              description: `Afwijzingen per dag, afgelopen week: van 29 op maandag tot ${kpi.rejections.value} op zondag; woensdag ontbreekt`,
+            },
+            detail: `Gisteren ${kpi.rejections.yesterday}`,
+          }),
+        },
+        {
+          label: 'Verloop, laden',
+          html: '<lintje-kpi label="Afgehandelde aanvragen" variable="sky-blue" state="loading"></lintje-kpi>',
+          setup: (stage) => { stage.querySelector('lintje-kpi').sparkline = REQUESTS_SPARKLINE },
+        },
+        {
           label: 'Met achtervoegsel en toelichting',
           html: '<lintje-kpi></lintje-kpi>',
           setup: single(KPIS[4]),
+        },
+        {
+          label: 'Op een schaal: boog',
+          html: '<lintje-kpi></lintje-kpi>',
+          setup: single(GAUGE_ARC),
+        },
+        {
+          label: 'Op een schaal: balk',
+          html: '<lintje-kpi></lintje-kpi>',
+          setup: single(GAUGE_LINEAR),
+        },
+        {
+          label: 'Op een schaal, laden',
+          html: '<lintje-kpi state="loading"></lintje-kpi>',
+          setup: single({ label: GAUGE_ARC.label, gauge: GAUGE_ARC.gauge }),
+        },
+        {
+          label: 'Op een schaal, leeg',
+          html: '<lintje-kpi state="empty"></lintje-kpi>',
+          setup: single({ label: GAUGE_LINEAR.label, variable: 'dark-yellow', gauge: GAUGE_LINEAR.gauge }),
         },
         {
           label: 'Laden',
@@ -453,7 +588,7 @@ export default {
       ],
     },
 {
-      tag: 'lintje-chart-tile',
+      tag: 'lintje-chart',
       title: 'Tegel met een grafiek: elke soort, de drie staten, de tabelweergave en ontbrekende waarden',
       specimens: [
         ...CHARTS.map(chartSpecimen),

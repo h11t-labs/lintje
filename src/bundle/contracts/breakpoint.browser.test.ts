@@ -6,7 +6,7 @@ import '../../components/content/audio-player/audio-player'
 import '../../components/frame/breadcrumbs/breadcrumbs'
 import '../../components/tables/card-list/card-list'
 import '../../components/tables/card/card'
-import '../../components/charts/chart-tile/chart-tile'
+import '../../components/charts/chart/chart'
 import '../../components/chat/chat-answer/chat-answer'
 import '../../components/chat/chat-composer/chat-composer'
 import '../../components/chat/chat-message/chat-message'
@@ -26,11 +26,12 @@ import '../../components/forms/form-actions/form-actions'
 import '../../components/forms/form/form'
 import '../../components/inputs/file-upload/file-upload'
 import '../../components/inputs/select/select'
+import '../../components/inputs/slot-picker/slot-picker'
 import '../../components/inputs/text-editor/text-editor'
 import '../../components/inputs/text-input/text-input'
 import '../../components/charts/kpi-row/kpi-row'
 import '../../components/tables/list/list'
-import '../../components/map/map-tile/map-tile'
+import '../../components/map/map/map'
 import '../../components/overlays/modal/modal'
 import '../../components/frame/notifications/notifications'
 import '../../components/tables/pagination/pagination'
@@ -53,12 +54,12 @@ import type { ListItem } from '../../components/tables/list/list'
 import type { Step } from '../../components/forms/stepper/stepper'
 import type { TabItem } from '../../components/layout/tabs/tabs'
 import type {
-  ChartTileData,
+  ChartData,
   ChatData,
   DataTableData,
   FilterBarData,
   KpiRowData,
-  MapTileViewData,
+  MapData,
   ShellData,
 } from '../../types'
 
@@ -188,7 +189,7 @@ const TABLE: DataTableData = {
 const HOURS = ['8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00']
 const DAYS = ['ma', 'di', 'wo', 'do', 'vr']
 
-const HEATMAP: ChartTileData = {
+const HEATMAP: ChartData = {
   title: 'Drukte aan het loket',
   description: 'Bezoekers per uur en per werkdag.',
   state: 'ready',
@@ -280,7 +281,7 @@ const PICTURE =
     '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90"><rect width="160" height="90" fill="#ccc"/></svg>',
   )
 
-const MAP: MapTileViewData = {
+const MAP: MapData = {
   title: 'Loketten',
   variant: 'points',
   geo: 'netherlands',
@@ -341,8 +342,8 @@ const SUBTITLES = { subtitle: 'Per uur, per werkdag, dit kwartaal', mobileSubtit
 
 /** A tile's row for the shorter subtitle its host gives for a phone. */
 function subtitleRow(
-  tag: 'lintje-chart-tile' | 'lintje-map-tile' | 'lintje-data-table',
-  data: ChartTileData | MapTileViewData | DataTableData,
+  tag: 'lintje-chart' | 'lintje-map' | 'lintje-data-table',
+  data: ChartData | MapData | DataTableData,
 ): Row {
   const subtitle = (element: HTMLElement): string | undefined =>
     find(element, '.lintje-tile__sub')?.textContent ?? undefined
@@ -471,22 +472,22 @@ const ROWS: Row[] = [
     },
   },
   {
-    tag: 'lintje-chart-tile',
+    tag: 'lintje-chart',
     marker: 'the heatmap turns on its side: the days become columns',
-    mount: () => append(create('lintje-chart-tile', { data: HEATMAP })),
+    mount: () => append(create('lintje-chart', { data: HEATMAP })),
     wide: (element) => find(element, '.lintje-heatmap__column-label')?.textContent === HOURS[0],
     phone: (element) => find(element, '.lintje-heatmap__column-label')?.textContent === DAYS[0],
   },
   {
-    tag: 'lintje-chart-tile',
+    tag: 'lintje-chart',
     marker: 'the view switch takes a row of its own under the title',
-    mount: () => append(create('lintje-chart-tile', { data: { ...HEATMAP, tableSwitch: true } })),
+    mount: () => append(create('lintje-chart', { data: { ...HEATMAP, tableSwitch: true } })),
     wide: (element) => {
-      const view = find(element, '.lintje-chart-tile__view')
+      const view = find(element, '.lintje-chart__view')
       return seen(view) && !below(find(element, '.lintje-tile__title'), view)
     },
     phone: (element) => {
-      const view = find(element, '.lintje-chart-tile__view')
+      const view = find(element, '.lintje-chart__view')
       return seen(view) && below(find(element, '.lintje-tile__title'), view)
     },
   },
@@ -794,6 +795,28 @@ const ROWS: Row[] = [
       Math.abs(box(element.querySelector('lintje-select')).width - box(element).width) < 1,
   },
   {
+    tag: 'lintje-slot-picker',
+    marker: 'the days stand under each other',
+    mount: () =>
+      append(
+        create('lintje-slot-picker', {
+          label: 'Kies een tijd',
+          days: [
+            { date: '2026-10-12', slots: [{ value: 'ma-9', label: '09:00' }] },
+            { date: '2026-10-13', slots: [{ value: 'di-9', label: '09:00' }] },
+          ],
+        }),
+      ),
+    wide: (element) => {
+      const [monday, tuesday] = all(element.shadowRoot!, '.lintje-slot-picker__day')
+      return level(monday!, tuesday!) && beside(monday!, tuesday!)
+    },
+    phone: (element) => {
+      const [monday, tuesday] = all(element.shadowRoot!, '.lintje-slot-picker__day')
+      return below(monday!, tuesday!)
+    },
+  },
+  {
     tag: 'lintje-translator',
     marker: 'the translation stands under the source',
     mount: () => append(create('lintje-translator', { value: 'Goedemorgen' })),
@@ -818,9 +841,9 @@ const ROWS: Row[] = [
       !shown(element, '.lintje-chat-composer__send lintje-button'),
   },
   {
-    tag: 'lintje-map-tile',
+    tag: 'lintje-map',
     marker: 'the legend folds behind a "Legenda" button',
-    mount: () => append(create('lintje-map-tile', { data: MAP })),
+    mount: () => append(create('lintje-map', { data: MAP })),
     wide: (element) =>
       shown(element, '.lintje-map-chart__legend-content') &&
       !shown(element, '.lintje-map-chart__legend-toggle'),
@@ -1151,17 +1174,17 @@ const ROWS: Row[] = [
         create('lintje-chat-answer', {
           state: 'ready',
           blocks: [
-            { kind: 'chart-tile', data: { ...HEATMAP, span: 6 } },
-            { kind: 'chart-tile', data: { ...HEATMAP, title: 'Drukte vorige week', span: 6 } },
+            { kind: 'chart', data: { ...HEATMAP, span: 6 } },
+            { kind: 'chart', data: { ...HEATMAP, title: 'Drukte vorige week', span: 6 } },
           ],
         }),
       ),
     wide: (element) => {
-      const [first, second] = all(element.shadowRoot!, 'lintje-chart-tile')
+      const [first, second] = all(element.shadowRoot!, 'lintje-chart')
       return seen(first) && level(first!, second!)
     },
     phone: (element) => {
-      const [first, second] = all(element.shadowRoot!, 'lintje-chart-tile')
+      const [first, second] = all(element.shadowRoot!, 'lintje-chart')
       return below(first!, second!)
     },
   },
@@ -1179,8 +1202,8 @@ const ROWS: Row[] = [
     },
     phone: (element) => box(scrolledPast(element)).bottom <= 0,
   },
-  subtitleRow('lintje-chart-tile', HEATMAP),
-  subtitleRow('lintje-map-tile', MAP),
+  subtitleRow('lintje-chart', HEATMAP),
+  subtitleRow('lintje-map', MAP),
   subtitleRow('lintje-data-table', TABLE),
 ]
 

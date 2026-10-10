@@ -4,8 +4,8 @@ De grafieken van het Lintje-design system als lit-html-templates: handgemaakte S
 grammatica van `DESIGN_SYSTEM.md` (Grafieken), geen grafiekbibliotheek.
 
 Grafieken zijn **renderfuncties**, geen elementen. Het element eromheen
-(`<lintje-chart-tile>`) is eigenaar van de tegel, de toestanden en de events; een grafiek tekent en
-geeft zijn staat aan een controller. `components/charts/chart-tile/chart-tile.ts` is het echte werk,
+(`<lintje-chart>`) is eigenaar van de tegel, de toestanden en de events; een grafiek tekent en
+geeft zijn staat aan een controller. `components/charts/chart/chart.ts` is het echte werk,
 in hoofdlijnen:
 
 ```ts
@@ -15,7 +15,7 @@ import { chartStyles } from '../../shared/charts/shared/chart-styles'
 import { MediaController } from '../../../core/media'
 import { LintjeContentTileElement } from '../../shared/content-tile'
 
-export class LintjeChartTile extends LintjeContentTileElement {
+export class LintjeChart extends LintjeContentTileElement {
   static override styles = [/* the tile's own sheets */ ...chartStyles]
 
   readonly #chart = new ChartController(() => this.requestUpdate())
@@ -48,10 +48,10 @@ events van de eigen tegel stopt elke subklasse zelf. Een grafiektegel houdt
 
 ```ts
 renderChart(spec: ChartSpec, options: ChartOptions): TemplateResult
-renderMap(data: MapTileData, options: MapOptions): TemplateResult
+renderMap(data: MapSpec, options: MapOptions): TemplateResult
 ```
 
-`ChartSpec` en `MapTileData` zijn gedeclareerd in `components/shared/charts/shared/types.ts`; `types.ts`
+`ChartSpec` en `MapSpec` zijn gedeclareerd in `components/shared/charts/shared/types.ts`; `types.ts`
 exporteert ze opnieuw. Een spec
 mag zijn kleuren bij paletnaam noemen (`'sky-blue'`, `'dark-yellow'`); elke
 renderfunctie zet ze zelf om via `chartColor()`, dus een host geeft
@@ -104,7 +104,8 @@ dingen bijten:
 ### Een markering die doorklikt
 
 Elke grafieksoort met een markering om op te klikken — staven, gegroepeerde staven, horizontale staven,
-taartpunten, gestapelde segmenten, heatmapcellen; geen lijnpunten — volgt datzelfde
+taartpunten, gestapelde segmenten, heatmapcellen, de punten van een spreidingsdiagram; geen
+lijnpunten — volgt datzelfde
 contract, via `ChartOptions`: `selectedId`, `onSelect` en `onClear`. Een markering
 wordt een `role="button"` met `aria-pressed` als, en alleen als, haar datapunt
 een `href` draagt die de host heeft aangemaakt. Een markering die een record is (`rows`, `segments`)
@@ -178,8 +179,8 @@ spelt — kebab-case voor `stroke-width`, `stroke-dasharray`, `text-anchor`,
 ## De demo
 
 De categorie "Kerncijfers en grafieken" van de styleguide (`examples/styleguide/?category=charts`)
-tekent elke soort en de drie grafiektoestanden in een `<lintje-chart-tile>`; de categorie "Kaart"
-(`?category=map`) tekent de kaartvarianten in een `<lintje-map-tile>`. De specs worden gebouwd in
+tekent elke soort en de drie grafiektoestanden in een `<lintje-chart>`; de categorie "Kaart"
+(`?category=map`) tekent de kaartvarianten in een `<lintje-map>`. De specs worden gebouwd in
 `examples/styleguide/specimens/charts.js` en `map.js` uit `examples/_data/*.json`, zodat de
 pagina geen TypeScript laadt: `npm run build:elements`, dan `npm run dev` (of een willekeurige
 statische server in de root van de repository) en open `/examples/styleguide/?category=charts`.

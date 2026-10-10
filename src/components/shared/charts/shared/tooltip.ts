@@ -3,6 +3,7 @@ import { html, nothing, type TemplateResult } from 'lit'
 import { directive, Directive, PartType, type ElementPart, type PartInfo } from 'lit/directive.js'
 import { styleProps } from '../../../../core/style-props'
 import type { ChartController, TooltipState } from './controller'
+import { renderSymbol } from './axes'
 
 /**
  * Places the tooltip right of the pointer, flipping near the tile's edge. A directive, not a
@@ -48,9 +49,13 @@ export function renderTooltip(controller: ChartController): TemplateResult | typ
         <p class="lintje-chart-tooltip__row ${row.divider ? 'lintje-chart-tooltip__row--divider' : ''}">
           <span class="lintje-chart-tooltip__label">
             ${
-              row.color
-                ? html`<span class="lintje-chart-tooltip__marker" ${styleProps({ background: row.color })}></span>`
-                : nothing
+              row.symbol
+                ? html`<svg class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--symbol"
+                            viewBox="0 0 14 14" ${styleProps({ color: row.color })}
+                            aria-hidden="true" focusable="false">${renderSymbol(row.symbol, row.color, 7)}</svg>`
+                : row.color
+                  ? html`<span class="lintje-chart-tooltip__marker" ${styleProps({ background: row.color })}></span>`
+                  : nothing
             }
             ${row.label}
           </span>

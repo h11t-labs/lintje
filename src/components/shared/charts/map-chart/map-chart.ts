@@ -16,7 +16,7 @@ import { markPath } from '../shared/series-shapes'
 import { drawingRole } from '../shared/axes'
 import type { ChartController, ChartOptions } from '../shared/controller'
 import { mapDrawings, withUnit, type DrawingVariant, type MapDrawing } from './drawings'
-import type { MapSeriesKey, MapTileData, MapValue } from '../shared/types'
+import type { MapSeriesKey, MapSpec, MapValue } from '../shared/types'
 
 type Geo = typeof worldGeo
 
@@ -326,7 +326,7 @@ export interface MapOptions extends Omit<ChartOptions, 'description' | 'onSelect
   onLayerChange?: (value: string) => void
 }
 
-export function renderMap(data: MapTileData, options: MapOptions): TemplateResult {
+export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
   const {
     controller,
     description = data.description,
