@@ -21,6 +21,13 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   mond (`shape: 'arc'`) of een balk eronder (`shape: 'linear'`), met het doel gestreept. Het type
   `KpiGauge` staat in `src/types.ts`; `lintje-kpi-row` geeft het door. (#13)
 
+### Gewijzigd
+
+- **Brekend:** `lintje-chart-tile` heet `lintje-chart` en `lintje-map-tile` heet `lintje-map`,
+  in de build `tag/chart.js` en `tag/map.js`. De typen volgen: `ChartTileData` wordt `ChartData`,
+  `MapTileViewData` wordt `MapData` en `MapTileData` wordt `MapSpec`; een `ChatBlock` noemt
+  `kind: 'chart'`. (#14)
+
 ## [0.1.1] - 2026-10-09
 
 ### Gewijzigd
