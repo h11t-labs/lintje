@@ -22,6 +22,10 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   `KpiGauge` staat in `src/types.ts`; `lintje-kpi-row` geeft het door. (#13)
 - Het histogram als grafieksoort (`kind: 'histogram'`): klassen die elkaar raken, labels op de
   grenzen, een open laatste klasse, een mediaan en een drempel. (#9)
+- `lintje-kpi` toont het verloop van zijn variabele met `sparkline`: een lijn met haar vlak in de
+  kleur van de variabele, zonder assen, geschaald van de laagste tot de hoogste waarde; een
+  ontbrekende waarde breekt de lijn en de beschrijving is het tekstalternatief. Het type
+  `KpiSparkline` staat in `src/types.ts`; `lintje-kpi-row` geeft het door. (#15)
 
 ### Gewijzigd
 
