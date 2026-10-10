@@ -26,6 +26,7 @@ import '../../components/forms/form-actions/form-actions'
 import '../../components/forms/form/form'
 import '../../components/inputs/file-upload/file-upload'
 import '../../components/inputs/select/select'
+import '../../components/inputs/slot-picker/slot-picker'
 import '../../components/inputs/text-editor/text-editor'
 import '../../components/inputs/text-input/text-input'
 import '../../components/charts/kpi-row/kpi-row'
@@ -792,6 +793,28 @@ const ROWS: Row[] = [
     wide: (element) => box(element.querySelector('lintje-select')).width < box(element).width / 2,
     phone: (element) =>
       Math.abs(box(element.querySelector('lintje-select')).width - box(element).width) < 1,
+  },
+  {
+    tag: 'lintje-slot-picker',
+    marker: 'the days stand under each other',
+    mount: () =>
+      append(
+        create('lintje-slot-picker', {
+          label: 'Kies een tijd',
+          days: [
+            { date: '2026-10-12', slots: [{ value: 'ma-9', label: '09:00' }] },
+            { date: '2026-10-13', slots: [{ value: 'di-9', label: '09:00' }] },
+          ],
+        }),
+      ),
+    wide: (element) => {
+      const [monday, tuesday] = all(element.shadowRoot!, '.lintje-slot-picker__day')
+      return level(monday!, tuesday!) && beside(monday!, tuesday!)
+    },
+    phone: (element) => {
+      const [monday, tuesday] = all(element.shadowRoot!, '.lintje-slot-picker__day')
+      return below(monday!, tuesday!)
+    },
   },
   {
     tag: 'lintje-translator',

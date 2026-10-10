@@ -24,7 +24,7 @@ regel per punt, met het bestand waar het over gaat. Sluit een regel in de wijzig
 ## Primitives en gedeelde onderdelen
 
 - `src/primitives/icon-button/icon-button.ts`: `size` (getypeerd `28 | 32 | 36 | 40 | 44`) wordt geaccepteerd en heeft geen effect — de box is altijd `--h-icon-button`. Het attribuut laten vallen is een brekende wijziging voor een host die het zet; besluit wanneer.
-- `src/primitives/popover/popover.ts`: geen sheet-plaatsing op een telefoon; de combobox, de taginvoer, de datuminvoer en de menuknop houden een paneel onder het anker waar de specificaties een sheet onderaan tekenen.
+- `src/primitives/popover/popover.ts`: geen sheet-plaatsing op een telefoon; de combobox, de taginvoer, de datuminvoer, de tijdinvoer en de menuknop houden een paneel onder het anker waar de specificaties een sheet onderaan tekenen.
 - `src/components/inputs/shared/input.css`: de `:host(…)`-lijst noemt 7 van de 17 invoeren; de andere tien zetten elk hun eigen `:host`- en telefoonregel, en de telefoonregel voor het tekst- en getalveld staat in `radio-group.css`.
 - `src/primitives/popover/popover.ts`: de popover vraagt alleen bij Escape en een klik buiten om te sluiten, niet wanneer de focus hem verlaat; een eigenaar zonder eigen `focusout` laat hem open na Tab voorbij zijn laatste stop of een focus elders (het popovercontract, `KNOWN`). Een `lintje-close` met een reden voor de focus zou dat voor elke eigenaar regelen.
 - `src/components/inputs/date-range/date-range.ts`: het paneel staat `position: absolute` onder het veld, dus een scrollende voorouder (een tegel, een filterzone) snijdt het af; de multiselect zet het zijne `fixed` aan het veld (het popovercontract, `KNOWN`).

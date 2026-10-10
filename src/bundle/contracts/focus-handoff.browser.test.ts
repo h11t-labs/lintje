@@ -14,6 +14,7 @@ import '../../components/tables/data-table/data-table'
 import '../../components/filters/filter-zone/filter-zone'
 import '../../components/forms/form/form'
 import '../../components/inputs/date-input/date-input'
+import '../../components/inputs/time-input/time-input'
 import '../../components/inputs/date-range/date-range'
 import '../../components/inputs/file-upload/file-upload'
 import '../../components/inputs/segmented/segmented'
@@ -678,6 +679,20 @@ const INPUT_ROWS: Row[] = [
       await expect.poll(() => active()?.classList.contains('lintje-date-input__day')).toBe(true)
       await userEvent.keyboard('{Enter}')
       return () => date.shadowRoot!.querySelector('.lintje-date-input__control')
+    },
+  },
+  {
+    name: 'lintje-time-input :: a time picked closes the list and hands its focus to the field',
+    run: async () => {
+      const time = await mount<HTMLElement & { value: string | null }>('lintje-time-input', {
+        label: 'Aanvang',
+        value: '09:00',
+      })
+      time.shadowRoot!.querySelector<HTMLElement>('.lintje-time-input__toggle')!.focus()
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(() => active()?.classList.contains('lintje-time-input__option')).toBe(true)
+      await userEvent.keyboard('{Enter}')
+      return () => time.shadowRoot!.querySelector('.lintje-time-input__control')
     },
   },
   {

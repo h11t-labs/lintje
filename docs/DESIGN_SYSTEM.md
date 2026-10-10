@@ -329,6 +329,9 @@ De besluiten hieronder gelden voor alle elementen.
   annuleren. Geen dialoog voor één naam.
 - **Opties die elk een regel nodig hebben, zijn kaarten** (`variant="cards"`): naast elkaar, de
   gekozen rustig zoals in de gesegmenteerde keuze.
+- **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
+  elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
+  beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").
 - **Een dialoog met een formulier is smal** en zo hoog als zijn inhoud; een zin over het resultaat
   staat links in de voet, de knoppen rechts.
 - **Een bezige knop houdt zijn breedte en zijn kleuren**; alleen de inhoud maakt plaats voor de
