@@ -7,6 +7,7 @@ import { DEFAULT_PLOT_AREA, type PlotArea } from './scale'
 // Type-only, so the module cycle (leaflet.ts needs this file) is erased at build.
 import type { LeafletSurface } from '../map-chart/leaflet'
 import type { ChartSelection } from './mark-select'
+import type { SeriesKey } from './series-shapes'
 
 /** What every `render*` takes besides its data. */
 export interface ChartOptions {
@@ -44,7 +45,10 @@ export function chartArea(options: ChartOptions, margins: Partial<PlotArea> = {}
 export interface TooltipRow {
   label: string
   value: string
-  color: string
+  /** The swatch; a row without one is a plain figure. */
+  color?: string
+  /** The series' shape instead of a square swatch, as its legend draws it. */
+  symbol?: SeriesKey
 }
 export interface TooltipContent {
   title: string

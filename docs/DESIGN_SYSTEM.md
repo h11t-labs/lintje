@@ -490,8 +490,8 @@ Eén grammatica, geen grafiekbibliotheek.
 - **Eén kleur per variabele**, met de tintladder voor de onderverdelingen. Vergelijking grijs;
   nadruk voor trend, drempel en doel.
 - **De legenda staat boven de grafiek** en is klikbaar. Het symbool zegt welk teken het is: een
-  vierkant voor een staaf of vlak, een lijn voor een lijn, gestreept voor een drempel of
-  vergelijking.
+  vierkant voor een staaf of vlak, een lijn voor een lijn, de vorm van de reeks voor een punt,
+  gestreept voor een drempel of vergelijking. Een drempel in de legenda is geen schakelaar.
 - **De nullijn is donkerder dan het raster.**
 - **Datalabels zijn alles of niets**: als er één niet past, toont de grafiek er geen, en de
   tooltip geeft nog steeds elke waarde.
@@ -518,6 +518,11 @@ moeten zijn.
 
 **Op een kaart is een reeks een kleur en een vorm**, en een selectie kan altijd ongedaan worden
 gemaakt.
+
+**In een spreidingsdiagram is een reeks ook een kleur en een vorm**: dezelfde vorm die die kleur
+op de kaart heeft, met gelijke oppervlakte, zodat geen reeks luider is. Een punt heeft een rand in
+de oppervlaktekleur, zodat punten die elkaar overlappen te onderscheiden blijven. Alleen de punten
+die de host noemt, tonen hun naam; de rest leest de lezer uit de tooltip of de tabel.
 
 **Een kaart stapelt haar lagen en blijft één kaart.** De eerste laag ligt onder en de laatste
 boven, en het toetsenbord volgt de stapel; een choropleet kleurt het land zelf en ligt daarom

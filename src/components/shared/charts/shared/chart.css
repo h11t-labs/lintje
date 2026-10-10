@@ -3,6 +3,8 @@
    tile instead of leaving the space below them empty. */
 .lintje-chart--rows { margin-block: auto; }
 .lintje-chart__axis-title { font: var(--text-axis); color: var(--color-text-muted); }
+/* The title of a value axis along the bottom: the axis title's type, in the drawing. */
+.lintje-chart__x-title { font: var(--text-axis); fill: var(--color-text-muted); }
 .lintje-chart__svg {
   width: 100%;
   display: block;
@@ -194,6 +196,7 @@
 .lintje-chart-tooltip__row { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
 .lintje-chart-tooltip__label { display: flex; align-items: center; gap: 6px; }
 .lintje-chart-tooltip__marker { width: 10px; height: 10px; flex: none; }
+.lintje-chart-tooltip__marker--symbol { width: 14px; height: 14px; }
 .lintje-chart-tooltip__value { font-weight: 700; margin-left: var(--space-3); }
 
 .lintje-chart-wrap { position: relative; min-width: 0; }
@@ -340,7 +343,8 @@
   .lintje-chart__axis-label,
   .lintje-chart__data-label,
   .lintje-chart__as-of-label,
-  .lintje-chart__as-of-note { fill: CanvasText; }
+  .lintje-chart__as-of-note,
+  .lintje-chart__x-title { fill: CanvasText; }
   .lintje-chart__data-label--inside { forced-color-adjust: none; fill: var(--color-text-on-fill); }
   .lintje-chart__data-label--inside-light { forced-color-adjust: none; fill: var(--color-text-on-light-fill); }
   .lintje-chart__data-label--halo { stroke: Canvas; }

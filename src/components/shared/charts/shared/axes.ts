@@ -5,7 +5,7 @@ import { AXIS_GAP, DEFAULT_PLOT_AREA, plotWidth, yPosition, type PlotArea } from
 import { formatNumber, textWidth } from '../../../../core/format'
 import type { PlotKeys } from './plot-keys'
 import { markPath, type SeriesKey } from './series-shapes'
-import { DEFAULT_SERIES_COLOR } from './colors'
+import { DEFAULT_SERIES_COLOR, lineCasing } from './colors'
 
 /** Anything that may go inside the `<svg>`; built with lit's `svg`, since `html` draws nothing. */
 export type SvgSlot =
@@ -19,10 +19,27 @@ export type SvgSlot =
 export interface LegendItem {
   label: string
   color?: string
-  shape?: 'square' | 'line' | 'dashed'
+  /** `point`: the series' symbol alone, as a scatter plot draws its points. */
+  shape?: 'square' | 'line' | 'dashed' | 'point'
   /** The shape the line carries at its end, drawn on its line marker (rule 13). */
   symbol?: SeriesKey
   hidden?: boolean
+  /** Not a series but a reference, such as a norm: never a toggle. */
+  fixed?: boolean
+}
+
+/**
+ * A series' symbol as a scatter plot draws it, for a marker: its shape in `currentColor`, and a
+ * dark-yellow one with the edge of its text colour (`lineCasing`).
+ */
+export function renderSymbol(
+  symbol: SeriesKey,
+  color: string | undefined,
+  centre: number,
+): SVGTemplateResult {
+  const casing = lineCasing(color)
+  return svg`<path d=${markPath(symbol, 4.5, centre, centre)} fill="currentColor"
+                   stroke=${casing ?? nothing} stroke-width=${casing ? 1 : nothing} />`
 }
 
 export function renderLegend({
@@ -36,14 +53,20 @@ export function renderLegend({
 }): TemplateResult {
   const content = (item: LegendItem) => html`
     ${
-      item.symbol
+      item.symbol && item.shape === 'point'
         ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
+                    ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
+                    aria-hidden="true" focusable="false">
+            ${renderSymbol(item.symbol, item.color, 7)}
+          </svg>`
+        : item.symbol
+          ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
                     ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
                     aria-hidden="true" focusable="false">
             <line x1="0" x2="14" y1="7" y2="7" stroke="currentColor" stroke-width="3" />
             <path d=${markPath(item.symbol, 4, 7, 7)} fill="currentColor" />
           </svg>`
-        : html`<span class="lintje-legend__marker lintje-legend__marker--${item.shape ?? 'square'}"
+          : html`<span class="lintje-legend__marker lintje-legend__marker--${item.shape ?? 'square'}"
                      ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
                      aria-hidden="true"></span>`
     }
@@ -55,7 +78,7 @@ export function renderLegend({
         (item) => html`
         <li class="lintje-legend__item ${item.hidden ? 'is-hidden' : ''}">
           ${
-            onToggle
+            onToggle && !item.fixed
               ? html`<button type="button" class="lintje-legend__button"
                            @click=${() => onToggle(item.label)}
                            aria-pressed=${!item.hidden}>${content(item)}</button>`
@@ -74,7 +97,10 @@ export interface ChartFrameOptions {
   max: number
   /** Unit above the axis, e.g. "Afgehandelde aanvragen". */
   axisTitle?: string
-  xLabels?: { label: string; x: number }[]
+  /** `anchor` defaults to the middle; the last label of a value axis ends at the plot's edge. */
+  xLabels?: { label: string; x: number; anchor?: 'start' | 'middle' | 'end' }[]
+  /** The title of a value axis along the bottom, under its labels at the right. */
+  xTitle?: string
   /** Description for screen readers; replaces the chart in the accessibility tree. */
   description: string
   height?: number
@@ -125,6 +151,8 @@ export function focusRingStyle(id: string): Record<string, string> {
 }
 
 const X_LABEL_GAP = 8
+/** From the zero line to the baseline of the x labels, and again to that of the x title. */
+const X_LABEL_DROP = 20
 
 /**
  * The x labels that fit: every one while no two neighbours touch, otherwise every second,
@@ -156,6 +184,7 @@ export function renderChartFrame(
     max,
     axisTitle,
     xLabels,
+    xTitle,
     description,
     defs,
     zeroLine = true,
@@ -217,11 +246,17 @@ export function renderChartFrame(
         <!-- x-axis labels -->
         ${thinLabels(xLabels ?? [], fontFamily).map(
           (label) => svg`
-          <text x=${label.x} y=${area.height - 8} text-anchor="middle" class="lintje-chart__axis-label">
+          <text x=${label.x} y=${area.height - area.bottom + X_LABEL_DROP} text-anchor=${label.anchor ?? 'middle'} class="lintje-chart__axis-label">
             ${label.label}
           </text>
         `,
         )}
+        ${
+          xTitle
+            ? svg`<text x=${area.width - area.right} y=${area.height - area.bottom + 2 * X_LABEL_DROP} text-anchor="end"
+                      class="lintje-chart__x-title">${xTitle}</text>`
+            : nothing
+        }
       </svg>
     </figure>
   `

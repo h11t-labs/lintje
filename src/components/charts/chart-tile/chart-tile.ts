@@ -61,6 +61,7 @@ function skeletonKind(chart: ChartSpec): ChartSkeletonKind {
   switch (chart.kind) {
     case 'line':
     case 'dual-axis':
+    case 'scatter':
       return 'line'
     case 'pie':
       return chart.donut ? 'donut' : 'pie'
@@ -134,6 +135,18 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
         ...chart.labels.map((label, i) => [label, chart.left.values[i], chart.right.values[i]]),
       ]
     }
+    case 'scatter': {
+      const header = (title: string, unit?: string) => {
+        const name = title.charAt(0).toUpperCase() + title.slice(1)
+        return unit ? `${name} (${unit})` : name
+      }
+      return [
+        ['Reeks', 'Naam', header(chart.xTitle, chart.xUnit), header(chart.axisTitle, chart.unit)],
+        ...chart.series.flatMap((series) =>
+          series.points.map((point) => [series.label, point.label, point.x, point.y]),
+        ),
+      ]
+    }
     case 'heatmap':
       return [
         ['', ...chart.columnLabels],
@@ -155,7 +168,8 @@ function chartTable(chart: ChartSpec, caption: string): DataTableData {
   const [header = [], ...body] = csvRows(chart)
   const columns = header.map((cell, index) => {
     const values = body.map((row) => (row[index] ?? null) as CellValue)
-    return index === 0
+    // A column of names is text, wherever it stands (a scatter plot has two).
+    return index === 0 || values.some((value) => typeof value === 'string')
       ? { key: `c${index}`, header: String(cell ?? ''), format: 'text' as const, sortable: false }
       : {
           key: `c${index}`,

@@ -83,6 +83,26 @@ const KINDS: { name: string; spec: ChartSpec; first: string; second: string }[] 
     },
   },
   {
+    name: 'scatter',
+    first: 'Noord',
+    second: 'Zuid',
+    spec: {
+      kind: 'scatter',
+      axisTitle: 'wachttijd',
+      xTitle: 'aanvragen',
+      series: [
+        {
+          label: 'Loket',
+          points: [
+            { label: 'Zuid', x: 20, y: 4 },
+            { label: 'Noord', x: 10, y: 6 },
+            { label: 'Oost', x: 15, y: null },
+          ],
+        },
+      ],
+    },
+  },
+  {
     name: 'horizontal-bar',
     first: 'Noord',
     second: 'Zuid',

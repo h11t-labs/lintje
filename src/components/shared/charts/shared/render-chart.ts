@@ -13,6 +13,7 @@ import { renderGroupedBarChart } from '../grouped-bar-chart/grouped-bar-chart'
 import { renderStackedBarChart } from '../stacked-bar-chart/stacked-bar-chart'
 import { renderPieChart } from '../pie-chart/pie-chart'
 import { renderDualAxisChart } from '../dual-axis-chart/dual-axis-chart'
+import { renderScatterChart } from '../scatter-chart/scatter-chart'
 import { renderHeatmap } from '../heatmap-chart/heatmap-chart'
 
 export function renderChart(spec: ChartSpec, options: ChartOptions): TemplateResult {
@@ -33,6 +34,8 @@ export function renderChart(spec: ChartSpec, options: ChartOptions): TemplateRes
       return renderPieChart(spec, options)
     case 'dual-axis':
       return renderDualAxisChart(spec, options)
+    case 'scatter':
+      return renderScatterChart(spec, options)
     case 'heatmap':
       return renderHeatmap(spec, options)
   }
