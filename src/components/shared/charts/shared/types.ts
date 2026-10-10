@@ -25,7 +25,11 @@ export interface LineSeriesData {
   area?: boolean
 }
 
-/** Something that happened at a category, numbered by its place in the list (1, 2, …). */
+/**
+ * Something that happened at a category. The chart numbers its events 1, 2, … from left to
+ * right, in the host's order within one category; one whose `index` is not in `labels` is left
+ * out and takes no number.
+ */
 export interface ChartEvent {
   /** Index into `labels`: the category it happened at. */
   index: number

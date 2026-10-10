@@ -207,5 +207,106 @@ describe('the line chart', () => {
       expect(controller.tooltip?.content.events).toBeUndefined()
       expect(host.querySelector('.lintje-chart-tooltip__event')).toBeNull()
     })
+
+    const weeks = Array.from({ length: 26 }, (_, i) => `wk ${14 + i}`)
+    const flat = [{ label: 'A', values: weeks.map(() => 1) }]
+    const chips = (host: Element) =>
+      [...host.querySelectorAll('.lintje-chart__event-chip')].map((chip) => ({
+        x: Number(chip.getAttribute('x')),
+        y: Number(chip.getAttribute('y')),
+        size: Number(chip.getAttribute('width')),
+      }))
+    const plotTop = (host: Element) =>
+      Math.min(
+        ...[...host.querySelectorAll('line[stroke="var(--color-chart-grid)"]')].map((line) =>
+          Number(line.getAttribute('y1')),
+        ),
+      )
+    /** Drawn at a width of its own: happy-dom measures every element as 0 wide. */
+    function drawAt(width: number, events: LineSpec['events']) {
+      const drawn = draw({ kind: 'line', labels: weeks, series: flat, events })
+      drawn.controller.width = width
+      drawn.controller.requestUpdate()
+      return drawn
+    }
+
+    it('puts a second event at one category a row down, and moves the plot down with it', () => {
+      const one = drawAt(600, [{ index: 8, label: 'Eerste' }]).host
+      const { host } = drawAt(600, [
+        { index: 8, label: 'Eerste' },
+        { index: 8, label: 'Tweede' },
+      ])
+      const [first, second] = chips(host)
+      expect(second.x).toBe(first.x)
+      expect(second.y).toBeGreaterThanOrEqual(first.y + first.size)
+      expect(plotTop(host)).toBeGreaterThan(plotTop(one))
+      expect(
+        [...host.querySelectorAll('.lintje-chart__event-number')].map((n) => n.textContent),
+      ).toEqual(['1', '2'])
+    })
+
+    it('puts neighbours a row down on a narrow drawing, and keeps one row on a wide one', () => {
+      const events = [
+        { index: 8, label: 'Eerste' },
+        { index: 9, label: 'Tweede' },
+      ]
+      const [a, b] = chips(drawAt(320, events).host)
+      expect(Math.abs(b.x - a.x)).toBeLessThan(a.size)
+      expect(b.y).toBeGreaterThanOrEqual(a.y + a.size)
+      const [c, d] = chips(drawAt(1400, events).host)
+      expect(d.y).toBe(c.y)
+    })
+
+    it('keeps the squares of the first and last category inside the drawing', () => {
+      const { host } = drawAt(600, [
+        { index: 0, label: 'Begin' },
+        { index: 25, label: 'Eind' },
+      ])
+      for (const chip of chips(host)) {
+        expect(chip.x).toBeGreaterThanOrEqual(0)
+        expect(chip.x + chip.size).toBeLessThanOrEqual(600)
+      }
+    })
+
+    it('numbers the events from left to right, without the ones outside the labels', () => {
+      const { host } = draw({
+        ...spec,
+        events: [
+          { index: 3, label: 'Later' },
+          { index: 99, label: 'Buiten de labels' },
+          { index: 1, label: 'Eerder' },
+        ],
+      })
+      const items = [...host.querySelectorAll('.lintje-chart-events__item')]
+      expect(items.map((item) => item.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
+        '1 wk 2 · Eerder',
+        '2 wk 4 · Later',
+      ])
+    })
+
+    it('keeps the square at the as-of time, and the note over an event line after it', () => {
+      const { host } = draw({
+        kind: 'line',
+        labels: weeks,
+        series: [{ label: 'A', values: weeks.map((_, i) => (i > 10 ? null : 1)) }],
+        asOfIndex: 10,
+        asOfLabel: 'wk 24',
+        pendingHours: 20,
+        events: [
+          { index: 10, label: 'Op het peilmoment' },
+          { index: 20, label: 'Erna' },
+        ],
+      })
+      expect(chips(host)).toHaveLength(2)
+      const note = host.querySelector('.lintje-chart__as-of-note')!
+      const lines = [...host.querySelectorAll('.lintje-chart__event-line')]
+      for (const line of lines) {
+        expect(line.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      }
+      const css = readFileSync(resolve('src/components/shared/charts/shared/chart.css'), 'utf8')
+      expect(css).toMatch(
+        /\.lintje-chart__as-of-note \{[^}]*stroke: var\(--color-bg-surface\);[^}]*paint-order: stroke fill;/,
+      )
+    })
   })
 })

@@ -16,16 +16,35 @@ import {
   type SvgSlot,
 } from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
+import { styleProps } from '../../../../core/style-props'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import type { ChartSpec } from '../shared/types'
 
 type LineSpec = Extract<ChartSpec, { kind: 'line' }>
 
-/** An event's numbered square, 2 px below the top; the plot moves down to make room for it. */
+/** An event's numbered square; the list and the tooltip draw it at this size too. */
 const EVENT_CHIP = 18
+/** Between two rows of squares, two squares in a row, and the top edge and the first row. */
+const EVENT_ROW_GAP = 4
+/** Between the lowest row of squares and the plot. */
 const EVENT_GAP = 8
-const EVENT_TOP = 2 + EVENT_CHIP + EVENT_GAP
+
+/**
+ * The row of each square, in order: the first row where it touches no square before it. A
+ * second event at one category, or a neighbour on a narrow drawing, goes a row down.
+ */
+function eventRows(centres: number[]): number[] {
+  const rows: number[][] = []
+  return centres.map((x) => {
+    let row = rows.findIndex((taken) =>
+      taken.every((other) => Math.abs(other - x) >= EVENT_CHIP + EVENT_ROW_GAP),
+    )
+    if (row === -1) row = rows.push([]) - 1
+    rows[row].push(x)
+    return row
+  })
+}
 
 export function renderLineChart(spec: LineSpec, options: ChartOptions): TemplateResult {
   const { controller, description } = options
@@ -39,12 +58,13 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
     fixedMax,
     small = false,
   } = spec
-  // Numbered in the host's order; one outside the labels draws nothing.
+  // One outside the labels draws nothing; the rest are numbered from left to right.
   const events = (spec.events ?? [])
-    .map((event, i) => ({ ...event, number: i + 1 }))
     .filter(
       (event) => Number.isInteger(event.index) && event.index >= 0 && event.index < labels.length,
     )
+    .sort((a, b) => a.index - b.index)
+    .map((event, i) => ({ ...event, number: i + 1 }))
   const id = controller.id
 
   controller.measure({
@@ -78,10 +98,21 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
     fontFamily: controller.fontFamily,
     minimum: Math.ceil(textWidth(labels[0] ?? '', controller.fontFamily) / 2),
   })
+  // The squares stay inside the drawing at its ends; x does not depend on the top.
+  const across = chartArea(options, { left: axis.width })
+  const centres = events.map((event) =>
+    Math.min(
+      across.width - EVENT_CHIP / 2,
+      Math.max(EVENT_CHIP / 2, xPosition(event.index, labels.length, across)),
+    ),
+  )
+  const rows = eventRows(centres)
+  const rowCount = rows.length ? Math.max(...rows) + 1 : 0
   const area = chartArea(options, {
     left: axis.width,
-    ...(events.length ? { top: EVENT_TOP } : {}),
+    ...(rowCount ? { top: rowCount * (EVENT_CHIP + EVENT_ROW_GAP) + EVENT_GAP } : {}),
   })
+  const chipTop = (i: number) => EVENT_ROW_GAP + rows[i] * (EVENT_CHIP + EVENT_ROW_GAP)
 
   const isEarly = pendingHours > 6
   const lastKnown = asOfIndex ?? labels.length - 1
@@ -138,20 +169,24 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
         })()
       : nothing,
 
-    // Under the area and the lines, and drawn at once like the axes: no reveal.
+    // Under the area and the lines, and drawn at once like the axes: no reveal. The lines go
+    // first, so a square a row down covers the line of the one above it.
     events.length
-      ? svg`<g>${events.map((event) => {
-          const x = xPosition(event.index, labels.length, area)
-          const top = area.top - EVENT_GAP - EVENT_CHIP
-          return svg`
-            <line class="lintje-chart__event-line" x1=${x} x2=${x}
-                  y1=${area.top - EVENT_GAP} y2=${area.height - area.bottom} />
-            <rect class="lintje-chart__event-chip" x=${x - EVENT_CHIP / 2} y=${top}
-                  width=${EVENT_CHIP} height=${EVENT_CHIP} />
-            <text class="lintje-chart__event-number" x=${x} y=${top + 13.5}
-                  text-anchor="middle">${event.number}</text>
-          `
-        })}</g>`
+      ? svg`<g>
+          ${events.map((event, i) => {
+            const x = xPosition(event.index, labels.length, area)
+            return svg`<line class="lintje-chart__event-line" x1=${x} x2=${x}
+                             y1=${chipTop(i) + EVENT_CHIP} y2=${area.height - area.bottom} />`
+          })}
+          ${events.map(
+            (event, i) => svg`
+              <rect class="lintje-chart__event-chip" x=${centres[i] - EVENT_CHIP / 2} y=${chipTop(i)}
+                    width=${EVENT_CHIP} height=${EVENT_CHIP} />
+              <text class="lintje-chart__event-number" x=${centres[i]} y=${chipTop(i) + EVENT_CHIP / 2}
+                    text-anchor="middle" dominant-baseline="central">${event.number}</text>
+            `,
+          )}
+        </g>`
       : nothing,
 
     svg`<g class="lintje-chart__reveal">
@@ -259,6 +294,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
 
   return html`
     <div class="lintje-chart-wrap ${small ? 'lintje-chart--small' : ''}"
+         ${styleProps({ '--lintje-event-size': `${EVENT_CHIP}px` })}
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event)}>
       ${renderLegend({ items: legend, onToggle: (label) => controller.toggleSeries(label) })}
@@ -289,7 +325,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
           ? html`<ol class="lintje-chart-events" aria-label="Gebeurtenissen">
               ${events.map(
                 (event) => html`<li class="lintje-chart-events__item">
-                  <span class="lintje-event-number">${event.number}</span>
+                  <span class="lintje-event-chip"><span class="lintje-event-chip__number">${event.number}</span></span>
                   <span><span class="lintje-chart-events__category">${labels[event.index]}</span> ·
                     ${event.label}</span>
                 </li>`,

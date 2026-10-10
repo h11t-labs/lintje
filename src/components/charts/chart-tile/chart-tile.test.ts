@@ -132,6 +132,20 @@ describe('lintje-chart-tile table switch', () => {
     ])
     expect(cells(found).map((row) => row[3])).toEqual(['', 'Storing inlogdienst', ''])
   })
+
+  it('joins two events at one category in one cell of the CSV and the table', async () => {
+    const chart = {
+      ...DATA.chart,
+      events: [
+        { index: 2, label: 'Storing' },
+        { index: 2, label: 'Herstel' },
+      ],
+    }
+    const element = await tile({ ...DATA, chart, tableSwitch: true })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    expect(cells(found).map((row) => row[3])).toEqual(['', '', 'Storing; Herstel'])
+  })
 })
 
 describe('lintje-chart-tile error state', () => {
