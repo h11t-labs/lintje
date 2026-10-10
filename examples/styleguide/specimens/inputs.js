@@ -70,20 +70,18 @@ const setRange = (stage) => {
   control.addEventListener('lintje-change', ({ detail }) => (control.range = detail))
 }
 
-/** One working week of half-hour slots; a few are taken, and Thursday has none. */
-const SLOT_DAYS = ['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-16'].map(
-  (date, index) => ({
-    date,
-    slots:
-      index === 3
-        ? []
-        : ['09:00', '09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00'].map((time, slot) => ({
-            value: `${date}T${time}`,
-            label: time,
-            full: (slot + index) % 4 === 1,
-          })),
-  }),
-)
+/** Three days of half-hour slots: one taken on each day with times, and Wednesday has none. */
+const SLOT_DAYS = ['2026-10-12', '2026-10-13', '2026-10-14'].map((date, index) => ({
+  date,
+  slots:
+    index === 2
+      ? []
+      : ['09:00', '09:30', '10:00', '10:30'].map((time, slot) => ({
+          value: `${date}T${time}`,
+          label: time,
+          full: slot === index + 1,
+        })),
+}))
 
 // The specimen is the owner: it writes the reader's choice back, as a form would.
 const setDays = (stage, value = '') => {
@@ -732,8 +730,8 @@ export default {
         {
           label: 'Naast een datum',
           html: `<lintje-grid>
-              <lintje-date-input span="8" label="Datum" value="2026-10-03"></lintje-date-input>
-              <lintje-time-input span="4" label="Tijdstip" value="14:35"></lintje-time-input>
+              <lintje-date-input span="7" label="Datum" value="2026-10-03"></lintje-date-input>
+              <lintje-time-input span="5" label="Tijdstip" value="14:35"></lintje-time-input>
             </lintje-grid>`,
         },
       ],
@@ -772,38 +770,28 @@ export default {
       title: 'Een tijd voor een afspraak: de dagen naast elkaar, elke tijd een optie',
       specimens: [
         {
-          label: 'Rust, met wat de host hoort',
-          wide: true,
+          label: 'Rust: een tijd gekozen, een volle tijd, een dag zonder tijden',
           html: '<lintje-slot-picker name="afspraak" label="Kies een tijd" hint="Een gesprek duurt een half uur."></lintje-slot-picker>',
           setup(stage) {
-            setDays(stage)
+            setDays(stage, '2026-10-12T09:30')
             hearValues(stage, 'lintje-slot-picker')
           },
         },
         {
-          label: 'Gekozen',
-          wide: true,
-          html: '<lintje-slot-picker label="Kies een tijd"></lintje-slot-picker>',
-          setup: (stage) => setDays(stage, '2026-10-14T11:00'),
-        },
-        {
           label: 'Fout',
-          wide: true,
           html: '<lintje-slot-picker label="Kies een tijd" required error="Kies een tijd."></lintje-slot-picker>',
           setup: (stage) => setDays(stage),
         },
         {
           label: 'Uitgeschakeld',
-          wide: true,
           html: '<lintje-slot-picker label="Kies een tijd" disabled></lintje-slot-picker>',
           setup: (stage) => setDays(stage, '2026-10-12T09:00'),
         },
         {
           label: 'Afwijkend van standaard, met terugzetten',
-          wide: true,
           html: '<lintje-slot-picker label="Kies een tijd" modified reset-label="Terugzetten naar maandag 09:00"></lintje-slot-picker>',
           setup(stage) {
-            setDays(stage, '2026-10-13T14:00')
+            setDays(stage, '2026-10-13T10:00')
             const picker = stage.querySelector('lintje-slot-picker')
             picker.addEventListener('lintje-reset', () => {
               picker.value = '2026-10-12T09:00'
