@@ -34,4 +34,15 @@ describe('thinLabels', () => {
   it('leaves a single label alone', () => {
     expect(thinLabels(at(10).slice(0, 1))).toHaveLength(1)
   })
+
+  it('measures a label where its anchor puts it', () => {
+    // "0" is 6.5 px and "30.000" 39 px: centred they clear each other, but a last label that
+    // ends at its tick reaches back into the first.
+    const ticks = (anchor?: 'end') => [
+      { label: '0', x: 0 },
+      { label: '30.000', x: 40, anchor },
+    ]
+    expect(thinLabels(ticks())).toHaveLength(2)
+    expect(thinLabels(ticks('end'))).toHaveLength(1)
+  })
 })

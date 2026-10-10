@@ -33,6 +33,27 @@ export interface BarSeriesData {
   links?: (ChartLink | null)[]
 }
 
+/** One point of a scatter plot: a named record, clickable with a `href` like a table row. */
+export interface ScatterPoint {
+  label: string
+  /** null = no data, never 0 (rule 15): the point is not drawn and stays in the table. */
+  x: number | null
+  y: number | null
+  /** The identity a click carries; without it the series' label and its own: `Loket · Utrecht`. */
+  id?: string
+  href?: string
+}
+
+/**
+ * A series of a scatter plot: a colour and the shape that colour has on a map (rule 13).
+ * Without a colour the series take the data colours in their order.
+ */
+export interface ScatterSeriesData {
+  label: string
+  color?: ChartColor
+  points: ScatterPoint[]
+}
+
 export type ChartSpec =
   | {
       kind: 'line'
@@ -114,6 +135,22 @@ export type ChartSpec =
       threshold?: number
       thresholdLabel?: string
       pendingHours?: number
+      small?: boolean
+    }
+  | {
+      kind: 'scatter'
+      series: ScatterSeriesData[]
+      /** The vertical axis: its title above the chart, in the tooltip and as a table column. */
+      axisTitle: string
+      unit?: string
+      /** The horizontal axis: its title under its labels, right-aligned. */
+      xTitle: string
+      xUnit?: string
+      /** A horizontal norm on the vertical axis, dashed in the emphasis colour. */
+      threshold?: number
+      thresholdLabel?: string
+      /** The labels of the points that show their name; all of them, or none when one does not fit. */
+      dataLabels?: string[]
       small?: boolean
     }
   | {
