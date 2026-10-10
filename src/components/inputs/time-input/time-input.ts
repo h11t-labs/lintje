@@ -211,11 +211,13 @@ export class LintjeTimeInput extends LintjeInputElement {
   }
 
   // The edge around the list stands outside the scroller, so it stays where a press lands on
-  // nothing once the list has scrolled to the chosen time.
+  // nothing once the list has scrolled to the chosen time. `tabindex="-1"`: Firefox makes a
+  // scroller a tab stop of its own, and Shift+Tab from a time would land on it.
   private renderList(): TemplateResult {
     return html`<div class="lintje-time-input__panel"><div
       class="lintje-time-input__list"
       role="listbox"
+      tabindex="-1"
       aria-label="Tijden"
       @keydown=${this.onListKeydown}
     >
