@@ -509,6 +509,12 @@ Eén grammatica, geen grafiekbibliotheek.
   delen worden vier en één grijs "Overig" dat niet klikbaar is: een samengevoegd stuk heeft geen
   plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) zijn geen delen; ze
   staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde.
+- **De klassen van een histogram raken elkaar**, omdat de as doorloopt: geen ruimte tussen de
+  staven, alleen de scheidingslijn in de oppervlaktekleur, en de labels staan op de grenzen van de
+  klassen, niet onder hun midden. Een open laatste klasse ("30+") heeft geen grens om op te staan
+  en wordt onder haar midden genoemd.
+- **Een mediaan is een doorgetrokken nadruklijn**, naast de gestreepte van een drempel, elk met
+  zijn label naast de lijn. Raken de labels elkaar, dan zakt het rechter een regel.
 
 **Een kerncijfer op zijn schaal is een KPI, geen grafiek.** De meter is een instelling van
 `lintje-kpi`: een halve boog met het getal in de mond, of een balk onder het getal. De vulling is
