@@ -25,7 +25,11 @@ const PREVIOUS = new Set(['ArrowLeft', 'ArrowUp'])
 
 /** The tooltip's text as one sentence, for a screen reader. */
 export function tooltipSentence(content: TooltipContent): string {
-  return `${content.title}: ${content.rows.map((row) => `${row.label} ${row.value}`).join(', ')}`
+  const values = `${content.title}: ${content.rows.map((row) => `${row.label} ${row.value}`).join(', ')}`
+  const events = (content.events ?? []).map(
+    (event) => `Gebeurtenis ${event.number}: ${event.label}`,
+  )
+  return [values, ...events].join('. ')
 }
 
 /** A focus that came from a pointer shows nothing: the pointer has its own tooltip. */

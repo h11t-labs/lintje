@@ -25,6 +25,18 @@ export interface LineSeriesData {
   area?: boolean
 }
 
+/**
+ * Something that happened at a category. The chart numbers its events 1, 2, … from left to
+ * right, in the host's order within one category; one whose `index` is not in `labels` is left
+ * out and takes no number.
+ */
+export interface ChartEvent {
+  /** Index into `labels`: the category it happened at. */
+  index: number
+  /** What happened, in a few words; listed under the chart and shown in the tooltip. */
+  label: string
+}
+
 export interface BarSeriesData {
   label: string
   values: number[]
@@ -46,6 +58,8 @@ export type ChartSpec =
       pendingHours?: number
       fixedMax?: number
       small?: boolean
+      /** Events: a numbered square above their category, listed with their text under the chart. */
+      events?: ChartEvent[]
     }
   | {
       kind: 'bar'

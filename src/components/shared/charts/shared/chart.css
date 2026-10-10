@@ -44,6 +44,11 @@
   font-family: var(--font-ui);
   font-size: 0.75rem;
   fill: var(--color-text-muted);
+  /* A halo in the surface, as a data label on a line has: an event line may cross it. */
+  stroke: var(--color-bg-surface);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
 }
 
 .lintje-chart__line { stroke-width: 2.5; fill: none; stroke-linejoin: round; }
@@ -195,6 +200,16 @@
 .lintje-chart-tooltip__label { display: flex; align-items: center; gap: 6px; }
 .lintje-chart-tooltip__marker { width: 10px; height: 10px; flex: none; }
 .lintje-chart-tooltip__value { font-weight: 700; margin-left: var(--space-3); }
+.lintje-chart-tooltip__event {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--color-border-default);
+}
+/* One line divides the values from the events, not one event from the next. */
+.lintje-chart-tooltip__event + .lintje-chart-tooltip__event { padding-top: 0; border-top: 0; }
 
 .lintje-chart-wrap { position: relative; min-width: 0; }
 
@@ -205,6 +220,42 @@
    with a ring in the surface color, so it stays legible on the line and on the
    filled area below it. No animation: hover does not redraw. */
 .lintje-chart__hover-point { stroke: var(--color-bg-surface); stroke-width: 2; pointer-events: none; }
+
+/* An event: a numbered square above the plot with a solid line to the zero line — apart from
+   the dashed as-of line — and its text in a list under the chart and in the tooltip. */
+.lintje-chart__event-line { stroke: var(--color-chart-axis); stroke-width: 1px; }
+.lintje-chart__event-chip { fill: var(--color-text-primary); }
+.lintje-chart__event-number {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  fill: var(--color-text-inverse);
+}
+/* The square stands in a box one line of its text tall, so it centres on the first line. The
+   size comes from the drawing (`--lintje-event-size`), where the squares are measured. */
+.lintje-event-chip { flex: none; display: flex; align-items: center; height: 1lh; }
+.lintje-event-chip__number {
+  width: var(--lintje-event-size);
+  height: var(--lintje-event-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-text-primary);
+  color: var(--color-text-inverse);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.lintje-chart-events {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  font: var(--text-small);
+  color: var(--color-text-primary);
+}
+.lintje-chart-events__item { display: flex; align-items: flex-start; gap: var(--space-2); }
+.lintje-chart-events__category { font-weight: 700; }
 
 
 /* --- States -------------------------------------------------------------- */
@@ -333,7 +384,8 @@
   .lintje-chart__reveal,
   .lintje-chart__hover-point,
   .lintje-legend__marker,
-  .lintje-chart-tooltip__marker { forced-color-adjust: none; }
+  .lintje-chart-tooltip__marker,
+  .lintje-event-chip__number { forced-color-adjust: none; }
   .lintje-chart__data-label { forced-color-adjust: auto; }
   /* Text in the reader's palette by name, not left to the engine: not every
      engine repaints an SVG `fill`, and near-black on a black Canvas is nothing. */
@@ -343,9 +395,15 @@
   .lintje-chart__as-of-note { fill: CanvasText; }
   .lintje-chart__data-label--inside { forced-color-adjust: none; fill: var(--color-text-on-fill); }
   .lintje-chart__data-label--inside-light { forced-color-adjust: none; fill: var(--color-text-on-light-fill); }
-  .lintje-chart__data-label--halo { stroke: Canvas; }
+  .lintje-chart__data-label--halo,
+  .lintje-chart__as-of-note { stroke: Canvas; }
   .lintje-chart__segment { stroke: Canvas; }
   .lintje-chart__mark.is-selected { stroke: CanvasText; }
   .lintje-chart__focus-ring { flood-color: Highlight; }
   .lintje-chart__focus-gap { flood-color: Canvas; }
+  /* An event's square in the reader's text colour, its number in the canvas. */
+  .lintje-chart__event-line { stroke: CanvasText; }
+  .lintje-chart__event-chip { fill: CanvasText; }
+  .lintje-chart__event-number { fill: Canvas; }
+  .lintje-event-chip__number { background: CanvasText; color: Canvas; }
 }

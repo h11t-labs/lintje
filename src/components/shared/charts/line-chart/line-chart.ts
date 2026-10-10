@@ -1,6 +1,6 @@
 /**
- * Line and area chart with comparison, hatching and as-of time. Missing data is never drawn
- * as 0 (rule 15): `null` points are skipped and the missing part is hatched or cut off.
+ * Line and area chart with comparison, hatching, as-of time and events. Missing data is never
+ * drawn as 0 (rule 15): `null` points are skipped and the missing part is hatched or cut off.
  */
 import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
@@ -16,11 +16,35 @@ import {
   type SvgSlot,
 } from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
+import { styleProps } from '../../../../core/style-props'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import type { ChartSpec } from '../shared/types'
 
 type LineSpec = Extract<ChartSpec, { kind: 'line' }>
+
+/** An event's numbered square; the list and the tooltip draw it at this size too. */
+const EVENT_CHIP = 18
+/** Between two rows of squares, two squares in a row, and the top edge and the first row. */
+const EVENT_ROW_GAP = 4
+/** Between the lowest row of squares and the plot. */
+const EVENT_GAP = 8
+
+/**
+ * The row of each square, in order: the first row where it touches no square before it. A
+ * second event at one category, or a neighbour on a narrow drawing, goes a row down.
+ */
+function eventRows(centres: number[]): number[] {
+  const rows: number[][] = []
+  return centres.map((x) => {
+    let row = rows.findIndex((taken) =>
+      taken.every((other) => Math.abs(other - x) >= EVENT_CHIP + EVENT_ROW_GAP),
+    )
+    if (row === -1) row = rows.push([]) - 1
+    rows[row].push(x)
+    return row
+  })
+}
 
 export function renderLineChart(spec: LineSpec, options: ChartOptions): TemplateResult {
   const { controller, description } = options
@@ -34,6 +58,13 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
     fixedMax,
     small = false,
   } = spec
+  // One outside the labels draws nothing; the rest are numbered from left to right.
+  const events = (spec.events ?? [])
+    .filter(
+      (event) => Number.isInteger(event.index) && event.index >= 0 && event.index < labels.length,
+    )
+    .sort((a, b) => a.index - b.index)
+    .map((event, i) => ({ ...event, number: i + 1 }))
   const id = controller.id
 
   controller.measure({
@@ -67,7 +98,21 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
     fontFamily: controller.fontFamily,
     minimum: Math.ceil(textWidth(labels[0] ?? '', controller.fontFamily) / 2),
   })
-  const area = chartArea(options, { left: axis.width })
+  // The squares stay inside the drawing at its ends; x does not depend on the top.
+  const across = chartArea(options, { left: axis.width })
+  const centres = events.map((event) =>
+    Math.min(
+      across.width - EVENT_CHIP / 2,
+      Math.max(EVENT_CHIP / 2, xPosition(event.index, labels.length, across)),
+    ),
+  )
+  const rows = eventRows(centres)
+  const rowCount = rows.length ? Math.max(...rows) + 1 : 0
+  const area = chartArea(options, {
+    left: axis.width,
+    ...(rowCount ? { top: rowCount * (EVENT_CHIP + EVENT_ROW_GAP) + EVENT_GAP } : {}),
+  })
+  const chipTop = (i: number) => EVENT_ROW_GAP + rows[i] * (EVENT_CHIP + EVENT_ROW_GAP)
 
   const isEarly = pendingHours > 6
   const lastKnown = asOfIndex ?? labels.length - 1
@@ -89,6 +134,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
     .filter((label) => label.i % step === 0)
 
   function contentAt(i: number): TooltipContent {
+    const here = events.filter((event) => event.index === i)
     return {
       title: labels[i],
       rows: visible.map((row) => ({
@@ -96,6 +142,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
         value: row.values[i] == null ? 'geen gegevens' : formatNumber(row.values[i]!),
         color: colorOf(row),
       })),
+      ...(here.length ? { events: here } : {}),
     }
   }
   const keys = plotKeys(controller, labels.length, (i) => {
@@ -120,6 +167,26 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
                            height=${area.height - area.top - area.bottom}
                            fill="url(#hatch-${id})" />`
         })()
+      : nothing,
+
+    // Under the area and the lines, and drawn at once like the axes: no reveal. The lines go
+    // first, so a square a row down covers the line of the one above it.
+    events.length
+      ? svg`<g>
+          ${events.map((event, i) => {
+            const x = xPosition(event.index, labels.length, area)
+            return svg`<line class="lintje-chart__event-line" x1=${x} x2=${x}
+                             y1=${chipTop(i) + EVENT_CHIP} y2=${area.height - area.bottom} />`
+          })}
+          ${events.map(
+            (event, i) => svg`
+              <rect class="lintje-chart__event-chip" x=${centres[i] - EVENT_CHIP / 2} y=${chipTop(i)}
+                    width=${EVENT_CHIP} height=${EVENT_CHIP} />
+              <text class="lintje-chart__event-number" x=${centres[i]} y=${chipTop(i) + EVENT_CHIP / 2}
+                    text-anchor="middle" dominant-baseline="central">${event.number}</text>
+            `,
+          )}
+        </g>`
       : nothing,
 
     svg`<g class="lintje-chart__reveal">
@@ -227,6 +294,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
 
   return html`
     <div class="lintje-chart-wrap ${small ? 'lintje-chart--small' : ''}"
+         ${styleProps({ '--lintje-event-size': `${EVENT_CHIP}px` })}
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event)}>
       ${renderLegend({ items: legend, onToggle: (label) => controller.toggleSeries(label) })}
@@ -240,11 +308,31 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
           formatTick: axis.format,
           axisTitle: axisTitle ?? unit,
           xLabels,
-          description,
+          // The drawing names its events too; the list below says them again.
+          description: events.length
+            ? `${description} ${events
+                .map(
+                  (event) => `Gebeurtenis ${event.number}, ${labels[event.index]}: ${event.label}.`,
+                )
+                .join(' ')}`
+            : description,
           keys,
         },
         marks,
       )}
+      ${
+        events.length
+          ? html`<ol class="lintje-chart-events" aria-label="Gebeurtenissen">
+              ${events.map(
+                (event) => html`<li class="lintje-chart-events__item">
+                  <span class="lintje-event-chip"><span class="lintje-event-chip__number">${event.number}</span></span>
+                  <span><span class="lintje-chart-events__category">${labels[event.index]}</span> ·
+                    ${event.label}</span>
+                </li>`,
+              )}
+            </ol>`
+          : nothing
+      }
       ${renderTooltip(controller)}
       ${renderPlotStatus(controller)}
     </div>

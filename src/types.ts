@@ -12,6 +12,7 @@ import type { NotificationItem } from './components/frame/notifications/notifica
 export type {
   BarSeriesData,
   ChartColor,
+  ChartEvent,
   ChartKind,
   ChartSpec,
   LineSeriesData,
