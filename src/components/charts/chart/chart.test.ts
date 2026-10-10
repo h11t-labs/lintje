@@ -147,6 +147,49 @@ describe('lintje-chart table switch', () => {
     expect(breda.slice(0, 3)).toEqual(['Servicepunt', 'Breda', '6.210'])
     expect(breda[3]).toContain('—')
   })
+
+  it('gives a stacked area a column per part and a total, missing where a part is', async () => {
+    const element = await tile({
+      ...DATA,
+      tableSwitch: true,
+      chart: {
+        kind: 'stacked-area',
+        labels: ['wk 1', 'wk 2'],
+        series: [
+          { label: 'Online', values: [610, null] },
+          { label: 'Balie', values: [330, 320] },
+        ],
+      },
+    })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    const head = [...found.renderRoot.querySelectorAll('.lintje-data-table__full thead th')]
+    expect(head.map((cell) => cell.textContent?.trim())).toEqual(['', 'Online', 'Balie', 'Totaal'])
+    const [first, second] = cells(found)
+    expect(first).toEqual(['wk 1', '610', '330', '940'])
+    expect(second[1]).toContain('—')
+    expect(second[2]).toBe('320')
+    expect(second[3]).toContain('—')
+  })
+
+  it('rounds the total of decimal parts to their decimals, without float noise', async () => {
+    const element = await tile({
+      ...DATA,
+      tableSwitch: true,
+      chart: {
+        kind: 'stacked-area',
+        labels: ['wk 1'],
+        series: [
+          { label: 'A', values: [2.1] },
+          { label: 'B', values: [1.3] },
+          { label: 'C', values: [0.4] },
+        ],
+      },
+    })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    expect(cells(found)[0]).toEqual(['wk 1', '2,1', '1,3', '0,4', '3,8'])
+  })
 })
 
 describe('lintje-chart table of a histogram', () => {

@@ -381,6 +381,7 @@
   --dur-badge: 300ms; /* @kind other */
   --dur-draw: 900ms; /* @kind other */
   --dur-data-label: 300ms; /* @kind other */
+  --dur-layer: 400ms; /* @kind other */
   --dur-skeleton: 1200ms; /* @kind other */
   --dur-wave: 600ms; /* @kind other */
 

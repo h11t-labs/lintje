@@ -52,6 +52,12 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   vergroting toont alles, met het bereik per klasse en de cirkels genest op ware maat. Een mark
   die uitgaat krimpt of vervaagt, en komt van west naar oost terug. Op een telefoon is de kaart
   280 px hoog, met alle knoppen op de aanraakmaat. (#16)
+- Het gestapelde vlak als grafieksoort (`kind: 'stacked-area'`): de onderverdelingen van één
+  variabele in haar tintladder, de donkerste onderaan; een ontbrekende waarde breekt haar laag en
+  alles erboven af, de lagen eronder blijven staan. Een laag aan- of uitzetten laat de as staan en
+  laat de laag groeien of krimpen over het nieuwe token `--dur-layer`. De tooltip sluit af met
+  een totaal en de tabel krijgt een kolom Totaal. Daarvoor krijgt `TooltipRow` een `divider` en
+  `core/motion.ts` een `easing`. (#11)
 
 ### Gewijzigd
 
