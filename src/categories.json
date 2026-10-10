@@ -116,6 +116,7 @@
       "date-input",
       "time-input",
       "date-range",
+      "slot-picker",
       "file-upload",
       "text-editor"
     ]

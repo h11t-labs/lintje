@@ -1,0 +1,91 @@
+/* The slot picker: a column per day, every time a chip; the radio itself is the shared `choice` input. */
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+
+/* --- */
+
+/* Every day takes an equal column, however many the host sends. */
+.lintje-slot-picker {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+.lintje-slot-picker__day { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.lintje-slot-picker__heading {
+  margin: 0;
+  padding: 0 0 var(--space-1);
+  border-bottom: 1px solid var(--color-border-default);
+  text-align: center;
+  font-size: var(--label-size); font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+:host([disabled]) .lintje-slot-picker__heading { color: var(--color-text-disabled); }
+
+/* A time is a dense option; the chosen one is quiet, as in the segmented control. */
+.lintje-slot-picker__slot {
+  position: relative;
+  display: flex; align-items: center; justify-content: center; gap: var(--space-1);
+  min-height: var(--h-option);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-slot-picker__slot:hover:not(.is-chosen, .is-disabled) { background: var(--color-bg-subtle); }
+.lintje-slot-picker__slot.is-chosen {
+  background: var(--color-choice-active-bg);
+  border-color: var(--color-accent-line);
+  box-shadow: inset 0 0 0 1px var(--color-accent-line);
+  color: var(--color-accent-text);
+  font-weight: 700;
+}
+/* Disabled wins over chosen: the whole chip back to the quiet disabled surface. */
+.lintje-slot-picker__slot.is-disabled {
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border-strong);
+  box-shadow: none;
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+/* The input is hidden, so its focus ring goes on the chip. */
+.lintje-slot-picker__slot:has(.lintje-choice__input:focus-visible) {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+.lintje-slot-picker__full { font: var(--text-small); }
+.lintje-slot-picker__none {
+  margin: 0;
+  padding: var(--space-2) 0;
+  text-align: center;
+  font: var(--text-small);
+  color: var(--color-text-muted);
+}
+/* Without any day the words stand where the days would, at the left. */
+.lintje-field > .lintje-slot-picker__none { padding: 0; text-align: left; }
+
+/* Below 768 px the days stand under each other, each with its times in rows. */
+@media (max-width: 767px) {
+  .lintje-slot-picker { grid-auto-flow: row; gap: var(--space-4); }
+  .lintje-slot-picker__day {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(calc(2 * var(--space-10)), 1fr));
+  }
+  .lintje-slot-picker__heading,
+  .lintje-slot-picker__none { grid-column: 1 / -1; text-align: left; }
+}
+
+/* Forced colours drop the fill and ring: the chosen chip keeps its edge in Highlight. */
+@media (forced-colors: active) {
+  .lintje-slot-picker__slot.is-chosen { border-color: Highlight; box-shadow: none; }
+  .lintje-slot-picker__slot.is-disabled { border-color: GrayText; color: GrayText; }
+  .lintje-slot-picker__slot:has(.lintje-choice__input:focus-visible) { outline-color: Highlight; }
+}

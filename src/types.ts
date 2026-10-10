@@ -677,6 +677,7 @@ export type { FormValues, FormErrors, StoredDraft } from './components/forms/for
 export type { ErrorSummaryItem } from './components/forms/error-summary/error-summary'
 export type { UploadFile } from './components/inputs/file-upload/file-upload'
 export type { DateRange } from './components/inputs/date-range/date-range'
+export type { SlotDay, TimeSlot } from './components/inputs/slot-picker/slot-picker'
 export type { TabItem } from './components/layout/tabs/tabs'
 export type { Step, StepState, StepperOrientation } from './components/forms/stepper/stepper'
 export type { MenuEntry, MenuHeading, MenuItem } from './components/actions/menu-button/menu-button'
