@@ -12,6 +12,7 @@ import '../../components/inputs/combobox/combobox'
 import '../../components/inputs/multiselect/multiselect'
 import '../../components/inputs/date-range/date-range'
 import '../../components/inputs/date-input/date-input'
+import '../../components/inputs/time-input/time-input'
 import '../../components/inputs/tag-input/tag-input'
 import '../../components/inputs/text-editor/text-editor'
 import '../../components/frame/notifications/notifications'
@@ -455,6 +456,28 @@ const ROWS: Row[] = [
       await press(toggle, '{Enter}')
       return {
         anchor: part(field, '.lintje-date-input'),
+        surface: () => popoverSurface(field),
+        returnsTo: toggle,
+        opener: toggle,
+      }
+    },
+  },
+  {
+    name: 'lintje-time-input',
+    onScroll: 'follows',
+    // The list takes the focus to its time; its toggle is part of the field.
+    opens: 'in panel',
+    shiftTab: 'stays',
+    async open(stage) {
+      const field = create<Lit & { label: string; value: string }>('lintje-time-input')
+      field.label = 'Aanvang'
+      field.value = '09:00'
+      stage.append(field)
+      await field.updateComplete
+      const toggle = part(field, '.lintje-time-input__toggle')
+      await press(toggle, '{Enter}')
+      return {
+        anchor: part(field, '.lintje-time-input'),
         surface: () => popoverSurface(field),
         returnsTo: toggle,
         opener: toggle,

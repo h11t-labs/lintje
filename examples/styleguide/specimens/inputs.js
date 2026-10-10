@@ -70,6 +70,29 @@ const setRange = (stage) => {
   control.addEventListener('lintje-change', ({ detail }) => (control.range = detail))
 }
 
+/** One working week of half-hour slots; a few are taken, and Thursday has none. */
+const SLOT_DAYS = ['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-16'].map(
+  (date, index) => ({
+    date,
+    slots:
+      index === 3
+        ? []
+        : ['09:00', '09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00'].map((time, slot) => ({
+            value: `${date}T${time}`,
+            label: time,
+            full: (slot + index) % 4 === 1,
+          })),
+  }),
+)
+
+// The specimen is the owner: it writes the reader's choice back, as a form would.
+const setDays = (stage, value = '') => {
+  const picker = stage.querySelector('lintje-slot-picker')
+  picker.days = SLOT_DAYS
+  picker.value = value
+  picker.addEventListener('lintje-change', ({ detail }) => (picker.value = detail))
+}
+
 const LOCATIES = [
   { value: 'ingang', label: 'Hoofdingang' },
   { value: 'ontvangst', label: 'Ontvangsthal' },
@@ -678,7 +701,7 @@ export default {
     },
     {
       tag: 'lintje-time-input',
-      title: 'Een tijdstip, los of naast een datum',
+      title: 'Een tijdstip, getypt of gekozen uit de lijst, los of naast een datum',
       specimens: [
         {
           label: 'Rust',
@@ -699,6 +722,11 @@ export default {
         {
           label: 'Typen (1435, 14.35, 9) en pijltjes',
           html: '<lintje-time-input label="Aanvang" min="08:00" max="18:00"></lintje-time-input>',
+          setup: (stage) => logChanges(stage, 'lintje-time-input'),
+        },
+        {
+          label: 'Kiezen uit de lijst: van min tot max, per step minuten',
+          html: '<lintje-time-input label="Aanvang" min="08:00" max="18:00" step="30" value="09:30"></lintje-time-input>',
           setup: (stage) => logChanges(stage, 'lintje-time-input'),
         },
         {
@@ -736,6 +764,57 @@ export default {
           label: 'Uitgeschakeld',
           html: '<lintje-date-range label="Periode" disabled></lintje-date-range>',
           setup: setRange,
+        },
+      ],
+    },
+    {
+      tag: 'lintje-slot-picker',
+      title: 'Een tijd voor een afspraak: de dagen naast elkaar, elke tijd een optie',
+      specimens: [
+        {
+          label: 'Rust, met wat de host hoort',
+          wide: true,
+          html: '<lintje-slot-picker name="afspraak" label="Kies een tijd" hint="Een gesprek duurt een half uur."></lintje-slot-picker>',
+          setup(stage) {
+            setDays(stage)
+            hearValues(stage, 'lintje-slot-picker')
+          },
+        },
+        {
+          label: 'Gekozen',
+          wide: true,
+          html: '<lintje-slot-picker label="Kies een tijd"></lintje-slot-picker>',
+          setup: (stage) => setDays(stage, '2026-10-14T11:00'),
+        },
+        {
+          label: 'Fout',
+          wide: true,
+          html: '<lintje-slot-picker label="Kies een tijd" required error="Kies een tijd."></lintje-slot-picker>',
+          setup: (stage) => setDays(stage),
+        },
+        {
+          label: 'Uitgeschakeld',
+          wide: true,
+          html: '<lintje-slot-picker label="Kies een tijd" disabled></lintje-slot-picker>',
+          setup: (stage) => setDays(stage, '2026-10-12T09:00'),
+        },
+        {
+          label: 'Afwijkend van standaard, met terugzetten',
+          wide: true,
+          html: '<lintje-slot-picker label="Kies een tijd" modified reset-label="Terugzetten naar maandag 09:00"></lintje-slot-picker>',
+          setup(stage) {
+            setDays(stage, '2026-10-13T14:00')
+            const picker = stage.querySelector('lintje-slot-picker')
+            picker.addEventListener('lintje-reset', () => {
+              picker.value = '2026-10-12T09:00'
+              picker.modified = false
+            })
+          },
+        },
+        {
+          label: 'Zonder dagen',
+          html: '<lintje-slot-picker label="Kies een tijd" hint="Er zijn deze week geen tijden meer."></lintje-slot-picker>',
+          setup: (stage) => (stage.querySelector('lintje-slot-picker').days = []),
         },
       ],
     },

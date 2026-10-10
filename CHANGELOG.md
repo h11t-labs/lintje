@@ -10,6 +10,13 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+### Toegevoegd
+
+- `lintje-slot-picker`: een tijd voor een afspraak kiezen, de dagen naast elkaar met hun tijden
+  als opties; een volle tijd blijft staan met het woord "Vol", een dag zonder tijden zegt dat.
+- `lintje-time-input` opent een lijst met tijden van `min` tot `max`, om de `step` minuten, zoals
+  het datumveld zijn kalender: met de klokknop of Alt+pijl omlaag, en te typen blijft het.
+
 ## [0.1.1] - 2026-10-09
 
 ### Gewijzigd

@@ -70,3 +70,18 @@ export function clampTime(time: string, min?: string | null, max?: string | null
   if (isTime(max) && time > max) return max
   return time
 }
+
+/** The times from `min` (default 00:00) to `max` (default the end of the day), `step` minutes apart. */
+export function timesBetween(min?: string | null, max?: string | null, step = 15): string[] {
+  const size = step >= 1 ? Math.floor(step) : 1
+  const from = toMinutes(min) ?? 0
+  const to = toMinutes(max) ?? MINUTES_PER_DAY - 1
+  const times: string[] = []
+  for (let minutes = from; minutes <= to; minutes += size) times.push(fromMinutes(minutes))
+  return times
+}
+
+/** The first of a sorted list at or after `time`, else its last; `''` for an empty list. */
+export function timeAtOrAfter(times: string[], time: string): string {
+  return times.find((entry) => entry >= time) ?? times[times.length - 1] ?? ''
+}
