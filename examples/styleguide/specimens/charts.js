@@ -93,6 +93,15 @@ const kindSeries = KINDS.map((kind) => ({
     .reduce((sum, point) => sum + point.requests, 0)),
 }))
 
+// Requests per week by channel, one variable in parts. Week 29 is missing in every channel, so
+// the stack breaks there.
+const CHANNELS = [
+  { label: 'Online', values: [610, 625, 640, 660, 650, null, 700, 690, 710, 705, 720, 735] },
+  { label: 'Balie', values: [330, 320, 325, 310, 300, null, 295, 290, 296, 285, 280, 276] },
+  { label: 'Post', values: [140, 135, 130, 128, 125, null, 120, 118, 115, 112, 110, 108] },
+  { label: 'Telefoon', values: [90, 92, 88, 85, 86, null, 80, 82, 78, 80, 76, 75] },
+]
+
 // Fifteen desks in the order of the data: the pie sorts them, keeps the four largest and folds
 // the other eleven into one "Overig" that is not clickable.
 const deskParts = desks.map((point) => ({
@@ -174,6 +183,16 @@ const CHARTS = [
     },
   },
   {
+    id: 'stacked-area', title: 'Aanvragen per kanaal',
+    subtitle: 'Per week, week 24 tot en met 35',
+    description: 'Aanvragen per week naar kanaal, week 24 tot en met 35. Online groeit van 610 naar 735, balie, post en telefoon dalen licht. Van week 29 zijn geen gegevens.',
+    spec: {
+      kind: 'stacked-area', axisTitle: 'aanvragen',
+      labels: Array.from({ length: 12 }, (_, i) => `wk ${24 + i}`),
+      series: CHANNELS,
+    },
+  },
+  {
     id: 'pie', title: 'Taart',
     description: 'Afwijzingen naar grond: onvolledig dossier 14, niet aan voorwaarden voldaan 9, termijn verstreken 6, onjuiste gegevens 5, overig 3.',
     spec: {
@@ -252,6 +271,7 @@ const KIND_NAMES = {
   'grouped-bar': 'Gegroepeerde staven',
   'stacked-bar': 'Gestapelde staven',
   'stacked-bar-normalized': 'Gestapelde staven op 100 %',
+  'stacked-area': 'Gestapeld vlak',
   pie: 'Taart',
   donut: 'Donut',
   'pie-color': 'Taart · color',
@@ -289,6 +309,7 @@ const chartSpecimen = (chart) => ({
       chart: chart.spec,
       description: chart.description,
       title: chart.title,
+      subtitle: chart.subtitle,
       footnote: 'Bron: fictieve demogegevens',
       expandable: true,
       download: { filename: `demo-${chart.id}` },

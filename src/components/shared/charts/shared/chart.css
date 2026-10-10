@@ -194,6 +194,11 @@
 .lintje-chart-tooltip__row { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
 .lintje-chart-tooltip__label { display: flex; align-items: center; gap: 6px; }
 .lintje-chart-tooltip__marker { width: 10px; height: 10px; flex: none; }
+.lintje-chart-tooltip__row--divider {
+  border-top: 1px solid var(--color-border-popover);
+  margin-top: var(--space-1);
+  padding-top: var(--space-1);
+}
 .lintje-chart-tooltip__value { font-weight: 700; margin-left: var(--space-3); }
 
 .lintje-chart-wrap { position: relative; min-width: 0; }

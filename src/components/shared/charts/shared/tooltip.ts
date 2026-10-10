@@ -45,9 +45,13 @@ export function renderTooltip(controller: ChartController): TemplateResult | typ
       <p class="lintje-chart-tooltip__title">${content.title}</p>
       ${content.rows.map(
         (row) => html`
-        <p class="lintje-chart-tooltip__row">
+        <p class="lintje-chart-tooltip__row ${row.divider ? 'lintje-chart-tooltip__row--divider' : ''}">
           <span class="lintje-chart-tooltip__label">
-            <span class="lintje-chart-tooltip__marker" ${styleProps({ background: row.color })}></span>
+            ${
+              row.color
+                ? html`<span class="lintje-chart-tooltip__marker" ${styleProps({ background: row.color })}></span>`
+                : nothing
+            }
             ${row.label}
           </span>
           <span class="lintje-chart-tooltip__value">${row.value}</span>

@@ -117,6 +117,30 @@ describe('lintje-chart-tile table switch', () => {
     expect(wednesday[1]).not.toContain('0')
     expect(wednesday[2]).toBe('101')
   })
+
+  it('gives a stacked area a column per part and a total, missing where a part is', async () => {
+    const element = await tile({
+      ...DATA,
+      tableSwitch: true,
+      chart: {
+        kind: 'stacked-area',
+        labels: ['wk 1', 'wk 2'],
+        series: [
+          { label: 'Online', values: [610, null] },
+          { label: 'Balie', values: [330, 320] },
+        ],
+      },
+    })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    const head = [...found.renderRoot.querySelectorAll('.lintje-data-table__full thead th')]
+    expect(head.map((cell) => cell.textContent?.trim())).toEqual(['', 'Online', 'Balie', 'Totaal'])
+    const [first, second] = cells(found)
+    expect(first).toEqual(['wk 1', '610', '330', '940'])
+    expect(second[1]).toContain('—')
+    expect(second[2]).toBe('320')
+    expect(second[3]).toContain('—')
+  })
 })
 
 describe('lintje-chart-tile error state', () => {

@@ -506,6 +506,11 @@ Eén grammatica, geen grafiekbibliotheek.
   delen worden vier en één grijs "Overig" dat niet klikbaar is: een samengevoegd stuk heeft geen
   plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) zijn geen delen; ze
   staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde.
+- **Een gestapeld vlak toont de onderverdelingen van één variabele** in haar ladder, de eerste
+  onderaan en de donkerste, in volle tinten met een lijn in de oppervlaktekleur tussen de lagen.
+  Ontbreekt één laag op een punt, dan breekt de hele stapel daar af en is de periode gearceerd:
+  een stapel zonder die laag zou een te laag totaal tonen. De tooltip leest de tekening van boven
+  naar onder en sluit af met het totaal.
 
 **Onvolledige perioden.** Een periode die nog loopt, is gearceerd. Als er nog veel van open is,
 wordt de reeks afgekapt bij het laatste volledige punt en zegt een peilmomentlijn waar. De assen

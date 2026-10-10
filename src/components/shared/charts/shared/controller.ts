@@ -44,7 +44,10 @@ export function chartArea(options: ChartOptions, margins: Partial<PlotArea> = {}
 export interface TooltipRow {
   label: string
   value: string
-  color: string
+  /** The swatch; a row without one is a plain figure. */
+  color?: string
+  /** A line above the row, which sums up the rows before it: a total. */
+  divider?: boolean
 }
 export interface TooltipContent {
   title: string

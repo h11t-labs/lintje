@@ -9,6 +9,7 @@ export { renderHorizontalBarChart, rowsHeight } from './horizontal-bar-chart/hor
 export { renderTargetProgressChart } from './target-progress-chart/target-progress-chart'
 export { renderGroupedBarChart } from './grouped-bar-chart/grouped-bar-chart'
 export { renderStackedBarChart } from './stacked-bar-chart/stacked-bar-chart'
+export { renderStackedAreaChart } from './stacked-area-chart/stacked-area-chart'
 export { renderPieChart } from './pie-chart/pie-chart'
 export { renderDualAxisChart } from './dual-axis-chart/dual-axis-chart'
 export { renderHeatmap, heatmapBounds, heatmapClasses } from './heatmap-chart/heatmap-chart'
