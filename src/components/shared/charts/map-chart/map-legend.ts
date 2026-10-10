@@ -152,7 +152,7 @@ function seriesItems(drawing: MapDrawing, hiddenSeries: string[]): LegendItem[] 
       label,
       color: seriesColor(key),
       symbol: key,
-      shape: 'mark',
+      shape: 'point',
       hidden: hiddenSeries.includes(id),
     })
   }

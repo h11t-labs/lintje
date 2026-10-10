@@ -234,7 +234,7 @@
   }
   .lintje-map-chart__polygon { animation-name: lintje-map-fade; }
   .lintje-map-chart__flow { animation-name: lintje-map-draw; }
-  .lintje-map-chart__point-figure { animation-name: lintje-map-grow; }
+  .lintje-map-chart__point-figure { animation-name: lintje-point-grow; }
 
   .lintje-map-chart__polygon,
   .lintje-map-chart__flow,
@@ -250,7 +250,6 @@
   from { stroke-dasharray: 1 1.2; stroke-dashoffset: 1.1; }
   to   { stroke-dasharray: 1 1.2; stroke-dashoffset: 0; }
 }
-@keyframes lintje-map-grow { from { transform: scale(0); } }
 
 /* --- Overlays ------------------------------------------------------------- */
 

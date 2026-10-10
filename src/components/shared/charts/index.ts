@@ -11,6 +11,7 @@ export { renderGroupedBarChart } from './grouped-bar-chart/grouped-bar-chart'
 export { renderStackedBarChart } from './stacked-bar-chart/stacked-bar-chart'
 export { renderPieChart } from './pie-chart/pie-chart'
 export { renderDualAxisChart } from './dual-axis-chart/dual-axis-chart'
+export { renderScatterChart } from './scatter-chart/scatter-chart'
 export { renderHeatmap, heatmapBounds, heatmapClasses } from './heatmap-chart/heatmap-chart'
 export type { HeatmapClass } from './heatmap-chart/heatmap-chart'
 export { renderHistogramChart } from './histogram-chart/histogram-chart'
@@ -55,6 +56,8 @@ export type {
   ChartLink,
   LineSeriesData,
   BarSeriesData,
+  ScatterPoint,
+  ScatterSeriesData,
   MapSpec,
   MapValue,
   MapVariant,

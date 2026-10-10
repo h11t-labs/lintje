@@ -117,6 +117,36 @@ describe('lintje-chart table switch', () => {
     expect(wednesday[1]).not.toContain('0')
     expect(wednesday[2]).toBe('101')
   })
+
+  it('gives a scatter plot a row per point: series and name as text, the two values as numbers', async () => {
+    const element = await tile({
+      ...DATA,
+      tableSwitch: true,
+      chart: {
+        kind: 'scatter',
+        axisTitle: 'wachttijd',
+        unit: 'min',
+        xTitle: 'aanvragen',
+        series: [
+          { label: 'Loket', points: [{ label: 'Utrecht', x: 15120, y: 12 }] },
+          { label: 'Servicepunt', points: [{ label: 'Breda', x: 6210, y: null }] },
+        ],
+      },
+    })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    const head = [...found.renderRoot.querySelectorAll('.lintje-data-table__full thead th')]
+    expect(head.map((cell) => cell.textContent?.trim())).toEqual([
+      'Reeks',
+      'Naam',
+      'Aanvragen',
+      'Wachttijd (min)',
+    ])
+    const [utrecht, breda] = cells(found)
+    expect(utrecht).toEqual(['Loket', 'Utrecht', '15.120', '12'])
+    expect(breda.slice(0, 3)).toEqual(['Servicepunt', 'Breda', '6.210'])
+    expect(breda[3]).toContain('—')
+  })
 })
 
 describe('lintje-chart table of a histogram', () => {

@@ -20,6 +20,8 @@ export type {
   MapPlotData,
   MapPlotVariant,
   MapVariant,
+  ScatterPoint,
+  ScatterSeriesData,
   WmsBasemap,
   MapArea,
   MapControls,

@@ -109,7 +109,8 @@ dingen bijten:
 ### Een markering die doorklikt
 
 Elke grafieksoort met een markering om op te klikken — staven, gegroepeerde staven, horizontale staven,
-taartpunten, gestapelde segmenten, heatmapcellen; geen lijnpunten — volgt datzelfde
+taartpunten, gestapelde segmenten, heatmapcellen, de punten van een spreidingsdiagram; geen
+lijnpunten — volgt datzelfde
 contract, via `ChartOptions`: `selectedId`, `onSelect` en `onClear`. Een markering
 wordt een `role="button"` met `aria-pressed` als, en alleen als, haar datapunt
 een `href` draagt die de host heeft aangemaakt. Een markering die een record is (`rows`, `segments`)

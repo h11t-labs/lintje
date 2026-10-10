@@ -47,7 +47,7 @@ export function binLabel(bin: { from: number; to: number | null }, unit?: string
 export interface LineLabel {
   x: number
   text: string
-  /** Bold, as the median's label is: it runs about a tenth wider. */
+  /** Bold, as the median's label is, and measured so. */
   bold?: boolean
 }
 
@@ -63,7 +63,7 @@ export function placeLineLabels(
   // The svg overflows, so a label may run into the right margin, as the last x label does.
   const end = area.width
   const boxes = labels.map((label) => {
-    const width = textWidth(label.text, fontFamily) * (label.bold ? 1.1 : 1)
+    const width = textWidth(label.text, fontFamily, label.bold ? 700 : 400)
     const right = label.x + 6 + width <= end
     return {
       x: right ? label.x + 6 : label.x - 6,
@@ -262,9 +262,6 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     openLabel
       ? svg`<text x=${openLabel.x} y=${baseline + 20} text-anchor="middle" class="lintje-chart__axis-label">${openLabel.label}</text>`
       : nothing,
-    xTitle
-      ? svg`<text x=${plotRight} y=${area.height - 4} text-anchor="end" class="lintje-chart__x-title">${xTitle}</text>`
-      : nothing,
     lines.map((line, i) => {
       const place = lineLabels[i]
       // A line and its label come in together, after the bars, as a data label does.
@@ -306,6 +303,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
           max,
           area,
           axisTitle,
+          xTitle,
           description,
           formatTick: axis.format,
           keys,

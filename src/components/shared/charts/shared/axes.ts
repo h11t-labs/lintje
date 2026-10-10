@@ -5,7 +5,7 @@ import { AXIS_GAP, DEFAULT_PLOT_AREA, plotWidth, yPosition, type PlotArea } from
 import { formatNumber, textWidth } from '../../../../core/format'
 import type { PlotKeys } from './plot-keys'
 import { markPath, type SeriesKey } from './series-shapes'
-import { DEFAULT_SERIES_COLOR } from './colors'
+import { DEFAULT_SERIES_COLOR, lineCasing } from './colors'
 
 /** Anything that may go inside the `<svg>`; built with lit's `svg`, since `html` draws nothing. */
 export type SvgSlot =
@@ -19,15 +19,29 @@ export type SvgSlot =
 export interface LegendItem {
   label: string
   color?: string
-  /** `mark` is a series' shape on its own, as a map draws it; `hatch` stands for "no data". */
-  shape?: 'square' | 'line' | 'dashed' | 'mark' | 'hatch'
+  /** `point`: the series' symbol alone, as a scatter plot or a map draws it; `hatch` is "no data". */
+  shape?: 'square' | 'line' | 'dashed' | 'point' | 'hatch'
   /** The shape the line carries at its end, drawn on its line marker (rule 13). */
   symbol?: SeriesKey
   hidden?: boolean
-  /** Not a series: the item explains and cannot be switched off. */
+  /** Not a series but a reference, such as a norm: never a toggle. */
   fixed?: boolean
   /** What `onToggle` receives; without it the label. */
   key?: string
+}
+
+/**
+ * A series' symbol as a scatter plot draws it, for a marker: its shape in `currentColor`, and a
+ * dark-yellow one with the edge of its text colour (`lineCasing`).
+ */
+export function renderSymbol(
+  symbol: SeriesKey,
+  color: string | undefined,
+  centre: number,
+): SVGTemplateResult {
+  const casing = lineCasing(color)
+  return svg`<path d=${markPath(symbol, 4.5, centre, centre)} fill="currentColor"
+                   stroke=${casing ?? nothing} stroke-width=${casing ? 1 : nothing} />`
 }
 
 export function renderLegend({
@@ -41,16 +55,22 @@ export function renderLegend({
 }): TemplateResult {
   const content = (item: LegendItem) => html`
     ${
-      item.symbol
+      item.symbol && item.shape === 'point'
         ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
-                  ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
-                  aria-hidden="true" focusable="false">
-          ${item.shape === 'mark' ? nothing : svg`<line x1="0" x2="14" y1="7" y2="7" stroke="currentColor" stroke-width="3" />`}
-          <path d=${markPath(item.symbol, item.shape === 'mark' ? 5.5 : 4, 7, 7)} fill="currentColor" />
-        </svg>`
-        : html`<span class="lintje-legend__marker lintje-legend__marker--${item.shape ?? 'square'}"
-                   ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
-                   aria-hidden="true"></span>`
+                    ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
+                    aria-hidden="true" focusable="false">
+            ${renderSymbol(item.symbol, item.color, 7)}
+          </svg>`
+        : item.symbol
+          ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
+                    ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
+                    aria-hidden="true" focusable="false">
+            <line x1="0" x2="14" y1="7" y2="7" stroke="currentColor" stroke-width="3" />
+            <path d=${markPath(item.symbol, 4, 7, 7)} fill="currentColor" />
+          </svg>`
+          : html`<span class="lintje-legend__marker lintje-legend__marker--${item.shape ?? 'square'}"
+                     ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
+                     aria-hidden="true"></span>`
     }
     <span class="lintje-legend__label">${item.label}</span>
   `
@@ -73,13 +93,18 @@ export function renderLegend({
   `
 }
 
+type XAnchor = 'start' | 'middle' | 'end'
+
 export interface ChartFrameOptions {
   area?: PlotArea
   ticks: number[]
   max: number
   /** Unit above the axis, e.g. "Afgehandelde aanvragen". */
   axisTitle?: string
-  xLabels?: { label: string; x: number }[]
+  /** `anchor` defaults to the middle; the last label of a value axis ends at the plot's edge. */
+  xLabels?: { label: string; x: number; anchor?: XAnchor }[]
+  /** The title of a value axis along the bottom, under its labels at the right. */
+  xTitle?: string
   /** Description for screen readers; replaces the chart in the accessibility tree. */
   description: string
   height?: number
@@ -130,22 +155,34 @@ export function focusRingStyle(id: string): Record<string, string> {
 }
 
 const X_LABEL_GAP = 8
+/** From the zero line to the baseline of the x labels, and again to that of the x title. */
+const X_LABEL_DROP = 20
 
 /**
  * The x labels that fit: every one while no two neighbours touch, otherwise every second,
- * third, … from the first on. Neighbours are measured pair by pair, so one long name beside
- * a short one can fit where equal day labels do not.
+ * third, … from the first on. Neighbours are measured pair by pair, each where its anchor puts
+ * it, so one long name beside a short one can fit where equal day labels do not.
  */
-export function thinLabels<T extends { label: string; x: number }>(
+export function thinLabels<T extends { label: string; x: number; anchor?: XAnchor }>(
   labels: T[],
   fontFamily = '',
 ): T[] {
   if (labels.length < 2) return labels
-  const widths = labels.map((label) => textWidth(label.label, fontFamily))
+  const spans = labels.map((label) => {
+    const width = textWidth(label.label, fontFamily)
+    const left =
+      label.anchor === 'end'
+        ? label.x - width
+        : label.anchor === 'start'
+          ? label.x
+          : label.x - width / 2
+    return { left, right: left + width }
+  })
   const fits = (stride: number): boolean => {
     for (let i = 0; i + stride < labels.length; i += stride) {
-      const room = Math.abs(labels[i + stride].x - labels[i].x)
-      if ((widths[i] + widths[i + stride]) / 2 + X_LABEL_GAP > room) return false
+      const a = spans[i]
+      const b = spans[i + stride]
+      if (Math.max(b.left - a.right, a.left - b.right) < X_LABEL_GAP) return false
     }
     return true
   }
@@ -161,6 +198,7 @@ export function renderChartFrame(
     max,
     axisTitle,
     xLabels,
+    xTitle,
     description,
     defs,
     zeroLine = true,
@@ -222,11 +260,17 @@ export function renderChartFrame(
         <!-- x-axis labels -->
         ${thinLabels(xLabels ?? [], fontFamily).map(
           (label) => svg`
-          <text x=${label.x} y=${area.height - 8} text-anchor="middle" class="lintje-chart__axis-label">
+          <text x=${label.x} y=${area.height - area.bottom + X_LABEL_DROP} text-anchor=${label.anchor ?? 'middle'} class="lintje-chart__axis-label">
             ${label.label}
           </text>
         `,
         )}
+        ${
+          xTitle
+            ? svg`<text x=${area.width - area.right} y=${area.height - area.bottom + 2 * X_LABEL_DROP} text-anchor="end"
+                      class="lintje-chart__x-title">${xTitle}</text>`
+            : nothing
+        }
       </svg>
     </figure>
   `

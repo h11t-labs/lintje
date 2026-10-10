@@ -140,6 +140,29 @@ const foldedDesks = deskParts.reduce((sum, part) => sum + part.value, 0)
   - largestDesks.reduce((sum, part) => sum + part.value, 0)
 const staffing = meta.kpi.staffing
 
+// Every desk as a point, requests against waiting time, one series per kind of desk; the desks
+// that deliver late have no waiting time yet in the second specimen (rule 15).
+const DESK_SERIES = [
+  { key: 'counter', label: 'Loket' },
+  { key: 'service', label: 'Servicepunt' },
+]
+const deskScatter = (missing = false) => ({
+  kind: 'scatter',
+  axisTitle: 'gemiddelde wachttijd in minuten', unit: 'min',
+  xTitle: 'aanvragen per kwartaal',
+  threshold: meta.thresholds.wait_time_threshold,
+  dataLabels: ['Amsterdam Centrum'],
+  series: DESK_SERIES.map((kind) => ({
+    label: kind.label,
+    points: desks.filter((desk) => desk.kind === kind.key).map((desk) => ({
+      label: desk.map_label, id: desk.id, href: `?loket=${desk.id}`,
+      x: desk.requests,
+      y: missing && desk.data_status === 'delayed' ? null : desk.wait_time,
+    })),
+  })),
+})
+const lateDesks = desks.filter((desk) => desk.data_status === 'delayed').map((desk) => desk.map_label)
+
 const CHARTS = [
   {
     id: 'line', title: 'Lijn met vergelijking en peilmoment',
@@ -265,6 +288,11 @@ const CHARTS = [
     },
   },
   {
+    id: 'scatter', title: 'Wachttijd tegen drukte',
+    description: 'Gemiddelde wachttijd tegen het aantal aanvragen per loket, voor loketten en servicepunten, tegen de norm van 15 minuten. Amsterdam Centrum is het drukst en wacht het langst, 18 minuten.',
+    spec: deskScatter(),
+  },
+  {
     id: 'heatmap', title: 'Heatmap met klassenlegenda',
     description: 'Aanvragen per uur naar dag van de week en uur van de dag, in vijf klassen.',
     spec: {
@@ -300,6 +328,7 @@ const KIND_NAMES = {
   'pie-folded': 'Taart · meer dan vijf delen',
   'donut-remainder': 'Donut · remainder',
   'dual-axis': 'Twee assen',
+  scatter: 'Spreiding',
   heatmap: 'Heatmap',
   histogram: 'Histogram',
 }
@@ -402,6 +431,11 @@ const missingValues = [
     label: 'Ontbrekende waarde · staven',
     description: 'Afgehandelde aanvragen per dag deze week. Donderdag ontbreekt.',
     chart: { kind: 'bar', labels: weekdays, values: share(1), axisTitle: 'Afgehandelde aanvragen per dag' },
+  },
+  {
+    label: 'Ontbrekende waarde · spreiding',
+    description: `Gemiddelde wachttijd tegen het aantal aanvragen per loket. ${lateDesks.join(' en ')} leveren vertraagd aan: hun wachttijd ontbreekt, dus ze staan niet in de grafiek.`,
+    chart: deskScatter(true),
   },
   {
     label: 'Ontbrekende waarde · histogram',

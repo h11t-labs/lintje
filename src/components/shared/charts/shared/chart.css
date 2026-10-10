@@ -3,6 +3,9 @@
    tile instead of leaving the space below them empty. */
 .lintje-chart--rows { margin-block: auto; }
 .lintje-chart__axis-title { font: var(--text-axis); color: var(--color-text-muted); }
+/* The title of the x axis (`xTitle` in `renderChartFrame`): the axis title's type, in the
+   drawing, under the x labels at the right. */
+.lintje-chart__x-title { font: var(--text-axis); fill: var(--color-text-muted); }
 .lintje-chart__svg {
   width: 100%;
   display: block;
@@ -26,7 +29,7 @@
    light one. The fills are the same in both modes, so the label is too. */
 .lintje-chart__data-label--inside { fill: var(--color-text-on-fill); }
 .lintje-chart__data-label--inside-light { fill: var(--color-text-on-light-fill); }
-/* On a threshold line (horizontal bars) or beside one (histogram): a halo in the surface color.
+/* On a threshold line (horizontal bars) or beside one (histogram, scatter): a halo in the surface color.
    Invisible on the tile, it cuts a line or a bar where the label crosses it. */
 .lintje-chart__data-label--halo,
 .lintje-chart__axis-label--halo {
@@ -35,8 +38,6 @@
   stroke-linejoin: round;
   paint-order: stroke fill;
 }
-/* The x-axis title of a histogram, in the style of the axis title above the plot. */
-.lintje-chart__x-title { font: var(--text-axis); fill: var(--color-text-muted); }
 .lintje-chart__as-of-label {
   font-family: var(--font-ui);
   font-size: 0.75rem;
@@ -136,6 +137,14 @@
   /* A reference line comes in with its label once the marks are drawn, as a data label does;
      a data label inside it does not fade a second time. */
   .lintje-chart__reference { animation: lintje-fade-in var(--dur-data-label) ease-in-out var(--dur-draw) both; }
+  /* A scatter point grows from its middle as a map point does, one after another along x, with
+     the bars' timing. */
+  .lintje-chart__point {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    animation: lintje-point-grow calc(var(--dur-draw) * 0.6) var(--ease-in-motion)
+      calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0)) backwards;
+  }
   .lintje-chart__reference .lintje-chart__data-label { animation: none; }
 
   /* Draw in only once the chart comes into view. By default the marks are
@@ -150,12 +159,14 @@
   .lintje-chart__bar-group,
   .lintje-chart__bar--horizontal,
   .lintje-chart__data-label,
-  .lintje-chart__reference { animation-play-state: paused; }
+  .lintje-chart__reference,
+  .lintje-chart__point { animation-play-state: paused; }
   [data-in-view] .lintje-chart__reveal,
   [data-in-view] .lintje-chart__bar-group,
   [data-in-view] .lintje-chart__bar--horizontal,
   [data-in-view] .lintje-chart__data-label,
-  [data-in-view] .lintje-chart__reference { animation-play-state: running; }
+  [data-in-view] .lintje-chart__reference,
+  [data-in-view] .lintje-chart__point { animation-play-state: running; }
 }
 @keyframes lintje-reveal {
   from { clip-path: inset(-8px calc(100% + 8px) -8px -8px); }
@@ -217,6 +228,7 @@
 .lintje-chart-tooltip__row { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
 .lintje-chart-tooltip__label { display: flex; align-items: center; gap: 6px; }
 .lintje-chart-tooltip__marker { width: 10px; height: 10px; flex: none; }
+.lintje-chart-tooltip__marker--symbol { width: 14px; height: 14px; }
 .lintje-chart-tooltip__value { font-weight: 700; margin-left: var(--space-3); }
 
 .lintje-chart-wrap { position: relative; min-width: 0; }
@@ -228,6 +240,15 @@
    with a ring in the surface color, so it stays legible on the line and on the
    filled area below it. No animation: hover does not redraw. */
 .lintje-chart__hover-point { stroke: var(--color-bg-surface); stroke-width: 2; pointer-events: none; }
+/* A point of a series the legend hides keeps its node, so it does not grow again. */
+.lintje-chart__point.is-hidden { visibility: hidden; }
+/* The edge of a dark-yellow hover point (`lineCasing`), over its ring. */
+.lintje-chart__hover-casing { fill: none; stroke-width: 1; pointer-events: none; }
+
+/* The scatter plot's one pointer target, under its points: the nearest point within half of
+   --h-target answers (`pick`, scatter-chart.ts), so a small point is a full target. */
+.lintje-chart__hit { fill: transparent; }
+.lintje-chart__hit.is-clickable { cursor: pointer; }
 
 
 /* --- States -------------------------------------------------------------- */
@@ -355,6 +376,8 @@
   .lintje-chart__line,
   .lintje-chart__reveal,
   .lintje-chart__hover-point,
+  .lintje-chart__hover-casing,
+  .lintje-chart__hit,
   .lintje-legend__marker,
   .lintje-chart-tooltip__marker { forced-color-adjust: none; }
   .lintje-chart__data-label { forced-color-adjust: auto; }

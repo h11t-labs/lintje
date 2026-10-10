@@ -26,6 +26,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   kleur van de variabele, zonder assen, geschaald van de laagste tot de hoogste waarde; een
   ontbrekende waarde breekt de lijn en de beschrijving is het tekstalternatief. Het type
   `KpiSparkline` staat in `src/types.ts`; `lintje-kpi-row` geeft het door. (#15)
+- Het spreidingsdiagram als grafieksoort (`kind: 'scatter'`): een reeks is een kleur en de vorm
+  die die kleur op de kaart heeft, met een norm, datalabels voor de punten die de host noemt en een
+  tabel met een rij per punt. (#10)
 - **De kaart kent `controls`.** Een host zet elk onderdeel van `lintje-map` aan of uit: `zoom`,
   `wheel`, `drag`, `reset`, `lasso`, `circle`, `rect`, `scale` en `legend`. Zonder waarde staat
   alles aan behalve de tekenvormen. Nieuw is de schaalbalk rechtsonder: een ronde afstand met een
