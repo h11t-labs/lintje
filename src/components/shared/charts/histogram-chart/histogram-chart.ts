@@ -267,16 +267,19 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
       : nothing,
     lines.map((line, i) => {
       const place = lineLabels[i]
+      // A line and its label come in together, after the bars, as a data label does.
       return svg`
-        <line x1=${line.x} x2=${line.x} y1=${area.top} y2=${baseline}
-              stroke="var(--color-chart-emphasis)" stroke-width=${line.dashed ? 1 : 1.5}
-              stroke-dasharray=${line.dashed ? '3 3' : nothing} />
-        <text x=${place.x} y=${place.y} text-anchor=${place.anchor}
-              class=${
-                line.bold
-                  ? 'lintje-chart__data-label lintje-chart__data-label--halo'
-                  : 'lintje-chart__axis-label lintje-chart__axis-label--halo'
-              }>${line.text}</text>
+        <g class="lintje-chart__reference">
+          <line x1=${line.x} x2=${line.x} y1=${area.top} y2=${baseline}
+                stroke="var(--color-chart-emphasis)" stroke-width=${line.dashed ? 1 : 1.5}
+                stroke-dasharray=${line.dashed ? '3 3' : nothing} />
+          <text x=${place.x} y=${place.y} text-anchor=${place.anchor}
+                class=${
+                  line.bold
+                    ? 'lintje-chart__data-label lintje-chart__data-label--halo'
+                    : 'lintje-chart__axis-label lintje-chart__axis-label--halo'
+                }>${line.text}</text>
+        </g>
       `
     }),
     // The hit areas lie on top, so hover comes from hoverIndex rather than :hover.

@@ -163,6 +163,20 @@ describe('the histogram', () => {
     expect(host.querySelectorAll('line[stroke="var(--color-chart-emphasis)"]')).toHaveLength(2)
   })
 
+  it('draws each line with its label in one reference group, kept under the keyboard', () => {
+    const { host } = draw({ median: 9.6, threshold: 21 })
+    const groups = [...host.querySelectorAll('g.lintje-chart__reference')]
+    expect(groups).toHaveLength(2)
+    for (const group of groups) {
+      expect(group.querySelector('line[stroke="var(--color-chart-emphasis)"]')).not.toBeNull()
+      expect(group.querySelector('text')?.textContent).toMatch(/mediaan|norm/)
+    }
+    const drawing = host.querySelector('svg[tabindex="0"]')!
+    drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
+    drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
+    expect([...host.querySelectorAll('g.lintje-chart__reference')]).toEqual(groups)
+  })
+
   it('names the median in the legend by its own label', () => {
     const { host } = draw({ median: 9.6, medianLabel: 'middelste aanvraag' })
     const legend = [...host.querySelectorAll('.lintje-legend__label')].map(

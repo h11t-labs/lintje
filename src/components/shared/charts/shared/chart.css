@@ -133,6 +133,10 @@
   .lintje-chart__bar--lifted { animation: lintje-lift var(--dur-hover) var(--ease-in-motion) backwards; }
   /* Data labels fade in once the marks are drawn, eased at both ends. */
   .lintje-chart__data-label { animation: lintje-fade-in var(--dur-data-label) ease-in-out var(--dur-draw) both; }
+  /* A reference line comes in with its label once the marks are drawn, as a data label does;
+     a data label inside it does not fade a second time. */
+  .lintje-chart__reference { animation: lintje-fade-in var(--dur-data-label) ease-in-out var(--dur-draw) both; }
+  .lintje-chart__reference .lintje-chart__data-label { animation: none; }
 
   /* Draw in only once the chart comes into view. By default the marks are
      paused on their first frame (series covered, bar flat, label gone); as soon
@@ -145,11 +149,13 @@
   .lintje-chart__reveal,
   .lintje-chart__bar-group,
   .lintje-chart__bar--horizontal,
-  .lintje-chart__data-label { animation-play-state: paused; }
+  .lintje-chart__data-label,
+  .lintje-chart__reference { animation-play-state: paused; }
   [data-in-view] .lintje-chart__reveal,
   [data-in-view] .lintje-chart__bar-group,
   [data-in-view] .lintje-chart__bar--horizontal,
-  [data-in-view] .lintje-chart__data-label { animation-play-state: running; }
+  [data-in-view] .lintje-chart__data-label,
+  [data-in-view] .lintje-chart__reference { animation-play-state: running; }
 }
 @keyframes lintje-reveal {
   from { clip-path: inset(-8px calc(100% + 8px) -8px -8px); }
