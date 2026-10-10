@@ -45,14 +45,15 @@ export interface LineLabel {
 
 /**
  * Where the labels of the median and the threshold stand: right of their line, or left of it
- * where they would leave the plot, and the right one a line lower when the two would touch.
+ * where they would leave the drawing, and the right one a line lower when the two would touch.
  */
 export function placeLineLabels(
   labels: LineLabel[],
   area: PlotArea,
   fontFamily = '',
 ): { x: number; y: number; anchor: 'start' | 'end' }[] {
-  const end = area.width - area.right
+  // The svg overflows, so a label may run into the right margin, as the last x label does.
+  const end = area.width
   const boxes = labels.map((label) => {
     const width = textWidth(label.text, fontFamily) * (label.bold ? 1.1 : 1)
     const right = label.x + 6 + width <= end
