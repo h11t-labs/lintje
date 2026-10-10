@@ -10,6 +10,12 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+### Toegevoegd
+
+- Het spreidingsdiagram als grafieksoort (`kind: 'scatter'`): een reeks is een kleur en de vorm
+  die die kleur op de kaart heeft, met een norm, datalabels voor de punten die de host noemt en een
+  tabel met een rij per punt. (#10)
+
 ## [0.1.1] - 2026-10-09
 
 ### Gewijzigd
