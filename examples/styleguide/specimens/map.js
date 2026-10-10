@@ -33,7 +33,7 @@ const KIND_SERIES = { counter: 'dark-green', service: 'purple' }
 // "Overig" has no coordinates in the demo data: it counts towards the scale and draws no flow.
 const MAPS = [
   {
-    id: 'map-flows', label: 'Stromen · flows', title: 'Herkomst buiten Nederland',
+    id: 'map-flows', label: 'Stromen · flows', title: 'Aanvragen uit het buitenland',
     data: {
       variant: 'flows', geo: 'world', unit: 'aanvragen', height: 320,
       destination: { lon: meta.head_office.lon, lat: meta.head_office.lat, label: meta.head_office.label },
@@ -41,12 +41,12 @@ const MAPS = [
         id: place.id ?? 'other',
         label: place.label,
         value: place.value,
-        detail: `${place.batches} zendingen`,
+        detail: `${place.files} dossiers`,
         lon: place.lon ?? undefined,
         lat: place.lat ?? undefined,
       })),
-      description: 'Herkomst van aanvragen uit het buitenland naar het hoofdkantoor in Den Haag; de lijndikte is het aantal aanvragen.',
-      subtitle: 'Vandaag · aanvragen uit het buitenland',
+      description: 'Aanvragen uit het buitenland, van de woonplaats van de aanvrager naar het hoofdkantoor in Den Haag; de lijndikte is het aantal aanvragen.',
+      subtitle: 'Vandaag · naar woonplaats van de aanvrager',
     },
   },
   {
@@ -79,7 +79,7 @@ const MAPS = [
     data: {
       variant: 'choropleth', geo: 'world', unit: 'aanvragen', height: 320,
       values: originCountries,
-      description: 'Herkomstlanden van aanvragen in vijf klassen; landen zonder cijfer staan gearceerd.',
+      description: 'Aanvragen uit het buitenland per land waar de aanvrager woont, in vijf klassen; landen zonder cijfer staan gearceerd.',
     },
   },
   {
@@ -157,7 +157,7 @@ export default {
           label: `${map.label} · ondergrond`,
           html: MAP_TILE,
           wide: true,
-          // No `height`: the map takes its own, 400 px and 220 on a phone.
+          // No `height`: the map takes its own, 400 px and 280 on a phone.
           setup: mapSetup(map, { basemap: DEMO_BASEMAP, height: undefined, title: `${map.title} · ondergrond` }),
         })),
       ],
