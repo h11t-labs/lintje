@@ -25,7 +25,7 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 - **De kaart kent `controls`.** Een host zet elk onderdeel van `lintje-map` aan of uit: `zoom`,
   `wheel`, `drag`, `reset`, `lasso`, `circle`, `rect`, `scale` en `legend`. Zonder waarde staat
   alles aan behalve de tekenvormen. Nieuw is de schaalbalk rechtsonder: een ronde afstand met een
-  beugel zo lang als die op de kaart, die met zoomen meeloopt.
+  beugel zo lang als die op de kaart, die met zoomen meeloopt. (#16)
 - **Een gebied kiezen op de kaart.** Met `controls.lasso`, `controls.circle` of `controls.rect`
   staat onder de zoomknoppen een tekenvorm; bij twee of meer opent één selectieknop met een
   hoekje het menu van de vormen, en toont hij de vorm die in de hand is. Een vorm blijft in de
@@ -37,14 +37,14 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   terug als `selectedArea`. Alleen wat helemaal in het gebied ligt telt; tijdens het tekenen licht
   dat op. Het gebied blijft staan tot het wordt weggeklikt in het paneel linksonder (op een
   telefoon onder de kaart), met Escape of met de resetknop, die het huisje vervangt en zicht,
-  mark en gebied terugzet.
+  mark en gebied terugzet. (#16)
 - **De legenda van de kaart leest per laag.** Eén regel per laag, ook bij één laag: haar naam
   met een vakje dat de laag aan en uit zet, haar sleutel — de klassen van 0 tot het maximum, drie
   cirkels met het bereik of een wig met het bereik — en haar eigen reeksen, elk een schakelaar;
   een kleur in twee lagen schakelt per laag. Meer dan drie lagen vouwen onder "Nog n lagen"; de
   vergroting toont alles, met het bereik per klasse en de cirkels genest op ware maat. Een mark
   die uitgaat krimpt of vervaagt, en komt van west naar oost terug. Op een telefoon is de kaart
-  280 px hoog, met alle knoppen op de aanraakmaat.
+  280 px hoog, met alle knoppen op de aanraakmaat. (#16)
 
 ### Gewijzigd
 
@@ -59,9 +59,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   voorgeprojecteerde `assets/geo/world.json` en `netherlands.json` zijn weg. De knoppen op de
   kaart zijn compact (40 px) met een klikgebied tot het aanwijsdoel, en de legenda linksonder en
   de knop "Legenda" op een telefoon zijn weg: er is één legenda, boven de kaart. De
-  bronvermelding van een ondergrond staat in de eigen tekstkleuren, ook in donker.
+  bronvermelding van een ondergrond staat in de eigen tekstkleuren, ook in donker. (#16)
 - **Het menu zet je vast met een punaise** (`functioneel-punaise`, open als
-  `functioneel-punaise-outline`) in plaats van met een bladwijzer.
+  `functioneel-punaise-outline`) in plaats van met een bladwijzer. (#16)
 
 ## [0.1.1] - 2026-10-09
 
