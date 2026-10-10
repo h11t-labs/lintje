@@ -486,6 +486,13 @@ zijn de filters een sheet, en wijzigingen gelden pas bij "Toepassen".
 **De pijl van een KPI draagt de richting; de kleur bevestigt die alleen.** Waar stijgen slecht is,
 draait de kleur om en de pijl niet.
 
+**Het verloop in een KPI is een lijn met haar vlak, zonder assen** (`sparkline`): de eigen
+waarden van de variabele, dus in haar kleur, met het vlak eronder zoals de lijngrafiek het tekent,
+nooit de nadrukkleur.
+Ze schaalt van de laagste tot de hoogste waarde, niet vanaf nul, want ze toont de beweging, niet de
+hoogte; het cijfer ernaast is de hoogte. De laatste waarde is een punt, een ontbrekende waarde
+breekt de lijn, en de beschrijving van de host is haar tekstalternatief, zoals bij een grafiek.
+
 ## Grafieken
 
 Eén grammatica, geen grafiekbibliotheek.
