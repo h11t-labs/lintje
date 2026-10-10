@@ -13,7 +13,7 @@ import { markPath } from '../shared/series-shapes'
 import { prefersReducedMotion } from '../../../../core/motion'
 import { clearance, hidden, keyboardFocus, overlayBoxes, REVEAL_MARGIN, type Box } from './reveal'
 import { mapDrawings, withUnit, type MapDrawing } from './drawings'
-import type { MapTileData, MapValue, WmsBasemap } from '../shared/types'
+import type { MapSpec, MapValue, WmsBasemap } from '../shared/types'
 
 type Drawn = L.Layer & { getElement(): Element | null | undefined }
 
@@ -93,7 +93,7 @@ export class LeafletSurface {
   /** The flows: only they step back while another mark is chosen. */
   #mutes = new Set<string>()
   /** A stack rebuilds on its `plots`, a one-variant map on its `values`. */
-  #built: (Pick<MapTileData, 'variant' | 'geo' | 'destination'> & { source: unknown }) | null = null
+  #built: (Pick<MapSpec, 'variant' | 'geo' | 'destination'> & { source: unknown }) | null = null
   #basemapKey = ''
   #home: L.LatLngBoundsExpression | null = null
   #framed = false
@@ -104,7 +104,7 @@ export class LeafletSurface {
     clear: () => {},
     mobile: false,
   }
-  #data: MapTileData | null = null
+  #data: MapSpec | null = null
 
   constructor(controller: ChartController) {
     this.#controller = controller
@@ -126,7 +126,7 @@ export class LeafletSurface {
   }
 
   /** Applying synchronously is deliberate: a selection must land in the frame of its panel. */
-  sync(data: MapTileData, options: LeafletSyncOptions): void {
+  sync(data: MapSpec, options: LeafletSyncOptions): void {
     this.#data = data
     this.#options = options
     if (this.#container && this.#map) this.#apply(data)
@@ -172,7 +172,7 @@ export class LeafletSurface {
     this.#container = null
   }
 
-  #apply(data: MapTileData): void {
+  #apply(data: MapSpec): void {
     const basemap = data.basemap
     if (!basemap) return
     const map = this.#ensureMap(data)
@@ -187,7 +187,7 @@ export class LeafletSurface {
     this.#applySelection()
   }
 
-  #ensureMap(data: MapTileData): L.Map {
+  #ensureMap(data: MapSpec): L.Map {
     if (this.#map) return this.#map
     const container = this.#container as HTMLElement
     // The wheel zoom is off: inside a scrolling dashboard it traps the reader.
@@ -282,7 +282,7 @@ export class LeafletSurface {
     this.#tiles.addTo(map)
   }
 
-  #ensureOverlays(map: L.Map, data: MapTileData): void {
+  #ensureOverlays(map: L.Map, data: MapSpec): void {
     const source = data.variant === 'plots' ? data.plots : data.values
     const built = this.#built
     if (
@@ -330,7 +330,7 @@ export class LeafletSurface {
   }
 
   /** Only the areas in the selection: the basemap is the land here. */
-  #drawAreas(group: L.LayerGroup, data: MapTileData, drawing: MapDrawing): void {
+  #drawAreas(group: L.LayerGroup, data: MapSpec, drawing: MapDrawing): void {
     const collection = GEOS[data.geo ?? 'world'] ?? GEOS.world
     const byId = new Map(drawing.values.map((value) => [value.id, value]))
     for (const feature of collection.features) {

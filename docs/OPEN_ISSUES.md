@@ -45,7 +45,7 @@ regel per punt, met het bestand waar het over gaat. Sluit een regel in de wijzig
 - `src/components/charts/kpi/kpi.ts`, `src/components/inputs/textarea/textarea.ts`, `src/components/inputs/file-upload/file-upload.ts`: bouwen `formatNumber` van `src/core/format.ts` opnieuw.
 - `src/primitives/tile/tile.css` en `src/components/shared/charts/shared/chart.css`: hetzelfde blok `.lintje-chart-state`.
 - `src/components/frame/user-menu/user-menu.ts`: adopteert het stylesheet van de menuknop (`menu-button.css`) in plaats van `lintje-menu-button` samen te stellen.
-- `src/components/map/map-tile/map-tile.ts`: adopteert `announcement.css` en `skeleton.css` in plaats van `lintje-announcement` en `lintje-skeleton` samen te stellen.
+- `src/components/map/map/map.ts`: adopteert `announcement.css` en `skeleton.css` in plaats van `lintje-announcement` en `lintje-skeleton` samen te stellen.
 - `src/components/content/video-player/video-player.ts`: adopteert `button.css` en `icon-button.css` in plaats van `lintje-button` en `lintje-icon-button` samen te stellen.
 
 ## Contracten
@@ -62,7 +62,7 @@ regel per punt, met het bestand waar het over gaat. Sluit een regel in de wijzig
 - `vite.config.elements.ts`: een categorie is één bestand per tag boven op de gedeelde basis, dus `forms.js` is 32 requests en een pagina zo'n 45. Of de invoeren één bestand worden is niet besloten: minder requests, tegenover een pagina met drie invoeren die er zeventien laadt.
 - `src/components/frame/shell/navigation.ts`: vanaf 768 px toont de voet van de zij-indeling de gebruiker en "Afmelden", niet de rijen van `userMenu`, die alleen de avatar van de bovenindeling en het telefoonmenu tekenen.
 - `src/components/inputs/shared/input.ts`: in een native formulier melden alleen het tekstveld, het getalveld en de textarea hun geldigheid (`required`); de andere invoeren posten hun waarde en de `error` van een veld houdt een submit niet tegen. Een bestandsupload post de ids van de voltooide bestanden, niet de bestanden; de eigen `name` en `value` van de verzendknop worden niet gepost.
-- `src/components/tables/data-table/data-table.ts`, `src/components/charts/chart-tile/chart-tile.ts`, `src/components/map/map-tile/map-tile.ts`: een klikbare rij of markering met een `href` is een event, geen link: zonder listener gaat hij nergens heen.
+- `src/components/tables/data-table/data-table.ts`, `src/components/charts/chart/chart.ts`, `src/components/map/map/map.ts`: een klikbare rij of markering met een `href` is een event, geen link: zonder listener gaat hij nergens heen.
 
 ## Toegankelijkheid
 
@@ -137,7 +137,7 @@ Uit de WCAG-review van oktober 2026: wat nog openstaat in de elementen zelf. Wat
 `src/bundle/styleguide.browser.test.ts` tekent elk specimen van de styleguide in Chromium en WebKit, in de CI ook in Firefox, licht en donker, op 1440 en 390 px in het thema `rijksoverheid`, en draait er axe op. Wat axe vandaag vindt, staat in de `KNOWN`-lijst van dat bestand, met hier één regel per item; een fix haalt beide weg.
 
 - `src/components/frame/shell/header.css`: het omgevingslabel is wit op het accent, 3.22:1 op de `#E17000` die vijf thema's delen (de `#007BC7` van `defensie` haalt 4.51:1); `mobile-header.css` en `navigation.css` tekenen hetzelfde label.
-- `src/tokens/base.css`: onder `prefers-reduced-motion` geeft de regel op `*` elk element een transitie van 80 ms op elke property, ook de focusring, die nooit animeert (`transition-property` is `all` waar een blok er geen zet), terwijl het commentaar zegt dat alleen opacity 80 ms houdt; een kleur die een kind erft loopt dan één keer per niveau. Geen bevinding van axe: de test kwam het tegen als tekst die halverwege betrapt werd. Met de regel beperkt tot opacity melden `lintje-chat-answer` en `lintje-chart-tile` een ResizeObserver-lus in de styleguide, dus hun observers gaan eerst.
+- `src/tokens/base.css`: onder `prefers-reduced-motion` geeft de regel op `*` elk element een transitie van 80 ms op elke property, ook de focusring, die nooit animeert (`transition-property` is `all` waar een blok er geen zet), terwijl het commentaar zegt dat alleen opacity 80 ms houdt; een kleur die een kind erft loopt dan één keer per niveau. Geen bevinding van axe: de test kwam het tegen als tekst die halverwege betrapt werd. Met de regel beperkt tot opacity melden `lintje-chat-answer` en `lintje-chart` een ResizeObserver-lus in de styleguide, dus hun observers gaan eerst.
 
 - `src/core/`: WebKit (Playwright 1.63) houdt de mediaqueries van een stylesheet die geen element gebruikt op het breekpunt van vóór een resize; Lit deelt één stylesheet per klasse, dus een eerste exemplaar dat pas na een draai of resize verschijnt, kan de verkeerde opmaak krijgen. In een echte Safari niet bevestigd; de browsertests wisselen de viewport daarom alleen met het element op de pagina.
 - `src/components/forms/stepper/stepper.ts`: de wissel tussen rij en kolom geeft `ResizeObserver loop completed with undelivered notifications`, een `error`-event op `window`; `requestAnimationFrame` in de observer lost het op ten koste van één frame met een afgekapte rij.

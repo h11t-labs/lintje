@@ -55,7 +55,7 @@ export type {
   ChartLink,
   LineSeriesData,
   BarSeriesData,
-  MapTileData,
+  MapSpec,
   MapValue,
   MapVariant,
   MapPlotData,

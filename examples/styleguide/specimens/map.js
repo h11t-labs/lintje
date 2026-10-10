@@ -112,11 +112,11 @@ const MAPS = [
   },
 ]
 
-const MAP_TILE = '<lintje-map-tile></lintje-map-tile>'
+const MAP_TILE = '<lintje-map></lintje-map>'
 
 function mapSetup(map, extra = {}) {
   return (stage) => {
-    const tile = stage.querySelector('lintje-map-tile')
+    const tile = stage.querySelector('lintje-map')
     tile.data = {
       ...map.data,
       ...extra,
@@ -144,7 +144,7 @@ const DEMO_BASEMAP = {
 export default {
   elements: [
     {
-      tag: 'lintje-map-tile',
+      tag: 'lintje-map',
       title: 'Tegel met een kaart: stromen, punten, reeksen, choropleet, vlakken en lagen',
       specimens: MAPS.map((map) => ({ label: map.label, html: MAP_TILE, wide: true, setup: mapSetup(map) })),
     },

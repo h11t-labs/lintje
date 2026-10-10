@@ -23,6 +23,13 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 - Het histogram als grafieksoort (`kind: 'histogram'`): klassen die elkaar raken, labels op de
   grenzen, een open laatste klasse, een mediaan en een drempel. (#9)
 
+### Gewijzigd
+
+- **Brekend:** `lintje-chart-tile` heet `lintje-chart` en `lintje-map-tile` heet `lintje-map`,
+  in de build `tag/chart.js` en `tag/map.js`. De typen volgen: `ChartTileData` wordt `ChartData`,
+  `MapTileViewData` wordt `MapData` en `MapTileData` wordt `MapSpec`; een `ChatBlock` noemt
+  `kind: 'chart'`. (#14)
+
 ## [0.1.1] - 2026-10-09
 
 ### Gewijzigd
