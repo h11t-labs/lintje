@@ -13,6 +13,7 @@ export { renderPieChart } from './pie-chart/pie-chart'
 export { renderDualAxisChart } from './dual-axis-chart/dual-axis-chart'
 export { renderHeatmap, heatmapBounds, heatmapClasses } from './heatmap-chart/heatmap-chart'
 export type { HeatmapClass } from './heatmap-chart/heatmap-chart'
+export { renderHistogramChart } from './histogram-chart/histogram-chart'
 export { renderMap } from './map-chart/map-chart'
 export type { MapOptions } from './map-chart/map-chart'
 
@@ -54,7 +55,7 @@ export type {
   ChartLink,
   LineSeriesData,
   BarSeriesData,
-  MapTileData,
+  MapSpec,
   MapValue,
   MapVariant,
   MapPlotData,

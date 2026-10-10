@@ -25,7 +25,7 @@ import '../../../primitives/button/button'
 import '../../../primitives/icon-button/icon-button'
 import '../../../primitives/spinner/spinner'
 import '../../feedback/announcement/announcement'
-import '../../charts/chart-tile/chart-tile'
+import '../../charts/chart/chart'
 import '../chat-strip/chat-strip'
 import '../chat-suggestions/chat-suggestions'
 import '../../tables/data-table/data-table'
@@ -311,11 +311,11 @@ export class LintjeChatAnswer extends LintjeElement {
             return html`<lintje-prose .html=${block.html} .text=${block.text}></lintje-prose>`
           case 'kpi-row':
             return html`<lintje-kpi-row .data=${block.data}></lintje-kpi-row>`
-          case 'chart-tile':
-            return html`<lintje-chart-tile
+          case 'chart':
+            return html`<lintje-chart
               span=${block.data.span ?? nothing}
               .data=${block.data}
-            ></lintje-chart-tile>`
+            ></lintje-chart>`
           case 'data-table':
             return html`<lintje-data-table
               span=${block.data.span ?? nothing}

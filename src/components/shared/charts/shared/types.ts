@@ -139,12 +139,38 @@ export type ChartSpec =
         links?: (ChartLink | null)[][]
       }
     }
+  | {
+      kind: 'histogram'
+      /**
+       * The classes in ascending order, each starting where the one before ends. `to: null` is
+       * an open last class ("30+"); `count: null` is no data, never 0 (rule 15).
+       */
+      bins: { from: number; to: number | null; count: number | null }[]
+      /** What the classes count, in the legend and the tooltip. Default "Aantal". */
+      label?: string
+      color?: ChartColor
+      /** Above the y-axis, e.g. "aanvragen per twee dagen". */
+      axisTitle?: string
+      /** Under the x labels, right-aligned, e.g. "doorlooptijd in dagen". */
+      xTitle?: string
+      /** The unit of the x-axis, e.g. "dagen": in the tooltip and beside the lines. */
+      unit?: string
+      /** A solid emphasis line at this x value. */
+      median?: number
+      /** The text beside the median line; default "mediaan" with its value and unit. */
+      medianLabel?: string
+      /** A dashed emphasis line at this x value. */
+      threshold?: number
+      /** The text beside the threshold line; default "norm" with its value and unit. */
+      thresholdLabel?: string
+      small?: boolean
+    }
 
 export type ChartKind = ChartSpec['kind']
 
 /**
  * What a map draws. `polygons` are areas that carry their own outline (`MapValue.polygon`);
- * `plots` stacks several drawings, from `MapTileData.plots`.
+ * `plots` stacks several drawings, from `MapSpec.plots`.
  */
 export type MapVariant = 'flows' | 'points' | 'choropleth' | 'polygons' | 'plots' | 'scope-picker'
 
@@ -213,8 +239,8 @@ export interface MapPlotData {
   seriesLabels?: Partial<Record<MapSeriesKey, string>>
 }
 
-/** The map's data, as `MapTileData` in `src/types.ts` carries it, without the tile fields. */
-export interface MapTileData {
+/** The map's data, as `MapData` in `src/types.ts` carries it, without the tile fields. */
+export interface MapSpec {
   variant: MapVariant
   geo?: 'world' | 'netherlands'
   /** The marks of a one-variant map; empty with `variant: 'plots'`. */

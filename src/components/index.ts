@@ -10,7 +10,7 @@ import './frame/user-menu/user-menu'
 import './frame/page-header/page-header'
 import './filters/filter-bar/filter-bar'
 import './feedback/announcement/announcement'
-import './charts/chart-tile/chart-tile'
+import './charts/chart/chart'
 import './chat/chat/chat'
 import './chat/chat-answer/chat-answer'
 import './chat/chat-composer/chat-composer'
@@ -23,7 +23,7 @@ import './layout/expander/expander'
 import './charts/explainer/explainer'
 import './charts/kpi/kpi'
 import './charts/kpi-row/kpi-row'
-import './map/map-tile/map-tile'
+import './map/map/map'
 import './overlays/modal/modal'
 import './charts/note/note'
 import './content/prose/prose'
@@ -55,6 +55,7 @@ import './inputs/tag-input/tag-input'
 import './inputs/date-input/date-input'
 import './inputs/time-input/time-input'
 import './inputs/text-editor/text-editor'
+import './inputs/slot-picker/slot-picker'
 import './forms/repeater/repeater'
 import './layout/tabs/tabs'
 import './frame/hero/hero'
@@ -95,7 +96,7 @@ import './frame/session-expiry/session-expiry'
 import './frame/notifications/notifications'
 
 export { LintjeAnnouncement } from './feedback/announcement/announcement'
-export { LintjeChartTile } from './charts/chart-tile/chart-tile'
+export { LintjeChart } from './charts/chart/chart'
 export { LintjeChat } from './chat/chat/chat'
 export { LintjeChatAnswer } from './chat/chat-answer/chat-answer'
 export type { ChatRating } from './chat/chat-answer/chat-answer'
@@ -115,7 +116,7 @@ export { LintjeExpander } from './layout/expander/expander'
 export { LintjeExplainer } from './charts/explainer/explainer'
 export { LintjeKpi } from './charts/kpi/kpi'
 export { LintjeKpiRow } from './charts/kpi-row/kpi-row'
-export { LintjeMapTile } from './map/map-tile/map-tile'
+export { LintjeMap } from './map/map/map'
 export { LintjeModal } from './overlays/modal/modal'
 export { LintjeNote } from './charts/note/note'
 export { LintjeProse } from './content/prose/prose'
@@ -164,6 +165,8 @@ export { LintjeDateInput } from './inputs/date-input/date-input'
 export { LintjeTimeInput } from './inputs/time-input/time-input'
 export { LintjeTextEditor } from './inputs/text-editor/text-editor'
 export type { EditorFormat } from './inputs/text-editor/text-editor'
+export { LintjeSlotPicker } from './inputs/slot-picker/slot-picker'
+export type { SlotDay, TimeSlot } from './inputs/slot-picker/slot-picker'
 export { LintjeRepeater, LintjeRepeaterRow } from './forms/repeater/repeater'
 
 export { LintjeTabs } from './layout/tabs/tabs'
@@ -266,12 +269,12 @@ export type {
   AnnouncementKind,
   AnnouncementViewData,
   CellValue,
-  ChartTileData,
+  ChartData,
   DataTableData,
   ExplainerData,
   KpiData,
   KpiRowData,
-  MapTileViewData,
+  MapData,
   NoteData,
   SortState,
   TableColumnData,

@@ -136,7 +136,99 @@
 .lintje-trend__glyph--neutral { color: var(--color-text-muted); }
 .lintje-trend__detail { font: var(--text-meta); color: var(--color-text-muted); }
 
-/* Forced colours: the divider and the error dot are fills, which the browser drops. */
+/* --- The gauge ------------------------------------------------------------ */
+/* Room above for a target near the top and below for the ends' numbers; the arc never grows past
+   its drawn size, so the band keeps its weight beside the text. */
+.lintje-gauge--arc {
+  position: relative;
+  width: min(100%, 168px);
+  aspect-ratio: 2;
+  margin-block: var(--space-4);
+}
+.lintje-gauge__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.lintje-gauge--arc .lintje-kpi__value,
+.lintje-gauge__skeleton {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  margin-inline: auto;
+  text-align: center;
+}
+.lintje-gauge__track { fill: none; stroke: var(--color-chart-remainder); }
+.lintje-gauge__arc-fill {
+  fill: none;
+  stroke-dasharray: 1;
+  animation: lintje-gauge-sweep var(--dur-draw) var(--ease-in-motion) both paused;
+}
+.lintje-gauge__tick { stroke: var(--color-chart-emphasis); stroke-width: 1; stroke-dasharray: 3 3; }
+.lintje-gauge__label {
+  position: absolute;
+  font: var(--text-axis);
+  color: var(--color-chart-axis);
+  white-space: nowrap;
+}
+.lintje-gauge__label--limit { transform: translateX(-50%); }
+.lintje-gauge__label--middle { transform: translate(-50%, -100%); }
+.lintje-gauge__label--start { transform: translateY(-50%); }
+.lintje-gauge__label--end { transform: translate(-100%, -50%); }
+/* A tile narrower than the arc and a side label puts the target's label on its own line under the
+   ends' numbers, where it cannot leave the tile or meet them. A tile narrower still takes the
+   smaller figure, so the value stays inside the band. */
+.lintje-gauge__frame { container-type: inline-size; }
+@container (width < 232px) {
+  .lintje-gauge--arc { margin-bottom: var(--space-8); }
+  .lintje-gauge__label--target {
+    left: 50% !important;
+    top: calc(100% + var(--space-4)) !important;
+    transform: translateX(-50%);
+  }
+}
+@container (width < 160px) {
+  .lintje-gauge--arc .lintje-kpi__value { font: var(--text-kpi-secondary); font-variant-numeric: tabular-nums; }
+  .lintje-gauge--arc .lintje-kpi__suffix { font-size: 1rem; margin-left: 2px; }
+}
+
+
+.lintje-gauge--linear { display: flex; flex-direction: column; gap: var(--space-1); }
+/* The mark stands out over the bar, so the bar leaves it room above and below. */
+.lintje-gauge__bar {
+  position: relative;
+  height: var(--space-4);
+  margin-block: var(--space-1);
+  background: var(--color-chart-remainder);
+}
+.lintje-gauge__bar-fill {
+  height: 100%;
+  transform-origin: 0 50%;
+  animation: lintje-gauge-grow var(--dur-draw) var(--ease-in-motion) both paused;
+}
+.lintje-gauge__mark {
+  position: absolute;
+  top: calc(-1 * var(--space-1));
+  bottom: calc(-1 * var(--space-1));
+  border-left: 1px dashed var(--color-chart-emphasis);
+}
+.lintje-gauge__scale {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  font: var(--text-axis);
+  color: var(--color-chart-axis);
+}
+.lintje-gauge__scale-target { position: absolute; top: 0; white-space: nowrap; }
+.lintje-gauge__scale-target--middle { transform: translateX(-50%); }
+.lintje-gauge__scale-target--end { transform: translateX(-100%); }
+
+.lintje-gauge.is-drawn .lintje-gauge__arc-fill,
+.lintje-gauge.is-drawn .lintje-gauge__bar-fill { animation-play-state: running; }
+@keyframes lintje-gauge-sweep { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes lintje-gauge-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .lintje-gauge__arc-fill,
+  .lintje-gauge__bar-fill { animation: none; }
+}
+
+/* Forced colours: the divider, the error dot and the gauge's fills are fills, which the browser
+   drops. */
 @media (forced-colors: active) {
   .lintje-kpi__divider,
   .lintje-kpi__dot { forced-color-adjust: none; background: CanvasText; }
@@ -144,4 +236,11 @@
   .lintje-kpi__sparkline-area { fill: none; }
   .lintje-kpi__sparkline-point,
   .lintje-kpi__sparkline-end { fill: CanvasText; stroke: Canvas; }
+  .lintje-gauge__bar { forced-color-adjust: none; background: Canvas; outline: 1px solid CanvasText; }
+  .lintje-gauge__bar-fill { forced-color-adjust: none; background: Highlight !important; }
+  .lintje-gauge__svg { forced-color-adjust: none; }
+  .lintje-gauge__track { stroke: GrayText; }
+  .lintje-gauge__arc-fill { stroke: Highlight !important; }
+  .lintje-gauge__tick { stroke: CanvasText; }
+  .lintje-gauge__mark { border-color: CanvasText; }
 }

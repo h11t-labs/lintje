@@ -25,9 +25,9 @@ describe('a page that loads the forms category', () => {
 
   it('defines no chart, table, map, chat or shell', () => {
     for (const tag of [
-      'lintje-chart-tile',
+      'lintje-chart',
       'lintje-data-table',
-      'lintje-map-tile',
+      'lintje-map',
       'lintje-chat',
       'lintje-shell',
     ])
