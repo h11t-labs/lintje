@@ -4,11 +4,11 @@
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { server, userEvent } from 'vitest/browser'
-import './chart-tile'
-import type { LintjeChartTile } from './chart-tile'
+import './chart'
+import type { LintjeChart } from './chart'
 
-async function mount(): Promise<LintjeChartTile> {
-  const tile = document.createElement('lintje-chart-tile')
+async function mount(): Promise<LintjeChart> {
+  const tile = document.createElement('lintje-chart')
   tile.data = {
     title: 'Aanvragen per regio',
     description: 'Noord 12, Zuid 8.',
@@ -26,7 +26,7 @@ async function mount(): Promise<LintjeChartTile> {
   return tile
 }
 
-const slice = (tile: LintjeChartTile): SVGElement | null =>
+const slice = (tile: LintjeChart): SVGElement | null =>
   tile.shadowRoot!.querySelector<SVGElement>('[data-mark-id="noord"]')
 
 afterEach(() => document.body.replaceChildren())
@@ -34,8 +34,8 @@ afterEach(() => document.body.replaceChildren())
 // Two scatter points closer than half of --h-target: each is itself where it is drawn, and the
 // space beside it is the nearest point's.
 describe('a scatter point under the pointer', () => {
-  async function scatter(): Promise<{ tile: LintjeChartTile; picked: string[] }> {
-    const tile = document.createElement('lintje-chart-tile')
+  async function scatter(): Promise<{ tile: LintjeChart; picked: string[] }> {
+    const tile = document.createElement('lintje-chart')
     tile.style.display = 'block'
     tile.style.width = '600px'
     tile.data = {
@@ -66,7 +66,7 @@ describe('a scatter point under the pointer', () => {
     return { tile, picked }
   }
 
-  const point = (tile: LintjeChartTile, id: string): SVGElement | null =>
+  const point = (tile: LintjeChart, id: string): SVGElement | null =>
     tile.shadowRoot!.querySelector<SVGElement>(`[data-mark-id="${id}"]`)
 
   const centre = (element: Element) => {

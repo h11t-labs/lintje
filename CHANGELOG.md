@@ -22,9 +22,20 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   `KpiGauge` staat in `src/types.ts`; `lintje-kpi-row` geeft het door. (#13)
 - Het histogram als grafieksoort (`kind: 'histogram'`): klassen die elkaar raken, labels op de
   grenzen, een open laatste klasse, een mediaan en een drempel. (#9)
+- `lintje-kpi` toont het verloop van zijn variabele met `sparkline`: een lijn met haar vlak in de
+  kleur van de variabele, zonder assen, geschaald van de laagste tot de hoogste waarde; een
+  ontbrekende waarde breekt de lijn en de beschrijving is het tekstalternatief. Het type
+  `KpiSparkline` staat in `src/types.ts`; `lintje-kpi-row` geeft het door. (#15)
 - Het spreidingsdiagram als grafieksoort (`kind: 'scatter'`): een reeks is een kleur en de vorm
   die die kleur op de kaart heeft, met een norm, datalabels voor de punten die de host noemt en een
   tabel met een rij per punt. (#10)
+
+### Gewijzigd
+
+- **Brekend:** `lintje-chart-tile` heet `lintje-chart` en `lintje-map-tile` heet `lintje-map`,
+  in de build `tag/chart.js` en `tag/map.js`. De typen volgen: `ChartTileData` wordt `ChartData`,
+  `MapTileViewData` wordt `MapData` en `MapTileData` wordt `MapSpec`; een `ChatBlock` noemt
+  `kind: 'chart'`. (#14)
 
 ## [0.1.1] - 2026-10-09
 

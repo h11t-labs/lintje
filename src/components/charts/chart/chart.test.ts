@@ -1,19 +1,19 @@
 /**
- * `<lintje-chart-tile>`: the chart/table switch of `tableSwitch`.
+ * `<lintje-chart>`: the chart/table switch of `tableSwitch`.
  *
  * What is checked is the markup: no control without the field, the control with
  * it, and the table it switches to — a caption and the CSV's own numbers, a
  * missing value as "—", never 0 (rule 15).
  */
 import { describe, expect, it } from 'vitest'
-import './chart-tile'
-import type { LintjeChartTile } from './chart-tile'
+import './chart'
+import type { LintjeChart } from './chart'
 import type { LintjeAnnouncement } from '../../feedback/announcement/announcement'
 import type { LintjeDataTable } from '../../tables/data-table/data-table'
 import type { LintjeSegmented } from '../../inputs/segmented/segmented'
-import type { ChartTileData } from '../../../types'
+import type { ChartData } from '../../../types'
 
-const DATA: ChartTileData = {
+const DATA: ChartData = {
   title: 'Aanvragen per dag',
   description: 'Aanvragen per dag deze week.',
   chart: {
@@ -26,18 +26,18 @@ const DATA: ChartTileData = {
   },
 }
 
-async function tile(data: ChartTileData): Promise<LintjeChartTile> {
-  const element = document.createElement('lintje-chart-tile')
+async function tile(data: ChartData): Promise<LintjeChart> {
+  const element = document.createElement('lintje-chart')
   element.data = data
   document.body.append(element)
   await element.updateComplete
   return element
 }
 
-const control = (element: LintjeChartTile): LintjeSegmented | null =>
+const control = (element: LintjeChart): LintjeSegmented | null =>
   element.renderRoot.querySelector('lintje-segmented')
 
-async function switchTo(element: LintjeChartTile, view: 'chart' | 'table'): Promise<void> {
+async function switchTo(element: LintjeChart, view: 'chart' | 'table'): Promise<void> {
   const segmented = control(element)
   if (!segmented) throw new Error('no control')
   await segmented.updateComplete
@@ -48,7 +48,7 @@ async function switchTo(element: LintjeChartTile, view: 'chart' | 'table'): Prom
   await element.updateComplete
 }
 
-async function table(element: LintjeChartTile): Promise<LintjeDataTable | null> {
+async function table(element: LintjeChart): Promise<LintjeDataTable | null> {
   const found = element.renderRoot.querySelector<LintjeDataTable>('lintje-tile lintje-data-table')
   if (found) await found.updateComplete
   return found
@@ -61,7 +61,7 @@ function cells(found: LintjeDataTable): string[][] {
   )
 }
 
-describe('lintje-chart-tile table switch', () => {
+describe('lintje-chart table switch', () => {
   it('draws no control without the field', async () => {
     const element = await tile(DATA)
     expect(control(element)).toBeNull()
@@ -149,7 +149,7 @@ describe('lintje-chart-tile table switch', () => {
   })
 })
 
-describe('lintje-chart-tile table of a histogram', () => {
+describe('lintje-chart table of a histogram', () => {
   it('names each class, writes its bounds as numbers, and never reads an open bound as missing', async () => {
     const element = await tile({
       title: 'Doorlooptijd',
@@ -184,7 +184,7 @@ describe('lintje-chart-tile table of a histogram', () => {
   })
 })
 
-describe('lintje-chart-tile error state', () => {
+describe('lintje-chart error state', () => {
   it('is the compact warning, a live region: the load failed just now', async () => {
     const element = await tile({ ...DATA, state: 'error', message: 'De bron reageerde niet.' })
     const notice = element.renderRoot.querySelector<LintjeAnnouncement>(
@@ -203,13 +203,13 @@ describe('lintje-chart-tile error state', () => {
   })
 })
 
-describe('lintje-chart-tile focus after a clear', () => {
+describe('lintje-chart focus after a clear', () => {
   it('lands on the drawing, focusable from a script only, when the cleared mark is gone', async () => {
     const segments = [
       { label: 'Noord', value: 12, id: 'noord', href: '/p?r=noord' },
       { label: 'Zuid', value: 8 },
     ]
-    const data: ChartTileData = {
+    const data: ChartData = {
       description: 'Een taart.',
       chart: { kind: 'pie', segments },
       selectedId: 'noord',

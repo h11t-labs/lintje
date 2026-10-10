@@ -1,5 +1,5 @@
 /**
- * `<lintje-map-tile>`: choosing a mark and undoing it.
+ * `<lintje-map>`: choosing a mark and undoing it.
  *
  * The map adopts a *new* `selectedId` once and owns the selection in between;
  * a clear emits
@@ -9,14 +9,14 @@
  * happy-dom has no layout, so what is checked is the markup and the events.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import './map-tile'
+import './map'
 import { downloadCsv } from '../../shared/download'
-import type { MapTileViewData, MapValue } from '../../../types'
+import type { MapData, MapValue } from '../../../types'
 import type { LintjeAnnouncement } from '../../feedback/announcement/announcement'
 
-interface MapTile extends HTMLElement {
+interface MapElement extends HTMLElement {
   renderRoot: DocumentFragment | HTMLElement
-  data?: MapTileViewData | null
+  data?: MapData | null
   updateComplete: Promise<unknown>
 }
 
@@ -40,7 +40,7 @@ const POINTS = [
   { id: 'rtm', label: 'Rotterdam', value: null, lon: 4.44, lat: 51.96 },
 ]
 
-function tileData(extra: Partial<MapTileViewData> = {}): MapTileViewData {
+function tileData(extra: Partial<MapData> = {}): MapData {
   return {
     variant: 'points',
     geo: 'netherlands',
@@ -48,11 +48,11 @@ function tileData(extra: Partial<MapTileViewData> = {}): MapTileViewData {
     unit: 'min',
     description: 'Loketten in Nederland.',
     ...extra,
-  } as MapTileViewData
+  } as MapData
 }
 
 /** The same map whose marks carry a URL the host minted, so the link is drawn. */
-function withHref(extra: Partial<MapTileViewData> = {}): MapTileViewData {
+function withHref(extra: Partial<MapData> = {}): MapData {
   return tileData({
     values: POINTS.map((value) => ({ ...value, href: `/m?nav.post=${value.id}` })),
     ...extra,
@@ -64,30 +64,30 @@ vi.mock('../../shared/download', async (actual) => ({
   downloadCsv: vi.fn(),
 }))
 
-async function mapTile(data: MapTileViewData): Promise<MapTile> {
-  const element = document.createElement('lintje-map-tile') as MapTile
+async function mountMap(data: MapData): Promise<MapElement> {
+  const element = document.createElement('lintje-map') as MapElement
   element.data = data
   document.body.append(element)
   await element.updateComplete
   return element
 }
 
-function point(element: MapTile, id: string): SVGElement {
+function point(element: MapElement, id: string): SVGElement {
   const found = element.renderRoot.querySelector<SVGElement>(`[data-mark-id="${id}"]`)
   if (!found) throw new Error(`no mark ${id}`)
   return found
 }
 
-function panel(element: MapTile): Element | null {
+function panel(element: MapElement): Element | null {
   return element.renderRoot.querySelector('.lintje-map-chart__selection')
 }
 
-async function click(element: MapTile, node: Element, init: MouseEventInit = {}): Promise<void> {
+async function click(element: MapElement, node: Element, init: MouseEventInit = {}): Promise<void> {
   node.dispatchEvent(new MouseEvent('click', { bubbles: true, ...init }))
   await element.updateComplete
 }
 
-describe('lintje-map-tile selection', () => {
+describe('lintje-map selection', () => {
   let selects: CustomEvent[]
 
   beforeEach(() => {
@@ -99,7 +99,7 @@ describe('lintje-map-tile selection', () => {
   })
 
   it('selects a point and shows the panel', async () => {
-    const element = await mapTile(tileData())
+    const element = await mountMap(tileData())
     await click(element, point(element, 'ein'))
     expect(panel(element)?.textContent).toContain('Eindhoven')
     expect(point(element, 'ein').getAttribute('aria-pressed')).toBe('true')
@@ -107,7 +107,7 @@ describe('lintje-map-tile selection', () => {
   })
 
   it('clears when the chosen point is clicked again', async () => {
-    const element = await mapTile(tileData())
+    const element = await mountMap(tileData())
     await click(element, point(element, 'ein'))
     await click(element, point(element, 'ein'))
     expect(panel(element)).toBeNull()
@@ -116,7 +116,7 @@ describe('lintje-map-tile selection', () => {
   })
 
   it('clears on a click on the empty map, and not on a click on a mark', async () => {
-    const element = await mapTile(tileData())
+    const element = await mountMap(tileData())
     await click(element, point(element, 'ein'))
     const svg = element.renderRoot.querySelector('.lintje-map-chart__svg')!
     await click(element, svg)
@@ -124,7 +124,7 @@ describe('lintje-map-tile selection', () => {
   })
 
   it('clears on Escape', async () => {
-    const element = await mapTile(tileData())
+    const element = await mountMap(tileData())
     await click(element, point(element, 'ein'))
     element.renderRoot
       .querySelector('.lintje-map-chart')!
@@ -134,7 +134,7 @@ describe('lintje-map-tile selection', () => {
   })
 
   it('clears from the panel button, which says what it does', async () => {
-    const element = await mapTile(tileData())
+    const element = await mountMap(tileData())
     await click(element, point(element, 'ein'))
     const close = element.renderRoot.querySelector('.lintje-map-chart__selection-close')!
     expect(close.getAttribute('aria-label')).toBe('Selectie opheffen')
@@ -143,7 +143,7 @@ describe('lintje-map-tile selection', () => {
   })
 
   it('carries the host URL that undoes a selection kept in the URL', async () => {
-    const element = await mapTile(tileData({ selectedId: 'ein', clearHref: '/m?p=1' }))
+    const element = await mountMap(tileData({ selectedId: 'ein', clearHref: '/m?p=1' }))
     expect(panel(element)?.textContent).toContain('Eindhoven')
     await click(element, point(element, 'ein'))
     expect(panel(element)).toBeNull()
@@ -151,7 +151,7 @@ describe('lintje-map-tile selection', () => {
   })
 
   it('adopts a new host selection but does not undo a local clear', async () => {
-    const element = await mapTile(tileData({ selectedId: 'ein' }))
+    const element = await mountMap(tileData({ selectedId: 'ein' }))
     await click(element, point(element, 'ein'))
     expect(panel(element)).toBeNull()
     // The same data again (a refresh that changed nothing) must not bring it back.
@@ -165,13 +165,13 @@ describe('lintje-map-tile selection', () => {
   })
 })
 
-describe('lintje-map-tile series', () => {
+describe('lintje-map series', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
   })
 
   it('draws a legend above the map for every series a point uses', async () => {
-    const element = await mapTile(
+    const element = await mountMap(
       tileData({
         seriesLabels: { 'sky-blue': 'Op norm', 'dark-yellow': 'Boven norm', red: 'Kritiek' },
       }),
@@ -189,7 +189,7 @@ describe('lintje-map-tile series', () => {
   })
 
   it('names the series in the accessible label of the point', async () => {
-    const element = await mapTile(
+    const element = await mountMap(
       tileData({ seriesLabels: { 'sky-blue': 'Op norm', 'dark-yellow': 'Boven norm' } }),
     )
     expect(point(element, 'ein').getAttribute('aria-label')).toBe('Eindhoven: 21 min, Boven norm')
@@ -198,18 +198,18 @@ describe('lintje-map-tile series', () => {
   })
 
   it('names the series in the selection panel', async () => {
-    const element = await mapTile(tileData({ seriesLabels: { 'dark-yellow': 'Boven norm' } }))
+    const element = await mountMap(tileData({ seriesLabels: { 'dark-yellow': 'Boven norm' } }))
     await click(element, point(element, 'ein'))
     expect(panel(element)?.textContent).toContain('Boven norm')
   })
 
   it('draws no legend without labels', async () => {
-    const element = await mapTile(tileData())
+    const element = await mountMap(tileData())
     expect(element.renderRoot.querySelector('.lintje-map-chart__series-legend')).toBeNull()
   })
 
   it('takes the selection link label from the spec', async () => {
-    const element = await mapTile(withHref({ selectLabel: 'Bekijk dit loket' }))
+    const element = await mountMap(withHref({ selectLabel: 'Bekijk dit loket' }))
     await click(element, point(element, 'ein'))
     expect(element.renderRoot.querySelector('.lintje-map-chart__set-scope')?.textContent).toContain(
       'Bekijk dit loket',
@@ -217,7 +217,7 @@ describe('lintje-map-tile series', () => {
   })
 
   it('defaults that label to the fixed bar wording', async () => {
-    const element = await mapTile(withHref())
+    const element = await mountMap(withHref())
     await click(element, point(element, 'ein'))
     expect(element.renderRoot.querySelector('.lintje-map-chart__set-scope')?.textContent).toContain(
       'Zet als bereik',
@@ -225,16 +225,16 @@ describe('lintje-map-tile series', () => {
   })
 
   it('draws no link when the chosen mark has nowhere to go', async () => {
-    const element = await mapTile(tileData())
+    const element = await mountMap(tileData())
     await click(element, point(element, 'ein'))
     expect(panel(element)).not.toBeNull()
     expect(element.renderRoot.querySelector('.lintje-map-chart__set-scope')).toBeNull()
   })
 })
 
-describe('lintje-map-tile error state', () => {
+describe('lintje-map error state', () => {
   it('is the compact warning, a live region: the load failed just now', async () => {
-    const element = await mapTile(tileData({ state: 'error', message: 'De kaart laadt niet.' }))
+    const element = await mountMap(tileData({ state: 'error', message: 'De kaart laadt niet.' }))
     const notice = element.renderRoot.querySelector<LintjeAnnouncement>(
       '.lintje-chart-state--error lintje-announcement',
     )
@@ -243,7 +243,7 @@ describe('lintje-map-tile error state', () => {
   })
 })
 
-describe('lintje-map-tile keyboard', () => {
+describe('lintje-map keyboard', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
   })
@@ -255,7 +255,7 @@ describe('lintje-map-tile keyboard', () => {
   })
 
   it('makes a flow a button with its route and figure, Enter choosing it', async () => {
-    const element = await mapTile(FLOWS)
+    const element = await mountMap(FLOWS)
     const flow = point(element, 'ein')
     expect(flow.getAttribute('role')).toBe('button')
     expect(flow.getAttribute('tabindex')).toBe('0')
@@ -267,25 +267,25 @@ describe('lintje-map-tile keyboard', () => {
   })
 
   it('keeps a flow chosen by a click: the click on the map around it does not clear it', async () => {
-    const element = await mapTile(FLOWS)
+    const element = await mountMap(FLOWS)
     await click(element, point(element, 'ein'))
     expect(point(element, 'ein').getAttribute('aria-pressed')).toBe('true')
   })
 
   it('names the map a group around its buttons, not an image', async () => {
-    const element = await mapTile(tileData())
+    const element = await mountMap(tileData())
     const svg = element.renderRoot.querySelector('.lintje-map-chart__svg')
     expect(svg?.getAttribute('role')).toBe('group')
     expect(svg?.getAttribute('aria-labelledby')).toMatch(/-desc$/)
   })
 
   it('draws a focus ring behind every point, apart from its shape', async () => {
-    const element = await mapTile(tileData())
+    const element = await mountMap(tileData())
     expect(point(element, 'ein').querySelector('.lintje-map-chart__point-ring')).not.toBeNull()
   })
 
   it('brings a focused mark outside the zoomed view into it, and home again', async () => {
-    const element = await mapTile(tileData())
+    const element = await mountMap(tileData())
     const zoom = async (label: string) => {
       const buttons = element.renderRoot.querySelectorAll<HTMLButtonElement>(
         '.lintje-map-chart__zoom-button',
@@ -336,7 +336,7 @@ const ZONES: MapValue[] = [
   { id: 'west', label: 'Zone west', value: null, polygon: ring(4.2, 51.6, 4.6, 51.9) },
 ]
 
-describe('lintje-map-tile polygons', () => {
+describe('lintje-map polygons', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
   })
@@ -344,7 +344,7 @@ describe('lintje-map-tile polygons', () => {
   const POLYGONS = tileData({ variant: 'polygons', unit: 'meldingen', values: ZONES })
 
   it('draws an area per ring in the classes, and hatches one without a figure', async () => {
-    const element = await mapTile(POLYGONS)
+    const element = await mountMap(POLYGONS)
     const shape = (id: string) =>
       point(element, id).querySelector('.lintje-map-chart__polygon-shape')
     expect(shape('oost')?.getAttribute('fill')).toBe('var(--color-chart-seq-5)')
@@ -359,7 +359,7 @@ describe('lintje-map-tile polygons', () => {
   })
 
   it('makes every area a button with its name and figure, and a ring behind it', async () => {
-    const element = await mapTile(POLYGONS)
+    const element = await mountMap(POLYGONS)
     const area = point(element, 'oost')
     expect(area.getAttribute('role')).toBe('button')
     expect(area.getAttribute('tabindex')).toBe('0')
@@ -371,7 +371,7 @@ describe('lintje-map-tile polygons', () => {
   })
 
   it('selects an area and undoes it, by mouse and by Enter', async () => {
-    const element = await mapTile(POLYGONS)
+    const element = await mountMap(POLYGONS)
     await click(element, point(element, 'oost'))
     expect(panel(element)?.textContent).toContain('Zone oost')
     expect(panel(element)?.textContent).toContain('12 meldingen')
@@ -384,7 +384,7 @@ describe('lintje-map-tile polygons', () => {
   })
 
   it("shows the choropleth's scale in the legend", async () => {
-    const element = await mapTile(POLYGONS)
+    const element = await mountMap(POLYGONS)
     const legend = element.renderRoot.querySelector('.lintje-map-chart__legend')
     expect(legend?.querySelector('.lintje-map-chart__scale')).not.toBeNull()
     expect(legend?.textContent).toContain('0 – 12 meldingen')
@@ -392,13 +392,13 @@ describe('lintje-map-tile polygons', () => {
   })
 })
 
-describe('lintje-map-tile plots', () => {
+describe('lintje-map plots', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
     vi.mocked(downloadCsv).mockClear()
   })
 
-  const plots = (): MapTileViewData =>
+  const plots = (): MapData =>
     tileData({
       variant: 'plots',
       values: [],
@@ -434,7 +434,7 @@ describe('lintje-map-tile plots', () => {
     })
 
   it('draws every layer in order, the first at the bottom, and the keyboard follows it', async () => {
-    const element = await mapTile(plots())
+    const element = await mountMap(plots())
     const ids = [...element.renderRoot.querySelectorAll('[data-mark-id]')].map((mark) =>
       mark.getAttribute('data-mark-id'),
     )
@@ -442,7 +442,7 @@ describe('lintje-map-tile plots', () => {
     // Turned round, the points lie under the areas.
     const data = plots()
     data.plots!.reverse()
-    const turned = await mapTile(data)
+    const turned = await mountMap(data)
     expect(
       [...turned.renderRoot.querySelectorAll('[data-mark-id]')].map((mark) =>
         mark.getAttribute('data-mark-id'),
@@ -451,7 +451,7 @@ describe('lintje-map-tile plots', () => {
   })
 
   it('keeps one selection across the layers, each figure in the unit of its own layer', async () => {
-    const element = await mapTile(plots())
+    const element = await mountMap(plots())
     await click(element, point(element, 'oost'))
     expect(panel(element)?.textContent).toContain('12 meldingen')
     await click(element, point(element, 'utr'))
@@ -462,7 +462,7 @@ describe('lintje-map-tile plots', () => {
   })
 
   it('gives every layer a legend line with its glyph, and says "geen gegevens" once', async () => {
-    const element = await mapTile(plots())
+    const element = await mountMap(plots())
     const content = element.renderRoot.querySelector('.lintje-map-chart__legend-content')!
     expect(content.classList.contains('lintje-map-chart__legend-content--plots')).toBe(true)
     const rows = [...content.querySelectorAll('.lintje-map-chart__legend-row')].map((row) =>
@@ -483,7 +483,7 @@ describe('lintje-map-tile plots', () => {
       delete plot.label
     }
     data.unit = ''
-    const element = await mapTile(data)
+    const element = await mountMap(data)
     const rows = [...element.renderRoot.querySelectorAll('.lintje-map-chart__legend-row')].map(
       (row) => row.textContent?.replace(/\s+/g, ' ').trim(),
     )
@@ -500,7 +500,7 @@ describe('lintje-map-tile plots', () => {
         { id: 'gro', label: 'Groningen', value: 3, lon: 6.57, lat: 53.21, series: 'sky-blue' },
       ],
     })
-    const element = await mapTile(data)
+    const element = await mountMap(data)
     const lines = element.renderRoot.querySelectorAll(
       '.lintje-map-chart__series-item:not(.lintje-map-chart__no-data)',
     )
@@ -508,7 +508,7 @@ describe('lintje-map-tile plots', () => {
   })
 
   it('writes a column Laag in the CSV, each layer with its unit when they differ', async () => {
-    const element = await mapTile({ ...plots(), download: { filename: 'kaart' } })
+    const element = await mountMap({ ...plots(), download: { filename: 'kaart' } })
     element.renderRoot
       .querySelector('lintje-tile')!
       .dispatchEvent(new CustomEvent('lintje-tile-download', { bubbles: true }))
@@ -520,7 +520,7 @@ describe('lintje-map-tile plots', () => {
   })
 
   it('keeps the two columns of a one-variant map in its CSV', async () => {
-    const element = await mapTile({ ...tileData(), download: { filename: 'kaart' } })
+    const element = await mountMap({ ...tileData(), download: { filename: 'kaart' } })
     element.renderRoot
       .querySelector('lintje-tile')!
       .dispatchEvent(new CustomEvent('lintje-tile-download', { bubbles: true }))

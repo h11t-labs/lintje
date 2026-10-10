@@ -1,5 +1,5 @@
 /**
- * `<lintje-map-tile>` — a map in its tile. The map shows a new layer at once and expects the host
+ * `<lintje-map>` — a map in its tile. The map shows a new layer at once and expects the host
  * to confirm it in the next `data`. `tile.expandable` shows the same map again in the modal; the
  * modal's own events stop here.
  *
@@ -37,12 +37,12 @@ import skeletonCss from '../../../primitives/skeleton/skeleton.css?inline'
 import tileHostCss from '../../shared/view-tile.css?inline'
 import '../../feedback/announcement/announcement'
 import '../../../primitives/tile/tile'
-import type { MapTileViewData } from '../../../types'
+import type { MapData } from '../../../types'
 
 const DESKTOP_HEIGHT = 400
 const MOBILE_HEIGHT = 220
 
-export class LintjeMapTile extends LintjeContentTileElement {
+export class LintjeMap extends LintjeContentTileElement {
   // `skeletonCss` carries `.lintje-skeleton`, the markup of `components/shared/charts/shared/chart-states.ts`.
   static override styles = [
     spanStyles,
@@ -58,7 +58,7 @@ export class LintjeMapTile extends LintjeContentTileElement {
     layer: { state: true },
   }
 
-  declare data?: MapTileViewData | null
+  declare data?: MapData | null
 
   /** The chosen layer, shown before the host confirms it. */
   declare layer?: string
@@ -185,7 +185,7 @@ export class LintjeMapTile extends LintjeContentTileElement {
   }
 
   private content(height: string): TemplateResult {
-    const data = this.data as MapTileViewData
+    const data = this.data as MapData
     switch (data.state ?? 'ready') {
       case 'loading':
         return renderChartSkeleton({ kind: 'map', height })
@@ -237,10 +237,10 @@ export class LintjeMapTile extends LintjeContentTileElement {
   }
 }
 
-define('lintje-map-tile', LintjeMapTile)
+define('lintje-map', LintjeMap)
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lintje-map-tile': LintjeMapTile
+    'lintje-map': LintjeMap
   }
 }

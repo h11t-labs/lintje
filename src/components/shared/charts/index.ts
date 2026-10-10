@@ -58,7 +58,7 @@ export type {
   BarSeriesData,
   ScatterPoint,
   ScatterSeriesData,
-  MapTileData,
+  MapSpec,
   MapValue,
   MapVariant,
   MapPlotData,
