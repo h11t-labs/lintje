@@ -68,6 +68,8 @@
         font: var(--text-ui);
         color: var(--color-text-primary);
       }
+      /* A wide specimen is a tile or a table, which frames itself: no second line around it. */
+      .guide__specimen--wide .guide__stage { padding: 0; border: 0; }
 
       /* What a specimen may lay its parts out with. */
       .guide__row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }

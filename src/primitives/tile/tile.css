@@ -56,7 +56,12 @@
 .lintje-tile__heading--icon .lintje-tile__sub { grid-column: 2; }
 .lintje-tile__title { font: var(--text-tile-title); color: var(--color-text-primary); }
 .lintje-tile__sub { font: var(--text-tile-sub); color: var(--color-text-muted); margin-top: 2px; }
-.lintje-tile__actions { display: flex; gap: var(--space-2); flex: none; }
+/* The actions are 40 px icon buttons beside a title of one line: they stand out above and below
+   it, so the head is the title's height and a tile without a subtitle keeps no empty band. */
+.lintje-tile__actions {
+  display: flex; gap: var(--space-2); flex: none;
+  margin-block: calc(var(--space-2) * -1);
+}
 /* Expand and download appear only while the tile is hovered or holds keyboard focus; without
    hover they stay visible. The tile only hides the action; how the visible action looks is the
    icon button's own. */

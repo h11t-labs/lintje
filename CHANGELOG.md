@@ -66,6 +66,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   bronvermelding van een ondergrond staat in de eigen tekstkleuren, ook in donker. (#16)
 - **Het menu zet je vast met een punaise** (`functioneel-punaise`, open als
   `functioneel-punaise-outline`) in plaats van met een bladwijzer. (#16)
+- De actieknoppen van een tegel (vergroten, downloaden) steken boven en onder de titelregel uit,
+  zodat de kop van een tegel zonder ondertitel niet hoger is dan haar titel. In de stijlgids
+  staat om een brede specimen — een tegel of tabel, die zichzelf omlijst — geen tweede lijn. (#16)
 
 ## [0.1.1] - 2026-10-09
 
