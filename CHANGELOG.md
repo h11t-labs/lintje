@@ -10,6 +10,11 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+### Toegevoegd
+
+- Een lijngrafiek toont gebeurtenissen (`events`): een genummerd vierkantje boven de categorie,
+  met de tekst in een lijst onder de grafiek, in de tooltip, de tabel en de CSV. (#12)
+
 ## [0.1.1] - 2026-10-09
 
 ### Gewijzigd
