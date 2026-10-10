@@ -4,7 +4,8 @@
  */
 import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
-import { axisColumn, axisScale, plotWidth, yPosition } from '../shared/scale'
+import { axisColumn, axisScale, plotWidth, yPosition, type PlotArea } from '../shared/scale'
+import { lengthPx } from '../../../../core/length'
 import { formatNumber, textWidth } from '../../../../core/format'
 import { chartColor, lineCasing } from '../shared/colors'
 import { markPath, SERIES_KEYS, isSeriesKey, type SeriesKey } from '../shared/series-shapes'
@@ -22,6 +23,71 @@ const HOVER_RADIUS = 5.5
 // The x title takes one more row of axis text under the labels.
 const BOTTOM = 44
 const LABEL_GAP = 8
+
+interface DataLabel {
+  label: string
+  x: number
+  y: number
+  anchor: 'start' | 'end'
+}
+
+interface Box {
+  left: number
+  right: number
+  top: number
+  bottom: number
+}
+
+const overlaps = (a: Box, b: Box) =>
+  a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
+
+/**
+ * The named points' labels, above-left of their point or above-right where the left has no
+ * room. A label must stay in the drawing, clear of the other labels and of every other point;
+ * when one cannot, none shows (all or nothing).
+ */
+export function placeDataLabels(
+  points: { label: string; x: number; y: number }[],
+  names: string[],
+  area: PlotArea,
+  fontFamily: string,
+): DataLabel[] {
+  const reach = RADIUS + 1
+  const placed: (DataLabel & Box)[] = []
+  for (const [i, point] of points.entries()) {
+    if (!names.includes(point.label)) continue
+    const width = textWidth(point.label, fontFamily, 700)
+    const baseline = point.y - 9
+    const top = baseline - 12
+    const bottom = baseline + 3
+    const sides = [
+      { anchor: 'end' as const, x: point.x - LABEL_GAP, left: point.x - LABEL_GAP - width },
+      { anchor: 'start' as const, x: point.x + LABEL_GAP, left: point.x + LABEL_GAP },
+    ]
+    const fit = sides
+      .map((side) => ({ ...side, right: side.left + width, top, bottom }))
+      .find(
+        (box) =>
+          box.left >= area.left &&
+          box.right <= area.width - area.right &&
+          box.top >= 0 &&
+          placed.every((other) => !overlaps(box, other)) &&
+          points.every(
+            (other, j) =>
+              j === i ||
+              !overlaps(box, {
+                left: other.x - reach,
+                right: other.x + reach,
+                top: other.y - reach,
+                bottom: other.y + reach,
+              }),
+          ),
+      )
+    if (!fit) return []
+    placed.push({ ...fit, label: point.label, y: baseline })
+  }
+  return placed.map(({ label, x, y, anchor }) => ({ label, x, y, anchor }))
+}
 
 const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
 
@@ -117,29 +183,65 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
   })
   const keys = plotKeys(controller, points.length, (i) => ({ ...at(i), content: contentAt(i) }))
 
-  // The point carries its href, the way a table row does; without an id the label is its identity.
-  const links = points.map(({ point }) =>
-    point.href ? { id: point.id ?? point.label, href: point.href } : null,
+  // The point carries its href, the way a table row does. Without an id its series and label
+  // are its identity, so a name in two series is two points.
+  const links = points.map(({ point, row }) =>
+    point.href ? { id: point.id ?? `${row.label} · ${point.label}`, href: point.href } : null,
   )
   const selection = markSelection(options, links)
+  const marks = points.map(({ point }, i) =>
+    selection.of(links[i], point.label, tooltipSentence(contentAt(i))),
+  )
 
-  // The named points' labels stand above-left of the point, or above-right where the left has no
-  // room; when one fits neither, none shows (all or nothing).
-  const named = points
-    .map((entry, i) => ({ ...entry, ...at(i) }))
-    .filter(({ point }) => spec.dataLabels?.includes(point.label))
-    .map((entry) => {
-      const width = textWidth(entry.point.label, controller.fontFamily)
-      const left = entry.x - LABEL_GAP - width >= area.left
-      const right = entry.x + LABEL_GAP + width <= area.width - area.right
-      return { ...entry, fits: (left || right) && entry.y - 21 >= 0, side: left ? 'left' : 'right' }
-    })
-  const dataLabels = named.every((label) => label.fits) ? named : []
+  const dataLabels = placeDataLabels(
+    points.map((entry, i) => ({ label: entry.point.label, ...at(i) })),
+    spec.dataLabels ?? [],
+    area,
+    controller.fontFamily,
+  )
 
   const thresholdY = threshold != null ? yPosition(threshold, y.max, area) : 0
   const hovered = controller.hoverIndex != null ? points[controller.hoverIndex] : undefined
 
-  const marks: SvgSlot = [
+  /*
+   * One listener for the whole drawing: the drawn mark under the pointer is that point, and
+   * elsewhere the nearest point within half of --h-target is, so a small point is a full
+   * target without a neighbour's target covering it.
+   */
+  const pick = (event: MouseEvent): number | null => {
+    const drawn = (event.target as Element).closest?.('[data-point]')
+    if (drawn) return Number(drawn.getAttribute('data-point'))
+    const group = event.currentTarget as SVGGElement
+    const box = group.ownerSVGElement?.getBoundingClientRect()
+    const scale = box && box.width > 0 ? area.width / box.width : 1
+    const px = (event.clientX - (box?.left ?? 0)) * scale
+    const py = (event.clientY - (box?.top ?? 0)) * scale
+    const reach = lengthPx(group, '--h-target', 48) / 2
+    let nearest: number | null = null
+    let distance = reach
+    points.forEach((_, i) => {
+      const { x: cx, y: cy } = at(i)
+      const d = Math.hypot(cx - px, cy - py)
+      if (d <= distance) {
+        nearest = i
+        distance = d
+      }
+    })
+    return nearest
+  }
+  const pointer = (event: MouseEvent) => {
+    const i = pick(event)
+    if (i != null) controller.hoverAt(i, event, contentAt(i))
+    else if (controller.hoverIndex != null || controller.tooltip) controller.hoverAt(null)
+  }
+  const click = (event: MouseEvent) => {
+    const i = pick(event)
+    const mark = i != null ? marks[i] : null
+    if (mark?.clickable && mark.click !== nothing) mark.click()
+  }
+  const pointing = hovered != null && marks[controller.hoverIndex!]?.clickable
+
+  const drawing: SvgSlot = [
     threshold != null
       ? svg`
         <line x1=${area.left} x2=${area.width - area.right} y1=${thresholdY} y2=${thresholdY}
@@ -151,51 +253,50 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
       `
       : nothing,
 
-    svg`<g class="lintje-chart__reveal">
-      ${points.map(({ point, row }, i) => {
-        const { x: cx, y: cy } = at(i)
-        const casing = lineCasing(row.color)
-        const mark = selection.of(links[i], point.label, tooltipSentence(contentAt(i)))
-        // The 1 px edge in the surface keeps overlapping points apart; dark yellow takes its
-        // text colour there, as its line does.
-        return svg`
-          <!-- The click sits on the group, so the transparent target of --h-target takes it
-               too; where neighbours overlap, the later point's target wins. -->
-          <g @mousemove=${(event: MouseEvent) => controller.hoverAt(i, event, contentAt(i))}
-             @mouseleave=${() => controller.hoverAt(null)}
-             @click=${mark.click}>
-            <circle class="lintje-chart__hit ${mark.clickable ? 'is-clickable' : ''}" cx=${cx} cy=${cy} />
+    svg`<g @mousemove=${pointer} @mouseleave=${() => controller.hoverAt(null)} @click=${click}>
+      <rect class="lintje-chart__hit ${pointing ? 'is-clickable' : ''}"
+            x="0" y="0" width=${area.width} height=${area.height} />
+      <g class="lintje-chart__reveal">
+        ${points.map(({ row }, i) => {
+          const { x: cx, y: cy } = at(i)
+          const casing = lineCasing(row.color)
+          const mark = marks[i]
+          // The 1 px edge in the surface keeps overlapping points apart; dark yellow takes its
+          // text colour there, as its line does.
+          return svg`
             <path class="lintje-chart__mark ${casing ? '' : 'lintje-chart__segment'} ${mark.state}"
                   d=${markPath(row.symbol, RADIUS, cx, cy)} fill=${row.color}
                   stroke=${casing ?? nothing} stroke-width=${casing ? 1 : nothing}
+                  data-point=${i}
                   data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
                   aria-pressed=${mark.pressed} aria-label=${mark.label}
                   @keydown=${mark.keydown} />
-          </g>
-        `
-      })}
-    </g>`,
+          `
+        })}
+      </g>
 
-    dataLabels.map(
-      (label) => svg`
-        <text x=${label.side === 'left' ? label.x - LABEL_GAP : label.x + LABEL_GAP} y=${label.y - 9}
-              text-anchor=${label.side === 'left' ? 'end' : 'start'}
-              class="lintje-chart__data-label lintje-chart__data-label--halo">${label.point.label}</text>
-      `,
-    ),
+      ${dataLabels.map(
+        (label) => svg`
+          <text x=${label.x} y=${label.y} text-anchor=${label.anchor}
+                class="lintje-chart__data-label lintje-chart__data-label--halo">${label.label}</text>
+        `,
+      )}
 
-    // The point under the pointer or the keyboard, raised with a ring in the surface.
-    hovered
-      ? (() => {
-          const { x: cx, y: cy } = at(controller.hoverIndex!)
-          const casing = lineCasing(hovered.row.color)
-          const d = markPath(hovered.row.symbol, HOVER_RADIUS, cx, cy)
-          return svg`
+      <!-- The point under the pointer or the keyboard, raised with a ring in the surface. -->
+      ${
+        hovered
+          ? (() => {
+              const { x: cx, y: cy } = at(controller.hoverIndex!)
+              const casing = lineCasing(hovered.row.color)
+              const d = markPath(hovered.row.symbol, HOVER_RADIUS, cx, cy)
+              return svg`
             <path class="lintje-chart__hover-point" d=${d} fill=${hovered.row.color} />
             ${casing ? svg`<path class="lintje-chart__hover-casing" d=${d} stroke=${casing} />` : nothing}
           `
-        })()
-      : nothing,
+            })()
+          : nothing
+      }
+    </g>`,
   ]
 
   return html`
@@ -218,7 +319,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
           interactive: selection.interactive,
           keys,
         },
-        marks,
+        drawing,
       )}
       ${renderTooltip(controller)}
       ${renderPlotStatus(controller)}

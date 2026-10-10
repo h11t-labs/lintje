@@ -91,6 +91,8 @@ export function renderLegend({
   `
 }
 
+type XAnchor = 'start' | 'middle' | 'end'
+
 export interface ChartFrameOptions {
   area?: PlotArea
   ticks: number[]
@@ -98,7 +100,7 @@ export interface ChartFrameOptions {
   /** Unit above the axis, e.g. "Afgehandelde aanvragen". */
   axisTitle?: string
   /** `anchor` defaults to the middle; the last label of a value axis ends at the plot's edge. */
-  xLabels?: { label: string; x: number; anchor?: 'start' | 'middle' | 'end' }[]
+  xLabels?: { label: string; x: number; anchor?: XAnchor }[]
   /** The title of a value axis along the bottom, under its labels at the right. */
   xTitle?: string
   /** Description for screen readers; replaces the chart in the accessibility tree. */
@@ -156,19 +158,29 @@ const X_LABEL_DROP = 20
 
 /**
  * The x labels that fit: every one while no two neighbours touch, otherwise every second,
- * third, … from the first on. Neighbours are measured pair by pair, so one long name beside
- * a short one can fit where equal day labels do not.
+ * third, … from the first on. Neighbours are measured pair by pair, each where its anchor puts
+ * it, so one long name beside a short one can fit where equal day labels do not.
  */
-export function thinLabels<T extends { label: string; x: number }>(
+export function thinLabels<T extends { label: string; x: number; anchor?: XAnchor }>(
   labels: T[],
   fontFamily = '',
 ): T[] {
   if (labels.length < 2) return labels
-  const widths = labels.map((label) => textWidth(label.label, fontFamily))
+  const spans = labels.map((label) => {
+    const width = textWidth(label.label, fontFamily)
+    const left =
+      label.anchor === 'end'
+        ? label.x - width
+        : label.anchor === 'start'
+          ? label.x
+          : label.x - width / 2
+    return { left, right: left + width }
+  })
   const fits = (stride: number): boolean => {
     for (let i = 0; i + stride < labels.length; i += stride) {
-      const room = Math.abs(labels[i + stride].x - labels[i].x)
-      if ((widths[i] + widths[i + stride]) / 2 + X_LABEL_GAP > room) return false
+      const a = spans[i]
+      const b = spans[i + stride]
+      if (Math.max(b.left - a.right, a.left - b.right) < X_LABEL_GAP) return false
     }
     return true
   }

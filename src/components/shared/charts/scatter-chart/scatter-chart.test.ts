@@ -20,6 +20,8 @@ function draw(spec: ScatterSpec, extra: Partial<ChartOptions> = {}) {
     ...extra,
   }
   render(renderScatterChart(spec, options), host)
+  // Once more at the width the first render measured, as the ResizeObserver would.
+  options.controller.requestUpdate()
   return { host, controller: options.controller }
 }
 
@@ -42,6 +44,19 @@ const SPEC: ScatterSpec = {
 }
 
 const points = (host: Element) => [...host.querySelectorAll('path.lintje-chart__mark')]
+
+/** The centre of a circle mark, from its path (`M cx-r cy a …`); happy-dom lays nothing out. */
+function centre(mark: Element): [number, number] {
+  const [x, y] = (mark.getAttribute('d') ?? '').slice(2).split(' ').map(Number)
+  return [x + 4.5, y]
+}
+
+/** A pointer event on the drawing's one target; its box is at 0, 0, so client is drawing. */
+function hit(host: Element, type: string, clientX: number, clientY: number): void {
+  host
+    .querySelector('.lintje-chart__hit')!
+    .dispatchEvent(new MouseEvent(type, { bubbles: true, clientX, clientY }))
+}
 
 afterEach(() => {
   document.body.innerHTML = ''
@@ -144,11 +159,104 @@ describe('the scatter plot', () => {
     expect(button.getAttribute('aria-label')).toBe('Utrecht: Loket, Aanvragen 1, Wachttijd 2 min')
     button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(onSelect).toHaveBeenCalledWith({ id: 'utr', label: 'Utrecht', href: '?loket=utr' })
-    // The transparent target around it, of --h-target, takes the click as well.
-    const target = host.querySelector('.lintje-chart__hit') as SVGElement
-    expect(target.classList.contains('is-clickable')).toBe(true)
-    target.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    // Beside it, within half of --h-target, the drawing's one target takes the click for it.
+    const [cx, cy] = centre(button)
+    hit(host, 'click', cx + 12, cy)
     expect(onSelect).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps a point its own where it is drawn, and gives the space between to the nearest', () => {
+    const onSelect = vi.fn()
+    const { host } = draw(
+      {
+        ...SPEC,
+        series: [
+          {
+            label: 'Loket',
+            points: [
+              { label: 'Breda', x: 100, y: 5, href: '?loket=bda' },
+              { label: 'Zwolle', x: 112, y: 5, href: '?loket=zwo' },
+            ],
+          },
+        ],
+      },
+      { onSelect },
+    )
+    const [breda, zwolle] = points(host)
+    const [bx, by] = centre(breda)
+    const [zx] = centre(zwolle)
+    expect(zx - bx).toBeGreaterThan(9)
+    expect(zx - bx).toBeLessThan(24)
+    const title = () => host.querySelector('.lintje-chart-tooltip__title')?.textContent
+
+    // On the drawn mark, that mark; Zwolle's reach does not cover Breda.
+    breda.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: bx, clientY: by }))
+    expect(title()).toBe('Breda')
+    breda.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    expect(onSelect).toHaveBeenLastCalledWith(expect.objectContaining({ label: 'Breda' }))
+
+    // Between and around them, the nearest.
+    hit(host, 'mousemove', bx - 10, by)
+    expect(title()).toBe('Breda')
+    hit(host, 'mousemove', zx + 10, by)
+    expect(title()).toBe('Zwolle')
+    hit(host, 'click', zx + 10, by)
+    expect(onSelect).toHaveBeenLastCalledWith(expect.objectContaining({ label: 'Zwolle' }))
+
+    // Beyond half of --h-target, nothing.
+    hit(host, 'mousemove', bx, by + 40)
+    expect(title()).toBeUndefined()
+  })
+
+  it('tells a name in two series apart without an id', () => {
+    const onSelect = vi.fn()
+    const { host } = draw(
+      {
+        ...SPEC,
+        series: [
+          { label: 'Loket', points: [{ label: 'Utrecht', x: 1, y: 2, href: '?a' }] },
+          { label: 'Servicepunt', points: [{ label: 'Utrecht', x: 5, y: 2, href: '?b' }] },
+        ],
+      },
+      { onSelect },
+    )
+    const ids = points(host).map((point) => point.getAttribute('data-mark-id'))
+    expect(ids).toEqual(['Loket · Utrecht', 'Servicepunt · Utrecht'])
+  })
+
+  it('shows no labels where two named labels, or a label and a point, would meet', () => {
+    const close: ScatterSpec = {
+      ...SPEC,
+      series: [
+        {
+          label: 'Loket',
+          points: [
+            { label: 'Breda', x: 100, y: 5 },
+            { label: 'Zwolle', x: 103, y: 5.2 },
+            { label: 'Delft', x: 60, y: 9 },
+          ],
+        },
+      ],
+    }
+    const labels = (host: Element) => host.querySelectorAll('.lintje-chart__data-label')
+    expect(labels(draw({ ...close, dataLabels: ['Breda', 'Zwolle'] }).host)).toHaveLength(0)
+    document.body.innerHTML = ''
+    expect(labels(draw({ ...close, dataLabels: ['Delft'] }).host)).toHaveLength(1)
+    document.body.innerHTML = ''
+    // Gouda stands just above-left of Breda, where Breda's label would go; right is no room.
+    const covered: ScatterSpec = {
+      ...SPEC,
+      series: [
+        {
+          label: 'Loket',
+          points: [
+            { label: 'Breda', x: 100, y: 5 },
+            { label: 'Gouda', x: 90, y: 5.3 },
+          ],
+        },
+      ],
+    }
+    expect(labels(draw({ ...covered, dataLabels: ['Breda'] }).host)).toHaveLength(0)
   })
 
   it('edges a dark-yellow hover point with a class, so forced colours keep it', () => {
