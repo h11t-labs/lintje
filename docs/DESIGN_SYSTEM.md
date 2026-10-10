@@ -577,6 +577,8 @@ naar een volgende regel; ze overlappen nooit.
   doet.
 - **Data tekent één keer in**, als de grafiek in beeld komt; terugscrollen speelt het niet
   opnieuw af.
+- **Punten groeien één voor één uit hun midden**, op de kaart en in een spreidingsdiagram, met de
+  timing van de staven; een referentielijn komt daarna in, met haar label.
 - **Een keuze beweegt mee**: het vinkje van een checkbox groeit in bij aanvinken en krimpt weg bij
   uitvinken, op de duur van hoverfeedback.
 - **De focusring is nooit geanimeerd.**

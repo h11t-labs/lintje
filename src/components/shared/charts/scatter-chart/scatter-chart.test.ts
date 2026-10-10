@@ -43,7 +43,9 @@ const SPEC: ScatterSpec = {
   ],
 }
 
-const points = (host: Element) => [...host.querySelectorAll('path.lintje-chart__mark')]
+const points = (host: Element) => [
+  ...host.querySelectorAll('path.lintje-chart__mark:not(.is-hidden)'),
+]
 
 /** The centre of a circle mark, from its path (`M cx-r cy a …`); happy-dom lays nothing out. */
 function centre(mark: Element): [number, number] {
@@ -98,6 +100,34 @@ describe('the scatter plot', () => {
     expect(host.querySelector('.lintje-legend__marker--dashed')).not.toBeNull()
     ;(buttons[0] as HTMLButtonElement).click()
     expect(points(host)).toHaveLength(1)
+  })
+
+  it('keeps every point its node under the pointer, the arrow keys and the legend', () => {
+    const { host } = draw({ ...SPEC, threshold: 10 })
+    const nodes = () => [...host.querySelectorAll('path.lintje-chart__point')]
+    const before = nodes()
+    expect(before).toHaveLength(3)
+    // In the order of x, each with its place in the draw-in.
+    expect(
+      before.map((node) => (node as SVGElement).style.getPropertyValue('--lintje-stagger')),
+    ).toEqual(['0', '0.5', '1'])
+    const drawing = host.querySelector('svg[tabindex="0"]') as SVGSVGElement
+    drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
+    points(host)[1].dispatchEvent(new MouseEvent('mousemove', { bubbles: true }))
+    const legend = host.querySelectorAll<HTMLButtonElement>('.lintje-legend__button')
+    legend[0].click()
+    expect(nodes()).toEqual(before)
+    expect(nodes().filter((node) => node.classList.contains('is-hidden'))).toHaveLength(2)
+    legend[0].click()
+    expect(nodes()).toEqual(before)
+    expect(points(host)).toHaveLength(3)
+  })
+
+  it('brings the norm in with its label, as a reference', () => {
+    const { host } = draw({ ...SPEC, threshold: 10 })
+    const reference = host.querySelector('.lintje-chart__reference')
+    expect(reference?.querySelector('line[stroke-dasharray="3 3"]')).not.toBeNull()
+    expect(reference?.textContent).toContain('norm 10 min')
   })
 
   it('draws the norm dashed, with its value and unit', () => {

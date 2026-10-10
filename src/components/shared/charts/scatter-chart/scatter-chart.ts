@@ -4,6 +4,9 @@
  */
 import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
+import { repeat } from 'lit/directives/repeat.js'
+import { styleProps } from '../../../../core/style-props'
+import { staggerStyle } from '../shared/stagger'
 import { axisColumn, axisScale, plotWidth, yPosition, type PlotArea } from '../shared/scale'
 import { lengthPx } from '../../../../core/length'
 import { formatNumber, textWidth } from '../../../../core/format'
@@ -120,19 +123,23 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
 
   const styles = seriesStyles(spec)
   const series = spec.series.map((row, i) => ({ ...row, ...styles[i] }))
-  const visible = series.filter((row) => !controller.hiddenSeries.includes(row.label))
+  const hidden = (row: { label: string }) => controller.hiddenSeries.includes(row.label)
 
-  // One list in the order of x drives the marks, the pointer and the arrow keys.
-  const points = visible
-    .flatMap((row) =>
+  // Every point with both values, in the order of x: each keeps its node and its place in the
+  // draw-in whatever the legend hides, so a switch does not grow it again.
+  const drawable = series
+    .flatMap((row, s) =>
       row.points
+        .map((point, p) => ({ point, row, key: `${s}:${p}` }))
         .filter(
-          (point): point is ScatterPoint & { x: number; y: number } =>
-            point.x != null && point.y != null,
-        )
-        .map((point) => ({ point, row })),
+          (entry): entry is typeof entry & { point: ScatterPoint & { x: number; y: number } } =>
+            entry.point.x != null && entry.point.y != null,
+        ),
     )
     .sort((a, b) => a.point.x - b.point.x || a.point.y - b.point.y)
+  // The shown ones drive the scales, the pointer and the arrow keys.
+  const points = drawable.filter(({ row }) => !hidden(row))
+  const indexOf = new Map(points.map((entry, i) => [entry.key, i]))
 
   const x = axisScale(Math.max(...points.map(({ point }) => point.x), 1), options.mobile ? 3 : 6)
   const y = axisScale(Math.max(...points.map(({ point }) => point.y), threshold ?? 0, 1))
@@ -152,7 +159,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
       color: row.color,
       shape: 'point' as const,
       symbol: row.symbol,
-      hidden: controller.hiddenSeries.includes(row.label),
+      hidden: hidden(row),
     })),
     ...(threshold != null
       ? [
@@ -177,10 +184,11 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
       ],
     }
   }
-  const at = (i: number) => ({
-    x: xPosition(points[i].point.x),
-    y: yPosition(points[i].point.y, y.max, area),
+  const place = (point: { x: number; y: number }) => ({
+    x: xPosition(point.x),
+    y: yPosition(point.y, y.max, area),
   })
+  const at = (i: number) => place(points[i].point)
   const keys = plotKeys(controller, points.length, (i) => ({ ...at(i), content: contentAt(i) }))
 
   // The point carries its href, the way a table row does. Without an id its series and label
@@ -242,37 +250,47 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
   const pointing = hovered != null && marks[controller.hoverIndex!]?.clickable
 
   const drawing: SvgSlot = [
+    // The norm comes in with its label once the points are drawn.
     threshold != null
       ? svg`
-        <line x1=${area.left} x2=${area.width - area.right} y1=${thresholdY} y2=${thresholdY}
-              stroke="var(--color-chart-emphasis)" stroke-width="1" stroke-dasharray="3 3" />
-        <text x=${area.left + 6} y=${thresholdY - 6}
-              class="lintje-chart__axis-label lintje-chart__axis-label--halo">
-          ${thresholdLabel ?? `norm ${withUnit(threshold, unit)}`}
-        </text>
+        <g class="lintje-chart__reference">
+          <line x1=${area.left} x2=${area.width - area.right} y1=${thresholdY} y2=${thresholdY}
+                stroke="var(--color-chart-emphasis)" stroke-width="1" stroke-dasharray="3 3" />
+          <text x=${area.left + 6} y=${thresholdY - 6}
+                class="lintje-chart__axis-label lintje-chart__axis-label--halo">
+            ${thresholdLabel ?? `norm ${withUnit(threshold, unit)}`}
+          </text>
+        </g>
       `
       : nothing,
 
     svg`<g @mousemove=${pointer} @mouseleave=${() => controller.hoverAt(null)} @click=${click}>
       <rect class="lintje-chart__hit ${pointing ? 'is-clickable' : ''}"
             x="0" y="0" width=${area.width} height=${area.height} />
-      <g class="lintje-chart__reveal">
-        ${points.map(({ row }, i) => {
-          const { x: cx, y: cy } = at(i)
-          const casing = lineCasing(row.color)
-          const mark = marks[i]
-          // The 1 px edge in the surface keeps overlapping points apart; dark yellow takes its
-          // text colour there, as its line does.
-          return svg`
-            <path class="lintje-chart__mark ${casing ? '' : 'lintje-chart__segment'} ${mark.state}"
-                  d=${markPath(row.symbol, RADIUS, cx, cy)} fill=${row.color}
-                  stroke=${casing ?? nothing} stroke-width=${casing ? 1 : nothing}
-                  data-point=${i}
-                  data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
-                  aria-pressed=${mark.pressed} aria-label=${mark.label}
-                  @keydown=${mark.keydown} />
-          `
-        })}
+      <g>
+        ${repeat(
+          drawable,
+          (entry) => entry.key,
+          ({ point, row, key }, rank) => {
+            const { x: cx, y: cy } = place(point)
+            const casing = lineCasing(row.color)
+            const i = indexOf.get(key)
+            const mark = i != null ? marks[i] : undefined
+            // The 1 px edge in the surface keeps overlapping points apart; dark yellow takes its
+            // text colour there, as its line does. A hidden series' point stays, unseen.
+            return svg`
+              <path class="lintje-chart__point lintje-chart__mark ${casing ? '' : 'lintje-chart__segment'} ${mark?.state ?? 'is-hidden'}"
+                    ${styleProps(staggerStyle(rank, drawable.length))}
+                    d=${markPath(row.symbol, RADIUS, cx, cy)} fill=${row.color}
+                    stroke=${casing ?? nothing} stroke-width=${casing ? 1 : nothing}
+                    data-point=${i ?? nothing}
+                    data-mark-id=${mark?.markId ?? nothing} role=${mark?.role ?? nothing}
+                    tabindex=${mark?.tabIndex ?? nothing}
+                    aria-pressed=${mark?.pressed ?? nothing} aria-label=${mark?.label ?? nothing}
+                    @keydown=${mark?.keydown ?? nothing} />
+            `
+          },
+        )}
       </g>
 
       ${dataLabels.map(
