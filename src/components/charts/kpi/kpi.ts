@@ -50,14 +50,6 @@ const ACCENT: Record<KpiVariable, string> = {
   coverage: 'var(--color-text-muted)',
 }
 
-// The area under the sparkline: the variable's lightest tint; gray has no ladder.
-const SPARKLINE_FILL: Record<KpiVariable, string> = {
-  ...(Object.fromEntries(
-    DATA_COLORS.map((color) => [color, `var(--color-chart-${color}-tint-5)`]),
-  ) as Record<DataColor, string>),
-  coverage: 'var(--color-bg-subtle)',
-}
-
 // The sparkline's box before it is measured (no ResizeObserver), in px.
 const SPARKLINE_FALLBACK = { width: 200, height: 32 }
 // Room inside the box for the stroke and the end point.
@@ -394,7 +386,7 @@ export class LintjeKpi extends LintjeGridItemElement {
     return html`<div
       class=${classMap({ 'lintje-kpi__sparkline': true, 'is-drawn': this.drawn })}
       ${ref(this.observeSparkline)}
-      ${styleProps({ color: ACCENT[this.variable], '--kpi-sparkline-fill': SPARKLINE_FILL[this.variable] })}
+      ${styleProps({ color: ACCENT[this.variable] })}
     >
       <svg
         class="lintje-kpi__sparkline-svg"
