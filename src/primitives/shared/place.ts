@@ -4,7 +4,14 @@
  * Shared by the popover and the tooltip.
  */
 
-export type Placement = 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end' | 'top-center'
+export type Placement =
+  | 'bottom-start'
+  | 'bottom-end'
+  | 'top-start'
+  | 'top-end'
+  | 'top-center'
+  | 'left-center'
+  | 'left-start'
 
 /** `bottom` is set instead of `top` when the box stands above the anchor. */
 export interface Place {
@@ -33,6 +40,22 @@ export function place(
   placement: Placement = 'bottom-start',
   gap: number = 6,
 ): Place {
+  // Beside the anchor, on its left, when there is room: level with it, or level with its top.
+  // Without the room, above it, or under it ending at its right edge.
+  if (placement === 'left-center' || placement === 'left-start') {
+    const left = anchor.left - gap - box.width
+    if (left >= EDGE) {
+      const top =
+        placement === 'left-start' ? anchor.top : (anchor.top + anchor.bottom) / 2 - box.height / 2
+      return {
+        top: Math.round(Math.max(EDGE, Math.min(top, view.height - box.height - EDGE))),
+        bottom: null,
+        left: Math.round(left),
+        space: Math.max(0, view.height - 2 * EDGE),
+      }
+    }
+    placement = placement === 'left-start' ? 'bottom-end' : 'top-center'
+  }
   const below = view.height - anchor.bottom - gap - EDGE
   const above = anchor.top - gap - EDGE
   const need = Math.min(box.height || MIN_SPACE, MIN_SPACE)

@@ -537,16 +537,68 @@ gemaakt.
 
 **Een kaart stapelt haar lagen en blijft één kaart.** De eerste laag ligt onder en de laatste
 boven, en het toetsenbord volgt de stapel; een choropleet kleurt het land zelf en ligt daarom
-altijd onderop. Er is één selectie over alle lagen, één legenda boven de kaart met een regel per
-kleur, ook als die kleur in meer lagen dient, en linksonder een regel per laag met haar eigen
-eenheid: een cijfer spreekt altijd de eenheid van zijn eigen laag. Een vlak dat niet in de
-geometrie van de kaart staat, draagt zijn eigen omtrek en is verder een gebied: dezelfde klassen,
-gearceerd zonder cijfer, en met focus een ring om zijn vorm, zoals een punt die krijgt.
+altijd onderop. Er is één selectie over alle lagen en één legenda, boven de kaart zoals bij
+elke grafiek, met per laag één regel: haar naam — die van de host, anders die van haar soort —
+met het vakje van een checkbox ervoor, dat de laag aan en uit zet, dan haar sleutel, dan haar
+reeksen, elk een schakelaar zoals in elke legenda, en achteraan "geen gegevens" als een mark van
+die laag geen cijfer heeft. Een kleur die in meer
+lagen dient, staat bij elke laag en schakelt per laag. De sleutel is dezelfde tekening als de
+kaart: vijf klassen van 0 tot het maximum, drie cirkels van klein naar groot met het bereik, of
+één wig van dun naar dik met het bereik; een cijfer spreekt altijd de eenheid van zijn eigen laag.
+Meer dan drie lagen vouwen op de tegel onder "Nog n lagen"; de vergroting toont alles, en daar
+krijgt elke klasse haar bereik en staan de cirkels genest op ware maat met hun getal. Op een
+telefoon staat de naam boven de sleutel en krijgen de reeksen een eigen regel. Een vlak dat niet
+in de geometrie van de kaart staat, draagt zijn eigen omtrek en is verder een gebied: dezelfde
+klassen, gearceerd zonder cijfer, en met focus een ring om zijn vorm, zoals een punt die krijgt.
+
+**Een host kiest welke bediening een kaart heeft** (`controls`): zoomen, wiel, slepen, reset,
+lasso, cirkel, rechthoek, schaalbalk en legenda. Standaard staat alles aan behalve de tekenvormen,
+want die zijn alleen zinvol als de host op een gebied filtert. Een vorm is gereedschap: eenmaal gekozen
+blijft hij in de hand, een nieuw gebied vervangt het vorige, en hij gaat pas neer met een klik op
+de knop, Escape of de reset. Eén vorm is een knop die hem opneemt en neerlegt; bij twee of meer
+is het een selectieknop met een hoekje rechtsonder, en opent een klik het menu van de vormen — de
+laatst gebruikte aangevinkt en gefocust, zodat Enter meteen verder gaat. Met een vorm in de hand
+toont de knop die vorm, primair gekleurd zoals een icoonknop die aanstaat, en heet hij "Stop met
+selecteren". De knoppen staan rechtsboven,
+ook op een telefoon alle, op de aanraakmaat op een hogere kaart: knijpen is een gebaar met twee
+vingers en uitzoomen moet ook met één. De schaalbalk staat rechtsonder, zonder kader, op een
+ondergrond op het oppervlak boven de bronvermelding: een ronde afstand en daarnaast een beugel
+zo lang als die afstand op de kaart, zoals op een wegenkaart. Hij meet over het midden van het
+zicht. De bronvermelding van een ondergrond staat op het oppervlak in de eigen tekstkleuren, ook
+in donker, één regel hoog. Het selectiepaneel staat linksonder, weg van de knoppen en
+de schaal; onder 768 px is het een regel onder de kaart, niet op wat net gekozen is.
+
+**Een gebied kiezen is een filter van de host.** Een lasso, cirkel of rechthoek kiest wat er
+helemaal in ligt: een plaats met haar punt, een vlak of land met zijn hele omtrek, een stroom met
+beide uiteinden en zijn boog. Wat de rand raakt, telt niet mee, en tijdens het tekenen licht op
+wat erin zou vallen. De kaart stuurt het gebied en de ids — een rechthoek als lasso van vier
+hoeken, want in Mercator is een rechthoek op het scherm er een in graden —, en de host bewaart
+het gebied in de URL zoals elk filter. Het gebied blijft staan tot de lezer het wegklikt, ook
+naast een gekozen mark. Wie niet sleept, tekent met klikken; onderaan staat hoe, per vorm, zolang
+de vorm in de hand is; Escape legt haar neer. De resetknop zet de kaart terug: het hele gebied in beeld en niets
+gekozen.
+
+**Leaflet draagt de kaart, het design system tekent de data.** Projectie, verslepen, zoomen en
+de tegels van een ondergrond zijn van Leaflet; land, vlakken, punten en stromen tekent het design
+system zelf in Leaflets svg, met dezelfde klassen, toestanden en animaties als elke grafiek. Zo is
+er één kaart, met of zonder ondergrond. De projectie is Web Mercator, zoals elke webkaart, ook
+voor Nederland: op tegelformaat is het verschil met de landsprojectie niet te zien.
+
+**Een kaart is met de muis te verslepen en zoomt rond de aanwijzer: met een dubbelklik, en op
+het wiel alleen met Ctrl of ⌘ ingedrukt.** Zonder die toets scrolt het wiel de pagina door en
+toont de kaart kort hoe het wel kan; anders zit wie door een dashboard scrolt vast op de kaart.
+Een knijpbeweging op een trackpad komt als wiel met Ctrl binnen en zoomt dus ook; een dubbelklik
+met Shift zoomt uit. Uitzoomen stopt bij het hele gebied, inzoomen een paar verdubbelingen
+verder. Op een telefoon versleept een vinger de pagina, niet de kaart: knijpen, dubbeltikken en
+de knoppen zoomen. De knoppen en de laagkiezer op een kaart tekenen compact, zoals de knoppen van
+een balk, en halen hun aanwijsdoel via het klikgebied in de richting waar ze ruimte hebben.
 
 ## Iconen
 
-- **Nooit een met de hand getekend icoon, nooit een bewerkt bestand.** De regels staan in de
-  [projectregels](../AGENTS.md) (regel 11), de set in [`assets/README.md`](../assets/README.md).
+- **Nooit een met de hand getekend icoon, nooit een bewerkt bestand**, behalve een generiek
+  bedieningselement dat RVO mist (de lasso, de punaise): dat tekent Lintje als eigen bestand in de
+  stijl van zijn set. De regels staan in de [projectregels](../AGENTS.md) (regel 11), de set in
+  [`assets/README.md`](../assets/README.md).
 - **Een naam zonder bestand tekent niets en het bedieningselement toont zijn Nederlandse label.**
   Dat is een ondersteunde staat: een host mag een bestand weglaten of vervangen en het
   bedieningselement blijft zeggen wat het doet. De bekende gaten in de set staan in

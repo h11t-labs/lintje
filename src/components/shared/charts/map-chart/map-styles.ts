@@ -4,8 +4,8 @@
  */
 import { unsafeCSS, type CSSResult } from 'lit'
 import { iconStyles } from '../../../../icons/render'
+import menu from '../../menu.css?inline'
 import map from './map-chart.css?inline'
-import leaflet from './leaflet.css?inline'
 import leafletVendor from 'leaflet/dist/leaflet.css?raw'
 
 /**
@@ -21,8 +21,9 @@ export const mapChartStyles: CSSResult = unsafeCSS(map)
 
 /** `iconStyles` closes the list: Lit keeps the last place of a sheet named twice. */
 export const mapStyles: CSSResult[] = [
-  mapChartStyles,
+  unsafeCSS(menu),
   unsafeCSS(withoutImages(leafletVendor)),
-  unsafeCSS(leaflet),
+  // After Leaflet's: the map restyles its credit, at the same specificity.
+  mapChartStyles,
   iconStyles,
 ]

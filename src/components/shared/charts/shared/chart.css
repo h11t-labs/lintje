@@ -187,6 +187,12 @@
 .lintje-legend__marker--symbol { width: 14px; height: 14px; }
 .lintje-legend__marker--square    { width: 12px; height: 12px; background: currentColor; }
 .lintje-legend__marker--line  { width: 14px; height: 3px;  background: currentColor; }
+/* "No data" on a map: the hatch the mark carries, on the surface (rule 15). */
+.lintje-legend__marker--hatch {
+  width: 16px; height: 10px;
+  background: repeating-linear-gradient(45deg, var(--color-chart-hatch) 0 2px, transparent 2px 6px);
+  border: 1px solid var(--color-border-default);
+}
 .lintje-legend__marker--dashed {
   width: 14px; height: 0;
   border-top: 2px dashed currentColor;

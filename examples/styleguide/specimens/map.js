@@ -33,7 +33,7 @@ const KIND_SERIES = { counter: 'dark-green', service: 'purple' }
 // "Overig" has no coordinates in the demo data: it counts towards the scale and draws no flow.
 const MAPS = [
   {
-    id: 'map-flows', label: 'Stromen · flows', title: 'Aanvragen uit het buitenland',
+    id: 'map-flows', label: 'Stromen · flows', title: 'Herkomst buiten Nederland',
     data: {
       variant: 'flows', geo: 'world', unit: 'aanvragen', height: 320,
       destination: { lon: meta.head_office.lon, lat: meta.head_office.lat, label: meta.head_office.label },
@@ -41,12 +41,12 @@ const MAPS = [
         id: place.id ?? 'other',
         label: place.label,
         value: place.value,
-        detail: `${place.files} dossiers`,
+        detail: `${place.batches} zendingen`,
         lon: place.lon ?? undefined,
         lat: place.lat ?? undefined,
       })),
-      description: 'Aanvragen uit het buitenland, van de woonplaats van de aanvrager naar het hoofdkantoor in Den Haag; de lijndikte is het aantal aanvragen.',
-      subtitle: 'Vandaag · naar woonplaats van de aanvrager',
+      description: 'Herkomst van aanvragen uit het buitenland naar het hoofdkantoor in Den Haag; de lijndikte is het aantal aanvragen.',
+      subtitle: 'Vandaag · aanvragen uit het buitenland',
     },
   },
   {
@@ -79,7 +79,7 @@ const MAPS = [
     data: {
       variant: 'choropleth', geo: 'world', unit: 'aanvragen', height: 320,
       values: originCountries,
-      description: 'Aanvragen uit het buitenland per land waar de aanvrager woont, in vijf klassen; landen zonder cijfer staan gearceerd.',
+      description: 'Herkomstlanden van aanvragen in vijf klassen; landen zonder cijfer staan gearceerd.',
     },
   },
   {
@@ -124,9 +124,14 @@ function mapSetup(map, extra = {}) {
       footnote: 'Bron: fictieve demogegevens',
       expandable: true,
       download: { filename: map.id },
+      controls: { lasso: true, circle: true, rect: true },
     }
     const say = log(stage)
-    for (const name of ['lintje-mark-select', 'lintje-layer-change']) {
+    // A host keeps the area in its URL and sends it back; the specimen does the same.
+    tile.addEventListener('lintje-area-select', (event) => {
+      tile.data = { ...tile.data, selectedArea: event.detail.area }
+    })
+    for (const name of ['lintje-mark-select', 'lintje-layer-change', 'lintje-area-select']) {
       tile.addEventListener(name, (event) => say(`${name} ${JSON.stringify(event.detail)}`))
     }
   }
@@ -145,20 +150,17 @@ export default {
   elements: [
     {
       tag: 'lintje-map',
-      title: 'Tegel met een kaart: stromen, punten, reeksen, choropleet, vlakken en lagen',
-      specimens: MAPS.map((map) => ({ label: map.label, html: MAP_TILE, wide: true, setup: mapSetup(map) })),
-    },
-    {
-      id: 'map-basemap',
-      title: 'Dezelfde kaarten op een ondergrond (Leaflet, WMS)',
-      short: 'kaart op ondergrond',
-      specimens: MAPS.map((map) => ({
-        label: `${map.label} · ondergrond`,
-        html: MAP_TILE,
-        wide: true,
-        // No `height`: the map takes its own, 400 px and 220 on a phone.
-        setup: mapSetup(map, { basemap: DEMO_BASEMAP, height: undefined, title: `${map.title} · ondergrond` }),
-      })),
+      title: 'Tegel met een kaart: stromen, punten, reeksen, choropleet, vlakken en lagen, ook op een ondergrond (WMS)',
+      specimens: [
+        ...MAPS.map((map) => ({ label: map.label, html: MAP_TILE, wide: true, setup: mapSetup(map) })),
+        ...MAPS.map((map) => ({
+          label: `${map.label} · ondergrond`,
+          html: MAP_TILE,
+          wide: true,
+          // No `height`: the map takes its own, 400 px and 220 on a phone.
+          setup: mapSetup(map, { basemap: DEMO_BASEMAP, height: undefined, title: `${map.title} · ondergrond` }),
+        })),
+      ],
     },
   ],
 }

@@ -21,7 +21,9 @@ import { lengthPx } from '../../../core/length'
 export const PIN_LABEL = 'Menu vastzetten'
 
 export function pinContent(pinned: boolean): { content: TemplateResult | string; asText: boolean } {
-  const glyph = renderIcon(pinned ? 'kantoor-label' : 'kantoor-label-outline', { size: 16 })
+  const glyph = renderIcon(pinned ? 'functioneel-punaise' : 'functioneel-punaise-outline', {
+    size: 16,
+  })
   return glyph === nothing
     ? { content: 'Vastzetten', asText: true }
     : { content: glyph, asText: false }

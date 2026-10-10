@@ -29,6 +29,7 @@ import {
 } from '../../actions/menu-button/menu-button'
 import '../../../primitives/popover/popover'
 import '../../../primitives/tooltip/tooltip'
+import menuCss from '../../shared/menu.css?inline'
 import menuButtonCss from '../../actions/menu-button/menu-button.css?inline'
 import userMenuCss from './user-menu.css?inline'
 import { isPlainClick } from '../../../core/links'
@@ -38,7 +39,12 @@ import type { UserMenuUser } from '../../../types'
 let instances = 0
 
 export class LintjeUserMenu extends LintjeElement {
-  static override styles = [iconStyles, shadowCss(menuButtonCss), shadowCss(userMenuCss)]
+  static override styles = [
+    iconStyles,
+    shadowCss(menuCss),
+    shadowCss(menuButtonCss),
+    shadowCss(userMenuCss),
+  ]
 
   static override properties: PropertyDeclarations = {
     user: { attribute: false },

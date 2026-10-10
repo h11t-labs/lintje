@@ -19,10 +19,15 @@ export type SvgSlot =
 export interface LegendItem {
   label: string
   color?: string
-  shape?: 'square' | 'line' | 'dashed'
+  /** `mark` is a series' shape on its own, as a map draws it; `hatch` stands for "no data". */
+  shape?: 'square' | 'line' | 'dashed' | 'mark' | 'hatch'
   /** The shape the line carries at its end, drawn on its line marker (rule 13). */
   symbol?: SeriesKey
   hidden?: boolean
+  /** Not a series: the item explains and cannot be switched off. */
+  fixed?: boolean
+  /** What `onToggle` receives; without it the label. */
+  key?: string
 }
 
 export function renderLegend({
@@ -38,14 +43,14 @@ export function renderLegend({
     ${
       item.symbol
         ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
-                    ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
-                    aria-hidden="true" focusable="false">
-            <line x1="0" x2="14" y1="7" y2="7" stroke="currentColor" stroke-width="3" />
-            <path d=${markPath(item.symbol, 4, 7, 7)} fill="currentColor" />
-          </svg>`
+                  ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
+                  aria-hidden="true" focusable="false">
+          ${item.shape === 'mark' ? nothing : svg`<line x1="0" x2="14" y1="7" y2="7" stroke="currentColor" stroke-width="3" />`}
+          <path d=${markPath(item.symbol, item.shape === 'mark' ? 5.5 : 4, 7, 7)} fill="currentColor" />
+        </svg>`
         : html`<span class="lintje-legend__marker lintje-legend__marker--${item.shape ?? 'square'}"
-                     ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
-                     aria-hidden="true"></span>`
+                   ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
+                   aria-hidden="true"></span>`
     }
     <span class="lintje-legend__label">${item.label}</span>
   `
@@ -55,9 +60,9 @@ export function renderLegend({
         (item) => html`
         <li class="lintje-legend__item ${item.hidden ? 'is-hidden' : ''}">
           ${
-            onToggle
+            onToggle && !item.fixed
               ? html`<button type="button" class="lintje-legend__button"
-                           @click=${() => onToggle(item.label)}
+                           @click=${() => onToggle(item.key ?? item.label)}
                            aria-pressed=${!item.hidden}>${content(item)}</button>`
               : content(item)
           }

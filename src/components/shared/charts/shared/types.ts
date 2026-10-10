@@ -199,6 +199,43 @@ export interface MapValue {
   href?: string
 }
 
+/**
+ * An area drawn on the map to choose what lies in it: a lasso, a ring of `[lon, lat]` pairs with
+ * the first point not repeated, or a circle around a `[lon, lat]` centre.
+ */
+export type MapArea =
+  | { kind: 'lasso'; ring: [number, number][] }
+  | { kind: 'circle'; centre: [number, number]; radiusKm: number }
+
+/** A tool that draws an area on the map. */
+export type MapTool = 'lasso' | 'circle' | 'rect'
+
+/**
+ * The parts of a map a host switches on or off. Without a value each keeps its default: every
+ * part on, except the drawing tools, which choose for a host that filters on an area. With two
+ * or more tools on, one button opens a menu of them.
+ */
+export interface MapControls {
+  /** The + and − buttons, a double click and a pinch. Default on. */
+  zoom?: boolean
+  /** Zooming on the wheel with Ctrl or ⌘ held. Default on. */
+  wheel?: boolean
+  /** Panning with the mouse. Default on; on a phone a finger always scrolls the page. */
+  drag?: boolean
+  /** The reset: the whole area in view and nothing chosen. Default on. */
+  reset?: boolean
+  /** Choosing with a drawn lasso; sends `lintje-area-select`. Default off. */
+  lasso?: boolean
+  /** Choosing with a drawn circle; sends `lintje-area-select`. Default off. */
+  circle?: boolean
+  /** Choosing with a drawn rectangle, sent as a lasso of four corners. Default off. */
+  rect?: boolean
+  /** A scale bar in km bottom right. Default on. */
+  scale?: boolean
+  /** The legend above the map: a line per layer with its key and its series. Default on. */
+  legend?: boolean
+}
+
 /** The basemap the map draws on, a WMS service the host configures. */
 export interface WmsBasemap {
   kind: 'wms'
@@ -234,7 +271,7 @@ export interface MapPlotData {
   destination?: { lon: number; lat: number; label: string }
   /**
    * What each series in this layer means, over the map's own `seriesLabels`. A colour may serve
-   * several layers; the legend above the map keeps one line per colour, named by the first.
+   * several layers; each layer's line in the legend names and switches its own.
    */
   seriesLabels?: Partial<Record<MapSeriesKey, string>>
 }
@@ -250,7 +287,7 @@ export interface MapSpec {
   destination?: { lon: number; lat: number; label: string }
   unit?: string
   description: string
-  /** Map height in px; default 400, 220 below 768 px. */
+  /** Map height in px; default 400, 280 below 768 px. */
   height?: number
   selectedId?: string | null
   layers?: { value: string; label: string }[]
@@ -262,6 +299,10 @@ export interface MapSpec {
   selectLabel?: string
   /** The URL that undoes the selection, for a page that keeps it in the URL. */
   clearHref?: string
-  /** With a basemap the map draws with Leaflet; without one it stays the SVG map. */
+  /** Tiles under the map: Leaflet draws the basemap, the map draws its data over it. */
   basemap?: WmsBasemap
+  /** Which parts of the map show and answer; each left out keeps its default. */
+  controls?: MapControls
+  /** The area the host keeps, from its URL: adopted when it changes, as `selectedId` is. */
+  selectedArea?: MapArea | null
 }

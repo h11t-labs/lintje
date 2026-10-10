@@ -882,11 +882,7 @@ describe('the status words', () => {
         '.lintje-streaming-text__note--error',
         'error',
       ],
-      [
-        'src/components/actions/menu-button/menu-button.css',
-        '.lintje-menu__row.is-danger',
-        'error',
-      ],
+      ['src/components/shared/menu.css', '.lintje-menu__row.is-danger', 'error'],
       [
         'src/components/tables/data-table/data-table.css',
         '.lintje-data-table__change--down',
