@@ -516,6 +516,13 @@ Eén grammatica, geen grafiekbibliotheek.
 - **Een mediaan is een doorgetrokken nadruklijn**, naast de gestreepte van een drempel, elk met
   zijn label naast de lijn. Raken de labels elkaar, dan zakt het rechter een regel.
 
+**Een kerncijfer op zijn schaal is een KPI, geen grafiek.** De meter is een instelling van
+`lintje-kpi`: een halve boog met het getal in de mond, of een balk onder het getal. De vulling is
+de kleur van de variabele, de rest van de schaal het lichtgrijs van een rest, het doel gestreept in
+de nadrukkleur. De vulling oordeelt niet: of het cijfer goed staat, zegt de trendregel met pijl en
+woord, zoals bij elke KPI. Een cijfer zonder meting tekent de schaal en het doel, nooit een lege
+vulling als nul.
+
 **Onvolledige perioden.** Een periode die nog loopt, is gearceerd. Als er nog veel van open is,
 wordt de reeks afgekapt bij het laatste volledige punt en zegt een peilmomentlijn waar. De assen
 houden de volledige periode en schaal, zodat de vorm herkenbaar blijft en een ochtend niet wordt
