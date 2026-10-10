@@ -294,6 +294,21 @@ const MAP: MapData = {
   ],
 }
 
+/** Two layers, so the legend has layer names. */
+const STACKED_MAP: MapData = {
+  ...MAP,
+  variant: 'plots',
+  values: [],
+  plots: [
+    { variant: 'points', label: 'Loketten', values: MAP.values },
+    {
+      variant: 'points',
+      label: 'Servicepunten',
+      values: [{ id: 'breda', label: 'Breda', value: 30, lon: 4.78, lat: 51.59 }],
+    },
+  ],
+}
+
 const ANSWER = Array.from(
   { length: 12 },
   () =>
@@ -841,17 +856,6 @@ const ROWS: Row[] = [
       !shown(element, '.lintje-chat-composer__send lintje-button'),
   },
   {
-    tag: 'lintje-map',
-    marker: 'the legend folds behind a "Legenda" button',
-    mount: () => append(create('lintje-map', { data: MAP })),
-    wide: (element) =>
-      shown(element, '.lintje-map-chart__legend-content') &&
-      !shown(element, '.lintje-map-chart__legend-toggle'),
-    phone: (element) =>
-      shown(element, '.lintje-map-chart__legend-toggle') &&
-      !shown(element, '.lintje-map-chart__legend-content'),
-  },
-  {
     tag: 'lintje-shell',
     marker: '"Delen" opens as a sheet along the bottom of the screen',
     mount: async () => {
@@ -1204,6 +1208,29 @@ const ROWS: Row[] = [
   },
   subtitleRow('lintje-chart', HEATMAP),
   subtitleRow('lintje-map', MAP),
+  {
+    tag: 'lintje-map',
+    marker: 'the legend goes to one column, a layer name over its key',
+    mount: () => append(create('lintje-map', { data: STACKED_MAP })),
+    wide: (element) =>
+      find(element, '.lintje-map-legend')?.classList.contains('lintje-map-legend--narrow') ===
+      false,
+    phone: (element) =>
+      find(element, '.lintje-map-legend')?.classList.contains('lintje-map-legend--narrow') === true,
+  },
+  {
+    tag: 'lintje-map',
+    marker: 'the selection panel leaves the map and stands under it',
+    mount: () => append(create('lintje-map', { data: { ...MAP, selectedId: 'utrecht' } })),
+    wide: (element) =>
+      find(element, '.lintje-map-chart__selection')?.parentElement?.classList.contains(
+        'lintje-map-chart__area',
+      ) === true,
+    phone: (element) =>
+      find(element, '.lintje-map-chart__selection')?.parentElement?.classList.contains(
+        'lintje-map-chart',
+      ) === true,
+  },
   subtitleRow('lintje-data-table', TABLE),
 ]
 

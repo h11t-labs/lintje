@@ -19,13 +19,15 @@ export type SvgSlot =
 export interface LegendItem {
   label: string
   color?: string
-  /** `point`: the series' symbol alone, as a scatter plot draws its points. */
-  shape?: 'square' | 'line' | 'dashed' | 'point'
+  /** `point`: the series' symbol alone, as a scatter plot or a map draws it; `hatch` is "no data". */
+  shape?: 'square' | 'line' | 'dashed' | 'point' | 'hatch'
   /** The shape the line carries at its end, drawn on its line marker (rule 13). */
   symbol?: SeriesKey
   hidden?: boolean
   /** Not a series but a reference, such as a norm: never a toggle. */
   fixed?: boolean
+  /** What `onToggle` receives; without it the label. */
+  key?: string
 }
 
 /**
@@ -80,7 +82,7 @@ export function renderLegend({
           ${
             onToggle && !item.fixed
               ? html`<button type="button" class="lintje-legend__button"
-                           @click=${() => onToggle(item.label)}
+                           @click=${() => onToggle(item.key ?? item.label)}
                            aria-pressed=${!item.hidden}>${content(item)}</button>`
               : content(item)
           }

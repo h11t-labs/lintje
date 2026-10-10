@@ -6,7 +6,10 @@
  * Events: `lintje-mark-select` `{id, label, href?}` (`href` is the one the server minted on that
  * mark) and `lintje-layer-change` (the chosen layer's `value`). Undoing a selection is
  * `lintje-mark-select` with `id: null` and `data.clearHref`, so a page that keeps the selection
- * in the URL can drop it.
+ * in the URL can drop it. With `data.controls.lasso`, `.circle` or `.rect` a drawn area chooses
+ * every mark in it — two or more tools share one button that opens their menu:
+ * `lintje-area-select` `{area, ids}`, and `{area: null, ids: []}` when it is undone; the host
+ * keeps the area in its URL and sends it back as `selectedArea`.
  */
 import {
   html,
@@ -19,7 +22,7 @@ import { define, type FrameSettings } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { spanStyles } from '../../../primitives/shared/grid-item-element'
 import { ChartController } from '../../shared/charts/shared/controller'
-import { renderMap, type MapOptions } from '../../shared/charts/map-chart/map-chart'
+import { MAP_HEIGHT, renderMap, type MapOptions } from '../../shared/charts/map-chart/map-chart'
 import { mapDrawings, type MapDrawing } from '../../shared/charts/map-chart/drawings'
 import {
   liveAnnouncement,
@@ -37,10 +40,8 @@ import skeletonCss from '../../../primitives/skeleton/skeleton.css?inline'
 import tileHostCss from '../../shared/view-tile.css?inline'
 import '../../feedback/announcement/announcement'
 import '../../../primitives/tile/tile'
+import '../../../primitives/tooltip/tooltip'
 import type { MapData } from '../../../types'
-
-const DESKTOP_HEIGHT = 400
-const MOBILE_HEIGHT = 220
 
 export class LintjeMap extends LintjeContentTileElement {
   // `skeletonCss` carries `.lintje-skeleton`, the markup of `components/shared/charts/shared/chart-states.ts`.
@@ -103,7 +104,7 @@ export class LintjeMap extends LintjeContentTileElement {
   private png(): void {
     // Both maps are light children of what they are slotted into; the tag says which one is shown.
     const scope = this.renderRoot.querySelector(this.expanded ? 'lintje-modal' : 'lintje-tile')
-    const svg = scope?.querySelector<SVGSVGElement>('.lintje-map-chart__svg')
+    const svg = scope?.querySelector<SVGSVGElement>('.leaflet-overlay-pane svg')
     if (svg) void downloadPng((this.data?.download || undefined)?.filename ?? 'kaart', svg)
   }
 
@@ -138,7 +139,7 @@ export class LintjeMap extends LintjeContentTileElement {
     const ready = (data.state ?? 'ready') === 'ready'
     const subtitle =
       this.#mobile.matches && data.mobileSubtitle ? data.mobileSubtitle : data.subtitle
-    const height = data.height ?? (this.#mobile.matches ? MOBILE_HEIGHT : DESKTOP_HEIGHT)
+    const height = data.height ?? (this.#mobile.matches ? MAP_HEIGHT.mobile : MAP_HEIGHT.desktop)
 
     return html`<lintje-tile
       id=${this.id ? `${this.id}-tile` : nothing}
@@ -177,7 +178,7 @@ export class LintjeMap extends LintjeContentTileElement {
         subtitle,
         footnote: data.footnote,
         csv: data.download ? () => this.csv() : undefined,
-        // No PNG on a basemap: the only `<svg>` is the overlay, and the tiles come from another
+        // No PNG on a basemap: the svg holds the data only, and the tiles come from another
         // origin, which taints a canvas anyway.
         png: data.basemap ? undefined : () => this.png(),
       },
@@ -209,9 +210,7 @@ export class LintjeMap extends LintjeContentTileElement {
     await this.updateComplete
     const scope = this.renderRoot.querySelector(this.expanded ? 'lintje-modal' : 'lintje-tile')
     const mark = scope?.querySelector<SVGElement>(`[data-mark-id="${CSS.escape(id)}"]`)
-    const target =
-      mark ??
-      scope?.querySelector<HTMLElement | SVGElement>('.lintje-map-chart__svg, .leaflet-container')
+    const target = mark ?? scope?.querySelector<HTMLElement>('.leaflet-container')
     // The map takes the focus from a script only; it does not join the tab order for it.
     if (target && !target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
     target?.focus()
@@ -233,6 +232,7 @@ export class LintjeMap extends LintjeContentTileElement {
         this.layer = value
         this.emit('lintje-layer-change', value)
       },
+      onArea: (area, ids) => this.emit('lintje-area-select', { area, ids }),
     }
   }
 }

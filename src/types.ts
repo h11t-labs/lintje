@@ -23,6 +23,8 @@ export type {
   ScatterPoint,
   ScatterSeriesData,
   WmsBasemap,
+  MapArea,
+  MapControls,
 } from './components/shared/charts/shared/types'
 export type { DataColor } from './tokens/colors'
 
@@ -166,7 +168,9 @@ export interface ChartData extends FrameSettings, TileData, ContentState {
 
 /**
  * Events: `lintje-mark-select` `{id, label, href?}` on a click on an area or point,
- * `{id: null, href: clearHref}` when undone; `lintje-layer-change` with the chosen layer.
+ * `{id: null, href: clearHref}` when undone; `lintje-layer-change` with the chosen layer;
+ * with `controls.lasso` or `controls.circle`, `lintje-area-select` `{area, ids}` for a drawn area and
+ * `{area: null, ids: []}` when it is undone.
  */
 export interface MapData extends FrameSettings, TileData, ContentState, MapSpec {}
 
