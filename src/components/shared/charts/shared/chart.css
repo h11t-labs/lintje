@@ -208,6 +208,13 @@
    with a ring in the surface color, so it stays legible on the line and on the
    filled area below it. No animation: hover does not redraw. */
 .lintje-chart__hover-point { stroke: var(--color-bg-surface); stroke-width: 2; pointer-events: none; }
+/* The edge of a dark-yellow hover point (`lineCasing`), over its ring. */
+.lintje-chart__hover-casing { fill: none; stroke-width: 1; pointer-events: none; }
+
+/* The pointer's target around a scatter point: half of --h-target each way, whatever the mark
+   draws. A CSS radius, so it follows the token. */
+.lintje-chart__hit { fill: transparent; r: calc(var(--h-target) / 2); }
+.lintje-chart__hit.is-clickable { cursor: pointer; }
 
 
 /* --- States -------------------------------------------------------------- */
@@ -335,6 +342,7 @@
   .lintje-chart__line,
   .lintje-chart__reveal,
   .lintje-chart__hover-point,
+  .lintje-chart__hover-casing,
   .lintje-legend__marker,
   .lintje-chart-tooltip__marker { forced-color-adjust: none; }
   .lintje-chart__data-label { forced-color-adjust: auto; }

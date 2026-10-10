@@ -144,5 +144,23 @@ describe('the scatter plot', () => {
     expect(button.getAttribute('aria-label')).toBe('Utrecht: Loket, Aanvragen 1, Wachttijd 2 min')
     button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(onSelect).toHaveBeenCalledWith({ id: 'utr', label: 'Utrecht', href: '?loket=utr' })
+    // The transparent target around it, of --h-target, takes the click as well.
+    const target = host.querySelector('.lintje-chart__hit') as SVGElement
+    expect(target.classList.contains('is-clickable')).toBe(true)
+    target.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    expect(onSelect).toHaveBeenCalledTimes(2)
+  })
+
+  it('edges a dark-yellow hover point with a class, so forced colours keep it', () => {
+    const { host } = draw({
+      ...SPEC,
+      series: [
+        { label: 'Servicepunt', color: 'dark-yellow', points: [{ label: 'Breda', x: 6, y: 6 }] },
+      ],
+    })
+    const drawing = host.querySelector('svg[tabindex="0"]') as SVGSVGElement
+    drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }))
+    const casing = host.querySelector('.lintje-chart__hover-casing')
+    expect(casing?.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-text)')
   })
 })

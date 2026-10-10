@@ -19,8 +19,6 @@ type ScatterSpec = Extract<ChartSpec, { kind: 'scatter' }>
 
 const RADIUS = 4.5
 const HOVER_RADIUS = 5.5
-// Larger than the mark, so a 9 px point is not a 9 px target for the pointer.
-const HIT_RADIUS = 8
 // The x title takes one more row of axis text under the labels.
 const BOTTOM = 44
 const LABEL_GAP = 8
@@ -161,15 +159,18 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
         // The 1 px edge in the surface keeps overlapping points apart; dark yellow takes its
         // text colour there, as its line does.
         return svg`
+          <!-- The click sits on the group, so the transparent target of --h-target takes it
+               too; where neighbours overlap, the later point's target wins. -->
           <g @mousemove=${(event: MouseEvent) => controller.hoverAt(i, event, contentAt(i))}
-             @mouseleave=${() => controller.hoverAt(null)}>
-            <circle cx=${cx} cy=${cy} r=${HIT_RADIUS} fill="transparent" />
+             @mouseleave=${() => controller.hoverAt(null)}
+             @click=${mark.click}>
+            <circle class="lintje-chart__hit ${mark.clickable ? 'is-clickable' : ''}" cx=${cx} cy=${cy} />
             <path class="lintje-chart__mark ${casing ? '' : 'lintje-chart__segment'} ${mark.state}"
                   d=${markPath(row.symbol, RADIUS, cx, cy)} fill=${row.color}
                   stroke=${casing ?? nothing} stroke-width=${casing ? 1 : nothing}
                   data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
                   aria-pressed=${mark.pressed} aria-label=${mark.label}
-                  @click=${mark.click} @keydown=${mark.keydown} />
+                  @keydown=${mark.keydown} />
           </g>
         `
       })}
@@ -191,7 +192,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
           const d = markPath(hovered.row.symbol, HOVER_RADIUS, cx, cy)
           return svg`
             <path class="lintje-chart__hover-point" d=${d} fill=${hovered.row.color} />
-            ${casing ? svg`<path d=${d} fill="none" stroke=${casing} stroke-width="1" pointer-events="none" />` : nothing}
+            ${casing ? svg`<path class="lintje-chart__hover-casing" d=${d} stroke=${casing} />` : nothing}
           `
         })()
       : nothing,
