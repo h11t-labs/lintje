@@ -14,7 +14,7 @@ const BLOCKS: ChatBlock[] = [
   { kind: 'prose', text: 'Een toelichting.' },
   { kind: 'kpi-row', data: { kpis: [{ label: 'Aanvragen', value: '148.230' }] } },
   {
-    kind: 'chart-tile',
+    kind: 'chart',
     data: { chart: { kind: 'bar', labels: ['ma'], values: [1] }, description: 'Per dag.', span: 6 },
   },
   { kind: 'data-table', data: { caption: 'Loketten', columns: [], rows: [], rowKey: 'id' } },
@@ -58,7 +58,7 @@ describe('lintje-chat-answer', () => {
     expect(tags.map((tag) => tag.localName)).toEqual([
       'lintje-prose',
       'lintje-kpi-row',
-      'lintje-chart-tile',
+      'lintje-chart',
       'lintje-data-table',
     ])
     expect(tags[2].getAttribute('span')).toBe('6')

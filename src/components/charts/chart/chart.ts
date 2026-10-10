@@ -1,5 +1,5 @@
 /**
- * `<lintje-chart-tile>` — a chart in its tile, with loading, empty and error states.
+ * `<lintje-chart>` — a chart in its tile, with loading, empty and error states.
  *
  * Events: `lintje-mark-select` `{id, label, href}` when a mark with a `href` is clicked, and
  * `{id: null, label: null, href: clearHref}` when it is deselected. Expand and download stay here.
@@ -29,14 +29,14 @@ import { MediaController } from '../../../core/media'
 import announcementCss from '../../feedback/announcement/announcement.css?inline'
 import skeletonCss from '../../../primitives/skeleton/skeleton.css?inline'
 import tileHostCss from '../../shared/view-tile.css?inline'
-import chartTileCss from './chart-tile.css?inline'
+import chartCss from './chart.css?inline'
 import '../../feedback/announcement/announcement'
 import '../../tables/data-table/data-table'
 import '../../inputs/segmented/segmented'
 import '../../../primitives/tile/tile'
-import type { CellValue, ChartTileData, DataTableData, FilterOption } from '../../../types'
+import type { CellValue, ChartData, DataTableData, FilterOption } from '../../../types'
 
-type ChartTileView = 'chart' | 'table'
+type ChartView = 'chart' | 'table'
 
 /** The chart's own drawing; a legend marker or an icon is an `<svg>` too. */
 const DRAWING = '.lintje-chart__svg, .lintje-pie-chart__svg'
@@ -179,7 +179,7 @@ function chartTable(chart: ChartSpec, caption: string): DataTableData {
   }
 }
 
-export class LintjeChartTile extends LintjeContentTileElement {
+export class LintjeChart extends LintjeContentTileElement {
   // The chart-state skeleton is `.lintje-skeleton` markup; a shadow root needs the sheet.
   static override styles = [
     spanStyles,
@@ -187,7 +187,7 @@ export class LintjeChartTile extends LintjeContentTileElement {
     shadowCss(skeletonCss),
     shadowCss(announcementCss),
     ...chartStyles,
-    shadowCss(chartTileCss),
+    shadowCss(chartCss),
   ]
 
   static override properties: PropertyDeclarations = {
@@ -195,9 +195,9 @@ export class LintjeChartTile extends LintjeContentTileElement {
     view: { state: true },
   }
 
-  declare data?: ChartTileData | null
+  declare data?: ChartData | null
 
-  view: ChartTileView = 'chart'
+  view: ChartView = 'chart'
 
   readonly #chart = new ChartController(() => this.requestUpdate())
   #modalChart: ChartController | null = null
@@ -323,7 +323,7 @@ export class LintjeChartTile extends LintjeContentTileElement {
   }
 
   private content(): TemplateResult {
-    const data = this.data as ChartTileData
+    const data = this.data as ChartData
     const height = stateHeight(data.chart)
     switch (data.state ?? 'ready') {
       case 'loading':
@@ -348,7 +348,7 @@ export class LintjeChartTile extends LintjeContentTileElement {
   private viewSwitch(): TemplateResult {
     const mobile = this.#mobile.matches
     return html`<lintje-segmented
-      class="lintje-chart-tile__view"
+      class="lintje-chart__view"
       slot=${mobile ? 'notice' : 'actions'}
       label="Weergave"
       hide-label
@@ -363,10 +363,10 @@ export class LintjeChartTile extends LintjeContentTileElement {
   }
 
   private table(): TemplateResult {
-    const data = this.data as ChartTileData
+    const data = this.data as ChartData
     const caption = data.title ? `${data.title}, als tabel` : 'Grafiek als tabel'
     return html`<lintje-data-table
-      class="lintje-chart-tile__table"
+      class="lintje-chart__table"
       bare
       .data=${chartTable(data.chart, caption)}
     ></lintje-data-table>`
@@ -400,10 +400,10 @@ export class LintjeChartTile extends LintjeContentTileElement {
   }
 }
 
-define('lintje-chart-tile', LintjeChartTile)
+define('lintje-chart', LintjeChart)
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lintje-chart-tile': LintjeChartTile
+    'lintje-chart': LintjeChart
   }
 }

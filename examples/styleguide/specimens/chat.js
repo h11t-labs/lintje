@@ -78,7 +78,7 @@ export default {
               // A block still to come is the same block, loading: the skeleton at its final size.
               blocks: [
                 { kind: 'kpi-row', data: weekKpis('loading') },
-                { kind: 'chart-tile', data: weekChart('loading') },
+                { kind: 'chart', data: weekChart('loading') },
               ],
             })
           },
@@ -112,7 +112,7 @@ export default {
               text: 'Voor Loket Middelburg zijn er op 8 september nog geen gemeten uren. De eerstvolgende aanlevering vult ze aan.',
               blocks: [
                 {
-                  kind: 'chart-tile',
+                  kind: 'chart',
                   data: {
                     ...weekChart('empty'),
                     title: 'Aanvragen per uur',
@@ -159,9 +159,9 @@ export default {
               text: 'Links de afgelopen week, rechts dezelfde week tegen de week ervoor.',
               blocks: [
                 // Half as wide, a tile has no room for the table switch beside its title.
-                { kind: 'chart-tile', data: { ...weekChart('ready'), span: 6, footnote: undefined, tableSwitch: false } },
+                { kind: 'chart', data: { ...weekChart('ready'), span: 6, footnote: undefined, tableSwitch: false } },
                 {
-                  kind: 'chart-tile',
+                  kind: 'chart',
                   data: {
                     ...weekChart('ready', true),
                     span: 6,

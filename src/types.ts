@@ -5,7 +5,7 @@
  * names come from their one list, `tokens/colors.ts`.
  */
 import type { DataColor } from './tokens/colors'
-import type { ChartSpec, MapTileData } from './components/shared/charts/shared/types'
+import type { ChartSpec, MapSpec } from './components/shared/charts/shared/types'
 import type { MenuEntry } from './components/actions/menu-button/menu-button'
 import type { NotificationItem } from './components/frame/notifications/notifications'
 
@@ -15,7 +15,7 @@ export type {
   ChartKind,
   ChartSpec,
   LineSeriesData,
-  MapTileData,
+  MapSpec,
   MapValue,
   MapPlotData,
   MapPlotVariant,
@@ -136,7 +136,7 @@ export interface TileData {
  * Events: `lintje-mark-select` `{id, label, href}` when a mark with a `href` is clicked,
  * `{id: null, href: clearHref}` when the selection is undone.
  */
-export interface ChartTileData extends FrameSettings, TileData, ContentState {
+export interface ChartData extends FrameSettings, TileData, ContentState {
   chart: ChartSpec
   /** The chart's `<desc>`: a readable summary, the accessible alternative. Required. */
   description: string
@@ -154,7 +154,7 @@ export interface ChartTileData extends FrameSettings, TileData, ContentState {
  * Events: `lintje-mark-select` `{id, label, href?}` on a click on an area or point,
  * `{id: null, href: clearHref}` when undone; `lintje-layer-change` with the chosen layer.
  */
-export interface MapTileViewData extends FrameSettings, TileData, ContentState, MapTileData {}
+export interface MapData extends FrameSettings, TileData, ContentState, MapSpec {}
 
 /* Data table --------------------------------------------------------------- */
 
@@ -585,7 +585,7 @@ export interface ChatStripData {
 export type ChatBlock =
   | { kind: 'prose'; text?: string; html?: string }
   | { kind: 'kpi-row'; data: KpiRowData }
-  | { kind: 'chart-tile'; data: ChartTileData }
+  | { kind: 'chart'; data: ChartData }
   | { kind: 'data-table'; data: DataTableData }
 
 /** Where an answer stands. `out-of-scope` needs a source on; `needs-clarification` asks back. */

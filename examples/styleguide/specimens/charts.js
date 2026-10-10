@@ -295,14 +295,14 @@ const CHART_STATES = [
   },
 ]
 
-const TILE = '<lintje-chart-tile></lintje-chart-tile>'
+const TILE = '<lintje-chart></lintje-chart>'
 
 const chartSpecimen = (chart) => ({
   label: `${KIND_NAMES[chart.id]} · kind: ${chart.spec.kind}`,
   html: TILE,
   wide: true,
   setup(stage) {
-    stage.querySelector('lintje-chart-tile').data = {
+    stage.querySelector('lintje-chart').data = {
       chart: chart.spec,
       description: chart.description,
       title: chart.title,
@@ -319,7 +319,7 @@ const stateSpecimen = ({ label, state, description, message, lastKnown }) => ({
   wide: true,
   setup(stage) {
     // The spec still travels: the skeleton is drawn for the kind that is coming.
-    stage.querySelector('lintje-chart-tile').data = {
+    stage.querySelector('lintje-chart').data = {
       chart: CHARTS[0].spec,
       description,
       title: `Staat · ${label.toLowerCase()}`,
@@ -337,7 +337,7 @@ const tableSwitch = {
   html: TILE,
   wide: true,
   setup(stage) {
-    stage.querySelector('lintje-chart-tile').data = {
+    stage.querySelector('lintje-chart').data = {
       chart: {
         kind: 'line', labels: weekdays, axisTitle: 'Afgehandelde aanvragen per dag',
         series: [
@@ -382,7 +382,7 @@ const missingValues = [
   html: TILE,
   wide: true,
   setup(stage) {
-    stage.querySelector('lintje-chart-tile').data = {
+    stage.querySelector('lintje-chart').data = {
       chart,
       description,
       title: label,
@@ -479,7 +479,7 @@ export default {
       ],
     },
 {
-      tag: 'lintje-chart-tile',
+      tag: 'lintje-chart',
       title: 'Tegel met een grafiek: elke soort, de drie staten, de tabelweergave en ontbrekende waarden',
       specimens: [
         ...CHARTS.map(chartSpecimen),

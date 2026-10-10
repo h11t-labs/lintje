@@ -10,7 +10,7 @@ import './frame/user-menu/user-menu'
 import './frame/page-header/page-header'
 import './filters/filter-bar/filter-bar'
 import './feedback/announcement/announcement'
-import './charts/chart-tile/chart-tile'
+import './charts/chart/chart'
 import './chat/chat/chat'
 import './chat/chat-answer/chat-answer'
 import './chat/chat-composer/chat-composer'
@@ -23,7 +23,7 @@ import './layout/expander/expander'
 import './charts/explainer/explainer'
 import './charts/kpi/kpi'
 import './charts/kpi-row/kpi-row'
-import './map/map-tile/map-tile'
+import './map/map/map'
 import './overlays/modal/modal'
 import './charts/note/note'
 import './content/prose/prose'
@@ -96,7 +96,7 @@ import './frame/session-expiry/session-expiry'
 import './frame/notifications/notifications'
 
 export { LintjeAnnouncement } from './feedback/announcement/announcement'
-export { LintjeChartTile } from './charts/chart-tile/chart-tile'
+export { LintjeChart } from './charts/chart/chart'
 export { LintjeChat } from './chat/chat/chat'
 export { LintjeChatAnswer } from './chat/chat-answer/chat-answer'
 export type { ChatRating } from './chat/chat-answer/chat-answer'
@@ -116,7 +116,7 @@ export { LintjeExpander } from './layout/expander/expander'
 export { LintjeExplainer } from './charts/explainer/explainer'
 export { LintjeKpi } from './charts/kpi/kpi'
 export { LintjeKpiRow } from './charts/kpi-row/kpi-row'
-export { LintjeMapTile } from './map/map-tile/map-tile'
+export { LintjeMap } from './map/map/map'
 export { LintjeModal } from './overlays/modal/modal'
 export { LintjeNote } from './charts/note/note'
 export { LintjeProse } from './content/prose/prose'
@@ -269,12 +269,12 @@ export type {
   AnnouncementKind,
   AnnouncementViewData,
   CellValue,
-  ChartTileData,
+  ChartData,
   DataTableData,
   ExplainerData,
   KpiData,
   KpiRowData,
-  MapTileViewData,
+  MapData,
   NoteData,
   SortState,
   TableColumnData,

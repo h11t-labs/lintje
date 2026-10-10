@@ -5,13 +5,13 @@
  * row for row. happy-dom has no layout, so what is checked is the markup.
  */
 import { beforeEach, describe, expect, it } from 'vitest'
-import '../../../charts/chart-tile/chart-tile'
-import type { ChartTileData } from '../../../../types'
+import '../../../charts/chart/chart'
+import type { ChartData } from '../../../../types'
 import type { ChartSpec } from '../shared/types'
 
-interface ChartTile extends HTMLElement {
+interface ChartElement extends HTMLElement {
   renderRoot: DocumentFragment | HTMLElement
-  data?: ChartTileData | null
+  data?: ChartData | null
   updateComplete: Promise<unknown>
 }
 
@@ -21,8 +21,8 @@ const TINT = (n: number) => `var(--color-chart-tint-${n})`
 const OTHER = 'var(--color-chart-other)'
 const REMAINDER = 'var(--color-chart-remainder)'
 
-async function pie(spec: Omit<PieSpec, 'kind'>, extra: Partial<ChartTileData> = {}) {
-  const element = document.createElement('lintje-chart-tile') as ChartTile
+async function pie(spec: Omit<PieSpec, 'kind'>, extra: Partial<ChartData> = {}) {
+  const element = document.createElement('lintje-chart') as ChartElement
   element.data = {
     chart: { kind: 'pie', ...spec },
     description: 'Een taart om naar te kijken.',
@@ -33,11 +33,11 @@ async function pie(spec: Omit<PieSpec, 'kind'>, extra: Partial<ChartTileData> = 
   return element
 }
 
-const slices = (element: ChartTile) => [
+const slices = (element: ChartElement) => [
   ...element.renderRoot.querySelectorAll<SVGPathElement>('path.lintje-pie-chart__segment'),
 ]
-const fills = (element: ChartTile) => slices(element).map((path) => path.getAttribute('fill'))
-const rows = (element: ChartTile) =>
+const fills = (element: ChartElement) => slices(element).map((path) => path.getAttribute('fill'))
+const rows = (element: ChartElement) =>
   [...element.renderRoot.querySelectorAll('.lintje-pie-chart__row')].map((row) => ({
     label: row.querySelector('.lintje-pie-chart__label')?.textContent?.trim() ?? '',
     value: row.querySelector('.lintje-pie-chart__value')?.textContent?.trim() ?? '',

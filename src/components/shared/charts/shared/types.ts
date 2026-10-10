@@ -144,7 +144,7 @@ export type ChartKind = ChartSpec['kind']
 
 /**
  * What a map draws. `polygons` are areas that carry their own outline (`MapValue.polygon`);
- * `plots` stacks several drawings, from `MapTileData.plots`.
+ * `plots` stacks several drawings, from `MapSpec.plots`.
  */
 export type MapVariant = 'flows' | 'points' | 'choropleth' | 'polygons' | 'plots' | 'scope-picker'
 
@@ -213,8 +213,8 @@ export interface MapPlotData {
   seriesLabels?: Partial<Record<MapSeriesKey, string>>
 }
 
-/** The map's data, as `MapTileData` in `src/types.ts` carries it, without the tile fields. */
-export interface MapTileData {
+/** The map's data, as `MapData` in `src/types.ts` carries it, without the tile fields. */
+export interface MapSpec {
   variant: MapVariant
   geo?: 'world' | 'netherlands'
   /** The marks of a one-variant map; empty with `variant: 'plots'`. */
