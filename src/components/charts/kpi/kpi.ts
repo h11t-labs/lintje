@@ -1,7 +1,9 @@
 /**
  * `<lintje-kpi>` — the KPI tile: one figure, or several of the same variable (`items`). Rich
  * values go in as properties. The value counts up from zero once 35 % of the tile is in view,
- * and not under `prefers-reduced-motion`. Events: none.
+ * and not under `prefers-reduced-motion`. A single figure can stand on its scale (`gauge`): a
+ * half circle around the value or a bar under it, with the target dashed; the trend or note says
+ * in words how the figure stands to the target. Events: none.
  */
 import {
   html,
@@ -21,8 +23,16 @@ import '../../../primitives/status-dot/status-dot'
 import '../../../primitives/skeleton/skeleton'
 import skeletonCss from '../../../primitives/skeleton/skeleton.css?inline'
 import kpiCss from './kpi.css?inline'
+import { renderGauge } from './gauge'
 import { DATA_COLORS, chartToken, type DataColor } from '../../../tokens/colors'
-import type { KpiItem, KpiState, KpiTrend, KpiVariable, TrendDirection } from '../../../types'
+import type {
+  KpiGauge,
+  KpiItem,
+  KpiState,
+  KpiTrend,
+  KpiVariable,
+  TrendDirection,
+} from '../../../types'
 
 // A single-`value` KPI has no `KpiItem` and its value may be missing, so a figure is looser.
 type Figure = Partial<KpiItem>
@@ -89,12 +99,14 @@ export class LintjeKpi extends LintjeGridItemElement {
     emphasis: { type: String },
     dividers: { type: Boolean },
     trend: { attribute: false },
+    gauge: { attribute: false },
     note: { type: String },
     detail: { type: String },
     variable: { type: String, reflect: true },
     state: { type: String, reflect: true },
     index: { type: Number },
     counting: { state: true },
+    drawn: { state: true },
   }
 
   label: string = ''
@@ -112,6 +124,8 @@ export class LintjeKpi extends LintjeGridItemElement {
   /** Default `true`: bind as `.dividers=${false}`, an attribute cannot turn it off. */
   dividers: boolean = true
   declare trend?: KpiTrend
+  /** The single figure on its scale, as a half circle (`arc`) or a bar (`linear`); not with `items`. */
+  declare gauge?: KpiGauge
   /** A line without an arrow, for when there is no direction. */
   declare note?: string
   declare detail?: string
@@ -121,6 +135,7 @@ export class LintjeKpi extends LintjeGridItemElement {
   index: number = 0
 
   counting: (string | null)[] = []
+  drawn = false
 
   #counts: (Counted | null)[] = []
   #signature = ''
@@ -141,6 +156,7 @@ export class LintjeKpi extends LintjeGridItemElement {
     super.connectedCallback()
     if (typeof IntersectionObserver === 'undefined') {
       this.#inView = true
+      this.drawn = true
       return
     }
     this.#observer = new IntersectionObserver(
@@ -151,6 +167,7 @@ export class LintjeKpi extends LintjeGridItemElement {
           entry.intersectionRect.height >= viewport * VISIBLE_SHARE
         ) {
           this.#inView = true
+          this.drawn = true
           this.#observer?.disconnect()
           this.startCount()
         }
@@ -233,6 +250,7 @@ export class LintjeKpi extends LintjeGridItemElement {
   private body(figures: KpiItem[] | null, primary: boolean): TemplateResult {
     const loading = this.state === 'loading'
     const ready = this.state === 'ready'
+    if (!figures && this.gauge) return this.gauged(this.gauge)
     if (!figures) {
       return loading
         ? html`<div class="lintje-kpi__skeleton">
@@ -273,6 +291,36 @@ export class LintjeKpi extends LintjeGridItemElement {
     }
     return html`
       ${this.itemList(figures, false, this.dividers && figures.length > 1, 0)}
+      ${
+        loading
+          ? html`<div class="lintje-kpi__skeleton">
+            <lintje-skeleton height="13" width="90%"></lintje-skeleton>
+            <lintje-skeleton height="12" width="55%"></lintje-skeleton>
+          </div>`
+          : this.lines(true)
+      }
+    `
+  }
+
+  /** The single figure on its scale; while loading the track stands and the text is a skeleton. */
+  private gauged(gauge: KpiGauge): TemplateResult {
+    const loading = this.state === 'loading'
+    const value = gauge.value !== undefined ? gauge.value : (parseCount(this.value)?.target ?? null)
+    const figure = loading
+      ? html`<lintje-skeleton class="lintje-gauge__skeleton" height="34" width="40%"></lintje-skeleton>`
+      : this.figure(0, { value: this.value, suffix: this.suffix })
+    return html`
+      ${renderGauge(
+        {
+          gauge,
+          value,
+          ready: this.state === 'ready',
+          loading,
+          drawn: this.drawn || this.reduced,
+          color: ACCENT[this.variable],
+        },
+        figure,
+      )}
       ${
         loading
           ? html`<div class="lintje-kpi__skeleton">

@@ -10,6 +10,12 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+### Toegevoegd
+
+- `lintje-kpi` zet één kerncijfer op zijn schaal met `gauge`: een halve boog met het getal in de
+  mond (`shape: 'arc'`) of een balk eronder (`shape: 'linear'`), met het doel gestreept. Het type
+  `KpiGauge` staat in `src/types.ts`; `lintje-kpi-row` geeft het door.
+
 ## [0.1.1] - 2026-10-09
 
 ### Gewijzigd

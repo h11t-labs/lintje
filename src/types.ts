@@ -67,6 +67,21 @@ export interface KpiTrend {
   inverted?: boolean
 }
 
+/** Where the figure stands on a scale, drawn under or around the value. */
+export interface KpiGauge {
+  /** `arc`: a half circle with the value in its mouth. `linear`: a bar under the value. */
+  shape?: 'arc' | 'linear'
+  /** Where the scale starts; default 0. */
+  min?: number
+  max: number
+  /** The figure on the scale; default the number in the KPI's `value`. `null` draws no fill. */
+  value?: number | null
+  /** A dashed mark on the scale, in the emphasis colour. */
+  target?: number
+  /** The word before the target's number: "doel" (default) or "norm". */
+  targetLabel?: string
+}
+
 export interface KpiData {
   label: string
   /** An icon file name (`dist-icons/`, without `.svg`). Decorative. */
@@ -80,6 +95,8 @@ export interface KpiData {
   trend?: KpiTrend
   note?: string
   detail?: string
+  /** A single figure on its scale; ignored with `items`. */
+  gauge?: KpiGauge
   variable?: KpiVariable
   state?: KpiState
 }

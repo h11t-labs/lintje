@@ -8,15 +8,17 @@
  */
 import { describe, expect, it } from 'vitest'
 import './kpi'
-import type { KpiState, KpiTrend } from '../../../types'
+import type { KpiGauge, KpiState, KpiTrend } from '../../../types'
 
 interface Kpi extends HTMLElement {
   renderRoot: DocumentFragment | HTMLElement
   label: string
   value?: string | number
+  suffix?: string
   detail?: string
   note?: string
   trend?: KpiTrend
+  gauge?: KpiGauge
   state: KpiState
   emphasis: 'equal' | 'primary'
   items?: { value: string; period?: string }[]
@@ -94,5 +96,52 @@ describe('lintje-kpi trend', () => {
     expect(judged(worse)).toEqual(['ongunstig:'])
     const flat = await kpi({ value: '11 min', trend: { direction: 'flat', sentence: 'Gelijk' } })
     expect(judged(flat)).toEqual([])
+  })
+})
+
+describe('lintje-kpi gauge', () => {
+  const query = (element: Kpi, selector: string) => element.renderRoot.querySelector(selector)
+
+  it('draws the arc with the value in its mouth and describes the scale', async () => {
+    const element = await kpi({ value: '87%', gauge: { max: 100, target: 90 } })
+    const arc = query(element, '.lintje-gauge--arc')
+    expect(arc?.querySelector('.lintje-kpi__value')?.textContent).toContain('87%')
+    expect(arc?.querySelector('.lintje-gauge__arc-fill')).not.toBeNull()
+    expect(arc?.querySelector('.lintje-gauge__tick')).not.toBeNull()
+    expect(arc?.querySelector('desc')?.textContent).toBe('87 op een schaal van 0 tot 100, doel 90')
+  })
+
+  it('draws the bar under the value with the target as a share of the scale', async () => {
+    const element = await kpi({
+      value: 11,
+      suffix: 'min',
+      gauge: { shape: 'linear', max: 30, value: 11, target: 15, targetLabel: 'norm' },
+    })
+    const bar = query(element, '.lintje-gauge--linear')
+    expect(bar?.getAttribute('aria-label')).toBe('11 op een schaal van 0 tot 30, norm 15')
+    expect((query(element, '.lintje-gauge__bar-fill') as HTMLElement).style.width).toMatch(/^36\.6/)
+    expect((query(element, '.lintje-gauge__mark') as HTMLElement).style.left).toBe('50%')
+    expect(query(element, '.lintje-gauge__scale-target')?.textContent).toBe('norm 15')
+  })
+
+  it('keeps the scale and the target but draws no fill without data', async () => {
+    const empty = await kpi({ state: 'empty', gauge: { max: 100, target: 90 } })
+    expect(query(empty, '.lintje-gauge__arc-fill')).toBeNull()
+    expect(query(empty, '.lintje-gauge__tick')).not.toBeNull()
+    expect(query(empty, '.lintje-kpi__note')?.textContent).toContain('Geen gegevens')
+    const missing = await kpi({ value: '—', gauge: { max: 100, value: null } })
+    expect(query(missing, '.lintje-gauge__arc-fill')).toBeNull()
+  })
+
+  it('draws the track alone while loading', async () => {
+    const element = await kpi({ state: 'loading', gauge: { max: 100, target: 90 } })
+    expect(query(element, '.lintje-gauge__track')).not.toBeNull()
+    expect(query(element, '.lintje-gauge__tick')).toBeNull()
+    expect(query(element, '.lintje-gauge__skeleton')).not.toBeNull()
+  })
+
+  it('clamps a figure past the end of the scale', async () => {
+    const element = await kpi({ value: 140, gauge: { shape: 'linear', max: 120 } })
+    expect((query(element, '.lintje-gauge__bar-fill') as HTMLElement).style.width).toBe('100%')
   })
 })
