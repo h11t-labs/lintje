@@ -10,6 +10,11 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+### Toegevoegd
+
+- Het histogram als grafieksoort (`kind: 'histogram'`): klassen die elkaar raken, labels op de
+  grenzen, een open laatste klasse, een mediaan en een drempel. (#9)
+
 ## [0.1.1] - 2026-10-09
 
 ### Gewijzigd
