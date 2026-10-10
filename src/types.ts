@@ -67,6 +67,17 @@ export interface KpiTrend {
   inverted?: boolean
 }
 
+/**
+ * The figure's own recent values as a small line with the area under it: no axes, scaled from
+ * the lowest to the highest value, in the variable's colour. A `null` breaks the line (rule 15).
+ */
+export interface KpiSparkline {
+  /** The values in order, the current one last; at least two numbers draw a line. */
+  values: (number | null)[]
+  /** A readable summary with the unit, the line's `<desc>`: the accessible alternative. */
+  description: string
+}
+
 export interface KpiData {
   label: string
   /** An icon file name (`dist-icons/`, without `.svg`). Decorative. */
@@ -78,6 +89,7 @@ export interface KpiData {
   emphasis?: 'equal' | 'primary'
   dividers?: boolean
   trend?: KpiTrend
+  sparkline?: KpiSparkline
   note?: string
   detail?: string
   variable?: KpiVariable

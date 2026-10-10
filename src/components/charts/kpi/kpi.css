@@ -97,6 +97,31 @@
   .lintje-kpi__value { font-size: 1.75rem; }
 }
 
+/* --- The sparkline ------------------------------------------------------------ */
+/* The box is measured and the svg takes that size, so nothing stretches. `color` is the
+   variable's token, set inline; the area is its lightest tint. */
+.lintje-kpi__sparkline { display: block; width: 100%; height: var(--h-sparkline); }
+.lintje-kpi__sparkline-svg { display: block; overflow: visible; }
+.lintje-kpi__sparkline-line { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.lintje-kpi__sparkline-area { fill: var(--kpi-sparkline-fill); }
+.lintje-kpi__sparkline-point { fill: currentColor; }
+/* The end point parts from the line with a ring in the surface. */
+.lintje-kpi__sparkline-end { fill: currentColor; stroke: var(--color-bg-surface); stroke-width: 2; }
+/* Uncovered from left to right once the tile is in view, like the count, and hidden before;
+   reduced motion leaves nothing out, so there it simply stands. */
+@media (prefers-reduced-motion: no-preference) {
+  .lintje-kpi__sparkline-plot { clip-path: inset(-8px calc(100% + 8px) -8px -8px); }
+  .lintje-kpi__sparkline.is-drawn .lintje-kpi__sparkline-plot {
+    clip-path: inset(-8px);
+    animation: lintje-kpi-reveal var(--dur-draw) var(--ease-in-motion) backwards;
+    animation-delay: calc(var(--dur-kpi) + 40ms * var(--kpi-index, 0));
+  }
+}
+@keyframes lintje-kpi-reveal {
+  from { clip-path: inset(-8px calc(100% + 8px) -8px -8px); }
+  to   { clip-path: inset(-8px); }
+}
+
 /* --- The trend line -------------------------------------------------------- */
 .lintje-trend {
   display: flex;
@@ -115,4 +140,8 @@
 @media (forced-colors: active) {
   .lintje-kpi__divider,
   .lintje-kpi__dot { forced-color-adjust: none; background: CanvasText; }
+  .lintje-kpi__sparkline-line { stroke: CanvasText; }
+  .lintje-kpi__sparkline-area { fill: none; }
+  .lintje-kpi__sparkline-point,
+  .lintje-kpi__sparkline-end { fill: CanvasText; stroke: Canvas; }
 }

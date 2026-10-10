@@ -7,8 +7,8 @@
  * neither.
  */
 import { describe, expect, it } from 'vitest'
-import './kpi'
-import type { KpiState, KpiTrend } from '../../../types'
+import { sparklineRuns } from './kpi'
+import type { KpiSparkline, KpiState, KpiTrend } from '../../../types'
 
 interface Kpi extends HTMLElement {
   renderRoot: DocumentFragment | HTMLElement
@@ -17,6 +17,7 @@ interface Kpi extends HTMLElement {
   detail?: string
   note?: string
   trend?: KpiTrend
+  sparkline?: KpiSparkline
   state: KpiState
   emphasis: 'equal' | 'primary'
   items?: { value: string; period?: string }[]
@@ -94,5 +95,63 @@ describe('lintje-kpi trend', () => {
     expect(judged(worse)).toEqual(['ongunstig:'])
     const flat = await kpi({ value: '11 min', trend: { direction: 'flat', sentence: 'Gelijk' } })
     expect(judged(flat)).toEqual([])
+  })
+})
+
+describe('lintje-kpi sparkline', () => {
+  const requests: KpiSparkline = {
+    values: [138, 141, 139, 144, 152, 168, 149],
+    description: 'Aanvragen per dag, van 138 op maandag tot 149 op zondag',
+  }
+  const svg = (element: Kpi) => element.renderRoot.querySelector('.lintje-kpi__sparkline-svg')
+
+  it('draws one line with its area under the figure, named by the description', async () => {
+    const element = await kpi({ value: '149', sparkline: requests, detail: 'Norm 140' })
+    const drawing = svg(element)!
+    expect(drawing.getAttribute('role')).toBe('img')
+    expect(drawing.getAttribute('aria-label')).toBe(requests.description)
+    expect(drawing.querySelector('desc')?.textContent).toBe(requests.description)
+    expect(drawing.querySelectorAll('.lintje-kpi__sparkline-line')).toHaveLength(1)
+    expect(drawing.querySelectorAll('.lintje-kpi__sparkline-area')).toHaveLength(1)
+    expect(drawing.querySelectorAll('.lintje-kpi__sparkline-end')).toHaveLength(1)
+    // The figure comes first, then the line, then the detail.
+    const value = element.renderRoot.querySelector('.lintje-kpi__value')!
+    const line = element.renderRoot.querySelector('.lintje-kpi__sparkline')!
+    const detail = element.renderRoot.querySelector('.lintje-kpi__detail')!
+    expect(value.compareDocumentPosition(line) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(line.compareDocumentPosition(detail) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('breaks the line at a missing value instead of drawing it as 0 (rule 15)', async () => {
+    const element = await kpi({
+      value: '13',
+      sparkline: { values: [12, 13, null, 14, 15, 13], description: 'Per dag' },
+    })
+    expect(svg(element)!.querySelectorAll('.lintje-kpi__sparkline-line')).toHaveLength(2)
+    // A series that ends in a gap has no end point: the figure's own value is unknown.
+    const open = await kpi({
+      value: '13',
+      sparkline: { values: [12, 13, 14, null], description: 'Per dag' },
+    })
+    expect(svg(open)!.querySelector('.lintje-kpi__sparkline-end')).toBeNull()
+    expect(sparklineRuns([12, null, 14], 100, 32).map((run) => run.length)).toEqual([1, 1])
+    expect(sparklineRuns([null, 5], 100, 32)).toEqual([])
+  })
+
+  it('scales from the lowest to the highest value; a flat series is a line in the middle', () => {
+    const [run] = sparklineRuns([10, 20, 15], 104, 32)
+    expect(run.map(([, y]) => y)).toEqual([28, 4, 16])
+    const [flat] = sparklineRuns([7, 7, 7], 104, 32)
+    expect(new Set(flat.map(([, y]) => y)).size).toBe(1)
+  })
+
+  it('shows a skeleton of its height while loading and nothing when empty or in error', async () => {
+    const loading = await kpi({ state: 'loading', sparkline: requests })
+    expect(loading.renderRoot.querySelector('.lintje-kpi__sparkline--loading')).not.toBeNull()
+    expect(svg(loading)).toBeNull()
+    for (const state of ['empty', 'error'] as const) {
+      const element = await kpi({ state, sparkline: requests })
+      expect(element.renderRoot.querySelector('.lintje-kpi__sparkline')).toBeNull()
+    }
   })
 })

@@ -3,11 +3,19 @@ import { meta, number, daily, heatmap, desks, breakdowns, hourly } from '../../_
 
 const kpi = meta.kpi
 
+// The week's requests per day as the sparkline of the first KPI; `null` breaks the line.
+const requestsPerDay = daily.map((row) => row.requests)
+const REQUESTS_SPARKLINE = {
+  values: requestsPerDay,
+  description: `Afgehandelde aanvragen per dag, afgelopen week: van ${number(requestsPerDay[0])} op maandag tot ${number(requestsPerDay.at(-1))} op zondag, piek ${number(Math.max(...requestsPerDay))}`,
+}
+
 const KPIS = [
   {
     label: 'Afgehandelde aanvragen', variable: 'sky-blue',
     value: number(kpi.requests.value),
     trend: { direction: 'up', sentence: 'Gestegen ten opzichte van vorige week' },
+    sparkline: REQUESTS_SPARKLINE,
     detail: `Vorige week ${number(kpi.requests.previous)} (+${kpi.requests.change}%)`,
   },
   {
@@ -50,13 +58,14 @@ const COLOUR_KPIS = NEWER_COLOURS.map(([variable, name], i) => ({
   label: name, variable, value: number(1200 + i * 345), detail: `variable: ${variable}`,
 }))
 
-/** One KPI on its own: the attributes of the first entry that carry, and its trend as a property. */
+/** One KPI on its own: the attributes that carry, and its trend and sparkline as properties. */
 function single(data) {
   return (stage) => {
     const element = stage.querySelector('lintje-kpi')
-    const { trend, ...attributes } = data
+    const { trend, sparkline, ...attributes } = data
     for (const [name, value] of Object.entries(attributes)) element.setAttribute(name, value)
     if (trend) element.trend = trend
+    if (sparkline) element.sparkline = sparkline
   }
 }
 
@@ -411,6 +420,29 @@ export default {
           label: 'Met trend',
           html: '<lintje-kpi></lintje-kpi>',
           setup: single(KPIS[1]),
+        },
+        {
+          label: 'Met verloop',
+          html: '<lintje-kpi></lintje-kpi>',
+          setup: single(KPIS[0]),
+        },
+        {
+          label: 'Verloop met een ontbrekende dag',
+          html: '<lintje-kpi></lintje-kpi>',
+          setup: single({
+            label: 'Afwijzingen', variable: 'red', value: kpi.rejections.value,
+            trend: { direction: 'up', sentence: 'Gestegen ten opzichte van gisteren', inverted: true },
+            sparkline: {
+              values: [29, 33, null, 30, 34, 31, kpi.rejections.value],
+              description: `Afwijzingen per dag, afgelopen week: van 29 op maandag tot ${kpi.rejections.value} op zondag; woensdag ontbreekt`,
+            },
+            detail: `Gisteren ${kpi.rejections.yesterday}`,
+          }),
+        },
+        {
+          label: 'Verloop, laden',
+          html: '<lintje-kpi label="Afgehandelde aanvragen" variable="sky-blue" state="loading"></lintje-kpi>',
+          setup: (stage) => { stage.querySelector('lintje-kpi').sparkline = REQUESTS_SPARKLINE },
         },
         {
           label: 'Met achtervoegsel en toelichting',

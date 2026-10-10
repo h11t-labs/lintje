@@ -1,16 +1,19 @@
 /**
  * `<lintje-kpi>` — the KPI tile: one figure, or several of the same variable (`items`). Rich
- * values go in as properties. The value counts up from zero once 35 % of the tile is in view,
- * and not under `prefers-reduced-motion`. Events: none.
+ * values go in as properties. The value counts up from zero and the sparkline draws in once
+ * 35 % of the tile is in view, and not under `prefers-reduced-motion`. Events: none.
  */
 import {
   html,
   nothing,
+  svg,
   type PropertyDeclarations,
   type PropertyValues,
+  type SVGTemplateResult,
   type TemplateResult,
 } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
+import { ref } from 'lit/directives/ref.js'
 import { styleProps } from '../../../core/style-props'
 import { define } from '../../../core/element'
 import { durationMs, prefersReducedMotion } from '../../../core/motion'
@@ -22,7 +25,14 @@ import '../../../primitives/skeleton/skeleton'
 import skeletonCss from '../../../primitives/skeleton/skeleton.css?inline'
 import kpiCss from './kpi.css?inline'
 import { DATA_COLORS, chartToken, type DataColor } from '../../../tokens/colors'
-import type { KpiItem, KpiState, KpiTrend, KpiVariable, TrendDirection } from '../../../types'
+import type {
+  KpiItem,
+  KpiSparkline,
+  KpiState,
+  KpiTrend,
+  KpiVariable,
+  TrendDirection,
+} from '../../../types'
 
 // A single-`value` KPI has no `KpiItem` and its value may be missing, so a figure is looser.
 type Figure = Partial<KpiItem>
@@ -35,6 +45,48 @@ const ACCENT: Record<KpiVariable, string> = {
   >),
   coverage: 'var(--color-text-muted)',
 }
+
+// The area under the sparkline: the variable's lightest tint; gray has no ladder.
+const SPARKLINE_FILL: Record<KpiVariable, string> = {
+  ...(Object.fromEntries(
+    DATA_COLORS.map((color) => [color, `var(--color-chart-${color}-tint-5)`]),
+  ) as Record<DataColor, string>),
+  coverage: 'var(--color-bg-subtle)',
+}
+
+// The sparkline's box before it is measured (no ResizeObserver), in px.
+const SPARKLINE_FALLBACK = { width: 200, height: 32 }
+// Room inside the box for the stroke and the end point.
+const SPARKLINE_PAD = 4
+const SPARKLINE_END_RADIUS = 3.5
+
+type Point = [number, number]
+
+/** The points of each unbroken run of values: a `null` ends a run (rule 15). */
+export function sparklineRuns(values: (number | null)[], width: number, height: number): Point[][] {
+  const known = values.filter((value): value is number => value != null)
+  if (known.length < 2) return []
+  const min = Math.min(...known)
+  const span = Math.max(...known) - min || 1
+  const step = (width - 2 * SPARKLINE_PAD) / (values.length - 1)
+  const runs: Point[][] = []
+  let run: Point[] = []
+  values.forEach((value, i) => {
+    if (value == null) {
+      if (run.length) runs.push(run)
+      run = []
+      return
+    }
+    const x = SPARKLINE_PAD + i * step
+    const y = SPARKLINE_PAD + (1 - (value - min) / span) * (height - 2 * SPARKLINE_PAD)
+    run.push([x, y])
+  })
+  if (run.length) runs.push(run)
+  return runs
+}
+
+const points = (run: Point[]): string =>
+  run.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ')
 
 const GLYPH: Record<TrendDirection, string> = { up: '▲', down: '▼', flat: '●' }
 
@@ -89,12 +141,15 @@ export class LintjeKpi extends LintjeGridItemElement {
     emphasis: { type: String },
     dividers: { type: Boolean },
     trend: { attribute: false },
+    sparkline: { attribute: false },
     note: { type: String },
     detail: { type: String },
     variable: { type: String, reflect: true },
     state: { type: String, reflect: true },
     index: { type: Number },
     counting: { state: true },
+    drawn: { state: true },
+    sparklineBox: { state: true },
   }
 
   label: string = ''
@@ -112,6 +167,8 @@ export class LintjeKpi extends LintjeGridItemElement {
   /** Default `true`: bind as `.dividers=${false}`, an attribute cannot turn it off. */
   dividers: boolean = true
   declare trend?: KpiTrend
+  /** The figure's recent values as a line with its area, under the figure. */
+  declare sparkline?: KpiSparkline
   /** A line without an arrow, for when there is no direction. */
   declare note?: string
   declare detail?: string
@@ -121,8 +178,13 @@ export class LintjeKpi extends LintjeGridItemElement {
   index: number = 0
 
   counting: (string | null)[] = []
+  /** The sparkline draws in once the tile is in view, like the count. */
+  drawn = false
+  /** The measured box of the sparkline, so the drawing is never stretched. */
+  sparklineBox = SPARKLINE_FALLBACK
 
   #counts: (Counted | null)[] = []
+  #resize: ResizeObserver | null = null
   #signature = ''
   #observer: IntersectionObserver | null = null
   #frame = 0
@@ -141,6 +203,7 @@ export class LintjeKpi extends LintjeGridItemElement {
     super.connectedCallback()
     if (typeof IntersectionObserver === 'undefined') {
       this.#inView = true
+      this.drawn = true
       return
     }
     this.#observer = new IntersectionObserver(
@@ -151,6 +214,7 @@ export class LintjeKpi extends LintjeGridItemElement {
           entry.intersectionRect.height >= viewport * VISIBLE_SHARE
         ) {
           this.#inView = true
+          this.drawn = true
           this.#observer?.disconnect()
           this.startCount()
         }
@@ -162,8 +226,26 @@ export class LintjeKpi extends LintjeGridItemElement {
 
   override disconnectedCallback(): void {
     this.#observer?.disconnect()
+    this.#resize?.disconnect()
+    this.#resize = null
     cancelAnimationFrame(this.#frame)
     super.disconnectedCallback()
+  }
+
+  /** Measures the sparkline's box; the svg takes that size instead of stretching into it. */
+  private observeSparkline = (element?: Element): void => {
+    this.#resize?.disconnect()
+    this.#resize = null
+    if (!element || typeof ResizeObserver === 'undefined') return
+    this.#resize = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect
+      if (!width || !height) return
+      const box = { width: Math.round(width), height: Math.round(height) }
+      if (box.width !== this.sparklineBox.width || box.height !== this.sparklineBox.height) {
+        this.sparklineBox = box
+      }
+    })
+    this.#resize.observe(element)
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
@@ -218,6 +300,7 @@ export class LintjeKpi extends LintjeGridItemElement {
       ${styleProps({
         borderTopColor: ACCENT[this.variable],
         animationDelay: `${this.index * 40}ms`,
+        '--kpi-index': this.index,
       })}
     >
       ${
@@ -237,10 +320,11 @@ export class LintjeKpi extends LintjeGridItemElement {
       return loading
         ? html`<div class="lintje-kpi__skeleton">
             <lintje-skeleton height="34" width="70%"></lintje-skeleton>
+            ${this.renderSparkline()}
             <lintje-skeleton height="13" width="90%"></lintje-skeleton>
             <lintje-skeleton height="12" width="55%"></lintje-skeleton>
           </div>`
-        : html`${this.figure(0, { value: this.value, suffix: this.suffix })}${this.lines(true)}`
+        : html`${this.figure(0, { value: this.value, suffix: this.suffix })}${this.renderSparkline()}${this.lines(true)}`
     }
     if (primary) {
       const [first, ...rest] = figures
@@ -251,6 +335,7 @@ export class LintjeKpi extends LintjeGridItemElement {
             ? html`<lintje-skeleton height="34" width="70%"></lintje-skeleton>`
             : this.figure(0, first)
         }
+        ${this.renderSparkline()}
         ${
           loading
             ? html`<lintje-skeleton height="13" width="90%"></lintje-skeleton>`
@@ -273,6 +358,7 @@ export class LintjeKpi extends LintjeGridItemElement {
     }
     return html`
       ${this.itemList(figures, false, this.dividers && figures.length > 1, 0)}
+      ${this.renderSparkline()}
       ${
         loading
           ? html`<div class="lintje-kpi__skeleton">
@@ -281,6 +367,62 @@ export class LintjeKpi extends LintjeGridItemElement {
           </div>`
           : this.lines(true)
       }
+    `
+  }
+
+  /** The sparkline while `ready`, its skeleton while `loading`, nothing otherwise. */
+  private renderSparkline(): TemplateResult | typeof nothing {
+    if (!this.sparkline) return nothing
+    if (this.state === 'loading') {
+      return html`<div class="lintje-kpi__sparkline lintje-kpi__sparkline--loading">
+        <lintje-skeleton height="100%"></lintje-skeleton>
+      </div>`
+    }
+    if (this.state !== 'ready') return nothing
+    const { width, height } = this.sparklineBox
+    const runs = sparklineRuns(this.sparkline.values, width, height)
+    // The end point says "this is the figure": only when the last value is known.
+    const last = this.sparkline.values.at(-1) == null ? undefined : runs.at(-1)?.at(-1)
+    return html`<div
+      class=${classMap({ 'lintje-kpi__sparkline': true, 'is-drawn': this.drawn })}
+      ${ref(this.observeSparkline)}
+      ${styleProps({ color: ACCENT[this.variable], '--kpi-sparkline-fill': SPARKLINE_FILL[this.variable] })}
+    >
+      <svg
+        class="lintje-kpi__sparkline-svg"
+        viewBox="0 0 ${width} ${height}"
+        width=${width}
+        height=${height}
+        role="img"
+        aria-label=${this.sparkline.description}
+      >
+        <desc>${this.sparkline.description}</desc>
+        <g class="lintje-kpi__sparkline-plot">
+          ${runs.map((run): SVGTemplateResult => this.run(run, height))}
+          ${
+            last
+              ? svg`<circle class="lintje-kpi__sparkline-end" cx=${last[0].toFixed(1)} cy=${last[1].toFixed(1)} r=${SPARKLINE_END_RADIUS} />`
+              : nothing
+          }
+        </g>
+      </svg>
+    </div>`
+  }
+
+  /** One unbroken run: its area down to the box's bottom and its line; a lone value is a point. */
+  private run(run: Point[], height: number): SVGTemplateResult {
+    if (run.length === 1) {
+      const [[x, y]] = run
+      return svg`<circle class="lintje-kpi__sparkline-point" cx=${x.toFixed(1)} cy=${y.toFixed(1)} r="2" />`
+    }
+    const [first] = run
+    const end = run[run.length - 1]
+    return svg`
+      <polygon
+        class="lintje-kpi__sparkline-area"
+        points=${`${first[0].toFixed(1)},${height} ${points(run)} ${end[0].toFixed(1)},${height}`}
+      />
+      <polyline class="lintje-kpi__sparkline-line" points=${points(run)} />
     `
   }
 
