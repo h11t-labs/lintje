@@ -139,6 +139,9 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
         ['', ...chart.columnLabels],
         ...chart.rowLabels.map((label, row) => [label, ...(chart.values[row] ?? [])]),
       ]
+    case 'histogram':
+      // An open last class has no upper bound: its "Tot" stays empty.
+      return [['Van', 'Tot', 'Aantal'], ...chart.bins.map((bin) => [bin.from, bin.to, bin.count])]
   }
 }
 
