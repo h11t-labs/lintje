@@ -139,6 +139,32 @@ export type ChartSpec =
         links?: (ChartLink | null)[][]
       }
     }
+  | {
+      kind: 'histogram'
+      /**
+       * The classes in ascending order, each starting where the one before ends. `to: null` is
+       * an open last class ("30+"); `count: null` is no data, never 0 (rule 15).
+       */
+      bins: { from: number; to: number | null; count: number | null }[]
+      /** What the classes count, in the legend and the tooltip. Default "Aantal". */
+      label?: string
+      color?: ChartColor
+      /** Above the y-axis, e.g. "aanvragen per twee dagen". */
+      axisTitle?: string
+      /** Under the x labels, right-aligned, e.g. "doorlooptijd in dagen". */
+      xTitle?: string
+      /** The unit of the x-axis, e.g. "dagen": in the tooltip and beside the lines. */
+      unit?: string
+      /** A solid emphasis line at this x value. */
+      median?: number
+      /** The text beside the median line; default "mediaan" with its value and unit. */
+      medianLabel?: string
+      /** A dashed emphasis line at this x value. */
+      threshold?: number
+      /** The text beside the threshold line; default "norm" with its value and unit. */
+      thresholdLabel?: string
+      small?: boolean
+    }
 
 export type ChartKind = ChartSpec['kind']
 

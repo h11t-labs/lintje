@@ -20,6 +20,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 - `lintje-kpi` zet één kerncijfer op zijn schaal met `gauge`: een halve boog met het getal in de
   mond (`shape: 'arc'`) of een balk eronder (`shape: 'linear'`), met het doel gestreept. Het type
   `KpiGauge` staat in `src/types.ts`; `lintje-kpi-row` geeft het door. (#13)
+- Het histogram als grafieksoort (`kind: 'histogram'`): klassen die elkaar raken, labels op de
+  grenzen, een open laatste klasse, een mediaan en een drempel. (#9)
 
 ### Gewijzigd
 
