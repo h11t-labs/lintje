@@ -106,17 +106,74 @@ describe('the histogram', () => {
     }
     expect(controller.status).toBe('8 tot 10 dagen: Aanvragen 280, Aandeel 14,7%')
     drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }))
-    expect(controller.status).toBe('30 of meer dagen: Aanvragen 45, Aandeel 2,4%')
+    expect(controller.status).toBe('30 dagen of meer: Aanvragen 45, Aandeel 2,4%')
   })
 
-  it('draws the class under the keyboard last, so its neighbours do not cover its lift', () => {
-    const { host } = draw()
+  it('leaves the share out once a class is missing: the total is unknown', () => {
+    const { host, controller } = draw({
+      bins: BINS.map((bin, i) => (i === 3 ? { ...bin, count: null } : bin)),
+    })
+    const drawing = host.querySelector('svg[tabindex="0"]')!
+    for (let i = 0; i < 5; i += 1) {
+      drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
+    }
+    expect(controller.status).toBe('8 tot 10 dagen: Aantal 280')
+    drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }))
+    expect(controller.status).toBe('6 tot 8 dagen: Aantal geen gegevens')
+  })
+
+  it('lifts a copy over the classes and keeps every class on its own node', () => {
+    const { host } = draw({
+      bins: BINS.map((bin, i) => (i === 3 ? { ...bin, count: null } : bin)),
+    })
+    const marks = () => [
+      ...host.querySelectorAll('.lintje-chart__bar-group, .lintje-chart__missing'),
+    ]
+    const before = marks()
     const drawing = host.querySelector('svg[tabindex="0"]')!
     drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
     drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
-    const groups = [...host.querySelectorAll('.lintje-chart__bar-group')]
-    expect(groups.at(-1)?.classList.contains('is-hovered')).toBe(true)
-    expect(Number(groups.at(-1)?.querySelector('rect')?.getAttribute('height'))).toBe(60)
+    expect(marks()).toEqual(before)
+    const lifted = host.querySelector('.lintje-chart__bar--lifted')
+    // 120 on a scale to 300: the missing 310 is no part of it.
+    expect(Number(lifted?.getAttribute('height'))).toBe(80)
+    expect(lifted?.getAttribute('x')).toBe(before[1].querySelector('rect')?.getAttribute('x'))
+    // Over the classes: after the last of them.
+    expect(
+      before.at(-1)!.compareDocumentPosition(lifted!) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    // The missing class lifts nothing.
+    drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
+    drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
+    expect(host.querySelector('.lintje-chart__bar--lifted')).toBeNull()
+    expect(marks()).toEqual(before)
+  })
+
+  it('draws a line only on the closed part of the scale, and no legend line without one', () => {
+    for (const value of [-1, 40, 31]) {
+      const { host } = draw({ median: value, threshold: value })
+      expect(host.querySelector('line[stroke="var(--color-chart-emphasis)"]')).toBeNull()
+      const legend = [...host.querySelectorAll('.lintje-legend__label')].map(
+        (label) => label.textContent,
+      )
+      expect(legend).toEqual(['Aantal'])
+      document.body.innerHTML = ''
+    }
+    const { host } = draw({ median: 30, threshold: 0 })
+    expect(host.querySelectorAll('line[stroke="var(--color-chart-emphasis)"]')).toHaveLength(2)
+  })
+
+  it('names the median in the legend by its own label', () => {
+    const { host } = draw({ median: 9.6, medianLabel: 'middelste aanvraag' })
+    const legend = [...host.querySelectorAll('.lintje-legend__label')].map(
+      (label) => label.textContent,
+    )
+    expect(legend).toEqual(['Aantal', 'Middelste aanvraag'])
+  })
+
+  it('always names the last bound of a closed histogram', () => {
+    const { host } = draw({ bins: BINS.slice(0, 15) })
+    expect(xLabels(host)).toEqual(['0', '4', '8', '12', '16', '20', '24', '28', '30'])
   })
 })
 

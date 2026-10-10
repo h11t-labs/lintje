@@ -15,6 +15,7 @@ import { LintjeContentTileElement } from '../../shared/content-tile'
 import { ChartController, type ChartOptions } from '../../shared/charts/shared/controller'
 import { renderChart } from '../../shared/charts/shared/render-chart'
 import { rowsHeight } from '../../shared/charts/horizontal-bar-chart/horizontal-bar-chart'
+import { binLabel } from '../../shared/charts/histogram-chart/histogram-chart'
 import {
   renderChartEmpty,
   liveAnnouncement,
@@ -139,9 +140,14 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
         ['', ...chart.columnLabels],
         ...chart.rowLabels.map((label, row) => [label, ...(chart.values[row] ?? [])]),
       ]
-    case 'histogram':
-      // An open last class has no upper bound: its "Tot" stays empty.
-      return [['Van', 'Tot', 'Aantal'], ...chart.bins.map((bin) => [bin.from, bin.to, bin.count])]
+    case 'histogram': {
+      const bound = (name: string) => (chart.unit ? `${name} (${chart.unit})` : name)
+      // An open class has no upper bound: an empty cell, never a missing value (rule 15).
+      return [
+        ['Klasse', bound('Van'), bound('Tot'), 'Aantal'],
+        ...chart.bins.map((bin) => [binLabel(bin, chart.unit), bin.from, bin.to ?? '', bin.count]),
+      ]
+    }
   }
 }
 

@@ -70,6 +70,12 @@
   transform: scaleX(1.06);
   filter: drop-shadow(var(--shadow-chart-hover));
 }
+/* A histogram's classes touch: its lift is a copy drawn over its neighbours. */
+.lintje-chart__bar--lifted {
+  transform: scaleX(1.06);
+  filter: drop-shadow(var(--shadow-chart-hover));
+  pointer-events: none;
+}
 .lintje-chart__bar-row:hover .lintje-chart__bar--horizontal,
 .lintje-chart__bar-row.is-hovered .lintje-chart__bar--horizontal {
   transform: scaleY(1.12);
@@ -124,6 +130,7 @@
     animation-name: lintje-grow;
   }
   .lintje-chart__bar--horizontal { animation-name: lintje-grow-x; }
+  .lintje-chart__bar--lifted { animation: lintje-lift var(--dur-hover) var(--ease-in-motion) backwards; }
   /* Data labels fade in once the marks are drawn, eased at both ends. */
   .lintje-chart__data-label { animation: lintje-fade-in var(--dur-data-label) ease-in-out var(--dur-draw) both; }
 
@@ -149,6 +156,7 @@
   to   { clip-path: inset(-8px); }
 }
 @keyframes lintje-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes lintje-lift { from { transform: none; filter: none; } }
 @keyframes lintje-grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 /* --- Legend -------------------------------------------------------------- */

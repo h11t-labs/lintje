@@ -36,6 +36,14 @@ function bound(value: number): string {
   return formatNumber(value, Number.isInteger(value) ? 0 : 1)
 }
 
+/** A class as the tooltip and the table name it: "8 tot 10 dagen", "30 dagen of meer". */
+export function binLabel(bin: { from: number; to: number | null }, unit?: string): string {
+  const unitText = unit ? ` ${unit}` : ''
+  return bin.to == null
+    ? `${bound(bin.from)}${unitText} of meer`
+    : `${bound(bin.from)} tot ${bound(bin.to)}${unitText}`
+}
+
 export interface LineLabel {
   x: number
   text: string
@@ -92,7 +100,8 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
   })
 
   const counts = bins.map((bin) => bin.count).filter((count): count is number => count != null)
-  const total = counts.reduce((sum, count) => sum + count, 0)
+  // With a class missing the total is unknown, and so is every share of it.
+  const total = counts.length === bins.length ? counts.reduce((sum, count) => sum + count, 0) : null
   const { max, ticks } = axisScale(Math.max(...counts, 1))
   const axis = axisColumn(ticks, controller.width, { fontFamily: controller.fontFamily })
   const defaults = chartArea(options)
@@ -117,19 +126,13 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     return { x, width, center: x + width / 2 }
   })
 
-  const binTitle = (i: number) => {
-    const { from, to } = bins[i]
-    return to == null
-      ? withUnit(`${bound(from)} of meer`)
-      : withUnit(`${bound(from)} tot ${bound(to)}`)
-  }
   const contentAt = (i: number): TooltipContent => {
     const count = bins[i].count
     return {
-      title: binTitle(i),
+      title: binLabel(bins[i], unit),
       rows: [
         { label, value: count == null ? 'geen gegevens' : formatNumber(count), color },
-        ...(count != null && total > 0
+        ...(count != null && total != null && total > 0
           ? [{ label: 'Aandeel', value: formatPercent((count / total) * 100, 1), color }]
           : []),
       ],
@@ -158,19 +161,23 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     bounds.filter((_, i) => i % stride === 0),
     controller.fontFamily,
   )
-  if (openLabel && shown.length) {
-    const before = shown[shown.length - 1]
-    const room = openLabel.x - before.x
-    const needed =
-      (textWidth(before.label, controller.fontFamily) +
-        textWidth(openLabel.label, controller.fontFamily)) /
-        2 +
+  const touches = (a: { label: string; x: number }, b: { label: string; x: number }) =>
+    Math.abs(b.x - a.x) <
+    (textWidth(a.label, controller.fontFamily) + textWidth(b.label, controller.fontFamily)) / 2 +
       LINE_LABEL_GAP
-    if (room < needed) shown = shown.slice(0, -1)
+  // The end of the scale is always named: the closing bound, or the open class.
+  const closing = open ? openLabel : bounds[bounds.length - 1]
+  if (closing && !shown.includes(closing)) {
+    if (shown.length && touches(shown[shown.length - 1], closing)) shown = shown.slice(0, -1)
+    if (!open) shown = [...shown, closing]
   }
 
+  // A line stands only on the closed part of the scale: the open class has none to stand on.
+  const closedEnd = open ? last.from : upper
+  const onScale = (value: number | undefined): value is number =>
+    value != null && value >= first && value <= closedEnd
   const lines = [
-    ...(median != null
+    ...(onScale(median)
       ? [
           {
             x: xOf(median),
@@ -180,7 +187,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
           },
         ]
       : []),
-    ...(threshold != null
+    ...(onScale(threshold)
       ? [
           {
             x: xOf(threshold),
@@ -196,10 +203,16 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
   const capitalised = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
   const legend: LegendItem[] = [
     { label, color, shape: 'square' },
-    ...(median != null
-      ? [{ label: 'Mediaan', color: 'var(--color-chart-emphasis)', shape: 'line' as const }]
+    ...(onScale(median)
+      ? [
+          {
+            label: capitalised(spec.medianLabel ?? 'Mediaan'),
+            color: 'var(--color-chart-emphasis)',
+            shape: 'line' as const,
+          },
+        ]
       : []),
-    ...(threshold != null
+    ...(onScale(threshold)
       ? [
           {
             label: capitalised(spec.thresholdLabel ?? 'Norm'),
@@ -220,21 +233,25 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     }
     const y = yPosition(count, max, area)
     return svg`
-      <g class="lintje-chart__bar-group ${controller.hoverIndex === i ? 'is-hovered' : ''}"
-         ${styleProps(staggerStyle(i, bins.length))}>
+      <g class="lintje-chart__bar-group" ${styleProps(staggerStyle(i, bins.length))}>
         <rect class="lintje-chart__bar lintje-chart__segment" x=${slot.x} y=${y} width=${slot.width}
               height=${Math.max(0, baseline - y)} fill=${color} />
       </g>
     `
   }
-  // The classes touch, and a later sibling paints over an earlier one: the lifted class comes
-  // last, so its neighbours do not cover it. Unkeyed, the nodes stay and only their attributes move.
+  // The classes touch, so a neighbour drawn later would cover a lifted class. The lift is a
+  // copy on top of them all; the classes keep their order and their nodes, since moving a node
+  // replays its draw-in.
   const hovered = controller.hoverIndex
-  const order = bins.map((_, i) => i).filter((i) => i !== hovered)
-  if (hovered != null && hovered < bins.length) order.push(hovered)
+  const lifted = hovered != null ? bins[hovered]?.count : null
 
   const marks: SvgSlot = [
-    order.map(bar),
+    bins.map((_, i) => bar(i)),
+    hovered != null && lifted != null
+      ? svg`<rect class="lintje-chart__bar lintje-chart__bar--lifted lintje-chart__segment"
+                  x=${slots[hovered].x} y=${yPosition(lifted, max, area)} width=${slots[hovered].width}
+                  height=${Math.max(0, baseline - yPosition(lifted, max, area))} fill=${color} />`
+      : nothing,
     shown.map(
       (tick) => svg`
         <line x1=${tick.x} x2=${tick.x} y1=${baseline} y2=${baseline + 4}
