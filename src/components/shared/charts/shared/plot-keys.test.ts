@@ -103,6 +103,20 @@ const KINDS: { name: string; spec: ChartSpec; first: string; second: string }[] 
     },
   },
   {
+    name: 'histogram',
+    first: '0 tot 2 dagen',
+    second: '2 tot 4 dagen',
+    spec: {
+      kind: 'histogram',
+      unit: 'dagen',
+      bins: [
+        { from: 0, to: 2, count: 3 },
+        { from: 2, to: 4, count: null },
+        { from: 4, to: null, count: 1 },
+      ],
+    },
+  },
+  {
     name: 'horizontal-bar',
     first: 'Noord',
     second: 'Zuid',

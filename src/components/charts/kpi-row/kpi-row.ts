@@ -43,6 +43,7 @@ export class LintjeKpiRow extends LintjeGridItemElement {
           .suffix=${kpi.suffix}
           .items=${kpi.items}
           .trend=${kpi.trend}
+          .gauge=${kpi.gauge}
           .note=${kpi.note}
           .detail=${kpi.detail}
           layout=${kpi.layout ?? 'row'}

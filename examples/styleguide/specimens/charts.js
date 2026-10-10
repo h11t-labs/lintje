@@ -50,13 +50,30 @@ const COLOUR_KPIS = NEWER_COLOURS.map(([variable, name], i) => ({
   label: name, variable, value: number(1200 + i * 345), detail: `variable: ${variable}`,
 }))
 
+// A figure on its scale: occupancy against its norm as an arc, wait time against its norm as a bar.
+const GAUGE_ARC = {
+  label: 'Bezetting loketten', variable: 'sky-blue', value: `${kpi.staffing.value}%`,
+  gauge: { max: 120, target: 100, targetLabel: 'norm' },
+  trend: { direction: 'down', sentence: `${100 - kpi.staffing.value} punten onder de norm van 100%` },
+  detail: `${kpi.staffing.staffed} van ${kpi.staffing.total} posities bezet`,
+}
+const GAUGE_LINEAR = {
+  label: 'Gemiddelde wachttijd', variable: 'dark-yellow', value: kpi.wait_time.value, suffix: 'min',
+  gauge: { shape: 'linear', max: 30, target: kpi.wait_time.threshold, targetLabel: 'norm' },
+  trend: {
+    direction: 'down', inverted: true,
+    sentence: `${kpi.wait_time.threshold - kpi.wait_time.value} min onder de norm van ${kpi.wait_time.threshold} min`,
+  },
+}
+
 /** One KPI on its own: the attributes of the first entry that carry, and its trend as a property. */
 function single(data) {
   return (stage) => {
     const element = stage.querySelector('lintje-kpi')
-    const { trend, ...attributes } = data
+    const { trend, gauge, ...attributes } = data
     for (const [name, value] of Object.entries(attributes)) element.setAttribute(name, value)
     if (trend) element.trend = trend
+    if (gauge) element.gauge = gauge
   }
 }
 
@@ -72,6 +89,17 @@ const heatmapWeekdays = [...new Set(heatmap.map((row) => row.weekday))]
 
 const heatmapValue = (weekday, hour) =>
   heatmap.find((row) => row.weekday === weekday && row.hour === hour)?.value ?? null
+
+// Processing time of 1,900 requests in classes of two days; the last class is open ("30+").
+const processingDays = [40, 120, 260, 310, 280, 220, 170, 130, 95, 70, 52, 40, 30, 22, 16, 45].map(
+  (count, i, counts) => ({ from: i * 2, to: i === counts.length - 1 ? null : i * 2 + 2, count }),
+)
+
+const processingTime = (bins) => ({
+  kind: 'histogram', bins, label: 'Aanvragen', unit: 'dagen',
+  axisTitle: 'aanvragen per twee dagen', xTitle: 'doorlooptijd in dagen',
+  median: 9.6, threshold: 21, thresholdLabel: 'termijn 21 dagen',
+})
 
 // Requests per region split by the kind of desk: one variable in tints, which is what a
 // stacked bar is for (rule 10).
@@ -269,6 +297,11 @@ const CHARTS = [
       },
     },
   },
+  {
+    id: 'histogram', title: 'Doorlooptijd van aanvragen',
+    description: 'Doorlooptijd van 1.900 afgehandelde aanvragen in klassen van twee dagen. De mediaan is 9,6 dagen, de termijn 21 dagen; 153 aanvragen duurden 22 dagen of langer.',
+    spec: processingTime(processingDays),
+  },
 ]
 
 // The Dutch name of each kind, for the specimen's label.
@@ -288,6 +321,7 @@ const KIND_NAMES = {
   'dual-axis': 'Twee assen',
   scatter: 'Spreiding',
   heatmap: 'Heatmap',
+  histogram: 'Histogram',
 }
 
 // The three states a chart tile can be in: the tile keeps its size in all of them, so a page
@@ -394,6 +428,11 @@ const missingValues = [
     description: `Gemiddelde wachttijd tegen het aantal aanvragen per loket. ${lateDesks.join(' en ')} leveren vertraagd aan: hun wachttijd ontbreekt, dus ze staan niet in de grafiek.`,
     chart: deskScatter(true),
   },
+  {
+    label: 'Ontbrekende waarde · histogram',
+    description: 'Doorlooptijd van afgehandelde aanvragen in klassen van twee dagen. Van de klasse 6 tot 8 dagen ontbreekt het aantal.',
+    chart: processingTime(processingDays.map((bin, i) => (i === 3 ? { ...bin, count: null } : bin))),
+  },
 ].map(({ label, description, chart }) => ({
   label,
   html: TILE,
@@ -420,6 +459,16 @@ export default {
           wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-kpi-row').data = { kpis: KPIS }
+          },
+        },
+        {
+          label: 'Met kerncijfers op een schaal · gauge',
+          html: '<lintje-kpi-row></lintje-kpi-row>',
+          wide: true,
+          setup: (stage) => {
+            stage.querySelector('lintje-kpi-row').data = {
+              kpis: [GAUGE_ARC, KPIS[0], GAUGE_LINEAR, KPIS[2]],
+            }
           },
         },
         {
@@ -450,6 +499,26 @@ export default {
           label: 'Met achtervoegsel en toelichting',
           html: '<lintje-kpi></lintje-kpi>',
           setup: single(KPIS[4]),
+        },
+        {
+          label: 'Op een schaal: boog',
+          html: '<lintje-kpi></lintje-kpi>',
+          setup: single(GAUGE_ARC),
+        },
+        {
+          label: 'Op een schaal: balk',
+          html: '<lintje-kpi></lintje-kpi>',
+          setup: single(GAUGE_LINEAR),
+        },
+        {
+          label: 'Op een schaal, laden',
+          html: '<lintje-kpi state="loading"></lintje-kpi>',
+          setup: single({ label: GAUGE_ARC.label, gauge: GAUGE_ARC.gauge }),
+        },
+        {
+          label: 'Op een schaal, leeg',
+          html: '<lintje-kpi state="empty"></lintje-kpi>',
+          setup: single({ label: GAUGE_LINEAR.label, variable: 'dark-yellow', gauge: GAUGE_LINEAR.gauge }),
         },
         {
           label: 'Laden',

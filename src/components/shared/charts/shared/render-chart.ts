@@ -15,6 +15,7 @@ import { renderPieChart } from '../pie-chart/pie-chart'
 import { renderDualAxisChart } from '../dual-axis-chart/dual-axis-chart'
 import { renderScatterChart } from '../scatter-chart/scatter-chart'
 import { renderHeatmap } from '../heatmap-chart/heatmap-chart'
+import { renderHistogramChart } from '../histogram-chart/histogram-chart'
 
 export function renderChart(spec: ChartSpec, options: ChartOptions): TemplateResult {
   switch (spec.kind) {
@@ -38,5 +39,7 @@ export function renderChart(spec: ChartSpec, options: ChartOptions): TemplateRes
       return renderScatterChart(spec, options)
     case 'heatmap':
       return renderHeatmap(spec, options)
+    case 'histogram':
+      return renderHistogramChart(spec, options)
   }
 }

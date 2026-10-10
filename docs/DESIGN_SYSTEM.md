@@ -329,6 +329,9 @@ De besluiten hieronder gelden voor alle elementen.
   annuleren. Geen dialoog voor één naam.
 - **Opties die elk een regel nodig hebben, zijn kaarten** (`variant="cards"`): naast elkaar, de
   gekozen rustig zoals in de gesegmenteerde keuze.
+- **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
+  elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
+  beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").
 - **Een dialoog met een formulier is smal** en zo hoog als zijn inhoud; een zin over het resultaat
   staat links in de voet, de knoppen rechts.
 - **Een bezige knop houdt zijn breedte en zijn kleuren**; alleen de inhoud maakt plaats voor de
@@ -506,6 +509,19 @@ Eén grammatica, geen grafiekbibliotheek.
   delen worden vier en één grijs "Overig" dat niet klikbaar is: een samengevoegd stuk heeft geen
   plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) zijn geen delen; ze
   staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde.
+- **De klassen van een histogram raken elkaar**, omdat de as doorloopt: geen ruimte tussen de
+  staven, alleen de scheidingslijn in de oppervlaktekleur, en de labels staan op de grenzen van de
+  klassen, niet onder hun midden. Een open laatste klasse ("30+") heeft geen grens om op te staan
+  en wordt onder haar midden genoemd.
+- **Een mediaan is een doorgetrokken nadruklijn**, naast de gestreepte van een drempel, elk met
+  zijn label naast de lijn. Raken de labels elkaar, dan zakt het rechter een regel.
+
+**Een kerncijfer op zijn schaal is een KPI, geen grafiek.** De meter is een instelling van
+`lintje-kpi`: een halve boog met het getal in de mond, of een balk onder het getal. De vulling is
+de kleur van de variabele, de rest van de schaal het lichtgrijs van een rest, het doel gestreept in
+de nadrukkleur. De vulling oordeelt niet: of het cijfer goed staat, zegt de trendregel met pijl en
+woord, zoals bij elke KPI. Een cijfer zonder meting tekent de schaal en het doel, nooit een lege
+vulling als nul.
 
 **Onvolledige perioden.** Een periode die nog loopt, is gearceerd. Als er nog veel van open is,
 wordt de reeks afgekapt bij het laatste volledige punt en zegt een peilmomentlijn waar. De assen

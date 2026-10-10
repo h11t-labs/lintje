@@ -149,6 +149,41 @@ describe('lintje-chart-tile table switch', () => {
   })
 })
 
+describe('lintje-chart-tile table of a histogram', () => {
+  it('names each class, writes its bounds as numbers, and never reads an open bound as missing', async () => {
+    const element = await tile({
+      title: 'Doorlooptijd',
+      description: 'Doorlooptijd in klassen.',
+      tableSwitch: true,
+      chart: {
+        kind: 'histogram',
+        unit: 'dagen',
+        bins: [
+          { from: 0, to: 2.5, count: 4 },
+          { from: 2.5, to: 5, count: null },
+          { from: 5, to: null, count: 7 },
+        ],
+      },
+    })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    const head = [...found.renderRoot.querySelectorAll('.lintje-data-table__full thead th')]
+    expect(head.map((cell) => cell.textContent?.trim())).toEqual([
+      'Klasse',
+      'Van (dagen)',
+      'Tot (dagen)',
+      'Aantal',
+    ])
+    const rows = cells(found)
+    expect(rows[0]).toEqual(['0 tot 2,5 dagen', '0,0', '2,5', '4'])
+    // A missing count is missing; the open bound is an empty cell, not "geen gegevens".
+    expect(rows[1][3]).toContain('geen gegevens')
+    expect(rows[2]).toEqual(['5 dagen of meer', '5,0', '', '7'])
+    const open = found.renderRoot.querySelectorAll('.lintje-data-table__full tbody tr')[2]
+    expect(open.children[2].textContent).not.toContain('geen gegevens')
+  })
+})
+
 describe('lintje-chart-tile error state', () => {
   it('is the compact warning, a live region: the load failed just now', async () => {
     const element = await tile({ ...DATA, state: 'error', message: 'De bron reageerde niet.' })

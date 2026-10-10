@@ -247,7 +247,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
         <line x1=${area.left} x2=${area.width - area.right} y1=${thresholdY} y2=${thresholdY}
               stroke="var(--color-chart-emphasis)" stroke-width="1" stroke-dasharray="3 3" />
         <text x=${area.left + 6} y=${thresholdY - 6}
-              class="lintje-chart__axis-label lintje-chart__data-label--halo">
+              class="lintje-chart__axis-label lintje-chart__axis-label--halo">
           ${thresholdLabel ?? `norm ${withUnit(threshold, unit)}`}
         </text>
       `

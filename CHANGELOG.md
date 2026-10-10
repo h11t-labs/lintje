@@ -12,6 +12,16 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Toegevoegd
 
+- `lintje-slot-picker`: een tijd voor een afspraak kiezen, de dagen naast elkaar met hun tijden
+  als opties; een volle tijd blijft staan met het woord "Vol", een dag zonder tijden zegt dat.
+  (#8)
+- `lintje-time-input` opent een lijst met tijden van `min` tot `max`, om de `step` minuten, zoals
+  het datumveld zijn kalender: met de klokknop of Alt+pijl omlaag, en te typen blijft het. (#8)
+- `lintje-kpi` zet één kerncijfer op zijn schaal met `gauge`: een halve boog met het getal in de
+  mond (`shape: 'arc'`) of een balk eronder (`shape: 'linear'`), met het doel gestreept. Het type
+  `KpiGauge` staat in `src/types.ts`; `lintje-kpi-row` geeft het door. (#13)
+- Het histogram als grafieksoort (`kind: 'histogram'`): klassen die elkaar raken, labels op de
+  grenzen, een open laatste klasse, een mediaan en een drempel. (#9)
 - Het spreidingsdiagram als grafieksoort (`kind: 'scatter'`): een reeks is een kleur en de vorm
   die die kleur op de kaart heeft, met een norm, datalabels voor de punten die de host noemt en een
   tabel met een rij per punt. (#10)

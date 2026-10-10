@@ -15,6 +15,7 @@ import { LintjeContentTileElement } from '../../shared/content-tile'
 import { ChartController, type ChartOptions } from '../../shared/charts/shared/controller'
 import { renderChart } from '../../shared/charts/shared/render-chart'
 import { rowsHeight } from '../../shared/charts/horizontal-bar-chart/horizontal-bar-chart'
+import { binLabel } from '../../shared/charts/histogram-chart/histogram-chart'
 import {
   renderChartEmpty,
   liveAnnouncement,
@@ -152,6 +153,14 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
         ['', ...chart.columnLabels],
         ...chart.rowLabels.map((label, row) => [label, ...(chart.values[row] ?? [])]),
       ]
+    case 'histogram': {
+      const bound = (name: string) => (chart.unit ? `${name} (${chart.unit})` : name)
+      // An open class has no upper bound: an empty cell, never a missing value (rule 15).
+      return [
+        ['Klasse', bound('Van'), bound('Tot'), 'Aantal'],
+        ...chart.bins.map((bin) => [binLabel(bin, chart.unit), bin.from, bin.to ?? '', bin.count]),
+      ]
+    }
   }
 }
 
@@ -168,8 +177,9 @@ function chartTable(chart: ChartSpec, caption: string): DataTableData {
   const [header = [], ...body] = csvRows(chart)
   const columns = header.map((cell, index) => {
     const values = body.map((row) => (row[index] ?? null) as CellValue)
-    // A column of names is text, wherever it stands (a scatter plot has two).
-    return index === 0 || values.some((value) => typeof value === 'string')
+    // A column of names is text, wherever it stands (a scatter plot has two); an empty cell
+    // (a histogram's open class) leaves a column of numbers a column of numbers.
+    return index === 0 || values.some((value) => typeof value === 'string' && value !== '')
       ? { key: `c${index}`, header: String(cell ?? ''), format: 'text' as const, sortable: false }
       : {
           key: `c${index}`,
