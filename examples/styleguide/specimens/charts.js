@@ -93,13 +93,13 @@ const kindSeries = KINDS.map((kind) => ({
     .reduce((sum, point) => sum + point.requests, 0)),
 }))
 
-// Requests per week by channel, one variable in parts. Week 29 is missing in every channel, so
-// the stack breaks there.
+// Requests per week by channel, one variable in parts. Only the post of week 29 is missing, and
+// that one part breaks the whole stack there.
 const CHANNELS = [
-  { label: 'Online', values: [610, 625, 640, 660, 650, null, 700, 690, 710, 705, 720, 735] },
-  { label: 'Balie', values: [330, 320, 325, 310, 300, null, 295, 290, 296, 285, 280, 276] },
+  { label: 'Online', values: [610, 625, 640, 660, 650, 675, 700, 690, 710, 705, 720, 735] },
+  { label: 'Balie', values: [330, 320, 325, 310, 300, 298, 295, 290, 296, 285, 280, 276] },
   { label: 'Post', values: [140, 135, 130, 128, 125, null, 120, 118, 115, 112, 110, 108] },
-  { label: 'Telefoon', values: [90, 92, 88, 85, 86, null, 80, 82, 78, 80, 76, 75] },
+  { label: 'Telefoon', values: [90, 92, 88, 85, 86, 83, 80, 82, 78, 80, 76, 75] },
 ]
 
 // Fifteen desks in the order of the data: the pie sorts them, keeps the four largest and folds
@@ -185,7 +185,7 @@ const CHARTS = [
   {
     id: 'stacked-area', title: 'Aanvragen per kanaal',
     subtitle: 'Per week, week 24 tot en met 35',
-    description: 'Aanvragen per week naar kanaal, week 24 tot en met 35. Online groeit van 610 naar 735, balie, post en telefoon dalen licht. Van week 29 zijn geen gegevens.',
+    description: 'Aanvragen per week naar kanaal, week 24 tot en met 35. Online groeit van 610 naar 735, balie, post en telefoon dalen licht. Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
     spec: {
       kind: 'stacked-area', axisTitle: 'aanvragen',
       labels: Array.from({ length: 12 }, (_, i) => `wk ${24 + i}`),

@@ -113,6 +113,21 @@ describe('the stacked area', () => {
     expect(host.querySelectorAll('.lintje-chart__hover-point')).toHaveLength(3)
   })
 
+  it('names the total "Totaal getoond" while a part is switched off', () => {
+    const { host, controller } = draw(SPEC)
+    controller.toggleSeries('Post')
+    const drawing = host.querySelector('svg[tabindex="0"]') as SVGSVGElement
+    drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }))
+    expect(tooltipRows(host).map((row) => row.text)).toEqual([
+      'Balie 30',
+      'Online 60',
+      'Totaal getoond 90',
+    ])
+    controller.toggleSeries('Post')
+    drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }))
+    expect(tooltipRows(host).at(-1)?.text).toBe('Totaal 107')
+  })
+
   it('says "geen gegevens" at a gap, for the total too, and puts no hover point there', () => {
     const { host } = draw(SPEC)
     const drawing = host.querySelector('svg[tabindex="0"]') as SVGSVGElement

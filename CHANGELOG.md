@@ -14,7 +14,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 - Het gestapelde vlak als grafieksoort (`kind: 'stacked-area'`): de onderverdelingen van één
   variabele in haar tintladder, de donkerste onderaan; een ontbrekende waarde breekt de hele
-  stapel af, de tooltip sluit af met een totaal en de tabel krijgt een kolom Totaal. (#11)
+  stapel af, de tooltip sluit af met een totaal en de tabel krijgt een kolom Totaal. Daarvoor is
+  `TooltipRow.color` optioneel (een rij zonder staal) en krijgt `TooltipRow` een `divider`. (#11)
 
 ## [0.1.1] - 2026-10-09
 

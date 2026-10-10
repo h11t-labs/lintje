@@ -141,6 +141,25 @@ describe('lintje-chart-tile table switch', () => {
     expect(second[2]).toBe('320')
     expect(second[3]).toContain('—')
   })
+
+  it('rounds the total of decimal parts to their decimals, without float noise', async () => {
+    const element = await tile({
+      ...DATA,
+      tableSwitch: true,
+      chart: {
+        kind: 'stacked-area',
+        labels: ['wk 1'],
+        series: [
+          { label: 'A', values: [2.1] },
+          { label: 'B', values: [1.3] },
+          { label: 'C', values: [0.4] },
+        ],
+      },
+    })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    expect(cells(found)[0]).toEqual(['wk 1', '2,1', '1,3', '0,4', '3,8'])
+  })
 })
 
 describe('lintje-chart-tile error state', () => {

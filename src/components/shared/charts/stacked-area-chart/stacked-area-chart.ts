@@ -89,7 +89,9 @@ export function renderStackedAreaChart(
     .map((label, i) => ({ label, x: x(i), i }))
     .filter((label) => label.i % step === 0)
 
-  // Read top to bottom, as drawn, then the total.
+  // Read top to bottom, as drawn, then the total of the drawn stack; with a part switched off it
+  // says so, since the table's total counts every part.
+  const totalLabel = visible.length < series.length ? 'Totaal getoond' : 'Totaal'
   function contentAt(i: number): TooltipContent {
     return {
       title: labels[i],
@@ -102,7 +104,7 @@ export function renderStackedAreaChart(
         ...(visible.length > 0
           ? [
               {
-                label: 'Totaal',
+                label: totalLabel,
                 value: totals[i] == null ? NO_DATA : formatNumber(totals[i]!),
                 divider: true,
               },
