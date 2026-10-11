@@ -329,6 +329,9 @@ De besluiten hieronder gelden voor alle elementen.
   annuleren. Geen dialoog voor één naam.
 - **Opties die elk een regel nodig hebben, zijn kaarten** (`variant="cards"`): naast elkaar, de
   gekozen rustig zoals in de gesegmenteerde keuze.
+- **Een paar keuzes die allemaal in beeld blijven, zijn een groep vinkjes**
+  (`lintje-checkbox-group`): één label, één hint en één foutregel voor de groep, zoals de
+  radiogroep. Een lange lijst om in te zoeken is de multiselect.
 - **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
   elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
   beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").

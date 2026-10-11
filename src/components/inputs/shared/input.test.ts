@@ -21,6 +21,7 @@ import '../segmented/segmented'
 import '../multiselect/multiselect'
 import '../date-range/date-range'
 import '../checkbox/checkbox'
+import '../checkbox-group/checkbox-group'
 import '../toggle/toggle'
 import '../radio-group/radio-group'
 import '../range/range'
@@ -48,6 +49,7 @@ const CONTROLS: [string, (element: LintjeInputElement) => void][] = [
   ['lintje-multiselect', (element) => Object.assign(element, { options: OPTIONS })],
   ['lintje-date-range', () => {}],
   ['lintje-checkbox', () => {}],
+  ['lintje-checkbox-group', (element) => Object.assign(element, { options: OPTIONS })],
   ['lintje-toggle', () => {}],
   ['lintje-radio-group', (element) => Object.assign(element, { options: OPTIONS })],
   [
