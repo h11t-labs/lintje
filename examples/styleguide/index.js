@@ -63,6 +63,7 @@ const root = document.documentElement
 const shell = document.getElementById('shell')
 answerLogout(shell)
 const pageHeader = document.getElementById('page-header')
+const band = document.getElementById('band')
 const crumbs = document.getElementById('crumbs')
 const host = document.getElementById('elements')
 const appSearch = document.getElementById('search')
@@ -149,32 +150,11 @@ function render({ keepScroll = false } = {}) {
     pageName: item ? nameOf(item) : category.label,
   }
   const heading = MENU.find((group) => group.items.includes(category)).heading
-  for (const action of pageHeader.querySelectorAll('[slot="actions"]')) action.remove()
-  if (item) {
-    const module = declarations.get(item.tag)?.module
-    if (module) {
-      const source = document.createElement('lintje-button')
-      source.slot = 'actions'
-      source.variant = 'secondary'
-      source.size = 'compact'
-      source.href = `${SOURCE}${module}`
-      source.target = '_blank'
-      source.textContent = 'Broncode'
-      pageHeader.append(source)
-    }
-    // The link to this page is the shell's "Delen".
-    pageHeader.data = {
-      kicker: category.label,
-      title: item.tag ? `<${item.tag}>` : item.title,
-      description: item.tag ? item.title : undefined,
-    }
-    crumbs.items = [
-      { label: 'Startpagina', href: carry('../') },
-      { label: heading },
-      { label: category.label, href: addressOf({ category }) },
-      { label: nameOf(item) },
-    ]
-  } else {
+  // An element's page draws its own head, in a band above the content; a category's is the
+  // page header.
+  pageHeader.hidden = Boolean(item)
+  band.hidden = !item
+  if (!item) {
     pageHeader.data = { kicker: 'Lintje stijlgids', title: category.label, description: category.intro }
     // A heading has no page of its own: its crumb is text.
     crumbs.items = [{ label: 'Startpagina', href: carry('../') }, { label: heading }, { label: category.label }]
@@ -187,16 +167,26 @@ function render({ keepScroll = false } = {}) {
   drawn = drawing
   const scroll = window.scrollY
   host.replaceChildren()
+  band.replaceChildren()
   if (item) {
+    const module = declarations.get(item.tag)?.module
     renderElementPage(host, item, {
+      band,
+      crumbs: [
+        { label: 'Startpagina', href: carry('../') },
+        { label: heading },
+        { label: category.label, href: addressOf({ category }) },
+        { label: nameOf(item) },
+      ],
+      source: module ? `${SOURCE}${module}` : undefined,
       declarations,
       types: dataTypes.types,
-      siblings: elementsOf(category),
       category: category.name,
       group: place.group,
       tab: place.tab,
       // A tab is a place on the page, kept in its address without drawing it again.
       remember: (tab) => history.replaceState(null, '', addressOf({ ...placeOf(new URL(location.href)), tab })),
+      tabAddress: (tab) => addressOf({ ...placeOf(new URL(location.href)), tab }),
       addressOf: elementAddress,
       go: (href, options) => follow(href, options),
       appAddress: (app) => carry(`../${app.href}`),

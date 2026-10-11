@@ -339,27 +339,25 @@ const TABS = [
   ['voorbeelden', 'Voorbeelden'],
   ['referentie', 'Referentie'],
   ['toegepast', 'Toegepast in'],
-  ['laden', 'Laden'],
+  ['gebruiken', 'Gebruiken'],
 ]
 
 /**
- * An element's page: what it is, then its parts in tabs, with "Op deze pagina" for the open tab
- * beside them. `group` and `tab` are what the URL chose; `addressOf(item, group)` writes an
- * address, `go(address)` follows it and `remember(tab)` writes the open tab into the URL.
+ * An element's page: a band above the content with its name, what it is, its facts and its parts
+ * as tabs, and under it the open part, with "Op deze pagina" beside it. `band` is the shell's
+ * edge-to-edge slot. `group` and `tab` are what the URL chose; `addressOf(item, group)` writes an
+ * address, `tabAddress(tab)` one of its tabs, `go(address)` follows it and `remember(tab)` writes
+ * the open tab into the URL.
  */
 export function renderElementPage(host, item, context) {
-  const { declarations, types, siblings, group, addressOf, go } = context
+  const { declarations, types, group, addressOf, go } = context
   const declaration = declarations.get(item.tag)
   const groups = item.groups
   const chosen = groups && (groups.items.find((entry) => entry.value === group) ?? groups.items[0])
   const shownTabs = TABS.filter(([value]) => item.tag || value === 'voorbeelden')
   const toc = Object.fromEntries(shownTabs.map(([value]) => [value, []]))
   const panels = Object.fromEntries(
-    shownTabs.map(([value]) => {
-      const panel = element('div', 'guide__panel')
-      panel.slot = value
-      return [value, panel]
-    }),
+    shownTabs.map(([value]) => [value, element('div', 'guide__panel')]),
   )
 
   // Under the title, which says what it is, its facts in one quiet line.
@@ -369,40 +367,54 @@ export function renderElementPage(host, item, context) {
       ? 'Primitive'
       : 'Component'
   const facts = element('p', 'guide__meta guide__summary')
-  const writeFacts = (apps) =>
-    (facts.textContent = [
+  const writeFacts = (apps) => {
+    facts.textContent = [
       kind,
       ...(declaration ? [apiOf(declaration)] : []),
       ...(apps ? [`in ${count(apps, 'app', 'apps')}`] : []),
-    ].join(' · '))
+    ].join(' · ')
+    if (!context.source) return
+    const source = element('a', '', 'Broncode')
+    source.href = context.source
+    source.target = '_blank'
+    facts.append(' · ', source)
+  }
   writeFacts()
 
+  // The parts are pages of the element: a row of links, each an address with its `&tab=`.
   const tabs = document.createElement('lintje-tabs')
   tabs.className = 'guide__tabs'
   tabs.label = `Over ${item.tag ?? nameOf(item)}`
+  const crumbs = document.createElement('lintje-breadcrumbs')
+  crumbs.items = context.crumbs
+  const title = element('h2', 'guide__title', item.tag ?? item.title)
+  context.band.append(crumbs, title)
+  if (item.tag) context.band.append(element('p', 'guide__lead', item.title))
+  context.band.append(facts, tabs)
+
   const page = element('div', 'guide__page')
   const main = element('div', 'guide__main')
   const nav = document.createElement('lintje-sub-nav')
   nav.className = 'guide__toc'
   nav.expanded = true
   nav.label = 'Op deze pagina'
-  main.append(tabs)
+  main.append(...Object.values(panels))
   page.append(main, nav)
-  const others = {
-    label: 'Ook in deze categorie',
-    items: siblings
-      .filter((sibling) => sibling !== item)
-      .map((sibling) => ({ label: nameOf(sibling), href: addressOf(sibling) })),
-  }
   const counts = {}
   const drawTabs = () => {
-    tabs.tabs = shownTabs.map(([value, label]) => ({ value, label, count: counts[value] }))
+    tabs.tabs = shownTabs.map(([value, label]) => ({
+      value,
+      label,
+      count: counts[value],
+      href: context.tabAddress(value),
+    }))
   }
   /** Opens a tab: its panel, its entries in "Op deze pagina", its place in the URL. */
   const open = (value) => {
     tabs.value = value
+    for (const [key, panel] of Object.entries(panels)) panel.hidden = key !== value
     context.remember?.(value)
-    follow(nav, toc[value], others)
+    follow(nav, toc[value])
   }
   tabs.addEventListener('lintje-tab-change', (event) => {
     event.stopPropagation()
@@ -554,23 +566,22 @@ export function renderElementPage(host, item, context) {
         writeFacts(apps)
         counts.toegepast = total || undefined
         drawTabs()
-        if (tabs.value === 'toegepast') follow(nav, toc.toegepast, others)
+        if (tabs.value === 'toegepast') follow(nav, toc.toegepast)
       }),
     )
-    panels.laden.append(loadSection(item, context.category))
+    panels.gebruiken.append(...useSections(item, context.category, figures[0], toc.gebruiken))
   }
 
   drawTabs()
-  tabs.append(...Object.values(panels))
-  host.append(facts, page)
+  host.append(page)
   open(toc[context.tab] ? context.tab : 'voorbeelden')
 }
 
 /* "Op deze pagina" follows the reading ------------------------------------------------- */
 
 let following
-/** Marks the entry in view, as `docs/guides/page-contents.md` does; the other elements follow it. */
-function follow(nav, toc, others) {
+/** Marks the entry in view, as `docs/guides/page-contents.md` does; a tab without entries hides it. */
+function follow(nav, toc) {
   const all = (items) => items.flatMap((item) => [item, ...all(item.items ?? [])])
   const mark = (items, href) =>
     items.map((item) => ({
@@ -579,11 +590,9 @@ function follow(nav, toc, others) {
       active: item.href === href,
       ...(item.items ? { items: mark(item.items, href) } : {}),
     }))
-  const groups = (href) => [
-    ...(toc.length ? [{ label: 'Op deze pagina', items: mark(toc, href) }] : []),
-    others,
-  ]
+  const groups = (href) => (toc.length ? [{ label: 'Op deze pagina', items: mark(toc, href) }] : [])
   let shown
+  nav.hidden = !toc.length
   nav.groups = groups(null)
   const update = () => {
     if (!nav.isConnected) return
@@ -688,17 +697,48 @@ function usageSection(tag, appAddress, toc, onCount) {
   return node
 }
 
-/** How a page loads the tag: by itself, with its category, or the whole bundle. */
-function loadSection(item, category) {
-  const ways = [
-    ['tag', 'Alleen deze tag', `import 'lintje/tag/${nameOf(item)}'`],
-    ['category', 'De categorie', `import 'lintje/${category}'`],
-    ['bundle', 'De hele bundel', `import 'lintje'`],
-  ]
-  const code = Object.fromEntries(ways.map(([key, , text]) => [key, { text, copy: text }]))
-  return codeBox(
-    ways.map(([key, label]) => [key, label, 'js']),
-    () => code,
-    { label: 'Hoe je hem laadt' },
+/**
+ * How to use the tag, in two steps: load it — by itself, with its category or the whole bundle —
+ * and put it in the page, as its first specimen does.
+ */
+function useSections(item, category, first, toc) {
+  const name = nameOf(item)
+  const load = section('laden', '1. Laad de tag', toc)
+  load.append(
+    element('p', 'guide__meta', 'Eén import, in het script van je pagina. Kies hoeveel je laadt.'),
   )
+  const ways = [
+    ['Alleen deze tag', 'Het kleinst: voor een pagina die maar een paar elementen gebruikt.', `import 'lintje/tag/${name}'`],
+    ['Zijn categorie', 'Elk element van dezelfde categorie, in één keer.', `import 'lintje/${category}'`],
+    ['De hele bundel', 'Elk element van Lintje: het eenvoudigst, het grootst.', `import 'lintje'`],
+  ]
+  const list = element('div', 'guide__ways')
+  for (const [title, text, code] of ways) {
+    const way = element('div', 'guide__way')
+    const about = element('div')
+    about.append(element('p', 'guide__way-name', title), element('p', 'guide__note', text))
+    const block = document.createElement('lintje-code')
+    block.language = 'js'
+    block.text = code
+    const copy = document.createElement('lintje-copy-button')
+    copy.size = 'compact'
+    copy.variant = 'flat'
+    copy.text = code
+    way.append(about, block, copy)
+    list.append(way)
+  }
+  load.append(list)
+  const sections = [load]
+  if (first) {
+    const place = section('plaatsen', '2. Zet hem in je pagina', toc)
+    place.append(
+      element('p', 'guide__meta', 'Zoals het eerste voorbeeld: de markup, en wat een script erop zet.'),
+    )
+    const read = () => codeOf(first.stage, first.html)
+    const code = read()
+    const kinds = CODE_KINDS.filter(([key]) => code[key])
+    if (kinds.length) place.append(codeBox(kinds, read, 'Code van het eerste voorbeeld'))
+    sections.push(place)
+  }
+  return sections
 }
