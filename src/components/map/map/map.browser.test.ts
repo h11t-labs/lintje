@@ -86,6 +86,27 @@ describe('the map', () => {
     expect(getComputedStyle(container, '::after').borderTopWidth).toBe('3px')
     expect(getComputedStyle(container, '::after').zIndex).toBe('1000')
   })
+
+  it('leaves the page in the middle of a zoom without an error', async () => {
+    const element = await mount()
+    // Vitest only fails the run on an uncaught error; the test hears it itself.
+    const errors: unknown[] = []
+    const record = (event: ErrorEvent): void => {
+      errors.push(event.error)
+      event.preventDefault()
+    }
+    window.addEventListener('error', record)
+    try {
+      root(element).querySelector<HTMLButtonElement>('.lintje-map-chart__zoom-button')!.click()
+      // Leaflet starts the animation a frame later and ends it on a 250 ms timer.
+      await new Promise((resolve) => requestAnimationFrame(resolve))
+      element.remove()
+      await new Promise((resolve) => setTimeout(resolve, 400))
+    } finally {
+      window.removeEventListener('error', record)
+    }
+    expect(errors).toEqual([])
+  })
 })
 
 // Chromium's own box: a focused SVG element with a tabindex gets it even without

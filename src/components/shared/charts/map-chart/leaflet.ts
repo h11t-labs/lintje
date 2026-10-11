@@ -106,6 +106,12 @@ export interface LeafletSyncOptions {
   mobile: boolean
 }
 
+/** The part of Leaflet 1.9's private zoom animation that `destroy()` ends. */
+interface AnimatedZoom {
+  _animatingZoom?: boolean
+  _onZoomTransitionEnd(): void
+}
+
 function boundsOf(collection: FeatureCollection): L.LatLngBounds {
   const [west, south, east, north] = collection.bbox ?? [-180, -85, 180, 85]
   return L.latLngBounds([south, west], [north, east])
@@ -295,6 +301,10 @@ export class LeafletSurface {
     document.removeEventListener('keydown', this.#onEscape, true)
     this.#resize?.disconnect()
     this.#resize = null
+    // Leaflet ends a zoom animation on a timer that `remove()` leaves standing, and that timer
+    // reads the removed panes. Ended here, the view is the one zoomed to and the timer does nothing.
+    const zooming = this.#map as unknown as AnimatedZoom | null
+    if (zooming?._animatingZoom) zooming._onZoomTransitionEnd()
     this.#map?.remove()
     this.#map = null
     this.#tiles = null
