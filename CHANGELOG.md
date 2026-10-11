@@ -17,7 +17,7 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   sluitknop, `persistent` laat Escape en de achtergrond niets vragen, `wide` geeft de breedte van
   een formulier, en met `busy` wacht de knop van het antwoord terwijl de andere uit staan. De
   knoppen komen in `actions`; de focus gaat naar wat `autofocus` heeft. De bevestiging, de sessie
-  die verloopt en de sneltoetsen zijn recepten ervan in de stijlgids.
+  die verloopt en de sneltoetsen zijn recepten ervan in de stijlgids. (#31)
 
 - **Eén toonset.** `Tone` (neutraal, subtiel, bezig, gelukt, let op, fout, informatie, aandacht,
   live), `WorkState` (wachtrij, bezig, onderbroken, klaar, mislukt, geannuleerd) en
@@ -65,7 +65,7 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   "Vergroot" meer en zet `csv` en `png` standaard uit. Het overzicht van de sneltoetsen is een
   `lintje-dialog` die de pagina vult uit `shortcuts()`, met de schakelaar op `setCharacterKeys()`.
   Modal, dialoog en drawer delen hun scrollvergrendeling, focusval en Escape
-  (`components/shared/dialog.ts`).
+  (`components/shared/dialog.ts`). (#31)
 - De tegel stelt leeg en fout samen uit dezelfde blokken als `lintje-empty-state` en
   `lintje-announcement` (`primitives/shared/announcement-block.ts`, `empty-state-block.ts`), en
   alle drie de toestanden zijn een live-regio van de tegel: ook een tegel die leeg wordt, wordt
