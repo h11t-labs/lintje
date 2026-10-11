@@ -51,6 +51,13 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Gewijzigd
 
+- De tegel stelt leeg en fout samen uit dezelfde blokken als `lintje-empty-state` en
+  `lintje-announcement` (`primitives/shared/announcement-block.ts`, `empty-state-block.ts`), en
+  alle drie de toestanden zijn een live-regio van de tegel: ook een tegel die leeg wordt, wordt
+  uitgesproken, en het skelet van een grafiek zwijgt erin. Grafiek, kaart en tabel geven `state`,
+  `message` en `last-known` aan de tegel. `renderChartEmpty`, `renderChartError` en
+  `liveAnnouncement` zijn weg; `announcement.css` en `empty-state.css` zijn de blokken in
+  `primitives/shared/`. (#27)
 - **Brekend:** `lintje-progress-bar` zegt zijn staat met `state` (`busy`, `done`, `error`,
   `paused`), de staat van werk, in plaats van `tone` (`run`, `done`, `error`, `paused`); het type
   `ProgressTone` heet `ProgressState`. `lintje-job-list` en `lintje-list` zijn mee. (#26)
