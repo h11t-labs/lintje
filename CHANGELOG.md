@@ -21,6 +21,11 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 - Een lijngrafiek toont gebeurtenissen (`events`): een genummerd vierkantje boven de categorie,
   met de tekst in een lijst onder de grafiek, in de tooltip, de tabel en de CSV. (#12)
 
+### Gewijzigd
+
+- De styleguide zet hoe je een tag laadt bovenaan zijn referentie, niet meer los en zonder ruimte
+  onder de specimens. (#19)
+
 ## [0.2.0] - 2026-10-10
 
 ### Toegevoegd
