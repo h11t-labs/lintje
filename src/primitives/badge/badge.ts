@@ -1,28 +1,21 @@
 /**
  * `<lintje-badge>` — a status as a word; two words at most (rule 13). `variant="count"` is the
- * quiet counter in a tab or button, `variant="unread"` the round counter of the menu.
+ * quiet counter in a tab or button, `variant="unread"` the round counter of the menu. `icon`
+ * draws a file of the set before the word; the word still carries the meaning.
  *
  * A root that draws a badge without the element calls `renderBadge()` and adopts `badgeStyles`,
  * as `renderIcon()` / `iconStyles` do.
  */
-import { html, type CSSResult, type PropertyDeclarations, type TemplateResult } from 'lit'
+import { html, nothing, type CSSResult, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../core/element'
 import { shadowCss } from '../../core/styles'
+import { iconStyles, renderIcon } from '../../icons/render'
+import type { Tone } from '../shared/tone'
 import badgeCss from './badge.css?inline'
 import badgeHostCss from './badge-host.css?inline'
 
-export type BadgeTone =
-  | 'neutral'
-  | 'subtle'
-  | 'busy'
-  | 'success'
-  | 'warning'
-  | 'error'
-  | 'info'
-  | 'attention'
-  /** A recording that runs now: the error fill with a dot before the word. */
-  | 'live'
+export type BadgeTone = Tone
 export type BadgeVariant = 'label' | 'count' | 'unread'
 
 export const badgeStyles: CSSResult = shadowCss(badgeCss)
@@ -38,11 +31,26 @@ export interface BadgeOptions {
   muted?: boolean
   /** BEM classes of the surrounding block, space-separated. */
   className?: string
+  /** An icon file name before the word, in the word's colour; a label badge only. */
+  icon?: string
 }
 
 export function renderBadge(options: BadgeOptions): TemplateResult {
-  const { value, tone = 'neutral', variant = 'label', label, surface, muted, className } = options
+  const {
+    value,
+    tone = 'neutral',
+    variant = 'label',
+    label,
+    surface,
+    muted,
+    className,
+    icon,
+  } = options
   const onNav = surface === 'nav'
+  const glyph =
+    icon && variant === 'label'
+      ? renderIcon(icon, { size: 12, className: 'lintje-badge__icon' })
+      : nothing
   // With a label the figure is only seen and the label only heard.
   return html`<span
     class=${classMap({
@@ -58,7 +66,7 @@ export function renderBadge(options: BadgeOptions): TemplateResult {
           .map((name) => [name, true]),
       ),
     })}
-    >${
+    >${glyph}${
       label
         ? html`<span aria-hidden="true">${value}</span
             ><span class="visually-hidden">${label}</span>`
@@ -68,17 +76,20 @@ export function renderBadge(options: BadgeOptions): TemplateResult {
 }
 
 export class LintjeBadge extends LintjeElement {
-  static override styles = [shadowCss(badgeHostCss), badgeStyles]
+  static override styles = [iconStyles, shadowCss(badgeHostCss), badgeStyles]
 
   static override properties: PropertyDeclarations = {
     tone: { type: String, reflect: true },
     variant: { type: String, reflect: true },
     label: { type: String },
+    icon: { type: String },
   }
 
   tone: BadgeTone = 'neutral'
   variant: BadgeVariant = 'label'
   declare label?: string
+  /** An icon file name before the word. */
+  declare icon?: string
 
   protected override render(): TemplateResult {
     return renderBadge({
@@ -86,6 +97,7 @@ export class LintjeBadge extends LintjeElement {
       tone: this.tone,
       variant: this.variant,
       label: this.label,
+      icon: this.icon,
     })
   }
 }

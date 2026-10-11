@@ -18,6 +18,21 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 - `dist-elements/data-types.json`: de types uit de broncode veld voor veld, met hun
   toelichting, en per variant van een union op `kind` een eigen lijst (`scripts/manifest.mjs`).
   (#25)
+- `lintje-data-table` als werkblad: een kolom met `format: 'label'` tekent een waarde als badge
+  met woord, toon en icoon (`labels`); `totals` geeft de totaalrij van de host en `groupBy` zet
+  de rijen per waarde onder een kop, met `groupTotals` als subtotalen en `groupsPerPage`; met
+  `detailFields` of een verborgen kolom klapt elke rij open voor wat haar kolommen niet tonen,
+  op desktop en telefoon dezelfde lijst. "Filters wissen" bij twee of meer filters,
+  "Terugzetten naar standaard" in de kolomkiezer, en `lintje-pagination` zegt met
+  `filtered-from` dat een filter de telling versmalde. `lintje-badge` krijgt `icon`. (#29)
+- **Eén toonset.** `Tone` (neutraal, subtiel, bezig, gelukt, let op, fout, informatie, aandacht,
+  live), `WorkState` (wachtrij, bezig, onderbroken, klaar, mislukt, geannuleerd) en
+  `ContentStateKind` staan één keer, in `primitives/shared/tone.ts`, en `src/types.ts` exporteert
+  ze. `lintje-status-dot` neemt elke toon naast zijn vier leveringswoorden; `lintje-card` en
+  `lintje-description-list` elke toon met haar glyph; `lintje-announcement` kent de soort
+  `error` (te sluiten, anders dan een storing); `lintje-toast` kent `info` en `warning`, en
+  `shell.showToast(text, kind)` geeft de soort door; `lintje-kpi` heeft `message` en
+  `last-known`, zoals elke tegel (`KpiData` erft `ContentState`). (#26)
 - De paginakop klapt acties die niet op één regel passen in naar één menu "Meer", vóór de
   knoppen die blijven staan; de laatste knop, de primaire, blijft altijd in het zicht en een menu
   met één rij bestaat niet. Gemeten, niet per breekpunt (`components/shared/overflow.ts`). (#23)
@@ -55,6 +70,25 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   overzicht met een schets per element. `lintje-chart` toont één soort tegelijk, gekozen op de
   vraag van de lezer, met haar staten eronder. De delen van een elementpagina staan in tabs
   (`&tab=`). `#el-…` leidt naar de nieuwe pagina. (#25)
+- De kop van `lintje-data-table` zegt alleen wat nu geldt: sorteerpijlen alleen op de gesorteerde
+  kolom en elders onder de aanwijzer of met focus, en een gefilterde kolom draagt alleen haar
+  gevulde trechter, zonder vlak of stip. De kolomkiezer is een stil icoon met drie kolommen
+  (`functioneel-kolommen`, nieuw eigen icoon) en een tooltip in de kop van de laatste kolom, in
+  plaats van het tandwiel. De telling staat één keer. Een naam die opent is donker,
+  onderstreept onder de aanwijzer, en een drempel dichtbij is een teken en vet in plaats van een
+  gele vulling. Sorteren en bladeren laten de kolommen staan: een kolom neemt de breedte van
+  haar breedste waarde over alle rijen, en de sorteerpijlen staan boven elkaar. De kop van een
+  filterbare kolom draagt een trechter, een nieuw eigen icoon (`functioneel-trechter`). (#29)
+- De tegel stelt leeg en fout samen uit dezelfde blokken als `lintje-empty-state` en
+  `lintje-announcement` (`primitives/shared/announcement-block.ts`, `empty-state-block.ts`), en
+  alle drie de toestanden zijn een live-regio van de tegel: ook een tegel die leeg wordt, wordt
+  uitgesproken, en het skelet van een grafiek zwijgt erin. Grafiek, kaart en tabel geven `state`,
+  `message` en `last-known` aan de tegel. `renderChartEmpty`, `renderChartError` en
+  `liveAnnouncement` zijn weg; `announcement.css` en `empty-state.css` zijn de blokken in
+  `primitives/shared/`. (#27)
+- **Brekend:** `lintje-progress-bar` zegt zijn staat met `state` (`busy`, `done`, `error`,
+  `paused`), de staat van werk, in plaats van `tone` (`run`, `done`, `error`, `paused`); het type
+  `ProgressTone` heet `ProgressState`. `lintje-job-list` en `lintje-list` zijn mee. (#26)
 - De telefoonvorm geldt alleen op een scherm: `MOBILE` is `screen and (max-width: 767px)`, en een
   host schrijft zijn eigen telefoonregels zo. (#22)
 

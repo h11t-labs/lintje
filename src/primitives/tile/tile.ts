@@ -12,24 +12,29 @@ import { define } from '../../core/element'
 import { shadowCss } from '../../core/styles'
 import { LintjeGridItemElement, spanStyles } from '../shared/grid-item-element'
 import { length } from '../shared/length'
-import { iconStyles, renderIcon, renderLeadingIcon } from '../../icons/render'
+import { iconStyles, renderLeadingIcon } from '../../icons/render'
 import '../button/button'
 import '../icon-button/icon-button'
 import '../status-dot/status-dot'
 import '../skeleton/skeleton'
+import { announcementBlockStyles, renderAnnouncementBlock } from '../shared/announcement-block'
+import { emptyStateBlockStyles, renderEmptyStateBlock } from '../shared/empty-state-block'
+import type { ContentStateKind } from '../shared/tone'
 import surfaceCss from './tile.css?inline'
-import announcementCss from '../../components/feedback/announcement/announcement.css?inline'
 
-export type ContentState = 'ready' | 'loading' | 'empty' | 'error'
+/** The same four as `ContentState` in the contract. */
+export type ContentState = ContentStateKind
 
 const LOADING_TEXT = 'Gegevens laden…'
 
 export class LintjeTile extends LintjeGridItemElement {
+  // Empty and error are the shared blocks, so a tile reads like the elements on their own.
   static override styles = [
     spanStyles,
     iconStyles,
     shadowCss(surfaceCss),
-    shadowCss(announcementCss),
+    announcementBlockStyles,
+    emptyStateBlockStyles,
   ]
 
   static override properties = {
@@ -99,7 +104,7 @@ export class LintjeTile extends LintjeGridItemElement {
 
   /** What the state's live region says, or `null` for a state without one. */
   private get regionText(): string | null {
-    if (this.state === 'error') return this.message ?? ''
+    if (this.state === 'error' || this.state === 'empty') return this.message ?? ''
     return this.state === 'loading' ? LOADING_TEXT : null
   }
 
@@ -220,27 +225,25 @@ export class LintjeTile extends LintjeGridItemElement {
         </div>`
       case 'empty':
         return html`<div class="lintje-chart-state lintje-chart-state--empty" ${styleProps({ height })}>
-          <p>${this.message}</p>
+          ${renderEmptyStateBlock({
+            text: this.message,
+            compact: true,
+            status: true,
+            filled: this.filled === this.regionText,
+          })}
         </div>`
       case 'error':
         return html`<div
           class="lintje-chart-state lintje-chart-state--error"
           ${styleProps({ minHeight: height })}
         >
-          <div class="lintje-announcement lintje-announcement--warning" role="status">
-            <span class="lintje-announcement__icon" aria-hidden="true"
-              >${renderIcon('functioneel-waarschuwing', { size: 16 })}</span
-            >
-            <div class="lintje-announcement__body">
-              ${
-                this.filled === this.regionText
-                  ? html`<p class="lintje-announcement__text">
-                    <span class="visually-hidden">Waarschuwing: </span>${this.message}
-                  </p>`
-                  : nothing
-              }
-            </div>
-          </div>
+          ${renderAnnouncementBlock({
+            kind: 'warning',
+            text: this.message,
+            compact: true,
+            live: true,
+            filled: this.filled === this.regionText,
+          })}
           ${
             this.lastKnown
               ? html`<div class="lintje-chart-state__last-known">${this.lastKnown}</div>`

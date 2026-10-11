@@ -7,22 +7,21 @@
  * an action: drawn empty first and filled on the next frame, since a region that arrives with
  * its words is not announced.
  */
-import {
-  html,
-  nothing,
-  type PropertyDeclarations,
-  type PropertyValues,
-  type TemplateResult,
-} from 'lit'
+import { html, type PropertyDeclarations, type PropertyValues, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
-import { iconStyles, renderIcon } from '../../../icons/render'
+import { iconStyles } from '../../../icons/render'
+import {
+  emptyStateBlockStyles,
+  renderEmptyStateBlock,
+  type HeadingLevel,
+} from '../../../primitives/shared/empty-state-block'
 import emptyStateCss from './empty-state.css?inline'
 
-export type HeadingLevel = 2 | 3 | 4 | 5 | 6
+export type { HeadingLevel } from '../../../primitives/shared/empty-state-block'
 
 export class LintjeEmptyState extends LintjeElement {
-  static override styles = [iconStyles, shadowCss(emptyStateCss)]
+  static override styles = [iconStyles, shadowCss(emptyStateCss), emptyStateBlockStyles]
 
   static override properties: PropertyDeclarations = {
     heading: { type: String },
@@ -73,46 +72,18 @@ export class LintjeEmptyState extends LintjeElement {
     )
   }
 
-  private renderHeading(): TemplateResult | typeof nothing {
-    if (!this.heading) return nothing
-    const text = this.heading
-    switch (this.level) {
-      case 2:
-        return html`<h2 class="lintje-empty-state__heading">${text}</h2>`
-      case 4:
-        return html`<h4 class="lintje-empty-state__heading">${text}</h4>`
-      case 5:
-        return html`<h5 class="lintje-empty-state__heading">${text}</h5>`
-      case 6:
-        return html`<h6 class="lintje-empty-state__heading">${text}</h6>`
-      default:
-        return html`<h3 class="lintje-empty-state__heading">${text}</h3>`
-    }
-  }
-
   protected override render(): TemplateResult {
-    const role = this.status ? 'status' : nothing
-    // The same region either way: only what is inside it waits for `filled`.
-    const empty = this.status && !this.filled
-    if (this.compact) {
-      return html`<div class="lintje-empty-state lintje-empty-state--compact" role=${role}>
-        ${empty ? nothing : html`${this.text ?? nothing} <slot></slot>`}
-      </div>`
-    }
-    return html`<div class="lintje-empty-state" role=${role}>${empty ? nothing : this.content()}</div>`
-  }
-
-  private content(): TemplateResult {
-    return html`${
-      this.icon
-        ? renderIcon(this.icon, { size: 40, className: 'lintje-empty-state__icon' })
-        : nothing
-    }
-      ${this.renderHeading()}
-      ${this.text ? html`<p class="lintje-empty-state__text">${this.text}</p>` : nothing}
-      <div class="lintje-empty-state__action" ?hidden=${!this.slotted}>
-        <slot @slotchange=${this.onSlotChange}></slot>
-      </div>`
+    return renderEmptyStateBlock({
+      heading: this.heading,
+      text: this.text,
+      icon: this.icon,
+      level: this.level,
+      compact: this.compact,
+      status: this.status,
+      filled: this.filled,
+      action: html`<slot @slotchange=${this.onSlotChange}></slot>`,
+      actionShown: this.slotted,
+    })
   }
 }
 

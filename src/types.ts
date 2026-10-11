@@ -5,6 +5,9 @@
  * names come from their one list, `tokens/colors.ts`.
  */
 import type { DataColor } from './tokens/colors'
+import type { ContentStateKind, Tone } from './primitives/shared/tone'
+import type { StatusTone } from './primitives/status-dot/status-dot'
+import type { AnnouncementKind } from './primitives/shared/announcement-block'
 import type { ChartSpec, MapSpec } from './components/shared/charts/shared/types'
 import type { MenuEntry } from './components/actions/menu-button/menu-button'
 import type { NotificationItem } from './components/frame/notifications/notifications'
@@ -28,6 +31,7 @@ export type {
   MapControls,
 } from './components/shared/charts/shared/types'
 export type { DataColor } from './tokens/colors'
+export type { Tone, WorkState, ContentStateKind } from './primitives/shared/tone'
 
 /** Settings every view receives, taken from the URL by the host. */
 export interface FrameSettings {
@@ -35,14 +39,15 @@ export interface FrameSettings {
 }
 
 export interface ContentState {
-  state?: 'ready' | 'loading' | 'empty' | 'error'
+  state?: ContentStateKind
   /** Empty: why there is nothing, and the way out. Error: what failed. */
   message?: string
   /** Error: the last known value, shown in the warning. */
   lastKnown?: string
 }
 
-export type StatusTone = 'complete' | 'delayed' | 'outage' | 'no-data'
+/** A source's delivery status: the status column's and `lintje-status-dot`'s own words, each a `Tone`. */
+export type { StatusTone } from './primitives/status-dot/status-dot'
 
 export type TrendDirection = 'up' | 'down' | 'flat'
 
@@ -54,7 +59,8 @@ export type TrendDirection = 'up' | 'down' | 'flat'
  */
 export type KpiVariable = DataColor | 'coverage'
 
-export type KpiState = 'ready' | 'loading' | 'empty' | 'error'
+/** The same four as every tile's `ContentState`. */
+export type KpiState = ContentStateKind
 
 export interface KpiItem {
   /** A string or number with one number in it; counts up like `value`. */
@@ -98,7 +104,8 @@ export interface KpiGauge {
   targetLabel?: string
 }
 
-export interface KpiData {
+/** `message` is the empty or error line under the figure, `lastKnown` the figure it had. */
+export interface KpiData extends ContentState {
   label: string
   /** An icon file name (`dist-icons/`, without `.svg`). Decorative. */
   icon?: string
@@ -115,7 +122,6 @@ export interface KpiData {
   /** A single figure on its scale; ignored with `items`. */
   gauge?: KpiGauge
   variable?: KpiVariable
-  state?: KpiState
 }
 
 /** Events: none. */
@@ -195,8 +201,17 @@ export interface TableColumnData {
    * `change-compact`: only the ▲ ▼ ● of `change`; a screen reader hears the whole change, and
    * below 768 px the row's measure shows it whole.
    * `status`: a `StatusTone` (or mapped through `status.tones`) as the status dot with its label.
+   * `label`: the value as a badge with the word, tone and icon from `labels`.
    */
-  format?: 'text' | 'number' | 'percent' | 'decimal' | 'change' | 'change-compact' | 'status'
+  format?:
+    | 'text'
+    | 'number'
+    | 'percent'
+    | 'decimal'
+    | 'change'
+    | 'change-compact'
+    | 'status'
+    | 'label'
   decimals?: number
   /** Suffix after the value, e.g. "min". */
   unit?: string
@@ -209,6 +224,11 @@ export interface TableColumnData {
   }
   /** `status` format: value → tone, and value → label (default the tone's own label). */
   status?: { tones?: Record<string, StatusTone>; labels?: Record<string, string> }
+  /**
+   * `label` format: value → the word, the badge's tone and an icon file name before the word. A
+   * value without an entry stands as plain text. Sorting and the CSV use the word.
+   */
+  labels?: Record<string, TableLabel>
   /** Shown muted instead of an exact 0, where 0 means "none" (e.g. "—"). Missing stays `null`. */
   zeroText?: string
   mobileSubline?: boolean
@@ -316,16 +336,61 @@ export interface DataTableData extends FrameSettings, TileData, ContentState {
   filters?: Record<string, string[] | string>
   /** The number of rows before filtering: "14 van 131 rijen" while a filter is active. */
   totalRows?: number
-  /** A "Kolommen kiezen" button in the head of the actions column, to order and hide columns
-   *  (`lintje-columns-change`). Without row actions it adds that column. */
+  /**
+   * "Kolommen kiezen", a quiet icon in the head of the last column, to order and hide columns
+   * (`lintje-columns-change`). Without row actions it adds that column.
+   */
   columnChooser?: boolean
   /** The keys of the columns not shown. The first column is always shown. */
   hiddenColumns?: string[]
+  /**
+   * The totals row under the rows, as the host computed it over every filtered row: the table
+   * never computes. A column without an entry stays empty.
+   */
+  totals?: Record<string, TableTotal>
+  /** The first cell of the totals row; default "Totaal". */
+  totalsLabel?: string
+  /**
+   * Fields shown under a row that opens, after the columns the chooser hides. With them, or with a
+   * hidden column, every row gets a button that opens its detail.
+   */
+  detailFields?: TableDetailField[]
+  /**
+   * Groups the rows on this column's value, in the order the groups first occur in `rows`. Rows
+   * sort within their group, a page holds whole groups, and the column itself is not shown.
+   */
+  groupBy?: string
+  /** Per group value: its subtotal row, as the host computed it. */
+  groupTotals?: Record<string, Record<string, TableTotal>>
+  /** With `groupBy`: groups per page, default 5; `pageSize` does not apply. */
+  groupsPerPage?: number
+}
+
+/** A badge in a `label` column. */
+export interface TableLabel {
+  label: string
+  /** One of the shared tones, as `lintje-badge` draws it; default `neutral`. */
+  tone?: Tone
+  /** An icon file name, drawn before the word. */
+  icon?: string
+}
+
+/** A total: a value, or a value with the word that says how it was made ("gem."). */
+export type TableTotal = CellValue | { value: CellValue; how?: string }
+
+/** A field in a row's detail: a key of the row, with its label and how its value shows. */
+export interface TableDetailField {
+  key: string
+  label: string
+  format?: TableColumnData['format']
+  decimals?: number
+  unit?: string
 }
 
 /* Announcement ------------------------------------------------------------- */
 
-export type AnnouncementKind = 'warning' | 'outage' | 'info' | 'ok'
+/** `outage` interrupts and cannot be closed; `error` is a failure the reader may put away. */
+export type { AnnouncementKind } from './primitives/shared/announcement-block'
 
 export interface AnnouncementData {
   kind?: AnnouncementKind

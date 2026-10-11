@@ -8,7 +8,17 @@ import { LintjeElement, define } from '../../core/element'
 import { shadowCss } from '../../core/styles'
 import statusDotCss from './status-dot.css?inline'
 
+import { TONE_WORD, type Tone } from '../shared/tone'
+
+/** A source's delivery status: the element's own words, each a tone. */
 export type StatusTone = 'complete' | 'delayed' | 'outage' | 'no-data'
+
+const STATUS_TONE: Record<StatusTone, Tone> = {
+  complete: 'success',
+  delayed: 'warning',
+  outage: 'error',
+  'no-data': 'neutral',
+}
 
 export const STATUS_LABEL: Record<StatusTone, string> = {
   complete: 'compleet',
@@ -26,18 +36,21 @@ export class LintjeStatusDot extends LintjeElement {
     size: { type: Number },
   }
 
-  tone: StatusTone = 'complete'
+  tone: Tone | StatusTone = 'complete'
   /** Overrides the Dutch word for the tone. */
   declare label?: string
   size: number = 10
 
   protected override render(): TemplateResult {
+    const delivery = Object.hasOwn(STATUS_TONE, this.tone) ? (this.tone as StatusTone) : undefined
+    const tone = delivery ? STATUS_TONE[delivery] : (this.tone as Tone)
+    const word = delivery ? STATUS_LABEL[delivery] : TONE_WORD[tone]
     return html`<span class="lintje-status">
       <span
-        class="lintje-status__dot lintje-status__dot--${this.tone}"
+        class="lintje-status__dot lintje-status__dot--${tone}"
         ${styleProps({ width: `${this.size}px`, height: `${this.size}px` })}
       ></span>
-      <span>${this.label ?? STATUS_LABEL[this.tone]}</span>
+      <span>${this.label ?? word}</span>
     </span>`
   }
 }

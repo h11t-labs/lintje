@@ -590,11 +590,11 @@ export default {
         },
         {
           label: 'Leeg',
-          html: '<lintje-kpi label="Afwijzingen" variable="red" state="empty"></lintje-kpi>',
+          html: '<lintje-kpi label="Afwijzingen" variable="red" state="empty" message="Nog geen aanvragen vandaag"></lintje-kpi>',
         },
         {
           label: 'Fout',
-          html: '<lintje-kpi label="Afwijzingen" variable="red" state="error"></lintje-kpi>',
+          html: '<lintje-kpi label="Afwijzingen" variable="red" state="error" message="Bron niet bereikbaar" last-known="21.542 op 8 sep"></lintje-kpi>',
         },
       ],
     },

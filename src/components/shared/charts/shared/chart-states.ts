@@ -1,7 +1,6 @@
 /**
- * Empty, error and loading states: the tile keeps its header, size and axes; only the data is
- * missing. This module writes the markup of `lintje-skeleton` and `lintje-announcement`, not
- * their CSS. A host with its own announcement element passes it in `announcement`.
+ * The loading skeleton in the shape of the chart. Empty and error are the tile's: it draws them
+ * with the shared blocks. The skeleton writes the markup of `lintje-skeleton`, not its CSS.
  */
 import { html, nothing, type TemplateResult } from 'lit'
 import { styleProps } from '../../../../core/style-props'
@@ -19,21 +18,28 @@ function skeleton(
                     ${styleProps({ width: size(width), height: size(height) })} aria-hidden="true"></span>`
 }
 
-/** Loading skeleton in the shape of the chart, exactly `height` tall so the tile keeps its size. */
+/**
+ * Loading skeleton in the shape of the chart, exactly `height` tall so the tile keeps its size.
+ * Inside a tile's `loading` slot the tile's region speaks (`status: false`); on its own it is
+ * the region, in words.
+ */
 export function renderChartSkeleton({
   kind = 'line',
   height,
+  status = true,
 }: {
   kind?: ChartSkeletonKind
   height?: string
+  status?: boolean
 } = {}): TemplateResult {
   const box = height ?? (kind === 'table' ? undefined : 'var(--chart-h-main)')
   return html`
     <div class="lintje-chart-skeleton lintje-chart-skeleton--${kind}"
          ${styleProps({ height: box })}
-         role="status">
+         role=${status ? 'status' : nothing}
+         aria-hidden=${status ? nothing : 'true'}>
       <!-- In words, not only in a label: a status region is spoken from its content. -->
-      <span class="visually-hidden">Gegevens laden…</span>
+      ${status ? html`<span class="visually-hidden">Gegevens laden…</span>` : nothing}
       ${
         kind === 'line' || kind === 'bar'
           ? html`
@@ -89,47 +95,6 @@ export function renderChartSkeleton({
             )
           : nothing
       }
-    </div>
-  `
-}
-
-/** Axes, grid and zero line stay; the message names the way out itself. */
-export function renderChartEmpty(message: unknown, height = 'var(--chart-h-main)'): TemplateResult {
-  return html`
-    <div class="lintje-chart-state lintje-chart-state--empty" ${styleProps({ height })}>
-      <p>${message}</p>
-    </div>
-  `
-}
-
-/** The error announcement for a component: `live: true`, so a screen reader speaks it. */
-export function liveAnnouncement(message: unknown): TemplateResult {
-  return html`<lintje-announcement
-    compact
-    .data=${{ kind: 'warning', text: String(message ?? ''), live: true }}
-  ></lintje-announcement>`
-}
-
-/**
- * Error state: the announcement with the last known value, without "Opnieuw proberen". The
- * calling component defines the element; a host with its own announcement passes it in.
- */
-export function renderChartError({
-  message,
-  lastKnown,
-  height = 'var(--chart-h-main)',
-  announcement = liveAnnouncement,
-}: {
-  message: unknown
-  lastKnown?: unknown
-  height?: string
-  /** The host's own announcement; without one, `liveAnnouncement`. */
-  announcement?: (message: unknown) => TemplateResult
-}): TemplateResult {
-  return html`
-    <div class="lintje-chart-state lintje-chart-state--error" ${styleProps({ 'min-height': height })}>
-      ${announcement(message)}
-      ${lastKnown ? html`<div class="lintje-chart-state__last-known">${lastKnown}</div>` : nothing}
     </div>
   `
 }

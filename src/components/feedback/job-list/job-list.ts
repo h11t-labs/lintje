@@ -25,10 +25,11 @@ import { holdsFocus } from '../../../core/focus'
 import { shadowCss } from '../../../core/styles'
 import '../../tables/list/list'
 import type { ListItem } from '../../tables/list/list'
+import { WORK_STATE_LABEL, WORK_STATE_TONE, type WorkState } from '../../../primitives/shared/tone'
 import type { BadgeTone } from '../../../primitives/badge/badge'
 import jobListCss from './job-list.css?inline'
 
-export type JobState = 'queued' | 'busy' | 'paused' | 'done' | 'error' | 'cancelled'
+export type JobState = WorkState
 
 export interface Job {
   id: string
@@ -50,14 +51,12 @@ export interface Job {
 
 type JobEvent = 'lintje-job-cancel' | 'lintje-job-retry' | 'lintje-job-resume' | 'lintje-job-remove'
 
-const STATE: Record<JobState, { label: string; tone: BadgeTone }> = {
-  queued: { label: 'Wachtrij', tone: 'neutral' },
-  busy: { label: 'Bezig', tone: 'busy' },
-  paused: { label: 'Onderbroken', tone: 'warning' },
-  done: { label: 'Klaar', tone: 'success' },
-  error: { label: 'Mislukt', tone: 'error' },
-  cancelled: { label: 'Geannuleerd', tone: 'subtle' },
-}
+const STATE = Object.fromEntries(
+  (Object.keys(WORK_STATE_LABEL) as JobState[]).map((state) => [
+    state,
+    { label: WORK_STATE_LABEL[state], tone: WORK_STATE_TONE[state] },
+  ]),
+) as Record<JobState, { label: string; tone: BadgeTone }>
 
 /** What a job that moved to a state is read out as. */
 const SPOKEN: Record<JobState, (name: string) => string> = {

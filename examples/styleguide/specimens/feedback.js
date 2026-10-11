@@ -103,7 +103,7 @@ function setupAnnouncements(stage, more = {}) {
   }
 }
 
-// `warning`, never `caution`: the four kinds are the contract (`AnnouncementKind`).
+// `warning`, never `caution`: the five kinds are the contract (`AnnouncementKind`).
 const KINDS = [
   [
     'Waarschuwing, met sluitknop, meta en link',
@@ -125,6 +125,7 @@ const KINDS = [
       text: 'De dossierregistratie levert sinds 07:41 niet aan. Een storing is nooit weg te klikken.',
     },
   ],
+  ['Fout, te sluiten', { kind: 'error', dismissible: true, title: 'Het opslaan is mislukt.', text: 'Je wijzigingen staan nog in het formulier.' }],
   ['Informatie', { kind: 'info', title: 'Nieuw', text: 'De bezettingspagina is toegevoegd.' }],
   ['Gelukt', { kind: 'ok', text: 'Alle loketten leveren compleet aan.' }],
   [
@@ -152,8 +153,8 @@ const KINDS = [
 function showToast(place, kind) {
   const toast = document.createElement('lintje-toast')
   toast.kind = kind
-  toast.action = 'Ongedaan maken'
-  toast.textContent = kind === 'ok' ? 'Selectie gekopieerd' : 'Downloaden is niet gelukt'
+  if (kind === 'ok' || kind === 'error') toast.action = 'Ongedaan maken'
+  toast.textContent = { ok: 'Selectie gekopieerd', error: 'Downloaden is niet gelukt', info: 'Er is een nieuwe versie beschikbaar.', warning: 'Controleer je wijzigingen voordat je verdergaat.' }[kind]
   toast.addEventListener('lintje-close', () => toast.remove())
   place.replaceChildren(toast)
 }
@@ -237,6 +238,14 @@ export default {
       tag: 'lintje-toast',
       title: 'Een korte bevestiging of foutmelding die vanzelf een plek krijgt',
       specimens: [
+        ...[['Informatie', 'info'], ['Let op', 'warning']].map(([label, kind]) => ({
+          label,
+          html: '<lintje-button variant="secondary">Toon toast</lintje-button><div data-place></div>',
+          setup(stage) {
+            const place = stage.querySelector('[data-place]')
+            stage.querySelector('lintje-button').addEventListener('click', () => showToast(place, kind))
+          },
+        })),
         {
           label: 'Gelukt, met een actie',
           html: '<lintje-button variant="secondary">Toon toast</lintje-button><div data-place></div>',
@@ -401,6 +410,14 @@ export default {
           html: '<div class="guide__row"><lintje-status-dot tone="complete"></lintje-status-dot><lintje-status-dot tone="delayed"></lintje-status-dot><lintje-status-dot tone="outage"></lintje-status-dot><lintje-status-dot tone="no-data"></lintje-status-dot></div>',
         },
         {
+          label: 'De tonen',
+          html: '<div class="guide__row">' + ['success', 'warning', 'error', 'info', 'busy', 'neutral'].map((tone) => `<lintje-status-dot tone="${tone}"></lintje-status-dot>`).join('') + '</div>',
+        },
+        {
+          label: 'Bezig, met eigen woord',
+          html: '<lintje-status-dot tone="busy" label="Wordt verwerkt"></lintje-status-dot>',
+        },
+        {
           label: 'Eigen woord',
           html: '<lintje-status-dot tone="delayed" label="Levert vertraagd aan"></lintje-status-dot>',
         },
@@ -456,11 +473,11 @@ export default {
         },
         {
           label: 'Fout',
-          html: '<lintje-progress-bar label="Afgebroken bij 40%" value="40" tone="error"><lintje-button variant="link">Hervatten</lintje-button></lintje-progress-bar>',
+          html: '<lintje-progress-bar label="Afgebroken bij 40%" value="40" state="error"><lintje-button variant="link">Hervatten</lintje-button></lintje-progress-bar>',
         },
         {
           label: 'Gepauzeerd',
-          html: '<lintje-progress-bar label="Uploaden" detail="62% · gepauzeerd" value="62" tone="paused"></lintje-progress-bar>',
+          html: '<lintje-progress-bar label="Uploaden" detail="62% · gepauzeerd" value="62" state="paused"></lintje-progress-bar>',
         },
       ],
     },

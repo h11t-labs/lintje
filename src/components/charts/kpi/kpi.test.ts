@@ -8,6 +8,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { sparklineRuns } from './kpi'
+import '../kpi-row/kpi-row'
 import type { KpiGauge, KpiSparkline, KpiState, KpiTrend } from '../../../types'
 
 interface Kpi extends HTMLElement {
@@ -17,6 +18,8 @@ interface Kpi extends HTMLElement {
   suffix?: string
   detail?: string
   note?: string
+  message?: string
+  lastKnown?: string
   trend?: KpiTrend
   sparkline?: KpiSparkline
   gauge?: KpiGauge
@@ -42,6 +45,49 @@ function details(element: Kpi): string[] {
 }
 
 describe('lintje-kpi detail', () => {
+  it('receives message and lastKnown through a KPI row', async () => {
+    const row = document.createElement('lintje-kpi-row')
+    row.data = {
+      kpis: [
+        {
+          label: 'Aanvragen',
+          state: 'error',
+          message: 'Bron niet bereikbaar',
+          lastKnown: '21.542 op 8 sep',
+        },
+      ],
+    }
+    document.body.append(row)
+    await row.updateComplete
+    const child = row.shadowRoot!.querySelector('lintje-kpi')!
+    await child.updateComplete
+    expect(child.shadowRoot!.textContent).toContain('Bron niet bereikbaar')
+    expect(child.shadowRoot!.querySelector('.lintje-kpi__last-known')?.textContent).toBe(
+      '21.542 op 8 sep',
+    )
+  })
+
+  it('shows the failure message and last known value', async () => {
+    const element = await kpi({
+      state: 'error',
+      message: 'Bron niet bereikbaar',
+      lastKnown: '21.542 op 8 sep',
+    })
+    expect(element.renderRoot.querySelector('.lintje-kpi__note--error')?.textContent).toContain(
+      'Bron niet bereikbaar',
+    )
+    expect(element.renderRoot.querySelector('.lintje-kpi__last-known')?.textContent).toBe(
+      '21.542 op 8 sep',
+    )
+  })
+
+  it('explains an empty result with the host message', async () => {
+    const element = await kpi({ state: 'empty', message: 'Nog geen aanvragen vandaag' })
+    expect(element.renderRoot.querySelector('.lintje-kpi__note')?.textContent).toBe(
+      'Nog geen aanvragen vandaag',
+    )
+  })
+
   it('draws the detail of a figure that has neither trend nor note', async () => {
     const element = await kpi({ value: '11 min', detail: 'Norm 10 min' })
     expect(details(element)).toEqual(['Norm 10 min'])

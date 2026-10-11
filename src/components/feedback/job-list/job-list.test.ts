@@ -57,7 +57,7 @@ describe('lintje-job-list', () => {
     expect(bars.map((bar) => bar !== null)).toEqual([false, true, true, false, false, false])
     expect(bars[1]!.value).toBe(62)
     expect(bars[1]!.hideLabel).toBe(true)
-    expect(bars[2]!.tone).toBe('paused')
+    expect(bars[2]!.state).toBe('paused')
   })
 
   it('opens running work that has somewhere to go, and keeps its action in sight', async () => {

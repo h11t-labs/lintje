@@ -8,7 +8,6 @@
 import { describe, expect, it } from 'vitest'
 import './chart'
 import type { LintjeChart } from './chart'
-import type { LintjeAnnouncement } from '../../feedback/announcement/announcement'
 import type { LintjeDataTable } from '../../tables/data-table/data-table'
 import type { LintjeSegmented } from '../../inputs/segmented/segmented'
 import type { ChartData } from '../../../types'
@@ -56,7 +55,11 @@ async function table(element: LintjeChart): Promise<LintjeDataTable | null> {
 
 /** The desktop table's body, cell by cell, as the reader reads it. */
 function cells(found: LintjeDataTable): string[][] {
-  return [...found.renderRoot.querySelectorAll('.lintje-data-table__full tbody tr')].map((row) =>
+  return [
+    ...found.renderRoot.querySelectorAll(
+      '.lintje-data-table__full tbody:not(.lintje-data-table__sizer) tr',
+    ),
+  ].map((row) =>
     [...row.children].map((cell) => cell.textContent?.replace(/\s+/g, ' ').trim() ?? ''),
   )
 }
@@ -251,24 +254,27 @@ describe('lintje-chart table of a histogram', () => {
     // A missing count is missing; the open bound is an empty cell, not "geen gegevens".
     expect(rows[1][3]).toContain('geen gegevens')
     expect(rows[2]).toEqual(['5 dagen of meer', '5,0', '', '7'])
-    const open = found.renderRoot.querySelectorAll('.lintje-data-table__full tbody tr')[2]
+    const open = found.renderRoot.querySelectorAll(
+      '.lintje-data-table__full tbody:not(.lintje-data-table__sizer) tr',
+    )[2]
     expect(open.children[2].textContent).not.toContain('geen gegevens')
   })
 })
 
 describe('lintje-chart error state', () => {
-  it('is the compact warning, a live region: the load failed just now', async () => {
+  it('hands the error to the tile, which draws the live warning and keeps its box', async () => {
     const element = await tile({ ...DATA, state: 'error', message: 'De bron reageerde niet.' })
-    const notice = element.renderRoot.querySelector<LintjeAnnouncement>(
-      '.lintje-chart-state--error lintje-announcement',
-    )
-    expect(notice?.hasAttribute('compact')).toBe(true)
-    expect(notice?.data).toEqual({ kind: 'warning', text: 'De bron reageerde niet.', live: true })
+    const frame = element.renderRoot.querySelector('lintje-tile')!
+    expect(frame.state).toBe('error')
+    expect(frame.message).toBe('De bron reageerde niet.')
+    expect(
+      frame.shadowRoot!.querySelector('.lintje-announcement--warning[role="status"]'),
+    ).not.toBeNull()
   })
 
   it('leaves a notice the host sets as the host says: live only with `live`', async () => {
     const element = await tile({ ...DATA, notice: { kind: 'info', text: 'Cijfers tot 08:00.' } })
-    const notice = element.renderRoot.querySelector<LintjeAnnouncement>(
+    const notice = element.renderRoot.querySelector<HTMLElement & { data?: { live?: boolean } }>(
       'lintje-announcement[slot="notice"]',
     )
     expect(notice?.data?.live).toBeUndefined()
