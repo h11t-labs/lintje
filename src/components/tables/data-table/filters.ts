@@ -129,10 +129,6 @@ export function renderFunnel(
     </button>`
 }
 
-export function renderFilterDot(): TemplateResult {
-  return html`<span class="lintje-data-table__filter-dot" role="img" aria-label="Gefilterd"></span>`
-}
-
 export function renderFilterField(
   column: TableColumnData,
   value: FilterValue | undefined,
@@ -243,18 +239,19 @@ export function renderFiltersSheet(options: {
 export function renderToolbar(options: {
   columns: TableColumnData[]
   values: Record<string, FilterValue>
-  shown: number
-  total: number | undefined
+  /** "6 van 131 rijen" while a filter is active and no pager below says it; else empty. */
+  count: string
   /** Below 768 px, beside "Filters": the sort on any column. */
   sortMenu?: unknown
+  /** "Kolommen", at the toolbar's end. */
+  chooser?: unknown
   onClearFilter: (column: string, button: HTMLElement) => void
+  onClearAll: (button: HTMLElement) => void
   onOpenSheet: () => void
 }): TemplateResult {
   const active = options.columns.filter((column) => isFilterActive(options.values[column.key]))
-  const count =
-    active.length > 0 && options.total != null ? `${options.shown} van ${options.total} rijen` : ''
-  // Without a chip, the row only holds the phone's "Filters" and "Sorteren".
-  const quiet = active.length === 0
+  // With neither a chip nor "Kolommen", the row only holds the phone's "Filters" and "Sorteren".
+  const quiet = active.length === 0 && !options.chooser
   return html`<div
     class="lintje-data-table__toolbar ${quiet ? 'lintje-data-table__toolbar--quiet' : ''}"
   >
@@ -286,26 +283,38 @@ export function renderToolbar(options: {
           </button></span
         >`
       })}
-      <span class="lintje-data-table__filter-total" role="status">${count}</span>
+      ${
+        active.length > 1
+          ? html`<button
+              type="button"
+              class="lintje-button lintje-button--tertiary lintje-button--compact lintje-data-table__clear-all"
+              @click=${(event: Event) => options.onClearAll(event.currentTarget as HTMLElement)}
+            >
+              <span class="lintje-button__label">Filters wissen</span>
+            </button>`
+          : nothing
+      }
+      ${options.count ? html`<span class="lintje-data-table__filter-total">${options.count}</span>` : nothing}
     </div>
+    ${options.chooser ?? nothing}
   </div>`
 }
 
-/** The column chooser's button, in the head of the actions column: as narrow as the row menus. */
+/** "Kolommen": a compact button with its word, so the reader finds it before needing it. */
 export function renderChooserButton(
   expanded: boolean,
   onOpen: (anchor: HTMLElement) => void,
 ): TemplateResult {
   return html`<button
     type="button"
-    class="lintje-data-table__chooser-button"
+    class="lintje-button lintje-button--secondary lintje-button--compact lintje-data-table__chooser-button"
     aria-label="Kolommen kiezen"
-    title="Kolommen kiezen"
     aria-haspopup="dialog"
     aria-expanded=${expanded ? 'true' : 'false'}
     @click=${(event: Event) => onOpen(event.currentTarget as HTMLElement)}
   >
-    ${renderIcon('functioneel-instellingen', { size: 16 })}
+    ${renderIcon('functioneel-instellingen', { size: 16, className: 'lintje-button__icon' })}
+    <span class="lintje-button__label">Kolommen</span>
   </button>`
 }
 
@@ -315,6 +324,9 @@ export function renderColumnChooser(options: {
   anchor: Element | null
   onOrder: (order: string[]) => void
   onChecked: (checked: string[]) => void
+  /** Every column shown, in the host's order; disabled while that is what stands. */
+  onReset: () => void
+  isDefault: boolean
   onClose: () => void
   onLeave: (how: PanelLeave) => boolean
 }): TemplateResult {
@@ -349,6 +361,17 @@ export function renderColumnChooser(options: {
           options.onChecked(event.detail)
         }}
       ></lintje-sortable-list>
+      <lintje-button
+        class="lintje-data-table__chooser-reset"
+        variant="tertiary"
+        size="compact"
+        ?disabled=${options.isDefault}
+        reason="Elke kolom staat al, in de standaardvolgorde."
+        @click=${() => {
+          if (!options.isDefault) options.onReset()
+        }}
+        >Terugzetten naar standaard</lintje-button
+      >
     </div>
   </lintje-popover>`
 }

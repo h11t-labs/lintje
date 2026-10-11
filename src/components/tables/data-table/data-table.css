@@ -79,8 +79,13 @@
 .lintje-data-table__sort-button:hover { background: var(--color-bg-subtle); }
 /* The scroller clips the ring, so it sits inside the cell. */
 .lintje-data-table__sort-button:focus-visible { outline-offset: -3px; }
-/* The arrows are a glyph, outside the type scale. */
-.lintje-data-table__sort-icon { font-size: 10px; color: var(--color-text-muted); }
+/* The arrows are a glyph, outside the type scale. A head says only what holds now: the sorted
+   column's one arrow; another column shows its pair under the pointer or the focus. Hidden, not
+   removed, so the head keeps its width. */
+.lintje-data-table__sort-icon { font-size: 10px; color: var(--color-text-muted); visibility: hidden; }
+.lintje-data-table__sort-button:hover .lintje-data-table__sort-icon,
+.lintje-data-table__sort-button:focus-visible .lintje-data-table__sort-icon,
+.lintje-data-table__header-cell.is-active .lintje-data-table__sort-icon { visibility: visible; }
 .lintje-data-table__header-cell.is-active .lintje-data-table__sort-icon { color: var(--color-accent-text); }
 
 .lintje-data-table__row { border-bottom: 1px solid var(--color-border-default); }
@@ -95,15 +100,17 @@
   white-space: nowrap;
 }
 .lintje-data-table__name { font-weight: 700 !important; }
-/* The name that opens its row: a link's colour and line, the cell's weight and size. */
+/* The name that opens its row is dark, as in the work list: a column of blue reads as a column of
+   links and outweighs the figures beside it. The pointer and the focus show the line. */
 .lintje-data-table__open {
   padding: 0;
   font: inherit; text-align: inherit;
-  color: var(--color-link);
-  text-decoration: underline;
+  color: var(--color-text-primary);
+  text-decoration: none;
   transition: color var(--dur-hover) var(--ease-in-motion);
 }
-.lintje-data-table__open:hover { color: var(--color-link-hover); }
+.lintje-data-table__open:hover,
+.lintje-data-table__open:focus-visible { color: var(--color-link); text-decoration: underline; }
 .lintje-data-table__header-cell--align-right,
 .lintje-data-table__cell--align-right,
 .lintje-data-table__mobile-cell--align-right { text-align: right !important; }
@@ -150,7 +157,9 @@
 }
 .lintje-threshold-cell__icon { flex: none; }
 .lintje-threshold-cell--good       { background: transparent; }
-.lintje-threshold-cell--caution     { background: var(--color-warning); color: var(--color-text-on-light-fill); }
+/* At most one fill in a row: a caution is its glyph and weight, only a crossed threshold fills. */
+.lintje-threshold-cell--caution     { background: transparent; }
+.lintje-threshold-cell--caution .lintje-threshold-cell__icon { color: var(--color-attention-line); }
 .lintje-threshold-cell--above-threshold { background: var(--color-error); color: var(--color-text-on-fill); }
 
 .lintje-data-table__muted { color: var(--color-text-muted); }
@@ -257,6 +266,9 @@
 }
 .lintje-data-table__chip-clear:hover { color: var(--color-text-primary); }
 .lintje-data-table__filter-total { color: var(--color-text-muted); }
+/* The table's own controls, at the toolbar's end, each with its word. */
+.lintje-data-table__tools { display: flex; align-items: center; gap: var(--space-2); margin-left: auto; }
+.lintje-data-table__chooser-reset { align-self: flex-start; }
 
 .lintje-data-table__header-cell--filterable { padding-block: 0; }
 .lintje-data-table__header-inner {
@@ -265,17 +277,7 @@
 }
 .lintje-data-table__header-cell--sortable .lintje-data-table__header-inner { padding-right: var(--space-2); }
 .lintje-data-table__header-inner .lintje-data-table__sort-button { flex: 1; min-width: 0; }
-.lintje-data-table__header-cell.is-filtered {
-  background: var(--color-bg-subtle);
-  color: var(--color-accent-text);
-}
-.lintje-data-table__header-label { display: inline-flex; align-items: center; gap: 6px; }
-.lintje-data-table__filter-dot {
-  display: inline-block;
-  width: 6px; height: 6px; flex: none;
-  border-radius: 50%;
-  background: var(--color-attention);
-}
+/* A filtered column carries one mark, its filled funnel; the chips above say it in words. */
 /* A transparent hit area reaches the target height up and down; on its left stands the sort button. */
 .lintje-data-table__funnel {
   position: relative;
@@ -291,8 +293,8 @@
   inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
 }
 .lintje-data-table__funnel:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
-/* As wide as the row menus under it, so their icons line up. The phone row's toggle is the same. */
-.lintje-data-table__chooser-button,
+/* As wide as the row menus beside them, so their icons line up. */
+.lintje-data-table__detail-toggle,
 .lintje-data-table__mobile-toggle {
   width: var(--h-icon-button); height: var(--h-icon-button);
   display: flex; align-items: center; justify-content: center;
@@ -300,7 +302,7 @@
   border: 1px solid transparent;
   color: var(--color-text-muted);
 }
-.lintje-data-table__chooser-button:hover,
+.lintje-data-table__detail-toggle:hover,
 .lintje-data-table__mobile-toggle:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
 .lintje-data-table__funnel.is-filtered {
   background: var(--color-action-primary);
@@ -341,6 +343,39 @@
 }
 .lintje-data-table__chooser-note { font: var(--text-small); color: var(--color-text-muted); }
 
+/* --- A row's detail, groups and totals ------------------------------------- */
+.lintje-data-table__detail-cell { width: var(--h-icon-button); padding: 0; }
+.lintje-data-table__row.is-open { background: var(--color-bg-subtle); border-bottom-color: transparent; }
+.lintje-data-table__detail { border-bottom: 1px solid var(--color-border-default); }
+.lintje-data-table__detail-body { padding: 0 var(--space-3) var(--space-4) calc(var(--h-icon-button) + var(--space-3)); background: var(--color-bg-subtle); }
+
+/* A group's heading spans the name's column; collapsed, its other cells hold the subtotals. */
+.lintje-data-table__group-row { border-bottom: 1px solid var(--color-border-default); }
+.lintje-data-table__group-head { padding: 0; }
+.lintje-data-table__group-toggle {
+  display: flex; align-items: center; gap: var(--space-2);
+  width: 100%;
+  min-height: var(--h-table-row);
+  padding: 0 var(--space-3);
+  font: inherit; font-weight: 700; color: var(--color-text-primary); text-align: left;
+}
+.lintje-data-table__group-toggle:hover { background: var(--color-bg-subtle); }
+.lintje-data-table__group-toggle:focus-visible { outline-offset: -3px; }
+.lintje-data-table__group-count { font-weight: 400; font-size: 0.875rem; color: var(--color-text-muted); }
+.lintje-data-table__group-row .lintje-data-table__cell { font-weight: 700; }
+/* Rows in a group stand in from its heading, by the chevron's width and gap. */
+.lintje-data-table__row--in-group > .lintje-data-table__name { padding-left: calc(var(--space-3) + var(--space-4) + var(--space-2)); }
+
+/* A total is the host's: bold, over a heavy line, never sticky. The word before it says how. */
+.lintje-data-table__total > *,
+.lintje-data-table__subtotal > * { font-weight: 700; }
+.lintje-data-table__total { border-top: 2px solid var(--color-border-heavy); }
+.lintje-data-table__subtotal { border-top: 1px solid var(--color-border-heavy); border-bottom: 1px solid var(--color-border-default); }
+.lintje-data-table__sum-label { text-align: left; }
+.lintje-data-table__subtotal > .lintje-data-table__sum-label { font-weight: 400; color: var(--color-text-muted); }
+.lintje-data-table__full .lintje-data-table__subtotal > .lintje-data-table__sum-label { padding-left: calc(var(--space-3) + var(--space-4) + var(--space-2)); }
+.lintje-data-table__how { font-weight: 400; font-size: 0.875rem; color: var(--color-text-muted); }
+
 /* --- Below 768 px the representation switches ---------------------------- */
 /* Below 768 px, from the media controller's `is-phone`: WebKit does not re-apply a shadow root's
    media query after a resize, and the script already decides by MOBILE. */
@@ -360,8 +395,10 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-row.is-open { border-bottom-color: transparent; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-detail { border-bottom: 1px solid var(--color-border-default); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-detail > .lintje-data-table__mobile-cell { padding-top: 0; }
-/* The toggle and the row menu sit at the row's end, on the name's first line. */
-:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell--actions { width: 1%; padding-inline-start: 0; }
+/* The toggle and the row menu sit at the row's end, on the name's first line. Two classes, so the
+   cell padding below does not give the column its start back. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell.lintje-data-table__mobile-cell--actions,
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__mobile-cell--actions { width: 1%; padding-inline-start: 0; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-actions { display: flex; align-items: center; justify-content: flex-end; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell {
   padding: var(--space-2) var(--tile-pad-x);
@@ -377,6 +414,16 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__pagination--full { display: none; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__pagination--mobile { display: block; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__pagination { padding: var(--space-3) var(--tile-pad-x) 0; }
+/* The phone shows two columns and lists the rest under a row: there is nothing to choose. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__chooser-button { display: none; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__group-row .lintje-data-table__mobile-cell { padding-block: 0; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__group-toggle { padding: 0; min-height: var(--h-target); }
+/* On a phone the name and the count run as text, so a long name wraps instead of widening the table. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__group-toggle { display: block; padding-block: var(--space-3); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__group-toggle .lintje-icon { vertical-align: -2px; margin-inline-end: var(--space-2); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__group-count { margin-inline-start: var(--space-2); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__group-row .lintje-data-table__mobile-cell--align-right { vertical-align: middle; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__total { border-top: 2px solid var(--color-border-heavy); }
 
 /* Paper: every column on the sheet, a row never split, and no control. Values wrap rather than
    run off the edge. What the columns are filtered on stays, as the chips. */
@@ -398,7 +445,9 @@
   .lintje-data-table__action-cell,
   .lintje-data-table__sort-icon,
   .lintje-data-table__funnel,
-  .lintje-data-table__chooser-button,
+  .lintje-data-table__tools,
+  .lintje-data-table__clear-all,
+  .lintje-data-table__detail-cell,
   .lintje-data-table__chip-clear,
   .lintje-data-table__selection,
   .lintje-data-table__edit-icon { display: none; }

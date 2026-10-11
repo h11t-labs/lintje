@@ -18,7 +18,6 @@ regel per punt, met het bestand waar het over gaat. Sluit een regel in de wijzig
 - `src/components/content/video-player/video-player.css`: geen token voor een media-oppervlak; het podium, de video en het ondertitelvlak gebruiken `--color-text-on-light-fill`. Een `--color-media-bg` (inktzwart in beide modi) ontbreekt in `src/tokens/tokens.css`.
 - `src/components/forms/form-actions/form-actions.ts`: een vastgezette actiebalk heeft geen schaduw — `--shadow-sticky` valt naar beneden; een opwaartse `--shadow-sticky-up` (en een `IntersectionObserver` voor `is-stuck`) ontbreekt.
 - `src/tokens/tokens.css`: `--color-bg-subtle` en `--color-bg-selected` zijn dezelfde `--neutral-2`, dus een hover en een selectie verschillen alleen door de balk van 4 px (tabel, boomstructuur, lijst), een aangevinkte tabelrij ziet eruit als een rij onder de aanwijzer, en een hover van de een naar de ander verandert niets (`src/components/content/highlight/highlight.css`: de hover van de term).
-- `src/components/tables/data-table/data-table.css`: een gefilterde kop krijgt `--color-bg-subtle`, tegen "een kop heeft geen vulling" in (`DESIGN_SYSTEM.md`, Tabellen); de hover van de sorteerknop is hetzelfde token.
 - Ruimte buiten de 4 px-schaal (6 px, 10 px, 14 px, 2 px, 7 px, 13 px) in `tag-input.css`, `combobox.css`, `textarea.css`, `file-upload.css`, `notifications.css`; de rijen van 10 px in `list.css`, `description-list.css` en `announcement.css` zijn in elk geval onderling consistent.
 
 ## Primitives en gedeelde onderdelen
@@ -57,6 +56,9 @@ regel per punt, met het bestand waar het over gaat. Sluit een regel in de wijzig
 - `src/components/content/audio-player/player.ts`: "Opnieuw proberen" laadt de media opnieuw en stuurt geen event.
 - `src/components/tables/activity-log/activity-log.ts`: "Toon eerdere" toont alleen items die al gestuurd zijn; er is geen manier om de host om meer te vragen.
 - `src/components/tables/data-table/filters.ts`: bereik- en periodefilters zijn niet gebouwd (`kind` is `options` | `text`); de kolomkiezer legt elke wijziging direct vast, zonder "Toepassen".
+- `src/components/tables/data-table/data-table.ts`: een gegroepeerde, kiesbare tabel heeft geen vinkje per groep; "Alles selecteren" kiest elke rij van elke groep. Het detail van een rij noemt geen link naar de rij zelf: een `href` op de rij blijft het event van een klikbare rij.
+- `src/components/tables/data-table/data-table.css`: de trechter in rust is `--color-text-muted`, net als het woord van de kop. Lichter kan niet: tussen `--neutral-4` (2.56:1, onder de 3:1 van een bedieningselement) en `--neutral-5` (7.5:1) staat geen grijs.
+- `src/components/tables/data-table/data-table.css`: op papier verdwijnt de kolom van de detailknop, maar de lege cel die een groepskop en een totaalrij voor die kolom houden, blijft staan.
 
 ## Laden
 

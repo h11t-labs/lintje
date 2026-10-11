@@ -12,6 +12,13 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Toegevoegd
 
+- `lintje-data-table` als werkblad: een kolom met `format: 'label'` tekent een waarde als badge
+  met woord, toon en icoon (`labels`); `totals` geeft de totaalrij van de host en `groupBy` zet
+  de rijen per waarde onder een kop, met `groupTotals` als subtotalen en `groupsPerPage`; met
+  `detailFields` of een verborgen kolom klapt elke rij open voor wat haar kolommen niet tonen,
+  op desktop en telefoon dezelfde lijst. "Filters wissen" bij twee of meer filters,
+  "Terugzetten naar standaard" in de kolomkiezer, en `lintje-pagination` zegt met
+  `filtered-from` dat een filter de telling versmalde. `lintje-badge` krijgt `icon`. (#PR)
 - De paginakop klapt acties die niet op één regel passen in naar één menu "Meer", vóór de
   knoppen die blijven staan; de laatste knop, de primaire, blijft altijd in het zicht en een menu
   met één rij bestaat niet. Gemeten, niet per breekpunt (`components/shared/overflow.ts`). (#23)
@@ -42,6 +49,12 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Gewijzigd
 
+- De kop van `lintje-data-table` zegt alleen wat nu geldt: sorteerpijlen alleen op de gesorteerde
+  kolom en elders onder de aanwijzer of met focus, en een gefilterde kolom draagt alleen haar
+  gevulde trechter, zonder vlak of stip. "Kolommen" is een knop met zijn woord in de werkbalk, niet
+  meer een tandwiel in de actiekolom. De telling staat één keer. Een naam die opent is donker,
+  onderstreept onder de aanwijzer, en een drempel dichtbij is een teken en vet in plaats van een
+  gele vulling. (#PR)
 - De telefoonvorm geldt alleen op een scherm: `MOBILE` is `screen and (max-width: 767px)`, en een
   host schrijft zijn eigen telefoonregels zo. (#22)
 

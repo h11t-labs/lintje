@@ -89,6 +89,14 @@ Een selectie ongedaan maken is hetzelfde event met de id null en de `href` die j
 `lintje-sort-change` zet `data.sort`, `lintje-checked-change` `data.checkedIds`,
 `lintje-layer-change` de `data.layer` van de kaart.
 
+De tabel rekent niets uit. Een totaalrij geef je zelf mee als `totals`, per kolom een waarde of
+`{ value, how }`, waarbij `how` het woordje is dat zegt hoe ("gem."); met `groupBy` op een kolom
+staan de rijen per waarde onder een kop, en `groupTotals` geeft per groep haar subtotalen. Een
+kolom met `format: 'label'` tekent een waarde als badge: in `labels` noem je per waarde het woord,
+de toon van `lintje-badge` en eventueel een icoon. Wat de kolommen niet tonen, zet je in
+`detailFields`: elke rij krijgt dan een knop die de verborgen kolommen en die velden onder de rij
+toont. Open rijen en ingeklapte groepen zijn beeld, geen toestand: ze komen niet in de URL.
+
 `ChartData.description` en `DataTableData.caption` zijn verplicht: ze worden de `<desc>` van de grafiek
 en de `<caption>` van de tabel. Schrijf ze alsof de figuur er niet was.
 

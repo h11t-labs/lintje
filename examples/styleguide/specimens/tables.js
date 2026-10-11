@@ -1,6 +1,6 @@
 // The tables category (Tabellen en lijsten): the specimens of its elements.
 import { log } from '../shared.js'
-import { desks, meta } from '../../_data/load.js'
+import { desks, meta, regions } from '../../_data/load.js'
 
 // The worksheet specimens of `lintje-data-table` play the host: each listens for the table's
 // request, does the work on its own copy of the rows, and answers with new `data`. The rows are
@@ -101,6 +101,74 @@ const tableData = {
   expandable: true,
   download: { filename: 'loketten' },
 }
+
+/* --- Labels, totals, a row's detail and groups ------------------------------------ */
+
+// The host computes every total; the table only draws them. Fictional figures.
+const regionName = (id) => regions.find((region) => region.id === id)?.name ?? id
+const sum = (list, key) => list.reduce((total, row) => total + (row[key] ?? 0), 0)
+const mean = (list, key) => Math.round(sum(list, key) / list.length)
+
+const KIND_LABELS = {
+  counter: { label: 'Balie', tone: 'neutral' },
+  service: { label: 'Servicepunt', tone: 'subtle' },
+}
+const STATUS_LABELS = {
+  complete: { label: 'Compleet', tone: 'success', icon: 'functioneel-vinkje' },
+  delayed: { label: 'Vertraagd', tone: 'warning', icon: 'functioneel-klok' },
+}
+
+const deskRows = desks.map((point) => ({
+  id: point.id,
+  name: point.name,
+  region: regionName(point.region_id),
+  kind: point.kind,
+  requests: point.requests,
+  waitTime: point.wait_time,
+  change: point.change,
+  staffing: point.staffing,
+  positions: point.positions,
+  dataStatus: point.data_status,
+}))
+
+const sheetColumns = [
+  { key: 'name', header: 'Loket' },
+  { key: 'region', header: 'Regio' },
+  { key: 'kind', header: 'Soort', format: 'label', labels: KIND_LABELS },
+  { key: 'requests', header: 'Aanvragen', align: 'right' },
+  {
+    key: 'waitTime', header: 'Wachttijd', align: 'right', unit: 'min', mobileMeasure: true,
+    threshold: { value: meta.thresholds.wait_time_threshold, caution: meta.thresholds.wait_time_caution },
+  },
+  { key: 'change', header: 'Trend', align: 'right', format: 'change' },
+  { key: 'dataStatus', header: 'Gegevens', format: 'label', labels: STATUS_LABELS },
+]
+
+const totalsOf = (list) => ({
+  requests: sum(list, 'requests'),
+  waitTime: { value: mean(list, 'waitTime'), how: 'gem.' },
+})
+
+const sheetData = {
+  caption: 'Loketten met soort, aanvragen, wachttijd, trend en gegevensstatus, met totalen',
+  title: 'Loketten',
+  subtitle: 'Vandaag · de totalen rekent de bron uit',
+  columns: sheetColumns,
+  rows: deskRows,
+  rowKey: 'id',
+  defaultSort: { key: 'requests', direction: 'desc' },
+  totals: totalsOf(deskRows),
+  totalsLabel: 'Alle loketten',
+  pageSize: 15,
+  download: { filename: 'loketten-totaal' },
+}
+
+const groupTotals = Object.fromEntries(
+  [...new Set(deskRows.map((row) => row.region))].map((region) => [
+    region,
+    totalsOf(deskRows.filter((row) => row.region === region)),
+  ]),
+)
 
 /* --- Truncated and compact ---------------------------------------------------- */
 
@@ -488,7 +556,7 @@ export default {
   elements: [
 {
       tag: 'lintje-data-table',
-      title: 'De tabel: dashboardtabel, kiesbaar, laden en fout, en als werkblad met bewerken, acties en filters, ook op een applicatiepagina',
+      title: 'De tabel: dashboardtabel, kiesbaar, laden en fout, en als werkblad met bewerken, acties, filters, labels, totalen, open rijen en groepen, ook op een applicatiepagina',
       specimens: [
         {
           label: 'Het dashboard — drempels, statuskolom, klikbare rijen',
@@ -621,10 +689,58 @@ export default {
           setup: (stage) => filters(stage, { filters: { category: ['Veiligheid', 'Overlast'] } }),
         },
         {
-          label: 'Kolommen kiezen',
+          label: 'Kolommen kiezen — de knop in de werkbalk; een verborgen kolom staat onder de rij',
           html: '<lintje-data-table></lintje-data-table>',
           wide: true,
           setup: (stage) => filters(stage, { columnChooser: true, hiddenColumns: ['severity'] }),
+        },
+        {
+          label: 'Labels en totalen — een waarde als badge, de totaalrij van de host',
+          html: '<lintje-data-table></lintje-data-table>',
+          wide: true,
+          setup: (stage) => dashboard(stage, sheetData),
+        },
+        {
+          label: 'Een rij open — de verborgen kolommen en de extra velden onder de rij',
+          html: '<lintje-data-table></lintje-data-table>',
+          wide: true,
+          setup: (stage) => {
+            dashboard(stage, {
+              ...sheetData,
+              title: 'Loketten, met details',
+              subtitle: 'Open een rij voor de bezetting',
+              hiddenColumns: ['change'],
+              detailFields: [
+                { key: 'positions', label: 'Loketplaatsen' },
+                { key: 'staffing', label: 'Bezetting', format: 'percent' },
+              ],
+              totals: undefined,
+              pageSize: 5,
+            })
+            const element = stage.querySelector('lintje-data-table')
+            void element.updateComplete.then(() =>
+              element.shadowRoot.querySelector('.lintje-data-table__detail-toggle')?.click(),
+            )
+          },
+        },
+        {
+          label: 'Groepen — per regio met subtotalen, de eerste ingeklapt',
+          html: '<lintje-data-table></lintje-data-table>',
+          wide: true,
+          setup: (stage) => {
+            dashboard(stage, {
+              ...sheetData,
+              title: 'Loketten per regio',
+              subtitle: 'Gesorteerd binnen elke regio',
+              groupBy: 'region',
+              groupTotals,
+              groupsPerPage: 3,
+            })
+            const element = stage.querySelector('lintje-data-table')
+            void element.updateComplete.then(() =>
+              element.shadowRoot.querySelector('.lintje-data-table__full .lintje-data-table__group-toggle')?.click(),
+            )
+          },
         },
       ],
     },
