@@ -172,29 +172,28 @@ function codeBox(kinds, read, label = 'Code') {
   return box
 }
 
-/** "Code tonen" under a specimen: shut, the page stays calm; open, the ways it can be written. */
+/** The code under a specimen, shut in an expander: the page stays calm until a reader asks. */
 function codeToggle(figure, html) {
   const read = () => codeOf(figure.stage, html)
-  const first = read()
-  const kinds = CODE_KINDS.filter(([key]) => first[key])
-  if (!kinds.length) return
-  const foot = element('div', 'guide__specimen-foot')
-  const toggle = document.createElement('lintje-button')
-  toggle.variant = 'link'
-  toggle.size = 'compact'
-  toggle.expanded = false
-  toggle.textContent = 'Code tonen'
+  const kindsOf = () => {
+    const code = read()
+    return CODE_KINDS.filter(([key]) => code[key])
+  }
+  if (!kindsOf().length) return
+  const expander = document.createElement('lintje-expander')
+  expander.className = 'guide__specimen-code'
+  expander.flat = true
+  expander.leading = true
+  expander.heading = 'Code'
   let box
-  toggle.addEventListener('click', () => {
-    const open = !toggle.expanded
-    toggle.expanded = open
-    toggle.textContent = open ? 'Code verbergen' : 'Code tonen'
-    if (open && !box) figure.append((box = codeBox(kinds, read, 'Code van dit voorbeeld')))
-    else if (open) box.fill()
-    if (box) box.hidden = !open
+  expander.addEventListener('lintje-toggle', (event) => {
+    event.stopPropagation()
+    if (!event.detail) return
+    // Read when opened: a framed specimen has drawn by then, and the code is what it drew.
+    if (box) box.fill()
+    else expander.append((box = codeBox(kindsOf(), read, 'Code van dit voorbeeld')))
   })
-  foot.append(toggle)
-  figure.append(foot)
+  figure.append(expander)
 }
 
 /* A specimen as a row ------------------------------------------------------------------ */

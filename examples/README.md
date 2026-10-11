@@ -40,9 +40,10 @@ regel met zijn feiten en een link naar de broncode, en vier tabs — Voorbeelden
 Toegepast in en Gebruiken; de open tab staat in de URL (`&tab=`). Naast de inhoud staat "Op deze
 pagina" voor de open tab (`lintje-sub-nav` met `expanded`). Daarop staan:
 
-- **de voorbeelden**, een per rij: links de naam en wat het laat zien (het `label` van het
-  specimen, tot de dubbele punt de naam), rechts het element in een wit vlak. "Code tonen" opent
-  de code in tabs: de markup, en wat `setup` zette als script (`el.data = …`) en als JSON in de
+- **de voorbeelden**, een per rij: links de titel (`label`) en de uitleg (`note`), rechts het
+  element in een wit vlak; een breed element (`wide`) staat onder zijn titel, over de hele rij, en
+  een venster (`frame`) staat open in een eigen pagina'tje. De expander "Code" opent de code in
+  tabs: de markup, en wat `setup` zette als script (`el.data = …`) en als JSON in de
   markup voor een pagina die een server rendert. Die code wordt gelezen uit wat het voorbeeld
   tekende, dus hij klopt altijd. Standaard is hij dicht, zodat de pagina rustig blijft;
 - **de referentie**: een rij per eigenschap, gegroepeerd in attributen (wat je in de HTML zet; de
