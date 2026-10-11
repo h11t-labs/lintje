@@ -12,6 +12,14 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Toegevoegd
 
+- Het gestapelde vlak als grafieksoort (`kind: 'stacked-area'`): de onderverdelingen van één
+  variabele in haar tintladder, de donkerste onderaan; een ontbrekende waarde breekt haar laag en
+  alles erboven af, de lagen eronder blijven staan. Een laag aan- of uitzetten laat de as staan en
+  laat de laag groeien of krimpen over het nieuwe token `--dur-layer`. De tooltip sluit af met
+  een totaal en de tabel krijgt een kolom Totaal. Daarvoor krijgt `TooltipRow` een `divider` en
+  `core/motion.ts` een `easing`. (#11)
+- Een lijngrafiek toont gebeurtenissen (`events`): een genummerd vierkantje boven de categorie,
+  met de tekst in een lijst onder de grafiek, in de tooltip, de tabel en de CSV. (#12)
 - Afdrukken geeft een nette pagina, staand en liggend: altijd licht en wit, met een eigen marge,
   zonder telefoonvorm, bediening of beweging, met het embleem en de naam van de applicatie
   bovenaan, elke tegel heel op een vel en een tabel die tussen zijn rijen breekt (`breakable` op
@@ -21,6 +29,71 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 - De telefoonvorm geldt alleen op een scherm: `MOBILE` is `screen and (max-width: 767px)`, en een
   host schrijft zijn eigen telefoonregels zo.
+
+## [0.2.0] - 2026-10-10
+
+### Toegevoegd
+
+- `lintje-slot-picker`: een tijd voor een afspraak kiezen, de dagen naast elkaar met hun tijden
+  als opties; een volle tijd blijft staan met het woord "Vol", een dag zonder tijden zegt dat.
+  (#8)
+- `lintje-time-input` opent een lijst met tijden van `min` tot `max`, om de `step` minuten, zoals
+  het datumveld zijn kalender: met de klokknop of Alt+pijl omlaag, en te typen blijft het. (#8)
+- `lintje-kpi` zet één kerncijfer op zijn schaal met `gauge`: een halve boog met het getal in de
+  mond (`shape: 'arc'`) of een balk eronder (`shape: 'linear'`), met het doel gestreept. Het type
+  `KpiGauge` staat in `src/types.ts`; `lintje-kpi-row` geeft het door. (#13)
+- Het histogram als grafieksoort (`kind: 'histogram'`): klassen die elkaar raken, labels op de
+  grenzen, een open laatste klasse, een mediaan en een drempel. (#9)
+- `lintje-kpi` toont het verloop van zijn variabele met `sparkline`: een lijn met haar vlak in de
+  kleur van de variabele, zonder assen, geschaald van de laagste tot de hoogste waarde; een
+  ontbrekende waarde breekt de lijn en de beschrijving is het tekstalternatief. Het type
+  `KpiSparkline` staat in `src/types.ts`; `lintje-kpi-row` geeft het door. (#15)
+- Het spreidingsdiagram als grafieksoort (`kind: 'scatter'`): een reeks is een kleur en de vorm
+  die die kleur op de kaart heeft, met een norm, datalabels voor de punten die de host noemt en een
+  tabel met een rij per punt. (#10)
+- **De kaart kent `controls`.** Een host zet elk onderdeel van `lintje-map` aan of uit: `zoom`,
+  `wheel`, `drag`, `reset`, `lasso`, `circle`, `rect`, `scale` en `legend`. Zonder waarde staat
+  alles aan behalve de tekenvormen. Nieuw is de schaalbalk rechtsonder: een ronde afstand met een
+  beugel zo lang als die op de kaart, die met zoomen meeloopt. (#16)
+- **Een gebied kiezen op de kaart.** Met `controls.lasso`, `controls.circle` of `controls.rect`
+  staat onder de zoomknoppen een tekenvorm; bij twee of meer opent één selectieknop met een
+  hoekje het menu van de vormen, en toont hij de vorm die in de hand is. Een vorm blijft in de
+  hand na het tekenen — een nieuw gebied vervangt het vorige — tot een klik op de knop, Escape of
+  de reset haar neerlegt. Slepen tekent het gebied in één beweging; klikken zet de hoeken van een
+  lasso, het midden en de rand van een cirkel of twee hoeken van een rechthoek, en onderaan staat
+  hoe. De kaart stuurt `lintje-area-select` met het gebied en de ids van alle marks erin — een
+  rechthoek als lasso van vier hoeken —; een host bewaart het gebied in zijn URL en geeft het
+  terug als `selectedArea`. Alleen wat helemaal in het gebied ligt telt; tijdens het tekenen licht
+  dat op. Het gebied blijft staan tot het wordt weggeklikt in het paneel linksonder (op een
+  telefoon onder de kaart), met Escape of met de resetknop, die het huisje vervangt en zicht,
+  mark en gebied terugzet. (#16)
+- **De legenda van de kaart leest per laag.** Eén regel per laag, ook bij één laag: haar naam
+  met een vakje dat de laag aan en uit zet, haar sleutel — de klassen van 0 tot het maximum, drie
+  cirkels met het bereik of een wig met het bereik — en haar eigen reeksen, elk een schakelaar;
+  een kleur in twee lagen schakelt per laag. Meer dan drie lagen vouwen onder "Nog n lagen"; de
+  vergroting toont alles, met het bereik per klasse en de cirkels genest op ware maat. Een mark
+  die uitgaat krimpt of vervaagt, en komt van west naar oost terug. Op een telefoon is de kaart
+  280 px hoog, met alle knoppen op de aanraakmaat. (#16)
+
+### Gewijzigd
+
+- **Brekend:** `lintje-chart-tile` heet `lintje-chart` en `lintje-map-tile` heet `lintje-map`,
+  in de build `tag/chart.js` en `tag/map.js`. De typen volgen: `ChartTileData` wordt `ChartData`,
+  `MapTileViewData` wordt `MapData` en `MapTileData` wordt `MapSpec`; een `ChatBlock` noemt
+  `kind: 'chart'`. (#14)
+- **De kaart is één kaart, op Leaflet.** Met of zonder `basemap` draagt Leaflet de kaart en tekent
+  Lintje de data zelf in zijn svg, dus slepen, dubbelklik, knijpen en het wiel met Ctrl of ⌘
+  werken overal gelijk; zonder die toets scrolt het wiel de pagina en zegt de kaart kort hoe het
+  wel kan. Nederland staat in Web Mercator, zoals de wereld en elke ondergrond; de
+  voorgeprojecteerde `assets/geo/world.json` en `netherlands.json` zijn weg. De knoppen op de
+  kaart zijn compact (40 px) met een klikgebied tot het aanwijsdoel, en de legenda linksonder en
+  de knop "Legenda" op een telefoon zijn weg: er is één legenda, boven de kaart. De
+  bronvermelding van een ondergrond staat in de eigen tekstkleuren, ook in donker. (#16)
+- **Het menu zet je vast met een punaise** (`functioneel-punaise`, open als
+  `functioneel-punaise-outline`) in plaats van met een bladwijzer. (#16)
+- De actieknoppen van een tegel (vergroten, downloaden) steken boven en onder de titelregel uit,
+  zodat de kop van een tegel zonder ondertitel niet hoger is dan haar titel. In de stijlgids
+  staat om een brede specimen — een tegel of tabel, die zichzelf omlijst — geen tweede lijn. (#16)
 
 ## [0.1.1] - 2026-10-09
 
@@ -45,6 +118,7 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.1.1...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/h11t-labs/lintje/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/h11t-labs/lintje/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/h11t-labs/lintje/releases/tag/v0.1.0

@@ -793,7 +793,7 @@ export default {
           html: '<div class="guide__pair"><lintje-card></lintje-card><lintje-card></lintje-card></div>',
           setup(stage) {
             const pinAndShare = (pressed) => [
-              { value: 'vastzetten', label: 'Vastzetten', icon: 'kantoor-label-outline', iconPressed: 'kantoor-label', pressed },
+              { value: 'vastzetten', label: 'Vastzetten', icon: 'functioneel-punaise-outline', iconPressed: 'functioneel-punaise', pressed },
               { value: 'delen', label: 'Delen', icon: 'functioneel-delen' },
             ]
             const [first, second] = stage.querySelectorAll('lintje-card')

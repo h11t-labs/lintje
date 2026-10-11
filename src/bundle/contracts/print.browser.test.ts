@@ -10,7 +10,7 @@ import '../../primitives/icon-button/icon-button'
 import '../../primitives/tile/tile'
 import '../../components/actions/copy-button/copy-button'
 import '../../components/actions/menu-button/menu-button'
-import '../../components/charts/chart-tile/chart-tile'
+import '../../components/charts/chart/chart'
 import '../../components/charts/explainer/explainer'
 import '../../components/charts/kpi/kpi'
 import '../../components/charts/note/note'
@@ -20,7 +20,7 @@ import '../../components/feedback/toast/toast'
 import '../../components/forms/form-actions/form-actions'
 import '../../components/frame/footer/footer'
 import '../../components/frame/shell/shell'
-import '../../components/map/map-tile/map-tile'
+import '../../components/map/map/map'
 import '../../components/tables/card/card'
 import '../../components/tables/data-table/data-table'
 import type { ExplainerData, ShellData } from '../../types'
@@ -116,8 +116,8 @@ describe('controls leave the paper', () => {
 /** What stays on one sheet where it fits, and what breaks between its rows. */
 const BREAKS: { tag: string; value: string; setup?: (element: HTMLElement) => void }[] = [
   { tag: 'lintje-tile', value: 'avoid' },
-  { tag: 'lintje-chart-tile', value: 'avoid' },
-  { tag: 'lintje-map-tile', value: 'avoid' },
+  { tag: 'lintje-chart', value: 'avoid' },
+  { tag: 'lintje-map', value: 'avoid' },
   { tag: 'lintje-kpi', value: 'avoid' },
   { tag: 'lintje-card', value: 'avoid' },
   { tag: 'lintje-note', value: 'avoid' },

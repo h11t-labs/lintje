@@ -39,9 +39,8 @@ import {
   partsOf,
   startOfMonth,
   todayIso,
+  WEEKDAYS,
 } from './date-format'
-
-const WEEKDAYS = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo']
 
 export class LintjeDateInput extends LintjeInputElement {
   static override styles = [iconStyles, shadowCss(inputCss), shadowCss(dateInputCss)]

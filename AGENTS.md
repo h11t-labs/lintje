@@ -49,7 +49,9 @@ niet.
     van RVO (`@nl-rvo/assets`), met die van Lintje zelf in `assets/icons/` eroverheen — de
     emblemen en de generieke bedieningselementen die RVO mist; `npm run build:icons` stelt beide
     samen in `dist-icons/`. Teken nooit zelf, bewerk nooit een bestand —
-    `src/icons/normalise.mjs` maakt het tekenbaar; de andere richting is `rotate`/`flip`. Gebruik
+    `src/icons/normalise.mjs` maakt het tekenbaar; de andere richting is `rotate`/`flip`. De
+    uitzondering is een generiek bedieningselement dat RVO mist: dat tekent Lintje zelf, als
+    eigen bestand in `assets/icons/`, gevuld en 24 × 24 zoals de rest; nooit een embleem. Gebruik
     in een component `renderIcon(name)`; `<lintje-icon>` is voor gewone HTML. Een naam zonder
     bestand tekent niets en het bedieningselement toont zijn Nederlandse label. Een icoon dat een
     component *zelf* tekent, komt in `COMPONENT_ICONS` (`scripts/build-icons.mjs`) +

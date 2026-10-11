@@ -9,6 +9,7 @@ import { render } from 'lit'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ChartController, type ChartOptions } from './controller'
 import { renderChart } from './render-chart'
+import { tooltipSentence } from './plot-keys'
 import type { ChartSpec } from './types'
 
 function draw(spec: ChartSpec) {
@@ -72,6 +73,19 @@ const KINDS: { name: string; spec: ChartSpec; first: string; second: string }[] 
     },
   },
   {
+    name: 'stacked-area',
+    first: 'ma',
+    second: 'di',
+    spec: {
+      kind: 'stacked-area',
+      labels: ['ma', 'di', 'wo'],
+      series: [
+        { label: 'Online', values: [3, null, 4] },
+        { label: 'Balie', values: [2, 5, 1] },
+      ],
+    },
+  },
+  {
     name: 'dual-axis',
     first: 'ma',
     second: 'di',
@@ -80,6 +94,40 @@ const KINDS: { name: string; spec: ChartSpec; first: string; second: string }[] 
       labels: ['ma', 'di'],
       left: { label: 'Aantal', values: [3, 4] },
       right: { label: 'Duur', values: [20, null] },
+    },
+  },
+  {
+    name: 'scatter',
+    first: 'Noord',
+    second: 'Zuid',
+    spec: {
+      kind: 'scatter',
+      axisTitle: 'wachttijd',
+      xTitle: 'aanvragen',
+      series: [
+        {
+          label: 'Loket',
+          points: [
+            { label: 'Zuid', x: 20, y: 4 },
+            { label: 'Noord', x: 10, y: 6 },
+            { label: 'Oost', x: 15, y: null },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    name: 'histogram',
+    first: '0 tot 2 dagen',
+    second: '2 tot 4 dagen',
+    spec: {
+      kind: 'histogram',
+      unit: 'dagen',
+      bins: [
+        { from: 0, to: 2, count: 3 },
+        { from: 2, to: 4, count: null },
+        { from: 4, to: null, count: 1 },
+      ],
     },
   },
   {
@@ -172,5 +220,31 @@ describe('a tooltip under the pointer', () => {
     key('ArrowRight')
     key('ArrowRight')
     expect(status(host)).toBe('di: Aanvragen geen gegevens')
+  })
+})
+
+describe('the sentence the status speaks', () => {
+  const rows = [
+    { label: '2026', value: '820', color: 'red' },
+    { label: '2025', value: '1.045', color: 'grey' },
+  ]
+
+  it('says the values of a category', () => {
+    expect(tooltipSentence({ title: 'wk 30', rows })).toBe('wk 30: 2026 820, 2025 1.045')
+  })
+
+  it('says each event after them, with its number', () => {
+    expect(
+      tooltipSentence({
+        title: 'wk 31',
+        rows,
+        events: [
+          { number: 2, label: 'Storing inlogdienst' },
+          { number: 3, label: 'Herstel' },
+        ],
+      }),
+    ).toBe(
+      'wk 31: 2026 820, 2025 1.045. Gebeurtenis 2: Storing inlogdienst. Gebeurtenis 3: Herstel',
+    )
   })
 })

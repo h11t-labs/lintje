@@ -1,6 +1,15 @@
 /** The time input's arithmetic: reading and moving a clock time. */
 import { describe, expect, it } from 'vitest'
-import { addMinutes, clampTime, fromMinutes, isTime, parseTime, toMinutes } from './time-format'
+import {
+  addMinutes,
+  clampTime,
+  fromMinutes,
+  isTime,
+  parseTime,
+  toMinutes,
+  timeAtOrAfter,
+  timesBetween,
+} from './time-format'
 
 const ok = (time: string) => ({ kind: 'ok', time })
 
@@ -48,5 +57,27 @@ describe('moving a time', () => {
     expect(clampTime('07:00', '08:00', '18:00')).toBe('08:00')
     expect(clampTime('19:00', '08:00', '18:00')).toBe('18:00')
     expect(clampTime('12:00')).toBe('12:00')
+  })
+})
+
+describe('the list of times', () => {
+  it('runs the whole day by default, and from min to the last time at or before max', () => {
+    const day = timesBetween()
+    expect(day).toHaveLength(96)
+    expect(day[0]).toBe('00:00')
+    expect(day[95]).toBe('23:45')
+    expect(timesBetween('08:00', '18:00', 30)).toHaveLength(21)
+    const odd = timesBetween('08:00', '18:00', 45)
+    expect(odd[0]).toBe('08:00')
+    expect(odd[odd.length - 1]).toBe('17:45')
+    expect(timesBetween('09:00', '08:00')).toEqual([])
+  })
+
+  it('opens on the first time at or after a value, else the last', () => {
+    const times = timesBetween('08:00', '18:00', 15)
+    expect(timeAtOrAfter(times, '14:30')).toBe('14:30')
+    expect(timeAtOrAfter(times, '14:35')).toBe('14:45')
+    expect(timeAtOrAfter(times, '19:00')).toBe('18:00')
+    expect(timeAtOrAfter([], '09:00')).toBe('')
   })
 })

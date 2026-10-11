@@ -123,3 +123,121 @@ describe('lintje-time-input', () => {
     expect(seen.local).toEqual([])
   })
 })
+
+const toggle = (element: LintjeTimeInput): HTMLButtonElement =>
+  element.shadowRoot!.querySelector('.lintje-time-input__toggle')!
+
+const options = (element: LintjeTimeInput): HTMLButtonElement[] => [
+  ...element.shadowRoot!.querySelectorAll<HTMLButtonElement>('.lintje-time-input__option'),
+]
+
+const focused = (element: LintjeTimeInput): string | undefined =>
+  options(element)
+    .find((option) => option.getAttribute('tabindex') === '0')
+    ?.textContent?.trim()
+
+describe('the list', () => {
+  it('opens as a listbox from min to max by step, the chosen time selected and focused', async () => {
+    const element = await mount({ value: '14:30', min: '08:00', max: '18:00', step: 30 })
+    toggle(element).click()
+    await element.updateComplete
+    expect(element.open).toBe(true)
+    expect(toggle(element).getAttribute('aria-expanded')).toBe('true')
+    expect(element.shadowRoot!.querySelector('[role="listbox"]')).not.toBeNull()
+    const list = options(element)
+    expect(list).toHaveLength(21)
+    expect(list[0]!.textContent!.trim()).toBe('08:00')
+    expect(list[20]!.textContent!.trim()).toBe('18:00')
+    const chosen = list.find((option) => option.getAttribute('aria-selected') === 'true')!
+    expect(chosen.textContent!.trim()).toBe('14:30')
+    expect(chosen.getAttribute('tabindex')).toBe('0')
+  })
+
+  it('opens on the first time after a value between two, selecting none', async () => {
+    const element = await mount({ value: '14:35', step: 15 })
+    toggle(element).click()
+    await element.updateComplete
+    expect(focused(element)).toBe('14:45')
+    expect(options(element).some((option) => option.getAttribute('aria-selected') === 'true')).toBe(
+      false,
+    )
+  })
+
+  it('moves the focus with the keys, held to the list', async () => {
+    const element = await mount({ value: '08:00', min: '08:00', max: '18:00', step: 15 })
+    toggle(element).click()
+    await element.updateComplete
+    const list = element.shadowRoot!.querySelector('[role="listbox"]')!
+    const pressList = async (key: string) => {
+      list.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
+      await element.updateComplete
+    }
+    await pressList('ArrowUp')
+    expect(focused(element)).toBe('08:00')
+    await pressList('ArrowDown')
+    expect(focused(element)).toBe('08:15')
+    await pressList('PageDown')
+    expect(focused(element)).toBe('09:15')
+    await pressList('End')
+    expect(focused(element)).toBe('18:00')
+    await pressList('Home')
+    expect(focused(element)).toBe('08:00')
+  })
+
+  it('picks a time with a click and closes', async () => {
+    const element = await mount({ value: '14:30', min: '08:00', max: '18:00', step: 30 })
+    const seen = listen(element)
+    toggle(element).click()
+    await element.updateComplete
+    options(element)[14]!.click()
+    await element.updateComplete
+    expect(seen.local).toEqual(['15:00'])
+    expect(element.open).toBe(false)
+    expect(control(element).value).toBe('15:00')
+  })
+
+  it('opens with Alt+ArrowDown in the field, and not while disabled', async () => {
+    const element = await mount({ value: '09:00' })
+    control(element).dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true }),
+    )
+    await element.updateComplete
+    expect(element.open).toBe(true)
+    const off = await mount({ value: '09:00', disabled: true })
+    expect(toggle(off).disabled).toBe(true)
+    toggle(off).click()
+    await off.updateComplete
+    expect(off.open).toBe(false)
+  })
+
+  it('closes when its popover asks, and stops that request', async () => {
+    const element = await mount({ value: '09:00' })
+    toggle(element).click()
+    await element.updateComplete
+    let escaped = 0
+    document.addEventListener('lintje-close', () => escaped++, { once: true })
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    await element.updateComplete
+    expect(element.open).toBe(false)
+    expect(escaped).toBe(0)
+  })
+
+  it('closes when the focus leaves the element, so it does not cover the next field', async () => {
+    const element = await mount({ value: '09:00' })
+    toggle(element).click()
+    await element.updateComplete
+    const outside = document.body.appendChild(document.createElement('button'))
+    const leave = (to: Node | null): void => {
+      options(element)[0]!.dispatchEvent(
+        new FocusEvent('focusout', { relatedTarget: to, bubbles: true, composed: true }),
+      )
+    }
+    leave(toggle(element))
+    leave(null)
+    await element.updateComplete
+    expect(element.open).toBe(true)
+    leave(outside)
+    await element.updateComplete
+    expect(element.open).toBe(false)
+  })
+})

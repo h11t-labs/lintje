@@ -25,12 +25,45 @@ export interface LineSeriesData {
   area?: boolean
 }
 
+/**
+ * Something that happened at a category. The chart numbers its events 1, 2, … from left to
+ * right, in the host's order within one category; one whose `index` is not in `labels` is left
+ * out and takes no number.
+ */
+export interface ChartEvent {
+  /** Index into `labels`: the category it happened at. */
+  index: number
+  /** What happened, in a few words; listed under the chart and shown in the tooltip. */
+  label: string
+}
+
 export interface BarSeriesData {
   label: string
   values: number[]
   color?: ChartColor
   /** One entry per value: the drilldown of that bar or segment, or null. */
   links?: (ChartLink | null)[]
+}
+
+/** One point of a scatter plot: a named record, clickable with a `href` like a table row. */
+export interface ScatterPoint {
+  label: string
+  /** null = no data, never 0 (rule 15): the point is not drawn and stays in the table. */
+  x: number | null
+  y: number | null
+  /** The identity a click carries; without it the series' label and its own: `Loket · Utrecht`. */
+  id?: string
+  href?: string
+}
+
+/**
+ * A series of a scatter plot: a colour and the shape that colour has on a map (rule 13).
+ * Without a colour the series take the data colours in their order.
+ */
+export interface ScatterSeriesData {
+  label: string
+  color?: ChartColor
+  points: ScatterPoint[]
 }
 
 export type ChartSpec =
@@ -46,6 +79,8 @@ export type ChartSpec =
       pendingHours?: number
       fixedMax?: number
       small?: boolean
+      /** Events: a numbered square above their category, listed with their text under the chart. */
+      events?: ChartEvent[]
     }
   | {
       kind: 'bar'
@@ -87,6 +122,20 @@ export type ChartSpec =
       small?: boolean
     }
   | {
+      kind: 'stacked-area'
+      labels: string[]
+      /**
+       * The parts of one variable, the first at the bottom. A `null` in any part breaks the whole
+       * stack at that point: no area bridges it and the period is hatched (rule 15).
+       */
+      series: { label: string; values: (number | null)[] }[]
+      /** The variable the stack divides: its parts take this colour's tints. Default sky blue. */
+      color?: ChartColor
+      axisTitle?: string
+      unit?: string
+      small?: boolean
+    }
+  | {
       kind: 'pie'
       segments: {
         label: string
@@ -117,6 +166,22 @@ export type ChartSpec =
       small?: boolean
     }
   | {
+      kind: 'scatter'
+      series: ScatterSeriesData[]
+      /** The vertical axis: its title above the chart, in the tooltip and as a table column. */
+      axisTitle: string
+      unit?: string
+      /** The horizontal axis: its title under its labels, right-aligned. */
+      xTitle: string
+      xUnit?: string
+      /** A horizontal norm on the vertical axis, dashed in the emphasis colour. */
+      threshold?: number
+      thresholdLabel?: string
+      /** The labels of the points that show their name; all of them, or none when one does not fit. */
+      dataLabels?: string[]
+      small?: boolean
+    }
+  | {
       kind: 'heatmap'
       columnLabels: string[]
       rowLabels: string[]
@@ -139,12 +204,38 @@ export type ChartSpec =
         links?: (ChartLink | null)[][]
       }
     }
+  | {
+      kind: 'histogram'
+      /**
+       * The classes in ascending order, each starting where the one before ends. `to: null` is
+       * an open last class ("30+"); `count: null` is no data, never 0 (rule 15).
+       */
+      bins: { from: number; to: number | null; count: number | null }[]
+      /** What the classes count, in the legend and the tooltip. Default "Aantal". */
+      label?: string
+      color?: ChartColor
+      /** Above the y-axis, e.g. "aanvragen per twee dagen". */
+      axisTitle?: string
+      /** Under the x labels, right-aligned, e.g. "doorlooptijd in dagen". */
+      xTitle?: string
+      /** The unit of the x-axis, e.g. "dagen": in the tooltip and beside the lines. */
+      unit?: string
+      /** A solid emphasis line at this x value. */
+      median?: number
+      /** The text beside the median line; default "mediaan" with its value and unit. */
+      medianLabel?: string
+      /** A dashed emphasis line at this x value. */
+      threshold?: number
+      /** The text beside the threshold line; default "norm" with its value and unit. */
+      thresholdLabel?: string
+      small?: boolean
+    }
 
 export type ChartKind = ChartSpec['kind']
 
 /**
  * What a map draws. `polygons` are areas that carry their own outline (`MapValue.polygon`);
- * `plots` stacks several drawings, from `MapTileData.plots`.
+ * `plots` stacks several drawings, from `MapSpec.plots`.
  */
 export type MapVariant = 'flows' | 'points' | 'choropleth' | 'polygons' | 'plots' | 'scope-picker'
 
@@ -171,6 +262,43 @@ export interface MapValue {
   polygon?: [number, number][]
   /** A URL the host minted, carried into `lintje-mark-select`. */
   href?: string
+}
+
+/**
+ * An area drawn on the map to choose what lies in it: a lasso, a ring of `[lon, lat]` pairs with
+ * the first point not repeated, or a circle around a `[lon, lat]` centre.
+ */
+export type MapArea =
+  | { kind: 'lasso'; ring: [number, number][] }
+  | { kind: 'circle'; centre: [number, number]; radiusKm: number }
+
+/** A tool that draws an area on the map. */
+export type MapTool = 'lasso' | 'circle' | 'rect'
+
+/**
+ * The parts of a map a host switches on or off. Without a value each keeps its default: every
+ * part on, except the drawing tools, which choose for a host that filters on an area. With two
+ * or more tools on, one button opens a menu of them.
+ */
+export interface MapControls {
+  /** The + and − buttons, a double click and a pinch. Default on. */
+  zoom?: boolean
+  /** Zooming on the wheel with Ctrl or ⌘ held. Default on. */
+  wheel?: boolean
+  /** Panning with the mouse. Default on; on a phone a finger always scrolls the page. */
+  drag?: boolean
+  /** The reset: the whole area in view and nothing chosen. Default on. */
+  reset?: boolean
+  /** Choosing with a drawn lasso; sends `lintje-area-select`. Default off. */
+  lasso?: boolean
+  /** Choosing with a drawn circle; sends `lintje-area-select`. Default off. */
+  circle?: boolean
+  /** Choosing with a drawn rectangle, sent as a lasso of four corners. Default off. */
+  rect?: boolean
+  /** A scale bar in km bottom right. Default on. */
+  scale?: boolean
+  /** The legend above the map: a line per layer with its key and its series. Default on. */
+  legend?: boolean
 }
 
 /** The basemap the map draws on, a WMS service the host configures. */
@@ -208,13 +336,13 @@ export interface MapPlotData {
   destination?: { lon: number; lat: number; label: string }
   /**
    * What each series in this layer means, over the map's own `seriesLabels`. A colour may serve
-   * several layers; the legend above the map keeps one line per colour, named by the first.
+   * several layers; each layer's line in the legend names and switches its own.
    */
   seriesLabels?: Partial<Record<MapSeriesKey, string>>
 }
 
-/** The map's data, as `MapTileData` in `src/types.ts` carries it, without the tile fields. */
-export interface MapTileData {
+/** The map's data, as `MapData` in `src/types.ts` carries it, without the tile fields. */
+export interface MapSpec {
   variant: MapVariant
   geo?: 'world' | 'netherlands'
   /** The marks of a one-variant map; empty with `variant: 'plots'`. */
@@ -224,7 +352,7 @@ export interface MapTileData {
   destination?: { lon: number; lat: number; label: string }
   unit?: string
   description: string
-  /** Map height in px; default 400, 220 below 768 px. */
+  /** Map height in px; default 400, 280 below 768 px. */
   height?: number
   selectedId?: string | null
   layers?: { value: string; label: string }[]
@@ -236,6 +364,10 @@ export interface MapTileData {
   selectLabel?: string
   /** The URL that undoes the selection, for a page that keeps it in the URL. */
   clearHref?: string
-  /** With a basemap the map draws with Leaflet; without one it stays the SVG map. */
+  /** Tiles under the map: Leaflet draws the basemap, the map draws its data over it. */
   basemap?: WmsBasemap
+  /** Which parts of the map show and answer; each left out keeps its default. */
+  controls?: MapControls
+  /** The area the host keeps, from its URL: adopted when it changes, as `selectedId` is. */
+  selectedArea?: MapArea | null
 }

@@ -37,6 +37,7 @@ export class LintjeTooltip extends LintjeElement {
   static override properties: PropertyDeclarations = {
     text: { type: String },
     noDescribe: { type: Boolean, attribute: 'no-describe' },
+    placement: { type: String },
     open: { state: true },
     spot: { state: true },
   }
@@ -44,6 +45,8 @@ export class LintjeTooltip extends LintjeElement {
   text: string = ''
   /** The text is already the element's accessible name. */
   noDescribe: boolean = false
+  /** Above the element, or `left` of it, level with it: for a column of buttons along an edge. */
+  placement: 'top' | 'left' = 'top'
   open: boolean = false
   protected spot: Place | null = null
 
@@ -125,7 +128,8 @@ export class LintjeTooltip extends LintjeElement {
     if (!target) return
     const bubble = this.renderRoot.querySelector<HTMLElement>('.lintje-tooltip')
     const box = { width: bubble?.offsetWidth ?? 0, height: bubble?.offsetHeight ?? 0 }
-    const next = place(target.getBoundingClientRect(), box, viewport(), 'top-center', 8)
+    const side = this.placement === 'left' ? 'left-center' : 'top-center'
+    const next = place(target.getBoundingClientRect(), box, viewport(), side, 8)
     if (!samePlace(this.spot, next)) this.spot = next
   }
 

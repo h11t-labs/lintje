@@ -64,12 +64,12 @@
       <lintje-announcement id="announcement"></lintje-announcement>
       <lintje-kpi-row id="kpis"></lintje-kpi-row>
       <div class="demo__grid">
-        <lintje-chart-tile id="chart-hours"></lintje-chart-tile>
-        <lintje-chart-tile id="chart-rejections"></lintje-chart-tile>
+        <lintje-chart id="chart-hours"></lintje-chart>
+        <lintje-chart id="chart-rejections"></lintje-chart>
       </div>
       <lintje-data-table id="table"></lintje-data-table>
       <div class="demo__grid">
-        <lintje-map-tile id="map"></lintje-map-tile>
+        <lintje-map id="map"></lintje-map>
         <lintje-note id="note"></lintje-note>
       </div>
       <lintje-explainer id="explainer"></lintje-explainer>
@@ -88,7 +88,7 @@
       const bundle = await import('../../dist-elements/lintje.js')
 
       // The fictional figures, shared by the examples.
-      const { meta, hourly, desks, regions, breakdowns, origin, number } = await import('../_data/load.js')
+      const { meta, hourly, daily, desks, regions, breakdowns, origin, number } = await import('../_data/load.js')
       const { themeOf, modeOf, emblem, carry, shellSettingsOf, searchWith, answerLogout } = await import(
         '../_shared/settings.js'
       )
@@ -318,6 +318,10 @@
             label: 'Afgehandelde aanvragen', variable: 'sky-blue',
             value: number(kpi.requests.value),
             trend: { direction: 'up', sentence: 'Gestegen ten opzichte van vorige week' },
+            sparkline: {
+              values: daily.map((row) => row.requests),
+              description: `Afgehandelde aanvragen per dag, afgelopen week: van ${number(daily[0].requests)} op maandag tot ${number(daily.at(-1).requests)} op zondag`,
+            },
             detail: `Vorige week ${number(kpi.requests.previous)} (+${kpi.requests.change}%)`,
           },
           {

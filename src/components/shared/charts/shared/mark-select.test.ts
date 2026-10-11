@@ -9,36 +9,36 @@
  * happy-dom has no layout, so what is checked is the markup and the events.
  */
 import { beforeEach, describe, expect, it } from 'vitest'
-import '../../../charts/chart-tile/chart-tile'
+import '../../../charts/chart/chart'
 import type { ChartSpec } from './types'
-import type { ChartTileData } from '../../../../types'
+import type { ChartData } from '../../../../types'
 
-interface ChartTile extends HTMLElement {
+interface ChartElement extends HTMLElement {
   renderRoot: DocumentFragment | HTMLElement
-  data?: ChartTileData | null
+  data?: ChartData | null
   updateComplete: Promise<unknown>
 }
 
-async function chartTile(chart: ChartSpec, extra: Partial<ChartTileData> = {}): Promise<ChartTile> {
-  const element = document.createElement('lintje-chart-tile') as ChartTile
+async function mountChart(chart: ChartSpec, extra: Partial<ChartData> = {}): Promise<ChartElement> {
+  const element = document.createElement('lintje-chart') as ChartElement
   element.data = { chart, description: 'Een figuur om op door te klikken.', ...extra }
   document.body.append(element)
   await element.updateComplete
   return element
 }
 
-function mark(element: ChartTile, id: string): Element {
+function mark(element: ChartElement, id: string): Element {
   const found = element.renderRoot.querySelector(`[data-mark-id="${id}"]`)
   if (!found) throw new Error(`no mark ${id}`)
   return found
 }
 
 /** The marks in one of the two `is-*` states, whichever kind of node they are. */
-function inState(element: ChartTile, state: string): Element[] {
+function inState(element: ChartElement, state: string): Element[] {
   return [...element.renderRoot.querySelectorAll(`.${state}`)]
 }
 
-async function click(element: ChartTile, node: Element): Promise<void> {
+async function click(element: ChartElement, node: Element): Promise<void> {
   node.dispatchEvent(new MouseEvent('click', { bubbles: true }))
   await element.updateComplete
 }
@@ -139,7 +139,7 @@ const KINDS: { name: string; chart: ChartSpec; id: string; inert: string }[] = [
 
 describe.each(KINDS)('cross-drill · $name', ({ chart, id, inert }) => {
   it('makes the mark that carries a href a button', async () => {
-    const element = await chartTile(chart)
+    const element = await mountChart(chart)
     const node = mark(element, id)
     // The heatmap's cell is a button already; the svg marks say so themselves.
     expect(node.getAttribute('role') ?? node.tagName.toLowerCase()).toBe('button')
@@ -148,7 +148,7 @@ describe.each(KINDS)('cross-drill · $name', ({ chart, id, inert }) => {
   })
 
   it('makes the drawing around its buttons a group named by the description, not an image', async () => {
-    const element = await chartTile(chart)
+    const element = await mountChart(chart)
     // A button inside `role="img"` is hidden from the accessibility tree (WCAG 4.1.2).
     const drawing = mark(element, id).closest('svg')
     if (!drawing) return // the heatmap is a table
@@ -164,20 +164,20 @@ describe.each(KINDS)('cross-drill · $name', ({ chart, id, inert }) => {
   })
 
   it('leaves a mark without a href alone', async () => {
-    const element = await chartTile(chart)
+    const element = await mountChart(chart)
     expect(element.renderRoot.querySelector(`[data-mark-id="${inert}"]`)).toBeNull()
     const nodes = [...element.renderRoot.querySelectorAll('[role="button"]')]
     expect(nodes.every((node) => node.getAttribute('data-mark-id') === id)).toBe(true)
   })
 
   it('emits lintje-mark-select with the URL the host minted', async () => {
-    const element = await chartTile(chart)
+    const element = await mountChart(chart)
     await click(element, mark(element, id))
     expect(selects.at(-1)?.detail).toMatchObject({ id, href: '/p?nav.region=noord' })
   })
 
   it('emits the clear when the chosen mark is clicked again', async () => {
-    const element = await chartTile(chart, { selectedId: id, clearHref: '/p' })
+    const element = await mountChart(chart, { selectedId: id, clearHref: '/p' })
     const node = mark(element, id)
     expect(node.getAttribute('aria-pressed')).toBe('true')
     expect(node.getAttribute('class')).toContain('is-selected')
@@ -186,8 +186,8 @@ describe.each(KINDS)('cross-drill · $name', ({ chart, id, inert }) => {
   })
 
   it('steps the other marks back while one is chosen', async () => {
-    const plain = await chartTile(chart)
-    const chosen = await chartTile(chart, { selectedId: id })
+    const plain = await mountChart(chart)
+    const chosen = await mountChart(chart, { selectedId: id })
     // Nothing chosen: nothing dims. One chosen: everything else does.
     expect(inState(plain, 'is-muted')).toEqual([])
     expect(inState(chosen, 'is-muted').length).toBeGreaterThan(0)
@@ -197,21 +197,21 @@ describe.each(KINDS)('cross-drill · $name', ({ chart, id, inert }) => {
   it('ignores a selection that names no mark it draws', async () => {
     // The page may be drilled into something this chart does not show, or the
     // chosen mark dropped out of the period: that is no selection, not a grey chart.
-    const element = await chartTile(chart, { selectedId: 'elders' })
+    const element = await mountChart(chart, { selectedId: 'elders' })
     expect(inState(element, 'is-muted')).toEqual([])
     expect(inState(element, 'is-selected')).toEqual([])
     expect(mark(element, id).getAttribute('aria-pressed')).toBe('false')
   })
 
   it('emits the clear on Escape inside the chart', async () => {
-    const element = await chartTile(chart, { selectedId: id, clearHref: '/p' })
+    const element = await mountChart(chart, { selectedId: id, clearHref: '/p' })
     mark(element, id).dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
     await element.updateComplete
     expect(selects.at(-1)?.detail).toMatchObject({ id: null, href: '/p' })
   })
 
   it('says nothing on Escape while nothing is chosen', async () => {
-    const element = await chartTile(chart)
+    const element = await mountChart(chart)
     mark(element, id).dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
     await element.updateComplete
     expect(selects).toEqual([])
@@ -220,7 +220,7 @@ describe.each(KINDS)('cross-drill · $name', ({ chart, id, inert }) => {
 
 describe('cross-drill · a chart that drills nowhere', () => {
   it('draws no button and sends nothing', async () => {
-    const element = await chartTile({ kind: 'bar', labels: ['Noord'], values: [12] })
+    const element = await mountChart({ kind: 'bar', labels: ['Noord'], values: [12] })
     expect(element.renderRoot.querySelector('[role="button"]')).toBeNull()
     expect(element.renderRoot.querySelector('[data-mark-id]')).toBeNull()
     expect(element.renderRoot.querySelector('.lintje-chart__svg')?.getAttribute('role')).toBe('img')
@@ -229,7 +229,7 @@ describe('cross-drill · a chart that drills nowhere', () => {
 
 describe('cross-drill · the keyboard', () => {
   it('activates a mark with Enter and with Space', async () => {
-    const element = await chartTile(KINDS[0].chart)
+    const element = await mountChart(KINDS[0].chart)
     for (const key of ['Enter', ' ']) {
       mark(element, 'noord').dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
       await element.updateComplete
@@ -247,17 +247,17 @@ describe('cross-drill · the pie’s legend', () => {
       { label: 'Zuid', value: 8, id: 'zuid', href: '/p?nav.region=zuid' },
     ],
   }
-  const rows = (element: ChartTile) =>
+  const rows = (element: ChartElement) =>
     [...element.renderRoot.querySelectorAll('.lintje-pie-chart__row')].map((row) => row.className)
 
   it('dims the rows of the other slices and marks the chosen one', async () => {
-    const [noord, zuid] = rows(await chartTile(pie, { selectedId: 'noord' }))
+    const [noord, zuid] = rows(await mountChart(pie, { selectedId: 'noord' }))
     expect(noord).toContain('is-selected')
     expect(zuid).toContain('is-muted')
   })
 
   it('leaves every row alone while nothing is chosen', async () => {
-    for (const row of rows(await chartTile(pie))) {
+    for (const row of rows(await mountChart(pie))) {
       expect(row).not.toContain('is-muted')
       expect(row).not.toContain('is-selected')
     }

@@ -44,8 +44,11 @@ export function truncateToWidth(text: string, maxWidth: number, fontFamily = '')
   return '…'
 }
 
-/** Width in px of `text` in the 12 px axis label font; ~6.5 px per character without a canvas. */
-export function textWidth(text: string, fontFamily = ''): number {
+/**
+ * Width in px of `text` in the 12 px chart font, at `weight` (400 for an axis label, 700 for a
+ * data label); ~6.5 px per character without a canvas.
+ */
+export function textWidth(text: string, fontFamily = '', weight = 400): number {
   if (measuringContext === undefined) {
     measuringContext =
       typeof document === 'undefined'
@@ -53,7 +56,7 @@ export function textWidth(text: string, fontFamily = ''): number {
         : (document.createElement('canvas').getContext('2d') ?? null)
   }
   if (!measuringContext) return text.length * CHARACTER_WIDTH
-  measuringContext.font = `400 12px ${fontFamily.trim() || FALLBACK_FONT_FAMILY}`
+  measuringContext.font = `${weight} 12px ${fontFamily.trim() || FALLBACK_FONT_FAMILY}`
   return measuringContext.measureText(text).width
 }
 

@@ -15,7 +15,7 @@ export const REVEAL_MARGIN = 8
 
 /** What stands over the drawing: the tile's own overlays and Leaflet's credit. */
 export const OVERLAYS =
-  '.lintje-map-chart__layers, .lintje-map-chart__zoom, .lintje-map-chart__legend, .lintje-map-chart__selection, .leaflet-control'
+  '.lintje-map-chart__layers, .lintje-map-chart__zoom, .lintje-map-chart__selection, .lintje-map-chart__scale-bar, .leaflet-control'
 
 /** The overlays in `area`, as boxes in client pixels; one that is not drawn has no size. */
 export function overlayBoxes(area: Element): Box[] {

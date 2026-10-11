@@ -89,7 +89,7 @@ Een selectie ongedaan maken is hetzelfde event met de id null en de `href` die j
 `lintje-sort-change` zet `data.sort`, `lintje-checked-change` `data.checkedIds`,
 `lintje-layer-change` de `data.layer` van de kaart.
 
-`ChartTileData.description` en `DataTableData.caption` zijn verplicht: ze worden de `<desc>` van de grafiek
+`ChartData.description` en `DataTableData.caption` zijn verplicht: ze worden de `<desc>` van de grafiek
 en de `<caption>` van de tabel. Schrijf ze alsof de figuur er niet was.
 
 ## Een minimale dashboardpagina

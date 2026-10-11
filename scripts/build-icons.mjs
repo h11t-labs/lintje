@@ -68,7 +68,11 @@ const COMPONENT_ICONS = [
   'lichaam-oog', // the "Je ziet" sentence
   'functioneel-externe-link', // share menu: link to this view
   'functioneel-menu', // mobile header
-  'functioneel-home', // map: back to the whole area
+  'functioneel-refresh', // map: the reset, whole area and nothing chosen
+  'functioneel-lasso', // map: choose with a lasso
+  'functioneel-cirkelselectie', // map: choose with a circle
+  'functioneel-rechthoekselectie', // map: choose with a rectangle
+  'functioneel-selectie', // map: the select button, no shape in hand yet
   'functioneel-locatiemarker', // map: set as scope
   'functioneel-minus', // the number field's stepper (also the map's zoom out)
   'functioneel-plus', // the number field's stepper (also the map's zoom in)
@@ -80,8 +84,8 @@ const COMPONENT_ICONS = [
   'functioneel-smartphone', // share menu: open on my phone
   'functioneel-terug', // share menu: back from the QR code
   'functioneel-darkmode', // top bar: the Weergave button; follow the system
-  'kantoor-label-outline', // the menu's pin, loose
-  'kantoor-label', // the menu's pin, fixed
+  'functioneel-punaise-outline', // the menu's pin, loose
+  'functioneel-punaise', // the menu's pin, fixed
   'functioneel-delen', // top bar: the Delen button
   'functioneel-uitloggen', // Afmelden, in the user block
   'functioneel-upload', // file upload
