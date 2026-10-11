@@ -1,0 +1,257 @@
+/**
+ * An element's reference, read from the build: its properties, events, methods and slots
+ * (`custom-elements.json`), and the types its rich properties take, field by field
+ * (`data-types.json`). Both come from the source; nothing here is written by hand.
+ */
+
+/** A file the build writes next to the bundle; empty when the build has not run. */
+export async function loadJSON(url, empty) {
+  try {
+    return await (await fetch(url)).json()
+  } catch (error) {
+    console.warn(`No ${url.split('/').at(-1)}: run \`npm run build:elements\`.`, error)
+    return empty
+  }
+}
+
+/** The tags' declarations from the manifest, by tag. */
+export const declarationsOf = (manifest) =>
+  new Map(manifest.modules.flatMap((module) => module.declarations.map((d) => [d.tagName, d])))
+
+// Every element's, so the page says it once.
+const EVERY_ELEMENTS = new Set(['LintjeElement'])
+const EVERY_TYPES = new Set(['FrameSettings'])
+
+/** The fields a host sets on an element: its own, not the base element's. */
+export const fieldsOf = (declaration) =>
+  declaration.members.filter((field) => !EVERY_ELEMENTS.has(field.inheritedFrom?.name))
+
+/** A source comment as one line of plain text for a cell. */
+const plain = (text) => text?.replace(/`/g, '').replace(/\s+/g, ' ') ?? null
+
+/** What an event carries, from its manifest type: `CustomEvent<{ id }>` → `{ id }`. */
+const detailOf = (event) => event.type.text.match(/^CustomEvent<(.*)>$/)?.[1] ?? null
+
+/** The values of a type that is a union of strings: `'a' | 'b'` → `a · b`; otherwise the type. */
+const valuesOf = (type) =>
+  type && /^'[^']*'(\s*\|\s*'[^']*')+$/.test(type) ? type.replace(/'/g, '').replace(/\s*\|\s*/g, ' · ') : type
+
+/** The names of the known types a type text mentions: `KpiData[] | null` → `KpiData`. */
+export const typeNames = (text, types) =>
+  [...new Set(text?.match(/\b[A-Z]\w*/g) ?? [])].filter((name) => types[name] && !EVERY_TYPES.has(name))
+
+/** An interface's fields, with those of what it extends first, as a host writes them. */
+export function interfaceFields(name, types, seen = new Set()) {
+  const type = types[name]
+  if (type?.kind !== 'interface' || seen.has(name) || EVERY_TYPES.has(name)) return []
+  seen.add(name)
+  const inherited = type.extends.flatMap((base) => interfaceFields(base, types, seen))
+  return [...inherited, ...type.fields]
+}
+
+/**
+ * A table in the reference: one row per entry, the name first; filterable by name. On a phone a
+ * row is its name, a short measure and a line under it, `subline` with `{key}` placeholders.
+ */
+function table(caption, columns, rows, subline) {
+  const node = document.createElement('lintje-data-table')
+  // On the page itself, not in a tile: no tile padding to reach out over on a phone.
+  node.plain = true
+  const all = rows.map((row, i) => ({ id: String(i), ...row }))
+  const draw = (wanted) => {
+    const shown = wanted ? all.filter((row) => row.name === wanted) : all
+    node.data = {
+      caption,
+      rowKey: 'id',
+      pageSize: 200,
+      // On a phone a row is its name, one measure and a line under it.
+      columns: columns.map(([key, header, phone], i) => ({
+        key,
+        header,
+        format: 'text',
+        sortable: false,
+        mobileMeasure: phone === 'measure',
+        mobileSubline: phone === 'subline',
+        filter: i === 0 ? { kind: 'text' } : undefined,
+      })),
+      rows: shown,
+      mobileSublineTemplate: subline,
+      filters: wanted ? { [columns[0][0]]: wanted } : {},
+      totalRows: all.length,
+    }
+  }
+  // The table asks; the host filters, as every table in an application does.
+  node.addEventListener('lintje-filter-change', (event) => {
+    event.stopPropagation()
+    const { column, value } = event.detail
+    const term = (Array.isArray(value) ? value[0] : value)?.trim().toLowerCase()
+    node.data = {
+      ...node.data,
+      rows: term ? all.filter((row) => row.name.toLowerCase().includes(term)) : all,
+      filters: term ? { [column]: value } : {},
+    }
+  })
+  draw()
+  node.only = draw
+  return node
+}
+
+const heading = (text, level = 4) => {
+  const node = document.createElement(`h${level}`)
+  node.className = 'guide__subheading'
+  node.textContent = text
+  return node
+}
+
+/** "Te zien in": the specimens that show a field, by their label. */
+const seenIn = (shownBy, key) => {
+  const labels = shownBy.get(key) ?? []
+  if (!labels.length) return null
+  return labels.length > 3 ? `${labels.slice(0, 3).join(', ')} en ${labels.length - 3} meer` : labels.join(', ')
+}
+
+/** One field table of a type: name, type, required, what it is, and where a specimen shows it. */
+function fieldTable(caption, fields, shownBy, prefix) {
+  return table(
+    caption,
+    [
+      ['name', 'Veld'],
+      ['type', 'Type of waarden'],
+      ['required', 'Verplicht', 'measure'],
+      ['about', 'Toelichting'],
+      ['seen', 'Te zien in'],
+    ],
+    fields.map((field) => ({
+      name: field.name,
+      type: valuesOf(field.type),
+      required: field.optional ? 'nee' : 'ja',
+      about: plain(field.description),
+      seen: seenIn(shownBy, `${prefix}${field.name}`),
+    })),
+    '{type} · {about}',
+  )
+}
+
+/**
+ * The reference: a stack of tables. `shownBy` maps a field (`variant`, `data.title`,
+ * `chart.donut`) to the labels of the specimens that set it; `skip` names the types the page
+ * shows elsewhere, such as the kinds of a chart.
+ */
+export function renderReference(declaration, types, { shownBy = new Map(), skip = new Set() } = {}) {
+  const stack = document.createElement('div')
+  stack.className = 'guide__stack guide__reference'
+  const tables = new Map()
+  const fields = fieldsOf(declaration)
+
+  if (fields.length) {
+    const properties = table(
+      `Eigenschappen van ${declaration.tagName}`,
+      [
+        ['name', 'Eigenschap'],
+        ['attribute', 'Attribuut'],
+        ['type', 'Type of waarden'],
+        ['initial', 'Standaard', 'measure'],
+        ['about', 'Toelichting'],
+        ['seen', 'Te zien in'],
+      ],
+      fields.map((field) => ({
+        name: field.name,
+        attribute: field.attribute ?? null,
+        type: valuesOf(field.type?.text) ?? null,
+        initial: field.default ?? null,
+        about: plain(field.description),
+        seen: seenIn(shownBy, field.name),
+      })),
+      '{type} · {about}',
+    )
+    stack.append(properties)
+    tables.set('', properties)
+  }
+
+  // A rich property's type, one level deep: its fields, and the types they name.
+  const expanded = new Set()
+  const expand = (name, prefix, depth) => {
+    if (expanded.has(name) || skip.has(name) || depth > 1) return
+    expanded.add(name)
+    const type = types[name]
+    if (type.kind === 'interface') {
+      const own = interfaceFields(name, types)
+      if (!own.length) return
+      const node = fieldTable(`Velden van ${name}`, own, shownBy, prefix)
+      stack.append(heading(depth ? name : `${prefix.slice(0, -1)}: ${name}`), node)
+      tables.set(prefix, node)
+      for (const field of own)
+        for (const inner of typeNames(field.type, types)) expand(inner, `${field.name}.`, depth + 1)
+    } else if (type.kind === 'union') {
+      stack.append(heading(`${name}: een van ${type.variants.length}, naar ${type.discriminant}`))
+      for (const variant of type.variants) {
+        const box = document.createElement('lintje-expander')
+        box.flat = true
+        box.heading = `${type.discriminant}: '${variant.value}'`
+        box.subtitle = plain(variant.description) ?? `${variant.fields.length} velden`
+        box.append(fieldTable(`Velden van ${name} met ${type.discriminant} '${variant.value}'`, variant.fields, shownBy, prefix))
+        stack.append(box)
+      }
+    }
+  }
+  for (const field of fields)
+    if (field.attribute === undefined)
+      for (const name of typeNames(field.type?.text, types)) expand(name, `${field.name}.`, 0)
+
+  if (declaration.events.length) {
+    stack.append(
+      heading('Events'),
+      table(
+        `Events van ${declaration.tagName}`,
+        [['name', 'Event'], ['detail', 'Detail', 'measure'], ['about', 'Toelichting', 'subline']],
+        declaration.events.map((event) => ({
+          name: event.name,
+          detail: detailOf(event),
+          about: event.description ?? null,
+        })),
+      ),
+    )
+  }
+  if (declaration.methods.length) {
+    stack.append(
+      heading('Methoden'),
+      table(
+        `Methoden van ${declaration.tagName}`,
+        [['name', 'Methode of getter'], ['returns', 'Geeft', 'measure'], ['about', 'Toelichting', 'subline']],
+        declaration.methods.map((method) => ({
+          name: `${method.name}${method.parameters ?? ''}`,
+          returns: method.return?.text ?? null,
+          about: plain(method.description),
+        })),
+      ),
+    )
+  }
+  const slots = document.createElement('lintje-prose')
+  slots.tone = 'muted'
+  slots.text = declaration.slots.length
+    ? `Slots: ${declaration.slots.map((slot) => slot.name || 'standaard').join(', ')}.`
+    : 'Geen slots.'
+  stack.append(slots)
+
+  /** Shows one field's row: `variant`, or `data.title` in the table of `data`. */
+  stack.show = (key) => {
+    const dot = key.lastIndexOf('.')
+    const target = tables.get(dot < 0 ? '' : key.slice(0, dot + 1))
+    if (!target) return null
+    target.only(dot < 0 ? key : key.slice(dot + 1))
+    return target
+  }
+  return stack
+}
+
+/** The field tables of one variant of a union, for a page that shows its variants apart. */
+export function variantReference(union, value, typeName, shownBy, prefix) {
+  const variant = union.variants.find((entry) => entry.value === value)
+  if (!variant) return null
+  return fieldTable(
+    `Velden van ${typeName} met ${union.discriminant} '${value}'`,
+    variant.fields,
+    shownBy,
+    prefix,
+  )
+}

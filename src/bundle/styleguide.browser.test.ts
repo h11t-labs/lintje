@@ -1,6 +1,7 @@
 /**
  * The style guide in a real browser: every element's specimens, drawn as the style guide draws
- * them, in light and dark, at 1440 and 390 px. An element passes when its tags are defined,
+ * them, in light and dark, at 1440 and 390 px — those of every group too, and each state an
+ * element switches on the first specimen of every group. An element passes when its tags are defined,
  * nothing reaches `console.error`, every icon it names has a file and axe finds no WCAG A or AA
  * violation. It does not look at the page and it does not listen to a screen reader.
  */
@@ -10,9 +11,16 @@ import { page } from 'vitest/browser'
 import { iconIsMissing } from '../icons/loader'
 import './index'
 
+interface State {
+  value: string
+  data?: Record<string, unknown>
+}
+
 interface Specimen {
   html?: string
   setup?: (stage: HTMLElement) => void
+  /** Put on after `setup`, as the style guide's state switch does. */
+  state?: State
 }
 
 interface GuideElement {
@@ -20,15 +28,40 @@ interface GuideElement {
   id?: string
   title?: string
   specimens: Specimen[]
+  groups?: { items: { specimens: Specimen[] }[] }
+  states?: State[]
+  /** The tag a state goes on, for an entry that only draws an element's states. */
+  owner?: string
 }
 
 const modules = import.meta.glob<{ default: { elements: GuideElement[] } }>(
   '../../examples/styleguide/specimens/*.js',
 )
-const ELEMENTS = (await Promise.all(Object.values(modules).map((load) => load()))).flatMap(
-  (module) => module.default.elements,
-)
 const nameOf = (item: GuideElement): string => item.tag ?? item.id ?? item.title ?? '?'
+/** An element with every specimen of its groups, and one more per state it switches. */
+const expand = (item: GuideElement): GuideElement[] => [
+  {
+    ...item,
+    specimens: [
+      ...(item.groups?.items.flatMap((group) => group.specimens) ?? []),
+      ...item.specimens,
+    ],
+  },
+  ...(item.states ?? [])
+    .filter((state) => state.data && item.groups)
+    .map((state) => ({
+      ...item,
+      id: `${nameOf(item)} · ${state.value}`,
+      tag: undefined,
+      specimens: item.groups!.items.flatMap((group) =>
+        group.specimens.slice(0, 1).map((specimen) => ({ ...specimen, state })),
+      ),
+      owner: item.tag,
+    })),
+]
+const ELEMENTS = (await Promise.all(Object.values(modules).map((load) => load())))
+  .flatMap((module) => module.default.elements)
+  .flatMap(expand)
 
 const MODES = ['light', 'dark'] as const
 const VIEWPORTS = [
@@ -129,6 +162,10 @@ function draw(item: GuideElement): void {
     figure.append(stage)
     host.append(figure)
     specimen.setup?.(stage)
+    const owner = item.owner ?? item.tag
+    if (specimen.state?.data && owner)
+      for (const node of stage.querySelectorAll<HTMLElement & { data?: object }>(owner))
+        if (node.data) node.data = { ...node.data, ...specimen.state.data }
   }
   document.body.append(host)
 }
