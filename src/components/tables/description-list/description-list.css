@@ -85,7 +85,7 @@
 .lintje-description-list--grid .lintje-description-list__row.is-wide { grid-column: span 2; }
 /* On a surface that is not the page's own (a hero's wash) the cells are panels: the surface, framed. */
 :host([surface]) .lintje-description-list--grid { border: 1px solid var(--color-border-default); }
-:host([surface]) .lintje-description-list--grid .lintje-description-list__row:not(.is-changed):not(.is-warning):not(.is-error) {
+:host([surface]) .lintje-description-list--grid .lintje-description-list__row:not(.is-changed):not(.is-success):not(.is-info):not(.is-attention):not(.is-warning):not(.is-error) {
   background: var(--color-bg-surface);
 }
 .lintje-description-list--grid .lintje-description-list__label {
@@ -106,14 +106,35 @@
   background: var(--color-choice-active-bg);
   box-shadow: inset 0 3px 0 var(--color-accent-line);
 }
-.lintje-description-list--grid .is-warning {
-  background: var(--color-warning-bg);
-  box-shadow: inset 0 3px 0 var(--color-warning);
+.lintje-description-list--grid .lintje-description-list__row.is-success {
+  background: var(--color-success-bg);
+  box-shadow: inset 0 3px 0 var(--color-success-line);
 }
-.lintje-description-list--grid .is-error {
+.lintje-description-list--grid .lintje-description-list__row.is-info {
+  background: var(--color-info-bg);
+  box-shadow: inset 0 3px 0 var(--color-info-line);
+}
+.lintje-description-list--grid .lintje-description-list__row.is-attention {
+  background: var(--color-attention-bg);
+  box-shadow: inset 0 3px 0 var(--color-attention-line);
+}
+.lintje-description-list--grid .lintje-description-list__row.is-warning {
+  background: var(--color-warning-bg);
+  box-shadow: inset 0 3px 0 var(--color-attention-line);
+}
+.lintje-description-list--grid .lintje-description-list__row.is-error {
   background: var(--color-error-bg);
   box-shadow: inset 0 3px 0 var(--color-error-line);
 }
+.lintje-description-list__row.is-success .lintje-description-list__main .lintje-icon { color: var(--color-success-line); }
+.lintje-description-list__row.is-info .lintje-description-list__main .lintje-icon { color: var(--color-info-line); }
+.lintje-description-list__row.is-error .lintje-description-list__main .lintje-icon { color: var(--color-error-line); }
+.lintje-description-list__row.is-attention .lintje-description-list__main .lintje-icon { color: var(--color-attention-line); }
+.lintje-description-list__row.is-warning .lintje-description-list__main .lintje-icon { color: var(--color-attention-line); }
+.lintje-description-list__row.is-busy .lintje-description-list__main .lintje-icon { color: var(--color-accent-text); }
+.lintje-description-list__row.is-neutral .lintje-description-list__main .lintje-icon { color: var(--color-text-muted); }
+.lintje-description-list__row.is-subtle .lintje-description-list__main .lintje-icon { color: var(--color-text-muted); }
+.lintje-description-list__row.is-live .lintje-description-list__main .lintje-icon { color: var(--color-error-line); }
 .lintje-description-list--grid .lintje-description-list__action { font: var(--text-meta); font-weight: 700; }
 .lintje-description-list--grid .is-large .lintje-description-list__value {
   font: var(--text-kpi);

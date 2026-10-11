@@ -28,19 +28,22 @@ import type { AnnouncementKind, AnnouncementViewData } from '../../../types'
 const MARK: Record<AnnouncementKind, string> = {
   warning: 'functioneel-waarschuwing',
   outage: 'functioneel-foutmelding',
+  error: 'functioneel-foutmelding',
   info: 'functioneel-info',
   ok: 'functioneel-cirkel-vinkje',
 }
-// Only an outage interrupts the reader; the other three wait their turn.
+// Only an outage interrupts the reader; the others wait their turn.
 const ROLE: Record<AnnouncementKind, 'alert' | 'status'> = {
   warning: 'status',
   outage: 'alert',
+  error: 'status',
   info: 'status',
   ok: 'status',
 }
 const PREFIX: Record<AnnouncementKind, string> = {
   warning: 'Waarschuwing',
   outage: 'Storing',
+  error: 'Fout',
   info: 'Informatie',
   ok: 'Gelukt',
 }

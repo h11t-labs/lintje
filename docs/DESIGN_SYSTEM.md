@@ -385,6 +385,14 @@ De besluiten hieronder gelden voor alle elementen.
   boven een titel die in woorden zegt wat er is, waarom, en de weg verder. Geen illustratie, geen
   groot getal, geen rood vlak; alleen geen toegang en een storing dragen een teken naast de code.
   Een storing geeft een referentie die de lezer kopieert en doorgeeft.
+- **Er is één toonset.** Een toon is een statuskleur met haar teken: neutraal, subtiel, bezig,
+  gelukt, let op, fout, informatie, aandacht en live. Elk element dat een status toont, tekent in
+  die tonen, en een element dat eigen woorden heeft (de leveringsstatus van een bron, de staat
+  van een taak, de soort van een melding) vertaalt ze zelf naar een toon; een host vertaalt
+  nooit. De woordenschat staat één keer, in `primitives/shared/tone.ts`, met de staat van werk
+  (wachtrij, bezig, onderbroken, klaar, mislukt, geannuleerd) ernaast.
+- **Inhoud kent vier toestanden**: klaar, laden, leeg en fout, met één `message` en één
+  `lastKnown`, voor een tegel en een kerncijfer evengoed.
 
 ### Links, toetsen en overlays
 
@@ -799,7 +807,8 @@ kleinste correctie, en leg die hier vast.
 de statuskleur bijgesteld naar 3:1 op haar eigen tint; de tekstkleur van een statuswoord
 (`--color-error-text`, `--color-success-text`), bijgesteld naar 4.5:1 — lichter in donker, het
 groen ook donkerder in licht; de eigen tekstkleur van donkergeel; tekst op de sequentiële reeks
-vast op bijna-zwart of wit in beide modi.
+vast op bijna-zwart of wit in beide modi; geel is nooit een lijn of tekst: een los teken in de
+toon "let op" neemt de lijnkleur van "aandacht", en een gele vulling staat alleen naast een woord.
 
 **Geaccepteerde tekortkomingen.** Geen ervan draagt op zichzelf betekenis; elk gaat samen met een
 glyph, een getal of een woord.

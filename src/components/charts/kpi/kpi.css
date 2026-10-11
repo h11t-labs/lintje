@@ -245,3 +245,5 @@
   .lintje-gauge__tick { stroke: CanvasText; }
   .lintje-gauge__mark { border-color: CanvasText; }
 }
+
+.lintje-kpi__last-known { font: var(--text-small); color: var(--color-text-muted); }
