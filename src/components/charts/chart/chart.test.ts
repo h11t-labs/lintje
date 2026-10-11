@@ -118,6 +118,35 @@ describe('lintje-chart table switch', () => {
     expect(wednesday[2]).toBe('101')
   })
 
+  it('adds a column "Gebeurtenis" with the text on its category\'s row', async () => {
+    const chart = { ...DATA.chart, events: [{ index: 1, label: 'Storing inlogdienst' }] }
+    const element = await tile({ ...DATA, chart, tableSwitch: true })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    const head = [...found.renderRoot.querySelectorAll('.lintje-data-table__full thead th')]
+    expect(head.map((cell) => cell.textContent?.trim())).toEqual([
+      '',
+      'Deze week',
+      'Vorige week',
+      'Gebeurtenis',
+    ])
+    expect(cells(found).map((row) => row[3])).toEqual(['', 'Storing inlogdienst', ''])
+  })
+
+  it('joins two events at one category in one cell of the CSV and the table', async () => {
+    const chart = {
+      ...DATA.chart,
+      events: [
+        { index: 2, label: 'Storing' },
+        { index: 2, label: 'Herstel' },
+      ],
+    }
+    const element = await tile({ ...DATA, chart, tableSwitch: true })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    expect(cells(found).map((row) => row[3])).toEqual(['', '', 'Storing; Herstel'])
+  })
+
   it('gives a scatter plot a row per point: series and name as text, the two values as numbers', async () => {
     const element = await tile({
       ...DATA,

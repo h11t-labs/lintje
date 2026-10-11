@@ -21,6 +21,13 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   laat de laag groeien of krimpen over het nieuwe token `--dur-layer`. De tooltip sluit af met
   een totaal en de tabel krijgt een kolom Totaal. Daarvoor krijgt `TooltipRow` een `divider` en
   `core/motion.ts` een `easing`. (#11)
+- Een lijngrafiek toont gebeurtenissen (`events`): een genummerd vierkantje boven de categorie,
+  met de tekst in een lijst onder de grafiek, in de tooltip, de tabel en de CSV. (#12)
+
+### Opgelost
+
+- `lintje-map` gooit geen fout meer als de kaart weggaat terwijl een zoom nog loopt: Leaflet
+  rondt de zoom af op een timer die `remove()` laat staan, en die las de weggehaalde kaart. (#20)
 
 ## [0.2.0] - 2026-10-10
 
