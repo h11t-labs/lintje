@@ -19,6 +19,11 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   een totaal en de tabel krijgt een kolom Totaal. Daarvoor krijgt `TooltipRow` een `divider` en
   `core/motion.ts` een `easing`. (#11)
 
+### Opgelost
+
+- `lintje-map` gooit geen fout meer als de kaart weggaat terwijl een zoom nog loopt: Leaflet
+  rondt de zoom af op een timer die `remove()` laat staan, en die las de weggehaalde kaart. (#20)
+
 ## [0.2.0] - 2026-10-10
 
 ### Toegevoegd
