@@ -46,9 +46,9 @@ per kop de categorieën, en per categorie de elementen die hij toont, op volgord
 `inputs.js`, …): een module exporteert `{ elements }`; elk element is een `tag`, een Nederlandse
 `title` en zijn `specimens`, elk een `label`, gewone `html` en een optionele `setup(stage)` voor wat
 een attribuut niet kan dragen (een rijke property, een listener). `styleguide/shared.js` bevat dat
-contract en tekent een element als één `<lintje-tile>`, met eronder hoe je het laadt. Een tag van
-de bundel die geen categorie heeft, wordt in de console gemeld, en zo ook een module die
-ontbreekt of een fout gooit.
+contract en tekent een element als één `<lintje-tile>`, met eronder zijn referentie, die begint
+met hoe je het laadt. Een tag van de bundel die geen categorie heeft, wordt in de console gemeld,
+en zo ook een module die ontbreekt of een fout gooit.
 
 **Een nieuwe tag krijgt zijn plek in `src/categories.json` en zijn specimens in de module van zijn
 categorie** (regel 6 en 20).
