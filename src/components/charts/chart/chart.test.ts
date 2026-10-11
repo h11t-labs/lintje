@@ -56,7 +56,11 @@ async function table(element: LintjeChart): Promise<LintjeDataTable | null> {
 
 /** The desktop table's body, cell by cell, as the reader reads it. */
 function cells(found: LintjeDataTable): string[][] {
-  return [...found.renderRoot.querySelectorAll('.lintje-data-table__full tbody tr')].map((row) =>
+  return [
+    ...found.renderRoot.querySelectorAll(
+      '.lintje-data-table__full tbody:not(.lintje-data-table__sizer) tr',
+    ),
+  ].map((row) =>
     [...row.children].map((cell) => cell.textContent?.replace(/\s+/g, ' ').trim() ?? ''),
   )
 }
@@ -251,7 +255,9 @@ describe('lintje-chart table of a histogram', () => {
     // A missing count is missing; the open bound is an empty cell, not "geen gegevens".
     expect(rows[1][3]).toContain('geen gegevens')
     expect(rows[2]).toEqual(['5 dagen of meer', '5,0', '', '7'])
-    const open = found.renderRoot.querySelectorAll('.lintje-data-table__full tbody tr')[2]
+    const open = found.renderRoot.querySelectorAll(
+      '.lintje-data-table__full tbody:not(.lintje-data-table__sizer) tr',
+    )[2]
     expect(open.children[2].textContent).not.toContain('geen gegevens')
   })
 })

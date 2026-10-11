@@ -188,6 +188,17 @@ function statusTone(column: TableColumnData, value: string): StatusTone | null {
   return STATUS_TONES.has(tone) ? (tone as StatusTone) : null
 }
 
+/**
+ * The sort arrows, one above the other in a box of their own: sorted, the other arrow is hidden
+ * but keeps its place, so a column never changes width when it is sorted.
+ */
+function sortIcon(direction: SortState['direction'] | null): TemplateResult {
+  return html`<span class="lintje-data-table__sort-icon" aria-hidden="true"
+    ><span class=${classMap({ 'lintje-data-table__sort-up': true, 'is-on': direction === 'asc', 'is-off': direction === 'desc' })}>▲</span
+    ><span class=${classMap({ 'lintje-data-table__sort-down': true, 'is-on': direction === 'desc', 'is-off': direction === 'asc' })}>▼</span
+  ></span>`
+}
+
 const rowCount = (count: number): string => `${count} ${count === 1 ? 'rij' : 'rijen'}`
 
 /** A total as its value and the word that says how it was made. */
@@ -339,6 +350,8 @@ export class LintjeDataTable extends LintjeContentTileElement {
   /** Rebuilt only when the columns change: a new array resets the list. */
   #chooserItems: { seen: string; items: SortableItem[] } = { seen: '', items: [] }
   #focusSeen: FocusSeen | null = null
+  /** The sizer row's values, for the data they were found in. */
+  #widest: { data: unknown; key: string; row: Row } | null = null
   #barFrame = 0
 
   // On the shadow root: a move between two of its controls reaches the host as no `focusin`.
@@ -1301,8 +1314,73 @@ export class LintjeDataTable extends LintjeContentTileElement {
               }
             </tbody>`
       }
+      ${this.sizerRow(columns)}
       ${this.totalsRow(columns, data.totals, data.totalsLabel ?? 'Totaal')}
     </table>`
+  }
+
+  /**
+   * A row of no height with each column's widest value over every row, not only this page's: a
+   * sort or another page shows other rows, and the columns keep their width.
+   */
+  private sizerRow(columns: TableColumnData[]): TemplateResult {
+    const data = this.data as DataTableData
+    const widest = this.widestRow(columns)
+    return html`<tbody class="lintje-data-table__sizer" aria-hidden="true">
+      <tr class=${classMap({ 'lintje-data-table__row--in-group': this.grouped })}>
+        ${
+          data.selectable
+            ? html`<td class="lintje-data-table__cell lintje-data-table__check-cell"></td>`
+            : nothing
+        }
+        ${
+          this.detailColumns.length > 0
+            ? html`<td class="lintje-data-table__cell lintje-data-table__detail-cell"></td>`
+            : nothing
+        }
+        ${columns.map((column, index) => {
+          const value = widest[column.key] ?? null
+          return html`<td
+            class=${classMap({
+              'lintje-data-table__cell': true,
+              'lintje-data-table__name': index === 0,
+              'lintje-data-table__cell--align-right': this.alignsRight(column),
+              'lintje-data-table__cell--truncate': column.truncate === true,
+            })}
+          >
+            <div class="lintje-data-table__sizer-box">
+              ${column.truncate ? this.truncatedCell(column, value) : this.cell(column, value)}
+            </div>
+          </td>`
+        })}
+        ${
+          data.rowActions?.length
+            ? html`<td class="lintje-data-table__cell lintje-data-table__action-cell"></td>`
+            : nothing
+        }
+      </tr>
+    </tbody>`
+  }
+
+  /** Per column the value whose words are longest, over every row; kept while the data stands. */
+  private widestRow(columns: TableColumnData[]): Row {
+    const key = columns.map((column) => column.key).join(' ')
+    const seen = this.#widest
+    if (seen && seen.data === this.data && seen.key === key) return seen.row
+    const row: Row = {}
+    for (const column of columns) {
+      let longest = -1
+      for (const candidate of this.rows) {
+        const value = candidate[column.key] ?? null
+        const length = (cellText(column, value) ?? '').length
+        if (length > longest) {
+          longest = length
+          row[column.key] = value
+        }
+      }
+    }
+    this.#widest = { data: this.data, key, row }
+    return row
   }
 
   /** A column's head: the sort button and, for a filterable column, its funnel. */
@@ -1319,9 +1397,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
             @click=${() => this.toggleSort(column)}
           >
             <span class="lintje-data-table__sort-label">${column.header}</span>
-            <span class="lintje-data-table__sort-icon" aria-hidden="true"
-              >${active ? (sort.direction === 'asc' ? '▲' : '▼') : '▲▼'}</span
-            >
+            ${sortIcon(active ? sort.direction : null)}
           </button>`
     return html`<th
       scope="col"
@@ -1713,9 +1789,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
                   @click=${() => this.toggleSort(measureColumn)}
                 >
                   <span class="lintje-data-table__sort-label">${measureColumn.header}</span>
-                  <span class="lintje-data-table__sort-icon" aria-hidden="true"
-                    >${active ? (sort.direction === 'asc' ? '▲' : '▼') : '▲▼'}</span
-                  >
+                  ${sortIcon(active ? sort.direction : null)}
                 </button>`
             }
           </th>

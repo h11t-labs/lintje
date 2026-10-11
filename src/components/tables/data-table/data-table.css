@@ -79,14 +79,20 @@
 .lintje-data-table__sort-button:hover { background: var(--color-bg-subtle); }
 /* The scroller clips the ring, so it sits inside the cell. */
 .lintje-data-table__sort-button:focus-visible { outline-offset: -3px; }
-/* The arrows are a glyph, outside the type scale. A head says only what holds now: the sorted
-   column's one arrow; another column shows its pair under the pointer or the focus. Hidden, not
-   removed, so the head keeps its width. */
-.lintje-data-table__sort-icon { font-size: 10px; color: var(--color-text-muted); visibility: hidden; }
+/* The arrows are a glyph, outside the type scale, one above the other in a box that never changes
+   width. A head says only what holds now: the sorted column shows its one arrow, and another
+   column both under the pointer or the focus. A hidden arrow keeps its place. */
+.lintje-data-table__sort-icon {
+  display: inline-flex; flex-direction: column; flex: none;
+  font-size: 8px; line-height: 1;
+  color: var(--color-text-muted);
+  visibility: hidden;
+}
 .lintje-data-table__sort-button:hover .lintje-data-table__sort-icon,
 .lintje-data-table__sort-button:focus-visible .lintje-data-table__sort-icon,
 .lintje-data-table__header-cell.is-active .lintje-data-table__sort-icon { visibility: visible; }
-.lintje-data-table__header-cell.is-active .lintje-data-table__sort-icon { color: var(--color-accent-text); }
+.lintje-data-table__sort-icon > .is-off { visibility: hidden; }
+.lintje-data-table__sort-icon > .is-on { color: var(--color-accent-text); }
 
 .lintje-data-table__row { border-bottom: 1px solid var(--color-border-default); }
 /* Filler rows keep a short last page as tall as a full one. */
@@ -342,6 +348,10 @@
   margin-bottom: var(--space-6);
 }
 .lintje-data-table__chooser-note { font: var(--text-small); color: var(--color-text-muted); }
+
+/* The sizer: each column's widest value, with no height, so a sort or a page never moves a column. */
+.lintje-data-table__sizer .lintje-data-table__cell { height: 0; padding-block: 0; border: 0; }
+.lintje-data-table__sizer-box { height: 0; overflow: hidden; visibility: hidden; }
 
 /* --- A row's detail, groups and totals ------------------------------------- */
 .lintje-data-table__detail-cell { width: var(--h-icon-button); padding: 0; }

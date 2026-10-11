@@ -163,6 +163,94 @@ const sheetData = {
   download: { filename: 'loketten-totaal' },
 }
 
+// The worksheet: every extension at once. The host filters, recounts the totals over what is left
+// and keeps the checked rows; the table only asks.
+const REGIONS = [...new Set(deskRows.map((row) => row.region))]
+
+const worksheetColumns = [
+  { key: 'name', header: 'Loket', filter: { kind: 'text' } },
+  {
+    key: 'region',
+    header: 'Regio',
+    filter: {
+      kind: 'options',
+      options: REGIONS.map((value) => ({
+        value,
+        count: deskRows.filter((row) => row.region === value).length,
+      })),
+    },
+  },
+  ...sheetColumns.slice(2, 6),
+  {
+    ...sheetColumns[6],
+    filter: { kind: 'options', options: Object.entries(STATUS_LABELS).map(([value, { label }]) => ({ value, label })) },
+  },
+]
+
+function deskFiltered(active) {
+  return deskRows.filter((row) =>
+    Object.entries(active).every(([key, value]) =>
+      Array.isArray(value)
+        ? value.includes(row[key])
+        : String(row[key]).toLowerCase().includes(value.toLowerCase()),
+    ),
+  )
+}
+
+function worksheet(stage) {
+  const start = { region: ['Regio Noordwest', 'Regio Zuidwest'] }
+  const shown = deskFiltered(start)
+  const element = table(stage, {
+    ...sheetData,
+    title: 'Loketten',
+    subtitle: 'Vandaag · open een loket via zijn naam',
+    caption: 'Loketten met regio, soort, aanvragen, wachttijd, trend en gegevensstatus',
+    columns: worksheetColumns,
+    rows: shown,
+    totals: totalsOf(shown),
+    totalRows: deskRows.length,
+    filters: start,
+    selectable: true,
+    openable: true,
+    checkedIds: [shown[0].id, shown[1].id],
+    rowActions: [
+      { value: 'toewijzen', label: 'Toewijzen' },
+      'separator',
+      { value: 'sluiten', label: 'Loket sluiten', danger: true },
+    ],
+    bulkActions: [
+      { value: 'toewijzen', label: 'Toewijzen' },
+      { value: 'exporteren', label: 'Exporteren' },
+    ],
+    columnChooser: true,
+    hiddenColumns: ['change'],
+    detailFields: [{ key: 'staffing', label: 'Bezetting', format: 'percent' }],
+    pageSize: 5,
+    expandable: true,
+  })
+  const say = log(stage)
+  element.addEventListener('lintje-filter-change', (event) => {
+    say(`lintje-filter-change ${JSON.stringify(event.detail)}`)
+    const next = { ...element.data.filters }
+    if (event.detail.value == null) delete next[event.detail.column]
+    else next[event.detail.column] = event.detail.value
+    const left = deskFiltered(next)
+    element.data = { ...element.data, filters: next, rows: left, totals: totalsOf(left) }
+  })
+  element.addEventListener('lintje-columns-change', (event) => {
+    say(`lintje-columns-change ${JSON.stringify(event.detail)}`)
+    const { order, hidden } = event.detail
+    const columns = order.map((key) => element.data.columns.find((column) => column.key === key))
+    element.data = { ...element.data, columns, hiddenColumns: hidden }
+  })
+  element.addEventListener('lintje-checked-change', (event) => {
+    element.data = { ...element.data, checkedIds: event.detail }
+  })
+  for (const name of ['lintje-row-open', 'lintje-row-action', 'lintje-bulk-action', 'lintje-sort-change']) {
+    element.addEventListener(name, (event) => say(`${name} ${JSON.stringify(event.detail)}`))
+  }
+}
+
 const groupTotals = Object.fromEntries(
   [...new Set(deskRows.map((row) => row.region))].map((region) => [
     region,
@@ -212,6 +300,12 @@ function dashboard(stage, data = tableData) {
   }
   element.addEventListener('lintje-checked-change', (event) => {
     element.data = { ...element.data, checkedIds: event.detail }
+  })
+  element.addEventListener('lintje-columns-change', (event) => {
+    say(`lintje-columns-change ${JSON.stringify(event.detail)}`)
+    const { order, hidden } = event.detail
+    const columns = order.map((key) => element.data.columns.find((column) => column.key === key))
+    element.data = { ...element.data, columns, hiddenColumns: hidden }
   })
 }
 
@@ -559,6 +653,12 @@ export default {
       title: 'De tabel: dashboardtabel, kiesbaar, laden en fout, en als werkblad met bewerken, acties, filters, labels, totalen, open rijen en groepen, ook op een applicatiepagina',
       specimens: [
         {
+          label: 'Werkblad — alles tegelijk: filters, kolommen, selectie, labels, drempels, een open rij en totalen',
+          html: '<lintje-data-table></lintje-data-table>',
+          wide: true,
+          setup: worksheet,
+        },
+        {
           label: 'Het dashboard — drempels, statuskolom, klikbare rijen',
           html: '<lintje-data-table></lintje-data-table>',
           wide: true,
@@ -698,7 +798,7 @@ export default {
           label: 'Labels en totalen — een waarde als badge, de totaalrij van de host',
           html: '<lintje-data-table></lintje-data-table>',
           wide: true,
-          setup: (stage) => dashboard(stage, sheetData),
+          setup: (stage) => dashboard(stage, { ...sheetData, columnChooser: true }),
         },
         {
           label: 'Een rij open — de verborgen kolommen en de extra velden onder de rij',
@@ -709,6 +809,7 @@ export default {
               ...sheetData,
               title: 'Loketten, met details',
               subtitle: 'Open een rij voor de bezetting',
+              columnChooser: true,
               hiddenColumns: ['change'],
               detailFields: [
                 { key: 'positions', label: 'Loketplaatsen' },
@@ -732,6 +833,7 @@ export default {
               ...sheetData,
               title: 'Loketten per regio',
               subtitle: 'Gesorteerd binnen elke regio',
+              columnChooser: true,
               groupBy: 'region',
               groupTotals,
               groupsPerPage: 3,

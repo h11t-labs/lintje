@@ -125,7 +125,7 @@ export function renderFunnel(
       aria-expanded=${expanded ? 'true' : 'false'}
       @click=${(event: Event) => onOpen(event.currentTarget as HTMLElement)}
     >
-      ${renderIcon('functioneel-filters', { size: 14 })}
+      ${renderIcon('functioneel-trechter', { size: 14 })}
     </button>`
 }
 

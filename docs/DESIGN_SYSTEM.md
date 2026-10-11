@@ -425,9 +425,12 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een kop heeft geen vulling**, ook gefilterd niet: een vulling is hoe een geselecteerde rij
   eruitziet.
 - **De kop zegt alleen wat nu geldt.** Alleen de gesorteerde kolom draagt haar pijl; een andere
-  kolom toont de hare onder de aanwijzer of met focus. Een gefilterde kolom draagt één markering,
-  de gevulde trechter, en de chips boven de tabel zeggen in woorden waarop gefilterd is. De
-  trechter staat altijd, ook op een aanraakscherm, in het grijs van de kop.
+  kolom toont de hare onder de aanwijzer of met focus. Een kolom met een filter draagt de
+  trechter, altijd, ook op een aanraakscherm, in het grijs van de kop; gefilterd is dat één
+  markering, de gevulde trechter, en de chips boven de tabel zeggen in woorden waarop.
+- **Sorteren en bladeren laten de kolommen staan.** Een kolom neemt de breedte van haar breedste
+  waarde over alle rijen, niet alleen die van de pagina, en de sorteerpijlen staan boven elkaar in
+  een vak dat even breed blijft, gesorteerd of niet.
 - **De bediening van de tabel staat in de werkbalk, met haar woord**: "Kolommen", "Filters
   wissen", "Alles inklappen". De telling staat één keer: onder de rijen als er gebladerd wordt,
   anders in de werkbalk.

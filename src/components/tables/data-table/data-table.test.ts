@@ -281,7 +281,10 @@ describe('a threshold cell', () => {
     document.body.append(element)
     await element.updateComplete
     const cells = [
-      ...element.shadowRoot!.querySelectorAll('.lintje-data-table__full .lintje-threshold-cell'),
+      // Not the sizer's copy of the widest value.
+      ...element.shadowRoot!.querySelectorAll(
+        '.lintje-data-table__full tbody:not(.lintje-data-table__sizer) .lintje-threshold-cell',
+      ),
     ]
     const glyphs = cells.map((cell) => cell.querySelector('svg')?.getAttribute('aria-hidden'))
     // Delft, Rotterdam, Utrecht: within, over, near the norm.
@@ -401,11 +404,14 @@ describe('the phone representation', () => {
     const element = await phone()
     const header = (): HTMLElement => mobile(element).querySelectorAll('thead th')[1] as HTMLElement
     expect(header().getAttribute('aria-sort')).toBe('none')
+    // Both arrows stand in their box; neither is the sorted one.
     expect(header().querySelector('.lintje-data-table__sort-icon')?.textContent).toBe('▲▼')
+    expect(header().querySelector('.lintje-data-table__sort-icon .is-on')).toBeNull()
     header().querySelector('button')!.click()
     await element.updateComplete
     expect(header().getAttribute('aria-sort')).toBe('descending')
-    expect(header().querySelector('.lintje-data-table__sort-icon')?.textContent).toBe('▼')
+    expect(header().querySelector('.lintje-data-table__sort-icon .is-on')?.textContent).toBe('▼')
+    expect(header().querySelector('.lintje-data-table__sort-icon .is-off')?.textContent).toBe('▲')
   })
 })
 
@@ -472,9 +478,8 @@ describe('a date column', () => {
     document.body.append(element)
     await element.updateComplete
     const table = element.shadowRoot?.querySelector('.lintje-data-table__full')
-    const names = [...(table?.querySelectorAll('tbody tr') ?? [])].map((row) =>
-      row.firstElementChild?.textContent?.trim(),
-    )
+    const rows = table?.querySelectorAll('tbody:not(.lintje-data-table__sizer) tr') ?? []
+    const names = [...rows].map((row) => row.firstElementChild?.textContent?.trim())
     expect(names).toEqual(['Leeg', 'December', 'Januari', 'Maart'])
   })
 })

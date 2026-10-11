@@ -214,3 +214,18 @@ describe('the pager’s count', () => {
     expect(rangeText(1, 25, 40, { many: 'rijen', one: 'rij' })).toBe('1–25 van 40 rijen')
   })
 })
+
+describe('the column widths', () => {
+  it('measure each column by its widest value over every row, not only the page', async () => {
+    const element = await mount({ pageSize: 1, sort: { key: 'requests', direction: 'asc' } })
+    const sizer = shadow(element).querySelector(
+      '.lintje-data-table__full .lintje-data-table__sizer',
+    )
+    expect(sizer?.getAttribute('aria-hidden')).toBe('true')
+    const cells = [...(sizer?.querySelectorAll('td') ?? [])].map((cell) => cell.textContent?.trim())
+    // Only Utrecht is on the page; the sizer holds the longest name and status of all three (of
+    // equally long figures, the first).
+    expect(names(element)).toEqual(['Utrecht'])
+    expect(cells).toEqual(['Rotterdam', 'Zuidwest', '12', 'Afgehandeld'])
+  })
+})

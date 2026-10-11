@@ -54,7 +54,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   gevulde trechter, zonder vlak of stip. "Kolommen" is een knop met zijn woord in de werkbalk, niet
   meer een tandwiel in de actiekolom. De telling staat één keer. Een naam die opent is donker,
   onderstreept onder de aanwijzer, en een drempel dichtbij is een teken en vet in plaats van een
-  gele vulling. (#29)
+  gele vulling. Sorteren en bladeren laten de kolommen staan: een kolom neemt de breedte van
+  haar breedste waarde over alle rijen, en de sorteerpijlen staan boven elkaar. De kop van een
+  filterbare kolom draagt een trechter, een nieuw eigen icoon (`functioneel-trechter`). (#29)
 - De telefoonvorm geldt alleen op een scherm: `MOBILE` is `screen and (max-width: 767px)`, en een
   host schrijft zijn eigen telefoonregels zo. (#22)
 
