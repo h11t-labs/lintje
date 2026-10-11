@@ -57,6 +57,11 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Gewijzigd
 
+- Het kopcommentaar van elke tag, dat de stijlgids onder "Over deze tag" toont, heeft één vorm:
+  in één zin wat de tag is, wat een host moet weten, en als laatste de regel `Events:` met elk
+  event en zijn detail; hooguit twaalf regels. Wat over één eigenschap ging, staat in de JSDoc
+  van die eigenschap. De eventregels zijn compleet: ook `lintje-reset` van elk invoerveld en
+  `lintje-seek` van de videospeler. `CONTRIBUTING.md` legt de vorm vast. (#30)
 - De kop van `lintje-data-table` zegt alleen wat nu geldt: sorteerpijlen alleen op de gesorteerde
   kolom en elders onder de aanwijzer of met focus, en een gefilterde kolom draagt alleen haar
   gevulde trechter, zonder vlak of stip. De kolomkiezer is een stil icoon met drie kolommen
