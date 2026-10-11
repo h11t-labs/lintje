@@ -129,17 +129,11 @@
           text: 'Alle producten van een dataplatform op één plek, ook waar je nog geen toegang toe hebt: een startpagina met een vraag, de catalogus met filters en een productpagina.',
           tags: 'lintje-hero · lintje-card-list · lintje-card · lintje-filter-bar · lintje-description-list',
         },
-        {
-          href: 'foutpaginas/',
-          icon: 'functioneel-foutmelding',
-          label: 'Foutpagina’s',
-          text: 'De pagina in plaats van de gevraagde: niet gevonden met een zoekveld, geen toegang, een storing met een referentie om door te geven, en gepland onderhoud.',
-        },
       ]
 
       // The reader's settings travel along to the page a link opens. `menu` and `layout` mean
       // nothing to the applications, whose menu always stands above the page.
-      const APP_PAGES = ['meldingen/', 'transcriptie/', 'vertalen/', 'catalogus/', 'foutpaginas/']
+      const APP_PAGES = ['meldingen/', 'transcriptie/', 'vertalen/', 'catalogus/']
       const carry = (href) =>
         settings.carry(
           href,

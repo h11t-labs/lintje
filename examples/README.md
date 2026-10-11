@@ -18,7 +18,6 @@ server volstaat.
 | [`transcriptie/`](transcriptie/) | een opname, live of achteraf: gestart met één druk, gelezen naast de audio, met AI-werk in een eigen tab |
 | [`vertalen/`](vertalen/) | een tekst vertalen |
 | [`catalogus/`](catalogus/) | een productcatalogus: een startpagina met een vraag, de catalogus met filters en een productpagina |
-| [`foutpaginas/`](foutpaginas/) | de vier foutpagina's: niet gevonden, geen toegang, een storing met een referentie, gepland onderhoud |
 | [`_data/`](_data/) | de fictieve cijfers die het dashboard, de chat en de styleguide delen |
 | [`_shared/`](_shared/) | de instellingen van de lezer die elke pagina deelt: thema's, emblemen, modus, wat meereist; en in `page.js` wat de applicaties op dezelfde manier doen |
 

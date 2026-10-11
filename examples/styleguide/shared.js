@@ -19,8 +19,9 @@
  * `html` is plain markup with the tags and their attributes; `setup(stage)` runs once, after
  * the markup stands, for what an attribute cannot carry: a rich property (`.items`, `.data`)
  * or a listener. It finds its nodes inside `stage`. `wide: true` on a specimen gives it the
- * full row; without it the specimens stand in columns. `columns: 2` or `3` on an element caps
- * them, for an element that reads badly side by side in a narrow column.
+ * full row and drops the frame, for an element with a frame of its own; without it the specimens
+ * stand in columns. `columns: 1`, `2` or `3` on an element caps them, for an element that reads
+ * badly side by side in a narrow column; `1` gives each its framed full row.
  *
  * An element is drawn once, in a `<lintje-tile>` that carries its tag and what it is, in the
  * page's own mode: the mode control in the shell's bar shows it in light and in dark.
