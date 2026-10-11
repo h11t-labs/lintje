@@ -72,6 +72,19 @@ const KINDS: { name: string; spec: ChartSpec; first: string; second: string }[] 
     },
   },
   {
+    name: 'stacked-area',
+    first: 'ma',
+    second: 'di',
+    spec: {
+      kind: 'stacked-area',
+      labels: ['ma', 'di', 'wo'],
+      series: [
+        { label: 'Online', values: [3, null, 4] },
+        { label: 'Balie', values: [2, 5, 1] },
+      ],
+    },
+  },
+  {
     name: 'dual-axis',
     first: 'ma',
     second: 'di',

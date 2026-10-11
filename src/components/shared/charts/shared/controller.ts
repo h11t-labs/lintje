@@ -48,6 +48,8 @@ export interface TooltipRow {
   value: string
   /** The swatch; a row without one is a plain figure. */
   color?: string
+  /** A line above the row, which sums up the rows before it: a total. */
+  divider?: boolean
   /** The series' shape instead of a square swatch, as its legend draws it. */
   symbol?: SeriesKey
 }

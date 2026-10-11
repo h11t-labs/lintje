@@ -516,6 +516,14 @@ Eén grammatica, geen grafiekbibliotheek.
   delen worden vier en één grijs "Overig" dat niet klikbaar is: een samengevoegd stuk heeft geen
   plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) zijn geen delen; ze
   staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde.
+- **Een gestapeld vlak toont de onderverdelingen van één variabele** in haar ladder, de eerste
+  onderaan en de donkerste, in volle tinten met een lijn in de oppervlaktekleur tussen de lagen.
+  Ontbreekt een laag op een punt, dan breken die laag en alles erboven daar af, want hun
+  ondergrens is onbekend; de lagen eronder blijven staan en erboven is het gearceerd. De tooltip
+  leest de tekening van boven naar onder en sluit af met het totaal, dat ontbreekt zolang een
+  getoonde laag ontbreekt.
+- **Een stapel houdt zijn as als je een laag uitzet**, omdat het geheel het kader is; een lijn
+  herschaalt, omdat je vormen vergelijkt.
 - **De klassen van een histogram raken elkaar**, omdat de as doorloopt: geen ruimte tussen de
   staven, alleen de scheidingslijn in de oppervlaktekleur, en de labels staan op de grenzen van de
   klassen, niet onder hun midden. Een open laatste klasse ("30+") heeft geen grens om op te staan
@@ -638,6 +646,8 @@ naar een volgende regel; ze overlappen nooit.
   opnieuw af.
 - **Punten groeien één voor één uit hun midden**, op de kaart en in een spreidingsdiagram, met de
   timing van de staven; een referentielijn komt daarna in, met haar label.
+- **Een laag die je aan- of uitzet, groeit of krimpt en de rest schuift mee**, zodat het oog
+  volgt wat er verschijnt of verdwijnt.
 - **Een keuze beweegt mee**: het vinkje van een checkbox groeit in bij aanvinken en krimpt weg bij
   uitvinken, op de duur van hoverfeedback.
 - **De focusring is nooit geanimeerd.**

@@ -108,6 +108,20 @@ export type ChartSpec =
       small?: boolean
     }
   | {
+      kind: 'stacked-area'
+      labels: string[]
+      /**
+       * The parts of one variable, the first at the bottom. A `null` in any part breaks the whole
+       * stack at that point: no area bridges it and the period is hatched (rule 15).
+       */
+      series: { label: string; values: (number | null)[] }[]
+      /** The variable the stack divides: its parts take this colour's tints. Default sky blue. */
+      color?: ChartColor
+      axisTitle?: string
+      unit?: string
+      small?: boolean
+    }
+  | {
       kind: 'pie'
       segments: {
         label: string

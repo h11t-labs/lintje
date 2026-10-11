@@ -61,6 +61,7 @@ function fileNameOf(title: string | undefined): string {
 function skeletonKind(chart: ChartSpec): ChartSkeletonKind {
   switch (chart.kind) {
     case 'line':
+    case 'stacked-area':
     case 'dual-axis':
     case 'scatter':
       return 'line'
@@ -125,6 +126,21 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
           label,
           ...chart.series.map((series) => series.values[i]),
         ]),
+      ]
+    case 'stacked-area':
+      // A total over a missing part is missing too, never the sum of the rest. It is rounded to
+      // its parts' decimals: a float sum would carry noise into the CSV and the column format.
+      return [
+        ['', ...chart.series.map((series) => series.label), 'Totaal'],
+        ...chart.labels.map((label, i) => {
+          const values = chart.series.map((series) => series.values[i])
+          const total = values.some((value) => value == null)
+            ? null
+            : Number(
+                values.reduce<number>((sum, value) => sum + value!, 0).toFixed(decimalsOf(values)),
+              )
+          return [label, ...values, total]
+        }),
       ]
     case 'pie':
       return [['', 'Aantal'], ...chart.segments.map((segment) => [segment.label, segment.value])]
