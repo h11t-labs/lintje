@@ -1,13 +1,11 @@
 /**
- * `<lintje-modal>` — the large window for content: title, subtitle, slotted content, a footer.
- * A question or a short form goes in the small `<lintje-dialog>`.
+ * `<lintje-modal>` — the large window for content: a title, the content and a footer. A question
+ * or a short form goes in the small `<lintje-dialog>`.
  *
- * It is `position: fixed` above the app frame, so no ancestor may carry a `transform`, `filter`
- * or `contain`. The footer is hidden, not unrendered, when empty: an unrendered slot never
- * reports its content again. A sentence goes in `footer` on the left, buttons in `actions` on
- * the right; `csv` and `png` add the download buttons there.
+ * The host holds `open`: Escape, the close button and the scrim only ask. It is `position: fixed`
+ * above the app frame, so no ancestor may carry a `transform`, `filter` or `contain`.
  *
- * Events: `lintje-close` (the host owns `open`), `lintje-download-csv`, `lintje-download-png`.
+ * Events: `lintje-close`, `lintje-download-csv`, `lintje-download-png`.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
@@ -41,6 +39,7 @@ export class LintjeModal extends LintjeElement {
   csv: boolean = false
   png: boolean = false
 
+  // The footer is hidden, not unrendered, when empty: an unrendered slot never reports again.
   footerSlotted: boolean = false
   actionsSlotted: boolean = false
 

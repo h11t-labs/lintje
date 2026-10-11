@@ -1,9 +1,10 @@
 /**
  * `<lintje-stepper>` — the steps of a form that takes more than one screen, or the phases of a
- * process. A line joins the markers: drawn through up to the current step, dashed after it. A
- * step still to come does nothing: jumping ahead is not possible. The host decides which step is
- * current; the element never reads the URL. A plain click on a done step is sent as
- * `lintje-navigate`, which a host that routes cancels; a modified click is the browser's.
+ * process.
+ *
+ * The host decides which step is current; the element never reads the URL. A step still to come
+ * does nothing: jumping ahead is not possible. A plain click on a done step is sent as
+ * `lintje-navigate`, which a host that routes cancels.
  *
  * Events: `lintje-navigate` `{ href }`.
  */

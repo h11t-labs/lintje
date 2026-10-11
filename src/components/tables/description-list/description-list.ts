@@ -1,13 +1,8 @@
 /**
  * `<lintje-description-list>` — label-value pairs for a detail or a review screen, a real `<dl>`.
  *
- * A missing value (`null`, `undefined` or `''`) is a muted dash, never 0 (rule 15). A plain click
- * on a link is cancelled and sent as `lintje-navigate`; a modified click is the browser's.
- *
- * `layout="grid"` sets the pairs as cells side by side, for a summary of what is about to happen
- * ("Deze opname"): a cell can take two columns, carry an icon and a tone, show its value as tags,
- * and take richer content through a slot named by the item (`slot`). Below 30rem of its own width
- * it has two columns.
+ * A missing value (`null`, `undefined` or `''`) is a muted dash, never 0. A plain click on a link
+ * is cancelled and sent as `lintje-navigate`.
  *
  * Events: `lintje-navigate` `{ href }`.
  */
@@ -72,7 +67,12 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
   columns: number = 4
   /** Grid: the cells take the surface and a frame, for a wash such as the hero's. */
   surface: boolean = false
-  /** `column` keeps the label above the value at every width; `row` only below 768 px; `grid`: cells. */
+  /**
+   * `column` keeps the label above the value at every width; `row` only below 768 px. `grid` sets
+   * the pairs as cells side by side, for a summary of what is about to happen ("Deze opname"): a
+   * cell can take two columns, an icon and a tone, show its value as tags, and take richer content
+   * through a slot named by the item (`slot`).
+   */
   layout: DescriptionListLayout = 'row'
 
   private follow(event: MouseEvent, href: string): void {

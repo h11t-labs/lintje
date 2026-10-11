@@ -1,17 +1,13 @@
 /**
- * `<lintje-job-list>` — the queue of long tasks: what runs, what is done and what went wrong. Its
- * rows are the work list's rows (`lintje-list`): the state as a word, the progress as a bar, one
- * action in plain sight per state, and a row with an `href` opening it: a done job's result, or
- * what runs where it can be followed (a live recording). "Verwijderen" is behind a done job's ⋮. Where every job is done, "Klaar" is left out: in a list of finished work alone
- * the state is noise.
+ * `<lintje-job-list>` — the queue of long tasks: what runs, what is done and what went wrong, in
+ * the work list's rows (`lintje-list`).
  *
- * A job that changes state is read out once, as a sentence ("Rapport.docx is mislukt. Het
- * bestand is beschadigd."), from a status region of its own; the list itself is not live, so a
- * moving percentage does not chatter. It never fetches: the host sets `jobs` again when a job
- * moves. When the last job goes with the focus on it, the focus goes to that region.
+ * It never fetches: the host sets `jobs` again when a job moves. A job that changes state is read
+ * out once, as a sentence, from a status region of its own; the list itself is not live. A row
+ * with an `href` opens a done job's result, or what runs where it can be followed.
  *
- * Events: `lintje-job-cancel`, `lintje-job-retry`, `lintje-job-resume`, `lintje-job-remove`
- * (detail: the job's id), `lintje-navigate` `{ href }` (a row with an `href`; cancel it to route).
+ * Events: `lintje-job-cancel`, `lintje-job-retry`, `lintje-job-resume`, `lintje-job-remove`, each
+ * `string` (the job's id), `lintje-navigate` `{ href }` (a row with an `href`; cancel it to route).
  */
 import {
   html,
@@ -178,6 +174,7 @@ export class LintjeJobList extends LintjeElement {
             .items=${jobs.map((job) =>
               jobRow(
                 job,
+                // In a list of finished work alone the state is noise: "Klaar" is left out.
                 jobs.every((other) => other.state === 'done'),
               ),
             )}

@@ -2,13 +2,11 @@
  * `<lintje-multiselect>` — several values in one field: chips in the field, a search and a
  * checkbox list in the popover.
  *
- * Rows are `<lintje-checkbox>` without a `name`, so no filter change escapes the popover. The
- * popover is a dialog, not a listbox: it holds a search field and buttons besides the rows. It is
- * fixed to the viewport and anchored to the field: an absolute one is cut off by the scrolling
- * filter bar and sheet around it. Escape closes only the popover (`ownsEscape`) and gives the
- * focus back to the field; so does Tab out of the element, without taking the focus back.
+ * The popover is fixed to the viewport, so a scrolling filter bar or sheet around it does not cut
+ * it off. Escape and Tab out of the element close only the popover.
  *
- * Events: `lintje-change`; with a `name` also `lintje-values-change` (`shared/input.ts`).
+ * Events: `lintje-change` `string[]`, `lintje-values-change` `{ [name]: value }` (with a `name`),
+ * `lintje-reset` (the reset link was pressed).
  */
 import {
   html,

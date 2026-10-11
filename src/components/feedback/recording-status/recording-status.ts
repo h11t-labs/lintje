@@ -1,11 +1,10 @@
 /**
- * `<lintje-recording-status>` — how a running recording is doing, in the description list's cells:
- * how long it runs, how the sound comes in and, for a recording made elsewhere (a phone), how the
- * connection holds. Each meter has its word beside it, so the colour never speaks alone (rule 13).
+ * `<lintje-recording-status>` — how a running recording is doing, in the description list's
+ * cells: how long it runs, how the sound comes in and, for a recording made elsewhere (a phone),
+ * how the connection holds.
  *
- * The host measures; the element only shows. A value it does not have is a dash, never zero.
- *
- * Events: none.
+ * The host measures; the element only shows. Each meter has its word beside it, and a value it
+ * does not have is a dash, never zero.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'

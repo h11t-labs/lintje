@@ -1,16 +1,12 @@
 /**
  * `<lintje-notifications>` — the bell with its unread counter, and the panel it opens.
  *
- * An unread item has the selected surface, a bold title and a dot, so colour is never the only
- * carrier (rule 13). A new counter pops in; a figure that replaces another rises in, as a KPI tile
- * does. Above 768 px the panel is a non-modal popover; below it a full-screen modal sheet on the
- * focus-trap stack. It fetches and marks nothing: the host sets `.items`.
+ * It fetches and marks nothing: the host sets `items`. More unread items than before are spoken
+ * from a status region beside the bell. Above 768 px the panel is a popover; below, a full-screen
+ * sheet that traps the focus.
  *
- * More unread items than before are spoken from a status region beside the bell ("2 nieuwe
- * meldingen"). When "Alles gelezen" goes with the focus on it, the focus moves to the first item.
- *
- * Events: `lintje-notification-open` `{ id, href? }` — a plain click on a title with an `href`
- * is cancelled and left to the host —, `lintje-notifications-read` ("Alles gelezen").
+ * Events: `lintje-notification-open` `{ id, href? }` (a title was clicked; with an `href`, cancel
+ * it to route), `lintje-notifications-read` ("Alles gelezen" was pressed).
  */
 import {
   html,

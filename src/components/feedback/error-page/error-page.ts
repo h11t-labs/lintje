@@ -1,16 +1,13 @@
 /**
  * `<lintje-error-page>` — the page in place of the one the reader asked for: not found, no
- * access, a failure, or not available. It says why in words and shows the way onward.
+ * access, a failure, or not available.
  *
- * `code` is a small line above the heading ("Foutcode 404"), with the lock for 401 and 403 and
- * the outage mark for a 5xx. The server sends the HTTP status and the document's `<title>`; the
- * element only draws. The default slot takes what helps under the text (a search field, the
- * announcement of planned maintenance), `slot="actions"` the buttons; below 768 px the actions
- * stand under each other, and a `lintje-button` with `block` fills the width.
+ * It says why in words and shows the way onward. The server sends the HTTP status and the
+ * document's `<title>`; the element only draws. The default slot takes what helps under the text,
+ * such as a search field. Below 768 px the actions stand under each other, and a `lintje-button`
+ * with `block` fills the width.
  *
- * A failure gives a `reference` the reader can copy and pass on, with the moment it happened.
- *
- * Events: `lintje-navigate` `{ href }` from a plain click on one of `links`.
+ * Events: `lintje-navigate` `{ href }` (a plain click on one of `links`).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -51,7 +48,10 @@ export class LintjeErrorPage extends LintjeElement {
     hasActions: { state: true },
   }
 
-  /** The HTTP status as the server sent it ("404"); without it there is no code line. */
+  /**
+   * The HTTP status as the server sent it ("404"): a small line above the heading, with the lock
+   * for 401 and 403 and the outage mark for a 5xx. Without it there is no code line.
+   */
   declare code?: string
   /** What is the matter, in words: "Deze pagina bestaat niet". */
   declare heading?: string

@@ -2,14 +2,10 @@
  * `<lintje-dialog>` — the small window: a question that needs an answer, or a short form. The
  * large window for content is `<lintje-modal>`.
  *
- * The owner holds `open`; Escape, the scrim and the close button only ask (`lintje-close`).
- * `alert` makes it an `alertdialog` without a close button, described by its text. `persistent`
- * asks nothing on Escape or the scrim: only its buttons answer. While `busy` nothing asks, the
- * last primary or danger button in `actions` turns busy and the others disabled.
- *
- * The focus goes to the slotted element with `autofocus`; without one to the first field, and
- * in an alert to the window itself, so Enter never confirms by itself. Below 768 px the buttons
- * stack with the last on top: the host puts the safe one first.
+ * The host holds `open` and puts its own buttons in `actions`: Escape, the close button and the
+ * scrim only ask. Focus goes to the slotted element with `autofocus`, else the first field; an
+ * alert without one takes it itself, so Enter never confirms. Below 768 px the buttons stack
+ * with the last on top: put the safe one first.
  *
  * Events: `lintje-close` `{ reason: 'escape' | 'scrim' | 'button' }`.
  */
@@ -66,7 +62,10 @@ export class LintjeDialog extends LintjeElement {
   persistent: boolean = false
   /** As wide as a short form reads, instead of a question. */
   wide: boolean = false
-  /** The answer is under way: nothing asks to close, the buttons wait. */
+  /**
+   * The answer is under way: nothing asks to close, the last primary or danger button in
+   * `actions` turns busy and the others disabled.
+   */
   busy: boolean = false
   protected footerSlotted: boolean = false
 

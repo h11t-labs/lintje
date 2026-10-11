@@ -174,6 +174,24 @@ declare global {
 - **De broncode is de referentie.** Het manifest leest ook de slots, en de styleguide toont het
   resultaat onder het element. Zeg in de JSDoc wat een host niet kan raden: het formaat van een
   waarde, welk antwoord een event verwacht, een beperking. Eén regel per punt.
+- **Het kopcommentaar van een tag heeft één vorm**, want de stijlgids toont het onder "Over deze
+  tag". Hooguit twaalf regels: eerst `<lintje-…>` en in één zin wat het is, dan wat een host moet
+  weten om hem goed te gebruiken — wat hij vasthoudt en beantwoordt, wat het element nooit zelf
+  doet, een beperking die hij niet kan raden — en als laatste de regel `Events:` met elk event,
+  zijn detail en, als de naam het niet zegt, wat het betekent. Wat over één eigenschap gaat,
+  staat in de JSDoc van die eigenschap. Slots, standaardwaarden en verwijzingen naar regels staan
+  er niet in: de referentie leest ze uit de code.
+
+  ```ts
+  /**
+   * `<lintje-drawer>` — a side panel over the page, for a detail or a short form.
+   *
+   * The host holds `open`: Escape, the close button and the scrim only ask. While `busy` none
+   * of them asks. Focus goes to the first field, else the close button.
+   *
+   * Events: `lintje-close` `{ reason: 'escape' | 'button' | 'scrim' }`.
+   */
+  ```
 
 ### 3. Slots
 

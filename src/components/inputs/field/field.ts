@@ -1,7 +1,9 @@
 /**
- * `<lintje-field>` — the label above a filter control. No `for`: a `<label for>` cannot name a
- * control in another shadow root, so each control carries its own `aria-label`; a click on the
- * label focuses the first slotted control that takes focus.
+ * `<lintje-field>` — the label above a filter control.
+ *
+ * A click on the label focuses the first slotted control that takes focus. There is no `for`: a
+ * `<label for>` cannot name a control in another shadow root, so each control carries its own
+ * `aria-label`.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'

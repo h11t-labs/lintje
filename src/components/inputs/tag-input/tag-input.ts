@@ -1,10 +1,12 @@
 /**
- * `<lintje-tag-input>` — free keywords as chips in one field. Enter, a comma, a paste with commas
- * or leaving the field makes chips; a duplicate lights up its chip and is said instead of being
- * added. With `.options` it also suggests options, and still takes a word that is not among them.
- * A chip's cross is its one control: the arrows walk the crosses, Backspace and Delete remove.
+ * `<lintje-tag-input>` — free keywords as chips in one field.
  *
- * Events: `lintje-change`; with a `name` also the composed `lintje-values-change`.
+ * Enter, a comma, a paste with commas or leaving the field makes chips; a duplicate is pointed out
+ * instead of added. With `options` it also suggests, and still takes a word that is not among
+ * them.
+ *
+ * Events: `lintje-change` `string[]`, `lintje-values-change` `{ [name]: value }` (with a `name`),
+ * `lintje-reset` (the reset link was pressed).
  */
 import {
   html,

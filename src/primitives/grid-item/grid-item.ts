@@ -1,4 +1,4 @@
-/** `<lintje-grid-item>` — a grid cell for non-`lintje-` content. Events: none. */
+/** `<lintje-grid-item>` — a grid cell for non-`lintje-` content. */
 import { html, type TemplateResult } from 'lit'
 import { define } from '../../core/element'
 import { LintjeGridItemElement, spanStyles } from '../shared/grid-item-element'

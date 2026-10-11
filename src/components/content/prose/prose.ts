@@ -1,9 +1,8 @@
 /**
- * `<lintje-prose>` — a block of text on the type scale. `html` wins over `text`, which wins over
- * the slot.
+ * `<lintje-prose>` — a block of text on the type scale: `html`, else `text`, else the slot.
  *
  * The host renders the markdown and sanitises it: `html` is written into the shadow root as it
- * stands, and no sanitiser lives here. Events: none.
+ * stands.
  */
 import { html, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { unsafeHTML } from 'lit/directives/unsafe-html.js'

@@ -1,12 +1,11 @@
 /**
- * `<lintje-copy-button>` — text to the clipboard, with a confirmation.
+ * `<lintje-copy-button>` — a button that copies text to the clipboard, and confirms it.
  *
- * Copies `text`, or the text of the element whose id is in `for` (same root, read on press).
- * Disabled with nothing to copy; a `for` target that appears later enables it. A second copy
- * empties the status first so a screen reader hears it again.
+ * It copies `text`, or the text of the element named in `for`, read on press. With nothing to
+ * copy it is disabled; a `for` target that appears later enables it.
  *
- * Events: `lintje-copy` (detail: the text) after a copy, `lintje-copy-error` (detail: the
- * text) when the browser refused.
+ * Events: `lintje-copy` `string` (the text copied), `lintje-copy-error` `string` (the browser
+ * refused).
  */
 import {
   html,

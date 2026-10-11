@@ -1,9 +1,8 @@
 /**
  * `<lintje-icon>` — one icon, named by its file in `dist-icons/` (without `.svg`).
  *
- * For plain HTML pages; inside a component use `renderIcon()` (`../render.ts`), which this
- * element also draws through. Resolution: `src`, the register, loaded icons, then nothing.
- * Events: none.
+ * For plain HTML pages; inside a component use `renderIcon()`, which this element also draws
+ * through. It takes `src`, else the register, else a loaded file; without any it draws nothing.
  */
 import { nothing, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../core/element'

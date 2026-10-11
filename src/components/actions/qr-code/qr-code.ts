@@ -1,14 +1,11 @@
 /**
- * `<lintje-qr-code>` — a QR code a phone camera reads, with a button that copies it as an
- * image.
+ * `<lintje-qr-code>` — a QR code a phone camera reads, with a button that copies it as an image.
  *
- * The host sets `value`, the text the code holds, and the element makes the code. A host that
- * makes its own sets `src` instead: an image of only the dark modules, without a margin. The
- * element sets the code on a light quiet zone in every mode and theme, because many camera apps do
- * not read an inverted code.
+ * The element makes the code from `value`, or shows the host's own image in `src`. The code stands
+ * on a light quiet zone in every mode and theme, because many camera apps do not read an inverted
+ * code.
  *
- * Events: `lintje-copy` after the image is on the clipboard, `lintje-copy-error` when the
- * browser refused.
+ * Events: `lintje-copy` (the image is on the clipboard), `lintje-copy-error` (the browser refused).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -62,7 +59,10 @@ export class LintjeQrCode extends LintjeElement {
     status: { state: true },
   }
 
-  /** URL or data URI of an image of the code the host made; it goes before `value`. */
+  /**
+   * URL or data URI of an image of the code the host made: only the dark modules, without a
+   * margin. It goes before `value`.
+   */
   src: string = ''
   /** The text the code holds, usually a link: the element makes the code. */
   value: string = ''

@@ -1,18 +1,15 @@
 /**
- * `<lintje-shell>` — the frame around a page: the Rijkshuisstijl header above it (`layout`
- * `top`, the default) or the menu beside it (`side`), the mobile header and menu below 768 px,
- * and a `<main>` with the host's content.
+ * `<lintje-shell>` — the frame around a page: the Rijkshuisstijl header above it or the menu
+ * beside it, the mobile header and menu below 768 px, and a `<main>` with the host's content.
  *
- * It never fetches and never reads the URL: the active page (`active`) and the reader's settings
- * (`view`, `menu`, `layout`) are the host's. A change goes out as `lintje-view-change` and comes
- * back as data. `name` is the page's one `h1`.
+ * It never fetches and never reads the URL: the active page and the reader's settings are the
+ * host's, and a change goes out as `lintje-view-change` and comes back as data. `full` runs edge
+ * to edge above the content, `header` holds the `lintje-page-header` and `footer` the
+ * `lintje-footer`. The events of its parts (`lintje-action`, `lintje-logout`,
+ * `lintje-notification-open`, `lintje-notifications-read`) reach the host as they are.
  *
- * Slots: `full` runs edge to edge above the content (a hero, a filter bar, a conversation); `header`
- * holds the page's title (`lintje-page-header`); the default slot the content, at the page's
- * width and padding; `footer` runs edge to edge under it all (`lintje-footer`).
- *
- * Events: `lintje-navigate` `{ href }`, `lintje-view-change`, `lintje-search-open`; from its
- * parts `lintje-action`, `lintje-logout`, `lintje-notification-open`, `lintje-notifications-read`.
+ * Events: `lintje-navigate` `{ href }`, `lintje-view-change` `ShellViewChange`,
+ * `lintje-search-open`.
  */
 import {
   html,

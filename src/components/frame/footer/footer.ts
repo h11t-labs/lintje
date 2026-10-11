@@ -1,10 +1,11 @@
 /**
  * `<lintje-footer>` — the foot of a site or an application: a line that says what it is, columns
  * of links under a heading, and a row of the links every page carries (privacy, accessibility).
+ *
  * It stands on the menu's own fill and runs edge to edge; in `lintje-shell` it goes in the
  * `footer` slot. Below 768 px the columns stand under each other.
  *
- * Events: `lintje-navigate` `{ href }` for a plain click on a link.
+ * Events: `lintje-navigate` `{ href }` (a plain click on a link).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'

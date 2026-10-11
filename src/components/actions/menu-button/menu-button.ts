@@ -1,20 +1,11 @@
 /**
  * `<lintje-menu-button>` — a button with a menu of actions.
  *
- * The trigger is a native `<button>` so `aria-haspopup`, `aria-expanded` and `aria-controls` sit
- * on the focused element; `aria-controls` names the popover because the `role="menu"` panel is
- * in the popover's shadow root. A disabled trigger is `aria-disabled`: it stays in the tab order
- * and refuses to open. Keys reach disabled rows too, so their `reason` tooltip shows on focus.
- * While `busyLabel` is set the trigger is disabled and the sentence stands beside it with a
- * spinner; the `role="status"` is always present so the sentence is read out when it appears.
+ * A disabled trigger stays in the tab order and refuses to open. The keys reach disabled rows
+ * too, so their `reason` tooltip shows on focus.
  *
- * `split` makes it two halves of one button, 1 px apart: the label does the usual action
- * (`action`), the arrow beside it opens the other ways to do it. Busy, a split button keeps its
- * size and colours: only its icon turns into the spinner, and the sentence is for the screen
- * reader.
- *
- * Events: `lintje-action` (the row's value, or `action` from a split button's own half),
- * `lintje-navigate` `{ href }` for a link row.
+ * Events: `lintje-action` `string` (the row's value, or `action` from a split button's own half),
+ * `lintje-navigate` `{ href }` (a link row).
  */
 import {
   html,
@@ -175,17 +166,26 @@ export class LintjeMenuButton extends LintjeElement {
   /** An icon file name before the label, saying what the label is a value of (the speed's "1×"). */
   leadingIcon: string = ''
   disabled: boolean = false
-  /** An action is under way: the sentence beside the spinner. Empty when none is. */
+  /**
+   * An action is under way: the trigger is disabled and this sentence stands beside the spinner,
+   * read out when it appears. A split button keeps its size and colours: only its icon turns into
+   * the spinner, and the sentence is for the screen reader. Empty when none is.
+   */
   busyLabel: string = ''
   placement: 'bottom-start' | 'bottom-end' | 'top-end' = 'bottom-start'
   items: MenuEntry[] = []
   /** Reflected, so a sheet around it can see a menu is open and leave Escape to it. */
   open: boolean = false
-  /** The label is a button of its own, and the arrow beside it opens the menu. */
+  /**
+   * Two halves of one button, 1 px apart: the label does the usual action (`action`), the arrow
+   * beside it opens the other ways to do it.
+   */
   split: boolean = false
   /** What a split button's own half sends as `lintje-action`. */
   action: string = ''
 
+  // The trigger is a native `<button>`, so the ARIA sits on what has the focus; `aria-controls`
+  // names the popover, because the `role="menu"` panel is in the popover's shadow root.
   private readonly menuId = `lintje-menu-${++instances}`
   private pendingFocus: number | null = null
 

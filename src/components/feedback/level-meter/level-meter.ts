@@ -1,11 +1,9 @@
 /**
  * `<lintje-level-meter>` — how loud the sound comes in, as bars with a word beside them: before a
- * recording to show the microphone works, during it to show it still does. The host measures and
- * sets `level` as often as it likes; the bars follow, without motion under reduced motion.
+ * recording to show the microphone works, during it to show it still does.
  *
- * `null` is not measured yet: flat bars and a dash, never "Stil" (rule 15).
- *
- * Events: none.
+ * The host measures and sets `level` as often as it likes; the bars follow, without motion under
+ * reduced motion.
  */
 import { html, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -32,7 +30,7 @@ export class LintjeLevelMeter extends LintjeElement {
     words: { type: Boolean, reflect: true },
   }
 
-  /** The sound coming in, 0 to 1; `null` before it is measured. */
+  /** The sound coming in, 0 to 1; `null` before it is measured: flat bars, a dash, never "Stil". */
   declare level?: number | null
   /** Draw the word beside the bars; without, the host says it (it is still the bars' name). */
   words: boolean = true

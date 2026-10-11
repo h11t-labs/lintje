@@ -1,9 +1,11 @@
 /**
  * `<lintje-select>` — a select, bold once the value differs from the default.
- * The filter bar passes no `name` and sets `hide-label`. The width is the host's, not inline,
- * so `filter-layout.css` can narrow it from outside.
  *
- * Events: `lintje-change`; with a `name` also the composed `lintje-values-change`.
+ * In a filter bar it is `hide-label` and nameless. Its width is the host's, so the filter layout
+ * can narrow it from outside.
+ *
+ * Events: `lintje-change` `string`, `lintje-values-change` `{ [name]: value }` (with a `name`),
+ * `lintje-reset` (the reset link was pressed).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -26,6 +28,7 @@ export class LintjeSelect extends LintjeInputElement {
   }
 
   value: string = ''
+  /** Bold the value, as a modified filter does. */
   bold: boolean = false
   stacked: boolean = false
   declare options?: FilterOption[]

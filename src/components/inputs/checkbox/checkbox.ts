@@ -1,9 +1,8 @@
 /**
- * `<lintje-checkbox>` — a checkbox; `indeterminate` shows a dash. The value is `checked`, a
- * boolean, not `value` (the string a native checkbox submits). `lintje-values-change` goes out
- * only with a `name`, so `lintje-multiselect`'s unnamed rows leak nothing to the host.
+ * `<lintje-checkbox>` — a checkbox; `indeterminate` shows a dash.
  *
- * Events: `lintje-change` with the boolean; with a `name` also `lintje-values-change`.
+ * Events: `lintje-change` `boolean`, `lintje-values-change` `{ [name]: value }` (with a `name`),
+ * `lintje-reset` (the reset link was pressed).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -21,6 +20,7 @@ export class LintjeCheckbox extends LintjeInputElement {
     indeterminate: { type: Boolean, reflect: true },
   }
 
+  /** The value: a boolean, not `value` (the string a native checkbox submits). */
   checked: boolean = false
   indeterminate: boolean = false
 

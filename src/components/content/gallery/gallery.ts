@@ -1,8 +1,9 @@
 /**
- * `<lintje-gallery>` — pictures of one thing, such as the screens of an application: one large
- * with its caption, and under it a thumbnail of each to choose another. A single picture has no
- * thumbnails. Which picture stands is the element's; every change is reported, and read out
- * from a status region: "Afbeelding 2 van 4: <alt>".
+ * `<lintje-gallery>` — pictures of one thing, such as the screens of an application: one large with
+ * its caption, and under it a thumbnail of each to choose another; a single picture has none.
+ *
+ * Which picture stands is the element's; every change is reported, and read out as "Afbeelding 2
+ * van 4: <alt>".
  *
  * Events: `lintje-gallery-change` `{ index }`.
  */

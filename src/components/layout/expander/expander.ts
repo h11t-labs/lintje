@@ -1,15 +1,11 @@
 /**
  * `<lintje-expander>` — a title you press; what is slotted under it shows or hides.
  *
- * Shares its disclosure (`shared/disclosure.ts`) with `lintje-explainer` (rule 2). Closed, the
- * content stays in the DOM, out of the tab order and the accessibility tree. What is slotted in
- * `actions` stands beside the title, outside its button: a few icon buttons about the content.
- * `leading` puts the chevron before the title and the content in line with the title's text, for
- * a stack of expanders that read as rows. `columns` sets the title in a column of its own
- * (`--lintje-expander-label`) with the content beside it, as rows of text do beside their speaker;
- * a narrow expander stacks them again.
+ * Closed, the content stays in the DOM, out of the tab order and the accessibility tree. What is
+ * slotted in `actions` stands beside the title, outside its button: a few icon buttons about the
+ * content.
  *
- * Events: `lintje-toggle` (open, after the reader pressed the title).
+ * Events: `lintje-toggle` `boolean` (open, after the reader pressed the title).
  */
 import { html, type PropertyDeclarations, type PropertyValues, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -45,9 +41,12 @@ export class LintjeExpander extends LintjeGridItemElement {
   open: boolean = false
   /** No surface of its own: an expander inside a tile is not a second card. */
   flat: boolean = false
-  /** The chevron before the title, the content under the title's text. */
+  /** The chevron before the title, the content under the title's text: expanders read as rows. */
   leading: boolean = false
-  /** The title in a column of its own, the content beside it. */
+  /**
+   * The title in a column of its own (`--lintje-expander-label`), the content beside it, as rows
+   * of text beside their speaker; a narrow expander stacks them again.
+   */
   columns: boolean = false
 
   readonly #bodyId = nextDisclosureId()

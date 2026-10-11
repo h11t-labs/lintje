@@ -1,7 +1,4 @@
-/**
- * `<lintje-status-dot>` — a status with its word; colour is never the only carrier (rule 13).
- * Events: none.
- */
+/** `<lintje-status-dot>` — a status as a dot with its word; colour is never the only carrier. */
 import { html, type TemplateResult } from 'lit'
 import { styleProps } from '../../core/style-props'
 import { LintjeElement, define } from '../../core/element'

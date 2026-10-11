@@ -1,8 +1,10 @@
 /**
  * `<lintje-toggle>` — a switch for immediate effect: it commits when switched, never in a form.
+ *
  * A value that waits for a button is a checkbox.
  *
- * Events: `lintje-change`; with a `name` also the composed `lintje-values-change`.
+ * Events: `lintje-change` `boolean`, `lintje-values-change` `{ [name]: value }` (with a `name`),
+ * `lintje-reset` (the reset link was pressed).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'

@@ -1,13 +1,12 @@
 /**
  * `<lintje-split-pane>` — two panels side by side with a split the reader moves.
  *
- * Without dragging (WCAG 2.5.7): a click on the strip lifts the split, and the next click places
- * it where it lands; Escape or a click outside puts it back. A double click returns to 50/50.
+ * It moves without dragging too: a click on the strip lifts the split and the next click places
+ * it; Escape or a click outside puts it back, a double click returns to 50/50. Below 768 px there
+ * are never two panels: a segmented control chooses which one shows.
  *
- * Below 768 px there are never two panels: a `<lintje-segmented>` chooses which one shows. That
- * choice is `pane`; a host that keeps it in the URL sets `pane` back.
- *
- * Events: `lintje-split-change` (the percentage), `lintje-pane-change` (`'start'` | `'end'`).
+ * Events: `lintje-split-change` `number` (the percentage), `lintje-pane-change`
+ * `'start' | 'end'`.
  */
 import {
   html,
@@ -97,6 +96,7 @@ export class LintjeSplitPane extends LintjeElement {
   /** The two panels' names, for the phone's choice. */
   startLabel: string = 'Links'
   endLabel: string = 'Rechts'
+  /** The panel shown below 768 px; a host that keeps it in the URL sets it back. */
   pane: SplitPaneSide = 'start'
   protected dragging: boolean = false
 

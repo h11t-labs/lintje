@@ -1,16 +1,14 @@
 /**
- * `<lintje-chat>` — a conversation with data; takes `ChatData`. The host owns the transport.
+ * `<lintje-chat>` — a conversation with data, from `ChatData`; the host owns the transport.
  *
- * An answer arrives by setting `data` again; keep the objects of what did not change so only
- * the changed part is redrawn. It stands in the flow and scrolls with what scrolls around it —
- * the page, or the nearest box that scrolls — and its question box stays in view at the bottom.
+ * An answer arrives by setting `data` again: keep the objects that did not change, so only the
+ * changed part is redrawn. It scrolls with what scrolls around it, and its question box stays in
+ * view at the bottom.
  *
- * Events: none of its own; its parts' events reach the host as they are (`lintje-message-send`,
- * `lintje-answer-stop`, `lintje-sources-change`, `lintje-draft-change`) and, with the `turnId`,
- * `lintje-suggestion-select`, `lintje-message-edit`, `lintje-answer-retry`,
- * `lintje-answer-rate`, `lintje-strip-change`, `lintje-mark-select`, `lintje-row-click` and
- * `lintje-sort-change`. The host replies: send adds a turn and answers it; message-edit asks
- * again and drops that turn and all after it; strip-change answers again with the new assumption.
+ * It sends no events of its own: those of its question box, messages and answers reach the host,
+ * with the `turnId` where a turn sent them. The host answers `lintje-message-send` with a new turn,
+ * `lintje-message-edit` by asking again without that turn and all after it, and
+ * `lintje-strip-change` by answering again with the new assumption.
  */
 import {
   html,
