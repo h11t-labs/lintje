@@ -65,6 +65,44 @@
       .guide__summary a { color: var(--color-link); }
       /* The row's line lies on the band's edge; its empty panel hangs over the content's padding. */
       .guide__tabs { margin: var(--space-4) 0 calc(-1 * var(--space-4) - 1px); }
+      /* The reference: a row per entry — its name and how HTML writes it, its type or values,
+         its default, its source comment quoted as a comment, where a specimen shows it. */
+      .guide__reference { display: flex; flex-direction: column; gap: var(--space-10); }
+      .guide__ref-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-6); }
+      .guide__ref-tools .guide__search { flex: 0 1 calc(10 * var(--space-10)); }
+      .guide__reference .guide__section > .guide__meta { margin: calc(-1 * var(--space-2)) 0 0; }
+      .guide__props { background: var(--color-bg-surface); border: 1px solid var(--color-border-default); }
+      .guide__prop {
+        display: grid;
+        grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+        gap: var(--space-2) var(--space-6);
+        padding: var(--space-4) var(--space-5);
+        border-top: 1px solid var(--color-border-default);
+        scroll-margin-top: var(--h-sticky);
+      }
+      .guide__prop:first-child { border-top: 0; }
+      .guide__prop[hidden] { display: none; }
+      .guide__prop--more { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4); }
+      .guide__prop-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); min-width: 0; }
+      .guide__prop-name { font-family: var(--font-mono); font-weight: 700; overflow-wrap: anywhere; }
+      .guide__prop-attr { flex-basis: 100%; font: var(--text-small); font-family: var(--font-mono); color: var(--color-text-muted); }
+      .guide__required { padding: 0 var(--space-1); border: 1px solid var(--color-text-primary); font: var(--text-small); font-weight: 700; }
+      .guide__prop-body { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+      .guide__prop-type { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); font-family: var(--font-mono); overflow-wrap: anywhere; }
+      .guide__prop-type > .guide__meta { font-family: var(--font-ui); }
+      .guide__value { padding: 0 var(--space-1); border: 1px solid var(--color-border-default); background: var(--color-bg-subtle); font: var(--text-small); font-family: var(--font-mono); }
+      /* A source comment, quoted: in the code's own letter and voice, so it reads as a quote. */
+      .guide__comment { margin: 0; max-width: var(--w-text); font: var(--text-small); font-family: var(--font-mono); color: var(--color-text-secondary); }
+      .guide__comment::before { content: '// '; color: var(--color-text-muted); }
+      .guide__seen { margin: 0; }
+      .guide__seen a { color: var(--color-link); }
+      .guide__props--nested { margin-top: var(--space-2); }
+      /* Nested, a field is its name over its type and comment: the row is too narrow for columns. */
+      .guide__props--nested .guide__prop { grid-template-columns: minmax(0, 1fr); gap: var(--space-1); padding: var(--space-3) var(--space-4); }
+      @container (max-width: 40rem) {
+        .guide__prop { grid-template-columns: minmax(0, 1fr); }
+      }
+      .guide__reference { container-type: inline-size; }
       /* Using a tag: the ways to load it, each with what it costs, its line and Kopiëren. */
       .guide__ways { display: flex; flex-direction: column; }
       .guide__way {
@@ -76,7 +114,6 @@
         border-top: 1px solid var(--color-border-default);
       }
       .guide__way-name { margin: 0; font-weight: 700; }
-      .guide__about-tag { max-width: var(--w-text); }
       /* A tab's part of the page: its sections under each other. */
       .guide__panel { display: flex; flex-direction: column; gap: var(--space-10); }
       .guide__panel[hidden] { display: none; }

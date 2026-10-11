@@ -25,32 +25,16 @@ function element(name, className, text) {
 const heading = (level, text) =>
   element(`h${level}`, level === 3 ? 'guide__heading' : 'guide__subheading', text)
 
-const escape = (text) =>
-  text.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c])
-
-/** A source comment's paragraphs as markup, `code` marked. The tag's own name at the start goes:
- *  the page's title says it. */
-function paragraphsOf(description) {
-  return escape(
-    description.replace(/^`<lintje-[a-z-]+>`(?: \/ `<lintje-[a-z-]+>`)* — (.)/, (_, first) =>
-      first.toUpperCase(),
-    ),
-  )
-    .split(/\n\s*\n/)
-    .map((part) => `<p>${part.replace(/`([^`]+)`/g, '<code>$1</code>')}</p>`)
-}
-
 const count = (n, one, many) => `${n} ${n === 1 ? one : many}`
 
-/** The API in one line: properties, events, slots; a part it has none of goes unsaid. */
+/** The API in one line: properties, events, slots. */
 const apiOf = (declaration) =>
   [
     [fieldsOf(declaration).length, 'eigenschap', 'eigenschappen'],
     [declaration.events.length, 'event', 'events'],
     [declaration.slots.length, 'slot', 'slots'],
   ]
-    .filter(([n]) => n)
-    .map((part) => count(...part))
+    .map(([n, one, many]) => (n ? count(n, one, many) : `geen ${many}`))
     .join(' · ')
 
 /** What an element's card says about it in one line. */
@@ -528,47 +512,55 @@ export function renderElementPage(host, item, context) {
         shownBy.set(key, [...(shownBy.get(key) ?? []), label])
   }
 
+  // "Te zien in" leads to the specimen of that name.
+  const onSeen = (name) => {
+    open('voorbeelden')
+    const row = [...examples.querySelectorAll('.guide__example')].find(
+      (node) => node.querySelector('.guide__example-name')?.textContent === name,
+    )
+    requestAnimationFrame(() => row?.scrollIntoView({ block: 'start' }))
+  }
+
   // The chosen kind's own fields stand in its frame; the reference leaves them out.
   const union = declaration && groupUnion(item, declaration, types)
-  let own
   if (union) {
-    own = variantReference(types[union.typeName], chosen.value, union.typeName, shownBy, union.prefix)
+    const own = variantReference(types[union.typeName], chosen.value, types, shownBy, union.prefix, onSeen)
     if (own) {
       const tile = document.createElement('lintje-tile')
       tile.heading = `Velden van ${groups.key}: '${chosen.value}'`
-      own.bare = true
-      own.plain = false
       tile.append(own)
       frame.append(tile)
     }
   }
 
-  let tables
   if (panels.referentie) {
-    const reference = section('referentie-tabellen', null, toc.referentie)
     if (declaration) {
-      reference
-        .querySelector('.guide__section-head')
-        .append(element('span', 'guide__meta', `Gelezen uit ${declaration.module}`))
+      // The tag's source comment, quoted as it stands: English, as the source is.
+      let about
       if (declaration.description) {
-        const about = document.createElement('lintje-prose')
-        about.className = 'guide__about-tag'
-        about.html = paragraphsOf(declaration.description).join('')
-        reference.append(about)
+        about = document.createElement('lintje-code')
+        about.language = 'js'
+        about.label = 'Kopcommentaar'
+        about.text = `/**\n${declaration.description
+          .split('\n')
+          .map((line) => ` * ${line}`.trimEnd())
+          .join('\n')}\n */`
       }
-      tables = renderReference(declaration, types, {
+      const reference = renderReference(declaration, types, {
         shownBy,
         skip: new Set(union ? [union.typeName] : []),
+        onSeen,
+        about,
       })
-      reference.append(tables)
+      toc.referentie.push(...reference.toc)
+      panels.referentie.append(reference)
       counts.referentie = fieldsOf(declaration).length
     } else {
       const missing = document.createElement('lintje-prose')
       missing.tone = 'muted'
       missing.text = 'Geen referentie: draai `npm run build:elements`.'
-      reference.append(missing)
+      panels.referentie.append(missing)
     }
-    panels.referentie.append(reference)
   }
 
   if (item.tag) {

@@ -45,9 +45,13 @@ pagina" voor de open tab (`lintje-sub-nav` met `expanded`). Daarop staan:
   de code in tabs: de markup, en wat `setup` zette als script (`el.data = …`) en als JSON in de
   markup voor een pagina die een server rendert. Die code wordt gelezen uit wat het voorbeeld
   tekende, dus hij klopt altijd. Standaard is hij dicht, zodat de pagina rustig blijft;
-- **de referentie**: het kopcommentaar van de tag, uit de broncode; eigenschappen, events, methoden en slots (`custom-elements.json`), en de types
-  van een rijke property veld voor veld (`data-types.json`); een union per `kind` krijgt een
-  tabel per variant. Beide schrijft de build uit de broncode (`scripts/manifest.mjs`);
+- **de referentie**: een rij per eigenschap, gegroepeerd in attributen (wat je in de HTML zet; de
+  vijf die de voorbeelden het meest gebruiken eerst, de rest achter "Alle tonen") en data (rijke
+  waarden, met de velden van hun type open te klappen eronder), dan events, slots en methoden.
+  Elke rij geeft de waarden, de standaard, het commentaar uit de broncode — als citaat, in het
+  Engels — en de voorbeelden die hem tonen. Bovenaan staan een zoekveld en de keuze tussen
+  attributen en data, onderaan het kopcommentaar van de tag. Alles komt uit `custom-elements.json`
+  en `data-types.json`, die de build uit de broncode schrijft (`scripts/manifest.mjs`);
 - **hoe je hem gebruikt**, in twee stappen: laad de tag (alleen de tag, zijn categorie of de hele
   bundel, elk met wat het kost) en zet hem in je pagina, zoals het eerste voorbeeld.
 
