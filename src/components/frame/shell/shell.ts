@@ -29,6 +29,7 @@ import { badgeStyles } from '../../../primitives/badge/badge'
 import '../../../primitives/button/button'
 import '../../actions/logo/logo'
 import '../../feedback/toast/toast'
+import type { ToastKind } from '../../feedback/toast/toast'
 import '../../actions/qr-code/qr-code'
 import '../notifications/notifications'
 import '../user-menu/user-menu'
@@ -111,6 +112,7 @@ export class LintjeShell extends LintjeElement {
     headerCompact: { state: true },
     hasContent: { state: true },
     toast: { state: true },
+    toastKind: { state: true },
   }
 
   declare data?: ShellData | null
@@ -142,6 +144,7 @@ export class LintjeShell extends LintjeElement {
   /** The `header` or default slot holds something; without, `full` takes the room. */
   hasContent: boolean = true
   declare toast?: string | null
+  toastKind: ToastKind = 'ok'
 
   readonly wide = new MediaController(this, WIDE)
   readonly mobile = new MediaController(this, MOBILE)
@@ -419,8 +422,9 @@ export class LintjeShell extends LintjeElement {
     ).some((tool) => tool !== null && holdsFocus(tool))
   }
 
-  showToast(text: string): void {
+  showToast(text: string, kind: ToastKind = 'ok'): void {
     this.toast = text
+    this.toastKind = kind
   }
 
   /* --- Skip link -------------------------------------------------------- */
@@ -593,7 +597,7 @@ export class LintjeShell extends LintjeElement {
   private renderToast(): TemplateResult | typeof nothing {
     return this.toast
       ? html`<lintje-toast
-          kind="ok"
+          kind=${this.toastKind}
           @lintje-close=${(event: Event) => {
             event.stopPropagation()
             this.toast = null

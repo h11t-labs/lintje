@@ -99,8 +99,13 @@
 .lintje-card__status--neutral { color: var(--color-text-muted); }
 .lintje-card__status--success .lintje-card__status-icon { color: var(--color-success-line); }
 .lintje-card__status--info .lintje-card__status-icon { color: var(--color-info-line); }
-.lintje-card__status--attention .lintje-card__status-icon { color: var(--color-attention-line); }
 .lintje-card__status--error .lintje-card__status-icon { color: var(--color-error-line); }
+.lintje-card__status--attention .lintje-card__status-icon { color: var(--color-attention-line); }
+.lintje-card__status--warning .lintje-card__status-icon { color: var(--color-attention-line); }
+.lintje-card__status--busy .lintje-card__status-icon { color: var(--color-accent-text); }
+.lintje-card__status--neutral .lintje-card__status-icon { color: var(--color-text-muted); }
+.lintje-card__status--subtle .lintje-card__status-icon { color: var(--color-text-muted); }
+.lintje-card__status--live .lintje-card__status-icon { color: var(--color-error-line); }
 
 .lintje-card__actions {
   display: flex; flex-wrap: wrap; align-items: center;

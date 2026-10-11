@@ -13,6 +13,21 @@ const track = (root: ShadowRoot): HTMLElement => root.querySelector('[role="prog
 const fill = (root: ShadowRoot): HTMLElement => root.querySelector('.lintje-progress__fill')!
 
 describe('lintje-progress-bar', () => {
+  it('reads and reflects state and defaults to busy', async () => {
+    const element = document.createElement('lintje-progress-bar')
+    document.body.append(element)
+    await element.updateComplete
+    expect(element.state).toBe('busy')
+    expect(element.getAttribute('state')).toBe('busy')
+    element.setAttribute('state', 'paused')
+    await element.updateComplete
+    expect(element.state).toBe('paused')
+    expect(element.shadowRoot!.querySelector('.lintje-progress--paused')).not.toBeNull()
+    element.state = 'error'
+    await element.updateComplete
+    expect(element.getAttribute('state')).toBe('error')
+  })
+
   it('writes the value as the width and as aria-valuenow', async () => {
     const root = await mount({ label: 'Transcriberen', detail: '62%', value: 62 })
     expect(track(root).getAttribute('aria-valuenow')).toBe('62')
@@ -28,10 +43,10 @@ describe('lintje-progress-bar', () => {
     expect(fill(root).style.width).toBe('')
   })
 
-  it('turns to done at 100 and keeps an explicit tone', async () => {
+  it('turns to done at 100 and keeps an explicit state', async () => {
     const done = await mount({ label: 'Klaar', value: 100 })
     expect(done.querySelector('.lintje-progress--done')).not.toBeNull()
-    const failed = await mount({ label: 'Afgebroken', value: 100, tone: 'error' })
+    const failed = await mount({ label: 'Afgebroken', value: 100, state: 'error' })
     expect(failed.querySelector('.lintje-progress--error')).not.toBeNull()
   })
 
@@ -41,12 +56,12 @@ describe('lintje-progress-bar', () => {
   })
 
   it('says done, error and paused in the value text and marks them before the label', async () => {
-    const failed = await mount({ label: 'Afgebroken', value: 40, tone: 'error' })
+    const failed = await mount({ label: 'Afgebroken', value: 40, state: 'error' })
     expect(track(failed).getAttribute('aria-valuetext')).toBe('40%, mislukt')
     expect(failed.querySelector('.lintje-progress__label .lintje-progress__mark')).not.toBeNull()
 
-    const paused = await mount({ label: 'Uploaden', detail: '62%', value: 62, tone: 'paused' })
-    expect(track(paused).getAttribute('aria-valuetext')).toBe('62%, gepauzeerd')
+    const paused = await mount({ label: 'Uploaden', detail: '62%', value: 62, state: 'paused' })
+    expect(track(paused).getAttribute('aria-valuetext')).toBe('62%, onderbroken')
 
     const done = await mount({ label: 'Klaar', value: 100, hideLabel: true })
     expect(track(done).getAttribute('aria-valuetext')).toBe('100%, klaar')

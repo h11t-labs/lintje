@@ -1,5 +1,7 @@
 /** The description list: real dt/dd, a dash for a missing value, the change link's name. */
 import { describe, expect, it } from 'vitest'
+import { render } from 'lit'
+import { renderIcon } from '../../../icons/render'
 import './description-list'
 import type { DescriptionItem, LintjeDescriptionList } from './description-list'
 
@@ -12,6 +14,16 @@ async function mount(items: DescriptionItem[]): Promise<LintjeDescriptionList> {
 }
 
 describe('lintje-description-list', () => {
+  it('draws the shared success glyph', async () => {
+    const root = (await mount([{ label: 'Resultaat', value: 'In orde', tone: 'success' }]))
+      .shadowRoot!
+    const expected = document.createElement('div')
+    render(renderIcon('functioneel-cirkel-vinkje'), expected)
+    const glyph = root.querySelector('.is-success .lintje-description-list__main svg')
+    expect(glyph).not.toBeNull()
+    expect(glyph!.innerHTML).toBe(expected.querySelector('svg')!.innerHTML)
+  })
+
   it('draws one dt and one dd per pair', async () => {
     const element = await mount([
       { label: 'Categorie', value: 'Veiligheid' },

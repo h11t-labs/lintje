@@ -51,6 +51,8 @@
 
 .lintje-announcement--warning { background: var(--color-attention-bg); }
 .lintje-announcement--warning .lintje-announcement__icon { color: var(--color-attention-line); }
+.lintje-announcement--error { background: var(--color-error-bg); }
+.lintje-announcement--error .lintje-announcement__icon { color: var(--color-error-line); }
 .lintje-announcement--outage { background: var(--color-error-bg); }
 .lintje-announcement--outage .lintje-announcement__icon { color: var(--color-error-line); }
 .lintje-announcement--info { background: var(--color-info-bg); }

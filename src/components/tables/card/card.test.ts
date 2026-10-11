@@ -1,5 +1,7 @@
 /** The card: what it draws, when it is a link, what its actions send and how it lies across. */
 import { afterEach, describe, expect, it } from 'vitest'
+import { render } from 'lit'
+import { renderIcon } from '../../../icons/render'
 import './card'
 import type { CardData, LintjeCard } from './card'
 
@@ -26,6 +28,16 @@ afterEach(() => document.body.replaceChildren())
 const nextFrame = (): Promise<unknown> => new Promise((resolve) => requestAnimationFrame(resolve))
 
 describe('lintje-card', () => {
+  it('draws the shared warning glyph', async () => {
+    const root = (await mount({ ...PRODUCT, status: { tone: 'warning', label: 'Let op' } }))
+      .shadowRoot!
+    const expected = document.createElement('div')
+    render(renderIcon('functioneel-waarschuwing'), expected)
+    const glyph = root.querySelector('.lintje-card__status--warning svg')
+    expect(glyph).not.toBeNull()
+    expect(glyph!.innerHTML).toBe(expected.querySelector('svg')!.innerHTML)
+  })
+
   it('draws the muted line, the title as a heading link, the text and the status', async () => {
     const root = (await mount(PRODUCT)).shadowRoot!
     // An empty part is left out, so no dot dangles.

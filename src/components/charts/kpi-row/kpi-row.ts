@@ -52,6 +52,8 @@ export class LintjeKpiRow extends LintjeGridItemElement {
           .dividers=${kpi.dividers ?? true}
           variable=${kpi.variable ?? 'sky-blue'}
           state=${kpi.state ?? 'ready'}
+          .message=${kpi.message}
+          .lastKnown=${kpi.lastKnown}
         ></lintje-kpi>`,
       )}
     </div>`

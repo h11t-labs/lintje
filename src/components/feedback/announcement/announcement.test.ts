@@ -34,6 +34,24 @@ afterEach(() => {
 })
 
 describe('lintje-announcement', () => {
+  it('prefixes an error with Fout and lets the reader close it', async () => {
+    const block = await announce({
+      kind: 'error',
+      title: 'Het opslaan is mislukt.',
+      text: 'Je wijzigingen staan nog in het formulier.',
+      dismissible: true,
+    })
+    expect(block.textContent).toContain('Fout: ')
+    const close = block.querySelector<HTMLButtonElement>('.lintje-announcement__close')!
+    expect(close).not.toBeNull()
+    close.click()
+    const element = block.getRootNode() as ShadowRoot
+    await (element.host as LintjeAnnouncement).updateComplete
+    expect(element.querySelector('.lintje-announcement')).toBeNull()
+    const live = await announce({ kind: 'error', text: 'Mislukt.', live: true })
+    expect(live.getAttribute('role')).toBe('status')
+  })
+
   it('stands an image of the message beside the text', async () => {
     const block = await announce({
       kind: 'info',

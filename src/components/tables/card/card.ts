@@ -33,13 +33,14 @@ import { LintjeElement, define } from '../../../core/element'
 import { isPlainClick } from '../../../core/links'
 import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
+import { TONE_ICON, type Tone } from '../../../primitives/shared/tone'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../../primitives/button/button'
 import '../../../primitives/icon-button/icon-button'
 import '../../../primitives/skeleton/skeleton'
 import cardCss from './card.css?inline'
 
-export type CardStatusTone = 'neutral' | 'success' | 'info' | 'attention' | 'error'
+export type CardStatusTone = Tone
 
 export interface CardStatus {
   /** The word that carries the status: "Je hebt toegang". */
@@ -108,13 +109,6 @@ export interface CardData {
   actions?: CardAction[]
   /** Icon buttons beside the title; at most two are drawn. */
   iconActions?: CardIconAction[]
-}
-
-const TONE_ICON: Partial<Record<CardStatusTone, string>> = {
-  success: 'functioneel-cirkel-vinkje',
-  info: 'functioneel-info',
-  attention: 'functioneel-waarschuwing',
-  error: 'functioneel-foutmelding',
 }
 
 export class LintjeCard extends LintjeElement {

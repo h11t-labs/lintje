@@ -6,6 +6,7 @@
  */
 import type { DataColor } from './tokens/colors'
 import type { ContentStateKind } from './primitives/shared/tone'
+import type { StatusTone } from './primitives/status-dot/status-dot'
 import type { ChartSpec, MapSpec } from './components/shared/charts/shared/types'
 import type { MenuEntry } from './components/actions/menu-button/menu-button'
 import type { NotificationItem } from './components/frame/notifications/notifications'
@@ -45,7 +46,7 @@ export interface ContentState {
 }
 
 /** A source's delivery status: the status column's and `lintje-status-dot`'s own words, each a `Tone`. */
-export type StatusTone = 'complete' | 'delayed' | 'outage' | 'no-data'
+export type { StatusTone } from './primitives/status-dot/status-dot'
 
 export type TrendDirection = 'up' | 'down' | 'flat'
 
