@@ -59,6 +59,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Opgelost
 
+- `lintje-data-table`: een tabel die breder is dan zijn plek en zijwaarts scrolt, is met het
+  toetsenbord te bereiken; het scrollvlak krijgt dan de focus, een rol en de caption als naam,
+  zoals het blok van `lintje-code` (WCAG 2.1.1). (#25)
 - `lintje-map` gooit geen fout meer als de kaart weggaat terwijl een zoom nog loopt: Leaflet
   rondt de zoom af op een timer die `remove()` laat staan, en die las de weggehaalde kaart. (#20)
 

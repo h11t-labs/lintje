@@ -31,15 +31,17 @@ Hij is de levende referentie: een wijziging aan een component in `src/` wordt da
 **en** donker, op 1440 **en** 390 px.
 
 Het menu van de shell somt de categorieën op. De pagina van een categorie (`?category=<name>`, uit
-`src/categories.json`) is een overzicht: per element een tegel met één voorbeeld, wat het is en
-hoeveel het toont. Elk element heeft een eigen pagina, `?element=<tag without lintje->`
-(`?element=tabs`), met de andere elementen van zijn categorie ernaast. Daarop staan:
+`src/categories.json`) is een overzicht: per element een kaart met zijn voorbeeld, levend getekend
+in het thema en de modus van de pagina, wat het is en hoeveel het toont. Elk element heeft een
+eigen pagina, `?element=<tag without lintje->` (`?element=tabs`), met "Op deze pagina" ernaast
+(`lintje-sub-nav` met `expanded`) en de andere elementen van zijn categorie. Daarop staan:
 
 - **wat het is**: het kopcommentaar van de tag, uit de broncode;
-- **de voorbeelden**, elk met de velden die het onderscheiden ("Toont", een link naar hun rij in
-  de referentie) en dichtgeklapt de code: de markup, en wat `setup` zette als script
+- **de voorbeelden**, elk als kaart met de velden die het onderscheiden ("Toont", een link naar hun
+  rij in de referentie) en onderaan de code in tabs: de markup, en wat `setup` zette als script
   (`el.data = …`) en als JSON in de markup voor een pagina die een server rendert. Die code wordt
-  gelezen uit wat het voorbeeld tekende, dus hij klopt altijd;
+  gelezen uit wat het voorbeeld tekende, dus hij klopt altijd. Bij het eerste voorbeeld staat hij
+  open; "Bij elk voorbeeld" opent hem overal;
 - **de referentie**: eigenschappen, events, methoden en slots (`custom-elements.json`), en de types
   van een rijke property veld voor veld (`data-types.json`); een union per `kind` krijgt een
   tabel per variant. Beide schrijft de build uit de broncode (`scripts/manifest.mjs`);

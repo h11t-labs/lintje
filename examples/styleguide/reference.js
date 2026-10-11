@@ -14,9 +14,13 @@ export async function loadJSON(url, empty) {
   }
 }
 
-/** The tags' declarations from the manifest, by tag. */
+/** The tags' declarations from the manifest, by tag, each with the path of its module. */
 export const declarationsOf = (manifest) =>
-  new Map(manifest.modules.flatMap((module) => module.declarations.map((d) => [d.tagName, d])))
+  new Map(
+    manifest.modules.flatMap((module) =>
+      module.declarations.map((d) => [d.tagName, { ...d, module: module.path }]),
+    ),
+  )
 
 // Every element's, so the page says it once.
 const EVERY_ELEMENTS = new Set(['LintjeElement'])
@@ -34,11 +38,15 @@ const detailOf = (event) => event.type.text.match(/^CustomEvent<(.*)>$/)?.[1] ??
 
 /** The values of a type that is a union of strings: `'a' | 'b'` → `a · b`; otherwise the type. */
 const valuesOf = (type) =>
-  type && /^'[^']*'(\s*\|\s*'[^']*')+$/.test(type) ? type.replace(/'/g, '').replace(/\s*\|\s*/g, ' · ') : type
+  type && /^'[^']*'(\s*\|\s*'[^']*')+$/.test(type)
+    ? type.replace(/'/g, '').replace(/\s*\|\s*/g, ' · ')
+    : type
 
 /** The names of the known types a type text mentions: `KpiData[] | null` → `KpiData`. */
 export const typeNames = (text, types) =>
-  [...new Set(text?.match(/\b[A-Z]\w*/g) ?? [])].filter((name) => types[name] && !EVERY_TYPES.has(name))
+  [...new Set(text?.match(/\b[A-Z]\w*/g) ?? [])].filter(
+    (name) => types[name] && !EVERY_TYPES.has(name),
+  )
 
 /** An interface's fields, with those of what it extends first, as a host writes them. */
 export function interfaceFields(name, types, seen = new Set()) {
@@ -50,49 +58,39 @@ export function interfaceFields(name, types, seen = new Set()) {
 }
 
 /**
- * A table in the reference: one row per entry, the name first; filterable by name. On a phone a
- * row is its name, a short measure and a line under it, `subline` with `{key}` placeholders.
+ * A table in the reference, one row per entry. `key` is what a row is found by: `only(key)` shows
+ * that row, `match(term)` the rows whose key holds the term. On a phone a row is its name, a
+ * short measure and a line under it, `subline` with `{key}` placeholders. `bare` for a table in a
+ * tile; otherwise it stands on the page itself.
  */
-function table(caption, columns, rows, subline) {
+function table(caption, columns, rows, { subline, bare = false } = {}) {
   const node = document.createElement('lintje-data-table')
-  // On the page itself, not in a tile: no tile padding to reach out over on a phone.
-  node.plain = true
+  if (bare) node.bare = true
+  else node.plain = true
   const all = rows.map((row, i) => ({ id: String(i), ...row }))
-  const draw = (wanted) => {
-    const shown = wanted ? all.filter((row) => row.name === wanted) : all
+  const draw = (shown) => {
     node.data = {
       caption,
       rowKey: 'id',
       pageSize: 200,
-      // On a phone a row is its name, one measure and a line under it.
-      columns: columns.map(([key, header, phone], i) => ({
+      columns: columns.map(([key, header, phone]) => ({
         key,
         header,
         format: 'text',
         sortable: false,
         mobileMeasure: phone === 'measure',
         mobileSubline: phone === 'subline',
-        filter: i === 0 ? { kind: 'text' } : undefined,
       })),
       rows: shown,
       mobileSublineTemplate: subline,
-      filters: wanted ? { [columns[0][0]]: wanted } : {},
-      totalRows: all.length,
     }
+    // A table with nothing to show steps aside, and its heading with it.
+    node.hidden = !shown.length
+    node.previousElementSibling?.classList.toggle('is-empty', !shown.length)
   }
-  // The table asks; the host filters, as every table in an application does.
-  node.addEventListener('lintje-filter-change', (event) => {
-    event.stopPropagation()
-    const { column, value } = event.detail
-    const term = (Array.isArray(value) ? value[0] : value)?.trim().toLowerCase()
-    node.data = {
-      ...node.data,
-      rows: term ? all.filter((row) => row.name.toLowerCase().includes(term)) : all,
-      filters: term ? { [column]: value } : {},
-    }
-  })
-  draw()
-  node.only = draw
+  draw(all)
+  node.only = (key) => draw(all.filter((row) => row.key === key))
+  node.match = (term) => draw(term ? all.filter((row) => row.key.toLowerCase().includes(term)) : all)
   return node
 }
 
@@ -107,35 +105,54 @@ const heading = (text, level = 4) => {
 const seenIn = (shownBy, key) => {
   const labels = shownBy.get(key) ?? []
   if (!labels.length) return null
-  return labels.length > 3 ? `${labels.slice(0, 3).join(', ')} en ${labels.length - 3} meer` : labels.join(', ')
+  return labels.length > 3
+    ? `${labels.slice(0, 3).join(', ')} en ${labels.length - 3} meer`
+    : labels.join(', ')
 }
 
-/** One field table of a type: name, type, required, what it is, and where a specimen shows it. */
+/** One field table of a type: name, values, required, what it is, and where a specimen shows it. */
 function fieldTable(caption, fields, shownBy, prefix) {
   return table(
     caption,
     [
       ['name', 'Veld'],
-      ['type', 'Type of waarden'],
+      ['type', 'Waarden'],
       ['required', 'Verplicht', 'measure'],
       ['about', 'Toelichting'],
       ['seen', 'Te zien in'],
     ],
     fields.map((field) => ({
+      key: field.name,
       name: field.name,
       type: valuesOf(field.type),
       required: field.optional ? 'nee' : 'ja',
       about: plain(field.description),
       seen: seenIn(shownBy, `${prefix}${field.name}`),
     })),
-    '{type} · {about}',
+    { subline: '{type} · {about}' },
   )
 }
 
+/** A tile in the reference's row of the small parts: slots, events, methods. */
+function partTile(title, span, content) {
+  const tile = document.createElement('lintje-tile')
+  tile.heading = title
+  tile.span = span
+  tile.append(content)
+  return tile
+}
+
+const prose = (text) => {
+  const node = document.createElement('lintje-prose')
+  node.text = text
+  return node
+}
+
 /**
- * The reference: a stack of tables. `shownBy` maps a field (`variant`, `data.title`,
- * `chart.donut`) to the labels of the specimens that set it; `skip` names the types the page
- * shows elsewhere, such as the kinds of a chart.
+ * The reference: a search over every table, the properties, the fields of a rich property, and
+ * the slots, events and methods. `shownBy` maps a field (`variant`, `data.title`, `chart.donut`)
+ * to the labels of the specimens that set it; `skip` names the types the page shows elsewhere,
+ * such as the kinds of a chart.
  */
 export function renderReference(declaration, types, { shownBy = new Map(), skip = new Set() } = {}) {
   const stack = document.createElement('div')
@@ -143,28 +160,38 @@ export function renderReference(declaration, types, { shownBy = new Map(), skip 
   const tables = new Map()
   const fields = fieldsOf(declaration)
 
+  const search = document.createElement('lintje-text-input')
+  search.className = 'guide__search'
+  search.type = 'search'
+  search.label = 'Zoek een eigenschap of veld'
+  search.commitOn = 'input'
+  stack.append(search)
+
   if (fields.length) {
     const properties = table(
       `Eigenschappen van ${declaration.tagName}`,
       [
         ['name', 'Eigenschap'],
-        ['attribute', 'Attribuut'],
-        ['type', 'Type of waarden'],
+        ['type', 'Waarden'],
         ['initial', 'Standaard', 'measure'],
         ['about', 'Toelichting'],
         ['seen', 'Te zien in'],
       ],
       fields.map((field) => ({
-        name: field.name,
-        attribute: field.attribute ?? null,
+        key: field.name,
+        // The attribute is named where it is not the property's own name.
+        name:
+          field.attribute && field.attribute !== field.name
+            ? `${field.name} (${field.attribute})`
+            : field.name,
         type: valuesOf(field.type?.text) ?? null,
         initial: field.default ?? null,
         about: plain(field.description),
         seen: seenIn(shownBy, field.name),
       })),
-      '{type} · {about}',
+      { subline: '{type} · {about}' },
     )
-    stack.append(properties)
+    stack.append(heading(`${fields.length} eigenschappen`), properties)
     tables.set('', properties)
   }
 
@@ -198,7 +225,14 @@ export function renderReference(declaration, types, { shownBy = new Map(), skip 
         box.flat = true
         box.heading = `${type.discriminant}: '${variant.value}'`
         box.subtitle = plain(variant.description) ?? `${variant.fields.length} velden`
-        box.append(fieldTable(`Velden van ${name} met ${type.discriminant} '${variant.value}'`, variant.fields, shownBy, prefix))
+        box.append(
+          fieldTable(
+            `Velden van ${name} met ${type.discriminant} '${variant.value}'`,
+            variant.fields,
+            shownBy,
+            prefix,
+          ),
+        )
         stack.append(box)
       }
     }
@@ -207,40 +241,74 @@ export function renderReference(declaration, types, { shownBy = new Map(), skip 
     if (field.attribute === undefined)
       for (const name of typeNames(field.type?.text, types)) expand(name, `${field.name}.`, 0)
 
-  if (declaration.events.length) {
-    stack.append(
-      heading('Events'),
-      table(
-        `Events van ${declaration.tagName}`,
-        [['name', 'Event'], ['detail', 'Detail', 'measure'], ['about', 'Toelichting', 'subline']],
-        declaration.events.map((event) => ({
-          name: event.name,
-          detail: detailOf(event),
-          about: event.description ?? null,
-        })),
+  // The small parts side by side: what goes in, what comes out, what a host may call.
+  const parts = document.createElement('lintje-grid')
+  parts.append(
+    partTile(
+      'Slots',
+      6,
+      prose(
+        declaration.slots.length
+          ? declaration.slots.map((slot) => slot.name || 'standaard').join(', ')
+          : 'Geen: alles komt binnen als eigenschap.',
+      ),
+    ),
+    partTile(
+      'Events',
+      6,
+      declaration.events.length
+        ? table(
+            `Events van ${declaration.tagName}`,
+            [
+              ['name', 'Event'],
+              ['detail', 'Detail', 'measure'],
+              ['about', 'Toelichting', 'subline'],
+            ],
+            declaration.events.map((event) => ({
+              key: event.name,
+              name: event.name,
+              detail: detailOf(event),
+              about: event.description ?? null,
+            })),
+            { bare: true },
+          )
+        : prose('Geen eigen events: luister naar de gewone van de browser, zoals click.'),
+    ),
+  )
+  if (declaration.methods.length)
+    parts.append(
+      partTile(
+        'Methoden',
+        12,
+        table(
+          `Methoden van ${declaration.tagName}`,
+          [
+            ['name', 'Methode of getter'],
+            ['returns', 'Geeft', 'measure'],
+            ['about', 'Toelichting', 'subline'],
+          ],
+          declaration.methods.map((method) => ({
+            key: method.name,
+            name: `${method.name}${method.parameters ?? ''}`,
+            returns: method.return?.text ?? null,
+            about: plain(method.description),
+          })),
+          { bare: true },
+        ),
       ),
     )
-  }
-  if (declaration.methods.length) {
-    stack.append(
-      heading('Methoden'),
-      table(
-        `Methoden van ${declaration.tagName}`,
-        [['name', 'Methode of getter'], ['returns', 'Geeft', 'measure'], ['about', 'Toelichting', 'subline']],
-        declaration.methods.map((method) => ({
-          name: `${method.name}${method.parameters ?? ''}`,
-          returns: method.return?.text ?? null,
-          about: plain(method.description),
-        })),
-      ),
-    )
-  }
-  const slots = document.createElement('lintje-prose')
-  slots.tone = 'muted'
-  slots.text = declaration.slots.length
-    ? `Slots: ${declaration.slots.map((slot) => slot.name || 'standaard').join(', ')}.`
-    : 'Geen slots.'
-  stack.append(slots)
+  stack.append(parts)
+
+  const searchable = () => [...stack.querySelectorAll('lintje-data-table')].filter((node) => node.match)
+  search.addEventListener('lintje-change', (event) => {
+    event.stopPropagation()
+    const term = String(event.detail ?? '').trim().toLowerCase()
+    for (const node of searchable()) node.match(term)
+    // A match in a closed type opens it.
+    if (term)
+      for (const box of stack.querySelectorAll('lintje-expander'))
+        if (!box.querySelector('lintje-data-table')?.hidden) box.open = true
+  })
 
   /** Shows one field's row: `variant`, or `data.title` in the table of `data`. */
   stack.show = (key) => {
@@ -254,7 +322,7 @@ export function renderReference(declaration, types, { shownBy = new Map(), skip 
   return stack
 }
 
-/** The field tables of one variant of a union, for a page that shows its variants apart. */
+/** The field table of one variant of a union, for a page that shows its variants apart. */
 export function variantReference(union, value, typeName, shownBy, prefix) {
   const variant = union.variants.find((entry) => entry.value === value)
   if (!variant) return null

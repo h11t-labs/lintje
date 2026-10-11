@@ -68,6 +68,7 @@ const host = document.getElementById('elements')
 const appSearch = document.getElementById('search')
 
 const PLACE = ['category', 'element', 'soort', 'staat']
+const SOURCE = 'https://github.com/h11t-labs/lintje/blob/main/'
 const theme = () => themeOf(location.search)
 /** The reader's settings, carried from page to page: the search without the place. */
 const settings = (search = location.search) => {
@@ -148,7 +149,20 @@ function render({ keepScroll = false } = {}) {
     pageName: item ? nameOf(item) : category.label,
   }
   const heading = MENU.find((group) => group.items.includes(category)).heading
+  for (const action of pageHeader.querySelectorAll('[slot="actions"]')) action.remove()
   if (item) {
+    const module = declarations.get(item.tag)?.module
+    if (module) {
+      const source = document.createElement('lintje-button')
+      source.slot = 'actions'
+      source.variant = 'secondary'
+      source.size = 'compact'
+      source.href = `${SOURCE}${module}`
+      source.target = '_blank'
+      source.textContent = 'Broncode'
+      pageHeader.append(source)
+    }
+    // The link to this page is the shell's "Delen".
     pageHeader.data = { kicker: category.label, title: item.tag ?? item.title, description: item.tag ? item.title : undefined }
     crumbs.items = [
       { label: 'Startpagina', href: carry('../') },
@@ -180,11 +194,13 @@ function render({ keepScroll = false } = {}) {
       addressOf: elementAddress,
       go: (href, options) => follow(href, options),
       appAddress: (app) => carry(`../${app.href}`),
+      categoryAddress: addressOf({ category }),
     })
   } else {
     renderOverview(host, elementsOf(category), {
       declarations,
       addressOf: (entry) => elementAddress(entry),
+      go: (href) => follow(href),
     })
   }
   if (keepScroll) requestAnimationFrame(() => window.scrollTo(0, scroll))
