@@ -33,16 +33,10 @@ import { shadowCss } from '../../../core/styles'
 import { spanStyles } from '../../../primitives/shared/grid-item-element'
 import { LintjeContentTileElement } from '../../shared/content-tile'
 import { formatNumber, formatPercent } from '../../../core/format'
-import {
-  liveAnnouncement,
-  renderChartEmpty,
-  renderChartError,
-  renderChartSkeleton,
-} from '../../shared/charts/shared/chart-states'
+import { renderChartSkeleton } from '../../shared/charts/shared/chart-states'
 import { chartFrameStyles } from '../../shared/charts/shared/chart-styles'
 import { downloadCsv } from '../../shared/download'
 import { MediaController } from '../../../core/media'
-import announcementCss from '../../feedback/announcement/announcement.css?inline'
 import tileHostCss from '../../shared/view-tile.css?inline'
 import inputCss from '../../inputs/shared/input.css?inline'
 import dataTableCss from './data-table.css?inline'
@@ -50,6 +44,7 @@ import skeletonCss from '../../../primitives/skeleton/skeleton.css?inline'
 import buttonCss from '../../../primitives/button/button.css?inline'
 import { badgeStyles, renderBadge } from '../../../primitives/badge/badge'
 import '../../feedback/announcement/announcement'
+import '../../feedback/empty-state/empty-state'
 import '../description-list/description-list'
 import '../../actions/menu-button/menu-button'
 import '../pagination/pagination'
@@ -277,7 +272,6 @@ export class LintjeDataTable extends LintjeContentTileElement {
     shadowCss(buttonCss),
     shadowCss(tileHostCss),
     shadowCss(skeletonCss),
-    shadowCss(announcementCss),
     shadowCss(inputCss),
     // The states are the charts' states: they need its shimmer keyframes and `visually-hidden`.
     chartFrameStyles,
@@ -891,6 +885,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
       footnote=${data.footnote ?? nothing}
       ?expandable=${Boolean(data.expandable) && ready}
       ?download=${Boolean(data.download) && ready}
+      state=${data.state ?? 'ready'}
+      message=${data.message ?? nothing}
+      last-known=${data.lastKnown ?? nothing}
       @lintje-tile-expand=${(event: Event) => {
         event.stopPropagation()
         this.expand(true)
@@ -905,7 +902,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
           ? html`<lintje-announcement slot="notice" compact .data=${data.notice}></lintje-announcement>`
           : nothing
       }
-      ${this.content()}
+      ${this.content(true)}
     </lintje-tile>
 
     ${this.renderExpandModal(
@@ -942,19 +939,28 @@ export class LintjeDataTable extends LintjeContentTileElement {
     ])
   }
 
-  private content(): TemplateResult {
+  /**
+   * The table, or its state. In a tile the skeleton goes in the tile's `loading` slot and empty
+   * and error are the tile's; `plain`, without a tile, composes the elements itself.
+   */
+  private content(inTile = false): TemplateResult | typeof nothing {
     const data = this.data as DataTableData
     switch (data.state ?? 'ready') {
       case 'loading':
-        return renderChartSkeleton({ kind: 'table' })
+        return inTile
+          ? html`<div slot="loading">${renderChartSkeleton({ kind: 'table', status: false })}</div>`
+          : renderChartSkeleton({ kind: 'table' })
       case 'empty':
-        return renderChartEmpty(data.message)
+        return inTile
+          ? nothing
+          : html`<lintje-empty-state compact status text=${data.message ?? nothing}></lintje-empty-state>`
       case 'error':
-        return renderChartError({
-          message: data.message,
-          lastKnown: data.lastKnown,
-          announcement: liveAnnouncement,
-        })
+        return inTile
+          ? nothing
+          : html`<lintje-announcement
+              compact
+              .data=${{ kind: 'warning', text: data.message ?? '', live: true }}
+            ></lintje-announcement>`
       default:
         return this.table(this.#edges)
     }

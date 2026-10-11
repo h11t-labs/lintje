@@ -11,20 +11,11 @@ import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../core/element'
 import { shadowCss } from '../../core/styles'
 import { iconStyles, renderIcon } from '../../icons/render'
+import type { Tone } from '../shared/tone'
 import badgeCss from './badge.css?inline'
 import badgeHostCss from './badge-host.css?inline'
 
-export type BadgeTone =
-  | 'neutral'
-  | 'subtle'
-  | 'busy'
-  | 'success'
-  | 'warning'
-  | 'error'
-  | 'info'
-  | 'attention'
-  /** A recording that runs now: the error fill with a dot before the word. */
-  | 'live'
+export type BadgeTone = Tone
 export type BadgeVariant = 'label' | 'count' | 'unread'
 
 export const badgeStyles: CSSResult = shadowCss(badgeCss)

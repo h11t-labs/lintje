@@ -1,7 +1,7 @@
 /**
  * `<lintje-toast>` — the toast: a glyph carries the meaning, so colour is not the only signal
- * (rule 13). An error, and a toast with an action, stay until closed. A plain `ok` toast closes
- * after six seconds; the pointer on it or the focus in it holds it, and its six seconds start
+ * (rule 13). Errors, warnings and toasts with an action stay until closed. Plain `ok` and `info`
+ * toasts close after six seconds; the pointer on it or the focus in it holds it, and its six seconds start
  * again when both have left. Closing with the focus inside, it gives the focus back first.
  *
  * It is a `role="status"` region drawn empty first, its content going in on the next frame: a
@@ -15,10 +15,20 @@ import { shadowCss } from '../../../core/styles'
 import { holdsFocus } from '../../../core/focus'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { deepActiveElement, ownsEscape } from '../../shared/focus-trap'
+import { TONE_ICON, type Tone } from '../../../primitives/shared/tone'
 import toastCss from './toast.css?inline'
 import screenOnlyCss from '../../../primitives/shared/screen-only.css?inline'
 
 const LIFETIME = 6000
+
+export type ToastKind = 'ok' | 'error' | 'info' | 'warning'
+
+const KIND_TONE: Record<ToastKind, Tone> = {
+  ok: 'success',
+  error: 'error',
+  info: 'info',
+  warning: 'attention',
+}
 
 /** The nearest `<main>` from the toast outwards, through the shadow roots around it. */
 function mainRegion(from: Node): HTMLElement | null {
@@ -39,8 +49,8 @@ export class LintjeToast extends LintjeElement {
     filled: { state: true },
   }
 
-  /** `ok` closes itself after six seconds, unless it has an action; `error` stays. */
-  kind: 'ok' | 'error' = 'ok'
+  /** `ok` and `info` close after six seconds unless they have an action; `error` and `warning` stay. */
+  kind: ToastKind = 'ok'
   /** The label of the one action, e.g. "Ongedaan maken". Without it there is none. */
   declare action?: string
 
@@ -102,10 +112,17 @@ export class LintjeToast extends LintjeElement {
     if (changed.has('kind') || changed.has('action')) this.#start()
   }
 
-  /** The six seconds, from the start; never for an error, an action or a held toast. */
+  /** The six seconds, from the start; never for an error, a warning, an action or a held toast. */
   #start(): void {
     clearTimeout(this.#timer)
-    if (this.kind === 'error' || this.action || this.#hovered || this.#focused) return
+    if (
+      this.kind === 'error' ||
+      this.kind === 'warning' ||
+      this.action ||
+      this.#hovered ||
+      this.#focused
+    )
+      return
     this.#timer = window.setTimeout(() => this.#close(), LIFETIME)
   }
 
@@ -143,12 +160,9 @@ export class LintjeToast extends LintjeElement {
   /** The mark, the message, the action and the close: what goes into the region. */
   private content(): TemplateResult {
     return html`<span class="lintje-toast__icon" aria-hidden="true"
-        >${renderIcon(
-          this.kind === 'ok' ? 'functioneel-cirkel-vinkje' : 'functioneel-foutmelding',
-          {
-            size: 16,
-          },
-        )}</span
+        >${renderIcon(TONE_ICON[KIND_TONE[this.kind]], {
+          size: 16,
+        })}</span
       >
       <span class="lintje-toast__text"><slot></slot></span>
       ${

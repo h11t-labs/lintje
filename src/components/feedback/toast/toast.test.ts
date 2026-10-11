@@ -3,6 +3,8 @@
  * reader announces the message of a toast that was just added.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { render } from 'lit'
+import { renderIcon } from '../../../icons/render'
 import './toast'
 import type { LintjeToast } from './toast'
 
@@ -13,8 +15,12 @@ afterEach(() => {
   document.body.replaceChildren()
 })
 
-async function mount(action?: string): Promise<{ toast: LintjeToast; closed: () => number }> {
+async function mount(
+  action?: string,
+  kind: LintjeToast['kind'] = 'ok',
+): Promise<{ toast: LintjeToast; closed: () => number }> {
   const toast = document.createElement('lintje-toast') as LintjeToast
+  toast.kind = kind
   if (action) toast.action = action
   toast.textContent = 'Melding gearchiveerd'
   let count = 0
@@ -28,6 +34,53 @@ const statusOf = (toast: LintjeToast): HTMLElement =>
   toast.shadowRoot!.querySelector<HTMLElement>('[role="status"]')!
 
 describe('lintje-toast', () => {
+  it('receives the shell kind and resets to ok for the next default toast', async () => {
+    await import('../../frame/shell/shell')
+    const shell = document.createElement('lintje-shell')
+    shell.data = { name: 'Voorbeeld', navigation: [] }
+    document.body.append(shell)
+    await shell.updateComplete
+    shell.showToast('Controleer je wijzigingen', 'warning')
+    await shell.updateComplete
+    const toast = shell.shadowRoot!.querySelector('lintje-toast')!
+    await toast.updateComplete
+    expect(toast.kind).toBe('warning')
+    shell.requestUpdate()
+    await shell.updateComplete
+    expect(toast.kind).toBe('warning')
+    shell.showToast('Opgeslagen')
+    await shell.updateComplete
+    await toast.updateComplete
+    expect(toast.kind).toBe('ok')
+  })
+
+  it.each(['error', 'warning'] as const)('keeps a %s toast until closed', async (kind) => {
+    vi.useFakeTimers()
+    const { toast, closed } = await mount(undefined, kind)
+    vi.advanceTimersByTime(60_000)
+    expect(closed()).toBe(0)
+    toast.filled = true
+    await toast.updateComplete
+    toast.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-toast__close')!.click()
+    expect(closed()).toBe(1)
+  })
+
+  it.each([
+    ['ok', 'functioneel-cirkel-vinkje'],
+    ['error', 'functioneel-foutmelding'],
+    ['info', 'functioneel-info'],
+    ['warning', 'functioneel-waarschuwing'],
+  ] as const)('draws the shared glyph for %s', async (kind, icon) => {
+    const { toast } = await mount(undefined, kind)
+    toast.filled = true
+    await toast.updateComplete
+    const expected = document.createElement('div')
+    render(renderIcon(icon), expected)
+    expect(toast.shadowRoot!.querySelector('.lintje-toast__icon svg')!.innerHTML).toBe(
+      expected.querySelector('svg')!.innerHTML,
+    )
+  })
+
   it('puts its content into a status region that is already there', async () => {
     const toast = document.createElement('lintje-toast') as LintjeToast
     toast.textContent = 'Selectie gekopieerd'
@@ -54,9 +107,9 @@ describe('lintje-toast', () => {
     expect(toast.shadowRoot!.querySelector('[role="status"] slot')).not.toBeNull()
   })
 
-  it('closes an ok toast after six seconds', async () => {
+  it.each(['ok', 'info'] as const)('closes a %s toast after six seconds', async (kind) => {
     vi.useFakeTimers()
-    const { closed } = await mount()
+    const { closed } = await mount(undefined, kind)
     vi.advanceTimersByTime(5999)
     expect(closed()).toBe(0)
     vi.advanceTimersByTime(1)

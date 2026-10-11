@@ -19,6 +19,7 @@ import { shadowCss } from '../../../core/styles'
 import descriptionListCss from './description-list.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { styleProps } from '../../../core/style-props'
+import { TONE_ICON, type Tone } from '../../../primitives/shared/tone'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { badgeStyles, renderBadge } from '../../../primitives/badge/badge'
 
@@ -45,21 +46,16 @@ export interface DescriptionItem {
   /** Grid: the one figure a reader looks at, as large as a key figure. */
   large?: boolean
   /**
-   * `changed`: differs from the default, and says "Aangepast". `warning` and `error`: something to
-   * act on; the glyph comes with it, the words are the host's (in the value or its slot).
+   * `changed`: differs from the default, and says "Aangepast". A shared tone carries its
+   * glyph when it has one, and the words are the host's (in the value or its slot).
    */
   tone?: DescriptionTone
   /** The name of a slot drawn under the value, for what a string cannot say (a meter, a button). */
   slot?: string
 }
 
-export type DescriptionTone = 'changed' | 'warning' | 'error'
+export type DescriptionTone = 'changed' | Tone
 export type DescriptionListLayout = 'row' | 'column' | 'grid'
-
-const TONE_ICON: Record<Exclude<DescriptionTone, 'changed'>, string> = {
-  warning: 'functioneel-waarschuwing',
-  error: 'functioneel-foutmelding',
-}
 
 export class LintjeDescriptionList extends LintjeGridItemElement {
   static override styles = [iconStyles, badgeStyles, spanStyles, shadowCss(descriptionListCss)]

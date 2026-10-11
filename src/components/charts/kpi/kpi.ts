@@ -33,7 +33,7 @@ import type {
   KpiGauge,
   KpiItem,
   KpiSparkline,
-  KpiState,
+  ContentStateKind,
   KpiTrend,
   KpiVariable,
   TrendDirection,
@@ -144,6 +144,8 @@ export class LintjeKpi extends LintjeGridItemElement {
     detail: { type: String },
     variable: { type: String, reflect: true },
     state: { type: String, reflect: true },
+    message: { type: String },
+    lastKnown: { type: String, attribute: 'last-known' },
     index: { type: Number },
     counting: { state: true },
     drawn: { state: true },
@@ -174,7 +176,11 @@ export class LintjeKpi extends LintjeGridItemElement {
   declare detail?: string
   /** A data colour's name (`DataColor`); `coverage` is the gray one. */
   variable: KpiVariable = 'sky-blue'
-  state: KpiState = 'ready'
+  state: ContentStateKind = 'ready'
+  /** Explains an empty or failed result instead of the default message. */
+  declare message?: string
+  /** The last known value and its date, shown below a failed result. */
+  declare lastKnown?: string
   index: number = 0
 
   counting: (string | null)[] = []
@@ -478,12 +484,12 @@ export class LintjeKpi extends LintjeGridItemElement {
     return html`
       ${ready && this.trend ? this.trendLine(withDetail) : nothing}
       ${ready && !this.trend && this.note ? html`<p class="lintje-kpi__note">${this.note}</p>` : nothing}
-      ${this.state === 'empty' ? html`<p class="lintje-kpi__note">Geen gegevens</p>` : nothing}
+      ${this.state === 'empty' ? html`<p class="lintje-kpi__note">${this.message ?? 'Geen gegevens'}</p>` : nothing}
       ${
         this.state === 'error'
           ? html`<p class="lintje-kpi__note lintje-kpi__note--error">
-            <span class="lintje-kpi__dot" aria-hidden="true"></span>Niet geladen
-          </p>`
+            <span class="lintje-kpi__dot" aria-hidden="true"></span>${this.message ?? 'Niet geladen'}
+          </p>${this.lastKnown ? html`<p class="lintje-kpi__last-known">${this.lastKnown}</p>` : nothing}`
           : nothing
       }
       ${

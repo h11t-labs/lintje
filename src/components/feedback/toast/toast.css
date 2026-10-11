@@ -26,6 +26,11 @@
 .lintje-toast--ok    .lintje-toast__icon { color: var(--color-success-line); }
 .lintje-toast--error .lintje-toast__icon { color: var(--color-error-line); }
 
+.lintje-toast--info { background: var(--color-info-bg); color: var(--color-text-primary); }
+.lintje-toast--info .lintje-toast__icon { color: var(--color-info-line); }
+.lintje-toast--warning { background: var(--color-attention-bg); color: var(--color-text-primary); }
+.lintje-toast--warning .lintje-toast__icon { color: var(--color-attention-line); }
+
 .lintje-toast__text { flex: 1; }
 .lintje-toast__action { position: relative; font-weight: 700; text-decoration: underline; color: var(--color-link-on-status); flex: none; }
 /* The close and the action reach the target height through a transparent hit area; the gap

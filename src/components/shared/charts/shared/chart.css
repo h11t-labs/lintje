@@ -308,19 +308,6 @@
 
 
 /* --- States -------------------------------------------------------------- */
-.lintje-chart-state {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  justify-content: center;
-  align-items: center;
-  min-width: 0;
-}
-.lintje-chart-state--empty { text-align: center; font: var(--text-small); color: var(--color-text-muted); gap: var(--space-3); }
-/* An announcement measures as a container, so it has no width of its own to centre by. */
-.lintje-chart-state--error { justify-content: flex-start; align-items: stretch; gap: var(--space-4); }
-.lintje-chart-state__last-known { font: var(--text-small); color: var(--color-text-muted); text-align: center; }
-
 /* Loading uses a skeleton per chart type, exactly as tall as the chart it stands in for. */
 /* The stand-in grows into a tile that is taller than it: a tile that holds its height
    while it fetches again or stretches to its row. `height` stays
