@@ -393,6 +393,9 @@ De besluiten hieronder gelden voor alle elementen.
   (wachtrij, bezig, onderbroken, klaar, mislukt, geannuleerd) ernaast.
 - **Inhoud kent vier toestanden**: klaar, laden, leeg en fout, met één `message` en één
   `lastKnown`, voor een tegel en een kerncijfer evengoed.
+- **De tegel stelt samen.** Leeg en fout in een tegel zijn dezelfde blokken als de losse lege
+  toestand en de losse melding (`primitives/shared/`), nooit nagetekend, en alle drie de
+  toestanden zijn een live-regio van de tegel: wat erin laadt, zwijgt zelf.
 
 ### Links, toetsen en overlays
 

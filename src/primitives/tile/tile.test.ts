@@ -74,6 +74,19 @@ describe('lintje-tile error', () => {
   })
 })
 
+describe('lintje-tile empty', () => {
+  it('is the compact empty state in a status region, filled on the next frame', async () => {
+    const tile = await mount({ state: 'empty', message: 'Geen aanvragen in deze periode.' })
+    const first = region(tile)!
+    expect(first.classList.contains('lintje-empty-state--compact')).toBe(true)
+    expect(first.textContent?.trim()).toBe('')
+    await nextFrame()
+    await tile.updateComplete
+    expect(region(tile)).toBe(first)
+    expect(first.textContent?.trim()).toBe('Geen aanvragen in deze periode.')
+  })
+})
+
 describe('lintje-tile loading', () => {
   it('says the loading in words, in a region filled on the next frame', async () => {
     const tile = await mount({ state: 'loading' })

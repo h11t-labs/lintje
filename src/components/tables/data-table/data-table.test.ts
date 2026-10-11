@@ -202,7 +202,10 @@ describe('plain, on an application page', () => {
     element.data = { ...structuredClone(data), state: 'empty', message: 'Nog geen loketten.' }
     await element.updateComplete
     expect(root.querySelector('.lintje-data-table__full')).toBeNull()
-    expect(root.textContent).toContain('Nog geen loketten.')
+    // Without a tile the table composes the empty state itself, as a status region.
+    const empty = root.querySelector('lintje-empty-state')
+    expect(empty?.text).toBe('Nog geen loketten.')
+    expect(empty?.status).toBe(true)
   })
 })
 
