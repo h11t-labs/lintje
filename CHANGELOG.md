@@ -28,6 +28,10 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   bovenaan, elke tegel heel op een vel en een tabel die tussen zijn rijen breekt (`breakable` op
   `lintje-tile`). Een kerncijfer toont op papier zijn waarde, ook als het nog niet in beeld was,
   en een kaart het gebied dat de lezer zag. (#22)
+- De foutpagina (`lintje-error-page`): de code met een teken voor geen toegang en een storing,
+  een titel in woorden, de tekst, een slot voor een zoekveld of melding en een voor de knoppen,
+  een referentie met kopieerknop en de lijst "Verder naar". De stijlgids toont niet gevonden,
+  geen toegang, een storing en gepland onderhoud. (#18)
 
 ### Gewijzigd
 

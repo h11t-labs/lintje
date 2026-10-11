@@ -694,6 +694,7 @@ export interface ChatData extends FrameSettings {
 
 export type { FormValues, FormErrors, StoredDraft } from './components/forms/form/form'
 export type { ErrorSummaryItem } from './components/forms/error-summary/error-summary'
+export type { ErrorPageLink } from './components/feedback/error-page/error-page'
 export type { UploadFile } from './components/inputs/file-upload/file-upload'
 export type { DateRange } from './components/inputs/date-range/date-range'
 export type { SlotDay, TimeSlot } from './components/inputs/slot-picker/slot-picker'
