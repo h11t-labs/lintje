@@ -723,7 +723,6 @@ export class LintjeDataTable extends LintjeContentTileElement {
       state=${data.state ?? 'ready'}
       message=${data.message ?? nothing}
       last-known=${data.lastKnown ?? nothing}
-      content-height="auto"
       @lintje-tile-expand=${(event: Event) => {
         event.stopPropagation()
         this.expand(true)
