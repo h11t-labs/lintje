@@ -29,7 +29,6 @@ export default {
         },
         {
           label: 'Beginscherm — een leeg gesprek',
-          preview: true,
           wide: true,
           html: '<div class="guide__chat guide__chat--start"><lintje-chat></lintje-chat></div>',
           setup(stage) {
@@ -44,7 +43,6 @@ export default {
       specimens: [
         {
           label: 'Verstuurd, met een zekere en een onzekere term',
-          preview: true,
           wide: true,
           html: '<lintje-chat-message turn-id="demo-message" time="08:24" editable></lintje-chat-message>',
           setup(stage) {
@@ -153,7 +151,6 @@ export default {
         },
         {
           label: 'Antwoord · twee grafieken naast elkaar',
-          preview: true,
           wide: true,
           html: answer('two'),
           setup(stage) {
@@ -185,7 +182,6 @@ export default {
       specimens: [
         {
           label: 'Herkende termen: zeker, dubbelzinnig, bron staat uit',
-          preview: true,
           wide: true,
           html: '<lintje-chat-composer></lintje-chat-composer>',
           setup(stage) {
@@ -229,7 +225,6 @@ export default {
       specimens: [
         {
           label: 'Berekening open, vergelijking aan',
-          preview: true,
           wide: true,
           html: '<lintje-chat-strip turn-id="demo-strip" open></lintje-chat-strip>',
           setup(stage) {
@@ -264,7 +259,6 @@ export default {
         },
         {
           label: 'Suggesties · gestippeld is een voorstel',
-          preview: true,
           wide: true,
           html: '<lintje-chat-suggestions turn-id="demo-suggestions" label="Jij, als vervolgvraag"></lintje-chat-suggestions>',
           setup(stage) {

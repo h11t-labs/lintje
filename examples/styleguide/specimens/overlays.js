@@ -57,7 +57,6 @@ export default {
   elements: [
     {
       tag: 'lintje-modal',
-      sketch: 'modal',
       title: 'Een venster boven de pagina, met een kop, inhoud en exportknoppen',
       specimens: [
         {
@@ -112,7 +111,6 @@ export default {
     },
     {
       tag: 'lintje-confirm-dialog',
-      sketch: 'dialog',
       title: 'Een vraag die een antwoord nodig heeft',
       specimens: [
         {
@@ -136,7 +134,6 @@ export default {
     },
     {
       tag: 'lintje-drawer',
-      sketch: 'drawer',
       title: 'Een zijpaneel over de pagina',
       specimens: [
         {
@@ -167,7 +164,6 @@ export default {
     },
     {
       tag: 'lintje-popover',
-      sketch: 'popover',
       title: 'Het zwevende paneel',
       specimens: [
         {
@@ -190,7 +186,6 @@ export default {
     },
     {
       tag: 'lintje-tooltip',
-      sketch: 'tooltip',
       title: 'Een korte toelichting bij een element',
       specimens: [
         {
@@ -209,7 +204,6 @@ export default {
       specimens: [
         {
           label: 'Naast een label: klik, Enter of spatie',
-          preview: true,
           html: `<div class="guide__row">Gemiddelde wachttijd
             <lintje-toggletip label="Toelichting op gemiddelde wachttijd">De mediaan van de wachttijd per kwartier, over alle loketten van de dienst.</lintje-toggletip></div>`,
         },

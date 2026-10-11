@@ -53,7 +53,6 @@ export default {
       specimens: [
         {
           label: 'Drie filters, met wat de host hoort',
-          preview: true,
           wide: true,
           html: '<lintje-filter-bar></lintje-filter-bar>',
           setup(stage) {
@@ -101,7 +100,6 @@ export default {
       specimens: [
         {
           label: 'Open, met twee filters',
-          preview: true,
           wide: true,
           html: `<lintje-filter-zone total="2" modified="0">${CONTROLS(false)}</lintje-filter-zone>`,
           setup(stage) {
@@ -130,7 +128,6 @@ export default {
     },
     {
       tag: 'lintje-filter-sheet',
-      sketch: 'drawer',
       title: 'Het filterblad onderin beeld: dezelfde filters, gestapeld, met Toepassen',
       specimens: [
         {

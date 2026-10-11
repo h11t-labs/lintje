@@ -120,7 +120,6 @@ export default {
       specimens: [
         {
           label: 'Concept (typ iets; leeg de titel en sla op voor een fout)',
-          preview: true,
           wide: true,
           html: FORM,
           setup(stage) {
@@ -168,7 +167,6 @@ export default {
       specimens: [
         {
           label: 'Rust',
-          preview: true,
           wide: true,
           html: `<lintje-form-section heading="Wat en waar" description="Beschrijf wat je zag. Namen van betrokkenen vul je in de volgende sectie in.">${SECTION_FIELDS}</lintje-form-section>`,
         },
@@ -190,7 +188,6 @@ export default {
       specimens: [
         {
           label: 'Komend, actief, gedaan',
-          preview: true,
           wide: true,
           html: '<lintje-stepper></lintje-stepper>',
           setup: (stage) => steps(stage, STEPS),
@@ -221,7 +218,6 @@ export default {
       specimens: [
         {
           label: 'In gebruik',
-          preview: true,
           wide: true,
           html: '<lintje-repeater legend="Betrokkenen" item-label="Betrokkene" min="1" max="10"></lintje-repeater>',
           setup: (stage) => repeaterHost(stage, PEOPLE),
@@ -239,7 +235,6 @@ export default {
       specimens: [
         {
           label: 'Verwijderbaar, binnen een herhaler',
-          preview: true,
           wide: true,
           html: '<lintje-repeater legend="Betrokkenen" item-label="Betrokkene" min="0" max="10"></lintje-repeater>',
           setup(stage) {
@@ -268,7 +263,6 @@ export default {
       specimens: [
         {
           label: 'Rust, hover, focus op een link',
-          preview: true,
           wide: true,
           html: '<lintje-error-summary></lintje-error-summary>',
           setup(stage) {
@@ -295,7 +289,6 @@ export default {
       specimens: [
         {
           label: 'Gewijzigd, met een tweede actie',
-          preview: true,
           wide: true,
           html: `<lintje-form-actions state="dirty">
             <lintje-button variant="tertiary">Annuleren</lintje-button>

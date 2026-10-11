@@ -12,6 +12,7 @@ import {
   variantReference,
 } from './reference.js'
 import { allSpecimens, nameOf, renderSpecimen } from './shared.js'
+import { KIND_SKETCHES, SKETCHES, sketchOf } from './sketches.js'
 import { usageOf } from './usage.js'
 
 function element(name, className, text) {
@@ -60,100 +61,6 @@ function summaryOf(item, declaration, apps) {
 
 /** A specimen's short name: its label up to the colon. "Bezig: de breedte blijft" → "Bezig". */
 const shortOf = (label) => label.split(/:|, |\s·\s/)[0]
-
-/** A picture of a specimen: drawn live, so it has the page's theme and mode, but not to be used. */
-function previewOf(specimen, className) {
-  const frame = element('div', className)
-  frame.inert = true
-  frame.append(renderSpecimen({ ...specimen, label: undefined }).stage)
-  return frame
-}
-
-// The width a specimen is drawn at before it is made small: a wide one (a row of figures, a
-// tile, a table) as in a page's column, the others as in a narrow tile.
-const DRAWN = { wide: 720, narrow: 480 }
-
-/**
- * The boxes of what a stage paints: its text, and every element with a background, a border or
- * its own picture — through the shadow roots, since a tag often spans the row while what it
- * draws stands at one end.
- */
-function inked(stage) {
-  const boxes = []
-  const range = document.createRange()
-  const walk = (root) => {
-    for (const node of root.childNodes) {
-      if (node.nodeType === Node.TEXT_NODE) {
-        if (!node.textContent.trim()) continue
-        range.selectNodeContents(node)
-        boxes.push(range.getBoundingClientRect())
-        continue
-      }
-      if (node.nodeType !== Node.ELEMENT_NODE || node.localName === 'style' || node.localName === 'script') continue
-      const style = getComputedStyle(node)
-      if (style.display === 'none' || style.visibility === 'hidden') continue
-      const paints =
-        /^(svg|img|canvas|video|input|textarea|select|hr)$/.test(node.localName) ||
-        style.backgroundColor !== 'rgba(0, 0, 0, 0)' ||
-        parseFloat(style.borderTopWidth) + parseFloat(style.borderLeftWidth) > 0
-      if (paints) boxes.push(node.getBoundingClientRect())
-      if (node.localName === 'svg') continue
-      if (node.shadowRoot) walk(node.shadowRoot)
-      walk(node)
-    }
-  }
-  walk(stage)
-  return boxes.filter((box) => box.width && box.height)
-}
-
-/**
- * A specimen as a thumbnail: drawn at a set width, then the part it paints is scaled down until
- * it fits the box, and centred. A row of buttons is not lost in a wide stage, a tile is not
- * squeezed to its words, and nothing is cut off. It never grows.
- */
-function thumbnailOf(specimen) {
-  const frame = previewOf(specimen, 'guide__card-preview')
-  const stage = frame.firstElementChild
-  stage.style.width = `${specimen.wide ? DRAWN.wide : DRAWN.narrow}px`
-  let scale = 1
-  const fit = () => {
-    const origin = stage.getBoundingClientRect()
-    const boxes = inked(stage)
-    if (!boxes.length) return
-    // Measured under the current transform: back to the stage's own pixels.
-    const left = Math.min(...boxes.map((box) => box.left - origin.left)) / scale
-    const top = Math.min(...boxes.map((box) => box.top - origin.top)) / scale
-    const width = Math.max(...boxes.map((box) => box.right - origin.left)) / scale - left
-    const height = Math.max(...boxes.map((box) => box.bottom - origin.top)) / scale - top
-    // A margin round the part, so it does not touch the box's edges.
-    scale = Math.min(1, (frame.clientWidth * 0.88) / width, (frame.clientHeight * 0.84) / height)
-    const x = frame.clientWidth / 2 - (left + width / 2) * scale
-    const y = frame.clientHeight / 2 - (top + height / 2) * scale
-    stage.style.transform = `translate(${x}px, ${y}px) scale(${scale})`
-  }
-  const observer = new ResizeObserver(() => requestAnimationFrame(fit))
-  observer.observe(frame)
-  observer.observe(stage)
-  return frame
-}
-
-/**
- * What the card draws for an element that opens over the page: a page in outline, and over it
- * the shape the element takes. Drawn with the guide's own boxes, not with the element.
- */
-function sketchOf(kind) {
-  const frame = element('div', `guide__card-preview guide__sketch guide__sketch--${kind}`)
-  frame.setAttribute('aria-hidden', 'true')
-  const page = element('div', 'guide__sketch-page')
-  for (let i = 0; i < 4; i++) page.append(element('span', 'guide__sketch-line'))
-  frame.append(page)
-  if (kind === 'modal' || kind === 'dialog' || kind === 'search' || kind === 'drawer')
-    frame.append(element('div', 'guide__sketch-veil'))
-  const layer = element('div', 'guide__sketch-layer')
-  for (let i = 0; i < (kind === 'tooltip' ? 1 : 3); i++) layer.append(element('span', 'guide__sketch-line'))
-  if (kind !== 'page') frame.append(layer)
-  return frame
-}
 
 /**
  * A card whose title is its link; the link's area covers the card, so the whole card is
@@ -208,13 +115,12 @@ export function renderOverview(host, items, { declarations, addressOf, go, categ
   )
   const grid = element('div', 'guide__cards')
   for (const item of items) {
-    const preview = allSpecimens(item).find((entry) => entry.preview)
     grid.append(
       linkCard('guide__card', addressOf(item), go, (card, link) => {
-        if (preview) card.append(thumbnailOf(preview))
-        else if (item.sketch) card.append(sketchOf(item.sketch))
-        // Without a specimen or a sketch, the box stays empty: the name stands right under it.
-        else card.append(element('div', 'guide__card-preview'))
+        const preview = element('div', 'guide__card-preview')
+        const sketch = sketchOf(SKETCHES[nameOf(item)])
+        if (sketch) preview.append(sketch)
+        card.append(preview)
         const body = element('div', 'guide__card-body')
         const title = element('h3', 'guide__card-title')
         // A section without a tag is named as the menu names it; its title is the line under it.
@@ -423,8 +329,10 @@ function chooser(item, chosen, addressOf, go) {
       const href = addressOf(item, entry.value)
       cards.append(
         linkCard(entry === chosen ? 'guide__kind is-chosen' : 'guide__kind', href, go, (card, link) => {
-          const first = entry.specimens[0]
-          if (first) card.append(miniOf(first))
+          const mini = element('div', 'guide__mini')
+          const sketch = sketchOf(KIND_SKETCHES[entry.value])
+          if (sketch) mini.append(sketch)
+          card.append(mini)
           link.textContent = entry.label
           if (entry === chosen) link.setAttribute('aria-current', 'true')
           const name = element('span', 'guide__kind-name')
@@ -437,41 +345,6 @@ function chooser(item, chosen, addressOf, go) {
     box.append(row)
   }
   return box
-}
-
-// The width a small chart is drawn at before it is scaled to its card: wide enough for its axes.
-const DRAWN_WIDTH = 420
-
-/**
- * A kind's first specimen as a small picture: without its tile's title and footnote, drawn at a
- * readable width and scaled down to its card.
- */
-function miniOf(specimen) {
-  const frame = previewOf(
-    {
-      ...specimen,
-      setup(stage) {
-        specimen.setup?.(stage)
-        for (const node of stage.querySelectorAll('lintje-chart'))
-          node.data = {
-            ...node.data,
-            title: undefined,
-            subtitle: undefined,
-            footnote: undefined,
-            expandable: false,
-            download: false,
-            chart: { ...node.data.chart, small: true },
-          }
-      },
-    },
-    'guide__mini',
-  )
-  const inner = frame.firstElementChild
-  inner.style.width = `${DRAWN_WIDTH}px`
-  new ResizeObserver(([entry]) => {
-    frame.style.setProperty('--guide-scale', String(entry.contentRect.width / DRAWN_WIDTH))
-  }).observe(frame)
-  return frame
 }
 
 // The element's page in tabs; each holds its part, and the URL remembers the open one.

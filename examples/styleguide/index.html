@@ -90,8 +90,7 @@
       .guide__card-link::after { content: ''; position: absolute; inset: 0; }
       .guide__card:hover .guide__card-link,
       .guide__kind:hover .guide__card-link { color: var(--color-link); text-decoration: underline; }
-      /* The preview is a thumbnail: the part the specimen's tags take, scaled to fit and centred
-         from script, so the stage is placed at the box's corner. */
+      /* The card's picture: a sketch of the element (sketches.js), in greys, in the page's mode. */
       .guide__card-preview {
         position: relative;
         height: calc(4 * var(--space-10) + var(--space-3));
@@ -99,22 +98,21 @@
         background: var(--color-bg-page);
         border-bottom: 1px solid var(--color-border-default);
       }
-      .guide__card-preview > .guide__stage { position: absolute; top: 0; left: 0; padding: 0; transform-origin: 0 0; }
-
-      /* A sketch for what opens over the page: a page in outline and the shape over it. */
-      .guide__sketch-page,
-      .guide__sketch-veil { position: absolute; inset: 12% 14%; }
-      .guide__sketch-page {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-2);
-        padding: var(--space-3);
-        background: var(--color-bg-surface);
-        border: 1px solid var(--color-border-default);
-      }
-      .guide__sketch--page .guide__sketch-page { border-left: var(--space-8) solid var(--color-nav-bg); }
-      .guide__sketch-veil { background: var(--color-overlay-page); }
-      .guide__sketch-layer {
+      .guide__sketch { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 10% 12%; }
+      .guide__sk-frame { display: flex; flex-direction: column; gap: var(--space-2); width: 100%; max-height: 100%; overflow: hidden; }
+      .guide__sk-frame--none { width: 80%; }
+      .guide__sk-frame--center { align-items: center; }
+      .guide__sk-frame--center > .guide__sk-row { justify-content: center; }
+      .guide__sk-frame--page,
+      .guide__sk-frame--tile { align-self: stretch; padding: var(--space-3); background: var(--color-bg-surface); border: 1px solid var(--color-border-default); }
+      .guide__sk-frame--nav { border-left: var(--space-8) solid var(--color-border-default); }
+      .guide__sk-frame--foot { border-bottom: var(--space-6) solid var(--color-border-default); justify-content: flex-start; }
+      .guide__sk-frame--note { padding: var(--space-3); background: var(--color-bg-subtle); border-left: var(--space-1) solid var(--color-text-muted); }
+      .guide__sk-frame--band,
+      .guide__sk-frame--code { padding: var(--space-4); background: var(--color-bg-subtle); }
+      .guide__sk-frame--drop { align-items: center; padding: var(--space-4); border: 1px dashed var(--color-text-muted); }
+      .guide__sk-veil { position: absolute; inset: 10% 12%; background: var(--color-overlay-page); }
+      .guide__sk-layer {
         position: absolute;
         display: flex;
         flex-direction: column;
@@ -123,19 +121,102 @@
         background: var(--color-bg-surface);
         border: 1px solid var(--color-text-muted);
       }
-      .guide__sketch-line { display: block; height: var(--space-2); background: var(--color-bg-subtle); }
-      .guide__sketch-line:nth-child(2) { width: 80%; }
-      .guide__sketch-line:nth-child(3) { width: 60%; }
-      .guide__sketch-line:nth-child(4) { width: 70%; }
-      .guide__sketch-layer .guide__sketch-line:first-child { background: var(--color-text-muted); width: 50%; }
-      .guide__sketch--modal .guide__sketch-layer { inset: 24% 28%; }
-      .guide__sketch--dialog .guide__sketch-layer { inset: 32% 34%; }
-      .guide__sketch--search .guide__sketch-layer { top: 18%; left: 26%; right: 26%; height: 40%; }
-      .guide__sketch--drawer .guide__sketch-layer { top: 12%; bottom: 12%; right: 14%; width: 26%; }
-      .guide__sketch--popover .guide__sketch-layer { top: 42%; left: 30%; width: 30%; }
-      .guide__sketch--toast .guide__sketch-layer { right: 18%; bottom: 18%; width: 30%; }
-      .guide__sketch--tooltip .guide__sketch-layer { top: 36%; left: 36%; width: 22%; background: var(--color-text-primary); border-color: var(--color-text-primary); }
-      .guide__sketch--tooltip .guide__sketch-layer .guide__sketch-line:first-child { background: var(--color-text-inverse); width: 100%; }
+      .guide__sketch--modal .guide__sk-layer { inset: 24% 28%; }
+      .guide__sketch--dialog .guide__sk-layer { inset: 30% 32%; }
+      .guide__sketch--search .guide__sk-layer { top: 16%; left: 26%; right: 26%; }
+      .guide__sketch--drawer .guide__sk-layer { top: 10%; bottom: 10%; right: 12%; width: 28%; }
+      .guide__sketch--popover .guide__sk-layer { top: 46%; left: 30%; width: 34%; }
+      .guide__sketch--toast .guide__sk-layer { right: 16%; bottom: 16%; width: 34%; }
+      .guide__sketch--tooltip .guide__sk-layer { top: 34%; left: 34%; width: 26%; background: var(--color-text-primary); border-color: var(--color-text-primary); }
+      .guide__sketch--tooltip .guide__sk-layer .guide__sk--l { background: var(--color-text-inverse); }
+
+      /* The parts. A width comes from the recipe; a part without one fills its row. */
+      .guide__sk-row { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+      .guide__sk { display: block; flex: 0 0 auto; box-sizing: border-box; }
+      .guide__sk--l, .guide__sk--s, .guide__sk--t, .guide__sk--T, .guide__sk--bar { height: var(--space-2); background: var(--color-border-default); }
+      .guide__sk--l { width: var(--sk-w, 100%); }
+      .guide__sk--s { width: var(--sk-w, 20%); }
+      .guide__sk--t { width: var(--sk-w, 40%); background: var(--color-text-muted); }
+      .guide__sk--T { width: var(--sk-w, 60%); height: var(--space-3); background: var(--color-text-muted); }
+      .guide__sk--bar { width: var(--sk-w, 100%); background: var(--color-text-muted); }
+      .guide__sk--u, .guide__sk--bt { width: var(--sk-w, 20%); height: var(--space-2); border-bottom: 2px solid var(--color-text-muted); }
+      .guide__sk--b, .guide__sk--bo { width: var(--sk-w, 22%); height: var(--space-6); }
+      .guide__sk--b { background: var(--color-text-muted); }
+      .guide__sk--bo, .guide__sk--io, .guide__sk--in, .guide__sk--se, .guide__sk--ta, .guide__sk--cb, .guide__sk--chip, .guide__sk--tg, .guide__sk--menu, .guide__sk--kpi, .guide__sk--doc { border: 1px solid var(--color-text-muted); background: var(--color-bg-surface); }
+      .guide__sk--i { width: var(--space-4); height: var(--space-4); background: var(--color-text-muted); }
+      .guide__sk--io, .guide__sk--play { width: var(--space-6); height: var(--space-6); }
+      .guide__sk--play { background: var(--color-text-muted); }
+      .guide__sk--in, .guide__sk--se { width: var(--sk-w, auto); flex: 1 1 0; height: var(--space-6); position: relative; }
+      .guide__sk--in[style], .guide__sk--se[style], .guide__sk--l[style] { flex: 0 0 auto; }
+      .guide__sk--se::after { content: ''; position: absolute; right: var(--space-2); top: 35%; width: var(--space-1); height: var(--space-1); border-right: 2px solid var(--color-text-muted); border-bottom: 2px solid var(--color-text-muted); transform: rotate(45deg); }
+      .guide__sk--ta { width: 100%; height: var(--space-10); }
+      .guide__sk--cb, .guide__sk--cbx, .guide__sk--ra, .guide__sk--rax { width: var(--space-3); height: var(--space-3); }
+      .guide__sk--cbx, .guide__sk--rax { background: var(--color-text-muted); }
+      .guide__sk--ra, .guide__sk--rax { border: 1px solid var(--color-text-muted); border-radius: 50%; }
+      .guide__sk--tg { width: var(--space-6); height: var(--space-3); position: relative; }
+      .guide__sk--tg::after { content: ''; position: absolute; inset: 2px 2px 2px 50%; background: var(--color-text-muted); }
+      .guide__sk--chip { width: var(--sk-w, var(--space-10)); height: var(--space-4); }
+      .guide__sk--dot { width: var(--space-2); height: var(--space-2); border-radius: 50%; background: var(--color-text-muted); }
+      .guide__sk--av { width: var(--space-5); height: var(--space-5); border-radius: 50%; background: var(--color-text-muted); }
+      .guide__sk--emb { width: var(--space-4); height: var(--space-8); background: var(--color-text-muted); }
+      .guide__sk--bx, .guide__sk--bxa { width: var(--sk-w, auto); flex: 1 1 0; height: var(--space-8); border: 1px solid var(--color-border-default); }
+      .guide__sk--bx[style], .guide__sk--bxa[style] { flex: 0 0 auto; height: var(--space-2); border: 0; }
+      .guide__sk--bxa { background: var(--color-text-muted); border-color: var(--color-text-muted); }
+      .guide__sk--img, .guide__sk--video { width: 100%; height: calc(1.5 * var(--space-10)); background: var(--color-border-default); }
+      .guide__sk--video { background: var(--color-text-muted); }
+      .guide__sk--prog { width: var(--sk-w, 100%); height: var(--space-2); background: var(--color-border-default); position: relative; }
+      .guide__sk--prog::before { content: ''; position: absolute; inset: 0 40% 0 0; background: var(--color-text-muted); }
+      .guide__sk--rule { flex: 1 1 100%; height: 1px; background: var(--color-border-default); }
+      .guide__sk--sp { flex: 1 1 0; }
+      .guide__sk--ind { width: var(--space-3); }
+      .guide__sk--chev { width: var(--space-2); height: var(--space-2); border-right: 2px solid var(--color-text-muted); border-bottom: 2px solid var(--color-text-muted); transform: rotate(-45deg); }
+      .guide__sk--grip { width: var(--space-1); height: var(--space-4); border-left: 2px dotted var(--color-text-muted); border-right: 2px dotted var(--color-text-muted); }
+      .guide__sk--spin { width: var(--space-5); height: var(--space-5); border-radius: 50%; border: 2px solid var(--color-text-muted); border-top-color: transparent; }
+      .guide__sk--bubble { width: var(--sk-w, 50%); height: var(--space-5); background: var(--color-border-default); }
+      .guide__sk--dash { width: var(--sk-w, 50%); height: var(--space-5); border: 1px dashed var(--color-text-muted); }
+      .guide__sk--slider { flex: 1 1 0; height: 2px; background: var(--color-text-muted); position: relative; }
+      .guide__sk--slider::after { content: ''; position: absolute; left: 40%; top: calc(-1 * var(--space-2)); width: var(--space-2); height: var(--space-4); background: var(--color-text-muted); }
+      .guide__sk--chart { flex: 1 1 100%; height: calc(1.5 * var(--space-10)); }
+      .guide__sk--chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+      .guide__sk--chart .i { fill: var(--color-text-muted); stroke: var(--color-text-muted); stroke-width: 2; }
+      .guide__sk--chart .w { fill: var(--color-border-default); stroke: var(--color-text-muted); stroke-width: 1; }
+      .guide__sk--chart polyline.i, .guide__sk--chart polyline.w, .guide__sk--chart line { fill: none; vector-effect: non-scaling-stroke; }
+      .guide__sk--chart rect, .guide__sk--chart circle, .guide__sk--chart polygon, .guide__sk--chart path { stroke-width: 0; }
+      /* Parts made of parts. */
+      .guide__sk--menu, .guide__sk--kpi, .guide__sk--doc, .guide__sk--tbl { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2); width: 60%; }
+      .guide__sk--kpi { flex: 1 1 0; width: auto; }
+      .guide__sk--tbl, .guide__sk--doc { width: 100%; }
+      .guide__sk--menu > i, .guide__sk--doc > i, .guide__sk--tbl > i { display: block; height: var(--space-2); background: var(--color-border-default); }
+      .guide__sk--tbl > i:first-child { background: var(--color-text-muted); }
+      .guide__sk--kpi > i { display: block; height: var(--space-1); width: 60%; background: var(--color-border-default); }
+      .guide__sk--kpi > i:last-child { height: var(--space-4); width: 80%; background: var(--color-text-muted); }
+      .guide__sk--tab, .guide__sk--seg, .guide__sk--wave, .guide__sk--meter, .guide__sk--step, .guide__sk--qr { display: flex; gap: var(--space-1); }
+      .guide__sk--tab, .guide__sk--seg { width: 100%; }
+      .guide__sk--tab { gap: var(--space-3); border-bottom: 1px solid var(--color-border-default); padding-bottom: var(--space-1); }
+      .guide__sk--tab > i { display: block; flex: 1 1 0; height: var(--space-2); background: var(--color-border-default); }
+      .guide__sk--tab > i:first-child { background: var(--color-text-muted); }
+      .guide__sk--seg { gap: 0; }
+      .guide__sk--seg > i { display: block; flex: 1 1 0; height: var(--space-6); border: 1px solid var(--color-text-muted); }
+      .guide__sk--seg > i:first-child { background: var(--color-text-muted); }
+      .guide__sk--wave { width: 100%; align-items: center; height: var(--space-8); }
+      .guide__sk--wave > i { display: block; flex: 1 1 0; height: 60%; background: var(--color-text-muted); }
+      .guide__sk--wave > i:nth-child(3n) { height: 90%; }
+      .guide__sk--wave > i:nth-child(4n + 1) { height: 35%; }
+      .guide__sk--meter { align-items: flex-end; height: var(--space-6); }
+      .guide__sk--meter > i { display: block; width: var(--space-2); background: var(--color-text-muted); }
+      .guide__sk--meter > i:nth-child(1) { height: 20%; }
+      .guide__sk--meter > i:nth-child(2) { height: 35%; }
+      .guide__sk--meter > i:nth-child(3) { height: 50%; }
+      .guide__sk--meter > i:nth-child(4) { height: 65%; }
+      .guide__sk--meter > i:nth-child(5) { height: 80%; background: var(--color-border-default); }
+      .guide__sk--meter > i:nth-child(6) { height: 100%; background: var(--color-border-default); }
+      .guide__sk--step { width: 100%; align-items: center; gap: 0; }
+      .guide__sk--step > i { display: block; width: var(--space-4); height: var(--space-4); border-radius: 50%; border: 2px solid var(--color-text-muted); }
+      .guide__sk--step > i:nth-child(even) { flex: 1 1 0; height: 2px; border: 0; border-radius: 0; background: var(--color-border-default); }
+      .guide__sk--step > i:first-child { background: var(--color-text-muted); }
+      .guide__sk--qr { display: grid; grid-template-columns: repeat(3, var(--space-5)); gap: 2px; }
+      .guide__sk--qr > i { display: block; height: var(--space-5); background: var(--color-text-muted); }
+      .guide__sk--qr > i:nth-child(even) { background: var(--color-border-default); }
       .guide__card-body { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-4); }
       .guide__card-title { margin: 0; font: var(--text-h2); }
       .guide__card-title code { font-family: var(--font-mono); }
@@ -154,8 +235,9 @@
       .guide__advice { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4) var(--space-6); }
       .guide__specimen.is-marked { outline: 2px solid var(--color-link); outline-offset: -2px; }
       .guide__kind-name { font-weight: 700; }
-      .guide__mini { height: calc(3 * var(--space-10)); overflow: hidden; }
-      .guide__mini > .guide__stage { padding: 0; transform: scale(var(--guide-scale, 0.3)); transform-origin: top left; }
+      .guide__mini { position: relative; height: calc(2 * var(--space-10)); }
+      .guide__mini > .guide__sketch { padding: var(--space-2) 0; }
+      .guide__mini .guide__sk-frame--none { width: 100%; }
 
       .guide__specimens {
         display: grid;
@@ -264,7 +346,6 @@
         .guide__advice { grid-template-columns: minmax(0, 1fr); }
         .guide__kind-frame { padding: var(--space-3); }
         .guide__kinds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .guide__mini { height: calc(2 * var(--space-10)); }
         .guide__pair { grid-template-columns: minmax(0, 1fr); }
         .guide__chat { height: 640px; }
       }

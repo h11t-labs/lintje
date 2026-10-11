@@ -49,7 +49,6 @@ export default {
       specimens: [
         {
           label: 'Tegels van 8 en 4, items van 6 en 6',
-          preview: true,
           wide: true,
           html: `<lintje-grid>
             <lintje-tile span="8" heading="span 8" subtitle="8 van 12 · 768-1023 wordt dit 12">
@@ -70,7 +69,6 @@ export default {
       specimens: [
         {
           label: 'Drie cellen: 4, 4 en 4',
-          preview: true,
           wide: true,
           html: `<lintje-grid>
             <lintje-grid-item span="4"><div class="guide__placeholder">span 4</div></lintje-grid-item>
@@ -86,7 +84,6 @@ export default {
       specimens: [
         {
           label: 'Klaar',
-          preview: true,
           wide: true,
           html: `<lintje-tile heading="Afwijzingen naar grond" subtitle="Vandaag · 37 afwijzingen" footnote="${FOOTNOTE}" expandable download>
             <div class="guide__placeholder"><lintje-icon name="functioneel-info" size="18"></lintje-icon> Inhoud van een tegel</div>
@@ -144,7 +141,6 @@ export default {
       specimens: [
         {
           label: 'Rust, actief, met teller, uitgeschakeld',
-          preview: true,
           wide: true,
           html: `<lintje-tabs label="Weergave van de opname">${PANELS}</lintje-tabs>`,
           setup: (stage) => tabs(stage),
@@ -173,7 +169,6 @@ export default {
       specimens: [
         {
           label: 'Dicht',
-          preview: true,
           wide: true,
           html: `<lintje-expander heading="Toelichting op de meting">
             <lintje-prose text="De wachttijd is de mediaan per kwartier, gemeten vanaf het betreden van de rij."></lintje-prose>
@@ -210,7 +205,6 @@ export default {
       specimens: [
         {
           label: 'Rust, hover, focus, slepen',
-          preview: true,
           wide: true,
           html: `<lintje-split-pane start-label="Brontekst" end-label="Vertaling">${SPLIT}</lintje-split-pane>`,
         },

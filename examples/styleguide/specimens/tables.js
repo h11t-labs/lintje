@@ -492,7 +492,6 @@ export default {
       specimens: [
         {
           label: 'Het dashboard — drempels, statuskolom, klikbare rijen',
-          preview: true,
           html: '<lintje-data-table></lintje-data-table>',
           wide: true,
           setup: (stage) => dashboard(stage),
@@ -635,7 +634,6 @@ export default {
       specimens: [
         {
           label: 'Rust, met de telling',
-          preview: true,
           wide: true,
           html: '<lintje-pagination page="2" page-count="7" total="131" page-size="20"></lintje-pagination>',
           setup: follow,
@@ -682,7 +680,6 @@ export default {
       specimens: [
         {
           label: 'Rust, hover toont de actie',
-          preview: true,
           wide: true,
           html: '<lintje-list label="Opnames"></lintje-list>',
           setup(stage) {
@@ -826,7 +823,6 @@ export default {
         },
         {
           label: 'Compact: grijze regel, titel, status en één actie',
-          preview: true,
           html: '<lintje-card compact></lintje-card>',
           setup(stage) {
             stage.querySelector('lintje-card').data = PRODUCTS[1]
@@ -863,7 +859,6 @@ export default {
         },
         {
           label: 'Als links',
-          preview: true,
           wide: true,
           html: '<lintje-card-list label="Bladeren per soort"></lintje-card-list>',
           setup(stage) {
@@ -888,7 +883,6 @@ export default {
       specimens: [
         {
           label: 'Rust, lege waarde, wijzigen',
-          preview: true,
           wide: true,
           html: '<lintje-description-list></lintje-description-list>',
           setup(stage) {
@@ -937,7 +931,6 @@ export default {
       specimens: [
         {
           label: 'Rust, gekozen, open, dicht',
-          preview: true,
           html: '<lintje-tree-view label="Locaties" name="locatie" selected-id="v2"></lintje-tree-view>',
           setup(stage) {
             const tree = stage.querySelector('lintje-tree-view')
@@ -965,7 +958,6 @@ export default {
       specimens: [
         {
           label: 'Rust, opgepakt met spatie',
-          preview: true,
           html: '<lintje-sortable-list label="Volgorde van de kolommen" name="kolommen"></lintje-sortable-list>',
           setup(stage) {
             stage.querySelector('lintje-sortable-list').items = COLUMNS.map(({ id, label }) => ({
@@ -989,7 +981,6 @@ export default {
       specimens: [
         {
           label: 'Rust, tijd',
-          preview: true,
           html: '<lintje-activity-log heading="Geschiedenis"></lintje-activity-log>',
           setup(stage) {
             stage.querySelector('lintje-activity-log').entries = ACTIVITY

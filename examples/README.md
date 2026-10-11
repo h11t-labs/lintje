@@ -31,10 +31,9 @@ Hij is de levende referentie: een wijziging aan een component in `src/` wordt da
 **en** donker, op 1440 **en** 390 px.
 
 Het menu van de shell somt de categorieën op. De pagina van een categorie (`?category=<name>`, uit
-`src/categories.json`) is een overzicht: per element een kaart met zijn voorbeeld, levend getekend
-in het thema en de modus van de pagina en verkleind tot het in het vak past, wat het is en
-hoeveel het toont. Een element dat boven de pagina opent (een venster, een paneel) krijgt een
-schets in plaats van een voorbeeld (`sketch`). Elk element heeft een
+`src/categories.json`) is een overzicht: per element een kaart met een schets van zijn vorm, in grijs
+en in de modus van de pagina (`styleguide/sketches.js`), wat het is en hoeveel het toont. Elk
+element heeft een
 eigen pagina, `?element=<tag without lintje->` (`?element=tabs`): wat het is, en daaronder vier
 tabs — Voorbeelden, Referentie, Toegepast in en Laden; de open tab staat in de URL (`&tab=`). Ernaast
 staat "Op deze pagina" voor de open tab (`lintje-sub-nav` met `expanded`) en de andere elementen
@@ -68,8 +67,9 @@ per kop de categorieën, en per categorie de elementen die hij toont, op volgord
 `styleguide/specimens/` bevat **de specimens**, één module per categorie (`frame.js`,
 `inputs.js`, …): een module exporteert `{ elements }`; elk element is een `tag`, een Nederlandse
 `title` en zijn `specimens`, elk een `label`, gewone `html` en een optionele `setup(stage)` voor wat
-een attribuut niet kan dragen (een rijke property, een listener); `preview: true` wijst het voorbeeld
-voor het overzicht aan. Een element met soorten heeft `groups` en `states`.
+een attribuut niet kan dragen (een rijke property, een listener). Een element met soorten heeft
+`groups` en `states`. Het overzicht tekent elk element als schets, uit zijn recept in
+`styleguide/sketches.js`; een nieuw element krijgt daar een regel.
 `styleguide/shared.js` bevat dat contract, `page.js` tekent de twee soorten pagina's, `code.js` de
 code onder een voorbeeld, `reference.js` de referentie en `usage.js` zoekt het element in de
 voorbeeldapplicaties (`_shared/apps.js`). Een tag van

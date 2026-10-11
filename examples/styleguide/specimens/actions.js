@@ -63,7 +63,6 @@ export default {
       specimens: [
         {
           label: 'De vier varianten: primair, secundair, tertiair en link',
-          preview: true,
           wide: true,
           html: `<div class="guide__row">
             <lintje-button variant="primary">Toepassen</lintje-button>
@@ -133,7 +132,6 @@ export default {
       specimens: [
         {
           label: 'Omlijnd',
-          preview: true,
           html: '<lintje-icon-button icon="functioneel-kruis" label="Sluiten"></lintje-icon-button>',
         },
         {
@@ -172,7 +170,6 @@ export default {
       specimens: [
         {
           label: 'Rust, uitgeschakeld, onomkeerbaar',
-          preview: true,
           html: '<lintje-menu-button label="Acties"></lintje-menu-button>',
           setup: (stage) => menu(stage, ACTIONS),
         },
@@ -249,7 +246,6 @@ export default {
       specimens: [
         {
           label: 'Rust — druk om te kopiëren',
-          preview: true,
           html: '<lintje-copy-button text="https://intranet.example/opnames/4821"></lintje-copy-button>',
         },
         {
@@ -286,7 +282,6 @@ export default {
       specimens: [
         {
           label: 'Rust — de code van een link',
-          preview: true,
           html: '<lintje-qr-code label="QR-code naar deze weergave" value="https://dashboard.example.nl/overzicht?jaar=2025"></lintje-qr-code>',
         },
         {
@@ -313,7 +308,6 @@ export default {
       specimens: [
         {
           label: 'Vier maten',
-          preview: true,
           html: '<div class="guide__row"><lintje-icon name="functioneel-info" size="14"></lintje-icon><lintje-icon name="functioneel-info"></lintje-icon><lintje-icon name="functioneel-info" size="18"></lintje-icon><lintje-icon name="functioneel-info" size="20"></lintje-icon></div>',
         },
         {
@@ -332,7 +326,6 @@ export default {
       short: 'register',
       specimens: [
         {
-          preview: true,
           wide: true,
           html: '<div class="guide__stack"><lintje-prose tone="muted"></lintje-prose><div class="guide__icons"></div></div>',
           setup(stage) {
@@ -362,7 +355,6 @@ export default {
       specimens: [
         {
           label: 'Op naam',
-          preview: true,
           html: '<div class="guide__row"><lintje-logo name="embleem-rijksoverheid" alt="Rijksoverheid"></lintje-logo><lintje-logo name="embleem-defensie" alt="Ministerie van Defensie"></lintje-logo></div>',
         },
         {

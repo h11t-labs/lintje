@@ -406,7 +406,7 @@ const TILE = '<lintje-chart></lintje-chart>'
 
 const chartSpecimen = (chart) => ({
   label: VARIANT_NAMES[chart.id],
-  preview: chart.id === 'bar',
+ 
   html: TILE,
   wide: true,
   setup(stage) {
@@ -502,7 +502,6 @@ export default {
       specimens: [
         {
           label: 'Vijf kerncijfers',
-          preview: true,
           html: '<lintje-kpi-row></lintje-kpi-row>',
           wide: true,
           setup: (stage) => {
@@ -540,7 +539,6 @@ export default {
         },
         {
           label: 'Met trend',
-          preview: true,
           html: '<lintje-kpi></lintje-kpi>',
           setup: single(KPIS[1]),
         },
@@ -636,7 +634,6 @@ export default {
       specimens: [
         {
           label: 'Met datum en auteur',
-          preview: true,
           html: '<lintje-note></lintje-note>',
           wide: true,
           setup: (stage) => {
@@ -656,7 +653,6 @@ export default {
       specimens: [
         {
           label: 'Begrippen en omschrijvingen',
-          preview: true,
           html: '<lintje-explainer></lintje-explainer>',
           wide: true,
           setup: (stage) => {
