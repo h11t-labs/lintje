@@ -37,6 +37,28 @@ const viewport = (width: number): void =>
     window as unknown as { happyDOM: { setViewport(size: { width: number }): void } }
   ).happyDOM.setViewport({ width })
 
+const SECTIONS: SubNavGroup[] = [
+  {
+    label: 'Op deze pagina',
+    items: [
+      { label: 'Wat u nodig hebt', href: '#nodig' },
+      {
+        label: 'Zo vraagt u aan',
+        href: '#aanvragen',
+        items: [
+          { label: 'Online aanvragen', href: '#online', active: true },
+          { label: 'Op papier aanvragen', href: '#papier' },
+        ],
+      },
+      {
+        label: 'Na uw aanvraag',
+        href: '#na',
+        items: [{ label: 'Bezwaar maken', href: '#bezwaar' }],
+      },
+    ],
+  },
+]
+
 async function mount(groups: SubNavGroup[], action?: SubNavAction): Promise<LintjeSubNav> {
   const element = Object.assign(document.createElement('lintje-sub-nav'), {
     groups,
@@ -188,6 +210,25 @@ describe('lintje-sub-nav', () => {
     await element.updateComplete
     expect(element.open).toBe(false)
     expect(document.activeElement).toBe(outside)
+  })
+})
+
+describe('lintje-sub-nav expanded', () => {
+  it('shows every level, and still marks only the parent on the reader’s path', async () => {
+    const element = Object.assign(document.createElement('lintje-sub-nav'), {
+      groups: SECTIONS,
+      expanded: true,
+    })
+    document.body.append(element)
+    await element.updateComplete
+    const root = element.shadowRoot!
+    expect(root.querySelectorAll('.lintje-sub-nav__list--nested')).toHaveLength(2)
+    expect(root.querySelector('a[href="#bezwaar"]')).not.toBeNull()
+    expect(root.querySelector('a[href="#aanvragen"]')!.classList.contains('is-ancestor')).toBe(true)
+    expect(root.querySelector('a[href="#na"]')!.classList.contains('is-ancestor')).toBe(false)
+    expect(root.querySelector('[aria-current="page"]')!.textContent!.trim()).toBe(
+      'Online aanvragen',
+    )
   })
 })
 

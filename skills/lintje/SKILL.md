@@ -84,6 +84,6 @@ De pagina is klaar als:
 De handleidingen staan in `<naslag>/guides/`: `start.md` (een eerste pagina en wat een formulier
 post), `loading.md` (laden en iconen), `events.md` (elk event en zijn
 antwoord), `theming.md` (thema, modus, embleem), `dashboard.md` (filters en de URL),
-`icons.md` (eigen iconen). Lees de handleiding van het onderwerp voordat je eraan begint. De
+`icons.md` (eigen iconen), `page-contents.md` (een inhoudsopgave naast een lange tekst). Lees de handleiding van het onderwerp voordat je eraan begint. De
 styleguide (`https://h11t-labs.github.io/lintje/examples/styleguide/`) toont elke tag in zijn
 toestanden.
