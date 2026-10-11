@@ -17,9 +17,6 @@ import { renderChart } from '../../shared/charts/shared/render-chart'
 import { rowsHeight } from '../../shared/charts/horizontal-bar-chart/horizontal-bar-chart'
 import { binLabel } from '../../shared/charts/histogram-chart/histogram-chart'
 import {
-  renderChartEmpty,
-  liveAnnouncement,
-  renderChartError,
   renderChartSkeleton,
   type ChartSkeletonKind,
 } from '../../shared/charts/shared/chart-states'
@@ -27,7 +24,6 @@ import { chartStyles } from '../../shared/charts/shared/chart-styles'
 import type { ChartSpec } from '../../shared/charts/shared/types'
 import { downloadCsv, downloadPng, type CsvCell } from '../../shared/download'
 import { MediaController } from '../../../core/media'
-import announcementCss from '../../feedback/announcement/announcement.css?inline'
 import skeletonCss from '../../../primitives/skeleton/skeleton.css?inline'
 import tileHostCss from '../../shared/view-tile.css?inline'
 import chartCss from './chart.css?inline'
@@ -238,7 +234,6 @@ export class LintjeChart extends LintjeContentTileElement {
     spanStyles,
     shadowCss(tileHostCss),
     shadowCss(skeletonCss),
-    shadowCss(announcementCss),
     ...chartStyles,
     shadowCss(chartCss),
   ]
@@ -331,6 +326,10 @@ export class LintjeChart extends LintjeContentTileElement {
         ?legend-below=${Boolean(data.legendBelow)}
         ?expandable=${this.expandable && ready}
         ?download=${this.downloadName !== null && ready}
+        state=${data.state ?? 'ready'}
+        message=${data.message ?? nothing}
+        last-known=${data.lastKnown ?? nothing}
+        content-height=${stateHeight(data.chart) ?? nothing}
         @lintje-tile-expand=${(event: Event) => {
           event.stopPropagation()
           this.expand(true)
@@ -375,21 +374,21 @@ export class LintjeChart extends LintjeContentTileElement {
       )}`
   }
 
-  private content(): TemplateResult {
+  /** The drawing, or the skeleton in its shape for the tile's `loading` slot; empty and error are the tile's. */
+  private content(): TemplateResult | typeof nothing {
     const data = this.data as ChartData
-    const height = stateHeight(data.chart)
     switch (data.state ?? 'ready') {
       case 'loading':
-        return renderChartSkeleton({ kind: skeletonKind(data.chart), height })
+        return html`<div slot="loading">
+          ${renderChartSkeleton({
+            kind: skeletonKind(data.chart),
+            height: stateHeight(data.chart),
+            status: false,
+          })}
+        </div>`
       case 'empty':
-        return renderChartEmpty(data.message, height)
       case 'error':
-        return renderChartError({
-          message: data.message,
-          lastKnown: data.lastKnown,
-          height,
-          announcement: liveAnnouncement,
-        })
+        return nothing
       default:
         return this.showsTable
           ? this.table()

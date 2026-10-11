@@ -14,7 +14,6 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import './map'
 import { downloadCsv } from '../../shared/download'
 import type { MapData, MapValue } from '../../../types'
-import type { LintjeAnnouncement } from '../../feedback/announcement/announcement'
 
 interface MapTile extends HTMLElement {
   renderRoot: DocumentFragment | HTMLElement
@@ -306,13 +305,14 @@ describe('lintje-map series', () => {
 })
 
 describe('lintje-map error state', () => {
-  it('is the compact warning, a live region: the load failed just now', async () => {
+  it('hands the error to the tile, which draws the live warning and keeps its box', async () => {
     const element = await mapTile(tileData({ state: 'error', message: 'De kaart laadt niet.' }))
-    const notice = element.renderRoot.querySelector<LintjeAnnouncement>(
-      '.lintje-chart-state--error lintje-announcement',
-    )
-    expect(notice?.hasAttribute('compact')).toBe(true)
-    expect(notice?.data).toEqual({ kind: 'warning', text: 'De kaart laadt niet.', live: true })
+    const frame = element.renderRoot.querySelector('lintje-tile')!
+    expect(frame.state).toBe('error')
+    expect(frame.message).toBe('De kaart laadt niet.')
+    expect(
+      frame.shadowRoot!.querySelector('.lintje-announcement--warning[role="status"]'),
+    ).not.toBeNull()
   })
 })
 

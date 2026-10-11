@@ -7,6 +7,7 @@
 import type { DataColor } from './tokens/colors'
 import type { ContentStateKind } from './primitives/shared/tone'
 import type { StatusTone } from './primitives/status-dot/status-dot'
+import type { AnnouncementKind } from './primitives/shared/announcement-block'
 import type { ChartSpec, MapSpec } from './components/shared/charts/shared/types'
 import type { MenuEntry } from './components/actions/menu-button/menu-button'
 import type { NotificationItem } from './components/frame/notifications/notifications'
@@ -331,7 +332,7 @@ export interface DataTableData extends FrameSettings, TileData, ContentState {
 /* Announcement ------------------------------------------------------------- */
 
 /** `outage` interrupts and cannot be closed; `error` is a failure the reader may put away. */
-export type AnnouncementKind = 'warning' | 'outage' | 'error' | 'info' | 'ok'
+export type { AnnouncementKind } from './primitives/shared/announcement-block'
 
 export interface AnnouncementData {
   kind?: AnnouncementKind

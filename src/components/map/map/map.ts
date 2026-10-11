@@ -24,19 +24,13 @@ import { spanStyles } from '../../../primitives/shared/grid-item-element'
 import { ChartController } from '../../shared/charts/shared/controller'
 import { MAP_HEIGHT, renderMap, type MapOptions } from '../../shared/charts/map-chart/map-chart'
 import { mapDrawings, type MapDrawing } from '../../shared/charts/map-chart/drawings'
-import {
-  liveAnnouncement,
-  renderChartEmpty,
-  renderChartError,
-  renderChartSkeleton,
-} from '../../shared/charts/shared/chart-states'
+import { renderChartSkeleton } from '../../shared/charts/shared/chart-states'
 import { chartStyles } from '../../shared/charts/shared/chart-styles'
 import { mapStyles } from '../../shared/charts/map-chart/map-styles'
 import { LintjeContentTileElement } from '../../shared/content-tile'
 import { downloadCsv, downloadPng, type CsvCell } from '../../shared/download'
 import { MediaController } from '../../../core/media'
 import { onPrintMedia } from '../../../core/print'
-import announcementCss from '../../feedback/announcement/announcement.css?inline'
 import skeletonCss from '../../../primitives/skeleton/skeleton.css?inline'
 import tileHostCss from '../../shared/view-tile.css?inline'
 import '../../feedback/announcement/announcement'
@@ -50,7 +44,6 @@ export class LintjeMap extends LintjeContentTileElement {
     spanStyles,
     shadowCss(tileHostCss),
     shadowCss(skeletonCss),
-    shadowCss(announcementCss),
     ...chartStyles,
     ...mapStyles,
   ]
@@ -165,6 +158,10 @@ export class LintjeMap extends LintjeContentTileElement {
       ?legend-below=${Boolean(data.legendBelow)}
       ?expandable=${Boolean(data.expandable) && ready}
       ?download=${Boolean(data.download) && ready}
+      state=${data.state ?? 'ready'}
+      message=${data.message ?? nothing}
+      last-known=${data.lastKnown ?? nothing}
+      content-height=${`${height}px`}
       @lintje-tile-expand=${(event: Event) => {
         event.stopPropagation()
         this.expand(true)
@@ -198,20 +195,15 @@ export class LintjeMap extends LintjeContentTileElement {
     )}`
   }
 
-  private content(height: string): TemplateResult {
+  /** The map, or its skeleton for the tile's `loading` slot; empty and error are the tile's. */
+  private content(height: string): TemplateResult | typeof nothing {
     const data = this.data as MapData
     switch (data.state ?? 'ready') {
       case 'loading':
-        return renderChartSkeleton({ kind: 'map', height })
+        return html`<div slot="loading">${renderChartSkeleton({ kind: 'map', height, status: false })}</div>`
       case 'empty':
-        return renderChartEmpty(data.message, height)
       case 'error':
-        return renderChartError({
-          message: data.message,
-          lastKnown: data.lastKnown,
-          height,
-          announcement: liveAnnouncement,
-        })
+        return nothing
       default:
         return renderMap({ ...data, layer: this.layer }, this.mapOptions(this.#map))
     }
