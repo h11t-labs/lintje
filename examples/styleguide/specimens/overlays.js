@@ -180,7 +180,7 @@ export default {
           setup: (stage) => sessionHost(stage),
         },
         {
-          // Recipe: the register's list and the switch for the one-character keys (WCAG 2.1.4).
+          // Recipe: the register's list, filled fresh each time it opens.
           label: 'Recept: de sneltoetsen (of druk ?)',
           html: `<lintje-button variant="secondary" data-open aria-keyshortcuts="?">Sneltoetsen</lintje-button>
             <lintje-dialog heading="Sneltoetsen"></lintje-dialog>`,
@@ -235,12 +235,12 @@ export default {
           label: 'Open onder zijn anker',
           html: `<lintje-button variant="secondary" data-anchor>Kolommen</lintje-button>
             <lintje-popover label="Kolommen kiezen" panel-role="dialog">
-              <lintje-prose class="guide__popover-body">
-                <p><strong>Kolommen</strong></p>
-                <p>Hier staat de inhoud: een lijst, een formulier, een toelichting.</p>
-              </lintje-prose>
+              <lintje-prose class="guide__popover-body"></lintje-prose>
             </lintje-popover>`,
           setup(stage) {
+            // As `html`, not slotted: slotted paragraphs keep the browser's margins.
+            stage.querySelector('lintje-prose').html =
+              '<p><strong>Kolommen</strong></p><p>Hier staat de inhoud: een lijst, een formulier, een toelichting.</p>'
             const button = stage.querySelector('[data-anchor]')
             const popover = stage.querySelector('lintje-popover')
             button.addEventListener('click', () => (popover.open = !popover.open))

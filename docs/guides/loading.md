@@ -120,8 +120,8 @@ toets over van de pagina. `shortcuts()` somt op wat
 geregistreerd is: het overzicht is een `<lintje-dialog heading="Sneltoetsen">` die de pagina
 daarmee vult en op `?` opent, voorgedaan in de stijlgids (`examples/_shared/shortcuts.js`).
 
-Een toets van één teken zonder Ctrl, Alt of Meta (`/`, `?`) kan de lezer uitzetten, met de
-schakelaar onder de lijst in het overzicht of met `setCharacterKeys(false)`; de keuze blijft
+Een toets van één teken zonder Ctrl, Alt of Meta (`/`, `?`) kan de lezer uitzetten, met
+`setCharacterKeys(false)` achter een instelling van de pagina; de keuze blijft
 bewaard in `localStorage`. Met die toetsen uit opent `?` niets, dus bied het overzicht ook aan
 vanuit een knop of een menu.
 

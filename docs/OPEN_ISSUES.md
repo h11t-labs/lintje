@@ -61,7 +61,7 @@ regel per punt, met het bestand waar het over gaat. Sluit een regel in de wijzig
 
 ## Laden
 
-- `src/components/shared/key.css`: een toets op het scherm (`<kbd class="lintje-key">`) bestaat alleen binnen een shadow root; een host heeft geen element of klasse ervoor. Het recept van de sneltoetsen (`examples/_shared/shortcuts.js`) toont de toetsen daarom als tags van `lintje-description-list`, en toont de schakelaar voor toetsen van één teken altijd, omdat `isCharacterKey` niet in `core.js` staat.
+- `src/components/shared/key.css`: een toets op het scherm (`<kbd class="lintje-key">`) bestaat alleen binnen een shadow root; een host heeft geen element of klasse ervoor. Het recept van de sneltoetsen (`examples/_shared/shortcuts.js`) toont de toetsen daarom als tags van `lintje-description-list`.
 - `vite.config.elements.ts`: een categorie is één bestand per tag boven op de gedeelde basis, dus `forms.js` is 32 requests en een pagina zo'n 45. Of de invoeren één bestand worden is niet besloten: minder requests, tegenover een pagina met drie invoeren die er zeventien laadt.
 - `src/components/frame/shell/navigation.ts`: vanaf 768 px toont de voet van de zij-indeling de gebruiker en "Afmelden", niet de rijen van `userMenu`, die alleen de avatar van de bovenindeling en het telefoonmenu tekenen.
 - `src/components/inputs/shared/input.ts`: in een native formulier melden alleen het tekstveld, het getalveld en de textarea hun geldigheid (`required`); de andere invoeren posten hun waarde en de `error` van een veld houdt een submit niet tegen. Een bestandsupload post de ids van de voltooide bestanden, niet de bestanden; de eigen `name` en `value` van de verzendknop worden niet gepost.
@@ -69,6 +69,7 @@ regel per punt, met het bestand waar het over gaat. Sluit een regel in de wijzig
 
 ## Toegankelijkheid
 
+- `examples/_shared/shortcuts.js`: het overzicht van de sneltoetsen heeft geen schakelaar meer voor de toetsen van één teken, en geen ander element biedt hem; `setCharacterKeys()` bestaat, maar een lezer kan de toetsen alleen uitzetten als de host er een instelling voor maakt (WCAG 2.1.4). De meldingen-app heeft die instelling niet.
 - `src/components/inputs/date-input/date-input.ts`: de dagcellen zijn `<button role="gridcell">`.
 - `src/components/frame/notifications/notifications.ts`: een open telefoonsheet blijft open over het breekpunt van 768 px heen en wordt de popover (de trap laat los, de focus keert terug naar de bel); het menu van `lintje-shell` sluit daar juist. Besluit welke van de twee klopt.
 - `src/components/tables/data-table/data-table.ts`: geen `role="grid"`; een bewerkbare cel is een cel met `tabindex="0"` en een verborgen hint.

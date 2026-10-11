@@ -68,7 +68,7 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   `lintje-dialog alert persistent` en het teruggezette concept een `lintje-announcement`.
   `lintje-modal` verliest `narrow` (een formulier is een `lintje-dialog wide`), heeft geen kop
   "Vergroot" meer en zet `csv` en `png` standaard uit. Het overzicht van de sneltoetsen is een
-  `lintje-dialog` die de pagina vult uit `shortcuts()`, met de schakelaar op `setCharacterKeys()`.
+  `lintje-dialog` die de pagina vult uit `shortcuts()`.
   Modal, dialoog en drawer delen hun scrollvergrendeling, focusval en Escape
   (`components/shared/dialog.ts`). (#31)
 - De kop van `lintje-data-table` zegt alleen wat nu geldt: sorteerpijlen alleen op de gesorteerde
