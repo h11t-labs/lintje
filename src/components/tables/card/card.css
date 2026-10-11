@@ -1,6 +1,7 @@
 /* The actions are `lintje-button`s; here they are only laid out, never restyled. */
 :host { display: block; min-width: 0; height: 100%; }
 :host([hidden]) { display: none; }
+@media print { :host { break-inside: avoid; } }
 
 /* ------------------------------------------------------------------------ */
 

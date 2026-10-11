@@ -88,7 +88,7 @@
 
 .lintje-pagination__size { grid-area: size; justify-self: end; white-space: nowrap; }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-pagination {
     grid-template-columns: 1fr auto;
     grid-template-areas: "nav nav" "count size";
@@ -109,4 +109,10 @@
 /* Forced colours: the current page's fill is dropped, so its border turns Highlight. */
 @media (forced-colors: active) {
   .lintje-pagination__page.is-current { border-color: Highlight; }
+}
+
+/* Paper keeps the count, which says that only these rows are on it; the steps are controls. */
+@media print {
+  .lintje-pagination__nav,
+  .lintje-pagination__size { display: none; }
 }

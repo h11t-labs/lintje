@@ -23,6 +23,16 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   `core/motion.ts` een `easing`. (#11)
 - Een lijngrafiek toont gebeurtenissen (`events`): een genummerd vierkantje boven de categorie,
   met de tekst in een lijst onder de grafiek, in de tooltip, de tabel en de CSV. (#12)
+- Afdrukken geeft een nette pagina, staand en liggend: altijd licht en wit, met een eigen marge,
+  zonder telefoonvorm, bediening of beweging, met het embleem en de naam van de applicatie
+  bovenaan, elke tegel heel op een vel en een tabel die tussen zijn rijen breekt (`breakable` op
+  `lintje-tile`). Een kerncijfer toont op papier zijn waarde, ook als het nog niet in beeld was,
+  en een kaart het gebied dat de lezer zag. (#22)
+
+### Gewijzigd
+
+- De telefoonvorm geldt alleen op een scherm: `MOBILE` is `screen and (max-width: 767px)`, en een
+  host schrijft zijn eigen telefoonregels zo. (#22)
 
 ### Opgelost
 

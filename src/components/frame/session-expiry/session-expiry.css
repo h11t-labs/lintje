@@ -4,7 +4,7 @@
 
 /* ------------------------------------------------------------------------ */
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-session-expiry__primary { order: 1; }
   .lintje-session-expiry__logout { order: 2; }
 }

@@ -547,3 +547,11 @@
   .lintje-map-legend__layer.is-off .lintje-map-legend__box { background: Canvas; border-color: CanvasText; }
   .lintje-map-chart .leaflet-container:focus-visible::after { border-color: Highlight; }
 }
+
+/* Zooming, drawing and closing are for the screen; paper shows the map as it stands, with its
+   scale, its layers and what is chosen. */
+@media print {
+  .lintje-map-chart__zoom,
+  .lintje-map-chart__hint,
+  .lintje-map-chart__selection-close { display: none; }
+}

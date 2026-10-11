@@ -73,7 +73,7 @@
 .lintje-field > .lintje-slot-picker__none { padding: 0; text-align: left; }
 
 /* Below 768 px the days stand under each other, each with its times in rows. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-slot-picker { grid-auto-flow: row; gap: var(--space-4); }
   .lintje-slot-picker__day {
     display: grid;

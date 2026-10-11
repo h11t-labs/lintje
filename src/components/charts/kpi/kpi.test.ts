@@ -100,6 +100,19 @@ describe('lintje-kpi trend', () => {
   })
 })
 
+describe('lintje-kpi on paper', () => {
+  it('draws its value before the print is laid out, not the figure it counts from', async () => {
+    const element = await kpi({ value: '148.230' })
+    const live = () => element.renderRoot.querySelector('.lintje-kpi__count-live')
+    expect(live()?.textContent?.trim()).toBe('0')
+    // No await: the print layout follows the event at once.
+    window.dispatchEvent(new Event('beforeprint'))
+    expect(live()).toBeNull()
+    expect(element.renderRoot.querySelector('.lintje-kpi__value')?.textContent).toContain('148.230')
+    element.remove()
+  })
+})
+
 describe('lintje-kpi sparkline', () => {
   const requests: KpiSparkline = {
     values: [138, 141, 139, 144, 152, 168, 149],

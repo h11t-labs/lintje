@@ -71,7 +71,7 @@
 }
 
 /* Below 768 px nobody drags: the words go and the button takes the full width. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-file-upload__text { display: none; }
   .lintje-file-upload.is-dragging .lintje-file-upload__text { display: inline; }
   .lintje-file-upload__button { flex: 1 1 100%; --h-button: var(--h-touch); }

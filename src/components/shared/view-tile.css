@@ -10,6 +10,11 @@
 :host([hidden]) {
   display: none;
 }
+/* The grid cell moves to the next sheet whole; a tile split between its title and its drawing
+   reads as two. */
+@media print {
+  :host { break-inside: avoid; }
+}
 /* `min-height: inherit`: a held host has a min-height and no height, so `100%` resolves to auto. */
 lintje-tile {
   height: 100%;

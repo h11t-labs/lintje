@@ -45,24 +45,32 @@ const bare = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '')
 
 type Block = { selector: string; body: string }
 
-/** The top-level rules of a stylesheet, in order; `@media` and its inside are skipped. */
+/**
+ * The top-level rules of a stylesheet, in order. `@media screen` is read through, since the dark
+ * block stands in it; every other `@media` and its inside are skipped.
+ */
 function blocks(css: string): Block[] {
   const found: Block[] = []
   let depth = 0
   let start = 0
+  // The depth that counts as the top level: one more inside `@media screen`.
+  let top = 0
   for (let i = 0; i < css.length; i++) {
     if (css[i] === '{') {
-      if (depth === 0) {
+      if (depth === top) {
         const selector = css.slice(start, i).trim()
         const end = css.indexOf('}', i)
-        if (!selector.startsWith('@') && !css.slice(i + 1, end).includes('{')) {
+        if (top === 0 && selector === '@media screen') top = 1
+        else if (!selector.startsWith('@') && !css.slice(i + 1, end).includes('{')) {
           found.push({ selector, body: css.slice(i + 1, end) })
         }
       }
       depth++
+      start = i + 1
     } else if (css[i] === '}') {
       depth--
-      if (depth === 0) start = i + 1
+      if (depth < top) top = depth
+      if (depth <= top) start = i + 1
     }
   }
   return found

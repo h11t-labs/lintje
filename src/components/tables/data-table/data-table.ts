@@ -715,6 +715,8 @@ export class LintjeDataTable extends LintjeContentTileElement {
       this.#mobile.matches && data.mobileSubtitle ? data.mobileSubtitle : data.subtitle
 
     return html`<lintje-tile
+      class="lintje-data-table__tile"
+      breakable
       id=${this.id ? `${this.id}-tile` : nothing}
       span=${data.span ?? nothing}
       heading=${data.title ?? nothing}

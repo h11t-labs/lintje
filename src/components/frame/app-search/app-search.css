@@ -129,7 +129,7 @@
 }
 .lintje-app-search__title { flex: 1; margin: 0; font: var(--text-h2); }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-app-search__scrim { align-items: flex-end; padding: 0; }
   .lintje-app-search {
     width: 100%;

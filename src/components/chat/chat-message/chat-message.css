@@ -57,7 +57,7 @@
 .lintje-chat-message__note { font: var(--text-small); color: var(--color-text-muted); }
 
 /* A phone keeps room on the left so the bar reads as the reader's side. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-chat-message { flex-direction: column; align-items: flex-end; margin-left: var(--space-10); }
   .lintje-chat-message--editing { margin-left: 0; }
 }

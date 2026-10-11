@@ -134,6 +134,18 @@ wat het terug verwacht.
 Een *view* is een tag die één `data`-object neemt (`lintje-shell`, `lintje-data-table`,
 `lintje-chart`, …); elke andere tag is een *onderdeel* met eigen attributen en properties.
 
+## Afdrukken
+
+Een pagina drukt af zonder werk van de host: licht, zonder bediening, met het embleem en de naam
+van de applicatie bovenaan, en elke tegel heel op een vel waar hij past. Wat de host zelf schrijft,
+houdt zich aan dezelfde regels:
+
+- **De achtergrond van `body` is `var(--color-bg-page)`**: die is wit op papier.
+- **Een telefoonregel in de eigen CSS is `@media screen and (max-width: 767px)`**: een staand vel
+  is smaller dan 768 px, maar krijgt geen telefoonvorm.
+- **Een eigen `<lintje-tile>` met een lange lijst krijgt `breakable`**: dan breekt hij tussen twee
+  vellen in plaats van als geheel naar het volgende te gaan.
+
 ## De complete voorbeelden
 
 [`../../examples/`](../../examples/README.md) bevat applicaties gebouwd met script, elk een gewone

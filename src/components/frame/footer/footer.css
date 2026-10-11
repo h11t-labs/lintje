@@ -58,7 +58,7 @@
 /* The full text colour: a muted one would fall under 4.5:1 on the theme's fill. */
 .lintje-footer__note { margin: 0; font: var(--text-small); }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-footer__inner { padding-top: var(--space-8); }
   .lintje-footer__columns { grid-template-columns: minmax(0, 1fr); }
 }

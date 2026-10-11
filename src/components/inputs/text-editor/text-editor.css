@@ -87,7 +87,7 @@
 .lintje-text-editor__link { width: 280px; max-width: 100%; padding: var(--space-4); }
 
 /* Below 768 px the toolbar scrolls sideways; at 48 px high the hit areas stay whole. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-text-editor__toolbar { flex-wrap: nowrap; overflow-x: auto; }
 }
 

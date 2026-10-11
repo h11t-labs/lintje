@@ -26,6 +26,6 @@
 }
 .lintje-repeater__count { font: var(--text-meta); color: var(--color-text-muted); }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-repeater__rows { gap: var(--space-5); }
 }
