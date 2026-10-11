@@ -63,6 +63,8 @@ export function interfaceFields(name, types, seen = new Set()) {
  * short measure and a line under it, `subline` with `{key}` placeholders. `bare` for a table in a
  * tile; otherwise it stands on the page itself.
  */
+const LONG = new Set(['about', 'type', 'seen', 'detail'])
+
 function table(caption, columns, rows, { subline, bare = false } = {}) {
   const node = document.createElement('lintje-data-table')
   if (bare) node.bare = true
@@ -78,14 +80,17 @@ function table(caption, columns, rows, { subline, bare = false } = {}) {
         header,
         format: 'text',
         sortable: false,
+        // A long explanation is cut on one line; it is whole under the focus and in its title.
+        truncate: LONG.has(key),
         mobileMeasure: phone === 'measure',
         mobileSubline: phone === 'subline',
       })),
       rows: shown,
       mobileSublineTemplate: subline,
     }
-    // A table with nothing to show steps aside, and its heading with it.
+    // A table with nothing to show steps aside, and its tile or heading with it.
     node.hidden = !shown.length
+    if (node.tile) node.tile.hidden = !shown.length
     node.previousElementSibling?.classList.toggle('is-empty', !shown.length)
   }
   draw(all)
@@ -163,9 +168,25 @@ export function renderReference(declaration, types, { shownBy = new Map(), skip 
   const search = document.createElement('lintje-text-input')
   search.className = 'guide__search'
   search.type = 'search'
-  search.label = 'Zoek een eigenschap of veld'
+  search.layout = 'row'
+  search.label = 'Zoek een eigenschap'
+  search.placeholder = 'bijv. icon'
   search.commitOn = 'input'
-  stack.append(search)
+  const searchRow = document.createElement('div')
+  searchRow.className = 'guide__row'
+  searchRow.append(search)
+  stack.append(searchRow)
+
+  /** A table in a tile that names it, the tile gone with the table when a search finds nothing. */
+  const inTile = (title, node) => {
+    node.bare = true
+    node.plain = false
+    const tile = document.createElement('lintje-tile')
+    tile.heading = title
+    tile.append(node)
+    node.tile = tile
+    return tile
+  }
 
   if (fields.length) {
     const properties = table(
@@ -179,19 +200,25 @@ export function renderReference(declaration, types, { shownBy = new Map(), skip 
       ],
       fields.map((field) => ({
         key: field.name,
-        // The attribute is named where it is not the property's own name.
-        name:
-          field.attribute && field.attribute !== field.name
-            ? `${field.name} (${field.attribute})`
-            : field.name,
+        name: field.name,
         type: valuesOf(field.type?.text) ?? null,
         initial: field.default ?? null,
-        about: plain(field.description),
+        // The attribute is said where it is not the property's own name.
+        about: [
+          field.attribute && field.attribute !== field.name ? `Attribuut ${field.attribute}.` : '',
+          plain(field.description) ?? '',
+        ]
+          .join(' ')
+          .trim() || null,
         seen: seenIn(shownBy, field.name),
       })),
       { subline: '{type} · {about}' },
     )
-    stack.append(heading(`${fields.length} eigenschappen`), properties)
+    const total = document.createElement('span')
+    total.className = 'guide__meta'
+    total.textContent = `${fields.length} eigenschappen`
+    searchRow.append(total)
+    stack.append(inTile(`Eigenschappen van ${declaration.tagName}`, properties))
     tables.set('', properties)
   }
 
@@ -215,7 +242,7 @@ export function renderReference(declaration, types, { shownBy = new Map(), skip 
         box.append(node)
         node.reveal = () => (box.open = true)
         stack.append(box)
-      } else stack.append(heading(`${prefix.slice(0, -1)}: ${name}`), node)
+      } else stack.append(inTile(`${prefix.slice(0, -1)}: ${name}`, node))
       for (const field of own)
         for (const inner of typeNames(field.type, types)) expand(inner, `${field.name}.`, depth + 1)
     } else if (type.kind === 'union') {

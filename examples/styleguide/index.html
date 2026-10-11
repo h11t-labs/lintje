@@ -46,6 +46,14 @@
       .guide__main { flex: 999 1 560px; display: flex; flex-direction: column; gap: var(--space-10); min-width: 0; }
       .guide__toc { flex: 1 1 240px; max-width: var(--w-nav); }
       .guide__intro { max-width: var(--w-text); }
+      /* The element's head under the title: what it is, its facts in a row, the sections as tabs. */
+      .guide__head { display: flex; flex-direction: column; gap: var(--space-4); }
+      .guide__facts { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-8); margin: 0; font: var(--text-ui); }
+      .guide__fact { display: flex; gap: var(--space-2); }
+      .guide__fact dt { color: var(--color-text-muted); }
+      .guide__fact dd { margin: 0; font-weight: 700; }
+      .guide__fact a { color: var(--color-link); font-weight: 400; }
+      .guide__push { margin-inline-start: auto; }
       .guide__section { display: flex; flex-direction: column; gap: var(--space-4); scroll-margin-top: var(--h-sticky); }
       .guide__section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2) var(--space-4); }
       .guide__heading { margin: 0; font: var(--text-h2); }
@@ -79,14 +87,19 @@
       .guide__card:hover .guide__card-link,
       .guide__kind:hover .guide__card-link { color: var(--color-link); text-decoration: underline; }
       .guide__card-preview {
-        height: calc(4 * var(--space-10));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: calc(4 * var(--space-10) + var(--space-3));
         overflow: hidden;
         padding: var(--space-4);
         background: var(--color-bg-page);
         border-bottom: 1px solid var(--color-border-default);
       }
+      .guide__card-preview > .guide__stage { max-width: 100%; max-height: 100%; padding: 0; }
+      .guide__card-preview--none { font: var(--text-h2); font-family: var(--font-mono); color: var(--color-text-muted); }
       .guide__card-body { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-4); }
-      .guide__card-title { margin: 0; font: var(--text-tile-title); }
+      .guide__card-title { margin: 0; font: var(--text-h2); }
       .guide__card-title code { font-family: var(--font-mono); }
       .guide__card-text { margin: 0; font: var(--text-small); }
       .guide__card-body .guide__meta { margin: var(--space-1) 0 0; }
@@ -95,9 +108,13 @@
       .guide__chooser { display: flex; flex-direction: column; gap: var(--space-4); }
       .guide__choice { display: grid; grid-template-columns: minmax(0, 14rem) minmax(0, 1fr); gap: var(--space-3) var(--space-6); align-items: start; }
       .guide__question { margin: var(--space-2) 0 0; font: var(--text-small); font-weight: 700; }
-      .guide__kinds { display: grid; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); gap: var(--space-3); }
+      .guide__kinds { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: var(--space-3); }
       .guide__kind { padding: var(--space-3); gap: var(--space-1); }
       .guide__kind.is-chosen { outline: 2px solid var(--color-link); outline-offset: -2px; }
+      /* The chosen kind stands in a frame: its advice, its specimens, the code of one, its fields. */
+      .guide__kind-frame { padding: var(--space-6); background: var(--color-bg-surface); border: 2px solid var(--color-text-primary); }
+      .guide__advice { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4) var(--space-6); }
+      .guide__specimen.is-marked { outline: 2px solid var(--color-link); outline-offset: -2px; }
       .guide__kind-name { font-weight: 700; }
       .guide__mini { height: calc(3 * var(--space-10)); overflow: hidden; }
       .guide__mini > .guide__stage { padding: 0; transform: scale(var(--guide-scale, 0.3)); transform-origin: top left; }
@@ -133,17 +150,31 @@
         padding: var(--space-3) var(--space-4);
         border-bottom: 1px solid var(--color-border-default);
       }
-      .guide__label { font: var(--text-small); font-weight: 700; }
+      .guide__label { font: var(--text-tile-title); }
       /* The fields a specimen shows, each a link to its row in the reference. */
       .guide__shows { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); margin-inline-start: auto; }
-      .guide__shown { font: var(--text-small); font-family: var(--font-mono); color: var(--color-link); }
+      .guide__shown {
+        padding: 0 var(--space-2);
+        border: 1px solid var(--color-border-default);
+        background: var(--color-bg-surface);
+        font: var(--text-small);
+        font-family: var(--font-mono);
+        color: var(--color-text-primary);
+        text-decoration: none;
+      }
+      .guide__shown:hover { border-color: var(--color-link); color: var(--color-link); }
       .guide__anchor { font: var(--text-small); color: var(--color-text-muted); text-decoration: none; }
       .guide__caption:not(:has(.guide__shows)) > .guide__anchor { margin-inline-start: auto; }
       .guide__stage { padding: var(--space-6); font: var(--text-ui); color: var(--color-text-primary); }
-      .guide__codebar { position: relative; padding: 0 var(--space-4) var(--space-2); border-top: 1px solid var(--color-border-default); background: var(--color-bg-page); }
-      .guide__codebar:empty { display: none; }
-      /* Copy and close stand on the tabs' row, at its end. */
-      .guide__codebar > .guide__row { position: absolute; top: var(--space-1); right: var(--space-4); }
+      /* The code under a specimen: its ways as tabs on a bar, Kopiëren or "Code dicht" at the bar's end. */
+      .guide__codebox { position: relative; padding: 0 var(--space-4) var(--space-3); border-top: 1px solid var(--color-border-default); background: var(--color-bg-page); }
+      .guide__codebox:not(.is-open) { padding-bottom: 0; }
+      .guide__codebox-end { position: absolute; top: var(--space-2); right: var(--space-4); display: flex; align-items: center; min-height: calc(2 * var(--space-4)); }
+      .guide__kind-frame > .guide__codebox { border: 1px solid var(--color-border-default); }
+      .guide__specimens--narrow { grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
+      .guide__specimens--narrow > .guide__specimen--wide,
+      .guide__specimens--states > .guide__specimen--wide { grid-column: auto; }
+      .guide__specimens--states { grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr)); }
       /* What a specimen may lay its parts out with. */
       .guide__row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
       .guide__stack { display: flex; flex-direction: column; gap: var(--space-3); }
@@ -191,7 +222,9 @@
       }
       @media screen and (max-width: 767.98px) {
         .guide__stage { padding: var(--space-3); }
-        .guide__codebar > .guide__row { position: static; justify-content: flex-end; }
+        .guide__codebox-end { position: static; justify-content: flex-end; }
+        .guide__advice { grid-template-columns: minmax(0, 1fr); }
+        .guide__kind-frame { padding: var(--space-3); }
         .guide__kinds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .guide__mini { height: calc(2 * var(--space-10)); }
         .guide__pair { grid-template-columns: minmax(0, 1fr); }

@@ -163,7 +163,11 @@ function render({ keepScroll = false } = {}) {
       pageHeader.append(source)
     }
     // The link to this page is the shell's "Delen".
-    pageHeader.data = { kicker: category.label, title: item.tag ?? item.title, description: item.tag ? item.title : undefined }
+    pageHeader.data = {
+      kicker: category.label,
+      title: item.tag ? `<${item.tag}>` : item.title,
+      description: item.tag ? item.title : undefined,
+    }
     crumbs.items = [
       { label: 'Startpagina', href: carry('../') },
       { label: heading },
@@ -190,7 +194,6 @@ function render({ keepScroll = false } = {}) {
       category: category.name,
       categoryLabel: category.label,
       group: place.group,
-      state: place.state,
       addressOf: elementAddress,
       go: (href, options) => follow(href, options),
       appAddress: (app) => carry(`../${app.href}`),
@@ -201,6 +204,7 @@ function render({ keepScroll = false } = {}) {
       declarations,
       addressOf: (entry) => elementAddress(entry),
       go: (href) => follow(href),
+      category: category.name,
     })
   }
   if (keepScroll) requestAnimationFrame(() => window.scrollTo(0, scroll))

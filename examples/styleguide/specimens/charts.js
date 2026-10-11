@@ -611,6 +611,7 @@ export default {
       groups: {
         label: 'Soort',
         plural: 'soorten',
+        question: 'Welke grafiek?',
         param: 'soort',
         key: 'kind',
         shared: 'Voor elke soort',

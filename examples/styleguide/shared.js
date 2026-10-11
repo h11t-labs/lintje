@@ -29,10 +29,11 @@
  *
  * An element whose tag draws several kinds of one thing (a chart) has `groups`: one at a time
  * is shown, chosen in the URL (`param`), each with its own specimens; `specimens` then holds
- * what every group shares. `states` add a switch above a group's specimens that merges a
- * state's `data` into the tag's `data`:
+ * what every group shares. `states` are drawn once, on the chosen group's first specimen, each
+ * merging its `data` into the tag's `data`:
  *
- *   groups: { label: 'Soort', plural: 'soorten', param: 'soort', key: 'kind', shared: 'Voor elke soort',
+ *   groups: { label: 'Soort', plural: 'soorten', param: 'soort', key: 'kind', question: 'Welke grafiek?',
+ *             shared: 'Voor elke soort',
  *             questions: { time: 'Hoe verloopt het in de tijd?' },
  *             items: [{ value: 'line', label: 'Lijn', question: 'time', use, avoid, specimens }] },
  *   states: [{ value: 'ready', label: 'Klaar' }, { value: 'loading', label: 'Laden', data: { state: 'loading' } }],
