@@ -171,8 +171,8 @@ declare global {
   `bundle/<category>.ts`, barrel, voor een view ook `LINTJE_VIEWS` en `types.ts`, en een eigen
   bestand in de build uit zijn `define()`. `bundle/entries.test.ts` bewaakt wat een categorie
   bereikt.
-- **De broncode is de referentie.** Het manifest leest ook de slots, en de styleguide toont het
-  resultaat onder het element. Zeg in de JSDoc wat een host niet kan raden: het formaat van een
+- **De broncode is de referentie.** Het manifest leest ook de slots en de velden van de types in
+  `data`, en de styleguide toont het resultaat op de pagina van het element. Zeg in de JSDoc wat een host niet kan raden: het formaat van een
   waarde, welk antwoord een event verwacht, een beperking. Eén regel per punt.
 
 ### 3. Slots

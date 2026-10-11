@@ -28,15 +28,32 @@ De styleguide toont elk element op zichzelf; de applicaties tonen wat ermee gebo
 ## De styleguide
 
 Hij is de levende referentie: een wijziging aan een component in `src/` wordt daar gecontroleerd, in licht
-**en** donker, op 1440 **en** 390 px. Onder elk element toont hij de referentie van de tag.
+**en** donker, op 1440 **en** 390 px.
 
-Het menu van de shell somt de categorieën op; de pagina tekent er één tegelijk. `?category=<name>` is een
-categorie uit `src/categories.json`. De sectie van elk element heeft het id
-`el-<tag without lintje->` (`#el-form`, `#el-tabs`); een adres dat er één noemt opent de
-categorie waar het in staat, dus `styleguide/#el-tabs` is genoeg.
+Het menu van de shell somt de categorieën op. De pagina van een categorie (`?category=<name>`, uit
+`src/categories.json`) is een overzicht: per element een tegel met één voorbeeld, wat het is en
+hoeveel het toont. Elk element heeft een eigen pagina, `?element=<tag without lintje->`
+(`?element=tabs`), met de andere elementen van zijn categorie ernaast. Daarop staan:
 
-Een element staat er één keer, op volle breedte, in de eigen modus van de pagina: de modusknop in de
-balk van de shell toont het in licht en in donker, zoals in elke applicatie. In de
+- **wat het is**: het kopcommentaar van de tag, uit de broncode;
+- **de voorbeelden**, elk met de velden die het onderscheiden ("Toont", een link naar hun rij in
+  de referentie) en dichtgeklapt de code: de markup, en wat `setup` zette als script
+  (`el.data = …`) en als JSON in de markup voor een pagina die een server rendert. Die code wordt
+  gelezen uit wat het voorbeeld tekende, dus hij klopt altijd;
+- **de referentie**: eigenschappen, events, methoden en slots (`custom-elements.json`), en de types
+  van een rijke property veld voor veld (`data-types.json`); een union per `kind` krijgt een
+  tabel per variant. Beide schrijft de build uit de broncode (`scripts/manifest.mjs`);
+- **hoe je hem laadt**: de tag alleen, zijn categorie of de hele bundel.
+
+Een tag die meer soorten van één ding tekent, `lintje-chart`, toont er één tegelijk
+(`&soort=pie`): gekozen op de vraag van de lezer, met wanneer je hem neemt en wanneer niet
+(`src/components/shared/charts/kinds.ts`), zijn voorbeelden en zijn eigen velden. Een schakelaar
+zet de voorbeelden van die soort in een staat — klaar, laden, leeg, fout (`&staat=loading`). Wat
+elke soort deelt, staat eronder.
+
+`#el-<tag without lintje->`, het oudere adres, opent de pagina van het element, dus
+`styleguide/#el-tabs` werkt nog. Een element staat in de eigen modus van de pagina: de modusknop
+in de balk van de shell toont het in licht en in donker, zoals in elke applicatie. In de
 bovenindeling (`?layout=top`) is elk van de vier koppen een item van de navigatiebalk met zijn
 categorieën in een submenu; de huidige categorie is de actieve.
 
@@ -45,8 +62,10 @@ per kop de categorieën, en per categorie de elementen die hij toont, op volgord
 `styleguide/specimens/` bevat **de specimens**, één module per categorie (`frame.js`,
 `inputs.js`, …): een module exporteert `{ elements }`; elk element is een `tag`, een Nederlandse
 `title` en zijn `specimens`, elk een `label`, gewone `html` en een optionele `setup(stage)` voor wat
-een attribuut niet kan dragen (een rijke property, een listener). `styleguide/shared.js` bevat dat
-contract en tekent een element als één `<lintje-tile>`, met eronder hoe je het laadt. Een tag van
+een attribuut niet kan dragen (een rijke property, een listener); `preview: true` wijst het voorbeeld
+voor het overzicht aan. Een element met soorten heeft `groups` en `states`.
+`styleguide/shared.js` bevat dat contract, `page.js` tekent de twee soorten pagina's, `code.js` de
+code onder een voorbeeld en `reference.js` de referentie. Een tag van
 de bundel die geen categorie heeft, wordt in de console gemeld, en zo ook een module die
 ontbreekt of een fout gooit.
 
