@@ -4,7 +4,7 @@
  *
  * The page composes: it sets `data` and properties on Lintje's tags and answers their events —
  * a cell edit, a filter, a column choice, a row or bulk action, a step of the form — with new
- * `data`. The table never keeps, filters or saves anything itself. Everything a reader can
+ * `data`. Ernst and status show as labels, and a row opens for its location and note. The table never keeps, filters or saves anything itself. Everything a reader can
  * share is in the URL (`?tab=`, `?pagina=nieuw`, `?stap=`, `?theme=`, `?mode=`); the draft is
  * `lintje-form`'s, kept in localStorage under `draft-key`, never in the URL. The "server" is a
  * few timers: it takes a moment per answer, refuses what it cannot accept and lets the uploads
@@ -159,6 +159,14 @@ const TITLES = [
   'Uitgevallen verlichting P1',
 ]
 
+// A few rows carry a note, so a row that opens shows one.
+const NOTES = {
+  0: 'Beveiliging ter plaatse om 09:12; de tas is opgehaald door de eigenaar.',
+  3: 'Monteur gebeld, komt morgen voor tienen.',
+  6: 'Deur sluit niet vanzelf; facilitair kijkt naar de dranger.',
+  11: 'Beide partijen gesproken, geen vervolg nodig.',
+}
+
 const pad = (number) => String(number).padStart(2, '0')
 
 const reportId = (number) => `M-${2026_0400 + number}`
@@ -179,7 +187,8 @@ let ROWS =
         status: STATUSES[(index * 5 + 1) % STATUSES.length],
         owner: OWNERS[(index * 4) % OWNERS.length],
         date: `${pad(4 - (index % 4))}-10-2026`,
-        note: '',
+        location: LOCATIONS[(index * 5) % LOCATIONS.length].label,
+        note: NOTES[index] ?? '',
       }))
 
 const options = (values) => values.map((value) => ({ value }))
@@ -318,17 +327,44 @@ document.getElementById('draft-continue').addEventListener('click', () => naviga
 
 /* --- The table: what the page shows, and its answers -------------------------------------- */
 
+// One fill per row: only a high severity fills its badge; the status stays outlined, as the tabs
+// already split on it.
+const SEVERITY_LABELS = {
+  Laag: { label: 'Laag', tone: 'subtle' },
+  Midden: { label: 'Midden', tone: 'neutral' },
+  Hoog: { label: 'Hoog', tone: 'attention', icon: 'functioneel-waarschuwing' },
+}
+
+const STATUS_LABELS = {
+  Nieuw: { label: 'Nieuw', tone: 'neutral' },
+  'In behandeling': { label: 'In behandeling', tone: 'subtle' },
+  Afgehandeld: { label: 'Afgehandeld', tone: 'subtle', icon: 'functioneel-vinkje' },
+}
+
 const COLUMNS = [
   { key: 'title', header: 'Titel', filter: { kind: 'text' } },
   { key: 'id', header: 'Nummer' },
   { key: 'category', header: 'Categorie', editor: { kind: 'select', options: options(CATEGORIES) }, filter: { kind: 'options' } },
-  { key: 'severity', header: 'Ernst', editor: { kind: 'select', options: options(SEVERITIES) }, filter: { kind: 'options' } },
-  { key: 'status', header: 'Status', filter: { kind: 'options' }, mobileMeasure: true },
+  {
+    key: 'severity',
+    header: 'Ernst',
+    format: 'label',
+    labels: SEVERITY_LABELS,
+    editor: { kind: 'select', options: options(SEVERITIES) },
+    filter: { kind: 'options' },
+  },
+  { key: 'status', header: 'Status', format: 'label', labels: STATUS_LABELS, filter: { kind: 'options' }, mobileMeasure: true },
   { key: 'owner', header: 'Behandelaar', editor: { kind: 'select', options: options(OWNERS) }, filter: { kind: 'options' } },
   { key: 'date', header: 'Datum', editor: { kind: 'date' } },
 ]
 
 const FILTER_VALUES = { category: CATEGORIES, severity: SEVERITIES, status: STATUSES, owner: OWNERS }
+
+// What a row shows when it opens, besides the columns the reader hid.
+const DETAIL_FIELDS = [
+  { key: 'location', label: 'Locatie' },
+  { key: 'note', label: 'Notitie' },
+]
 
 // The title opens a report; the menu holds what else a row can do.
 const ROW_ACTIONS = [
@@ -392,6 +428,7 @@ function renderTable() {
     totalRows: inTab.length,
     columnChooser: true,
     hiddenColumns: view.hidden,
+    detailFields: DETAIL_FIELDS,
     busyCells: view.busyCells,
     cellErrors: view.cellErrors,
   }
@@ -946,6 +983,7 @@ function send(values) {
       status: 'Nieuw',
       owner: 'Niet toegewezen',
       date: `${day}-${month}-${year}`,
+      location: label(LOCATIONS, values.locatie),
       note: '',
     },
     ...ROWS,
