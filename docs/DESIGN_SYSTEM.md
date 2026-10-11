@@ -287,6 +287,12 @@ Besluiten die voor beide gelden:
 - **Een submenu is typografisch** (`lintje-sub-nav`), naar de side-nav van de Rijkshuisstijl
   Community: links zonder vulling en zonder rand, de pagina van de lezer vet in de tekstkleur,
   groepen gescheiden door ruimte, nooit door een lijn.
+- **"Op deze pagina" is het submenu, geen eigen element**: dezelfde rijen, met ankers naar de
+  koppen van een lange pagina, en met `expanded`, zodat elk niveau er staat en de lijst niet
+  verspringt terwijl ze gelezen wordt. De host vult de ankers, volgt het scrollen en zet de
+  sectie in beeld als `active`, en plaatst de lijst: vanaf 1024 px plakt ze naast de tekst,
+  onder de balk van de shell, en smaller staat ze erboven
+  ([Een inhoudsopgave op de pagina](guides/page-contents.md)).
 
 **Modus heeft drie instellingen**: systeem, licht, donker. Systeem is de standaard en volgt
 `prefers-color-scheme` live; hoe de host hem herleidt, staat in

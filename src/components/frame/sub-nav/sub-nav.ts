@@ -2,7 +2,9 @@
  * `<lintje-sub-nav>` — the navigation within one part of an application, beside its content.
  *
  * Groups of links, optionally under a label, and one action below them ("Nieuw …"). The host
- * marks the reader's page with `active`; an item's `items` show while it or one of them is active.
+ * marks the reader's page with `active`; an item's `items` show while it or one of them is active,
+ * or always with `expanded`: the list of a long page's sections, which must not shift while it is
+ * read.
  * Below 768 px it is one button with the reader's page, which opens the list in place. It never
  * reads the URL.
  *
@@ -31,7 +33,7 @@ export interface SubNavItem {
   badge?: { value: string | number; label?: string }
   /** The page exists but the reader may not open it: struck through, with a lock. */
   noAccess?: boolean
-  /** The level below, shown while this item or one of them is active. */
+  /** The level below, shown while this item or one of them is active, or with `expanded`. */
   items?: SubNavItem[]
 }
 
@@ -78,6 +80,7 @@ export class LintjeSubNav extends LintjeElement {
     groups: { attribute: false },
     action: { attribute: false },
     label: { type: String },
+    expanded: { type: Boolean },
     open: { state: true },
   }
 
@@ -87,6 +90,8 @@ export class LintjeSubNav extends LintjeElement {
   declare action?: SubNavAction
   /** The navigation's accessible name: "Instellingen". */
   label: string = 'Submenu'
+  /** Every level shows, not only the one on the reader's path. */
+  expanded: boolean = false
   /** Whether the phone's list is open. */
   open: boolean = false
 
@@ -121,8 +126,8 @@ export class LintjeSubNav extends LintjeElement {
   }
 
   private renderItem(item: SubNavItem): TemplateResult {
-    const below = item.items?.length && onPath(item) ? item.items : null
-    const ancestor = !item.active && Boolean(below)
+    const below = item.items?.length && (this.expanded || onPath(item)) ? item.items : null
+    const ancestor = !item.active && onPath(item)
     const icon = item.icon
       ? renderIcon(item.icon, { size: 20, className: 'lintje-sub-nav__icon' })
       : nothing
