@@ -12,6 +12,15 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Toegevoegd
 
+- **Eén toonset.** `Tone` (neutraal, subtiel, bezig, gelukt, let op, fout, informatie, aandacht,
+  live), `WorkState` (wachtrij, bezig, onderbroken, klaar, mislukt, geannuleerd) en
+  `ContentStateKind` staan één keer, in `primitives/shared/tone.ts`, en `src/types.ts` exporteert
+  ze. `lintje-status-dot` neemt elke toon naast zijn vier leveringswoorden; `lintje-card` en
+  `lintje-description-list` elke toon met haar glyph; `lintje-announcement` kent de soort
+  `error` (te sluiten, anders dan een storing); `lintje-toast` kent `info` en `warning`, en
+  `shell.showToast(text, kind)` geeft de soort door; `lintje-kpi` heeft `message` en
+  `last-known`, zoals elke tegel (`KpiData` erft `ContentState`). (#26)
+
 - De paginakop klapt acties die niet op één regel passen in naar één menu "Meer", vóór de
   knoppen die blijven staan; de laatste knop, de primaire, blijft altijd in het zicht en een menu
   met één rij bestaat niet. Gemeten, niet per breekpunt (`components/shared/overflow.ts`). (#23)
@@ -41,6 +50,10 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   geen toegang, een storing en gepland onderhoud. (#18)
 
 ### Gewijzigd
+
+- **Brekend:** `lintje-progress-bar` zegt zijn staat met `state` (`busy`, `done`, `error`,
+  `paused`), de staat van werk, in plaats van `tone` (`run`, `done`, `error`, `paused`); het type
+  `ProgressTone` heet `ProgressState`. `lintje-job-list` en `lintje-list` zijn mee. (#26)
 
 - De telefoonvorm geldt alleen op een scherm: `MOBILE` is `screen and (max-width: 767px)`, en een
   host schrijft zijn eigen telefoonregels zo. (#22)
