@@ -21,7 +21,7 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 - De foutpagina (`lintje-error-page`): de code met een teken voor geen toegang en een storing,
   een titel in woorden, de tekst, een slot voor een zoekveld of melding en een voor de knoppen,
   een referentie met kopieerknop en de lijst "Verder naar". De vier pagina's staan als voorbeeld
-  in `examples/foutpaginas/` en in de galerij van de voorbeelden.
+  in `examples/foutpaginas/` en in de galerij van de voorbeelden. (#18)
 
 ## [0.2.0] - 2026-10-10
 
