@@ -12,6 +12,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Toegevoegd
 
+- `lintje-checkbox-group`: meer keuzes onder één label, een vinkje per optie, met één hint en
+  één foutregel voor de groep, zoals de radiogroep. De waarde is `selected`, de aangevinkte
+  waarden in de volgorde van de opties; een `description` staat onder haar optie. (#19)
 - Het gestapelde vlak als grafieksoort (`kind: 'stacked-area'`): de onderverdelingen van één
   variabele in haar tintladder, de donkerste onderaan; een ontbrekende waarde breekt haar laag en
   alles erboven af, de lagen eronder blijven staan. Een laag aan- of uitzetten laat de as staan en
