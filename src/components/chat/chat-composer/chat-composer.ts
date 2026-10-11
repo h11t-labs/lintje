@@ -1,17 +1,14 @@
 /**
  * `<lintje-chat-composer>` — the question box: text field, source picker and split send button.
  *
- * The field is a plain-text `contenteditable`; the element never writes markup into it. Terms
- * are painted with the CSS Custom Highlight API so typing, input methods and undo stay the
- * browser's; without the API the field is unmarked. Terms come from `vocabulary` (matched while
- * typing) or from the host's `draftTerms`, which win while the text is unchanged.
- * The source selection is the host's; the draft, send key (in `localStorage`) and answer form
- * are the element's own.
+ * The field is plain text; the element never writes markup into it. Terms are marked through the
+ * CSS Custom Highlight API, so typing and undo stay the browser's; without it the field is
+ * unmarked. The source selection is the host's; the draft, the send key (kept in `localStorage`)
+ * and the answer form are the element's own.
  *
- * Events: `lintje-message-send` `{text, terms, sources, form}`, `lintje-answer-stop`,
- * `lintje-sources-change` `{ids}`, `lintje-draft-change` `{text}` (200 ms after the last key).
- * In `variant="edit"` it sends `lintje-submit` `{text, terms}` and `lintje-cancel` instead, both
- * not composed.
+ * Events: `lintje-message-send` `{ text, terms, sources, form }`, `lintje-answer-stop`,
+ * `lintje-sources-change` `{ ids }`, `lintje-draft-change` `{ text }` (200 ms after the last key);
+ * with `variant="edit"` instead `lintje-submit` `{ text, terms }` and `lintje-cancel`.
  */
 import {
   html,
@@ -163,6 +160,7 @@ export class LintjeChatComposer extends LintjeElement {
   form: ChatAnswerForm = 'auto'
   /** Sources given and none `selected`: sending is off. The host sets them again on a change. */
   declare sources?: ChatSourceData[]
+  /** The terms marked in the field while the reader types. */
   declare vocabulary?: ChatTermData[]
   /** The host's own reading of the text; it wins while the text is unchanged. */
   declare draftTerms?: ChatDraftTerms

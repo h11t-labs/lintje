@@ -1,20 +1,13 @@
 /**
- * `<lintje-translator>` — a text and its translation in one surface of two halves: the source on
- * the left, the translation on the right, each with its language above and its actions below.
- * The two languages flank the swap on the line between them. Below 768 px the halves stack.
+ * `<lintje-translator>` — a text and its translation in one surface of two halves, each with its
+ * language above and its actions below; below 768 px the halves stack.
  *
- * The source is a plain `lintje-textarea`; the host keeps `value`. The translation, the language
- * choices and the actions are the host's, in slots: `source-language`, `target-language`,
- * `target` (a plain `lintje-streaming-text`), `source-actions`, `target-note` (the AI label, right
- * under the translation) and `target-actions`.
+ * The source is a `lintje-textarea` whose `value` the host keeps. The translation, the language
+ * choices and the actions are the host's, in slots: `target` takes a plain
+ * `lintje-streaming-text`, `target-note` the AI label under it. After a swap a status region says
+ * so, with the languages the host's choices then show.
  *
- * `variant="documents"` keeps the language bar and the swap and puts the default slot under them
- * at full width, for documents to translate: the upload and the queue.
- *
- * After the swap a status region says so, with the languages the host's choices then show
- * ("Talen omgewisseld: Engels naar Nederlands").
- *
- * Events: `lintje-text-change` (the source text), `lintje-languages-swap`.
+ * Events: `lintje-text-change` `string` (the source text), `lintje-languages-swap`.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
@@ -59,7 +52,10 @@ export class LintjeTranslator extends LintjeElement {
   sourceLabel: string = 'Tekst om te vertalen'
   /** The translation half's accessible name. */
   targetLabel: string = 'Vertaling'
-  /** `text` (default): the source and its translation; `documents`: the languages over the default slot. */
+  /**
+   * `text` (default): the source and its translation. `documents`: the language bar and the swap
+   * over the default slot at full width, for documents to translate: the upload and the queue.
+   */
   variant: 'text' | 'documents' = 'text'
   /** What the status region says after a swap. */
   spoken: string = ''

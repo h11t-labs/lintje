@@ -1,14 +1,12 @@
 /**
  * `<lintje-user-menu>` — the user's avatar in the navigation bar and the menu it opens: name and
- * role, the host's rows (`MenuEntry`, as `lintje-menu-button`), "Afmelden", the version.
+ * role, the host's rows (`MenuEntry`), "Afmelden" and the version.
  *
- * A menu, not a dialog: no trap, and an Escape pressed in a dialog opened over it is the
- * dialog's. With `logout-action` "Afmelden" is a real `<form method="post">` with the CSRF
- * token in a hidden `csrf_token` field: signing out leaves the page, which a fetch cannot do.
- * `inline` draws the content without button and popover, for the shell's mobile sheet.
+ * A menu, not a dialog: it traps no focus, and an Escape in a dialog opened over it is the
+ * dialog's.
  *
- * Events: `lintje-action` (the row's value), `lintje-navigate` `{ href }` for a link row,
- * `lintje-logout` (only without `logout-action`).
+ * Events: `lintje-action` `string` (the row's value), `lintje-navigate` `{ href }` (a link row),
+ * `lintje-logout` (without `logout-action`).
  */
 import {
   html,
@@ -60,11 +58,14 @@ export class LintjeUserMenu extends LintjeElement {
   items: MenuEntry[] = []
   /** Shown at the bottom: "Versie 2.4.1". */
   declare version?: string
-  /** The URL "Afmelden" posts to; without it "Afmelden" sends `lintje-logout`. */
+  /**
+   * The URL "Afmelden" posts a real `<form>` to: signing out leaves the page, which a fetch
+   * cannot do. Without it "Afmelden" sends `lintje-logout`.
+   */
   declare logoutAction?: string
-  /** The session's CSRF token, posted with "Afmelden". */
+  /** The session's CSRF token, posted with "Afmelden" in a hidden `csrf_token` field. */
   csrf: string = ''
-  /** The content without button and popover, on the navigation's colours. */
+  /** The content without button and popover, on the navigation's colours: for the mobile sheet. */
   inline: boolean = false
   open: boolean = false
 

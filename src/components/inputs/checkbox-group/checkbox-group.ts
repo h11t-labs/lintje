@@ -1,14 +1,12 @@
 /**
- * `<lintje-checkbox-group>` — several options under one label, a checkbox per line, with one
- * hint and one message for the group. Options are `FilterOption[]`; a `description` stands
- * under its option. Each row is a `<lintje-checkbox>` without a `name`, so only the group tells
- * the host.
+ * `<lintje-checkbox-group>` — several options under one label, a checkbox per line, with one hint
+ * and one message for the group.
  *
- * `selected` lists the checked values in the order of `options`; a value the options do not
- * hold is kept after them. `required` draws nothing and sets no ARIA: `role="group"` cannot
- * carry `aria-required`, so the host's message says what is missing.
+ * Only the group tells the host: its rows carry no `name`. `required` draws nothing and sets no
+ * ARIA, since a group cannot carry `aria-required`: the host's message says what is missing.
  *
- * Events: `lintje-change` with the values; with a `name` also `lintje-values-change`.
+ * Events: `lintje-change` `string[]` (the checked values), `lintje-values-change`
+ * `{ [name]: value }` (with a `name`), `lintje-reset` (the reset link was pressed).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { define } from '../../../core/element'
@@ -28,8 +26,12 @@ export class LintjeCheckboxGroup extends LintjeInputElement {
     selected: { attribute: false },
   }
 
+  /** A `description` stands under its option. */
   declare options?: FilterOption[]
-  /** The checked values. A property, not an attribute: a server-rendered page sets it as data. */
+  /**
+   * The checked values, in the order of `options`; a value the options do not hold is kept after
+   * them. A property, not an attribute: a server-rendered page sets it as data.
+   */
   selected: string[] = []
 
   private toggle(value: string, checked: boolean): void {

@@ -1,4 +1,4 @@
-/** `<lintje-skeleton>` — the shimmer that holds a box while its content loads. Events: none. */
+/** `<lintje-skeleton>` — the shimmer that holds a box while its content loads. */
 import { html, type PropertyValues, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../core/element'
 import { shadowCss } from '../../core/styles'

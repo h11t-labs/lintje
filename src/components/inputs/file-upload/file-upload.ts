@@ -1,15 +1,13 @@
 /**
  * `<lintje-file-upload>` — choose or drop files, and see per file how far it is and how it ended.
- * It never uploads: it checks files against `accept` and `max-size`, sends the ones that pass
- * with `lintje-files-add`, and draws the rows from `.files`. A file it refuses itself never
- * reaches the host. Its value is the ids of the rows that are done.
  *
- * The button is the one control: it carries the label in its name and the types, the size and
- * the hint or error as its description. When a row with the focus goes, the focus moves to the
- * row in its place, else the one before, else the button.
+ * It never uploads: it checks files against `accept` and `max-size`, sends the ones that pass with
+ * `lintje-files-add` and draws the rows from `files`. A file it refuses never reaches the host.
+ * Its value is the ids of the rows that are done.
  *
- * Events: `lintje-files-add` (the `File[]`), `lintje-file-remove` `{ id }`, `lintje-file-cancel`
- * `{ id }` — composed; `lintje-change` and, with a `name`, `lintje-values-change`.
+ * Events: `lintje-files-add` `File[]`, `lintje-file-remove` `{ id }`, `lintje-file-cancel`
+ * `{ id }`, `lintje-change` `string[]`, `lintje-values-change` `{ [name]: value }` (with a
+ * `name`), `lintje-reset` (the reset link was pressed).
  */
 import {
   html,

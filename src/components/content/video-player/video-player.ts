@@ -1,18 +1,13 @@
 /**
  * `<lintje-video-player>` — the picture of a recording, with the audio player's controls.
  *
- * The controls stand under the picture, never over it, also in full screen: the bar with the time
- * on one line; play, mute, "Meer opties" and full screen on the next, at any width. The menu holds
- * the captions (also on C), the audio description when `described-src` gives a version with one
- * (it switches at the same moment) and the speed; a speed other than 1× stands beside the time. The
- * controls are `aria-disabled` (in the tab order, the press swallowed) while the video loads or
- * cannot be loaded; a failed load says so on the picture, with "Opnieuw proberen". The `<video>`
- * has no controls of its own and never starts by itself. It does not fetch the captions. The big
- * play button stands on the picture only before the start, and the caption shows only without
- * it, so the two never cover each other.
+ * The controls stand under the picture, never over it, also in full screen. The video never starts
+ * by itself, and the element does not fetch the captions: the host gives them in `segments`. While
+ * the video loads or cannot be loaded, the controls stay in the tab order but do nothing; a failed
+ * load says so on the picture, with "Opnieuw proberen".
  *
- * Events: `lintje-time-change` (seconds, at most four times a second), `lintje-play`,
- * `lintje-pause`.
+ * Events: `lintje-time-change` `number` (seconds, at most four times a second), `lintje-seek`
+ * `number` (seconds: the reader moved the position), `lintje-play`, `lintje-pause`.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -65,9 +60,12 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
 
   /** The captions: the transcript's segments, or any `{ start, text }[]`. */
   segments: TimedText[] = []
-  /** Whether the captions show; the reader switches it. */
+  /** Whether the captions show; the reader switches it, in "Meer opties" or with C. */
   captions: boolean = false
-  /** The same video with an audio description: "Meer opties" offers it when given. */
+  /**
+   * The same video with an audio description: "Meer opties" offers it when given, and the switch
+   * keeps the moment.
+   */
   declare describedSrc?: string
   /** Whether the described version plays; the reader switches it. */
   described: boolean = false

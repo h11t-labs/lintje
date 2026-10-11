@@ -1,14 +1,11 @@
 /**
  * `<lintje-sub-nav>` — the navigation within one part of an application, beside its content.
  *
- * Groups of links, optionally under a label, and one action below them ("Nieuw …"). The host
- * marks the reader's page with `active`; an item's `items` show while it or one of them is active,
- * or always with `expanded`: the list of a long page's sections, which must not shift while it is
- * read.
- * Below 768 px it is one button with the reader's page, which opens the list in place. It never
- * reads the URL.
+ * Groups of links and one action below them ("Nieuw …"). The host marks the reader's page with
+ * `active`; the element never reads the URL. Below 768 px it is one button with the reader's
+ * page, which opens the list in place.
  *
- * Events: `lintje-navigate` `{ href }`, `lintje-action` `{ value }` (the action).
+ * Events: `lintje-navigate` `{ href }`, `lintje-action` `{ value }` (the action was pressed).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -90,7 +87,10 @@ export class LintjeSubNav extends LintjeElement {
   declare action?: SubNavAction
   /** The navigation's accessible name: "Instellingen". */
   label: string = 'Submenu'
-  /** Every level shows, not only the one on the reader's path. */
+  /**
+   * Every level shows, not only the one on the reader's path: for the list of a long page's
+   * sections, which must not shift while it is read.
+   */
   expanded: boolean = false
   /** Whether the phone's list is open. */
   open: boolean = false

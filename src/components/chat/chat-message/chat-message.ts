@@ -1,13 +1,12 @@
 /**
- * `<lintje-chat-message>` — what the reader asked: a filled bar on the right. A visually hidden
- * "Jij:" carries the role.
+ * `<lintje-chat-message>` — what the reader asked: a filled bar on the right.
  *
- * Editing is the message's own state (`lintje-chat-composer variant="edit"`). The message never
- * changes its own text: asking again is an event and the host replaces the turn.
+ * Editing is the message's own state, in a `lintje-chat-composer`. It never changes its own text:
+ * asking again is an event, and the host replaces the turn.
  *
- * Events: `lintje-message-edit` `{turnId, text, terms}` — ask this instead, replacing the answer
- * and everything after it. `lintje-editing-change` `{turnId, editing}` is not composed: it tells
- * the holding view which answers are about to be replaced.
+ * Events: `lintje-message-edit` `{ turnId, text, terms }` (ask this instead, replacing the answer
+ * and all after it), `lintje-editing-change` `{ turnId, editing }` (tells the holding view which
+ * answers are about to be replaced).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'

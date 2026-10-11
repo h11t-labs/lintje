@@ -1,13 +1,12 @@
 /**
  * `<lintje-sortable-list>` — rows reordered by dragging a grip or with the keyboard.
  *
- * Only the grip starts a drag, so on a phone the list still scrolls under a finger on the row. A
- * tap on a grip picks its row up as the keyboard does, and a tap on a grip puts it down there.
- * It reorders its own copy of `items` until the host sends new ones and tells an order once, when
- * a row is put down at a new place. Every step is read out by a `role="status"`.
+ * Only the grip starts a drag, so on a phone the list still scrolls under a finger. It reorders
+ * its own copy of `items` until the host sends new ones, and tells an order once, when a row is
+ * put down at a new place.
  *
- * Events: `lintje-change` (ids, not composed); `lintje-values-change` `{ [name]: ids }` with a
- * `name`; `lintje-checked-change` (ids) with `checkable`.
+ * Events: `lintje-change` `string[]` (the ids in order), `lintje-values-change`
+ * `{ [name]: value }` (with a `name`), `lintje-checked-change` `string[]` (with `checkable`).
  */
 import {
   html,

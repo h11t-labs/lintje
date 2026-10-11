@@ -1,10 +1,9 @@
 /**
  * `<lintje-session-expiry>` — the warning before the session runs out, the notice after it, and
- * the "Je concept is teruggezet" announcement (`restored-at`).
+ * the "Je concept is teruggezet" announcement.
  *
- * The window is a `role="alertdialog"` in `<lintje-confirm-dialog>`'s frame (its stylesheet).
- * Escape and the scrim do nothing, because the session runs out either way. The element never
- * calls a server: the host sets `busy`, moves `expires-at` or sets `expired`.
+ * The element never calls a server: the host sets `busy`, moves `expires-at` or sets `expired`.
+ * Escape and the scrim do nothing, because the session runs out either way.
  *
  * Events: `lintje-session-extend`, `lintje-logout`, `lintje-login`, `lintje-draft-discard`.
  */

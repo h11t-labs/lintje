@@ -1,10 +1,8 @@
 /**
  * `<lintje-drawer>` — a side panel over the page, for a detail or a short form.
  *
- * The host holds `open`: Escape, the close button and the scrim only ask. Whether unsaved input
- * needs confirming first is the host's call. While `busy` none of them asks. The footer slot is
- * hidden when empty. A dialog on the shared focus-trap stack; focus goes to the first field,
- * else the close button.
+ * The host holds `open`: Escape, the close button and the scrim only ask. While `busy` none
+ * of them asks. Focus goes to the first field, else the close button.
  *
  * Events: `lintje-close` `{ reason: 'escape' | 'button' | 'scrim' }`.
  */
@@ -40,7 +38,10 @@ export class LintjeDrawer extends LintjeElement {
     footerSlotted: { state: true },
   }
 
-  /** The host's: the drawer only asks to be closed. */
+  /**
+   * The host's: the drawer only asks to be closed. Whether unsaved input needs confirming first
+   * is the host's call.
+   */
   open: boolean = false
   /** The title and the dialog's accessible name; without it the dialog is "Zijpaneel". */
   heading: string = ''

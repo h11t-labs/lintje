@@ -1,15 +1,10 @@
 /**
- * `<lintje-card-list>` — a collection as cards: a real list, in as many columns as fit up to
- * `max-columns`, every card in a row as tall as the tallest. Below 768 px one column.
- * `layout="horizontal"` draws every card across, two side by side at most where they fit.
+ * `<lintje-card-list>` — a collection as cards: a real list, in as many columns as fit, every
+ * card in a row as tall as the tallest; below 768 px one column.
  *
- * Slots: `empty` for the way out under the empty text (a link, a button).
- *
- * It draws `lintje-card` for each item and adds nothing of its own; the cards' events pass
- * through. While `loading` it holds skeleton cards, so the page does not jump; a status region
- * that is always there says it loads, and then how many it loaded.
- *
- * Events: those of its cards.
+ * It draws a `lintje-card` for each item and adds nothing of its own: the cards' events reach the
+ * host as they are. While `loading` it holds skeleton cards, so the page does not jump. The
+ * `empty` slot takes the way out under the empty text, such as a link.
  */
 import {
   html,
@@ -45,7 +40,10 @@ export class LintjeCardList extends LintjeElement {
   items: CardData[] = []
   /** Names the list for a screen reader when no heading right above it does. */
   declare label?: string
-  /** `horizontal`: every card with its picture in a column on the left, for a long list. */
+  /**
+   * `horizontal`: every card with its picture in a column on the left, for a long list; two side
+   * by side at most, where they fit.
+   */
   layout: CardLayout = 'vertical'
   /** The level of every card's title, 2 to 4. */
   headingLevel: 2 | 3 | 4 = 3

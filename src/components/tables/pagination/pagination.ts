@@ -1,15 +1,13 @@
 /**
- * `<lintje-pagination>` — the "21–40 van 131 documenten" count on the left, "Vorige", page
- * numbers and "Volgende" in the middle and, with `page-sizes`, the choice how many stand on a page
- * on the right. Where the three do not fit on one line the count and the choice go below.
+ * `<lintje-pagination>` — the "21–40 van 131 documenten" count, "Vorige", the page numbers and
+ * "Volgende" and, with `page-sizes`, the choice how many stand on a page.
  *
- * It does not write the URL. With `href-template` every page is a link and a plain click is
- * handed to the host as `lintje-navigate`; without one they are buttons. A choice shows at once
- * and the host confirms it through `page` and `page-size`. Pages count from 1.
+ * It does not write the URL: a choice shows at once, and the host confirms it through `page` and
+ * `page-size`. With `href-template` every page is a link; without one they are buttons. Pages
+ * count from 1.
  *
- * Events: `lintje-page-change` `{ page }`; `lintje-page-size-change` `{ pageSize, page }`, where
- * `page` is the one that keeps the first row in view; with `href-template` also
- * `lintje-navigate` `{ href }`.
+ * Events: `lintje-page-change` `{ page }`, `lintje-page-size-change` `{ pageSize, page }` (`page`
+ * keeps the first row in view), `lintje-navigate` `{ href }` (with `href-template`).
  */
 import {
   html,

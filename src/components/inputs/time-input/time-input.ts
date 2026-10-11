@@ -1,13 +1,12 @@
 /**
- * `<lintje-time-input>` — a time of day, `HH:MM` on a 24-hour clock, or `null` when empty, typed
- * or picked from a list. Typed text is read on leaving the field or Enter (`time-format.ts`).
- * The list holds the times from `min` to `max`, `step` minutes apart; a typed value between two
- * of them stays as typed, and the list opens on the first time at or after it without selecting
- * one. The element checks its own text and shows a message in place of the hint; a host's
- * `error` wins. It knows no day or time zone. Tab out of the element closes the list, so it does
- * not cover the next field.
+ * `<lintje-time-input>` — a time of day, `HH:MM` on a 24-hour clock, typed or picked from a list.
  *
- * Events: `lintje-change` with `HH:MM` or `null`; with a `name` also `lintje-values-change`.
+ * The element reads typed text on leaving the field or Enter, checks it and shows a message in
+ * place of the hint; a host's `error` wins. A typed time between two in the list stays as typed.
+ * It knows no day or time zone. Tab out of the element closes the list.
+ *
+ * Events: `lintje-change` `string | null` (`HH:MM`), `lintje-values-change` `{ [name]: value }`
+ * (with a `name`), `lintje-reset` (the reset link was pressed).
  */
 import {
   html,

@@ -1,11 +1,11 @@
 /**
  * `<lintje-tree-view>` — a hierarchy that folds open and shut, one tab stop with roving focus.
  *
- * `expanded` is the host's: the element folds its own copy and reports each fold, so a host that
- * loads children on demand answers with `loading` and then `children`. It fetches nothing.
+ * It fetches nothing: it folds its own copy of `expanded` and reports each fold, so a host that
+ * loads children on demand answers with `loading` and then `children`.
  *
- * Events: `lintje-node-toggle` `{ id, open }`; `lintje-change` (id, not composed);
- * `lintje-values-change` `{ [name]: id }` with a `name`.
+ * Events: `lintje-node-toggle` `{ id, open }`, `lintje-change` `string` (the chosen node's id),
+ * `lintje-values-change` `{ [name]: value }` (with a `name`).
  */
 import {
   html,

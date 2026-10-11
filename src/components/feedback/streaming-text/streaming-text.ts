@@ -1,11 +1,11 @@
 /**
- * `<lintje-streaming-text>` — text that streams in while the server writes it. Plain text, never
- * HTML; a host wanting prose slots a `<lintje-prose>` once the stream is `done`. A screen reader
- * hears it per sentence from a polite live region; the visible box is `aria-busy` until the end.
- * The host owns the connection and sets `text` and `state`. `variant="plain"` drops the box and
- * takes the type of where it stands, for a surface that frames the text itself.
+ * `<lintje-streaming-text>` — text that streams in while the server writes it.
  *
- * Events: `lintje-stop` ("Stoppen"), `lintje-retry` ("Opnieuw").
+ * The host owns the connection and sets `text` and `state`. Plain text, never HTML: a host that
+ * wants prose slots a `<lintje-prose>` once the stream is `done`. A screen reader hears it per
+ * sentence.
+ *
+ * Events: `lintje-stop` ("Stoppen" was pressed), `lintje-retry` ("Opnieuw" was pressed).
  */
 import {
   html,
@@ -48,7 +48,10 @@ export class LintjeStreamingText extends LintjeElement {
   /** What happened, for `error`. Without it: the connection dropped and the text is not done. */
   declare message?: string
   label: string = 'Bezig met schrijven'
-  /** `box` (default): the text in a framed box; `plain`: no box, the type of where it stands. */
+  /**
+   * `box` (default): the text in a framed box. `plain`: no box and the type of where it stands, for
+   * a surface that frames the text itself.
+   */
   variant: 'box' | 'plain' = 'box'
   spoken: string[] = []
 

@@ -1,9 +1,7 @@
 /**
  * `<lintje-code>` — a block of code or JSON, on `--font-mono`; the host pretty-prints JSON.
  *
- * Scrolls sideways by default because a broken line is a changed line; the block is
- * `tabindex="0"` so the scroll is keyboard reachable (WCAG 2.1.1). `numbered` uses a CSS
- * counter, so a copy of the block is a copy of the code. No syntax colouring.
+ * It scrolls sideways by default, because a broken line is a changed line. No syntax colouring.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -26,6 +24,7 @@ export class LintjeCode extends LintjeGridItemElement {
   declare text?: string
   /** Shown as the label top right: `json`, `sql`, `python`. */
   declare language?: string
+  /** Line numbers beside the text, not in it: a copy of the block is a copy of the code. */
   numbered: boolean = false
   /** Break long lines instead of scrolling the block sideways. */
   wrap: boolean = false

@@ -1,16 +1,14 @@
 /**
  * `<lintje-hero>` — the opening band of a start page: a large title, a line of introduction and
- * one way onward, on the theme's wash. It runs from edge to edge; its text keeps to the
- * content column. In `lintje-shell` it goes in the `full` slot, above the page's content.
+ * one way onward, on the theme's wash.
  *
- * The title is an h2, as the page header's: the page's h1 is the shell's `name`.
- * Slots: the default slot under the description (a search field, a short form); `status` above
- * the title (a badge); `aside` for one picture beside the text (an emblem, an illustration), left
- * out below 1024 px; `panel` for content beside the text (what is said now in a running
- * recording), half the band from 1024 px and under the text below it; `overlap` for what stands
- * half over the band's lower edge, such as a panel of tabs.
+ * It runs from edge to edge, its text in the content column; in `lintje-shell` it goes in the
+ * `full` slot. The title is an h2: the page's h1 is the shell's `name`. The default slot takes a
+ * search field or a short form under the introduction, `aside` one picture beside the text (left
+ * out below 1024 px), `panel` content beside the text, and `overlap` what stands half over the
+ * band's lower edge, such as a panel of tabs.
  *
- * Events: `lintje-navigate` `{ href }` for the action.
+ * Events: `lintje-navigate` `{ href }` (the action).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'

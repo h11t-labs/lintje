@@ -1,10 +1,8 @@
 /**
  * `<lintje-radio-group>` — one option per line, for options that do not fit `lintje-segmented`.
- * Options are `FilterOption[]`. Arrow keys are the browser's: the inputs share one `name` inside
- * this shadow root, so two groups never collide. `variant="cards"` draws each option as a card in
- * a grid, its `description` under the label, the chosen one quiet as in `lintje-segmented`.
  *
- * Events: `lintje-change`; with a `name` also `lintje-values-change` (`shared/input.ts`).
+ * Events: `lintje-change` `string`, `lintje-values-change` `{ [name]: value }` (with a `name`),
+ * `lintje-reset` (the reset link was pressed).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'

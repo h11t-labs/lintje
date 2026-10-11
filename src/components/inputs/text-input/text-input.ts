@@ -1,10 +1,12 @@
 /**
- * `<lintje-text-input>` — a text field: `clearable`, `error`, `readonly`, and `type` text,
- * search, password or email. It checks nothing itself; the host sets `error`.
+ * `<lintje-text-input>` — a text field: text, search, password or email.
  *
- * It commits on `change` (leaving the field, Enter), since every commit is a URL change and a
- * tile reload. `commit="input"` bundles keystrokes and commits 300 ms after the last. The same
- * value is never committed twice. Events: `lintje-change`, and `lintje-values-change` with `name`.
+ * It checks nothing itself: the host sets `error`. It commits on `change` (leaving the field,
+ * Enter), since every commit is a URL change and a tile reload, and never commits the same value
+ * twice.
+ *
+ * Events: `lintje-change` `string`, `lintje-values-change` `{ [name]: value }` (with a `name`),
+ * `lintje-reset` (the reset link was pressed).
  */
 import {
   html,
@@ -48,7 +50,10 @@ export class LintjeTextInput extends LintjeFormInputElement {
   clearable: boolean = false
   stacked: boolean = false
   type: TextInputType = 'text'
-  /** The attribute `commit`; `commit()` is the method every input commits through. */
+  /**
+   * The attribute `commit`; `commit()` is the method every input commits through. `input`
+   * bundles keystrokes and commits 300 ms after the last.
+   */
   commitOn: CommitOn = 'change'
   /** Passed to the native input as is. */
   autocomplete: string = ''

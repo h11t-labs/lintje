@@ -1,15 +1,13 @@
 /**
  * `<lintje-chat-answer>` — what the assistant answered, as a list of existing blocks.
  *
- * It draws none of the blocks itself; only the bold lead, strip, actions and follow-ups are its
- * own. A block still to come is that block with `state: 'loading'`. Only the `current` answer
- * can be retried, changed through its strip or followed up. The thumbs and "Gekopieerd" are
- * the element's own state; the conversation is not stored.
+ * It draws none of the blocks itself: a block still to come is that block with `state: 'loading'`.
+ * The thumbs and "Gekopieerd" are its own state; it stores nothing of the conversation. The events
+ * of its strip, suggestions and blocks pass through unchanged.
  *
- * Events: `lintje-answer-retry` `{turnId}` and `lintje-answer-rate` `{turnId, rating, reason}`
- * (`rating` is `'up'`, `'down'` or `null` when taken back; a `'down'` is followed by a second
- * event once the reader picks a reason). The strip's, the suggestions' and the blocks' events
- * pass through untouched.
+ * Events: `lintje-answer-retry` `{ turnId }`, `lintje-answer-rate` `{ turnId, rating, reason }`
+ * (`rating` is `'up'`, `'down'` or `null` when taken back; a `'down'` comes again with the
+ * `reason` once the reader picks one).
  */
 import {
   html,
@@ -93,6 +91,7 @@ export class LintjeChatAnswer extends LintjeElement {
   declare choices?: ChatSuggestion[]
   /** Suggested next questions; drawn on the current answer only. */
   declare followUps?: ChatSuggestion[]
+  /** The latest answer: only it can be retried, changed through its strip or followed up. */
   current: boolean = false
   /** The turn this answers; it comes back in the events. */
   declare turnId?: string

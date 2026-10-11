@@ -1,9 +1,12 @@
 /**
- * `<lintje-tile>` — the frame around a chart, map or table. Top to bottom: header, notice, intro,
- * legend, content, legend (`legend-below`), footnote. `slot="aside"` puts a key figure beside the
- * content, above it below 768 px. Hover actions show on focus too, always on touch screens.
+ * `<lintje-tile>` — the frame around a chart, map or table.
  *
- * Events: `lintje-tile-expand` and `lintje-tile-download`; the host acts on them.
+ * Top to bottom: header, notice, intro, legend, content, legend (`legend-below`), footnote.
+ * `slot="aside"` puts a key figure beside the content, above it below 768 px. Hover actions show
+ * on focus too, and always on touch screens. The tile expands and downloads nothing itself: the
+ * host answers its events.
+ *
+ * Events: `lintje-tile-expand`, `lintje-tile-download`.
  */
 import { html, nothing, type PropertyValues, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'

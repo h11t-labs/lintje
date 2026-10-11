@@ -1,8 +1,8 @@
 /**
  * `<lintje-breadcrumbs>` — the breadcrumb trail above a page's title.
  *
- * The last item is the current page (`aria-current`), never a link. Past `MAX_LEVELS` the middle
- * collapses into a "…" menu. It never reads the URL: the host passes the levels.
+ * The last item is the current page, never a link. Past four levels the middle collapses into a
+ * "…" menu. It never reads the URL: the host passes the levels.
  *
  * Events: `lintje-navigate` `{ href }`.
  */

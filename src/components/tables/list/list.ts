@@ -1,26 +1,15 @@
 /**
- * `<lintje-list>` — rows for what needs no columns: title, a muted line, a fact or actions. It is
- * also the work list: what someone made or had made, in progress or done, with the kind as an
- * icon, the state as a word, the progress as a bar, and rows grouped under a moment ("Vandaag").
- * A row's title is one line, cut with an ellipsis; it wraps where no pointer shows its tooltip:
- * below 768 px, without hover, and under the keyboard's focus. A run's moment is a heading at
- * `heading-level`.
+ * `<lintje-list>` — rows for what needs no columns: title, a muted line, a fact or actions.
  *
- * The whole row is clickable but the title is the one tab stop; a row with `clickable: false` opens
- * nothing, and its title is plain text or, with an `href`, only a link. It does not navigate: a plain
- * click is cancelled and sent as `lintje-row-click`; a modifier click on a title link is the
- * browser's. A menu's `lintje-action` is stopped and sent again with its row. When the focused
- * control leaves with an update (a row removed, an action replaced), the focus goes to the same
- * row's other control, else the next row, the previous one, or the list itself. A rename that ends
- * gives the focus to its row's first control, found by its id or, saved under a new one, its place.
+ * It is also the work list: what someone made or had made, with its kind, state and progress, in
+ * runs under a moment ("Vandaag"). It does not navigate: a plain click on a row is cancelled and
+ * sent as `lintje-row-click`, and a link row in a menu also sends `lintje-navigate` after its
+ * `lintje-row-action`. A row with `rename` turns its title into a field in place; the host keeps
+ * that state, as for every row.
  *
- * A row with `rename` turns its title into a field in place, with its save and cancel: renaming
- * needs no dialog. The host keeps the state, as it does for every row.
- *
- * Events: `lintje-row-click` `{ id, label, href? }`, `lintje-row-action` `{ id, label, value }`
- * (every chosen menu row, a link row included, and the row's own `action`), `lintje-navigate` `{ href }` (from a link row in a
- * menu, after its `lintje-row-action`), `lintje-row-rename` `{ id, value }` and
- * `lintje-row-rename-cancel` `{ id }` (Enter and Escape too).
+ * Events: `lintje-row-click` `{ id, label, href? }`, `lintje-row-action` `{ id, label, value }` (a
+ * chosen menu row or the row's own action), `lintje-row-rename` `{ id, value }`,
+ * `lintje-row-rename-cancel` `{ id }`.
  */
 import {
   html,
