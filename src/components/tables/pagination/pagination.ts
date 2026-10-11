@@ -56,23 +56,26 @@ const RESULTS: CountUnit = { many: 'resultaten', one: 'resultaat' }
 
 /**
  * "21–40 van 131 documenten": the rows on `page`, or `null` when the host gave no total. When
- * everything fits on one page the range would repeat the total, so only the total stands.
+ * everything fits on one page the range would repeat the total, so only the total stands. With
+ * `from`, a filter narrowed the total: "· gefilterd uit 980" follows.
  */
 export function rangeText(
   page: number,
   pageSize?: number,
   total?: number,
   unit: CountUnit = RESULTS,
+  from?: number,
 ): string | null {
   if (!pageSize || total === undefined || total === null || Number.isNaN(total)) return null
-  if (total <= 0) return `Geen ${unit.many}`
+  const filtered = from != null && from > total ? ` · gefilterd uit ${formatNumber(from)}` : ''
+  if (total <= 0) return `Geen ${unit.many}${filtered}`
   const noun = total === 1 ? unit.one : unit.many
-  if (total <= pageSize) return `${formatNumber(total)} ${noun}`
+  if (total <= pageSize) return `${formatNumber(total)} ${noun}${filtered}`
   const first = Math.min((page - 1) * pageSize + 1, total)
   const last = Math.min(page * pageSize, total)
   const range =
     first === last ? formatNumber(first) : `${formatNumber(first)}–${formatNumber(last)}`
-  return `${range} van ${formatNumber(total)} ${noun}`
+  return `${range} van ${formatNumber(total)} ${noun}${filtered}`
 }
 
 /** `"10, 20, 50"` → `[10, 20, 50]`: whole, positive, each once, in the host's order. */
@@ -94,6 +97,7 @@ export class LintjePagination extends LintjeElement {
     page: { type: Number },
     pageCount: { type: Number, attribute: 'page-count' },
     total: { type: Number },
+    filteredFrom: { type: Number, attribute: 'filtered-from' },
     pageSize: { type: Number, attribute: 'page-size' },
     pageSizes: { attribute: 'page-sizes', converter: { fromAttribute: parsePageSizes } },
     unit: { type: String },
@@ -109,6 +113,8 @@ export class LintjePagination extends LintjeElement {
   declare pageCount?: number
   /** Rows over all pages, for the count. */
   declare total?: number
+  /** The rows before a filter narrowed them to `total`; the count then says it was filtered. */
+  declare filteredFrom?: number
   declare pageSize?: number
   /** `"10, 20, 50"`: draws the choice how many stand on a page. */
   declare pageSizes?: number[]
@@ -342,7 +348,7 @@ export class LintjePagination extends LintjeElement {
     const current = this.current
     const slots = pageRange(current, count)
     const at = slots.indexOf(current)
-    const range = rangeText(current, this.pageSize, this.total, this.countUnit)
+    const range = rangeText(current, this.pageSize, this.total, this.countUnit, this.filteredFrom)
     return html`<div
       class=${classMap({
         'lintje-pagination': true,

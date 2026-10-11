@@ -113,16 +113,14 @@ describe('a column filter', () => {
     expect(date?.querySelector('.lintje-data-table__funnel')).toBeNull()
   })
 
-  it('marks a filtered column and shows its chip with the count of rows', async () => {
+  it('marks a filtered column by its funnel only, and shows its chip with the count of rows', async () => {
     const element = await mount({
       filters: { category: ['veiligheid', 'overlast'] },
       totalRows: 131,
     })
     const head = root(element).querySelectorAll('.lintje-data-table__full thead th')[1]
     expect(head?.classList.contains('is-filtered')).toBe(true)
-    expect(head?.querySelector('.lintje-data-table__filter-dot')?.getAttribute('aria-label')).toBe(
-      'Gefilterd',
-    )
+    expect(funnels(element)[1]?.classList.contains('is-filtered')).toBe(true)
     expect(funnels(element)[1]?.getAttribute('aria-label')).toBe('Filter op categorie, 2 gekozen')
     const chip = root(element).querySelector('.lintje-data-table__chip')
     expect(chip?.textContent?.trim()).toBe('Categorie: Veiligheid, Overlast')
@@ -176,11 +174,17 @@ describe('the column chooser', () => {
       columns.push((event as CustomEvent).detail),
     )
     const heads = root(element).querySelectorAll('.lintje-data-table__full thead th')
-    // The two shown columns and the actions column, whose head holds the chooser.
-    expect(heads).toHaveLength(3)
+    // The detail column (its rows list the hidden one), the two shown columns, and the actions
+    // column, whose head holds the chooser.
+    expect(heads).toHaveLength(4)
+    expect(heads[0]?.classList.contains('lintje-data-table__detail-cell')).toBe(true)
 
-    const button = root(element).querySelector<HTMLElement>('.lintje-data-table__chooser-button')
+    const button = heads[3]?.querySelector<HTMLElement>('.lintje-data-table__chooser-button')
     expect(button?.getAttribute('aria-label')).toBe('Kolommen kiezen')
+    expect(button?.closest('lintje-tooltip')?.getAttribute('text')).toBe('Kolommen kiezen')
+    expect(
+      root(element).querySelector('.lintje-data-table__toolbar .lintje-data-table__chooser-button'),
+    ).toBeNull()
     button?.click()
     await element.updateComplete
     const list = root(element).querySelector('lintje-sortable-list') as HTMLElement & {
@@ -202,7 +206,66 @@ describe('the column chooser', () => {
     await element.updateComplete
     expect(outside).toEqual([])
     expect(columns).toEqual([{ order: ['title', 'category', 'date'], hidden: [] }])
+    // Nothing is hidden and there are no detail fields: the detail column leaves.
     expect(root(element).querySelectorAll('.lintje-data-table__full thead th')).toHaveLength(4)
+  })
+
+  it('sets every column back in the host’s order, and is unavailable while that stands', async () => {
+    const element = await mount({ columnChooser: true, hiddenColumns: ['date'] })
+    const columns: unknown[] = []
+    element.addEventListener('lintje-columns-change', (event) =>
+      columns.push((event as CustomEvent).detail),
+    )
+    root(element).querySelector<HTMLElement>('.lintje-data-table__chooser-button')?.click()
+    await element.updateComplete
+    const reset = () =>
+      root(element).querySelector('.lintje-data-table__chooser-reset') as HTMLElement & {
+        disabled: boolean
+      }
+    expect(reset().disabled).toBe(false)
+    reset().click()
+    await element.updateComplete
+    expect(columns).toEqual([{ order: ['title', 'category', 'date'], hidden: [] }])
+    expect(reset().disabled).toBe(true)
+    reset().click()
+    expect(columns).toHaveLength(1)
+  })
+})
+
+describe('the toolbar', () => {
+  it('clears every filter at once, one event per column, from two chips on', async () => {
+    const one = await mount({ filters: { title: 'pas' } })
+    expect(root(one).querySelector('.lintje-data-table__clear-all')).toBeNull()
+
+    const element = await mount({ filters: { title: 'pas', category: ['verkeer'] } })
+    const changes: unknown[] = []
+    element.addEventListener('lintje-filter-change', (event) =>
+      changes.push((event as CustomEvent).detail),
+    )
+    const clear = root(element).querySelector<HTMLElement>('.lintje-data-table__clear-all')
+    expect(clear?.textContent?.trim()).toBe('Filters wissen')
+    clear?.click()
+    await element.updateComplete
+    expect(changes).toEqual([
+      { column: 'title', value: null },
+      { column: 'category', value: null },
+    ])
+    expect(root(element).querySelector('.lintje-data-table__chip')).toBeNull()
+  })
+
+  it('says the count once: in the toolbar without a pager, in the pager with one', async () => {
+    const short = await mount({ filters: { title: 'tas' }, totalRows: 131 })
+    expect(root(short).querySelector('.lintje-data-table__filter-total')?.textContent).toBe(
+      '2 van 131 rijen',
+    )
+    const paged = await mount({ filters: { title: 'tas' }, totalRows: 131, pageSize: 1 })
+    expect(root(paged).querySelector('.lintje-data-table__filter-total')).toBeNull()
+    const pager = root(paged).querySelector(
+      '.lintje-data-table__pagination--full',
+    ) as HTMLElement & {
+      filteredFrom?: number
+    }
+    expect(pager.filteredFrom).toBe(131)
   })
 })
 

@@ -441,7 +441,34 @@ De besluiten hieronder gelden voor alle elementen.
 
 ### Tabellen
 
-- **Een kop heeft geen vulling**: een vulling is hoe een geselecteerde rij eruitziet.
+- **Een kop heeft geen vulling**, ook gefilterd niet: een vulling is hoe een geselecteerde rij
+  eruitziet.
+- **De kop zegt alleen wat nu geldt.** Alleen de gesorteerde kolom draagt haar pijl; een andere
+  kolom toont de hare onder de aanwijzer of met focus. Een kolom met een filter draagt de
+  trechter, altijd, ook op een aanraakscherm, in het grijs van de kop; gefilterd is dat één
+  markering, de gevulde trechter, en de chips boven de tabel zeggen in woorden waarop.
+- **Sorteren en bladeren laten de kolommen staan.** Een kolom neemt de breedte van haar breedste
+  waarde over alle rijen, niet alleen die van de pagina, en de sorteerpijlen staan boven elkaar in
+  een vak dat even breed blijft, gesorteerd of niet.
+- **Kolommen kiezen staat waar de kolommen staan**: een stil icoon in de kop van de laatste
+  kolom, boven de ⋮ van de rijen, met zijn naam als tooltip; het kost geen regel boven de
+  tabel. Wat de rijen raakt ("Filters wissen", "Alles inklappen") staat met zijn woord in de
+  werkbalk. De telling staat één keer: onder de rijen als er gebladerd wordt, anders in de
+  werkbalk.
+- **Een naam die opent, is donker**, zoals in de werklijst: een kolom blauw leest als een kolom
+  links en weegt zwaarder dan de cijfers ernaast. De naam onderstreept zich onder de aanwijzer en
+  met focus.
+- **Hoogstens één vulling per rij.** Alleen een overschreden drempel vult zijn cel; dicht bij de
+  drempel is een teken en vet. Een waarde als label is een badge, in de tonen van `lintje-badge`,
+  met haar woord.
+- **Een totaal is van de host.** De tabel rekent nooit: een som, een gemiddelde en een gewogen
+  cijfer komen binnen als waarde, met het woord dat zegt hoe ("gem."). De totaalrij staat onder de
+  rijen, vet, boven een zware lijn, en plakt niet.
+- **Een rij klapt open voor de rest van zichzelf**: de kolommen die de lezer verborg en de velden
+  die nooit een kolom zijn, op desktop en telefoon dezelfde lijst. Open of dicht is beeld, geen
+  toestand: het gaat niet naar de host en niet in de URL.
+- **Groepen houden de volgorde van de host.** Sorteren werkt binnen een groep, een pagina breekt
+  nooit in een groep, en een ingeklapte groep draagt haar subtotalen op haar eigen regel.
 - **Een rij is klikbaar of selecteerbaar**, nooit allebei. Een naam die zijn rij opent, maakt de
   rij niet klikbaar: de naam is de link, dus een selecteerbare tabel kan zijn rijen nog steeds
   openen. Een naam die opent, wordt niet in zijn cel bewerkt.

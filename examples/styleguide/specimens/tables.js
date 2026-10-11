@@ -1,6 +1,6 @@
 // The tables category (Tabellen en lijsten): the specimens of its elements.
 import { log } from '../shared.js'
-import { desks, meta } from '../../_data/load.js'
+import { desks, meta, regions } from '../../_data/load.js'
 
 // The worksheet specimens of `lintje-data-table` play the host: each listens for the table's
 // request, does the work on its own copy of the rows, and answers with new `data`. The rows are
@@ -102,6 +102,162 @@ const tableData = {
   download: { filename: 'loketten' },
 }
 
+/* --- Labels, totals, a row's detail and groups ------------------------------------ */
+
+// The host computes every total; the table only draws them. Fictional figures.
+const regionName = (id) => regions.find((region) => region.id === id)?.name ?? id
+const sum = (list, key) => list.reduce((total, row) => total + (row[key] ?? 0), 0)
+const mean = (list, key) => Math.round(sum(list, key) / list.length)
+
+const KIND_LABELS = {
+  counter: { label: 'Balie', tone: 'neutral' },
+  service: { label: 'Servicepunt', tone: 'subtle' },
+}
+const STATUS_LABELS = {
+  complete: { label: 'Compleet', tone: 'success', icon: 'functioneel-vinkje' },
+  delayed: { label: 'Vertraagd', tone: 'warning', icon: 'functioneel-klok' },
+}
+
+const deskRows = desks.map((point) => ({
+  id: point.id,
+  name: point.name,
+  region: regionName(point.region_id),
+  kind: point.kind,
+  requests: point.requests,
+  waitTime: point.wait_time,
+  change: point.change,
+  staffing: point.staffing,
+  positions: point.positions,
+  dataStatus: point.data_status,
+}))
+
+const sheetColumns = [
+  { key: 'name', header: 'Loket' },
+  { key: 'region', header: 'Regio' },
+  { key: 'kind', header: 'Soort', format: 'label', labels: KIND_LABELS },
+  { key: 'requests', header: 'Aanvragen', align: 'right' },
+  {
+    key: 'waitTime', header: 'Wachttijd', align: 'right', unit: 'min', mobileMeasure: true,
+    threshold: { value: meta.thresholds.wait_time_threshold, caution: meta.thresholds.wait_time_caution },
+  },
+  { key: 'change', header: 'Trend', align: 'right', format: 'change' },
+  { key: 'dataStatus', header: 'Gegevens', format: 'label', labels: STATUS_LABELS },
+]
+
+const totalsOf = (list) => ({
+  requests: sum(list, 'requests'),
+  waitTime: { value: mean(list, 'waitTime'), how: 'gem.' },
+})
+
+const sheetData = {
+  caption: 'Loketten met soort, aanvragen, wachttijd, trend en gegevensstatus, met totalen',
+  title: 'Loketten',
+  subtitle: 'Vandaag · de totalen rekent de bron uit',
+  columns: sheetColumns,
+  rows: deskRows,
+  rowKey: 'id',
+  defaultSort: { key: 'requests', direction: 'desc' },
+  totals: totalsOf(deskRows),
+  totalsLabel: 'Alle loketten',
+  pageSize: 15,
+  download: { filename: 'loketten-totaal' },
+}
+
+// The worksheet: every extension at once. The host filters, recounts the totals over what is left
+// and keeps the checked rows; the table only asks.
+const REGIONS = [...new Set(deskRows.map((row) => row.region))]
+
+const worksheetColumns = [
+  { key: 'name', header: 'Loket', filter: { kind: 'text' } },
+  {
+    key: 'region',
+    header: 'Regio',
+    filter: {
+      kind: 'options',
+      options: REGIONS.map((value) => ({
+        value,
+        count: deskRows.filter((row) => row.region === value).length,
+      })),
+    },
+  },
+  ...sheetColumns.slice(2, 6),
+  {
+    ...sheetColumns[6],
+    filter: { kind: 'options', options: Object.entries(STATUS_LABELS).map(([value, { label }]) => ({ value, label })) },
+  },
+]
+
+function deskFiltered(active) {
+  return deskRows.filter((row) =>
+    Object.entries(active).every(([key, value]) =>
+      Array.isArray(value)
+        ? value.includes(row[key])
+        : String(row[key]).toLowerCase().includes(value.toLowerCase()),
+    ),
+  )
+}
+
+function worksheet(stage) {
+  const start = { region: ['Regio Noordwest', 'Regio Zuidwest'] }
+  const shown = deskFiltered(start)
+  const element = table(stage, {
+    ...sheetData,
+    title: 'Loketten',
+    subtitle: 'Vandaag · open een loket via zijn naam',
+    caption: 'Loketten met regio, soort, aanvragen, wachttijd, trend en gegevensstatus',
+    columns: worksheetColumns,
+    rows: shown,
+    totals: totalsOf(shown),
+    totalRows: deskRows.length,
+    filters: start,
+    selectable: true,
+    openable: true,
+    checkedIds: [shown[0].id, shown[1].id],
+    rowActions: [
+      { value: 'toewijzen', label: 'Toewijzen' },
+      'separator',
+      { value: 'sluiten', label: 'Loket sluiten', danger: true },
+    ],
+    bulkActions: [
+      { value: 'toewijzen', label: 'Toewijzen' },
+      { value: 'exporteren', label: 'Exporteren' },
+    ],
+    columnChooser: true,
+    hiddenColumns: ['change'],
+    detailFields: [{ key: 'staffing', label: 'Bezetting', format: 'percent' }],
+    pageSize: 5,
+    expandable: true,
+  })
+  const say = log(stage)
+  element.addEventListener('lintje-filter-change', (event) => {
+    say(`lintje-filter-change ${JSON.stringify(event.detail)}`)
+    const next = { ...element.data.filters }
+    if (event.detail.value == null) delete next[event.detail.column]
+    else next[event.detail.column] = event.detail.value
+    const left = deskFiltered(next)
+    element.data = { ...element.data, filters: next, rows: left, totals: totalsOf(left) }
+  })
+  element.addEventListener('lintje-columns-change', (event) => {
+    say(`lintje-columns-change ${JSON.stringify(event.detail)}`)
+    const { order, hidden } = event.detail
+    const columns = order.map((key) => element.data.columns.find((column) => column.key === key))
+    element.data = { ...element.data, columns, hiddenColumns: hidden }
+  })
+  element.addEventListener('lintje-checked-change', (event) => {
+    element.data = { ...element.data, checkedIds: event.detail }
+  })
+  for (const name of ['lintje-row-open', 'lintje-row-action', 'lintje-bulk-action', 'lintje-sort-change']) {
+    element.addEventListener(name, (event) => say(`${name} ${JSON.stringify(event.detail)}`))
+  }
+}
+
+const groupTotals = Object.fromEntries(
+  [...new Set(deskRows.map((row) => row.region))].map((region) => [
+    region,
+    totalsOf(deskRows.filter((row) => row.region === region)),
+  ]),
+)
+
 /* --- Truncated and compact ---------------------------------------------------- */
 
 // A note per desk, some longer than the column may grow; fictional.
@@ -144,6 +300,12 @@ function dashboard(stage, data = tableData) {
   }
   element.addEventListener('lintje-checked-change', (event) => {
     element.data = { ...element.data, checkedIds: event.detail }
+  })
+  element.addEventListener('lintje-columns-change', (event) => {
+    say(`lintje-columns-change ${JSON.stringify(event.detail)}`)
+    const { order, hidden } = event.detail
+    const columns = order.map((key) => element.data.columns.find((column) => column.key === key))
+    element.data = { ...element.data, columns, hiddenColumns: hidden }
   })
 }
 
@@ -492,8 +654,14 @@ export default {
   elements: [
 {
       tag: 'lintje-data-table',
-      title: 'De tabel: dashboardtabel, kiesbaar, laden en fout, en als werkblad met bewerken, acties en filters, ook op een applicatiepagina',
+      title: 'De tabel: dashboardtabel, kiesbaar, laden en fout, en als werkblad met bewerken, acties, filters, labels, totalen, open rijen en groepen, ook op een applicatiepagina',
       specimens: [
+        {
+          label: 'Werkblad — alles tegelijk: filters, kolommen, selectie, labels, drempels, een open rij en totalen',
+          html: '<lintje-data-table></lintje-data-table>',
+          wide: true,
+          setup: worksheet,
+        },
         {
           label: 'Het dashboard — drempels, statuskolom, klikbare rijen',
           html: '<lintje-data-table></lintje-data-table>',
@@ -625,10 +793,60 @@ export default {
           setup: (stage) => filters(stage, { filters: { category: ['Veiligheid', 'Overlast'] } }),
         },
         {
-          label: 'Kolommen kiezen',
+          label: 'Kolommen kiezen — het icoon in de kop van de laatste kolom; een verborgen kolom staat onder de rij',
           html: '<lintje-data-table></lintje-data-table>',
           wide: true,
           setup: (stage) => filters(stage, { columnChooser: true, hiddenColumns: ['severity'] }),
+        },
+        {
+          label: 'Labels en totalen — een waarde als badge, de totaalrij van de host',
+          html: '<lintje-data-table></lintje-data-table>',
+          wide: true,
+          setup: (stage) => dashboard(stage, { ...sheetData, columnChooser: true }),
+        },
+        {
+          label: 'Een rij open — de verborgen kolommen en de extra velden onder de rij',
+          html: '<lintje-data-table></lintje-data-table>',
+          wide: true,
+          setup: (stage) => {
+            dashboard(stage, {
+              ...sheetData,
+              title: 'Loketten, met details',
+              subtitle: 'Open een rij voor de bezetting',
+              columnChooser: true,
+              hiddenColumns: ['change'],
+              detailFields: [
+                { key: 'positions', label: 'Loketplaatsen' },
+                { key: 'staffing', label: 'Bezetting', format: 'percent' },
+              ],
+              totals: undefined,
+              pageSize: 5,
+            })
+            const element = stage.querySelector('lintje-data-table')
+            void element.updateComplete.then(() =>
+              element.shadowRoot.querySelector('.lintje-data-table__detail-toggle')?.click(),
+            )
+          },
+        },
+        {
+          label: 'Groepen — per regio met subtotalen, de eerste ingeklapt',
+          html: '<lintje-data-table></lintje-data-table>',
+          wide: true,
+          setup: (stage) => {
+            dashboard(stage, {
+              ...sheetData,
+              title: 'Loketten per regio',
+              subtitle: 'Gesorteerd binnen elke regio',
+              columnChooser: true,
+              groupBy: 'region',
+              groupTotals,
+              groupsPerPage: 3,
+            })
+            const element = stage.querySelector('lintje-data-table')
+            void element.updateComplete.then(() =>
+              element.shadowRoot.querySelector('.lintje-data-table__full .lintje-data-table__group-toggle')?.click(),
+            )
+          },
         },
       ],
     },
