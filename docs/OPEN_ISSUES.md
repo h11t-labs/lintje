@@ -25,11 +25,12 @@ regel per punt, met het bestand waar het over gaat. Sluit een regel in de wijzig
 
 - `src/primitives/icon-button/icon-button.ts`: `size` (getypeerd `28 | 32 | 36 | 40 | 44`) wordt geaccepteerd en heeft geen effect — de box is altijd `--h-icon-button`. Het attribuut laten vallen is een brekende wijziging voor een host die het zet; besluit wanneer.
 - `src/primitives/popover/popover.ts`: geen sheet-plaatsing op een telefoon; de combobox, de taginvoer, de datuminvoer, de tijdinvoer en de menuknop houden een paneel onder het anker waar de specificaties een sheet onderaan tekenen.
-- `src/components/inputs/shared/input.css`: de `:host(…)`-lijst noemt 7 van de 17 invoeren; de andere tien zetten elk hun eigen `:host`- en telefoonregel, en de telefoonregel voor het tekst- en getalveld staat in `radio-group.css`.
+- `src/components/inputs/shared/input.css`: de `:host(…)`-lijst noemt 8 van de 19 invoeren; de andere elf zetten elk hun eigen `:host`- en telefoonregel, en de telefoonregel voor het tekst- en getalveld staat in `radio-group.css`.
 - `src/primitives/popover/popover.ts`: de popover vraagt alleen bij Escape en een klik buiten om te sluiten, niet wanneer de focus hem verlaat; een eigenaar zonder eigen `focusout` laat hem open na Tab voorbij zijn laatste stop of een focus elders (het popovercontract, `KNOWN`). Een `lintje-close` met een reden voor de focus zou dat voor elke eigenaar regelen.
 - `src/components/inputs/date-range/date-range.ts`: het paneel staat `position: absolute` onder het veld, dus een scrollende voorouder (een tegel, een filterzone) snijdt het af; de multiselect zet het zijne `fixed` aan het veld (het popovercontract, `KNOWN`).
 - `src/core/focus.ts` (`ownsEscape`: de popover, de multi-select, de datumreeks, de toggletip, de toast, het submenu van de bovenindeling, "Weergave" en "Delen"): of er een dialoog boven een open popup staat, wordt uit de focus gelezen — Escape blijft ongemoeid zolang de focus in een `aria-modal="true"` staat waar de popup niet in zit. Een dialoog die `aria-modal` niet zet, of die de focus niet genomen heeft, telt niet mee. Elke trap beantwoordt `isTopmost()` voor zichzelf (`src/components/shared/focus-trap.ts`), maar er is geen globale vraag naar de bovenste dialoog, dus een popup leest in plaats daarvan `aria-modal` uit de focus.
 - `src/components/frame/shell/navigation.css`, `top-bar.css`, `mobile-header.css`, `src/components/frame/page-header/page-header.css`, `src/components/charts/kpi/kpi.css`, `src/primitives/tile/tile.css`: ruimte buiten de 4 px-schaal (22, 14, 10, 6, 18, 2 px) waar de railgeometrie van het menu of de gespecificeerde insprongen van de paginakop en de tegel die bepalen; gelaten zoals gespecificeerd.
+- `src/components/inputs/checkbox/checkbox.ts`: de hint staat onder het vakje, niet onder de labeltekst, en onder een rij van `--h-target`; in `lintje-checkbox-group` en `lintje-multiselect` leest de toelichting van een optie daardoor als kop van de rij eronder. Besluit of de hint inspringt tot de labeltekst.
 
 ## Dubbelingen
 
@@ -132,6 +133,8 @@ Uit de WCAG-review van oktober 2026: wat nog openstaat in de elementen zelf. Wat
 - `src/components/forms/form/form.ts` met `src/components/forms/error-summary/error-summary.ts`: de foutsamenvatting van het formulier drukt "label: melding" af met de eigen melding van het veld, dus een host moet meldingen voor beide plekken formuleren.
 - `src/components/content/prose/prose.ts`: markup in het slot krijgt geen opmaak.
 - `examples/meldingen/app.js` leest het concept zelf uit `localStorage` in plaats van `restoredDraft` en `restoredAt` van `lintje-form`. `examples/transcriptie/` en `examples/vertalen/` herladen de pagina om van modus te wisselen; `data-mode` tijdens het draaien wisselen werkt (gecontroleerd in Chromium op de transcriptiepagina: elk element volgt).
+- `src/components/tables/data-table/data-table.css`: op papier staat de kop van een tabel één keer; Chromium herhaalt hem op het volgende vel zonder zijn woorden, alleen met zijn lijn. Een tabel die doorloopt, heeft daar dus geen kop.
+- `src/components/tables/data-table/data-table.css`: op een staand vel breekt een cel waar hij moet, ook bij een streepje ("M-20260401", "04-10-2026"); een brede tabel leest liggend beter.
 
 ## Gevonden door de browsertests
 
@@ -152,6 +155,7 @@ De browsertest van de styleguide tekent en audit; een `*.browser.test.ts` naast 
 - `src/components/inputs/textarea/textarea.ts`: de `field-sizing`-fallback is alleen geforceerd getest (`textarea-fallback.browser.test.ts`): Chromium en WebKit kennen `field-sizing: content` allebei, dus in een engine zonder is hij nog niet gezien.
 - `src/components/inputs/file-upload/file-upload.ts`: het sleepaantal is getest met een eigen `DataTransfer`; of Safari `dataTransfer.items` leesbaar houdt bij een echte sleep vanuit het systeem, is niet gezien.
 - `src/components/tables/sortable-list/sortable-list.ts`: slepen met een vinger in Safari; Playwright stuurt geen touch naar WebKit, dus `sortable-list.browser.test.ts` sleept met touch alleen in Chromium.
+- Afdrukken: alleen als PDF uit Chromium bekeken, staand en liggend, met en zonder achtergronden, licht en donker; `print.browser.test.ts` toetst de regels, niet het vel. Het afdrukvoorbeeld van Firefox en Safari is niet gezien.
 - Geforceerde kleuren (Windows-hoog contrast): alleen in de emulatie van Chromium bekeken, in licht en donker, niet in Windows zelf.
 - Er is geen test met een schermlezer gedaan op de live-regio's, de dialogen en de formulierfouten; wat ze zeggen is alleen tegen de DOM gecontroleerd.
 - Firefox: de build van Playwright (1.63 met Firefox 155, en 1.64 met Firefox 157) start niet op macOS 27 ("Could not find profile folder"), dus `npm run test:browser:all` draait Chromium en WebKit; voeg `firefox` aan de lijst toe zodra hij wel start.

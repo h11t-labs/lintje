@@ -13,13 +13,14 @@ import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'l
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import chatSuggestionsCss from './chat-suggestions.css?inline'
+import screenOnlyCss from '../../../primitives/shared/screen-only.css?inline'
 import type { ChatSuggestion } from '../../../types'
 
 export type ChatSuggestionKind = 'suggestion' | 'choice'
 export type ChatSuggestionsAlign = 'end' | 'start'
 
 export class LintjeChatSuggestions extends LintjeElement {
-  static override styles = shadowCss(chatSuggestionsCss)
+  static override styles = [shadowCss(chatSuggestionsCss), shadowCss(screenOnlyCss)]
 
   static override properties: PropertyDeclarations = {
     label: { type: String },

@@ -42,6 +42,10 @@
 @media (prefers-reduced-motion: reduce) {
   .lintje-streaming-text__caret { animation: none; }
 }
+/* Paper holds the text as it stood; the caret only says that more is coming. */
+@media print {
+  .lintje-streaming-text__caret { display: none; }
+}
 
 /* Plain: the surface around it is the box. */
 .lintje-streaming-text--plain .lintje-streaming-text__box {

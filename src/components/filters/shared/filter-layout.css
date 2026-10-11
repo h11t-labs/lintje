@@ -11,7 +11,7 @@ lintje-filter-sheet lintje-field { min-width: 0; }
 @media (min-width: 1024px) and (max-width: 1439px) {
   lintje-filter-zone lintje-select { width: 148px; }
 }
-@media (min-width: 768px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1023px), print and (max-width: 1023px) {
   lintje-filter-zone lintje-select,
   lintje-filter-zone lintje-multiselect { width: 100%; }
 }

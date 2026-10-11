@@ -34,6 +34,7 @@ import type { LintjeMultiselect } from '../../inputs/multiselect/multiselect'
 import { completions, recogniseTerms, wordBefore } from '../shared/chat-terms'
 import keyCss from '../../shared/key.css?inline'
 import chatComposerCss from './chat-composer.css?inline'
+import screenOnlyCss from '../../../primitives/shared/screen-only.css?inline'
 import type {
   ChatAnswerForm,
   ChatDraftTerms,
@@ -126,7 +127,7 @@ interface Caption {
 }
 
 export class LintjeChatComposer extends LintjeElement {
-  static override styles = [shadowCss(keyCss), shadowCss(chatComposerCss)]
+  static override styles = [shadowCss(keyCss), shadowCss(chatComposerCss), shadowCss(screenOnlyCss)]
 
   static override properties: PropertyDeclarations = {
     variant: { type: String, reflect: true },

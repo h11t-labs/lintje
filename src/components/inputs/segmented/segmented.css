@@ -60,7 +60,7 @@
 @media (min-width: 1024px) and (max-width: 1439px) {
   :host(:not([stacked])) .lintje-segmented__option { padding: 0 10px; }
 }
-@media (min-width: 768px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1023px), print and (max-width: 1023px) {
   :host { width: 100%; }
   .lintje-segmented { width: 100%; }
   .lintje-segmented__option { flex: 1; justify-content: center; }

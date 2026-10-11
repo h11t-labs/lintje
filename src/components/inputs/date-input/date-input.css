@@ -9,7 +9,7 @@
   --h-control: var(--h-touch);
 }
 /* Below 768 px: the touch height and the full width, as `stacked`. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   :host {
     width: 100%;
     --h-control: var(--h-touch);
@@ -132,7 +132,7 @@
   cursor: not-allowed;
 }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   /* The popover's edge margin, less its 1 px border on either side. */
   .lintje-date-input__calendar { width: calc(100vw - var(--space-4) - 2px); }
 }

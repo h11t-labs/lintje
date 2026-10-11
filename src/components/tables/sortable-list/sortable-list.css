@@ -79,7 +79,7 @@
   color: var(--color-text-muted);
 }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-sortable-list__row { padding-left: 0; }
   .lintje-sortable-list__grip { width: var(--h-touch); height: 100%; }
 }

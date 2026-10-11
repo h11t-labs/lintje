@@ -4,6 +4,7 @@
   min-width: 0;
 }
 :host([hidden]) { display: none; }
+@media print { :host { break-inside: avoid; } }
 
 /* ------------------------------------------------------------------------ */
 
@@ -22,7 +23,7 @@
 .lintje-explainer__term { grid-column: 1; font-weight: 700; color: var(--color-text-primary); }
 .lintje-explainer__description { grid-column: 2; margin: 0; color: var(--color-text-secondary); }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-explainer__list { display: block; }
   .lintje-explainer__description { margin-top: 2px; }
   .lintje-explainer__description + .lintje-explainer__term { margin-top: var(--space-3); }

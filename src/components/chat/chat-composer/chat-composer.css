@@ -140,7 +140,7 @@
 .lintje-chat-composer__completion-kind { font: var(--text-meta); color: var(--color-text-muted); }
 
 /* A phone: the field stays at 1rem, since a smaller size makes iOS zoom in on focus. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-chat-composer__input { padding: var(--space-3) var(--space-3) var(--space-1); }
   .lintje-chat-composer__hint:not(:empty) { flex-basis: 100%; order: -1; text-align: left; }
 }

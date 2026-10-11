@@ -43,7 +43,7 @@
 }
 
 /* Phone: the buttons stack, the confirm on top and the safe one at the bottom. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-confirm-dialog__scrim { padding: var(--space-4); }
   .lintje-confirm-dialog { width: 100%; }
   .lintje-confirm-dialog__actions { flex-direction: column; }

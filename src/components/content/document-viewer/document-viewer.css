@@ -69,7 +69,7 @@
   aspect-ratio: 210 / 297;
 }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-document-viewer__name { flex-basis: 100%; }
   .lintje-document-viewer__view { padding: var(--space-2) 0; }
 }

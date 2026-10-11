@@ -174,7 +174,7 @@
 }
 
 /* A phone of 320 px still fits mute, the three buttons and the speed: each keeps its 48 px. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-audio-player__controls,
   .lintje-audio-player__transport { gap: 0; }
 }

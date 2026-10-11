@@ -329,6 +329,9 @@ De besluiten hieronder gelden voor alle elementen.
   annuleren. Geen dialoog voor één naam.
 - **Opties die elk een regel nodig hebben, zijn kaarten** (`variant="cards"`): naast elkaar, de
   gekozen rustig zoals in de gesegmenteerde keuze.
+- **Een paar keuzes die allemaal in beeld blijven, zijn een groep vinkjes**
+  (`lintje-checkbox-group`): één label, één hint en één foutregel voor de groep, zoals de
+  radiogroep. Een lange lijst om in te zoeken is de multiselect.
 - **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
   elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
   beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").
@@ -662,6 +665,34 @@ naar een volgende regel; ze overlappen nooit.
   uitvinken, op de duur van hoverfeedback.
 - **De focusring is nooit geanimeerd.**
 - **Verminderde beweging laat niets weg, alleen de beweging.**
+
+## Afdrukken
+
+Een pagina op papier is een document: wat de lezer zag, zonder wat hij bediende. De lezer kiest
+staand of liggend; Lintje zet geen paginaformaat.
+
+- **Papier is altijd licht en wit.** De donkere modus geldt alleen op een scherm, en wat onder de
+  inhoud ligt (de pagina, de titelband, de filterband) is wit.
+- **Lintje drukt zijn eigen kleur af**, ook als de browser achtergronden uitzet: een vulling
+  draagt betekenis (een legendavlak, een drempelcel, de huidige pagina). Daarom ligt er onder de
+  inhoud geen groot vlak.
+- **Papier kent geen telefoonvorm.** Een staand vel is smaller dan 768 px en neemt de vorm van
+  768 tot 1024; een liggend vel die van 1024. Een host schrijft zijn eigen telefoonregels als
+  `screen and (max-width: 767px)`.
+- **Bediening verdwijnt; wat gekozen is, blijft.** Knoppen, menu's, het vraagvak, de actiebalk,
+  zoomen, sorteren en bladeren drukken niet af; de "Je ziet"-zin, de gekozen tab, de filters van
+  een tabelkolom en het aantal rijen wel. Wat dichtgeklapt is, staat open.
+- **Niets beweegt.** Elk teken staat in zijn eindtoestand, ook wat nog niet in beeld kwam; een
+  kerncijfer toont zijn waarde, nooit de nul waar het van optelt.
+- **Een kaart toont op papier het gebied dat de lezer zag**, passend in haar smallere doos, met
+  haar schaal daarvoor opnieuw berekend; na het afdrukken staat het schermbeeld er weer.
+- **Een tegel blijft op één vel** waar hij past. Een tabel breekt tussen zijn rijen (`breakable`
+  op de tegel) en zijn kop staat één keer.
+- **Het vel zegt wat het is**: het embleem en de naam van de applicatie staan bovenaan, in plaats
+  van de balken. Adres, datum en paginanummers zijn van de browser.
+- **Het vel heeft een eigen marge**, ook als de browser er geen geeft: ruim genoeg voor de kop-
+  en voetregel van de browser, smal genoeg dat een staand vel de vorm van 768 tot 1024 houdt.
+  Balken en inhoud beginnen op die marge, op één lijn.
 
 ## Toegankelijkheid
 

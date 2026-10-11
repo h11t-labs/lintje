@@ -21,6 +21,6 @@
 .lintje-conflict-alert__versions { overflow-wrap: anywhere; }
 .lintje-conflict-alert__legend { font: var(--text-meta); color: var(--color-text-muted); }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-conflict-alert__actions { flex-direction: column; align-self: stretch; }
 }

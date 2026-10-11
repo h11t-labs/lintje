@@ -24,6 +24,8 @@ const LEAFLET_PREFIX =
 const HOME_PADDING: L.PointTuple = [8, 8]
 /** How far in a map goes from its home: three doublings, eight times. */
 const MAX_DOUBLINGS = 3
+/** Below any zoom a map in a tile needs: a floor that never holds a fit back. */
+const PRINT_FLOOR = -4
 const SVG_NS = 'http://www.w3.org/2000/svg'
 /**
  * How far a circle reaches before it takes in a pole, in km: past it Mercator cannot draw it as
@@ -104,6 +106,12 @@ export interface LeafletSyncOptions {
   mobile: boolean
 }
 
+/** The part of Leaflet 1.9's private zoom animation that `destroy()` ends. */
+interface AnimatedZoom {
+  _animatingZoom?: boolean
+  _onZoomTransitionEnd(): void
+}
+
 function boundsOf(collection: FeatureCollection): L.LatLngBounds {
   const [west, south, east, north] = collection.bbox ?? [-180, -85, 180, 85]
   return L.latLngBounds([south, west], [north, east])
@@ -148,6 +156,8 @@ export class LeafletSurface {
     dragged: boolean
   } | null = null
   #resize: ResizeObserver | null = null
+  /** The view on screen while the page is on paper, to return to afterwards. */
+  #screenView: { centre: L.LatLng; zoom: number } | null = null
   #basemapKey = ''
   #geo = ''
   #home: L.LatLngBounds | null = null
@@ -255,6 +265,33 @@ export class LeafletSurface {
     return { width: Math.round((room * round) / metres), metres: round }
   }
 
+  /**
+   * On paper the box has another size, and Leaflet would keep the screen's pixels and cut the
+   * rest off: the area the reader saw fills the paper's box instead, and returns afterwards.
+   */
+  print(printing: boolean): void {
+    const map = this.#map
+    if (!map || !this.#framed) return
+    if (printing) {
+      const seen = map.getBounds()
+      this.#screenView = { centre: map.getCenter(), zoom: map.getZoom() }
+      this.#resized(map)
+      map.fitBounds(seen, { animate: false })
+      return
+    }
+    const view = this.#screenView
+    this.#screenView = null
+    this.#resized(map)
+    if (view) map.setView(view.centre, view.zoom, { animate: false })
+  }
+
+  /** A box of another size: Leaflet clamps the new limits to the old floor, so that goes first. */
+  #resized(map: L.Map): void {
+    map.invalidateSize({ animate: false })
+    map.setMinZoom(PRINT_FLOOR)
+    this.#limits()
+  }
+
   home(): void {
     this.#controller.leafletView = null
     if (this.#map && this.#home) this.#map.fitBounds(this.#home, { padding: HOME_PADDING })
@@ -264,6 +301,10 @@ export class LeafletSurface {
     document.removeEventListener('keydown', this.#onEscape, true)
     this.#resize?.disconnect()
     this.#resize = null
+    // Leaflet ends a zoom animation on a timer that `remove()` leaves standing, and that timer
+    // reads the removed panes. Ended here, the view is the one zoomed to and the timer does nothing.
+    const zooming = this.#map as unknown as AnimatedZoom | null
+    if (zooming?._animatingZoom) zooming._onZoomTransitionEnd()
     this.#map?.remove()
     this.#map = null
     this.#tiles = null

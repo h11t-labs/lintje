@@ -49,6 +49,7 @@ export class LintjeTile extends LintjeGridItemElement {
     contentHeight: { type: String, attribute: 'content-height' },
     contentScroll: { type: Boolean, attribute: 'content-scroll', reflect: true },
     flush: { type: Boolean },
+    breakable: { type: Boolean, reflect: true },
     filled: { state: true },
   }
 
@@ -75,6 +76,9 @@ export class LintjeTile extends LintjeGridItemElement {
   /** The content runs to the tile's edges and indents what it draws by the tile's padding: rows
    * whose lines reach the frame, as a work list's. */
   flush: boolean = false
+  /** On paper the tile may break between two sheets, as a long table does; otherwise it moves to
+   * the next sheet whole where it fits. */
+  breakable: boolean = false
   /** The words in the loading or error live region, or `null`; filled a frame after the region
    * is drawn, because a region that arrives with its text is not announced. */
   protected filled: string | null = null

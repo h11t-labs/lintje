@@ -12,6 +12,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Toegevoegd
 
+- `lintje-checkbox-group`: meer keuzes onder één label, een vinkje per optie, met één hint en
+  één foutregel voor de groep, zoals de radiogroep. De waarde is `selected`, de aangevinkte
+  waarden in de volgorde van de opties; een `description` staat onder haar optie. (#19)
 - Het gestapelde vlak als grafieksoort (`kind: 'stacked-area'`): de onderverdelingen van één
   variabele in haar tintladder, de donkerste onderaan; een ontbrekende waarde breekt haar laag en
   alles erboven af, de lagen eronder blijven staan. Een laag aan- of uitzetten laat de as staan en
@@ -20,10 +23,25 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   `core/motion.ts` een `easing`. (#11)
 - Een lijngrafiek toont gebeurtenissen (`events`): een genummerd vierkantje boven de categorie,
   met de tekst in een lijst onder de grafiek, in de tooltip, de tabel en de CSV. (#12)
+- Afdrukken geeft een nette pagina, staand en liggend: altijd licht en wit, met een eigen marge,
+  zonder telefoonvorm, bediening of beweging, met het embleem en de naam van de applicatie
+  bovenaan, elke tegel heel op een vel en een tabel die tussen zijn rijen breekt (`breakable` op
+  `lintje-tile`). Een kerncijfer toont op papier zijn waarde, ook als het nog niet in beeld was,
+  en een kaart het gebied dat de lezer zag. (#22)
 - De foutpagina (`lintje-error-page`): de code met een teken voor geen toegang en een storing,
   een titel in woorden, de tekst, een slot voor een zoekveld of melding en een voor de knoppen,
   een referentie met kopieerknop en de lijst "Verder naar". De stijlgids toont niet gevonden,
   geen toegang, een storing en gepland onderhoud. (#18)
+
+### Gewijzigd
+
+- De telefoonvorm geldt alleen op een scherm: `MOBILE` is `screen and (max-width: 767px)`, en een
+  host schrijft zijn eigen telefoonregels zo. (#22)
+
+### Opgelost
+
+- `lintje-map` gooit geen fout meer als de kaart weggaat terwijl een zoom nog loopt: Leaflet
+  rondt de zoom af op een timer die `remove()` laat staan, en die las de weggehaalde kaart. (#20)
 
 ## [0.2.0] - 2026-10-10
 

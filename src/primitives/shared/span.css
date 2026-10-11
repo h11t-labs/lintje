@@ -8,10 +8,10 @@
 :host([span]) {
   grid-column: span var(--lintje-span, 1);
 }
-@media (min-width: 768px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1023px), print and (max-width: 1023px) {
   :host([span='4']) { grid-column: span 6; }
   :host([span='8']) { grid-column: span 12; }
 }
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   :host([span]) { grid-column: span 1; }
 }

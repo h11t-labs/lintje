@@ -19,7 +19,7 @@
   min-width: 0;
 }
 .lintje-chat-answer__blocks > :not([span]) { grid-column: 1 / -1; }
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-chat-answer__blocks { grid-template-columns: minmax(0, 1fr); }
 }
 

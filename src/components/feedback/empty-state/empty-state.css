@@ -32,7 +32,7 @@
 }
 
 /* Phone: the action runs the full width. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-empty-state:not(.lintje-empty-state--compact) .lintje-empty-state__action {
     align-self: stretch;
   }

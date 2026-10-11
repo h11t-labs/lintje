@@ -57,7 +57,7 @@
 :host([narrow]) .lintje-modal__header { align-items: center; padding-block: var(--space-4); }
 :host([narrow]) .lintje-modal__footer { font: var(--text-ui); color: var(--color-text-primary); }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-modal__scrim { padding: 0; align-items: stretch; }
   .lintje-modal { max-height: 100%; height: 100%; }
   .lintje-modal__body { --chart-h-main: 320px; --chart-h-small: 320px; }

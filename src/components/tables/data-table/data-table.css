@@ -5,6 +5,8 @@
 :host([hidden]) { display: none; }
 /* On the page there is no tile padding to bleed into below 768 px: the rows keep the page's edge. */
 :host([plain]) { --tile-pad-x: 0px; }
+/* A table breaks between its rows on paper, so it starts where the page has room. */
+@media print { :host { break-inside: auto; } }
 
 /* ------------------------------------------------------------------------ */
 
@@ -375,6 +377,33 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__pagination--full { display: none; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__pagination--mobile { display: block; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__pagination { padding: var(--space-3) var(--tile-pad-x) 0; }
+
+/* Paper: every column on the sheet, a row never split, and no control. Values wrap rather than
+   run off the edge. What the columns are filtered on stays, as the chips. */
+@media print {
+  /* Its own height, not the cell's: a tile split over two sheets measures its rows again. */
+  .lintje-data-table__tile { height: auto; }
+  /* Chromium repeats a head on the next sheet without its words, so the head stands once. */
+  .lintje-data-table__full thead { display: table-row-group; }
+  .lintje-data-table__scroller { overflow: visible; }
+  .lintje-data-table__frame::before,
+  .lintje-data-table__frame::after { display: none; }
+  .lintje-data-table__cell { white-space: normal; height: auto; padding-block: var(--space-2); }
+  .lintje-data-table__cell-text { max-width: none; white-space: normal; }
+  .lintje-data-table__row { break-inside: avoid; }
+  /* The count belongs to the rows above it, not alone on a sheet of its own. */
+  .lintje-data-table__pagination { break-before: avoid; }
+  .lintje-data-table__row--filler,
+  .lintje-data-table__check-cell,
+  .lintje-data-table__action-cell,
+  .lintje-data-table__sort-icon,
+  .lintje-data-table__funnel,
+  .lintje-data-table__chooser-button,
+  .lintje-data-table__chip-clear,
+  .lintje-data-table__selection,
+  .lintje-data-table__edit-icon { display: none; }
+  .lintje-data-table__open { color: inherit; text-decoration: none; }
+}
 
 /* Forced colours drop the selected row's fill and inset bar. A real 4 px border on the first
    cell (Canvas at rest, Highlight when selected) replaces the bar without moving a column. */

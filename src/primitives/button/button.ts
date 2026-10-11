@@ -16,6 +16,7 @@ import { LintjeElement, define } from '../../core/element'
 import { shadowCss } from '../../core/styles'
 import { iconStyles, renderIcon } from '../../icons/render'
 import buttonCss from './button.css?inline'
+import screenOnlyCss from '../shared/screen-only.css?inline'
 
 export type ButtonVariant =
   | 'primary'
@@ -29,7 +30,7 @@ export type ButtonSize = 'regular' | 'compact' | 'chrome'
 const REASON_ID = 'lintje-button-reason'
 
 export class LintjeButton extends LintjeElement {
-  static override styles = [iconStyles, shadowCss(buttonCss)]
+  static override styles = [iconStyles, shadowCss(buttonCss), shadowCss(screenOnlyCss)]
   static override shadowRootOptions: ShadowRootInit = {
     ...LitElement.shadowRootOptions,
     delegatesFocus: true,

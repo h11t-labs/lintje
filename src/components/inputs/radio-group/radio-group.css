@@ -24,7 +24,7 @@
 .lintje-radio-group__description { font: var(--text-small); font-weight: 400; color: var(--color-text-muted); }
 
 /* Below 768 px the two text fields take the touch height; the choice rows already have it. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   :host(lintje-text-input),
   :host(lintje-number-input) { --h-control: var(--h-touch); }
 }

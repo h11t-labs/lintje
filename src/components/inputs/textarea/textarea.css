@@ -5,7 +5,7 @@
    fills the height the surface gives it. */
 :host([variant='plain']) { display: flex; flex-direction: column; font: inherit; }
 /* Below 768 px: the full width, as `stacked`. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   :host { width: 100%; }
 }
 

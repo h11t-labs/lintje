@@ -1,5 +1,7 @@
 :host { display: block; min-width: 0; min-height: 100vh; }
 :host([hidden]) { display: none; }
+/* A short page is one sheet, not one sheet with the rest left empty. */
+@media print { :host { min-height: 0; } }
 
 /* ------------------------------------------------------------------------ */
 
@@ -178,7 +180,30 @@
 
 .lintje-shell__sheet-user { border-top: 1px solid var(--color-nav-line); }
 
-@media print { .lintje-shell__skip { display: none; } }
+/* On paper the bars give way to the logo and the application's name; the screen never shows it. */
+.lintje-shell__print-head { display: none; }
+
+@media print {
+  .lintje-shell__skip,
+  .lintje-shell__sentinel,
+  .lintje-shell__nav,
+  .lintje-shell__mobile-bar { display: none; }
+  .lintje-shell__print-head {
+    display: block;
+    border-bottom: 1px solid var(--color-border-default);
+  }
+  .lintje-shell__print-logo {
+    display: flex;
+    justify-content: center;
+    min-height: var(--h-logobar);
+  }
+  .lintje-shell__print-name {
+    margin: 0;
+    padding: var(--space-3) 0;
+    color: var(--color-text-primary);
+    font: var(--text-dashboard);
+  }
+}
 
 @media (forced-colors: active) {
   .lintje-navbar .lintje-view__popover :focus-visible,

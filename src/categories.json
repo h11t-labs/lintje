@@ -110,6 +110,7 @@
       "multiselect",
       "tag-input",
       "checkbox",
+      "checkbox-group",
       "radio-group",
       "toggle",
       "segmented",

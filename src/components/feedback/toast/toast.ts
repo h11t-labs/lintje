@@ -16,6 +16,7 @@ import { holdsFocus } from '../../../core/focus'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { deepActiveElement, ownsEscape } from '../../shared/focus-trap'
 import toastCss from './toast.css?inline'
+import screenOnlyCss from '../../../primitives/shared/screen-only.css?inline'
 
 const LIFETIME = 6000
 
@@ -30,7 +31,7 @@ function mainRegion(from: Node): HTMLElement | null {
 }
 
 export class LintjeToast extends LintjeElement {
-  static override styles = [iconStyles, shadowCss(toastCss)]
+  static override styles = [iconStyles, shadowCss(toastCss), shadowCss(screenOnlyCss)]
 
   static override properties: PropertyDeclarations = {
     kind: { type: String, reflect: true },
