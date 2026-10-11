@@ -4,6 +4,10 @@
  * The title is an h2: the page's h1 is the shell's `name`.
  * Slots: `breadcrumbs` above the title, `actions` on its right.
  *
+ * Actions that do not fit on one line go into one menu, "Meer", in front of the ones that stay
+ * (`components/shared/overflow.ts`): the first `lintje-button` goes first, the last never goes,
+ * and a chosen row clicks its button, so the host's own listener sees the click.
+ *
  * In the page's content it is a band, and tells the shell through the shared store when the
  * title scrolls under the top bar. The observer watches the title itself: a sentinel element in
  * this column would pick up the gap and push the page down 6 px.
@@ -29,7 +33,9 @@ import { shadowCss } from '../../../core/styles'
 import { lengthPx } from '../../../core/length'
 import { MOBILE, MediaController } from '../../../core/media'
 import { setTitleHidden } from '../../../core/frame-state'
+import { OverflowController } from '../../shared/overflow'
 import '../../feedback/announcement/announcement'
+import '../../actions/menu-button/menu-button'
 import '../../../primitives/icon-button/icon-button'
 import headerCss from './page-header.css?inline'
 import type { PageHeaderData } from '../../../types'
@@ -57,6 +63,11 @@ export class LintjePageHeader extends LintjeElement {
   }
 
   private readonly mobile = new MediaController(this, MOBILE)
+  private readonly overflow = new OverflowController(this, {
+    row: '.lintje-page-header__row',
+    menu: '.lintje-page-header__overflow',
+    slot: 'actions',
+  })
   private observer: IntersectionObserver | null = null
 
   override connectedCallback(): void {
@@ -105,6 +116,7 @@ export class LintjePageHeader extends LintjeElement {
     const isMobile = this.mobile.matches
     const inShell = this.inShell
     const showDescription = Boolean(data.description) && (inShell || !isMobile)
+    const spare = this.overflow.collapsed.length === 0
     const { asOf, source, more } = data
 
     // Parts are collected, not laid out over template lines: whitespace between two expressions
@@ -157,13 +169,26 @@ export class LintjePageHeader extends LintjeElement {
                 : nothing
             }
           </div>
-          <slot
-            name="actions"
-            class=${classMap({ 'lintje-page-header__actions': true, 'is-empty': !this.hasActions })}
-            @slotchange=${(event: Event) => {
-              this.hasActions = (event.target as HTMLSlotElement).assignedElements().length > 0
-            }}
-          ></slot>
+          <div class=${classMap({ 'lintje-page-header__actions': true, 'is-empty': !this.hasActions })}>
+            <lintje-menu-button
+              class=${classMap({ 'lintje-page-header__overflow': true, 'is-spare': spare })}
+              ?inert=${spare}
+              label="Meer"
+              accessible-label="Meer acties"
+              .items=${this.overflow.items()}
+              @lintje-action=${(event: CustomEvent<string>) => {
+                event.stopPropagation()
+                this.overflow.activate(event.detail)
+              }}
+            ></lintje-menu-button>
+            <slot
+              name="actions"
+              @slotchange=${(event: Event) => {
+                this.hasActions = (event.target as HTMLSlotElement).assignedElements().length > 0
+                this.overflow.measure()
+              }}
+            ></slot>
+          </div>
         </div>
         ${meta.length > 0 ? html`<p class="lintje-page-header__meta">${meta}</p>` : nothing}
       </div>

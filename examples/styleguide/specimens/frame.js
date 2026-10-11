@@ -413,6 +413,22 @@ export default {
             }
           },
         },
+        {
+          label: 'Met vier acties: wat niet op één regel past, gaat in "Meer"; de laatste knop blijft staan',
+          html: `<lintje-page-header>
+            <lintje-button slot="actions" variant="secondary">Exporteren</lintje-button>
+            <lintje-button slot="actions" variant="secondary">Delen</lintje-button>
+            <lintje-button slot="actions" variant="danger">Verwijderen</lintje-button>
+            <lintje-button slot="actions" variant="primary">Opslaan</lintje-button>
+          </lintje-page-header>`,
+          wide: true,
+          setup: (stage) => {
+            stage.querySelector('lintje-page-header').data = {
+              title: 'Teamoverleg 2 oktober',
+              description: '4:12 · 3 sprekers · geüpload vandaag om 09:14',
+            }
+          },
+        },
       ],
     },
     {

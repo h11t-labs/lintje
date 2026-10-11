@@ -128,12 +128,16 @@ describe('lintje-page-header without a shell', () => {
     expect(actions.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy()
     actions.dispatchEvent(new Event('slotchange'))
     await header.updateComplete
-    expect(actions.classList.contains('is-empty')).toBe(false)
+    expect(root.querySelector('.lintje-page-header__actions')!.classList.contains('is-empty')).toBe(
+      false,
+    )
   })
 
   it('leaves an empty actions slot out of the layout', async () => {
     const root = (await mountAlone()).shadowRoot!
-    expect(root.querySelector('slot[name="actions"]')!.classList.contains('is-empty')).toBe(true)
+    expect(root.querySelector('.lintje-page-header__actions')!.classList.contains('is-empty')).toBe(
+      true,
+    )
   })
 })
 
