@@ -1,7 +1,6 @@
 /**
- * `<lintje-badge>` — a status as a word; two words at most (rule 13). `variant="count"` is the
- * quiet counter in a tab or button, `variant="unread"` the round counter of the menu. `icon`
- * draws a file of the set before the word; the word still carries the meaning.
+ * `<lintje-badge>` — a status as a word, two words at most; the word carries the meaning, also
+ * beside an `icon`.
  *
  * A root that draws a badge without the element calls `renderBadge()` and adopts `badgeStyles`,
  * as `renderIcon()` / `iconStyles` do.
@@ -86,6 +85,7 @@ export class LintjeBadge extends LintjeElement {
   }
 
   tone: BadgeTone = 'neutral'
+  /** `count`: the quiet counter in a tab or button; `unread`: the round counter of the menu. */
   variant: BadgeVariant = 'label'
   declare label?: string
   /** An icon file name before the word. */

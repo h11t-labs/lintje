@@ -1,11 +1,11 @@
 /**
- * `<lintje-text-editor>` — formatted text (bold, italic, one heading, a bullet list, a link);
- * the value is markdown (`markdown.ts`). Formatting uses `document.execCommand`, the one API
- * every browser has for a `contenteditable` selection; the markdown writer reads only the five
- * formats from whatever markup it leaves. Commits when the surface loses focus, if changed.
- * A link is http(s), mailto, tel or relative; any other scheme is dropped.
+ * `<lintje-text-editor>` — formatted text: bold, italic, one heading, a bullet list and a link.
  *
- * Events: `lintje-change` with the markdown; with a `name` also the composed `lintje-values-change`.
+ * The value is markdown, committed when the surface loses focus, if changed. A link is http(s),
+ * mailto, tel or relative; any other scheme is dropped.
+ *
+ * Events: `lintje-change` `string` (the markdown), `lintje-values-change` `{ [name]: value }`
+ * (with a `name`), `lintje-reset` (the reset link was pressed).
  */
 import {
   html,
@@ -52,6 +52,8 @@ const CARRIERS: Record<EditorFormat, readonly string[]> = {
   link: ['A'],
 }
 
+// `execCommand` is the one API every browser has for a `contenteditable` selection; the markdown
+// writer reads only the five formats from whatever markup it leaves.
 function exec(command: string, value?: string): void {
   if (typeof document.execCommand === 'function') document.execCommand(command, false, value)
 }

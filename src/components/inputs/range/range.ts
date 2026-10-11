@@ -1,13 +1,12 @@
 /**
  * `<lintje-range>` — one track, one or two handles, over labeled steps.
  *
- * Two handles: `from` and `to` are indexes into `steps`, and a change is `[from, to]`. With
- * `single`, `value` is the step itself, not its index, and a change is that step. A drag commits
- * when the pointer is let go (`draft`/`draftPair` show it meanwhile); a key press commits at once.
- * With two handles only the thumbs take the pointer, so a press on the track moves the nearer
- * handle there; on stacked handles the side of the press decides.
+ * With two handles `from` and `to` are indexes into `steps`, and a change is `[from, to]`; with
+ * `single`, `value` is the step itself, and a change is that step. A drag commits when the pointer
+ * is let go, a key press at once.
  *
- * Events: `lintje-change`; with a `name` also `lintje-values-change` (`shared/input.ts`).
+ * Events: `lintje-change` `[number, number] | number | string`, `lintje-values-change`
+ * `{ [name]: value }` (with a `name`), `lintje-reset` (the reset link was pressed).
  */
 import {
   html,

@@ -1,10 +1,4 @@
-/**
- * `<lintje-kpi-row>` — the KPI row: one grid, the KPIs staggered in from left to right.
- *
- * The grid and the KPIs share one shadow root, so `kpi-row.css` reaches the `<lintje-kpi>` hosts.
- * `dividers` is set as a property: a boolean attribute can't turn off a `true` default.
- * Events: none.
- */
+/** `<lintje-kpi-row>` — the KPI row: one grid, the KPIs staggered in from left to right. */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { styleProps } from '../../../core/style-props'
 import { define, type FrameSettings } from '../../../core/element'
@@ -15,6 +9,7 @@ import kpiRowCss from './kpi-row.css?inline'
 import type { KpiRowData } from '../../../types'
 
 export class LintjeKpiRow extends LintjeGridItemElement {
+  // The KPIs are drawn in this root, so `kpi-row.css` reaches their hosts.
   static override styles = [spanStyles, shadowCss(kpiRowCss)]
 
   static override properties: PropertyDeclarations = {

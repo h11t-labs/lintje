@@ -1,9 +1,9 @@
 /**
- * `<lintje-tooltip>` — one short sentence about the element it wraps. Shows 300 ms after the
- * pointer rests, at once on keyboard focus; the pointer can move onto it, and Escape anywhere
- * hides it. Never the only place for something
- * the reader must know. The text is the wrapped element's description; `no-describe` leaves
- * that out when it is already its name.
+ * `<lintje-tooltip>` — one short sentence about the element it wraps.
+ *
+ * It shows 300 ms after the pointer rests and at once on keyboard focus; Escape anywhere hides it.
+ * Never the only place for something the reader must know. The text becomes the wrapped element's
+ * description.
  */
 import {
   html,
@@ -43,7 +43,7 @@ export class LintjeTooltip extends LintjeElement {
   }
 
   text: string = ''
-  /** The text is already the element's accessible name. */
+  /** The text is already the element's accessible name: it is not given as its description too. */
   noDescribe: boolean = false
   /** Above the element, or `left` of it, level with it: for a column of buttons along an edge. */
   placement: 'top' | 'left' = 'top'

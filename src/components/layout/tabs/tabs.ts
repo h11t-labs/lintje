@@ -1,13 +1,12 @@
 /**
- * `<lintje-tabs>` — switches between panels slotted under each tab's `value`. The host holds
- * `value`; the tabs only ask. A modified click on a link tab is the browser's.
- * The row is one tab stop: arrows choose at once, and a disabled tab is reached but not chosen.
- * `variant="panel"` draws large tabs that head a panel: each with an icon and a hint, the chosen
- * one running into the panel below; on a phone the icon stands above the label and the hint goes.
- * When every tab is a link, the row is a `<nav>` of links, the chosen one `aria-current="page"`,
- * with the same look: pages are no tabs, and the content under it is the page's, not a tabpanel.
+ * `<lintje-tabs>` — switches between panels slotted under each tab's `value`.
  *
- * Events: `lintje-tab-change` (the value), `lintje-navigate` `{ href }` for a tab with an `href`.
+ * The host holds `value`: the tabs only ask. The row is one tab stop; arrows choose at once. When
+ * every tab is a link, the row is a `<nav>` of links with the same look, and the content under it
+ * is the page's, not a tab panel.
+ *
+ * Events: `lintje-tab-change` `string` (the value), `lintje-navigate` `{ href }` (a tab with an
+ * `href`).
  */
 import {
   html,
@@ -75,7 +74,10 @@ export class LintjeTabs extends LintjeElement {
   /** The chosen tab's value; the first tab when unset. */
   declare value?: string
   label: string = ''
-  /** `line` (default): a row over the content; `panel`: large tabs that head a bordered panel. */
+  /**
+   * `line` (default): a row over the content. `panel`: large tabs that head a bordered panel, each
+   * with an icon and a hint; on a phone the icon stands above the label and the hint goes.
+   */
   variant: TabsVariant = 'line'
   protected edges: { start: boolean; end: boolean } = { start: false, end: false }
 

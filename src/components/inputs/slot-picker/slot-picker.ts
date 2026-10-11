@@ -1,11 +1,12 @@
 /**
  * `<lintje-slot-picker>` — a time for an appointment: days side by side, each with its times as
- * options. One radio group over every day, so the arrow keys walk the times and Tab stops once;
- * a time's name carries its day. A full time stays, disabled, with the word "Vol" beside it
- * (rule 13), and a day without times says so. The days are the host's: it sends the ones it
- * offers, and pages them itself.
+ * options.
  *
- * Events: `lintje-change` with the chosen time's `value`; with a `name` also `lintje-values-change`.
+ * The days are the host's: it sends the ones it offers, and pages them itself. One radio group
+ * spans every day, so Tab stops once. A full time stays, disabled, with the word "Vol" beside it.
+ *
+ * Events: `lintje-change` `string` (the chosen time's `value`), `lintje-values-change`
+ * `{ [name]: value }` (with a `name`), `lintje-reset` (the reset link was pressed).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'

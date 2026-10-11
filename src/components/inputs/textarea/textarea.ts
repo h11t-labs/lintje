@@ -1,15 +1,13 @@
 /**
- * `<lintje-textarea>` — the multi-line text field: three to twelve lines (`rows` sets the least),
- * with a counter when there is a `maxlength`. `variant="plain"` drops the field's box and its
- * focus ring, takes the type of where it stands and fills its height, for a surface that frames
- * the text and draws the ring itself (`lintje-translator`). Typing past the limit is allowed (a paste lands whole); the field
- * shows the error, alerted once as the text crosses the limit. The counter is read out from 90 %
- * of the limit on.
+ * `<lintje-textarea>` — the multi-line text field: three to twelve lines, with a counter when
+ * there is a `maxlength`.
  *
- * The counter is `part="counter"`, so a surface can stand it on its own line.
+ * It commits like `lintje-text-input`; Ctrl+Enter commits and submits a host's form. Typing past
+ * the limit is allowed, so a paste lands whole: the field shows the error. The counter is
+ * `part="counter"`, so a surface can stand it on its own line.
  *
- * Commits like `lintje-text-input`; Ctrl+Enter commits and submits a host's form.
- * Events: `lintje-change`, and `lintje-values-change` with a `name`.
+ * Events: `lintje-change` `string`, `lintje-values-change` `{ [name]: value }` (with a `name`),
+ * `lintje-reset` (the reset link was pressed).
  */
 import {
   html,
@@ -68,14 +66,17 @@ export class LintjeTextarea extends LintjeFormInputElement {
 
   value: string = ''
   placeholder: string = ''
-  /** The limit the counter counts to. */
+  /** The limit the counter counts to; the counter is read out from 90 % of it on. */
   declare maxlength?: number
   /** The attribute `commit`; `commit()` is the method every input commits through. */
   commitOn: CommitOn = 'change'
   stacked: boolean = false
   /** The least number of lines the field shows. */
   rows: number = 3
-  /** `field` (default): the bordered field; `plain`: no box, the type of where it stands. */
+  /**
+   * `field` (default): the bordered field. `plain`: no box and no focus ring, the type of where it
+   * stands and the full height, for a surface that frames the text and draws the ring itself.
+   */
   variant: TextareaVariant = 'field'
 
   private readonly typing = new Debounce(this)

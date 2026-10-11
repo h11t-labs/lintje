@@ -1,11 +1,13 @@
 /**
- * `<lintje-combobox>` — search while typing and choose one value. Typing narrows `.options`
- * itself; with `remote` it sends `lintje-search` after typing stops and shows a busy row until
- * the host sets new `.options` (it never fetches). Text that matches no option is never a value;
- * emptying the field commits `null`. Escape closes and restores the previous value.
+ * `<lintje-combobox>` — search while typing and choose one value.
  *
- * Events: `lintje-change`; with a `name` also the composed `lintje-values-change`. With
- * `remote`: composed `lintje-search` `{ query }`.
+ * Typing narrows `options` itself, unless `remote`; the element never fetches. Text that matches
+ * no option is never a value, and emptying the field commits `null`. Escape closes and restores
+ * the previous value.
+ *
+ * Events: `lintje-change` `string | null`, `lintje-values-change` `{ [name]: value }` (with a
+ * `name`), `lintje-reset` (the reset link was pressed), `lintje-search` `{ query }` (with
+ * `remote`, after typing stops).
  */
 import {
   html,
@@ -67,6 +69,10 @@ export class LintjeCombobox extends LintjeInputElement {
   value: string | null = null
   declare options?: FilterOption[]
   placeholder: string = ''
+  /**
+   * The host searches: `lintje-search` goes out after typing stops, and a busy row shows until
+   * the host sets new `options`.
+   */
   remote: boolean = false
   loadingLabel: string = 'Opties ophalen'
   emptyLabel: string = 'Niets gevonden voor'

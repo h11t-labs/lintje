@@ -1,30 +1,15 @@
 /**
  * `<lintje-transcript>` — a recording's text in fragments, each with its speaker and timecode.
  *
- * `readonly` shows the text only, as a preview beside a running recording does: no editing, no
- * speaker menu and no seeking.
+ * Editing and the speakers are the host's state: the element asks, and the host changes
+ * `segments`, `editingId`, `busyId` and `errors`. It plays, saves and renames nothing itself. A
+ * speaker has the colour it has in the player's waveform. Above the fragments, the `note-label` and
+ * `note` slots say that a model made the text, and `lead` holds the AI work.
  *
- * Every speaker takes a colour, the same as in the player's waveform: a bar along the fragment,
- * the name beside it says who it is. `layout="chat"` draws each fragment as a message instead of
- * a row; `tinted` lays the speaker's colour under the whole fragment; `grouped` names a speaker
- * once over consecutive fragments, each keeping its own time. The fragment that sounds stands out
- * with a ring. Live, `speakingId` says who speaks now and a fragment's `pending` text is still
- * provisional.
- *
- * Above the fragments stands a row in the same columns: `note-label` beside `note` — the label
- * that a model made the text, and the host's sentence about it — and under it what the host
- * slots in `lead` (the AI work, each in its own expander).
- *
- * A fragment is edited from its pencil or by a double click on its text.
- *
- * Editing and the speakers are the host's state: the element asks, the host changes `segments`,
- * `editingId`, `busyId` and `errors`. It plays, saves and renames nothing itself. The search
- * property is `searchMatches`, not `matches` (that is `Element.matches()`).
- *
- * Events: `lintje-seek` (seconds), `lintje-segment-edit` (id), `lintje-segment-save`
- * `{ id, text }`, `lintje-segment-cancel` (id), `lintje-segment-speaker` `{ id, speaker }` (this
- * fragment to another speaker), `lintje-speaker-new` (id: this fragment to a speaker not named
- * yet), `lintje-speaker-rename` (the name to change everywhere).
+ * Events: `lintje-seek` `number` (seconds), `lintje-segment-edit` `string` (the id),
+ * `lintje-segment-save` `{ id, text }`, `lintje-segment-cancel` `string` (the id),
+ * `lintje-segment-speaker` `{ id, speaker }` (to another speaker), `lintje-speaker-new` `string`
+ * (the id, to a speaker not named yet), `lintje-speaker-rename` `string` (the speaker's name).
  */
 import {
   html,
@@ -171,6 +156,7 @@ export class LintjeTranscript extends LintjeElement {
    * its colours. Without it, those in `segments`.
    */
   declare speakers?: string[] | null
+  /** The text only, as a preview beside a live recording: no editing, speaker menu or seeking. */
   readonly: boolean = false
   /** Live: the segment of who speaks now. */
   declare speakingId?: string | null
@@ -180,15 +166,16 @@ export class LintjeTranscript extends LintjeElement {
   layout: TranscriptLayout = 'rows'
   /** The speaker's colour under the whole fragment, not only in its bar. */
   tinted: boolean = false
-  /** A speaker's consecutive fragments under one name. */
+  /** A speaker's consecutive fragments under one name, each keeping its own time. */
   grouped: boolean = false
-  /** The recording's position in seconds. */
+  /** The recording's position in seconds; the fragment that sounds stands out with a ring. */
   declare currentTime?: number | null
   /** The segment in editing; the host sets it after `lintje-segment-edit`. */
   declare editingId?: string | null
   declare busyId?: string | null
   /** A save that failed: the message under the field, per segment id. */
   errors: Record<string, string> = {}
+  /** The search hits; not `matches`, which is `Element.matches()`. */
   searchMatches: TranscriptMatches = {}
   /** The hit framed as current; scrolled into view when it changes. */
   declare currentMatch?: TranscriptMatch | null

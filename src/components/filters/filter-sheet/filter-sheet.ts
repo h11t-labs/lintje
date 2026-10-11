@@ -1,10 +1,10 @@
 /**
- * `<lintje-filter-sheet>` — the filters below 768 px. Nothing applies before "Toepassen"; the
- * owner keeps the draft and supplies the controls. Escape in an open popover closes only that
- * popover. Focus is trapped while open (`FocusTrap`).
+ * `<lintje-filter-sheet>` — the filters below 768 px, in a sheet that traps the focus while open.
  *
- * Events (bubbling, not composed): `lintje-filters-apply`, `lintje-sheet-close`,
- * `lintje-filters-reset`.
+ * Nothing applies before "Toepassen": the owner keeps the draft and supplies the controls. Escape
+ * in an open popover closes only that popover.
+ *
+ * Events: `lintje-filters-apply`, `lintje-sheet-close`, `lintje-filters-reset`.
  */
 import {
   html,

@@ -1,9 +1,8 @@
 /**
- * `<lintje-kpi>` — the KPI tile: one figure, or several of the same variable (`items`). Rich
- * values go in as properties. The value counts up from zero and the sparkline draws in once
- * 35 % of the tile is in view, and not under `prefers-reduced-motion`. A single figure can stand
- * on its scale (`gauge`): a half circle around the value or a bar under it, with the target
- * dashed; the trend or note says in words how the figure stands to the target. Events: none.
+ * `<lintje-kpi>` — the KPI tile: one figure, or several of the same variable (`items`).
+ *
+ * The value counts up from zero and the sparkline draws in once 35 % of the tile is in view; under
+ * `prefers-reduced-motion` both stand at once.
  */
 import {
   html,
@@ -169,7 +168,10 @@ export class LintjeKpi extends LintjeGridItemElement {
   declare trend?: KpiTrend
   /** The figure's recent values as a line with its area, under the figure. */
   declare sparkline?: KpiSparkline
-  /** The single figure on its scale, as a half circle (`arc`) or a bar (`linear`); not with `items`. */
+  /**
+   * The single figure on its scale, as a half circle (`arc`) or a bar (`linear`), the target
+   * dashed; not with `items`. The trend or note says in words how the figure stands to the target.
+   */
   declare gauge?: KpiGauge
   /** A line without an arrow, for when there is no direction. */
   declare note?: string

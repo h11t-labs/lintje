@@ -1,12 +1,11 @@
 /**
  * `<lintje-confirm-dialog>` — a question that needs an answer before anything goes on.
  *
- * The owner holds `open`; Escape, the scrim and cancel only ask (`lintje-close`). The cancel
- * button has the focus on open, so Enter never confirms by itself. While `busy` nothing closes.
- * A dialog on the shared focus-trap stack.
+ * The host holds `open`: Escape, the scrim and cancel only ask. The cancel button has the focus on
+ * open, so Enter never confirms by itself.
  *
  * Events: `lintje-confirm`, `lintje-close` `{ reason: 'cancel' | 'escape' | 'scrim' }`,
- * `lintje-action` from the third button.
+ * `lintje-action` (the third button was pressed).
  */
 import {
   html,

@@ -1,12 +1,12 @@
 /**
  * `<lintje-date-input>` — one day, typed or picked in a calendar popover.
  *
- * The field shows `dd-mm-jjjj`; what crosses is ISO, or `null` when empty. Typed text is read on
- * leaving the field or Enter (`date-format.ts`). The element checks its own text and shows a
- * message in place of the hint; a host's `error` wins. A calendar day is no time zone. Tab out of
- * the element closes the calendar, so it does not cover the next field.
+ * The field shows `dd-mm-jjjj`; what crosses is ISO, or `null` when empty. The element reads typed
+ * text on leaving the field or Enter, checks it and shows a message in place of the hint; a host's
+ * `error` wins. A calendar day knows no time zone. Tab out of the element closes the calendar.
  *
- * Events: `lintje-change` with the ISO day or `null`; with a `name` also `lintje-values-change`.
+ * Events: `lintje-change` `string | null` (the ISO day), `lintje-values-change`
+ * `{ [name]: value }` (with a `name`), `lintje-reset` (the reset link was pressed).
  */
 import {
   html,

@@ -1,23 +1,15 @@
 /**
- * `<lintje-data-table>` — the data table, inside a tile. Below 768 px it switches to a
- * two-column representation. Missing values are a muted dash, never 0 (rule 15).
+ * `<lintje-data-table>` — the data table, inside a tile; below 768 px a two-column list.
  *
- * The table never filters, saves or confirms: it asks and the host answers in `data`. Its
- * extensions live in `editing.ts`, `actions.ts` and `filters.ts`. `bare` draws the table alone,
- * for a component that already stands in a tile; `plain` draws it on an application page,
- * without a tile but with its states.
+ * A missing value is a muted dash, never 0. The table never filters, saves or confirms: it shows a
+ * change at once, and the host confirms it in the next `data`. Open rows and collapsed groups are
+ * the table's own: it sends nothing for them.
  *
- * A row opens to show what its columns leave out: the hidden columns and `detailFields`, the same
- * list as below 768 px. `groupBy` sets the rows under a heading per value, each group with the
- * host's subtotals, and `totals` closes the table with the host's totals row. Open rows and
- * collapsed groups are view, not state: the table keeps them and sends nothing.
- *
- * Events: `lintje-sort-change` `{key, direction} | null`, `lintje-row-click` `{id, label, href?}`,
- * `lintje-row-open` `{id, label, href?}`,
- * `lintje-checked-change` (the keys). Each shows the change at once and expects the host to
- * confirm it in the next `data`. With the extensions: `lintje-cell-edit` `{id, column, value}`,
- * `lintje-row-action` `{id, action}`, `lintje-bulk-action` `{ids, action}`,
- * `lintje-filter-change` `{column, value}`, `lintje-columns-change` `{order, hidden}`.
+ * Events: `lintje-sort-change` `{ key, direction } | null`, `lintje-row-click`
+ * `{ id, label, href? }`, `lintje-row-open` `{ id, label, href? }`, `lintje-checked-change`
+ * `string[]`, `lintje-cell-edit` `{ id, column, value }`, `lintje-row-action` `{ id, action }`,
+ * `lintje-bulk-action` `{ ids, action }`, `lintje-filter-change` `{ column, value }`,
+ * `lintje-columns-change` `{ order, hidden }`.
  */
 import {
   html,
@@ -298,8 +290,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
 
   declare data?: DataTableData | null
 
+  /** The table alone, for a component that already stands in a tile. */
   bare: boolean = false
-  /** On an application page: no tile, so no title or tile buttons; the page's heading names it. */
+  /**
+   * On an application page: no tile, so no title or tile buttons, but with its states; the page's
+   * heading names it.
+   */
   plain: boolean = false
 
   /** The sort and checked rows are shown before the host confirms them. */

@@ -1,25 +1,15 @@
 /**
- * `<lintje-card>` — one item of a collection: a product, a dataset, a recording, an app. A muted
- * line above the title (its kind, its owner), the title, a line of text, optionally a few facts
- * as a small table, a status as a glyph and its word, and at most two actions. A screenshot stands above it, a logo beside the title.
- * Square and flat; in a grid it is drawn by `lintje-card-list`.
+ * `<lintje-card>` — one item of a collection: a product, a dataset, a recording, an app.
  *
- * `layout="horizontal"` puts the picture or logo in a column on the left, for a long list; below
- * 768 px it stands as the vertical card.
- *
- * A card is either a link or carries actions, never both. Without actions and with `href` the
- * whole card is clickable and the title is its one tab stop; with actions only the title and the
- * actions are. The card knows no domain: "toegang" or "eigenaar" are the host's words.
- *
- * `iconActions` stand beside the title as icon buttons, also on a card that is a link: an action
- * on the item itself, such as marking it. One with `pressed` is a switch; the card keeps nothing
- * and the host sets the new `pressed` after the event.
- *
- * `layout="horizontal"` wants a column of at least `--w-card-wide`; `lintje-card-list` keeps to it.
+ * Square and flat; in a grid it is drawn by `lintje-card-list`. A card is either a link or carries
+ * actions, never both: with an `href` and no actions the whole card is clickable. Icon actions
+ * stand beside the title, also on a card that is a link; one with `pressed` is a switch, and the
+ * host sets the new `pressed` after the event. The card knows no domain: "toegang" or "eigenaar"
+ * are the host's words.
  *
  * Events: `lintje-navigate` `{ href }` (a plain click on the title, the card or an action with an
- * `href` in this tab), `lintje-card-action` `{ id, value }` (an action without `href`) and
- * `{ id, value, pressed }` (an icon action, with a switch's value asked for).
+ * `href`), `lintje-card-action` `{ id, value, pressed? }` (an action without `href`; `pressed`
+ * from an icon action that is a switch).
  */
 import {
   html,
@@ -124,7 +114,10 @@ export class LintjeCard extends LintjeElement {
   }
 
   declare data?: CardData
-  /** `horizontal`: the picture in a column on the left, for a long list. */
+  /**
+   * `horizontal`: the picture or logo in a column on the left, for a long list; below 768 px the
+   * vertical card. It wants a column of at least `--w-card-wide`, as `lintje-card-list` keeps.
+   */
   layout: CardLayout = 'vertical'
   /** The level of the title, 2 to 4: a card stands under the page's or a section's heading. */
   headingLevel: 2 | 3 | 4 = 3

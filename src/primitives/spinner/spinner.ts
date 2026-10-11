@@ -1,7 +1,6 @@
 /**
  * `<lintje-spinner>` — the loading ring for content whose shape is not known; for a known shape
- * use `<lintje-skeleton>`. The label is what a screen reader hears (`role="status"`).
- * Events: none.
+ * use `<lintje-skeleton>`.
  */
 import {
   html,

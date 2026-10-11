@@ -1,9 +1,8 @@
 /**
  * `<lintje-activity-log>` — a timeline of what happened to one item, newest first.
  *
- * Shows `limit` entries and "Toon eerdere" for ten more; when that press removes the button,
- * focus moves to the first new entry. The host sends the entries in order with `when` already
- * written in Dutch.
+ * The host sends the entries in order, with `when` already written in Dutch. "Toon eerdere" shows
+ * ten more.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'

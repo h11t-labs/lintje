@@ -1,9 +1,8 @@
 /**
  * `<lintje-ai-label>` — says that a model made the content below it.
  *
- * A neutral badge (provenance, not a verdict) and the one badge that may wrap, so a long name
- * stays on a 390 px screen. Place it above the block, once. `checked-by` turns it into
- * "Gecontroleerd door …", and the gear-and-brain mark into a check.
+ * A neutral badge: provenance, not a verdict. It is the one badge that may wrap, so a long name
+ * stays on a 390 px screen. Place it above the block, once.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
@@ -22,7 +21,7 @@ export class LintjeAiLabel extends LintjeElement {
     hint: { type: String },
   }
 
-  /** Who checked the text: "J. de Vries". */
+  /** Who checked the text: "J. de Vries". The label reads "Gecontroleerd door …", with a check. */
   declare checkedBy?: string
   /** The line behind the badge; unchecked it defaults to the advice to check the text. */
   declare hint?: string

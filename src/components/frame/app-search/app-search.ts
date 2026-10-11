@@ -1,14 +1,13 @@
 /**
  * `<lintje-app-search>` — one search field over everything in an application, opened with `/`.
  *
- * The owner holds `open`, `groups` and `loading`. A dialog on the shared focus-trap stack. The
- * field is a native `<input>`: `aria-controls` and `aria-activedescendant` cannot cross a root.
+ * The host holds `open`, `groups` and `loading`: the element asks to be opened and closed, and
+ * searches nothing itself. It is a dialog that traps the focus; below 768 px it opens from below
+ * as a sheet.
  *
- * Below 768 px it opens from below as a sheet, with the filter sheet's head — its name and a close
- * button — and the line of keys goes.
- *
- * Events: `lintje-open`, `lintje-search` (the term), `lintje-navigate` `{ href }`, `lintje-action`
- * (the id), `lintje-close` `{ reason: 'escape' | 'scrim' | 'button' | 'choice' }`.
+ * Events: `lintje-open`, `lintje-search` `string` (the term), `lintje-navigate` `{ href }`,
+ * `lintje-action` `string` (the row's id),
+ * `lintje-close` `{ reason: 'escape' | 'scrim' | 'button' | 'choice' }`.
  */
 import {
   html,
@@ -100,6 +99,8 @@ export class LintjeAppSearch extends LintjeElement {
 
   readonly #mobile = new MediaController(this, MOBILE)
   readonly #debounce = new Debounce(this, SEARCH_DELAY)
+  // The field is a native `<input>` in this root: `aria-controls` and `aria-activedescendant`
+  // cannot cross a root.
   readonly #id = `lintje-app-search-${++instances}`
   #unregister: (() => void) | null = null
   #released: (() => void) | null = null

@@ -1,11 +1,12 @@
 /**
- * `<lintje-number-input>` — a −/+ stepper around a centred value, or a unit on the right
- * without the stepper. Commits on `change`; a press on − or + commits at once.
+ * `<lintje-number-input>` — a −/+ stepper around a centred value, or a unit on the right without
+ * the stepper.
  *
- * `stepper` defaults to `true`, so it can only be turned off as a property: `?stepper=${false}`
- * removes an attribute that was never there. A shown unit describes the field. At `min` or `max`
- * the step is `aria-disabled`, not disabled, so the focus on it stays. Events: `lintje-change`,
- * and `lintje-values-change` with a `name`.
+ * It commits on `change`; a press on − or + commits at once. At `min` or `max` the step stays
+ * focusable but does nothing.
+ *
+ * Events: `lintje-change` `number | null`, `lintje-values-change` `{ [name]: value }` (with a
+ * `name`), `lintje-reset` (the reset link was pressed).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -36,7 +37,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
   declare min?: number
   declare max?: number
   step: number = 1
-  /** The unit on the right, e.g. "min"; shown only without the stepper. */
+  /** The unit on the right, e.g. "min", which describes the field; only without the stepper. */
   declare unit?: string
   /** The −/+ buttons. Bind as `.stepper=${false}`, never `?stepper=`. */
   stepper: boolean = true

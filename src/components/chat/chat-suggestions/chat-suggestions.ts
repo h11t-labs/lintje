@@ -1,13 +1,8 @@
 /**
- * `<lintje-chat-suggestions>` — sentences the reader can send with one press.
+ * `<lintje-chat-suggestions>` — sentences the reader can send with one press, on the reader's side.
  *
- * `kind` is a rule, not decoration: `suggestion` (dashed) is something the reader could ask;
- * `choice` (solid) is an answer the assistant is waiting for. In a conversation they stand on the
- * reader's side, on the right; `align="start"` sets them left and side by side, as the examples
- * under a question box on a start page.
- *
- * Events: `lintje-suggestion-select` `{turnId, kind, label, value}` — a trigger;
- * `value` is the item's own, or its label.
+ * Events: `lintje-suggestion-select` `{ turnId, kind, label, value }` (`value` is the item's own,
+ * or its label).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
@@ -35,8 +30,12 @@ export class LintjeChatSuggestions extends LintjeElement {
   declare label?: string
   /** The gray line under a set of choices. */
   declare hint?: string
+  /**
+   * A rule, not decoration: `suggestion` (dashed) is something the reader could ask, `choice`
+   * (solid) an answer the assistant is waiting for.
+   */
   kind: ChatSuggestionKind = 'suggestion'
-  /** `start`: left and side by side, outside a conversation. */
+  /** `start`: left and side by side, outside a conversation, as examples under a question box. */
   align: ChatSuggestionsAlign = 'end'
   declare items?: ChatSuggestion[]
   /** It comes back in the event. */

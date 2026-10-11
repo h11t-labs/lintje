@@ -1,12 +1,13 @@
 /**
- * `<lintje-repeater>` — a group of fields that repeats. The host writes the rows and owns the
- * list; the repeater asks, numbers and names the rows, and bounds them by `min` and `max`.
- * After an add, focus goes to the new row's first field; after a remove, to the remove button
- * of the row above (the add button when none is left). A live region says both.
- * It keeps no values and draws no undo toast.
+ * `<lintje-repeater>` — a group of fields that repeats.
  *
- * Events: `lintje-row-add` (detail: the index the new row gets) from the repeater, and
- * `lintje-row-remove` (detail: the row's index) from the row; both bubble and are composed.
+ * The host writes the rows and owns the list; the repeater asks, numbers and names the rows, and
+ * bounds them by `min` and `max`. It keeps no values and draws no undo toast. After an add the
+ * focus goes to the new row's first field, after a remove to the remove button of the row above,
+ * else the add button.
+ *
+ * Events: `lintje-row-add` `number` (the index the new row gets), `lintje-row-remove` `number`
+ * (the row's index, from the row).
  */
 import {
   html,
@@ -42,6 +43,11 @@ export function firstFocusable(root: Element): HTMLElement | null {
   return null
 }
 
+/**
+ * `<lintje-repeater-row>` — one row of a `lintje-repeater`, which numbers and names it.
+ *
+ * Events: `lintje-row-remove` `number` (the row's index).
+ */
 export class LintjeRepeaterRow extends LintjeElement {
   static override styles = shadowCss(repeaterRowCss)
 
