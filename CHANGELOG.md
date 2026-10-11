@@ -14,10 +14,10 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 - Welke grafiek welke vraag beantwoordt (`CHART_KINDS`, `CHART_QUESTIONS`): per soort haar
   Nederlandse naam, de vraag van de lezer, waarvoor je haar neemt en wanneer een andere beter
-  past. Het principe staat in `DESIGN_SYSTEM.md`; de stijlgids kiest er een grafiek mee. (#PR)
+  past. Het principe staat in `DESIGN_SYSTEM.md`; de stijlgids kiest er een grafiek mee. (#25)
 - `dist-elements/data-types.json`: de types uit de broncode veld voor veld, met hun
   toelichting, en per variant van een union op `kind` een eigen lijst (`scripts/manifest.mjs`).
-  (#PR)
+  (#25)
 - De paginakop klapt acties die niet op één regel passen in naar één menu "Meer", vóór de
   knoppen die blijven staan; de laatste knop, de primaire, blijft altijd in het zicht en een menu
   met één rij bestaat niet. Gemeten, niet per breekpunt (`components/shared/overflow.ts`). (#23)
@@ -49,7 +49,7 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   gelezen uit wat het voorbeeld tekende), de referentie met de velden van `data`, waar het in de
   voorbeeldapplicaties staat en hoe je het laadt. De pagina van een categorie is een overzicht met
   één voorbeeld per element. `lintje-chart` toont één soort tegelijk, gekozen op de vraag van de
-  lezer, met een schakelaar voor laden, leeg en fout. `#el-…` leidt naar de nieuwe pagina. (#PR)
+  lezer, met een schakelaar voor laden, leeg en fout. `#el-…` leidt naar de nieuwe pagina. (#25)
 - De telefoonvorm geldt alleen op een scherm: `MOBILE` is `screen and (max-width: 767px)`, en een
   host schrijft zijn eigen telefoonregels zo. (#22)
 
