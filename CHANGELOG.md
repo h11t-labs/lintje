@@ -21,7 +21,7 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 - `lintje-sub-nav` krijgt `expanded`: elk niveau staat er, niet alleen dat op het pad van de
   lezer. Daarmee is het submenu ook de inhoudsopgave van een lange pagina; hoe een host hem
   vult, de sectie in beeld volgt en naast de tekst laat plakken, staat in de nieuwe handleiding
-  `docs/guides/page-contents.md`.
+  `docs/guides/page-contents.md`. (#24)
 - Het gestapelde vlak als grafieksoort (`kind: 'stacked-area'`): de onderverdelingen van één
   variabele in haar tintladder, de donkerste onderaan; een ontbrekende waarde breekt haar laag en
   alles erboven af, de lagen eronder blijven staan. Een laag aan- of uitzetten laat de as staan en
