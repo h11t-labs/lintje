@@ -29,6 +29,7 @@ export default {
         },
         {
           label: 'Beginscherm — een leeg gesprek',
+          preview: true,
           wide: true,
           html: '<div class="guide__chat guide__chat--start"><lintje-chat></lintje-chat></div>',
           setup(stage) {

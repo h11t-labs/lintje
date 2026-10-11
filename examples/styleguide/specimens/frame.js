@@ -259,6 +259,7 @@ export default {
   elements: [
 {
       tag: 'lintje-shell',
+      sketch: 'page',
       title: 'De schil om een pagina: het menu erboven of ernaast, de naam als h1, paginakop en inhoud',
       specimens: [
         {
@@ -630,6 +631,7 @@ export default {
     },
     {
       tag: 'lintje-app-search',
+      sketch: 'search',
       title: 'Eén zoekveld over alles in de app',
       specimens: [
         {
@@ -741,6 +743,7 @@ export default {
     },
     {
       tag: 'lintje-shortcuts',
+      sketch: 'dialog',
       title: 'Het overzicht van de sneltoetsen op deze pagina',
       specimens: [
         {
@@ -758,6 +761,7 @@ export default {
     },
     {
       tag: 'lintje-session-expiry',
+      sketch: 'dialog',
       title: 'Waarschuwen voordat de sessie verloopt, en het concept terugzetten',
       specimens: [
         {

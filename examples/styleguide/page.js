@@ -69,32 +69,89 @@ function previewOf(specimen, className) {
   return frame
 }
 
-// The width a wide specimen (a row of figures, a tile, a table) may take before it is made small:
-// a page's content column, so it lays out as on a page.
-const THUMB_WIDTH = 960
+// The width a specimen is drawn at before it is made small: a wide one (a row of figures, a
+// tile, a table) as in a page's column, the others as in a narrow tile.
+const DRAWN = { wide: 720, narrow: 480 }
 
 /**
- * A specimen as a thumbnail: drawn at its own size and scaled down as a whole until it fits its
- * box, centred. It never grows, and nothing is cut off. A wide one that has no width of its own
- * (a chart measures its room) is drawn at a tile's width.
+ * The boxes of what a stage paints: its text, and every element with a background, a border or
+ * its own picture — through the shadow roots, since a tag often spans the row while what it
+ * draws stands at one end.
+ */
+function inked(stage) {
+  const boxes = []
+  const range = document.createRange()
+  const walk = (root) => {
+    for (const node of root.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        if (!node.textContent.trim()) continue
+        range.selectNodeContents(node)
+        boxes.push(range.getBoundingClientRect())
+        continue
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE || node.localName === 'style' || node.localName === 'script') continue
+      const style = getComputedStyle(node)
+      if (style.display === 'none' || style.visibility === 'hidden') continue
+      const paints =
+        /^(svg|img|canvas|video|input|textarea|select|hr)$/.test(node.localName) ||
+        style.backgroundColor !== 'rgba(0, 0, 0, 0)' ||
+        parseFloat(style.borderTopWidth) + parseFloat(style.borderLeftWidth) > 0
+      if (paints) boxes.push(node.getBoundingClientRect())
+      if (node.localName === 'svg') continue
+      if (node.shadowRoot) walk(node.shadowRoot)
+      walk(node)
+    }
+  }
+  walk(stage)
+  return boxes.filter((box) => box.width && box.height)
+}
+
+/**
+ * A specimen as a thumbnail: drawn at a set width, then the part it paints is scaled down until
+ * it fits the box, and centred. A row of buttons is not lost in a wide stage, a tile is not
+ * squeezed to its words, and nothing is cut off. It never grows.
  */
 function thumbnailOf(specimen) {
   const frame = previewOf(specimen, 'guide__card-preview')
   const stage = frame.firstElementChild
-  if (specimen.wide) stage.style.maxWidth = `${THUMB_WIDTH}px`
+  stage.style.width = `${specimen.wide ? DRAWN.wide : DRAWN.narrow}px`
+  let scale = 1
   const fit = () => {
-    if (specimen.wide && !stage.style.width && stage.offsetWidth < THUMB_WIDTH / 2)
-      stage.style.width = `${THUMB_WIDTH}px`
-    const scale = Math.min(
-      1,
-      frame.clientWidth / Math.max(stage.offsetWidth, 1),
-      frame.clientHeight / Math.max(stage.offsetHeight, 1),
-    )
-    stage.style.setProperty('--guide-scale', String(scale))
+    const origin = stage.getBoundingClientRect()
+    const boxes = inked(stage)
+    if (!boxes.length) return
+    // Measured under the current transform: back to the stage's own pixels.
+    const left = Math.min(...boxes.map((box) => box.left - origin.left)) / scale
+    const top = Math.min(...boxes.map((box) => box.top - origin.top)) / scale
+    const width = Math.max(...boxes.map((box) => box.right - origin.left)) / scale - left
+    const height = Math.max(...boxes.map((box) => box.bottom - origin.top)) / scale - top
+    // A margin round the part, so it does not touch the box's edges.
+    scale = Math.min(1, (frame.clientWidth * 0.88) / width, (frame.clientHeight * 0.84) / height)
+    const x = frame.clientWidth / 2 - (left + width / 2) * scale
+    const y = frame.clientHeight / 2 - (top + height / 2) * scale
+    stage.style.transform = `translate(${x}px, ${y}px) scale(${scale})`
   }
-  const observer = new ResizeObserver(fit)
+  const observer = new ResizeObserver(() => requestAnimationFrame(fit))
   observer.observe(frame)
   observer.observe(stage)
+  return frame
+}
+
+/**
+ * What the card draws for an element that opens over the page: a page in outline, and over it
+ * the shape the element takes. Drawn with the guide's own boxes, not with the element.
+ */
+function sketchOf(kind) {
+  const frame = element('div', `guide__card-preview guide__sketch guide__sketch--${kind}`)
+  frame.setAttribute('aria-hidden', 'true')
+  const page = element('div', 'guide__sketch-page')
+  for (let i = 0; i < 4; i++) page.append(element('span', 'guide__sketch-line'))
+  frame.append(page)
+  if (kind === 'modal' || kind === 'dialog' || kind === 'search' || kind === 'drawer')
+    frame.append(element('div', 'guide__sketch-veil'))
+  const layer = element('div', 'guide__sketch-layer')
+  for (let i = 0; i < (kind === 'tooltip' ? 1 : 3); i++) layer.append(element('span', 'guide__sketch-line'))
+  if (kind !== 'page') frame.append(layer)
   return frame
 }
 
@@ -155,7 +212,8 @@ export function renderOverview(host, items, { declarations, addressOf, go, categ
     grid.append(
       linkCard('guide__card', addressOf(item), go, (card, link) => {
         if (preview) card.append(thumbnailOf(preview))
-        // Without a specimen to show, the box stays empty: the name stands right under it.
+        else if (item.sketch) card.append(sketchOf(item.sketch))
+        // Without a specimen or a sketch, the box stays empty: the name stands right under it.
         else card.append(element('div', 'guide__card-preview'))
         const body = element('div', 'guide__card-body')
         const title = element('h3', 'guide__card-title')
@@ -339,14 +397,15 @@ function groupUnion(item, declaration, types) {
   return null
 }
 
-/** A section of the page, with its heading and the entry it gets in "Op deze pagina". */
-function section(id, title, toc, { items, tab } = {}) {
+/** A section in a tab, with its heading and the entry it gets in "Op deze pagina". */
+function section(id, title, toc, items) {
   const node = element('section', 'guide__section')
   node.id = id
   const head = element('div', 'guide__section-head')
-  head.append(heading(3, title))
+  if (title) head.append(heading(3, title))
   node.append(head)
-  toc.push({ label: title, href: `#${id}`, items, tab: tab ?? title })
+  if (title) toc.push({ label: title, href: `#${id}`, items })
+  else if (items) toc.push(...items)
   return node
 }
 
@@ -415,19 +474,36 @@ function miniOf(specimen) {
   return frame
 }
 
+// The element's page in tabs; each holds its part, and the URL remembers the open one.
+const TABS = [
+  ['voorbeelden', 'Voorbeelden'],
+  ['referentie', 'Referentie'],
+  ['toegepast', 'Toegepast in'],
+  ['laden', 'Laden'],
+]
+
 /**
- * An element's page. `group` is what the URL chose; `addressOf(item, group)` writes an address
- * and `go(address)` follows it.
+ * An element's page: what it is, then its parts in tabs, with "Op deze pagina" for the open tab
+ * beside them. `group` and `tab` are what the URL chose; `addressOf(item, group)` writes an
+ * address, `go(address)` follows it and `remember(tab)` writes the open tab into the URL.
  */
 export function renderElementPage(host, item, context) {
   const { declarations, types, siblings, group, addressOf, go, categoryLabel } = context
   const declaration = declarations.get(item.tag)
   const groups = item.groups
   const chosen = groups && (groups.items.find((entry) => entry.value === group) ?? groups.items[0])
-  const toc = []
+  const shownTabs = TABS.filter(([value]) => item.tag || value === 'voorbeelden')
+  const toc = Object.fromEntries(shownTabs.map(([value]) => [value, []]))
+  const panels = Object.fromEntries(
+    shownTabs.map(([value]) => {
+      const panel = element('div', 'guide__panel')
+      panel.slot = value
+      return [value, panel]
+    }),
+  )
 
-  // What it is: the source comment's first paragraph, the rest a step away; its facts in a row;
-  // the sections as tabs.
+  // What it is, in one block under the title: the first paragraph of its source comment, the rest
+  // a step away, and its facts in a row.
   const head = element('div', 'guide__head')
   if (declaration?.description) {
     const [first, ...rest] = paragraphsOf(declaration.description)
@@ -437,7 +513,9 @@ export function renderElementPage(host, item, context) {
     head.append(intro)
     if (rest.length) {
       const more = document.createElement('lintje-expander')
+      more.className = 'guide__more'
       more.flat = true
+      more.leading = true
       more.heading = 'Meer over deze tag'
       const prose = document.createElement('lintje-prose')
       prose.html = rest.join('')
@@ -459,19 +537,41 @@ export function renderElementPage(host, item, context) {
   ]
   const facts = factsRow(factItems, go)
   head.append(facts)
-  const sectionTabs = document.createElement('lintje-tabs')
-  sectionTabs.label = 'Op deze pagina'
-  head.append(sectionTabs)
 
+  const tabs = document.createElement('lintje-tabs')
+  tabs.className = 'guide__tabs'
+  tabs.label = `Over ${item.tag ?? nameOf(item)}`
   const page = element('div', 'guide__page')
   const main = element('div', 'guide__main')
   const nav = document.createElement('lintje-sub-nav')
   nav.className = 'guide__toc'
   nav.expanded = true
   nav.label = 'Op deze pagina'
+  main.append(tabs)
   page.append(main, nav)
+  const others = {
+    label: 'Ook in deze categorie',
+    items: siblings
+      .filter((sibling) => sibling !== item)
+      .map((sibling) => ({ label: nameOf(sibling), href: addressOf(sibling) })),
+  }
+  const counts = {}
+  const drawTabs = () => {
+    tabs.tabs = shownTabs.map(([value, label]) => ({ value, label, count: counts[value] }))
+  }
+  /** Opens a tab: its panel, its entries in "Op deze pagina", its place in the URL. */
+  const open = (value) => {
+    tabs.value = value
+    context.remember?.(value)
+    follow(nav, toc[value], others)
+  }
+  tabs.addEventListener('lintje-tab-change', (event) => {
+    event.stopPropagation()
+    open(event.detail)
+  })
 
   // The specimens; with groups, the chooser first and then the chosen one's.
+  const examples = panels.voorbeelden
   const figures = []
   const batches = []
   const draw = (entries, grid, options, card = {}) => {
@@ -488,7 +588,9 @@ export function renderElementPage(host, item, context) {
     return batch
   }
   const tocSpecimens = (entries) =>
-    entries.filter((entry) => entry.label).map((entry) => ({ label: shortOf(entry.label), href: '' }))
+    entries
+      .filter((entry) => entry.label)
+      .map((entry) => ({ label: shortOf(entry.label), href: '' }))
   const codeSwitch = () => {
     const switcher = document.createElement('lintje-segmented')
     switcher.label = 'Code bij de voorbeelden'
@@ -506,10 +608,10 @@ export function renderElementPage(host, item, context) {
     return switcher
   }
 
-  let examples
+  let frame = examples
   let variantCode
   if (groups) {
-    const choose = section('kiezen', groups.question ?? `Welke ${groups.label.toLowerCase()}?`, toc)
+    const choose = section('kiezen', groups.question ?? `Welke ${groups.label.toLowerCase()}?`, toc.voorbeelden)
     choose.append(
       element(
         'p',
@@ -518,19 +620,20 @@ export function renderElementPage(host, item, context) {
       ),
       chooser(item, chosen, addressOf, go),
     )
-    main.append(choose)
+    examples.append(choose)
 
     // The chosen kind in its frame: what it is for, its specimens, the code of one, its fields.
-    examples = section('voorbeelden', chosen.label, toc, {
-      items: tocSpecimens(chosen.specimens),
-      tab: `${groups.plural[0].toUpperCase()}${groups.plural.slice(1)}`,
-    })
-    examples.classList.add('guide__kind-frame')
-    examples
+    frame = section('soort', chosen.label, toc.voorbeelden, tocSpecimens(chosen.specimens))
+    frame.classList.add('guide__kind-frame')
+    frame
       .querySelector('.guide__section-head')
       .append(
         element('code', 'guide__key', `${groups.key}: '${chosen.value}'`),
-        element('span', 'guide__meta guide__push', count(chosen.specimens.length, 'voorbeeld', 'voorbeelden')),
+        element(
+          'span',
+          'guide__meta guide__push',
+          count(chosen.specimens.length, 'voorbeeld', 'voorbeelden'),
+        ),
       )
     if (chosen.use || chosen.avoid) {
       const advice = element('div', 'guide__advice')
@@ -543,11 +646,11 @@ export function renderElementPage(host, item, context) {
         prose.html = `<p><strong>${title}</strong> ${escape(text)}</p>`
         advice.append(prose)
       }
-      examples.append(advice)
+      frame.append(advice)
     }
     const grid = specimenGrid(item, false)
     const batch = draw(chosen.specimens, grid, undefined, { code: false })
-    examples.append(grid)
+    frame.append(grid)
     // One code box for the chosen kind, of the specimen the reader marks with "Code".
     let marked = batch[0]
     const read = () => codeOf(marked.stage, marked.html)
@@ -566,30 +669,34 @@ export function renderElementPage(host, item, context) {
       pick.textContent = 'Code'
       pick.accessibleName = `Code van ${figure.querySelector('.guide__label')?.textContent}`
       pick.addEventListener('click', () => mark(figure))
-      figure.querySelector('.guide__caption')?.insertBefore(pick, figure.querySelector('.guide__anchor'))
+      figure
+        .querySelector('.guide__caption')
+        ?.insertBefore(pick, figure.querySelector('.guide__anchor'))
     }
     if (kinds.length) {
       variantCode = codeBox(kinds, read, { label: 'Code van het gekozen voorbeeld' })
-      examples.append(title, variantCode)
+      frame.append(title, variantCode)
     }
     mark(marked)
-    main.append(examples)
+    examples.append(frame)
 
     // What every kind shares: the states, drawn for the chosen kind, and the rest once.
-    const shared = section('elke-soort', groups.shared ?? 'Voor elk', toc)
-    shared.append(element('p', 'guide__meta', 'Eén keer getoond; het werkt bij elke soort hetzelfde.'))
+    const shared = section('elke-soort', groups.shared ?? 'Voor elk', toc.voorbeelden)
+    shared.append(
+      element('p', 'guide__meta', 'Eén keer getoond; het werkt bij elke soort hetzelfde.'),
+    )
     const states = (item.states ?? []).filter((state) => state.data)
     if (states.length && chosen.specimens[0]) {
       shared.append(heading(4, 'Staten'))
       const row = element('div', 'guide__specimens guide__specimens--states')
-      for (const state of states) {
-        const figure = specimenCard(
-          { ...chosen.specimens[0], label: `${state.label} · ${state.data.state}` },
-          { item, state },
-          { code: false },
+      for (const state of states)
+        row.append(
+          specimenCard(
+            { ...chosen.specimens[0], label: `${state.label} · ${state.data.state}` },
+            { item, state },
+            { code: false },
+          ),
         )
-        row.append(figure)
-      }
       shared.append(row)
     }
     if (item.specimens.length) {
@@ -597,21 +704,23 @@ export function renderElementPage(host, item, context) {
       draw(item.specimens, sharedGrid, undefined, { open: false })
       shared.append(sharedGrid)
     }
-    main.append(shared)
+    examples.append(shared)
+    counts.voorbeelden = groups.items.length
   } else {
-    examples = section('voorbeelden', 'Voorbeelden', toc, { items: tocSpecimens(item.specimens) })
-    examples.querySelector('.guide__section-head').append(codeSwitch())
+    // The tab names the part; the specimens need no heading of their own.
+    const list = section('voorbeelden-lijst', null, toc.voorbeelden, tocSpecimens(item.specimens))
+    list.querySelector('.guide__section-head').append(codeSwitch())
     const grid = specimenGrid(item)
     draw(item.specimens, grid)
-    examples.append(grid)
-    main.append(examples)
+    list.append(grid)
+    examples.append(list)
+    counts.voorbeelden = item.specimens.length
   }
   // The specimens' entries in "Op deze pagina" point at their cards.
-  for (const entry of toc)
-    for (const [i, sub] of (entry.items ?? []).entries()) {
-      const pool = entry.href === '#voorbeelden' ? batches[0] : batches.at(-1)
-      sub.href = `#${pool?.[i]?.id}`
-    }
+  const pointAt = (entries, batch) =>
+    entries.forEach((entry, i) => (entry.href = `#${batch?.[i]?.id}`))
+  if (groups) pointAt(toc.voorbeelden.find((entry) => entry.href === '#soort')?.items ?? [], batches[0])
+  else pointAt(toc.voorbeelden, batches[0])
 
   // Which specimen shows which field. A key of rich data that every specimen beside it sets (a
   // title, a footnote) tells nothing apart; an attribute is always the specimen's own choice.
@@ -643,30 +752,31 @@ export function renderElementPage(host, item, context) {
       own.bare = true
       own.plain = false
       tile.append(own)
-      examples.append(tile)
+      frame.append(tile)
     }
   }
 
-  const reference = section('referentie', 'Referentie', toc)
   let tables
-  if (declaration) {
-    reference
-      .querySelector('.guide__section-head')
-      .append(element('span', 'guide__meta', `Gelezen uit ${declaration.module}`))
-    tables = renderReference(declaration, types, {
-      shownBy,
-      skip: new Set(union ? [union.typeName] : []),
-    })
-    reference.append(tables)
-  } else {
-    const missing = document.createElement('lintje-prose')
-    missing.tone = 'muted'
-    missing.text = item.tag
-      ? 'Geen referentie: draai `npm run build:elements`.'
-      : 'Dit is geen losse tag; er is geen referentie.'
-    reference.append(missing)
+  if (panels.referentie) {
+    const reference = section('referentie-tabellen', null, toc.referentie)
+    if (declaration) {
+      reference
+        .querySelector('.guide__section-head')
+        .append(element('span', 'guide__meta', `Gelezen uit ${declaration.module}`))
+      tables = renderReference(declaration, types, {
+        shownBy,
+        skip: new Set(union ? [union.typeName] : []),
+      })
+      reference.append(tables)
+      counts.referentie = fieldsOf(declaration).length
+    } else {
+      const missing = document.createElement('lintje-prose')
+      missing.tone = 'muted'
+      missing.text = 'Geen referentie: draai `npm run build:elements`.'
+      reference.append(missing)
+    }
+    panels.referentie.append(reference)
   }
-  main.append(reference)
 
   const show = (field) => {
     if (own && field.startsWith(union.prefix)) {
@@ -674,48 +784,42 @@ export function renderElementPage(host, item, context) {
       own.scrollIntoView({ block: 'start' })
       return
     }
-    ;(tables?.show(field) ?? reference).scrollIntoView({ block: 'start' })
+    open('referentie')
+    requestAnimationFrame(() =>
+      (tables?.show(field) ?? panels.referentie).scrollIntoView({ block: 'start' }),
+    )
   }
   for (const figure of figures) captionFields(figure, [...shown.get(figure)], show)
 
   if (item.tag) {
-    main.append(
-      usageSection(item.tag, context.appAddress, toc, (text, total) => {
-        facts.append(factsRow([{ label: 'Toegepast in', value: text, href: '#toegepast' }]).firstChild)
-        const tab = sectionTabs.tabs.find((entry) => entry.value === '#toegepast')
-        if (tab && total) sectionTabs.tabs = sectionTabs.tabs.map((entry) => (entry === tab ? { ...entry, count: total } : entry))
+    panels.toegepast.append(
+      usageSection(item.tag, context.appAddress, toc.toegepast, (text, total) => {
+        const link = factsRow([{ label: 'Toegepast in', value: text, href: '#toegepast' }]).firstChild
+        link.querySelector('a').addEventListener('click', (event) => {
+          event.preventDefault()
+          open('toegepast')
+          tabs.scrollIntoView({ block: 'start' })
+        })
+        facts.append(link)
+        counts.toegepast = total || undefined
+        drawTabs()
+        if (tabs.value === 'toegepast') follow(nav, toc.toegepast, others)
       }),
     )
-    main.append(loadSection(item, context.category, toc))
+    panels.laden.append(loadSection(item, context.category))
   }
 
-  // The sections as tabs under the facts: links to their place, the one in view chosen.
-  sectionTabs.tabs = toc.map((entry) => ({
-    value: entry.href,
-    label: entry.tab,
-    href: entry.href,
-    count: entry.href === '#voorbeelden' && !groups ? item.specimens.length : entry.href === '#voorbeelden' ? groups.items.length : undefined,
-  }))
-  sectionTabs.value = toc[0]?.href
-
-  nav.groups = [
-    { label: 'Op deze pagina', items: toc.map(({ label, href, items }) => ({ label, href, items })) },
-    {
-      label: 'Ook in deze categorie',
-      items: siblings
-        .filter((sibling) => sibling !== item)
-        .map((sibling) => ({ label: nameOf(sibling), href: addressOf(sibling) })),
-    },
-  ]
-  follow(nav, sectionTabs, toc)
+  drawTabs()
+  tabs.append(...Object.values(panels))
   host.append(head, page)
+  open(toc[context.tab] ? context.tab : 'voorbeelden')
 }
 
 /* "Op deze pagina" follows the reading ------------------------------------------------- */
 
 let following
-/** Marks the section in view in the list and the tabs, as `docs/guides/page-contents.md` does. */
-function follow(nav, tabs, toc) {
+/** Marks the entry in view, as `docs/guides/page-contents.md` does; the other elements follow it. */
+function follow(nav, toc, others) {
   const all = (items) => items.flatMap((item) => [item, ...all(item.items ?? [])])
   const mark = (items, href) =>
     items.map((item) => ({
@@ -724,26 +828,25 @@ function follow(nav, tabs, toc) {
       active: item.href === href,
       ...(item.items ? { items: mark(item.items, href) } : {}),
     }))
+  const groups = (href) => [
+    ...(toc.length ? [{ label: 'Op deze pagina', items: mark(toc, href) }] : []),
+    others,
+  ]
   let shown
+  nav.groups = groups(null)
   const update = () => {
     if (!nav.isConnected) return
     const root = document.documentElement
     const end = scrollY + innerHeight >= root.scrollHeight - 1
     const line = end ? innerHeight : (parseFloat(getComputedStyle(root).scrollPaddingTop) || 0) + 1
     let href = null
-    let inView = null
-    for (const item of toc) {
-      const target = document.getElementById(item.href.slice(1))
-      if (target && target.getBoundingClientRect().top <= line) inView = item.href
-    }
     for (const item of all(toc)) {
       const target = document.getElementById(item.href.slice(1))
-      if (target && target.getBoundingClientRect().top <= line) href = item.href
+      if (target?.offsetParent && target.getBoundingClientRect().top <= line) href = item.href
     }
     if (href === shown) return
     shown = href
-    nav.groups = [{ ...nav.groups[0], items: mark(toc, href) }, ...nav.groups.slice(1)]
-    tabs.value = inView ?? toc[0]?.href
+    nav.groups = groups(href)
   }
   if (!following) {
     let frame = 0
@@ -764,7 +867,7 @@ const PLACES_SHOWN = 12
 
 /** Where the tag stands in the example applications, filled in once their files are read. */
 function usageSection(tag, appAddress, toc, onCount) {
-  const node = section('toegepast', 'Toegepast in de applicaties', toc, { tab: 'Toegepast in' })
+  const node = section('toegepast-lijst', null, toc)
   node
     .querySelector('.guide__section-head')
     .append(element('span', 'guide__meta', 'Gevonden in de bestanden van examples/'))
@@ -777,24 +880,26 @@ function usageSection(tag, appAddress, toc, onCount) {
     const text = total
       ? `${count(total, 'plek', 'plekken')} in ${count(usage.length, 'applicatie', 'applicaties')}`
       : 'nog nergens'
-    onCount(text, total)
     if (!total) {
       note.text = 'Nog in geen enkele voorbeeldapplicatie.'
+      onCount(text, total)
       return
     }
     note.remove()
     const tiles = usage.map(({ app, places }) => {
       const tile = document.createElement('lintje-tile')
       tile.span = 12
+      tile.id = `app-${app.href.replace(/\W+/g, '')}`
       tile.heading = app.label
       tile.subtitle = count(places.length, 'plek', 'plekken')
       tile.dataset.app = app.href
-      const open = document.createElement('lintje-button')
-      open.slot = 'actions'
-      open.variant = 'link'
-      open.size = 'compact'
-      open.href = appAddress(app)
-      open.textContent = `Openen in ${app.label}`
+      toc.push({ label: app.label, href: `#${tile.id}` })
+      const link = document.createElement('lintje-button')
+      link.slot = 'actions'
+      link.variant = 'link'
+      link.size = 'compact'
+      link.href = appAddress(app)
+      link.textContent = `Openen in ${app.label}`
       const code = document.createElement('lintje-code')
       code.language = 'html'
       code.label = `${tag} in ${app.label}`
@@ -803,7 +908,7 @@ function usageSection(tag, appAddress, toc, onCount) {
         .map((place) => `${place.path}:${place.line}  ${place.text}`)
       if (places.length > PLACES_SHOWN) lines.push(`… en nog ${places.length - PLACES_SHOWN}`)
       code.text = lines.join('\n')
-      tile.append(open, code)
+      tile.append(link, code)
       return tile
     })
     if (usage.length > 1) {
@@ -824,31 +929,27 @@ function usageSection(tag, appAddress, toc, onCount) {
         for (const tile of tiles)
           tile.hidden = Boolean(event.detail) && tile.dataset.app !== event.detail
       })
-      node.append(filter)
+      node.querySelector('.guide__section-head').prepend(filter)
     }
     const grid = document.createElement('lintje-grid')
     grid.append(...tiles)
     node.append(grid)
+    onCount(text, total)
   })
   return node
 }
 
 /** How a page loads the tag: by itself, with its category, or the whole bundle. */
-function loadSection(item, category, toc) {
-  const node = section('laden', 'Laden', toc)
+function loadSection(item, category) {
   const ways = [
     ['tag', 'Alleen deze tag', `import 'lintje/tag/${nameOf(item)}'`],
     ['category', 'De categorie', `import 'lintje/${category}'`],
     ['bundle', 'De hele bundel', `import 'lintje'`],
   ]
   const code = Object.fromEntries(ways.map(([key, , text]) => [key, { text, copy: text }]))
-  node.append(
-    codeBox(
-      ways.map(([key, label]) => [key, label, 'js']),
-      () => code,
-      { label: 'Hoe je hem laadt' },
-    ),
+  return codeBox(
+    ways.map(([key, label]) => [key, label, 'js']),
+    () => code,
+    { label: 'Hoe je hem laadt' },
   )
-  return node
 }
-

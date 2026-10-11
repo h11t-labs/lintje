@@ -53,7 +53,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   gelezen uit wat het voorbeeld tekende), de referentie met de velden van `data`, waar het in de
   voorbeeldapplicaties staat en hoe je het laadt. De pagina van een categorie is een overzicht met
   één voorbeeld per element. `lintje-chart` toont één soort tegelijk, gekozen op de vraag van de
-  lezer, met een schakelaar voor laden, leeg en fout. `#el-…` leidt naar de nieuwe pagina. (#25)
+  lezer, met haar staten ernaast. De delen van een elementpagina staan in tabs (`&tab=`).
+  `#el-…` leidt naar de nieuwe pagina. (#25)
 - De telefoonvorm geldt alleen op een scherm: `MOBILE` is `screen and (max-width: 767px)`, en een
   host schrijft zijn eigen telefoonregels zo. (#22)
 

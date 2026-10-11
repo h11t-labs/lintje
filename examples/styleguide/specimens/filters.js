@@ -130,6 +130,7 @@ export default {
     },
     {
       tag: 'lintje-filter-sheet',
+      sketch: 'drawer',
       title: 'Het filterblad onderin beeld: dezelfde filters, gestapeld, met Toepassen',
       specimens: [
         {

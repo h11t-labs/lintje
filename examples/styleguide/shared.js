@@ -21,8 +21,10 @@
  * or a listener. It finds its nodes inside `stage`. `wide: true` on a specimen gives it the
  * full row; without it the specimens stand in columns. `columns: 2` or `3` on an element caps
  * them, for an element that reads badly side by side in a narrow column. `preview: true` marks
- * the one specimen the category's overview draws in the element's tile; without it the tile is
- * text.
+ * the one specimen the category's overview draws, small, in the element's card. An element that
+ * opens over the page (a dialog, a panel, a tooltip) has no specimen to draw there; its `sketch`
+ * names what the card draws instead: `modal`, `dialog`, `drawer`, `popover`, `tooltip`, `toast`,
+ * `search` or `page`.
  *
  * The code under a specimen is read from what it drew (`code.js`): its markup, and what `setup`
  * set, as a script sets it and as JSON in the markup.

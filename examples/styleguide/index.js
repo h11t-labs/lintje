@@ -3,9 +3,9 @@
  *
  * The shell's menu lists the categories; a category's page is an overview of its elements, and
  * each element has its own page. Where the reader is lives in the URL: `?category=inputs`, or
- * `?element=chart` with `&soort=pie` and `&staat=loading` for an element whose specimens come in
- * groups — next to mode, menu, theme and layout. `#el-textarea`, the older address, leads to the
- * element's page. The specimens come from the modules in `specimens/`; a module that is missing
+ * `?element=chart` with `&tab=referentie` for its open tab, and `&soort=pie` for an element whose
+ * specimens come in groups — next to mode, menu, theme and layout. `#el-textarea`, the older
+ * address, leads to the element's page. The specimens come from the modules in `specimens/`; a module that is missing
  * or throws is reported in the console and skipped, so one module cannot take the page down.
  * `/` or the shell's search icon searches every element.
  */
@@ -67,7 +67,7 @@ const crumbs = document.getElementById('crumbs')
 const host = document.getElementById('elements')
 const appSearch = document.getElementById('search')
 
-const PLACE = ['category', 'element', 'soort', 'staat']
+const PLACE = ['category', 'element', 'soort', 'staat', 'tab']
 const SOURCE = 'https://github.com/h11t-labs/lintje/blob/main/'
 const theme = () => themeOf(location.search)
 /** The reader's settings, carried from page to page: the search without the place. */
@@ -88,24 +88,24 @@ function placeOf(url) {
       item,
       category: categoryOf(nameOf(item)) ?? CATEGORIES[0],
       group: params.get(item.groups?.param ?? 'soort'),
-      state: params.get('staat'),
+      tab: params.get('tab'),
     }
   }
   return { category: CATEGORIES.find((entry) => entry.name === namedIn(params)) ?? CATEGORIES[0] }
 }
 
 /** An address of this page: a category's or an element's, with the reader's settings. */
-function addressOf({ category, item, group, state }, search = settings()) {
+function addressOf({ category, item, group, tab }, search = settings()) {
   const next = new URLSearchParams(search)
   if (item) {
     next.set('element', nameOf(item))
     if (group) next.set(item.groups?.param ?? 'soort', group)
-    if (state && state !== item.states?.[0]?.value) next.set('staat', state)
+    if (tab && tab !== 'voorbeelden') next.set('tab', tab)
   } else if (category && category.name !== CATEGORIES[0].name) next.set('category', category.name)
   const query = next.toString()
   return `${location.pathname}${query ? `?${query}` : ''}`
 }
-const elementAddress = (item, group, state) => addressOf({ item, group, state })
+const elementAddress = (item, group) => addressOf({ item, group })
 
 // The older address of an element, `#el-…`, becomes its page.
 if (location.hash.startsWith('#el-')) {
@@ -181,7 +181,8 @@ function render({ keepScroll = false } = {}) {
   }
 
   // A specimen reads the theme when it is drawn (the shell's emblem), so a new theme redraws.
-  const drawing = `${item ? `element:${nameOf(item)}:${place.group}:${place.state}` : `category:${category.name}`}:${theme()}`
+  // The open tab is the page's own: another tab draws nothing again.
+  const drawing = `${item ? `element:${nameOf(item)}:${place.group}` : `category:${category.name}`}:${theme()}`
   if (drawn === drawing) return
   drawn = drawing
   const scroll = window.scrollY
@@ -194,6 +195,9 @@ function render({ keepScroll = false } = {}) {
       category: category.name,
       categoryLabel: category.label,
       group: place.group,
+      tab: place.tab,
+      // A tab is a place on the page, kept in its address without drawing it again.
+      remember: (tab) => history.replaceState(null, '', addressOf({ ...placeOf(new URL(location.href)), tab })),
       addressOf: elementAddress,
       go: (href, options) => follow(href, options),
       appAddress: (app) => carry(`../${app.href}`),

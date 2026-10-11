@@ -32,9 +32,13 @@ Hij is de levende referentie: een wijziging aan een component in `src/` wordt da
 
 Het menu van de shell somt de categorieën op. De pagina van een categorie (`?category=<name>`, uit
 `src/categories.json`) is een overzicht: per element een kaart met zijn voorbeeld, levend getekend
-in het thema en de modus van de pagina, wat het is en hoeveel het toont. Elk element heeft een
-eigen pagina, `?element=<tag without lintje->` (`?element=tabs`), met "Op deze pagina" ernaast
-(`lintje-sub-nav` met `expanded`) en de andere elementen van zijn categorie. Daarop staan:
+in het thema en de modus van de pagina en verkleind tot het in het vak past, wat het is en
+hoeveel het toont. Een element dat boven de pagina opent (een venster, een paneel) krijgt een
+schets in plaats van een voorbeeld (`sketch`). Elk element heeft een
+eigen pagina, `?element=<tag without lintje->` (`?element=tabs`): wat het is, en daaronder vier
+tabs — Voorbeelden, Referentie, Toegepast in en Laden; de open tab staat in de URL (`&tab=`). Ernaast
+staat "Op deze pagina" voor de open tab (`lintje-sub-nav` met `expanded`) en de andere elementen
+van zijn categorie. Daarop staan:
 
 - **wat het is**: het kopcommentaar van de tag, uit de broncode;
 - **de voorbeelden**, elk als kaart met de velden die het onderscheiden ("Toont", een link naar hun
@@ -49,9 +53,9 @@ eigen pagina, `?element=<tag without lintje->` (`?element=tabs`), met "Op deze p
 
 Een tag die meer soorten van één ding tekent, `lintje-chart`, toont er één tegelijk
 (`&soort=pie`): gekozen op de vraag van de lezer, met wanneer je hem neemt en wanneer niet
-(`src/components/shared/charts/kinds.ts`), zijn voorbeelden en zijn eigen velden. Een schakelaar
-zet de voorbeelden van die soort in een staat — klaar, laden, leeg, fout (`&staat=loading`). Wat
-elke soort deelt, staat eronder.
+(`src/components/shared/charts/kinds.ts`), zijn voorbeelden en zijn eigen velden. Onder "Voor elke
+soort" staan de staten — laden, leeg, fout — getekend voor de gekozen soort, en wat elke soort
+deelt.
 
 `#el-<tag without lintje->`, het oudere adres, opent de pagina van het element, dus
 `styleguide/#el-tabs` werkt nog. Een element staat in de eigen modus van de pagina: de modusknop

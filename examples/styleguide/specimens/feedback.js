@@ -238,6 +238,7 @@ export default {
     },
     {
       tag: 'lintje-toast',
+      sketch: 'toast',
       title: 'Een korte bevestiging of foutmelding die vanzelf een plek krijgt',
       specimens: [
         {
@@ -260,6 +261,7 @@ export default {
     },
     {
       tag: 'lintje-conflict-alert',
+      sketch: 'toast',
       title: 'Iemand anders heeft het item intussen gewijzigd',
       specimens: [
         {
