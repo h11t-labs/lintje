@@ -1,9 +1,9 @@
 /**
  * `<lintje-highlight>` — a marking in running text: low confidence, a glossary term, a search
- * match, or a difference. The host wraps the words.
+ * match, or a difference.
  *
- * Each kind draws the element that means it and a line of its own, so colour is never the only
- * carrier.
+ * The host wraps the words. Each kind draws the element that means it and a line of its own, so
+ * colour is never the only carrier.
  */
 import { html, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'

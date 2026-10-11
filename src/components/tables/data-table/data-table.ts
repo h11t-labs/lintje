@@ -1,9 +1,9 @@
 /**
- * `<lintje-data-table>` — the data table, inside a tile; below 768 px a two-column list. A
- * missing value is a muted dash, never 0.
+ * `<lintje-data-table>` — the data table, inside a tile; below 768 px a two-column list.
  *
- * It never filters, saves or confirms: it shows a change at once, and the host confirms it in the
- * next `data`. Open rows and collapsed groups are the table's own: it sends nothing for them.
+ * A missing value is a muted dash, never 0. The table never filters, saves or confirms: it shows a
+ * change at once, and the host confirms it in the next `data`. Open rows and collapsed groups are
+ * the table's own: it sends nothing for them.
  *
  * Events: `lintje-sort-change` `{ key, direction } | null`, `lintje-row-click`
  * `{ id, label, href? }`, `lintje-row-open` `{ id, label, href? }`, `lintje-checked-change`

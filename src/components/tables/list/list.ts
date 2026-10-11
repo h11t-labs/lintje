@@ -1,11 +1,11 @@
 /**
- * `<lintje-list>` — rows for what needs no columns: title, a muted line, a fact or actions. It is
- * also the work list: what someone made or had made, with its kind, state and progress, in runs
- * under a moment ("Vandaag").
+ * `<lintje-list>` — rows for what needs no columns: title, a muted line, a fact or actions.
  *
- * It does not navigate: a plain click on a row is cancelled and sent as `lintje-row-click`, and a
- * link row in a menu also sends `lintje-navigate` after its `lintje-row-action`. A row with
- * `rename` turns its title into a field in place; the host keeps that state, as for every row.
+ * It is also the work list: what someone made or had made, with its kind, state and progress, in
+ * runs under a moment ("Vandaag"). It does not navigate: a plain click on a row is cancelled and
+ * sent as `lintje-row-click`, and a link row in a menu also sends `lintje-navigate` after its
+ * `lintje-row-action`. A row with `rename` turns its title into a field in place; the host keeps
+ * that state, as for every row.
  *
  * Events: `lintje-row-click` `{ id, label, href? }`, `lintje-row-action` `{ id, label, value }` (a
  * chosen menu row or the row's own action), `lintje-row-rename` `{ id, value }`,

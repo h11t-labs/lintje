@@ -1,11 +1,11 @@
 /**
- * `<lintje-card>` — one item of a collection: a product, a dataset, a recording, an app. Square
- * and flat; in a grid it is drawn by `lintje-card-list`.
+ * `<lintje-card>` — one item of a collection: a product, a dataset, a recording, an app.
  *
- * A card is either a link or carries actions, never both: with an `href` and no actions the whole
- * card is clickable. Icon actions stand beside the title, also on a card that is a link; one with
- * `pressed` is a switch, and the host sets the new `pressed` after the event. The card knows no
- * domain: "toegang" or "eigenaar" are the host's words.
+ * Square and flat; in a grid it is drawn by `lintje-card-list`. A card is either a link or carries
+ * actions, never both: with an `href` and no actions the whole card is clickable. Icon actions
+ * stand beside the title, also on a card that is a link; one with `pressed` is a switch, and the
+ * host sets the new `pressed` after the event. The card knows no domain: "toegang" or "eigenaar"
+ * are the host's words.
  *
  * Events: `lintje-navigate` `{ href }` (a plain click on the title, the card or an action with an
  * `href`), `lintje-card-action` `{ id, value, pressed? }` (an action without `href`; `pressed`

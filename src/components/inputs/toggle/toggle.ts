@@ -1,6 +1,7 @@
 /**
- * `<lintje-toggle>` — a switch for immediate effect: it commits when switched, never in a form. A
- * value that waits for a button is a checkbox.
+ * `<lintje-toggle>` — a switch for immediate effect: it commits when switched, never in a form.
+ *
+ * A value that waits for a button is a checkbox.
  *
  * Events: `lintje-change` `boolean`, `lintje-values-change` `{ [name]: value }` (with a `name`),
  * `lintje-reset` (the reset link was pressed).

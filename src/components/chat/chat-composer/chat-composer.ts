@@ -160,6 +160,7 @@ export class LintjeChatComposer extends LintjeElement {
   form: ChatAnswerForm = 'auto'
   /** Sources given and none `selected`: sending is off. The host sets them again on a change. */
   declare sources?: ChatSourceData[]
+  /** The terms marked in the field while the reader types. */
   declare vocabulary?: ChatTermData[]
   /** The host's own reading of the text; it wins while the text is unchanged. */
   declare draftTerms?: ChatDraftTerms

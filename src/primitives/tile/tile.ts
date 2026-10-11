@@ -1,7 +1,7 @@
 /**
- * `<lintje-tile>` — the frame around a chart, map or table. Top to bottom: header, notice, intro,
- * legend, content, legend (`legend-below`), footnote.
+ * `<lintje-tile>` — the frame around a chart, map or table.
  *
+ * Top to bottom: header, notice, intro, legend, content, legend (`legend-below`), footnote.
  * `slot="aside"` puts a key figure beside the content, above it below 768 px. Hover actions show
  * on focus too, and always on touch screens. The tile expands and downloads nothing itself: the
  * host answers its events.

@@ -1,9 +1,8 @@
 /**
  * `<lintje-popover>` — the floating panel: a surface fixed to the viewport under its anchor.
- * Content and padding come through the slot.
  *
- * The host holds `open`: the popover only asks to be closed. A component that draws a popover in
- * its own root stops its `lintje-close`.
+ * Content and padding come through the slot. The host holds `open`: the popover only asks to be
+ * closed. A component that draws a popover in its own root stops its `lintje-close`.
  *
  * Events: `lintje-close` `{ reason: 'escape' | 'outside' }`.
  */

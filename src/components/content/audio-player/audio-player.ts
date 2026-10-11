@@ -1,6 +1,8 @@
 /**
  * `<lintje-audio-player>` — plays a recording: play between two 15-second skips, the position as a
- * slider, the time, the volume and the speed. It never autoplays.
+ * slider, the time, the volume and the speed.
+ *
+ * It never autoplays.
  *
  * Events: `lintje-time-change` `number` (seconds, at most four times a second), `lintje-seek`
  * `number` (seconds: the reader moved the position), `lintje-play`, `lintje-pause`.
