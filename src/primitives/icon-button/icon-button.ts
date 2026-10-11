@@ -1,9 +1,8 @@
 /**
  * `<lintje-icon-button>` — a square button with one icon, or its Dutch label as text when the
- * icon has no file. `disabled` renders `aria-disabled="true"` and a capturing `click` listener
- * swallows the activation, so the button stays focusable but no host listener sees it.
- * `live` is for what listens or speaks now (dictating, reading aloud): the primary fill and
- * moving bars beside the icon; the host still sets `pressed` and the label that stops it.
+ * icon has no file.
+ *
+ * `disabled` keeps it focusable but swallows the press: no listener on the host sees it.
  */
 import { html, nothing, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -43,7 +42,10 @@ export class LintjeIconButton extends LintjeElement {
   declare expanded?: boolean
   /** Extra description read after the name; a wrapping `lintje-tooltip` sets its text here. */
   declare description?: string
-  /** It listens or speaks now: the primary fill, with moving bars beside the icon. */
+  /**
+   * It listens or speaks now (dictating, reading aloud): the primary fill, with moving bars beside
+   * the icon. The host still sets `pressed` and the label that stops it.
+   */
   live: boolean = false
 
   constructor() {

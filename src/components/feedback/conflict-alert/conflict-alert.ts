@@ -1,12 +1,11 @@
 /**
  * `<lintje-conflict-alert>` — someone else changed the item while the reader was editing it.
  *
- * A compact live warning announcement above the form with three actions. It takes the focus when
- * it appears, so the keyboard continues at its buttons. It saves nothing; the host answers the
- * events. `lintje-conflict-compare` lets a host fetch the differences only when asked.
+ * A live warning above the form, with three actions; it takes the focus when it appears. It saves
+ * nothing: the host answers the events, and fetches the differences only when asked.
  *
  * Events: `lintje-conflict-keep-mine`, `lintje-conflict-take-theirs`, `lintje-conflict-compare`
- * `{ open }`.
+ * `{ open }` (the differences open or close).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'

@@ -1,24 +1,12 @@
 /**
  * `<lintje-page-header>` — the title zone of a page, with an announcement above it.
  *
- * The title is an h2: the page's h1 is the shell's `name`.
- * Slots: `breadcrumbs` above the title, `actions` on its right.
+ * The title is an h2: the page's h1 is the shell's `name`. Actions that do not fit on one line go
+ * into one menu, "Meer": the first goes first, the last never, and a chosen row clicks its button,
+ * so the host's own listener sees the click. In the page's content it is a band that tells the
+ * shell when the title scrolls under the top bar.
  *
- * Actions that do not fit on one line go into one menu, "Meer", in front of the ones that stay
- * (`components/shared/overflow.ts`): the first `lintje-button` goes first, the last never goes,
- * and a chosen row clicks its button, so the host's own listener sees the click.
- *
- * In the page's content it is a band, and tells the shell through the shared store when the
- * title scrolls under the top bar. The observer watches the title itself: a sentinel element in
- * this column would pick up the gap and push the page down 6 px.
- *
- * In `lintje-shell`'s `header` slot it stands flush in the shell's content column, as an
- * application's title row: no band, the description at every width, no observer.
- *
- * `editable` puts a pencil beside the title, shown while the title is pointed at or focused: the
- * way to rename what the page is about. The page renames; the header only asks.
- *
- * Events: `lintje-title-edit` (the pencil was pressed).
+ * Events: `lintje-title-edit` (the pencil was pressed: the page renames, the header only asks).
  */
 import {
   html,
@@ -51,11 +39,14 @@ export class LintjePageHeader extends LintjeElement {
   }
 
   declare data?: PageHeaderData | null
-  /** In `lintje-shell`'s `header` slot: an application's title row, with no top bar to tell. */
+  /**
+   * In `lintje-shell`'s `header` slot: an application's title row, flush in the content column,
+   * with no band, the description at every width and no top bar to tell.
+   */
   inShell: boolean = false
   /** An empty actions slot takes no place, so a long title never wraps onto an empty line. */
   hasActions: boolean = false
-  /** A pencil beside the title asks to rename it. */
+  /** A pencil beside the title, shown while it is pointed at or focused, asks to rename it. */
   editable: boolean = false
 
   protected override get dataSettings(): FrameSettings | undefined {
@@ -102,6 +93,8 @@ export class LintjePageHeader extends LintjeElement {
     }
     // Read from the title itself: the token inherits from wherever the mode root is.
     const height = lengthPx(title, '--h-topbar', 56)
+    // The title itself is watched: a sentinel in this column would pick up the gap and push the
+    // page down 6 px.
     this.observer = new IntersectionObserver(
       // Only "hidden" when it has scrolled out at the top, not when it is below the viewport.
       ([entry]) => setTitleHidden(entry.boundingClientRect.top < height),

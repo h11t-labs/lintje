@@ -1,13 +1,11 @@
 /**
- * `<lintje-toast>` — the toast: a glyph carries the meaning, so colour is not the only signal
- * (rule 13). Errors, warnings and toasts with an action stay until closed. Plain `ok` and `info`
- * toasts close after six seconds; the pointer on it or the focus in it holds it, and its six seconds start
- * again when both have left. Closing with the focus inside, it gives the focus back first.
+ * `<lintje-toast>` — a short message about what just happened; a glyph carries its meaning.
  *
- * It is a `role="status"` region drawn empty first, its content going in on the next frame: a
- * region that arrives together with its text is not announced, one that is filled is.
+ * The host owns whether it exists. A toast that closes by itself is held while the pointer is on
+ * it or the focus in it, and its six seconds start again when both have left. Closing with the
+ * focus inside, it gives the focus back first.
  *
- * Events: `lintje-close` (timed out or closed), `lintje-action`. The host owns whether it exists.
+ * Events: `lintje-close` (timed out or closed), `lintje-action` (its action was pressed).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'

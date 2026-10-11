@@ -1,16 +1,13 @@
 /**
  * `<lintje-document-viewer>` — a document page by page: leaf, zoom and download.
  *
- * Shows images only: `.pages` is one URL per page, `src` a single image. The host renders a PDF
- * to page images; no PDF library is shipped. An image is no text: give each page's text in
- * `.texts` (same order), which a screen reader reads after the page. The file behind
- * "Downloaden" is the accessible version, so it is a tagged, accessible PDF, not a scan.
+ * It shows images only: the host renders a PDF to page images, and gives each page's text in
+ * `texts`, which a screen reader reads after the page. The file behind "Downloaden" is the
+ * accessible version: a tagged PDF, not a scan. Page and zoom are the element's; every change is
+ * reported.
  *
- * `page` (from 1) and `zoom` (50–400 in steps of 25, or `fit`) are the element's; every change
- * is reported.
- *
- * Events: `lintje-page-change` (the page, from 1), `lintje-zoom-change` (a percentage or
- * `'fit'`), `lintje-download`.
+ * Events: `lintje-page-change` `number` (the page, from 1), `lintje-zoom-change`
+ * `number | 'fit'` (a percentage), `lintje-download`.
  */
 import {
   html,
@@ -97,7 +94,9 @@ export class LintjeDocumentViewer extends LintjeElement {
   src: string = ''
   /** The file name: the toolbar's title and part of the page's accessible name. */
   name: string = ''
+  /** The page shown, from 1. */
   page: number = 1
+  /** A percentage, 50–400 in steps of 25, or `fit`. */
   zoom: ZoomLevel = 'fit'
 
   protected loaded: boolean = false

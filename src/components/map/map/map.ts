@@ -1,15 +1,14 @@
 /**
- * `<lintje-map>` — a map in its tile. The map shows a new layer at once and expects the host
- * to confirm it in the next `data`. `tile.expandable` shows the same map again in the modal; the
- * modal's own events stop here.
+ * `<lintje-map>` — a map in its tile.
  *
- * Events: `lintje-mark-select` `{id, label, href?}` (`href` is the one the server minted on that
- * mark) and `lintje-layer-change` (the chosen layer's `value`). Undoing a selection is
- * `lintje-mark-select` with `id: null` and `data.clearHref`, so a page that keeps the selection
- * in the URL can drop it. With `data.controls.lasso`, `.circle` or `.rect` a drawn area chooses
- * every mark in it — two or more tools share one button that opens their menu:
- * `lintje-area-select` `{area, ids}`, and `{area: null, ids: []}` when it is undone; the host
+ * A new layer shows at once and expects the host to confirm it in the next `data`. With
+ * `tile.expandable` the same map shows again in the modal, whose own events stop here. With
+ * `data.controls.lasso`, `.circle` or `.rect` a drawn area chooses every mark in it; the host
  * keeps the area in its URL and sends it back as `selectedArea`.
+ *
+ * Events: `lintje-mark-select` `{ id, label, href? }` (deselected, `id: null` and
+ * `href: data.clearHref`), `lintje-layer-change` `string` (the chosen layer's value),
+ * `lintje-area-select` `{ area, ids }` (undone, `{ area: null, ids: [] }`).
  */
 import {
   html,

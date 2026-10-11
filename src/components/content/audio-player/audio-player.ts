@@ -1,16 +1,9 @@
 /**
- * `<lintje-audio-player>` — plays a recording: play between two 15-second skips, the position
- * as a slider, the time, the volume and the speed.
+ * `<lintje-audio-player>` — plays a recording: play between two 15-second skips, the position as a
+ * slider, the time, the volume and the speed. It never autoplays.
  *
- * With `.peaks` (0–1) the slider is the waveform, without them a bar. With `.segments` — the
- * transcript's `{ start, speaker }[]` — every speaker takes a colour, named in a legend above
- * (`no-legend` leaves it to the transcript, which names the same colours).
- * `compact` puts everything on one line; a phone has no room for it and keeps the column.
- * `flush` drops its own frame, for a bar the page draws around it. Never autoplays.
- * `.currentTime` seeks.
- *
- * Events: `lintje-time-change` (seconds, at most four times a second), `lintje-seek` (seconds:
- * the reader moved the position), `lintje-play`, `lintje-pause`.
+ * Events: `lintje-time-change` `number` (seconds, at most four times a second), `lintje-seek`
+ * `number` (seconds: the reader moved the position), `lintje-play`, `lintje-pause`.
  */
 import {
   html,
@@ -93,11 +86,14 @@ export class LintjeAudioPlayer extends LintjePlayerElement {
 
   /** The waveform's peaks, 0–1. Without them the position is a bar. */
   declare peaks?: number[] | null
-  /** Who speaks when: the transcript's segments, or any `{ start, speaker }[]` in time order. */
+  /**
+   * Who speaks when: the transcript's segments, or any `{ start, speaker }[]` in time order. Every
+   * speaker takes a colour, named in a legend above.
+   */
   segments: SpeakerTurn[] = []
   /** Leaves the legend out where the transcript beside it names every colour. */
   noLegend: boolean = false
-  /** Everything on one line, for a row or a tile. */
+  /** Everything on one line, for a row or a tile; a phone has no room and keeps the column. */
   compact: boolean = false
   /** No frame of its own: the page's bar around it is the frame. */
   flush: boolean = false

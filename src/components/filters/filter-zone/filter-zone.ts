@@ -1,11 +1,11 @@
 /**
  * `<lintje-filter-zone>` — the filter bar: one place for everything that narrows the numbers.
  *
- * Expanded, scrolled (a sticky summary bar) and mobile (sentence only) states: see `zone-state.ts`.
- * The controls come in through the slot, the sentence as parts; the owner keeps the state.
+ * The controls come in through the slot and the sentence as parts; the owner keeps the state. The
+ * zone is expanded, scrolled (a sticky summary bar) or, below 768 px, the sentence only.
  *
- * Events (bubbling, not composed): `lintje-filters-reset`, `lintje-zone-open-change` (boolean),
- * `lintje-zone-scrolled-change` (boolean).
+ * Events: `lintje-filters-reset`, `lintje-zone-open-change` `boolean`,
+ * `lintje-zone-scrolled-change` `boolean`.
  */
 import {
   html,

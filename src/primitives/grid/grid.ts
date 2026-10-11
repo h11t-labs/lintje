@@ -1,7 +1,6 @@
 /**
  * `<lintje-grid>` — the 12-column grid. Its items are its own children; a tile carries `span`
  * itself and needs no wrapper.
- * Events: none.
  */
 import { html, type PropertyValues, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../core/element'

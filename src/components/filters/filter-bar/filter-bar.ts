@@ -1,8 +1,13 @@
 /**
- * `<lintje-filter-bar>` — the host's declared filters in the filter zone and, below 768 px,
- * the sheet. Values cross as the canonical strings the host writes to the URL. A change in the
- * bar commits at once; the sheet commits on "Toepassen". The host confirms with the next
- * `data`. Put one filter bar on a page: two would both write the count and own the sheet.
+ * `<lintje-filter-bar>` — the host's declared filters in the filter zone and, below 768 px, the
+ * sheet.
+ *
+ * Values cross as the canonical strings the host writes to the URL. A change in the bar commits at
+ * once, the sheet on "Toepassen"; the host confirms with the next `data`. Put one filter bar on a
+ * page: two would both write the count and own the sheet.
+ *
+ * Events: `lintje-values-change` `{ [key]: value }` (the filters that commit),
+ * `lintje-filters-open-change` `boolean` (the reader shows or hides the controls).
  */
 import {
   html,

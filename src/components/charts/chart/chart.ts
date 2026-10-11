@@ -1,11 +1,11 @@
 /**
  * `<lintje-chart>` — a chart in its tile, with loading, empty and error states.
  *
- * Events: `lintje-mark-select` `{id, label, href}` when a mark with a `href` is clicked, and
- * `{id: null, label: null, href: clearHref}` when it is deselected. Expand and download stay here.
+ * Expand and download are handled here. The table view is the element's own state, built from the
+ * CSV rows; it never reaches the URL.
  *
- * Two controllers: the tile and the modal draw the same chart and must not share hover or width.
- * The table view is built from the CSV rows; it is element state, not URL state (rule 14).
+ * Events: `lintje-mark-select` `{ id, label, href }` (a mark with an `href` was clicked;
+ * deselected, `{ id: null, label: null, href: data.clearHref }`).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { define, type FrameSettings } from '../../../core/element'
@@ -248,6 +248,7 @@ export class LintjeChart extends LintjeContentTileElement {
   view: ChartView = 'chart'
 
   readonly #chart = new ChartController(() => this.requestUpdate())
+  // The modal draws the same chart with its own controller: the two never share hover or width.
   #modalChart: ChartController | null = null
   readonly #mobile = new MediaController(this)
 

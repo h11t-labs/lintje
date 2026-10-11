@@ -1,13 +1,11 @@
 /**
  * `<lintje-error-summary>` — the error summary above a form, with a link to each field.
  *
- * With nothing to show it draws nothing. A link focuses the field, found by `name` or `id` in
- * the summary's own tree and, from a shadow root, in its host's light DOM (where `lintje-form`
- * draws it). The field is scrolled to the middle of the view, clear of a sticky top bar and of the
- * action bar below, however deep it stands in the form.
- * It never validates. `focus()` puts the focus on the frame (`tabindex="-1"`).
+ * It never validates, and with nothing to show it draws nothing. A link focuses the field, found
+ * by `name` or `id` in the summary's own tree or, from a shadow root, in its host's light DOM, and
+ * scrolls it into view clear of a sticky top bar and the form's action bar.
  *
- * Events: `lintje-retry` from the "Opnieuw proberen" button.
+ * Events: `lintje-retry` ("Opnieuw proberen" was pressed).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
@@ -72,6 +70,7 @@ export class LintjeErrorSummary extends LintjeElement {
     return this.items.length > 0 || Boolean(this.message)
   }
 
+  /** Puts the focus on the frame (`tabindex="-1"`). */
   override focus(options?: FocusOptions): void {
     this.renderRoot.querySelector<HTMLElement>('.lintje-error-summary')?.focus(options)
   }

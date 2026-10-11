@@ -1,11 +1,9 @@
 /**
  * `<lintje-shortcuts>` — the overview of the keyboard shortcuts this page has registered.
  *
- * The list is the register's (`core/shortcuts.ts`), read when the window opens. The element
- * registers `?` itself and asks to be opened (`lintje-open`). The owner holds `open`, as with
- * `<lintje-confirm-dialog>`, whose frame and stylesheet this uses. Under the list a switch turns
- * the one-character keys off and on (WCAG 2.1.4); with them off, `?` opens nothing, so a page
- * also opens the overview from a button or a menu.
+ * The element registers `?` itself and asks to be opened; the host holds `open`. A switch under
+ * the list turns the one-character keys off, and then `?` opens nothing, so a page also opens the
+ * overview from a button or a menu.
  *
  * Events: `lintje-open`, `lintje-close` `{ reason: 'escape' | 'scrim' | 'button' }`.
  */

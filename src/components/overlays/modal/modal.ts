@@ -1,14 +1,10 @@
 /**
  * `<lintje-modal>` — the expand modal: title, subtitle, slotted content, a footer.
  *
- * It is `position: fixed` above the app frame, so no ancestor may carry a `transform`, `filter`
- * or `contain`. The footer is hidden, not unrendered, when empty: an unrendered slot never
- * reports its content again.
+ * It is `position: fixed` above the app frame, so no ancestor may carry a `transform`, `filter` or
+ * `contain`.
  *
- * `narrow` makes it a dialog with a form: as high as its content and as wide as a form reads,
- * with a sentence in `footer` on the left and its buttons in `actions` on the right.
- *
- * Events: `lintje-close` (the host owns `open`), `lintje-download-csv`, `lintje-download-png`.
+ * Events: `lintje-close`, `lintje-download-csv`, `lintje-download-png`.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
@@ -43,9 +39,13 @@ export class LintjeModal extends LintjeElement {
   /** The footer's CSV and PNG buttons. Default `true`: bind as a property, `.csv=${false}`. */
   csv: boolean = true
   png: boolean = true
-  /** A dialog with a form: its content's height, a form's width. */
+  /**
+   * A dialog with a form: its content's height, a form's width, a sentence in `footer` on the left
+   * and its buttons in `actions` on the right.
+   */
   narrow: boolean = false
 
+  // The footer is hidden, not unrendered, when empty: an unrendered slot never reports again.
   footerSlotted: boolean = false
   actionsSlotted: boolean = false
 

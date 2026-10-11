@@ -1,11 +1,8 @@
 /**
  * `<lintje-empty-state>` — the empty state on its own, outside a tile.
  *
- * Not an error: a failure is the tile's error state or an inline alert. It brings no action or
- * words of its own; the host chooses them and slots the action. `compact` is one muted line
- * with a link button after it. `status` puts it in a `role="status"` for when it appears after
- * an action: drawn empty first and filled on the next frame, since a region that arrives with
- * its words is not announced.
+ * Not an error: a failure is the tile's error state or an inline alert. It brings no words or
+ * action of its own; the host chooses them and slots the action.
  */
 import { html, type PropertyDeclarations, type PropertyValues, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
@@ -40,6 +37,7 @@ export class LintjeEmptyState extends LintjeElement {
   declare text?: string
   /** An icon file name. Not drawn when `compact`. */
   declare icon?: string
+  /** One muted line, with a link button after it. */
   compact: boolean = false
   level: HeadingLevel = 3
   /** Announces the state: it appeared after an action. */
@@ -58,6 +56,7 @@ export class LintjeEmptyState extends LintjeElement {
 
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
+    // A region that arrives with its words is not announced: drawn empty, filled on the next frame.
     if (!this.status || this.filled || this.#fillFrame) return
     this.#fillFrame = requestAnimationFrame(() => {
       this.#fillFrame = 0

@@ -1,7 +1,8 @@
 /**
- * `<lintje-progress-bar>` — how far a task is. Without a `value` the duration is unknown and a
- * block slides along the track. The default slot takes one action right of the label line.
- * Done, error and paused are said in the value text and marked by a glyph before the label.
+ * `<lintje-progress-bar>` — how far a task is; without a `value` a block slides along the track.
+ *
+ * The default slot takes one action right of the label line. Done, error and paused are said in
+ * the value text and marked by a glyph.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'

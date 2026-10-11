@@ -2,12 +2,12 @@
  * `<lintje-chat-strip>` — the strip under an answer's text: what the answer assumed, as
  * label/value pairs, and how it was calculated.
  *
- * A fixed value is plain text; one with `options` is a native `<select>` drawn as a term (the
- * browser's own list and phone picker); one with `pressed` is a suggestion. The strip keeps only
- * whether its details are open; a change is an event and the host sets the items again.
+ * A value with `options` is a choice, one with `pressed` a suggestion, the rest plain text. The
+ * strip keeps only whether its details are open: a change is an event, and the host sets the
+ * items again.
  *
- * Events: `lintje-strip-change` `{turnId, key, value}` — a state; `value` is the
- * chosen option's value, or the suggestion's new `pressed`.
+ * Events: `lintje-strip-change` `{ turnId, key, value }` (`value` is the chosen option's value, or
+ * the suggestion's new `pressed`).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'

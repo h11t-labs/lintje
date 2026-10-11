@@ -1,12 +1,12 @@
 /**
  * `<lintje-date-range>` — the date range picker: a field and a popover with a calendar, presets
- * and "Wissen"/"Toepassen". Dates cross as `dd-mm-yyyy`; a change carries `{from, to}`.
+ * and "Wissen"/"Toepassen".
  *
- * `accessible-name` names the field inside, which `aria-label` on the host would not; the field's
- * name ends in the chosen range. The calendar is one tab stop, walked with the date input's keys.
- * Escape closes only the popover (`ownsEscape`); it and "Toepassen" give the focus back to the
- * field. Tab out of the element closes the popover. Events: `lintje-change`; with a `name` also
- * `lintje-values-change` (`shared/input.ts`).
+ * Escape closes only the popover; it and "Toepassen" give the focus back to the field. Tab out of
+ * the element closes the popover.
+ *
+ * Events: `lintje-change` `{ from, to }`, `lintje-values-change` `{ [name]: value }` (with a
+ * `name`), `lintje-reset` (the reset link was pressed).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -123,9 +123,14 @@ export class LintjeDateRange extends LintjeInputElement {
     focusDay: { state: true },
   }
 
+  /**
+   * Names the field inside, which `aria-label` on the host would not; the name ends in the
+   * chosen range.
+   */
   accessibleName: string = ''
   stacked: boolean = false
   open: boolean = false
+  /** The chosen days, as `dd-mm-yyyy`. */
   range: DateRange = { from: null, to: null }
 
   /** A form gets the days as the URL does: ISO. */

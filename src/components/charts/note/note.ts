@@ -1,4 +1,4 @@
-/** `<lintje-note>` — the analyst's note ("Toelichting analist"). Events: none. */
+/** `<lintje-note>` — the analyst's note ("Toelichting analist"). */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { define, type FrameSettings } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'

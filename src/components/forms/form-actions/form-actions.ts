@@ -1,10 +1,9 @@
 /**
- * `<lintje-form-actions>` — the sticky action bar of a form: draft status left, slotted
- * `lintje-button`s right (the last, primary one). On `busy` the primary button turns `busy` and
- * the others `disabled`; leaving `busy` restores what each had. No shadow while stuck:
- * `--shadow-sticky` falls downwards, off-screen under a bottom bar. While connected it reserves
- * its height as the page scroller's `scroll-padding-bottom`, so a field the focus scrolls to is
- * not hidden behind it (WCAG 2.4.11). Events: none.
+ * `<lintje-form-actions>` — the sticky action bar of a form: the draft status on the left, the
+ * slotted `lintje-button`s on the right, the last one primary.
+ *
+ * While connected it reserves its height as the page scroller's `scroll-padding-bottom`, so a
+ * field the focus scrolls to is not hidden behind it.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
@@ -60,7 +59,10 @@ export class LintjeFormActions extends LintjeElement {
     savedAt: { type: String, attribute: 'saved-at' },
   }
 
-  /** Set by the surrounding `lintje-form` (with `saved-at`); standing alone, the host sets it. */
+  /**
+   * Set by the surrounding `lintje-form` (with `saved-at`); standing alone, the host sets it. On
+   * `busy` the primary button turns `busy` and the others `disabled`; after, each has what it had.
+   */
   state: FormActionsState = ''
   /** When it was saved: "10:42" or anything `Date` parses. */
   declare savedAt?: string

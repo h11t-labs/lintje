@@ -1,14 +1,9 @@
 /**
  * `<lintje-button>` — a button or, with `href`, a link with the same look.
  *
- * `disabled` and `busy` render `aria-disabled="true"`, never the native `disabled`: the button
- * stays in the tab order. A capturing `click` listener on the host swallows the activation, so
- * no host listener and no form sees it. `busy` keeps the variant's colours and the exact width.
- * A disabled or busy link renders no `href` and keeps `role="link"` and `tabindex="0"`.
- * `type="submit"|"reset"` acts on the nearest `<form>` itself: the inner `<button>` has no form
- * owner in a shadow root. ARIA on the host never reaches the inner control, so what a host needs
- * there (`expanded`, `pressed`, `haspopup`, `keyshortcuts`, `accessible-name`, `description`, `invalid`) is a
- * property; focusing the host focuses the inner control.
+ * `disabled` and `busy` keep it in the tab order but swallow the press: no listener on the host
+ * and no form sees it. ARIA on the host never reaches the inner control, so what a host needs
+ * there is a property; focusing the host focuses the inner control.
  */
 import { LitElement, html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -68,9 +63,17 @@ export class LintjeButton extends LintjeElement {
   disabled: boolean = false
   /** Why it is disabled, read with the button. Say it on the page as well: a mouse does not hear it. */
   declare reason?: string
+  /** At work: `aria-disabled`, with the variant's colours and the exact width kept. */
   busy: boolean = false
+  /**
+   * `submit` and `reset` act on the nearest `<form>` themselves: the inner `<button>` has no form
+   * owner in a shadow root.
+   */
   type: 'button' | 'submit' | 'reset' = 'button'
-  /** Makes the button an `<a>` with the same look; `type` is then ignored. */
+  /**
+   * Makes the button an `<a>` with the same look; `type` is then ignored. Disabled or busy, the
+   * link has no `href` but stays focusable, with `role="link"`.
+   */
   declare href?: string
   /** The link's browsing context; `_blank` without a `rel` gets `noopener noreferrer`. */
   declare target?: string

@@ -1,10 +1,9 @@
 /**
  * `<lintje-announcement>` — a status message: warning, outage, info or ok.
  *
- * A live region only with `live: true`; drawn empty first and filled on the next frame so screen
- * readers announce it. `slot="action"` stands under the text, `slot="media"` beside it: an image
- * that belongs to the message, such as a code to scan. Closed with the focus on its close button,
- * it hands the focus to the next stop on the page (else the one before) before it goes.
+ * It is a live region only with `live: true` in its data. `slot="media"` stands beside the text:
+ * an image that belongs to the message, such as a code to scan. Closed with the focus on its close
+ * button, it hands the focus to the next stop on the page, else the one before.
  */
 import {
   html,

@@ -1,9 +1,11 @@
 /**
- * `<lintje-segmented>` — one row of options, the chosen one marked. A row wider than its room
- * stands as a column instead, each option a row of its own.
- * In a filter bar it is `hide-label` and nameless; the bar decides what to commit.
+ * `<lintje-segmented>` — one row of options, the chosen one marked; a row wider than its room
+ * stands as a column.
  *
- * Events: `lintje-change`; with a `name` also the composed `lintje-values-change`.
+ * In a filter bar it is `hide-label` and nameless: the bar decides what to commit.
+ *
+ * Events: `lintje-change` `string`, `lintje-values-change` `{ [name]: value }` (with a `name`),
+ * `lintje-reset` (the reset link was pressed).
  */
 import {
   html,

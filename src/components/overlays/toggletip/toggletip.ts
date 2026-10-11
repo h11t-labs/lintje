@@ -1,14 +1,10 @@
 /**
  * `<lintje-toggletip>` — a small "i" button that shows a short explanation on a click.
  *
- * The trigger is a real `<button>` in this root, not a nested `<lintje-icon-button>`, because
- * `aria-controls` cannot point across a shadow boundary. The explanation is a `role="status"`
- * region that is always rendered, empty and `.visually-hidden` while closed: filling a region
- * that already exists is what a screen reader announces. Escape is taken in the capture phase
- * and stopped, so a modal or sheet around it stays open. The popover is fixed to the viewport
- * and placed by `place()`, so a scrolling tile cannot cut it off.
+ * Escape closes it and stops there, so a modal or sheet around it stays open. The explanation is
+ * fixed to the viewport, so a scrolling tile cannot cut it off.
  *
- * Events: `lintje-toggle` (composed, bubbling), detail `{ open }`.
+ * Events: `lintje-toggle` `{ open }`.
  */
 import {
   html,
@@ -153,6 +149,8 @@ export class LintjeToggletip extends LintjeElement {
     // Without a file for the glyph the label becomes the button's text.
     const glyph = renderIcon('functioneel-info', { size: 16 })
     const asText = glyph === nothing
+    // A `<button>` in this root, not a `<lintje-icon-button>`: `aria-controls` cannot cross a
+    // shadow boundary. The status region is always there: filling one that exists is announced.
     return html`<button
         type="button"
         class=${classMap({

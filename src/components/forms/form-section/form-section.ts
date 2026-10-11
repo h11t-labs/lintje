@@ -1,10 +1,6 @@
 /**
  * `<lintje-form-section>` — a group of fields with a heading and an explanation: a `<fieldset>`
- * with its `<legend>`, which holds an `<h3>` so the heading is in the page's outline. Bare inside
- * a tile, or a tile itself (`variant="tile"`).
- *
- * `disabled` sets `disabled` on every slotted control itself and hands back what each had: a
- * `<fieldset disabled>` in a shadow root disables nothing slotted.
+ * whose legend holds an `<h3>`, so the heading is in the page's outline.
  */
 import {
   html,
@@ -34,7 +30,12 @@ export class LintjeFormSection extends LintjeElement {
   /** The legend; as a tile, the tile title. */
   heading: string = ''
   declare description?: string
+  /** `plain`: bare, inside a tile; `tile`: a tile itself. */
   variant: FormSectionVariant = 'plain'
+  /**
+   * Sets `disabled` on every slotted control and hands back what each had: a
+   * `<fieldset disabled>` in a shadow root disables nothing slotted.
+   */
   disabled: boolean = false
 
   readonly #disabled = new PropertyHold('disabled')

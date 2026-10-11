@@ -2,12 +2,12 @@
  * `<lintje-form>` — collects the values of its light-DOM fields, keeps the draft, asks for one
  * submit and puts the host's errors under their fields.
  *
- * Its `<form>` is in the shadow root, so slotted fields have no form owner: the form's own key
- * and click handlers are the one submit. `lintje-values-change` is stopped so form input never
- * reaches the URL.
+ * Its `<form>` is in the shadow root, so slotted fields have no form owner: Enter and a submit
+ * button reach it through the element's own handlers, once. It stops `lintje-values-change`, so
+ * form input never reaches the URL.
  *
- * Events: `lintje-submit` `{ values }`, `lintje-invalid` (the errors), `lintje-dirty-change`
- * (boolean).
+ * Events: `lintje-submit` `{ values }`, `lintje-invalid` `FormErrors`, `lintje-dirty-change`
+ * `boolean`.
  */
 import {
   html,
