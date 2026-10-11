@@ -599,6 +599,37 @@ const ROWS: Row[] = [
       ) && !shown(element, '.lintje-page-header__description'),
   },
   {
+    tag: 'lintje-page-header',
+    marker: 'actions that do not fit on one line go into "Meer"; the last stays',
+    mount: async () => {
+      const header = create('lintje-page-header', {
+        data: { title: 'Teamoverleg 2 oktober', description: '4:12 · 3 sprekers' },
+      })
+      for (const [label, variant] of [
+        ['Exporteren', 'secondary'],
+        ['Delen', 'secondary'],
+        ['Verwijderen', 'danger'],
+        ['Opslaan', 'primary'],
+      ] as const) {
+        const button = create('lintje-button', { variant, slot: 'actions' })
+        button.textContent = label
+        header.append(button)
+      }
+      return append(header)
+    },
+    wide: (element) =>
+      [...element.querySelectorAll('lintje-button')].every(seen) &&
+      !shown(element, '.lintje-page-header__overflow'),
+    phone: (element) => {
+      const buttons = [...element.querySelectorAll('lintje-button')]
+      return (
+        shown(element, '.lintje-page-header__overflow') &&
+        !seen(buttons[0]) &&
+        seen(buttons[buttons.length - 1])
+      )
+    },
+  },
+  {
     tag: 'lintje-breadcrumbs',
     marker: 'one link back to the level above replaces the trail',
     mount: () =>

@@ -22,8 +22,19 @@
 }
 .lintje-page-header__row.is-described { align-items: flex-end; }
 .lintje-page-header__heading { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.lintje-page-header__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.lintje-page-header__actions { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
 .lintje-page-header__actions.is-empty { display: none; }
+.lintje-page-header__actions slot { display: contents; }
+/* An action that went into "Meer", and the menu while it is spare, stay laid out, invisible, so
+   their widths can be measured in either state. Hanging at the end, they add no scroll. */
+.lintje-page-header__actions slot::slotted([data-lintje-overflow]),
+.lintje-page-header__overflow.is-spare {
+  position: absolute;
+  top: 0;
+  right: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
 .lintje-page-header__title { font: var(--text-h1); color: var(--color-text-primary); }
 /* The pencil shows while the title is pointed at or the pencil has the focus; a touch screen
    always shows it. */
