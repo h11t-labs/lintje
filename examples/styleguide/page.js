@@ -160,30 +160,29 @@ function codeBox(kinds, read, { open = true, closable = false, label = 'Code' } 
   tabs.label = label
   tabs.tabs = kinds.map(([value, title]) => ({ value, label: title }))
   tabs.value = kinds[0][0]
-  const copy = document.createElement('lintje-copy-button')
-  copy.size = 'compact'
-  copy.variant = 'flat'
-  const closed = element('span', 'guide__meta', 'Code dicht')
-  const blocks = new Map()
+  // Each way is a panel of its own: the code, and Kopiëren under it.
+  const panels = new Map()
   for (const [key, , language] of kinds) {
+    const panel = element('div', 'guide__codepanel')
+    panel.slot = key
     const block = document.createElement('lintje-code')
-    block.slot = key
     block.language = language
-    block.className = 'guide__codeblock'
-    blocks.set(key, block)
-    tabs.append(block)
+    const copy = document.createElement('lintje-copy-button')
+    copy.size = 'compact'
+    copy.variant = 'flat'
+    panel.append(block, copy)
+    panels.set(key, { panel, block, copy })
+    tabs.append(panel)
   }
   const show = (value) => {
     box.open = value
     box.classList.toggle('is-open', value)
     const code = read()
-    for (const [key, block] of blocks) {
-      block.hidden = !value
+    for (const [key, { panel, block, copy }] of panels) {
+      panel.hidden = !value
       block.text = code[key]?.text ?? ''
+      copy.text = code[key]?.copy ?? ''
     }
-    copy.text = code[tabs.value]?.copy ?? ''
-    copy.hidden = !value
-    closed.hidden = value
   }
   tabs.addEventListener('lintje-tab-change', (event) => {
     event.stopPropagation()
@@ -193,9 +192,7 @@ function codeBox(kinds, read, { open = true, closable = false, label = 'Code' } 
   // Shut, the chosen tab opens the code too: a press on the row is a wish to read it.
   if (closable) tabs.addEventListener('click', () => box.open || show(true))
   box.show = show
-  const end = element('div', 'guide__codebox-end')
-  end.append(copy, closed)
-  box.append(tabs, end)
+  box.append(tabs)
   show(open || !closable)
   return box
 }

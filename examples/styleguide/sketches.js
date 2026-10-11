@@ -9,15 +9,21 @@
  *
  *   l  line          t  title line      T  big title      s  small line    u  link line
  *   b  button        bo outlined button bt text button    i  icon          io icon button
- *   in field         se select          ta text area      cb / cbx  box    ra / rax  radio
+ *   in field         inic field with an icon in it        se select          ta text area
+ *   cb / cbx  box    ra / rax  radio
  *   tg toggle        seg segments       tab tabs          chip  chip       dot  dot
  *   bar bar          prog progress      bx box            bxa marked box   img  picture
  *   menu menu        kpi figure         av avatar         qr code          emb emblem
  *   wave sound       play play          video picture     doc page         spin ring
  *   meter levels     slider slider      step steps        grip handle      ind indent
- *   chev chevron     rule rule          sp space          bubble question  dash suggestion
- *   tbl table        map map            c<kind> a chart: cline carea cdual cbars chbars cgroup
- *                                       cstack cpie chist cheat cscatter ctarget
+ *   chev / chevl / chevd chevron right, left, down  rule rule          sp space    bubble question
+ *   dash suggestion
+ *   tbl table        map map            log timeline      split two panes  card small card
+ *   cell filled box  tags field with chips                mark marked term
+ *   c<kind> a chart: cline carea cdual cbars chbars cgroup cstack cpie chist cheat cscatter ctarget
+ *
+ * A row may be marked in front: `[…]` stands in a frame, `|` has a stripe on its left, `#` is
+ * filled, as a chosen row is.
  */
 
 /* Frames: `page`, `tile`, `note` (a stripe on the left), `band` (filled), `code`, `drop`
@@ -26,94 +32,94 @@
 export const SKETCHES = {
   // Page
   shell: { frame: 'page', nav: true, rows: 'l90 / l70 / l50 / l60' },
-  'page-header': { rows: 's30 / T70 / l90 / l60' },
+  'page-header': { rows: 'T50 / l90 / l70 / s40 u20' },
   breadcrumbs: { center: true, rows: 'u20 chev u20 chev l20' },
-  'sub-nav': { rows: 's40 / u50 / bxa60 / u45 / u40 / u50' },
-  hero: { frame: 'band', rows: 'T70 / l90 / l70 / u30' },
-  footer: { frame: 'page', foot: true, rows: 'l80 / l60' },
-  'user-menu': { center: true, rows: 'av l30 chev' },
+  'sub-nav': { rows: 's30 / t25 / s35 / u35 / u30 / u35' },
+  hero: { frame: 'band', rows: 'T70 / l90 / l70 / u35 chev' },
+  footer: { frame: 'band', rows: 't70 / s25 / l30 / l25 / l30' },
+  'user-menu': { frame: 'band', center: true, rows: 'av chevd' },
   'app-search': { frame: 'page', rows: 'l90 / l70 / l50', over: 'search', layer: 'in / l70 / l50 / l60' },
-  notifications: { center: true, rows: 'io dot' },
+  notifications: { frame: 'band', center: true, rows: 'i dot' },
   shortcuts: { frame: 'page', rows: 'l90 / l70 / l50', over: 'dialog', layer: 't50 / chip l40 / chip l50 / chip l30' },
-  'session-expiry': { frame: 'page', rows: 'l90 / l70 / l50', over: 'dialog', layer: 't60 / l80 / sp b' },
+  'session-expiry': { frame: 'page', rows: 'l90 / l70 / l50', over: 'dialog', layer: 't60 / l80 / sp b45' },
   // Layout
-  grid: { rows: 'bx bx / bx bx bx' },
-  'grid-item': { rows: 'bx bxa bx' },
+  grid: { rows: 'bx60 bx30 / cell cell' },
+  'grid-item': { rows: 'cell cell cell' },
   tile: { frame: 'tile', rows: 't40 / s30 / img / s40' },
   tabs: { rows: 'tab / l90 / l70 / l50' },
-  expander: { rows: 't50 sp chev / rule / l90 / l60' },
-  'split-pane': { frame: 'tile', rows: 'bx grip bx' },
+  expander: { rows: '[t50 sp chevd]' },
+  'split-pane': { rows: 'split' },
   // Overlays
-  modal: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'modal', layer: 't50 / l80 / l60 / sp bo b' },
-  'confirm-dialog': { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'dialog', layer: 't60 / l80 / sp bo b' },
+  modal: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'modal', layer: 't50 / l80 / l60 / sp bo25 b30' },
+  'confirm-dialog': { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'dialog', layer: 't60 / l80 / sp bo35 b40' },
   drawer: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'drawer', layer: 't60 / l80 / l60 / in' },
   popover: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'popover', layer: 't60 / l80 / l60' },
   tooltip: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'tooltip', layer: 'l' },
   toggletip: { rows: 'l40 io', over: 'popover', layer: 't60 / l80' },
   // Actions
-  button: { center: true, rows: 'b bo bt' },
-  'icon-button': { center: true, rows: 'io i io' },
-  'menu-button': { rows: 'bo chev / menu' },
-  'copy-button': { rows: 'in60 bo' },
-  'qr-code': { center: true, rows: 'qr / bo' },
+  button: { center: true, rows: 'b28 bo28 bt14' },
+  'icon-button': { center: true, rows: 'io' },
+  'menu-button': { rows: 'se35 / menu' },
+  'copy-button': { center: true, rows: 'bo35' },
+  'qr-code': { center: true, rows: 'qr / bo35' },
   icon: { center: true, rows: 'i i i i i' },
   icons: { rows: 'i l20 i l20 i l20 / i l20 i l20 i l20 / i l20 i l20 i l20' },
-  logo: { center: true, rows: 'emb t40' },
+  logo: { center: true, rows: 'emb emb' },
   // Text and media
   prose: { rows: 'T50 / l90 / l80 / l85 / l40' },
   code: { frame: 'code', rows: 'l30 / l60 / l50 / l70 / l20' },
-  highlight: { rows: 'l25 bxa30 l25 / l70' },
-  translator: { frame: 'tile', rows: 'se sp se / bx bx' },
+  highlight: { rows: 'l25 mark35 / l70' },
+  translator: { frame: 'tile', rows: 'se io se / split' },
   'audio-player': { frame: 'tile', rows: 'wave / s10 sp play sp i' },
-  'video-player': { rows: 'video / play bar80' },
-  transcript: { rows: 's15 l70 / s15 l60 / s15 l75 / s15 l50' },
-  'document-viewer': { frame: 'tile', rows: 's30 sp i i / doc' },
-  gallery: { rows: 'img / bx bxa bx' },
+  'video-player': { rows: 'video' },
+  transcript: { rows: '| s15 s5 / | l80 / | s15 s5 / | l70 / | s15 s5 / | l75' },
+  'document-viewer': { frame: 'tile', rows: 't30 sp chevl s15 chev / i i s10 sp i / doc' },
+  gallery: { rows: 'img / cell cell cell' },
   // Messages and status
-  announcement: { frame: 'note', rows: 't50 / l80' },
+  announcement: { frame: 'band', rows: 'i t60 / l60' },
   toast: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'toast', layer: 't70 / l60' },
   'conflict-alert': { frame: 'note', rows: 't50 / l80 / bo bt' },
-  'empty-state': { center: true, rows: 'i / t40 / l60 / b' },
+  'empty-state': { center: true, rows: 'i / t40 / l60 / b35' },
   'error-page': { rows: 's20 / T50 / l70 / in60 / u30 / u30' },
   badge: { center: true, rows: 'chip chip chip' },
   'status-dot': { center: true, rows: 'dot l15 dot l15 dot l15' },
   spinner: { center: true, rows: 'spin spin spin' },
-  skeleton: { rows: 'l90 / l70 / l80 / l50' },
-  'progress-bar': { rows: 's30 / prog60' },
-  'job-list': { rows: 'i l50 sp chip / i l40 sp prog30 / i l45 sp chip' },
-  'streaming-text': { rows: 'l90 / l80 / l40 bxa5' },
-  'ai-label': { center: true, rows: 'chip l40' },
-  'level-meter': { center: true, rows: 'meter' },
-  'recording-status': { rows: 'dot s20 sp meter' },
+  skeleton: { rows: 'cell40' },
+  'progress-bar': { rows: 't30 sp s30 / prog' },
+  'job-list': { rows: 't50 sp u15 / s40 / chip / rule / t45 sp u15 / prog70' },
+  'streaming-text': { rows: '[spin l40]' },
+  'ai-label': { rows: 'chip l50' },
+  'level-meter': { center: true, rows: 'meter t20' },
+  'recording-status': { rows: 'kpi kpi' },
   // Fields
-  field: { rows: 's30 / in' },
-  'text-input': { rows: 's30 / in / s20' },
+  field: { rows: 's20 / se50' },
+  'text-input': { rows: 's20 / in / s20' },
   textarea: { rows: 's30 / ta / sp s20' },
-  'number-input': { rows: 's30 / io in30 io' },
-  select: { rows: 's30 / se' },
+  'number-input': { rows: 's20 / io in io / s40' },
+  select: { rows: 's20 / se50' },
   combobox: { rows: 's30 / se / menu' },
-  multiselect: { rows: 's30 / in chip chip' },
-  'tag-input': { rows: 's30 / chip chip in' },
+  multiselect: { rows: 's30 / tags60 / s40' },
+  'tag-input': { rows: 's30 / tags / s50' },
   checkbox: { center: true, rows: 'cbx l40' },
-  'checkbox-group': { rows: 's30 / cbx l40 / cb l50 / cbx l30' },
-  'radio-group': { rows: 's30 / rax l40 / ra l50 / ra l30' },
+  'checkbox-group': { rows: 't40 / cb l40 / cbx l30 / s30 / cb l40' },
+  'radio-group': { rows: 't30 / rax l25 / ra l30 / ra l30' },
   toggle: { center: true, rows: 'tg l40' },
-  segmented: { rows: 'seg' },
-  range: { rows: 's30 / slider' },
-  'date-input': { rows: 's30 / in50 i' },
-  'time-input': { rows: 's30 / in30' },
-  'date-range': { rows: 's30 / in40 l5 in40' },
-  'slot-picker': { rows: 's30 / bx bx bxa bx / bx bx bx bx' },
-  'file-upload': { frame: 'drop', rows: 'i / l50 / bo' },
-  'text-editor': { rows: 'i i i i sp / ta' },
+  segmented: { rows: 's30 / seg' },
+  range: { rows: 's30 s20 / slider / s10 sp s10 sp s10' },
+  'date-input': { rows: 's20 / inic60 / s20' },
+  'time-input': { rows: 's20 / inic30 / s15' },
+  'date-range': { rows: 's20 / inic' },
+  'slot-picker': { rows: 's30 / s15 s15 s15 / bx bx bx / bx bx bx / bx bx bx' },
+  'file-upload': { frame: 'drop', center: true, rows: 'bo35 l30 / s45' },
+  'text-editor': { rows: 's20 / [s5 s5 s5 s15 s10] / ta' },
   // Forms
-  form: { rows: 's30 / in / s30 / in / sp b' },
-  'form-section': { frame: 'tile', rows: 't40 / s30 / in / s30 / in' },
-  stepper: { rows: 'step' },
-  repeater: { rows: 'in in io / in in io / bo' },
+  form: { rows: 's20 / in / s25 / in / s25 sp bo20 b20' },
+  'form-section': { frame: 'tile', rows: 'T40 / s20 / in in40' },
+  stepper: { rows: 'io u30 s15 / io t30 / io l40' },
+  repeater: { rows: 's25 / in in io / bo40 s20' },
   'repeater-row': { rows: 'in in io' },
-  'error-summary': { frame: 'note', rows: 't50 / u60 / u50' },
-  'form-actions': { rows: 'rule / bt sp bo b' },
+  'error-summary': { frame: 'tile', rows: 'i t50 / dot u60 / dot u40' },
+  'form-actions': { rows: 'rule / s25 sp bo20 b20' },
   // Filters
   'filter-bar': { rows: 'se se se sp bo / l60' },
   'filter-zone': { frame: 'tile', rows: 'se se / se se' },
@@ -121,28 +127,28 @@ export const SKETCHES = {
   // Figures and charts
   'kpi-row': { rows: 'kpi kpi kpi kpi' },
   kpi: { rows: 'kpi' },
-  chart: { frame: 'tile', rows: 't40 / cbars' },
-  note: { frame: 'note', rows: 't40 sp s20 / l90 / l70' },
-  explainer: { rows: 't50 sp chev / rule / s20 l60 / s20 l50' },
+  chart: { frame: 'tile', rows: 't40 sp seg20 / s20 s20 / cline' },
+  note: { frame: 'tile', rows: 't40 sp s20 / l90 / l90 / l70 / s25' },
+  explainer: { frame: 'tile', rows: 't50 sp chevd / t15 l60 / t15 l50' },
   // Map
   map: { frame: 'tile', rows: 't40 / map' },
   // Tables and lists
-  'data-table': { rows: 'tbl' },
-  pagination: { center: true, rows: 'chev io io b6 io chev' },
-  list: { rows: 't40 sp s15 / s30 / rule / t50 sp s15 / s25' },
+  'data-table': { frame: 'tile', rows: 't40 / s30 / rule / t30 sp t15 t15 / l40 sp l15 chip / l35 sp l15 chip / l30 sp l15 chip' },
+  pagination: { center: true, rows: 'chevl s12 play s3 s3 u15 chev' },
+  list: { rows: '| t40 / | s30 / | t35 / | s30 / | t35 / | s30' },
   card: { frame: 'tile', rows: 'img / s20 / t50 / l70 / bo' },
-  'card-list': { rows: 'bx bx bx' },
-  'description-list': { rows: 's20 l40 / s20 l30 / s20 l50 / s20 l35' },
-  'tree-view': { rows: 'chev l30 / ind chev l30 / ind ind bxa30 / ind ind l30' },
-  'sortable-list': { rows: 'grip l40 / grip l50 / grip l35' },
-  'activity-log': { rows: 'dot l50 / ind s30 / dot l40 / ind s25' },
+  'card-list': { rows: 'card card card' },
+  'description-list': { rows: 's20 / l40 / s20 / l50 / s20 / l35 sp u15' },
+  'tree-view': { rows: 'chevd l30 / ind chevd l35 / ind ind ind l30 / # ind ind ind t30 / ind ind ind l30 / ind chev l25' },
+  'sortable-list': { rows: '[grip l30] / [grip l40] / [grip l25] / [grip l30]' },
+  'activity-log': { rows: 't30 / log' },
   // Chat
-  chat: { frame: 'page', rows: 'sp bubble50 / l80 / l60 / cbars / in' },
-  'chat-message': { rows: 'sp s10 bubble60' },
-  'chat-answer': { rows: 'l80 / l70 / cbars' },
-  'chat-composer': { frame: 'tile', rows: 'ta / chip sp b' },
-  'chat-strip': { rows: 's15 chip s15 chip s15 chip' },
-  'chat-suggestions': { rows: 'sp dash60 / sp dash50' },
+  chat: { frame: 'page', rows: 'sp s10 i bubble50 / l60 / tbl' },
+  'chat-message': { rows: 'sp s10 i bubble60' },
+  'chat-answer': { rows: 't90 / l50 / kpi kpi kpi' },
+  'chat-composer': { frame: 'tile', rows: 'l80 / s5 / se35 sp b30' },
+  'chat-strip': { rows: 's15 s15 s15 / l25 u15 u15 / s20 / u25' },
+  'chat-suggestions': { rows: 's40 / dash60 / dash45 dash45' },
 }
 
 /** Each chart kind as the chooser draws it. */
@@ -198,13 +204,22 @@ function part(token) {
   const svg = CHARTS[name]
   if (svg) {
     node.className = 'guide__sk guide__sk--chart'
-    node.innerHTML = `<svg viewBox="0 0 100 50" preserveAspectRatio="none">${svg}</svg>`
+    // A drawing with circles keeps its proportions; bars and lines may stretch to the row.
+    const round = /circle/.test(svg) ? 'xMidYMid meet' : 'none'
+    node.innerHTML = `<svg viewBox="0 0 100 50" preserveAspectRatio="${round}">${svg}</svg>`
   }
   // A few parts are drawn of smaller parts.
-  const inner = { menu: 3, tab: 4, seg: 3, tbl: 4, kpi: 2, doc: 4, meter: 6, step: 5, wave: 18, qr: 9 }[name]
+  const inner = { menu: 3, tab: 4, seg: 3, tbl: 4, kpi: 3, doc: 4, meter: 6, step: 5, wave: 18, qr: 9, grip: 6, log: 4, split: 2, card: 3, tags: 2 }[name]
   for (let i = 0; i < (inner ?? 0); i++) node.append(document.createElement('i'))
   return node
 }
+
+// A row's mark in front of it: `[…]` stands in a frame, `|` has a stripe on its left, `#` is filled.
+const ROW_MARKS = [
+  [/^\[(.*)\]$/, 'box'],
+  [/^\|\s*(.*)$/, 'stripe'],
+  [/^#\s*(.*)$/, 'fill'],
+]
 
 function rows(text, className) {
   const column = document.createElement('div')
@@ -212,7 +227,14 @@ function rows(text, className) {
   for (const row of text.split(' / ')) {
     const line = document.createElement('div')
     line.className = 'guide__sk-row'
-    for (const token of row.trim().split(/\s+/)) line.append(part(token))
+    let tokens = row.trim()
+    for (const [mark, kind] of ROW_MARKS) {
+      const match = tokens.match(mark)
+      if (!match) continue
+      line.classList.add(`guide__sk-row--${kind}`)
+      tokens = match[1].trim()
+    }
+    for (const token of tokens.split(/\s+/)) line.append(part(token))
     column.append(line)
   }
   return column
