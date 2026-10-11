@@ -15,6 +15,7 @@
   font-size: 0.875rem; font-weight: 700; line-height: 1;
   white-space: nowrap;
 }
+.lintje-badge__icon { flex: none; margin-inline-end: var(--space-1); }
 
 /* Neutral: a line and a word, for what has not started. Subtle: the gray surface, for what is over. */
 .lintje-badge--neutral {
