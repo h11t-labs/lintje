@@ -98,9 +98,11 @@ describe('the data types', () => {
   it('writes a type that is no object out as its text', () => {
     const content = type('ContentState')
     if (content.kind !== 'interface') throw new Error('ContentState is not an interface')
-    expect(content.fields.find((f) => f.name === 'state')?.type).toBe(
-      "'ready' | 'loading' | 'empty' | 'error'",
-    )
+    expect(content.fields.find((f) => f.name === 'state')?.type).toBe('ContentStateKind')
+    expect(type('ContentStateKind')).toMatchObject({
+      kind: 'alias',
+      text: "'ready' | 'loading' | 'empty' | 'error'",
+    })
     expect(type('ButtonVariant')).toMatchObject({ kind: 'alias' })
   })
 
@@ -116,7 +118,6 @@ describe('the data types', () => {
       ['ContentState', 'src/types.ts'],
       ['FilterValue', 'src/types.ts'],
       ['FrameSettings', 'src/types.ts'],
-      ['StatusTone', 'src/types.ts'],
     ])
   })
 })

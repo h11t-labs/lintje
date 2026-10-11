@@ -203,7 +203,7 @@ describe('a table wider than its room', () => {
       key: `c${i}`,
       header: `Kolom met een lange kop ${i}`,
     })),
-    rows: [Object.fromEntries(Array.from({ length: 8 }, (_, i) => [`c${i}`, `waarde ${i}`]))],
+    rows: [Object.fromEntries(Array.from({ length: 8 }, (_, i) => [`c${i}`, `een_lange_waarde_${i}`]))],
   }
 
   async function mountAt(width: number, data: DataTableData): Promise<TableElement> {
@@ -218,7 +218,7 @@ describe('a table wider than its room', () => {
   }
 
   it('lets a keyboard into its scroll, named by its caption', async () => {
-    const element = await mountAt(800, wide)
+    const element = await mountAt(480, wide)
     const scroller = inShadow<HTMLElement>(element, '.lintje-data-table__scroller')
     await expect.poll(() => scroller.getAttribute('tabindex')).toBe('0')
     expect(scroller.getAttribute('role')).toBe('region')
