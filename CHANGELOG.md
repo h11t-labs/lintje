@@ -24,7 +24,7 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 ### Gewijzigd
 
 - De styleguide zet hoe je een tag laadt bovenaan zijn referentie, niet meer los en zonder ruimte
-  onder de specimens. (#19)
+  onder de specimens. (#21)
 
 ## [0.2.0] - 2026-10-10
 
