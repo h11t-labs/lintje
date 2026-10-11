@@ -57,3 +57,36 @@ export interface Manifest {
 }
 export declare function buildManifest(srcDir: string): Manifest
 export declare function declarationsByTag(manifest: Manifest): Map<string, ManifestDeclaration>
+
+export interface DataField {
+  name: string
+  type: string
+  optional: boolean
+  description?: string
+}
+export interface DataInterface {
+  kind: 'interface'
+  module: string
+  description?: string
+  extends: string[]
+  fields: DataField[]
+}
+export interface DataUnion {
+  kind: 'union'
+  module: string
+  description?: string
+  discriminant: string
+  variants: { value: string; description?: string; fields: DataField[] }[]
+}
+export interface DataAlias {
+  kind: 'alias'
+  module: string
+  description?: string
+  text: string
+}
+export type DataType = DataInterface | DataUnion | DataAlias
+export interface DataTypes {
+  types: Record<string, DataType>
+  duplicates?: { name: string; modules: string[] }[]
+}
+export declare function buildDataTypes(srcDir: string): DataTypes

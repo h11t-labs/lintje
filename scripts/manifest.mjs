@@ -6,7 +6,7 @@
  * The parser is the one Vite's bundler carries (`rolldown`).
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { dirname, join, relative, resolve } from 'node:path'
+import { basename, dirname, join, relative, resolve } from 'node:path'
 import { parseSync } from 'rolldown/experimental'
 
 const EVENT_NAME = /^lintje-[a-z0-9-]+$/
@@ -324,4 +324,157 @@ export function declarationsByTag(manifest) {
   return new Map(
     manifest.modules.flatMap((module) => module.declarations.map((d) => [d.tagName, d])),
   )
+}
+
+/** Source text on one line; a member that ended at a line break gets its `;` back. */
+const squash = (text) =>
+  text.replace(/([^\s;,{(<[|&:])[ \t]*\n\s*(?=['"\w]+\??:\s)/g, '$1; ').replace(/\s+/g, ' ')
+
+/** The properties of an interface or an object type, as the style guide lists them. */
+function fieldsOf(file, members) {
+  return members.flatMap((member) => {
+    const description = docBefore(file, member.start)
+    const slice = (node) => squash(file.text.slice(node.start, node.end))
+    if (member.type === 'TSPropertySignature') {
+      const name = member.computed ? `[${slice(member.key)}]` : keyName(member)
+      const annotation = member.typeAnnotation?.typeAnnotation
+      const type = annotation ? slice(annotation) : 'unknown'
+      return [{ name, type, optional: member.optional === true, description }]
+    }
+    if (member.type === 'TSMethodSignature') {
+      const params = member.params.map(slice).join(', ')
+      const returns = member.returnType?.typeAnnotation
+      const type = `(${params}) => ${returns ? slice(returns) : 'void'}`
+      return [{ name: keyName(member), type, optional: member.optional === true, description }]
+    }
+    if (member.type === 'TSIndexSignature') {
+      const name = `[${member.parameters.map(slice).join(', ')}]`
+      return [
+        { name, type: slice(member.typeAnnotation.typeAnnotation), optional: false, description },
+      ]
+    }
+    return []
+  })
+}
+
+/** The string a property of an object type is fixed to (`kind: 'line'`), by property name. */
+function literalsOf(members) {
+  const literals = new Map()
+  for (const member of members) {
+    const literal = member.typeAnnotation?.typeAnnotation
+    if (member.type === 'TSPropertySignature' && literal?.type === 'TSLiteralType')
+      if (typeof literal.literal.value === 'string')
+        literals.set(keyName(member), literal.literal.value)
+  }
+  return literals
+}
+
+/** The exported interfaces and type aliases under `root`, for the style guide's `data` tables. */
+export function buildDataTypes(srcDir) {
+  const root = resolve(srcDir)
+  const found = []
+  for (const path of sourceFiles(root)) {
+    const text = readFileSync(path, 'utf8')
+    const { program, comments } = parseSync(path, text)
+    const file = {
+      text,
+      docs: comments.filter((c) => c.type === 'Block' && c.value.startsWith('*')),
+    }
+    const module = relative(dirname(root), path)
+    for (const statement of program.body) {
+      const node = statement.type === 'ExportNamedDeclaration' && statement.declaration
+      if (node?.type !== 'TSInterfaceDeclaration' && node?.type !== 'TSTypeAliasDeclaration')
+        continue
+      found.push({
+        name: node.id.name,
+        node,
+        file,
+        module,
+        description: docBefore(file, statement.start),
+      })
+    }
+  }
+  // `types.ts` is the contract with the host (rule 22): where a name clashes, it speaks.
+  const contract = join(basename(root), 'types.ts')
+  const rank = (entry) => (entry.module === contract ? '' : entry.module)
+  found.sort((a, b) => rank(a).localeCompare(rank(b)) || a.node.start - b.node.start)
+
+  const declared = new Map()
+  const clashes = new Map()
+  for (const entry of found) {
+    if (!declared.has(entry.name)) declared.set(entry.name, entry)
+    else
+      clashes.set(entry.name, [
+        ...(clashes.get(entry.name) ?? [declared.get(entry.name).module]),
+        entry.module,
+      ])
+  }
+
+  /** The members of a union that all pin the same property to a string: variants by that value. */
+  function variantsOf({ node, file }) {
+    const members = node.typeAnnotation.type === 'TSUnionType' ? node.typeAnnotation.types : []
+    if (members.length < 2) return undefined
+    const variants = members.map((member) => {
+      let target = { file, members: member.members }
+      let fallback
+      if (member.type === 'TSTypeReference' && member.typeName.type === 'Identifier') {
+        const entry = declared.get(member.typeName.name)
+        if (entry?.node.type !== 'TSInterfaceDeclaration') return undefined
+        target = { file: entry.file, members: entry.node.body.body }
+        fallback = entry.description
+      }
+      if (!target.members) return undefined
+      // A comment above the `|` belongs to the member after it.
+      const pipe = file.text.lastIndexOf('|', member.start)
+      const lead =
+        pipe >= 0 && !file.text.slice(pipe + 1, member.start).trim() ? pipe : member.start
+      return {
+        ...target,
+        literals: literalsOf(target.members),
+        description: docBefore(file, lead) ?? fallback,
+      }
+    })
+    if (variants.includes(undefined)) return undefined
+    const discriminant = [...variants[0].literals.keys()].find((key) =>
+      variants.every((variant) => variant.literals.has(key)),
+    )
+    if (!discriminant) return undefined
+    return {
+      discriminant,
+      variants: variants.map((variant) => ({
+        value: variant.literals.get(discriminant),
+        description: variant.description,
+        fields: fieldsOf(variant.file, variant.members).filter((f) => f.name !== discriminant),
+      })),
+    }
+  }
+
+  const types = {}
+  for (const entry of [...declared.values()].sort((a, b) => a.name.localeCompare(b.name))) {
+    const { name, node, file, module, description } = entry
+    if (node.type === 'TSInterfaceDeclaration') {
+      types[name] = {
+        kind: 'interface',
+        module,
+        description,
+        extends: node.extends.map((base) => squash(file.text.slice(base.start, base.end))),
+        fields: fieldsOf(file, node.body.body),
+      }
+      continue
+    }
+    const union = variantsOf(entry)
+    types[name] = union
+      ? { kind: 'union', module, description, ...union }
+      : {
+          kind: 'alias',
+          module,
+          description,
+          text: squash(file.text.slice(node.typeAnnotation.start, node.typeAnnotation.end)).replace(
+            /^\| /,
+            '',
+          ),
+        }
+  }
+  const duplicates = [...clashes].map(([name, modules]) => ({ name, modules }))
+  return { types, ...(duplicates.length ? { duplicates } : {}) }
 }
