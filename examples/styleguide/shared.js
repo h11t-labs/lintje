@@ -19,8 +19,8 @@
  * `html` is plain markup with the tags and their attributes; `setup(stage)` runs once, after
  * the markup stands, for what an attribute cannot carry: a rich property (`.items`, `.data`)
  * or a listener. It finds its nodes inside `stage`. A label reads as a name and a note: up to
- * its first colon (or comma) the name, the rest what it shows. The category's overview
- * draws each element as a sketch, from its recipe in `sketches.js`.
+ * its first colon (else " · ", else comma) the name, the rest what it shows. The category's
+ * overview draws each element as a sketch, from its recipe in `sketches.js`.
  *
  * The code under a specimen is read from what it drew (`code.js`): its markup, and what `setup`
  * set, as a script sets it and as JSON in the markup.

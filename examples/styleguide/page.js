@@ -64,13 +64,14 @@ function summaryOf(item, declaration, apps) {
 
 /**
  * A specimen's label as a name and a note: "Bezig: de breedte blijft" → "Bezig" and "De
- * breedte blijft". Without a colon, the first comma splits it.
+ * breedte blijft". The first colon splits it, else the first " · ", else the first comma.
  */
 function nameAndNote(label) {
-  const at = label.match(/: |, | · /)
-  if (!at) return [label, '']
-  const note = label.slice(at.index + at[0].length)
-  return [label.slice(0, at.index), note.charAt(0).toLocaleUpperCase('nl') + note.slice(1)]
+  const mark = [': ', ' · ', ', '].find((candidate) => label.includes(candidate))
+  if (!mark) return [label, '']
+  const at = label.indexOf(mark)
+  const note = label.slice(at + mark.length)
+  return [label.slice(0, at), note.charAt(0).toLocaleUpperCase('nl') + note.slice(1)]
 }
 
 /**
