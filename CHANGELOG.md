@@ -22,11 +22,6 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   een totaal en de tabel krijgt een kolom Totaal. Daarvoor krijgt `TooltipRow` een `divider` en
   `core/motion.ts` een `easing`. (#11)
 
-### Gewijzigd
-
-- De styleguide zet hoe je een tag laadt bovenaan zijn referentie, niet meer los en zonder ruimte
-  onder de specimens. (#19)
-
 ## [0.2.0] - 2026-10-10
 
 ### Toegevoegd

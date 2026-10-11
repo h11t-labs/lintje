@@ -25,9 +25,8 @@
  * An element is drawn once, in a `<lintje-tile>` that carries its tag and what it is, in the
  * page's own mode: the mode control in the shell's bar shows it in light and in dark.
  *
- * Under its specimens an element shows its reference — how to load it, its properties, events
- * and slots — read from `dist-elements/custom-elements.json`, which the build derives from the
- * source.
+ * Under its specimens an element shows its reference — properties, events and slots — read
+ * from `dist-elements/custom-elements.json`, which the build derives from the source.
  *
  * An element's section has the id `el-<tag without lintje->` (`#el-form`, `#el-tabs`). A
  * section that shows no single tag names its own
@@ -136,17 +135,13 @@ function proseOf(description) {
     .join('')
 }
 
-/**
- * An element's reference, closed until asked for: how to load it, what it is, its properties,
- * events and slots.
- */
-function reference(declaration, loading) {
+/** An element's reference, closed until asked for: what it is, its properties, events and slots. */
+function reference(declaration) {
   const box = document.createElement('lintje-expander')
   box.className = 'guide__reference'
   box.flat = true
   box.heading = 'Referentie'
   const stack = element('div', 'guide__stack')
-  if (loading) stack.append(loading)
 
   // `mode` is every element's; the page says it once.
   const fields = declaration.members.filter((field) => field.inheritedFrom?.name !== 'LintjeElement')
@@ -228,7 +223,10 @@ function importOf(tag, category) {
   return code
 }
 
-/** One element's section: a tile with the tag, what it is, its specimens and its reference. */
+/**
+ * One element's section: a tile with the tag, what it is, its specimens, how to load it and its
+ * reference.
+ */
 export function renderElement(host, item, declarations, category) {
   const section = element('section', 'guide__element')
   section.id = sectionId(item)
@@ -238,11 +236,9 @@ export function renderElement(host, item, declarations, category) {
   const grid = element('div', item.columns ? `guide__specimens guide__specimens--max-${item.columns}` : 'guide__specimens')
   for (const entry of item.specimens) grid.append(specimen(entry))
   tile.append(grid)
-  const loading = item.tag && category ? importOf(item.tag, category) : null
+  if (item.tag && category) tile.append(importOf(item.tag, category))
   const declaration = declarations?.get(item.tag)
-  // Without the manifest there is no reference; the import still stands, on its own.
-  if (declaration) tile.append(reference(declaration, loading))
-  else if (loading) tile.append(Object.assign(loading, { className: 'guide__import' }))
+  if (declaration) tile.append(reference(declaration))
   section.append(tile)
   host.append(section)
   return section
