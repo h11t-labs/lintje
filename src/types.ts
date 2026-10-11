@@ -332,7 +332,10 @@ export interface DataTableData extends FrameSettings, TileData, ContentState {
   filters?: Record<string, string[] | string>
   /** The number of rows before filtering: "14 van 131 rijen" while a filter is active. */
   totalRows?: number
-  /** A "Kolommen" button in the toolbar, to order and hide columns (`lintje-columns-change`). */
+  /**
+   * "Kolommen kiezen", a quiet icon in the head of the last column, to order and hide columns
+   * (`lintje-columns-change`). Without row actions it adds that column.
+   */
   columnChooser?: boolean
   /** The keys of the columns not shown. The first column is always shown. */
   hiddenColumns?: string[]

@@ -1049,20 +1049,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   private toolbar(edges: ScrollEdges, paged: boolean): TemplateResult | typeof nothing {
-    const data = this.data as DataTableData
     const sortMenu = this.sortMenu()
-    const chooser = data.columnChooser
-      ? renderChooserButton(this.panel?.kind === 'columns', (anchor) =>
-          this.panel?.kind === 'columns'
-            ? this.closePanel()
-            : this.openPanel({ kind: 'columns', edges }, anchor),
-        )
-      : nothing
     const groups = this.groupToggle()
     const tools =
-      chooser === nothing && groups === nothing
-        ? undefined
-        : html`<div class="lintje-data-table__tools">${groups}${chooser}</div>`
+      groups === nothing ? undefined : html`<div class="lintje-data-table__tools">${groups}</div>`
     if (this.filterColumns.length === 0 && sortMenu === nothing && !tools) return nothing
     return renderToolbar({
       columns: this.filterColumns,
@@ -1246,7 +1236,8 @@ export class LintjeDataTable extends LintjeContentTileElement {
       offset: before,
       copy,
     }
-    const span = columns.length + (selectable ? 1 : 0) + (details ? 1 : 0) + (rowActions ? 1 : 0)
+    const span =
+      columns.length + (selectable ? 1 : 0) + (details ? 1 : 0) + (this.actionColumn ? 1 : 0)
     const rowsOf = (list: Row[], first: number, inGroup: boolean): unknown =>
       list.map((row, index) => this.fullRow(row, first + index, grid, copy, inGroup))
 
@@ -1273,9 +1264,18 @@ export class LintjeDataTable extends LintjeContentTileElement {
           }
           ${columns.map((column) => this.headerCell(column, sort, edges))}
           ${
-            rowActions
+            this.actionColumn
               ? html`<th scope="col" class="lintje-data-table__header-cell lintje-data-table__action-cell">
-                  <span class="visually-hidden">Acties</span>
+                  ${rowActions ? html`<span class="visually-hidden">Acties</span>` : nothing}
+                  ${
+                    data.columnChooser
+                      ? renderChooserButton(this.panel?.kind === 'columns', (anchor) =>
+                          this.panel?.kind === 'columns'
+                            ? this.closePanel()
+                            : this.openPanel({ kind: 'columns', edges }, anchor),
+                        )
+                      : nothing
+                  }
                 </th>`
               : nothing
           }
@@ -1354,7 +1354,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
           </td>`
         })}
         ${
-          data.rowActions?.length
+          this.actionColumn
             ? html`<td class="lintje-data-table__cell lintje-data-table__action-cell"></td>`
             : nothing
         }
@@ -1429,6 +1429,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
     </th>`
   }
 
+  /** The desktop's last column: the rows' menus, and in its head the column chooser. */
+  private get actionColumn(): boolean {
+    return Boolean(this.data?.rowActions?.length) || Boolean(this.data?.columnChooser)
+  }
+
   private alignsRight(column: TableColumnData): boolean {
     return (column.align ?? (isNumeric(column, this.rows) ? 'right' : 'left')) === 'right'
   }
@@ -1456,7 +1461,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       columns.length +
       (selectable ? 1 : 0) +
       (detailColumns.length > 0 ? 1 : 0) +
-      (rowActions ? 1 : 0)
+      (this.actionColumn ? 1 : 0)
     return html`<tr
         class=${classMap({
           'lintje-data-table__row': true,
@@ -1529,7 +1534,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
                   this.emit('lintje-row-action', { id, action }),
                 )}
               </td>`
-            : nothing
+            : this.actionColumn
+              ? html`<td class="lintje-data-table__cell lintje-data-table__action-cell"></td>`
+              : nothing
         }
       </tr>
       ${
@@ -1604,7 +1611,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       ${columns
         .slice(1)
         .map((entry) => this.totalCell(entry, open ? undefined : subtotals?.[entry.key]))}
-      ${this.data?.rowActions?.length ? html`<td class="lintje-data-table__cell"></td>` : nothing}
+      ${this.actionColumn ? html`<td class="lintje-data-table__cell"></td>` : nothing}
     </tr>`
   }
 
@@ -1638,7 +1645,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       ${lead > 0 ? html`<td class="lintje-data-table__cell" colspan=${lead}></td>` : nothing}
       <th scope="row" class="lintje-data-table__cell lintje-data-table__sum-label">${label}</th>
       ${columns.slice(1).map((column) => this.totalCell(column, totals[column.key]))}
-      ${data.rowActions?.length ? html`<td class="lintje-data-table__cell"></td>` : nothing}
+      ${this.actionColumn ? html`<td class="lintje-data-table__cell"></td>` : nothing}
     </tr>`
   }
 

@@ -431,9 +431,11 @@ De besluiten hieronder gelden voor alle elementen.
 - **Sorteren en bladeren laten de kolommen staan.** Een kolom neemt de breedte van haar breedste
   waarde over alle rijen, niet alleen die van de pagina, en de sorteerpijlen staan boven elkaar in
   een vak dat even breed blijft, gesorteerd of niet.
-- **De bediening van de tabel staat in de werkbalk, met haar woord**: "Kolommen", "Filters
-  wissen", "Alles inklappen". De telling staat één keer: onder de rijen als er gebladerd wordt,
-  anders in de werkbalk.
+- **Kolommen kiezen staat waar de kolommen staan**: een stil icoon in de kop van de laatste
+  kolom, boven de ⋮ van de rijen, met zijn naam als tooltip; het kost geen regel boven de
+  tabel. Wat de rijen raakt ("Filters wissen", "Alles inklappen") staat met zijn woord in de
+  werkbalk. De telling staat één keer: onder de rijen als er gebladerd wordt, anders in de
+  werkbalk.
 - **Een naam die opent, is donker**, zoals in de werklijst: een kolom blauw leest als een kolom
   links en weegt zwaarder dan de cijfers ernaast. De naam onderstreept zich onder de aanwijzer en
   met focus.

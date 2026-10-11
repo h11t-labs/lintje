@@ -789,7 +789,7 @@ export default {
           setup: (stage) => filters(stage, { filters: { category: ['Veiligheid', 'Overlast'] } }),
         },
         {
-          label: 'Kolommen kiezen — de knop in de werkbalk; een verborgen kolom staat onder de rij',
+          label: 'Kolommen kiezen — het icoon in de kop van de laatste kolom; een verborgen kolom staat onder de rij',
           html: '<lintje-data-table></lintje-data-table>',
           wide: true,
           setup: (stage) => filters(stage, { columnChooser: true, hiddenColumns: ['severity'] }),

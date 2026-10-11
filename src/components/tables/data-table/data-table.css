@@ -223,6 +223,8 @@
 
 /* --- Row actions and the selection bar (actions.ts) ------------------------ */
 .lintje-data-table__action-cell { width: var(--h-icon-button); text-align: right; }
+/* The chooser's tooltip is a sentence, not a column label: it does not take the head's capitals. */
+.lintje-data-table__action-cell lintje-tooltip { text-transform: none; letter-spacing: normal; font-weight: 400; }
 .lintje-data-table__selection {
   position: sticky; top: var(--h-sticky); z-index: 1;
   display: flex; flex-wrap: wrap; align-items: center;
@@ -299,7 +301,8 @@
   inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
 }
 .lintje-data-table__funnel:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
-/* As wide as the row menus beside them, so their icons line up. */
+/* As wide as the row menus beside or under them, so their icons line up. */
+.lintje-data-table__chooser-button,
 .lintje-data-table__detail-toggle,
 .lintje-data-table__mobile-toggle {
   width: var(--h-icon-button); height: var(--h-icon-button);
@@ -308,6 +311,8 @@
   border: 1px solid transparent;
   color: var(--color-text-muted);
 }
+.lintje-data-table__chooser-button:hover,
+.lintje-data-table__chooser-button[aria-expanded='true'],
 .lintje-data-table__detail-toggle:hover,
 .lintje-data-table__mobile-toggle:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
 .lintje-data-table__funnel.is-filtered {
@@ -425,7 +430,6 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__pagination--mobile { display: block; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__pagination { padding: var(--space-3) var(--tile-pad-x) 0; }
 /* The phone shows two columns and lists the rest under a row: there is nothing to choose. */
-:where(.lintje-data-table.is-phone) .lintje-data-table__chooser-button { display: none; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__group-row .lintje-data-table__mobile-cell { padding-block: 0; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__group-toggle { padding: 0; min-height: var(--h-target); }
 /* On a phone the name and the count run as text, so a long name wraps instead of widening the table. */

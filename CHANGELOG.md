@@ -51,8 +51,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 - De kop van `lintje-data-table` zegt alleen wat nu geldt: sorteerpijlen alleen op de gesorteerde
   kolom en elders onder de aanwijzer of met focus, en een gefilterde kolom draagt alleen haar
-  gevulde trechter, zonder vlak of stip. "Kolommen" is een knop met zijn woord in de werkbalk, niet
-  meer een tandwiel in de actiekolom. De telling staat één keer. Een naam die opent is donker,
+  gevulde trechter, zonder vlak of stip. De kolomkiezer is een stil icoon met drie kolommen
+  (`functioneel-kolommen`, nieuw eigen icoon) en een tooltip in de kop van de laatste kolom, in
+  plaats van het tandwiel. De telling staat één keer. Een naam die opent is donker,
   onderstreept onder de aanwijzer, en een drempel dichtbij is een teken en vet in plaats van een
   gele vulling. Sorteren en bladeren laten de kolommen staan: een kolom neemt de breedte van
   haar breedste waarde over alle rijen, en de sorteerpijlen staan boven elkaar. De kop van een

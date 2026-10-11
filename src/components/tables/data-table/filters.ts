@@ -10,6 +10,7 @@ import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
 import '../../../primitives/popover/popover'
 import '../../../primitives/button/button'
+import '../../../primitives/tooltip/tooltip'
 import '../../overlays/drawer/drawer'
 import '../sortable-list/sortable-list'
 import type { SortableItem } from '../sortable-list/sortable-list'
@@ -243,14 +244,14 @@ export function renderToolbar(options: {
   count: string
   /** Below 768 px, beside "Filters": the sort on any column. */
   sortMenu?: unknown
-  /** "Kolommen", at the toolbar's end. */
+  /** The table's own controls at the toolbar's end ("Alles inklappen"). */
   chooser?: unknown
   onClearFilter: (column: string, button: HTMLElement) => void
   onClearAll: (button: HTMLElement) => void
   onOpenSheet: () => void
 }): TemplateResult {
   const active = options.columns.filter((column) => isFilterActive(options.values[column.key]))
-  // With neither a chip nor "Kolommen", the row only holds the phone's "Filters" and "Sorteren".
+  // With neither a chip nor a tool, the row only holds the phone's "Filters" and "Sorteren".
   const quiet = active.length === 0 && !options.chooser
   return html`<div
     class="lintje-data-table__toolbar ${quiet ? 'lintje-data-table__toolbar--quiet' : ''}"
@@ -300,22 +301,26 @@ export function renderToolbar(options: {
   </div>`
 }
 
-/** "Kolommen": a compact button with its word, so the reader finds it before needing it. */
+/**
+ * "Kolommen kiezen": a quiet icon at the end of the head, above the rows' menus, where the columns
+ * are. The tooltip says its name, which is already the button's own.
+ */
 export function renderChooserButton(
   expanded: boolean,
   onOpen: (anchor: HTMLElement) => void,
 ): TemplateResult {
-  return html`<button
-    type="button"
-    class="lintje-button lintje-button--secondary lintje-button--compact lintje-data-table__chooser-button"
-    aria-label="Kolommen kiezen"
-    aria-haspopup="dialog"
-    aria-expanded=${expanded ? 'true' : 'false'}
-    @click=${(event: Event) => onOpen(event.currentTarget as HTMLElement)}
-  >
-    ${renderIcon('functioneel-instellingen', { size: 16, className: 'lintje-button__icon' })}
-    <span class="lintje-button__label">Kolommen</span>
-  </button>`
+  return html`<lintje-tooltip text="Kolommen kiezen" no-describe
+    ><button
+      type="button"
+      class="lintje-data-table__chooser-button"
+      aria-label="Kolommen kiezen"
+      aria-haspopup="dialog"
+      aria-expanded=${expanded ? 'true' : 'false'}
+      @click=${(event: Event) => onOpen(event.currentTarget as HTMLElement)}
+    >
+      ${renderIcon('functioneel-kolommen', { size: 18 })}
+    </button></lintje-tooltip
+  >`
 }
 
 export function renderColumnChooser(options: {

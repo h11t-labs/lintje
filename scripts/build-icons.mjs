@@ -78,7 +78,7 @@ const COMPONENT_ICONS = [
   'functioneel-plus', // the number field's stepper (also the map's zoom in)
   'functioneel-filters', // the filter bar and the mobile Filters button
   'functioneel-trechter', // the funnel in a filterable table column's head
-  'functioneel-instellingen', // the table's column chooser
+  'functioneel-kolommen', // the table's column chooser
   'gebruiksvoorwerpen-hangslot-dicht', // a menu entry without access
   'functioneel-printer', // share menu: print
   'functioneel-mail', // share menu: send as e-mail; the feedback row

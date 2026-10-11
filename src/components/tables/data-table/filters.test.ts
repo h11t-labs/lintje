@@ -174,16 +174,17 @@ describe('the column chooser', () => {
       columns.push((event as CustomEvent).detail),
     )
     const heads = root(element).querySelectorAll('.lintje-data-table__full thead th')
-    // The two shown columns and the detail column, whose rows list the hidden one.
-    expect(heads).toHaveLength(3)
+    // The detail column (its rows list the hidden one), the two shown columns, and the actions
+    // column, whose head holds the chooser.
+    expect(heads).toHaveLength(4)
     expect(heads[0]?.classList.contains('lintje-data-table__detail-cell')).toBe(true)
 
-    // "Kolommen" stands in the toolbar with its word, not in the head.
-    const button = root(element).querySelector<HTMLElement>(
-      '.lintje-data-table__toolbar .lintje-data-table__chooser-button',
-    )
+    const button = heads[3]?.querySelector<HTMLElement>('.lintje-data-table__chooser-button')
     expect(button?.getAttribute('aria-label')).toBe('Kolommen kiezen')
-    expect(button?.textContent?.trim()).toBe('Kolommen')
+    expect(button?.closest('lintje-tooltip')?.getAttribute('text')).toBe('Kolommen kiezen')
+    expect(
+      root(element).querySelector('.lintje-data-table__toolbar .lintje-data-table__chooser-button'),
+    ).toBeNull()
     button?.click()
     await element.updateComplete
     const list = root(element).querySelector('lintje-sortable-list') as HTMLElement & {
@@ -206,7 +207,7 @@ describe('the column chooser', () => {
     expect(outside).toEqual([])
     expect(columns).toEqual([{ order: ['title', 'category', 'date'], hidden: [] }])
     // Nothing is hidden and there are no detail fields: the detail column leaves.
-    expect(root(element).querySelectorAll('.lintje-data-table__full thead th')).toHaveLength(3)
+    expect(root(element).querySelectorAll('.lintje-data-table__full thead th')).toHaveLength(4)
   })
 
   it('sets every column back in the host’s order, and is unavailable while that stands', async () => {
