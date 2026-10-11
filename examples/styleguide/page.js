@@ -64,14 +64,20 @@ function summaryOf(item, declaration, apps) {
 
 /**
  * A specimen's label as a name and a note: "Bezig: de breedte blijft" → "Bezig" and "De
- * breedte blijft". The first colon splits it, else the first " · ", else the first comma.
+ * breedte blijft". The first colon splits it, else the first " · ", else a closing aside in
+ * brackets ("Concept (typ iets)"), else the first comma.
  */
 function nameAndNote(label) {
-  const mark = [': ', ' · ', ', '].find((candidate) => label.includes(candidate))
-  if (!mark) return [label, '']
-  const at = label.indexOf(mark)
-  const note = label.slice(at + mark.length)
-  return [label.slice(0, at), note.charAt(0).toLocaleUpperCase('nl') + note.slice(1)]
+  const upper = (note) => note.charAt(0).toLocaleUpperCase('nl') + note.slice(1)
+  const mark = [': ', ' · '].find((candidate) => label.includes(candidate))
+  if (!mark) {
+    const aside = label.match(/^([^(]+) \(([^()]+)\)$/)
+    if (aside) return [aside[1], upper(aside[2])]
+  }
+  const split = mark ?? (label.includes(', ') ? ', ' : null)
+  if (!split) return [label, '']
+  const at = label.indexOf(split)
+  return [label.slice(0, at), upper(label.slice(at + split.length))]
 }
 
 /**
@@ -391,6 +397,11 @@ export function renderElementPage(host, item, context) {
   context.band.append(crumbs, title)
   if (item.tag) context.band.append(element('p', 'guide__lead', item.title))
   context.band.append(facts, tabs)
+  // The band sticks with only its tabs in view: it rises by what stands above them.
+  new ResizeObserver(() => {
+    const lift = tabs.getBoundingClientRect().top - context.band.getBoundingClientRect().top
+    context.band.style.setProperty('--guide-band-lift', `${lift}px`)
+  }).observe(context.band)
 
   const page = element('div', 'guide__page')
   const main = element('div', 'guide__main')
