@@ -3,6 +3,8 @@
  * `renderMap` a map. See README.md for the contract.
  */
 export { renderChart } from './shared/render-chart'
+export { CHART_KINDS, CHART_QUESTIONS } from './kinds'
+export type { ChartKindGuide, ChartQuestion } from './kinds'
 export { renderLineChart } from './line-chart/line-chart'
 export { renderBarChart, TINTS } from './bar-chart/bar-chart'
 export { renderHorizontalBarChart, rowsHeight } from './horizontal-bar-chart/horizontal-bar-chart'

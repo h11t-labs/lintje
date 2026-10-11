@@ -510,6 +510,12 @@ breekt de lijn, en de beschrijving van de host is haar tekstalternatief, zoals b
 
 Eén grammatica, geen grafiekbibliotheek.
 
+**Een grafiek kies je op de vraag van de lezer**, niet op wat er mooi uitziet: verloopt het in de
+tijd, hoe verhouden groepen zich, uit welke delen bestaat het geheel, hoe is het verdeeld, hangen
+twee maten samen, halen we het doel. Elke soort beantwoordt één van die vragen en zegt ook wanneer
+een andere beter past; die keuze staat bij de soorten in `components/shared/charts/kinds.ts` en in
+de stijlgids. Past geen soort, dan is het een tabel.
+
 - **Eén kleur per variabele**, met de tintladder voor de onderverdelingen. Vergelijking grijs;
   nadruk voor trend, drempel en doel.
 - **De legenda staat boven de grafiek** en is klikbaar. Het symbool zegt welk teken het is: een
