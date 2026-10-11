@@ -366,6 +366,10 @@ De besluiten hieronder gelden voor alle elementen.
   verversing waar niemand om vroeg, tekent geen skelet.
 - **Leeg zegt waarom**, en noemt de uitweg in woorden. Er is geen opnieuw-knop op een tegel: die
   herlaadt met de pagina.
+- **Een pagina die er niet is, is een pagina, geen melding** (`lintje-error-page`): de code klein
+  boven een titel die in woorden zegt wat er is, waarom, en de weg verder. Geen illustratie, geen
+  groot getal, geen rood vlak; alleen geen toegang en een storing dragen een teken naast de code.
+  Een storing geeft een referentie die de lezer kopieert en doorgeeft.
 
 ### Links, toetsen en overlays
 

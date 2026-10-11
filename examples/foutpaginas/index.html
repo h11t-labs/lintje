@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="nl" data-mode="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Foutpagina's — Lintje</title>
+    <!--
+      Foutpagina's: the four pages that stand in place of the one a reader asked for, each a
+      `lintje-error-page` filled by the host. The markup is what a server would render; `app.js`
+      shows the one the URL asks for and answers the buttons. In a real application the server
+      sends the HTTP status with it, and planned maintenance has no menu; here the menu switches
+      between the four.
+
+      Serve the repository root with any static server and open /examples/foutpaginas/.
+        ?pagina=geen-toegang           the page (niet-gevonden, geen-toegang, storing, onderhoud)
+        ?mode=dark                     dark mode (without it the reader's system decides)
+        ?theme=marechaussee            one of the six themes
+    -->
+    <link rel="stylesheet" href="../../src/tokens/fonts.css" />
+    <link rel="stylesheet" href="../../dist-elements/tokens.css" />
+    <style>
+      body {
+        margin: 0;
+        background: var(--color-bg-page);
+        color: var(--color-text-primary);
+        font: var(--text-ui);
+        font-family: var(--font-ui);
+        -webkit-font-smoothing: antialiased;
+      }
+    </style>
+  </head>
+  <body>
+    <lintje-shell id="shell">
+      <lintje-error-page id="niet-gevonden" code="404" heading="Deze pagina bestaat niet"
+        text="Het adres klopt niet, of de pagina is verplaatst of verwijderd. Controleer het adres, of zoek wat je nodig hebt." hidden>
+        <lintje-text-input id="zoeken" type="search" label="Zoeken in Lintje" placeholder="Element, categorie of voorbeeld"></lintje-text-input>
+      </lintje-error-page>
+
+      <lintje-error-page id="geen-toegang" code="403" heading="Je hebt geen toegang tot deze pagina"
+        text="Deze pagina is er alleen voor de rol Teamleider. Toegang vraag je aan bij de functioneel beheerder van je afdeling." hidden>
+        <lintje-button slot="actions" id="toegang" variant="primary" block>Toegang aanvragen</lintje-button>
+        <lintje-button slot="actions" id="ander-account" variant="secondary" block>Aanmelden met een ander account</lintje-button>
+      </lintje-error-page>
+
+      <lintje-error-page id="storing" code="500" heading="Er ging iets mis aan onze kant"
+        text="Wat je had opgeslagen, is niet verloren. Probeer het over een paar minuten opnieuw. Gaat het weer mis, geef dan de referentie door aan de servicedesk."
+        reference="7F3A-91C2-4D0B" hidden>
+        <lintje-button slot="actions" id="opnieuw" variant="primary" block>Opnieuw proberen</lintje-button>
+        <lintje-button slot="actions" id="naar-start" variant="secondary" block>Naar de start</lintje-button>
+      </lintje-error-page>
+
+      <lintje-error-page id="onderhoud" heading="Deze applicatie is even niet beschikbaar"
+        text="Wat je hebt opgeslagen, blijft bewaard. Deze pagina laadt niet vanzelf opnieuw: kom na 18.00 uur terug." hidden>
+        <lintje-announcement>
+          <script type="application/json">
+            { "kind": "info", "title": "Terug om 18.00 uur", "text": "Vandaag werken we van 16.00 tot 18.00 uur aan de applicatie." }
+          </script>
+        </lintje-announcement>
+      </lintje-error-page>
+    </lintje-shell>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

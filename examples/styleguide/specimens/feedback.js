@@ -324,6 +324,61 @@ export default {
       ],
     },
     {
+      tag: 'lintje-error-page',
+      title: 'De pagina in plaats van de gevraagde: niet gevonden, geen toegang, een storing, onderhoud',
+      specimens: [
+        {
+          label: 'Niet gevonden, met zoeken',
+          wide: true,
+          html: `<lintje-error-page code="404" heading="Deze pagina bestaat niet"
+              text="Het adres klopt niet, of de pagina is verplaatst of verwijderd. Controleer het adres, of zoek wat je nodig hebt.">
+              <lintje-text-input type="search" label="Zoeken in Meldingen" placeholder="Zaaknummer, naam of trefwoord"></lintje-text-input>
+            </lintje-error-page>`,
+          setup(stage) {
+            stage.querySelector('lintje-error-page').links = [
+              { label: 'Het overzicht', href: '#overzicht' },
+              { label: 'Mijn werk', href: '#mijn-werk' },
+              { label: 'Hulp en contact', href: '#hulp' },
+            ]
+          },
+        },
+        {
+          label: 'Geen toegang',
+          wide: true,
+          html: `<lintje-error-page code="403" heading="Je hebt geen toegang tot deze pagina"
+              text="Deze pagina is er alleen voor de rol Teamleider. Toegang vraag je aan bij de functioneel beheerder van je afdeling.">
+              <lintje-button slot="actions" variant="primary" href="#toegang" block>Toegang aanvragen</lintje-button>
+              <lintje-button slot="actions" variant="secondary" href="#aanmelden" block>Aanmelden met een ander account</lintje-button>
+            </lintje-error-page>`,
+        },
+        {
+          label: 'Storing, met een referentie',
+          wide: true,
+          html: `<lintje-error-page code="500" heading="Er ging iets mis aan onze kant"
+              text="Wat je had opgeslagen, is niet verloren. Probeer het over een paar minuten opnieuw. Gaat het weer mis, geef dan de referentie door aan de servicedesk."
+              reference="7F3A-91C2-4D0B" occurred="11 oktober 2026, 14.32 uur">
+              <lintje-button slot="actions" variant="primary" block>Opnieuw proberen</lintje-button>
+              <lintje-button slot="actions" variant="secondary" href="#overzicht" block>Naar het overzicht</lintje-button>
+            </lintje-error-page>`,
+        },
+        {
+          label: 'Gepland onderhoud',
+          wide: true,
+          html: `<lintje-error-page heading="Meldingen is even niet beschikbaar"
+              text="Wat je hebt opgeslagen, blijft bewaard. Deze pagina laadt niet vanzelf opnieuw: kom na 18.00 uur terug.">
+              <lintje-announcement></lintje-announcement>
+            </lintje-error-page>`,
+          setup(stage) {
+            stage.querySelector('lintje-announcement').data = {
+              kind: 'info',
+              title: 'Terug om 18.00 uur',
+              text: 'Vandaag werken we van 16.00 tot 18.00 uur aan de applicatie.',
+            }
+          },
+        },
+      ],
+    },
+    {
       tag: 'lintje-badge',
       title: 'Een status als woord',
       specimens: [
