@@ -49,6 +49,9 @@
 .lintje-disclosure.is-open .lintje-disclosure__body { grid-template-rows: 1fr; }
 
 .lintje-disclosure__body-inner {
+  /* The containing block of what is positioned inside, so the clip holds that too: a
+     visually hidden label in a closed body would otherwise stretch the page below it. */
+  position: relative;
   min-height: 0;
   overflow: hidden;
   opacity: 0;

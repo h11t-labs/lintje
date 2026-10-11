@@ -73,6 +73,19 @@ const KINDS: { name: string; spec: ChartSpec; first: string; second: string }[] 
     },
   },
   {
+    name: 'stacked-area',
+    first: 'ma',
+    second: 'di',
+    spec: {
+      kind: 'stacked-area',
+      labels: ['ma', 'di', 'wo'],
+      series: [
+        { label: 'Online', values: [3, null, 4] },
+        { label: 'Balie', values: [2, 5, 1] },
+      ],
+    },
+  },
+  {
     name: 'dual-axis',
     first: 'ma',
     second: 'di',
@@ -81,6 +94,40 @@ const KINDS: { name: string; spec: ChartSpec; first: string; second: string }[] 
       labels: ['ma', 'di'],
       left: { label: 'Aantal', values: [3, 4] },
       right: { label: 'Duur', values: [20, null] },
+    },
+  },
+  {
+    name: 'scatter',
+    first: 'Noord',
+    second: 'Zuid',
+    spec: {
+      kind: 'scatter',
+      axisTitle: 'wachttijd',
+      xTitle: 'aanvragen',
+      series: [
+        {
+          label: 'Loket',
+          points: [
+            { label: 'Zuid', x: 20, y: 4 },
+            { label: 'Noord', x: 10, y: 6 },
+            { label: 'Oost', x: 15, y: null },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    name: 'histogram',
+    first: '0 tot 2 dagen',
+    second: '2 tot 4 dagen',
+    spec: {
+      kind: 'histogram',
+      unit: 'dagen',
+      bins: [
+        { from: 0, to: 2, count: 3 },
+        { from: 2, to: 4, count: null },
+        { from: 4, to: null, count: 1 },
+      ],
     },
   },
   {

@@ -162,6 +162,31 @@ export function monthLabel(iso: string): string {
   return `${MONTHS[month - 1]} ${year}`
 }
 
+const WEEKDAYS_SHORT = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo']
+const MONTHS_SHORT = [
+  'jan',
+  'feb',
+  'mrt',
+  'apr',
+  'mei',
+  'jun',
+  'jul',
+  'aug',
+  'sep',
+  'okt',
+  'nov',
+  'dec',
+]
+
+/** The weekday abbreviations, Monday first, as a calendar heads its columns. */
+export const WEEKDAYS = WEEKDAYS_SHORT
+
+/** "ma 12 okt": the day as a column heading. */
+export function shortDayLabel(iso: string): string {
+  const [, month, day] = partsOf(iso)!
+  return `${WEEKDAYS_SHORT[weekdayOf(iso)]} ${day} ${MONTHS_SHORT[month - 1]}`
+}
+
 export function dayLabel(iso: string): string {
   const [year, month, day] = partsOf(iso)!
   const weekday = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag']

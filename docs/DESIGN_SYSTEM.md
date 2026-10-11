@@ -329,6 +329,9 @@ De besluiten hieronder gelden voor alle elementen.
   annuleren. Geen dialoog voor één naam.
 - **Opties die elk een regel nodig hebben, zijn kaarten** (`variant="cards"`): naast elkaar, de
   gekozen rustig zoals in de gesegmenteerde keuze.
+- **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
+  elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
+  beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").
 - **Een dialoog met een formulier is smal** en zo hoog als zijn inhoud; een zin over het resultaat
   staat links in de voet, de knoppen rechts.
 - **Een bezige knop houdt zijn breedte en zijn kleuren**; alleen de inhoud maakt plaats voor de
@@ -483,6 +486,13 @@ zijn de filters een sheet, en wijzigingen gelden pas bij "Toepassen".
 **De pijl van een KPI draagt de richting; de kleur bevestigt die alleen.** Waar stijgen slecht is,
 draait de kleur om en de pijl niet.
 
+**Het verloop in een KPI is een lijn met haar vlak, zonder assen** (`sparkline`): de eigen
+waarden van de variabele, dus in haar kleur, met het vlak eronder zoals de lijngrafiek het tekent,
+nooit de nadrukkleur.
+Ze schaalt van de laagste tot de hoogste waarde, niet vanaf nul, want ze toont de beweging, niet de
+hoogte; het cijfer ernaast is de hoogte. De laatste waarde is een punt, een ontbrekende waarde
+breekt de lijn, en de beschrijving van de host is haar tekstalternatief, zoals bij een grafiek.
+
 ## Grafieken
 
 Eén grammatica, geen grafiekbibliotheek.
@@ -490,8 +500,8 @@ Eén grammatica, geen grafiekbibliotheek.
 - **Eén kleur per variabele**, met de tintladder voor de onderverdelingen. Vergelijking grijs;
   nadruk voor trend, drempel en doel.
 - **De legenda staat boven de grafiek** en is klikbaar. Het symbool zegt welk teken het is: een
-  vierkant voor een staaf of vlak, een lijn voor een lijn, gestreept voor een drempel of
-  vergelijking.
+  vierkant voor een staaf of vlak, een lijn voor een lijn, de vorm van de reeks voor een punt,
+  gestreept voor een drempel of vergelijking. Een drempel in de legenda is geen schakelaar.
 - **De nullijn is donkerder dan het raster.**
 - **Datalabels zijn alles of niets**: als er één niet past, toont de grafiek er geen, en de
   tooltip geeft nog steeds elke waarde.
@@ -506,6 +516,27 @@ Eén grammatica, geen grafiekbibliotheek.
   delen worden vier en één grijs "Overig" dat niet klikbaar is: een samengevoegd stuk heeft geen
   plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) zijn geen delen; ze
   staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde.
+- **Een gestapeld vlak toont de onderverdelingen van één variabele** in haar ladder, de eerste
+  onderaan en de donkerste, in volle tinten met een lijn in de oppervlaktekleur tussen de lagen.
+  Ontbreekt een laag op een punt, dan breken die laag en alles erboven daar af, want hun
+  ondergrens is onbekend; de lagen eronder blijven staan en erboven is het gearceerd. De tooltip
+  leest de tekening van boven naar onder en sluit af met het totaal, dat ontbreekt zolang een
+  getoonde laag ontbreekt.
+- **Een stapel houdt zijn as als je een laag uitzet**, omdat het geheel het kader is; een lijn
+  herschaalt, omdat je vormen vergelijkt.
+- **De klassen van een histogram raken elkaar**, omdat de as doorloopt: geen ruimte tussen de
+  staven, alleen de scheidingslijn in de oppervlaktekleur, en de labels staan op de grenzen van de
+  klassen, niet onder hun midden. Een open laatste klasse ("30+") heeft geen grens om op te staan
+  en wordt onder haar midden genoemd.
+- **Een mediaan is een doorgetrokken nadruklijn**, naast de gestreepte van een drempel, elk met
+  zijn label naast de lijn. Raken de labels elkaar, dan zakt het rechter een regel.
+
+**Een kerncijfer op zijn schaal is een KPI, geen grafiek.** De meter is een instelling van
+`lintje-kpi`: een halve boog met het getal in de mond, of een balk onder het getal. De vulling is
+de kleur van de variabele, de rest van de schaal het lichtgrijs van een rest, het doel gestreept in
+de nadrukkleur. De vulling oordeelt niet: of het cijfer goed staat, zegt de trendregel met pijl en
+woord, zoals bij elke KPI. Een cijfer zonder meting tekent de schaal en het doel, nooit een lege
+vulling als nul.
 
 **Onvolledige perioden.** Een periode die nog loopt, is gearceerd. Als er nog veel van open is,
 wordt de reeks afgekapt bij het laatste volledige punt en zegt een peilmomentlijn waar. De assen
@@ -525,18 +556,75 @@ moeten zijn.
 **Op een kaart is een reeks een kleur en een vorm**, en een selectie kan altijd ongedaan worden
 gemaakt.
 
+**In een spreidingsdiagram is een reeks ook een kleur en een vorm**: dezelfde vorm die die kleur
+op de kaart heeft, met gelijke oppervlakte, zodat geen reeks luider is. Een punt heeft een rand in
+de oppervlaktekleur, zodat punten die elkaar overlappen te onderscheiden blijven. Alleen de punten
+die de host noemt, tonen hun naam; de rest leest de lezer uit de tooltip of de tabel.
+
 **Een kaart stapelt haar lagen en blijft één kaart.** De eerste laag ligt onder en de laatste
 boven, en het toetsenbord volgt de stapel; een choropleet kleurt het land zelf en ligt daarom
-altijd onderop. Er is één selectie over alle lagen, één legenda boven de kaart met een regel per
-kleur, ook als die kleur in meer lagen dient, en linksonder een regel per laag met haar eigen
-eenheid: een cijfer spreekt altijd de eenheid van zijn eigen laag. Een vlak dat niet in de
-geometrie van de kaart staat, draagt zijn eigen omtrek en is verder een gebied: dezelfde klassen,
-gearceerd zonder cijfer, en met focus een ring om zijn vorm, zoals een punt die krijgt.
+altijd onderop. Er is één selectie over alle lagen en één legenda, boven de kaart zoals bij
+elke grafiek, met per laag één regel: haar naam — die van de host, anders die van haar soort —
+met het vakje van een checkbox ervoor, dat de laag aan en uit zet, dan haar sleutel, dan haar
+reeksen, elk een schakelaar zoals in elke legenda, en achteraan "geen gegevens" als een mark van
+die laag geen cijfer heeft. Een kleur die in meer
+lagen dient, staat bij elke laag en schakelt per laag. De sleutel is dezelfde tekening als de
+kaart: vijf klassen van 0 tot het maximum, drie cirkels van klein naar groot met het bereik, of
+één wig van dun naar dik met het bereik; een cijfer spreekt altijd de eenheid van zijn eigen laag.
+Meer dan drie lagen vouwen op de tegel onder "Nog n lagen"; de vergroting toont alles, en daar
+krijgt elke klasse haar bereik en staan de cirkels genest op ware maat met hun getal. Op een
+telefoon staat de naam boven de sleutel en krijgen de reeksen een eigen regel. Een vlak dat niet
+in de geometrie van de kaart staat, draagt zijn eigen omtrek en is verder een gebied: dezelfde
+klassen, gearceerd zonder cijfer, en met focus een ring om zijn vorm, zoals een punt die krijgt.
+
+**Een host kiest welke bediening een kaart heeft** (`controls`): zoomen, wiel, slepen, reset,
+lasso, cirkel, rechthoek, schaalbalk en legenda. Standaard staat alles aan behalve de tekenvormen,
+want die zijn alleen zinvol als de host op een gebied filtert. Een vorm is gereedschap: eenmaal gekozen
+blijft hij in de hand, een nieuw gebied vervangt het vorige, en hij gaat pas neer met een klik op
+de knop, Escape of de reset. Eén vorm is een knop die hem opneemt en neerlegt; bij twee of meer
+is het een selectieknop met een hoekje rechtsonder, en opent een klik het menu van de vormen — de
+laatst gebruikte aangevinkt en gefocust, zodat Enter meteen verder gaat. Met een vorm in de hand
+toont de knop die vorm, primair gekleurd zoals een icoonknop die aanstaat, en heet hij "Stop met
+selecteren". De knoppen staan rechtsboven,
+ook op een telefoon alle, op de aanraakmaat op een hogere kaart: knijpen is een gebaar met twee
+vingers en uitzoomen moet ook met één. De schaalbalk staat rechtsonder, zonder kader, op een
+ondergrond op het oppervlak boven de bronvermelding: een ronde afstand en daarnaast een beugel
+zo lang als die afstand op de kaart, zoals op een wegenkaart. Hij meet over het midden van het
+zicht. De bronvermelding van een ondergrond staat op het oppervlak in de eigen tekstkleuren, ook
+in donker, één regel hoog. Het selectiepaneel staat linksonder, weg van de knoppen en
+de schaal; onder 768 px is het een regel onder de kaart, niet op wat net gekozen is.
+
+**Een gebied kiezen is een filter van de host.** Een lasso, cirkel of rechthoek kiest wat er
+helemaal in ligt: een plaats met haar punt, een vlak of land met zijn hele omtrek, een stroom met
+beide uiteinden en zijn boog. Wat de rand raakt, telt niet mee, en tijdens het tekenen licht op
+wat erin zou vallen. De kaart stuurt het gebied en de ids — een rechthoek als lasso van vier
+hoeken, want in Mercator is een rechthoek op het scherm er een in graden —, en de host bewaart
+het gebied in de URL zoals elk filter. Het gebied blijft staan tot de lezer het wegklikt, ook
+naast een gekozen mark. Wie niet sleept, tekent met klikken; onderaan staat hoe, per vorm, zolang
+de vorm in de hand is; Escape legt haar neer. De resetknop zet de kaart terug: het hele gebied in beeld en niets
+gekozen.
+
+**Leaflet draagt de kaart, het design system tekent de data.** Projectie, verslepen, zoomen en
+de tegels van een ondergrond zijn van Leaflet; land, vlakken, punten en stromen tekent het design
+system zelf in Leaflets svg, met dezelfde klassen, toestanden en animaties als elke grafiek. Zo is
+er één kaart, met of zonder ondergrond. De projectie is Web Mercator, zoals elke webkaart, ook
+voor Nederland: op tegelformaat is het verschil met de landsprojectie niet te zien.
+
+**Een kaart is met de muis te verslepen en zoomt rond de aanwijzer: met een dubbelklik, en op
+het wiel alleen met Ctrl of ⌘ ingedrukt.** Zonder die toets scrolt het wiel de pagina door en
+toont de kaart kort hoe het wel kan; anders zit wie door een dashboard scrolt vast op de kaart.
+Een knijpbeweging op een trackpad komt als wiel met Ctrl binnen en zoomt dus ook; een dubbelklik
+met Shift zoomt uit. Uitzoomen stopt bij het hele gebied, inzoomen een paar verdubbelingen
+verder. Op een telefoon versleept een vinger de pagina, niet de kaart: knijpen, dubbeltikken en
+de knoppen zoomen. De knoppen en de laagkiezer op een kaart tekenen compact, zoals de knoppen van
+een balk, en halen hun aanwijsdoel via het klikgebied in de richting waar ze ruimte hebben.
 
 ## Iconen
 
-- **Nooit een met de hand getekend icoon, nooit een bewerkt bestand.** De regels staan in de
-  [projectregels](../AGENTS.md) (regel 11), de set in [`assets/README.md`](../assets/README.md).
+- **Nooit een met de hand getekend icoon, nooit een bewerkt bestand**, behalve een generiek
+  bedieningselement dat RVO mist (de lasso, de punaise): dat tekent Lintje als eigen bestand in de
+  stijl van zijn set. De regels staan in de [projectregels](../AGENTS.md) (regel 11), de set in
+  [`assets/README.md`](../assets/README.md).
 - **Een naam zonder bestand tekent niets en het bedieningselement toont zijn Nederlandse label.**
   Dat is een ondersteunde staat: een host mag een bestand weglaten of vervangen en het
   bedieningselement blijft zeggen wat het doet. De bekende gaten in de set staan in
@@ -562,6 +650,10 @@ naar een volgende regel; ze overlappen nooit.
   doet.
 - **Data tekent één keer in**, als de grafiek in beeld komt; terugscrollen speelt het niet
   opnieuw af.
+- **Punten groeien één voor één uit hun midden**, op de kaart en in een spreidingsdiagram, met de
+  timing van de staven; een referentielijn komt daarna in, met haar label.
+- **Een laag die je aan- of uitzet, groeit of krimpt en de rest schuift mee**, zodat het oog
+  volgt wat er verschijnt of verdwijnt.
 - **Een keuze beweegt mee**: het vinkje van een checkbox groeit in bij aanvinken en krimpt weg bij
   uitvinken, op de duur van hoverfeedback.
 - **De focusring is nooit geanimeerd.**

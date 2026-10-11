@@ -60,11 +60,11 @@ setIconSource({ base: './icons/' })
 | `actions.js` — Knoppen en iconen | `button`, `icon-button`, `menu-button`, `copy-button`, `qr-code`, `icon`, `logo` |
 | `content.js` — Tekst en media | `prose`, `code`, `highlight`, `translator`, `audio-player`, `video-player`, `transcript`, `document-viewer`, `gallery` |
 | `feedback.js` — Meldingen en status | `announcement`, `toast`, `conflict-alert`, `empty-state`, `badge`, `status-dot`, `spinner`, `skeleton`, `progress-bar`, `job-list`, `streaming-text`, `ai-label`, `level-meter`, `recording-status` |
-| `inputs.js` — Invoervelden | `field`, `text-input`, `textarea`, `number-input`, `select`, `combobox`, `multiselect`, `tag-input`, `checkbox`, `radio-group`, `toggle`, `segmented`, `range`, `date-input`, `time-input`, `date-range`, `file-upload`, `text-editor` |
+| `inputs.js` — Invoervelden | `field`, `text-input`, `textarea`, `number-input`, `select`, `combobox`, `multiselect`, `tag-input`, `checkbox`, `radio-group`, `toggle`, `segmented`, `range`, `date-input`, `time-input`, `date-range`, `slot-picker`, `file-upload`, `text-editor` |
 | `forms.js` — Formulier | `form`, `form-section`, `stepper`, `repeater`, `repeater-row`, `error-summary`, `form-actions` |
 | `filters.js` — Filters | `filter-bar`, `filter-zone`, `filter-sheet` |
-| `charts.js` — Kerncijfers en grafieken | `kpi-row`, `kpi`, `chart-tile`, `note`, `explainer` |
-| `map.js` — Kaart | `map-tile` |
+| `charts.js` — Kerncijfers en grafieken | `kpi-row`, `kpi`, `chart`, `note`, `explainer` |
+| `map.js` — Kaart | `map` |
 | `tables.js` — Tabellen en lijsten | `data-table`, `pagination`, `list`, `card`, `card-list`, `description-list`, `tree-view`, `sortable-list`, `activity-log` |
 | `chat.js` — Chat met data | `chat`, `chat-message`, `chat-answer`, `chat-composer`, `chat-strip`, `chat-suggestions` |
 

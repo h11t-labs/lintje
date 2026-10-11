@@ -38,7 +38,7 @@ describe('the entries per tag', () => {
   })
 
   it('reads an import that spans lines and skips a type-only one', () => {
-    const imports = [...importsOf(moduleOf('lintje-chart-tile'))]
+    const imports = [...importsOf(moduleOf('lintje-chart'))]
     expect(imports).toContain('lit')
     expect(imports).toContain(resolve(SRC, 'components/tables/data-table/data-table.ts'))
     expect(imports).not.toContain(resolve(SRC, 'types.ts'))
@@ -130,7 +130,7 @@ describe('what stays out', () => {
     const withMap = [...modules]
       .filter(([, file]) => [...importClosure(file)].some(isMap))
       .map(([tag]) => tag)
-    expect(withMap).toEqual(['lintje-map-tile'])
+    expect(withMap).toEqual(['lintje-map'])
   })
 
   it('reaches the map from the map category', () => {
@@ -140,18 +140,13 @@ describe('what stays out', () => {
   it('keeps charts, tables and the chat out of the frame, the inputs, the forms and the filters', () => {
     for (const name of ['frame', 'inputs', 'forms', 'filters']) {
       const reached = tagsIn(importClosure(entry(name)))
-      for (const tag of [
-        'lintje-chart-tile',
-        'lintje-data-table',
-        'lintje-map-tile',
-        'lintje-chat',
-      ])
+      for (const tag of ['lintje-chart', 'lintje-data-table', 'lintje-map', 'lintje-chat'])
         expect(reached, name).not.toContain(tag)
     }
   })
 
   it('keeps the charts out of a table', () => {
-    expect(tagsIn(importClosure(entry('tables')))).not.toContain('lintje-chart-tile')
+    expect(tagsIn(importClosure(entry('tables')))).not.toContain('lintje-chart')
   })
 
   it('defines no tag in the host API', () => {
@@ -162,7 +157,7 @@ describe('what stays out', () => {
   it('keeps the shell and the page header free of filters, charts and tables', () => {
     for (const tag of ['lintje-page-header', 'lintje-shell']) {
       const reached = tagsIn(importClosure(moduleOf(tag)))
-      for (const heavy of ['lintje-filter-bar', 'lintje-chart-tile', 'lintje-data-table'])
+      for (const heavy of ['lintje-filter-bar', 'lintje-chart', 'lintje-data-table'])
         expect(reached, tag).not.toContain(heavy)
     }
   })

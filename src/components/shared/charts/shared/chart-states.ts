@@ -68,7 +68,7 @@ export function renderChartSkeleton({
         <div class="lintje-chart-skeleton__zoom" aria-hidden="true">
           ${ZOOM_CONTROLS.map(
             (control) => html`
-            <span class="lintje-chart-skeleton__zoom-button">${chartIcon(control.name, control.text)}</span>
+            <span class="lintje-chart-skeleton__zoom-button">${chartIcon(control.name, control.text, 16, 'flip' in control ? control.flip : undefined)}</span>
           `,
           )}
         </div>

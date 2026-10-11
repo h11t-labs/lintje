@@ -151,7 +151,7 @@ export const weekAnswer = (state) => ({
   strip: weekStrip(state),
   blocks: [
     { kind: 'kpi-row', data: weekKpis('ready') },
-    { kind: 'chart-tile', data: weekChart('ready', state.compare) },
+    { kind: 'chart', data: weekChart('ready', state.compare) },
   ],
   followUps: [
     { label: 'Hoe is dit verdeeld over de loketten?' },
@@ -227,7 +227,7 @@ export function converse(chat, { turns = true } = {}) {
     const leadWords = full.lead.split(' ').length
     turn.answer = {
       state: 'streaming', status: 'Vraag lezen · stap 1 van 3',
-      blocks: [{ kind: 'kpi-row', data: weekKpis('loading') }, { kind: 'chart-tile', data: weekChart('loading') }],
+      blocks: [{ kind: 'kpi-row', data: weekKpis('loading') }, { kind: 'chart', data: weekChart('loading') }],
     }
     render()
     const at = (ms, change) => playing.push(setTimeout(() => {

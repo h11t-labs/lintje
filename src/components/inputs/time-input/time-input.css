@@ -1,3 +1,4 @@
+/* The time input: a text field with a list button, and the list in a `lintje-popover`. */
 :host {
   display: block;
   min-width: 0;
@@ -17,10 +18,11 @@
 
 /* --- */
 
+/* --- The field ----------------------------------------------------------- */
 .lintje-time-input { position: relative; display: flex; align-items: center; }
 .lintje-time-input__control {
   width: 100%; height: var(--h-control);
-  padding: 0 var(--space-10) 0 14px;
+  padding: 0 calc(var(--h-control) - 2px + var(--space-2)) 0 14px;
   border: 1px solid var(--color-border-field);
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
@@ -37,10 +39,60 @@
   color: var(--color-text-disabled);
   cursor: not-allowed;
 }
-/* A sign, not a button: the pointer goes through it to the field. */
-.lintje-time-input__icon {
-  position: absolute; right: var(--space-3);
-  color: var(--color-text-muted);
-  pointer-events: none;
+
+.lintje-time-input__toggle {
+  position: absolute; top: 1px; right: 1px;
+  width: calc(var(--h-control) - 2px); height: calc(var(--h-control) - 2px);
+  display: flex; align-items: center; justify-content: center;
+  border-left: 1px solid var(--color-border-default);
+  background: transparent;
+  color: var(--color-accent-text);
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
-.lintje-time-input__control:disabled + .lintje-time-input__icon { color: var(--color-text-disabled); }
+/* A transparent hit area reaches the target height, never to the left where the typing part is. */
+.lintje-time-input__toggle::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) min(0px, calc(100% - var(--h-target)))
+    min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+/* The button steps in past the 2 px error border; a disabled field has 1 px again. */
+.lintje-time-input__control.is-error:not(:disabled) + .lintje-time-input__toggle {
+  top: 2px; right: 2px;
+  width: calc(var(--h-control) - 4px); height: calc(var(--h-control) - 4px);
+}
+.lintje-time-input__toggle:hover:not(:disabled) { background: var(--color-bg-selected); }
+.lintje-time-input__toggle:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
+
+/* --- The list ------------------------------------------------------------ */
+/* A dense list (`--h-option`): at most seven rows in view, then it scrolls. */
+.lintje-time-input__panel { padding: var(--space-1) 0; }
+.lintje-time-input__list {
+  max-height: calc(7 * var(--h-option));
+  overflow-y: auto;
+  font: var(--text-ui);
+}
+.lintje-time-input__option {
+  display: flex; align-items: center;
+  width: 100%;
+  min-height: var(--h-option);
+  padding: 0 14px;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-time-input__option:hover { background: var(--color-bg-subtle); }
+.lintje-time-input__option.is-selected { background: var(--color-bg-selected); font-weight: 700; }
+/* The fill alone is about 1.1:1, so the focus ring stands inside the row. */
+.lintje-time-input__option:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: calc(var(--focus-width) * -1);
+}
+
+/* Forced colours drop fills: the chosen row takes an edge inside the row, so none changes size. */
+@media (forced-colors: active) {
+  .lintje-time-input__option.is-selected { outline: 2px solid Highlight; outline-offset: -2px; }
+  .lintje-time-input__option:focus-visible { outline-color: Highlight; }
+}

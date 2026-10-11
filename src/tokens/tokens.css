@@ -294,6 +294,8 @@
   --h-target-text: 1.5rem;
   /* The two dense exceptions to the target: a date picker day cell and a listbox option row. */
   --h-option: 2.5rem;
+  /* The sparkline of a KPI: a line and its area under the figure, with no axes. */
+  --h-sparkline: 2rem;
 
   --w-nav: 288px;
   --w-rail: 72px;
@@ -379,6 +381,7 @@
   --dur-badge: 300ms; /* @kind other */
   --dur-draw: 900ms; /* @kind other */
   --dur-data-label: 300ms; /* @kind other */
+  --dur-layer: 400ms; /* @kind other */
   --dur-skeleton: 1200ms; /* @kind other */
   --dur-wave: 600ms; /* @kind other */
 

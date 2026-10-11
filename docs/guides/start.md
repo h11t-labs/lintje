@@ -132,7 +132,7 @@ wat het terug verwacht.
   hernoem nooit een veld.
 
 Een *view* is een tag die één `data`-object neemt (`lintje-shell`, `lintje-data-table`,
-`lintje-chart-tile`, …); elke andere tag is een *onderdeel* met eigen attributen en properties.
+`lintje-chart`, …); elke andere tag is een *onderdeel* met eigen attributen en properties.
 
 ## De complete voorbeelden
 

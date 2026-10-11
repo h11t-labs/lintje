@@ -33,6 +33,7 @@ import '../../../primitives/spinner/spinner'
 import '../../../primitives/tooltip/tooltip'
 import buttonCss from '../../../primitives/button/button.css?inline'
 import iconButtonCss from '../../../primitives/icon-button/icon-button.css?inline'
+import menuCss from '../../shared/menu.css?inline'
 import menuButtonCss from './menu-button.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { standsIn } from '../../../core/focus'
@@ -138,6 +139,7 @@ export class LintjeMenuButton extends LintjeElement {
     iconStyles,
     shadowCss(buttonCss),
     shadowCss(iconButtonCss),
+    shadowCss(menuCss),
     shadowCss(menuButtonCss),
   ]
 

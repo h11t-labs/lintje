@@ -1,5 +1,5 @@
 /**
- * `<lintje-chart-tile>` — a chart in its tile, with loading, empty and error states.
+ * `<lintje-chart>` — a chart in its tile, with loading, empty and error states.
  *
  * Events: `lintje-mark-select` `{id, label, href}` when a mark with a `href` is clicked, and
  * `{id: null, label: null, href: clearHref}` when it is deselected. Expand and download stay here.
@@ -15,6 +15,7 @@ import { LintjeContentTileElement } from '../../shared/content-tile'
 import { ChartController, type ChartOptions } from '../../shared/charts/shared/controller'
 import { renderChart } from '../../shared/charts/shared/render-chart'
 import { rowsHeight } from '../../shared/charts/horizontal-bar-chart/horizontal-bar-chart'
+import { binLabel } from '../../shared/charts/histogram-chart/histogram-chart'
 import {
   renderChartEmpty,
   liveAnnouncement,
@@ -29,14 +30,14 @@ import { MediaController } from '../../../core/media'
 import announcementCss from '../../feedback/announcement/announcement.css?inline'
 import skeletonCss from '../../../primitives/skeleton/skeleton.css?inline'
 import tileHostCss from '../../shared/view-tile.css?inline'
-import chartTileCss from './chart-tile.css?inline'
+import chartCss from './chart.css?inline'
 import '../../feedback/announcement/announcement'
 import '../../tables/data-table/data-table'
 import '../../inputs/segmented/segmented'
 import '../../../primitives/tile/tile'
-import type { CellValue, ChartTileData, DataTableData, FilterOption } from '../../../types'
+import type { CellValue, ChartData, DataTableData, FilterOption } from '../../../types'
 
-type ChartTileView = 'chart' | 'table'
+type ChartView = 'chart' | 'table'
 
 /** The chart's own drawing; a legend marker or an icon is an `<svg>` too. */
 const DRAWING = '.lintje-chart__svg, .lintje-pie-chart__svg'
@@ -60,7 +61,9 @@ function fileNameOf(title: string | undefined): string {
 function skeletonKind(chart: ChartSpec): ChartSkeletonKind {
   switch (chart.kind) {
     case 'line':
+    case 'stacked-area':
     case 'dual-axis':
+    case 'scatter':
       return 'line'
     case 'pie':
       return chart.donut ? 'donut' : 'pie'
@@ -137,6 +140,21 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
           ...chart.series.map((series) => series.values[i]),
         ]),
       ]
+    case 'stacked-area':
+      // A total over a missing part is missing too, never the sum of the rest. It is rounded to
+      // its parts' decimals: a float sum would carry noise into the CSV and the column format.
+      return [
+        ['', ...chart.series.map((series) => series.label), 'Totaal'],
+        ...chart.labels.map((label, i) => {
+          const values = chart.series.map((series) => series.values[i])
+          const total = values.some((value) => value == null)
+            ? null
+            : Number(
+                values.reduce<number>((sum, value) => sum + value!, 0).toFixed(decimalsOf(values)),
+              )
+          return [label, ...values, total]
+        }),
+      ]
     case 'pie':
       return [['', 'Aantal'], ...chart.segments.map((segment) => [segment.label, segment.value])]
     case 'dual-axis': {
@@ -147,11 +165,31 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
         ...chart.labels.map((label, i) => [label, chart.left.values[i], chart.right.values[i]]),
       ]
     }
+    case 'scatter': {
+      const header = (title: string, unit?: string) => {
+        const name = title.charAt(0).toUpperCase() + title.slice(1)
+        return unit ? `${name} (${unit})` : name
+      }
+      return [
+        ['Reeks', 'Naam', header(chart.xTitle, chart.xUnit), header(chart.axisTitle, chart.unit)],
+        ...chart.series.flatMap((series) =>
+          series.points.map((point) => [series.label, point.label, point.x, point.y]),
+        ),
+      ]
+    }
     case 'heatmap':
       return [
         ['', ...chart.columnLabels],
         ...chart.rowLabels.map((label, row) => [label, ...(chart.values[row] ?? [])]),
       ]
+    case 'histogram': {
+      const bound = (name: string) => (chart.unit ? `${name} (${chart.unit})` : name)
+      // An open class has no upper bound: an empty cell, never a missing value (rule 15).
+      return [
+        ['Klasse', bound('Van'), bound('Tot'), 'Aantal'],
+        ...chart.bins.map((bin) => [binLabel(bin, chart.unit), bin.from, bin.to ?? '', bin.count]),
+      ]
+    }
   }
 }
 
@@ -168,8 +206,9 @@ function chartTable(chart: ChartSpec, caption: string): DataTableData {
   const [header = [], ...body] = csvRows(chart)
   const columns = header.map((cell, index) => {
     const values = body.map((row) => (row[index] ?? null) as CellValue)
-    // The first column and one of words (an event) are text, the rest figures.
-    return index === 0 || values.some((value) => typeof value === 'string')
+    // A column of names is text, wherever it stands (a scatter plot has two); an empty cell
+    // (a histogram's open class) leaves a column of numbers a column of numbers.
+    return index === 0 || values.some((value) => typeof value === 'string' && value !== '')
       ? { key: `c${index}`, header: String(cell ?? ''), format: 'text' as const, sortable: false }
       : {
           key: `c${index}`,
@@ -193,7 +232,7 @@ function chartTable(chart: ChartSpec, caption: string): DataTableData {
   }
 }
 
-export class LintjeChartTile extends LintjeContentTileElement {
+export class LintjeChart extends LintjeContentTileElement {
   // The chart-state skeleton is `.lintje-skeleton` markup; a shadow root needs the sheet.
   static override styles = [
     spanStyles,
@@ -201,7 +240,7 @@ export class LintjeChartTile extends LintjeContentTileElement {
     shadowCss(skeletonCss),
     shadowCss(announcementCss),
     ...chartStyles,
-    shadowCss(chartTileCss),
+    shadowCss(chartCss),
   ]
 
   static override properties: PropertyDeclarations = {
@@ -209,9 +248,9 @@ export class LintjeChartTile extends LintjeContentTileElement {
     view: { state: true },
   }
 
-  declare data?: ChartTileData | null
+  declare data?: ChartData | null
 
-  view: ChartTileView = 'chart'
+  view: ChartView = 'chart'
 
   readonly #chart = new ChartController(() => this.requestUpdate())
   #modalChart: ChartController | null = null
@@ -337,7 +376,7 @@ export class LintjeChartTile extends LintjeContentTileElement {
   }
 
   private content(): TemplateResult {
-    const data = this.data as ChartTileData
+    const data = this.data as ChartData
     const height = stateHeight(data.chart)
     switch (data.state ?? 'ready') {
       case 'loading':
@@ -362,7 +401,7 @@ export class LintjeChartTile extends LintjeContentTileElement {
   private viewSwitch(): TemplateResult {
     const mobile = this.#mobile.matches
     return html`<lintje-segmented
-      class="lintje-chart-tile__view"
+      class="lintje-chart__view"
       slot=${mobile ? 'notice' : 'actions'}
       label="Weergave"
       hide-label
@@ -377,10 +416,10 @@ export class LintjeChartTile extends LintjeContentTileElement {
   }
 
   private table(): TemplateResult {
-    const data = this.data as ChartTileData
+    const data = this.data as ChartData
     const caption = data.title ? `${data.title}, als tabel` : 'Grafiek als tabel'
     return html`<lintje-data-table
-      class="lintje-chart-tile__table"
+      class="lintje-chart__table"
       bare
       .data=${chartTable(data.chart, caption)}
     ></lintje-data-table>`
@@ -414,10 +453,10 @@ export class LintjeChartTile extends LintjeContentTileElement {
   }
 }
 
-define('lintje-chart-tile', LintjeChartTile)
+define('lintje-chart', LintjeChart)
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lintje-chart-tile': LintjeChartTile
+    'lintje-chart': LintjeChart
   }
 }
