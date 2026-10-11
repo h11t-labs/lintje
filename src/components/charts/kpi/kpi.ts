@@ -14,6 +14,7 @@ import { classMap } from 'lit/directives/class-map.js'
 import { styleProps } from '../../../core/style-props'
 import { define } from '../../../core/element'
 import { durationMs, prefersReducedMotion } from '../../../core/motion'
+import { onBeforePrint } from '../../../core/print'
 import { shadowCss } from '../../../core/styles'
 import { LintjeGridItemElement, spanStyles } from '../../../primitives/shared/grid-item-element'
 import { iconStyles, renderIcon } from '../../../icons/render'
@@ -128,6 +129,7 @@ export class LintjeKpi extends LintjeGridItemElement {
   #frame = 0
   #played = false
   #inView = false
+  #offPrint: (() => void) | null = null
 
   private get figures(): KpiItem[] | null {
     return this.items?.length ? this.items : null
@@ -139,6 +141,7 @@ export class LintjeKpi extends LintjeGridItemElement {
 
   override connectedCallback(): void {
     super.connectedCallback()
+    this.#offPrint = onBeforePrint(() => this.finishCount())
     if (typeof IntersectionObserver === 'undefined') {
       this.#inView = true
       return
@@ -162,8 +165,20 @@ export class LintjeKpi extends LintjeGridItemElement {
 
   override disconnectedCallback(): void {
     this.#observer?.disconnect()
+    this.#offPrint?.()
     cancelAnimationFrame(this.#frame)
     super.disconnectedCallback()
+  }
+
+  /** Paper shows the value, never a figure halfway or the zero it counts up from. */
+  private finishCount(): void {
+    this.#observer?.disconnect()
+    cancelAnimationFrame(this.#frame)
+    this.#inView = true
+    this.#played = true
+    if (this.counting.every((text) => text === null)) return
+    this.counting = this.#counts.map(() => null)
+    this.performUpdate()
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {

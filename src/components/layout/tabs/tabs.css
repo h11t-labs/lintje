@@ -41,7 +41,7 @@
 .lintje-tabs__panel { padding-top: var(--space-4); }
 .lintje-tabs__panel.is-pressed:focus-visible { outline: none; }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-tabs__list {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -108,7 +108,7 @@
 .lintje-tabs__hint { font: var(--text-meta); color: var(--color-text-muted); }
 .lintje-tabs--panel .lintje-tabs__panel { padding: var(--space-6); }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-tabs--panel .lintje-tabs__tab {
     flex-direction: column;
     align-items: center;

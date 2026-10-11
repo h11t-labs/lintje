@@ -75,6 +75,12 @@
   transition: transform var(--dur-collapse) var(--ease-in-motion);
 }
 .lintje-disclosure.is-open .lintje-disclosure__chevron { transform: rotate(180deg); }
+/* Paper cannot be unfolded: what a disclosure holds is printed, and its chevron is not. */
+@media print {
+  .lintje-disclosure__body { grid-template-rows: 1fr; }
+  .lintje-disclosure__body-inner { opacity: 1; visibility: visible; overflow: visible; }
+  .lintje-disclosure__chevron { display: none; }
+}
 /* Leading: the chevron first, the title after it, and the content in line with the title. */
 .lintje-disclosure--leading .lintje-disclosure__header { justify-content: flex-start; align-items: flex-start; padding-top: var(--space-3); }
 /* The chevron stands in line with the title's first line, not between title and subtitle. */

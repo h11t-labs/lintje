@@ -11,11 +11,12 @@ import { LintjeElement, define } from '../../core/element'
 import { shadowCss } from '../../core/styles'
 import { iconStyles, renderIcon } from '../../icons/render'
 import iconButtonCss from './icon-button.css?inline'
+import screenOnlyCss from '../shared/screen-only.css?inline'
 
 export type IconButtonVariant = 'flat' | 'outlined' | 'tile'
 
 export class LintjeIconButton extends LintjeElement {
-  static override styles = [iconStyles, shadowCss(iconButtonCss)]
+  static override styles = [iconStyles, shadowCss(iconButtonCss), shadowCss(screenOnlyCss)]
 
   static override properties = {
     icon: { type: String },

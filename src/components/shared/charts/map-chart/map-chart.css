@@ -298,7 +298,7 @@
 }
 .lintje-map-chart__set-scope:hover { text-decoration: underline; }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-map-chart__legend-content { flex-wrap: wrap; }
 }
 
@@ -321,4 +321,9 @@
   .lintje-map-chart__point:focus-visible .lintje-map-chart__point-shape,
   .lintje-map-chart__polygon:focus-visible .lintje-map-chart__polygon-shape { stroke: Canvas; }
   .lintje-map-chart__layer.is-active { border-color: Highlight; }
+}
+
+/* Zooming is for the screen; paper shows the map as it stands. */
+@media print {
+  .lintje-map-chart__zoom { display: none; }
 }

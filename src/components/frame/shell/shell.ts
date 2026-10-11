@@ -512,6 +512,24 @@ export class LintjeShell extends LintjeElement {
     })
   }
 
+  /** Paper has no bars: the logo, the application's name and the environment say what it is. */
+  private renderPrintHead(data: ShellData): TemplateResult {
+    const line = [data.name, data.environment].filter(Boolean).join(' · ')
+    return html`<div class="lintje-shell__print-head" aria-hidden="true">
+      <div class="lintje-shell__print-logo">
+        <lintje-logo
+          full
+          width=${RIBBON_WIDTH.desktop}
+          src=${data.logo ?? nothing}
+          name=${data.emblem?.name ?? nothing}
+          alt=${data.emblem?.label ?? nothing}
+          byline=${data.emblem?.byline ?? nothing}
+        ></lintje-logo>
+      </div>
+      ${line ? html`<p class="lintje-shell__print-name">${line}</p>` : nothing}
+    </div>`
+  }
+
   private renderNavEnd(data: ShellData): TemplateResult {
     const feedback = data.feedback
     return html`${this.renderSearch()}${this.renderNotifications()}${renderBarTools(this)}${
@@ -598,7 +616,7 @@ export class LintjeShell extends LintjeElement {
           'is-phone': this.mobile.matches,
         })}
       >
-        ${this.renderSkipLink()}
+        ${this.renderSkipLink()} ${this.renderPrintHead(data)}
         ${this.mobile.matches ? this.renderTopPhone(groups) : this.renderTop(data, groups)}
         ${this.renderMain()} <slot name="footer"></slot> ${this.renderToast()}
       </div>`
@@ -616,7 +634,7 @@ export class LintjeShell extends LintjeElement {
     >
       ${this.renderSkipLink()} ${renderNavigation(this, groups)}
       <div class="lintje-shell__column">
-        ${renderMobileHeader(this, groups)} ${renderTopBar(this)} ${this.renderMain()}
+        ${this.renderPrintHead(data)} ${renderMobileHeader(this, groups)} ${renderTopBar(this)} ${this.renderMain()}
         <slot name="footer"></slot>
       </div>
       ${this.renderToast()}

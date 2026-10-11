@@ -1,0 +1,8 @@
+/*
+ * Adopted by a control that has nothing to say on paper: a button, a question box, a bar of
+ * actions. What the reader chose stays in the elements that show it; what to press does not.
+ * `!important`, so a page's own `display` on the tag does not bring it back.
+ */
+@media print {
+  :host { display: none !important; }
+}

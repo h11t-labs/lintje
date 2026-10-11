@@ -682,108 +682,111 @@
    re-points the layer-2/3 names whose meaning changes; everything that merely follows a
    neutral is absent on purpose. Page and tiles are both #282828, the border separates them: the
    step below is the menu's, so it stays a band beside the page and under the logo bar.
+   Screen only: paper is always light, whatever the reader chose.
    ========================================================================= */
-[data-mode='dark'] {
-  --neutral-0: #282828;
-  --neutral-1: #1D1D1D;
-  --neutral-2: #333333;
-  --neutral-3: #4A4A4A;
-  --neutral-4: #7A7A7A;
-  --neutral-5: #B0B0B0;
-  --neutral-6: #FFFFFF;
+@media screen {
+  [data-mode='dark'] {
+    --neutral-0: #282828;
+    --neutral-1: #1D1D1D;
+    --neutral-2: #333333;
+    --neutral-3: #4A4A4A;
+    --neutral-4: #7A7A7A;
+    --neutral-5: #B0B0B0;
+    --neutral-6: #FFFFFF;
 
-  /* The hover goes UP in dark: the light mix would put a near-black fill on the near-black page. */
-  --primary-hover: color-mix(in srgb, var(--primary), white 12%);
+    /* The hover goes UP in dark: the light mix would put a near-black fill on the near-black page. */
+    --primary-hover: color-mix(in srgb, var(--primary), white 12%);
 
-  --color-bg-page: var(--neutral-0);
-  --color-bg-title: var(--neutral-0);
-  /* The hero's wash sits halfway between the menu (L 0.231) and the page (L 0.277), below the
-     page as in light: a panel or tab on it is lighter than its ground. */
-  --primary-wash: oklch(from var(--primary) 0.254 min(c, 0.02) h);
+    --color-bg-page: var(--neutral-0);
+    --color-bg-title: var(--neutral-0);
+    /* The hero's wash sits halfway between the menu (L 0.231) and the page (L 0.277), below the
+       page as in light: a panel or tab on it is lighter than its ground. */
+    --primary-wash: oklch(from var(--primary) 0.254 min(c, 0.02) h);
 
-  /* The filter zone must read as a band, so in dark it steps UP to neutral-2 (neutral-1 turned
-     the fields in it into light boxes). `--color-bg-inset` keeps neutral-1: "sunken". */
-  --color-bg-filter: var(--neutral-2);
-  --color-bg-inset: var(--neutral-1);
+    /* The filter zone must read as a band, so in dark it steps UP to neutral-2 (neutral-1 turned
+       the fields in it into light boxes). `--color-bg-inset` keeps neutral-1: "sunken". */
+    --color-bg-filter: var(--neutral-2);
+    --color-bg-inset: var(--neutral-1);
 
-  --color-text-inverse: var(--neutral-1);
+    --color-text-inverse: var(--neutral-1);
 
-  /* Colour that must read by itself on #282828 becomes the tint; a FILL keeps the primary. */
-  --color-action-primary-border: var(--primary-tint);
-  --color-action-secondary-border: var(--primary-tint);
-  /* Danger hover: 8 % white is the most that keeps white text at 4.5:1 (4.56:1). The border and
-     the word lift the red as the primary's tints do, to 3:1 on #282828 and 4.5:1 on #333333,
-     the hover surface; the word's chroma cap keeps it inside sRGB. */
-  --color-action-danger-hover: color-mix(in srgb, var(--status-error), white 8%);
-  --color-action-danger-border: oklch(from var(--status-error) max(l, 0.58) c h);
-  --color-action-danger-text: oklch(from var(--status-error) max(l, 0.71) min(c, 0.18) h);
-  /* A status mark at 3:1 on its own tint. */
-  --color-attention-line: var(--status-attention);
-  --color-error-line: oklch(from var(--status-error) max(l, 0.6) c h);
-  --color-info-line: oklch(from var(--status-info) max(l, 0.58) c h);
-  --color-success-line: oklch(from var(--status-success) max(l, 0.57) c h);
-  /* A status word at 4.5:1 on #333333, lifted as the danger word is. */
-  --color-error-text: oklch(from var(--status-error) max(l, 0.71) min(c, 0.18) h);
-  --color-success-text: oklch(from var(--status-success) max(l, 0.68) min(c, 0.18) h);
-  /* A link is text: the text tint, not the line tint. The hover stays white. */
-  --color-link: var(--primary-tint-text);
-  --color-link-hover: var(--neutral-6);
-  --color-link-on-status: var(--neutral-6);
-  --color-accent-line: var(--primary-tint);
-  --color-accent-text: var(--primary-tint-text);
+    /* Colour that must read by itself on #282828 becomes the tint; a FILL keeps the primary. */
+    --color-action-primary-border: var(--primary-tint);
+    --color-action-secondary-border: var(--primary-tint);
+    /* Danger hover: 8 % white is the most that keeps white text at 4.5:1 (4.56:1). The border and
+       the word lift the red as the primary's tints do, to 3:1 on #282828 and 4.5:1 on #333333,
+       the hover surface; the word's chroma cap keeps it inside sRGB. */
+    --color-action-danger-hover: color-mix(in srgb, var(--status-error), white 8%);
+    --color-action-danger-border: oklch(from var(--status-error) max(l, 0.58) c h);
+    --color-action-danger-text: oklch(from var(--status-error) max(l, 0.71) min(c, 0.18) h);
+    /* A status mark at 3:1 on its own tint. */
+    --color-attention-line: var(--status-attention);
+    --color-error-line: oklch(from var(--status-error) max(l, 0.6) c h);
+    --color-info-line: oklch(from var(--status-info) max(l, 0.58) c h);
+    --color-success-line: oklch(from var(--status-success) max(l, 0.57) c h);
+    /* A status word at 4.5:1 on #333333, lifted as the danger word is. */
+    --color-error-text: oklch(from var(--status-error) max(l, 0.71) min(c, 0.18) h);
+    --color-success-text: oklch(from var(--status-success) max(l, 0.68) min(c, 0.18) h);
+    /* A link is text: the text tint, not the line tint. The hover stays white. */
+    --color-link: var(--primary-tint-text);
+    --color-link-hover: var(--neutral-6);
+    --color-link-on-status: var(--neutral-6);
+    --color-accent-line: var(--primary-tint);
+    --color-accent-text: var(--primary-tint-text);
 
-  /* Lintblauw has too little contrast on the dark surface; the house style lightens it. */
-  --color-logo-ribbon: var(--ribbon-blue-dark);
+    /* Lintblauw has too little contrast on the dark surface; the house style lightens it. */
+    --color-logo-ribbon: var(--ribbon-blue-dark);
 
-  /* The menu is neutral in dark: near-black, in the rail and in the bar alike, so in the top
-     layout it stays its own band under the logo bar. Hover and active are one step up, as they
-     are one fill in light; the edge is the text tint, as the line tint is 3:1 on neutral-0 only. */
-  --color-nav-bg: var(--neutral-1);
-  --color-nav-text: var(--neutral-6);
-  --color-nav-text-sub: var(--neutral-5);
-  --color-nav-hover: var(--neutral-2);
-  --color-nav-active: var(--neutral-2);
-  --color-nav-active-edge: var(--primary-tint-text);
-  --color-navbar-hover: var(--neutral-2);
-  --color-navbar-active: var(--neutral-2);
-  --color-navbar-active-edge: var(--primary-tint-text);
-  /* The open entry's word stands on the panel's surface: full text contrast, not the tint. */
-  --color-navbar-open-text: var(--color-text-primary);
-  /* The label is 16 px text: the tint is 3.0:1 and needs 4.5:1. The edge keeps the tint. */
-  --color-nav-active-text: var(--neutral-6);
-  /* The sheet is told from the page by its shadow and this quiet line; 1.66:1 is accepted here. */
-  --color-border-popover: var(--neutral-3);
-  --color-nav-line: var(--neutral-2);
-  --color-nav-disabled: var(--neutral-4);
-  /* The menu is neutral here, so its ring is the orange of every other surface. */
-  --color-focus-on-theme: var(--color-focus);
-  /* The choice edge keeps neutral-4 in dark: it already reaches 3:1 there (3.43:1 on #282828). */
-  --color-border-choice: var(--neutral-4);
+    /* The menu is neutral in dark: near-black, in the rail and in the bar alike, so in the top
+       layout it stays its own band under the logo bar. Hover and active are one step up, as they
+       are one fill in light; the edge is the text tint, as the line tint is 3:1 on neutral-0 only. */
+    --color-nav-bg: var(--neutral-1);
+    --color-nav-text: var(--neutral-6);
+    --color-nav-text-sub: var(--neutral-5);
+    --color-nav-hover: var(--neutral-2);
+    --color-nav-active: var(--neutral-2);
+    --color-nav-active-edge: var(--primary-tint-text);
+    --color-navbar-hover: var(--neutral-2);
+    --color-navbar-active: var(--neutral-2);
+    --color-navbar-active-edge: var(--primary-tint-text);
+    /* The open entry's word stands on the panel's surface: full text contrast, not the tint. */
+    --color-navbar-open-text: var(--color-text-primary);
+    /* The label is 16 px text: the tint is 3.0:1 and needs 4.5:1. The edge keeps the tint. */
+    --color-nav-active-text: var(--neutral-6);
+    /* The sheet is told from the page by its shadow and this quiet line; 1.66:1 is accepted here. */
+    --color-border-popover: var(--neutral-3);
+    --color-nav-line: var(--neutral-2);
+    --color-nav-disabled: var(--neutral-4);
+    /* The menu is neutral here, so its ring is the orange of every other surface. */
+    --color-focus-on-theme: var(--color-focus);
+    /* The choice edge keeps neutral-4 in dark: it already reaches 3:1 there (3.43:1 on #282828). */
+    --color-border-choice: var(--neutral-4);
 
-  /* A term's box is the subtle surface: behind a word on #282828 the dark wash would be a hole. */
-  --color-term-bg: var(--neutral-2);
-  --color-choice-active-bg: var(--neutral-2);
-  --color-hero-focus: var(--color-focus);
-  --color-term-line: var(--primary-tint-text);
+    /* A term's box is the subtle surface: behind a word on #282828 the dark wash would be a hole. */
+    --color-term-bg: var(--neutral-2);
+    --color-choice-active-bg: var(--neutral-2);
+    --color-hero-focus: var(--color-focus);
+    --color-term-line: var(--primary-tint-text);
 
-  /* Yellow as text works on the dark surface, so the dark gold is not needed. */
-  --color-chart-dark-yellow-text: var(--data-dark-yellow);
-  --color-map-water: var(--neutral-1);
+    /* Yellow as text works on the dark surface, so the dark gold is not needed. */
+    --color-chart-dark-yellow-text: var(--data-dark-yellow);
+    --color-map-water: var(--neutral-1);
 
-  --shadow-sticky: 0 2px 6px var(--alpha-black-40);
-  --shadow-popover: 0 4px 16px var(--alpha-black-55);
-  --shadow-nav: 2px 0 8px var(--alpha-black-40);
-  --shadow-chart-hover: 0 1px 4px var(--alpha-black-60);
-  --shadow-scroll-start: inset 12px 0 10px -10px var(--alpha-black-60);
-  --shadow-scroll-end: inset -12px 0 10px -10px var(--alpha-black-60);
-  --color-overlay-nav: var(--alpha-black-40);
+    --shadow-sticky: 0 2px 6px var(--alpha-black-40);
+    --shadow-popover: 0 4px 16px var(--alpha-black-55);
+    --shadow-nav: 2px 0 8px var(--alpha-black-40);
+    --shadow-chart-hover: 0 1px 4px var(--alpha-black-60);
+    --shadow-scroll-start: inset 12px 0 10px -10px var(--alpha-black-60);
+    --shadow-scroll-end: inset -12px 0 10px -10px var(--alpha-black-60);
+    --color-overlay-nav: var(--alpha-black-40);
+  }
 }
 
 /* ============================================================================
    Below 768 px the gutter follows the page padding and every pointer target is the touch
-   floor.
+   floor. Screen only: a portrait page is narrower than 768 px and keeps the desktop form.
    ========================================================================= */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   :root {
     --grid-gutter: 16px;
     --h-target: var(--h-touch);
@@ -792,3 +795,23 @@
     --w-ribbon: 2.5rem;
   }
 }
+
+/* ============================================================================
+   Paper — white under the content, since Lintje prints its own fills
+   (`print-color-adjust: exact` in base.css): a band in the page's grey would cost ink and
+   say nothing.
+   ========================================================================= */
+@media print {
+  :root {
+    /* The paper's margin is the page's edge: bars and content start at it, aligned. */
+    --page-pad-x: 0px;
+    --color-bg-page: var(--neutral-0);
+    --color-bg-title: var(--neutral-0);
+    --color-bg-filter: var(--neutral-0);
+  }
+}
+
+/* The sheet's own margin, so the content never runs to the paper's edge: room for the browser's
+   date, address and page number above and below, and a portrait sheet still wide enough for the
+   tablet's form. A custom property does not reach `@page`, so the value stands here. */
+@page { margin: 15mm 12mm; }

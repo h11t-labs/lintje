@@ -23,6 +23,6 @@
 :host([layout='horizontal']) .lintje-card-list { --card-list-min: var(--w-card-wide); }
 .lintje-card-list__item { min-width: 0; }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-card-list { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
 }

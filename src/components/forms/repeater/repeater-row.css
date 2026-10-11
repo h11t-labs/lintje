@@ -4,7 +4,7 @@
   min-width: 0;
 }
 :host([hidden]) { display: none; }
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   :host(:not([index='0'])) {
     padding-top: var(--space-5);
     border-top: 1px solid var(--color-border-default);
@@ -21,7 +21,7 @@
 .lintje-repeater-row__remove { flex: none; --h-icon-button: var(--h-control); }
 
 /* Below 768 px the fields stack and the remove button stands beside the first. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-repeater-row { align-items: flex-start; }
   .lintje-repeater-row__fields { flex-direction: column; }
 }

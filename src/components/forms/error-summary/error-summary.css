@@ -43,6 +43,6 @@
   font: var(--text-ui);
 }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-error-summary { padding: var(--space-3) var(--space-4); }
 }

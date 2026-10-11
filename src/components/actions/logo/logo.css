@@ -32,6 +32,6 @@
   color: inherit;
 }
 .lintje-logo__byline { font-weight: 400; font-style: italic; }
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-logo__name { max-width: 9rem; font-size: 0.875rem; }
 }

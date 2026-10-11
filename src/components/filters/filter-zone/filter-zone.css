@@ -89,7 +89,7 @@
 @media (min-width: 1440px) {
   .lintje-filter-bar__controls { flex-wrap: nowrap; }
 }
-@media (min-width: 768px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1023px), print and (max-width: 1023px) {
   .lintje-filter-bar__controls { display: grid; grid-template-columns: 1fr 1fr; }
 }
 
@@ -212,9 +212,13 @@
 .lintje-filter-bar--wrap .lintje-filter-bar__controls { flex-wrap: wrap; }
 
 
+/* On paper the sentence stands at the paper's edge, in line with the content under it. */
 @media print {
   .lintje-filter-bar.is-sticky, .lintje-filter-bar--fixed.is-sticky { position: static; box-shadow: none; }
   .lintje-filter-toggle, .lintje-filter-bar__reset, .lintje-filter-bar__counter { display: none; }
+  .lintje-filter-bar__header,
+  .lintje-filter-bar__summary,
+  .lintje-summary-bar { padding-inline: 0; }
 }
 
 /* Forced colours drop the fill and the inset shadow, so the row takes a real border. */

@@ -95,7 +95,7 @@
 }
 .lintje-chat__source-meta { font: var(--text-small); color: var(--color-text-muted); }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-chat__list,
   .lintje-chat__start { padding: var(--space-4); gap: var(--space-8); }
   .lintje-chat__title { font: var(--text-h1); }

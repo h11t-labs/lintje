@@ -2,7 +2,7 @@
 :host { display: block; min-width: 0; }
 :host([hidden]) { display: none; }
 /* Below 768 px: the touch height and the full width, as `stacked`. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   :host {
     width: 100%;
     --h-control: var(--h-touch);

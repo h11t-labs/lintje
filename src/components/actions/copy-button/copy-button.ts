@@ -23,13 +23,14 @@ import '../../../primitives/icon-button/icon-button'
 import '../../feedback/toast/toast'
 import { ANNOUNCE_GAP, COPIED_FOR } from '../../shared/copied'
 import copyButtonCss from './copy-button.css?inline'
+import screenOnlyCss from '../../../primitives/shared/screen-only.css?inline'
 
 const LABEL = 'Kopiëren'
 const COPIED = 'Gekopieerd'
 const FAILED = 'Kopiëren is niet gelukt. Selecteer de tekst en kopieer hem zelf.'
 
 export class LintjeCopyButton extends LintjeElement {
-  static override styles = shadowCss(copyButtonCss)
+  static override styles = [shadowCss(copyButtonCss), shadowCss(screenOnlyCss)]
 
   static override properties: PropertyDeclarations = {
     text: { type: String },

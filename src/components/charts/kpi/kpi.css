@@ -3,6 +3,7 @@
   min-width: 0;
 }
 :host([hidden]) { display: none; }
+@media print { :host { break-inside: avoid; } }
 .lintje-kpi { height: 100%; }
 
 /* ------------------------------------------------------------------------ */
@@ -89,7 +90,7 @@
 
 .lintje-kpi__skeleton { display: flex; flex-direction: column; gap: var(--space-2); }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-kpi { padding: 12px 14px; gap: var(--space-1); }
   .lintje-kpi__value { font: var(--text-kpi-mobile); font-variant-numeric: tabular-nums; }
 }

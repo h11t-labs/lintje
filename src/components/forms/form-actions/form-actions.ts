@@ -15,6 +15,7 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import { AttributeHold, PropertyHold } from '../form/controls'
 import '../../../primitives/button/button'
 import formActionsCss from './form-actions.css?inline'
+import screenOnlyCss from '../../../primitives/shared/screen-only.css?inline'
 
 const DIRTY = 'Wijzigingen nog niet opgeslagen'
 const BUSY = 'Bezig met opslaan'
@@ -52,7 +53,7 @@ function reserve(): void {
 }
 
 export class LintjeFormActions extends LintjeElement {
-  static override styles = [iconStyles, shadowCss(formActionsCss)]
+  static override styles = [iconStyles, shadowCss(formActionsCss), shadowCss(screenOnlyCss)]
 
   static override properties: PropertyDeclarations = {
     state: { type: String, reflect: true },

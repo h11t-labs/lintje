@@ -4,8 +4,8 @@
  */
 import type { ReactiveController, ReactiveControllerHost } from 'lit'
 
-/** Below this the views take their phone representation (rule 9). */
-export const MOBILE = '(max-width: 767px)'
+/** Below this the views take their phone representation (rule 9); on screen only, so paper keeps the desktop form. */
+export const MOBILE = 'screen and (max-width: 767px)'
 
 /** From here the menu can be pinned. The frame's markup changes at both breakpoints. */
 export const WIDE = '(min-width: 1440px)'

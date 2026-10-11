@@ -34,6 +34,7 @@ import '../../../primitives/tooltip/tooltip'
 import buttonCss from '../../../primitives/button/button.css?inline'
 import iconButtonCss from '../../../primitives/icon-button/icon-button.css?inline'
 import menuButtonCss from './menu-button.css?inline'
+import screenOnlyCss from '../../../primitives/shared/screen-only.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { standsIn } from '../../../core/focus'
 
@@ -139,6 +140,7 @@ export class LintjeMenuButton extends LintjeElement {
     shadowCss(buttonCss),
     shadowCss(iconButtonCss),
     shadowCss(menuButtonCss),
+    shadowCss(screenOnlyCss),
   ]
 
   static override properties: PropertyDeclarations = {

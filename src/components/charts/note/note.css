@@ -3,6 +3,7 @@
   min-width: 0;
 }
 :host([hidden]) { display: none; }
+@media print { :host { break-inside: avoid; } }
 .lintje-note { height: 100%; }
 
 /* ------------------------------------------------------------------------ */

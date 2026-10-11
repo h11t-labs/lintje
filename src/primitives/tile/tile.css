@@ -11,6 +11,8 @@
   height: 100%;
   min-height: inherit;
 }
+/* On paper a tile stays on one sheet where it fits, unless it is `breakable`. */
+@media print { :host(:not([breakable])) { break-inside: avoid; } }
 .lintje-chart-state {
   display: flex;
   flex-direction: column;
@@ -76,7 +78,7 @@
 .lintje-tile__body--aside .lintje-tile__content { flex: 1; min-width: 0; }
 .lintje-tile__aside { flex: none; display: flex; flex-direction: column; justify-content: center; }
 /* On a phone the content keeps its full width and the key figure leads above it. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-tile__body--aside { flex-direction: column; }
 }
 
@@ -100,4 +102,12 @@
 .lintje-tile--flush:has(> .lintje-tile__footnote[hidden]) > .lintje-tile__body {
   margin-bottom: calc(var(--tile-pad-y) * -1 - 1px);
   --lintje-inset-end: calc(var(--tile-pad-y) + 1px);
+}
+
+/* Enlarging and downloading are for the screen. A tile split over two sheets is a block:
+   Chromium sizes a flex column that breaks too short, and what follows overlaps its rows. */
+@media print {
+  .lintje-tile__actions { display: none; }
+  :host([breakable]) .lintje-tile { display: block; }
+  :host([breakable]) .lintje-tile > :not(:first-child) { margin-top: 14px; }
 }

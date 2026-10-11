@@ -97,3 +97,14 @@ input, select, textarea { font: inherit; color: inherit; }
 @media (forced-colors: active) {
   :focus-visible { outline-color: Highlight; }
 }
+
+/* Paper. A fill carries meaning (a legend swatch, a status cell, the current page), so it prints
+   even with the browser's background graphics off; the surfaces under it are white in print.
+   A drawing in progress would print half drawn, so every mark stands in its final state. */
+@media print {
+  *, *::before, *::after {
+    print-color-adjust: exact;
+    animation: none !important;
+    transition: none !important;
+  }
+}

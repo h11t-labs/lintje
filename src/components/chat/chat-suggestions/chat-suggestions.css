@@ -52,7 +52,7 @@
   flex-direction: row; flex-wrap: wrap; align-items: stretch; justify-content: flex-start;
 }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-chat-suggestions { margin-left: var(--space-10); }
   .lintje-chat-suggestions--start { margin-left: 0; }
 }

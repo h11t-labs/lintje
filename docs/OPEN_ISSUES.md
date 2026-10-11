@@ -131,6 +131,8 @@ Uit de WCAG-review van oktober 2026: wat nog openstaat in de elementen zelf. Wat
 - `src/components/forms/form/form.ts` met `src/components/forms/error-summary/error-summary.ts`: de foutsamenvatting van het formulier drukt "label: melding" af met de eigen melding van het veld, dus een host moet meldingen voor beide plekken formuleren.
 - `src/components/content/prose/prose.ts`: markup in het slot krijgt geen opmaak.
 - `examples/meldingen/app.js` leest het concept zelf uit `localStorage` in plaats van `restoredDraft` en `restoredAt` van `lintje-form`. `examples/transcriptie/` en `examples/vertalen/` herladen de pagina om van modus te wisselen; `data-mode` tijdens het draaien wisselen werkt (gecontroleerd in Chromium op de transcriptiepagina: elk element volgt).
+- `src/components/tables/data-table/data-table.css`: op papier staat de kop van een tabel één keer; Chromium herhaalt hem op het volgende vel zonder zijn woorden, alleen met zijn lijn. Een tabel die doorloopt, heeft daar dus geen kop.
+- `src/components/tables/data-table/data-table.css`: op een staand vel breekt een cel waar hij moet, ook bij een streepje ("M-20260401", "04-10-2026"); een brede tabel leest liggend beter.
 
 ## Gevonden door de browsertests
 
@@ -151,6 +153,7 @@ De browsertest van de styleguide tekent en audit; een `*.browser.test.ts` naast 
 - `src/components/inputs/textarea/textarea.ts`: de `field-sizing`-fallback is alleen geforceerd getest (`textarea-fallback.browser.test.ts`): Chromium en WebKit kennen `field-sizing: content` allebei, dus in een engine zonder is hij nog niet gezien.
 - `src/components/inputs/file-upload/file-upload.ts`: het sleepaantal is getest met een eigen `DataTransfer`; of Safari `dataTransfer.items` leesbaar houdt bij een echte sleep vanuit het systeem, is niet gezien.
 - `src/components/tables/sortable-list/sortable-list.ts`: slepen met een vinger in Safari; Playwright stuurt geen touch naar WebKit, dus `sortable-list.browser.test.ts` sleept met touch alleen in Chromium.
+- Afdrukken: alleen als PDF uit Chromium bekeken, staand en liggend, met en zonder achtergronden, licht en donker; `print.browser.test.ts` toetst de regels, niet het vel. Het afdrukvoorbeeld van Firefox en Safari is niet gezien.
 - Geforceerde kleuren (Windows-hoog contrast): alleen in de emulatie van Chromium bekeken, in licht en donker, niet in Windows zelf.
 - Er is geen test met een schermlezer gedaan op de live-regio's, de dialogen en de formulierfouten; wat ze zeggen is alleen tegen de DOM gecontroleerd.
 - Firefox: de build van Playwright (1.63 met Firefox 155, en 1.64 met Firefox 157) start niet op macOS 27 ("Could not find profile folder"), dus `npm run test:browser:all` draait Chromium en WebKit; voeg `firefox` aan de lijst toe zodra hij wel start.

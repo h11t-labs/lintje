@@ -56,7 +56,7 @@
   color: var(--color-text-muted);
 }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-page-header { padding: var(--space-4) var(--space-4) 14px; gap: 4px; }
   .lintje-page-header__title { font: var(--text-h1-mobile); }
   .lintje-page-header__meta { font: var(--text-meta); margin-top: 0; }
@@ -67,3 +67,8 @@
 .lintje-page-header--shell .lintje-page-header__heading { gap: var(--space-1); }
 .lintje-page-header--shell .lintje-page-header__title { overflow-wrap: anywhere; }
 .lintje-page-header--shell .lintje-page-header__description { margin-top: 0; }
+
+/* On paper the title stands at the paper's edge, in line with the content under it. */
+@media print {
+  .lintje-page-header { padding-inline: 0; }
+}

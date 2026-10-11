@@ -125,7 +125,7 @@
 
 /* Below 768 px the 48 px cells would run off a narrow phone: the popover keeps the page's gutter
    on either side and the cells share what is left. */
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-date-range-picker__popover { max-width: calc(100vw - 2 * var(--space-4)); }
   .lintje-date-range-picker__grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 }

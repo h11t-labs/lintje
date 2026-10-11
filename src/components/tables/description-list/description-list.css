@@ -49,7 +49,7 @@
 .lintje-description-list--column .lintje-description-list__row + .lintje-description-list__row { margin-top: 10px; }
 .lintje-description-list--column .lintje-description-list__label { padding: 0; font: var(--text-small); }
 .lintje-description-list--column .lintje-description-list__value { padding: 0; }
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-description-list:not(.lintje-description-list--grid) .lintje-description-list__row { display: block; border-bottom: 0; }
   .lintje-description-list:not(.lintje-description-list--grid) .lintje-description-list__row + .lintje-description-list__row { margin-top: 10px; }
   .lintje-description-list:not(.lintje-description-list--grid) .lintje-description-list__label { padding: 0; font: var(--text-small); }

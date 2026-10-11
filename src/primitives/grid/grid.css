@@ -12,10 +12,10 @@
 }
 :host([hidden]) { display: none; }
 
-@media (min-width: 768px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1023px), print and (max-width: 1023px) {
   :host([variant='kpi-row']) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   :host { grid-template-columns: minmax(0, 1fr); }
   :host([variant='kpi-row']) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -27,10 +27,10 @@
   grid-column: span var(--lintje-span, 1);
 }
 
-@media (min-width: 768px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1023px), print and (max-width: 1023px) {
   ::slotted([span='4']) { grid-column: span 6; }
   ::slotted([span='8']) { grid-column: span 12; }
 }
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   ::slotted([span]) { grid-column: span 1; }
 }

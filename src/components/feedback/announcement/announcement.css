@@ -58,7 +58,7 @@
 .lintje-announcement--ok { background: var(--color-success-bg); }
 .lintje-announcement--ok .lintje-announcement__icon { color: var(--color-success-line); }
 
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .lintje-announcement { padding: 10px var(--space-3); gap: var(--space-2); }
   .lintje-announcement__title { font: var(--text-tile-title); color: var(--color-text-primary); }
 .lintje-announcement__text { font: var(--text-small); }
@@ -67,4 +67,8 @@
 /* Forced colours drop the fill, so the announcement takes an outline. */
 @media (forced-colors: active) {
   .lintje-announcement { outline: 1px solid CanvasText; outline-offset: -1px; }
+}
+
+@media print {
+  .lintje-announcement { break-inside: avoid; }
 }
