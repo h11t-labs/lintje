@@ -1,0 +1,3 @@
+/* The group's stack; each row is a `lintje-checkbox`, which draws the box and its hint. */
+
+.lintje-checkbox-group { display: flex; flex-direction: column; }
