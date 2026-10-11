@@ -69,6 +69,35 @@ function previewOf(specimen, className) {
   return frame
 }
 
+// The width a wide specimen (a row of figures, a tile, a table) may take before it is made small:
+// a page's content column, so it lays out as on a page.
+const THUMB_WIDTH = 960
+
+/**
+ * A specimen as a thumbnail: drawn at its own size and scaled down as a whole until it fits its
+ * box, centred. It never grows, and nothing is cut off. A wide one that has no width of its own
+ * (a chart measures its room) is drawn at a tile's width.
+ */
+function thumbnailOf(specimen) {
+  const frame = previewOf(specimen, 'guide__card-preview')
+  const stage = frame.firstElementChild
+  if (specimen.wide) stage.style.maxWidth = `${THUMB_WIDTH}px`
+  const fit = () => {
+    if (specimen.wide && !stage.style.width && stage.offsetWidth < THUMB_WIDTH / 2)
+      stage.style.width = `${THUMB_WIDTH}px`
+    const scale = Math.min(
+      1,
+      frame.clientWidth / Math.max(stage.offsetWidth, 1),
+      frame.clientHeight / Math.max(stage.offsetHeight, 1),
+    )
+    stage.style.setProperty('--guide-scale', String(scale))
+  }
+  const observer = new ResizeObserver(fit)
+  observer.observe(frame)
+  observer.observe(stage)
+  return frame
+}
+
 /**
  * A card whose title is its link; the link's area covers the card, so the whole card is
  * clickable while the title stays its one tab stop. `go` follows the guide's own addresses.
@@ -125,14 +154,15 @@ export function renderOverview(host, items, { declarations, addressOf, go, categ
     const preview = allSpecimens(item).find((entry) => entry.preview)
     grid.append(
       linkCard('guide__card', addressOf(item), go, (card, link) => {
-        if (preview) card.append(previewOf(preview, 'guide__card-preview'))
-        else card.append(element('div', 'guide__card-preview guide__card-preview--none', nameOf(item)))
+        if (preview) card.append(thumbnailOf(preview))
+        // Without a specimen to show, the box stays empty: the name stands right under it.
+        else card.append(element('div', 'guide__card-preview'))
         const body = element('div', 'guide__card-body')
         const title = element('h3', 'guide__card-title')
-        link.append(element('code', '', item.tag ? nameOf(item) : item.title))
+        // A section without a tag is named as the menu names it; its title is the line under it.
+        link.append(element('code', '', nameOf(item)))
         title.append(link)
-        body.append(title)
-        if (item.tag) body.append(element('p', 'guide__card-text', item.title))
+        body.append(title, element('p', 'guide__card-text', item.title))
         const meta = element('p', 'guide__meta', summaryOf(item, declarations.get(item.tag)))
         body.append(meta)
         if (item.tag)
