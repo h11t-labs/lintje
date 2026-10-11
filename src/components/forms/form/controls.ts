@@ -71,6 +71,12 @@ const VALUE_ACCESS: Record<string, ValueAccess> = {
       control.selected = Array.isArray(value) ? [...(value as string[])] : []
     },
   },
+  'lintje-checkbox-group': {
+    read: (control) => [...((control.selected as string[] | undefined) ?? [])],
+    write: (control, value) => {
+      control.selected = Array.isArray(value) ? [...(value as string[])] : []
+    },
+  },
   'lintje-date-range': {
     read: (control) => ({ ...(control.range as object) }),
     write: (control, value) => {

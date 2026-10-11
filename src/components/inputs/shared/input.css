@@ -16,6 +16,7 @@
 :host(lintje-text-input),
 :host(lintje-number-input),
 :host(lintje-checkbox),
+:host(lintje-checkbox-group),
 :host(lintje-toggle),
 :host(lintje-radio-group) {
   display: block;

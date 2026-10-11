@@ -152,6 +152,19 @@ function fakeUploads(upload) {
   upload.addEventListener('lintje-file-cancel', drop)
 }
 
+const BIJLAGEN = [
+  { value: 'id', label: 'Kopie van een identiteitsbewijs' },
+  { value: 'loon', label: 'Loonstrook', description: 'Van de laatste maand' },
+  { value: 'huur', label: 'Huurcontract' },
+]
+
+/** Gives the stage's checkbox group the attachment options and a first selection. */
+function bijlagen(stage, selected) {
+  const group = stage.querySelector('lintje-checkbox-group')
+  group.options = BIJLAGEN
+  group.selected = selected
+}
+
 /** Writes every `lintje-change` of the stage's element into a log line under it. */
 function logChanges(stage, tag) {
   const say = log(stage, 'Nog niets verstuurd.')
@@ -500,6 +513,35 @@ export default {
         {
           label: 'Uitgeschakeld',
           html: '<lintje-checkbox name="p.uit" label="Uitgeschakeld" checked disabled></lintje-checkbox>',
+        },
+      ],
+    },
+    {
+      tag: 'lintje-checkbox-group',
+      title: 'Meer keuzes onder één label, met één hint en één foutregel',
+      specimens: [
+        {
+          label: 'Rust, met een toelichting onder een optie',
+          html: '<lintje-checkbox-group name="bijlagen" label="Welke bijlagen stuurt u mee?" hint="Kies alles wat van toepassing is."></lintje-checkbox-group>',
+          setup(stage) {
+            bijlagen(stage, ['loon'])
+            logChanges(stage, 'lintje-checkbox-group')
+          },
+        },
+        {
+          label: 'Fout',
+          html: '<lintje-checkbox-group name="bijlagen-fout" label="Welke bijlagen stuurt u mee?" required error="Kies minstens één bijlage."></lintje-checkbox-group>',
+          setup: (stage) => bijlagen(stage, []),
+        },
+        {
+          label: 'Afwijkend van standaard',
+          html: '<lintje-checkbox-group name="bijlagen-afwijkend" label="Afwijkend van standaard" modified></lintje-checkbox-group>',
+          setup: (stage) => bijlagen(stage, ['id', 'huur']),
+        },
+        {
+          label: 'Uitgeschakeld',
+          html: '<lintje-checkbox-group name="bijlagen-uit" label="Uitgeschakeld" disabled></lintje-checkbox-group>',
+          setup: (stage) => bijlagen(stage, ['id']),
         },
       ],
     },
