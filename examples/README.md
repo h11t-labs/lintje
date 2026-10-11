@@ -65,7 +65,8 @@ per kop de categorieën, en per categorie de elementen die hij toont, op volgord
 een attribuut niet kan dragen (een rijke property, een listener); `preview: true` wijst het voorbeeld
 voor het overzicht aan. Een element met soorten heeft `groups` en `states`.
 `styleguide/shared.js` bevat dat contract, `page.js` tekent de twee soorten pagina's, `code.js` de
-code onder een voorbeeld en `reference.js` de referentie. Een tag van
+code onder een voorbeeld, `reference.js` de referentie en `usage.js` zoekt het element in de
+voorbeeldapplicaties (`_shared/apps.js`). Een tag van
 de bundel die geen categorie heeft, wordt in de console gemeld, en zo ook een module die
 ontbreekt of een fout gooit.
 

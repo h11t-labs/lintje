@@ -152,7 +152,7 @@ export default {
       tag: 'lintje-map',
       title: 'Tegel met een kaart: stromen, punten, reeksen, choropleet, vlakken en lagen, ook op een ondergrond (WMS)',
       specimens: [
-        ...MAPS.map((map) => ({ label: map.label, preview: map.id === 'map-points', html: MAP_TILE, wide: true, setup: mapSetup(map) })),
+        ...MAPS.map((map) => ({ label: map.label, html: MAP_TILE, wide: true, setup: mapSetup(map) })),
         ...MAPS.map((map) => ({
           label: `${map.label} · ondergrond`,
           html: MAP_TILE,

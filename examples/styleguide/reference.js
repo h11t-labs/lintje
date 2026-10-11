@@ -178,8 +178,17 @@ export function renderReference(declaration, types, { shownBy = new Map(), skip 
       const own = interfaceFields(name, types)
       if (!own.length) return
       const node = fieldTable(`Velden van ${name}`, own, shownBy, prefix)
-      stack.append(heading(depth ? name : `${prefix.slice(0, -1)}: ${name}`), node)
       tables.set(prefix, node)
+      if (depth) {
+        // A type a field names is a step further: closed, as a union's variants are.
+        const box = document.createElement('lintje-expander')
+        box.flat = true
+        box.heading = name
+        box.subtitle = plain(type.description) ?? `${own.length} velden`
+        box.append(node)
+        node.reveal = () => (box.open = true)
+        stack.append(box)
+      } else stack.append(heading(`${prefix.slice(0, -1)}: ${name}`), node)
       for (const field of own)
         for (const inner of typeNames(field.type, types)) expand(inner, `${field.name}.`, depth + 1)
     } else if (type.kind === 'union') {
@@ -239,6 +248,7 @@ export function renderReference(declaration, types, { shownBy = new Map(), skip 
     const target = tables.get(dot < 0 ? '' : key.slice(0, dot + 1))
     if (!target) return null
     target.only(dot < 0 ? key : key.slice(dot + 1))
+    target.reveal?.()
     return target
   }
   return stack
