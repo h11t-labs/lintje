@@ -18,6 +18,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   laat de laag groeien of krimpen over het nieuwe token `--dur-layer`. De tooltip sluit af met
   een totaal en de tabel krijgt een kolom Totaal. Daarvoor krijgt `TooltipRow` een `divider` en
   `core/motion.ts` een `easing`. (#11)
+- Een lijngrafiek toont gebeurtenissen (`events`): een genummerd vierkantje boven de categorie,
+  met de tekst in een lijst onder de grafiek, in de tooltip, de tabel en de CSV. (#12)
 - De foutpagina (`lintje-error-page`): de code met een teken voor geen toegang en een storing,
   een titel in woorden, de tekst, een slot voor een zoekveld of melding en een voor de knoppen,
   een referentie met kopieerknop en de lijst "Verder naar". De stijlgids toont niet gevonden,

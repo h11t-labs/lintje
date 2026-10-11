@@ -91,14 +91,27 @@ function stateHeight(chart: ChartSpec): string | undefined {
 /** The rows of the CSV download, header first; the table view shows the same rows. */
 function csvRows(chart: ChartSpec): CsvCell[][] {
   switch (chart.kind) {
-    case 'line':
+    case 'line': {
+      const events = chart.events ?? []
+      // A category without an event is empty, not missing (rule 15 is about values).
+      const eventAt = (i: number) =>
+        events
+          .filter((event) => event.index === i)
+          .map((event) => event.label)
+          .join('; ')
       return [
-        ['', ...chart.series.map((series) => series.label)],
+        [
+          '',
+          ...chart.series.map((series) => series.label),
+          ...(events.length ? ['Gebeurtenis'] : []),
+        ],
         ...chart.labels.map((label, i) => [
           label,
           ...chart.series.map((series) => series.values[i]),
+          ...(events.length ? [eventAt(i)] : []),
         ]),
       ]
+    }
     case 'bar':
       return [
         ['', chart.axisTitle ?? 'Waarde', ...(chart.trend ? ['Trend'] : [])],
