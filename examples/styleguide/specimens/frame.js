@@ -207,11 +207,38 @@ const SUB_NAV_NESTED = [
   },
 ]
 
+const SUB_NAV_PAGE = [
+  {
+    label: 'Op deze pagina',
+    items: [
+      { label: 'Wie kan een vergunning aanvragen', href: '#wie' },
+      { label: 'Wat u nodig hebt', href: '#nodig' },
+      {
+        label: 'Zo vraagt u aan',
+        href: '#aanvragen',
+        items: [
+          { label: 'Online aanvragen', href: '#online', active: true },
+          { label: 'Op papier aanvragen', href: '#papier' },
+        ],
+      },
+      {
+        label: 'Na uw aanvraag',
+        href: '#na',
+        items: [
+          { label: 'Hoe lang het duurt', href: '#termijn' },
+          { label: 'Bezwaar maken tegen een besluit over uw aanvraag', href: '#bezwaar' },
+        ],
+      },
+      { label: 'Vragen en contact', href: '#contact' },
+    ],
+  },
+]
+
 /** The host holds the reader's page: a click makes the chosen entry the active one. */
-function subNav(stage, groups, action) {
+function subNav(stage, groups, action, label = 'Instellingen') {
   const element = stage.querySelector('lintje-sub-nav')
   element.style.maxWidth = '288px'
-  element.label = 'Instellingen'
+  element.label = label
   element.groups = groups
   element.action = action
   const mark = (items, href) =>
@@ -433,7 +460,7 @@ export default {
     },
     {
       tag: 'lintje-sub-nav',
-      title: 'Het submenu naast de inhoud, onder 768 px één knop die de lijst openklapt',
+      title: 'Het submenu naast de inhoud, ook als inhoudsopgave van een pagina; onder 768 px één knop die de lijst openklapt',
       specimens: [
         {
           label: 'Groepen met een label, de huidige pagina en een actie',
@@ -449,6 +476,11 @@ export default {
           label: 'Tweede laag, open op het pad van de huidige pagina',
           html: '<lintje-sub-nav></lintje-sub-nav>',
           setup: (stage) => subNav(stage, SUB_NAV_NESTED),
+        },
+        {
+          label: 'Alle niveaus open (expanded): de secties van een lange pagina, als ankers',
+          html: '<lintje-sub-nav expanded></lintje-sub-nav>',
+          setup: (stage) => subNav(stage, SUB_NAV_PAGE, undefined, 'Op deze pagina'),
         },
       ],
     },
