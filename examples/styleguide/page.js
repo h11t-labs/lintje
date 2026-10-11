@@ -11,7 +11,7 @@ import {
   typeNames,
   variantReference,
 } from './reference.js'
-import { allSpecimens, nameOf, renderSpecimen } from './shared.js'
+import { allSpecimens, nameOf, renderSpecimen, slug } from './shared.js'
 import { KIND_SKETCHES, SKETCHES, sketchOf } from './sketches.js'
 import { usageOf } from './usage.js'
 
@@ -42,13 +42,16 @@ function paragraphsOf(description) {
 
 const count = (n, one, many) => `${n} ${n === 1 ? one : many}`
 
-/** The API in one line: properties, events, slots. */
+/** The API in one line: properties, events, slots; a part it has none of goes unsaid. */
 const apiOf = (declaration) =>
   [
-    count(fieldsOf(declaration).length, 'eigenschap', 'eigenschappen'),
-    count(declaration.events.length, 'event', 'events'),
-    count(declaration.slots.length, 'slot', 'slots'),
-  ].join(' · ')
+    [fieldsOf(declaration).length, 'eigenschap', 'eigenschappen'],
+    [declaration.events.length, 'event', 'events'],
+    [declaration.slots.length, 'slot', 'slots'],
+  ]
+    .filter(([n]) => n)
+    .map((part) => count(...part))
+    .join(' · ')
 
 /** What an element's card says about it in one line. */
 function summaryOf(item, declaration, apps) {
@@ -59,8 +62,16 @@ function summaryOf(item, declaration, apps) {
   return parts.join(' · ')
 }
 
-/** A specimen's short name: its label up to the colon. "Bezig: de breedte blijft" → "Bezig". */
-const shortOf = (label) => label.split(/:|, |\s·\s/)[0]
+/**
+ * A specimen's label as a name and a note: "Bezig: de breedte blijft" → "Bezig" and "De
+ * breedte blijft". Without a colon, the first comma splits it.
+ */
+function nameAndNote(label) {
+  const at = label.match(/: |, | · /)
+  if (!at) return [label, '']
+  const note = label.slice(at.index + at[0].length)
+  return [label.slice(0, at.index), note.charAt(0).toLocaleUpperCase('nl') + note.slice(1)]
+}
 
 /**
  * A card whose title is its link; the link's area covers the card, so the whole card is
@@ -150,17 +161,15 @@ const CODE_KINDS = [
 ]
 
 /**
- * A code box: the ways to write something as tabs on a bar, with Kopiëren at its end, and the
- * code of the chosen way under it. `read()` gives the code at the moment it is shown, so a
- * specimen's is what it drew. `closable`: shut, the bar says "Code dicht" and a tab opens it.
+ * A code box: the ways to write something as tabs, each with its code and Kopiëren under it.
+ * `read()` gives the code; `fill()` reads it again, so a specimen's is what it drew last.
  */
-function codeBox(kinds, read, { open = true, closable = false, label = 'Code' } = {}) {
+function codeBox(kinds, read, label = 'Code') {
   const box = element('div', 'guide__codebox')
   const tabs = document.createElement('lintje-tabs')
   tabs.label = label
   tabs.tabs = kinds.map(([value, title]) => ({ value, label: title }))
   tabs.value = kinds[0][0]
-  // Each way is a panel of its own: the code, and Kopiëren under it.
   const panels = new Map()
   for (const [key, , language] of kinds) {
     const panel = element('div', 'guide__codepanel')
@@ -171,15 +180,12 @@ function codeBox(kinds, read, { open = true, closable = false, label = 'Code' } 
     copy.size = 'compact'
     copy.variant = 'flat'
     panel.append(block, copy)
-    panels.set(key, { panel, block, copy })
+    panels.set(key, { block, copy })
     tabs.append(panel)
   }
-  const show = (value) => {
-    box.open = value
-    box.classList.toggle('is-open', value)
+  box.fill = () => {
     const code = read()
-    for (const [key, { panel, block, copy }] of panels) {
-      panel.hidden = !value
+    for (const [key, { block, copy }] of panels) {
       block.text = code[key]?.text ?? ''
       copy.text = code[key]?.copy ?? ''
     }
@@ -187,75 +193,58 @@ function codeBox(kinds, read, { open = true, closable = false, label = 'Code' } 
   tabs.addEventListener('lintje-tab-change', (event) => {
     event.stopPropagation()
     tabs.value = event.detail
-    show(true)
   })
-  // Shut, the chosen tab opens the code too: a press on the row is a wish to read it.
-  if (closable) tabs.addEventListener('click', () => box.open || show(true))
-  box.show = show
   box.append(tabs)
-  show(open || !closable)
+  box.fill()
   return box
 }
 
-/** The code box under a specimen, with the ways it can be written. */
-function specimenCode(figure, html, open) {
+/** "Code tonen" under a specimen: shut, the page stays calm; open, the ways it can be written. */
+function codeToggle(figure, html) {
   const read = () => codeOf(figure.stage, html)
-  const kinds = CODE_KINDS.filter(([key]) => read()[key])
-  if (!kinds.length) return null
-  return codeBox(kinds, read, { open, closable: true, label: 'Code van dit voorbeeld' })
+  const first = read()
+  const kinds = CODE_KINDS.filter(([key]) => first[key])
+  if (!kinds.length) return
+  const foot = element('div', 'guide__specimen-foot')
+  const toggle = document.createElement('lintje-button')
+  toggle.variant = 'link'
+  toggle.size = 'compact'
+  toggle.expanded = false
+  toggle.textContent = 'Code tonen'
+  let box
+  toggle.addEventListener('click', () => {
+    const open = !toggle.expanded
+    toggle.expanded = open
+    toggle.textContent = open ? 'Code verbergen' : 'Code tonen'
+    if (open && !box) figure.append((box = codeBox(kinds, read, 'Code van dit voorbeeld')))
+    else if (open) box.fill()
+    if (box) box.hidden = !open
+  })
+  foot.append(toggle)
+  figure.append(foot)
 }
 
-/* A specimen as a card ---------------------------------------------------------------- */
+/* A specimen as a row ------------------------------------------------------------------ */
 
-/** Links in a specimen's caption to the fields it shows; `show` opens one in the reference. */
-function captionFields(figure, fields, show) {
-  if (!fields.length) return
-  const list = element('span', 'guide__shows')
-  list.append(element('span', 'guide__meta', 'Toont'))
-  for (const field of fields) {
-    const link = element('a', 'guide__shown', field)
-    link.href = '#referentie'
-    link.addEventListener('click', (event) => {
-      event.preventDefault()
-      show(field)
-    })
-    list.append(link)
+/**
+ * One specimen as a row: its name and what it shows beside the stage, what the host heard
+ * under the stage, and its code a press away. `level` is its name's heading level.
+ */
+function example(entry, options, level = 3) {
+  const row = element('div', 'guide__example')
+  const about = element('div', 'guide__about')
+  if (entry.label) {
+    row.id = `vb-${slug(entry.label)}`
+    const [name, note] = nameAndNote(entry.label)
+    about.append(element(`h${level}`, 'guide__example-name', name))
+    if (note) about.append(element('p', 'guide__note', note))
   }
-  figure.querySelector('.guide__caption').insertBefore(list, figure.querySelector('.guide__anchor'))
-}
-
-/** One specimen as a card: the caption bar, the stage, what the host heard, and its code. */
-function specimenCard(entry, options, { open = false, code = true } = {}) {
   const figure = renderSpecimen(entry, options)
   figure.html = entry.html
-  const caption = figure.querySelector('.guide__caption')
-  if (caption) {
-    // A specimen that answers its reader shows what the host heard: it can be tried.
-    if (figure.querySelector('.guide__log')) {
-      const badge = document.createElement('lintje-badge')
-      badge.textContent = 'Interactief'
-      caption.append(badge)
-    }
-    const anchor = element('a', 'guide__anchor', '#')
-    anchor.href = `#${figure.id}`
-    anchor.setAttribute('aria-label', `Link naar ${entry.label}`)
-    caption.append(anchor)
-  }
-  if (code) {
-    const box = specimenCode(figure, entry.html, open)
-    if (box) {
-      figure.append(box)
-      figure.showCode = box.show
-    }
-  }
-  return figure
-}
-
-function specimenGrid(item, wide = true) {
-  const name = item.columns
-    ? `guide__specimens guide__specimens--max-${item.columns}`
-    : 'guide__specimens'
-  return element('div', wide ? name : `${name} guide__specimens--narrow`)
+  codeToggle(figure, entry.html)
+  row.append(about, figure)
+  row.figure = figure
+  return row
 }
 
 /* The element's page ------------------------------------------------------------------- */
@@ -334,7 +323,7 @@ function chooser(item, chosen, addressOf, go) {
           if (entry === chosen) link.setAttribute('aria-current', 'true')
           const name = element('span', 'guide__kind-name')
           name.append(link)
-          card.append(name, element('code', 'guide__key', entry.value))
+          card.append(name)
         }),
       )
     }
@@ -358,7 +347,7 @@ const TABS = [
  * address, `go(address)` follows it and `remember(tab)` writes the open tab into the URL.
  */
 export function renderElementPage(host, item, context) {
-  const { declarations, types, siblings, group, addressOf, go, categoryLabel } = context
+  const { declarations, types, siblings, group, addressOf, go } = context
   const declaration = declarations.get(item.tag)
   const groups = item.groups
   const chosen = groups && (groups.items.find((entry) => entry.value === group) ?? groups.items[0])
@@ -372,41 +361,20 @@ export function renderElementPage(host, item, context) {
     }),
   )
 
-  // What it is, in one block under the title: the first paragraph of its source comment, the rest
-  // a step away, and its facts in a row.
-  const head = element('div', 'guide__head')
-  if (declaration?.description) {
-    const [first, ...rest] = paragraphsOf(declaration.description)
-    const intro = document.createElement('lintje-prose')
-    intro.className = 'guide__intro'
-    intro.html = first
-    head.append(intro)
-    if (rest.length) {
-      const more = document.createElement('lintje-expander')
-      more.className = 'guide__more'
-      more.flat = true
-      more.leading = true
-      more.heading = 'Meer over deze tag'
-      const prose = document.createElement('lintje-prose')
-      prose.html = rest.join('')
-      more.append(prose)
-      head.append(more)
-    }
-  }
-  const factItems = [
-    {
-      label: 'Soort',
-      value: !declaration
-        ? 'Sectie'
-        : declaration.module?.includes('/primitives/')
-          ? 'Primitive'
-          : 'Component',
-    },
-    { label: 'Categorie', value: categoryLabel, href: context.categoryAddress },
-    ...(declaration ? [{ label: 'API', value: apiOf(declaration) }] : []),
-  ]
-  const facts = factsRow(factItems, go)
-  head.append(facts)
+  // Under the title, which says what it is, its facts in one quiet line.
+  const kind = !declaration
+    ? 'Sectie'
+    : declaration.module?.includes('/primitives/')
+      ? 'Primitive'
+      : 'Component'
+  const facts = element('p', 'guide__meta guide__summary')
+  const writeFacts = (apps) =>
+    (facts.textContent = [
+      kind,
+      ...(declaration ? [apiOf(declaration)] : []),
+      ...(apps ? [`in ${count(apps, 'app', 'apps')}`] : []),
+    ].join(' · '))
+  writeFacts()
 
   const tabs = document.createElement('lintje-tabs')
   tabs.className = 'guide__tabs'
@@ -440,71 +408,37 @@ export function renderElementPage(host, item, context) {
     open(event.detail)
   })
 
-  // The specimens; with groups, the chooser first and then the chosen one's.
+  // The specimens, a row each; with groups, the chooser first and then the chosen one's.
   const examples = panels.voorbeelden
   const figures = []
   const batches = []
-  const draw = (entries, grid, options, card = {}) => {
-    const batch = entries.map((entry, i) => {
-      const figure = specimenCard(entry, options, {
-        ...card,
-        open: card.open ?? (figures.length === 0 && i === 0),
-      })
-      grid.append(figure)
-      return figure
-    })
+  const draw = (entries, list, options, level = 3) => {
+    const rows = entries.map((entry) => example(entry, options, level))
+    list.append(...rows)
+    const batch = rows.map((row) => row.figure)
     figures.push(...batch)
     batches.push(batch)
-    return batch
+    return rows
   }
-  const tocSpecimens = (entries) =>
-    entries
-      .filter((entry) => entry.label)
-      .map((entry) => ({ label: shortOf(entry.label), href: '' }))
-  const codeSwitch = () => {
-    const switcher = document.createElement('lintje-segmented')
-    switcher.label = 'Code bij de voorbeelden'
-    switcher.hideLabel = true
-    switcher.options = [
-      { value: 'none', label: 'Code verbergen' },
-      { value: 'all', label: 'Code bij elk voorbeeld' },
-    ]
-    switcher.value = ''
-    switcher.addEventListener('lintje-change', (event) => {
-      event.stopPropagation()
-      switcher.value = event.detail
-      for (const figure of figures) figure.showCode?.(event.detail === 'all')
-    })
-    return switcher
-  }
+  const rowList = () => element('div', 'guide__examples')
+  const tocOf = (rows) =>
+    rows
+      .filter((row) => row.id)
+      .map((row) => ({ label: row.querySelector('.guide__example-name').textContent, href: `#${row.id}` }))
 
   let frame = examples
-  let variantCode
   if (groups) {
     const choose = section('kiezen', groups.question ?? `Welke ${groups.label.toLowerCase()}?`, toc.voorbeelden)
-    choose.append(
-      element(
-        'p',
-        'guide__meta',
-        `Begin bij de vraag die de lezer stelt. Elke ${groups.label.toLowerCase()} is een waarde van ${groups.key}.`,
-      ),
-      chooser(item, chosen, addressOf, go),
-    )
+    choose.append(chooser(item, chosen, addressOf, go))
     examples.append(choose)
 
-    // The chosen kind in its frame: what it is for, its specimens, the code of one, its fields.
-    frame = section('soort', chosen.label, toc.voorbeelden, tocSpecimens(chosen.specimens))
-    frame.classList.add('guide__kind-frame')
+    // The chosen kind: what it is for, once, then its specimens as every element's.
+    const kindRows = rowList()
+    const rows = draw(chosen.specimens, kindRows, undefined, 4)
+    frame = section('soort', chosen.label, toc.voorbeelden, tocOf(rows))
     frame
       .querySelector('.guide__section-head')
-      .append(
-        element('code', 'guide__key', `${groups.key}: '${chosen.value}'`),
-        element(
-          'span',
-          'guide__meta guide__push',
-          count(chosen.specimens.length, 'voorbeeld', 'voorbeelden'),
-        ),
-      )
+      .append(element('code', 'guide__key', `${groups.key}: '${chosen.value}'`))
     if (chosen.use || chosen.avoid) {
       const advice = element('div', 'guide__advice')
       for (const [title, text] of [
@@ -512,85 +446,44 @@ export function renderElementPage(host, item, context) {
         ['Niet voor', chosen.avoid],
       ]) {
         if (!text) continue
-        const prose = document.createElement('lintje-prose')
-        prose.html = `<p><strong>${title}</strong> ${escape(text)}</p>`
-        advice.append(prose)
+        const part = element('div')
+        part.append(element('p', 'guide__advice-title', title), element('p', 'guide__advice-text', text))
+        advice.append(part)
       }
       frame.append(advice)
     }
-    const grid = specimenGrid(item, false)
-    const batch = draw(chosen.specimens, grid, undefined, { code: false })
-    frame.append(grid)
-    // One code box for the chosen kind, of the specimen the reader marks with "Code".
-    let marked = batch[0]
-    const read = () => codeOf(marked.stage, marked.html)
-    const kinds = CODE_KINDS.filter(([key]) => read()[key])
-    const title = element('p', 'guide__meta')
-    const mark = (figure) => {
-      marked = figure
-      for (const other of batch) other.classList.toggle('is-marked', other === figure)
-      title.innerHTML = `Code van <strong>${escape(figure.querySelector('.guide__label')?.textContent ?? '')}</strong>`
-      variantCode?.show(true)
-    }
-    for (const figure of batch) {
-      const pick = document.createElement('lintje-button')
-      pick.variant = 'link'
-      pick.size = 'compact'
-      pick.textContent = 'Code'
-      pick.accessibleName = `Code van ${figure.querySelector('.guide__label')?.textContent}`
-      pick.addEventListener('click', () => mark(figure))
-      figure
-        .querySelector('.guide__caption')
-        ?.insertBefore(pick, figure.querySelector('.guide__anchor'))
-    }
-    if (kinds.length) {
-      variantCode = codeBox(kinds, read, { label: 'Code van het gekozen voorbeeld' })
-      frame.append(title, variantCode)
-    }
-    mark(marked)
+    frame.append(kindRows)
     examples.append(frame)
 
-    // What every kind shares: the states, drawn for the chosen kind, and the rest once.
+    // What every kind shares: the states, drawn small for the chosen kind, and the rest once.
     const shared = section('elke-soort', groups.shared ?? 'Voor elk', toc.voorbeelden)
-    shared.append(
-      element('p', 'guide__meta', 'Eén keer getoond; het werkt bij elke soort hetzelfde.'),
-    )
+    shared.append(element('p', 'guide__meta', 'Eén keer getoond; het werkt bij elke soort hetzelfde.'))
     const states = (item.states ?? []).filter((state) => state.data)
     if (states.length && chosen.specimens[0]) {
-      shared.append(heading(4, 'Staten'))
-      const row = element('div', 'guide__specimens guide__specimens--states')
-      for (const state of states)
-        row.append(
-          specimenCard(
-            { ...chosen.specimens[0], label: `${state.label} · ${state.data.state}` },
-            { item, state },
-            { code: false },
-          ),
-        )
+      const row = element('div', 'guide__states')
+      for (const state of states) {
+        const figure = renderSpecimen(chosen.specimens[0], { item, state })
+        figure.append(element('figcaption', 'guide__state-name', state.label))
+        row.append(figure)
+      }
       shared.append(row)
     }
     if (item.specimens.length) {
-      const sharedGrid = specimenGrid(item, false)
-      draw(item.specimens, sharedGrid, undefined, { open: false })
-      shared.append(sharedGrid)
+      const list = rowList()
+      draw(item.specimens, list, undefined, 4)
+      shared.append(list)
     }
     examples.append(shared)
     counts.voorbeelden = groups.items.length
   } else {
     // The tab names the part; the specimens need no heading of their own.
-    const list = section('voorbeelden-lijst', null, toc.voorbeelden, tocSpecimens(item.specimens))
-    list.querySelector('.guide__section-head').append(codeSwitch())
-    const grid = specimenGrid(item)
-    draw(item.specimens, grid)
-    list.append(grid)
+    const list = section('voorbeelden-lijst', null, toc.voorbeelden)
+    const rows = rowList()
+    toc.voorbeelden.push(...tocOf(draw(item.specimens, rows)))
+    list.append(rows)
     examples.append(list)
     counts.voorbeelden = item.specimens.length
   }
-  // The specimens' entries in "Op deze pagina" point at their cards.
-  const pointAt = (entries, batch) =>
-    entries.forEach((entry, i) => (entry.href = `#${batch?.[i]?.id}`))
-  if (groups) pointAt(toc.voorbeelden.find((entry) => entry.href === '#soort')?.items ?? [], batches[0])
-  else pointAt(toc.voorbeelden, batches[0])
 
   // Which specimen shows which field. A key of rich data that every specimen beside it sets (a
   // title, a footnote) tells nothing apart; an attribute is always the specimen's own choice.
@@ -605,10 +498,10 @@ export function renderElementPage(host, item, context) {
   }
   const shownBy = new Map()
   for (const figure of figures) {
-    const label = figure.querySelector('.guide__label')?.textContent
+    const label = figure.closest('.guide__example')?.querySelector('.guide__example-name')?.textContent
     if (label)
       for (const key of shown.get(figure))
-        shownBy.set(key, [...(shownBy.get(key) ?? []), shortOf(label)])
+        shownBy.set(key, [...(shownBy.get(key) ?? []), label])
   }
 
   // The chosen kind's own fields stand in its frame; the reference leaves them out.
@@ -633,6 +526,12 @@ export function renderElementPage(host, item, context) {
       reference
         .querySelector('.guide__section-head')
         .append(element('span', 'guide__meta', `Gelezen uit ${declaration.module}`))
+      if (declaration.description) {
+        const about = document.createElement('lintje-prose')
+        about.className = 'guide__about-tag'
+        about.html = paragraphsOf(declaration.description).join('')
+        reference.append(about)
+      }
       tables = renderReference(declaration, types, {
         shownBy,
         skip: new Set(union ? [union.typeName] : []),
@@ -648,29 +547,10 @@ export function renderElementPage(host, item, context) {
     panels.referentie.append(reference)
   }
 
-  const show = (field) => {
-    if (own && field.startsWith(union.prefix)) {
-      own.only(field.slice(union.prefix.length))
-      own.scrollIntoView({ block: 'start' })
-      return
-    }
-    open('referentie')
-    requestAnimationFrame(() =>
-      (tables?.show(field) ?? panels.referentie).scrollIntoView({ block: 'start' }),
-    )
-  }
-  for (const figure of figures) captionFields(figure, [...shown.get(figure)], show)
-
   if (item.tag) {
     panels.toegepast.append(
-      usageSection(item.tag, context.appAddress, toc.toegepast, (text, total) => {
-        const link = factsRow([{ label: 'Toegepast in', value: text, href: '#toegepast' }]).firstChild
-        link.querySelector('a').addEventListener('click', (event) => {
-          event.preventDefault()
-          open('toegepast')
-          tabs.scrollIntoView({ block: 'start' })
-        })
-        facts.append(link)
+      usageSection(item.tag, context.appAddress, toc.toegepast, (apps, total) => {
+        writeFacts(apps)
         counts.toegepast = total || undefined
         drawTabs()
         if (tabs.value === 'toegepast') follow(nav, toc.toegepast, others)
@@ -681,7 +561,7 @@ export function renderElementPage(host, item, context) {
 
   drawTabs()
   tabs.append(...Object.values(panels))
-  host.append(head, page)
+  host.append(facts, page)
   open(toc[context.tab] ? context.tab : 'voorbeelden')
 }
 
@@ -735,7 +615,8 @@ function follow(nav, toc, others) {
 
 const PLACES_SHOWN = 12
 
-/** Where the tag stands in the example applications, filled in once their files are read. */
+/** Where the tag stands in the example applications, filled in once their files are read;
+ *  `onCount(apps, places)` hears how many. */
 function usageSection(tag, appAddress, toc, onCount) {
   const node = section('toegepast-lijst', null, toc)
   node
@@ -747,12 +628,9 @@ function usageSection(tag, appAddress, toc, onCount) {
   node.append(note)
   usageOf(tag).then((usage) => {
     const total = usage.reduce((sum, entry) => sum + entry.places.length, 0)
-    const text = total
-      ? `${count(total, 'plek', 'plekken')} in ${count(usage.length, 'applicatie', 'applicaties')}`
-      : 'nog nergens'
     if (!total) {
       note.text = 'Nog in geen enkele voorbeeldapplicatie.'
-      onCount(text, total)
+      onCount(0, 0)
       return
     }
     note.remove()
@@ -804,7 +682,7 @@ function usageSection(tag, appAddress, toc, onCount) {
     const grid = document.createElement('lintje-grid')
     grid.append(...tiles)
     node.append(grid)
-    onCount(text, total)
+    onCount(usage.length, total)
   })
   return node
 }

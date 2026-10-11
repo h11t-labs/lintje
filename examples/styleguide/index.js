@@ -193,7 +193,6 @@ function render({ keepScroll = false } = {}) {
       types: dataTypes.types,
       siblings: elementsOf(category),
       category: category.name,
-      categoryLabel: category.label,
       group: place.group,
       tab: place.tab,
       // A tab is a place on the page, kept in its address without drawing it again.
@@ -201,7 +200,6 @@ function render({ keepScroll = false } = {}) {
       addressOf: elementAddress,
       go: (href, options) => follow(href, options),
       appAddress: (app) => carry(`../${app.href}`),
-      categoryAddress: addressOf({ category }),
     })
   } else {
     renderOverview(host, elementsOf(category), {

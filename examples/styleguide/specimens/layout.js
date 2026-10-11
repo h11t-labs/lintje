@@ -49,7 +49,6 @@ export default {
       specimens: [
         {
           label: 'Tegels van 8 en 4, items van 6 en 6',
-          wide: true,
           html: `<lintje-grid>
             <lintje-tile span="8" heading="span 8" subtitle="8 van 12 · 768-1023 wordt dit 12">
               <div class="guide__placeholder">span 8</div>
@@ -69,7 +68,6 @@ export default {
       specimens: [
         {
           label: 'Drie cellen: 4, 4 en 4',
-          wide: true,
           html: `<lintje-grid>
             <lintje-grid-item span="4"><div class="guide__placeholder">span 4</div></lintje-grid-item>
             <lintje-grid-item span="4"><div class="guide__placeholder">span 4</div></lintje-grid-item>
@@ -84,29 +82,24 @@ export default {
       specimens: [
         {
           label: 'Klaar',
-          wide: true,
           html: `<lintje-tile heading="Afwijzingen naar grond" subtitle="Vandaag · 37 afwijzingen" footnote="${FOOTNOTE}" expandable download>
             <div class="guide__placeholder"><lintje-icon name="functioneel-info" size="18"></lintje-icon> Inhoud van een tegel</div>
           </lintje-tile>`,
         },
         {
           label: 'Leeg',
-          wide: true,
           html: `<lintje-tile heading="Aanvragen per uur" subtitle="Aanvragen per uur · vandaag · gearceerd = nog niet compleet" footnote="${FOOTNOTE}" state="empty" message="Geen gegevens voor deze selectie. Kies een ruimer tijdvak of een ander loket." expandable download></lintje-tile>`,
         },
         {
           label: 'Laden',
-          wide: true,
           html: `<lintje-tile heading="Aanvragen per loket" subtitle="Vandaag" footnote="${FOOTNOTE}" state="loading"></lintje-tile>`,
         },
         {
           label: 'Fout',
-          wide: true,
           html: `<lintje-tile heading="Wachttijd per uur" subtitle="Vandaag" footnote="${FOOTNOTE}" state="error" message="De bron reageerde niet. De cijfers van vandaag ontbreken." last-known="Laatst bekend: 11 min, gemeten om 07:45."></lintje-tile>`,
         },
         {
           label: 'Met een kerncijfer ernaast (aside)',
-          wide: true,
           html: `<lintje-tile heading="Bezetting loketten" subtitle="Vandaag · 184 van 200 posities" footnote="Bron: Dossierregistratie · waarde van 08:15">
             <p slot="aside" style="font: var(--text-kpi); font-variant-numeric: tabular-nums">92%</p>
             <div class="guide__placeholder">lintje-tile slot="aside" (layout H)</div>
@@ -114,7 +107,6 @@ export default {
         },
         {
           label: 'Rijen tot de rand (flush): een werklijst in een tegel',
-          wide: true,
           html: `<lintje-tile heading="Eerder vertaald" flush footnote="Je geschiedenis blijft op dit apparaat.">
             <lintje-button slot="actions" variant="link" size="compact" href="#el-tile">Alles bekijken</lintje-button>
             <lintje-list heading-level="4" label="Eerder vertaalde teksten"></lintje-list>
@@ -128,7 +120,6 @@ export default {
         },
         {
           label: 'Zonder kerncijfer',
-          wide: true,
           html: `<lintje-tile heading="Zonder kerncijfer" subtitle="Dezelfde tegel zonder aside">
             <div class="guide__placeholder">geen aside</div>
           </lintje-tile>`,
@@ -141,7 +132,6 @@ export default {
       specimens: [
         {
           label: 'Rust, actief, met teller, uitgeschakeld',
-          wide: true,
           html: `<lintje-tabs label="Weergave van de opname">${PANELS}</lintje-tabs>`,
           setup: (stage) => tabs(stage),
         },
@@ -157,7 +147,6 @@ export default {
         },
         {
           label: 'Groot, boven een paneel: icoon, uitleg en label (op een telefoon het icoon boven de naam)',
-          wide: true,
           html: `<lintje-tabs variant="panel" label="Wat wil je vertalen?">${LARGE_PANELS}</lintje-tabs>`,
           setup: (stage) => tabs(stage, undefined, LARGE),
         },
@@ -169,28 +158,24 @@ export default {
       specimens: [
         {
           label: 'Dicht',
-          wide: true,
           html: `<lintje-expander heading="Toelichting op de meting">
             <lintje-prose text="De wachttijd is de mediaan per kwartier, gemeten vanaf het betreden van de rij."></lintje-prose>
           </lintje-expander>`,
         },
         {
           label: 'Open',
-          wide: true,
           html: `<lintje-expander heading="Staat open bij het laden" open>
             <lintje-prose text="open is gereflecteerd, de kop is een echte knop en aria-expanded zegt wat hij doet."></lintje-prose>
           </lintje-expander>`,
         },
         {
           label: 'Zonder eigen vlak (flat)',
-          wide: true,
           html: `<lintje-expander heading="Zonder eigen vlak (flat)" flat>
             <lintje-prose text="In een tegel is een uitklapper geen tweede kaart."></lintje-prose>
           </lintje-expander>`,
         },
         {
           label: 'Pijl vooraan, inhoud in lijn met de titel (leading), met acties naast de titel',
-          wide: true,
           html: `<lintje-expander heading="Samenvatting" subtitle="AI-bewerking · 09:31" leading open>
             <lintje-icon-button slot="actions" icon="functioneel-refresh" label="Samenvatting opnieuw maken" variant="flat"></lintje-icon-button>
             <lintje-icon-button slot="actions" icon="functioneel-kruis" label="Samenvatting verbergen" variant="flat"></lintje-icon-button>
@@ -205,12 +190,10 @@ export default {
       specimens: [
         {
           label: 'Rust, hover, focus, slepen',
-          wide: true,
           html: `<lintje-split-pane start-label="Brontekst" end-label="Vertaling">${SPLIT}</lintje-split-pane>`,
         },
         {
           label: 'Grenzen: onthouden onder een sleutel',
-          wide: true,
           html: `<lintje-split-pane start-label="Brontekst" end-label="Vertaling" storage-key="lintje-demo-vertalen" value="35">${SPLIT}</lintje-split-pane>`,
         },
       ],

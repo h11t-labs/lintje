@@ -166,7 +166,6 @@ export default {
       specimens: [
         ...KINDS.map(([label, data]) => ({
           label,
-          wide: true,
           html: '<lintje-announcement></lintje-announcement>',
           setup(stage) {
             stage.querySelector('lintje-announcement').data = data
@@ -199,7 +198,6 @@ export default {
         },
         {
           label: 'Met een actie — rechts als de melding breed is',
-          wide: true,
           html: `<lintje-announcement>
             <lintje-button slot="action" variant="secondary" size="compact">Verder met het concept</lintje-button>
           </lintje-announcement>`,
@@ -265,7 +263,6 @@ export default {
           // Behind a button: the alert takes the focus when it appears, which on load would
           // pull the page down to it.
           label: 'Rust, bezig na een keuze, verschillen',
-          wide: true,
           html: `<lintje-button variant="secondary" size="compact">Opslaan, terwijl M. Jansen het al wijzigde</lintje-button>
             <div data-place></div>`,
           setup(stage) {
@@ -326,7 +323,6 @@ export default {
     {
       tag: 'lintje-error-page',
       title: 'De pagina in plaats van de gevraagde: niet gevonden, geen toegang, een storing, onderhoud',
-      columns: 1,
       specimens: [
         {
           label: 'Niet gevonden, met zoeken',
@@ -434,7 +430,6 @@ export default {
       specimens: [
         {
           label: 'Twee regels',
-          wide: true,
           html: '<div class="guide__stack"><lintje-skeleton width="60%" height="13"></lintje-skeleton><lintje-skeleton width="40%" height="13"></lintje-skeleton></div>',
         },
         {
@@ -475,13 +470,11 @@ export default {
       specimens: [
         {
           label: 'Bezig, fout, wachtrij, onderbroken, klaar, geannuleerd',
-          wide: true,
           html: '<lintje-job-list></lintje-job-list>',
           setup: (stage) => wireJobs(stage.querySelector('lintje-job-list'), JOBS),
         },
         {
           label: 'Alleen klaar, met soort en moment: "Klaar" valt weg',
-          wide: true,
           html: '<lintje-job-list></lintje-job-list>',
           setup(stage) {
             stage.querySelector('lintje-job-list').jobs = DONE_JOBS
@@ -534,7 +527,6 @@ export default {
         },
         {
           label: 'Levend — Stoppen en Opnieuw werken',
-          wide: true,
           html: '<lintje-streaming-text label="Bezig met transcriberen"></lintje-streaming-text>',
           setup(stage) {
             const element = stage.querySelector('lintje-streaming-text')
@@ -562,7 +554,6 @@ export default {
         },
         {
           label: 'Plaats: boven het blok',
-          wide: true,
           html: `<lintje-ai-label></lintje-ai-label>
             <p>De aanvrager schrijft dat zij in maart naar Nederland is verhuisd.</p>`,
         },
@@ -594,12 +585,10 @@ export default {
       specimens: [
         {
           label: 'Op je telefoon: looptijd, geluid en verbinding',
-          wide: true,
           html: '<lintje-recording-status elapsed="724" level="0.6" connection="good" delay="1"></lintje-recording-status>',
         },
         {
           label: 'Zwakke verbinding, zacht geluid',
-          wide: true,
           html: '<lintje-recording-status elapsed="3729" level="0.12" connection="weak" delay="4"></lintje-recording-status>',
         },
         {

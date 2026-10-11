@@ -63,7 +63,6 @@ export default {
       specimens: [
         {
           label: 'De vier varianten: primair, secundair, tertiair en link',
-          wide: true,
           html: `<div class="guide__row">
             <lintje-button variant="primary">Toepassen</lintje-button>
             <lintje-button variant="secondary">Annuleren</lintje-button>
@@ -110,7 +109,6 @@ export default {
         },
         {
           label: 'Bezig: de breedte blijft, het label wijkt voor de ring',
-          wide: true,
           html: `<div class="guide__row">
             <lintje-button variant="primary" busy>Opslaan</lintje-button>
             <lintje-button variant="secondary" icon="functioneel-downloaden" busy>Downloaden</lintje-button>
@@ -326,7 +324,6 @@ export default {
       short: 'register',
       specimens: [
         {
-          wide: true,
           html: '<div class="guide__stack"><lintje-prose tone="muted"></lintje-prose><div class="guide__icons"></div></div>',
           setup(stage) {
             const names = [...lintje.ICON_NAMES]

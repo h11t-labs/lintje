@@ -34,18 +34,17 @@ Het menu van de shell somt de categorieën op. De pagina van een categorie (`?ca
 `src/categories.json`) is een overzicht: per element een kaart met een schets van zijn vorm, in grijs
 en in de modus van de pagina (`styleguide/sketches.js`), wat het is en hoeveel het toont. Elk
 element heeft een
-eigen pagina, `?element=<tag without lintje->` (`?element=tabs`): wat het is, en daaronder vier
-tabs — Voorbeelden, Referentie, Toegepast in en Laden; de open tab staat in de URL (`&tab=`). Ernaast
-staat "Op deze pagina" voor de open tab (`lintje-sub-nav` met `expanded`) en de andere elementen
-van zijn categorie. Daarop staan:
+eigen pagina, `?element=<tag without lintje->` (`?element=tabs`): onder zijn naam in één zin wat
+het is en in één regel zijn feiten, en daaronder vier tabs — Voorbeelden, Referentie, Toegepast in
+en Laden; de open tab staat in de URL (`&tab=`). Ernaast staat "Op deze pagina" voor de open tab
+(`lintje-sub-nav` met `expanded`) en de andere elementen van zijn categorie. Daarop staan:
 
-- **wat het is**: het kopcommentaar van de tag, uit de broncode;
-- **de voorbeelden**, elk als kaart met de velden die het onderscheiden ("Toont", een link naar hun
-  rij in de referentie) en onderaan de code in tabs: de markup, en wat `setup` zette als script
-  (`el.data = …`) en als JSON in de markup voor een pagina die een server rendert. Die code wordt
-  gelezen uit wat het voorbeeld tekende, dus hij klopt altijd. Bij het eerste voorbeeld staat hij
-  open; "Bij elk voorbeeld" opent hem overal;
-- **de referentie**: eigenschappen, events, methoden en slots (`custom-elements.json`), en de types
+- **de voorbeelden**, een per rij: links de naam en wat het laat zien (het `label` van het
+  specimen, tot de dubbele punt de naam), rechts het element in een wit vlak. "Code tonen" opent
+  de code in tabs: de markup, en wat `setup` zette als script (`el.data = …`) en als JSON in de
+  markup voor een pagina die een server rendert. Die code wordt gelezen uit wat het voorbeeld
+  tekende, dus hij klopt altijd. Standaard is hij dicht, zodat de pagina rustig blijft;
+- **de referentie**: het kopcommentaar van de tag, uit de broncode; eigenschappen, events, methoden en slots (`custom-elements.json`), en de types
   van een rijke property veld voor veld (`data-types.json`); een union per `kind` krijgt een
   tabel per variant. Beide schrijft de build uit de broncode (`scripts/manifest.mjs`);
 - **hoe je hem laadt**: de tag alleen, zijn categorie of de hele bundel.

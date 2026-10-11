@@ -45,11 +45,9 @@
       .guide__page { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-8) var(--space-10); }
       .guide__main { flex: 999 1 560px; display: flex; flex-direction: column; gap: var(--space-10); min-width: 0; }
       .guide__toc { flex: 1 1 240px; max-width: var(--w-nav); }
-      .guide__intro { max-width: var(--w-text); }
-      /* The element's head under the title: what it is, its facts in a row, the sections as tabs. */
-      .guide__head { display: flex; flex-direction: column; gap: var(--space-3); }
-      .guide__head > .guide__intro,
-      .guide__more { max-width: var(--w-text); }
+      /* The element's facts in one line under its title; its source comment opens the reference. */
+      .guide__summary { margin: 0; }
+      .guide__about-tag { max-width: var(--w-text); }
       /* A tab's part of the page: its sections under each other. */
       .guide__panel { display: flex; flex-direction: column; gap: var(--space-10); padding-top: var(--space-6); }
       .guide__facts { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-8); margin: 0; font: var(--text-ui); }
@@ -57,7 +55,6 @@
       .guide__fact dt { color: var(--color-text-muted); }
       .guide__fact dd { margin: 0; font-weight: 700; }
       .guide__fact a { color: var(--color-link); font-weight: 400; }
-      .guide__push { margin-inline-start: auto; }
       .guide__section { display: flex; flex-direction: column; gap: var(--space-4); scroll-margin-top: var(--h-sticky); }
       .guide__section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2) var(--space-4); }
       .guide__heading { margin: 0; font: var(--text-h2); }
@@ -258,79 +255,65 @@
       .guide__card-text { margin: 0; font: var(--text-small); }
       .guide__card-body .guide__meta { margin: var(--space-1) 0 0; }
 
-      /* The chooser: per question the kinds, each a small drawing of its first specimen. */
-      .guide__chooser { display: flex; flex-direction: column; gap: var(--space-4); }
-      .guide__choice { display: grid; grid-template-columns: minmax(0, 14rem) minmax(0, 1fr); gap: var(--space-3) var(--space-6); align-items: start; }
-      .guide__question { margin: var(--space-2) 0 0; font: var(--text-small); font-weight: 700; }
-      .guide__kinds { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: var(--space-3); }
-      .guide__kind { padding: var(--space-3); gap: var(--space-1); }
-      .guide__kind.is-chosen { outline: 2px solid var(--color-link); outline-offset: -2px; }
-      /* The chosen kind stands in a frame: its advice, its specimens, the code of one, its fields. */
-      .guide__kind-frame { padding: var(--space-6); background: var(--color-bg-surface); border: 2px solid var(--color-text-primary); }
-      .guide__advice { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4) var(--space-6); }
-      .guide__specimen.is-marked { outline: 2px solid var(--color-link); outline-offset: -2px; }
-      .guide__kind-name { font-weight: 700; }
-      .guide__mini { position: relative; height: calc(2 * var(--space-10)); }
-      .guide__mini > .guide__sketch { padding: var(--space-2) 0; }
-      .guide__mini .guide__sk-frame--none { width: 100%; }
-
-      .guide__specimens {
+      /* The chooser: a line per question, its kinds as buttons, each with a small drawing. */
+      .guide__chooser { display: flex; flex-direction: column; border-bottom: 1px solid var(--color-border-default); }
+      .guide__choice {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
-        gap: var(--space-6);
-        align-items: start;
+        grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
+        gap: var(--space-2) var(--space-6);
+        align-items: center;
+        padding: var(--space-3) 0;
+        border-top: 1px solid var(--color-border-default);
       }
-      .guide__specimens--max-1 { grid-template-columns: minmax(0, 1fr); }
-      .guide__specimens--max-2 {
-        grid-template-columns: repeat(auto-fill, minmax(max(min(100%, 300px), calc((100% - var(--space-6)) / 2)), 1fr));
-      }
-      .guide__specimens--max-3 {
-        grid-template-columns: repeat(auto-fill, minmax(max(min(100%, 300px), calc((100% - 2 * var(--space-6)) / 3)), 1fr));
-      }
-      /* A specimen is a card: its caption on a bar, the stage, and the code on a bar under it.
-         What stands inside the stage is the element, what stands around it the guide. */
-      .guide__specimen {
-        min-width: 0;
-        margin: 0;
+      .guide__question { margin: 0; font: var(--text-ui); font-weight: 700; }
+      .guide__kinds { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+      .guide__kind { flex-direction: row; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2); }
+      .guide__kind.is-chosen { outline: 2px solid var(--color-text-primary); outline-offset: -2px; }
+      .guide__kind-name { font-weight: 700; }
+      .guide__mini { position: relative; flex: 0 0 auto; width: calc(1.5 * var(--space-10)); height: var(--space-8); }
+      .guide__mini > .guide__sketch { padding: 0; }
+      .guide__mini .guide__sk-frame--none { width: 100%; }
+      /* What the chosen kind is for, once, above its specimens. */
+      .guide__advice {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-4) var(--space-6);
+        padding: var(--space-5) var(--space-6);
         background: var(--color-bg-surface);
         border: 1px solid var(--color-border-default);
+        border-left: var(--space-1) solid var(--color-accent-line);
+      }
+      .guide__advice-title { margin: 0 0 var(--space-1); font: var(--text-small); font-weight: 700; color: var(--color-text-muted); }
+      .guide__advice-text { margin: 0; max-width: var(--w-text); }
+
+      /* A specimen is a row: its name and what it shows on the left, the stage wide on the right.
+         What stands inside the stage is the element, what stands around it the guide. */
+      .guide__examples { display: flex; flex-direction: column; container-type: inline-size; }
+      .guide__example {
+        display: grid;
+        grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
+        gap: var(--space-3) var(--space-8);
+        padding: var(--space-8) 0;
+        border-top: 1px solid var(--color-border-default);
         scroll-margin-top: var(--h-sticky);
       }
-      .guide__specimen--wide { grid-column: 1 / -1; }
-      .guide__caption {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: var(--space-2) var(--space-3);
-        padding: var(--space-3) var(--space-4);
-        border-bottom: 1px solid var(--color-border-default);
+      .guide__example:first-child { border-top: 0; padding-top: 0; }
+      .guide__example-name { margin: 0; font: var(--text-tile-title); }
+      .guide__note { margin: var(--space-1) 0 0; font: var(--text-small); color: var(--color-text-secondary); }
+      @container (max-width: 48rem) {
+        .guide__example { grid-template-columns: minmax(0, 1fr); }
       }
-      .guide__label { font: var(--text-tile-title); }
-      /* The fields a specimen shows, each a link to its row in the reference. */
-      .guide__shows { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); margin-inline-start: auto; }
-      .guide__shown {
-        padding: 0 var(--space-2);
-        border: 1px solid var(--color-border-default);
-        background: var(--color-bg-surface);
-        font: var(--text-small);
-        font-family: var(--font-mono);
-        color: var(--color-text-primary);
-        text-decoration: none;
-      }
-      .guide__shown:hover { border-color: var(--color-link); color: var(--color-link); }
-      .guide__anchor { font: var(--text-small); color: var(--color-text-muted); text-decoration: none; }
-      .guide__caption:not(:has(.guide__shows)) > .guide__anchor { margin-inline-start: auto; }
-      .guide__stage { padding: var(--space-6); font: var(--text-ui); color: var(--color-text-primary); }
-      /* The code under a specimen: its ways as tabs on a bar, Kopiëren or "Code dicht" at the bar's end. */
-      .guide__codebox { position: relative; padding: 0 var(--space-4) var(--space-3); border-top: 1px solid var(--color-border-default); background: var(--color-bg-page); }
-      .guide__codebox:not(.is-open) { padding-bottom: 0; }
+      .guide__specimen { min-width: 0; margin: 0; background: var(--color-bg-surface); border: 1px solid var(--color-border-default); }
+      .guide__stage { padding: var(--space-8); font: var(--text-ui); color: var(--color-text-primary); }
+      .guide__specimen-foot { padding: var(--space-2) var(--space-4); border-top: 1px solid var(--color-border-default); }
+      /* The code under a specimen, once asked for: its ways as tabs, Kopiëren under the code. */
+      .guide__codebox { padding: 0 var(--space-4) var(--space-3); border-top: 1px solid var(--color-border-default); background: var(--color-bg-page); }
       .guide__codepanel { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2); padding-top: var(--space-3); }
       .guide__codepanel > lintje-code { align-self: stretch; }
-      .guide__kind-frame > .guide__codebox { border: 1px solid var(--color-border-default); }
-      .guide__specimens--narrow { grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
-      .guide__specimens--narrow > .guide__specimen--wide,
-      .guide__specimens--states > .guide__specimen--wide { grid-column: auto; }
-      .guide__specimens--states { grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr)); }
+      /* The states every kind shares, drawn small side by side, each named under its stage. */
+      .guide__states { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: var(--space-4); }
+      .guide__states .guide__stage { padding: var(--space-4); }
+      .guide__state-name { padding: var(--space-2) var(--space-4); border-top: 1px solid var(--color-border-default); font: var(--text-small); font-weight: 700; }
       /* What a specimen may lay its parts out with. */
       .guide__row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
       .guide__stack { display: flex; flex-direction: column; gap: var(--space-3); }
@@ -377,10 +360,8 @@
         .guide__toc { position: sticky; top: calc(var(--h-sticky) + var(--space-6)); }
       }
       @media screen and (max-width: 767.98px) {
-        .guide__stage { padding: var(--space-3); }
-        .guide__advice { grid-template-columns: minmax(0, 1fr); }
-        .guide__kind-frame { padding: var(--space-3); }
-        .guide__kinds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .guide__stage { padding: var(--space-4); }
+        .guide__advice { grid-template-columns: minmax(0, 1fr); padding: var(--space-4); }
         .guide__pair { grid-template-columns: minmax(0, 1fr); }
         .guide__chat { height: 640px; }
       }

@@ -263,7 +263,6 @@ export default {
       specimens: [
         {
           label: 'Het menu naast de pagina: de schil om deze pagina',
-          wide: true,
           html: '<lintje-prose></lintje-prose>',
           setup(stage) {
             stage.querySelector('lintje-prose').html = `
@@ -273,7 +272,6 @@ export default {
         },
         {
           label: 'Rust, actieve pagina, rechts in de balk',
-          wide: true,
           html: `<lintje-shell>
             <lintje-page-header slot="header">
               <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
@@ -314,7 +312,6 @@ export default {
         },
         {
           label: 'Groep met submenu (klik of wijs aan) en de omgeving buiten productie',
-          wide: true,
           html: `<lintje-shell>
             <lintje-page-header slot="header"></lintje-page-header>
             <p>Het submenu ligt over de pagina; Escape of een klik hierbuiten sluit het.</p>
@@ -345,7 +342,6 @@ export default {
         },
         {
           label: 'Met “Weergave” en “Delen”: de instellingen van de lezer, bij de host',
-          wide: true,
           html: `<lintje-shell>
             <lintje-page-header slot="header"></lintje-page-header>
             <p>Een keuze in “Weergave” stuurt <code>lintje-view-change</code>; de host bewaart hem en geeft hem terug in <code>view</code>.</p>
@@ -371,7 +367,6 @@ export default {
         },
         {
           label: 'Met een hero in het slot full: van rand tot rand, de inhoud in de kolom',
-          wide: true,
           html: `<lintje-shell>
             <lintje-hero slot="full" heading="Wat wil je vertalen?" description="Typ een tekst, upload een document of voer een live gesprek."></lintje-hero>
             <p>De inhoud staat onder de hero, in de kolom van hoogstens 1360 px.</p>
@@ -384,7 +379,6 @@ export default {
         },
         {
           label: 'Zonder zoeken, meldingen en gebruiker; een lange naam wordt afgekapt',
-          wide: true,
           html: '<lintje-shell><p>Een app zonder de onderdelen rechts in de balk.</p></lintje-shell>',
           setup(stage) {
             const shell = stage.querySelector('lintje-shell')
@@ -401,7 +395,6 @@ export default {
         {
           label: 'Met toelichting en meer-link',
           html: '<lintje-page-header></lintje-page-header>',
-          wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-page-header').data = {
               kicker: 'Dashboard Vergunningen',
@@ -416,7 +409,6 @@ export default {
         {
           label: 'Met een potlood bij de titel (editable): naam wijzigen bij aanwijzen of focus',
           html: '<lintje-page-header editable></lintje-page-header>',
-          wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-page-header').data = { title: 'Teamoverleg 2 oktober', description: 'Vergadering · 4:12 · 3 sprekers' }
           },
@@ -428,7 +420,6 @@ export default {
             <lintje-button slot="actions" variant="secondary">Exporteren</lintje-button>
             <lintje-button slot="actions" variant="primary">Opslaan</lintje-button>
           </lintje-page-header>`,
-          wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-breadcrumbs').items = [
               { label: 'Opnames', href: '#opnames' },
@@ -448,7 +439,6 @@ export default {
             <lintje-button slot="actions" variant="danger">Verwijderen</lintje-button>
             <lintje-button slot="actions" variant="primary">Opslaan</lintje-button>
           </lintje-page-header>`,
-          wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-page-header').data = {
               title: 'Teamoverleg 2 oktober',
@@ -506,7 +496,6 @@ export default {
       specimens: [
         {
           label: 'Rust: titel, inleiding en een link verder',
-          wide: true,
           html: `<lintje-hero heading="Wat wil je vertalen?" description="Typ of spreek een tekst in, upload een document, of voer een gesprek dat live wordt vertaald." action="Of start een live gesprek" href="#live"></lintje-hero>`,
           setup(stage) {
             stage.querySelector('lintje-hero').addEventListener('lintje-navigate', (event) => event.preventDefault())
@@ -514,7 +503,6 @@ export default {
         },
         {
           label: 'Een opname die loopt: de status boven de titel, wat er gezegd wordt ernaast (slots status en panel)',
-          wide: true,
           html: `<lintje-hero heading="Weekendbezetting en sleutels" description="Op je telefoon · Vergadering · gestart om 14:02">
             <lintje-badge slot="status" tone="live">Neemt op</lintje-badge>
             <lintje-recording-status elapsed="724" level="0.6" connection="good" delay="1"></lintje-recording-status>
@@ -524,7 +512,6 @@ export default {
         },
         {
           label: 'Met een beeld naast de tekst (slot aside); onder 1024 px valt het weg',
-          wide: true,
           html: `<lintje-hero heading="Wat zoek je?" description="Stel je vraag in gewone taal. De catalogus zoekt in alle producten, ook die waar je nog geen toegang toe hebt." action="Of blader door de hele catalogus" href="#catalogus">
             <lintje-icon slot="aside" name="communicatie-tekstballonnen-met-vraagteken" size="160"></lintje-icon>
           </lintje-hero>`,
@@ -534,7 +521,6 @@ export default {
         },
         {
           label: 'Met grote tabs half over de onderrand (slot overlap)',
-          wide: true,
           html: `<lintje-hero heading="Wat wil je vertalen?" description="Je ziet de vertaling meteen.">
             <lintje-tabs slot="overlap" variant="panel" label="Wat wil je vertalen?">
               <p slot="tekst">Het tekstvak en de vertaling.</p>
@@ -560,7 +546,6 @@ export default {
       specimens: [
         {
           label: 'Met regel, kolommen en vaste links',
-          wide: true,
           html: '<lintje-footer></lintje-footer>',
           setup(stage) {
             const footer = stage.querySelector('lintje-footer')
@@ -579,7 +564,6 @@ export default {
         },
         {
           label: 'Alleen de vaste links',
-          wide: true,
           html: '<lintje-footer></lintje-footer>',
           setup(stage) {
             const footer = stage.querySelector('lintje-footer')

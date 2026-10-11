@@ -48,13 +48,13 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Gewijzigd
 
-- De stijlgids heeft een pagina per element: wat het is, de voorbeelden met wat ze
-  onderscheiden en hun code (markup, script en JSON voor een pagina die een server rendert,
-  gelezen uit wat het voorbeeld tekende), de referentie met de velden van `data`, waar het in de
-  voorbeeldapplicaties staat en hoe je het laadt. De pagina van een categorie is een overzicht met
-  één voorbeeld per element. `lintje-chart` toont één soort tegelijk, gekozen op de vraag van de
-  lezer, met haar staten ernaast. De delen van een elementpagina staan in tabs (`&tab=`).
-  `#el-…` leidt naar de nieuwe pagina. (#25)
+- De stijlgids heeft een pagina per element: wat het is, de voorbeelden een per rij met hun naam
+  ernaast en hun code achter "Code tonen" (markup, script en JSON voor een pagina die een server
+  rendert, gelezen uit wat het voorbeeld tekende), de referentie met de velden van `data`, waar het
+  in de voorbeeldapplicaties staat en hoe je het laadt. De pagina van een categorie is een
+  overzicht met een schets per element. `lintje-chart` toont één soort tegelijk, gekozen op de
+  vraag van de lezer, met haar staten eronder. De delen van een elementpagina staan in tabs
+  (`&tab=`). `#el-…` leidt naar de nieuwe pagina. (#25)
 - De telefoonvorm geldt alleen op een scherm: `MOBILE` is `screen and (max-width: 767px)`, en een
   host schrijft zijn eigen telefoonregels zo. (#22)
 

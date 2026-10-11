@@ -408,7 +408,6 @@ const chartSpecimen = (chart) => ({
   label: VARIANT_NAMES[chart.id],
  
   html: TILE,
-  wide: true,
   setup(stage) {
     stage.querySelector('lintje-chart').data = {
       chart: chart.spec,
@@ -427,7 +426,6 @@ const chartSpecimen = (chart) => ({
 const tableSwitch = {
   label: 'Grafiek of tabel',
   html: TILE,
-  wide: true,
   setup(stage) {
     stage.querySelector('lintje-chart').data = {
       chart: {
@@ -483,7 +481,6 @@ const missingValues = [
   kind: chart.kind,
   label,
   html: TILE,
-  wide: true,
   setup(stage) {
     stage.querySelector('lintje-chart').data = {
       chart,
@@ -503,7 +500,6 @@ export default {
         {
           label: 'Vijf kerncijfers',
           html: '<lintje-kpi-row></lintje-kpi-row>',
-          wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-kpi-row').data = { kpis: KPIS }
           },
@@ -511,7 +507,6 @@ export default {
         {
           label: 'Met kerncijfers op een schaal · gauge',
           html: '<lintje-kpi-row></lintje-kpi-row>',
-          wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-kpi-row').data = {
               kpis: [GAUGE_ARC, KPIS[0], GAUGE_LINEAR, KPIS[2]],
@@ -521,7 +516,6 @@ export default {
         {
           label: 'Elke datakleur als accent · variable',
           html: '<lintje-kpi-row></lintje-kpi-row>',
-          wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-kpi-row').data = { kpis: COLOUR_KPIS, columns: 3 }
           },
@@ -635,7 +629,6 @@ export default {
         {
           label: 'Met datum en auteur',
           html: '<lintje-note></lintje-note>',
-          wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-note').data = {
               title: 'Duiding van de analist',
@@ -654,7 +647,6 @@ export default {
         {
           label: 'Begrippen en omschrijvingen',
           html: '<lintje-explainer></lintje-explainer>',
-          wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-explainer').data = {
               title: 'Hoe deze cijfers worden berekend',

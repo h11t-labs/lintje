@@ -120,7 +120,6 @@ export default {
       specimens: [
         {
           label: 'Concept (typ iets; leeg de titel en sla op voor een fout)',
-          wide: true,
           html: FORM,
           setup(stage) {
             const form = stage.querySelector('lintje-form')
@@ -167,7 +166,6 @@ export default {
       specimens: [
         {
           label: 'Rust',
-          wide: true,
           html: `<lintje-form-section heading="Wat en waar" description="Beschrijf wat je zag. Namen van betrokkenen vul je in de volgende sectie in.">${SECTION_FIELDS}</lintje-form-section>`,
         },
         {
@@ -188,7 +186,6 @@ export default {
       specimens: [
         {
           label: 'Komend, actief, gedaan',
-          wide: true,
           html: '<lintje-stepper></lintje-stepper>',
           setup: (stage) => steps(stage, STEPS),
         },
@@ -200,13 +197,11 @@ export default {
         },
         {
           label: 'Fasen met een periode',
-          wide: true,
           html: '<lintje-stepper label="Fasen"></lintje-stepper>',
           setup: (stage) => steps(stage, PHASES),
         },
         {
           label: 'Verticaal, met omschrijving (ook op een telefoon)',
-          wide: true,
           html: '<lintje-stepper label="Fasen" orientation="vertical"></lintje-stepper>',
           setup: (stage) => steps(stage, PHASES),
         },
@@ -218,7 +213,6 @@ export default {
       specimens: [
         {
           label: 'In gebruik',
-          wide: true,
           html: '<lintje-repeater legend="Betrokkenen" item-label="Betrokkene" min="1" max="10"></lintje-repeater>',
           setup: (stage) => repeaterHost(stage, PEOPLE),
         },
@@ -235,7 +229,6 @@ export default {
       specimens: [
         {
           label: 'Verwijderbaar, binnen een herhaler',
-          wide: true,
           html: '<lintje-repeater legend="Betrokkenen" item-label="Betrokkene" min="0" max="10"></lintje-repeater>',
           setup(stage) {
             const repeater = stage.querySelector('lintje-repeater')
@@ -250,7 +243,6 @@ export default {
         },
         {
           label: 'Eén rij bij min: verwijderen kan niet',
-          wide: true,
           html: '<lintje-repeater legend="Contactpersoon" item-label="Contactpersoon" min="1" max="1"></lintje-repeater>',
           setup: (stage) =>
             stage.querySelector('lintje-repeater').append(personRow(0, { naam: 'A. Jansen', rol: 'eigenaar' })),
@@ -263,7 +255,6 @@ export default {
       specimens: [
         {
           label: 'Rust, hover, focus op een link',
-          wide: true,
           html: '<lintje-error-summary></lintje-error-summary>',
           setup(stage) {
             stage.querySelector('lintje-error-summary').items = [
@@ -278,7 +269,6 @@ export default {
         },
         {
           label: 'Zonder veld',
-          wide: true,
           html: '<lintje-error-summary message="De server gaf geen antwoord. Je invoer staat er nog." retry="Opnieuw proberen"></lintje-error-summary>',
         },
       ],
@@ -289,7 +279,6 @@ export default {
       specimens: [
         {
           label: 'Gewijzigd, met een tweede actie',
-          wide: true,
           html: `<lintje-form-actions state="dirty">
             <lintje-button variant="tertiary">Annuleren</lintje-button>
             <lintje-button variant="secondary">Concept opslaan</lintje-button>

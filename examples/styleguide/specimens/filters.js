@@ -53,7 +53,6 @@ export default {
       specimens: [
         {
           label: 'Drie filters, met wat de host hoort',
-          wide: true,
           html: '<lintje-filter-bar></lintje-filter-bar>',
           setup(stage) {
             const bar = stage.querySelector('lintje-filter-bar')
@@ -100,7 +99,6 @@ export default {
       specimens: [
         {
           label: 'Open, met twee filters',
-          wide: true,
           html: `<lintje-filter-zone total="2" modified="0">${CONTROLS(false)}</lintje-filter-zone>`,
           setup(stage) {
             const zone = stage.querySelector('lintje-filter-zone')
@@ -112,7 +110,6 @@ export default {
         },
         {
           label: 'Dichtgeklapt tot de zin',
-          wide: true,
           html: `<lintje-filter-zone total="2" modified="1">${CONTROLS(false)}</lintje-filter-zone>`,
           setup(stage) {
             const zone = stage.querySelector('lintje-filter-zone')

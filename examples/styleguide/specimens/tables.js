@@ -493,19 +493,16 @@ export default {
         {
           label: 'Het dashboard — drempels, statuskolom, klikbare rijen',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => dashboard(stage),
         },
         {
           label: 'Afgekapt en compact — een lange toelichting op één regel, de trend alleen als pijltje',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => dashboard(stage, compactData),
         },
         {
           label: 'Kiesbaar — loketten aanvinken om te vergelijken',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) =>
             dashboard(stage, {
               ...tableData,
@@ -520,13 +517,11 @@ export default {
         {
           label: 'Laden',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => table(stage, { ...tableData, title: 'Loketten', subtitle: 'Laden', state: 'loading', rows: [] }),
         },
         {
           label: 'Fout',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) =>
             table(stage, {
               ...tableData,
@@ -541,13 +536,11 @@ export default {
         {
           label: 'Rust — bewerkbare cellen (Enter, F2 of dubbelklik)',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: editable,
         },
         {
           label: 'Bezig — de wijziging wordt opgeslagen',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) =>
             table(
               stage,
@@ -561,7 +554,6 @@ export default {
         {
           label: 'Fout — de server weigert de waarde',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) =>
             table(
               stage,
@@ -575,13 +567,11 @@ export default {
         {
           label: 'Rust — de titel opent de rij, acties per rij',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => actions(stage),
         },
         {
           label: 'Telefoon — de andere kolommen van een rij open, het rijmenu en Sorteren',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => {
             actions(stage, { selectable: false })
             const element = stage.querySelector('lintje-data-table')
@@ -593,37 +583,31 @@ export default {
         {
           label: 'Op een applicatiepagina — zonder tegel; de kop of tab van de pagina noemt de tabel',
           html: '<lintje-data-table plain></lintje-data-table>',
-          wide: true,
           setup: (stage) => actions(stage, { title: undefined }),
         },
         {
           label: 'Selectiebalk — twee rijen gekozen, Shift+klik kiest een reeks',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => actions(stage, { checkedIds: ['m1', 'm3'] }),
         },
         {
           label: 'Uitgeschakeld — een rij die niet gekozen kan worden',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => actions(stage, { rows: rows().slice(0, 3), uncheckableIds: ['m3'], checkedIds: ['m1'] }),
         },
         {
           label: 'Rust — kolomfilters',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => filters(stage),
         },
         {
           label: 'Gefilterd — met de filters als chips',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => filters(stage, { filters: { category: ['Veiligheid', 'Overlast'] } }),
         },
         {
           label: 'Kolommen kiezen',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => filters(stage, { columnChooser: true, hiddenColumns: ['severity'] }),
         },
       ],
@@ -634,19 +618,16 @@ export default {
       specimens: [
         {
           label: 'Rust, met de telling',
-          wide: true,
           html: '<lintje-pagination page="2" page-count="7" total="131" page-size="20"></lintje-pagination>',
           setup: follow,
         },
         {
           label: 'Met eenheid en keuze per pagina',
-          wide: true,
           html: '<lintje-pagination page="2" total="14" page-size="5" page-sizes="5, 10, 20" unit="documenten" unit-one="document"></lintje-pagination>',
           setup: follow,
         },
         {
           label: 'Alles op één pagina',
-          wide: true,
           html: '<lintje-pagination page="1" total="14" page-size="20" page-sizes="5, 10, 20" unit="documenten" unit-one="document"></lintje-pagination>',
           setup: follow,
         },
@@ -662,13 +643,11 @@ export default {
         },
         {
           label: 'Reeks met “…”',
-          wide: true,
           html: '<lintje-pagination page="10" page-count="20" total="398" page-size="20"></lintje-pagination>',
           setup: follow,
         },
         {
           label: 'Als links (?pagina=…)',
-          wide: true,
           html: '<lintje-pagination page="4" page-count="12" href-template="#pagina={page}"></lintje-pagination>',
           setup: follow,
         },
@@ -680,7 +659,6 @@ export default {
       specimens: [
         {
           label: 'Rust, hover toont de actie',
-          wide: true,
           html: '<lintje-list label="Opnames"></lintje-list>',
           setup(stage) {
             const list = stage.querySelector('lintje-list')
@@ -690,7 +668,6 @@ export default {
         },
         {
           label: 'Gekozen',
-          wide: true,
           html: '<lintje-list label="Opnames" selected-id="r2"></lintje-list>',
           setup(stage) {
             const list = stage.querySelector('lintje-list')
@@ -700,7 +677,6 @@ export default {
         },
         {
           label: 'Werklijst: soort, status als woord, voortgang, één zichtbare actie en groepen op moment',
-          wide: true,
           html: '<lintje-list label="Werk"></lintje-list>',
           setup(stage) {
             stage.querySelector('lintje-list').items = [
@@ -746,7 +722,6 @@ export default {
     },
     {
       tag: 'lintje-card',
-      columns: 3,
       title: 'Eén item uit een verzameling: een grijze regel, titel, tekst, status en hoogstens twee acties',
       specimens: [
         {
@@ -775,7 +750,6 @@ export default {
         },
         {
           label: 'Icoonactie als favoriet: een hartje, aan en uit',
-          wide: true,
           html: '<div class="guide__pair"><lintje-card></lintje-card><lintje-card></lintje-card></div>',
           setup(stage) {
             const heart = (pressed) => [
@@ -789,7 +763,6 @@ export default {
         },
         {
           label: 'Twee icoonacties: vastzetten (aan en uit) en delen',
-          wide: true,
           html: '<div class="guide__pair"><lintje-card></lintje-card><lintje-card></lintje-card></div>',
           setup(stage) {
             const pinAndShare = (pressed) => [
@@ -804,7 +777,6 @@ export default {
         },
         {
           label: 'Horizontaal: het beeld in een kolom links (onder 768 px rechtop)',
-          wide: true,
           html: '<div class="guide__pair"><lintje-card layout="horizontal"></lintje-card><lintje-card layout="horizontal"></lintje-card></div>',
           setup(stage) {
             const [first, second] = stage.querySelectorAll('lintje-card')
@@ -841,7 +813,6 @@ export default {
       specimens: [
         {
           label: 'Producten met acties',
-          wide: true,
           html: '<lintje-card-list label="Producten"></lintje-card-list>',
           setup(stage) {
             stage.querySelector('lintje-card-list').items = PRODUCTS
@@ -850,7 +821,6 @@ export default {
         },
         {
           label: 'Horizontaal, voor een lange lijst: twee naast elkaar',
-          wide: true,
           html: '<lintje-card-list label="Producten" layout="horizontal"></lintje-card-list>',
           setup(stage) {
             stage.querySelector('lintje-card-list').items = PRODUCTS
@@ -859,7 +829,6 @@ export default {
         },
         {
           label: 'Als links',
-          wide: true,
           html: '<lintje-card-list label="Bladeren per soort"></lintje-card-list>',
           setup(stage) {
             stage.querySelector('lintje-card-list').items = KINDS
@@ -868,7 +837,6 @@ export default {
         },
         {
           label: 'Laden',
-          wide: true,
           html: '<lintje-card-list loading loading-count="3"></lintje-card-list>',
         },
         {
@@ -883,7 +851,6 @@ export default {
       specimens: [
         {
           label: 'Rust, lege waarde, wijzigen',
-          wide: true,
           html: '<lintje-description-list></lintje-description-list>',
           setup(stage) {
             stage.querySelector('lintje-description-list').items = DETAILS
@@ -898,7 +865,6 @@ export default {
         },
         {
           label: 'Vakken (layout="grid"): breed, aangepast, waarschuwing met inhoud in een slot, labels',
-          wide: true,
           html: `<lintje-description-list layout="grid">
               <span slot="mic"><lintje-button variant="secondary" size="compact">Andere microfoon</lintje-button></span>
             </lintje-description-list>`,
@@ -914,7 +880,6 @@ export default {
         },
         {
           label: 'In het raster: span 8 en span 4',
-          wide: true,
           html: `<lintje-grid>
               <lintje-description-list span="8"></lintje-description-list>
               <lintje-description-list span="4" layout="column"></lintje-description-list>

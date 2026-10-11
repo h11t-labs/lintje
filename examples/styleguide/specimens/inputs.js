@@ -566,7 +566,6 @@ export default {
         },
         {
           label: 'Als kaarten, met een regel onder elke optie (variant="cards")',
-          wide: true,
           html: '<lintje-radio-group name="p.formaat" label="Formaat" variant="cards"></lintje-radio-group>',
           setup(stage) {
             const group = stage.querySelector('lintje-radio-group')
@@ -873,7 +872,6 @@ export default {
         },
         {
           label: 'Bezig, klaar, geweigerd',
-          wide: true,
           html: '<lintje-file-upload label="Bijlagen" accept=".pdf,.jpg,.png" max-size="10485760"></lintje-file-upload>',
           setup(stage) {
             const upload = stage.querySelector('lintje-file-upload')
@@ -902,7 +900,6 @@ export default {
       specimens: [
         {
           label: 'Rust, de waarde is markdown',
-          wide: true,
           html: '<lintje-text-editor label="Toelichting"></lintje-text-editor>',
           setup(stage) {
             stage.querySelector('lintje-text-editor').value = NOTE
