@@ -71,6 +71,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   overzicht van de sneltoetsen is een `lintje-dialog` die de pagina vult uit `shortcuts()`.
   Modal, dialoog en drawer delen hun scrollvergrendeling, focusval en Escape
   (`components/shared/dialog.ts`). (#31)
+- De voorbeeldapplicatie Meldingen gebruikt de tabel als werkblad: Ernst en Status staan als
+  label, alleen een hoge ernst gevuld, en een rij klapt open voor haar locatie en notitie. (#32)
 - Het kopcommentaar van elke tag, dat de stijlgids onder "Over deze tag" toont, heeft één vorm,
   vastgelegd in `CONTRIBUTING.md`. De eventregels zijn compleet: ook `lintje-reset` van elk
   invoerveld en `lintje-seek` van de videospeler. (#30)
