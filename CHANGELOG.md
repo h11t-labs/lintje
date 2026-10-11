@@ -24,12 +24,12 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   zonder telefoonvorm, bediening of beweging, met het embleem en de naam van de applicatie
   bovenaan, elke tegel heel op een vel en een tabel die tussen zijn rijen breekt (`breakable` op
   `lintje-tile`). Een kerncijfer toont op papier zijn waarde, ook als het nog niet in beeld was,
-  en een kaart het gebied dat de lezer zag.
+  en een kaart het gebied dat de lezer zag. (#22)
 
 ### Gewijzigd
 
 - De telefoonvorm geldt alleen op een scherm: `MOBILE` is `screen and (max-width: 767px)`, en een
-  host schrijft zijn eigen telefoonregels zo.
+  host schrijft zijn eigen telefoonregels zo. (#22)
 
 ## [0.2.0] - 2026-10-10
 
