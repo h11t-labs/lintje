@@ -373,6 +373,7 @@ export default {
       specimens: [
         {
           label: 'Met toelichting en meer-link',
+          preview: true,
           html: '<lintje-page-header></lintje-page-header>',
           wide: true,
           setup: (stage) => {
@@ -437,6 +438,7 @@ export default {
       specimens: [
         {
           label: 'Rust, hover, focus',
+          preview: true,
           html: '<lintje-breadcrumbs></lintje-breadcrumbs>',
           setup: (stage) => crumbs(stage, CRUMBS),
         },
@@ -453,6 +455,7 @@ export default {
       specimens: [
         {
           label: 'Groepen met een label, de huidige pagina en een actie',
+          preview: true,
           html: '<lintje-sub-nav></lintje-sub-nav>',
           setup: (stage) => subNav(stage, SUB_NAV, { label: 'Nieuw soort gesprek', value: 'nieuw' }),
         },
@@ -474,6 +477,7 @@ export default {
       specimens: [
         {
           label: 'Rust: titel, inleiding en een link verder',
+          preview: true,
           wide: true,
           html: `<lintje-hero heading="Wat wil je vertalen?" description="Typ of spreek een tekst in, upload een document, of voer een gesprek dat live wordt vertaald." action="Of start een live gesprek" href="#live"></lintje-hero>`,
           setup(stage) {
@@ -528,6 +532,7 @@ export default {
       specimens: [
         {
           label: 'Met regel, kolommen en vaste links',
+          preview: true,
           wide: true,
           html: '<lintje-footer></lintje-footer>',
           setup(stage) {
@@ -563,6 +568,7 @@ export default {
       specimens: [
         {
           label: 'Rust, menu (klik)',
+          preview: true,
           html: `<span style="${BAR}"><lintje-user-menu version="2.4.1"></lintje-user-menu></span>`,
           setup(stage) {
             const menu = stage.querySelector('lintje-user-menu')
@@ -637,6 +643,7 @@ export default {
       specimens: [
         {
           label: 'Rust, paneel, ongelezen (klik)',
+          preview: true,
           html: `<span style="${BAR}"><lintje-notifications></lintje-notifications></span>`,
           setup(stage) {
             const bell = stage.querySelector('lintje-notifications')

@@ -174,6 +174,7 @@ export default {
         })),
         {
           label: 'Compact, in de inhoud',
+          preview: true,
           html: announcement('info', 'Deze opname wordt na 30 dagen verwijderd.', 'Exporteer het transcript als je het wilt bewaren.'),
           setup: (stage) => setupAnnouncements(stage),
         },
@@ -298,6 +299,7 @@ export default {
       specimens: [
         {
           label: 'Nog niets',
+          preview: true,
           html: `<lintje-empty-state icon="functioneel-upload" heading="Nog geen opnames"
               text="Upload een opname om er een transcript van te maken.">
               <lintje-button variant="primary" block>Opname uploaden</lintje-button>
@@ -330,6 +332,7 @@ export default {
       specimens: [
         {
           label: 'Niet gevonden, met zoeken',
+          preview: true,
           html: `<lintje-error-page code="404" heading="Deze pagina bestaat niet"
               text="Het adres klopt niet, of de pagina is verplaatst of verwijderd. Controleer het adres, of zoek wat je nodig hebt.">
               <lintje-text-input type="search" label="Zoeken in Meldingen" placeholder="Zaaknummer, naam of trefwoord"></lintje-text-input>
@@ -381,6 +384,7 @@ export default {
       specimens: [
         {
           label: 'Neutraal en subtiel',
+          preview: true,
           html: '<div class="guide__row"><lintje-badge>Concept</lintje-badge><lintje-badge tone="subtle">Geannuleerd</lintje-badge></div>',
         },
         { label: 'Bezig', html: '<lintje-badge tone="busy">Bezig</lintje-badge>' },
@@ -402,6 +406,7 @@ export default {
       specimens: [
         {
           label: 'De vier toestanden',
+          preview: true,
           html: '<div class="guide__row"><lintje-status-dot tone="complete"></lintje-status-dot><lintje-status-dot tone="delayed"></lintje-status-dot><lintje-status-dot tone="outage"></lintje-status-dot><lintje-status-dot tone="no-data"></lintje-status-dot></div>',
         },
         {
@@ -416,6 +421,7 @@ export default {
       specimens: [
         {
           label: 'Drie maten',
+          preview: true,
           html: '<div class="guide__row"><lintje-spinner></lintje-spinner><lintje-spinner size="24"></lintje-spinner><lintje-spinner size="40"></lintje-spinner></div>',
         },
         {
@@ -434,6 +440,7 @@ export default {
       specimens: [
         {
           label: 'Twee regels',
+          preview: true,
           wide: true,
           html: '<div class="guide__stack"><lintje-skeleton width="60%" height="13"></lintje-skeleton><lintje-skeleton width="40%" height="13"></lintje-skeleton></div>',
         },
@@ -449,6 +456,7 @@ export default {
       specimens: [
         {
           label: 'Bepaald',
+          preview: true,
           html: '<lintje-progress-bar label="Transcriberen" detail="62% · nog ongeveer 3 min" value="62"></lintje-progress-bar>',
         },
         {
@@ -475,6 +483,7 @@ export default {
       specimens: [
         {
           label: 'Bezig, fout, wachtrij, onderbroken, klaar, geannuleerd',
+          preview: true,
           wide: true,
           html: '<lintje-job-list></lintje-job-list>',
           setup: (stage) => wireJobs(stage.querySelector('lintje-job-list'), JOBS),
@@ -506,6 +515,7 @@ export default {
         },
         {
           label: 'Klaar',
+          preview: true,
           html: '<lintje-streaming-text state="done"></lintje-streaming-text>',
           setup(stage) {
             stage.querySelector('lintje-streaming-text').text = TRANSCRIPT
@@ -554,6 +564,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
+          preview: true,
           html: '<lintje-ai-label></lintje-ai-label>',
         },
         {
@@ -574,6 +585,7 @@ export default {
       specimens: [
         {
           label: 'Goed, beweegt mee met het niveau',
+          preview: true,
           html: '<lintje-level-meter level="0.6"></lintje-level-meter>',
           setup(stage) {
             const meter = stage.querySelector('lintje-level-meter')
@@ -594,6 +606,7 @@ export default {
       specimens: [
         {
           label: 'Op je telefoon: looptijd, geluid en verbinding',
+          preview: true,
           wide: true,
           html: '<lintje-recording-status elapsed="724" level="0.6" connection="good" delay="1"></lintje-recording-status>',
         },

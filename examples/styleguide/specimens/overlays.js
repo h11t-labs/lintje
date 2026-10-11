@@ -204,6 +204,7 @@ export default {
       specimens: [
         {
           label: 'Naast een label: klik, Enter of spatie',
+          preview: true,
           html: `<div class="guide__row">Gemiddelde wachttijd
             <lintje-toggletip label="Toelichting op gemiddelde wachttijd">De mediaan van de wachttijd per kwartier, over alle loketten van de dienst.</lintje-toggletip></div>`,
         },

@@ -185,6 +185,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
+          preview: true,
           html: '<lintje-field label="Regio"><lintje-select label="Regio" hide-label></lintje-select></lintje-field>',
           setup: setOptions('lintje-select', REGIONS, 'alle'),
         },
@@ -206,6 +207,7 @@ export default {
       specimens: [
         {
           label: 'Rust, zoeken',
+          preview: true,
           html: '<lintje-text-input type="search" commit="input" label="Zoeken" value="roostermaker" hint="3 resultaten"></lintje-text-input>',
           setup(stage) {
             const field = stage.querySelector('lintje-text-input')
@@ -273,6 +275,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
+          preview: true,
           html: '<lintje-textarea label="Omschrijving" maxlength="2000" value="Tas zonder eigenaar bij de balie."></lintje-textarea>',
         },
         {
@@ -315,6 +318,7 @@ export default {
       specimens: [
         {
           label: 'Rust, met wat de host hoort',
+          preview: true,
           html: '<lintje-number-input name="p.drempel" label="Drempel" value="5" min="0" max="20" hint="Stapjes van 1, tussen 0 en 20."></lintje-number-input>',
           setup: (stage) => hearValues(stage, 'lintje-number-input'),
         },
@@ -356,6 +360,7 @@ export default {
       specimens: [
         {
           label: 'Rust, met wat de host hoort',
+          preview: true,
           html: '<lintje-select name="p.regio" label="Regio"></lintje-select>',
           setup(stage) {
             setOptions('lintje-select', REGIONS, 'alle')(stage)
@@ -385,6 +390,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
+          preview: true,
           html: '<lintje-combobox label="Locatie" value="vh2" empty-label="Geen locatie gevonden voor"></lintje-combobox>',
           setup(stage) {
             stage.querySelector('lintje-combobox').options = LOCATIES
@@ -433,6 +439,7 @@ export default {
       specimens: [
         {
           label: 'Rust, met chips',
+          preview: true,
           html: '<lintje-multiselect label="Bron van de aanvraag" hint="Een bron met een omschrijving krijgt een tweede regel."></lintje-multiselect>',
           setup: setSelected(SOURCES, ['balie', 'online']),
         },
@@ -464,6 +471,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
+          preview: true,
           html: '<lintje-tag-input label="Trefwoorden" hint="Enter of een komma maakt een trefwoord"></lintje-tag-input>',
           setup(stage) {
             stage.querySelector('lintje-tag-input').value = ['toegang', 'vergaderzaal']
@@ -500,6 +508,7 @@ export default {
       specimens: [
         {
           label: 'Aangevinkt',
+          preview: true,
           html: '<lintje-checkbox name="p.alleen-open" label="Alleen open loketten" checked></lintje-checkbox>',
         },
         {
@@ -522,6 +531,7 @@ export default {
       specimens: [
         {
           label: 'Rust, met een toelichting onder een optie',
+          preview: true,
           html: '<lintje-checkbox-group name="bijlagen" label="Welke bijlagen stuurt u mee?" hint="Kies alles wat van toepassing is."></lintje-checkbox-group>',
           setup(stage) {
             bijlagen(stage, ['loon'])
@@ -551,6 +561,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
+          preview: true,
           html: '<lintje-radio-group name="p.weergave" label="Weergave"></lintje-radio-group>',
           setup: (stage) => view(stage, 'dag'),
         },
@@ -587,6 +598,7 @@ export default {
       specimens: [
         {
           label: 'Aan',
+          preview: true,
           html: '<lintje-toggle name="p.live" label="Live bijwerken" checked></lintje-toggle>',
         },
         {
@@ -621,6 +633,7 @@ export default {
       specimens: [
         {
           label: 'Rust, met wat de host hoort',
+          preview: true,
           html: '<lintje-segmented name="p.soort" label="Soort loket"></lintje-segmented>',
           setup(stage) {
             setOptions('lintje-segmented', KINDS, 'alle')(stage)
@@ -672,6 +685,7 @@ export default {
       specimens: [
         {
           label: 'Twee handvatten, met wat de host hoort',
+          preview: true,
           html: '<lintje-range name="p.openingstijd" label="Openingstijd" from="1" to="4"></lintje-range>',
           setup(stage) {
             setSteps('lintje-range', HOURS)(stage)
@@ -706,6 +720,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
+          preview: true,
           html: '<lintje-date-input label="Datum" value="2026-10-03"></lintje-date-input>',
         },
         {
@@ -745,6 +760,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
+          preview: true,
           html: '<lintje-time-input label="Tijdstip" value="14:35"></lintje-time-input>',
         },
         {
@@ -784,6 +800,7 @@ export default {
       specimens: [
         {
           label: 'Rust, met wat de host hoort',
+          preview: true,
           html: '<lintje-date-range name="p.periode" label="Periode"></lintje-date-range>',
           setup(stage) {
             setRange(stage)
@@ -813,6 +830,7 @@ export default {
       specimens: [
         {
           label: 'Rust: een tijd gekozen, een volle tijd, een dag zonder tijden',
+          preview: true,
           html: '<lintje-slot-picker name="afspraak" label="Kies een tijd" hint="Een gesprek duurt een half uur."></lintje-slot-picker>',
           setup(stage) {
             setDays(stage, '2026-10-12T09:30')
@@ -854,6 +872,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
+          preview: true,
           html: '<lintje-file-upload accept=".pdf,.jpg,.png" max-size="10485760"></lintje-file-upload>',
           setup(stage) {
             fakeUploads(stage.querySelector('lintje-file-upload'))
@@ -902,6 +921,7 @@ export default {
       specimens: [
         {
           label: 'Rust, de waarde is markdown',
+          preview: true,
           wide: true,
           html: '<lintje-text-editor label="Toelichting"></lintje-text-editor>',
           setup(stage) {

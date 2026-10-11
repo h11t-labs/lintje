@@ -215,6 +215,7 @@ export default {
       specimens: [
         {
           label: 'HTML van de host',
+          preview: true,
           wide: true,
           html: '<lintje-prose data-html></lintje-prose>',
           setup(stage) {
@@ -239,6 +240,7 @@ export default {
       specimens: [
         {
           label: 'JSON, genummerd',
+          preview: true,
           wide: true,
           html: '<lintje-code language="json" numbered></lintje-code>',
           setup(stage) {
@@ -289,6 +291,7 @@ export default {
         },
         {
           label: 'Term uit de woordenlijst',
+          preview: true,
           html: 'een geldige <lintje-highlight kind="term">verblijfsvergunning</lintje-highlight>',
         },
         {
@@ -307,6 +310,7 @@ export default {
       specimens: [
         {
           label: 'Tekst en vertaling; de wisselknop staat op de scheidslijn (op een telefoon onder elkaar)',
+          preview: true,
           wide: true,
           html: TRANSLATOR,
           setup: (stage) => translator(stage, 'Uw aanvraag is ontvangen. Binnen acht weken krijgt u een besluit.'),
@@ -341,6 +345,7 @@ export default {
       specimens: [
         {
           label: 'Golfvorm, speelt na “Afspelen”',
+          preview: true,
           wide: true,
           html: audio(),
           setup(stage) {
@@ -425,6 +430,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
+          preview: true,
           html: '<lintje-video-player name="Hoorzitting zaal 4"></lintje-video-player>',
           setup(stage) {
             const player = stage.querySelector('lintje-video-player')
@@ -480,6 +486,7 @@ export default {
       specimens: [
         {
           label: 'Rust, hover, bewerken, spreker wisselen',
+          preview: true,
           wide: true,
           html: '<lintje-transcript></lintje-transcript>',
           setup(stage) {
@@ -574,6 +581,7 @@ export default {
       specimens: [
         {
           label: 'Rust: vijf pagina’s die de host als afbeelding levert',
+          preview: true,
           wide: true,
           html: '<lintje-document-viewer name="Brief gemeente.pdf" page="2"></lintje-document-viewer>',
           setup(stage) {
@@ -599,6 +607,7 @@ export default {
       specimens: [
         {
           label: 'Drie schermen, het tweede gekozen',
+          preview: true,
           html: '<lintje-gallery label="Schermafbeeldingen van Vertalen" selected="1"></lintje-gallery>',
           setup(stage) {
             stage.querySelector('lintje-gallery').items = [
