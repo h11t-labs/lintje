@@ -23,7 +23,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 - Afdrukken geeft een nette pagina, staand en liggend: altijd licht en wit, met een eigen marge,
   zonder telefoonvorm, bediening of beweging, met het embleem en de naam van de applicatie
   bovenaan, elke tegel heel op een vel en een tabel die tussen zijn rijen breekt (`breakable` op
-  `lintje-tile`). Een kerncijfer toont op papier zijn waarde, ook als het nog niet in beeld was.
+  `lintje-tile`). Een kerncijfer toont op papier zijn waarde, ook als het nog niet in beeld was,
+  en een kaart het gebied dat de lezer zag.
 
 ### Gewijzigd
 

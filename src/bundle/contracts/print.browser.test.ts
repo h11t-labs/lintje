@@ -23,7 +23,7 @@ import '../../components/frame/shell/shell'
 import '../../components/map/map/map'
 import '../../components/tables/card/card'
 import '../../components/tables/data-table/data-table'
-import type { ExplainerData, ShellData } from '../../types'
+import type { ExplainerData, MapData, ShellData } from '../../types'
 
 declare module 'vitest/browser' {
   interface BrowserCommands {
@@ -191,5 +191,43 @@ describe('what folds shut is printed open', () => {
     const { screen, paper } = await onPaper(() => getComputedStyle(body).visibility)
     expect(screen).toBe('hidden')
     expect(paper).toBe('visible')
+  })
+})
+
+describe('a map on paper', () => {
+  it('shows in its narrower paper box the area it showed on screen', async () => {
+    // The paper's box is narrower than the screen's, as a tile in a portrait sheet is.
+    const style = document.createElement('style')
+    style.textContent = '.frame { width: 600px; } @media print { .frame { width: 300px; } }'
+    const holder = document.createElement('div')
+    holder.className = 'frame'
+    const map = document.createElement('lintje-map') as HTMLElement & { data: MapData }
+    map.data = {
+      variant: 'points',
+      geo: 'world',
+      unit: 'aantal',
+      description: 'Drie punten van west naar oost.',
+      values: [
+        { id: 'west', label: 'West', value: 3, lon: -100, lat: 40 },
+        { id: 'mid', label: 'Midden', value: 5, lon: 5, lat: 52 },
+        { id: 'east', label: 'Oost', value: 4, lon: 120, lat: 30 },
+      ],
+    } as MapData
+    holder.append(map)
+    document.body.append(style, holder)
+    const root = map.shadowRoot!
+    await expect.poll(() => root.querySelectorAll('[data-mark-id]').length).toBe(3)
+    await frame()
+    const seen = () => {
+      const box = root.querySelector('.leaflet-container')!.getBoundingClientRect()
+      return [...root.querySelectorAll('[data-mark-id]')].every((mark) => {
+        const { left, right } = mark.getBoundingClientRect()
+        return left >= box.left && right <= box.right
+      })
+    }
+    expect(seen(), 'on screen').toBe(true)
+    await commands.emulatePrint(true)
+    await expect.poll(() => root.querySelector('.leaflet-container')!.clientWidth).toBeLessThan(300)
+    await expect.poll(seen, { message: 'on paper' }).toBe(true)
   })
 })

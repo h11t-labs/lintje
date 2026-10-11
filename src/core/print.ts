@@ -23,3 +23,23 @@ export function onBeforePrint(callback: () => void): () => void {
   callbacks.add(callback)
   return () => callbacks.delete(callback)
 }
+
+const media = new Set<(printing: boolean) => void>()
+let mediaQuery: MediaQueryList | null = null
+
+function switched(event: MediaQueryListEvent): void {
+  for (const callback of media) callback(event.matches)
+}
+
+/**
+ * Runs `callback` with `true` when the page is laid out for paper and `false` when it is back on
+ * screen. Inside the call a box measures its paper size, which `beforeprint` is too early for.
+ */
+export function onPrintMedia(callback: (printing: boolean) => void): () => void {
+  if (!mediaQuery && typeof matchMedia !== 'undefined') {
+    mediaQuery = matchMedia('print')
+    mediaQuery.addEventListener('change', switched)
+  }
+  media.add(callback)
+  return () => media.delete(callback)
+}

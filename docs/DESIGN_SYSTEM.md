@@ -677,6 +677,8 @@ staand of liggend; Lintje zet geen paginaformaat.
   een tabelkolom en het aantal rijen wel. Wat dichtgeklapt is, staat open.
 - **Niets beweegt.** Elk teken staat in zijn eindtoestand, ook wat nog niet in beeld kwam; een
   kerncijfer toont zijn waarde, nooit de nul waar het van optelt.
+- **Een kaart toont op papier het gebied dat de lezer zag**, passend in haar smallere doos, met
+  haar schaal daarvoor opnieuw berekend; na het afdrukken staat het schermbeeld er weer.
 - **Een tegel blijft op één vel** waar hij past. Een tabel breekt tussen zijn rijen (`breakable`
   op de tegel) en zijn kop staat één keer.
 - **Het vel zegt wat het is**: het embleem en de naam van de applicatie staan bovenaan, in plaats

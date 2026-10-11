@@ -24,6 +24,8 @@ const LEAFLET_PREFIX =
 const HOME_PADDING: L.PointTuple = [8, 8]
 /** How far in a map goes from its home: three doublings, eight times. */
 const MAX_DOUBLINGS = 3
+/** Below any zoom a map in a tile needs: a floor that never holds a fit back. */
+const PRINT_FLOOR = -4
 const SVG_NS = 'http://www.w3.org/2000/svg'
 /**
  * How far a circle reaches before it takes in a pole, in km: past it Mercator cannot draw it as
@@ -148,6 +150,8 @@ export class LeafletSurface {
     dragged: boolean
   } | null = null
   #resize: ResizeObserver | null = null
+  /** The view on screen while the page is on paper, to return to afterwards. */
+  #screenView: { centre: L.LatLng; zoom: number } | null = null
   #basemapKey = ''
   #geo = ''
   #home: L.LatLngBounds | null = null
@@ -253,6 +257,33 @@ export class LeafletSurface {
     const lead = metres / step
     const round = (lead >= 5 ? 5 : lead >= 2 ? 2 : 1) * step
     return { width: Math.round((room * round) / metres), metres: round }
+  }
+
+  /**
+   * On paper the box has another size, and Leaflet would keep the screen's pixels and cut the
+   * rest off: the area the reader saw fills the paper's box instead, and returns afterwards.
+   */
+  print(printing: boolean): void {
+    const map = this.#map
+    if (!map || !this.#framed) return
+    if (printing) {
+      const seen = map.getBounds()
+      this.#screenView = { centre: map.getCenter(), zoom: map.getZoom() }
+      this.#resized(map)
+      map.fitBounds(seen, { animate: false })
+      return
+    }
+    const view = this.#screenView
+    this.#screenView = null
+    this.#resized(map)
+    if (view) map.setView(view.centre, view.zoom, { animate: false })
+  }
+
+  /** A box of another size: Leaflet clamps the new limits to the old floor, so that goes first. */
+  #resized(map: L.Map): void {
+    map.invalidateSize({ animate: false })
+    map.setMinZoom(PRINT_FLOOR)
+    this.#limits()
   }
 
   home(): void {

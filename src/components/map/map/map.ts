@@ -35,6 +35,7 @@ import { mapStyles } from '../../shared/charts/map-chart/map-styles'
 import { LintjeContentTileElement } from '../../shared/content-tile'
 import { downloadCsv, downloadPng, type CsvCell } from '../../shared/download'
 import { MediaController } from '../../../core/media'
+import { onPrintMedia } from '../../../core/print'
 import announcementCss from '../../feedback/announcement/announcement.css?inline'
 import skeletonCss from '../../../primitives/skeleton/skeleton.css?inline'
 import tileHostCss from '../../shared/view-tile.css?inline'
@@ -69,12 +70,24 @@ export class LintjeMap extends LintjeContentTileElement {
   #modalMap: ChartController | null = null
   readonly #mobile = new MediaController(this)
   #layerSeen: string | undefined = undefined
+  #offPrint: (() => void) | null = null
 
   protected override get dataSettings(): FrameSettings | undefined {
     return this.data ?? undefined
   }
 
+  override connectedCallback(): void {
+    super.connectedCallback()
+    // The scale bar is drawn in the render: it is redrawn before the paper is laid out.
+    this.#offPrint = onPrintMedia((printing) => {
+      this.#map.leaflet?.print(printing)
+      if (this.isUpdatePending) this.performUpdate()
+    })
+  }
+
   override disconnectedCallback(): void {
+    this.#offPrint?.()
+    this.#offPrint = null
     this.#map.detach()
     this.#modalMap?.detach()
     this.#modalMap = null
