@@ -330,6 +330,12 @@ De besluiten hieronder gelden voor alle elementen.
   een probleem in zijn statustoon met zijn glyph, zijn woorden en de actie die het oplost.
 - **Een uitgeschakelde knop zegt waarom**: `reason` wordt met de knop voorgelezen; de host zegt
   het ook op de pagina.
+- **Acties die niet op één regel passen, klappen in** naar één menu "Meer", vóór de acties die
+  blijven staan; de laatste knop, de primaire, blijft altijd in het zicht. Gemeten, niet per
+  breekpunt, zoals de navigatiebalk. De volgorde van de host is de prioriteit: de eerste knop gaat
+  als eerste het menu in. Een menu met één rij bestaat niet: als één knop weg zou moeten, gaan er
+  twee, en naast de primaire klapt een enkele knop nooit in. Dit is de algemene vorm van "Eén
+  actie in het zicht, de rest in het menu" van de werklijst; de paginakop doet het.
 - **Een naam wordt hernoemd waar hij staat.** De titel van een pagina toont een potlood als ernaar
   gewezen wordt of als hij focus heeft; een rij in een lijst verandert in haar veld met opslaan en
   annuleren. Geen dialoog voor één naam.

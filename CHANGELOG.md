@@ -12,6 +12,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Toegevoegd
 
+- De paginakop klapt acties die niet op één regel passen in naar één menu "Meer", vóór de
+  knoppen die blijven staan; de laatste knop, de primaire, blijft altijd in het zicht en een menu
+  met één rij bestaat niet. Gemeten, niet per breekpunt (`components/shared/overflow.ts`). (#23)
 - `lintje-checkbox-group`: meer keuzes onder één label, een vinkje per optie, met één hint en
   één foutregel voor de groep, zoals de radiogroep. De waarde is `selected`, de aangevinkte
   waarden in de volgorde van de opties; een `description` staat onder haar optie. (#19)
