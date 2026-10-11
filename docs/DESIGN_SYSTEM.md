@@ -411,6 +411,14 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een toets op het scherm wordt op één manier getekend**: `<kbd class="lintje-key">`, uit
   `components/shared/key.css`.
 - **Escape sluit wat open is**, en in een popover alleen de popover.
+- **Twee vensters: een groot voor inhoud, een klein voor een vraag of een kort formulier.**
+  `lintje-modal` toont inhoud, zoals een vergrote tegel of een tekst. `lintje-dialog` stelt een
+  vraag of vraagt een paar velden, in één kader zonder lijnen tussen kop, inhoud en knoppen. Een
+  vraag die een antwoord nodig heeft, is een `alert`: geen sluitknop, de focus op de veilige knop
+  (`autofocus`), en het antwoord als laatste knop, zodat het op een telefoon bovenaan staat.
+- **Een venster met vaste woorden is een recept, geen element**: een bevestiging, de sessie die
+  verloopt en het overzicht van de sneltoetsen zijn een `lintje-dialog` met inhoud van de host,
+  voorgedaan in de stijlgids.
 
 ### Werklijsten
 
@@ -747,7 +755,10 @@ kleinste correctie, en leg die hier vast.
 - **Wat verdwijnt terwijl de focus erop staat, geeft de focus eerst door**: een toast terug naar
   waar hij vandaan kwam (anders `<main>`), een gesloten mededeling naar de volgende stop op de
   pagina, "Alles gelezen" naar de eerste melding.
-- **Een sneltoets van één teken kan uit** (`/`, `?`): onder de lijst in `lintje-shortcuts`,
+- **Een sessie die verloopt, waarschuwt minstens 20 seconden vooraf** en wordt met één knop
+  verlengd (WCAG 2.2.1): in een `lintje-dialog alert persistent`, waarin Escape en de achtergrond
+  niets doen omdat de sessie hoe dan ook afloopt.
+- **Een sneltoets van één teken kan uit** (`/`, `?`): onder de lijst in het overzicht,
   onthouden per browser. Een combinatie met Ctrl, Alt of Cmd werkt altijd.
 - **De popup van een veld sluit als de focus het veld verlaat**, zodat hij nooit het volgende veld
   bedekt; gesloten met Escape of met zijn eigen actie, geeft hij de focus terug aan het veld.

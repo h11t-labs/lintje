@@ -12,6 +12,13 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Toegevoegd
 
+- **`lintje-dialog`, het kleine venster** voor een vraag of een kort formulier, naast
+  `lintje-modal`, het grote voor inhoud. `alert` maakt er een `alertdialog` van zonder
+  sluitknop, `persistent` laat Escape en de achtergrond niets vragen, `wide` geeft de breedte van
+  een formulier, en met `busy` wacht de knop van het antwoord terwijl de andere uit staan. De
+  knoppen komen in `actions`; de focus gaat naar wat `autofocus` heeft. De bevestiging, de sessie
+  die verloopt en de sneltoetsen zijn recepten ervan in de stijlgids.
+
 - **Eén toonset.** `Tone` (neutraal, subtiel, bezig, gelukt, let op, fout, informatie, aandacht,
   live), `WorkState` (wachtrij, bezig, onderbroken, klaar, mislukt, geannuleerd) en
   `ContentStateKind` staan één keer, in `primitives/shared/tone.ts`, en `src/types.ts` exporteert
@@ -51,6 +58,14 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Gewijzigd
 
+- **Brekend:** `lintje-confirm-dialog`, `lintje-session-expiry` en `lintje-shortcuts` zijn weg: een bevestiging is
+  een `lintje-dialog alert` met de knoppen van de host, een sessie die verloopt een
+  `lintje-dialog alert persistent` en het teruggezette concept een `lintje-announcement`.
+  `lintje-modal` verliest `narrow` (een formulier is een `lintje-dialog wide`), heeft geen kop
+  "Vergroot" meer en zet `csv` en `png` standaard uit. Het overzicht van de sneltoetsen is een
+  `lintje-dialog` die de pagina vult uit `shortcuts()`, met de schakelaar op `setCharacterKeys()`.
+  Modal, dialoog en drawer delen hun scrollvergrendeling, focusval en Escape
+  (`components/shared/dialog.ts`).
 - De tegel stelt leeg en fout samen uit dezelfde blokken als `lintje-empty-state` en
   `lintje-announcement` (`primitives/shared/announcement-block.ts`, `empty-state-block.ts`), en
   alle drie de toestanden zijn een live-regio van de tegel: ook een tegel die leeg wordt, wordt

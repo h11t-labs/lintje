@@ -425,21 +425,21 @@
       </div>
     </lintje-shell>
 
-    <lintje-modal id="rename-modal" narrow heading="Naam wijzigen">
+    <lintje-dialog id="rename-modal" wide heading="Naam wijzigen">
       <lintje-text-input id="rename-input" class="adjust-grid__field" label="Naam van de opname"></lintje-text-input>
       <lintje-button slot="actions" id="rename-cancel" variant="tertiary">Annuleren</lintje-button>
       <lintje-button slot="actions" id="rename-save" variant="primary">Opslaan</lintje-button>
-    </lintje-modal>
+    </lintje-dialog>
 
 
-    <lintje-modal id="merge-modal" narrow heading="Sprekers samenvoegen">
+    <lintje-dialog id="merge-modal" wide heading="Sprekers samenvoegen">
       <lintje-select id="merge-into" class="adjust-grid__field" label="Samenvoegen met"></lintje-select>
       <lintje-button slot="actions" id="merge-cancel" variant="tertiary">Annuleren</lintje-button>
       <lintje-button slot="actions" id="merge-save" variant="primary">Samenvoegen</lintje-button>
-    </lintje-modal>
+    </lintje-dialog>
 
     <!-- Zelf samenstellen: what goes in, in which format, and always the note on top. -->
-    <lintje-modal id="download-modal" narrow heading="Downloaden">
+    <lintje-dialog id="download-modal" wide heading="Downloaden">
       <div class="panel panel--roomy">
         <div class="panel panel--tight">
           <lintje-prose data-heading="Wat wil je downloaden?"></lintje-prose>
@@ -460,7 +460,7 @@
       <span slot="footer" id="dl-result"></span>
       <lintje-button slot="actions" id="dl-cancel" variant="tertiary">Annuleren</lintje-button>
       <lintje-button slot="actions" id="dl-save" variant="primary" icon="functioneel-downloaden">Downloaden</lintje-button>
-    </lintje-modal>
+    </lintje-dialog>
 
     <lintje-drawer id="adjust" heading="Instellingen voor deze opname">
       <div class="panel">

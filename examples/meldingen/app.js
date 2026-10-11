@@ -26,12 +26,13 @@ import '../../dist-elements/forms.js'
 import '../../dist-elements/tables.js'
 import '../../dist-elements/tag/announcement.js'
 import '../../dist-elements/tag/button.js'
-import '../../dist-elements/tag/confirm-dialog.js'
+import '../../dist-elements/tag/dialog.js'
 import '../../dist-elements/tag/drawer.js'
 import '../../dist-elements/tag/menu-button.js'
 import '../../dist-elements/tag/prose.js'
 import '../../dist-elements/tag/toast.js'
 import { plural, toast } from '../_shared/page.js'
+import { shortcutOverview } from '../_shared/shortcuts.js'
 import {
   CARRIED_TO_APPS,
   carry,
@@ -230,7 +231,14 @@ const confirmDialog = document.getElementById('confirm')
 const discardDialog = document.getElementById('discard')
 const leave = document.getElementById('leave')
 const search = document.getElementById('search')
-const shortcuts = document.getElementById('shortcuts')
+const showShortcuts = shortcutOverview(document.getElementById('shortcuts'))
+
+// Every dialog asks to be closed; "data-close" is its safe button.
+for (const dialog of [confirmDialog, discardDialog, leave]) {
+  dialog.addEventListener('lintje-close', () => (dialog.open = false))
+  dialog.querySelector('[data-close]')?.addEventListener('click', () => (dialog.open = false))
+}
+const answered = (dialog, act) => dialog.querySelector('[data-answer]').addEventListener('click', act)
 
 /* --- The frame ---------------------------------------------------------------------------- */
 
@@ -264,7 +272,7 @@ shell.addEventListener('lintje-action', (event) => {
   if (event.target !== shell && event.target.localName !== 'lintje-user-menu') return
   // The start page opens the way this one looks.
   if (event.detail === 'start') location.href = carry('../')
-  if (event.detail === 'sneltoetsen') shortcuts.open = true
+  if (event.detail === 'sneltoetsen') showShortcuts()
 })
 
 shell.addEventListener('lintje-view-change', (event) => {
@@ -479,15 +487,14 @@ function askDelete(ids) {
   pendingDelete = ids
   const first = ROWS.find((row) => row.id === ids[0])
   confirmDialog.heading = ids.length === 1 ? 'Melding verwijderen?' : `${ids.length} meldingen verwijderen?`
-  confirmDialog.textContent =
+  document.getElementById('confirm-text').textContent =
     ids.length === 1
       ? `“${first?.title}” wordt verwijderd. Dit kun je niet terugdraaien.`
       : 'De gekozen meldingen worden verwijderd. Dit kun je niet terugdraaien.'
   confirmDialog.open = true
 }
 
-confirmDialog.addEventListener('lintje-close', () => (confirmDialog.open = false))
-confirmDialog.addEventListener('lintje-confirm', () => {
+answered(confirmDialog, () => {
   confirmDialog.busy = true
   setTimeout(() => {
     const gone = new Set(pendingDelete)
@@ -569,8 +576,7 @@ function askClose() {
 drawer.addEventListener('lintje-close', askClose)
 cancelButton.addEventListener('click', askClose)
 saveButton.addEventListener('click', () => edit.submit())
-discardDialog.addEventListener('lintje-close', () => (discardDialog.open = false))
-discardDialog.addEventListener('lintje-confirm', () => {
+answered(discardDialog, () => {
   discardDialog.open = false
   edit.discardDraft()
   closeDrawer()
@@ -709,7 +715,9 @@ function storedDraft(key) {
 }
 
 const FORM = `
-  <lintje-session-expiry hidden></lintje-session-expiry>
+  <lintje-announcement id="restored" compact hidden>
+    <lintje-button slot="action" variant="link" size="compact">Concept weggooien</lintje-button>
+  </lintje-announcement>
   <lintje-form>
     <div class="stack stack--wide" data-step="1">
       <lintje-form-section variant="tile" heading="Wat en waar"
@@ -830,12 +838,13 @@ async function renderForm() {
   renumber(repeater)
 
   // "Je concept is teruggezet", with the moment it was written.
-  const notice = main.querySelector('lintje-session-expiry')
+  const notice = main.querySelector('#restored')
   if (draft && form.dirty) {
-    notice.setAttribute('restored-at', new Date(draft.savedAt).toISOString())
+    const time = clock(new Date(draft.savedAt))
+    notice.data = { kind: 'ok', title: 'Je concept is teruggezet.', text: `Het is van ${time}, van voor het afmelden.` }
     notice.hidden = false
   }
-  notice.addEventListener('lintje-draft-discard', () => {
+  notice.querySelector('lintje-button').addEventListener('click', () => {
     discard()
     notice.hidden = true
     renderForm()
@@ -1098,14 +1107,13 @@ function leaveForm(href) {
   leave.open = true
 }
 
-leave.addEventListener('lintje-close', () => (leave.open = false))
-leave.addEventListener('lintje-confirm', () => {
+answered(leave, () => {
   form.saveDraft()
   leave.open = false
   toast('Het concept is bewaard. Je vindt het bovenaan het overzicht.')
   navigate(target, { force: true })
 })
-leave.addEventListener('lintje-action', () => {
+leave.querySelector('[data-discard]').addEventListener('click', () => {
   discard()
   leave.open = false
   navigate(target, { force: true })
@@ -1149,9 +1157,6 @@ search.addEventListener('lintje-action', (event) => {
 
 /* --- Shortcuts: what this page adds, shown by "?" ----------------------------------------- */
 
-shortcuts.addEventListener('lintje-open', () => (shortcuts.open = true))
-shortcuts.addEventListener('lintje-close', () => (shortcuts.open = false))
-
 const goTab = (value) => () => navigate(tabLink(value))
 registerShortcut({ keys: '1', description: 'Naar Alle meldingen', handler: goTab('alle') })
 registerShortcut({ keys: '2', description: 'Naar Open meldingen', handler: goTab('open') })
@@ -1183,4 +1188,4 @@ if (demo() === 'zoeken') {
   search.query = 'gevonden'
   search.groups = answer('gevonden')
 }
-if (demo() === 'sneltoetsen') shortcuts.open = true
+if (demo() === 'sneltoetsen') showShortcuts()

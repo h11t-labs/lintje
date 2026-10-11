@@ -1,23 +1,21 @@
 /**
- * `<lintje-modal>` — the expand modal: title, subtitle, slotted content, a footer.
+ * `<lintje-modal>` — the large window for content: title, subtitle, slotted content, a footer.
+ * A question or a short form goes in the small `<lintje-dialog>`.
  *
  * It is `position: fixed` above the app frame, so no ancestor may carry a `transform`, `filter`
  * or `contain`. The footer is hidden, not unrendered, when empty: an unrendered slot never
- * reports its content again.
- *
- * `narrow` makes it a dialog with a form: as high as its content and as wide as a form reads,
- * with a sentence in `footer` on the left and its buttons in `actions` on the right.
+ * reports its content again. A sentence goes in `footer` on the left, buttons in `actions` on
+ * the right; `csv` and `png` add the download buttons there.
  *
  * Events: `lintje-close` (the host owns `open`), `lintje-download-csv`, `lintje-download-png`.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
-import { lockScroll } from '../../../core/host-config'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../../primitives/button/button'
 import '../../../primitives/icon-button/icon-button'
-import { FocusTrap } from '../../shared/focus-trap'
+import { DialogHold } from '../../shared/dialog'
 import modalCss from './modal.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 
@@ -30,21 +28,18 @@ export class LintjeModal extends LintjeElement {
     subtitle: { type: String },
     csv: { type: Boolean },
     png: { type: Boolean },
-    narrow: { type: Boolean, reflect: true },
     footerSlotted: { state: true },
     actionsSlotted: { state: true },
   }
 
   /** The host owns it; `lintje-close` asks for `false`. */
   open: boolean = false
-  /** The dialog's accessible name and its title line. */
-  heading: string = 'Vergroot'
+  /** The dialog's accessible name and its title line; without it the dialog is "Venster". */
+  heading: string = ''
   declare subtitle?: string
-  /** The footer's CSV and PNG buttons. Default `true`: bind as a property, `.csv=${false}`. */
-  csv: boolean = true
-  png: boolean = true
-  /** A dialog with a form: its content's height, a form's width. */
-  narrow: boolean = false
+  /** The footer's CSV and PNG buttons, for content that can be downloaded. */
+  csv: boolean = false
+  png: boolean = false
 
   footerSlotted: boolean = false
   actionsSlotted: boolean = false
@@ -61,14 +56,8 @@ export class LintjeModal extends LintjeElement {
     )
   }
 
-  #released: (() => void) | null = null
-  readonly #trap = new FocusTrap()
+  readonly #hold = new DialogHold(() => this.close())
   #bodySize: ResizeObserver | null = null
-
-  /** Escape closes the dialog on top only: a modal opened over a drawer goes first. */
-  readonly #onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape' && this.#trap.isTopmost()) this.close()
-  }
 
   override disconnectedCallback(): void {
     this.#release()
@@ -76,8 +65,8 @@ export class LintjeModal extends LintjeElement {
   }
 
   protected override updated(): void {
-    if (this.open && !this.#released) this.#hold()
-    else if (!this.open && this.#released) this.#release()
+    if (this.open && !this.#hold.held) this.#open()
+    else if (!this.open && this.#hold.held) this.#release()
     if (this.open) this.#fit()
   }
 
@@ -98,21 +87,18 @@ export class LintjeModal extends LintjeElement {
     this.emit('lintje-close')
   }
 
-  #hold(): void {
-    this.#released = lockScroll()
-    document.addEventListener('keydown', this.#onKeyDown)
+  #open(): void {
     const dialog = this.renderRoot.querySelector<HTMLElement>('.lintje-modal')
-    if (dialog) this.#trap.activate(dialog)
+    if (!dialog) return
+    this.#hold.hold(dialog)
+    dialog.focus()
   }
 
   #release(): void {
-    if (!this.#released) return
+    if (!this.#hold.held) return
     this.#bodySize?.disconnect()
     this.#bodySize = null
-    document.removeEventListener('keydown', this.#onKeyDown)
-    this.#released()
-    this.#released = null
-    this.#trap.deactivate()
+    this.#hold.release()
   }
 
   protected override render(): TemplateResult | typeof nothing {
@@ -122,7 +108,7 @@ export class LintjeModal extends LintjeElement {
         class="lintje-modal"
         role="dialog"
         aria-modal="true"
-        aria-label=${this.heading}
+        aria-label=${this.heading.trim() || 'Venster'}
         tabindex="-1"
         @click=${(event: Event) => event.stopPropagation()}
       >

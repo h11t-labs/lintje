@@ -1,0 +1,83 @@
+/* `display: contents` keeps the host out of its parent's flex or grid layout. */
+:host { display: contents; }
+
+/* ------------------------------------------------------------------------ */
+
+/* Covers the whole viewport, above the shell's menu (z-index 30). */
+.lintje-dialog__scrim {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background: var(--color-overlay-page);
+  animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
+}
+
+.lintje-dialog {
+  width: min(440px, 100%);
+  max-height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-popover);
+  animation: lintje-rise var(--dur-modal) var(--ease-in-motion);
+}
+:host([wide]) .lintje-dialog { width: min(calc(15 * var(--space-10)), 100%); }
+/* The window takes focus only in an alert or when the trap pulls stray focus back; no ring. */
+.lintje-dialog:focus { outline: none; }
+
+.lintje-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.lintje-dialog__heading { font: var(--text-h2); }
+/* The close button reaches into the padding, so it does not make the heading's line taller. */
+.lintje-dialog__close { margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0; }
+.lintje-dialog__close:hover { color: var(--color-text-primary); }
+
+/* A long form scrolls here; the padding keeps a field's focus ring inside the scroll box. */
+.lintje-dialog__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  margin: calc(var(--focus-width) * -1) calc(var(--space-6) * -1);
+  padding: var(--focus-width) var(--space-6);
+  font: var(--text-body);
+}
+
+.lintje-dialog__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-3);
+}
+.lintje-dialog__footer[hidden] { display: none; }
+.lintje-dialog__note { font: var(--text-ui); }
+.lintje-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+/* Phone: the buttons stack, the last (the answer) on top and the safe one at the bottom. */
+@media screen and (max-width: 767px) {
+  .lintje-dialog__scrim { padding: var(--space-4); }
+  .lintje-dialog { width: 100%; }
+  .lintje-dialog__footer { flex-direction: column; align-items: stretch; }
+  .lintje-dialog__actions { flex-direction: column-reverse; margin-left: 0; }
+}

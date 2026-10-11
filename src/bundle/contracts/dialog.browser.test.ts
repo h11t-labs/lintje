@@ -4,14 +4,13 @@ import { cdp, page, server, userEvent } from 'vitest/browser'
 import { deepActiveElement, holdsFocus } from '../../core/focus'
 import { focusTarget, tabbables } from '../../components/shared/focus-trap'
 import '../../components/frame/app-search/app-search'
-import '../../components/overlays/confirm-dialog/confirm-dialog'
+import '../../components/overlays/dialog/dialog'
 import '../../components/overlays/drawer/drawer'
 import '../../components/filters/filter-sheet/filter-sheet'
 import '../../components/inputs/text-input/text-input'
 import '../../components/overlays/modal/modal'
 import '../../components/frame/notifications/notifications'
-import '../../components/frame/session-expiry/session-expiry'
-import '../../components/frame/shortcuts/shortcuts'
+import '../../primitives/button/button'
 import '../../components/frame/shell/shell'
 import type { ShellData } from '../../types'
 import { SHIFT_TAB, TAB } from '../../core/test-keys'
@@ -48,12 +47,6 @@ const ran: string[] = []
 
 const shadow = (element: HTMLElement, selector: string): HTMLElement | null =>
   element.shadowRoot!.querySelector<HTMLElement>(selector)
-
-/** The inner button of a `lintje-button`, which is where its focus goes. */
-const inner = (element: HTMLElement, selector: string): HTMLElement | null => {
-  const button = shadow(element, selector)
-  return button ? focusTarget(button) : null
-}
 
 /** A host as a page has it: its button sets `open`, every request to close clears it. */
 function hosted(
@@ -122,18 +115,51 @@ const ROWS: Row[] = [
     label: 'Aanvraag',
   },
   {
-    name: 'lintje-confirm-dialog',
+    name: 'lintje-dialog',
     mount: () => {
-      const dialog = Object.assign(document.createElement('lintje-confirm-dialog'), {
-        heading: 'Aanvraag verwijderen?',
-        confirmLabel: 'Verwijderen',
+      const dialog = Object.assign(document.createElement('lintje-dialog'), {
+        heading: 'Naam wijzigen',
+        wide: true,
       })
-      dialog.textContent = 'De aanvraag en de 2 bijlagen worden verwijderd.'
+      dialog.innerHTML = `<lintje-text-input label="Naam"></lintje-text-input>
+        <lintje-button slot="actions" variant="secondary">Annuleren</lintje-button>
+        <lintje-button slot="actions" variant="primary">Opslaan</lintje-button>`
+      return hosted(dialog)
+    },
+    first: (element) =>
+      element.querySelector('lintje-text-input')?.shadowRoot?.querySelector<HTMLElement>('input'),
+    closers: [['de sluitknop', (element) => shadow(element, '.lintje-dialog__close')]],
+    label: 'Naam wijzigen',
+  },
+  {
+    name: 'lintje-dialog zonder veld',
+    mount: () => {
+      const dialog = Object.assign(document.createElement('lintje-dialog'), {
+        heading: 'Sneltoetsen',
+      })
+      dialog.innerHTML = '<p>Zoeken: /</p>'
+      return hosted(dialog)
+    },
+    first: (element) => shadow(element, '.lintje-dialog__close'),
+    closers: [['de sluitknop', (element) => shadow(element, '.lintje-dialog__close')]],
+    label: 'Sneltoetsen',
+  },
+  {
+    name: 'lintje-dialog alert',
+    mount: () => {
+      const dialog = Object.assign(document.createElement('lintje-dialog'), {
+        alert: true,
+        heading: 'Aanvraag verwijderen?',
+      })
+      dialog.innerHTML = `De aanvraag en de 2 bijlagen worden verwijderd.
+        <lintje-button slot="actions" variant="secondary" autofocus>Annuleren</lintje-button>
+        <lintje-button slot="actions" variant="danger">Verwijderen</lintje-button>`
+      dialog.querySelector('[autofocus]')!.addEventListener('click', () => (dialog.open = false))
       return hosted(dialog)
     },
     // The safe answer, so Enter never confirms by itself.
-    first: (element) => inner(element, '.lintje-confirm-dialog__cancel'),
-    closers: [['annuleren', (element) => shadow(element, '.lintje-confirm-dialog__cancel')]],
+    first: (element) => focusTarget(element.querySelector<HTMLElement>('[autofocus]')!),
+    closers: [['annuleren', (element) => element.querySelector<HTMLElement>('[autofocus]')]],
     label: 'Aanvraag verwijderen?',
     description: 'De aanvraag en de 2 bijlagen worden verwijderd.',
     tree: { role: 'alertdialog', description: 'De aanvraag en de 2 bijlagen worden verwijderd.' },
@@ -163,37 +189,26 @@ const ROWS: Row[] = [
     closers: [['de sluitknop', (element) => shadow(element, '.lintje-app-search__close')]],
   },
   {
-    name: 'lintje-session-expiry',
+    name: 'lintje-dialog alert persistent',
     mount: () => {
-      const element = document.createElement('lintje-session-expiry')
-      const trigger = Object.assign(document.createElement('button'), {
-        type: 'button',
-        textContent: 'Openen',
+      const dialog = Object.assign(document.createElement('lintje-dialog'), {
+        alert: true,
+        persistent: true,
+        heading: 'Je sessie verloopt over 1 minuut',
       })
-      const inMinutes = (minutes: number): string =>
-        new Date(Date.now() + minutes * 60_000).toISOString()
-      // Within the warning: the window opens. Extended: the session is active and it closes.
-      trigger.addEventListener('click', () => (element.expiresAt = inMinutes(1)))
-      element.addEventListener('lintje-session-extend', () => (element.expiresAt = inMinutes(30)))
-      document.body.append(trigger, element)
-      return { element, trigger: () => trigger }
+      dialog.innerHTML = `Je invoer wordt bewaard in deze browser. Blijf aangemeld om door te werken.
+        <lintje-button slot="actions" variant="tertiary">Afmelden</lintje-button>
+        <lintje-button slot="actions" variant="primary" autofocus>Aangemeld blijven</lintje-button>`
+      dialog.querySelector('[autofocus]')!.addEventListener('click', () => (dialog.open = false))
+      return hosted(dialog)
     },
-    first: (element) => inner(element, '.lintje-session-expiry__primary'),
+    first: (element) => focusTarget(element.querySelector<HTMLElement>('[autofocus]')!),
     escapeIgnored: true,
     closers: [
-      ['aangemeld blijven', (element) => shadow(element, '.lintje-session-expiry__primary')],
+      ['aangemeld blijven', (element) => element.querySelector<HTMLElement>('[autofocus]')],
     ],
     label: 'Je sessie verloopt over 1 minuut',
     description: 'Je invoer wordt bewaard in deze browser. Blijf aangemeld om door te werken.',
-  },
-  {
-    name: 'lintje-shortcuts',
-    mount: () => hosted(document.createElement('lintje-shortcuts')),
-    first: (element) => shadow(element, '.lintje-shortcuts'),
-    closers: [
-      ['sluiten', (element) => shadow(element, '.lintje-confirm-dialog__actions lintje-button')],
-    ],
-    label: 'Sneltoetsen',
   },
   {
     name: 'lintje-notifications op 390 px',
