@@ -583,12 +583,15 @@ export function renderElementPage(host, item, context) {
       sub.href = `#${pool?.[i]?.id}`
     }
 
-  // Which specimen shows which field; what every specimen beside it sets tells nothing apart.
+  // Which specimen shows which field. A key of rich data that every specimen beside it sets (a
+  // title, a footnote) tells nothing apart; an attribute is always the specimen's own choice.
   const shown = new Map(figures.map((figure) => [figure, fieldsShown(figure, item, declaration)]))
   for (const batch of batches) {
     if (batch.length < 2) continue
     const sets = batch.map((figure) => shown.get(figure))
-    const everywhere = [...sets[0]].filter((key) => sets.every((set) => set.has(key)))
+    const everywhere = [...sets[0]].filter(
+      (key) => key.includes('.') && sets.every((set) => set.has(key)),
+    )
     for (const set of sets) for (const key of everywhere) set.delete(key)
   }
   const shownBy = new Map()
