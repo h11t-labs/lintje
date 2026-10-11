@@ -17,6 +17,8 @@ interface State {
 }
 
 interface Specimen {
+  label?: string
+  note?: string
   html?: string
   setup?: (stage: HTMLElement) => void
   /** Put on after `setup`, as the style guide's state switch does. */
@@ -262,6 +264,30 @@ describe.each(MODES)('the style guide in %s', (mode) => {
       }
       expect.soft(found, `axe:\n${found.join('\n')}`).toHaveLength(0)
     })
+  })
+})
+
+// A label is a specimen's title, beside its stage and in "Op deze pagina": short, naming what it
+// shows. A colon, a bracket or a comma starts the explanation that belongs in `note`.
+const TITLE = /^[^:;(),·]{1,40}$/
+
+describe('the specimen labels', () => {
+  const specimens = ELEMENTS.filter((item) => !item.owner).flatMap((item) =>
+    item.specimens.map((specimen) => ({ where: nameOf(item), ...specimen })),
+  )
+
+  it('are short titles', () => {
+    const long = specimens
+      .filter((specimen) => specimen.label && !TITLE.test(specimen.label))
+      .map((specimen) => `${specimen.where}: ${specimen.label}`)
+    expect(long, long.join('\n')).toHaveLength(0)
+  })
+
+  it('leave the explaining to a note in whole sentences', () => {
+    const loose = specimens
+      .filter((specimen) => specimen.note && !/^[A-Z0-9`'"“].*[.!?]$/su.test(specimen.note))
+      .map((specimen) => `${specimen.where}: ${specimen.note}`)
+    expect(loose, loose.join('\n')).toHaveLength(0)
   })
 })
 

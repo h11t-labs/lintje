@@ -46,13 +46,15 @@ export default {
   elements: [
 {
       tag: 'lintje-filter-bar',
+      wide: true,
       title: 'De filterbalk: de filters die de pagina declareert, als zone en als blad',
       // A page holds one filter bar: it owns the filter count in the mobile header and the
       // sheet, and one bar per page writes the store that says whether the sheet is open.
       // The style guide page has no other filter bar, so this one stands once, full width.
       specimens: [
         {
-          label: 'Drie filters, met wat de host hoort',
+          label: 'Drie filters',
+          note: 'Onder de balk staat wat de host hoort.',
           html: '<lintje-filter-bar></lintje-filter-bar>',
           setup(stage) {
             const bar = stage.querySelector('lintje-filter-bar')
@@ -95,10 +97,11 @@ export default {
     },
     {
       tag: 'lintje-filter-zone',
+      wide: true,
       title: 'De zone met de filters en de “Je ziet”-zin, in te klappen',
       specimens: [
         {
-          label: 'Open, met twee filters',
+          label: 'Open met twee filters',
           html: `<lintje-filter-zone total="2" modified="0">${CONTROLS(false)}</lintje-filter-zone>`,
           setup(stage) {
             const zone = stage.querySelector('lintje-filter-zone')
@@ -128,7 +131,8 @@ export default {
       title: 'Het filterblad onderin beeld: dezelfde filters, gestapeld, met Toepassen',
       specimens: [
         {
-          label: 'Gesloten, opent met de knop',
+          label: 'Gesloten',
+          note: 'De knop opent het blad.',
           html: `<lintje-button variant="secondary">Filters openen</lintje-button>
             <lintje-filter-sheet>${CONTROLS(true)}</lintje-filter-sheet>`,
           setup(stage) {

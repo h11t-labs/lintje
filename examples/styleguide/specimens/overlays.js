@@ -57,6 +57,8 @@ export default {
   elements: [
     {
       tag: 'lintje-modal',
+      // Open, in a page of its own: on the guide's page it would cover the guide.
+      frame: true,
       title: 'Een venster boven de pagina, met een kop, inhoud en exportknoppen',
       specimens: [
         {
@@ -74,7 +76,8 @@ export default {
         },
         {
           // `csv` and `png` default to true, so they go in as properties, not attributes.
-          label: 'Dialog: een kop, inhoud en sluiten, zonder exportknoppen',
+          label: 'Zonder exportknoppen',
+          note: 'Als dialog heeft het venster alleen een kop, inhoud en een sluitknop.',
           html: `<lintje-button variant="secondary">Open dialog</lintje-button>
             <lintje-modal heading="Disclaimer" subtitle="Over deze cijfers">
               <lintje-prose></lintje-prose>
@@ -91,7 +94,10 @@ export default {
           },
         },
         {
-          label: 'Smal, met een formulier: een zin links in de voet, de knoppen rechts (narrow)',
+          label: 'Smal met een formulier',
+          note:
+            'Met `narrow` is het venster smal. In de voet staat links een zin en ' +
+            'rechts de knoppen.',
           html: `<lintje-button variant="secondary">Open formulier</lintje-button>
             <lintje-modal heading="Naam wijzigen" narrow>
               <lintje-text-input label="Naam van de opname" value="Teamoverleg 2 oktober"></lintje-text-input>
@@ -111,10 +117,13 @@ export default {
     },
     {
       tag: 'lintje-confirm-dialog',
+      // Open, in a page of its own: on the guide's page it would cover the guide.
+      frame: true,
       title: 'Een vraag die een antwoord nodig heeft',
       specimens: [
         {
-          label: 'Rust: iets onomkeerbaars (bevestigen toont bezig)',
+          label: 'Iets onomkeerbaars',
+          note: 'Na bevestigen is de vraag even bezig.',
           html: `<lintje-button variant="danger" data-open>Melding verwijderen</lintje-button>
             <lintje-confirm-dialog heading="Melding verwijderen?" confirm-label="Verwijderen">
               “Onbeheerde tas” en de 2 bijlagen worden verwijderd. Dit kun je niet terugdraaien.
@@ -134,22 +143,27 @@ export default {
     },
     {
       tag: 'lintje-drawer',
+      // Open, in a page of its own: on the guide's page it would cover the guide.
+      frame: true,
       title: 'Een zijpaneel over de pagina',
       specimens: [
         {
-          label: 'Rust, focus op het eerste veld',
+          label: 'Rust',
+          note: 'Bij openen krijgt het eerste veld de focus.',
           html: `<lintje-button variant="secondary" data-open>Betrokkene bewerken</lintje-button>
             <lintje-drawer heading="Betrokkene">${DRAWER_BODY}${DRAWER_FOOTER}</lintje-drawer>`,
           setup: (stage) => drawer(stage),
         },
         {
-          label: 'Bezig: sluiten is geblokkeerd',
+          label: 'Bezig',
+          note: 'Druk op Opslaan: zolang het paneel bezig is, gaat het niet dicht.',
           html: `<lintje-button variant="secondary" data-open>Opslaan proberen</lintje-button>
             <lintje-drawer heading="Betrokkene">${DRAWER_BODY}${DRAWER_FOOTER}</lintje-drawer>`,
           setup: (stage) => drawer(stage, true),
         },
         {
-          label: 'Zonder veld: focus op de sluitknop',
+          label: 'Zonder veld',
+          note: 'Zonder veld krijgt de sluitknop de focus.',
           html: `<lintje-button variant="secondary" data-open>Details tonen</lintje-button>
             <lintje-drawer heading="Opname 2 oktober"><p>Opgenomen om 09:30, 42 minuten, drie sprekers.</p></lintje-drawer>`,
           setup: (stage) => drawer(stage),
@@ -189,7 +203,8 @@ export default {
       title: 'Een korte toelichting bij een element',
       specimens: [
         {
-          label: 'Hover na 300 ms, focus direct',
+          label: 'Bij een icoonknop',
+          note: 'Bij aanwijzen verschijnt hij na 300 ms, bij focus direct.',
           html: '<lintje-tooltip text="Talen omwisselen" no-describe><lintje-icon-button icon="functioneel-refresh" label="Talen omwisselen"></lintje-icon-button></lintje-tooltip>',
         },
         {
@@ -203,17 +218,21 @@ export default {
       title: 'Een toelichting die opent op een klik',
       specimens: [
         {
-          label: 'Naast een label: klik, Enter of spatie',
+          label: 'Naast een label',
+          note: 'Open hem met een klik, Enter of spatie.',
           html: `<div class="guide__row">Gemiddelde wachttijd
             <lintje-toggletip label="Toelichting op gemiddelde wachttijd">De mediaan van de wachttijd per kwartier, over alle loketten van de dienst.</lintje-toggletip></div>`,
         },
         {
-          label: 'Rechts uitgelijnd (bottom-end)',
+          label: 'Rechts uitgelijnd',
+          note: 'Met `placement="bottom-end"` lijnt de toelichting rechts uit.',
           html: `<div class="guide__row">Afgehandeld binnen termijn
             <lintje-toggletip label="Toelichting op afgehandeld binnen termijn" placement="bottom-end">Het deel van de aanvragen dat binnen acht weken een besluit kreeg.</lintje-toggletip></div>`,
         },
         {
-          label: 'In een zijpaneel: Escape sluit eerst de toelichting',
+          label: 'In een zijpaneel',
+          frame: 'lintje-drawer',
+          note: 'Escape sluit eerst de toelichting en dan pas het zijpaneel.',
           html: `<lintje-button variant="secondary" data-open>Aanvraag tonen</lintje-button>
             <lintje-drawer heading="Aanvraag 2026-0815">
               <div class="guide__row">Behandeltermijn

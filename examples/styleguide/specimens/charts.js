@@ -370,16 +370,23 @@ const VARIANT_NAMES = {
   'grouped-bar': 'Twee reeksen per groep',
   'stacked-bar': 'In aantallen',
   'stacked-bar-normalized': 'Op 100 %',
-  'stacked-area': 'Per kanaal, met een ontbrekende week',
+  'stacked-area': 'Per kanaal met een ontbrekende week',
   pie: 'Taart',
   donut: 'Donut met legendatabel',
   'pie-color': 'In de kleur van haar variabele',
   'pie-folded': 'Meer dan vijf delen',
   'donut-remainder': 'Donut met de rest van een geheel',
   'dual-axis': 'Aantallen en wachttijd met norm',
-  scatter: 'Wachttijd tegen drukte, met norm',
+  scatter: 'Wachttijd tegen drukte met norm',
   heatmap: 'Met klassenlegenda',
   histogram: 'Met mediaan en termijn',
+}
+
+// What a label cannot say, for the note under it.
+const VARIANT_NOTES = {
+  line: 'De laatste twee uren zijn nog niet compleet en staan gearceerd.',
+  'stacked-area': 'Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
+  'pie-folded': 'De taart houdt de vier grootste delen en vouwt de rest in “Overig”.',
 }
 
 // The states a chart tile can be in, put on each specimen of a kind: the tile keeps its size
@@ -406,7 +413,7 @@ const TILE = '<lintje-chart></lintje-chart>'
 
 const chartSpecimen = (chart) => ({
   label: VARIANT_NAMES[chart.id],
- 
+  note: VARIANT_NOTES[chart.id],
   html: TILE,
   setup(stage) {
     stage.querySelector('lintje-chart').data = {
@@ -452,7 +459,8 @@ const share = (part) => daily.map((row, i) => (i === 3 ? null : Math.round(row.r
 
 const missingValues = [
   {
-    label: 'Ontbrekende waarde, twee lijnen in kleur',
+    label: 'Ontbrekende waarde',
+    note: 'Twee lijnen in kleur breken af waar donderdag ontbreekt.',
     description: 'Afgehandelde aanvragen per dag aan de balie en bij het servicepunt. Donderdag ontbreekt.',
     chart: {
       kind: 'line', labels: weekdays, axisTitle: 'Afgehandelde aanvragen per dag',
@@ -464,22 +472,26 @@ const missingValues = [
   },
   {
     label: 'Ontbrekende waarde',
+    note: 'De plek van donderdag is gearceerd.',
     description: 'Afgehandelde aanvragen per dag deze week. Donderdag ontbreekt.',
     chart: { kind: 'bar', labels: weekdays, values: share(1), axisTitle: 'Afgehandelde aanvragen per dag' },
   },
   {
     label: 'Ontbrekende waarde',
+    note: 'Loketten die vertraagd aanleveren, missen hun wachttijd en staan er niet in.',
     description: `Gemiddelde wachttijd tegen het aantal aanvragen per loket. ${lateDesks.join(' en ')} leveren vertraagd aan: hun wachttijd ontbreekt, dus ze staan niet in de grafiek.`,
     chart: deskScatter(true),
   },
   {
     label: 'Ontbrekende waarde',
+    note: 'Van de klasse 6 tot 8 dagen ontbreekt het aantal.',
     description: 'Doorlooptijd van afgehandelde aanvragen in klassen van twee dagen. Van de klasse 6 tot 8 dagen ontbreekt het aantal.',
     chart: processingTime(processingDays.map((bin, i) => (i === 3 ? { ...bin, count: null } : bin))),
   },
-].map(({ label, description, chart }) => ({
+].map(({ label, note, description, chart }) => ({
   kind: chart.kind,
   label,
+  note,
   html: TILE,
   setup(stage) {
     stage.querySelector('lintje-chart').data = {
@@ -495,26 +507,29 @@ export default {
   elements: [
     {
       tag: 'lintje-kpi-row',
+      wide: true,
       title: 'De kerncijfers van de pagina in één rij',
       specimens: [
         {
-          label: 'Vijf kerncijfers',
+          label: 'Drie kerncijfers',
           html: '<lintje-kpi-row></lintje-kpi-row>',
           setup: (stage) => {
-            stage.querySelector('lintje-kpi-row').data = { kpis: KPIS }
+            stage.querySelector('lintje-kpi-row').data = { kpis: KPIS.slice(0, 3) }
           },
         },
         {
-          label: 'Met kerncijfers op een schaal · gauge',
+          label: 'Kerncijfers op een schaal',
+          note: 'Twee kerncijfers staan met `gauge` op een schaal: als boog en als balk.',
           html: '<lintje-kpi-row></lintje-kpi-row>',
           setup: (stage) => {
             stage.querySelector('lintje-kpi-row').data = {
-              kpis: [GAUGE_ARC, KPIS[0], GAUGE_LINEAR, KPIS[2]],
+              kpis: [GAUGE_ARC, GAUGE_LINEAR, KPIS[2]],
             }
           },
         },
         {
-          label: 'Elke datakleur als accent · variable',
+          label: 'Elke datakleur als accent',
+          note: 'Het veld `variable` kiest de kleur van een kerncijfer.',
           html: '<lintje-kpi-row></lintje-kpi-row>',
           setup: (stage) => {
             stage.querySelector('lintje-kpi-row').data = { kpis: COLOUR_KPIS, columns: 3 }
@@ -555,7 +570,7 @@ export default {
           }),
         },
         {
-          label: 'Verloop, laden',
+          label: 'Verloop tijdens laden',
           html: '<lintje-kpi label="Afgehandelde aanvragen" variable="sky-blue" state="loading"></lintje-kpi>',
           setup: (stage) => { stage.querySelector('lintje-kpi').sparkline = REQUESTS_SPARKLINE },
         },
@@ -565,22 +580,22 @@ export default {
           setup: single(KPIS[4]),
         },
         {
-          label: 'Op een schaal: boog',
+          label: 'Op een schaal als boog',
           html: '<lintje-kpi></lintje-kpi>',
           setup: single(GAUGE_ARC),
         },
         {
-          label: 'Op een schaal: balk',
+          label: 'Op een schaal als balk',
           html: '<lintje-kpi></lintje-kpi>',
           setup: single(GAUGE_LINEAR),
         },
         {
-          label: 'Op een schaal, laden',
+          label: 'Op een schaal tijdens laden',
           html: '<lintje-kpi state="loading"></lintje-kpi>',
           setup: single({ label: GAUGE_ARC.label, gauge: GAUGE_ARC.gauge }),
         },
         {
-          label: 'Op een schaal, leeg',
+          label: 'Op een schaal zonder waarde',
           html: '<lintje-kpi state="empty"></lintje-kpi>',
           setup: single({ label: GAUGE_LINEAR.label, variable: 'dark-yellow', gauge: GAUGE_LINEAR.gauge }),
         },
@@ -600,6 +615,7 @@ export default {
     },
 {
       tag: 'lintje-chart',
+      wide: true,
       title: 'Een grafiek in haar tegel: twaalf soorten, één tag',
       // One kind at a time, chosen by the question it answers; the states switch on its specimens.
       groups: {

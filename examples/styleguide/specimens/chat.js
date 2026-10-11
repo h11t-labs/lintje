@@ -13,10 +13,12 @@ export default {
   elements: [
 {
       tag: 'lintje-chat',
+      wide: true,
       title: 'Een gesprek met de data: vragen, antwoorden als bestaande blokken, bronnen',
       specimens: [
         {
-          label: 'Gesprek — stel een vraag of speel een antwoord af',
+          label: 'Gesprek',
+          note: 'Stel een vraag, of speel een antwoord af met de knop.',
           html: `<div class="guide__stack">
               <div class="guide__row"><lintje-button variant="secondary">Speel een antwoord af</lintje-button></div>
               <div class="guide__chat"><lintje-chat></lintje-chat></div>
@@ -27,7 +29,8 @@ export default {
           },
         },
         {
-          label: 'Beginscherm — een leeg gesprek',
+          label: 'Beginscherm',
+          note: 'Het gesprek is nog leeg.',
           html: '<div class="guide__chat guide__chat--start"><lintje-chat></lintje-chat></div>',
           setup(stage) {
             converse(stage.querySelector('lintje-chat'), { turns: false })
@@ -40,7 +43,8 @@ export default {
       title: 'Een vraag van de lezer, met de herkende termen',
       specimens: [
         {
-          label: 'Verstuurd, met een zekere en een onzekere term',
+          label: 'Verstuurd',
+          note: 'De vraag heeft een zekere en een onzekere term.',
           html: '<lintje-chat-message turn-id="demo-message" time="08:24" editable></lintje-chat-message>',
           setup(stage) {
             Object.assign(stage.querySelector('lintje-chat-message'), {
@@ -63,7 +67,8 @@ export default {
       title: 'Het antwoord op een vraag: tekst, blokken, keuzes en de staat ervan',
       specimens: [
         {
-          label: 'Antwoord · komt binnen',
+          label: 'Komt binnen',
+          note: 'Een blok dat nog komt, staat er al als skelet op zijn eigen maat.',
           html: answer('streaming', 'state="streaming"'),
           setup(stage) {
             Object.assign(stage.querySelector('lintje-chat-answer'), {
@@ -79,14 +84,14 @@ export default {
           },
         },
         {
-          label: 'Antwoord · gestopt',
+          label: 'Gestopt',
           html: answer('stopped', 'state="stopped"'),
           setup(stage) {
             Object.assign(stage.querySelector('lintje-chat-answer'), { lead: weekLead, text: 'Dat is' })
           },
         },
         {
-          label: 'Antwoord · fout of time-out',
+          label: 'Fout of time-out',
           html: answer('error', 'state="error" current'),
           setup(stage) {
             Object.assign(stage.querySelector('lintje-chat-answer'), {
@@ -97,7 +102,7 @@ export default {
           },
         },
         {
-          label: 'Antwoord · geen gegevens',
+          label: 'Geen gegevens',
           html: answer('empty'),
           setup(stage) {
             Object.assign(stage.querySelector('lintje-chat-answer'), {
@@ -117,7 +122,7 @@ export default {
           },
         },
         {
-          label: 'Antwoord · bron staat uit',
+          label: 'Bron staat uit',
           html: answer('scope', 'state="out-of-scope" current'),
           setup(stage) {
             Object.assign(stage.querySelector('lintje-chat-answer'), {
@@ -127,7 +132,7 @@ export default {
           },
         },
         {
-          label: 'Antwoord · verduidelijkingsvraag',
+          label: 'Verduidelijkingsvraag',
           html: answer('clarify', 'state="needs-clarification" current'),
           setup(stage) {
             Object.assign(stage.querySelector('lintje-chat-answer'), {
@@ -140,7 +145,7 @@ export default {
           },
         },
         {
-          label: 'Antwoord · twee grafieken naast elkaar',
+          label: 'Twee grafieken naast elkaar',
           html: answer('two'),
           setup(stage) {
             Object.assign(stage.querySelector('lintje-chat-answer'), {
@@ -170,7 +175,8 @@ export default {
       title: 'De vraagbox: tekst met herkende termen, de bronnen en het versturen',
       specimens: [
         {
-          label: 'Herkende termen: zeker, dubbelzinnig, bron staat uit',
+          label: 'Herkende termen',
+          note: 'Een term is zeker of dubbelzinnig, of hoort bij een bron die uit staat.',
           html: '<lintje-chat-composer></lintje-chat-composer>',
           setup(stage) {
             Object.assign(stage.querySelector('lintje-chat-composer'), {
@@ -188,7 +194,8 @@ export default {
           },
         },
         {
-          label: 'Eenvoudig (plain): alleen Versturen, voor een vraag die geen gesprek is',
+          label: 'Eenvoudig',
+          note: 'Met `plain` is er alleen Versturen, voor een vraag die geen gesprek is.',
           html: '<lintje-chat-composer plain placeholder="Bijvoorbeeld: kan ik audio naar tekst omzetten?"></lintje-chat-composer>',
         },
         {
@@ -206,17 +213,20 @@ export default {
     },
     {
       tag: 'lintje-chat-strip',
+      wide: true,
       title: 'Wat het antwoord berekende, en wat de lezer mag wijzigen',
       specimens: [
         {
-          label: 'Berekening open, vergelijking aan',
+          label: 'Open met vergelijking',
+          note: 'De berekening staat open en de vergelijking aan.',
           html: '<lintje-chat-strip turn-id="demo-strip" open></lintje-chat-strip>',
           setup(stage) {
             Object.assign(stage.querySelector('lintje-chat-strip'), weekStrip({ period: 'week', desks: 'all', compare: true }))
           },
         },
         {
-          label: 'Van een eerder antwoord (niets te wijzigen)',
+          label: 'Van een eerder antwoord',
+          note: 'Er valt niets meer te wijzigen.',
           html: '<lintje-chat-strip turn-id="demo-strip-disabled" disabled></lintje-chat-strip>',
           setup(stage) {
             Object.assign(stage.querySelector('lintje-chat-strip'), weekStrip({ period: 'week', desks: 'all', compare: false }))
@@ -229,7 +239,8 @@ export default {
       title: 'Vervolgvragen en keuzes onder een antwoord',
       specimens: [
         {
-          label: 'Links (align="start"): voorbeeldvragen onder een vraagbox, buiten een gesprek',
+          label: 'Links uitgelijnd',
+          note: 'Met `align="start"` staan voorbeeldvragen onder een vraagbox, buiten een gesprek.',
           html: '<lintje-chat-suggestions align="start" label="Je kunt bijvoorbeeld vragen"></lintje-chat-suggestions>',
           setup(stage) {
             stage.querySelector('lintje-chat-suggestions').items = [
@@ -240,7 +251,8 @@ export default {
           },
         },
         {
-          label: 'Suggesties · gestippeld is een voorstel',
+          label: 'Suggesties',
+          note: 'Gestippeld is een voorstel.',
           html: '<lintje-chat-suggestions turn-id="demo-suggestions" label="Jij, als vervolgvraag"></lintje-chat-suggestions>',
           setup(stage) {
             stage.querySelector('lintje-chat-suggestions').items = [
@@ -250,7 +262,8 @@ export default {
           },
         },
         {
-          label: 'Keuzes · doorgetrokken is een echte keuze',
+          label: 'Keuzes',
+          note: 'Doorgetrokken is een echte keuze.',
           html: `<lintje-chat-suggestions
             turn-id="demo-choices"
             kind="choice"

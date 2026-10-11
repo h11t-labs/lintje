@@ -33,7 +33,8 @@ const KIND_SERIES = { counter: 'dark-green', service: 'purple' }
 // "Overig" has no coordinates in the demo data: it counts towards the scale and draws no flow.
 const MAPS = [
   {
-    id: 'map-flows', label: 'Stromen · flows', title: 'Aanvragen uit het buitenland',
+    id: 'map-flows', label: 'Stromen', title: 'Aanvragen uit het buitenland',
+    note: 'De variant `flows` trekt lijnen naar één bestemming.',
     data: {
       variant: 'flows', geo: 'world', unit: 'aanvragen', height: 320,
       destination: { lon: meta.head_office.lon, lat: meta.head_office.lat, label: meta.head_office.label },
@@ -50,7 +51,8 @@ const MAPS = [
     },
   },
   {
-    id: 'map-points', label: 'Punten · points', title: 'Kaart · punten',
+    id: 'map-points', label: 'Punten', title: 'Kaart · punten',
+    note: 'De variant `points` zet een stip op elke plek.',
     data: {
       variant: 'points', geo: 'netherlands', unit: 'aanvragen', height: 320,
       values: desks.map((point) => ({
@@ -62,7 +64,8 @@ const MAPS = [
   },
   {
     // Every point a series: the nine newer data colours, each with its own shape (rule 13).
-    id: 'map-series', label: 'Punten in reeksen · series', title: 'Kaart · reeksen',
+    id: 'map-series', label: 'Punten in reeksen', title: 'Kaart · reeksen',
+    note: 'De variant `points` met `series` geeft elke reeks een eigen kleur en vorm.',
     data: {
       variant: 'points', geo: 'netherlands', unit: 'aanvragen', height: 320,
       values: desks.map((point, i) => ({
@@ -75,7 +78,8 @@ const MAPS = [
     },
   },
   {
-    id: 'map-choropleth', label: 'Choropleet · choropleth', title: 'Kaart · choropleet',
+    id: 'map-choropleth', label: 'Choropleet', title: 'Kaart · choropleet',
+    note: 'De variant `choropleth` kleurt landen in klassen.',
     data: {
       variant: 'choropleth', geo: 'world', unit: 'aanvragen', height: 320,
       values: originCountries,
@@ -83,7 +87,8 @@ const MAPS = [
     },
   },
   {
-    id: 'map-polygons', label: 'Vlakken · polygons', title: 'Kaart · vlakken',
+    id: 'map-polygons', label: 'Vlakken', title: 'Kaart · vlakken',
+    note: 'De variant `polygons` kleurt eigen vlakken in klassen.',
     data: {
       variant: 'polygons', geo: 'netherlands', unit: 'meldingen', height: 320,
       values: ZONES,
@@ -92,7 +97,8 @@ const MAPS = [
   },
   {
     // Two layers, one map: the areas at the bottom, the desks on top, each in its own unit.
-    id: 'map-plots', label: 'Lagen · plots', title: 'Kaart · lagen',
+    id: 'map-plots', label: 'Lagen', title: 'Kaart · lagen',
+    note: 'De variant `plots` legt vlakken en punten op één kaart.',
     data: {
       variant: 'plots', geo: 'netherlands', unit: 'aanvragen', height: 320, values: [],
       plots: [
@@ -150,11 +156,18 @@ export default {
   elements: [
     {
       tag: 'lintje-map',
+      wide: true,
       title: 'Tegel met een kaart: stromen, punten, reeksen, choropleet, vlakken en lagen, ook op een ondergrond (WMS)',
       specimens: [
-        ...MAPS.map((map) => ({ label: map.label, html: MAP_TILE, setup: mapSetup(map) })),
         ...MAPS.map((map) => ({
-          label: `${map.label} · ondergrond`,
+          label: map.label,
+          note: map.note,
+          html: MAP_TILE,
+          setup: mapSetup(map),
+        })),
+        ...MAPS.map((map) => ({
+          label: `${map.label} op een ondergrond`,
+          note: `${map.note} De ondergrond is een WMS-kaart.`,
           html: MAP_TILE,
           // No `height`: the map takes its own, 400 px and 280 on a phone.
           setup: mapSetup(map, { basemap: DEMO_BASEMAP, height: undefined, title: `${map.title} · ondergrond` }),

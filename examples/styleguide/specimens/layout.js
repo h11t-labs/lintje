@@ -45,10 +45,12 @@ export default {
   elements: [
 {
       tag: 'lintje-grid',
+      wide: true,
       title: 'Het raster van twaalf kolommen',
       specimens: [
         {
-          label: 'Tegels van 8 en 4, items van 6 en 6',
+          label: 'Tegels en items',
+          note: 'Tegels van 8 en 4 kolommen, daaronder twee items van 6.',
           html: `<lintje-grid>
             <lintje-tile span="8" heading="span 8" subtitle="8 van 12 · 768-1023 wordt dit 12">
               <div class="guide__placeholder">span 8</div>
@@ -64,10 +66,11 @@ export default {
     },
     {
       tag: 'lintje-grid-item',
+      wide: true,
       title: 'Een cel van het raster voor inhoud die zelf geen span draagt',
       specimens: [
         {
-          label: 'Drie cellen: 4, 4 en 4',
+          label: 'Drie cellen van 4',
           html: `<lintje-grid>
             <lintje-grid-item span="4"><div class="guide__placeholder">span 4</div></lintje-grid-item>
             <lintje-grid-item span="4"><div class="guide__placeholder">span 4</div></lintje-grid-item>
@@ -78,6 +81,7 @@ export default {
     },
     {
       tag: 'lintje-tile',
+      wide: true,
       title: 'De tegel: kop, inhoud en bron, in vier toestanden',
       specimens: [
         {
@@ -99,14 +103,16 @@ export default {
           html: `<lintje-tile heading="Wachttijd per uur" subtitle="Vandaag" footnote="${FOOTNOTE}" state="error" message="De bron reageerde niet. De cijfers van vandaag ontbreken." last-known="Laatst bekend: 11 min, gemeten om 07:45."></lintje-tile>`,
         },
         {
-          label: 'Met een kerncijfer ernaast (aside)',
+          label: 'Met een kerncijfer ernaast',
+          note: 'Het slot `aside` zet het kerncijfer naast de inhoud.',
           html: `<lintje-tile heading="Bezetting loketten" subtitle="Vandaag · 184 van 200 posities" footnote="Bron: Dossierregistratie · waarde van 08:15">
             <p slot="aside" style="font: var(--text-kpi); font-variant-numeric: tabular-nums">92%</p>
             <div class="guide__placeholder">lintje-tile slot="aside" (layout H)</div>
           </lintje-tile>`,
         },
         {
-          label: 'Rijen tot de rand (flush): een werklijst in een tegel',
+          label: 'Rijen tot de rand',
+          note: 'Met `flush` loopt een werklijst tot de rand van de tegel.',
           html: `<lintje-tile heading="Eerder vertaald" flush footnote="Je geschiedenis blijft op dit apparaat.">
             <lintje-button slot="actions" variant="link" size="compact" href="#el-tile">Alles bekijken</lintje-button>
             <lintje-list heading-level="4" label="Eerder vertaalde teksten"></lintje-list>
@@ -128,25 +134,32 @@ export default {
     },
 {
       tag: 'lintje-tabs',
+      wide: true,
       title: 'Wisselen tussen panelen binnen één pagina',
       specimens: [
         {
-          label: 'Rust, actief, met teller, uitgeschakeld',
+          label: 'Toestanden',
+          note: 'Eén tab is actief, één heeft een teller en één is uitgeschakeld.',
           html: `<lintje-tabs label="Weergave van de opname">${PANELS}</lintje-tabs>`,
           setup: (stage) => tabs(stage),
         },
         {
-          label: 'Actief: een andere tab gekozen (op een telefoon: smaller dan 768 px)',
+          label: 'Een andere tab actief',
+          note: 'Bekijk hem ook op een telefoon, smaller dan 768 px.',
           html: `<lintje-tabs label="Weergave van de opname, tweede">${PANELS}</lintje-tabs>`,
           setup: (stage) => tabs(stage, 'opmerkingen'),
         },
         {
-          label: 'Elke tab een pagina: een nav met links, de huidige aria-current',
+          label: 'Elke tab een pagina',
+          note: 'De tabs zijn een nav met links; de huidige draagt `aria-current`.',
           html: `<lintje-tabs label="Onderdelen van de opname">${PANELS}</lintje-tabs>`,
           setup: (stage) => tabs(stage, 'samenvatting', TABS.slice(0, 3)),
         },
         {
-          label: 'Groot, boven een paneel: icoon, uitleg en label (op een telefoon het icoon boven de naam)',
+          label: 'Groot boven een paneel',
+          note:
+            'Met `variant="panel"` heeft elke tab een icoon, een uitleg en een label. ' +
+            'Op een telefoon staat het icoon boven de naam.',
           html: `<lintje-tabs variant="panel" label="Wat wil je vertalen?">${LARGE_PANELS}</lintje-tabs>`,
           setup: (stage) => tabs(stage, undefined, LARGE),
         },
@@ -169,13 +182,17 @@ export default {
           </lintje-expander>`,
         },
         {
-          label: 'Zonder eigen vlak (flat)',
+          label: 'Zonder eigen vlak',
+          note: 'Met `flat` is een uitklapper in een tegel geen tweede kaart.',
           html: `<lintje-expander heading="Zonder eigen vlak (flat)" flat>
             <lintje-prose text="In een tegel is een uitklapper geen tweede kaart."></lintje-prose>
           </lintje-expander>`,
         },
         {
-          label: 'Pijl vooraan, inhoud in lijn met de titel (leading), met acties naast de titel',
+          label: 'Pijl vooraan met acties',
+          note:
+            'Met `leading` staat de pijl vooraan en de inhoud in lijn met de titel. ' +
+            'Het slot `actions` zet knoppen naast de titel.',
           html: `<lintje-expander heading="Samenvatting" subtitle="AI-bewerking · 09:31" leading open>
             <lintje-icon-button slot="actions" icon="functioneel-refresh" label="Samenvatting opnieuw maken" variant="flat"></lintje-icon-button>
             <lintje-icon-button slot="actions" icon="functioneel-kruis" label="Samenvatting verbergen" variant="flat"></lintje-icon-button>
@@ -186,14 +203,17 @@ export default {
     },
     {
       tag: 'lintje-split-pane',
+      wide: true,
       title: 'Twee panelen met een verschuifbare verdeling',
       specimens: [
         {
-          label: 'Rust, hover, focus, slepen',
+          label: 'Rust',
+          note: 'Wijs de scheiding aan, geef hem focus of sleep hem.',
           html: `<lintje-split-pane start-label="Brontekst" end-label="Vertaling">${SPLIT}</lintje-split-pane>`,
         },
         {
-          label: 'Grenzen: onthouden onder een sleutel',
+          label: 'Onthouden onder een sleutel',
+          note: 'Met `storage-key` onthoudt de verdeling haar grenzen onder een sleutel.',
           html: `<lintje-split-pane start-label="Brontekst" end-label="Vertaling" storage-key="lintje-demo-vertalen" value="35">${SPLIT}</lintje-split-pane>`,
         },
       ],

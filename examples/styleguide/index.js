@@ -119,6 +119,9 @@ function render({ keepScroll = false } = {}) {
   const place = placeOf(new URL(location.href))
   const { category, item } = place
   root.dataset.mode = modeOf(location.search)
+  // A framed specimen is a page of its own: it follows the guide's mode.
+  for (const frame of host.querySelectorAll('.guide__frame'))
+    frame.contentDocument?.documentElement.setAttribute('data-mode', root.dataset.mode)
   root.dataset.theme = theme()
   document.title = `${item ? nameOf(item) : category.label} — Lintje stijlgids`
 

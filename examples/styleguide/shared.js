@@ -10,6 +10,7 @@
  *         title: 'Meerregelig tekstveld met teller',
  *         specimens: [
  *           { label: 'Rust', html: '<lintje-textarea label="Omschrijving"></lintje-textarea>' },
+ *           { label: 'Over de limiet', note: 'De teller zegt hoeveel korter.', html: '…' },
  *           { label: 'Fout', html: '…', setup(stage) { stage.querySelector('…').items = [...] } },
  *         ],
  *       },
@@ -18,9 +19,12 @@
  *
  * `html` is plain markup with the tags and their attributes; `setup(stage)` runs once, after
  * the markup stands, for what an attribute cannot carry: a rich property (`.items`, `.data`)
- * or a listener. It finds its nodes inside `stage`. A label reads as a name and a note: up to
- * its first colon (else " · ", else comma) the name, the rest what it shows. The category's
- * overview draws each element as a sketch, from its recipe in `sketches.js`.
+ * or a listener. It finds its nodes inside `stage`. `label` is the specimen's title: short and
+ * descriptive, at most 40 characters, without a colon, bracket or comma. `note` explains, when
+ * that is needed, in one or two whole sentences: what it shows, when it applies, how to try it.
+ * A specimen stands beside its title; `wide: true`, on a specimen or on its element, puts the
+ * title above it and gives it the row's width, for an element that needs the room of a page.
+ * The category's overview draws each element as a sketch, from its recipe in `sketches.js`.
  *
  * The code under a specimen is read from what it drew (`code.js`): its markup, and what `setup`
  * set, as a script sets it and as JSON in the markup.
@@ -74,7 +78,11 @@ function element(name, className, text) {
  */
 export function log(stage, text = 'Nog niets gebeurd.') {
   const line = logBlock(text)
-  stage.closest('.guide__specimen').append(line)
+  // A stage in a frame of its own logs under that frame, on the page.
+  const figure =
+    stage.closest('.guide__specimen') ??
+    stage.ownerDocument.defaultView.frameElement?.closest('.guide__specimen')
+  figure.append(line)
   return (next) => (line.text = next)
 }
 
@@ -98,16 +106,30 @@ export const slug = (text) =>
     .replace(/^-|-$/g, '')
     .slice(0, 60)
 
-/**
- * One specimen: the stage its markup stands on, with `setup` run on it, in a figure that holds
- * what the guide adds around it. `state` is put on afterwards. The figure's `stage` is the
- * stage, for the page to read what it drew.
- */
-export function renderSpecimen({ html, setup }, { item, state } = {}) {
-  const figure = element('figure', 'guide__specimen')
-  const stage = element('div', 'guide__stage')
-  stage.innerHTML = html ?? ''
-  figure.append(stage)
+// A framed specimen's page: the tokens, the bundle and the little the stage lays out with.
+const FRAME_STYLE = `
+  body { margin: 0; background: var(--color-bg-surface); color: var(--color-text-primary);
+    font: var(--text-ui); font-family: var(--font-ui); }
+  .guide__stage { padding: var(--space-8); }
+  .guide__row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+  .guide__stack { display: flex; flex-direction: column; gap: var(--space-3); }`
+
+function frameDocument(html) {
+  const root = document.documentElement
+  return `<!doctype html><html lang="nl" data-mode="${root.dataset.mode ?? 'light'}"
+    data-theme="${root.dataset.theme ?? ''}"><head><meta charset="utf-8">
+    <base href="${new URL('.', location.href)}">
+    <link rel="stylesheet" href="../../src/tokens/fonts.css">
+    <link rel="stylesheet" href="../../dist-elements/tokens.css">
+    <style>${FRAME_STYLE}</style></head>
+    <body><div class="guide__stage">${html ?? ''}</div><script type="module">
+    import { setIconSource } from '../../dist-elements/lintje.js'
+    setIconSource({ base: '../../dist-icons/' })
+    </script></body></html>`
+}
+
+/** Runs a specimen's `setup` and puts its state on; an error shows on its stage. */
+function prepare(stage, setup, item, state) {
   if (setup) {
     try {
       setup(stage)
@@ -117,6 +139,55 @@ export function renderSpecimen({ html, setup }, { item, state } = {}) {
     }
   }
   if (item && state) applyState(stage, item, state)
+}
+
+/**
+ * One specimen: the stage its markup stands on, with `setup` run on it, in a figure that holds
+ * what the guide adds around it. `state` is put on afterwards. The figure's `stage` is the
+ * stage, for the page to read what it drew.
+ *
+ * `frame` draws it in a page of its own, open: an overlay is `position: fixed` and traps the
+ * focus, so on the guide's page it would cover the guide and hold its keyboard. `true` opens the
+ * element's own tags, a selector the ones it names. The frame is inert while the overlay opens,
+ * so its focus does not pull the guide's page along.
+ */
+export function renderSpecimen({ label, html, setup, frame: own }, { item, state } = {}) {
+  const figure = element('figure', 'guide__specimen')
+  const frame = own ?? item?.frame
+  if (frame) {
+    const iframe = element('iframe', 'guide__frame')
+    iframe.title = label ?? item?.tag ?? 'Voorbeeld'
+    iframe.inert = true
+    iframe.srcdoc = frameDocument(html)
+    // Until the frame stands, the code is read from the markup alone.
+    figure.stage = element('div')
+    figure.stage.innerHTML = html ?? ''
+    iframe.addEventListener(
+      'load',
+      async () => {
+        const stage = iframe.contentDocument.querySelector('.guide__stage')
+        prepare(stage, setup, item, state)
+        const open = frame === true ? item?.tag : frame
+        const overlays = open ? [...stage.querySelectorAll(open)] : []
+        for (const node of overlays) node.open = true
+        await Promise.all(overlays.map((node) => node.updateComplete))
+        figure.stage = stage
+        // A dialog moves its focus once its fields have drawn; one that still reaches out of the
+        // frame gives it back, as the page had it.
+        setTimeout(() => {
+          iframe.inert = false
+          if (document.activeElement === iframe) iframe.blur()
+        }, 300)
+      },
+      { once: true },
+    )
+    figure.append(iframe)
+    return figure
+  }
+  const stage = element('div', 'guide__stage')
+  stage.innerHTML = html ?? ''
+  figure.append(stage)
+  prepare(stage, setup, item, state)
   figure.stage = stage
   return figure
 }

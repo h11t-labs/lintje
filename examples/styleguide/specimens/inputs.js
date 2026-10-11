@@ -194,7 +194,8 @@ export default {
           setup: setOptions('lintje-select', REGIONS, 'reg-zuid'),
         },
         {
-          label: 'Gestapeld (het filterblad)',
+          label: 'Gestapeld',
+          note: 'Zo staat een filter in het filterblad: over de volle breedte, op aanraakhoogte.',
           html: '<lintje-field label="Regio" stacked><lintje-select label="Regio" hide-label stacked></lintje-select></lintje-field>',
           setup: setOptions('lintje-select', REGIONS, 'alle'),
         },
@@ -205,7 +206,8 @@ export default {
       title: 'Zoeken, wachtwoord, e-mail en vastleggen per toetsaanslag',
       specimens: [
         {
-          label: 'Rust, zoeken',
+          label: 'Zoeken terwijl je typt',
+          note: 'Met `commit="input"` hoort de host elke toets. De hint telt de resultaten.',
           html: '<lintje-text-input type="search" commit="input" label="Zoeken" value="roostermaker" hint="3 resultaten"></lintje-text-input>',
           setup(stage) {
             const field = stage.querySelector('lintje-text-input')
@@ -230,7 +232,7 @@ export default {
           html: '<lintje-text-input type="search" label="Zoeken" placeholder="Woord of naam" disabled></lintje-text-input>',
         },
         {
-          label: 'Fout',
+          label: 'Onvolledig e-mailadres',
           html: '<lintje-text-input type="email" label="E-mailadres" value="j.devries@" error="Vul een volledig e-mailadres in"></lintje-text-input>',
         },
         {
@@ -246,11 +248,12 @@ export default {
           html: '<lintje-text-input name="p.zoek-afwijkend" label="Afwijkend van standaard" value="Eindhoven" modified clearable></lintje-text-input>',
         },
         {
-          label: 'Met foutmelding',
+          label: 'Ongeldige tekens',
           html: '<lintje-text-input name="p.zoek-fout" label="Met foutmelding" value="!!" error="Gebruik alleen letters en cijfers."></lintje-text-input>',
         },
         {
-          label: 'Uitgeschakeld, met naam',
+          label: 'Uitgeschakeld met waarde',
+          note: 'Het veld heeft een `name` en een waarde die niet te wijzigen is.',
           html: '<lintje-text-input name="p.zoek-uit" label="Uitgeschakeld" value="Niet te wijzigen" disabled></lintje-text-input>',
         },
         {
@@ -284,15 +287,17 @@ export default {
           html: '<lintje-textarea label="Omschrijving" placeholder="Wat heb je gezien of gehoord?" error="Omschrijving is verplicht"></lintje-textarea>',
         },
         {
-          label: 'Gewijzigd',
+          label: 'Afwijkend van standaard',
           html: '<lintje-textarea label="Omschrijving" modified value="Tas zonder eigenaar, omgeving afgezet."></lintje-textarea>',
         },
         {
           label: 'Over de limiet',
+          note: 'De teller zegt hoeveel tekens de tekst korter moet.',
           html: '<lintje-textarea label="Omschrijving" maxlength="40" value="Een tekst die langer is dan de limiet toelaat."></lintje-textarea>',
         },
         {
-          label: 'Zonder kader (variant plain), acht regels: voor een vlak dat de tekst zelf omlijst',
+          label: 'Zonder kader',
+          note: 'Voor een vlak dat de tekst al omlijst: `variant="plain"`, met acht regels.',
           html: '<lintje-textarea label="Tekst om te vertalen" hide-label variant="plain" rows="8" maxlength="5000" value="Uw aanvraag is ontvangen. Binnen acht weken krijgt u een besluit."></lintje-textarea>',
         },
         {
@@ -314,16 +319,18 @@ export default {
       title: 'Een getal met stapknoppen, ondergrens en bovengrens',
       specimens: [
         {
-          label: 'Rust, met wat de host hoort',
+          label: 'Rust',
+          note: 'Eronder staat wat de host hoort.',
           html: '<lintje-number-input name="p.drempel" label="Drempel" value="5" min="0" max="20" hint="Stapjes van 1, tussen 0 en 20."></lintje-number-input>',
           setup: (stage) => hearValues(stage, 'lintje-number-input'),
         },
         {
-          label: 'Op de ondergrens, afwijkend',
+          label: 'Afwijkend op de ondergrens',
           html: '<lintje-number-input name="p.drempel-min" label="Op de ondergrens" value="0" min="0" max="20" modified></lintje-number-input>',
         },
         {
           label: 'Eenheid zonder stapknoppen',
+          note: 'De stapknoppen gaan alleen uit als property: `stepper = false`.',
           html: '<lintje-number-input name="p.norm" label="Norm zonder stepper" value="15" unit="min"></lintje-number-input>',
           // A Boolean whose default is `true` can only be turned off as a property.
           setup: (stage) => (stage.querySelector('lintje-number-input').stepper = false),
@@ -355,7 +362,8 @@ export default {
       title: 'Eén waarde kiezen uit een lijst',
       specimens: [
         {
-          label: 'Rust, met wat de host hoort',
+          label: 'Rust',
+          note: 'Eronder staat wat de host hoort.',
           html: '<lintje-select name="p.regio" label="Regio"></lintje-select>',
           setup(stage) {
             setOptions('lintje-select', REGIONS, 'alle')(stage)
@@ -363,7 +371,8 @@ export default {
           },
         },
         {
-          label: 'Afwijkend van standaard, vet',
+          label: 'Afwijkend en vet',
+          note: 'Met `bold` staat een waarde die van de standaard afwijkt vet.',
           html: '<lintje-select label="Regio" modified bold></lintje-select>',
           setup: setOptions('lintje-select', REGIONS, 'reg-zuid'),
         },
@@ -398,7 +407,8 @@ export default {
           },
         },
         {
-          label: 'Bezig (van de server)',
+          label: 'Bezig met zoeken',
+          note: 'Met `remote` zoekt de host zelf, hier na 600 ms. Typ om de laadregel te zien.',
           html: '<lintje-combobox label="Locatie" remote loading-label="Locaties ophalen" empty-label="Geen locatie gevonden voor" placeholder="Typ om te zoeken"></lintje-combobox>',
           setup(stage) {
             remoteSearch(stage.querySelector('lintje-combobox'))
@@ -419,7 +429,7 @@ export default {
           },
         },
         {
-          label: 'Gewijzigd',
+          label: 'Afwijkend van standaard',
           html: '<lintje-combobox label="Locatie" value="tr" modified></lintje-combobox>',
           setup(stage) {
             stage.querySelector('lintje-combobox').options = LOCATIES
@@ -432,12 +442,14 @@ export default {
       title: 'Meer waarden kiezen in een venster met zoekveld',
       specimens: [
         {
-          label: 'Rust, met chips',
+          label: 'Keuzes als chips',
           html: '<lintje-multiselect label="Bron van de aanvraag" hint="Een bron met een omschrijving krijgt een tweede regel."></lintje-multiselect>',
           setup: setSelected(SOURCES, ['balie', 'online']),
         },
         {
-          label: 'Met samenvatting',
+          label: 'Keuzes als samenvatting',
+          note:
+            'Met `summary` staat er één regel in plaats van de chips, voor waar ze niet passen.',
           html: '<lintje-multiselect label="Bron van de aanvraag" summary="Bronnen: 2 van 4"></lintje-multiselect>',
           setup: setSelected(SOURCES, ['balie', 'online']),
         },
@@ -521,7 +533,8 @@ export default {
       title: 'Meer keuzes onder één label, met één hint en één foutregel',
       specimens: [
         {
-          label: 'Rust, met een toelichting onder een optie',
+          label: 'Rust',
+          note: 'Loonstrook heeft een toelichting onder de optie. Eronder staat wat de host hoort.',
           html: '<lintje-checkbox-group name="bijlagen" label="Welke bijlagen stuurt u mee?" hint="Kies alles wat van toepassing is."></lintje-checkbox-group>',
           setup(stage) {
             bijlagen(stage, ['loon'])
@@ -565,7 +578,10 @@ export default {
           setup: (stage) => view(stage, 'dag'),
         },
         {
-          label: 'Als kaarten, met een regel onder elke optie (variant="cards")',
+          label: 'Als kaarten',
+          wide: true,
+          note:
+            'Met `variant="cards"` staat elke optie in een kaart, met een regel uitleg eronder.',
           html: '<lintje-radio-group name="p.formaat" label="Formaat" variant="cards"></lintje-radio-group>',
           setup(stage) {
             const group = stage.querySelector('lintje-radio-group')
@@ -594,6 +610,7 @@ export default {
         },
         {
           label: 'Als instellingsrij',
+          note: 'Met `layout="row"` staan naam en hint links en de schakelaar rechts.',
           html: '<lintje-toggle layout="row" label="Zachte spraak versterken" hint="Voor iemand die zacht of ver van de microfoon praat." checked></lintje-toggle>',
         },
         {
@@ -601,7 +618,8 @@ export default {
           html: '<lintje-toggle name="p.toggle-afwijkend" label="Afwijkend van standaard" checked modified></lintje-toggle>',
         },
         {
-          label: 'Afwijkend, met terugzetten (reset-label)',
+          label: 'Afwijkend met terugzetten',
+          note: 'Met `reset-label` staat er een link onder het veld die `lintje-reset` stuurt.',
           html: '<lintje-toggle label="Zachte spraak versterken" checked modified reset-label="Terugzetten naar uit"></lintje-toggle>',
           setup(stage) {
             const toggle = stage.querySelector('lintje-toggle')
@@ -619,7 +637,8 @@ export default {
       title: 'Eén keuze uit een paar korte opties op een rij',
       specimens: [
         {
-          label: 'Rust, met wat de host hoort',
+          label: 'Rust',
+          note: 'Eronder staat wat de host hoort.',
           html: '<lintje-segmented name="p.soort" label="Soort loket"></lintje-segmented>',
           setup(stage) {
             setOptions('lintje-segmented', KINDS, 'alle')(stage)
@@ -640,7 +659,8 @@ export default {
           },
         },
         {
-          label: 'Te smal voor de rij: de opties onder elkaar',
+          label: 'Te smal voor een rij',
+          note: 'Past de rij niet, dan staan de opties onder elkaar.',
           html: '<div style="max-width: 240px"><lintje-segmented label="Soort gesprek"></lintje-segmented></div>',
           setup(stage) {
             const element = stage.querySelector('lintje-segmented')
@@ -649,7 +669,8 @@ export default {
           },
         },
         {
-          label: 'Afwijkend van standaard, vet',
+          label: 'Afwijkend en vet',
+          note: 'Met `bold` staat een waarde die van de standaard afwijkt vet.',
           html: '<lintje-segmented label="Soort loket" modified bold></lintje-segmented>',
           setup: setOptions('lintje-segmented', KINDS, 'service'),
         },
@@ -670,7 +691,8 @@ export default {
       title: 'Een bereik met twee handvatten, of één handvat met single',
       specimens: [
         {
-          label: 'Twee handvatten, met wat de host hoort',
+          label: 'Twee handvatten',
+          note: 'Eronder staat wat de host hoort.',
           html: '<lintje-range name="p.openingstijd" label="Openingstijd" from="1" to="4"></lintje-range>',
           setup(stage) {
             setSteps('lintje-range', HOURS)(stage)
@@ -713,6 +735,7 @@ export default {
         },
         {
           label: 'Fout',
+          note: 'In het veld staat 31-02-2026, een dag die niet bestaat.',
           html: '<lintje-date-input label="Datum" value="2026-10-03"></lintje-date-input>',
           async setup(stage) {
             const element = stage.querySelector('lintje-date-input')
@@ -723,17 +746,21 @@ export default {
           },
         },
         {
-          label: 'Kalender open (klik op de kalenderknop)',
+          label: 'Kiezen in de kalender',
+          note:
+            'Klik op de kalenderknop om de kalender te openen. Eronder staat wat de host hoort.',
           html: '<lintje-date-input label="Datum van de melding" value="2026-10-03" today="2026-10-04"></lintje-date-input>',
           setup: (stage) => logChanges(stage, 'lintje-date-input'),
         },
         {
-          label: 'Typen (3-10-26, 3.10.2026), alleen in oktober',
+          label: 'Typen in oktober',
+          note: 'Het veld leest ook 3-10-26 en 3.10.2026. Met `min` en `max` mag alleen oktober.',
           html: '<lintje-date-input label="Datum" min="2026-10-01" max="2026-10-31" hint="dd-mm-jjjj, in oktober 2026"></lintje-date-input>',
           setup: (stage) => logChanges(stage, 'lintje-date-input'),
         },
         {
-          label: 'Telefoon (stacked)',
+          label: 'Op een telefoon',
+          note: 'Met `stacked` krijgt het veld de volle breedte en de aanraakhoogte.',
           html: '<lintje-date-input label="Datum" value="2026-10-03" stacked></lintje-date-input>',
         },
       ],
@@ -755,16 +782,18 @@ export default {
           html: '<lintje-time-input label="Tijdstip" value="23:50" error="Dit tijdstip ligt in de toekomst"></lintje-time-input>',
         },
         {
-          label: 'Gewijzigd',
+          label: 'Afwijkend van standaard',
           html: '<lintje-time-input label="Tijdstip" value="14:35" modified></lintje-time-input>',
         },
         {
-          label: 'Typen (1435, 14.35, 9) en pijltjes',
+          label: 'Typen en pijltjes',
+          note: 'Het veld leest ook 1435, 14.35 en 9. Pijl omhoog en omlaag verzetten de tijd.',
           html: '<lintje-time-input label="Aanvang" min="08:00" max="18:00"></lintje-time-input>',
           setup: (stage) => logChanges(stage, 'lintje-time-input'),
         },
         {
-          label: 'Kiezen uit de lijst: van min tot max, per step minuten',
+          label: 'Kiezen uit de lijst',
+          note: 'De lijst loopt van `min` tot `max`, per `step` minuten: hier per half uur.',
           html: '<lintje-time-input label="Aanvang" min="08:00" max="18:00" step="30" value="09:30"></lintje-time-input>',
           setup: (stage) => logChanges(stage, 'lintje-time-input'),
         },
@@ -782,7 +811,8 @@ export default {
       title: 'Een periode kiezen met de kalender en zes vaste keuzes',
       specimens: [
         {
-          label: 'Rust, met wat de host hoort',
+          label: 'Rust',
+          note: 'Eronder staat wat de host hoort.',
           html: '<lintje-date-range name="p.periode" label="Periode"></lintje-date-range>',
           setup(stage) {
             setRange(stage)
@@ -811,7 +841,10 @@ export default {
       title: 'Een tijd voor een afspraak: de dagen naast elkaar, elke tijd een optie',
       specimens: [
         {
-          label: 'Rust: een tijd gekozen, een volle tijd, een dag zonder tijden',
+          label: 'Rust',
+          note:
+            'Eén tijd is gekozen, een andere is vol en woensdag heeft geen tijden. ' +
+            'Eronder staat wat de host hoort.',
           html: '<lintje-slot-picker name="afspraak" label="Kies een tijd" hint="Een gesprek duurt een half uur."></lintje-slot-picker>',
           setup(stage) {
             setDays(stage, '2026-10-12T09:30')
@@ -829,7 +862,8 @@ export default {
           setup: (stage) => setDays(stage, '2026-10-12T09:00'),
         },
         {
-          label: 'Afwijkend van standaard, met terugzetten',
+          label: 'Afwijkend met terugzetten',
+          note: 'Met `reset-label` staat er een link onder het veld die `lintje-reset` stuurt.',
           html: '<lintje-slot-picker label="Kies een tijd" modified reset-label="Terugzetten naar maandag 09:00"></lintje-slot-picker>',
           setup(stage) {
             setDays(stage, '2026-10-13T10:00')
@@ -853,13 +887,15 @@ export default {
       specimens: [
         {
           label: 'Rust',
+          note: 'Kies of sleep een bestand: de upload wordt nagespeeld en er gaat niets weg.',
           html: '<lintje-file-upload accept=".pdf,.jpg,.png" max-size="10485760"></lintje-file-upload>',
           setup(stage) {
             fakeUploads(stage.querySelector('lintje-file-upload'))
           },
         },
         {
-          label: 'Vult de hoogte, naast een hoger blok',
+          label: 'Vult de hoogte',
+          note: 'Met `fill` neemt het vak de hoogte van een hoger blok ernaast.',
           html: '<lintje-file-upload accept=".mp3,.m4a,.wav" max-size="524288000" fill></lintje-file-upload>',
         },
         {
@@ -871,7 +907,8 @@ export default {
           html: '<lintje-file-upload accept=".pdf,.jpg,.png" max-size="10485760" error="Voeg minstens één bestand toe"></lintje-file-upload>',
         },
         {
-          label: 'Bezig, klaar, geweigerd',
+          label: 'Drie bestanden',
+          note: 'Eén bestand is bezig, één is klaar en één is geweigerd.',
           html: '<lintje-file-upload label="Bijlagen" accept=".pdf,.jpg,.png" max-size="10485760"></lintje-file-upload>',
           setup(stage) {
             const upload = stage.querySelector('lintje-file-upload')
@@ -899,7 +936,8 @@ export default {
       title: 'Opgemaakte tekst: vet, cursief, kop, opsomming en link',
       specimens: [
         {
-          label: 'Rust, de waarde is markdown',
+          label: 'Rust',
+          note: 'De waarde is markdown. Eronder staat wat de host hoort.',
           html: '<lintje-text-editor label="Toelichting"></lintje-text-editor>',
           setup(stage) {
             stage.querySelector('lintje-text-editor').value = NOTE

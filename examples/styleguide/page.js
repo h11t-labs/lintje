@@ -47,24 +47,6 @@ function summaryOf(item, declaration, apps) {
 }
 
 /**
- * A specimen's label as a name and a note: "Bezig: de breedte blijft" → "Bezig" and "De
- * breedte blijft". The first colon splits it, else the first " · ", else a closing aside in
- * brackets ("Concept (typ iets)"), else the first comma.
- */
-function nameAndNote(label) {
-  const upper = (note) => note.charAt(0).toLocaleUpperCase('nl') + note.slice(1)
-  const mark = [': ', ' · '].find((candidate) => label.includes(candidate))
-  if (!mark) {
-    const aside = label.match(/^([^(]+) \(([^()]+)\)$/)
-    if (aside) return [aside[1], upper(aside[2])]
-  }
-  const split = mark ?? (label.includes(', ') ? ', ' : null)
-  if (!split) return [label, '']
-  const at = label.indexOf(split)
-  return [label.slice(0, at), upper(label.slice(at + split.length))]
-}
-
-/**
  * A card whose title is its link; the link's area covers the card, so the whole card is
  * clickable while the title stays its one tab stop. `go` follows the guide's own addresses.
  */
@@ -218,17 +200,25 @@ function codeToggle(figure, html) {
 /* A specimen as a row ------------------------------------------------------------------ */
 
 /**
- * One specimen as a row: its name and what it shows beside the stage, what the host heard
+ * One specimen as a row: its title and its note beside the stage, what the host heard
  * under the stage, and its code a press away. `level` is its name's heading level.
  */
 function example(entry, options, level = 3) {
-  const row = element('div', 'guide__example')
+  // A wide element, or one in a frame of its own, takes the row's width, its title above it.
+  const wide = entry.wide ?? entry.frame ?? options?.item?.wide ?? options?.item?.frame
+  const row = element('div', wide ? 'guide__example guide__example--wide' : 'guide__example')
   const about = element('div', 'guide__about')
   if (entry.label) {
     row.id = `vb-${slug(entry.label)}`
-    const [name, note] = nameAndNote(entry.label)
-    about.append(element(`h${level}`, 'guide__example-name', name))
-    if (note) about.append(element('p', 'guide__note', note))
+    about.append(element(`h${level}`, 'guide__example-name', entry.label))
+    if (entry.note) {
+      // A name in backticks is code: an attribute, a slot, a value.
+      const note = element('p', 'guide__note')
+      entry.note.split(/`([^`]+)`/).forEach((part, i) => {
+        if (part) note.append(i % 2 ? element('code', '', part) : part)
+      })
+      about.append(note)
+    }
   }
   const figure = renderSpecimen(entry, options)
   figure.html = entry.html
@@ -442,7 +432,7 @@ export function renderElementPage(host, item, context) {
 
     // The chosen kind: what it is for, once, then its specimens as every element's.
     const kindRows = rowList()
-    const rows = draw(chosen.specimens, kindRows, undefined, 4)
+    const rows = draw(chosen.specimens, kindRows, { item }, 4)
     frame = section('soort', chosen.label, toc.voorbeelden, tocOf(rows))
     frame
       .querySelector('.guide__section-head')
@@ -478,7 +468,7 @@ export function renderElementPage(host, item, context) {
     }
     if (item.specimens.length) {
       const list = rowList()
-      draw(item.specimens, list, undefined, 4)
+      draw(item.specimens, list, { item }, 4)
       shared.append(list)
     }
     examples.append(shared)
@@ -487,7 +477,7 @@ export function renderElementPage(host, item, context) {
     // The tab names the part; the specimens need no heading of their own.
     const list = section('voorbeelden-lijst', null, toc.voorbeelden)
     const rows = rowList()
-    toc.voorbeelden.push(...tocOf(draw(item.specimens, rows)))
+    toc.voorbeelden.push(...tocOf(draw(item.specimens, rows, { item })))
     list.append(rows)
     examples.append(list)
     counts.voorbeelden = item.specimens.length

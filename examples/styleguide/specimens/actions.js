@@ -62,7 +62,8 @@ export default {
       title: 'De knop, in zes varianten, drie maten en elke toestand',
       specimens: [
         {
-          label: 'De vier varianten: primair, secundair, tertiair en link',
+          label: 'Vier varianten',
+          note: 'Het attribuut `variant` kiest primair, secundair, tertiair of link.',
           html: `<div class="guide__row">
             <lintje-button variant="primary">Toepassen</lintje-button>
             <lintje-button variant="secondary">Annuleren</lintje-button>
@@ -71,28 +72,34 @@ export default {
           </div>`,
         },
         {
-          label: 'Voor wat niet terug te draaien is: gevuld en omlijnd',
+          label: 'Onomkeerbare actie',
+          note:
+            'Wat niet terug te draaien is, krijgt `danger` (gevuld) of ' +
+            '`danger-secondary` (omlijnd).',
           html: `<div class="guide__row">
             <lintje-button variant="danger">Verwijderen</lintje-button>
             <lintje-button variant="danger-secondary">Verwijderen</lintje-button>
           </div>`,
         },
         {
-          label: 'Uitgeschakeld met een reden: die staat ernaast en wordt bij de knop voorgelezen',
+          label: 'Uitgeschakeld met een reden',
+          note: 'De reden staat ernaast, en `reason` laat hem bij de knop voorlezen.',
           html: `<div class="guide__row">
             <span>Starten kan zodra Transcriptie je microfoon mag gebruiken.</span>
             <lintje-button variant="primary" icon="beeld-en-geluid-microfoon" disabled reason="Starten kan zodra Transcriptie je microfoon mag gebruiken.">Opname starten</lintje-button>
           </div>`,
         },
         {
-          label: 'Met een icoon, links of rechts',
+          label: 'Met een icoon',
+          note: 'Het icoon staat links met `icon` of rechts met `icon-right`.',
           html: `<div class="guide__row">
             <lintje-button variant="secondary" icon="functioneel-filters">Filters</lintje-button>
             <lintje-button variant="tertiary" icon-right="functioneel-delta-omlaag">Meer</lintje-button>
           </div>`,
         },
         {
-          label: 'Drie maten: gewoon (48), compact (40) en chrome (40)',
+          label: 'Drie maten',
+          note: 'Gewoon is 48 px hoog, `compact` en `chrome` zijn 40 px.',
           html: `<div class="guide__row">
             <lintje-button variant="secondary">Gewoon</lintje-button>
             <lintje-button variant="secondary" size="compact">Compact</lintje-button>
@@ -108,7 +115,10 @@ export default {
           </div>`,
         },
         {
-          label: 'Bezig: de breedte blijft, het label wijkt voor de ring',
+          label: 'Bezig',
+          note:
+            'De breedte blijft gelijk en het label wijkt voor de ring. “Wissel ' +
+            'bezig” zet het aan en uit.',
           html: `<div class="guide__row">
             <lintje-button variant="primary" busy>Opslaan</lintje-button>
             <lintje-button variant="secondary" icon="functioneel-downloaden" busy>Downloaden</lintje-button>
@@ -149,7 +159,8 @@ export default {
           html: '<lintje-icon-button icon="functioneel-filters" label="Filters" pressed></lintje-icon-button>',
         },
         {
-          label: 'Live: luistert of spreekt nu',
+          label: 'Live',
+          note: 'Het attribuut `live` laat zien dat de knop nu luistert of spreekt.',
           html: '<lintje-icon-button icon="beeld-en-geluid-microfoon" label="Stoppen met inspreken" variant="flat" live pressed></lintje-icon-button>',
         },
         {
@@ -157,7 +168,8 @@ export default {
           html: '<lintje-icon-button icon="functioneel-kruis" label="Sluiten" disabled></lintje-icon-button>',
         },
         {
-          label: 'Zonder icoonbestand: het label als tekst',
+          label: 'Zonder icoonbestand',
+          note: 'Een naam zonder bestand toont het label als tekst.',
           html: '<lintje-icon-button icon="bestaat-niet" label="Sluiten"></lintje-icon-button>',
         },
       ],
@@ -167,17 +179,22 @@ export default {
       title: 'Een knop met een keuzemenu van acties',
       specimens: [
         {
-          label: 'Rust, uitgeschakeld, onomkeerbaar',
+          label: 'Rust',
+          note: 'In het menu staan een uitgeschakelde keuze met een reden en een onomkeerbare.',
           html: '<lintje-menu-button label="Acties"></lintje-menu-button>',
           setup: (stage) => menu(stage, ACTIONS),
         },
         {
-          label: 'Tertiair, met hint',
+          label: 'Tertiair met hints',
+          note: 'Rechts bij elke keuze staat een hint, hier de extensie van het bestand.',
           html: '<lintje-menu-button label="Exporteren" variant="tertiary"></lintje-menu-button>',
           setup: (stage) => menu(stage, EXPORTS),
         },
         {
-          label: 'Vlak, tussen icoonknoppen: de keuze is het label, het icoon zegt waarvan',
+          label: 'Vlak tussen icoonknoppen',
+          note:
+            'De gekozen waarde is het label en het icoon zegt waarvan. ' +
+            '`accessible-label` geeft de hele naam.',
           html: '<lintje-menu-button label="1×" accessible-label="Afspeelsnelheid 1×" leading-icon="multimedia-player-vooruitspoelen" variant="flat"></lintje-menu-button>',
           setup: (stage) =>
             menu(stage, [
@@ -197,7 +214,8 @@ export default {
           setup: (stage) => menu(stage, OPTIONS),
         },
         {
-          label: 'Gesplitst: de gewone actie op de knop, de andere wegen onder het pijltje',
+          label: 'Gesplitst',
+          note: 'De gewone actie staat op de knop, de andere wegen onder het pijltje.',
           html: '<lintje-menu-button split variant="primary" label="Downloaden" action="docx" leading-icon="functioneel-downloaden" accessible-label="Andere manieren om te downloaden of te kopiëren" placement="bottom-end"></lintje-menu-button>',
           setup: (stage) =>
             menu(stage, [
@@ -210,7 +228,8 @@ export default {
             ]),
         },
         {
-          label: 'Gesplitst en bezig: alleen het icoon draait, er verspringt niets',
+          label: 'Gesplitst en bezig',
+          note: 'Alleen het icoon draait; er verspringt niets.',
           html: '<lintje-menu-button split variant="primary" label="Downloaden" action="docx" leading-icon="functioneel-downloaden" busy-label="Het Word-document wordt gemaakt"></lintje-menu-button>',
           setup: (stage) => menu(stage, [{ value: 'pdf', label: 'PDF', hint: '.pdf' }]),
         },
@@ -220,7 +239,8 @@ export default {
           setup: (stage) => menu(stage, ACTIONS),
         },
         {
-          label: 'Bezig na een keuze, met de zin ernaast',
+          label: 'Bezig na een keuze',
+          note: 'Kies een formaat: de knop is even bezig, met de zin ernaast.',
           html: '<lintje-menu-button label="Exporteren"></lintje-menu-button>',
           setup(stage) {
             menu(stage, FORMATS)
@@ -243,23 +263,28 @@ export default {
       title: 'Tekst naar het klembord, met een bevestiging',
       specimens: [
         {
-          label: 'Rust — druk om te kopiëren',
+          label: 'Rust',
+          note: 'Druk op de knop om de link te kopiëren.',
           html: '<lintje-copy-button text="https://intranet.example/opnames/4821"></lintje-copy-button>',
         },
         {
-          label: 'Primair en compact, waar kopiëren het doel is',
+          label: 'Primair en compact',
+          note: 'Waar kopiëren het doel is, is de knop primair en compact.',
           html: '<lintje-copy-button variant="primary" size="compact" text="De aanvrager schrijft dat zij in maart is verhuisd."></lintje-copy-button>',
         },
         {
-          label: 'Alleen een icoon, stil naast ander gereedschap',
+          label: 'Vlak icoon naast gereedschap',
+          note: 'Met `icon-only` en `variant="flat"` staat hij stil naast ander gereedschap.',
           html: '<lintje-copy-button icon-only variant="flat" text="Uw aanvraag is ontvangen."></lintje-copy-button>',
         },
         {
           label: 'Uitgeschakeld',
+          note: 'Zonder `text` of `for` valt er niets te kopiëren.',
           html: '<lintje-copy-button></lintje-copy-button>',
         },
         {
-          label: 'Gekopieerd, uit een element',
+          label: 'Uit een element',
+          note: 'Met `for` kopieert de knop de tekst van het element met dat id.',
           html: '<p>Zaaknummer 2026-04-118</p><lintje-copy-button></lintje-copy-button>',
           setup(stage) {
             // Each column has its own source: give it an id unique on the page.
@@ -279,11 +304,13 @@ export default {
       title: 'Een QR-code voor de camera van een telefoon, te kopiëren als afbeelding',
       specimens: [
         {
-          label: 'Rust — de code van een link',
+          label: 'Rust',
+          note: 'De code komt uit de link in `value`.',
           html: '<lintje-qr-code label="QR-code naar deze weergave" value="https://dashboard.example.nl/overzicht?jaar=2025"></lintje-qr-code>',
         },
         {
-          label: 'De code die de host maakte',
+          label: 'Gemaakt door de host',
+          note: 'De host maakt de afbeelding zelf en zet haar in `src`.',
           html: '<lintje-qr-code label="QR-code naar deze weergave"></lintje-qr-code>',
           setup(stage) {
             // Beside this file, so the guide and its test both find it.
@@ -295,7 +322,8 @@ export default {
           html: `<lintje-qr-code value="https://dashboard.example.nl/?q=${'x'.repeat(3000)}"></lintje-qr-code>`,
         },
         {
-          label: 'Zonder code: de knop uitgeschakeld',
+          label: 'Zonder code',
+          note: 'Zonder `value` of `src` is de knop uitgeschakeld.',
           html: '<lintje-qr-code></lintje-qr-code>',
         },
       ],
@@ -313,13 +341,15 @@ export default {
           html: '<lintje-icon name="functioneel-info" size="20" label="Informatie"></lintje-icon>',
         },
         {
-          label: 'Een naam zonder bestand tekent niets',
+          label: 'Naam zonder bestand',
+          note: 'Een naam zonder bestand tekent niets.',
           html: '<lintje-icon name="bestaat-niet" size="20"></lintje-icon>',
         },
       ],
     },
     {
       id: 'icons',
+      wide: true,
       title: 'Het register: de iconen die de bundel zelf draagt',
       short: 'register',
       specimens: [
@@ -355,7 +385,8 @@ export default {
           html: '<div class="guide__row"><lintje-logo name="embleem-rijksoverheid" alt="Rijksoverheid"></lintje-logo><lintje-logo name="embleem-defensie" alt="Ministerie van Defensie"></lintje-logo></div>',
         },
         {
-          label: 'Met de naam als tekst, open',
+          label: 'Open met de naam',
+          note: 'Het attribuut `open` zet de naam als tekst naast het embleem.',
           html: '<lintje-logo name="embleem-defensie" open alt="Ministerie van Defensie"></lintje-logo>',
         },
         {
