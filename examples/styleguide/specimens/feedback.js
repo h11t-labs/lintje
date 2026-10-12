@@ -236,8 +236,8 @@ export default {
           setup: (stage) => setupAnnouncements(stage, { link: { label: 'Bekijk de wijzigingen', href: '#el-announcement' } }),
         },
         {
-          label: 'Fout',
-          html: announcement('outage', 'Het transcriberen is mislukt.', 'Upload de opname opnieuw.'),
+          label: 'Mislukt',
+          html: announcement('error', 'Het transcriberen is mislukt.', 'Upload de opname opnieuw.'),
           setup: (stage) => setupAnnouncements(stage),
         },
         {
