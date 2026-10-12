@@ -20,8 +20,9 @@ Een bijdrage is welkom. Welke weg ze neemt, hangt af van wat ze verandert:
 Een pull request slaagt voor `npm run typecheck`, `npm run lint`, `npm run format:check`,
 `npm test` en `npm run build:elements` — de CI draait ze ook, in Chromium, WebKit en Firefox.
 Het is bekeken in de styleguide, in licht **en** donker, op 1440 **en** 390 px; een nieuw element
-of een nieuwe toestand heeft zijn specimen, en het zet een regel in [`CHANGELOG.md`](CHANGELOG.md)
-onder `[Unreleased]`, met zijn nummer erachter — ook een kleine fout of een wijziging aan de CI.
+of een nieuwe toestand heeft zijn specimen, en het schrijft zijn changelogregel in een eigen
+bestand in [`changes/`](changes/), met zijn nummer erachter — ook een kleine fout of een wijziging
+aan de CI (zie [Uitbrengen](#uitbrengen)).
 Je hebt Node 20.19+ of 22.12+ nodig.
 
 De projectregels staan in [`AGENTS.md`](AGENTS.md). De naam komt van de AI-assistenten die ze
@@ -309,13 +310,28 @@ De styleguide is de referentie: een wijziging aan een component wordt daar gecon
 
 ## Uitbrengen
 
-Een release is een tag. Elke pull request zet tijdens het werk een regel in
-[`CHANGELOG.md`](CHANGELOG.md) onder `[Unreleased]`, met zijn nummer (`(#12)`), een brekende
-wijziging met **Brekend:** ervoor. Uitbrengen is dan:
+Een release is een tag. Elke pull request schrijft tijdens het werk zijn changelogregel in een
+eigen bestand, `changes/<nummer>-<titel>.md`: het nummer en de titel van de pull request, de
+titel in kleine letters met streepjes (`changes/12-gestapeld-vlak-als-grafieksoort.md`). Erin staat
+wat ook in [`CHANGELOG.md`](CHANGELOG.md) zou staan, een kop en de regel eronder, met het nummer
+erachter en een brekende wijziging met **Brekend:** ervoor:
+
+```md
+### Toegevoegd
+
+- Gestapeld vlak als grafieksoort. (#12)
+```
+
+De kop is een van de zes van Keep a Changelog; meer koppen in één bestand mag. Twee pull requests
+schrijven zo nooit in hetzelfde bestand, en de changelog geeft geen mergeconflict. Uitbrengen is
+dan:
 
 ```bash
-npm run release 0.2.0            # [Unreleased] wordt [0.2.0] - datum, package.json neemt de versie, één commit
+npm run release 0.2.0            # changes/ en [Unreleased] worden [0.2.0] - datum, package.json neemt de versie, één commit
 ```
+
+Het script zet de regels per kop bij elkaar, de nieuwste pull request bovenaan, en haalt de
+bestanden in `changes/` weg.
 
 Die commit gaat als pull request naar `main`. Staat hij daar, dan is de tag de release:
 

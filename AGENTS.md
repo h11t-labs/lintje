@@ -127,8 +127,11 @@ niet.
 - Een browsertest hoort bij een mechanisme, niet bij een component: een element dat een gedeeld
   mechanisme gebruikt (trap, popover, focus bij weggaan, breekpunt, plakken), krijgt een rij in diens
   contract in `src/bundle/contracts/`. Zie Tests in [`CONTRIBUTING.md`](CONTRIBUTING.md).
-- Elke pull request zet een regel in `CHANGELOG.md` onder `[Unreleased]`, met zijn nummer
-  erachter (`(#12)`); open de pull request eerst als je het nummer nog niet weet.
+- Elke pull request schrijft zijn changelogregel in een eigen bestand,
+  `changes/<nummer>-<titel>.md` (`changes/12-gestapeld-vlak-als-grafieksoort.md`): een kop van Keep
+  a Changelog (`### Toegevoegd`) met de regel eronder en het nummer erachter (`(#12)`). Nooit in
+  `CHANGELOG.md` zelf, dat alleen `npm run release` bijwerkt. Open de pull request eerst als je het
+  nummer nog niet weet.
 - Commentaar en docs beschrijven wat is, in de tegenwoordige tijd.
 - Commentaar zegt waarom, in een regel of twee, en alleen wat de code en de docs nog niet zeggen.
   Geen verwijzingen naar secties in de docs, geen vertelling van de volgende regels, geen lange
