@@ -110,6 +110,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 - **Brekend:** `lintje-progress-bar` zegt zijn staat met `state` (`busy`, `done`, `error`,
   `paused`), de staat van werk, in plaats van `tone` (`run`, `done`, `error`, `paused`); het type
   `ProgressTone` heet `ProgressState`. `lintje-job-list` en `lintje-list` zijn mee. (#26)
+- **Brekend:** `lintje-announcement` heeft geen `compact` meer: een melding kiest haar marge naar
+  haar eigen breedte, krap onder 560 px en ruim daarboven, op dezelfde grens als haar actie. Een
+  `compact` dat blijft staan, doet niets. (#?)
 - De telefoonvorm geldt alleen op een scherm: `MOBILE` is `screen and (max-width: 767px)`, en een
   host schrijft zijn eigen telefoonregels zo. (#22)
 

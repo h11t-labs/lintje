@@ -49,8 +49,6 @@ export interface AnnouncementBlockOptions {
   text?: string
   meta?: string
   link?: { label: string; href: string }
-  /** The tighter form, for inside content. */
-  compact?: boolean
   /** A live region: `role` from the kind, drawn empty until `filled`. */
   live?: boolean
   /** Whether a live block shows its words yet; ignored when not live. */
@@ -71,12 +69,12 @@ export function renderAnnouncementBlock(options: AnnouncementBlockOptions): Temp
     class=${classMap({
       'lintje-announcement': true,
       [`lintje-announcement--${kind}`]: true,
-      'is-compact': Boolean(options.compact),
     })}
     role=${live ? ANNOUNCEMENT_ROLE[kind] : nothing}
   >
-    ${mark(kind)}
-    ${empty ? nothing : content(kind, options)}
+    <div class="lintje-announcement__inner">
+      ${mark(kind)} ${empty ? nothing : content(kind, options)}
+    </div>
   </div>`
 }
 

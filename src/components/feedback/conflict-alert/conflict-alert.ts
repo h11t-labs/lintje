@@ -95,7 +95,7 @@ export class LintjeConflictAlert extends LintjeElement {
     const busy = this.busy || ''
     const block = this.#mobile.matches
     return html`<div class="lintje-conflict-alert" tabindex="-1">
-      <lintje-announcement compact .data=${conflictText(this.who, this.when, this.item)}>
+      <lintje-announcement .data=${conflictText(this.who, this.when, this.item)}>
         <div slot="action" class="lintje-conflict-alert__actions">
           <lintje-button
             variant="secondary"

@@ -38,7 +38,7 @@ describe('conflictText()', () => {
 describe('lintje-conflict-alert', () => {
   afterEach(() => (document.body.innerHTML = ''))
 
-  it('takes the focus, with a compact live warning and three buttons', async () => {
+  it('takes the focus, with a live warning and three buttons', async () => {
     const element = await mount()
     const alert = element.shadowRoot!.querySelector<HTMLElement>('.lintje-conflict-alert')!
     expect(alert.getAttribute('tabindex')).toBe('-1')
@@ -49,7 +49,6 @@ describe('lintje-conflict-alert', () => {
       element.shadowRoot!.querySelector('[role="alert"], [role="status"], [aria-live]'),
     ).toBeNull()
     const announcement = element.shadowRoot!.querySelector('lintje-announcement')!
-    expect(announcement.compact).toBe(true)
     expect(announcement.data!.kind).toBe('warning')
     expect(announcement.data!.live).toBe(true)
     expect(buttons(element).map((button) => button.variant)).toEqual([

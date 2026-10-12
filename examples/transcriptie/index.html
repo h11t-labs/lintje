@@ -223,7 +223,7 @@
               <div class="panel panel--tight">
                 <lintje-prose id="phone-steps"></lintje-prose>
                 <!-- What happens now, set apart from the steps: it waits for the phone. -->
-                <lintje-announcement id="phone-wait" compact>
+                <lintje-announcement id="phone-wait">
                   <lintje-button slot="action" id="phone-simulate" variant="link" size="compact">Voorbeeld: start de opname op je telefoon</lintje-button>
                 </lintje-announcement>
                 <lintje-prose id="phone-address" tone="muted"></lintje-prose>
@@ -315,7 +315,7 @@
                 <lintje-button id="replace-one" variant="secondary" size="compact">Deze</lintje-button>
                 <lintje-button id="replace-all" variant="secondary" size="compact">Alle</lintje-button>
               </div>
-              <lintje-announcement id="replaced" compact hidden>
+              <lintje-announcement id="replaced" hidden>
                 <lintje-button id="replace-undo" slot="action" variant="link" size="compact">Ongedaan maken</lintje-button>
               </lintje-announcement>
               <!-- The note is the first row of the text, as it is the first lines of every download. -->
@@ -335,7 +335,7 @@
               <lintje-empty-state id="no-match" compact hidden text="">
                 <lintje-button id="clear-search" variant="link">Zoekopdracht wissen</lintje-button>
               </lintje-empty-state>
-              <lintje-announcement id="catch-up" class="catch-up" compact hidden>
+              <lintje-announcement id="catch-up" class="catch-up" hidden>
                 <lintje-button id="catch-up-now" slot="action" variant="link" size="compact">Naar de live tekst</lintje-button>
               </lintje-announcement>
             </div>
@@ -363,7 +363,7 @@
           <div class="split__main">
             <lintje-tile id="words-tile">
               <div class="panel">
-                <lintje-announcement id="words-readonly" compact hidden></lintje-announcement>
+                <lintje-announcement id="words-readonly" hidden></lintje-announcement>
                 <lintje-tag-input id="words" label="Woorden" placeholder="Typ een woord en druk op Enter; een geplakte lijst komt in één keer"></lintje-tag-input>
                 <lintje-progress-bar id="words-room"></lintje-progress-bar>
                 <lintje-toggle id="words-fuzzy" label="Ook bijna-gelijke spellingen vinden" hint="Zoals Jansen en Janssen, of een woord dat net verkeerd is verstaan."></lintje-toggle>
