@@ -1,6 +1,5 @@
 // The frame category (Paginakader): the specimens of its elements.
 import { meta } from '../../_data/load.js'
-import * as lintje from '../../../dist-elements/lintje.js'
 
 /** The navigation bar's own surface, so a part that lives there is seen on it. */
 const BAR = 'display: inline-flex; align-items: center; height: 48px; padding: 0 2px; background: var(--color-nav-bg); color: var(--color-nav-text)'
@@ -106,33 +105,6 @@ function wireSearch(search) {
       search.loading = false
     }, 400)
   })
-}
-
-/** Two demo shortcuts, registered once for the page (the style guide draws every specimen twice). */
-let demoKeys = false
-
-function registerDemoKeys() {
-  if (demoKeys) return
-  demoKeys = true
-  const register = lintje.registerShortcut
-  register?.({ keys: 'Ctrl+S', description: 'Opslaan', handler: () => {}, inFields: true })
-  register?.({ keys: 'ArrowLeft', description: '5 seconden terug', handler: () => {} })
-}
-
-function wireSession(session) {
-  session.addEventListener('lintje-session-extend', () => {
-    session.busy = true
-    setTimeout(() => {
-      session.busy = false
-      session.setAttribute('expires-at', new Date(Date.now() + 30 * 60_000).toISOString())
-    }, 1200)
-  })
-  for (const name of ['lintje-logout', 'lintje-login']) {
-    session.addEventListener(name, () => {
-      session.removeAttribute('expires-at')
-      session.removeAttribute('expired')
-    })
-  }
 }
 
 const CRUMBS = [
@@ -756,61 +728,6 @@ export default {
           html: `<span style="${BAR}"><lintje-notifications></lintje-notifications></span>`,
           setup(stage) {
             stage.querySelector('lintje-notifications').items = []
-          },
-        },
-      ],
-    },
-    {
-      tag: 'lintje-shortcuts',
-      title: 'Het overzicht van de sneltoetsen op deze pagina',
-      specimens: [
-        {
-          label: 'Rust',
-          note: 'Druk ? om het overzicht te openen.',
-          html: '<lintje-button variant="secondary" data-open aria-keyshortcuts="?">Sneltoetsen</lintje-button><lintje-shortcuts></lintje-shortcuts>',
-          setup(stage) {
-            const shortcuts = stage.querySelector('lintje-shortcuts')
-            registerDemoKeys()
-            shortcuts.addEventListener('lintje-open', () => (shortcuts.open = true))
-            shortcuts.addEventListener('lintje-close', () => (shortcuts.open = false))
-            stage.querySelector('[data-open]').addEventListener('click', () => (shortcuts.open = true))
-          },
-        },
-      ],
-    },
-    {
-      tag: 'lintje-session-expiry',
-      title: 'Waarschuwen voordat de sessie verloopt, en het concept terugzetten',
-      specimens: [
-        {
-          label: 'Vooraf',
-          note: 'De waarschuwing komt voordat de sessie verloopt. Verlengen toont even bezig.',
-          html: '<lintje-button variant="secondary" data-open>Sessie verloopt over 2 minuten</lintje-button><lintje-session-expiry></lintje-session-expiry>',
-          setup(stage) {
-            const session = stage.querySelector('lintje-session-expiry')
-            wireSession(session)
-            stage.querySelector('[data-open]').addEventListener('click', () =>
-              session.setAttribute('expires-at', new Date(Date.now() + 2 * 60_000).toISOString()),
-            )
-          },
-        },
-        {
-          label: 'Afgemeld',
-          note: 'Verlengen is mislukt en de gebruiker is afgemeld.',
-          html: '<lintje-button variant="secondary" data-open>Verlengen mislukt</lintje-button><lintje-session-expiry></lintje-session-expiry>',
-          setup(stage) {
-            const session = stage.querySelector('lintje-session-expiry')
-            wireSession(session)
-            stage.querySelector('[data-open]').addEventListener('click', () => session.setAttribute('expired', ''))
-          },
-        },
-        {
-          label: 'Concept teruggezet',
-          note: 'Na opnieuw aanmelden meldt het dat het concept is teruggezet.',
-          html: '<lintje-session-expiry restored-at="2026-10-04T10:42:00"></lintje-session-expiry>',
-          setup(stage) {
-            const session = stage.querySelector('lintje-session-expiry')
-            session.addEventListener('lintje-draft-discard', () => session.removeAttribute('restored-at'))
           },
         },
       ],

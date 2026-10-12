@@ -10,10 +10,11 @@ import { holdOverflow } from '../../core/host-config'
 import '../layout/expander/expander'
 import '../overlays/modal/modal'
 import '../overlays/drawer/drawer'
-import '../overlays/confirm-dialog/confirm-dialog'
+import '../overlays/dialog/dialog'
+import '../../primitives/button/button'
 import type { LintjeModal } from '../overlays/modal/modal'
 import type { LintjeDrawer } from '../overlays/drawer/drawer'
-import type { LintjeConfirmDialog } from '../overlays/confirm-dialog/confirm-dialog'
+import type { LintjeDialog } from '../overlays/dialog/dialog'
 
 function tab(shiftKey = false): KeyboardEvent {
   const event = new KeyboardEvent('keydown', {
@@ -223,15 +224,21 @@ describe('a modal opened from a drawer', () => {
   })
 })
 
-// examples/meldingen: closing a drawer with unsaved input asks first, in a confirm dialog.
-describe('a confirm dialog over a drawer', () => {
+// examples/meldingen: closing a drawer with unsaved input asks first, in a dialog.
+describe('a confirmation over a drawer', () => {
   it('closes alone on Escape, and its answer can close the drawer too', async () => {
     const asked: string[] = []
     const drawer = document.createElement('lintje-drawer') as LintjeDrawer
     drawer.heading = 'Melding'
     drawer.innerHTML = '<input id="titel">'
-    const confirm = document.createElement('lintje-confirm-dialog') as LintjeConfirmDialog
-    confirm.heading = 'Wijzigingen weggooien?'
+    const confirm = Object.assign(document.createElement('lintje-dialog'), {
+      alert: true,
+      heading: 'Wijzigingen weggooien?',
+    }) as LintjeDialog
+    confirm.innerHTML = `
+      <lintje-button slot="actions" variant="secondary" autofocus>Verder bewerken</lintje-button>
+      <lintje-button slot="actions" variant="danger">Weggooien</lintje-button>`
+    const [cancel, discard] = confirm.querySelectorAll('lintje-button')
     drawer.addEventListener('lintje-close', () => {
       asked.push('drawer')
       confirm.open = true
@@ -240,7 +247,7 @@ describe('a confirm dialog over a drawer', () => {
       asked.push('confirm')
       confirm.open = false
     })
-    confirm.addEventListener('lintje-confirm', () => {
+    discard!.addEventListener('click', () => {
       confirm.open = false
       drawer.open = false
     })
@@ -254,8 +261,7 @@ describe('a confirm dialog over a drawer', () => {
     await confirm.updateComplete
     await new Promise((resolve) => setTimeout(resolve))
     expect(asked).toEqual(['drawer'])
-    // The safe button has the focus, in the confirm dialog on top.
-    const cancel = confirm.shadowRoot!.querySelector('.lintje-confirm-dialog__cancel')
+    // The safe button has the focus, in the dialog on top.
     expect((deepActiveElement()!.getRootNode() as ShadowRoot).host).toBe(cancel)
 
     escape()
@@ -266,7 +272,7 @@ describe('a confirm dialog over a drawer', () => {
 
     escape()
     await confirm.updateComplete
-    confirm.shadowRoot!.querySelector<HTMLElement>('.lintje-confirm-dialog__confirm')!.click()
+    discard!.click()
     await confirm.updateComplete
     await drawer.updateComplete
     expect(drawer.open).toBe(false)

@@ -147,8 +147,8 @@ function prepare(stage, setup, item, state) {
  * stage, for the page to read what it drew.
  *
  * `frame` draws it in a page of its own, open: an overlay is `position: fixed` and traps the
- * focus, so on the guide's page it would cover the guide and hold its keyboard. `true` opens the
- * element's own tags, a selector the ones it names. The frame is inert while the overlay opens,
+ * focus, so on the guide's page it would cover the guide and hold its keyboard. Its `[data-open]`
+ * button opens it; without one, `true` opens the element's own tags, a selector the ones it names. The frame is inert while the overlay opens,
  * so its focus does not pull the guide's page along.
  */
 export function renderSpecimen({ label, html, setup, frame: own }, { item, state } = {}) {
@@ -169,7 +169,10 @@ export function renderSpecimen({ label, html, setup, frame: own }, { item, state
         prepare(stage, setup, item, state)
         const open = frame === true ? item?.tag : frame
         const overlays = open ? [...stage.querySelectorAll(open)] : []
-        for (const node of overlays) node.open = true
+        // The opener opens it as the host would, filling what it fills; without one, `open`.
+        const opener = stage.querySelector('[data-open]')
+        if (opener) opener.click()
+        else for (const node of overlays) node.open = true
         await Promise.all(overlays.map((node) => node.updateComplete))
         figure.stage = stage
         // A dialog moves its focus once its fields have drawn; one that still reaches out of the

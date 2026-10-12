@@ -14,10 +14,10 @@ import {
   type TemplateResult,
 } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
-import { lockScroll } from '../../../core/host-config'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import { FocusTrap, tabbables } from '../../shared/focus-trap'
+import { DialogHold } from '../../shared/dialog'
+import { tabbables } from '../../shared/focus-trap'
 import drawerCss from './drawer.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 
@@ -50,13 +50,8 @@ export class LintjeDrawer extends LintjeElement {
   busy: boolean = false
   protected footerSlotted: boolean = false
 
-  #released: (() => void) | null = null
-  readonly #trap = new FocusTrap()
-
-  /** Only the dialog on top answers Escape: a confirm dialog over the drawer goes first. */
-  readonly #onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape' && this.#trap.isTopmost()) this.close('escape')
-  }
+  /** Only the dialog on top answers Escape: a confirmation over the drawer goes first. */
+  readonly #hold = new DialogHold(() => this.close('escape'))
 
   private close(reason: DrawerCloseReason): void {
     if (this.busy) return
@@ -89,8 +84,8 @@ export class LintjeDrawer extends LintjeElement {
 
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
-    if (this.open && !this.#released) this.#hold()
-    else if (!this.open && this.#released) this.#release()
+    if (this.open && !this.#hold.held) this.#open()
+    else if (!this.open && this.#hold.held) this.#release()
   }
 
   private focusFirst(): void {
@@ -102,29 +97,23 @@ export class LintjeDrawer extends LintjeElement {
     ;(field ?? close ?? panel).focus()
   }
 
-  #hold(): void {
+  #open(): void {
     if (import.meta.env?.DEV && !this.heading.trim()) {
       console.warn('<lintje-drawer> has no heading; its dialog is named "Zijpaneel".')
     }
-    this.#released = lockScroll()
-    document.addEventListener('keydown', this.#onKeyDown)
     const panel = this.panel
-    // Activated first so the trap records the opener; focus moves once slotted fields have drawn.
-    if (panel) this.#trap.activate(panel, { focus: false })
+    // Held first so the trap records the opener; focus moves once slotted fields have drawn.
+    if (panel) this.#hold.hold(panel)
     const drawn = Array.from(this.querySelectorAll('*'), (element) =>
       'updateComplete' in element ? (element.updateComplete as Promise<unknown>) : null,
     ).filter((promise) => promise !== null)
     void Promise.all(drawn).then(() => {
-      if (this.open && this.#trap.isTopmost()) this.focusFirst()
+      if (this.open && this.#hold.isTopmost()) this.focusFirst()
     })
   }
 
   #release(): void {
-    if (!this.#released) return
-    document.removeEventListener('keydown', this.#onKeyDown)
-    this.#released()
-    this.#released = null
-    this.#trap.deactivate()
+    this.#hold.release()
   }
 
   protected override render(): TemplateResult | typeof nothing {

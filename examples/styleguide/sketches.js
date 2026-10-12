@@ -40,8 +40,6 @@ export const SKETCHES = {
   'user-menu': { frame: 'band', center: true, rows: 'av chevd' },
   'app-search': { frame: 'page', rows: 'l90 / l70 / l50', over: 'search', layer: 'in / l70 / l50 / l60' },
   notifications: { frame: 'band', center: true, rows: 'i dot' },
-  shortcuts: { frame: 'page', rows: 'l90 / l70 / l50', over: 'dialog', layer: 't50 / chip l40 / chip l50 / chip l30' },
-  'session-expiry': { frame: 'page', rows: 'l90 / l70 / l50', over: 'dialog', layer: 't60 / l80 / sp b45' },
   // Layout
   grid: { rows: 'bx60 bx30 / cell cell' },
   'grid-item': { rows: 'cell cell cell' },
@@ -51,7 +49,7 @@ export const SKETCHES = {
   'split-pane': { rows: 'split' },
   // Overlays
   modal: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'modal', layer: 't50 / l80 / l60 / sp bo25 b30' },
-  'confirm-dialog': { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'dialog', layer: 't60 / l80 / sp bo35 b40' },
+  dialog: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'dialog', layer: 't60 / l80 / sp bo35 b40' },
   drawer: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'drawer', layer: 't60 / l80 / l60 / in' },
   popover: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'popover', layer: 't60 / l80 / l60' },
   tooltip: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'tooltip', layer: 'l' },

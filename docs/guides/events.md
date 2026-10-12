@@ -47,7 +47,7 @@ form.addEventListener('lintje-submit', async (event) => {
 ```
 
 - In een `<lintje-form>` wordt de waarde van een veld gemeld in `lintje-submit`, niet gepost.
-- `dirty` zegt dat de lezer niet-opgeslagen invoer heeft; toon een `<lintje-confirm-dialog>` voordat je weggaat.
+- `dirty` zegt dat de lezer niet-opgeslagen invoer heeft; vraag het in een `<lintje-dialog alert>` voordat je weggaat.
 - Met `draft-key` bewaart het formulier een concept in `localStorage`; zonder, in het geheugen.
 
 ## Toestand en acties
@@ -75,7 +75,7 @@ Een *toestand* is iets wat je bewaart en terugzet op het element (en in de URL m
 | `lintje-retry` | `lintje-error-summary`, `lintje-streaming-text` | actie |
 | `lintje-files-add`, `lintje-file-remove`, `lintje-file-cancel` | `lintje-file-upload` | actie |
 | `lintje-search` | `lintje-combobox` (`remote`), `lintje-app-search` | actie |
-| `lintje-open` | `lintje-app-search`, `lintje-shortcuts` | actie |
+| `lintje-open` | `lintje-app-search` | actie |
 | `lintje-row-add`, `lintje-row-remove` | `lintje-repeater`, `lintje-repeater-row` | actie |
 | `lintje-tab-change` | `lintje-tabs` | toestand |
 | `lintje-page-change` | `lintje-pagination`, `lintje-document-viewer` | toestand |
@@ -93,7 +93,7 @@ Een *toestand* is iets wat je bewaart en terugzet op het element (en in de URL m
 | `lintje-text-change`, `lintje-languages-swap` | `lintje-translator` | toestand, actie |
 | `lintje-segment-edit`, `lintje-segment-save`, `lintje-segment-cancel`, `lintje-segment-speaker`, `lintje-speaker-new`, `lintje-speaker-rename` | `lintje-transcript` | actie |
 | `lintje-action` | `lintje-menu-button`, `lintje-user-menu`, `lintje-app-search`, `lintje-sub-nav` | actie |
-| `lintje-search-open`, `lintje-logout`, `lintje-login`, `lintje-session-extend`, `lintje-draft-discard`, `lintje-notification-open`, `lintje-notifications-read` | de shell: `lintje-shell`, `lintje-user-menu`, `lintje-session-expiry`, `lintje-notifications` | actie |
+| `lintje-search-open`, `lintje-logout`, `lintje-notification-open`, `lintje-notifications-read` | de shell: `lintje-shell`, `lintje-user-menu`, `lintje-notifications` | actie |
 | `lintje-conflict-keep-mine`, `lintje-conflict-take-theirs`, `lintje-conflict-compare` | `lintje-conflict-alert` | actie |
 | `lintje-message-send`, `lintje-message-edit`, `lintje-suggestion-select`, `lintje-answer-retry`, `lintje-answer-rate`, `lintje-answer-stop` | de chat | actie |
 | `lintje-sources-change`, `lintje-draft-change`, `lintje-strip-change` | de chat | toestand |
@@ -104,7 +104,6 @@ element stuurt het verzoek en wacht op de property die het beantwoordt (`.option
 waarde die bevestigt.
 
 **Events die niet van jou zijn.** Een composed event dat niet in de tabel staat, hoort bij wie het
-onderdeel heeft geopend: `lintje-close` van een modal, een drawer, een popover of een bevestigingsdialoog,
-`lintje-confirm`, en `lintje-invalid` van het formulier (een echo van je eigen `.errors`). Een view
+onderdeel heeft geopend: `lintje-close` van een modal, een dialoog, een drawer of een popover, en `lintje-invalid` van het formulier (een echo van je eigen `.errors`). Een view
 vangt de events van zijn eigen onderdelen af — het uitvouwen en downloaden van de tegel, het sluiten van de modal — zodat één
 actie voor jou één event is. Een pagina die zo'n onderdeel zelf opent, is die eigenaar, en hoort ze.

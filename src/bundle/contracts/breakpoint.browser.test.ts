@@ -12,7 +12,7 @@ import '../../components/chat/chat-composer/chat-composer'
 import '../../components/chat/chat-message/chat-message'
 import '../../components/chat/chat-strip/chat-strip'
 import '../../components/chat/chat/chat'
-import '../../components/overlays/confirm-dialog/confirm-dialog'
+import '../../components/overlays/dialog/dialog'
 import '../../components/feedback/conflict-alert/conflict-alert'
 import '../../components/tables/data-table/data-table'
 import '../../components/tables/description-list/description-list'
@@ -36,7 +36,6 @@ import '../../components/overlays/modal/modal'
 import '../../components/frame/notifications/notifications'
 import '../../components/tables/pagination/pagination'
 import '../../components/forms/repeater/repeater'
-import '../../components/frame/session-expiry/session-expiry'
 import '../../components/layout/split-pane/split-pane'
 import '../../components/forms/stepper/stepper'
 import '../../components/frame/sub-nav/sub-nav'
@@ -735,47 +734,26 @@ const ROWS: Row[] = [
       !shown(element, '[role="slider"][aria-label="Volume"]'),
   },
   {
-    tag: 'lintje-confirm-dialog',
-    marker: 'the buttons stand under each other, the confirmation on top',
+    tag: 'lintje-dialog',
+    marker: 'the buttons stand under each other, the answer on top',
     mount: async () => {
-      const element = create('lintje-confirm-dialog', {
+      const element = create('lintje-dialog', {
         open: true,
+        alert: true,
         heading: 'Aanvraag verwijderen?',
-        confirmLabel: 'Verwijderen',
       })
-      element.textContent = 'De aanvraag en haar bijlagen worden verwijderd.'
+      element.innerHTML = `De aanvraag en haar bijlagen worden verwijderd.
+        <lintje-button slot="actions" variant="secondary" autofocus>Annuleren</lintje-button>
+        <lintje-button slot="actions" variant="danger">Verwijderen</lintje-button>`
       return append(element)
     },
     wide: (element) => {
-      const confirm = find(element, '.lintje-confirm-dialog__confirm')
-      const cancel = find(element, '.lintje-confirm-dialog__cancel')
-      return seen(confirm) && level(confirm, cancel) && box(cancel).right <= box(confirm).left
+      const answer = find(element, '[variant="danger"]')
+      const cancel = find(element, '[variant="secondary"]')
+      return seen(answer) && level(answer, cancel) && box(cancel).right <= box(answer).left
     },
     phone: (element) =>
-      below(
-        find(element, '.lintje-confirm-dialog__confirm'),
-        find(element, '.lintje-confirm-dialog__cancel'),
-      ),
-  },
-  {
-    tag: 'lintje-session-expiry',
-    marker: 'the buttons stand under each other, "Aangemeld blijven" on top',
-    mount: () =>
-      append(
-        create('lintje-session-expiry', {
-          expiresAt: new Date(Date.now() + 60_000).toISOString(),
-        }),
-      ),
-    wide: (element) => {
-      const stay = find(element, '.lintje-session-expiry__primary')
-      const leave = find(element, '.lintje-session-expiry__logout')
-      return seen(stay) && level(stay, leave) && box(leave).right <= box(stay).left
-    },
-    phone: (element) =>
-      below(
-        find(element, '.lintje-session-expiry__primary'),
-        find(element, '.lintje-session-expiry__logout'),
-      ),
+      below(find(element, '[variant="danger"]'), find(element, '[variant="secondary"]')),
   },
   {
     tag: 'lintje-conflict-alert',

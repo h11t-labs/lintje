@@ -1,7 +1,7 @@
 /**
  * The page's one register of keyboard shortcuts: one `keydown` listener; `shortcuts()` lists
- * them for `<lintje-shortcuts>`. Without Ctrl, Alt or Meta a key never fires in a field; with
- * one, only when registered with `inFields`. A key registered twice warns in development.
+ * them for the overview a page shows. Without Ctrl, Alt or Meta a key never fires in a field;
+ * with one, only when registered with `inFields`. A key registered twice warns in development.
  *
  * A one-character key (`/`, `?`) can be switched off by the reader (WCAG 2.1.4, for speech
  * input and stray keystrokes): `setCharacterKeys(false)`, remembered in `localStorage`.
@@ -179,7 +179,7 @@ export function registerShortcut(options: ShortcutOptions): () => void {
   const entry: Entry = { options, chord, normalized: normalize(chord) }
   if (import.meta.env?.DEV && entries.some((other) => other.normalized === entry.normalized)) {
     console.warn(
-      `lintje-shortcuts: "${options.keys}" is registered twice ("${options.description}"); the latest registration handles it.`,
+      `registerShortcut: "${options.keys}" is registered twice ("${options.description}"); the latest registration handles it.`,
     )
   }
   entries.push(entry)

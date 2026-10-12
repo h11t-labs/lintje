@@ -51,8 +51,6 @@ const mmss = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.floor(secon
 // Named here, after the source is set, so the first draw already reads the right folder.
 // Prose draws its own `html` on the type scale; a heading in its slot would keep the browser's size.
 for (const prose of document.querySelectorAll('lintje-prose[data-heading]')) prose.html = `<h3>${prose.dataset.heading}</h3>`
-// The dialogs here hold forms, not a chart: no CSV or PNG in their footer.
-for (const modal of document.querySelectorAll('lintje-modal')) Object.assign(modal, { csv: false, png: false })
 $('search-prev').icon = 'functioneel-delta-omhoog'
 $('search-next').icon = 'functioneel-delta-omlaag'
 $('record').icon = 'beeld-en-geluid-microfoon'
