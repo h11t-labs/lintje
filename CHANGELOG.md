@@ -1,7 +1,8 @@
 # Changelog
 
-Wat er veranderde, per versie, de nieuwste bovenaan. Elke pull request zet hier een regel onder
-`[Unreleased]`, ook een kleine, met zijn nummer erachter: `(#12)`. De opzet volgt
+Wat er veranderde, per versie, de nieuwste bovenaan. Elke pull request, ook een kleine, schrijft
+zijn regel in een eigen bestand in [`changes/`](changes/), `<nummer>-<titel>.md`, met zijn nummer
+erachter: `(#12)`; `npm run release` zet ze hier bij elkaar. De opzet volgt
 [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) en de versies
 [Semantic Versioning](https://semver.org/lang/nl/): de kopjes zijn de zes soorten van Keep a
 Changelog in het Nederlands (Toegevoegd, Gewijzigd, Verouderd, Verwijderd, Opgelost, Beveiliging).
