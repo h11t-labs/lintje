@@ -118,8 +118,11 @@ type Updating = Element & { updateComplete?: Promise<unknown>; isUpdatePending?:
 function ending(elements: Element[]): Animation[] {
   const roots = elements.flatMap((element) => element.shadowRoot ?? [])
   const running = [document, ...roots].flatMap((root) => root.getAnimations())
+  // A finished animation that fills (`both`) stays in the list, though it no longer moves.
   return [...new Set(running)].filter(
-    (animation) => animation.effect?.getComputedTiming().endTime !== Infinity,
+    (animation) =>
+      animation.playState !== 'finished' &&
+      animation.effect?.getComputedTiming().endTime !== Infinity,
   )
 }
 

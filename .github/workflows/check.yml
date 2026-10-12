@@ -1,17 +1,19 @@
 # What a change has to pass: the checks from AGENTS.md, the style guide in three browsers, and the
-# build the examples load.
+# build the examples load. Each browser has its own job, beside the one for the rest, so they run
+# side by side and a failure names its engine.
 name: Check
 
 # Once per pull request: main only takes merged pull requests, and a tag runs release.yml, which
-# repeats these checks before it publishes. "Run workflow" checks any branch by hand.
+# calls this workflow before it publishes. "Run workflow" checks any branch by hand.
 on:
   pull_request:
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   check:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -19,12 +21,27 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium webkit firefox
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
       - run: npm run test:unit
+      - run: npm run build:elements
+
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit, firefox]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npm run test:browser
         env:
-          LINTJE_BROWSERS: chromium,webkit,firefox
-      - run: npm run build:elements
+          LINTJE_BROWSERS: ${{ matrix.browser }}

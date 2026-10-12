@@ -1,9 +1,9 @@
 # Publishes a release when a version tag (v0.2.0) is pushed: the package is staged on npm for a
 # maintainer to approve with 2FA (`npm stage publish`), and a GitHub release carries the tarball
 # and the changelog section of that version as its notes. The tag must equal the version in
-# package.json and have its section in CHANGELOG.md, and the release passes the same checks as
-# check.yml first. Needs the repository secret NPM_TOKEN, a granular token with stage-only access;
-# --provenance links the package to this run.
+# package.json and have its section in CHANGELOG.md, and the release passes check.yml first.
+# Needs the repository secret NPM_TOKEN, a granular token with stage-only access; --provenance
+# links the package to this run.
 name: Release
 
 on:
@@ -15,9 +15,13 @@ permissions:
   id-token: write
 
 jobs:
+  check:
+    uses: ./.github/workflows/check.yml
+
   publish:
+    needs: check
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -32,14 +36,6 @@ jobs:
         run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
       - name: The changelog has this version
         run: node scripts/release-notes.mjs "$GITHUB_REF_NAME" > release-notes.md
-      - run: npx playwright install --with-deps chromium webkit firefox
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm run format:check
-      - run: npm run test:unit
-      - run: npm run test:browser
-        env:
-          LINTJE_BROWSERS: chromium,webkit,firefox
       - run: npm run build:elements
       - run: npm pack
       - name: Stage the package on npm, for a maintainer to approve
