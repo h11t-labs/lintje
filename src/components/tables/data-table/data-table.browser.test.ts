@@ -203,7 +203,9 @@ describe('a table wider than its room', () => {
       key: `c${i}`,
       header: `Kolom met een lange kop ${i}`,
     })),
-    rows: [Object.fromEntries(Array.from({ length: 8 }, (_, i) => [`c${i}`, `een_lange_waarde_${i}`]))],
+    rows: [
+      Object.fromEntries(Array.from({ length: 8 }, (_, i) => [`c${i}`, `een_lange_waarde_${i}`])),
+    ],
   }
 
   async function mountAt(width: number, data: DataTableData): Promise<TableElement> {
