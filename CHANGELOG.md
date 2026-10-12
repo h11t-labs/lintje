@@ -10,6 +10,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-12
+
 ### Toegevoegd
 
 - `lintje-segmented` toont een aantal per optie: `count` op `FilterOption` wordt de tellerbadge
@@ -212,7 +214,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.2.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/h11t-labs/lintje/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/h11t-labs/lintje/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/h11t-labs/lintje/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/h11t-labs/lintje/releases/tag/v0.1.0
