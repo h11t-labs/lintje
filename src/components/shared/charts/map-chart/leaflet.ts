@@ -222,6 +222,9 @@ export class LeafletSurface {
     const container = this.#container
     if (!container || !container.clientWidth || !container.clientHeight) return
     if (this.#map) {
+      // The paper's box can be measured before the media change reaches `print`: the view to
+      // keep is still the screen's.
+      if (this.#framed && !this.#screenView && matchMedia('print').matches) return this.print(true)
       this.#map.invalidateSize({ animate: false })
       this.#limits()
       return
@@ -273,6 +276,7 @@ export class LeafletSurface {
     const map = this.#map
     if (!map || !this.#framed) return
     if (printing) {
+      if (this.#screenView) return
       const seen = map.getBounds()
       this.#screenView = { centre: map.getCenter(), zoom: map.getZoom() }
       this.#resized(map)
