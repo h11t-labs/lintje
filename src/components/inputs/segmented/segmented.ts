@@ -17,6 +17,7 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
+import '../../../primitives/badge/badge'
 import { LintjeInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
 import segmentedCss from './segmented.css?inline'
@@ -119,7 +120,11 @@ export class LintjeSegmented extends LintjeInputElement {
             ?disabled=${this.disabled}
             @click=${() => this.choose(option.value)}
           >
-            ${option.label}
+            ${option.label}${
+              typeof option.count === 'number'
+                ? html`<lintje-badge variant="count">${option.count}</lintje-badge>`
+                : nothing
+            }
           </button>`,
         )}
       </div>

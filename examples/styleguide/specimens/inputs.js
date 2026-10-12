@@ -659,6 +659,20 @@ export default {
           },
         },
         {
+          label: 'Met een aantal',
+          note: 'Een optie met `count` toont dat getal als tellerbadge achter het label.',
+          html: '<lintje-segmented label="Toon" hide-label></lintje-segmented>',
+          setup(stage) {
+            const element = stage.querySelector('lintje-segmented')
+            element.options = [
+              { value: '', label: 'Alles', count: 12 },
+              { value: 'open', label: 'Open', count: 9 },
+              { value: 'gesloten', label: 'Gesloten', count: 3 },
+            ]
+            element.value = ''
+          },
+        },
+        {
           label: 'Te smal voor een rij',
           note: 'Past de rij niet, dan staan de opties onder elkaar.',
           html: '<div style="max-width: 240px"><lintje-segmented label="Soort gesprek"></lintje-segmented></div>',

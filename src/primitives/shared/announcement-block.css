@@ -1,12 +1,14 @@
+/* The block is the container, so the inner row can take its margin from the block's own width. */
 .lintje-announcement {
   container-type: inline-size;
+  border-radius: var(--radius);
+}
+.lintje-announcement__inner {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
-  padding: var(--space-4);
-  border-radius: var(--radius);
+  padding: var(--space-3);
 }
-.lintje-announcement.is-compact { padding: 10px var(--space-3); gap: var(--space-2); }
 
 .lintje-announcement__icon {
   width: 20px; height: 20px;
@@ -24,7 +26,9 @@
 /* The `action` slot keeps its own width: under the text, or beside it where the announcement is wide. */
 .lintje-announcement__action::slotted(*) { align-self: flex-start; }
 .lintje-announcement__media::slotted(*) { flex: none; max-width: 40%; height: auto; }
+/* Wide enough for the action beside the text, wide enough for the full margin. */
 @container (min-width: 560px) {
+  .lintje-announcement__inner { padding: var(--space-4); }
   .lintje-announcement__body { flex-direction: row; align-items: center; gap: var(--space-4); }
   .lintje-announcement__content { flex: 1; }
   .lintje-announcement__action::slotted(*) { align-self: center; flex: none; }
@@ -61,9 +65,8 @@
 .lintje-announcement--ok .lintje-announcement__icon { color: var(--color-success-line); }
 
 @media screen and (max-width: 767px) {
-  .lintje-announcement { padding: 10px var(--space-3); gap: var(--space-2); }
-  .lintje-announcement__title { font: var(--text-tile-title); color: var(--color-text-primary); }
-.lintje-announcement__text { font: var(--text-small); }
+  .lintje-announcement__inner { padding: var(--space-3); }
+  .lintje-announcement__text { font: var(--text-small); }
 }
 
 /* Forced colours drop the fill, so the announcement takes an outline. */

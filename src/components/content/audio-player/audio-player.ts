@@ -333,7 +333,7 @@ export class LintjeAudioPlayer extends LintjePlayerElement {
 
   private renderSlider(): TemplateResult {
     if (this.failed) {
-      return html`<lintje-announcement compact class="lintje-audio-player__alert" .data=${FAILED}>
+      return html`<lintje-announcement class="lintje-audio-player__alert" .data=${FAILED}>
         <lintje-button slot="action" variant="link" @click=${this.onRetry}
           >Opnieuw proberen</lintje-button
         >

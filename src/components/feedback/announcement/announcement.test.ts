@@ -147,7 +147,6 @@ describe('lintje-announcement', () => {
 
 async function mount(data: AnnouncementViewData, inner = ''): Promise<LintjeAnnouncement> {
   const element = document.createElement('lintje-announcement')
-  element.compact = true
   element.innerHTML = inner
   element.data = data
   document.body.append(element)
@@ -170,11 +169,6 @@ describe('lintje-announcement in content', () => {
       const element = await mount({ kind, text: 'Een melding.', live: true })
       expect(block(element).getAttribute('role')).toBe('status')
     }
-  })
-
-  it('takes the compact form in content', async () => {
-    const element = await mount({ kind: 'info', text: 'Deze opname wordt na 30 dagen verwijderd.' })
-    expect(block(element).classList.contains('is-compact')).toBe(true)
   })
 
   it('has a place for one action after the text', async () => {

@@ -1,6 +1,6 @@
 /**
- * The segmented control's markup: which option is pressed, what a choice tells, and that an
- * error marks the frame. Whether the row fits its room is measured in headless Chrome.
+ * The segmented control's markup: which option is pressed, what a choice tells, an option's
+ * count, and that an error marks the frame. Whether the row fits its room is measured in headless Chrome.
  */
 import { beforeEach, describe, expect, it } from 'vitest'
 import './segmented'
@@ -51,5 +51,19 @@ describe('lintje-segmented', () => {
     element.error = undefined
     await element.updateComplete
     expect(frame(element).classList.contains('is-error')).toBe(false)
+  })
+
+  it('draws a count as a badge after the label, nought included', async () => {
+    const element = await mount({
+      options: [
+        { value: 'week', label: 'Week', count: 4 },
+        { value: 'maand', label: 'Maand', count: 0 },
+        { value: 'jaar', label: 'Jaar' },
+      ],
+    })
+    const badges = [...frame(element).querySelectorAll('.lintje-segmented__option')].map(
+      (option) => option.querySelector('lintje-badge[variant="count"]')?.textContent,
+    )
+    expect(badges).toEqual(['4', '0', undefined])
   })
 })

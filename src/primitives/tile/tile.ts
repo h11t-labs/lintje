@@ -243,7 +243,6 @@ export class LintjeTile extends LintjeGridItemElement {
           ${renderAnnouncementBlock({
             kind: 'warning',
             text: this.message,
-            compact: true,
             live: true,
             filled: this.filled === this.regionText,
           })}

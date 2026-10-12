@@ -323,6 +323,8 @@ De besluiten hieronder gelden voor alle elementen.
   ene primaire actie, zodat een formulier nooit meerdere gevulde blokken boven zijn knop toont.
   Een rij die breder is dan haar ruimte, staat als kolom, elke optie een rij over de volle
   breedte; ze loopt nooit uit beeld.
+- **Een aantal bij een keuze is de tellerbadge achter het label**, in een tab en in een segment
+  evengoed; nooit een getal in de tekst van het label.
 - **Een opname die nu loopt, is de live-badge**: de foutvulling met een stip voor het woord, het
   enige rood dat geen fout is.
 - **Wat op het punt staat te gebeuren, is een samenvatting in cellen** (`layout="grid"`): één cel
@@ -370,6 +372,8 @@ De besluiten hieronder gelden voor alle elementen.
   nieuws is. Dan onderbreekt een storing en wachten de andere soorten hun beurt.
 - **De actie van een melding staat naast de tekst waar de melding breed is**, en eronder waar ze
   smal is, zodat de volgende stap binnen bereik blijft zonder een eigen regel.
+- **Een melding kiest haar marge naar haar eigen breedte**, op dezelfde grens als haar actie:
+  smal is ze krap, breed ruim. De host kiest geen compacte vorm.
 - **Wat vanzelf verdwijnt, is een toast; wat bij een veld hoort, is de foutregel van het veld.**
 - **Een statusbericht draagt het eigen teken van de set voor zijn soort**, los op de tint in de
   lijnkleur van de status: een driehoek voor een waarschuwing, een cirkel met een kruis voor een
