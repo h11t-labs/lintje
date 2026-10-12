@@ -63,9 +63,6 @@ export default defineConfig({
           name: 'browser',
           include: ['src/**/*.browser.test.ts'],
           setupFiles: ['src/bundle/browser-setup.ts'],
-          // One file at a time: with files in parallel, WebKit's `userEvent` now and then loses
-          // the test's frame ("Cannot find vitest-iframe"); the run takes 5 % longer.
-          fileParallelism: false,
           browser: {
             enabled: true,
             provider: playwright({
