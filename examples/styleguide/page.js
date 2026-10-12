@@ -666,10 +666,11 @@ function usageSection(tag, appAddress, toc, onCount) {
       filter.label = 'Applicatie'
       filter.hideLabel = true
       filter.options = [
-        { value: '', label: `Alle ${total}` },
+        { value: '', label: 'Alle', count: total },
         ...usage.map(({ app, places }) => ({
           value: app.href,
-          label: `${app.label} ${places.length}`,
+          label: app.label,
+          count: places.length,
         })),
       ]
       filter.value = ''
