@@ -53,6 +53,10 @@ export default defineConfig({
               find: /^.*\/dist-elements\/lintje\.js$/,
               replacement: fileURLToPath(new URL('./src/bundle/index.ts', import.meta.url)),
             },
+            {
+              find: /^.*\/dist-elements\/core\.js$/,
+              replacement: fileURLToPath(new URL('./src/bundle/core.ts', import.meta.url)),
+            },
           ],
         },
         test: {

@@ -12,6 +12,12 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Toegevoegd
 
+- **`lintje-dialog`, het kleine venster** voor een vraag of een kort formulier, naast
+  `lintje-modal`, het grote voor inhoud. `alert` maakt er een `alertdialog` van zonder
+  sluitknop, `persistent` laat Escape en de achtergrond niets vragen, `wide` geeft de breedte van
+  een formulier, en met `busy` wacht de knop van het antwoord terwijl de andere uit staan. De
+  knoppen komen in `actions`; de focus gaat naar wat `autofocus` heeft. De bevestiging, de sessie
+  die verloopt en de sneltoetsen zijn recepten ervan in de stijlgids. (#31)
 - `lintje-data-table` als werkblad: een kolom met `format: 'label'` tekent een waarde als badge
   met woord, toon en icoon (`labels`); `totals` geeft de totaalrij van de host en `groupBy` zet
   de rijen per waarde onder een kop, met `groupTotals` als subtotalen en `groupsPerPage`; met
@@ -57,6 +63,14 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Gewijzigd
 
+- **Brekend:** `lintje-confirm-dialog`, `lintje-session-expiry` en `lintje-shortcuts` zijn weg:
+  een bevestiging is een `lintje-dialog alert` met de knoppen van de host, een sessie die
+  verloopt een `lintje-dialog alert persistent` en het teruggezette concept een
+  `lintje-announcement`. `lintje-modal` verliest `narrow` (een formulier is een
+  `lintje-dialog wide`), heeft geen kop "Vergroot" meer en zet `csv` en `png` standaard uit. Het
+  overzicht van de sneltoetsen is een `lintje-dialog` die de pagina vult uit `shortcuts()`.
+  Modal, dialoog en drawer delen hun scrollvergrendeling, focusval en Escape
+  (`components/shared/dialog.ts`). (#31)
 - De voorbeeldapplicatie Meldingen gebruikt de tabel als werkblad: Ernst en Status staan als
   label, alleen een hoge ernst gevuld, en een rij klapt open voor haar locatie en notitie. (#32)
 - Het kopcommentaar van elke tag, dat de stijlgids onder "Over deze tag" toont, heeft één vorm,

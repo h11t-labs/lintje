@@ -20,6 +20,8 @@ async function open(): Promise<LintjeModal> {
   opener.focus()
   modal = document.createElement('lintje-modal') as LintjeModal
   modal.heading = 'Aanvragen per uur'
+  modal.csv = true
+  modal.png = true
   modal.innerHTML = '<button id="inside">In de inhoud</button>'
   modal.addEventListener('lintje-close', () => {
     modal.open = false
@@ -62,6 +64,22 @@ const lastButton = (): HTMLElement => {
   const buttons = modal.shadowRoot!.querySelectorAll('lintje-button')
   return buttons[buttons.length - 1]!.shadowRoot!.querySelector('button') as HTMLElement
 }
+
+describe('lintje-modal', () => {
+  it('has no download buttons and no footer unless it is given them', async () => {
+    opener = document.createElement('button')
+    document.body.append(opener)
+    modal = Object.assign(document.createElement('lintje-modal'), { open: true })
+    modal.innerHTML = '<p>Over deze cijfers</p>'
+    document.body.append(modal)
+    await modal.updateComplete
+    expect(modal.shadowRoot!.querySelectorAll('lintje-button')).toHaveLength(0)
+    expect(modal.shadowRoot!.querySelector<HTMLElement>('.lintje-modal__footer')!.hidden).toBe(true)
+    expect(modal.shadowRoot!.querySelector('[role="dialog"]')!.getAttribute('aria-label')).toBe(
+      'Venster',
+    )
+  })
+})
 
 describe('lintje-modal focus', () => {
   it('moves the focus in when it opens', async () => {

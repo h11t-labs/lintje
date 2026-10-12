@@ -189,6 +189,17 @@ export default {
           setup: (stage) => setupAnnouncements(stage),
         },
         {
+          // Recipe: after signing in again the page puts the draft back and says so, above the form.
+          label: 'Recept: het concept is teruggezet',
+          html: announcement(
+            'ok',
+            'Je concept is teruggezet.',
+            'Het is van 10:42, van voor het afmelden.',
+            '<lintje-button slot="action" variant="link" size="compact">Concept weggooien</lintje-button>',
+          ),
+          setup: (stage) => setupAnnouncements(stage),
+        },
+        {
           label: 'Met beeld ernaast',
           html: announcement(
             'info',

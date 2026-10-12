@@ -54,9 +54,9 @@ setIconSource({ base: './icons/' })
 
 | categorie | tags |
 |---|---|
-| `frame.js` — Paginakader | `shell`, `page-header`, `breadcrumbs`, `sub-nav`, `hero`, `footer`, `user-menu`, `app-search`, `notifications`, `shortcuts`, `session-expiry` |
+| `frame.js` — Paginakader | `shell`, `page-header`, `breadcrumbs`, `sub-nav`, `hero`, `footer`, `user-menu`, `app-search`, `notifications` |
 | `layout.js` — Indeling | `grid`, `grid-item`, `tile`, `tabs`, `expander`, `split-pane` |
-| `overlays.js` — Vensters en panelen | `modal`, `confirm-dialog`, `drawer`, `popover`, `tooltip`, `toggletip` |
+| `overlays.js` — Vensters en panelen | `modal`, `dialog`, `drawer`, `popover`, `tooltip`, `toggletip` |
 | `actions.js` — Knoppen en iconen | `button`, `icon-button`, `menu-button`, `copy-button`, `qr-code`, `icon`, `logo` |
 | `content.js` — Tekst en media | `prose`, `code`, `highlight`, `translator`, `audio-player`, `video-player`, `transcript`, `document-viewer`, `gallery` |
 | `feedback.js` — Meldingen en status | `announcement`, `toast`, `conflict-alert`, `empty-state`, `error-page`, `badge`, `status-dot`, `spinner`, `skeleton`, `progress-bar`, `job-list`, `streaming-text`, `ai-label`, `level-meter`, `recording-status` |
@@ -117,10 +117,11 @@ const remove = registerShortcut({ keys: '/', description: 'Zoeken', handler })
 Een toets zonder Ctrl, Alt of Meta gaat nooit af terwijl de focus in een veld staat, een toets met een
 ervan alleen met `inFields: true`. De laatste registratie van een toets wint, dus een dialoog neemt een
 toets over van de pagina. `shortcuts()` somt op wat
-geregistreerd is, en dat is wat `<lintje-shortcuts>` toont.
+geregistreerd is: het overzicht is een `<lintje-dialog heading="Sneltoetsen">` die de pagina
+daarmee vult en op `?` opent, voorgedaan in de stijlgids (`examples/_shared/shortcuts.js`).
 
-Een toets van één teken zonder Ctrl, Alt of Meta (`/`, `?`) kan de lezer uitzetten, met de
-schakelaar onder de lijst in `<lintje-shortcuts>` of met `setCharacterKeys(false)`; de keuze blijft
+Een toets van één teken zonder Ctrl, Alt of Meta (`/`, `?`) kan de lezer uitzetten, met
+`setCharacterKeys(false)` achter een instelling van de pagina; de keuze blijft
 bewaard in `localStorage`. Met die toetsen uit opent `?` niets, dus bied het overzicht ook aan
 vanuit een knop of een menu.
 

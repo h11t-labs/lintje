@@ -356,15 +356,19 @@ function actions(stage, extra = {}) {
     say(`lintje-bulk-action ${JSON.stringify(event.detail)}`)
     if (event.detail.action !== 'verwijderen') return
     // The table does not confirm: the host does, with the count in the title.
-    const dialog = document.createElement('lintje-confirm-dialog')
+    const dialog = document.createElement('lintje-dialog')
     const count = event.detail.ids.length
-    dialog.setAttribute('heading', `${count} ${count === 1 ? 'melding' : 'meldingen'} verwijderen?`)
-    dialog.setAttribute('confirm-label', 'Verwijderen')
-    dialog.textContent = 'De gekozen meldingen worden verwijderd. Dit kun je niet terugdraaien.'
+    dialog.alert = true
+    dialog.heading = `${count} ${count === 1 ? 'melding' : 'meldingen'} verwijderen?`
+    dialog.innerHTML = `De gekozen meldingen worden verwijderd. Dit kun je niet terugdraaien.
+      <lintje-button slot="actions" variant="secondary" autofocus>Annuleren</lintje-button>
+      <lintje-button slot="actions" variant="danger">Verwijderen</lintje-button>`
     dialog.open = true
     const close = () => dialog.remove()
+    const [cancel, confirm] = dialog.querySelectorAll('lintje-button')
     dialog.addEventListener('lintje-close', close)
-    dialog.addEventListener('lintje-confirm', () => {
+    cancel.addEventListener('click', close)
+    confirm.addEventListener('click', () => {
       const gone = new Set(event.detail.ids)
       element.data = { ...element.data, rows: element.data.rows.filter((row) => !gone.has(row.id)), checkedIds: [] }
       close()

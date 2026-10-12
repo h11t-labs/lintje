@@ -14,9 +14,7 @@
       "footer",
       "user-menu",
       "app-search",
-      "notifications",
-      "shortcuts",
-      "session-expiry"
+      "notifications"
     ]
   },
   {
@@ -32,8 +30,8 @@
     "heading": "Pagina",
     "label": "Vensters en panelen",
     "icon": "functioneel-foto-vergroten",
-    "intro": "Wat boven de pagina komt te staan: het venster, de bevestiging, het paneel opzij, het zwevende paneel, de tooltip en de toelichting op een klik.",
-    "elements": ["modal", "confirm-dialog", "drawer", "popover", "tooltip", "toggletip"]
+    "intro": "Wat boven de pagina komt te staan: het grote venster voor inhoud, de kleine dialoog voor een vraag of een kort formulier, het paneel opzij, het zwevende paneel, de tooltip en de toelichting op een klik.",
+    "elements": ["modal", "dialog", "drawer", "popover", "tooltip", "toggletip"]
   },
   {
     "name": "actions",

@@ -36,7 +36,6 @@ regel per punt, met het bestand waar het over gaat. Sluit een regel in de wijzig
 - `src/components/inputs/date-input/date-format.ts` en `date-input.ts` / `.css` herhalen het maandraster van `src/components/inputs/date-range/date-range.ts` / `.css` — weekdagen, `formatDate` (zelfde naam, andere invoer), `parseDate`, de markup en de CSS; het rekenen met dagen, de namen en de toetsen zijn gedeeld — met andere rijen (4–6 tegen 6), andere celafstanden en een andere vandaag-ring (`--color-accent-line` tegen `--color-info`); beide cellen zijn `--h-option`.
 - `src/components/inputs/date-input/date-input.css`, `time-input.css`: de box van het bedieningselement herhaalt `text-input.css`.
 - `src/components/inputs/multiselect/multiselect.ts`, `src/components/inputs/date-range/date-range.ts`, "Weergave" en "Delen" in `src/components/frame/shell/`: plaatsen hun paneel met eigen code in plaats van `primitives/shared/place.ts` (die van de multiselect is een kopie van `place()`).
-- `src/components/frame/session-expiry/session-expiry.ts`: adopteert het stylesheet van de bevestigingsdialoog in plaats van `lintje-confirm-dialog` samen te stellen.
 - `src/components/tables/activity-log/activity-log.ts`, `src/components/feedback/empty-state/empty-state.ts`: dezelfde schakeling voor het kopniveau.
 - `src/components/frame/app-search/app-search.ts` en `src/components/inputs/combobox/combobox.ts`: dezelfde `splitMatch`.
 - `src/components/inputs/combobox/combobox.ts` en `src/components/inputs/multiselect/multiselect.ts`: dezelfde `resultsText`.
@@ -45,6 +44,7 @@ regel per punt, met het bestand waar het over gaat. Sluit een regel in de wijzig
 - `src/components/charts/kpi/kpi.ts`, `src/components/inputs/textarea/textarea.ts`, `src/components/inputs/file-upload/file-upload.ts`: bouwen `formatNumber` van `src/core/format.ts` opnieuw.
 - `src/components/frame/user-menu/user-menu.ts`: adopteert het stylesheet van de menuknop (`menu-button.css`) in plaats van `lintje-menu-button` samen te stellen.
 - `src/components/map/map/map.ts`: adopteert `skeleton.css` in plaats van `lintje-skeleton` samen te stellen.
+- `src/components/frame/app-search/app-search.ts`, `src/components/frame/notifications/notifications.ts`, `src/components/filters/filter-sheet/filter-sheet.ts`: vergrendelen het scrollen, vangen de focus en beantwoorden Escape met eigen code in plaats van `DialogHold` (`src/components/shared/dialog.ts`), dat dialoog, modal en drawer delen.
 - `src/components/content/video-player/video-player.ts`: adopteert `button.css` en `icon-button.css` in plaats van `lintje-button` en `lintje-icon-button` samen te stellen.
 
 ## Contracten
@@ -61,6 +61,7 @@ regel per punt, met het bestand waar het over gaat. Sluit een regel in de wijzig
 
 ## Laden
 
+- `src/components/shared/key.css`: een toets op het scherm (`<kbd class="lintje-key">`) bestaat alleen binnen een shadow root; een host heeft geen element of klasse ervoor. Het recept van de sneltoetsen (`examples/_shared/shortcuts.js`) toont de toetsen daarom als tags van `lintje-description-list`.
 - `vite.config.elements.ts`: een categorie is één bestand per tag boven op de gedeelde basis, dus `forms.js` is 32 requests en een pagina zo'n 45. Of de invoeren één bestand worden is niet besloten: minder requests, tegenover een pagina met drie invoeren die er zeventien laadt.
 - `src/components/frame/shell/navigation.ts`: vanaf 768 px toont de voet van de zij-indeling de gebruiker en "Afmelden", niet de rijen van `userMenu`, die alleen de avatar van de bovenindeling en het telefoonmenu tekenen.
 - `src/components/inputs/shared/input.ts`: in een native formulier melden alleen het tekstveld, het getalveld en de textarea hun geldigheid (`required`); de andere invoeren posten hun waarde en de `error` van een veld houdt een submit niet tegen. Een bestandsupload post de ids van de voltooide bestanden, niet de bestanden; de eigen `name` en `value` van de verzendknop worden niet gepost.
@@ -68,6 +69,7 @@ regel per punt, met het bestand waar het over gaat. Sluit een regel in de wijzig
 
 ## Toegankelijkheid
 
+- `examples/_shared/shortcuts.js`: het overzicht van de sneltoetsen heeft geen schakelaar meer voor de toetsen van één teken, en geen ander element biedt hem; `setCharacterKeys()` bestaat, maar een lezer kan de toetsen alleen uitzetten als de host er een instelling voor maakt (WCAG 2.1.4). De meldingen-app heeft die instelling niet.
 - `src/components/inputs/date-input/date-input.ts`: de dagcellen zijn `<button role="gridcell">`.
 - `src/components/frame/notifications/notifications.ts`: een open telefoonsheet blijft open over het breekpunt van 768 px heen en wordt de popover (de trap laat los, de focus keert terug naar de bel); het menu van `lintje-shell` sluit daar juist. Besluit welke van de twee klopt.
 - `src/components/tables/data-table/data-table.ts`: geen `role="grid"`; een bewerkbare cel is een cel met `tabindex="0"` en een verborgen hint.
@@ -105,7 +107,6 @@ Uit de WCAG-review van oktober 2026: wat nog openstaat in de elementen zelf. Wat
 - `src/components/feedback/ai-label/ai-label.ts`: het label als eerste regel van een export is aan de host.
 - `src/components/forms/form/form.ts`: onderschept geen navigatie (de host roept de bevestigingsdialoog op bij `dirty`); `lintje-submitted` is de `saved()` van de host; `lintje-invalid` gaat af telkens als de host fouten zet.
 - `src/components/forms/error-summary/error-summary.ts`: een vaste `<h3>`.
-- `src/components/overlays/confirm-dialog/confirm-dialog.ts`: een eigen element, niet `lintje-modal`; het kader is `--color-border-strong`.
 - `src/components/forms/form-section/form-section.ts`: `variant="tile"` tekent de tegelopmaak opnieuw; de kop is een vaste `<h3>`.
 - `src/components/inputs/file-upload/file-upload.ts`: `lintje-upload-done` / `-error` zijn de `.files` van de host; een drop buiten de zone is aan de browser (die opent het bestand).
 - `src/components/inputs/text-editor/text-editor.ts`: geen geneste of genummerde lijst, geen eigen ongedaan maken, geen placeholder, geen telling; het linkveld heeft geen knop Toevoegen.
@@ -147,7 +148,7 @@ Uit de WCAG-review van oktober 2026: wat nog openstaat in de elementen zelf. Wat
 - `src/core/`: WebKit (Playwright 1.63) houdt de mediaqueries van een stylesheet die geen element gebruikt op het breekpunt van vóór een resize; Lit deelt één stylesheet per klasse, dus een eerste exemplaar dat pas na een draai of resize verschijnt, kan de verkeerde opmaak krijgen. In een echte Safari niet bevestigd; de browsertests wisselen de viewport daarom alleen met het element op de pagina.
 - `src/components/forms/stepper/stepper.ts`: de wissel tussen rij en kolom geeft `ResizeObserver loop completed with undelivered notifications`, een `error`-event op `window`; `requestAnimationFrame` in de observer lost het op ten koste van één frame met een afgekapte rij.
 - `vitest.config.ts`: WebKit op de Linux-runner van de CI mist nu en dan een poll van één seconde (de viewport die nog niet omgeslagen is in `breakpoint.browser.test.ts`, de sluitknop van `lintje-toast` die nog niet getekend is in `focus-handoff.browser.test.ts`); op macOS gebeurt dat niet. De WebKit-instantie krijgt daarom in elke run één herkansing; een test die twee keer faalt, faalt echt. Waarom die runner traag is, is niet uitgezocht.
-- In de browserrun van de styleguide: Lit meldt een eigenschap die tijdens `update` verandert (change-in-update) voor `popover`, `shell`, `filter-zone`, `chat-composer`, `tabs`, `pagination`, `tooltip`, `toggletip`, `segmented` en `range`; `lintje-shortcuts` registreert `/` twee keer op de styleguidepagina; en ResizeObserver meldt drie onafgehandelde lusfouten, boven op die van de stepper hierboven.
+- In de browserrun van de styleguide: Lit meldt een eigenschap die tijdens `update` verandert (change-in-update) voor `popover`, `shell`, `filter-zone`, `chat-composer`, `tabs`, `pagination`, `tooltip`, `toggletip`, `segmented` en `range`; `/` wordt twee keer geregistreerd op de styleguidepagina (`registerShortcut` waarschuwt); en ResizeObserver meldt drie onafgehandelde lusfouten, boven op die van de stepper hierboven.
 
 ## Nog te doen: browsercontroles
 

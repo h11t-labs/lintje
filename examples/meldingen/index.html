@@ -113,22 +113,24 @@
       <lintje-button slot="footer" variant="primary" id="drawer-save">Opslaan</lintje-button>
     </lintje-drawer>
 
-    <lintje-confirm-dialog id="confirm" confirm-label="Verwijderen"></lintje-confirm-dialog>
-    <lintje-confirm-dialog id="discard" heading="Wijzigingen weggooien?" confirm-label="Weggooien" cancel-label="Verder bewerken">
+    <lintje-dialog id="confirm" alert heading="Melding verwijderen?">
+      <span id="confirm-text"></span>
+      <lintje-button slot="actions" variant="secondary" autofocus data-close>Annuleren</lintje-button>
+      <lintje-button slot="actions" variant="danger" data-answer>Verwijderen</lintje-button>
+    </lintje-dialog>
+    <lintje-dialog id="discard" alert heading="Wijzigingen weggooien?">
       Je hebt deze melding gewijzigd en nog niet opgeslagen.
-    </lintje-confirm-dialog>
-    <lintje-confirm-dialog
-      id="leave"
-      tone="primary"
-      heading="Wijzigingen niet opgeslagen"
-      action-label="Weggooien"
-      cancel-label="Hier blijven"
-      confirm-label="Concept opslaan"
-    >
+      <lintje-button slot="actions" variant="secondary" autofocus data-close>Verder bewerken</lintje-button>
+      <lintje-button slot="actions" variant="danger" data-answer>Weggooien</lintje-button>
+    </lintje-dialog>
+    <lintje-dialog id="leave" alert heading="Wijzigingen niet opgeslagen">
       Je verlaat dit formulier. Wil je het concept bewaren?
-    </lintje-confirm-dialog>
+      <lintje-button slot="actions" variant="tertiary" data-discard>Weggooien</lintje-button>
+      <lintje-button slot="actions" variant="secondary" autofocus data-close>Hier blijven</lintje-button>
+      <lintje-button slot="actions" variant="primary" data-answer>Concept opslaan</lintje-button>
+    </lintje-dialog>
     <lintje-app-search id="search" label="Zoeken in Meldingen"></lintje-app-search>
-    <lintje-shortcuts id="shortcuts"></lintje-shortcuts>
+    <lintje-dialog id="shortcuts" heading="Sneltoetsen"></lintje-dialog>
     <script type="module" src="app.js"></script>
   </body>
 </html>
