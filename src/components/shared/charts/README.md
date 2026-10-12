@@ -183,9 +183,10 @@ spelt — kebab-case voor `stroke-width`, `stroke-dasharray`, `text-anchor`,
 
 ## De demo
 
-De categorie "Kerncijfers en grafieken" van de styleguide (`examples/styleguide/?category=charts`)
-tekent elke soort en de drie grafiektoestanden in een `<lintje-chart>`; de categorie "Kaart"
-(`?category=map`) tekent de kaartvarianten in een `<lintje-map>`. De specs worden gebouwd in
+De pagina van `lintje-chart` in de styleguide (`examples/styleguide/?element=chart`) tekent elke
+soort in een `<lintje-chart>`, één tegelijk (`&soort=pie`), en zet haar voorbeelden in elke
+grafiektoestand (`&staat=loading`); welke soort welke vraag beantwoordt, staat in `kinds.ts`. De
+pagina van `lintje-map` (`?element=map`) tekent de kaartvarianten in een `<lintje-map>`. De specs worden gebouwd in
 `examples/styleguide/specimens/charts.js` en `map.js` uit `examples/_data/*.json`, zodat de
 pagina geen TypeScript laadt: `npm run build:elements`, dan `npm run dev` (of een willekeurige
-statische server in de root van de repository) en open `/examples/styleguide/?category=charts`.
+statische server in de root van de repository) en open `/examples/styleguide/?element=chart`.

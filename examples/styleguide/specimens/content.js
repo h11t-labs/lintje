@@ -215,20 +215,18 @@ export default {
       specimens: [
         {
           label: 'HTML van de host',
-          wide: true,
           html: '<lintje-prose data-html></lintje-prose>',
           setup(stage) {
             stage.querySelector('[data-html]').html = PROSE
           },
         },
         {
-          label: 'Gedempt, één alinea',
-          wide: true,
+          label: 'Gedempt',
+          note: 'Met `tone="muted"` staat één alinea in het grijs.',
           html: '<lintje-prose tone="muted" text="Bron: Zaaksysteem · waarde van 08:15. Dit is de tone=&quot;muted&quot;-variant: één alinea, 13 grijs."></lintje-prose>',
         },
         {
           label: 'Uit de slot',
-          wide: true,
           html: '<lintje-prose><p>Zonder <code>html</code> of <code>text</code> toont het element wat er in de slot staat — zo schrijft een pagina haar eigen opmaak zonder eigen CSS.</p></lintje-prose>',
         },
       ],
@@ -238,8 +236,8 @@ export default {
       title: 'Een blok monospace, ook voor JSON',
       specimens: [
         {
-          label: 'JSON, genummerd',
-          wide: true,
+          label: 'JSON met regelnummers',
+          note: 'Het attribuut `numbered` zet de nummers ervoor.',
           html: '<lintje-code language="json" numbered></lintje-code>',
           setup(stage) {
             stage.querySelector('lintje-code').text = JSON.stringify(
@@ -256,8 +254,8 @@ export default {
           },
         },
         {
-          label: 'SQL, met regelafbreking',
-          wide: true,
+          label: 'SQL met regelafbreking',
+          note: 'Het attribuut `wrap` breekt lange regels af.',
           html: '<lintje-code language="sql" wrap></lintje-code>',
           setup(stage) {
             stage.querySelector('lintje-code').text =
@@ -267,7 +265,6 @@ export default {
         },
         {
           label: 'Zonder taal',
-          wide: true,
           html: '<lintje-code></lintje-code>',
           setup(stage) {
             stage.querySelector('lintje-code').text = 'npm ci\nnpm run build:elements'
@@ -280,7 +277,8 @@ export default {
       title: 'Markering in lopende tekst',
       specimens: [
         {
-          label: 'Term met toelichting, bij hover en focus',
+          label: 'Term met toelichting',
+          note: 'De toelichting verschijnt bij hover en focus.',
           html: 'een geldige <lintje-highlight kind="term" explanation="Woordenlijst: residence permit wordt verblijfsvergunning">verblijfsvergunning</lintje-highlight>',
         },
         {
@@ -303,17 +301,19 @@ export default {
     },
     {
       tag: 'lintje-translator',
+      wide: true,
       title: 'Een tekst en zijn vertaling in één vlak van twee helften',
       specimens: [
         {
-          label: 'Tekst en vertaling; de wisselknop staat op de scheidslijn (op een telefoon onder elkaar)',
-          wide: true,
+          label: 'Tekst en vertaling',
+          note:
+            'De wisselknop staat op de scheidslijn. Op een telefoon staan de helften onder elkaar.',
           html: TRANSLATOR,
           setup: (stage) => translator(stage, 'Uw aanvraag is ontvangen. Binnen acht weken krijgt u een besluit.'),
         },
         {
-          label: 'Documenten (variant documents): de talen boven het sleepvak',
-          wide: true,
+          label: 'Documenten',
+          note: 'De variant `documents` zet de talen boven het sleepvak.',
           html: `<lintje-translator variant="documents">
             <lintje-combobox slot="source-language" label="Brontaal" hide-label></lintje-combobox>
             <lintje-combobox slot="target-language" label="Doeltaal" hide-label></lintje-combobox>
@@ -328,8 +328,8 @@ export default {
           },
         },
         {
-          label: 'Leeg: de vertaling verschijnt terwijl je typt',
-          wide: true,
+          label: 'Leeg',
+          note: 'De vertaling verschijnt terwijl je typt.',
           html: TRANSLATOR,
           setup: (stage) => translator(stage, ''),
         },
@@ -340,8 +340,8 @@ export default {
       title: 'Een opname afspelen: de golfvorm of een balk, sprekers in kleur',
       specimens: [
         {
-          label: 'Golfvorm, speelt na “Afspelen”',
-          wide: true,
+          label: 'Golfvorm',
+          note: 'De opname speelt na een druk op “Afspelen”.',
           html: audio(),
           setup(stage) {
             const player = stage.querySelector('lintje-audio-player')
@@ -350,8 +350,8 @@ export default {
           },
         },
         {
-          label: 'Sprekers in kleur, met de legenda erboven',
-          wide: true,
+          label: 'Sprekers in kleur',
+          note: 'De legenda van de sprekers staat erboven.',
           html: audio(),
           setup(stage) {
             const player = stage.querySelector('lintje-audio-player')
@@ -362,8 +362,8 @@ export default {
           },
         },
         {
-          label: 'Zonder eigen kader (flush): de balk van de pagina is het kader',
-          wide: true,
+          label: 'Zonder eigen kader',
+          note: 'Met `flush` is de balk van de pagina het kader.',
           html: `<div style="background: var(--color-bg-surface); border-top: 1px solid var(--color-border-default); padding: 0 var(--space-4)">${audio().replace('<lintje-audio-player', '<lintje-audio-player flush no-legend')}</div>`,
           setup(stage) {
             const player = stage.querySelector('lintje-audio-player')
@@ -373,8 +373,8 @@ export default {
           },
         },
         {
-          label: 'Zonder golfvorm: een balk',
-          wide: true,
+          label: 'Zonder golfvorm',
+          note: 'Zonder golfvorm toont de speler een balk.',
           html: audio(),
           setup(stage) {
             stage.querySelector('lintje-audio-player').src = silentRecording()
@@ -382,7 +382,6 @@ export default {
         },
         {
           label: 'Balk met sprekers',
-          wide: true,
           html: audio(),
           setup(stage) {
             const player = stage.querySelector('lintje-audio-player')
@@ -392,8 +391,8 @@ export default {
           },
         },
         {
-          label: 'Uitgeschakeld: de opname laadt nog',
-          wide: true,
+          label: 'Uitgeschakeld',
+          note: 'De opname laadt nog.',
           html: audio('duration="2832"'),
           setup(stage) {
             stage.querySelector('lintje-audio-player').peaks = PEAKS
@@ -401,15 +400,14 @@ export default {
         },
         {
           label: 'Fout',
-          wide: true,
           html: audio('src="opnames/bestaat-niet.wav"'),
           setup(stage) {
             stage.querySelector('lintje-audio-player').peaks = PEAKS
           },
         },
         {
-          label: 'Compact, op één regel in een rij of tegel',
-          wide: true,
+          label: 'Compact',
+          note: 'Met `compact` staat de speler op één regel, voor in een rij of tegel.',
           html: audio('compact'),
           setup(stage) {
             const player = stage.querySelector('lintje-audio-player')
@@ -421,6 +419,7 @@ export default {
     },
     {
       tag: 'lintje-video-player',
+      wide: true,
       title: 'Beeld bij een opname, met dezelfde bediening',
       specimens: [
         {
@@ -433,7 +432,8 @@ export default {
           },
         },
         {
-          label: 'Ondertiteling aan, op 1,25×',
+          label: 'Ondertiteling aan',
+          note: 'De opname speelt op 1,25×.',
           html: '<lintje-video-player name="Hoorzitting zaal 4" captions></lintje-video-player>',
           async setup(stage) {
             const player = stage.querySelector('lintje-video-player')
@@ -447,7 +447,8 @@ export default {
           },
         },
         {
-          label: 'Meer opties: ondertiteling, audiodescriptie en snelheid',
+          label: 'Menu met meer opties',
+          note: 'Het menu zet ondertiteling, audiodescriptie en snelheid.',
           html: '<lintje-video-player name="Hoorzitting zaal 4" captions></lintje-video-player>',
           async setup(stage) {
             const player = stage.querySelector('lintje-video-player')
@@ -469,26 +470,28 @@ export default {
           },
         },
         {
-          label: 'Fout: de melding staat in beeld',
+          label: 'Fout',
+          note: 'De melding staat in beeld.',
           html: '<lintje-video-player name="Hoorzitting zaal 4" src="opnames/bestaat-niet.mp4"></lintje-video-player>',
         },
       ],
     },
     {
       tag: 'lintje-transcript',
+      wide: true,
       title: 'De tekst van een opname, per segment te bewerken',
       specimens: [
         {
-          label: 'Rust, hover, bewerken, spreker wisselen',
-          wide: true,
+          label: 'Rust',
+          note: 'Wijs een fragment aan, bewerk het of wissel van spreker.',
           html: '<lintje-transcript></lintje-transcript>',
           setup(stage) {
             wireTranscript(stage.querySelector('lintje-transcript'))
           },
         },
         {
-          label: 'Met de melding en een AI-bewerking erboven, in de kolommen van de fragmenten',
-          wide: true,
+          label: 'Met melding en AI-bewerking',
+          note: 'Beide staan erboven, in de kolommen van de fragmenten.',
           html: `<lintje-transcript>
             <lintje-ai-label slot="note-label" hint=""></lintje-ai-label>
             <span slot="note">Het transcript en de AI-bewerkingen zijn automatisch gemaakt en kunnen fouten bevatten. Controleer ze voordat je ze gebruikt.</span>
@@ -502,24 +505,26 @@ export default {
           },
         },
         {
-          label: 'Getint en samengevoegd: de kleur onder het hele fragment, één naam per beurt',
-          wide: true,
+          label: 'Getint en samengevoegd',
+          note: 'De kleur van de spreker ligt onder het hele fragment, met één naam per beurt.',
           html: '<lintje-transcript tinted grouped></lintje-transcript>',
           setup(stage) {
             wireTranscript(stage.querySelector('lintje-transcript'), SEGMENTS.slice(0, 4))
           },
         },
         {
-          label: 'Als chatberichten (layout="chat")',
-          wide: true,
+          label: 'Als chatberichten',
+          note: 'Het attribuut `layout="chat"` zet de fragmenten als berichten.',
           html: '<lintje-transcript layout="chat" grouped current-time="10"></lintje-transcript>',
           setup(stage) {
             wireTranscript(stage.querySelector('lintje-transcript'), SEGMENTS.slice(0, 4))
           },
         },
         {
-          label: 'Live: wie nu spreekt, en de laatste woorden nog voorlopig (groot)',
-          wide: true,
+          label: 'Live',
+          note:
+            'Je ziet wie nu spreekt, en de laatste woorden zijn nog voorlopig. ' +
+            'Met `size="large"` staat de tekst groot.',
           html: '<lintje-transcript size="large"></lintje-transcript>',
           setup(stage) {
             const transcript = stage.querySelector('lintje-transcript')
@@ -530,15 +535,16 @@ export default {
           },
         },
         {
-          label: 'Alleen lezen: een voorbeeld naast een opname die loopt (readonly)',
+          label: 'Alleen lezen',
+          note: 'Met `readonly` is het transcript een voorbeeld naast een opname die loopt.',
           html: '<lintje-transcript readonly></lintje-transcript>',
           setup(stage) {
             stage.querySelector('lintje-transcript').segments = SEGMENTS.slice(0, 3).map((segment) => ({ ...segment }))
           },
         },
         {
-          label: 'Speelt nu: met de speler verbonden',
-          wide: true,
+          label: 'Met de speler verbonden',
+          note: 'Speler en transcript volgen elkaar en tonen wat nu speelt.',
           html: `${audio()}<lintje-transcript></lintje-transcript>`,
           setup(stage) {
             const player = stage.querySelector('lintje-audio-player')
@@ -570,11 +576,12 @@ export default {
     },
     {
       tag: 'lintje-document-viewer',
+      wide: true,
       title: 'Een document bekijken: bladeren, zoomen en downloaden',
       specimens: [
         {
-          label: 'Rust: vijf pagina’s die de host als afbeelding levert',
-          wide: true,
+          label: 'Rust',
+          note: 'De host levert vijf pagina’s als afbeelding.',
           html: '<lintje-document-viewer name="Brief gemeente.pdf" page="2"></lintje-document-viewer>',
           setup(stage) {
             const viewer = stage.querySelector('lintje-document-viewer')
@@ -595,10 +602,12 @@ export default {
     },
     {
       tag: 'lintje-gallery',
+      wide: true,
       title: 'Afbeeldingen van één ding: één groot met bijschrift, de rest als miniatuur',
       specimens: [
         {
-          label: 'Drie schermen, het tweede gekozen',
+          label: 'Drie schermen',
+          note: 'Het tweede scherm is gekozen.',
           html: '<lintje-gallery label="Schermafbeeldingen van Vertalen" selected="1"></lintje-gallery>',
           setup(stage) {
             stage.querySelector('lintje-gallery').items = [
@@ -609,7 +618,8 @@ export default {
           },
         },
         {
-          label: 'Eén afbeelding: zonder miniaturen',
+          label: 'Eén afbeelding',
+          note: 'Bij één afbeelding vallen de miniaturen weg.',
           html: '<lintje-gallery></lintje-gallery>',
           setup(stage) {
             stage.querySelector('lintje-gallery').items = [

@@ -994,6 +994,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
     // point at the hint in this one, which stands once in the shared shadow root.
     const active = (edges === this.#modalEdges) === this.expanded
     const copy = edges === this.#modalEdges ? 'modal' : 'tile'
+    // A table wider than its tile scrolls; a keyboard reaches that scroll only when the scroller
+    // takes focus, as lintje-code's block does (WCAG 2.1.1).
+    const scrolls = edges.start || edges.end
     return html`<div class=${classMap({ 'lintje-data-table': true, 'is-phone': mobile })}>
       ${this.toolbar(edges, paged)} ${mobile ? nothing : this.selectionBar(false)}
       <!-- Desktop table: scrolls sideways when it is wider than the tile -->
@@ -1004,7 +1007,13 @@ export class LintjeDataTable extends LintjeContentTileElement {
           'is-scrollable-end': edges.end,
         })}
       >
-        <div class="lintje-data-table__scroller" ${ref(edges.watch)}>
+        <div
+          class="lintje-data-table__scroller"
+          ${ref(edges.watch)}
+          tabindex=${scrolls ? 0 : nothing}
+          role=${scrolls ? 'region' : nothing}
+          aria-label=${scrolls ? (this.data?.caption ?? nothing) : nothing}
+        >
           ${this.fullTable(visible, pageCount, pageSize, edges, grouped ? pageGroups : null)}
         </div>
       </div>

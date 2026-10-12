@@ -98,11 +98,14 @@ export default {
   elements: [
     {
       tag: 'lintje-modal',
+      // Open, in a page of its own: on the guide's page it would cover the guide.
+      frame: true,
       title: 'Het grote venster, voor inhoud',
       specimens: [
         {
           // `csv` and `png` are what a content tile sets; a modal has no buttons of its own.
-          label: 'Tegel op groot formaat, met downloads',
+          label: 'Tegel op groot formaat',
+          note: 'De tegel zet `csv` en `png`; de modal heeft zelf geen knoppen.',
           html: `<lintje-button variant="secondary" icon="functioneel-foto-vergroten">Open modal</lintje-button>
             <lintje-modal heading="Aanvragen per uur" subtitle="Vandaag · landelijk" csv png>
               <div class="guide__placeholder" style="height: var(--chart-h-main)">Inhoud van de tegel, op --chart-h-expanded</div>
@@ -115,7 +118,7 @@ export default {
           },
         },
         {
-          label: 'Tekst, zonder voet',
+          label: 'Tekst zonder voet',
           html: `<lintje-button variant="secondary">Open modal</lintje-button>
             <lintje-modal heading="Over deze cijfers" subtitle="Bronnen, peilmoment en wat ontbreekt">
               <lintje-prose></lintje-prose>
@@ -133,11 +136,15 @@ export default {
     },
     {
       tag: 'lintje-dialog',
+      // Open, in a page of its own: on the guide's page it would cover the guide.
+      frame: true,
       title: 'Het kleine venster: een vraag die een antwoord nodig heeft, of een kort formulier',
       specimens: [
         {
           // The safe button comes first and has `autofocus`; on a phone the last stands on top.
-          label: 'Bevestigen: iets onomkeerbaars (alert; bevestigen toont bezig)',
+          label: 'Iets onomkeerbaars bevestigen',
+          note:
+            'Met `alert` vraagt het venster om een antwoord. Na bevestigen is de knop even bezig.',
           html: `<lintje-button variant="danger" data-open>Melding verwijderen</lintje-button>
             <lintje-dialog alert heading="Melding verwijderen?">
               “Onbeheerde tas” en de 2 bijlagen worden verwijderd. Dit kun je niet terugdraaien.
@@ -147,7 +154,8 @@ export default {
           setup: (stage) => dialogHost(stage, { work: 1500 }),
         },
         {
-          label: 'Bevestigen: wijzigingen niet opgeslagen, met een derde knop',
+          label: 'Wijzigingen niet opgeslagen',
+          note: 'Een derde knop laat het concept bewaren.',
           html: `<lintje-button variant="secondary" data-open>Formulier verlaten</lintje-button>
             <lintje-dialog alert heading="Wijzigingen niet opgeslagen">
               Je verlaat dit formulier. Wil je het concept bewaren?
@@ -158,7 +166,10 @@ export default {
           setup: (stage) => dialogHost(stage),
         },
         {
-          label: 'Kort formulier (wide): een zin links, de knoppen rechts',
+          label: 'Kort formulier',
+          note:
+            'Met `wide` is het venster zo breed als een formulier. ' +
+            'In de voet staat links een zin en rechts de knoppen.',
           html: `<lintje-button variant="secondary" data-open>Naam wijzigen</lintje-button>
             <lintje-dialog wide heading="Naam wijzigen">
               <lintje-text-input label="Naam van de opname" value="Teamoverleg 2 oktober"></lintje-text-input>
@@ -170,7 +181,8 @@ export default {
         },
         {
           // Recipe: the page knows when the session ends and counts down; at least 20 seconds ahead.
-          label: 'Recept: de sessie verloopt (alert persistent)',
+          label: 'De sessie verloopt',
+          note: 'Een recept: `alert persistent`, zodat Escape en de achtergrond niets vragen.',
           html: `<lintje-button variant="secondary" data-open>Sessie verloopt over 2 minuten</lintje-button>
             <lintje-dialog alert persistent heading="Je sessie verloopt over 2 minuten">
               Je invoer wordt bewaard in deze browser. Blijf aangemeld om door te werken.
@@ -181,13 +193,16 @@ export default {
         },
         {
           // Recipe: the register's list, filled fresh each time it opens.
-          label: 'Recept: de sneltoetsen (of druk ?)',
+          label: 'De sneltoetsen',
+          note: 'Een recept: het overzicht vult zich uit de geregistreerde toetsen. Druk ook op ?.',
           html: `<lintje-button variant="secondary" data-open aria-keyshortcuts="?">Sneltoetsen</lintje-button>
             <lintje-dialog heading="Sneltoetsen"></lintje-dialog>`,
           setup: (stage) => shortcutsHost(stage),
         },
         {
-          label: 'Recept: afgemeld',
+          label: 'Afgemeld',
+          note:
+            'Een recept: na een mislukte verlenging meldt het venster dat de sessie voorbij is.',
           html: `<lintje-button variant="secondary" data-open>Verlengen mislukt</lintje-button>
             <lintje-dialog alert persistent heading="Je bent afgemeld">
               Je sessie is verlopen. Meld je opnieuw aan; je komt terug op deze pagina.
@@ -199,22 +214,27 @@ export default {
     },
     {
       tag: 'lintje-drawer',
+      // Open, in a page of its own: on the guide's page it would cover the guide.
+      frame: true,
       title: 'Een zijpaneel over de pagina',
       specimens: [
         {
-          label: 'Rust, focus op het eerste veld',
+          label: 'Rust',
+          note: 'Bij openen krijgt het eerste veld de focus.',
           html: `<lintje-button variant="secondary" data-open>Betrokkene bewerken</lintje-button>
             <lintje-drawer heading="Betrokkene">${DRAWER_BODY}${DRAWER_FOOTER}</lintje-drawer>`,
           setup: (stage) => drawer(stage),
         },
         {
-          label: 'Bezig: sluiten is geblokkeerd',
+          label: 'Bezig',
+          note: 'Druk op Opslaan: zolang het paneel bezig is, gaat het niet dicht.',
           html: `<lintje-button variant="secondary" data-open>Opslaan proberen</lintje-button>
             <lintje-drawer heading="Betrokkene">${DRAWER_BODY}${DRAWER_FOOTER}</lintje-drawer>`,
           setup: (stage) => drawer(stage, true),
         },
         {
-          label: 'Zonder veld: focus op de sluitknop',
+          label: 'Zonder veld',
+          note: 'Zonder veld krijgt de sluitknop de focus.',
           html: `<lintje-button variant="secondary" data-open>Details tonen</lintje-button>
             <lintje-drawer heading="Opname 2 oktober"><p>Opgenomen om 09:30, 42 minuten, drie sprekers.</p></lintje-drawer>`,
           setup: (stage) => drawer(stage),
@@ -254,7 +274,8 @@ export default {
       title: 'Een korte toelichting bij een element',
       specimens: [
         {
-          label: 'Hover na 300 ms, focus direct',
+          label: 'Bij een icoonknop',
+          note: 'Bij aanwijzen verschijnt hij na 300 ms, bij focus direct.',
           html: '<lintje-tooltip text="Talen omwisselen" no-describe><lintje-icon-button icon="functioneel-refresh" label="Talen omwisselen"></lintje-icon-button></lintje-tooltip>',
         },
         {
@@ -268,17 +289,21 @@ export default {
       title: 'Een toelichting die opent op een klik',
       specimens: [
         {
-          label: 'Naast een label: klik, Enter of spatie',
+          label: 'Naast een label',
+          note: 'Open hem met een klik, Enter of spatie.',
           html: `<div class="guide__row">Gemiddelde wachttijd
             <lintje-toggletip label="Toelichting op gemiddelde wachttijd">De mediaan van de wachttijd per kwartier, over alle loketten van de dienst.</lintje-toggletip></div>`,
         },
         {
-          label: 'Rechts uitgelijnd (bottom-end)',
+          label: 'Rechts uitgelijnd',
+          note: 'Met `placement="bottom-end"` lijnt de toelichting rechts uit.',
           html: `<div class="guide__row">Afgehandeld binnen termijn
             <lintje-toggletip label="Toelichting op afgehandeld binnen termijn" placement="bottom-end">Het deel van de aanvragen dat binnen acht weken een besluit kreeg.</lintje-toggletip></div>`,
         },
         {
-          label: 'In een zijpaneel: Escape sluit eerst de toelichting',
+          label: 'In een zijpaneel',
+          frame: 'lintje-drawer',
+          note: 'Escape sluit eerst de toelichting en dan pas het zijpaneel.',
           html: `<lintje-button variant="secondary" data-open>Aanvraag tonen</lintje-button>
             <lintje-drawer heading="Aanvraag 2026-0815">
               <div class="guide__row">Behandeltermijn

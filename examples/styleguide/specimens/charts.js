@@ -1,4 +1,5 @@
 // The charts category (Kerncijfers en grafieken): the specimens of its elements.
+import { CHART_KINDS, CHART_QUESTIONS } from '../../../dist-elements/lintje.js'
 import { meta, number, daily, heatmap, desks, breakdowns, hourly } from '../../_data/load.js'
 
 const kpi = meta.kpi
@@ -359,51 +360,61 @@ const CHARTS = [
   },
 ]
 
-// The Dutch name of each kind, for the specimen's label.
-const KIND_NAMES = {
-  line: 'Lijn',
-  'line-events': 'Lijn · gebeurtenissen',
-  bar: 'Staven',
-  'horizontal-bar': 'Horizontale staven',
-  'target-progress': 'Voortgang',
-  'grouped-bar': 'Gegroepeerde staven',
-  'stacked-bar': 'Gestapelde staven',
-  'stacked-bar-normalized': 'Gestapelde staven op 100 %',
-  'stacked-area': 'Gestapeld vlak',
+// What sets each specimen apart within its kind, for its label.
+const VARIANT_NAMES = {
+  line: 'Met vergelijking en peilmoment',
+  'line-events': 'Met gebeurtenissen',
+  bar: 'Met trendlijn',
+  'horizontal-bar': 'Met norm',
+  'target-progress': 'Tegen een doel van 100 %',
+  'grouped-bar': 'Twee reeksen per groep',
+  'stacked-bar': 'In aantallen',
+  'stacked-bar-normalized': 'Op 100 %',
+  'stacked-area': 'Per kanaal met een ontbrekende week',
   pie: 'Taart',
-  donut: 'Donut',
-  'pie-color': 'Taart · color',
-  'pie-folded': 'Taart · meer dan vijf delen',
-  'donut-remainder': 'Donut · remainder',
-  'dual-axis': 'Twee assen',
-  scatter: 'Spreiding',
-  heatmap: 'Heatmap',
-  histogram: 'Histogram',
+  donut: 'Donut met legendatabel',
+  'pie-color': 'In de kleur van haar variabele',
+  'pie-folded': 'Meer dan vijf delen',
+  'donut-remainder': 'Donut met de rest van een geheel',
+  'dual-axis': 'Aantallen en wachttijd met norm',
+  scatter: 'Wachttijd tegen drukte met norm',
+  heatmap: 'Met klassenlegenda',
+  histogram: 'Met mediaan en termijn',
 }
 
-// The three states a chart tile can be in: the tile keeps its size in all of them, so a page
-// does not jump while the figures arrive.
+// What a label cannot say, for the note under it.
+const VARIANT_NOTES = {
+  line: 'De laatste twee uren zijn nog niet compleet en staan gearceerd.',
+  'stacked-area': 'Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
+  'pie-folded': 'De taart houdt de vier grootste delen en vouwt de rest in “Overig”.',
+}
+
+// The states a chart tile can be in, put on each specimen of a kind: the tile keeps its size
+// in all of them, so a page does not jump while the figures arrive, and the skeleton has the
+// shape of the kind that is coming.
 const CHART_STATES = [
-  { label: 'Laden', state: 'loading', description: 'De grafiek wordt geladen.' },
+  { value: 'ready', label: 'Klaar' },
+  { value: 'loading', label: 'Laden', data: { state: 'loading' } },
   {
-    label: 'Leeg', state: 'empty',
-    description: 'Er zijn geen gegevens voor deze selectie.',
-    message: 'Geen gegevens voor deze selectie. Kies een ruimere periode of een ander bereik.',
+    value: 'empty', label: 'Leeg',
+    data: { state: 'empty', message: 'Geen gegevens voor deze selectie. Kies een ruimere periode of een ander bereik.' },
   },
   {
-    label: 'Fout', state: 'error',
-    description: 'De bron levert niet aan.',
-    message: 'De bron levert sinds 07:41 niet aan. De cijfers hieronder zijn van vóór dat moment.',
-    lastKnown: 'Laatste waarde 07:00 · 141.260 aanvragen',
+    value: 'error', label: 'Fout',
+    data: {
+      state: 'error',
+      message: 'De bron levert sinds 07:41 niet aan. De cijfers hieronder zijn van vóór dat moment.',
+      lastKnown: 'Laatste waarde 07:00 · 141.260 aanvragen',
+    },
   },
 ]
 
 const TILE = '<lintje-chart></lintje-chart>'
 
 const chartSpecimen = (chart) => ({
-  label: `${KIND_NAMES[chart.id]} · kind: ${chart.spec.kind}`,
+  label: VARIANT_NAMES[chart.id],
+  note: VARIANT_NOTES[chart.id],
   html: TILE,
-  wide: true,
   setup(stage) {
     stage.querySelector('lintje-chart').data = {
       chart: chart.spec,
@@ -417,29 +428,11 @@ const chartSpecimen = (chart) => ({
   },
 })
 
-const stateSpecimen = ({ label, state, description, message, lastKnown }) => ({
-  label: `${label} · state: ${state}`,
-  html: TILE,
-  wide: true,
-  setup(stage) {
-    // The spec still travels: the skeleton is drawn for the kind that is coming.
-    stage.querySelector('lintje-chart').data = {
-      chart: CHARTS[0].spec,
-      description,
-      title: `Staat · ${label.toLowerCase()}`,
-      state,
-      message,
-      lastKnown,
-    }
-  },
-})
-
 // "Grafiek" / "Tabel": the same figures as a table, the rows the CSV writes. Sunday is not in
 // yet, so it is missing — "—" in the table, never 0.
 const tableSwitch = {
-  label: 'Grafiek of tabel · tableSwitch',
+  label: 'Grafiek of tabel',
   html: TILE,
-  wide: true,
   setup(stage) {
     stage.querySelector('lintje-chart').data = {
       chart: {
@@ -466,7 +459,8 @@ const share = (part) => daily.map((row, i) => (i === 3 ? null : Math.round(row.r
 
 const missingValues = [
   {
-    label: 'Ontbrekende waarde · lijnen in kleur',
+    label: 'Ontbrekende waarde',
+    note: 'Twee lijnen in kleur breken af waar donderdag ontbreekt.',
     description: 'Afgehandelde aanvragen per dag aan de balie en bij het servicepunt. Donderdag ontbreekt.',
     chart: {
       kind: 'line', labels: weekdays, axisTitle: 'Afgehandelde aanvragen per dag',
@@ -477,24 +471,28 @@ const missingValues = [
     },
   },
   {
-    label: 'Ontbrekende waarde · staven',
+    label: 'Ontbrekende waarde',
+    note: 'De plek van donderdag is gearceerd.',
     description: 'Afgehandelde aanvragen per dag deze week. Donderdag ontbreekt.',
     chart: { kind: 'bar', labels: weekdays, values: share(1), axisTitle: 'Afgehandelde aanvragen per dag' },
   },
   {
-    label: 'Ontbrekende waarde · spreiding',
+    label: 'Ontbrekende waarde',
+    note: 'Loketten die vertraagd aanleveren, missen hun wachttijd en staan er niet in.',
     description: `Gemiddelde wachttijd tegen het aantal aanvragen per loket. ${lateDesks.join(' en ')} leveren vertraagd aan: hun wachttijd ontbreekt, dus ze staan niet in de grafiek.`,
     chart: deskScatter(true),
   },
   {
-    label: 'Ontbrekende waarde · histogram',
+    label: 'Ontbrekende waarde',
+    note: 'Van de klasse 6 tot 8 dagen ontbreekt het aantal.',
     description: 'Doorlooptijd van afgehandelde aanvragen in klassen van twee dagen. Van de klasse 6 tot 8 dagen ontbreekt het aantal.',
     chart: processingTime(processingDays.map((bin, i) => (i === 3 ? { ...bin, count: null } : bin))),
   },
-].map(({ label, description, chart }) => ({
+].map(({ label, note, description, chart }) => ({
+  kind: chart.kind,
   label,
+  note,
   html: TILE,
-  wide: true,
   setup(stage) {
     stage.querySelector('lintje-chart').data = {
       chart,
@@ -509,30 +507,30 @@ export default {
   elements: [
     {
       tag: 'lintje-kpi-row',
+      wide: true,
       title: 'De kerncijfers van de pagina in één rij',
       specimens: [
         {
-          label: 'Vijf kerncijfers',
+          label: 'Drie kerncijfers',
           html: '<lintje-kpi-row></lintje-kpi-row>',
-          wide: true,
           setup: (stage) => {
-            stage.querySelector('lintje-kpi-row').data = { kpis: KPIS }
+            stage.querySelector('lintje-kpi-row').data = { kpis: KPIS.slice(0, 3) }
           },
         },
         {
-          label: 'Met kerncijfers op een schaal · gauge',
+          label: 'Kerncijfers op een schaal',
+          note: 'Twee kerncijfers staan met `gauge` op een schaal: als boog en als balk.',
           html: '<lintje-kpi-row></lintje-kpi-row>',
-          wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-kpi-row').data = {
-              kpis: [GAUGE_ARC, KPIS[0], GAUGE_LINEAR, KPIS[2]],
+              kpis: [GAUGE_ARC, GAUGE_LINEAR, KPIS[2]],
             }
           },
         },
         {
-          label: 'Elke datakleur als accent · variable',
+          label: 'Elke datakleur als accent',
+          note: 'Het veld `variable` kiest de kleur van een kerncijfer.',
           html: '<lintje-kpi-row></lintje-kpi-row>',
-          wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-kpi-row').data = { kpis: COLOUR_KPIS, columns: 3 }
           },
@@ -572,7 +570,7 @@ export default {
           }),
         },
         {
-          label: 'Verloop, laden',
+          label: 'Verloop tijdens laden',
           html: '<lintje-kpi label="Afgehandelde aanvragen" variable="sky-blue" state="loading"></lintje-kpi>',
           setup: (stage) => { stage.querySelector('lintje-kpi').sparkline = REQUESTS_SPARKLINE },
         },
@@ -582,22 +580,22 @@ export default {
           setup: single(KPIS[4]),
         },
         {
-          label: 'Op een schaal: boog',
+          label: 'Op een schaal als boog',
           html: '<lintje-kpi></lintje-kpi>',
           setup: single(GAUGE_ARC),
         },
         {
-          label: 'Op een schaal: balk',
+          label: 'Op een schaal als balk',
           html: '<lintje-kpi></lintje-kpi>',
           setup: single(GAUGE_LINEAR),
         },
         {
-          label: 'Op een schaal, laden',
+          label: 'Op een schaal tijdens laden',
           html: '<lintje-kpi state="loading"></lintje-kpi>',
           setup: single({ label: GAUGE_ARC.label, gauge: GAUGE_ARC.gauge }),
         },
         {
-          label: 'Op een schaal, leeg',
+          label: 'Op een schaal zonder waarde',
           html: '<lintje-kpi state="empty"></lintje-kpi>',
           setup: single({ label: GAUGE_LINEAR.label, variable: 'dark-yellow', gauge: GAUGE_LINEAR.gauge }),
         },
@@ -617,13 +615,28 @@ export default {
     },
 {
       tag: 'lintje-chart',
-      title: 'Tegel met een grafiek: elke soort, de drie staten, de tabelweergave en ontbrekende waarden',
-      specimens: [
-        ...CHARTS.map(chartSpecimen),
-        ...CHART_STATES.map(stateSpecimen),
-        tableSwitch,
-        ...missingValues,
-      ],
+      wide: true,
+      title: 'Een grafiek in haar tegel: twaalf soorten, één tag',
+      // One kind at a time, chosen by the question it answers; the states switch on its specimens.
+      groups: {
+        label: 'Soort',
+        plural: 'soorten',
+        question: 'Welke grafiek?',
+        param: 'soort',
+        key: 'kind',
+        shared: 'Voor elke soort',
+        questions: CHART_QUESTIONS,
+        items: Object.entries(CHART_KINDS).map(([kind, guide]) => ({
+          value: kind,
+          ...guide,
+          specimens: [
+            ...CHARTS.filter((chart) => chart.spec.kind === kind).map(chartSpecimen),
+            ...missingValues.filter((specimen) => specimen.kind === kind),
+          ],
+        })),
+      },
+      states: CHART_STATES,
+      specimens: [tableSwitch],
     },
     {
       tag: 'lintje-note',
@@ -632,7 +645,6 @@ export default {
         {
           label: 'Met datum en auteur',
           html: '<lintje-note></lintje-note>',
-          wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-note').data = {
               title: 'Duiding van de analist',
@@ -651,7 +663,6 @@ export default {
         {
           label: 'Begrippen en omschrijvingen',
           html: '<lintje-explainer></lintje-explainer>',
-          wide: true,
           setup: (stage) => {
             stage.querySelector('lintje-explainer').data = {
               title: 'Hoe deze cijfers worden berekend',

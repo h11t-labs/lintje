@@ -12,6 +12,12 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Toegevoegd
 
+- Welke grafiek welke vraag beantwoordt (`CHART_KINDS`, `CHART_QUESTIONS`): per soort haar
+  Nederlandse naam, de vraag van de lezer, waarvoor je haar neemt en wanneer een andere beter
+  past. Het principe staat in `DESIGN_SYSTEM.md`; de stijlgids kiest er een grafiek mee. (#25)
+- `dist-elements/data-types.json`: de types uit de broncode veld voor veld, met hun
+  toelichting, en per variant van een union op `kind` een eigen lijst (`scripts/manifest.mjs`).
+  (#25)
 - **`lintje-dialog`, het kleine venster** voor een vraag of een kort formulier, naast
   `lintje-modal`, het grote voor inhoud. `alert` maakt er een `alertdialog` van zonder
   sluitknop, `persistent` laat Escape en de achtergrond niets vragen, `wide` geeft de breedte van
@@ -63,6 +69,13 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Gewijzigd
 
+- De stijlgids heeft een pagina per element: wat het is, de voorbeelden een per rij met hun naam
+  ernaast en hun code in een expander (markup, script en JSON voor een pagina die een server
+  rendert, gelezen uit wat het voorbeeld tekende), de referentie met de velden van `data`, waar het
+  in de voorbeeldapplicaties staat en hoe je het laadt. De pagina van een categorie is een
+  overzicht met een schets per element. `lintje-chart` toont één soort tegelijk, gekozen op de
+  vraag van de lezer, met haar staten eronder. De delen van een elementpagina staan in tabs
+  (`&tab=`). `#el-…` leidt naar de nieuwe pagina. (#25)
 - **Brekend:** `lintje-confirm-dialog`, `lintje-session-expiry` en `lintje-shortcuts` zijn weg:
   een bevestiging is een `lintje-dialog alert` met de knoppen van de host, een sessie die
   verloopt een `lintje-dialog alert persistent` en het teruggezette concept een
@@ -100,6 +113,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Opgelost
 
+- `lintje-data-table`: een tabel die breder is dan zijn plek en zijwaarts scrolt, is met het
+  toetsenbord te bereiken; het scrollvlak krijgt dan de focus, een rol en de caption als naam,
+  zoals het blok van `lintje-code` (WCAG 2.1.1). (#25)
 - `lintje-map` gooit geen fout meer als de kaart weggaat terwijl een zoom nog loopt: Leaflet
   rondt de zoom af op een timer die `remove()` laat staan, en die las de weggehaalde kaart. (#20)
 

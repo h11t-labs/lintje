@@ -5,22 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lintje stijlgids</title>
     <!--
-      The style guide: every element of the design system in its states, one category at a
-      time. Each element stands once, in the page's own mode — the mode control in the top
-      bar shows it in light and in dark. It is the reference every change is checked against:
-      under each element stand its properties, events and slots. It is an example that
-      *consumes* the design system, not part of it. No framework and no bundler for the page
-      itself — `index.js` imports the built bundle and the specimen modules in `specimens/`,
-      so any static server rooted at the repository will do:
+      The style guide: every element of the design system, a page per element. A category's
+      page is an overview of its elements; an element's page holds what it is, its specimens
+      with their code, its reference and how to load it. Each element stands in the page's own
+      mode — the mode control in the top bar shows it in light and in dark. It is the reference
+      every change is checked against. It is an example that *consumes* the design system, not
+      part of it. No framework and no bundler for the page itself — `index.js` imports the
+      built bundle and the specimen modules in `specimens/`, so any static server rooted at the
+      repository will do:
 
         (npm run build:elements)
         npm run dev    # or: python3 -m http.server, at the repo root
         open http://localhost:5180/examples/styleguide/
 
-      `?category=<name>` is the category, `?theme=<name>` one of the six themes, `?mode=dark`
-      the mode, `?layout=top` the navigation above the page (the shell's "Weergave" offers it);
-      `#el-<tag>` opens the category that holds that element. `/` or the search icon in the bar
-      searches every element on every page.
+      `?category=<name>` is a category, `?element=<tag without lintje->` an element, with
+      `&tab=` for its open tab and `&soort=` for the chart's kinds; `?theme=<name>` one of the six
+      themes, `?mode=dark` the mode, `?layout=top` the navigation above the page (the shell's
+      "Weergave" offers it). `#el-<tag>`, the older address, opens the element's page. `/` or
+      the search icon in the bar searches every element.
     -->
     <link rel="stylesheet" href="../../src/tokens/fonts.css" />
     <link rel="stylesheet" href="../../dist-elements/tokens.css" />
@@ -38,40 +40,353 @@
       }
       .guide__elements { display: flex; flex-direction: column; gap: var(--grid-gutter); }
 
-      /* One section per element: a tile, and in it the specimens in columns. */
-      .guide__element { scroll-margin-top: var(--h-sticky); }
-      .guide__specimens {
+      /* An element's page: the sections, and "Op deze pagina" beside them
+         (docs/guides/page-contents.md). */
+      .guide__page { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-8) var(--space-10); }
+      .guide__main { flex: 999 1 560px; display: flex; flex-direction: column; gap: var(--space-10); min-width: 0; }
+      .guide__toc { flex: 1 1 240px; max-width: var(--w-nav); }
+      /* An element's head: a band from edge to edge, its text in line with the content under it
+         (the shell's own padding), its parts as tabs on its lower edge. */
+      .guide__band {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        padding: var(--page-pad-y) calc(var(--page-pad-x) + var(--page-gutter)) 0;
+        background: var(--color-bg-surface);
+        border-bottom: 1px solid var(--color-border-default);
+        position: sticky;
+        top: calc(var(--h-topbar) - var(--guide-band-lift, 0px));
+        z-index: 19;
+      }
+      .guide__band[hidden] { display: none; }
+      .guide__title { margin: var(--space-2) 0 0; font: var(--text-h1); font-family: var(--font-mono); overflow-wrap: anywhere; }
+      .guide__lead { margin: 0; max-width: var(--w-text); }
+      .guide__summary { margin: 0; }
+      .guide__summary a { color: var(--color-link); }
+      /* The row's line lies on the band's edge; its empty panel hangs over the content's padding. */
+      .guide__tabs { margin: var(--space-4) 0 calc(-1 * var(--space-4) - 1px); }
+      /* The reference: a row per entry — its name and how HTML writes it, its type or values,
+         its default, its source comment quoted as a comment, where a specimen shows it. */
+      .guide__reference { display: flex; flex-direction: column; gap: var(--space-10); }
+      .guide__ref-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-6); }
+      .guide__ref-tools .guide__search { flex: 0 1 calc(10 * var(--space-10)); }
+      .guide__reference .guide__section > .guide__meta { margin: calc(-1 * var(--space-2)) 0 0; }
+      .guide__props { background: var(--color-bg-surface); border: 1px solid var(--color-border-default); }
+      .guide__prop {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
-        gap: var(--space-6);
-        align-items: start;
+        grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+        gap: var(--space-2) var(--space-6);
+        padding: var(--space-4) var(--space-5);
+        border-top: 1px solid var(--color-border-default);
+        scroll-margin-top: var(--h-sticky);
       }
-      .guide__specimens--max-1 { grid-template-columns: minmax(0, 1fr); }
-      .guide__specimens--max-2 {
-        grid-template-columns: repeat(auto-fill, minmax(max(min(100%, 300px), calc((100% - var(--space-6)) / 2)), 1fr));
+      .guide__prop:first-child { border-top: 0; }
+      .guide__prop[hidden] { display: none; }
+      .guide__prop--more { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4); }
+      .guide__prop-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); min-width: 0; }
+      .guide__prop-name { font-family: var(--font-mono); font-weight: 700; overflow-wrap: anywhere; }
+      .guide__prop-attr { flex-basis: 100%; font: var(--text-small); font-family: var(--font-mono); color: var(--color-text-muted); }
+      .guide__required { padding: 0 var(--space-1); border: 1px solid var(--color-text-primary); font: var(--text-small); font-weight: 700; }
+      .guide__prop-body { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+      .guide__prop-type { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); font-family: var(--font-mono); overflow-wrap: anywhere; }
+      .guide__prop-type > .guide__meta { font-family: var(--font-ui); }
+      .guide__value { padding: 0 var(--space-1); border: 1px solid var(--color-border-default); background: var(--color-bg-subtle); font: var(--text-small); font-family: var(--font-mono); }
+      /* A source comment, quoted: in the code's own letter and voice, so it reads as a quote. */
+      .guide__comment { margin: 0; max-width: var(--w-text); font: var(--text-small); font-family: var(--font-mono); color: var(--color-text-secondary); }
+      .guide__comment::before { content: '// '; color: var(--color-text-muted); }
+      .guide__seen { margin: 0; }
+      .guide__seen a { color: var(--color-link); }
+      .guide__props--nested { margin-top: var(--space-2); }
+      /* Nested, a field is its name over its type and comment: the row is too narrow for columns. */
+      .guide__props--nested .guide__prop { grid-template-columns: minmax(0, 1fr); gap: var(--space-1); padding: var(--space-3) var(--space-4); }
+      @container (max-width: 40rem) {
+        .guide__prop { grid-template-columns: minmax(0, 1fr); }
       }
-      .guide__specimens--max-3 {
-        grid-template-columns: repeat(auto-fill, minmax(max(min(100%, 300px), calc((100% - 2 * var(--space-6)) / 3)), 1fr));
-      }
-      /* The tile's own footnote rule: what is under it is about the element, not the element. */
-      .guide__reference {
-        margin-top: var(--space-6);
-        padding-top: var(--space-4);
+      .guide__reference { container-type: inline-size; }
+      /* Using a tag: the ways to load it, each with what it costs, its line and Kopiëren. */
+      .guide__ways { display: flex; flex-direction: column; }
+      .guide__way {
+        display: grid;
+        grid-template-columns: minmax(0, 16rem) minmax(0, 1fr) auto;
+        gap: var(--space-3) var(--space-6);
+        align-items: center;
+        padding: var(--space-4) 0;
         border-top: 1px solid var(--color-border-default);
       }
-      .guide__specimen { min-width: 0; margin: 0; }
-      .guide__specimen--wide { grid-column: 1 / -1; }
-      .guide__label { margin-bottom: var(--space-2); font: var(--text-small); font-weight: 700; color: var(--color-text-muted); }
-      /* The stage is framed: what stands inside the line is the element, what stands outside it the guide. */
-      .guide__stage {
-        padding: var(--space-4);
-        border: 1px solid var(--color-border-default);
-        font: var(--text-ui);
-        color: var(--color-text-primary);
-      }
-      /* A wide specimen is a tile or a table, which frames itself: no second line around it. */
-      .guide__specimen--wide .guide__stage { padding: 0; border: 0; }
+      .guide__way-name { margin: 0; font-weight: 700; }
+      /* A tab's part of the page: its sections under each other. */
+      .guide__panel { display: flex; flex-direction: column; gap: var(--space-10); }
+      .guide__panel[hidden] { display: none; }
+      .guide__facts { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-8); margin: 0; font: var(--text-ui); }
+      .guide__fact { display: flex; gap: var(--space-2); }
+      .guide__fact dt { color: var(--color-text-muted); }
+      .guide__fact dd { margin: 0; font-weight: 700; }
+      .guide__fact a { color: var(--color-link); font-weight: 400; }
+      .guide__section { display: flex; flex-direction: column; gap: var(--space-4); scroll-margin-top: var(--h-sticky); }
+      .guide__section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2) var(--space-4); }
+      .guide__heading { margin: 0; font: var(--text-h2); }
+      .guide__subheading { margin: var(--space-4) 0 0; font: var(--text-tile-title); }
+      .guide__subheading.is-empty { display: none; }
+      .guide__meta { font: var(--text-meta); color: var(--color-text-muted); }
+      .guide__key { font: var(--text-small); font-family: var(--font-mono); color: var(--color-text-muted); }
+      .guide__search { max-width: calc(10 * var(--space-10)); }
+      .guide__row--code { align-items: flex-start; }
+      .guide__row--code lintje-code { flex: 1 1 auto; min-width: 0; }
 
+      /* A card of the guide's own: an element in the overview, a kind in the chooser. Its title
+         is the link, and the link's area covers the card. */
+      .guide__cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); gap: var(--grid-gutter); }
+      .guide__card,
+      .guide__kind {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border-default);
+      }
+      .guide__card:hover,
+      .guide__kind:hover { border-color: var(--color-link); }
+      .guide__card:has(.guide__card-link:focus-visible),
+      .guide__kind:has(.guide__card-link:focus-visible) { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+      .guide__card-link { color: var(--color-text-primary); text-decoration: none; }
+      .guide__card-link:focus-visible { outline: none; }
+      .guide__card-link::after { content: ''; position: absolute; inset: 0; }
+      .guide__card:hover .guide__card-link,
+      .guide__kind:hover .guide__card-link { color: var(--color-link); text-decoration: underline; }
+      /* The card's picture: a sketch of the element (sketches.js), in greys, in the page's mode. */
+      .guide__card-preview {
+        position: relative;
+        height: calc(4 * var(--space-10) + var(--space-3));
+        overflow: hidden;
+        background: var(--color-bg-page);
+        border-bottom: 1px solid var(--color-border-default);
+      }
+      .guide__sketch { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: var(--space-6) var(--space-10); }
+      .guide__sk-frame { box-sizing: border-box; display: flex; flex-direction: column; gap: var(--space-2); width: 100%; max-height: 100%; overflow: hidden; }
+      .guide__sk-frame--none { width: 80%; }
+      .guide__sk-frame--center > .guide__sk-row { justify-content: center; }
+      .guide__sk-frame--page,
+      .guide__sk-frame--tile { align-self: stretch; height: 100%; padding: var(--space-3); background: var(--color-bg-surface); border: 1px solid var(--color-border-default); }
+      .guide__sk-frame--nav { border-left: var(--space-8) solid var(--color-border-default); }
+      .guide__sk-frame--foot { border-bottom: var(--space-6) solid var(--color-border-default); justify-content: flex-start; }
+      .guide__sk-frame--note { padding: var(--space-3); background: var(--color-bg-subtle); border-left: var(--space-1) solid var(--color-text-muted); }
+      .guide__sk-frame--band,
+      .guide__sk-frame--code { padding: var(--space-4); background: var(--color-bg-subtle); }
+      .guide__sk-frame--drop { padding: var(--space-4); border: 1px dashed var(--color-text-muted); }
+      .guide__sk-veil { position: absolute; inset: var(--space-6) var(--space-10); background: var(--color-overlay-page); }
+      .guide__sk-layer {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        padding: var(--space-3);
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-text-muted);
+      }
+      /* A layer is as high as what it holds; only a drawer runs the page's height. */
+      .guide__sketch--modal .guide__sk-layer,
+      .guide__sketch--dialog .guide__sk-layer { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 44%; }
+      .guide__sketch--dialog .guide__sk-layer { width: 36%; }
+      .guide__sketch--search .guide__sk-layer { top: 16%; left: 26%; right: 26%; }
+      .guide__sketch--drawer .guide__sk-layer { top: var(--space-6); bottom: var(--space-6); right: var(--space-10); width: 30%; }
+      .guide__sketch--popover .guide__sk-layer { top: 46%; left: 30%; width: 34%; }
+      .guide__sketch--toast .guide__sk-layer { right: 16%; bottom: 16%; width: 34%; }
+      .guide__sketch--tooltip .guide__sk-layer { top: 34%; left: 34%; width: 26%; background: var(--color-text-primary); border-color: var(--color-text-primary); }
+      .guide__sk-layer > .guide__sk-row { flex: 0 0 auto; }
+      .guide__sketch--tooltip .guide__sk-layer .guide__sk--l { background: var(--color-text-inverse); }
+
+      /* The parts. A width comes from the recipe; a part without one fills its row. */
+      .guide__sk-row { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+      .guide__sk { display: block; flex: 0 0 auto; box-sizing: border-box; }
+      .guide__sk--l, .guide__sk--s, .guide__sk--t, .guide__sk--T, .guide__sk--bar { height: var(--space-2); background: var(--color-border-default); }
+      .guide__sk--l { width: var(--sk-w, 100%); }
+      .guide__sk--s { width: var(--sk-w, 20%); }
+      .guide__sk--t { width: var(--sk-w, 40%); background: var(--color-text-muted); }
+      .guide__sk--T { width: var(--sk-w, 60%); height: var(--space-3); background: var(--color-text-muted); }
+      .guide__sk--bar { width: var(--sk-w, 100%); background: var(--color-text-muted); }
+      .guide__sk--u, .guide__sk--bt { width: var(--sk-w, 20%); height: var(--space-2); border-bottom: 2px solid var(--color-text-muted); }
+      .guide__sk--b, .guide__sk--bo { width: var(--sk-w, 22%); height: var(--space-6); }
+      .guide__sk--b { background: var(--color-text-muted); }
+      .guide__sk--bo, .guide__sk--io, .guide__sk--in, .guide__sk--se, .guide__sk--ta, .guide__sk--cb, .guide__sk--chip, .guide__sk--tg, .guide__sk--menu, .guide__sk--kpi, .guide__sk--doc { border: 1px solid var(--color-text-muted); background: var(--color-bg-surface); }
+      .guide__sk--i { width: var(--space-4); height: var(--space-4); background: var(--color-text-muted); }
+      .guide__sk--io, .guide__sk--play { width: var(--space-6); height: var(--space-6); }
+      .guide__sk--play { background: var(--color-text-muted); }
+      .guide__sk--in, .guide__sk--se, .guide__sk--inic { width: var(--sk-w, auto); flex: 1 1 0; height: var(--space-6); position: relative; }
+      .guide__sk--in[style], .guide__sk--se[style], .guide__sk--inic[style], .guide__sk--l[style] { flex: 0 0 auto; }
+      .guide__sk--inic { border: 1px solid var(--color-text-muted); background: var(--color-bg-surface); }
+      .guide__sk--inic::after { content: ''; position: absolute; right: var(--space-2); top: 50%; width: var(--space-3); height: var(--space-3); transform: translateY(-50%); background: var(--color-text-muted); }
+      .guide__sk--se::after { content: ''; position: absolute; right: var(--space-2); top: 35%; width: var(--space-1); height: var(--space-1); border-right: 2px solid var(--color-text-muted); border-bottom: 2px solid var(--color-text-muted); transform: rotate(45deg); }
+      .guide__sk--ta { width: 100%; height: var(--space-10); }
+      .guide__sk--cb, .guide__sk--cbx, .guide__sk--ra, .guide__sk--rax { width: var(--space-3); height: var(--space-3); }
+      .guide__sk--cbx, .guide__sk--rax { background: var(--color-text-muted); }
+      .guide__sk--ra, .guide__sk--rax { border: 1px solid var(--color-text-muted); border-radius: 50%; }
+      .guide__sk--tg { width: var(--space-6); height: var(--space-3); position: relative; }
+      .guide__sk--tg::after { content: ''; position: absolute; inset: 2px 2px 2px 50%; background: var(--color-text-muted); }
+      .guide__sk--chip { width: var(--sk-w, var(--space-10)); height: var(--space-4); }
+      .guide__sk--dot { width: var(--space-2); height: var(--space-2); border-radius: 50%; background: var(--color-text-muted); }
+      .guide__sk--av { width: var(--space-5); height: var(--space-5); border-radius: 50%; background: var(--color-text-muted); }
+      .guide__sk--emb { width: var(--space-4); height: var(--space-8); background: var(--color-text-muted); }
+      .guide__sk--bx, .guide__sk--bxa, .guide__sk--cell { width: var(--sk-w, auto); flex: 1 1 0; height: var(--space-8); border: 1px solid var(--color-border-default); }
+      .guide__sk--bx[style], .guide__sk--bxa[style], .guide__sk--cell[style] { flex: 0 0 auto; }
+      .guide__sk--bxa { background: var(--color-text-muted); border-color: var(--color-text-muted); }
+      .guide__sk--cell { background: var(--color-bg-subtle); border-color: var(--color-bg-subtle); }
+      .guide__sk--mark { width: var(--sk-w, 30%); height: var(--space-2); background: var(--color-text-muted); border-bottom: 2px solid var(--color-text-primary); }
+      .guide__sk--tags { display: flex; gap: var(--space-1); align-items: center; width: var(--sk-w, auto); flex: 1 1 0; height: var(--space-6); padding: 0 var(--space-1); border: 1px solid var(--color-text-muted); }
+      .guide__sk--tags[style] { flex: 0 0 auto; }
+      .guide__sk--tags > i { display: block; width: 22%; height: var(--space-4); border: 1px solid var(--color-text-muted); }
+      .guide__sk--img, .guide__sk--video { width: 100%; height: calc(1.5 * var(--space-10)); background: var(--color-border-default); }
+      .guide__sk--video { height: calc(2 * var(--space-10)); position: relative; background: var(--color-text-muted); }
+      .guide__sk--video::after { content: ''; position: absolute; left: 50%; top: 50%; width: var(--space-6); height: var(--space-6); transform: translate(-50%, -50%); border: 2px solid var(--color-bg-surface); }
+      .guide__sk--prog { width: var(--sk-w, 100%); height: var(--space-2); background: var(--color-border-default); position: relative; }
+      .guide__sk--prog::before { content: ''; position: absolute; inset: 0 40% 0 0; background: var(--color-text-muted); }
+      .guide__sk--rule { flex: 1 1 100%; height: 1px; background: var(--color-border-default); }
+      .guide__sk--sp { flex: 1 1 0; }
+      .guide__sk--ind { width: var(--space-3); }
+      .guide__sk--chev { width: var(--space-2); height: var(--space-2); border-right: 2px solid var(--color-text-muted); border-bottom: 2px solid var(--color-text-muted); transform: rotate(-45deg); }
+      .guide__sk--chevd { width: var(--space-2); height: var(--space-2); border-right: 2px solid var(--color-text-muted); border-bottom: 2px solid var(--color-text-muted); transform: rotate(45deg); }
+      .guide__sk--chevl { width: var(--space-2); height: var(--space-2); border-left: 2px solid var(--color-text-muted); border-bottom: 2px solid var(--color-text-muted); transform: rotate(45deg); }
+      .guide__sk--spin { width: var(--space-5); height: var(--space-5); border-radius: 50%; border: 2px solid var(--color-text-muted); border-top-color: transparent; }
+      .guide__sk--bubble { width: var(--sk-w, 50%); height: var(--space-5); background: var(--color-border-default); }
+      .guide__sk--dash { width: var(--sk-w, 50%); height: var(--space-5); border: 1px dashed var(--color-text-muted); }
+      .guide__sk--slider { flex: 1 1 0; height: 2px; background: var(--color-text-muted); position: relative; }
+      .guide__sk--slider::after { content: ''; position: absolute; left: 40%; top: calc(-1 * var(--space-2)); width: var(--space-2); height: var(--space-4); background: var(--color-text-muted); }
+      .guide__sk--chart { flex: 1 1 100%; height: calc(1.5 * var(--space-10)); }
+      .guide__sk--chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+      .guide__sk--chart .i { fill: var(--color-text-muted); stroke: var(--color-text-muted); stroke-width: 2; }
+      .guide__sk--chart .w { fill: var(--color-border-default); stroke: var(--color-text-muted); stroke-width: 1; }
+      .guide__sk--chart polyline.i, .guide__sk--chart polyline.w, .guide__sk--chart line { fill: none; vector-effect: non-scaling-stroke; }
+      .guide__sk--chart rect, .guide__sk--chart circle, .guide__sk--chart polygon, .guide__sk--chart path { stroke-width: 0; }
+      /* Marked rows: in a frame, with a stripe, or filled as a chosen row. */
+      .guide__sk-row--box { padding: var(--space-2); border: 1px solid var(--color-border-default); }
+      .guide__sk-row--stripe { padding: var(--space-1) var(--space-2); border-left: var(--space-1) solid var(--color-text-muted); }
+      .guide__sk-row--fill { padding: var(--space-1) var(--space-2); background: var(--color-bg-subtle); border-left: 2px solid var(--color-text-muted); }
+      /* Parts made of parts. */
+      .guide__sk--grip { display: grid; grid-template-columns: repeat(2, 3px); gap: 2px; width: auto; height: auto; border: 0; }
+      .guide__sk--grip > i { display: block; width: 3px; height: 3px; border-radius: 50%; background: var(--color-text-muted); }
+      .guide__sk--log { display: flex; flex-direction: column; gap: var(--space-4); width: 100%; padding-left: var(--space-5); position: relative; }
+      .guide__sk--log::before { content: ''; position: absolute; left: 3px; top: 0; bottom: 0; width: 2px; background: var(--color-border-default); }
+      .guide__sk--log > i { display: block; position: relative; height: var(--space-2); width: 70%; background: var(--color-text-muted); }
+      .guide__sk--log > i:nth-child(2) { width: 60%; }
+      .guide__sk--log > i:nth-child(3) { width: 75%; }
+      .guide__sk--log > i::before { content: ''; position: absolute; left: calc(-1 * var(--space-5)); top: 0; width: var(--space-2); height: var(--space-2); background: var(--color-text-muted); }
+      .guide__sk--log > i::after { content: ''; position: absolute; left: 0; top: var(--space-3); width: 50%; height: var(--space-1); background: var(--color-border-default); }
+      .guide__sk--split { display: flex; flex: 1 1 100%; height: calc(2 * var(--space-10)); border: 1px solid var(--color-border-default); }
+      .guide__sk--split > i { display: flex; flex-direction: column; gap: var(--space-2); flex: 1 1 0; padding: var(--space-2); }
+      .guide__sk--split > i + i { flex: 1.4 1 0; border-left: var(--space-1) solid var(--color-text-muted); background: var(--color-bg-subtle); }
+      .guide__sk--split > i::before, .guide__sk--split > i::after { content: ''; display: block; height: var(--space-2); background: var(--color-border-default); }
+      .guide__sk--split > i::after { width: 60%; }
+      .guide__sk--card { display: flex; flex-direction: column; gap: var(--space-1); flex: 1 1 0; padding: 0 0 var(--space-2); border: 1px solid var(--color-border-default); }
+      .guide__sk--card > i { display: block; height: var(--space-1); margin: 0 var(--space-2); background: var(--color-border-default); }
+      .guide__sk--card > i:first-child { height: var(--space-6); margin: 0 0 var(--space-1); }
+      .guide__sk--card > i:nth-child(2) { width: 50%; background: var(--color-text-muted); }
+      .guide__sk--menu, .guide__sk--kpi, .guide__sk--doc, .guide__sk--tbl { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2); width: 60%; }
+      .guide__sk--kpi { flex: 1 1 0; width: auto; }
+      .guide__sk--tbl, .guide__sk--doc { width: 100%; }
+      .guide__sk--menu > i, .guide__sk--doc > i, .guide__sk--tbl > i { display: block; height: var(--space-2); background: var(--color-border-default); }
+      .guide__sk--tbl > i:first-child { background: var(--color-text-muted); }
+      .guide__sk--kpi { border-top: var(--space-1) solid var(--color-text-muted); }
+      .guide__sk--kpi > i { display: block; height: var(--space-2); width: 70%; background: var(--color-text-muted); }
+      .guide__sk--kpi > i:nth-child(2) { height: var(--space-4); width: 55%; }
+      .guide__sk--kpi > i:last-child { height: var(--space-1); width: 80%; background: var(--color-border-default); }
+      .guide__sk--tab, .guide__sk--seg, .guide__sk--wave, .guide__sk--meter, .guide__sk--step, .guide__sk--qr { display: flex; gap: var(--space-1); }
+      .guide__sk--tab, .guide__sk--seg { width: 100%; }
+      .guide__sk--tab { gap: var(--space-3); border-bottom: 1px solid var(--color-border-default); padding-bottom: var(--space-1); }
+      .guide__sk--tab > i { display: block; flex: 1 1 0; height: var(--space-2); background: var(--color-border-default); }
+      .guide__sk--tab > i:first-child { background: var(--color-text-muted); }
+      .guide__sk--seg { gap: 0; }
+      .guide__sk--seg > i { display: block; flex: 1 1 0; height: var(--space-6); border: 1px solid var(--color-text-muted); }
+      .guide__sk--seg > i:first-child { background: var(--color-text-muted); }
+      .guide__sk--wave { width: 100%; align-items: center; height: var(--space-8); }
+      .guide__sk--wave > i { display: block; flex: 1 1 0; height: 60%; background: var(--color-text-muted); }
+      .guide__sk--wave > i:nth-child(3n) { height: 90%; }
+      .guide__sk--wave > i:nth-child(4n + 1) { height: 35%; }
+      .guide__sk--meter { align-items: flex-end; height: var(--space-6); }
+      .guide__sk--meter > i { display: block; width: var(--space-2); background: var(--color-text-muted); }
+      .guide__sk--meter > i:nth-child(1) { height: 20%; }
+      .guide__sk--meter > i:nth-child(2) { height: 35%; }
+      .guide__sk--meter > i:nth-child(3) { height: 50%; }
+      .guide__sk--meter > i:nth-child(4) { height: 65%; }
+      .guide__sk--meter > i:nth-child(5) { height: 80%; background: var(--color-border-default); }
+      .guide__sk--meter > i:nth-child(6) { height: 100%; background: var(--color-border-default); }
+      .guide__sk--step { width: 100%; align-items: center; gap: 0; }
+      .guide__sk--step > i { display: block; width: var(--space-4); height: var(--space-4); border-radius: 50%; border: 2px solid var(--color-text-muted); }
+      .guide__sk--step > i:nth-child(even) { flex: 1 1 0; height: 2px; border: 0; border-radius: 0; background: var(--color-border-default); }
+      .guide__sk--step > i:first-child { background: var(--color-text-muted); }
+      .guide__sk--qr { display: grid; grid-template-columns: repeat(3, var(--space-5)); gap: 2px; }
+      .guide__sk--qr > i { display: block; height: var(--space-5); background: var(--color-text-muted); }
+      .guide__sk--qr > i:nth-child(even) { background: var(--color-border-default); }
+      .guide__card-body { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-4); }
+      .guide__card-title { margin: 0; font: var(--text-h2); }
+      .guide__card-title code { font-family: var(--font-mono); }
+      .guide__card-text { margin: 0; font: var(--text-small); }
+      .guide__card-body .guide__meta { margin: var(--space-1) 0 0; }
+
+      /* The chooser: a line per question, its kinds as buttons, each with a small drawing. */
+      .guide__chooser { display: flex; flex-direction: column; border-bottom: 1px solid var(--color-border-default); }
+      .guide__choice {
+        display: grid;
+        grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
+        gap: var(--space-2) var(--space-6);
+        align-items: center;
+        padding: var(--space-3) 0;
+        border-top: 1px solid var(--color-border-default);
+      }
+      .guide__question { margin: 0; font: var(--text-ui); font-weight: 700; }
+      .guide__kinds { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+      .guide__kind { flex-direction: row; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2); }
+      .guide__kind.is-chosen { outline: 2px solid var(--color-text-primary); outline-offset: -2px; }
+      .guide__kind-name { font-weight: 700; }
+      .guide__mini { position: relative; flex: 0 0 auto; width: calc(1.5 * var(--space-10)); height: var(--space-8); }
+      .guide__mini > .guide__sketch { padding: 0; }
+      .guide__mini .guide__sk-frame--none { width: 100%; height: 100%; }
+      .guide__mini .guide__sk-row, .guide__mini .guide__sk--chart { height: 100%; }
+      /* What the chosen kind is for, once, above its specimens. */
+      .guide__advice {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-4) var(--space-6);
+        padding: var(--space-5) var(--space-6);
+        background: var(--color-bg-surface);
+        border: 1px solid var(--color-border-default);
+        border-left: var(--space-1) solid var(--color-accent-line);
+      }
+      .guide__advice-title { margin: 0 0 var(--space-1); font: var(--text-small); font-weight: 700; color: var(--color-text-muted); }
+      .guide__advice-text { margin: 0; max-width: var(--w-text); }
+
+      /* A specimen is a row: its name and what it shows on the left, the stage wide on the right.
+         What stands inside the stage is the element, what stands around it the guide. */
+      .guide__examples { display: flex; flex-direction: column; container-type: inline-size; }
+      .guide__example {
+        display: grid;
+        grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
+        gap: var(--space-3) var(--space-8);
+        padding: var(--space-8) 0;
+        border-top: 1px solid var(--color-border-default);
+        scroll-margin-top: var(--h-sticky);
+      }
+      .guide__example:first-child { border-top: 0; padding-top: 0; }
+      .guide__example--wide { grid-template-columns: minmax(0, 1fr); }
+      /* A specimen in a page of its own: an overlay open in it, at the height it needs. */
+      .guide__frame { display: block; width: 100%; height: calc(12 * var(--space-10)); border: 0; }
+      .guide__example-name { margin: 0; font: var(--text-tile-title); }
+      .guide__note { margin: var(--space-1) 0 0; font: var(--text-small); color: var(--color-text-secondary); }
+      .guide__note code { font-family: var(--font-mono); color: var(--color-text-primary); }
+      @container (max-width: 48rem) {
+        .guide__example { grid-template-columns: minmax(0, 1fr); }
+      }
+      .guide__specimen { min-width: 0; margin: 0; background: var(--color-bg-surface); border: 1px solid var(--color-border-default); }
+      .guide__stage { padding: var(--space-8); font: var(--text-ui); color: var(--color-text-primary); }
+      .guide__specimen-code { padding: 0 var(--space-4); border-top: 1px solid var(--color-border-default); }
+      .guide__specimen-code .guide__codebox { padding: 0 0 var(--space-3); border-top: 0; background: none; }
+      /* The code under a specimen, once asked for: its ways as tabs, Kopiëren under the code. */
+      .guide__codebox { padding: 0 var(--space-4) var(--space-3); border-top: 1px solid var(--color-border-default); background: var(--color-bg-page); }
+      .guide__codepanel { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2); padding-top: var(--space-3); }
+      .guide__codepanel > lintje-code { align-self: stretch; }
+      /* The states every kind shares, drawn small side by side, each named under its stage. */
+      .guide__states { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: var(--space-4); }
+      .guide__states .guide__stage { padding: var(--space-4); }
+      .guide__state-name { padding: var(--space-2) var(--space-4); border-top: 1px solid var(--color-border-default); font: var(--text-small); font-weight: 700; }
       /* What a specimen may lay its parts out with. */
       .guide__row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
       .guide__stack { display: flex; flex-direction: column; gap: var(--space-3); }
@@ -83,7 +398,7 @@
         align-items: start;
       }
       /* What the host heard, under a specimen: a code block that scrolls when it grows. */
-      .guide__log { margin-top: var(--space-2); max-height: 260px; overflow: auto; }
+      .guide__log { margin: 0 var(--space-4) var(--space-4); max-height: 260px; overflow: auto; }
       .guide__placeholder {
         display: flex;
         align-items: center;
@@ -110,8 +425,19 @@
       }
       .guide__icon span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+      @media screen and (max-width: 1023.98px) {
+        .guide__toc { order: -1; flex-basis: 100%; max-width: none; }
+        .guide__choice { grid-template-columns: minmax(0, 1fr); }
+      }
+      @media screen and (min-width: 1024px) {
+        .guide__toc { position: sticky; top: calc(var(--h-sticky) + var(--space-6)); }
+      }
       @media screen and (max-width: 767.98px) {
-        .guide__stage { padding: var(--space-2); }
+        .guide__stage { padding: var(--space-4); }
+        .guide__advice { grid-template-columns: minmax(0, 1fr); padding: var(--space-4); }
+        .guide__band { padding: var(--space-4) var(--space-4) 0; top: calc(var(--h-mobile-header) - var(--guide-band-lift, 0px)); }
+        .guide__way { grid-template-columns: minmax(0, 1fr) auto; }
+        .guide__way > :first-child { grid-column: 1 / -1; }
         .guide__pair { grid-template-columns: minmax(0, 1fr); }
         .guide__chat { height: 640px; }
       }
@@ -123,8 +449,8 @@
       <lintje-page-header slot="header" id="page-header">
         <lintje-breadcrumbs slot="breadcrumbs" id="crumbs"></lintje-breadcrumbs>
       </lintje-page-header>
-      <!-- The way to each element on this page, straight under the title. -->
-      <nav class="guide__row" id="index" aria-label="Op deze pagina"></nav>
+      <!-- An element's page: its head in a band from edge to edge, above the content. -->
+      <div slot="full" class="guide__band" id="band" hidden></div>
       <div class="guide__elements" id="elements"></div>
     </lintje-shell>
     <lintje-app-search id="search" label="Zoeken in de stijlgids"></lintje-app-search>

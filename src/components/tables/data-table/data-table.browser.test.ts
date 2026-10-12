@@ -1,6 +1,7 @@
 /**
  * The table in a browser: Escape first for a lifted grip in its column chooser, the height of a
- * filterable head, and the width a truncated column takes.
+ * filterable head, the width a truncated column takes, and a keyboard's way into a table that
+ * scrolls sideways.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
@@ -191,5 +192,45 @@ describe('a truncated column', () => {
     await expect.poll(() => row.matches(':focus-visible')).toBe(true)
     expect(getComputedStyle(long).whiteSpace).toBe('normal')
     expect(row.getBoundingClientRect().height).toBeGreaterThan(height)
+  })
+})
+
+describe('a table wider than its room', () => {
+  const wide: DataTableData = {
+    caption: 'Loketten met hun cijfers',
+    rowKey: 'name',
+    columns: Array.from({ length: 8 }, (_, i) => ({
+      key: `c${i}`,
+      header: `Kolom met een lange kop ${i}`,
+    })),
+    rows: [
+      Object.fromEntries(Array.from({ length: 8 }, (_, i) => [`c${i}`, `een_lange_waarde_${i}`])),
+    ],
+  }
+
+  async function mountAt(width: number, data: DataTableData): Promise<TableElement> {
+    const box = document.createElement('div')
+    box.style.width = `${width}px`
+    document.body.append(box)
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = data
+    box.append(element)
+    await element.updateComplete
+    return element
+  }
+
+  it('lets a keyboard into its scroll, named by its caption', async () => {
+    const element = await mountAt(480, wide)
+    const scroller = inShadow<HTMLElement>(element, '.lintje-data-table__scroller')
+    await expect.poll(() => scroller.getAttribute('tabindex')).toBe('0')
+    expect(scroller.getAttribute('role')).toBe('region')
+    expect(scroller.getAttribute('aria-label')).toBe('Loketten met hun cijfers')
+  })
+
+  it('takes no tab stop when it fits', async () => {
+    const element = await mountAt(800, { ...wide, columns: wide.columns.slice(0, 2) })
+    const scroller = inShadow<HTMLElement>(element, '.lintje-data-table__scroller')
+    await element.updateComplete
+    expect(scroller.hasAttribute('tabindex')).toBe(false)
   })
 })

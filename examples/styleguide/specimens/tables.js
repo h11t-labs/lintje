@@ -654,30 +654,33 @@ export default {
   elements: [
 {
       tag: 'lintje-data-table',
+      wide: true,
       title: 'De tabel: dashboardtabel, kiesbaar, laden en fout, en als werkblad met bewerken, acties, filters, labels, totalen, open rijen en groepen, ook op een applicatiepagina',
       specimens: [
         {
-          label: 'Werkblad — alles tegelijk: filters, kolommen, selectie, labels, drempels, een open rij en totalen',
+          label: 'Werkblad',
+          note:
+            'Alles staat tegelijk aan: filters, kolommen kiezen, selectie, labels, drempels, ' +
+            'een open rij en totalen.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: worksheet,
         },
         {
-          label: 'Het dashboard — drempels, statuskolom, klikbare rijen',
+          label: 'Dashboard',
+          note: 'De tabel heeft drempels, een statuskolom en rijen die je aanklikt.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => dashboard(stage),
         },
         {
-          label: 'Afgekapt en compact — een lange toelichting op één regel, de trend alleen als pijltje',
+          label: 'Afgekapt en compact',
+          note: 'Een lange toelichting blijft op één regel, en de trend is alleen een pijltje.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => dashboard(stage, compactData),
         },
         {
-          label: 'Kiesbaar — loketten aanvinken om te vergelijken',
+          label: 'Kiesbaar',
+          note: 'Vink loketten aan om ze te vergelijken.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) =>
             dashboard(stage, {
               ...tableData,
@@ -692,13 +695,11 @@ export default {
         {
           label: 'Laden',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => table(stage, { ...tableData, title: 'Loketten', subtitle: 'Laden', state: 'loading', rows: [] }),
         },
         {
           label: 'Fout',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) =>
             table(stage, {
               ...tableData,
@@ -711,15 +712,14 @@ export default {
             }),
         },
         {
-          label: 'Rust — bewerkbare cellen (Enter, F2 of dubbelklik)',
+          label: 'Bewerkbare cellen',
+          note: 'Enter, F2 of dubbelklik opent een cel om te wijzigen.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: editable,
         },
         {
-          label: 'Bezig — de wijziging wordt opgeslagen',
+          label: 'Cel wordt opgeslagen',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) =>
             table(
               stage,
@@ -731,9 +731,9 @@ export default {
             ),
         },
         {
-          label: 'Fout — de server weigert de waarde',
+          label: 'Cel geweigerd',
+          note: 'De server weigert de waarde, en de cel zegt waarom.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) =>
             table(
               stage,
@@ -745,15 +745,15 @@ export default {
             ),
         },
         {
-          label: 'Rust — de titel opent de rij, acties per rij',
+          label: 'Acties per rij',
+          note: 'De titel opent de rij.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => actions(stage),
         },
         {
-          label: 'Telefoon — de andere kolommen van een rij open, het rijmenu en Sorteren',
+          label: 'Op een telefoon',
+          note: 'De andere kolommen van een rij staan open, met het rijmenu en Sorteren.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => {
             actions(stage, { selectable: false })
             const element = stage.querySelector('lintje-data-table')
@@ -763,51 +763,53 @@ export default {
           },
         },
         {
-          label: 'Op een applicatiepagina — zonder tegel; de kop of tab van de pagina noemt de tabel',
+          label: 'Op een applicatiepagina',
+          note:
+            'Het attribuut `plain` laat de tegel weg. De kop of tab van de pagina noemt de tabel.',
           html: '<lintje-data-table plain></lintje-data-table>',
-          wide: true,
           setup: (stage) => actions(stage, { title: undefined }),
         },
         {
-          label: 'Selectiebalk — twee rijen gekozen, Shift+klik kiest een reeks',
+          label: 'Selectiebalk',
+          note: 'Twee rijen zijn gekozen. Shift+klik kiest een reeks.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => actions(stage, { checkedIds: ['m1', 'm3'] }),
         },
         {
-          label: 'Uitgeschakeld — een rij die niet gekozen kan worden',
+          label: 'Uitgeschakelde rij',
+          note: 'De derde rij kun je niet kiezen.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => actions(stage, { rows: rows().slice(0, 3), uncheckableIds: ['m3'], checkedIds: ['m1'] }),
         },
         {
-          label: 'Rust — kolomfilters',
+          label: 'Kolomfilters',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => filters(stage),
         },
         {
-          label: 'Gefilterd — met de filters als chips',
+          label: 'Gefilterd',
+          note: 'De gekozen filters staan erbij als chips.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => filters(stage, { filters: { category: ['Veiligheid', 'Overlast'] } }),
         },
         {
-          label: 'Kolommen kiezen — het icoon in de kop van de laatste kolom; een verborgen kolom staat onder de rij',
+          label: 'Kolommen kiezen',
+          note:
+            'Het icoon in de kop van de laatste kolom kiest de kolommen. Een verborgen kolom ' +
+            'staat onder de rij.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => filters(stage, { columnChooser: true, hiddenColumns: ['severity'] }),
         },
         {
-          label: 'Labels en totalen — een waarde als badge, de totaalrij van de host',
+          label: 'Labels en totalen',
+          note: 'Een waarde staat als badge in de cel. De totaalrij komt van de host.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => dashboard(stage, { ...sheetData, columnChooser: true }),
         },
         {
-          label: 'Een rij open — de verborgen kolommen en de extra velden onder de rij',
+          label: 'Een rij open',
+          note: 'Onder de rij staan de verborgen kolommen en de extra velden.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => {
             dashboard(stage, {
               ...sheetData,
@@ -829,9 +831,9 @@ export default {
           },
         },
         {
-          label: 'Groepen — per regio met subtotalen, de eerste ingeklapt',
+          label: 'Groepen',
+          note: 'De rijen staan per regio, met subtotalen. De eerste groep is ingeklapt.',
           html: '<lintje-data-table></lintje-data-table>',
-          wide: true,
           setup: (stage) => {
             dashboard(stage, {
               ...sheetData,
@@ -855,42 +857,41 @@ export default {
       title: 'Bladeren door pagina’s — ook onder de tabel',
       specimens: [
         {
-          label: 'Rust, met de telling',
-          wide: true,
+          label: 'Met de telling',
           html: '<lintje-pagination page="2" page-count="7" total="131" page-size="20"></lintje-pagination>',
           setup: follow,
         },
         {
           label: 'Met eenheid en keuze per pagina',
-          wide: true,
           html: '<lintje-pagination page="2" total="14" page-size="5" page-sizes="5, 10, 20" unit="documenten" unit-one="document"></lintje-pagination>',
           setup: follow,
         },
         {
           label: 'Alles op één pagina',
-          wide: true,
           html: '<lintje-pagination page="1" total="14" page-size="20" page-sizes="5, 10, 20" unit="documenten" unit-one="document"></lintje-pagination>',
           setup: follow,
         },
         {
-          label: 'Uitgeschakeld: de eerste pagina',
+          label: 'Op de eerste pagina',
+          note: 'De knop naar de vorige pagina is uitgeschakeld.',
           html: '<lintje-pagination page="1" page-count="3"></lintje-pagination>',
           setup: follow,
         },
         {
-          label: 'Huidige pagina, laatste',
+          label: 'Op de laatste pagina',
           html: '<lintje-pagination page="3" page-count="3"></lintje-pagination>',
           setup: follow,
         },
         {
           label: 'Reeks met “…”',
-          wide: true,
           html: '<lintje-pagination page="10" page-count="20" total="398" page-size="20"></lintje-pagination>',
           setup: follow,
         },
         {
-          label: 'Als links (?pagina=…)',
-          wide: true,
+          label: 'Als links',
+          note:
+            'Met `href-template` is elke pagina een link met het nummer in het adres, zoals ' +
+            '`?pagina=4`.',
           html: '<lintje-pagination page="4" page-count="12" href-template="#pagina={page}"></lintje-pagination>',
           setup: follow,
         },
@@ -898,11 +899,12 @@ export default {
     },
     {
       tag: 'lintje-list',
+      wide: true,
       title: 'Rijen voor wat geen kolommen nodig heeft',
       specimens: [
         {
-          label: 'Rust, hover toont de actie',
-          wide: true,
+          label: 'Rust',
+          note: 'Wijs een rij aan om de actie te zien.',
           html: '<lintje-list label="Opnames"></lintje-list>',
           setup(stage) {
             const list = stage.querySelector('lintje-list')
@@ -912,7 +914,6 @@ export default {
         },
         {
           label: 'Gekozen',
-          wide: true,
           html: '<lintje-list label="Opnames" selected-id="r2"></lintje-list>',
           setup(stage) {
             const list = stage.querySelector('lintje-list')
@@ -921,8 +922,10 @@ export default {
           },
         },
         {
-          label: 'Werklijst: soort, status als woord, voortgang, één zichtbare actie en groepen op moment',
-          wide: true,
+          label: 'Werklijst',
+          note:
+            'Elke rij toont de soort, de status als woord, de voortgang en één zichtbare actie. ' +
+            'De rijen staan in groepen per moment.',
           html: '<lintje-list label="Werk"></lintje-list>',
           setup(stage) {
             stage.querySelector('lintje-list').items = [
@@ -934,7 +937,8 @@ export default {
           },
         },
         {
-          label: 'Sprekers: een kleurbalk per rij, zoals in de speler en het transcript, met een menu',
+          label: 'Sprekers',
+          note: 'Elke rij heeft een kleurbalk, zoals in de speler en het transcript, en een menu.',
           html: '<lintje-list label="Sprekers"></lintje-list>',
           setup(stage) {
             const actions = [
@@ -950,7 +954,8 @@ export default {
           },
         },
         {
-          label: 'Hernoemen in de rij: het veld met opslaan en annuleren (rename)',
+          label: 'Hernoemen in de rij',
+          note: 'Met `rename` staat in de rij een veld met opslaan en annuleren.',
           html: '<lintje-list label="Sprekers"></lintje-list>',
           setup(stage) {
             const list = stage.querySelector('lintje-list')
@@ -968,11 +973,12 @@ export default {
     },
     {
       tag: 'lintje-card',
-      columns: 3,
+      wide: true,
       title: 'Eén item uit een verzameling: een grijze regel, titel, tekst, status en hoogstens twee acties',
       specimens: [
         {
-          label: 'Met schermafbeelding, status en acties',
+          label: 'Met schermafbeelding',
+          note: 'Een kaart met een schermafbeelding, een status en twee acties.',
           html: '<lintje-card></lintje-card>',
           setup(stage) {
             stage.querySelector('lintje-card').data = PRODUCTS[0]
@@ -980,7 +986,8 @@ export default {
           },
         },
         {
-          label: 'Met logo naast de titel, zonder toegang',
+          label: 'Zonder toegang',
+          note: 'Het logo staat naast de titel. De status zegt dat je geen toegang hebt.',
           html: '<lintje-card></lintje-card>',
           setup(stage) {
             stage.querySelector('lintje-card').data = PRODUCTS[1]
@@ -988,7 +995,8 @@ export default {
           },
         },
         {
-          label: 'Als link: de hele kaart, de titel is de tabstop',
+          label: 'Als link',
+          note: 'De hele kaart is een link. De titel is de tabstop.',
           html: '<lintje-card></lintje-card>',
           setup(stage) {
             stage.querySelector('lintje-card').data = KINDS[0]
@@ -996,8 +1004,8 @@ export default {
           },
         },
         {
-          label: 'Icoonactie als favoriet: een hartje, aan en uit',
-          wide: true,
+          label: 'Favoriet als icoonactie',
+          note: 'Het hartje gaat aan en uit.',
           html: '<div class="guide__pair"><lintje-card></lintje-card><lintje-card></lintje-card></div>',
           setup(stage) {
             const heart = (pressed) => [
@@ -1010,8 +1018,8 @@ export default {
           },
         },
         {
-          label: 'Twee icoonacties: vastzetten (aan en uit) en delen',
-          wide: true,
+          label: 'Twee icoonacties',
+          note: 'Vastzetten gaat aan en uit. Delen is een gewone actie.',
           html: '<div class="guide__pair"><lintje-card></lintje-card><lintje-card></lintje-card></div>',
           setup(stage) {
             const pinAndShare = (pressed) => [
@@ -1025,8 +1033,10 @@ export default {
           },
         },
         {
-          label: 'Horizontaal: het beeld in een kolom links (onder 768 px rechtop)',
-          wide: true,
+          label: 'Horizontaal',
+          note:
+            'Met `layout="horizontal"` staat het beeld in een kolom links. Onder 768 px staat de ' +
+            'kaart weer rechtop.',
           html: '<div class="guide__pair"><lintje-card layout="horizontal"></lintje-card><lintje-card layout="horizontal"></lintje-card></div>',
           setup(stage) {
             const [first, second] = stage.querySelectorAll('lintje-card')
@@ -1036,7 +1046,10 @@ export default {
           },
         },
         {
-          label: 'Met een tabelletje met gegevens (facts); een ontbrekende waarde is een streep',
+          label: 'Met gegevens',
+          note:
+            'De gegevens staan in een tabelletje uit `facts`. Een ontbrekende waarde is een ' +
+            'streep.',
           html: '<lintje-card></lintje-card>',
           setup(stage) {
             stage.querySelector('lintje-card').data = PRODUCTS[2]
@@ -1044,7 +1057,8 @@ export default {
           },
         },
         {
-          label: 'Compact: grijze regel, titel, status en één actie',
+          label: 'Compact',
+          note: 'De kaart toont alleen de grijze regel, de titel, de status en één actie.',
           html: '<lintje-card compact></lintje-card>',
           setup(stage) {
             stage.querySelector('lintje-card').data = PRODUCTS[1]
@@ -1059,11 +1073,11 @@ export default {
     },
     {
       tag: 'lintje-card-list',
+      wide: true,
       title: 'Een verzameling als kaarten: hoogstens drie naast elkaar, elke rij even hoog',
       specimens: [
         {
           label: 'Producten met acties',
-          wide: true,
           html: '<lintje-card-list label="Producten"></lintje-card-list>',
           setup(stage) {
             stage.querySelector('lintje-card-list').items = PRODUCTS
@@ -1071,8 +1085,8 @@ export default {
           },
         },
         {
-          label: 'Horizontaal, voor een lange lijst: twee naast elkaar',
-          wide: true,
+          label: 'Horizontaal',
+          note: 'Voor een lange lijst staan twee kaarten naast elkaar.',
           html: '<lintje-card-list label="Producten" layout="horizontal"></lintje-card-list>',
           setup(stage) {
             stage.querySelector('lintje-card-list').items = PRODUCTS
@@ -1081,7 +1095,6 @@ export default {
         },
         {
           label: 'Als links',
-          wide: true,
           html: '<lintje-card-list label="Bladeren per soort"></lintje-card-list>',
           setup(stage) {
             stage.querySelector('lintje-card-list').items = KINDS
@@ -1090,7 +1103,6 @@ export default {
         },
         {
           label: 'Laden',
-          wide: true,
           html: '<lintje-card-list loading loading-count="3"></lintje-card-list>',
         },
         {
@@ -1101,26 +1113,30 @@ export default {
     },
     {
       tag: 'lintje-description-list',
+      wide: true,
       title: 'Label-waardeparen voor een detail of controlescherm',
       specimens: [
         {
-          label: 'Rust, lege waarde, wijzigen',
-          wide: true,
+          label: 'Rust',
+          note: 'Er is een lege waarde, en een waarde die je kunt wijzigen.',
           html: '<lintje-description-list></lintje-description-list>',
           setup(stage) {
             stage.querySelector('lintje-description-list').items = DETAILS
           },
         },
         {
-          label: 'Kolom: label boven de waarde (smalle houder)',
+          label: 'Kolom',
+          note: 'Met `layout="column"` staat het label boven de waarde, voor een smalle houder.',
           html: '<lintje-description-list layout="column"></lintje-description-list>',
           setup(stage) {
             stage.querySelector('lintje-description-list').items = DETAILS
           },
         },
         {
-          label: 'Vakken (layout="grid"): breed, aangepast, waarschuwing met inhoud in een slot, labels',
-          wide: true,
+          label: 'Vakken',
+          note:
+            'Met `layout="grid"` staat elk paar in een vak: breed, aangepast, een waarschuwing ' +
+            'met inhoud in een slot, en labels.',
           html: `<lintje-description-list layout="grid">
               <span slot="mic"><lintje-button variant="secondary" size="compact">Andere microfoon</lintje-button></span>
             </lintje-description-list>`,
@@ -1135,8 +1151,8 @@ export default {
           },
         },
         {
-          label: 'In het raster: span 8 en span 4',
-          wide: true,
+          label: 'In het raster',
+          note: 'De twee lijsten nemen `span="8"` en `span="4"` van het raster.',
           html: `<lintje-grid>
               <lintje-description-list span="8"></lintje-description-list>
               <lintje-description-list span="4" layout="column"></lintje-description-list>
@@ -1152,7 +1168,8 @@ export default {
       title: 'Een hiërarchie die in- en uitklapt',
       specimens: [
         {
-          label: 'Rust, gekozen, open, dicht',
+          label: 'Rust',
+          note: 'Eén knoop is gekozen, en er zijn open en dichte takken.',
           html: '<lintje-tree-view label="Locaties" name="locatie" selected-id="v2"></lintje-tree-view>',
           setup(stage) {
             const tree = stage.querySelector('lintje-tree-view')
@@ -1179,7 +1196,8 @@ export default {
       title: 'De volgorde wijzigen, met slepen of het toetsenbord',
       specimens: [
         {
-          label: 'Rust, opgepakt met spatie',
+          label: 'Rust',
+          note: 'Met de spatie pak je een rij op.',
           html: '<lintje-sortable-list label="Volgorde van de kolommen" name="kolommen"></lintje-sortable-list>',
           setup(stage) {
             stage.querySelector('lintje-sortable-list').items = COLUMNS.map(({ id, label }) => ({
@@ -1189,7 +1207,8 @@ export default {
           },
         },
         {
-          label: 'Met vinkjes: de kolomkiezer',
+          label: 'Met vinkjes',
+          note: 'Het attribuut `checkable` zet vinkjes, zoals in de kolomkiezer.',
           html: '<lintje-sortable-list label="Kolommen" checkable></lintje-sortable-list>',
           setup(stage) {
             stage.querySelector('lintje-sortable-list').items = COLUMNS
@@ -1202,14 +1221,16 @@ export default {
       title: 'Een tijdlijn van wat er met een item is gebeurd',
       specimens: [
         {
-          label: 'Rust, tijd',
+          label: 'Rust',
+          note: 'Bij elke regel staat de tijd.',
           html: '<lintje-activity-log heading="Geschiedenis"></lintje-activity-log>',
           setup(stage) {
             stage.querySelector('lintje-activity-log').entries = ACTIVITY
           },
         },
         {
-          label: 'Meer: toon eerdere',
+          label: 'Lange geschiedenis',
+          note: 'Toon eerdere laat de oudere regels zien.',
           html: '<lintje-activity-log heading="Geschiedenis"></lintje-activity-log>',
           setup(stage) {
             stage.querySelector('lintje-activity-log').entries = LONG_ACTIVITY

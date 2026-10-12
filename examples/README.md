@@ -28,15 +28,43 @@ De styleguide toont elk element op zichzelf; de applicaties tonen wat ermee gebo
 ## De styleguide
 
 Hij is de levende referentie: een wijziging aan een component in `src/` wordt daar gecontroleerd, in licht
-**en** donker, op 1440 **en** 390 px. Onder elk element toont hij de referentie van de tag.
+**en** donker, op 1440 **en** 390 px.
 
-Het menu van de shell somt de categorieën op; de pagina tekent er één tegelijk. `?category=<name>` is een
-categorie uit `src/categories.json`. De sectie van elk element heeft het id
-`el-<tag without lintje->` (`#el-form`, `#el-tabs`); een adres dat er één noemt opent de
-categorie waar het in staat, dus `styleguide/#el-tabs` is genoeg.
+Het menu van de shell somt de categorieën op. De pagina van een categorie (`?category=<name>`, uit
+`src/categories.json`) is een overzicht: per element een kaart met een schets van zijn vorm, in grijs
+en in de modus van de pagina (`styleguide/sketches.js`), wat het is en hoeveel het toont. Elk
+element heeft een
+eigen pagina, `?element=<tag without lintje->` (`?element=tabs`). Bovenaan staat een witte band
+van rand tot rand (de `full`-slot van de shell): het kruimelpad, de naam, in één zin wat het is, één
+regel met zijn feiten en een link naar de broncode, en vier tabs — Voorbeelden, Referentie,
+Toegepast in en Gebruiken; de open tab staat in de URL (`&tab=`). Naast de inhoud staat "Op deze
+pagina" voor de open tab (`lintje-sub-nav` met `expanded`). Daarop staan:
 
-Een element staat er één keer, op volle breedte, in de eigen modus van de pagina: de modusknop in de
-balk van de shell toont het in licht en in donker, zoals in elke applicatie. In de
+- **de voorbeelden**, een per rij: links de titel (`label`) en de uitleg (`note`), rechts het
+  element in een wit vlak; een breed element (`wide`) staat onder zijn titel, over de hele rij, en
+  een venster (`frame`) staat open in een eigen pagina'tje. De expander "Code" opent de code in
+  tabs: de markup, en wat `setup` zette als script (`el.data = …`) en als JSON in de
+  markup voor een pagina die een server rendert. Die code wordt gelezen uit wat het voorbeeld
+  tekende, dus hij klopt altijd. Standaard is hij dicht, zodat de pagina rustig blijft;
+- **de referentie**: een rij per eigenschap, gegroepeerd in attributen (wat je in de HTML zet; de
+  vijf die de voorbeelden het meest gebruiken eerst, de rest achter "Alle tonen") en data (rijke
+  waarden, met de velden van hun type open te klappen eronder), dan events, slots en methoden.
+  Elke rij geeft de waarden, de standaard, het commentaar uit de broncode — als citaat, in het
+  Engels — en de voorbeelden die hem tonen. Bovenaan staan een zoekveld en de keuze tussen
+  attributen en data, onderaan het kopcommentaar van de tag. Alles komt uit `custom-elements.json`
+  en `data-types.json`, die de build uit de broncode schrijft (`scripts/manifest.mjs`);
+- **hoe je hem gebruikt**, in twee stappen: laad de tag (alleen de tag, zijn categorie of de hele
+  bundel, elk met wat het kost) en zet hem in je pagina, zoals het eerste voorbeeld.
+
+Een tag die meer soorten van één ding tekent, `lintje-chart`, toont er één tegelijk
+(`&soort=pie`): gekozen op de vraag van de lezer, met wanneer je hem neemt en wanneer niet
+(`src/components/shared/charts/kinds.ts`), zijn voorbeelden en zijn eigen velden. Onder "Voor elke
+soort" staan de staten — laden, leeg, fout — getekend voor de gekozen soort, en wat elke soort
+deelt.
+
+`#el-<tag without lintje->`, het oudere adres, opent de pagina van het element, dus
+`styleguide/#el-tabs` werkt nog. Een element staat in de eigen modus van de pagina: de modusknop
+in de balk van de shell toont het in licht en in donker, zoals in elke applicatie. In de
 bovenindeling (`?layout=top`) is elk van de vier koppen een item van de navigatiebalk met zijn
 categorieën in een submenu; de huidige categorie is de actieve.
 
@@ -45,8 +73,12 @@ per kop de categorieën, en per categorie de elementen die hij toont, op volgord
 `styleguide/specimens/` bevat **de specimens**, één module per categorie (`frame.js`,
 `inputs.js`, …): een module exporteert `{ elements }`; elk element is een `tag`, een Nederlandse
 `title` en zijn `specimens`, elk een `label`, gewone `html` en een optionele `setup(stage)` voor wat
-een attribuut niet kan dragen (een rijke property, een listener). `styleguide/shared.js` bevat dat
-contract en tekent een element als één `<lintje-tile>`, met eronder hoe je het laadt. Een tag van
+een attribuut niet kan dragen (een rijke property, een listener). Een element met soorten heeft
+`groups` en `states`. Het overzicht tekent elk element als schets, uit zijn recept in
+`styleguide/sketches.js`; een nieuw element krijgt daar een regel.
+`styleguide/shared.js` bevat dat contract, `page.js` tekent de twee soorten pagina's, `code.js` de
+code onder een voorbeeld, `reference.js` de referentie en `usage.js` zoekt het element in de
+voorbeeldapplicaties (`_shared/apps.js`). Een tag van
 de bundel die geen categorie heeft, wordt in de console gemeld, en zo ook een module die
 ontbreekt of een fout gooit.
 

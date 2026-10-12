@@ -106,7 +106,7 @@ function setupAnnouncements(stage, more = {}) {
 // `warning`, never `caution`: the five kinds are the contract (`AnnouncementKind`).
 const KINDS = [
   [
-    'Waarschuwing, met sluitknop, meta en link',
+    'Waarschuwing',
     {
       kind: 'warning',
       title: 'Let op',
@@ -115,6 +115,7 @@ const KINDS = [
       meta: 'Geplaatst 07:52 · Bronbewaking',
       link: { label: 'Bekijk de aanlevering', href: '#' },
     },
+    'Ze heeft een sluitknop, een regel met moment en bron, en een link.',
   ],
   [
     'Storing',
@@ -125,11 +126,11 @@ const KINDS = [
       text: 'De dossierregistratie levert sinds 07:41 niet aan. Een storing is nooit weg te klikken.',
     },
   ],
-  ['Fout, te sluiten', { kind: 'error', dismissible: true, title: 'Het opslaan is mislukt.', text: 'Je wijzigingen staan nog in het formulier.' }],
+  ['Fout met sluitknop', { kind: 'error', dismissible: true, title: 'Het opslaan is mislukt.', text: 'Je wijzigingen staan nog in het formulier.' }],
   ['Informatie', { kind: 'info', title: 'Nieuw', text: 'De bezettingspagina is toegevoegd.' }],
   ['Gelukt', { kind: 'ok', text: 'Alle loketten leveren compleet aan.' }],
   [
-    'Gelukt, met een titel',
+    'Gelukt met een titel',
     {
       kind: 'ok',
       title: 'Aanlevering hersteld',
@@ -165,16 +166,17 @@ export default {
       tag: 'lintje-announcement',
       title: 'Een melding op de plek waar ze over gaat',
       specimens: [
-        ...KINDS.map(([label, data]) => ({
+        ...KINDS.map(([label, data, note]) => ({
           label,
-          wide: true,
+          note,
           html: '<lintje-announcement></lintje-announcement>',
           setup(stage) {
             stage.querySelector('lintje-announcement').data = data
           },
         })),
         {
-          label: 'Compact, in de inhoud',
+          label: 'Compact',
+          note: 'Het attribuut `compact` maakt de melding klein, voor binnen de inhoud.',
           html: announcement('info', 'Deze opname wordt na 30 dagen verwijderd.', 'Exporteer het transcript als je het wilt bewaren.'),
           setup: (stage) => setupAnnouncements(stage),
         },
@@ -190,7 +192,10 @@ export default {
         },
         {
           // Recipe: after signing in again the page puts the draft back and says so, above the form.
-          label: 'Recept: het concept is teruggezet',
+          label: 'Concept teruggezet',
+          note:
+            'Een recept: na opnieuw aanmelden zet de pagina het concept terug ' +
+            'en zegt dat boven het formulier.',
           html: announcement(
             'ok',
             'Je concept is teruggezet.',
@@ -201,6 +206,7 @@ export default {
         },
         {
           label: 'Met beeld ernaast',
+          note: 'Het slot `media` zet een beeld naast de tekst.',
           html: announcement(
             'info',
             'Start de opname op je telefoon.',
@@ -210,8 +216,8 @@ export default {
           setup: (stage) => setupAnnouncements(stage),
         },
         {
-          label: 'Met een actie — rechts als de melding breed is',
-          wide: true,
+          label: 'Met een actie',
+          note: 'De knop in het slot `action` staat rechts als de melding breed is.',
           html: `<lintje-announcement>
             <lintje-button slot="action" variant="secondary" size="compact">Verder met het concept</lintje-button>
           </lintje-announcement>`,
@@ -241,7 +247,10 @@ export default {
         },
         {
           // `live`: it appears in answer to something that just happened, so it is spoken.
-          label: 'Live, na een mislukte actie',
+          label: 'Live na een mislukte actie',
+          note:
+            'Met `live` leest een schermlezer de melding meteen voor, omdat ze antwoordt op wat ' +
+            'net gebeurde.',
           html: announcement('warning', 'Het opslaan is niet gelukt.', 'Probeer het over een minuut opnieuw.'),
           setup: (stage) => setupAnnouncements(stage, { live: true }),
         },
@@ -260,7 +269,7 @@ export default {
           },
         })),
         {
-          label: 'Gelukt, met een actie',
+          label: 'Gelukt met een actie',
           html: '<lintje-button variant="secondary">Toon toast</lintje-button><div data-place></div>',
           setup(stage) {
             const place = stage.querySelector('[data-place]')
@@ -268,7 +277,7 @@ export default {
           },
         },
         {
-          label: 'Fout, met een actie',
+          label: 'Fout met een actie',
           html: '<lintje-button variant="secondary">Toon fout-toast</lintje-button><div data-place></div>',
           setup(stage) {
             const place = stage.querySelector('[data-place]')
@@ -284,8 +293,10 @@ export default {
         {
           // Behind a button: the alert takes the focus when it appears, which on load would
           // pull the page down to it.
-          label: 'Rust, bezig na een keuze, verschillen',
-          wide: true,
+          label: 'Conflict bij opslaan',
+          note:
+            'Druk op de knop: de melding toont wat er verschilt. Na een keuze is ze even bezig ' +
+            'met opslaan.',
           html: `<lintje-button variant="secondary" size="compact">Opslaan, terwijl M. Jansen het al wijzigde</lintje-button>
             <div data-place></div>`,
           setup(stage) {
@@ -345,11 +356,14 @@ export default {
     },
     {
       tag: 'lintje-error-page',
+      wide: true,
       title: 'De pagina in plaats van de gevraagde: niet gevonden, geen toegang, een storing, onderhoud',
-      columns: 1,
       specimens: [
         {
-          label: 'Niet gevonden, met zoeken',
+          label: 'Niet gevonden',
+          note:
+            'Bij code 404 staan er een zoekveld en links naar de pagina’s die je het vaakst ' +
+            'nodig hebt.',
           html: `<lintje-error-page code="404" heading="Deze pagina bestaat niet"
               text="Het adres klopt niet, of de pagina is verplaatst of verwijderd. Controleer het adres, of zoek wat je nodig hebt.">
               <lintje-text-input type="search" label="Zoeken in Meldingen" placeholder="Zaaknummer, naam of trefwoord"></lintje-text-input>
@@ -371,7 +385,8 @@ export default {
             </lintje-error-page>`,
         },
         {
-          label: 'Storing, met een referentie',
+          label: 'Storing met een referentie',
+          note: 'Bij code 500 staan de referentie en het moment erbij, voor de servicedesk.',
           html: `<lintje-error-page code="500" heading="Er ging iets mis aan onze kant"
               text="Wat je had opgeslagen, is niet verloren. Probeer het over een paar minuten opnieuw. Gaat het weer mis, geef dan de referentie door aan de servicedesk."
               reference="7F3A-91C2-4D0B" occurred="11 oktober 2026, 14.32 uur">
@@ -409,9 +424,14 @@ export default {
         { label: 'Let op', html: '<lintje-badge tone="warning">Onderbroken</lintje-badge>' },
         { label: 'Informatie', html: '<lintje-badge tone="info">Nieuw</lintje-badge>' },
         { label: 'Aandacht', html: '<lintje-badge tone="attention">Controleren</lintje-badge>' },
-        { label: 'Live: een opname die nu loopt', html: '<lintje-badge tone="live">Neemt op</lintje-badge>' },
+        {
+          label: 'Live',
+          note: 'De toon `live` is voor iets dat nu loopt, zoals een opname.',
+          html: '<lintje-badge tone="live">Neemt op</lintje-badge>',
+        },
         {
           label: 'Teller',
+          note: 'De varianten `count` en `unread` tonen een aantal.',
           html: '<div class="guide__row"><span>Opmerkingen <lintje-badge variant="count" label="2 opmerkingen">2</lintje-badge></span><span>Ongelezen <lintje-badge variant="unread" label="12 ongelezen">12</lintje-badge></span></div>',
         },
       ],
@@ -429,11 +449,12 @@ export default {
           html: '<div class="guide__row">' + ['success', 'warning', 'error', 'info', 'busy', 'neutral'].map((tone) => `<lintje-status-dot tone="${tone}"></lintje-status-dot>`).join('') + '</div>',
         },
         {
-          label: 'Bezig, met eigen woord',
+          label: 'Bezig met eigen woord',
+          note: 'Het attribuut `label` vervangt het woord naast de stip.',
           html: '<lintje-status-dot tone="busy" label="Wordt verwerkt"></lintje-status-dot>',
         },
         {
-          label: 'Eigen woord',
+          label: 'Vertraagd met eigen woord',
           html: '<lintje-status-dot tone="delayed" label="Levert vertraagd aan"></lintje-status-dot>',
         },
       ],
@@ -462,7 +483,6 @@ export default {
       specimens: [
         {
           label: 'Twee regels',
-          wide: true,
           html: '<div class="guide__stack"><lintje-skeleton width="60%" height="13"></lintje-skeleton><lintje-skeleton width="40%" height="13"></lintje-skeleton></div>',
         },
         {
@@ -499,17 +519,21 @@ export default {
     },
     {
       tag: 'lintje-job-list',
+      wide: true,
       title: 'De wachtrij van lange taken',
       specimens: [
         {
-          label: 'Bezig, fout, wachtrij, onderbroken, klaar, geannuleerd',
-          wide: true,
+          label: 'Alle toestanden',
+          note:
+            'Taken zijn bezig, fout, in de wachtrij, onderbroken, klaar of geannuleerd. ' +
+            'Annuleren, hervatten, opnieuw en weghalen werken.',
           html: '<lintje-job-list></lintje-job-list>',
           setup: (stage) => wireJobs(stage.querySelector('lintje-job-list'), JOBS),
         },
         {
-          label: 'Alleen klaar, met soort en moment: "Klaar" valt weg',
-          wide: true,
+          label: 'Alleen klaar',
+          note:
+            'Elke taak heeft een icoon voor de soort en een moment. Het woord Klaar valt dan weg.',
           html: '<lintje-job-list></lintje-job-list>',
           setup(stage) {
             stage.querySelector('lintje-job-list').jobs = DONE_JOBS
@@ -540,7 +564,8 @@ export default {
           },
         },
         {
-          label: 'Zonder kader (variant plain): in een vlak dat de tekst zelf omlijst',
+          label: 'Zonder kader',
+          note: 'Met `variant="plain"` past de tekst in een vlak dat hem zelf al omlijst.',
           html: '<lintje-streaming-text state="done" variant="plain"></lintje-streaming-text>',
           setup(stage) {
             stage.querySelector('lintje-streaming-text').text = TRANSCRIPT
@@ -561,8 +586,8 @@ export default {
           },
         },
         {
-          label: 'Levend — Stoppen en Opnieuw werken',
-          wide: true,
+          label: 'Levend',
+          note: 'De tekst stroomt echt binnen, en Stoppen en Opnieuw werken.',
           html: '<lintje-streaming-text label="Bezig met transcriberen"></lintje-streaming-text>',
           setup(stage) {
             const element = stage.querySelector('lintje-streaming-text')
@@ -589,8 +614,8 @@ export default {
           html: '<lintje-ai-label checked-by="J. de Vries"></lintje-ai-label>',
         },
         {
-          label: 'Plaats: boven het blok',
-          wide: true,
+          label: 'Boven het blok',
+          note: 'Het label staat boven de tekst die het model heeft gemaakt.',
           html: `<lintje-ai-label></lintje-ai-label>
             <p>De aanvrager schrijft dat zij in maart naar Nederland is verhuisd.</p>`,
         },
@@ -601,7 +626,8 @@ export default {
       title: 'Hoe hard het geluid binnenkomt, met het woord erbij',
       specimens: [
         {
-          label: 'Goed, beweegt mee met het niveau',
+          label: 'Goed',
+          note: 'De meter beweegt mee met het niveau.',
           html: '<lintje-level-meter level="0.6"></lintje-level-meter>',
           setup(stage) {
             const meter = stage.querySelector('lintje-level-meter')
@@ -612,26 +638,31 @@ export default {
           },
         },
         { label: 'Zacht', html: '<lintje-level-meter level="0.12"></lintje-level-meter>' },
-        { label: 'Stil: plat', html: '<lintje-level-meter level="0"></lintje-level-meter>' },
+        {
+          label: 'Stil',
+          note: 'Zonder geluid is de meter plat.',
+          html: '<lintje-level-meter level="0"></lintje-level-meter>',
+        },
         { label: 'Nog niet gemeten', html: '<lintje-level-meter></lintje-level-meter>' },
       ],
     },
     {
       tag: 'lintje-recording-status',
+      wide: true,
       title: 'Hoe een opname die loopt ervoor staat',
       specimens: [
         {
-          label: 'Op je telefoon: looptijd, geluid en verbinding',
-          wide: true,
+          label: 'Op je telefoon',
+          note: 'De status toont de looptijd, het geluid en de verbinding.',
           html: '<lintje-recording-status elapsed="724" level="0.6" connection="good" delay="1"></lintje-recording-status>',
         },
         {
-          label: 'Zwakke verbinding, zacht geluid',
-          wide: true,
+          label: 'Zwakke verbinding en zacht geluid',
           html: '<lintje-recording-status elapsed="3729" level="0.12" connection="weak" delay="4"></lintje-recording-status>',
         },
         {
-          label: 'Op deze computer: zonder verbinding; wat ontbreekt is een streep',
+          label: 'Op deze computer',
+          note: 'Op een computer toont de status geen verbinding. Wat ontbreekt, is een streep.',
           html: '<lintje-recording-status elapsed="48"></lintje-recording-status>',
         },
       ],
