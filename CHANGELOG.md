@@ -10,6 +10,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-12
+
 ### Toegevoegd
 
 - `lintje-segmented` toont een aantal per optie: `count` op `FilterOption` wordt de tellerbadge
@@ -71,9 +73,6 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Gewijzigd
 
-- De pipeline draait de browsertests per browser in een eigen job, naast de andere checks, en
-  binnen een browser meerdere testbestanden tegelijk; de stijlgidstest wacht niet meer op een
-  animatie die al afgelopen is, en de release roept dezelfde checks aan. (#39)
 - De stijlgids heeft een pagina per element: wat het is, de voorbeelden een per rij met hun naam
   ernaast en hun code in een expander (markup, script en JSON voor een pagina die een server
   rendert, gelezen uit wat het voorbeeld tekende), de referentie met de velden van `data`, waar het
@@ -113,6 +112,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 - **Brekend:** `lintje-progress-bar` zegt zijn staat met `state` (`busy`, `done`, `error`,
   `paused`), de staat van werk, in plaats van `tone` (`run`, `done`, `error`, `paused`); het type
   `ProgressTone` heet `ProgressState`. `lintje-job-list` en `lintje-list` zijn mee. (#26)
+- **Brekend:** `lintje-announcement` heeft geen `compact` meer: een melding kiest haar marge naar
+  haar eigen breedte, krap onder 560 px en ruim daarboven, op dezelfde grens als haar actie. Een
+  `compact` dat blijft staan, doet niets. (#35)
 - De telefoonvorm geldt alleen op een scherm: `MOBILE` is `screen and (max-width: 767px)`, en een
   host schrijft zijn eigen telefoonregels zo. (#22)
 
@@ -212,7 +214,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.2.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/h11t-labs/lintje/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/h11t-labs/lintje/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/h11t-labs/lintje/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/h11t-labs/lintje/releases/tag/v0.1.0

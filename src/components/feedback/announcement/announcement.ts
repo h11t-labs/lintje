@@ -34,15 +34,11 @@ export class LintjeAnnouncement extends LintjeGridItemElement {
 
   static override properties: PropertyDeclarations = {
     data: { attribute: false },
-    compact: { type: Boolean, reflect: true },
     dismissed: { state: true },
     filled: { state: true },
   }
 
   declare data?: AnnouncementViewData | null
-  /** The tighter form. Below 768 px every announcement is compact. */
-  compact: boolean = false
-
   dismissed: string | null = null
 
   filled: string | null = null
@@ -150,7 +146,6 @@ export class LintjeAnnouncement extends LintjeGridItemElement {
       text: data.text,
       meta: data.meta,
       link: data.link,
-      compact: this.compact,
       live,
       filled: this.filled === this.identity,
       action: html`<slot name="action" class="lintje-announcement__action"></slot>`,

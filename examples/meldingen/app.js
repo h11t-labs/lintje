@@ -752,7 +752,7 @@ function storedDraft(key) {
 }
 
 const FORM = `
-  <lintje-announcement id="restored" compact hidden>
+  <lintje-announcement id="restored" hidden>
     <lintje-button slot="action" variant="link" size="compact">Concept weggooien</lintje-button>
   </lintje-announcement>
   <lintje-form>

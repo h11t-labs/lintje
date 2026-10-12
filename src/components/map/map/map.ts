@@ -172,7 +172,7 @@ export class LintjeMap extends LintjeContentTileElement {
     >
       ${
         data.notice
-          ? html`<lintje-announcement slot="notice" compact .data=${data.notice}></lintje-announcement>`
+          ? html`<lintje-announcement slot="notice" .data=${data.notice}></lintje-announcement>`
           : nothing
       }
       ${this.content(`${height}px`)}
