@@ -71,6 +71,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Gewijzigd
 
+- De pipeline draait de browsertests per browser in een eigen job, naast de andere checks, en de
+  stijlgidstest wacht niet meer op een animatie die al afgelopen is; de release roept dezelfde
+  checks aan. (#39)
 - De stijlgids heeft een pagina per element: wat het is, de voorbeelden een per rij met hun naam
   ernaast en hun code in een expander (markup, script en JSON voor een pagina die een server
   rendert, gelezen uit wat het voorbeeld tekende), de referentie met de velden van `data`, waar het
