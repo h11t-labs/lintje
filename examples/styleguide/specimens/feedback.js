@@ -93,7 +93,7 @@ function wireJobs(list, jobs) {
 }
 
 const announcement = (kind, title, text, extra = '') =>
-  `<lintje-announcement compact data-kind="${kind}" data-title="${title}" data-text="${text}">${extra}</lintje-announcement>`
+  `<lintje-announcement data-kind="${kind}" data-title="${title}" data-text="${text}">${extra}</lintje-announcement>`
 
 /** The announcement takes its content as `data`; the specimens carry it in data attributes. */
 function setupAnnouncements(stage, more = {}) {
@@ -175,9 +175,9 @@ export default {
           },
         })),
         {
-          label: 'Compact',
-          note: 'Het attribuut `compact` maakt de melding klein, voor binnen de inhoud.',
-          html: announcement('info', 'Deze opname wordt na 30 dagen verwijderd.', 'Exporteer het transcript als je het wilt bewaren.'),
+          label: 'Smal',
+          note: 'Onder 560 px neemt de melding vanzelf de krappe marge, net als haar actie onder de tekst.',
+          html: `<div style="max-width: 360px">${announcement('info', 'Deze opname wordt na 30 dagen verwijderd.', 'Exporteer het transcript als je het wilt bewaren.')}</div>`,
           setup: (stage) => setupAnnouncements(stage),
         },
         {
@@ -236,8 +236,8 @@ export default {
           setup: (stage) => setupAnnouncements(stage, { link: { label: 'Bekijk de wijzigingen', href: '#el-announcement' } }),
         },
         {
-          label: 'Fout',
-          html: announcement('outage', 'Het transcriberen is mislukt.', 'Upload de opname opnieuw.'),
+          label: 'Mislukt',
+          html: announcement('error', 'Het transcriberen is mislukt.', 'Upload de opname opnieuw.'),
           setup: (stage) => setupAnnouncements(stage),
         },
         {
