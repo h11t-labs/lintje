@@ -214,9 +214,9 @@ export function renderReference(
     filter.label = 'Toon'
     filter.hideLabel = true
     filter.options = [
-      { value: '', label: `Alles ${fields.length}` },
-      { value: 'attributen', label: `Attributen ${attributes.length}` },
-      { value: 'data', label: `Data ${rich.length}` },
+      { value: '', label: 'Alles', count: fields.length },
+      { value: 'attributen', label: 'Attributen', count: attributes.length },
+      { value: 'data', label: 'Data', count: rich.length },
     ]
     filter.value = ''
     tools.append(filter)

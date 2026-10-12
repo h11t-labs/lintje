@@ -12,6 +12,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ### Toegevoegd
 
+- `lintje-segmented` toont een aantal per optie: `count` op `FilterOption` wordt de tellerbadge
+  achter het label, zoals in `lintje-tabs`. (#33)
 - Welke grafiek welke vraag beantwoordt (`CHART_KINDS`, `CHART_QUESTIONS`): per soort haar
   Nederlandse naam, de vraag van de lezer, waarvoor je haar neemt en wanneer een andere beter
   past. Het principe staat in `DESIGN_SYSTEM.md`; de stijlgids kiest er een grafiek mee. (#25)

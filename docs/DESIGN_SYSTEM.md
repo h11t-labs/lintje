@@ -323,6 +323,8 @@ De besluiten hieronder gelden voor alle elementen.
   ene primaire actie, zodat een formulier nooit meerdere gevulde blokken boven zijn knop toont.
   Een rij die breder is dan haar ruimte, staat als kolom, elke optie een rij over de volle
   breedte; ze loopt nooit uit beeld.
+- **Een aantal bij een keuze is de tellerbadge achter het label**, in een tab en in een segment
+  evengoed; nooit een getal in de tekst van het label.
 - **Een opname die nu loopt, is de live-badge**: de foutvulling met een stip voor het woord, het
   enige rood dat geen fout is.
 - **Wat op het punt staat te gebeuren, is een samenvatting in cellen** (`layout="grid"`): één cel
