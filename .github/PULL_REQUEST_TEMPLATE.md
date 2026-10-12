@@ -8,5 +8,5 @@
       `npm run build:elements` slagen
 - [ ] in de styleguide bekeken in licht **en** donker, op 1440 **en** 390 px
 - [ ] een nieuw element of een nieuwe toestand heeft zijn specimen
-- [ ] een regel in `CHANGELOG.md` onder `[Unreleased]`, met het nummer van deze pull request (`(#12)`),
-      een brekende wijziging met **Brekend:** ervoor
+- [ ] een changelogregel in `changes/<nummer>-<titel>.md`, met het nummer van deze pull request
+      (`(#12)`), een brekende wijziging met **Brekend:** ervoor
