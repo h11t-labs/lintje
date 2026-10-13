@@ -160,6 +160,13 @@ export class LintjeFind extends LintjeInputElement {
     this.focusControl()
   }
 
+  // A press while typing leaves the focus in the field, so Enter goes on; otherwise the button
+  // takes it, never the page.
+  private keepTyping = (event: MouseEvent): void => {
+    const root = this.renderRoot as ShadowRoot
+    if (root.activeElement?.id === this.controlId) event.preventDefault()
+  }
+
   private renderButton(
     label: string,
     available: boolean,
@@ -174,7 +181,7 @@ export class LintjeFind extends LintjeInputElement {
       title=${label}
       aria-label=${label}
       aria-disabled=${available ? nothing : 'true'}
-      @mousedown=${(event: MouseEvent) => event.preventDefault()}
+      @mousedown=${this.keepTyping}
       @click=${() => available && action()}
     >
       ${icon}

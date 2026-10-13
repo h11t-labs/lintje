@@ -1,5 +1,6 @@
 /** The find field in a browser: what appears while typing stays inside one box of fixed size. */
 import { afterEach, describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import './find'
 import type { LintjeFind } from './find'
 
@@ -52,5 +53,20 @@ describe('lintje-find keeps its size', () => {
     await element.updateComplete
     expect(element.shadowRoot!.activeElement).toBe(next)
     expect(next.getAttribute('aria-disabled')).toBe('true')
+  })
+
+  it('keeps the focus in the field when a step is pressed while typing', async () => {
+    const element = await mount({ value: 'aanvraag', total: 7, current: 2 })
+    const input = element.shadowRoot!.querySelector<HTMLInputElement>('input')!
+    input.focus()
+    await userEvent.click(element.shadowRoot!.querySelector('.lintje-find__button--next')!)
+    expect(element.shadowRoot!.activeElement).toBe(input)
+  })
+
+  it('gives the focus to a step button pressed from elsewhere, never to the page', async () => {
+    const element = await mount({ value: 'aanvraag', total: 7, current: 2 })
+    const next = element.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-find__button--next')!
+    await userEvent.click(next)
+    expect(element.shadowRoot!.activeElement).toBe(next)
   })
 })

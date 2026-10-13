@@ -66,7 +66,12 @@ function findInText(stage) {
     const total = find.total ?? 0
     find.current = ((find.current - 1 + event.detail + total) % total) + 1
     draw()
-    stage.querySelector('lintje-highlight[current]')?.scrollIntoView({ block: 'nearest' })
+    // The text scrolls in its own box: moving the page would move the field from under the pointer.
+    const hit = text.querySelector('lintje-highlight[current]')
+    if (!hit) return
+    const box = text.getBoundingClientRect()
+    const at = hit.getBoundingClientRect()
+    if (at.top < box.top || at.bottom > box.bottom) text.scrollTop += at.top - box.top - box.height / 3
   })
   find.current = 1
   draw()
@@ -350,7 +355,7 @@ export default {
           note: 'Enter is volgende, Shift+Enter vorige, Escape wist. Na de laatste treffer volgt de eerste.',
           html:
             '<lintje-find label="Zoeken in de werkinstructie" value="aanvraag"></lintje-find>' +
-            '<div class="sg-find-text" style="margin-top: var(--space-4); max-width: 70ch"></div>',
+            '<div class="sg-find-text" tabindex="0" role="region" aria-label="Werkinstructie" style="margin-top: var(--space-4); max-width: 70ch; max-height: calc(4 * var(--space-10)); overflow: auto"></div>',
           setup: findInText,
         },
       ],
