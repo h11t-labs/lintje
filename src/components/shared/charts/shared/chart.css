@@ -113,6 +113,27 @@
    two rungs of the ladder differ by 1.2–1.5:1. */
 .lintje-chart__segment { stroke: var(--color-bg-surface); stroke-width: 1px; }
 
+/* Radar: polygon rings in the grid; the spokes are the axes and take the zero line's colour. */
+.lintje-radar__ring { fill: none; stroke: var(--color-chart-grid); stroke-width: 1; }
+.lintje-radar__spoke { stroke: var(--color-chart-zero); stroke-width: 1; }
+.lintje-radar__spoke.is-active { stroke: var(--color-chart-axis); stroke-width: 1.5; }
+.lintje-radar__name { font: var(--text-small); fill: var(--color-text-primary); }
+.lintje-radar__no-value { font-weight: 400; fill: var(--color-text-muted); }
+/* The fill a line chart gives its area. */
+.lintje-radar__area { fill-opacity: 0; transition: fill-opacity var(--dur-hover) var(--ease-in-motion); }
+.lintje-radar__area.is-filled { fill-opacity: .14; }
+.lintje-radar__norm { fill: none; stroke: var(--color-chart-emphasis); stroke-width: 1.5; stroke-dasharray: 4 3; }
+/* Of more layers the one pointed at in the legend leads; the others step back as a hidden one does. */
+.lintje-radar__layer { transition: opacity var(--dur-hover) var(--ease-in-motion); }
+.lintje-radar__layer.is-muted { opacity: .45; }
+/* A layer the legend hides keeps its node, so switching it back lets nothing grow in again. */
+.lintje-radar__layer.is-hidden,
+.lintje-radar__bar.is-hidden,
+.lintje-radar__value.is-hidden { visibility: hidden; }
+.lintje-radar__lift { pointer-events: none; }
+.lintje-radar__zero { stroke: var(--color-chart-zero); stroke-width: 1; }
+.lintje-radar__row.is-active .lintje-radar__name { font-weight: 700; }
+
 /* Draw-in takes 900 ms for data marks only. Axes, grid and titles appear immediately. */
 @media (prefers-reduced-motion: no-preference) {
   /* A line and the area below it are uncovered together from left to right. The clip opens over the box
@@ -151,6 +172,11 @@
       calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0)) backwards;
   }
   .lintje-chart__reference .lintje-chart__data-label { animation: none; }
+  /* A radar's layers grow from the centre once, with the bars' timing; the norm comes after. */
+  .lintje-radar__layer {
+    animation: lintje-point-grow calc(var(--dur-draw) * 0.6) var(--ease-in-motion)
+      calc(var(--dur-draw) * 0.4) backwards;
+  }
 
   /* Draw in only once the chart comes into view. By default the marks are
      paused on their first frame (series covered, bar flat, label gone); as soon
@@ -165,13 +191,15 @@
   .lintje-chart__bar--horizontal,
   .lintje-chart__data-label,
   .lintje-chart__reference,
-  .lintje-chart__point { animation-play-state: paused; }
+  .lintje-chart__point,
+  .lintje-radar__layer { animation-play-state: paused; }
   [data-in-view] .lintje-chart__reveal,
   [data-in-view] .lintje-chart__bar-group,
   [data-in-view] .lintje-chart__bar--horizontal,
   [data-in-view] .lintje-chart__data-label,
   [data-in-view] .lintje-chart__reference,
-  [data-in-view] .lintje-chart__point { animation-play-state: running; }
+  [data-in-view] .lintje-chart__point,
+  [data-in-view] .lintje-radar__layer { animation-play-state: running; }
 }
 @keyframes lintje-reveal {
   from { clip-path: inset(-8px calc(100% + 8px) -8px -8px); }
@@ -234,6 +262,8 @@
 .lintje-chart-tooltip__label { display: flex; align-items: center; gap: 6px; }
 .lintje-chart-tooltip__marker { width: 10px; height: 10px; flex: none; }
 .lintje-chart-tooltip__marker--symbol { width: 14px; height: 14px; }
+.lintje-chart-tooltip__marker--line { width: 14px; height: 3px; background: currentColor; }
+.lintje-chart-tooltip__marker--dashed { width: 14px; height: 0; border-top: 2px dashed currentColor; }
 .lintje-chart-tooltip__row--divider {
   border-top: 1px solid var(--color-border-popover);
   margin-top: var(--space-1);
@@ -431,7 +461,11 @@
   .lintje-chart__data-label,
   .lintje-chart__as-of-label,
   .lintje-chart__as-of-note,
-  .lintje-chart__x-title { fill: CanvasText; }
+  .lintje-chart__x-title,
+  .lintje-radar__name { fill: CanvasText; }
+  .lintje-radar__ring,
+  .lintje-radar__spoke,
+  .lintje-radar__zero { stroke: CanvasText; }
   .lintje-chart__data-label--inside { forced-color-adjust: none; fill: var(--color-text-on-fill); }
   .lintje-chart__data-label--inside-light { forced-color-adjust: none; fill: var(--color-text-on-light-fill); }
   .lintje-chart__data-label--halo,

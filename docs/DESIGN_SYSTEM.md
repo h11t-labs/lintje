@@ -636,6 +636,20 @@ moeten zijn.
 **Op een kaart is een reeks een kleur en een vorm**, en een selectie kan altijd ongedaan worden
 gemaakt.
 
+**Een spinnendiagram toont een profiel op één schaal.** De schaal begint in het midden bij 0,
+want het vlak draagt de waarde; de ringen zijn veelhoeken in het raster en de spaken zijn de
+assen, in de kleur van de nullijn, met hun naam waar ze voorbij de buitenste ring doorlopen. De
+cijfers van de schaal staan op één as, omdat alle assen haar delen. Een laag is een lijn met de
+vorm van haar reeks op elk hoekpunt, de vergelijking een doorgetrokken grijze lijn, de norm een
+gestreepte veelhoek in de nadrukkleur: gestreept is hier alleen de norm, want een gestreepte
+vergelijking erover leest als een tweede norm. Vlakken over elkaar mengen tot een kleur die geen variabele heeft:
+één laag vult haar vlak, van meer lagen alleen de laag die de lezer in de legenda aanwijst, en
+de andere stappen terug. Elk vlak staat er al, ook ongevuld, zodat de nadruk niets opnieuw laat
+intekenen; een laag die de legenda uitzet, blijft onzichtbaar staan, en de schaal, de ruimte voor
+de waarden en de rijen op een telefoon bewegen niet mee. De tooltip tekent een laag zoals de
+legenda: de vorm van haar reeks, een grijze lijn voor de vergelijking, gestreept voor de norm. Een ontbrekende waarde breekt de lijn, laat het vlak vervallen en arceert de spaak.
+Onder 768 px wordt elke as een rij staven.
+
 **In een spreidingsdiagram is een reeks ook een kleur en een vorm**: dezelfde vorm die die kleur
 op de kaart heeft, met gelijke oppervlakte, zodat geen reeks luider is. Een punt heeft een rand in
 de oppervlaktekleur, zodat punten die elkaar overlappen te onderscheiden blijven. Alleen de punten
