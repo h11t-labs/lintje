@@ -47,7 +47,8 @@ export function formatColour(computed: string): string | null {
   return alpha < 1 ? `${hex(channels)} · ${Math.round(alpha * 100)} %` : hex(channels)
 }
 
-const px = (value: number | string): string => `${NUMBER.format(Number.parseFloat(String(value)))} px`
+const px = (value: number | string): string =>
+  `${NUMBER.format(Number.parseFloat(String(value)))} px`
 
 export class LintjeTokenValue extends LintjeElement {
   static override styles = shadowCss(tokenValueCss)
