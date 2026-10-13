@@ -2,6 +2,7 @@
 import '../components/content/prose/prose'
 import '../components/content/code/code'
 import '../components/content/highlight/highlight'
+import '../components/content/token-value/token-value'
 import '../components/content/translator/translator'
 import '../components/content/audio-player/audio-player'
 import '../components/content/video-player/video-player'

@@ -413,6 +413,43 @@ export default {
       ],
     },
     {
+      tag: 'lintje-token-value',
+      title: 'Wat een token op deze plek berekent',
+      specimens: [
+        {
+          label: 'In een zin',
+          note: 'Een kleur staat er als staal en als hex: het staal is nooit de enige drager.',
+          html: '<p>Een link is <code>--color-link</code>: <lintje-token-value name="--color-link"></lintje-token-value>, en onder de muis <lintje-token-value name="--color-link-hover"></lintje-token-value>.</p>',
+        },
+        {
+          label: 'Elke soort waarde',
+          note: 'Een kleur wordt hex, ook een die de browser als oklch() berekent; een lengte in rem krijgt zijn px erbij; een tekststijl leest als dikte, maat en regelhoogte.',
+          html: `<div class="guide__stack">
+            <span><code>--color-accent-text</code>: <lintje-token-value name="--color-accent-text"></lintje-token-value></span>
+            <span><code>--color-overlay-page</code>: <lintje-token-value name="--color-overlay-page"></lintje-token-value></span>
+            <span><code>--h-button</code>: <lintje-token-value name="--h-button"></lintje-token-value></span>
+            <span><code>--text-h1</code>: <lintje-token-value name="--text-h1"></lintje-token-value></span>
+            <span><code>--shadow-popover</code>: <lintje-token-value name="--shadow-popover"></lintje-token-value></span>
+          </div>`,
+        },
+        {
+          label: 'Loopt mee met de weergave',
+          note: 'Kies in Weergave donker of een ander thema en de waarde wordt opnieuw gelezen.',
+          html: '<span><code>--color-action-primary</code>: <lintje-token-value name="--color-action-primary"></lintje-token-value></span>',
+        },
+        {
+          label: 'Zonder staal',
+          note: 'Waar de kleur er al groot naast staat, zoals op de pagina Kleur, laat no-swatch het kleine staal weg.',
+          html: '<span><code>--color-link</code>: <lintje-token-value name="--color-link" no-swatch></lintje-token-value></span>',
+        },
+        {
+          label: 'Een token dat niet bestaat',
+          note: 'Een streep, geen gok en geen nul.',
+          html: '<span><code>--color-bestaat-niet</code>: <lintje-token-value name="--color-bestaat-niet"></lintje-token-value></span>',
+        },
+      ],
+    },
+    {
       tag: 'lintje-translator',
       wide: true,
       title: 'Een tekst en zijn vertaling in één vlak van twee helften',

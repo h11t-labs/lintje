@@ -230,6 +230,41 @@ export type ChartSpec =
       thresholdLabel?: string
       small?: boolean
     }
+  | {
+      kind: 'radar'
+      /** The axes' names, five to eight, clockwise from the top. All share one scale. */
+      axes: string[]
+      /** The layers: at most three variables and one comparison. */
+      series: RadarSeriesData[]
+      /** The outer ring. The scale starts at 0 in the centre: the area carries the value. */
+      max: number
+      /** The distance between the rings; without it five rings. */
+      step?: number
+      unit?: string
+      /** A norm on every axis: a dashed polygon in the emphasis colour. */
+      threshold?: number
+      thresholdLabel?: string
+      /**
+       * Which layer fills. `emphasis` (the default): one layer always does, of more only the
+       * one the reader points at in the legend, as overlapping areas mix into a colour no
+       * variable has. `always` fills every layer, `never` none.
+       */
+      area?: 'emphasis' | 'always' | 'never'
+      /** The value under each axis name; with one layer only (all or nothing). Default true. */
+      dataLabels?: boolean
+      small?: boolean
+    }
+
+/**
+ * A layer of a radar chart: one value per axis, `null` for no data (rule 15). Without a colour
+ * the layers take the data colours in their order; a comparison is grey and dashed.
+ */
+export interface RadarSeriesData {
+  label: string
+  values: (number | null)[]
+  color?: ChartColor
+  comparison?: boolean
+}
 
 export type ChartKind = ChartSpec['kind']
 
