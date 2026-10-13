@@ -306,3 +306,30 @@ describe('lintje-chart focus after a clear', () => {
     expect((element.renderRoot as ShadowRoot).activeElement).toBe(drawing)
   })
 })
+
+describe('lintje-chart table of a radar', () => {
+  it('writes a row per axis, a column per layer and the norm, and keeps a gap missing', async () => {
+    const element = await tile({
+      title: 'Kwaliteit',
+      description: 'Kwaliteit per aspect.',
+      tableSwitch: true,
+      chart: {
+        kind: 'radar',
+        axes: ['Bereikbaarheid', 'Tijdigheid', 'Duidelijkheid', 'Juistheid', 'Bejegening'],
+        max: 10,
+        threshold: 7,
+        series: [
+          { label: 'Q3 2026', values: [7.8, null, 7.4, 8.6, 8.9] },
+          { label: 'Q3 2025', values: [7.4, 6.6, 6.9, 8.4, 8.8], comparison: true },
+        ],
+      },
+    })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    const head = [...found.renderRoot.querySelectorAll('.lintje-data-table__full thead th')]
+    expect(head.map((cell) => cell.textContent?.trim())).toEqual(['', 'Q3 2026', 'Q3 2025', 'Norm'])
+    const rows = cells(found)
+    expect(rows[0]).toEqual(['Bereikbaarheid', '7,8', '7,4', '7'])
+    expect(rows[1][1]).toContain('geen gegevens')
+  })
+})
