@@ -344,6 +344,11 @@ De besluiten hieronder gelden voor alle elementen.
   annuleren. Geen dialoog voor één naam.
 - **Opties die elk een regel nodig hebben, zijn kaarten** (`variant="cards"`): naast elkaar, de
   gekozen rustig zoals in de gesegmenteerde keuze.
+- **Vinden is iets anders dan zoeken** (`lintje-find`). Zoeken stuurt een vraag weg en de host
+  toont iets anders (`lintje-text-input type="search"`, `lintje-app-search`); vinden markeert een
+  woord in wat al op het scherm staat en gaat langs de treffers, zonder iets weg te filteren. Wie
+  alleen de treffers wil zien, kiest dat apart. De teller en vorige, volgende en wissen staan in
+  het vak zelf, zodat typen niets eromheen laat verschuiven of groeien.
 - **Een paar keuzes die allemaal in beeld blijven, zijn een groep vinkjes**
   (`lintje-checkbox-group`): één label, één hint en één foutregel voor de groep, zoals de
   radiogroep. Een lange lijst om in te zoeken is de multiselect.

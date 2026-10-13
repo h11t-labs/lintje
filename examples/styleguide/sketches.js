@@ -93,6 +93,7 @@ export const SKETCHES = {
   // Fields
   field: { rows: 's20 / se50' },
   'text-input': { rows: 's20 / in / s20' },
+  find: { rows: 'inic / l50 mark15 l25 / l30 mark15' },
   textarea: { rows: 's30 / ta / sp s20' },
   'number-input': { rows: 's20 / io in io / s40' },
   select: { rows: 's20 / se50' },
