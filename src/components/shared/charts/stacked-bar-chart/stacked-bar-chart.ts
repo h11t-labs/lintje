@@ -11,15 +11,10 @@ import {
 } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
 import { chartColor } from '../shared/colors'
-import {
-  renderChartFrame,
-  renderLegend,
-  seriesToggle,
-  type LegendItem,
-  type SvgSlot,
-} from '../shared/axes'
+import { renderChartFrame, renderLegend, type LegendItem, type SvgSlot } from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
+import { layerMotion, layerWeights } from '../shared/layer-motion'
 import { markSelection } from '../shared/mark-select'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { tintsFor } from '../shared/tints'
@@ -69,6 +64,14 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
   const totals = labels.map((_, i) => series.reduce((sum, row) => sum + row.values[i], 0))
   const shown = labels.map((_, i) => visible.reduce((sum, row) => sum + row.values[i], 0))
   const share = (value: number, i: number) => (value / (totals[i] || 1)) * 100
+  // A part switched off shrinks out and the parts above settle; its nodes stay, so switched
+  // back on it grows in place rather than drawing in again.
+  const weights = layerWeights(
+    controller,
+    series.map((row) => row.label).join('\u0000'),
+    series.map((row) => (row.hidden ? 0 : 1)),
+  )
+  const motion = layerMotion(controller)
   const { max, ticks } = normalized
     ? { max: 100, ticks: [0, 25, 50, 75, 100] }
     : axisScale(Math.max(...totals, 1))
@@ -115,20 +118,22 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
     color: colorFor(row, row.j),
     shape: 'square',
     hidden: row.hidden,
+    fixed: series.length < 2,
   }))
 
   const marks: SvgSlot = labels.map((label, i) => {
     const group = band(i, labels.length, area)
     let cumulative = 0
-    const segments = visible.map((row) => {
+    const segments = series.map((row) => {
       const { j } = row
       const raw = row.values[i]
       const value = normalized ? share(raw, i) : raw
       const y0 = yPosition(cumulative, max, area)
-      cumulative += value
+      cumulative += value * weights[j]
       const y1 = yPosition(cumulative, max, area)
       return { row, j, value, y1, height: Math.max(0, y0 - y1) }
     })
+    const top = yPosition(cumulative, max, area)
     return svg`
       <g class="lintje-chart__bar-group ${controller.hoverIndex === i ? 'is-hovered' : ''}"
          ${styleProps(staggerStyle(i, labels.length))}
@@ -141,35 +146,47 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
         <!-- The segments in one group, so the column lifts on hover as a whole. -->
         <g class="lintje-chart__bar">
           ${segments.map((segment) => {
-            const mark = selection.of(
-              segment.row.links?.[i],
-              `${label} · ${segment.row.label}`,
-              `${label}, ${segment.row.label}: ${formatNumber(segment.row.values[i])}`,
-            )
+            // A part switched off is no mark: not to the pointer, the keyboard or the reader.
+            const mark = segment.row.hidden
+              ? undefined
+              : selection.of(
+                  segment.row.links?.[i],
+                  `${label} · ${segment.row.label}`,
+                  `${label}, ${segment.row.label}: ${formatNumber(segment.row.values[i])}`,
+                )
             return svg`
-            <rect class="lintje-chart__mark lintje-chart__segment ${mark.state}"
+            <rect class="lintje-chart__mark lintje-chart__segment ${mark?.state ?? ''}"
                   x=${group.x} y=${segment.y1} width=${group.width} height=${segment.height}
                   fill=${colorFor(segment.row, segment.j)}
-                  data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
-                  aria-pressed=${mark.pressed} aria-label=${mark.label}
-                  @click=${mark.click} @keydown=${mark.keydown} />
+                  data-mark-id=${mark?.markId ?? nothing} role=${mark?.role ?? nothing}
+                  tabindex=${mark?.tabIndex ?? nothing} aria-pressed=${mark?.pressed ?? nothing}
+                  aria-label=${mark?.label ?? nothing} aria-hidden=${mark ? nothing : 'true'}
+                  @click=${mark?.click ?? nothing} @keydown=${mark?.keydown ?? nothing} />
           `
           })}
         </g>
-        <!-- Percentages inside the segments when they are >= 16 px tall and fit the width. -->
+        <!-- Percentages inside the segments when they are >= 16 px tall and fit the width. Each
+             keeps its node and fades, so a switch does not draw it in again. -->
         ${
           normalized
-            ? segments.map((segment) =>
-                segment.height >= 16 && dataLabelFits(formatPercent(segment.value), barWidth - 4)
-                  ? svg`<text x=${group.center} y=${segment.y1 + segment.height / 2 + 4} text-anchor="middle"
-                        class="lintje-chart__data-label ${insideLabel(segment.j)}">${formatPercent(segment.value)}</text>`
-                  : nothing,
+            ? segments.map(
+                (segment) => svg`
+                <g class="lintje-chart__series ${
+                  !segment.row.hidden &&
+                  segment.height >= 16 &&
+                  dataLabelFits(formatPercent(segment.value), barWidth - 4)
+                    ? ''
+                    : 'is-off'
+                }">
+                  <text x=${group.center} y=${segment.y1 + segment.height / 2 + 4} text-anchor="middle"
+                        class="lintje-chart__data-label ${insideLabel(segment.j)}">${formatPercent(segment.value)}</text>
+                </g>`,
               )
             : nothing
         }
         ${
           showTotals
-            ? svg`<text x=${group.center} y=${yPosition(shown[i], max, area) - 5} text-anchor="middle"
+            ? svg`<text x=${group.center} y=${top - 5} text-anchor="middle"
                       class="lintje-chart__data-label" font-weight="700">${formatDataLabel(shown[i], group.bandWidth)}</text>`
             : nothing
         }
@@ -181,7 +198,7 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
     <div class="lintje-chart-wrap ${small ? 'lintje-chart--small' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event) || selection.escape(event)}>
-      ${renderLegend({ items: legend, onToggle: seriesToggle(controller, series.length) })}
+      ${renderLegend({ items: legend, onToggle: (key) => controller.toggleSeries(key) })}
       ${renderChartFrame(
         {
           fontFamily: controller.fontFamily,
@@ -196,7 +213,7 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
           interactive: selection.interactive,
           keys,
         },
-        marks,
+        svg`<g ${ref(motion.attach)}>${marks}</g>`,
       )}
       ${renderTooltip(controller)}
       ${renderPlotStatus(controller)}

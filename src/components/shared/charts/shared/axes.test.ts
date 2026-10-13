@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { render } from 'lit'
-import { renderLegend, seriesToggle, thinLabels, type LegendItem } from './axes'
+import { renderLegend, thinLabels, type LegendItem } from './axes'
 
 // Without a canvas a character measures 6.5 px, so "wo 2 sep" is 52 px.
 const days = ['wo 2 sep', 'do 3 sep', 'vr 4 sep', 'za 5 sep', 'zo 6 sep', 'ma 7 sep', 'di 8 sep']
@@ -55,17 +55,16 @@ describe('the legend', () => {
     return element
   }
 
-  it('switches nothing for a single series', () => {
-    expect(seriesToggle({ toggleSeries: () => {} }, 1)).toBeUndefined()
-    expect(seriesToggle({ toggleSeries: () => {} }, 2)).toBeTypeOf('function')
-  })
-
-  it('never makes a reference a switch', () => {
+  it('switches every item but a fixed one, a reference too', () => {
     const element = host(
-      [{ label: 'Aanvragen' }, { label: 'Norm', shape: 'dashed', fixed: true }],
+      [
+        { label: 'Aanvragen' },
+        { label: 'Norm', shape: 'dashed' },
+        { label: 'geen gegevens', shape: 'hatch', fixed: true },
+      ],
       () => {},
     )
     const buttons = [...element.querySelectorAll('.lintje-legend__button')]
-    expect(buttons.map((button) => button.textContent?.trim())).toEqual(['Aanvragen'])
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual(['Aanvragen', 'Norm'])
   })
 })

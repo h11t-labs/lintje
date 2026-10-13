@@ -13,6 +13,8 @@ import {
   renderChartFrame,
   renderLegend,
   thinLabels,
+  MEDIAN_KEY,
+  THRESHOLD_KEY,
   type LegendItem,
   type SvgSlot,
 } from '../shared/axes'
@@ -180,6 +182,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     ...(onScale(median)
       ? [
           {
+            key: MEDIAN_KEY,
             x: xOf(median),
             text: spec.medianLabel ?? withUnit(`mediaan ${bound(median)}`),
             bold: true,
@@ -190,6 +193,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     ...(onScale(threshold)
       ? [
           {
+            key: THRESHOLD_KEY,
             x: xOf(threshold),
             text: spec.thresholdLabel ?? withUnit(`norm ${bound(threshold)}`),
             bold: false,
@@ -201,15 +205,18 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
   const lineLabels = placeLineLabels(lines, area, controller.fontFamily)
 
   const capitalised = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
+  const off = (key: string) => controller.hiddenSeries.includes(key)
+  // The counts are the one series, so not a switch; the median and the norm are.
   const legend: LegendItem[] = [
-    { label, color, shape: 'square' },
+    { label, color, shape: 'square', fixed: true },
     ...(onScale(median)
       ? [
           {
             label: capitalised(spec.medianLabel ?? 'Mediaan'),
             color: 'var(--color-chart-emphasis)',
             shape: 'line' as const,
-            fixed: true,
+            key: MEDIAN_KEY,
+            hidden: off(MEDIAN_KEY),
           },
         ]
       : []),
@@ -219,7 +226,8 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
             label: capitalised(spec.thresholdLabel ?? 'Norm'),
             color: 'var(--color-chart-emphasis)',
             shape: 'dashed' as const,
-            fixed: true,
+            key: THRESHOLD_KEY,
+            hidden: off(THRESHOLD_KEY),
           },
         ]
       : []),
@@ -268,16 +276,18 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
       const place = lineLabels[i]
       // A line and its label come in together, after the bars, as a data label does.
       return svg`
-        <g class="lintje-chart__reference">
-          <line x1=${line.x} x2=${line.x} y1=${area.top} y2=${baseline}
-                stroke="var(--color-chart-emphasis)" stroke-width=${line.dashed ? 1 : 1.5}
-                stroke-dasharray=${line.dashed ? '3 3' : nothing} />
-          <text x=${place.x} y=${place.y} text-anchor=${place.anchor}
-                class=${
-                  line.bold
-                    ? 'lintje-chart__data-label lintje-chart__data-label--halo'
-                    : 'lintje-chart__axis-label lintje-chart__axis-label--halo'
-                }>${line.text}</text>
+        <g class="lintje-chart__series ${off(line.key) ? 'is-off' : ''}">
+          <g class="lintje-chart__reference">
+            <line x1=${line.x} x2=${line.x} y1=${area.top} y2=${baseline}
+                  stroke="var(--color-chart-emphasis)" stroke-width=${line.dashed ? 1 : 1.5}
+                  stroke-dasharray=${line.dashed ? '3 3' : nothing} />
+            <text x=${place.x} y=${place.y} text-anchor=${place.anchor}
+                  class=${
+                    line.bold
+                      ? 'lintje-chart__data-label lintje-chart__data-label--halo'
+                      : 'lintje-chart__axis-label lintje-chart__axis-label--halo'
+                  }>${line.text}</text>
+          </g>
         </g>
       `
     }),
@@ -296,7 +306,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     <div class="lintje-chart-wrap ${small ? 'lintje-chart--small' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event)}>
-      ${renderLegend({ items: legend })}
+      ${renderLegend({ items: legend, onToggle: (key) => controller.toggleSeries(key) })}
       ${renderChartFrame(
         {
           fontFamily: controller.fontFamily,

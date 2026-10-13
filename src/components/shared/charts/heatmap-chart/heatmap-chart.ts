@@ -4,7 +4,7 @@ import { ref } from 'lit/directives/ref.js'
 import { styleProps } from '../../../../core/style-props'
 import { formatNumber } from '../../../../core/format'
 import { gridStaggerStyle } from '../shared/stagger'
-import { renderLegend, seriesToggle } from '../shared/axes'
+import { renderLegend } from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
 import { formatWithUnit, heatmapClassFor, heatmapClasses } from './heatmap-classes'
 import type { ChartOptions } from '../shared/controller'
@@ -81,8 +81,9 @@ export function renderHeatmap(spec: HeatmapSpec, options: ChartOptions): Templat
           color: klass.color,
           shape: 'square',
           hidden: controller.hiddenSeries.includes(classKey(klass.ramp)),
+          fixed: classes.length < 2,
         })),
-        onToggle: seriesToggle(controller, classes.length),
+        onToggle: (key) => controller.toggleSeries(key),
       })}
       <table class="lintje-heatmap__grid ${compact ? 'is-compact' : ''}">
         <caption class="visually-hidden">${description}</caption>

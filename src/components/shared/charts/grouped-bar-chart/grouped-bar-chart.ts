@@ -6,18 +6,12 @@ import { axisColumn, axisScale, band, yPosition } from '../shared/scale'
 import { formatNumber, formatDataLabel, dataLabelFits } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
 import { DEFAULT_SERIES_COLOR, chartColor } from '../shared/colors'
-import {
-  renderChartFrame,
-  renderLegend,
-  seriesToggle,
-  type LegendItem,
-  type SvgSlot,
-} from '../shared/axes'
+import { renderChartFrame, renderLegend, type LegendItem, type SvgSlot } from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
+import { layerMotion, layerWeights } from '../shared/layer-motion'
 import { markSelection } from '../shared/mark-select'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
-import { TINTS } from '../bar-chart/bar-chart'
 import type { ChartSpec } from '../shared/types'
 
 type GroupedBarSpec = Extract<ChartSpec, { kind: 'grouped-bar' }>
@@ -34,37 +28,57 @@ export function renderGroupedBarChart(spec: GroupedBarSpec, options: ChartOption
     fit: Boolean(options.expanded) && !options.mobile,
   })
 
-  const series = spec.series.map((row) => ({ ...row, color: chartColor(row.color) }))
-  const visible = series.filter((row) => !controller.hiddenSeries.includes(row.label))
+  const series = spec.series.map((row, j) => ({
+    ...row,
+    color:
+      chartColor(row.color) ?? (j === 0 ? DEFAULT_SERIES_COLOR : 'var(--color-chart-secondary)'),
+    hidden: controller.hiddenSeries.includes(row.label),
+  }))
+  const visible = series.filter((row) => !row.hidden)
   const selection = markSelection(
     options,
     visible.flatMap((row) => row.links ?? []),
   )
-  const { max, ticks } = axisScale(Math.max(...visible.flatMap((row) => row.values), 1))
+  // Every series sets the scale, so switching one off moves nothing up or down.
+  const { max, ticks } = axisScale(Math.max(...series.flatMap((row) => row.values), 1))
   const axis = axisColumn(ticks, controller.width, { fontFamily: controller.fontFamily })
   const area = chartArea(options, { left: axis.width })
   const baseline = area.height - area.bottom
   const slotWidth = band(0, labels.length, area).width / Math.max(1, visible.length)
+  // A bar switched off narrows out and its neighbours close up; its nodes stay, so switched back
+  // on it widens in place rather than drawing in again.
+  const weights = layerWeights(
+    controller,
+    series.map((row) => row.label).join('\u0000'),
+    series.map((row) => (row.hidden ? 0 : 1)),
+  )
+  const motion = layerMotion(controller)
+  const unit =
+    band(0, labels.length, area).width /
+    Math.max(
+      1,
+      weights.reduce((a, b) => a + b, 0),
+    )
+  const offsets = weights.map((_, j) => weights.slice(0, j).reduce((a, b) => a + b, 0) * unit)
   // Labels only if each fits its slot; adjacent slots are 2 px apart.
   const showLabels = visible.every((row) =>
     row.values.every((value) => dataLabelFits(formatDataLabel(value, slotWidth), slotWidth - 2)),
   )
 
-  const legend: LegendItem[] = series.map((row, i) => ({
+  const legend: LegendItem[] = series.map((row) => ({
     label: row.label,
-    color: row.color ?? (i === 0 ? DEFAULT_SERIES_COLOR : 'var(--color-chart-secondary)'),
+    color: row.color,
     shape: 'square',
-    hidden: controller.hiddenSeries.includes(row.label),
+    hidden: row.hidden,
+    fixed: series.length < 2,
   }))
-  const colorOf = (row: (typeof series)[number], slot: number) =>
-    legend[series.indexOf(row)]?.color ?? TINTS[slot]
 
   const contentAt = (i: number): TooltipContent => ({
     title: labels[i],
-    rows: visible.map((row, slot) => ({
+    rows: visible.map((row) => ({
       label: row.label,
       value: formatNumber(row.values[i]),
-      color: colorOf(row, slot),
+      color: row.color,
     })),
   })
   const keys = plotKeys(controller, labels.length, (i) => ({
@@ -80,27 +94,34 @@ export function renderGroupedBarChart(spec: GroupedBarSpec, options: ChartOption
          ${styleProps(staggerStyle(i, labels.length))}
          @mousemove=${(event: MouseEvent) => controller.showTooltip(event, contentAt(i))}
          @mouseleave=${() => controller.hideTooltip()}>
-        ${visible.map((row, slot) => {
+        ${series.map((row, j) => {
           const value = row.values[i]
           const y = yPosition(value, max, area)
-          const color = colorOf(row, slot)
-          const mark = selection.of(
-            row.links?.[i],
-            `${label} · ${row.label}`,
-            `${label}, ${row.label}: ${formatNumber(value)}`,
-          )
+          const x = group.x + offsets[j]
+          const width = Math.max(0, weights[j] * unit - 2)
+          // A bar switched off is no mark: not to the pointer, the keyboard or the reader.
+          const mark = row.hidden
+            ? undefined
+            : selection.of(
+                row.links?.[i],
+                `${label} · ${row.label}`,
+                `${label}, ${row.label}: ${formatNumber(value)}`,
+              )
           return svg`
             <g>
-              <rect class="lintje-chart__bar lintje-chart__mark ${mark.state}"
-                    x=${group.x + slot * slotWidth} y=${y} width=${slotWidth - 2}
-                    height=${Math.max(0, baseline - y)} fill=${color}
-                    data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
-                    aria-pressed=${mark.pressed} aria-label=${mark.label}
-                    @click=${mark.click} @keydown=${mark.keydown} />
+              <rect class="lintje-chart__bar lintje-chart__mark ${mark?.state ?? ''}"
+                    x=${x} y=${y} width=${width}
+                    height=${Math.max(0, baseline - y)} fill=${row.color}
+                    data-mark-id=${mark?.markId ?? nothing} role=${mark?.role ?? nothing}
+                    tabindex=${mark?.tabIndex ?? nothing} aria-pressed=${mark?.pressed ?? nothing}
+                    aria-label=${mark?.label ?? nothing} aria-hidden=${mark ? nothing : 'true'}
+                    @click=${mark?.click ?? nothing} @keydown=${mark?.keydown ?? nothing} />
               ${
                 showLabels
-                  ? svg`<text x=${group.x + slot * slotWidth + (slotWidth - 2) / 2} y=${y - 4}
-                            text-anchor="middle" class="lintje-chart__data-label">${formatDataLabel(value, slotWidth)}</text>`
+                  ? svg`<g class="lintje-chart__series ${row.hidden ? 'is-off' : ''}">
+                      <text x=${x + width / 2} y=${y - 4} text-anchor="middle"
+                            class="lintje-chart__data-label">${formatDataLabel(value, slotWidth)}</text>
+                    </g>`
                   : nothing
               }
             </g>
@@ -114,7 +135,7 @@ export function renderGroupedBarChart(spec: GroupedBarSpec, options: ChartOption
     <div class="lintje-chart-wrap ${small ? 'lintje-chart--small' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event) || selection.escape(event)}>
-      ${renderLegend({ items: legend, onToggle: seriesToggle(controller, series.length) })}
+      ${renderLegend({ items: legend, onToggle: (key) => controller.toggleSeries(key) })}
       ${renderChartFrame(
         {
           fontFamily: controller.fontFamily,
@@ -129,7 +150,7 @@ export function renderGroupedBarChart(spec: GroupedBarSpec, options: ChartOption
           interactive: selection.interactive,
           keys,
         },
-        marks,
+        svg`<g ${ref(motion.attach)}>${marks}</g>`,
       )}
       ${renderTooltip(controller)}
       ${renderPlotStatus(controller)}

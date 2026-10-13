@@ -98,6 +98,19 @@ describe('the histogram', () => {
     expect(legend).toEqual(['Aantal', 'Mediaan', 'Termijn 21 dagen'])
   })
 
+  it('switches the median and the threshold from the legend, never the counts', () => {
+    const { host } = draw({ median: 9.6, threshold: 21 })
+    const buttons = [...host.querySelectorAll<HTMLButtonElement>('.lintje-legend__button')]
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual(['Mediaan', 'Norm'])
+    const references = () =>
+      [...host.querySelectorAll('.lintje-chart__reference')].map((reference) =>
+        reference.parentElement?.classList.contains('is-off'),
+      )
+    buttons[0].click()
+    expect(references()).toEqual([true, false])
+    expect(bars(host)).toHaveLength(BINS.length)
+  })
+
   it('names the class, the count and its share in the tooltip', () => {
     const { host, controller } = draw({ label: 'Aanvragen' })
     const drawing = host.querySelector('svg[tabindex="0"]')!
