@@ -53,9 +53,12 @@ export function renderTooltip(controller: ChartController): TemplateResult | typ
                 ? html`<svg class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--symbol"
                             viewBox="0 0 14 14" ${styleProps({ color: row.color })}
                             aria-hidden="true" focusable="false">${renderSymbol(row.symbol, row.color, 7)}</svg>`
-                : row.color
-                  ? html`<span class="lintje-chart-tooltip__marker" ${styleProps({ background: row.color })}></span>`
-                  : nothing
+                : row.marker
+                  ? html`<span class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--${row.marker}"
+                               ${styleProps({ color: row.color })}></span>`
+                  : row.color
+                    ? html`<span class="lintje-chart-tooltip__marker" ${styleProps({ background: row.color })}></span>`
+                    : nothing
             }
             ${row.label}
           </span>

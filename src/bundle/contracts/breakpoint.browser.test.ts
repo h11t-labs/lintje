@@ -202,6 +202,19 @@ const HEATMAP: ChartData = {
   },
 }
 
+const RADAR: ChartData = {
+  title: 'Kwaliteit per aspect',
+  description: 'Gemiddelde score per aspect, schaal 0 tot 10.',
+  state: 'ready',
+  chart: {
+    kind: 'radar',
+    axes: ['Bereikbaarheid', 'Tijdigheid', 'Duidelijkheid', 'Juistheid', 'Bejegening'],
+    max: 10,
+    threshold: 7,
+    series: [{ label: 'Q3 2026', values: [7.8, 6.1, 7.4, 8.6, 8.9] }],
+  },
+}
+
 const TABS: TabItem[] = [
   { value: 'overzicht', label: 'Overzicht' },
   { value: 'aanvragen', label: 'Aanvragen', count: 12 },
@@ -499,6 +512,15 @@ const ROWS: Row[] = [
     mount: () => append(create('lintje-chart', { data: HEATMAP })),
     wide: (element) => find(element, '.lintje-heatmap__column-label')?.textContent === HOURS[0],
     phone: (element) => find(element, '.lintje-heatmap__column-label')?.textContent === DAYS[0],
+  },
+  {
+    tag: 'lintje-chart',
+    marker: 'the radar becomes a row of bars per axis',
+    mount: () => append(create('lintje-chart', { data: RADAR })),
+    wide: (element) =>
+      shown(element, '.lintje-radar__ring') && !find(element, '.lintje-radar__row'),
+    phone: (element) =>
+      shown(element, '.lintje-radar__row') && !find(element, '.lintje-radar__ring'),
   },
   {
     tag: 'lintje-chart',

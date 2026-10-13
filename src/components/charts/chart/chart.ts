@@ -63,6 +63,8 @@ function skeletonKind(chart: ChartSpec): ChartSkeletonKind {
       return 'line'
     case 'pie':
       return chart.donut ? 'donut' : 'pie'
+    case 'radar':
+      return 'pie'
     case 'heatmap':
       return 'heatmap'
     default:
@@ -178,6 +180,18 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
         ['', ...chart.columnLabels],
         ...chart.rowLabels.map((label, row) => [label, ...(chart.values[row] ?? [])]),
       ]
+    case 'radar': {
+      // A row per axis, a column per layer and the norm; a missing value stays missing.
+      const norm = chart.threshold != null ? [chart.thresholdLabel ?? 'Norm'] : []
+      return [
+        ['', ...chart.series.map((series) => series.label), ...norm],
+        ...chart.axes.map((axis, i) => [
+          axis,
+          ...chart.series.map((series) => series.values[i] ?? null),
+          ...(chart.threshold != null ? [chart.threshold] : []),
+        ]),
+      ]
+    }
     case 'histogram': {
       const bound = (name: string) => (chart.unit ? `${name} (${chart.unit})` : name)
       // An open class has no upper bound: an empty cell, never a missing value (rule 15).

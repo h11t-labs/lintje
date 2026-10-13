@@ -131,6 +131,17 @@ const KINDS: { name: string; spec: ChartSpec; first: string; second: string }[] 
     },
   },
   {
+    name: 'radar',
+    first: 'Bereikbaarheid',
+    second: 'Tijdigheid',
+    spec: {
+      kind: 'radar',
+      axes: ['Bereikbaarheid', 'Tijdigheid', 'Duidelijkheid', 'Juistheid', 'Bejegening'],
+      max: 10,
+      series: [{ label: 'Score', values: [7, null, 8, 6, 9] }],
+    },
+  },
+  {
     name: 'horizontal-bar',
     first: 'Noord',
     second: 'Zuid',

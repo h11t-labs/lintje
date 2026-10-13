@@ -182,6 +182,17 @@ const deskScatter = (missing = false) => ({
     })),
   })),
 })
+// The quality of service per aspect on a scale of 0 to 10: one quarter against the same one a
+// year before, and three regions; fictional scores.
+const ASPECTS = ['Bereikbaarheid', 'Tijdigheid', 'Duidelijkheid', 'Juistheid', 'Deskundigheid', 'Bejegening']
+const QUALITY = [7.8, 6.1, 7.4, 8.6, 8.2, 8.9]
+const quality = (missing = false) => ({
+  kind: 'radar', axes: ASPECTS, max: 10, threshold: 7,
+  series: [
+    { label: 'Q3 2026', values: missing ? QUALITY.map((v, i) => (i === 1 ? null : v)) : QUALITY },
+    { label: 'Q3 2025', values: [7.4, 6.6, 6.9, 8.4, 8.1, 8.8], comparison: true },
+  ],
+})
 const lateDesks = desks.filter((desk) => desk.data_status === 'delayed').map((desk) => desk.map_label)
 
 const CHARTS = [
@@ -340,6 +351,25 @@ const CHARTS = [
     spec: deskScatter(),
   },
   {
+    id: 'radar', title: 'Kwaliteit van de dienstverlening',
+    subtitle: 'Gemiddelde score per aspect, schaal 0–10',
+    description: 'Gemiddelde score per aspect in Q3 2026 tegen Q3 2025, op een schaal van 0 tot 10. Bejegening scoort het hoogst (8,9), Tijdigheid het laagst (6,1) en als enige onder de norm van 7,0.',
+    spec: quality(),
+  },
+  {
+    id: 'radar-layers', title: 'Kwaliteit per regio',
+    subtitle: 'Gemiddelde score per aspect, schaal 0–10, Q3 2026',
+    description: 'Gemiddelde score per aspect in drie regio’s, op een schaal van 0 tot 10. Noord scoort het hoogst op Bejegening (8,7), Zuid op Deskundigheid (8,6), Oost op Bejegening (8,0).',
+    spec: {
+      kind: 'radar', axes: ASPECTS, max: 10, threshold: 7,
+      series: [
+        { label: 'Regio Noord', values: [7.9, 6.4, 7.1, 8.5, 8.0, 8.7] },
+        { label: 'Regio Zuid', values: [7.1, 7.4, 7.8, 8.1, 8.6, 8.2] },
+        { label: 'Regio Oost', values: [6.8, 7.0, 6.6, 7.9, 7.4, 8.0] },
+      ],
+    },
+  },
+  {
     id: 'heatmap', title: 'Heatmap met klassenlegenda',
     description: 'Aanvragen per uur naar dag van de week en uur van de dag, in vijf klassen.',
     spec: {
@@ -378,6 +408,8 @@ const VARIANT_NAMES = {
   'donut-remainder': 'Donut met de rest van een geheel',
   'dual-axis': 'Aantallen en wachttijd met norm',
   scatter: 'Wachttijd tegen drukte met norm',
+  radar: 'Eén variabele met vergelijking en norm',
+  'radar-layers': 'Drie lagen',
   heatmap: 'Met klassenlegenda',
   histogram: 'Met mediaan en termijn',
 }
@@ -387,6 +419,7 @@ const VARIANT_NOTES = {
   line: 'De laatste twee uren zijn nog niet compleet en staan gearceerd.',
   'stacked-area': 'Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
   'pie-folded': 'De taart houdt de vier grootste delen en vouwt de rest in “Overig”.',
+  'radar-layers': 'Wijs een regio aan in de legenda: haar vlak kleurt en de andere lagen stappen terug.',
 }
 
 // The states a chart tile can be in, put on each specimen of a kind: the tile keeps its size
@@ -481,6 +514,12 @@ const missingValues = [
     note: 'Loketten die vertraagd aanleveren, missen hun wachttijd en staan er niet in.',
     description: `Gemiddelde wachttijd tegen het aantal aanvragen per loket. ${lateDesks.join(' en ')} leveren vertraagd aan: hun wachttijd ontbreekt, dus ze staan niet in de grafiek.`,
     chart: deskScatter(true),
+  },
+  {
+    label: 'Ontbrekende waarde',
+    note: 'De lijn breekt bij Tijdigheid, het vlak vervalt en de spaak is gearceerd.',
+    description: 'Gemiddelde score per aspect in Q3 2026 tegen Q3 2025. Van Tijdigheid zijn geen gegevens.',
+    chart: quality(true),
   },
   {
     label: 'Ontbrekende waarde',
@@ -616,7 +655,7 @@ export default {
 {
       tag: 'lintje-chart',
       wide: true,
-      title: 'Een grafiek in haar tegel: twaalf soorten, één tag',
+      title: 'Een grafiek in haar tegel: dertien soorten, één tag',
       // One kind at a time, chosen by the question it answers; the states switch on its specimens.
       groups: {
         label: 'Soort',
