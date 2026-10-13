@@ -4,6 +4,7 @@ import { cdp, server, userEvent } from 'vitest/browser'
 import { deepActiveElement } from '../../../core/focus'
 import './sortable-list'
 import type { LintjeSortableList, SortableItem } from './sortable-list'
+import { pointerLog } from '../../../pointer-log'
 
 const ITEMS: SortableItem[] = [
   { id: 'naam', label: 'Naam' },
@@ -51,30 +52,40 @@ afterEach(() => {
 })
 
 describe('lintje-sortable-list with a mouse', () => {
-  it('moves the first row below the last and keeps the focus on its grip', async () => {
+  it('moves the first row below the last and keeps the focus on its grip', { repeats: 20 }, async () => {
     const element = await mount()
     const local = collect(element, 'lintje-change')
     const values = collect(element, 'lintje-values-change')
     const last = rows(element)[3]!
+    const log = pointerLog(element.shadowRoot!, () =>
+      rows(element).map((row) => Math.round(row.getBoundingClientRect().top)).concat([window.scrollY]),
+    )
     await userEvent.dragAndDrop(grip(element, 'naam'), last, {
       targetPosition: { x: 40, y: last.offsetHeight - 2 },
     })
     await settle(element)
+    log.stop()
+    if (labels(element)[3] !== 'Naam') console.log('POINTERLOG sortable-last\n' + log.lines.join('\n'))
     expect(labels(element)).toEqual(['Datum', 'Status', 'Eigenaar', 'Naam'])
     expect(local).toEqual([['datum', 'status', 'eigenaar', 'naam']])
     expect(values).toEqual([{ kolommen: ['datum', 'status', 'eigenaar', 'naam'] }])
     expect(deepActiveElement()).toBe(grip(element, 'naam'))
   })
 
-  it('tells no order when a row is put down where it was picked up', async () => {
+  it('tells no order when a row is put down where it was picked up', { repeats: 20 }, async () => {
     const element = await mount()
     const local = collect(element, 'lintje-change')
     const second = rows(element)[1]!
+    const log = pointerLog(element.shadowRoot!, () =>
+      rows(element).map((row) => Math.round(row.getBoundingClientRect().top)).concat([window.scrollY]),
+    )
     // A short drag that stays above the next row's middle.
     await userEvent.dragAndDrop(grip(element, 'datum'), second, {
       targetPosition: { x: 40, y: second.offsetHeight - 2 },
     })
     await settle(element)
+    log.stop()
+    if (labels(element)[0] !== 'Naam') console.log('POINTERLOG sortable-same\n' + log.lines.join('\n'))
     expect(labels(element)).toEqual(['Naam', 'Datum', 'Status', 'Eigenaar'])
     expect(local).toEqual([])
   })

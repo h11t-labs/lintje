@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import './split-pane'
 import type { LintjeSplitPane } from './split-pane'
+import { pointerLog } from '../../../pointer-log'
 
 async function mount(): Promise<LintjeSplitPane> {
   const element = Object.assign(document.createElement('lintje-split-pane'), {
@@ -33,10 +34,23 @@ function collect(element: LintjeSplitPane, name: string): unknown[] {
 
 async function dragTo(element: LintjeSplitPane, x: number): Promise<void> {
   const box = block(element)
-  await userEvent.dragAndDrop(strip(element), box, {
-    targetPosition: { x, y: box.offsetHeight / 2 },
+  const log = pointerLog(element.shadowRoot!, () => {
+    const r = box.getBoundingClientRect()
+    return [Math.round(r.left), Math.round(r.width), element.value, window.scrollX, window.scrollY]
   })
-  await element.updateComplete
+  const before = element.value
+  try {
+    await userEvent.dragAndDrop(strip(element), box, {
+      targetPosition: { x, y: box.offsetHeight / 2 },
+    })
+    await element.updateComplete
+  } finally {
+    log.stop()
+  }
+  ;(element as unknown as { __log: string[] }).__log = [`drag to ${x} from ${before} -> ${element.value}`, ...log.lines]
+}
+function dump(element: LintjeSplitPane): void {
+  console.log('POINTERLOG split\n' + (element as unknown as { __log: string[] }).__log.join('\n'))
 }
 
 // WebKit keeps the media queries of a sheet that no connected element adopts as they were, so
@@ -48,11 +62,12 @@ afterEach(async () => {
 })
 
 describe('lintje-split-pane dragged', () => {
-  it('moves the split to where the strip is let go, and tells it once', async () => {
+  it('moves the split to where the strip is let go, and tells it once', { repeats: 20 }, async () => {
     const element = await mount()
     const changes = collect(element, 'lintje-split-change')
     const width = block(element).offsetWidth
     await dragTo(element, width * 0.3)
+    if (element.value !== 30) dump(element)
     expect(element.value).toBe(30)
     expect(changes).toEqual([30])
     expect(part(element, '[role="separator"]').getAttribute('aria-valuenow')).toBe('30')
@@ -64,14 +79,16 @@ describe('lintje-split-pane dragged', () => {
       .toBeCloseTo((width - 2 - 9) * 0.3, 0)
   })
 
-  it('stops at min and max', async () => {
+  it('stops at min and max', { repeats: 20 }, async () => {
     const element = await mount()
     Object.assign(element, { min: 25, max: 70 })
     await element.updateComplete
     const width = block(element).offsetWidth
     await dragTo(element, 4)
+    if (element.value !== 25) dump(element)
     expect(element.value).toBe(25)
     await dragTo(element, width - 4)
+    if (element.value !== 70) dump(element)
     expect(element.value).toBe(70)
   })
 })
