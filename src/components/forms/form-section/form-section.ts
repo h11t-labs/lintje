@@ -12,7 +12,7 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
-import { PropertyHold, disableableControls } from '../form/controls'
+import { PropertyHold, disableableControls } from '../../shared/controls'
 import formSectionCss from './form-section.css?inline'
 
 export type FormSectionVariant = 'plain' | 'tile'

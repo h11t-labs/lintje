@@ -2,7 +2,7 @@
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { define, type FrameSettings } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
-import { LintjeGridItemElement, spanStyles } from '../../../primitives/shared/grid-item-element'
+import { LintjeGridItemElement, spanStyles } from '../../shared/grid-item-element'
 import noteCss from './note.css?inline'
 import type { NoteData } from '../../../types'
 

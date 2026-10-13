@@ -11,7 +11,7 @@ import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'l
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
-import '../../../primitives/button/button'
+import '../button/button'
 import '../../feedback/toast/toast'
 import { ANNOUNCE_GAP, COPIED_FOR } from '../../shared/copied'
 import qrCodeCss from './qr-code.css?inline'

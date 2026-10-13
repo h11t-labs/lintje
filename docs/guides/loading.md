@@ -78,7 +78,7 @@ geldt voor deze manier van laden:
   (`document.createElement('lintje-toast')`) wordt bovenaan geïmporteerd zoals de andere. Niets wordt
   op verzoek opgehaald.
 - **Elk bestand laadt de basis**: Lit, de tokens, de iconen die de componenten tekenen en de
-  primitives. Een primitive als `button` of `grid` hoef je dus niet apart te laden. De kaart, met Leaflet en zijn geometrie, is de zwaarste tag.
+  bouwstenen die bijna elke tag tekent. Een bouwsteen als `button` of `grid` hoef je dus niet apart te laden. De kaart, met Leaflet en zijn geometrie, is de zwaarste tag.
 - **Het zijn tientallen kleine bestanden.** Serveer de map over HTTP/2, of met verbindingen die
   open blijven: een server die de verbinding na elk bestand sluit, laat er een paar vallen, en één module die
   niet laadt, laat de pagina zonder zijn tags. De bestanden in `chunks/` dragen een hash en mogen

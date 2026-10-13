@@ -11,10 +11,10 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import '../shell/shell'
 import './page-header'
 import { getFrameState } from '../../../core/frame-state'
-import '../../../primitives/tile/tile'
+import '../../layout/tile/tile'
 import type { LintjeShell } from '../shell/shell'
 import type { LintjePageHeader } from './page-header'
-import type { LintjeTile } from '../../../primitives/tile/tile'
+import type { LintjeTile } from '../../layout/tile/tile'
 
 beforeAll(() => {
   // The shell observes its navigation bar and the page header its title; happy-dom has neither.

@@ -880,7 +880,7 @@ describe('the status words', () => {
       ['src/components/inputs/textarea/textarea.css', '.lintje-textarea__counter.is-over', 'error'],
       ['src/components/inputs/file-upload/file-upload.css', '.lintje-file-upload__reason', 'error'],
       [
-        'src/primitives/progress-bar/progress-bar.css',
+        'src/components/feedback/progress-bar/progress-bar.css',
         '.lintje-progress--error .lintje-progress__label',
         'error',
       ],

@@ -16,7 +16,7 @@ import { MOBILE, MediaController } from '../../../core/media'
 import { ANNOUNCE_GAP } from '../../shared/copied'
 import '../../inputs/textarea/textarea'
 import type { LintjeTextarea } from '../../inputs/textarea/textarea'
-import '../../../primitives/icon-button/icon-button'
+import '../../actions/icon-button/icon-button'
 import translatorCss from './translator.css?inline'
 
 /** The language a slotted choice shows: a `select`'s option or a `lintje-combobox`'s. */

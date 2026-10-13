@@ -20,7 +20,7 @@ import { MOBILE, MediaController } from '../../../core/media'
 import { ownsEscape } from '../../shared/focus-trap'
 import { holdsFocus } from '../../../core/focus'
 import '../../actions/logo/logo'
-import { renderBadge } from '../../../primitives/badge/badge'
+import { renderBadge } from '../../feedback/badge/badge'
 import type { ShellLink } from '../../../types'
 
 /** Pages as the bars draw them: adjacent loose pages form one group without a heading. */

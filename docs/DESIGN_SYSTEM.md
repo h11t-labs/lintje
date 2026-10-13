@@ -299,6 +299,32 @@ Besluiten die voor beide gelden:
 `prefers-color-scheme` live; hoe de host hem herleidt, staat in
 [Tokens, thema's, modus en het embleem](guides/theming.md#modus).
 
+## Basis, bouwsteen, samengesteld
+
+Alles in Lintje staat in één van drie lagen. Een laag gebruikt alleen wat in haar eigen laag of
+eronder staat.
+
+| Laag | Wat het is | Waar |
+|---|---|---|
+| **Basis** | Wat geen tag is: de tokens met hun eigen drie lagen (zie [Kleur](#kleur)), de lettertypen, de iconen, en gedrag zonder eigen uiterlijk, zoals focus, plaatsen, sneltoetsen en opmaak | `tokens/`, `icons/`, `core/` en de `shared/`-mappen |
+| **Bouwsteen** | Eén bedieningselement, één waarde, één stuk inhoud of één kader | elke tag die niet samengesteld is |
+| **Samengesteld** | Ordent een verzameling van de host — rijen, reeksen, berichten, velden, de delen van een pagina — uit bouwstenen | `composite` in `src/categories.json` |
+
+- **De toets is van buiten.** Zet je hem als één ding ergens in, dan is hij een bouwsteen, hoe hij
+  van binnen ook getekend is: een multiselect tekent checkboxen en is één veld, een tegel houdt
+  elke inhoud vast en is één kader. Ordent hij zelf een verzameling, dan is hij samengesteld.
+- **Een bouwsteen bereikt nooit iets samengestelds**, ook niet via een bestand in diens map. Een
+  samengestelde tag mag een andere bevatten: een grafiek toont haar cijfers ook als tabel.
+- **Een tag gebruikt een andere via zijn tag, zijn module of zijn stylesheet.** Een hulpbestand
+  dat meer tags nodig hebben, staat in een `shared/`-map, nooit in de map van één van hen.
+- **Een onderdeel heeft de laag van zijn ouder**: `repeater-row` die van `repeater`, `filter-zone`
+  die van `filter-bar`.
+- **De laag is een label, de categorie de indeling.** Je zoekt een tag op wat hij doet, dus een
+  veld staat bij de velden, welke laag het ook is. De stijlgids toont bij elke tag zijn laag,
+  waaruit hij bestaat en waarin hij gebruikt wordt.
+- **Een view is een rol, geen laag.** Een melding en een notitie zijn bouwstenen en toch een view
+  die een host met `data` vult.
+
 ## Elementen
 
 Hoe elk element eruitziet en zich gedraagt, staat in zijn eigen bestanden en in de styleguide.
@@ -406,12 +432,12 @@ De besluiten hieronder gelden voor alle elementen.
   gelukt, let op, fout, informatie, aandacht en live. Elk element dat een status toont, tekent in
   die tonen, en een element dat eigen woorden heeft (de leveringsstatus van een bron, de staat
   van een taak, de soort van een melding) vertaalt ze zelf naar een toon; een host vertaalt
-  nooit. De woordenschat staat één keer, in `primitives/shared/tone.ts`, met de staat van werk
+  nooit. De woordenschat staat één keer, in `components/shared/tone.ts`, met de staat van werk
   (wachtrij, bezig, onderbroken, klaar, mislukt, geannuleerd) ernaast.
 - **Inhoud kent vier toestanden**: klaar, laden, leeg en fout, met één `message` en één
   `lastKnown`, voor een tegel en een kerncijfer evengoed.
 - **De tegel stelt samen.** Leeg en fout in een tegel zijn dezelfde blokken als de losse lege
-  toestand en de losse melding (`primitives/shared/`), nooit nagetekend, en alle drie de
+  toestand en de losse melding (`components/shared/`), nooit nagetekend, en alle drie de
   toestanden zijn een live-regio van de tegel: wat erin laadt, zwijgt zelf.
 
 ### Links, toetsen en overlays
@@ -918,5 +944,4 @@ De omgevingsband wacht op een ontworpen antwoord.
   heeft. Hij gaat in `src/components/`, met tokens in plaats van vaste waarden, en in de
   styleguide.
 
-Een primitief bestaat omdat meerdere componenten hem nodig hebben, niet omwille van de
-abstractie.
+Een bouwsteen bestaat omdat meerdere tags hem nodig hebben, niet omwille van de abstractie.

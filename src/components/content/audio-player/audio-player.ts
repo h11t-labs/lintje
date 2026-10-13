@@ -20,10 +20,10 @@ import { MediaController, MOBILE } from '../../../core/media'
 import { styleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import buttonCss from '../../../primitives/button/button.css?inline'
-import iconButtonCss from '../../../primitives/icon-button/icon-button.css?inline'
-import '../../../primitives/button/button'
-import '../../../primitives/skeleton/skeleton'
+import buttonCss from '../../actions/button/button.css?inline'
+import iconButtonCss from '../../actions/icon-button/icon-button.css?inline'
+import '../../actions/button/button'
+import '../../feedback/skeleton/skeleton'
 import '../../feedback/announcement/announcement'
 import '../../actions/menu-button/menu-button'
 import type { MenuEntry } from '../../actions/menu-button/menu-button'
@@ -44,12 +44,12 @@ import {
   volumeForKey,
   type SpeakerColour,
   type SpeakerTurn,
-} from './playback'
-import { LintjePlayerElement } from './player'
-import playerCss from './player.css?inline'
+} from '../shared/playback'
+import { LintjePlayerElement } from '../shared/player'
+import playerCss from '../shared/player.css?inline'
 import audioPlayerCss from './audio-player.css?inline'
 
-export type { SpeakerTurn } from './playback'
+export type { SpeakerTurn } from '../shared/playback'
 
 const FAILED: AnnouncementViewData = {
   kind: 'outage',

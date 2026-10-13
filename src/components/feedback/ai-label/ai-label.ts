@@ -8,7 +8,7 @@ import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'l
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import { badgeStyles, renderBadge } from '../../../primitives/badge/badge'
+import { badgeStyles, renderBadge } from '../badge/badge'
 import aiLabelCss from './ai-label.css?inline'
 
 const HINT = 'Controleer de tekst voor je hem gebruikt'

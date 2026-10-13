@@ -40,19 +40,18 @@ src/
                de framestatus die shell, paginakop en filterbalk delen, sneltoetsen, links
   tokens/      tokens.css en base.css (elke root adopteert ze); themes.css en fonts.css
                (alleen op de pagina)
-  icons/       renderIcon(), <lintje-icon>, het gegenereerde register, de iconenlader
-  primitives/  button, icon-button, status-dot, skeleton, grid, grid-item, tile, badge,
-               spinner, progress-bar, popover, tooltip; shared/place.ts (waar een zwevend vak staat)
+  icons/       renderIcon(), het gegenereerde register, de iconenlader
   components/  één map per categorie (frame/, layout/, overlays/, actions/, content/,
                feedback/, inputs/, forms/, filters/, charts/, map/, tables/, chat/), met
                daarin één map per tag; components/shared/ voor wat categorieën delen, zoals
-               charts/ (de renderfuncties van de grafieken; leaflet.ts: de basiskaart) en de
-               focus-trap
+               charts/ (de renderfuncties van de grafieken; leaflet.ts: de basiskaart), de
+               focus-trap en place.ts (waar een zwevend vak staat)
   bundle/      index.ts — de losse bundel: importeert elke tag, exporteert de API;
                core.ts (de host-API zonder tag), één bestand per categorie (frame.ts,
                charts.ts, …) en dev.ts — de ingangen van de bestanden die een pagina laadt
                in plaats van het geheel
-  categories.json  de categorieën: de ene indeling van de tags (regel 20)
+  categories.json  de categorieën: de ene indeling van de tags (regel 20), met de samengestelde
+                   in `composite`
   types.ts     het datacontract
 ```
 
@@ -66,14 +65,14 @@ Een component heeft een eigen map in zijn categorie (regel 20); `components/shar
 - `core/shortcuts.ts` — het ene register van sneltoetsen van de pagina. Een component roept
   `registerShortcut()` aan in `connectedCallback` en de teruggegeven functie in
   `disconnectedCallback`; het luistert nooit zelf op het document.
-- `primitives/shared/place.ts` — waar een zwevend vak staat: dat van de popover, de tooltip en
+- `components/shared/place.ts` — waar een zwevend vak staat: dat van de popover, de tooltip en
   de toggletip.
 - `core/focus.ts` — de focus door shadow roots heen, en van wie de Escape is;
   `components/shared/focus-trap.ts` is de ene trap-stack die elk modaal ding activeert.
 - `components/shared/dialog-close.css` — de ene sluitknop van een dialoog.
 - `components/inputs/shared/field-foot.ts` — de ene voet van elk veld: de hint, of de
   melding die die vervangt.
-- `renderBadge()` (`primitives/badge/badge.ts`) — de ene tekening van een badge, ook voor een root
+- `renderBadge()` (`components/feedback/badge/badge.ts`) — de ene tekening van een badge, ook voor een root
   die een badge tekent zonder het element.
 - `types.ts` — het datacontract, met de vormen van de grafieken en de applicatie-elementen
   opnieuw geëxporteerd vanaf waar ze gedeclareerd zijn.
@@ -83,12 +82,12 @@ Hoe je een imperatieve bibliotheek inpakt, staat bij de kaart in
 
 ## Het recept: een component schrijven
 
-Vijf stappen. `primitives/button/button.ts` en `components/charts/kpi/kpi.ts` zijn de uitgewerkte
+Vijf stappen. `components/actions/button/button.ts` en `components/charts/kpi/kpi.ts` zijn de uitgewerkte
 voorbeelden; lees er een naast deze lijst.
 
 ### 1. Het stylesheet
 
-Eén `.css`-bestand naast het element (`primitives/tile/tile.css` voor `LintjeTile`), gewone
+Eén `.css`-bestand naast het element (`components/layout/tile/tile.css` voor `LintjeTile`), gewone
 BEM-CSS met de `:host`-regels boven de `/* --- */`-scheiding (regel 24).
 
 `shadowCss()` (`core/styles.ts`) herschrijft de selectors die een shadow root niet kan
@@ -109,7 +108,7 @@ Twee dingen die de transformatie niet kan, en jij wel moet doen:
 - **Een regel die in een ander component reikt.** De actie van de tegel is een
   `<lintje-icon-button>` met een eigen shadow root, dus een vervagende `opacity` van buitenaf
   zou vermenigvuldigen met elke die de knop zelf zet. Zie het gemarkeerde blok
-  in `primitives/tile/tile.css` voor de vorm van de oplossing: van buitenaf alleen
+  in `components/layout/tile/tile.css` voor de vorm van de oplossing: van buitenaf alleen
   verbergen (`opacity: 0`); laat het zichtbare uiterlijk aan het component dat er eigenaar van is.
   Bereik een kindcomponent via zijn tag en attributen
   (`lintje-icon-button[variant='tile']`), nooit via een klasse erin.
@@ -168,12 +167,13 @@ declare global {
   `lintje-skeleton` schrijft `width`/`height` op zichzelf en de glans erin
   vult die; op de binnenste span zou een `height: 100%` resolven tegen een host met
   height auto — nul.
-- **Een nieuwe tag volgt regel 20**: map in zijn categorie, `categories.json`,
-  `bundle/<category>.ts`, barrel, voor een view ook `LINTJE_VIEWS` en `types.ts`, en een eigen
-  bestand in de build uit zijn `define()`. `bundle/entries.test.ts` bewaakt wat een categorie
+- **Een nieuwe tag volgt regel 20**: map in zijn categorie, `categories.json` (in `composite` als
+  hij samengesteld is), `bundle/<category>.ts`, barrel, voor een view ook `LINTJE_VIEWS` en
+  `types.ts`, en een eigen bestand in de build uit zijn `define()`. `bundle/entries.test.ts`
+  bewaakt wat een categorie bereikt, `categories.test.ts` dat een bouwsteen niets samengestelds
   bereikt.
-- **De broncode is de referentie.** Het manifest leest ook de slots en de velden van de types in
-  `data`, en de styleguide toont het resultaat op de pagina van het element. Zeg in de JSDoc wat een host niet kan raden: het formaat van een
+- **De broncode is de referentie.** Het manifest leest ook de slots, de velden van de types in
+  `data` en de tags die een tag tekent, en de styleguide toont het resultaat op de pagina van het element. Zeg in de JSDoc wat een host niet kan raden: het formaat van een
   waarde, welk antwoord een event verwacht, een beperking. Eén regel per punt.
 - **Het kopcommentaar van een tag heeft één vorm**, want de stijlgids toont het onder "Over deze
   tag". Hooguit twaalf regels: eerst `<lintje-…>` en in één zin wat het is, dan wat een host moet
@@ -413,7 +413,7 @@ styleguide, gelezen uit de `emit()`-aanroepen.
   kaarttegel en de datatabel roepen `stopPropagation()` aan op de events van hun tegel en hun modal,
   de shell op die van zijn toast. Eén actie is dan één regel in het log van een host.
 - **Een invoer is form-associated** (`LintjeInputElement`): in een native `<form>` post hij wat
-  `formEntries()` (`components/forms/form/controls.ts`) van zijn waarde maakt. Een bedieningselement waarvan de geposte
+  `formEntries()` (`components/shared/controls.ts`) van zijn waarde maakt. Een bedieningselement waarvan de geposte
   vorm afwijkt van zijn waarde, overschrijft `postedValue`.
 - **`name` is de poort van een invoer** (`announce()` in `components/inputs/shared/input.ts`). Een
   bedieningselement stuurt altijd de niet-composed `lintje-change`; met een `name` stuurt het ook de

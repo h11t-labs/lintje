@@ -1,6 +1,6 @@
 /**
  * Where the focus is, through every shadow root, and whether a modal dialog stands around a
- * node. In `core/` because primitives and components both need it.
+ * node. In `core/` because tags in every category need it.
  */
 
 /** The element that really has focus, through every shadow root below it. */

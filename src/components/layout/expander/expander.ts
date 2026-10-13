@@ -10,7 +10,7 @@
 import { html, type PropertyDeclarations, type PropertyValues, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
-import { LintjeGridItemElement } from '../../../primitives/shared/grid-item-element'
+import { LintjeGridItemElement } from '../../shared/grid-item-element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles } from '../../../icons/render'
 import {

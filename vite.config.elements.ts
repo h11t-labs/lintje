@@ -133,11 +133,17 @@ function emitAssets(): Plugin {
 
 /**
  * What every entry of the second run loads, as one file: Lit, `core/`, the tokens, the icons and
- * the primitives. Nearly every tag draws a button or an icon, so apart they would be a dozen
+ * the building blocks nearly every tag draws, with what they share. Apart they would be a dozen
  * requests that always travel together.
  */
-const BASE =
-  /node_modules[\\/](lit|lit-html|lit-element|@lit)[\\/]|[\\/]src[\\/](core|icons|tokens|primitives)[\\/]/
+const BASE = new RegExp(
+  [
+    String.raw`node_modules[\\/](lit|lit-html|lit-element|@lit)[\\/]`,
+    String.raw`[\\/]src[\\/](core|icons|tokens)[\\/]`,
+    String.raw`[\\/]components[\\/](actions[\\/](button|icon-button|icon)|feedback[\\/](badge|status-dot|spinner|skeleton|progress-bar)|overlays[\\/](popover|tooltip)|layout[\\/](grid|grid-item|tile))[\\/]`,
+    String.raw`[\\/]components[\\/]shared[\\/](announcement-block|empty-state-block|grid-item-element|length|place|screen-only|span|tone)\.`,
+  ].join('|'),
+)
 
 export default defineConfig(({ mode }) => {
   const split = mode === 'split'

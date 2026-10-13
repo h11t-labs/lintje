@@ -23,15 +23,15 @@ import { holdsFocus } from '../../../core/focus'
 import { MediaController } from '../../../core/media'
 import { styleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
-import '../../../primitives/button/button'
-import '../../../primitives/icon-button/icon-button'
+import '../../actions/button/button'
+import '../../actions/icon-button/icon-button'
 import '../../inputs/multiselect/multiselect'
 import '../../inputs/radio-group/radio-group'
 import type { LintjeMultiselect } from '../../inputs/multiselect/multiselect'
 import { completions, recogniseTerms, wordBefore } from '../shared/chat-terms'
 import keyCss from '../../shared/key.css?inline'
 import chatComposerCss from './chat-composer.css?inline'
-import screenOnlyCss from '../../../primitives/shared/screen-only.css?inline'
+import screenOnlyCss from '../../shared/screen-only.css?inline'
 import type {
   ChatAnswerForm,
   ChatDraftTerms,

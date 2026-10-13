@@ -1,7 +1,7 @@
 /**
  * The combobox: the filter and the bold match (arithmetic), the keyboard that moves a
  * highlight while the focus stays in the field, the remote search, and the states every
- * input shares. Where the list stands is the popover's (`primitives/popover/`).
+ * input shares. Where the list stands is the popover's (`overlays/popover/`).
  */
 import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'

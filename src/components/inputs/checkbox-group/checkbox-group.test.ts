@@ -7,7 +7,7 @@ import './checkbox-group'
 import '../../forms/form/form'
 import type { LintjeCheckboxGroup } from './checkbox-group'
 import type { LintjeCheckbox } from '../checkbox/checkbox'
-import { formEntries, readControl, writeControl } from '../../forms/form/controls'
+import { formEntries, readControl, writeControl } from '../../shared/controls'
 
 const OPTIONS = [
   { value: 'id', label: 'Kopie van een identiteitsbewijs' },
