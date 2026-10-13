@@ -9,6 +9,7 @@ bevat geen maten. Elk soort feit heeft één plek:
 | Feit | Plek |
 |---|---|
 | Een kleur, een maat, een duur | `src/tokens/tokens.css`, `src/tokens/themes.css` |
+| Wat een token betekent | zijn commentaar in `tokens.css`; de Fundament-pagina's van de styleguide citeren het |
 | Hoe één element eruitziet en zich gedraagt | zijn eigen `.css` en `.ts` in `src/` |
 | De properties, events en slots van een tag | de broncode; de build leest de referentie daaruit |
 | Hoe het eruitziet, in elke toestand, licht en donker, met die referentie | `examples/styleguide/` |

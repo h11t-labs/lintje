@@ -1,0 +1,44 @@
+/*
+ * The probe is `visibility: hidden`, not `display: none`, so its computed style is read from a
+ * laid-out box. The swatch's edge is heavy, so a white or a pale tint still shows its square.
+ */
+:host {
+  display: inline;
+}
+:host([hidden]) { display: none; }
+
+/* --- */
+
+.lintje-token-value {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  vertical-align: bottom;
+}
+/* Under reduced motion the reset gives every element a short transition: a probe that
+   transitions reads the value it had. */
+.lintje-token-value__probe {
+  position: absolute;
+  transition-property: none;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+.lintje-token-value__swatch {
+  flex: 0 0 auto;
+  width: var(--space-4);
+  height: var(--space-4);
+  box-sizing: border-box;
+  border: 1px solid var(--color-border-heavy);
+}
+.lintje-token-value__swatch[hidden] { display: none; }
+.lintje-token-value__value {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: normal;
+  overflow-wrap: anywhere;
+}
