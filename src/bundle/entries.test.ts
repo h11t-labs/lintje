@@ -47,8 +47,8 @@ describe('the entries per tag', () => {
 
 describe('what a tag imports', () => {
   it('reaches no barrel: a tag imports the tags it draws by path', () => {
-    const barrels = ['primitives', 'components', 'components/shared/charts', 'bundle'].map(
-      (layer) => resolve(SRC, layer, 'index.ts'),
+    const barrels = ['components', 'components/shared/charts', 'bundle'].map((folder) =>
+      resolve(SRC, folder, 'index.ts'),
     )
     const through = [...modules]
       .filter(([, file]) => barrels.some((barrel) => importClosure(file).has(barrel)))
@@ -106,13 +106,9 @@ describe('the categories', () => {
 
   it('keep each tag in the folder of its category', () => {
     const astray = CATEGORIES.flatMap((category) =>
-      tagsOf(category).filter((tag) => {
-        const file = moduleOf(tag)
-        return (
-          file.startsWith(resolve(SRC, 'components')) &&
-          !file.startsWith(resolve(SRC, 'components', category.name) + sep)
-        )
-      }),
+      tagsOf(category).filter(
+        (tag) => !moduleOf(tag).startsWith(resolve(SRC, 'components', category.name) + sep),
+      ),
     )
     expect(astray).toEqual([])
   })

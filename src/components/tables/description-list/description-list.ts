@@ -9,14 +9,14 @@
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
-import { LintjeGridItemElement, spanStyles } from '../../../primitives/shared/grid-item-element'
+import { LintjeGridItemElement, spanStyles } from '../../shared/grid-item-element'
 import { shadowCss } from '../../../core/styles'
 import descriptionListCss from './description-list.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { styleProps } from '../../../core/style-props'
-import { TONE_ICON, type Tone } from '../../../primitives/shared/tone'
+import { TONE_ICON, type Tone } from '../../shared/tone'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import { badgeStyles, renderBadge } from '../../../primitives/badge/badge'
+import { badgeStyles, renderBadge } from '../../feedback/badge/badge'
 
 /** A link on the right of the value, for changing it ("Locatie wijzigen" as accessible name). */
 export interface DescriptionAction {

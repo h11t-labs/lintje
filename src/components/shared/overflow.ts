@@ -10,7 +10,7 @@
  * action goes first, the last never goes, and a menu of one row does not exist.
  */
 import type { ReactiveController, ReactiveControllerHost } from 'lit'
-import type { LintjeButton } from '../../primitives/button/button'
+import type { LintjeButton } from '../actions/button/button'
 import type { MenuEntry } from '../actions/menu-button/menu-button'
 
 export interface OverflowItem {

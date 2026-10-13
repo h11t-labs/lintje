@@ -19,7 +19,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { styleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import '../../../primitives/spinner/spinner'
+import '../../feedback/spinner/spinner'
 import treeViewCss from './tree-view.css?inline'
 
 export interface TreeNode {

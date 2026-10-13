@@ -21,7 +21,7 @@ import { seriesKey } from './marks'
 import { renderMapLegend } from './map-legend'
 import type { MapArea, MapControls, MapSpec, MapTool, MapValue } from '../shared/types'
 import { idsInArea, isRect } from './area'
-import '../../../../primitives/popover/popover'
+import '../../../overlays/popover/popover'
 
 /** The map's own height in a tile: on a phone taller, so all its buttons fit on the touch size. */
 export const MAP_HEIGHT = { desktop: 400, mobile: 280 } as const

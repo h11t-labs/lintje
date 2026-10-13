@@ -1,11 +1,12 @@
 /// <reference types="node" />
 import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { dirname, resolve, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { tagModules } from '../scripts/entries.mjs'
-import { CATEGORIES, SECTIONS, tagsOf } from './categories'
+import { importClosure, importsOf, sourceFiles, tagModules } from '../scripts/entries.mjs'
+import { CATEGORIES, COMPOSITE, SECTIONS, tagsOf } from './categories'
 
-const tags = [...tagModules(resolve('src')).keys()].map((tag) => tag.replace(/^lintje-/, ''))
+const modules = tagModules(resolve('src'))
+const tags = [...modules.keys()].map((tag) => tag.replace(/^lintje-/, ''))
 const elements = CATEGORIES.flatMap((category) => category.elements)
 
 describe('the categories', () => {
@@ -50,5 +51,41 @@ describe('the categories', () => {
         default: `./dist-elements/${name}.js`,
       })
     }
+  })
+})
+
+describe('the layers', () => {
+  it('mark only tags of the category as composite', () => {
+    for (const { name, elements, composite = [] } of CATEGORIES) {
+      expect(
+        composite.filter((tag) => !elements.includes(tag)),
+        name,
+      ).toEqual([])
+    }
+  })
+
+  it('keep every building block clear of a composite tag and its folder', () => {
+    const compositeDirs = COMPOSITE.map((tag) => dirname(modules.get(tag)!) + sep)
+    for (const [tag, file] of modules) {
+      if (COMPOSITE.includes(tag)) continue
+      const reached = [...importClosure(file)].filter((path) =>
+        compositeDirs.some((dir) => path.startsWith(dir)),
+      )
+      expect(reached, tag).toEqual([])
+    }
+  })
+
+  it('reach into a folder of a tag only for its module or its stylesheet', () => {
+    const open = new Set(
+      [...modules.values()].flatMap((file) => [file, file.replace(/\.ts$/, '.css')]),
+    )
+    const tagDirs = new Set([...modules.values()].map((file) => dirname(file)))
+    const borrowed = sourceFiles(resolve('src')).flatMap((file) =>
+      [...importsOf(file)]
+        .filter((path) => tagDirs.has(dirname(path)) && dirname(path) !== dirname(file))
+        .filter((path) => !open.has(path))
+        .map((path) => `${file} -> ${path}`),
+    )
+    expect(borrowed).toEqual([])
   })
 })

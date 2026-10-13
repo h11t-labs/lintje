@@ -12,7 +12,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { isPlainClick } from '../../../core/links'
 import { shadowCss } from '../../../core/styles'
 import footerCss from './footer.css?inline'
-import screenOnlyCss from '../../../primitives/shared/screen-only.css?inline'
+import screenOnlyCss from '../../shared/screen-only.css?inline'
 
 export interface FooterLink {
   label: string

@@ -5,12 +5,9 @@
  * module or the category/tag entries (`core.ts`, `forms.ts`, `tag/<name>.js`), never both: they
  * do not share module state.
  */
-import '../icons/icon/icon'
 import { CATEGORIES, tagsOf } from '../categories'
 
 export * from './core'
-export { LintjeIcon, ICON_NAMES } from '../icons/icon/icon'
-export * from '../primitives'
 export * from '../components'
 export * from '../components/shared/charts'
 export { CATEGORIES, SECTIONS, tagsOf } from '../categories'

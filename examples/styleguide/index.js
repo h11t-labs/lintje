@@ -61,6 +61,14 @@ if (missing.length) console.warn('Not in the style guide:', missing.join(', '))
 
 const categoryOf = (name) => CATEGORIES.find((category) => category.elements.includes(name))
 
+// Each tag's layer, and the tags that draw it: the manifest only says what a tag draws.
+const COMPOSITE = new Set(
+  CATEGORIES.flatMap((category) => (category.composite ?? []).map((name) => `lintje-${name}`)),
+)
+const usedBy = new Map()
+for (const [tag, declaration] of declarations)
+  for (const drawn of declaration.draws ?? []) usedBy.set(drawn, [...(usedBy.get(drawn) ?? []), tag])
+
 /* Where the page is: all of it in the URL ------------------------------------ */
 const root = document.documentElement
 const shell = document.getElementById('shell')
@@ -221,6 +229,11 @@ function render({ keepScroll = false } = {}) {
       remember: (tab) => history.replaceState(null, '', addressOf({ ...placeOf(new URL(location.href)), tab })),
       tabAddress: (tab) => addressOf({ ...placeOf(new URL(location.href)), tab }),
       addressOf: elementAddress,
+      layer: COMPOSITE.has(item.tag) ? 'Samengesteld' : 'Bouwsteen',
+      draws: declarations.get(item.tag)?.draws ?? [],
+      usedBy: (usedBy.get(item.tag) ?? []).sort(),
+      tagAddress: (tag) =>
+        addressOf({ item: specimens.get(tag.replace('lintje-', '')), tab: 'referentie' }),
       go: (href, options) => follow(href, options),
       appAddress: (app) => carry(`../${app.href}`),
     })

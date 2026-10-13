@@ -9,7 +9,7 @@ import { html, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
-import '../../../primitives/tooltip/tooltip'
+import '../../overlays/tooltip/tooltip'
 import highlightCss from './highlight.css?inline'
 
 export type HighlightKind = 'uncertain' | 'term' | 'match' | 'added' | 'removed'

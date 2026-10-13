@@ -16,12 +16,9 @@ import { define, type FrameSettings } from '../../../core/element'
 import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles } from '../../../icons/render'
-import { LintjeGridItemElement, spanStyles } from '../../../primitives/shared/grid-item-element'
-import {
-  announcementBlockStyles,
-  renderAnnouncementBlock,
-} from '../../../primitives/shared/announcement-block'
-import '../../../primitives/tile/tile'
+import { LintjeGridItemElement, spanStyles } from '../../shared/grid-item-element'
+import { announcementBlockStyles, renderAnnouncementBlock } from '../../shared/announcement-block'
+import '../../layout/tile/tile'
 import { tabbables } from '../../shared/focus-trap'
 import tileHostCss from '../../shared/view-tile.css?inline'
 import type { AnnouncementKind, AnnouncementViewData } from '../../../types'

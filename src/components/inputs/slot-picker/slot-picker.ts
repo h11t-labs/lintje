@@ -14,7 +14,7 @@ import { define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles } from '../../../icons/render'
 import { LintjeInputElement } from '../shared/input'
-import { dayLabel, shortDayLabel } from '../date-input/date-format'
+import { dayLabel, shortDayLabel } from '../../shared/date-format'
 import inputCss from '../shared/input.css?inline'
 import slotPickerCss from './slot-picker.css?inline'
 

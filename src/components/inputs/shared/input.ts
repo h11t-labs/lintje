@@ -13,9 +13,9 @@ import {
   type TemplateResult,
 } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
-import { LintjeGridItemElement } from '../../../primitives/shared/grid-item-element'
+import { LintjeGridItemElement } from '../../shared/grid-item-element'
 import { footDescribedBy, renderFieldFoot } from './field-foot'
-import { formEntries, readControl, writeControl } from '../../forms/form/controls'
+import { formEntries, readControl, writeControl } from '../../shared/controls'
 
 const OPTIONAL = '(niet verplicht)'
 const MODIFIED = 'afwijkend van standaard'

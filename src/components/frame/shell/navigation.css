@@ -182,7 +182,7 @@
 .lintje-nav__item.is-no-access .lintje-nav__metric { text-decoration: none; }
 .lintje-nav__item.is-no-page .lintje-nav__metric { color: var(--color-nav-disabled); }
 
-/* The badge is the primitive's (`badge.css` adopted by the shell). In the rail a word ("NIEUW")
+/* The badge is `badge.css`, adopted by the shell. In the rail a word ("NIEUW")
    does not fit: it becomes a dot, so the rail does not overflow. */
 .lintje-nav--rail:not(.is-expanded) .lintje-nav__badge {
   position: absolute; top: 2px; right: var(--space-1);
