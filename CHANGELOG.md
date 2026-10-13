@@ -11,6 +11,50 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-13
+
+### Toegevoegd
+
+- `lintje-chart` tekent het spinnendiagram (`kind: 'radar'`): het profiel van een tot drie
+  lagen over vijf tot acht assen op een schaal, met een grijze vergelijking en een norm. Van
+  meer lagen vult alleen de laag die de lezer in de legenda aanwijst; een ontbrekende waarde
+  breekt de lijn en arceert de spaak; onder 768 px wordt elke as een rij staven. (#46)
+- De stijlgids heeft een groep Fundament met drie pagina's, Kleur, Typografie en Maat en
+  beweging: elk token dat een component mag noemen, met zijn waarde in de gekozen modus en het
+  thema en zijn commentaar uit `tokens.css`, en getekend: kleuren als vlak, de tintladders als
+  tegels, hoeken, focus en schaduwen als vorm, bewegingen om af te spelen. De build schrijft de
+  tokens in `tokens.json`.
+  `lintje-token-value` is terug: het toont wat een token op zijn plek berekent, een kleur als
+  staal en hex, een lengte in rem ook in px en een tekststijl als dikte, maat en regelhoogte;
+  `no-swatch` laat het staal weg. (#45)
+- `<lintje-find>` vindt een woord in wat al op het scherm staat en gaat langs de treffers: één
+  vak met de teller, vorige, volgende en wissen erin, zodat typen niets laat verschuiven.
+  Transcriptie gebruikt het in plaats van het eigen zoekveld. (#43)
+
+### Gewijzigd
+
+- Elke tag is een bouwsteen of samengesteld, met de basis (tokens, iconen, gedrag) eronder; de
+  stijlgids toont bij elke tag zijn laag, waaruit hij bestaat en waarin hij gebruikt wordt.
+  `src/primitives/` is opgeheven: elke tag staat in de map van zijn categorie. Voor een host
+  verandert er niets. (#47)
+- De pipeline draait de browsertests per browser in een eigen job, naast de andere checks, en
+  binnen een browser meerdere testbestanden tegelijk; de stijlgidstest wacht niet meer op een
+  animatie die al afgelopen is, en de release roept dezelfde checks aan. (#39)
+- De changelogregel van een pull request staat in een eigen bestand,
+  `changes/<nummer>-<titel>.md`, niet meer onder `[Unreleased]` in `CHANGELOG.md`; twee pull
+  requests botsen zo niet meer. `npm run release` zet de bestanden per kop bij elkaar, de nieuwste
+  bovenaan, en haalt ze weg. (#36)
+
+### Opgelost
+
+- De browsertests in Firefox draaien hun bestanden na elkaar. Firefox houdt de pointer capture van
+  de muis over al zijn pagina's vast, zodat een klik in een ander testbestand op een gesleepte greep
+  landde en de sleeptests van `lintje-split-pane`, `lintje-sortable-list` en de schil af en toe
+  faalden. (#48)
+- `lintje-map` op papier: kreeg de kaart haar papiermaat vóór het bericht dat de pagina naar
+  papier gaat, dan toonde ze alleen het midden van wat op het scherm stond; nu altijd het hele
+  gebied. (#39)
+
 ## [0.3.0] - 2026-10-12
 
 ### Toegevoegd
@@ -215,7 +259,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.3.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/h11t-labs/lintje/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/h11t-labs/lintje/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/h11t-labs/lintje/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/h11t-labs/lintje/compare/v0.1.0...v0.1.1
