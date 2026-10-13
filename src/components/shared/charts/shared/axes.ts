@@ -29,8 +29,8 @@ export interface LegendItem {
   symbol?: SeriesKey
   hidden?: boolean
   /**
-   * Never a switch: a key such as "geen gegevens", or a lone series, which switched off would
-   * leave an empty frame. A reference such as a norm is a switch.
+   * Never a switch: a key such as "geen gegevens", or a lone series with nothing beside it, which
+   * switched off would leave an empty frame. A reference such as a norm is a switch.
    */
   fixed?: boolean
   /** What `onToggle` receives; without it the label. */

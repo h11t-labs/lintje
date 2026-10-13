@@ -128,16 +128,20 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     return { x, width, center: x + width / 2 }
   })
 
+  const off = (key: string) => controller.hiddenSeries.includes(key)
+  const countsOff = off(label)
   const contentAt = (i: number): TooltipContent => {
     const count = bins[i].count
     return {
       title: binLabel(bins[i], unit),
-      rows: [
-        { label, value: count == null ? 'geen gegevens' : formatNumber(count), color },
-        ...(count != null && total != null && total > 0
-          ? [{ label: 'Aandeel', value: formatPercent((count / total) * 100, 1), color }]
-          : []),
-      ],
+      rows: countsOff
+        ? []
+        : [
+            { label, value: count == null ? 'geen gegevens' : formatNumber(count), color },
+            ...(count != null && total != null && total > 0
+              ? [{ label: 'Aandeel', value: formatPercent((count / total) * 100, 1), color }]
+              : []),
+          ],
     }
   }
   const keys = plotKeys(controller, bins.length, (i) => ({
@@ -205,10 +209,9 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
   const lineLabels = placeLineLabels(lines, area, controller.fontFamily)
 
   const capitalised = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
-  const off = (key: string) => controller.hiddenSeries.includes(key)
-  // The counts are the one series, so not a switch; the median and the norm are.
+  // The counts are the one series: a switch only while a line would stay.
   const legend: LegendItem[] = [
-    { label, color, shape: 'square', fixed: true },
+    { label, color, shape: 'square', fixed: lines.length === 0, hidden: countsOff },
     ...(onScale(median)
       ? [
           {
@@ -256,8 +259,8 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
   const lifted = hovered != null ? bins[hovered]?.count : null
 
   const marks: SvgSlot = [
-    bins.map((_, i) => bar(i)),
-    hovered != null && lifted != null
+    svg`<g class="lintje-chart__series ${countsOff ? 'is-off' : ''}">${bins.map((_, i) => bar(i))}</g>`,
+    hovered != null && lifted != null && !countsOff
       ? svg`<rect class="lintje-chart__bar lintje-chart__bar--lifted lintje-chart__segment"
                   x=${slots[hovered].x} y=${yPosition(lifted, max, area)} width=${slots[hovered].width}
                   height=${Math.max(0, baseline - yPosition(lifted, max, area))} fill=${color} />`

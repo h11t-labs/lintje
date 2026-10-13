@@ -609,9 +609,9 @@ de stijlgids. Past geen soort, dan is het een tabel.
 - **De legenda staat boven de grafiek** en is klikbaar. Het symbool zegt welk teken het is: een
   vierkant voor een staaf of vlak, een lijn voor een lijn, de vorm van de reeks voor een punt,
   gestreept voor een drempel of vergelijking. Elke reeks en elke referentielijn (drempel,
-  mediaan) is een schakelaar; een sleutel als "geen gegevens" niet, en één reeks alleen ook niet,
-  want uitgezet laat ze een lege grafiek achter. Een klasse
-  van de heatmap gaat in dezelfde legenda uit, maar haar cellen dimmen: een lege cel leest als
+  mediaan) is een schakelaar; een sleutel als "geen gegevens" niet, en één reeks zonder
+  referentielijn ernaast ook niet, want uitgezet laat ze een lege grafiek achter. Een klasse van
+  de heatmap gaat in dezelfde legenda uit, maar haar cellen dimmen: een lege cel leest als
   geen meting.
 - **De nullijn is donkerder dan het raster.**
 - **Datalabels zijn alles of niets**: als er één niet past, toont de grafiek er geen, en de

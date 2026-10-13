@@ -168,7 +168,8 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
       shape: 'point' as const,
       symbol: row.symbol,
       hidden: hidden(row),
-      fixed: series.length < 2,
+      // A lone series is a switch only while the norm would stay.
+      fixed: series.length < 2 && threshold == null,
     })),
     ...(threshold != null
       ? [

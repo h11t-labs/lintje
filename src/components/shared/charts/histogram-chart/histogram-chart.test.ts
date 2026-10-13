@@ -98,17 +98,30 @@ describe('the histogram', () => {
     expect(legend).toEqual(['Aantal', 'Mediaan', 'Termijn 21 dagen'])
   })
 
-  it('switches the median and the threshold from the legend, never the counts', () => {
+  it('switches the counts, the median and the threshold from the legend', () => {
     const { host } = draw({ median: 9.6, threshold: 21 })
     const buttons = [...host.querySelectorAll<HTMLButtonElement>('.lintje-legend__button')]
-    expect(buttons.map((button) => button.textContent?.trim())).toEqual(['Mediaan', 'Norm'])
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual([
+      'Aantal',
+      'Mediaan',
+      'Norm',
+    ])
     const references = () =>
       [...host.querySelectorAll('.lintje-chart__reference')].map((reference) =>
         reference.parentElement?.classList.contains('is-off'),
       )
-    buttons[0].click()
+    buttons[1].click()
     expect(references()).toEqual([true, false])
+    buttons[0].click()
+    // The bars keep their nodes and fade, so switched back on they do not draw in again.
     expect(bars(host)).toHaveLength(BINS.length)
+    expect(bars(host)[0].closest('.lintje-chart__series')?.classList).toContain('is-off')
+  })
+
+  it('keeps the counts fixed with no line beside them', () => {
+    const { host } = draw()
+    expect(host.querySelector('.lintje-legend__item')).not.toBeNull()
+    expect(host.querySelector('.lintje-legend__button')).toBeNull()
   })
 
   it('names the class, the count and its share in the tooltip', () => {
