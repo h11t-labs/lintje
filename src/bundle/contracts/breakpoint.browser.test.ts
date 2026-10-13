@@ -26,6 +26,7 @@ import '../../components/forms/form-actions/form-actions'
 import '../../components/forms/form/form'
 import '../../components/inputs/file-upload/file-upload'
 import '../../components/inputs/find/find'
+import '../../components/content/log-viewer/log-viewer'
 import '../../components/inputs/select/select'
 import '../../components/inputs/slot-picker/slot-picker'
 import '../../components/inputs/text-editor/text-editor'
@@ -373,6 +374,25 @@ function subtitleRow(
 }
 
 const ROWS: Row[] = [
+  {
+    tag: 'lintje-log-viewer',
+    marker: 'the level is a select and the menus are one',
+    mount: () =>
+      append(
+        create('lintje-log-viewer', {
+          data: {
+            title: 'Importlog',
+            entries: [{ id: 'a', time: '14:03:21.004', level: 'info', message: 'Start import' }],
+          },
+        }),
+      ),
+    wide: (element) =>
+      shown(element, 'lintje-segmented') &&
+      all(element.shadowRoot!, 'lintje-menu-button').length === 3,
+    phone: (element) =>
+      shown(element, 'lintje-select') &&
+      all(element.shadowRoot!, 'lintje-menu-button').length === 1,
+  },
   {
     tag: 'lintje-find',
     marker: 'the field fills the width',

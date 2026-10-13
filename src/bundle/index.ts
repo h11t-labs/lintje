@@ -33,6 +33,7 @@ export const LINTJE_VIEWS = [
   'explainer',
   'note',
   'chat',
+  'log-viewer',
 ] as const
 
 export type LintjeViewName = (typeof LINTJE_VIEWS)[number]

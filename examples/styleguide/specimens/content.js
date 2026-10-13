@@ -1,5 +1,6 @@
 // The content category (Tekst en media): the specimens of its elements.
 import { meta } from '../../_data/load.js'
+import { log } from '../shared.js'
 
 const FOOTNOTE = 'Bron: Zaaksysteem · waarde van 08:15'
 
@@ -75,6 +76,118 @@ const SEGMENTS = [
 ]
 
 /** The host's half of the transcript: it keeps the segments and the editing state. */
+/* The log viewer's host: all lines here, the filter in its own hands, only matching lines out. */
+const LOG = [
+  ['14:03:21.004', 'info', 'import', 'Start import van batch 2026-10-12-03 (412 aanvragen)'],
+  ['14:03:21.118', 'debug', 'koppeling', 'Verbinding met bronregister geopend (pool 4 van 8)'],
+  ['14:03:21.560', 'info', 'import', 'Batch 1 van 9 gelezen: 50 aanvragen'],
+  ['14:03:22.031', 'debug', 'validatie', 'Schema 3.2 toegepast op 50 records'],
+  ['14:03:22.447', 'warning', 'validatie', 'Aanvraag A-20931: postcode ontbreekt, adres overgeslagen'],
+  ['14:03:22.902', 'info', 'import', 'Batch 1 van 9 opgeslagen in 0,84 s'],
+  ['14:03:23.310', 'info', 'import', 'Batch 2 van 9 gelezen: 50 aanvragen'],
+  ['14:03:24.016', 'error', 'koppeling', 'Timeout na 3000 ms bij opvragen dossier D-55120 (poging 1 van 3)', '{\n  "dossier": "D-55120",\n  "timeoutMs": 3000,\n  "poging": 1\n}'],
+  ['14:03:24.019', 'debug', 'koppeling', 'Nieuwe poging na timeout over 2 s'],
+  ['14:03:26.044', 'info', 'koppeling', 'Dossier D-55120 alsnog opgehaald (poging 2 van 3)'],
+  ['14:03:26.511', 'info', 'import', 'Batch 2 van 9 opgeslagen in 1,12 s'],
+  ['14:03:27.118', 'warning', 'import', 'Aanvraag A-21007 staat dubbel in de batch; de tweede regel is genegeerd'],
+  ['14:03:27.640', 'info', 'import', 'Batch 3 van 9 gelezen: 50 aanvragen'],
+  ['14:03:28.233', 'error', 'koppeling', 'Timeout na 3000 ms bij opvragen dossier D-55187 (poging 3 van 3); aanvraag naar de wachtrij voor handmatige controle'],
+  ['14:03:28.415', 'info', 'import', 'Batch 3 van 9 opgeslagen in 0,77 s'],
+].map(([time, level, source, message, details], i) => ({
+  id: `e${i + 1}`,
+  at: `2026-10-12T${time}`,
+  time,
+  level,
+  source,
+  message,
+  ...(details ? { details } : {}),
+}))
+
+const MIXED_LOG = [
+  { id: 'm1', at: '2026-10-12T14:03:21.004', time: '14:03:21.004', level: 'info', source: 'import', message: 'Start import van batch 2026-10-12-03' },
+  { id: 'm2', at: '2026-10-12T14:03:21.090', time: '14:03:21.090', message: 'Configuratie: {"batchgrootte":50,"parallel":4,"bron":"register-acc","velden":["aanvraag","dossier","postcode"]}' },
+  { id: 'm3', at: '2026-10-12T14:03:22.811', time: '14:03:22.811', level: 'error', source: 'verwerking', message: "Onverwachte fout bij verwerken van aanvraag A-20977\nTypeError: Cannot read properties of undefined (reading 'postcode')\n    at adresVan (verwerking/adres.js:42:19)\n    at verwerk (verwerking/index.js:118:11)\n    at Batch.volgende (import/batch.js:77:5)\n    at async Import.start (import/index.js:31:7)\n    at async main (bin/import.js:12:3)" },
+  { id: 'm4', message: '    at Object.<anonymous> (bin/import.js:4:1)' },
+  { id: 'm5', at: '2026-10-12T14:03:23.002', time: '14:03:23.002', level: 'warning', source: 'validatie', message: 'Onbekend veld, ongewijzigd doorgegeven: kenmerk=eyJhbGciOiJIUzI1NiJ9eyJhYW52cmFhZyI6IkEtMjA5ODAifQc2lnbmF0dXVy' },
+  { id: 'm6', at: '2026-10-12T14:03:23.140', time: '14:03:23.140', source: 'stdout', message: '\u001b[32mGebruik:\u001b[0m 412 MB geheugen, 3 van 4 werkers bezig' },
+]
+
+const RAW_LOG = [
+  '$ export-rapportage --periode 2026-09 --formaat csv',
+  'Rapportage-export 2.4.1',
+  'Verbinden met database rapportage-ro … ok',
+  '[==========>         ]  55%  aanvragen  22.010 / 40.000',
+  "WARN  kolom 'gemeentecode' leeg in 312 rijen, leeg geëxporteerd",
+  '[====================] 100%  aanvragen  40.000 / 40.000',
+  'Traceback (most recent call last):',
+  '  File "/opt/export/schrijf.py", line 88, in schrijf_csv',
+  "OSError: [Errno 28] No space left on device: '/var/export/2026-09/besluiten.csv'",
+  'Export afgebroken na 00:04:12',
+].map((message, i) => ({ id: `r${i + 1}`, line: 1241 + i, message }))
+
+const MORE = [
+  ['info', 'import', 'Batch {b} van 9 gelezen: 50 aanvragen'],
+  ['debug', 'validatie', 'Schema 3.2 toegepast op 50 records'],
+  ['warning', 'validatie', 'Aanvraag A-2{n}4: huisnummer ontbreekt, adres overgeslagen'],
+  ['info', 'import', 'Batch {b} van 9 opgeslagen in 0,{n} s'],
+]
+
+function wireLog(stage, { lines = LOG, filter = {}, title = 'Importlog', ...rest } = {}) {
+  const viewer = stage.querySelector('lintje-log-viewer')
+  let all = [...lines]
+  let state = { level: 'all', search: '', onlyHits: false, ...filter }
+  let selected = rest.selected ?? null
+  const counts = () => ({
+    all: all.length,
+    ...Object.fromEntries(['error', 'warning', 'info', 'debug'].map((l) => [l, all.filter((e) => e.level === l).length])),
+  })
+  const draw = () => {
+    const term = state.search.trim().toLowerCase()
+    viewer.data = {
+      title,
+      subtitle: lines === RAW_LOG ? 'Rapportage september, gestart 02:00' : 'Verwerking aanvragen, batch 2026-10-12-03',
+      ...rest,
+      entries: all.filter(
+        (e) =>
+          (state.level === 'all' || e.level === state.level) &&
+          (!state.onlyHits || !term || e.message.toLowerCase().includes(term)),
+      ),
+      counts: lines.length ? counts() : undefined,
+      filter: state,
+      selected,
+    }
+  }
+  viewer.addEventListener('lintje-log-filter-change', (event) => {
+    state = event.detail
+    draw()
+  })
+  viewer.addEventListener('lintje-log-select', (event) => {
+    selected = event.detail
+    draw()
+  })
+  draw()
+  let made = 0
+  return {
+    viewer,
+    stream(count) {
+      let left = count
+      const next = () => {
+        const [level, source, text] = MORE[made % MORE.length]
+        const ms = (3 * 60 + 28) * 1000 + 920 + (made + 1) * 613
+        const pad = (n, w = 2) => String(n).padStart(w, '0')
+        const time = `14:${pad(Math.floor(ms / 60000))}:${pad(Math.floor(ms / 1000) % 60)}.${pad(ms % 1000, 3)}`
+        const message = text.replace('{b}', String(4 + Math.floor(made / MORE.length))).replace('{n}', String(1 + ((made * 7) % 8)))
+        all = [...all, { id: `n${made}`, at: `2026-10-12T${time}`, time, level, source, message }]
+        made += 1
+        draw()
+        left -= 1
+        if (left > 0) setTimeout(next, 400)
+      }
+      next()
+    },
+  }
+}
+
 function wireTranscript(transcript, segments = SEGMENTS) {
   transcript.segments = segments.map((segment) => ({ ...segment }))
   transcript.addEventListener('lintje-segment-edit', (event) => {
@@ -570,6 +683,113 @@ export default {
             const transcript = stage.querySelector('lintje-transcript')
             wireTranscript(transcript, SEGMENTS.slice(3, 4))
             transcript.errors = { s4: 'Opslaan is niet gelukt. Probeer het opnieuw.' }
+          },
+        },
+      ],
+    },
+    {
+      tag: 'lintje-log-viewer',
+      wide: true,
+      title: 'Logregels die live binnenkomen, te filteren en te doorzoeken',
+      specimens: [
+        {
+          label: 'Live',
+          note: 'Laat regels binnenkomen en scrol omhoog: de balk telt wat er onder bijkomt, "Naar nieuwste" volgt weer.',
+          html:
+            '<lintje-button variant="secondary" size="compact">Regels laten binnenkomen</lintje-button>' +
+            '<lintje-log-viewer style="margin-top: var(--space-4)"></lintje-log-viewer>',
+          setup(stage) {
+            const host = wireLog(stage, { live: true })
+            stage.querySelector('lintje-button').addEventListener('click', () => host.stream(12))
+          },
+        },
+        {
+          label: 'Zoeken',
+          note: 'Vinden markeert en filtert niet. Vorige en volgende verplaatsen alleen de huidige treffer; "Alleen regels met een treffer" staat onder Weergave.',
+          html: '<lintje-log-viewer></lintje-log-viewer>',
+          setup(stage) {
+            wireLog(stage, { live: true, filter: { search: 'timeout' } })
+          },
+        },
+        {
+          label: 'Alleen fouten',
+          html: '<lintje-log-viewer></lintje-log-viewer>',
+          setup(stage) {
+            wireLog(stage, { live: true, filter: { level: 'error' } })
+          },
+        },
+        {
+          label: 'Regel gekozen',
+          note: 'Klik op een tijd, of ga met de pijltjes naar een regel en druk op Enter.',
+          html: '<lintje-log-viewer></lintje-log-viewer>',
+          setup(stage) {
+            wireLog(stage, { live: false, selected: 'e12' })
+          },
+        },
+        {
+          label: 'Half gestructureerd',
+          note: 'Een regel zonder niveau krijgt geen badge; een stacktrace klapt in tot vier regels.',
+          html: '<lintje-log-viewer></lintje-log-viewer>',
+          setup(stage) {
+            wireLog(stage, { live: true, lines: MIXED_LOG })
+          },
+        },
+        {
+          label: 'Ruwe uitvoer',
+          note: 'Geen regel heeft een tijd, niveau of bron: alleen de tekst, met het regelnummer.',
+          html: '<lintje-log-viewer></lintje-log-viewer>',
+          setup(stage) {
+            wireLog(stage, { live: false, lines: RAW_LOG, truncated: 1240, title: 'Uitvoer export' })
+          },
+        },
+        {
+          label: 'Met acties van de host',
+          note: 'De acties staan onder ⋯, na die van het venster zelf. Een gevaarlijke bevestigt de host.',
+          html: '<lintje-log-viewer></lintje-log-viewer>',
+          setup(stage) {
+            const say = log(stage)
+            const viewer = wireLog(stage, {
+              live: true,
+              actions: [
+                { heading: 'Import' },
+                { value: 'herstart', label: 'Import opnieuw starten' },
+                { value: 'verwijder', label: 'Logs van deze batch verwijderen…', danger: true },
+              ],
+            }).viewer
+            viewer.addEventListener('lintje-log-action', (event) => say(`lintje-log-action: ${event.detail}`))
+          },
+        },
+        {
+          label: 'Fout',
+          note: 'De regels die er al waren, blijven staan.',
+          html: '<lintje-log-viewer></lintje-log-viewer>',
+          setup(stage) {
+            wireLog(stage, {
+              live: false,
+              state: 'error',
+              message: 'De verbinding met de logbron is verbroken. Nieuwe regels komen niet binnen.',
+            })
+          },
+        },
+        {
+          label: 'Wachten op de eerste regel',
+          html: '<lintje-log-viewer></lintje-log-viewer>',
+          setup(stage) {
+            wireLog(stage, { live: true, lines: [] })
+          },
+        },
+        {
+          label: 'Geen logregels',
+          html: '<lintje-log-viewer></lintje-log-viewer>',
+          setup(stage) {
+            wireLog(stage, { live: false, lines: [] })
+          },
+        },
+        {
+          label: 'Laden',
+          html: '<lintje-log-viewer></lintje-log-viewer>',
+          setup(stage) {
+            wireLog(stage, { state: 'loading' })
           },
         },
       ],

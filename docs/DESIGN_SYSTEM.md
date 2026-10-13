@@ -348,6 +348,11 @@ De besluiten hieronder gelden voor alle elementen.
   woord in wat al op het scherm staat en gaat langs de treffers, zonder iets weg te filteren. Wie
   alleen de treffers wil zien, kiest dat apart. De teller en vorige, volgende en wissen staan in
   het vak zelf, zodat typen niets eromheen laat verschuiven of groeien.
+- **Een log volgt tot de lezer omhoog scrolt** (`lintje-log-viewer`): alleen omhoog scrollen
+  stopt het volgen en alleen weer onderaan komen hervat het. Een balk onder het venster zegt altijd
+  wat het doet, en telt wat er onder bijkwam. Een snelle stroom is geen live-regio: een eigen
+  statusregio vat hoogstens eens per vijf seconden samen. Een regel zonder niveau krijgt er geen;
+  het element raadt nooit. Leegmaken is alleen het venster, nooit de bron.
 - **Een paar keuzes die allemaal in beeld blijven, zijn een groep vinkjes**
   (`lintje-checkbox-group`): één label, één hint en één foutregel voor de groep, zoals de
   radiogroep. Een lange lijst om in te zoeken is de multiselect.

@@ -622,6 +622,56 @@ export interface ShellData extends FrameSettings {
   notifications?: NotificationItem[]
 }
 
+/* Log viewer ---------------------------------------------------------------- */
+
+export type LogLevel = 'error' | 'warning' | 'info' | 'debug'
+
+/** One line of a log. Everything but `id` and `message` may be missing: it is then left out, never guessed. */
+export interface LogEntry {
+  id: string
+  /** The text, over more lines where the source wrote them (a stack trace). */
+  message: string
+  /** The moment as ISO 8601. */
+  at?: string
+  /** The moment as the host writes it: `14:03:27.118`. */
+  time?: string
+  level?: LogLevel
+  /** Where it came from: `import`, `api`. */
+  source?: string
+  /** The line number in the source, for output without time or level. */
+  line?: number
+  /** A longer text or JSON the host has laid out, shown when the line opens. */
+  details?: string
+}
+
+/** What the reader filters on; the host keeps it in the URL and sends only matching lines. */
+export interface LogFilter {
+  level?: LogLevel | 'all'
+  /** The term `lintje-find` looks for. Finding marks; it filters only with `onlyHits`. */
+  search?: string
+  onlyHits?: boolean
+}
+
+/**
+ * Events: `lintje-log-filter-change` `LogFilter`, `lintje-log-select` `string | null` (the chosen
+ * line), `lintje-log-action` `string` (one of `actions`), `lintje-log-retry`.
+ */
+export interface LogViewerData extends FrameSettings, TileData, ContentState {
+  /** Oldest first. */
+  entries: LogEntry[]
+  /** The source still writes: the live badge, and the view follows the newest line. */
+  live?: boolean
+  filter?: LogFilter
+  /** Lines per level in the whole log, for the counts in the level filter. */
+  counts?: Partial<Record<LogLevel | 'all', number>>
+  /** How many older lines the host no longer sends. */
+  truncated?: number
+  /** The chosen line's `id`. */
+  selected?: string | null
+  /** The host's own actions, in the "Meer" menu after the view's own. */
+  actions?: MenuEntry[]
+}
+
 /* Chat with data ----------------------------------------------------------- */
 
 /**

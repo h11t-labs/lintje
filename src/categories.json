@@ -55,7 +55,7 @@
     "heading": "Basis",
     "label": "Tekst en media",
     "icon": "op-kantoor-document-met-lijnen",
-    "intro": "Lopende tekst, code en een gemarkeerde zoekterm; een tekst en zijn vertaling; audio, video, het transcript dat meeloopt, een document op het scherm en afbeeldingen om door te bladeren.",
+    "intro": "Lopende tekst, code en een gemarkeerde zoekterm; een tekst en zijn vertaling; audio, video, het transcript dat meeloopt, logregels die live binnenkomen, een document op het scherm en afbeeldingen om door te bladeren.",
     "elements": [
       "prose",
       "code",
@@ -64,6 +64,7 @@
       "audio-player",
       "video-player",
       "transcript",
+      "log-viewer",
       "document-viewer",
       "gallery"
     ]
