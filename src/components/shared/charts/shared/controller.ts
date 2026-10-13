@@ -52,8 +52,8 @@ export interface TooltipRow {
   divider?: boolean
   /** The series' shape instead of a square swatch, as its legend draws it. */
   symbol?: SeriesKey
-  /** A dashed line instead of a square swatch: a comparison or a norm, as its legend draws it. */
-  dashed?: boolean
+  /** A line instead of a square swatch, plain or dashed (a norm), as its legend draws it. */
+  marker?: 'line' | 'dashed'
 }
 export interface TooltipContent {
   title: string

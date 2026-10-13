@@ -1,6 +1,7 @@
 /**
  * Radar chart: the profile of one to three variables over five to eight axes that share one
  * scale, from 0 in the centre to `max` on the outer ring, with a grey comparison and a norm.
+ * Dashed is the norm only: a dashed comparison over it would read as a second norm.
  * Overlapping areas mix into a colour no variable has, so of more layers only the one the
  * reader points at in the legend fills. Below 768 px each axis becomes a row of bars (rule 9).
  */
@@ -180,7 +181,7 @@ export function renderRadarChart(spec: RadarSpec, options: ChartOptions): Templa
         ? {
             label: layer.label,
             color: layer.color,
-            shape: 'dashed' as const,
+            shape: 'line' as const,
             hidden: hidden(layer),
           }
         : {
@@ -214,7 +215,7 @@ export function renderRadarChart(spec: RadarSpec, options: ChartOptions): Templa
         value: value == null ? 'geen gegevens' : withUnit(value),
         color: layer.color,
         symbol: layer.symbol,
-        dashed: layer.comparison,
+        marker: layer.comparison ? ('line' as const) : undefined,
       }
     })
     if (threshold != null) {
@@ -222,7 +223,7 @@ export function renderRadarChart(spec: RadarSpec, options: ChartOptions): Templa
         label: spec.thresholdLabel ?? 'Norm',
         value: withUnit(threshold),
         color: 'var(--color-chart-emphasis)',
-        dashed: true,
+        marker: 'dashed',
       })
     }
     // One variable against its comparison and the norm, with the sign of the difference.
@@ -446,8 +447,7 @@ function drawRadar({
       }
       return svg`
         ${casing ? svg`<polyline class="lintje-chart__line lintje-chart__line--casing" points=${d} stroke=${casing} />` : nothing}
-        <polyline class="lintje-chart__line" points=${d} stroke=${item.color}
-                  stroke-dasharray=${item.comparison ? '5 4' : nothing} />
+        <polyline class="lintje-chart__line" points=${d} stroke=${item.color} />
       `
     })
     const marks = item.symbol

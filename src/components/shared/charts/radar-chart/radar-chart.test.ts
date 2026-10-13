@@ -174,8 +174,8 @@ describe('the legend of a radar', () => {
     controller.toggleSeries('Q3 2025')
     const button = [...host.querySelectorAll('.lintje-legend__button')][1]
     expect(button.getAttribute('aria-pressed')).toBe('false')
-    const dashed = host.querySelector('polyline[stroke-dasharray]')!
-    expect(dashed.closest('.lintje-radar__layer')!.classList.contains('is-hidden')).toBe(true)
+    const grey = host.querySelector('polyline[stroke="var(--color-chart-secondary)"]')!
+    expect(grey.closest('.lintje-radar__layer')!.classList.contains('is-hidden')).toBe(true)
     expect(outer(host)).toBe(before)
     const svg = host.querySelector('svg[tabindex="0"]')!
     svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
@@ -260,13 +260,21 @@ describe('the keyboard on a radar', () => {
     expect(host.querySelector('.lintje-radar__spoke.is-active')).not.toBeNull()
   })
 
-  it('marks the comparison and the norm in the tooltip as the legend does: dashed', () => {
+  it('draws the comparison as a solid grey line: dashed is the norm alone', () => {
+    const { host } = draw(ONE)
+    const grey = host.querySelector('polyline[stroke="var(--color-chart-secondary)"]')!
+    expect(grey.hasAttribute('stroke-dasharray')).toBe(false)
+    const comparison = [...host.querySelectorAll('.lintje-legend__item')][1]
+    expect(comparison.querySelector('.lintje-legend__marker--line')).not.toBeNull()
+  })
+
+  it('marks the comparison and the norm in the tooltip as the legend does', () => {
     const { host } = draw(ONE)
     const svg = host.querySelector('svg[tabindex="0"]')!
     svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
     const rows = [...host.querySelectorAll('.lintje-chart-tooltip__row')]
     expect(rows[0].querySelector('.lintje-chart-tooltip__marker--symbol')).not.toBeNull()
-    expect(rows[1].querySelector('.lintje-chart-tooltip__marker--dashed')).not.toBeNull()
+    expect(rows[1].querySelector('.lintje-chart-tooltip__marker--line')).not.toBeNull()
     expect(rows[2].querySelector('.lintje-chart-tooltip__marker--dashed')).not.toBeNull()
   })
 })
