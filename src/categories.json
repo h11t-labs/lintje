@@ -70,7 +70,7 @@
       "document-viewer",
       "gallery"
     ],
-    "composite": ["translator", "audio-player", "video-player", "transcript", "document-viewer"]
+    "composite": ["translator", "audio-player", "video-player", "transcript", "log-viewer", "document-viewer"]
   },
   {
     "name": "feedback",
