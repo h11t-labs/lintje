@@ -167,6 +167,12 @@ export class LintjeFind extends LintjeInputElement {
     if (root.activeElement?.id === this.controlId) event.preventDefault()
   }
 
+  // Safari gives a pressed button no focus of its own.
+  private holdFocus = (event: MouseEvent): void => {
+    const root = this.renderRoot as ShadowRoot
+    if (!root.activeElement) (event.currentTarget as HTMLElement).focus()
+  }
+
   private renderButton(
     label: string,
     available: boolean,
@@ -182,7 +188,10 @@ export class LintjeFind extends LintjeInputElement {
       aria-label=${label}
       aria-disabled=${available ? nothing : 'true'}
       @mousedown=${this.keepTyping}
-      @click=${() => available && action()}
+      @click=${(event: MouseEvent) => {
+        this.holdFocus(event)
+        if (available) action()
+      }}
     >
       ${icon}
     </button>`

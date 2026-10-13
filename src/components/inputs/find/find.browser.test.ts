@@ -68,5 +68,6 @@ describe('lintje-find keeps its size', () => {
     const next = element.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-find__button--next')!
     await userEvent.click(next)
     expect(element.shadowRoot!.activeElement).toBe(next)
+    expect(next.matches(':focus-visible')).toBe(false)
   })
 })
