@@ -22,6 +22,7 @@ import { classMap } from 'lit/directives/class-map.js'
 import { repeat } from 'lit/directives/repeat.js'
 import { define, type FrameSettings } from '../../../core/element'
 import { formatNumber } from '../../../core/format'
+import { lengthPx } from '../../../core/length'
 import { MediaController } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
@@ -59,6 +60,9 @@ import {
 import logViewerCss from './log-viewer.css?inline'
 
 type TimeShown = 'clock' | 'since'
+
+/** How the filter row fits its own width: all on one line, the level folded to a select, or stacked. */
+type Fit = 'wide' | 'compact' | 'narrow'
 
 interface View {
   wrap: boolean
@@ -103,6 +107,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     activeId: { state: true },
     copied: { state: true },
     message: { state: true },
+    fit: { state: true },
   }
 
   declare data?: LogViewerData
@@ -126,6 +131,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   protected activeId: string | null = null
   protected copied: 'menu' | 'line' | 'link' | null = null
   protected message: string = ''
+  protected fit: Fit = 'wide'
 
   readonly #mobile = new MediaController(this)
   #lastTop = 0
@@ -139,6 +145,11 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   #speakTimer: ReturnType<typeof setTimeout> | null = null
   #copiedTimer: ReturnType<typeof setTimeout> | null = null
   #sayFrame = 0
+  #fitObserver: ResizeObserver | null = null
+  #observed: Element | null = null
+  /** The segments' width on one line, once measured. */
+  #levelsWidth = 0
+  #drawnFit: Fit = 'wide'
 
   protected override get dataSettings(): FrameSettings | undefined {
     return this.data ?? undefined
@@ -148,6 +159,9 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     if (this.#speakTimer) clearTimeout(this.#speakTimer)
     if (this.#copiedTimer) clearTimeout(this.#copiedTimer)
     cancelAnimationFrame(this.#sayFrame)
+    this.#fitObserver?.disconnect()
+    this.#fitObserver = null
+    this.#observed = null
     super.disconnectedCallback()
   }
 
@@ -227,6 +241,12 @@ export class LintjeLogViewer extends LintjeContentTileElement {
 
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
+    this.watchFit()
+    // A new layout keeps the row's width, so its observer stays silent: measure it again.
+    if (this.fit !== this.#drawnFit) {
+      this.#drawnFit = this.fit
+      requestAnimationFrame(() => this.refit())
+    }
     const log = this.log
     if (!log) return
     if (this.#jump) {
@@ -240,6 +260,38 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       const count = this.shown.length
       this.say(count === 1 ? '1 regel' : `${formatNumber(count)} regels`)
     }
+  }
+
+  // The row reads its own width, not the screen's: a tile beside another is narrow on a wide screen.
+  private watchFit(): void {
+    const row = this.renderRoot.querySelector('.lintje-log-viewer__filters')
+    if (!row || row === this.#observed || typeof ResizeObserver === 'undefined') return
+    this.#fitObserver?.disconnect()
+    this.#fitObserver = new ResizeObserver(() => this.refit())
+    this.#fitObserver.observe(row)
+    this.#observed = row
+  }
+
+  private refit(): void {
+    const row = this.renderRoot.querySelector<HTMLElement>('.lintje-log-viewer__filters')
+    if (!row) return
+    // The search and the tools have their sizes in tokens; the segments are measured on one line.
+    const space = lengthPx(row, '--space-2', 8)
+    const find = 10 * lengthPx(row, '--space-10', 40)
+    const tools = 3 * lengthPx(row, '--h-button', 48) + 2 * space
+    const select = 12 * lengthPx(row, '--space-4', 16)
+    const segments = row.querySelector('lintje-segmented')
+    if (segments)
+      this.#levelsWidth = Math.max(this.#levelsWidth, segments.getBoundingClientRect().width)
+    const gap = parseFloat(getComputedStyle(row).columnGap) || 0
+    const tail = find + gap + tools
+    const room = row.clientWidth
+    let next: Fit
+    if (row.classList.contains('is-raw')) next = room >= tail ? 'wide' : 'narrow'
+    else if (room < select + gap + tail) next = 'narrow'
+    // Not yet measured: try them on one line, and measure there.
+    else next = !this.#levelsWidth || room >= this.#levelsWidth + gap + tail ? 'wide' : 'compact'
+    if (next !== this.fit) this.fit = next
   }
 
   private get log(): HTMLElement | null {
@@ -381,7 +433,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     this.emit('lintje-log-action', event.detail)
   }
 
-  /** Below 768 px the three menus are one: what does not fit beside the level folds into "Meer". */
+  /** In a narrow row the three menus are one: what does not fit beside the level folds into "Meer". */
   private readonly onAnyAction = (event: CustomEvent<string>): void => {
     const [kind] = event.detail.split(':')
     if (kind === 'view') this.onViewAction(event)
@@ -546,7 +598,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
           )}
         </div>
         <div class="lintje-log-viewer">
-          ${this.renderFilters(raw, mobile)} ${this.renderFrame(raw, mobile)}
+          ${this.renderFilters(raw)} ${this.renderFrame(raw, mobile)}
         </div>
       </lintje-tile>
       ${this.renderExpandModal(this.expanded ? this.renderLines(raw, mobile, 'modal') : nothing, {
@@ -557,7 +609,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
 
   /** Three squares at the height of the fields beside them, so the row has one height. */
   private renderTools(raw: boolean): TemplateResult {
-    if (this.#mobile.matches) {
+    if (this.fit === 'narrow') {
       return html`<span class="lintje-log-viewer__tools">
         <lintje-menu-button
           accessible-label="Weergave, kopiëren en meer"
@@ -629,20 +681,21 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       : nothing
   }
 
-  private renderFilters(raw: boolean, mobile: boolean): TemplateResult {
+  private renderFilters(raw: boolean): TemplateResult {
+    const folded = this.fit !== 'wide'
     const { level, search } = this.filter
     const counts = this.data?.counts
     const options = LEVELS.map((value) => {
       const count = counts?.[value]
       const label = LEVEL_LABEL[value]
-      return mobile
+      return folded
         ? { value, label: count === undefined ? label : `${label} (${formatNumber(count)})` }
         : { value, label, count }
     })
     const total = this.hitCounts.reduce((sum, count) => sum + count, 0)
     const levels = raw
       ? nothing
-      : mobile
+      : folded
         ? html`<lintje-select
             class="lintje-log-viewer__level"
             label="Niveau"
@@ -667,7 +720,11 @@ export class LintjeLogViewer extends LintjeContentTileElement {
             }}
           ></lintje-segmented>`
     return html`<div
-      class=${classMap({ 'lintje-log-viewer__filters': true, 'is-raw': raw })}
+      class=${classMap({
+        'lintje-log-viewer__filters': true,
+        [`is-${this.fit}`]: true,
+        'is-raw': raw,
+      })}
     >
       ${levels}
       <lintje-find

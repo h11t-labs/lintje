@@ -16,6 +16,16 @@
 .lintje-log-viewer__filters.is-raw { justify-content: flex-end; }
 .lintje-log-viewer__find { margin-left: auto; }
 .lintje-log-viewer__tools { display: inline-flex; gap: var(--space-2); flex: none; }
+/* Folded, the select takes what the search and the tools leave. */
+.lintje-log-viewer__filters.is-compact { flex-wrap: nowrap; }
+.lintje-log-viewer__filters.is-compact .lintje-log-viewer__level { flex: 1 1 auto; min-width: 0; }
+/* Narrow: the search over the full width, the level and the one menu on the line under it. */
+.lintje-log-viewer__filters.is-narrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+.lintje-log-viewer__filters.is-narrow .lintje-log-viewer__find { grid-column: 1 / -1; grid-row: 1; width: 100%; margin-left: 0; }
+.lintje-log-viewer__filters.is-narrow .lintje-log-viewer__level { grid-column: 1; grid-row: 2; }
+.lintje-log-viewer__filters.is-narrow .lintje-log-viewer__tools { grid-column: 2; grid-row: 2; }
+.lintje-log-viewer__filters.is-narrow.is-raw .lintje-log-viewer__tools { grid-row: 1; }
+.lintje-log-viewer__filters.is-narrow.is-raw .lintje-log-viewer__find { grid-column: 1; }
 
 .lintje-log-viewer__frame { display: flex; flex-direction: column; min-width: 0; }
 .lintje-log-viewer__log {
@@ -156,12 +166,6 @@
 }
 
 @media screen and (max-width: 767px) {
-  /* The search over the full width; the level and the three tools share the row under it. */
-  .lintje-log-viewer__filters { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
-  .lintje-log-viewer__find { grid-column: 1 / -1; grid-row: 1; margin-left: 0; }
-  .lintje-log-viewer__level { grid-column: 1; grid-row: 2; }
-  .lintje-log-viewer__tools { grid-column: 2; grid-row: 2; }
-  .lintje-log-viewer__filters.is-raw .lintje-log-viewer__tools { grid-column: 1 / -1; justify-self: end; }
   .lintje-log-viewer__row .lintje-log-viewer__time,
   .lintje-log-viewer__row .lintje-log-viewer__level-cell,
   .lintje-log-viewer__row .lintje-log-viewer__source { flex: 0 0 auto; }

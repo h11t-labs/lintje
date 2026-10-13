@@ -352,7 +352,9 @@ De besluiten hieronder gelden voor alle elementen.
   stopt het volgen en alleen weer onderaan komen hervat het. Een balk onder het venster zegt altijd
   wat het doet, en telt wat er onder bijkwam. Een snelle stroom is geen live-regio: een eigen
   statusregio vat hoogstens eens per vijf seconden samen. Een regel zonder niveau krijgt er geen;
-  het element raadt nooit. Leegmaken is alleen het venster, nooit de bron.
+  het element raadt nooit. Leegmaken is alleen het venster, nooit de bron. Zijn filterrij leest
+  haar eigen breedte: eerst klapt het niveau in tot een keuzelijst, pas daarna stapelt de rij en
+  worden de drie knoppen één menu, zodat er nooit één knop alleen op een regel staat.
 - **Een paar keuzes die allemaal in beeld blijven, zijn een groep vinkjes**
   (`lintje-checkbox-group`): één label, één hint en één foutregel voor de groep, zoals de
   radiogroep. Een lange lijst om in te zoeken is de multiselect.
