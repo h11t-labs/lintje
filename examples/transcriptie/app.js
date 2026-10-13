@@ -51,8 +51,6 @@ const mmss = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.floor(secon
 // Named here, after the source is set, so the first draw already reads the right folder.
 // Prose draws its own `html` on the type scale; a heading in its slot would keep the browser's size.
 for (const prose of document.querySelectorAll('lintje-prose[data-heading]')) prose.html = `<h3>${prose.dataset.heading}</h3>`
-$('search-prev').icon = 'functioneel-delta-omhoog'
-$('search-next').icon = 'functioneel-delta-omlaag'
 $('record').icon = 'beeld-en-geluid-microfoon'
 $('phone-follow').iconRight = 'functioneel-pijl-naar-rechts'
 
@@ -1201,8 +1199,8 @@ function renderTranscript() {
   matchIndex = Math.min(matchIndex, Math.max(hits.length - 1, 0))
   transcript.searchMatches = matches
   transcript.currentMatch = hits[matchIndex] ? { id: hits[matchIndex].id, index: hits[matchIndex].index } : null
-  search.hint = wanted ? (hits.length ? `${matchIndex + 1} van ${hits.length}` : 'Geen treffers') : ''
-  $('search-prev').hidden = $('search-next').hidden = !wanted
+  search.total = wanted ? hits.length : null
+  search.current = hits.length ? matchIndex + 1 : 0
   $('replace-toggle').hidden = !wanted || item.state !== 'done'
   if ($('replace-toggle').hidden) $('replace-row').hidden = true
   $('replace-all').textContent = hits.length ? `Alle ${hits.length}` : 'Alle'
@@ -1230,8 +1228,7 @@ function step(by) {
     transcript.currentTime = hits[matchIndex].start
   }
 }
-$('search-prev').addEventListener('click', () => step(-1))
-$('search-next').addEventListener('click', () => step(1))
+search.addEventListener('lintje-find-step', (event) => step(event.detail))
 
 /* Live, the transcript follows what is said; the reader can stop that and come back to now. */
 let following = true

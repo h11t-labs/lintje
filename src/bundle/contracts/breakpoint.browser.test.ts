@@ -25,6 +25,7 @@ import '../../components/frame/footer/footer'
 import '../../components/forms/form-actions/form-actions'
 import '../../components/forms/form/form'
 import '../../components/inputs/file-upload/file-upload'
+import '../../components/inputs/find/find'
 import '../../components/inputs/select/select'
 import '../../components/inputs/slot-picker/slot-picker'
 import '../../components/inputs/text-editor/text-editor'
@@ -385,6 +386,13 @@ function subtitleRow(
 }
 
 const ROWS: Row[] = [
+  {
+    tag: 'lintje-find',
+    marker: 'the field fills the width',
+    mount: () => append(create('lintje-find', { value: 'aanvraag', total: 7, current: 2 })),
+    wide: (element) => box(element).width < document.body.clientWidth / 2,
+    phone: (element) => Math.abs(box(element).width - document.body.clientWidth) < 2,
+  },
   {
     tag: 'lintje-shell',
     marker: 'the top bar’s menu gives way to a header with a Menu button',
