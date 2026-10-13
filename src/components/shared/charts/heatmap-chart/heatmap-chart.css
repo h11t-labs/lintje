@@ -25,7 +25,7 @@
      rung (5.9:1), white on the darkest (4.5:1). */
   background: var(--lintje-cell);
   color: var(--color-text-on-light-fill);
-  transition: background-color var(--dur-layer) var(--ease-in-motion);
+  transition: background-color var(--dur-layer) var(--ease-fade);
 }
 .lintje-heatmap__cell--class-4 { color: var(--color-text-on-fill); }
 .lintje-heatmap__cell--class-0 { box-shadow: inset 0 0 0 1px var(--color-border-default); }

@@ -11,7 +11,13 @@ import { styleProps } from '../../../../core/style-props'
 import { formatNumber, textWidth } from '../../../../core/format'
 import { chartColor, lineCasing } from '../shared/colors'
 import { markPath, SERIES_KEYS, isSeriesKey, type SeriesKey } from '../shared/series-shapes'
-import { drawingRole, renderLegend, type LegendItem, type SvgSlot } from '../shared/axes'
+import {
+  drawingRole,
+  renderLegend,
+  THRESHOLD_KEY,
+  type LegendItem,
+  type SvgSlot,
+} from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
 import type {
   ChartController,
@@ -137,6 +143,9 @@ export function renderRadarChart(spec: RadarSpec, options: ChartOptions): Templa
   const count = axes.length
   const layers = layersOf(spec)
   const hidden = (layer: Layer) => controller.hiddenSeries.includes(layer.label)
+  const normOff = controller.hiddenSeries.includes(THRESHOLD_KEY)
+  // A lone layer is a switch only while the norm would stay.
+  const lone = layers.length < 2 && threshold == null
   const shown = layers.filter((layer) => !hidden(layer))
   const variables = layers.filter((layer) => !layer.comparison)
   const shownVariables = shown.filter((layer) => !layer.comparison)
@@ -183,6 +192,7 @@ export function renderRadarChart(spec: RadarSpec, options: ChartOptions): Templa
             color: layer.color,
             shape: 'line' as const,
             hidden: hidden(layer),
+            fixed: lone,
           }
         : {
             label: layer.label,
@@ -190,15 +200,17 @@ export function renderRadarChart(spec: RadarSpec, options: ChartOptions): Templa
             shape: 'line' as const,
             symbol: layer.symbol,
             hidden: hidden(layer),
+            fixed: lone,
           },
     ),
     ...(threshold != null
       ? [
           {
+            key: THRESHOLD_KEY,
             label: spec.thresholdLabel ?? `Norm ${withUnit(threshold)}`,
             color: 'var(--color-chart-emphasis)',
             shape: 'dashed' as const,
-            fixed: true,
+            hidden: normOff,
           },
         ]
       : []),
@@ -218,7 +230,7 @@ export function renderRadarChart(spec: RadarSpec, options: ChartOptions): Templa
         marker: layer.comparison ? ('line' as const) : undefined,
       }
     })
-    if (threshold != null) {
+    if (threshold != null && !normOff) {
       rows.push({
         label: spec.thresholdLabel ?? 'Norm',
         value: withUnit(threshold),
@@ -239,7 +251,7 @@ export function renderRadarChart(spec: RadarSpec, options: ChartOptions): Templa
           divider: true,
         })
       }
-      if (threshold != null) {
+      if (threshold != null && !normOff) {
         rows.push({
           label: 't.o.v. norm',
           value: signed(value - threshold),
@@ -263,6 +275,7 @@ export function renderRadarChart(spec: RadarSpec, options: ChartOptions): Templa
     reserve,
     labelled,
     hidden,
+    normOff,
     format,
     contentAt,
   })
@@ -312,6 +325,8 @@ interface DrawInput {
   reserve: boolean
   labelled: boolean
   hidden: (layer: Layer) => boolean
+  /** The norm switched off in the legend: it fades, as a layer does. */
+  normOff: boolean
   format: (value: number) => string
   contentAt: (i: number) => TooltipContent
 }
@@ -337,6 +352,7 @@ function drawRadar({
   reserve,
   labelled,
   hidden,
+  normOff,
   format,
   contentAt,
 }: DrawInput): Drawing {
@@ -415,25 +431,28 @@ function drawRadar({
       <text x=${end.x} y=${nameY} text-anchor=${anchor} class="lintje-radar__name">${name}</text>
       ${
         reserve
-          ? svg`<text x=${end.x} y=${nameY + VALUE_LINE} text-anchor=${anchor}
-                     class="lintje-chart__data-label lintje-radar__value ${value == null ? 'lintje-radar__no-value' : ''} ${labelled ? '' : 'is-hidden'}">
-                 ${value == null ? 'geen gegevens' : format(value)}</text>`
+          ? svg`<g class="lintje-chart__series ${labelled ? '' : 'is-off'}">
+              <text x=${end.x} y=${nameY + VALUE_LINE} text-anchor=${anchor}
+                    class="lintje-chart__data-label lintje-radar__value ${value == null ? 'lintje-radar__no-value' : ''}">
+                ${value == null ? 'geen gegevens' : format(value)}</text>
+            </g>`
           : nothing
       }
     `
   })
 
   const layer = (item: Layer, part: 'area' | 'line' | 'lift') => {
-    const off = hidden(item) ? 'is-hidden' : ''
+    // The fade sits on a wrapper, so the emphasis keeps its own quicker step back.
+    const off = `lintje-chart__series ${hidden(item) ? 'is-off' : ''}`
     const vertices = item.values.map((value, i) => (value == null ? null : polar(i, scale(value))))
     // Every complete layer keeps its area, filled or not: one that appeared on emphasis would
     // grow in a second time.
     if (part === 'area') {
       if (item.comparison || vertices.some((p) => p == null)) return nothing
-      return svg`<g class="lintje-radar__layer ${off}" ${origin}>
+      return svg`<g class=${off}><g class="lintje-radar__layer" ${origin}>
         <polygon class="lintje-radar__area ${fills.has(item.label) ? 'is-filled' : ''}"
                  points=${points(vertices as Point[])} fill=${item.color} />
-      </g>`
+      </g></g>`
     }
     const { closed, runs } = radarRuns(item.values)
     const casing = item.comparison ? undefined : lineCasing(item.color)
@@ -462,9 +481,9 @@ function drawRadar({
     // under the layers drawn after it.
     if (part === 'lift')
       return svg`<g class="lintje-radar__lift" aria-hidden="true">${lines}${marks}</g>`
-    return svg`<g class="lintje-radar__layer ${off} ${muted(item) ? 'is-muted' : ''}" ${origin}>
+    return svg`<g class=${off}><g class="lintje-radar__layer ${muted(item) ? 'is-muted' : ''}" ${origin}>
       ${lines}${marks}
-    </g>`
+    </g></g>`
   }
 
   const sector = (i: number) => {
@@ -497,7 +516,9 @@ function drawRadar({
                        class="lintje-chart__axis-label lintje-chart__axis-label--halo">${formatNumber(tick, tickDecimals)}</text>`
     }),
     threshold != null
-      ? svg`<polygon class="lintje-chart__reference lintje-radar__norm" points=${ring(threshold)} />`
+      ? svg`<g class="lintje-chart__series ${normOff ? 'is-off' : ''}">
+          <polygon class="lintje-chart__reference lintje-radar__norm" points=${ring(threshold)} />
+        </g>`
       : nothing,
     order.map((item) => layer(item, 'area')),
     order.map((item) => layer(item, 'line')),
@@ -541,6 +562,7 @@ function drawRows({
   reserve,
   labelled,
   hidden,
+  normOff,
   format,
   contentAt,
 }: DrawInput): Drawing {
@@ -576,40 +598,42 @@ function drawRows({
     const value = reserve ? variable?.values[i] : undefined
     const text = reserve ? (value == null ? 'geen gegevens' : format(value)) : ''
     const below = reserve && value != null && threshold != null && value < threshold
-    const off = labelled ? '' : 'is-hidden'
+    const off = `lintje-chart__series ${labelled ? '' : 'is-off'}`
     let offset = barTop
     return svg`
       <g class="lintje-radar__row ${active === i ? 'is-active' : ''}">
         <text x="0" y=${top + 14} class="lintje-radar__name">${name}</text>
         ${
           reserve
-            ? svg`<text x=${width} y=${top + 14} text-anchor="end"
-                       class="lintje-chart__data-label lintje-radar__value ${value == null ? 'lintje-radar__no-value' : ''} ${off}">${text}</text>`
+            ? svg`<g class=${off}><text x=${width} y=${top + 14} text-anchor="end"
+                       class="lintje-chart__data-label lintje-radar__value ${value == null ? 'lintje-radar__no-value' : ''}">${text}</text></g>`
             : nothing
         }
         ${
           below
-            ? svg`<text x=${width - textWidth(text, fontFamily, 700) - 6} y=${top + 14} text-anchor="end"
-                       class="lintje-chart__axis-label lintje-radar__value ${off}">onder norm</text>`
+            ? svg`<g class=${off}><text x=${width - textWidth(text, fontFamily, 700) - 6} y=${top + 14} text-anchor="end"
+                       class="lintje-chart__axis-label lintje-radar__value">onder norm</text></g>`
             : nothing
         }
         ${bars.map(({ layer, size }) => {
           const y = offset
           offset += size + BAR_GAP
           const v = layer.values[i]
-          const gone = hidden(layer) ? 'is-hidden' : ''
+          const gone = hidden(layer) ? 'is-off' : ''
           return v == null
-            ? svg`<rect class="lintje-radar__bar ${gone}" x="0.5" y=${y} width=${plot} height=${size}
+            ? svg`<rect class="lintje-radar__bar lintje-chart__series ${gone}" x="0.5" y=${y} width=${plot} height=${size}
                        fill="url(#hatch-${controller.id})" />`
-            : svg`<rect class="lintje-chart__bar lintje-chart__bar--horizontal lintje-radar__bar ${gone}" x="0.5" y=${y}
+            : svg`<rect class="lintje-chart__bar lintje-chart__bar--horizontal lintje-radar__bar lintje-chart__series ${gone}" x="0.5" y=${y}
                        width=${Math.max(0, x(v) - 0.5)} height=${size} fill=${layer.color}
                        ${styleProps(staggerStyle(i, axes.length))} />`
         })}
         <line class="lintje-radar__zero" x1="0.5" x2="0.5" y1=${barTop - 2} y2=${barTop + barsHeight + 2} />
         ${
           threshold != null
-            ? svg`<line class="lintje-chart__reference lintje-radar__norm" x1=${x(threshold)} x2=${x(threshold)}
-                       y1=${barTop - 3} y2=${barTop + barsHeight + 3} />`
+            ? svg`<g class="lintje-chart__series ${normOff ? 'is-off' : ''}">
+                <line class="lintje-chart__reference lintje-radar__norm" x1=${x(threshold)} x2=${x(threshold)}
+                      y1=${barTop - 3} y2=${barTop + barsHeight + 3} />
+              </g>`
             : nothing
         }
         <rect class="lintje-chart__hit" x="0" y=${top} width=${width} height=${rowHeight}

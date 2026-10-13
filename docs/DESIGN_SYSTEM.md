@@ -766,7 +766,8 @@ naar een volgende regel; ze overlappen nooit.
 
 ## Beweging
 
-- **Twee curves**: wat binnenkomt, vertraagt; wat vertrekt, versnelt.
+- **Twee curves**: wat binnenkomt, vertraagt; wat vertrekt, versnelt. Een vervaging die heen en
+  terug gaat, is de uitzondering: die gaat recht.
 - **Eén duur voor interfacebeweging** (`--dur-base`). Elk onderdeel heeft een eigen token dat
   ernaar wijst, zodat er één kan veranderen zonder een component aan te raken. Hoverfeedback is
   korter; databeweging (een grafiek intekenen, een waarde optellen) is langer.
@@ -779,8 +780,8 @@ naar een volgende regel; ze overlappen nooit.
   timing van de staven; een referentielijn komt daarna in, met haar label.
 - **Wat je in de legenda aan- of uitzet, vervaagt in of uit**; een deel van een stapel of een
   staaf in een groep krimpt of groeit en de rest schuift mee, zodat het oog volgt wat er verschijnt
-  of verdwijnt. In en uit gaan op dezelfde duur en curve: een versnellende uitgang blijft hangen
-  en voelt trager. Het tekent nooit opnieuw in.
+  of verdwijnt. Een vervaging gaat recht, zonder curve, zodat uit precies in is, achteruit: met
+  een curve blijft bij het uitgaan een schim staan. Het tekent nooit opnieuw in.
 - **Een keuze beweegt mee**: het vinkje van een checkbox groeit in bij aanvinken en krimpt weg bij
   uitvinken, op de duur van hoverfeedback.
 - **De focusring is nooit geanimeerd.**
