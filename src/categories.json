@@ -100,10 +100,11 @@
     "heading": "Invoer",
     "label": "Invoervelden",
     "icon": "functioneel-bewerken",
-    "intro": "Elk veld waarin een gebruiker iets invult of kiest, in al zijn toestanden: rust, gewijzigd, fout en uitgeschakeld, en het label erboven.",
+    "intro": "Elk veld waarin een gebruiker iets invult of kiest, in al zijn toestanden: rust, gewijzigd, fout en uitgeschakeld, en het label erboven. Ook het veld dat een woord vindt in wat al op het scherm staat.",
     "elements": [
       "field",
       "text-input",
+      "find",
       "textarea",
       "number-input",
       "select",
