@@ -17,7 +17,7 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
-import '../../../primitives/badge/badge'
+import '../../feedback/badge/badge'
 import { LintjeInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
 import segmentedCss from './segmented.css?inline'

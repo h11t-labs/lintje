@@ -47,7 +47,7 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
-/* The modified-filters count is the primitive badge's `attention` tone: near-black on the
+/* The modified-filters count is the badge's `attention` tone: near-black on the
    orange, because white on #E17000 is 3.2:1. */
 
 .lintje-mobile-menu {

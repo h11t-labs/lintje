@@ -11,7 +11,7 @@ const DEFINE = /^define\('(lintje-[a-z0-9-]+)'/gm
 const IMPORT =
   /^[ \t]*(?:import|export)[ \t]+(type[ \t]+)?[\w\s{},*$]*?from[ \t]+['"]([^'"]+)['"]|^[ \t]*import[ \t]+['"]([^'"]+)['"]/gm
 
-function sourceFiles(dir, files = []) {
+export function sourceFiles(dir, files = []) {
   for (const name of readdirSync(dir)) {
     const path = join(dir, name)
     if (statSync(path).isDirectory()) sourceFiles(path, files)

@@ -6,7 +6,7 @@
  */
 import { beforeEach, describe, expect, it } from 'vitest'
 import { PRESETS, presetRange, type DateRange, type LintjeDateRange } from './date-range'
-import type { LintjeButton } from '../../../primitives/button/button'
+import type { LintjeButton } from '../../actions/button/button'
 
 beforeEach(() => {
   document.body.innerHTML = ''

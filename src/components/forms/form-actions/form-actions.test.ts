@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest'
 import './form-actions'
 import { clockTime, type LintjeFormActions } from './form-actions'
-import type { LintjeButton } from '../../../primitives/button/button'
+import type { LintjeButton } from '../../actions/button/button'
 
 async function mount(
   state: LintjeFormActions['state'],

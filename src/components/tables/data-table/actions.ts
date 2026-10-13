@@ -7,7 +7,7 @@
  */
 import { html, nothing, type TemplateResult } from 'lit'
 import '../../actions/menu-button/menu-button'
-import '../../../primitives/button/button'
+import '../../actions/button/button'
 import type { TableAction } from '../../../types'
 
 /** The rows a Shift+click checks: `anchor` to `target` inclusive; only `target` without an anchor. */

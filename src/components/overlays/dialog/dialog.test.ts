@@ -4,10 +4,10 @@
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import './dialog'
-import '../../../primitives/button/button'
+import '../../actions/button/button'
 import '../../inputs/text-input/text-input'
 import type { LintjeDialog } from './dialog'
-import type { LintjeButton } from '../../../primitives/button/button'
+import type { LintjeButton } from '../../actions/button/button'
 import { deepActiveElement } from '../../shared/focus-trap'
 
 const QUESTION = `

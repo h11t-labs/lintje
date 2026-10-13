@@ -52,7 +52,7 @@ describe('the menu badge', () => {
     expect(element.classList.contains('is-muted')).toBe(true)
   })
 
-  it('draws through the primitive badge, on the menu surface for a count and a word', () => {
+  it('draws through the badge, on the menu surface for a count and a word', () => {
     const action = badge({ badge: { value: 3, tone: 'action' } })
     expect([...action.classList]).toEqual(
       expect.arrayContaining(['lintje-badge', 'lintje-badge--unread', 'lintje-nav__badge']),

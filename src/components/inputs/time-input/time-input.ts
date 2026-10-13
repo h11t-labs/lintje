@@ -22,7 +22,7 @@ import { standsIn } from '../../../core/focus'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { LintjeInputElement } from '../shared/input'
-import '../../../primitives/popover/popover'
+import '../../overlays/popover/popover'
 import inputCss from '../shared/input.css?inline'
 import timeInputCss from './time-input.css?inline'
 import {

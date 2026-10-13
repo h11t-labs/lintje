@@ -16,7 +16,7 @@ import type { ShellData, ShellView, ShellViewChange } from '../../../types'
 import { clearFilterZone, setFrameState } from '../../../core/frame-state'
 import { deepActiveElement, tabbables } from '../../shared/focus-trap'
 import { mailSubject, phoneLink } from './top-bar'
-import type { LintjeButton } from '../../../primitives/button/button'
+import type { LintjeButton } from '../../actions/button/button'
 
 beforeAll(() => {
   // The shell observes its navigation bar; happy-dom has no observer.

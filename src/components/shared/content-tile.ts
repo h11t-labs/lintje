@@ -4,7 +4,7 @@
  * data. The modal's events stop here, like the tile's own, so one action is one line in a log.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
-import { LintjeGridItemElement } from '../../primitives/shared/grid-item-element'
+import { LintjeGridItemElement } from './grid-item-element'
 import '../overlays/modal/modal'
 
 export interface ExpandModalOptions {

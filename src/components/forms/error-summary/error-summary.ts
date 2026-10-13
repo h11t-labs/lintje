@@ -11,8 +11,8 @@ import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'l
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import { controlName, focusInside, namedControls } from '../form/controls'
-import '../../../primitives/button/button'
+import { controlName, focusInside, namedControls } from '../../shared/controls'
+import '../../actions/button/button'
 import errorSummaryCss from './error-summary.css?inline'
 
 /** `field` is the field's `name`; without it (a field not on the page) the line is plain text. */

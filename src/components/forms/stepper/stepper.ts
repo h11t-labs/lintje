@@ -20,7 +20,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import '../../../primitives/progress-bar/progress-bar'
+import '../../feedback/progress-bar/progress-bar'
 import stepperCss from './stepper.css?inline'
 import { isPlainClick } from '../../../core/links'
 

@@ -30,7 +30,7 @@ import {
   namedControlsIn,
   readControl,
   writeControl,
-} from './controls'
+} from '../../shared/controls'
 import '../error-summary/error-summary'
 import '../form-actions/form-actions'
 import formCss from './form.css?inline'

@@ -14,7 +14,7 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { define, type FrameSettings } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
-import { LintjeGridItemElement, spanStyles } from '../../../primitives/shared/grid-item-element'
+import { LintjeGridItemElement, spanStyles } from '../../shared/grid-item-element'
 import { iconStyles } from '../../../icons/render'
 import {
   DisclosureSettle,
