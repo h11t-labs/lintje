@@ -19,7 +19,7 @@ import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import '../../../primitives/badge/badge'
+import '../../feedback/badge/badge'
 import tabsCss from './tabs.css?inline'
 import { isPlainClick } from '../../../core/links'
 

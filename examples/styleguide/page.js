@@ -63,27 +63,58 @@ function linkCard(className, href, go, parts) {
   return card
 }
 
-/** A row of facts: label and value side by side, a value with `href` a link. */
-function factsRow(items, go) {
-  const list = element('dl', 'guide__facts')
-  for (const { label, value, href } of items) {
+/**
+ * A row of facts: label and value side by side. A value with `href` is a link; `links` is a list
+ * of them, comma-separated, with `value` the text when the list is empty.
+ */
+function factsRow(items, go, className = '') {
+  const list = element('dl', `guide__facts ${className}`.trim())
+  const linkTo = (value, href) => {
+    const link = element('a', '', value)
+    link.href = href
+    if (go)
+      link.addEventListener('click', (event) => {
+        event.preventDefault()
+        go(href)
+      })
+    return link
+  }
+  for (const { label, value, href, links } of items) {
     const pair = element('div', 'guide__fact')
     pair.append(element('dt', '', label))
     const dd = element('dd')
-    if (href) {
-      const link = element('a', '', value)
-      link.href = href
-      if (go)
-        link.addEventListener('click', (event) => {
-          event.preventDefault()
-          go(href)
-        })
-      dd.append(link)
-    } else dd.textContent = value
+    if (links?.length)
+      links.forEach((entry, i) => dd.append(...(i ? [', '] : []), linkTo(entry.value, entry.href)))
+    else if (href) dd.append(linkTo(value, href))
+    else dd.textContent = value
     pair.append(dd)
     list.append(pair)
   }
   return list
+}
+
+const LAYER_TEXT = {
+  Bouwsteen: 'één bedieningselement, één waarde, één stuk inhoud of één kader.',
+  Samengesteld: 'ordent een verzameling van de host uit bouwstenen.',
+}
+
+/** What a tag is built from and where it is used, each tag a link to its page. */
+function buildSection(context, toc) {
+  const node = section('opbouw', 'Opbouw', toc)
+  const links = (tags) =>
+    tags.map((tag) => ({ value: tag.replace('lintje-', ''), href: context.tagAddress(tag) }))
+  node.append(
+    element('p', 'guide__meta', `${context.layer}: ${LAYER_TEXT[context.layer]}`),
+    factsRow(
+      [
+        { label: 'Bestaat uit', value: 'geen andere tag', links: links(context.draws) },
+        { label: 'Gebruikt in', value: 'geen andere tag', links: links(context.usedBy) },
+      ],
+      context.go,
+      'guide__facts--stacked',
+    ),
+  )
+  return node
 }
 
 /* The overview ------------------------------------------------------------------------- */
@@ -340,11 +371,7 @@ export function renderElementPage(host, item, context) {
   )
 
   // Under the title, which says what it is, its facts in one quiet line.
-  const kind = !declaration
-    ? 'Sectie'
-    : declaration.module?.includes('/primitives/')
-      ? 'Primitive'
-      : 'Component'
+  const kind = item.tag ? context.layer : 'Sectie'
   const facts = element('p', 'guide__meta guide__summary')
   const writeFacts = (apps) => {
     facts.textContent = [
@@ -535,6 +562,7 @@ export function renderElementPage(host, item, context) {
           .map((line) => ` * ${line}`.trimEnd())
           .join('\n')}\n */`
       }
+      panels.referentie.append(buildSection(context, toc.referentie))
       const reference = renderReference(declaration, types, {
         shownBy,
         skip: new Set(union ? [union.typeName] : []),

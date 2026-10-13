@@ -8,7 +8,7 @@ import { html, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { unsafeHTML } from 'lit/directives/unsafe-html.js'
 import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
-import { LintjeGridItemElement } from '../../../primitives/shared/grid-item-element'
+import { LintjeGridItemElement } from '../../shared/grid-item-element'
 import { shadowCss } from '../../../core/styles'
 import proseCss from './prose.css?inline'
 

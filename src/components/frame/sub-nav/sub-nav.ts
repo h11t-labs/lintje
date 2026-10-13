@@ -15,7 +15,7 @@ import { isPlainClick } from '../../../core/links'
 import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import { badgeStyles, renderBadge } from '../../../primitives/badge/badge'
+import { badgeStyles, renderBadge } from '../../feedback/badge/badge'
 import subNavCss from './sub-nav.css?inline'
 
 export interface SubNavItem {

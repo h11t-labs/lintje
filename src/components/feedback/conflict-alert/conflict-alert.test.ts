@@ -5,7 +5,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import './conflict-alert'
 import { conflictText, type LintjeConflictAlert } from './conflict-alert'
-import type { LintjeButton } from '../../../primitives/button/button'
+import type { LintjeButton } from '../../actions/button/button'
 
 async function mount(props: Partial<LintjeConflictAlert> = {}): Promise<LintjeConflictAlert> {
   const element = Object.assign(document.createElement('lintje-conflict-alert'), {

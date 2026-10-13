@@ -16,8 +16,8 @@ import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { LintjeInputElement } from '../shared/input'
 import { ownsEscape } from '../../shared/focus-trap'
-import '../../../primitives/button/button'
-import '../../../primitives/icon-button/icon-button'
+import '../../actions/button/button'
+import '../../actions/icon-button/icon-button'
 import inputCss from '../shared/input.css?inline'
 import {
   addDays as addIsoDays,
@@ -28,7 +28,7 @@ import {
   startOfMonth,
   startOfWeek,
   todayIso,
-} from '../date-input/date-format'
+} from '../../shared/date-format'
 import pickerCss from './date-range.css?inline'
 
 const WEEKDAY_LABELS = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo']

@@ -8,7 +8,7 @@ import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'l
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
-import '../../../primitives/button/button'
+import '../../actions/button/button'
 import activityLogCss from './activity-log.css?inline'
 
 export interface ActivityEntry {

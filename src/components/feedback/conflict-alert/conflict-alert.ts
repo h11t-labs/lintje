@@ -11,7 +11,7 @@ import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'l
 import { LintjeElement, define } from '../../../core/element'
 import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
-import '../../../primitives/button/button'
+import '../../actions/button/button'
 import '../announcement/announcement'
 import '../../content/highlight/highlight'
 import type { AnnouncementViewData } from '../../../types'

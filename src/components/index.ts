@@ -1,10 +1,23 @@
 /**
- * The components of every category. Importing this module registers every tag it defines;
+ * The tags of every category. Importing this module registers every tag it defines;
  * `define()` leaves a tag another bundle already defined alone. The modal's and the toast's
  * events are stopped by the content tiles and `<lintje-shell>`, so one action is one line in a
  * host's log. Put one filter bar on a page: two would both write the count in the mobile header
  * and both own the sheet.
  */
+import './actions/icon/icon'
+import './actions/button/button'
+import './actions/icon-button/icon-button'
+import './feedback/status-dot/status-dot'
+import './feedback/skeleton/skeleton'
+import './layout/grid/grid'
+import './layout/grid-item/grid-item'
+import './layout/tile/tile'
+import './feedback/badge/badge'
+import './feedback/spinner/spinner'
+import './feedback/progress-bar/progress-bar'
+import './overlays/popover/popover'
+import './overlays/tooltip/tooltip'
 import './frame/shell/shell'
 import './frame/user-menu/user-menu'
 import './frame/page-header/page-header'
@@ -95,6 +108,29 @@ import './feedback/conflict-alert/conflict-alert'
 import './frame/app-search/app-search'
 import './frame/notifications/notifications'
 
+export { LintjeIcon, ICON_NAMES } from './actions/icon/icon'
+export { LintjeButton } from './actions/button/button'
+export type { ButtonSize, ButtonVariant } from './actions/button/button'
+export { LintjeIconButton } from './actions/icon-button/icon-button'
+export type { IconButtonVariant } from './actions/icon-button/icon-button'
+export { LintjeStatusDot, STATUS_LABEL } from './feedback/status-dot/status-dot'
+export { TONE_ICON, TONE_WORD, WORK_STATE_LABEL, WORK_STATE_TONE } from './shared/tone'
+export type { ContentStateKind, Tone, WorkState } from './shared/tone'
+export { LintjeSkeleton } from './feedback/skeleton/skeleton'
+export { LintjeGrid } from './layout/grid/grid'
+export { LintjeGridItem } from './layout/grid-item/grid-item'
+export { LintjeGridItemElement, spanStyles } from './shared/grid-item-element'
+export { LintjeTile } from './layout/tile/tile'
+export { LintjeBadge, badgeStyles, renderBadge } from './feedback/badge/badge'
+export type { BadgeOptions, BadgeTone, BadgeVariant } from './feedback/badge/badge'
+export { LintjeSpinner } from './feedback/spinner/spinner'
+export type { SpinnerSize } from './feedback/spinner/spinner'
+export { LintjeProgressBar } from './feedback/progress-bar/progress-bar'
+export type { ProgressState } from './feedback/progress-bar/progress-bar'
+export { LintjePopover } from './overlays/popover/popover'
+export { LintjeTooltip } from './overlays/tooltip/tooltip'
+export { place } from './shared/place'
+export type { Place, Placement } from './shared/place'
 export { LintjeAnnouncement } from './feedback/announcement/announcement'
 export { LintjeChart } from './charts/chart/chart'
 export { LintjeChat } from './chat/chat/chat'
@@ -239,8 +275,8 @@ export type { ConflictChange, ConflictChoice } from './feedback/conflict-alert/c
 
 export { LintjeAudioPlayer } from './content/audio-player/audio-player'
 // A host that names speakers beside the player gives them the same colours.
-export { speakerColours, SPEAKER_COLOURS } from './content/audio-player/playback'
-export type { SpeakerColour } from './content/audio-player/playback'
+export { speakerColours, SPEAKER_COLOURS } from './content/shared/playback'
+export type { SpeakerColour } from './content/shared/playback'
 export { LintjeVideoPlayer } from './content/video-player/video-player'
 export type { TimedText } from './content/video-player/video-player'
 export { LintjeTranscript } from './content/transcript/transcript'

@@ -16,12 +16,19 @@ export interface Category {
   intro: string
   /** Tags without `lintje-`, or the id of a style guide section that shows no single tag. */
   elements: readonly string[]
+  /** The composite tags among `elements`; every other tag is a building block. */
+  composite?: readonly string[]
 }
 
 export const CATEGORIES: readonly Category[] = list
 
 /** The style guide's sections that show no single tag. */
 export const SECTIONS: readonly string[] = ['icons']
+
+/** Every composite tag, with its prefix. */
+export const COMPOSITE: readonly string[] = list.flatMap((category: Category) =>
+  (category.composite ?? []).map((name) => `lintje-${name}`),
+)
 
 /** A category's tags, with their prefix. */
 export const tagsOf = (category: Category): string[] =>

@@ -22,7 +22,7 @@ import { standsIn } from '../../../core/focus'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { LintjeInputElement } from '../shared/input'
-import '../../../primitives/popover/popover'
+import '../../overlays/popover/popover'
 import inputCss from '../shared/input.css?inline'
 import dateInputCss from './date-input.css?inline'
 import {
@@ -40,7 +40,7 @@ import {
   startOfMonth,
   todayIso,
   WEEKDAYS,
-} from './date-format'
+} from '../../shared/date-format'
 
 export class LintjeDateInput extends LintjeInputElement {
   static override styles = [iconStyles, shadowCss(inputCss), shadowCss(dateInputCss)]

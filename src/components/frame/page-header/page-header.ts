@@ -24,7 +24,7 @@ import { setTitleHidden } from '../../../core/frame-state'
 import { OverflowController } from '../../shared/overflow'
 import '../../feedback/announcement/announcement'
 import '../../actions/menu-button/menu-button'
-import '../../../primitives/icon-button/icon-button'
+import '../../actions/icon-button/icon-button'
 import headerCss from './page-header.css?inline'
 import type { PageHeaderData } from '../../../types'
 

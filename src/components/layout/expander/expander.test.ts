@@ -11,7 +11,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import './expander'
 import '../../charts/kpi-row/kpi-row'
-import '../../../primitives/tile/tile'
+import '../tile/tile'
 import { putIcons } from '../../../icons/loader'
 import type { KpiRowData } from '../../../types'
 

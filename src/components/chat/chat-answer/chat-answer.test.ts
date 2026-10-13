@@ -4,7 +4,7 @@
  */
 import { describe, expect, it, vi } from 'vitest'
 import { deepActiveElement } from '../../../core/focus'
-import type { LintjeButton } from '../../../primitives/button/button'
+import type { LintjeButton } from '../../actions/button/button'
 import './chat-answer'
 import type { LintjeChatAnswer } from './chat-answer'
 import type { ChatBlock, ChatStripData } from '../../../types'

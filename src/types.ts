@@ -5,9 +5,9 @@
  * names come from their one list, `tokens/colors.ts`.
  */
 import type { DataColor } from './tokens/colors'
-import type { ContentStateKind, Tone } from './primitives/shared/tone'
-import type { StatusTone } from './primitives/status-dot/status-dot'
-import type { AnnouncementKind } from './primitives/shared/announcement-block'
+import type { ContentStateKind, Tone } from './components/shared/tone'
+import type { StatusTone } from './components/feedback/status-dot/status-dot'
+import type { AnnouncementKind } from './components/shared/announcement-block'
 import type { ChartSpec, MapSpec } from './components/shared/charts/shared/types'
 import type { MenuEntry } from './components/actions/menu-button/menu-button'
 import type { NotificationItem } from './components/frame/notifications/notifications'
@@ -31,7 +31,7 @@ export type {
   MapControls,
 } from './components/shared/charts/shared/types'
 export type { DataColor } from './tokens/colors'
-export type { Tone, WorkState, ContentStateKind } from './primitives/shared/tone'
+export type { Tone, WorkState, ContentStateKind } from './components/shared/tone'
 
 /** Settings every view receives, taken from the URL by the host. */
 export interface FrameSettings {
@@ -47,7 +47,7 @@ export interface ContentState {
 }
 
 /** A source's delivery status: the status column's and `lintje-status-dot`'s own words, each a `Tone`. */
-export type { StatusTone } from './primitives/status-dot/status-dot'
+export type { StatusTone } from './components/feedback/status-dot/status-dot'
 
 export type TrendDirection = 'up' | 'down' | 'flat'
 
@@ -390,7 +390,7 @@ export interface TableDetailField {
 /* Announcement ------------------------------------------------------------- */
 
 /** `outage` interrupts and cannot be closed; `error` is a failure the reader may put away. */
-export type { AnnouncementKind } from './primitives/shared/announcement-block'
+export type { AnnouncementKind } from './components/shared/announcement-block'
 
 export interface AnnouncementData {
   kind?: AnnouncementKind
