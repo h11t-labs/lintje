@@ -301,7 +301,7 @@ function groupUnion(item, declaration, types) {
 }
 
 /** A section in a tab, with its heading and the entry it gets in "Op deze pagina". */
-function section(id, title, toc, items) {
+export function section(id, title, toc, items) {
   const node = element('section', 'guide__section')
   node.id = id
   const head = element('div', 'guide__section-head')
@@ -601,7 +601,7 @@ export function renderElementPage(host, item, context) {
 
 let following
 /** Marks the entry in view, as `docs/guides/page-contents.md` does; a tab without entries hides it. */
-function follow(nav, toc) {
+export function follow(nav, toc) {
   const all = (items) => items.flatMap((item) => [item, ...all(item.items ?? [])])
   const mark = (items, href) =>
     items.map((item) => ({

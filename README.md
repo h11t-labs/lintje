@@ -95,7 +95,7 @@ opent.
 
 | | |
 |---|---|
-| [`examples/styleguide/`](examples/styleguide/) | de styleguide: een pagina per element, met zijn voorbeelden, hun code en zijn referentie — properties, events, slots en de velden van `data` |
+| [`examples/styleguide/`](examples/styleguide/) | de styleguide: de tokens met hun waarde en commentaar, en een pagina per element, met zijn voorbeelden, hun code en zijn referentie — properties, events, slots en de velden van `data` |
 | [`docs/guides/`](docs/guides/start.md) | de elementen gebruiken op een eigen pagina: [een eerste pagina](docs/guides/start.md), [laden](docs/guides/loading.md), [thema's](docs/guides/theming.md), [eigen iconen](docs/guides/icons.md), [events](docs/guides/events.md), [een dashboard](docs/guides/dashboard.md), [een inhoudsopgave op de pagina](docs/guides/page-contents.md) |
 | [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) | de uitgangspunten en besluiten van het ontwerp |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | bijdragen, en het recept voor een component |

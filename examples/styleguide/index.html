@@ -18,7 +18,8 @@
         npm run dev    # or: python3 -m http.server, at the repo root
         open http://localhost:5180/examples/styleguide/
 
-      `?category=<name>` is a category, `?element=<tag without lintje->` an element, with
+      `?foundation=<colour|typography|size>` is a page of tokens, `?category=<name>` a category,
+      `?element=<tag without lintje->` an element, with
       `&tab=` for its open tab and `&soort=` for the chart's kinds; `?theme=<name>` one of the six
       themes, `?mode=dark` the mode, `?layout=top` the navigation above the page (the shell's
       "Weergave" offers it). `#el-<tag>`, the older address, opens the element's page. `/` or
@@ -356,6 +357,61 @@
       }
       .guide__advice-title { margin: 0 0 var(--space-1); font: var(--text-small); font-weight: 700; color: var(--color-text-muted); }
       .guide__advice-text { margin: 0; max-width: var(--w-text); }
+
+      /* A Fundament page: a row per token, its name, its value as the reader's mode and theme
+         compute it, and what it looks like with its source comment. */
+      .guide__tokens { display: flex; flex-direction: column; container-type: inline-size; background: var(--color-bg-surface); border: 1px solid var(--color-border-default); }
+      .guide__token,
+      .guide__ladder {
+        display: grid;
+        grid-template-columns: minmax(0, 16rem) minmax(0, 12rem) minmax(0, 1fr);
+        gap: var(--space-2) var(--space-6);
+        align-items: center;
+        padding: var(--space-3) var(--space-5);
+        border-top: 1px solid var(--color-border-default);
+      }
+      .guide__ladder { grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); }
+      .guide__token:first-child,
+      .guide__ladder:first-child { border-top: 0; }
+      .guide__token-name { font-family: var(--font-mono); font-weight: 700; overflow-wrap: anywhere; }
+      .guide__token-body { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+      .guide__token-sample { overflow-wrap: anywhere; }
+      .guide__token-shape { display: block; box-sizing: border-box; max-width: 100%; }
+      .guide__token-shape--colour { width: calc(4 * var(--space-10)); height: var(--space-10); border: 1px solid var(--color-border-heavy); }
+      .guide__token-shape--bar { height: var(--space-4); background: var(--color-text-muted); }
+      .guide__token-shape--box { width: var(--space-10); background: var(--color-bg-subtle); border: 1px solid var(--color-border-heavy); }
+      .guide__token-shape--shadow { width: calc(4 * var(--space-10)); height: var(--space-10); background: var(--color-bg-surface); }
+      .guide__token-shape--corner { width: calc(2 * var(--space-10)); height: calc(2 * var(--space-10)); background: var(--color-bg-subtle); border: 2px solid var(--color-text-muted); }
+      .guide__token-shape--focus { width: calc(3 * var(--space-10)); height: var(--h-button); margin: var(--space-2); background: var(--color-action-primary); }
+      .guide__token-shape--edge { width: calc(4 * var(--space-10)); height: var(--h-nav-row); background: var(--color-nav-active); }
+      .guide__token-shape--tile { height: calc(1.5 * var(--space-10)); border: 1px solid var(--color-border-heavy); }
+      .guide__token-shape--cell { width: 100%; min-width: calc(2 * var(--space-10)); height: var(--space-8); margin-bottom: var(--space-1); border: 1px solid var(--color-border-heavy); }
+      /* A movement: a block crosses its track in the token's time and curve, once played. Under
+         reduced motion it only moves over. */
+      .guide__token-shape--motion { position: relative; width: 100%; max-width: calc(8 * var(--space-10)); height: var(--space-6); border-bottom: 1px solid var(--color-border-heavy); }
+      .guide__motion-block { position: absolute; left: 0; bottom: 0; width: var(--space-5); height: var(--space-5); background: var(--color-action-primary); }
+      .is-playing .guide__motion-block { left: calc(100% - var(--space-5)); }
+      @media (prefers-reduced-motion: no-preference) {
+        .is-playing .guide__motion-block { animation: guide-cross var(--guide-time) var(--guide-curve) both; }
+      }
+      @keyframes guide-cross { from { left: 0; } to { left: calc(100% - var(--space-5)); } }
+      .guide__token-notes { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3) var(--space-5); border-top: 1px solid var(--color-border-default); }
+      .guide__ladders { display: flex; flex-direction: column; }
+      .guide__ladder-steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--space-2) var(--space-3); }
+      .guide__ladder-step { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+      .guide__ladder--head { padding-block: var(--space-2); }
+      .guide__status-wrap { overflow-x: auto; }
+      .guide__status { width: 100%; border-collapse: collapse; }
+      .guide__status caption { padding: var(--space-3) var(--space-5) 0; text-align: left; }
+      .guide__status th,
+      .guide__status td { padding: var(--space-3) var(--space-5); text-align: left; vertical-align: top; border-top: 1px solid var(--color-border-default); white-space: nowrap; }
+      .guide__status thead th { border-top: 0; font: var(--text-table-head); color: var(--color-text-muted); }
+      @container (max-width: 48rem) {
+        .guide__token,
+        .guide__ladder { grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
+        .guide__ladder-steps { grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr)); }
+        .guide__token-body:empty { display: none; }
+      }
 
       /* A specimen is a row: its name and what it shows on the left, the stage wide on the right.
          What stands inside the stage is the element, what stands around it the guide. */
