@@ -325,6 +325,11 @@ export default {
           html: '<span><code>--color-action-primary</code>: <lintje-token-value name="--color-action-primary"></lintje-token-value></span>',
         },
         {
+          label: 'Zonder staal',
+          note: 'Waar de kleur er al groot naast staat, zoals op de pagina Kleur, laat no-swatch het kleine staal weg.',
+          html: '<span><code>--color-link</code>: <lintje-token-value name="--color-link" no-swatch></lintje-token-value></span>',
+        },
+        {
           label: 'Een token dat niet bestaat',
           note: 'Een streep, geen gok en geen nul.',
           html: '<span><code>--color-bestaat-niet</code>: <lintje-token-value name="--color-bestaat-niet"></lintje-token-value></span>',

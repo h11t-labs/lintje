@@ -36,6 +36,7 @@ const laddered = (name, names) =>
 const PAGES = {
   colour: {
     claims: by(/^--(color|tint)-/),
+    show: 'colour',
     groups: [
       {
         id: 'surfaces',
@@ -174,6 +175,7 @@ const PAGES = {
         label: 'Hoek, rand en focus',
         note: 'Geen afgeronde hoeken; alleen een stip of avatar is rond. De rand van de open pagina in het menu, en de focus: altijd 3 px, nooit geanimeerd.',
         claims: by(/^--(radius|focus|nav-edge)/),
+        show: 'corner',
       },
       {
         id: 'shadows',
@@ -185,8 +187,9 @@ const PAGES = {
       {
         id: 'motion',
         label: 'Beweging',
-        note: 'Kort en zonder veer. Wie minder beweging vraagt, krijgt alleen een korte overgang in doorzichtigheid.',
+        note: 'Kort en zonder veer. Druk op Afspelen: een duur loopt met de curve van wat binnenkomt, een curve op viermaal --dur-base, zodat je hem ziet. Wie minder beweging vraagt, krijgt alleen een korte overgang in doorzichtigheid.',
         claims: by(/^--(dur|ease)-/),
+        show: 'motion',
       },
     ],
   },
@@ -215,14 +218,49 @@ function element(name, className, text) {
   return node
 }
 
-const valueOf = (name) => {
+/** A token's value; `plain` where the colour already stands beside it, larger. */
+const valueOf = (name, plain = false) => {
   const value = document.createElement('lintje-token-value')
   value.name = name
+  value.noSwatch = plain
   return value
+}
+
+/** A shape drawn with the token, for what is seen better than read. */
+function shape(kind, style) {
+  const node = element('span', `guide__token-shape guide__token-shape--${kind}`)
+  node.setAttribute('aria-hidden', 'true')
+  Object.assign(node.style, style)
+  return node
+}
+
+/** A track with a block that crosses it in the token's time or curve, once Afspelen is pressed. */
+function motion(name) {
+  const track = shape('motion', {})
+  const time = name.startsWith('--dur-') ? `var(${name})` : 'calc(4 * var(--dur-base))'
+  const curve = name.startsWith('--ease-') ? `var(${name})` : 'var(--ease-in-motion)'
+  track.style.setProperty('--guide-time', time)
+  track.style.setProperty('--guide-curve', curve)
+  track.append(element('span', 'guide__motion-block'))
+  return track
+}
+
+/** The corner, the focus ring and the menu's edge, each drawn as what it is. */
+function corner(name) {
+  if (name.startsWith('--radius')) return shape('corner', { borderRadius: `var(${name})` })
+  if (name.startsWith('--focus'))
+    return shape('focus', {
+      outline: 'var(--focus-width) solid var(--color-focus)',
+      outlineOffset: 'var(--focus-offset)',
+    })
+  return shape('edge', { boxShadow: `inset var(${name}) 0 0 var(--color-nav-active-edge)` })
 }
 
 /** What a token looks like, beside its value, for a group that draws one. */
 function sample(show, name) {
+  // A share such as `--tint-speaker` stands among the colours, but is none.
+  if (show === 'colour')
+    return name.startsWith('--color-') ? shape('colour', { background: `var(${name})` }) : null
   if (show === 'family') {
     const node = element('span', 'guide__token-sample', 'Aa Bb Cc 0123456789')
     node.style.fontFamily = `var(${name})`
@@ -238,14 +276,12 @@ function sample(show, name) {
     node.style.font = `var(${name})`
     return node
   }
-  const shape = { space: 'bar', height: 'box', shadow: 'shadow' }[show]
-  if (!shape) return null
-  const node = element('span', `guide__token-shape guide__token-shape--${shape}`)
-  node.setAttribute('aria-hidden', 'true')
-  if (shape === 'bar') node.style.width = `var(${name})`
-  if (shape === 'box') node.style.height = `var(${name})`
-  if (shape === 'shadow') node.style.boxShadow = `var(${name})`
-  return node
+  if (show === 'space') return shape('bar', { width: `var(${name})` })
+  if (show === 'height') return shape('box', { height: `var(${name})` })
+  if (show === 'shadow') return shape('shadow', { boxShadow: `var(${name})` })
+  if (show === 'corner') return corner(name)
+  if (show === 'motion') return motion(name)
+  return null
 }
 
 /** A token: its name, its value, and what it looks like with its comment. */
@@ -255,20 +291,37 @@ function row({ name, comment }, show) {
   const drawn = sample(show, name)
   if (drawn) body.append(drawn)
   if (comment) body.append(element('p', 'guide__comment', comment))
-  node.append(element('code', 'guide__token-name', name), valueOf(name), body)
+  const plain = drawn?.classList.contains('guide__token-shape--colour')
+  node.append(element('code', 'guide__token-name', name), valueOf(name, plain), body)
   return node
 }
 
-/** A data colour's ladder: the colour and its tints side by side, a row per colour. */
+/** A data colour's ladder: the colour and its tints as tiles side by side, a row per colour. */
 function ladder(tokens) {
   const list = element('div', 'guide__ladders')
   const bases = tokens.filter((token) => !TINT.test(token.name))
+  const stepsOf = (base) =>
+    tokens.filter(
+      (entry) => entry.name === base.name || entry.name.startsWith(`${base.name}-tint-`),
+    )
+  // The steps' names once, above the tiles: `kleur`, then the suffix of each tint.
+  const head = element('div', 'guide__ladder guide__ladder--head')
+  const names = element('div', 'guide__ladder-steps')
+  for (const step of stepsOf(bases[0] ?? { name: '' })) {
+    const label = TINT.test(step.name) ? step.name.match(TINT)[0].slice(1) : 'kleur'
+    names.append(element('span', 'guide__key', label))
+  }
+  head.append(element('span', 'guide__key', '--color-chart-…'), names)
+  list.append(head)
   for (const base of bases) {
     const line = element('div', 'guide__ladder')
-    line.append(element('code', 'guide__token-name', base.name))
+    line.append(element('code', 'guide__token-name', base.name.replace('--color-chart-', '')))
     const steps = element('div', 'guide__ladder-steps')
-    const own = (entry) => entry.name === base.name || entry.name.startsWith(`${base.name}-tint-`)
-    for (const token of tokens.filter(own)) steps.append(valueOf(token.name))
+    for (const token of stepsOf(base)) {
+      const step = element('div', 'guide__ladder-step')
+      step.append(shape('tile', { background: `var(${token.name})` }), valueOf(token.name, true))
+      steps.append(step)
+    }
     line.append(steps)
     list.append(line)
   }
@@ -296,7 +349,9 @@ function statusTable(tokens) {
     for (const [suffix] of STATUS_ROLES) {
       const cell = line.insertCell()
       const token = `--color-${status}${suffix}`
-      cell.append(names.has(token) ? valueOf(token) : '—')
+      if (names.has(token))
+        cell.append(shape('cell', { background: `var(${token})` }), valueOf(token, true))
+      else cell.append('—')
     }
   }
   const wrap = element('div', 'guide__status-wrap')
@@ -310,6 +365,21 @@ function statusTable(tokens) {
   return [wrap, below]
 }
 
+/** Plays the movements of a group once more; under reduced motion each block only moves over. */
+function playButton(body) {
+  const button = document.createElement('lintje-button')
+  button.variant = 'secondary'
+  button.size = 'compact'
+  button.icon = 'multimedia-player-afspelen'
+  button.textContent = 'Afspelen'
+  button.addEventListener('click', () => {
+    body.classList.remove('is-playing')
+    void body.offsetWidth
+    body.classList.add('is-playing')
+  })
+  return button
+}
+
 /** A Fundament page: its groups as sections, "Op deze pagina" beside them. */
 export function renderFoundationPage(host, page, tokens) {
   const toc = []
@@ -318,10 +388,12 @@ export function renderFoundationPage(host, page, tokens) {
     // The page's name in front: an id such as `elements` is the guide's own already.
     const node = section(`${page.name}-${group.id}`, group.label, toc)
     if (group.note) node.append(element('p', 'guide__note', group.note))
+    const show = group.show ?? PAGES[page.name].show
     const body = element('div', 'guide__tokens')
-    if (group.show === 'ladder') body.append(ladder(group.tokens))
-    else if (group.show === 'status') body.append(...statusTable(group.tokens))
-    else body.append(...group.tokens.map((token) => row(token, group.show)))
+    if (show === 'ladder') body.append(ladder(group.tokens))
+    else if (show === 'status') body.append(...statusTable(group.tokens))
+    else body.append(...group.tokens.map((token) => row(token, show)))
+    if (show === 'motion') node.querySelector('.guide__section-head').append(playButton(body))
     node.append(body)
     main.append(node)
   }

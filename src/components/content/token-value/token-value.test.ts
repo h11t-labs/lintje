@@ -73,6 +73,14 @@ describe('lintje-token-value', () => {
     expect(part(element, 'swatch').style.background).toBe('var(--demo-colour)')
   })
 
+  it('leaves the swatch out when asked', async () => {
+    const element = await tokenValue('--demo-colour', { '--demo-colour': '#0E3D6E' })
+    element.noSwatch = true
+    await element.updateComplete
+    expect(shown(element)).toBe('#0E3D6E')
+    expect(part(element, 'swatch').hidden).toBe(true)
+  })
+
   it('shows a size as it computes, without a swatch', async () => {
     const element = await tokenValue('--demo-space', { '--demo-space': '16px' })
     expect(shown(element)).toBe('16px')

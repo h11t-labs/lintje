@@ -55,10 +55,13 @@ export class LintjeTokenValue extends LintjeElement {
 
   static override properties: PropertyDeclarations = {
     name: { type: String, reflect: true },
+    noSwatch: { type: Boolean, attribute: 'no-swatch' },
   }
 
   /** The custom property to show, with its dashes: `--color-accent`. */
   declare name?: string
+  /** Without the swatch, where the colour already stands beside it, larger. */
+  noSwatch: boolean = false
 
   private observer?: MutationObserver
 
@@ -96,7 +99,7 @@ export class LintjeTokenValue extends LintjeElement {
         ? getComputedStyle(this).getPropertyValue(this.name).trim()
         : ''
     const colour = raw ? this.colourOf(raw, probe) : null
-    swatch.hidden = !colour
+    swatch.hidden = !colour || this.noSwatch
     swatch.style.background = colour ? `var(${this.name})` : ''
     value.textContent = raw ? (colour ?? this.describe(raw, probe)) : NO_VALUE
   }
