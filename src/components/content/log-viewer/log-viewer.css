@@ -16,9 +16,9 @@
 .lintje-log-viewer__filters.is-raw { justify-content: flex-end; }
 .lintje-log-viewer__find { margin-left: auto; }
 .lintje-log-viewer__tools { display: inline-flex; gap: var(--space-2); flex: none; }
-/* Folded, the select takes what the search and the tools leave. */
+/* Folded, the select has the width the row reserved for it; the search and tools stay right. */
 .lintje-log-viewer__filters.is-compact { flex-wrap: nowrap; }
-.lintje-log-viewer__filters.is-compact .lintje-log-viewer__level { flex: 1 1 auto; min-width: 0; }
+.lintje-log-viewer__filters.is-compact .lintje-log-viewer__level { flex: 0 1 calc(12 * var(--space-4)); min-width: 0; }
 /* Narrow: the search over the full width, the level and the one menu on the line under it. */
 .lintje-log-viewer__filters.is-narrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
 .lintje-log-viewer__filters.is-narrow .lintje-log-viewer__find { grid-column: 1 / -1; grid-row: 1; width: 100%; margin-left: 0; }

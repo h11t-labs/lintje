@@ -45,6 +45,11 @@ describe('lintje-log-viewer fits its filter row', () => {
     expect(top(part(element, 'lintje-find'))).toBe(line)
     expect(top(part(element, '.lintje-log-viewer__tools'))).toBe(line)
     expect(tools(element)).toBe(3)
+    // The select keeps its own width: the room left over stays between it and the search.
+    const select = part(element, 'lintje-select')!.getBoundingClientRect()
+    expect(select.right).toBeLessThan(
+      part(element, 'lintje-find')!.getBoundingClientRect().left - 12,
+    )
   })
 
   it('stacks the search over the level and one menu where even that does not fit', async () => {
