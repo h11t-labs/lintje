@@ -150,7 +150,7 @@ describe('lintje-log-viewer following', () => {
     expect(root(element).querySelector('.lintje-log-viewer__divider')?.textContent).toContain(
       '2 nieuw',
     )
-    root(element).querySelector<HTMLElement>('.lintje-log-viewer__latest')!.click()
+    root(element).querySelector<HTMLElement>('.lintje-log-viewer__latest lintje-button')!.click()
     await element.updateComplete
     expect(foot(element)).toContain('Volgt de nieuwste regel')
     expect(root(element).querySelector('.lintje-log-viewer__divider')).toBeNull()

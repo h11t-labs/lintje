@@ -1054,14 +1054,18 @@ export class LintjeLogViewer extends LintjeContentTileElement {
           >${liveMark}${renderBadge({ value: formatNumber(unread), variant: 'count' })}
           ${unread === 1 ? 'nieuwe regel onder' : 'nieuwe regels onder'}</span
         >
-        <lintje-button
-          class="lintje-log-viewer__latest"
-          variant="secondary"
-          size="compact"
-          icon="functioneel-pijl-omlaag"
-          @click=${() => this.toLatest()}
-          >Naar nieuwste</lintje-button
-        >
+        <span class="lintje-log-viewer__count">${count}</span>
+        <div class="lintje-log-viewer__latest">
+          <span class="lintje-log-viewer__latest-button">
+            <lintje-button
+              variant="tertiary"
+              size="chrome"
+              icon="functioneel-pijl-omlaag"
+              @click=${() => this.toLatest()}
+              >Naar nieuwste</lintje-button
+            >
+          </span>
+        </div>
       </div>`
     }
     return html`<div class="lintje-log-viewer__foot">
