@@ -1,0 +1,77 @@
+/* One box: the count and the buttons appear inside it, so typing moves nothing around it. */
+:host {
+  display: block;
+  min-width: 0;
+  width: calc(10 * var(--space-10));
+  max-width: 100%;
+}
+:host([hidden]) { display: none; }
+@media screen and (max-width: 767px) {
+  :host { width: 100%; }
+}
+
+/* --- */
+
+.lintje-find {
+  position: relative;
+  display: flex; align-items: center;
+  height: var(--h-control);
+  border: 1px solid var(--color-border-field);
+  border-radius: var(--radius);
+  background: var(--color-bg-surface);
+}
+/* The ring goes round the whole box, not round the input inside it. */
+.lintje-find:has(.lintje-find__control:focus-visible) {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+.lintje-find.is-disabled {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-subtle);
+}
+.lintje-find__icon {
+  position: absolute; left: var(--space-3);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+.lintje-find.is-disabled .lintje-find__icon { color: var(--color-text-disabled); }
+.lintje-find__control {
+  flex: 1; min-width: 0;
+  height: 100%;
+  padding: 0 var(--space-2) 0 var(--space-10);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: var(--text-ui);
+}
+.lintje-find__control:focus-visible { outline: none; }
+.lintje-find__control::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+.lintje-find__control:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
+.lintje-find__control:disabled::placeholder { color: var(--color-text-disabled); }
+.lintje-find__control::-webkit-search-cancel-button,
+.lintje-find__control::-webkit-search-decoration { appearance: none; }
+.lintje-find__count {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  flex: none;
+  padding: 0 var(--space-2);
+  font: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.lintje-find__divider {
+  flex: none;
+  width: 1px; height: var(--space-6);
+  background: var(--color-border-default);
+}
+.lintje-find__button {
+  display: flex; align-items: center; justify-content: center;
+  flex: none;
+  width: var(--h-icon-button); height: var(--h-icon-button);
+  color: var(--color-link);
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-find__button:last-child { margin-right: var(--space-1); }
+.lintje-find__button:hover:not([aria-disabled='true']) { background: var(--color-bg-subtle); }
+.lintje-find__button:focus-visible { outline-offset: calc(var(--focus-width) * -1); }
+.lintje-find__button[aria-disabled='true'] { color: var(--color-text-disabled); cursor: not-allowed; }

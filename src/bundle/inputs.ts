@@ -1,6 +1,7 @@
 /** The inputs category (Invoervelden): importing it defines its tags. */
 import '../components/inputs/field/field'
 import '../components/inputs/text-input/text-input'
+import '../components/inputs/find/find'
 import '../components/inputs/textarea/textarea'
 import '../components/inputs/number-input/number-input'
 import '../components/inputs/select/select'
