@@ -17,6 +17,7 @@ import { renderDualAxisChart } from '../dual-axis-chart/dual-axis-chart'
 import { renderScatterChart } from '../scatter-chart/scatter-chart'
 import { renderHeatmap } from '../heatmap-chart/heatmap-chart'
 import { renderHistogramChart } from '../histogram-chart/histogram-chart'
+import { renderRadarChart } from '../radar-chart/radar-chart'
 
 export function renderChart(spec: ChartSpec, options: ChartOptions): TemplateResult {
   switch (spec.kind) {
@@ -44,5 +45,7 @@ export function renderChart(spec: ChartSpec, options: ChartOptions): TemplateRes
       return renderHeatmap(spec, options)
     case 'histogram':
       return renderHistogramChart(spec, options)
+    case 'radar':
+      return renderRadarChart(spec, options)
   }
 }

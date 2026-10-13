@@ -162,6 +162,7 @@ export const KIND_SKETCHES = {
   histogram: 'chist',
   heatmap: 'cheat',
   scatter: 'cscatter',
+  radar: 'cradar',
   'target-progress': 'ctarget',
 }
 
@@ -189,6 +190,8 @@ const CHARTS = {
     '<g class="w"><rect x="0" y="0" width="24" height="12"/><rect x="50" y="0" width="24" height="12"/><rect x="26" y="13" width="24" height="12"/><rect x="76" y="13" width="24" height="12"/><rect x="0" y="26" width="24" height="12"/><rect x="50" y="38" width="24" height="12"/></g><g class="i"><rect x="26" y="0" width="24" height="12"/><rect x="76" y="0" width="24" height="12"/><rect x="0" y="13" width="24" height="12"/><rect x="50" y="13" width="24" height="12"/><rect x="26" y="26" width="24" height="12"/><rect x="76" y="26" width="24" height="12"/><rect x="0" y="38" width="24" height="12"/><rect x="26" y="38" width="24" height="12"/><rect x="76" y="38" width="24" height="12"/><rect x="50" y="26" width="24" height="12"/></g>',
   cscatter:
     '<g class="i"><circle cx="8" cy="42" r="3"/><circle cx="22" cy="36" r="3"/><circle cx="34" cy="38" r="3"/><circle cx="48" cy="26" r="3"/><circle cx="60" cy="30" r="3"/><circle cx="74" cy="18" r="3"/><circle cx="88" cy="12" r="3"/></g><line class="w" x1="0" y1="22" x2="100" y2="22" stroke-dasharray="3 3"/>',
+  cradar:
+    '<polygon class="w" fill="none" points="50,2 72,13.5 72,36.5 50,48 28,36.5 28,13.5"/><polygon class="i" points="50,8 66,16.5 62,32 50,44 34,34 30,14"/>',
   ctarget:
     '<g class="w"><rect x="0" y="4" width="100" height="9"/><rect x="0" y="20" width="100" height="9"/><rect x="0" y="36" width="100" height="9"/></g><g class="i"><rect x="0" y="4" width="80" height="9"/><rect x="0" y="20" width="56" height="9"/><rect x="0" y="36" width="34" height="9"/></g><line class="i" x1="74" y1="0" x2="74" y2="50"/>',
   map: '<path class="w" d="M38 2 L62 4 L72 14 L66 24 L74 34 L62 48 L44 46 L34 36 L24 32 L30 18 Z"/><g class="i"><circle cx="46" cy="22" r="3"/><circle cx="58" cy="30" r="4"/><circle cx="40" cy="36" r="2.5"/></g>',

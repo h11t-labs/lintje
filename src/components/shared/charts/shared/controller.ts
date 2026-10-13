@@ -101,6 +101,8 @@ export class ChartController {
   /** What the keyboard's tooltip says, for the chart's status region; empty otherwise. */
   status = ''
   hiddenSeries: string[] = []
+  /** The series the reader points at or focuses in the legend; `null` for none. */
+  emphasis: string | null = null
   /** The layers of a stacked map switched off in its legend, by their place in the stack. */
   hiddenLayers: number[] = []
   hoverSegment: number | null = null
@@ -294,6 +296,12 @@ export class ChartController {
     this.hiddenLayers = this.hiddenLayers.includes(index)
       ? this.hiddenLayers.filter((x) => x !== index)
       : [...this.hiddenLayers, index]
+    this.requestUpdate()
+  }
+
+  emphasise(label: string | null): void {
+    if (this.emphasis === label) return
+    this.emphasis = label
     this.requestUpdate()
   }
 
