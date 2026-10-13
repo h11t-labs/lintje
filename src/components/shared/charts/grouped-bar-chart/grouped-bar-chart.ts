@@ -116,14 +116,12 @@ export function renderGroupedBarChart(spec: GroupedBarSpec, options: ChartOption
                     tabindex=${mark?.tabIndex ?? nothing} aria-pressed=${mark?.pressed ?? nothing}
                     aria-label=${mark?.label ?? nothing} aria-hidden=${mark ? nothing : 'true'}
                     @click=${mark?.click ?? nothing} @keydown=${mark?.keydown ?? nothing} />
-              ${
-                showLabels
-                  ? svg`<g class="lintje-chart__series ${row.hidden ? 'is-off' : ''}">
-                      <text x=${x + width / 2} y=${y - 4} text-anchor="middle"
-                            class="lintje-chart__data-label">${formatDataLabel(value, slotWidth)}</text>
-                    </g>`
-                  : nothing
-              }
+              <!-- Every label keeps its node and fades, so one that fits after a switch does not
+                   draw in again. -->
+              <g class="lintje-chart__series ${!row.hidden && showLabels ? '' : 'is-off'}">
+                <text x=${x + width / 2} y=${y - 4} text-anchor="middle"
+                      class="lintje-chart__data-label">${formatDataLabel(value, slotWidth)}</text>
+              </g>
             </g>
           `
         })}

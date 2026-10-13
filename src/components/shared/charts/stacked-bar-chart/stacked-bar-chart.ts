@@ -80,9 +80,9 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
   const baseline = area.height - area.bottom
   const { width: barWidth, bandWidth } = band(0, labels.length, area)
   // Totals only if each one fits its band with 4 px to spare.
+  const hasTotals = totalOnTop && !normalized
   const showTotals =
-    totalOnTop &&
-    !normalized &&
+    hasTotals &&
     shown.every((total) => dataLabelFits(formatDataLabel(total, bandWidth), bandWidth - 4))
 
   // The ladder spreads with the number of series, as the pie spreads its parts. The stacking
@@ -185,9 +185,11 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
             : nothing
         }
         ${
-          showTotals
-            ? svg`<text x=${group.center} y=${top - 5} text-anchor="middle"
-                      class="lintje-chart__data-label" font-weight="700">${formatDataLabel(shown[i], group.bandWidth)}</text>`
+          hasTotals
+            ? svg`<g class="lintje-chart__series ${showTotals ? '' : 'is-off'}">
+                <text x=${group.center} y=${top - 5} text-anchor="middle"
+                      class="lintje-chart__data-label" font-weight="700">${formatDataLabel(shown[i], group.bandWidth)}</text>
+              </g>`
             : nothing
         }
       </g>
