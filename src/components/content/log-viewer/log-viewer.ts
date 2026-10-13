@@ -381,7 +381,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     this.emit('lintje-log-action', event.detail)
   }
 
-  /** Below 768 px the three menus are one: what does not fit on a line folds into "Meer". */
+  /** Below 768 px the three menus are one: what does not fit beside the level folds into "Meer". */
   private readonly onAnyAction = (event: CustomEvent<string>): void => {
     const [kind] = event.detail.split(':')
     if (kind === 'view') this.onViewAction(event)
@@ -391,11 +391,10 @@ export class LintjeLogViewer extends LintjeContentTileElement {
 
   private viewItems(raw: boolean): MenuEntry[] {
     const { wrap, fold: folded, time, columns } = this.view
-    const heading = this.#mobile.matches ? 'Weergave: regels' : 'Regels'
     const first = this.entries.find((entry) => entry.at)
     const sample = this.entries.find((entry) => entry.time)
     return [
-      { heading },
+      { heading: 'Regels' },
       { value: 'view:wrap', label: 'Lange regels afbreken', checked: wrap },
       { value: 'view:fold', label: 'Lange berichten inklappen', checked: folded },
       ...(raw
@@ -536,7 +535,6 @@ export class LintjeLogViewer extends LintjeContentTileElement {
           this.expand(true)
         }}
       >
-        ${this.renderActions(raw, mobile, tileState === 'ready')}
         ${this.renderNotice(data, state)}
         <div slot="loading" class="lintje-log-viewer__skeleton" aria-hidden="true">
           ${[72, 48, 85, 60, 38, 77, 54, 66].map(
@@ -557,59 +555,53 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       })}`
   }
 
-  private renderActions(raw: boolean, mobile: boolean, ready: boolean): TemplateResult {
-    return html`<span slot="actions" class="lintje-log-viewer__actions">
-      ${
-        this.data?.live
-          ? renderBadge({ value: 'Live', tone: 'live', className: 'lintje-log-viewer__live' })
-          : nothing
-      }
-      ${
-        ready && mobile
-          ? html`<lintje-menu-button
-              icon
-              label="Meer acties"
-              placement="bottom-end"
-              .items=${
-                [
-                  ...this.viewItems(raw),
-                  'separator',
-                  ...this.copyItems(),
-                  'separator',
-                  ...this.moreItems(),
-                ] satisfies MenuEntry[]
-              }
-              @lintje-action=${this.onAnyAction}
-            ></lintje-menu-button>`
-          : nothing
-      }
-      ${
-        ready && !mobile
-          ? html`<lintje-menu-button
-              label="Weergave"
-              leading-icon="functioneel-filters"
-              variant="tertiary"
-              placement="bottom-end"
-              .items=${this.viewItems(raw)}
-              @lintje-action=${this.onViewAction}
-            ></lintje-menu-button>
-            <lintje-menu-button
-              label=${this.copied === 'menu' ? 'Gekopieerd' : 'Kopiëren'}
-              leading-icon=${this.copied === 'menu' ? 'functioneel-vinkje' : 'functioneel-kopieren'}
-              variant="tertiary"
-              placement="bottom-end"
-              .items=${this.copyItems()}
-              @lintje-action=${this.onCopyAction}
-            ></lintje-menu-button>
-            <lintje-menu-button
-              icon
-              label="Meer acties"
-              placement="bottom-end"
-              .items=${this.moreItems()}
-              @lintje-action=${this.onMoreAction}
-            ></lintje-menu-button>`
-          : nothing
-      }
+  /** Three squares at the height of the fields beside them, so the row has one height. */
+  private renderTools(raw: boolean): TemplateResult {
+    if (this.#mobile.matches) {
+      return html`<span class="lintje-log-viewer__tools">
+        <lintje-menu-button
+          accessible-label="Weergave, kopiëren en meer"
+          leading-icon="functioneel-meer"
+          variant="tertiary"
+          placement="bottom-end"
+          .items=${
+            [
+              ...this.viewItems(raw),
+              'separator',
+              ...this.copyItems(),
+              'separator',
+              ...this.moreItems(),
+            ] satisfies MenuEntry[]
+          }
+          @lintje-action=${this.onAnyAction}
+        ></lintje-menu-button>
+      </span>`
+    }
+    return html`<span class="lintje-log-viewer__tools">
+      <lintje-menu-button
+        accessible-label="Weergave"
+        leading-icon="functioneel-filters"
+        variant="tertiary"
+        placement="bottom-end"
+        .items=${this.viewItems(raw)}
+        @lintje-action=${this.onViewAction}
+      ></lintje-menu-button>
+      <lintje-menu-button
+        accessible-label=${this.copied === 'menu' ? 'Gekopieerd' : 'Kopiëren of downloaden'}
+        leading-icon=${this.copied === 'menu' ? 'functioneel-vinkje' : 'functioneel-kopieren'}
+        variant="tertiary"
+        placement="bottom-end"
+        .items=${this.copyItems()}
+        @lintje-action=${this.onCopyAction}
+      ></lintje-menu-button>
+      <lintje-menu-button
+        accessible-label="Meer acties"
+        leading-icon="functioneel-meer"
+        variant="tertiary"
+        placement="bottom-end"
+        .items=${this.moreItems()}
+        @lintje-action=${this.onMoreAction}
+      ></lintje-menu-button>
     </span>`
   }
 
@@ -690,6 +682,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
         }}
         @lintje-find-step=${this.onStep}
       ></lintje-find>
+      ${this.renderTools(raw)}
     </div>`
   }
 
@@ -991,10 +984,17 @@ export class LintjeLogViewer extends LintjeContentTileElement {
         </span>
       </div>`
     }
+    const live = Boolean(data?.live)
+    // The word carries it; the dot only repeats it in the colour of a recording.
+    const liveMark = live
+      ? html`<span class="lintje-log-viewer__live"
+          ><span class="lintje-log-viewer__dot" aria-hidden="true"></span>Live</span
+        ><span class="lintje-log-viewer__sep" aria-hidden="true">·</span>`
+      : nothing
     if (unread) {
       return html`<div class="lintje-log-viewer__foot is-away">
         <span class="lintje-log-viewer__state"
-          >${renderBadge({ value: formatNumber(unread), variant: 'count' })}
+          >${liveMark}${renderBadge({ value: formatNumber(unread), variant: 'count' })}
           ${unread === 1 ? 'nieuwe regel onder' : 'nieuwe regels onder'}</span
         >
         <lintje-button
@@ -1007,15 +1007,13 @@ export class LintjeLogViewer extends LintjeContentTileElement {
         >
       </div>`
     }
-    const live = Boolean(data?.live)
     return html`<div class="lintje-log-viewer__foot">
       <span class="lintje-log-viewer__state">
-        ${
+        ${liveMark}${
           !live
             ? 'Er komen geen regels meer bij.'
             : this.following
-              ? html`${renderIcon('functioneel-pijl-omlaag', { size: 16 })} Volgt de nieuwste regel.
-                Scrol omhoog om stil te staan.`
+              ? 'Volgt de nieuwste regel. Scrol omhoog om stil te staan.'
               : 'Staat stil. Scrol helemaal naar onder om weer te volgen.'
         }
       </span>

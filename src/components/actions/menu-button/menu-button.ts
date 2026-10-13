@@ -163,7 +163,10 @@ export class LintjeMenuButton extends LintjeElement {
    * flat with `variant="tertiary"` where it repeats, as at the end of every table row.
    */
   icon: boolean = false
-  /** An icon file name before the label, saying what the label is a value of (the speed's "1×"). */
+  /**
+   * An icon file name before the label, saying what the label is a value of (the speed's "1×").
+   * Without a `label` the trigger is this icon alone, in a square; `accessible-label` names it.
+   */
   leadingIcon: string = ''
   disabled: boolean = false
   /**
@@ -437,6 +440,8 @@ export class LintjeMenuButton extends LintjeElement {
         …
       </button>`
     }
+    // Only an icon: a square of the button's height, named by `accessible-label`.
+    const square = !this.label && Boolean(this.leadingIcon)
     return html`<button
       type="button"
       class=${classMap({
@@ -444,7 +449,9 @@ export class LintjeMenuButton extends LintjeElement {
         'lintje-button': true,
         [`lintje-button--${this.variant === 'flat' ? 'tertiary' : this.variant}`]: true,
         'lintje-menu-button__trigger--flat': this.variant === 'flat',
+        'lintje-menu-button__trigger--square': square,
       })}
+      title=${square ? this.accessibleLabel : nothing}
       aria-label=${this.accessibleLabel || nothing}
       aria-haspopup="menu"
       aria-expanded=${String(this.open)}
@@ -458,12 +465,16 @@ export class LintjeMenuButton extends LintjeElement {
           ? renderIcon(this.leadingIcon, { size: 16, className: 'lintje-button__icon' })
           : nothing
       }
-      <span class="lintje-button__label">${this.label}</span>
-      ${renderIcon('functioneel-delta-omlaag', {
-        size: 16,
-        rotate: this.open ? 180 : undefined,
-        className: 'lintje-button__icon',
-      })}
+      ${
+        square
+          ? nothing
+          : html`<span class="lintje-button__label">${this.label}</span>
+              ${renderIcon('functioneel-delta-omlaag', {
+                size: 16,
+                rotate: this.open ? 180 : undefined,
+                className: 'lintje-button__icon',
+              })}`
+      }
     </button>`
   }
 

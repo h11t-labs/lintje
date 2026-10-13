@@ -376,7 +376,7 @@ function subtitleRow(
 const ROWS: Row[] = [
   {
     tag: 'lintje-log-viewer',
-    marker: 'the level is a select and the menus are one',
+    marker: 'the level is a select under the search',
     mount: () =>
       append(
         create('lintje-log-viewer', {
@@ -388,10 +388,10 @@ const ROWS: Row[] = [
       ),
     wide: (element) =>
       shown(element, 'lintje-segmented') &&
-      all(element.shadowRoot!, 'lintje-menu-button').length === 3,
+      beside(find(element, 'lintje-segmented'), find(element, 'lintje-find')),
     phone: (element) =>
       shown(element, 'lintje-select') &&
-      all(element.shadowRoot!, 'lintje-menu-button').length === 1,
+      below(find(element, 'lintje-find'), find(element, 'lintje-select')),
   },
   {
     tag: 'lintje-find',

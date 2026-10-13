@@ -38,6 +38,19 @@ const rows = (element: LintjeMenuButton): HTMLElement[] => [
 ]
 
 describe('lintje-menu-button', () => {
+  it('draws only its icon in a square when it has no label, named by accessible-label', async () => {
+    const element = await mount({
+      label: '',
+      leadingIcon: 'functioneel-filters',
+      accessibleLabel: 'Weergave',
+      variant: 'tertiary',
+    })
+    const trigger = element.shadowRoot!.querySelector('button')!
+    expect(trigger.classList.contains('lintje-menu-button__trigger--square')).toBe(true)
+    expect(trigger.getAttribute('aria-label')).toBe('Weergave')
+    expect(trigger.querySelector('.lintje-button__label')).toBeNull()
+  })
+
   it('names its menu on the trigger and opens it on a click', async () => {
     const element = await mount()
     const button = trigger(element)
