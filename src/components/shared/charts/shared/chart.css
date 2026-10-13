@@ -217,9 +217,10 @@
 @media (prefers-reduced-motion: no-preference) {
   .lintje-chart__series,
   .lintje-chart__point { transition: opacity var(--dur-layer) var(--ease-in-motion), visibility 0s; }
+  /* Out on the same curve as in: an accelerating fade lingers and reads as slower. */
   .lintje-chart__series.is-off,
   .lintje-chart__point.is-off {
-    transition: opacity var(--dur-layer) var(--ease-out-motion), visibility 0s var(--dur-layer);
+    transition: opacity var(--dur-layer) var(--ease-in-motion), visibility 0s var(--dur-layer);
   }
 }
 

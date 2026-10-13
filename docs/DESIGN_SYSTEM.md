@@ -779,7 +779,8 @@ naar een volgende regel; ze overlappen nooit.
   timing van de staven; een referentielijn komt daarna in, met haar label.
 - **Wat je in de legenda aan- of uitzet, vervaagt in of uit**; een deel van een stapel of een
   staaf in een groep krimpt of groeit en de rest schuift mee, zodat het oog volgt wat er verschijnt
-  of verdwijnt. Het tekent nooit opnieuw in.
+  of verdwijnt. In en uit gaan op dezelfde duur en curve: een versnellende uitgang blijft hangen
+  en voelt trager. Het tekent nooit opnieuw in.
 - **Een keuze beweegt mee**: het vinkje van een checkbox groeit in bij aanvinken en krimpt weg bij
   uitvinken, op de duur van hoverfeedback.
 - **De focusring is nooit geanimeerd.**
