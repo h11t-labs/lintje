@@ -84,7 +84,7 @@
     <script type="module">
       const bundle = await import('../dist-elements/lintje.js')
       const settings = await import('./_shared/settings.js')
-      const { MENU } = await import('./styleguide/menu.js')
+      const { FOUNDATION, MENU } = await import('./styleguide/menu.js')
       // The emblem and every icon are read one file at a time from the house set.
       bundle.setIconSource({ base: '../dist-icons/' })
 
@@ -154,14 +154,22 @@
           ],
         }
         // A card is a link; its address carries the settings, so it is drawn again with them.
-        document.getElementById('categorieen').items = MENU.flatMap((group) =>
-          group.items.map((item) => ({
-            id: item.name,
+        document.getElementById('categorieen').items = [
+          ...FOUNDATION.items.map((item) => ({
+            id: `foundation-${item.name}`,
             title: item.label,
-            meta: [group.heading],
-            href: carry(`styleguide/?category=${item.name}`),
+            meta: [FOUNDATION.heading],
+            href: carry(`styleguide/?foundation=${item.name}`),
           })),
-        )
+          ...MENU.flatMap((group) =>
+            group.items.map((item) => ({
+              id: item.name,
+              title: item.label,
+              meta: [group.heading],
+              href: carry(`styleguide/?category=${item.name}`),
+            })),
+          ),
+        ]
         document.getElementById('voorbeelden').items = EXAMPLES.map((example) => ({
           id: example.href,
           title: example.label,

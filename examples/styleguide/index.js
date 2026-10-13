@@ -1,8 +1,9 @@
 /**
  * The style guide: every element of the design system, a page per element.
  *
- * The shell's menu lists the categories; a category's page is an overview of its elements, and
- * each element has its own page. Where the reader is lives in the URL: `?category=inputs`, or
+ * The shell's menu lists the Fundament pages and the categories; a Fundament page shows the
+ * tokens, a category's page is an overview of its elements, and each element has its own page.
+ * Where the reader is lives in the URL: `?foundation=colour`, `?category=inputs`, or
  * `?element=chart` with `&tab=referentie` for its open tab, and `&soort=pie` for an element whose
  * specimens come in groups — next to mode, menu, theme and layout. `#el-textarea`, the older
  * address, leads to the element's page. The specimens come from the modules in `specimens/`; a module that is missing
@@ -19,7 +20,8 @@ import {
   shellSettingsOf,
   themeOf,
 } from '../_shared/settings.js'
-import { CATEGORIES, MENU, namedIn } from './menu.js'
+import { renderFoundationPage } from './foundation.js'
+import { CATEGORIES, FOUNDATION, MENU, namedIn } from './menu.js'
 import { renderElementPage, renderOverview } from './page.js'
 import { declarationsOf, loadJSON } from './reference.js'
 import { nameOf, sectionId } from './shared.js'
@@ -47,9 +49,10 @@ const elementsOf = (category) =>
     if (!item) console.warn(`No specimens for "${name}" (${category.label})`)
     return item ? [item] : []
   })
-const [manifest, dataTypes] = await Promise.all([
+const [manifest, dataTypes, { tokens }] = await Promise.all([
   loadJSON('../../dist-elements/custom-elements.json', { modules: [] }),
   loadJSON('../../dist-elements/data-types.json', { types: {} }),
+  loadJSON('../../dist-elements/tokens.json', { tokens: [] }),
 ])
 const declarations = declarationsOf(manifest)
 const placed = new Set(CATEGORIES.flatMap((category) => category.elements))
@@ -68,7 +71,7 @@ const crumbs = document.getElementById('crumbs')
 const host = document.getElementById('elements')
 const appSearch = document.getElementById('search')
 
-const PLACE = ['category', 'element', 'soort', 'staat', 'tab']
+const PLACE = ['foundation', 'category', 'element', 'soort', 'staat', 'tab']
 const SOURCE = 'https://github.com/h11t-labs/lintje/blob/main/'
 const theme = () => themeOf(location.search)
 /** The reader's settings, carried from page to page: the search without the place. */
@@ -78,9 +81,11 @@ const settings = (search = location.search) => {
   return rest
 }
 
-/** Where an address points: an element with its group and state, or a category. */
+/** Where an address points: a Fundament page, an element with its group and state, or a category. */
 function placeOf(url) {
   const params = url.searchParams
+  const foundation = FOUNDATION.items.find((entry) => entry.name === params.get('foundation'))
+  if (foundation) return { foundation }
   const fromHash = url.hash.startsWith('#el-') ? url.hash.slice(4) : null
   const name = fromHash ?? params.get('element')
   const item = name ? specimens.get(name) : undefined
@@ -95,10 +100,11 @@ function placeOf(url) {
   return { category: CATEGORIES.find((entry) => entry.name === namedIn(params)) ?? CATEGORIES[0] }
 }
 
-/** An address of this page: a category's or an element's, with the reader's settings. */
-function addressOf({ category, item, group, tab }, search = settings()) {
+/** An address of this page: a Fundament page's, a category's or an element's, with the reader's settings. */
+function addressOf({ foundation, category, item, group, tab }, search = settings()) {
   const next = new URLSearchParams(search)
-  if (item) {
+  if (foundation) next.set('foundation', foundation.name)
+  else if (item) {
     next.set('element', nameOf(item))
     if (group) next.set(item.groups?.param ?? 'soort', group)
     if (tab && tab !== 'voorbeelden') next.set('tab', tab)
@@ -117,13 +123,14 @@ if (location.hash.startsWith('#el-')) {
 let drawn
 function render({ keepScroll = false } = {}) {
   const place = placeOf(new URL(location.href))
-  const { category, item } = place
+  const { foundation, category, item } = place
   root.dataset.mode = modeOf(location.search)
   // A framed specimen is a page of its own: it follows the guide's mode.
   for (const frame of host.querySelectorAll('.guide__frame'))
     frame.contentDocument?.documentElement.setAttribute('data-mode', root.dataset.mode)
   root.dataset.theme = theme()
-  document.title = `${item ? nameOf(item) : category.label} — Lintje stijlgids`
+  const label = foundation?.label ?? (item ? nameOf(item) : category.label)
+  document.title = `${label} — Lintje stijlgids`
 
   shell.data = {
     name: 'Lintje stijlgids',
@@ -135,13 +142,22 @@ function render({ keepScroll = false } = {}) {
     search: true,
     navigation: [
       { label: 'Startpagina', icon: 'functioneel-home', href: carry('../') },
+      {
+        label: FOUNDATION.heading,
+        links: FOUNDATION.items.map((entry) => ({
+          label: entry.label,
+          icon: entry.icon,
+          href: addressOf({ foundation: entry }),
+          active: entry === foundation,
+        })),
+      },
       ...MENU.map((group) => ({
         label: group.heading,
         links: group.items.map((entry) => ({
           label: entry.label,
           icon: entry.icon,
           href: addressOf({ category: entry }),
-          active: entry.name === category.name,
+          active: entry === category,
         })),
       })),
     ],
@@ -150,7 +166,21 @@ function render({ keepScroll = false } = {}) {
       name: `Lintje ${bundle.LINTJE_VERSION}`,
       role: `${bundle.LINTJE_TAGS.length} elementen`,
     },
-    pageName: item ? nameOf(item) : category.label,
+    pageName: label,
+  }
+  if (foundation) {
+    pageHeader.hidden = false
+    band.hidden = true
+    pageHeader.data = { kicker: 'Lintje stijlgids', title: foundation.label, description: foundation.intro }
+    crumbs.items = [{ label: 'Startpagina', href: carry('../') }, { label: FOUNDATION.heading }, { label: foundation.label }]
+    // A token reads the mode and the theme itself: a new one draws nothing again.
+    const drawing = `foundation:${foundation.name}`
+    if (drawn === drawing) return
+    drawn = drawing
+    host.replaceChildren()
+    band.replaceChildren()
+    renderFoundationPage(host, foundation, tokens)
+    return
   }
   const heading = MENU.find((group) => group.items.includes(category)).heading
   // An element's page draws its own head, in a band above the content; a category's is the
@@ -221,7 +251,8 @@ function follow(href, { keepScroll = false } = {}) {
   const before = placeOf(new URL(location.href))
   const after = placeOf(url)
   const target = `${addressOf(after, settings(url.search))}${url.hash.startsWith('#el-') ? '' : url.hash}`
-  if (before.item === after.item && before.category === after.category) history.replaceState(null, '', target)
+  const same = before.foundation === after.foundation && before.item === after.item && before.category === after.category
+  if (same) history.replaceState(null, '', target)
   else history.pushState(null, '', target)
   render({ keepScroll })
   if (url.hash && !url.hash.startsWith('#el-')) reveal()
@@ -262,16 +293,23 @@ const ENTRIES = CATEGORIES.flatMap((group) =>
 function answer(term) {
   const wanted = term.trim().toLocaleLowerCase('nl')
   const categories = CATEGORIES.filter((item) => !wanted || item.label.toLocaleLowerCase('nl').includes(wanted))
+  const foundationGroup = {
+    label: FOUNDATION.heading,
+    items: FOUNDATION.items
+      .filter((item) => !wanted || item.label.toLocaleLowerCase('nl').includes(wanted))
+      .map((item) => ({ id: `foundation-${item.name}`, label: item.label, href: addressOf({ foundation: item }) })),
+  }
   const categoryGroup = {
     label: 'Categorieën',
     items: categories.map((item) => ({ id: item.name, label: item.label, href: addressOf({ category: item }) })),
   }
-  if (!wanted) return [categoryGroup]
+  if (!wanted) return [foundationGroup, categoryGroup]
   const found = ENTRIES.filter((entry) => entry.text.includes(wanted))
   // A name that holds the term comes before an element found by its title or category.
   const named = found.filter((entry) => entry.result.label.toLocaleLowerCase('nl').includes(wanted))
   const rest = found.filter((entry) => !named.includes(entry))
   return [
+    foundationGroup,
     categoryGroup,
     {
       label: 'Elementen',

@@ -67,6 +67,7 @@ export const SKETCHES = {
   prose: { rows: 'T50 / l90 / l80 / l85 / l40' },
   code: { frame: 'code', rows: 'l30 / l60 / l50 / l70 / l20' },
   highlight: { rows: 'l25 mark35 / l70' },
+  'token-value': { rows: 'l30 cbx l20 / l30 cbx l20 / l30 l35' },
   translator: { frame: 'tile', rows: 'se io se / split' },
   'audio-player': { frame: 'tile', rows: 'wave / s10 sp play sp i' },
   'video-player': { rows: 'video' },
