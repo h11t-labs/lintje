@@ -168,17 +168,41 @@ describe('the radar', () => {
 })
 
 describe('the legend of a radar', () => {
-  it('switches a layer off: out of the drawing and the tooltip, the scale kept', () => {
+  it('switches a layer off: unseen and out of the tooltip, the scale kept', () => {
     const { host, controller } = draw(ONE)
     const before = outer(host)
     controller.toggleSeries('Q3 2025')
     const button = [...host.querySelectorAll('.lintje-legend__button')][1]
     expect(button.getAttribute('aria-pressed')).toBe('false')
-    expect(host.querySelectorAll('polyline[stroke-dasharray]')).toHaveLength(0)
+    const dashed = host.querySelector('polyline[stroke-dasharray]')!
+    expect(dashed.closest('.lintje-radar__layer')!.classList.contains('is-hidden')).toBe(true)
     expect(outer(host)).toBe(before)
     const svg = host.querySelector('svg[tabindex="0"]')!
     svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
     expect(tooltip(host).some((row) => row.includes('Q3 2025'))).toBe(false)
+  })
+
+  it('lets nothing grow in again: every layer keeps its node through a switch', () => {
+    const { host, controller } = draw(ONE)
+    const nodes = () => [...host.querySelectorAll('.lintje-radar__layer, .lintje-radar__area')]
+    const before = nodes()
+    controller.toggleSeries('Q3 2025')
+    controller.toggleSeries('Q3 2025')
+    expect(nodes()).toEqual(before)
+    expect(nodes().every((node, i) => node === before[i])).toBe(true)
+  })
+
+  it('keeps the axes where they are when the one variable goes, values and all', () => {
+    const { host, controller } = draw(ONE)
+    const before = outer(host)
+    const name = host.querySelector('.lintje-radar__name')!.getAttribute('y')
+    const values = [...host.querySelectorAll('.lintje-radar__value')]
+    controller.toggleSeries('Q3 2026')
+    expect(host.querySelectorAll('.lintje-radar__value:not(.is-hidden)')).toHaveLength(0)
+    // Unseen, not gone: back on, the same nodes show without fading in again.
+    expect([...host.querySelectorAll('.lintje-radar__value')]).toEqual(values)
+    expect(outer(host)).toBe(before)
+    expect(host.querySelector('.lintje-radar__name')!.getAttribute('y')).toBe(name)
   })
 
   it('fills the layer pointed at and steps the others back', () => {
@@ -235,6 +259,16 @@ describe('the keyboard on a radar', () => {
     ])
     expect(host.querySelector('.lintje-radar__spoke.is-active')).not.toBeNull()
   })
+
+  it('marks the comparison and the norm in the tooltip as the legend does: dashed', () => {
+    const { host } = draw(ONE)
+    const svg = host.querySelector('svg[tabindex="0"]')!
+    svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
+    const rows = [...host.querySelectorAll('.lintje-chart-tooltip__row')]
+    expect(rows[0].querySelector('.lintje-chart-tooltip__marker--symbol')).not.toBeNull()
+    expect(rows[1].querySelector('.lintje-chart-tooltip__marker--dashed')).not.toBeNull()
+    expect(rows[2].querySelector('.lintje-chart-tooltip__marker--dashed')).not.toBeNull()
+  })
 })
 
 describe('the radar below 768 px', () => {
@@ -248,6 +282,18 @@ describe('the radar below 768 px', () => {
     // Below the norm is said in words, not only by the bar's length (rule 13).
     expect(rows[1].textContent).toContain('onder norm')
     expect(rows[0].textContent).not.toContain('onder norm')
+  })
+
+  it('keeps every row in its place when a layer is switched off', () => {
+    const { host, controller } = draw(ONE, { mobile: true })
+    const height = () => host.querySelector('svg.lintje-radar')!.getAttribute('height')
+    const last = () => [...host.querySelectorAll('.lintje-radar__name')].at(-1)!.getAttribute('y')
+    const [h, y] = [height(), last()]
+    expect(h).not.toBeNull()
+    controller.toggleSeries('Q3 2025')
+    expect(height()).toBe(h)
+    expect(last()).toBe(y)
+    expect(host.querySelectorAll('.lintje-radar__bar.is-hidden')).toHaveLength(6)
   })
 
   it('hatches the bar of a missing value instead of drawing 0 (rule 15)', () => {

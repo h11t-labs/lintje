@@ -126,6 +126,11 @@
 /* Of more layers the one pointed at in the legend leads; the others step back as a hidden one does. */
 .lintje-radar__layer { transition: opacity var(--dur-hover) var(--ease-in-motion); }
 .lintje-radar__layer.is-muted { opacity: .45; }
+/* A layer the legend hides keeps its node, so switching it back lets nothing grow in again. */
+.lintje-radar__layer.is-hidden,
+.lintje-radar__bar.is-hidden,
+.lintje-radar__value.is-hidden { visibility: hidden; }
+.lintje-radar__lift { pointer-events: none; }
 .lintje-radar__zero { stroke: var(--color-chart-zero); stroke-width: 1; }
 .lintje-radar__row.is-active .lintje-radar__name { font-weight: 700; }
 
@@ -257,6 +262,7 @@
 .lintje-chart-tooltip__label { display: flex; align-items: center; gap: 6px; }
 .lintje-chart-tooltip__marker { width: 10px; height: 10px; flex: none; }
 .lintje-chart-tooltip__marker--symbol { width: 14px; height: 14px; }
+.lintje-chart-tooltip__marker--dashed { width: 14px; height: 0; border-top: 2px dashed currentColor; }
 .lintje-chart-tooltip__row--divider {
   border-top: 1px solid var(--color-border-popover);
   margin-top: var(--space-1);

@@ -167,9 +167,12 @@ export function renderRadarChart(spec: RadarSpec, options: ChartOptions): Templa
     shown.map((layer) => ({ ...layer, complete: layer.values.every((value) => value != null) })),
     emphasis,
   )
-  const missing = axes.map((_, i) => shown.some((layer) => layer.values[i] == null))
+  // What the legend switches never moves the drawing: the gaps, the room for the values and
+  // the phone's rows are those of every layer, shown or not.
+  const missing = axes.map((_, i) => layers.some((layer) => layer.values[i] == null))
   // Data labels are all or nothing: with more variables two values do not fit by one name.
-  const labelled = spec.dataLabels !== false && variables.length === 1 && !hidden(variables[0])
+  const reserve = spec.dataLabels !== false && variables.length === 1
+  const labelled = reserve && !hidden(variables[0])
 
   const legend: LegendItem[] = [
     ...layers.map((layer) =>
@@ -211,10 +214,16 @@ export function renderRadarChart(spec: RadarSpec, options: ChartOptions): Templa
         value: value == null ? 'geen gegevens' : withUnit(value),
         color: layer.color,
         symbol: layer.symbol,
+        dashed: layer.comparison,
       }
     })
     if (threshold != null) {
-      rows.push({ label: spec.thresholdLabel ?? 'Norm', value: withUnit(threshold) })
+      rows.push({
+        label: spec.thresholdLabel ?? 'Norm',
+        value: withUnit(threshold),
+        color: 'var(--color-chart-emphasis)',
+        dashed: true,
+      })
     }
     // One variable against its comparison and the norm, with the sign of the difference.
     const [only] = shownVariables
@@ -250,7 +259,9 @@ export function renderRadarChart(spec: RadarSpec, options: ChartOptions): Templa
     fills,
     emphasis,
     missing,
+    reserve,
     labelled,
+    hidden,
     format,
     contentAt,
   })
@@ -296,7 +307,10 @@ interface DrawInput {
   fills: Set<string>
   emphasis: string | null
   missing: boolean[]
+  /** One variable with data labels: the room for its values, taken whether it shows or not. */
+  reserve: boolean
   labelled: boolean
+  hidden: (layer: Layer) => boolean
   format: (value: number) => string
   contentAt: (i: number) => TooltipContent
 }
@@ -319,7 +333,9 @@ function drawRadar({
   fills,
   emphasis,
   missing,
+  reserve,
   labelled,
+  hidden,
   format,
   contentAt,
 }: DrawInput): Drawing {
@@ -348,7 +364,7 @@ function drawRadar({
       Math.abs(Math.cos(angle(i))) < 0.1 ? 0 : nameWidth(name) + LABEL_GAP + 2,
     ),
   )
-  const vertical = LABEL_GAP + NAME_LINE + (labelled ? VALUE_LINE : 0)
+  const vertical = LABEL_GAP + NAME_LINE + (reserve ? VALUE_LINE : 0)
   const radius = Math.max(
     MIN_RADIUS,
     Math.min(width / 2 - side - EXTEND, height / 2 - vertical - EXTEND),
@@ -373,11 +389,11 @@ function drawRadar({
     return polar(i, known.length ? scale(Math.max(...known)) : radius / 2)
   }
 
-  // The comparison under the variables, the emphasised one on top.
+  // The comparison under the variables. Every layer keeps its node, a hidden one unseen, so a
+  // switch in the legend lets nothing grow in again.
   const order = [
-    ...shown.filter((layer) => layer.comparison),
-    ...shown.filter((layer) => !layer.comparison && layer.label !== emphasis),
-    ...shown.filter((layer) => layer.label === emphasis),
+    ...layers.filter((layer) => layer.comparison),
+    ...layers.filter((layer) => !layer.comparison),
   ]
   const muted = (layer: Layer) => emphasis != null && layer.label !== emphasis
   const origin = styleProps({ 'transform-origin': `${cx}px ${cy}px` })
@@ -389,29 +405,31 @@ function drawRadar({
     const upright = Math.abs(cos) < 0.1
     const anchor = upright ? 'middle' : cos > 0 ? 'start' : 'end'
     let nameY: number
-    if (upright && sin < 0) nameY = end.y - 4 - (labelled ? VALUE_LINE : 0)
+    if (upright && sin < 0) nameY = end.y - 4 - (reserve ? VALUE_LINE : 0)
     else if (upright) nameY = end.y + 12
-    else nameY = labelled ? end.y - 2 : end.y + 5
-    const value = labelled ? layers.find((layer) => !layer.comparison)?.values[i] : undefined
+    else nameY = reserve ? end.y - 2 : end.y + 5
+    const value = reserve ? layers.find((layer) => !layer.comparison)?.values[i] : undefined
+    // A value stays when its layer goes, unseen, so it does not fade in a second time.
     return svg`
       <text x=${end.x} y=${nameY} text-anchor=${anchor} class="lintje-radar__name">${name}</text>
       ${
-        labelled
+        reserve
           ? svg`<text x=${end.x} y=${nameY + VALUE_LINE} text-anchor=${anchor}
-                     class="lintje-chart__data-label ${value == null ? 'lintje-radar__no-value' : ''}">
+                     class="lintje-chart__data-label lintje-radar__value ${value == null ? 'lintje-radar__no-value' : ''} ${labelled ? '' : 'is-hidden'}">
                  ${value == null ? 'geen gegevens' : format(value)}</text>`
           : nothing
       }
     `
   })
 
-  const layer = (item: Layer, part: 'area' | 'line') => {
+  const layer = (item: Layer, part: 'area' | 'line' | 'lift') => {
+    const off = hidden(item) ? 'is-hidden' : ''
     const vertices = item.values.map((value, i) => (value == null ? null : polar(i, scale(value))))
     // Every complete layer keeps its area, filled or not: one that appeared on emphasis would
     // grow in a second time.
     if (part === 'area') {
       if (item.comparison || vertices.some((p) => p == null)) return nothing
-      return svg`<g class="lintje-radar__layer" ${origin}>
+      return svg`<g class="lintje-radar__layer ${off}" ${origin}>
         <polygon class="lintje-radar__area ${fills.has(item.label) ? 'is-filled' : ''}"
                  points=${points(vertices as Point[])} fill=${item.color} />
       </g>`
@@ -440,7 +458,11 @@ function drawRadar({
             : nothing,
         )
       : nothing
-    return svg`<g class="lintje-radar__layer ${muted(item) ? 'is-muted' : ''}" ${origin}>
+    // The emphasised layer once more on top, as a lifted pie slice is: in place it would stay
+    // under the layers drawn after it.
+    if (part === 'lift')
+      return svg`<g class="lintje-radar__lift" aria-hidden="true">${lines}${marks}</g>`
+    return svg`<g class="lintje-radar__layer ${off} ${muted(item) ? 'is-muted' : ''}" ${origin}>
       ${lines}${marks}
     </g>`
   }
@@ -479,6 +501,12 @@ function drawRadar({
       : nothing,
     order.map((item) => layer(item, 'area')),
     order.map((item) => layer(item, 'line')),
+    emphasis != null
+      ? layer(
+          layers.find((item) => item.label === emphasis)!,
+          'lift',
+        )
+      : nothing,
     labels,
     active != null
       ? shown.map((item) => {
@@ -505,16 +533,26 @@ function drawRadar({
 }
 
 /** Below 768 px: a row per axis, a bar per variable and the comparison under them (rule 9). */
-function drawRows({ spec, controller, shown, labelled, format, contentAt }: DrawInput): Drawing {
+function drawRows({
+  spec,
+  controller,
+  layers,
+  shown,
+  reserve,
+  labelled,
+  hidden,
+  format,
+  contentAt,
+}: DrawInput): Drawing {
   const { axes, max, threshold } = spec
   controller.measure({ width: true })
   const width = controller.width
   const plot = width - 1
-  const variables = shown.filter((layer) => !layer.comparison)
-  // The variables in legend order, then the comparison, thinner.
+  const variables = layers.filter((layer) => !layer.comparison)
+  // The variables in legend order, then the comparison, thinner; a hidden one keeps its place.
   const bars = [
     ...variables.map((layer) => ({ layer, size: variables.length === 1 ? 8 : 6 })),
-    ...shown.filter((layer) => layer.comparison).map((layer) => ({ layer, size: 4 })),
+    ...layers.filter((layer) => layer.comparison).map((layer) => ({ layer, size: 4 })),
   ]
   const barsHeight =
     bars.reduce((sum, bar) => sum + bar.size, 0) + BAR_GAP * Math.max(0, bars.length - 1)
@@ -523,43 +561,47 @@ function drawRows({ spec, controller, shown, labelled, format, contentAt }: Draw
   const height = scaleTop + 16
   const x = (value: number) => 0.5 + (Math.max(0, Math.min(value, max)) / max) * plot
   const fontFamily = controller.fontFamily
-  const variable = shown.find((layer) => !layer.comparison)
+  const variable = layers.find((layer) => !layer.comparison)
+  const pointed = shown.find((layer) => !layer.comparison)
   const active = controller.hoverIndex
 
   const at = (i: number): Point => {
-    const value = variable?.values[i]
+    const value = pointed?.values[i]
     return { x: value != null ? x(value) : width / 2, y: i * rowHeight + NAME_LINE + 4 }
   }
 
   const rows = axes.map((name, i) => {
     const top = i * rowHeight
     const barTop = top + NAME_LINE + 4
-    const value = labelled ? variable?.values[i] : undefined
-    const text = labelled ? (value == null ? 'geen gegevens' : format(value)) : ''
-    const below = labelled && value != null && threshold != null && value < threshold
+    const value = reserve ? variable?.values[i] : undefined
+    const text = reserve ? (value == null ? 'geen gegevens' : format(value)) : ''
+    const below = reserve && value != null && threshold != null && value < threshold
+    const off = labelled ? '' : 'is-hidden'
     let offset = barTop
     return svg`
       <g class="lintje-radar__row ${active === i ? 'is-active' : ''}">
         <text x="0" y=${top + 14} class="lintje-radar__name">${name}</text>
         ${
-          labelled
+          reserve
             ? svg`<text x=${width} y=${top + 14} text-anchor="end"
-                       class="lintje-chart__data-label ${value == null ? 'lintje-radar__no-value' : ''}">${text}</text>`
+                       class="lintje-chart__data-label lintje-radar__value ${value == null ? 'lintje-radar__no-value' : ''} ${off}">${text}</text>`
             : nothing
         }
         ${
           below
             ? svg`<text x=${width - textWidth(text, fontFamily, 700) - 6} y=${top + 14} text-anchor="end"
-                       class="lintje-chart__axis-label">onder norm</text>`
+                       class="lintje-chart__axis-label lintje-radar__value ${off}">onder norm</text>`
             : nothing
         }
         ${bars.map(({ layer, size }) => {
           const y = offset
           offset += size + BAR_GAP
           const v = layer.values[i]
+          const gone = hidden(layer) ? 'is-hidden' : ''
           return v == null
-            ? svg`<rect x="0.5" y=${y} width=${plot} height=${size} fill="url(#hatch-${controller.id})" />`
-            : svg`<rect class="lintje-chart__bar lintje-chart__bar--horizontal" x="0.5" y=${y}
+            ? svg`<rect class="lintje-radar__bar ${gone}" x="0.5" y=${y} width=${plot} height=${size}
+                       fill="url(#hatch-${controller.id})" />`
+            : svg`<rect class="lintje-chart__bar lintje-chart__bar--horizontal lintje-radar__bar ${gone}" x="0.5" y=${y}
                        width=${Math.max(0, x(v) - 0.5)} height=${size} fill=${layer.color}
                        ${styleProps(staggerStyle(i, axes.length))} />`
         })}
