@@ -28,6 +28,54 @@ const NORMS = [5, 10, 15, 20, 30]
 
 const PERIOD = { from: '01-09-2026', to: '08-09-2026' }
 
+const INSTRUCTION = [
+  'Een aanvraag komt binnen via het portaal of per post. Een aanvraag per post scant de postkamer dezelfde dag.',
+  'Controleer eerst of de aanvraag compleet is. Ontbreekt er een stuk, vraag het dan op met de standaardbrief.',
+  'Lukt het opvragen bij het bronregister niet, dan komt de aanvraag in de wachtrij voor handmatige controle.',
+  'Een besluit op de aanvraag neem je binnen acht weken. Een ingetrokken aanvraag telt niet mee.',
+]
+
+/** The host's half of finding: count the hits, mark them, follow `lintje-find-step`. */
+function findInText(stage) {
+  const find = stage.querySelector('lintje-find')
+  const text = stage.querySelector('.sg-find-text')
+  const escape = (value) => value.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
+  const literal = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  // A new term draws the text again; a step only moves `current`, so the page keeps its place.
+  const draw = () => {
+    const term = find.value.trim().toLowerCase()
+    text.innerHTML = INSTRUCTION.map((line) => {
+      if (!term) return `<p>${escape(line)}</p>`
+      const parts = line.split(new RegExp(`(${literal(term)})`, 'i'))
+      return `<p>${parts
+        .map((part, i) =>
+          i % 2 ? `<lintje-highlight kind="match">${escape(part)}</lintje-highlight>` : escape(part),
+        )
+        .join('')}</p>`
+    }).join('')
+    find.total = term ? text.querySelectorAll('lintje-highlight').length : null
+    find.current = find.total ? 1 : 0
+    mark()
+  }
+  const mark = () => {
+    const hits = text.querySelectorAll('lintje-highlight')
+    hits.forEach((hit, i) => hit.toggleAttribute('current', i + 1 === find.current))
+    // The text scrolls in its own box: moving the page would move the field from under the pointer.
+    const hit = hits[find.current - 1]
+    if (!hit) return
+    const box = text.getBoundingClientRect()
+    const at = hit.getBoundingClientRect()
+    if (at.top < box.top || at.bottom > box.bottom) text.scrollTop += at.top - box.top - box.height / 3
+  }
+  find.addEventListener('lintje-change', draw)
+  find.addEventListener('lintje-find-step', (event) => {
+    const total = find.total ?? 0
+    find.current = ((find.current - 1 + event.detail + total) % total) + 1
+    mark()
+  })
+  draw()
+}
+
 const LAST_DAY = new Date(2026, 8, 8)
 
 /** Writes the `{ [name]: value }` the control sends the host into a line under it. */
@@ -267,6 +315,47 @@ export default {
         {
           label: 'Alleen-lezen',
           html: '<lintje-text-input name="dossier" label="Dossiernummer" value="2026-0412" readonly clearable></lintje-text-input>',
+        },
+      ],
+    },
+    {
+      tag: 'lintje-find',
+      title: 'Een woord vinden in wat al op het scherm staat',
+      specimens: [
+        {
+          label: 'Leeg',
+          html: '<lintje-find label="Zoeken in de werkinstructie"></lintje-find>',
+        },
+        {
+          label: 'Met treffers',
+          note: 'De host telt en zegt welke de huidige is. De teller en de knoppen staan in het vak.',
+          html: '<lintje-find value="aanvraag" total="7" current="2"></lintje-find>',
+        },
+        {
+          label: 'Geen treffers',
+          html: '<lintje-find value="certificaat" total="0"></lintje-find>',
+        },
+        {
+          label: 'Zoekt nog',
+          note: 'Telt de host in een grote inhoud, dan zet hij `busy` tot hij het aantal weet.',
+          html: '<lintje-find value="aanvraag" busy></lintje-find>',
+        },
+        {
+          label: 'Veel treffers',
+          note: 'Het veld wordt korter, het vak niet breder.',
+          html: '<lintje-find value="aanvraag" total="1248" current="128"></lintje-find>',
+        },
+        {
+          label: 'Uitgeschakeld',
+          html: '<lintje-find value="aanvraag" total="7" current="2" disabled></lintje-find>',
+        },
+        {
+          label: 'Zoeken in een tekst',
+          note: 'Enter is volgende, Shift+Enter vorige, Escape wist. Na de laatste treffer volgt de eerste.',
+          html:
+            '<lintje-find label="Zoeken in de werkinstructie" value="aanvraag"></lintje-find>' +
+            '<div class="sg-find-text" tabindex="0" role="region" aria-label="Werkinstructie" style="margin-top: var(--space-4); max-width: 70ch; max-height: calc(4 * var(--space-10)); overflow: auto"></div>',
+          setup: findInText,
         },
       ],
     },
