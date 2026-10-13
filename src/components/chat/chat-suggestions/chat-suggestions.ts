@@ -8,7 +8,7 @@ import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'l
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import chatSuggestionsCss from './chat-suggestions.css?inline'
-import screenOnlyCss from '../../../primitives/shared/screen-only.css?inline'
+import screenOnlyCss from '../../shared/screen-only.css?inline'
 import type { ChatSuggestion } from '../../../types'
 
 export type ChatSuggestionKind = 'suggestion' | 'choice'

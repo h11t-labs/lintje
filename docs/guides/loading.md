@@ -58,7 +58,7 @@ setIconSource({ base: './icons/' })
 | `layout.js` — Indeling | `grid`, `grid-item`, `tile`, `tabs`, `expander`, `split-pane` |
 | `overlays.js` — Vensters en panelen | `modal`, `dialog`, `drawer`, `popover`, `tooltip`, `toggletip` |
 | `actions.js` — Knoppen en iconen | `button`, `icon-button`, `menu-button`, `copy-button`, `qr-code`, `icon`, `logo` |
-| `content.js` — Tekst en media | `prose`, `code`, `highlight`, `translator`, `audio-player`, `video-player`, `transcript`, `document-viewer`, `gallery` |
+| `content.js` — Tekst en media | `prose`, `code`, `highlight`, `token-value`, `translator`, `audio-player`, `video-player`, `transcript`, `document-viewer`, `gallery` |
 | `feedback.js` — Meldingen en status | `announcement`, `toast`, `conflict-alert`, `empty-state`, `error-page`, `badge`, `status-dot`, `spinner`, `skeleton`, `progress-bar`, `job-list`, `streaming-text`, `ai-label`, `level-meter`, `recording-status` |
 | `inputs.js` — Invoervelden | `field`, `text-input`, `find`, `textarea`, `number-input`, `select`, `combobox`, `multiselect`, `tag-input`, `checkbox`, `checkbox-group`, `radio-group`, `toggle`, `segmented`, `range`, `date-input`, `time-input`, `date-range`, `slot-picker`, `file-upload`, `text-editor` |
 | `forms.js` — Formulier | `form`, `form-section`, `stepper`, `repeater`, `repeater-row`, `error-summary`, `form-actions` |
@@ -78,7 +78,7 @@ geldt voor deze manier van laden:
   (`document.createElement('lintje-toast')`) wordt bovenaan geïmporteerd zoals de andere. Niets wordt
   op verzoek opgehaald.
 - **Elk bestand laadt de basis**: Lit, de tokens, de iconen die de componenten tekenen en de
-  primitives. Een primitive als `button` of `grid` hoef je dus niet apart te laden. De kaart, met Leaflet en zijn geometrie, is de zwaarste tag.
+  bouwstenen die bijna elke tag tekent. Een bouwsteen als `button` of `grid` hoef je dus niet apart te laden. De kaart, met Leaflet en zijn geometrie, is de zwaarste tag.
 - **Het zijn tientallen kleine bestanden.** Serveer de map over HTTP/2, of met verbindingen die
   open blijven: een server die de verbinding na elk bestand sluit, laat er een paar vallen, en één module die
   niet laadt, laat de pagina zonder zijn tags. De bestanden in `chunks/` dragen een hash en mogen

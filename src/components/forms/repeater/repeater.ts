@@ -18,8 +18,8 @@ import {
 } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
-import '../../../primitives/button/button'
-import '../../../primitives/icon-button/icon-button'
+import '../../actions/button/button'
+import '../../actions/icon-button/icon-button'
 import repeaterCss from './repeater.css?inline'
 import repeaterRowCss from './repeater-row.css?inline'
 

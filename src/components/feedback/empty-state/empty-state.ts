@@ -12,10 +12,10 @@ import {
   emptyStateBlockStyles,
   renderEmptyStateBlock,
   type HeadingLevel,
-} from '../../../primitives/shared/empty-state-block'
+} from '../../shared/empty-state-block'
 import emptyStateCss from './empty-state.css?inline'
 
-export type { HeadingLevel } from '../../../primitives/shared/empty-state-block'
+export type { HeadingLevel } from '../../shared/empty-state-block'
 
 export class LintjeEmptyState extends LintjeElement {
   static override styles = [iconStyles, shadowCss(emptyStateCss), emptyStateBlockStyles]

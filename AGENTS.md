@@ -14,7 +14,7 @@ niet.
    kleur of duur staat in de tokens en in de eigen bestanden van het component, nooit in dat
    document. Een besluit dat voor meer dan één element geldt, komt daar te staan, in dezelfde
    commit. Ontwerp niets opnieuw — ook niet "net iets netter".
-2. **Hergebruik vóór je bouwt.** Zoek eerst in `src/primitives/` en `src/components/`. Een tweede
+2. **Hergebruik vóór je bouwt.** Zoek eerst in `src/components/`. Een tweede
    component met dezelfde betekenis is een fout.
 3. **Nooit een kleur hardcoden.** Een component noemt een semantisch of componenttoken
    (`var(--color-*)`), nooit een literal en nooit een primitief (`--neutral-*`, `--data-*`,
@@ -26,7 +26,7 @@ niet.
 6. **Nieuwe generieke patronen horen in het design system**, met tokens, met toestanden, en
    getoond in de styleguide.
 7. **Een host stelt samen.** Hij zet `data` op een tag en luistert naar zijn events.
-   Domeinlogica hoort niet in een primitive.
+   Domeinlogica hoort niet in een bouwsteen.
 8. **Beide modi en alle zes thema's blijven werken.** Test licht *en* donker. Donker herdefinieert
    de zeven `--neutral-*` en wijst opnieuw aan wat van betekenis verandert — nooit een losse
    donkere kleur. Een thema zet alleen `--primary` en `--accent`, in `tokens/themes.css`, dat op
@@ -70,7 +70,7 @@ niet.
 
 ## De laaggrens
 
-`bundle` → `components` + `primitives` (met `core/`, `tokens/`, `icons/` eronder). Nooit andersom.
+`bundle` → `components` (met `core/`, `tokens/`, `icons/` eronder). Nooit andersom.
 
 17. **Het design system kent geen domein.** Niets onder `src/` behalve `bundle/` importeert uit
     `bundle/` of uit een host.
@@ -81,15 +81,16 @@ niet.
     categorie is een map onder `components/`, een pagina van de stijlgids, een ingang van de
     build en een export van het pakket. Een nieuwe tag krijgt een map naar zijn naam, zonder het
     voorvoegsel, in zijn categorie (`components/charts/note/` voor `<lintje-note>`, met `note.ts`
-    — de klasse `LintjeNote` —, `note.css` en zijn test; een primitive staat in `primitives/`; een
+    — de klasse `LintjeNote` —, `note.css` en zijn test; een
     deel dat alleen binnen een ander element bestaat, mag in diens map; wat een categorie deelt,
     staat in haar `shared/`, wat categorieën delen in `components/shared/`), **komt in
-    `categories.json`, in `bundle/<category>.ts` en in de barrel** (`components/index.ts` of
-    `primitives/index.ts`). Een nieuwe *view* komt daarnaast in `LINTJE_VIEWS` (`bundle/index.ts`)
+    `categories.json`, in `bundle/<category>.ts` en in de barrel** (`components/index.ts`). Een nieuwe *view* komt daarnaast in `LINTJE_VIEWS` (`bundle/index.ts`)
     en in `src/types.ts`. De tag-referentie wordt gegenereerd (`scripts/manifest.mjs`): wat een
     host over een tag leest, is zijn kopcommentaar, de JSDoc bij zijn properties en zijn
     `emit()`-aanroepen. Zijn bestand in de build (`tag/<name>.js`) volgt uit zijn
     `define()`-aanroep. Een tag importeert de tags die hij tekent via hun pad, nooit via een barrel.
+    Een samengestelde tag staat ook in `composite` van zijn categorie; een bouwsteen bereikt nooit
+    iets samengestelds (`DESIGN_SYSTEM.md`, Basis, bouwsteen, samengesteld).
 21. **Filters zijn data.** Een host declareert zijn filters (`FilterDefinition` in
     `src/types.ts`) en `lintje-filter-bar` tekent ze met de zone, de sheet en de
     bedieningselementen in `components/filters/` en `components/inputs/`. De bibliotheek heeft

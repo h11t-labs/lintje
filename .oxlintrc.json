@@ -16,7 +16,6 @@
         "src/core/**",
         "src/tokens/**",
         "src/icons/**",
-        "src/primitives/**",
         "src/components/**",
         "src/categories.ts"
       ],

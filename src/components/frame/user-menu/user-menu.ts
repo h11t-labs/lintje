@@ -25,8 +25,8 @@ import {
   type MenuEntry,
   type MenuItem,
 } from '../../actions/menu-button/menu-button'
-import '../../../primitives/popover/popover'
-import '../../../primitives/tooltip/tooltip'
+import '../../overlays/popover/popover'
+import '../../overlays/tooltip/tooltip'
 import menuCss from '../../shared/menu.css?inline'
 import menuButtonCss from '../../actions/menu-button/menu-button.css?inline'
 import userMenuCss from './user-menu.css?inline'

@@ -3,7 +3,7 @@ import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'l
 import { styleProps } from '../../../core/style-props'
 import { define, type FrameSettings } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
-import { LintjeGridItemElement, spanStyles } from '../../../primitives/shared/grid-item-element'
+import { LintjeGridItemElement, spanStyles } from '../../shared/grid-item-element'
 import '../kpi/kpi'
 import kpiRowCss from './kpi-row.css?inline'
 import type { KpiRowData } from '../../../types'

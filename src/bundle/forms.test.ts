@@ -19,7 +19,7 @@ describe('a page that loads the forms category', () => {
     expect(tagsOf(inputs).filter((tag) => !customElements.get(tag))).toEqual([])
   })
 
-  it('defines the primitives a form draws with', () => {
+  it('defines the building blocks a form draws with', () => {
     expect(customElements.get('lintje-button')).toBeDefined()
   })
 

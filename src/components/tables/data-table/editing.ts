@@ -9,7 +9,7 @@
 import { html, nothing, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
-import '../../../primitives/spinner/spinner'
+import '../../feedback/spinner/spinner'
 import type {
   CellValue,
   DataTableData,

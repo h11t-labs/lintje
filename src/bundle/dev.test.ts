@@ -3,7 +3,7 @@
  * module defined, once each.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import '../primitives/button/button'
+import '../components/actions/button/button'
 import { reportUndefinedTags, undefinedTags } from './dev'
 
 afterEach(() => {

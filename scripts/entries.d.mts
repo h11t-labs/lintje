@@ -3,6 +3,7 @@
  * read the same file.
  */
 export declare const CATEGORY_NAMES: string[]
+export declare function sourceFiles(dir: string): string[]
 export declare function tagModules(srcDir: string): Map<string, string>
 export declare function tagEntryName(tag: string): string
 export declare function importsOf(file: string): Set<string>

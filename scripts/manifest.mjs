@@ -207,6 +207,28 @@ export function buildManifest(srcDir) {
     files.filter((file) => file.tags.length).map((file) => dirname(file.path)),
   )
 
+  /**
+   * The tags a tag draws: those its folder writes as `<lintje-…>` outside a comment, and those
+   * whose render function it imports (`renderBadge`). A tag of the same folder is a part of it.
+   */
+  const byPath = new Map(files.map((file) => [file.path, file]))
+  function drawnBy(file) {
+    const folder = dirname(file.path)
+    const own = files.filter((other) => dirname(other.path) === folder)
+    const drawn = new Set()
+    for (const module of own) {
+      const code = module.text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
+      for (const [, tag] of code.matchAll(/<(lintje-[a-z0-9-]+)/g)) drawn.add(tag)
+      for (const [, names, from] of code.matchAll(/import\s*\{([^}]*)\}\s*from\s*'([^']+)'/g)) {
+        if (!/\brender[A-Z]/.test(names) || !from.startsWith('.')) continue
+        const target = byPath.get(resolve(folder, `${from}.ts`))
+        for (const [tag] of target?.tags ?? []) drawn.add(tag)
+      }
+    }
+    for (const module of own) for (const [tag] of module.tags) drawn.delete(tag)
+    return [...drawn].filter((tag) => tagNames.has(tag)).sort()
+  }
+
   /** A tag's own module, its helpers in the same folder, and the modules of its base classes. */
   function modulesOf(file, chain) {
     const folder = dirname(file.path)
@@ -301,6 +323,8 @@ export function buildManifest(srcDir) {
             description: event.composed ? undefined : 'Not composed: it stops at the shadow root.',
           })),
         slots: [...slots].sort().map((name) => ({ name })),
+        // Not in the schema: the tags this one draws, for the style guide's "Bestaat uit".
+        draws: drawnBy(file),
       })
       exports.push({
         kind: 'custom-element-definition',

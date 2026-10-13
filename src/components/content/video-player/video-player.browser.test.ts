@@ -1,7 +1,7 @@
 /** The video player in a browser: scrubbing with the pointer and the keys, full screen with captions. */
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { ARROW_STEP, PAGE_STEP } from '../audio-player/playback'
+import { ARROW_STEP, PAGE_STEP } from '../shared/playback'
 import './video-player'
 import type { LintjeVideoPlayer } from './video-player'
 

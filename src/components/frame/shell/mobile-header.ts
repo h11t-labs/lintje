@@ -2,7 +2,7 @@
 import { html, nothing, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
-import { renderBadge } from '../../../primitives/badge/badge'
+import { renderBadge } from '../../feedback/badge/badge'
 import { setFrameState } from '../../../core/frame-state'
 import { hasPage, unavailableWord, type NavGroup } from './header'
 import type { ShellLink } from '../../../types'

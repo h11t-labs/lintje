@@ -52,6 +52,8 @@ export interface TooltipRow {
   divider?: boolean
   /** The series' shape instead of a square swatch, as its legend draws it. */
   symbol?: SeriesKey
+  /** A line instead of a square swatch, plain or dashed (a norm), as its legend draws it. */
+  marker?: 'line' | 'dashed'
 }
 export interface TooltipContent {
   title: string
@@ -101,6 +103,8 @@ export class ChartController {
   /** What the keyboard's tooltip says, for the chart's status region; empty otherwise. */
   status = ''
   hiddenSeries: string[] = []
+  /** The series the reader points at or focuses in the legend; `null` for none. */
+  emphasis: string | null = null
   /** The layers of a stacked map switched off in its legend, by their place in the stack. */
   hiddenLayers: number[] = []
   hoverSegment: number | null = null
@@ -293,6 +297,12 @@ export class ChartController {
     this.hiddenLayers = this.hiddenLayers.includes(index)
       ? this.hiddenLayers.filter((x) => x !== index)
       : [...this.hiddenLayers, index]
+    this.requestUpdate()
+  }
+
+  emphasise(label: string | null): void {
+    if (this.emphasis === label) return
+    this.emphasis = label
     this.requestUpdate()
   }
 

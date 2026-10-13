@@ -21,8 +21,8 @@ import { holdsFocus } from '../../../core/focus'
 import { shadowCss } from '../../../core/styles'
 import '../../tables/list/list'
 import type { ListItem } from '../../tables/list/list'
-import { WORK_STATE_LABEL, WORK_STATE_TONE, type WorkState } from '../../../primitives/shared/tone'
-import type { BadgeTone } from '../../../primitives/badge/badge'
+import { WORK_STATE_LABEL, WORK_STATE_TONE, type WorkState } from '../../shared/tone'
+import type { BadgeTone } from '../badge/badge'
 import jobListCss from './job-list.css?inline'
 
 export type JobState = WorkState

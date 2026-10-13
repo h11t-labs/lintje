@@ -11,7 +11,7 @@ server volstaat.
 | | |
 |---|---|
 | [`index.html`](index.html) | de voorpagina: één tegel voor de styleguide, één per applicatie |
-| [`styleguide/`](styleguide/) | **de styleguide**: elk element per categorie, in zijn toestanden |
+| [`styleguide/`](styleguide/) | **de styleguide**: de tokens, en elk element per categorie, in zijn toestanden |
 | [`dashboard/`](dashboard/) | een dashboardpagina: shell, filterbalk, KPI's, grafieken, kaart, tabel |
 | [`chat/`](chat/) | chatten met data, als pagina van dat dashboard |
 | [`meldingen/`](meldingen/) | een register van meldingen: de tabel als werkblad, en een nieuwe melding in drie stappen |
@@ -30,7 +30,15 @@ De styleguide toont elk element op zichzelf; de applicaties tonen wat ermee gebo
 Hij is de levende referentie: een wijziging aan een component in `src/` wordt daar gecontroleerd, in licht
 **en** donker, op 1440 **en** 390 px.
 
-Het menu van de shell somt de categorieën op. De pagina van een categorie (`?category=<name>`, uit
+Het menu van de shell begint met **Fundament**: drie pagina's, Kleur, Typografie en Maat en beweging
+(`?foundation=colour`, `typography`, `size`), met elk token dat een component mag noemen. Een rij
+geeft de naam, de waarde zoals de modus en het thema van de lezer hem berekenen
+(`lintje-token-value`), hoe hij eruitziet en het commentaar uit `tokens.css`, als citaat. De build
+schrijft de tokens met hun commentaar in `tokens.json` (`scripts/tokens.mjs`);
+`styleguide/foundation.js` deelt ze in groepen in. Een nieuw token krijgt daar een groep, anders
+faalt `src/bundle/tokens.test.ts`.
+
+Daarna somt het menu de categorieën op. De pagina van een categorie (`?category=<name>`, uit
 `src/categories.json`) is een overzicht: per element een kaart met een schets van zijn vorm, in grijs
 en in de modus van de pagina (`styleguide/sketches.js`), wat het is en hoeveel het toont. Elk
 element heeft een
@@ -65,11 +73,12 @@ deelt.
 `#el-<tag without lintje->`, het oudere adres, opent de pagina van het element, dus
 `styleguide/#el-tabs` werkt nog. Een element staat in de eigen modus van de pagina: de modusknop
 in de balk van de shell toont het in licht en in donker, zoals in elke applicatie. In de
-bovenindeling (`?layout=top`) is elk van de vier koppen een item van de navigatiebalk met zijn
-categorieën in een submenu; de huidige categorie is de actieve.
+bovenindeling (`?layout=top`) is elke kop een item van de navigatiebalk met zijn pagina's in een
+submenu; de huidige pagina is de actieve. Past de balk niet, dan wijken de koppen voor "Menu".
 
-`styleguide/menu.js` zet **het menu** uit de categorieën (`src/categories.json`, via de bundel):
-per kop de categorieën, en per categorie de elementen die hij toont, op volgorde.
+`styleguide/menu.js` zet **het menu**: de Fundament-pagina's, en de categorieën
+(`src/categories.json`, via de bundel) per kop, en per categorie de elementen die hij toont, op
+volgorde.
 `styleguide/specimens/` bevat **de specimens**, één module per categorie (`frame.js`,
 `inputs.js`, …): een module exporteert `{ elements }`; elk element is een `tag`, een Nederlandse
 `title` en zijn `specimens`, elk een `label`, gewone `html` en een optionele `setup(stage)` voor wat

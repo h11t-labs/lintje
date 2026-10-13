@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import './audio-player'
 import type { LintjeAudioPlayer } from './audio-player'
-import { ARROW_STEP, PAGE_STEP, barCount } from './playback'
+import { ARROW_STEP, PAGE_STEP, barCount } from '../shared/playback'
 
 const SECONDS = 60
 

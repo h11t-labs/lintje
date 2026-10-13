@@ -54,12 +54,17 @@ export function renderSymbol(
 export function renderLegend({
   items,
   onToggle,
+  onEmphasis,
   position = 'top',
 }: {
   items: LegendItem[]
   onToggle?: (label: string) => void
+  /** A series pointed at or focused, and `null` once it is left. */
+  onEmphasis?: (label: string | null) => void
   position?: 'top' | 'bottom' | 'right'
 }): TemplateResult {
+  const enter = (item: LegendItem) => () => onEmphasis?.(item.key ?? item.label)
+  const leave = () => onEmphasis?.(null)
   const content = (item: LegendItem) => html`
     ${
       item.symbol && item.shape === 'point'
@@ -90,6 +95,10 @@ export function renderLegend({
             onToggle && !item.fixed
               ? html`<button type="button" class="lintje-legend__button"
                            @click=${() => onToggle(item.key ?? item.label)}
+                           @mouseenter=${onEmphasis ? enter(item) : nothing}
+                           @mouseleave=${onEmphasis ? leave : nothing}
+                           @focus=${onEmphasis ? enter(item) : nothing}
+                           @blur=${onEmphasis ? leave : nothing}
                            aria-pressed=${!item.hidden}>${content(item)}</button>`
               : content(item)
           }

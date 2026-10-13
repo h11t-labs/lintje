@@ -46,9 +46,9 @@ import '../../components/content/translator/translator'
 import '../../components/filters/filter-bar/filter-bar'
 import '../../components/frame/page-header/page-header'
 import '../../components/frame/shell/shell'
-import '../../primitives/button/button'
-import '../../primitives/grid/grid'
-import '../../primitives/tile/tile'
+import '../../components/actions/button/button'
+import '../../components/layout/grid/grid'
+import '../../components/layout/tile/tile'
 import type { LintjeFilterZone } from '../../components/filters/filter-zone/filter-zone'
 import type { ListItem } from '../../components/tables/list/list'
 import type { Step } from '../../components/forms/stepper/stepper'
@@ -199,6 +199,19 @@ const HEATMAP: ChartData = {
     rowLabels: DAYS,
     values: DAYS.map((_, day) => HOURS.map((__, hour) => 10 + day * 3 + hour)),
     unit: 'bezoekers',
+  },
+}
+
+const RADAR: ChartData = {
+  title: 'Kwaliteit per aspect',
+  description: 'Gemiddelde score per aspect, schaal 0 tot 10.',
+  state: 'ready',
+  chart: {
+    kind: 'radar',
+    axes: ['Bereikbaarheid', 'Tijdigheid', 'Duidelijkheid', 'Juistheid', 'Bejegening'],
+    max: 10,
+    threshold: 7,
+    series: [{ label: 'Q3 2026', values: [7.8, 6.1, 7.4, 8.6, 8.9] }],
   },
 }
 
@@ -499,6 +512,15 @@ const ROWS: Row[] = [
     mount: () => append(create('lintje-chart', { data: HEATMAP })),
     wide: (element) => find(element, '.lintje-heatmap__column-label')?.textContent === HOURS[0],
     phone: (element) => find(element, '.lintje-heatmap__column-label')?.textContent === DAYS[0],
+  },
+  {
+    tag: 'lintje-chart',
+    marker: 'the radar becomes a row of bars per axis',
+    mount: () => append(create('lintje-chart', { data: RADAR })),
+    wide: (element) =>
+      shown(element, '.lintje-radar__ring') && !find(element, '.lintje-radar__row'),
+    phone: (element) =>
+      shown(element, '.lintje-radar__row') && !find(element, '.lintje-radar__ring'),
   },
   {
     tag: 'lintje-chart',

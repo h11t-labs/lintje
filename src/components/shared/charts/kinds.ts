@@ -67,6 +67,13 @@ export const CHART_KINDS = {
     use: 'Twee of drie reeksen naast elkaar per groep, om ze binnen de groep te vergelijken.',
     avoid: 'Meer dan drie reeksen: de groepen worden onleesbaar. Neem een lijn of een tabel.',
   },
+  radar: {
+    label: 'Spinnendiagram',
+    question: 'compare',
+    use: 'Het profiel van één tot drie eenheden over vijf tot acht maten op één schaal, tegen een vergelijking in grijs of een norm.',
+    avoid:
+      'Maten met elk een eigen eenheid, of meer dan drie eenheden: neem horizontale staven of een tabel. Precies aflezen: een tabel.',
+  },
   'stacked-bar': {
     label: 'Gestapelde staven',
     question: 'parts',

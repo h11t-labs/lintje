@@ -12,7 +12,7 @@ import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'l
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
-import '../../../primitives/icon-button/icon-button'
+import '../../actions/icon-button/icon-button'
 import '../chat-composer/chat-composer'
 import type { LintjeChatComposer } from '../chat-composer/chat-composer'
 import { termParts } from '../shared/chat-terms'

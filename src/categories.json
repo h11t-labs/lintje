@@ -15,7 +15,8 @@
       "user-menu",
       "app-search",
       "notifications"
-    ]
+    ],
+    "composite": ["shell", "page-header", "footer", "notifications"]
   },
   {
     "name": "layout",
@@ -55,18 +56,20 @@
     "heading": "Basis",
     "label": "Tekst en media",
     "icon": "op-kantoor-document-met-lijnen",
-    "intro": "Lopende tekst, code en een gemarkeerde zoekterm; een tekst en zijn vertaling; audio, video, het transcript dat meeloopt, een document op het scherm en afbeeldingen om door te bladeren.",
+    "intro": "Lopende tekst, code, een gemarkeerde zoekterm en de waarde van een token; een tekst en zijn vertaling; audio, video, het transcript dat meeloopt, een document op het scherm en afbeeldingen om door te bladeren.",
     "elements": [
       "prose",
       "code",
       "highlight",
+      "token-value",
       "translator",
       "audio-player",
       "video-player",
       "transcript",
       "document-viewer",
       "gallery"
-    ]
+    ],
+    "composite": ["translator", "audio-player", "video-player", "transcript", "document-viewer"]
   },
   {
     "name": "feedback",
@@ -90,7 +93,8 @@
       "ai-label",
       "level-meter",
       "recording-status"
-    ]
+    ],
+    "composite": ["error-page", "job-list"]
   },
   {
     "name": "inputs",
@@ -136,7 +140,8 @@
       "repeater-row",
       "error-summary",
       "form-actions"
-    ]
+    ],
+    "composite": ["form", "repeater", "repeater-row"]
   },
   {
     "name": "filters",
@@ -144,7 +149,8 @@
     "label": "Filters",
     "icon": "functioneel-filters",
     "intro": "De filterbalk met de “Je ziet”-zin, en de onderdelen waaruit hij bestaat: de zone en het blad op een telefoon.",
-    "elements": ["filter-bar", "filter-zone", "filter-sheet"]
+    "elements": ["filter-bar", "filter-zone", "filter-sheet"],
+    "composite": ["filter-bar", "filter-zone", "filter-sheet"]
   },
   {
     "name": "charts",
@@ -152,7 +158,8 @@
     "label": "Kerncijfers en grafieken",
     "icon": "op-kantoor-grafiek",
     "intro": "De cijfers bovenaan een pagina, elke grafieksoort uit de vaste grammatica in een tegel met haar toestanden, en de tekst die duidt en uitlegt.",
-    "elements": ["kpi-row", "kpi", "chart", "note", "explainer"]
+    "elements": ["kpi-row", "kpi", "chart", "note", "explainer"],
+    "composite": ["kpi-row", "chart"]
   },
   {
     "name": "map",
@@ -160,7 +167,8 @@
     "label": "Kaart",
     "icon": "navigatie-route-met-locatiemarker",
     "intro": "De kaart in een tegel: stromen, punten en een choropleet, ook op een ondergrond.",
-    "elements": ["map"]
+    "elements": ["map"],
+    "composite": ["map"]
   },
   {
     "name": "tables",
@@ -178,7 +186,8 @@
       "tree-view",
       "sortable-list",
       "activity-log"
-    ]
+    ],
+    "composite": ["data-table", "list", "card-list", "activity-log"]
   },
   {
     "name": "chat",
@@ -193,6 +202,7 @@
       "chat-composer",
       "chat-strip",
       "chat-suggestions"
-    ]
+    ],
+    "composite": ["chat", "chat-answer"]
   }
 ]

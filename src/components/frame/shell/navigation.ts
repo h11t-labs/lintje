@@ -8,7 +8,7 @@ import {
 } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
-import { renderBadge } from '../../../primitives/badge/badge'
+import { renderBadge } from '../../feedback/badge/badge'
 import { hasPage, unavailableWord, type NavGroup } from './header'
 import type { ShellData, ShellLink } from '../../../types'
 import type { LintjeShell } from './shell'

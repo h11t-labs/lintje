@@ -13,9 +13,9 @@ import { shadowCss } from '../../../core/styles'
 import { holdsFocus } from '../../../core/focus'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { deepActiveElement, ownsEscape } from '../../shared/focus-trap'
-import { TONE_ICON, type Tone } from '../../../primitives/shared/tone'
+import { TONE_ICON, type Tone } from '../../shared/tone'
 import toastCss from './toast.css?inline'
-import screenOnlyCss from '../../../primitives/shared/screen-only.css?inline'
+import screenOnlyCss from '../../shared/screen-only.css?inline'
 
 const LIFETIME = 6000
 

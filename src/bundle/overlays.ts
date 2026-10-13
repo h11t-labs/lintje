@@ -2,6 +2,6 @@
 import '../components/overlays/modal/modal'
 import '../components/overlays/dialog/dialog'
 import '../components/overlays/drawer/drawer'
-import '../primitives/popover/popover'
-import '../primitives/tooltip/tooltip'
+import '../components/overlays/popover/popover'
+import '../components/overlays/tooltip/tooltip'
 import '../components/overlays/toggletip/toggletip'
