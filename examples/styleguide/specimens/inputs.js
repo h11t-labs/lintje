@@ -41,39 +41,38 @@ function findInText(stage) {
   const text = stage.querySelector('.sg-find-text')
   const escape = (value) => value.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
   const literal = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  // A new term draws the text again; a step only moves `current`, so the page keeps its place.
   const draw = () => {
     const term = find.value.trim().toLowerCase()
-    let index = 0
     text.innerHTML = INSTRUCTION.map((line) => {
       if (!term) return `<p>${escape(line)}</p>`
       const parts = line.split(new RegExp(`(${literal(term)})`, 'i'))
       return `<p>${parts
-        .map((part, i) => {
-          if (i % 2 === 0) return escape(part)
-          index += 1
-          const current = index === find.current ? ' current' : ''
-          return `<lintje-highlight kind="match"${current}>${escape(part)}</lintje-highlight>`
-        })
+        .map((part, i) =>
+          i % 2 ? `<lintje-highlight kind="match">${escape(part)}</lintje-highlight>` : escape(part),
+        )
         .join('')}</p>`
     }).join('')
-    find.total = term ? index : null
+    find.total = term ? text.querySelectorAll('lintje-highlight').length : null
+    find.current = find.total ? 1 : 0
+    mark()
   }
-  find.addEventListener('lintje-change', () => {
-    find.current = 1
-    draw()
-  })
-  find.addEventListener('lintje-find-step', (event) => {
-    const total = find.total ?? 0
-    find.current = ((find.current - 1 + event.detail + total) % total) + 1
-    draw()
+  const mark = () => {
+    const hits = text.querySelectorAll('lintje-highlight')
+    hits.forEach((hit, i) => hit.toggleAttribute('current', i + 1 === find.current))
     // The text scrolls in its own box: moving the page would move the field from under the pointer.
-    const hit = text.querySelector('lintje-highlight[current]')
+    const hit = hits[find.current - 1]
     if (!hit) return
     const box = text.getBoundingClientRect()
     const at = hit.getBoundingClientRect()
     if (at.top < box.top || at.bottom > box.bottom) text.scrollTop += at.top - box.top - box.height / 3
+  }
+  find.addEventListener('lintje-change', draw)
+  find.addEventListener('lintje-find-step', (event) => {
+    const total = find.total ?? 0
+    find.current = ((find.current - 1 + event.detail + total) % total) + 1
+    mark()
   })
-  find.current = 1
   draw()
 }
 
