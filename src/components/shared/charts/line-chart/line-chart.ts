@@ -11,6 +11,7 @@ import { markPath, SERIES_KEYS, isSeriesKey, type SeriesKey } from '../shared/se
 import {
   renderChartFrame,
   renderLegend,
+  seriesToggle,
   renderAsOfMarker,
   type LegendItem,
   type SvgSlot,
@@ -297,7 +298,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
          ${styleProps({ '--lintje-event-size': `${EVENT_CHIP}px` })}
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event)}>
-      ${renderLegend({ items: legend, onToggle: (label) => controller.toggleSeries(label) })}
+      ${renderLegend({ items: legend, onToggle: seriesToggle(controller, series.length) })}
       ${renderChartFrame(
         {
           fontFamily: controller.fontFamily,

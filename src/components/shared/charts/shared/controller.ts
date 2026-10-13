@@ -105,7 +105,6 @@ export class ChartController {
   hiddenLayers: number[] = []
   hoverSegment: number | null = null
   selectedCell: { row: number; column: number } | null = null
-  dimmedClass: number | null = null
   /** What a wheel without its modifier shows, until its timer clears it. */
   mapHint: string | null = null
   mapHintTimer: ReturnType<typeof setTimeout> | null = null

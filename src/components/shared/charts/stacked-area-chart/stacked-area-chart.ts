@@ -8,7 +8,13 @@ import { ref } from 'lit/directives/ref.js'
 import { axisColumn, axisScale, plotWidth, xPosition, yPosition } from '../shared/scale'
 import { formatNumber, textWidth } from '../../../../core/format'
 import { durationMs, easing, prefersReducedMotion } from '../../../../core/motion'
-import { renderChartFrame, renderLegend, type LegendItem, type SvgSlot } from '../shared/axes'
+import {
+  renderChartFrame,
+  renderLegend,
+  seriesToggle,
+  type LegendItem,
+  type SvgSlot,
+} from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
 import {
   chartArea,
@@ -332,7 +338,7 @@ export function renderStackedAreaChart(
     <div class="lintje-chart-wrap ${small ? 'lintje-chart--small' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event)}>
-      ${renderLegend({ items: legend, onToggle: (label) => controller.toggleSeries(label) })}
+      ${renderLegend({ items: legend, onToggle: seriesToggle(controller, series.length) })}
       ${renderChartFrame(
         {
           fontFamily: controller.fontFamily,

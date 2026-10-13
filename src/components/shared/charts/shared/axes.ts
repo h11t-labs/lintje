@@ -44,6 +44,17 @@ export function renderSymbol(
                    stroke=${casing ?? nothing} stroke-width=${casing ? 1 : nothing} />`
 }
 
+/**
+ * What a chart's legend switches its series with: nothing for a single series, which switched
+ * off would leave an empty frame. A map passes its own, since its unlabelled marks stay.
+ */
+export function seriesToggle(
+  controller: { toggleSeries(key: string): void },
+  count: number,
+): ((key: string) => void) | undefined {
+  return count > 1 ? (key) => controller.toggleSeries(key) : undefined
+}
+
 export function renderLegend({
   items,
   onToggle,

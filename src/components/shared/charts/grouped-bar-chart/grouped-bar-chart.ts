@@ -6,7 +6,13 @@ import { axisColumn, axisScale, band, yPosition } from '../shared/scale'
 import { formatNumber, formatDataLabel, dataLabelFits } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
 import { DEFAULT_SERIES_COLOR, chartColor } from '../shared/colors'
-import { renderChartFrame, renderLegend, type LegendItem, type SvgSlot } from '../shared/axes'
+import {
+  renderChartFrame,
+  renderLegend,
+  seriesToggle,
+  type LegendItem,
+  type SvgSlot,
+} from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { markSelection } from '../shared/mark-select'
@@ -108,7 +114,7 @@ export function renderGroupedBarChart(spec: GroupedBarSpec, options: ChartOption
     <div class="lintje-chart-wrap ${small ? 'lintje-chart--small' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event) || selection.escape(event)}>
-      ${renderLegend({ items: legend, onToggle: (label) => controller.toggleSeries(label) })}
+      ${renderLegend({ items: legend, onToggle: seriesToggle(controller, series.length) })}
       ${renderChartFrame(
         {
           fontFamily: controller.fontFamily,

@@ -11,7 +11,13 @@ import {
 } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
 import { chartColor } from '../shared/colors'
-import { renderChartFrame, renderLegend, type LegendItem, type SvgSlot } from '../shared/axes'
+import {
+  renderChartFrame,
+  renderLegend,
+  seriesToggle,
+  type LegendItem,
+  type SvgSlot,
+} from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { markSelection } from '../shared/mark-select'
@@ -48,12 +54,21 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
     fit: Boolean(options.expanded) && !options.mobile,
   })
 
-  const series = spec.series.map((row) => ({ ...row, color: chartColor(row.color) }))
+  const series = spec.series.map((row, j) => ({
+    ...row,
+    j,
+    color: chartColor(row.color),
+    hidden: controller.hiddenSeries.includes(row.label),
+  }))
+  const visible = series.filter((row) => !row.hidden)
   const selection = markSelection(
     options,
-    series.flatMap((row) => row.links ?? []),
+    visible.flatMap((row) => row.links ?? []),
   )
+  // The axis and the shares hold the whole stack, so switching a part off leaves the frame.
   const totals = labels.map((_, i) => series.reduce((sum, row) => sum + row.values[i], 0))
+  const shown = labels.map((_, i) => visible.reduce((sum, row) => sum + row.values[i], 0))
+  const share = (value: number, i: number) => (value / (totals[i] || 1)) * 100
   const { max, ticks } = normalized
     ? { max: 100, ticks: [0, 25, 50, 75, 100] }
     : axisScale(Math.max(...totals, 1))
@@ -65,7 +80,7 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
   const showTotals =
     totalOnTop &&
     !normalized &&
-    totals.every((total) => dataLabelFits(formatDataLabel(total, bandWidth), bandWidth - 4))
+    shown.every((total) => dataLabelFits(formatDataLabel(total, bandWidth), bandWidth - 4))
 
   // The ladder spreads with the number of series, as the pie spreads its parts. The stacking
   // order carries meaning, so the series are neither sorted nor folded: past five they keep
@@ -83,32 +98,32 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
 
   const contentAt = (i: number): TooltipContent => ({
     title: labels[i],
-    rows: series.map((row, j) => ({
+    rows: visible.map((row) => ({
       label: row.label,
-      value: normalized
-        ? formatPercent((row.values[i] / totals[i]) * 100)
-        : formatNumber(row.values[i]),
-      color: colorFor(row, j),
+      value: normalized ? formatPercent(share(row.values[i], i)) : formatNumber(row.values[i]),
+      color: colorFor(row, row.j),
     })),
   })
   const keys = plotKeys(controller, labels.length, (i) => ({
     x: band(i, labels.length, area).center,
-    y: yPosition(normalized ? max : totals[i], max, area),
+    y: yPosition(normalized ? share(shown[i], i) : shown[i], max, area),
     content: contentAt(i),
   }))
 
-  const legend: LegendItem[] = series.map((row, i) => ({
+  const legend: LegendItem[] = series.map((row) => ({
     label: row.label,
-    color: colorFor(row, i),
+    color: colorFor(row, row.j),
     shape: 'square',
+    hidden: row.hidden,
   }))
 
   const marks: SvgSlot = labels.map((label, i) => {
     const group = band(i, labels.length, area)
     let cumulative = 0
-    const segments = series.map((row, j) => {
+    const segments = visible.map((row) => {
+      const { j } = row
       const raw = row.values[i]
-      const value = normalized ? (raw / totals[i]) * 100 : raw
+      const value = normalized ? share(raw, i) : raw
       const y0 = yPosition(cumulative, max, area)
       cumulative += value
       const y1 = yPosition(cumulative, max, area)
@@ -154,8 +169,8 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
         }
         ${
           showTotals
-            ? svg`<text x=${group.center} y=${yPosition(totals[i], max, area) - 5} text-anchor="middle"
-                      class="lintje-chart__data-label" font-weight="700">${formatDataLabel(totals[i], group.bandWidth)}</text>`
+            ? svg`<text x=${group.center} y=${yPosition(shown[i], max, area) - 5} text-anchor="middle"
+                      class="lintje-chart__data-label" font-weight="700">${formatDataLabel(shown[i], group.bandWidth)}</text>`
             : nothing
         }
       </g>
@@ -166,7 +181,7 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
     <div class="lintje-chart-wrap ${small ? 'lintje-chart--small' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event) || selection.escape(event)}>
-      ${renderLegend({ items: legend })}
+      ${renderLegend({ items: legend, onToggle: seriesToggle(controller, series.length) })}
       ${renderChartFrame(
         {
           fontFamily: controller.fontFamily,

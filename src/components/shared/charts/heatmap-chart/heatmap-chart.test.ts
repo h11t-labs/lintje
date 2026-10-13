@@ -1,7 +1,7 @@
 /**
  * The heatmap's grid: an empty cell says "geen meting" in words, a cell carries its class colour
- * as a custom property so a dimmed cell fades its fill and not its figure, and on a phone a wide
- * grid without a phone grid of the host's turns on its side (rule 9).
+ * as a custom property so a cell of a class switched off fades its fill and not its figure, and
+ * on a phone a wide grid without a phone grid of the host's turns on its side (rule 9).
  */
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -71,7 +71,21 @@ describe('the heatmap', () => {
       expect(declarations).toContain('color-mix(in srgb, var(--lintje-cell)')
       expect(declarations).not.toContain('opacity')
     }
-    expect(rule('.lintje-heatmap__legend-item.is-dimmed')).toBe('')
+  })
+
+  it('switches a class off in the legend above the grid, and dims its cells', () => {
+    const { host } = draw(SPEC)
+    const legend = host.querySelector('.lintje-heatmap > .lintje-legend')
+    expect(legend?.nextElementSibling?.matches('.lintje-heatmap__grid')).toBe(true)
+    const buttons = [...legend!.querySelectorAll<HTMLButtonElement>('.lintje-legend__button')]
+    expect(buttons.length).toBeGreaterThan(1)
+    expect(host.querySelector('.lintje-heatmap__cell.is-dimmed')).toBeNull()
+    buttons[0].click()
+    expect(buttons[0].getAttribute('aria-pressed')).toBe('false')
+    // The cell of value 1 is in the lowest class; it dims, it does not go.
+    const lowest = host.querySelector('button.lintje-heatmap__cell')
+    expect(lowest?.classList).toContain('is-dimmed')
+    expect(host.querySelectorAll('button.lintje-heatmap__cell')).toHaveLength(7)
   })
 
   it('writes white only on the darkest class: ink reaches 4.5:1 on the fourth rung, white does not', () => {

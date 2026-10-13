@@ -36,8 +36,8 @@
   background: color-mix(in srgb, var(--lintje-cell) 25%, var(--color-bg-surface));
   color: var(--color-text-primary);
 }
-/* A drilling cell that is not chosen steps back while a cell is chosen; less than the legend's
-   dimming, which answers "show me this class". */
+/* A drilling cell that is not chosen steps back while a cell is chosen; less than a class
+   switched off in the legend. */
 .lintje-heatmap__cell.is-muted {
   background: color-mix(in srgb, var(--lintje-cell) 40%, var(--color-bg-surface));
   color: var(--color-text-primary);
@@ -62,23 +62,13 @@
   font: var(--text-small);
 }
 
-.lintje-heatmap__legend { display: flex; gap: var(--space-2) var(--space-4); flex-wrap: wrap; font: var(--text-small); }
-.lintje-heatmap__legend-item {
-  display: flex; align-items: center; gap: 6px;
-  font: inherit; color: var(--color-text-primary);
+/* The lightest class is edged so its swatch shows on the surface, as its cells are. */
+.lintje-heatmap > .lintje-legend > .lintje-legend__item:first-child .lintje-legend__marker {
+  box-shadow: inset 0 0 0 1px var(--color-border-default);
 }
-.lintje-heatmap__legend-item[aria-pressed='true'] { font-weight: 700; }
-/* Only the swatch steps back: the word keeps its contrast. */
-.lintje-heatmap__legend-item.is-dimmed .lintje-heatmap__swatch { opacity: 0.45; }
-.lintje-heatmap__swatch {
-  width: 12px; height: 12px; display: block; flex: none;
-  transition: opacity var(--dur-hover) var(--ease-in-motion);
-}
-.lintje-heatmap__swatch--class-0 { box-shadow: inset 0 0 0 1px var(--color-border-default); }
 
-/* Forced colours: the class colours are the heatmap, so cells and swatches keep them
-   (`forced-color-adjust: none`). */
+/* Forced colours: the class colours are the heatmap, so the cells keep them
+   (`forced-color-adjust: none`), as the legend's markers do. */
 @media (forced-colors: active) {
-  .lintje-heatmap__cell,
-  .lintje-heatmap__swatch { forced-color-adjust: none; }
+  .lintje-heatmap__cell { forced-color-adjust: none; }
 }

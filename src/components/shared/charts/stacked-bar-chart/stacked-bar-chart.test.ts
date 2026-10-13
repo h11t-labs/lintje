@@ -1,7 +1,8 @@
 /**
  * The bars' marks: a label on a segment takes the text its fill carries, neighbouring
  * segments and slices part with a line in the surface, a missing bar is a hatched slot (rule
- * 15), and the dual-axis chart draws its bars opaque and its dark-yellow line with an edge.
+ * 15), and the dual-axis chart draws its bars opaque and its dark-yellow line with an edge. Both
+ * switch a series off from the legend and keep their axes.
  */
 import { render } from 'lit'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -181,5 +182,68 @@ describe('the other marks', () => {
     ])
     const green = draw({ kind: 'target-progress', rows: [{ label: 'Noord', value: 125 }] })
     expect(labelClasses(green)).toEqual(['lintje-chart__data-label--inside'])
+  })
+})
+
+const axisLabels = (host: Element) =>
+  [...host.querySelectorAll('.lintje-chart__axis-label')].map((label) => label.textContent?.trim())
+
+const legendButtons = (host: Element) => [
+  ...host.querySelectorAll<HTMLButtonElement>('.lintje-legend__button'),
+]
+
+describe('the legend', () => {
+  it('takes a stacked part switched off out of the stack, on the same axis', () => {
+    const host = draw({
+      kind: 'stacked-bar',
+      labels: ['ma', 'di'],
+      series: [
+        { label: 'Online', values: [30, 40] },
+        { label: 'Balie', values: [10, 20] },
+      ],
+    })
+    const before = axisLabels(host)
+    // Each bar draws Online, then Balie; Balie keeps its colour.
+    const balie = fills(host)[1]
+    legendButtons(host)[0].click()
+    expect(fills(host)).toEqual([balie, balie])
+    expect(axisLabels(host)).toEqual(before)
+    expect(legendButtons(host)[0].getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('switches either side of a dual-axis chart off, both axes standing, the norm never', () => {
+    const host = draw({
+      kind: 'dual-axis',
+      labels: ['ma', 'di'],
+      left: { label: 'Aanvragen', values: [10, 20] },
+      right: { label: 'Doorlooptijd', values: [3, 4] },
+      threshold: 5,
+    })
+    const before = axisLabels(host)
+    const buttons = legendButtons(host)
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual([
+      'Aanvragen (linkeras)',
+      'Doorlooptijd (rechteras)',
+    ])
+    buttons[0].click()
+    expect(host.querySelectorAll('rect.lintje-chart__bar')).toHaveLength(0)
+    expect(
+      host.querySelectorAll('.lintje-chart__line:not(.lintje-chart__line--casing)'),
+    ).toHaveLength(1)
+    legendButtons(host)[1].click()
+    expect(
+      host.querySelectorAll('.lintje-chart__line:not(.lintje-chart__line--casing)'),
+    ).toHaveLength(0)
+    expect(axisLabels(host)).toEqual(before)
+  })
+
+  it('switches nothing in a legend of one series', () => {
+    const host = draw({
+      kind: 'stacked-bar',
+      labels: ['ma'],
+      series: [{ label: 'Online', values: [30] }],
+    })
+    expect(host.querySelector('.lintje-legend__item')).not.toBeNull()
+    expect(legendButtons(host)).toHaveLength(0)
   })
 })

@@ -582,6 +582,10 @@ de stijlgids. Past geen soort, dan is het een tabel.
 - **De legenda staat boven de grafiek** en is klikbaar. Het symbool zegt welk teken het is: een
   vierkant voor een staaf of vlak, een lijn voor een lijn, de vorm van de reeks voor een punt,
   gestreept voor een drempel of vergelijking. Een drempel in de legenda is geen schakelaar.
+  Elke reeks is een schakelaar zodra er twee zijn; één reeks alleen niet, want uitgezet laat ze
+  een lege grafiek achter. Een stapel houdt bij een uitgezet deel het geheel als as, en twee assen
+  blijven allebei staan. Een klasse van de heatmap gaat in dezelfde legenda uit, maar haar cellen
+  dimmen: een lege cel leest als geen meting.
 - **De nullijn is donkerder dan het raster.**
 - **Datalabels zijn alles of niets**: als er één niet past, toont de grafiek er geen, en de
   tooltip geeft nog steeds elke waarde.

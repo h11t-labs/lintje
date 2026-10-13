@@ -9,7 +9,7 @@ import { AXIS_GAP, axisColumn, axisScale, band, yPosition } from '../shared/scal
 import { formatNumber } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
 import { DEFAULT_SERIES_COLOR, chartColor, lineCasing } from '../shared/colors'
-import { drawingRole, renderLegend, type LegendItem } from '../shared/axes'
+import { drawingRole, renderLegend, seriesToggle, type LegendItem } from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
@@ -44,15 +44,32 @@ export function renderDualAxisChart(spec: DualAxisSpec, options: ChartOptions): 
   const area = chartArea(options, { left: leftAxis.width, right: rightAxis.width })
   const baseline = area.height - area.bottom
 
+  // Keyed by side, since both series may carry the same label. Switched off, a series leaves its
+  // axis standing, so the other one keeps its scale.
+  const leftHidden = controller.hiddenSeries.includes('left')
+  const rightHidden = controller.hiddenSeries.includes('right')
   const legend: LegendItem[] = [
-    { label: `${left.label} (linkeras)`, color: leftColor, shape: 'square' },
-    { label: `${right.label} (rechteras)`, color: rightColor, shape: 'line' },
+    {
+      key: 'left',
+      label: `${left.label} (linkeras)`,
+      color: leftColor,
+      shape: 'square',
+      hidden: leftHidden,
+    },
+    {
+      key: 'right',
+      label: `${right.label} (rechteras)`,
+      color: rightColor,
+      shape: 'line',
+      hidden: rightHidden,
+    },
     ...(threshold != null
       ? [
           {
             label: thresholdLabel ?? `Norm ${threshold}`,
             color: 'var(--color-chart-emphasis)',
             shape: 'dashed' as const,
+            fixed: true,
           },
         ]
       : []),
@@ -78,15 +95,21 @@ export function renderDualAxisChart(spec: DualAxisSpec, options: ChartOptions): 
   const contentAt = (i: number): TooltipContent => ({
     title: labels[i],
     rows: [
-      { label: left.label, value: withUnit(left.values[i], left.unit), color: leftColor },
-      { label: right.label, value: withUnit(right.values[i], right.unit), color: rightColor },
+      ...(leftHidden
+        ? []
+        : [{ label: left.label, value: withUnit(left.values[i], left.unit), color: leftColor }]),
+      ...(rightHidden
+        ? []
+        : [
+            { label: right.label, value: withUnit(right.values[i], right.unit), color: rightColor },
+          ]),
     ],
   })
   const keys = plotKeys(controller, labels.length, (i) => ({
     x: band(i, labels.length, area).center,
     y: Math.min(
-      left.values[i] == null ? baseline : yPosition(left.values[i]!, l.max, area),
-      right.values[i] == null ? baseline : yPosition(right.values[i]!, r.max, area),
+      leftHidden || left.values[i] == null ? baseline : yPosition(left.values[i]!, l.max, area),
+      rightHidden || right.values[i] == null ? baseline : yPosition(right.values[i]!, r.max, area),
     ),
     content: contentAt(i),
   }))
@@ -95,7 +118,7 @@ export function renderDualAxisChart(spec: DualAxisSpec, options: ChartOptions): 
     <div class="lintje-chart-wrap ${small ? 'lintje-chart--small' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event)}>
-      ${renderLegend({ items: legend })}
+      ${renderLegend({ items: legend, onToggle: seriesToggle(controller, 2) })}
       <figure class="lintje-chart">
         <svg viewBox="0 0 ${area.width} ${area.height}" class="lintje-chart__svg" role=${drawingRole(false)}
              aria-labelledby="${id}-desc" width=${area.width} height=${area.height}
@@ -146,7 +169,7 @@ export function renderDualAxisChart(spec: DualAxisSpec, options: ChartOptions): 
 
           <!-- Bars grow in one after another; the hit areas below sit on top, so hover comes
                from hoverIndex rather than :hover. -->
-          ${left.values.map((value, i) => {
+          ${(leftHidden ? [] : left.values).map((value, i) => {
             const slot = band(i, labels.length, area)
             // An empty slot is hatched, not a bar of height 0 (rule 15).
             if (value == null) {
@@ -172,7 +195,7 @@ export function renderDualAxisChart(spec: DualAxisSpec, options: ChartOptions): 
           }
 
           <g class="lintje-chart__reveal">
-            ${rightRuns
+            ${(rightHidden ? [] : rightRuns)
               .filter((run) => run.length > 0)
               .map((run) => {
                 const points = run.join(' ')
@@ -204,7 +227,7 @@ export function renderDualAxisChart(spec: DualAxisSpec, options: ChartOptions): 
 
           <!-- Hover point on the right-axis line; no point for a missing value. -->
           ${
-            hoverIndex != null && right.values[hoverIndex] != null
+            hoverIndex != null && !rightHidden && right.values[hoverIndex] != null
               ? svg`<circle class="lintje-chart__hover-point" r="4" fill=${rightColor}
                           cx=${band(hoverIndex, labels.length, area).center}
                           cy=${yPosition(right.values[hoverIndex]!, r.max, area)} />`

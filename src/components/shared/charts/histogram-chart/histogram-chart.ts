@@ -209,6 +209,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
             label: capitalised(spec.medianLabel ?? 'Mediaan'),
             color: 'var(--color-chart-emphasis)',
             shape: 'line' as const,
+            fixed: true,
           },
         ]
       : []),
@@ -218,6 +219,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
             label: capitalised(spec.thresholdLabel ?? 'Norm'),
             color: 'var(--color-chart-emphasis)',
             shape: 'dashed' as const,
+            fixed: true,
           },
         ]
       : []),
