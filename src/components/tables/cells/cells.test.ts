@@ -44,11 +44,17 @@ describe('lintje-cells', () => {
     expect(element.getAttribute('columns')).toBe('3')
   })
 
-  it('shows a dash for what it lacks, never zero, and says so', async () => {
-    const element = await mount({ items: [{ label: 'Resterend', value: null }] })
-    const missing = element.shadowRoot!.querySelector('.lintje-cells__missing')!
-    expect(missing.textContent).toContain('—')
-    expect(missing.textContent).toContain('geen waarde')
+  it('shows a dash for what it lacks, never zero, and says so, also beside a meter without a measure', async () => {
+    const element = await mount({
+      items: [
+        { label: 'Resterend', value: null },
+        { label: 'Geluid', value: null, meter: { level: null } },
+      ],
+    })
+    const missing = element.shadowRoot!.querySelectorAll('.lintje-cells__missing')
+    expect(missing).toHaveLength(2)
+    expect(missing[1]!.textContent).toContain('—')
+    expect(missing[1]!.textContent).toContain('geen waarde')
   })
 
   it('draws a meter before the word, hidden from the reader, and counts its steps in words', async () => {
@@ -68,8 +74,7 @@ describe('lintje-cells', () => {
     expect(meter.steps).toBe(4)
     expect(meter.tone).toBe('warning')
     expect(meter.words).toBe(false)
-    expect(dd.textContent).toContain('2 van 4')
-    expect(dd.textContent).toContain('Zwak')
+    expect(dd.textContent!.replace(/\s+/g, ' ')).toContain('Zwak, 2 van 4')
     expect(dd.querySelector('.lintje-cells__detail')!.textContent).toBe('3 seconden achter')
   })
 

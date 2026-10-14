@@ -98,8 +98,8 @@ export class LintjeCells extends LintjeGridItemElement {
         : html`<span class="lintje-cells__missing">Geen</span>`
     }
     const missing = item.value === null || item.value === undefined || item.value === ''
-    // A cell whose slot or meter says it all has no value of its own, and no dash either.
-    if (missing && (item.slot || item.meter)) return nothing
+    // A cell whose slot or measured meter says it all has no value of its own, and no dash either.
+    if (missing && (item.slot || item.meter?.level != null)) return nothing
     if (missing) {
       return html`<span class="lintje-cells__missing"
         ><span aria-hidden="true">—</span><span class="visually-hidden">geen waarde</span></span
@@ -117,21 +117,23 @@ export class LintjeCells extends LintjeGridItemElement {
     return html`<span>${item.value}</span>`
   }
 
-  // The meter is hidden from the screen reader: the cell's words carry it, with its count.
+  // The meter is hidden from the screen reader: the cell's words carry it, with its count after.
   private meter(meter: CellMeter): TemplateResult {
-    const count =
-      meter.steps && meter.level != null
-        ? `${litSteps(meter.level, meter.steps)} van ${meter.steps}`
-        : ''
     return html`<lintje-level-meter
-        class="lintje-cells__meter"
-        aria-hidden="true"
-        .level=${meter.level}
-        .steps=${meter.steps}
-        .tone=${meter.tone}
-        .words=${false}
-      ></lintje-level-meter
-      >${count ? html`<span class="visually-hidden">${count}, </span>` : nothing}`
+      class="lintje-cells__meter"
+      aria-hidden="true"
+      .level=${meter.level}
+      .steps=${meter.steps}
+      .tone=${meter.tone}
+      .words=${false}
+    ></lintje-level-meter>`
+  }
+
+  private count(meter: CellMeter | undefined): TemplateResult | typeof nothing {
+    if (!meter?.steps || meter.level == null) return nothing
+    return html`<span class="visually-hidden"
+      >, ${litSteps(meter.level, meter.steps)} van ${meter.steps}</span
+    >`
   }
 
   private action(item: CellItem): TemplateResult | typeof nothing {
@@ -162,7 +164,7 @@ export class LintjeCells extends LintjeGridItemElement {
       >
       <dd class="lintje-cells__value">
         ${tone && tone !== 'changed' ? renderIcon(TONE_ICON[tone], { size: 16 }) : nothing}
-        ${item.meter ? this.meter(item.meter) : nothing} ${this.value(item)}
+        ${item.meter ? this.meter(item.meter) : nothing} ${this.value(item)}${this.count(item.meter)}
         ${item.detail ? html`<span class="lintje-cells__detail">${item.detail}</span>` : nothing}
         ${
           tone === 'changed'
