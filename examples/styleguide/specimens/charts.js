@@ -629,6 +629,15 @@ export default {
           setup: single(GAUGE_LINEAR),
         },
         {
+          label: 'Balk met het doel aan het eind',
+          note: 'Het doel staat boven de balk naast zijn streep, zodat het het eindgetal nooit raakt.',
+          html: '<lintje-kpi></lintje-kpi>',
+          setup: single({
+            label: 'Afgehandeld binnen 2 dagen', variable: 'ruby-red', value: '71%',
+            gauge: { shape: 'linear', max: 100, target: 95, targetLabel: 'norm' },
+          }),
+        },
+        {
           label: 'Op een schaal tijdens laden',
           html: '<lintje-kpi state="loading"></lintje-kpi>',
           setup: single({ label: GAUGE_ARC.label, gauge: GAUGE_ARC.gauge }),

@@ -190,11 +190,12 @@
 
 
 .lintje-gauge--linear { display: flex; flex-direction: column; gap: var(--space-1); }
-/* The mark stands out over the bar, so the bar leaves it room above and below. */
+/* The mark runs from beside the target's label to just under the bar. */
+.lintje-gauge__plot { position: relative; display: flex; flex-direction: column; gap: var(--space-1); }
 .lintje-gauge__bar {
   position: relative;
   height: var(--space-4);
-  margin-block: var(--space-1);
+  margin-bottom: var(--space-1);
   background: var(--color-chart-remainder);
 }
 .lintje-gauge__bar-fill {
@@ -204,20 +205,19 @@
 }
 .lintje-gauge__mark {
   position: absolute;
-  top: calc(-1 * var(--space-1));
-  bottom: calc(-1 * var(--space-1));
+  top: 0;
+  bottom: 0;
   border-left: 1px dashed var(--color-chart-emphasis);
 }
+.lintje-gauge__target,
 .lintje-gauge__scale {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
   font: var(--text-axis);
   color: var(--color-chart-axis);
 }
-.lintje-gauge__scale-target { position: absolute; top: 0; white-space: nowrap; }
-.lintje-gauge__scale-target--middle { transform: translateX(-50%); }
-.lintje-gauge__scale-target--end { transform: translateX(-100%); }
+.lintje-gauge__target-label { display: block; width: max-content; white-space: nowrap; }
+.lintje-gauge__target-label--start { padding-left: var(--space-2); }
+.lintje-gauge__target-label--end { padding-right: var(--space-2); transform: translateX(-100%); }
+.lintje-gauge__scale { display: flex; justify-content: space-between; }
 
 .lintje-gauge.is-drawn .lintje-gauge__arc-fill,
 .lintje-gauge.is-drawn .lintje-gauge__bar-fill { animation-play-state: running; }
