@@ -54,7 +54,7 @@
   display: flex; flex-direction: column; gap: var(--space-1);
   min-width: 0;
 }
-.lintje-card__meta { margin: 0; font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-card__meta { margin: 0; font: var(--text-small); color: var(--color-text-muted); }
 .lintje-card__title {
   margin: 0;
   font: var(--text-h2);

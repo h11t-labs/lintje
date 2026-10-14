@@ -45,7 +45,7 @@
 .lintje-activity-log__who { font-weight: 700; }
 .lintje-activity-log__when {
   display: block;
-  font: var(--text-meta);
+  font: var(--text-small);
   color: var(--color-text-muted);
 }
 

@@ -442,7 +442,7 @@
   min-height: var(--h-target-text);
 }
 .lintje-map-legend__keys.is-off > .lintje-map-legend__key { opacity: .45; }
-.lintje-map-legend__key { display: flex; align-items: center; gap: 6px; }
+.lintje-map-legend__key { display: flex; align-items: center; gap: var(--space-2); }
 .lintje-map-legend__figure { font: var(--text-axis); color: var(--color-text-secondary); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .lintje-map-legend__rule { width: 1px; align-self: stretch; min-height: 16px; background: var(--color-border-default); }
 .lintje-map-legend--narrow .lintje-map-legend__rule { display: none; }

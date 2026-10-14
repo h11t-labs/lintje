@@ -92,7 +92,7 @@
 .lintje-list__icon { grid-area: icon; color: var(--color-text-muted); }
 .lintje-list__facts { grid-area: facts; display: flex; align-items: center; gap: var(--space-3); }
 .lintje-list__meta {
-  font: var(--text-meta);
+  font: var(--text-small);
   color: var(--color-text-muted);
   white-space: nowrap;
 }
@@ -114,7 +114,7 @@
   border-top: 1px solid var(--color-border-default);
   border-bottom: 1px solid var(--color-border-default);
   background: var(--color-bg-subtle);
-  font: var(--text-meta);
+  font: var(--text-small);
   font-weight: 700;
   color: var(--color-text-muted);
 }

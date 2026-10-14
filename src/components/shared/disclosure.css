@@ -35,7 +35,7 @@
 .lintje-disclosure__label .lintje-disclosure__sub { grid-column: 2; }
 .lintje-disclosure__label--plain .lintje-disclosure__title,
 .lintje-disclosure__label--plain .lintje-disclosure__sub { grid-column: auto; }
-.lintje-disclosure__sub { display: block; font: var(--text-tile-sub); color: var(--color-text-muted); margin-top: 2px; }
+.lintje-disclosure__sub { display: block; font: var(--text-small); color: var(--color-text-muted); margin-top: 2px; }
 
 /* --- Opening and closing -------------------------------------------------- */
 .lintje-disclosure__body {

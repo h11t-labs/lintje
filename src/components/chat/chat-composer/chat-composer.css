@@ -84,7 +84,7 @@
 .lintje-chat-composer__sources { flex: 0 1 auto; width: auto; min-width: 0; }
 .lintje-chat-composer__hint {
   flex: 1 1 auto; min-width: 0;
-  font: var(--text-meta);
+  font: var(--text-small);
   color: var(--color-text-muted);
   text-align: right;
 }
@@ -137,7 +137,7 @@
 .lintje-chat-composer__completion:last-child { border-bottom: 0; }
 .lintje-chat-composer__completion:hover,
 .lintje-chat-composer__completion.is-active { background: var(--color-bg-subtle); }
-.lintje-chat-composer__completion-kind { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-chat-composer__completion-kind { font: var(--text-small); color: var(--color-text-muted); }
 
 /* A phone: the field stays at 1rem, since a smaller size makes iOS zoom in on focus. */
 @media screen and (max-width: 767px) {
