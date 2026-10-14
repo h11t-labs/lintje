@@ -37,7 +37,7 @@ interface Row {
 }
 
 /**
- * What fails today: each entry is a line in `docs/OPEN_ISSUES.md` and matches a check's
+ * What fails today: each entry has its GitHub issue above it and matches a check's
  * `<row> :: <check>`. A failing check that matches none fails; an entry whose check passes, or
  * that matches no check at all, fails too, so the fix takes its entry out.
  */
@@ -510,9 +510,6 @@ describe('the known failures', () => {
         !seen.has(entry) &&
         (ran.some((label) => entry.test(label)) || !LABELS.some((label) => entry.test(label))),
     ).map(String)
-    expect(
-      stale,
-      `fixed, so take out of KNOWN and docs/OPEN_ISSUES.md:\n${stale.join('\n')}`,
-    ).toHaveLength(0)
+    expect(stale, `fixed, so take out of KNOWN:\n${stale.join('\n')}`).toHaveLength(0)
   })
 })
