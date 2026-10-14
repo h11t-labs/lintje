@@ -1133,24 +1133,6 @@ export default {
           },
         },
         {
-          label: 'Vakken',
-          note:
-            'Met `layout="grid"` staat elk paar in een vak: breed, aangepast, een waarschuwing ' +
-            'met inhoud in een slot, en labels.',
-          html: `<lintje-description-list layout="grid">
-              <span slot="mic"><lintje-button variant="secondary" size="compact">Andere microfoon</lintje-button></span>
-            </lintje-description-list>`,
-          setup(stage) {
-            stage.querySelector('lintje-description-list').items = [
-              { label: 'Naam', value: 'Wordt voorgesteld uit het gesprek', span: 2, icon: 'functioneel-bewerken' },
-              { label: 'Taal', value: 'Automatisch', icon: 'internationaal-tekstballon-met-wereldbol' },
-              { label: 'Sprekers', value: '3, vast', tone: 'changed', action: { href: '#el-description-list', label: 'Terugzetten' } },
-              { label: 'Microfoon', value: 'Vergaderset (USB): we horen niets', tone: 'warning', span: 2, slot: 'mic', icon: 'beeld-en-geluid-microfoon' },
-              { label: 'Woordenlijsten', tags: ['Afkortingen Rijksoverheid', 'Namen team Planning'], span: 2 },
-            ]
-          },
-        },
-        {
           label: 'In het raster',
           note: 'De twee lijsten nemen `span="8"` en `span="4"` van het raster.',
           html: `<lintje-grid>
@@ -1159,6 +1141,85 @@ export default {
             </lintje-grid>`,
           setup(stage) {
             for (const list of stage.querySelectorAll('lintje-description-list')) list.items = DETAILS
+          },
+        },
+      ],
+    },
+    {
+      tag: 'lintje-cells',
+      wide: true,
+      title: 'De feiten van één ding naast elkaar',
+      specimens: [
+        {
+          label: 'Vrije rij',
+          note: 'Zonder `columns` neemt elk feit zijn eigen breedte en loopt de rij om: een zaak onder haar titel.',
+          html: '<lintje-cells></lintje-cells>',
+          setup(stage) {
+            stage.querySelector('lintje-cells').items = [
+              { label: 'Zaaknummer', value: '2026-04812' },
+              { label: 'Status', value: 'Loopt', detail: 'sinds 6 oktober' },
+              { label: 'Behandelaar', value: 'S. de Vries', href: '#el-cells', action: { href: '#el-cells' } },
+              { label: 'Ingediend', value: '3 oktober 2026', detail: 'via het loket' },
+              { label: 'Termijn', value: 'Nog 3 dagen', tone: 'warning', action: { href: '#el-cells', label: 'Verlengen' } },
+            ]
+            stage.querySelector('lintje-cells').addEventListener('lintje-navigate', (event) => event.preventDefault())
+          },
+        },
+        {
+          label: 'Raster',
+          note: 'Met `columns` staan de vakken uitgelijnd; een meter in stappen staat vóór zijn woord. Onder 30 rem worden het twee kolommen.',
+          html: '<lintje-cells columns="4"></lintje-cells>',
+          setup(stage) {
+            stage.querySelector('lintje-cells').items = [
+              { label: 'Batterij', value: '80 %', detail: 'nog 3 uur', meter: { level: 0.8, steps: 5, tone: 'success' } },
+              { label: 'Signaal', value: 'Goed', meter: { level: 0.75, steps: 4, tone: 'success' } },
+              { label: 'Opslag', value: '12,4 GB vrij', detail: 'van 64 GB' },
+              { label: 'Laatst gezien', value: '2 minuten geleden' },
+            ]
+          },
+        },
+        {
+          label: 'Op een waas',
+          note: 'Met `surface` staat de rij in één paneel, zoals in een hero; het ene cijfer is groot.',
+          html: '<div style="background: var(--color-bg-subtle); padding: var(--space-6)"><lintje-cells columns="4" surface></lintje-cells></div>',
+          setup(stage) {
+            stage.querySelector('lintje-cells').items = [
+              { label: 'Looptijd', value: '12:04', large: true, icon: 'functioneel-klok' },
+              { label: 'Geluid', value: 'Goed', icon: 'beeld-en-geluid-microfoon', meter: { level: 0.6 } },
+              { label: 'Verbinding', value: 'Zwak', detail: '3 seconden achter', icon: 'functioneel-smartphone', meter: { level: 0.5, steps: 4, tone: 'warning' } },
+              { label: 'Transcript', value: 'Loopt mee', detail: '412 woorden' },
+            ]
+          },
+        },
+        {
+          label: 'Wat gaat gebeuren',
+          note: 'Een samenvatting vóór een opname: breed, aangepast met de weg terug, een waarschuwing met een knop in een slot, en tags.',
+          html: `<lintje-cells columns="4">
+              <span slot="mic"><lintje-button variant="secondary" size="compact">Andere microfoon</lintje-button></span>
+            </lintje-cells>`,
+          setup(stage) {
+            stage.querySelector('lintje-cells').items = [
+              { label: 'Naam', value: 'Wordt voorgesteld uit het gesprek', span: 2, icon: 'functioneel-bewerken' },
+              { label: 'Taal', value: 'Automatisch', icon: 'internationaal-tekstballon-met-wereldbol' },
+              { label: 'Sprekers', value: '3, vast', tone: 'changed', action: { href: '#el-cells', label: 'Terugzetten' } },
+              { label: 'Microfoon', value: 'Vergaderset (USB): we horen niets', tone: 'warning', span: 2, slot: 'mic', icon: 'beeld-en-geluid-microfoon' },
+              { label: 'Woordenlijsten', tags: ['Afkortingen Rijksoverheid', 'Namen team Planning'], span: 2 },
+            ]
+            stage.querySelector('lintje-cells').addEventListener('lintje-navigate', (event) => event.preventDefault())
+          },
+        },
+        {
+          label: 'Toestanden',
+          note: 'Wat ontbreekt is een streep, een meter zonder meting ligt plat, en een fout en een geslaagde stap dragen hun glyph.',
+          html: '<lintje-cells columns="4"></lintje-cells>',
+          setup(stage) {
+            stage.querySelector('lintje-cells').items = [
+              { label: 'Resterend', value: null },
+              { label: 'Geluid', value: null, meter: { level: null } },
+              { label: 'Fouten', value: '3', tone: 'error', action: { href: '#el-cells', label: 'Bekijk fouten' } },
+              { label: 'Verzonden', value: 'Klaar', detail: '640 MB, 4:12', tone: 'success' },
+            ]
+            stage.querySelector('lintje-cells').addEventListener('lintje-navigate', (event) => event.preventDefault())
           },
         },
       ],

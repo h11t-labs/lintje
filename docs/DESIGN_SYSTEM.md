@@ -354,9 +354,9 @@ De besluiten hieronder gelden voor alle elementen.
   evengoed; nooit een getal in de tekst van het label.
 - **Een opname die nu loopt, is de live-badge**: de foutvulling met een stip voor het woord, het
   enige rood dat geen fout is.
-- **Wat op het punt staat te gebeuren, is een samenvatting in cellen** (`layout="grid"`): één cel
-  per instelling, wat gewijzigd is in het rustige oppervlak van de gekozen optie met "Aangepast",
-  een probleem in zijn statustoon met zijn glyph, zijn woorden en de actie die het oplost.
+- **Wat op het punt staat te gebeuren, is een rij vakken** (`lintje-cells`): één vak per
+  instelling, wat gewijzigd is met "Aangepast" en de weg terug, een probleem met de glyph van zijn
+  toon, zijn woorden en de actie die het oplost.
 - **Een uitgeschakelde knop zegt waarom**: `reason` wordt met de knop voorgelezen; de host zegt
   het ook op de pagina.
 - **Acties die niet op één regel passen, klappen in** naar één menu "Meer", vóór de acties die
@@ -439,6 +439,10 @@ De besluiten hieronder gelden voor alle elementen.
 - **De tegel stelt samen.** Leeg en fout in een tegel zijn dezelfde blokken als de losse lege
   toestand en de losse melding (`components/shared/`), nooit nagetekend, en alle drie de
   toestanden zijn een live-regio van de tegel: wat erin laadt, zwijgt zelf.
+- **Een maat is een meter met een woord** (`lintje-level-meter`): het geluid als stemvorm die het
+  niveau volgt, elke andere maat in stappen (`steps`), zoveel verlicht als de maat haalt, in de
+  lijnkleur van zijn toon. Het woord draagt de betekenis en de staven zijn er een echo van; het
+  woord van een maat in stappen is van de host.
 
 ### Links, toetsen en overlays
 
@@ -536,6 +540,15 @@ De besluiten hieronder gelden voor alle elementen.
 - **Onder 768 px wisselt een tabel van vorm**: de identiteit van de rij en één meetwaarde, met de
   andere kolommen op verzoek onder de rij (zie [Toegankelijkheid](#toegankelijkheid)). Geen
   rijkaarten, geen zijwaarts scrollen.
+- **De feiten van één ding staan naast elkaar in vakken** (`lintje-cells`): een gedempt label
+  boven zijn vette waarde, een haarlijn tussen de feiten en geen kader; afstand doet het werk.
+  Met `columns` staan ze in een uitgelijnd raster, twee onder 30 rem; zonder nemen ze hun eigen
+  breedte en loopt de rij om. Op een waas staat de rij in één paneel (`surface`). Een meting
+  staat als meter vóór haar woord, het ene cijfer groot op de maat van het kerncijfer op een
+  telefoon, nooit die van het dashboard. Een vak zegt wat iets is en hoe het ervoor staat: een
+  looptijd, een zaaknummer, een batterij. Een cijfer op zijn schaal dat geduid moet worden, is
+  een KPI. Paren onder elkaar, voor een detail of een controlescherm, blijven de
+  beschrijvingslijst.
 
 ### Afbeeldingen en kaarten
 
@@ -654,7 +667,8 @@ de stijlgids. Past geen soort, dan is het een tabel.
 de kleur van de variabele, de rest van de schaal het lichtgrijs van een rest, het doel gestreept in
 de nadrukkleur. De vulling oordeelt niet: of het cijfer goed staat, zegt de trendregel met pijl en
 woord, zoals bij elke KPI. Een cijfer zonder meting tekent de schaal en het doel, nooit een lege
-vulling als nul.
+vulling als nul. Een feit van het ding dat de lezer bekijkt, een looptijd, een aantal verwerkte
+regels, is geen KPI maar een vak (`lintje-cells`).
 
 **Onvolledige perioden.** Een periode die nog loopt, is gearceerd. Als er nog veel van open is,
 wordt de reeks afgekapt bij het laatste volledige punt en zegt een peilmomentlijn waar. De assen

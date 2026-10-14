@@ -510,10 +510,17 @@ export default {
             'wat er gezegd wordt ernaast.',
           html: `<lintje-hero heading="Weekendbezetting en sleutels" description="Op je telefoon · Vergadering · gestart om 14:02">
             <lintje-badge slot="status" tone="live">Neemt op</lintje-badge>
-            <lintje-recording-status elapsed="724" level="0.6" connection="good" delay="1"></lintje-recording-status>
+            <lintje-cells columns="3" surface></lintje-cells>
             <lintje-button variant="primary">Meelezen</lintje-button>
             <lintje-tile slot="panel" heading="Wat er nu gezegd wordt"><p>Die haal ik vrijdag op, dan liggen ze zaterdag klaar.</p></lintje-tile>
           </lintje-hero>`,
+          setup(stage) {
+            stage.querySelector('lintje-cells').items = [
+              { label: 'Looptijd', value: '12:04', large: true, icon: 'functioneel-klok' },
+              { label: 'Geluid', value: 'Goed', icon: 'beeld-en-geluid-microfoon', meter: { level: 0.6 } },
+              { label: 'Verbinding', value: 'Goed', detail: '1 seconde achter', icon: 'functioneel-smartphone', meter: { level: 1, steps: 4, tone: 'success' } },
+            ]
+          },
         },
         {
           label: 'Met een beeld ernaast',

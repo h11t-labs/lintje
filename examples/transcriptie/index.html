@@ -191,7 +191,7 @@
       <lintje-hero slot="full" id="hero" action="Of bekijk al je opnames" href="?pagina=opnames">
         <lintje-badge slot="status" id="running-badge" tone="live" hidden>Neemt op</lintje-badge>
         <div class="panel" id="running" hidden>
-          <lintje-recording-status id="running-status" connection="good" delay="1"></lintje-recording-status>
+          <lintje-cells id="running-status" columns="3" surface></lintje-cells>
           <div class="panel__actions">
             <lintje-button id="phone-follow" variant="primary">Meelezen</lintje-button>
             <lintje-button id="phone-stop" variant="secondary">Stoppen en bewaren</lintje-button>
@@ -236,14 +236,14 @@
                 <lintje-prose id="summary-head"></lintje-prose>
                 <lintje-button id="adjust-open" variant="secondary" size="compact">Instellingen aanpassen</lintje-button>
               </div>
-              <lintje-description-list id="this-summary" layout="grid">
+              <lintje-cells id="this-summary" columns="4">
                 <!-- The microphone's cell: what it hears, and what to do when that is nothing. -->
                 <div slot="mic" class="mic-cell">
                   <lintje-level-meter id="mic-level"></lintje-level-meter>
                   <lintje-prose id="mic-help" tone="muted"></lintje-prose>
                   <lintje-button id="mic-action" variant="secondary" size="compact"></lintje-button>
                 </div>
-              </lintje-description-list>
+              </lintje-cells>
             </div>
             <div class="start-foot" id="start-foot">
               <lintje-prose id="start-note" tone="muted"></lintje-prose>
@@ -279,7 +279,7 @@
             <lintje-badge id="live-badge" tone="live">Neemt op</lintje-badge>
             <lintje-prose id="live-where" tone="muted"></lintje-prose>
           </div>
-          <lintje-recording-status id="live-status"></lintje-recording-status>
+          <lintje-cells id="live-status" columns="3"></lintje-cells>
           <div class="live-head__line" id="live-named" hidden>
             <lintje-prose id="live-name-note" tone="muted"></lintje-prose>
             <lintje-button id="live-rename" variant="link" size="compact">Wijzigen</lintje-button>
