@@ -72,6 +72,7 @@ export const SKETCHES = {
   'audio-player': { frame: 'tile', rows: 'wave / s10 sp play sp i' },
   'video-player': { rows: 'video' },
   transcript: { rows: '| s15 s5 / | l80 / | s15 s5 / | l70 / | s15 s5 / | l75' },
+  'log-viewer': { frame: 'code', rows: 's15 chip l50 / s15 chip l70 / | s15 chip l40 / s15 chip l60' },
   'document-viewer': { frame: 'tile', rows: 't30 sp chevl s15 chev / i i s10 sp i / doc' },
   gallery: { rows: 'img / cell cell cell' },
   // Messages and status

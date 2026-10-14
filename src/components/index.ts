@@ -105,6 +105,7 @@ import './feedback/streaming-text/streaming-text'
 import './content/audio-player/audio-player'
 import './content/video-player/video-player'
 import './content/transcript/transcript'
+import './content/log-viewer/log-viewer'
 import './content/document-viewer/document-viewer'
 import './feedback/conflict-alert/conflict-alert'
 import './frame/app-search/app-search'
@@ -284,6 +285,7 @@ export type { SpeakerColour } from './content/shared/playback'
 export { LintjeVideoPlayer } from './content/video-player/video-player'
 export type { TimedText } from './content/video-player/video-player'
 export { LintjeTranscript } from './content/transcript/transcript'
+export { LintjeLogViewer } from './content/log-viewer/log-viewer'
 export type {
   TranscriptSegment,
   TranscriptMatches,

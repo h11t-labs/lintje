@@ -73,7 +73,7 @@ export function renderAnnouncementBlock(options: AnnouncementBlockOptions): Temp
     role=${live ? ANNOUNCEMENT_ROLE[kind] : nothing}
   >
     <div class="lintje-announcement__inner">
-      ${mark(kind)} ${empty ? nothing : content(kind, options)}
+      ${empty ? html`<div class="lintje-announcement__body"><div class="lintje-announcement__lead">${mark(kind)}</div></div>` : content(kind, options)}
     </div>
   </div>`
 }
@@ -86,10 +86,13 @@ function mark(kind: AnnouncementKind): TemplateResult {
   >`
 }
 
+// The glyph stands with the words, so the pair is centred against an action beside it as one.
 function content(kind: AnnouncementKind, options: AnnouncementBlockOptions): TemplateResult {
   const { title, text, meta, link } = options
   const prefix = html`<span class="visually-hidden">${ANNOUNCEMENT_PREFIX[kind]}: </span>`
   return html`<div class="lintje-announcement__body">
+      <div class="lintje-announcement__lead">
+      ${mark(kind)}
       <div class="lintje-announcement__content">
         ${title ? html`<p class="lintje-announcement__title">${prefix}${title}</p>` : nothing}
         ${
@@ -108,6 +111,7 @@ function content(kind: AnnouncementKind, options: AnnouncementBlockOptions): Tem
             </p>`
             : nothing
         }
+      </div>
       </div>
       ${options.action ?? nothing}
     </div>

@@ -25,6 +25,11 @@ function save(blob: Blob, name: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
+/** Any other text, as a file of its own type (`text/plain`, `application/json`). */
+export function downloadText(name: string, text: string, type: string): void {
+  save(new Blob([text], { type: `${type};charset=utf-8` }), name)
+}
+
 export function downloadCsv(filename: string, rows: CsvCell[][]): void {
   const name = filename.toLowerCase().endsWith('.csv') ? filename : `${filename}.csv`
   save(new Blob(['﻿', toCsv(rows)], { type: 'text/csv;charset=utf-8' }), name)
