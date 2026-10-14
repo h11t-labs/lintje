@@ -11,6 +11,7 @@ import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'l
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
+import { TONE_ICON } from '../../shared/tone'
 import { controlName, focusInside, namedControls } from '../../shared/controls'
 import '../../actions/button/button'
 import errorSummaryCss from './error-summary.css?inline'
@@ -94,7 +95,7 @@ export class LintjeErrorSummary extends LintjeElement {
       aria-labelledby="lintje-error-summary-heading"
       tabindex="-1"
     >
-      ${renderIcon('functioneel-waarschuwing', { size: 20, className: 'lintje-error-summary__icon' })}
+      ${renderIcon(TONE_ICON.error, { size: 20, className: 'lintje-error-summary__icon' })}
       <div class="lintje-error-summary__body">
         <h3 id="lintje-error-summary-heading" class="lintje-error-summary__heading">${heading}</h3>
         ${

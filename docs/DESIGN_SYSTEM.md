@@ -199,7 +199,9 @@ bestanden serveert, staat in
 - **Elke maat is in `rem`**, zodat de tekst een lezer volgt die de tekst van de browser vergrootte.
 - **Tekst blijft op de ondergrens van de tekstschaal** (`--text-small`). Alleen een kort label dat
   een getal of teken bij iets groters benoemt — as- en datalabels, een teller, een
-  schaalverdeling — mag een stap kleiner (`--text-axis`).
+  schaalverdeling — mag een stap kleiner (`--text-axis`). Secundaire tekst — een hint, een
+  onderregel, een metaregel — is dat ene token, met één regelhoogte, zodat twee hints onder
+  elkaar nooit verschillend lezen.
 - Eén schaal, als `--text-*`-tokens. Cijfers zijn tabulair waar ze in een kolom staan of ter
   plekke veranderen.
 
@@ -420,8 +422,9 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een statusbericht draagt het eigen teken van de set voor zijn soort**, los op de tint in de
   lijnkleur van de status: een driehoek voor een waarschuwing, een cirkel met een kruis voor een
   storing of mislukking, het vierkant met *i* voor info en de cirkel met een vinkje voor ok. Een
-  titel staat op een eigen regel naast het teken, de tekst eronder. De foutregel van een veld
-  houdt de driehoek.
+  titel staat op een eigen regel naast het teken, de tekst eronder. Alleen de foutregel van een
+  veld houdt de driehoek; de foutsamenvatting van een formulier en een geweigerd bestand nemen het
+  teken en de tint van de toon fout, zoals elk statusblok.
 - **Laden houdt het vak.** Een skelet heeft de maat van waar het voor staat, zodat de pagina niet
   springt. Een deel dat al inhoud toont, houdt zijn hoogte tijdens een tweede ophaling, en een
   verversing waar niemand om vroeg, tekent geen skelet.
@@ -438,7 +441,9 @@ De besluiten hieronder gelden voor alle elementen.
   nooit. De woordenschat staat één keer, in `components/shared/tone.ts`, met de staat van werk
   (wachtrij, bezig, onderbroken, klaar, mislukt, geannuleerd) ernaast.
 - **Inhoud kent vier toestanden**: klaar, laden, leeg en fout, met één `message` en één
-  `lastKnown`, voor een tegel en een kerncijfer evengoed.
+  `lastKnown`, voor een tegel en een kerncijfer evengoed. Een bron die niet antwoordt, is een
+  fout in de toon fout, zoals de losse melding, niet een waarschuwing: de laatst bekende waarde
+  eronder zegt wat er nog staat.
 - **De tegel stelt samen.** Leeg en fout in een tegel zijn dezelfde blokken als de losse lege
   toestand en de losse melding (`components/shared/`), nooit nagetekend, en alle drie de
   toestanden zijn een live-regio van de tegel: wat erin laadt, zwijgt zelf.

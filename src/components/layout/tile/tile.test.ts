@@ -1,5 +1,5 @@
 /**
- * The tile's error state: the warning is a `role="status"` region that is drawn empty and
+ * The tile's error state: the error is a `role="status"` region that is drawn empty and
  * filled on the next frame, so a screen reader announces the failure — a region inserted
  * together with its words is not announced. happy-dom has no layout.
  */
@@ -30,14 +30,14 @@ describe('lintje-tile error', () => {
   it('draws the status region empty, and fills the same region on the next frame', async () => {
     const tile = await mount({ state: 'error', message: 'De bron reageerde niet.' })
     const first = region(tile)!
-    expect(first.classList.contains('lintje-announcement--warning')).toBe(true)
+    expect(first.classList.contains('lintje-announcement--error')).toBe(true)
     expect(first.textContent?.trim()).toBe('')
     expect(first.querySelector('.lintje-announcement__icon svg')).not.toBeNull()
     await nextFrame()
     await tile.updateComplete
     expect(region(tile)).toBe(first)
     expect(first.querySelector('.lintje-announcement__text')?.textContent?.trim()).toBe(
-      'Waarschuwing: De bron reageerde niet.',
+      'Fout: De bron reageerde niet.',
     )
   })
 
@@ -62,7 +62,7 @@ describe('lintje-tile error', () => {
     expect(region(tile)!.textContent).toContain('Tweede.')
   })
 
-  it('keeps the last known value beside the warning', async () => {
+  it('keeps the last known value beside the error', async () => {
     const tile = await mount({
       state: 'error',
       message: 'Weg.',

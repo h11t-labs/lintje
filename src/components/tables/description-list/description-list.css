@@ -93,7 +93,7 @@
 .lintje-description-list--grid .lintje-description-list__label {
   display: flex; align-items: center; gap: var(--space-2);
   padding: 0;
-  font: var(--text-meta);
+  font: var(--text-small);
 }
 .lintje-description-list--grid .lintje-description-list__value {
   /* The values of one row stand on one line, however tall each is. */
@@ -137,7 +137,7 @@
 .lintje-description-list__row.is-neutral .lintje-description-list__main .lintje-icon { color: var(--color-text-muted); }
 .lintje-description-list__row.is-subtle .lintje-description-list__main .lintje-icon { color: var(--color-text-muted); }
 .lintje-description-list__row.is-live .lintje-description-list__main .lintje-icon { color: var(--color-error-line); }
-.lintje-description-list--grid .lintje-description-list__action { font: var(--text-meta); font-weight: 700; }
+.lintje-description-list--grid .lintje-description-list__action { font: var(--text-small); font-weight: 700; }
 .lintje-description-list--grid .is-large .lintje-description-list__value {
   font: var(--text-kpi);
   letter-spacing: var(--kpi-tracking);

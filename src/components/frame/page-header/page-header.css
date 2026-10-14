@@ -70,7 +70,7 @@
 @media screen and (max-width: 767px) {
   .lintje-page-header { padding: var(--space-4) var(--space-4) 14px; gap: 4px; }
   .lintje-page-header__title { font: var(--text-h1-mobile); }
-  .lintje-page-header__meta { font: var(--text-meta); margin-top: 0; }
+  .lintje-page-header__meta { font: var(--text-small); margin-top: 0; }
 }
 
 /* In the shell: flush in the content column, the trail and the title row closer together. */

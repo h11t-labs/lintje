@@ -5,9 +5,9 @@
 
 /* ------------------------------------------------------------------------ */
 
-.lintje-filter-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lintje-filter-field { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
 .lintje-filter-field__label {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: var(--space-2);
   font-size: var(--label-size);
   font-weight: var(--label-weight);
   letter-spacing: var(--label-tracking);

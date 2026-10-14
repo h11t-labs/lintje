@@ -14,7 +14,7 @@
 /* The padding centres a chip in the control height; wrapped chips grow the box. */
 .lintje-tag-input {
   display: flex; flex-wrap: wrap; align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
   min-height: var(--h-control);
   padding: calc((var(--h-control) - var(--h-chip-field)) / 2 - 1px) var(--space-2);
   border: 1px solid var(--color-border-field);

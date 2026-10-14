@@ -19,4 +19,4 @@
 }
 .lintje-ai-label__badge { display: inline-flex; align-items: center; gap: var(--space-1); min-width: 0; }
 .lintje-ai-label__icon { flex: none; }
-.lintje-ai-label__hint { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-ai-label__hint { font: var(--text-small); color: var(--color-text-muted); }

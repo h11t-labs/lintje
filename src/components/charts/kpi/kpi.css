@@ -50,16 +50,16 @@
   font-variant-numeric: tabular-nums;
   color: var(--color-text-primary);
 }
-.lintje-kpi__suffix { font-size: 1.25rem; font-weight: 400; color: var(--color-text-muted); margin-left: 6px; }
+.lintje-kpi__suffix { font-size: 1.25rem; font-weight: 400; color: var(--color-text-muted); margin-left: var(--space-2); }
 /* The final value is transparent but keeps the width, so the suffix does not move while counting. */
 .lintje-kpi__count { display: inline-grid; }
 .lintje-kpi__count-final,
 .lintje-kpi__count-live { grid-area: 1 / 1; }
 .lintje-kpi__count-final { opacity: 0; }
 .lintje-kpi__note { font: var(--text-small); color: var(--color-text-primary); }
-.lintje-kpi__note--error { display: flex; align-items: center; gap: 6px; }
-.lintje-kpi__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-attention); flex: none; }
-.lintje-kpi__detail { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-kpi__note--error { display: flex; align-items: center; gap: var(--space-2); }
+.lintje-kpi__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-error); flex: none; }
+.lintje-kpi__detail { font: var(--text-small); color: var(--color-text-muted); }
 
 /* The wrapper is the query container, so a row can stack in a narrow KPI without containing it. */
 .lintje-kpi__figures { container-type: inline-size; }
@@ -135,7 +135,7 @@
 .lintje-trend__glyph--good     { color: var(--color-success); }
 .lintje-trend__glyph--bad   { color: var(--color-error); }
 .lintje-trend__glyph--neutral { color: var(--color-text-muted); }
-.lintje-trend__detail { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-trend__detail { font: var(--text-small); color: var(--color-text-muted); }
 
 /* --- The gauge ------------------------------------------------------------ */
 /* Room above for a target near the top and below for the ends' numbers; the arc never grows past

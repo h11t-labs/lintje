@@ -17,6 +17,6 @@
 }
 .lintje-note__header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
 .lintje-note__title { font: var(--text-tile-title); }
-.lintje-note__date { font: var(--text-tile-sub); color: var(--color-text-muted); }
+.lintje-note__date { font: var(--text-small); color: var(--color-text-muted); }
 .lintje-note__text { font: var(--text-small); line-height: 1.55; color: var(--color-text-secondary); }
-.lintje-note__author { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-note__author { font: var(--text-small); color: var(--color-text-muted); }

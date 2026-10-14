@@ -305,13 +305,13 @@ describe('lintje-map series', () => {
 })
 
 describe('lintje-map error state', () => {
-  it('hands the error to the tile, which draws the live warning and keeps its box', async () => {
+  it('hands the error to the tile, which draws the live error and keeps its box', async () => {
     const element = await mapTile(tileData({ state: 'error', message: 'De kaart laadt niet.' }))
     const frame = element.renderRoot.querySelector('lintje-tile')!
     expect(frame.state).toBe('error')
     expect(frame.message).toBe('De kaart laadt niet.')
     expect(
-      frame.shadowRoot!.querySelector('.lintje-announcement--warning[role="status"]'),
+      frame.shadowRoot!.querySelector('.lintje-announcement--error[role="status"]'),
     ).not.toBeNull()
   })
 })
