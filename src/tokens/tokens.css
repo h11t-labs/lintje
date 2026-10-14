@@ -243,18 +243,21 @@
   --text-h1-display: 700 2.5rem/1.1 var(--font-ui);
   --text-h2: 700 1.25rem/1.25 var(--font-ui);
   --text-tile-title: 700 1rem/1.3 var(--font-ui);
-  --text-tile-sub: 400 0.875rem/1.35 var(--font-ui);
   --text-kpi: 700 2rem/1.1 var(--font-ui);
   --text-kpi-mobile: 700 1.5rem/1.1 var(--font-ui);
   --text-kpi-secondary: 700 1.25rem/1.1 var(--font-ui);
   /* The value of a fact in a cell: one step above the body, bold, under the key figure. */
   --text-cell: 700 1.125rem/1.3 var(--font-ui);
   --text-body: 400 1rem/1.5 var(--font-ui);
-  /* The text being translated and its translation: larger than body, read at a glance. */
+  /* Larger than body, read at a glance: the text being translated, a hero's introduction, a
+     transcript in its large size. */
   --text-translation: 400 1.25rem/1.5 var(--font-ui);
   --text-ui: 400 1rem/1.4 var(--font-ui);
+  /* Secondary text is one token: a hint, a sub-line, a meta line, a date. */
   --text-small: 400 0.875rem/1.45 var(--font-ui);
-  --text-meta: 400 0.875rem/1.4 var(--font-ui);
+  /* Former names of the same token; they go with the next breaking release. */
+  --text-meta: var(--text-small);
+  --text-tile-sub: var(--text-small);
   --text-table: 400 1rem/1.4 var(--font-ui);
   --text-table-head: 700 0.875rem/1.3 var(--font-ui);
   --text-axis: 400 0.75rem/1.2 var(--font-ui);
@@ -704,14 +707,18 @@
     /* The hover goes UP in dark: the light mix would put a near-black fill on the near-black page. */
     --primary-hover: color-mix(in srgb, var(--primary), white 12%);
 
-    --color-bg-page: var(--neutral-0);
-    --color-bg-title: var(--neutral-0);
-    /* The hero's wash sits halfway between the menu (L 0.231) and the page (L 0.277), below the
-       page as in light: a panel or tab on it is lighter than its ground. */
-    --primary-wash: oklch(from var(--primary) 0.254 min(c, 0.02) h);
+    /* The order of light holds: menu under page under surface. The series has no step between
+       the menu (neutral-1, L 0.231) and the surface (L 0.277), so the page is their midpoint
+       (L 0.252); neutral-1 itself was too dark for the menu's step under it. */
+    --color-bg-page: color-mix(in srgb, var(--neutral-0), var(--neutral-1));
+    --color-bg-title: var(--color-bg-page);
+    /* The hero's wash sits halfway between the menu and the page, under the page as in light:
+       a panel or tab on it is lighter than its ground. */
+    --primary-wash: oklch(from var(--primary) 0.241 min(c, 0.02) h);
 
     /* The filter zone must read as a band, so in dark it steps UP to neutral-2 (neutral-1 turned
-       the fields in it into light boxes). `--color-bg-inset` keeps neutral-1: "sunken". */
+       the fields in it into light boxes). `--color-bg-inset` is "sunken": neutral-1, under the
+       page, as in light. */
     --color-bg-filter: var(--neutral-2);
     --color-bg-inset: var(--neutral-1);
 
@@ -744,9 +751,10 @@
     /* Lintblauw has too little contrast on the dark surface; the house style lightens it. */
     --color-logo-ribbon: var(--ribbon-blue-dark);
 
-    /* The menu is neutral in dark: near-black, in the rail and in the bar alike, so in the top
-       layout it stays its own band under the logo bar. Hover and active are one step up, as they
-       are one fill in light; the edge is the text tint, as the line tint is 3:1 on neutral-0 only. */
+    /* The menu is neutral in dark: near-black, under the page, in the rail and in the bar alike,
+       so it stays its own band beside the page and under the logo bar. Hover and active are one
+       step up, as they are one fill in light; the edge is the text tint, as the line tint is
+       3:1 on neutral-0 only. */
     --color-nav-bg: var(--neutral-1);
     --color-nav-text: var(--neutral-6);
     --color-nav-text-sub: var(--neutral-5);

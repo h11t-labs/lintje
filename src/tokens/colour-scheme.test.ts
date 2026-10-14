@@ -312,7 +312,7 @@ function tokensFor(
 
 /* --- the specification ---------------------------------------------------- */
 
-/** The dark page and tile surface; the line tint is defined against exactly this. */
+/** The dark surface of a tile and the logo bar; the line tint is defined against exactly this. */
 const DARK_SURFACE = '#282828'
 
 /**
@@ -488,19 +488,23 @@ describe('the header of the top layout', () => {
   })
 
   it('stands a panel and its tabs on the hero lighter than the hero, in dark too', () => {
-    // Lighter is higher in dark: menu, hero, panel (surface), inactive tab (subtle).
+    // Lighter is higher in dark: menu, hero, page, panel (surface), inactive tab (subtle). The
+    // hero and the page share the one step between the menu and the surface, so their gaps
+    // are half-steps.
     for (const theme of THEME_NAMES) {
       const dark = tokensFor('dark', theme)
       const ladder = [
         '--color-nav-bg',
         '--color-hero-bg',
+        '--color-bg-page',
         '--color-bg-surface',
         '--color-bg-subtle',
       ]
+      const gaps = [0.008, 0.008, 0.02, 0.02]
       const lightness = ladder.map((token) => oklch(dark[token])[0])
       for (let i = 1; i < ladder.length; i++) {
         expect(lightness[i], `${theme}: ${ladder[i]} above ${ladder[i - 1]}`).toBeGreaterThan(
-          lightness[i - 1] + 0.02,
+          lightness[i - 1] + gaps[i - 1],
         )
       }
     }
@@ -529,7 +533,7 @@ describe('the header of the top layout', () => {
     }
   })
 
-  it('puts the logo on the surface in both modes: white in light, the dark page in dark', () => {
+  it('puts the logo on the surface in both modes: white in light, the dark surface in dark', () => {
     const light = tokensFor('light', 'rijksoverheid')
     const dark = tokensFor('dark', 'rijksoverheid')
     expect(light['--color-logobar-bg']).toBe('#FFFFFF')
@@ -537,11 +541,18 @@ describe('the header of the top layout', () => {
     expect(dark['--color-logobar-bg']).toBe('#282828')
   })
 
-  it('puts the page a step below the surface in light, and on it in dark', () => {
+  it('puts the page under the surface in both modes: a step in light, half a step in dark', () => {
     const light = tokensFor('light', 'rijksoverheid')
     const dark = tokensFor('dark', 'rijksoverheid')
     expect(light['--color-bg-page']).toBe(light['--neutral-1'])
-    expect(dark['--color-bg-page']).toBe(dark['--color-bg-surface'])
+    expect(light['--color-bg-title']).toBe(light['--color-bg-page'])
+    // Halfway between the menu (neutral-1) and the surface, and sunken is a step under it.
+    const [surface, menu, page] = ['--neutral-0', '--neutral-1', '--color-bg-page'].map(
+      (name) => oklch(dark[name])[0],
+    )
+    expect(page - menu).toBeCloseTo(surface - page, 2)
+    expect(dark['--color-bg-title']).toBe(dark['--color-bg-page'])
+    expect(dark['--color-bg-inset']).toBe(dark['--neutral-1'])
   })
 
   it('draws the ribbon in lintblauw in light and in the house style’s #004A8D in dark', () => {

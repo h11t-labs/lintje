@@ -3,21 +3,21 @@
 
 /* ------------------------------------------------------------------------ */
 
-/* The frame takes the focus after a failed attempt and keeps its own red under the ring. */
+/* The error tint with its glyph, like every status block; the block takes the focus after a
+   failed attempt. */
 .lintje-error-summary {
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
-  background: var(--color-bg-surface);
+  background: var(--color-error-bg);
   color: var(--color-text-primary);
-  border: 2px solid var(--color-error);
   border-radius: var(--radius);
 }
 .lintje-error-summary__icon {
   flex: none;
   margin-top: 2px;
-  color: var(--color-error);
+  color: var(--color-error-line);
 }
 .lintje-error-summary__body { min-width: 0; }
 .lintje-error-summary__heading {
@@ -31,8 +31,9 @@
   list-style: disc;
   font: var(--text-ui);
 }
+/* On the tint the ordinary link colour falls under 4.5:1; this token holds there. */
 .lintje-error-summary__link {
-  color: var(--color-link);
+  color: var(--color-link-on-status);
   text-decoration: underline;
   transition: color var(--dur-hover) var(--ease-in-motion);
 }

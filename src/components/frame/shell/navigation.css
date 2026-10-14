@@ -1,6 +1,12 @@
 
 /* Dark is its own surface, not an inversion: every colour here is a `--color-nav-*` token. */
 .lintje-nav {
+  /* The rail's choreography hangs on one duration: the words fade in late and finish a little
+     after the width, a line fades out quickly before the width starts. */
+  --lintje-rail-fade: calc(var(--dur-rail) * 0.8);
+  --lintje-rail-late: calc(var(--dur-rail) * 0.4);
+  --lintje-rail-quick: calc(var(--dur-rail) * 0.3);
+  --lintje-rail-line: calc(var(--dur-rail) * 0.7);
   width: var(--w-nav);
   flex: none;
   /* `align-self: flex-start`: a stretched flex child would make sticky do nothing. */
@@ -114,15 +120,15 @@
   white-space: nowrap;
   margin: 0;
 }
-/* A line in the rail, text once it expands: the text fades in 80 ms after the width starts. */
+/* A line in the rail, text once it expands: the text fades in after the width starts. */
 .lintje-nav__section-label {
   display: block;
-  transition: opacity 160ms var(--ease-in-motion) 80ms, transform var(--dur-base) var(--ease-in-motion) 80ms;
+  transition: opacity var(--lintje-rail-fade) var(--ease-in-motion) var(--lintje-rail-late), transform var(--dur-rail) var(--ease-in-motion) var(--lintje-rail-late);
 }
 .lintje-nav--rail:not(.is-expanded) .lintje-nav__section-label {
   opacity: 0;
   transform: translateX(-8px);
-  transition: opacity 60ms var(--ease-out-motion), transform 0ms linear 60ms;
+  transition: opacity var(--lintje-rail-quick) var(--ease-out-motion), transform 0ms linear var(--lintje-rail-quick);
 }
 .lintje-nav__separator {
   position: absolute;
@@ -133,12 +139,12 @@
   opacity: 0;
   transform: scaleX(0);
   transform-origin: left center;
-  transition: transform 140ms var(--ease-out-motion), opacity 0ms linear 140ms;
+  transition: transform var(--lintje-rail-line) var(--ease-out-motion), opacity 0ms linear var(--lintje-rail-line);
 }
 .lintje-nav--rail:not(.is-expanded) .lintje-nav__separator {
   opacity: 1;
   transform: none;
-  transition: transform 160ms var(--ease-in-motion) 60ms;
+  transition: transform var(--lintje-rail-fade) var(--ease-in-motion) var(--lintje-rail-quick);
 }
 
 /* One row in every mode. A 4 px border + 22 px padding centres the 20 px icon in the 72 px rail,
@@ -214,11 +220,11 @@
 .lintje-nav__environment-label,
 .lintje-nav__environment-short { position: absolute; inset: 0; }
 .lintje-nav__environment-label {
-  transition: opacity 160ms var(--ease-in-motion) 80ms;
+  transition: opacity var(--lintje-rail-fade) var(--ease-in-motion) var(--lintje-rail-late);
 }
-.lintje-nav__environment-short { opacity: 0; transition: opacity 60ms var(--ease-out-motion); }
-.lintje-nav--rail:not(.is-expanded) .lintje-nav__environment-label { opacity: 0; transition: opacity 60ms var(--ease-out-motion); }
-.lintje-nav--rail:not(.is-expanded) .lintje-nav__environment-short { opacity: 1; transition: opacity 160ms var(--ease-in-motion) 80ms; }
+.lintje-nav__environment-short { opacity: 0; transition: opacity var(--lintje-rail-quick) var(--ease-out-motion); }
+.lintje-nav--rail:not(.is-expanded) .lintje-nav__environment-label { opacity: 0; transition: opacity var(--lintje-rail-quick) var(--ease-out-motion); }
+.lintje-nav--rail:not(.is-expanded) .lintje-nav__environment-short { opacity: 1; transition: opacity var(--lintje-rail-fade) var(--ease-in-motion) var(--lintje-rail-late); }
 
 .lintje-nav__feedback { flex: none; }
 .lintje-nav__version { font-family: var(--font-mono); font-size: 0.875rem; letter-spacing: .02em; margin-left: auto; }

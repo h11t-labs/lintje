@@ -29,7 +29,7 @@
 /* Order matters in every field sheet: disabled wins over read-only, read-only over error, at
    equal specificity. A disabled control cannot be in error, so its rule sets the whole border. */
 
-.lintje-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lintje-field { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
 .lintje-label {
   display: flex; align-items: baseline; gap: var(--space-2);
   font-size: 0.875rem; font-weight: 700; color: var(--color-text-primary);
@@ -46,10 +46,10 @@
 :host([disabled]) .lintje-label__optional { color: var(--color-text-disabled); }
 /* A value and its unit stay together when a long label wraps. */
 .lintje-field__value { font-weight: 400; color: var(--color-text-muted); white-space: nowrap; }
-.lintje-field__hint { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-field__hint { font: var(--text-small); color: var(--color-text-muted); }
 .lintje-field__error {
-  display: flex; align-items: center; gap: 6px;
-  font: var(--text-meta); color: var(--color-error-text); font-weight: 700;
+  display: flex; align-items: center; gap: var(--space-2);
+  font: var(--text-small); color: var(--color-error-text); font-weight: 700;
 }
 
 /* --- A setting's row: name and hint on the left, the control on the right ----- */
@@ -87,7 +87,7 @@
   border: 0;
   background: none;
   color: var(--color-link);
-  font: var(--text-meta);
+  font: var(--text-small);
   font-weight: 700;
   text-decoration: underline;
   cursor: pointer;

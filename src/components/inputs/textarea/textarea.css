@@ -66,7 +66,7 @@
 
 .lintje-textarea__counter {
   align-self: flex-end;
-  font: var(--text-meta);
+  font: var(--text-small);
   color: var(--color-text-muted);
 }
 .lintje-textarea__counter.is-over { color: var(--color-error-text); font-weight: 700; }

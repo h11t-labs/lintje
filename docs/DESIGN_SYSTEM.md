@@ -14,7 +14,7 @@ bevat geen maten. Elk soort feit heeft één plek:
 | De properties, events en slots van een tag | de broncode; de build leest de referentie daaruit |
 | Hoe het eruitziet, in elke toestand, licht en donker, met die referentie | `examples/styleguide/` |
 | De regels voor het wijzigen van de code | [`AGENTS.md`](../AGENTS.md), [`CONTRIBUTING.md`](../CONTRIBUTING.md) |
-| Wat onbeslist is of afwijkt | [`OPEN_ISSUES.md`](OPEN_ISSUES.md) |
+| Wat nog openstaat | de [issues op GitHub](https://github.com/h11t-labs/lintje/issues) |
 
 Een besluit dat voor meer dan één element geldt, hoort hier. Een waarde niet: die hier herhalen
 maakt een tweede bron die veroudert.
@@ -92,6 +92,8 @@ wegzakken in de pagina.
 **Donker is geen inversie.** Het is de reeks van Logius: dezelfde voor elk thema behalve de
 primaire kleur. Donker herdefinieert de zeven `--neutral-*` en laat de paar namen waarvan de
 betekenis verandert ergens anders naar wijzen. Een losse donkere kleur wordt nooit geschreven.
+De reeks mist een stap tussen het menu en het oppervlak; de pagina is daar het midden van die
+twee.
 
 Wit en bijna-zwart die in beide modi gelijk moeten blijven (tekst op een primaire knop, op het
 menu, een QR-code), zijn `--ink-white` en `--ink-black`, geen neutralen. Een QR-code wordt in
@@ -120,10 +122,11 @@ tintladder van de datakleuren blijft een aandeel wit: dat is die van de Rijkshui
 
 Vijf gevolgen:
 
-- **Het menu in donker is de stap onder de pagina**: bijna-zwart en neutraal, hetzelfde in de
-  rail en in de balk, zodat het een eigen band is naast de pagina en onder de logobalk; hover en
-  actief van een item zijn een stap hoger. Pagina en tegels delen daar het oppervlak, en de rand
-  scheidt ze; in licht is de pagina een stap onder het oppervlak.
+- **De volgorde van licht houdt in donker: menu onder pagina onder oppervlak.** Het menu is
+  bijna-zwart en neutraal, hetzelfde in de rail en in de balk, zodat het een eigen band is naast
+  de pagina en onder de logobalk; hover en actief van een item zijn een stap hoger. De pagina
+  ligt halverwege het menu en het oppervlak, zodat een tegel, een band en de logobalk erop staan
+  en niet alleen hun rand ze scheidt.
 - **Elke primaire vulling tekent een rand in `--color-action-primary-border`.** Onzichtbaar in
   licht; in donker het enige dat het vak een rand geeft.
 - **Een woord op een statusoppervlak neemt `--color-link-on-status`**: geen tint van de primaire
@@ -196,7 +199,9 @@ bestanden serveert, staat in
 - **Elke maat is in `rem`**, zodat de tekst een lezer volgt die de tekst van de browser vergrootte.
 - **Tekst blijft op de ondergrens van de tekstschaal** (`--text-small`). Alleen een kort label dat
   een getal of teken bij iets groters benoemt — as- en datalabels, een teller, een
-  schaalverdeling — mag een stap kleiner (`--text-axis`).
+  schaalverdeling — mag een stap kleiner (`--text-axis`). Secundaire tekst — een hint, een
+  onderregel, een metaregel — is dat ene token, met één regelhoogte, zodat twee hints onder
+  elkaar nooit verschillend lezen.
 - Eén schaal, als `--text-*`-tokens. Cijfers zijn tabulair waar ze in een kolom staan of ter
   plekke veranderen.
 
@@ -417,8 +422,9 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een statusbericht draagt het eigen teken van de set voor zijn soort**, los op de tint in de
   lijnkleur van de status: een driehoek voor een waarschuwing, een cirkel met een kruis voor een
   storing of mislukking, het vierkant met *i* voor info en de cirkel met een vinkje voor ok. Een
-  titel staat op een eigen regel naast het teken, de tekst eronder. De foutregel van een veld
-  houdt de driehoek.
+  titel staat op een eigen regel naast het teken, de tekst eronder. Alleen de foutregel van een
+  veld houdt de driehoek; de foutsamenvatting van een formulier en een geweigerd bestand nemen het
+  teken en de tint van de toon fout, zoals elk statusblok.
 - **Laden houdt het vak.** Een skelet heeft de maat van waar het voor staat, zodat de pagina niet
   springt. Een deel dat al inhoud toont, houdt zijn hoogte tijdens een tweede ophaling, en een
   verversing waar niemand om vroeg, tekent geen skelet.
@@ -435,7 +441,9 @@ De besluiten hieronder gelden voor alle elementen.
   nooit. De woordenschat staat één keer, in `components/shared/tone.ts`, met de staat van werk
   (wachtrij, bezig, onderbroken, klaar, mislukt, geannuleerd) ernaast.
 - **Inhoud kent vier toestanden**: klaar, laden, leeg en fout, met één `message` en één
-  `lastKnown`, voor een tegel en een kerncijfer evengoed.
+  `lastKnown`, voor een tegel en een kerncijfer evengoed. Een bron die niet antwoordt, is een
+  fout in de toon fout, zoals de losse melding, niet een waarschuwing: de laatst bekende waarde
+  eronder zegt wat er nog staat.
 - **De tegel stelt samen.** Leeg en fout in een tegel zijn dezelfde blokken als de losse lege
   toestand en de losse melding (`components/shared/`), nooit nagetekend, en alle drie de
   toestanden zijn een live-regio van de tegel: wat erin laadt, zwijgt zelf.
@@ -773,8 +781,8 @@ een balk, en halen hun aanwijsdoel via het klikgebied in de richting waar ze rui
   [`assets/README.md`](../assets/README.md).
 - **Een naam zonder bestand tekent niets en het bedieningselement toont zijn Nederlandse label.**
   Dat is een ondersteunde staat: een host mag een bestand weglaten of vervangen en het
-  bedieningselement blijft zeggen wat het doet. De bekende gaten in de set staan in
-  `OPEN_ISSUES.md`.
+  bedieningselement blijft zeggen wat het doet. Een gat in de set dat nog
+  openstaat, is een issue op GitHub.
 
 ## Responsief gedrag
 

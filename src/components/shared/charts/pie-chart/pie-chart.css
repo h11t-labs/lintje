@@ -23,7 +23,7 @@
 .lintje-pie-chart__total { padding-left: var(--space-4); text-align: right; }
 .lintje-pie-chart__value,
 .lintje-pie-chart__total { font-variant-numeric: tabular-nums; }
-.lintje-pie-chart__label { display: flex; align-items: center; gap: 6px; }
+.lintje-pie-chart__label { display: flex; align-items: center; gap: var(--space-2); }
 .lintje-pie-chart__total-label,
 .lintje-pie-chart__total {
   font-weight: 700; border-top: 1px solid var(--color-border-default); padding-top: 6px;

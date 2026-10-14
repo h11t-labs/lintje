@@ -54,7 +54,7 @@
 }
 
 /* The 1 px border is transparent, so the primary fill fills it in light; in dark it draws the
-   tint, the only thing that separates a #0E3B6E box from a #282828 page (1.31:1). */
+   tint, the only thing that separates a #0E3B6E box from a #282828 surface (1.31:1). */
 .lintje-button--primary {
   background: var(--color-action-primary);
   color: var(--color-action-primary-text);

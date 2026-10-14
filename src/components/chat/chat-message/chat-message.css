@@ -29,7 +29,7 @@
   display: flex; flex-direction: row-reverse; align-items: center;
   gap: var(--space-2);
 }
-.lintje-chat-message__time { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-chat-message__time { font: var(--text-small); color: var(--color-text-muted); }
 
 /* A term is underlined, never recoloured; dashed gray marks an uncertain one. */
 .lintje-chat-message__term {

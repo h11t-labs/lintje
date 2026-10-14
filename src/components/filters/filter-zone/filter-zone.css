@@ -28,7 +28,7 @@
 .lintje-filter-bar__spacer   { flex: 1; }
 
 .lintje-filter-bar__counter {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: var(--space-2);
   font: var(--text-small); color: var(--color-text-primary);
 }
 .lintje-filter-bar__dot {
@@ -116,14 +116,14 @@
   min-width: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   text-align: left;
-  padding: 0 6px; margin: 0 -6px;
+  padding: 0 var(--space-2); margin: 0 calc(-1 * var(--space-2));
   height: 100%;
 }
 .lintje-summary-bar__sentence:hover { background: var(--color-bg-subtle); }
 .lintje-summary-bar__sentence .lintje-filter-summary__text { overflow: hidden; text-overflow: ellipsis; }
 .lintje-summary-bar__spacer { flex: 1; }
 .lintje-summary-bar__counter {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: var(--space-2);
   font: var(--text-small); color: var(--color-text-muted); flex: none;
 }
 .lintje-summary-bar__dot {

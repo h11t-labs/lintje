@@ -46,7 +46,7 @@
 
 .lintje-cells__label {
   display: flex; align-items: center; gap: var(--space-2);
-  font: var(--text-meta);
+  font: var(--text-small);
   color: var(--color-text-muted);
 }
 .lintje-cells__label .lintje-icon { flex: none; }
@@ -66,13 +66,13 @@
 }
 .lintje-cells__meter { flex: none; }
 .lintje-cells__detail,
-.lintje-cells__missing { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-cells__missing { font: var(--text-small); color: var(--color-text-muted); }
 /* Everything under the value, such as a button in a slot, takes a line of its own. */
 .lintje-cells__extra { flex-basis: 100%; }
 
 .lintje-cells__link { color: var(--color-link); }
 .lintje-cells__action {
-  font: var(--text-meta);
+  font: var(--text-small);
   font-weight: 700;
   color: var(--color-link);
   transition: color var(--dur-hover) var(--ease-in-motion);

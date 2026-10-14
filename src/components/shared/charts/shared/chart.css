@@ -1,4 +1,4 @@
-.lintje-chart { display: flex; flex-direction: column; gap: 6px; min-width: 0; margin: 0; }
+.lintje-chart { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; margin: 0; }
 /* Charts that are as high as their rows (horizontal bars, target progress) center in a taller
    tile instead of leaving the space below them empty. */
 .lintje-chart--rows { margin-block: auto; }
@@ -230,8 +230,8 @@
 /* A legend above the chart keeps 12 px to the axis title below it. */
 .lintje-chart-wrap > .lintje-legend { margin-bottom: var(--space-3); }
 .lintje-legend--right { flex-direction: column; flex-wrap: nowrap; }
-.lintje-legend__item { display: flex; align-items: center; gap: 6px; }
-.lintje-legend__button { display: flex; align-items: center; gap: 6px; font: inherit; color: inherit; }
+.lintje-legend__item { display: flex; align-items: center; gap: var(--space-2); }
+.lintje-legend__button { display: flex; align-items: center; gap: var(--space-2); font: inherit; color: inherit; }
 /* A series switched off: the marker steps back and the name is struck through, at full
    contrast — the strike and `aria-pressed` carry the state, not a faded word. */
 .lintje-legend__item.is-hidden .lintje-legend__marker { opacity: 0.45; }
@@ -271,8 +271,8 @@
   max-width: 320px;
 }
 .lintje-chart-tooltip__title { font-weight: 700; margin-bottom: 4px; }
-.lintje-chart-tooltip__row { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
-.lintje-chart-tooltip__label { display: flex; align-items: center; gap: 6px; }
+.lintje-chart-tooltip__row { display: flex; align-items: center; gap: var(--space-2); justify-content: space-between; }
+.lintje-chart-tooltip__label { display: flex; align-items: center; gap: var(--space-2); }
 .lintje-chart-tooltip__marker { width: 10px; height: 10px; flex: none; }
 .lintje-chart-tooltip__marker--symbol { width: 14px; height: 14px; }
 .lintje-chart-tooltip__marker--line { width: 14px; height: 3px; background: currentColor; }

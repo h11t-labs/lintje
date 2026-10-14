@@ -38,14 +38,14 @@ interface Row {
 }
 
 /**
- * The checks that fail today, by `<tag> :: <marker> :: <check> @ <engine>`; each is a line in
- * `docs/OPEN_ISSUES.md`. A check that passes while it matches an entry fails, so the fix takes
+ * The checks that fail today, by `<tag> :: <marker> :: <check> @ <engine>`; each has its GitHub
+ * issue above it. A check that passes while it matches an entry fails, so the fix takes
  * its entry out.
  */
 const KNOWN: RegExp[] = [
-  // The phone's sentence does not stick: its sticky box stays inside the zone's host.
+  // #82: the phone's sentence does not stick; its sticky box stays inside the zone's host.
   /^lintje-filter-bar :: stuck under the (top|side) layout's bar at 390 px :: /,
-  // WebKit scrolls a text field's text into view, not its border and padding.
+  // #127: WebKit scrolls a text field's text into view, not its border and padding.
   /^lintje-form-actions :: the action bar at \d+ px :: scrolls .* @ webkit$/,
 ]
 
@@ -542,7 +542,7 @@ describe('what sticks keeps the focus clear of itself', () => {
         if (known) return
         throw error
       }
-      if (known) expect.fail(`passes: take ${known} out of KNOWN and docs/OPEN_ISSUES.md`)
+      if (known) expect.fail(`passes: take ${known} out of KNOWN`)
     })
   }
 

@@ -9,7 +9,7 @@
  *
  *   l  line          t  title line      T  big title      s  small line    u  link line
  *   b  button        bo outlined button bt text button    i  icon          io icon button
- *   in field         inic field with an icon in it        se select          ta text area
+ *   in field         inic / inl field with an icon right or left   se select   ta text area
  *   cb / cbx  box    ra / rax  radio
  *   tg toggle        seg segments       tab tabs          chip  chip       dot  dot
  *   bar bar          prog progress      bx box            bxa marked box   img  picture
@@ -36,7 +36,7 @@ export const SKETCHES = {
   breadcrumbs: { center: true, rows: 'u20 chev u20 chev l20' },
   'sub-nav': { rows: 's30 / t25 / s35 / u35 / u30 / u35' },
   hero: { frame: 'band', rows: 'T70 / l90 / l70 / u35 chev' },
-  footer: { frame: 'band', rows: 't70 / s25 / l30 / l25 / l30' },
+  footer: { frame: 'band', rows: 't70 / s20 s20 s20 / l20 l20 l20 / l15 l15 l15 / rule / s12 s12' },
   'user-menu': { frame: 'band', center: true, rows: 'av chevd' },
   'app-search': { frame: 'page', rows: 'l90 / l70 / l50', over: 'search', layer: 'in / l70 / l50 / l60' },
   notifications: { frame: 'band', center: true, rows: 'i dot' },
@@ -53,7 +53,7 @@ export const SKETCHES = {
   drawer: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'drawer', layer: 't60 / l80 / l60 / in' },
   popover: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'popover', layer: 't60 / l80 / l60' },
   tooltip: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'tooltip', layer: 'l' },
-  toggletip: { rows: 'l40 io', over: 'popover', layer: 't60 / l80' },
+  toggletip: { rows: 'l40 io', over: 'toggletip', layer: 't60 / l80' },
   // Actions
   button: { center: true, rows: 'b28 bo28 bt14' },
   'icon-button': { center: true, rows: 'io' },
@@ -71,7 +71,7 @@ export const SKETCHES = {
   translator: { frame: 'tile', rows: 'se io se / split' },
   'audio-player': { frame: 'tile', rows: 'wave / s10 sp play sp i' },
   'video-player': { rows: 'video' },
-  transcript: { rows: '| s15 s5 / | l80 / | s15 s5 / | l70 / | s15 s5 / | l75' },
+  transcript: { rows: '| s15 s5 / | l80 / | s15 s5 / | l70' },
   'log-viewer': { frame: 'code', rows: 's15 chip l50 / s15 chip l70 / | s15 chip l40 / s15 chip l60' },
   'document-viewer': { frame: 'tile', rows: 't30 sp chevl s15 chev / i i s10 sp i / doc' },
   gallery: { rows: 'img / cell cell cell' },
@@ -91,9 +91,9 @@ export const SKETCHES = {
   'ai-label': { rows: 'chip l50' },
   'level-meter': { center: true, rows: 'meter t20' },
   // Fields
-  field: { rows: 's20 / se50' },
+  field: { rows: 's20 dot / se50' },
   'text-input': { rows: 's20 / in / s20' },
-  find: { rows: 'inic / l50 mark15 l25 / l30 mark15' },
+  find: { rows: 'inl / l50 mark15 l25 / l30 mark15' },
   textarea: { rows: 's30 / ta / sp s20' },
   'number-input': { rows: 's20 / io in io / s40' },
   select: { rows: 's20 / se50' },
@@ -109,39 +109,39 @@ export const SKETCHES = {
   'date-input': { rows: 's20 / inic60 / s20' },
   'time-input': { rows: 's20 / inic30 / s15' },
   'date-range': { rows: 's20 / inic' },
-  'slot-picker': { rows: 's30 / s15 s15 s15 / bx bx bx / bx bx bx / bx bx bx' },
+  'slot-picker': { rows: 's30 / s15 s15 s15 / bx bx bx / bx bx bx' },
   'file-upload': { frame: 'drop', center: true, rows: 'bo35 l30 / s45' },
   'text-editor': { rows: 's20 / [s5 s5 s5 s15 s10] / ta' },
   // Forms
   form: { rows: 's20 / in / s25 / in / s25 sp bo20 b20' },
   'form-section': { frame: 'tile', rows: 'T40 / s20 / in in40' },
-  stepper: { rows: 'io u30 s15 / io t30 / io l40' },
+  stepper: { rows: 'step / s15 sp s15 sp s15' },
   repeater: { rows: 's25 / in in io / bo40 s20' },
   'repeater-row': { rows: 'in in io' },
-  'error-summary': { frame: 'tile', rows: 'i t50 / dot u60 / dot u40' },
+  'error-summary': { frame: 'note', rows: 'i t50 / dot u60 / dot u40' },
   'form-actions': { rows: 'rule / s25 sp bo20 b20' },
   // Filters
   'filter-bar': { rows: 'se se se sp bo / l60' },
   'filter-zone': { frame: 'tile', rows: 'se se / se se' },
-  'filter-sheet': { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'drawer', layer: 't60 / se / se / sp b' },
+  'filter-sheet': { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'sheet', layer: 't50 / se / sp b' },
   // Figures and charts
   'kpi-row': { rows: 'kpi kpi kpi kpi' },
-  kpi: { rows: 'kpi' },
+  kpi: { center: true, rows: 'kpi50' },
   chart: { frame: 'tile', rows: 't40 sp seg20 / s20 s20 / cline' },
   note: { frame: 'tile', rows: 't40 sp s20 / l90 / l90 / l70 / s25' },
   explainer: { frame: 'tile', rows: 't50 sp chevd / t15 l60 / t15 l50' },
   // Map
   map: { frame: 'tile', rows: 't40 / map' },
   // Tables and lists
-  'data-table': { frame: 'tile', rows: 't40 / s30 / rule / t30 sp t15 t15 / l40 sp l15 chip / l35 sp l15 chip / l30 sp l15 chip' },
+  'data-table': { frame: 'tile', rows: 't40 / s30 / rule / t30 sp t15 t15 / l40 sp l15 chip / l35 sp l15 chip' },
   pagination: { center: true, rows: 'chevl s12 play s3 s3 u15 chev' },
-  list: { rows: '| t40 / | s30 / | t35 / | s30 / | t35 / | s30' },
+  list: { rows: 't40 sp s15 / s30 / rule / # t35 sp s15 / s30 / rule / t35 sp s15 / s30' },
   card: { frame: 'tile', rows: 'img / s20 / t50 / l70 / bo' },
   'card-list': { rows: 'card card card' },
   'description-list': { rows: 's20 / l40 / s20 / l50 / s20 / l35 sp u15' },
   cells: { rows: 's15 sp s15 sp s15 / t25 sp t25 sp t25' },
   'tree-view': { rows: 'chevd l30 / ind chevd l35 / ind ind ind l30 / # ind ind ind t30 / ind ind ind l30 / ind chev l25' },
-  'sortable-list': { rows: '[grip l30] / [grip l40] / [grip l25] / [grip l30]' },
+  'sortable-list': { rows: '[grip l30] / [grip l40] / [grip l25]' },
   'activity-log': { rows: 't30 / log' },
   // Chat
   chat: { frame: 'page', rows: 'sp s10 i bubble50 / l60 / tbl' },
@@ -258,7 +258,7 @@ export function sketchOf(recipe) {
   if (center) body.classList.add('guide__sk-frame--center')
   box.append(body)
   if (over) {
-    if (['modal', 'dialog', 'drawer', 'search'].includes(over)) {
+    if (['modal', 'dialog', 'drawer', 'sheet', 'search'].includes(over)) {
       const veil = document.createElement('div')
       veil.className = 'guide__sk-veil'
       box.append(veil)

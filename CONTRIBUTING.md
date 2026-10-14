@@ -15,10 +15,17 @@ Een bijdrage is welkom. Welke weg ze neemt, hangt af van wat ze verandert:
   (het sjabloon *Voorstel*), vóór er code is. Het ontwerp verschuift niet in een pull request
   (regel 1), en een tweede component met dezelfde betekenis is een fout (regel 2): in het issue
   wordt afgesproken wat er komt.
+- **Wat nog openstaat**, staat als issue op GitHub. Een issue met het label `agent` zegt wat er mis
+  is, hoe het moet zijn, waar het zit en wanneer het klaar is, zodat een agent het zonder verdere
+  uitleg kan oppakken. Noemt zo'n issue een regel in `docs/OPEN_ISSUES.md`, dan vervalt die stap:
+  dat bestand bestaat niet meer.
 - **Een kwetsbaarheid** meld je niet in een issue, maar zoals [`SECURITY.md`](SECURITY.md) zegt.
 
 Een pull request slaagt voor `npm run typecheck`, `npm run lint`, `npm run format:check`,
 `npm test` en `npm run build:elements` — de CI draait ze ook, in Chromium, WebKit en Firefox.
+Op macOS 27 start de Firefox van Playwright niet, dus `npm run test:browser:all` draait lokaal
+Chromium en WebKit. WebKit krijgt in elke run één herkansing, omdat de Linux-runner van de CI nu
+en dan een poll mist; een test die twee keer faalt, faalt echt.
 Het is bekeken in de styleguide, in licht **en** donker, op 1440 **en** 390 px; een nieuw element
 of een nieuwe toestand heeft zijn specimen, en het schrijft zijn changelogregel in een eigen
 bestand in [`changes/`](changes/), met zijn nummer erachter — ook een kleine fout of een wijziging
@@ -383,9 +390,8 @@ de selectie van de teksteditor, slepen, media, de `field-sizing`-fallback.
 
 Een contract toetst wat een host of gebruiker merkt: focus, events, wat zichtbaar is en waar het
 staat ten opzichte van iets anders. Geen pixelwaarden die de CSS al vastlegt. Een rij die vandaag
-faalt, staat in de `KNOWN`-lijst van haar bestand met een regel in
-[`docs/OPEN_ISSUES.md`](docs/OPEN_ISSUES.md); een entry die nergens meer op past, laat de test
-falen, zodat de fix hem weghaalt.
+faalt, staat in de `KNOWN`-lijst van haar bestand, met het nummer van haar issue erboven; een entry
+die nergens meer op past, laat de test falen, zodat de fix hem weghaalt.
 
 ## Events
 
