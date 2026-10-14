@@ -488,11 +488,12 @@ describe('the header of the top layout', () => {
   })
 
   it('stands a panel and its tabs on the hero lighter than the hero, in dark too', () => {
-    // Lighter is higher in dark: menu, hero, panel (surface), inactive tab (subtle).
+    // Lighter is higher in dark: menu, page, hero, panel (surface), inactive tab (subtle).
     for (const theme of THEME_NAMES) {
       const dark = tokensFor('dark', theme)
       const ladder = [
         '--color-nav-bg',
+        '--color-bg-page',
         '--color-hero-bg',
         '--color-bg-surface',
         '--color-bg-subtle',
@@ -506,11 +507,17 @@ describe('the header of the top layout', () => {
     }
   })
 
-  it('keeps the menu in dark neutral and apart from the logo bar', () => {
+  it('keeps the menu in dark neutral, the step under the page that the series lacks', () => {
     for (const theme of THEME_NAMES) {
       const dark = tokensFor('dark', theme)
-      expect(dark['--color-nav-bg'], theme).toBe(dark['--neutral-1'])
-      expect(dark['--color-nav-bg'], theme).not.toBe(dark['--color-logobar-bg'])
+      expect(dark['--color-nav-bg'], theme).toBe(dark['--neutral-ground'])
+      expect(oklch(dark['--neutral-ground'])[1]).toBeLessThan(0.001)
+      // As far under the page as the page lies under the surface.
+      const [surface, page, ground] = ['--neutral-0', '--neutral-1', '--neutral-ground'].map(
+        (name) => oklch(dark[name])[0],
+      )
+      expect(page - ground).toBeCloseTo(surface - page, 2)
+      expect(dark['--color-bg-inset'], theme).toBe(dark['--neutral-ground'])
     }
   })
 
@@ -605,7 +612,7 @@ describe('contrast', () => {
 
     it(`draws ${theme}'s focus ring on the theme fill at 3:1`, () => {
       // Orange is 1.89:1 on the rijksoverheid menu and 1:1 on Defensie's: on the
-      // theme fill the ring is white in light. In dark the menu is neutral-1, and
+      // theme fill the ring is white in light. In dark the menu is a neutral, and
       // the ring there is the orange of every other surface.
       const light = tokensFor('light', theme)
       const dark = tokensFor('dark', theme)
