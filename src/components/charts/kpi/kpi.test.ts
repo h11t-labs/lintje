@@ -239,7 +239,18 @@ describe('lintje-kpi gauge', () => {
     expect(bar?.getAttribute('aria-label')).toBe('11 op een schaal van 0 tot 30, norm 15')
     expect((query(element, '.lintje-gauge__bar-fill') as HTMLElement).style.width).toMatch(/^36\.6/)
     expect((query(element, '.lintje-gauge__mark') as HTMLElement).style.left).toBe('50%')
-    expect(query(element, '.lintje-gauge__scale-target')?.textContent).toBe('norm 15')
+    expect(query(element, '.lintje-gauge__target-label')?.textContent).toBe('norm 15')
+  })
+
+  it('puts the target above the bar beside its mark, on the side with more room', async () => {
+    const element = await kpi({
+      value: '71%',
+      gauge: { shape: 'linear', max: 100, target: 80, targetLabel: 'norm' },
+    })
+    expect(query(element, '.lintje-gauge__scale')?.textContent).not.toContain('norm')
+    const target = query(element, '.lintje-gauge__target-label') as HTMLElement
+    expect(target.style.marginLeft).toBe('80%')
+    expect(target.classList.contains('lintje-gauge__target-label--end')).toBe(true)
   })
 
   it('keeps the scale and the target but draws no fill without data', async () => {

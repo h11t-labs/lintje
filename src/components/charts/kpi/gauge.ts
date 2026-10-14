@@ -118,18 +118,32 @@ function linear(view: GaugeView, figure: TemplateResult): TemplateResult {
   const fill = ready && value != null ? scale.share(value) : null
   const hasTarget = !view.loading && gauge.target != null
   const at = hasTarget ? scale.share(gauge.target!) : 0
-  // The target's label moves inward near an end, where the end's number stands.
-  const anchor = at > 0.8 ? 'end' : at < 0.2 ? 'start' : 'middle'
+  // The label stands above the bar beside its mark, on the side with more room, so it never meets
+  // the ends' numbers or leaves the bar's span.
+  const side = at < 0.5 ? 'start' : 'end'
   return html`${figure}
     <div class=${classMap({ 'lintje-gauge': true, 'lintje-gauge--linear': true, 'is-drawn': view.drawn })}
          role="img" aria-label=${description(view, scale)}>
-      <div class="lintje-gauge__bar">
+      <div class="lintje-gauge__plot">
         ${
-          fill == null
+          // The row stays while loading, so the bar does not move when the target arrives.
+          gauge.target == null
             ? nothing
-            : html`<div class="lintje-gauge__bar-fill"
-                ${styleProps({ width: `${fill * 100}%`, background: view.color })}></div>`
+            : html`<div class="lintje-gauge__target">${
+                hasTarget
+                  ? html`<span class="lintje-gauge__target-label lintje-gauge__target-label--${side}"
+                      ${styleProps({ marginLeft: `${at * 100}%` })}>${targetText(gauge)}</span>`
+                  : html`&nbsp;`
+              }</div>`
         }
+        <div class="lintje-gauge__bar">
+          ${
+            fill == null
+              ? nothing
+              : html`<div class="lintje-gauge__bar-fill"
+                  ${styleProps({ width: `${fill * 100}%`, background: view.color })}></div>`
+          }
+        </div>
         ${
           hasTarget
             ? html`<span class="lintje-gauge__mark" ${styleProps({ left: `${at * 100}%` })}></span>`
@@ -138,12 +152,6 @@ function linear(view: GaugeView, figure: TemplateResult): TemplateResult {
       </div>
       <div class="lintje-gauge__scale">
         <span>${formatNumber(scale.min)}</span>
-        ${
-          hasTarget
-            ? html`<span class="lintje-gauge__scale-target lintje-gauge__scale-target--${anchor}"
-                ${styleProps({ left: `${at * 100}%` })}>${targetText(gauge)}</span>`
-            : nothing
-        }
         <span>${formatNumber(scale.max)}</span>
       </div>
     </div>`

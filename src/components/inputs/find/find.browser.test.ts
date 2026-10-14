@@ -63,17 +63,11 @@ describe('lintje-find keeps its size', () => {
     expect(element.shadowRoot!.activeElement).toBe(input)
   })
 
-  it('gives the focus to a step button pressed from elsewhere, where the browser focuses buttons', async () => {
-    // Safari on macOS leaves the focus where it was when a button is clicked; others move it.
-    const probe = document.body.appendChild(document.createElement('button'))
-    probe.textContent = 'proef'
-    await userEvent.click(probe)
-    const buttonsTakeFocus = document.activeElement === probe
-    probe.remove()
+  it('gives the focus to a step button pressed from elsewhere, never to the page', async () => {
     const element = await mount({ value: 'aanvraag', total: 7, current: 2 })
     const next = element.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-find__button--next')!
     await userEvent.click(next)
-    if (buttonsTakeFocus) expect(element.shadowRoot!.activeElement).toBe(next)
-    else expect(element.shadowRoot!.activeElement).toBeNull()
+    expect(element.shadowRoot!.activeElement).toBe(next)
+    expect(next.matches(':focus-visible')).toBe(false)
   })
 })
