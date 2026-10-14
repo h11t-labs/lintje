@@ -74,7 +74,7 @@ interface Row {
 }
 
 /**
- * The rows that fail today, by `<tag> :: <marker>`; each is a line in `docs/OPEN_ISSUES.md`. A
+ * The rows that fail today, by `<tag> :: <marker>`; each has its GitHub issue above it. A
  * row that passes while it matches an entry fails, so the fix takes its entry out.
  */
 const KNOWN: RegExp[] = []
@@ -1344,7 +1344,7 @@ describe('the view below 768 px', () => {
         if (known) return
         throw error
       }
-      if (known) expect.fail(`passes: take ${known} out of KNOWN and docs/OPEN_ISSUES.md`)
+      if (known) expect.fail(`passes: take ${known} out of KNOWN`)
     })
   }
 

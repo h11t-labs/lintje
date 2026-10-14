@@ -137,3 +137,7 @@ setHostConfig({ scrollRoot: () => document.querySelector('#content') })
 
 Houd de elementen buiten elke voorouder met een `transform`, `filter` of `contain`: de scrim van een modal
 is `position: fixed` en zou relatief worden aan die voorouder.
+
+De bovenindeling van `lintje-shell` zet haar navigatiebalk vast aan het venster, dus die vraagt een pagina die
+zelf scrolt. Scrollt je applicatie een eigen container, kies dan de zij-indeling (`layout="side"`): die werkt
+met een eigen `scrollRoot`.

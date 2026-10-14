@@ -14,7 +14,7 @@ bevat geen maten. Elk soort feit heeft één plek:
 | De properties, events en slots van een tag | de broncode; de build leest de referentie daaruit |
 | Hoe het eruitziet, in elke toestand, licht en donker, met die referentie | `examples/styleguide/` |
 | De regels voor het wijzigen van de code | [`AGENTS.md`](../AGENTS.md), [`CONTRIBUTING.md`](../CONTRIBUTING.md) |
-| Wat onbeslist is of afwijkt | [`OPEN_ISSUES.md`](OPEN_ISSUES.md) |
+| Wat nog openstaat | de [issues op GitHub](https://github.com/h11t-labs/lintje/issues) |
 
 Een besluit dat voor meer dan één element geldt, hoort hier. Een waarde niet: die hier herhalen
 maakt een tweede bron die veroudert.
@@ -764,8 +764,8 @@ een balk, en halen hun aanwijsdoel via het klikgebied in de richting waar ze rui
   [`assets/README.md`](../assets/README.md).
 - **Een naam zonder bestand tekent niets en het bedieningselement toont zijn Nederlandse label.**
   Dat is een ondersteunde staat: een host mag een bestand weglaten of vervangen en het
-  bedieningselement blijft zeggen wat het doet. De bekende gaten in de set staan in
-  `OPEN_ISSUES.md`.
+  bedieningselement blijft zeggen wat het doet. Een gat in de set dat nog
+  openstaat, is een issue op GitHub.
 
 ## Responsief gedrag
 
