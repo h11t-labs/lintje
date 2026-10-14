@@ -705,14 +705,18 @@
     /* The hover goes UP in dark: the light mix would put a near-black fill on the near-black page. */
     --primary-hover: color-mix(in srgb, var(--primary), white 12%);
 
-    --color-bg-page: var(--neutral-0);
-    --color-bg-title: var(--neutral-0);
-    /* The hero's wash sits halfway between the menu (L 0.231) and the page (L 0.277), below the
-       page as in light: a panel or tab on it is lighter than its ground. */
-    --primary-wash: oklch(from var(--primary) 0.254 min(c, 0.02) h);
+    /* The order of light holds: menu under page under surface. The series has no step between
+       the menu (neutral-1, L 0.231) and the surface (L 0.277), so the page is their midpoint
+       (L 0.252); neutral-1 itself was too dark for the menu's step under it. */
+    --color-bg-page: color-mix(in srgb, var(--neutral-0), var(--neutral-1));
+    --color-bg-title: var(--color-bg-page);
+    /* The hero's wash sits halfway between the menu and the page, under the page as in light:
+       a panel or tab on it is lighter than its ground. */
+    --primary-wash: oklch(from var(--primary) 0.241 min(c, 0.02) h);
 
     /* The filter zone must read as a band, so in dark it steps UP to neutral-2 (neutral-1 turned
-       the fields in it into light boxes). `--color-bg-inset` keeps neutral-1: "sunken". */
+       the fields in it into light boxes). `--color-bg-inset` is "sunken": neutral-1, under the
+       page, as in light. */
     --color-bg-filter: var(--neutral-2);
     --color-bg-inset: var(--neutral-1);
 
@@ -745,9 +749,10 @@
     /* Lintblauw has too little contrast on the dark surface; the house style lightens it. */
     --color-logo-ribbon: var(--ribbon-blue-dark);
 
-    /* The menu is neutral in dark: near-black, in the rail and in the bar alike, so in the top
-       layout it stays its own band under the logo bar. Hover and active are one step up, as they
-       are one fill in light; the edge is the text tint, as the line tint is 3:1 on neutral-0 only. */
+    /* The menu is neutral in dark: near-black, under the page, in the rail and in the bar alike,
+       so it stays its own band beside the page and under the logo bar. Hover and active are one
+       step up, as they are one fill in light; the edge is the text tint, as the line tint is
+       3:1 on neutral-0 only. */
     --color-nav-bg: var(--neutral-1);
     --color-nav-text: var(--neutral-6);
     --color-nav-text-sub: var(--neutral-5);

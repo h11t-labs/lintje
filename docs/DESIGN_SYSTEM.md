@@ -92,6 +92,8 @@ wegzakken in de pagina.
 **Donker is geen inversie.** Het is de reeks van Logius: dezelfde voor elk thema behalve de
 primaire kleur. Donker herdefinieert de zeven `--neutral-*` en laat de paar namen waarvan de
 betekenis verandert ergens anders naar wijzen. Een losse donkere kleur wordt nooit geschreven.
+De reeks mist een stap tussen het menu en het oppervlak; de pagina is daar het midden van die
+twee.
 
 Wit en bijna-zwart die in beide modi gelijk moeten blijven (tekst op een primaire knop, op het
 menu, een QR-code), zijn `--ink-white` en `--ink-black`, geen neutralen. Een QR-code wordt in
@@ -120,10 +122,11 @@ tintladder van de datakleuren blijft een aandeel wit: dat is die van de Rijkshui
 
 Vijf gevolgen:
 
-- **Het menu in donker is de stap onder de pagina**: bijna-zwart en neutraal, hetzelfde in de
-  rail en in de balk, zodat het een eigen band is naast de pagina en onder de logobalk; hover en
-  actief van een item zijn een stap hoger. Pagina en tegels delen daar het oppervlak, en de rand
-  scheidt ze; in licht is de pagina een stap onder het oppervlak.
+- **De volgorde van licht houdt in donker: menu onder pagina onder oppervlak.** Het menu is
+  bijna-zwart en neutraal, hetzelfde in de rail en in de balk, zodat het een eigen band is naast
+  de pagina en onder de logobalk; hover en actief van een item zijn een stap hoger. De pagina
+  ligt halverwege het menu en het oppervlak, zodat een tegel, een band en de logobalk erop staan
+  en niet alleen hun rand ze scheidt.
 - **Elke primaire vulling tekent een rand in `--color-action-primary-border`.** Onzichtbaar in
   licht; in donker het enige dat het vak een rand geeft.
 - **Een woord op een statusoppervlak neemt `--color-link-on-status`**: geen tint van de primaire
