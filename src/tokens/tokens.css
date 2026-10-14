@@ -243,16 +243,19 @@
   --text-h1-display: 700 2.5rem/1.1 var(--font-ui);
   --text-h2: 700 1.25rem/1.25 var(--font-ui);
   --text-tile-title: 700 1rem/1.3 var(--font-ui);
-  --text-tile-sub: 400 0.875rem/1.35 var(--font-ui);
   --text-kpi: 700 2rem/1.1 var(--font-ui);
   --text-kpi-mobile: 700 1.5rem/1.1 var(--font-ui);
   --text-kpi-secondary: 700 1.25rem/1.1 var(--font-ui);
   --text-body: 400 1rem/1.5 var(--font-ui);
-  /* The text being translated and its translation: larger than body, read at a glance. */
+  /* Larger than body, read at a glance: the text being translated, a hero's introduction, a
+     transcript in its large size. */
   --text-translation: 400 1.25rem/1.5 var(--font-ui);
   --text-ui: 400 1rem/1.4 var(--font-ui);
+  /* Secondary text is one token: a hint, a sub-line, a meta line, a date. */
   --text-small: 400 0.875rem/1.45 var(--font-ui);
-  --text-meta: 400 0.875rem/1.4 var(--font-ui);
+  /* Former names of the same token; they go with the next breaking release. */
+  --text-meta: var(--text-small);
+  --text-tile-sub: var(--text-small);
   --text-table: 400 1rem/1.4 var(--font-ui);
   --text-table-head: 700 0.875rem/1.3 var(--font-ui);
   --text-axis: 400 0.75rem/1.2 var(--font-ui);

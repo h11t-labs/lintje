@@ -19,7 +19,7 @@
 }
 .lintje-conflict-alert__label { margin-bottom: var(--space-1); font-size: 0.875rem; font-weight: 700; }
 .lintje-conflict-alert__versions { overflow-wrap: anywhere; }
-.lintje-conflict-alert__legend { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-conflict-alert__legend { font: var(--text-small); color: var(--color-text-muted); }
 
 @media screen and (max-width: 767px) {
   .lintje-conflict-alert__actions { flex-direction: column; align-self: stretch; }

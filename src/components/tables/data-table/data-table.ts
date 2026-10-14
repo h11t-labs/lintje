@@ -955,7 +955,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
           ? nothing
           : html`<lintje-announcement
               compact
-              .data=${{ kind: 'warning', text: data.message ?? '', live: true }}
+              .data=${{ kind: 'error', text: data.message ?? '', live: true }}
             ></lintje-announcement>`
       default:
         return this.table(this.#edges)

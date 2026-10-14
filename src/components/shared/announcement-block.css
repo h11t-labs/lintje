@@ -22,7 +22,7 @@
 .lintje-announcement__content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
 .lintje-announcement__title { font: var(--text-tile-title); color: var(--color-text-primary); }
 .lintje-announcement__text { font: var(--text-ui); line-height: 1.45; color: var(--color-text-primary); }
-.lintje-announcement__meta { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-announcement__meta { font: var(--text-small); color: var(--color-text-muted); }
 .lintje-announcement__link { color: var(--color-link-on-status); font-weight: 700; }
 /* The `action` slot keeps its own width: under the text, or beside it where the announcement is wide. */
 .lintje-announcement__action::slotted(*) { align-self: flex-start; margin-left: calc(var(--space-5) + var(--space-2)); }

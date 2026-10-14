@@ -58,7 +58,7 @@
 .lintje-tile__heading--icon .lintje-tile__title,
 .lintje-tile__heading--icon .lintje-tile__sub { grid-column: 2; }
 .lintje-tile__title { font: var(--text-tile-title); color: var(--color-text-primary); }
-.lintje-tile__sub { font: var(--text-tile-sub); color: var(--color-text-muted); margin-top: 2px; }
+.lintje-tile__sub { font: var(--text-small); color: var(--color-text-muted); margin-top: 2px; }
 /* The actions are 40 px icon buttons beside a title of one line: they stand out above and below
    it, so the head is the title's height and a tile without a subtitle keeps no empty band. */
 .lintje-tile__actions {
@@ -89,7 +89,7 @@
 }
 
 .lintje-tile__footnote {
-  font: var(--text-meta);
+  font: var(--text-small);
   color: var(--color-text-muted);
   border-top: 1px solid var(--color-border-default);
   padding-top: var(--space-2);

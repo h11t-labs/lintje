@@ -241,7 +241,7 @@ export class LintjeTile extends LintjeGridItemElement {
           ${styleProps({ minHeight: height })}
         >
           ${renderAnnouncementBlock({
-            kind: 'warning',
+            kind: 'error',
             text: this.message,
             live: true,
             filled: this.filled === this.regionText,

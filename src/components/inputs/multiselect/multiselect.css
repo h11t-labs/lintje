@@ -3,7 +3,7 @@
 /* --- Multi-select --------------------------------------------------------- */
 .lintje-multiselect { position: relative; }
 .lintje-multiselect__field {
-  display: flex; align-items: center; gap: 6px; flex-wrap: nowrap;
+  display: flex; align-items: center; gap: var(--space-2); flex-wrap: nowrap;
   width: 100%; min-height: var(--h-control);
   padding: 0 var(--space-2);
   border: 1px solid var(--color-border-field);
@@ -25,9 +25,9 @@
   font: var(--text-ui);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.lintje-multiselect__placeholder { color: var(--color-text-placeholder); font-size: 1rem; padding-left: 6px; }
+.lintje-multiselect__placeholder { color: var(--color-text-placeholder); font-size: 1rem; padding-left: var(--space-2); }
 .lintje-multiselect__chip {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: inline-flex; align-items: center; gap: var(--space-2);
   height: var(--h-chip-field);
   padding: 0 0 0 var(--space-2);
   background: var(--color-bg-subtle);

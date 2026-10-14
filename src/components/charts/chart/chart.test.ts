@@ -262,13 +262,13 @@ describe('lintje-chart table of a histogram', () => {
 })
 
 describe('lintje-chart error state', () => {
-  it('hands the error to the tile, which draws the live warning and keeps its box', async () => {
+  it('hands the error to the tile, which draws the live error and keeps its box', async () => {
     const element = await tile({ ...DATA, state: 'error', message: 'De bron reageerde niet.' })
     const frame = element.renderRoot.querySelector('lintje-tile')!
     expect(frame.state).toBe('error')
     expect(frame.message).toBe('De bron reageerde niet.')
     expect(
-      frame.shadowRoot!.querySelector('.lintje-announcement--warning[role="status"]'),
+      frame.shadowRoot!.querySelector('.lintje-announcement--error[role="status"]'),
     ).not.toBeNull()
   })
 

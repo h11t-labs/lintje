@@ -62,8 +62,7 @@
 .lintje-hero__description {
   margin: 0;
   max-width: var(--w-text);
-  font-size: 1.25rem;
-  line-height: 1.4;
+  font: var(--text-translation);
   text-wrap: pretty;
 }
 
@@ -93,5 +92,5 @@
     padding-bottom: calc(var(--space-8) + var(--hero-overlap));
   }
   .lintje-hero__title { font: var(--text-h1); }
-  .lintje-hero__description { font-size: 1.125rem; }
+  .lintje-hero__description { font: var(--text-body); }
 }

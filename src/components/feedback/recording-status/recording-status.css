@@ -25,7 +25,7 @@
 .is-good .lintje-recording-status__step.is-lit { background: var(--color-success); }
 .is-weak .lintje-recording-status__step.is-lit { background: var(--color-warning); }
 .lintje-recording-status__words { display: flex; flex-direction: column; line-height: 1.2; }
-.lintje-recording-status__sub { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-recording-status__sub { font: var(--text-small); color: var(--color-text-muted); }
 
 /* Forced colours drop the fills: the bars keep a border, the words carry the rest. */
 @media (forced-colors: active) {

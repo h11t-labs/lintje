@@ -25,6 +25,7 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
 import '../../feedback/progress-bar/progress-bar'
 import { focusTarget } from '../../shared/focus-trap'
+import { TONE_ICON } from '../../shared/tone'
 import { LintjeInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
 import fileUploadCss from './file-upload.css?inline'
@@ -325,7 +326,7 @@ export class LintjeFileUpload extends LintjeInputElement {
     const icon = {
       busy: 'op-kantoor-document-blanco',
       done: 'functioneel-vinkje',
-      error: 'functioneel-waarschuwing',
+      error: TONE_ICON.error,
     }[row.state]
     const known = typeof row.progress === 'number'
     const detail = busy

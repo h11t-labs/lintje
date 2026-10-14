@@ -50,7 +50,7 @@
 .lintje-stepper__head + .lintje-stepper__description,
 .lintje-stepper__head + .lintje-stepper__meta { margin-top: calc((var(--h-chip-field) - var(--h-target)) / 2); }
 .lintje-stepper__description { margin: 0 0 var(--space-1); color: var(--color-text-secondary); }
-.lintje-stepper__meta { font: var(--text-meta); color: var(--color-text-secondary); }
+.lintje-stepper__meta { font: var(--text-small); color: var(--color-text-secondary); }
 
 .lintje-stepper__marker {
   display: inline-flex; align-items: center; justify-content: center;
@@ -84,7 +84,7 @@
 }
 .lintje-stepper__name--link:hover { color: var(--color-link-hover); }
 
-.lintje-stepper__errors { font: var(--text-meta); font-weight: 700; color: var(--color-error-text); }
+.lintje-stepper__errors { font: var(--text-small); font-weight: 700; color: var(--color-error-text); }
 
 .lintje-stepper--phone { display: flex; flex-direction: column; gap: var(--space-2); }
 .lintje-stepper__summary {

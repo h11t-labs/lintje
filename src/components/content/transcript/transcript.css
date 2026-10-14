@@ -94,7 +94,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.lintje-transcript__now { font: var(--text-meta); color: var(--color-text-muted); }
+.lintje-transcript__now { font: var(--text-small); color: var(--color-text-muted); }
 
 /* The timecode reaches the 48 px target through a transparent hit area above and below only. */
 .lintje-transcript__time {
@@ -121,7 +121,7 @@
 .lintje-transcript__time.is-static::after { content: none; }
 
 .lintje-transcript__text { margin: 0; font: var(--text-body); }
-:host([size='large']) .lintje-transcript__text { font-size: 1.375rem; line-height: 1.5; }
+:host([size='large']) .lintje-transcript__text { font: var(--text-translation); }
 /* Live: what the recogniser may still change reads as provisional, the caret as where it is. */
 .lintje-transcript__pending { font-style: italic; color: var(--color-text-muted); }
 .lintje-transcript__caret {
@@ -152,7 +152,7 @@
 }
 .lintje-transcript__note:not(.has-note) { display: none; }
 .lintje-transcript__note-text { min-width: 0; max-width: var(--w-text); font: var(--text-small); }
-:host([size='large']) .lintje-transcript__note-text { font-size: 1.125rem; }
+:host([size='large']) .lintje-transcript__note-text { font: var(--text-body); }
 ::slotted([slot='lead']) {
   /* An expander here sets its title in the speakers' column and its content in the text's. */
   --lintje-expander-label: var(--lintje-transcript-who);
