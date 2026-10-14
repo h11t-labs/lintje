@@ -28,8 +28,8 @@ niet.
 7. **Een host stelt samen.** Hij zet `data` op een tag en luistert naar zijn events.
    Domeinlogica hoort niet in een bouwsteen.
 8. **Beide modi en alle zes thema's blijven werken.** Test licht *en* donker. Donker herdefinieert
-   de zeven `--neutral-*` en wijst opnieuw aan wat van betekenis verandert — nooit een losse
-   donkere kleur. Een thema zet alleen `--primary` en `--accent`, in `tokens/themes.css`, dat op
+   de zeven `--neutral-*`, leidt de stap onder de pagina ervan af (`--neutral-ground`) en wijst
+   opnieuw aan wat van betekenis verandert — nooit een losse donkere kleur. Een thema zet alleen `--primary` en `--accent`, in `tokens/themes.css`, dat op
    documentniveau blijft en nooit in een shadow root wordt geadopteerd. In donker neemt een lijn
    `--color-accent-line` (3:1) en tekst `--color-accent-text` / `--color-link` (4.5:1); teken
    nooit een woord in `--color-accent-line`.
