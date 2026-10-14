@@ -11,6 +11,35 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-14
+
+### Toegevoegd
+
+- `<lintje-log-viewer>` toont logregels die live binnenkomen en volgt de nieuwste tot je omhoog
+  scrolt; een balk eronder telt wat erbij kwam. Filteren op niveau, zoeken met `lintje-find`,
+  kopiëren en downloaden, het venster leegmaken, acties van de host, en ook regels zonder tijd of
+  niveau en ruwe uitvoer. (#49)
+
+### Gewijzigd
+
+- Elke grafieklegenda schakelt op dezelfde manier. Elke reeks en elke referentielijn (drempel,
+  mediaan) gaat uit vanuit de legenda, ook in de gestapelde staaf, de grafiek met twee assen, het
+  histogram en de radar; een reeks die alleen staat alleen als er een referentielijn naast staat.
+  De heatmap gebruikt dezelfde legenda boven het rooster, en een uitgezette klasse dimt haar
+  cellen. Wat je uitzet vervaagt, recht en heen en terug even lang, of krimpt in een stapel of
+  groep, en tekent niet opnieuw in; de assen blijven staan. (#57)
+
+### Opgelost
+
+- De schetsen op de kaartjes van de stijlgids kloppen met hun element: de stepper is
+  horizontaal, het filterblad schuift van onderen in, de lijst markeert alleen de gekozen rij, het
+  label van een filter toont zijn stip en de voet heeft kolommen; geen rij wordt meer afgesneden
+  en de lichtste vakjes en vlakken zijn ook in donker te zien. (#92)
+- Het doel van een kerncijfer met een balk als schaal staat boven de balk naast zijn streep, zodat
+  het label nooit meer over het eindgetal van de schaal loopt. (#64)
+- Een klik op een stapknop of de wisknop van `lintje-find` geeft die knop ook in Safari de focus,
+  zodat Enter of spatie verder stapt en de focus niet terugvalt op de pagina. (#50)
+
 ## [0.4.0] - 2026-10-13
 
 ### Toegevoegd
@@ -259,7 +288,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.4.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/h11t-labs/lintje/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/h11t-labs/lintje/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/h11t-labs/lintje/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/h11t-labs/lintje/compare/v0.1.1...v0.2.0
