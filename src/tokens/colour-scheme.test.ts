@@ -488,36 +488,33 @@ describe('the header of the top layout', () => {
   })
 
   it('stands a panel and its tabs on the hero lighter than the hero, in dark too', () => {
-    // Lighter is higher in dark: menu, page, hero, panel (surface), inactive tab (subtle).
+    // Lighter is higher in dark: menu, hero, page, panel (surface), inactive tab (subtle). The
+    // hero and the page share the one step between the menu and the surface, so their gaps
+    // are half-steps.
     for (const theme of THEME_NAMES) {
       const dark = tokensFor('dark', theme)
       const ladder = [
         '--color-nav-bg',
-        '--color-bg-page',
         '--color-hero-bg',
+        '--color-bg-page',
         '--color-bg-surface',
         '--color-bg-subtle',
       ]
+      const gaps = [0.008, 0.008, 0.02, 0.02]
       const lightness = ladder.map((token) => oklch(dark[token])[0])
       for (let i = 1; i < ladder.length; i++) {
         expect(lightness[i], `${theme}: ${ladder[i]} above ${ladder[i - 1]}`).toBeGreaterThan(
-          lightness[i - 1] + 0.02,
+          lightness[i - 1] + gaps[i - 1],
         )
       }
     }
   })
 
-  it('keeps the menu in dark neutral, the step under the page that the series lacks', () => {
+  it('keeps the menu in dark neutral and apart from the logo bar', () => {
     for (const theme of THEME_NAMES) {
       const dark = tokensFor('dark', theme)
-      expect(dark['--color-nav-bg'], theme).toBe(dark['--neutral-ground'])
-      expect(oklch(dark['--neutral-ground'])[1]).toBeLessThan(0.001)
-      // As far under the page as the page lies under the surface.
-      const [surface, page, ground] = ['--neutral-0', '--neutral-1', '--neutral-ground'].map(
-        (name) => oklch(dark[name])[0],
-      )
-      expect(page - ground).toBeCloseTo(surface - page, 2)
-      expect(dark['--color-bg-inset'], theme).toBe(dark['--neutral-ground'])
+      expect(dark['--color-nav-bg'], theme).toBe(dark['--neutral-1'])
+      expect(dark['--color-nav-bg'], theme).not.toBe(dark['--color-logobar-bg'])
     }
   })
 
@@ -544,13 +541,18 @@ describe('the header of the top layout', () => {
     expect(dark['--color-logobar-bg']).toBe('#282828')
   })
 
-  it('puts the page a step below the surface in both modes', () => {
-    for (const mode of ['light', 'dark'] as const) {
-      const values = tokensFor(mode, 'rijksoverheid')
-      expect(values['--color-bg-page'], mode).toBe(values['--neutral-1'])
-      expect(values['--color-bg-page'], mode).not.toBe(values['--color-bg-surface'])
-      expect(values['--color-bg-title'], mode).toBe(values['--color-bg-page'])
-    }
+  it('puts the page under the surface in both modes: a step in light, half a step in dark', () => {
+    const light = tokensFor('light', 'rijksoverheid')
+    const dark = tokensFor('dark', 'rijksoverheid')
+    expect(light['--color-bg-page']).toBe(light['--neutral-1'])
+    expect(light['--color-bg-title']).toBe(light['--color-bg-page'])
+    // Halfway between the menu (neutral-1) and the surface, and sunken is a step under it.
+    const [surface, menu, page] = ['--neutral-0', '--neutral-1', '--color-bg-page'].map(
+      (name) => oklch(dark[name])[0],
+    )
+    expect(page - menu).toBeCloseTo(surface - page, 2)
+    expect(dark['--color-bg-title']).toBe(dark['--color-bg-page'])
+    expect(dark['--color-bg-inset']).toBe(dark['--neutral-1'])
   })
 
   it('draws the ribbon in lintblauw in light and in the house style’s #004A8D in dark', () => {
@@ -612,7 +614,7 @@ describe('contrast', () => {
 
     it(`draws ${theme}'s focus ring on the theme fill at 3:1`, () => {
       // Orange is 1.89:1 on the rijksoverheid menu and 1:1 on Defensie's: on the
-      // theme fill the ring is white in light. In dark the menu is a neutral, and
+      // theme fill the ring is white in light. In dark the menu is neutral-1, and
       // the ring there is the orange of every other surface.
       const light = tokensFor('light', theme)
       const dark = tokensFor('dark', theme)
