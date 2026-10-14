@@ -143,12 +143,13 @@ describe('the radar', () => {
     expect(host.querySelectorAll('.lintje-chart__data-label')).toHaveLength(0)
   })
 
-  it('draws the norm and names it, dashed and fixed, in the legend', () => {
+  it('draws the norm and names it, dashed, as a switch in the legend', () => {
     const { host } = draw(ONE)
-    expect(host.querySelector('.lintje-radar__norm')).not.toBeNull()
+    const drawn = host.querySelector('.lintje-radar__norm')!
     const norm = [...host.querySelectorAll('.lintje-legend__item')].at(-1)!
     expect(norm.textContent).toContain('Norm 7')
-    expect(norm.querySelector('button')).toBeNull()
+    norm.querySelector('button')!.click()
+    expect(drawn.closest('.lintje-chart__series')?.classList).toContain('is-off')
   })
 
   it('breaks a line at a missing value, drops its area and hatches the spoke (rule 15)', () => {
@@ -175,7 +176,7 @@ describe('the legend of a radar', () => {
     const button = [...host.querySelectorAll('.lintje-legend__button')][1]
     expect(button.getAttribute('aria-pressed')).toBe('false')
     const grey = host.querySelector('polyline[stroke="var(--color-chart-secondary)"]')!
-    expect(grey.closest('.lintje-radar__layer')!.classList.contains('is-hidden')).toBe(true)
+    expect(grey.closest('.lintje-chart__series')!.classList.contains('is-off')).toBe(true)
     expect(outer(host)).toBe(before)
     const svg = host.querySelector('svg[tabindex="0"]')!
     svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
@@ -198,7 +199,11 @@ describe('the legend of a radar', () => {
     const name = host.querySelector('.lintje-radar__name')!.getAttribute('y')
     const values = [...host.querySelectorAll('.lintje-radar__value')]
     controller.toggleSeries('Q3 2026')
-    expect(host.querySelectorAll('.lintje-radar__value:not(.is-hidden)')).toHaveLength(0)
+    expect(
+      [...host.querySelectorAll('.lintje-radar__value')].filter(
+        (value) => !value.closest('.lintje-chart__series')?.classList.contains('is-off'),
+      ),
+    ).toHaveLength(0)
     // Unseen, not gone: back on, the same nodes show without fading in again.
     expect([...host.querySelectorAll('.lintje-radar__value')]).toEqual(values)
     expect(outer(host)).toBe(before)
@@ -301,7 +306,7 @@ describe('the radar below 768 px', () => {
     controller.toggleSeries('Q3 2025')
     expect(height()).toBe(h)
     expect(last()).toBe(y)
-    expect(host.querySelectorAll('.lintje-radar__bar.is-hidden')).toHaveLength(6)
+    expect(host.querySelectorAll('.lintje-radar__bar.is-off')).toHaveLength(6)
   })
 
   it('hatches the bar of a missing value instead of drawing 0 (rule 15)', () => {

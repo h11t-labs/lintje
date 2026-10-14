@@ -43,9 +43,7 @@ const SPEC: ScatterSpec = {
   ],
 }
 
-const points = (host: Element) => [
-  ...host.querySelectorAll('path.lintje-chart__mark:not(.is-hidden)'),
-]
+const points = (host: Element) => [...host.querySelectorAll('path.lintje-chart__mark:not(.is-off)')]
 
 /** The centre of a circle mark, from its path (`M cx-r cy a …`); happy-dom lays nothing out. */
 function centre(mark: Element): [number, number] {
@@ -93,13 +91,24 @@ describe('the scatter plot', () => {
     expect(points(host)).toHaveLength(3)
   })
 
-  it('switches a series off from the legend, and keeps the norm out of the toggles', () => {
+  it('switches a series and the norm off from the legend, on the same axes', () => {
     const { host } = draw({ ...SPEC, threshold: 10 })
-    const buttons = [...host.querySelectorAll('.lintje-legend__button')]
-    expect(buttons.map((button) => button.textContent?.trim())).toEqual(['Loket', 'Servicepunt'])
-    expect(host.querySelector('.lintje-legend__marker--dashed')).not.toBeNull()
-    ;(buttons[0] as HTMLButtonElement).click()
+    const axes = () =>
+      [...host.querySelectorAll('.lintje-chart__axis-label')].map((label) => label.textContent)
+    const before = axes()
+    const buttons = [...host.querySelectorAll<HTMLButtonElement>('.lintje-legend__button')]
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual([
+      'Loket',
+      'Servicepunt',
+      'Norm',
+    ])
+    buttons[0].click()
     expect(points(host)).toHaveLength(1)
+    expect(axes()).toEqual(before)
+    buttons[2].click()
+    expect(host.querySelector('.lintje-chart__reference')?.parentElement?.classList).toContain(
+      'is-off',
+    )
   })
 
   it('keeps every point its node under the pointer, the arrow keys and the legend', () => {
@@ -117,7 +126,7 @@ describe('the scatter plot', () => {
     const legend = host.querySelectorAll<HTMLButtonElement>('.lintje-legend__button')
     legend[0].click()
     expect(nodes()).toEqual(before)
-    expect(nodes().filter((node) => node.classList.contains('is-hidden'))).toHaveLength(2)
+    expect(nodes().filter((node) => node.classList.contains('is-off'))).toHaveLength(2)
     legend[0].click()
     expect(nodes()).toEqual(before)
     expect(points(host)).toHaveLength(3)

@@ -16,6 +16,10 @@ export type SvgSlot =
   | undefined
   | readonly SvgSlot[]
 
+/** The legend keys of a chart's references, apart from any series a host calls "Norm". */
+export const THRESHOLD_KEY = 'reference:threshold'
+export const MEDIAN_KEY = 'reference:median'
+
 export interface LegendItem {
   label: string
   color?: string
@@ -24,7 +28,10 @@ export interface LegendItem {
   /** The shape the line carries at its end, drawn on its line marker (rule 13). */
   symbol?: SeriesKey
   hidden?: boolean
-  /** Not a series but a reference, such as a norm: never a toggle. */
+  /**
+   * Never a switch: a key such as "geen gegevens", or a lone series with nothing beside it, which
+   * switched off would leave an empty frame. A reference such as a norm is a switch.
+   */
   fixed?: boolean
   /** What `onToggle` receives; without it the label. */
   key?: string

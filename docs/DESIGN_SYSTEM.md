@@ -615,7 +615,11 @@ de stijlgids. Past geen soort, dan is het een tabel.
   nadruk voor trend, drempel en doel.
 - **De legenda staat boven de grafiek** en is klikbaar. Het symbool zegt welk teken het is: een
   vierkant voor een staaf of vlak, een lijn voor een lijn, de vorm van de reeks voor een punt,
-  gestreept voor een drempel of vergelijking. Een drempel in de legenda is geen schakelaar.
+  gestreept voor een drempel of vergelijking. Elke reeks en elke referentielijn (drempel,
+  mediaan) is een schakelaar; een sleutel als "geen gegevens" niet, en één reeks zonder
+  referentielijn ernaast ook niet, want uitgezet laat ze een lege grafiek achter. Een klasse van
+  de heatmap gaat in dezelfde legenda uit, maar haar cellen dimmen: een lege cel leest als
+  geen meting.
 - **De nullijn is donkerder dan het raster.**
 - **Datalabels zijn alles of niets**: als er één niet past, toont de grafiek er geen, en de
   tooltip geeft nog steeds elke waarde.
@@ -636,8 +640,8 @@ de stijlgids. Past geen soort, dan is het een tabel.
   ondergrens is onbekend; de lagen eronder blijven staan en erboven is het gearceerd. De tooltip
   leest de tekening van boven naar onder en sluit af met het totaal, dat ontbreekt zolang een
   getoonde laag ontbreekt.
-- **Een stapel houdt zijn as als je een laag uitzet**, omdat het geheel het kader is; een lijn
-  herschaalt, omdat je vormen vergelijkt.
+- **Een grafiek houdt haar assen als je iets uitzet**: wat blijft, staat waar het stond, zodat
+  het oog alleen ziet wat verdwijnt. Een stapel houdt het geheel als kader.
 - **De klassen van een histogram raken elkaar**, omdat de as doorloopt: geen ruimte tussen de
   staven, alleen de scheidingslijn in de oppervlaktekleur, en de labels staan op de grenzen van de
   klassen, niet onder hun midden. Een open laatste klasse ("30+") heeft geen grens om op te staan
@@ -769,7 +773,8 @@ naar een volgende regel; ze overlappen nooit.
 
 ## Beweging
 
-- **Twee curves**: wat binnenkomt, vertraagt; wat vertrekt, versnelt.
+- **Twee curves**: wat binnenkomt, vertraagt; wat vertrekt, versnelt. Een vervaging die heen en
+  terug gaat, is de uitzondering: die gaat recht.
 - **Eén duur voor interfacebeweging** (`--dur-base`). Elk onderdeel heeft een eigen token dat
   ernaar wijst, zodat er één kan veranderen zonder een component aan te raken. Hoverfeedback is
   korter; databeweging (een grafiek intekenen, een waarde optellen) is langer.
@@ -780,8 +785,10 @@ naar een volgende regel; ze overlappen nooit.
   opnieuw af.
 - **Punten groeien één voor één uit hun midden**, op de kaart en in een spreidingsdiagram, met de
   timing van de staven; een referentielijn komt daarna in, met haar label.
-- **Een laag die je aan- of uitzet, groeit of krimpt en de rest schuift mee**, zodat het oog
-  volgt wat er verschijnt of verdwijnt.
+- **Wat je in de legenda aan- of uitzet, vervaagt in of uit**; een deel van een stapel of een
+  staaf in een groep krimpt of groeit en de rest schuift mee, zodat het oog volgt wat er verschijnt
+  of verdwijnt. Een vervaging gaat recht, zonder curve, zodat uit precies in is, achteruit: met
+  een curve blijft bij het uitgaan een schim staan. Het tekent nooit opnieuw in.
 - **Een keuze beweegt mee**: het vinkje van een checkbox groeit in bij aanvinken en krimpt weg bij
   uitvinken, op de duur van hoverfeedback.
 - **De focusring is nooit geanimeerd.**

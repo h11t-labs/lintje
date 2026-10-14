@@ -4,6 +4,7 @@ import { ref } from 'lit/directives/ref.js'
 import { styleProps } from '../../../../core/style-props'
 import { formatNumber } from '../../../../core/format'
 import { gridStaggerStyle } from '../shared/stagger'
+import { renderLegend } from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
 import { formatWithUnit, heatmapClassFor, heatmapClasses } from './heatmap-classes'
 import type { ChartOptions } from '../shared/controller'
@@ -65,11 +66,25 @@ export function renderHeatmap(spec: HeatmapSpec, options: ChartOptions): Templat
   controller.measure({})
 
   const selected = controller.selectedCell
-  const dimmed = controller.dimmedClass
+  // A class switched off dims its cells rather than hiding them: an empty cell reads as no
+  // measurement (rule 15).
+  const classKey = (ramp: number) => `class-${ramp}`
+  const isOff = (klass: number) => controller.hiddenSeries.includes(classKey(classes[klass].ramp))
 
   return html`
     <div class="lintje-heatmap" ${ref(controller.attach)} ?data-in-view=${controller.inView}
          data-tooltip-anchor @keydown=${selection.escape}>
+      ${renderLegend({
+        items: classes.map((klass) => ({
+          key: classKey(klass.ramp),
+          label: klass.label,
+          color: klass.color,
+          shape: 'square',
+          hidden: controller.hiddenSeries.includes(classKey(klass.ramp)),
+          fixed: classes.length < 2,
+        })),
+        onToggle: (key) => controller.toggleSeries(key),
+      })}
       <table class="lintje-heatmap__grid ${compact ? 'is-compact' : ''}">
         <caption class="visually-hidden">${description}</caption>
         <thead>
@@ -116,7 +131,7 @@ export function renderHeatmap(spec: HeatmapSpec, options: ChartOptions): Templat
                   <td class="lintje-heatmap__slot">
                     <button
                       type="button"
-                      class="lintje-heatmap__cell lintje-heatmap__cell--class-${classes[klass].ramp} ${isSelected ? 'is-selected' : ''} ${dimmed != null && dimmed !== klass ? 'is-dimmed' : ''} ${mark.state}"
+                      class="lintje-heatmap__cell lintje-heatmap__cell--class-${classes[klass].ramp} ${isSelected ? 'is-selected' : ''} ${isOff(klass) ? 'is-dimmed' : ''} ${mark.state}"
                       data-mark-id=${mark.markId}
                       ${styleProps({
                         '--lintje-cell': classes[klass].color,
@@ -171,24 +186,6 @@ export function renderHeatmap(spec: HeatmapSpec, options: ChartOptions): Templat
           : nothing
       }
 
-      <!-- Class legend: clickable, dims the other classes to .25. -->
-      <ul class="lintje-heatmap__legend">
-        ${classes.map(
-          (klass, i) => html`
-          <li>
-            <button type="button" class="lintje-heatmap__legend-item ${dimmed != null && dimmed !== i ? 'is-dimmed' : ''}"
-                    @click=${() => {
-                      controller.dimmedClass = dimmed === i ? null : i
-                      controller.requestUpdate()
-                    }}
-                    aria-pressed=${dimmed === i}>
-              <span class="lintje-heatmap__swatch lintje-heatmap__swatch--class-${klass.ramp}" ${styleProps({ background: klass.color })}></span>
-              <span>${klass.label}</span>
-            </button>
-          </li>
-        `,
-        )}
-      </ul>
       ${renderTooltip(controller)}
     </div>
   `

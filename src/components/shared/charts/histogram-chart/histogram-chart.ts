@@ -13,6 +13,8 @@ import {
   renderChartFrame,
   renderLegend,
   thinLabels,
+  MEDIAN_KEY,
+  THRESHOLD_KEY,
   type LegendItem,
   type SvgSlot,
 } from '../shared/axes'
@@ -126,16 +128,20 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     return { x, width, center: x + width / 2 }
   })
 
+  const off = (key: string) => controller.hiddenSeries.includes(key)
+  const countsOff = off(label)
   const contentAt = (i: number): TooltipContent => {
     const count = bins[i].count
     return {
       title: binLabel(bins[i], unit),
-      rows: [
-        { label, value: count == null ? 'geen gegevens' : formatNumber(count), color },
-        ...(count != null && total != null && total > 0
-          ? [{ label: 'Aandeel', value: formatPercent((count / total) * 100, 1), color }]
-          : []),
-      ],
+      rows: countsOff
+        ? []
+        : [
+            { label, value: count == null ? 'geen gegevens' : formatNumber(count), color },
+            ...(count != null && total != null && total > 0
+              ? [{ label: 'Aandeel', value: formatPercent((count / total) * 100, 1), color }]
+              : []),
+          ],
     }
   }
   const keys = plotKeys(controller, bins.length, (i) => ({
@@ -180,6 +186,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     ...(onScale(median)
       ? [
           {
+            key: MEDIAN_KEY,
             x: xOf(median),
             text: spec.medianLabel ?? withUnit(`mediaan ${bound(median)}`),
             bold: true,
@@ -190,6 +197,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     ...(onScale(threshold)
       ? [
           {
+            key: THRESHOLD_KEY,
             x: xOf(threshold),
             text: spec.thresholdLabel ?? withUnit(`norm ${bound(threshold)}`),
             bold: false,
@@ -201,14 +209,17 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
   const lineLabels = placeLineLabels(lines, area, controller.fontFamily)
 
   const capitalised = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
+  // The counts are the one series: a switch only while a line would stay.
   const legend: LegendItem[] = [
-    { label, color, shape: 'square' },
+    { label, color, shape: 'square', fixed: lines.length === 0, hidden: countsOff },
     ...(onScale(median)
       ? [
           {
             label: capitalised(spec.medianLabel ?? 'Mediaan'),
             color: 'var(--color-chart-emphasis)',
             shape: 'line' as const,
+            key: MEDIAN_KEY,
+            hidden: off(MEDIAN_KEY),
           },
         ]
       : []),
@@ -218,6 +229,8 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
             label: capitalised(spec.thresholdLabel ?? 'Norm'),
             color: 'var(--color-chart-emphasis)',
             shape: 'dashed' as const,
+            key: THRESHOLD_KEY,
+            hidden: off(THRESHOLD_KEY),
           },
         ]
       : []),
@@ -246,8 +259,8 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
   const lifted = hovered != null ? bins[hovered]?.count : null
 
   const marks: SvgSlot = [
-    bins.map((_, i) => bar(i)),
-    hovered != null && lifted != null
+    svg`<g class="lintje-chart__series ${countsOff ? 'is-off' : ''}">${bins.map((_, i) => bar(i))}</g>`,
+    hovered != null && lifted != null && !countsOff
       ? svg`<rect class="lintje-chart__bar lintje-chart__bar--lifted lintje-chart__segment"
                   x=${slots[hovered].x} y=${yPosition(lifted, max, area)} width=${slots[hovered].width}
                   height=${Math.max(0, baseline - yPosition(lifted, max, area))} fill=${color} />`
@@ -266,16 +279,18 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
       const place = lineLabels[i]
       // A line and its label come in together, after the bars, as a data label does.
       return svg`
-        <g class="lintje-chart__reference">
-          <line x1=${line.x} x2=${line.x} y1=${area.top} y2=${baseline}
-                stroke="var(--color-chart-emphasis)" stroke-width=${line.dashed ? 1 : 1.5}
-                stroke-dasharray=${line.dashed ? '3 3' : nothing} />
-          <text x=${place.x} y=${place.y} text-anchor=${place.anchor}
-                class=${
-                  line.bold
-                    ? 'lintje-chart__data-label lintje-chart__data-label--halo'
-                    : 'lintje-chart__axis-label lintje-chart__axis-label--halo'
-                }>${line.text}</text>
+        <g class="lintje-chart__series ${off(line.key) ? 'is-off' : ''}">
+          <g class="lintje-chart__reference">
+            <line x1=${line.x} x2=${line.x} y1=${area.top} y2=${baseline}
+                  stroke="var(--color-chart-emphasis)" stroke-width=${line.dashed ? 1 : 1.5}
+                  stroke-dasharray=${line.dashed ? '3 3' : nothing} />
+            <text x=${place.x} y=${place.y} text-anchor=${place.anchor}
+                  class=${
+                    line.bold
+                      ? 'lintje-chart__data-label lintje-chart__data-label--halo'
+                      : 'lintje-chart__axis-label lintje-chart__axis-label--halo'
+                  }>${line.text}</text>
+          </g>
         </g>
       `
     }),
@@ -294,7 +309,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     <div class="lintje-chart-wrap ${small ? 'lintje-chart--small' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event)}>
-      ${renderLegend({ items: legend })}
+      ${renderLegend({ items: legend, onToggle: (key) => controller.toggleSeries(key) })}
       ${renderChartFrame(
         {
           fontFamily: controller.fontFamily,
