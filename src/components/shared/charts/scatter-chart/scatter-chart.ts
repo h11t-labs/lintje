@@ -12,7 +12,13 @@ import { lengthPx } from '../../../../core/length'
 import { formatNumber, textWidth } from '../../../../core/format'
 import { chartColor, lineCasing } from '../shared/colors'
 import { markPath, SERIES_KEYS, isSeriesKey, type SeriesKey } from '../shared/series-shapes'
-import { renderChartFrame, renderLegend, type LegendItem, type SvgSlot } from '../shared/axes'
+import {
+  renderChartFrame,
+  renderLegend,
+  THRESHOLD_KEY,
+  type LegendItem,
+  type SvgSlot,
+} from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { markSelection } from '../shared/mark-select'
@@ -137,12 +143,14 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
         ),
     )
     .sort((a, b) => a.point.x - b.point.x || a.point.y - b.point.y)
-  // The shown ones drive the scales, the pointer and the arrow keys.
+  // The shown ones drive the pointer and the arrow keys; every one the scales, so a switch
+  // moves nothing.
   const points = drawable.filter(({ row }) => !hidden(row))
   const indexOf = new Map(points.map((entry, i) => [entry.key, i]))
+  const thresholdOff = controller.hiddenSeries.includes(THRESHOLD_KEY)
 
-  const x = axisScale(Math.max(...points.map(({ point }) => point.x), 1), options.mobile ? 3 : 6)
-  const y = axisScale(Math.max(...points.map(({ point }) => point.y), threshold ?? 0, 1))
+  const x = axisScale(Math.max(...drawable.map(({ point }) => point.x), 1), options.mobile ? 3 : 6)
+  const y = axisScale(Math.max(...drawable.map(({ point }) => point.y), threshold ?? 0, 1))
   const axis = axisColumn(y.ticks, controller.width, { fontFamily: controller.fontFamily })
   const area = chartArea(options, { left: axis.width, bottom: BOTTOM })
   const xPosition = (value: number) => area.left + (plotWidth(area) * value) / x.max
@@ -160,14 +168,17 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
       shape: 'point' as const,
       symbol: row.symbol,
       hidden: hidden(row),
+      // A lone series is a switch only while the norm would stay.
+      fixed: series.length < 2 && threshold == null,
     })),
     ...(threshold != null
       ? [
           {
+            key: THRESHOLD_KEY,
             label: thresholdLabel ?? 'Norm',
             color: 'var(--color-chart-emphasis)',
             shape: 'dashed' as const,
-            fixed: true,
+            hidden: thresholdOff,
           },
         ]
       : []),
@@ -253,13 +264,15 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
     // The norm comes in with its label once the points are drawn.
     threshold != null
       ? svg`
-        <g class="lintje-chart__reference">
-          <line x1=${area.left} x2=${area.width - area.right} y1=${thresholdY} y2=${thresholdY}
-                stroke="var(--color-chart-emphasis)" stroke-width="1" stroke-dasharray="3 3" />
-          <text x=${area.left + 6} y=${thresholdY - 6}
-                class="lintje-chart__axis-label lintje-chart__axis-label--halo">
-            ${thresholdLabel ?? `norm ${withUnit(threshold, unit)}`}
-          </text>
+        <g class="lintje-chart__series ${thresholdOff ? 'is-off' : ''}">
+          <g class="lintje-chart__reference">
+            <line x1=${area.left} x2=${area.width - area.right} y1=${thresholdY} y2=${thresholdY}
+                  stroke="var(--color-chart-emphasis)" stroke-width="1" stroke-dasharray="3 3" />
+            <text x=${area.left + 6} y=${thresholdY - 6}
+                  class="lintje-chart__axis-label lintje-chart__axis-label--halo">
+              ${thresholdLabel ?? `norm ${withUnit(threshold, unit)}`}
+            </text>
+          </g>
         </g>
       `
       : nothing,
@@ -279,7 +292,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
             // The 1 px edge in the surface keeps overlapping points apart; dark yellow takes its
             // text colour there, as its line does. A hidden series' point stays, unseen.
             return svg`
-              <path class="lintje-chart__point lintje-chart__mark ${casing ? '' : 'lintje-chart__segment'} ${mark?.state ?? 'is-hidden'}"
+              <path class="lintje-chart__point lintje-chart__mark ${casing ? '' : 'lintje-chart__segment'} ${mark?.state ?? 'is-off'}"
                     ${styleProps(staggerStyle(rank, drawable.length))}
                     d=${markPath(row.symbol, RADIUS, cx, cy)} fill=${row.color}
                     stroke=${casing ?? nothing} stroke-width=${casing ? 1 : nothing}
@@ -321,7 +334,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
     <div class="lintje-chart-wrap ${small ? 'lintje-chart--small' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event) || selection.escape(event)}>
-      ${renderLegend({ items: legend, onToggle: (label) => controller.toggleSeries(label) })}
+      ${renderLegend({ items: legend, onToggle: (key) => controller.toggleSeries(key) })}
       ${renderChartFrame(
         {
           fontFamily: controller.fontFamily,

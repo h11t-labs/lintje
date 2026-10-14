@@ -367,6 +367,8 @@
      CSS ships unminified so the notes reach it. */
   --ease-in-motion: cubic-bezier(0.2, 0, 0, 1); /* @kind other */
   --ease-out-motion: cubic-bezier(0.4, 0, 1, 1); /* @kind other */
+  /* A fade that runs both ways: straight, so out is in played backwards; a curve leaves a ghost. */
+  --ease-fade: linear; /* @kind other */
   --dur-base: 200ms; /* @kind other */
   --dur-hover: 120ms; /* @kind other */
   --dur-popover: var(--dur-base); /* @kind other */

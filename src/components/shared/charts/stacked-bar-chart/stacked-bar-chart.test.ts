@@ -1,7 +1,8 @@
 /**
  * The bars' marks: a label on a segment takes the text its fill carries, neighbouring
  * segments and slices part with a line in the surface, a missing bar is a hatched slot (rule
- * 15), and the dual-axis chart draws its bars opaque and its dark-yellow line with an edge.
+ * 15), and the dual-axis chart draws its bars opaque and its dark-yellow line with an edge. A
+ * series switched off in the legend keeps its nodes, and the axes stand.
  */
 import { render } from 'lit'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -9,7 +10,7 @@ import { ChartController, type ChartOptions } from '../shared/controller'
 import { renderChart } from '../shared/render-chart'
 import type { ChartSpec } from '../shared/types'
 
-function draw(spec: ChartSpec): HTMLElement {
+function draw(spec: ChartSpec, extra: Partial<ChartOptions> = {}): HTMLElement {
   const host = document.createElement('div')
   document.body.append(host)
   const options: ChartOptions = {
@@ -17,6 +18,7 @@ function draw(spec: ChartSpec): HTMLElement {
     description: 'Een figuur.',
     // Tall enough for a label inside every segment.
     height: 600,
+    ...extra,
   }
   render(renderChart(spec, options), host)
   return host
@@ -181,5 +183,99 @@ describe('the other marks', () => {
     ])
     const green = draw({ kind: 'target-progress', rows: [{ label: 'Noord', value: 125 }] })
     expect(labelClasses(green)).toEqual(['lintje-chart__data-label--inside'])
+  })
+})
+
+const axisLabels = (host: Element) =>
+  [...host.querySelectorAll('.lintje-chart__axis-label')].map((label) => label.textContent?.trim())
+
+const legendButtons = (host: Element) => [
+  ...host.querySelectorAll<HTMLButtonElement>('.lintje-legend__button'),
+]
+
+describe('the legend', () => {
+  it('shrinks a stacked part switched off out of the stack, on the same axis', () => {
+    const host = draw({
+      kind: 'stacked-bar',
+      labels: ['ma', 'di'],
+      series: [
+        { label: 'Online', values: [30, 40] },
+        { label: 'Balie', values: [10, 20] },
+      ],
+    })
+    const before = axisLabels(host)
+    const segments = () => [...host.querySelectorAll('rect.lintje-chart__segment')]
+    const nodes = segments()
+    legendButtons(host)[0].click()
+    // The part keeps its nodes, flat and out of reach, so switched back it does not draw in again.
+    expect(segments()).toEqual(nodes)
+    const online = segments().filter((_, n) => n % 2 === 0)
+    expect(online.map((rect) => rect.getAttribute('height'))).toEqual(['0', '0'])
+    expect(online.every((rect) => rect.getAttribute('aria-hidden') === 'true')).toBe(true)
+    expect(axisLabels(host)).toEqual(before)
+    expect(legendButtons(host)[0].getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('switches either side of a dual-axis chart and its norm off, both axes standing', () => {
+    const host = draw({
+      kind: 'dual-axis',
+      labels: ['ma', 'di'],
+      left: { label: 'Aanvragen', values: [10, 20] },
+      right: { label: 'Doorlooptijd', values: [3, 4] },
+      threshold: 5,
+    })
+    const before = axisLabels(host)
+    const off = (selector: string) =>
+      host.querySelector(selector)?.closest('.lintje-chart__series')?.classList.contains('is-off')
+    const buttons = legendButtons(host)
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual([
+      'Aanvragen (linkeras)',
+      'Doorlooptijd (rechteras)',
+      'Norm 5',
+    ])
+    buttons[0].click()
+    expect(off('rect.lintje-chart__bar')).toBe(true)
+    expect(off('.lintje-chart__line')).toBe(false)
+    legendButtons(host)[1].click()
+    expect(off('.lintje-chart__line')).toBe(true)
+    legendButtons(host)[2].click()
+    expect(host.querySelector('line[stroke-dasharray="4 3"]')?.classList).toContain('is-off')
+    expect(axisLabels(host)).toEqual(before)
+  })
+
+  it('narrows a grouped bar switched off, its neighbour closing up, on the same axis', () => {
+    const host = draw(
+      {
+        kind: 'grouped-bar',
+        labels: ['ma'],
+        series: [
+          { label: 'Deze week', values: [30] },
+          { label: 'Vorige week', values: [60] },
+        ],
+      },
+      { plotArea: { width: 400, height: 300, left: 40, right: 8, top: 16, bottom: 32 } },
+    )
+    const before = axisLabels(host)
+    const widths = () =>
+      [...host.querySelectorAll('rect.lintje-chart__bar')].map((rect) =>
+        Number(rect.getAttribute('width')),
+      )
+    const [first, second] = widths()
+    expect(first).toBe(second)
+    legendButtons(host)[1].click()
+    const [shown, gone] = widths()
+    expect(gone).toBe(0)
+    expect(shown).toBeGreaterThan(first)
+    expect(axisLabels(host)).toEqual(before)
+  })
+
+  it('switches nothing in a legend of one series', () => {
+    const host = draw({
+      kind: 'stacked-bar',
+      labels: ['ma'],
+      series: [{ label: 'Online', values: [30] }],
+    })
+    expect(host.querySelector('.lintje-legend__item')).not.toBeNull()
+    expect(legendButtons(host)).toHaveLength(0)
   })
 })

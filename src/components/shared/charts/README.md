@@ -142,7 +142,7 @@ new ChartController(() => this.requestUpdate())
   `--chart-h-main` van de modal, de hoogte van de body) wordt opgepikt. `inView` is de poort voor het intekenen: de
   markeringen blijven in hun beginstand tot 35 % van de grafiek in beeld is geweest, één keer.
 - `tooltip`, `hoverIndex`, `status`, `hiddenSeries`, `hoverSegment`, `selectedCell`,
-  `dimmedClass`, `mapSelection`, `hiddenLayers`, `leafletView`, `mapHint` — de interactiestaat,
+  `mapSelection`, `hiddenLayers`, `leafletView`, `mapHint` — de interactiestaat,
   met `showTooltip`, `showTooltipAt`, `hideTooltip`, `hoverAt`, `dismiss` (Escape) en
   `toggleSeries` om hem te wijzigen.
 - `detach()` — stopt de observers. Roep hem aan vanuit `disconnectedCallback`.

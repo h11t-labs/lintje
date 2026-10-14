@@ -89,7 +89,8 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
         : (undefined as SeriesKey | undefined),
   }))
   const visible = series.filter((row) => !controller.hiddenSeries.includes(row.label))
-  const allValues = visible
+  // Every series sets the scale, so switching one off moves nothing.
+  const allValues = series
     .flatMap((row) => row.values)
     .filter((value): value is number => value != null)
   const { max, ticks } = axisScale(fixedMax ?? Math.max(...allValues, 1))
@@ -126,6 +127,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
     shape: row.comparison ? 'dashed' : 'line',
     symbol: row.symbol,
     hidden: controller.hiddenSeries.includes(row.label),
+    fixed: series.length < 2,
   }))
 
   const step = Math.max(1, Math.ceil(labels.length / 8))
@@ -190,7 +192,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
       : nothing,
 
     svg`<g class="lintje-chart__reveal">
-      ${visible.map((row) => {
+      ${series.map((row) => {
         const color = colorOf(row)
         const casing = row.comparison ? undefined : lineCasing(color)
         // A missing value breaks the line: no segment bridges it as if it were known (rule 15).
@@ -211,8 +213,9 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
         const last = lastRun[lastRun.length - 1]
         const floor = area.height - area.bottom
 
+        const off = !visible.includes(row)
         return svg`
-          <g>
+          <g class="lintje-chart__series ${off ? 'is-off' : ''}">
             ${drawn.map((run) => {
               const d = run.map((point) => `${point.x},${point.y}`).join(' ')
               return svg`
@@ -297,7 +300,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
          ${styleProps({ '--lintje-event-size': `${EVENT_CHIP}px` })}
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event)}>
-      ${renderLegend({ items: legend, onToggle: (label) => controller.toggleSeries(label) })}
+      ${renderLegend({ items: legend, onToggle: (key) => controller.toggleSeries(key) })}
       ${renderChartFrame(
         {
           fontFamily: controller.fontFamily,

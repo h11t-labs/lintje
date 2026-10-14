@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { thinLabels } from './axes'
+import { render } from 'lit'
+import { renderLegend, thinLabels, type LegendItem } from './axes'
 
 // Without a canvas a character measures 6.5 px, so "wo 2 sep" is 52 px.
 const days = ['wo 2 sep', 'do 3 sep', 'vr 4 sep', 'za 5 sep', 'zo 6 sep', 'ma 7 sep', 'di 8 sep']
@@ -44,5 +45,26 @@ describe('thinLabels', () => {
     ]
     expect(thinLabels(ticks())).toHaveLength(2)
     expect(thinLabels(ticks('end'))).toHaveLength(1)
+  })
+})
+
+describe('the legend', () => {
+  const host = (items: LegendItem[], onToggle?: (key: string) => void) => {
+    const element = document.createElement('div')
+    render(renderLegend({ items, onToggle }), element)
+    return element
+  }
+
+  it('switches every item but a fixed one, a reference too', () => {
+    const element = host(
+      [
+        { label: 'Aanvragen' },
+        { label: 'Norm', shape: 'dashed' },
+        { label: 'geen gegevens', shape: 'hatch', fixed: true },
+      ],
+      () => {},
+    )
+    const buttons = [...element.querySelectorAll('.lintje-legend__button')]
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual(['Aanvragen', 'Norm'])
   })
 })
