@@ -120,10 +120,11 @@ tintladder van de datakleuren blijft een aandeel wit: dat is die van de Rijkshui
 
 Vijf gevolgen:
 
-- **Het menu in donker is de stap onder de pagina**: bijna-zwart en neutraal, hetzelfde in de
-  rail en in de balk, zodat het een eigen band is naast de pagina en onder de logobalk; hover en
-  actief van een item zijn een stap hoger. Pagina en tegels delen daar het oppervlak, en de rand
-  scheidt ze; in licht is de pagina een stap onder het oppervlak.
+- **Het menu in donker staat op de grond van de pagina**: bijna-zwart en neutraal, hetzelfde in
+  de rail en in de balk; de rail heeft zijn schaduw, de balk de logobalk erboven, en hover en
+  actief van een item zijn een stap hoger. De pagina is in beide modi een stap onder het
+  oppervlak, zodat een tegel, een band en de logobalk erop staan en niet alleen hun rand ze
+  scheidt.
 - **Elke primaire vulling tekent een rand in `--color-action-primary-border`.** Onzichtbaar in
   licht; in donker het enige dat het vak een rand geeft.
 - **Een woord op een statusoppervlak neemt `--color-link-on-status`**: geen tint van de primaire
@@ -139,9 +140,9 @@ Vijf gevolgen:
 (`--primary-wash`, in OKLCH): even licht in elk thema, in de eigen kleurtoon van de primaire
 kleur, onder de hero en achter een term. Een aandeel wit in sRGB valt per thema lichter of
 donkerder uit en maakt een donkere primaire kleur grauw. In donker ligt de waas halverwege tussen
-het menu en de pagina, onder de pagina zoals in licht, zodat een paneel of een tab die op de
-hero staat lichter is dan de hero, zoals in licht; het vak van een term is daar het subtiele
-oppervlak.
+de pagina en het oppervlak: lichter is daar hoger, dus de hero staat op de pagina en een paneel
+of een tab die op de hero staat is lichter dan de hero, zoals in licht; het vak van een term is
+daar het subtiele oppervlak.
 
 ### Datakleuren
 

@@ -702,14 +702,14 @@
     /* The hover goes UP in dark: the light mix would put a near-black fill on the near-black page. */
     --primary-hover: color-mix(in srgb, var(--primary), white 12%);
 
-    --color-bg-page: var(--neutral-0);
-    --color-bg-title: var(--neutral-0);
-    /* The hero's wash sits halfway between the menu (L 0.231) and the page (L 0.277), below the
-       page as in light: a panel or tab on it is lighter than its ground. */
+    /* The page keeps neutral-1, a step under the surface as in light, so the menu shares its
+       ground. The hero's wash sits halfway between the page (L 0.231) and the surface (L 0.277):
+       lighter is higher in dark, and a panel or tab on it is lighter than its ground. */
     --primary-wash: oklch(from var(--primary) 0.254 min(c, 0.02) h);
 
     /* The filter zone must read as a band, so in dark it steps UP to neutral-2 (neutral-1 turned
-       the fields in it into light boxes). `--color-bg-inset` keeps neutral-1: "sunken". */
+       the fields in it into light boxes). `--color-bg-inset` keeps neutral-1: "sunken" to the
+       page's level. */
     --color-bg-filter: var(--neutral-2);
     --color-bg-inset: var(--neutral-1);
 

@@ -312,7 +312,7 @@ function tokensFor(
 
 /* --- the specification ---------------------------------------------------- */
 
-/** The dark page and tile surface; the line tint is defined against exactly this. */
+/** The dark surface of a tile and the logo bar; the line tint is defined against exactly this. */
 const DARK_SURFACE = '#282828'
 
 /**
@@ -529,7 +529,7 @@ describe('the header of the top layout', () => {
     }
   })
 
-  it('puts the logo on the surface in both modes: white in light, the dark page in dark', () => {
+  it('puts the logo on the surface in both modes: white in light, the dark surface in dark', () => {
     const light = tokensFor('light', 'rijksoverheid')
     const dark = tokensFor('dark', 'rijksoverheid')
     expect(light['--color-logobar-bg']).toBe('#FFFFFF')
@@ -537,11 +537,13 @@ describe('the header of the top layout', () => {
     expect(dark['--color-logobar-bg']).toBe('#282828')
   })
 
-  it('puts the page a step below the surface in light, and on it in dark', () => {
-    const light = tokensFor('light', 'rijksoverheid')
-    const dark = tokensFor('dark', 'rijksoverheid')
-    expect(light['--color-bg-page']).toBe(light['--neutral-1'])
-    expect(dark['--color-bg-page']).toBe(dark['--color-bg-surface'])
+  it('puts the page a step below the surface in both modes', () => {
+    for (const mode of ['light', 'dark'] as const) {
+      const values = tokensFor(mode, 'rijksoverheid')
+      expect(values['--color-bg-page'], mode).toBe(values['--neutral-1'])
+      expect(values['--color-bg-page'], mode).not.toBe(values['--color-bg-surface'])
+      expect(values['--color-bg-title'], mode).toBe(values['--color-bg-page'])
+    }
   })
 
   it('draws the ribbon in lintblauw in light and in the house style’s #004A8D in dark', () => {
