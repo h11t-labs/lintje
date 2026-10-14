@@ -53,7 +53,7 @@ interface Row {
 }
 
 /**
- * Rows that fail today: each entry is a line in `docs/OPEN_ISSUES.md` and matches a row's name.
+ * Rows that fail today: each entry has its GitHub issue above it and matches a row's name.
  * An entry whose row passes fails the last test, so the fix takes its entry out.
  */
 const KNOWN: RegExp[] = []
@@ -1812,9 +1812,6 @@ describe('the known handoffs', () => {
     // A run of part of the table cannot say what is fixed.
     if (ran < ROWS.length) skip()
     const fixed = KNOWN.filter((entry) => !seen.has(entry)).map(String)
-    expect(
-      fixed,
-      `fixed, so take out of KNOWN and docs/OPEN_ISSUES.md:\n${fixed.join('\n')}`,
-    ).toHaveLength(0)
+    expect(fixed, `fixed, so take out of KNOWN:\n${fixed.join('\n')}`).toHaveLength(0)
   })
 })

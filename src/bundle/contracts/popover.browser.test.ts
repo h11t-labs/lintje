@@ -69,12 +69,14 @@ type Check =
   | 'press inside'
 
 /**
- * What fails today: each entry is a line in `docs/OPEN_ISSUES.md` and matches
+ * What fails today: each entry has its GitHub issue above it and matches
  * `<row> [<context>] :: <check>`. A finding that matches none fails its row; an entry that
  * matches nothing in a whole run fails too, so the fix takes its entry out.
  */
 const KNOWN: RegExp[] = [
+  // #99
   /^lintje-popover \[focus\] :: (tab out|focus away) — still open/,
+  // #98
   /^lintje-date-range \[scroller\] :: on top/,
 ]
 const seen = new Set<RegExp>()
@@ -974,9 +976,6 @@ describe('the known findings', () => {
     const all = CONTEXTS.reduce((sum, context) => sum + placed(context).length, ROWS.length)
     if (ran < all) skip()
     const fixed = KNOWN.filter((entry) => !seen.has(entry)).map(String)
-    expect(
-      fixed,
-      `fixed, so take out of KNOWN and docs/OPEN_ISSUES.md:\n${fixed.join('\n')}`,
-    ).toHaveLength(0)
+    expect(fixed, `fixed, so take out of KNOWN:\n${fixed.join('\n')}`).toHaveLength(0)
   })
 })

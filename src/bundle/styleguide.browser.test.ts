@@ -76,11 +76,14 @@ const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 const NO_FILE_ON_PURPOSE = 'bestaat-niet'
 
 /**
- * What axe finds today: each entry is a line in `docs/OPEN_ISSUES.md` and matches the finding's
- * line below. A finding that matches none fails its element; an entry that matches nothing in a
+ * What axe finds today: each entry has its GitHub issue above it and matches the finding's line
+ * below. A finding that matches none fails its element; an entry that matches nothing in a
  * whole run fails too, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = [/^color-contrast @ .*\.lintje-logobar__environment-(label|short) ::/]
+const KNOWN: RegExp[] = [
+  // #70
+  /^color-contrast @ .*\.lintje-logobar__environment-(label|short) ::/,
+]
 const seen = new Set<RegExp>()
 let drawn = 0
 
@@ -299,9 +302,6 @@ describe('the known findings', () => {
     // A run of part of the style guide cannot say what is fixed.
     if (drawn < ELEMENTS.length * MODES.length * VIEWPORTS.length) skip()
     const fixed = KNOWN.filter((entry) => !seen.has(entry)).map(String)
-    expect(
-      fixed,
-      `fixed, so take out of KNOWN and docs/OPEN_ISSUES.md:\n${fixed.join('\n')}`,
-    ).toHaveLength(0)
+    expect(fixed, `fixed, so take out of KNOWN:\n${fixed.join('\n')}`).toHaveLength(0)
   })
 })

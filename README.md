@@ -104,7 +104,7 @@ opent.
 | [`CHANGELOG.md`](CHANGELOG.md) | wat er veranderde, en wat een host breekt |
 | [`examples/`](examples/index.html) | de voorbeeldapplicaties, met fictieve data |
 | [`assets/`](assets/README.md) | de iconen, de emblemen, de kaartgeometrie en het logo |
-| [`docs/OPEN_ISSUES.md`](docs/OPEN_ISSUES.md) | wat nog openstaat: iconen, tokens, browsercontroles, bekende afwijkingen |
+| [issues op GitHub](https://github.com/h11t-labs/lintje/issues) | wat nog openstaat; met het label `agent` beschreven zodat een agent het kan oppakken |
 | [`SECURITY.md`](SECURITY.md) | een kwetsbaarheid melden |
 
 ## Licentie
