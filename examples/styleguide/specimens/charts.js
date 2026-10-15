@@ -511,9 +511,9 @@ const VARIANT_NAMES = {
   treemap: 'Eén niveau',
   'treemap-nested': 'Twee niveaus',
   'treemap-chosen': 'Een gekozen vlak',
-  'treemap-nested-chosen': 'Een gekozen hoofdpost met onderposten',
+  'treemap-nested-chosen': 'Gekozen hoofdpost met onderposten',
   'treemap-no-labels': 'Zonder datalabels',
-  'treemap-phone': 'Telefoonweergave met een uitgeklapte hoofdpost',
+  'treemap-phone': 'Op een telefoon met een open hoofdpost',
 }
 
 // What a label cannot say, for the note under it.
@@ -634,7 +634,7 @@ const missingValues = [
   },
   {
     label: 'Ontbrekende waarde',
-    note: 'Van Wonen en van Jeugdzorg zijn geen gegevens: geen vlak, en de totaalregel zegt waarzonder.',
+    note: 'Van Wonen en van Jeugdzorg zijn geen gegevens: ze hebben geen vlak, en de totaalregel noemt ze.',
     description: budgetDescription(['Wonen', 'Jeugdzorg']),
     chart: budgetSpec({ nested: true, missing: ['Wonen', 'Jeugdzorg'] }),
   },

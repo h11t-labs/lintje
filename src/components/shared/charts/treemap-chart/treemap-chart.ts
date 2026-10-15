@@ -333,7 +333,8 @@ function drawMap(context: Context, interactive: boolean): TemplateResult {
     // Enter or space on the drawing chooses the part of the area the keys stand on.
     const index = controller.hoverIndex
     if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget) {
-      const click = index == null ? undefined : marks[cells[index].group].click
+      const cell = index == null ? undefined : cells[index]
+      const click = cell ? marks[cell.group].click : undefined
       if (typeof click === 'function') {
         event.preventDefault()
         click()
