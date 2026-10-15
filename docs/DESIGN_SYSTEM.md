@@ -804,7 +804,8 @@ pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
 - **Een keuze beweegt mee**: het vinkje van een checkbox groeit in bij aanvinken en krimpt weg bij
   uitvinken, op de duur van hoverfeedback.
 - **De focusring is nooit geanimeerd.**
-- **Verminderde beweging laat niets weg, alleen de beweging.**
+- **Verminderde beweging laat niets weg, alleen de beweging.** Alleen een vervaging blijft, kort;
+  al het andere, ook de focusring en een kleur, staat meteen.
 
 ## Afdrukken
 
