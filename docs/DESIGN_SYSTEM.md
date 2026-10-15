@@ -222,11 +222,13 @@ pagina heeft de `h1` en de titel de `h2`.
 - **Vaste hoogtes zijn tokens**: rijen, balken, velden, knoppen, chips. Een bedieningselement
   naast een ander neemt de hoogte van dat andere.
 - **Elk aanwijsdoel is minstens `--h-target`.** Een vak dat kleiner tekent, haalt dat via een
-  transparant klikgebied, nooit via een grotere tekening. Twee uitzonderingen: een lijst
+  transparant klikgebied, nooit via een grotere tekening. Drie uitzonderingen: een lijst
   tekstlinks (de kolommen van een footer), waarin elke link een regel tekst op de WCAG
-  AA-ondergrens is (`--h-target-text`), zoals op rijksoverheid.nl; en een dichte rij keuzes — een
+  AA-ondergrens is (`--h-target-text`), zoals op rijksoverheid.nl; een dichte rij keuzes — een
   dag in de datumkiezer, een optie in een keuzelijst, een rij in een boomstructuur — op
-  `--h-option`.
+  `--h-option`; en een strook tussen twee panelen, waarvan het klikgebied over de randen van de
+  panelen valt: een vinger krijgt daar de AA-ondergrens, een muis alleen de strook, omdat een
+  breder gebied de inhoud en de scrollbalk van de panelen afdekt.
 - **Een grid van 12 kolommen.** De tussenruimte is gelijk aan de zijpadding van de pagina en de
   tekstinspringing van de balken erboven, zodat tegels uitlijnen met de tekst erboven.
 - **De inhoud heeft een maximale breedte**, midden in de ruimte die het menu overlaat. Wat de
