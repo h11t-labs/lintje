@@ -42,6 +42,7 @@ import '../code/code'
 import '../highlight/highlight'
 import { LintjeContentTileElement } from '../../shared/content-tile'
 import { COPIED_FOR } from '../../shared/copied'
+import { atEndAfterScroll } from '../../shared/follow'
 import { downloadCsv, downloadText } from '../../shared/download'
 import type { LogEntry, LogFilter, LogLevel, LogViewerData } from '../../../types'
 import {
@@ -87,8 +88,6 @@ const LEVEL_TONE: Record<LogLevel, { tone: BadgeTone; icon?: string }> = {
   debug: { tone: 'subtle' },
 }
 
-/** Pixels from the end that still count as standing at it. */
-const AT_END = 8
 /** New lines are read out at most this often. */
 const SPEAK_EVERY = 5000
 
@@ -147,6 +146,8 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   #sayFrame = 0
   #fitObserver: ResizeObserver | null = null
   #observed: Element | null = null
+  #growth: ResizeObserver | null = null
+  #grown: Element | null = null
   /** The segments' width on one line, once measured. */
   #levelsWidth = 0
   #drawnFit: Fit = 'wide'
@@ -162,6 +163,9 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     this.#fitObserver?.disconnect()
     this.#fitObserver = null
     this.#observed = null
+    this.#growth?.disconnect()
+    this.#growth = null
+    this.#grown = null
     super.disconnectedCallback()
   }
 
@@ -242,6 +246,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
     this.watchFit()
+    this.watchGrowth()
     // A new layout keeps the row's width, so its observer stays silent: measure it again.
     if (this.fit !== this.#drawnFit) {
       this.#drawnFit = this.fit
@@ -270,6 +275,20 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     this.#fitObserver = new ResizeObserver(() => this.refit())
     this.#fitObserver.observe(row)
     this.#observed = row
+  }
+
+  // The rows lay out only once the tile draws its slot, and grow as a line opens: whoever
+  // follows stays at the newest line, also when the log first appears.
+  private watchGrowth(): void {
+    const rows = this.log?.querySelector('.lintje-log-viewer__rows')
+    if (!rows || rows === this.#grown || typeof ResizeObserver === 'undefined') return
+    this.#growth?.disconnect()
+    this.#growth = new ResizeObserver(() => {
+      const log = this.log
+      if (this.following && log) log.scrollTop = log.scrollHeight
+    })
+    this.#growth.observe(rows)
+    this.#grown = rows
   }
 
   private refit(): void {
@@ -308,16 +327,13 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     }
   }
 
-  // Only scrolling up leaves the end, and only arriving at it returns there.
   private readonly onScroll = (): void => {
     const log = this.log
     if (!log) return
-    const atEnd = log.scrollHeight - log.scrollTop - log.clientHeight <= AT_END
-    if (atEnd) {
-      if (!this.following) this.toLatest(false)
-    } else if (log.scrollTop < this.#lastTop - 1 && this.following) {
-      this.following = false
-    }
+    const beyond = log.scrollHeight - log.scrollTop - log.clientHeight
+    const atEnd = atEndAfterScroll(this.following, log.scrollTop, this.#lastTop, beyond)
+    if (atEnd && !this.following) this.toLatest(false)
+    else if (!atEnd) this.following = false
     this.#lastTop = log.scrollTop
   }
 
