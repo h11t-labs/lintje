@@ -877,6 +877,9 @@ kleinste correctie, en leg die hier vast.
 - **Wat niet geopend kan worden, zegt dat in woorden**: een menurij zonder pagina of toegang
   draagt een verborgen "niet beschikbaar" of "geen toegang"; `aria-disabled` op een gewoon element
   zegt niets.
+- **De naam van een knop is het woord dat je ziet, en hij zegt zijn staat één keer**: een knop
+  die zijn woord wisselt ("Menu", "Sluiten"), heeft geen `aria-expanded`; een knop met een vast
+  woord ("Filters") wel.
 - **Een paneel met gereedschap is een disclosure, geen menu** ("Weergave", "Delen"):
   `aria-expanded` zonder `aria-haspopup`, Tab loopt erdoorheen en sluit het bij het verlaten, en
   Escape of een afgerond item geeft de focus terug aan zijn knop.

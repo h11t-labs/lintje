@@ -1485,7 +1485,7 @@ const VIEW_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-filter-zone :: "Filters tonen" hands its focus to "Filters verbergen"',
+    name: 'lintje-filter-zone :: "Filters", opening the zone, keeps its focus',
     run: async () => {
       const element = await zone(false, 0)
       await pressInZone(element, '.lintje-filter-toggle')
@@ -1494,7 +1494,7 @@ const VIEW_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-filter-zone :: the sentence, pressed, hands its focus to "Filters verbergen"',
+    name: 'lintje-filter-zone :: the sentence, pressed, hands its focus to "Filters"',
     run: async () => {
       const element = await zone(false, 0)
       await pressInZone(element, '.lintje-summary-bar__sentence')

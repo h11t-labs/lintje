@@ -112,11 +112,11 @@ export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): Temp
               }`
         }
         <!-- One button in both states, so opening the menu leaves the focus
-             where it is: only the label and the glyph change places. -->
+             where it is: only the label and the glyph change places. Its word says
+             the state, so it has no aria-expanded to say it again. -->
         <button
           type="button"
           class="lintje-mobile-header__button"
-          aria-expanded=${open}
           aria-controls="lintje-mobile-menu-panel"
           @click=${() => {
             shell.menuOpen = !shell.menuOpen

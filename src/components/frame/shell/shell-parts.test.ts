@@ -245,6 +245,20 @@ describe('the open mobile header', () => {
     expect(menuButton(shell)).toBe(before)
     expect(contentOrder(menuButton(shell))).toEqual(['text', 'icon'])
   })
+
+  it('is named by the word it shows, which says the state: no aria-expanded', async () => {
+    const shell = await mount()
+    const button = menuButton(shell)
+    const said = (): unknown[] => [
+      button.getAttribute('aria-label'),
+      button.textContent?.trim(),
+      button.hasAttribute('aria-expanded'),
+    ]
+    expect(said()).toEqual([null, 'Menu', false])
+    await open(shell)
+    expect(said()).toEqual([null, 'Sluiten', false])
+    expect(button.getAttribute('aria-controls')).toBe('lintje-mobile-menu-panel')
+  })
 })
 
 /**
