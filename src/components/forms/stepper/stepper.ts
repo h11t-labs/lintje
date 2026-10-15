@@ -4,7 +4,9 @@
  *
  * The host decides which step is current; the element never reads the URL. A step still to come
  * does nothing: jumping ahead is not possible. A plain click on a done step is sent as
- * `lintje-navigate`, which a host that routes cancels.
+ * `lintje-navigate`, which a host that routes cancels. In a column every step carries its own
+ * content; in a row and on a phone only the current step shows its content, under the row or the
+ * bar.
  *
  * Events: `lintje-navigate` `{ href }`.
  */
@@ -36,6 +38,12 @@ export interface Step {
   meta?: string
   /** A sentence or two about the step, shown only when the steps stand in a column. */
   description?: string
+  /**
+   * The name of the step's slot: a child of `<lintje-stepper>` with `slot="<value>"` is the
+   * step's own content, any Lintje element or plain HTML. It inherits the text colour; the host
+   * decides what it shows.
+   */
+  value?: string
 }
 
 export type StepperLayout = 'row' | 'column'
@@ -122,6 +130,10 @@ export class LintjeStepper extends LintjeElement {
     return this.orientation === 'vertical'
   }
 
+  private get current(): Step | undefined {
+    return this.steps.find((step) => step.state === 'current')
+  }
+
   private fit(): void {
     if (this.vertical) return
     const list = this.renderRoot.querySelector<HTMLElement>('.lintje-stepper__list')
@@ -170,9 +182,16 @@ export class LintjeStepper extends LintjeElement {
     >`
   }
 
+  /** Only with a name: a slot bound to `undefined` would be the default slot and take every child. */
+  private renderContent(step: Step | undefined): TemplateResult | typeof nothing {
+    if (!step?.value) return nothing
+    return html`<div class="lintje-stepper__content"><slot name=${step.value}></slot></div>`
+  }
+
   /** The line to the next step stands on the label's line, so the meta line may run under it. */
   private renderBody(step: Step, last: boolean): TemplateResult {
-    const description = this.layout === 'column' ? step.description : undefined
+    const column = this.layout === 'column'
+    const description = column ? step.description : undefined
     return html`<div class="lintje-stepper__body">
       <div class="lintje-stepper__head">
         ${this.renderName(step)}${
@@ -183,7 +202,7 @@ export class LintjeStepper extends LintjeElement {
       </div>
       ${description ? html`<p class="lintje-stepper__description">${description}</p>` : nothing}${
         step.meta ? html`<span class="lintje-stepper__meta">${step.meta}</span>` : nothing
-      }
+      }${column ? this.renderContent(step) : nothing}
     </div>`
   }
 
@@ -197,6 +216,7 @@ export class LintjeStepper extends LintjeElement {
         <span class="lintje-stepper__count">${text}</span>
       </div>
       <lintje-progress-bar hide-label label=${text} value=${percent}></lintje-progress-bar>
+      ${this.renderContent(this.current)}
     </nav>`
   }
 
@@ -216,6 +236,7 @@ export class LintjeStepper extends LintjeElement {
           </li>`,
         )}
       </ol>
+      ${this.layout === 'row' ? this.renderContent(this.current) : nothing}
     </nav>`
   }
 }

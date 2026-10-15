@@ -179,7 +179,8 @@ export function renderFilterPopover(options: {
   onDraft: (value: FilterValue) => void
   onApply: () => void
   onClear: () => void
-  onClose: () => void
+  /** With the popover's reason: a focus that left stays where it went. */
+  onClose: (reason: string) => void
   onLeave: (how: PanelLeave) => boolean
 }): TemplateResult {
   const { column } = options
@@ -191,9 +192,9 @@ export function renderFilterPopover(options: {
     .anchor=${options.anchor}
     @focusout=${leave.focusout}
     @keydown=${leave.keydown}
-    @lintje-close=${(event: Event) => {
+    @lintje-close=${(event: CustomEvent<{ reason: string }>) => {
       event.stopPropagation()
-      options.onClose()
+      options.onClose(event.detail.reason)
     }}
   >
     <div class="lintje-data-table__filter-panel">
@@ -332,7 +333,8 @@ export function renderColumnChooser(options: {
   /** Every column shown, in the host's order; disabled while that is what stands. */
   onReset: () => void
   isDefault: boolean
-  onClose: () => void
+  /** With the popover's reason: a focus that left stays where it went. */
+  onClose: (reason: string) => void
   onLeave: (how: PanelLeave) => boolean
 }): TemplateResult {
   const leave = panelLeave(options.anchor, options.onLeave)
@@ -344,9 +346,9 @@ export function renderColumnChooser(options: {
     .anchor=${options.anchor}
     @focusout=${leave.focusout}
     @keydown=${leave.keydown}
-    @lintje-close=${(event: Event) => {
+    @lintje-close=${(event: CustomEvent<{ reason: string }>) => {
       event.stopPropagation()
-      options.onClose()
+      options.onClose(event.detail.reason)
     }}
   >
     <div class="lintje-data-table__filter-panel">

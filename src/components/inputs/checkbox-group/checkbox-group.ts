@@ -3,7 +3,8 @@
  * and one message for the group.
  *
  * Only the group tells the host: its rows carry no `name`. `required` draws nothing and sets no
- * ARIA, since a group cannot carry `aria-required`: the host's message says what is missing.
+ * ARIA, since a group cannot carry `aria-required`: the browser's message in a native form and
+ * the host's message say what is missing.
  *
  * Events: `lintje-change` `string[]` (the checked values), `lintje-values-change`
  * `{ [name]: value }` (with a `name`), `lintje-reset` (the reset link was pressed).
@@ -48,9 +49,9 @@ export class LintjeCheckboxGroup extends LintjeInputElement {
   }
 
   // The natives sit in the rows' own roots, out of reach of the base's query.
-  protected override focusControl(options?: FocusOptions): void {
-    if (this.disabled) return
-    this.renderRoot.querySelector<HTMLElement>('lintje-checkbox')?.focus(options)
+  protected override get focusTarget(): HTMLElement | null {
+    const row = this.renderRoot.querySelector('lintje-checkbox')
+    return row?.shadowRoot?.querySelector<HTMLElement>('input') ?? null
   }
 
   protected override render(): TemplateResult {
