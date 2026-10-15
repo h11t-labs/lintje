@@ -89,7 +89,8 @@ een breder label inkort met een beletselteken.
 `MapOptions` voegt `onSelect(mark: MapValue)`, `onClear(previousId)` en `onLayerChange(value)`
 toe — wat het element omzet in de events `lintje-mark-select` (`{id, label, href?}` met de eigen
 href van de markering, of `{id: null, label: null, href: clearHref}` als de selectie ongedaan wordt gemaakt)
-en `lintje-layer-change`, die een host in de URL schrijft.
+en `lintje-layer-change`, die een host in de URL schrijft. Annuleert niemand `lintje-mark-select`,
+dan gaat het element naar die `href`, zoals de grafiek.
 
 De legenda boven de kaart (`map-chart/map-legend.ts`) tekent per laag een regel en gebruikt
 voor de reeksen `renderLegend` uit `shared/axes.ts`, zodat een reeks overal dezelfde schakelaar
@@ -117,7 +118,8 @@ een `href` draagt die de host heeft aangemaakt. Een markering die een record is 
 draagt zelf `id` en `href`, zoals een tabelrij; een markering die een kaal
 getal is, krijgt een `ChartLink` uit de `links` van de grafiek, item voor item.
 `components/shared/charts/shared/mark-select.ts` doet het werk: `markSelection(options, links)` geeft een renderfunctie
-de attributen per markering en de Escape-handler voor de wrapper.
+de attributen per markering en de Escape-handler voor de wrapper. Een klik met een
+modificatietoets stuurt niets, zoals op een link.
 
 Twee verschillen met de kaart. Een grafiek houdt **geen** eigen selectie bij:
 `selectedId` is alles wat er is en komt uit de URL, dus een klik navigeert en

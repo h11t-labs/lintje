@@ -3,7 +3,9 @@
  *
  * A missing value is a muted dash, never 0. The table never filters, saves or confirms: it shows a
  * change at once, and the host confirms it in the next `data`. Open rows and collapsed groups are
- * the table's own: it sends nothing for them.
+ * the table's own: it sends nothing for them. A row with an `href` goes there after its
+ * `lintje-row-click` or `lintje-row-open`, which is cancelable: a host that routes itself cancels
+ * it. A click with a modifier on such a row sends nothing.
  *
  * Events: `lintje-sort-change` `{ key, direction } | null`, `lintje-row-click`
  * `{ id, label, href? }`, `lintje-row-open` `{ id, label, href? }`, `lintje-checked-change`
@@ -21,6 +23,7 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { ref } from 'lit/directives/ref.js'
 import { define, type FrameSettings } from '../../../core/element'
+import { isPlainClick } from '../../../core/links'
 import { shadowCss } from '../../../core/styles'
 import { spanStyles } from '../../shared/grid-item-element'
 import { LintjeContentTileElement } from '../../shared/content-tile'
@@ -77,6 +80,7 @@ import {
 } from './filters'
 
 type Row = Record<string, CellValue>
+type RowDetail = { id: string; label: string; href?: string }
 
 type Panel =
   | { kind: 'filter'; column: string; edges: ScrollEdges }
@@ -585,7 +589,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   /** The row's key, the name in its first column and the `href` the host minted on the row. */
-  private rowDetail(row: Row): { id: string; label: string; href?: string } {
+  private rowDetail(row: Row): RowDetail {
     const id = this.rowKey(row)
     const nameColumn = this.columns[0]
     const name = nameColumn ? row[nameColumn.key] : null
@@ -1484,7 +1488,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         })}
         tabindex=${clickable ? 0 : nothing}
         aria-selected=${clickable ? selected : nothing}
-        @click=${clickable ? () => this.emit('lintje-row-click', this.rowDetail(row)) : nothing}
+        @click=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
         @keydown=${clickable ? (event: KeyboardEvent) => this.rowKeydown(event, row) : nothing}
       >
         ${
@@ -1938,7 +1942,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         })}
         tabindex=${clickable ? 0 : nothing}
         aria-selected=${clickable ? selected : nothing}
-        @click=${clickable ? () => this.emit('lintje-row-click', detail) : nothing}
+        @click=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
         @keydown=${clickable ? (event: KeyboardEvent) => this.rowKeydown(event, row) : nothing}
       >
         <th scope="row" class="lintje-data-table__mobile-cell">
@@ -2068,7 +2072,21 @@ export class LintjeDataTable extends LintjeContentTileElement {
     if (event.target !== event.currentTarget) return
     if (event.key !== 'Enter' && event.key !== ' ') return
     event.preventDefault()
-    this.emit('lintje-row-click', this.rowDetail(row))
+    this.activate('lintje-row-click', row)
+  }
+
+  /**
+   * The host may take the row over by cancelling the event; else the page goes to its `href`. A
+   * click with a modifier on a row with an `href` sends nothing, as on a link.
+   */
+  private activate(
+    name: 'lintje-row-click' | 'lintje-row-open',
+    row: Row,
+    event?: MouseEvent,
+  ): void {
+    const detail = this.rowDetail(row)
+    if (detail.href && event && !isPlainClick(event)) return
+    if (this.emit(name, detail) && detail.href) this.followLink(detail.href)
   }
 
   /** The page is view state, not a number: it stays out of the URL. The table counts from 0. */
@@ -2110,9 +2128,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
     return html`<button
       type="button"
       class="lintje-data-table__open"
-      @click=${(event: Event) => {
+      @click=${(event: MouseEvent) => {
         event.stopPropagation()
-        this.emit('lintje-row-open', this.rowDetail(row))
+        this.activate('lintje-row-open', row, event)
       }}
     >
       ${content}

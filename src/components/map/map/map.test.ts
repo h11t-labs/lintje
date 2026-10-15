@@ -10,7 +10,7 @@
  * map only in a box with a size, so every element here reports one; the projection is pure
  * arithmetic and the marks are drawn as in a browser.
  */
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import './map'
 import { downloadCsv } from '../../shared/download'
 import type { MapData, MapValue } from '../../../types'
@@ -192,6 +192,78 @@ describe('lintje-map selection', () => {
     element.data = tileData({ selectedId: 'ams-e' })
     await element.updateComplete
     expect(panel(element)?.textContent).toContain('Loket Utrecht')
+  })
+})
+
+describe('lintje-map, a mark with an href', () => {
+  let selects: unknown[]
+  let assign: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    document.body.innerHTML = ''
+    selects = []
+    assign = vi.spyOn(window.location, 'assign').mockImplementation(() => {})
+  })
+  afterEach(() => vi.restoreAllMocks())
+
+  const heard = (element: MapTile) =>
+    element.addEventListener('lintje-mark-select', (event) =>
+      selects.push((event as CustomEvent).detail),
+    )
+
+  it('goes there after lintje-mark-select when nobody cancels it, by click and by Enter', async () => {
+    const element = await mapTile(withHref())
+    heard(element)
+    await click(element, point(element, 'ein'))
+    expect(selects).toEqual([{ id: 'ein', label: 'Eindhoven', href: '/m?nav.post=ein' }])
+    expect(assign).toHaveBeenCalledWith('/m?nav.post=ein')
+    point(element, 'ams-e').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
+    expect(assign).toHaveBeenLastCalledWith('/m?nav.post=ams-e')
+  })
+
+  it('stays when the host cancels the event', async () => {
+    const element = await mapTile(withHref())
+    element.addEventListener('lintje-mark-select', (event) => event.preventDefault())
+    await click(element, point(element, 'ein'))
+    expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('leaves a click with a modifier to the browser: no event, no selection', async () => {
+    const element = await mapTile(withHref())
+    heard(element)
+    await click(element, point(element, 'ein'), { ctrlKey: true })
+    expect(selects).toEqual([])
+    expect(panel(element)).toBeNull()
+    expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('only sends the event for a mark without one', async () => {
+    const element = await mapTile(tileData())
+    heard(element)
+    await click(element, point(element, 'ein'))
+    expect(selects).toEqual([{ id: 'ein', label: 'Eindhoven', href: undefined }])
+    expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('goes to clearHref when the selection is undone, unless cancelled', async () => {
+    const element = await mapTile(withHref({ selectedId: 'ein', clearHref: '/m' }))
+    heard(element)
+    await click(element, point(element, 'ein'))
+    expect(selects).toEqual([{ id: null, label: null, href: '/m' }])
+    expect(assign).toHaveBeenCalledWith('/m')
+
+    const kept = await mapTile(withHref({ selectedId: 'ein', clearHref: '/m' }))
+    kept.addEventListener('lintje-mark-select', (event) => event.preventDefault())
+    await click(kept, point(kept, 'ein'))
+    expect(assign).toHaveBeenCalledTimes(1)
+  })
+
+  it('only sends the event when undone without a clearHref', async () => {
+    const element = await mapTile(withHref({ selectedId: 'ein' }))
+    heard(element)
+    await click(element, point(element, 'ein'))
+    expect(selects).toEqual([{ id: null, label: null, href: undefined }])
+    expect(assign).not.toHaveBeenCalled()
   })
 })
 

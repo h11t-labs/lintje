@@ -8,6 +8,7 @@ import { ref } from 'lit/directives/ref.js'
 import { keyed } from 'lit/directives/keyed.js'
 import { styleProps } from '../../../../core/style-props'
 import { formatNumber } from '../../../../core/format'
+import { isPlainClick } from '../../../../core/links'
 import { chartIcon, ZOOM_CONTROLS } from '../shared/chart-icons'
 import { renderIcon } from '../../../../icons/render'
 import { renderTooltip } from '../shared/tooltip'
@@ -468,7 +469,9 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
             onSelect && selection.href
               ? html`
             <button type="button" class="lintje-map-chart__set-scope"
-                    @click=${() => onSelect(selection)}>
+                    @click=${(event: MouseEvent) => {
+                      if (isPlainClick(event)) onSelect(selection)
+                    }}>
               ${selectLabel} ${renderIcon('functioneel-locatiemarker', { size: 14 })}
             </button>
           `

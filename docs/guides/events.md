@@ -23,6 +23,13 @@ download. Waar geen klik te volgen is — een resultaat dat je met Enter kiest i
 klik naast de titel van een kaart, een rij van de takenlijst — gaat het element zelf naar het adres, tenzij je het event annuleert. Een linkrij van `lintje-list` (`lintje-row-click`) en een melding met een `href`
 (`lintje-notification-open`) werken op dezelfde manier.
 
+Zo werken ook een klikbare rij van `lintje-data-table` (`lintje-row-click`, `lintje-row-open`), een
+teken in `lintje-chart` en een markering op `lintje-map` (`lintje-mark-select`) met een `href`:
+eerst het event, en annuleert niemand het, dan gaat het element naar de `href`, via
+`lintje-navigate`, zodat een router het daar opvangt. Een selectie ongedaan maken gaat zo naar de
+`clearHref`. Zonder `href` is er alleen het event. Een klik met een modifier op zo'n rij of teken
+stuurt niets; omdat het geen `<a>` is, opent de browser er ook geen tabblad voor.
+
 Een instelling van de lezer in de shell — modus, thema, waar het menu staat — is geen link:
 `lintje-shell` stuurt `lintje-view-change` met de instelling die veranderde en laat het aan jou over
 ([dashboards](dashboard.md)).

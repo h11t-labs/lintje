@@ -256,7 +256,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
   const click = (event: MouseEvent) => {
     const i = pick(event)
     const mark = i != null ? marks[i] : null
-    if (mark?.clickable && mark.click !== nothing) mark.click()
+    if (mark?.clickable && mark.click !== nothing) mark.click(event)
   }
   const pointing = hovered != null && marks[controller.hoverIndex!]?.clickable
 

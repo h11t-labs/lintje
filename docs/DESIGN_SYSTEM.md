@@ -455,6 +455,11 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een link is een link**: een echte `<a href>` die de browser volgt. Een gewone linkerklik wordt
   ook gemeld als `lintje-navigate`, en een host met een router annuleert dat event om de klik over
   te nemen. Een klik met een modificatietoets is van de browser.
+- **Een rij of teken met een `href` gaat erheen**, tenzij de host zijn event annuleert: een
+  klikbare tabelrij, een teken in een grafiek en een markering op de kaart, zoals een linkrij van
+  de lijst. Het element gaat via `lintje-navigate`, zodat een router het overneemt; een selectie
+  ongedaan maken gaat zo naar de `clearHref`. Zonder `<a>` stuurt een klik met een
+  modificatietoets niets.
 - **Toetsen lopen via één register** (`src/core/shortcuts.ts`). Een toets is nooit de enige manier
   om iets te doen, en een toets zonder modificatietoets gaat nooit af zolang de focus in een veld
   staat. De eigen toetsen van een speler (spatie, de pijlen, F, C) werken alleen zolang de focus

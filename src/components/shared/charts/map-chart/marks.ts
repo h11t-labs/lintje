@@ -9,6 +9,7 @@
 import { svg, nothing, type SVGTemplateResult } from 'lit'
 import { repeat } from 'lit/directives/repeat.js'
 import { styleProps } from '../../../../core/style-props'
+import { isPlainClick } from '../../../../core/links'
 import { formatNumber } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
 import { DEFAULT_SERIES_COLOR, seriesColor } from '../shared/colors'
@@ -81,6 +82,11 @@ const markState = (context: MarksContext, id: string, off: boolean): string =>
 /** A click or a double click on a mark is the mark's, not the map's. */
 function stop(event: Event): void {
   event.stopPropagation()
+}
+
+/** A click with a modifier on a mark with an `href` sends nothing, as on a link. */
+function choose(select: (value: MapValue) => void, value: MapValue, event: MouseEvent): void {
+  if (!value.href || isPlainClick(event)) select(value)
 }
 
 /** Enter or space chooses a mark, as a click does. */
@@ -161,7 +167,7 @@ function renderAreas(drawing: MapDrawing, context: MarksContext, land: LandShape
          aria-label=${`${value.label}: ${figure}${value.detail ? `, ${value.detail}` : ''}`}
          @click=${(event: MouseEvent) => {
            stop(event)
-           select(value)
+           choose(select, value, event)
          }}
          @dblclick=${stop}
          @mousemove=${(event: MouseEvent) =>
@@ -225,7 +231,7 @@ function renderFlows(
           @keydown=${onChoose(select, value)}
           @click=${(event: MouseEvent) => {
             stop(event)
-            select(value)
+            choose(select, value, event)
           }}
           @dblclick=${stop}
           @mousemove=${(event: MouseEvent) =>
@@ -284,7 +290,7 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
          aria-label=${`${value.label}: ${figure}${seriesName ? `, ${seriesName}` : ''}`}
          @click=${(event: MouseEvent) => {
            stop(event)
-           select(value)
+           choose(select, value, event)
          }}
          @dblclick=${stop}
          @mousemove=${(event: MouseEvent) =>

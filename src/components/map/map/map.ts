@@ -4,7 +4,9 @@
  * A new layer shows at once and expects the host to confirm it in the next `data`. With
  * `tile.expandable` the same map shows again in the modal, whose own events stop here. With
  * `data.controls.lasso`, `.circle` or `.rect` a drawn area chooses every mark in it; the host
- * keeps the area in its URL and sends it back as `selectedArea`.
+ * keeps the area in its URL and sends it back as `selectedArea`. A mark with an `href` goes there
+ * after its `lintje-mark-select`, and undoing goes to `data.clearHref`: the event is cancelable,
+ * and a host that routes itself cancels it. A click with a modifier on such a mark sends nothing.
  *
  * Events: `lintje-mark-select` `{ id, label, href? }` (deselected, `id: null` and
  * `href: data.clearHref`), `lintje-layer-change` `string` (the chosen layer's value),
@@ -208,6 +210,11 @@ export class LintjeMap extends LintjeContentTileElement {
     }
   }
 
+  /** The host may take the choice over by cancelling the event; else the page goes to its `href`. */
+  private select(detail: { id: string | null; label: string | null; href?: string }): void {
+    if (this.emit('lintje-mark-select', detail) && detail.href) this.followLink(detail.href)
+  }
+
   /** Refocuses the chosen mark so clearing does not drop a keyboard user at the top; the map area
    * takes the focus when the mark is gone after a redraw. */
   private async focusMark(id: string): Promise<void> {
@@ -226,10 +233,10 @@ export class LintjeMap extends LintjeContentTileElement {
       description: this.data?.description,
       mobile: this.#mobile.matches,
       expanded,
-      onSelect: ({ id, label, href }) => this.emit('lintje-mark-select', { id, label, href }),
+      onSelect: ({ id, label, href }) => this.select({ id, label, href }),
       onClear: (previousId) => {
         // A selection kept in the URL is cleared by a URL change: `clearHref` undoes it.
-        this.emit('lintje-mark-select', { id: null, label: null, href: this.data?.clearHref })
+        this.select({ id: null, label: null, href: this.data?.clearHref })
         void this.focusMark(previousId)
       },
       onLayerChange: (value) => {

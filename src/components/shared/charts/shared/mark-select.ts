@@ -7,6 +7,7 @@
  * `{id: null, href: clearHref}`; without a `clearHref` the clear is inert.
  */
 import { nothing } from 'lit'
+import { isPlainClick } from '../../../../core/links'
 import type { ChartOptions } from './controller'
 import type { ChartLink } from './types'
 
@@ -27,7 +28,7 @@ export interface MarkAttributes {
   tabIndex: 0 | typeof nothing
   pressed: 'true' | 'false' | typeof nothing
   label: string | typeof nothing
-  click: (() => void) | typeof nothing
+  click: ((event: MouseEvent) => void) | typeof nothing
   keydown: ((event: KeyboardEvent) => void) | typeof nothing
 }
 
@@ -89,7 +90,10 @@ export function markSelection(
         tabIndex: 0,
         pressed: selected ? 'true' : 'false',
         label: sentence ?? label,
-        click: () => select(link, label),
+        // A click with a modifier sends nothing, as on a link.
+        click: (event: MouseEvent) => {
+          if (isPlainClick(event)) select(link, label)
+        },
         keydown: (event: KeyboardEvent) => {
           if (event.key !== 'Enter' && event.key !== ' ') return
           event.preventDefault()
