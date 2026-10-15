@@ -508,7 +508,7 @@ const VARIANT_NAMES = {
   heatmap: 'Met klassenlegenda',
   histogram: 'Met mediaan en termijn',
   sankey: 'Drie stappen',
-  'sankey-four': 'Vier stappen, een stroom eindigt eerder',
+  'sankey-four': 'Vier stappen met een eindigende stroom',
   'sankey-small': 'Een kleine stroom',
   'sankey-missing': 'Een ontbrekende stroom',
   'sankey-first-missing': 'Twee ontbrekende stromen uit één knoop',
