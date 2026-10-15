@@ -183,6 +183,26 @@ describe('lintje-shell', () => {
       element.shadowRoot!.querySelector<HTMLButtonElement>('button.lintje-navbar__entry')!
     const press = (button: HTMLButtonElement): boolean =>
       button.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true, detail: 0 }))
+    /** A tap as the browser sends it: the finger, then the mouse's `mouseenter` and click. */
+    const tap = async (element: LintjeShell): Promise<void> => {
+      trigger(element).dispatchEvent(
+        new PointerEvent('pointerdown', { bubbles: true, composed: true, pointerType: 'touch' }),
+      )
+      trigger(element).dispatchEvent(new MouseEvent('mouseenter'))
+      await element.updateComplete
+      trigger(element).dispatchEvent(
+        new MouseEvent('click', { bubbles: true, composed: true, detail: 1 }),
+      )
+      await element.updateComplete
+    }
+    const expanded = (element: LintjeShell): string | null =>
+      trigger(element).getAttribute('aria-expanded')
+    const leaveBar = async (element: LintjeShell): Promise<void> => {
+      element
+        .shadowRoot!.querySelector('.lintje-navbar')!
+        .dispatchEvent(new MouseEvent('mouseleave'))
+      await element.updateComplete
+    }
 
     it('is a button between the links, marked when one of its pages is the active one', async () => {
       const element = await mount(GROUPED)
@@ -269,6 +289,61 @@ describe('lintje-shell', () => {
       )
       await element.updateComplete
       expect(trigger(element).getAttribute('aria-expanded')).toBe('true')
+    })
+
+    it('closes when the pointer leaves the bar after hover has opened it', async () => {
+      const element = await mount(GROUPED)
+      trigger(element).dispatchEvent(new MouseEvent('mouseenter'))
+      await element.updateComplete
+      expect(expanded(element)).toBe('true')
+      await leaveBar(element)
+      expect(expanded(element)).toBe('false')
+    })
+
+    it('stays open when the mouse leaves the bar after a tap has opened it', async () => {
+      const element = await mount(GROUPED)
+      await tap(element)
+      expect(expanded(element)).toBe('true')
+      await leaveBar(element)
+      expect(expanded(element)).toBe('true')
+      // A click elsewhere still closes it.
+      document.body.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }))
+      await element.updateComplete
+      expect(expanded(element)).toBe('false')
+    })
+
+    it('closes when the mouse leaves the bar after hover has opened it again since a tap', async () => {
+      const element = await mount(GROUPED)
+      await tap(element)
+      await leaveBar(element)
+      expect(expanded(element)).toBe('true')
+      trigger(element).dispatchEvent(new MouseEvent('mouseenter'))
+      await element.updateComplete
+      await leaveBar(element)
+      expect(expanded(element)).toBe('false')
+    })
+
+    it('closes when the mouse leaves the bar after a mouse click or Enter since a tap', async () => {
+      const element = await mount(GROUPED)
+      await tap(element)
+      trigger(element).dispatchEvent(
+        new PointerEvent('pointerdown', { bubbles: true, composed: true, pointerType: 'mouse' }),
+      )
+      trigger(element).dispatchEvent(
+        new MouseEvent('click', { bubbles: true, composed: true, detail: 1 }),
+      )
+      await element.updateComplete
+      await leaveBar(element)
+      expect(expanded(element)).toBe('false')
+
+      await tap(element)
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+      await element.updateComplete
+      press(trigger(element))
+      await element.updateComplete
+      expect(expanded(element)).toBe('true')
+      await leaveBar(element)
+      expect(expanded(element)).toBe('false')
     })
 
     it('sends a page as lintje-navigate and closes', async () => {
