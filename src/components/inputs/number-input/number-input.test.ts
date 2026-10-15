@@ -29,9 +29,24 @@ beforeEach(() => {
 describe('lintje-number-input', () => {
   it('describes the field by its unit, before the hint', async () => {
     const element = await mount({ unit: 'min', stepper: false, hint: 'Hele minuten', value: 5 })
-    const unit = element.shadowRoot!.querySelector('.lintje-number-input__unit')!
+    const unit = element.shadowRoot!.querySelector('.lintje-field__addon--suffix')!
     const hint = element.shadowRoot!.querySelector('.lintje-field__hint')!
+    expect(unit.textContent).toBe('min')
     expect(control(element).getAttribute('aria-describedby')).toBe(`${unit.id} ${hint.id}`)
+  })
+
+  it('describes the field by its prefix, then its unit', async () => {
+    const element = await mount({ prefix: '€', unit: 'per uur', stepper: false })
+    const prefix = element.shadowRoot!.querySelector('.lintje-field__addon--prefix')!
+    const unit = element.shadowRoot!.querySelector('.lintje-field__addon--suffix')!
+    expect(prefix.textContent).toBe('€')
+    expect(control(element).getAttribute('aria-describedby')).toBe(`${prefix.id} ${unit.id}`)
+  })
+
+  it('draws no prefix or unit with the stepper', async () => {
+    const element = await mount({ prefix: '€', unit: 'min', value: 5 })
+    expect(element.shadowRoot!.querySelector('.lintje-field__addon')).toBeNull()
+    expect(control(element).hasAttribute('aria-describedby')).toBe(false)
   })
 
   it('names the steps by what they do, whatever the step', async () => {

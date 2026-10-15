@@ -46,9 +46,4 @@
 .lintje-number-input__control::-webkit-outer-spin-button,
 .lintje-number-input__control::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .lintje-number-input__control:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
-.lintje-number-input--unit .lintje-number-input__control { text-align: left; padding-left: 14px; }
-.lintje-number-input__unit {
-  display: flex; align-items: center; flex: none;
-  padding-right: 14px;
-  font-size: 1rem; color: var(--color-text-muted);
-}
+.lintje-number-input--addon .lintje-number-input__control { text-align: left; padding: 0 14px; }

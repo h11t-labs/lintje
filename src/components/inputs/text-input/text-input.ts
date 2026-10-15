@@ -5,8 +5,12 @@
  * Enter), since every commit is a URL change and a tile reload, and never commits the same value
  * twice.
  *
+ * A fixed text may stand before or after the input (`prefix`, `suffix`) and one button at the end
+ * (`action`). A password ignores `action`: its end holds Tonen.
+ *
  * Events: `lintje-change` `string`, `lintje-values-change` `{ [name]: value }` (with a `name`),
- * `lintje-reset` (the reset link was pressed).
+ * `lintje-reset` (the reset link was pressed), `lintje-action` `string` (the button was pressed,
+ * after the typed text was committed).
  */
 import {
   html,
@@ -20,6 +24,7 @@ import { define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
+import { addonDescribedBy, renderAddon } from '../shared/addon'
 import { renderFieldFoot } from '../shared/field-foot'
 import { LintjeFormInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
@@ -41,6 +46,9 @@ export class LintjeTextInput extends LintjeFormInputElement {
     type: { type: String },
     commitOn: { type: String, attribute: 'commit' },
     autocomplete: { type: String },
+    prefix: { type: String },
+    suffix: { type: String },
+    action: { type: String },
     revealed: { state: true },
   }
 
@@ -57,6 +65,15 @@ export class LintjeTextInput extends LintjeFormInputElement {
   commitOn: CommitOn = 'change'
   /** Passed to the native input as is. */
   autocomplete: string = ''
+  /** The fixed text before the input, as written ("€", "www."); never part of `value`. */
+  override prefix: string | null = null
+  /** The fixed text after the input (".nl", "@rijksoverheid.nl"); never part of `value`. */
+  declare suffix?: string
+  /**
+   * The word on the button at the end ("Zoek"). A press commits the typed text as Enter does,
+   * then sends `lintje-action`; it works when `readonly`. Ignored for a password.
+   */
+  declare action?: string
   protected revealed: boolean = false
 
   private readonly typing = new Debounce(this)
@@ -126,6 +143,13 @@ export class LintjeTextInput extends LintjeFormInputElement {
     this.revealed = !this.revealed
   }
 
+  // The host acts on a value it was told, so the button commits what was typed first.
+  private act(): void {
+    this.typing.cancel()
+    if (!this.readonly) this.send(this.value)
+    this.emit('lintje-action', this.value)
+  }
+
   // A search keeps its hint in the tree: a live region that appears with its text is not read out.
   protected override renderFoot(): TemplateResult | typeof nothing {
     const message = this.error ?? ''
@@ -148,12 +172,14 @@ export class LintjeTextInput extends LintjeFormInputElement {
   protected override render(): TemplateResult {
     const search = this.type === 'search'
     const password = this.type === 'password'
+    const action = !password && Boolean(this.action)
     const clearable =
       (this.clearable || search) &&
       !password &&
       this.value !== '' &&
       !this.disabled &&
       !this.readonly
+    const addon = { readonly: this.readonly, disabled: this.disabled }
     return html`<div class="lintje-field">
       ${this.renderLabel(this.controlId)}
       <div
@@ -162,51 +188,64 @@ export class LintjeTextInput extends LintjeFormInputElement {
           'lintje-text-input--clearable': clearable,
           'lintje-text-input--search': search,
           'lintje-text-input--password': password,
+          'lintje-text-input--button': password || action,
         })}
       >
-        ${
-          search
-            ? renderIcon('functioneel-zoek', { size: 18, className: 'lintje-text-input__search' })
-            : nothing
-        }
-        <input
-          type=${this.inputType}
-          id=${this.controlId}
+        <div
           class=${classMap({
-            'lintje-text-input__control': true,
+            'lintje-text-input__box': true,
             'is-error': Boolean(this.error),
             'is-readonly': this.readonly,
+            'is-disabled': this.disabled,
           })}
-          .value=${this.value}
-          placeholder=${this.placeholder}
-          role=${search ? 'searchbox' : nothing}
-          inputmode=${this.type === 'email' ? 'email' : nothing}
-          enterkeyhint=${search ? 'search' : nothing}
-          autocomplete=${this.autocomplete || nothing}
-          aria-labelledby=${this.labelId}
-          aria-describedby=${this.describedBy}
-          aria-invalid=${this.error ? 'true' : nothing}
-          aria-required=${this.required ? 'true' : nothing}
-          ?required=${this.required}
-          ?readonly=${this.readonly}
-          ?disabled=${this.disabled}
-          @input=${this.onInput}
-          @change=${this.change}
-          @keydown=${this.onKeydown}
-        />
-        ${
-          clearable
-            ? html`<button
-              type="button"
-              class="lintje-text-input__clear"
-              aria-label="Wissen"
-              @mousedown=${(event: MouseEvent) => event.preventDefault()}
-              @click=${this.clear}
-            >
-              ${renderIcon('functioneel-kruis', { size: 16 })}
-            </button>`
-            : nothing
-        }
+        >
+          ${renderAddon('prefix', this.prefix, addon)}
+          <div class="lintje-text-input__entry">
+            ${
+              search
+                ? renderIcon('functioneel-zoek', {
+                    size: 18,
+                    className: 'lintje-text-input__search',
+                  })
+                : nothing
+            }
+            <input
+              type=${this.inputType}
+              id=${this.controlId}
+              class="lintje-text-input__control focus-inset"
+              .value=${this.value}
+              placeholder=${this.placeholder}
+              role=${search ? 'searchbox' : nothing}
+              inputmode=${this.type === 'email' ? 'email' : nothing}
+              enterkeyhint=${search ? 'search' : nothing}
+              autocomplete=${this.autocomplete || nothing}
+              aria-labelledby=${this.labelId}
+              aria-describedby=${addonDescribedBy(Boolean(this.prefix), Boolean(this.suffix), this.describedBy)}
+              aria-invalid=${this.error ? 'true' : nothing}
+              aria-required=${this.required ? 'true' : nothing}
+              ?required=${this.required}
+              ?readonly=${this.readonly}
+              ?disabled=${this.disabled}
+              @input=${this.onInput}
+              @change=${this.change}
+              @keydown=${this.onKeydown}
+            />
+            ${
+              clearable
+                ? html`<button
+                  type="button"
+                  class="lintje-text-input__clear"
+                  aria-label="Wissen"
+                  @mousedown=${(event: MouseEvent) => event.preventDefault()}
+                  @click=${this.clear}
+                >
+                  ${renderIcon('functioneel-kruis', { size: 16 })}
+                </button>`
+                : nothing
+            }
+          </div>
+          ${renderAddon('suffix', this.suffix, addon)}
+        </div>
         ${
           password
             ? html`<lintje-button
@@ -215,6 +254,17 @@ export class LintjeTextInput extends LintjeFormInputElement {
               ?disabled=${this.disabled}
               @click=${this.reveal}
               >${this.revealed ? 'Verbergen' : 'Tonen'}</lintje-button
+            >`
+            : nothing
+        }
+        ${
+          action
+            ? html`<lintje-button
+              class="lintje-text-input__action"
+              variant="secondary"
+              ?disabled=${this.disabled}
+              @click=${this.act}
+              >${this.action}</lintje-button
             >`
             : nothing
         }

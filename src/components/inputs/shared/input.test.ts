@@ -546,7 +546,11 @@ describe('read-only, per control', () => {
       readonly: true,
     })
     expect(element.renderRoot.querySelector('.lintje-text-input__clear')).toBeNull()
-    expect(native(element).classList.contains('is-readonly')).toBe(true)
+    expect(
+      element.renderRoot
+        .querySelector('.lintje-text-input__box')
+        ?.classList.contains('is-readonly'),
+    ).toBe(true)
   })
 
   it('lintje-number-input makes −/+ aria-disabled and lets them do nothing', async () => {

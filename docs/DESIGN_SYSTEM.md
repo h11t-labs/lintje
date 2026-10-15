@@ -350,6 +350,11 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een waarde die afwijkt van haar standaard** draagt op elk bedieningselement twee markeringen:
   het label in de accentkleur en een oranje stip. Geen extra rand, geen gekleurd oppervlak.
 - **Een veld legt vast als de lezer het verlaat of op Enter drukt.**
+- **Een vaste toevoeging aan een veld staat in een eigen vak** (een valutateken, een domein, een
+  eenheid, een vast voorvoegsel): het gedempte oppervlak met een lichte lijn naar de invoer, zodat
+  wat vaststaat apart staat van wat de lezer typt. Ze hoort nooit bij de waarde en beschrijft het
+  veld voor een schermlezer. Eén knop in een veld is een secundaire knop aan het eind, zoals
+  Tonen bij een wachtwoord; hij legt eerst vast wat getypt is, zoals Enter.
 - **Een schakelaar is alleen voor direct effect**, nooit in een formulier. Uit is zijn baan
   gevuld in het grijs van de veldrand, niet bleek met een ring: de vulling alleen haalt 3:1.
 - **Een instelling is een rij**: de naam in normaal gewicht en de uitleg eronder links, het
@@ -917,6 +922,8 @@ kleinste correctie, en leg die hier vast.
 - **Een bewerking ter plekke houdt haar toetsen**: Enter en Escape tellen alleen in haar veld,
   niet op haar knoppen, en haar Escape beëindigt de bewerking en verder niets. Beëindigd, geeft
   ze de focus aan haar rij of cel.
+- **De toevoeging van een alleen-lezen veld draagt haar tekst in de tekstkleur**, zoals het veld
+  zelf: het gedempte grijs haalt op haar donkerdere vlak in donker geen 4.5:1.
 - **Een element met een naam in eigen woorden houdt wat zijn label zegt**: een greep, knop of
   popup waarvan de naam als tekst wordt opgebouwd, draagt "(niet verplicht)" en het "afwijkend
   van standaard" van de stip zoals het label doet (`labelText` in
