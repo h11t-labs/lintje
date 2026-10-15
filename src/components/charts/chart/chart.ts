@@ -16,6 +16,7 @@ import { ChartController, type ChartOptions } from '../../shared/charts/shared/c
 import { renderChart } from '../../shared/charts/shared/render-chart'
 import { rowsHeight } from '../../shared/charts/horizontal-bar-chart/horizontal-bar-chart'
 import { binLabel } from '../../shared/charts/histogram-chart/histogram-chart'
+import { FORECAST_LABEL, boundsAt, forecastStart } from '../../shared/charts/shared/forecast'
 import {
   renderChartSkeleton,
   type ChartSkeletonKind,
@@ -86,6 +87,26 @@ function stateHeight(chart: ChartSpec): string | undefined {
   }
 }
 
+/**
+ * A forecast's columns: its bounds after the value, and what each row is at the end, so a
+ * forecast never stands unmarked among measured figures. Before the forecast a bound is an
+ * empty cell, not a missing value: there is no bound there.
+ */
+function forecastColumns(chart: Extract<ChartSpec, { kind: 'line' | 'bar' }>) {
+  const from = forecastStart(chart.forecastFrom, chart.labels.length)
+  const word = (chart.forecastLabel ?? FORECAST_LABEL).toLowerCase()
+  return {
+    from,
+    bounds: (forecast: Parameters<typeof boundsAt>[0], i: number): CsvCell[] => {
+      if (from == null || i < from) return ['', '']
+      const { low, high } = boundsAt(forecast, i)
+      return [low, high]
+    },
+    kind: (i: number): CsvCell[] => (from == null ? [] : [i < from ? 'gemeten' : word]),
+    kindHeader: from == null ? [] : ['Soort'],
+  }
+}
+
 /** The rows of the CSV download, header first; the table view shows the same rows. */
 function csvRows(chart: ChartSpec): CsvCell[][] {
   switch (chart.kind) {
@@ -97,28 +118,53 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
           .filter((event) => event.index === i)
           .map((event) => event.label)
           .join('; ')
+      const forecast = forecastColumns(chart)
+      // A comparison has no forecast, so no bounds.
+      const bounded = (series: (typeof chart.series)[number]) =>
+        forecast.from != null && !series.comparison && series.forecast != null
       return [
         [
           '',
-          ...chart.series.map((series) => series.label),
+          ...chart.series.flatMap((series) => [
+            series.label,
+            ...(bounded(series)
+              ? [`${series.label} ondergrens`, `${series.label} bovengrens`]
+              : []),
+          ]),
           ...(events.length ? ['Gebeurtenis'] : []),
+          ...forecast.kindHeader,
         ],
         ...chart.labels.map((label, i) => [
           label,
-          ...chart.series.map((series) => series.values[i]),
+          ...chart.series.flatMap((series) => [
+            series.values[i],
+            ...(bounded(series) ? forecast.bounds(series.forecast, i) : []),
+          ]),
           ...(events.length ? [eventAt(i)] : []),
+          ...forecast.kind(i),
         ]),
       ]
     }
-    case 'bar':
+    case 'bar': {
+      const forecast = forecastColumns(chart)
+      const bounded = forecast.from != null && chart.forecast != null
       return [
-        ['', chart.axisTitle ?? 'Waarde', ...(chart.trend ? ['Trend'] : [])],
+        [
+          '',
+          chart.axisTitle ?? 'Waarde',
+          ...(bounded ? ['Ondergrens', 'Bovengrens'] : []),
+          ...(chart.trend ? ['Trend'] : []),
+          ...forecast.kindHeader,
+        ],
         ...chart.labels.map((label, i) => [
           label,
           chart.values[i],
+          ...(bounded ? forecast.bounds(chart.forecast, i) : []),
           ...(chart.trend ? [chart.trend[i]] : []),
+          ...forecast.kind(i),
         ]),
       ]
+    }
     case 'horizontal-bar':
       return [
         ['', chart.unit ? `Waarde (${chart.unit})` : 'Waarde'],

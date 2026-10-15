@@ -25,7 +25,8 @@ const PREVIOUS = new Set(['ArrowLeft', 'ArrowUp'])
 
 /** The tooltip's text as one sentence, for a screen reader. */
 export function tooltipSentence(content: TooltipContent): string {
-  const values = `${content.title}: ${content.rows.map((row) => `${row.label} ${row.value}`.trim()).join(', ')}`
+  const title = content.note ? `${content.title} ${content.note}` : content.title
+  const values = `${title}: ${content.rows.map((row) => `${row.label} ${row.value}`.trim()).join(', ')}`
   const events = (content.events ?? []).map(
     (event) => `Gebeurtenis ${event.number}: ${event.label}`,
   )

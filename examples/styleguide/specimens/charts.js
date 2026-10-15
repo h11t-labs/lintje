@@ -1,6 +1,6 @@
 // The charts category (Kerncijfers en grafieken): the specimens of its elements.
 import { CHART_KINDS, CHART_QUESTIONS } from '../../../dist-elements/lintje.js'
-import { meta, number, daily, heatmap, desks, breakdowns, hourly } from '../../_data/load.js'
+import { meta, number, daily, heatmap, desks, breakdowns, hourly, forecast } from '../../_data/load.js'
 
 const kpi = meta.kpi
 
@@ -193,6 +193,22 @@ const quality = (missing = false) => ({
     { label: 'Q3 2025', values: [7.4, 6.6, 6.9, 8.4, 8.1, 8.8], comparison: true },
   ],
 })
+// Requests and objections per year, × 1,000: measured up to 2025, then a forecast to 2030 with
+// its 80 % margin. Fictional figures.
+const YEARS = forecast.map((row) => row.year)
+const FORECAST_FROM = forecast.findIndex((row) => row.forecast)
+const yearly = (key) => ({
+  values: forecast.map((row) => row[key]),
+  forecast: {
+    low: forecast.map((row) => row[`${key}_low`]),
+    high: forecast.map((row) => row[`${key}_high`]),
+  },
+})
+const lastMeasured = forecast[FORECAST_FROM - 1]
+const lastYear = forecast.at(-1)
+/** Where measuring stops, its last value, and where the forecast ends with its margin. */
+const forecastSentence = (key, name) =>
+  `${name}: gemeten tot en met ${lastMeasured.year}, ${number(forecast[0][key])} in ${forecast[0].year} en ${number(lastMeasured[key])} in ${lastMeasured.year}. De raming loopt tot ${number(lastYear[key])} in ${lastYear.year}, met een marge van ${number(lastYear[`${key}_low`])} tot ${number(lastYear[`${key}_high`])}.`
 const lateDesks = desks.filter((desk) => desk.data_status === 'delayed').map((desk) => desk.map_label)
 
 const CHARTS = [
@@ -228,6 +244,57 @@ const CHARTS = [
     },
   },
   {
+    id: 'line-forecast', title: 'Aanvragen per jaar',
+    subtitle: '× 1.000, gemeten tot en met 2025, daarna raming',
+    description: `Lijn, aanvragen per jaar, × 1.000. ${forecastSentence('requests', 'Aanvragen')} De marge is een interval van 80 %.`,
+    spec: {
+      kind: 'line', labels: YEARS, axisTitle: 'aanvragen × 1.000',
+      forecastFrom: FORECAST_FROM, intervalLabel: 'Marge 80 %',
+      series: [{ label: 'Aanvragen', color: 'sky-blue', ...yearly('requests') }],
+    },
+  },
+  {
+    id: 'line-forecast-two', title: 'Aanvragen en bezwaren per jaar',
+    subtitle: '× 1.000, gemeten tot en met 2025, daarna raming',
+    description: `Lijn, aanvragen en bezwaren per jaar, × 1.000. ${forecastSentence('requests', 'Aanvragen')} ${forecastSentence('objections', 'Bezwaren')}`,
+    spec: {
+      kind: 'line', labels: YEARS, axisTitle: 'aantal × 1.000',
+      forecastFrom: FORECAST_FROM, intervalLabel: 'Marge 80 %',
+      series: [
+        { label: 'Aanvragen', color: 'sky-blue', ...yearly('requests') },
+        { label: 'Bezwaren', color: 'dark-yellow', ...yearly('objections') },
+      ],
+    },
+  },
+  {
+    id: 'line-forecast-plain', title: 'Aanvragen per jaar',
+    subtitle: '× 1.000, gemeten tot en met 2025, daarna raming',
+    description: `Lijn, aanvragen per jaar, × 1.000. Gemeten tot en met ${lastMeasured.year}: van ${number(forecast[0].requests)} naar ${number(lastMeasured.requests)}. De raming loopt op tot ${number(lastYear.requests)} in ${lastYear.year}, zonder marge.`,
+    spec: {
+      kind: 'line', labels: YEARS, axisTitle: 'aanvragen × 1.000',
+      forecastFrom: FORECAST_FROM,
+      series: [{ label: 'Aanvragen', color: 'sky-blue', values: yearly('requests').values }],
+    },
+  },
+  {
+    id: 'line-forecast-gap', title: 'Aanvragen per jaar',
+    subtitle: '× 1.000, gemeten tot en met 2025, daarna raming',
+    description: `Lijn, aanvragen per jaar, × 1.000. ${forecastSentence('requests', 'Aanvragen')} Voor 2028 is er geen raming en geen marge.`,
+    spec: {
+      kind: 'line', labels: YEARS, axisTitle: 'aanvragen × 1.000',
+      forecastFrom: FORECAST_FROM, intervalLabel: 'Marge 80 %',
+      series: [(() => {
+        const { values, forecast: margin } = yearly('requests')
+        const gap = YEARS.indexOf('2028')
+        const without = (list) => list.map((value, i) => (i === gap ? null : value))
+        return {
+          label: 'Aanvragen', color: 'sky-blue', values: without(values),
+          forecast: { low: without(margin.low), high: without(margin.high) },
+        }
+      })()],
+    },
+  },
+  {
     id: 'bar', title: 'Staven met datalabels en trendlijn',
     description: 'Afgehandelde aanvragen per dag deze week, met de vorige week als trendlijn.',
     spec: {
@@ -244,6 +311,16 @@ const CHARTS = [
       axisTitle: 'Afgehandelde aanvragen per dag',
       // Wednesday and Saturday are missing: two pieces of line and a lone point on Sunday.
       trend: daily.map((row, i) => (i === 2 || i === 5 ? null : row.requests_last_week)),
+    },
+  },
+  {
+    id: 'bar-forecast', title: 'Aanvragen per jaar',
+    subtitle: '× 1.000, gemeten tot en met 2025, daarna raming',
+    description: `Staven, aanvragen per jaar, × 1.000. ${forecastSentence('requests', 'Aanvragen')} De marge is een interval van 80 %.`,
+    spec: {
+      kind: 'bar', labels: YEARS, axisTitle: 'Aanvragen × 1.000', color: 'sky-blue',
+      forecastFrom: FORECAST_FROM, intervalLabel: 'Marge 80 %',
+      ...yearly('requests'),
     },
   },
   {
@@ -417,7 +494,12 @@ const CHARTS = [
 const VARIANT_NAMES = {
   line: 'Met vergelijking en peilmoment',
   'line-events': 'Met gebeurtenissen',
+  'line-forecast': 'Met raming en marge',
+  'line-forecast-two': 'Twee reeksen met raming',
+  'line-forecast-plain': 'Raming zonder marge',
+  'line-forecast-gap': 'Raming met een ontbrekend jaar',
   bar: 'Met trendlijn',
+  'bar-forecast': 'Met raming en marge',
   'bar-trend-gap': 'Trendlijn met ontbrekende dagen',
   'horizontal-bar': 'Met norm',
   'target-progress': 'Tegen een doel van 100 %',
@@ -443,6 +525,11 @@ const VARIANT_NAMES = {
 const VARIANT_NOTES = {
   line: 'De laatste twee uren zijn nog niet compleet en staan gearceerd.',
   'bar-trend-gap': 'Van woensdag en zaterdag vorige week zijn geen gegevens; daar breekt de trendlijn.',
+  'line-forecast': 'Na 2025 loopt de lijn gestippeld door, met haar marge eromheen. Een geraamd punt heeft een open hoverpunt.',
+  'line-forecast-two': 'Wijs een reeks aan in de legenda: haar marge kleurt en de andere reeks stapt terug.',
+  'line-forecast-plain': 'Een raming zonder marge: alleen de stippels en de sleutel "Raming".',
+  'line-forecast-gap': 'Voor 2028 is er geen raming: de stippels en de marge breken af.',
+  'bar-forecast': 'Een geraamde staaf is open, met haar marge als lijn met kapjes.',
   'stacked-area': 'Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
   'pie-folded': 'De taart houdt de vier grootste delen en vouwt de rest in “Overig”.',
   'radar-layers': 'Wijs een regio aan in de legenda: haar vlak kleurt en de andere lagen stappen terug.',
