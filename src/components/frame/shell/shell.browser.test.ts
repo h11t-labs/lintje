@@ -161,6 +161,8 @@ describe('the ribbon in the logo bar', () => {
     await expect
       .poll(() => drawing(shell, '.lintje-logobar lintje-logo').ribbon)
       .toBeCloseTo(ribbon, 0)
+    // The bar is `--h-logobar`, 2.5 ribbons; it can settle a frame after the drawing.
+    await expect.poll(() => bar(shell)).toBeCloseTo(ribbon * 2.5, 0)
     return { ...drawing(shell, '.lintje-logobar lintje-logo'), bar: bar(shell) }
   }
 
