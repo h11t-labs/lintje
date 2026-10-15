@@ -93,7 +93,9 @@ function stateHeight(chart: ChartSpec): string | undefined {
  * empty cell, not a missing value: there is no bound there.
  */
 function forecastColumns(chart: Extract<ChartSpec, { kind: 'line' | 'bar' }>) {
-  const from = forecastStart(chart.forecastFrom, chart.labels.length)
+  // As the drawing: a forecast continues a measured series, so with only comparisons there is none.
+  const measured = chart.kind === 'bar' || chart.series.some((series) => !series.comparison)
+  const from = measured ? forecastStart(chart.forecastFrom, chart.labels.length) : null
   const word = (chart.forecastLabel ?? FORECAST_LABEL).toLowerCase()
   return {
     from,
