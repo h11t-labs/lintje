@@ -478,6 +478,7 @@ function renderAbout() {
     title: 'Over het dataplatform',
     description: 'Het dataplatform achter de catalogus: wat het is, wat erop staat en wie je kunt vragen.',
   }
+  $('about-text').html = $('about-source').innerHTML
   $('about-facts').items = [
     { label: 'Team', value: 'Team Dataplatform' },
     { label: 'Product aanmelden', value: 'dataplatform@example.org', href: 'mailto:dataplatform@example.org?subject=Product%20aanmelden' },

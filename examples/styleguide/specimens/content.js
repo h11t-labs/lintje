@@ -340,7 +340,8 @@ export default {
         },
         {
           label: 'Uit de slot',
-          html: '<lintje-prose><p>Zonder <code>html</code> of <code>text</code> toont het element wat er in de slot staat — zo schrijft een pagina haar eigen opmaak zonder eigen CSS.</p></lintje-prose>',
+          note: 'Zonder `html` of `text` toont het element gewone tekst uit de slot. Een kop, lijst of alinea krijgt daar geen opmaak; opgemaakte inhoud gaat via `html`.',
+          html: '<lintje-prose>Het rooster van volgende week staat vanaf vrijdag in het overzicht.</lintje-prose>',
         },
       ],
     },
