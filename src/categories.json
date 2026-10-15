@@ -56,10 +56,11 @@
     "heading": "Basis",
     "label": "Tekst en media",
     "icon": "op-kantoor-document-met-lijnen",
-    "intro": "Lopende tekst, code, een gemarkeerde zoekterm en de waarde van een token; een tekst en zijn vertaling; audio, video, het transcript dat meeloopt, logregels die live binnenkomen, een document op het scherm en afbeeldingen om door te bladeren.",
+    "intro": "Lopende tekst, code, een toets, een gemarkeerde zoekterm en de waarde van een token; een tekst en zijn vertaling; audio, video, het transcript dat meeloopt, logregels die live binnenkomen, een document op het scherm en afbeeldingen om door te bladeren.",
     "elements": [
       "prose",
       "code",
+      "key",
       "highlight",
       "token-value",
       "translator",

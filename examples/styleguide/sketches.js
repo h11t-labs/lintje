@@ -66,6 +66,7 @@ export const SKETCHES = {
   // Text and media
   prose: { rows: 'T50 / l90 / l80 / l85 / l40' },
   code: { frame: 'code', rows: 'l30 / l60 / l50 / l70 / l20' },
+  key: { center: true, rows: 'bo14 bo14' },
   highlight: { rows: 'l25 mark35 / l70' },
   'token-value': { rows: 'l30 cbx l20 / l30 cbx l20 / l30 l35' },
   translator: { frame: 'tile', rows: 'se io se / split' },

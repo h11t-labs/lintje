@@ -116,4 +116,21 @@ describe('lintje-description-list', () => {
       'Namen team Planning',
     ])
   })
+
+  it('draws keys as lintje-key, one per string, and "Geen" without any', async () => {
+    const element = await mount([
+      { label: 'Opslaan', keys: ['Ctrl', 'S'] },
+      { label: 'Niets', keys: [] },
+    ])
+    const [save, none] = [...element.shadowRoot!.querySelectorAll('.lintje-description-list__row')]
+    const keys = [...save!.querySelectorAll('.lintje-description-list__keys lintje-key')]
+    expect(keys.map((key) => key.getAttribute('key'))).toEqual(['Ctrl', 'S'])
+    await Promise.all(
+      keys.map((key) => (key as HTMLElement & { updateComplete: Promise<unknown> }).updateComplete),
+    )
+    expect(keys[0]!.shadowRoot!.querySelector('kbd.lintje-key')!.textContent).toBe('Ctrl')
+    expect(save!.querySelector('li')).toBeNull()
+    expect(none!.querySelector('lintje-key')).toBeNull()
+    expect(none!.textContent).toContain('Geen')
+  })
 })

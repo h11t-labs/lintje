@@ -1,6 +1,7 @@
 /** The content category (Tekst en media): importing it defines its tags. */
 import '../components/content/prose/prose'
 import '../components/content/code/code'
+import '../components/content/key/key'
 import '../components/content/highlight/highlight'
 import '../components/content/token-value/token-value'
 import '../components/content/translator/translator'

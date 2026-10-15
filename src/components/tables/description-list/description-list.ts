@@ -17,6 +17,7 @@ import { styleProps } from '../../../core/style-props'
 import { TONE_ICON, type Tone } from '../../shared/tone'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { badgeStyles, renderBadge } from '../../feedback/badge/badge'
+import '../../content/key/key'
 
 /** A link on the right of the value, for changing it ("Locatie wijzigen" as accessible name). */
 export interface DescriptionAction {
@@ -34,6 +35,8 @@ export interface DescriptionItem {
   action?: DescriptionAction
   /** The value as separate tags (word lists, people); `value` is then left out. */
   tags?: string[]
+  /** The value as keyboard keys, one `lintje-key` each (`keyLabels()`); `value` is then left out. */
+  keys?: string[]
   /** Grid: an icon by the label, by file name. */
   icon?: string
   /** Grid: two columns instead of one. */
@@ -80,6 +83,14 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
   }
 
   private value(item: DescriptionItem): TemplateResult {
+    if (item.keys) {
+      return item.keys.length
+        ? // The space keeps "Ctrl S" two words for a screen reader; the flex gap draws it.
+          html`<span class="lintje-description-list__keys"
+            >${item.keys.map((key, i) => html`${i ? ' ' : ''}<lintje-key key=${key}></lintje-key>`)}</span
+          >`
+        : html`<span class="lintje-description-list__missing">Geen</span>`
+    }
     if (item.tags) {
       return item.tags.length
         ? html`<ul class="lintje-description-list__tags">
