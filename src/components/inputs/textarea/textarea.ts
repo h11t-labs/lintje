@@ -3,8 +3,9 @@
  * there is a `maxlength`.
  *
  * It commits like `lintje-text-input`; Ctrl+Enter commits and submits a host's form. Typing past
- * the limit is allowed, so a paste lands whole: the field shows the error. The counter is
- * `part="counter"`, so a surface can stand it on its own line.
+ * the limit is allowed, so a paste lands whole: the field shows the error. The counter stands
+ * right on the line of the hint or the error, and drops under it, still right, where the two do
+ * not fit side by side. It is `part="counter"`, so a surface can stand it on its own line.
  *
  * Events: `lintje-change` `string`, `lintje-values-change` `{ [name]: value }` (with a `name`),
  * `lintje-reset` (the reset link was pressed).
@@ -188,13 +189,17 @@ export class LintjeTextarea extends LintjeFormInputElement {
     if (!this.counterShown) return foot
     const limit = this.maxlength!
     const length = this.value.length
-    return html`${foot}<span
-        id=${this.counterId}
-        part="counter"
-        class=${classMap({ 'lintje-textarea__counter': true, 'is-over': length > limit })}
-        aria-live=${counterSpeaks(length, limit) ? 'polite' : 'off'}
-        >${counterText(length, limit)}</span
-      >`
+    const counter = html`<span
+      id=${this.counterId}
+      part="counter"
+      class=${classMap({ 'lintje-textarea__counter': true, 'is-over': length > limit })}
+      aria-live=${counterSpeaks(length, limit) ? 'polite' : 'off'}
+      >${counterText(length, limit)}</span
+    >`
+    // Wrapped only beside a hint or an error: a counter alone stays out of a box, so a surface
+    // that lifts it out of the flow (`::part(counter)`) keeps no empty line under the text.
+    if (foot === nothing) return counter
+    return html`<div class="lintje-textarea__foot">${foot}${counter}</div>`
   }
 
   protected override render(): TemplateResult {

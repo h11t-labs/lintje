@@ -380,6 +380,11 @@ export default {
           html: '<lintje-textarea label="Omschrijving" modified value="Tas zonder eigenaar, omgeving afgezet."></lintje-textarea>',
         },
         {
+          label: 'Toelichting en teller',
+          note: 'De toelichting links, de teller rechts op dezelfde regel; past dat niet, dan valt de teller eronder.',
+          html: '<lintje-textarea label="Omschrijving" hint="Wat er is gebeurd, in een paar zinnen." maxlength="2000" value="Tas zonder eigenaar bij de balie."></lintje-textarea>',
+        },
+        {
           label: 'Over de limiet',
           note: 'De teller zegt hoeveel tekens de tekst korter moet.',
           html: '<lintje-textarea label="Omschrijving" maxlength="40" value="Een tekst die langer is dan de limiet toelaat."></lintje-textarea>',
