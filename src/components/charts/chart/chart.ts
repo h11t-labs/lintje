@@ -469,7 +469,7 @@ export class LintjeChart extends LintjeContentTileElement {
     const scope = this.renderRoot.querySelector(this.expanded ? 'lintje-modal' : 'lintje-tile')
     const mark = scope?.querySelector<SVGElement>(`[data-mark-id="${CSS.escape(id)}"]`)
     const target =
-      mark ?? scope?.querySelector<HTMLElement | SVGElement>(`${DRAWING}, .lintje-heatmap`)
+      mark ?? scope?.querySelector<HTMLElement | SVGElement>(`${DRAWING}, .lintje-heatmap, .lintje-sankey--rows`)
     // The drawing takes the focus from a script only; it does not join the tab order for it.
     if (target && !target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
     target?.focus()

@@ -18,6 +18,8 @@
 .lintje-sankey__hit.is-clickable { cursor: pointer; }
 /* A thin band's target: its centre line, 8 px wide. */
 .lintje-sankey__hit--line { fill: none; stroke: transparent; stroke-width: 8px; pointer-events: stroke; }
+/* A label never takes the pointer from the mark beside it or the band under it. */
+.lintje-sankey__label { pointer-events: none; }
 .lintje-sankey__name { font: var(--text-small); fill: var(--color-text-primary); }
 .lintje-sankey__share { font-weight: 400; fill: var(--color-text-muted); }
 /* On a middle step's straight run, under emphasised bands the muted share drops below 4.5:1. */
