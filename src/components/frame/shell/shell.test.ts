@@ -295,7 +295,7 @@ describe('lintje-shell', () => {
       expect(expanded(element)).toBe('true')
     })
 
-    it('stays open under a mouse click after a tap has closed it once', async () => {
+    it('stays open under a mouse click after a tap has opened it', async () => {
       const element = await mount(GROUPED)
       await tap(element)
       trigger(element).dispatchEvent(
