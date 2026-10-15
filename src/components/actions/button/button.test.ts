@@ -183,14 +183,15 @@ describe('lintje-button with an href', () => {
 })
 
 describe('lintje-icon-button', () => {
-  it('ignores a size attribute from older markup', async () => {
-    const element = document.createElement('lintje-icon-button') as Pressable
-    element.setAttribute('size', 'compact')
-    element.label = 'Sluiten'
-    document.body.append(element)
-    await element.updateComplete
-    expect(inner(element).style.width).toBe('')
-    expect(inner(element).className).not.toMatch(/compact/)
+  it('has one size: a size attribute from older markup changes nothing', async () => {
+    const plain = await make('lintje-icon-button', { label: 'Sluiten' })
+    const sized = document.createElement('lintje-icon-button') as Pressable
+    sized.setAttribute('size', '44')
+    sized.label = 'Sluiten'
+    document.body.append(sized)
+    await sized.updateComplete
+    expect('size' in sized).toBe(false)
+    expect(inner(sized).outerHTML).toBe(inner(plain).outerHTML)
   })
 
   it('is focusable and aria-disabled while disabled, and lets no click through', async () => {
