@@ -3,7 +3,8 @@
  *
  * It never uploads: it checks files against `accept` and `max-size`, sends the ones that pass with
  * `lintje-files-add` and draws the rows from `files`. A file it refuses never reaches the host.
- * Its value is the ids of the rows that are done.
+ * Its value is the ids of the rows that are done. While it takes files, a file dropped beside the
+ * zone does nothing, instead of opening in the browser.
  *
  * Events: `lintje-files-add` `File[]`, `lintje-file-remove` `{ id }`, `lintje-file-cancel`
  * `{ id }`, `lintje-change` `string[]`, `lintje-values-change` `{ [name]: value }` (with a
@@ -186,18 +187,32 @@ export class LintjeFileUpload extends LintjeInputElement {
     this.dragging = false
   }
 
+  /**
+   * A file dropped beside the zone would open in the browser and take the filled-in form with it.
+   * The zone, a second upload or a host's own target has already taken what it accepts.
+   */
+  private readonly onDragOutside = (event: DragEvent): void => {
+    if (this.disabled || event.defaultPrevented || !hasFiles(event)) return
+    event.preventDefault()
+    if (event.type === 'dragover' && event.dataTransfer) event.dataTransfer.dropEffect = 'none'
+  }
+
   override connectedCallback(): void {
     super.connectedCallback()
     document.addEventListener('dragenter', this.onDragEnter)
     document.addEventListener('dragleave', this.onDragLeave)
+    document.addEventListener('dragover', this.onDragOutside)
     document.addEventListener('drop', this.onDragEnd)
+    document.addEventListener('drop', this.onDragOutside)
     document.addEventListener('dragend', this.onDragEnd)
   }
 
   override disconnectedCallback(): void {
     document.removeEventListener('dragenter', this.onDragEnter)
     document.removeEventListener('dragleave', this.onDragLeave)
+    document.removeEventListener('dragover', this.onDragOutside)
     document.removeEventListener('drop', this.onDragEnd)
+    document.removeEventListener('drop', this.onDragOutside)
     document.removeEventListener('dragend', this.onDragEnd)
     this.onDragEnd()
     super.disconnectedCallback()
