@@ -588,9 +588,16 @@ De besluiten hieronder gelden voor alle elementen.
   twee delen en niet als kop boven het volgende. Een scheidslijn die over het deel erboven gaat
   ("Gesprek ingekort"), wijst ernaar en zegt het in woorden, zodat de pijl of het gewicht nooit de
   enige drager is.
-- **Gestreept is een suggestie, doorgetrokken is een keuze.** Een gestreepte omlijning is iets wat
-  de lezer zou kunnen zeggen; een doorgetrokken omlijning is een antwoord waar de assistent op
-  wacht. Een bijschrift zegt welke, zodat de lijnstijl nooit de enige drager is.
+- **Een suggestie staat onder het antwoord, een vraag van de assistent boven het tikveld.** Een
+  suggestie is gestreept: iets wat de lezer zou kunnen vragen. Een vraag van de assistent wacht
+  op antwoord en staat in de vragenlijst, waar de lezer antwoordt (`lintje-chat-questions`), in
+  hetzelfde kader als het tikveld. Het tikveld blijft eronder werken: een nieuwe vraag slaat de
+  open vragen over, en pas versturen doet dat, nooit het openklappen ervan.
+- **Het antwoord van de lezer is altijd zijn bericht.** Wat hij in de vragenlijst koos, staat in
+  het gesprek als een gewoon bericht van hem, één regel per vraag, zodat het gesprek leest zoals
+  het ging en hij het kan bewerken zoals elke vraag.
+- **"Iets anders" staat altijd in een vraag van de assistent**: de lezer zit nooit vast aan de
+  opties die de assistent bedacht. Het is de `other` van de keuzegroepen, ook in de korte vorm.
 - **Een bestand in het gesprek is een bijlage** (`lintje-attachment`), in het vraagvak, het
   bericht en het antwoord evengoed: een stille chip die lichter weegt dan een bericht. Een bijlage
   met een fout gaat nooit mee.

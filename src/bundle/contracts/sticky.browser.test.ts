@@ -294,10 +294,36 @@ function filterRow(layout: 'top' | 'side', width: number): Row {
   }
 }
 
-async function chatInBox(): Promise<{ box: HTMLElement; chat: HTMLElement; target: HTMLElement }> {
+/** A last turn whose answer asks: its questions stand in the footer, above the question box. */
+const ASKING = {
+  id: 't9',
+  message: { text: 'Hoeveel aanvragen per provincie?' },
+  answer: {
+    state: 'needs-clarification' as const,
+    text: 'Dat kan ik op meer manieren tellen.',
+    questions: {
+      questions: [
+        {
+          id: 'periode',
+          label: 'Periode',
+          text: 'Welke periode bedoel je?',
+          kind: 'one' as const,
+          options: [
+            { value: '2025', label: 'Heel 2025' },
+            { value: '12m', label: 'Afgelopen 12 maanden' },
+          ],
+        },
+      ],
+    },
+  },
+}
+
+async function chatInBox(
+  asking = false,
+): Promise<{ box: HTMLElement; chat: HTMLElement; target: HTMLElement }> {
   const box = document.createElement('div')
-  box.style.cssText = 'height: 480px; overflow: auto'
-  const chat = create('lintje-chat', { data: { turns: TURNS } })
+  box.style.cssText = `height: ${asking ? 720 : 480}px; overflow: auto`
+  const chat = create('lintje-chat', { data: { turns: asking ? [...TURNS, ASKING] : TURNS } })
   box.append(chat)
   await append(box)
   await chat.updateComplete
@@ -370,6 +396,23 @@ const ROWS: Row[] = [
     reserves: true,
     mount: async () => {
       const { box, chat, target } = await chatInBox()
+      return {
+        scroller: box,
+        cover: () => find(chat, '.lintje-chat__footer'),
+        target,
+        remove: () => chat.remove(),
+      }
+    },
+  },
+  {
+    tag: 'lintje-chat',
+    marker: 'the question box with the assistant’s questions above it',
+    width: 1440,
+    side: 'bottom',
+    reserves: true,
+    mount: async () => {
+      const { box, chat, target } = await chatInBox(true)
+      await expect.poll(() => find(chat, 'lintje-chat-questions')).toBeTruthy()
       return {
         scroller: box,
         cover: () => find(chat, '.lintje-chat__footer'),

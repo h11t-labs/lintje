@@ -397,6 +397,7 @@ export class LintjeChatQuestions extends LintjeElement {
             })}
             <lintje-button
               class="lintje-chat-questions__own-send"
+              ?block=${this.#mobile.matches}
               variant="primary"
               ?busy=${this.sending}
               @click=${() => this.next()}
@@ -451,6 +452,7 @@ export class LintjeChatQuestions extends LintjeElement {
           index > 0
             ? html`<lintje-button
               class="lintje-chat-questions__back"
+              ?block=${this.#mobile.matches}
               variant="tertiary"
               ?disabled=${this.sending}
               @click=${() => this.back()}
@@ -462,6 +464,7 @@ export class LintjeChatQuestions extends LintjeElement {
           question.optional
             ? html`<lintje-button
               class="lintje-chat-questions__skip"
+              ?block=${this.#mobile.matches}
               variant="tertiary"
               ?disabled=${this.sending}
               @click=${() => this.skip()}
@@ -471,6 +474,7 @@ export class LintjeChatQuestions extends LintjeElement {
         }
         <lintje-button
           class="lintje-chat-questions__next"
+          ?block=${this.#mobile.matches}
           variant="primary"
           ?busy=${this.sending && last}
           ?disabled=${this.sending && !last}

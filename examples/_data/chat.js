@@ -172,6 +172,51 @@ export const waitAnswer = (state) => ({
   ],
 })
 
+/** A question the assistant can read in more ways: it asks back before it counts. */
+export const askedQuestion = 'Hoeveel aanvragen kwamen er binnen per provincie?'
+
+const PROVINCES = [
+  'Drenthe', 'Flevoland', 'Friesland', 'Gelderland', 'Groningen', 'Limburg',
+  'Noord-Brabant', 'Noord-Holland', 'Overijssel', 'Utrecht', 'Zeeland', 'Zuid-Holland',
+]
+
+/** What the assistant asks before it answers `askedQuestion`: three questions, in steps. */
+export const askedQuestions = () => ({
+  questions: [
+    {
+      id: 'periode', label: 'Periode', text: 'Welke periode bedoel je?', kind: 'one',
+      options: [
+        { value: '2025', label: 'Heel 2025', description: '1 januari tot en met 31 december 2025' },
+        { value: '12m', label: 'Afgelopen 12 maanden', description: '1 oktober 2025 tot en met 30 september 2026' },
+        { value: 'q3', label: 'Derde kwartaal 2026', description: '1 juli tot en met 30 september 2026' },
+      ],
+      otherPlaceholder: 'Bijvoorbeeld: het eerste halfjaar van 2026',
+      error: 'Kies een periode. Zonder periode kan ik niet tellen.',
+    },
+    {
+      id: 'provincies', label: 'Provincies', text: 'Welke provincies tel ik mee?', kind: 'many', optional: true,
+      hint: 'Zonder keuze tel ik alle provincies.',
+      options: PROVINCES.map((name) => ({ value: name.toLowerCase(), label: name })),
+      otherPlaceholder: 'Bijvoorbeeld: Zeeuws-Vlaanderen',
+    },
+    {
+      id: 'toelichting', label: 'Toelichting', text: 'Wil je nog iets toelichten?', kind: 'text', optional: true,
+      placeholder: 'Bijvoorbeeld: zonder ingetrokken aanvragen',
+    },
+  ],
+})
+
+/** The turn whose answer asks: its announcement in the conversation, the questions in the box. */
+export const askingTurn = (id = 't3') => ({
+  id,
+  message: { text: askedQuestion, time: '08:24' },
+  answer: {
+    state: 'needs-clarification',
+    text: 'Dat kan ik op meer manieren tellen. Drie korte vragen, dan reken ik het uit.',
+    questions: askedQuestions(),
+  },
+})
+
 /** The start screen of an empty conversation. */
 export const chatStart = {
   intro: 'Ik beantwoord vragen over de gegevens in tekst, cijfers, grafieken en tabellen. Bij elk antwoord staan de bron en het peilmoment.',
@@ -189,7 +234,7 @@ export const chatStart = {
  * here, and the view gets all of it again whenever something changes. An answer is played the
  * way a host streams one — `data` is set again for every piece.
  */
-export function converse(chat, { turns = true } = {}) {
+export function converse(chat, { turns = true, asking = false } = {}) {
   const sources = chatSources()
   const state = { period: 'week', desks: 'all', compare: false }
   const terms = (text) => termsOf(text, sources)
@@ -197,6 +242,7 @@ export function converse(chat, { turns = true } = {}) {
     ? [
         { id: 't1', message: { text: weekQuestion, time: '08:20', terms: terms(weekQuestion) }, answer: weekAnswer(state) },
         { id: 't2', message: { text: waitQuestion, time: '08:22', terms: terms(waitQuestion) }, answer: waitAnswer(state) },
+        ...(asking ? [askingTurn()] : []),
       ]
     : []
   let draftTerms
@@ -268,6 +314,13 @@ export function converse(chat, { turns = true } = {}) {
   const turnOf = (event) => list.find((turn) => turn.id === event.detail.turnId)
 
   chat.addEventListener('lintje-message-send', (event) => ask(event.detail.text, event.detail.terms))
+  // The answers go out as the reader's message; while the host waits, the box says it is sending.
+  chat.addEventListener('lintje-questions-answer', (event) => {
+    const turn = turnOf(event)
+    turn.answer = { ...turn.answer, questions: { ...turn.answer.questions, state: 'sending' } }
+    render()
+    playing.push(setTimeout(() => ask(event.detail.text), 600))
+  })
   chat.addEventListener('lintje-suggestion-select', (event) => ask(event.detail.value ?? event.detail.label))
   chat.addEventListener('lintje-row-click', (event) => ask(`Hoe verliep de wachttijd bij ${event.detail.label ?? 'dit loket'}?`))
   chat.addEventListener('lintje-answer-retry', (event) => play(turnOf(event)))

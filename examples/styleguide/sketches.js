@@ -150,6 +150,7 @@ export const SKETCHES = {
   'chat-answer': { rows: 't90 / l50 / kpi kpi kpi' },
   'chat-steps': { rows: 'i s30 chevd / | s40 / | s50 / | s35' },
   'chat-composer': { frame: 'tile', rows: 'l80 / s5 / se35 sp b30' },
+  'chat-questions': { frame: 'tile', rows: 'prog / t50 / ra l40 / rax l35 / ra l30 / sp bt15 b25' },
   'chat-strip': { rows: 's15 s15 s15 / l25 u15 u15 / s20 / u25' },
   'chat-suggestions': { rows: 's40 / dash60 / dash45 dash45' },
 }
