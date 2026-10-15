@@ -353,6 +353,7 @@
   --radius-round: 50%;
 
   --shadow-sticky: 0 2px 6px var(--alpha-black-08);
+  --shadow-sticky-up: 0 -2px 6px var(--alpha-black-08);
   --shadow-popover: 0 4px 16px var(--alpha-black-14);
   --shadow-nav: 2px 0 8px var(--alpha-black-08);
   --shadow-chart-hover: 0 1px 4px var(--alpha-black-22);
@@ -786,6 +787,7 @@
     --color-map-water: var(--neutral-1);
 
     --shadow-sticky: 0 2px 6px var(--alpha-black-40);
+    --shadow-sticky-up: 0 -2px 6px var(--alpha-black-40);
     --shadow-popover: 0 4px 16px var(--alpha-black-55);
     --shadow-nav: 2px 0 8px var(--alpha-black-40);
     --shadow-chart-hover: 0 1px 4px var(--alpha-black-60);

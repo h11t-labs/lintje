@@ -3,9 +3,11 @@
  * slotted `lintje-button`s on the right, the last one primary.
  *
  * While connected it reserves its height as the page scroller's `scroll-padding-bottom`, so a
- * field the focus scrolls to is not hidden behind it.
+ * field the focus scrolls to is not hidden behind it. While the form scrolls behind it, it casts
+ * its shadow upward.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
+import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { scrollRoot } from '../../../core/host-config'
 import { MediaController, MOBILE } from '../../../core/media'
@@ -51,12 +53,31 @@ function reserve(): void {
   root.style.scrollPaddingBottom = `${room}px`
 }
 
+/** What scrolls the root: the window for the page's own scroller. */
+const scrollTarget = (root: HTMLElement): HTMLElement | Window =>
+  root === document.scrollingElement ? window : root
+
+/**
+ * Stuck: sticking at the bottom of the root with more to scroll. At its own place after the last
+ * field it may touch the bottom too, but then nothing scrolls behind it.
+ */
+function stuckIn(bar: HTMLElement, root: HTMLElement): boolean {
+  if (getComputedStyle(bar).position !== 'sticky') return false
+  const bottom =
+    root === document.scrollingElement
+      ? root.clientHeight
+      : root.getBoundingClientRect().top + root.clientTop + root.clientHeight
+  const more = root.scrollHeight - root.scrollTop - root.clientHeight > 1
+  return more && bar.getBoundingClientRect().bottom >= bottom - 1
+}
+
 export class LintjeFormActions extends LintjeElement {
   static override styles = [iconStyles, shadowCss(formActionsCss), shadowCss(screenOnlyCss)]
 
   static override properties: PropertyDeclarations = {
     state: { type: String, reflect: true },
     savedAt: { type: String, attribute: 'saved-at' },
+    stuck: { state: true },
   }
 
   /**
@@ -66,24 +87,47 @@ export class LintjeFormActions extends LintjeElement {
   state: FormActionsState = ''
   /** When it was saved: "10:42" or anything `Date` parses. */
   declare savedAt?: string
+  protected stuck = false
 
   readonly #mobile = new MediaController(this, MOBILE)
   readonly #busy = new PropertyHold('busy')
   readonly #disabled = new PropertyHold('disabled')
   readonly #block = new AttributeHold('block')
   #resize: ResizeObserver | null = null
+  #scroller: HTMLElement | Window | null = null
+  #stuckFrame = 0
+
+  // Measured once a frame at most, on scroll and on resize.
+  readonly #watch = (): void => {
+    if (this.#stuckFrame) return
+    this.#stuckFrame = requestAnimationFrame(() => {
+      this.#stuckFrame = 0
+      const root = scrollRoot()
+      this.stuck = root != null && this.isConnected && stuckIn(this, root)
+    })
+  }
 
   override connectedCallback(): void {
     super.connectedCallback()
     reserved.set(this, this.offsetHeight)
     reserve()
+    const root = scrollRoot()
+    if (root && typeof requestAnimationFrame !== 'undefined') {
+      this.#scroller = scrollTarget(root)
+      this.#scroller.addEventListener('scroll', this.#watch, { passive: true })
+      window.addEventListener('resize', this.#watch)
+      this.#watch()
+    }
     if (typeof ResizeObserver === 'undefined') return
     this.#resize = new ResizeObserver(() => {
       if (!this.isConnected) return
       reserved.set(this, this.offsetHeight)
       reserve()
+      this.#watch()
     })
     this.#resize.observe(this)
+    // A form that grows or shrinks under a resting page moves the bar's own place.
+    if (this.parentElement) this.#resize.observe(this.parentElement)
   }
 
   get buttons(): HTMLElement[] {
@@ -99,6 +143,11 @@ export class LintjeFormActions extends LintjeElement {
   override disconnectedCallback(): void {
     this.#resize?.disconnect()
     this.#resize = null
+    this.#scroller?.removeEventListener('scroll', this.#watch)
+    this.#scroller = null
+    window.removeEventListener('resize', this.#watch)
+    if (this.#stuckFrame) cancelAnimationFrame(this.#stuckFrame)
+    this.#stuckFrame = 0
     reserved.delete(this)
     reserve()
     this.#busy.release()
@@ -148,7 +197,7 @@ export class LintjeFormActions extends LintjeElement {
   }
 
   protected override render(): TemplateResult {
-    return html`<div class="lintje-form-actions">
+    return html`<div class=${classMap({ 'lintje-form-actions': true, 'is-stuck': this.stuck })}>
       <div class="lintje-form-actions__status" role="status">${this.renderStatus()}</div>
       <div class="lintje-form-actions__buttons">
         <slot @slotchange=${() => this.#hold()}></slot>

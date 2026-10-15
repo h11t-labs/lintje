@@ -554,3 +554,42 @@ describe('what sticks keeps the focus clear of itself', () => {
     expect(stale, `matches no check, so take out of KNOWN:\n${stale.join('\n')}`).toHaveLength(0)
   })
 })
+
+/* The action bar shows it sticks -------------------------------------------- */
+
+/** Whether the bar's box carries `is-stuck`, and whether it casts a shadow. */
+function shows(bar: HTMLElement): { stuck: boolean; shadow: boolean } {
+  const box = bar.shadowRoot!.querySelector('.lintje-form-actions')!
+  return {
+    stuck: box.classList.contains('is-stuck'),
+    shadow: getComputedStyle(box).boxShadow !== 'none',
+  }
+}
+
+const STUCK = { stuck: true, shadow: true }
+const AT_ITS_PLACE = { stuck: false, shadow: false }
+
+describe('the action bar casts its shadow only while the form scrolls behind it', () => {
+  for (const width of [1440, 390]) {
+    it(`over a long form at ${width} px, and not at its own place below it`, async () => {
+      await viewport(width, width < 768 ? 844 : 900)
+      const { bar } = await formPage()
+      await expect.poll(() => shows(bar), { message: 'at the top' }).toEqual(STUCK)
+      scrollBy(document.documentElement, document.documentElement.scrollHeight)
+      await expect.poll(() => shows(bar), { message: 'at the bottom' }).toEqual(AT_ITS_PLACE)
+      window.scrollTo({ top: 0, behavior: 'instant' })
+      await expect.poll(() => shows(bar), { message: 'back at the top' }).toEqual(STUCK)
+    })
+  }
+
+  it('under a short form that fits the screen', async () => {
+    const form = document.createElement('div')
+    form.innerHTML = '<p><label>Opmerking <input type="text" /></label></p>'
+    document.body.append(form)
+    const bar = create('lintje-form-actions')
+    bar.innerHTML = '<lintje-button variant="primary">Versturen</lintje-button>'
+    await append(bar)
+    await settle()
+    expect(shows(bar)).toEqual(AT_ITS_PLACE)
+  })
+})
