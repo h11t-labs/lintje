@@ -1,7 +1,7 @@
 /** What sticks keeps the focus clear of itself (WCAG 2.4.11), each element at each width. */
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, server, userEvent } from 'vitest/browser'
-import { deepActiveElement, standsIn } from '../../core/focus'
+import { deepActiveElement, holdsFocus, standsIn } from '../../core/focus'
 import { SHIFT_TAB, TAB } from '../../core/test-keys'
 import '../../components/chat/chat/chat'
 import '../../components/tables/data-table/data-table'
@@ -45,8 +45,6 @@ interface Row {
 const KNOWN: RegExp[] = [
   // #82: the phone's sentence does not stick; its sticky box stays inside the zone's host.
   /^lintje-filter-bar :: stuck under the (top|side) layout's bar at 390 px :: /,
-  // #127: WebKit scrolls a text field's text into view, not its border and padding.
-  /^lintje-form-actions :: the action bar at \d+ px :: scrolls .* @ webkit$/,
 ]
 
 const ENGINES = ['chromium', 'firefox', 'webkit']
@@ -592,4 +590,22 @@ describe('the action bar casts its shadow only while the form scrolls behind it'
     await settle()
     expect(shows(bar)).toEqual(AT_ITS_PLACE)
   })
+})
+
+describe('the action bar scrolls nothing for the focus in itself', () => {
+  for (const width of [1440, 390]) {
+    it(`at ${width} px`, async () => {
+      await viewport(width, width < 768 ? 844 : 900)
+      const { bar } = await formPage()
+      await expect.poll(() => shows(bar).stuck, { message: 'it sticks' }).toBe(true)
+      const before = document.documentElement.scrollTop
+      // Without the browser's own scroll into view, which brings a sticky box to its own place.
+      bar.querySelector('lintje-button')!.shadowRoot!.querySelector('button')!.focus({
+        preventScroll: true,
+      })
+      await expect.poll(() => holdsFocus(bar), { message: 'the focus is in the bar' }).toBe(true)
+      await settle()
+      expect(document.documentElement.scrollTop).toBe(before)
+    })
+  }
 })

@@ -889,9 +889,10 @@ kleinste correctie, en leg die hier vast.
   tabel.
 - **Een vastgeplakte balk bedekt nooit de focus** (2.4.11): de actiebalk van het formulier
   reserveert zijn hoogte als `scroll-padding-bottom` van de scroller, en de foutsamenvatting
-  scrolt een veld naar het midden; de selectiebalk van de tabel scrolt een element waar de focus
-  onder belandt ervan vrij. De vastgeplakte vraag en het vraagvak van het gesprek houden hun hoogte
-  vrij als `scroll-padding` van de scroller, nooit lager dan wat een andere balk daar zette.
+  scrolt een veld naar het midden. Een element waar de focus toch onder belandt, scrollen de
+  actiebalk en de selectiebalk van de tabel van zich vrij, met rand en al. De vastgeplakte vraag
+  en het vraagvak van het gesprek houden hun hoogte vrij als `scroll-padding` van de scroller,
+  nooit lager dan wat een andere balk daar zette.
 - **Een grafiek is ook met het toetsenbord te lezen.** Haar tekening neemt de focus en de
   pijltoetsen lopen langs de categorieën met de tooltip, die een live-regio uitspreekt; Escape
   verbergt een tooltip. De tekening is een afbeelding, of een groep met haar beschrijving als naam

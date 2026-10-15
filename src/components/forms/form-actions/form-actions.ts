@@ -3,12 +3,13 @@
  * slotted `lintje-button`s on the right, the last one primary.
  *
  * While connected it reserves its height as the page scroller's `scroll-padding-bottom`, so a
- * field the focus scrolls to is not hidden behind it. While the form scrolls behind it, it casts
- * its shadow upward.
+ * field the focus scrolls to is not hidden behind it, and scrolls a focused element that still
+ * ends up under it clear. While the form scrolls behind it, it casts its shadow upward.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
+import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import { scrollRoot } from '../../../core/host-config'
 import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
@@ -96,6 +97,7 @@ export class LintjeFormActions extends LintjeElement {
   #resize: ResizeObserver | null = null
   #scroller: HTMLElement | Window | null = null
   #stuckFrame = 0
+  #focusFrame = 0
 
   // Measured once a frame at most, on scroll and on resize.
   readonly #watch = (): void => {
@@ -107,6 +109,34 @@ export class LintjeFormActions extends LintjeElement {
     })
   }
 
+  /**
+   * The reserved `scroll-padding-bottom` is not always enough: WebKit scrolls a text field's text
+   * into view, not its border and padding. On the document, as the bar stands beside the fields.
+   */
+  readonly #onFocusIn = (): void => {
+    cancelAnimationFrame(this.#focusFrame)
+    this.#focusFrame = requestAnimationFrame(() => {
+      this.#focusFrame = 0
+      this.#clearOfFocus()
+    })
+  }
+
+  #clearOfFocus(): void {
+    const focused = deepActiveElement()
+    if (!focused || holdsFocus(this) || getComputedStyle(this).position !== 'sticky') return
+    const room = this.getBoundingClientRect()
+    const box = focused.getBoundingClientRect()
+    const left = Math.max(box.left, room.left)
+    const right = Math.min(box.right, room.right)
+    if (box.bottom <= room.top || box.top >= room.bottom || left >= right) return
+    // Only what the bar covers: a sheet or dialog over the bar is not under it.
+    const y = (Math.max(box.top, room.top) + Math.min(box.bottom, room.bottom)) / 2
+    const scope = this.getRootNode() as Document | ShadowRoot
+    const hit = scope.elementFromPoint((left + right) / 2, y)
+    if (!hit || !this.contains(hit)) return
+    scrollRoot()?.scrollBy({ top: box.bottom - room.top, behavior: 'instant' })
+  }
+
   override connectedCallback(): void {
     super.connectedCallback()
     reserved.set(this, this.offsetHeight)
@@ -116,6 +146,7 @@ export class LintjeFormActions extends LintjeElement {
       this.#scroller = scrollTarget(root)
       this.#scroller.addEventListener('scroll', this.#watch, { passive: true })
       window.addEventListener('resize', this.#watch)
+      document.addEventListener('focusin', this.#onFocusIn)
       this.#watch()
     }
     if (typeof ResizeObserver === 'undefined') return
@@ -146,8 +177,11 @@ export class LintjeFormActions extends LintjeElement {
     this.#scroller?.removeEventListener('scroll', this.#watch)
     this.#scroller = null
     window.removeEventListener('resize', this.#watch)
+    document.removeEventListener('focusin', this.#onFocusIn)
     if (this.#stuckFrame) cancelAnimationFrame(this.#stuckFrame)
+    if (this.#focusFrame) cancelAnimationFrame(this.#focusFrame)
     this.#stuckFrame = 0
+    this.#focusFrame = 0
     reserved.delete(this)
     reserve()
     this.#busy.release()
