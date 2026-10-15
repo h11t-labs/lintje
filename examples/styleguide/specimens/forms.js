@@ -250,7 +250,7 @@ export default {
           note: 'In de rij staat alleen de inhoud van de huidige stap eronder; op een telefoon onder de balk.',
           html: `<lintje-stepper>
             <lintje-badge slot="melding" tone="success">Ontvangen</lintje-badge>
-            <p slot="opvolging">De melding is toegewezen aan de wijkploeg. Je hoort binnen vijf werkdagen wat ermee gebeurt.</p>
+            <div slot="opvolging">De melding is toegewezen aan de wijkploeg. Je hoort binnen vijf werkdagen wat ermee gebeurt.</div>
             <lintje-badge slot="controleren">Nog niet gestart</lintje-badge>
           </lintje-stepper>`,
           setup: (stage) => steps(stage, STEPS_WITH_CONTENT),
