@@ -34,12 +34,6 @@ export interface MonthGrid {
 export function renderMonthGrid(grid: MonthGrid): TemplateResult {
   const month = startOfMonth(grid.focus).slice(0, 7)
   const onKeydown = (event: KeyboardEvent): void => {
-    // The cell is no button, so Enter and Space pick the day with the tab stop here.
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      if (!grid.day(grid.focus).blocked) grid.onPick(grid.focus)
-      return
-    }
     const move = DAY_MOVES[event.key]
     if (!move) return
     event.preventDefault()
@@ -82,6 +76,13 @@ export function renderMonthGrid(grid: MonthGrid): TemplateResult {
             aria-current=${today ? 'date' : nothing}
             aria-disabled=${day.blocked ? 'true' : nothing}
             @click=${() => {
+              if (!day.blocked) grid.onPick(iso)
+            }}
+            @keydown=${(event: KeyboardEvent) => {
+              // What a button did itself. The cell, not the tab stop: a click on a blocked day
+              // focuses it without moving the tab stop.
+              if (event.key !== 'Enter' && event.key !== ' ') return
+              event.preventDefault()
               if (!day.blocked) grid.onPick(iso)
             }}
           >

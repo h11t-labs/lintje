@@ -283,6 +283,11 @@ describe('lintje-date-range', () => {
         await element.updateComplete
         return event
       }
+      // A click focuses a blocked day without moving the tab stop: the key acts on that day.
+      cell(element, 8).click()
+      cell(element, 8).dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
+      await element.updateComplete
+      expect(element.draft).toEqual({ from: null, to: null })
       // The tab stop starts on today; the day after it is past `maxDate` and picks nothing.
       await press('ArrowRight')
       expect(cell(element, 8).getAttribute('tabindex')).toBe('0')

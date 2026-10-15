@@ -264,6 +264,14 @@ describe('the calendar', () => {
         await element.updateComplete
         return event
       }
+      // A click focuses a blocked day without moving the tab stop: the key acts on that day.
+      cell(element, 24).click()
+      const onBlocked = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true })
+      cell(element, 24).dispatchEvent(onBlocked)
+      await element.updateComplete
+      expect(onBlocked.defaultPrevented).toBe(true)
+      expect(seen.local).toEqual([])
+      expect(element.open).toBe(true)
       await press('ArrowDown')
       await press('ArrowDown')
       // The 24th is past `max`: the key reaches it, and picks nothing.
