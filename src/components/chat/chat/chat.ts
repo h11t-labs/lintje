@@ -8,7 +8,8 @@
  * It sends no events of its own: those of its question box, messages and answers reach the host,
  * with the `turnId` where a turn sent them. The host answers `lintje-message-send` with a new turn,
  * `lintje-message-edit` by asking again without that turn and all after it, and
- * `lintje-strip-change` by answering again with the new assumption.
+ * `lintje-strip-change` by answering again with the new assumption. A turn's `divider` stands as a
+ * centred line above its question.
  */
 import {
   html,
@@ -24,6 +25,7 @@ import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import { scrollRoot } from '../../../core/host-config'
 import { prefersReducedMotion } from '../../../core/motion'
 import { shadowCss } from '../../../core/styles'
+import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
 import '../chat-answer/chat-answer'
 import '../chat-composer/chat-composer'
@@ -31,7 +33,37 @@ import type { LintjeChatComposer } from '../chat-composer/chat-composer'
 import '../chat-message/chat-message'
 import '../chat-suggestions/chat-suggestions'
 import chatCss from './chat.css?inline'
-import type { ChatData, ChatSourceData, ChatStartData, ChatTurnData } from '../../../types'
+import type {
+  ChatData,
+  ChatDivider,
+  ChatSourceData,
+  ChatStartData,
+  ChatTurnData,
+} from '../../../types'
+
+const TRIMMED = 'De assistent neemt de vragen hierboven niet meer mee.'
+
+/**
+ * A line between turns, centred: line, label, line. A plain paragraph in the reading order; the
+ * lines and the arrow are drawing. Not a separator, whose name is often skipped and which holds no
+ * sentence, and not a heading, which would read as standing over what follows.
+ */
+function renderDivider(divider: ChatDivider): TemplateResult {
+  const kind = divider.kind ?? 'time'
+  const context = kind === 'context'
+  const note = divider.note ?? (context ? TRIMMED : undefined)
+  return html`<div
+    class=${classMap({ 'lintje-chat__divider': true, 'lintje-chat__divider--context': context })}
+  >
+    <p class="lintje-chat__divider-label">
+      <span class="lintje-chat__divider-line" aria-hidden="true"></span>
+      ${context ? renderIcon('functioneel-pijl-omhoog', { className: 'lintje-chat__divider-icon' }) : nothing}
+      <span class="lintje-chat__divider-text">${divider.label}</span>
+      <span class="lintje-chat__divider-line" aria-hidden="true"></span>
+    </p>
+    ${note ? html`<p class="lintje-chat__divider-note">${note}</p>` : nothing}
+  </div>`
+}
 
 /** The nearest ancestor that scrolls, across slots and shadow roots; without one, the page's. */
 function scrollerOf(element: Element): HTMLElement | null {
@@ -82,7 +114,7 @@ class ScrollRoom {
 }
 
 export class LintjeChat extends LintjeElement {
-  static override styles = shadowCss(chatCss)
+  static override styles = [iconStyles, shadowCss(chatCss)]
 
   static override properties: PropertyDeclarations = {
     data: { attribute: false },
@@ -297,6 +329,7 @@ export class LintjeChat extends LintjeElement {
           const answer = turn.answer
           const replaced = editing && index >= editingIndex
           return html`<section class="lintje-chat__turn">
+            ${turn.divider ? renderDivider(turn.divider) : nothing}
             <lintje-chat-message
               class="lintje-chat__message"
               turn-id=${turn.id}
@@ -318,6 +351,7 @@ export class LintjeChat extends LintjeElement {
                   lead=${answer.lead ?? nothing}
                   text=${answer.text ?? nothing}
                   status=${answer.status ?? nothing}
+                  .steps=${answer.steps}
                   .blocks=${answer.blocks}
                   .strip=${answer.strip}
                   .error=${answer.error}

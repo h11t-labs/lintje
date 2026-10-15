@@ -148,6 +148,7 @@ export const SKETCHES = {
   chat: { frame: 'page', rows: 'sp s10 i bubble50 / l60 / tbl' },
   'chat-message': { rows: 'sp s10 i bubble60' },
   'chat-answer': { rows: 't90 / l50 / kpi kpi kpi' },
+  'chat-steps': { rows: 'i s30 chevd / | s40 / | s50 / | s35' },
   'chat-composer': { frame: 'tile', rows: 'l80 / s5 / se35 sp b30' },
   'chat-strip': { rows: 's15 s15 s15 / l25 u15 u15 / s20 / u25' },
   'chat-suggestions': { rows: 's40 / dash60 / dash45 dash45' },

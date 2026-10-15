@@ -24,6 +24,7 @@ import '../../actions/icon-button/icon-button'
 import '../../feedback/spinner/spinner'
 import '../../feedback/announcement/announcement'
 import '../../charts/chart/chart'
+import '../chat-steps/chat-steps'
 import '../chat-strip/chat-strip'
 import '../chat-suggestions/chat-suggestions'
 import '../../tables/data-table/data-table'
@@ -38,6 +39,7 @@ import type {
   AnnouncementData,
   ChatAnswerState,
   ChatBlock,
+  ChatStepsData,
   ChatStripData,
   ChatSuggestion,
 } from '../../../types'
@@ -67,6 +69,7 @@ export class LintjeChatAnswer extends LintjeElement {
     blocks: { attribute: false },
     strip: { attribute: false },
     status: { type: String },
+    steps: { attribute: false },
     error: { attribute: false },
     choices: { attribute: false },
     followUps: { attribute: false },
@@ -84,8 +87,10 @@ export class LintjeChatAnswer extends LintjeElement {
   declare text?: string
   declare blocks?: ChatBlock[]
   declare strip?: ChatStripData
-  /** `streaming`: the step that is running. */
+  /** `streaming`: the step that is running; not drawn when `steps` has one. */
   declare status?: string
+  /** What the assistant did, above the text in every state; its running step is the status. */
+  declare steps?: ChatStepsData
   /** `error`: what went wrong, and the way out in words. */
   declare error?: { title?: string; text: string }
   /** The choices of `out-of-scope` and `needs-clarification`. */
@@ -200,6 +205,15 @@ export class LintjeChatAnswer extends LintjeElement {
     const choices = CHOICES[state]
     return html`<article class="lintje-chat-answer">
       <div class="lintje-chat-answer__body">
+        ${
+          this.steps
+            ? html`<lintje-chat-steps
+              class="lintje-chat-answer__steps"
+              .items=${this.steps.items}
+              duration=${this.steps.duration ?? nothing}
+            ></lintje-chat-steps>`
+            : nothing
+        }
         ${state === 'error' ? this.renderError() : this.renderText()}
         <div class="visually-hidden" role="status" aria-atomic="false">
           ${this.spoken.map((sentence) => html`<p>${sentence}</p>`)}
@@ -217,7 +231,7 @@ export class LintjeChatAnswer extends LintjeElement {
         }
         ${this.renderBlocks()}
         ${
-          state === 'streaming'
+          state === 'streaming' && !this.steps?.items.length
             ? html`<lintje-spinner
               class="lintje-chat-answer__status"
               label=${this.status ?? 'Antwoord schrijven'}

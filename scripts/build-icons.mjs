@@ -122,6 +122,7 @@ const COMPONENT_ICONS = [
   'functioneel-verzenden', // chat: send the question
   'multimedia-player-stop', // chat: stop an answer that is arriving
   'functioneel-pijl-omlaag', // chat: to the newest turn
+  'functioneel-pijl-omhoog', // chat: the divider over a trimmed conversation
   'gereedschap-half-tandwiel-half-brein', // AI label: made by a model
 ]
 
