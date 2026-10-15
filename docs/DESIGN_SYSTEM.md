@@ -779,6 +779,9 @@ navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de
 (identiteit en één meetwaarde) en de heatmap. Tussen de breedtes lopen bedieningselementen door
 naar een volgende regel; ze overlappen nooit.
 
+**Bij weinig hoogte plakt de actiebalk van een formulier niet**: onder een viewporthoogte van
+30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10).
+
 ## Beweging
 
 - **Twee curves**: wat binnenkomt, vertraagt; wat vertrekt, versnelt. Een vervaging die heen en

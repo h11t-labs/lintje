@@ -7,6 +7,11 @@
   z-index: 20;
 }
 :host([hidden]) { display: none; }
+/* Little height (a phone held sideways, 400 % zoom): sticking would leave the form a strip of one
+   field, so the bar stands after the last field. Matches `LOW` in form-actions.ts. */
+@media (height < 30rem) {
+  :host { position: static; }
+}
 
 /* ------------------------------------------------------------------------ */
 

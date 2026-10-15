@@ -4,7 +4,8 @@
  *
  * While connected it reserves its height as the page scroller's `scroll-padding-bottom`, so a
  * field the focus scrolls to is not hidden behind it, and scrolls a focused element that still
- * ends up under it clear. While the form scrolls behind it, it casts its shadow upward.
+ * ends up under it clear. While the form scrolls behind it, it casts its shadow upward. Below a
+ * viewport height of 30rem it does not stick and reserves nothing: it stands after the last field.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -18,6 +19,9 @@ import { AttributeHold, PropertyHold } from '../../shared/controls'
 import '../../actions/button/button'
 import formActionsCss from './form-actions.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
+
+/** Below this height the bar does not stick (`form-actions.css`). */
+const LOW = '(height < 30rem)'
 
 const DIRTY = 'Wijzigingen nog niet opgeslagen'
 const BUSY = 'Bezig met opslaan'
@@ -91,6 +95,7 @@ export class LintjeFormActions extends LintjeElement {
   protected stuck = false
 
   readonly #mobile = new MediaController(this, MOBILE)
+  readonly #low = new MediaController(this, LOW)
   readonly #busy = new PropertyHold('busy')
   readonly #disabled = new PropertyHold('disabled')
   readonly #block = new AttributeHold('block')
@@ -139,10 +144,16 @@ export class LintjeFormActions extends LintjeElement {
     scrollRoot()?.scrollBy({ top: box.bottom - room.top, behavior: 'instant' })
   }
 
+  // A bar that does not stick covers nothing, so it keeps no room.
+  #reserveOwn(): void {
+    if (this.#low.matches) reserved.delete(this)
+    else reserved.set(this, this.offsetHeight)
+    reserve()
+  }
+
   override connectedCallback(): void {
     super.connectedCallback()
-    reserved.set(this, this.offsetHeight)
-    reserve()
+    this.#reserveOwn()
     const root = scrollRoot()
     if (root && typeof requestAnimationFrame !== 'undefined') {
       this.#scroller = scrollTarget(root)
@@ -154,8 +165,7 @@ export class LintjeFormActions extends LintjeElement {
     if (typeof ResizeObserver === 'undefined') return
     this.#resize = new ResizeObserver(() => {
       if (!this.isConnected) return
-      reserved.set(this, this.offsetHeight)
-      reserve()
+      this.#reserveOwn()
       this.#watch()
     })
     this.#resize.observe(this)
@@ -194,6 +204,8 @@ export class LintjeFormActions extends LintjeElement {
 
   protected override updated(): void {
     this.#hold()
+    // The height query may have changed sides.
+    if (this.isConnected && reserved.has(this) === this.#low.matches) this.#reserveOwn()
   }
 
   #hold(): void {
