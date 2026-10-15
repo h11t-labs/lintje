@@ -1,12 +1,13 @@
 /**
  * The shell in a browser: the ring in the phone's sheet of "Weergave" is the page's, not the
- * header's, and the side menu draws and drags its own thumb.
+ * header's, the side menu draws and drags its own thumb, and its foot opens the user menu above it.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { deepActiveElement } from '../../../core/focus'
 import './shell'
 import type { LintjeShell } from './shell'
+import type { LintjeUserMenu } from '../user-menu/user-menu'
 import type { ShellData } from '../../../types'
 import { TAB } from '../../../core/test-keys'
 
@@ -117,5 +118,79 @@ describe('the side menu’s thumb', () => {
     const footer = list.parentElement!.querySelector('.lintje-nav__footer') ?? list
     await userEvent.dragAndDrop(thumb, footer)
     await expect.poll(() => list.scrollTop).toBeGreaterThan(0)
+  })
+})
+
+describe('the foot of the side menu', () => {
+  /** A rail below 1440 px, with a user and the host's rows. */
+  async function mountRail(): Promise<{ shell: LintjeShell; trigger: HTMLButtonElement }> {
+    await page.viewport(1280, 720)
+    await expect.poll(() => window.innerWidth).toBe(1280)
+    const shell = document.createElement('lintje-shell')
+    shell.data = {
+      ...DATA,
+      user: { name: 'J. de Vries', role: 'Teamleider', initials: 'JV' },
+      userMenu: [
+        { value: 'profiel', label: 'Mijn profiel' },
+        { value: 'instellingen', label: 'Instellingen' },
+      ],
+      version: '2.4.1',
+    }
+    document.body.append(shell)
+    await shell.updateComplete
+    const menu = shell.shadowRoot!.querySelector<LintjeUserMenu>('.lintje-nav__user-menu')!
+    await menu.updateComplete
+    const trigger = menu.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-user-menu__trigger')!
+    return { shell, trigger }
+  }
+
+  const panelOf = (trigger: HTMLElement): Element | null => {
+    const popover = (trigger.getRootNode() as ShadowRoot).querySelector('lintje-popover')
+    return popover?.shadowRoot?.querySelector('.lintje-popover') ?? null
+  }
+
+  /** The menu stands above the foot and inside the viewport. */
+  async function expectAbove(trigger: HTMLElement): Promise<void> {
+    await expect.poll(() => panelOf(trigger)).not.toBeNull()
+    const panel = panelOf(trigger)!
+    for (const animation of panel.getAnimations()) animation.finish()
+    const box = panel.getBoundingClientRect()
+    const foot = trigger.getBoundingClientRect()
+    expect(box.bottom).toBeLessThanOrEqual(foot.top + 0.5)
+    expect(box.top).toBeGreaterThanOrEqual(-0.5)
+    expect(box.left).toBeGreaterThanOrEqual(-0.5)
+    expect(box.right).toBeLessThanOrEqual(window.innerWidth + 0.5)
+  }
+
+  it('opens the menu above it with the pointer, and keeps the rail expanded while it is open', async () => {
+    const { shell, trigger } = await mountRail()
+    await userEvent.click(trigger)
+    await expectAbove(trigger)
+    expect(trigger.getAttribute('aria-expanded')).toBe('true')
+
+    // The pointer leaves the menu for the top bar: the open user menu holds the rail.
+    const share = shell.shadowRoot!.querySelector<HTMLElement>(
+      '.lintje-top-bar .lintje-share__button',
+    )!
+    await userEvent.hover(share)
+    await new Promise(requestAnimationFrame)
+    expect(shell.railExpanded).toBe(true)
+
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(() => panelOf(trigger)).toBeNull()
+    expect(deepActiveElement()).toBe(trigger)
+  })
+
+  it('opens it with Enter, on its first row, and Escape gives the focus back to the foot', async () => {
+    const { shell, trigger } = await mountRail()
+    trigger.focus()
+    await userEvent.keyboard('{Enter}')
+    await expectAbove(trigger)
+    await expect.poll(() => deepActiveElement()?.textContent?.trim()).toBe('Mijn profiel')
+    expect(shell.railExpanded).toBe(true)
+
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(() => panelOf(trigger)).toBeNull()
+    expect(deepActiveElement()).toBe(trigger)
   })
 })

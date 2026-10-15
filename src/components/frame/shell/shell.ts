@@ -477,13 +477,23 @@ export class LintjeShell extends LintjeElement {
     return html`<lintje-notifications .items=${items}></lintje-notifications>`
   }
 
-  /** In the bar the avatar opens it; `inline`, it is the foot of the mobile menu. */
-  renderUserMenu(inline: boolean): TemplateResult | typeof nothing {
+  /**
+   * `bar`: the avatar in the bar opens it. `sheet`: inline, the foot of the mobile menu. `side`:
+   * the foot of the side menu opens it, folded to the avatar in the folded rail.
+   */
+  renderUserMenu(place: 'bar' | 'sheet' | 'side', folded = false): TemplateResult | typeof nothing {
     const data = this.data
     if (!data?.user) return nothing
+    const className = {
+      bar: 'lintje-shell__user',
+      sheet: 'lintje-shell__sheet-user',
+      side: 'lintje-nav__user-menu',
+    }[place]
     return html`<lintje-user-menu
-      class=${inline ? 'lintje-shell__sheet-user' : 'lintje-shell__user'}
-      ?inline=${inline}
+      class=${className}
+      ?inline=${place === 'sheet'}
+      variant=${place === 'side' ? 'side' : nothing}
+      ?folded=${folded}
       .user=${data.user}
       .items=${data.userMenu ?? []}
       version=${data.version ?? nothing}
@@ -534,7 +544,7 @@ export class LintjeShell extends LintjeElement {
   private renderNavEnd(data: ShellData): TemplateResult {
     return html`${this.renderSearch()}${this.renderNotifications()}${renderBarTools(this)}${
       data.feedback ? this.renderFeedbackTool(data.feedback) : nothing
-    }${this.renderUserMenu(false)}`
+    }${this.renderUserMenu('bar')}`
   }
 
   /** The feedback link as a bare tool: its glyph, or its word without the icon file. */

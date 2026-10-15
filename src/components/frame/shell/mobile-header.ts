@@ -161,7 +161,7 @@ export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): Temp
               </div>`,
             )}
           </nav>
-          ${renderMobileMeta(shell)} ${shell.renderUserMenu(true)}
+          ${renderMobileMeta(shell)} ${shell.renderUserMenu('sheet')}
         </div>`
         : nothing
     }
