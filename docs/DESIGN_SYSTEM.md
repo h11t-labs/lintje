@@ -396,6 +396,12 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een paar keuzes die allemaal in beeld blijven, zijn een groep vinkjes**
   (`lintje-checkbox-group`): één label, één hint en één foutregel voor de groep, zoals de
   radiogroep. Een lange lijst om in te zoeken is de multiselect.
+- **Een eigen antwoord is een optie van de groep, met een veld eronder** (`other`): "Anders,
+  namelijk" staat als laatste, en gekozen staat er een tekstveld onder, ingesprongen tot de lijn
+  van de labels, zodat het leest als het vervolg van de keuze. Nooit een los veld van de host onder
+  de groep. De tekst is een waarde naast de keuze (`<name>-other`) die blijft staan als de keuze
+  weggaat, en de host controleert hem zoals elk veld. Een filter, een rij knoppen en kaarten hebben
+  geen eigen antwoord.
 - **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
   elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
   beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").
