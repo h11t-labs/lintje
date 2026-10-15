@@ -842,6 +842,10 @@ staand of liggend; Lintje zet geen paginaformaat.
 - **Het vel heeft een eigen marge**, ook als de browser er geen geeft: ruim genoeg voor de kop-
   en voetregel van de browser, smal genoeg dat een staand vel de vorm van 768 tot 1024 houdt.
   Balken en inhoud beginnen op die marge, op één lijn.
+- **Een plaatje van een grafiek (PNG) volgt dezelfde regel als papier**: wat de grafiek op het
+  scherm toont — legenda, astitels, tekening, gebeurtenissen, legendatabel — in de schikking van
+  het scherm; tooltip, focus, hover en knoppen niet. Anders dan papier blijft het in de modus van
+  de lezer.
 
 ## Toegankelijkheid
 
