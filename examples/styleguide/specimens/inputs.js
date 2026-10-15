@@ -201,7 +201,7 @@ function fakeUploads(upload) {
 }
 
 const BIJLAGEN = [
-  { value: 'id', label: 'Kopie van een identiteitsbewijs' },
+  { value: 'id', label: 'Kopie van een identiteitsbewijs', description: 'Paspoort of identiteitskaart' },
   { value: 'loon', label: 'Loonstrook', description: 'Van de laatste maand' },
   { value: 'huur', label: 'Huurcontract' },
 ]
@@ -623,7 +623,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
-          note: 'Loonstrook heeft een toelichting onder de optie. Eronder staat wat de host hoort.',
+          note: 'Een toelichting staat onder haar optie, ingesprongen tot de labeltekst. Eronder staat wat de host hoort.',
           html: '<lintje-checkbox-group name="bijlagen" label="Welke bijlagen stuurt u mee?" hint="Kies alles wat van toepassing is."></lintje-checkbox-group>',
           setup(stage) {
             bijlagen(stage, ['loon'])

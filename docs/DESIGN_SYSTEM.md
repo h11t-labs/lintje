@@ -347,6 +347,10 @@ De besluiten hieronder gelden voor alle elementen.
   zwaardere rand in de foutkleur met een melding die aan het bedieningselement gekoppeld is;
   uitgeschakeld is het subtiele oppervlak. Een uitgeschakelde knop blijft focusbaar
   (`aria-disabled`); een uitgeschakeld veld valt uit de tabvolgorde.
+- **De toelichting en de foutregel van een keuze springen in tot de tekst van haar label**, bij
+  een vinkje, een schakelaar en een optie in een groep, zodat ze niet lijken op de kop van de
+  optie eronder. Onder een veld met zijn label erboven staan ze tegen de rand, net als in een rij
+  van een instelling, waar de labeltekst zelf links staat.
 - **Een waarde die afwijkt van haar standaard** draagt op elk bedieningselement twee markeringen:
   het label in de accentkleur en een oranje stip. Geen extra rand, geen gekleurd oppervlak.
 - **Een veld legt vast als de lezer het verlaat of op Enter drukt.**

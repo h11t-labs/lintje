@@ -383,6 +383,9 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
   markering van de andere weergave, niet alleen een andere hoogte.
 - `sticky.browser.test.ts` — wat plakt: het houdt zijn hoogte vrij als scroll-padding, en een
   bedieningselement dat de focus krijgt, staat er niet onder.
+- `choice-foot.browser.test.ts` — de hint en de foutmelding onder een vinkje of schakelaar, ook
+  die van een optie in een groep of multiselect, beginnen waar de labeltekst begint; die van een
+  groep en van een rij van een instelling staan tegen de rand.
 - `required.browser.test.ts` — elke invoer met `required` in een natief `<form>`: leeg houdt hij
   het versturen tegen, gevuld of uitgeschakeld niet, en de melding van de browser landt op het
   bedieningselement dat ook de focus krijgt.
