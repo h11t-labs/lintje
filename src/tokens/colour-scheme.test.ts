@@ -576,6 +576,32 @@ describe('the header of the top layout', () => {
   })
 })
 
+describe('the fill of a chosen period', () => {
+  it('carries the text at 4.5:1 and stands out from a hover and a selection, in every theme and mode', () => {
+    for (const mode of ['light', 'dark'] as const) {
+      for (const theme of THEME_NAMES) {
+        const values = tokensFor(mode, theme)
+        const fill = values['--color-range-bg']
+        expect(fill, `${mode} ${theme}`).toMatch(/^#[0-9A-F]{6}$/)
+        expect(
+          contrast(values['--color-text-primary'], fill),
+          `${mode} ${theme}`,
+        ).toBeGreaterThanOrEqual(4.5)
+        expect(fill, `${mode} ${theme}`).not.toBe(values['--color-bg-subtle'])
+        expect(fill, `${mode} ${theme}`).not.toBe(values['--color-bg-selected'])
+        // Better seen on the surface than either grey.
+        const surface = values['--color-bg-surface']
+        for (const grey of [values['--color-bg-subtle'], values['--color-bg-selected']])
+          expect(contrast(fill, surface), `${mode} ${theme}`).toBeGreaterThan(
+            contrast(grey, surface),
+          )
+      }
+    }
+    // A clear tint in light: rijksoverheid's period is light blue, not near-white.
+    expect(tokensFor('light', 'rijksoverheid')['--color-range-bg']).toBe('#BAD5E9')
+  })
+})
+
 describe('contrast', () => {
   for (const theme of THEME_NAMES) {
     it(`holds where the scheme promises it, for ${theme}`, () => {
