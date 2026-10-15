@@ -29,7 +29,7 @@
  * `#D88CB7` and 30 % `#E5B2CF`: blue 183.9 and 207.6, so 184 and 208 here). No
  * single rounding of a linear sRGB mix reproduces both published tables.
  */
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { resolve as resolvePath } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { DATA_COLORS } from './colors'
@@ -218,6 +218,13 @@ function evaluateColorMix(value: string): string {
 const OKLCH_FROM =
   /oklch\(\s*from\s+(#[0-9a-fA-F]{3,6})\s+(?:([\d.]+)|max\(\s*l\s*,\s*([\d.]+)\s*\))\s+(?:c|min\(\s*c\s*,\s*([\d.]+)\s*\))\s+h\s*\)/i
 
+/**
+ * The step between two colours on the origin's lightness:
+ * `oklch(from #hex clamp(A, (T - l) * K, B) clamp(C, (l - T) * K, D) H)`, H in degrees.
+ */
+const OKLCH_STEP =
+  /oklch\(\s*from\s+(#[0-9a-fA-F]{3,6})\s+clamp\(\s*([\d.]+)\s*,\s*\(\s*([\d.]+)\s*-\s*l\s*\)\s*\*\s*([\d.]+)\s*,\s*([\d.]+)\s*\)\s+clamp\(\s*([\d.]+)\s*,\s*\(\s*l\s*-\s*([\d.]+)\s*\)\s*\*\s*([\d.]+)\s*,\s*([\d.]+)\s*\)\s+([\d.]+)\s*\)/i
+
 const toLinear = (srgb: number): number =>
   srgb <= 0.04045 ? srgb / 12.92 : ((srgb + 0.055) / 1.055) ** 2.4
 const toGamma = (linear: number): number =>
@@ -243,14 +250,26 @@ function oklch(colour: string): [number, number, number] {
  * gamut-maps it and this file could no longer say which hex it draws.
  */
 function evaluateOklch(value: string): string {
-  const match = OKLCH_FROM.exec(value)
+  const step = OKLCH_STEP.exec(value)
+  const match = step ?? OKLCH_FROM.exec(value)
   if (match === null) return value
-  const [own, chroma, hue] = oklch(match[1])
-  const lightness =
-    match[2] === undefined
-      ? Math.max(own, Number.parseFloat(match[3]))
-      : Number.parseFloat(match[2])
-  const c = match[4] === undefined ? chroma : Math.min(chroma, Number.parseFloat(match[4]))
+  const [own, chroma, ownHue] = oklch(match[1])
+  let lightness: number
+  let c: number
+  let hue = ownHue
+  if (step !== null) {
+    const [lo, at, gain, hi, cLo, cAt, cGain, cHi, degrees] = step.slice(2).map(Number.parseFloat)
+    const clamp = (min: number, x: number, max: number) => Math.min(max, Math.max(min, x))
+    lightness = clamp(lo, (at - own) * gain, hi)
+    c = clamp(cLo, (own - cAt) * cGain, cHi)
+    hue = (degrees * Math.PI) / 180
+  } else {
+    lightness =
+      match[2] === undefined
+        ? Math.max(own, Number.parseFloat(match[3]))
+        : Number.parseFloat(match[2])
+    c = match[4] === undefined ? chroma : Math.min(chroma, Number.parseFloat(match[4]))
+  }
   const a = c * Math.cos(hue)
   const b = c * Math.sin(hue)
   const l = (lightness + 0.3963377774 * a + 0.2158037573 * b) ** 3
@@ -607,9 +626,53 @@ describe('contrast', () => {
       expect(dark['--primary-hover']).toBe(mix(dark['--primary'], 0.88))
       expect(dark['--color-action-primary-hover']).toBe(dark['--primary-hover'])
       expect(dark['--color-link-hover']).toBe(dark['--neutral-6'])
-      // The focus ring is orange on every neutral surface, in every theme.
-      expect(light['--color-focus']).toBe('#E17000')
+      // Dark keeps the house orange: the deep one is 2.6:1 on the dark warning tint.
       expect(dark['--color-focus']).toBe('#E17000')
+    })
+
+    it(`rings focus in ${theme} at 3:1 on every surface it stands on, the lightest orange that does`, () => {
+      const surfaces = [
+        '--neutral-0',
+        '--neutral-1',
+        '--color-bg-subtle',
+        '--color-bg-inset',
+        '--color-bg-selected',
+        '--color-bg-filter',
+        '--color-choice-active-bg',
+        '--color-hero-bg',
+        ...['success', 'warning', 'attention', 'error', 'info'].map((name) => `--color-${name}-bg`),
+      ]
+      const reaches = (values: Record<string, string>, ring: string) =>
+        surfaces.every((surface) => contrast(ring, values[surface]) >= 3.0)
+      for (const mode of ['light', 'dark'] as const) {
+        const values = tokensFor(mode, theme)
+        for (const surface of surfaces) {
+          expect(
+            contrast(values['--color-focus'], values[surface]),
+            `${mode}: ring on ${surface}`,
+          ).toBeGreaterThanOrEqual(3.0)
+        }
+      }
+      // In light the ring is the house orange with the smallest whole share of black that
+      // reaches 3:1 on every theme's light surfaces.
+      const lights = THEME_NAMES.map((name) => tokensFor('light', name))
+      const share = [...Array(101).keys()].find((n) =>
+        lights.every((values) => reaches(values, mix('#E17000', 1 - n / 100, '#000000'))),
+      )
+      expect(tokensFor('light', theme)['--color-focus']).toBe(
+        mix('#E17000', 1 - share! / 100, '#000000'),
+      )
+    })
+
+    it(`writes ${theme}'s environment label in ink or white, whichever reaches 4.5:1`, () => {
+      for (const mode of ['light', 'dark'] as const) {
+        const values = tokensFor(mode, theme)
+        const band = values['--color-nav-environment-bg']
+        const word = values['--color-nav-environment-text']
+        expect(band, mode).toBe(values['--accent'])
+        expect([values['--ink-black'], values['--ink-white']], mode).toContain(word)
+        expect(contrast(word, band), mode).toBeGreaterThanOrEqual(4.5)
+      }
     })
 
     it(`draws ${theme}'s focus ring on the theme fill at 3:1`, () => {
@@ -629,13 +692,12 @@ describe('contrast', () => {
       ).toBeGreaterThanOrEqual(3.0)
     })
 
-    it(`sets ${theme}'s hero apart from the menu, with its text and ring legible on it`, () => {
+    it(`sets ${theme}'s hero apart from the menu, with its text legible on it`, () => {
       for (const mode of ['light', 'dark'] as const) {
         const values = tokensFor(mode, theme)
         const band = values['--color-hero-bg']
         expect(band, mode).not.toBe(values['--color-nav-bg'])
         expect(contrast(values['--color-hero-text'], band), mode).toBeGreaterThanOrEqual(4.5)
-        expect(contrast(values['--color-hero-focus'], band), mode).toBeGreaterThanOrEqual(3.0)
       }
     })
 
@@ -834,11 +896,14 @@ describe('the danger outline (danger-secondary)', () => {
   })
 })
 
-/** The token a stylesheet names for `property` under `selector`; a later rule wins. */
+/**
+ * The token a stylesheet names for `property` under `selector`: the first `var()` in its value, so
+ * `border-bottom: 2px solid var(--x)` reads as `--x`. A later rule wins.
+ */
 function inkOf(file: string, selector: string, property = 'color'): string {
   const css = bare(readFileSync(file, 'utf8'))
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const declaration = new RegExp(`(?:^|[;{\\s])${property}:\\s*var\\((--[\\w-]+)\\)`)
+  const declaration = new RegExp(`(?:^|[;{\\s])${property}:[^;]*?var\\((--[\\w-]+)\\)`)
   let found: string | undefined
   for (const rule of css.matchAll(new RegExp(`${escaped}\\s*(?:,[^{]*)?\\{([^}]*)\\}`, 'g'))) {
     found = declaration.exec(rule[1])?.[1] ?? found
@@ -926,6 +991,230 @@ describe('the status words', () => {
     for (const [file, selector, status] of WORDS) {
       expect(inkOf(file, selector), selector).toBe(`--color-${status}-text`)
     }
+  })
+})
+
+/** Defensie's primary falls short of AA in light wherever it draws, an accepted shortfall. */
+const primaryFallsShort = (theme: string, mode: 'light' | 'dark'): boolean =>
+  theme === 'defensie' && mode === 'light'
+
+describe('the selected surface', () => {
+  for (const theme of THEME_NAMES) {
+    for (const mode of ['light', 'dark'] as const) {
+      it(`keeps the words, the edge and the ring on a chosen row legible in ${mode} for ${theme}`, () => {
+        const values = tokensFor(mode, theme)
+        const surface = values['--color-bg-selected']
+        const words = [
+          '--color-text-primary',
+          '--color-text-secondary',
+          '--color-text-muted',
+          '--color-error-text',
+          '--color-success-text',
+        ]
+        const lines = ['--color-focus']
+        if (!primaryFallsShort(theme, mode)) {
+          words.push('--color-link', '--color-accent-text')
+          lines.push('--color-selected-edge', '--color-term-line')
+        }
+        for (const token of words) {
+          expect(contrast(values[token], surface), token).toBeGreaterThanOrEqual(4.5)
+        }
+        for (const token of lines) {
+          expect(contrast(values[token], surface), token).toBeGreaterThanOrEqual(3.0)
+        }
+      })
+    }
+  }
+
+  it('draws the edge of a chosen row in the accent line in light and in the text tint in dark', () => {
+    for (const theme of THEME_NAMES) {
+      expect(tokensFor('light', theme)['--color-selected-edge']).toBe(
+        tokensFor('light', theme)['--color-accent-line'],
+      )
+      expect(tokensFor('dark', theme)['--color-selected-edge']).toBe(
+        tokensFor('dark', theme)['--primary-tint-text'],
+      )
+    }
+  })
+
+  it('names the selected surface in no hover', () => {
+    const root = resolvePath('src/components')
+    const offenders: string[] = []
+    for (const path of readdirSync(root, { recursive: true, encoding: 'utf8' })) {
+      if (!path.endsWith('.css')) continue
+      const css = bare(readFileSync(resolvePath(root, path), 'utf8'))
+      for (const [, selector, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+        if (selector.includes(':hover') && body.includes('--color-bg-selected')) {
+          offenders.push(`${path}: ${selector.trim()}`)
+        }
+      }
+    }
+    expect(offenders).toEqual([])
+  })
+})
+
+describe('a mark on a surface other than the plain one', () => {
+  for (const theme of THEME_NAMES) {
+    for (const mode of ['light', 'dark'] as const) {
+      it(`draws a word on a status tint or a speaker's tint at 4.5:1 in ${mode} for ${theme}`, () => {
+        const values = tokensFor(mode, theme)
+        if (primaryFallsShort(theme, mode)) return
+        const ink = values['--color-link-on-status']
+        for (const status of ['success', 'info', 'attention', 'warning', 'error']) {
+          const surface = values[`--color-${status}-bg`]
+          expect(contrast(ink, surface), `on ${status}`).toBeGreaterThanOrEqual(4.5)
+        }
+        const share = Number.parseFloat(values['--tint-speaker']) / 100
+        for (const colour of [
+          ...DATA_COLORS.map((name) => `--color-chart-${name}`),
+          '--color-chart-other',
+        ]) {
+          const tint = mix(values[colour], share, values['--color-bg-surface'])
+          expect(contrast(ink, tint), `on the ${colour} tint`).toBeGreaterThanOrEqual(4.5)
+        }
+      })
+
+      it(`fills a progress bar at 3:1 on its track in ${mode} for ${theme}`, () => {
+        const values = tokensFor(mode, theme)
+        const track = values['--color-progress-track']
+        if (mode === 'light') {
+          // The inset grey would vanish on white, so light keeps the border grey.
+          expect(track).toBe(values['--color-border-default'])
+          return
+        }
+        expect(track).toBe(values['--color-bg-inset'])
+        for (const fill of [
+          '--color-accent-line',
+          '--color-success-line',
+          '--color-error-line',
+          '--color-text-muted',
+        ]) {
+          expect(contrast(values[fill], track), fill).toBeGreaterThanOrEqual(3.0)
+        }
+      })
+
+      it(`draws an error mark at 3:1 and an error word at 4.5:1 on the surface in ${mode} for ${theme}`, () => {
+        const values = tokensFor(mode, theme)
+        const surface = values['--color-bg-surface']
+        expect(contrast(values['--color-error-line'], surface)).toBeGreaterThanOrEqual(3.0)
+        expect(contrast(values['--color-error-text'], surface)).toBeGreaterThanOrEqual(4.5)
+      })
+    }
+  }
+
+  for (const mode of ['light', 'dark'] as const) {
+    it(`draws the attention line at 3:1 on its own tint in ${mode}`, () => {
+      const values = tokensFor(mode)
+      expect(
+        contrast(values['--color-attention-line'], values['--color-attention-bg']),
+      ).toBeGreaterThanOrEqual(3.0)
+    })
+  }
+
+  it('is the token each of those marks is drawn in', () => {
+    const C = 'src/components'
+    const GRID = '.lintje-description-list--grid'
+    const MARKS: [string, string, string, string][] = [
+      [
+        `${C}/shared/menu.css`,
+        '.lintje-menu__radio.is-checked::after',
+        'background',
+        '--color-accent-line',
+      ],
+      [
+        `${C}/tables/list/list.css`,
+        '.lintje-list__row.is-selected',
+        'box-shadow',
+        '--color-selected-edge',
+      ],
+      [
+        `${C}/tables/tree-view/tree-view.css`,
+        '.lintje-tree__row.is-selected',
+        'box-shadow',
+        '--color-selected-edge',
+      ],
+      [
+        `${C}/tables/data-table/data-table.css`,
+        '.lintje-data-table__row.is-selected',
+        'box-shadow',
+        '--color-selected-edge',
+      ],
+      [
+        `${C}/tables/data-table/data-table.css`,
+        '.lintje-data-table__mobile-row.is-selected',
+        'box-shadow',
+        '--color-selected-edge',
+      ],
+      [
+        `${C}/tables/data-table/data-table.css`,
+        '.lintje-data-table__selection',
+        'border-top',
+        '--color-selected-edge',
+      ],
+      [
+        `${C}/content/highlight/highlight.css`,
+        '.lintje-highlight--term',
+        'border-bottom',
+        '--color-term-line',
+      ],
+      [
+        `${C}/content/highlight/highlight.css`,
+        '.lintje-highlight--uncertain',
+        'border-bottom',
+        '--color-attention-line',
+      ],
+      ...['success', 'info', 'attention', 'warning', 'error'].flatMap((tone) =>
+        ['link', 'action'].map((part): [string, string, string, string] => [
+          `${C}/tables/description-list/description-list.css`,
+          `${GRID} .is-${tone} .lintje-description-list__${part}`,
+          'color',
+          '--color-link-on-status',
+        ]),
+      ),
+      [
+        `${C}/feedback/progress-bar/progress-bar.css`,
+        '.lintje-progress__track',
+        'background',
+        '--color-progress-track',
+      ],
+      [
+        `${C}/feedback/progress-bar/progress-bar.css`,
+        '.lintje-progress--done .lintje-progress__fill',
+        'background',
+        '--color-success-line',
+      ],
+      [
+        `${C}/feedback/progress-bar/progress-bar.css`,
+        '.lintje-progress--error .lintje-progress__fill',
+        'background',
+        '--color-error-line',
+      ],
+      [
+        `${C}/forms/stepper/stepper.css`,
+        '.lintje-stepper__marker--done.is-error',
+        'border-color',
+        '--color-error-line',
+      ],
+      [
+        `${C}/forms/stepper/stepper.css`,
+        '.lintje-stepper__marker--done.is-error',
+        'color',
+        '--color-error-text',
+      ],
+      [
+        `${C}/content/transcript/transcript.css`,
+        ":host([tinted]:not([layout='chat'])) .lintje-transcript__segment",
+        '--color-link',
+        '--color-link-on-status',
+      ],
+    ]
+    for (const [file, selector, property, token] of MARKS) {
+      expect(inkOf(file, selector, property), `${selector} ${property}`).toBe(token)
+    }
+    // The timecode reads the link token, so the tinted fragment's re-pointing reaches it.
+    expect(readFileSync(`${C}/content/transcript/transcript.css`, 'utf8')).toMatch(
+      /\n\.lintje-transcript__time \{[^}]*\bcolor: var\(--color-link\);/,
+    )
   })
 })
 
@@ -1147,11 +1436,24 @@ describe('data and status colour', () => {
       for (const mode of ['light', 'dark'] as const) {
         const values = tokensFor(mode, theme)
         expect(values['--data-comparison']).toBe(values['--neutral-5'])
-        expect(values['--data-other']).toBe(values['--neutral-4'])
       }
+      expect(light['--data-other']).toBe(light['--neutral-4'])
       const dark = tokensFor('dark', theme)
       expect(contrast(dark['--data-comparison'], DARK_SURFACE)).toBeGreaterThanOrEqual(4.5)
+      // A stacked bar writes ink on "Overig": in dark the gray takes the smallest whole share of
+      // neutral-5 that carries it at 4.5:1.
+      const other = (n: number) => mix(dark['--neutral-5'], n / 100, dark['--neutral-4'])
+      const share = [...Array(101).keys()].find(
+        (n) => contrast(dark['--ink-black'], other(n)) >= 4.5,
+      )
+      expect(dark['--data-other']).toBe(other(share!))
       expect(contrast(dark['--data-other'], DARK_SURFACE)).toBeGreaterThanOrEqual(3.0)
+      // A label on the rest of a whole is the text colour.
+      for (const values of [light, dark]) {
+        expect(
+          contrast(values['--color-text-primary'], values['--color-chart-remainder']),
+        ).toBeGreaterThanOrEqual(4.5)
+      }
     })
   }
 

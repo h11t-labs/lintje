@@ -22,7 +22,7 @@ import type { ChartSpec } from '../shared/types'
 
 type StackedBarSpec = Extract<ChartSpec, { kind: 'stacked-bar' }>
 
-/** The data colours white text reaches 4.5:1 on; a label on any other fill is ink. */
+/** The data colours white text reaches 4.5:1 on; any other named fill but the rest takes ink. */
 const DARK_FILLS = new Set([
   'sky-blue',
   'red',
@@ -95,6 +95,7 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
   // Without a colour of its own a series is a rung of the ladder: only the darkest carries white.
   const insideLabel = (j: number) => {
     const named = spec.series[j].color
+    if (named === 'remainder') return 'lintje-chart__data-label--inside-text'
     const dark = named == null ? j === 0 : DARK_FILLS.has(named)
     return dark ? 'lintje-chart__data-label--inside' : 'lintje-chart__data-label--inside-light'
   }

@@ -74,8 +74,6 @@ type Check =
  * matches nothing in a whole run fails too, so the fix takes its entry out.
  */
 const KNOWN: RegExp[] = [
-  // #99
-  /^lintje-popover \[focus\] :: (tab out|focus away) — still open/,
   // #98
   /^lintje-date-range \[scroller\] :: on top/,
 ]
