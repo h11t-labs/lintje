@@ -177,11 +177,13 @@ describe('the closed mobile header', () => {
   it('keeps the words of Filters and Menu for the reader when only their glyphs fit', async () => {
     setFrameState({ hasFilters: true })
     const shell = await mount()
-    shell.headerCompact = true
+    const header = root(shell).querySelector<HTMLElement>('.lintje-mobile-header')!
+    // happy-dom has no layout: the words are told to be wider than the header.
+    Object.defineProperty(header, 'clientWidth', { value: 300 })
+    Object.defineProperty(header, 'scrollWidth', { value: 400 })
+    shell.requestUpdate()
     await shell.updateComplete
-    expect(
-      root(shell).querySelector('.lintje-mobile-header')!.classList.contains('is-compact'),
-    ).toBe(true)
+    expect(header.classList.contains('is-compact')).toBe(true)
     expect(buttons(shell).map((button) => button.textContent?.trim())).toEqual(['Filters', 'Menu'])
   })
 

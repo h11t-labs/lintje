@@ -53,6 +53,10 @@ export const SEARCH_DELAY = 200
 
 let instances = 0
 
+// One `/` for the page, however many searches it holds: the latest connected one asks to open.
+const connected: LintjeAppSearch[] = []
+let unregisterSlash: (() => void) | null = null
+
 /** The label split around the first case-insensitive occurrence of the term; null when absent. */
 export function splitMatch(label: string, query: string): [string, string, string] | null {
   const term = query.trim()
@@ -102,7 +106,6 @@ export class LintjeAppSearch extends LintjeElement {
   // The field is a native `<input>` in this root: `aria-controls` and `aria-activedescendant`
   // cannot cross a root.
   readonly #id = `lintje-app-search-${++instances}`
-  #unregister: (() => void) | null = null
   #released: (() => void) | null = null
   readonly #trap = new FocusTrap()
 
@@ -125,20 +128,27 @@ export class LintjeAppSearch extends LintjeElement {
 
   override connectedCallback(): void {
     super.connectedCallback()
-    this.#unregister = registerShortcut({
+    connected.push(this)
+    unregisterSlash ??= registerShortcut({
       keys: '/',
       description: 'Zoeken',
-      handler: () => {
-        if (!this.open) this.emit('lintje-open')
-      },
+      handler: () => connected.at(-1)?.askOpen(),
     })
   }
 
   override disconnectedCallback(): void {
-    this.#unregister?.()
-    this.#unregister = null
+    const index = connected.indexOf(this)
+    if (index !== -1) connected.splice(index, 1)
+    if (!connected.length) {
+      unregisterSlash?.()
+      unregisterSlash = null
+    }
     this.#release()
     super.disconnectedCallback()
+  }
+
+  private askOpen(): void {
+    if (!this.open) this.emit('lintje-open')
   }
 
   private close(reason: AppSearchCloseReason): void {

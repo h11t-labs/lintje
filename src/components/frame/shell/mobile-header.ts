@@ -61,7 +61,7 @@ export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): Temp
     aria-modal=${open ? 'true' : nothing}
     aria-label=${open ? 'Menu' : nothing}
   >
-    <header class=${classMap({ 'lintje-mobile-header': true, 'is-compact': shell.headerCompact })}>
+    <header class="lintje-mobile-header">
       ${
         shell.layout === 'top'
           ? // The logo is in the logo bar above; this name is the page's one h1 below 768 px.

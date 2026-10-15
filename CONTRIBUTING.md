@@ -396,6 +396,13 @@ staat ten opzichte van iets anders. Geen pixelwaarden die de CSS al vastlegt. Ee
 faalt, staat in de `KNOWN`-lijst van haar bestand, met het nummer van haar issue erboven; een entry
 die nergens meer op past, laat de test falen, zodat de fix hem weghaalt.
 
+Elke browsertest faalt op de waarschuwing `change-in-update` van Lit en op een toets die twee keer
+in `registerShortcut` staat (`bundle/browser-setup.ts`). Een element tekent zich dus één keer: wat
+het uit zijn eigenschappen kan afleiden, rekent het uit in `willUpdate`, en wat het na het tekenen
+meet, schrijft het direct op de DOM (`classList`, `style.setProperty`), niet in een bewaakte
+eigenschap. Kiest een meting een andere template, dan meet het element in zijn `ResizeObserver`:
+die meldt een vak dat hij opnieuw waarneemt nog vóór het scherm ververst.
+
 ## Events
 
 `this.emit()` (`core/element.ts`) stuurt één `CustomEvent`, bubbling en composed, zodat het het

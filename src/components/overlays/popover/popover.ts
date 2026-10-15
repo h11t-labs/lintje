@@ -15,22 +15,10 @@ import {
 } from 'lit'
 import { ifDefined } from 'lit/directives/if-defined.js'
 import { LintjeElement, define } from '../../../core/element'
-import { styleProps, type StyleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
-import { place, samePlace, viewport, type Place, type Placement } from '../../shared/place'
+import { place, samePlace, stand, viewport, type Place, type Placement } from '../../shared/place'
 import { holdsFocus, ownsEscape, standsIn } from '../../../core/focus'
 import popoverCss from './popover.css?inline'
-
-function spotStyle(spot: Place | null, minWidth: number | null): StyleProps {
-  if (!spot) return {}
-  return {
-    top: spot.top === null ? null : `${spot.top}px`,
-    bottom: spot.bottom === null ? null : `${spot.bottom}px`,
-    left: `${spot.left}px`,
-    'min-width': minWidth === null ? null : `${minWidth}px`,
-    '--lintje-popover-space': `${spot.space}px`,
-  }
-}
 
 export class LintjePopover extends LintjeElement {
   static override styles = shadowCss(popoverCss)
@@ -42,7 +30,6 @@ export class LintjePopover extends LintjeElement {
     panelRole: { type: String, attribute: 'panel-role' },
     matchWidth: { type: Boolean, attribute: 'match-width' },
     anchor: { attribute: false },
-    spot: { state: true },
   }
 
   /** The owner's; the popover never opens or closes itself. */
@@ -54,7 +41,8 @@ export class LintjePopover extends LintjeElement {
   matchWidth: boolean = false
   /** What the panel hangs under; default the previous sibling. */
   declare anchor?: Element | null
-  protected spot: Place | null = null
+  /** Where the panel stands, written onto it; `null` for a panel not yet placed. */
+  #spot: Place | null = null
 
   private reflowFrame: number = 0
 
@@ -139,29 +127,34 @@ export class LintjePopover extends LintjeElement {
 
   private measure(): void {
     const anchor = this.anchorElement
-    if (!anchor) return
-    const rect = anchor.getBoundingClientRect()
     const panel = this.renderRoot.querySelector<HTMLElement>('.lintje-popover')
-    const box = { width: panel?.offsetWidth ?? 0, height: panel?.offsetHeight ?? 0 }
+    if (!anchor || !panel) return
+    const rect = anchor.getBoundingClientRect()
+    const width = this.matchWidth ? Math.round(rect.width) : null
+    // A new panel first stands at its anchor, so it takes the size it will have there.
+    if (!this.#spot)
+      this.#stand(panel, place(rect, { width: 0, height: 0 }, viewport(), this.placement), width)
+    const box = { width: panel.offsetWidth, height: panel.offsetHeight }
     if (this.matchWidth) box.width = Math.max(box.width, rect.width)
     const next = place(rect, box, viewport(), this.placement)
-    const width = this.matchWidth ? Math.round(rect.width) : null
-    if (samePlace(this.spot, next) && width === this.anchorWidth) return
+    if (samePlace(this.#spot, next) && width === this.anchorWidth) return
+    this.#stand(panel, next, width)
+  }
+
+  #stand(panel: HTMLElement, spot: Place, width: number | null): void {
+    stand(panel, spot)
+    panel.style.setProperty('min-width', width === null ? '' : `${width}px`)
+    panel.style.setProperty('--lintje-popover-space', `${spot.space}px`)
+    this.#spot = spot
     this.anchorWidth = width
-    this.spot = next
   }
 
-  /** Measures before the first paint, so nothing flashes in the corner. */
-  protected override willUpdate(changed: PropertyValues<this>): void {
-    super.willUpdate(changed)
-    if (!changed.has('open')) return
-    if (this.open) this.measure()
-    else this.spot = null
-  }
-
+  // Placed after the render, before the paint: the panel exists only now. A closed one leaves
+  // the DOM, so the next opens unplaced.
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
     if (this.open) this.measure()
+    else this.#spot = null
   }
 
   protected override render(): TemplateResult | typeof nothing {
@@ -170,7 +163,6 @@ export class LintjePopover extends LintjeElement {
       class="lintje-popover"
       role=${ifDefined(this.panelRole)}
       aria-label=${ifDefined(this.label)}
-      ${styleProps(spotStyle(this.spot, this.anchorWidth))}
     >
       <slot></slot>
     </div>`

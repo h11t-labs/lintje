@@ -383,24 +383,29 @@ export class SubmenuController implements ReactiveController {
     if (this.#mobile.matches && this.host.openGroup !== null) this.host.openGroup = null
   }
 
+  // `collapsed` draws another bar, so it is measured in the observer, whose first report on a new
+  // box comes before the paint, and not after a render: that would draw the host twice.
   hostUpdated(): void {
-    this.measure()
-  }
-
-  /**
-   * A change of `collapsed` closes whatever was open, whose entry has gone. Without layout it
-   * leaves the state as is. An open panel gets the room under the bar to scroll inside itself.
-   */
-  measure(): void {
     const root = this.host.renderRoot
     const nav = root.querySelector('.lintje-navbar__entries')
     const list = root.querySelector('.lintje-navbar__list')
     this.#observe([nav, list].filter((box): box is Element => box !== null))
+    // An open panel gets the room under the bar to scroll inside itself.
     const bar = this.#bar
     if (bar && this.host.openGroup !== null) {
       const room = Math.max(0, window.innerHeight - bar.getBoundingClientRect().bottom)
       bar.style.setProperty('--lintje-navbar-room', `${Math.floor(room)}px`)
     }
+  }
+
+  /**
+   * A change of `collapsed` closes whatever was open, whose entry has gone. Without layout it
+   * leaves the state as is.
+   */
+  measure(): void {
+    const root = this.host.renderRoot
+    const nav = root.querySelector('.lintje-navbar__entries')
+    const list = root.querySelector('.lintje-navbar__list')
     if (!nav || !list) return
     const need = list.getBoundingClientRect().width
     if (!need) return

@@ -102,8 +102,6 @@ export class LintjePagination extends LintjeElement {
     unitOne: { type: String, attribute: 'unit-one' },
     hrefTemplate: { type: String, attribute: 'href-template' },
     label: { type: String },
-    compact: { state: true },
-    stacked: { state: true },
   }
 
   page: number = 1
@@ -123,10 +121,12 @@ export class LintjePagination extends LintjeElement {
   declare hrefTemplate?: string
   label: string = 'Paginering'
 
+  // Measured after each render and written straight onto the row as classes: a reactive
+  // property set there would draw the element twice.
   /** Only the chevrons: "Vorige" and "Volgende" do not fit beside the numbers. */
-  protected compact: boolean = false
+  #compact: boolean = false
   /** The count and the size choice below the pages: the three zones do not fit on one line. */
-  protected stacked: boolean = false
+  #stacked: boolean = false
   #resize: ResizeObserver | null = null
 
   override connectedCallback(): void {
@@ -180,11 +180,10 @@ export class LintjePagination extends LintjeElement {
       ].map((part) => Math.max(part.getBoundingClientRect().width, part.scrollWidth)),
     )
     const rowGap = parseFloat(getComputedStyle(row).columnGap) || 0
-    show(this.compact)
-    const compact = needed > available + 0.5
-    const stacked = side > 0 && needed + 2 * (side + rowGap) > available + 0.5
-    if (compact !== this.compact) this.compact = compact
-    if (stacked !== this.stacked) this.stacked = stacked
+    this.#compact = needed > available + 0.5
+    this.#stacked = side > 0 && needed + 2 * (side + rowGap) > available + 0.5
+    show(this.#compact)
+    row.classList.toggle('is-stacked', this.#stacked)
   }
 
   private get count(): number {
@@ -282,7 +281,7 @@ export class LintjePagination extends LintjeElement {
     })
     // Hidden, the word stays the step's name.
     const word = html`<span
-      class=${classMap({ 'lintje-pagination__word': true, 'visually-hidden': this.compact })}
+      class=${classMap({ 'lintje-pagination__word': true, 'visually-hidden': this.#compact })}
       >${text}</span
     >`
     const content = previous ? html`${icon}${word}` : html`${word}${icon}`
@@ -347,13 +346,7 @@ export class LintjePagination extends LintjeElement {
     const slots = pageRange(current, count)
     const at = slots.indexOf(current)
     const range = rangeText(current, this.pageSize, this.total, this.countUnit, this.filteredFrom)
-    return html`<div
-      class=${classMap({
-        'lintje-pagination': true,
-        'is-compact': this.compact,
-        'is-stacked': this.stacked,
-      })}
-    >
+    return html`<div class="lintje-pagination">
       ${range ? html`<p class="lintje-pagination__count">${range}</p>` : nothing}
       <nav class="lintje-pagination__nav" aria-label=${this.label}>
         ${this.step('previous', current - 1, current <= 1)}
