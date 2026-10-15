@@ -1,7 +1,8 @@
 # Events: wat een element vraagt, en wat jij antwoordt
 
-Een element haalt nooit iets op, schrijft nooit de URL en navigeert nooit. Het stuurt een event en wacht
-tot jij een property zet. Elk event is een `CustomEvent`, bubbling en composed, dus één listener
+Een element haalt nooit iets op en schrijft nooit de URL; het gaat alleen naar een adres dat jij gaf,
+en nooit als je zijn event annuleert ([links](#links)). Het stuurt een event en wacht tot jij een
+property zet. Elk event is een `CustomEvent`, bubbling en composed, dus één listener
 op `document` hoort het vanaf elke diepte: de payload is `event.detail`, `event.target` het element
 dat het stuurde. Welke tag wat stuurt, staat in de styleguide, onder elk element.
 
