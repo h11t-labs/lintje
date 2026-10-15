@@ -145,7 +145,10 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
   formDisabledCallback(disabled: boolean): void {
     if (disabled === this.#formDisabled) return
     this.#formDisabled = disabled
-    this.requestUpdate()
+    // The host's own `disabled` arrives here while Lit reflects it, mid-update, where a request
+    // is dropped: draw once more after that update.
+    if (this.isUpdatePending) void this.updateComplete.then(() => this.requestUpdate())
+    else this.requestUpdate()
   }
 
   /** Off, by the host's `disabled` or by the form; what every part reads. */

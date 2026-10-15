@@ -211,7 +211,7 @@ describe.each(ROWS)('$tag with required in a native form', (row) => {
     expect(held.submits()).toBe(0)
   })
 
-  it('stays off by its own disabled when its fieldset comes back on', async () => {
+  it('stays off by its own disabled through its fieldset, and comes on without it', async () => {
     const fieldset = document.createElement('fieldset')
     const { form, element } = await inForm(row, { ...row.fill, disabled: true }, fieldset)
     fieldset.disabled = true
@@ -222,6 +222,14 @@ describe.each(ROWS)('$tag with required in a native form', (row) => {
     expect(element.hasAttribute('disabled')).toBe(true)
     expect(element.matches(':disabled')).toBe(true)
     expect([...new FormData(form)]).toEqual([])
+
+    // Its own `disabled` reaches the form while the element draws: it must draw again after.
+    element.disabled = false
+    await settled(element)
+    expect(element.matches(':disabled')).toBe(false)
+    element.focus()
+    expect(active()?.getRootNode()).toBeInstanceOf(ShadowRoot)
+    expect([...new FormData(form)]).toEqual(row.posts)
   })
 
   it('takes the focus at its control when the form reports', async () => {
