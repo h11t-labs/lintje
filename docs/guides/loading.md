@@ -23,9 +23,10 @@ peer, alleen voor de typen van de geërfde leden van een element.
 | `tokens.css` | de thema's en de tokens ([thema's](theming.md)) |
 | `fonts.css` | de twee `@font-face`-regels voor RijksSans, die wijzen naar `fonts/` ernaast. Optioneel |
 | `custom-elements.json` | de tag-referentie, gelezen uit de broncode |
+| `tokens.json` | elk token dat een pagina mag noemen, met zijn groep en zijn commentaar uit `tokens.css`; zonder waarde, want die hangt af van modus en thema |
 | `*.d.ts`, `types/` | de typen: een `.d.ts` naast elk bestand hierboven, en de datavormen in `types/types.d.ts`. Met `lit` 3 als devDependency zijn ook de geërfde leden van een element getypeerd |
 | `guides/` | deze handleidingen |
-| `skills/lintje/` | een skill voor een agent die met Lintje bouwt: kopieer de map naar de skills-map van je assistent, bij Claude Code `.claude/skills/` van je applicatie. Hij leest `custom-elements.json` |
+| `skills/lintje/` | een skill voor een agent die met Lintje bouwt: kopieer de map naar de skills-map van je assistent, bij Claude Code `.claude/skills/` van je applicatie. Hij leest `custom-elements.json` en `tokens.json`, en controleert de eigen CSS van je applicatie |
 
 De iconen staan niet in `dist-elements/`: je serveert zelf een kopie van `dist-icons/`
 ([iconen](#iconen)). Het npm-pakket brengt die map mee.
