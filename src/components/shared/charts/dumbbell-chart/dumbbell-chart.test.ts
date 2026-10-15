@@ -165,6 +165,16 @@ describe('the dumbbell', () => {
     expect(host.querySelector('[role="status"]')?.textContent).toContain('Zwolle: 2024 7,6')
   })
 
+  it('stands the tooltip right of the row’s right point, left of its left one when it must', () => {
+    const { host, controller, key } = draw(SPEC)
+    key('ArrowDown')
+    const [row] = rowsOf(host)
+    const ring = cx(row.querySelector('.lintje-dumbbell__ring'))
+    const dot = cx(row.querySelector('.lintje-dumbbell__dot'))
+    expect(controller.tooltip!.x).toBeGreaterThan(Math.max(ring, dot) - 12)
+    expect(controller.tooltip!.flip).toBeLessThan(Math.min(ring, dot) + 12)
+  })
+
   it('walks the rows with the arrow keys and hides the tooltip on Escape', () => {
     const { host, key } = draw(SPEC)
     const title = () => host.querySelector('.lintje-chart-tooltip__title')?.textContent

@@ -26,6 +26,7 @@ export type {
   MapVariant,
   ScatterPoint,
   ScatterSeriesData,
+  DumbbellRow,
   WmsBasemap,
   MapArea,
   MapControls,

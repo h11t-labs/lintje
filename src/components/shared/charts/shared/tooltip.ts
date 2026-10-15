@@ -29,7 +29,13 @@ class PlaceTooltipDirective extends Directive {
     requestAnimationFrame(() => {
       if (!element.isConnected) return
       const available = element.parentElement?.clientWidth ?? Infinity
-      element.style.left = `${Math.max(0, Math.min(state.x + 12, available - element.offsetWidth - 8))}px`
+      const width = element.offsetWidth
+      let left = state.x + 12
+      if (state.flip != null && left + width > available - 8) {
+        left = state.flip - 12 - width
+        if (left < 0) left = (available - width) / 2
+      }
+      element.style.left = `${Math.max(0, Math.min(left, available - width - 8))}px`
     })
     return nothing
   }

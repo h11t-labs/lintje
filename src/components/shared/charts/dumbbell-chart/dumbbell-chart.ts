@@ -252,19 +252,20 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
     return { title: item.label, rows: lines }
   }
 
-  // The tooltip stands beside the row's right point; on a phone under the row, from its left one.
+  // The tooltip stands right of the row's right point, else left of its left one; on a phone
+  // under the row, centred when it fits beside neither.
   const at = (i: number): PlotPoint => {
     const shown = [fromOn ? points[i].from : null, toOn ? points[i].to : null].filter(
       (point): point is Point => point != null,
     )
     const xs = shown.length ? shown.map((point) => point.x) : [axisLeft]
-    return mobile
-      ? {
-          x: Math.max(0, Math.min(...xs) - 12),
-          y: HEAD + (i + 1) * row + 12,
-          content: contentAt(i),
-        }
-      : { x: Math.max(...xs) + EDGE - 12, y: centreOf(i), content: contentAt(i) }
+    const reach = mobile ? 0 : EDGE - 12
+    return {
+      x: Math.max(...xs) + reach,
+      flip: Math.min(...xs) - reach,
+      y: mobile ? HEAD + (i + 1) * row + 12 : centreOf(i),
+      content: contentAt(i),
+    }
   }
   const keys = plotKeys(controller, rows.length, at)
   const showRow = (event: MouseEvent, i: number) => {
@@ -272,13 +273,14 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
     const anchor = drawing?.closest('[data-tooltip-anchor]')
     if (!drawing || !anchor) return
     const box = drawing.getBoundingClientRect()
-    const origin = anchor.getBoundingClientRect()
+    const left = box.left - anchor.getBoundingClientRect().left
     const point = at(i)
     controller.hoverIndex = i
     controller.showTooltipAt(
-      box.left - origin.left + point.x,
-      box.top - origin.top + point.y,
+      left + point.x,
+      box.top - anchor.getBoundingClientRect().top + point.y,
       point.content,
+      left + point.flip!,
     )
   }
 

@@ -68,6 +68,8 @@ export interface TooltipState {
   x: number
   y: number
   content: TooltipContent
+  /** Where the tooltip ends when it does not fit right of `x`; centred when it fits neither. */
+  flip?: number
 }
 
 /** What the chart asks the controller to watch; set by the chart, not by the host. */
@@ -240,8 +242,8 @@ export class ChartController {
   }
 
   /** The tooltip at a place relative to the `data-tooltip-anchor`: the keyboard's way in. */
-  showTooltipAt(x: number, y: number, content: TooltipContent): void {
-    this.tooltip = { x, y, content }
+  showTooltipAt(x: number, y: number, content: TooltipContent, flip?: number): void {
+    this.tooltip = { x, y, content, flip }
     this.watchEscape()
     this.requestUpdate()
   }

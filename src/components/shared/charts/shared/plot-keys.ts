@@ -11,6 +11,8 @@ export interface PlotPoint {
   x: number
   y: number
   content: TooltipContent
+  /** Where the tooltip ends when it does not fit right of `x` (`TooltipState.flip`). */
+  flip?: number
 }
 
 /** What the drawing (the `<svg>`) takes. */
@@ -55,10 +57,12 @@ export function plotKeys(
     const origin = anchor?.getBoundingClientRect() ?? box
     controller.hoverIndex = index
     controller.status = tooltipSentence(point.content)
+    const left = box.left - origin.left
     controller.showTooltipAt(
-      box.left - origin.left + point.x,
+      left + point.x,
       box.top - origin.top + point.y,
       point.content,
+      point.flip != null ? left + point.flip : undefined,
     )
   }
   return {
