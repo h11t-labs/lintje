@@ -1,7 +1,7 @@
 /**
  * Where a floating box stands against its anchor, in viewport pixels: below or above at a fixed
  * gap, flipped when the room is too small and the other side has more, never past the viewport.
- * Shared by the popover and the tooltip.
+ * Shared by the popover, the tooltip, the toggletip, the multiselect and the date range.
  */
 
 export type Placement =

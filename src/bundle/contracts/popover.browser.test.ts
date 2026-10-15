@@ -76,8 +76,6 @@ type Check =
 const KNOWN: RegExp[] = [
   // #99
   /^lintje-popover \[focus\] :: (tab out|focus away) — still open/,
-  // #98
-  /^lintje-date-range \[scroller\] :: on top/,
 ]
 const seen = new Set<RegExp>()
 let ran = 0
