@@ -1,7 +1,8 @@
-/** The contract of every modal dialog on the `FocusTrap`: focus in, Tab stays in, it closes, focus back, its name resolves. */
+/** The contract of every modal dialog on the `FocusTrap`: focus in, Tab stays in, the page holds still, it closes, focus back, its name resolves. */
 import { afterEach, describe, expect, it } from 'vitest'
 import { cdp, page, server, userEvent } from 'vitest/browser'
 import { deepActiveElement, holdsFocus } from '../../core/focus'
+import { scrollRoot } from '../../core/host-config'
 import { focusTarget, tabbables } from '../../components/shared/focus-trap'
 import '../../components/frame/app-search/app-search'
 import '../../components/overlays/dialog/dialog'
@@ -264,6 +265,7 @@ const labelsOf = (row: Row): string[] => [
   row.escapeIgnored ? 'Escape laat hem open' : 'Escape sluit',
   ...(row.escapeIgnored ? [] : ['de focus keert terug na Escape']),
   ...row.closers.flatMap(([name]) => [`${name} sluit`, `de focus keert terug na ${name}`]),
+  'de pagina scrolt niet',
   'de naam en beschrijving vinden hun doel',
   ...(row.tree ? ['de toegankelijkheidsboom'] : []),
 ]
@@ -310,6 +312,13 @@ function textOf(node: Node): string {
   return Array.from(node.childNodes, textOf).join('')
 }
 const words = (text: string): string => text.replace(/\s+/g, ' ').trim()
+
+/** What scrolls the page, as `lockScroll()` picks it. */
+function pageScroller(): HTMLElement {
+  const root = scrollRoot()
+  return !root || root === document.scrollingElement ? document.body : root
+}
+const locked = (): boolean => getComputedStyle(pageScroller()).overflow === 'hidden'
 
 const tab = (): Promise<void> => userEvent.keyboard(TAB)
 const shiftTab = (): Promise<void> => userEvent.keyboard(SHIFT_TAB)
@@ -455,6 +464,21 @@ describe.each(ROWS)('$name', (row) => {
     // A phone-only control comes a frame after the width: `matchMedia` reports its change late.
     await expect.poll(() => control(view.element)).toBeTruthy()
     await closes(row, path, view, () => userEvent.click(control(view.element)!, position))
+  })
+
+  it('holds the page still while open', async () => {
+    expect(locked()).toBe(false)
+    const view = await open(row)
+    await expect.poll(() => holdsFocus(view.dialog)).toBe(true)
+    await check(row, 'de pagina scrolt niet', async () => {
+      expect(locked()).toBe(true)
+      const [path, control] = row.closers[0]!
+      const position = path === 'de achtergrond' ? { position: { x: 4, y: 4 } } : {}
+      await expect.poll(() => control(view.element)).toBeTruthy()
+      await userEvent.click(control(view.element)!, position)
+      await expect.poll(() => dialogs().length).toBe(0)
+      expect(locked()).toBe(false)
+    })
   })
 
   it('names itself in its own root', async () => {
