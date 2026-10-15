@@ -1623,7 +1623,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       <span class="lintje-data-table__group-count">${count} ${count === 1 ? 'rij' : 'rijen'}</span>
     </button>`
     return html`<tr class="lintje-data-table__group-row">
-      ${this.leadCells()}
+      ${this.leadCells(this.groupCheck(group))}
       <th scope="rowgroup" class="lintje-data-table__cell lintje-data-table__group-head">${heading}</th>
       ${columns
         .slice(1)
@@ -1665,13 +1665,13 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   /**
-   * The empty check and detail cells before a group's or a total's name: one per column, with its
-   * class, so paper drops them as it drops the column.
+   * The check and detail cells before a group's or a total's name: one per column, with its
+   * class, so paper drops them as it drops the column. Only a group's heading has a check.
    */
-  private leadCells(): TemplateResult {
+  private leadCells(check: unknown = nothing): TemplateResult {
     return html`${
       this.data?.selectable
-        ? html`<td class="lintje-data-table__cell lintje-data-table__check-cell"></td>`
+        ? html`<td class="lintje-data-table__cell lintje-data-table__check-cell">${check}</td>`
         : nothing
     }${
       this.detailColumns.length > 0
@@ -2035,18 +2035,24 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const column = this.groupColumn as TableColumnData
     const subtotal = this.data?.groupTotals?.[group.key]?.[measureColumn.key]
     const count = group.rows.length
+    const toggle = html`<button
+      type="button"
+      class="lintje-data-table__group-toggle"
+      aria-expanded=${open ? 'true' : 'false'}
+      @click=${() => this.toggleGroup(group.key)}
+    >
+      ${renderIcon('functioneel-delta-omlaag', { size: 16, rotate: open ? undefined : 270 })}
+      <span class="lintje-data-table__group-name">${this.cell(column, group.value)}</span>
+      <span class="lintje-data-table__group-count">${count} ${count === 1 ? 'rij' : 'rijen'}</span>
+    </button>`
+    const check = this.groupCheck(group)
     return html`<tr class="lintje-data-table__group-row">
       <th scope="rowgroup" class="lintje-data-table__mobile-cell lintje-data-table__group-head">
-        <button
-          type="button"
-          class="lintje-data-table__group-toggle"
-          aria-expanded=${open ? 'true' : 'false'}
-          @click=${() => this.toggleGroup(group.key)}
-        >
-          ${renderIcon('functioneel-delta-omlaag', { size: 16, rotate: open ? undefined : 270 })}
-          <span class="lintje-data-table__group-name">${this.cell(column, group.value)}</span>
-          <span class="lintje-data-table__group-count">${count} ${count === 1 ? 'rij' : 'rijen'}</span>
-        </button>
+        ${
+          check === nothing
+            ? toggle
+            : html`<span class="lintje-data-table__mobile-check">${check}${toggle}</span>`
+        }
       </th>
       <td class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--align-right">
         ${
@@ -2264,6 +2270,31 @@ export class LintjeDataTable extends LintjeContentTileElement {
       rows.length > 0 && count === rows.length,
       count > 0,
       (on) => this.setChecked(on ? rows.map((row) => this.rowKey(row)) : []),
+    )
+  }
+
+  /**
+   * A group's box: on, half or off by its rows that can be checked. It leaves other groups as they
+   * are; a group without such rows has none.
+   */
+  private groupCheck(group: Group): TemplateResult | typeof nothing {
+    if (!this.data?.selectable) return nothing
+    const uncheckable = this.uncheckable
+    const ids = group.rows.map((row) => this.rowKey(row)).filter((id) => !uncheckable.has(id))
+    if (ids.length === 0) return nothing
+    const checked = new Set(this.checkedIds)
+    const count = ids.filter((id) => checked.has(id)).length
+    const name = formatText(this.groupColumn as TableColumnData, group.value) ?? 'Zonder waarde'
+    return this.checkbox(
+      html`<span class="visually-hidden">${`Groep ${name} selecteren`}</span>`,
+      count === ids.length,
+      count > 0,
+      (on) => {
+        const inGroup = new Set(ids)
+        this.setChecked(
+          on ? withRange(this.checkedIds, ids) : this.checkedIds.filter((id) => !inGroup.has(id)),
+        )
+      },
     )
   }
 

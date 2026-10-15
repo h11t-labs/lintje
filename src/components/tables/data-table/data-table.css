@@ -437,6 +437,7 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__group-toggle { display: block; padding-block: var(--space-3); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__group-toggle .lintje-icon { vertical-align: -2px; margin-inline-end: var(--space-2); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__group-count { margin-inline-start: var(--space-2); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-check > .lintje-data-table__group-toggle { flex: 1; min-width: 0; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__group-row .lintje-data-table__mobile-cell--align-right { vertical-align: middle; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__total { border-top: 2px solid var(--color-border-heavy); }
 
