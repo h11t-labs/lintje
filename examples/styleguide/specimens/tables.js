@@ -793,6 +793,18 @@ export default {
           setup: (stage) => filters(stage, { filters: { category: ['Veiligheid', 'Overlast'] } }),
         },
         {
+          label: 'Een lange filterchip',
+          note: 'Een chip die niet op de regel past, loopt door en blijft binnen de tabel.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) =>
+            filters(stage, {
+              filters: {
+                title: 'wachtrij bij de bezoekersbalie',
+                category: ['Veiligheid', 'Verkeer', 'Overlast', 'Overig'],
+              },
+            }),
+        },
+        {
           label: 'Kolommen kiezen',
           note:
             'Het icoon in de kop van de laatste kolom kiest de kolommen. Een verborgen kolom ' +

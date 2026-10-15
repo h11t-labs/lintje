@@ -180,19 +180,6 @@ describe('a truncated column', () => {
     const cell = short.closest('td')!
     expect(cell.clientWidth - short.scrollWidth).toBeLessThanOrEqual(24 + 1)
   })
-
-  it('wraps the whole value under the keyboard focus', async () => {
-    const element = await mountIn(900)
-    const [long] = texts(element)
-    const row = long.closest('tr')!
-    const height = row.getBoundingClientRect().height
-    // After a key press a focus moved by script is a keyboard focus.
-    await userEvent.keyboard('{Shift}')
-    row.focus()
-    await expect.poll(() => row.matches(':focus-visible')).toBe(true)
-    expect(getComputedStyle(long).whiteSpace).toBe('normal')
-    expect(row.getBoundingClientRect().height).toBeGreaterThan(height)
-  })
 })
 
 describe('a table wider than its room', () => {

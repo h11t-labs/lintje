@@ -29,6 +29,7 @@ import menuButtonCss from './menu-button.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { standsIn } from '../../../core/focus'
+import { titleWhenCut } from '../../shared/cut-text'
 
 export interface MenuItem {
   /** What `lintje-action` carries. */
@@ -366,7 +367,7 @@ export class LintjeMenuButton extends LintjeElement {
               ? renderIcon(this.leadingIcon, { size: 20, className: 'lintje-button__icon' })
               : nothing
         }
-        <span class="lintje-button__label">${this.label}</span>
+        <span class="lintje-button__label" @pointerenter=${titleWhenCut}>${this.label}</span>
       </button>
       <button
         type="button"
@@ -468,7 +469,7 @@ export class LintjeMenuButton extends LintjeElement {
       ${
         square
           ? nothing
-          : html`<span class="lintje-button__label">${this.label}</span>
+          : html`<span class="lintje-button__label" @pointerenter=${titleWhenCut}>${this.label}</span>
               ${renderIcon('functioneel-delta-omlaag', {
                 size: 16,
                 rotate: this.open ? 180 : undefined,

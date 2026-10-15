@@ -107,6 +107,15 @@ export default {
           </div>`,
         },
         {
+          label: 'Een lang label in een smalle ruimte',
+          note:
+            'Met een aanwijzer staat het label op één regel, met het hele label in de tooltip. ' +
+            'Onder de focus van het toetsenbord, zonder hover en op een telefoon loopt het door.',
+          html: `<div style="max-width: 240px">
+            <lintje-button variant="secondary" icon="functioneel-downloaden">Alle aanvragen van deze week downloaden</lintje-button>
+          </div>`,
+        },
+        {
           label: 'Uitgeschakeld',
           html: `<div class="guide__row">
             <lintje-button variant="primary" disabled>Niet beschikbaar</lintje-button>
