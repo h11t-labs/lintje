@@ -24,7 +24,7 @@
 .lintje-cells {
   display: flex;
   flex-wrap: wrap;
-  margin: calc(-1 * (var(--space-3) + 1px)) 0 calc(-1 * var(--space-3)) calc(-1 * (var(--space-4) + 1px));
+  margin: calc(-1 * var(--space-3)) 0 calc(-1 * var(--space-3)) calc(-1 * (var(--space-4) + 1px));
   font: var(--text-ui);
   font-variant-numeric: tabular-nums;
 }
@@ -35,13 +35,25 @@
 }
 
 /* The rows stand 24 px apart: a padding on each side of the line between them, as wide as the
-   one beside the vertical lines of a grid, so the line stands free of the words. */
+   one beside the vertical lines of a grid, so the line stands free of the words. The line above
+   a row is every cell's, drawn far past the cell on both sides and clipped to the row, so it runs
+   the whole width whether the row is full, a last row of a grid, or a row that wrapped. */
 .lintje-cells__cell {
   display: flex; flex-direction: column; gap: var(--space-1);
   min-width: 0;
+  position: relative;
   padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--color-border-default);
   border-left: 1px solid var(--color-border-default);
+}
+.lintje-cells__cell::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  right: -100vw;
+  left: -100vw;
+  height: 1px;
+  background: var(--color-border-default);
+  pointer-events: none;
 }
 .lintje-cells--grid .lintje-cells__cell { padding: var(--space-3); }
 .lintje-cells--grid .lintje-cells__cell.is-wide { grid-column: span 2; }
@@ -118,5 +130,6 @@
 
 @media (forced-colors: active) {
   .lintje-cells__cell { border-color: CanvasText; }
+  .lintje-cells__cell::before { background: CanvasText; }
   :host([surface]) { border-color: CanvasText; }
 }
