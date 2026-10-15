@@ -21,6 +21,7 @@ import { seriesKey } from './marks'
 import { renderMapLegend } from './map-legend'
 import type { MapArea, MapControls, MapSpec, MapTool, MapValue } from '../shared/types'
 import { idsInArea, isRect } from './area'
+import { titleWhenCut } from '../../cut-text'
 import '../../../overlays/popover/popover'
 
 /** The map's own height in a tile: on a phone taller, so all its buttons fit on the touch size. */
@@ -426,7 +427,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
                       aria-checked=${String(row.checked)}
                       @click=${() => chooseTool(row.value as MapTool)}>
                 ${renderIcon(row.icon, { size: 16, className: 'lintje-menu__icon' })}
-                <span class="lintje-menu__label">${row.label}</span>
+                <span class="lintje-menu__label" @pointerenter=${titleWhenCut}>${row.label}</span>
                 ${row.checked ? renderIcon('functioneel-vinkje', { size: 16, className: 'lintje-menu__check' }) : nothing}
               </button>`,
             )}

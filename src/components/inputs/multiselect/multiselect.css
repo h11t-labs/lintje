@@ -5,7 +5,7 @@
 .lintje-multiselect__field {
   display: flex; align-items: center; gap: var(--space-2); flex-wrap: nowrap;
   width: 100%; min-height: var(--h-control);
-  padding: 0 var(--space-2);
+  padding: var(--space-1) var(--space-2);
   border: 1px solid var(--color-border-field);
   background: var(--color-bg-surface);
   text-align: left;
@@ -27,8 +27,8 @@
 }
 .lintje-multiselect__placeholder { color: var(--color-text-placeholder); font-size: 1rem; padding-left: var(--space-2); }
 .lintje-multiselect__chip {
-  display: inline-flex; align-items: center; gap: var(--space-2);
-  height: var(--h-chip-field);
+  display: inline-flex; align-items: flex-start; gap: var(--space-2);
+  min-height: var(--h-chip-field);
   padding: 0 0 0 var(--space-2);
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border-default);
@@ -37,12 +37,23 @@
      selection is in the field's `title`. */
   flex: 0 1 auto; min-width: 0;
 }
-.lintje-multiselect__chip-label { overflow: hidden; text-overflow: ellipsis; min-width: 2ch; }
+/* One line stands in the middle of the chip; a wrapped one grows it, the × on its first line. */
+.lintje-multiselect__chip-label {
+  overflow: hidden; text-overflow: ellipsis; min-width: 2ch;
+  padding-block: calc((var(--h-chip-field) - 2px - 1lh) / 2);
+}
+/* The field's `title` needs a pointer: under the keyboard's focus, without hover and below 768 px
+   the chips and the summary wrap whole. */
+.lintje-multiselect__field:focus-visible :is(.lintje-multiselect__chip, .lintje-multiselect__summary) { white-space: normal; overflow-wrap: anywhere; }
+@media (hover: none), screen and (max-width: 767px) {
+  .lintje-multiselect__chip,
+  .lintje-multiselect__summary { white-space: normal; overflow-wrap: anywhere; }
+}
 /* A transparent hit area reaches the target height, not sideways: the label opens the list. */
 .lintje-multiselect__chip-remove {
   position: relative;
   flex: none;
-  width: var(--space-6); align-self: stretch;
+  width: var(--space-6); height: calc(var(--h-chip-field) - 2px);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; color: var(--color-text-muted); font-size: 1rem;
 }

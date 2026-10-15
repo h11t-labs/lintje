@@ -505,7 +505,7 @@ export class LintjeMenuButton extends LintjeElement {
     } else if (item.icon) {
       icon = renderIcon(item.icon, { size: 16, className: 'lintje-menu__icon' })
     }
-    const content = html`${icon}<span class="lintje-menu__label">${item.label}</span>${
+    const content = html`${icon}<span class="lintje-menu__label" @pointerenter=${titleWhenCut}>${item.label}</span>${
       item.hint ? html`<span class="lintje-menu__hint">${item.hint}</span>` : nothing
     }`
     const row =

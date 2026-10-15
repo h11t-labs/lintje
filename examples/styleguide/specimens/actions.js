@@ -213,6 +213,24 @@ export default {
             ]),
         },
         {
+          label: 'Een lange keuze',
+          note:
+            'Een keuze die niet past, staat met een aanwijzer op één regel met de hele tekst in de ' +
+            'tooltip. Onder de focus van het toetsenbord, zonder hover en op een telefoon loopt ze ' +
+            'door; de hint blijft op de eerste regel.',
+          html: '<lintje-menu-button label="Exporteren" variant="tertiary"></lintje-menu-button>',
+          setup: (stage) =>
+            menu(stage, [
+              {
+                value: 'alles',
+                label:
+                  'Alle aanvragen van deze week met hun bijlagen, notities en de geschiedenis van elke wijziging als één archief',
+                hint: '.zip',
+              },
+              { value: 'csv', label: 'Tabel', hint: '.csv' },
+            ]),
+        },
+        {
           label: 'Als icoonknop',
           html: '<lintje-menu-button icon label="Meer acties" placement="bottom-end"></lintje-menu-button>',
           setup: (stage) => menu(stage, ACTIONS),

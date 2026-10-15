@@ -869,7 +869,8 @@ kleinste correctie, en leg die hier vast.
   (`aria-placeholder`).
 - **Tekst die met een beletselteken is afgekapt, staat nooit alleen in een tooltip**: waar geen
   aanwijzer hem toont — onder 768 px, zonder hover, onder de focus van het toetsenbord — loopt hij
-  door op een volgende regel.
+  door op een volgende regel. Tekst die geen focus kan krijgen en geen tooltip heeft, kapt nooit
+  af: hij loopt altijd door.
 - **Wat verdwijnt terwijl de focus erop staat, geeft de focus eerst door**: een toast terug naar
   waar hij vandaan kwam (anders `<main>`), een gesloten mededeling naar de volgende stop op de
   pagina, "Alles gelezen" naar de eerste melding.

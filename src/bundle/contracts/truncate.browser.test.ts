@@ -8,9 +8,19 @@ import { page, userEvent } from 'vitest/browser'
 import { deepActiveElement } from '../../core/focus'
 import '../../components/actions/button/button'
 import '../../components/actions/menu-button/menu-button'
+import '../../components/charts/chart/chart'
+import '../../components/content/document-viewer/document-viewer'
+import '../../components/content/transcript/transcript'
+import '../../components/filters/filter-zone/filter-zone'
+import '../../components/forms/stepper/stepper'
+import '../../components/frame/app-search/app-search'
+import '../../components/frame/shell/shell'
+import '../../components/frame/user-menu/user-menu'
+import '../../components/inputs/multiselect/multiselect'
 import '../../components/tables/data-table/data-table'
 import '../../components/tables/list/list'
-import type { DataTableData } from '../../types'
+import '../../components/tables/tree-view/tree-view'
+import type { ChartData, DataTableData } from '../../types'
 
 /**
  * How the whole text reaches a pointer: `measured` sets the `title` when the pointer finds the
@@ -25,9 +35,20 @@ interface Row {
   mount: (words: string) => Promise<HTMLElement>
   /** The text that is cut. */
   text: (element: HTMLElement) => HTMLElement
-  /** What takes the keyboard's focus; a `never` row needs none. */
-  focus?: (element: HTMLElement) => HTMLElement
-  /** What the element stays inside at 390 and 320 px. */
+  /** Where the `title` stands, when not on the text itself. */
+  titleOn?: (element: HTMLElement) => HTMLElement
+  /**
+   * Puts the keyboard's focus where the text shows whole. A `never` row needs none; a `measured`
+   * row without it keeps one line under the focus, and says why.
+   */
+  focus?: (element: HTMLElement) => unknown
+  /** Shows the text again below 768 px, where the element draws another form of it. */
+  phone?: (element: HTMLElement) => Promise<unknown>
+  /** The text exists only below 768 px. */
+  phoneOnly?: boolean
+  /** A text longer than `LONG`, for an element only the screen's width cuts. */
+  long?: string
+  /** What the text stays inside at 390 and 320 px. */
   room: (element: HTMLElement) => HTMLElement
 }
 
@@ -39,6 +60,8 @@ const KNOWN: RegExp[] = []
 
 const LONG = 'Wijzigingen in de aanvraag opslaan en doorsturen naar de behandelaar van het loket'
 const SHORT = 'Opslaan'
+/** A menu is as wide as its longest row, up to the screen. */
+const SCREEN_WIDE = `${LONG}, ${LONG} en ${LONG}`
 
 /* Helpers ----------------------------------------------------------------- */
 
@@ -66,10 +89,22 @@ function room(width: number): HTMLElement {
 const inShadow = (element: Element, selector: string): HTMLElement =>
   element.shadowRoot!.querySelector<HTMLElement>(selector)!
 
-/** The first drawn match: a table has a wide and a phone form. */
+/** Every match under a root, through each open shadow root. */
+function all(root: ParentNode, selector: string, found: HTMLElement[] = []): HTMLElement[] {
+  for (const element of root.querySelectorAll<HTMLElement>('*')) {
+    if (element.matches(selector)) found.push(element)
+    if (element.shadowRoot) all(element.shadowRoot, selector, found)
+  }
+  return found
+}
+
+const drawn = (element: Element | undefined): boolean =>
+  Boolean(element && element.getBoundingClientRect().width > 1)
+
+/** The first drawn match in the element's shadow roots: a table has a wide and a phone form. */
 function shown(element: Element, selector: string): HTMLElement {
-  const matches = [...element.shadowRoot!.querySelectorAll<HTMLElement>(selector)]
-  return matches.find((match) => match.getBoundingClientRect().width > 0) ?? matches[0]!
+  const matches = all(element.shadowRoot!, selector)
+  return matches.find(drawn) ?? matches[0]!
 }
 
 const cut = (text: HTMLElement): boolean => text.scrollWidth > text.clientWidth
@@ -92,12 +127,14 @@ async function viewport(width: number, height: number): Promise<void> {
 }
 
 /** A focus from the keyboard: after a key press a focus moved by script is one. */
-async function keyboardFocus(target: HTMLElement): Promise<void> {
-  const start = Object.assign(document.createElement('input'), { ariaLabel: 'Zoeken' })
-  document.body.prepend(start)
-  start.focus()
+async function keyboardFocus(row: Row, element: HTMLElement): Promise<void> {
+  if (!deepActiveElement() || deepActiveElement() === document.body) {
+    const start = Object.assign(document.createElement('input'), { ariaLabel: 'Zoeken' })
+    document.body.prepend(start)
+    start.focus()
+  }
   await userEvent.keyboard('{Shift}')
-  target.focus()
+  await row.focus!(element)
   await expect
     .poll(() => deepActiveElement()?.matches(':focus-visible') ?? false, {
       message: 'a keyboard focus',
@@ -107,6 +144,21 @@ async function keyboardFocus(target: HTMLElement): Promise<void> {
 
 /* Rows -------------------------------------------------------------------- */
 
+const PICTURE =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90"><rect width="160" height="90" fill="#ccc"/></svg>',
+  )
+
+/** Opens a menu with the pointer, unless it is open: a resize may close it. */
+async function reopen(element: HTMLElement, trigger: string): Promise<void> {
+  const host = element as HTMLElement & { open: boolean; updateComplete: Promise<unknown> }
+  // A click from script would give the first row a keyboard's focus.
+  if (!host.open) await userEvent.click(inShadow(element, trigger))
+  await host.updateComplete
+  await frame()
+}
+
 function table(data: Partial<DataTableData>, width: number) {
   return async (words: string): Promise<HTMLElement> => {
     const element = document.createElement('lintje-data-table') as HTMLElement & {
@@ -114,7 +166,7 @@ function table(data: Partial<DataTableData>, width: number) {
     }
     element.data = {
       caption: 'Loketten met een toelichting',
-      rowKey: 'name',
+      rowKey: 'requests',
       columns: [],
       rows: [],
       ...data,
@@ -134,7 +186,7 @@ const ROWS: Row[] = [
         room(240),
       ),
     text: (element) => inShadow(element, '.lintje-button__label'),
-    focus: (element) => element,
+    focus: (element) => element.focus(),
     room: (element) => element.parentElement!,
   },
   {
@@ -149,7 +201,7 @@ const ROWS: Row[] = [
         room(240),
       ),
     text: (element) => inShadow(element, '.lintje-menu-button__trigger .lintje-button__label'),
-    focus: (element) => inShadow(element, '.lintje-menu-button__trigger'),
+    focus: (element) => inShadow(element, '.lintje-menu-button__trigger').focus(),
     room: (element) => element.parentElement!,
   },
   {
@@ -159,16 +211,17 @@ const ROWS: Row[] = [
       {
         clickable: true,
         columns: [
-          { key: 'name', header: 'Loket' },
           { key: 'note', header: 'Toelichting', truncate: true },
           { key: 'requests', header: 'Aanvragen' },
         ],
-        rows: [{ name: 'Utrecht', note: '{words}', requests: 12 }],
+        rows: [{ note: '{words}', requests: 12 }],
       },
       900,
     ),
-    text: (element) => shown(element, '.lintje-data-table__cell-text'),
-    focus: (element) => shown(element, '.lintje-data-table__cell-text').closest('tr')!,
+    // Below 768 px the identity stands whole in the phone form's first cell.
+    text: (element) =>
+      shown(element, '.lintje-data-table__cell-text, .lintje-data-table__mobile-cell'),
+    focus: (element) => shown(element, '.lintje-data-table__cell-text').closest('tr')!.focus(),
     room: (element) => element,
   },
   {
@@ -199,7 +252,7 @@ const ROWS: Row[] = [
         room(320),
       ),
     text: (element) => inShadow(element, '.lintje-list__title'),
-    focus: (element) => inShadow(element, '.lintje-list__title'),
+    focus: (element) => inShadow(element, '.lintje-list__title').focus(),
     room: (element) => element.parentElement!,
   },
   {
@@ -220,8 +273,236 @@ const ROWS: Row[] = [
         room(480),
       ),
     text: (element) => inShadow(element, '.lintje-list__title'),
-    focus: (element) => inShadow(element, 'lintje-button'),
+    focus: (element) => inShadow(element, 'lintje-button').focus(),
     room: (element) => element.parentElement!,
+  },
+  {
+    name: 'lintje-shell :: label in the open side menu',
+    title: 'measured',
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-shell'), {
+          data: {
+            name: 'Vergunningen',
+            layout: 'side',
+            navigation: [
+              { label: words, href: '#aanvragen', icon: 'functioneel-document' },
+              { label: 'Overzicht', href: '#overzicht', icon: 'functioneel-home' },
+            ],
+          },
+        }),
+      ),
+    text: (element) => shown(element, '.lintje-nav__label, .lintje-mobile-menu__label'),
+    focus: (element) => shown(element, '.lintje-nav__label').closest('a')!.focus(),
+    // Below 768 px the menu is a panel behind the header's Menu button.
+    phone: async (element) => {
+      const shell = element as HTMLElement & { menuOpen: boolean; updateComplete: Promise<unknown> }
+      shell.menuOpen = true
+      await shell.updateComplete
+    },
+    room: (element) => element,
+  },
+  {
+    name: 'lintje-app-search :: result',
+    title: 'measured',
+    mount: async (words) => {
+      const search = Object.assign(document.createElement('lintje-app-search'), {
+        open: true,
+        query: 'aanvraag',
+        groups: [
+          {
+            label: 'Pagina’s',
+            items: [
+              { id: 'a', label: 'Aanvragen', meta: 'Pagina' },
+              { id: 'b', label: words, meta: 'Pagina' },
+            ],
+          },
+        ],
+      })
+      return append(search)
+    },
+    // The first result is chosen when the results come; the second one is the one at rest.
+    text: (element) => all(element.shadowRoot!, '.lintje-app-search__label')[1]!,
+    // The focus is virtual: the field keeps it and ↓ chooses the row (`aria-activedescendant`).
+    focus: async (element) => {
+      inShadow(element, '.lintje-app-search__input').focus()
+      await userEvent.keyboard('{ArrowDown}')
+    },
+    room: (element) => all(element.shadowRoot!, '.lintje-app-search__option')[1]!,
+  },
+  {
+    name: 'lintje-menu-button :: menu row',
+    title: 'measured',
+    long: SCREEN_WIDE,
+    mount: async (words) => {
+      const button = await append(
+        Object.assign(document.createElement('lintje-menu-button'), {
+          label: 'Acties',
+          items: [
+            { label: words, value: 'lang', hint: 'Ctrl+S' },
+            { label: 'Bewaren', value: 'bewaren' },
+          ],
+        }),
+      )
+      await reopen(button, '.lintje-menu-button__trigger')
+      return button
+    },
+    text: (element) => shown(element, '.lintje-menu__label'),
+    focus: (element) =>
+      shown(element, '.lintje-menu__label').closest<HTMLElement>('.lintje-menu__row')!.focus(),
+    phone: (element) => reopen(element, '.lintje-menu-button__trigger'),
+    room: (element) => shown(element, '.lintje-menu__row'),
+  },
+  {
+    name: 'lintje-user-menu :: menu row',
+    title: 'measured',
+    long: SCREEN_WIDE,
+    mount: async (words) => {
+      const menu = await append(
+        Object.assign(document.createElement('lintje-user-menu'), {
+          user: { name: 'Sanne de Vries', role: 'Beleidsmedewerker', initials: 'SV' },
+          items: [
+            { value: 'lang', label: words },
+            { value: 'profiel', label: 'Profiel' },
+          ],
+        }),
+      )
+      await reopen(menu, '.lintje-user-menu__trigger')
+      return menu
+    },
+    text: (element) => shown(element, '.lintje-menu__label'),
+    focus: (element) =>
+      shown(element, '.lintje-menu__label').closest<HTMLElement>('.lintje-menu__row')!.focus(),
+    phone: (element) => reopen(element, '.lintje-user-menu__trigger'),
+    room: (element) => shown(element, '.lintje-menu__row'),
+  },
+  {
+    name: 'lintje-tree-view :: label',
+    title: 'measured',
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-tree-view'), {
+          label: 'Mappen',
+          nodes: [
+            { id: 'a', label: words, count: 3 },
+            { id: 'b', label: 'Archief' },
+          ],
+        }),
+        room(240),
+      ),
+    text: (element) => inShadow(element, '.lintje-tree__label'),
+    focus: (element) => inShadow(element, '.lintje-tree__item').focus(),
+    room: (element) => element.parentElement!,
+  },
+  {
+    name: 'lintje-stepper :: name of the current step on a phone',
+    title: 'never',
+    phoneOnly: true,
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-stepper'), {
+          label: 'Stappen van de aanvraag',
+          steps: [
+            { label: 'Gegevens', state: 'done' },
+            { label: words, state: 'current' },
+            { label: 'Versturen', state: 'todo' },
+          ],
+        }),
+      ),
+    text: (element) => inShadow(element, '.lintje-stepper__current'),
+    room: (element) => element,
+  },
+  {
+    name: 'lintje-transcript :: speaker, read-only',
+    title: 'never',
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-transcript'), {
+          readonly: true,
+          segments: [
+            { id: 's1', start: 0, speaker: words, text: 'Goedemorgen, welkom bij het overleg.' },
+          ],
+        }),
+        room(480),
+      ),
+    text: (element) => inShadow(element, '.lintje-transcript__speaker'),
+    room: (element) => element,
+  },
+  {
+    name: 'lintje-filter-zone :: sentence in the collapsed bar',
+    title: 'measured',
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-filter-zone'), {
+          open: false,
+          total: 2,
+          sentence: [{ text: words, emphasis: false }],
+        }),
+        room(480),
+      ),
+    text: (element) => shown(element, '.lintje-filter-summary__text'),
+    // Under the focus the bar keeps one line: its height is what the sticky offsets reckon with.
+    room: (element) => element,
+  },
+  {
+    name: 'lintje-document-viewer :: name',
+    title: 'never',
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-document-viewer'), {
+          name: words,
+          pages: [PICTURE],
+        }),
+        room(480),
+      ),
+    text: (element) => inShadow(element, '.lintje-document-viewer__name'),
+    room: (element) => element,
+  },
+  {
+    name: 'lintje-chart :: row label of a heatmap',
+    title: 'always',
+    mount: (words) => {
+      const data: ChartData = {
+        title: 'Drukte aan het loket',
+        description: 'Bezoekers per uur en per loket.',
+        state: 'ready',
+        chart: {
+          kind: 'heatmap',
+          columnLabels: ['9:00', '10:00'],
+          rowLabels: [words, 'Utrecht', 'Zwolle'],
+          values: [
+            [10, 12],
+            [14, 9],
+            [7, 11],
+          ],
+          unit: 'bezoekers',
+        },
+      }
+      return append(Object.assign(document.createElement('lintje-chart'), { data }), room(480))
+    },
+    text: (element) => shown(element, '.lintje-heatmap__row-label-text'),
+    titleOn: (element) => shown(element, '.lintje-heatmap__row-label'),
+    room: (element) => element,
+  },
+  {
+    name: 'lintje-multiselect :: chip',
+    title: 'always',
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-multiselect'), {
+          label: 'Loketten',
+          options: [
+            { value: 'a', label: words },
+            { value: 'b', label: 'Utrecht' },
+          ],
+          selected: ['a'],
+        }),
+        room(320),
+      ),
+    text: (element) => inShadow(element, '.lintje-multiselect__chip-label'),
+    titleOn: (element) => inShadow(element, '.lintje-multiselect__field'),
+    focus: (element) => inShadow(element, '.lintje-multiselect__field').focus(),
+    room: (element) => inShadow(element, '.lintje-multiselect__field'),
   },
 ]
 
@@ -243,11 +524,14 @@ async function onPhones(row: Row, element: HTMLElement): Promise<void> {
     [320, 640],
   ] as const) {
     await viewport(width, height)
+    await row.phone?.(element)
+    await expect
+      .poll(() => drawn(row.text(element)), { message: `drawn at ${width} px` })
+      .toBe(true)
     await expect
       .poll(() => cut(row.text(element)), { message: `not cut at ${width} px` })
       .toBe(false)
-    expect(inside(element, row.room(element)), `inside its parent at ${width} px`).toBe(true)
-    expect(inside(row.text(element), row.room(element)), `the text inside at ${width} px`).toBe(
+    expect(inside(row.text(element), row.room(element)), `inside its parent at ${width} px`).toBe(
       true,
     )
   }
@@ -256,25 +540,31 @@ async function onPhones(row: Row, element: HTMLElement): Promise<void> {
 async function check(row: Row): Promise<void> {
   if (row.title === 'never') {
     const element = await row.mount(LONG)
-    expect(cut(row.text(element)), 'not cut at 1440 px').toBe(false)
-    await userEvent.hover(row.text(element))
-    expect(row.text(element).hasAttribute('title'), 'no title').toBe(false)
+    if (!row.phoneOnly) {
+      expect(cut(row.text(element)), 'not cut at 1440 px').toBe(false)
+      await userEvent.hover(row.text(element))
+      expect(row.text(element).hasAttribute('title'), 'no title').toBe(false)
+    }
     await onPhones(row, element)
     return
   }
 
-  const element = await row.mount(LONG)
+  const long = row.long ?? LONG
+  const element = await row.mount(long)
   const text = row.text(element)
+  const titled = row.titleOn?.(element) ?? text
   expect(cut(text), 'cut at 1440 px').toBe(true)
   expect(lines(text), 'one line at 1440 px').toBe(1)
   await userEvent.hover(text)
-  await expect.poll(() => text.title, { message: 'the whole text as title' }).toBe(LONG)
+  await expect.poll(() => titled.title, { message: 'the whole text as title' }).toBe(long)
 
-  await keyboardFocus(row.focus!(element))
-  await expect.poll(() => cut(text), { message: 'not cut under the focus' }).toBe(false)
-  expect(lines(text), 'more than one line under the focus').toBeGreaterThan(1)
-  ;(deepActiveElement() as HTMLElement | null)?.blur()
-  document.body.querySelector('input')?.remove()
+  if (row.focus) {
+    await keyboardFocus(row, element)
+    await expect.poll(() => cut(text), { message: 'not cut under the focus' }).toBe(false)
+    expect(lines(text), 'more than one line under the focus').toBeGreaterThan(1)
+    ;(deepActiveElement() as HTMLElement | null)?.blur()
+    document.body.querySelector('input[aria-label="Zoeken"]')?.remove()
+  }
 
   await onPhones(row, element)
 
@@ -283,7 +573,10 @@ async function check(row: Row): Promise<void> {
     await viewport(1440, 900)
     const fits = await row.mount(SHORT)
     await userEvent.hover(row.text(fits))
-    expect(row.text(fits).hasAttribute('title'), 'no title on a text that fits').toBe(false)
+    expect(
+      (row.titleOn?.(fits) ?? row.text(fits)).hasAttribute('title'),
+      'no title on a text that fits',
+    ).toBe(false)
   }
 }
 

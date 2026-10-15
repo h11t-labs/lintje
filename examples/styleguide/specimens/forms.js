@@ -226,6 +226,17 @@ export default {
             steps(stage, [{ ...STEPS[0], errors: 2 }, STEPS[1], STEPS[2]]),
         },
         {
+          label: 'Een lange stapnaam',
+          note: 'Op een telefoon loopt de naam van de huidige stap door, met het aantal rechts.',
+          html: '<lintje-stepper></lintje-stepper>',
+          setup: (stage) =>
+            steps(stage, [
+              STEPS[0],
+              { label: 'Gegevens van de aanvrager en van iedereen die namens hem handelt', state: 'current' },
+              STEPS[2],
+            ]),
+        },
+        {
           label: 'Fasen met een periode',
           html: '<lintje-stepper label="Fasen"></lintje-stepper>',
           setup: (stage) => steps(stage, PHASES),

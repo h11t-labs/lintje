@@ -1221,6 +1221,19 @@ export default {
           },
         },
         {
+          label: 'Een lange naam',
+          note:
+            'Met een aanwijzer staat de naam op één regel, met de hele naam in de tooltip. Onder ' +
+            'de focus van het toetsenbord, zonder hover en op een telefoon loopt hij door.',
+          html: '<div style="max-width: 240px"><lintje-tree-view label="Eenheden"></lintje-tree-view></div>',
+          setup(stage) {
+            stage.querySelector('lintje-tree-view').nodes = [
+              { id: 'lang', label: 'Vergaderzalen op de derde verdieping van het oostelijke gebouw', count: 4 },
+              { id: 'kort', label: 'Vertrek', count: 3 },
+            ]
+          },
+        },
+        {
           label: 'Bezig',
           html: '<lintje-tree-view label="Eenheden"></lintje-tree-view>',
           setup(stage) {

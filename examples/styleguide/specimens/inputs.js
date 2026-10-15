@@ -543,6 +543,20 @@ export default {
           setup: setSelected(SOURCES, ['balie', 'online']),
         },
         {
+          label: 'Een lange keuze',
+          note:
+            'Met een aanwijzer staat de hele keuze in de tooltip van het veld. Onder de focus van ' +
+            'het toetsenbord, zonder hover en op een telefoon loopt de chip door.',
+          html: '<div style="max-width: 320px"><lintje-multiselect label="Loket"></lintje-multiselect></div>',
+          setup: setSelected(
+            [
+              { value: 'oost', label: 'Servicepunt in het gemeentehuis van de oostelijke wijken' },
+              { value: 'west', label: 'Servicepunt west' },
+            ],
+            ['oost'],
+          ),
+        },
+        {
           label: 'Afwijkend van standaard',
           html: '<lintje-multiselect label="Bron van de aanvraag" modified></lintje-multiselect>',
           setup: setSelected(SOURCES, ['telefoon']),
