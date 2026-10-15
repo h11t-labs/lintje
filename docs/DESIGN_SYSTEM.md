@@ -893,6 +893,11 @@ kleinste correctie, en leg die hier vast.
 - **Een paneel met gereedschap is een disclosure, geen menu** ("Weergave", "Delen"):
   `aria-expanded` zonder `aria-haspopup`, Tab loopt erdoorheen en sluit het bij het verlaten, en
   Escape of een afgerond item geeft de focus terug aan zijn knop.
+- **Een werkbalk is één Tab-stop**: de pijlen lopen rond langs zijn knoppen, ook langs een die
+  niet kan, en Tab komt terug op de laatst gebruikte. Een rij knoppen met elk een eigen Tab-stop
+  is een `group` met een naam, geen `toolbar`.
+- **Een ingedrukte knop (`aria-pressed`) toont dat hij aan staat** met de primaire vulling en haar
+  rand, ook onder een aanwijzer; uit is hij plat.
 - **Escape geeft de focus alleen terug vanaf waar die was**: een paneel of submenu dat het sluit,
   zet de focus terug op zijn knop alleen als de focus erin of op die knop stond, nooit vanaf
   elders op de pagina.

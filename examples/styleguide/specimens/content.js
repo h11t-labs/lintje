@@ -848,6 +848,14 @@ export default {
           },
         },
         {
+          label: 'Op een vaste zoom',
+          note: '"Passend" is uit; aan staat hij gevuld, zoals in de rust hierboven.',
+          html: '<lintje-document-viewer name="Brief gemeente.pdf" zoom="150"></lintje-document-viewer>',
+          setup(stage) {
+            stage.querySelector('lintje-document-viewer').pages = letterPages()
+          },
+        },
+        {
           label: 'Bezig',
           html: '<lintje-document-viewer name="Brief gemeente.pdf"></lintje-document-viewer>',
         },
