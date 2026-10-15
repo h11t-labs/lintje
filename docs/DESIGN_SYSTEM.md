@@ -780,7 +780,8 @@ een balk, en halen hun aanwijsdoel via het klikgebied in de richting waar ze rui
   [`assets/README.md`](../assets/README.md).
 - **Een naam zonder bestand tekent niets en het bedieningselement toont zijn Nederlandse label.**
   Dat is een ondersteunde staat: een host mag een bestand weglaten of vervangen en het
-  bedieningselement blijft zeggen wat het doet. Een gat in de set dat nog
+  bedieningselement blijft zeggen wat het doet. Een icoon met een label houdt dat label als
+  tekstalternatief, ook terwijl het bestand laadt en zonder bestand. Een gat in de set dat nog
   openstaat, is een issue op GitHub.
 
 ## Responsief gedrag
@@ -921,6 +922,10 @@ kleinste correctie, en leg die hier vast.
   popup waarvan de naam als tekst wordt opgebouwd, draagt "(niet verplicht)" en het "afwijkend
   van standaard" van de stip zoals het label doet (`labelText` in
   `components/inputs/shared/input.ts`).
+- **De naam van een bedieningselement is wat je ziet** (2.5.3): zijn woord, of de naam in zijn
+  logo, zonder `aria-label` dat het vervangt en zonder tooltip die het herhaalt. Alleen wat geen
+  woord toont, een icoon of een logo zonder naam, krijgt een naam in eigen woorden. Een tooltip mag
+  zeggen wat het doet ("Naar de startpagina").
 - **Een live-regio die zinnen uitspreekt, is `aria-atomic="false"`**: een nieuwe zin wordt los
   voorgelezen; vervangen tekst, niet voortgezet, wordt vanaf het begin uitgesproken.
 - **Een zwevend paneel aan een knop sluit als de focus het verlaat** (een menu, de bel, de

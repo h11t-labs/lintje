@@ -532,18 +532,23 @@ export class LintjeShell extends LintjeElement {
   }
 
   private renderNavEnd(data: ShellData): TemplateResult {
-    const feedback = data.feedback
     return html`${this.renderSearch()}${this.renderNotifications()}${renderBarTools(this)}${
-      feedback
-        ? html`<a
-            class="lintje-shell__tool"
-            href=${feedback.href}
-            aria-label=${feedbackLabel(feedback)}
-            title=${feedbackLabel(feedback)}
-            >${renderIcon('communicatie-tekstballonnen-met-vraagteken', { size: 20 })}</a
-          >`
-        : nothing
+      data.feedback ? this.renderFeedbackTool(data.feedback) : nothing
     }${this.renderUserMenu(false)}`
+  }
+
+  /** The feedback link as a bare tool: its glyph, or its word without the icon file. */
+  private renderFeedbackTool(feedback: NonNullable<ShellData['feedback']>): TemplateResult {
+    const label = feedbackLabel(feedback)
+    const glyph = renderIcon('communicatie-tekstballonnen-met-vraagteken', { size: 20 })
+    const drawn = glyph !== nothing
+    return html`<a
+      class=${classMap({ 'lintje-shell__tool': true, 'lintje-shell__tool--text': !drawn })}
+      href=${feedback.href}
+      aria-label=${drawn ? label : nothing}
+      title=${drawn ? label : nothing}
+      >${drawn ? glyph : label}</a
+    >`
   }
 
   /** The slot of the nav bar keeps its height while the bar itself is pinned to the viewport. */

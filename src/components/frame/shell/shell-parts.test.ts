@@ -8,7 +8,7 @@
  * and the mobile header are in the tree; that the pair fits beside "Sluiten" is proven where it
  * runs, in headless Chrome.
  */
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import './shell'
 import type { LintjeShell } from './shell'
 import type { LintjeRadioGroup } from '../../inputs/radio-group/radio-group'
@@ -17,6 +17,8 @@ import { clearFilterZone, setFrameState } from '../../../core/frame-state'
 import { deepActiveElement, tabbables } from '../../shared/focus-trap'
 import { mailSubject, phoneLink } from './top-bar'
 import type { LintjeButton } from '../../actions/button/button'
+import { ICONS } from '../../../icons/register'
+import { loadIcon, putIcons, resetIcons } from '../../../icons/loader'
 
 beforeAll(() => {
   // The shell observes its navigation bar; happy-dom has no observer.
@@ -98,7 +100,7 @@ const options = (shell: LintjeShell): HTMLButtonElement[] =>
 const pressed = (toggles: HTMLButtonElement[]): string[] =>
   toggles
     .filter((button) => button.getAttribute('aria-pressed') === 'true')
-    .map((button) => button.getAttribute('aria-label') ?? '')
+    .map((button) => button.textContent!.trim())
 
 /**
  * What the button holds, in the order it holds it: `['icon', 'text']` or the
@@ -408,10 +410,10 @@ describe('the top bar mode controls', () => {
 
   it('offers system, light and dark, in that order', async () => {
     const shell = await view(await mount())
-    expect(modes(shell).map((button) => button.getAttribute('aria-label'))).toEqual([
-      'Systeemweergave',
-      'Lichte modus',
-      'Donkere modus',
+    expect(modes(shell).map((button) => button.textContent!.trim())).toEqual([
+      'Systeem',
+      'Licht',
+      'Donker',
     ])
   })
 
@@ -419,19 +421,19 @@ describe('the top bar mode controls', () => {
     const at = async (mode: ShellView['mode']): Promise<string[]> =>
       pressed(modes(await view(await mount({ view: { ...VIEW, mode } }))))
 
-    expect(await at('system')).toEqual(['Systeemweergave'])
-    expect(await at('light')).toEqual(['Lichte modus'])
-    expect(await at('dark')).toEqual(['Donkere modus'])
+    expect(await at('system')).toEqual(['Systeem'])
+    expect(await at('light')).toEqual(['Licht'])
+    expect(await at('dark')).toEqual(['Donker'])
   })
 
   it('sends the chosen mode as lintje-view-change, and leaves the pressed one to the host', async () => {
     const dark = await view(await mount({ view: { ...VIEW, mode: 'dark' } }))
     expect(await changesAfter(dark, () => modes(dark)[1]?.click())).toEqual([{ mode: 'light' }])
-    expect(pressed(modes(dark))).toEqual(['Donkere modus'])
+    expect(pressed(modes(dark))).toEqual(['Donker'])
     expect(await changesAfter(dark, () => modes(dark)[0]?.click())).toEqual([{ mode: 'system' }])
 
     await hostSets(dark, { mode: 'system' })
-    expect(pressed(modes(dark))).toEqual(['Systeemweergave'])
+    expect(pressed(modes(dark))).toEqual(['Systeem'])
   })
 
   it('stands behind "Weergave": closed at rest, beside a "Delen" of the same weight', async () => {
@@ -488,8 +490,10 @@ describe('what "Weergave" offers when the host lets the reader choose', () => {
     [...root(shell).querySelectorAll('.lintje-view__popover .lintje-share__heading')].map(
       (heading) => heading.textContent!.trim(),
     )
-  const option = (shell: LintjeShell, label: string): HTMLButtonElement =>
-    root(shell).querySelector<HTMLButtonElement>(`.lintje-view__popover [aria-label="${label}"]`)!
+  const option = (shell: LintjeShell, word: string): HTMLButtonElement =>
+    [...root(shell).querySelectorAll<HTMLButtonElement>('.lintje-view__popover button')].find(
+      (button) => button.textContent!.trim() === word,
+    )!
 
   it('has no menu and no theme to choose without the host saying so', async () => {
     const shell = await view(await mount())
@@ -499,14 +503,14 @@ describe('what "Weergave" offers when the host lets the reader choose', () => {
   it('presses where the menu stands, and sends the other place', async () => {
     const side = await view(await mount({ view: { ...VIEW, layoutChoice: true } }))
     expect(groups(side)).toEqual(['Licht of donker', 'Menu'])
-    expect(option(side, 'Menu als zijbalk').getAttribute('aria-pressed')).toBe('true')
-    expect(await changesAfter(side, () => option(side, 'Menu boven').click())).toEqual([
+    expect(option(side, 'Zijbalk').getAttribute('aria-pressed')).toBe('true')
+    expect(await changesAfter(side, () => option(side, 'Boven').click())).toEqual([
       { layout: 'top' },
     ])
 
     const top = await view(await mount({ layout: 'top', view: { ...VIEW, layoutChoice: true } }))
-    expect(option(top, 'Menu boven').getAttribute('aria-pressed')).toBe('true')
-    expect(await changesAfter(top, () => option(top, 'Menu als zijbalk').click())).toEqual([
+    expect(option(top, 'Boven').getAttribute('aria-pressed')).toBe('true')
+    expect(await changesAfter(top, () => option(top, 'Zijbalk').click())).toEqual([
       { layout: 'side' },
     ])
   })
@@ -1519,5 +1523,95 @@ describe('the bars that stay at the top', () => {
     const shell = await mount({ layout: 'top' })
     const name = root(shell).querySelector('h1.lintje-shell__name')!
     expect(name.getAttribute('title')).toBe('Dashboard Vergunningen')
+  })
+})
+
+/** WCAG 2.5.3: what a screen reader or voice control calls a control is the word you see. */
+describe('the shell is named after what you see', () => {
+  const EMBLEM = { name: 'embleem-lint', label: 'Dienst Vergunningen' }
+  const RIBBON = { viewBox: '0 0 38 75', body: '<path d="M0 0h38v75H0z"/>', attributes: {} }
+  const missing = async () => ({ ok: false, status: 404, text: async () => '' })
+  // The emblem in the store and no network: an icon the bundle lacks is a 404 here.
+  beforeEach(() => {
+    putIcons([[EMBLEM.name, RIBBON]])
+    vi.stubGlobal('fetch', missing)
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    resetIcons()
+  })
+
+  const homes = (shell: LintjeShell): HTMLAnchorElement[] => [
+    ...root(shell).querySelectorAll<HTMLAnchorElement>(
+      'a.lintje-logobar__home, a.lintje-nav__home',
+    ),
+  ]
+
+  it('names the home link after the organisation in the logo, with its task as the tooltip', async () => {
+    for (const layout of ['top', 'side'] as const) {
+      const links = homes(await mount({ layout, home: '/', emblem: EMBLEM }))
+      expect(links).toHaveLength(1)
+      expect(links[0].hasAttribute('aria-label')).toBe(false)
+      expect(links[0].getAttribute('title')).toBe('Naar de startpagina')
+      expect(links[0].querySelector('lintje-logo')!.getAttribute('alt')).toBe('Dienst Vergunningen')
+    }
+  })
+
+  it('keeps "Naar de startpagina" as the name of a logo without a name', async () => {
+    for (const layout of ['top', 'side'] as const) {
+      const links = homes(await mount({ layout, home: '/' }))
+      expect(links[0].getAttribute('aria-label')).toBe('Naar de startpagina')
+    }
+  })
+
+  it('names the five buttons in "Weergave" by their word alone', async () => {
+    const shell = await view(await mount({ view: { ...VIEW, layoutChoice: true } }))
+    const all = options(shell)
+    expect(all.map((button) => button.textContent!.trim())).toEqual([
+      'Systeem',
+      'Licht',
+      'Donker',
+      'Zijbalk',
+      'Boven',
+    ])
+    for (const button of all) {
+      expect(button.hasAttribute('aria-label')).toBe(false)
+      expect(button.hasAttribute('title')).toBe(false)
+    }
+    // The groups give the context, so "Zijbalk" does not stand alone.
+    const groups = [...root(shell).querySelectorAll('.lintje-view__popover [role="group"]')]
+    expect(groups.map((group) => group.getAttribute('aria-label'))).toEqual(
+      expect.arrayContaining(['Systeem, licht of donker', 'Plaats van het menu']),
+    )
+  })
+
+  describe('the feedback link', () => {
+    const NAME = 'communicatie-tekstballonnen-met-vraagteken'
+    const glyph = ICONS[NAME]
+    const FEEDBACK = { layout: 'top', feedback: { href: 'mailto:beheer@example.org' } } as const
+    const link = (shell: LintjeShell): HTMLAnchorElement =>
+      root(shell).querySelector<HTMLAnchorElement>('.lintje-navbar__end a.lintje-shell__tool')!
+
+    afterEach(() => {
+      ICONS[NAME] = glyph
+    })
+
+    it('draws its icon from the bundle, named by the tooltip', async () => {
+      expect(glyph).toBeDefined()
+      const feedback = link(await mount(FEEDBACK))
+      expect(feedback.querySelector('svg.lintje-icon:not(.lintje-icon--pending)')).not.toBeNull()
+      expect(feedback.getAttribute('aria-label')).toBe('Vragen of feedback')
+      expect(feedback.classList.contains('lintje-shell__tool--text')).toBe(false)
+    })
+
+    it('shows its word when the icon has no file', async () => {
+      delete ICONS[NAME]
+      await loadIcon(NAME)
+      const feedback = link(await mount(FEEDBACK))
+      expect(feedback.textContent!.trim()).toBe('Vragen of feedback')
+      expect(feedback.classList.contains('lintje-shell__tool--text')).toBe(true)
+      expect(feedback.hasAttribute('aria-label')).toBe(false)
+      expect(feedback.querySelector('svg')).toBeNull()
+    })
   })
 })
