@@ -49,6 +49,9 @@ form.addEventListener('lintje-submit', async (event) => {
 - In een `<lintje-form>` wordt de waarde van een veld gemeld in `lintje-submit`, niet gepost.
 - `dirty` zegt dat de lezer niet-opgeslagen invoer heeft; vraag het in een `<lintje-dialog alert>` voordat je weggaat.
 - Met `draft-key` bewaart het formulier een concept in `localStorage`; zonder, in het geheugen.
+  Het teruggezette concept lees je met `restoredDraft` en het moment waarop het geschreven is met
+  `restoredAt`, al vóór de velden bestaan, zodat je eerst de rijen tekent die het noemt; zonder concept
+  zijn beide `null`. Zet `draft-key` vóór je ze leest.
 
 ## Toestand en acties
 
