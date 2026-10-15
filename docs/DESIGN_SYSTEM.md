@@ -890,7 +890,7 @@ kleinste correctie, en leg die hier vast.
   melding, ook dezelfde twee keer na elkaar: de regio staat er al, wordt leeg en krijgt de woorden
   een frame later.
 - **Wat verandert waar de focus niet staat, zegt een live-regio**: de nieuwe waarde na − of +, de
-  beschrijving van de gekozen optie, een verbinding die wegvalt. Een bedieningselement zegt alleen
+  beschrijving van de gekozen optie, een verbinding die wisselt. Een bedieningselement zegt alleen
   wat de lezer zelf deed, niet een waarde die de host zet; de eerste keer tekenen zwijgt.
 - **Wat niet geopend kan worden, zegt dat in woorden**: een menurij zonder pagina of toegang
   draagt een verborgen "niet beschikbaar" of "geen toegang"; `aria-disabled` op een gewoon element
