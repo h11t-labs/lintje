@@ -29,6 +29,8 @@
    light one. The fills are the same in both modes, so the label is too. */
 .lintje-chart__data-label--inside { fill: var(--color-text-on-fill); }
 .lintje-chart__data-label--inside-light { fill: var(--color-text-on-light-fill); }
+/* The rest of a whole is a neutral that turns dark in dark mode, so its label is the text. */
+.lintje-chart__data-label--inside-text { fill: var(--color-text-primary); }
 /* On a threshold line (horizontal bars) or beside one (histogram, scatter): a halo in the surface color.
    Invisible on the tile, it cuts a line or a bar where the label crosses it. */
 .lintje-chart__data-label--halo,
@@ -479,6 +481,7 @@
   .lintje-radar__zero { stroke: CanvasText; }
   .lintje-chart__data-label--inside { forced-color-adjust: none; fill: var(--color-text-on-fill); }
   .lintje-chart__data-label--inside-light { forced-color-adjust: none; fill: var(--color-text-on-light-fill); }
+  .lintje-chart__data-label--inside-text { forced-color-adjust: none; fill: var(--color-text-primary); }
   .lintje-chart__data-label--halo,
   .lintje-chart__as-of-note { stroke: Canvas; }
   .lintje-chart__axis-label--halo { stroke: Canvas; }
