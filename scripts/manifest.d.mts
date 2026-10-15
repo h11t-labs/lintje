@@ -43,7 +43,7 @@ export interface ManifestDeclaration {
   methods: ManifestMethod[]
   attributes: ManifestAttribute[]
   events: ManifestEvent[]
-  slots: { name: string }[]
+  slots: { name: string; description?: string }[]
 }
 export interface Manifest {
   schemaVersion: string
