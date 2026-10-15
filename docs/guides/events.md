@@ -72,7 +72,7 @@ Een *toestand* is iets wat je bewaart en terugzet op het element (en in de URL m
 | `lintje-layer-change` | `lintje-map` | toestand |
 | `lintje-area-select` | `lintje-map` (met `controls.lasso`, `controls.circle` of `controls.rect`) | toestand |
 | `lintje-filters-open-change` | `lintje-filter-bar` | toestand |
-| `lintje-retry` | `lintje-error-summary`, `lintje-streaming-text` | actie |
+| `lintje-retry` | `lintje-error-summary`, `lintje-streaming-text`, `lintje-audio-player`, `lintje-video-player` | actie |
 | `lintje-files-add`, `lintje-file-remove`, `lintje-file-cancel` | `lintje-file-upload` | actie |
 | `lintje-search` | `lintje-combobox` (`remote`), `lintje-app-search` | actie |
 | `lintje-open` | `lintje-app-search` | actie |
