@@ -24,7 +24,7 @@ export interface LegendItem {
   label: string
   color?: string
   /** `point`: the series' symbol alone, as a scatter plot or a map draws it; `hatch` is "no data". */
-  shape?: 'square' | 'line' | 'dashed' | 'point' | 'hatch'
+  shape?: 'square' | 'line' | 'dashed' | 'point' | 'hatch' | KeyMark
   /** The shape the line carries at its end, drawn on its line marker (rule 13). */
   symbol?: SeriesKey
   hidden?: boolean
@@ -51,6 +51,34 @@ export function renderSymbol(
                    stroke=${casing ?? nothing} stroke-width=${casing ? 1 : nothing} />`
 }
 
+/** A dumbbell's marks as a key: the earlier moment's ring, the later one's dot, off the axis. */
+export type KeyMark = 'ring' | 'dot' | 'off-axis'
+
+/** A key mark in `currentColor` in a 14 px box; a dark-yellow dot keeps its edge (`lineCasing`). */
+export function renderKeyMark(
+  mark: KeyMark,
+  color: string | undefined,
+  centre: number,
+): SVGTemplateResult {
+  if (mark === 'ring') {
+    return svg`<circle cx=${centre} cy=${centre} r="6" fill="var(--color-bg-surface)"
+                       stroke="currentColor" stroke-width="2" />`
+  }
+  if (mark === 'off-axis') {
+    return svg`<path d=${`M${centre - 2.5} ${centre - 3}L${centre + 2.5} ${centre}L${centre - 2.5} ${centre + 3}Z`}
+                     fill="currentColor" />`
+  }
+  const casing = lineCasing(color)
+  return svg`<circle cx=${centre} cy=${centre} r="4" fill="currentColor"
+                     stroke=${casing ?? nothing} stroke-width=${casing ? 1 : nothing} />`
+}
+
+const KEY_MARKS = new Set<string>(['ring', 'dot', 'off-axis'])
+
+export function isKeyMark(shape: string | undefined): shape is KeyMark {
+  return shape != null && KEY_MARKS.has(shape)
+}
+
 export function renderLegend({
   items,
   onToggle,
@@ -67,20 +95,26 @@ export function renderLegend({
   const leave = () => onEmphasis?.(null)
   const content = (item: LegendItem) => html`
     ${
-      item.symbol && item.shape === 'point'
+      isKeyMark(item.shape)
         ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
+                    ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
+                    aria-hidden="true" focusable="false">
+            ${renderKeyMark(item.shape, item.color, 7)}
+          </svg>`
+        : item.symbol && item.shape === 'point'
+          ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
                     ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
                     aria-hidden="true" focusable="false">
             ${renderSymbol(item.symbol, item.color, 7)}
           </svg>`
-        : item.symbol
-          ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
+          : item.symbol
+            ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
                     ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
                     aria-hidden="true" focusable="false">
             <line x1="0" x2="14" y1="7" y2="7" stroke="currentColor" stroke-width="3" />
             <path d=${markPath(item.symbol, 4, 7, 7)} fill="currentColor" />
           </svg>`
-          : html`<span class="lintje-legend__marker lintje-legend__marker--${item.shape ?? 'square'}"
+            : html`<span class="lintje-legend__marker lintje-legend__marker--${item.shape ?? 'square'}"
                      ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
                      aria-hidden="true"></span>`
     }

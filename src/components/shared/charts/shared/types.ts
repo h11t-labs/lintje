@@ -254,6 +254,40 @@ export type ChartSpec =
       dataLabels?: boolean
       small?: boolean
     }
+  | {
+      kind: 'dumbbell'
+      /** The rows in the host's order; the chart never sorts them. */
+      rows: DumbbellRow[]
+      /** The earlier moment ('2024'): a grey ring, in the legend, the tooltip and the table. */
+      fromLabel: string
+      /** The later moment ('2026'): a dot in `color`. */
+      toLabel: string
+      /** The later moment's colour; without it the default chart colour. */
+      color?: ChartColor
+      /**
+       * The ends of the axis. A dumbbell carries a position, not a length, so the axis may be
+       * shortened; without them it runs from 0 to a round value above the data and the norm.
+       * A value outside stands on the edge with an off-axis mark and never stretches the axis.
+       */
+      min?: number
+      max?: number
+      unit?: string
+      /** A vertical norm, dashed in the emphasis colour. */
+      threshold?: number
+      thresholdLabel?: string
+    }
+
+/**
+ * One row of a dumbbell chart: one measure at two moments. `null` is no data, never 0 (rule
+ * 15); with a `href` the row is clickable, as a row of horizontal bars is.
+ */
+export interface DumbbellRow {
+  label: string
+  from: number | null
+  to: number | null
+  id?: string
+  href?: string
+}
 
 /**
  * A layer of a radar chart: one value per axis, `null` for no data (rule 15). Without a colour

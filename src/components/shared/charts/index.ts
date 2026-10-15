@@ -20,6 +20,7 @@ export { renderHeatmap, heatmapBounds, heatmapClasses } from './heatmap-chart/he
 export type { HeatmapClass } from './heatmap-chart/heatmap-chart'
 export { renderHistogramChart } from './histogram-chart/histogram-chart'
 export { renderMap } from './map-chart/map-chart'
+export { renderDumbbellChart, dumbbellHeight } from './dumbbell-chart/dumbbell-chart'
 export type { MapOptions } from './map-chart/map-chart'
 
 export { renderChartFrame, renderLegend, renderAsOfMarker } from './shared/axes'
@@ -62,4 +63,5 @@ export type {
   MapVariant,
   MapPlotData,
   MapPlotVariant,
+  DumbbellRow,
 } from './shared/types'

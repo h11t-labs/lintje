@@ -132,6 +132,36 @@
 .lintje-radar__zero { stroke: var(--color-chart-zero); stroke-width: 1; }
 .lintje-radar__row.is-active .lintje-radar__name { font-weight: 700; }
 
+/* Dumbbell: the earlier moment a ring in the comparison grey, the later a dot in the variable's
+   colour, joined by a line that does not judge the direction: neutral, as the gauge's fill. */
+.lintje-dumbbell__grid { stroke: var(--color-chart-grid); stroke-width: 1; }
+.lintje-dumbbell__zero { stroke: var(--color-chart-zero); stroke-width: 1.5; }
+.lintje-dumbbell__norm { stroke: var(--color-chart-emphasis); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.lintje-dumbbell__link { stroke: var(--color-chart-zero); stroke-width: 2; }
+.lintje-dumbbell__ring { fill: var(--color-bg-surface); stroke: var(--color-chart-secondary); stroke-width: 2; }
+.lintje-dumbbell__name--above { font: var(--text-small); fill: var(--color-text-primary); }
+.lintje-dumbbell__no-value { font-weight: 400; fill: var(--color-text-muted); }
+.lintje-dumbbell__row.is-hovered .lintje-dumbbell__link { stroke: var(--color-chart-axis); stroke-width: 3; }
+.lintje-dumbbell__row.is-hovered .lintje-dumbbell__name,
+.lintje-dumbbell__row.is-selected .lintje-dumbbell__name { fill: var(--color-text-primary); font-weight: 700; }
+/* A chosen row: the others step back, as a muted mark does. */
+.lintje-dumbbell__row.is-muted { opacity: .45; }
+.lintje-dumbbell__row.is-clickable { cursor: pointer; }
+.lintje-dumbbell__row:focus { outline: none; }
+/* The ring of the row the keyboard is on, or of a clickable row with focus: around the dot,
+   wide enough to hold the earlier moment's ring under it too. */
+.lintje-dumbbell__focus {
+  fill: none;
+  stroke: var(--color-focus);
+  stroke-width: 3;
+  visibility: hidden;
+  pointer-events: none;
+}
+.lintje-chart__svg:focus-visible .lintje-dumbbell__row.is-hovered .lintje-dumbbell__focus,
+.lintje-dumbbell__row:focus-visible .lintje-dumbbell__focus { visibility: visible; }
+/* A value beyond a shortened axis: a small triangle on the edge, pointing out, in the point's colour. */
+.lintje-chart__off-axis { pointer-events: none; }
+
 /* Draw-in takes 900 ms for data marks only. Axes, grid and titles appear immediately. */
 @media (prefers-reduced-motion: no-preference) {
   /* A line and the area below it are uncovered together from left to right. The clip opens over the box
@@ -170,6 +200,11 @@
       calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0)) backwards;
   }
   .lintje-chart__reference .lintje-chart__data-label { animation: none; }
+  /* A dumbbell's dot slides once from the ring to its place, with the bars' timing. */
+  .lintje-dumbbell__dot {
+    animation: lintje-dumbbell-slide calc(var(--dur-draw) * 0.6) var(--ease-in-motion)
+      calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0)) backwards;
+  }
   /* A radar's layers grow from the centre once, with the bars' timing; the norm comes after. */
   .lintje-radar__layer {
     animation: lintje-point-grow calc(var(--dur-draw) * 0.6) var(--ease-in-motion)
@@ -190,14 +225,16 @@
   .lintje-chart__data-label,
   .lintje-chart__reference,
   .lintje-chart__point,
-  .lintje-radar__layer { animation-play-state: paused; }
+  .lintje-radar__layer,
+  .lintje-dumbbell__dot { animation-play-state: paused; }
   [data-in-view] .lintje-chart__reveal,
   [data-in-view] .lintje-chart__bar-group,
   [data-in-view] .lintje-chart__bar--horizontal,
   [data-in-view] .lintje-chart__data-label,
   [data-in-view] .lintje-chart__reference,
   [data-in-view] .lintje-chart__point,
-  [data-in-view] .lintje-radar__layer { animation-play-state: running; }
+  [data-in-view] .lintje-radar__layer,
+  [data-in-view] .lintje-dumbbell__dot { animation-play-state: running; }
 }
 @keyframes lintje-reveal {
   from { clip-path: inset(-8px calc(100% + 8px) -8px -8px); }
@@ -206,6 +243,7 @@
 @keyframes lintje-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 @keyframes lintje-lift { from { transform: none; filter: none; } }
 @keyframes lintje-grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes lintje-dumbbell-slide { from { transform: translateX(var(--lintje-dumbbell-shift, 0)); } }
 
 /* A series or reference switched off in the legend keeps its nodes and fades, so switching it
    back fades it in rather than drawing it in again; gone, it is hidden to the pointer and the
@@ -285,6 +323,7 @@
   padding-top: var(--space-1);
 }
 .lintje-chart-tooltip__value { font-weight: 700; margin-left: var(--space-3); }
+.lintje-chart-tooltip__note { font-weight: 400; color: var(--color-text-muted); }
 .lintje-chart-tooltip__event {
   display: flex;
   align-items: flex-start;
@@ -464,6 +503,11 @@
   .lintje-chart__hover-point,
   .lintje-chart__hover-casing,
   .lintje-chart__hit,
+  .lintje-chart__off-axis,
+  .lintje-dumbbell__link,
+  .lintje-dumbbell__ring,
+  .lintje-dumbbell__dot,
+  .lintje-dumbbell__focus,
   .lintje-legend__marker,
   .lintje-chart-tooltip__marker,
   .lintje-event-chip__number { forced-color-adjust: none; }
@@ -475,10 +519,13 @@
   .lintje-chart__as-of-label,
   .lintje-chart__as-of-note,
   .lintje-chart__x-title,
-  .lintje-radar__name { fill: CanvasText; }
+  .lintje-radar__name,
+  .lintje-dumbbell__name { fill: CanvasText; }
   .lintje-radar__ring,
   .lintje-radar__spoke,
-  .lintje-radar__zero { stroke: CanvasText; }
+  .lintje-radar__zero,
+  .lintje-dumbbell__grid,
+  .lintje-dumbbell__zero { stroke: CanvasText; }
   .lintje-chart__data-label--inside { forced-color-adjust: none; fill: var(--color-text-on-fill); }
   .lintje-chart__data-label--inside-light { forced-color-adjust: none; fill: var(--color-text-on-light-fill); }
   .lintje-chart__data-label--inside-text { forced-color-adjust: none; fill: var(--color-text-primary); }
@@ -488,6 +535,7 @@
   .lintje-chart__segment { stroke: Canvas; }
   .lintje-chart__mark.is-selected { stroke: CanvasText; }
   .lintje-chart__focus-ring { flood-color: Highlight; }
+  .lintje-dumbbell__focus { stroke: Highlight; }
   .lintje-chart__focus-gap { flood-color: Canvas; }
   /* An event's square in the reader's text colour, its number in the canvas. */
   .lintje-chart__event-line { stroke: CanvasText; }

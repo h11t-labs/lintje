@@ -15,6 +15,11 @@ import { LintjeContentTileElement } from '../../shared/content-tile'
 import { ChartController, type ChartOptions } from '../../shared/charts/shared/controller'
 import { renderChart } from '../../shared/charts/shared/render-chart'
 import { rowsHeight } from '../../shared/charts/horizontal-bar-chart/horizontal-bar-chart'
+import {
+  dumbbellDecimals,
+  dumbbellDifference,
+  dumbbellHeight,
+} from '../../shared/charts/dumbbell-chart/dumbbell-chart'
 import { binLabel } from '../../shared/charts/histogram-chart/histogram-chart'
 import {
   renderChartSkeleton,
@@ -72,12 +77,14 @@ function skeletonKind(chart: ChartSpec): ChartSkeletonKind {
   }
 }
 
-function stateHeight(chart: ChartSpec): string | undefined {
+function stateHeight(chart: ChartSpec, mobile: boolean): string | undefined {
   switch (chart.kind) {
     case 'horizontal-bar':
     case 'target-progress':
       // Without rows the stand-in is as tall as any chart.
       return chart.rows.length ? `${rowsHeight(chart.rows.length)}px` : undefined
+    case 'dumbbell':
+      return chart.rows.length ? `${dumbbellHeight(chart.rows.length, mobile)}px` : undefined
     case 'pie':
     case 'heatmap':
       return undefined
@@ -188,6 +195,21 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
         ...chart.axes.map((axis, i) => [
           axis,
           ...chart.series.map((series) => series.values[i] ?? null),
+          ...(chart.threshold != null ? [chart.threshold] : []),
+        ]),
+      ]
+    }
+    case 'dumbbell': {
+      // The real values, also beyond the axis; the difference is missing when an end is.
+      const decimals = dumbbellDecimals(chart.rows)
+      const norm = chart.threshold != null ? [chart.thresholdLabel ?? 'Norm'] : []
+      return [
+        ['', chart.fromLabel, chart.toLabel, 'Verschil', ...norm],
+        ...chart.rows.map((row) => [
+          row.label,
+          row.from,
+          row.to,
+          dumbbellDifference(row, decimals),
           ...(chart.threshold != null ? [chart.threshold] : []),
         ]),
       ]
@@ -344,7 +366,7 @@ export class LintjeChart extends LintjeContentTileElement {
         state=${data.state ?? 'ready'}
         message=${data.message ?? nothing}
         last-known=${data.lastKnown ?? nothing}
-        content-height=${stateHeight(data.chart) ?? nothing}
+        content-height=${stateHeight(data.chart, this.#mobile.matches) ?? nothing}
         @lintje-tile-expand=${(event: Event) => {
           event.stopPropagation()
           this.expand(true)
@@ -397,7 +419,7 @@ export class LintjeChart extends LintjeContentTileElement {
         return html`<div slot="loading">
           ${renderChartSkeleton({
             kind: skeletonKind(data.chart),
-            height: stateHeight(data.chart),
+            height: stateHeight(data.chart, this.#mobile.matches),
             status: false,
           })}
         </div>`

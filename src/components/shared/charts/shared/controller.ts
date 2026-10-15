@@ -8,6 +8,7 @@ import { DEFAULT_PLOT_AREA, type PlotArea } from './scale'
 import type { LeafletSurface } from '../map-chart/leaflet'
 import type { ChartSelection } from './mark-select'
 import type { SeriesKey } from './series-shapes'
+import type { KeyMark } from './axes'
 import type { MapArea, MapTool } from './types'
 
 /** What every `render*` takes besides its data. */
@@ -53,7 +54,9 @@ export interface TooltipRow {
   /** The series' shape instead of a square swatch, as its legend draws it. */
   symbol?: SeriesKey
   /** A line instead of a square swatch, plain or dashed (a norm), as its legend draws it. */
-  marker?: 'line' | 'dashed'
+  marker?: 'line' | 'dashed' | KeyMark
+  /** A muted word after the value, such as "buiten de as". */
+  note?: string
 }
 export interface TooltipContent {
   title: string

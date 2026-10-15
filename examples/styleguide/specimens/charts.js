@@ -1,6 +1,6 @@
 // The charts category (Kerncijfers en grafieken): the specimens of its elements.
 import { CHART_KINDS, CHART_QUESTIONS } from '../../../dist-elements/lintje.js'
-import { meta, number, daily, heatmap, desks, breakdowns, hourly } from '../../_data/load.js'
+import { meta, number, daily, heatmap, desks, breakdowns, hourly, satisfaction } from '../../_data/load.js'
 
 const kpi = meta.kpi
 
@@ -193,6 +193,47 @@ const quality = (missing = false) => ({
     { label: 'Q3 2025', values: [7.4, 6.6, 6.9, 8.4, 8.1, 8.8], comparison: true },
   ],
 })
+// The satisfaction per desk in 2024 and 2026 on a scale of 1 to 10, against a norm of 7.
+const SATISFACTION = satisfaction.map((row) => ({ label: row.desk, from: row.from, to: row.to }))
+const SATISFACTION_NORM = 7
+const satisfactionSpec = (rows = SATISFACTION, axis = {}) => ({
+  kind: 'dumbbell', fromLabel: '2024', toLabel: '2026', threshold: SATISFACTION_NORM, rows, ...axis,
+})
+const score = (value) => value.toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+const signedScore = (value) => `${value > 0 ? '+' : value < 0 ? '−' : ''}${score(Math.abs(value))}`
+const desksCount = (count, one, more) => `${count} ${count === 1 ? one : more}`
+
+/**
+ * The description a dumbbell's host writes: how many rows rise, fall and stay, the largest rise
+ * and fall, what is under the norm, which rows lack figures and which value is beyond the axis.
+ */
+function describeSatisfaction({ rows, min = 0, max = Infinity }) {
+  const known = rows
+    .filter((row) => row.from != null && row.to != null)
+    .map((row) => ({ ...row, change: Math.round((row.to - row.from) * 10) / 10 }))
+  const up = known.filter((row) => row.change > 0)
+  const down = known.filter((row) => row.change < 0)
+  const ranked = [...known].sort((a, b) => b.change - a.change)
+  const below = rows.filter((row) => row.to != null && row.to < SATISFACTION_NORM)
+  const missing = rows.filter((row) => row.from == null || row.to == null)
+  const beyond = rows.flatMap((row) =>
+    [['2024', row.from], ['2026', row.to]]
+      .filter(([, value]) => value != null && (value < min || value > max))
+      .map(([year, value]) => `${row.label} ${year} valt met ${score(value)} buiten de as.`),
+  )
+  return [
+    'Gemiddeld rapportcijfer per loket in 2024 en 2026, op een schaal van 1 tot 10.',
+    `${desksCount(up.length, 'loket stijgt', 'loketten stijgen')}, ${desksCount(down.length, 'daalt', 'dalen')} en ${desksCount(known.length - up.length - down.length, 'blijft', 'blijven')} gelijk.`,
+    up.length ? `De grootste stijging is ${ranked[0].label} (${signedScore(ranked[0].change)}).` : '',
+    down.length ? `De grootste daling is ${ranked.at(-1).label} (${signedScore(ranked.at(-1).change)}).` : '',
+    below.length
+      ? `Onder de norm van ${score(SATISFACTION_NORM)} in 2026: ${below.map((row) => `${row.label} (${score(row.to)})`).join(', ')}.`
+      : '',
+    missing.length ? `Van ${missing.map((row) => row.label).join(' en ')} ontbreekt een cijfer.` : '',
+    ...beyond,
+  ].filter(Boolean).join(' ')
+}
+
 const lateDesks = desks.filter((desk) => desk.data_status === 'delayed').map((desk) => desk.map_label)
 
 const CHARTS = [
@@ -393,6 +434,48 @@ const CHARTS = [
     },
   },
   {
+    id: 'dumbbell', title: 'Tevredenheid per loket',
+    subtitle: 'Gemiddeld rapportcijfer, 2024 en 2026',
+    spec: satisfactionSpec(),
+  },
+  {
+    id: 'dumbbell-unchanged', title: 'Tevredenheid per loket',
+    subtitle: 'Gemiddeld rapportcijfer, 2024 en 2026',
+    spec: satisfactionSpec(
+      [
+        { label: 'Zwolle', from: 7.2, to: 7.2 },
+        { label: 'Amsterdam Centrum', from: 6.9, to: 7.0 },
+        { label: 'Den Haag', from: 6.6, to: 7.2 },
+      ],
+      { min: 5, max: 9 },
+    ),
+  },
+  {
+    id: 'dumbbell-short', title: 'Tevredenheid per loket',
+    subtitle: 'Gemiddeld rapportcijfer, 2024 en 2026, as van 5 tot 9',
+    spec: satisfactionSpec(SATISFACTION, { min: 5, max: 9 }),
+  },
+  {
+    id: 'dumbbell-off-axis', title: 'Tevredenheid per loket',
+    subtitle: 'Gemiddeld rapportcijfer, 2024 en 2026, as van 5 tot 9',
+    spec: satisfactionSpec(
+      SATISFACTION.map((row) => (row.label === 'Utrecht' ? { ...row, from: 3.8, to: 6.1 } : row)),
+      { min: 5, max: 9 },
+    ),
+  },
+  {
+    id: 'dumbbell-hidden', title: 'Tevredenheid per loket',
+    subtitle: 'Gemiddeld rapportcijfer, 2024 en 2026',
+    spec: satisfactionSpec(),
+    // The earlier moment switched off in the legend, as a reader does.
+    toggle: 0,
+  },
+  {
+    id: 'dumbbell-phone', title: 'Tevredenheid per loket',
+    subtitle: 'Gemiddeld rapportcijfer, 2024 en 2026',
+    spec: satisfactionSpec(SATISFACTION.slice(0, 5), { min: 5, max: 9 }),
+  },
+  {
     id: 'heatmap', title: 'Heatmap met klassenlegenda',
     description: 'Aanvragen per uur naar dag van de week en uur van de dag, in vijf klassen.',
     spec: {
@@ -436,6 +519,12 @@ const VARIANT_NAMES = {
   radar: 'Eén variabele met vergelijking en norm',
   'radar-layers': 'Drie lagen',
   heatmap: 'Met klassenlegenda',
+  dumbbell: 'Twee momenten met norm',
+  'dumbbell-unchanged': 'Een rij zonder verandering',
+  'dumbbell-short': 'Ingekorte as',
+  'dumbbell-off-axis': 'Waarde buiten de as',
+  'dumbbell-hidden': 'Eén moment uitgezet',
+  'dumbbell-phone': 'Op een telefoon',
   histogram: 'Met mediaan en termijn',
 }
 
@@ -446,6 +535,11 @@ const VARIANT_NOTES = {
   'stacked-area': 'Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
   'pie-folded': 'De taart houdt de vier grootste delen en vouwt de rest in “Overig”.',
   'radar-layers': 'Wijs een regio aan in de legenda: haar vlak kleurt en de andere lagen stappen terug.',
+  'dumbbell-unchanged': 'Zonder verandering valt de stip binnen de ring; bij een klein verschil ligt ze erover.',
+  'dumbbell-short': 'Een halter draagt een positie, geen lengte: de host mag de as inkorten.',
+  'dumbbell-off-axis': 'Utrecht 2024 valt buiten de as: het punt staat op de rand met een afkapteken, de tooltip en de tabel geven 3,8.',
+  'dumbbell-hidden': '2024 staat uit in de legenda: de ringen, de verbindingen en de verschillen verdwijnen, de as blijft.',
+  'dumbbell-phone': 'Onder 768 px staat de naam boven de halter, die de volle breedte krijgt.',
 }
 
 // The states a chart tile can be in, put on each specimen of a kind: the tile keeps its size
@@ -475,9 +569,15 @@ const chartSpecimen = (chart) => ({
   note: VARIANT_NOTES[chart.id],
   html: TILE,
   setup(stage) {
-    stage.querySelector('lintje-chart').data = {
+    const element = stage.querySelector('lintje-chart')
+    if (chart.toggle != null) {
+      void element.updateComplete.then(() =>
+        element.renderRoot.querySelectorAll('.lintje-legend__button')[chart.toggle]?.click(),
+      )
+    }
+    element.data = {
       chart: chart.spec,
-      description: chart.description,
+      description: chart.description ?? describeSatisfaction(chart.spec),
       title: chart.title,
       subtitle: chart.subtitle,
       footnote: 'Bron: fictieve demogegevens',
@@ -553,6 +653,11 @@ const missingValues = [
     description: 'Doorlooptijd van afgehandelde aanvragen in klassen van twee dagen. Van de klasse 6 tot 8 dagen ontbreekt het aantal.',
     chart: processingTime(processingDays.map((bin, i) => (i === 3 ? { ...bin, count: null } : bin))),
   },
+  {
+    label: 'Ontbrekende waarde',
+    note: 'Van Arnhem ontbreekt 2026: geen verbinding en geen verschil, de rij is gearceerd.',
+    chart: satisfactionSpec(SATISFACTION.map((row) => (row.label === 'Arnhem' ? { ...row, to: null } : row))),
+  },
 ].map(({ label, note, description, chart }) => ({
   kind: chart.kind,
   label,
@@ -561,7 +666,7 @@ const missingValues = [
   setup(stage) {
     stage.querySelector('lintje-chart').data = {
       chart,
-      description,
+      description: description ?? describeSatisfaction(chart),
       title: label,
       footnote: 'Bron: fictieve demogegevens',
     }
@@ -690,7 +795,7 @@ export default {
 {
       tag: 'lintje-chart',
       wide: true,
-      title: 'Een grafiek in haar tegel: dertien soorten, één tag',
+      title: 'Een grafiek in haar tegel: veertien soorten, één tag',
       // One kind at a time, chosen by the question it answers; the states switch on its specimens.
       groups: {
         label: 'Soort',

@@ -669,6 +669,13 @@ de stijlgids. Past geen soort, dan is het een tabel.
   en wordt onder haar midden genoemd.
 - **Een mediaan is een doorgetrokken nadruklijn**, naast de gestreepte van een drempel, elk met
   zijn label naast de lijn. Raken de labels elkaar, dan zakt het rechter een regel.
+- **Een staaf begint bij 0, want haar lengte draagt de waarde.** Een grafiek die een positie
+  draagt in plaats van een lengte, zoals het halterdiagram, mag de as inkorten.
+- **Een waarde buiten een ingekorte as staat op de rand, met een afkapteken**: een klein
+  driehoekje in de kleur van het punt dat naar buiten wijst. De as blijft zoals de host haar koos;
+  de echte waarde staat in de tooltip, de tabel en de CSV, en een verschil rekent ermee. De
+  legenda noemt het teken "Buiten de as" zolang er zo'n punt is. Een punt verdwijnt nooit en de as
+  rekt nooit stilletjes op.
 
 **Een kerncijfer op zijn schaal is een KPI, geen grafiek.** De meter is een instelling van
 `lintje-kpi`: een halve boog met het getal in de mond, of een balk onder het getal. De vulling is
@@ -708,6 +715,15 @@ intekenen; een laag die de legenda uitzet, blijft onzichtbaar staan, en de schaa
 de waarden en de rijen op een telefoon bewegen niet mee. De tooltip tekent een laag zoals de
 legenda: de vorm van haar reeks, een grijze lijn voor de vergelijking, gestreept voor de norm. Een ontbrekende waarde breekt de lijn, laat het vlak vervallen en arceert de spaak.
 Onder 768 px wordt elke as een rij staven.
+
+**Een halterdiagram toont één maat op twee momenten, per rij.** Het eerdere moment is een open
+ring in het grijs van de vergelijking, het latere een stip in de kleur van de variabele: ze
+verschillen in vorm én kleur. De verbinding ertussen oordeelt niet, net als de vulling van de
+meter: of stijgen goed is, weet de grafiek niet, en groen of rood zou een oordeel vellen dat de host
+niet gaf. De richting staat als verschil met teken in een vaste kolom naast elke rij, ook bij het
+kleinste verschil, waar een pijlpunt niet past. De rijen staan in de volgorde van de host; een
+ontbrekend moment laat de verbinding en het verschil vallen en arceert de rij. Onder 768 px staat
+de naam op een eigen regel boven de halter.
 
 **In een spreidingsdiagram is een reeks ook een kleur en een vorm**: dezelfde vorm die die kleur
 op de kaart heeft, met gelijke oppervlakte, zodat geen reeks luider is. Een punt heeft een rand in

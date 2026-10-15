@@ -3,7 +3,7 @@ import { html, nothing, type TemplateResult } from 'lit'
 import { directive, Directive, PartType, type ElementPart, type PartInfo } from 'lit/directive.js'
 import { styleProps } from '../../../../core/style-props'
 import type { ChartController, TooltipState } from './controller'
-import { renderSymbol } from './axes'
+import { isKeyMark, renderKeyMark, renderSymbol } from './axes'
 
 /**
  * Places the tooltip right of the pointer, flipping near the tile's edge. A directive, not a
@@ -53,16 +53,24 @@ export function renderTooltip(controller: ChartController): TemplateResult | typ
                 ? html`<svg class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--symbol"
                             viewBox="0 0 14 14" ${styleProps({ color: row.color })}
                             aria-hidden="true" focusable="false">${renderSymbol(row.symbol, row.color, 7)}</svg>`
-                : row.marker
-                  ? html`<span class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--${row.marker}"
+                : isKeyMark(row.marker)
+                  ? html`<svg class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--symbol"
+                              viewBox="0 0 14 14" ${styleProps({ color: row.color })}
+                              aria-hidden="true" focusable="false">${renderKeyMark(row.marker, row.color, 7)}</svg>`
+                  : row.marker
+                    ? html`<span class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--${row.marker}"
                                ${styleProps({ color: row.color })}></span>`
-                  : row.color
-                    ? html`<span class="lintje-chart-tooltip__marker" ${styleProps({ background: row.color })}></span>`
-                    : nothing
+                    : row.color
+                      ? html`<span class="lintje-chart-tooltip__marker" ${styleProps({ background: row.color })}></span>`
+                      : nothing
             }
             ${row.label}
           </span>
-          <span class="lintje-chart-tooltip__value">${row.value}</span>
+          <span class="lintje-chart-tooltip__value">${row.value}${
+            row.note
+              ? html`<span class="lintje-chart-tooltip__note"> · ${row.note}</span>`
+              : nothing
+          }</span>
         </p>
       `,
       )}
