@@ -98,6 +98,11 @@ Een *toestand* is iets wat je bewaart en terugzet op het element (en in de URL m
 | `lintje-message-send`, `lintje-message-edit`, `lintje-suggestion-select`, `lintje-answer-retry`, `lintje-answer-rate`, `lintje-answer-stop` | de chat | actie |
 | `lintje-sources-change`, `lintje-draft-change`, `lintje-strip-change` | de chat | toestand |
 
+**Eén vorm voor een rij.** De lijst en de tabel sturen hetzelfde: `lintje-row-action` draagt
+`{ id, label, action }` (`RowActionDetail`), de sleutel van de rij, haar naam en de `value` van de
+gekozen actie; `lintje-row-click` en `lintje-row-open` dragen `{ id, label, href? }`
+(`RowClickDetail`). Beide types komen uit het pakket.
+
 **Het verzoek en zijn antwoord.** Een opslag, een zoekactie, een bestand, een taak om te annuleren, een cel om op te slaan: het
 element stuurt het verzoek en wacht op de property die het beantwoordt (`.options`, `.jobs`,
 `busy`, `.errors`, `busyCells`). Het toont de wijziging van de lezer meteen en verwacht dat je volgende

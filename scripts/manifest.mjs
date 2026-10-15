@@ -141,7 +141,7 @@ function readModule(path) {
     }
     const known = file.events.get(name.value) ?? { composed: false, detail: undefined }
     if (method === 'emit') known.composed = true
-    if (!known.detail && detail) known.detail = detailText(text, detail)
+    if (!known.detail && detail) known.detail = detailText(text, unwrap(detail))
     file.events.set(name.value, known)
   })
   return file
