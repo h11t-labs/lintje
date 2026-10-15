@@ -390,12 +390,15 @@ export class SubmenuController implements ReactiveController {
     const nav = root.querySelector('.lintje-navbar__entries')
     const list = root.querySelector('.lintje-navbar__list')
     this.#observe([nav, list].filter((box): box is Element => box !== null))
-    // An open panel gets the room under the bar to scroll inside itself.
+    this.#giveRoom()
+  }
+
+  /** An open panel gets the room under the bar to scroll inside itself. */
+  #giveRoom(): void {
     const bar = this.#bar
-    if (bar && this.host.openGroup !== null) {
-      const room = Math.max(0, window.innerHeight - bar.getBoundingClientRect().bottom)
-      bar.style.setProperty('--lintje-navbar-room', `${Math.floor(room)}px`)
-    }
+    if (!bar || this.host.openGroup === null) return
+    const room = Math.max(0, window.innerHeight - bar.getBoundingClientRect().bottom)
+    bar.style.setProperty('--lintje-navbar-room', `${Math.floor(room)}px`)
   }
 
   /**
@@ -406,6 +409,7 @@ export class SubmenuController implements ReactiveController {
     const root = this.host.renderRoot
     const nav = root.querySelector('.lintje-navbar__entries')
     const list = root.querySelector('.lintje-navbar__list')
+    this.#giveRoom()
     if (!nav || !list) return
     const need = list.getBoundingClientRect().width
     if (!need) return
