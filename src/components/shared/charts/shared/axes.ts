@@ -59,12 +59,14 @@ export function renderLegend({
 }: {
   items: LegendItem[]
   onToggle?: (label: string) => void
-  /** A series pointed at or focused, and `null` once it is left. */
+  /** A series pointed at or focused, and `null` once it is left; without `onToggle`, pointed at. */
   onEmphasis?: (label: string | null) => void
   position?: 'top' | 'bottom' | 'right'
 }): TemplateResult {
   const enter = (item: LegendItem) => () => onEmphasis?.(item.key ?? item.label)
   const leave = () => onEmphasis?.(null)
+  // A legend without switches is no button, yet its items still point at their mark.
+  const pointable = Boolean(onEmphasis) && !onToggle
   const content = (item: LegendItem) => html`
     ${
       item.symbol && item.shape === 'point'
@@ -90,7 +92,9 @@ export function renderLegend({
     <ul class="lintje-legend lintje-legend--${position}">
       ${items.map(
         (item) => html`
-        <li class="lintje-legend__item ${item.hidden ? 'is-hidden' : ''}">
+        <li class="lintje-legend__item ${item.hidden ? 'is-hidden' : ''}"
+            @mouseenter=${pointable ? enter(item) : nothing}
+            @mouseleave=${pointable ? leave : nothing}>
           ${
             onToggle && !item.fixed
               ? html`<button type="button" class="lintje-legend__button"

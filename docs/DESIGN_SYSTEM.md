@@ -641,7 +641,8 @@ de stijlgids. Past geen soort, dan is het een tabel.
   host ze ook stuurt, en de tinten spreiden over de ladder met het aantal delen. Meer dan vijf
   delen worden vier en één grijs "Overig" dat niet klikbaar is: een samengevoegd stuk heeft geen
   plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) zijn geen delen; ze
-  staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde.
+  staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde; zonder
+  legendatabel staat de gewone legenda boven de tekening, een item per deel en geen schakelaar.
 - **Een gestapeld vlak toont de onderverdelingen van één variabele** in haar ladder, de eerste
   onderaan en de donkerste, in volle tinten met een lijn in de oppervlaktekleur tussen de lagen.
   Ontbreekt een laag op een punt, dan breken die laag en alles erboven daar af, want hun

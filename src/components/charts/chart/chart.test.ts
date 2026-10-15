@@ -283,6 +283,36 @@ describe('lintje-chart error state', () => {
 
 describe('lintje-chart focus after a clear', () => {
   it('lands on the drawing, focusable from a script only, when the cleared mark is gone', async () => {
+    const values = [[3, 5]]
+    const data: ChartData = {
+      description: 'Een rooster.',
+      chart: {
+        kind: 'heatmap',
+        columnLabels: ['ma', 'di'],
+        rowLabels: ['Noord'],
+        values,
+        links: [[{ id: 'noord-ma', href: '/p?r=noord&d=ma' }, null]],
+      },
+      selectedId: 'noord-ma',
+    }
+    const element = await tile(data)
+    // The host answers the clear with a chart in which the cell no longer drills.
+    element.addEventListener('lintje-mark-select', () => {
+      element.data = {
+        ...data,
+        chart: { kind: 'heatmap', columnLabels: ['ma', 'di'], rowLabels: ['Noord'], values },
+      }
+    })
+    const mark = element.renderRoot.querySelector('[data-mark-id="noord-ma"]')
+    mark?.dispatchEvent(new MouseEvent('click'))
+    await element.updateComplete
+    await element.updateComplete
+    const drawing = element.renderRoot.querySelector('.lintje-heatmap')
+    expect(drawing?.getAttribute('tabindex')).toBe('-1')
+    expect((element.renderRoot as ShadowRoot).activeElement).toBe(drawing)
+  })
+
+  it('lands on a pie’s drawing, which keeps its place in the tab order', async () => {
     const segments = [
       { label: 'Noord', value: 12, id: 'noord', href: '/p?r=noord' },
       { label: 'Zuid', value: 8 },
@@ -293,7 +323,6 @@ describe('lintje-chart focus after a clear', () => {
       selectedId: 'noord',
     }
     const element = await tile(data)
-    // The host answers the clear with a chart in which the slice no longer drills.
     element.addEventListener('lintje-mark-select', () => {
       element.data = { ...data, chart: { kind: 'pie', segments: [{ label: 'Noord', value: 12 }] } }
     })
@@ -302,7 +331,7 @@ describe('lintje-chart focus after a clear', () => {
     await element.updateComplete
     await element.updateComplete
     const drawing = element.renderRoot.querySelector('.lintje-pie-chart__svg')
-    expect(drawing?.getAttribute('tabindex')).toBe('-1')
+    expect(drawing?.getAttribute('tabindex')).toBe('0')
     expect((element.renderRoot as ShadowRoot).activeElement).toBe(drawing)
   })
 })

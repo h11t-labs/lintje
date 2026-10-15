@@ -4,6 +4,9 @@
 }
 .lintje-pie-chart--expanded { gap: var(--space-10); height: 100%; padding-top: 0; }
 .lintje-pie-chart--expanded .lintje-pie-chart__table { flex: 0 1 440px; min-width: 260px; }
+/* Without the table the shared legend stands above the pie, as above every other chart. */
+.lintje-pie-chart--legend { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: var(--space-3); }
+.lintje-pie-chart--legend .lintje-pie-chart__svg { align-self: center; }
 .lintje-pie-chart__center { font-family: var(--font-ui); font-size: 1.5rem; font-weight: 700; fill: var(--color-text-primary); }
 .lintje-pie-chart__table { flex: 1; min-width: 200px; border-collapse: collapse; font: var(--text-small); }
 .lintje-pie-chart__column-label,

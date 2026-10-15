@@ -316,6 +316,20 @@ const CHARTS = [
     },
   },
   {
+    id: 'pie-legend', title: 'Taart zonder legendatabel',
+    description: 'Aanvragen naar kanaal: online 412, balie 236, telefoon 158, post 61, overig 33.',
+    spec: {
+      kind: 'pie', legendTable: false,
+      segments: [
+        { label: 'Balie', value: 236 },
+        { label: 'Online', value: 412 },
+        { label: 'Overig', value: 33 },
+        { label: 'Post', value: 61 },
+        { label: 'Telefoon', value: 158 },
+      ],
+    },
+  },
+  {
     id: 'pie-folded', title: 'Taart met meer dan vijf delen',
     description: `Afgehandelde aanvragen per loket: ${largestDesks
       .map((part) => `${part.label} ${number(part.value)}`)
@@ -404,6 +418,7 @@ const VARIANT_NAMES = {
   pie: 'Taart',
   donut: 'Donut met legendatabel',
   'pie-color': 'In de kleur van haar variabele',
+  'pie-legend': 'Zonder legendatabel',
   'pie-folded': 'Meer dan vijf delen',
   'donut-remainder': 'Donut met de rest van een geheel',
   'dual-axis': 'Aantallen en wachttijd met norm',
@@ -419,6 +434,7 @@ const VARIANT_NOTES = {
   line: 'De laatste twee uren zijn nog niet compleet en staan gearceerd.',
   'stacked-area': 'Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
   'pie-folded': 'De taart houdt de vier grootste delen en vouwt de rest in “Overig”.',
+  'pie-legend': 'De legenda staat boven de taart; aantal en aandeel staan in de tooltip.',
   'radar-layers': 'Wijs een regio aan in de legenda: haar vlak kleurt en de andere lagen stappen terug.',
 }
 
