@@ -559,15 +559,20 @@ export class LeafletSurface {
 
   /**
    * The focused mark, copied over the whole drawing: svg paints in document order, and moving
-   * the mark itself would lose its focus and its place in the Tab order. Only the copy's look
-   * counts; the CSS shows it while the mark has the keyboard's focus.
+   * the mark itself would lose its focus and its place in the Tab order. Only for the keyboard's
+   * focus: after a click there is no ring to lift.
    */
   #copyFocus(): void {
     const group = this.#group
     const layer = this.#focusGroup
     if (!group || !layer) return
     const focused = (group.getRootNode() as Document | ShadowRoot).activeElement
-    if (!focused || !group.contains(focused) || !focused.hasAttribute('data-mark-id')) {
+    if (
+      !focused ||
+      !group.contains(focused) ||
+      !focused.hasAttribute('data-mark-id') ||
+      !keyboardFocus(focused)
+    ) {
       layer.replaceChildren()
       return
     }

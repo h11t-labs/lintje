@@ -70,10 +70,9 @@
 .lintje-map-chart__point.is-preview .lintje-map-chart__point-shape { stroke: var(--color-text-primary); stroke-width: 2; }
 .lintje-map-chart__flow.is-preview { opacity: 1; }
 /* The focused mark is copied into a layer over the drawing, so its ring lies over every mark
-   drawn after it; the mark itself keeps its place, its focus and the Tab order. The copy shows
-   only while the mark has the keyboard's focus, and does not draw in again. */
+   drawn after it; the mark itself keeps its place, its focus and the Tab order. The copy does
+   not draw in again. */
 .lintje-map-chart__focus { pointer-events: none; }
-.lintje-map-chart__data:not(:has(:focus-visible)) + .lintje-map-chart__focus { display: none; }
 .lintje-map-chart .lintje-map-chart__focus * { animation: none; }
 /* A circle shows its middle, which is what the reader measures from. */
 .lintje-map-chart__region-centre {

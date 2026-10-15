@@ -115,7 +115,6 @@ describe('the map', () => {
     await keyboardFocus(first)
     await expect.poll(() => copy(element)).not.toBeNull()
     const ring = copy(element)!.querySelector('.lintje-map-chart__point-ring')!
-    expect(getComputedStyle(focusLayer(element)).display).not.toBe('none')
     expect(paintsOver(ring, mark(element, 'utr-2'))).toBe(true)
     expect(getComputedStyle(ring).stroke).toBe(resolved(element, '--color-focus'))
     expect(getComputedStyle(ring).strokeWidth).toBe('8px')
@@ -158,7 +157,7 @@ describe.runIf(server.browser === 'chromium')('a mark the pointer chose', () => 
     await userEvent.click(mark(element, 'utr'))
     expect(mark(element, 'utr').matches(':focus')).toBe(true)
     expect(getComputedStyle(mark(element, 'utr')).outlineStyle).toBe('none')
-    expect(getComputedStyle(focusLayer(element)).display).toBe('none')
+    expect(copy(element)).toBeNull()
   })
 
   it('draws no box around a clicked area of the geometry, and its ring when the keyboard reaches it', async () => {
@@ -255,7 +254,6 @@ describe('a stacked map', () => {
     )
     // Nothing drawn after the copy: the east zone and every other mark lie under it.
     expect(paintsOver(ring, mark(element, 'east'))).toBe(true)
-    expect(getComputedStyle(focusLayer(element)).display).not.toBe('none')
     expect(getComputedStyle(ring).stroke).toBe(resolved(element, '--color-focus'))
     expect(getComputedStyle(ring).strokeWidth).toBe('8px')
     expect(root(element).activeElement).toBe(west)
