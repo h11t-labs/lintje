@@ -25,6 +25,7 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
 import '../../feedback/progress-bar/progress-bar'
 import { focusTarget } from '../../shared/focus-trap'
+import { LiveMessage } from '../../shared/live-message'
 import { TONE_ICON } from '../../shared/tone'
 import { LintjeInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
@@ -144,7 +145,6 @@ export class LintjeFileUpload extends LintjeInputElement {
     dragging: { state: true },
     dragCount: { state: true },
     refused: { state: true },
-    news: { state: true },
   }
 
   /** The host's rows: one per file of `lintje-files-add`, moved busy, then done or error. */
@@ -160,9 +160,9 @@ export class LintjeFileUpload extends LintjeInputElement {
   /** How many are dragged: 0 when the browser does not say. */
   protected dragCount: number = 0
   protected refused: UploadFile[] = []
-  protected news: string = ''
 
   readonly #mobile = new MediaController(this, MOBILE)
+  readonly #news = new LiveMessage(this)
   #depth: number = 0
   #refusedCount: number = 0
   /** The row that held the focus before the rows changed, and where it stood. */
@@ -210,7 +210,7 @@ export class LintjeFileUpload extends LintjeInputElement {
     if (!changed.has('files')) return
     const before = changed.get('files') as UploadFile[] | undefined
     const news = rowNews(before ?? [], this.files ?? [])
-    if (news) this.news = news
+    if (news) this.#news.say(news)
     if (before === undefined) return
     const done = doneIds(this.files)
     if (done.join('\n') !== doneIds(before).join('\n')) this.announce(done)
@@ -264,7 +264,7 @@ export class LintjeFileUpload extends LintjeInputElement {
     }
     if (refused.length) {
       this.refused = [...this.refused, ...refused]
-      this.news = rowNews([], refused)
+      this.#news.say(rowNews([], refused))
     }
     if (passed.length) this.emit('lintje-files-add', passed)
   }
@@ -430,7 +430,7 @@ export class LintjeFileUpload extends LintjeInputElement {
           </ul>`
           : nothing
       }
-      <span class="visually-hidden" role="status">${this.news}</span>
+      <span class="visually-hidden" role="status">${this.#news.text}</span>
       ${this.renderFoot()}
     </div>`
   }
