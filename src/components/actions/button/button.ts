@@ -23,6 +23,7 @@ export type ButtonVariant =
 export type ButtonSize = 'regular' | 'compact' | 'chrome'
 
 const REASON_ID = 'lintje-button-reason'
+const DESCRIPTION_ID = 'lintje-button-description'
 
 export class LintjeButton extends LintjeElement {
   static override styles = [iconStyles, shadowCss(buttonCss), shadowCss(screenOnlyCss)]
@@ -149,7 +150,13 @@ export class LintjeButton extends LintjeElement {
     })
     const busy = this.busy ? 'true' : nothing
     const disabled = unavailable ? 'true' : nothing
-    const why = this.disabled && !this.busy && this.reason ? REASON_ID : nothing
+    // A browser reads one description: `aria-describedby` beats `aria-description`, so with a
+    // reason the description comes through `aria-describedby` too, before it.
+    const reasoned = this.hasReason()
+    const why = reasoned
+      ? [this.description ? DESCRIPTION_ID : '', REASON_ID].filter(Boolean).join(' ')
+      : nothing
+    const description = reasoned ? nothing : this.description || nothing
     if (this.href !== undefined) {
       const rel = this.rel ?? (this.target === '_blank' ? 'noopener noreferrer' : undefined)
       return html`<a
@@ -164,7 +171,7 @@ export class LintjeButton extends LintjeElement {
         aria-disabled=${disabled}
         aria-describedby=${why}
         aria-label=${this.accessibleName || nothing}
-        aria-description=${this.description || nothing}
+        aria-description=${description}
         aria-keyshortcuts=${this.keyshortcuts || nothing}
         >${this.renderContent()}</a
       >${this.renderReason()}`
@@ -175,21 +182,29 @@ export class LintjeButton extends LintjeElement {
       aria-busy=${busy}
       aria-disabled=${disabled}
       aria-describedby=${why}
-            aria-expanded=${this.expanded === undefined ? nothing : String(this.expanded)}
+      aria-expanded=${this.expanded === undefined ? nothing : String(this.expanded)}
       aria-pressed=${this.pressed === undefined ? nothing : String(this.pressed)}
       aria-haspopup=${this.haspopup || nothing}
       aria-keyshortcuts=${this.keyshortcuts || nothing}
       aria-label=${this.accessibleName || nothing}
-      aria-description=${this.description || nothing}
+      aria-description=${description}
       aria-invalid=${this.invalid ? 'true' : nothing}
     >
       ${this.renderContent()}
     </button>${this.renderReason()}`
   }
 
+  private hasReason(): boolean {
+    return this.disabled && !this.busy && !!this.reason
+  }
+
   private renderReason(): TemplateResult | typeof nothing {
-    if (!this.disabled || this.busy || !this.reason) return nothing
-    return html`<span id=${REASON_ID} class="visually-hidden">${this.reason}</span>`
+    if (!this.hasReason()) return nothing
+    return html`${
+      this.description
+        ? html`<span id=${DESCRIPTION_ID} class="visually-hidden">${this.description}</span>`
+        : nothing
+    }<span id=${REASON_ID} class="visually-hidden">${this.reason}</span>`
   }
 
   private renderContent(): TemplateResult {

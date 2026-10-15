@@ -164,6 +164,25 @@ describe('a column filter', () => {
   })
 })
 
+describe('the phone button "Filters"', () => {
+  it('says it opens a dialog, and whether the sheet is open', async () => {
+    const element = await mount()
+    const host = root(element).querySelector('.lintje-data-table__sheet-button') as HTMLElement & {
+      updateComplete: Promise<unknown>
+    }
+    await host.updateComplete
+    const button = () => host.shadowRoot!.querySelector('button') as HTMLButtonElement
+    expect(host.textContent?.trim()).toBe('Filters')
+    expect(button().getAttribute('aria-haspopup')).toBe('dialog')
+    expect(button().getAttribute('aria-expanded')).toBe('false')
+    host.click()
+    await element.updateComplete
+    await host.updateComplete
+    expect(root(element).querySelector('lintje-drawer')).not.toBeNull()
+    expect(button().getAttribute('aria-expanded')).toBe('true')
+  })
+})
+
 describe('the column chooser', () => {
   it('lists the columns after the first and keeps the list’s own events in', async () => {
     const element = await mount({ columnChooser: true, hiddenColumns: ['date'] })

@@ -1073,6 +1073,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       chooser: tools,
       onClearFilter: (key, button) => void this.clearFilter(key, button),
       onClearAll: (button) => void this.clearAllFilters(button),
+      sheetOpen: this.panel?.kind === 'sheet' && this.panel.edges === edges,
       onOpenSheet: () => this.openPanel({ kind: 'sheet', edges }, null),
     })
   }
