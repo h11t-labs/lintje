@@ -18,6 +18,7 @@ import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import '../../feedback/badge/badge'
+import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import { LintjeInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
 import segmentedCss from './segmented.css?inline'
@@ -45,18 +46,15 @@ export class LintjeSegmented extends LintjeInputElement {
   protected column: boolean = false
   /** The row's own width, measured while it is a row: the column turns back once that fits. */
   #rowWidth = 0
-  #observer: ResizeObserver | null = null
+  #observer = new FrameResizeObserver(() => this.#fit())
 
   override connectedCallback(): void {
     super.connectedCallback()
-    if (typeof ResizeObserver === 'undefined') return
-    this.#observer = new ResizeObserver(() => this.#fit())
     this.#observer.observe(this)
   }
 
   override disconnectedCallback(): void {
-    this.#observer?.disconnect()
-    this.#observer = null
+    this.#observer.disconnect()
     super.disconnectedCallback()
   }
 

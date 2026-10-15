@@ -41,6 +41,7 @@ import '../../inputs/select/select'
 import '../code/code'
 import '../highlight/highlight'
 import { LintjeContentTileElement } from '../../shared/content-tile'
+import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import { COPIED_FOR } from '../../shared/copied'
 import { downloadCsv, downloadText } from '../../shared/download'
 import type { LogEntry, LogFilter, LogLevel, LogViewerData } from '../../../types'
@@ -145,7 +146,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   #speakTimer: ReturnType<typeof setTimeout> | null = null
   #copiedTimer: ReturnType<typeof setTimeout> | null = null
   #sayFrame = 0
-  #fitObserver: ResizeObserver | null = null
+  #fitObserver = new FrameResizeObserver(() => this.refit())
   #observed: Element | null = null
   /** The segments' width on one line, once measured. */
   #levelsWidth = 0
@@ -159,8 +160,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     if (this.#speakTimer) clearTimeout(this.#speakTimer)
     if (this.#copiedTimer) clearTimeout(this.#copiedTimer)
     cancelAnimationFrame(this.#sayFrame)
-    this.#fitObserver?.disconnect()
-    this.#fitObserver = null
+    this.#fitObserver.disconnect()
     this.#observed = null
     super.disconnectedCallback()
   }
@@ -265,9 +265,8 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   // The row reads its own width, not the screen's: a tile beside another is narrow on a wide screen.
   private watchFit(): void {
     const row = this.renderRoot.querySelector('.lintje-log-viewer__filters')
-    if (!row || row === this.#observed || typeof ResizeObserver === 'undefined') return
-    this.#fitObserver?.disconnect()
-    this.#fitObserver = new ResizeObserver(() => this.refit())
+    if (!row || row === this.#observed) return
+    this.#fitObserver.disconnect()
     this.#fitObserver.observe(row)
     this.#observed = row
   }

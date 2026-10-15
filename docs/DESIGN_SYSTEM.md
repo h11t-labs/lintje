@@ -779,6 +779,10 @@ navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de
 (identiteit en één meetwaarde) en de heatmap. Tussen de breedtes lopen bedieningselementen door
 naar een volgende regel; ze overlappen nooit.
 
+**Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame nadat die veranderde.**
+Zo verandert zijn maat nooit in de ronde van zijn waarnemer, die de browser anders als fout van de
+pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
+
 ## Beweging
 
 - **Twee curves**: wat binnenkomt, vertraagt; wat vertrekt, versnelt. Een vervaging die heen en

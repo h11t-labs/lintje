@@ -28,6 +28,7 @@ import { formatNumber, formatPercent } from '../../../core/format'
 import { renderChartSkeleton } from '../../shared/charts/shared/chart-states'
 import { chartFrameStyles } from '../../shared/charts/shared/chart-styles'
 import { downloadCsv } from '../../shared/download'
+import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import { MediaController } from '../../../core/media'
 import tileHostCss from '../../shared/view-tile.css?inline'
 import inputCss from '../../inputs/shared/input.css?inline'
@@ -217,7 +218,7 @@ class ScrollEdges {
   end = false
 
   #element: HTMLElement | null = null
-  #resize: ResizeObserver | null = null
+  #resize = new FrameResizeObserver(() => this.measure())
   readonly #notify: () => void
 
   constructor(notify: () => void) {
@@ -243,16 +244,14 @@ class ScrollEdges {
     this.#element = element
     this.measure()
     element.addEventListener('scroll', this.measure, { passive: true })
-    this.#resize = new ResizeObserver(this.measure)
     this.#resize.observe(element)
     if (element.firstElementChild) this.#resize.observe(element.firstElementChild)
   }
 
   disconnect(): void {
     this.#element?.removeEventListener('scroll', this.measure)
-    this.#resize?.disconnect()
+    this.#resize.disconnect()
     this.#element = null
-    this.#resize = null
   }
 }
 
