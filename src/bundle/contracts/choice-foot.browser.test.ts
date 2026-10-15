@@ -79,12 +79,17 @@ async function settled(element: Input): Promise<void> {
   await new Promise(requestAnimationFrame)
 }
 
-async function draw(tag: string, props: object): Promise<Input> {
+async function draw(
+  tag: string,
+  props: object,
+  parent: HTMLElement = document.body,
+): Promise<Input> {
   const element = Object.assign(document.createElement(tag), {
     label: 'Veld',
     ...props,
   }) as unknown as Input
-  document.body.append(element)
+  parent.append(element)
+  if (parent !== document.body) document.body.append(parent)
   await settled(element)
   return element
 }
@@ -118,9 +123,10 @@ describe('where the foot stays at the edge', () => {
   })
 
   it('a setting row, whose label text stands at the left edge', async () => {
-    const toggle = await draw('lintje-toggle', { hint: 'Toelichting', layout: 'row' })
-    toggle.style.width = '800px'
-    await new Promise(requestAnimationFrame)
+    // Wide from the start: widening it later would let the reduced-motion transition (which the
+    // tests run under) still be moving the hint when it is measured.
+    const wide = Object.assign(document.createElement('div'), { style: 'width: 800px' })
+    const toggle = await draw('lintje-toggle', { hint: 'Toelichting', layout: 'row' }, wide)
     const root = toggle.renderRoot
     expect(left(root, '.lintje-field__hint')).toBeCloseTo(left(root, '.lintje-choice__label'), 0)
     expect(left(root, '.lintje-field__hint')).toBeCloseTo(left(root, '.lintje-field'), 0)
