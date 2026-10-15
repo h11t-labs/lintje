@@ -449,7 +449,7 @@ const VARIANT_NAMES = {
   'radar-layers': 'Drie lagen',
   heatmap: 'Met klassenlegenda',
   histogram: 'Met mediaan en termijn',
-  'line-light-colours': 'In lichte kleuren, met hun rand',
+  'line-light-colours': 'In lichte kleuren met hun rand',
 }
 
 // What a label cannot say, for the note under it.

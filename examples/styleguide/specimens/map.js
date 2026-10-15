@@ -123,7 +123,7 @@ const MAPS = [
   },
   {
     // The light colours: in light each point has an edge in its own dark colour, for 3:1 on the land.
-    id: 'map-light-colours', label: 'Punten in lichte kleuren', title: 'Kaart · lichte kleuren',
+    id: 'map-light-colours', label: 'Lichte kleuren', title: 'Kaart · lichte kleuren',
     note: 'Mintgroen, roze en lichtblauw krijgen in licht een rand in hun eigen donkere kleur.',
     data: {
       variant: 'points', geo: 'netherlands', unit: 'aanvragen', height: 320,
