@@ -889,7 +889,11 @@ describe('the status words', () => {
     const WORDS: [string, string, string][] = [
       ['src/components/inputs/shared/input.css', '.lintje-field__error', 'error'],
       ['src/components/inputs/textarea/textarea.css', '.lintje-textarea__counter.is-over', 'error'],
-      ['src/components/inputs/file-upload/file-upload.css', '.lintje-file-upload__reason', 'error'],
+      [
+        'src/components/content/attachment/attachment.css',
+        '.lintje-attachment.is-error .lintje-attachment__detail',
+        'error',
+      ],
       [
         'src/components/feedback/progress-bar/progress-bar.css',
         '.lintje-progress--error .lintje-progress__label',
