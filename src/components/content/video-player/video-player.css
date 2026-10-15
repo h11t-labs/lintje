@@ -85,7 +85,12 @@
   padding: var(--space-3) var(--space-3) var(--space-2);
 }
 .lintje-video-player__timeline { display: flex; align-items: center; gap: var(--space-3); }
-.lintje-video-player__buttons { display: flex; align-items: center; gap: var(--space-1); }
+.lintje-video-player__buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  container-type: inline-size;
+}
 .lintje-video-player__speed {
   flex: none;
   padding: 0 var(--space-1);
@@ -97,6 +102,10 @@
 }
 /* The menu's trigger takes the 48 px of the player's other buttons. */
 .lintje-video-player__more { margin-left: auto; --h-icon-button: var(--h-touch); }
+/* Five 48 px buttons and four gaps need 16rem; narrower, the captions stay in the menu only. */
+@container (width < 16rem) {
+  .lintje-video-player__captions { display: none; }
+}
 
 .lintje-video-player:fullscreen { display: flex; flex-direction: column; border: 0; }
 .lintje-video-player:fullscreen .lintje-video-player__stage {

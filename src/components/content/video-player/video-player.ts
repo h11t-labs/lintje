@@ -269,6 +269,20 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
     )
   }
 
+  /** The same `captions` as the menu row and the C key; pressed and filled while they show. */
+  private renderCaptions(): TemplateResult {
+    return this.renderIconButton(
+      'functioneel-ondertiteling',
+      'Ondertiteling',
+      () => (this.captions = !this.captions),
+      {
+        disabled: false,
+        pressed: this.captions,
+        className: `lintje-video-player__captions${this.captions ? ' is-active' : ''}`,
+      },
+    )
+  }
+
   protected override render(): TemplateResult {
     return html`<div class="lintje-video-player" role="group" aria-label=${this.name || 'Video'} @keydown=${this.onKeydown}>
       ${this.renderStage()}
@@ -282,7 +296,7 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
           }
         </div>
         <div class="lintje-video-player__buttons">
-          ${this.renderPlay()} ${this.renderMute()}
+          ${this.renderPlay()} ${this.renderMute()} ${this.renderCaptions()}
           <lintje-menu-button
             class="lintje-video-player__more"
             icon

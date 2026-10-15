@@ -5,7 +5,7 @@
  * Every other icon is fetched by name when a name needs it
  * (`src/icons/loader.ts`); the name is always the file name.
  *
- * 63 icons, of 1200 in `dist-icons/`.
+ * 64 icons, of 1201 in `dist-icons/`.
  */
 
 export interface IconGlyph {
@@ -47,6 +47,7 @@ export const ICONS: Record<string, IconGlyph> = {
   'functioneel-meer': { viewBox: '0 0 48 48', attributes: {}, body: "<path d=\"m27.18 12a4 4 0 1 1 -8 0 4 4 0 1 1 8 0zm0 12a4 4 0 1 1 -8 0 4 4 0 1 1 8 0zm0 12a4 4 0 1 1 -8 0 4 4 0 1 1 8 0zm0 0\"/>" },
   'functioneel-menu': { viewBox: '0 0 48 48', attributes: {}, body: "<path d=\"m40 8h-32v6h29zm-32 18h29l3-6h-32zm0 12h29l3-6h-32zm0 0\"/>" },
   'functioneel-minus': { viewBox: '0 0 24 24', attributes: {}, body: "<path d=\"M19.6 10H4.4c-1.1 0-1.4.9-1.4 2s.3 2 1.4 2h15.2c1.1 0 1.4-.9 1.4-2s-.3-2-1.4-2Z\" fill-rule=\"evenodd\"/>" },
+  'functioneel-ondertiteling': { viewBox: '0 0 24 24', attributes: {}, body: "<path d=\"M2.9 5h18.2a.9.9 0 0 1 .9.9v12.2a.9.9 0 0 1-.9.9H2.9a.9.9 0 0 1-.9-.9V5.9a.9.9 0 0 1 .9-.9Zm.7 1.6v10.8h16.8V6.6ZM6.8 11h8.4a.8.8 0 0 1 0 1.6H6.8a.8.8 0 0 1 0-1.6Zm0 3h2.8a.8.8 0 0 1 0 1.6H6.8a.8.8 0 0 1 0-1.6Zm6 0h4.4a.8.8 0 0 1 0 1.6h-4.4a.8.8 0 0 1 0-1.6Z\" fill-rule=\"evenodd\"/>" },
   'functioneel-pijl-omlaag': { viewBox: '0 0 48 48', attributes: {}, body: "<path d=\"m38.398 21c-.797-1-2.199-1-3.199-.398l-7.199 4.796v-16c0-2.597-2.199-3.398-4.801-3.398-2.398 0-5.199.801-5.199 3.398v16l-7.199-4.797c-1-.801-2.402-.602-3.199.398s-.801 2.199-.203 3.199l13.602 17c.398.602 1.199 1 2 1s1.398-.398 2-1l13.602-17c.797-1 .598-2.398-.203-3.199zm0 0\"/>" },
   'functioneel-plus': { viewBox: '0 0 24 24', attributes: {}, body: "<path d=\"M19.6 10H14V4.4c0-1.1-.9-1.4-2-1.4s-2 .3-2 1.4V10H4.4c-1.1 0-1.4.9-1.4 2s.3 2 1.4 2H10v5.6c0 1.1.9 1.4 2 1.4s2-.3 2-1.4V14h5.6c1.1 0 1.4-.9 1.4-2s-.3-2-1.4-2Z\" fill-rule=\"evenodd\"/>" },
   'functioneel-printer': { viewBox: '0 0 48 48', attributes: {}, body: "<path d=\"m12 2h24v6h-24zm32 8h-40c-1 0-2 .801-2 2v16c0 1.199.801 2 2 2h6v3.199c0 .602.199 1 .602 1.402l8.797 8.797c.402.402.801.602 1.402.602h15.199c1.199 0 2-.801 2-2v-12h6c1.199 0 2-.801 2-2v-16c0-1.199-1-2-2-2zm-10 30h-12v-6c0-1.199-.801-2-2-2h-6v-8h20zm8-22h-4v-4h4zm0 0\"/>" },

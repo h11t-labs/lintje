@@ -183,6 +183,38 @@ describe('lintje-video-player', () => {
     expect(element.captions).toBe(false)
   })
 
+  it('has a captions button in the bar between sound and the menu, pressed while they show', async () => {
+    const element = await mount({ segments: SEGMENTS })
+    await loaded(element)
+    const button = (): HTMLButtonElement =>
+      root(element).querySelector<HTMLButtonElement>('button[aria-label="Ondertiteling"]')!
+    const bar = root(element).querySelector('.lintje-video-player__buttons')!
+    const order = [...bar.children].map(
+      (child) => child.getAttribute('aria-label') ?? child.tagName,
+    )
+    expect(order.indexOf('Ondertiteling')).toBe(order.indexOf('Geluid dempen') + 1)
+    expect(order[order.indexOf('Ondertiteling') + 1]).toBe('LINTJE-MENU-BUTTON')
+    expect(button().getAttribute('aria-pressed')).toBe('false')
+
+    button().click()
+    await element.updateComplete
+    expect(element.captions).toBe(true)
+    expect(button().getAttribute('aria-pressed')).toBe('true')
+    expect(button().classList.contains('is-active')).toBe(true)
+    expect(menu(element).items[0]).toMatchObject({ label: 'Ondertiteling', checked: true })
+
+    // The menu row and the C key follow the same captions, and so does the button.
+    await choose(element, 'ondertiteling')
+    expect(button().getAttribute('aria-pressed')).toBe('false')
+    expect(button().classList.contains('is-active')).toBe(false)
+    root(element)
+      .querySelector('[role="slider"]')!
+      .dispatchEvent(new KeyboardEvent('keydown', { key: 'c', bubbles: true, composed: true }))
+    await element.updateComplete
+    expect(element.captions).toBe(true)
+    expect(button().getAttribute('aria-pressed')).toBe('true')
+  })
+
   it('answers C and F also while the focus is on the menu button', async () => {
     const element = await mount()
     await loaded(element)
