@@ -55,6 +55,7 @@ import mobileHeaderCss from './mobile-header.css?inline'
 import topBarCss from './top-bar.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import keyCss from '../../shared/key.css?inline'
+import { avatarStyles } from '../../shared/avatar'
 
 const MAIN_ID = 'lintje-shell-main'
 
@@ -85,6 +86,7 @@ export class LintjeShell extends LintjeElement {
   static override styles = [
     iconStyles,
     badgeStyles,
+    avatarStyles,
     shadowCss(headerCss),
     shadowCss(shellCss),
     shadowCss(navigationCss),

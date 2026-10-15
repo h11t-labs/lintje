@@ -21,16 +21,6 @@
 .lintje-user-menu__trigger:hover,
 .lintje-user-menu__trigger.is-open { background: var(--color-nav-hover); }
 
-.lintje-user-menu__avatar {
-  display: flex; align-items: center; justify-content: center;
-  flex: none;
-  width: 2rem; height: 2rem;
-  border-radius: var(--radius-round);
-  background: var(--color-nav-avatar-bg);
-  color: var(--color-nav-avatar-text);
-  font-size: 0.875rem; font-weight: 700;
-}
-
 .lintje-user-menu__panel {
   width: 17.5rem;
   max-width: 100%;
@@ -85,10 +75,9 @@
 .lintje-user-menu__trigger:focus-visible,
 .lintje-user-menu__panel.is-inline :focus-visible { outline-color: var(--color-focus-on-theme); }
 
-/* Forced colours: the open button keeps a Highlight edge, the avatar a CanvasText ring. */
+/* Forced colours: the open button keeps a Highlight edge. */
 @media (forced-colors: active) {
   .lintje-user-menu__trigger:focus-visible,
   .lintje-user-menu__panel.is-inline :focus-visible { outline-color: Highlight; }
   .lintje-user-menu__trigger.is-open:not(:focus-visible) { outline: 1px solid Highlight; outline-offset: -1px; }
-  .lintje-user-menu__avatar { border: 1px solid CanvasText; }
 }

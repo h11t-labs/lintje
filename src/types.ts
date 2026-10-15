@@ -203,6 +203,7 @@ export interface TableColumnData {
    * below 768 px the row's measure shows it whole.
    * `status`: a `StatusTone` (or mapped through `status.tones`) as the status dot with its label.
    * `label`: the value as a badge with the word, tone and icon from `labels`.
+   * `person`: the value is an id in `people`, drawn as `lintje-person`.
    */
   format?:
     | 'text'
@@ -213,6 +214,7 @@ export interface TableColumnData {
     | 'change-compact'
     | 'status'
     | 'label'
+    | 'person'
   decimals?: number
   /** Suffix after the value, e.g. "min". */
   unit?: string
@@ -230,6 +232,13 @@ export interface TableColumnData {
    * value without an entry stands as plain text. Sorting and the CSV use the word.
    */
   labels?: Record<string, TableLabel>
+  /**
+   * `person` format: value → the person it stands for, as `labels` does for a label. An id without
+   * an entry stands as plain text. Sorting, filtering and the CSV use the name.
+   */
+  people?: Record<string, Person>
+  /** `person` format: the word for `null`; default "Niet toegewezen". */
+  empty?: string
   /** Shown muted instead of an exact 0, where 0 means "none" (e.g. "—"). Missing stays `null`. */
   zeroText?: string
   mobileSubline?: boolean
@@ -549,12 +558,21 @@ export interface ShellGroup {
   links: ShellLink[]
 }
 
-export interface UserMenuUser {
+/** A person as an element shows them. */
+export interface Person {
   name: string
-  /** The function: "Teamleider · Dienst Vergunningen". */
+  /** Written by the host ("JV"): initials are not derived, "J. de Vries" has no rule. */
+  initials?: string
+  /** The second line: function or department ("Senior behandelaar"). */
   role?: string
-  initials: string
+  /** A photo, cropped to the circle; when it does not load, the initials. */
+  photo?: string
+  /** Makes the name a link to a profile. */
+  href?: string
 }
+
+/** The person in the user menu: unchanged for every host that sets it. */
+export type UserMenuUser = Person
 
 /** The light/dark setting as the reader chose it; `system` follows `prefers-color-scheme`. */
 export type ModeSetting = 'system' | 'light' | 'dark'

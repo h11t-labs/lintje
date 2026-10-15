@@ -19,6 +19,7 @@ import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
+import { avatarStyles, renderAvatar } from '../../shared/avatar'
 import {
   nextRow,
   renderMenuEntries,
@@ -39,6 +40,7 @@ let instances = 0
 export class LintjeUserMenu extends LintjeElement {
   static override styles = [
     iconStyles,
+    avatarStyles,
     shadowCss(menuCss),
     shadowCss(menuButtonCss),
     shadowCss(userMenuCss),
@@ -273,11 +275,7 @@ export class LintjeUserMenu extends LintjeElement {
       ${
         user
           ? html`<div class="lintje-user-menu__who">
-            ${
-              this.inline
-                ? html`<span class="lintje-user-menu__avatar" aria-hidden="true">${user.initials}</span>`
-                : nothing
-            }
+            ${this.inline ? renderAvatar(user, { onNav: true }) : nothing}
             <div class="lintje-user-menu__names">
               <p class="lintje-user-menu__name">${user.name}</p>
               ${user.role ? html`<p class="lintje-user-menu__role">${user.role}</p>` : nothing}
@@ -309,14 +307,20 @@ export class LintjeUserMenu extends LintjeElement {
     return html`<button
         type="button"
         class=${classMap({ 'lintje-user-menu__trigger': true, 'is-open': this.open })}
-        aria-label=${user ? `${user.initials}, menu van ${user.name}` : 'Gebruikersmenu'}
+        aria-label=${
+          user
+            ? user.initials
+              ? `${user.initials}, menu van ${user.name}`
+              : `Menu van ${user.name}`
+            : 'Gebruikersmenu'
+        }
         aria-haspopup="menu"
         aria-expanded=${String(this.open)}
         aria-controls=${this.#menuId}
         @click=${() => (this.open ? this.hide(false) : this.show('first'))}
         @keydown=${this.onTriggerKeydown}
       >
-        <span class="lintje-user-menu__avatar" aria-hidden="true">${user?.initials ?? ''}</span>
+        ${renderAvatar(user ?? null, { onNav: true })}
         ${renderIcon('functioneel-delta-omlaag', { size: 16, rotate: this.open ? 180 : undefined })}
       </button>
       <lintje-popover

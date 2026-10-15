@@ -17,6 +17,7 @@ import { clearFilterZone, setFrameState } from '../../../core/frame-state'
 import { deepActiveElement, tabbables } from '../../shared/focus-trap'
 import { mailSubject, phoneLink } from './top-bar'
 import type { LintjeButton } from '../../actions/button/button'
+import type { LintjeUserMenu } from '../user-menu/user-menu'
 
 beforeAll(() => {
   // The shell observes its navigation bar; happy-dom has no observer.
@@ -1519,5 +1520,58 @@ describe('the bars that stay at the top', () => {
     const shell = await mount({ layout: 'top' })
     const name = root(shell).querySelector('h1.lintje-shell__name')!
     expect(name.getAttribute('title')).toBe('Dashboard Vergunningen')
+  })
+})
+
+/** The user stands in four places; each draws the circle of `renderAvatar()` on the menu's colours. */
+describe('the user’s circle in the shell', () => {
+  // A data URI: happy-dom would fetch a path from a server that is not there.
+  const PHOTO = 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
+  const circle = (scope: ParentNode | null | undefined): HTMLElement | null =>
+    scope?.querySelector<HTMLElement>('.lintje-avatar') ?? null
+  const sized = (avatar: HTMLElement | null, size: 'medium' | 'large'): boolean =>
+    Boolean(
+      avatar?.classList.contains(`lintje-avatar--${size}`) &&
+      avatar.classList.contains('lintje-avatar--nav'),
+    )
+
+  it('draws 2.5rem in the foot of the side menu; folded in the rail, name and role stay unseen', async () => {
+    const shell = await mount({
+      logout: { href: '/auth/logout', token: 't' },
+      user: { initials: 'HP', name: 'H. van Pelt', role: 'Analist', href: '/profiel' },
+    })
+    const nav = root(shell).querySelector<HTMLElement>('.lintje-nav')!
+    const foot = nav.querySelector('.lintje-nav__footer')!
+    expect(sized(circle(foot), 'large')).toBe(true)
+    expect(circle(foot)!.textContent!.trim()).toBe('HP')
+    // In the folded rail name and role are in the DOM, hidden by the rail; "Afmelden" is hidden.
+    expect(nav.classList.contains('lintje-nav--rail')).toBe(true)
+    expect(nav.classList.contains('is-expanded')).toBe(false)
+    expect(foot.querySelector('.lintje-nav__user')!.textContent).toContain('H. van Pelt')
+    expect(foot.querySelector('form')!.hidden).toBe(true)
+    // `href` draws no link: a profile page is a row of `userMenu`.
+    expect(foot.querySelector('a')).toBeNull()
+  })
+
+  it('shows the photo in the foot, in the same size', async () => {
+    const shell = await mount({ user: { name: 'H. van Pelt', role: 'Analist', photo: PHOTO } })
+    const avatar = circle(root(shell).querySelector('.lintje-nav__footer'))
+    expect(sized(avatar, 'large')).toBe(true)
+    expect(avatar!.querySelector('img')!.getAttribute('src')).toBe(PHOTO)
+  })
+
+  it('draws 2rem in the button of the top bar and inline in the phone’s menu', async () => {
+    const shell = await mount({ layout: 'top' })
+    const bar = root(shell).querySelector<LintjeUserMenu>('.lintje-navbar__end lintje-user-menu')!
+    await bar.updateComplete
+    expect(sized(circle(bar.shadowRoot), 'medium')).toBe(true)
+
+    const side = await mount()
+    await open(side)
+    const sheet = [...root(side).querySelectorAll('lintje-user-menu')].find((menu) => menu.inline)!
+    await sheet.updateComplete
+    const who = sheet.shadowRoot!.querySelector('.lintje-user-menu__who')
+    expect(sized(circle(who), 'medium')).toBe(true)
+    expect(circle(who)!.textContent!.trim()).toBe('HP')
   })
 })

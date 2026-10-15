@@ -95,6 +95,8 @@ import './tables/description-list/description-list'
 import './feedback/empty-state/empty-state'
 import './feedback/error-page/error-page'
 import './tables/activity-log/activity-log'
+import './tables/person/person'
+import './tables/person-group/person-group'
 import './actions/copy-button/copy-button'
 import './actions/qr-code/qr-code'
 import './feedback/ai-label/ai-label'
@@ -264,6 +266,8 @@ export { LintjeErrorPage } from './feedback/error-page/error-page'
 export type { ErrorPageLink } from './feedback/error-page/error-page'
 export { LintjeActivityLog } from './tables/activity-log/activity-log'
 export type { ActivityEntry } from './tables/activity-log/activity-log'
+export { LintjePerson } from './tables/person/person'
+export { LintjePersonGroup } from './tables/person-group/person-group'
 
 export { LintjeCopyButton } from './actions/copy-button/copy-button'
 export { LintjeQrCode } from './actions/qr-code/qr-code'
@@ -334,6 +338,7 @@ export type {
   FilterValue,
   ModeSetting,
   PageHeaderData,
+  Person,
   ShellData,
   ShellGroup,
   ShellLink,

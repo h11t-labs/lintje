@@ -65,7 +65,7 @@ setIconSource({ base: './icons/' })
 | `filters.js` — Filters | `filter-bar`, `filter-zone`, `filter-sheet` |
 | `charts.js` — Kerncijfers en grafieken | `kpi-row`, `kpi`, `chart`, `note`, `explainer` |
 | `map.js` — Kaart | `map` |
-| `tables.js` — Tabellen en lijsten | `data-table`, `pagination`, `list`, `card`, `card-list`, `description-list`, `tree-view`, `sortable-list`, `activity-log` |
+| `tables.js` — Tabellen en lijsten | `data-table`, `pagination`, `list`, `card`, `card-list`, `description-list`, `tree-view`, `sortable-list`, `activity-log`, `person`, `person-group` |
 | `chat.js` — Chat met data | `chat`, `chat-message`, `chat-answer`, `chat-composer`, `chat-strip`, `chat-suggestions` |
 
 De tabel volgt `src/categories.json`. `forms.js` laadt `inputs.js` mee: een formulier is niets

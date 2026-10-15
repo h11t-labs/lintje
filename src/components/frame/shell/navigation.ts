@@ -9,6 +9,7 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
 import { renderBadge } from '../../feedback/badge/badge'
+import { renderAvatar } from '../../shared/avatar'
 import { hasPage, unavailableWord, type NavGroup } from './header'
 import type { ShellData, ShellLink } from '../../../types'
 import type { LintjeShell } from './shell'
@@ -365,7 +366,7 @@ export function renderNavigation(shell: LintjeShell, groups: NavGroup[]): Templa
       ${
         data?.user
           ? html`<div class="lintje-nav__footer">
-            <span class="lintje-nav__avatar">${data.user.initials}</span>
+            ${renderAvatar(data.user, { size: 'large', onNav: true })}
             <!-- Always in the DOM; the rail hides it with opacity. -->
             <span class="lintje-nav__user">
               <b>${data.user.name}</b>
