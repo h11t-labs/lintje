@@ -233,14 +233,12 @@ const ROWS: Row[] = [
       const { element } = shell()
       return {
         element,
-        trigger: () => shadow(element, '[aria-controls="lintje-mobile-menu-panel"]'),
+        trigger: () => shadow(element, '.lintje-mobile-header__button--menu'),
       }
     },
     // Opening leaves the focus on the button, which then reads "Sluiten".
-    first: (element) => shadow(element, '[aria-controls="lintje-mobile-menu-panel"]'),
-    closers: [
-      ['sluiten', (element) => shadow(element, '[aria-controls="lintje-mobile-menu-panel"]')],
-    ],
+    first: (element) => shadow(element, '.lintje-mobile-header__button--menu'),
+    closers: [['sluiten', (element) => shadow(element, '.lintje-mobile-header__button--menu')]],
   },
   {
     name: 'lintje-shell Delen op 390 px',

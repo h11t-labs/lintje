@@ -419,7 +419,7 @@ const ROWS: Row[] = [
     mount: () =>
       append(create('lintje-shell', { data: { name: 'Vergunningen', navigation: NAVIGATION } })),
     wide: (element) => shown(element, '.lintje-shell__nav a[href="#aanvragen"]'),
-    phone: (element) => shown(element, '[aria-controls="lintje-mobile-menu-panel"]'),
+    phone: (element) => shown(element, '.lintje-mobile-header__button--menu'),
   },
   {
     tag: 'lintje-shell',
@@ -431,7 +431,7 @@ const ROWS: Row[] = [
         }),
       ),
     wide: (element) => shown(element, '.lintje-nav a[href="#aanvragen"]'),
-    phone: (element) => shown(element, '[aria-controls="lintje-mobile-menu-panel"]'),
+    phone: (element) => shown(element, '.lintje-mobile-header__button--menu'),
   },
   {
     tag: 'lintje-shell',

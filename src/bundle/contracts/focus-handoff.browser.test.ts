@@ -1715,8 +1715,7 @@ const SHELL_ROWS: Row[] = [
       const element = await shell({})
       element.addEventListener('lintje-navigate', (event) => event.preventDefault())
       await phone()
-      const menu = (): HTMLElement | null =>
-        inside(element, '[aria-controls="lintje-mobile-menu-panel"]')
+      const menu = (): HTMLElement | null => inside(element, '.lintje-mobile-header__button--menu')
       await drawn(menu)
       menu()!.focus()
       await userEvent.keyboard('{Enter}')

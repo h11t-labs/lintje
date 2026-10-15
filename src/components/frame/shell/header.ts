@@ -212,8 +212,8 @@ function barPanel(
         'is-open': open,
         ...extra,
       })}
-      aria-expanded=${String(open)}
-      aria-controls=${panel}
+      aria-expanded=${whole ? nothing : String(open)}
+      aria-controls=${whole && !open ? nothing : panel}
       @click=${(event: MouseEvent) => {
         // A group's pointer click never closes: hover has opened it already, and closing again
         // would make the entry blink. "Menu" opens on a click only, so every click toggles it.
