@@ -169,6 +169,7 @@ function tableRows(count: number): DataTableData['rows'] {
     name: `${OFFICES[index % OFFICES.length]} ${index + 1}`,
     region: index % 2 ? 'Noord' : 'Zuid',
     requests: 100 + index,
+    handler: index % 3 ? (index % 2 ? 'ab' : 'jv') : null,
   }))
 }
 
@@ -183,6 +184,16 @@ const TABLE: DataTableData = {
     { key: 'name', header: 'Loket' },
     { key: 'region', header: 'Regio' },
     { key: 'requests', header: 'Aanvragen' },
+    {
+      key: 'handler',
+      header: 'Behandelaar',
+      format: 'person',
+      mobileMeasure: true,
+      people: {
+        jv: { name: 'J. de Vries', initials: 'JV' },
+        ab: { name: 'A. Bakker', initials: 'AB' },
+      },
+    },
   ],
   rows: tableRows(20),
 }
@@ -512,12 +523,13 @@ const ROWS: Row[] = [
   },
   {
     tag: 'lintje-data-table',
-    marker: 'the rows become a list of names with their measure',
+    marker: 'the rows become a list of names with their measure, a person too',
     mount: () => append(create('lintje-data-table', { data: TABLE })),
     wide: (element) =>
       shown(element, '.lintje-data-table__full') && !shown(element, '.lintje-data-table__mobile'),
     phone: (element) =>
       shown(element, '.lintje-data-table__mobile .lintje-data-table__mobile-name') &&
+      shown(element, '.lintje-data-table__mobile-measure lintje-person') &&
       !shown(element, '.lintje-data-table__full'),
   },
   {

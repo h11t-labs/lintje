@@ -30,8 +30,13 @@ export function filterOut(value: FilterValue | null | undefined): FilterValue | 
   return Array.isArray(value) ? value : value.trim()
 }
 
+/** An option without a label of its own: in a `person` column, the person's name. */
 function optionLabel(column: TableColumnData, value: string): string {
-  return column.filter?.options?.find((option) => option.value === value)?.label ?? value
+  return (
+    column.filter?.options?.find((option) => option.value === value)?.label ??
+    (column.format === 'person' ? column.people?.[value]?.name : undefined) ??
+    value
+  )
 }
 
 export function chipText(column: TableColumnData, value: FilterValue): string {
@@ -161,7 +166,7 @@ export function renderFilterField(
         <span class="lintje-choice__box" aria-hidden="true"
           ><span class="lintje-choice__mark">✓</span></span
         >
-        <span class="lintje-choice__label">${option.label ?? option.value}</span>
+        <span class="lintje-choice__label">${optionLabel(column, option.value)}</span>
         ${
           option.count == null
             ? nothing

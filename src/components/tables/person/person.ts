@@ -17,6 +17,9 @@ import type { SpeakerColour } from '../../content/shared/playback'
 import type { Person } from '../../../types'
 import personCss from './person.css?inline'
 
+/** The word for nobody, where a host names none. */
+export const NO_PERSON = 'Niet toegewezen'
+
 export class LintjePerson extends LintjeElement {
   static override styles = [iconStyles, avatarStyles, shadowCss(personCss)]
 
@@ -32,7 +35,7 @@ export class LintjePerson extends LintjeElement {
   /** 24, 32 or 40 px. `small` shows no second line: it does not fit beside 24 px in a row. */
   size: AvatarSize = 'medium'
   /** The word where nobody is ("Nog niemand"). */
-  empty: string = 'Niet toegewezen'
+  empty: string = NO_PERSON
   /** A speaker's colour, only where the people are the variable, as the speakers of a recording. */
   declare color?: SpeakerColour
 
