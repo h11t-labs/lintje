@@ -11,7 +11,7 @@ import { repeat } from 'lit/directives/repeat.js'
 import { styleProps } from '../../../../core/style-props'
 import { formatNumber } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
-import { DEFAULT_SERIES_COLOR, seriesColor } from '../shared/colors'
+import { DEFAULT_SERIES_COLOR, lineCasing, seriesColor } from '../shared/colors'
 import { markPath } from '../shared/series-shapes'
 import type { ChartController } from '../shared/controller'
 import { withUnit, type MapDrawing } from './drawings'
@@ -306,7 +306,7 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
           <path d=${d} class="lintje-map-chart__point-ring" />
           <path d=${d}
                 class="lintje-map-chart__point-shape ${value.value == null ? 'lintje-map-chart__point-shape--empty' : colour ? 'lintje-map-chart__point-shape--series' : ''}"
-                ${styleProps({ '--lintje-series': colour })} />
+                ${styleProps({ '--lintje-series': colour, '--lintje-series-edge': lineCasing(colour) })} />
           ${
             value.value == null
               ? svg`<path d=${d} class="lintje-map-chart__point-hatch" fill="url(#map-hatch-${id})" />`

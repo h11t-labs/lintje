@@ -199,3 +199,29 @@ describe('the map surface', () => {
     expect(spy).not.toHaveBeenCalled()
   })
 })
+
+describe('the edge of a map point', () => {
+  beforeEach(() => {
+    document.body.innerHTML = ''
+  })
+
+  it('edges a light series in its dark edge, and a dark one in its own colour', () => {
+    const { container } = surface(
+      {},
+      {
+        ...DATA,
+        seriesLabels: { 'mint-green': 'Licht', 'sky-blue': 'Donker' },
+        values: [
+          { ...DATA.values[0], series: 'mint-green' as const },
+          { ...DATA.values[1], series: 'sky-blue' as const },
+        ],
+      },
+    )
+    const edge = (id: string) =>
+      mark(container, id)
+        .querySelector<SVGElement>('.lintje-map-chart__point-shape--series')!
+        .style.getPropertyValue('--lintje-series-edge')
+    expect(edge('ein')).toBe('var(--color-chart-mint-green-edge)')
+    expect(edge('rtm')).toBe('')
+  })
+})

@@ -39,7 +39,7 @@ export interface LegendItem {
 
 /**
  * A series' symbol as a scatter plot draws it, for a marker: its shape in `currentColor`, and a
- * dark-yellow one with the edge of its text colour (`lineCasing`).
+ * light one with its dark edge (`lineCasing`).
  */
 export function renderSymbol(
   symbol: SeriesKey,

@@ -164,10 +164,11 @@
 .lintje-map-chart__point:hover .lintje-map-chart__point-shape { fill-opacity: .8; }
 /* A point with a series carries its own colour, handed in as `--lintje-series` so
    the selected and focused outlines below — which are more specific — still win
-   over it. The opacity and the hover are the point's own, as always. */
+   over it. A light colour's edge is its dark edge (`lineCasing`), for 3:1 on the land.
+   The opacity and the hover are the point's own, as always. */
 .lintje-map-chart__point-shape--series {
   fill: var(--lintje-series);
-  stroke: var(--lintje-series);
+  stroke: var(--lintje-series-edge, var(--lintje-series));
   fill-opacity: .65;
 }
 .lintje-map-chart__point:hover .lintje-map-chart__point-shape--series { fill-opacity: .9; }

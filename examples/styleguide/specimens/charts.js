@@ -411,6 +411,18 @@ const CHARTS = [
     description: 'Doorlooptijd van 1.900 afgehandelde aanvragen in klassen van twee dagen. De mediaan is 9,6 dagen, de termijn 21 dagen; 153 aanvragen duurden 22 dagen of langer.',
     spec: processingTime(processingDays),
   },
+  {
+    id: 'line-light-colours', title: 'Afspraken per regio',
+    description: 'Gemaakte afspraken per maand in drie regio’s, januari tot en met juni. Noord loopt op van 410 naar 520, Midden van 380 naar 455, Zuid daalt van 300 naar 260.',
+    spec: {
+      kind: 'line', labels: ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun'], axisTitle: 'afspraken',
+      series: [
+        { label: 'Noord', values: [410, 432, 455, 470, 498, 520], color: 'mint-green' },
+        { label: 'Midden', values: [380, 395, 402, 420, 438, 455], color: 'pink' },
+        { label: 'Zuid', values: [300, 296, 288, 281, 270, 260], color: 'light-blue' },
+      ],
+    },
+  },
 ]
 
 // What sets each specimen apart within its kind, for its label.
@@ -437,6 +449,7 @@ const VARIANT_NAMES = {
   'radar-layers': 'Drie lagen',
   heatmap: 'Met klassenlegenda',
   histogram: 'Met mediaan en termijn',
+  'line-light-colours': 'In lichte kleuren, met hun rand',
 }
 
 // What a label cannot say, for the note under it.
@@ -446,6 +459,7 @@ const VARIANT_NOTES = {
   'stacked-area': 'Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
   'pie-folded': 'De taart houdt de vier grootste delen en vouwt de rest in “Overig”.',
   'radar-layers': 'Wijs een regio aan in de legenda: haar vlak kleurt en de andere lagen stappen terug.',
+  'line-light-colours': 'Mintgroen, roze en lichtblauw halen als lijn geen 3:1 op wit; in licht ligt er een rand in hun eigen donkere kleur onder.',
 }
 
 // The states a chart tile can be in, put on each specimen of a kind: the tile keeps its size
