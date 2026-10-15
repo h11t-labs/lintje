@@ -1152,7 +1152,7 @@ export default {
       specimens: [
         {
           label: 'Vrije rij',
-          note: 'Zonder `columns` neemt elk feit zijn eigen breedte en loopt de rij om: een zaak onder haar titel.',
+          note: 'Zonder `columns` neemt elk feit zijn eigen breedte en loopt de rij om, met alleen een lijn tussen de rijen: een zaak onder haar titel.',
           html: '<lintje-cells></lintje-cells>',
           setup(stage) {
             stage.querySelector('lintje-cells').items = [
@@ -1167,7 +1167,7 @@ export default {
         },
         {
           label: 'Raster',
-          note: 'Met `columns` staan de vakken uitgelijnd; een meter in stappen staat vóór zijn woord. Onder 30 rem worden het twee kolommen.',
+          note: 'Met `columns` staan de vakken uitgelijnd, met een lijn tussen de kolommen; een meter in stappen staat vóór zijn woord. Onder 30 rem worden het twee kolommen.',
           html: '<lintje-cells columns="4"></lintje-cells>',
           setup(stage) {
             stage.querySelector('lintje-cells').items = [
@@ -1193,7 +1193,7 @@ export default {
         },
         {
           label: 'Wat gaat gebeuren',
-          note: 'Een samenvatting vóór een opname: breed, aangepast met de weg terug, een waarschuwing met een knop in een slot, en tags.',
+          note: 'Een samenvatting vóór een opname: breed, aangepast met de weg terug, een waarschuwing met een knop in een slot, en tags die de rest van hun rij vullen.',
           html: `<lintje-cells columns="4">
               <span slot="mic"><lintje-button variant="secondary" size="compact">Andere microfoon</lintje-button></span>
             </lintje-cells>`,
@@ -1203,7 +1203,7 @@ export default {
               { label: 'Taal', value: 'Automatisch', icon: 'internationaal-tekstballon-met-wereldbol' },
               { label: 'Sprekers', value: '3, vast', tone: 'changed', action: { href: '#el-cells', label: 'Terugzetten' } },
               { label: 'Microfoon', value: 'Vergaderset (USB): we horen niets', tone: 'warning', span: 2, slot: 'mic', icon: 'beeld-en-geluid-microfoon' },
-              { label: 'Woordenlijsten', tags: ['Afkortingen Rijksoverheid', 'Namen team Planning'], span: 2 },
+              { label: 'Woordenlijsten', tags: ['Afkortingen Rijksoverheid', 'Namen team Planning'], span: 'fill' },
             ]
             stage.querySelector('lintje-cells').addEventListener('lintje-navigate', (event) => event.preventDefault())
           },

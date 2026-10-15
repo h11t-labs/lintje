@@ -11,8 +11,8 @@
 
 /* ------------------------------------------------------------------------ */
 
-/* Every cell draws a line on its left and on its top, which puts one before the first column and
-   one above the first row too. The list starts a line and a padding further left and up than its
+/* In a grid every cell draws a line on its left, and in every row a line on its top, which puts
+   one before the first column and one above the first row too. The list starts a line and a padding further left and up than its
    clip, so those lines fall outside it; the clip itself sits a focus ring, with its offset, out
    from the content on every side, so a ring on a link in the first column or row stays whole.
    `clip` leaves nothing scrolling. */
@@ -24,7 +24,7 @@
 .lintje-cells {
   display: flex;
   flex-wrap: wrap;
-  margin: calc(-1 * var(--space-3)) 0 calc(-1 * var(--space-3)) calc(-1 * (var(--space-4) + 1px));
+  margin: calc(-1 * var(--space-3)) 0 calc(-1 * var(--space-3)) calc(-1 * var(--space-4));
   font: var(--text-ui);
   font-variant-numeric: tabular-nums;
 }
@@ -43,8 +43,10 @@
   min-width: 0;
   position: relative;
   padding: var(--space-3) var(--space-4);
-  border-left: 1px solid var(--color-border-default);
 }
+/* A line between columns only where columns align: in a free row the facts keep their own
+   widths, and a line that shifts from row to row would read as a column that is not there. */
+.lintje-cells--grid .lintje-cells__cell { border-left: 1px solid var(--color-border-default); }
 .lintje-cells__cell::before {
   content: '';
   position: absolute;
@@ -57,6 +59,8 @@
 }
 .lintje-cells--grid .lintje-cells__cell { padding: var(--space-3); }
 .lintje-cells--grid .lintje-cells__cell.is-wide { grid-column: span 2; }
+/* The rest of its row; the element counts it, at the grid's columns and at two. */
+.lintje-cells--grid .lintje-cells__cell.is-fill { grid-column: span var(--lintje-fill, 1); }
 
 .lintje-cells__label {
   display: flex; align-items: center; gap: var(--space-2);
@@ -122,6 +126,7 @@
   .lintje-cells--grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .lintje-cells--grid .lintje-cells__cell.is-wide,
   .lintje-cells--grid .lintje-cells__cell:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .lintje-cells--grid .lintje-cells__cell.is-fill { grid-column: span var(--lintje-fill-narrow, 1); }
 }
 
 @media (prefers-reduced-motion: reduce) {

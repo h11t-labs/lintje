@@ -549,9 +549,11 @@ De besluiten hieronder gelden voor alle elementen.
   andere kolommen op verzoek onder de rij (zie [Toegankelijkheid](#toegankelijkheid)). Geen
   rijkaarten, geen zijwaarts scrollen.
 - **De feiten van één ding staan naast elkaar in vakken** (`lintje-cells`): een gedempt label
-  boven zijn vette waarde, een haarlijn tussen de feiten en geen kader; afstand doet het werk.
-  Met `columns` staan ze in een uitgelijnd raster, twee onder 30 rem; zonder nemen ze hun eigen
-  breedte en loopt de rij om. Op een waas staat de rij in één paneel (`surface`). Een meting
+  boven zijn vette waarde, een haarlijn tussen de rijen en geen kader; afstand doet het werk.
+  Met `columns` staan ze in een uitgelijnd raster met ook een lijn tussen de kolommen, twee onder
+  30 rem, en een vak kan twee kolommen nemen of de rest van zijn rij (`span: 'fill'`); zonder
+  nemen ze hun eigen breedte en loopt de rij om, zonder lijn tussen de feiten, want een lijn die
+  per rij verschuift leest als een kolom die er niet is. Op een waas staat de rij in één paneel (`surface`). Een meting
   staat als meter vóór haar woord, het ene cijfer groot op de maat van het kerncijfer op een
   telefoon, nooit die van het dashboard. Een vak zegt wat iets is en hoe het ervoor staat: een
   looptijd, een zaaknummer, een batterij. Een cijfer op zijn schaal dat geduid moet worden, is

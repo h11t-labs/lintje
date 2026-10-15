@@ -1,7 +1,7 @@
 /** The cells: the facts of one thing, each a label above its value, with the meter in its words. */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import './cells'
-import type { LintjeCells } from './cells'
+import { fillSpans, type LintjeCells } from './cells'
 import type { LintjeLevelMeter } from '../../feedback/level-meter/level-meter'
 
 async function mount(props: Partial<LintjeCells>): Promise<LintjeCells> {
@@ -122,5 +122,27 @@ describe('lintje-cells', () => {
     expect(
       element.shadowRoot!.querySelector('.lintje-cells__extra slot[name="mic"]'),
     ).not.toBeNull()
+  })
+
+  it('lets a cell fill the rest of its row, counted at the columns and at two', async () => {
+    const items = [
+      { label: 'Naam', value: 'Uit het gesprek', span: 2 as const },
+      { label: 'Taal', value: 'NL' },
+      { label: 'Adres', value: 'Turfmarkt 147', span: 'fill' as const },
+      { label: 'Kosten', value: '€ 120' },
+      { label: 'Bijlagen', value: '3', span: 'fill' as const },
+    ]
+    expect(fillSpans(items, 4).map((fill) => fill && [fill.wide, fill.narrow])).toEqual([
+      undefined,
+      undefined,
+      [1, 1],
+      undefined,
+      [3, 1],
+    ])
+    const element = await mount({ columns: 4, items })
+    const cell = element.shadowRoot!.querySelectorAll<HTMLElement>('.lintje-cells__cell')[4]!
+    expect(cell.classList.contains('is-fill')).toBe(true)
+    expect(cell.style.getPropertyValue('--lintje-fill')).toBe('3')
+    expect(cell.style.getPropertyValue('--lintje-fill-narrow')).toBe('1')
   })
 })
