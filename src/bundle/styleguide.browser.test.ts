@@ -228,6 +228,10 @@ beforeAll(() => {
     font: 'var(--text-ui)',
     fontFamily: 'var(--font-ui)',
   })
+  // As the style guide's page does: the stage hosts slotted markup, so its links take its colour.
+  const style = document.createElement('style')
+  style.textContent = '.guide__stage a { color: var(--color-link); }'
+  document.head.append(style)
 })
 
 afterEach(() => {

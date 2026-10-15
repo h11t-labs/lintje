@@ -58,6 +58,33 @@ const PHASES = [
   { label: 'Afronden', state: 'next', meta: 'dec 2026' },
 ]
 
+/** The phases with a slot each: a host puts its content under the stepper with `slot="<value>"`. */
+const PHASES_WITH_CONTENT = PHASES.map((phase, index) => ({
+  ...phase,
+  value: ['verkennen', 'ontwerpen', 'uitvoeren', 'afronden'][index],
+}))
+
+const PHASE_CONTENT = `
+  <lintje-badge slot="verkennen" tone="success">Afgerond</lintje-badge>
+  <lintje-description-list slot="ontwerpen" layout="column"></lintje-description-list>
+  <ul slot="uitvoeren">
+    <li>Aanbesteding en gunning</li>
+    <li>Inrichting van de locatie</li>
+  </ul>
+  <a slot="afronden" href="#el-stepper">Planning van de oplevering</a>`
+
+const DESIGN_DETAILS = [
+  { label: 'Ontwerper', value: 'Bureau Ruimte' },
+  { label: 'Besluit', value: '30 september 2026' },
+  { label: 'Schetsontwerp', href: '#el-stepper', value: 'schetsontwerp-v2.pdf' },
+]
+
+const STEPS_WITH_CONTENT = [
+  { ...STEPS[0], value: 'melding' },
+  { ...STEPS[1], value: 'opvolging' },
+  { ...STEPS[2], value: 'controleren' },
+]
+
 function steps(stage, list) {
   const element = stage.querySelector('lintje-stepper')
   element.steps = list
@@ -208,6 +235,25 @@ export default {
           note: 'Zo staan de stappen ook op een telefoon.',
           html: '<lintje-stepper label="Fasen" orientation="vertical"></lintje-stepper>',
           setup: (stage) => steps(stage, PHASES),
+        },
+        {
+          label: 'Verticaal met inhoud',
+          note: 'Elke stap draagt zijn eigen inhoud onder zijn kop; de rail loopt door.',
+          html: `<lintje-stepper label="Fasen" orientation="vertical">${PHASE_CONTENT}</lintje-stepper>`,
+          setup(stage) {
+            steps(stage, PHASES_WITH_CONTENT)
+            stage.querySelector('lintje-description-list').items = DESIGN_DETAILS
+          },
+        },
+        {
+          label: 'Horizontaal met inhoud',
+          note: 'In de rij staat alleen de inhoud van de huidige stap eronder; op een telefoon onder de balk.',
+          html: `<lintje-stepper>
+            <lintje-badge slot="melding" tone="success">Ontvangen</lintje-badge>
+            <p slot="opvolging">De melding is toegewezen aan de wijkploeg. Je hoort binnen vijf werkdagen wat ermee gebeurt.</p>
+            <lintje-badge slot="controleren">Nog niet gestart</lintje-badge>
+          </lintje-stepper>`,
+          setup: (stage) => steps(stage, STEPS_WITH_CONTENT),
         },
       ],
     },

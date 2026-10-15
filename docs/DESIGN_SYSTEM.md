@@ -405,7 +405,10 @@ De besluiten hieronder gelden voor alle elementen.
   boven rijen noemt hun groep en staat aan de rand van het menu.
 - **Een reeks hangt aan een rail**: vierkante tekens verbonden door een lijn, in de stepper en het
   activiteitenlog evengoed. In de stepper is de lijn doorgetrokken tot de huidige stap en
-  gestreept daarna, zodat de weg die nog te gaan is nooit op kleur alleen rust.
+  gestreept daarna, zodat de weg die nog te gaan is nooit op kleur alleen rust. Een stap kan
+  eigen inhoud dragen, zonder vlak eromheen en zonder eigen kleur: in de kolom onder zijn kop,
+  waar de rail langs doorloopt; in de rij en op een telefoon alleen die van de huidige stap,
+  onder de rij of de balk.
 
 ### Feedback
 
