@@ -44,6 +44,24 @@ describe('lintje-segmented', () => {
     expect(options[1].getAttribute('aria-pressed')).toBe('true')
   })
 
+  it('stays a row when the row measures a pixel wider than its frame, and turns column past that', async () => {
+    const element = await mount()
+    const sizes = { clientWidth: 415, scrollWidth: 416 }
+    for (const key of ['clientWidth', 'scrollWidth'] as const) {
+      Object.defineProperty(frame(element), key, { get: () => sizes[key], configurable: true })
+    }
+    element.requestUpdate()
+    await element.updateComplete
+    await element.updateComplete
+    expect(frame(element).classList.contains('is-column')).toBe(false)
+
+    sizes.scrollWidth = 417
+    element.requestUpdate()
+    await element.updateComplete
+    await element.updateComplete
+    expect(frame(element).classList.contains('is-column')).toBe(true)
+  })
+
   it('marks the frame with an error, as the message under it says', async () => {
     const element = await mount({ error: 'Kies een periode.' })
     expect(frame(element).classList.contains('is-error')).toBe(true)
