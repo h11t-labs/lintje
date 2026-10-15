@@ -152,7 +152,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
       (this.clearable || search) &&
       !password &&
       this.value !== '' &&
-      !this.disabled &&
+      !this.isDisabled &&
       !this.readonly
     return html`<div class="lintje-field">
       ${this.renderLabel(this.controlId)}
@@ -189,7 +189,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
           aria-required=${this.required ? 'true' : nothing}
           ?required=${this.required}
           ?readonly=${this.readonly}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @input=${this.onInput}
           @change=${this.change}
           @keydown=${this.onKeydown}
@@ -212,7 +212,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
             ? html`<lintje-button
               class="lintje-text-input__reveal"
               variant="secondary"
-              ?disabled=${this.disabled}
+              ?disabled=${this.isDisabled}
               @click=${this.reveal}
               >${this.revealed ? 'Verbergen' : 'Tonen'}</lintje-button
             >`

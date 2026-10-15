@@ -24,11 +24,12 @@ import type { LintjeInputElement } from '../../components/inputs/shared/input'
 
 type Input = LintjeInputElement & Record<string, unknown>
 
-/** One input: what it needs to draw, and what fills it. */
+/** One input: what it needs to draw, what fills it, and what it then posts (`start.md`). */
 interface Row {
   tag: string
   props?: object
   fill: object
+  posts: [string, string][]
 }
 
 const OPTIONS = [
@@ -37,31 +38,70 @@ const OPTIONS = [
 ]
 
 const ROWS: Row[] = [
-  { tag: 'lintje-text-input', fill: { value: 'Jansen' } },
-  { tag: 'lintje-number-input', fill: { value: 3 } },
-  { tag: 'lintje-textarea', fill: { value: 'Tekst' } },
-  { tag: 'lintje-find', fill: { value: 'zoek' } },
-  { tag: 'lintje-select', props: { options: OPTIONS }, fill: { value: 'a' } },
-  { tag: 'lintje-combobox', props: { options: OPTIONS }, fill: { value: 'a' } },
-  { tag: 'lintje-radio-group', props: { options: OPTIONS }, fill: { value: 'a' } },
-  { tag: 'lintje-segmented', props: { options: OPTIONS }, fill: { value: 'a' } },
+  { tag: 'lintje-text-input', fill: { value: 'Jansen' }, posts: [['veld', 'Jansen']] },
+  { tag: 'lintje-number-input', fill: { value: 3 }, posts: [['veld', '3']] },
+  { tag: 'lintje-textarea', fill: { value: 'Tekst' }, posts: [['veld', 'Tekst']] },
+  { tag: 'lintje-find', fill: { value: 'zoek' }, posts: [['veld', 'zoek']] },
+  {
+    tag: 'lintje-select',
+    props: { options: OPTIONS },
+    fill: { value: 'a' },
+    posts: [['veld', 'a']],
+  },
+  {
+    tag: 'lintje-combobox',
+    props: { options: OPTIONS },
+    fill: { value: 'a' },
+    posts: [['veld', 'a']],
+  },
+  {
+    tag: 'lintje-radio-group',
+    props: { options: OPTIONS },
+    fill: { value: 'a' },
+    posts: [['veld', 'a']],
+  },
+  {
+    tag: 'lintje-segmented',
+    props: { options: OPTIONS },
+    fill: { value: 'a' },
+    posts: [['veld', 'a']],
+  },
   {
     tag: 'lintje-slot-picker',
     props: { days: [{ date: '2026-10-12', slots: [{ value: 's1', label: '09:30' }] }] },
     fill: { value: 's1' },
+    posts: [['veld', 's1']],
   },
-  { tag: 'lintje-date-input', fill: { value: '2026-10-04' } },
-  { tag: 'lintje-time-input', fill: { value: '09:30' } },
-  { tag: 'lintje-text-editor', fill: { value: '<p>Tekst</p>' } },
-  { tag: 'lintje-checkbox', fill: { checked: true } },
-  { tag: 'lintje-toggle', fill: { checked: true } },
-  { tag: 'lintje-checkbox-group', props: { options: OPTIONS }, fill: { selected: ['a'] } },
-  { tag: 'lintje-multiselect', props: { options: OPTIONS }, fill: { selected: ['a'] } },
-  { tag: 'lintje-tag-input', fill: { value: ['woord'] } },
-  { tag: 'lintje-date-range', fill: { range: { from: '01-10-2026', to: '04-10-2026' } } },
+  { tag: 'lintje-date-input', fill: { value: '2026-10-04' }, posts: [['veld', '2026-10-04']] },
+  { tag: 'lintje-time-input', fill: { value: '09:30' }, posts: [['veld', '09:30']] },
+  { tag: 'lintje-text-editor', fill: { value: '<p>Tekst</p>' }, posts: [['veld', '<p>Tekst</p>']] },
+  { tag: 'lintje-checkbox', fill: { checked: true }, posts: [['veld', 'on']] },
+  { tag: 'lintje-toggle', fill: { checked: true }, posts: [['veld', 'on']] },
+  {
+    tag: 'lintje-checkbox-group',
+    props: { options: OPTIONS },
+    fill: { selected: ['a'] },
+    posts: [['veld', 'a']],
+  },
+  {
+    tag: 'lintje-multiselect',
+    props: { options: OPTIONS },
+    fill: { selected: ['a'] },
+    posts: [['veld', 'a']],
+  },
+  { tag: 'lintje-tag-input', fill: { value: ['woord'] }, posts: [['veld', 'woord']] },
+  {
+    tag: 'lintje-date-range',
+    fill: { range: { from: '01-10-2026', to: '04-10-2026' } },
+    posts: [
+      ['veld-from', '2026-10-01'],
+      ['veld-to', '2026-10-04'],
+    ],
+  },
   {
     tag: 'lintje-file-upload',
     fill: { files: [{ id: 'f1', name: 'brief.pdf', size: 1200, state: 'done' }] },
+    posts: [['veld', 'f1']],
   },
 ]
 
@@ -145,6 +185,45 @@ describe.each(ROWS)('$tag with required in a native form', (row) => {
     expect(held.form.checkValidity()).toBe(true)
   })
 
+  it('comes back on with its fieldset, and posts and holds again', async () => {
+    const fieldset = document.createElement('fieldset')
+    fieldset.disabled = true
+    const { form, element } = await inForm(row, row.fill, fieldset)
+    expect(element.matches(':disabled')).toBe(true)
+    expect([...new FormData(form)]).toEqual([])
+
+    fieldset.disabled = false
+    await settled(element)
+    expect(element.hasAttribute('disabled')).toBe(false)
+    expect(element.matches(':disabled')).toBe(false)
+    element.focus()
+    expect(active()?.getRootNode()).toBeInstanceOf(ShadowRoot)
+    expect([...new FormData(form)]).toEqual(row.posts)
+    expect(form.checkValidity()).toBe(true)
+
+    const empty = document.createElement('fieldset')
+    empty.disabled = true
+    const held = await inForm(row, {}, empty)
+    empty.disabled = false
+    await settled(held.element)
+    expect(held.form.checkValidity()).toBe(false)
+    held.form.requestSubmit()
+    expect(held.submits()).toBe(0)
+  })
+
+  it('stays off by its own disabled when its fieldset comes back on', async () => {
+    const fieldset = document.createElement('fieldset')
+    const { form, element } = await inForm(row, { ...row.fill, disabled: true }, fieldset)
+    fieldset.disabled = true
+    await settled(element)
+    fieldset.disabled = false
+    await settled(element)
+    expect(element.disabled).toBe(true)
+    expect(element.hasAttribute('disabled')).toBe(true)
+    expect(element.matches(':disabled')).toBe(true)
+    expect([...new FormData(form)]).toEqual([])
+  })
+
   it('takes the focus at its control when the form reports', async () => {
     const { form, element } = await inForm(row)
     element.focus()
@@ -164,12 +243,30 @@ describe('the parts of a value', () => {
   })
 
   it('a range is never empty: it always posts a step', async () => {
-    const pair = await inForm({ tag: 'lintje-range', fill: {} }, { steps: [1, 2, 3] })
+    const pair = await inForm({ tag: 'lintje-range', fill: {}, posts: [] }, { steps: [1, 2, 3] })
     expect(pair.form.checkValidity()).toBe(true)
     const single = await inForm(
-      { tag: 'lintje-range', fill: {} },
+      { tag: 'lintje-range', fill: {}, posts: [] },
       { steps: [1, 2, 3], single: true },
     )
     expect(single.form.checkValidity()).toBe(true)
+  })
+
+  it('a range comes back on with its fieldset and posts its steps again', async () => {
+    const fieldset = document.createElement('fieldset')
+    fieldset.disabled = true
+    const { form, element } = await inForm(
+      { tag: 'lintje-range', fill: {}, posts: [] },
+      { steps: [1, 2, 3], from: 0, to: 2 },
+      fieldset,
+    )
+    expect([...new FormData(form)]).toEqual([])
+    fieldset.disabled = false
+    await settled(element)
+    expect(element.matches(':disabled')).toBe(false)
+    expect([...new FormData(form)]).toEqual([
+      ['veld', '0'],
+      ['veld', '2'],
+    ])
   })
 })

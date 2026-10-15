@@ -110,7 +110,7 @@ export class LintjeTagInput extends LintjeInputElement {
   }
 
   private get listOpen(): boolean {
-    return this.suggesting && !this.disabled && this.suggestions.length > 0
+    return this.suggesting && !this.isDisabled && this.suggestions.length > 0
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
@@ -152,7 +152,7 @@ export class LintjeTagInput extends LintjeInputElement {
   }
 
   private async removeChip(index: number, then: number | 'input'): Promise<void> {
-    if (this.disabled) return
+    if (this.isDisabled) return
     const word = this.value[index]
     const next = this.value.filter((_, at) => at !== index)
     this.value = next
@@ -265,7 +265,7 @@ export class LintjeTagInput extends LintjeInputElement {
     return html`<li class="lintje-tag-input__item">
       <span class=${classMap({ 'lintje-tag-input__chip': true, 'is-flash': this.flash === word })}
         >${label}${
-          this.disabled
+          this.isDisabled
             ? nothing
             : html`<button
               type="button"
@@ -316,7 +316,7 @@ export class LintjeTagInput extends LintjeInputElement {
         class=${classMap({
           'lintje-tag-input': true,
           'is-error': Boolean(this.error),
-          'is-disabled': this.disabled,
+          'is-disabled': this.isDisabled,
         })}
         role="group"
         aria-labelledby=${this.labelId}
@@ -341,7 +341,7 @@ export class LintjeTagInput extends LintjeInputElement {
           aria-describedby=${this.describedBy === nothing ? KEYS_ID : `${this.describedBy} ${KEYS_ID}`}
           aria-invalid=${this.error ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @input=${this.onInput}
           @keydown=${this.onKeydown}
           @paste=${this.onPaste}

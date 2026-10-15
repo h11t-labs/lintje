@@ -68,7 +68,7 @@ export class LintjeFind extends LintjeInputElement {
   }
 
   private get navigable(): boolean {
-    return this.value !== '' && !this.busy && !this.disabled && (this.total ?? 0) > 0
+    return this.value !== '' && !this.busy && !this.isDisabled && (this.total ?? 0) > 0
   }
 
   private get countText(): string {
@@ -152,7 +152,7 @@ export class LintjeFind extends LintjeInputElement {
   }
 
   private clear(): void {
-    if (this.disabled) return
+    if (this.isDisabled) return
     this.typing.cancel()
     this.value = ''
     this.message = ''
@@ -201,7 +201,7 @@ export class LintjeFind extends LintjeInputElement {
     const typed = this.value !== ''
     const navigable = this.navigable
     return html`<div
-        class=${classMap({ 'lintje-find': true, 'is-disabled': this.disabled })}
+        class=${classMap({ 'lintje-find': true, 'is-disabled': this.isDisabled })}
         role="search"
       >
         <label id=${this.labelId} for=${this.controlId} class="visually-hidden">${this.label}</label>
@@ -215,7 +215,7 @@ export class LintjeFind extends LintjeInputElement {
           enterkeyhint="search"
           autocomplete="off"
           aria-describedby=${typed ? COUNT_ID : nothing}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @input=${this.onInput}
           @keydown=${this.onKeydown}
         />
@@ -241,7 +241,7 @@ export class LintjeFind extends LintjeInputElement {
               )}
               ${this.renderButton(
                 'Zoektekst wissen',
-                !this.disabled,
+                !this.isDisabled,
                 () => this.clear(),
                 renderIcon('functioneel-kruis', { size: 16 }),
                 'clear',

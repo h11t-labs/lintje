@@ -41,9 +41,9 @@
   background: var(--color-attention);
   flex: none; align-self: center;
 }
-:host([disabled]) .lintje-label { color: var(--color-text-disabled); }
+:host(:disabled) .lintje-label { color: var(--color-text-disabled); }
 .lintje-label__optional { font-weight: 400; color: var(--color-text-muted); }
-:host([disabled]) .lintje-label__optional { color: var(--color-text-disabled); }
+:host(:disabled) .lintje-label__optional { color: var(--color-text-disabled); }
 /* A value and its unit stay together when a long label wraps. */
 .lintje-field__value { font-weight: 400; color: var(--color-text-muted); white-space: nowrap; }
 .lintje-field__hint { font: var(--text-small); color: var(--color-text-muted); }

@@ -175,7 +175,7 @@ export class LintjeTextarea extends LintjeFormInputElement {
   }
 
   private get counterShown(): boolean {
-    return Boolean(this.maxlength) && !this.disabled
+    return Boolean(this.maxlength) && !this.isDisabled
   }
 
   protected override renderFoot(): TemplateResult | typeof nothing {
@@ -219,7 +219,7 @@ export class LintjeTextarea extends LintjeFormInputElement {
         aria-required=${this.required ? 'true' : nothing}
         ?required=${this.required}
         ?readonly=${this.readonly}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         @input=${this.onInput}
         @change=${this.onChange}
         @keydown=${this.onKeydown}

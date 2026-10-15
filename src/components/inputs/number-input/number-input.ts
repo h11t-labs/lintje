@@ -56,7 +56,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
   }
 
   private nudge(by: number): void {
-    if (this.readonly || this.disabled) return
+    if (this.readonly || this.isDisabled) return
     const from = this.value ?? this.min ?? 0
     let next = this.value === null ? from : from + by
     if (this.min !== undefined) next = Math.max(this.min, next)
@@ -79,7 +79,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
 
   private stepButton(direction: -1 | 1): TemplateResult {
     const down = direction === -1
-    const limit = !this.disabled && (down ? this.atMin : this.atMax)
+    const limit = !this.isDisabled && (down ? this.atMin : this.atMax)
     return html`<button
       type="button"
       class=${classMap({
@@ -88,8 +88,8 @@ export class LintjeNumberInput extends LintjeFormInputElement {
         'is-limit': limit,
       })}
       aria-label=${down ? 'Verlagen' : 'Verhogen'}
-      ?disabled=${this.disabled}
-      aria-disabled=${(this.readonly && !this.disabled) || limit ? 'true' : nothing}
+      ?disabled=${this.isDisabled}
+      aria-disabled=${(this.readonly && !this.isDisabled) || limit ? 'true' : nothing}
       @click=${() => this.nudge(direction * this.step)}
     >
       ${renderIcon(down ? 'functioneel-minus' : 'functioneel-plus', { size: 16 })}
@@ -109,7 +109,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
           'lintje-number-input--unit': unit,
           'is-error': Boolean(this.error),
           'is-readonly': this.readonly,
-          'is-disabled': this.disabled,
+          'is-disabled': this.isDisabled,
         })}
       >
         ${this.stepper ? this.stepButton(-1) : nothing}
@@ -127,7 +127,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
           aria-required=${this.required ? 'true' : nothing}
           ?required=${this.required}
           ?readonly=${this.readonly}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @change=${this.change}
           @keydown=${(event: KeyboardEvent) => this.submitOnEnter(event, () => this.change(event))}
         />
