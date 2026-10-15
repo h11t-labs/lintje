@@ -82,6 +82,46 @@ describe('lintje-stepper', () => {
     )
   })
 
+  it('gives each step its own slot in a column, under its head', async () => {
+    const element = await mount(
+      [
+        { ...STEPS[0]!, value: 'melding' },
+        { ...STEPS[1]!, meta: 'aug 2023', value: 'opvolging' },
+        STEPS[2]!,
+      ],
+      { orientation: 'vertical' },
+    )
+    element.innerHTML = '<p slot="melding">Ontvangen.</p><p slot="opvolging">Bezig.</p>'
+    const items = [...element.shadowRoot!.querySelectorAll('li')]
+    expect(items.map((item) => item.querySelector('slot')?.getAttribute('name'))).toEqual([
+      'melding',
+      'opvolging',
+      undefined,
+    ])
+    const content = items[1]!.querySelector('.lintje-stepper__content')!
+    expect(content.previousElementSibling!.classList.contains('lintje-stepper__meta')).toBe(true)
+    expect(items[2]!.querySelector('.lintje-stepper__content')).toBeNull()
+    expect(element.shadowRoot!.querySelector('slot:not([name])')).toBeNull()
+  })
+
+  it("shows only the current step's content in a row, after the list", async () => {
+    const element = await mount([
+      { ...STEPS[0]!, value: 'melding' },
+      { ...STEPS[1]!, value: 'opvolging' },
+      { ...STEPS[2]!, value: 'controleren' },
+    ])
+    const root = element.shadowRoot!
+    const slots = [...root.querySelectorAll('slot')]
+    expect(slots.map((slot) => slot.getAttribute('name'))).toEqual(['opvolging'])
+    expect(root.querySelector('ol')!.nextElementSibling!.contains(slots[0]!)).toBe(true)
+    expect(root.querySelector('li .lintje-stepper__content')).toBeNull()
+  })
+
+  it('draws no content without a slot name', async () => {
+    const element = await mount(STEPS)
+    expect(element.shadowRoot!.querySelector('.lintje-stepper__content')).toBeNull()
+  })
+
   it('keeps the description out of a row', async () => {
     const element = await mount([{ ...STEPS[0]!, description: 'Niet in de rij.' }, STEPS[1]!])
     expect(element.shadowRoot!.querySelector('.lintje-stepper__description')).toBeNull()

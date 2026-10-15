@@ -62,7 +62,7 @@
   top: 2px; right: 2px;
   width: calc(var(--h-control) - 4px); height: calc(var(--h-control) - 4px);
 }
-.lintje-date-input__toggle:hover:not(:disabled) { background: var(--color-bg-selected); }
+.lintje-date-input__toggle:hover:not(:disabled) { background: var(--color-bg-subtle); }
 .lintje-date-input__toggle:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
 
 /* --- The calendar -------------------------------------------------------- */

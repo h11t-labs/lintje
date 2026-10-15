@@ -83,8 +83,10 @@ van je template-engine doet dat.
 
 **De invoer doet mee in een native formulier.** Een `lintje-button` met `type="submit"` verstuurt het,
 Enter in een tekst- of getalveld ook (Ctrl+Enter in een textarea), en `type="reset"`, een
-`disabled` veld en een `<fieldset disabled>` gedragen zich als bij native bedieningselementen. Een `required`
-tekstveld, getalveld of textarea houdt het versturen tegen met de eigen melding van de browser. Wat elk
+`disabled` veld en een `<fieldset disabled>` gedragen zich als bij native bedieningselementen. Elke
+invoer met `required` houdt het versturen tegen met de eigen melding van de browser zolang hij leeg is:
+hij post dan niets, of een van zijn waarden is leeg. De verzendknop post zijn eigen `name` en `value`
+niet: wil de server weten met welke knop er verstuurd is, zet dat dan in een veld. Wat elk
 bedieningselement onder zijn `name` post:
 
 | bedieningselement | post |
@@ -98,7 +100,8 @@ bedieningselement onder zijn `name` post:
 | bereik met twee grepen | `name=5&name=20`, de twee stapindexen; met één greep `name=15`, de stap |
 | bestandsupload | `name=<id>` per voltooid bestand: de upload zelf loopt via zijn events |
 
-Toon een geweigerde waarde door het veld te renderen met zijn `error`-attribuut.
+Toon een geweigerde waarde door het veld te renderen met zijn `error`-attribuut. Een `error` houdt het
+versturen niet tegen: het is het antwoord van de server op een eerdere verzending.
 
 ## Een pagina met script
 
