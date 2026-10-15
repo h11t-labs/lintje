@@ -121,12 +121,10 @@ export class LintjePagination extends LintjeElement {
   declare hrefTemplate?: string
   label: string = 'Paginering'
 
-  // Measured after each render and written straight onto the row as classes: a reactive
-  // property set there would draw the element twice.
   /** Only the chevrons: "Vorige" and "Volgende" do not fit beside the numbers. */
-  #compact: boolean = false
+  protected compact: boolean = false
   /** The count and the size choice below the pages: the three zones do not fit on one line. */
-  #stacked: boolean = false
+  protected stacked: boolean = false
   #resize: ResizeObserver | null = null
 
   override connectedCallback(): void {
@@ -180,10 +178,12 @@ export class LintjePagination extends LintjeElement {
       ].map((part) => Math.max(part.getBoundingClientRect().width, part.scrollWidth)),
     )
     const rowGap = parseFloat(getComputedStyle(row).columnGap) || 0
-    this.#compact = needed > available + 0.5
-    this.#stacked = side > 0 && needed + 2 * (side + rowGap) > available + 0.5
-    show(this.#compact)
-    row.classList.toggle('is-stacked', this.#stacked)
+    // Written straight onto the row as classes, not through reactive properties: set after a
+    // render, those would draw the element twice.
+    this.compact = needed > available + 0.5
+    this.stacked = side > 0 && needed + 2 * (side + rowGap) > available + 0.5
+    show(this.compact)
+    row.classList.toggle('is-stacked', this.stacked)
   }
 
   private get count(): number {
@@ -281,7 +281,7 @@ export class LintjePagination extends LintjeElement {
     })
     // Hidden, the word stays the step's name.
     const word = html`<span
-      class=${classMap({ 'lintje-pagination__word': true, 'visually-hidden': this.#compact })}
+      class=${classMap({ 'lintje-pagination__word': true, 'visually-hidden': this.compact })}
       >${text}</span
     >`
     const content = previous ? html`${icon}${word}` : html`${word}${icon}`

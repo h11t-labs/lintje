@@ -11,7 +11,7 @@
  */
 import type { ReactiveController, ReactiveControllerHost } from 'lit'
 import type { LintjeButton } from '../actions/button/button'
-import type { LintjeMenuButton, MenuEntry } from '../actions/menu-button/menu-button'
+import type { MenuEntry } from '../actions/menu-button/menu-button'
 
 export interface OverflowItem {
   width: number
@@ -145,7 +145,7 @@ export class OverflowController implements ReactiveController {
   measure(): void {
     const root = this.host.renderRoot
     const row = root.querySelector<HTMLElement>(this.options.row)
-    const menu = root.querySelector<LintjeMenuButton>(this.options.menu)
+    const menu = root.querySelector<HTMLElement & { items: MenuEntry[] }>(this.options.menu)
     const actions = this.actions
     this.#observe(row ? [row, ...actions] : [])
     if (!row || !menu) return
