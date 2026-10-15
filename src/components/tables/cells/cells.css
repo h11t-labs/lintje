@@ -11,21 +11,20 @@
 
 /* ------------------------------------------------------------------------ */
 
-/* Every cell draws its line on the left, which puts one before the first column too. The list
-   starts a line and a padding further left than its clip, so that line falls outside it; the
-   clip itself sits a focus ring, with its offset, left of the content, so a ring on a link in
-   the first column stays whole. Clipping one axis leaves the other visible, so nothing scrolls. */
+/* Every cell draws a line on its left and on its top, which puts one before the first column and
+   one above the first row too. The list starts a line and a padding further left and up than its
+   clip, so those lines fall outside it; the clip itself sits a focus ring, with its offset, out
+   from the content on every side, so a ring on a link in the first column or row stays whole.
+   `clip` leaves nothing scrolling. */
 .lintje-cells__clip {
-  overflow-x: clip;
-  overflow-y: visible;
-  margin-left: calc(-1 * (var(--focus-width) + var(--focus-offset)));
-  padding-left: calc(var(--focus-width) + var(--focus-offset));
+  overflow: clip;
+  margin: calc(-1 * var(--space-2)) 0 calc(-1 * var(--space-2)) calc(-1 * var(--space-2));
+  padding: var(--space-2) 0 var(--space-2) var(--space-2);
 }
 .lintje-cells {
   display: flex;
   flex-wrap: wrap;
-  row-gap: var(--space-4);
-  margin: 0 0 0 calc(-1 * (var(--space-4) + 1px));
+  margin: calc(-1 * (var(--space-2) + 1px)) 0 calc(-1 * var(--space-2)) calc(-1 * (var(--space-4) + 1px));
   font: var(--text-ui);
   font-variant-numeric: tabular-nums;
 }
@@ -35,13 +34,15 @@
   margin-left: calc(-1 * (var(--space-3) + 1px));
 }
 
+/* The rows stand 16 px apart: a padding on each side of the line between them. */
 .lintje-cells__cell {
   display: flex; flex-direction: column; gap: var(--space-1);
   min-width: 0;
-  padding: 0 var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--color-border-default);
   border-left: 1px solid var(--color-border-default);
 }
-.lintje-cells--grid .lintje-cells__cell { padding: 0 var(--space-3); }
+.lintje-cells--grid .lintje-cells__cell { padding: var(--space-2) var(--space-3); }
 .lintje-cells--grid .lintje-cells__cell.is-wide { grid-column: span 2; }
 
 .lintje-cells__label {
@@ -115,6 +116,6 @@
 }
 
 @media (forced-colors: active) {
-  .lintje-cells__cell { border-left-color: CanvasText; }
+  .lintje-cells__cell { border-color: CanvasText; }
   :host([surface]) { border-color: CanvasText; }
 }
