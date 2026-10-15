@@ -20,10 +20,14 @@ const STEPS: readonly (readonly number[])[] = [
   [1, 2, 3, 4, 5],
 ]
 
+/** The steps of the ladder (1 the colour itself, 2–5 its tints) for `n` parts, darkest first. */
+export function tintSteps(n: number): readonly number[] {
+  return n < 1 ? [] : STEPS[Math.min(n, STEPS.length) - 1]
+}
+
 /** The tint tokens for `n` parts of one variable, darkest first. */
 export function tintsFor(n: number, color?: string): string[] {
-  if (n < 1) return []
-  const steps = STEPS[Math.min(n, STEPS.length) - 1]
+  const steps = tintSteps(n)
   if (isDataColor(color)) {
     return steps.map((step) =>
       step === 1 ? `var(--color-chart-${color})` : `var(--color-chart-${color}-tint-${step})`,

@@ -33,6 +33,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { resolve as resolvePath } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { DATA_COLORS } from './colors'
+import { LABEL_INK } from '../components/shared/charts/shared/colors'
 
 /* --- the two stylesheets, as the browser reads them ----------------------- */
 
@@ -1368,27 +1369,45 @@ describe('data and status colour', () => {
     }
   })
 
-  it('carries a label on each colour in white or in ink, whichever reaches 4.5:1', () => {
-    // Restates the stacked bar's DARK_FILLS: a label on these is white, on the rest ink.
-    const WHITE_ON = [
-      'sky-blue',
-      'red',
-      'green',
-      'violet',
-      'dark-green',
-      'purple',
-      'ruby-red',
-      'dark-brown',
-      'brown',
-      'dark-blue',
-      'moss-green',
-    ]
-    const values = tokensFor('light')
-    for (const name of DATA) {
-      const ink = WHITE_ON.includes(name) ? '--color-text-on-fill' : '--color-text-on-light-fill'
-      expect(contrast(values[ink], values[`--data-${name}`]), name).toBeGreaterThanOrEqual(4.5)
+  // The charts' table of label ink, cell by cell: the ink it names reaches 4.5:1 on that step of
+  // the ladder, and a step without ink is one where neither does.
+  const STEP_TOKEN = (name: string, step: number) =>
+    step === 1 ? `--color-chart-${name}` : `--color-chart-${name}-tint-${step}`
+  for (const name of DATA) {
+    for (const step of [1, 2, 3, 4, 5]) {
+      const ink = LABEL_INK[name as keyof typeof LABEL_INK][step - 1]
+      it(`writes a label on ${name} step ${step} in ${ink ?? 'nothing'}`, () => {
+        for (const mode of ['light', 'dark'] as const) {
+          const values = tokensFor(mode)
+          const fill = values[STEP_TOKEN(name, step)]
+          const white = contrast(values['--color-text-on-fill'], fill)
+          const dark = contrast(values['--color-text-on-light-fill'], fill)
+          if (ink === 'white') expect(white, mode).toBeGreaterThanOrEqual(4.5)
+          else if (ink === 'ink') expect(dark, mode).toBeGreaterThanOrEqual(4.5)
+          else expect(Math.max(white, dark), mode).toBeLessThan(4.5)
+        }
+      })
     }
+  }
+
+  it('names a label ink for every colour, step for step', () => {
+    expect(Object.keys(LABEL_INK)).toEqual(DATA)
+    for (const rungs of Object.values(LABEL_INK)) expect(rungs).toHaveLength(5)
   })
+
+  for (const mode of ['light', 'dark'] as const) {
+    it(`keeps a label on a dimmed step of the default ladder at 4.5:1 in ${mode}`, () => {
+      // A chosen mark dims the others to .45 over the surface; their label is the text colour.
+      const values = tokensFor(mode)
+      for (const step of [1, 2, 3, 4, 5]) {
+        const dimmed = mix(values[`--color-chart-tint-${step}`], 0.45, values['--color-bg-surface'])
+        expect(
+          contrast(values['--color-text-primary'], dimmed),
+          `step ${step}`,
+        ).toBeGreaterThanOrEqual(4.5)
+      }
+    })
+  }
 
   it('keeps the shared ladder as the sky blue’s, the default colour', () => {
     const values = tokensFor('light')
