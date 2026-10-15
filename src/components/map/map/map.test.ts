@@ -356,6 +356,22 @@ describe('lintje-map keyboard', () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
   })
 
+  it.each([
+    ['without a basemap', {}],
+    [
+      'on a basemap',
+      { basemap: { kind: 'wms', url: 'https://wms.invalid/', layers: 'x', attribution: 'x' } },
+    ],
+  ] as const)('makes the map a group named by its description, %s', async (_, extra) => {
+    const element = await mapTile(tileData(extra as Partial<MapData>))
+    const surface = element.renderRoot.querySelector('.lintje-map-chart__leaflet')!
+    expect(surface.getAttribute('role')).toBe('group')
+    const label = element.renderRoot.querySelector(
+      `[id="${surface.getAttribute('aria-labelledby')}"]`,
+    )
+    expect(label?.textContent?.trim()).toBe('Loketten in Nederland.')
+  })
+
   it('draws a focus ring behind every point, apart from its shape', async () => {
     const element = await mapTile(tileData())
     expect(point(element, 'ein').querySelector('.lintje-map-chart__point-ring')).not.toBeNull()

@@ -145,6 +145,8 @@ export class LeafletSurface {
   #attribution: L.Control.Attribution | null = null
   /** The design system's own group in Leaflet's svg, holding the whole drawing. */
   #group: SVGGElement | null = null
+  /** A copy of the focused mark over the drawing, so nothing drawn after it covers its ring. */
+  #focusGroup: SVGGElement | null = null
   /** The area being drawn, over the drawing, placed as it is. */
   #draftGroup: SVGGElement | null = null
   #draft: {
@@ -314,6 +316,7 @@ export class LeafletSurface {
     this.#tiles = null
     this.#attribution = null
     this.#group = null
+    this.#focusGroup = null
     this.#draftGroup = null
     this.#draft = null
     this.#basemapKey = ''
@@ -392,7 +395,11 @@ export class LeafletSurface {
     if (!svg) return null
     const group = document.createElementNS(SVG_NS, 'g')
     group.setAttribute('class', 'lintje-map-chart__data')
-    group.addEventListener('focusin', (event) => this.#reveal(event.target as Element))
+    group.addEventListener('focusin', (event) => {
+      this.#reveal(event.target as Element)
+      this.#copyFocus()
+    })
+    group.addEventListener('focusout', () => this.#focusGroup?.replaceChildren())
     group.addEventListener('keydown', (event) => {
       // A choice opens the selection panel, which may stand over the chosen mark.
       if (event.key !== 'Enter' && event.key !== ' ') return
@@ -401,6 +408,11 @@ export class LeafletSurface {
     })
     svg.append(group)
     this.#group = group
+    const focus = document.createElementNS(SVG_NS, 'g')
+    focus.setAttribute('class', 'lintje-map-chart__focus')
+    focus.setAttribute('aria-hidden', 'true')
+    svg.append(focus)
+    this.#focusGroup = focus
     const draft = document.createElementNS(SVG_NS, 'g')
     draft.setAttribute('class', 'lintje-map-chart__draft')
     svg.append(draft)
@@ -541,7 +553,41 @@ export class LeafletSurface {
       'has-selection',
       this.#options.area != null || this.#options.active != null,
     )
+    this.#copyFocus()
     this.#place(map)
+  }
+
+  /**
+   * The focused mark, copied over the whole drawing: svg paints in document order, and moving
+   * the mark itself would lose its focus and its place in the Tab order. Only the copy's look
+   * counts; the CSS shows it while the mark has the keyboard's focus.
+   */
+  #copyFocus(): void {
+    const group = this.#group
+    const layer = this.#focusGroup
+    if (!group || !layer) return
+    const focused = (group.getRootNode() as Document | ShadowRoot).activeElement
+    if (!focused || !group.contains(focused) || !focused.hasAttribute('data-mark-id')) {
+      layer.replaceChildren()
+      return
+    }
+    const copy = focused.cloneNode(true) as Element
+    for (const name of [
+      'data-mark-id',
+      'role',
+      'tabindex',
+      'aria-pressed',
+      'aria-label',
+      'aria-hidden',
+    ])
+      copy.removeAttribute(name)
+    // A strict Content-Security-Policy drops a cloned style attribute; the CSSOM carries it over.
+    const targets = [copy, ...copy.querySelectorAll('*')]
+    ;[focused, ...focused.querySelectorAll('*')].forEach((source, n) => {
+      if (source instanceof SVGElement && source.style.length)
+        (targets[n] as SVGElement).style.cssText = source.style.cssText
+    })
+    layer.replaceChildren(copy)
   }
 
   /**
@@ -555,6 +601,7 @@ export class LeafletSurface {
     const origin = map.getPixelOrigin()
     const transform = `translate(${-origin.x} ${-origin.y}) scale(${scale})`
     group.setAttribute('transform', transform)
+    this.#focusGroup?.setAttribute('transform', transform)
     this.#draftGroup?.setAttribute('transform', transform)
     const inverse = 1 / scale
     for (const symbol of this.#symbols()) {
@@ -720,7 +767,7 @@ export class LeafletSurface {
 
   /** The symbols of the drawing and of the area being drawn: what keeps its size in pixels. */
   #symbols(): SVGGElement[] {
-    return [this.#group, this.#draftGroup].flatMap((group) =>
+    return [this.#group, this.#focusGroup, this.#draftGroup].flatMap((group) =>
       group ? [...group.querySelectorAll<SVGGElement>('.lintje-map-chart__symbol')] : [],
     )
   }

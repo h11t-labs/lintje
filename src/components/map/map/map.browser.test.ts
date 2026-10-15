@@ -49,6 +49,25 @@ const mark = (element: MapElement, id: string): Element =>
 const zoomButtons = (element: MapElement): DOMRect =>
   root(element).querySelector('.lintje-map-chart__zoom')!.getBoundingClientRect()
 
+/** The focus layer over the drawing, and the copy of the focused mark in it. */
+const focusLayer = (element: MapElement): Element =>
+  root(element).querySelector('.lintje-map-chart__focus')!
+const copy = (element: MapElement): Element | null => focusLayer(element).firstElementChild
+
+/** A colour token as the browser resolves it, through a probe in the map's own root. */
+function resolved(element: MapElement, token: string): string {
+  const probe = document.createElement('i')
+  probe.style.color = `var(${token})`
+  root(element).append(probe)
+  const colour = getComputedStyle(probe).color
+  probe.remove()
+  return colour
+}
+
+/** Whether `later` comes after `earlier` in the document, so svg paints it over. */
+const paintsOver = (later: Node, earlier: Node): boolean =>
+  Boolean(earlier.compareDocumentPosition(later) & Node.DOCUMENT_POSITION_FOLLOWING)
+
 function overlaps(a: DOMRect, b: DOMRect): boolean {
   return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
 }
@@ -87,6 +106,28 @@ describe('the map', () => {
     expect(getComputedStyle(container, '::after').zIndex).toBe('1000')
   })
 
+  it('lays a focused point over a later point that covers it, and keeps the focus on it', async () => {
+    // Two points on one spot: the first is drawn first, the second over it.
+    const element = await mount({
+      values: [MIDDLE, { ...MIDDLE, id: 'utr-2', label: 'Utrecht 2', value: 10 }],
+    })
+    const first = mark(element, 'utr') as SVGElement
+    await keyboardFocus(first)
+    await expect.poll(() => copy(element)).not.toBeNull()
+    const ring = copy(element)!.querySelector('.lintje-map-chart__point-ring')!
+    expect(getComputedStyle(focusLayer(element)).display).not.toBe('none')
+    expect(paintsOver(ring, mark(element, 'utr-2'))).toBe(true)
+    expect(getComputedStyle(ring).stroke).toBe(resolved(element, '--color-focus'))
+    expect(getComputedStyle(ring).strokeWidth).toBe('8px')
+    // The copy is only drawn: no button, no stop, nothing a reader hears.
+    expect(copy(element)!.hasAttribute('tabindex')).toBe(false)
+    expect(copy(element)!.hasAttribute('data-mark-id')).toBe(false)
+    expect(focusLayer(element).getAttribute('aria-hidden')).toBe('true')
+    expect(root(element).activeElement).toBe(first)
+    first.blur()
+    await expect.poll(() => copy(element)).toBeNull()
+  })
+
   it('leaves the page in the middle of a zoom without an error', async () => {
     const element = await mount()
     // Vitest only fails the run on an uncaught error; the test hears it itself.
@@ -117,6 +158,7 @@ describe.runIf(server.browser === 'chromium')('a mark the pointer chose', () => 
     await userEvent.click(mark(element, 'utr'))
     expect(mark(element, 'utr').matches(':focus')).toBe(true)
     expect(getComputedStyle(mark(element, 'utr')).outlineStyle).toBe('none')
+    expect(getComputedStyle(focusLayer(element)).display).toBe('none')
   })
 
   it('draws no box around a clicked area of the geometry, and its ring when the keyboard reaches it', async () => {
@@ -179,6 +221,46 @@ describe('a stacked map', () => {
     expect(getComputedStyle(mark(element, 'zone')).outlineStyle).toBe('none')
   })
 
+  it('lays the ring of a focused area over the area that shares its edge', async () => {
+    const WEST = {
+      id: 'west',
+      label: 'Zone west',
+      value: 3,
+      polygon: [
+        [5.0, 52.0],
+        [5.6, 52.0],
+        [5.6, 52.5],
+        [5.0, 52.5],
+      ] as [number, number][],
+    }
+    const EAST = {
+      ...WEST,
+      id: 'east',
+      label: 'Zone oost',
+      value: 9,
+      polygon: [
+        [5.6, 52.0],
+        [6.2, 52.0],
+        [6.2, 52.5],
+        [5.6, 52.5],
+      ] as [number, number][],
+    }
+    const element = await mount({ variant: 'polygons', values: [WEST, EAST] })
+    const west = mark(element, 'west')
+    await keyboardFocus(west)
+    await expect.poll(() => copy(element)).not.toBeNull()
+    const ring = copy(element)!.querySelector('.lintje-map-chart__polygon-ring')!
+    expect(ring.getAttribute('d')).toBe(
+      west.querySelector('.lintje-map-chart__polygon-ring')!.getAttribute('d'),
+    )
+    // Nothing drawn after the copy: the east zone and every other mark lie under it.
+    expect(paintsOver(ring, mark(element, 'east'))).toBe(true)
+    expect(getComputedStyle(focusLayer(element)).display).not.toBe('none')
+    expect(getComputedStyle(ring).stroke).toBe(resolved(element, '--color-focus'))
+    expect(getComputedStyle(ring).strokeWidth).toBe('8px')
+    expect(root(element).activeElement).toBe(west)
+  })
+
   it('takes Tab through the layers in the order they are stacked', async () => {
     const element = await stacked()
     const ids = [...root(element).querySelectorAll('[tabindex="0"][data-mark-id]')].map((node) =>
@@ -216,6 +298,32 @@ describe('the map on a basemap', () => {
     await expect.poll(() => getComputedStyle(flow).opacity).toBe('0.22')
     await keyboardFocus(flow)
     await expect.poll(() => getComputedStyle(flow).opacity).toBe('1')
+  })
+
+  it('rings a focused flow of the smallest width 3 px outside a 1 px gap, in its own colour', async () => {
+    const element = await mount({
+      basemap: BASEMAP,
+      variant: 'flows',
+      destination: { lon: 4.9, lat: 52.37, label: 'Amsterdam' },
+      values: [MIDDLE, CORNER, { ...SOUTH, value: 0 }],
+    })
+    await ready(element)
+    const flow = mark(element, 'maa')
+    await keyboardFocus(flow)
+    const line = flow.querySelector('.lintje-map-chart__flow-line')!
+    const ring = flow.querySelector('.lintje-map-chart__flow-ring')!
+    const gap = flow.querySelector('.lintje-map-chart__flow-gap')!
+    await expect.poll(() => getComputedStyle(ring).strokeWidth).toBe('9px')
+    // A line of 1 px, a gap of 1 px either side, and 3 px of ring outside that.
+    expect(getComputedStyle(line).strokeWidth).toBe('1px')
+    expect(getComputedStyle(gap).strokeWidth).toBe('3px')
+    expect(getComputedStyle(ring).stroke).toBe(resolved(element, '--color-focus'))
+    expect(getComputedStyle(gap).stroke).toBe(resolved(element, '--color-bg-surface'))
+    expect(getComputedStyle(line).stroke).toBe(resolved(element, '--color-chart-default'))
+    expect(getComputedStyle(flow).opacity).toBe('1')
+    // Its copy lies over every other flow.
+    await expect.poll(() => copy(element)).not.toBeNull()
+    expect(paintsOver(copy(element)!, mark(element, 'gro'))).toBe(true)
   })
 
   it('keeps the focused mark across a render: the map is built once', async () => {

@@ -11,6 +11,7 @@ import { formatNumber } from '../../../../core/format'
 import { chartIcon, ZOOM_CONTROLS } from '../shared/chart-icons'
 import { renderIcon } from '../../../../icons/render'
 import { renderTooltip } from '../shared/tooltip'
+import { drawingRole } from '../shared/axes'
 import { LeafletSurface } from './leaflet'
 import { seriesColor } from '../shared/colors'
 import { markPath } from '../shared/series-shapes'
@@ -537,8 +538,10 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
              },
              passive: false,
            }}>
-        <p class="visually-hidden">${description}</p>
-        <div class="lintje-map-chart__leaflet" ${ref(leaflet.attach)}></div>
+        <p id="${controller.id}-desc" class="visually-hidden">${description}</p>
+        <!-- Leaflet makes the surface a Tab stop; every mark on it is a button. -->
+        <div class="lintje-map-chart__leaflet" role=${drawingRole(true)}
+             aria-labelledby="${controller.id}-desc" ${ref(leaflet.attach)}></div>
         ${renderTooltip(controller)}
 
         <!-- Layer switcher top left. -->
