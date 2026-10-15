@@ -256,17 +256,12 @@ describe('lintje-chat-answer', () => {
     expect(has(older, 'lintje-button[slot="action"]')).toBe(false)
   })
 
-  it('a question back: solid choices under their own label, per state', async () => {
-    const choices = [{ label: 'Loket A' }]
-    const clarify = await answer({ state: 'needs-clarification', choices, current: true })
-    const asked = clarify.renderRoot.querySelector('lintje-chat-suggestions')
-    expect(asked?.getAttribute('kind')).toBe('choice')
-    expect(asked?.getAttribute('label')).toBe('Kies je antwoord')
-
-    const scope = await answer({ state: 'out-of-scope', choices, current: true })
-    expect(scope.renderRoot.querySelector('lintje-chat-suggestions')?.getAttribute('label')).toBe(
-      'Kies wat je wilt doen',
-    )
+  it('a question back draws no choices of its own: they stand in the questions box', async () => {
+    const clarify = await answer({ state: 'needs-clarification', current: true })
+    expect(has(clarify, 'lintje-chat-suggestions')).toBe(false)
+    expect('choices' in clarify).toBe(false)
+    const scope = await answer({ state: 'out-of-scope', current: true })
+    expect(has(scope, 'lintje-chat-suggestions')).toBe(false)
     expect(has(scope, 'lintje-icon-button')).toBe(false)
   })
 

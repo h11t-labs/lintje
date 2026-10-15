@@ -7,6 +7,7 @@
  * and the answer form are the element's own. With `files` it takes attachments — the paperclip,
  * dragging and pasting — and the host keeps them, as with `lintje-file-upload`; a file it refuses
  * itself stays its own and never reaches the host. A question may be only its attachments.
+ * `lintje-chat` folds it to one line (`collapsed`) while the assistant asks, on a phone.
  *
  * Events: `lintje-message-send` `{ text, terms, sources, form, attachments }` (`attachments`: the
  * ids of the done files), `lintje-answer-stop`, `lintje-sources-change` `{ ids }`,
@@ -47,6 +48,7 @@ import {
 } from '../../shared/files'
 import keyCss from '../../shared/key.css?inline'
 import chatComposerCss from './chat-composer.css?inline'
+import frameCss from '../shared/frame.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
 import type {
   ChatAnswerForm,
@@ -143,6 +145,7 @@ export class LintjeChatComposer extends LintjeElement {
   static override styles = [
     iconStyles,
     shadowCss(keyCss),
+    shadowCss(frameCss),
     shadowCss(chatComposerCss),
     shadowCss(screenOnlyCss),
   ]
@@ -163,6 +166,9 @@ export class LintjeChatComposer extends LintjeElement {
     accept: { type: String },
     maxSize: { type: Number, attribute: 'max-size' },
     files: { attribute: false },
+    hint: { type: String },
+    collapsed: { type: Boolean, reflect: true },
+    collapsible: { type: Boolean },
     refused: { state: true },
     dragging: { state: true },
     dragCount: { state: true },
@@ -202,6 +208,15 @@ export class LintjeChatComposer extends LintjeElement {
   declare maxSize?: number
   /** The host's files for the question being typed. Without it, no paperclip: the box takes no files. */
   declare files?: UploadFile[]
+  /** A line in the bar beside the send button; "Kies eerst een bron" and "Wacht op de upload" win. */
+  declare hint?: string
+  /**
+   * One line that opens the box, with how many attachments wait in it; no source picker. A tap
+   * asks `lintje-chat` to open it. Only a phone's while the assistant asks.
+   */
+  collapsed: boolean = false
+  /** Open, it offers "Inklappen", which asks `lintje-chat` to fold it again. */
+  collapsible: boolean = false
 
   /** The files the box refused itself: they stay until the reader removes them. */
   refused: UploadFile[] = []
@@ -352,6 +367,10 @@ export class LintjeChatComposer extends LintjeElement {
   }
 
   override focus(): void {
+    if (this.collapsed && this.variant === 'ask') {
+      this.renderRoot.querySelector<HTMLElement>('.lintje-chat-composer__expand')?.focus()
+      return
+    }
     this.write(this.draft)
   }
 
@@ -614,7 +633,8 @@ export class LintjeChatComposer extends LintjeElement {
   }
 
   protected override render(): TemplateResult {
-    const list = this.suggestions
+    const collapsed = this.collapsed && this.variant === 'ask'
+    const list = collapsed ? [] : this.suggestions
     const active = Math.min(this.completionIndex, list.length - 1)
     const terms = this.termsIn(this.draft)
     const heard = terms
@@ -625,6 +645,7 @@ export class LintjeChatComposer extends LintjeElement {
       })
       .join(', ')
     return html`<div class="lintje-chat-composer lintje-chat-composer--${this.variant}">
+      ${collapsed ? this.renderCollapsed() : nothing}
       ${
         list.length
           ? html`<div
@@ -656,9 +677,11 @@ export class LintjeChatComposer extends LintjeElement {
       }
       <div
         class=${classMap({
+          'lintje-chat-frame': true,
           'lintje-chat-composer__frame': true,
           'is-dragging': this.dragging && this.takesFiles,
         })}
+        ?hidden=${collapsed}
         @dragover=${this.onDragOver}
         @drop=${this.onDrop}
       >
@@ -719,6 +742,33 @@ export class LintjeChatComposer extends LintjeElement {
     </div>`
   }
 
+  /** "Stel een nieuwe vraag · 2 bijlagen": every chip counts, also one busy or refused. */
+  private get attachmentCount(): number {
+    return this.takesFiles ? (this.files ?? []).length + this.refused.length : 0
+  }
+
+  // The open box stays drawn under it, hidden, so the draft and the field's set-up are kept.
+  private renderCollapsed(): TemplateResult {
+    const count = this.attachmentCount
+    const files = count ? `${count} ${count === 1 ? 'bijlage' : 'bijlagen'}` : ''
+    return html`<div class="lintje-chat-frame">
+        <button
+          type="button"
+          class="lintje-chat-composer__expand"
+          aria-expanded="false"
+          aria-label=${files ? `${this.placeholder}, ${files}` : nothing}
+          @click=${() => this.emitLocal('lintje-composer-expand')}
+        >
+          <span>${files ? `${this.placeholder} · ${files}` : this.placeholder}</span>
+          ${renderIcon('functioneel-delta-omlaag', {
+            size: 16,
+            rotate: 180,
+            className: 'lintje-chat-composer__expand-icon',
+          })}
+        </button>
+      </div>`
+  }
+
   private renderAttachments(): TemplateResult | typeof nothing {
     const files = this.files ?? []
     const all = [...files, ...this.refused]
@@ -761,8 +811,20 @@ export class LintjeChatComposer extends LintjeElement {
       ? 'Kies eerst een bron om een vraag te stellen'
       : this.uploading
         ? 'Wacht op de upload'
-        : ''
+        : (this.hint ?? '')
     return html`${
+      this.collapsible
+        ? html`<lintje-button
+            class="lintje-chat-composer__collapse"
+            variant="tertiary"
+            size="chrome"
+            icon="functioneel-delta-omlaag"
+            .expanded=${true}
+            @click=${() => this.emitLocal('lintje-composer-collapse')}
+            >Inklappen</lintje-button
+          >`
+        : nothing
+    }${
       this.takesFiles
         ? html`<lintje-icon-button
               class="lintje-chat-composer__attach"

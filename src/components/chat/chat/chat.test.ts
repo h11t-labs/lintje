@@ -326,8 +326,114 @@ describe('lintje-chat', () => {
     const followUps = last.renderRoot.querySelector('lintje-chat-suggestions')
     await followUps?.updateComplete
     followUps?.renderRoot.querySelector<HTMLButtonElement>('button')?.click()
+    expect(details).toEqual([{ turnId: 't2', label: 'En gisteren?', value: 'En gisteren?' }])
+  })
+})
+
+describe('lintje-chat and the assistant’s questions', () => {
+  const QUESTIONS = {
+    questions: [
+      {
+        id: 'periode',
+        label: 'Periode',
+        text: 'Welke periode bedoel je?',
+        kind: 'one' as const,
+        options: [
+          { value: '12m', label: 'Afgelopen 12 maanden' },
+          { value: '2025', label: 'Heel 2025' },
+        ],
+      },
+    ],
+  }
+  const asking = (state: 'needs-clarification' | 'out-of-scope' | 'ready'): ChatData => ({
+    turns: [
+      TURNS[0],
+      {
+        id: 't2',
+        message: { text: 'Hoeveel aanvragen per provincie?' },
+        answer: { state, text: 'Dat kan ik op meer manieren tellen.', questions: QUESTIONS },
+      },
+    ],
+  })
+  const box = (element: LintjeChat): HTMLElement | null =>
+    element.renderRoot.querySelector('lintje-chat-questions')
+  const composer = (element: LintjeChat) =>
+    element.renderRoot.querySelector('lintje-chat-composer') as HTMLElement & {
+      placeholder: string
+      hint?: string
+      collapsed: boolean
+      collapsible: boolean
+    }
+
+  it('draws the box above the question box while the last answer asks', async () => {
+    for (const state of ['needs-clarification', 'out-of-scope'] as const) {
+      const element = await chat(asking(state))
+      const footer = element.renderRoot.querySelector('.lintje-chat__footer')!
+      expect(box(element)?.parentElement?.parentElement).toBe(footer)
+      expect(box(element)?.nextElementSibling).toBe(composer(element))
+      expect(box(element)?.getAttribute('turn-id')).toBe('t2')
+      expect(composer(element).placeholder).toBe('Stel een nieuwe vraag')
+      expect(composer(element).hint).toBe('Een nieuwe vraag slaat deze vragen over')
+    }
+  })
+
+  it('draws no box for questions in any other state, nor while a question is edited', async () => {
+    const element = await chat(asking('ready'))
+    expect(box(element)).toBeNull()
+    expect(composer(element).placeholder).toBe('Stel een vraag over de gegevens')
+    const edited = await chat(asking('needs-clarification'))
+    edited.editingId = 't1'
+    await edited.updateComplete
+    expect(box(edited)).toBeNull()
+  })
+
+  it('a new turn takes the box away', async () => {
+    const element = await chat(asking('needs-clarification'))
+    element.data = {
+      turns: [...asking('needs-clarification').turns, { id: 't3', message: { text: 'Heel 2025' } }],
+    }
+    await element.updateComplete
+    expect(box(element)).toBeNull()
+  })
+
+  it('lets the answers through with the turn', async () => {
+    const element = await chat(asking('needs-clarification'))
+    const details: unknown[] = []
+    element.addEventListener('lintje-questions-answer', (event) =>
+      details.push((event as CustomEvent).detail),
+    )
+    const questions = box(element)!
+    await (questions as HTMLElement & { updateComplete: Promise<unknown> }).updateComplete
+    questions.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-chat-questions__chip')!.click()
     expect(details).toEqual([
-      { turnId: 't2', kind: 'suggestion', label: 'En gisteren?', value: 'En gisteren?' },
+      {
+        turnId: 't2',
+        answers: [{ id: 'periode', values: ['12m'], other: null, skipped: false }],
+        text: 'Afgelopen 12 maanden',
+      },
     ])
+  })
+
+  it('on a phone folds the question box while it asks; opening it leaves the questions', async () => {
+    const happy = (window as unknown as { happyDOM?: { setViewport(size: object): void } }).happyDOM
+    happy?.setViewport({ width: 390, height: 844 })
+    try {
+      const element = await chat(asking('needs-clarification'))
+      expect(composer(element).collapsed).toBe(true)
+      composer(element).dispatchEvent(new CustomEvent('lintje-composer-expand', { bubbles: true }))
+      await element.updateComplete
+      expect(composer(element).collapsed).toBe(false)
+      expect(composer(element).collapsible).toBe(true)
+      expect(box(element)).not.toBeNull()
+      composer(element).dispatchEvent(
+        new CustomEvent('lintje-composer-collapse', { bubbles: true }),
+      )
+      await element.updateComplete
+      expect(composer(element).collapsed).toBe(true)
+      const answered = await chat(asking('ready'))
+      expect(composer(answered).collapsed).toBe(false)
+    } finally {
+      happy?.setViewport({ width: 1024, height: 768 })
+    }
   })
 })

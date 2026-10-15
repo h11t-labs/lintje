@@ -482,4 +482,64 @@ describe('lintje-chat-composer with attachments', () => {
     field(element).dispatchEvent(event)
     expect(added).toEqual([])
   })
+
+  it('folded, counts every attachment in its one line and in its button’s name', async () => {
+    const element = await composer({
+      collapsed: true,
+      placeholder: 'Stel een nieuwe vraag',
+      files: [DONE, BUSY, FAILED],
+    })
+    const expand = element.renderRoot.querySelector<HTMLButtonElement>(
+      '.lintje-chat-composer__expand',
+    )!
+    expect(expand.textContent?.trim()).toBe('Stel een nieuwe vraag · 3 bijlagen')
+    expect(expand.getAttribute('aria-label')).toBe('Stel een nieuwe vraag, 3 bijlagen')
+    expect(expand.getAttribute('aria-expanded')).toBe('false')
+    expect(chips(element).every((chip) => chip.closest('[hidden]'))).toBe(true)
+    element.files = [DONE]
+    await element.updateComplete
+    expect(expand.textContent?.trim()).toBe('Stel een nieuwe vraag · 1 bijlage')
+    element.files = []
+    await element.updateComplete
+    expect(expand.textContent?.trim()).toBe('Stel een nieuwe vraag')
+    expect(expand.hasAttribute('aria-label')).toBe(false)
+  })
+})
+
+describe('lintje-chat-composer folded', () => {
+  it('asks to open with a tap and to fold with "Inklappen", and keeps its draft', async () => {
+    const element = await composer({ collapsed: true })
+    const asked = heard(element, 'lintje-composer-expand')
+    const folded = heard(element, 'lintje-composer-collapse')
+    expect(element.renderRoot.querySelector('lintje-multiselect')).toBeNull()
+    element.renderRoot.querySelector<HTMLButtonElement>('.lintje-chat-composer__expand')!.click()
+    expect(asked).toHaveLength(1)
+    element.collapsed = false
+    element.collapsible = true
+    await element.updateComplete
+    await type(element, 'Hoeveel aanvragen?')
+    element.renderRoot.querySelector<HTMLElement>('.lintje-chat-composer__collapse')!.click()
+    expect(folded).toHaveLength(1)
+    element.collapsed = true
+    await element.updateComplete
+    element.collapsed = false
+    await element.updateComplete
+    expect(field(element).textContent).toBe('Hoeveel aanvragen?')
+  })
+
+  it('takes the focus on its one line', async () => {
+    const element = await composer({ collapsed: true })
+    element.focus()
+    expect(deepActiveElement()?.classList.contains('lintje-chat-composer__expand')).toBe(true)
+  })
+
+  it('draws the host’s hint in its bar; a missing source wins', async () => {
+    const element = await composer({ hint: 'Een nieuwe vraag slaat deze vragen over' })
+    const hint = (): string | null | undefined =>
+      element.renderRoot.querySelector('.lintje-chat-composer__hint')?.textContent
+    expect(hint()).toBe('Een nieuwe vraag slaat deze vragen over')
+    element.sources = [{ id: 'a', label: 'Aanvragen' }]
+    await element.updateComplete
+    expect(hint()).toBe('Kies eerst een bron om een vraag te stellen')
+  })
 })

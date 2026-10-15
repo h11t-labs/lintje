@@ -765,6 +765,38 @@ export interface ChatDivider {
   note?: string
 }
 
+export type ChatQuestionKind = 'one' | 'many' | 'text'
+
+/** One question the assistant asks before it answers. */
+export interface ChatQuestion {
+  id: string
+  /** The short name in the progress line and the reader's message: "Periode". */
+  label: string
+  /** The question itself: "Welke periode bedoel je?" */
+  text: string
+  kind: ChatQuestionKind
+  /** `one` and `many`; a `description` stands under its label. "Iets anders…" always follows. */
+  options?: FilterOption[]
+  /** The placeholder of the "Iets anders…" field. */
+  otherPlaceholder?: string
+  /** Marks "(niet verplicht)" and offers Overslaan; a question is required without it. */
+  optional?: boolean
+  hint?: string
+  /** `text`: the field's placeholder. */
+  placeholder?: string
+  /** The message when a required question has no answer; "Kies een antwoord." without it
+   *  ("Vul een antwoord in." for `text`). */
+  error?: string
+}
+
+/** What the assistant asks before it answers: `lintje-chat-questions`. */
+export interface ChatQuestionsData {
+  /** 1 to 5. One `one` question without descriptions is drawn in the short form. */
+  questions: ChatQuestion[]
+  /** `sending`: the answers are on their way. */
+  state?: 'open' | 'sending'
+}
+
 /** Where an answer stands. `out-of-scope` needs a source on; `needs-clarification` asks back. */
 export type ChatAnswerState =
   | 'ready'
@@ -788,8 +820,11 @@ export interface ChatAnswerData {
   steps?: ChatStepsData
   /** `error`: what went wrong, and the way out in words. */
   error?: { title?: string; text: string }
-  /** `out-of-scope` and `needs-clarification`: the real choices, solid. */
-  choices?: ChatSuggestion[]
+  /**
+   * `needs-clarification` and `out-of-scope`: what the assistant asks before it answers, in a box
+   * above the question box. Counts on the last answer only; a new turn ends it.
+   */
+  questions?: ChatQuestionsData
   /** Suggested next questions, dashed. Drawn under the last answer only. */
   followUps?: ChatSuggestion[]
 }
@@ -839,8 +874,8 @@ export interface ChatStartData {
 
 /**
  * The host owns the conversation and sets `data` again on change.
- * Events: `lintje-message-send`, `lintje-answer-stop`, `lintje-sources-change`,
- * `lintje-draft-change`, `lintje-suggestion-select`, `lintje-message-edit`,
+ * Events: `lintje-message-send`, `lintje-questions-answer`, `lintje-answer-stop`,
+ * `lintje-sources-change`, `lintje-draft-change`, `lintje-suggestion-select`, `lintje-message-edit`,
  * `lintje-answer-retry`, `lintje-answer-rate`, `lintje-strip-change`, the attachments'
  * `lintje-files-add`, `lintje-file-remove`, `lintje-file-cancel`, `lintje-file-retry` and
  * `lintje-file-open`, `lintje-navigate` from a link in a step, and the blocks' own
