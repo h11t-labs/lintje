@@ -96,7 +96,9 @@
 }
 .lintje-transcript__now { font: var(--text-small); color: var(--color-text-muted); }
 
-/* The timecode reaches the 48 px target through a transparent hit area above and below only. */
+/* The timecode reaches the 48 px target through a transparent hit area, where it has room: in a row
+   the name sits right above it, so downwards only. Coming later in the tree, it would win over the
+   name's button. */
 .lintje-transcript__time {
   position: relative;
   display: inline-flex;
@@ -112,7 +114,7 @@
 .lintje-transcript__time::after {
   content: '';
   position: absolute;
-  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+  inset: 0 0 min(0px, calc(100% - var(--h-target)));
 }
 .lintje-transcript__time:hover { color: var(--color-link-hover); }
 .is-current .lintje-transcript__time { font-weight: 700; color: var(--color-text-primary); }
@@ -178,6 +180,8 @@
   outline: 0;
 }
 :host([layout='chat']) .lintje-transcript__segment::before { content: none; }
+/* Beside the message, the time has room above and below. */
+:host([layout='chat']) .lintje-transcript__time::after { inset: min(0px, calc((100% - var(--h-target)) / 2)) 0; }
 :host([layout='chat']) .lintje-transcript__when,
 :host([layout='chat']) .lintje-transcript__edit { align-self: center; }
 :host([layout='chat']) .lintje-transcript__segment:hover { background: none; }
@@ -217,6 +221,7 @@
     column-gap: var(--space-3);
   }
   .lintje-transcript__when { align-self: center; }
+  .lintje-transcript__time::after { inset: min(0px, calc((100% - var(--h-target)) / 2)) 0; }
   .lintje-transcript__note { grid-template-columns: minmax(0, 1fr); padding-right: var(--lintje-inset, var(--space-3)); }
   :host([layout='chat']) .lintje-transcript__segment {
     grid-template-columns: minmax(0, 1fr) auto auto;
