@@ -682,25 +682,32 @@ const ROWS: Row[] = [
   },
   {
     tag: 'lintje-page-header',
-    marker: 'the dashboard’s name stands above the title, the description is left out',
+    marker: 'the dashboard’s name stands above the title, the description stays under it',
     mount: () =>
       append(
         create('lintje-page-header', {
           data: {
             kicker: 'Dienstverlening',
             title: 'Aanvragen',
-            description: 'Alle aanvragen van dit jaar.',
+            description:
+              'Alle aanvragen van dit jaar, per regio en per loket, met de wachttijd en het aantal afwijzingen.',
           },
         }),
       ),
     wide: (element) =>
       shown(element, '.lintje-page-header__description') &&
       !shown(element, '.lintje-page-header__kicker'),
-    phone: (element) =>
-      below(
-        find(element, '.lintje-page-header__kicker'),
-        find(element, '.lintje-page-header__title'),
-      ) && !shown(element, '.lintje-page-header__description'),
+    phone: (element) => {
+      const title = find(element, '.lintje-page-header__title')
+      const description = find(element, '.lintje-page-header__description')
+      return (
+        below(find(element, '.lintje-page-header__kicker'), title) &&
+        seen(description) &&
+        below(title, description) &&
+        box(description).right <= window.innerWidth + 1 &&
+        element.scrollWidth <= element.clientWidth
+      )
+    },
   },
   {
     tag: 'lintje-page-header',
