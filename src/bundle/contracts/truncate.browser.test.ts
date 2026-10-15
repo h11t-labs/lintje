@@ -6,6 +6,7 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { deepActiveElement } from '../../core/focus'
+import { TAB } from '../../core/test-keys'
 import '../../components/actions/button/button'
 import '../../components/actions/menu-button/menu-button'
 import '../../components/charts/chart/chart'
@@ -140,6 +141,25 @@ async function keyboardFocus(row: Row, element: HTMLElement): Promise<void> {
       message: 'a keyboard focus',
     })
     .toBe(true)
+}
+
+/**
+ * Tab from a field just before the element. WebKit takes a key only in a document that holds the
+ * focus, and gives a focus moved by script the keyboard's ring only after one that had it.
+ */
+async function tabInto(element: HTMLElement): Promise<void> {
+  const start = Object.assign(document.createElement('input'), { ariaLabel: 'Zoeken' })
+  element.before(start)
+  start.focus()
+  await userEvent.keyboard(TAB)
+}
+
+/** The arrow keys onto the second row of an open menu: the first takes the focus as it opens. */
+async function arrowToSecond(element: HTMLElement): Promise<void> {
+  const target = all(element.shadowRoot!, '.lintje-menu__row')[1]!
+  for (let step = 0; step < 4 && deepActiveElement() !== target; step++) {
+    await userEvent.keyboard('{ArrowDown}')
+  }
 }
 
 /* Rows -------------------------------------------------------------------- */
@@ -338,20 +358,20 @@ const ROWS: Row[] = [
       const button = await append(
         Object.assign(document.createElement('lintje-menu-button'), {
           label: 'Acties',
+          // The first row takes the focus as the menu opens; WebKit may ring it.
           items: [
-            { label: words, value: 'lang', hint: 'Ctrl+S' },
             { label: 'Bewaren', value: 'bewaren' },
+            { label: words, value: 'lang', hint: 'Ctrl+S' },
           ],
         }),
       )
       await reopen(button, '.lintje-menu-button__trigger')
       return button
     },
-    text: (element) => shown(element, '.lintje-menu__label'),
-    focus: (element) =>
-      shown(element, '.lintje-menu__label').closest<HTMLElement>('.lintje-menu__row')!.focus(),
+    text: (element) => all(element.shadowRoot!, '.lintje-menu__label')[1]!,
+    focus: arrowToSecond,
     phone: (element) => reopen(element, '.lintje-menu-button__trigger'),
-    room: (element) => shown(element, '.lintje-menu__row'),
+    room: (element) => all(element.shadowRoot!, '.lintje-menu__row')[1]!,
   },
   {
     name: 'lintje-user-menu :: menu row',
@@ -362,19 +382,18 @@ const ROWS: Row[] = [
         Object.assign(document.createElement('lintje-user-menu'), {
           user: { name: 'Sanne de Vries', role: 'Beleidsmedewerker', initials: 'SV' },
           items: [
-            { value: 'lang', label: words },
             { value: 'profiel', label: 'Profiel' },
+            { value: 'lang', label: words },
           ],
         }),
       )
       await reopen(menu, '.lintje-user-menu__trigger')
       return menu
     },
-    text: (element) => shown(element, '.lintje-menu__label'),
-    focus: (element) =>
-      shown(element, '.lintje-menu__label').closest<HTMLElement>('.lintje-menu__row')!.focus(),
+    text: (element) => all(element.shadowRoot!, '.lintje-menu__label')[1]!,
+    focus: arrowToSecond,
     phone: (element) => reopen(element, '.lintje-user-menu__trigger'),
-    room: (element) => shown(element, '.lintje-menu__row'),
+    room: (element) => all(element.shadowRoot!, '.lintje-menu__row')[1]!,
   },
   {
     name: 'lintje-tree-view :: label',
@@ -391,7 +410,7 @@ const ROWS: Row[] = [
         room(240),
       ),
     text: (element) => inShadow(element, '.lintje-tree__label'),
-    focus: (element) => inShadow(element, '.lintje-tree__item').focus(),
+    focus: tabInto,
     room: (element) => element.parentElement!,
   },
   {
@@ -501,16 +520,29 @@ const ROWS: Row[] = [
       ),
     text: (element) => inShadow(element, '.lintje-multiselect__chip-label'),
     titleOn: (element) => inShadow(element, '.lintje-multiselect__field'),
-    focus: (element) => inShadow(element, '.lintje-multiselect__field').focus(),
+    focus: tabInto,
     room: (element) => inShadow(element, '.lintje-multiselect__field'),
   },
 ]
 
 /* The contract ------------------------------------------------------------ */
 
-beforeAll(() => {
+// WebKit keeps the media queries of a sheet that no connected element adopts as they were: after
+// a row resized to 320 px without a menu, the next menu would still read as a phone's. One hidden
+// element of each tag, outside the body the rows clear, keeps every sheet adopted.
+beforeAll(async () => {
   document.documentElement.lang = 'nl'
   document.body.style.margin = '0'
+  const keep = document.createElement('div')
+  keep.hidden = true
+  const tags = [...new Set(ROWS.map((row) => row.name.split(' ')[0]!))].map((tag) =>
+    document.createElement(tag),
+  )
+  keep.append(...tags)
+  document.documentElement.append(keep)
+  await Promise.all(
+    tags.map((tag) => (tag as HTMLElement & { updateComplete?: unknown }).updateComplete),
+  )
 })
 
 afterEach(async () => {
@@ -553,7 +585,8 @@ async function check(row: Row): Promise<void> {
   const element = await row.mount(long)
   const text = row.text(element)
   const titled = row.titleOn?.(element) ?? text
-  expect(cut(text), 'cut at 1440 px').toBe(true)
+  // A popover may take a frame more to be laid out at its width.
+  await expect.poll(() => cut(text), { message: 'cut at 1440 px' }).toBe(true)
   expect(lines(text), 'one line at 1440 px').toBe(1)
   await userEvent.hover(text)
   await expect.poll(() => titled.title, { message: 'the whole text as title' }).toBe(long)
@@ -563,7 +596,7 @@ async function check(row: Row): Promise<void> {
     await expect.poll(() => cut(text), { message: 'not cut under the focus' }).toBe(false)
     expect(lines(text), 'more than one line under the focus').toBeGreaterThan(1)
     ;(deepActiveElement() as HTMLElement | null)?.blur()
-    document.body.querySelector('input[aria-label="Zoeken"]')?.remove()
+    for (const start of document.querySelectorAll('input[aria-label="Zoeken"]')) start.remove()
   }
 
   await onPhones(row, element)
