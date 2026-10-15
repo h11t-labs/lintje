@@ -164,8 +164,8 @@ const LAST_YEAR = [
 // Every desk as a point, requests against waiting time, one series per kind of desk; the desks
 // that deliver late have no waiting time yet in the second specimen (rule 15).
 const DESK_SERIES = [
-  { key: 'counter', label: 'Loket' },
-  { key: 'service', label: 'Servicepunt' },
+  { key: 'counter', label: 'Loket', color: 'sky-blue' },
+  { key: 'service', label: 'Servicepunt', color: 'dark-yellow' },
 ]
 const deskScatter = (missing = false) => ({
   kind: 'scatter',
@@ -175,6 +175,7 @@ const deskScatter = (missing = false) => ({
   dataLabels: ['Amsterdam Centrum'],
   series: DESK_SERIES.map((kind) => ({
     label: kind.label,
+    color: kind.color,
     points: desks.filter((desk) => desk.kind === kind.key).map((desk) => ({
       label: desk.map_label, id: desk.id, href: `?loket=${desk.id}`,
       x: desk.requests,
@@ -270,8 +271,8 @@ const CHARTS = [
     spec: {
       kind: 'grouped-bar', labels: weekdays, axisTitle: 'Afgehandelde aanvragen per dag',
       series: [
-        { label: 'Deze week', values: daily.map((row) => row.requests) },
-        { label: 'Vorige week', values: daily.map((row) => row.requests_last_week) },
+        { label: 'Deze week', values: daily.map((row) => row.requests), color: 'sky-blue' },
+        { label: 'Vorige week', values: daily.map((row) => row.requests_last_week), comparison: true },
       ],
     },
   },
@@ -362,8 +363,8 @@ const CHARTS = [
     description: 'Afgehandelde aanvragen per uur als staven op de linkeras, wachttijd als lijn op de rechteras, tegen de norm van 15 minuten.',
     spec: {
       kind: 'dual-axis', labels: column('hour'),
-      left: { label: 'Aanvragen', values: column('requests'), unit: 'aanvragen' },
-      right: { label: 'Wachttijd', values: column('wait_time'), unit: 'min' },
+      left: { label: 'Aanvragen', values: column('requests'), unit: 'aanvragen', color: 'sky-blue' },
+      right: { label: 'Wachttijd', values: column('wait_time'), unit: 'min', color: 'dark-yellow' },
       threshold: meta.thresholds.wait_time_threshold,
       pendingHours: meta.national_pending_hours,
     },
@@ -386,9 +387,9 @@ const CHARTS = [
     spec: {
       kind: 'radar', axes: ASPECTS, max: 10, threshold: 7,
       series: [
-        { label: 'Regio Noord', values: [7.9, 6.4, 7.1, 8.5, 8.0, 8.7] },
-        { label: 'Regio Zuid', values: [7.1, 7.4, 7.8, 8.1, 8.6, 8.2] },
-        { label: 'Regio Oost', values: [6.8, 7.0, 6.6, 7.9, 7.4, 8.0] },
+        { label: 'Regio Noord', values: [7.9, 6.4, 7.1, 8.5, 8.0, 8.7], color: 'sky-blue' },
+        { label: 'Regio Zuid', values: [7.1, 7.4, 7.8, 8.1, 8.6, 8.2], color: 'dark-yellow' },
+        { label: 'Regio Oost', values: [6.8, 7.0, 6.6, 7.9, 7.4, 8.0], color: 'red' },
       ],
     },
   },

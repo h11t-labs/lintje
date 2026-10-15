@@ -5,7 +5,7 @@
  * it, and the table it switches to — a caption and the CSV's own numbers, a
  * missing value as "—", never 0 (rule 15).
  */
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import './chart'
 import type { LintjeChart } from './chart'
 import type { LintjeDataTable } from '../../tables/data-table/data-table'
@@ -19,8 +19,8 @@ const DATA: ChartData = {
     kind: 'line',
     labels: ['ma', 'di', 'wo'],
     series: [
-      { label: 'Deze week', values: [120, 3.7, null] },
-      { label: 'Vorige week', values: [110, 98, 101] },
+      { label: 'Deze week', values: [120, 3.7, null], color: 'sky-blue' },
+      { label: 'Vorige week', values: [110, 98, 101], color: 'dark-yellow' },
     ],
   },
 }
@@ -160,8 +160,12 @@ describe('lintje-chart table switch', () => {
         unit: 'min',
         xTitle: 'aanvragen',
         series: [
-          { label: 'Loket', points: [{ label: 'Utrecht', x: 15120, y: 12 }] },
-          { label: 'Servicepunt', points: [{ label: 'Breda', x: 6210, y: null }] },
+          { label: 'Loket', color: 'sky-blue', points: [{ label: 'Utrecht', x: 15120, y: 12 }] },
+          {
+            label: 'Servicepunt',
+            color: 'dark-yellow',
+            points: [{ label: 'Breda', x: 6210, y: null }],
+          },
         ],
       },
     })
@@ -331,5 +335,153 @@ describe('lintje-chart table of a radar', () => {
     const rows = cells(found)
     expect(rows[0]).toEqual(['Bereikbaarheid', '7,8', '7,4', '7'])
     expect(rows[1][1]).toContain('geen gegevens')
+  })
+})
+
+describe('lintje-chart series without a colour', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    document.body.innerHTML = ''
+  })
+
+  const MESSAGE =
+    '<lintje-chart>: 2 reeksen zonder kleur ("Afgehandeld", "Bezwaren"). Geef elke reeks de kleur van haar variabele.'
+  const LABELS = ['ma', 'di', 'wo']
+  const uncoloured = (spec: ChartData['chart']): ChartData => ({ ...DATA, chart: spec })
+  const line = (series: Extract<ChartData['chart'], { kind: 'line' }>['series']): ChartData =>
+    uncoloured({ kind: 'line', labels: LABELS, series })
+
+  it('warns once with both names, also after a second drawing', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const data = line([
+      { label: 'Afgehandeld', values: [1, 2, 3] },
+      { label: 'Bezwaren', values: [3, 2, 1] },
+    ])
+    const element = await tile(data)
+    element.data = { ...data }
+    await element.updateComplete
+    expect(warn).toHaveBeenCalledOnce()
+    expect(warn).toHaveBeenCalledWith(MESSAGE)
+  })
+
+  it('warns again for a spec with other series without a colour', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const element = await tile(
+      line([
+        { label: 'Afgehandeld', values: [1, 2, 3] },
+        { label: 'Bezwaren', values: [3, 2, 1] },
+      ]),
+    )
+    element.data = line([
+      { label: 'Afgehandeld', values: [1, 2, 3], color: 'sky-blue' },
+      { label: 'Bezwaren', values: [3, 2, 1] },
+    ])
+    await element.updateComplete
+    expect(warn).toHaveBeenCalledTimes(2)
+    expect(warn).toHaveBeenLastCalledWith(
+      '<lintje-chart>: 1 reeks zonder kleur ("Bezwaren"). Geef elke reeks de kleur van haar variabele.',
+    )
+  })
+
+  it('does not count a comparison', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await tile(
+      line([
+        { label: 'Deze week', values: [1, 2, 3] },
+        { label: 'Vorige week', values: [3, 2, 1], comparison: true },
+      ]),
+    )
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('does not warn for one series, nor when every series has a colour', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await tile(line([{ label: 'Afgehandeld', values: [1, 2, 3] }]))
+    await tile(
+      line([
+        { label: 'Afgehandeld', values: [1, 2, 3], color: 'sky-blue' },
+        { label: 'Bezwaren', values: [3, 2, 1], color: 'dark-yellow' },
+      ]),
+    )
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  const KINDS: [string, ChartData['chart']][] = [
+    [
+      'line',
+      {
+        kind: 'line',
+        labels: LABELS,
+        series: [
+          { label: 'Afgehandeld', values: [1, 2, 3] },
+          { label: 'Bezwaren', values: [3, 2, 1] },
+        ],
+      },
+    ],
+    [
+      'grouped-bar',
+      {
+        kind: 'grouped-bar',
+        labels: LABELS,
+        series: [
+          { label: 'Afgehandeld', values: [1, 2, 3] },
+          { label: 'Bezwaren', values: [3, 2, 1] },
+        ],
+      },
+    ],
+    [
+      'dual-axis',
+      {
+        kind: 'dual-axis',
+        labels: LABELS,
+        left: { label: 'Afgehandeld', values: [1, 2, 3] },
+        right: { label: 'Bezwaren', values: [3, 2, 1] },
+      },
+    ],
+    [
+      'scatter',
+      {
+        kind: 'scatter',
+        axisTitle: 'wachttijd',
+        xTitle: 'aanvragen',
+        series: [
+          { label: 'Afgehandeld', points: [{ label: 'Utrecht', x: 1, y: 2 }] },
+          { label: 'Bezwaren', points: [{ label: 'Breda', x: 2, y: 1 }] },
+        ],
+      },
+    ],
+    [
+      'radar',
+      {
+        kind: 'radar',
+        axes: ['A', 'B', 'C', 'D', 'E'],
+        max: 10,
+        series: [
+          { label: 'Afgehandeld', values: [1, 2, 3, 4, 5] },
+          { label: 'Bezwaren', values: [5, 4, 3, 2, 1] },
+        ],
+      },
+    ],
+  ]
+
+  it.each(KINDS)('warns for a %s chart', async (_, spec) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await tile(uncoloured(spec))
+    expect(warn).toHaveBeenCalledWith(MESSAGE)
+  })
+
+  it('does not warn for a stacked bar: its series divide one variable', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await tile(
+      uncoloured({
+        kind: 'stacked-bar',
+        labels: LABELS,
+        series: [
+          { label: 'Afgehandeld', values: [1, 2, 3] },
+          { label: 'Bezwaren', values: [3, 2, 1] },
+        ],
+      }),
+    )
+    expect(warn).not.toHaveBeenCalled()
   })
 })

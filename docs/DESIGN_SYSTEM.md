@@ -163,7 +163,8 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
   de vorm op haar plaats, en een ingevoegde kleur zou elke reeks erna van vorm laten wisselen.
 - **Hemelblauw is de standaard.** Een figuur die geen kleur noemt, tekent in
   `--color-chart-default`, en de gedeelde tintladder (`--color-chart-tint-*`) is die van
-  hemelblauw.
+  hemelblauw. Een grafiek met meer dan één variabele noemt per reeks de kleur van haar variabele;
+  zonder kleur waarschuwt `lintje-chart` in de ontwikkelbuild. Een vergelijking telt niet mee.
 
 - **Vergelijking is altijd grijs; trend, drempel en doel altijd de nadrukkleur.**
 - Vast is de kleur van een variabele. De grijzen (`--data-comparison`, `--data-other`), het
