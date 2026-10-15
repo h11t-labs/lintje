@@ -123,7 +123,9 @@ export class LintjeFormActions extends LintjeElement {
 
   #clearOfFocus(): void {
     const focused = deepActiveElement()
-    if (!focused || holdsFocus(this) || getComputedStyle(this).position !== 'sticky') return
+    // `body` after the focused field left before this frame: there is nothing to clear.
+    if (!focused || focused === document.body || holdsFocus(this)) return
+    if (getComputedStyle(this).position !== 'sticky') return
     const room = this.getBoundingClientRect()
     const box = focused.getBoundingClientRect()
     const left = Math.max(box.left, room.left)
