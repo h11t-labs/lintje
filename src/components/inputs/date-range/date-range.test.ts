@@ -88,12 +88,12 @@ async function mount(props: Partial<LintjeDateRange> = {}): Promise<LintjeDateRa
 
 const field = (element: LintjeDateRange): HTMLButtonElement =>
   element.shadowRoot!.querySelector('.lintje-date-range-picker__field')!
-const days = (element: LintjeDateRange): HTMLButtonElement[] => [
-  ...element.shadowRoot!.querySelectorAll<HTMLButtonElement>('.lintje-month-grid__day'),
+const days = (element: LintjeDateRange): HTMLElement[] => [
+  ...element.shadowRoot!.querySelectorAll<HTMLElement>('.lintje-month-grid__day'),
 ]
 /** A day of the month in view; the weeks around it are blank. */
-const cell = (element: LintjeDateRange, day: number): HTMLButtonElement =>
-  days(element).find((button) => button.textContent!.trim() === `${day}`)!
+const cell = (element: LintjeDateRange, day: number): HTMLElement =>
+  days(element).find((node) => node.textContent!.trim() === `${day}`)!
 const grid = (element: LintjeDateRange): HTMLElement =>
   element.shadowRoot!.querySelector('[role="grid"]')!
 
@@ -169,7 +169,7 @@ describe('lintje-date-range', () => {
   it('keeps a day after the last allowed one focusable, and refuses it', async () => {
     const element = await openWith({ from: null, to: null }, { maxDate: TODAY })
     expect(cell(element, 8).getAttribute('aria-disabled')).toBe('true')
-    expect(cell(element, 8).disabled).toBe(false)
+    expect(cell(element, 8).getAttribute('tabindex')).toBe('-1')
     cell(element, 8).click()
     await element.updateComplete
     expect(element.draft).toEqual({ from: null, to: null })
@@ -253,4 +253,45 @@ describe('lintje-date-range', () => {
       'Kies een begin- en einddatum',
     ])
   })
+
+  it('draws each day as a cell of the grid, not as a button with the role of one', async () => {
+    const element = await openWith({ from: '05-10-2026', to: '07-10-2026' })
+    expect(grid(element).querySelectorAll('button[role]')).toHaveLength(0)
+    expect(days(element)).toHaveLength(31)
+    for (const day of days(element)) {
+      expect(day.localName).not.toBe('button')
+      expect(day.getAttribute('role')).toBe('gridcell')
+      expect(day.getAttribute('tabindex')).toMatch(/^(0|-1)$/)
+      expect(day.getAttribute('aria-label')).toBeTruthy()
+      expect(day.getAttribute('aria-selected')).toMatch(/^(true|false)$/)
+    }
+    expect(days(element).filter((day) => day.getAttribute('tabindex') === '0')).toEqual([
+      cell(element, 5),
+    ])
+  })
+
+  for (const key of ['Enter', ' ']) {
+    it(`picks the day with the focus on ${key === ' ' ? 'Space' : key}, as a click does`, async () => {
+      const clicked = await openWith({ from: null, to: null }, { maxDate: TODAY })
+      cell(clicked, 7).click()
+      await clicked.updateComplete
+
+      const element = await openWith({ from: null, to: null }, { maxDate: TODAY })
+      const press = async (name: string): Promise<KeyboardEvent> => {
+        const event = new KeyboardEvent('keydown', { key: name, bubbles: true, cancelable: true })
+        grid(element).querySelector('[tabindex="0"]')!.dispatchEvent(event)
+        await element.updateComplete
+        return event
+      }
+      // The tab stop starts on today; the day after it is past `maxDate` and picks nothing.
+      await press('ArrowRight')
+      expect(cell(element, 8).getAttribute('tabindex')).toBe('0')
+      expect((await press(key)).defaultPrevented).toBe(true)
+      expect(element.draft).toEqual({ from: null, to: null })
+      await press('ArrowLeft')
+      await press(key)
+      expect(element.draft).toEqual(clicked.draft)
+      expect(element.draft.from).toBe('07-10-2026')
+    })
+  }
 })

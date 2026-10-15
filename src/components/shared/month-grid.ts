@@ -1,6 +1,6 @@
 /**
  * The one month grid of the date input and the date range: the weekday heads, the weeks as day
- * buttons, their states and their keys. Its owner draws it in its own root, with `monthGridCss`,
+ * cells, their states and their keys. Its owner draws it in its own root, with `monthGridCss`,
  * and says per day what it means there.
  */
 import { html, nothing, type TemplateResult } from 'lit'
@@ -25,7 +25,7 @@ export interface MonthGrid {
   /** The day marked as today, ISO. */
   today: string
   day: (iso: string) => GridDay
-  /** A press on a day that is not blocked. */
+  /** A click, Enter or Space on a day that is not blocked. */
   onPick: (iso: string) => void
   /** An arrow, Home, End or PageUp/PageDown: the day the tab stop goes to, in any month. */
   onMove: (iso: string) => void
@@ -34,6 +34,12 @@ export interface MonthGrid {
 export function renderMonthGrid(grid: MonthGrid): TemplateResult {
   const month = startOfMonth(grid.focus).slice(0, 7)
   const onKeydown = (event: KeyboardEvent): void => {
+    // The cell is no button, so Enter and Space pick the day with the tab stop here.
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      if (!grid.day(grid.focus).blocked) grid.onPick(grid.focus)
+      return
+    }
     const move = DAY_MOVES[event.key]
     if (!move) return
     event.preventDefault()
@@ -59,8 +65,9 @@ export function renderMonthGrid(grid: MonthGrid): TemplateResult {
           }
           const day = grid.day(iso)
           const today = iso === grid.today
-          return html`<button
-            type="button"
+          // The cell itself takes the focus, as in the WAI-ARIA date picker: a button may not
+          // carry the role of a cell.
+          return html`<span
             role="gridcell"
             class=${classMap({
               'lintje-month-grid__day': true,
@@ -79,7 +86,7 @@ export function renderMonthGrid(grid: MonthGrid): TemplateResult {
             }}
           >
             ${Number(iso.slice(8))}
-          </button>`
+          </span>`
         })}
       </div>`,
     )}

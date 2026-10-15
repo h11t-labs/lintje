@@ -19,6 +19,9 @@
   color: var(--color-text-primary);
   font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
+  /* What a button had: a day is pressed, not read. */
+  cursor: pointer;
+  user-select: none;
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-month-grid__day:hover { background: var(--color-bg-subtle); }

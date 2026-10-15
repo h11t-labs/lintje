@@ -418,7 +418,9 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een kalender is één maandraster**, in de datuminvoer en de datumreeks evengoed: zoveel weken
   als de maand heeft, de dagen ernaast leeg, de cellen zonder afstand. Vandaag is een ring in de
   accentlijn, nooit een statuskleur; een gekozen dag, en begin en eind van een periode, zijn
-  gevuld in de primaire kleur, en de dagen ertussen dragen een tint ervan.
+  gevuld in de primaire kleur, en de dagen ertussen dragen een tint ervan. Een dag is zelf een
+  cel van het raster, geen knop: de cel neemt de focus, de pijlen lopen erlangs en Enter en
+  spatie kiezen hem, zoals het datumraster van de WAI-ARIA Authoring Practices.
 
 ### Feedback
 
