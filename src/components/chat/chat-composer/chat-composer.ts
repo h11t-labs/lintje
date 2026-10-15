@@ -814,15 +814,14 @@ export class LintjeChatComposer extends LintjeElement {
         : (this.hint ?? '')
     return html`${
       this.collapsible
-        ? html`<lintje-button
+        ? html`<lintje-icon-button
             class="lintje-chat-composer__collapse"
-            variant="tertiary"
-            size="chrome"
             icon="functioneel-delta-omlaag"
+            label="Inklappen"
+            variant="flat"
             .expanded=${true}
             @click=${() => this.emitLocal('lintje-composer-collapse')}
-            >Inklappen</lintje-button
-          >`
+          ></lintje-icon-button>`
         : nothing
     }${
       this.takesFiles

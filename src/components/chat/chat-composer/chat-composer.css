@@ -30,7 +30,9 @@
   outline-offset: var(--focus-offset);
 }
 .lintje-chat-composer__expand-icon { flex: none; color: var(--color-text-primary); }
-.lintje-chat-composer__collapse { flex: none; }
+/* A phone's bar has no room for the word: the chevron, named "Inklappen", leads the bar. */
+.lintje-chat-composer__collapse { flex: none; margin-right: auto; --h-icon-button: var(--h-button); }
+.lintje-chat-composer__collapse:has(+ .lintje-chat-composer__attach) { margin-right: 0; }
 
 /* The attachments stand inside the frame, above the field and on the line of its text, so the
    frame's border and ring hold them. */
