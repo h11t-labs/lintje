@@ -1,5 +1,6 @@
 /* Inline, in the letter of where it stands: a table cell (16 px), the facts of a card (14 px). */
-:host { display: inline-flex; min-width: 0; max-width: 100%; vertical-align: middle; }
+/* `font: inherit` undoes the base's own letter on every host. */
+:host { display: inline-flex; min-width: 0; max-width: 100%; vertical-align: middle; font: inherit; }
 :host([hidden]) { display: none; }
 
 /* ------------------------------------------------------------------------ */

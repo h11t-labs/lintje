@@ -85,10 +85,16 @@ export class LintjePersonGroup extends LintjeElement {
     const shown = people.length > max ? people.slice(0, max - 1) : people
     const more = people.length - shown.length
     const label = this.label || 'Personen'
-    const name = `${label}: ${spoken(
+    // The name starts with what the button shows, so a reader who speaks it is understood (2.5.3).
+    const seen = [
+      ...shown.flatMap((person) => (person.initials ? [person.initials] : [])),
+      ...(more > 0 ? [`+${more}`] : []),
+    ].join(' ')
+    const named = `${label}: ${spoken(
       shown.map((person) => person.name),
       more,
     )}`
+    const name = seen ? `${seen}, ${named}` : named
     const headingId = `${this.#listId}-heading`
     return html`<span class="lintje-person-group">
       <button
@@ -99,7 +105,8 @@ export class LintjePersonGroup extends LintjeElement {
         aria-controls=${this.#listId}
         @click=${() => this.setOpen(!this.open)}
       >
-        ${shown.map((person) => renderAvatar(person, { size }))}
+        <!-- A space between the circles, which the flex row drops: the initials read as words. -->
+        ${shown.map((person) => html`${renderAvatar(person, { size })} `)}
         ${
           more > 0
             ? renderAvatar(

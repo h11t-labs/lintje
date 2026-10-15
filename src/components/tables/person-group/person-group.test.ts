@@ -36,18 +36,21 @@ const circles = (element: LintjePersonGroup): string[] =>
   )
 
 describe('lintje-person-group', () => {
-  it('shows max − 1 circles and "+n" when there are more people', async () => {
+  it('shows max − 1 circles and "+n", and starts its name with what it shows', async () => {
     const element = await mount()
     expect(circles(element)).toEqual(['AB', 'SY', 'MJ', '+3'])
     expect(button(element).getAttribute('aria-label')).toBe(
-      'Meelezers: A. Bakker, S. Yılmaz, M. Jansen en 3 anderen',
+      'AB SY MJ +3, Meelezers: A. Bakker, S. Yılmaz, M. Jansen en 3 anderen',
     )
   })
 
   it('shows everyone when they fit, and counts a max under 2 as 2', async () => {
     const two = await mount({ people: PEOPLE.slice(0, 2) })
     expect(circles(two)).toEqual(['AB', 'SY'])
-    expect(button(two).getAttribute('aria-label')).toBe('Meelezers: A. Bakker en S. Yılmaz')
+    expect(button(two).getAttribute('aria-label')).toBe('AB SY, Meelezers: A. Bakker en S. Yılmaz')
+    // Without initials the button shows no text, and its name is the label and the names.
+    const icons = await mount({ people: [{ name: 'Extern account' }, { name: 'L. de Boer' }] })
+    expect(button(icons).getAttribute('aria-label')).toBe('Meelezers: Extern account en L. de Boer')
     const small = await mount({ max: 1 })
     expect(circles(small)).toEqual(['AB', '+5'])
   })

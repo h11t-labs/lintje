@@ -79,6 +79,11 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
     if (isPlainClick(event)) this.followLink(href, event)
   }
 
+  private slotOnly(item: DescriptionItem): boolean {
+    const missing = item.value === null || item.value === undefined || item.value === ''
+    return Boolean(item.slot) && missing && !item.tags && !item.tone
+  }
+
   private value(item: DescriptionItem): TemplateResult {
     if (item.tags) {
       return item.tags.length
@@ -135,10 +140,15 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
         >${grid && item.icon ? renderIcon(item.icon, { size: 16 }) : nothing}${item.label}</dt
       >
       <dd class="lintje-description-list__value">
-        <span class="lintje-description-list__main">
-          ${tone && tone !== 'changed' ? renderIcon(TONE_ICON[tone], { size: 16 }) : nothing}
-          ${this.value(item)}
-        </span>
+        ${
+          // A slot that says it all stands where the value would, not after an empty one.
+          this.slotOnly(item)
+            ? nothing
+            : html`<span class="lintje-description-list__main">
+                ${tone && tone !== 'changed' ? renderIcon(TONE_ICON[tone], { size: 16 }) : nothing}
+                ${this.value(item)}
+              </span>`
+        }
         ${item.slot ? html`<slot name=${item.slot}></slot>` : nothing}
         ${
           tone === 'changed'

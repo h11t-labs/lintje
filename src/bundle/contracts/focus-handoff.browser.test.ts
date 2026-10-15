@@ -36,6 +36,7 @@ import '../../components/content/transcript/transcript'
 import '../../components/content/translator/translator'
 import '../../components/content/video-player/video-player'
 import '../../components/frame/shell/shell'
+import '../../components/tables/person-group/person-group'
 import { holdsFocus } from '../../core/focus'
 import type { UploadFile } from '../../components/inputs/file-upload/file-upload'
 import type { LintjeList, ListItem } from '../../components/tables/list/list'
@@ -1615,6 +1616,40 @@ const SUB_NAV_ROWS: Row[] = [
   },
 ]
 
+/* --- lintje-person-group ---------------------------------------------------- */
+
+/** The list of a row of people, opened from the keyboard, with the focus on its first name. */
+async function peopleOpenOnName(): Promise<HTMLElement> {
+  const element = await mount<HTMLElement>('lintje-person-group', {
+    label: 'Meelezers',
+    people: [
+      { name: 'A. Bakker', initials: 'AB', href: '#ab' },
+      { name: 'S. Yılmaz', initials: 'SY', href: '#sy' },
+      { name: 'M. Jansen', initials: 'MJ' },
+    ],
+  })
+  const toggle = (): HTMLElement | null => inside(element, '.lintje-person-group__button')
+  await drawn(toggle)
+  toggle()!.focus()
+  await userEvent.keyboard('{Enter}')
+  const name = (): HTMLElement | null => inside(element, 'lintje-person', 'a')
+  await drawn(name)
+  name()!.focus()
+  return element
+}
+
+const PERSON_GROUP_ROWS: Row[] = [
+  {
+    name: 'lintje-person-group :: the list, closed with Escape from a name, hands its focus to its button',
+    run: async () => {
+      const element = await peopleOpenOnName()
+      await userEvent.keyboard('{Escape}')
+      await expect.poll(() => element.hasAttribute('open')).toBe(false)
+      return () => inside(element, '.lintje-person-group__button')
+    },
+  },
+]
+
 /* --- The shell ------------------------------------------------------------- */
 
 const NAVIGATION = [
@@ -1791,6 +1826,7 @@ const ROWS: Row[] = [
   ...REDRAWN_ROWS,
   ...VIEW_ROWS,
   ...SUB_NAV_ROWS,
+  ...PERSON_GROUP_ROWS,
   ...SHELL_ROWS,
 ]
 

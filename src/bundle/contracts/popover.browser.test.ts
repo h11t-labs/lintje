@@ -18,6 +18,7 @@ import '../../components/inputs/text-editor/text-editor'
 import '../../components/frame/notifications/notifications'
 import '../../components/tables/data-table/data-table'
 import '../../components/frame/user-menu/user-menu'
+import '../../components/tables/person-group/person-group'
 import '../../components/frame/shell/shell'
 import type { DataTableData, FilterOption, ShellData } from '../../types'
 
@@ -603,6 +604,34 @@ const ROWS: Row[] = [
       return {
         anchor: trigger,
         surface: () => popoverSurface(menu),
+        returnsTo: trigger,
+        opener: trigger,
+      }
+    },
+  },
+  {
+    name: 'lintje-person-group',
+    onScroll: 'follows',
+    // A disclosure: the focus stays on its button, and Tab goes on through the names that link.
+    opens: 'opener',
+    shiftTab: 'stays',
+    async open(stage) {
+      const group = create<Lit & { label: string; people: unknown[] }>('lintje-person-group')
+      group.label = 'Meelezers'
+      group.people = [
+        { name: 'A. Bakker', initials: 'AB', role: 'Behandelaar', href: '#ab' },
+        { name: 'S. Yılmaz', initials: 'SY', role: 'Jurist', href: '#sy' },
+        { name: 'M. Jansen', initials: 'MJ' },
+        { name: 'R. Visser', initials: 'RV', href: '#rv' },
+        { name: 'L. de Boer', initials: 'LB' },
+      ]
+      stage.append(group)
+      await group.updateComplete
+      const trigger = part(group, '.lintje-person-group__button')
+      await press(trigger, '{Enter}')
+      return {
+        anchor: trigger,
+        surface: () => popoverSurface(group),
         returnsTo: trigger,
         opener: trigger,
       }

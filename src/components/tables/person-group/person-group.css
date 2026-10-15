@@ -1,6 +1,6 @@
 /* `--lintje-avatar-gap`: the ground the row stands on, for the rings between the circles (a
    selected row, the page); default the surface. The list is a fixed popover and takes no space. */
-:host { display: inline-flex; min-width: 0; vertical-align: middle; }
+:host { display: inline-flex; min-width: 0; vertical-align: middle; font: inherit; }
 :host([hidden]) { display: none; }
 
 /* ------------------------------------------------------------------------ */
