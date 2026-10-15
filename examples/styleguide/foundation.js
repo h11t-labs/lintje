@@ -97,8 +97,8 @@ const PAGES = {
       {
         id: 'elements',
         label: 'Voor één element',
-        note: 'Wat één element zelf noemt: de QR-code, de lijn onder een term, een gekozen optie en de tint onder een spreker.',
-        claims: by(/^--(color-(qr|term|choice)-|tint-)/),
+        note: 'Wat één element zelf noemt: de QR-code, het beeld van een video, de lijn onder een term, een gekozen optie en de tint onder een spreker.',
+        claims: by(/^--(color-(qr|media|term|choice)-|tint-)/),
       },
     ],
   },
