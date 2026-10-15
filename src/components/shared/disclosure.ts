@@ -10,8 +10,8 @@ import {
   type ReactiveControllerHost,
   type TemplateResult,
 } from 'lit'
-import { renderIcon, renderLeadingIcon } from '../../icons/render'
 import type { HeadingLevel } from './empty-state-block'
+import { renderIcon, renderLeadingIcon } from '../../icons/render'
 
 let sequence = 0
 
