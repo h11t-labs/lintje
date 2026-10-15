@@ -786,6 +786,8 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     const unread = !this.following && this.unreadFrom
     const newCount = unread ? shown.length - shown.findIndex((e) => e.id === this.unreadFrom) : 0
 
+    // In the tile the active row is the one tab stop; -1 keeps Firefox from making the
+    // scroller a second one. Keys on that row still scroll it.
     return html`<div
       class=${classMap({
         'lintje-log-viewer__log': true,
@@ -796,7 +798,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       role="log"
       aria-live="off"
       aria-label=${data?.title ?? 'Log'}
-      tabindex=${inTile ? nothing : '0'}
+      tabindex=${inTile ? '-1' : '0'}
       @scroll=${inTile ? this.onScroll : nothing}
       @keydown=${inTile ? this.onRowsKeydown : nothing}
     >
