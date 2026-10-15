@@ -383,6 +383,9 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
   markering van de andere weergave, niet alleen een andere hoogte.
 - `sticky.browser.test.ts` — wat plakt: het houdt zijn hoogte vrij als scroll-padding, en een
   bedieningselement dat de focus krijgt, staat er niet onder.
+- `required.browser.test.ts` — elke invoer met `required` in een natief `<form>`: leeg houdt hij
+  het versturen tegen, gevuld of uitgeschakeld niet, en de melding van de browser landt op het
+  bedieningselement dat ook de focus krijgt.
 - `truncate.browser.test.ts` — tekst met een beletselteken: met een aanwijzer staat hij op één
   regel en, als hij is afgekapt, heel in de `title`; onder de focus van het toetsenbord en op 390
   en 320 px loopt hij door en blijft hij binnen zijn ouder. Tekst die niets een `title` laat tonen,

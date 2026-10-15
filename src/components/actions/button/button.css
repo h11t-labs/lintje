@@ -77,7 +77,7 @@
   color: var(--color-accent-text);
   border-color: var(--color-action-secondary-border);
 }
-.lintje-button--secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-bg-selected); }
+.lintje-button--secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-bg-subtle); }
 
 .lintje-button--tertiary {
   background: transparent;

@@ -128,6 +128,19 @@
   background: var(--color-error-bg);
   box-shadow: inset 0 3px 0 var(--color-error-line);
 }
+/* A word on a status tint: in dark the link colour falls short there. The hover keeps its own. */
+.lintje-description-list--grid .is-success .lintje-description-list__link,
+.lintje-description-list--grid .is-success .lintje-description-list__action,
+.lintje-description-list--grid .is-info .lintje-description-list__link,
+.lintje-description-list--grid .is-info .lintje-description-list__action,
+.lintje-description-list--grid .is-attention .lintje-description-list__link,
+.lintje-description-list--grid .is-attention .lintje-description-list__action,
+.lintje-description-list--grid .is-warning .lintje-description-list__link,
+.lintje-description-list--grid .is-warning .lintje-description-list__action,
+.lintje-description-list--grid .is-error .lintje-description-list__link,
+.lintje-description-list--grid .is-error .lintje-description-list__action { color: var(--color-link-on-status); }
+.lintje-description-list--grid .lintje-description-list__row .lintje-description-list__link:hover,
+.lintje-description-list--grid .lintje-description-list__row .lintje-description-list__action:hover { color: var(--color-link-hover); }
 .lintje-description-list__row.is-success .lintje-description-list__main .lintje-icon { color: var(--color-success-line); }
 .lintje-description-list__row.is-info .lintje-description-list__main .lintje-icon { color: var(--color-info-line); }
 .lintje-description-list__row.is-error .lintje-description-list__main .lintje-icon { color: var(--color-error-line); }

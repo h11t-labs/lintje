@@ -1181,7 +1181,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
           ),
         onReset: () => this.resetColumns(),
         isDefault: this.columnsAreDefault,
-        onClose: () => this.closePanel(panel),
+        onClose: (reason) => this.closePanel(panel, reason !== 'focus'),
         onLeave: (how) => this.leavePanel(panel, how),
       })
     }
@@ -1217,7 +1217,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       },
       onApply: () => this.applyFilters([column.key], false),
       onClear: () => this.applyFilters([column.key], true),
-      onClose: () => this.closePanel(panel),
+      onClose: (reason) => this.closePanel(panel, reason !== 'focus'),
       onLeave: (how) => this.leavePanel(panel, how),
     })
   }
