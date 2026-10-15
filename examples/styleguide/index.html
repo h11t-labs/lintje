@@ -442,6 +442,8 @@
       }
       .guide__specimen { min-width: 0; margin: 0; background: var(--color-bg-surface); border: 1px solid var(--color-border-default); }
       .guide__stage { padding: var(--space-8); font: var(--text-ui); color: var(--color-text-primary); }
+      /* The stage is the host of slotted markup: its links take the page's link colour, as a host's would. */
+      .guide__stage a { color: var(--color-link); }
       .guide__specimen-code { padding: 0 var(--space-4); border-top: 1px solid var(--color-border-default); }
       .guide__specimen-code .guide__codebox { padding: 0 0 var(--space-3); border-top: 0; background: none; }
       /* The code under a specimen, once asked for: its ways as tabs, Kopiëren under the code. */
