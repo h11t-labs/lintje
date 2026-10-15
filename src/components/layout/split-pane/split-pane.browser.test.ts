@@ -119,16 +119,30 @@ describe.skipIf(server.browser !== 'chromium')('lintje-split-pane with a finger'
     await cdp().send('Input.dispatchTouchEvent', { type, touchPoints })
   }
 
-  async function coarse(on: boolean): Promise<void> {
-    await cdp().send('Emulation.setTouchEmulationEnabled', { enabled: on, maxTouchPoints: 1 })
-    await expect.poll(() => matchMedia('(pointer: coarse)').matches).toBe(on)
+  // Touch emulation is page-wide and, switched off, leaves headless Chromium on Linux without
+  // hover for the files after this one; the finger's rule is switched on in this frame instead.
+  const FINGER = '(pointer: coarse)'
+  let fingerRule: CSSMediaRule | undefined
+
+  function coarse(element: LintjeSplitPane): void {
+    fingerRule = element
+      .shadowRoot!.adoptedStyleSheets.flatMap((sheet) => [...sheet.cssRules])
+      .find(
+        (rule): rule is CSSMediaRule =>
+          rule instanceof CSSMediaRule && rule.conditionText === FINGER,
+      )
+    expect(fingerRule).toBeDefined()
+    fingerRule!.media.mediaText = 'all'
   }
 
-  afterEach(() => coarse(false))
+  afterEach(() => {
+    if (fingerRule) fingerRule.media.mediaText = FINGER
+    fingerRule = undefined
+  })
 
   it('is hit 12 px either side of its middle', async () => {
     const element = await mount()
-    await coarse(true)
+    coarse(element)
     expect(strip(element).getBoundingClientRect().width).toBe(9)
     expect(Number.parseFloat(getComputedStyle(strip(element), '::after').width)).toBe(24)
     expect(hits(element, 11)).toBe(true)
@@ -141,7 +155,7 @@ describe.skipIf(server.browser !== 'chromium')('lintje-split-pane with a finger'
   // area is what the test above measures.
   it('moves the split when touched 10 px beside the strip', async () => {
     const element = await mount()
-    await coarse(true)
+    coarse(element)
     const changes = collect(element, 'lintje-split-change')
     const kinds: string[] = []
     strip(element).addEventListener('pointerdown', (event) => kinds.push(event.pointerType))
