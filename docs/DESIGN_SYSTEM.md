@@ -415,6 +415,10 @@ De besluiten hieronder gelden voor alle elementen.
   eigen inhoud dragen, zonder vlak eromheen en zonder eigen kleur: in de kolom onder zijn kop,
   waar de rail langs doorloopt; in de rij en op een telefoon alleen die van de huidige stap,
   onder de rij of de balk.
+- **Een kalender is één maandraster**, in de datuminvoer en de datumreeks evengoed: zoveel weken
+  als de maand heeft, de dagen ernaast leeg, de cellen zonder afstand. Vandaag is een ring in de
+  accentlijn, nooit een statuskleur; een gekozen dag, en begin en eind van een periode, zijn
+  gevuld in de primaire kleur, en de dagen ertussen dragen een tint ervan.
 
 ### Feedback
 

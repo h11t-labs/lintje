@@ -22,7 +22,7 @@ const control = (element: LintjeDateInput): HTMLInputElement =>
 const toggle = (element: LintjeDateInput): HTMLButtonElement =>
   element.shadowRoot!.querySelector('.lintje-date-input__toggle')!
 const cell = (element: LintjeDateInput, day: number): HTMLButtonElement =>
-  [...element.shadowRoot!.querySelectorAll<HTMLButtonElement>('.lintje-date-input__day')].find(
+  [...element.shadowRoot!.querySelectorAll<HTMLButtonElement>('.lintje-month-grid__day')].find(
     (button) => button.textContent!.trim() === String(day),
   )!
 
@@ -156,8 +156,8 @@ describe('the calendar', () => {
     expect(cell(element, 3).getAttribute('tabindex')).toBe('0')
     expect(cell(element, 4).getAttribute('aria-current')).toBe('date')
     // October 2026 starts on a Thursday: three empty cells before the first.
-    const first = element.shadowRoot!.querySelectorAll('.lintje-date-input__row')[1]
-    expect(first.querySelectorAll('.lintje-date-input__blank')).toHaveLength(3)
+    const first = element.shadowRoot!.querySelectorAll('.lintje-month-grid__row')[1]
+    expect(first.querySelectorAll('.lintje-month-grid__blank')).toHaveLength(3)
   })
 
   it('moves the focus with the keys and turns the month', async () => {

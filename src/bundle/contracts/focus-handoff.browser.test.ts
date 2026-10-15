@@ -676,7 +676,7 @@ const INPUT_ROWS: Row[] = [
       })
       date.shadowRoot!.querySelector<HTMLElement>('.lintje-date-input__toggle')!.focus()
       await userEvent.keyboard('{Enter}')
-      await expect.poll(() => active()?.classList.contains('lintje-date-input__day')).toBe(true)
+      await expect.poll(() => active()?.classList.contains('lintje-month-grid__day')).toBe(true)
       await userEvent.keyboard('{Enter}')
       return () => date.shadowRoot!.querySelector('.lintje-date-input__control')
     },
