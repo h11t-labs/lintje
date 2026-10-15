@@ -7,7 +7,7 @@
  * `{id: null, href: clearHref}`; without a `clearHref` the clear is inert.
  */
 import { nothing } from 'lit'
-import { isPlainClick } from '../../../../core/links'
+import { isNewTabClick } from '../../../../core/links'
 import type { ChartOptions } from './controller'
 import type { ChartLink } from './types'
 
@@ -28,6 +28,7 @@ export interface MarkAttributes {
   tabIndex: 0 | typeof nothing
   pressed: 'true' | 'false' | typeof nothing
   label: string | typeof nothing
+  /** Bound to both `click` and `auxclick`: the middle button opens the mark's `href` in a new tab. */
   click: ((event: MouseEvent) => void) | typeof nothing
   keydown: ((event: KeyboardEvent) => void) | typeof nothing
 }
@@ -90,9 +91,12 @@ export function markSelection(
         tabIndex: 0,
         pressed: selected ? 'true' : 'false',
         label: sentence ?? label,
-        // A click with a modifier sends nothing, as on a link.
+        // A modifier or middle click opens the href in a new tab, as on a link.
         click: (event: MouseEvent) => {
-          if (isPlainClick(event)) select(link, label)
+          if (isNewTabClick(event)) {
+            event.preventDefault()
+            options.onSelect?.({ id: link.id, label, href: link.href }, true)
+          } else if (event.type === 'click') select(link, label)
         },
         keydown: (event: KeyboardEvent) => {
           if (event.key !== 'Enter' && event.key !== ' ') return

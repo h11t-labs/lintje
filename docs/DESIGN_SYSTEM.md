@@ -458,8 +458,8 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een rij of teken met een `href` gaat erheen**, tenzij de host zijn event annuleert: een
   klikbare tabelrij, een teken in een grafiek en een markering op de kaart, zoals een linkrij van
   de lijst. Het element gaat via `lintje-navigate`, zodat een router het overneemt; een selectie
-  ongedaan maken gaat zo naar de `clearHref`. Zonder `<a>` stuurt een klik met een
-  modificatietoets niets.
+  ongedaan maken gaat zo naar de `clearHref`. Een klik met een modificatietoets of de middelste
+  knop opent de `href` in een nieuw tabblad, zoals een link, via `lintje-navigate` met `newTab`.
 - **Toetsen lopen via één register** (`src/core/shortcuts.ts`). Een toets is nooit de enige manier
   om iets te doen, en een toets zonder modificatietoets gaat nooit af zolang de focus in een veld
   staat. De eigen toetsen van een speler (spatie, de pijlen, F, C) werken alleen zolang de focus

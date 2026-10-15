@@ -28,8 +28,10 @@ Zo werken ook een klikbare rij van `lintje-data-table` (`lintje-row-click`, `lin
 teken in `lintje-chart` en een markering op `lintje-map` (`lintje-mark-select`) met een `href`:
 eerst het event, en annuleert niemand het, dan gaat het element naar de `href`, via
 `lintje-navigate`, zodat een router het daar opvangt. Een selectie ongedaan maken gaat zo naar de
-`clearHref`. Zonder `href` is er alleen het event. Een klik met een modifier op zo'n rij of teken
-stuurt niets; omdat het geen `<a>` is, opent de browser er ook geen tabblad voor.
+`clearHref`. Zonder `href` is er alleen het event. Een klik met een modifier of met de middelste
+knop op zo'n rij of teken stuurt hun event niet, maar opent de `href` in een nieuw tabblad, zoals
+een link: dan heeft `lintje-navigate` `{ href, newTab: true }`. Een router die `lintje-navigate`
+annuleert, ziet aan `newTab` dat de lezer een nieuw tabblad vroeg, en opent het zelf of laat het.
 
 Een instelling van de lezer in de shell — modus, thema, waar het menu staat — is geen link:
 `lintje-shell` stuurt `lintje-view-change` met de instelling die veranderde en laat het aan jou over

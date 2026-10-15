@@ -119,7 +119,8 @@ draagt zelf `id` en `href`, zoals een tabelrij; een markering die een kaal
 getal is, krijgt een `ChartLink` uit de `links` van de grafiek, item voor item.
 `components/shared/charts/shared/mark-select.ts` doet het werk: `markSelection(options, links)` geeft een renderfunctie
 de attributen per markering en de Escape-handler voor de wrapper. Een klik met een
-modificatietoets stuurt niets, zoals op een link.
+modificatietoets of de middelste knop (`auxclick`, aan dezelfde `click` gebonden) opent de `href` in
+een nieuw tabblad, zoals een link: `onSelect` krijgt dan `newTab`.
 
 Twee verschillen met de kaart. Een grafiek houdt **geen** eigen selectie bij:
 `selectedId` is alles wat er is en komt uit de URL, dus een klik navigeert en

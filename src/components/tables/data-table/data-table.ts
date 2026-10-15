@@ -5,7 +5,7 @@
  * change at once, and the host confirms it in the next `data`. Open rows and collapsed groups are
  * the table's own: it sends nothing for them. A row with an `href` goes there after its
  * `lintje-row-click` or `lintje-row-open`, which is cancelable: a host that routes itself cancels
- * it. A click with a modifier on such a row sends nothing.
+ * it. A modifier or middle click on such a row opens the `href` in a new tab, without that event.
  *
  * Events: `lintje-sort-change` `{ key, direction } | null`, `lintje-row-click`
  * `{ id, label, href? }`, `lintje-row-open` `{ id, label, href? }`, `lintje-checked-change`
@@ -23,7 +23,7 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { ref } from 'lit/directives/ref.js'
 import { define, type FrameSettings } from '../../../core/element'
-import { isPlainClick } from '../../../core/links'
+import { isNewTabClick } from '../../../core/links'
 import { shadowCss } from '../../../core/styles'
 import { spanStyles } from '../../shared/grid-item-element'
 import { LintjeContentTileElement } from '../../shared/content-tile'
@@ -1489,6 +1489,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         tabindex=${clickable ? 0 : nothing}
         aria-selected=${clickable ? selected : nothing}
         @click=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
+        @auxclick=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
         @keydown=${clickable ? (event: KeyboardEvent) => this.rowKeydown(event, row) : nothing}
       >
         ${
@@ -1943,6 +1944,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         tabindex=${clickable ? 0 : nothing}
         aria-selected=${clickable ? selected : nothing}
         @click=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
+        @auxclick=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
         @keydown=${clickable ? (event: KeyboardEvent) => this.rowKeydown(event, row) : nothing}
       >
         <th scope="row" class="lintje-data-table__mobile-cell">
@@ -2077,7 +2079,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
 
   /**
    * The host may take the row over by cancelling the event; else the page goes to its `href`. A
-   * click with a modifier on a row with an `href` sends nothing, as on a link.
+   * modifier or middle click opens the `href` in a new tab, as on a link, without the event.
    */
   private activate(
     name: 'lintje-row-click' | 'lintje-row-open',
@@ -2085,7 +2087,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
     event?: MouseEvent,
   ): void {
     const detail = this.rowDetail(row)
-    if (detail.href && event && !isPlainClick(event)) return
+    if (event && detail.href && isNewTabClick(event)) {
+      event.preventDefault()
+      return this.followLink(detail.href, undefined, undefined, { newTab: true })
+    }
+    // Without an href the middle button does nothing; a modifier click is still a click.
+    if (event?.type === 'auxclick') return
     if (this.emit(name, detail) && detail.href) this.followLink(detail.href)
   }
 
@@ -2129,6 +2136,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
       type="button"
       class="lintje-data-table__open"
       @click=${(event: MouseEvent) => {
+        event.stopPropagation()
+        this.activate('lintje-row-open', row, event)
+      }}
+      @auxclick=${(event: MouseEvent) => {
         event.stopPropagation()
         this.activate('lintje-row-open', row, event)
       }}

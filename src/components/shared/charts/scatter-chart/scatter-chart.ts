@@ -277,7 +277,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
       `
       : nothing,
 
-    svg`<g @mousemove=${pointer} @mouseleave=${() => controller.hoverAt(null)} @click=${click}>
+    svg`<g @mousemove=${pointer} @mouseleave=${() => controller.hoverAt(null)} @click=${click} @auxclick=${click}>
       <rect class="lintje-chart__hit ${pointing ? 'is-clickable' : ''}"
             x="0" y="0" width=${area.width} height=${area.height} />
       <g>

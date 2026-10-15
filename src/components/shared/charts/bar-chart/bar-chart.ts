@@ -91,7 +91,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
                 x=${slot.x} y=${y} width=${slot.width} height=${Math.max(0, baseline - y)} fill=${color}
                 data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
                 aria-pressed=${mark.pressed} aria-label=${mark.label}
-                @click=${mark.click} @keydown=${mark.keydown} />
+                @click=${mark.click} @auxclick=${mark.click} @keydown=${mark.keydown} />
           ${
             showLabels
               ? svg`<text x=${slot.center} y=${y - 5} text-anchor="middle" class="lintje-chart__data-label">

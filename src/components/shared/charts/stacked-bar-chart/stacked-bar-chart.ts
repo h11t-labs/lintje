@@ -161,7 +161,7 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
                   data-mark-id=${mark?.markId ?? nothing} role=${mark?.role ?? nothing}
                   tabindex=${mark?.tabIndex ?? nothing} aria-pressed=${mark?.pressed ?? nothing}
                   aria-label=${mark?.label ?? nothing} aria-hidden=${mark ? nothing : 'true'}
-                  @click=${mark?.click ?? nothing} @keydown=${mark?.keydown ?? nothing} />
+                  @click=${mark?.click ?? nothing} @auxclick=${mark?.click ?? nothing} @keydown=${mark?.keydown ?? nothing} />
           `
           })}
         </g>

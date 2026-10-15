@@ -350,13 +350,28 @@ describe('lintje-chart, a mark with an href', () => {
     expect(assign).not.toHaveBeenCalled()
   })
 
-  it('leaves a click with a modifier to the browser: no event', async () => {
+  it('opens it in a new tab on a modifier or middle click, without lintje-mark-select', async () => {
     const assign = stub()
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
     const element = await tile(PIE)
     const selects = heard(element)
     mark(element, 'noord').dispatchEvent(new MouseEvent('click', { ctrlKey: true }))
+    mark(element, 'zuid').dispatchEvent(new MouseEvent('auxclick', { button: 1 }))
+    mark(element, 'zuid').dispatchEvent(new MouseEvent('auxclick', { button: 2 }))
     expect(selects).toEqual([])
+    expect(open.mock.calls).toEqual([
+      ['?regio=noord', '_blank', 'noopener'],
+      ['?regio=zuid', '_blank', 'noopener'],
+    ])
     expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('opens no tab when the host cancels lintje-navigate', async () => {
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const element = await tile(PIE)
+    element.addEventListener('lintje-navigate', (event) => event.preventDefault())
+    mark(element, 'noord').dispatchEvent(new MouseEvent('auxclick', { button: 1 }))
+    expect(open).not.toHaveBeenCalled()
   })
 
   it('goes to clearHref when the chosen mark is undone, unless cancelled', async () => {

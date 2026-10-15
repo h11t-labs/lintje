@@ -368,13 +368,34 @@ describe('a row with an href', () => {
     expect(assign).not.toHaveBeenCalled()
   })
 
-  it('leaves a click with a modifier to the browser: no event', async () => {
+  it('opens it in a new tab on a modifier or middle click, without lintje-row-click', async () => {
     const assign = stub()
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
     const element = await linked()
     const clicks = heard(element, 'lintje-row-click')
+    const navigations = heard(element, 'lintje-navigate')
     row(element, 'Utrecht').dispatchEvent(new MouseEvent('click', { ctrlKey: true }))
+    const middle = new MouseEvent('auxclick', { button: 1, cancelable: true })
+    row(element, 'Utrecht').dispatchEvent(middle)
+    // The right button opens the context menu, nothing else.
+    row(element, 'Utrecht').dispatchEvent(new MouseEvent('auxclick', { button: 2 }))
     expect(clicks).toEqual([])
+    expect(navigations).toEqual([
+      { href: '?loket=utrecht', newTab: true },
+      { href: '?loket=utrecht', newTab: true },
+    ])
+    expect(open).toHaveBeenCalledTimes(2)
+    expect(open).toHaveBeenCalledWith('?loket=utrecht', '_blank', 'noopener')
+    expect(middle.defaultPrevented).toBe(true)
     expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('opens no tab when the host cancels lintje-navigate', async () => {
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const element = await linked()
+    element.addEventListener('lintje-navigate', (event) => event.preventDefault())
+    row(element, 'Utrecht').dispatchEvent(new MouseEvent('click', { ctrlKey: true }))
+    expect(open).not.toHaveBeenCalled()
   })
 
   it('only sends the event for a row without one, also with a modifier', async () => {
@@ -383,6 +404,7 @@ describe('a row with an href', () => {
     const clicks = heard(element, 'lintje-row-click')
     row(element, 'Rotterdam').click()
     row(element, 'Rotterdam').dispatchEvent(new MouseEvent('click', { ctrlKey: true }))
+    row(element, 'Rotterdam').dispatchEvent(new MouseEvent('auxclick', { button: 1 }))
     expect(clicks).toEqual([
       { id: 'Rotterdam', label: 'Rotterdam' },
       { id: 'Rotterdam', label: 'Rotterdam' },
@@ -398,8 +420,10 @@ describe('a row with an href', () => {
     name.click()
     expect(opens).toEqual([{ id: 'Utrecht', label: 'Utrecht', href: '?loket=utrecht' }])
     expect(assign).toHaveBeenCalledWith('?loket=utrecht')
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
     name.dispatchEvent(new MouseEvent('click', { metaKey: true }))
     expect(opens).toHaveLength(1)
+    expect(open).toHaveBeenCalledWith('?loket=utrecht', '_blank', 'noopener')
     element.addEventListener('lintje-row-open', (event) => event.preventDefault())
     name.click()
     expect(assign).toHaveBeenCalledTimes(1)

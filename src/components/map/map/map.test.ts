@@ -228,13 +228,29 @@ describe('lintje-map, a mark with an href', () => {
     expect(assign).not.toHaveBeenCalled()
   })
 
-  it('leaves a click with a modifier to the browser: no event, no selection', async () => {
+  it('opens it in a new tab on a modifier or middle click: no event, no selection', async () => {
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
     const element = await mapTile(withHref())
     heard(element)
     await click(element, point(element, 'ein'), { ctrlKey: true })
+    point(element, 'ams-e').dispatchEvent(new MouseEvent('auxclick', { button: 1, bubbles: true }))
+    point(element, 'ams-e').dispatchEvent(new MouseEvent('auxclick', { button: 2, bubbles: true }))
+    await element.updateComplete
     expect(selects).toEqual([])
     expect(panel(element)).toBeNull()
+    expect(open.mock.calls).toEqual([
+      ['/m?nav.post=ein', '_blank', 'noopener'],
+      ['/m?nav.post=ams-e', '_blank', 'noopener'],
+    ])
     expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('opens no tab when the host cancels lintje-navigate', async () => {
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const element = await mapTile(withHref())
+    element.addEventListener('lintje-navigate', (event) => event.preventDefault())
+    await click(element, point(element, 'ein'), { metaKey: true })
+    expect(open).not.toHaveBeenCalled()
   })
 
   it('only sends the event for a mark without one', async () => {
