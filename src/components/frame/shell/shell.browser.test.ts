@@ -1,10 +1,12 @@
 /**
  * The shell in a browser: the ring in the phone's sheet of "Weergave" is the page's, not the
- * header's, and the side menu draws and drags its own thumb.
+ * header's, the side menu draws and drags its own thumb, and the ribbon in the logo bar grows
+ * with the reader's text size.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { deepActiveElement } from '../../../core/focus'
+import { putIcons } from '../../../icons/loader'
 import './shell'
 import type { LintjeShell } from './shell'
 import type { ShellData } from '../../../types'
@@ -18,9 +20,9 @@ const DATA: ShellData = {
   share: true,
 }
 
-async function mount(): Promise<LintjeShell> {
+async function mount(data: ShellData = DATA): Promise<LintjeShell> {
   const element = document.createElement('lintje-shell')
-  element.data = DATA
+  element.data = data
   element.innerHTML = '<button type="button" class="content">Inhoud</button>'
   document.body.append(element)
   await element.updateComplete
@@ -39,6 +41,7 @@ function focusColour(): string {
 
 afterEach(async () => {
   document.body.replaceChildren()
+  document.documentElement.style.fontSize = ''
   await page.viewport(1440, 900)
   // WebKit resizes the frame after `viewport()` resolves.
   await expect.poll(() => window.innerWidth).toBe(1440)
@@ -117,5 +120,75 @@ describe('the side menu’s thumb', () => {
     const footer = list.parentElement!.querySelector('.lintje-nav__footer') ?? list
     await userEvent.dragAndDrop(thumb, footer)
     await expect.poll(() => list.scrollTop).toBeGreaterThan(0)
+  })
+})
+
+describe('the ribbon in the logo bar', () => {
+  // The emblem's drawing: the 38 × 75 ribbon at x 154 of 346 units.
+  putIcons([
+    [
+      'embleem-proef',
+      { viewBox: '0 0 346 75', body: '<path d="M154 0h38v75h-38z"/>', attributes: {} },
+    ],
+  ])
+  const emblem = { name: 'embleem-proef', label: 'Dienst Vergunningen' }
+
+  const viewport = async (width: number): Promise<void> => {
+    await page.viewport(width, 900)
+    await expect.poll(() => window.innerWidth).toBe(width)
+  }
+
+  /** The drawing of the `lintje-logo` at `selector`, and its ribbon's width from its height. */
+  const drawing = (shell: LintjeShell, selector: string) => {
+    const logo = shell.shadowRoot!.querySelector(selector)!
+    const frame = logo.shadowRoot!.querySelector('.lintje-logo__frame')!
+    const { height } = frame.getBoundingClientRect()
+    return { height, ribbon: (height * 38) / 75 }
+  }
+
+  const bar = (shell: LintjeShell) =>
+    shell.shadowRoot!.querySelector('.lintje-logobar')!.getBoundingClientRect().height
+
+  async function measure(width: number, fontSize: string) {
+    await viewport(width)
+    document.documentElement.style.fontSize = fontSize
+    const shell = await mount({ ...DATA, layout: 'top', emblem })
+    await expect.poll(() => drawing(shell, '.lintje-logobar lintje-logo').ribbon).toBeGreaterThan(0)
+    const result = { ...drawing(shell, '.lintje-logobar lintje-logo'), bar: bar(shell) }
+    shell.remove()
+    return result
+  }
+
+  it('is --w-ribbon wide: 48 px, 40 px below 768 px, at a text size of 16 px', async () => {
+    const desktop = await measure(1440, '16px')
+    expect(desktop.ribbon).toBeCloseTo(48, 0)
+    expect(desktop.bar).toBe(120)
+    const phone = await measure(390, '16px')
+    expect(phone.ribbon).toBeCloseTo(40, 0)
+    expect(phone.bar).toBe(100)
+  })
+
+  it('grows with the bar at a text size of 20 px', async () => {
+    for (const width of [1440, 390]) {
+      const base = await measure(width, '16px')
+      const large = await measure(width, '20px')
+      expect(large.ribbon).toBeCloseTo(base.ribbon * 1.25, 0)
+      expect(large.bar).toBeCloseTo(base.bar * 1.25, 0)
+      expect(large.height / base.height).toBeCloseTo(large.bar / base.bar, 2)
+    }
+  })
+
+  it('leaves the side menu’s logo at 44 px and the mobile header’s at 32 px', async () => {
+    document.documentElement.style.fontSize = '20px'
+    const side = await mount({ ...DATA, emblem })
+    await expect
+      .poll(() => drawing(side, '.lintje-nav__home lintje-logo').ribbon)
+      .toBeCloseTo(44, 0)
+    side.remove()
+    await viewport(390)
+    const phone = await mount({ ...DATA, emblem })
+    await expect
+      .poll(() => drawing(phone, '.lintje-mobile-header__home lintje-logo').ribbon)
+      .toBeCloseTo(32, 0)
   })
 })

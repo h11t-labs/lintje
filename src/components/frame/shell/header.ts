@@ -29,16 +29,11 @@ export interface NavGroup {
   items: ShellLink[]
 }
 
-/** The ribbon's width in px; matches `--w-ribbon`. */
-export const RIBBON_WIDTH = { desktop: 48, phone: 40 } as const
-
 export interface LogoBarOptions {
   /** URL or data URI of an emblem the host resolved itself; wins over `emblem`. */
   logo?: string
   /** The theme's emblem (the ribbon) by file name, with the organisation's name and byline. */
   emblem?: { name: string; label: string; byline?: string }
-  /** `RIBBON_WIDTH.desktop` or `.phone`. */
-  ribbon: number
   /** The environment outside production ("Acceptatie"); a phone shows its first three letters. */
   environment?: string
   /** Without it the logo is not a link. */
@@ -46,10 +41,9 @@ export interface LogoBarOptions {
 }
 
 export function renderLogoBar(options: LogoBarOptions): TemplateResult {
-  const { logo, emblem, ribbon, environment, home } = options
+  const { logo, emblem, environment, home } = options
   const drawing = html`<lintje-logo
     full
-    width=${ribbon}
     src=${logo ?? nothing}
     name=${emblem?.name ?? nothing}
     alt=${emblem?.label ?? nothing}

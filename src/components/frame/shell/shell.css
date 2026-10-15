@@ -196,6 +196,7 @@
     display: flex;
     justify-content: center;
     min-height: var(--h-logobar);
+    --lintje-logo-ribbon: var(--w-ribbon);
   }
   .lintje-shell__print-name {
     margin: 0;

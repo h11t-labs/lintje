@@ -265,7 +265,9 @@ Besluiten die voor beide gelden:
   onderen als sheets met de kop van de filtersheet — hun naam en een sluitknop — en zijn modaal
   zoals die. Het open menu draagt dan alleen zijn sluitknop. Als het gereedschap van de header
   niet past, gemeten, tonen "Filters" en "Menu" alleen hun glyph; hun woord blijft hun naam.
-- **Het lint is de eenheid.** De logobalk en het logo zijn afgeleid van `--w-ribbon`.
+- **Het lint is de eenheid.** De logobalk en het logo zijn afgeleid van `--w-ribbon`, en groeien
+  dus samen mee met de tekstgrootte van de lezer. Het logo in het menu en in de mobiele header
+  houdt de vaste maat van zijn balk.
 - **Het embleem is het eigen bestand van het thema**, door de host genoemd en getekend zoals het
   bestand tekent. Zonder het bestand is een lege plek beter dan een gok. Eén uitzondering, die van
   de huisstijl zelf: in donker neemt een lintblauw lint de lichtere tint van de Rijkshuisstijl,
