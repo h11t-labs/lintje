@@ -886,7 +886,9 @@ kleinste correctie, en leg die hier vast.
   SVG-element met `tabindex` zijn eigen outline, ook zonder `:focus-visible`; `:focus` zet die af,
   en de ring blijft die van het toetsenbord.
 - **Een live-regio wordt leeg getekend en krijgt haar woorden een frame later** (tegel, laadring,
-  toast): een regio die samen met haar tekst wordt ingevoegd, wordt niet voorgelezen.
+  toast): een regio die samen met haar tekst wordt ingevoegd, wordt niet voorgelezen. Zo gaat elke
+  melding, ook dezelfde twee keer na elkaar: de regio staat er al, wordt leeg en krijgt de woorden
+  een frame later.
 - **Wat niet geopend kan worden, zegt dat in woorden**: een menurij zonder pagina of toegang
   draagt een verborgen "niet beschikbaar" of "geen toegang"; `aria-disabled` op een gewoon element
   zegt niets.
