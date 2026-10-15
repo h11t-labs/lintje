@@ -86,6 +86,19 @@ export class LintjeTabs extends LintjeElement {
       focus, and that focus draws no ring. */
   #pressed = false
 
+  /** Only the press itself counts: one cancelled or released elsewhere leaves no mark. */
+  private readonly onPanelPress = (): void => {
+    this.#pressed = true
+    document.addEventListener('pointerup', this.onPressEnd, true)
+    document.addEventListener('pointercancel', this.onPressEnd, true)
+  }
+
+  private readonly onPressEnd = (): void => {
+    this.#pressed = false
+    document.removeEventListener('pointerup', this.onPressEnd, true)
+    document.removeEventListener('pointercancel', this.onPressEnd, true)
+  }
+
   private onPanelFocus(event: FocusEvent): void {
     ;(event.currentTarget as HTMLElement).classList.toggle('is-pressed', this.#pressed)
     this.#pressed = false
@@ -112,6 +125,7 @@ export class LintjeTabs extends LintjeElement {
   override disconnectedCallback(): void {
     this.#resize?.disconnect()
     this.#resize = null
+    this.onPressEnd()
     super.disconnectedCallback()
   }
 
@@ -278,8 +292,7 @@ export class LintjeTabs extends LintjeElement {
           aria-labelledby="tab-${index}"
           tabindex="0"
           ?hidden=${index !== chosen}
-          @pointerdown=${() => (this.#pressed = true)}
-          @pointerup=${() => (this.#pressed = false)}
+          @pointerdown=${this.onPanelPress}
           @focus=${this.onPanelFocus}
           @blur=${(event: FocusEvent) => (event.currentTarget as HTMLElement).classList.remove('is-pressed')}
         >
