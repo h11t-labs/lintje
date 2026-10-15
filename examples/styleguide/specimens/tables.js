@@ -1421,7 +1421,7 @@ export default {
           },
         },
         {
-          label: 'Foto, initialen, icoon en leeg',
+          label: 'Foto of initialen of icoon of leeg',
           note:
             'De vorm volgt wat er is. Zonder initialen en foto het icoon; zonder persoon het ' +
             'gestreepte rondje met het woord.',

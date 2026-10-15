@@ -373,10 +373,10 @@ export default {
           },
         },
         ...[
-          { label: 'Voet van het zijmenu, vastgezet', menu: 'pinned', user: USER },
-          { label: 'Voet van het zijmenu, met een foto', menu: 'pinned', user: USER_PHOTO },
+          { label: 'Voet van het vaste zijmenu', menu: 'pinned', user: USER },
+          { label: 'Voet van het zijmenu met een foto', menu: 'pinned', user: USER_PHOTO },
           { label: 'Voet in de rail', menu: 'unpinned', user: USER },
-          { label: 'Voet in de rail, met een foto', menu: 'unpinned', user: USER_PHOTO },
+          { label: 'Voet in de rail met een foto', menu: 'unpinned', user: USER_PHOTO },
         ].map(({ label, menu, user }) => ({
           label,
           note:
@@ -670,7 +670,7 @@ export default {
           },
         },
         {
-          label: 'Op een telefoon, met een foto',
+          label: 'Op een telefoon met een foto',
           html: `<div style="background: var(--color-nav-bg); max-width: 360px"><lintje-user-menu inline version="2.4.1"></lintje-user-menu></div>`,
           setup(stage) {
             const menu = stage.querySelector('lintje-user-menu')
