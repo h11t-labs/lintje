@@ -386,6 +386,8 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
 - `required.browser.test.ts` — elke invoer met `required` in een natief `<form>`: leeg houdt hij
   het versturen tegen, gevuld of uitgeschakeld niet, en de melding van de browser landt op het
   bedieningselement dat ook de focus krijgt.
+- `reduced-motion.browser.test.ts` — verminderde beweging, waarmee elke browsertest draait: een
+  vak dat openklapt, laat zijn inhoud los zodra zijn hoogte staat.
 
 Een nieuw element dat een mechanisme gebruikt, krijgt een rij in diens tabel, geen eigen bestand.
 Een component krijgt alleen een eigen `*.browser.test.ts` voor een mechanisme dat het zelf heeft:
