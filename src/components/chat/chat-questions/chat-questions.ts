@@ -111,6 +111,9 @@ export class LintjeChatQuestions extends LintjeElement {
   #warned = false
   #focusNext = false
   #announce = 0
+  /** The choices change height on their own ("Iets anders…" opens): the line under them follows. */
+  #sized: ResizeObserver | null = null
+  #watched: Element | null = null
 
   private get questions(): ChatQuestion[] {
     return this.data?.questions ?? []
@@ -154,11 +157,22 @@ export class LintjeChatQuestions extends LintjeElement {
     if (this.sending) this.say('Antwoorden versturen')
   }
 
-  protected override updated(changed: PropertyValues<this>): void {
-    super.updated(changed)
+  private measure(): void {
     const list = this.renderRoot.querySelector<HTMLElement>('.lintje-chat-questions__choices')
     const scrolls = Boolean(list && list.scrollHeight > list.clientHeight + 1)
     if (scrolls !== this.scrolls) this.scrolls = scrolls
+  }
+
+  protected override updated(changed: PropertyValues<this>): void {
+    super.updated(changed)
+    this.measure()
+    const control = this.renderRoot.querySelector('.lintje-chat-questions__control')
+    if (control !== this.#watched && typeof ResizeObserver !== 'undefined') {
+      this.#sized ??= new ResizeObserver(() => this.measure())
+      if (this.#watched) this.#sized.unobserve(this.#watched)
+      if (control) this.#sized.observe(control)
+      this.#watched = control
+    }
     if (this.#focusNext) {
       this.#focusNext = false
       void this.focusQuestion()
@@ -167,6 +181,9 @@ export class LintjeChatQuestions extends LintjeElement {
 
   override disconnectedCallback(): void {
     cancelAnimationFrame(this.#announce)
+    this.#sized?.disconnect()
+    this.#sized = null
+    this.#watched = null
     super.disconnectedCallback()
   }
 

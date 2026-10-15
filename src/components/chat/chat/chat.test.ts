@@ -387,13 +387,17 @@ describe('lintje-chat and the assistant’s questions', () => {
     expect(box(edited)).toBeNull()
   })
 
-  it('a new turn takes the box away', async () => {
+  it('a new turn takes the box away, and the question box says its own words again', async () => {
     const element = await chat(asking('needs-clarification'))
     element.data = {
       turns: [...asking('needs-clarification').turns, { id: 't3', message: { text: 'Heel 2025' } }],
     }
     await element.updateComplete
+    await (composer(element) as unknown as { updateComplete: Promise<unknown> }).updateComplete
     expect(box(element)).toBeNull()
+    const input = composer(element).shadowRoot!.querySelector('.lintje-chat-composer__input')!
+    expect(input.getAttribute('data-placeholder')).toBe('Stel een vraag over de gegevens')
+    expect(composer(element).hint ?? '').toBe('')
   })
 
   it('lets the answers through with the turn', async () => {

@@ -74,6 +74,7 @@ const SEND_KEYS: FilterOption[] = [
 ]
 
 const SEND_KEY_STORE = 'lintje-chat-send-key'
+const PLACEHOLDER = 'Stel een vraag over de gegevens'
 
 /** The send key in words, in the field's description: the menu that sets it is a popup. */
 const SEND_KEY_SAID: Record<ChatSendKey, string> = {
@@ -184,7 +185,8 @@ export class LintjeChatComposer extends LintjeElement {
   variant: ChatComposerVariant = 'ask'
   /** The text to start from. Setting it again replaces what stands in the field. */
   text: string = ''
-  placeholder: string = 'Stel een vraag over de gegevens'
+  /** Left out or emptied, "Stel een vraag over de gegevens". */
+  placeholder: string = PLACEHOLDER
   /** An answer is arriving: "Stoppen" stands in for the send button. */
   busy: boolean = false
   /** The last question, which ↑ brings back into an empty field. */
@@ -697,11 +699,11 @@ export class LintjeChatComposer extends LintjeElement {
             aria-multiline="true"
             aria-label=${this.variant === 'edit' ? 'Je vraag bewerken' : 'Je vraag'}
             aria-describedby="hint send-key"
-            aria-placeholder=${this.placeholder}
+            aria-placeholder=${this.placeholderText}
             aria-autocomplete=${this.vocabulary?.length ? 'list' : nothing}
             aria-controls=${list.length ? 'completions' : nothing}
             aria-activedescendant=${list.length ? `completion-${active}` : nothing}
-            data-placeholder=${this.placeholder}
+            data-placeholder=${this.placeholderText}
             @input=${this.onInput}
             @keydown=${this.onKeydown}
             @keyup=${this.read}
@@ -742,6 +744,11 @@ export class LintjeChatComposer extends LintjeElement {
     </div>`
   }
 
+  // A removed attribute leaves `null`: the field still says what it is for.
+  private get placeholderText(): string {
+    return this.placeholder || PLACEHOLDER
+  }
+
   /** "Stel een nieuwe vraag · 2 bijlagen": every chip counts, also one busy or refused. */
   private get attachmentCount(): number {
     return this.takesFiles ? (this.files ?? []).length + this.refused.length : 0
@@ -756,10 +763,10 @@ export class LintjeChatComposer extends LintjeElement {
           type="button"
           class="lintje-chat-composer__expand"
           aria-expanded="false"
-          aria-label=${files ? `${this.placeholder}, ${files}` : nothing}
+          aria-label=${files ? `${this.placeholderText}, ${files}` : nothing}
           @click=${() => this.emitLocal('lintje-composer-expand')}
         >
-          <span>${files ? `${this.placeholder} · ${files}` : this.placeholder}</span>
+          <span>${files ? `${this.placeholderText} · ${files}` : this.placeholderText}</span>
           ${renderIcon('functioneel-delta-omlaag', {
             size: 16,
             rotate: 180,
