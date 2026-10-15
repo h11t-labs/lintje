@@ -16,6 +16,7 @@ import { ChartController, type ChartOptions } from '../../shared/charts/shared/c
 import { renderChart } from '../../shared/charts/shared/render-chart'
 import { rowsHeight } from '../../shared/charts/horizontal-bar-chart/horizontal-bar-chart'
 import { binLabel } from '../../shared/charts/histogram-chart/histogram-chart'
+import { sankeyHeight, sankeyModel } from '../../shared/charts/sankey-chart/sankey-chart'
 import {
   renderChartSkeleton,
   type ChartSkeletonKind,
@@ -81,6 +82,9 @@ function stateHeight(chart: ChartSpec): string | undefined {
     case 'pie':
     case 'heatmap':
       return undefined
+    case 'sankey':
+      // The busiest step makes the drawing taller than the token, never lower.
+      return `max(${sankeyHeight(chart)}px, var(${chart.small ? '--chart-h-small' : '--chart-h-main'}))`
     default:
       return chart.small ? 'var(--chart-h-small)' : undefined
   }
@@ -198,6 +202,26 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
       return [
         ['Klasse', bound('Van'), bound('Tot'), 'Aantal'],
         ...chart.bins.map((bin) => [binLabel(bin, chart.unit), bin.from, bin.to ?? '', bin.count]),
+      ]
+    }
+    case 'sankey': {
+      // A row per flow the chart draws; a missing one keeps its count and its share missing.
+      const { flows } = sankeyModel(chart)
+      return [
+        [
+          'Van',
+          'Naar',
+          chart.unit ? `Aantal (${chart.unit})` : 'Aantal',
+          'Aandeel van de bron (%)',
+        ],
+        ...flows.map((flow) => [
+          flow.from.label,
+          flow.to.label,
+          flow.value,
+          flow.value == null || flow.from.size <= 0
+            ? null
+            : Math.round((flow.value / flow.from.size) * 100),
+        ]),
       ]
     }
   }

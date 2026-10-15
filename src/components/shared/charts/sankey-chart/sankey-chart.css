@@ -1,0 +1,112 @@
+/* Sankey: nodes in the colour of the variable, bands in the same colour at a tint, so a crossing
+   darkens and mixes into nothing new; a missing flow is a hatched stub at its source. */
+.lintje-sankey__node,
+.lintje-sankey__stub { transition: opacity var(--dur-hover) var(--ease-in-motion); }
+.lintje-sankey__band {
+  fill-opacity: .25;
+  transition: fill-opacity var(--dur-hover) var(--ease-in-motion), opacity var(--dur-hover) var(--ease-in-motion);
+}
+/* What runs through the mark pointed at or chosen; the rest steps back as elsewhere. No width
+   changes and no text gets lighter. */
+.lintje-sankey__band.is-active { fill-opacity: .5; }
+.lintje-sankey__node.is-dimmed,
+.lintje-sankey__band.is-dimmed,
+.lintje-sankey__stub.is-dimmed { opacity: .45; }
+/* The mark the arrow keys reached takes the ring a focused mark has. */
+.lintje-sankey:focus-visible .is-current { filter: var(--lintje-focus-ring); }
+.lintje-sankey__hit { fill: transparent; }
+.lintje-sankey__hit.is-clickable { cursor: pointer; }
+/* A thin band's target: its centre line, 8 px wide. */
+.lintje-sankey__hit--line { fill: none; stroke: transparent; stroke-width: 8px; pointer-events: stroke; }
+.lintje-sankey__name { font: var(--text-small); fill: var(--color-text-primary); }
+.lintje-sankey__share { font-weight: 400; fill: var(--color-text-muted); }
+/* On a middle step's straight run, under emphasised bands the muted share drops below 4.5:1. */
+.lintje-sankey__label.is-emphasised .lintje-sankey__share { fill: var(--color-text-primary); }
+
+/* Below 768 px: per transition a bar per source, with a row per target under it. */
+.lintje-sankey--rows { gap: var(--space-4); }
+.lintje-sankey__transition { display: flex; flex-direction: column; gap: var(--space-4); }
+.lintje-sankey__transition + .lintje-sankey__transition {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-default);
+}
+.lintje-sankey__heading { font: var(--text-axis); color: var(--color-chart-axis); }
+.lintje-sankey__source { display: flex; flex-direction: column; gap: var(--space-2); }
+.lintje-sankey__source-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font: var(--text-small);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.lintje-sankey__bar { display: flex; gap: 2px; height: var(--space-6); }
+/* A piece as long as its count, a small one 2 px; its share inside when it fits. */
+.lintje-sankey__piece {
+  flex: var(--lintje-weight) 1 0;
+  min-width: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font: var(--text-axis);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.lintje-sankey__piece--white { color: var(--color-text-on-fill); }
+.lintje-sankey__piece--ink { color: var(--color-text-on-light-fill); }
+/* The rest of a whole is a neutral that turns dark in dark mode, so its share is the text. */
+.lintje-sankey__piece--rest { background: var(--color-chart-remainder); color: var(--color-text-primary); }
+.lintje-sankey__piece--missing,
+.lintje-sankey__swatch--missing {
+  background: repeating-linear-gradient(45deg, var(--color-chart-hatch) 0 2px, transparent 2px 6px);
+  box-shadow: inset 0 0 0 1px var(--color-border-default);
+}
+.lintje-sankey__rows { display: flex; flex-direction: column; gap: var(--space-1); }
+.lintje-sankey__row-mark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--text-small);
+  color: var(--color-text-primary);
+}
+.lintje-sankey__swatch { flex: none; width: 10px; height: 10px; }
+.lintje-sankey__swatch--rest { background: var(--color-chart-remainder); }
+.lintje-sankey__row-name { flex: 1; min-width: 0; }
+.lintje-sankey__row-count { font-weight: 700; font-variant-numeric: tabular-nums; }
+.lintje-sankey__row-share {
+  min-width: 4ch;
+  text-align: right;
+  font: var(--text-axis);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.lintje-sankey__source-head.is-clickable,
+.lintje-sankey__row-mark.is-clickable { cursor: pointer; }
+.lintje-sankey__source-head.is-selected,
+.lintje-sankey__row-mark.is-selected { outline: 2px solid var(--color-text-primary); outline-offset: 2px; }
+
+/* The bands grow in once from left to right, step after step, with the bars' timing; the
+   labels come after. Paused until the chart is in view (`data-in-view`). */
+@media (prefers-reduced-motion: no-preference) {
+  .lintje-sankey__flows {
+    animation: lintje-reveal calc(var(--dur-draw) * 0.6) var(--ease-in-motion)
+      calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0)) backwards;
+  }
+  .lintje-sankey__label { animation: lintje-fade-in var(--dur-data-label) ease-in-out var(--dur-draw) both; }
+  .lintje-sankey__label .lintje-chart__data-label { animation: none; }
+  .lintje-sankey__flows,
+  .lintje-sankey__label { animation-play-state: paused; }
+  [data-in-view] .lintje-sankey__flows,
+  [data-in-view] .lintje-sankey__label { animation-play-state: running; }
+}
+
+@media (forced-colors: active) {
+  .lintje-sankey__node,
+  .lintje-sankey__band,
+  .lintje-sankey__stub,
+  .lintje-sankey__piece,
+  .lintje-sankey__swatch { forced-color-adjust: none; }
+  .lintje-sankey__name { fill: CanvasText; }
+  .lintje-sankey__share { fill: CanvasText; }
+}

@@ -10,7 +10,7 @@ import {
   dataLabelFits,
 } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
-import { chartColor } from '../shared/colors'
+import { chartColor, DARK_FILLS } from '../shared/colors'
 import { renderChartFrame, renderLegend, type LegendItem, type SvgSlot } from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
@@ -21,21 +21,6 @@ import { tintsFor } from '../shared/tints'
 import type { ChartSpec } from '../shared/types'
 
 type StackedBarSpec = Extract<ChartSpec, { kind: 'stacked-bar' }>
-
-/** The data colours white text reaches 4.5:1 on; any other named fill but the rest takes ink. */
-const DARK_FILLS = new Set([
-  'sky-blue',
-  'red',
-  'green',
-  'violet',
-  'dark-green',
-  'purple',
-  'ruby-red',
-  'dark-brown',
-  'brown',
-  'dark-blue',
-  'moss-green',
-])
 
 export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOptions): TemplateResult {
   const { controller, description } = options

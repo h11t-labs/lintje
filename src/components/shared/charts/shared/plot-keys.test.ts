@@ -142,6 +142,28 @@ const KINDS: { name: string; spec: ChartSpec; first: string; second: string }[] 
     },
   },
   {
+    name: 'sankey',
+    first: 'Aanvragen (Ingediend)',
+    second: 'Aanvragen → Compleet',
+    spec: {
+      kind: 'sankey',
+      steps: [
+        { label: 'Ingediend', nodes: [{ id: 'in', label: 'Aanvragen', value: 10 }] },
+        {
+          label: 'Volledigheid',
+          nodes: [
+            { id: 'compleet', label: 'Compleet' },
+            { id: 'onvolledig', label: 'Onvolledig' },
+          ],
+        },
+      ],
+      flows: [
+        { from: 'in', to: 'compleet', value: 7 },
+        { from: 'in', to: 'onvolledig', value: null },
+      ],
+    },
+  },
+  {
     name: 'horizontal-bar',
     first: 'Noord',
     second: 'Zuid',

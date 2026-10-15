@@ -333,3 +333,56 @@ describe('lintje-chart table of a radar', () => {
     expect(rows[1][1]).toContain('geen gegevens')
   })
 })
+
+describe('lintje-chart of a sankey', () => {
+  const SANKEY: ChartData = {
+    title: 'Aanvragen van indiening tot uitkomst',
+    description: 'Aanvragen per stap.',
+    tableSwitch: true,
+    chart: {
+      kind: 'sankey',
+      steps: [
+        { label: 'Ingediend', nodes: [{ id: 'in', label: 'Aanvragen', value: 1000 }] },
+        {
+          label: 'Uitkomst',
+          nodes: [
+            { id: 'toegekend', label: 'Toegekend' },
+            { id: 'ingetrokken', label: 'Ingetrokken' },
+          ],
+        },
+      ],
+      flows: [
+        { from: 'in', to: 'toegekend', value: 740 },
+        { from: 'in', to: 'ingetrokken', value: null },
+        { from: 'in', to: 'nergens', value: 5 },
+      ],
+    },
+  }
+
+  it('writes a row per flow: from, to, the count and its share of the source', async () => {
+    const element = await tile(SANKEY)
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    expect(found.renderRoot.querySelector('caption')?.textContent).toContain(
+      'Aanvragen van indiening tot uitkomst',
+    )
+    const head = [...found.renderRoot.querySelectorAll('.lintje-data-table__full thead th')]
+    expect(head.map((cell) => cell.textContent?.trim())).toEqual([
+      'Van',
+      'Naar',
+      'Aantal',
+      'Aandeel van de bron (%)',
+    ])
+    const rows = cells(found)
+    expect(rows).toHaveLength(2)
+    expect(rows[0]).toEqual(['Aanvragen', 'Toegekend', '740', '74'])
+    expect(rows[1][2]).toContain('geen gegevens')
+    expect(rows[1][3]).toContain('geen gegevens')
+  })
+
+  it('keeps the loading tile as tall as the busiest step, never lower than the token', async () => {
+    const element = await tile({ ...SANKEY, state: 'loading' })
+    const box = element.renderRoot.querySelector('lintje-tile')
+    expect(box?.getAttribute('content-height')).toMatch(/^max\(\d+px, var\(--chart-h-main\)\)$/)
+  })
+})

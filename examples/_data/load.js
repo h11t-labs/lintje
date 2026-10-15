@@ -6,9 +6,9 @@
  */
 const load = async (name) => (await fetch(new URL(`./${name}.json`, import.meta.url))).json()
 
-export const [meta, hourly, daily, desks, regions, breakdowns, origin, originCountries, heatmap] =
+export const [meta, hourly, daily, desks, regions, breakdowns, origin, originCountries, heatmap, sankey] =
   await Promise.all(
-    ['meta', 'hourly', 'daily', 'desks', 'regions', 'breakdowns', 'origin', 'origin_countries', 'heatmap'].map(load),
+    ['meta', 'hourly', 'daily', 'desks', 'regions', 'breakdowns', 'origin', 'origin_countries', 'heatmap', 'sankey'].map(load),
   )
 
 /** A number as the interface writes it. */

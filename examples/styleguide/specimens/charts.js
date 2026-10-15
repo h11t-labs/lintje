@@ -1,6 +1,6 @@
 // The charts category (Kerncijfers en grafieken): the specimens of its elements.
 import { CHART_KINDS, CHART_QUESTIONS } from '../../../dist-elements/lintje.js'
-import { meta, number, daily, heatmap, desks, breakdowns, hourly } from '../../_data/load.js'
+import { meta, number, daily, heatmap, desks, breakdowns, hourly, sankey } from '../../_data/load.js'
 
 const kpi = meta.kpi
 
@@ -194,6 +194,75 @@ const quality = (missing = false) => ({
   ],
 })
 const lateDesks = desks.filter((desk) => desk.data_status === 'delayed').map((desk) => desk.map_label)
+
+// Requests of a fictional permit service from submission to outcome. A flow is changed by its
+// two ends: `{ 'compleet>ingetrokken': 12 }`.
+const process = (name, changes = {}) => ({
+  ...sankey[name],
+  flows: sankey[name].flows.map((flow) => {
+    const key = `${flow.from}>${flow.to}`
+    return key in changes ? { ...flow, value: changes[key] } : flow
+  }),
+})
+const sankeySpec = (data, extra = {}) => ({ kind: 'sankey', label: 'Aanvragen', ...data, ...extra })
+
+/**
+ * What a host writes as the sankey's description: the whole, every node of every step with its
+ * count and share, the largest flow after the first step, and the flows without data.
+ */
+function sankeyDescription({ steps, flows }) {
+  const nodes = new Map(steps.flatMap((step, s) => step.nodes.map((node) => [node.id, { ...node, s }])))
+  const known = (list) => list.reduce((sum, flow) => sum + (flow.value ?? 0), 0)
+  const size = (node) => {
+    if (node.value != null) return node.value
+    const into = flows.filter((flow) => flow.to === node.id)
+    const out = flows.filter((flow) => flow.from === node.id)
+    return Math.max(known(into), known(out))
+  }
+  const partial = (node) => node.value == null && flows.some((flow) => flow.to === node.id && flow.value == null)
+  const total = steps[0].nodes.reduce((sum, node) => sum + size(nodes.get(node.id)), 0)
+  const share = (part) => `${Math.round((part / total) * 100)}%`
+  const perStep = steps.map((step) => `${step.label}: ${step.nodes
+    .map((node) => {
+      const item = nodes.get(node.id)
+      return partial(item)
+        ? `${node.label} minstens ${number(size(item))}`
+        : `${node.label} ${number(size(item))} (${share(size(item))})`
+    })
+    .join(', ')}`)
+  const later = flows.filter((flow) => nodes.get(flow.from).s > 0 && flow.value != null)
+  const largest = later.reduce((best, flow) => (flow.value > (best?.value ?? -1) ? flow : best), null)
+  const missing = flows.filter((flow) => flow.value == null)
+  return [
+    `${number(total)} aanvragen, van ${steps[0].label.toLowerCase()} tot ${steps.at(-1).label.toLowerCase()}.`,
+    `${perStep.join('. ')}.`,
+    largest ? `De grootste stroom daarna is ${nodes.get(largest.from).label} naar ${nodes.get(largest.to).label}, ${number(largest.value)}.` : '',
+    missing.length
+      ? `Geen gegevens van ${missing.map((flow) => `${nodes.get(flow.from).label} naar ${nodes.get(flow.to).label}`).join(' en ')}.`
+      : '',
+  ].filter(Boolean).join(' ')
+}
+
+const SANKEYS = [
+  { id: 'sankey', title: 'Aanvragen van indiening tot uitkomst', data: process('three') },
+  { id: 'sankey-four', title: 'Aanvragen tot en met bezwaar', data: process('four') },
+  {
+    id: 'sankey-small', title: 'Met een kleine stroom',
+    data: process('three', { 'compleet>ingetrokken': 12, 'compleet>in-behandeling': 888 }),
+  },
+  {
+    id: 'sankey-missing', title: 'Met een ontbrekende stroom',
+    data: process('three', { 'onvolledig>in-behandeling': null }),
+  },
+  { id: 'sankey-first-missing', title: 'Aanvragen per kanaal', data: process('firstMissing') },
+  { id: 'sankey-six', title: 'Zes uitkomsten', data: process('six') },
+  { id: 'sankey-no-share', title: 'Alleen aantallen', data: process('three'), extra: { share: false } },
+  { id: 'sankey-phone', title: 'Op een telefoon', data: process('three') },
+].map(({ id, title, data, extra }) => ({
+  id, title,
+  description: sankeyDescription(data),
+  spec: sankeySpec(data, extra),
+}))
 
 const CHARTS = [
   {
@@ -392,6 +461,7 @@ const CHARTS = [
       ],
     },
   },
+  ...SANKEYS,
   {
     id: 'heatmap', title: 'Heatmap met klassenlegenda',
     description: 'Aanvragen per uur naar dag van de week en uur van de dag, in vijf klassen.',
@@ -437,6 +507,14 @@ const VARIANT_NAMES = {
   'radar-layers': 'Drie lagen',
   heatmap: 'Met klassenlegenda',
   histogram: 'Met mediaan en termijn',
+  sankey: 'Drie stappen',
+  'sankey-four': 'Vier stappen, een stroom eindigt eerder',
+  'sankey-small': 'Een kleine stroom',
+  'sankey-missing': 'Een ontbrekende stroom',
+  'sankey-first-missing': 'Twee ontbrekende stromen uit één knoop',
+  'sankey-six': 'Zes knopen in één stap',
+  'sankey-no-share': 'Zonder aandeel',
+  'sankey-phone': 'Op een telefoon',
 }
 
 // What a label cannot say, for the note under it.
@@ -446,6 +524,13 @@ const VARIANT_NOTES = {
   'stacked-area': 'Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
   'pie-folded': 'De taart houdt de vier grootste delen en vouwt de rest in “Overig”.',
   'radar-layers': 'Wijs een regio aan in de legenda: haar vlak kleurt en de andere lagen stappen terug.',
+  'sankey-four': 'Toegekend gaat niet verder naar bezwaar: die aanvragen eindigen in de derde stap.',
+  'sankey-small': 'Compleet → Ingetrokken is 12 aanvragen: de band is 2 px, het getal staat in de tooltip en de tabel.',
+  'sankey-missing': 'Van Onvolledig naar In behandeling zijn geen gegevens: een gearceerde stomp, en In behandeling is minstens het bekende deel.',
+  'sankey-first-missing': 'Van de balie is alleen het totaal bekend (`value`), niet hoe het zich verdeelt: één stomp voor beide stromen.',
+  'sankey-six': 'De tekening wordt hoger met de stap met de meeste knopen, zodat elke naam zijn ruimte houdt.',
+  'sankey-no-share': 'Met `share: false` staat alleen het aantal naast de naam.',
+  'sankey-phone': 'Smaller dan 768 px wordt elke overgang een staaf per bron, met een rij per doel eronder.',
 }
 
 // The states a chart tile can be in, put on each specimen of a kind: the tile keeps its size
@@ -690,7 +775,7 @@ export default {
 {
       tag: 'lintje-chart',
       wide: true,
-      title: 'Een grafiek in haar tegel: dertien soorten, één tag',
+      title: 'Een grafiek in haar tegel: veertien soorten, één tag',
       // One kind at a time, chosen by the question it answers; the states switch on its specimens.
       groups: {
         label: 'Soort',

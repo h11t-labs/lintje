@@ -7,15 +7,18 @@ import { iconStyles } from '../../../../icons/render'
 import chart from './chart.css?inline'
 import pie from '../pie-chart/pie-chart.css?inline'
 import heatmap from '../heatmap-chart/heatmap-chart.css?inline'
+import sankey from '../sankey-chart/sankey-chart.css?inline'
 
 export const chartFrameStyles: CSSResult = unsafeCSS(chart)
 export const pieChartStyles: CSSResult = unsafeCSS(pie)
 export const heatmapStyles: CSSResult = unsafeCSS(heatmap)
+export const sankeyStyles: CSSResult = unsafeCSS(sankey)
 
 /** Everything a chart needs, in one list; the map adds `mapStyles`. */
 export const chartStyles: CSSResult[] = [
   chartFrameStyles,
   pieChartStyles,
   heatmapStyles,
+  sankeyStyles,
   iconStyles,
 ]

@@ -23,8 +23,11 @@ export const MEDIAN_KEY = 'reference:median'
 export interface LegendItem {
   label: string
   color?: string
-  /** `point`: the series' symbol alone, as a scatter plot or a map draws it; `hatch` is "no data". */
-  shape?: 'square' | 'line' | 'dashed' | 'point' | 'hatch'
+  /**
+   * `point`: the series' symbol alone, as a scatter plot or a map draws it; `hatch` is "no
+   * data"; `band` is a sankey's flow, in its colour at the band's tint.
+   */
+  shape?: 'square' | 'line' | 'dashed' | 'point' | 'hatch' | 'band'
   /** The shape the line carries at its end, drawn on its line marker (rule 13). */
   symbol?: SeriesKey
   hidden?: boolean
