@@ -76,6 +76,16 @@ function markInvalid(control: HTMLElement, invalid: boolean): void {
 
 const same = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b)
 
+/**
+ * A repeater has no name but adds and removes rows: `busy` disables it with the fields, and it
+ * passes that on to its rows and its add button. Not every `disabled`: the action bar holds its own.
+ */
+function repeatersIn(node: Node): HTMLElement[] {
+  if (!(node instanceof HTMLElement)) return []
+  const own = node.localName === 'lintje-repeater' ? [node] : []
+  return [...own, ...node.querySelectorAll<HTMLElement>('lintje-repeater')]
+}
+
 /** The stored draft, or `null` when there is none, it is unreadable, or it is older than `ttl` hours. */
 export function readDraft(
   key: string,
@@ -138,11 +148,21 @@ export class LintjeForm extends LintjeElement {
   readonly #fields = new MutationObserver((records) => {
     const added: HTMLElement[] = []
     const removed: HTMLElement[] = []
+    const repeaters: HTMLElement[] = []
     for (const record of records) {
-      for (const node of record.addedNodes) added.push(...namedControlsIn(node))
+      for (const node of record.addedNodes) {
+        added.push(...namedControlsIn(node))
+        repeaters.push(...repeatersIn(node))
+      }
       for (const node of record.removedNodes) removed.push(...namedControlsIn(node))
     }
     this.#adopt(added.filter((control) => this.contains(control)))
+    if (this.busy) {
+      this.#fieldsDisabled.apply(
+        repeaters.filter((repeater) => this.contains(repeater)),
+        true,
+      )
+    }
     // A node that moved inside the form is reported removed and added: it stays.
     const present = new Set(namedControls(this).map(controlName))
     for (const control of removed) {
@@ -456,8 +476,9 @@ export class LintjeForm extends LintjeElement {
     if (changed.has('values') && !this.#quiet) this.#writeFields()
     this.#quiet = false
     if (changed.has('busy')) {
-      if (this.busy) this.#fieldsDisabled.apply(namedControls(this), true)
-      else {
+      if (this.busy) {
+        this.#fieldsDisabled.apply([...namedControls(this), ...repeatersIn(this)], true)
+      } else {
         this.#fieldsDisabled.release()
         this.#restoreFocus()
       }
