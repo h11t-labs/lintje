@@ -10,6 +10,7 @@ import '../../components/charts/chart/chart'
 import '../../components/chat/chat-answer/chat-answer'
 import '../../components/chat/chat-composer/chat-composer'
 import '../../components/chat/chat-message/chat-message'
+import '../../components/chat/chat-steps/chat-steps'
 import '../../components/chat/chat-strip/chat-strip'
 import '../../components/chat/chat/chat'
 import '../../components/overlays/dialog/dialog'
@@ -913,6 +914,39 @@ const ROWS: Row[] = [
     phone: (element) =>
       shown(element, 'lintje-icon-button[label="Versturen"]') &&
       !shown(element, '.lintje-chat-composer__send lintje-button'),
+  },
+  {
+    tag: 'lintje-chat-steps',
+    marker: 'the button takes the full width, and a long detail runs on instead of cutting',
+    mount: () =>
+      append(
+        create('lintje-chat-steps', {
+          open: true,
+          items: [
+            { label: 'Vraag gelezen' },
+            {
+              label: '3 bronnen doorzocht',
+              detail:
+                'Bezwaren, Besluiten, Termijnen, Klachten, Wachttijden en de behandeltermijnen per maand',
+            },
+          ],
+        }),
+      ),
+    wide: (element) => {
+      const text = all(element.shadowRoot!, '.lintje-chat-steps__text')[1] as HTMLElement
+      return (
+        box(find(element, '.lintje-chat-steps__toggle')).width < box(element).width / 2 &&
+        getComputedStyle(text).whiteSpace === 'nowrap'
+      )
+    },
+    phone: (element) => {
+      const text = all(element.shadowRoot!, '.lintje-chat-steps__text')[1] as HTMLElement
+      return (
+        Math.abs(box(find(element, '.lintje-chat-steps__toggle')).width - box(element).width) < 2 &&
+        getComputedStyle(text).whiteSpace !== 'nowrap' &&
+        text.scrollWidth <= text.clientWidth
+      )
+    },
   },
   {
     tag: 'lintje-shell',

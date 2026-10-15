@@ -62,6 +62,52 @@ const messages = (element: LintjeChat): LintjeChatMessage[] => [
 ]
 
 describe('lintje-chat', () => {
+  it('draws a divider above the question of its turn, centred, in three kinds', async () => {
+    const element = await chat({
+      turns: [
+        { ...TURNS[0], divider: { label: 'Gisteren' } },
+        { ...TURNS[1], divider: { kind: 'context', label: 'Gesprek ingekort' } },
+      ],
+    })
+    const sections = element.renderRoot.querySelectorAll('.lintje-chat__turn')
+    const first = sections[0].firstElementChild!
+    expect(first.classList.contains('lintje-chat__divider')).toBe(true)
+    expect(first.querySelector('.lintje-chat__divider-text')?.textContent).toBe('Gisteren')
+    expect(first.querySelector('.lintje-chat__divider-note')).toBeNull()
+    expect(first.querySelector('svg')).toBeNull()
+    const context = sections[1].firstElementChild!
+    expect(context.classList.contains('lintje-chat__divider--context')).toBe(true)
+    expect(context.querySelector('.lintje-chat__divider-note')?.textContent).toBe(
+      'De assistent neemt de vragen hierboven niet meer mee.',
+    )
+    const drawing = [...context.querySelectorAll('.lintje-chat__divider-line, svg')]
+    expect(drawing).toHaveLength(3)
+    expect(drawing.every((part) => part.getAttribute('aria-hidden') === 'true')).toBe(true)
+    expect(context.querySelector('[role="separator"], h1, h2, h3, h4')).toBeNull()
+  })
+
+  it('a topic divider is quiet, and a note of the host stands under any kind', async () => {
+    const element = await chat({
+      turns: [
+        {
+          ...TURNS[0],
+          divider: { kind: 'topic', label: 'Nieuw onderwerp', note: 'Over de bezetting.' },
+        },
+      ],
+    })
+    const divider = element.renderRoot.querySelector('.lintje-chat__divider')!
+    expect(divider.classList.contains('lintje-chat__divider--context')).toBe(false)
+    expect(divider.querySelector('.lintje-chat__divider-note')?.textContent).toBe(
+      'Over de bezetting.',
+    )
+  })
+
+  it('passes the steps to their answer', async () => {
+    const steps = { items: [{ label: 'Vraag gelezen' }], duration: '2 s' }
+    const element = await chat({ turns: [{ ...TURNS[0], answer: { ...TURNS[0].answer, steps } }] })
+    expect(answers(element)[0].steps).toBe(steps)
+  })
+
   it('passes `upload` to the question box and the attachments to their message', async () => {
     const files = [{ id: 'd', name: 'beleidsregel-2026.pdf', state: 'done' as const }]
     const element = await chat({

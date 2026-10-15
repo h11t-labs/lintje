@@ -57,8 +57,13 @@ function renderDivider(divider: ChatDivider): TemplateResult {
   >
     <p class="lintje-chat__divider-label">
       <span class="lintje-chat__divider-line" aria-hidden="true"></span>
-      ${context ? renderIcon('functioneel-pijl-omhoog', { className: 'lintje-chat__divider-icon' }) : nothing}
-      <span class="lintje-chat__divider-text">${divider.label}</span>
+      <span class="lintje-chat__divider-text"
+        >${
+          context
+            ? renderIcon('functioneel-pijl-omhoog', { className: 'lintje-chat__divider-icon' })
+            : nothing
+        }${divider.label}</span
+      >
       <span class="lintje-chat__divider-line" aria-hidden="true"></span>
     </p>
     ${note ? html`<p class="lintje-chat__divider-note">${note}</p>` : nothing}
