@@ -734,6 +734,11 @@ for (const list of [queue, jobsList]) {
     renderDocs()
   })
 }
+// The queue hides when its last document goes; the focus goes on to the upload for the next one.
+queue.addEventListener('lintje-jobs-empty', (event) => {
+  event.preventDefault()
+  upload.focus()
+})
 
 /** One step of the server: the busy document moves a page on; when none runs, the next starts. */
 function tick() {

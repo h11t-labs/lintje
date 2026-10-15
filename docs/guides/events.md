@@ -89,6 +89,7 @@ Een *toestand* is iets wat je bewaart en terugzet op het element (en in de URL m
 | `lintje-toggle` | `lintje-expander`, `lintje-toggletip` | actie (niets te beantwoorden) |
 | `lintje-copy`, `lintje-copy-error` | `lintje-copy-button`, `lintje-qr-code` | actie (niets te beantwoorden) |
 | `lintje-job-cancel`, `lintje-job-resume`, `lintje-job-retry`, `lintje-job-remove` | `lintje-job-list` | actie |
+| `lintje-jobs-empty` | `lintje-job-list`: de laatste taak ging met de focus erin; annuleer het en zet de focus zelf op een zichtbaar doel | actie |
 | `lintje-stop` | `lintje-streaming-text` | actie |
 | `lintje-text-change`, `lintje-languages-swap` | `lintje-translator` | toestand, actie |
 | `lintje-segment-edit`, `lintje-segment-save`, `lintje-segment-cancel`, `lintje-segment-speaker`, `lintje-speaker-new`, `lintje-speaker-rename` | `lintje-transcript` | actie |
