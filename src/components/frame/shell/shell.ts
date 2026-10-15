@@ -315,7 +315,13 @@ export class LintjeShell extends LintjeElement {
       this.mobile.matches && this.layout === 'side'
         ? lengthPx(this, '--h-mobile-header', 72)
         : lengthPx(this, '--h-topbar', 56)
-    const filters = this.store.state.hasFilters ? lengthPx(this, '--h-contextbar', 48) : 0
+    const { hasFilters, sentenceHeight } = this.store.state
+    // Below 768 px the sentence wraps, so the filter bar measures it.
+    const filters = !hasFilters
+      ? 0
+      : this.mobile.matches && sentenceHeight > 0
+        ? sentenceHeight
+        : lengthPx(this, '--h-contextbar', 48)
     root.style.scrollPaddingTop = `${Math.round(bar + filters)}px`
   }
 

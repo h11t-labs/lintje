@@ -34,6 +34,8 @@ interface Row {
   side: 'top' | 'bottom'
   /** Keeps its height as scroll padding; else it scrolls the focus clear itself. */
   reserves: boolean
+  /** Stands right against the bar above it, not merely clear of it. */
+  flush?: boolean
   mount: () => Promise<Scene>
 }
 
@@ -43,8 +45,6 @@ interface Row {
  * its entry out.
  */
 const KNOWN: RegExp[] = [
-  // #82: the phone's sentence does not stick; its sticky box stays inside the zone's host.
-  /^lintje-filter-bar :: stuck under the (top|side) layout's bar at 390 px :: /,
   // #127: WebKit scrolls a text field's text into view, not its border and padding.
   /^lintje-form-actions :: the action bar at \d+ px :: scrolls .* @ webkit$/,
 ]
@@ -189,6 +189,14 @@ const FILTERS: FilterBarData = {
       value: 'Deze week',
       default: 'Deze week',
     },
+    // Two more, so the sentence takes more than one line at 390 px.
+    ...['Afdeling', 'Regio'].map((label) => ({
+      key: label.toLowerCase(),
+      label,
+      kind: 'text' as const,
+      value: `Alle ${label.toLowerCase()}en van het land`,
+      default: '',
+    })),
   ],
 }
 
@@ -279,6 +287,7 @@ function filterRow(layout: 'top' | 'side', width: number): Row {
     width,
     side: 'top',
     reserves: true,
+    flush: true,
     mount: async () => {
       const bar = create('lintje-filter-bar', { data: FILTERS })
       const content = requests(60)
@@ -505,6 +514,10 @@ const checks: Record<string, (row: Row) => Promise<void>> = {
     const cover = scene.cover()
     if (above && cover) {
       expect(overlap(cover, above), 'it sticks under the bar above it').toBe(false)
+      if (row.flush) {
+        const gap = cover.getBoundingClientRect().top - above.getBoundingClientRect().bottom
+        expect(Math.abs(gap), 'it stands right under the bar').toBeLessThan(1)
+      }
     }
   },
 }
