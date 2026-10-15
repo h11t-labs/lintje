@@ -119,6 +119,8 @@ const COMPONENT_ICONS = [
   'multimedia-player-stop', // chat: stop an answer that is arriving
   'functioneel-pijl-omlaag', // chat: to the newest turn
   'gereedschap-half-tandwiel-half-brein', // AI label: made by a model
+  'symbolen-en-abstract-opsomming', // the text editor's toolbar
+  'functioneel-link', // the text editor's toolbar
 ]
 
 assemble()

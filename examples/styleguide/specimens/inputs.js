@@ -1048,6 +1048,23 @@ export default {
           },
         },
         {
+          label: 'Opsomming gekozen',
+          note: 'De cursor staat in de opsomming: de knop Opsomming is ingedrukt.',
+          html: '<lintje-text-editor label="Toelichting"></lintje-text-editor>',
+          async setup(stage) {
+            const element = stage.querySelector('lintje-text-editor')
+            element.value = NOTE
+            await element.updateComplete
+            const surface = element.shadowRoot.querySelector('.lintje-text-editor__surface')
+            const item = surface.querySelector('li')
+            if (!item?.firstChild) return
+            document.getSelection()?.collapse(item.firstChild, 0)
+            // The caret focuses the surface; once the element has seen it, the page keeps its focus.
+            await new Promise((done) => setTimeout(done, 50))
+            surface.blur()
+          },
+        },
+        {
           label: 'Uitgeschakeld',
           html: '<lintje-text-editor label="Toelichting" disabled></lintje-text-editor>',
           setup: (stage) => (stage.querySelector('lintje-text-editor').value = NOTE),
