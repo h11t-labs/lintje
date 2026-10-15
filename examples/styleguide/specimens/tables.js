@@ -693,6 +693,22 @@ export default {
             }),
         },
         {
+          label: 'Gekozen en aangevinkt',
+          note:
+            'Eén rij is gekozen en heeft de balk, twee zijn aangevinkt en hebben alleen het vlak.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) =>
+            dashboard(stage, {
+              ...tableData,
+              title: 'Loketten',
+              subtitle: 'Een gekozen rij en twee aangevinkte',
+              selectable: true,
+              rows: tableData.rows.slice(0, 4),
+              selectedId: tableData.rows[0].id,
+              checkedIds: [tableData.rows[1].id, tableData.rows[2].id],
+            }),
+        },
+        {
           label: 'Laden',
           html: '<lintje-data-table></lintje-data-table>',
           setup: (stage) => table(stage, { ...tableData, title: 'Loketten', subtitle: 'Laden', state: 'loading', rows: [] }),
@@ -914,6 +930,7 @@ export default {
         },
         {
           label: 'Gekozen',
+          note: 'Wijs een andere rij aan: onder de muis krijgt ze het vlak, de gekozen rij ook de balk.',
           html: '<lintje-list label="Opnames" selected-id="r2"></lintje-list>',
           setup(stage) {
             const list = stage.querySelector('lintje-list')
@@ -1147,6 +1164,19 @@ export default {
               { label: 'Sprekers', value: '3, vast', tone: 'changed', action: { href: '#el-description-list', label: 'Terugzetten' } },
               { label: 'Microfoon', value: 'Vergaderset (USB): we horen niets', tone: 'warning', span: 2, slot: 'mic', icon: 'beeld-en-geluid-microfoon' },
               { label: 'Woordenlijsten', tags: ['Afkortingen Rijksoverheid', 'Namen team Planning'], span: 2 },
+            ]
+          },
+        },
+        {
+          label: 'Link in een getint vak',
+          note:
+            'Een link en een actie op een statustint nemen `--color-link-on-status`: in donker ' +
+            'wit, in licht de primaire kleur.',
+          html: '<lintje-description-list layout="grid"></lintje-description-list>',
+          setup(stage) {
+            stage.querySelector('lintje-description-list').items = [
+              { label: 'Verlopen', value: 'Bewijs van inschrijving', href: '#el-description-list', tone: 'warning', action: { href: '#el-description-list', label: 'Vernieuwen' }, span: 2 },
+              { label: 'Geldig', value: 'Identiteitsbewijs', href: '#el-description-list', tone: 'success', action: { href: '#el-description-list' }, span: 2 },
             ]
           },
         },
