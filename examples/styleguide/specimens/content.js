@@ -4,6 +4,17 @@ import { log } from '../shared.js'
 
 const FOOTNOTE = 'Bron: Zaaksysteem · waarde van 08:15'
 
+const KB = 1024
+const MB = 1024 * KB
+
+/** A row of attachments, one per file, each with the same attributes. */
+const attachments = (files, attributes = '') => ({
+  html: `<div class="guide__row">${files.map(() => `<lintje-attachment ${attributes}></lintje-attachment>`).join('')}</div>`,
+  setup(stage) {
+    stage.querySelectorAll('lintje-attachment').forEach((chip, index) => (chip.data = files[index]))
+  },
+})
+
 const PROSE = `
   <h2>Hoe deze cijfers tot stand komen</h2>
   <p>De <strong>wachttijd</strong> is de mediaan per kwartier, gemeten vanaf het
@@ -883,6 +894,80 @@ export default {
               { src: 'media/afbeelding.svg', alt: 'Het overzicht van het dashboard', caption: 'Het overzicht.' },
             ]
           },
+        },
+      ],
+    },
+    {
+      tag: 'lintje-attachment',
+      title: 'Een bestand als stille chip: meegestuurd bij een vraag of terug in een antwoord',
+      specimens: [
+        {
+          label: 'Klaar',
+          note: 'Het icoon volgt uit het type of de extensie; een foto toont de miniatuur van de host.',
+          ...attachments([
+            { id: 'p', name: 'beleidsregel-2026.pdf', size: 1.2 * MB, state: 'done' },
+            { id: 'x', name: 'aanvragen-q3.xlsx', size: 48 * KB, state: 'done' },
+            { id: 'c', name: 'bezwaren-per-maand.csv', size: 4 * KB, type: 'text/csv', state: 'done' },
+            { id: 'f', name: 'formulier.jpg', size: 2.4 * MB, state: 'done', thumbnail: 'media/afbeelding.svg' },
+          ]),
+        },
+        {
+          label: 'Met download',
+          note: 'De chip is een link die het bestand oplevert; het teken zegt het.',
+          ...attachments([
+            { id: 'd', name: 'bezwaren-per-maand.csv', size: 4 * KB, state: 'done', href: '#', download: true },
+          ]),
+        },
+        {
+          label: 'Als bron',
+          note: 'Bij een bron staat de bladzijde op de plek van de maat.',
+          ...attachments([{ id: 'b', name: 'beleidsregel-2026.pdf', detail: 'blz. 4', state: 'done' }]),
+        },
+        {
+          label: 'Bezig',
+          note: 'Met een getal en zonder: dan loopt de lijn onbepaald.',
+          ...attachments(
+            [
+              { id: 'v', name: 'verklaring.pdf', size: 482 * KB, state: 'busy', progress: 64 },
+              { id: 'o', name: 'overzicht-2025.xlsx', size: 3.1 * MB, state: 'busy' },
+            ],
+            'removable',
+          ),
+        },
+        {
+          label: 'Geweigerd',
+          note: 'Het type of de maat: het element weigerde het bestand zelf.',
+          ...attachments(
+            [
+              { id: 't', name: 'scan.heic', size: 1.8 * MB, state: 'error', message: 'Dit bestandstype kan niet' },
+              { id: 'g', name: 'scan-dossier.pdf', size: 24 * MB, state: 'error', message: 'Groter dan 20 MB' },
+            ],
+            'removable refused',
+          ),
+        },
+        {
+          label: 'Mislukt',
+          note: 'Een fout van de host, met Opnieuw omdat hij `retry` zet.',
+          ...attachments(
+            [{ id: 'm', name: 'verklaring.pdf', size: 482 * KB, state: 'error', message: 'Uploaden mislukt', retry: true }],
+            'removable',
+          ),
+        },
+        {
+          label: 'Lange naam',
+          note: 'De naam kapt in het midden af; de extensie en de laatste letters blijven staan.',
+          ...attachments([
+            { id: 'l', name: 'beleidsregel-subsidie-duurzame-energie-definitief.pdf', size: 860 * KB, state: 'done' },
+          ]),
+        },
+        {
+          label: 'Te verwijderen',
+          note: 'In een vraagvak of een uploadveld: alleen het kruis, de chip opent niets.',
+          ...attachments([{ id: 'r', name: 'beleidsregel-2026.pdf', size: 1.2 * MB, state: 'done' }], 'removable'),
+        },
+        {
+          label: 'Uitgeschakeld',
+          ...attachments([{ id: 'u', name: 'beleidsregel-2026.pdf', size: 1.2 * MB, state: 'done' }], 'disabled'),
         },
       ],
     },

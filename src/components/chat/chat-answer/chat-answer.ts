@@ -29,6 +29,7 @@ import '../chat-suggestions/chat-suggestions'
 import '../../tables/data-table/data-table'
 import '../../charts/kpi-row/kpi-row'
 import '../../content/prose/prose'
+import '../../content/attachment/attachment'
 import { ANNOUNCE_GAP, COPIED_FOR } from '../../shared/copied'
 import { focusTarget } from '../../shared/focus-trap'
 import { sentenceEnd } from '../../shared/sentence-end'
@@ -320,6 +321,14 @@ export class LintjeChatAnswer extends LintjeElement {
               span=${block.data.span ?? nothing}
               .data=${block.data}
             ></lintje-data-table>`
+          case 'attachments':
+            return html`<ul class="lintje-chat-answer__attachments" aria-label="Bijlagen">
+              ${block.items.map(
+                (file) => html`<li class="lintje-chat-answer__attachment">
+                  <lintje-attachment .data=${file}></lintje-attachment>
+                </li>`,
+              )}
+            </ul>`
         }
       })}
     </div>`

@@ -1,19 +1,20 @@
 /**
  * The file upload: the check on type and size (arithmetic), what it sends the host and what
- * it keeps itself, the rows it draws from `.files`, and the line a screen reader hears.
+ * it keeps itself, the chips it draws from `.files`, and the line a screen reader hears.
  * Dragging is a browser matter; what a drop *does* is tested through the same `add()`.
  */
 import { beforeEach, describe, expect, it } from 'vitest'
 import './file-upload'
+import type { LintjeFileUpload } from './file-upload'
+import type { LintjeAttachment } from '../../content/attachment/attachment'
 import {
   accepts,
   formatSize,
   refusal,
   rowNews,
   typesText,
-  type LintjeFileUpload,
   type UploadFile,
-} from './file-upload'
+} from '../../shared/files'
 
 const MB = 1024 * 1024
 
@@ -42,6 +43,17 @@ const ROWS: UploadFile[] = [
   { id: 'b', name: 'foto.jpg', size: 2.4 * MB, state: 'done' },
   { id: 'c', name: 'beeld.mov', size: 9 * MB, state: 'error', message: 'De server weigerde het' },
 ]
+
+const chips = (element: LintjeFileUpload): LintjeAttachment[] => [
+  ...element.renderRoot.querySelectorAll<LintjeAttachment>('lintje-attachment'),
+]
+
+/** What a chip says beside its name: the size, the percentage or the reason. */
+const detailOf = (chip: LintjeAttachment): string | null | undefined =>
+  chip.shadowRoot!.querySelector('.lintje-attachment__detail')?.textContent
+
+const chipButton = (chip: LintjeAttachment): HTMLButtonElement =>
+  chip.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-attachment__remove')!
 
 beforeEach(() => {
   document.body.innerHTML = ''
@@ -83,8 +95,10 @@ describe('the arithmetic', () => {
     expect(rowNews([], [busy])).toBe('verklaring.pdf toegevoegd')
     expect(rowNews([busy], [{ ...busy, progress: 50 }])).toBe('')
     expect(rowNews([busy], [{ ...busy, state: 'done' }])).toBe('verklaring.pdf klaar')
-    expect(rowNews([busy], [{ ...busy, state: 'error', message: 'Te groot' }])).toBe(
-      'verklaring.pdf geweigerd: Te groot',
+    const failed: UploadFile = { ...busy, state: 'error', message: 'Uploaden mislukt' }
+    expect(rowNews([busy], [failed])).toBe('verklaring.pdf mislukt: Uploaden mislukt')
+    expect(rowNews([], [{ ...failed, message: 'Groter dan 20 MB' }], true)).toBe(
+      'verklaring.pdf geweigerd: Groter dan 20 MB',
     )
   })
 })
@@ -108,51 +122,60 @@ describe('lintje-file-upload', () => {
     expect(element.renderRoot.querySelector('.lintje-file-upload--fill')).not.toBeNull()
   })
 
-  it('sends the files that pass and keeps a row for the ones it refuses', async () => {
+  it('sends the files that pass and keeps a chip for the ones it refuses', async () => {
     const element = await mount({ accept: '.pdf', maxSize: 10 * MB })
     const added = listen(element, 'lintje-files-add')
     const good = file('verklaring.pdf', 'application/pdf')
     element.add([good, file('beeld.mov', 'video/quicktime'), file('groot.pdf', '', 20 * MB)])
     await element.updateComplete
     expect(added).toEqual([[good]])
-    const reasons = [...element.renderRoot.querySelectorAll('.lintje-file-upload__reason')].map(
-      (node) => node.textContent,
-    )
-    expect(reasons).toEqual(['Dit bestandstype kan niet', 'Groter dan 10 MB'])
+    await Promise.all(chips(element).map((chip) => chip.updateComplete))
+    expect(chips(element).map(detailOf)).toEqual(['Dit bestandstype kan niet', 'Groter dan 10 MB'])
+    expect(chips(element).every((chip) => chip.refused)).toBe(true)
     expect(element.renderRoot.querySelector('[role="status"]')?.textContent).toContain(
       'beeld.mov geweigerd: Dit bestandstype kan niet',
     )
-    // Removing a refused row is the element's own business: nothing goes to the host.
+    // Removing a refused chip is the element's own business: nothing goes to the host.
     const removed = listen(element, 'lintje-file-remove')
-    element.renderRoot.querySelector<HTMLElement>('.is-error lintje-button')!.click()
+    chipButton(chips(element)[0]).click()
     await element.updateComplete
     expect(removed).toEqual([])
-    expect(element.renderRoot.querySelectorAll('.lintje-file-upload__row')).toHaveLength(1)
+    expect(chips(element)).toHaveLength(1)
   })
 
-  it("draws the host's rows: busy with its bar, done, refused", async () => {
+  it("draws the host's files as removable chips: busy with its line, done, failed", async () => {
     const element = await mount({ files: ROWS })
-    const rows = element.renderRoot.querySelectorAll('.lintje-file-upload__row')
-    expect(rows).toHaveLength(3)
-    expect(rows[0].querySelector('lintje-progress-bar')?.value).toBe(45)
-    expect(rows[0].querySelector('.lintje-file-upload__detail')?.textContent).toBe('· 45%')
-    expect(rows[1].querySelector('.lintje-file-upload__detail')?.textContent).toBe('· 2,4 MB')
-    expect(rows[2].querySelector('.lintje-file-upload__reason')?.textContent).toBe(
-      'De server weigerde het',
-    )
+    const drawn = chips(element)
+    await Promise.all(drawn.map((chip) => chip.updateComplete))
+    expect(drawn).toHaveLength(3)
+    expect(drawn.every((chip) => chip.removable && !chip.refused)).toBe(true)
+    expect(
+      drawn[0].shadowRoot!.querySelector('[role="progressbar"]')?.getAttribute('aria-valuenow'),
+    ).toBe('45')
+    expect(drawn.map(detailOf)).toEqual(['45%', '2,4 MB', 'De server weigerde het'])
   })
 
-  it('asks the host to cancel and to remove, with the id', async () => {
-    const element = await mount({ files: ROWS })
+  it('lets the events of its chips through to the host, with the id', async () => {
+    const element = await mount({ files: [ROWS[0], ROWS[1], { ...ROWS[2], retry: true }] })
     const cancels = listen(element, 'lintje-file-cancel')
     const removes = listen(element, 'lintje-file-remove')
-    const buttons = element.renderRoot.querySelectorAll<HTMLElement>(
-      '.lintje-file-upload__row lintje-button',
-    )
-    buttons[0].click()
-    buttons[1].click()
+    const retries = listen(element, 'lintje-file-retry')
+    const drawn = chips(element)
+    await Promise.all(drawn.map((chip) => chip.updateComplete))
+    chipButton(drawn[0]).click()
+    chipButton(drawn[1]).click()
+    drawn[2].shadowRoot!.querySelector<HTMLElement>('.lintje-attachment__retry')!.click()
     expect(cancels).toEqual([{ id: 'a' }])
     expect(removes).toEqual([{ id: 'b' }])
+    expect(retries).toEqual([{ id: 'c' }])
+  })
+
+  it('draws its chips without a cross while disabled', async () => {
+    const element = await mount({ files: ROWS, disabled: true })
+    const drawn = chips(element)
+    await Promise.all(drawn.map((chip) => chip.updateComplete))
+    expect(drawn.every((chip) => chip.disabled)).toBe(true)
+    expect(drawn.some((chip) => chip.shadowRoot!.querySelector('button'))).toBe(false)
   })
 
   it('commits the ids of the finished rows through the name gate', async () => {
@@ -207,20 +230,26 @@ describe('lintje-file-upload', () => {
     expect(button.invalid).toBe(true)
   })
 
-  it('says how each row stands in words, not only by its icon', async () => {
+  it('says how each file stands in words, not only by its icon', async () => {
     const element = await mount({ files: ROWS })
-    const states = [...element.renderRoot.querySelectorAll('.lintje-file-upload__name')].map(
-      (name) => name.querySelector('.visually-hidden')?.textContent,
+    const drawn = chips(element)
+    await Promise.all(drawn.map((chip) => chip.updateComplete))
+    const states = drawn.map(
+      (chip) =>
+        chip.shadowRoot!.querySelector('.lintje-attachment__main .visually-hidden')?.textContent,
     )
-    expect(states).toEqual([', bezig', ', klaar', ', geweigerd'])
+    expect(states).toEqual([
+      'verklaring.pdf, bezig, 45%',
+      'foto.jpg, 2,4 MB',
+      'beeld.mov, mislukt: De server weigerde het',
+    ])
   })
 
-  it('moves the focus to the row in the place of a removed one, else the one before, else the button', async () => {
+  it('moves the focus to the chip in the place of a removed one, else the one before, else the button', async () => {
     const element = await mount({ files: ROWS })
+    await Promise.all(chips(element).map((chip) => chip.updateComplete))
     const rowButton = (id: string): HTMLElement =>
-      element.renderRoot
-        .querySelector(`[data-id="${id}"] lintje-button`)!
-        .shadowRoot!.querySelector('button')!
+      chipButton(element.renderRoot.querySelector<LintjeAttachment>(`[data-id="${id}"]`)!)
     const focused = (): Element | null | undefined =>
       element.shadowRoot!.activeElement?.shadowRoot?.activeElement
     rowButton('b').focus()

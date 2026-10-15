@@ -548,7 +548,8 @@ De besluiten hieronder gelden voor alle elementen.
 ### Afbeeldingen en kaarten
 
 - **Een schermafbeelding wordt heel getoond, nooit bijgesneden**; alleen een miniatuur in een
-  galerij (`lintje-gallery`) toont haar linkerbovenhoek.
+  galerij (`lintje-gallery`) toont haar linkerbovenhoek, en de miniatuur van een bijlage
+  (`lintje-attachment`) haar midden: zo klein blijft alleen het midden herkenbaar.
 - **Een kaart is één item van een collectie** (`lintje-card`), vierkant en plat, zonder schaduw;
   een kaart die een link is, reageert op de aanwijzer zoals een lijstrij. Zonder afbeelding is ze
   korter, nooit een grijs vak.
@@ -561,6 +562,9 @@ De besluiten hieronder gelden voor alle elementen.
 - **Gestreept is een suggestie, doorgetrokken is een keuze.** Een gestreepte omlijning is iets wat
   de lezer zou kunnen zeggen; een doorgetrokken omlijning is een antwoord waar de assistent op
   wacht. Een bijschrift zegt welke, zodat de lijnstijl nooit de enige drager is.
+- **Een bestand in het gesprek is een bijlage** (`lintje-attachment`), in het vraagvak, het
+  bericht en het antwoord evengoed: een stille chip die lichter weegt dan een bericht. Een bijlage
+  met een fout gaat nooit mee.
 - **Niets wordt opgeslagen.** De host bezit het gesprek en het transport ervan.
 - **Het gesprek scrolt mee met de pagina**, zoals alle inhoud. Het vraagvak blijft onderaan in
   beeld, en een lezer aan het eind blijft daar terwijl een antwoord groeit; wie omhoog scrolde,

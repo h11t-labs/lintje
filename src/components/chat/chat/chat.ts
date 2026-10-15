@@ -277,6 +277,9 @@ export class LintjeChat extends LintjeElement {
           .sources=${data.sources}
           .vocabulary=${data.vocabulary}
           .draftTerms=${data.draftTerms}
+          accept=${data.upload?.accept ?? nothing}
+          .maxSize=${data.upload?.maxSize}
+          .files=${data.upload ? (data.upload.files ?? []) : undefined}
         ></lintje-chat-composer>
       </div>
     </div>`
@@ -300,6 +303,7 @@ export class LintjeChat extends LintjeElement {
               text=${turn.message.text}
               time=${turn.message.time ?? nothing}
               .terms=${turn.message.terms}
+              .attachments=${turn.message.attachments}
               .vocabulary=${data.vocabulary}
               .sources=${data.sources}
               ?editable=${!busy && (!editing || index === editingIndex)}

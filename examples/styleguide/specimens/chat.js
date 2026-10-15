@@ -6,6 +6,11 @@ const amsterdam = desks.filter((desk) => desk.name.startsWith('Loket Amsterdam')
 
 const regionQuestion = 'Hoe lang was de wachttijd in Zuid?'
 
+const KB = 1024
+const MB = 1024 * KB
+const policy = { id: 'beleid', name: 'beleidsregel-2026.pdf', size: 1.2 * MB, state: 'done' }
+const export3 = { id: 'export', name: 'aanvragen-q3.xlsx', size: 48 * KB, state: 'done' }
+
 /** One `<lintje-chat-answer>`; `current` marks the newest answer of a conversation. */
 const answer = (turn, attributes = '') => `<lintje-chat-answer turn-id="demo-${turn}" ${attributes}></lintje-chat-answer>`
 
@@ -51,6 +56,25 @@ export default {
               text: regionQuestion,
               terms: [term(regionQuestion, 'wachttijd', 'Definitie'), term(regionQuestion, 'Zuid', 'Regio of loket?', false)],
             })
+          },
+        },
+        {
+          label: 'Met bijlagen',
+          note: 'De bestanden die met de vraag meegingen, staan erboven.',
+          html: '<lintje-chat-message turn-id="demo-attached" time="08:26" editable></lintje-chat-message>',
+          setup(stage) {
+            Object.assign(stage.querySelector('lintje-chat-message'), {
+              text: 'Toets de aanvragen van het derde kwartaal aan deze beleidsregel.',
+              attachments: [policy, export3],
+            })
+          },
+        },
+        {
+          label: 'Alleen een bijlage',
+          note: 'Een bericht zonder tekst bestaat alleen uit de chips, zonder bel.',
+          html: '<lintje-chat-message turn-id="demo-only-file" time="08:27"></lintje-chat-message>',
+          setup(stage) {
+            Object.assign(stage.querySelector('lintje-chat-message'), { text: '', attachments: [export3] })
           },
         },
         {
@@ -145,6 +169,27 @@ export default {
           },
         },
         {
+          label: 'Met een bestand en een bron',
+          note: 'Een bijlage is een blok, bij de zin die haar noemt.',
+          html: answer('files'),
+          setup(stage) {
+            Object.assign(stage.querySelector('lintje-chat-answer'), {
+              lead: 'In het derde kwartaal kwamen 1.284 aanvragen binnen.',
+              blocks: [
+                { kind: 'prose', text: 'Hier is de tabel als CSV, per maand en per soort aanvraag.' },
+                {
+                  kind: 'attachments',
+                  items: [
+                    { id: 'csv', name: 'aanvragen-per-maand.csv', size: 6 * KB, state: 'done', href: '#', download: true },
+                  ],
+                },
+                { kind: 'prose', text: 'De termijn komt uit de beleidsregel van dit jaar.' },
+                { kind: 'attachments', items: [{ id: 'bron', name: 'beleidsregel-2026.pdf', detail: 'blz. 4', state: 'done' }] },
+              ],
+            })
+          },
+        },
+        {
           label: 'Twee grafieken naast elkaar',
           html: answer('two'),
           setup(stage) {
@@ -197,6 +242,45 @@ export default {
           label: 'Eenvoudig',
           note: 'Met `plain` is er alleen Versturen, voor een vraag die geen gesprek is.',
           html: '<lintje-chat-composer plain placeholder="Bijvoorbeeld: kan ik audio naar tekst omzetten?"></lintje-chat-composer>',
+        },
+        {
+          label: 'Met bijlagen',
+          note: 'Eén is klaar, één is bezig en één is mislukt; zolang er een bezig is, wacht Versturen.',
+          html: '<lintje-chat-composer accept=".pdf,.xlsx,.csv" max-size="20971520"></lintje-chat-composer>',
+          setup(stage) {
+            const box = stage.querySelector('lintje-chat-composer')
+            Object.assign(box, {
+              sources: chatSources(),
+              vocabulary,
+              text: 'Toets de aanvragen aan deze beleidsregel.',
+              files: [
+                policy,
+                { id: 'busy', name: 'aanvragen-q3.xlsx', size: 48 * KB, state: 'busy', progress: 64 },
+                { id: 'failed', name: 'verklaring.pdf', size: 482 * KB, state: 'error', message: 'Uploaden mislukt', retry: true },
+              ],
+            })
+            box.addEventListener('lintje-file-remove', (event) => {
+              box.files = box.files.filter((file) => file.id !== event.detail.id)
+            })
+          },
+        },
+        {
+          label: 'Zes bijlagen',
+          note: 'Ze lopen door naar een volgende regel en blijven alle zichtbaar.',
+          html: '<lintje-chat-composer></lintje-chat-composer>',
+          setup(stage) {
+            Object.assign(stage.querySelector('lintje-chat-composer'), {
+              sources: chatSources(),
+              files: [
+                policy,
+                export3,
+                { id: 'csv', name: 'bezwaren-per-maand.csv', size: 4 * KB, state: 'done' },
+                { id: 'notitie', name: 'notitie-overleg.docx', size: 92 * KB, state: 'done' },
+                { id: 'foto', name: 'formulier.jpg', size: 2.4 * MB, state: 'done', thumbnail: 'media/afbeelding.svg' },
+                { id: 'kader', name: 'kader-uitvoering-2026-definitief.pdf', size: 640 * KB, state: 'done' },
+              ],
+            })
+          },
         },
         {
           label: 'Geen bron gekozen',

@@ -37,7 +37,7 @@ import '../../components/content/translator/translator'
 import '../../components/content/video-player/video-player'
 import '../../components/frame/shell/shell'
 import { holdsFocus } from '../../core/focus'
-import type { UploadFile } from '../../components/inputs/file-upload/file-upload'
+import type { UploadFile } from '../../components/shared/files'
 import type { LintjeList, ListItem } from '../../components/tables/list/list'
 import type { LintjePagination } from '../../components/tables/pagination/pagination'
 import type {
@@ -449,12 +449,16 @@ async function uploadWith(files: UploadFile[]): Promise<HTMLElement & { files: U
   return upload
 }
 
+/** The cross a chip draws, inside its own root. */
+const chipCross = (root: ParentNode, index: number): HTMLElement | null =>
+  inside(root.querySelectorAll('lintje-attachment')[index], '.lintje-attachment__remove')
+
 const fileRemove = (upload: Element, index: number): HTMLElement | null =>
-  button(upload.shadowRoot!.querySelectorAll('.lintje-file-upload__row lintje-button')[index])
+  chipCross(upload.shadowRoot!, index)
 
 const FILE_UPLOAD_ROWS: Row[] = [
   {
-    name: 'lintje-file-upload :: a file’s Verwijderen hands its focus to the next file’s',
+    name: 'lintje-file-upload :: a chip’s cross hands its focus to the next file’s',
     run: async () => {
       const upload = await uploadWith(FILES)
       await expect.poll(() => fileRemove(upload, 0)).toBeTruthy()
@@ -464,13 +468,86 @@ const FILE_UPLOAD_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-file-upload :: the only file’s Verwijderen hands its focus to "Bestanden kiezen"',
+    name: 'lintje-file-upload :: the only chip’s cross hands its focus to "Bestanden kiezen"',
     run: async () => {
       const upload = await uploadWith(FILES.slice(0, 1))
       await expect.poll(() => fileRemove(upload, 0)).toBeTruthy()
       fileRemove(upload, 0)!.focus()
       await userEvent.keyboard('{Enter}')
       return () => button(upload.shadowRoot!.querySelector('.lintje-file-upload__button'))
+    },
+  },
+]
+
+/* --- lintje-chat-composer: its attachments ------------------------------- */
+
+const ATTACHED: UploadFile[] = [
+  { id: 'a1', name: 'beleidsregel-2026.pdf', size: 120_000, state: 'done' },
+  { id: 'a2', name: 'aanvragen-q3.xlsx', size: 48_000, state: 'done' },
+]
+
+/** A host as a page has it: it keeps the files, drops a removed one and retries a failed one. */
+async function composerWith(files: UploadFile[]): Promise<HTMLElement & { files: UploadFile[] }> {
+  const box = await mount<HTMLElement & { files: UploadFile[] }>('lintje-chat-composer', { files })
+  box.addEventListener('lintje-file-remove', (event) => {
+    const { id } = (event as CustomEvent<{ id: string }>).detail
+    box.files = box.files.filter((file) => file.id !== id)
+  })
+  box.addEventListener('lintje-file-retry', (event) => {
+    const { id } = (event as CustomEvent<{ id: string }>).detail
+    box.files = box.files.map((file) =>
+      file.id === id ? { ...file, state: 'busy', progress: 0, message: undefined } : file,
+    )
+  })
+  return box
+}
+
+const composerCross = (box: Element, index: number): HTMLElement | null =>
+  chipCross(box.shadowRoot!, index)
+
+const COMPOSER_ROWS: Row[] = [
+  {
+    name: 'lintje-chat-composer :: a chip’s cross hands its focus to the next chip’s',
+    run: async () => {
+      const box = await composerWith(ATTACHED)
+      await expect.poll(() => composerCross(box, 0)).toBeTruthy()
+      composerCross(box, 0)!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => composerCross(box, 0)
+    },
+  },
+  {
+    name: 'lintje-chat-composer :: the last chip’s cross hands its focus to the paperclip',
+    run: async () => {
+      const box = await composerWith(ATTACHED.slice(0, 1))
+      await expect.poll(() => composerCross(box, 0)).toBeTruthy()
+      composerCross(box, 0)!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => button(box.shadowRoot!.querySelector('.lintje-chat-composer__attach'))
+    },
+  },
+  {
+    name: 'lintje-chat-composer :: "Opnieuw" hands its focus to the cross of the same chip',
+    run: async () => {
+      const box = await composerWith([
+        ATTACHED[0],
+        {
+          id: 'f',
+          name: 'verklaring.pdf',
+          state: 'error',
+          message: 'Uploaden mislukt',
+          retry: true,
+        },
+      ])
+      const retry = (): HTMLElement | null =>
+        inside(
+          box.shadowRoot!.querySelectorAll('lintje-attachment')[1],
+          '.lintje-attachment__retry',
+        )
+      await expect.poll(retry).toBeTruthy()
+      retry()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => composerCross(box, 1)
     },
   },
 ]
@@ -1765,6 +1842,7 @@ const ROWS: Row[] = [
   ...DATA_TABLE_ROWS,
   ...PAGINATION_ROWS,
   ...FILE_UPLOAD_ROWS,
+  ...COMPOSER_ROWS,
   ...TRANSCRIPT_ROWS,
   ...INPUT_ROWS,
   ...COLLECTION_ROWS,
