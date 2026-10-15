@@ -1049,7 +1049,7 @@ export default {
         },
         {
           label: 'Opsomming gekozen',
-          note: 'De cursor staat in de opsomming: de knop Opsomming is ingedrukt.',
+          note: 'Met de cursor in de opsomming is de knop Opsomming ingedrukt.',
           html: '<lintje-text-editor label="Toelichting"></lintje-text-editor>',
           async setup(stage) {
             const element = stage.querySelector('lintje-text-editor')
