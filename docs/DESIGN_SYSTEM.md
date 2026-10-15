@@ -878,7 +878,8 @@ kleinste correctie, en leg die hier vast.
   verlengd (WCAG 2.2.1): in een `lintje-dialog alert persistent`, waarin Escape en de achtergrond
   niets doen omdat de sessie hoe dan ook afloopt.
 - **Een sneltoets van één teken kan uit** (`/`, `?`) met `setCharacterKeys(false)`,
-  onthouden per browser. Een combinatie met Ctrl, Alt of Cmd werkt altijd.
+  onthouden per browser, met de schakelaar in het overzicht van de sneltoetsen. Een combinatie met
+  Ctrl, Alt of Cmd werkt altijd.
 - **De popup van een veld sluit als de focus het veld verlaat**, zodat hij nooit het volgende veld
   bedekt; gesloten met Escape of met zijn eigen actie, geeft hij de focus terug aan het veld.
 - De optie waarop de toetsen van een lijst staan (`aria-activedescendant`), draagt de focusring

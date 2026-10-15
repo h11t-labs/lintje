@@ -121,9 +121,9 @@ geregistreerd is: het overzicht is een `<lintje-dialog heading="Sneltoetsen">` d
 daarmee vult en op `?` opent, voorgedaan in de stijlgids (`examples/_shared/shortcuts.js`).
 
 Een toets van één teken zonder Ctrl, Alt of Meta (`/`, `?`) kan de lezer uitzetten, met
-`setCharacterKeys(false)` achter een instelling van de pagina; de keuze blijft
-bewaard in `localStorage`. Met die toetsen uit opent `?` niets, dus bied het overzicht ook aan
-vanuit een knop of een menu.
+`setCharacterKeys(false)`; de keuze blijft bewaard in `localStorage`. Het recept heeft die
+schakelaar al: "Sneltoetsen van één teken" staat in de voet van het overzicht, onder de lijst.
+Met die toetsen uit opent `?` niets, dus bied het overzicht ook aan vanuit een knop of een menu.
 
 ## Een pagina die een eigen container scrollt
 
