@@ -324,6 +324,7 @@ describe('the map on a basemap', () => {
     // Its copy lies over every other flow.
     await expect.poll(() => copy(element)).not.toBeNull()
     expect(paintsOver(copy(element)!, mark(element, 'gro'))).toBe(true)
+    expect(getComputedStyle(copy(element)!).opacity).toBe('1')
   })
 
   it('keeps the focused mark across a render: the map is built once', async () => {

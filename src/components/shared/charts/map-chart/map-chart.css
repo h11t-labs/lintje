@@ -161,7 +161,7 @@
 .lintje-map-chart__data.has-selection .lintje-map-chart__flow:not(.is-selected):not(:focus-visible) { opacity: .22; }
 /* On focus a flow keeps its own colour and width, at full strength also beside the chosen one,
    and gets the ring of every mark: 3 px outside a 1 px gap in the surface, along both sides. */
-.lintje-map-chart__flow:focus-visible { opacity: 1; }
+:is(.lintje-map-chart__flow:focus-visible, .lintje-map-chart__focus .lintje-map-chart__flow) { opacity: 1; }
 :is(.lintje-map-chart__flow:focus-visible, .lintje-map-chart__focus .lintje-map-chart__flow) .lintje-map-chart__flow-ring {
   stroke: var(--color-focus);
   stroke-width: calc(var(--lintje-flow-width) + var(--focus-width) * 2 + 2px);
