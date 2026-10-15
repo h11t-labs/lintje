@@ -4,6 +4,7 @@
  */
 import { afterEach, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
+import { TAB } from '../../core/test-keys'
 import '../../components/actions/button/button'
 import type { LintjeButton } from '../../components/actions/button/button'
 
@@ -16,7 +17,11 @@ it('transitions only opacity on a focused button and the label in it', async () 
   element.textContent = 'Opslaan'
   document.body.append(element)
   await element.updateComplete
-  await userEvent.tab()
+  // WebKit sends the key only to a document that holds the focus.
+  const start = Object.assign(document.createElement('input'), { ariaLabel: 'Zoeken' })
+  element.before(start)
+  start.focus()
+  await userEvent.keyboard(TAB)
 
   const button = element.shadowRoot!.querySelector<HTMLElement>('button')!
   expect(button.matches(':focus-visible')).toBe(true)
