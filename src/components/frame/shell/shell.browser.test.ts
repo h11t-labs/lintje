@@ -39,12 +39,14 @@ function focusColour(): string {
   return colour
 }
 
+// The viewport goes back with the elements in place: WebKit keeps the media queries of a sheet
+// that no connected element adopts as they were.
 afterEach(async () => {
-  document.body.replaceChildren()
-  document.documentElement.style.fontSize = ''
   await page.viewport(1440, 900)
   // WebKit resizes the frame after `viewport()` resolves.
   await expect.poll(() => window.innerWidth).toBe(1440)
+  document.body.replaceChildren()
+  document.documentElement.style.fontSize = ''
 })
 
 describe('"Weergave" below 768 px', () => {
@@ -149,30 +151,31 @@ describe('the ribbon in the logo bar', () => {
   const bar = (shell: LintjeShell) =>
     shell.shadowRoot!.querySelector('.lintje-logobar')!.getBoundingClientRect().height
 
-  async function measure(width: number, fontSize: string) {
-    await viewport(width)
+  /** The logo bar at `width` and a root text size of `fontSize`, once its ribbon is `ribbon` px. */
+  async function measure(width: number, fontSize: string, ribbon: number) {
     document.documentElement.style.fontSize = fontSize
     const shell = await mount({ ...DATA, layout: 'top', emblem })
-    await expect.poll(() => drawing(shell, '.lintje-logobar lintje-logo').ribbon).toBeGreaterThan(0)
-    const result = { ...drawing(shell, '.lintje-logobar lintje-logo'), bar: bar(shell) }
-    shell.remove()
-    return result
+    // Mount, then resize, and leave it in place: WebKit re-evaluates a sheet's media queries only
+    // while a connected element adopts it.
+    await viewport(width)
+    await expect
+      .poll(() => drawing(shell, '.lintje-logobar lintje-logo').ribbon)
+      .toBeCloseTo(ribbon, 0)
+    return { ...drawing(shell, '.lintje-logobar lintje-logo'), bar: bar(shell) }
   }
 
   it('is --w-ribbon wide: 48 px, 40 px below 768 px, at a text size of 16 px', async () => {
-    const desktop = await measure(1440, '16px')
-    expect(desktop.ribbon).toBeCloseTo(48, 0)
-    expect(desktop.bar).toBe(120)
-    const phone = await measure(390, '16px')
-    expect(phone.ribbon).toBeCloseTo(40, 0)
-    expect(phone.bar).toBe(100)
+    expect((await measure(1440, '16px', 48)).bar).toBe(120)
+    expect((await measure(390, '16px', 40)).bar).toBe(100)
   })
 
   it('grows with the bar at a text size of 20 px', async () => {
-    for (const width of [1440, 390]) {
-      const base = await measure(width, '16px')
-      const large = await measure(width, '20px')
-      expect(large.ribbon).toBeCloseTo(base.ribbon * 1.25, 0)
+    for (const [width, ribbon] of [
+      [1440, 48],
+      [390, 40],
+    ]) {
+      const base = await measure(width, '16px', ribbon)
+      const large = await measure(width, '20px', ribbon * 1.25)
       expect(large.bar).toBeCloseTo(base.bar * 1.25, 0)
       expect(large.height / base.height).toBeCloseTo(large.bar / base.bar, 2)
     }
@@ -185,8 +188,8 @@ describe('the ribbon in the logo bar', () => {
       .poll(() => drawing(side, '.lintje-nav__home lintje-logo').ribbon)
       .toBeCloseTo(44, 0)
     side.remove()
-    await viewport(390)
     const phone = await mount({ ...DATA, emblem })
+    await viewport(390)
     await expect
       .poll(() => drawing(phone, '.lintje-mobile-header__home lintje-logo').ribbon)
       .toBeCloseTo(32, 0)
