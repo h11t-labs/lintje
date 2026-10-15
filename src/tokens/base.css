@@ -27,7 +27,9 @@ button {
   cursor: pointer;
 }
 
+/* The hand on a link is explicit, like on a button: WebKit leaves it to the engine (`auto`). */
 a { color: var(--color-link); }
+a[href] { cursor: pointer; }
 
 input, select, textarea { font: inherit; color: inherit; }
 
