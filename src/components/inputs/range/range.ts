@@ -195,19 +195,16 @@ export class LintjeRange extends LintjeInputElement {
   private handles(): TemplateResult {
     const last = this.lastIndex
     if (this.single) {
+      // Named from the label's words: the visible label also holds the value, said by valuetext.
       return html`<input
         type="range"
         class="lintje-range__input"
-        role="slider"
         min="0"
         max=${last}
         .value=${String(this.index)}
         ?disabled=${this.disabled}
-        aria-labelledby=${this.labelId}
+        aria-label=${this.labelText || nothing}
         aria-describedby=${this.describedBy}
-        aria-valuemin=${(this.steps ?? [])[0] ?? 0}
-        aria-valuemax=${(this.steps ?? [])[last] ?? 0}
-        aria-valuenow=${(this.steps ?? [])[this.index] ?? 0}
         aria-valuetext=${this.valueText}
         aria-invalid=${this.error ? 'true' : nothing}
         @keydown=${this.key}

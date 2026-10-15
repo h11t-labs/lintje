@@ -887,6 +887,10 @@ kleinste correctie, en leg die hier vast.
   en de ring blijft die van het toetsenbord.
 - **Een live-regio wordt leeg getekend en krijgt haar woorden een frame later** (tegel, laadring,
   toast): een regio die samen met haar tekst wordt ingevoegd, wordt niet voorgelezen.
+- **Iets wordt één keer gezegd**: wat de focus krijgt, is geen live-regio — de focus is de
+  melding (de foutsamenvatting is een groep met haar kop als naam); een tweede kopie van een
+  tegel begint met een lege regio; een naam bevat niet de waarde die het element ook als waarde
+  zegt.
 - **Wat niet geopend kan worden, zegt dat in woorden**: een menurij zonder pagina of toegang
   draagt een verborgen "niet beschikbaar" of "geen toegang"; `aria-disabled` op een gewoon element
   zegt niets.

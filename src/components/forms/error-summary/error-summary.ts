@@ -5,6 +5,9 @@
  * by `name` or `id` in the summary's own tree or, from a shadow root, in its host's light DOM, and
  * scrolls it into view clear of a sticky top bar and the form's action bar.
  *
+ * It is no alert: the focus is the announcement. A host that shows it after an attempt calls its
+ * `focus()`, as `lintje-form` does; a page that arrives with its errors set leaves the focus alone.
+ *
  * Events: `lintje-retry` ("Opnieuw proberen" was pressed).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
@@ -91,7 +94,7 @@ export class LintjeErrorSummary extends LintjeElement {
       (this.items.length ? summaryHeading(this.items.length) : 'Opslaan is niet gelukt')
     return html`<div
       class="lintje-error-summary"
-      role="alert"
+      role="group"
       aria-labelledby="lintje-error-summary-heading"
       tabindex="-1"
     >
