@@ -19,6 +19,7 @@ export { renderRadarChart } from './radar-chart/radar-chart'
 export { renderHeatmap, heatmapBounds, heatmapClasses } from './heatmap-chart/heatmap-chart'
 export type { HeatmapClass } from './heatmap-chart/heatmap-chart'
 export { renderHistogramChart } from './histogram-chart/histogram-chart'
+export { renderTreemapChart } from './treemap-chart/treemap-chart'
 export { renderMap } from './map-chart/map-chart'
 export type { MapOptions } from './map-chart/map-chart'
 
@@ -48,6 +49,7 @@ export { staggerStyle, gridStaggerStyle } from './shared/stagger'
 export type { StyleInfo } from './shared/stagger'
 export { chartStyles, chartFrameStyles, pieChartStyles, heatmapStyles } from './shared/chart-styles'
 export { mapStyles, mapChartStyles } from './map-chart/map-styles'
+export { treemapStyles } from './shared/chart-styles'
 export type {
   ChartSpec,
   ChartKind,
@@ -62,4 +64,6 @@ export type {
   MapVariant,
   MapPlotData,
   MapPlotVariant,
+  TreemapPart,
+  TreemapSubPart,
 } from './shared/types'

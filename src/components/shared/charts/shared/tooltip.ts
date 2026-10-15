@@ -29,7 +29,8 @@ class PlaceTooltipDirective extends Directive {
     requestAnimationFrame(() => {
       if (!element.isConnected) return
       const available = element.parentElement?.clientWidth ?? Infinity
-      element.style.left = `${Math.max(0, Math.min(state.x + 12, available - element.offsetWidth - 8))}px`
+      const left = state.side === 'left' ? state.x - 12 - element.offsetWidth : state.x + 12
+      element.style.left = `${Math.max(0, Math.min(left, available - element.offsetWidth - 8))}px`
     })
     return nothing
   }
@@ -43,6 +44,7 @@ export function renderTooltip(controller: ChartController): TemplateResult | typ
   const { content } = state
   return html`
     <div class="lintje-chart-tooltip" ${placeTooltip(state)}>
+      ${content.kicker ? html`<p class="lintje-chart-tooltip__kicker">${content.kicker}</p>` : nothing}
       <p class="lintje-chart-tooltip__title">${content.title}</p>
       ${content.rows.map(
         (row) => html`

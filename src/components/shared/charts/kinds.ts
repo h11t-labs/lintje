@@ -85,7 +85,15 @@ export const CHART_KINDS = {
     label: 'Taart of donut',
     question: 'parts',
     use: 'De delen van één geheel op één moment, tot vijf; meer vouwt tot "Overig". Een donut toont ook het deel van een geheel, met het cijfer in het midden.',
-    avoid: 'Een verloop in de tijd, of delen die bijna even groot zijn: neem gestapelde staven.',
+    avoid:
+      'Een verloop in de tijd, of delen die bijna even groot zijn: neem gestapelde staven. Meer dan vijf delen die tellen, of delen met onderdelen: neem een treemap.',
+  },
+  treemap: {
+    label: 'Treemap',
+    question: 'parts',
+    use: 'Veel delen van één geheel op één moment — meer dan vijf, waar de taart vouwt — of delen met onderdelen, zoals een begroting met hoofdposten en onderposten.',
+    avoid:
+      'Tot vijf delen zonder onderdelen: neem een taart. Een verloop in de tijd: neem gestapelde staven of een gestapeld vlak. Delen precies tegen elkaar afmeten: neem horizontale staven; oppervlakken lezen minder precies dan lengtes.',
   },
   histogram: {
     label: 'Histogram',

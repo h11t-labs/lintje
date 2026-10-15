@@ -56,6 +56,8 @@ export interface TooltipRow {
   marker?: 'line' | 'dashed'
 }
 export interface TooltipContent {
+  /** A line above the title, in the muted text: what the title is part of. */
+  kicker?: string
   title: string
   rows: TooltipRow[]
   /** The events at this category, under the values: their number and text. */
@@ -65,6 +67,8 @@ export interface TooltipState {
   x: number
   y: number
   content: TooltipContent
+  /** `left` stands the tooltip left of `x`, for a mark whose right side carries its label. */
+  side?: 'left'
 }
 
 /** What the chart asks the controller to watch; set by the chart, not by the host. */
@@ -107,6 +111,8 @@ export class ChartController {
   emphasis: string | null = null
   /** The layers of a stacked map switched off in its legend, by their place in the stack. */
   hiddenLayers: number[] = []
+  /** The parts a treemap on a phone shows opened, by their id. */
+  openParts: string[] = []
   hoverSegment: number | null = null
   selectedCell: { row: number; column: number } | null = null
   /** What a wheel without its modifier shows, until its timer clears it. */
@@ -237,8 +243,8 @@ export class ChartController {
   }
 
   /** The tooltip at a place relative to the `data-tooltip-anchor`: the keyboard's way in. */
-  showTooltipAt(x: number, y: number, content: TooltipContent): void {
-    this.tooltip = { x, y, content }
+  showTooltipAt(x: number, y: number, content: TooltipContent, side?: 'left'): void {
+    this.tooltip = { x, y, content, side }
     this.watchEscape()
     this.requestUpdate()
   }
@@ -297,6 +303,13 @@ export class ChartController {
     this.hiddenLayers = this.hiddenLayers.includes(index)
       ? this.hiddenLayers.filter((x) => x !== index)
       : [...this.hiddenLayers, index]
+    this.requestUpdate()
+  }
+
+  toggleOpen(id: string): void {
+    this.openParts = this.openParts.includes(id)
+      ? this.openParts.filter((x) => x !== id)
+      : [...this.openParts, id]
     this.requestUpdate()
   }
 

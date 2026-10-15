@@ -67,8 +67,9 @@ export const LABEL_INK: Readonly<Record<DataColor, Rungs>> = {
  * other fill a host names (a role, a CSS colour) is light and takes ink.
  */
 export function labelInk(color: string | undefined, step = 1): LabelInk {
-  if (color == null) return LABEL_INK['sky-blue'][step - 1] ?? K
-  return isDataColor(color) ? (LABEL_INK[color][step - 1] ?? K) : K
+  if (color != null && !isDataColor(color)) return K
+  const ink = LABEL_INK[color ?? 'sky-blue'][step - 1]
+  return ink === undefined ? K : ink
 }
 
 /** The class of a label drawn on a mark in that ink. */

@@ -30,6 +30,8 @@ export type {
   MapArea,
   MapControls,
   RadarSeriesData,
+  TreemapPart,
+  TreemapSubPart,
 } from './components/shared/charts/shared/types'
 export type { DataColor } from './tokens/colors'
 export type { Tone, WorkState, ContentStateKind } from './components/shared/tone'
