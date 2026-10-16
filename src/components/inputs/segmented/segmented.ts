@@ -20,6 +20,7 @@ import { shadowCss } from '../../../core/styles'
 import '../../feedback/badge/badge'
 import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import { LintjeInputElement } from '../shared/input'
+import { LiveMessage } from '../../shared/live-message'
 import inputCss from '../shared/input.css?inline'
 import segmentedCss from './segmented.css?inline'
 import type { FilterOption } from '../../../types'
@@ -47,6 +48,7 @@ export class LintjeSegmented extends LintjeInputElement {
   /** The row's own width, measured while it is a row: the column turns back once that fits. */
   #rowWidth = 0
   #observer = new FrameResizeObserver(() => this.#fit())
+  readonly #live = new LiveMessage(this)
 
   override connectedCallback(): void {
     super.connectedCallback()
@@ -82,9 +84,14 @@ export class LintjeSegmented extends LintjeInputElement {
     if (column !== this.column) this.column = column
   }
 
+  // The description changes under the options, away from the focus: a reader's own choice says
+  // it, a value the host sets does not.
   private choose(value: string): void {
     this.value = value
     this.commit(value)
+    const description = this.options?.find((option) => option.value === value)?.description
+    if (description) this.#live.say(description)
+    else this.#live.clear()
   }
 
   protected override render(): TemplateResult {
@@ -135,6 +142,7 @@ export class LintjeSegmented extends LintjeInputElement {
           : nothing
       }
       ${this.renderFoot()}
+      <span class="visually-hidden" role="status">${this.#live.text}</span>
     </div>`
   }
 }
