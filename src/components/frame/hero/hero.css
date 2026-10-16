@@ -19,7 +19,6 @@
 .lintje-hero.has-overlap .lintje-hero__band {
   padding-bottom: calc(var(--space-10) + var(--space-2) + var(--hero-overlap));
 }
-.lintje-hero__band :focus-visible { outline-color: var(--color-hero-focus); }
 
 .lintje-hero__body {
   flex: 1 1 auto;

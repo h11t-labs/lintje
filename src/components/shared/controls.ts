@@ -131,6 +131,12 @@ export function formEntries(name: string, value: unknown): [string, string][] {
   return [[name, String(value ?? '')]]
 }
 
+/** Empty for a `required` check: the value posts nothing, or one of its parts posts `''`. */
+export function postsEmpty(value: unknown): boolean {
+  const entries = formEntries('', value)
+  return entries.length === 0 || entries.some(([, part]) => part === '')
+}
+
 /** A control that tells its own changes (`lintje-change`); a native one has to be read. */
 export function announces(control: HTMLElement): boolean {
   return control.localName.startsWith('lintje-')
