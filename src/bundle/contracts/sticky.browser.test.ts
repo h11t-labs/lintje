@@ -609,3 +609,48 @@ describe('the action bar scrolls nothing for the focus in itself', () => {
     })
   }
 })
+
+describe('the action bar does not stick on a low screen', () => {
+  /** Whether it sticks at the bottom over the form, and what it reserves. */
+  async function state(bar: HTMLElement): Promise<{ sticks: boolean; reserves: boolean }> {
+    await settle()
+    const fields = document.querySelectorAll('input')
+    const last = fields[fields.length - 1]!.getBoundingClientRect()
+    const box = bar.getBoundingClientRect()
+    const reserved = padding(document.documentElement, 'bottom')
+    return {
+      sticks: getComputedStyle(bar).position === 'sticky' && box.top < last.bottom,
+      reserves: reserved > 0 && reserved >= box.height - 1,
+    }
+  }
+
+  const STICKS = { sticks: true, reserves: true }
+  const AFTER_THE_FORM = { sticks: false, reserves: false }
+
+  // Mounted first, then resized: WebKit keeps the media queries of a sheet no connected element
+  // adopts as they were.
+  it('at 320 × 256 px it stands after the last field and reserves nothing', async () => {
+    const { bar } = await formPage()
+    await viewport(320, 256)
+    await expect.poll(() => state(bar)).toEqual(AFTER_THE_FORM)
+    await expect
+      .poll(() => shows(bar), { message: 'no shadow of a stuck bar' })
+      .toEqual(AT_ITS_PLACE)
+  })
+
+  it('at 390 × 844 px it sticks and reserves its height', async () => {
+    const { bar } = await formPage()
+    await viewport(390, 844)
+    await expect.poll(() => state(bar)).toEqual(STICKS)
+  })
+
+  it('sticks and reserves again as the screen grows, and stops as it shrinks', async () => {
+    const { bar } = await formPage()
+    await viewport(390, 256)
+    await expect.poll(() => state(bar), { message: 'low' }).toEqual(AFTER_THE_FORM)
+    await viewport(390, 844)
+    await expect.poll(() => state(bar), { message: 'high' }).toEqual(STICKS)
+    await viewport(390, 256)
+    await expect.poll(() => state(bar), { message: 'low again' }).toEqual(AFTER_THE_FORM)
+  })
+})

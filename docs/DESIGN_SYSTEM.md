@@ -825,6 +825,9 @@ navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de
 (identiteit en één meetwaarde) en de heatmap. Tussen de breedtes lopen bedieningselementen door
 naar een volgende regel; ze overlappen nooit.
 
+**Bij weinig hoogte plakt de actiebalk van een formulier niet**: onder een viewporthoogte van
+30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10).
+
 **Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame nadat die veranderde.**
 Zo verandert zijn maat nooit in de ronde van zijn waarnemer, die de browser anders als fout van de
 pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
