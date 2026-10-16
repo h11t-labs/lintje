@@ -249,6 +249,8 @@ export function renderToolbar(options: {
   chooser?: unknown
   onClearFilter: (column: string, button: HTMLElement) => void
   onClearAll: (button: HTMLElement) => void
+  /** Whether the sheet of filters is open, for the "Filters" button's `aria-expanded`. */
+  sheetOpen: boolean
   onOpenSheet: () => void
 }): TemplateResult {
   const active = options.columns.filter((column) => isFilterActive(options.values[column.key]))
@@ -265,6 +267,8 @@ export function renderToolbar(options: {
               variant="secondary"
               size="compact"
               icon="functioneel-filters"
+              haspopup="dialog"
+              .expanded=${options.sheetOpen}
               @click=${options.onOpenSheet}
               >Filters</lintje-button
             >`
