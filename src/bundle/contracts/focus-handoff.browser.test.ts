@@ -1843,6 +1843,37 @@ const VIEW_ROWS: Row[] = [
       return field
     },
   },
+  ...(
+    [
+      ['the add button', (element: Element) => element.shadowRoot!.querySelector('lintje-button')],
+      [
+        'the remove button of a row',
+        (element: Element) =>
+          element
+            .querySelector('lintje-repeater-row')!
+            .shadowRoot!.querySelector('lintje-icon-button'),
+      ],
+    ] as const
+  ).map(([what, host]): Row => ({
+    name: `lintje-form :: ${what} of a repeater, disabled while the form saves, gets its focus back after`,
+    run: async () => {
+      const form = document.createElement('lintje-form') as HTMLElement & { busy: boolean }
+      const element = await repeater(2)
+      form.append(element)
+      document.body.append(form)
+      await (form as unknown as Updating).updateComplete
+      const control = (): HTMLElement | null => button(host(element))
+      await drawn(control)
+      control()!.focus()
+      form.busy = true
+      await expect.poll(() => (host(element) as { disabled?: boolean } | null)?.disabled).toBe(true)
+      form.busy = false
+      await expect
+        .poll(() => (host(element) as { disabled?: boolean } | null)?.disabled)
+        .toBe(false)
+      return control
+    },
+  })),
 ]
 
 /* --- lintje-sub-nav -------------------------------------------------------- */

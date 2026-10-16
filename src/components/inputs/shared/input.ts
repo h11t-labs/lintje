@@ -92,6 +92,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
   #seen = false
   /** Set while a validity sync waits for a part a child element draws. */
   #waiting = false
+  #formDisabled = false
 
   constructor() {
     super()
@@ -111,7 +112,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     }
     if (!this.internals) return
     const data = new FormData()
-    if (this.name && !this.disabled) {
+    if (this.name && !this.isDisabled) {
       const entries = [...formEntries(this.name, this.postedValue), ...this.formExtras]
       for (const [key, value] of entries) data.append(key, value)
     }
@@ -126,7 +127,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
 
   /** Empty for the form: it posts nothing, or one of its values is empty. Counts without `name`. */
   protected get missing(): boolean {
-    return this.required && !this.disabled && postsEmpty(this.postedValue)
+    return this.required && !this.isDisabled && postsEmpty(this.postedValue)
   }
 
   /** Reports `required` to the native form, the message anchored where the focus goes. */
@@ -156,9 +157,22 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     writeControl(this, structuredClone(this.#first))
   }
 
-  /** The control's own `disabled`, or a `<fieldset disabled>` around it. */
+  /**
+   * Off for the form: its own `disabled`, or a `<fieldset disabled>` around it. Kept apart from
+   * `disabled`, which stays the host's: written there, it would outlive the fieldset.
+   */
   formDisabledCallback(disabled: boolean): void {
-    this.disabled = disabled
+    if (disabled === this.#formDisabled) return
+    this.#formDisabled = disabled
+    // The host's own `disabled` arrives here while Lit reflects it, mid-update, where a request
+    // is dropped: draw once more after that update.
+    if (this.isUpdatePending) void this.updateComplete.then(() => this.requestUpdate())
+    else this.requestUpdate()
+  }
+
+  /** Off, by the host's `disabled` or by the form; what every part reads. */
+  protected get isDisabled(): boolean {
+    return this.disabled || this.#formDisabled
   }
 
   protected get labelId(): string {
@@ -188,7 +202,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
 
   protected focusControl(options?: FocusOptions): void {
     // Disabled is out of the tab order: a label click or a script's `focus()` lands nowhere.
-    if (this.disabled) return
+    if (this.isDisabled) return
     this.focusTarget?.focus(options)
   }
 
@@ -225,7 +239,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
   /** The same commit for a non-scalar value; `url` is the shape sent in `lintje-values-change`. */
   protected announce(value: unknown, url: unknown = value): void {
     // A disabled control commits nothing, even when something else moves it.
-    if (this.disabled) return
+    if (this.isDisabled) return
     this.emitLocal('lintje-change', value)
     if (this.name) this.emit('lintje-values-change', this.valuesChange(url))
   }
@@ -312,7 +326,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     return html`<button
       type="button"
       class="lintje-field__reset"
-      ?disabled=${this.disabled}
+      ?disabled=${this.isDisabled}
       @click=${reset}
     >${this.resetLabel}${field}</button>`
   }
@@ -369,7 +383,7 @@ export abstract class LintjeFormInputElement extends LintjeInputElement {
 
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
-    this.internals?.setFormValue(this.disabled ? null : this.formValue)
+    this.internals?.setFormValue(this.isDisabled ? null : this.formValue)
     this.syncValidity()
   }
 
@@ -378,7 +392,7 @@ export abstract class LintjeFormInputElement extends LintjeInputElement {
    * implicit submission cannot reach it. Waits a task so `lintje-form` can prevent it.
    */
   protected submitOnEnter(event: KeyboardEvent, commit: () => void): void {
-    if (event.key !== 'Enter' || event.isComposing || this.readonly || this.disabled) return
+    if (event.key !== 'Enter' || event.isComposing || this.readonly || this.isDisabled) return
     commit()
     const form = this.internals?.form
     if (!form || typeof form.requestSubmit !== 'function') return
@@ -476,7 +490,7 @@ export abstract class LintjeChoiceGroupElement extends LintjeInputElement {
 
   /** The field's commit: `lintje-other-change`, and `lintje-values-change` with a `name`. */
   protected commitOther(text: string): void {
-    if (this.disabled) return
+    if (this.isDisabled) return
     this.otherText = text
     this.emitLocal('lintje-other-change', text)
     if (this.name) this.emit('lintje-values-change', this.valuesChange(readControl(this)))

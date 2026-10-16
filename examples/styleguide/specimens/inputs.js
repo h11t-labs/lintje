@@ -201,7 +201,7 @@ function fakeUploads(upload) {
 }
 
 const BIJLAGEN = [
-  { value: 'id', label: 'Kopie van een identiteitsbewijs' },
+  { value: 'id', label: 'Kopie van een identiteitsbewijs', description: 'Paspoort of identiteitskaart' },
   { value: 'loon', label: 'Loonstrook', description: 'Van de laatste maand' },
   { value: 'huur', label: 'Huurcontract' },
 ]
@@ -283,7 +283,7 @@ export default {
     },
 {
       tag: 'lintje-text-input',
-      title: 'Zoeken, wachtwoord, e-mail en vastleggen per toetsaanslag',
+      title: 'Zoeken, wachtwoord, e-mail, een vaste toevoeging en vastleggen per toetsaanslag',
       specimens: [
         {
           label: 'Zoeken terwijl je typt',
@@ -357,6 +357,50 @@ export default {
           label: 'Alleen-lezen',
           html: '<lintje-text-input name="dossier" label="Dossiernummer" value="2026-0412" readonly clearable></lintje-text-input>',
         },
+        {
+          label: 'Met prefix',
+          note: 'Een vaste tekst die de lezer nooit typt staat in een eigen vak; hij hoort niet bij de waarde.',
+          html: '<lintje-text-input name="p.bedrag" label="Bedrag" prefix="€" value="1250"></lintje-text-input>',
+        },
+        {
+          label: 'Met suffix',
+          html: '<lintje-text-input name="p.adres" label="E-mailadres" suffix="@rijksoverheid.nl" value="j.devries"></lintje-text-input>',
+        },
+        {
+          label: 'Met prefix en suffix',
+          html: '<lintje-text-input name="p.website" label="Website" prefix="www." suffix=".nl" value="rijksoverheid" clearable></lintje-text-input>',
+        },
+        {
+          label: 'Met knop',
+          note: 'De knop legt eerst vast wat getypt is, zoals Enter, en stuurt dan `lintje-action`.',
+          html: '<lintje-text-input name="p.kenteken" label="Kenteken" action="Zoek" value="AB-12-CD"></lintje-text-input>',
+          setup(stage) {
+            const say = log(stage)
+            stage.querySelector('lintje-text-input').addEventListener('lintje-action', (event) => {
+              say(`lintje-action ${JSON.stringify(event.detail)}`)
+            })
+          },
+        },
+        {
+          label: 'Zoekveld met knop',
+          html: '<lintje-text-input type="search" label="Zoek in de regelingen" action="Zoek" value="subsidie"></lintje-text-input>',
+        },
+        {
+          label: 'Toevoeging met fout',
+          html: '<lintje-text-input name="p.dossiernummer" label="Dossiernummer" prefix="DOS-" value="12a" error="Gebruik alleen cijfers." action="Controleer"></lintje-text-input>',
+        },
+        {
+          label: 'Toevoeging alleen-lezen',
+          html: '<lintje-text-input name="p.dossier-vast" label="Dossiernummer" prefix="DOS-" value="2026-0412" readonly action="Controleer"></lintje-text-input>',
+        },
+        {
+          label: 'Toevoeging uitgeschakeld',
+          html: '<lintje-text-input name="p.bedrag-uit" label="Bedrag" prefix="€" suffix="per maand" value="85" disabled action="Controleer"></lintje-text-input>',
+        },
+        {
+          label: 'Toevoeging afwijkend van standaard',
+          html: '<lintje-text-input name="p.domein" label="Domein" prefix="www." suffix=".nl" value="overheid" modified></lintje-text-input>',
+        },
       ],
     },
     {
@@ -419,6 +463,11 @@ export default {
         {
           label: 'Afwijkend van standaard',
           html: '<lintje-textarea label="Omschrijving" modified value="Tas zonder eigenaar, omgeving afgezet."></lintje-textarea>',
+        },
+        {
+          label: 'Toelichting en teller',
+          note: 'De toelichting links, de teller rechts op dezelfde regel; past dat niet, dan valt de teller eronder.',
+          html: '<lintje-textarea label="Omschrijving" hint="Wat er is gebeurd, in een paar zinnen." maxlength="2000" value="Tas zonder eigenaar bij de balie."></lintje-textarea>',
         },
         {
           label: 'Afwijkend met terugzetten',
@@ -493,6 +542,16 @@ export default {
         {
           label: 'Alleen-lezen',
           html: '<lintje-number-input name="p.drempel-vast" label="Drempel" value="5" min="0" max="20" readonly></lintje-number-input>',
+        },
+        {
+          label: 'Prefix zonder stapknoppen',
+          html: '<lintje-number-input name="p.tarief" label="Tarief" value="85" prefix="€"></lintje-number-input>',
+          setup: (stage) => (stage.querySelector('lintje-number-input').stepper = false),
+        },
+        {
+          label: 'Prefix en eenheid',
+          html: '<lintje-number-input name="p.uurtarief" label="Uurtarief" value="85" prefix="€" unit="per uur"></lintje-number-input>',
+          setup: (stage) => (stage.querySelector('lintje-number-input').stepper = false),
         },
       ],
     },
@@ -673,7 +732,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
-          note: 'Loonstrook heeft een toelichting onder de optie. Eronder staat wat de host hoort.',
+          note: 'Een toelichting staat onder haar optie, ingesprongen tot de labeltekst. Eronder staat wat de host hoort.',
           html: '<lintje-checkbox-group name="bijlagen" label="Welke bijlagen stuurt u mee?" hint="Kies alles wat van toepassing is."></lintje-checkbox-group>',
           setup(stage) {
             bijlagen(stage, ['loon'])

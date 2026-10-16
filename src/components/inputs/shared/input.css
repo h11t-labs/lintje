@@ -23,6 +23,10 @@
   min-width: 0;
 }
 :host([hidden]) { display: none; }
+/* A choice's control and its gap to the label text: the hint and error under a lone choice
+   indent by both, so they start where the label text does. */
+:host { --lintje-choice-control: 24px; --lintje-choice-gap: 10px; }
+:host(lintje-toggle) { --lintje-choice-control: 40px; }
 
 /* --- */
 
@@ -41,9 +45,9 @@
   background: var(--color-attention);
   flex: none; align-self: center;
 }
-:host([disabled]) .lintje-label { color: var(--color-text-disabled); }
+:host(:disabled) .lintje-label { color: var(--color-text-disabled); }
 .lintje-label__optional { font-weight: 400; color: var(--color-text-muted); }
-:host([disabled]) .lintje-label__optional { color: var(--color-text-disabled); }
+:host(:disabled) .lintje-label__optional { color: var(--color-text-disabled); }
 /* A value and its unit stay together when a long label wraps. */
 .lintje-field__value { font-weight: 400; color: var(--color-text-muted); white-space: nowrap; }
 .lintje-field__hint { font: var(--text-small); color: var(--color-text-muted); }
@@ -51,6 +55,26 @@
   display: flex; align-items: center; gap: var(--space-2);
   font: var(--text-small); color: var(--color-error-text); font-weight: 700;
 }
+/* A fixed text beside the input: its own box on the subtle surface with a light line towards the
+   input, so what is fixed stands apart from what the reader types. Read-only and disabled go one
+   step darker. Read-only text is primary: muted on that fill misses 4.5:1 in dark. */
+.lintje-field__addon {
+  display: flex; align-items: center; flex: none;
+  padding: 0 var(--space-3);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  white-space: nowrap;
+}
+.lintje-field__addon--prefix { border-right: 1px solid var(--color-border-default); }
+.lintje-field__addon--suffix { border-left: 1px solid var(--color-border-default); }
+.lintje-field__addon.is-readonly,
+.lintje-field__addon.is-disabled {
+  background: var(--color-border-strong);
+  border-color: var(--color-border-strong);
+}
+.lintje-field__addon.is-readonly { color: var(--color-text-primary); }
+.lintje-field__addon.is-disabled { color: var(--color-text-disabled); }
 
 /* --- A setting's row: name and hint on the left, the control on the right ----- */
 /* A row reads its own width, not the screen's: in a drawer it stays a column. */
@@ -69,7 +93,10 @@
     font: var(--text-ui);
   }
   :host([layout='row']) .lintje-field > .lintje-field__hint,
-  :host([layout='row']) .lintje-field > .lintje-field__error { grid-column: 1; grid-row: 2; align-self: start; }
+  :host([layout='row']) .lintje-field > .lintje-field__error {
+    grid-column: 1; grid-row: 2; align-self: start;
+    margin: 0;
+  }
   :host([layout='row']) .lintje-field > .lintje-field__reset { grid-column: 1; grid-row: 3; }
   /* A switch is its own label: the row is the label, the switch stands at its right edge. */
   :host([layout='row']) .lintje-field > .lintje-choice {
@@ -96,10 +123,16 @@
 
 /* --- Checkbox, radio, toggle ---------------------------------------------- */
 .lintje-choice {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: var(--lintje-choice-gap);
   min-height: var(--h-target);
   font-size: 1rem;
   cursor: pointer;
+}
+/* Under its label, and drawn up into the row's own air, so it reads with its option and not with
+   the next one in a group. */
+.lintje-choice ~ .lintje-field__hint,
+.lintje-choice ~ .lintje-field__error {
+  margin: calc(var(--space-2) * -1) 0 var(--space-2) calc(var(--lintje-choice-control) + var(--lintje-choice-gap));
 }
 .lintje-choice__input { position: absolute; opacity: 0; width: 0; height: 0; }
 .lintje-choice__label.is-modified { color: var(--color-accent-text); font-weight: 700; }
@@ -114,7 +147,7 @@
 }
 
 .lintje-choice__box {
-  width: 24px; height: 24px; flex: none;
+  width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
   display: flex; align-items: center; justify-content: center;
   border: 2px solid var(--color-border-choice);
   background: var(--color-bg-surface);
@@ -145,7 +178,7 @@
 }
 
 .lintje-choice__radio {
-  width: 24px; height: 24px; flex: none;
+  width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
   border: 2px solid var(--color-border-choice);
   border-radius: 50%;
   background: var(--color-bg-surface);
@@ -161,7 +194,7 @@
 /* Off: edged with the field's edge (3:1, WCAG 1.4.11) as an inset ring, keeping the box size. */
 .lintje-choice__switch {
   box-sizing: border-box;
-  width: 40px; height: 22px; flex: none;
+  width: var(--lintje-choice-control); height: 22px; flex: none;
   border-radius: 11px;
   /* Off is a filled track, not a pale one with a ring: the fill alone reaches 3:1. */
   background: var(--color-border-field);
