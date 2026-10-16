@@ -258,6 +258,13 @@ describe('lintje-map series', () => {
     expect(shape('ein').getAttribute('d')).toBe(
       seriesShapePath(seriesShape('dark-yellow'), pointRadius(21, 21)),
     )
+    // The panel's swatch draws the default colour, as the point and the legend do.
+    await click(element, point(element, 'ams-e'))
+    const swatch = element.renderRoot.querySelector<SVGPathElement>(
+      '.lintje-map-chart__series-swatch path',
+    )!
+    expect(swatch.getAttribute('d')).toBe(seriesShapePath('circle', 5.5, 7, 7))
+    expect(swatch.getAttribute('fill')).toBe('var(--color-chart-default)')
   })
 
   it('draws a legend above the map for every series a point uses', async () => {

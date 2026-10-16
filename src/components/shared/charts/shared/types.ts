@@ -278,9 +278,10 @@ export type MapVariant = 'flows' | 'points' | 'choropleth' | 'polygons' | 'plots
 /** A map point's data colour, by name: one of the data colours, each with its own shape. */
 /**
  * What a point's `series` names: a data colour by name, which brings that colour's shape — or
- * any key of the map's `seriesStyles`, which says what colour and shape it draws with.
+ * any key of the map's `seriesStyles`, which says what colour and shape it draws with. The
+ * union keeps the colour names as suggestions beside the free key.
  */
-export type MapSeriesKey = string
+export type MapSeriesKey = DataColor | (string & {})
 
 /** A series' colour: a data colour, or `neutral` — the comparison grey, for a map whose series differ by shape alone. */
 export type MapSeriesColor = DataColor | 'neutral'
