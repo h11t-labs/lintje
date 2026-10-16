@@ -7,6 +7,11 @@
   z-index: 20;
 }
 :host([hidden]) { display: none; }
+/* Little height (a phone held sideways, 400 % zoom): sticking would leave the form a strip of one
+   field, so the bar stands after the last field. Matches `LOW` in form-actions.ts. */
+@media (height < 30rem) {
+  :host { position: static; }
+}
 
 /* ------------------------------------------------------------------------ */
 
@@ -21,6 +26,8 @@
   border: 1px solid var(--color-border-default);
   border-top: 2px solid var(--color-accent-line);
 }
+/* Only while the form scrolls behind it: at its own place the bar is the form's last row. */
+.lintje-form-actions.is-stuck { box-shadow: var(--shadow-sticky-up); }
 
 /* The words carry the state; the dot and the check only support it (rule 13). */
 .lintje-form-actions__status {

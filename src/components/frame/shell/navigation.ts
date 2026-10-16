@@ -17,6 +17,7 @@ import { isPlainClick } from '../../../core/links'
 import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import { focusTarget, tabbables } from '../../shared/focus-trap'
 import { lengthPx } from '../../../core/length'
+import { titleWhenCut } from '../../shared/cut-text'
 
 /** The pin's name stays the same; `aria-pressed` says whether the menu is pinned. */
 export const PIN_LABEL = 'Menu vastzetten'
@@ -240,7 +241,7 @@ export function navRow(shell: LintjeShell, item: ShellLink, open: boolean): Temp
     ${
       // In the rail the label is only heard; expanding on hover and focus shows it.
       open
-        ? html`<span class="lintje-nav__label">${item.label}</span>`
+        ? html`<span class="lintje-nav__label" @pointerenter=${titleWhenCut}>${item.label}</span>`
         : html`<span class="visually-hidden">${item.label}</span>`
     }
     ${
@@ -406,7 +407,7 @@ export function renderNavMeta(shell: LintjeShell, open: boolean): TemplateResult
     const label = feedbackLabel(data.feedback)
     return html`<a class="lintje-nav__item lintje-nav__feedback" href=${data.feedback.href}>
       ${renderIcon('functioneel-mail', { size: 20, label: open ? undefined : label })}
-      ${open ? html`<span class="lintje-nav__label">${label}</span>` : nothing}
+      ${open ? html`<span class="lintje-nav__label" @pointerenter=${titleWhenCut}>${label}</span>` : nothing}
       ${
         open && version
           ? html`<span class="lintje-nav__metric lintje-nav__version">${version}</span>`

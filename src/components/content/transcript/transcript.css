@@ -89,13 +89,12 @@
   left: calc(-1 * var(--space-2));
   max-width: 100%;
 }
+/* Read-only, nothing in a fragment takes the focus, so no tooltip could show a cut name: it wraps. */
 .lintje-transcript__speaker.is-static {
   left: 0;
   font: var(--text-small);
   font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 .lintje-transcript__now { font: var(--text-small); color: var(--color-text-muted); }
 

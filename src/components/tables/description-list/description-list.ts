@@ -14,7 +14,7 @@ import { shadowCss } from '../../../core/styles'
 import descriptionListCss from './description-list.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { styleProps } from '../../../core/style-props'
-import { TONE_ICON, type Tone } from '../../shared/tone'
+import { TONE_ICON, TONE_WORD, type Tone } from '../../shared/tone'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { badgeStyles, renderBadge } from '../../feedback/badge/badge'
 
@@ -41,8 +41,9 @@ export interface DescriptionItem {
   /** Grid: the one figure a reader looks at, as large as a key figure. */
   large?: boolean
   /**
-   * `changed`: differs from the default, and says "Aangepast". A shared tone carries its
-   * glyph when it has one, and the words are the host's (in the value or its slot).
+   * `changed`: differs from the default, and says "Aangepast". A shared tone carries its glyph
+   * when it has one, with a hidden word for what the glyph says; the rest of the words are the
+   * host's (in the value or its slot).
    */
   tone?: DescriptionTone
   /** The name of a slot drawn under the value, for what a string cannot say (a meter, a button). */
@@ -123,6 +124,9 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
   private renderItem(item: DescriptionItem): TemplateResult {
     const grid = this.layout === 'grid'
     const tone = item.tone
+    // The glyph is hidden; its word is read before the value, once, also while the icon loads.
+    const shared = tone && tone !== 'changed' ? tone : undefined
+    const glyph = shared && TONE_ICON[shared]
     return html`<div
       class=${classMap({
         'lintje-description-list__row': true,
@@ -136,7 +140,13 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
       >
       <dd class="lintje-description-list__value">
         <span class="lintje-description-list__main">
-          ${tone && tone !== 'changed' ? renderIcon(TONE_ICON[tone], { size: 16 }) : nothing}
+          ${
+            shared && glyph
+              ? html`${renderIcon(glyph, { size: 16 })}<span class="visually-hidden"
+                  >${TONE_WORD[shared]}</span
+                >`
+              : nothing
+          }
           ${this.value(item)}
         </span>
         ${item.slot ? html`<slot name=${item.slot}></slot>` : nothing}
