@@ -31,8 +31,9 @@
 .lintje-data-table__frame::after { right: 0; box-shadow: var(--shadow-scroll-end); }
 .lintje-data-table__frame.is-scrollable-start::before,
 .lintje-data-table__frame.is-scrollable-end::after { opacity: 1; }
-/* Positioned, so an absolute visually hidden label is clipped with its cell. */
-.lintje-data-table__scroller { position: relative; overflow-x: auto; }
+/* Positioned, so an absolute visually hidden label is clipped with its cell. Only sideways: a
+   hidden label below the last row would otherwise give the table a vertical scrollbar. */
+.lintje-data-table__scroller { position: relative; overflow-x: auto; overflow-y: hidden; }
 .lintje-data-table__scroller:focus-visible { outline-offset: -3px; }
 /* A styled scrollbar is a classic one: it doesn't hide between scrolls like an overlay one. */
 .lintje-data-table__scroller::-webkit-scrollbar { height: 8px; }
