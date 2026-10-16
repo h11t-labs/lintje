@@ -12,6 +12,8 @@ import base from '../tokens/base.css?inline'
  * - `@font-face` is dropped: Chromium ignores it in a shadow root; the host page declares fonts.
  * - `:root:not(X)` becomes `:host(:not(X))`: `:host:not(X)` does not match in Chromium.
  *   It runs before the plain `:root` rule.
+ * - `[data-mode=…]` becomes `:host([data-mode=…])`, with the value quoted as the source writes
+ *   it or bare as the minifier leaves it.
  */
 export function toShadowCss(css: string): string {
   return css
@@ -19,7 +21,7 @@ export function toShadowCss(css: string): string {
     .replace(/html,\s*body,\s*#root\s*\{[^}]*\}/g, '')
     .replace(/:root:not\(([^)]*)\)/g, ':host(:not($1))')
     .replace(/:root(?![\w-])/g, ':host')
-    .replace(/(^|[\s,{}])\[data-mode=('[^']*'|"[^"]*")\]/gm, '$1:host([data-mode=$2])')
+    .replace(/(^|[\s,{}])\[data-mode=('[^']*'|"[^"]*"|[\w-]+)\]/gm, '$1:host([data-mode=$2])')
 }
 
 const cache = new Map<string, CSSResult>()
