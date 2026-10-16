@@ -20,6 +20,8 @@ async function mount(): Promise<LintjeChart> {
       ],
     },
   }
+  // The host keeps the page: a mark with an `href` goes there unless its event is cancelled.
+  tile.addEventListener('lintje-mark-select', (event) => event.preventDefault())
   document.body.append(tile)
   await tile.updateComplete
   await expect.poll(() => slice(tile)?.getClientRects().length ?? 0).toBeGreaterThan(0)
@@ -58,6 +60,7 @@ describe('a scatter point under the pointer', () => {
     }
     const picked: string[] = []
     tile.addEventListener('lintje-mark-select', (event) => {
+      event.preventDefault()
       picked.push(String((event as CustomEvent<{ id: string | null }>).detail.id))
     })
     document.body.append(tile)

@@ -264,9 +264,9 @@ Besluiten die voor beide gelden:
 
 - **De navigatiebalk is één rij.** Als de items niet passen, gemeten en niet per breakpoint,
   maken ze plaats voor één item, "Menu", waarvan het paneel het hele menu bevat. Een groep opent
-  bij hover; "Menu" opent en sluit met een klik en leest "Sluiten" zolang het open is, zoals in de
-  mobiele header. "Menu" draagt geen actief-markering: de pagina van de lezer zit er bijna altijd
-  in.
+  bij hover; op een aanraakscherm opent een tik een groep en sluit een tweede tik hem. "Menu" opent
+  en sluit met een klik en leest "Sluiten" zolang het open is, zoals in de mobiele header. "Menu"
+  draagt geen actief-markering: de pagina van de lezer zit er bijna altijd in.
 - **De bovenbalk van de indeling Links houdt zijn gereedschap ook op één rij.** Zoeken,
   "Weergave" en "Delen" zijn knoppen met hun woord — zoeken met zijn toets, `/` — totdat zij en
   de naam niet passen, gemeten; dan zijn het de kale iconen van de navigatiebalk.
@@ -473,6 +473,11 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een link is een link**: een echte `<a href>` die de browser volgt. Een gewone linkerklik wordt
   ook gemeld als `lintje-navigate`, en een host met een router annuleert dat event om de klik over
   te nemen. Een klik met een modificatietoets is van de browser.
+- **Een rij of teken met een `href` gaat erheen**, tenzij de host zijn event annuleert: een
+  klikbare tabelrij, een teken in een grafiek en een markering op de kaart, zoals een linkrij van
+  de lijst. Het element gaat via `lintje-navigate`, zodat een router het overneemt; een selectie
+  ongedaan maken gaat zo naar de `clearHref`. Een klik met een modificatietoets of de middelste
+  knop opent de `href` in een nieuw tabblad, zoals een link, via `lintje-navigate` met `newTab`.
 - **Toetsen lopen via één register** (`src/core/shortcuts.ts`). Een toets is nooit de enige manier
   om iets te doen, en een toets zonder modificatietoets gaat nooit af zolang de focus in een veld
   staat. De eigen toetsen van een speler (spatie, de pijlen, F, C) werken alleen zolang de focus
@@ -802,6 +807,10 @@ navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de
 (identiteit en één meetwaarde) en de heatmap. Tussen de breedtes lopen bedieningselementen door
 naar een volgende regel; ze overlappen nooit.
 
+**Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame nadat die veranderde.**
+Zo verandert zijn maat nooit in de ronde van zijn waarnemer, die de browser anders als fout van de
+pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
+
 ## Beweging
 
 - **Twee curves**: wat binnenkomt, vertraagt; wat vertrekt, versnelt. Een vervaging die heen en
@@ -823,7 +832,8 @@ naar een volgende regel; ze overlappen nooit.
 - **Een keuze beweegt mee**: het vinkje van een checkbox groeit in bij aanvinken en krimpt weg bij
   uitvinken, op de duur van hoverfeedback.
 - **De focusring is nooit geanimeerd.**
-- **Verminderde beweging laat niets weg, alleen de beweging.**
+- **Verminderde beweging laat niets weg, alleen de beweging.** Alleen een vervaging blijft, kort;
+  al het andere, ook de focusring en een kleur, staat meteen.
 
 ## Afdrukken
 
@@ -896,7 +906,9 @@ kleinste correctie, en leg die hier vast.
   SVG-element met `tabindex` zijn eigen outline, ook zonder `:focus-visible`; `:focus` zet die af,
   en de ring blijft die van het toetsenbord.
 - **Een live-regio wordt leeg getekend en krijgt haar woorden een frame later** (tegel, laadring,
-  toast): een regio die samen met haar tekst wordt ingevoegd, wordt niet voorgelezen.
+  toast): een regio die samen met haar tekst wordt ingevoegd, wordt niet voorgelezen. Zo gaat elke
+  melding, ook dezelfde twee keer na elkaar: de regio staat er al, wordt leeg en krijgt de woorden
+  een frame later.
 - **Wat niet geopend kan worden, zegt dat in woorden**: een menurij zonder pagina of toegang
   draagt een verborgen "niet beschikbaar" of "geen toegang"; `aria-disabled` op een gewoon element
   zegt niets.

@@ -3,6 +3,7 @@
  * The host (a Lit element) creates one controller per chart and passes it in `ChartOptions`.
  */
 import { lengthPx } from '../../../../core/length'
+import { FrameResizeObserver } from '../../frame-resize-observer'
 import { DEFAULT_PLOT_AREA, type PlotArea } from './scale'
 // Type-only, so the module cycle (leaflet.ts needs this file) is erased at build.
 import type { LeafletSurface } from '../map-chart/leaflet'
@@ -26,8 +27,11 @@ export interface ChartOptions {
   expanded?: boolean
   /** Cross-drill: the chosen mark's id. The chart keeps no selection of its own. */
   selectedId?: string | null
-  /** A mark that carries a `href` was activated. Without this the marks stay inert. */
-  onSelect?: (mark: ChartSelection) => void
+  /**
+   * A mark that carries a `href` was activated; `newTab` for a modifier or middle click. Without
+   * this the marks stay inert.
+   */
+  onSelect?: (mark: ChartSelection, newTab?: boolean) => void
   /** The selection was undone (chosen mark again, or Escape); the id travels for focus. */
   onClear?: (previousId: string) => void
 }
@@ -137,7 +141,7 @@ export class ChartController {
   /** The chart's box, once attached; the map finds its own buttons in it. */
   element: HTMLElement | null = null
   private measuring: MeasureSpec = {}
-  private resizeObserver: ResizeObserver | null = null
+  private resizeObserver: FrameResizeObserver | null = null
   private intersectionObserver: IntersectionObserver | null = null
 
   constructor(requestUpdate: () => void) {
@@ -193,7 +197,7 @@ export class ChartController {
       return
     }
     if (this.resizeObserver) return
-    this.resizeObserver = new ResizeObserver(() => {
+    this.resizeObserver = new FrameResizeObserver(() => {
       const { width, height } = this
       this.read()
       // The height token can change without a size change (the modal sets it after layout).
