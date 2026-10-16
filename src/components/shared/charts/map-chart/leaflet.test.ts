@@ -141,6 +141,25 @@ describe('the map surface', () => {
     expect(gap.querySelector('.lintje-map-chart__point-shape')?.getAttribute('d')).toContain('6')
   })
 
+  it('hatches a point without a figure on a basemap of series points, its pattern beside it', () => {
+    const { container } = surface(
+      {},
+      {
+        ...DATA,
+        basemap: BASEMAP,
+        values: [
+          DATA.values[0],
+          { id: 'gap', label: 'Gat', value: null, lon: 5, lat: 52, series: 'dark-yellow' as const },
+        ],
+      },
+    )
+    const gap = mark(container, 'gap')
+    const fill = gap.querySelector('.lintje-map-chart__point-hatch')?.getAttribute('fill') ?? ''
+    const [, id] = /^url\(#(.+)\)$/.exec(fill) ?? []
+    expect(id).toMatch(/^map-hatch-/)
+    expect(gap.closest('svg')?.querySelector(`pattern[id="${id}"]`)).not.toBeNull()
+  })
+
   it('scales the drawing to the zoom and the symbols back, so a point keeps its size', () => {
     const { instance, container } = surface()
     const group = container.querySelector('.lintje-map-chart__data')!

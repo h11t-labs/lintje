@@ -144,16 +144,18 @@ new ChartController(() => this.requestUpdate())
   hoogte komt uit een token dat op het element zelf gelezen wordt, zodat een lokale override (de
   `--chart-h-main` van de modal, de hoogte van de body) wordt opgepikt. `inView` is de poort voor het intekenen: de
   markeringen blijven in hun beginstand tot 35 % van de grafiek in beeld is geweest, één keer.
-- `tooltip`, `hoverIndex`, `status`, `hiddenSeries`, `hoverSegment`, `selectedCell`,
+- `tooltip`, `hoverIndex`, `status`, `hiddenSeries`, `selectedCell`,
   `mapSelection`, `hiddenLayers`, `leafletView`, `mapHint` — de interactiestaat,
   met `showTooltip`, `showTooltipAt`, `hideTooltip`, `hoverAt`, `dismiss` (Escape) en
   `toggleSeries` om hem te wijzigen.
 - `detach()` — stopt de observers. Roep hem aan vanuit `disconnectedCallback`.
 
-De tekening van elke grafiek met assen neemt de focus: `plotKeys` (`shared/plot-keys.ts`) loopt
-met de pijltjestoetsen, Home en End door haar categorieën, zet de tooltip op de bereikte en
-schrijft die in `status`, die `renderPlotStatus` uitspreekt. Een markering die doorklikt, houdt
-haar eigen Enter.
+De tekening van elke grafiek met assen, en van de taart, neemt de focus: `plotKeys`
+(`shared/plot-keys.ts`) loopt met de pijltjestoetsen, Home en End door haar categorieën, zet de
+tooltip op de bereikte en schrijft die in `status`, die `renderPlotStatus` uitspreekt. Een
+markering die doorklikt, houdt haar eigen Enter. Krijgt de grafiek nieuwe data, dan sluit
+`renderChart` de tooltip en maakt de status leeg (`follow`); de volgende pijltoets begint op de
+oude plek, of op de laatste categorie als die er niet meer is.
 
 Er vuurt een `requestUpdate` per muisbeweging. Een `LitElement` bundelt die al; een
 host zonder Lit moet ze zelf bundelen.

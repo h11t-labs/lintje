@@ -151,6 +151,7 @@ export type ChartSpec =
       donut?: boolean
       centerValue?: string
       centerLabel?: string
+      /** The legend as a table with counts and shares; `false` puts the shared legend above the pie. */
       legendTable?: boolean
       /** Header of the legend table's first column: what the segments are. */
       labelHeader?: string

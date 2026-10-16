@@ -1,9 +1,10 @@
 /**
  * A chart mark in a browser: the scatter plot's one pointer target, and the keyboard's ring,
- * never the box the browser draws on a click.
+ * never the box the browser draws on a click. A pie's drawing takes the focus from Tab.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { server, userEvent } from 'vitest/browser'
+import { TAB } from '../../../core/test-keys'
 import './chart'
 import type { LintjeChart } from './chart'
 
@@ -126,5 +127,45 @@ describe.runIf(server.browser === 'chromium')('a clickable mark', () => {
     expect(mark.matches(':focus-visible')).toBe(true)
     expect(getComputedStyle(mark).outlineStyle).toBe('none')
     expect(getComputedStyle(mark).filter).not.toBe('none')
+  })
+})
+
+describe('a pie without a legend table', () => {
+  it('takes the focus from Tab, with the ring of every drawing', async () => {
+    const tile = document.createElement('lintje-chart')
+    tile.data = {
+      title: 'Aanvragen per kanaal',
+      description: 'Online 12, balie 8.',
+      chart: {
+        kind: 'pie',
+        legendTable: false,
+        segments: [
+          { label: 'Online', value: 12 },
+          { label: 'Balie', value: 8 },
+        ],
+      },
+    }
+    document.body.append(tile)
+    await tile.updateComplete
+    const drawing = tile.shadowRoot!.querySelector<SVGSVGElement>('.lintje-pie-chart__svg')!
+    await expect.poll(() => drawing.getClientRects().length).toBeGreaterThan(0)
+    // Past the tile's own controls, if any, to the drawing.
+    for (let i = 0; i < 6 && tile.shadowRoot!.activeElement !== drawing; i++) {
+      await userEvent.keyboard(TAB)
+    }
+    expect(tile.shadowRoot!.activeElement).toBe(drawing)
+    expect(drawing.matches(':focus-visible')).toBe(true)
+    const probe = document.createElement('span')
+    probe.style.color = 'var(--color-focus)'
+    tile.shadowRoot!.append(probe)
+    const focus = getComputedStyle(probe).color
+    probe.remove()
+    const ring = getComputedStyle(drawing)
+    await expect.poll(() => ring.outlineColor).toBe(focus)
+    expect(ring.outlineStyle).toBe('solid')
+    expect(ring.outlineWidth).toBe('3px')
+    await expect
+      .poll(() => tile.shadowRoot!.querySelector('.lintje-chart-tooltip__title')?.textContent)
+      .toBe('Online')
   })
 })
