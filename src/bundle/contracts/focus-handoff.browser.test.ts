@@ -13,7 +13,9 @@ import '../../components/feedback/conflict-alert/conflict-alert'
 import '../../components/tables/data-table/data-table'
 import '../../components/filters/filter-zone/filter-zone'
 import '../../components/forms/form/form'
+import '../../components/inputs/checkbox-group/checkbox-group'
 import '../../components/inputs/date-input/date-input'
+import '../../components/inputs/radio-group/radio-group'
 import '../../components/inputs/time-input/time-input'
 import '../../components/inputs/date-range/date-range'
 import '../../components/inputs/file-upload/file-upload'
@@ -657,7 +659,59 @@ async function tagInput(): Promise<HTMLElement> {
   })
 }
 
+const SOURCES = [
+  { value: 'gemeente', label: 'Via de gemeente' },
+  { value: 'website', label: 'Op de website' },
+]
+
+/** A group with "Anders" chosen and the focus in its field. */
+async function otherOpen<T extends HTMLElement>(tag: string, props: object): Promise<T> {
+  const group = await mount<T>(tag, {
+    name: 'bron',
+    label: 'Hoe hoorde u van de regeling?',
+    options: SOURCES,
+    other: true,
+    ...props,
+  })
+  const field = (): HTMLElement | null => inside(group, '[data-other]', 'input')
+  await expect.poll(field).toBeTruthy()
+  field()!.focus()
+  await expect.poll(() => active() === field()).toBe(true)
+  return group
+}
+
 const INPUT_ROWS: Row[] = [
+  {
+    name: 'lintje-radio-group :: the host sets a value without "Anders": the focus goes to the option',
+    run: async () => {
+      const group = await otherOpen<HTMLElement & { value: string }>('lintje-radio-group', {
+        value: 'other',
+      })
+      group.value = 'website'
+      return () => inside(group, 'input[value="other"]')
+    },
+  },
+  {
+    name: 'lintje-checkbox-group :: a form reset takes "Anders" away: the focus goes to the option',
+    run: async () => {
+      const form = document.createElement('form')
+      document.body.append(form)
+      const group = document.createElement('lintje-checkbox-group')
+      form.append(group)
+      Object.assign(group, {
+        name: 'bron',
+        label: 'Hoe hoorde u van de regeling?',
+        options: SOURCES,
+        other: true,
+      })
+      await (group as unknown as Updating).updateComplete
+      inside(group, '.lintje-checkbox-group__other', 'input')!.click()
+      const field = (): HTMLElement | null => inside(group, '[data-other]', 'input')
+      await expect.poll(() => active() === field()).toBe(true)
+      form.reset()
+      return () => inside(group, '.lintje-checkbox-group__other', 'input')
+    },
+  },
   {
     name: 'lintje-tag-input :: a chip’s cross, clicked, hands its focus to the field',
     run: async () => {
@@ -1536,7 +1590,7 @@ const VIEW_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-filter-zone :: "Filters tonen" hands its focus to "Filters verbergen"',
+    name: 'lintje-filter-zone :: "Filters", opening the zone, keeps its focus',
     run: async () => {
       const element = await zone(false, 0)
       await pressInZone(element, '.lintje-filter-toggle')
@@ -1545,7 +1599,7 @@ const VIEW_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-filter-zone :: the sentence, pressed, hands its focus to "Filters verbergen"',
+    name: 'lintje-filter-zone :: the sentence, pressed, hands its focus to "Filters"',
     run: async () => {
       const element = await zone(false, 0)
       await pressInZone(element, '.lintje-summary-bar__sentence')
@@ -1588,6 +1642,37 @@ const VIEW_ROWS: Row[] = [
       return field
     },
   },
+  ...(
+    [
+      ['the add button', (element: Element) => element.shadowRoot!.querySelector('lintje-button')],
+      [
+        'the remove button of a row',
+        (element: Element) =>
+          element
+            .querySelector('lintje-repeater-row')!
+            .shadowRoot!.querySelector('lintje-icon-button'),
+      ],
+    ] as const
+  ).map(([what, host]): Row => ({
+    name: `lintje-form :: ${what} of a repeater, disabled while the form saves, gets its focus back after`,
+    run: async () => {
+      const form = document.createElement('lintje-form') as HTMLElement & { busy: boolean }
+      const element = await repeater(2)
+      form.append(element)
+      document.body.append(form)
+      await (form as unknown as Updating).updateComplete
+      const control = (): HTMLElement | null => button(host(element))
+      await drawn(control)
+      control()!.focus()
+      form.busy = true
+      await expect.poll(() => (host(element) as { disabled?: boolean } | null)?.disabled).toBe(true)
+      form.busy = false
+      await expect
+        .poll(() => (host(element) as { disabled?: boolean } | null)?.disabled)
+        .toBe(false)
+      return control
+    },
+  })),
 ]
 
 /* --- lintje-sub-nav -------------------------------------------------------- */
@@ -1766,8 +1851,7 @@ const SHELL_ROWS: Row[] = [
       const element = await shell({})
       element.addEventListener('lintje-navigate', (event) => event.preventDefault())
       await phone()
-      const menu = (): HTMLElement | null =>
-        inside(element, '[aria-controls="lintje-mobile-menu-panel"]')
+      const menu = (): HTMLElement | null => inside(element, '.lintje-mobile-header__button--menu')
       await drawn(menu)
       menu()!.focus()
       await userEvent.keyboard('{Enter}')

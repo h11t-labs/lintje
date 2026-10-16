@@ -120,11 +120,12 @@
 }
 
 /* Disabled is `aria-disabled`: the button keeps its tab order and focus ring. A busy button is
-   not `is-disabled`: it keeps its variant's colours. Native `<button>`s with these classes get
+   not `is-disabled`: it keeps its variant's colours, as does a split menu button's busy half
+   (`is-working`). Native `<button>`s with these classes get
    the look from `:disabled` or `aria-disabled`, without the class. */
 .lintje-button.is-disabled,
 .lintje-button:disabled,
-.lintje-button[aria-disabled='true']:not(.is-busy) {
+.lintje-button[aria-disabled='true']:not(.is-busy, .is-working) {
   opacity: 1;
   cursor: not-allowed;
   background: var(--color-bg-subtle);
@@ -133,7 +134,7 @@
 }
 .lintje-button--link.is-disabled,
 .lintje-button--link:disabled,
-.lintje-button--link[aria-disabled='true']:not(.is-busy) {
+.lintje-button--link[aria-disabled='true']:not(.is-busy, .is-working) {
   background: none;
   border-color: transparent;
   text-decoration: none;
@@ -173,5 +174,5 @@
 @media (forced-colors: active) {
   .lintje-button.is-disabled,
   .lintje-button:disabled,
-  .lintje-button[aria-disabled='true']:not(.is-busy) { color: GrayText; border-color: GrayText; }
+  .lintje-button[aria-disabled='true']:not(.is-busy, .is-working) { color: GrayText; border-color: GrayText; }
 }

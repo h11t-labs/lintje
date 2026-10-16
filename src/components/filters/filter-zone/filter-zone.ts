@@ -334,14 +334,13 @@ export class LintjeFilterZone extends LintjeElement {
   }
 
   // `expanded` is the rendered state, not `open`: stuck and collapsed the zone is closed
-  // however the URL reads.
+  // however the URL reads. Its name is the word it shows; `aria-expanded` says the state.
   private renderToggle(expanded: boolean): TemplateResult {
     return html`<button
       type="button"
       class=${classMap({ 'lintje-filter-toggle': true, 'is-expanded': expanded })}
       aria-expanded=${expanded}
       aria-controls="filter-body"
-      aria-label=${expanded ? 'Filters verbergen' : 'Filters tonen'}
       @click=${() => this.act({ type: expanded ? 'collapse' : 'expand' })}
     >
       Filters
