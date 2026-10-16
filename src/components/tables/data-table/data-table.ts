@@ -65,6 +65,7 @@ import { LiveMessage } from '../../shared/live-message'
 import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import type { DescriptionItem } from '../description-list/description-list'
 import type { MenuEntry } from '../../actions/menu-button/menu-button'
+import { titleWhenCut } from '../../shared/cut-text'
 import { rangeIds, renderRowActions, renderSelectionBar, withRange } from './actions'
 import {
   columnsChange,
@@ -137,6 +138,15 @@ function formatText(column: TableColumnData, value: CellValue): string | null {
   else if (column.format === 'decimal') text = formatNumber(value, column.decimals ?? 1)
   else text = formatNumber(value, column.decimals ?? 0)
   return column.unit ? `${text} ${column.unit}` : text
+}
+
+/** A `{key}` template filled from a row, each value read the way its column reads it; a gap is "—". */
+function fillTemplate(template: string, row: Row, columns: TableColumnData[]): string {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) => {
+    const column = columns.find((candidate) => candidate.key === key)
+    const value = row[key]
+    return (column ? formatText(column, value) : value == null ? null : String(value)) ?? '—'
+  })
 }
 
 function thresholdStatus(column: TableColumnData, value: CellValue) {
@@ -367,6 +377,8 @@ export class LintjeDataTable extends LintjeContentTileElement {
 
   protected override expandChanged(open: boolean): void {
     if (!open) this.#modalEdges.disconnect()
+    // The copy that shows now starts silent: the last message would be read out again.
+    this.#live.clear()
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
@@ -1063,6 +1075,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       chooser: tools,
       onClearFilter: (key, button) => void this.clearFilter(key, button),
       onClearAll: (button) => void this.clearAllFilters(button),
+      sheetOpen: this.panel?.kind === 'sheet' && this.panel.edges === edges,
       onOpenSheet: () => this.openPanel({ kind: 'sheet', edges }, null),
     })
   }
@@ -1081,7 +1094,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         this.#live.say(anyOpen ? 'Alle groepen ingeklapt' : 'Alle groepen uitgeklapt')
       }}
     >
-      <span class="lintje-button__label">${anyOpen ? 'Alles inklappen' : 'Alles uitklappen'}</span>
+      <span class="lintje-button__label" @pointerenter=${titleWhenCut}>${anyOpen ? 'Alles inklappen' : 'Alles uitklappen'}</span>
     </button>`
   }
 
@@ -1454,6 +1467,21 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const rowActions = data.rowActions?.length ? data.rowActions : null
     const detailColumns = this.detailColumns
     const id = this.rowKey(row)
+    const hasControls =
+      (selectable && !this.uncheckable.has(id)) ||
+      data.openable ||
+      rowActions ||
+      detailColumns.length > 0 ||
+      columns.some((column) => column.editor)
+    // A static row needs a keyboard stop to reveal the compact change's words.
+    const revealsChange =
+      !hasControls &&
+      columns.some(
+        (column) =>
+          column.format === 'change-compact' &&
+          typeof row[column.key] === 'number' &&
+          !(row[column.key] === 0 && column.zeroText != null),
+      )
     const selected = id === data.selectedId
     const isChecked = this.checkedIds.includes(id)
     const isOpen = detailColumns.length > 0 && this.openRows.includes(id)
@@ -1472,7 +1500,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
           'is-checked': isChecked,
           'is-open': isOpen,
         })}
-        tabindex=${clickable ? 0 : nothing}
+        tabindex=${clickable || revealsChange ? 0 : nothing}
         aria-selected=${clickable ? selected : nothing}
         @click=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
         @auxclick=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
@@ -1500,7 +1528,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
           const truncate = column.truncate === true
           const content = truncate
             ? this.truncatedCell(column, row[column.key])
-            : this.cell(column, row[column.key])
+            : this.cell(column, row[column.key], row)
           const alignRight = this.alignsRight(column)
           if (column.editor)
             return this.editableCell(row, rowIndex, column, index === 0, alignRight, content, grid)
@@ -2134,7 +2162,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     </button>`
   }
 
-  private cell(column: TableColumnData, value: CellValue): unknown {
+  private cell(column: TableColumnData, value: CellValue, row?: Row): unknown {
     if (value === 0 && column.zeroText != null) {
       return html`<span class="lintje-data-table__muted">${column.zeroText}</span>`
     }
@@ -2169,12 +2197,16 @@ export class LintjeDataTable extends LintjeContentTileElement {
       // Colour and glyph together (rule 13).
       const tone = value === 0 ? 'flat' : value > 0 ? 'up' : 'down'
       if (column.format === 'change-compact') {
-        // The glyph alone is seen; a reader hears the whole change.
+        // The glyph alone is seen, its words in the tooltip; a reader hears them, and where no
+        // pointer shows a tooltip they stand whole in its place, as a truncated value does.
+        const words = column.tooltip && row ? fillTemplate(column.tooltip, row, this.columns) : text
         return html`<span
-            class="lintje-data-table__change lintje-data-table__change--${tone}"
+            class="lintje-data-table__change lintje-data-table__change--${tone} lintje-data-table__change--compact"
             aria-hidden="true"
+            title=${words}
             >${value > 0 ? '▲' : value < 0 ? '▼' : '●'}</span
-          ><span class="visually-hidden">${text}</span>`
+          ><span class="lintje-data-table__change-words" aria-hidden="true">${words}</span
+          ><span class="visually-hidden">${words}</span>`
       }
       return html`<span class="lintje-data-table__change lintje-data-table__change--${tone}">${text}</span>`
     }
@@ -2217,11 +2249,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const template = this.data?.mobileSublineTemplate
     let text: string | null = null
     if (template) {
-      text = template.replace(/\{(\w+)\}/g, (_, key: string) => {
-        const column = this.columns.find((candidate) => candidate.key === key)
-        const value = row[key]
-        return (column ? formatText(column, value) : value == null ? null : String(value)) ?? '—'
-      })
+      text = fillTemplate(template, row, this.columns)
     } else if (this.sublineColumns.length > 0) {
       text = this.sublineColumns
         .map((column) => formatText(column, row[column.key]) ?? '—')
