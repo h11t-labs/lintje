@@ -41,7 +41,6 @@ import { NavScrollbar, feedbackLabel, renderNavigation } from './navigation'
 import { renderMobileHeader } from './mobile-header'
 import { renderBarTools, renderTopBar } from './top-bar'
 import {
-  RIBBON_WIDTH,
   SubmenuController,
   renderHeaderScrim,
   renderLogoBar,
@@ -291,7 +290,7 @@ export class LintjeShell extends LintjeElement {
         this.#releaseMenu()
         this.#menuTrap.deactivate(false)
         this.renderRoot
-          .querySelector<HTMLButtonElement>('[aria-controls="lintje-mobile-menu-panel"]')
+          .querySelector<HTMLButtonElement>('.lintje-mobile-header__button--menu')
           ?.focus()
       }
     }
@@ -477,13 +476,23 @@ export class LintjeShell extends LintjeElement {
     return html`<lintje-notifications .items=${items}></lintje-notifications>`
   }
 
-  /** In the bar the avatar opens it; `inline`, it is the foot of the mobile menu. */
-  renderUserMenu(inline: boolean): TemplateResult | typeof nothing {
+  /**
+   * `bar`: the avatar in the bar opens it. `sheet`: inline, the foot of the mobile menu. `side`:
+   * the foot of the side menu opens it, folded to the avatar in the folded rail.
+   */
+  renderUserMenu(place: 'bar' | 'sheet' | 'side', folded = false): TemplateResult | typeof nothing {
     const data = this.data
     if (!data?.user) return nothing
+    const className = {
+      bar: 'lintje-shell__user',
+      sheet: 'lintje-shell__sheet-user',
+      side: 'lintje-nav__user-menu',
+    }[place]
     return html`<lintje-user-menu
-      class=${inline ? 'lintje-shell__sheet-user' : 'lintje-shell__user'}
-      ?inline=${inline}
+      class=${className}
+      ?inline=${place === 'sheet'}
+      variant=${place === 'side' ? 'side' : nothing}
+      ?folded=${folded}
       .user=${data.user}
       .items=${data.userMenu ?? []}
       version=${data.version ?? nothing}
@@ -501,13 +510,12 @@ export class LintjeShell extends LintjeElement {
     >`
   }
 
-  private renderLogo(ribbon: number): TemplateResult {
+  private renderLogo(): TemplateResult {
     const data = this.data as ShellData
     const home = data.home
     return renderLogoBar({
       logo: data.logo,
       emblem: data.emblem,
-      ribbon,
       environment: data.environment,
       home: home ? { href: home, onNavigate: (event) => this.follow(home, event) } : undefined,
     })
@@ -520,7 +528,6 @@ export class LintjeShell extends LintjeElement {
       <div class="lintje-shell__print-logo">
         <lintje-logo
           full
-          width=${RIBBON_WIDTH.desktop}
           src=${data.logo ?? nothing}
           name=${data.emblem?.name ?? nothing}
           alt=${data.emblem?.label ?? nothing}
@@ -532,23 +539,28 @@ export class LintjeShell extends LintjeElement {
   }
 
   private renderNavEnd(data: ShellData): TemplateResult {
-    const feedback = data.feedback
     return html`${this.renderSearch()}${this.renderNotifications()}${renderBarTools(this)}${
-      feedback
-        ? html`<a
-            class="lintje-shell__tool"
-            href=${feedback.href}
-            aria-label=${feedbackLabel(feedback)}
-            title=${feedbackLabel(feedback)}
-            >${renderIcon('communicatie-tekstballonnen-met-vraagteken', { size: 20 })}</a
-          >`
-        : nothing
-    }${this.renderUserMenu(false)}`
+      data.feedback ? this.renderFeedbackTool(data.feedback) : nothing
+    }${this.renderUserMenu('bar')}`
+  }
+
+  /** The feedback link as a bare tool: its glyph, or its word without the icon file. */
+  private renderFeedbackTool(feedback: NonNullable<ShellData['feedback']>): TemplateResult {
+    const label = feedbackLabel(feedback)
+    const glyph = renderIcon('communicatie-tekstballonnen-met-vraagteken', { size: 20 })
+    const drawn = glyph !== nothing
+    return html`<a
+      class=${classMap({ 'lintje-shell__tool': true, 'lintje-shell__tool--text': !drawn })}
+      href=${feedback.href}
+      aria-label=${drawn ? label : nothing}
+      title=${drawn ? label : nothing}
+      >${drawn ? glyph : label}</a
+    >`
   }
 
   /** The slot of the nav bar keeps its height while the bar itself is pinned to the viewport. */
   private renderTop(data: ShellData, groups: NavGroup[]): TemplateResult {
-    return html`${this.renderLogo(RIBBON_WIDTH.desktop)}
+    return html`${this.renderLogo()}
       <div class="lintje-shell__sentinel" aria-hidden="true"></div>
       <div class=${classMap({ 'lintje-shell__nav': true, 'is-stuck': this.barStuck })}>
         ${renderNavBar({
@@ -569,7 +581,7 @@ export class LintjeShell extends LintjeElement {
   }
 
   private renderTopPhone(groups: NavGroup[]): TemplateResult {
-    return html`${this.renderLogo(RIBBON_WIDTH.phone)}
+    return html`${this.renderLogo()}
       <div class="lintje-shell__sentinel" aria-hidden="true"></div>
       <div class=${classMap({ 'lintje-shell__mobile-bar': true, 'is-stuck': this.barStuck })}>
         <div class="lintje-shell__mobile-pin">${renderMobileHeader(this, groups)}</div>

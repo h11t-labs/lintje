@@ -137,7 +137,7 @@ describe('a tile stays on one sheet where it fits', () => {
 })
 
 describe('no motion on paper', () => {
-  // The browser tests run with reduced motion, which keeps an 80 ms transition on everything.
+  // The browser tests run with reduced motion, which keeps an 80 ms transition on opacity.
   it('leaves no transition running', async () => {
     const tile = await mount('lintje-tile')
     const { screen, paper } = await onPaper(

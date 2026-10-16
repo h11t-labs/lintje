@@ -8,7 +8,7 @@
  * and the mobile header are in the tree; that the pair fits beside "Sluiten" is proven where it
  * runs, in headless Chrome.
  */
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import './shell'
 import type { LintjeShell } from './shell'
 import type { LintjeRadioGroup } from '../../inputs/radio-group/radio-group'
@@ -17,6 +17,9 @@ import { clearFilterZone, setFrameState } from '../../../core/frame-state'
 import { deepActiveElement, tabbables } from '../../shared/focus-trap'
 import { mailSubject, phoneLink } from './top-bar'
 import type { LintjeButton } from '../../actions/button/button'
+import type { LintjeUserMenu } from '../user-menu/user-menu'
+import { ICONS } from '../../../icons/register'
+import { loadIcon, putIcons, resetIcons } from '../../../icons/loader'
 
 beforeAll(() => {
   // The shell observes its navigation bar; happy-dom has no observer.
@@ -86,7 +89,7 @@ const buttons = (shell: LintjeShell): HTMLButtonElement[] =>
   Array.from(root(shell).querySelectorAll<HTMLButtonElement>('.lintje-mobile-header__button'))
 
 const menuButton = (shell: LintjeShell): HTMLButtonElement =>
-  buttons(shell).find((button) => button.hasAttribute('aria-controls')) as HTMLButtonElement
+  root(shell).querySelector<HTMLButtonElement>('.lintje-mobile-header__button--menu')!
 
 const panel = (shell: LintjeShell): Element | null =>
   root(shell).querySelector('.lintje-mobile-menu')
@@ -98,7 +101,7 @@ const options = (shell: LintjeShell): HTMLButtonElement[] =>
 const pressed = (toggles: HTMLButtonElement[]): string[] =>
   toggles
     .filter((button) => button.getAttribute('aria-pressed') === 'true')
-    .map((button) => button.getAttribute('aria-label') ?? '')
+    .map((button) => button.textContent!.trim())
 
 /**
  * What the button holds, in the order it holds it: `['icon', 'text']` or the
@@ -245,6 +248,22 @@ describe('the open mobile header', () => {
     expect(menuButton(shell)).toBe(before)
     expect(contentOrder(menuButton(shell))).toEqual(['text', 'icon'])
   })
+
+  it('is named by the word it shows, which says the state: no aria-expanded', async () => {
+    const shell = await mount()
+    const button = menuButton(shell)
+    const said = (): unknown[] => [
+      button.getAttribute('aria-label'),
+      button.textContent?.trim(),
+      button.hasAttribute('aria-expanded'),
+    ]
+    expect(said()).toEqual([null, 'Menu', false])
+    // It names its panel only while there is one.
+    expect(button.hasAttribute('aria-controls')).toBe(false)
+    await open(shell)
+    expect(said()).toEqual([null, 'Sluiten', false])
+    expect(button.getAttribute('aria-controls')).toBe('lintje-mobile-menu-panel')
+  })
 })
 
 /**
@@ -284,7 +303,7 @@ describe('the mobile menu panel', () => {
     )
     expect(row.querySelector('.lintje-mobile-menu__version')).toBeNull()
 
-    const user = root(shell).querySelector('lintje-user-menu')!
+    const user = root(shell).querySelector<LintjeUserMenu>('.lintje-shell__sheet-user')!
     expect(user.inline).toBe(true)
     expect(user.user?.initials).toBe('HP')
     expect(user.getAttribute('version')).toBe('1.2.3')
@@ -408,10 +427,10 @@ describe('the top bar mode controls', () => {
 
   it('offers system, light and dark, in that order', async () => {
     const shell = await view(await mount())
-    expect(modes(shell).map((button) => button.getAttribute('aria-label'))).toEqual([
-      'Systeemweergave',
-      'Lichte modus',
-      'Donkere modus',
+    expect(modes(shell).map((button) => button.textContent!.trim())).toEqual([
+      'Systeem',
+      'Licht',
+      'Donker',
     ])
   })
 
@@ -419,19 +438,19 @@ describe('the top bar mode controls', () => {
     const at = async (mode: ShellView['mode']): Promise<string[]> =>
       pressed(modes(await view(await mount({ view: { ...VIEW, mode } }))))
 
-    expect(await at('system')).toEqual(['Systeemweergave'])
-    expect(await at('light')).toEqual(['Lichte modus'])
-    expect(await at('dark')).toEqual(['Donkere modus'])
+    expect(await at('system')).toEqual(['Systeem'])
+    expect(await at('light')).toEqual(['Licht'])
+    expect(await at('dark')).toEqual(['Donker'])
   })
 
   it('sends the chosen mode as lintje-view-change, and leaves the pressed one to the host', async () => {
     const dark = await view(await mount({ view: { ...VIEW, mode: 'dark' } }))
     expect(await changesAfter(dark, () => modes(dark)[1]?.click())).toEqual([{ mode: 'light' }])
-    expect(pressed(modes(dark))).toEqual(['Donkere modus'])
+    expect(pressed(modes(dark))).toEqual(['Donker'])
     expect(await changesAfter(dark, () => modes(dark)[0]?.click())).toEqual([{ mode: 'system' }])
 
     await hostSets(dark, { mode: 'system' })
-    expect(pressed(modes(dark))).toEqual(['Systeemweergave'])
+    expect(pressed(modes(dark))).toEqual(['Systeem'])
   })
 
   it('stands behind "Weergave": closed at rest, beside a "Delen" of the same weight', async () => {
@@ -488,8 +507,10 @@ describe('what "Weergave" offers when the host lets the reader choose', () => {
     [...root(shell).querySelectorAll('.lintje-view__popover .lintje-share__heading')].map(
       (heading) => heading.textContent!.trim(),
     )
-  const option = (shell: LintjeShell, label: string): HTMLButtonElement =>
-    root(shell).querySelector<HTMLButtonElement>(`.lintje-view__popover [aria-label="${label}"]`)!
+  const option = (shell: LintjeShell, word: string): HTMLButtonElement =>
+    [...root(shell).querySelectorAll<HTMLButtonElement>('.lintje-view__popover button')].find(
+      (button) => button.textContent!.trim() === word,
+    )!
 
   it('has no menu and no theme to choose without the host saying so', async () => {
     const shell = await view(await mount())
@@ -499,14 +520,14 @@ describe('what "Weergave" offers when the host lets the reader choose', () => {
   it('presses where the menu stands, and sends the other place', async () => {
     const side = await view(await mount({ view: { ...VIEW, layoutChoice: true } }))
     expect(groups(side)).toEqual(['Licht of donker', 'Menu'])
-    expect(option(side, 'Menu als zijbalk').getAttribute('aria-pressed')).toBe('true')
-    expect(await changesAfter(side, () => option(side, 'Menu boven').click())).toEqual([
+    expect(option(side, 'Zijbalk').getAttribute('aria-pressed')).toBe('true')
+    expect(await changesAfter(side, () => option(side, 'Boven').click())).toEqual([
       { layout: 'top' },
     ])
 
     const top = await view(await mount({ layout: 'top', view: { ...VIEW, layoutChoice: true } }))
-    expect(option(top, 'Menu boven').getAttribute('aria-pressed')).toBe('true')
-    expect(await changesAfter(top, () => option(top, 'Menu als zijbalk').click())).toEqual([
+    expect(option(top, 'Boven').getAttribute('aria-pressed')).toBe('true')
+    expect(await changesAfter(top, () => option(top, 'Zijbalk').click())).toEqual([
       { layout: 'side' },
     ])
   })
@@ -950,7 +971,7 @@ describe('the top layout keeps the skip link first and one h1', () => {
       expect(headings[0].textContent).toBe('Dashboard Vergunningen')
 
       const button = root(shell).querySelector<HTMLButtonElement>(
-        '[aria-controls="lintje-mobile-menu-panel"]',
+        '.lintje-mobile-header__button--menu',
       )!
       button.focus()
       button.click()
@@ -1175,7 +1196,7 @@ describe('the top layout when the entries do not fit', () => {
     const shell = await fitted(700, 600)
     menu(shell)!.focus()
     const button = await openMenu(shell)
-    expect(button.getAttribute('aria-expanded')).toBe('true')
+    expect(button.textContent!.trim()).toBe('Sluiten')
     const menuPanel = root(shell).querySelector(`#${button.getAttribute('aria-controls')}`)!
     expect(
       [...menuPanel.querySelectorAll('.lintje-navbar__heading')].map((h) => h.textContent),
@@ -1349,13 +1370,14 @@ describe('the rail and the keyboard', () => {
 
   it('expands when the focus comes in, folds on Escape and when the focus leaves', async () => {
     const shell = await mount({ logout: { href: '/auth/logout', token: 't' } })
+    const foot = nav(shell).querySelector<LintjeUserMenu>('.lintje-nav__user-menu')!
+    expect(foot.folded).toBe(true)
     const link = nav(shell).querySelector<HTMLAnchorElement>('a.lintje-nav__item')!
     link.focus()
     await shell.updateComplete
     expect(shell.railExpanded).toBe(true)
-    // Expanded, "Afmelden" is in the tab order.
-    const logout = nav(shell).querySelector<HTMLButtonElement>('.lintje-nav__logout-button')!
-    expect(logout.closest('form')!.hidden).toBe(false)
+    // Expanded, the foot shows the name and role beside the avatar.
+    expect(foot.folded).toBe(false)
 
     link.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
     await shell.updateComplete
@@ -1369,19 +1391,90 @@ describe('the rail and the keyboard', () => {
     expect(shell.railExpanded).toBe(false)
   })
 
-  it('hands the focus on when Escape folds away the control that had it', async () => {
+  it('keeps the foot in the folded rail, where Escape leaves the focus on it', async () => {
     const shell = await mount({ logout: { href: '/auth/logout', token: 't' } })
-    const logout = (): HTMLButtonElement =>
-      nav(shell).querySelector<HTMLButtonElement>('.lintje-nav__logout-button')!
-    nav(shell).querySelector<HTMLAnchorElement>('a.lintje-nav__item')!.focus()
+    const foot = nav(shell).querySelector<LintjeUserMenu>('.lintje-nav__user-menu')!
+    const trigger = foot.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-user-menu__trigger')!
+    trigger.focus()
     await shell.updateComplete
-    logout().focus()
-    logout().dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    expect(shell.railExpanded).toBe(true)
+    trigger.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true }),
+    )
     await shell.updateComplete
+    expect(shell.railExpanded).toBe(false)
+    expect(foot.folded).toBe(true)
+    expect(foot.shadowRoot!.activeElement).toBe(trigger)
+  })
+})
+
+/** The foot of the side menu is the button of the same user menu as the top layout's avatar. */
+describe('the foot of the side menu', () => {
+  const USER_DATA: Partial<ShellData> = {
+    userMenu: [
+      { value: 'profiel', label: 'Mijn profiel' },
+      { value: 'instellingen', label: 'Instellingen' },
+    ],
+    logout: { href: '/auth/logout', token: 't' },
+    version: '2.4.1',
+  }
+  const nav = (shell: LintjeShell): HTMLElement =>
+    root(shell).querySelector<HTMLElement>('.lintje-nav')!
+  const foot = (shell: LintjeShell): LintjeUserMenu =>
+    nav(shell).querySelector<LintjeUserMenu>('.lintje-nav__footer lintje-user-menu')!
+  const trigger = (menu: LintjeUserMenu): HTMLButtonElement =>
+    menu.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-user-menu__trigger')!
+
+  it('draws the user menu with the host’s rows and "Afmelden", and no loose "Afmelden"', async () => {
+    const shell = await mount(USER_DATA)
+    const menu = foot(shell)
+    expect(menu.variant).toBe('side')
+    expect(menu.inline).toBe(false)
+    expect(menu.items).toEqual(USER_DATA.userMenu)
+    expect(menu.getAttribute('logout-action')).toBe('/auth/logout')
+    expect(menu.getAttribute('version')).toBe('2.4.1')
+    expect(nav(shell).querySelector('form, .lintje-nav__logout-button')).toBeNull()
+
+    trigger(menu).click()
+    await menu.updateComplete
+    const rows = [...menu.shadowRoot!.querySelectorAll('.lintje-menu__row')].map((row) =>
+      row.textContent!.trim(),
+    )
+    expect(rows).toEqual(['Mijn profiel', 'Instellingen', 'Afmelden'])
+  })
+
+  it('is named by the user, with the role as its description', async () => {
+    const shell = await mount(USER_DATA)
+    const button = trigger(foot(shell))
+    expect(button.hasAttribute('aria-label')).toBe(false)
+    expect(button.getAttribute('aria-haspopup')).toBe('menu')
+    expect(button.getAttribute('aria-expanded')).toBe('false')
+    expect(button.querySelector('.lintje-user-menu__trigger-name')!.textContent).toBe('H. van Pelt')
+    const role = foot(shell).shadowRoot!.getElementById(button.getAttribute('aria-describedby')!)!
+    expect(role.textContent).toBe('Analist')
+  })
+
+  it('keeps the folded rail expanded while the menu is open, and folds it once it closes', async () => {
+    const shell = await mount(USER_DATA)
+    const menu = foot(shell)
+    nav(shell).dispatchEvent(new MouseEvent('mouseenter'))
     await shell.updateComplete
-    expect(logout().closest('form')!.hidden).toBe(true)
-    expect(root(shell).activeElement).toBe(nav(shell).querySelector('a.lintje-nav__item'))
-    // The hand-on does not expand the rail again.
+    expect(shell.railExpanded).toBe(true)
+    trigger(menu).click()
+    await menu.updateComplete
+    expect(menu.open).toBe(true)
+
+    // The pointer leaves the menu: the open user menu holds the rail.
+    nav(shell).dispatchEvent(new MouseEvent('mouseleave'))
+    await shell.updateComplete
+    expect(shell.railExpanded).toBe(true)
+    expect(menu.folded).toBe(false)
+
+    // A press beside it closes the menu, and with the pointer gone the rail folds.
+    document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, composed: true }))
+    await menu.updateComplete
+    await shell.updateComplete
+    expect(menu.open).toBe(false)
     expect(shell.railExpanded).toBe(false)
   })
 })
@@ -1519,5 +1612,95 @@ describe('the bars that stay at the top', () => {
     const shell = await mount({ layout: 'top' })
     const name = root(shell).querySelector('h1.lintje-shell__name')!
     expect(name.getAttribute('title')).toBe('Dashboard Vergunningen')
+  })
+})
+
+/** WCAG 2.5.3: what a screen reader or voice control calls a control is the word you see. */
+describe('the shell is named after what you see', () => {
+  const EMBLEM = { name: 'embleem-lint', label: 'Dienst Vergunningen' }
+  const RIBBON = { viewBox: '0 0 38 75', body: '<path d="M0 0h38v75H0z"/>', attributes: {} }
+  const missing = async () => ({ ok: false, status: 404, text: async () => '' })
+  // The emblem in the store and no network: an icon the bundle lacks is a 404 here.
+  beforeEach(() => {
+    putIcons([[EMBLEM.name, RIBBON]])
+    vi.stubGlobal('fetch', missing)
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    resetIcons()
+  })
+
+  const homes = (shell: LintjeShell): HTMLAnchorElement[] => [
+    ...root(shell).querySelectorAll<HTMLAnchorElement>(
+      'a.lintje-logobar__home, a.lintje-nav__home',
+    ),
+  ]
+
+  it('names the home link after the organisation in the logo, with its task as the tooltip', async () => {
+    for (const layout of ['top', 'side'] as const) {
+      const links = homes(await mount({ layout, home: '/', emblem: EMBLEM }))
+      expect(links).toHaveLength(1)
+      expect(links[0].hasAttribute('aria-label')).toBe(false)
+      expect(links[0].getAttribute('title')).toBe('Naar de startpagina')
+      expect(links[0].querySelector('lintje-logo')!.getAttribute('alt')).toBe('Dienst Vergunningen')
+    }
+  })
+
+  it('keeps "Naar de startpagina" as the name of a logo without a name', async () => {
+    for (const layout of ['top', 'side'] as const) {
+      const links = homes(await mount({ layout, home: '/' }))
+      expect(links[0].getAttribute('aria-label')).toBe('Naar de startpagina')
+    }
+  })
+
+  it('names the five buttons in "Weergave" by their word alone', async () => {
+    const shell = await view(await mount({ view: { ...VIEW, layoutChoice: true } }))
+    const all = options(shell)
+    expect(all.map((button) => button.textContent!.trim())).toEqual([
+      'Systeem',
+      'Licht',
+      'Donker',
+      'Zijbalk',
+      'Boven',
+    ])
+    for (const button of all) {
+      expect(button.hasAttribute('aria-label')).toBe(false)
+      expect(button.hasAttribute('title')).toBe(false)
+    }
+    // The groups give the context, so "Zijbalk" does not stand alone.
+    const groups = [...root(shell).querySelectorAll('.lintje-view__popover [role="group"]')]
+    expect(groups.map((group) => group.getAttribute('aria-label'))).toEqual(
+      expect.arrayContaining(['Systeem, licht of donker', 'Plaats van het menu']),
+    )
+  })
+
+  describe('the feedback link', () => {
+    const NAME = 'communicatie-tekstballonnen-met-vraagteken'
+    const glyph = ICONS[NAME]
+    const FEEDBACK = { layout: 'top', feedback: { href: 'mailto:beheer@example.org' } } as const
+    const link = (shell: LintjeShell): HTMLAnchorElement =>
+      root(shell).querySelector<HTMLAnchorElement>('.lintje-navbar__end a.lintje-shell__tool')!
+
+    afterEach(() => {
+      ICONS[NAME] = glyph
+    })
+
+    it('draws its icon from the bundle, named by the tooltip', async () => {
+      expect(glyph).toBeDefined()
+      const feedback = link(await mount(FEEDBACK))
+      expect(feedback.querySelector('svg.lintje-icon:not(.lintje-icon--pending)')).not.toBeNull()
+      expect(feedback.getAttribute('aria-label')).toBe('Vragen of feedback')
+      expect(feedback.classList.contains('lintje-shell__tool--text')).toBe(false)
+    })
+
+    it('shows its word when the icon has no file', async () => {
+      delete ICONS[NAME]
+      await loadIcon(NAME)
+      const feedback = link(await mount(FEEDBACK))
+      expect(feedback.textContent!.trim()).toBe('Vragen of feedback')
+      expect(feedback.classList.contains('lintje-shell__tool--text')).toBe(true)
+      expect(feedback.hasAttribute('aria-label')).toBe(false)
+      expect(feedback.querySelector('svg')).toBeNull()
+    })
   })
 })
