@@ -4,7 +4,7 @@
  * Content and padding come through the slot. The host holds `open`: the popover only asks to be
  * closed. A component that draws a popover in its own root stops its `lintje-close`.
  *
- * Events: `lintje-close` `{ reason: 'escape' | 'outside' }`.
+ * Events: `lintje-close` `{ reason: 'escape' | 'outside' | 'focus' }`.
  */
 import {
   html,
@@ -18,7 +18,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { styleProps, type StyleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
 import { place, samePlace, viewport, type Place, type Placement } from '../../shared/place'
-import { holdsFocus, ownsEscape } from '../../../core/focus'
+import { holdsFocus, ownsEscape, standsIn } from '../../../core/focus'
 import popoverCss from './popover.css?inline'
 
 function spotStyle(spot: Place | null, minWidth: number | null): StyleProps {
@@ -71,6 +71,20 @@ export class LintjePopover extends LintjeElement {
   }
 
   /**
+   * The focus landing outside the panel and its anchor, also from an anchor whose panel never took
+   * it. A focusable box around the popover, where a press that takes no focus lands, is not outside.
+   */
+  private readonly onFocusIn = (event: FocusEvent): void => {
+    if (!this.open) return
+    const path = event.composedPath()
+    const anchor = this.anchorElement
+    if (path.includes(this) || (anchor && path.includes(anchor))) return
+    const next = path[0]
+    if (next instanceof Node && standsIn(this, next)) return
+    this.emit('lintje-close', { reason: 'focus' })
+  }
+
+  /**
    * Capture phase and stopped: Escape closes the popover, not the drawer it stands in. Unless
    * the focus stands in a modal dialog opened over it: then the key is the dialog's. With the
    * focus inside the panel, a control there answers first (a lifted grip puts its row back).
@@ -104,6 +118,7 @@ export class LintjePopover extends LintjeElement {
   override connectedCallback(): void {
     super.connectedCallback()
     document.addEventListener('mousedown', this.onOutsidePress)
+    document.addEventListener('focusin', this.onFocusIn)
     document.addEventListener('keydown', this.onKeydown, true)
     window.addEventListener('scroll', this.onReflow, { capture: true, passive: true })
     window.addEventListener('resize', this.onReflow)
@@ -111,6 +126,7 @@ export class LintjePopover extends LintjeElement {
 
   override disconnectedCallback(): void {
     document.removeEventListener('mousedown', this.onOutsidePress)
+    document.removeEventListener('focusin', this.onFocusIn)
     document.removeEventListener('keydown', this.onKeydown, true)
     window.removeEventListener('scroll', this.onReflow, { capture: true })
     window.removeEventListener('resize', this.onReflow)

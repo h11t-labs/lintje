@@ -118,6 +118,9 @@ describe('lintje-user-menu', () => {
     document.body.append(dialog)
     const inDialog = dialog.querySelector('button')!
     inDialog.focus()
+    // The focus leaving closed it; open again to see the Escape.
+    element.open = true
+    await element.updateComplete
     inDialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
     await element.updateComplete
     expect(element.open).toBe(true)

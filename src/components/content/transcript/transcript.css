@@ -43,6 +43,9 @@
   background: color-mix(in srgb, var(--lintje-speaker, var(--color-chart-other)) var(--tint-speaker), var(--color-bg-surface));
   border-top-color: var(--color-bg-surface);
 }
+/* A link on the speaker's tint, the timecode among them, reads as on a status tint: in dark the
+   link colour falls short there. In a chat only the bubble is tinted. */
+:host([tinted]:not([layout='chat'])) .lintje-transcript__segment { --color-link: var(--color-link-on-status); }
 
 /* The fragment that sounds, and the one in editing: a ring, so the speaker's colour stays. */
 .lintje-transcript__segment.is-current,
