@@ -88,7 +88,7 @@ export class LintjeCheckboxGroup extends LintjeChoiceGroupElement {
             label=${option.label}
             hint=${option.description ?? nothing}
             .checked=${selected.includes(option.value)}
-            ?disabled=${this.disabled}
+            ?disabled=${this.isDisabled}
             @lintje-change=${(event: CustomEvent<boolean>) => {
               event.stopPropagation()
               this.toggle(option.value, event.detail)
@@ -101,7 +101,7 @@ export class LintjeCheckboxGroup extends LintjeChoiceGroupElement {
               class="lintje-checkbox-group__option lintje-checkbox-group__other"
               label=${this.otherLabel}
               .checked=${this.otherChosen}
-              ?disabled=${this.disabled}
+              ?disabled=${this.isDisabled}
               @lintje-change=${(event: CustomEvent<boolean>) => {
                 event.stopPropagation()
                 this.toggle(OTHER_VALUE, event.detail)
@@ -117,7 +117,7 @@ export class LintjeCheckboxGroup extends LintjeChoiceGroupElement {
                 text: this.otherText,
                 placeholder: this.otherPlaceholder,
                 error: this.otherError,
-                disabled: this.disabled,
+                disabled: this.isDisabled,
                 className: 'lintje-choice__other',
                 onCommit: (text) => this.commitOther(text),
               })

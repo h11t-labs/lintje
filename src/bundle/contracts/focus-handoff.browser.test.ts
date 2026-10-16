@@ -475,6 +475,36 @@ const FILE_UPLOAD_ROWS: Row[] = [
       return () => button(upload.shadowRoot!.querySelector('.lintje-file-upload__button'))
     },
   },
+  {
+    name: 'lintje-file-upload :: "Bestanden kiezen" keeps its focus through a drag over the page',
+    run: async () => {
+      const upload = await uploadWith([])
+      const chooser = (): HTMLElement | null =>
+        upload.shadowRoot!.querySelector<HTMLElement>('.lintje-file-upload__button')
+      await expect.poll(() => button(chooser())).toBeTruthy()
+      button(chooser())!.focus()
+      const data = new DataTransfer()
+      data.items.add(new File(['inhoud'], 'verslag.pdf', { type: 'application/pdf' }))
+      const drag = async (type: string): Promise<void> => {
+        document.body.dispatchEvent(
+          new DragEvent(type, {
+            dataTransfer: data,
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+          }),
+        )
+        await (upload as unknown as Updating).updateComplete
+      }
+      await drag('dragenter')
+      expect(chooser()!.classList.contains('visually-hidden')).toBe(true)
+      expect(active()).toBe(button(chooser()))
+      await drag('drop')
+      expect(chooser()!.classList.contains('visually-hidden')).toBe(false)
+      expect(chooser()!.getBoundingClientRect().width).toBeGreaterThan(1)
+      return () => button(chooser())
+    },
+  },
 ]
 
 /* --- lintje-transcript ----------------------------------------------------- */
@@ -1367,7 +1397,9 @@ async function chosenSlice(
     clearHref: '/p',
   }
   const tile = await mount<ChartElement>('lintje-chart', { data })
+  // The host answers the clear itself, so the tile does not go to `clearHref`.
   tile.addEventListener('lintje-mark-select', (event) => {
+    event.preventDefault()
     if ((event as CustomEvent<{ id: string | null }>).detail.id === null) tile.data = answer(data)
   })
   const mark = (): HTMLElement | null =>
@@ -1610,6 +1642,37 @@ const VIEW_ROWS: Row[] = [
       return field
     },
   },
+  ...(
+    [
+      ['the add button', (element: Element) => element.shadowRoot!.querySelector('lintje-button')],
+      [
+        'the remove button of a row',
+        (element: Element) =>
+          element
+            .querySelector('lintje-repeater-row')!
+            .shadowRoot!.querySelector('lintje-icon-button'),
+      ],
+    ] as const
+  ).map(([what, host]): Row => ({
+    name: `lintje-form :: ${what} of a repeater, disabled while the form saves, gets its focus back after`,
+    run: async () => {
+      const form = document.createElement('lintje-form') as HTMLElement & { busy: boolean }
+      const element = await repeater(2)
+      form.append(element)
+      document.body.append(form)
+      await (form as unknown as Updating).updateComplete
+      const control = (): HTMLElement | null => button(host(element))
+      await drawn(control)
+      control()!.focus()
+      form.busy = true
+      await expect.poll(() => (host(element) as { disabled?: boolean } | null)?.disabled).toBe(true)
+      form.busy = false
+      await expect
+        .poll(() => (host(element) as { disabled?: boolean } | null)?.disabled)
+        .toBe(false)
+      return control
+    },
+  })),
 ]
 
 /* --- lintje-sub-nav -------------------------------------------------------- */

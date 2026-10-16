@@ -71,7 +71,7 @@ export class LintjeRadioGroup extends LintjeChoiceGroupElement {
         'lintje-radio-group__card': cards,
         'lintje-radio-group__other': other,
         'is-chosen': cards && option.value === this.value,
-        'is-disabled': this.disabled,
+        'is-disabled': this.isDisabled,
       })}
     >
       <input
@@ -81,7 +81,7 @@ export class LintjeRadioGroup extends LintjeChoiceGroupElement {
         value=${option.value}
         .checked=${option.value === this.value}
         aria-describedby=${described ? descriptionId : nothing}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         @change=${() => this.choose(option.value)}
       />
       <span class="lintje-choice__radio" aria-hidden="true"></span>
@@ -124,7 +124,7 @@ export class LintjeRadioGroup extends LintjeChoiceGroupElement {
                 text: this.otherText,
                 placeholder: this.otherPlaceholder,
                 error: this.otherError,
-                disabled: this.disabled,
+                disabled: this.isDisabled,
                 className: 'lintje-choice__other',
                 onCommit: (text) => this.commitOther(text),
               })

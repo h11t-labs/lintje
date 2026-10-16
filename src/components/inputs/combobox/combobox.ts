@@ -99,7 +99,7 @@ export class LintjeCombobox extends LintjeInputElement {
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
     if (changed.has('options') && this.remote) this.loading = false
-    if (this.disabled) this.open = false
+    if (this.isDisabled) this.open = false
     const count = this.visible.length
     if (this.active >= count) this.active = count - 1
   }
@@ -233,7 +233,7 @@ export class LintjeCombobox extends LintjeInputElement {
   }
 
   protected override render(): TemplateResult {
-    const open = this.open && !this.disabled
+    const open = this.open && !this.isDisabled
     const listed = open && !this.loading && this.visible.length > 0
     const count = open && !this.loading ? resultsText(this.visible.length) : ''
     return html`<div class="lintje-field">
@@ -255,12 +255,12 @@ export class LintjeCombobox extends LintjeInputElement {
           aria-describedby=${this.describedBy}
           aria-invalid=${this.error ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @input=${this.onInput}
           @keydown=${this.onKeydown}
           @blur=${this.onBlur}
           @click=${() => {
-            if (!this.disabled) this.open = true
+            if (!this.isDisabled) this.open = true
           }}
         />
         ${renderIcon('functioneel-delta-omlaag', { size: 16, className: 'lintje-combobox__chevron' })}

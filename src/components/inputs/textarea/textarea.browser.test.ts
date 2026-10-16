@@ -1,6 +1,9 @@
-/** The textarea in a real engine: it grows with its text, through `field-sizing` or its own fallback. */
+/**
+ * The textarea in a real engine: it grows with its text, through `field-sizing` or its own
+ * fallback, and stands its counter right on the line of the hint or the error.
+ */
 import { afterEach, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import './textarea'
 import type { LintjeTextarea } from './textarea'
 
@@ -80,5 +83,71 @@ describe('lintje-textarea grows with its text', () => {
     await element.updateComplete
     expect(element.value).toBe(text(5))
     expect(area.getBoundingClientRect().height).toBeCloseTo(empty + 2 * lineHeight(area), 0)
+  })
+})
+
+const OVER = 'Een tekst die langer is dan de limiet toelaat.'
+
+function foot(element: LintjeTextarea) {
+  const root = element.shadowRoot!
+  return {
+    control: root.querySelector('.lintje-textarea__control')!.getBoundingClientRect(),
+    line: root.querySelector('.lintje-field__error, .lintje-field__hint')!.getBoundingClientRect(),
+    counter: root.querySelector('[part="counter"]')!.getBoundingClientRect(),
+  }
+}
+
+describe('lintje-textarea stands its counter beside the foot line', () => {
+  afterEach(async () => {
+    await page.viewport(1440, 900)
+  })
+
+  const cases: [string, Partial<LintjeTextarea>][] = [
+    ['the error over the limit', { maxlength: 40, value: OVER }],
+    ['a hint', { maxlength: 2000, hint: 'Wat er is gebeurd, in een paar zinnen.' }],
+    ['the error of plain', { variant: 'plain', maxlength: 40, value: OVER }],
+  ]
+  for (const width of [1440, 390]) {
+    for (const [name, props] of cases) {
+      it(`puts ${name} left and the counter right, on one line, at ${width} px`, async () => {
+        await page.viewport(width, 900)
+        const element = await mount(props)
+        // Below 768 px the field takes the full width, as on a phone.
+        if (width < 768) element.style.width = ''
+        await element.updateComplete
+        const { control, line, counter } = foot(element)
+        expect(counter.top).toBeCloseTo(line.top, 0)
+        expect(line.left).toBeCloseTo(control.left, 0)
+        expect(counter.right).toBeCloseTo(control.right, 0)
+        expect(counter.left).toBeGreaterThan(line.right)
+      })
+    }
+  }
+
+  it('drops the counter under a long message in a narrow field, still right', async () => {
+    const element = await mount({ maxlength: 40, value: OVER })
+    element.style.width = '240px'
+    element.error = 'Schrijf de omschrijving zonder namen of adressen van andere mensen.'
+    await element.updateComplete
+    const { control, line, counter } = foot(element)
+    expect(counter.top).toBeGreaterThanOrEqual(line.bottom)
+    expect(counter.right).toBeCloseTo(control.right, 0)
+    expect(counter.right).toBeLessThanOrEqual(element.getBoundingClientRect().right)
+  })
+
+  it('keeps the hint under the name and the counter under the field in a row', async () => {
+    const element = await mount({ layout: 'row', maxlength: 2000, hint: 'Een paar zinnen.' })
+    element.style.width = '800px'
+    await element.updateComplete
+    const { control, line, counter } = foot(element)
+    expect(line.right).toBeLessThan(control.left)
+    expect(counter.top).toBeGreaterThanOrEqual(control.bottom)
+    expect(counter.right).toBeCloseTo(control.right, 0)
+  })
+
+  it('keeps a counter alone at the right', async () => {
+    const element = await mount({ maxlength: 2000 })
+    const counter = element.shadowRoot!.querySelector('[part="counter"]')!.getBoundingClientRect()
+    expect(counter.right).toBeCloseTo(element.getBoundingClientRect().right, 0)
   })
 })
