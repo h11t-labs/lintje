@@ -27,8 +27,11 @@ export interface ChartOptions {
   expanded?: boolean
   /** Cross-drill: the chosen mark's id. The chart keeps no selection of its own. */
   selectedId?: string | null
-  /** A mark that carries a `href` was activated. Without this the marks stay inert. */
-  onSelect?: (mark: ChartSelection) => void
+  /**
+   * A mark that carries a `href` was activated; `newTab` for a modifier or middle click. Without
+   * this the marks stay inert.
+   */
+  onSelect?: (mark: ChartSelection, newTab?: boolean) => void
   /** The selection was undone (chosen mark again, or Escape); the id travels for focus. */
   onClear?: (previousId: string) => void
 }
@@ -103,12 +106,13 @@ export class ChartController {
   hoverIndex: number | null = null
   /** What the keyboard's tooltip says, for the chart's status region; empty otherwise. */
   status = ''
+  /** Where the next arrow key starts while no category is shown: the place before new data. */
+  keyFrom: number | null = null
   hiddenSeries: string[] = []
   /** The series the reader points at or focuses in the legend; `null` for none. */
   emphasis: string | null = null
   /** The layers of a stacked map switched off in its legend, by their place in the stack. */
   hiddenLayers: number[] = []
-  hoverSegment: number | null = null
   selectedCell: { row: number; column: number } | null = null
   /** What a wheel without its modifier shows, until its timer clears it. */
   mapHint: string | null = null
@@ -135,6 +139,9 @@ export class ChartController {
   leafletView: { lat: number; lon: number; zoom: number } | null = null
 
   private readonly notify: () => void
+  /** The data last drawn, and as JSON once its reference changed. */
+  private drawn: unknown = undefined
+  private drawnJson = ''
   /** The chart's box, once attached; the map finds its own buttons in it. */
   element: HTMLElement | null = null
   private measuring: MeasureSpec = {}
@@ -219,6 +226,27 @@ export class ChartController {
     this.resizeObserver = null
     this.intersectionObserver = null
     this.element = null
+  }
+
+  /**
+   * Called with the data before each drawing. New data closes the tooltip and empties the
+   * status, which speak of the old data; the place stays as the keyboard's starting point.
+   */
+  follow(data: unknown): void {
+    if (data === this.drawn) return
+    const first = this.drawn === undefined
+    const json = JSON.stringify(data) ?? ''
+    this.drawn = data
+    if (first || json === this.drawnJson) {
+      this.drawnJson = json
+      return
+    }
+    this.drawnJson = json
+    this.keyFrom = this.hoverIndex ?? this.keyFrom
+    this.hoverIndex = null
+    this.status = ''
+    this.tooltip = null
+    this.unwatchEscape()
   }
 
   /* Tooltip --------------------------------------------------------------- */

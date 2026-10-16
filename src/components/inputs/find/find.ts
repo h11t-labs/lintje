@@ -24,6 +24,7 @@ import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../feedback/spinner/spinner'
 import { Debounce } from '../../shared/debounce'
+import { LiveMessage } from '../../shared/live-message'
 import { LintjeInputElement } from '../shared/input'
 import findCss from './find.css?inline'
 
@@ -38,7 +39,6 @@ export class LintjeFind extends LintjeInputElement {
     total: { type: Number },
     current: { type: Number },
     busy: { type: Boolean, reflect: true },
-    message: { state: true },
   }
 
   value: string = ''
@@ -50,7 +50,6 @@ export class LintjeFind extends LintjeInputElement {
   current: number = 0
   /** The host is still counting: the field says "Zoeken…" and cannot step. */
   busy: boolean = false
-  protected message: string = ''
 
   private readonly typing = new Debounce(this)
 
@@ -60,7 +59,7 @@ export class LintjeFind extends LintjeInputElement {
   #asked: boolean = false
   /** The direction of a step the host has not answered yet. */
   #stepped: 1 | -1 | 0 = 0
-  #sayFrame = 0
+  readonly #live = new LiveMessage(this)
 
   constructor() {
     super()
@@ -91,7 +90,7 @@ export class LintjeFind extends LintjeInputElement {
     if (this.#asked) {
       this.#asked = false
       this.#stepped = 0
-      this.say(this.total === 0 ? 'Geen treffers' : this.countText)
+      this.#live.say(this.total === 0 ? 'Geen treffers' : this.countText)
       return
     }
     if (!this.#stepped || !changed.has('current') || this.current < 1) return
@@ -102,20 +101,8 @@ export class LintjeFind extends LintjeInputElement {
         ? before === this.total && this.current === 1
         : before === 1 && this.current === this.total
     this.#stepped = 0
-    if (!wrapped) this.say(position)
-    else this.say(`Terug bij de ${this.current === 1 ? 'eerste' : 'laatste'} treffer, ${position}`)
-  }
-
-  override disconnectedCallback(): void {
-    cancelAnimationFrame(this.#sayFrame)
-    super.disconnectedCallback()
-  }
-
-  // Emptied first: the same words again are no change to a live region.
-  private say(text: string): void {
-    cancelAnimationFrame(this.#sayFrame)
-    this.message = ''
-    this.#sayFrame = requestAnimationFrame(() => (this.message = text))
+    const end = this.current === 1 ? 'eerste' : 'laatste'
+    this.#live.say(wrapped ? `Terug bij de ${end} treffer, ${position}` : position)
   }
 
   private send(next: string): void {
@@ -155,7 +142,7 @@ export class LintjeFind extends LintjeInputElement {
     if (this.disabled) return
     this.typing.cancel()
     this.value = ''
-    this.message = ''
+    this.#live.clear()
     this.send('')
     this.focusControl()
   }
@@ -249,7 +236,7 @@ export class LintjeFind extends LintjeInputElement {
             : nothing
         }
       </div>
-      <p class="visually-hidden" role="status">${this.message}</p>`
+      <p class="visually-hidden" role="status">${this.#live.text}</p>`
   }
 }
 

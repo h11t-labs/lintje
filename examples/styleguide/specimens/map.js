@@ -1,5 +1,5 @@
 // The map category (Kaart): the specimens of its elements.
-import { log } from '../shared.js'
+import { linkLog, log } from '../shared.js'
 import { originCountries, desks, origin, meta } from '../../_data/load.js'
 
 // The nine data colours after the first eight, with the Dutch name the legend shows.
@@ -119,6 +119,19 @@ const MAPS = [
     },
   },
   {
+    id: 'map-point-size', label: 'Puntgrootte', title: 'Kaart · puntgrootte met de zoom',
+    note: 'Met `size` is het aantal geen grootte (`by: none`) en groeit een punt mee met de zoom (`zoom: true`): zoom in en de punten blijven bij hun plek horen.',
+    data: {
+      variant: 'points', geo: 'netherlands', unit: 'loketten', height: 320,
+      size: { by: 'none', min: 5, zoom: true },
+      values: desks.map((point) => ({
+        id: point.id, label: point.map_label, value: 1,
+        detail: `${point.wait_time} min wachttijd`, lon: point.lon, lat: point.lat,
+      })),
+      description: 'Elk loket als één punt van vaste grootte, die met de zoom meegroeit.',
+    },
+  },
+  {
     id: 'map-series-style', label: 'Reeksen in één kleur', title: 'Kaart · reeksen in één kleur',
     note: 'Met `seriesStyles` draagt de vorm het onderscheid en is de kleur neutraal: de bron is geen schaal.',
     data: {
@@ -185,6 +198,22 @@ export default {
           html: MAP_TILE,
           setup: mapSetup(map),
         })),
+        {
+          label: 'Punten met een link',
+          note: 'Elke stip heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad.',
+          html: MAP_TILE,
+          setup(stage) {
+            const tile = stage.querySelector('lintje-map')
+            const points = MAPS.find((map) => map.id === 'map-points')
+            tile.data = {
+              ...points.data,
+              title: 'Kaart · punten met een link',
+              values: points.data.values.map((value) => ({ ...value, href: `?loket=${value.id}` })),
+              footnote: 'Bron: fictieve demogegevens',
+            }
+            linkLog(stage, tile, ['lintje-mark-select'])
+          },
+        },
         ...MAPS.map((map) => ({
           label: `${map.label} op een ondergrond`,
           note: `${map.note} De ondergrond is een WMS-kaart.`,

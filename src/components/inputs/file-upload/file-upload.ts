@@ -266,6 +266,7 @@ export class LintjeFileUpload extends LintjeInputElement {
     const meta = this.metaText
     const choose = this.single ? 'Bestand kiezen' : 'Bestanden kiezen'
     const description = [meta, this.footMessage || this.hint].filter(Boolean).join('. ')
+    // A drag hides the button instead of removing it, so a button with the focus keeps it.
     return html`<div class="lintje-field">
       ${this.label ? this.renderLabel() : nothing}
       <div
@@ -282,23 +283,23 @@ export class LintjeFileUpload extends LintjeInputElement {
         @dragover=${this.onDragOver}
         @drop=${this.onDrop}
       >
+        <lintje-button
+          class=${classMap({ 'lintje-file-upload__button': true, 'visually-hidden': dragging })}
+          variant="secondary"
+          icon="functioneel-upload"
+          ?block=${this.#mobile.matches}
+          ?disabled=${this.disabled}
+          ?invalid=${Boolean(this.error)}
+          accessible-name=${this.label ? `${choose}, ${this.labelText}` : nothing}
+          description=${description || nothing}
+          @click=${this.pick}
+          >${choose}</lintje-button
+        >
         ${
           dragging
             ? html`${renderIcon('functioneel-upload', { size: 20, className: 'lintje-file-upload__icon' })}
                 <strong class="lintje-file-upload__text">${dropText(this.dragCount, this.over)}</strong>`
-            : html`<lintje-button
-                  class="lintje-file-upload__button"
-                  variant="secondary"
-                  icon="functioneel-upload"
-                  ?block=${this.#mobile.matches}
-                  ?disabled=${this.disabled}
-                  ?invalid=${Boolean(this.error)}
-                  accessible-name=${this.label ? `${choose}, ${this.labelText}` : nothing}
-                  description=${description || nothing}
-                  @click=${this.pick}
-                  >${choose}</lintje-button
-                >
-                <span class="lintje-file-upload__text"
+            : html`<span class="lintje-file-upload__text"
                   >${this.single ? 'of sleep het hierheen' : 'of sleep ze hierheen'}</span
                 >
                 ${meta ? html`<span class="lintje-file-upload__meta">${meta}</span>` : nothing}`
