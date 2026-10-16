@@ -13,6 +13,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import './map'
 import { downloadCsv } from '../../shared/download'
+import { seriesShape, seriesShapePath } from '../../shared/charts/shared/series-shapes'
+import { pointRadius } from '../../shared/charts/map-chart/marks'
 import type { MapData, MapValue } from '../../../types'
 
 interface MapTile extends HTMLElement {
@@ -198,6 +200,41 @@ describe('lintje-map selection', () => {
 describe('lintje-map series', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
+  })
+
+  it('sizes its points by the range the host sets, or all alike when the figure is no size', async () => {
+    const shapeOf = (element: MapTile, id: string) =>
+      point(element, id).querySelector<SVGPathElement>('.lintje-map-chart__point-shape')!
+    const ranged = await mapTile(tileData({ size: { min: 4, max: 10 } }))
+    // The largest figure at the top of the range, a smaller one between by its square root.
+    expect(shapeOf(ranged, 'ein').getAttribute('d')).toBe(
+      seriesShapePath(seriesShape('dark-yellow'), 10),
+    )
+    expect(shapeOf(ranged, 'ams-e').getAttribute('d')).toBe(
+      seriesShapePath(seriesShape('sky-blue'), 4 + Math.sqrt(12 / 21) * 6),
+    )
+    expect(legendRows(ranged)).toEqual([{ layer: 'Punten', key: '12 – 21 min' }])
+
+    document.body.innerHTML = ''
+    const alike = await mapTile(tileData({ size: { by: 'none', min: 5 } }))
+    expect(shapeOf(alike, 'ein').getAttribute('d')).toBe(
+      seriesShapePath(seriesShape('dark-yellow'), 5),
+    )
+    expect(shapeOf(alike, 'ams-e').getAttribute('d')).toBe(
+      seriesShapePath(seriesShape('sky-blue'), 5),
+    )
+    // Nothing to explain about size: the legend has no size key, only the layer and its series.
+    expect(legendRows(alike)).toEqual([{ layer: 'Punten', key: '' }])
+  })
+
+  it('marks a point that follows the zoom for the surface, with its radius', async () => {
+    const element = await mapTile(tileData({ size: { zoom: true } }))
+    const mark = point(element, 'ein')
+    expect(mark.hasAttribute('data-zoom')).toBe(true)
+    expect(Number(mark.getAttribute('data-r'))).toBeCloseTo(pointRadius(21, 21))
+    document.body.innerHTML = ''
+    const still = await mapTile(tileData())
+    expect(point(still, 'ein').hasAttribute('data-zoom')).toBe(false)
   })
 
   it('draws a legend above the map for every series a point uses', async () => {

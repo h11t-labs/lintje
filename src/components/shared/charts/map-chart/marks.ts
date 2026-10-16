@@ -16,7 +16,7 @@ import { markPath } from '../shared/series-shapes'
 import type { ChartController } from '../shared/controller'
 import { withUnit, type MapDrawing } from './drawings'
 import { isRect } from './area'
-import type { MapArea, MapSeriesKey, MapValue } from '../shared/types'
+import type { MapArea, MapPointSize, MapSeriesKey, MapValue } from '../shared/types'
 
 /** Longitude and latitude to the surface's reference pixels. */
 export type Project = (lon: number, lat: number) => [number, number]
@@ -61,9 +61,19 @@ export interface MarksContext {
 
 const hasRing = (value: MapValue): boolean => (value.polygon?.length ?? 0) > 2
 
-/** The radius of a point with a figure: between 3 and 18 px, by the square root of its share. */
-export function pointRadius(value: number, max: number): number {
-  return 3 + Math.sqrt(value / max) * 15
+/** The radius a point may follow the zoom between, in px (`MapPointSize.zoom`). */
+export const ZOOM_RADIUS = { min: 2, max: 28 }
+
+/**
+ * The radius of a point with a figure: between `size.min` and `size.max` (3 and 18 px) by the
+ * square root of its share of the layer's largest — or `size.min` for every point when the
+ * figure is no size (`by: 'none'`).
+ */
+export function pointRadius(value: number, max: number, size?: MapPointSize): number {
+  const low = size?.min ?? 3
+  const high = size?.max ?? 18
+  if (size?.by === 'none') return low
+  return low + Math.sqrt(value / max) * (high - low)
 }
 
 /** A series of one layer, as the legend switches it: a colour may serve several layers. */
@@ -266,7 +276,7 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
       // A point without a figure takes the picker's fixed size (rule 15).
       const radius =
         drawing.variant === 'points' && value.value != null
-          ? pointRadius(value.value, drawing.max)
+          ? pointRadius(value.value, drawing.max, drawing.size)
           : 6
       // A series gives the point a data colour and its own shape (rule 13).
       const colour = seriesColor(value.series)
@@ -279,6 +289,8 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
          class="lintje-map-chart__point lintje-map-chart__symbol ${markState(context, value.id, gone(value))}"
          data-at=${at(x, y)}
          data-mark-id=${value.id}
+         data-r=${radius}
+         data-zoom=${drawing.size?.zoom ? '' : nothing}
          role="button" tabindex=${gone(value) ? -1 : 0} aria-hidden=${gone(value) ? 'true' : nothing}
          aria-pressed=${String(isChosen(context, value.id))}
          aria-label=${`${value.label}: ${figure}${seriesName ? `, ${seriesName}` : ''}`}

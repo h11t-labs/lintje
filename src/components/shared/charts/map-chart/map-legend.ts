@@ -98,7 +98,7 @@ function renderSizes(drawing: MapDrawing, expanded: boolean): TemplateResult {
   // tops nearly touch still read apart, with a guide from the circle's top to its figure.
   const lines = [14, 31, 46]
   const rows = [max, mid, min].map((figure, n) => {
-    const r = pointRadius(figure, max)
+    const r = pointRadius(figure, max, drawing.size)
     return {
       r,
       top: bottom - 2 * r,
@@ -131,6 +131,8 @@ function renderKey(drawing: MapDrawing, expanded: boolean): TemplateResult {
   const { variant } = drawing
   if (variant === 'choropleth' || variant === 'polygons') return renderClasses(drawing, expanded)
   if (variant === 'flows') return renderWidths(drawing)
+  // A layer whose figure is no size has no size to explain.
+  if (drawing.size?.by === 'none') return html``
   return renderSizes(drawing, expanded)
 }
 

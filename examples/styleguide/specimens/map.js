@@ -116,6 +116,19 @@ const MAPS = [
       description: 'Meldingen per werkgebied in vijf klassen, met daarover de loketten: de grootte van het teken is het aantal aanvragen, de kleur en vorm het soort loket.',
     },
   },
+  {
+    id: 'map-point-size', label: 'Puntgrootte', title: 'Kaart · puntgrootte met de zoom',
+    note: 'Met `size` is het aantal geen grootte (`by: none`) en groeit een punt mee met de zoom (`zoom: true`): zoom in en de punten blijven bij hun plek horen.',
+    data: {
+      variant: 'points', geo: 'netherlands', unit: 'loketten', height: 320,
+      size: { by: 'none', min: 5, zoom: true },
+      values: desks.map((point) => ({
+        id: point.id, label: point.map_label, value: 1,
+        detail: `${point.wait_time} min wachttijd`, lon: point.lon, lat: point.lat,
+      })),
+      description: 'Elk loket als één punt van vaste grootte, die met de zoom meegroeit.',
+    },
+  },
 ]
 
 const MAP_TILE = '<lintje-map></lintje-map>'

@@ -353,6 +353,28 @@ export interface WmsBasemap {
 }
 
 /** What one layer of a stacked map draws: a map's variant, without the scope picker. */
+/**
+ * How a layer's points are sized. Without it a point's radius grows from 3 to 18 px with the
+ * square root of its figure's share of the layer's largest, and keeps that size at every zoom.
+ */
+export interface MapPointSize {
+  /** The smallest radius in px; default 3. */
+  min?: number
+  /** The largest radius in px; default 18. */
+  max?: number
+  /**
+   * `value` (default): the radius follows the figure. `none`: every point draws at `min` — for a
+   * layer whose figure is a count of one, or no size at all, so a national view is not a field
+   * of points all at the largest size.
+   */
+  by?: 'value' | 'none'
+  /**
+   * The radius follows the zoom — twice as large one level in, half a level out, between 2 and
+   * 28 px — so a point reads as fixed to the ground. Default off: a point keeps its pixel size.
+   */
+  zoom?: boolean
+}
+
 export type MapPlotVariant = 'polygons' | 'points' | 'flows' | 'choropleth'
 
 /**
@@ -374,6 +396,8 @@ export interface MapPlotData {
    * several layers; each layer's line in the legend names and switches its own.
    */
   seriesLabels?: Partial<Record<MapSeriesKey, string>>
+  /** How this layer's points are sized; without it the map's own `size`. */
+  size?: MapPointSize
 }
 
 /** The map's data, as `MapData` in `src/types.ts` carries it, without the tile fields. */
@@ -405,4 +429,6 @@ export interface MapSpec {
   controls?: MapControls
   /** The area the host keeps, from its URL: adopted when it changes, as `selectedId` is. */
   selectedArea?: MapArea | null
+  /** How the points are sized, for every layer that does not say so itself. */
+  size?: MapPointSize
 }
