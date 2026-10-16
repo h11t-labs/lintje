@@ -717,7 +717,9 @@ describe('a compact change column with a tooltip template', () => {
   }
 
   it('fills the template from the row, each value read the way its column reads it', async () => {
-    const cells = await mountWithTooltip('{change} tegenover vorige week · {requests} nu, was {previous}')
+    const cells = await mountWithTooltip(
+      '{change} tegenover vorige week · {requests} nu, was {previous}',
+    )
     const words = '▲ +4,2% tegenover vorige week · 1.250 nu, was 1200'
     const utrecht = cells.get('Utrecht')!
     expect(utrecht.querySelector('.lintje-data-table__change')?.getAttribute('title')).toBe(words)
