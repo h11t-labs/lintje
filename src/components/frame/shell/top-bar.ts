@@ -11,11 +11,11 @@ import '../../inputs/radio-group/radio-group'
 import type { ModeSetting, ShellData, ShellView } from '../../../types'
 import type { LintjeShell } from './shell'
 
-/** The three light/dark settings in display order, each shown as its word. */
-const MODE_SETTINGS: readonly { value: ModeSetting; text: string; label: string }[] = [
-  { value: 'system', text: 'Systeem', label: 'Systeemweergave' },
-  { value: 'light', text: 'Licht', label: 'Lichte modus' },
-  { value: 'dark', text: 'Donker', label: 'Donkere modus' },
+/** The three light/dark settings in display order, each shown and named as its word. */
+const MODE_SETTINGS: readonly { value: ModeSetting; text: string }[] = [
+  { value: 'system', text: 'Systeem' },
+  { value: 'light', text: 'Licht' },
+  { value: 'dark', text: 'Donker' },
 ]
 
 /**
@@ -175,19 +175,20 @@ function barTool(
   onClick: () => void,
 ): TemplateResult {
   const glyph = renderIcon(icon, { size: 20 })
+  const drawn = glyph !== nothing
   return html`<button
     type="button"
     class=${classMap({
       'lintje-shell__tool': true,
-      'lintje-shell__tool--text': glyph === nothing,
+      'lintje-shell__tool--text': !drawn,
       [className]: true,
     })}
-    aria-label=${label}
-    title=${label}
+    aria-label=${drawn ? label : nothing}
+    title=${drawn ? label : nothing}
     aria-expanded=${open}
     @click=${onClick}
   >
-    ${glyph === nothing ? label : glyph}
+    ${drawn ? glyph : label}
   </button>`
 }
 
@@ -235,13 +236,8 @@ export function renderView(shell: LintjeShell, view: ShellView): TemplateResult 
       <div class="lintje-view__row">
         <div class="lintje-toggle-group" role="group" aria-label="Systeem, licht of donker">
           ${MODE_SETTINGS.map((option) =>
-            toggle(
-              option.label,
-              '',
-              option.text,
-              option.value === view.mode,
-              () => shell.changeView({ mode: option.value }),
-              true,
+            toggle(option.text, option.value === view.mode, () =>
+              shell.changeView({ mode: option.value }),
             ),
           )}
         </div>
@@ -251,21 +247,11 @@ export function renderView(shell: LintjeShell, view: ShellView): TemplateResult 
           ? html`<p class="lintje-share__heading">Menu</p>
               <div class="lintje-view__row">
                 <div class="lintje-toggle-group" role="group" aria-label="Plaats van het menu">
-                  ${toggle(
-                    'Menu als zijbalk',
-                    '',
-                    'Zijbalk',
-                    shell.layout === 'side',
-                    () => shell.changeView({ layout: 'side' }),
-                    true,
+                  ${toggle('Zijbalk', shell.layout === 'side', () =>
+                    shell.changeView({ layout: 'side' }),
                   )}
-                  ${toggle(
-                    'Menu boven',
-                    '',
-                    'Boven',
-                    shell.layout === 'top',
-                    () => shell.changeView({ layout: 'top' }),
-                    true,
+                  ${toggle('Boven', shell.layout === 'top', () =>
+                    shell.changeView({ layout: 'top' }),
                   )}
                 </div>
               </div>`
@@ -293,30 +279,31 @@ function renderThemes(shell: LintjeShell, view: ShellView): TemplateResult | typ
     </div>`
 }
 
-/** One option in a toggle group; `text` shows while the icon has no file, or where `words` is set. */
+/**
+ * One option in a toggle group, named by the word it shows. With an `icon` that has a file the
+ * face is the drawing, so the word becomes its `aria-label` and tooltip.
+ */
 export function toggle(
-  label: string,
-  icon: string,
   text: string,
   active: boolean,
   onClick: () => void,
-  words: boolean = false,
+  icon?: string,
 ): TemplateResult {
-  // The accessible name is the full word, even where the face is an abbreviation or a drawing.
-  const glyph = words ? nothing : renderIcon(icon, { size: 16 })
+  const glyph = icon ? renderIcon(icon, { size: 16 }) : nothing
+  const drawn = glyph !== nothing
   return html`<button
     type="button"
     class=${classMap({
       'lintje-toggle-group__option': true,
-      'lintje-toggle-group__option--text': glyph === nothing,
+      'lintje-toggle-group__option--text': !drawn,
       'is-active': active,
     })}
     aria-pressed=${active}
-    aria-label=${label}
-    title=${label}
+    aria-label=${drawn ? text : nothing}
+    title=${drawn ? text : nothing}
     @click=${onClick}
   >
-    ${glyph === nothing ? text : glyph}
+    ${drawn ? glyph : text}
   </button>`
 }
 

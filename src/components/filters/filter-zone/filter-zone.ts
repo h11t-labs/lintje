@@ -31,6 +31,7 @@ import {
 import zoneCss from './filter-zone.css?inline'
 import { scrollRoot } from '../../../core/host-config'
 import { holdsFocus } from '../../../core/focus'
+import { heightSettleMs } from '../../shared/transition'
 
 export class LintjeFilterZone extends LintjeElement {
   static override styles = [iconStyles, shadowCss(zoneCss)]
@@ -58,6 +59,9 @@ export class LintjeFilterZone extends LintjeElement {
   sentence: SentencePart[] = []
 
   private readonly mobile = new MediaController(this, MOBILE)
+  /** Carries `:state(phone)`, which follows the controller as the template does; `null` in happy-dom. */
+  readonly #internals: ElementInternals | null =
+    typeof this.attachInternals === 'function' ? this.attachInternals() : null
   private observer: IntersectionObserver | null = null
   // `undefined` until the first update: `null === null` would skip the first report.
   private observed: HTMLElement | null | undefined = undefined
@@ -99,8 +103,8 @@ export class LintjeFilterZone extends LintjeElement {
     bar.classList.toggle('is-scrollable', scrollable)
   }
 
-  // The wait is the body's own `transition-duration`, not `--dur-collapse`: under
-  // `prefers-reduced-motion` the token is 0 ms but `tokens/base.css` still gives 80 ms.
+  // The wait is the body's computed transition of its height, not `--dur-collapse`: whatever
+  // `tokens/base.css` lets move under reduced motion decides it.
   private timeSettling(expanded: boolean): void {
     clearTimeout(this.settleTimer)
     if (!expanded) {
@@ -108,7 +112,7 @@ export class LintjeFilterZone extends LintjeElement {
       return
     }
     const body = this.renderRoot.querySelector<HTMLElement>('.lintje-filter-bar__body')
-    const duration = body ? parseFloat(getComputedStyle(body).transitionDuration) * 1000 : 0
+    const duration = heightSettleMs(body)
     this.settled = !(duration > 0)
     if (!this.settled) this.settleTimer = setTimeout(() => (this.settled = true), duration)
   }
@@ -141,6 +145,11 @@ export class LintjeFilterZone extends LintjeElement {
   }
 
   protected override updated(changed: PropertyValues<this>): void {
+    const states = this.#internals?.states
+    if (states) {
+      if (this.mobile.matches) states.add('phone')
+      else states.delete('phone')
+    }
     if (this.#rowHadFocus) {
       this.#rowHadFocus = false
       if (!holdsFocus(this)) {
@@ -335,14 +344,13 @@ export class LintjeFilterZone extends LintjeElement {
   }
 
   // `expanded` is the rendered state, not `open`: stuck and collapsed the zone is closed
-  // however the URL reads.
+  // however the URL reads. Its name is the word it shows; `aria-expanded` says the state.
   private renderToggle(expanded: boolean): TemplateResult {
     return html`<button
       type="button"
       class=${classMap({ 'lintje-filter-toggle': true, 'is-expanded': expanded })}
       aria-expanded=${expanded}
       aria-controls="filter-body"
-      aria-label=${expanded ? 'Filters verbergen' : 'Filters tonen'}
       @click=${() => this.act({ type: expanded ? 'collapse' : 'expand' })}
     >
       Filters

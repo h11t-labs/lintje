@@ -143,7 +143,7 @@ export class LintjeTimeInput extends LintjeInputElement {
   /* --- The list ----------------------------------------------------------- */
 
   private openList(): void {
-    if (this.disabled) return
+    if (this.isDisabled) return
     const times = this.times
     if (!times.length) return
     this.focusTime = timeAtOrAfter(times, this.value ?? nowRounded(this.step))
@@ -252,7 +252,7 @@ export class LintjeTimeInput extends LintjeInputElement {
           aria-describedby=${this.describedBy}
           aria-invalid=${message ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @change=${this.onChange}
           @keydown=${this.onKeydown}
         />
@@ -262,14 +262,14 @@ export class LintjeTimeInput extends LintjeInputElement {
           aria-label="Tijden openen"
           aria-haspopup="listbox"
           aria-expanded=${this.open ? 'true' : 'false'}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @click=${this.toggle}
         >
           ${renderIcon('functioneel-klok', { size: 18 })}
         </button>
       </div>
       <lintje-popover
-        ?open=${this.open && !this.disabled}
+        ?open=${this.open && !this.isDisabled}
         match-width
         @lintje-close=${this.onPopoverClose}
       >

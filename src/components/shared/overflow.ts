@@ -12,6 +12,7 @@
 import type { ReactiveController, ReactiveControllerHost } from 'lit'
 import type { LintjeButton } from '../actions/button/button'
 import type { MenuEntry } from '../actions/menu-button/menu-button'
+import { FrameResizeObserver } from './frame-resize-observer'
 
 export interface OverflowItem {
   width: number
@@ -79,9 +80,9 @@ export class OverflowController implements ReactiveController {
   /** The buttons that went into the menu, in order. */
   collapsed: LintjeButton[] = []
 
-  #observer: ResizeObserver | null = null
+  // A frame later: measuring is cheap, but what follows changes the row's height.
+  #observer = new FrameResizeObserver(() => this.measure())
   #observed: Element[] = []
-  #frame: number | null = null
 
   constructor(
     private readonly host: OverflowHost,
@@ -91,11 +92,8 @@ export class OverflowController implements ReactiveController {
   }
 
   hostDisconnected(): void {
-    this.#observer?.disconnect()
-    this.#observer = null
+    this.#observer.disconnect()
     this.#observed = []
-    if (this.#frame !== null) cancelAnimationFrame(this.#frame)
-    this.#frame = null
     this.#apply([])
   }
 
@@ -185,21 +183,10 @@ export class OverflowController implements ReactiveController {
   }
 
   #observe(boxes: Element[]): void {
-    if (typeof ResizeObserver === 'undefined') return
     if (sameList(boxes, this.#observed)) return
-    this.#observer ??= new ResizeObserver(() => this.#schedule())
     this.#observer.disconnect()
     for (const box of boxes) this.#observer.observe(box)
     this.#observed = boxes
-  }
-
-  /** A frame later: measuring is cheap, but what follows changes the row's height. */
-  #schedule(): void {
-    if (this.#frame !== null) return
-    this.#frame = requestAnimationFrame(() => {
-      this.#frame = null
-      this.measure()
-    })
   }
 }
 

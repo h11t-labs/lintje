@@ -18,18 +18,18 @@ import {
 } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
-import { lockScroll } from '../../../core/host-config'
 import { MediaController, MOBILE } from '../../../core/media'
 import { registerShortcut } from '../../../core/shortcuts'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import { FocusTrap } from '../../shared/focus-trap'
+import { DialogHold } from '../../shared/dialog'
 import { Debounce } from '../../shared/debounce'
 import '../../feedback/spinner/spinner'
 import appSearchCss from './app-search.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import keyCss from '../../shared/key.css?inline'
 import { isPlainClick } from '../../../core/links'
+import { titleWhenCut } from '../../shared/cut-text'
 
 export interface SearchResult {
   /** What `lintje-action` carries. */
@@ -106,8 +106,7 @@ export class LintjeAppSearch extends LintjeElement {
   // The field is a native `<input>` in this root: `aria-controls` and `aria-activedescendant`
   // cannot cross a root.
   readonly #id = `lintje-app-search-${++instances}`
-  #released: (() => void) | null = null
-  readonly #trap = new FocusTrap()
+  readonly #hold = new DialogHold(() => this.close('escape'))
 
   private get results(): SearchResult[] {
     return this.groups.flatMap((group) => group.items)
@@ -119,11 +118,6 @@ export class LintjeAppSearch extends LintjeElement {
 
   private optionId(index: number): string {
     return `${this.#id}-option-${index}`
-  }
-
-  /** Only the dialog on top answers Escape. */
-  readonly #onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape' && this.#trap.isTopmost()) this.close('escape')
   }
 
   override connectedCallback(): void {
@@ -164,8 +158,8 @@ export class LintjeAppSearch extends LintjeElement {
 
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
-    if (this.open && !this.#released) this.#hold()
-    else if (!this.open && this.#released) this.#release()
+    if (this.open && !this.#hold.held) this.#open()
+    else if (!this.open && this.#hold.held) this.#release()
     if ((changed as PropertyValues).has('active') && this.active >= 0) {
       this.renderRoot
         .querySelector(`#${this.optionId(this.active)}`)
@@ -173,20 +167,15 @@ export class LintjeAppSearch extends LintjeElement {
     }
   }
 
-  #hold(): void {
-    this.#released = lockScroll()
-    document.addEventListener('keydown', this.#onKeyDown)
+  #open(): void {
     const dialog = this.renderRoot.querySelector<HTMLElement>('.lintje-app-search')
-    if (dialog) this.#trap.activate(dialog, { focus: this.input ?? true })
+    if (dialog) this.#hold.hold(dialog, { focus: this.input ?? true })
   }
 
   #release(): void {
-    if (!this.#released) return
+    if (!this.#hold.held) return
     this.#debounce.cancel()
-    document.removeEventListener('keydown', this.#onKeyDown)
-    this.#released()
-    this.#released = null
-    this.#trap.deactivate()
+    this.#hold.release()
   }
 
   private onInput(event: Event): void {
@@ -233,7 +222,7 @@ export class LintjeAppSearch extends LintjeElement {
   private renderOption(item: SearchResult, index: number): TemplateResult {
     const active = index === this.active
     const classes = classMap({ 'lintje-app-search__option': true, 'is-active': active })
-    const content = html`<span class="lintje-app-search__label">${this.renderLabel(item.label)}</span>${
+    const content = html`<span class="lintje-app-search__label" @pointerenter=${titleWhenCut}>${this.renderLabel(item.label)}</span>${
       item.meta ? html`<span class="lintje-app-search__meta">${item.meta}</span>` : nothing
     }`
     const onClick = (event: MouseEvent): void => this.choose(item, event)
