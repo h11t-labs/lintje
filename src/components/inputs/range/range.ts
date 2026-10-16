@@ -139,7 +139,7 @@ export class LintjeRange extends LintjeInputElement {
 
   // Arrows move one step, PageUp/PageDown a tenth of the scale, Home/End the ends.
   private key(event: KeyboardEvent): void {
-    if (this.disabled) return
+    if (this.isDisabled) return
     const page = pageStep(this.steps?.length ?? 0)
     const move: Partial<Record<string, number>> = {
       ArrowRight: 1,
@@ -176,7 +176,7 @@ export class LintjeRange extends LintjeInputElement {
   }
 
   private onTrackPress(event: PointerEvent): void {
-    if (this.single || this.disabled || event.target instanceof HTMLInputElement) return
+    if (this.single || this.isDisabled || event.target instanceof HTMLInputElement) return
     const box = (event.currentTarget as HTMLElement).getBoundingClientRect()
     if (!box.width || this.lastIndex < 1) return
     const ratio = Math.min(1, Math.max(0, (event.clientX - box.left) / box.width))
@@ -202,7 +202,7 @@ export class LintjeRange extends LintjeInputElement {
         min="0"
         max=${last}
         .value=${String(this.index)}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         aria-label=${this.labelText || nothing}
         aria-describedby=${this.describedBy}
         aria-valuetext=${this.valueText}
@@ -223,7 +223,7 @@ export class LintjeRange extends LintjeInputElement {
         min="0"
         max=${last}
         .value=${String(from)}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         aria-label="${this.label} van${this.labelSuffixText}"
         aria-valuetext=${this.stepText(from)}
         aria-describedby=${this.describedBy}
@@ -237,7 +237,7 @@ export class LintjeRange extends LintjeInputElement {
         min="0"
         max=${last}
         .value=${String(to)}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         aria-label="${this.label} tot en met${this.labelSuffixText}"
         aria-valuetext=${this.stepText(to)}
         aria-describedby=${this.describedBy}

@@ -107,6 +107,15 @@ export default {
           </div>`,
         },
         {
+          label: 'Een lang label in een smalle ruimte',
+          note:
+            'Met een aanwijzer staat het label op één regel, met het hele label in de tooltip. ' +
+            'Onder de focus van het toetsenbord, zonder hover en op een telefoon loopt het door.',
+          html: `<div style="max-width: 240px">
+            <lintje-button variant="secondary" icon="functioneel-downloaden">Alle aanvragen van deze week downloaden</lintje-button>
+          </div>`,
+        },
+        {
           label: 'Uitgeschakeld',
           html: `<div class="guide__row">
             <lintje-button variant="primary" disabled>Niet beschikbaar</lintje-button>
@@ -201,6 +210,24 @@ export default {
               { value: '1', label: '1×', icon: 'functioneel-vinkje' },
               { value: '1.5', label: '1,5×' },
               { value: '2', label: '2×' },
+            ]),
+        },
+        {
+          label: 'Een lange keuze',
+          note:
+            'Een keuze die niet past, staat met een aanwijzer op één regel met de hele tekst in de ' +
+            'tooltip. Onder de focus van het toetsenbord, zonder hover en op een telefoon loopt ze ' +
+            'door; de hint blijft op de eerste regel.',
+          html: '<lintje-menu-button label="Exporteren" variant="tertiary"></lintje-menu-button>',
+          setup: (stage) =>
+            menu(stage, [
+              {
+                value: 'alles',
+                label:
+                  'Alle aanvragen van deze week met hun bijlagen, notities en de geschiedenis van elke wijziging als één archief',
+                hint: '.zip',
+              },
+              { value: 'csv', label: 'Tabel', hint: '.csv' },
             ]),
         },
         {

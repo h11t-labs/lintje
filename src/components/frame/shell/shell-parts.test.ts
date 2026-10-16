@@ -86,7 +86,7 @@ const buttons = (shell: LintjeShell): HTMLButtonElement[] =>
   Array.from(root(shell).querySelectorAll<HTMLButtonElement>('.lintje-mobile-header__button'))
 
 const menuButton = (shell: LintjeShell): HTMLButtonElement =>
-  buttons(shell).find((button) => button.hasAttribute('aria-controls')) as HTMLButtonElement
+  root(shell).querySelector<HTMLButtonElement>('.lintje-mobile-header__button--menu')!
 
 const panel = (shell: LintjeShell): Element | null =>
   root(shell).querySelector('.lintje-mobile-menu')
@@ -244,6 +244,22 @@ describe('the open mobile header', () => {
     await open(shell)
     expect(menuButton(shell)).toBe(before)
     expect(contentOrder(menuButton(shell))).toEqual(['text', 'icon'])
+  })
+
+  it('is named by the word it shows, which says the state: no aria-expanded', async () => {
+    const shell = await mount()
+    const button = menuButton(shell)
+    const said = (): unknown[] => [
+      button.getAttribute('aria-label'),
+      button.textContent?.trim(),
+      button.hasAttribute('aria-expanded'),
+    ]
+    expect(said()).toEqual([null, 'Menu', false])
+    // It names its panel only while there is one.
+    expect(button.hasAttribute('aria-controls')).toBe(false)
+    await open(shell)
+    expect(said()).toEqual([null, 'Sluiten', false])
+    expect(button.getAttribute('aria-controls')).toBe('lintje-mobile-menu-panel')
   })
 })
 
@@ -950,7 +966,7 @@ describe('the top layout keeps the skip link first and one h1', () => {
       expect(headings[0].textContent).toBe('Dashboard Vergunningen')
 
       const button = root(shell).querySelector<HTMLButtonElement>(
-        '[aria-controls="lintje-mobile-menu-panel"]',
+        '.lintje-mobile-header__button--menu',
       )!
       button.focus()
       button.click()
@@ -1175,7 +1191,7 @@ describe('the top layout when the entries do not fit', () => {
     const shell = await fitted(700, 600)
     menu(shell)!.focus()
     const button = await openMenu(shell)
-    expect(button.getAttribute('aria-expanded')).toBe('true')
+    expect(button.textContent!.trim()).toBe('Sluiten')
     const menuPanel = root(shell).querySelector(`#${button.getAttribute('aria-controls')}`)!
     expect(
       [...menuPanel.querySelectorAll('.lintje-navbar__heading')].map((h) => h.textContent),

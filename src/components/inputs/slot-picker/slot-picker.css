@@ -24,7 +24,7 @@
   letter-spacing: var(--label-tracking); text-transform: uppercase;
   color: var(--color-text-muted);
 }
-:host([disabled]) .lintje-slot-picker__heading { color: var(--color-text-disabled); }
+:host(:disabled) .lintje-slot-picker__heading { color: var(--color-text-disabled); }
 
 /* A time is a dense option; the chosen one is quiet, as in the segmented control. */
 .lintje-slot-picker__slot {

@@ -8,7 +8,7 @@
  * cell that is not inside the button. The rendered geometry is checked where it
  * runs, in headless Chrome.
  */
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import './data-table'
 import type { LintjePagination } from '../pagination/pagination'
 import type { DataTableData, SortState } from '../../../types'
@@ -343,6 +343,113 @@ describe('a clickable row', () => {
   })
 })
 
+describe('a row with an href', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  const linked = async (extra: Partial<DataTableData> = {}): Promise<TableElement> => {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = {
+      ...structuredClone(data),
+      rows: [{ name: 'Utrecht', requests: 12, note: 'a', href: '?loket=utrecht' }, data.rows[1]],
+      clickable: true,
+      ...extra,
+    }
+    document.body.append(element)
+    await element.updateComplete
+    return element
+  }
+  const row = (element: TableElement, name: string) =>
+    [
+      ...element.shadowRoot!.querySelectorAll<HTMLElement>('.lintje-data-table__full tbody tr'),
+    ].find((tr) => tr.textContent?.includes(name))!
+  const stub = () => vi.spyOn(window.location, 'assign').mockImplementation(() => {})
+  const heard = (element: TableElement, name: string) => {
+    const details: unknown[] = []
+    element.addEventListener(name, (event) => details.push((event as CustomEvent).detail))
+    return details
+  }
+
+  it('goes there after lintje-row-click when nobody cancels it, by click and by Enter', async () => {
+    const assign = stub()
+    const element = await linked()
+    const clicks = heard(element, 'lintje-row-click')
+    row(element, 'Utrecht').click()
+    expect(clicks).toEqual([{ id: 'Utrecht', label: 'Utrecht', href: '?loket=utrecht' }])
+    expect(assign).toHaveBeenCalledWith('?loket=utrecht')
+    row(element, 'Utrecht').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
+    expect(assign).toHaveBeenCalledTimes(2)
+  })
+
+  it('stays when the host cancels the event', async () => {
+    const assign = stub()
+    const element = await linked()
+    element.addEventListener('lintje-row-click', (event) => event.preventDefault())
+    row(element, 'Utrecht').click()
+    expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('opens it in a new tab on a modifier or middle click, without lintje-row-click', async () => {
+    const assign = stub()
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const element = await linked()
+    const clicks = heard(element, 'lintje-row-click')
+    const navigations = heard(element, 'lintje-navigate')
+    row(element, 'Utrecht').dispatchEvent(new MouseEvent('click', { ctrlKey: true }))
+    const middle = new MouseEvent('auxclick', { button: 1, cancelable: true })
+    row(element, 'Utrecht').dispatchEvent(middle)
+    // The right button opens the context menu, nothing else.
+    row(element, 'Utrecht').dispatchEvent(new MouseEvent('auxclick', { button: 2 }))
+    expect(clicks).toEqual([])
+    expect(navigations).toEqual([
+      { href: '?loket=utrecht', newTab: true },
+      { href: '?loket=utrecht', newTab: true },
+    ])
+    expect(open).toHaveBeenCalledTimes(2)
+    expect(open).toHaveBeenCalledWith('?loket=utrecht', '_blank', 'noopener')
+    expect(middle.defaultPrevented).toBe(true)
+    expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('opens no tab when the host cancels lintje-navigate', async () => {
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const element = await linked()
+    element.addEventListener('lintje-navigate', (event) => event.preventDefault())
+    row(element, 'Utrecht').dispatchEvent(new MouseEvent('click', { ctrlKey: true }))
+    expect(open).not.toHaveBeenCalled()
+  })
+
+  it('only sends the event for a row without one, also with a modifier', async () => {
+    const assign = stub()
+    const element = await linked()
+    const clicks = heard(element, 'lintje-row-click')
+    row(element, 'Rotterdam').click()
+    row(element, 'Rotterdam').dispatchEvent(new MouseEvent('click', { ctrlKey: true }))
+    row(element, 'Rotterdam').dispatchEvent(new MouseEvent('auxclick', { button: 1 }))
+    expect(clicks).toEqual([
+      { id: 'Rotterdam', label: 'Rotterdam' },
+      { id: 'Rotterdam', label: 'Rotterdam' },
+    ])
+    expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('goes there from the name of an openable row too, unless cancelled', async () => {
+    const assign = stub()
+    const element = await linked({ clickable: false, openable: true })
+    const opens = heard(element, 'lintje-row-open')
+    const name = row(element, 'Utrecht').querySelector<HTMLElement>('.lintje-data-table__open')!
+    name.click()
+    expect(opens).toEqual([{ id: 'Utrecht', label: 'Utrecht', href: '?loket=utrecht' }])
+    expect(assign).toHaveBeenCalledWith('?loket=utrecht')
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    name.dispatchEvent(new MouseEvent('click', { metaKey: true }))
+    expect(opens).toHaveLength(1)
+    expect(open).toHaveBeenCalledWith('?loket=utrecht', '_blank', 'noopener')
+    element.addEventListener('lintje-row-open', (event) => event.preventDefault())
+    name.click()
+    expect(assign).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('the phone representation', () => {
   const wide: DataTableData = {
     ...structuredClone(data),
@@ -602,6 +709,70 @@ describe('a truncated column', () => {
   })
 })
 
+describe('a compact change column with a tooltip template', () => {
+  async function mountWithTooltip(tooltip: string): Promise<Map<string, HTMLElement>> {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = {
+      caption: 'Loketten met hun trend',
+      columns: [
+        { key: 'name', header: 'Loket' },
+        { key: 'requests', header: 'Aanvragen' },
+        { key: 'change', header: 'Trend', format: 'change-compact', decimals: 1, tooltip },
+      ],
+      rows: [
+        { name: 'Utrecht', requests: 1250, change: 4.2, previous: 1200 },
+        { name: 'Zwolle', requests: 300, change: -2, previous: null },
+      ],
+      rowKey: 'name',
+    }
+    document.body.append(element)
+    await element.updateComplete
+    const cells = new Map<string, HTMLElement>()
+    for (const row of element.shadowRoot!.querySelectorAll('.lintje-data-table__full tbody tr')) {
+      const name = row.querySelector('th')?.textContent?.trim()
+      const cell = row.querySelectorAll('td')[1] as HTMLElement | undefined
+      if (name && cell) cells.set(name, cell)
+    }
+    return cells
+  }
+
+  it('fills the template from the row, each value read the way its column reads it', async () => {
+    const cells = await mountWithTooltip(
+      '{change} tegenover vorige week · {requests} nu, was {previous}',
+    )
+    const words = '▲ +4,2% tegenover vorige week · 1.250 nu, was 1200'
+    const utrecht = cells.get('Utrecht')!
+    expect(utrecht.querySelector('.lintje-data-table__change')?.getAttribute('title')).toBe(words)
+    expect(utrecht.querySelector('.lintje-data-table__change-words')?.textContent).toBe(words)
+    expect(utrecht.querySelector('.visually-hidden')?.textContent).toBe(words)
+  })
+
+  it('reads a gap in the row as a dash', async () => {
+    const cells = await mountWithTooltip('{change} · was {previous}')
+    expect(
+      cells.get('Zwolle')?.querySelector('.lintje-data-table__change')?.getAttribute('title'),
+    ).toBe('▼ -2,0% · was —')
+  })
+
+  it('is ignored by a column that is not compact', async () => {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = {
+      caption: 'Loketten met hun trend',
+      columns: [
+        { key: 'name', header: 'Loket' },
+        { key: 'change', header: 'Trend', format: 'change', tooltip: '{change} en meer' },
+      ],
+      rows: [{ name: 'Utrecht', change: 4 }],
+      rowKey: 'name',
+    }
+    document.body.append(element)
+    await element.updateComplete
+    const cell = element.shadowRoot!.querySelector('.lintje-data-table__full tbody td')!
+    expect(cell.querySelector('[title]')).toBeNull()
+    expect(cell.querySelector('.lintje-data-table__change-words')).toBeNull()
+  })
+})
+
 describe('a compact change column', () => {
   async function cellsByName(): Promise<{
     element: TableElement
@@ -660,6 +831,17 @@ describe('a compact change column', () => {
     expect(cells.get('Utrecht')?.classList.contains('lintje-data-table__cell--align-right')).toBe(
       true,
     )
+  })
+
+  it('puts the whole change in the glyph’s tooltip, and keeps the words for the keyboard', async () => {
+    const { cells } = await cellsByName()
+    const utrecht = cells.get('Utrecht')!
+    expect(utrecht.querySelector('.lintje-data-table__change')?.getAttribute('title')).toBe(
+      '▲ +4,2%',
+    )
+    const words = utrecht.querySelector('.lintje-data-table__change-words')!
+    expect(words.textContent).toBe('▲ +4,2%')
+    expect(words.getAttribute('aria-hidden')).toBe('true')
   })
 
   it('shows the change whole as the phone row’s measure', async () => {

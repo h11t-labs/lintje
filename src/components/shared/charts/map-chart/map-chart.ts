@@ -8,12 +8,14 @@ import { ref } from 'lit/directives/ref.js'
 import { keyed } from 'lit/directives/keyed.js'
 import { styleProps } from '../../../../core/style-props'
 import { formatNumber } from '../../../../core/format'
+import { isNewTabClick } from '../../../../core/links'
 import { chartIcon, ZOOM_CONTROLS } from '../shared/chart-icons'
 import { renderIcon } from '../../../../icons/render'
 import { renderTooltip } from '../shared/tooltip'
 import { LeafletSurface } from './leaflet'
-import { seriesColor } from '../shared/colors'
-import { markPath } from '../shared/series-shapes'
+import { seriesShapePath } from '../shared/series-shapes'
+import { DEFAULT_SERIES_COLOR } from '../shared/colors'
+import { seriesStyle } from './series-style'
 import { nextRow, type MenuItem } from '../../../actions/menu-button/menu-button'
 import type { ChartController, ChartOptions } from '../shared/controller'
 import { mapDrawings, withUnit, type MapDrawing } from './drawings'
@@ -21,6 +23,7 @@ import { seriesKey } from './marks'
 import { renderMapLegend } from './map-legend'
 import type { MapArea, MapControls, MapSpec, MapTool, MapValue } from '../shared/types'
 import { idsInArea, isRect } from './area'
+import { titleWhenCut } from '../../cut-text'
 import '../../../overlays/popover/popover'
 
 /** The map's own height in a tile: on a phone taller, so all its buttons fit on the touch size. */
@@ -128,8 +131,11 @@ export function scaleLabel(metres: number): string {
  */
 export interface MapOptions extends Omit<ChartOptions, 'description' | 'onSelect' | 'selectedId'> {
   description?: string
-  /** An area or point was clicked; the whole mark travels, as the panel needs its figure. */
-  onSelect?: (mark: MapValue) => void
+  /**
+   * An area or point was clicked; the whole mark travels, as the panel needs its figure. `newTab`
+   * for a modifier or middle click on a mark with an `href`, which leaves the selection be.
+   */
+  onSelect?: (mark: MapValue, newTab?: boolean) => void
   /** The selection was undone (chosen mark again, empty map, Escape, close); travels the id. */
   onClear?: (previousId: string) => void
   onLayerChange?: (value: string) => void
@@ -204,6 +210,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     }
   const selection = active ? byId.get(active) : undefined
   const selectionDrawing = selection ? drawingOf.get(selection.id) : undefined
+  const selectionStyle = seriesStyle(selectionDrawing ?? {}, selection?.series)
   const seriesLabelOf = (value: MapValue) =>
     (value.series && drawingOf.get(value.id)?.seriesLabels?.[value.series]) || undefined
 
@@ -226,11 +233,19 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     onArea?.(null, [])
     controller.requestUpdate()
   }
-  const select = (value: MapValue) => {
+  const select = (value: MapValue, newTab = false) => {
+    if (newTab) return onSelect?.(value, true)
     if (value.id === active) return clear()
     controller.mapSelection = value.id
     onSelect?.(value)
     controller.requestUpdate()
+  }
+  // The panel's link: a modifier or middle click opens it in a new tab, as on a link.
+  const setScope = (event: MouseEvent, value: MapValue) => {
+    if (isNewTabClick(event)) {
+      event.preventDefault()
+      onSelect?.(value, true)
+    } else if (event.type === 'click') onSelect?.(value)
   }
   // A shape is a tool: it stays in hand after drawing, and a new area replaces the last.
   const drawn = (next: MapArea) => {
@@ -426,7 +441,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
                       aria-checked=${String(row.checked)}
                       @click=${() => chooseTool(row.value as MapTool)}>
                 ${renderIcon(row.icon, { size: 16, className: 'lintje-menu__icon' })}
-                <span class="lintje-menu__label">${row.label}</span>
+                <span class="lintje-menu__label" @pointerenter=${titleWhenCut}>${row.label}</span>
                 ${row.checked ? renderIcon('functioneel-vinkje', { size: 16, className: 'lintje-menu__check' }) : nothing}
               </button>`,
             )}
@@ -454,7 +469,8 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
             seriesLabelOf(selection)
               ? html`<span class="lintje-map-chart__selection-series">
                 <svg class="lintje-map-chart__series-swatch" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
-                  <path d=${markPath(selection.series, 5.5, 7, 7)} fill=${seriesColor(selection.series) ?? 'currentColor'} />
+                  <path d=${seriesShapePath(selectionStyle.shape, 5.5, 7, 7)}
+                        fill=${selectionStyle.color ?? DEFAULT_SERIES_COLOR} />
                 </svg>${seriesLabelOf(selection)}
               </span>`
               : nothing
@@ -468,7 +484,8 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
             onSelect && selection.href
               ? html`
             <button type="button" class="lintje-map-chart__set-scope"
-                    @click=${() => onSelect(selection)}>
+                    @click=${(event: MouseEvent) => setScope(event, selection)}
+                    @auxclick=${(event: MouseEvent) => setScope(event, selection)}>
               ${selectLabel} ${renderIcon('functioneel-locatiemarker', { size: 14 })}
             </button>
           `
