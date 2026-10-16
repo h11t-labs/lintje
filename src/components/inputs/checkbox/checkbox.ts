@@ -33,7 +33,7 @@ export class LintjeCheckbox extends LintjeInputElement {
   protected override render(): TemplateResult {
     const dash = this.indeterminate && !this.checked
     return html`<div class="lintje-field">
-      <label class=${classMap({ 'lintje-choice': true, 'is-disabled': this.disabled })}>
+      <label class=${classMap({ 'lintje-choice': true, 'is-disabled': this.isDisabled })}>
         <input
           type="checkbox"
           class="lintje-choice__input"
@@ -42,7 +42,7 @@ export class LintjeCheckbox extends LintjeInputElement {
           aria-describedby=${this.describedBy}
           aria-invalid=${this.error ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @change=${this.change}
         />
         <span class="lintje-choice__box" aria-hidden="true"

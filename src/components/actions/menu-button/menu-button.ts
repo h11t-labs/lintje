@@ -29,6 +29,7 @@ import menuButtonCss from './menu-button.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { standsIn } from '../../../core/focus'
+import { titleWhenCut } from '../../shared/cut-text'
 
 export interface MenuItem {
   /** What `lintje-action` carries. */
@@ -339,8 +340,8 @@ export class LintjeMenuButton extends LintjeElement {
 
   /** The usual action on the label, the arrow beside it for the rest: one group, 1 px apart. */
   private renderSplit(): TemplateResult {
-    // Busy, both halves keep their colours; only `disabled` greys them.
-    const disabled = this.disabled ? 'true' : nothing
+    // Busy, both halves are `aria-disabled` but keep their colours; only `disabled` greys them.
+    const disabled = this.unavailable ? 'true' : nothing
     const busy = Boolean(this.busyLabel)
     const variant = this.variant === 'flat' ? 'tertiary' : this.variant
     return html`<span class="lintje-menu-button__split">
@@ -353,7 +354,7 @@ export class LintjeMenuButton extends LintjeElement {
           'is-disabled': this.disabled,
           'is-working': busy,
         })}
-        aria-disabled=${this.disabled ? 'true' : nothing}
+        aria-disabled=${disabled}
         aria-busy=${busy ? 'true' : nothing}
         @click=${() => {
           if (!this.unavailable) this.emit('lintje-action', this.action)
@@ -366,7 +367,7 @@ export class LintjeMenuButton extends LintjeElement {
               ? renderIcon(this.leadingIcon, { size: 20, className: 'lintje-button__icon' })
               : nothing
         }
-        <span class="lintje-button__label">${this.label}</span>
+        <span class="lintje-button__label" @pointerenter=${titleWhenCut}>${this.label}</span>
       </button>
       <button
         type="button"
@@ -468,7 +469,7 @@ export class LintjeMenuButton extends LintjeElement {
       ${
         square
           ? nothing
-          : html`<span class="lintje-button__label">${this.label}</span>
+          : html`<span class="lintje-button__label" @pointerenter=${titleWhenCut}>${this.label}</span>
               ${renderIcon('functioneel-delta-omlaag', {
                 size: 16,
                 rotate: this.open ? 180 : undefined,
@@ -504,7 +505,7 @@ export class LintjeMenuButton extends LintjeElement {
     } else if (item.icon) {
       icon = renderIcon(item.icon, { size: 16, className: 'lintje-menu__icon' })
     }
-    const content = html`${icon}<span class="lintje-menu__label">${item.label}</span>${
+    const content = html`${icon}<span class="lintje-menu__label" @pointerenter=${titleWhenCut}>${item.label}</span>${
       item.hint ? html`<span class="lintje-menu__hint">${item.hint}</span>` : nothing
     }`
     const row =
