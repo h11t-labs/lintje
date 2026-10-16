@@ -921,6 +921,11 @@ kleinste correctie, en leg die hier vast.
   popup waarvan de naam als tekst wordt opgebouwd, draagt "(niet verplicht)" en het "afwijkend
   van standaard" van de stip zoals het label doet (`labelText` in
   `components/inputs/shared/input.ts`).
+- **De terugzetknop van een veld noemt het veld na zijn eigen woorden**: "Terugzetten naar 2 tot
+  12, Leeftijd", het label in verborgen tekst, zodat de naam begint met wat er staat (2.5.3).
+- **Een natief veld in een formulier draagt zijn fout zelf**: naast `aria-invalid` de melding als
+  `aria-description`, want `aria-describedby` reikt niet tot in de shadow root van het formulier.
+  Is de fout weg, dan krijgt het veld de beschrijving van de host terug.
 - **Een live-regio die zinnen uitspreekt, is `aria-atomic="false"`**: een nieuwe zin wordt los
   voorgelezen; vervangen tekst, niet voortgezet, wordt vanaf het begin uitgesproken.
 - **Een zwevend paneel aan een knop sluit als de focus het verlaat** (een menu, de bel, de
