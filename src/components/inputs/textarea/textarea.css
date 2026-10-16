@@ -65,9 +65,27 @@
 }
 .lintje-textarea__control--plain.is-error { padding: 0 0 var(--space-1); border: 0; border-bottom: 2px solid var(--color-error); }
 
+/* The hint or the error left, the counter right; where they do not fit, the counter drops under
+   it, as the actions of a form do. */
+.lintje-textarea__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2) var(--space-4);
+}
 .lintje-textarea__counter {
   align-self: flex-end;
   font: var(--text-small);
   color: var(--color-text-muted);
 }
+.lintje-textarea__foot > .lintje-textarea__counter { align-self: auto; margin-left: auto; }
 .lintje-textarea__counter.is-over { color: var(--color-error-text); font-weight: 700; }
+
+/* A setting's row: the hint or the error keeps its place under the name, the counter stands under
+   the field. */
+@container (min-width: 35rem) {
+  :host([layout='row']) .lintje-textarea__foot { display: contents; }
+  :host([layout='row']) .lintje-textarea__foot > .lintje-field__hint,
+  :host([layout='row']) .lintje-textarea__foot > .lintje-field__error { grid-column: 1; grid-row: 2; align-self: start; }
+  :host([layout='row']) .lintje-textarea__foot > .lintje-textarea__counter { grid-column: 2; grid-row: 2; }
+}
