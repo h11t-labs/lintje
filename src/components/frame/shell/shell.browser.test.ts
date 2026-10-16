@@ -1,9 +1,10 @@
 /**
  * The shell in a browser: the ring in the phone's sheet of "Weergave" is the page's, not the
- * header's, and the side menu draws and drags its own thumb.
+ * header's, the side menu draws and drags its own thumb, and a group in the bar opens and closes
+ * under a finger, and stays open while a mouse rests elsewhere on the page.
  */
 import { afterEach, describe, expect, it } from 'vitest'
-import { page, userEvent } from 'vitest/browser'
+import { cdp, page, server, userEvent } from 'vitest/browser'
 import { deepActiveElement } from '../../../core/focus'
 import './shell'
 import type { LintjeShell } from './shell'
@@ -117,5 +118,90 @@ describe('the side menu’s thumb', () => {
     const footer = list.parentElement!.querySelector('.lintje-nav__footer') ?? list
     await userEvent.dragAndDrop(thumb, footer)
     await expect.poll(() => list.scrollTop).toBeGreaterThan(0)
+  })
+})
+
+// Playwright drives no touch in WebKit; Chromium takes it through the DevTools protocol.
+describe.skipIf(server.browser !== 'chromium')('a group in the bar under a finger', () => {
+  /** A point of this frame in the page's coordinates, which the protocol speaks: the test runs in
+   * a scaled frame. */
+  function onPage(x: number, y: number): { x: number; y: number } {
+    const frame = window.frameElement!.getBoundingClientRect()
+    const scale = frame.width / window.innerWidth
+    return { x: frame.left + x * scale, y: frame.top + y * scale }
+  }
+
+  async function tap(target: Element): Promise<void> {
+    const box = target.getBoundingClientRect()
+    const point = onPage(box.left + box.width / 2, box.top + box.height / 2)
+    await cdp().send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] })
+    await cdp().send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+  }
+
+  it('stays open after a tap while a mouse rests elsewhere on the page', async () => {
+    await page.viewport(1280, 800)
+    await expect.poll(() => window.innerWidth).toBe(1280)
+    const shell = document.createElement('lintje-shell')
+    shell.data = {
+      name: 'Dashboard Vergunningen',
+      navigation: [
+        { label: 'Overzicht', href: '/', active: true },
+        {
+          label: 'Beheer',
+          links: [
+            { label: 'Woordenlijst', href: '#woordenlijst' },
+            { label: 'Gebruikers', href: '#gebruikers' },
+          ],
+        },
+      ],
+    }
+    document.body.append(shell)
+    await shell.updateComplete
+    const group = shell.shadowRoot!.querySelector<HTMLButtonElement>('button.lintje-navbar__entry')!
+    // A laptop with a touchscreen: the mouse rests on the page, below the bar. After the tap the
+    // browser gives the hover back to it, which leaves the bar.
+    const bar = shell.shadowRoot!.querySelector('.lintje-navbar')!.getBoundingClientRect()
+    const rest = onPage(bar.left + 10, window.innerHeight - 10)
+    await cdp().send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...rest })
+
+    await tap(group)
+    await expect.poll(() => group.getAttribute('aria-expanded')).toBe('true')
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    expect(group.getAttribute('aria-expanded')).toBe('true')
+  })
+
+  it('opens under a tap and closes under a second one', async () => {
+    await page.viewport(1280, 800)
+    await expect.poll(() => window.innerWidth).toBe(1280)
+    const shell = document.createElement('lintje-shell')
+    shell.data = {
+      name: 'Dashboard Vergunningen',
+      navigation: [
+        { label: 'Overzicht', href: '/', active: true },
+        {
+          label: 'Beheer',
+          links: [
+            { label: 'Woordenlijst', href: '#woordenlijst' },
+            { label: 'Gebruikers', href: '#gebruikers' },
+          ],
+        },
+      ],
+    }
+    document.body.append(shell)
+    await shell.updateComplete
+    const group = shell.shadowRoot!.querySelector<HTMLButtonElement>('button.lintje-navbar__entry')!
+    // A tablet has no mouse. One left on the page by an earlier test takes the hover back after the
+    // tap, which leaves the bar and closes the group.
+    await cdp().send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: -10, y: -10 })
+    const kinds: string[] = []
+    group.addEventListener('pointerdown', (event) => kinds.push(event.pointerType))
+
+    await tap(group)
+    await expect.poll(() => group.getAttribute('aria-expanded')).toBe('true')
+    // Apart enough not to count as a double tap.
+    await new Promise((resolve) => setTimeout(resolve, 400))
+    await tap(group)
+    await expect.poll(() => group.getAttribute('aria-expanded')).toBe('false')
+    expect(kinds).toEqual(['touch', 'touch'])
   })
 })

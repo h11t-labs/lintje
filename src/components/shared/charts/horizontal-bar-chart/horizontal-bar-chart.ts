@@ -116,7 +116,7 @@ export function renderHorizontalBarChart(
                     fill=${aboveThreshold ? aboveThresholdColor : color}
                     data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
                     aria-pressed=${mark.pressed} aria-label=${mark.label}
-                    @click=${mark.click} @keydown=${mark.keydown} />
+                    @click=${mark.click} @auxclick=${mark.click} @keydown=${mark.keydown} />
               <text x=${barStart + barWidth + 6} y=${y + barHeight - 3} font-weight="700"
                     class="lintje-chart__data-label ${threshold != null ? 'lintje-chart__data-label--halo' : ''}">
                 ${formatNumber(row.value)}${unit ? ` ${unit}` : ''}

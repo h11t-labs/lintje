@@ -52,6 +52,7 @@ export function plotKeys(
     const box = drawing.getBoundingClientRect()
     const origin = anchor?.getBoundingClientRect() ?? box
     controller.hoverIndex = index
+    controller.keyFrom = null
     controller.status = tooltipSentence(point.content)
     controller.showTooltipAt(
       box.left - origin.left + point.x,
@@ -63,7 +64,9 @@ export function plotKeys(
     keydown(event) {
       // A mark inside the drawing has keys of its own.
       if (event.target !== event.currentTarget || count === 0) return
-      const current = controller.hoverIndex ?? -1
+      // A place from before new data may lie past the end: then the last category is it.
+      const from = controller.hoverIndex ?? controller.keyFrom
+      const current = from == null ? -1 : Math.min(from, count - 1)
       let index: number
       if (NEXT.has(event.key)) index = Math.min(count - 1, current + 1)
       else if (PREVIOUS.has(event.key)) index = Math.max(0, current - 1)
@@ -79,6 +82,7 @@ export function plotKeys(
       show(drawing, Math.min(controller.hoverIndex ?? 0, count - 1))
     },
     blur() {
+      controller.keyFrom = null
       if (controller.hoverIndex == null && !controller.status) return
       controller.hoverIndex = null
       controller.status = ''

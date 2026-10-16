@@ -42,6 +42,8 @@
   box-shadow: 0 0 0 1px var(--color-accent-line), inset 0 0 0 1px var(--color-accent-line);
   font-weight: 700;
 }
+/* A focused option lies over the chosen one, so its ring stays whole on all four sides. */
+.lintje-segmented__option:focus-visible { position: relative; z-index: 2; }
 .lintje-segmented__option:disabled.is-active {
   background: var(--color-border-strong);
   color: var(--color-text-disabled);
