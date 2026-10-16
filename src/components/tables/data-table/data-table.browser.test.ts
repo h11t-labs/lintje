@@ -196,12 +196,12 @@ describe('a truncated column', () => {
 })
 
 describe('a compact change column', () => {
-  it('shows its words in place of the glyph under the keyboard focus', async () => {
+  it.each([true, false])('shows its words through Tab with clickable=%s', async (clickable) => {
     const element = document.createElement('lintje-data-table') as TableElement
     element.data = {
       caption: 'Loketten met hun trend',
       rowKey: 'name',
-      clickable: true,
+      clickable,
       columns: [
         { key: 'name', header: 'Loket' },
         {
@@ -226,8 +226,7 @@ describe('a compact change column', () => {
     expect(getComputedStyle(glyph).display).not.toBe('none')
     expect(getComputedStyle(words).display).toBe('none')
     const row = glyph.closest('tr')!
-    await userEvent.keyboard('{Shift}')
-    row.focus()
+    await userEvent.keyboard('{Tab}{Tab}{Tab}')
     await expect.poll(() => row.matches(':focus-visible')).toBe(true)
     expect(getComputedStyle(glyph).display).toBe('none')
     expect(getComputedStyle(words).display).not.toBe('none')

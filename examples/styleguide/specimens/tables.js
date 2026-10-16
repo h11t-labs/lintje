@@ -683,6 +683,17 @@ export default {
           setup: (stage) => dashboard(stage, compactData),
         },
         {
+          label: 'Compact zonder rijactie',
+          note: 'Tab bereikt elke rij om de trend met zijn uitleg te lezen; Enter opent niets.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => table(stage, {
+            ...compactData,
+            title: 'Loketten met een leesbare trend',
+            clickable: false,
+            expandable: false,
+          }),
+        },
+        {
           label: 'Kiesbaar',
           note: 'Vink loketten aan om ze te vergelijken.',
           html: '<lintje-data-table></lintje-data-table>',

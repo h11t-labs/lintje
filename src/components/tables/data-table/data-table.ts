@@ -1463,6 +1463,21 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const rowActions = data.rowActions?.length ? data.rowActions : null
     const detailColumns = this.detailColumns
     const id = this.rowKey(row)
+    const hasControls =
+      (selectable && !this.uncheckable.has(id)) ||
+      data.openable ||
+      rowActions ||
+      detailColumns.length > 0 ||
+      columns.some((column) => column.editor)
+    // A static row needs a keyboard stop to reveal the compact change's words.
+    const revealsChange =
+      !hasControls &&
+      columns.some(
+        (column) =>
+          column.format === 'change-compact' &&
+          typeof row[column.key] === 'number' &&
+          !(row[column.key] === 0 && column.zeroText != null),
+      )
     const selected = id === data.selectedId
     const isChecked = this.checkedIds.includes(id)
     const isOpen = detailColumns.length > 0 && this.openRows.includes(id)
@@ -1481,7 +1496,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
           'is-checked': isChecked,
           'is-open': isOpen,
         })}
-        tabindex=${clickable ? 0 : nothing}
+        tabindex=${clickable || revealsChange ? 0 : nothing}
         aria-selected=${clickable ? selected : nothing}
         @click=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
         @auxclick=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
