@@ -19,6 +19,14 @@ const q = (element: LintjeStreamingText, selector: string): Element | null =>
   element.shadowRoot!.querySelector(selector)
 const spoken = (element: LintjeStreamingText): string[] =>
   [...element.shadowRoot!.querySelectorAll('[aria-live] p')].map((p) => p.textContent!)
+const frame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()))
+
+/** What the live region holds, after its fill frame. */
+async function said(element: LintjeStreamingText): Promise<string[]> {
+  await frame()
+  await element.updateComplete
+  return spoken(element)
+}
 
 describe('sentenceEnd', () => {
   it('ends after the last stop that white space follows', () => {
@@ -29,10 +37,26 @@ describe('sentenceEnd', () => {
 })
 
 describe('lintje-streaming-text', () => {
-  it('waits with a spinner and its label', async () => {
+  it('waits with a spinner and its label, said a frame after the region is drawn empty', async () => {
     const element = await mount({ label: 'Bezig met vertalen' })
     expect(q(element, 'lintje-spinner')).not.toBeNull()
-    expect(q(element, '[role="status"]')!.textContent).toContain('Bezig met vertalen')
+    expect(q(element, 'lintje-spinner')!.hasAttribute('label')).toBe(false)
+    const box = q(element, '.lintje-streaming-text__box--waiting')!
+    expect(box.textContent).toContain('Bezig met vertalen')
+    expect(box.hasAttribute('role')).toBe(false)
+    expect(q(element, '[role="status"]')).toBeNull()
+    expect(spoken(element)).toEqual([])
+    expect(await said(element)).toEqual(['Bezig met vertalen'])
+  })
+
+  it('says the waiting word again on every return to waiting', async () => {
+    const element = await mount()
+    expect(await said(element)).toEqual(['Bezig met schrijven'])
+    await set(element, { state: 'streaming', text: 'Eerste zin. ' })
+    expect(spoken(element)).toEqual(['Eerste zin.'])
+    await set(element, { state: 'waiting', text: '' })
+    expect(spoken(element)).toEqual([])
+    expect(await said(element)).toEqual(['Bezig met schrijven'])
   })
 
   it('streams with a caret and a stop button, and sends lintje-stop', async () => {

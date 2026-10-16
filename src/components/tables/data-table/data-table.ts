@@ -58,6 +58,7 @@ import type {
 import { CellEditing, cellKey, type EditGrid } from './editing'
 import { parseDate } from '../../shared/date-format'
 import { focusTarget, tabbables } from '../../shared/focus-trap'
+import { LiveMessage } from '../../shared/live-message'
 import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import type { DescriptionItem } from '../description-list/description-list'
 import type { MenuEntry } from '../../actions/menu-button/menu-button'
@@ -284,7 +285,6 @@ export class LintjeDataTable extends LintjeContentTileElement {
     panel: { state: true },
     openRows: { state: true },
     collapsedGroups: { state: true },
-    liveMessage: { state: true },
   }
 
   declare data?: DataTableData | null
@@ -321,8 +321,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
   /** The groups of `groupBy` that stand collapsed, by their value. */
   collapsedGroups: string[] = []
   /** What the table's status region says: a sort, a page, a selection, a filter's result. */
-  liveMessage: string = ''
-  #liveFrame = 0
+  readonly #live = new LiveMessage(this)
   /** A filter went to the host; its answer's row count is read out. */
   #filterAsked = false
 
@@ -355,8 +354,6 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   override disconnectedCallback(): void {
-    cancelAnimationFrame(this.#liveFrame)
-    this.#liveFrame = 0
     cancelAnimationFrame(this.#barFrame)
     this.#barFrame = 0
     this.#edges.disconnect()
@@ -402,7 +399,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     if (this.#filterAsked) {
       this.#filterAsked = false
       const total = this.data?.totalRows
-      this.announce(
+      this.#live.say(
         total == null ? rowCount(this.rows.length) : `${this.rows.length} van ${rowCount(total)}`,
       )
     }
@@ -660,25 +657,15 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const column = this.columns.find((candidate) => candidate.key === next.key)
     if (column) {
       const order = next.direction === 'asc' ? 'oplopend' : 'aflopend'
-      this.announce(`Gesorteerd op ${column.header.toLocaleLowerCase('nl')}, ${order}.`)
+      this.#live.say(`Gesorteerd op ${column.header.toLocaleLowerCase('nl')}, ${order}.`)
     }
-  }
-
-  /** Empties the region and fills it a frame later, so the same words are read again. */
-  private announce(message: string): void {
-    this.liveMessage = ''
-    cancelAnimationFrame(this.#liveFrame)
-    this.#liveFrame = requestAnimationFrame(() => {
-      this.#liveFrame = 0
-      this.liveMessage = message
-    })
   }
 
   private setChecked(ids: string[]): void {
     this.checkedIds = ids
     this.emit('lintje-checked-change', ids)
     if (this.data?.bulkActions) {
-      this.announce(ids.length > 0 ? `${ids.length} geselecteerd` : 'Selectie opgeheven')
+      this.#live.say(ids.length > 0 ? `${ids.length} geselecteerd` : 'Selectie opgeheven')
     }
   }
 
@@ -1043,7 +1030,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       }
       ${mobile ? this.selectionBar(true) : nothing} ${this.panels(edges)}
       ${active && this.columns.some((column) => column.editor) ? this.#editing.renderStatus() : nothing}
-      <span class="visually-hidden" role="status">${active ? this.liveMessage : ''}</span>
+      <span class="visually-hidden" role="status">${active ? this.#live.text : ''}</span>
     </div>`
   }
 
@@ -1087,7 +1074,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       class="lintje-button lintje-button--tertiary lintje-button--compact lintje-data-table__group-all"
       @click=${() => {
         this.collapsedGroups = anyOpen ? keys : []
-        this.announce(anyOpen ? 'Alle groepen ingeklapt' : 'Alle groepen uitgeklapt')
+        this.#live.say(anyOpen ? 'Alle groepen ingeklapt' : 'Alle groepen uitgeklapt')
       }}
     >
       <span class="lintje-button__label">${anyOpen ? 'Alles inklappen' : 'Alles uitklappen'}</span>
@@ -2096,7 +2083,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       @lintje-page-change=${(event: CustomEvent<{ page: number }>) => {
         event.stopPropagation()
         go(event.detail.page - 1)
-        this.announce(`Pagina ${event.detail.page} van ${pageCount}`)
+        this.#live.say(`Pagina ${event.detail.page} van ${pageCount}`)
       }}
     ></lintje-pagination>`
   }
