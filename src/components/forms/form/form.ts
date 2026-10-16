@@ -70,14 +70,29 @@ const ONE_LINE = new Set([
   'time',
 ])
 
+/** A host's own `aria-description` on a native field, kept while the form's message replaces it. */
+const ownDescription = new WeakMap<HTMLElement, string | null>()
+
 /**
  * A native field slotted into the form has no error line of its own: it is marked invalid and
- * its message stands in the summary. A `lintje-*` input draws its own.
+ * carries its message as `aria-description`, since `aria-describedby` cannot reach into the
+ * form's shadow root. A `lintje-*` input draws its own.
  */
-function markInvalid(control: HTMLElement, invalid: boolean): void {
+function markInvalid(control: HTMLElement, message: string): void {
   if (control.localName.includes('-')) return
-  if (invalid) control.setAttribute('aria-invalid', 'true')
-  else control.removeAttribute('aria-invalid')
+  if (message) {
+    if (!ownDescription.has(control))
+      ownDescription.set(control, control.getAttribute('aria-description'))
+    control.setAttribute('aria-invalid', 'true')
+    control.setAttribute('aria-description', message)
+    return
+  }
+  control.removeAttribute('aria-invalid')
+  if (!ownDescription.has(control)) return
+  const own = ownDescription.get(control)
+  ownDescription.delete(control)
+  if (own == null) control.removeAttribute('aria-description')
+  else control.setAttribute('aria-description', own)
 }
 
 const same = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b)
@@ -436,7 +451,7 @@ export class LintjeForm extends LintjeElement {
     if (found?.other) (found.control as HTMLElement & OtherHolder).otherError = undefined
     else if (found && 'error' in found.control)
       (found.control as unknown as { error?: string }).error = undefined
-    else if (found) markInvalid(found.control, false)
+    else if (found) markInvalid(found.control, '')
     this.#clearing = true
     this.errors = { ...this.errors, fields }
   }
@@ -450,7 +465,7 @@ export class LintjeForm extends LintjeElement {
       const message = fields[name]
       if ('error' in control)
         (control as unknown as { error?: string }).error = message || undefined
-      else markInvalid(control, Boolean(message))
+      else markInvalid(control, message ?? '')
       const label = (control as unknown as { label?: string }).label || undefined
       if (message && !placed.has(name)) {
         placed.add(name)

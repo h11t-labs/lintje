@@ -32,6 +32,18 @@ const file = (name: string, type: string, size = 1000): File => {
   return made
 }
 
+const status = (element: LintjeFileUpload): string =>
+  element.renderRoot.querySelector('[role="status"]')?.textContent ?? ''
+const frame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()))
+
+/** What the status region says, after its fill frame. */
+async function said(element: LintjeFileUpload): Promise<string> {
+  await element.updateComplete
+  await frame()
+  await element.updateComplete
+  return status(element)
+}
+
 function listen(element: LintjeFileUpload, name: string): unknown[] {
   const seen: unknown[] = []
   element.addEventListener(name, (event) => seen.push((event as CustomEvent).detail))
@@ -132,9 +144,7 @@ describe('lintje-file-upload', () => {
     await Promise.all(chips(element).map((chip) => chip.updateComplete))
     expect(chips(element).map(detailOf)).toEqual(['Dit bestandstype kan niet', 'Groter dan 10 MB'])
     expect(chips(element).every((chip) => chip.refused)).toBe(true)
-    expect(element.renderRoot.querySelector('[role="status"]')?.textContent).toContain(
-      'beeld.mov geweigerd: Dit bestandstype kan niet',
-    )
+    expect(await said(element)).toContain('beeld.mov geweigerd: Dit bestandstype kan niet')
     // Removing a refused chip is the element's own business: nothing goes to the host.
     const removed = listen(element, 'lintje-file-remove')
     chipButton(chips(element)[0]).click()
@@ -184,9 +194,17 @@ describe('lintje-file-upload', () => {
     element.files = [{ ...ROWS[0], state: 'done' }]
     await element.updateComplete
     expect(seen).toEqual([{ bijlagen: ['a'] }])
-    expect(element.renderRoot.querySelector('[role="status"]')?.textContent).toBe(
-      'verklaring.pdf klaar',
-    )
+    expect(await said(element)).toBe('verklaring.pdf klaar')
+  })
+
+  it('says a refused file again when the same one is refused a second time', async () => {
+    const element = await mount({ accept: '.pdf' })
+    element.add([file('beeld.mov', 'video/quicktime')])
+    expect(await said(element)).toBe('beeld.mov geweigerd: Dit bestandstype kan niet')
+    element.add([file('beeld.mov', 'video/quicktime')])
+    await element.updateComplete
+    expect(status(element)).toBe('')
+    expect(await said(element)).toBe('beeld.mov geweigerd: Dit bestandstype kan niet')
   })
 
   it('takes a drop and ignores one while disabled', async () => {

@@ -868,6 +868,8 @@ const INPUT_ROWS: Row[] = [
       ['lintje-select', 'select'],
       ['lintje-segmented', '.lintje-segmented__option'],
       ['lintje-toggle', '.lintje-choice__input'],
+      ['lintje-text-input', 'input'],
+      ['lintje-textarea', 'textarea'],
     ] as const
   ).map(([tag, control]): Row => ({
     name: `${tag} :: the reset link, gone when the host resets, hands its focus to the control`,
