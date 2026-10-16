@@ -296,6 +296,15 @@ export default {
           html: '<lintje-text-input name="p.zoek-afwijkend" label="Afwijkend van standaard" value="Eindhoven" modified clearable></lintje-text-input>',
         },
         {
+          label: 'Afwijkend met terugzetten',
+          note: 'Met `reset-label` staat er een link onder het veld die `lintje-reset` stuurt. Een schermlezer hoort het label van het veld erachter.',
+          html: '<lintje-text-input label="Naam" value="Overleg team" hint="Mag leeg blijven" modified reset-label="Leegmaken"></lintje-text-input>',
+          setup(stage) {
+            const field = stage.querySelector('lintje-text-input')
+            field.addEventListener('lintje-reset', () => Object.assign(field, { value: '', modified: false }))
+          },
+        },
+        {
           label: 'Ongeldige tekens',
           html: '<lintje-text-input name="p.zoek-fout" label="Met foutmelding" value="!!" error="Gebruik alleen letters en cijfers."></lintje-text-input>',
         },
@@ -378,6 +387,15 @@ export default {
         {
           label: 'Afwijkend van standaard',
           html: '<lintje-textarea label="Omschrijving" modified value="Tas zonder eigenaar, omgeving afgezet."></lintje-textarea>',
+        },
+        {
+          label: 'Afwijkend met terugzetten',
+          note: 'De link staat na de teller.',
+          html: '<lintje-textarea label="Omschrijving" maxlength="2000" modified reset-label="Terugzetten naar leeg" value="Tas zonder eigenaar, omgeving afgezet."></lintje-textarea>',
+          setup(stage) {
+            const field = stage.querySelector('lintje-textarea')
+            field.addEventListener('lintje-reset', () => Object.assign(field, { value: '', modified: false }))
+          },
         },
         {
           label: 'Over de limiet',

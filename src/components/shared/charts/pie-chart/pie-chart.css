@@ -23,12 +23,17 @@
 .lintje-pie-chart__total { padding-left: var(--space-4); text-align: right; }
 .lintje-pie-chart__value,
 .lintje-pie-chart__total { font-variant-numeric: tabular-nums; }
-.lintje-pie-chart__label { display: flex; align-items: center; gap: var(--space-2); }
+/* The row header stays a table cell: `display: flex` on the `<th>` took it out of the table's
+   layout, and in Edge the body's columns then drifted from the head's (aantal under %).
+   The flex sits on a span inside the cell, as the heatmap does; a label that wraps indents
+   under its first line, and the swatch stands on that line. */
+.lintje-pie-chart__label { vertical-align: middle; }
+.lintje-pie-chart__label-inner { display: flex; align-items: flex-start; gap: var(--space-2); }
 .lintje-pie-chart__total-label,
 .lintje-pie-chart__total {
   font-weight: 700; border-top: 1px solid var(--color-border-default); padding-top: 6px;
 }
-.lintje-pie-chart__marker { width: 10px; height: 10px; flex: none; display: block; }
+.lintje-pie-chart__marker { width: 10px; height: 10px; flex: none; display: block; margin-top: calc((1lh - 10px) / 2); }
 
 /* Hover scales the segment around the center, so its side edges keep their angle. The shadow
    sits on a copy on top (`__lift`); the segment itself only scales and eases back. */
