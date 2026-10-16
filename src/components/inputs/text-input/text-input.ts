@@ -154,14 +154,15 @@ export class LintjeTextInput extends LintjeFormInputElement {
   protected override renderFoot(): TemplateResult | typeof nothing {
     const message = this.error ?? ''
     const ids = { hintId: this.hintId, errorId: this.errorId }
-    if (this.type !== 'search') return renderFieldFoot(this.hint, message, ids)
+    if (this.type !== 'search')
+      return html`${renderFieldFoot(this.hint, message, ids)}${this.renderReset()}`
     return html`${message ? renderFieldFoot(undefined, message, ids) : nothing}<span
         id=${this.hintId}
         class="lintje-field__hint"
         aria-live="polite"
         ?hidden=${!this.hint || Boolean(message)}
         >${this.hint ?? ''}</span
-      >`
+      >${this.renderReset()}`
   }
 
   private get inputType(): string {
@@ -177,9 +178,9 @@ export class LintjeTextInput extends LintjeFormInputElement {
       (this.clearable || search) &&
       !password &&
       this.value !== '' &&
-      !this.disabled &&
+      !this.isDisabled &&
       !this.readonly
-    const addon = { readonly: this.readonly, disabled: this.disabled }
+    const addon = { readonly: this.readonly, disabled: this.isDisabled }
     return html`<div class="lintje-field">
       ${this.renderLabel(this.controlId)}
       <div
@@ -196,7 +197,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
             'lintje-text-input__box': true,
             'is-error': Boolean(this.error),
             'is-readonly': this.readonly,
-            'is-disabled': this.disabled,
+            'is-disabled': this.isDisabled,
           })}
         >
           ${renderAddon('prefix', this.prefix, addon)}
@@ -225,7 +226,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
               aria-required=${this.required ? 'true' : nothing}
               ?required=${this.required}
               ?readonly=${this.readonly}
-              ?disabled=${this.disabled}
+              ?disabled=${this.isDisabled}
               @input=${this.onInput}
               @change=${this.change}
               @keydown=${this.onKeydown}
@@ -251,7 +252,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
             ? html`<lintje-button
               class="lintje-text-input__reveal"
               variant="secondary"
-              ?disabled=${this.disabled}
+              ?disabled=${this.isDisabled}
               @click=${this.reveal}
               >${this.revealed ? 'Verbergen' : 'Tonen'}</lintje-button
             >`
@@ -262,7 +263,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
             ? html`<lintje-button
               class="lintje-text-input__action"
               variant="secondary"
-              ?disabled=${this.disabled}
+              ?disabled=${this.isDisabled}
               @click=${this.act}
               >${this.action}</lintje-button
             >`

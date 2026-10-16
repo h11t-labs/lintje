@@ -8,5 +8,10 @@
     "outDir": "dist-elements/types"
   },
   "include": ["src"],
-  "exclude": ["src/**/*.test.ts", "src/bundle/browser-setup.ts", "src/core/test-keys.ts"]
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/bundle/browser-setup.ts",
+    "src/bundle/unit-setup.ts",
+    "src/core/test-keys.ts"
+  ]
 }

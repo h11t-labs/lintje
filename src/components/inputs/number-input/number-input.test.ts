@@ -22,6 +22,18 @@ const steps = (element: LintjeNumberInput): HTMLButtonElement[] => [
   ...element.shadowRoot!.querySelectorAll<HTMLButtonElement>('.lintje-number-input__step'),
 ]
 
+const region = (element: LintjeNumberInput): string =>
+  element.shadowRoot!.querySelector('[role="status"]')!.textContent ?? ''
+const frame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()))
+
+/** What the status region says, after its fill frame. */
+async function said(element: LintjeNumberInput): Promise<string> {
+  await element.updateComplete
+  await frame()
+  await element.updateComplete
+  return region(element)
+}
+
 beforeEach(() => {
   document.body.innerHTML = ''
 })
@@ -80,5 +92,21 @@ describe('lintje-number-input', () => {
   it('disables both steps natively when the whole field is disabled', async () => {
     const element = await mount({ value: 5, disabled: true })
     expect(steps(element).map((step) => step.disabled)).toEqual([true, true])
+  })
+
+  it('says the new value after a press on a step, and nothing after a value of the host', async () => {
+    const element = await mount({ value: 3 })
+    steps(element)[1]!.click()
+    expect(await said(element)).toBe('4')
+
+    const quiet = await mount({ value: 3 })
+    quiet.value = 7
+    expect(await said(quiet)).toBe('')
+  })
+
+  it('says nothing for a press at a bound', async () => {
+    const element = await mount({ value: 0, min: 0 })
+    steps(element)[0]!.click()
+    expect(await said(element)).toBe('')
   })
 })
