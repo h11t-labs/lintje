@@ -36,6 +36,8 @@
   font-size: 1rem;
 }
 .lintje-text-input__control::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+/* Off, the hint in an empty field is as faint as a value would be: else the field looks on. */
+.lintje-text-input__control:disabled::placeholder { color: var(--color-text-disabled); }
 .lintje-text-input__control[readonly] { cursor: default; }
 .lintje-text-input__control:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
 .lintje-text-input--clearable .lintje-text-input__control {
