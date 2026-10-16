@@ -98,7 +98,7 @@ function renderSizes(drawing: MapDrawing, expanded: boolean): TemplateResult {
   // tops nearly touch still read apart, with a guide from the circle's top to its figure.
   const lines = [14, 31, 46]
   const rows = [max, mid, min].map((figure, n) => {
-    const r = pointRadius(figure, max)
+    const r = pointRadius(figure, max, drawing.size)
     return {
       r,
       top: bottom - 2 * r,
@@ -127,10 +127,16 @@ function renderWidths(drawing: MapDrawing): TemplateResult {
   </span>`
 }
 
+/** A layer of points whose figure is no size has no size to explain: no key, no rule before its series. */
+function sizeless(drawing: MapDrawing): boolean {
+  return drawing.variant === 'points' && drawing.size?.by === 'none'
+}
+
 function renderKey(drawing: MapDrawing, expanded: boolean): TemplateResult {
   const { variant } = drawing
   if (variant === 'choropleth' || variant === 'polygons') return renderClasses(drawing, expanded)
   if (variant === 'flows') return renderWidths(drawing)
+  if (sizeless(drawing)) return html``
   return renderSizes(drawing, expanded)
 }
 
@@ -187,7 +193,7 @@ export function renderMapLegend(options: MapLegendOptions): TemplateResult {
             ${renderKey(drawing, expanded)}
             ${
               items.length > 0
-                ? html`<span class="lintje-map-legend__rule" aria-hidden="true"></span>${renderLegend({ items, onToggle: options.onSeries })}`
+                ? html`${sizeless(drawing) ? nothing : html`<span class="lintje-map-legend__rule" aria-hidden="true"></span>`}${renderLegend({ items, onToggle: options.onSeries })}`
                 : nothing
             }
           </div>

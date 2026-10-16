@@ -23,6 +23,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { isPlainClick } from '../../../core/links'
 import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
+import { LiveMessage } from '../../shared/live-message'
 import { TONE_ICON, type Tone } from '../../shared/tone'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
@@ -110,7 +111,6 @@ export class LintjeCard extends LintjeElement {
     headingLevel: { type: Number, attribute: 'heading-level' },
     compact: { type: Boolean, reflect: true },
     loading: { type: Boolean, reflect: true },
-    spoken: { state: true },
   }
 
   declare data?: CardData
@@ -125,40 +125,22 @@ export class LintjeCard extends LintjeElement {
   compact: boolean = false
   /** Draws the card's shape in skeletons, at the size the content will take. */
   loading: boolean = false
-  /** What the status region says once the card has loaded: filled a frame after it is drawn. */
-  spoken: string = ''
-
   // The region is drawn from the first load on, and stays, so the change to "geladen" is heard.
   private hasRegion = false
   private wasBusy = false
-  private fillFrame = 0
+  readonly #spoken = new LiveMessage(this)
 
   private get busy(): boolean {
     return this.loading || !this.data
   }
 
-  override disconnectedCallback(): void {
-    cancelAnimationFrame(this.fillFrame)
-    this.fillFrame = 0
-    super.disconnectedCallback()
-  }
-
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
-    if (this.busy) this.hasRegion = true
-  }
-
-  protected override updated(changed: PropertyValues<this>): void {
-    super.updated(changed)
     const busy = this.busy
+    if (busy) this.hasRegion = true
     if (busy === this.wasBusy) return
     this.wasBusy = busy
-    const text = busy ? 'Gegevens laden…' : 'Gegevens geladen.'
-    cancelAnimationFrame(this.fillFrame)
-    this.fillFrame = requestAnimationFrame(() => {
-      this.fillFrame = 0
-      this.spoken = text
-    })
+    this.#spoken.say(busy ? 'Gegevens laden…' : 'Gegevens geladen.')
   }
 
   readonly #mobile = new MediaController(this, MOBILE)
@@ -310,7 +292,7 @@ export class LintjeCard extends LintjeElement {
   protected override render(): TemplateResult {
     return html`${
       this.hasRegion
-        ? html`<span class="visually-hidden" role="status">${this.spoken}</span>`
+        ? html`<span class="visually-hidden" role="status">${this.#spoken.text}</span>`
         : nothing
     }${this.renderCard()}`
   }
