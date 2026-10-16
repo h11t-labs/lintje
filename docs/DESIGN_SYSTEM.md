@@ -161,6 +161,10 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
   accenten van een KPI, de kleurentabel van de grafieken en de reeksen van de kaart volgen eruit.
   De volgorde ligt vast en een kleur komt er alleen achteraan bij: op een kaart heeft elke kleur
   de vorm op haar plaats, en een ingevoegde kleur zou elke reeks erna van vorm laten wisselen.
+  Een host mag een kaartreeks een eigen stijl geven (`seriesStyles`: een kleur, een vorm, of
+  allebei) — voor reeksen die alleen in vorm verschillen, in één neutrale kleur, waar de kleur
+  anders een betekenis zou dragen die er niet is; het onderscheid blijft dan bij de vorm en de
+  legenda (regel 13).
 - **Hemelblauw is de standaard.** Een figuur die geen kleur noemt, tekent in
   `--color-chart-default`, en de gedeelde tintladder (`--color-chart-tint-*`) is die van
   hemelblauw.

@@ -12,8 +12,8 @@ import { chartIcon, ZOOM_CONTROLS } from '../shared/chart-icons'
 import { renderIcon } from '../../../../icons/render'
 import { renderTooltip } from '../shared/tooltip'
 import { LeafletSurface } from './leaflet'
-import { seriesColor } from '../shared/colors'
-import { markPath } from '../shared/series-shapes'
+import { seriesShapePath } from '../shared/series-shapes'
+import { seriesStyle } from './series-style'
 import { nextRow, type MenuItem } from '../../../actions/menu-button/menu-button'
 import type { ChartController, ChartOptions } from '../shared/controller'
 import { mapDrawings, withUnit, type MapDrawing } from './drawings'
@@ -454,7 +454,8 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
             seriesLabelOf(selection)
               ? html`<span class="lintje-map-chart__selection-series">
                 <svg class="lintje-map-chart__series-swatch" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
-                  <path d=${markPath(selection.series, 5.5, 7, 7)} fill=${seriesColor(selection.series) ?? 'currentColor'} />
+                  <path d=${seriesShapePath(seriesStyle(selectionDrawing ?? {}, selection.series).shape, 5.5, 7, 7)}
+                        fill=${seriesStyle(selectionDrawing ?? {}, selection.series).color ?? 'currentColor'} />
                 </svg>${seriesLabelOf(selection)}
               </span>`
               : nothing
