@@ -72,10 +72,11 @@
   color: var(--color-nav-text-sub);
   padding: 22px var(--space-5) 6px;
 }
+/* A minimum height: a long label wraps and grows the row, a second line off the edge. */
 .lintje-mobile-menu__item {
-  height: var(--h-touch);
+  min-height: var(--h-touch);
   display: flex; align-items: center; gap: var(--space-3);
-  padding: 0 var(--space-5);
+  padding: var(--space-2) var(--space-5);
   border-left: var(--nav-edge) solid transparent;
   color: var(--color-nav-text);
   font-size: 1rem;
@@ -88,7 +89,7 @@
   /* Not bold: the bold cut sets narrower and reads as another font size beside its neighbours. */
 }
 .lintje-mobile-menu__item.is-muted { color: var(--color-nav-disabled); }
-.lintje-mobile-menu__label { flex: 1; }
+.lintje-mobile-menu__label { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .lintje-mobile-menu__meta { font-size: 0.875rem; color: var(--color-nav-disabled); flex: none; }
 /* The environment band and the feedback row with the version: below 768 px there is no rail,
    and a page's own footer is the host's, so this is the only place they can stand. */

@@ -3,7 +3,8 @@
  *
  * Every emblem file stands on `viewBox="0 0 346 75"` with the 38 × 75 ribbon at x 154…192;
  * the element changes only how much of it is in frame, so the ribbon never moves. A file on any
- * other viewBox is drawn whole. The name is text (`aria-hidden`; the drawing carries `alt`).
+ * other viewBox is drawn whole. The name is text (`aria-hidden`); the drawing carries `alt`, and
+ * the byline after a comma wherever the byline is drawn.
  */
 import { html, nothing, svg, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
@@ -63,6 +64,12 @@ export class LintjeLogo extends LintjeElement {
     this.#unwatch?.()
     this.#unwatch = null
     super.disconnectedCallback()
+  }
+
+  /** The name beside the ribbon is `aria-hidden`, so the drawing says what it shows. */
+  get #drawnLabel(): string {
+    const named = (this.full || this.open) && this.alt
+    return named && this.byline ? `${this.alt}, ${this.byline}` : this.alt
   }
 
   /** `ribbonEnd` is where the ribbon ends inside `drawing`, as a CSS length. */
@@ -129,7 +136,7 @@ export class LintjeLogo extends LintjeElement {
           viewBox=${glyph.viewBox}
           role=${this.alt ? 'img' : nothing}
           aria-hidden=${this.alt ? nothing : 'true'}
-          aria-label=${this.alt || nothing}
+          aria-label=${this.#drawnLabel || nothing}
           fill=${glyph.attributes.fill ?? 'currentColor'}
         >
           ${svg`${unsafeSVG(glyph.body)}`}
@@ -151,7 +158,7 @@ export class LintjeLogo extends LintjeElement {
         preserveAspectRatio="xMinYMin meet"
         role=${this.alt ? 'img' : nothing}
         aria-hidden=${this.alt ? nothing : 'true'}
-        aria-label=${this.alt || nothing}
+        aria-label=${this.#drawnLabel || nothing}
         fill=${glyph.attributes.fill ?? 'currentColor'}
       >
         ${svg`${unsafeSVG(glyph.body)}`}
