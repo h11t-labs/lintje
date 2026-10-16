@@ -689,6 +689,68 @@ describe('a truncated column', () => {
   })
 })
 
+describe('a compact change column with a tooltip template', () => {
+  async function mountWithTooltip(tooltip: string): Promise<Map<string, HTMLElement>> {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = {
+      caption: 'Loketten met hun trend',
+      columns: [
+        { key: 'name', header: 'Loket' },
+        { key: 'requests', header: 'Aanvragen' },
+        { key: 'change', header: 'Trend', format: 'change-compact', decimals: 1, tooltip },
+      ],
+      rows: [
+        { name: 'Utrecht', requests: 1250, change: 4.2, previous: 1200 },
+        { name: 'Zwolle', requests: 300, change: -2, previous: null },
+      ],
+      rowKey: 'name',
+    }
+    document.body.append(element)
+    await element.updateComplete
+    const cells = new Map<string, HTMLElement>()
+    for (const row of element.shadowRoot!.querySelectorAll('.lintje-data-table__full tbody tr')) {
+      const name = row.querySelector('th')?.textContent?.trim()
+      const cell = row.querySelectorAll('td')[1] as HTMLElement | undefined
+      if (name && cell) cells.set(name, cell)
+    }
+    return cells
+  }
+
+  it('fills the template from the row, each value read the way its column reads it', async () => {
+    const cells = await mountWithTooltip('{change} tegenover vorige week · {requests} nu, was {previous}')
+    const words = '▲ +4,2% tegenover vorige week · 1.250 nu, was 1200'
+    const utrecht = cells.get('Utrecht')!
+    expect(utrecht.querySelector('.lintje-data-table__change')?.getAttribute('title')).toBe(words)
+    expect(utrecht.querySelector('.lintje-data-table__change-words')?.textContent).toBe(words)
+    expect(utrecht.querySelector('.visually-hidden')?.textContent).toBe(words)
+  })
+
+  it('reads a gap in the row as a dash', async () => {
+    const cells = await mountWithTooltip('{change} · was {previous}')
+    expect(
+      cells.get('Zwolle')?.querySelector('.lintje-data-table__change')?.getAttribute('title'),
+    ).toBe('▼ -2,0% · was —')
+  })
+
+  it('is ignored by a column that is not compact', async () => {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = {
+      caption: 'Loketten met hun trend',
+      columns: [
+        { key: 'name', header: 'Loket' },
+        { key: 'change', header: 'Trend', format: 'change', tooltip: '{change} en meer' },
+      ],
+      rows: [{ name: 'Utrecht', change: 4 }],
+      rowKey: 'name',
+    }
+    document.body.append(element)
+    await element.updateComplete
+    const cell = element.shadowRoot!.querySelector('.lintje-data-table__full tbody td')!
+    expect(cell.querySelector('[title]')).toBeNull()
+    expect(cell.querySelector('.lintje-data-table__change-words')).toBeNull()
+  })
+})
+
 describe('a compact change column', () => {
   async function cellsByName(): Promise<{
     element: TableElement
@@ -747,6 +809,17 @@ describe('a compact change column', () => {
     expect(cells.get('Utrecht')?.classList.contains('lintje-data-table__cell--align-right')).toBe(
       true,
     )
+  })
+
+  it('puts the whole change in the glyph’s tooltip, and keeps the words for the keyboard', async () => {
+    const { cells } = await cellsByName()
+    const utrecht = cells.get('Utrecht')!
+    expect(utrecht.querySelector('.lintje-data-table__change')?.getAttribute('title')).toBe(
+      '▲ +4,2%',
+    )
+    const words = utrecht.querySelector('.lintje-data-table__change-words')!
+    expect(words.textContent).toBe('▲ +4,2%')
+    expect(words.getAttribute('aria-hidden')).toBe('true')
   })
 
   it('shows the change whole as the phone row’s measure', async () => {

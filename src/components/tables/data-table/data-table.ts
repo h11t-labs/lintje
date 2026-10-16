@@ -139,6 +139,15 @@ function formatText(column: TableColumnData, value: CellValue): string | null {
   return column.unit ? `${text} ${column.unit}` : text
 }
 
+/** A `{key}` template filled from a row, each value read the way its column reads it; a gap is "—". */
+function fillTemplate(template: string, row: Row, columns: TableColumnData[]): string {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) => {
+    const column = columns.find((candidate) => candidate.key === key)
+    const value = row[key]
+    return (column ? formatText(column, value) : value == null ? null : String(value)) ?? '—'
+  })
+}
+
 function thresholdStatus(column: TableColumnData, value: CellValue) {
   const threshold = column.threshold
   if (!threshold || typeof value !== 'number') return null
@@ -1500,7 +1509,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
           const truncate = column.truncate === true
           const content = truncate
             ? this.truncatedCell(column, row[column.key])
-            : this.cell(column, row[column.key])
+            : this.cell(column, row[column.key], row)
           const alignRight = this.alignsRight(column)
           if (column.editor)
             return this.editableCell(row, rowIndex, column, index === 0, alignRight, content, grid)
@@ -2134,7 +2143,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     </button>`
   }
 
-  private cell(column: TableColumnData, value: CellValue): unknown {
+  private cell(column: TableColumnData, value: CellValue, row?: Row): unknown {
     if (value === 0 && column.zeroText != null) {
       return html`<span class="lintje-data-table__muted">${column.zeroText}</span>`
     }
@@ -2169,12 +2178,16 @@ export class LintjeDataTable extends LintjeContentTileElement {
       // Colour and glyph together (rule 13).
       const tone = value === 0 ? 'flat' : value > 0 ? 'up' : 'down'
       if (column.format === 'change-compact') {
-        // The glyph alone is seen; a reader hears the whole change.
+        // The glyph alone is seen, its words in the tooltip; a reader hears them, and where no
+        // pointer shows a tooltip they stand whole in its place, as a truncated value does.
+        const words = column.tooltip && row ? fillTemplate(column.tooltip, row, this.columns) : text
         return html`<span
-            class="lintje-data-table__change lintje-data-table__change--${tone}"
+            class="lintje-data-table__change lintje-data-table__change--${tone} lintje-data-table__change--compact"
             aria-hidden="true"
+            title=${words}
             >${value > 0 ? '▲' : value < 0 ? '▼' : '●'}</span
-          ><span class="visually-hidden">${text}</span>`
+          ><span class="lintje-data-table__change-words" aria-hidden="true">${words}</span
+          ><span class="visually-hidden">${words}</span>`
       }
       return html`<span class="lintje-data-table__change lintje-data-table__change--${tone}">${text}</span>`
     }
@@ -2217,11 +2230,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const template = this.data?.mobileSublineTemplate
     let text: string | null = null
     if (template) {
-      text = template.replace(/\{(\w+)\}/g, (_, key: string) => {
-        const column = this.columns.find((candidate) => candidate.key === key)
-        const value = row[key]
-        return (column ? formatText(column, value) : value == null ? null : String(value)) ?? '—'
-      })
+      text = fillTemplate(template, row, this.columns)
     } else if (this.sublineColumns.length > 0) {
       text = this.sublineColumns
         .map((column) => formatText(column, row[column.key]) ?? '—')
