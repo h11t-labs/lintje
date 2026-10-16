@@ -24,7 +24,7 @@
 .lintje-pie-chart__value,
 .lintje-pie-chart__total { font-variant-numeric: tabular-nums; }
 /* The row header stays a table cell: `display: flex` on the `<th>` took it out of the table's
-   layout, and in Chromium the body's columns then drifted from the head's (aantal under %).
+   layout, and in Edge the body's columns then drifted from the head's (aantal under %).
    The flex sits on a span inside the cell, as the heatmap does; a label that wraps indents
    under its first line, and the swatch stands on that line. */
 .lintje-pie-chart__label { vertical-align: middle; }

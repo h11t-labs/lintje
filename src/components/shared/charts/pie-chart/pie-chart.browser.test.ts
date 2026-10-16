@@ -70,9 +70,13 @@ describe('the legend table of a pie', () => {
     ]
     const label = labels[2]
     const marker = label.querySelector<HTMLElement>('.lintje-pie-chart__marker')!
+    // The rects of the words themselves, one per line; the span's own box would hide a centred swatch.
+    const words = [...label.querySelector('.lintje-pie-chart__label-inner')!.childNodes].find(
+      (node) => node.nodeType === Node.TEXT_NODE && node.textContent!.trim(),
+    )!
     const range = document.createRange()
-    range.selectNodeContents(label)
-    const lines = [...range.getClientRects()].filter((rect) => rect.width > 0 && rect.height > 0)
+    range.selectNodeContents(words)
+    const lines = [...range.getClientRects()].filter((rect) => rect.width > 0)
     expect(lines.length).toBeGreaterThan(1)
     const first = lines[0]
     const swatch = marker.getBoundingClientRect()
