@@ -11,8 +11,9 @@ import { repeat } from 'lit/directives/repeat.js'
 import { styleProps } from '../../../../core/style-props'
 import { formatNumber } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
-import { DEFAULT_SERIES_COLOR, seriesColor } from '../shared/colors'
-import { markPath } from '../shared/series-shapes'
+import { DEFAULT_SERIES_COLOR } from '../shared/colors'
+import { seriesShapePath } from '../shared/series-shapes'
+import { seriesStyle } from './series-style'
 import type { ChartController } from '../shared/controller'
 import { withUnit, type MapDrawing } from './drawings'
 import { isRect } from './area'
@@ -268,12 +269,13 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
         drawing.variant === 'points' && value.value != null
           ? pointRadius(value.value, drawing.max)
           : 6
-      // A series gives the point a data colour and its own shape (rule 13).
-      const colour = seriesColor(value.series)
+      // A series gives the point a colour and a shape (rule 13): its data colour's own pair, or
+      // what its style says.
+      const { color: colour, shape } = seriesStyle(drawing, value.series)
       const seriesName = (value.series && drawing.seriesLabels?.[value.series]) || undefined
       const figure =
         value.value == null ? 'geen gegevens' : withUnit(formatNumber(value.value), drawing.unit)
-      const d = markPath(value.series, radius)
+      const d = seriesShapePath(shape, radius)
       return svg`
       <g ${styleProps(stagger(value))}
          class="lintje-map-chart__point lintje-map-chart__symbol ${markState(context, value.id, gone(value))}"

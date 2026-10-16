@@ -159,13 +159,22 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
 
 - **De namen bestaan één keer**, in `src/tokens/colors.ts`. De unies van het contract, de
   accenten van een KPI, de kleurentabel van de grafieken en de reeksen van de kaart volgen eruit.
-  De volgorde ligt vast en een kleur komt er alleen achteraan bij: op een kaart heeft elke kleur
-  de vorm op haar plaats, en een ingevoegde kleur zou elke reeks erna van vorm laten wisselen.
+  De volgorde ligt vast en een kleur komt er alleen achteraan bij: op een kaart is de vorm op
+  haar plaats het standaardpaar van elke kleur, en een ingevoegde kleur zou elke reeks erna van
+  vorm laten wisselen.
+- **Het paar kleur-vorm van een kaartreeks is een standaard, geen garantie.** Zonder stijl
+  tekent een reeks de kleur van haar naam met de vorm daarvan; met een stijl (`seriesStyles`:
+  een kleur, een vorm, of allebei) beslist de pagina, zoals ze beslist welke variabele hemelblauw
+  is. Een stijl is er voor reeksen die alleen in vorm verschillen, in één neutrale kleur, waar
+  de kleur anders een betekenis zou dragen die er niet is; het onderscheid blijft dan bij de
+  vorm en de legenda (regel 13).
 - **Hemelblauw is de standaard.** Een figuur die geen kleur noemt, tekent in
   `--color-chart-default`, en de gedeelde tintladder (`--color-chart-tint-*`) is die van
   hemelblauw.
 
-- **Vergelijking is altijd grijs; trend, drempel en doel altijd de nadrukkleur.**
+- **Vergelijking is altijd grijs; trend, drempel en doel altijd de nadrukkleur.** `neutral` is
+  de rol van een reeks die in kleur niets draagt, zoals gelijkwaardige bronnen op een kaart: ze
+  tekent datzelfde grijs en is nooit een nieuwe datakleur.
 - Vast is de kleur van een variabele. De grijzen (`--data-comparison`, `--data-other`), het
   raster en de nadrukkleur volgen de modus; geel als tekst heeft een eigen token
   (`--color-chart-dark-yellow-text`), omdat geel geen tekstkleur is. "Overig" is in donker zo
@@ -926,6 +935,11 @@ kleinste correctie, en leg die hier vast.
   popup waarvan de naam als tekst wordt opgebouwd, draagt "(niet verplicht)" en het "afwijkend
   van standaard" van de stip zoals het label doet (`labelText` in
   `components/inputs/shared/input.ts`).
+- **De terugzetknop van een veld noemt het veld na zijn eigen woorden**: "Terugzetten naar 2 tot
+  12, Leeftijd", het label in verborgen tekst, zodat de naam begint met wat er staat (2.5.3).
+- **Een natief veld in een formulier draagt zijn fout zelf**: naast `aria-invalid` de melding als
+  `aria-description`, want `aria-describedby` reikt niet tot in de shadow root van het formulier.
+  Is de fout weg, dan krijgt het veld de beschrijving van de host terug.
 - **Een live-regio die zinnen uitspreekt, is `aria-atomic="false"`**: een nieuwe zin wordt los
   voorgelezen; vervangen tekst, niet voortgezet, wordt vanaf het begin uitgesproken.
 - **Een zwevend paneel aan een knop sluit als de focus het verlaat** (een menu, de bel, de
