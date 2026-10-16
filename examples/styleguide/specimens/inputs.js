@@ -201,7 +201,7 @@ function fakeUploads(upload) {
 }
 
 const BIJLAGEN = [
-  { value: 'id', label: 'Kopie van een identiteitsbewijs' },
+  { value: 'id', label: 'Kopie van een identiteitsbewijs', description: 'Paspoort of identiteitskaart' },
   { value: 'loon', label: 'Loonstrook', description: 'Van de laatste maand' },
   { value: 'huur', label: 'Huurcontract' },
 ]
@@ -212,6 +212,38 @@ function bijlagen(stage, selected) {
   group.options = BIJLAGEN
   group.selected = selected
 }
+
+const CHANNELS = [
+  { value: 'gemeente', label: 'Via de gemeente' },
+  { value: 'website', label: 'Op rijksoverheid.nl' },
+  { value: 'brief', label: 'Per brief' },
+  { value: 'bekende', label: 'Van een bekende' },
+]
+
+/** Gives the stage's choice group the channels with "Anders", a choice and a text of its own. */
+function channels(stage, chosen, text = '') {
+  const group = stage.querySelector('lintje-radio-group, lintje-checkbox-group')
+  group.options = CHANNELS
+  group.otherText = text
+  if (group.localName === 'lintje-radio-group') group.value = chosen
+  else group.selected = chosen ? [chosen] : []
+}
+
+/** Writes the stage's choice and its "Anders" text into a log line under it. */
+function logOther(stage) {
+  const say = log(stage, 'Nog niets verstuurd.')
+  const group = stage.querySelector('lintje-radio-group, lintje-checkbox-group')
+  for (const name of ['lintje-change', 'lintje-other-change']) {
+    group.addEventListener(name, ({ detail }) => say(`${name}: ${JSON.stringify(detail)}`))
+  }
+}
+
+const OTHER_FORM = `<lintje-form>
+  <lintje-radio-group name="kanaal" label="Hoe hoorde u van de regeling?" other other-placeholder="Bijvoorbeeld: op een informatieavond"></lintje-radio-group>
+  <lintje-form-actions>
+    <lintje-button variant="primary" type="submit">Versturen</lintje-button>
+  </lintje-form-actions>
+</lintje-form>`
 
 /** Writes every `lintje-change` of the stage's element into a log line under it. */
 function logChanges(stage, tag) {
@@ -700,7 +732,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
-          note: 'Loonstrook heeft een toelichting onder de optie. Eronder staat wat de host hoort.',
+          note: 'Een toelichting staat onder haar optie, ingesprongen tot de labeltekst. Eronder staat wat de host hoort.',
           html: '<lintje-checkbox-group name="bijlagen" label="Welke bijlagen stuurt u mee?" hint="Kies alles wat van toepassing is."></lintje-checkbox-group>',
           setup(stage) {
             bijlagen(stage, ['loon'])
@@ -722,6 +754,36 @@ export default {
           html: '<lintje-checkbox-group name="bijlagen-uit" label="Uitgeschakeld" disabled></lintje-checkbox-group>',
           setup: (stage) => bijlagen(stage, ['id']),
         },
+        {
+          label: 'Anders niet gekozen',
+          note: 'Met `other` is de laatste optie "Anders, namelijk". Vink haar aan: het veld verschijnt eronder, met de focus erin.',
+          html: '<lintje-checkbox-group name="kanalen" label="Hoe hoorde u van de regeling?" hint="Kies alles wat van toepassing is." other other-placeholder="Bijvoorbeeld: op een informatieavond"></lintje-checkbox-group>',
+          setup(stage) {
+            channels(stage, 'website')
+            logOther(stage)
+          },
+        },
+        {
+          label: 'Anders gekozen en leeg',
+          html: '<lintje-checkbox-group name="kanalen-leeg" label="Hoe hoorde u van de regeling?" other other-placeholder="Bijvoorbeeld: op een informatieavond"></lintje-checkbox-group>',
+          setup: (stage) => channels(stage, 'other'),
+        },
+        {
+          label: 'Anders ingevuld',
+          html: '<lintje-checkbox-group name="kanalen-ingevuld" label="Hoe hoorde u van de regeling?" other></lintje-checkbox-group>',
+          setup: (stage) => channels(stage, 'other', 'Op een informatieavond'),
+        },
+        {
+          label: 'Fout bij Anders',
+          note: 'De host zet `other-error` als "Anders" gekozen is en het veld leeg, met `OTHER_MISSING_TEXT`.',
+          html: '<lintje-checkbox-group name="kanalen-fout" label="Hoe hoorde u van de regeling?" other other-error="Vul in wat je bedoelt."></lintje-checkbox-group>',
+          setup: (stage) => channels(stage, 'other'),
+        },
+        {
+          label: 'Anders uitgeschakeld',
+          html: '<lintje-checkbox-group name="kanalen-uit" label="Hoe hoorde u van de regeling?" other disabled></lintje-checkbox-group>',
+          setup: (stage) => channels(stage, 'other', 'Op een informatieavond'),
+        },
       ],
     },
     {
@@ -742,6 +804,69 @@ export default {
           label: 'Uitgeschakeld',
           html: '<lintje-radio-group name="p.weergave-uit" label="Uitgeschakeld" disabled></lintje-radio-group>',
           setup: (stage) => view(stage, 'dag'),
+        },
+        {
+          label: 'Met omschrijvingen',
+          note: 'Een omschrijving staat onder het label van haar optie en hoort bij haar eigen radio.',
+          html: '<lintje-radio-group name="levering" label="Hoe wilt u het besluit ontvangen?"></lintje-radio-group>',
+          setup(stage) {
+            const group = stage.querySelector('lintje-radio-group')
+            group.options = [
+              { value: 'post', label: 'Per post', description: 'Binnen vijf werkdagen in de brievenbus' },
+              { value: 'online', label: 'In de berichtenbox', description: 'Op de dag van het besluit' },
+              { value: 'beide', label: 'Allebei' },
+            ]
+            group.value = 'online'
+          },
+        },
+        {
+          label: 'Anders niet gekozen',
+          note: 'Met `other` is de laatste optie "Anders, namelijk". Kies haar met een klik of spatie en de focus gaat in het veld; met een pijltoets blijft ze in de groep.',
+          html: '<lintje-radio-group name="kanaal" label="Hoe hoorde u van de regeling?" other other-placeholder="Bijvoorbeeld: op een informatieavond"></lintje-radio-group>',
+          setup(stage) {
+            channels(stage, 'gemeente')
+            logOther(stage)
+          },
+        },
+        {
+          label: 'Anders gekozen en leeg',
+          html: '<lintje-radio-group name="kanaal-leeg" label="Hoe hoorde u van de regeling?" other other-placeholder="Bijvoorbeeld: op een informatieavond"></lintje-radio-group>',
+          setup: (stage) => channels(stage, 'other'),
+        },
+        {
+          label: 'Anders ingevuld',
+          html: '<lintje-radio-group name="kanaal-ingevuld" label="Hoe hoorde u van de regeling?" other></lintje-radio-group>',
+          setup: (stage) => channels(stage, 'other', 'Op een informatieavond'),
+        },
+        {
+          label: 'Fout bij Anders',
+          html: '<lintje-radio-group name="kanaal-fout" label="Hoe hoorde u van de regeling?" other other-error="Vul in wat je bedoelt."></lintje-radio-group>',
+          setup: (stage) => channels(stage, 'other'),
+        },
+        {
+          label: 'Anders uitgeschakeld',
+          html: '<lintje-radio-group name="kanaal-uit" label="Hoe hoorde u van de regeling?" other disabled></lintje-radio-group>',
+          setup: (stage) => channels(stage, 'other', 'Op een informatieavond'),
+        },
+        {
+          label: 'In een formulier',
+          note: "De host gaf `errors.fields['kanaal-other']` terug. De foutsamenvatting brengt de focus naar het veld van \"Anders\"; typen haalt de fout weg.",
+          html: OTHER_FORM,
+          setup(stage) {
+            const form = stage.querySelector('lintje-form')
+            stage.querySelector('lintje-radio-group').options = CHANNELS
+            form.values = { kanaal: 'other', 'kanaal-other': '' }
+            form.errors = { fields: { 'kanaal-other': 'Vul in wat je bedoelt.' } }
+            form.addEventListener('lintje-submit', ({ detail }) => {
+              const { kanaal, 'kanaal-other': text } = detail.values
+              const fields = {}
+              if (!kanaal) fields.kanaal = 'Kies een antwoord.'
+              else if (kanaal === 'other' && !String(text ?? '').trim())
+                fields['kanaal-other'] = 'Vul in wat je bedoelt.'
+              if (Object.keys(fields).length) form.errors = { fields }
+              else form.saved()
+            })
+          },
         },
         {
           label: 'Als kaarten',
