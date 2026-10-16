@@ -205,8 +205,8 @@ export interface TableColumnData {
   truncate?: boolean
   /**
    * How a value shows; default `number` for numbers. `change`: a signed percentage with ▲ ▼ ●.
-   * `change-compact`: only the ▲ ▼ ● of `change`; a screen reader hears the whole change, and
-   * below 768 px the row's measure shows it whole.
+   * `change-compact`: only the ▲ ▼ ● of `change`, its words in a tooltip (`tooltip`); a screen
+   * reader hears them, and below 768 px the row's measure shows the change whole.
    * `status`: a `StatusTone` (or mapped through `status.tones`) as the status dot with its label.
    * `label`: the value as a badge with the word, tone and icon from `labels`.
    */
@@ -219,6 +219,13 @@ export interface TableColumnData {
     | 'change-compact'
     | 'status'
     | 'label'
+  /**
+   * `change-compact`: the words the glyph stands for, as a template with `{key}` placeholders
+   * filled from the row, each value read the way its column reads it (`{change}` gives
+   * "▲ +4,2%"). They are the glyph's tooltip, a screen reader hears them, and under the keyboard's
+   * focus or without hover they stand whole. Without it, the whole change. Other formats ignore it.
+   */
+  tooltip?: string
   decimals?: number
   /** Suffix after the value, e.g. "min". */
   unit?: string
