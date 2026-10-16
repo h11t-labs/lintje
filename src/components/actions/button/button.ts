@@ -12,6 +12,7 @@ import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import buttonCss from './button.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
+import { titleWhenCut } from '../../shared/cut-text'
 
 export type ButtonVariant =
   | 'primary'
@@ -217,7 +218,10 @@ export class LintjeButton extends LintjeElement {
             })
           : nothing
       }
-      <span class="lintje-button__label" ?hidden=${!this.slotted && !this.label}
+      <span
+        class="lintje-button__label"
+        ?hidden=${!this.slotted && !this.label}
+        @pointerenter=${titleWhenCut}
         >${this.label ?? nothing}<slot @slotchange=${this.onSlotChange}></slot
       ></span>
       ${
