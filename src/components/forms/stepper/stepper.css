@@ -41,7 +41,8 @@
 }
 
 .lintje-stepper__body { display: flex; flex-direction: column; }
-.lintje-stepper__list--column .lintje-stepper__body { min-width: 0; }
+/* In the column the body runs to the step's right edge, so the content may fill it. */
+.lintje-stepper__list--column .lintje-stepper__body { flex: 1 1 auto; min-width: 0; }
 .lintje-stepper__head {
   display: flex; align-items: center; gap: var(--space-2);
   min-height: var(--h-target);
@@ -51,6 +52,14 @@
 .lintje-stepper__head + .lintje-stepper__meta { margin-top: calc((var(--h-chip-field) - var(--h-target)) / 2); }
 .lintje-stepper__description { margin: 0 0 var(--space-1); color: var(--color-text-secondary); }
 .lintje-stepper__meta { font: var(--text-small); color: var(--color-text-secondary); }
+
+/* A step's own content: under its head in the column, under the whole row in the row. */
+.lintje-stepper__content { margin-top: var(--space-2); }
+.lintje-stepper__head + .lintje-stepper__content {
+  margin-top: calc((var(--h-chip-field) - var(--h-target)) / 2 + var(--space-2));
+}
+/* The description's own bottom margin makes up the rest. */
+.lintje-stepper__description + .lintje-stepper__content { margin-top: var(--space-1); }
 
 .lintje-stepper__marker {
   display: inline-flex; align-items: center; justify-content: center;
@@ -70,7 +79,7 @@
 .lintje-stepper__step--current .lintje-stepper__name { font-weight: 700; }
 /* Done: the frame is a line (3:1), the check stands for a word (4.5:1). */
 .lintje-stepper__marker--done { border-color: var(--color-accent-line); color: var(--color-accent-text); }
-.lintje-stepper__marker--done.is-error { border-color: var(--color-error); color: var(--color-error); }
+.lintje-stepper__marker--done.is-error { border-color: var(--color-error-line); color: var(--color-error-text); }
 
 .lintje-stepper__name--link {
   position: relative;
@@ -87,6 +96,7 @@
 .lintje-stepper__errors { font: var(--text-small); font-weight: 700; color: var(--color-error-text); }
 
 .lintje-stepper--phone { display: flex; flex-direction: column; gap: var(--space-2); }
+.lintje-stepper--phone .lintje-stepper__content { margin-top: 0; }
 .lintje-stepper__summary {
   display: flex; justify-content: space-between; gap: var(--space-3);
 }

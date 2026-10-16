@@ -25,7 +25,7 @@
 .lintje-tree__row:hover { background: var(--color-bg-subtle); }
 .lintje-tree__row.is-selected {
   background: var(--color-bg-selected);
-  box-shadow: inset 4px 0 0 var(--color-accent-line);
+  box-shadow: inset 4px 0 0 var(--color-selected-edge);
   font-weight: 700;
 }
 

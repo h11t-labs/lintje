@@ -245,6 +245,28 @@ const STEPS: Step[] = [
   { label: 'Versturen', state: 'next' },
 ]
 
+const STEPS_WITH_CONTENT: Step[] = STEPS.map((step) => ({
+  ...step,
+  value: step.label.toLowerCase(),
+}))
+
+/** A stepper's slotted child for a step; unassigned, it has no box. */
+const content = (stepper: HTMLElement, step: string): HTMLElement | null =>
+  stepper.querySelector<HTMLElement>(`[data-step="${step}"]`)
+
+/** Only the current step's content is drawn. */
+const currentOnly = (stepper: HTMLElement): boolean =>
+  STEPS_WITH_CONTENT.every(
+    (step) => seen(content(stepper, step.value!)) === (step.state === 'current'),
+  )
+
+/** Every step's content is drawn, each under its own step's name. */
+const everyStep = (stepper: HTMLElement): boolean =>
+  all(stepper.shadowRoot!, '.lintje-stepper__name').every((name, index) => {
+    const own = content(stepper, STEPS_WITH_CONTENT[index]!.value!)
+    return seen(own) && below(name, own)
+  })
+
 const LONG_TITLE: ListItem = {
   id: 'l',
   title:
@@ -596,6 +618,39 @@ const ROWS: Row[] = [
       Boolean(find(element, '.lintje-stepper__summary')?.textContent?.includes('Stap 3 van 5')) &&
       shown(element, 'lintje-progress-bar') &&
       !shown(element, '.lintje-stepper__step'),
+  },
+  {
+    tag: 'lintje-stepper',
+    marker:
+      "the current step's content stands under the bar; a vertical stepper keeps every step's",
+    mount: async () => {
+      const wrapper = document.createElement('div')
+      for (const orientation of ['horizontal', 'vertical'] as const) {
+        const stepper = create('lintje-stepper', { steps: STEPS_WITH_CONTENT, orientation })
+        stepper.innerHTML = STEPS_WITH_CONTENT.map(
+          (step) =>
+            `<p slot="${step.value}" data-step="${step.value}">Inhoud van ${step.label}</p>`,
+        ).join('')
+        wrapper.append(stepper)
+      }
+      return append(wrapper)
+    },
+    wide: (wrapper) => {
+      const [row, column] = wrapper.children as unknown as [HTMLElement, HTMLElement]
+      return (
+        currentOnly(row) &&
+        below(find(row, '.lintje-stepper__list'), content(row, 'inkomen')) &&
+        everyStep(column)
+      )
+    },
+    phone: (wrapper) => {
+      const [row, column] = wrapper.children as unknown as [HTMLElement, HTMLElement]
+      return (
+        currentOnly(row) &&
+        below(find(row, 'lintje-progress-bar'), content(row, 'inkomen')) &&
+        everyStep(column)
+      )
+    },
   },
   {
     tag: 'lintje-split-pane',
