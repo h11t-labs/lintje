@@ -25,6 +25,7 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../feedback/badge/badge'
 import '../../overlays/popover/popover'
 import { DialogHold } from '../../shared/dialog'
+import { LiveMessage } from '../../shared/live-message'
 import notificationsCss from './notifications.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import { isPlainClick } from '../../../core/links'
@@ -62,7 +63,6 @@ export class LintjeNotifications extends LintjeElement {
     items: { attribute: false },
     open: { type: Boolean, reflect: true },
     max: { type: Number },
-    news: { state: true },
   }
 
   items: NotificationItem[] = []
@@ -75,9 +75,7 @@ export class LintjeNotifications extends LintjeElement {
 
   #shown = 0
   #replaced = false
-  /** What the status region says; emptied first, filled a frame later, so a repeat is spoken. */
-  protected news: string = ''
-  #newsFrame = 0
+  readonly #news = new LiveMessage(this)
   #refocus = false
 
   readonly #mobile = new MediaController(this, MOBILE)
@@ -115,8 +113,6 @@ export class LintjeNotifications extends LintjeElement {
 
   override disconnectedCallback(): void {
     this.#hold.release()
-    if (this.#newsFrame) cancelAnimationFrame(this.#newsFrame)
-    this.#newsFrame = 0
     super.disconnectedCallback()
   }
 
@@ -127,18 +123,9 @@ export class LintjeNotifications extends LintjeElement {
     const before = this.#shown
     this.#replaced = before > 0 && count > 0 && count !== before
     this.#shown = count
-    if (this.hasUpdated && count > before) this.#announce(newsMessage(count - before))
+    if (this.hasUpdated && count > before) this.#news.say(newsMessage(count - before))
     const read = this.renderRoot.querySelector('.lintje-notifications__read')
     if (count === 0 && read && holdsFocus(read)) this.#refocus = true
-  }
-
-  #announce(message: string): void {
-    this.news = ''
-    if (this.#newsFrame) cancelAnimationFrame(this.#newsFrame)
-    this.#newsFrame = requestAnimationFrame(() => {
-      this.#newsFrame = 0
-      this.news = message
-    })
   }
 
   protected override updated(changed: PropertyValues<this>): void {
@@ -302,7 +289,7 @@ export class LintjeNotifications extends LintjeElement {
             >${this.renderPanel(false)}</lintje-popover
           >`
       }
-      <span class="visually-hidden" role="status">${this.news}</span>`
+      <span class="visually-hidden" role="status">${this.#news.text}</span>`
   }
 }
 
