@@ -55,12 +55,17 @@
         .start-grid { grid-template-columns: minmax(0, 1fr) minmax(0, calc(10 * var(--space-10))); }
       }
       .panel--tight { gap: var(--space-2); }
-      /* The two choices of a live recording side by side: what kind of conversation, and where. */
-      .choices {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: var(--space-6) var(--space-10);
-        align-items: start;
+      /* The two choices of a live recording side by side: the kind takes the width of its row, so
+         it stays a row where the panel shares its width; where that leaves no room, where it
+         records goes under it. Under 768 px the row no longer fits and `min-content` would shrink
+         the column to its widest option, so there the kind takes the whole width. */
+      .choices { display: flex; flex-wrap: wrap; gap: var(--space-6) var(--space-10); align-items: flex-start; }
+      .choices > .panel { flex: 1 1 calc(6 * var(--space-10)); }
+      @media (min-width: 768px) {
+        .choices > lintje-segmented { flex: none; width: min-content; max-width: 100%; }
+      }
+      @media screen and (max-width: 767.98px) {
+        .choices > lintje-segmented { width: 100%; }
       }
       #live-status { max-width: calc(16 * var(--space-10)); }
       /* In the hero the status takes the whole column, not only what its cells need. */
@@ -155,7 +160,6 @@
       .dock__inner { max-width: var(--w-content); margin: 0 auto; padding: var(--space-3) var(--grid-gutter); }
 
       @media (max-width: 1023.98px) {
-        .choices,
         .split,
         .split--nav,
         .adjust-grid { grid-template-columns: minmax(0, 1fr); }

@@ -80,10 +80,7 @@ const NO_FILE_ON_PURPOSE = 'bestaat-niet'
  * below. A finding that matches none fails its element; an entry that matches nothing in a
  * whole run fails too, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = [
-  // #70
-  /^color-contrast @ .*\.lintje-logobar__environment-(label|short) ::/,
-]
+const KNOWN: RegExp[] = []
 const seen = new Set<RegExp>()
 let drawn = 0
 
@@ -228,6 +225,10 @@ beforeAll(() => {
     font: 'var(--text-ui)',
     fontFamily: 'var(--font-ui)',
   })
+  // As the style guide's page does: the stage hosts slotted markup, so its links take its colour.
+  const style = document.createElement('style')
+  style.textContent = '.guide__stage a { color: var(--color-link); }'
+  document.head.append(style)
 })
 
 afterEach(() => {

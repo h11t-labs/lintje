@@ -70,12 +70,15 @@ export class LintjeSegmented extends LintjeInputElement {
   }
 
   // The frame is clamped to its room (the host, or a settings row's control cell), so the
-  // room is its own width and the row's width is what it holds.
+  // room is its own width and the row's width is what it holds. WebKit rounds `scrollWidth`
+  // up where it rounds `clientWidth` off, so zoomed, a row that fits measures a pixel wider
+  // than its frame; without the pixel of slack it turns column, fits, turns row, and so on
+  // without end, until Safari kills the page.
   #fit(): void {
     const frame = this.renderRoot.querySelector<HTMLElement>('.lintje-segmented')
     if (!frame || !frame.clientWidth) return
     if (!this.column) this.#rowWidth = frame.scrollWidth
-    const column = this.#rowWidth > frame.clientWidth
+    const column = this.#rowWidth > frame.clientWidth + 1
     if (column !== this.column) this.column = column
   }
 

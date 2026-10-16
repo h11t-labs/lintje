@@ -237,6 +237,16 @@ const CHARTS = [
     },
   },
   {
+    id: 'bar-trend-gap', title: 'Staven met een onderbroken trendlijn',
+    description: 'Afgehandelde aanvragen per dag deze week, met de vorige week als trendlijn. Van woensdag en zaterdag vorige week zijn geen gegevens, dus daar breekt de trendlijn.',
+    spec: {
+      kind: 'bar', labels: weekdays, values: daily.map((row) => row.requests),
+      axisTitle: 'Afgehandelde aanvragen per dag',
+      // Wednesday and Saturday are missing: two pieces of line and a lone point on Sunday.
+      trend: daily.map((row, i) => (i === 2 || i === 5 ? null : row.requests_last_week)),
+    },
+  },
+  {
     id: 'horizontal-bar', title: 'Horizontale staven met norm',
     description: 'Wachttijd in het laatste uur per loket, tegen de norm van 15 minuten.',
     spec: {
@@ -279,6 +289,19 @@ const CHARTS = [
     spec: {
       kind: 'stacked-bar', labels: regionIds.map(regionLabel),
       axisTitle: 'Aandeel per soort loket', series: kindSeries, normalized: true,
+    },
+  },
+  {
+    id: 'stacked-bar-other', title: 'Gestapelde staven met overig en de rest',
+    description: 'Aanvragen per maand naar stand: toegekend, overig en nog open, als aandeel van alle aanvragen.',
+    spec: {
+      kind: 'stacked-bar', labels: ['jan', 'feb', 'mrt', 'apr'],
+      axisTitle: 'Aandeel per stand', normalized: true,
+      series: [
+        { label: 'Toegekend', values: [48, 52, 57, 63], color: 'sky-blue' },
+        { label: 'Overig', values: [22, 20, 18, 17], color: 'other' },
+        { label: 'Nog open', values: [30, 28, 25, 20], color: 'remainder' },
+      ],
     },
   },
   {
@@ -395,11 +418,13 @@ const VARIANT_NAMES = {
   line: 'Met vergelijking en peilmoment',
   'line-events': 'Met gebeurtenissen',
   bar: 'Met trendlijn',
+  'bar-trend-gap': 'Trendlijn met ontbrekende dagen',
   'horizontal-bar': 'Met norm',
   'target-progress': 'Tegen een doel van 100 %',
   'grouped-bar': 'Twee reeksen per groep',
   'stacked-bar': 'In aantallen',
   'stacked-bar-normalized': 'Op 100 %',
+  'stacked-bar-other': 'Met overig en de rest',
   'stacked-area': 'Per kanaal met een ontbrekende week',
   pie: 'Taart',
   donut: 'Donut met legendatabel',
@@ -417,6 +442,7 @@ const VARIANT_NAMES = {
 // What a label cannot say, for the note under it.
 const VARIANT_NOTES = {
   line: 'De laatste twee uren zijn nog niet compleet en staan gearceerd.',
+  'bar-trend-gap': 'Van woensdag en zaterdag vorige week zijn geen gegevens; daar breekt de trendlijn.',
   'stacked-area': 'Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
   'pie-folded': 'De taart houdt de vier grootste delen en vouwt de rest in “Overig”.',
   'radar-layers': 'Wijs een regio aan in de legenda: haar vlak kleurt en de andere lagen stappen terug.',
