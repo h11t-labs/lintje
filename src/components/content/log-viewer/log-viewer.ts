@@ -43,6 +43,7 @@ import '../highlight/highlight'
 import { LintjeContentTileElement } from '../../shared/content-tile'
 import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import { COPIED_FOR } from '../../shared/copied'
+import { LiveMessage } from '../../shared/live-message'
 import { downloadCsv, downloadText } from '../../shared/download'
 import type { LogEntry, LogFilter, LogLevel, LogViewerData } from '../../../types'
 import {
@@ -107,7 +108,6 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     opened: { state: true },
     activeId: { state: true },
     copied: { state: true },
-    message: { state: true },
     fit: { state: true },
   }
 
@@ -131,7 +131,6 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   /** The line the arrow keys stand on. */
   protected activeId: string | null = null
   protected copied: 'menu' | 'line' | 'link' | null = null
-  protected message: string = ''
   protected fit: Fit = 'wide'
 
   readonly #mobile = new MediaController(this)
@@ -145,7 +144,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   #pending = { lines: 0, errors: 0 }
   #speakTimer: ReturnType<typeof setTimeout> | null = null
   #copiedTimer: ReturnType<typeof setTimeout> | null = null
-  #sayFrame = 0
+  readonly #live = new LiveMessage(this)
   #fitObserver = new FrameResizeObserver(() => this.refit())
   #observed: Element | null = null
   /** The segments' width on one line, once measured. */
@@ -159,7 +158,6 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   override disconnectedCallback(): void {
     if (this.#speakTimer) clearTimeout(this.#speakTimer)
     if (this.#copiedTimer) clearTimeout(this.#copiedTimer)
-    cancelAnimationFrame(this.#sayFrame)
     this.#fitObserver.disconnect()
     this.#observed = null
     super.disconnectedCallback()
@@ -235,7 +233,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       const what = count === 1 ? '1 nieuwe regel' : `${formatNumber(count)} nieuwe regels`
       const bad =
         errors === 0 ? '' : errors === 1 ? ', waarvan 1 fout' : `, waarvan ${errors} fouten`
-      this.say(`${what}${bad}`)
+      this.#live.say(`${what}${bad}`)
     }, SPEAK_EVERY)
   }
 
@@ -258,7 +256,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     if (changed.has('data') && this.#asked) {
       this.#asked = false
       const count = this.shown.length
-      this.say(count === 1 ? '1 regel' : `${formatNumber(count)} regels`)
+      this.#live.say(count === 1 ? '1 regel' : `${formatNumber(count)} regels`)
     }
   }
 
@@ -327,13 +325,6 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     if (scroll && log) log.scrollTop = log.scrollHeight
   }
 
-  // Emptied first: the same words again are no change to a live region.
-  private say(text: string): void {
-    cancelAnimationFrame(this.#sayFrame)
-    this.message = ''
-    this.#sayFrame = requestAnimationFrame(() => (this.message = text))
-  }
-
   /* Host requests ----------------------------------------------------------- */
 
   private askFilter(change: Partial<LogFilter>): void {
@@ -374,7 +365,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     this.copied = which
     if (this.#copiedTimer) clearTimeout(this.#copiedTimer)
     this.#copiedTimer = setTimeout(() => (this.copied = null), COPIED_FOR)
-    this.say('Gekopieerd')
+    this.#live.say('Gekopieerd')
   }
 
   private get fileName(): string {
@@ -746,7 +737,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     return html`<div class="lintje-log-viewer__frame">
         ${this.renderLines(raw, mobile, 'tile')} ${this.renderFoot()}
       </div>
-      <p class="visually-hidden" role="status" aria-atomic="false">${this.message}</p>`
+      <p class="visually-hidden" role="status" aria-atomic="false">${this.#live.text}</p>`
   }
 
   private renderLines(raw: boolean, mobile: boolean, place: 'tile' | 'modal'): TemplateResult {
