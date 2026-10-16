@@ -264,9 +264,11 @@ Besluiten die voor beide gelden:
 
 - **De navigatiebalk is één rij.** Als de items niet passen, gemeten en niet per breakpoint,
   maken ze plaats voor één item, "Menu", waarvan het paneel het hele menu bevat. Een groep opent
-  bij hover; op een aanraakscherm opent een tik een groep en sluit een tweede tik hem. "Menu" opent
-  en sluit met een klik en leest "Sluiten" zolang het open is, zoals in de mobiele header. "Menu"
-  draagt geen actief-markering: de pagina van de lezer zit er bijna altijd in.
+  bij hover; op een aanraakscherm opent een tik een groep en sluit een tweede tik hem. Een groep
+  die een tik opende, sluit niet doordat de muis de balk verlaat; een groep die onder de muis
+  openging wel. "Menu" opent en sluit met een klik en leest "Sluiten" zolang het open is, zoals in
+  de mobiele header. "Menu" draagt geen actief-markering: de pagina van de lezer zit er bijna
+  altijd in.
 - **De bovenbalk van de indeling Links houdt zijn gereedschap ook op één rij.** Zoeken,
   "Weergave" en "Delen" zijn knoppen met hun woord — zoeken met zijn toets, `/` — totdat zij en
   de naam niet passen, gemeten; dan zijn het de kale iconen van de navigatiebalk.
