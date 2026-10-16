@@ -31,8 +31,9 @@
 .lintje-data-table__frame::after { right: 0; box-shadow: var(--shadow-scroll-end); }
 .lintje-data-table__frame.is-scrollable-start::before,
 .lintje-data-table__frame.is-scrollable-end::after { opacity: 1; }
-/* Positioned, so an absolute visually hidden label is clipped with its cell. */
-.lintje-data-table__scroller { position: relative; overflow-x: auto; }
+/* Positioned, so an absolute visually hidden label is clipped with its cell. Only sideways: a
+   hidden label below the last row would otherwise give the table a vertical scrollbar. */
+.lintje-data-table__scroller { position: relative; overflow-x: auto; overflow-y: hidden; }
 .lintje-data-table__scroller:focus-visible { outline-offset: -3px; }
 /* A styled scrollbar is a classic one: it doesn't hide between scrolls like an overlay one. */
 .lintje-data-table__scroller::-webkit-scrollbar { height: 8px; }
@@ -176,6 +177,18 @@
 .lintje-data-table__change--flat { color: var(--color-text-muted); }
 .lintje-data-table__change--up   { color: var(--color-success-text); }
 .lintje-data-table__change--down { color: var(--color-error-text); }
+/* A compact change: the glyph, its words in the `title`. Where no pointer shows that — under the
+   keyboard's focus, without hover — the words stand in the glyph's place, as a truncated value
+   wraps whole. */
+.lintje-data-table__change-words { display: none; white-space: normal; }
+.lintje-data-table__row:focus-visible .lintje-data-table__change-words,
+.lintje-data-table__row:has(:focus-visible) .lintje-data-table__change-words { display: inline; }
+.lintje-data-table__row:focus-visible .lintje-data-table__change--compact,
+.lintje-data-table__row:has(:focus-visible) .lintje-data-table__change--compact { display: none; }
+@media (hover: none) {
+  .lintje-data-table__change-words { display: inline; }
+  .lintje-data-table__change--compact { display: none; }
+}
 
 /* Each representation has its own pager; the phone's is hidden on desktop. */
 .lintje-data-table__pagination { padding-top: var(--space-3); }

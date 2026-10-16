@@ -182,6 +182,45 @@ describe('a truncated column', () => {
   })
 })
 
+describe('a compact change column', () => {
+  it.each([true, false])('shows its words through Tab with clickable=%s', async (clickable) => {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = {
+      caption: 'Loketten met hun trend',
+      rowKey: 'name',
+      clickable,
+      columns: [
+        { key: 'name', header: 'Loket' },
+        {
+          key: 'change',
+          header: 'Trend',
+          format: 'change-compact',
+          tooltip: '{change} tegenover vorige week',
+        },
+      ],
+      rows: [{ name: 'Utrecht', change: 4 }],
+    }
+    document.body.append(element)
+    await element.updateComplete
+    const glyph = inShadow<HTMLElement>(
+      element,
+      '.lintje-data-table__full .lintje-data-table__change--compact',
+    )
+    const words = inShadow<HTMLElement>(
+      element,
+      '.lintje-data-table__full .lintje-data-table__change-words',
+    )
+    expect(getComputedStyle(glyph).display).not.toBe('none')
+    expect(getComputedStyle(words).display).toBe('none')
+    const row = glyph.closest('tr')!
+    await userEvent.keyboard('{Tab}{Tab}{Tab}')
+    await expect.poll(() => row.matches(':focus-visible')).toBe(true)
+    expect(getComputedStyle(glyph).display).toBe('none')
+    expect(getComputedStyle(words).display).not.toBe('none')
+    expect(words.textContent).toBe('▲ +4% tegenover vorige week')
+  })
+})
+
 describe('a table wider than its room', () => {
   const wide: DataTableData = {
     caption: 'Loketten met hun cijfers',

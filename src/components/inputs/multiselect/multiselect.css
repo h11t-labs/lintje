@@ -83,6 +83,7 @@
   background: var(--color-bg-surface); color: var(--color-text-primary); font-size: 1rem;
 }
 .lintje-multiselect__search-input::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+.lintje-multiselect__search-input:disabled::placeholder { color: var(--color-text-disabled); }
 .lintje-multiselect__list {
   flex: 1 1 auto; min-height: 0;
   max-height: 220px; overflow-y: auto;

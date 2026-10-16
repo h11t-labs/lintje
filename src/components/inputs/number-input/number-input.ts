@@ -1,9 +1,9 @@
 /**
- * `<lintje-number-input>` — a −/+ stepper around a centred value, or a unit on the right without
- * the stepper.
+ * `<lintje-number-input>` — a −/+ stepper around a centred value, or without the stepper a fixed
+ * text before the value (`prefix`) and a unit after it.
  *
- * It commits on `change`; a press on − or + commits at once. At `min` or `max` the step stays
- * focusable but does nothing.
+ * It commits on `change`; a press on − or + commits at once and says the new value, since the
+ * focus stays on the step. At `min` or `max` the step stays focusable but does nothing.
  *
  * Events: `lintje-change` `number | null`, `lintje-values-change` `{ [name]: value }` (with a
  * `name`), `lintje-reset` (the reset link was pressed).
@@ -13,11 +13,11 @@ import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
+import { addonDescribedBy, renderAddon } from '../shared/addon'
+import { LiveMessage } from '../../shared/live-message'
 import { LintjeFormInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
 import numberInputCss from './number-input.css?inline'
-
-const UNIT_ID = 'lintje-number-input-unit'
 
 export class LintjeNumberInput extends LintjeFormInputElement {
   static override styles = [iconStyles, shadowCss(inputCss), shadowCss(numberInputCss)]
@@ -27,6 +27,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     min: { type: Number },
     max: { type: Number },
     step: { type: Number },
+    prefix: { type: String },
     unit: { type: String },
     stepper: { type: Boolean },
     stacked: { type: Boolean, reflect: true },
@@ -37,11 +38,14 @@ export class LintjeNumberInput extends LintjeFormInputElement {
   declare min?: number
   declare max?: number
   step: number = 1
+  /** The fixed text before the value, e.g. "€", which describes the field; only without the stepper. */
+  override prefix: string | null = null
   /** The unit on the right, e.g. "min", which describes the field; only without the stepper. */
   declare unit?: string
   /** The −/+ buttons. Bind as `.stepper=${false}`, never `?stepper=`. */
   stepper: boolean = true
   stacked: boolean = false
+  readonly #live = new LiveMessage(this)
 
   protected get formValue(): string {
     return this.value === null ? '' : String(this.value)
@@ -56,7 +60,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
   }
 
   private nudge(by: number): void {
-    if (this.readonly || this.disabled) return
+    if (this.readonly || this.isDisabled) return
     const from = this.value ?? this.min ?? 0
     let next = this.value === null ? from : from + by
     if (this.min !== undefined) next = Math.max(this.min, next)
@@ -66,6 +70,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     if (next === this.value) return
     this.value = next
     this.commit(next)
+    this.#live.say(String(next))
   }
 
   private change(event: Event): void {
@@ -79,7 +84,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
 
   private stepButton(direction: -1 | 1): TemplateResult {
     const down = direction === -1
-    const limit = !this.disabled && (down ? this.atMin : this.atMax)
+    const limit = !this.isDisabled && (down ? this.atMin : this.atMax)
     return html`<button
       type="button"
       class=${classMap({
@@ -88,8 +93,8 @@ export class LintjeNumberInput extends LintjeFormInputElement {
         'is-limit': limit,
       })}
       aria-label=${down ? 'Verlagen' : 'Verhogen'}
-      ?disabled=${this.disabled}
-      aria-disabled=${(this.readonly && !this.disabled) || limit ? 'true' : nothing}
+      ?disabled=${this.isDisabled}
+      aria-disabled=${(this.readonly && !this.isDisabled) || limit ? 'true' : nothing}
       @click=${() => this.nudge(direction * this.step)}
     >
       ${renderIcon(down ? 'functioneel-minus' : 'functioneel-plus', { size: 16 })}
@@ -97,22 +102,22 @@ export class LintjeNumberInput extends LintjeFormInputElement {
   }
 
   protected override render(): TemplateResult {
-    const unit = Boolean(this.unit) && !this.stepper
-    const described = [unit ? UNIT_ID : '', this.describedBy === nothing ? '' : this.describedBy]
-      .filter(Boolean)
-      .join(' ')
+    const prefix = this.stepper ? undefined : this.prefix
+    const unit = this.stepper ? undefined : this.unit
+    const addon = { readonly: this.readonly, disabled: this.isDisabled }
     return html`<div class="lintje-field">
       ${this.renderLabel(this.controlId)}
       <div
         class=${classMap({
           'lintje-number-input': true,
-          'lintje-number-input--unit': unit,
+          'lintje-number-input--addon': Boolean(prefix || unit),
           'is-error': Boolean(this.error),
           'is-readonly': this.readonly,
-          'is-disabled': this.disabled,
+          'is-disabled': this.isDisabled,
         })}
       >
         ${this.stepper ? this.stepButton(-1) : nothing}
+        ${renderAddon('prefix', prefix, addon)}
         <input
           type="number"
           id=${this.controlId}
@@ -122,23 +127,20 @@ export class LintjeNumberInput extends LintjeFormInputElement {
           max=${this.max ?? nothing}
           step=${this.step}
           aria-labelledby=${this.labelId}
-          aria-describedby=${described || nothing}
+          aria-describedby=${addonDescribedBy(Boolean(prefix), Boolean(unit), this.describedBy)}
           aria-invalid=${this.error ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
           ?required=${this.required}
           ?readonly=${this.readonly}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @change=${this.change}
           @keydown=${(event: KeyboardEvent) => this.submitOnEnter(event, () => this.change(event))}
         />
-        ${
-          unit
-            ? html`<span id=${UNIT_ID} class="lintje-number-input__unit">${this.unit}</span>`
-            : nothing
-        }
+        ${renderAddon('suffix', unit, addon)}
         ${this.stepper ? this.stepButton(1) : nothing}
       </div>
       ${this.renderFoot()}
+      <span class="visually-hidden" role="status">${this.#live.text}</span>
     </div>`
   }
 }

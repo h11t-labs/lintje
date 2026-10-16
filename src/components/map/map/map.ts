@@ -4,7 +4,10 @@
  * A new layer shows at once and expects the host to confirm it in the next `data`. With
  * `tile.expandable` the same map shows again in the modal, whose own events stop here. With
  * `data.controls.lasso`, `.circle` or `.rect` a drawn area chooses every mark in it; the host
- * keeps the area in its URL and sends it back as `selectedArea`.
+ * keeps the area in its URL and sends it back as `selectedArea`. A mark with an `href` goes there
+ * after its `lintje-mark-select`, and undoing goes to `data.clearHref`: the event is cancelable,
+ * and a host that routes itself cancels it. A modifier or middle click on such a mark opens its
+ * `href` in a new tab, without that event.
  *
  * Events: `lintje-mark-select` `{ id, label, href? }` (deselected, `id: null` and
  * `href: data.clearHref`), `lintje-layer-change` `string` (the chosen layer's value),
@@ -208,6 +211,19 @@ export class LintjeMap extends LintjeContentTileElement {
     }
   }
 
+  /**
+   * The host may take the choice over by cancelling the event; else the page goes to its `href`.
+   * A modifier or middle click opens the `href` in a new tab, without the event.
+   */
+  private select(
+    detail: { id: string | null; label: string | null; href?: string },
+    newTab = false,
+  ): void {
+    if (newTab) {
+      if (detail.href) this.followLink(detail.href, undefined, undefined, { newTab: true })
+    } else if (this.emit('lintje-mark-select', detail) && detail.href) this.followLink(detail.href)
+  }
+
   /** Refocuses the chosen mark so clearing does not drop a keyboard user at the top; the map area
    * takes the focus when the mark is gone after a redraw. */
   private async focusMark(id: string): Promise<void> {
@@ -226,10 +242,10 @@ export class LintjeMap extends LintjeContentTileElement {
       description: this.data?.description,
       mobile: this.#mobile.matches,
       expanded,
-      onSelect: ({ id, label, href }) => this.emit('lintje-mark-select', { id, label, href }),
+      onSelect: ({ id, label, href }, newTab) => this.select({ id, label, href }, newTab),
       onClear: (previousId) => {
         // A selection kept in the URL is cleared by a URL change: `clearHref` undoes it.
-        this.emit('lintje-mark-select', { id: null, label: null, href: this.data?.clearHref })
+        this.select({ id: null, label: null, href: this.data?.clearHref })
         void this.focusMark(previousId)
       },
       onLayerChange: (value) => {

@@ -340,8 +340,8 @@ export class LintjeMenuButton extends LintjeElement {
 
   /** The usual action on the label, the arrow beside it for the rest: one group, 1 px apart. */
   private renderSplit(): TemplateResult {
-    // Busy, both halves keep their colours; only `disabled` greys them.
-    const disabled = this.disabled ? 'true' : nothing
+    // Busy, both halves are `aria-disabled` but keep their colours; only `disabled` greys them.
+    const disabled = this.unavailable ? 'true' : nothing
     const busy = Boolean(this.busyLabel)
     const variant = this.variant === 'flat' ? 'tertiary' : this.variant
     return html`<span class="lintje-menu-button__split">
@@ -354,7 +354,7 @@ export class LintjeMenuButton extends LintjeElement {
           'is-disabled': this.disabled,
           'is-working': busy,
         })}
-        aria-disabled=${this.disabled ? 'true' : nothing}
+        aria-disabled=${disabled}
         aria-busy=${busy ? 'true' : nothing}
         @click=${() => {
           if (!this.unavailable) this.emit('lintje-action', this.action)

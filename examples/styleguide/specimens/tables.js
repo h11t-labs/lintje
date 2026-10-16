@@ -1,5 +1,5 @@
 // The tables category (Tabellen en lijsten): the specimens of its elements.
-import { log } from '../shared.js'
+import { linkLog, log } from '../shared.js'
 import { desks, meta, regions } from '../../_data/load.js'
 
 // The worksheet specimens of `lintje-data-table` play the host: each listens for the table's
@@ -272,12 +272,15 @@ const NOTES = [
 const compactData = {
   caption: 'Loketten met een toelichting en de trend tegenover vorige week',
   title: 'Loketten met toelichting',
-  subtitle: 'De toelichting op één regel, de trend als pijltje',
+  subtitle: 'De toelichting op één regel, de trend als pijltje met de cijfers in de tooltip',
   columns: [
     { key: 'name', header: 'Loket' },
     { key: 'note', header: 'Toelichting', truncate: true },
     { key: 'requests', header: 'Aanvragen', align: 'right', mobileMeasure: true },
-    { key: 'change', header: 'Trend', align: 'right', format: 'change-compact' },
+    {
+      key: 'change', header: 'Trend', align: 'right', format: 'change-compact',
+      tooltip: '{change} tegenover vorige week · {previous} aanvragen toen',
+    },
   ],
   rows: desks.slice(0, NOTES.length).map((point, index) => ({
     id: point.id,
@@ -285,6 +288,8 @@ const compactData = {
     note: NOTES[index],
     requests: point.requests,
     change: point.change,
+    // Carried for the trend's tooltip, not drawn: last week's figure.
+    previous: Math.round(point.requests / (1 + point.change / 100)),
   })),
   rowKey: 'id',
   clickable: true,
@@ -678,6 +683,17 @@ export default {
           setup: (stage) => dashboard(stage, compactData),
         },
         {
+          label: 'Compact zonder rijactie',
+          note: 'Tab bereikt elke rij om de trend met zijn uitleg te lezen; Enter opent niets.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => table(stage, {
+            ...compactData,
+            title: 'Loketten met een leesbare trend',
+            clickable: false,
+            expandable: false,
+          }),
+        },
+        {
           label: 'Kiesbaar',
           note: 'Vink loketten aan om ze te vergelijken.',
           html: '<lintje-data-table></lintje-data-table>',
@@ -691,6 +707,22 @@ export default {
               checkedIds: [],
               pageSize: 5,
             }),
+        },
+        {
+          label: 'Rijen met een link',
+          note: 'Elke rij heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => {
+            const element = table(stage, {
+              ...tableData,
+              title: 'Loketten',
+              subtitle: 'Elke rij met een link',
+              rows: tableData.rows.slice(0, 4).map((row) => ({ ...row, href: `?loket=${row.id}` })),
+              pageSize: undefined,
+              expandable: false,
+            })
+            linkLog(stage, element, ['lintje-row-click'])
+          },
         },
         {
           label: 'Gekozen en aangevinkt',
