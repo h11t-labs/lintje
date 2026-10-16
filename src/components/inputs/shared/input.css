@@ -95,7 +95,7 @@
   :host([layout='row']) .lintje-field > .lintje-field__hint,
   :host([layout='row']) .lintje-field > .lintje-field__error {
     grid-column: 1; grid-row: 2; align-self: start;
-    margin-left: 0;
+    margin: 0;
   }
   :host([layout='row']) .lintje-field > .lintje-field__reset { grid-column: 1; grid-row: 3; }
   /* A switch is its own label: the row is the label, the switch stands at its right edge. */
@@ -128,9 +128,11 @@
   font-size: 1rem;
   cursor: pointer;
 }
+/* Under its label, and drawn up into the row's own air, so it reads with its option and not with
+   the next one in a group. */
 .lintje-choice ~ .lintje-field__hint,
 .lintje-choice ~ .lintje-field__error {
-  margin-left: calc(var(--lintje-choice-control) + var(--lintje-choice-gap));
+  margin: calc(var(--space-2) * -1) 0 var(--space-2) calc(var(--lintje-choice-control) + var(--lintje-choice-gap));
 }
 .lintje-choice__input { position: absolute; opacity: 0; width: 0; height: 0; }
 .lintje-choice__label.is-modified { color: var(--color-accent-text); font-weight: 700; }
