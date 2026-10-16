@@ -55,7 +55,10 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
   disabled: boolean = false
   /** Differs from the default: draws the orange dot by the label. */
   modified: boolean = false
-  /** With `modified`: a link under the field ("Terugzetten naar 2 tot 12") that sends `lintje-reset`. */
+  /**
+   * With `modified`: a link under the field ("Terugzetten naar 2 tot 12") that sends
+   * `lintje-reset`. A reader hears the field's `label` after it.
+   */
   declare resetLabel?: string
   /**
    * The field must be filled. Draws nothing. While it is empty and enabled it holds back the
@@ -269,21 +272,28 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
       hintId: this.hintId,
       errorId: this.errorId,
     })
-    if (!this.modified || !this.resetLabel) return foot
+    return html`${foot}${this.renderReset()}`
+  }
+
+  /**
+   * With `modified` and `resetLabel`, the button back to the default, last in the foot. Its name
+   * starts with its own words and then names the field, so a reader among several knows which.
+   */
+  protected renderReset(): TemplateResult | typeof nothing {
+    if (!this.modified || !this.resetLabel) return nothing
     // The host resets: it knows the default, the field only asks. The reset clears `modified`,
     // which removes this button, so the focus goes to the field first.
     const reset = (): void => {
       this.focusControl()
       this.emitLocal('lintje-reset')
     }
-    return html`${foot}<button
-        type="button"
-        class="lintje-field__reset"
-        ?disabled=${this.disabled}
-        @click=${reset}
-      >
-        ${this.resetLabel}
-      </button>`
+    const field = this.label ? html`<span class="visually-hidden">, ${this.label}</span>` : nothing
+    return html`<button
+      type="button"
+      class="lintje-field__reset"
+      ?disabled=${this.disabled}
+      @click=${reset}
+    >${this.resetLabel}${field}</button>`
   }
 }
 
