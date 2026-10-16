@@ -18,7 +18,7 @@ import { seriesStyle } from './series-style'
 import type { ChartController } from '../shared/controller'
 import { withUnit, type MapDrawing } from './drawings'
 import { isRect } from './area'
-import type { MapArea, MapSeriesKey, MapValue } from '../shared/types'
+import type { MapArea, MapPointSize, MapSeriesKey, MapValue } from '../shared/types'
 
 /** Longitude and latitude to the surface's reference pixels. */
 export type Project = (lon: number, lat: number) => [number, number]
@@ -63,9 +63,22 @@ export interface MarksContext {
 
 const hasRing = (value: MapValue): boolean => (value.polygon?.length ?? 0) > 2
 
-/** The radius of a point with a figure: between 3 and 18 px, by the square root of its share. */
-export function pointRadius(value: number, max: number): number {
-  return 3 + Math.sqrt(value / max) * 15
+/** The radius a point may follow the zoom between, in px (`MapPointSize.zoom`). */
+export const ZOOM_RADIUS = { min: 2, max: 28 }
+
+/** The radius of a point without a figure and of the scope picker's points, in px (rule 15). */
+export const FIXED_RADIUS = 6
+
+/**
+ * The radius of a point with a figure: between `size.min` and `size.max` (3 and 18 px) by the
+ * square root of its share of the layer's largest — or `size.min` for every point when the
+ * figure is no size (`by: 'none'`).
+ */
+export function pointRadius(value: number, max: number, size?: MapPointSize): number {
+  const low = size?.min ?? 3
+  const high = size?.max ?? 18
+  if (size?.by === 'none') return low
+  return low + Math.sqrt(value / max) * (high - low)
 }
 
 /** A series of one layer, as the legend switches it: a colour may serve several layers. */
@@ -275,11 +288,11 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
     (value) => value.id,
     (value) => {
       const [x, y] = project(value.lon!, value.lat!)
-      // A point without a figure takes the picker's fixed size (rule 15).
-      const radius =
-        drawing.variant === 'points' && value.value != null
-          ? pointRadius(value.value, drawing.max)
-          : 6
+      // A point without a figure takes the picker's fixed size (rule 15), unless its layer sizes
+      // no point by its figure: then it is as small as the rest.
+      const sized =
+        drawing.variant === 'points' && (value.value != null || drawing.size?.by === 'none')
+      const radius = sized ? pointRadius(value.value ?? 0, drawing.max, drawing.size) : FIXED_RADIUS
       // A series gives the point a colour and a shape (rule 13): its data colour's own pair, or
       // what its style says.
       const { color: colour, shape } = seriesStyle(drawing, value.series)
@@ -292,6 +305,8 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
          class="lintje-map-chart__point lintje-map-chart__symbol ${markState(context, value.id, gone(value))}"
          data-at=${at(x, y)}
          data-mark-id=${value.id}
+         data-r=${radius}
+         data-zoom=${drawing.variant === 'points' && drawing.size?.zoom ? '' : nothing}
          role="button" tabindex=${gone(value) ? -1 : 0} aria-hidden=${gone(value) ? 'true' : nothing}
          aria-pressed=${String(isChosen(context, value.id))}
          aria-label=${`${value.label}: ${figure}${seriesName ? `, ${seriesName}` : ''}`}
