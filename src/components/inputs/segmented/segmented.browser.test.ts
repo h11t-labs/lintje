@@ -3,6 +3,7 @@
  * the room is the frame's own cell — in a settings row the control's column, not the host.
  */
 import { afterEach, describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import './segmented'
 import type { LintjeSegmented } from './segmented'
 
@@ -33,7 +34,9 @@ describe('lintje-segmented and its room', () => {
     const element = await mount({}, 800)
     expect(frame(element).classList.contains('is-column')).toBe(false)
     element.style.width = '120px'
-    // The observer reports after the frame's layout, so the second frame sees its update.
+    // The observer reports after the frame's layout and measures in the next, so the third
+    // frame sees its update.
+    await new Promise(requestAnimationFrame)
     await new Promise(requestAnimationFrame)
     await new Promise(requestAnimationFrame)
     await element.updateComplete
@@ -55,5 +58,38 @@ describe('lintje-segmented and its room', () => {
     await element.updateComplete
     await element.updateComplete
     expect(frame(element).classList.contains('is-column')).toBe(false)
+  })
+})
+
+describe('lintje-segmented and the focus ring', () => {
+  const options = (element: LintjeSegmented): HTMLElement[] => [
+    ...element.renderRoot.querySelectorAll<HTMLElement>('.lintje-segmented__option'),
+  ]
+  const layer = (option: HTMLElement): number => Number(getComputedStyle(option).zIndex) || 0
+
+  /** Tabs onto "Week", beside the chosen "Maand": the ring is the keyboard's. */
+  async function focusBesideChosen(element: LintjeSegmented): Promise<void> {
+    await userEvent.tab()
+    expect(element.shadowRoot!.activeElement).toBe(options(element)[0])
+    expect(options(element)[0].matches(':focus-visible')).toBe(true)
+  }
+
+  it('lays the focused option over the chosen one in a row', async () => {
+    const element = await mount({ value: 'Maand' }, 800)
+    expect(frame(element).classList.contains('is-column')).toBe(false)
+    await focusBesideChosen(element)
+    const [focused, chosen] = options(element)
+    expect(layer(focused)).toBeGreaterThan(layer(chosen))
+  })
+
+  it('lays the focused option over the chosen one in a column', async () => {
+    const element = await mount({ value: 'Maand' }, 120)
+    await new Promise(requestAnimationFrame)
+    await new Promise(requestAnimationFrame)
+    await element.updateComplete
+    expect(frame(element).classList.contains('is-column')).toBe(true)
+    await focusBesideChosen(element)
+    const [focused, chosen] = options(element)
+    expect(layer(focused)).toBeGreaterThan(layer(chosen))
   })
 })

@@ -14,6 +14,16 @@ async function mount(props: Partial<LintjeRecordingStatus>): Promise<LintjeRecor
 
 afterEach(() => document.body.replaceChildren())
 
+const frame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()))
+
+/** What the status region says, after its fill frame. */
+async function said(element: LintjeRecordingStatus): Promise<string> {
+  await element.updateComplete
+  await frame()
+  await element.updateComplete
+  return element.shadowRoot!.querySelector('[role="status"]')!.textContent ?? ''
+}
+
 describe('lintje-recording-status', () => {
   const list = (element: LintjeRecordingStatus): LintjeDescriptionList =>
     element.shadowRoot!.querySelector('lintje-description-list')!
@@ -56,5 +66,17 @@ describe('lintje-recording-status', () => {
     expect(levelWord(0.01)).toBe('Stil')
     expect(levelWord(0.1)).toBe('Zacht')
     expect(levelWord(0.7)).toBe('Goed')
+  })
+
+  it('says a change of connection in its word, never the first draw or a new delay', async () => {
+    const element = await mount({ elapsed: 5, connection: 'good', delay: 1 })
+    expect(await said(element)).toBe('')
+    element.delay = 4
+    element.elapsed = 6
+    expect(await said(element)).toBe('')
+    element.connection = 'lost'
+    expect(await said(element)).toBe('Verbinding verbroken')
+    element.connection = 'weak'
+    expect(await said(element)).toBe('Verbinding zwak')
   })
 })

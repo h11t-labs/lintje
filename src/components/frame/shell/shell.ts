@@ -291,7 +291,7 @@ export class LintjeShell extends LintjeElement {
         this.#releaseMenu()
         this.#menuTrap.deactivate(false)
         this.renderRoot
-          .querySelector<HTMLButtonElement>('[aria-controls="lintje-mobile-menu-panel"]')
+          .querySelector<HTMLButtonElement>('.lintje-mobile-header__button--menu')
           ?.focus()
       }
     }
