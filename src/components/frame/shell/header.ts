@@ -221,8 +221,8 @@ function barPanel(
         'is-open': open,
         ...extra,
       })}
-      aria-expanded=${String(open)}
-      aria-controls=${panel}
+      aria-expanded=${whole ? nothing : String(open)}
+      aria-controls=${whole && !open ? nothing : panel}
       @pointerdown=${
         whole
           ? nothing

@@ -1590,7 +1590,7 @@ const VIEW_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-filter-zone :: "Filters tonen" hands its focus to "Filters verbergen"',
+    name: 'lintje-filter-zone :: "Filters", opening the zone, keeps its focus',
     run: async () => {
       const element = await zone(false, 0)
       await pressInZone(element, '.lintje-filter-toggle')
@@ -1599,7 +1599,7 @@ const VIEW_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-filter-zone :: the sentence, pressed, hands its focus to "Filters verbergen"',
+    name: 'lintje-filter-zone :: the sentence, pressed, hands its focus to "Filters"',
     run: async () => {
       const element = await zone(false, 0)
       await pressInZone(element, '.lintje-summary-bar__sentence')
@@ -1851,8 +1851,7 @@ const SHELL_ROWS: Row[] = [
       const element = await shell({})
       element.addEventListener('lintje-navigate', (event) => event.preventDefault())
       await phone()
-      const menu = (): HTMLElement | null =>
-        inside(element, '[aria-controls="lintje-mobile-menu-panel"]')
+      const menu = (): HTMLElement | null => inside(element, '.lintje-mobile-header__button--menu')
       await drawn(menu)
       menu()!.focus()
       await userEvent.keyboard('{Enter}')
