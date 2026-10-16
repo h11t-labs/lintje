@@ -8,7 +8,7 @@
  * cell that is not inside the button. The rendered geometry is checked where it
  * runs, in headless Chrome.
  */
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import './data-table'
 import type { LintjePagination } from '../pagination/pagination'
 import type { DataTableData, SortState } from '../../../types'
@@ -320,6 +320,113 @@ describe('a clickable row', () => {
     expect(clicks).toHaveLength(1)
     const mobileRow = element.shadowRoot!.querySelector('.lintje-data-table__mobile-row')!
     expect(mobileRow.getAttribute('aria-selected')).toBe('false')
+  })
+})
+
+describe('a row with an href', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  const linked = async (extra: Partial<DataTableData> = {}): Promise<TableElement> => {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = {
+      ...structuredClone(data),
+      rows: [{ name: 'Utrecht', requests: 12, note: 'a', href: '?loket=utrecht' }, data.rows[1]],
+      clickable: true,
+      ...extra,
+    }
+    document.body.append(element)
+    await element.updateComplete
+    return element
+  }
+  const row = (element: TableElement, name: string) =>
+    [
+      ...element.shadowRoot!.querySelectorAll<HTMLElement>('.lintje-data-table__full tbody tr'),
+    ].find((tr) => tr.textContent?.includes(name))!
+  const stub = () => vi.spyOn(window.location, 'assign').mockImplementation(() => {})
+  const heard = (element: TableElement, name: string) => {
+    const details: unknown[] = []
+    element.addEventListener(name, (event) => details.push((event as CustomEvent).detail))
+    return details
+  }
+
+  it('goes there after lintje-row-click when nobody cancels it, by click and by Enter', async () => {
+    const assign = stub()
+    const element = await linked()
+    const clicks = heard(element, 'lintje-row-click')
+    row(element, 'Utrecht').click()
+    expect(clicks).toEqual([{ id: 'Utrecht', label: 'Utrecht', href: '?loket=utrecht' }])
+    expect(assign).toHaveBeenCalledWith('?loket=utrecht')
+    row(element, 'Utrecht').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
+    expect(assign).toHaveBeenCalledTimes(2)
+  })
+
+  it('stays when the host cancels the event', async () => {
+    const assign = stub()
+    const element = await linked()
+    element.addEventListener('lintje-row-click', (event) => event.preventDefault())
+    row(element, 'Utrecht').click()
+    expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('opens it in a new tab on a modifier or middle click, without lintje-row-click', async () => {
+    const assign = stub()
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const element = await linked()
+    const clicks = heard(element, 'lintje-row-click')
+    const navigations = heard(element, 'lintje-navigate')
+    row(element, 'Utrecht').dispatchEvent(new MouseEvent('click', { ctrlKey: true }))
+    const middle = new MouseEvent('auxclick', { button: 1, cancelable: true })
+    row(element, 'Utrecht').dispatchEvent(middle)
+    // The right button opens the context menu, nothing else.
+    row(element, 'Utrecht').dispatchEvent(new MouseEvent('auxclick', { button: 2 }))
+    expect(clicks).toEqual([])
+    expect(navigations).toEqual([
+      { href: '?loket=utrecht', newTab: true },
+      { href: '?loket=utrecht', newTab: true },
+    ])
+    expect(open).toHaveBeenCalledTimes(2)
+    expect(open).toHaveBeenCalledWith('?loket=utrecht', '_blank', 'noopener')
+    expect(middle.defaultPrevented).toBe(true)
+    expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('opens no tab when the host cancels lintje-navigate', async () => {
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const element = await linked()
+    element.addEventListener('lintje-navigate', (event) => event.preventDefault())
+    row(element, 'Utrecht').dispatchEvent(new MouseEvent('click', { ctrlKey: true }))
+    expect(open).not.toHaveBeenCalled()
+  })
+
+  it('only sends the event for a row without one, also with a modifier', async () => {
+    const assign = stub()
+    const element = await linked()
+    const clicks = heard(element, 'lintje-row-click')
+    row(element, 'Rotterdam').click()
+    row(element, 'Rotterdam').dispatchEvent(new MouseEvent('click', { ctrlKey: true }))
+    row(element, 'Rotterdam').dispatchEvent(new MouseEvent('auxclick', { button: 1 }))
+    expect(clicks).toEqual([
+      { id: 'Rotterdam', label: 'Rotterdam' },
+      { id: 'Rotterdam', label: 'Rotterdam' },
+    ])
+    expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('goes there from the name of an openable row too, unless cancelled', async () => {
+    const assign = stub()
+    const element = await linked({ clickable: false, openable: true })
+    const opens = heard(element, 'lintje-row-open')
+    const name = row(element, 'Utrecht').querySelector<HTMLElement>('.lintje-data-table__open')!
+    name.click()
+    expect(opens).toEqual([{ id: 'Utrecht', label: 'Utrecht', href: '?loket=utrecht' }])
+    expect(assign).toHaveBeenCalledWith('?loket=utrecht')
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    name.dispatchEvent(new MouseEvent('click', { metaKey: true }))
+    expect(opens).toHaveLength(1)
+    expect(open).toHaveBeenCalledWith('?loket=utrecht', '_blank', 'noopener')
+    element.addEventListener('lintje-row-open', (event) => event.preventDefault())
+    name.click()
+    expect(assign).toHaveBeenCalledTimes(1)
   })
 })
 

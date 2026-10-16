@@ -264,9 +264,9 @@ Besluiten die voor beide gelden:
 
 - **De navigatiebalk is één rij.** Als de items niet passen, gemeten en niet per breakpoint,
   maken ze plaats voor één item, "Menu", waarvan het paneel het hele menu bevat. Een groep opent
-  bij hover; "Menu" opent en sluit met een klik en leest "Sluiten" zolang het open is, zoals in de
-  mobiele header. "Menu" draagt geen actief-markering: de pagina van de lezer zit er bijna altijd
-  in.
+  bij hover; op een aanraakscherm opent een tik een groep en sluit een tweede tik hem. "Menu" opent
+  en sluit met een klik en leest "Sluiten" zolang het open is, zoals in de mobiele header. "Menu"
+  draagt geen actief-markering: de pagina van de lezer zit er bijna altijd in.
 - **De bovenbalk van de indeling Links houdt zijn gereedschap ook op één rij.** Zoeken,
   "Weergave" en "Delen" zijn knoppen met hun woord — zoeken met zijn toets, `/` — totdat zij en
   de naam niet passen, gemeten; dan zijn het de kale iconen van de navigatiebalk.
@@ -473,6 +473,11 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een link is een link**: een echte `<a href>` die de browser volgt. Een gewone linkerklik wordt
   ook gemeld als `lintje-navigate`, en een host met een router annuleert dat event om de klik over
   te nemen. Een klik met een modificatietoets is van de browser.
+- **Een rij of teken met een `href` gaat erheen**, tenzij de host zijn event annuleert: een
+  klikbare tabelrij, een teken in een grafiek en een markering op de kaart, zoals een linkrij van
+  de lijst. Het element gaat via `lintje-navigate`, zodat een router het overneemt; een selectie
+  ongedaan maken gaat zo naar de `clearHref`. Een klik met een modificatietoets of de middelste
+  knop opent de `href` in een nieuw tabblad, zoals een link, via `lintje-navigate` met `newTab`.
 - **Toetsen lopen via één register** (`src/core/shortcuts.ts`). Een toets is nooit de enige manier
   om iets te doen, en een toets zonder modificatietoets gaat nooit af zolang de focus in een veld
   staat. De eigen toetsen van een speler (spatie, de pijlen, F, C) werken alleen zolang de focus
@@ -663,7 +668,8 @@ de stijlgids. Past geen soort, dan is het een tabel.
   host ze ook stuurt, en de tinten spreiden over de ladder met het aantal delen. Meer dan vijf
   delen worden vier en één grijs "Overig" dat niet klikbaar is: een samengevoegd stuk heeft geen
   plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) zijn geen delen; ze
-  staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde.
+  staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde; zonder
+  legendatabel staat de gewone legenda boven de tekening, een item per deel en geen schakelaar.
 - **Een gestapeld vlak toont de onderverdelingen van één variabele** in haar ladder, de eerste
   onderaan en de donkerste, in volle tinten met een lijn in de oppervlaktekleur tussen de lagen.
   Ontbreekt een laag op een punt, dan breken die laag en alles erboven daar af, want hun
@@ -727,12 +733,13 @@ die de host noemt, tonen hun naam; de rest leest de lezer uit de tooltip of de t
 boven, en het toetsenbord volgt de stapel; een choropleet kleurt het land zelf en ligt daarom
 altijd onderop. Er is één selectie over alle lagen en één legenda, boven de kaart zoals bij
 elke grafiek, met per laag één regel: haar naam — die van de host, anders die van haar soort —
-met het vakje van een checkbox ervoor, dat de laag aan en uit zet, dan haar sleutel, dan haar
-reeksen, elk een schakelaar zoals in elke legenda, en achteraan "geen gegevens" als een mark van
-die laag geen cijfer heeft. Een kleur die in meer
-lagen dient, staat bij elke laag en schakelt per laag. De sleutel is dezelfde tekening als de
-kaart: vijf klassen van 0 tot het maximum, drie cirkels van klein naar groot met het bereik, of
-één wig van dun naar dik met het bereik; een cijfer spreekt altijd de eenheid van zijn eigen laag.
+met het vakje van een checkbox ervoor, dat de laag aan en uit zet, dan haar sleutel — of niets,
+voor een laag van punten waarvan het getal geen maat is —, dan haar reeksen, elk een schakelaar
+zoals in elke legenda, en achteraan "geen gegevens" als een mark van die laag geen cijfer heeft.
+Een kleur die in meer lagen dient, staat bij elke laag en schakelt per laag. De sleutel is
+dezelfde tekening als de kaart: vijf klassen van 0 tot het maximum, drie cirkels van klein naar
+groot met het bereik, of één wig van dun naar dik met het bereik; een cijfer spreekt altijd de
+eenheid van zijn eigen laag.
 Meer dan drie lagen vouwen op de tegel onder "Nog n lagen"; de vergroting toont alles, en daar
 krijgt elke klasse haar bereik en staan de cirkels genest op ware maat met hun getal. Op een
 telefoon staat de naam boven de sleutel en krijgen de reeksen een eigen regel. Een vlak dat niet
