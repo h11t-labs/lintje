@@ -29,6 +29,8 @@ const ZONES = [
 }))
 
 const KIND_SERIES = { counter: 'dark-green', service: 'purple' }
+// The same kinds as series keys of their own, styled rather than named after a colour.
+const KIND_STYLED = { counter: 'balie', service: 'servicepunt' }
 
 // "Overig" has no coordinates in the demo data: it counts towards the scale and draws no flow.
 const MAPS = [
@@ -114,6 +116,24 @@ const MAPS = [
         },
       ],
       description: 'Meldingen per werkgebied in vijf klassen, met daarover de loketten: de grootte van het teken is het aantal aanvragen, de kleur en vorm het soort loket.',
+    },
+  },
+  {
+    id: 'map-series-style', label: 'Reeksen in één kleur', title: 'Kaart · reeksen in één kleur',
+    note: 'Met `seriesStyles` draagt de vorm het onderscheid en is de kleur neutraal: de bron is geen schaal.',
+    data: {
+      variant: 'points', geo: 'netherlands', unit: 'aanvragen', height: 320,
+      seriesLabels: { balie: 'Balie', servicepunt: 'Servicepunt' },
+      seriesStyles: {
+        balie: { color: 'neutral', shape: 'square' },
+        servicepunt: { color: 'neutral', shape: 'diamond' },
+      },
+      values: desks.map((point) => ({
+        id: point.id, label: point.map_label, value: point.requests,
+        detail: `${point.wait_time} min wachttijd`, lon: point.lon, lat: point.lat,
+        series: KIND_STYLED[point.kind],
+      })),
+      description: 'Loketten per soort in één neutrale kleur: een vierkant is een balie, een ruit een servicepunt; de grootte is het aantal aanvragen.',
     },
   },
 ]
