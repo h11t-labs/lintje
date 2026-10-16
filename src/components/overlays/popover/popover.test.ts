@@ -51,7 +51,10 @@ describe('lintje-popover', () => {
     document.body.innerHTML = ''
     const popover = await mount(true)
     let closes = 0
-    popover.addEventListener('lintje-close', () => closes++)
+    // The focus moving into the dialog asks too, for `focus`; this is about Escape.
+    popover.addEventListener('lintje-close', (event) => {
+      if ((event as CustomEvent<{ reason: string }>).detail.reason === 'escape') closes++
+    })
     const dialog = document.createElement('div')
     dialog.setAttribute('aria-modal', 'true')
     dialog.innerHTML = '<button>Sluiten</button>'
@@ -105,6 +108,50 @@ describe('lintje-popover', () => {
       new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
     )
     expect(closes).toBe(1)
+  })
+
+  it('asks once to be closed when the focus lands elsewhere', async () => {
+    document.body.innerHTML = ''
+    const popover = await mount(true)
+    const elsewhere = document.createElement('button')
+    document.body.append(elsewhere)
+    const reasons: string[] = []
+    popover.addEventListener('lintje-close', (event) =>
+      reasons.push((event as CustomEvent<{ reason: string }>).detail.reason),
+    )
+    elsewhere.focus()
+    expect(reasons).toEqual(['focus'])
+    expect(popover.open).toBe(true)
+  })
+
+  it('stays when the focus lands on its anchor, in its panel or on a box around it', async () => {
+    document.body.innerHTML = ''
+    const box = document.createElement('main')
+    box.tabIndex = -1
+    document.body.append(box)
+    const anchor = document.createElement('button')
+    const popover = document.createElement('lintje-popover')
+    popover.open = true
+    popover.innerHTML = '<button>Toepassen</button>'
+    box.append(anchor, popover)
+    await popover.updateComplete
+    let closes = 0
+    popover.addEventListener('lintje-close', () => closes++)
+    popover.querySelector('button')!.focus()
+    anchor.focus()
+    box.focus()
+    expect(closes).toBe(0)
+  })
+
+  it('asks nothing while closed', async () => {
+    document.body.innerHTML = ''
+    const popover = await mount(false)
+    const elsewhere = document.createElement('button')
+    document.body.append(elsewhere)
+    let closes = 0
+    popover.addEventListener('lintje-close', () => closes++)
+    elsewhere.focus()
+    expect(closes).toBe(0)
   })
 
   it('leaves a press on its anchor to the anchor', async () => {

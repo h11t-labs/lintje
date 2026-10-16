@@ -188,6 +188,15 @@ function pageLink(options: NavBarOptions, item: ShellLink): TemplateResult {
   >`
 }
 
+/** A finger is down on this entry; its click is a tap. */
+const touching = new WeakSet<Element>()
+/** This entry's group was opened by a tap, so leaving the bar leaves it open. Every way of opening
+ * a group (its `mouseenter` or its click) sets or clears the mark. */
+const tapped = new WeakSet<Element>()
+/** Whether a group was open when a finger came down on it: the tap's own `mouseenter` opens it
+ * before the click arrives. */
+const openAtTouch = new WeakMap<Element, boolean>()
+
 function barPanel(
   options: NavBarOptions,
   index: number,
@@ -214,12 +223,42 @@ function barPanel(
       })}
       aria-expanded=${String(open)}
       aria-controls=${panel}
+      @pointerdown=${
+        whole
+          ? nothing
+          : (event: PointerEvent) => {
+              const button = event.currentTarget as Element
+              if (event.pointerType === 'touch') {
+                touching.add(button)
+                openAtTouch.set(button, open)
+              } else {
+                touching.delete(button)
+                openAtTouch.delete(button)
+              }
+            }
+      }
       @click=${(event: MouseEvent) => {
-        // A group's pointer click never closes: hover has opened it already, and closing again
-        // would make the entry blink. "Menu" opens on a click only, so every click toggles it.
-        options.onOpen(open && (whole || event.detail === 0) ? null : index)
+        const button = event.currentTarget as Element
+        // A tap brings its own `mouseenter` before this click, so the mark goes on here.
+        if (event.detail !== 0 && touching.has(button)) tapped.add(button)
+        else tapped.delete(button)
+        touching.delete(button)
+        // A mouse click never closes a group: hover has opened it already, and closing again
+        // would make the entry blink. A tap and "Menu" toggle, as do Enter and space.
+        const touched = openAtTouch.get(button)
+        openAtTouch.delete(button)
+        const was = touched ?? open
+        const toggles = whole || event.detail === 0 || touched !== undefined
+        options.onOpen(was && toggles ? null : index)
       }}
-      @mouseenter=${whole ? nothing : () => options.onOpen(index)}
+      @mouseenter=${
+        whole
+          ? nothing
+          : (event: MouseEvent) => {
+              tapped.delete(event.currentTarget as Element)
+              options.onOpen(index)
+            }
+      }
     >
       ${
         whole
@@ -280,9 +319,13 @@ function barMenu(options: NavBarOptions): TemplateResult {
 
 export function renderNavBar(options: NavBarOptions): TemplateResult {
   const collapsed = Boolean(options.collapsed)
-  // "Menu" was opened by a click, so leaving the bar does not close it.
-  const leave = (): void => {
-    if (options.open !== WHOLE_MENU) options.onOpen(null)
+  // "Menu" was opened by a click and a group by a tap, so leaving the bar closes neither: the
+  // mouse resting elsewhere on the page takes the hover back after a tap.
+  const leave = (event: MouseEvent): void => {
+    if (options.open === WHOLE_MENU) return
+    const entry = (event.currentTarget as Element).querySelector('.lintje-navbar__entry.is-open')
+    if (entry && tapped.has(entry)) return
+    options.onOpen(null)
   }
   return html`<div class="lintje-navbar" @mouseleave=${leave}>
     <div class="lintje-navbar__start">

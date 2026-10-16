@@ -31,8 +31,9 @@
 .lintje-data-table__frame::after { right: 0; box-shadow: var(--shadow-scroll-end); }
 .lintje-data-table__frame.is-scrollable-start::before,
 .lintje-data-table__frame.is-scrollable-end::after { opacity: 1; }
-/* Positioned, so an absolute visually hidden label is clipped with its cell. */
-.lintje-data-table__scroller { position: relative; overflow-x: auto; }
+/* Positioned, so an absolute visually hidden label is clipped with its cell. Only sideways: a
+   hidden label below the last row would otherwise give the table a vertical scrollbar. */
+.lintje-data-table__scroller { position: relative; overflow-x: auto; overflow-y: hidden; }
 .lintje-data-table__scroller:focus-visible { outline-offset: -3px; }
 /* A styled scrollbar is a classic one: it doesn't hide between scrolls like an overlay one. */
 .lintje-data-table__scroller::-webkit-scrollbar { height: 8px; }
@@ -141,7 +142,7 @@
 .lintje-data-table__row.is-selected,
 .lintje-data-table__mobile-row.is-selected {
   background: var(--color-bg-selected);
-  box-shadow: inset 4px 0 0 var(--color-accent-line);
+  box-shadow: inset 4px 0 0 var(--color-selected-edge);
 }
 /* A checked row takes the selected background without the bar: the bar means drilldown. */
 .lintje-data-table__check-cell { width: 24px; padding-right: var(--space-3); }
@@ -232,7 +233,7 @@
   gap: var(--space-2) var(--space-4);
   padding: var(--space-2) var(--space-3);
   background: var(--color-bg-selected);
-  border-top: 2px solid var(--color-accent-line);
+  border-top: 2px solid var(--color-selected-edge);
   font: var(--text-table);
   color: var(--color-text-primary);
 }

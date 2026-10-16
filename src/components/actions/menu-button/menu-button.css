@@ -67,7 +67,6 @@
   position: absolute;
   inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
 }
-.lintje-menu-button__trigger--ellipsis:hover:not(.is-disabled),
 .lintje-menu-button__trigger--ellipsis.is-open { background: var(--color-bg-selected); }
 .lintje-menu-button__trigger--ellipsis.is-disabled { color: var(--color-text-disabled); cursor: not-allowed; }
 
