@@ -21,6 +21,9 @@ export type {
   LineSeriesData,
   MapSpec,
   MapValue,
+  MapSeriesKey,
+  MapSeriesColor,
+  MapSeriesStyle,
   MapPlotData,
   MapPlotVariant,
   MapVariant,
@@ -31,6 +34,7 @@ export type {
   MapControls,
   RadarSeriesData,
 } from './components/shared/charts/shared/types'
+export type { SeriesShape } from './components/shared/charts/shared/series-shapes'
 export type { DataColor } from './tokens/colors'
 export type { Tone, WorkState, ContentStateKind } from './components/shared/tone'
 

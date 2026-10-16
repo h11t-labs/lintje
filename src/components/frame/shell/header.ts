@@ -188,6 +188,10 @@ function pageLink(options: NavBarOptions, item: ShellLink): TemplateResult {
   >`
 }
 
+/** Whether a group was open when a finger came down on it: the tap's own `mouseenter` opens it
+ * before the click arrives. */
+const openAtTouch = new WeakMap<Element, boolean>()
+
 function barPanel(
   options: NavBarOptions,
   index: number,
@@ -214,10 +218,24 @@ function barPanel(
       })}
       aria-expanded=${String(open)}
       aria-controls=${panel}
+      @pointerdown=${
+        whole
+          ? nothing
+          : (event: PointerEvent) => {
+              const button = event.currentTarget as Element
+              if (event.pointerType === 'touch') openAtTouch.set(button, open)
+              else openAtTouch.delete(button)
+            }
+      }
       @click=${(event: MouseEvent) => {
-        // A group's pointer click never closes: hover has opened it already, and closing again
-        // would make the entry blink. "Menu" opens on a click only, so every click toggles it.
-        options.onOpen(open && (whole || event.detail === 0) ? null : index)
+        // A mouse click never closes a group: hover has opened it already, and closing again
+        // would make the entry blink. A tap and "Menu" toggle, as do Enter and space.
+        const button = event.currentTarget as Element
+        const touched = openAtTouch.get(button)
+        openAtTouch.delete(button)
+        const was = touched ?? open
+        const toggles = whole || event.detail === 0 || touched !== undefined
+        options.onOpen(was && toggles ? null : index)
       }}
       @mouseenter=${whole ? nothing : () => options.onOpen(index)}
     >
