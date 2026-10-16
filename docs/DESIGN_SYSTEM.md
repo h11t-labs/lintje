@@ -358,9 +358,18 @@ De besluiten hieronder gelden voor alle elementen.
   zwaardere rand in de foutkleur met een melding die aan het bedieningselement gekoppeld is;
   uitgeschakeld is het subtiele oppervlak. Een uitgeschakelde knop blijft focusbaar
   (`aria-disabled`); een uitgeschakeld veld valt uit de tabvolgorde.
+- **De toelichting en de foutregel van een keuze springen in tot de tekst van haar label**, bij
+  een vinkje, een schakelaar en een optie in een groep, zodat ze niet lijken op de kop van de
+  optie eronder. Onder een veld met zijn label erboven staan ze tegen de rand, net als in een rij
+  van een instelling, waar de labeltekst zelf links staat.
 - **Een waarde die afwijkt van haar standaard** draagt op elk bedieningselement twee markeringen:
   het label in de accentkleur en een oranje stip. Geen extra rand, geen gekleurd oppervlak.
 - **Een veld legt vast als de lezer het verlaat of op Enter drukt.**
+- **Een vaste toevoeging aan een veld staat in een eigen vak** (een valutateken, een domein, een
+  eenheid, een vast voorvoegsel): het gedempte oppervlak met een lichte lijn naar de invoer, zodat
+  wat vaststaat apart staat van wat de lezer typt. Ze hoort nooit bij de waarde en beschrijft het
+  veld voor een schermlezer. Eén knop in een veld is een secundaire knop aan het eind, zoals
+  Tonen bij een wachtwoord; hij legt eerst vast wat getypt is, zoals Enter.
 - **Een schakelaar is alleen voor direct effect**, nooit in een formulier. Uit is zijn baan
   gevuld in het grijs van de veldrand, niet bleek met een ring: de vulling alleen haalt 3:1.
 - **Een instelling is een rij**: de naam in normaal gewicht en de uitleg eronder links, het
@@ -407,6 +416,12 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een paar keuzes die allemaal in beeld blijven, zijn een groep vinkjes**
   (`lintje-checkbox-group`): één label, één hint en één foutregel voor de groep, zoals de
   radiogroep. Een lange lijst om in te zoeken is de multiselect.
+- **Een eigen antwoord is een optie van de groep, met een veld eronder** (`other`): "Anders,
+  namelijk" staat als laatste, en gekozen staat er een tekstveld onder, ingesprongen tot de lijn
+  van de labels, zodat het leest als het vervolg van de keuze. Nooit een los veld van de host onder
+  de groep. De tekst is een waarde naast de keuze (`<name>-other`) die blijft staan als de keuze
+  weggaat, en de host controleert hem zoals elk veld. Een filter, een rij knoppen en kaarten hebben
+  geen eigen antwoord.
 - **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
   elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
   beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").
@@ -569,7 +584,12 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een verandering kan alleen haar pijltje tonen** (`change-compact`): ▲ ▼ ● in de kleur van de
   verandering, voor een smalle kolom. Wat het oog ziet en wat een schermlezer hoort, zijn dan twee
   kopieën: de getekende is verborgen voor de schermlezer, een visueel verborgen kopie draagt de
-  hele waarde. Als enige meetwaarde van een rij onder 768 px staat de verandering er heel.
+  hele waarde. De woorden staan in de tooltip van het pijltje — de hele verandering, of wat de
+  host per rij laat zien met een sjabloon (`tooltip`, met `{sleutel}` uit de rij). Zoals bij
+  afgekapte tekst staan ze nooit alleen in de tooltip: onder de focus van het toetsenbord en
+  zonder hover staan ze voluit op de plaats van het pijltje. Een rij zonder bediening krijgt
+  daarvoor zelf toetsenbordfocus; die focus maakt de rij niet klikbaar. Als enige meetwaarde van een rij
+  onder 768 px staat de verandering er heel.
 - **Onder 768 px wisselt een tabel van vorm**: de identiteit van de rij en één meetwaarde, met de
   andere kolommen op verzoek onder de rij (zie [Toegankelijkheid](#toegankelijkheid)). Geen
   rijkaarten, geen zijwaarts scrollen.
@@ -824,6 +844,9 @@ navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de
 (identiteit en één meetwaarde) en de heatmap. Tussen de breedtes lopen bedieningselementen door
 naar een volgende regel; ze overlappen nooit.
 
+**Bij weinig hoogte plakt de actiebalk van een formulier niet**: onder een viewporthoogte van
+30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10).
+
 **Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame nadat die veranderde.**
 Zo verandert zijn maat nooit in de ronde van zijn waarnemer, die de browser anders als fout van de
 pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
@@ -947,9 +970,10 @@ kleinste correctie, en leg die hier vast.
   tabel.
 - **Een vastgeplakte balk bedekt nooit de focus** (2.4.11): de actiebalk van het formulier
   reserveert zijn hoogte als `scroll-padding-bottom` van de scroller, en de foutsamenvatting
-  scrolt een veld naar het midden; de selectiebalk van de tabel scrolt een element waar de focus
-  onder belandt ervan vrij. De vastgeplakte vraag en het vraagvak van het gesprek houden hun hoogte
-  vrij als `scroll-padding` van de scroller, nooit lager dan wat een andere balk daar zette.
+  scrolt een veld naar het midden. Een element waar de focus toch onder belandt, scrollen de
+  actiebalk en de selectiebalk van de tabel van zich vrij, met rand en al. De vastgeplakte vraag
+  en het vraagvak van het gesprek houden hun hoogte vrij als `scroll-padding` van de scroller,
+  nooit lager dan wat een andere balk daar zette.
 - **Een grafiek is ook met het toetsenbord te lezen.** Haar tekening neemt de focus en de
   pijltoetsen lopen langs de categorieën met de tooltip, die een live-regio uitspreekt; Escape
   verbergt een tooltip. De tekening is een afbeelding, of een groep met haar beschrijving als naam
@@ -962,6 +986,8 @@ kleinste correctie, en leg die hier vast.
 - **Een bewerking ter plekke houdt haar toetsen**: Enter en Escape tellen alleen in haar veld,
   niet op haar knoppen, en haar Escape beëindigt de bewerking en verder niets. Beëindigd, geeft
   ze de focus aan haar rij of cel.
+- **De toevoeging van een alleen-lezen veld draagt haar tekst in de tekstkleur**, zoals het veld
+  zelf: het gedempte grijs haalt op haar donkerdere vlak in donker geen 4.5:1.
 - **Een element met een naam in eigen woorden houdt wat zijn label zegt**: een greep, knop of
   popup waarvan de naam als tekst wordt opgebouwd, draagt "(niet verplicht)" en het "afwijkend
   van standaard" van de stip zoals het label doet (`labelText` in

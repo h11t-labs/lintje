@@ -125,7 +125,7 @@ export class LintjeSegmented extends LintjeInputElement {
               'is-bold': this.bold && option.value === this.value,
             })}
             aria-pressed=${option.value === this.value}
-            ?disabled=${this.disabled}
+            ?disabled=${this.isDisabled}
             @click=${() => this.choose(option.value)}
           >
             ${option.label}${
