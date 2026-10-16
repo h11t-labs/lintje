@@ -416,6 +416,12 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een paar keuzes die allemaal in beeld blijven, zijn een groep vinkjes**
   (`lintje-checkbox-group`): één label, één hint en één foutregel voor de groep, zoals de
   radiogroep. Een lange lijst om in te zoeken is de multiselect.
+- **Een eigen antwoord is een optie van de groep, met een veld eronder** (`other`): "Anders,
+  namelijk" staat als laatste, en gekozen staat er een tekstveld onder, ingesprongen tot de lijn
+  van de labels, zodat het leest als het vervolg van de keuze. Nooit een los veld van de host onder
+  de groep. De tekst is een waarde naast de keuze (`<name>-other`) die blijft staan als de keuze
+  weggaat, en de host controleert hem zoals elk veld. Een filter, een rij knoppen en kaarten hebben
+  geen eigen antwoord.
 - **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
   elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
   beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").
@@ -819,6 +825,9 @@ navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de
 (identiteit en één meetwaarde) en de heatmap. Tussen de breedtes lopen bedieningselementen door
 naar een volgende regel; ze overlappen nooit.
 
+**Bij weinig hoogte plakt de actiebalk van een formulier niet**: onder een viewporthoogte van
+30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10).
+
 **Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame nadat die veranderde.**
 Zo verandert zijn maat nooit in de ronde van zijn waarnemer, die de browser anders als fout van de
 pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
@@ -942,9 +951,10 @@ kleinste correctie, en leg die hier vast.
   tabel.
 - **Een vastgeplakte balk bedekt nooit de focus** (2.4.11): de actiebalk van het formulier
   reserveert zijn hoogte als `scroll-padding-bottom` van de scroller, en de foutsamenvatting
-  scrolt een veld naar het midden; de selectiebalk van de tabel scrolt een element waar de focus
-  onder belandt ervan vrij. De vastgeplakte vraag en het vraagvak van het gesprek houden hun hoogte
-  vrij als `scroll-padding` van de scroller, nooit lager dan wat een andere balk daar zette.
+  scrolt een veld naar het midden. Een element waar de focus toch onder belandt, scrollen de
+  actiebalk en de selectiebalk van de tabel van zich vrij, met rand en al. De vastgeplakte vraag
+  en het vraagvak van het gesprek houden hun hoogte vrij als `scroll-padding` van de scroller,
+  nooit lager dan wat een andere balk daar zette.
 - **Een grafiek is ook met het toetsenbord te lezen.** Haar tekening neemt de focus en de
   pijltoetsen lopen langs de categorieën met de tooltip, die een live-regio uitspreekt; Escape
   verbergt een tooltip. De tekening is een afbeelding, of een groep met haar beschrijving als naam
