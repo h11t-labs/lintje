@@ -23,6 +23,10 @@
   min-width: 0;
 }
 :host([hidden]) { display: none; }
+/* A choice's control and its gap to the label text: the hint and error under a lone choice
+   indent by both, so they start where the label text does. */
+:host { --lintje-choice-control: 24px; --lintje-choice-gap: 10px; }
+:host(lintje-toggle) { --lintje-choice-control: 40px; }
 
 /* --- */
 
@@ -89,7 +93,10 @@
     font: var(--text-ui);
   }
   :host([layout='row']) .lintje-field > .lintje-field__hint,
-  :host([layout='row']) .lintje-field > .lintje-field__error { grid-column: 1; grid-row: 2; align-self: start; }
+  :host([layout='row']) .lintje-field > .lintje-field__error {
+    grid-column: 1; grid-row: 2; align-self: start;
+    margin: 0;
+  }
   :host([layout='row']) .lintje-field > .lintje-field__reset { grid-column: 1; grid-row: 3; }
   /* A switch is its own label: the row is the label, the switch stands at its right edge. */
   :host([layout='row']) .lintje-field > .lintje-choice {
@@ -116,16 +123,31 @@
 
 /* --- Checkbox, radio, toggle ---------------------------------------------- */
 .lintje-choice {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: var(--lintje-choice-gap);
   min-height: var(--h-target);
   font-size: 1rem;
   cursor: pointer;
 }
+/* Under its label, and drawn up into the row's own air, so it reads with its option and not with
+   the next one in a group. */
+.lintje-choice ~ .lintje-field__hint,
+.lintje-choice ~ .lintje-field__error {
+  margin: calc(var(--space-2) * -1) 0 var(--space-2) calc(var(--lintje-choice-control) + var(--lintje-choice-gap));
+}
 .lintje-choice__input { position: absolute; opacity: 0; width: 0; height: 0; }
 .lintje-choice__label.is-modified { color: var(--color-accent-text); font-weight: 700; }
+/* The field of a group's "Anders": indented to the labels' line (the box or radio plus the row's
+   gap), so it reads as the rest of its choice. */
+.lintje-choice__other {
+  margin: var(--space-1) 0 var(--space-1) calc(24px + 10px);
+  animation: lintje-fade-in var(--dur-base) var(--ease-in-motion) both;
+}
+@media screen and (max-width: 767px) {
+  .lintje-choice__other { --h-control: var(--h-touch); }
+}
 
 .lintje-choice__box {
-  width: 24px; height: 24px; flex: none;
+  width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
   display: flex; align-items: center; justify-content: center;
   border: 2px solid var(--color-border-choice);
   background: var(--color-bg-surface);
@@ -156,7 +178,7 @@
 }
 
 .lintje-choice__radio {
-  width: 24px; height: 24px; flex: none;
+  width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
   border: 2px solid var(--color-border-choice);
   border-radius: 50%;
   background: var(--color-bg-surface);
@@ -172,7 +194,7 @@
 /* Off: edged with the field's edge (3:1, WCAG 1.4.11) as an inset ring, keeping the box size. */
 .lintje-choice__switch {
   box-sizing: border-box;
-  width: 40px; height: 22px; flex: none;
+  width: var(--lintje-choice-control); height: 22px; flex: none;
   border-radius: 11px;
   /* Off is a filled track, not a pale one with a ring: the fill alone reaches 3:1. */
   background: var(--color-border-field);
