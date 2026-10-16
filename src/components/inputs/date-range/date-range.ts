@@ -291,7 +291,7 @@ export class LintjeDateRange extends LintjeInputElement {
         aria-haspopup="dialog"
         aria-describedby=${this.describedBy}
         aria-invalid=${this.error ? 'true' : nothing}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         @click=${this.toggle}
       >
         <span>${rangeLabel}</span>
@@ -328,6 +328,7 @@ export class LintjeDateRange extends LintjeInputElement {
             <div
               class="lintje-date-range-picker__grid"
               role="grid"
+              aria-multiselectable="true"
               aria-label=${monthLabel(`${shown}-01`)}
               @keydown=${(event: KeyboardEvent) => this.onGridKeydown(event, focus, cells)}
             >

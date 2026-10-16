@@ -29,6 +29,7 @@ import appSearchCss from './app-search.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import keyCss from '../../shared/key.css?inline'
 import { isPlainClick } from '../../../core/links'
+import { titleWhenCut } from '../../shared/cut-text'
 
 export interface SearchResult {
   /** What `lintje-action` carries. */
@@ -211,7 +212,7 @@ export class LintjeAppSearch extends LintjeElement {
   private renderOption(item: SearchResult, index: number): TemplateResult {
     const active = index === this.active
     const classes = classMap({ 'lintje-app-search__option': true, 'is-active': active })
-    const content = html`<span class="lintje-app-search__label">${this.renderLabel(item.label)}</span>${
+    const content = html`<span class="lintje-app-search__label" @pointerenter=${titleWhenCut}>${this.renderLabel(item.label)}</span>${
       item.meta ? html`<span class="lintje-app-search__meta">${item.meta}</span>` : nothing
     }`
     const onClick = (event: MouseEvent): void => this.choose(item, event)

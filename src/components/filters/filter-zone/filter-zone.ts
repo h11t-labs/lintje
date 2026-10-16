@@ -62,6 +62,9 @@ export class LintjeFilterZone extends LintjeElement {
   sentence: SentencePart[] = []
 
   private readonly mobile = new MediaController(this, MOBILE)
+  /** Carries `:state(phone)`, which follows the controller as the template does; `null` in happy-dom. */
+  readonly #internals: ElementInternals | null =
+    typeof this.attachInternals === 'function' ? this.attachInternals() : null
   private observer: IntersectionObserver | null = null
   // `undefined` until the first update: `null === null` would skip the first report.
   private observed: HTMLElement | null | undefined = undefined
@@ -132,6 +135,11 @@ export class LintjeFilterZone extends LintjeElement {
   }
 
   protected override updated(changed: PropertyValues<this>): void {
+    const states = this.#internals?.states
+    if (states) {
+      if (this.mobile.matches) states.add('phone')
+      else states.delete('phone')
+    }
     if (this.#rowHadFocus) {
       this.#rowHadFocus = false
       if (!holdsFocus(this)) {
@@ -334,14 +342,13 @@ export class LintjeFilterZone extends LintjeElement {
   }
 
   // `expanded` is the rendered state, not `open`: stuck and collapsed the zone is closed
-  // however the URL reads.
+  // however the URL reads. Its name is the word it shows; `aria-expanded` says the state.
   private renderToggle(expanded: boolean): TemplateResult {
     return html`<button
       type="button"
       class=${classMap({ 'lintje-filter-toggle': true, 'is-expanded': expanded })}
       aria-expanded=${expanded}
       aria-controls="filter-body"
-      aria-label=${expanded ? 'Filters verbergen' : 'Filters tonen'}
       @click=${() => this.act({ type: expanded ? 'collapse' : 'expand' })}
     >
       Filters

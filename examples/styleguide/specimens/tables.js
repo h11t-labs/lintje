@@ -272,12 +272,15 @@ const NOTES = [
 const compactData = {
   caption: 'Loketten met een toelichting en de trend tegenover vorige week',
   title: 'Loketten met toelichting',
-  subtitle: 'De toelichting op één regel, de trend als pijltje',
+  subtitle: 'De toelichting op één regel, de trend als pijltje met de cijfers in de tooltip',
   columns: [
     { key: 'name', header: 'Loket' },
     { key: 'note', header: 'Toelichting', truncate: true },
     { key: 'requests', header: 'Aanvragen', align: 'right', mobileMeasure: true },
-    { key: 'change', header: 'Trend', align: 'right', format: 'change-compact' },
+    {
+      key: 'change', header: 'Trend', align: 'right', format: 'change-compact',
+      tooltip: '{change} tegenover vorige week · {previous} aanvragen toen',
+    },
   ],
   rows: desks.slice(0, NOTES.length).map((point, index) => ({
     id: point.id,
@@ -285,6 +288,8 @@ const compactData = {
     note: NOTES[index],
     requests: point.requests,
     change: point.change,
+    // Carried for the trend's tooltip, not drawn: last week's figure.
+    previous: Math.round(point.requests / (1 + point.change / 100)),
   })),
   rowKey: 'id',
   clickable: true,
@@ -678,6 +683,17 @@ export default {
           setup: (stage) => dashboard(stage, compactData),
         },
         {
+          label: 'Compact zonder rijactie',
+          note: 'Tab bereikt elke rij om de trend met zijn uitleg te lezen; Enter opent niets.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => table(stage, {
+            ...compactData,
+            title: 'Loketten met een leesbare trend',
+            clickable: false,
+            expandable: false,
+          }),
+        },
+        {
           label: 'Kiesbaar',
           note: 'Vink loketten aan om ze te vergelijken.',
           html: '<lintje-data-table></lintje-data-table>',
@@ -823,6 +839,18 @@ export default {
           note: 'De gekozen filters staan erbij als chips.',
           html: '<lintje-data-table></lintje-data-table>',
           setup: (stage) => filters(stage, { filters: { category: ['Veiligheid', 'Overlast'] } }),
+        },
+        {
+          label: 'Een lange filterchip',
+          note: 'Een chip die niet op de regel past, loopt door en blijft binnen de tabel.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) =>
+            filters(stage, {
+              filters: {
+                title: 'wachtrij bij de bezoekersbalie',
+                category: ['Veiligheid', 'Verkeer', 'Overlast', 'Overig'],
+              },
+            }),
         },
         {
           label: 'Kolommen kiezen',
@@ -1222,6 +1250,19 @@ export default {
             tree.nodes = structuredClone(UNITS)
             tree.expanded = ['dh', 'verdiepingen']
             lazyArrivals(tree)
+          },
+        },
+        {
+          label: 'Een lange naam',
+          note:
+            'Met een aanwijzer staat de naam op één regel, met de hele naam in de tooltip. Onder ' +
+            'de focus van het toetsenbord, zonder hover en op een telefoon loopt hij door.',
+          html: '<div style="max-width: 240px"><lintje-tree-view label="Eenheden"></lintje-tree-view></div>',
+          setup(stage) {
+            stage.querySelector('lintje-tree-view').nodes = [
+              { id: 'lang', label: 'Vergaderzalen op de derde verdieping van het oostelijke gebouw', count: 4 },
+              { id: 'kort', label: 'Vertrek', count: 3 },
+            ]
           },
         },
         {

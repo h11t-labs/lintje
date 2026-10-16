@@ -13,9 +13,19 @@ import {
   type TemplateResult,
 } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
+import { holdsFocus } from '../../../core/focus'
 import { LintjeGridItemElement } from '../../shared/grid-item-element'
 import { footDescribedBy, renderFieldFoot } from './field-foot'
-import { formEntries, postsEmpty, readControl, writeControl } from '../../shared/controls'
+import {
+  OTHER_SUFFIX,
+  OTHER_VALUE,
+  formEntries,
+  otherField,
+  postsEmpty,
+  readControl,
+  writeControl,
+} from '../../shared/controls'
+import type { FilterOption } from '../../../types'
 
 const OPTIONAL = '(niet verplicht)'
 const MODIFIED = 'afwijkend van standaard'
@@ -82,6 +92,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
   #seen = false
   /** Set while a validity sync waits for a part a child element draws. */
   #waiting = false
+  #formDisabled = false
 
   constructor() {
     super()
@@ -101,16 +112,22 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     }
     if (!this.internals) return
     const data = new FormData()
-    if (this.name && !this.disabled) {
-      for (const [key, value] of formEntries(this.name, this.postedValue)) data.append(key, value)
+    if (this.name && !this.isDisabled) {
+      const entries = [...formEntries(this.name, this.postedValue), ...this.formExtras]
+      for (const [key, value] of entries) data.append(key, value)
     }
     this.internals.setFormValue(data)
     this.syncValidity()
   }
 
+  /** What the control posts beside its value, under keys of its own. */
+  protected get formExtras(): [string, string][] {
+    return []
+  }
+
   /** Empty for the form: it posts nothing, or one of its values is empty. Counts without `name`. */
   protected get missing(): boolean {
-    return this.required && !this.disabled && postsEmpty(this.postedValue)
+    return this.required && !this.isDisabled && postsEmpty(this.postedValue)
   }
 
   /** Reports `required` to the native form, the message anchored where the focus goes. */
@@ -140,9 +157,22 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     writeControl(this, structuredClone(this.#first))
   }
 
-  /** The control's own `disabled`, or a `<fieldset disabled>` around it. */
+  /**
+   * Off for the form: its own `disabled`, or a `<fieldset disabled>` around it. Kept apart from
+   * `disabled`, which stays the host's: written there, it would outlive the fieldset.
+   */
   formDisabledCallback(disabled: boolean): void {
-    this.disabled = disabled
+    if (disabled === this.#formDisabled) return
+    this.#formDisabled = disabled
+    // The host's own `disabled` arrives here while Lit reflects it, mid-update, where a request
+    // is dropped: draw once more after that update.
+    if (this.isUpdatePending) void this.updateComplete.then(() => this.requestUpdate())
+    else this.requestUpdate()
+  }
+
+  /** Off, by the host's `disabled` or by the form; what every part reads. */
+  protected get isDisabled(): boolean {
+    return this.disabled || this.#formDisabled
   }
 
   protected get labelId(): string {
@@ -172,7 +202,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
 
   protected focusControl(options?: FocusOptions): void {
     // Disabled is out of the tab order: a label click or a script's `focus()` lands nowhere.
-    if (this.disabled) return
+    if (this.isDisabled) return
     this.focusTarget?.focus(options)
   }
 
@@ -209,9 +239,14 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
   /** The same commit for a non-scalar value; `url` is the shape sent in `lintje-values-change`. */
   protected announce(value: unknown, url: unknown = value): void {
     // A disabled control commits nothing, even when something else moves it.
-    if (this.disabled) return
+    if (this.isDisabled) return
     this.emitLocal('lintje-change', value)
-    if (this.name) this.emit('lintje-values-change', { [this.name]: url })
+    if (this.name) this.emit('lintje-values-change', this.valuesChange(url))
+  }
+
+  /** The detail of `lintje-values-change` for a value in its URL shape. */
+  protected valuesChange(url: unknown): Record<string, unknown> {
+    return { [this.name]: url }
   }
 
   /**
@@ -291,7 +326,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     return html`<button
       type="button"
       class="lintje-field__reset"
-      ?disabled=${this.disabled}
+      ?disabled=${this.isDisabled}
       @click=${reset}
     >${this.resetLabel}${field}</button>`
   }
@@ -348,7 +383,7 @@ export abstract class LintjeFormInputElement extends LintjeInputElement {
 
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
-    this.internals?.setFormValue(this.disabled ? null : this.formValue)
+    this.internals?.setFormValue(this.isDisabled ? null : this.formValue)
     this.syncValidity()
   }
 
@@ -357,7 +392,7 @@ export abstract class LintjeFormInputElement extends LintjeInputElement {
    * implicit submission cannot reach it. Waits a task so `lintje-form` can prevent it.
    */
   protected submitOnEnter(event: KeyboardEvent, commit: () => void): void {
-    if (event.key !== 'Enter' || event.isComposing || this.readonly || this.disabled) return
+    if (event.key !== 'Enter' || event.isComposing || this.readonly || this.isDisabled) return
     commit()
     const form = this.internals?.form
     if (!form || typeof form.requestSubmit !== 'function') return
@@ -373,5 +408,118 @@ export abstract class LintjeFormInputElement extends LintjeInputElement {
     if (control) control.value = this.formValue
     // Validity is set in `updated`, which an unchanged value would not run.
     this.requestUpdate()
+  }
+}
+
+/**
+ * `LintjeChoiceGroupElement` — the radio group and the checkbox group, which can end in an own
+ * answer: the option "Anders" (value `other`) with a text field under it while it is chosen. The
+ * text is a value beside the choice: posted and told under `<name>-other`, kept when "Anders" goes.
+ */
+export abstract class LintjeChoiceGroupElement extends LintjeInputElement {
+  static override properties: PropertyDeclarations = {
+    other: { type: Boolean },
+    otherLabel: { type: String, attribute: 'other-label' },
+    otherText: { attribute: false },
+    otherPlaceholder: { type: String, attribute: 'other-placeholder' },
+    otherError: { type: String, attribute: 'other-error' },
+  }
+
+  declare options?: FilterOption[]
+  /**
+   * Ends the options in "Anders", value `other`, with a text field under it while it is chosen.
+   * Left out when an option of the host already has the value `other`.
+   */
+  other: boolean = false
+  /** The word of the option "Anders"; also the field's label, hidden. */
+  otherLabel: string = 'Anders, namelijk'
+  /**
+   * What the reader typed under "Anders". It changes when the field commits (leaving it, Enter)
+   * and stays when "Anders" goes. A property, not an attribute: a server-rendered page sets it as
+   * data.
+   */
+  otherText: string = ''
+  declare otherPlaceholder?: string
+  /**
+   * The host's message under the field of "Anders", such as `OTHER_MISSING_TEXT`; `lintje-form`
+   * sets it from `errors.fields['<name>-other']`. The group never sets it itself.
+   */
+  declare otherError?: string
+
+  #firstOther = ''
+  #warned = new Set<string>()
+  /** The field held the focus and goes in this update: the focus goes to the option. */
+  #handBack = false
+
+  /** "Anders" is the choice, or one of them. */
+  protected abstract get otherChosen(): boolean
+
+  /** The control of the option "Anders", where the focus goes when its field goes. */
+  protected abstract get otherOption(): HTMLElement | null
+
+  protected warnOnce(key: string, message: string): void {
+    if (this.#warned.has(key)) return
+    this.#warned.add(key)
+    console.warn(`<${this.localName}>: ${message}`)
+  }
+
+  /** The group draws "Anders": `other` is on and no option of the host holds its value. */
+  protected get drawsOther(): boolean {
+    if (!this.other) return false
+    if ((this.options ?? []).some((option) => option.value === OTHER_VALUE)) {
+      this.warnOnce('clash', `an option has the value "${OTHER_VALUE}"; "other" draws nothing.`)
+      return false
+    }
+    return true
+  }
+
+  /** "Anders" is drawn and chosen: its field stands, and its text counts. */
+  protected get otherOpen(): boolean {
+    return this.drawsOther && this.otherChosen
+  }
+
+  protected override get formExtras(): [string, string][] {
+    return this.otherOpen ? [[`${this.name}${OTHER_SUFFIX}`, this.otherText ?? '']] : []
+  }
+
+  protected override valuesChange(url: unknown): Record<string, unknown> {
+    const values = super.valuesChange(url)
+    if (!this.drawsOther) return values
+    return { ...values, [`${this.name}${OTHER_SUFFIX}`]: this.otherOpen ? this.otherText : null }
+  }
+
+  /** The field's commit: `lintje-other-change`, and `lintje-values-change` with a `name`. */
+  protected commitOther(text: string): void {
+    if (this.isDisabled) return
+    this.otherText = text
+    this.emitLocal('lintje-other-change', text)
+    if (this.name) this.emit('lintje-values-change', this.valuesChange(readControl(this)))
+  }
+
+  /** After "Anders" is chosen by a click, a tap or Space: the focus goes into its field. */
+  protected async focusOther(): Promise<void> {
+    await this.updateComplete
+    const field = otherField(this.renderRoot)
+    await field?.updateComplete
+    field?.focus()
+  }
+
+  override formResetCallback(): void {
+    super.formResetCallback()
+    this.otherText = this.#firstOther
+  }
+
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
+    if (!this.hasUpdated) this.#firstOther = this.otherText ?? ''
+    const field = otherField(this.renderRoot)
+    this.#handBack = Boolean(field && !this.otherOpen && holdsFocus(field))
+  }
+
+  protected override updated(changed: PropertyValues<this>): void {
+    super.updated(changed)
+    if (!this.#handBack) return
+    this.#handBack = false
+    this.otherOption?.focus()
   }
 }
