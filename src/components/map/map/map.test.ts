@@ -206,11 +206,7 @@ describe('lintje-map series', () => {
   it('draws a styled series in its own shape and colour, in the legend and the panel too', async () => {
     const element = await mapTile(
       tileData({
-        values: [
-          { ...POINTS[0], series: 'bron-a' },
-          { ...POINTS[1], series: 'bron-b' },
-          POINTS[2],
-        ],
+        values: [{ ...POINTS[0], series: 'bron-a' }, { ...POINTS[1], series: 'bron-b' }, POINTS[2]],
         seriesLabels: { 'bron-a': 'Bron A', 'bron-b': 'Bron B' },
         seriesStyles: {
           'bron-a': { color: 'neutral', shape: 'square' },
