@@ -102,6 +102,8 @@ export interface LeafletSyncOptions {
   scale: boolean
   select: (value: MapValue) => void
   clear: () => void
+  /** The map itself was clicked: the place, as `[lon, lat]`. A click on a mark never arrives. */
+  click: (point: [number, number]) => void
   /** Below 768 px, where a one-finger drag belongs to the page (rule 9). */
   mobile: boolean
 }
@@ -180,6 +182,7 @@ export class LeafletSurface {
     scale: false,
     select: () => {},
     clear: () => {},
+    click: () => {},
     mobile: false,
   }
   #data: MapSpec | null = null
@@ -371,7 +374,13 @@ export class LeafletSurface {
     map.on('zoomend', () => this.#bound())
     map.on('zoomanim', (event) => this.#glide((event as L.ZoomAnimEvent).zoom))
     // A click on a mark stops at the mark (`marks.ts`), or one gesture would select and clear.
-    map.on('click', () => this.#options.clear())
+    // What reaches here is the map itself: the selection goes, and the place travels to a host
+    // that asked for it (`controls.click`).
+    map.on('click', (event) => {
+      this.#options.clear()
+      const { lng, lat } = (event as L.LeafletMouseEvent).latlng
+      this.#options.click([lng, lat])
+    })
     // A tool on: the pointer draws. Taken in the capture phase, before a mark or Leaflet sees it.
     container.addEventListener('pointerdown', (event) => this.#press(event), true)
     container.addEventListener('pointermove', (event) => this.#move(event), true)

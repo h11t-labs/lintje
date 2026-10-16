@@ -62,6 +62,7 @@ function surface(options: Partial<LeafletSyncOptions> = {}, data: unknown = DATA
     scale: false,
     select: () => {},
     clear: () => {},
+    click: () => {},
     mobile: false,
     ...options,
   }
@@ -108,6 +109,18 @@ describe('the map surface', () => {
     expect(clear).not.toHaveBeenCalled()
     container.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(clear).toHaveBeenCalled()
+  })
+
+  it('reports the place of a click on the map itself, after undoing the selection', () => {
+    const calls: string[] = []
+    const { container } = surface({
+      clear: () => calls.push('clear'),
+      click: (point) => calls.push(`click ${point.map((n) => typeof n).join(',')}`),
+    })
+    mark(container, 'ein').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    expect(calls).toEqual([])
+    container.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    expect(calls).toEqual(['clear', 'click number,number'])
   })
 
   it('draws every mark once, as a symbol with the shape of its series, placed by the surface', () => {

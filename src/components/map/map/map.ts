@@ -4,11 +4,14 @@
  * A new layer shows at once and expects the host to confirm it in the next `data`. With
  * `tile.expandable` the same map shows again in the modal, whose own events stop here. With
  * `data.controls.lasso`, `.circle` or `.rect` a drawn area chooses every mark in it; the host
- * keeps the area in its URL and sends it back as `selectedArea`.
+ * keeps the area in its URL and sends it back as `selectedArea`. With `data.controls.click` a
+ * click on the map itself reports its place, for a host that lets a reader choose a point where
+ * nothing is drawn.
  *
  * Events: `lintje-mark-select` `{ id, label, href? }` (deselected, `id: null` and
  * `href: data.clearHref`), `lintje-layer-change` `string` (the chosen layer's value),
- * `lintje-area-select` `{ area, ids }` (undone, `{ area: null, ids: [] }`).
+ * `lintje-area-select` `{ area, ids }` (undone, `{ area: null, ids: [] }`),
+ * `lintje-map-click` `{ lon, lat }` (with `controls.click` only).
  */
 import {
   html,
@@ -237,6 +240,7 @@ export class LintjeMap extends LintjeContentTileElement {
         this.emit('lintje-layer-change', value)
       },
       onArea: (area, ids) => this.emit('lintje-area-select', { area, ids }),
+      onClick: ([lon, lat]) => this.emit('lintje-map-click', { lon, lat }),
     }
   }
 }

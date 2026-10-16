@@ -334,6 +334,12 @@ export interface MapControls {
   scale?: boolean
   /** The legend above the map: a line per layer with its key and its series. Default on. */
   legend?: boolean
+  /**
+   * A click on the map itself — not on a mark — sends `lintje-map-click` with the place it hit,
+   * for a host that lets a reader choose a point anywhere, with nothing drawn there. The click
+   * still undoes a selection, as it does without. Default off.
+   */
+  click?: boolean
 }
 
 /** The basemap the map draws on, a WMS service the host configures. */

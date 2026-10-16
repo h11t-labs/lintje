@@ -36,6 +36,7 @@ const DEFAULT_CONTROLS: Required<MapControls> = {
   rect: false,
   scale: true,
   legend: true,
+  click: false,
 }
 
 /** The drawing tools under the zoom buttons, in the order the menu lists them. */
@@ -135,6 +136,8 @@ export interface MapOptions extends Omit<ChartOptions, 'description' | 'onSelect
   onLayerChange?: (value: string) => void
   /** An area was drawn, or undone (`null`); travels the ids of every mark in it. */
   onArea?: (area: MapArea | null, ids: string[]) => void
+  /** The map itself was clicked (`controls.click`); travels the place as `[lon, lat]`. */
+  onClick?: (point: [number, number]) => void
 }
 
 /** What a drawn area is called in its panel. */
@@ -153,6 +156,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     onClear,
     onLayerChange,
     onArea,
+    onClick,
   } = options
   const {
     unit = 'aantal',
@@ -272,6 +276,11 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     stopTool: () => setTool(null),
     select,
     clear,
+    // The place of a click on the map itself, for a host that asked for it; a click still
+    // clears first, so the two never disagree about what is chosen.
+    click: (point) => {
+      if (controls.click) onClick?.(point)
+    },
     mobile,
   })
 

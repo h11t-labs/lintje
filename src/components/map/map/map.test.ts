@@ -153,6 +153,25 @@ describe('lintje-map selection', () => {
     expect(panel(element)).toBeNull()
   })
 
+  it('reports a click on the empty map with its place, only when the host asked for it', async () => {
+    const clicks: CustomEvent[] = []
+    document.body.addEventListener('lintje-map-click', (event) => clicks.push(event as CustomEvent))
+    const quiet = await mapTile(tileData())
+    await click(quiet, quiet.renderRoot.querySelector('.leaflet-container')!)
+    expect(clicks).toHaveLength(0)
+
+    document.body.innerHTML = ''
+    const asked = await mapTile(tileData({ controls: { click: true } }))
+    await click(asked, point(asked, 'ein'))
+    expect(clicks).toHaveLength(0) // a mark is a selection, never a place
+    await click(asked, asked.renderRoot.querySelector('.leaflet-container')!)
+    expect(clicks).toHaveLength(1)
+    const { lon, lat } = clicks[0].detail as { lon: number; lat: number }
+    expect(typeof lon).toBe('number')
+    expect(typeof lat).toBe('number')
+    expect(selects.at(-1)?.detail.id).toBeNull() // and the click still cleared the selection
+  })
+
   it('clears on Escape', async () => {
     const element = await mapTile(tileData())
     await click(element, point(element, 'ein'))
