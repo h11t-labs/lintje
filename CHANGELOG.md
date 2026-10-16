@@ -11,6 +11,17 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-15
+
+### Gewijzigd
+
+- Donker houdt de volgorde van licht: menu onder pagina onder oppervlak. De pagina ligt halverwege
+  het menu en het oppervlak, zodat een band, een tegel en de logobalk erop staan; de hero-waas
+  ligt onder de pagina, zoals in licht. (#137)
+- Een inhoudsfout in een tegel, een tabel of een kerncijfer is de toon fout, zoals de losse melding; de foutsamenvatting en een geweigerd bestand nemen het teken en de tint van die toon. Secundaire tekst is één token, `--text-small` (`--text-meta` en `--text-tile-sub` blijven als alias). De duren van de menurail hangen aan `--dur-rail`, de maten van hero en transcript staan op de tekstschaal, en de ruimte tussen een icoon en zijn woord is `--space-2`. (#136)
+- Wat nog openstaat, staat als issue op GitHub; `docs/OPEN_ISSUES.md` is weg. Een issue met het label
+  `agent` zegt wat er mis is, hoe het moet zijn, waar het zit en wanneer het klaar is. (#135)
+
 ## [0.5.0] - 2026-10-14
 
 ### Toegevoegd
@@ -288,7 +299,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.5.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/h11t-labs/lintje/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/h11t-labs/lintje/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/h11t-labs/lintje/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/h11t-labs/lintje/compare/v0.2.0...v0.3.0

@@ -261,10 +261,11 @@ export class LintjeTextEditor extends LintjeInputElement {
     this.linkOpen = false
   }
 
-  private onLinkClose(event: Event): void {
+  // A focus that left stays where it went.
+  private onLinkClose(event: CustomEvent<{ reason: string }>): void {
     event.stopPropagation()
     this.linkOpen = false
-    this.restore()
+    if (event.detail?.reason !== 'focus') this.restore()
   }
 
   private onSurfaceKeydown(event: KeyboardEvent): void {

@@ -288,8 +288,13 @@ export class LintjeFileUpload extends LintjeInputElement {
    * The label's click lands on the one thing in the zone that answers: the button. Its own
    * `<button>` stands in its shadow root, which a search of this root does not reach.
    */
+  protected override get focusTarget(): HTMLElement | null {
+    return this.chooser?.shadowRoot?.querySelector<HTMLElement>('button') ?? null
+  }
+
+  // No disabled guard: a disabled `lintje-button` stays in the tab order.
   protected override focusControl(options?: FocusOptions): void {
-    this.chooser?.shadowRoot?.querySelector<HTMLElement>('button')?.focus(options)
+    this.focusTarget?.focus(options)
   }
 
   private pick(): void {
