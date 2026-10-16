@@ -1,5 +1,5 @@
 // The map category (Kaart): the specimens of its elements.
-import { log } from '../shared.js'
+import { linkLog, log } from '../shared.js'
 import { originCountries, desks, origin, meta } from '../../_data/load.js'
 
 // The nine data colours after the first eight, with the Dutch name the legend shows.
@@ -165,6 +165,22 @@ export default {
           html: MAP_TILE,
           setup: mapSetup(map),
         })),
+        {
+          label: 'Punten met een link',
+          note: 'Elke stip heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad.',
+          html: MAP_TILE,
+          setup(stage) {
+            const tile = stage.querySelector('lintje-map')
+            const points = MAPS.find((map) => map.id === 'map-points')
+            tile.data = {
+              ...points.data,
+              title: 'Kaart · punten met een link',
+              values: points.data.values.map((value) => ({ ...value, href: `?loket=${value.id}` })),
+              footnote: 'Bron: fictieve demogegevens',
+            }
+            linkLog(stage, tile, ['lintje-mark-select'])
+          },
+        },
         ...MAPS.map((map) => ({
           label: `${map.label} op een ondergrond`,
           note: `${map.note} De ondergrond is een WMS-kaart.`,
