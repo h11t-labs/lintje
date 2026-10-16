@@ -1,7 +1,9 @@
 /**
- * The legend table under a pie keeps its columns: the row header is a table cell with the swatch
- * inline, so the head and the body share one grid. In Chromium a `display: flex` on the `<th>`
- * drifted the figures under the wrong heading. happy-dom lays nothing out.
+ * The legend table under a pie keeps its columns: the row header is a table cell, so the head and
+ * the body share one grid. In Edge a `display: flex` on the `<th>` drifted the figures under the
+ * wrong heading; headless Chromium aligns them either way, so the `table-cell` assertion is the
+ * guard, not the measurement. A label that wraps indents under its first line, with the swatch on
+ * that line. happy-dom lays nothing out.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import '../../../charts/chart/chart'
@@ -13,8 +15,9 @@ type ChartElement = HTMLElement & {
   updateComplete: Promise<unknown>
 }
 
-async function mount(): Promise<ChartElement> {
+async function mount(width?: string): Promise<ChartElement> {
   const element = document.createElement('lintje-chart') as ChartElement
+  if (width) element.style.width = width
   element.data = {
     chart: {
       kind: 'pie',
@@ -60,15 +63,22 @@ describe('the legend table of a pie', () => {
     }
   })
 
-  it('draws the swatch on the line of its words', async () => {
-    const element = await mount()
-    const label = element.renderRoot.querySelector<HTMLElement>('th.lintje-pie-chart__label')!
+  it('indents a wrapped label under its first line, the swatch on that line', async () => {
+    const element = await mount('360px')
+    const labels = [
+      ...element.renderRoot.querySelectorAll<HTMLElement>('th.lintje-pie-chart__label'),
+    ]
+    const label = labels[2]
     const marker = label.querySelector<HTMLElement>('.lintje-pie-chart__marker')!
-    const words = label.getBoundingClientRect()
+    const range = document.createRange()
+    range.selectNodeContents(label)
+    const lines = [...range.getClientRects()].filter((rect) => rect.width > 0 && rect.height > 0)
+    expect(lines.length).toBeGreaterThan(1)
+    const first = lines[0]
     const swatch = marker.getBoundingClientRect()
     expect(swatch.width).toBeGreaterThan(0)
-    expect(swatch.top).toBeGreaterThanOrEqual(words.top)
-    expect(swatch.bottom).toBeLessThanOrEqual(words.bottom)
-    expect(swatch.left).toBeLessThan(words.left + 20)
+    expect(swatch.top).toBeGreaterThanOrEqual(first.top)
+    expect(swatch.bottom).toBeLessThanOrEqual(first.bottom)
+    for (const line of lines.slice(1)) expect(line.left).toBeGreaterThanOrEqual(swatch.right)
   })
 })

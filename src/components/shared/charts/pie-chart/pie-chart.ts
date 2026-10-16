@@ -217,7 +217,11 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
               (segment, i) => html`
               <tr class="lintje-pie-chart__row ${hover === i ? 'is-hovered' : ''} ${rowState(i)}"
                   @mouseenter=${() => setHover(i)} @mouseleave=${() => setHover(null)}>
-                <th scope="row" class="lintje-pie-chart__label"><span class="lintje-pie-chart__marker" ${styleProps({ background: colors[i] })}></span>${segment.label}</th>
+                <th scope="row" class="lintje-pie-chart__label">
+                  <span class="lintje-pie-chart__label-inner">
+                    <span class="lintje-pie-chart__marker" ${styleProps({ background: colors[i] })}></span>${segment.label}
+                  </span>
+                </th>
                 <td class="lintje-pie-chart__value">${formatNumber(segment.value)}</td>
                 <td class="lintje-pie-chart__value">${formatPercent((segment.value / total) * 100)}</td>
               </tr>
