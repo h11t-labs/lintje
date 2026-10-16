@@ -130,14 +130,15 @@ export class LintjeTextInput extends LintjeFormInputElement {
   protected override renderFoot(): TemplateResult | typeof nothing {
     const message = this.error ?? ''
     const ids = { hintId: this.hintId, errorId: this.errorId }
-    if (this.type !== 'search') return renderFieldFoot(this.hint, message, ids)
+    if (this.type !== 'search')
+      return html`${renderFieldFoot(this.hint, message, ids)}${this.renderReset()}`
     return html`${message ? renderFieldFoot(undefined, message, ids) : nothing}<span
         id=${this.hintId}
         class="lintje-field__hint"
         aria-live="polite"
         ?hidden=${!this.hint || Boolean(message)}
         >${this.hint ?? ''}</span
-      >`
+      >${this.renderReset()}`
   }
 
   private get inputType(): string {

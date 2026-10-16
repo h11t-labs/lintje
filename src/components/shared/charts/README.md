@@ -89,7 +89,8 @@ een breder label inkort met een beletselteken.
 `MapOptions` voegt `onSelect(mark: MapValue)`, `onClear(previousId)` en `onLayerChange(value)`
 toe — wat het element omzet in de events `lintje-mark-select` (`{id, label, href?}` met de eigen
 href van de markering, of `{id: null, label: null, href: clearHref}` als de selectie ongedaan wordt gemaakt)
-en `lintje-layer-change`, die een host in de URL schrijft.
+en `lintje-layer-change`, die een host in de URL schrijft. Annuleert niemand `lintje-mark-select`,
+dan gaat het element naar die `href`, zoals de grafiek.
 
 De legenda boven de kaart (`map-chart/map-legend.ts`) tekent per laag een regel en gebruikt
 voor de reeksen `renderLegend` uit `shared/axes.ts`, zodat een reeks overal dezelfde schakelaar
@@ -117,7 +118,9 @@ een `href` draagt die de host heeft aangemaakt. Een markering die een record is 
 draagt zelf `id` en `href`, zoals een tabelrij; een markering die een kaal
 getal is, krijgt een `ChartLink` uit de `links` van de grafiek, item voor item.
 `components/shared/charts/shared/mark-select.ts` doet het werk: `markSelection(options, links)` geeft een renderfunctie
-de attributen per markering en de Escape-handler voor de wrapper.
+de attributen per markering en de Escape-handler voor de wrapper. Een klik met een
+modificatietoets of de middelste knop (`auxclick`, aan dezelfde `click` gebonden) opent de `href` in
+een nieuw tabblad, zoals een link: `onSelect` krijgt dan `newTab`.
 
 Twee verschillen met de kaart. Een grafiek houdt **geen** eigen selectie bij:
 `selectedId` is alles wat er is en komt uit de URL, dus een klik navigeert en
@@ -141,16 +144,18 @@ new ChartController(() => this.requestUpdate())
   hoogte komt uit een token dat op het element zelf gelezen wordt, zodat een lokale override (de
   `--chart-h-main` van de modal, de hoogte van de body) wordt opgepikt. `inView` is de poort voor het intekenen: de
   markeringen blijven in hun beginstand tot 35 % van de grafiek in beeld is geweest, één keer.
-- `tooltip`, `hoverIndex`, `status`, `hiddenSeries`, `hoverSegment`, `selectedCell`,
+- `tooltip`, `hoverIndex`, `status`, `hiddenSeries`, `selectedCell`,
   `mapSelection`, `hiddenLayers`, `leafletView`, `mapHint` — de interactiestaat,
   met `showTooltip`, `showTooltipAt`, `hideTooltip`, `hoverAt`, `dismiss` (Escape) en
   `toggleSeries` om hem te wijzigen.
 - `detach()` — stopt de observers. Roep hem aan vanuit `disconnectedCallback`.
 
-De tekening van elke grafiek met assen neemt de focus: `plotKeys` (`shared/plot-keys.ts`) loopt
-met de pijltjestoetsen, Home en End door haar categorieën, zet de tooltip op de bereikte en
-schrijft die in `status`, die `renderPlotStatus` uitspreekt. Een markering die doorklikt, houdt
-haar eigen Enter.
+De tekening van elke grafiek met assen, en van de taart, neemt de focus: `plotKeys`
+(`shared/plot-keys.ts`) loopt met de pijltjestoetsen, Home en End door haar categorieën, zet de
+tooltip op de bereikte en schrijft die in `status`, die `renderPlotStatus` uitspreekt. Een
+markering die doorklikt, houdt haar eigen Enter. Krijgt de grafiek nieuwe data, dan sluit
+`renderChart` de tooltip en maakt de status leeg (`follow`); de volgende pijltoets begint op de
+oude plek, of op de laatste categorie als die er niet meer is.
 
 Er vuurt een `requestUpdate` per muisbeweging. Een `LitElement` bundelt die al; een
 host zonder Lit moet ze zelf bundelen.
