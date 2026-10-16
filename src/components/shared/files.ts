@@ -125,8 +125,15 @@ export function rowNews(before: UploadFile[], after: UploadFile[], refused = fal
   return news.join('. ')
 }
 
-/** What a drop zone says while files hang over it; `count` is 0 when the browser does not say. */
-export function dropText(count: number): string {
+/**
+ * What a drop zone says while files are dragged: beside it, it points at itself; over it, what
+ * letting go does. `count` is 0 when the browser does not say.
+ */
+export function dropText(count: number, over = true): string {
+  if (!over) {
+    if (!count) return 'Sleep de bestanden hierheen'
+    return `Sleep ${count === 1 ? 'het bestand' : `${count} bestanden`} hierheen`
+  }
   if (!count) return 'Laat los om de bestanden toe te voegen'
   return `Laat los om ${count} ${count === 1 ? 'bestand' : 'bestanden'} toe te voegen`
 }

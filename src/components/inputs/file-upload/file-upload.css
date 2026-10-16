@@ -33,11 +33,12 @@
   color: var(--color-text-muted);
 }
 
+/* Dragging anywhere on the page points at the zone; over the zone it fills, where letting go adds. */
 .lintje-file-upload.is-dragging {
   border-style: solid;
   border-color: var(--color-accent-line);
-  background: var(--color-bg-selected);
 }
+.lintje-file-upload.is-over { background: var(--color-bg-selected); }
 .lintje-file-upload.is-error { border-style: solid; border-color: var(--color-error); }
 .lintje-file-upload.is-disabled {
   background: var(--color-bg-subtle);

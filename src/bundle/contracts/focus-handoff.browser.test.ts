@@ -813,6 +813,8 @@ const INPUT_ROWS: Row[] = [
       ['lintje-select', 'select'],
       ['lintje-segmented', '.lintje-segmented__option'],
       ['lintje-toggle', '.lintje-choice__input'],
+      ['lintje-text-input', 'input'],
+      ['lintje-textarea', 'textarea'],
     ] as const
   ).map(([tag, control]): Row => ({
     name: `${tag} :: the reset link, gone when the host resets, hands its focus to the control`,
@@ -978,6 +980,23 @@ const MESSAGE_ROWS: Row[] = [
       await expect.poll(close).toBeTruthy()
       close()!.focus()
       await userEvent.keyboard('{Enter}')
+      return () => before
+    },
+  },
+  {
+    name: 'lintje-toast :: closed with Escape from inside, it hands the focus back to where it was',
+    run: async () => {
+      const before = Object.assign(document.createElement('button'), { textContent: 'Opslaan' })
+      document.body.append(before)
+      before.focus()
+      const toast = await mount<HTMLElement>('lintje-toast', {
+        kind: 'error',
+        textContent: 'Opslaan is mislukt.',
+      })
+      const close = (): HTMLElement | null => inside(toast, '.lintje-toast__close')
+      await expect.poll(close).toBeTruthy()
+      close()!.focus()
+      await userEvent.keyboard('{Escape}')
       return () => before
     },
   },

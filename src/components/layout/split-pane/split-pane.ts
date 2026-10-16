@@ -209,8 +209,10 @@ export class LintjeSplitPane extends LintjeElement {
   }
 
   private readonly onKeydown = (event: KeyboardEvent): void => {
+    // Stopped: the Escape puts the split back and closes no window around it.
     if (this.#lifted && event.key === 'Escape') {
       event.preventDefault()
+      event.stopPropagation()
       this.cancelLift()
       return
     }
