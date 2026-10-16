@@ -61,7 +61,8 @@ describe('lintje-stepper between row and column', () => {
     const seen = new Set<string>()
     for (const width of [1000, 900, 800, 700, 600]) {
       element.style.width = `${width}px`
-      await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+      // The observer reports after the frame's layout and measures in the next one.
+      for (let frame = 0; frame < 3; frame += 1) await new Promise(requestAnimationFrame)
       await element.updateComplete
       const list = element.shadowRoot!.querySelector<HTMLElement>('.lintje-stepper__list')!
       seen.add(layout(element))
