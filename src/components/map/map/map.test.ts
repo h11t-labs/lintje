@@ -10,9 +10,12 @@
  * map only in a box with a size, so every element here reports one; the projection is pure
  * arithmetic and the marks are drawn as in a browser.
  */
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import './map'
 import { downloadCsv } from '../../shared/download'
+import { seriesColor } from '../../shared/charts/shared/colors'
+import { seriesShape, seriesShapePath } from '../../shared/charts/shared/series-shapes'
+import { pointRadius } from '../../shared/charts/map-chart/marks'
 import type { MapData, MapValue } from '../../../types'
 
 interface MapTile extends HTMLElement {
@@ -195,9 +198,161 @@ describe('lintje-map selection', () => {
   })
 })
 
+describe('lintje-map, a mark with an href', () => {
+  let selects: unknown[]
+  let assign: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    document.body.innerHTML = ''
+    selects = []
+    assign = vi.spyOn(window.location, 'assign').mockImplementation(() => {})
+  })
+  afterEach(() => vi.restoreAllMocks())
+
+  const heard = (element: MapTile) =>
+    element.addEventListener('lintje-mark-select', (event) =>
+      selects.push((event as CustomEvent).detail),
+    )
+
+  it('goes there after lintje-mark-select when nobody cancels it, by click and by Enter', async () => {
+    const element = await mapTile(withHref())
+    heard(element)
+    await click(element, point(element, 'ein'))
+    expect(selects).toEqual([{ id: 'ein', label: 'Eindhoven', href: '/m?nav.post=ein' }])
+    expect(assign).toHaveBeenCalledWith('/m?nav.post=ein')
+    point(element, 'ams-e').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
+    expect(assign).toHaveBeenLastCalledWith('/m?nav.post=ams-e')
+  })
+
+  it('stays when the host cancels the event', async () => {
+    const element = await mapTile(withHref())
+    element.addEventListener('lintje-mark-select', (event) => event.preventDefault())
+    await click(element, point(element, 'ein'))
+    expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('opens it in a new tab on a modifier or middle click: no event, no selection', async () => {
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const element = await mapTile(withHref())
+    heard(element)
+    await click(element, point(element, 'ein'), { ctrlKey: true })
+    point(element, 'ams-e').dispatchEvent(new MouseEvent('auxclick', { button: 1, bubbles: true }))
+    point(element, 'ams-e').dispatchEvent(new MouseEvent('auxclick', { button: 2, bubbles: true }))
+    await element.updateComplete
+    expect(selects).toEqual([])
+    expect(panel(element)).toBeNull()
+    expect(open.mock.calls).toEqual([
+      ['/m?nav.post=ein', '_blank', 'noopener'],
+      ['/m?nav.post=ams-e', '_blank', 'noopener'],
+    ])
+    expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('opens no tab when the host cancels lintje-navigate', async () => {
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const element = await mapTile(withHref())
+    element.addEventListener('lintje-navigate', (event) => event.preventDefault())
+    await click(element, point(element, 'ein'), { metaKey: true })
+    expect(open).not.toHaveBeenCalled()
+  })
+
+  it('only sends the event for a mark without one', async () => {
+    const element = await mapTile(tileData())
+    heard(element)
+    await click(element, point(element, 'ein'))
+    expect(selects).toEqual([{ id: 'ein', label: 'Eindhoven', href: undefined }])
+    expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('goes to clearHref when the selection is undone, unless cancelled', async () => {
+    const element = await mapTile(withHref({ selectedId: 'ein', clearHref: '/m' }))
+    heard(element)
+    await click(element, point(element, 'ein'))
+    expect(selects).toEqual([{ id: null, label: null, href: '/m' }])
+    expect(assign).toHaveBeenCalledWith('/m')
+
+    const kept = await mapTile(withHref({ selectedId: 'ein', clearHref: '/m' }))
+    kept.addEventListener('lintje-mark-select', (event) => event.preventDefault())
+    await click(kept, point(kept, 'ein'))
+    expect(assign).toHaveBeenCalledTimes(1)
+  })
+
+  it('only sends the event when undone without a clearHref', async () => {
+    const element = await mapTile(withHref({ selectedId: 'ein' }))
+    heard(element)
+    await click(element, point(element, 'ein'))
+    expect(selects).toEqual([{ id: null, label: null, href: undefined }])
+    expect(assign).not.toHaveBeenCalled()
+  })
+})
+
 describe('lintje-map series', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
+  })
+
+  it('draws a styled series in its own shape and colour, in the legend and the panel too', async () => {
+    const element = await mapTile(
+      tileData({
+        values: [{ ...POINTS[0], series: 'bron-a' }, { ...POINTS[1], series: 'bron-b' }, POINTS[2]],
+        seriesLabels: { 'bron-a': 'Bron A', 'bron-b': 'Bron B' },
+        seriesStyles: {
+          'bron-a': { color: 'neutral', shape: 'square' },
+          'bron-b': { color: 'neutral', shape: 'diamond' },
+        },
+      }),
+    )
+    const shape = (id: string) =>
+      point(element, id).querySelector<SVGPathElement>('.lintje-map-chart__point-shape')!
+    // Both points in the one neutral colour; the shape tells them apart (rule 13).
+    expect(shape('ams-e').style.getPropertyValue('--lintje-series')).toBe(
+      'var(--color-chart-secondary)',
+    )
+    expect(shape('ein').style.getPropertyValue('--lintje-series')).toBe(
+      'var(--color-chart-secondary)',
+    )
+    expect(shape('ams-e').getAttribute('d')).toBe(seriesShapePath('square', pointRadius(12, 21)))
+    expect(shape('ein').getAttribute('d')).toBe(seriesShapePath('diamond', pointRadius(21, 21)))
+    // The legend: one line per styled series, its marker in that shape.
+    expect(legendLines(element)).toEqual(['Bron A', 'Bron B', 'geen gegevens'])
+    const markers = [
+      ...element.renderRoot.querySelectorAll<SVGPathElement>('.lintje-legend__marker--symbol path'),
+    ].map((path) => path.getAttribute('d'))
+    expect(markers).toEqual([
+      seriesShapePath('square', 4.5, 7, 7),
+      seriesShapePath('diamond', 4.5, 7, 7),
+    ])
+    // The selection panel's swatch follows the same style.
+    await click(element, point(element, 'ein'))
+    const swatch = element.renderRoot.querySelector<SVGPathElement>(
+      '.lintje-map-chart__series-swatch path',
+    )!
+    expect(swatch.getAttribute('d')).toBe(seriesShapePath('diamond', 5.5, 7, 7))
+    expect(swatch.getAttribute('fill')).toBe('var(--color-chart-secondary)')
+  })
+
+  it('a colour name keeps its own pair, and a key with neither draws the default', async () => {
+    const element = await mapTile(
+      tileData({
+        values: [{ ...POINTS[0], series: 'onbekend' }, POINTS[1]],
+        seriesLabels: { onbekend: 'Onbekend', 'dark-yellow': 'Boven norm' },
+      }),
+    )
+    const shape = (id: string) =>
+      point(element, id).querySelector<SVGPathElement>('.lintje-map-chart__point-shape')!
+    expect(shape('ams-e').style.getPropertyValue('--lintje-series')).toBe('')
+    expect(shape('ams-e').getAttribute('d')).toBe(seriesShapePath('circle', pointRadius(12, 21)))
+    expect(shape('ein').style.getPropertyValue('--lintje-series')).toBe(seriesColor('dark-yellow'))
+    expect(shape('ein').getAttribute('d')).toBe(
+      seriesShapePath(seriesShape('dark-yellow'), pointRadius(21, 21)),
+    )
+    // The panel's swatch draws the default colour, as the point and the legend do.
+    await click(element, point(element, 'ams-e'))
+    const swatch = element.renderRoot.querySelector<SVGPathElement>(
+      '.lintje-map-chart__series-swatch path',
+    )!
+    expect(swatch.getAttribute('d')).toBe(seriesShapePath('circle', 5.5, 7, 7))
+    expect(swatch.getAttribute('fill')).toBe('var(--color-chart-default)')
   })
 
   it('draws a legend above the map for every series a point uses', async () => {

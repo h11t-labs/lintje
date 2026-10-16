@@ -183,6 +183,20 @@ describe('lintje-shell', () => {
       element.shadowRoot!.querySelector<HTMLButtonElement>('button.lintje-navbar__entry')!
     const press = (button: HTMLButtonElement): boolean =>
       button.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true, detail: 0 }))
+    /** A tap as the browser sends it: the finger, then the mouse's `mouseenter` and click. */
+    const tap = async (element: LintjeShell): Promise<void> => {
+      trigger(element).dispatchEvent(
+        new PointerEvent('pointerdown', { bubbles: true, composed: true, pointerType: 'touch' }),
+      )
+      trigger(element).dispatchEvent(new MouseEvent('mouseenter'))
+      await element.updateComplete
+      trigger(element).dispatchEvent(
+        new MouseEvent('click', { bubbles: true, composed: true, detail: 1 }),
+      )
+      await element.updateComplete
+    }
+    const expanded = (element: LintjeShell): string | null =>
+      trigger(element).getAttribute('aria-expanded')
 
     it('is a button between the links, marked when one of its pages is the active one', async () => {
       const element = await mount(GROUPED)
@@ -269,6 +283,39 @@ describe('lintje-shell', () => {
       )
       await element.updateComplete
       expect(trigger(element).getAttribute('aria-expanded')).toBe('true')
+    })
+
+    it('opens under a tap and closes under a second one', async () => {
+      const element = await mount(GROUPED)
+      await tap(element)
+      expect(expanded(element)).toBe('true')
+      await tap(element)
+      expect(expanded(element)).toBe('false')
+      await tap(element)
+      expect(expanded(element)).toBe('true')
+    })
+
+    it('stays open under a mouse click after a tap has opened it', async () => {
+      const element = await mount(GROUPED)
+      await tap(element)
+      trigger(element).dispatchEvent(
+        new PointerEvent('pointerdown', { bubbles: true, composed: true, pointerType: 'mouse' }),
+      )
+      trigger(element).dispatchEvent(
+        new MouseEvent('click', { bubbles: true, composed: true, detail: 1 }),
+      )
+      await element.updateComplete
+      expect(expanded(element)).toBe('true')
+    })
+
+    it('opens and closes under Enter or space', async () => {
+      const element = await mount(GROUPED)
+      press(trigger(element))
+      await element.updateComplete
+      expect(expanded(element)).toBe('true')
+      press(trigger(element))
+      await element.updateComplete
+      expect(expanded(element)).toBe('false')
     })
 
     it('sends a page as lintje-navigate and closes', async () => {

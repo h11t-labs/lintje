@@ -76,6 +76,30 @@ function element(name, className, text) {
  * A line under a specimen that shows what the host heard: returns the function that writes it.
  * It is the guide's, so it stands under the stage's frame, not in it.
  */
+/**
+ * Shows where a click on something with an `href` would go. The guide cancels the element's own
+ * event, so it is kept from the guide: the element then follows its `href`, and the specimen
+ * takes that `lintje-navigate` itself, so the page stays where it is.
+ */
+export function linkLog(stage, element, events) {
+  const say = log(stage, 'Klik, druk op Enter, of klik met Cmd of Ctrl voor een nieuw tabblad.')
+  let heard = ''
+  for (const name of events)
+    element.addEventListener(name, (event) => {
+      event.stopPropagation()
+      heard = `${name} ${JSON.stringify(event.detail)}`
+      say(heard)
+    })
+  element.addEventListener('lintje-navigate', (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+    const { href, newTab } = event.detail
+    const where = newTab ? `Opent in een nieuw tabblad: ${href}` : `Gaat naar ${href}`
+    say(heard ? `${heard}\n${where}` : where)
+    heard = ''
+  })
+}
+
 export function log(stage, text = 'Nog niets gebeurd.') {
   const line = logBlock(text)
   // A stage in a frame of its own logs under that frame, on the page.

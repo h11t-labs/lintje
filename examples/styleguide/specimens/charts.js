@@ -1,6 +1,7 @@
 // The charts category (Kerncijfers en grafieken): the specimens of its elements.
 import { CHART_KINDS, CHART_QUESTIONS } from '../../../dist-elements/lintje.js'
 import { meta, number, daily, heatmap, desks, breakdowns, hourly } from '../../_data/load.js'
+import { linkLog } from '../shared.js'
 
 const kpi = meta.kpi
 
@@ -532,6 +533,30 @@ const tableSwitch = {
 // in colour carry their colour's shape at the end (rule 13); the dark yellow one is edged.
 const share = (part) => daily.map((row, i) => (i === 3 ? null : Math.round(row.requests * part)))
 
+// A bar per day with its own `href`: where a click on it goes, shown under the specimen.
+const linkedMarks = [
+  {
+    kind: 'bar',
+    label: 'Staven met een link',
+    note: 'Elke staaf heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad.',
+    html: TILE,
+    setup(stage) {
+      const element = stage.querySelector('lintje-chart')
+      element.data = {
+        chart: {
+          kind: 'bar', labels: weekdays, values: daily.map((row) => row.requests),
+          axisTitle: 'Afgehandelde aanvragen per dag',
+          links: weekdays.map((day) => ({ id: day, href: `?dag=${encodeURIComponent(day)}` })),
+        },
+        description: 'Afgehandelde aanvragen per dag deze week; elke staaf opent die dag.',
+        title: 'Aanvragen per dag',
+        footnote: 'Bron: fictieve demogegevens',
+      }
+      linkLog(stage, element, ['lintje-mark-select'])
+    },
+  },
+]
+
 const missingValues = [
   {
     label: 'Ontbrekende waarde',
@@ -722,6 +747,7 @@ export default {
           specimens: [
             ...CHARTS.filter((chart) => chart.spec.kind === kind).map(chartSpecimen),
             ...missingValues.filter((specimen) => specimen.kind === kind),
+            ...linkedMarks.filter((specimen) => specimen.kind === kind),
           ],
         })),
       },

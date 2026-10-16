@@ -100,7 +100,7 @@ export interface LeafletSyncOptions {
   zoom: boolean
   /** The scale bar shows: a move redraws the map so it follows. */
   scale: boolean
-  select: (value: MapValue) => void
+  select: (value: MapValue, newTab?: boolean) => void
   clear: () => void
   /** Below 768 px, where a one-finger drag belongs to the page (rule 9). */
   mobile: boolean

@@ -180,7 +180,7 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
                 ${styleProps({ 'transform-origin': `${radius}px ${radius}px` })}
                 data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
                 aria-pressed=${mark.pressed} aria-label=${mark.label}
-                @click=${mark.click} @keydown=${mark.keydown}
+                @click=${mark.click} @auxclick=${mark.click} @keydown=${mark.keydown}
                 @mousemove=${(event: MouseEvent) => {
                   controller.hoverIndex = i
                   controller.showTooltip(event, contentAt(i))
@@ -232,7 +232,9 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
               <tr class="lintje-pie-chart__row ${hover === i ? 'is-hovered' : ''} ${rowState(i)}"
                   @mouseenter=${() => setHover(i)} @mouseleave=${() => setHover(null)}>
                 <th scope="row" class="lintje-pie-chart__label">
-                  <span class="lintje-pie-chart__marker" ${styleProps({ background: colors[i] })}></span>${segment.label}
+                  <span class="lintje-pie-chart__label-inner">
+                    <span class="lintje-pie-chart__marker" ${styleProps({ background: colors[i] })}></span>${segment.label}
+                  </span>
                 </th>
                 <td class="lintje-pie-chart__value">${formatNumber(segment.value)}</td>
                 <td class="lintje-pie-chart__value">${formatPercent((segment.value / total) * 100)}</td>
