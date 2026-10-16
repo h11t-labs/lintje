@@ -1,5 +1,5 @@
 // The tables category (Tabellen en lijsten): the specimens of its elements.
-import { log } from '../shared.js'
+import { linkLog, log } from '../shared.js'
 import { desks, meta, regions } from '../../_data/load.js'
 
 // The worksheet specimens of `lintje-data-table` play the host: each listens for the table's
@@ -691,6 +691,22 @@ export default {
               checkedIds: [],
               pageSize: 5,
             }),
+        },
+        {
+          label: 'Rijen met een link',
+          note: 'Elke rij heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => {
+            const element = table(stage, {
+              ...tableData,
+              title: 'Loketten',
+              subtitle: 'Elke rij met een link',
+              rows: tableData.rows.slice(0, 4).map((row) => ({ ...row, href: `?loket=${row.id}` })),
+              pageSize: undefined,
+              expandable: false,
+            })
+            linkLog(stage, element, ['lintje-row-click'])
+          },
         },
         {
           label: 'Gekozen en aangevinkt',

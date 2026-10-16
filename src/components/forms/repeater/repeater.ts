@@ -20,6 +20,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import '../../actions/button/button'
 import '../../actions/icon-button/icon-button'
+import { LiveMessage } from '../../shared/live-message'
 import repeaterCss from './repeater.css?inline'
 import repeaterRowCss from './repeater-row.css?inline'
 
@@ -102,7 +103,6 @@ export class LintjeRepeater extends LintjeElement {
     max: { type: Number },
     disabled: { type: Boolean, reflect: true },
     count: { state: true },
-    spoken: { state: true },
   }
 
   legend: string = ''
@@ -115,7 +115,7 @@ export class LintjeRepeater extends LintjeElement {
   disabled: boolean = false
 
   protected count: number = 0
-  protected spoken: string = ''
+  readonly #spoken = new LiveMessage(this)
 
   /** The reader's last request, so focus can follow once the host has answered. */
   private pending: { kind: 'add' } | { kind: 'remove'; index: number } | null = null
@@ -163,12 +163,12 @@ export class LintjeRepeater extends LintjeElement {
     const pending = this.pending
     if (pending?.kind === 'add' && rows.length > before) {
       this.pending = null
-      this.spoken = `${this.name(rows.length - 1)} toegevoegd`
+      this.#spoken.say(`${this.name(rows.length - 1)} toegevoegd`)
       const row = rows[rows.length - 1]
       void this.afterRows(row).then(() => firstFocusable(row)?.focus())
     } else if (pending?.kind === 'remove' && rows.length < before) {
       this.pending = null
-      this.spoken = `${this.name(pending.index)} verwijderd`
+      this.#spoken.say(`${this.name(pending.index)} verwijderd`)
       const above = rows[Math.max(0, pending.index - 1)]
       void this.afterRows(above).then(() => {
         if (above instanceof LintjeRepeaterRow) above.focusRemove()
@@ -223,7 +223,7 @@ export class LintjeRepeater extends LintjeElement {
         }
       </div>
       </div>
-      <span class="visually-hidden" aria-live="polite">${this.spoken}</span>
+      <span class="visually-hidden" aria-live="polite">${this.#spoken.text}</span>
     </fieldset>`
   }
 }

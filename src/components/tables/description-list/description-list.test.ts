@@ -133,4 +133,21 @@ describe('lintje-description-list', () => {
     expect(none!.querySelector('lintje-key')).toBeNull()
     expect(none!.textContent).toContain('Geen')
   })
+
+  it("reads a tone's word before the value, hidden, and none for changed or no tone", async () => {
+    const root = (
+      await mount([
+        { label: 'Microfoon', value: 'Vergaderset', tone: 'warning' },
+        { label: 'Sprekers', value: '3, vast', tone: 'changed' },
+        { label: 'Taal', value: 'Nederlands' },
+      ])
+    ).shadowRoot!
+    const [mic, speakers, language] = [...root.querySelectorAll('.lintje-description-list__main')]
+    const word = mic!.querySelector('.visually-hidden')!
+    expect(word.textContent!.trim()).toBe('let op')
+    expect(mic!.textContent!.replace(/\s+/g, ' ').trim()).toBe('let op Vergaderset')
+    expect(mic!.querySelector('svg')!.closest('[aria-hidden="true"]')).not.toBeNull()
+    expect(speakers!.querySelector('.visually-hidden')).toBeNull()
+    expect(language!.querySelector('.visually-hidden')).toBeNull()
+  })
 })
