@@ -193,6 +193,9 @@ const touching = new WeakSet<Element>()
 /** This entry's group was opened by a tap, so leaving the bar leaves it open. Every way of opening
  * a group (its `mouseenter` or its click) sets or clears the mark. */
 const tapped = new WeakSet<Element>()
+/** Whether a group was open when a finger came down on it: the tap's own `mouseenter` opens it
+ * before the click arrives. */
+const openAtTouch = new WeakMap<Element, boolean>()
 
 function barPanel(
   options: NavBarOptions,
@@ -225,8 +228,13 @@ function barPanel(
           ? nothing
           : (event: PointerEvent) => {
               const button = event.currentTarget as Element
-              if (event.pointerType === 'touch') touching.add(button)
-              else touching.delete(button)
+              if (event.pointerType === 'touch') {
+                touching.add(button)
+                openAtTouch.set(button, open)
+              } else {
+                touching.delete(button)
+                openAtTouch.delete(button)
+              }
             }
       }
       @click=${(event: MouseEvent) => {
@@ -235,9 +243,13 @@ function barPanel(
         if (event.detail !== 0 && touching.has(button)) tapped.add(button)
         else tapped.delete(button)
         touching.delete(button)
-        // A group's pointer click never closes: hover has opened it already, and closing again
-        // would make the entry blink. "Menu" opens on a click only, so every click toggles it.
-        options.onOpen(open && (whole || event.detail === 0) ? null : index)
+        // A mouse click never closes a group: hover has opened it already, and closing again
+        // would make the entry blink. A tap and "Menu" toggle, as do Enter and space.
+        const touched = openAtTouch.get(button)
+        openAtTouch.delete(button)
+        const was = touched ?? open
+        const toggles = whole || event.detail === 0 || touched !== undefined
+        options.onOpen(was && toggles ? null : index)
       }}
       @mouseenter=${
         whole

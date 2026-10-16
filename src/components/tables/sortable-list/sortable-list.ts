@@ -22,6 +22,7 @@ import { styleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../inputs/checkbox/checkbox'
+import { LiveMessage } from '../../shared/live-message'
 import sortableListCss from './sortable-list.css?inline'
 
 export interface SortableItem {
@@ -71,7 +72,6 @@ export class LintjeSortableList extends LintjeElement {
     order: { state: true },
     grabbed: { state: true },
     drag: { state: true },
-    message: { state: true },
   }
 
   items: SortableItem[] = []
@@ -83,7 +83,7 @@ export class LintjeSortableList extends LintjeElement {
   protected order: SortableItem[] = []
   protected grabbed: { id: string; from: number } | null = null
   protected drag: Drag | null = null
-  protected message: string = ''
+  readonly #message = new LiveMessage(this)
 
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
@@ -118,13 +118,13 @@ export class LintjeSortableList extends LintjeElement {
   private pickUp(item: SortableItem): void {
     const from = this.indexOf(item.id)
     this.grabbed = { id: item.id, from }
-    this.message = `${item.label} opgepakt. ${this.place(from)}`
+    this.#message.say(`${item.label} opgepakt. ${this.place(from)}`)
   }
 
   private putDown(item: SortableItem): void {
     if (!this.grabbed) return
     const at = this.indexOf(item.id)
-    this.message = `${item.label} neergelegd op plaats ${at + 1}.`
+    this.#message.say(`${item.label} neergelegd op plaats ${at + 1}.`)
     const moved = at !== this.grabbed.from
     this.grabbed = null
     this.commit(moved)
@@ -134,7 +134,7 @@ export class LintjeSortableList extends LintjeElement {
     if (!this.grabbed) return
     const { from } = this.grabbed
     this.order = moveItem(this.order, this.indexOf(item.id), from)
-    this.message = `${item.label} teruggezet op plaats ${from + 1}.`
+    this.#message.say(`${item.label} teruggezet op plaats ${from + 1}.`)
     this.grabbed = null
     void this.focusGrip(item.id)
   }
@@ -170,7 +170,7 @@ export class LintjeSortableList extends LintjeElement {
           this.order = moveItem(this.order, at, to)
           void this.focusGrip(item.id)
         }
-        this.message = this.place(to)
+        this.#message.say(this.place(to))
         break
       }
       case 'Escape':
@@ -224,14 +224,14 @@ export class LintjeSortableList extends LintjeElement {
       middles,
       pointerId: event.pointerId,
     }
-    this.message = `${item.label} opgepakt. ${this.place(from)}`
+    this.#message.say(`${item.label} opgepakt. ${this.place(from)}`)
   }
 
   private onPointerMove(event: PointerEvent): void {
     const drag = this.drag
     if (!drag || event.pointerId !== drag.pointerId) return
     const to = dropIndex(drag.middles, event.clientY)
-    if (to !== drag.to) this.message = this.place(to)
+    if (to !== drag.to) this.#message.say(this.place(to))
     this.drag = { ...drag, dy: event.clientY - drag.startY, to }
   }
 
@@ -245,7 +245,7 @@ export class LintjeSortableList extends LintjeElement {
       return
     }
     this.order = moveItem(this.order, drag.from, drag.to)
-    this.message = `${item.label} neergelegd op plaats ${drag.to + 1}.`
+    this.#message.say(`${item.label} neergelegd op plaats ${drag.to + 1}.`)
     this.drag = null
     this.commit(drag.to !== drag.from)
     // The press is cancelled, so no browser focuses the grip on its own.
@@ -255,7 +255,7 @@ export class LintjeSortableList extends LintjeElement {
   private onPointerCancel(): void {
     if (!this.drag) return
     this.drag = null
-    this.message = ''
+    this.#message.clear()
   }
 
   /* --- Boxes --------------------------------------------------------------- */
@@ -339,7 +339,7 @@ export class LintjeSortableList extends LintjeElement {
         Escape zet terug. Of tik op de greep en daarna op de greep van de plaats waar de rij
         heen moet.
       </p>
-      <p class="lintje-sortable-list__status" role="status">${this.message}</p>
+      <p class="lintje-sortable-list__status" role="status">${this.#message.text}</p>
     </div>`
   }
 }

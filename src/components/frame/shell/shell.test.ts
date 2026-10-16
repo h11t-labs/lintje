@@ -291,6 +291,39 @@ describe('lintje-shell', () => {
       expect(trigger(element).getAttribute('aria-expanded')).toBe('true')
     })
 
+    it('opens under a tap and closes under a second one', async () => {
+      const element = await mount(GROUPED)
+      await tap(element)
+      expect(expanded(element)).toBe('true')
+      await tap(element)
+      expect(expanded(element)).toBe('false')
+      await tap(element)
+      expect(expanded(element)).toBe('true')
+    })
+
+    it('stays open under a mouse click after a tap has opened it', async () => {
+      const element = await mount(GROUPED)
+      await tap(element)
+      trigger(element).dispatchEvent(
+        new PointerEvent('pointerdown', { bubbles: true, composed: true, pointerType: 'mouse' }),
+      )
+      trigger(element).dispatchEvent(
+        new MouseEvent('click', { bubbles: true, composed: true, detail: 1 }),
+      )
+      await element.updateComplete
+      expect(expanded(element)).toBe('true')
+    })
+
+    it('opens and closes under Enter or space', async () => {
+      const element = await mount(GROUPED)
+      press(trigger(element))
+      await element.updateComplete
+      expect(expanded(element)).toBe('true')
+      press(trigger(element))
+      await element.updateComplete
+      expect(expanded(element)).toBe('false')
+    })
+
     it('closes when the pointer leaves the bar after hover has opened it', async () => {
       const element = await mount(GROUPED)
       trigger(element).dispatchEvent(new MouseEvent('mouseenter'))
