@@ -2,7 +2,8 @@
  * The pie's order and folding: the host sends parts in any order and any number; the pie sorts
  * them by value, spreads the tints over the ladder with their number and folds more than five
  * into four and one gray "Overig" that is not a button. The legend table follows the slices
- * row for row. happy-dom has no layout, so what is checked is the markup.
+ * row for row; without the table the shared legend above does. The keyboard walks the slices in
+ * the drawn order. happy-dom has no layout, so what is checked is the markup.
  */
 import { beforeEach, describe, expect, it } from 'vitest'
 import '../../../charts/chart/chart'
@@ -193,5 +194,108 @@ describe('the pie', () => {
       row.classList.contains('is-selected'),
     )
     expect(states).toEqual([false, true])
+  })
+})
+
+describe('a pie without a legend table', () => {
+  const SEGMENTS = [
+    { label: 'Rest', value: 5, remainder: true },
+    { label: 'Overig', value: 8 },
+    { label: 'Balie', value: 25 },
+    { label: 'Online', value: 50 },
+    { label: 'Post', value: 12 },
+  ]
+
+  const drawing = (element: ChartElement) =>
+    element.renderRoot.querySelector<SVGSVGElement>('.lintje-pie-chart__svg')!
+  const key = async (element: ChartElement, name: string) => {
+    drawing(element).dispatchEvent(new KeyboardEvent('keydown', { key: name, bubbles: true }))
+    await element.updateComplete
+  }
+  const tooltip = (element: ChartElement) =>
+    element.renderRoot.querySelector('.lintje-chart-tooltip__title')?.textContent
+  const status = (element: ChartElement) =>
+    element.renderRoot.querySelector('[role="status"]')?.textContent?.trim()
+  const lifted = (element: ChartElement) =>
+    slices(element).findIndex((path) => path.classList.contains('is-hovered'))
+
+  it('takes the focus and walks its slices in the drawn order, tooltip and status along', async () => {
+    const element = await pie({ legendTable: false, segments: SEGMENTS })
+    expect(drawing(element).getAttribute('tabindex')).toBe('0')
+    expect(drawing(element).getAttribute('role')).toBe('img')
+    const order = ['Online', 'Balie', 'Post', 'Overig', 'Rest']
+    for (const [i, label] of order.entries()) {
+      await key(element, 'ArrowRight')
+      expect(tooltip(element)).toBe(label)
+      expect(lifted(element)).toBe(i)
+    }
+    expect(status(element)).toBe('Rest: Aantal 5 · 5%')
+    await key(element, 'ArrowRight')
+    expect(tooltip(element)).toBe('Rest')
+    await key(element, 'Home')
+    expect(tooltip(element)).toBe('Online')
+    expect(status(element)).toBe('Online: Aantal 50 · 50%')
+    await key(element, 'ArrowDown')
+    expect(tooltip(element)).toBe('Balie')
+    await key(element, 'ArrowUp')
+    expect(tooltip(element)).toBe('Online')
+    await key(element, 'End')
+    expect(tooltip(element)).toBe('Rest')
+    await key(element, 'ArrowLeft')
+    expect(tooltip(element)).toBe('Overig')
+  })
+
+  it('keeps the keys of a clickable slice its own', async () => {
+    const element = await pie({
+      legendTable: false,
+      segments: [
+        { label: 'Groot', value: 3, id: 'groot', href: '/p/groot' },
+        { label: 'Klein', value: 1, id: 'klein', href: '/p/klein' },
+      ],
+    })
+    expect(drawing(element).getAttribute('role')).toBe('group')
+    const [first] = slices(element)
+    expect(first.getAttribute('tabindex')).toBe('0')
+    first.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
+    await element.updateComplete
+    expect(tooltip(element)).toBeUndefined()
+  })
+
+  it('has the shared legend above the drawing: one item per slice, in its tint, no buttons', async () => {
+    const element = await pie({ legendTable: false, segments: SEGMENTS })
+    const legend = element.renderRoot.querySelector('.lintje-legend')!
+    expect(legend.compareDocumentPosition(drawing(element))).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    const items = [...legend.querySelectorAll('.lintje-legend__item')]
+    expect(items.map((item) => item.textContent?.trim())).toEqual([
+      'Online',
+      'Balie',
+      'Post',
+      'Overig',
+      'Rest',
+    ])
+    const swatches = items.map((item) =>
+      (item.querySelector('.lintje-legend__marker') as HTMLElement).style.color.replace(/\s/g, ''),
+    )
+    expect(swatches).toEqual(fills(element))
+    expect(legend.querySelector('button')).toBeNull()
+    expect(element.renderRoot.querySelector('.lintje-pie-chart__table')).toBeNull()
+  })
+
+  it('lifts the slice of the legend item pointed at', async () => {
+    const element = await pie({ legendTable: false, segments: SEGMENTS })
+    const items = element.renderRoot.querySelectorAll('.lintje-legend__item')
+    items[2].dispatchEvent(new MouseEvent('mouseenter'))
+    await element.updateComplete
+    expect(lifted(element)).toBe(2)
+    items[2].dispatchEvent(new MouseEvent('mouseleave'))
+    await element.updateComplete
+    expect(lifted(element)).toBe(-1)
+  })
+
+  it('has no legend above a pie with its table: the table is the legend', async () => {
+    const element = await pie({ segments: SEGMENTS })
+    expect(element.renderRoot.querySelector('.lintje-legend')).toBeNull()
+    expect(element.renderRoot.querySelector('.lintje-pie-chart__table')).not.toBeNull()
+    expect(drawing(element).getAttribute('tabindex')).toBe('0')
   })
 })

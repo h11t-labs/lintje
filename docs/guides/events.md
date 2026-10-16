@@ -1,7 +1,8 @@
 # Events: wat een element vraagt, en wat jij antwoordt
 
-Een element haalt nooit iets op, schrijft nooit de URL en navigeert nooit. Het stuurt een event en wacht
-tot jij een property zet. Elk event is een `CustomEvent`, bubbling en composed, dus één listener
+Een element haalt nooit iets op en schrijft nooit de URL; het gaat alleen naar een adres dat jij gaf,
+en nooit als je zijn event annuleert ([links](#links)). Het stuurt een event en wacht tot jij een
+property zet. Elk event is een `CustomEvent`, bubbling en composed, dus één listener
 op `document` hoort het vanaf elke diepte: de payload is `event.detail`, `event.target` het element
 dat het stuurde. Welke tag wat stuurt, staat in de styleguide, onder elk element.
 
@@ -22,6 +23,15 @@ Een klik met een modifier, of met een andere knop, is altijd van de browser: een
 download. Waar geen klik te volgen is — een resultaat dat je met Enter kiest in de zoekfunctie, een
 klik naast de titel van een kaart, een rij van de takenlijst — gaat het element zelf naar het adres, tenzij je het event annuleert. Een linkrij van `lintje-list` (`lintje-row-click`) en een melding met een `href`
 (`lintje-notification-open`) werken op dezelfde manier.
+
+Zo werken ook een klikbare rij van `lintje-data-table` (`lintje-row-click`, `lintje-row-open`), een
+teken in `lintje-chart` en een markering op `lintje-map` (`lintje-mark-select`) met een `href`:
+eerst het event, en annuleert niemand het, dan gaat het element naar de `href`, via
+`lintje-navigate`, zodat een router het daar opvangt. Een selectie ongedaan maken gaat zo naar de
+`clearHref`. Zonder `href` is er alleen het event. Een klik met een modifier of met de middelste
+knop op zo'n rij of teken stuurt hun event niet, maar opent de `href` in een nieuw tabblad, zoals
+een link: dan heeft `lintje-navigate` `{ href, newTab: true }`. Een router die `lintje-navigate`
+annuleert, ziet aan `newTab` dat de lezer een nieuw tabblad vroeg, en opent het zelf of laat het.
 
 Een instelling van de lezer in de shell — modus, thema, waar het menu staat — is geen link:
 `lintje-shell` stuurt `lintje-view-change` met de instelling die veranderde en laat het aan jou over
