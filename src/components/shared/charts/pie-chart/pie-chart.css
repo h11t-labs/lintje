@@ -23,12 +23,17 @@
 .lintje-pie-chart__total { padding-left: var(--space-4); text-align: right; }
 .lintje-pie-chart__value,
 .lintje-pie-chart__total { font-variant-numeric: tabular-nums; }
-.lintje-pie-chart__label { display: flex; align-items: center; gap: var(--space-2); }
+/* The row header stays a table cell: `display: flex` on the `<th>` took it out of the table's
+   layout, and in Chromium the body's columns then drifted from the head's (aantal under %).
+   The swatch sits inline before the words instead. */
+.lintje-pie-chart__label { vertical-align: middle; }
 .lintje-pie-chart__total-label,
 .lintje-pie-chart__total {
   font-weight: 700; border-top: 1px solid var(--color-border-default); padding-top: 6px;
 }
-.lintje-pie-chart__marker { width: 10px; height: 10px; flex: none; display: block; }
+.lintje-pie-chart__marker {
+  width: 10px; height: 10px; display: inline-block; vertical-align: -1px; margin-right: var(--space-2);
+}
 
 /* Hover scales the segment around the center, so its side edges keep their angle. The shadow
    sits on a copy on top (`__lift`); the segment itself only scales and eases back. */
