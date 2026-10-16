@@ -309,8 +309,10 @@ De commando's staan in de [`README`](README.md), wat de build oplevert in
 [`examples/README.md`](examples/README.md).
 
 `tokens.css` is de enige plek waar een tokenwaarde bestaat. Het eigen stylesheet van elk component is
-`?inline` en reist mee in de module, dus daar is niets te scopen en niets te
-minifyen.
+`?inline` en reist mee in de module, dus daar is niets te scopen. De build minificeert die
+stylesheets (lightningcss, zonder browserdoel: niets wordt omlaag vertaald), dus wat een element
+uit een token leest, is de korte schrijfwijze — `.9s` voor `900ms`, `#0000001a` voor een `rgba()`.
+Het paginabestand `tokens.css` blijft zoals het geschreven is.
 
 De styleguide is de referentie: een wijziging aan een component wordt daar gecontroleerd, in licht
 **en** donker, op 1440 **en** 390 px.
