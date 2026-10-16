@@ -584,7 +584,12 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een verandering kan alleen haar pijltje tonen** (`change-compact`): ▲ ▼ ● in de kleur van de
   verandering, voor een smalle kolom. Wat het oog ziet en wat een schermlezer hoort, zijn dan twee
   kopieën: de getekende is verborgen voor de schermlezer, een visueel verborgen kopie draagt de
-  hele waarde. Als enige meetwaarde van een rij onder 768 px staat de verandering er heel.
+  hele waarde. De woorden staan in de tooltip van het pijltje — de hele verandering, of wat de
+  host per rij laat zien met een sjabloon (`tooltip`, met `{sleutel}` uit de rij). Zoals bij
+  afgekapte tekst staan ze nooit alleen in de tooltip: onder de focus van het toetsenbord en
+  zonder hover staan ze voluit op de plaats van het pijltje. Een rij zonder bediening krijgt
+  daarvoor zelf toetsenbordfocus; die focus maakt de rij niet klikbaar. Als enige meetwaarde van een rij
+  onder 768 px staat de verandering er heel.
 - **Onder 768 px wisselt een tabel van vorm**: de identiteit van de rij en één meetwaarde, met de
   andere kolommen op verzoek onder de rij (zie [Toegankelijkheid](#toegankelijkheid)). Geen
   rijkaarten, geen zijwaarts scrollen.
