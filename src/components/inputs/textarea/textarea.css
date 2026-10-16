@@ -28,6 +28,7 @@
   overflow-y: auto;
 }
 .lintje-textarea__control::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+.lintje-textarea__control:disabled::placeholder { color: var(--color-text-disabled); }
 /* The padding gives back the pixel the 2 px error border takes. */
 .lintje-textarea__control.is-error { border: 2px solid var(--color-error); padding: 7px 13px; }
 /* Disabled wins over read-only, read-only over error. */
