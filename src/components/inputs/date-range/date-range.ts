@@ -291,7 +291,7 @@ export class LintjeDateRange extends LintjeInputElement {
         aria-haspopup="dialog"
         aria-describedby=${this.describedBy}
         aria-invalid=${this.error ? 'true' : nothing}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         @click=${this.toggle}
       >
         <span>${rangeLabel}</span>

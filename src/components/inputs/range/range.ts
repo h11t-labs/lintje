@@ -77,6 +77,11 @@ export class LintjeRange extends LintjeInputElement {
     super.disconnectedCallback()
   }
 
+  // A handle always stands on a step, so `required` never holds a form back.
+  protected override get missing(): boolean {
+    return false
+  }
+
   // A value from outside ends the drag's draft.
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
@@ -134,7 +139,7 @@ export class LintjeRange extends LintjeInputElement {
 
   // Arrows move one step, PageUp/PageDown a tenth of the scale, Home/End the ends.
   private key(event: KeyboardEvent): void {
-    if (this.disabled) return
+    if (this.isDisabled) return
     const page = pageStep(this.steps?.length ?? 0)
     const move: Partial<Record<string, number>> = {
       ArrowRight: 1,
@@ -171,7 +176,7 @@ export class LintjeRange extends LintjeInputElement {
   }
 
   private onTrackPress(event: PointerEvent): void {
-    if (this.single || this.disabled || event.target instanceof HTMLInputElement) return
+    if (this.single || this.isDisabled || event.target instanceof HTMLInputElement) return
     const box = (event.currentTarget as HTMLElement).getBoundingClientRect()
     if (!box.width || this.lastIndex < 1) return
     const ratio = Math.min(1, Math.max(0, (event.clientX - box.left) / box.width))
@@ -197,7 +202,7 @@ export class LintjeRange extends LintjeInputElement {
         min="0"
         max=${last}
         .value=${String(this.index)}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         aria-labelledby=${this.labelId}
         aria-describedby=${this.describedBy}
         aria-valuemin=${(this.steps ?? [])[0] ?? 0}
@@ -221,7 +226,7 @@ export class LintjeRange extends LintjeInputElement {
         min="0"
         max=${last}
         .value=${String(from)}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         aria-label="${this.label} van${this.labelSuffixText}"
         aria-valuetext=${this.stepText(from)}
         aria-describedby=${this.describedBy}
@@ -235,7 +240,7 @@ export class LintjeRange extends LintjeInputElement {
         min="0"
         max=${last}
         .value=${String(to)}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         aria-label="${this.label} tot en met${this.labelSuffixText}"
         aria-valuetext=${this.stepText(to)}
         aria-describedby=${this.describedBy}

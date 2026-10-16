@@ -40,6 +40,51 @@ export function namedControlsIn(node: Node): HTMLElement[] {
   return [...own, ...namedControls(node)]
 }
 
+/** The value of a choice group's own answer, "Anders". */
+export const OTHER_VALUE = 'other'
+/** After a group's `name`: the key of its "Anders" text in a post, a draft and `errors.fields`. */
+export const OTHER_SUFFIX = '-other'
+
+/** A choice group with "Anders" on, as its holders see it. */
+export interface OtherHolder {
+  other: boolean
+  otherText: string
+  otherError?: string
+  label?: string
+}
+
+export function holdsOther(control: HTMLElement): control is HTMLElement & OtherHolder {
+  return 'otherText' in control && (control as unknown as OtherHolder).other === true
+}
+
+/** The field of a group's "Anders" in its root (`renderOtherField` marks it). */
+export function otherField<
+  T extends HTMLElement = HTMLElement & { updateComplete: Promise<unknown> },
+>(root: ParentNode): T | null {
+  return root.querySelector<T>('[data-other]')
+}
+
+/** The text of "Anders" counts: it is chosen in `value`, the group's value. */
+export function otherChosen(value: unknown): boolean {
+  return Array.isArray(value) ? value.includes(OTHER_VALUE) : value === OTHER_VALUE
+}
+
+/**
+ * The control a key of `errors.fields` (or a draft) belongs to: the one with that `name`, or for
+ * `<name>-other` the group with that `name` and "Anders" on (`other: true`).
+ */
+export function controlForKey(
+  controls: HTMLElement[],
+  key: string,
+): { control: HTMLElement; other: boolean } | null {
+  const own = controls.find((control) => controlName(control) === key)
+  if (own) return { control: own, other: false }
+  if (!key.endsWith(OTHER_SUFFIX)) return null
+  const name = key.slice(0, -OTHER_SUFFIX.length)
+  const group = controls.find((control) => controlName(control) === name && holdsOther(control))
+  return group ? { control: group, other: true } : null
+}
+
 type Fields = Record<string, unknown>
 
 /** How one tag holds its value; without `write` it is read-only. */
@@ -129,6 +174,12 @@ export function formEntries(name: string, value: unknown): [string, string][] {
     return Object.entries(value).map(([key, part]) => [`${name}-${key}`, String(part ?? '')])
   }
   return [[name, String(value ?? '')]]
+}
+
+/** Empty for a `required` check: the value posts nothing, or one of its parts posts `''`. */
+export function postsEmpty(value: unknown): boolean {
+  const entries = formEntries('', value)
+  return entries.length === 0 || entries.some(([, part]) => part === '')
 }
 
 /** A control that tells its own changes (`lintje-change`); a native one has to be read. */
