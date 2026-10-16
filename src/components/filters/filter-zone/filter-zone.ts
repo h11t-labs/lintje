@@ -31,6 +31,7 @@ import {
 import zoneCss from './filter-zone.css?inline'
 import { scrollRoot } from '../../../core/host-config'
 import { holdsFocus } from '../../../core/focus'
+import { heightSettleMs } from '../../shared/transition'
 
 export class LintjeFilterZone extends LintjeElement {
   static override styles = [iconStyles, shadowCss(zoneCss)]
@@ -98,8 +99,8 @@ export class LintjeFilterZone extends LintjeElement {
     this.scrollable = row.offsetHeight + inner.offsetHeight > window.innerHeight - topBar
   }
 
-  // The wait is the body's own `transition-duration`, not `--dur-collapse`: under
-  // `prefers-reduced-motion` the token is 0 ms but `tokens/base.css` still gives 80 ms.
+  // The wait is the body's computed transition of its height, not `--dur-collapse`: whatever
+  // `tokens/base.css` lets move under reduced motion decides it.
   private timeSettling(expanded: boolean): void {
     clearTimeout(this.settleTimer)
     if (!expanded) {
@@ -107,7 +108,7 @@ export class LintjeFilterZone extends LintjeElement {
       return
     }
     const body = this.renderRoot.querySelector<HTMLElement>('.lintje-filter-bar__body')
-    const duration = body ? parseFloat(getComputedStyle(body).transitionDuration) * 1000 : 0
+    const duration = heightSettleMs(body)
     this.settled = !(duration > 0)
     if (!this.settled) this.settleTimer = setTimeout(() => (this.settled = true), duration)
   }

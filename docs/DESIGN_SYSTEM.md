@@ -264,9 +264,11 @@ Besluiten die voor beide gelden:
 
 - **De navigatiebalk is één rij.** Als de items niet passen, gemeten en niet per breakpoint,
   maken ze plaats voor één item, "Menu", waarvan het paneel het hele menu bevat. Een groep opent
-  bij hover; op een aanraakscherm opent een tik een groep en sluit een tweede tik hem. "Menu" opent
-  en sluit met een klik en leest "Sluiten" zolang het open is, zoals in de mobiele header. "Menu"
-  draagt geen actief-markering: de pagina van de lezer zit er bijna altijd in.
+  bij hover; op een aanraakscherm opent een tik een groep en sluit een tweede tik hem. Een groep
+  die een tik opende, sluit niet doordat de muis de balk verlaat; een groep die onder de muis
+  openging wel. "Menu" opent en sluit met een klik en leest "Sluiten" zolang het open is, zoals in
+  de mobiele header. "Menu" draagt geen actief-markering: de pagina van de lezer zit er bijna
+  altijd in.
 - **De bovenbalk van de indeling Links houdt zijn gereedschap ook op één rij.** Zoeken,
   "Weergave" en "Delen" zijn knoppen met hun woord — zoeken met zijn toets, `/` — totdat zij en
   de naam niet passen, gemeten; dan zijn het de kale iconen van de navigatiebalk.
@@ -819,6 +821,9 @@ pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
 - **Eén duur voor interfacebeweging** (`--dur-base`). Elk onderdeel heeft een eigen token dat
   ernaar wijst, zodat er één kan veranderen zonder een component aan te raken. Hoverfeedback is
   korter; databeweging (een grafiek intekenen, een waarde optellen) is langer.
+- **Een vak dat openklapt, knipt zijn inhoud af zolang het groeit en niet langer**: daarna hangt
+  een popover of focusring eruit. Het wacht alleen op een hoogte die echt beweegt; staat die
+  meteen, dan laat het meteen los.
 - **Een teller van ongelezen springt erin als hij verschijnt**, voorbij zijn maat en terug. Een
   nieuw getal in een teller die al getoond wordt, schuift omhoog naar binnen, zoals een KPI-tegel
   doet.
@@ -910,6 +915,9 @@ kleinste correctie, en leg die hier vast.
   toast): een regio die samen met haar tekst wordt ingevoegd, wordt niet voorgelezen. Zo gaat elke
   melding, ook dezelfde twee keer na elkaar: de regio staat er al, wordt leeg en krijgt de woorden
   een frame later.
+- **Wat verandert waar de focus niet staat, zegt een live-regio**: de nieuwe waarde na − of +, de
+  beschrijving van de gekozen optie, een verbinding die wisselt. Een bedieningselement zegt alleen
+  wat de lezer zelf deed, niet een waarde die de host zet; de eerste keer tekenen zwijgt.
 - **Wat niet geopend kan worden, zegt dat in woorden**: een menurij zonder pagina of toegang
   draagt een verborgen "niet beschikbaar" of "geen toegang"; `aria-disabled` op een gewoon element
   zegt niets.

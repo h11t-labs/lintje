@@ -2,8 +2,8 @@
  * `<lintje-number-input>` — a −/+ stepper around a centred value, or a unit on the right without
  * the stepper.
  *
- * It commits on `change`; a press on − or + commits at once. At `min` or `max` the step stays
- * focusable but does nothing.
+ * It commits on `change`; a press on − or + commits at once and says the new value, since the
+ * focus stays on the step. At `min` or `max` the step stays focusable but does nothing.
  *
  * Events: `lintje-change` `number | null`, `lintje-values-change` `{ [name]: value }` (with a
  * `name`), `lintje-reset` (the reset link was pressed).
@@ -13,6 +13,7 @@ import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
+import { LiveMessage } from '../../shared/live-message'
 import { LintjeFormInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
 import numberInputCss from './number-input.css?inline'
@@ -42,6 +43,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
   /** The −/+ buttons. Bind as `.stepper=${false}`, never `?stepper=`. */
   stepper: boolean = true
   stacked: boolean = false
+  readonly #live = new LiveMessage(this)
 
   protected get formValue(): string {
     return this.value === null ? '' : String(this.value)
@@ -66,6 +68,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     if (next === this.value) return
     this.value = next
     this.commit(next)
+    this.#live.say(String(next))
   }
 
   private change(event: Event): void {
@@ -139,6 +142,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
         ${this.stepper ? this.stepButton(1) : nothing}
       </div>
       ${this.renderFoot()}
+      <span class="visually-hidden" role="status">${this.#live.text}</span>
     </div>`
   }
 }
