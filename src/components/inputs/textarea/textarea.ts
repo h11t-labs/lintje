@@ -175,7 +175,7 @@ export class LintjeTextarea extends LintjeFormInputElement {
   }
 
   private get counterShown(): boolean {
-    return Boolean(this.maxlength) && !this.disabled
+    return Boolean(this.maxlength) && !this.isDisabled
   }
 
   protected override renderFoot(): TemplateResult | typeof nothing {
@@ -185,7 +185,7 @@ export class LintjeTextarea extends LintjeFormInputElement {
       { hintId: this.hintId, errorId: this.errorId },
       !this.#over || this.#alertLimit,
     )
-    if (!this.counterShown) return foot
+    if (!this.counterShown) return html`${foot}${this.renderReset()}`
     const limit = this.maxlength!
     const length = this.value.length
     return html`${foot}<span
@@ -194,7 +194,7 @@ export class LintjeTextarea extends LintjeFormInputElement {
         class=${classMap({ 'lintje-textarea__counter': true, 'is-over': length > limit })}
         aria-live=${counterSpeaks(length, limit) ? 'polite' : 'off'}
         >${counterText(length, limit)}</span
-      >`
+      >${this.renderReset()}`
   }
 
   protected override render(): TemplateResult {
@@ -219,7 +219,7 @@ export class LintjeTextarea extends LintjeFormInputElement {
         aria-required=${this.required ? 'true' : nothing}
         ?required=${this.required}
         ?readonly=${this.readonly}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         @input=${this.onInput}
         @change=${this.onChange}
         @keydown=${this.onKeydown}

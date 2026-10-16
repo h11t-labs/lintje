@@ -50,7 +50,7 @@ export class LintjeRadioGroup extends LintjeInputElement {
               'lintje-choice': true,
               'lintje-radio-group__card': this.variant === 'cards',
               'is-chosen': this.variant === 'cards' && option.value === this.value,
-              'is-disabled': this.disabled,
+              'is-disabled': this.isDisabled,
             })}
           >
             <input
@@ -59,7 +59,7 @@ export class LintjeRadioGroup extends LintjeInputElement {
               name=${this.name || 'lintje-radio-group'}
               value=${option.value}
               .checked=${option.value === this.value}
-              ?disabled=${this.disabled}
+              ?disabled=${this.isDisabled}
               @change=${() => this.choose(option.value)}
             />
             <span class="lintje-choice__radio" aria-hidden="true"></span>

@@ -421,6 +421,27 @@ describe('lintje-form', () => {
     expect(native.hasAttribute('aria-invalid')).toBe(false)
   })
 
+  it('gives a native field its message as a description, and the host its own back', async () => {
+    const form = await mount()
+    const native = document.createElement('input')
+    native.name = 'kenmerk'
+    native.setAttribute('aria-description', 'Staat boven aan de brief')
+    const select = document.createElement('select')
+    select.name = 'soort'
+    form.append(native, select)
+    await tick()
+    form.errors = { fields: { kenmerk: 'Kenmerk is verplicht', soort: 'Kies een soort' } }
+    await form.updateComplete
+    expect(native.getAttribute('aria-description')).toBe('Kenmerk is verplicht')
+    expect(select.getAttribute('aria-invalid')).toBe('true')
+    expect(select.getAttribute('aria-description')).toBe('Kies een soort')
+    form.errors = { fields: {} }
+    await form.updateComplete
+    expect(native.getAttribute('aria-description')).toBe('Staat boven aan de brief')
+    expect(select.hasAttribute('aria-invalid')).toBe(false)
+    expect(select.hasAttribute('aria-description')).toBe(false)
+  })
+
   it('commits a textarea once on Ctrl+Enter, and submits once', async () => {
     const form = document.createElement('lintje-form')
     form.innerHTML = '<lintje-textarea name="omschrijving" label="Omschrijving"></lintje-textarea>'

@@ -473,6 +473,36 @@ const FILE_UPLOAD_ROWS: Row[] = [
       return () => button(upload.shadowRoot!.querySelector('.lintje-file-upload__button'))
     },
   },
+  {
+    name: 'lintje-file-upload :: "Bestanden kiezen" keeps its focus through a drag over the page',
+    run: async () => {
+      const upload = await uploadWith([])
+      const chooser = (): HTMLElement | null =>
+        upload.shadowRoot!.querySelector<HTMLElement>('.lintje-file-upload__button')
+      await expect.poll(() => button(chooser())).toBeTruthy()
+      button(chooser())!.focus()
+      const data = new DataTransfer()
+      data.items.add(new File(['inhoud'], 'verslag.pdf', { type: 'application/pdf' }))
+      const drag = async (type: string): Promise<void> => {
+        document.body.dispatchEvent(
+          new DragEvent(type, {
+            dataTransfer: data,
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+          }),
+        )
+        await (upload as unknown as Updating).updateComplete
+      }
+      await drag('dragenter')
+      expect(chooser()!.classList.contains('visually-hidden')).toBe(true)
+      expect(active()).toBe(button(chooser()))
+      await drag('drop')
+      expect(chooser()!.classList.contains('visually-hidden')).toBe(false)
+      expect(chooser()!.getBoundingClientRect().width).toBeGreaterThan(1)
+      return () => button(chooser())
+    },
+  },
 ]
 
 /* --- lintje-transcript ----------------------------------------------------- */
@@ -736,6 +766,8 @@ const INPUT_ROWS: Row[] = [
       ['lintje-select', 'select'],
       ['lintje-segmented', '.lintje-segmented__option'],
       ['lintje-toggle', '.lintje-choice__input'],
+      ['lintje-text-input', 'input'],
+      ['lintje-textarea', 'textarea'],
     ] as const
   ).map(([tag, control]): Row => ({
     name: `${tag} :: the reset link, gone when the host resets, hands its focus to the control`,
@@ -1311,7 +1343,9 @@ async function chosenSlice(
     clearHref: '/p',
   }
   const tile = await mount<ChartElement>('lintje-chart', { data })
+  // The host answers the clear itself, so the tile does not go to `clearHref`.
   tile.addEventListener('lintje-mark-select', (event) => {
+    event.preventDefault()
     if ((event as CustomEvent<{ id: string | null }>).detail.id === null) tile.data = answer(data)
   })
   const mark = (): HTMLElement | null =>

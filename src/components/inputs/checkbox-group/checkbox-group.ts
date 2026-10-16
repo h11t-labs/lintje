@@ -71,7 +71,7 @@ export class LintjeCheckboxGroup extends LintjeInputElement {
             label=${option.label}
             hint=${option.description ?? nothing}
             .checked=${selected.includes(option.value)}
-            ?disabled=${this.disabled}
+            ?disabled=${this.isDisabled}
             @lintje-change=${(event: CustomEvent<boolean>) => {
               event.stopPropagation()
               this.toggle(option.value, event.detail)

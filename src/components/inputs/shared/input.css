@@ -41,9 +41,9 @@
   background: var(--color-attention);
   flex: none; align-self: center;
 }
-:host([disabled]) .lintje-label { color: var(--color-text-disabled); }
+:host(:disabled) .lintje-label { color: var(--color-text-disabled); }
 .lintje-label__optional { font-weight: 400; color: var(--color-text-muted); }
-:host([disabled]) .lintje-label__optional { color: var(--color-text-disabled); }
+:host(:disabled) .lintje-label__optional { color: var(--color-text-disabled); }
 /* A value and its unit stay together when a long label wraps. */
 .lintje-field__value { font-weight: 400; color: var(--color-text-muted); white-space: nowrap; }
 .lintje-field__hint { font: var(--text-small); color: var(--color-text-muted); }
@@ -51,6 +51,26 @@
   display: flex; align-items: center; gap: var(--space-2);
   font: var(--text-small); color: var(--color-error-text); font-weight: 700;
 }
+/* A fixed text beside the input: its own box on the subtle surface with a light line towards the
+   input, so what is fixed stands apart from what the reader types. Read-only and disabled go one
+   step darker. Read-only text is primary: muted on that fill misses 4.5:1 in dark. */
+.lintje-field__addon {
+  display: flex; align-items: center; flex: none;
+  padding: 0 var(--space-3);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  white-space: nowrap;
+}
+.lintje-field__addon--prefix { border-right: 1px solid var(--color-border-default); }
+.lintje-field__addon--suffix { border-left: 1px solid var(--color-border-default); }
+.lintje-field__addon.is-readonly,
+.lintje-field__addon.is-disabled {
+  background: var(--color-border-strong);
+  border-color: var(--color-border-strong);
+}
+.lintje-field__addon.is-readonly { color: var(--color-text-primary); }
+.lintje-field__addon.is-disabled { color: var(--color-text-disabled); }
 
 /* --- A setting's row: name and hint on the left, the control on the right ----- */
 /* A row reads its own width, not the screen's: in a drawer it stays a column. */

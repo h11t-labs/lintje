@@ -4,9 +4,16 @@
  * how the connection holds.
  *
  * The host measures; the element only shows. Each meter has its word beside it, and a value it
- * does not have is a dash, never zero.
+ * does not have is a dash, never zero. A change of connection is said; the time, the sound and the
+ * delay change too often to be.
  */
-import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
+import {
+  html,
+  nothing,
+  type PropertyDeclarations,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
@@ -14,6 +21,7 @@ import { levelWord } from '../level-meter/level-meter'
 import '../level-meter/level-meter'
 import '../../tables/description-list/description-list'
 import type { DescriptionItem } from '../../tables/description-list/description-list'
+import { LiveMessage } from '../../shared/live-message'
 import recordingStatusCss from './recording-status.css?inline'
 
 export { levelWord }
@@ -54,6 +62,17 @@ export class LintjeRecordingStatus extends LintjeElement {
   declare connection?: RecordingConnection | null
   /** How far the text here runs behind, in seconds. */
   declare delay?: number | null
+  readonly #live = new LiveMessage(this)
+
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
+    // Only a change between two states: the first draw and a row that goes away stay silent.
+    const before = changed.get('connection')
+    const now = this.connection
+    if (changed.has('connection') && before && now && before !== now) {
+      this.#live.say(`Verbinding ${CONNECTION_WORD[now].toLocaleLowerCase('nl')}`)
+    }
+  }
 
   private renderLevel(): TemplateResult | typeof nothing {
     if (this.level == null) return nothing
@@ -111,7 +130,8 @@ export class LintjeRecordingStatus extends LintjeElement {
     // It stands on a hero's wash or on the page: its cells are a panel of their own.
     return html`<lintje-description-list layout="grid" surface .columns=${items.length} .items=${items}>
       ${this.renderLevel()} ${connection ? this.renderConnection(connection) : nothing}
-    </lintje-description-list>`
+    </lintje-description-list>
+    <span class="visually-hidden" role="status">${this.#live.text}</span>`
   }
 }
 
