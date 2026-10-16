@@ -25,6 +25,7 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../feedback/progress-bar/progress-bar'
 import stepperCss from './stepper.css?inline'
 import { isPlainClick } from '../../../core/links'
+import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 
 export type StepState = 'done' | 'current' | 'next'
 
@@ -100,19 +101,16 @@ export class LintjeStepper extends LintjeElement {
   protected layout: StepperLayout = 'row'
 
   #mobile = new MediaController(this, MOBILE)
-  #resize: ResizeObserver | null = null
+  #resize = new FrameResizeObserver(() => this.fit())
   #rowWidth = 0
 
   override connectedCallback(): void {
     super.connectedCallback()
-    if (typeof ResizeObserver === 'undefined') return
-    this.#resize = new ResizeObserver(() => this.fit())
     this.#resize.observe(this)
   }
 
   override disconnectedCallback(): void {
-    this.#resize?.disconnect()
-    this.#resize = null
+    this.#resize.disconnect()
     super.disconnectedCallback()
   }
 

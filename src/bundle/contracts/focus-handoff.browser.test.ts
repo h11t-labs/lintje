@@ -766,6 +766,8 @@ const INPUT_ROWS: Row[] = [
       ['lintje-select', 'select'],
       ['lintje-segmented', '.lintje-segmented__option'],
       ['lintje-toggle', '.lintje-choice__input'],
+      ['lintje-text-input', 'input'],
+      ['lintje-textarea', 'textarea'],
     ] as const
   ).map(([tag, control]): Row => ({
     name: `${tag} :: the reset link, gone when the host resets, hands its focus to the control`,
@@ -1341,7 +1343,9 @@ async function chosenSlice(
     clearHref: '/p',
   }
   const tile = await mount<ChartElement>('lintje-chart', { data })
+  // The host answers the clear itself, so the tile does not go to `clearHref`.
   tile.addEventListener('lintje-mark-select', (event) => {
+    event.preventDefault()
     if ((event as CustomEvent<{ id: string | null }>).detail.id === null) tile.data = answer(data)
   })
   const mark = (): HTMLElement | null =>

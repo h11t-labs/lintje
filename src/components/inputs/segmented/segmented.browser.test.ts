@@ -34,7 +34,9 @@ describe('lintje-segmented and its room', () => {
     const element = await mount({}, 800)
     expect(frame(element).classList.contains('is-column')).toBe(false)
     element.style.width = '120px'
-    // The observer reports after the frame's layout, so the second frame sees its update.
+    // The observer reports after the frame's layout and measures in the next, so the third
+    // frame sees its update.
+    await new Promise(requestAnimationFrame)
     await new Promise(requestAnimationFrame)
     await new Promise(requestAnimationFrame)
     await element.updateComplete
