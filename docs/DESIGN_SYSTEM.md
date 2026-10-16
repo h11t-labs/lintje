@@ -159,13 +159,22 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
 
 - **De namen bestaan één keer**, in `src/tokens/colors.ts`. De unies van het contract, de
   accenten van een KPI, de kleurentabel van de grafieken en de reeksen van de kaart volgen eruit.
-  De volgorde ligt vast en een kleur komt er alleen achteraan bij: op een kaart heeft elke kleur
-  de vorm op haar plaats, en een ingevoegde kleur zou elke reeks erna van vorm laten wisselen.
+  De volgorde ligt vast en een kleur komt er alleen achteraan bij: op een kaart is de vorm op
+  haar plaats het standaardpaar van elke kleur, en een ingevoegde kleur zou elke reeks erna van
+  vorm laten wisselen.
+- **Het paar kleur-vorm van een kaartreeks is een standaard, geen garantie.** Zonder stijl
+  tekent een reeks de kleur van haar naam met de vorm daarvan; met een stijl (`seriesStyles`:
+  een kleur, een vorm, of allebei) beslist de pagina, zoals ze beslist welke variabele hemelblauw
+  is. Een stijl is er voor reeksen die alleen in vorm verschillen, in één neutrale kleur, waar
+  de kleur anders een betekenis zou dragen die er niet is; het onderscheid blijft dan bij de
+  vorm en de legenda (regel 13).
 - **Hemelblauw is de standaard.** Een figuur die geen kleur noemt, tekent in
   `--color-chart-default`, en de gedeelde tintladder (`--color-chart-tint-*`) is die van
   hemelblauw.
 
-- **Vergelijking is altijd grijs; trend, drempel en doel altijd de nadrukkleur.**
+- **Vergelijking is altijd grijs; trend, drempel en doel altijd de nadrukkleur.** `neutral` is
+  de rol van een reeks die in kleur niets draagt, zoals gelijkwaardige bronnen op een kaart: ze
+  tekent datzelfde grijs en is nooit een nieuwe datakleur.
 - Vast is de kleur van een variabele. De grijzen (`--data-comparison`, `--data-other`), het
   raster en de nadrukkleur volgen de modus; geel als tekst heeft een eigen token
   (`--color-chart-dark-yellow-text`), omdat geel geen tekstkleur is. "Overig" is in donker zo
@@ -255,9 +264,11 @@ Besluiten die voor beide gelden:
 
 - **De navigatiebalk is één rij.** Als de items niet passen, gemeten en niet per breakpoint,
   maken ze plaats voor één item, "Menu", waarvan het paneel het hele menu bevat. Een groep opent
-  bij hover; "Menu" opent en sluit met een klik en leest "Sluiten" zolang het open is, zoals in de
-  mobiele header. "Menu" draagt geen actief-markering: de pagina van de lezer zit er bijna altijd
-  in.
+  bij hover; op een aanraakscherm opent een tik een groep en sluit een tweede tik hem. Een groep
+  die een tik opende, sluit niet doordat de muis de balk verlaat; een groep die onder de muis
+  openging wel. "Menu" opent en sluit met een klik en leest "Sluiten" zolang het open is, zoals in
+  de mobiele header. "Menu" draagt geen actief-markering: de pagina van de lezer zit er bijna
+  altijd in.
 - **De bovenbalk van de indeling Links houdt zijn gereedschap ook op één rij.** Zoeken,
   "Weergave" en "Delen" zijn knoppen met hun woord — zoeken met zijn toets, `/` — totdat zij en
   de naam niet passen, gemeten; dan zijn het de kale iconen van de navigatiebalk.
@@ -354,6 +365,11 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een waarde die afwijkt van haar standaard** draagt op elk bedieningselement twee markeringen:
   het label in de accentkleur en een oranje stip. Geen extra rand, geen gekleurd oppervlak.
 - **Een veld legt vast als de lezer het verlaat of op Enter drukt.**
+- **Een vaste toevoeging aan een veld staat in een eigen vak** (een valutateken, een domein, een
+  eenheid, een vast voorvoegsel): het gedempte oppervlak met een lichte lijn naar de invoer, zodat
+  wat vaststaat apart staat van wat de lezer typt. Ze hoort nooit bij de waarde en beschrijft het
+  veld voor een schermlezer. Eén knop in een veld is een secundaire knop aan het eind, zoals
+  Tonen bij een wachtwoord; hij legt eerst vast wat getypt is, zoals Enter.
 - **Een schakelaar is alleen voor direct effect**, nooit in een formulier. Uit is zijn baan
   gevuld in het grijs van de veldrand, niet bleek met een ring: de vulling alleen haalt 3:1.
 - **Een instelling is een rij**: de naam in normaal gewicht en de uitleg eronder links, het
@@ -468,6 +484,11 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een link is een link**: een echte `<a href>` die de browser volgt. Een gewone linkerklik wordt
   ook gemeld als `lintje-navigate`, en een host met een router annuleert dat event om de klik over
   te nemen. Een klik met een modificatietoets is van de browser.
+- **Een rij of teken met een `href` gaat erheen**, tenzij de host zijn event annuleert: een
+  klikbare tabelrij, een teken in een grafiek en een markering op de kaart, zoals een linkrij van
+  de lijst. Het element gaat via `lintje-navigate`, zodat een router het overneemt; een selectie
+  ongedaan maken gaat zo naar de `clearHref`. Een klik met een modificatietoets of de middelste
+  knop opent de `href` in een nieuw tabblad, zoals een link, via `lintje-navigate` met `newTab`.
 - **Toetsen lopen via één register** (`src/core/shortcuts.ts`). Een toets is nooit de enige manier
   om iets te doen, en een toets zonder modificatietoets gaat nooit af zolang de focus in een veld
   staat. De eigen toetsen van een speler (spatie, de pijlen, F, C) werken alleen zolang de focus
@@ -658,7 +679,8 @@ de stijlgids. Past geen soort, dan is het een tabel.
   host ze ook stuurt, en de tinten spreiden over de ladder met het aantal delen. Meer dan vijf
   delen worden vier en één grijs "Overig" dat niet klikbaar is: een samengevoegd stuk heeft geen
   plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) zijn geen delen; ze
-  staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde.
+  staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde; zonder
+  legendatabel staat de gewone legenda boven de tekening, een item per deel en geen schakelaar.
 - **Een gestapeld vlak toont de onderverdelingen van één variabele** in haar ladder, de eerste
   onderaan en de donkerste, in volle tinten met een lijn in de oppervlaktekleur tussen de lagen.
   Ontbreekt een laag op een punt, dan breken die laag en alles erboven daar af, want hun
@@ -722,12 +744,13 @@ die de host noemt, tonen hun naam; de rest leest de lezer uit de tooltip of de t
 boven, en het toetsenbord volgt de stapel; een choropleet kleurt het land zelf en ligt daarom
 altijd onderop. Er is één selectie over alle lagen en één legenda, boven de kaart zoals bij
 elke grafiek, met per laag één regel: haar naam — die van de host, anders die van haar soort —
-met het vakje van een checkbox ervoor, dat de laag aan en uit zet, dan haar sleutel, dan haar
-reeksen, elk een schakelaar zoals in elke legenda, en achteraan "geen gegevens" als een mark van
-die laag geen cijfer heeft. Een kleur die in meer
-lagen dient, staat bij elke laag en schakelt per laag. De sleutel is dezelfde tekening als de
-kaart: vijf klassen van 0 tot het maximum, drie cirkels van klein naar groot met het bereik, of
-één wig van dun naar dik met het bereik; een cijfer spreekt altijd de eenheid van zijn eigen laag.
+met het vakje van een checkbox ervoor, dat de laag aan en uit zet, dan haar sleutel — of niets,
+voor een laag van punten waarvan het getal geen maat is —, dan haar reeksen, elk een schakelaar
+zoals in elke legenda, en achteraan "geen gegevens" als een mark van die laag geen cijfer heeft.
+Een kleur die in meer lagen dient, staat bij elke laag en schakelt per laag. De sleutel is
+dezelfde tekening als de kaart: vijf klassen van 0 tot het maximum, drie cirkels van klein naar
+groot met het bereik, of één wig van dun naar dik met het bereik; een cijfer spreekt altijd de
+eenheid van zijn eigen laag.
 Meer dan drie lagen vouwen op de tegel onder "Nog n lagen"; de vergroting toont alles, en daar
 krijgt elke klasse haar bereik en staan de cirkels genest op ware maat met hun getal. Op een
 telefoon staat de naam boven de sleutel en krijgen de reeksen een eigen regel. Een vlak dat niet
@@ -796,6 +819,10 @@ navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de
 (identiteit en één meetwaarde) en de heatmap. Tussen de breedtes lopen bedieningselementen door
 naar een volgende regel; ze overlappen nooit.
 
+**Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame nadat die veranderde.**
+Zo verandert zijn maat nooit in de ronde van zijn waarnemer, die de browser anders als fout van de
+pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
+
 ## Beweging
 
 - **Twee curves**: wat binnenkomt, vertraagt; wat vertrekt, versnelt. Een vervaging die heen en
@@ -803,6 +830,9 @@ naar een volgende regel; ze overlappen nooit.
 - **Eén duur voor interfacebeweging** (`--dur-base`). Elk onderdeel heeft een eigen token dat
   ernaar wijst, zodat er één kan veranderen zonder een component aan te raken. Hoverfeedback is
   korter; databeweging (een grafiek intekenen, een waarde optellen) is langer.
+- **Een vak dat openklapt, knipt zijn inhoud af zolang het groeit en niet langer**: daarna hangt
+  een popover of focusring eruit. Het wacht alleen op een hoogte die echt beweegt; staat die
+  meteen, dan laat het meteen los.
 - **Een teller van ongelezen springt erin als hij verschijnt**, voorbij zijn maat en terug. Een
   nieuw getal in een teller die al getoond wordt, schuift omhoog naar binnen, zoals een KPI-tegel
   doet.
@@ -817,7 +847,8 @@ naar een volgende regel; ze overlappen nooit.
 - **Een keuze beweegt mee**: het vinkje van een checkbox groeit in bij aanvinken en krimpt weg bij
   uitvinken, op de duur van hoverfeedback.
 - **De focusring is nooit geanimeerd.**
-- **Verminderde beweging laat niets weg, alleen de beweging.**
+- **Verminderde beweging laat niets weg, alleen de beweging.** Alleen een vervaging blijft, kort;
+  al het andere, ook de focusring en een kleur, staat meteen.
 
 ## Afdrukken
 
@@ -890,7 +921,12 @@ kleinste correctie, en leg die hier vast.
   SVG-element met `tabindex` zijn eigen outline, ook zonder `:focus-visible`; `:focus` zet die af,
   en de ring blijft die van het toetsenbord.
 - **Een live-regio wordt leeg getekend en krijgt haar woorden een frame later** (tegel, laadring,
-  toast): een regio die samen met haar tekst wordt ingevoegd, wordt niet voorgelezen.
+  toast): een regio die samen met haar tekst wordt ingevoegd, wordt niet voorgelezen. Zo gaat elke
+  melding, ook dezelfde twee keer na elkaar: de regio staat er al, wordt leeg en krijgt de woorden
+  een frame later.
+- **Wat verandert waar de focus niet staat, zegt een live-regio**: de nieuwe waarde na − of +, de
+  beschrijving van de gekozen optie, een verbinding die wisselt. Een bedieningselement zegt alleen
+  wat de lezer zelf deed, niet een waarde die de host zet; de eerste keer tekenen zwijgt.
 - **Wat niet geopend kan worden, zegt dat in woorden**: een menurij zonder pagina of toegang
   draagt een verborgen "niet beschikbaar" of "geen toegang"; `aria-disabled` op een gewoon element
   zegt niets.
@@ -921,10 +957,17 @@ kleinste correctie, en leg die hier vast.
 - **Een bewerking ter plekke houdt haar toetsen**: Enter en Escape tellen alleen in haar veld,
   niet op haar knoppen, en haar Escape beëindigt de bewerking en verder niets. Beëindigd, geeft
   ze de focus aan haar rij of cel.
+- **De toevoeging van een alleen-lezen veld draagt haar tekst in de tekstkleur**, zoals het veld
+  zelf: het gedempte grijs haalt op haar donkerdere vlak in donker geen 4.5:1.
 - **Een element met een naam in eigen woorden houdt wat zijn label zegt**: een greep, knop of
   popup waarvan de naam als tekst wordt opgebouwd, draagt "(niet verplicht)" en het "afwijkend
   van standaard" van de stip zoals het label doet (`labelText` in
   `components/inputs/shared/input.ts`).
+- **De terugzetknop van een veld noemt het veld na zijn eigen woorden**: "Terugzetten naar 2 tot
+  12, Leeftijd", het label in verborgen tekst, zodat de naam begint met wat er staat (2.5.3).
+- **Een natief veld in een formulier draagt zijn fout zelf**: naast `aria-invalid` de melding als
+  `aria-description`, want `aria-describedby` reikt niet tot in de shadow root van het formulier.
+  Is de fout weg, dan krijgt het veld de beschrijving van de host terug.
 - **Een live-regio die zinnen uitspreekt, is `aria-atomic="false"`**: een nieuwe zin wordt los
   voorgelezen; vervangen tekst, niet voortgezet, wordt vanaf het begin uitgesproken.
 - **Een zwevend paneel aan een knop sluit als de focus het verlaat** (een menu, de bel, de

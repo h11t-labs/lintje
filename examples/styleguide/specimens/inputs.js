@@ -251,7 +251,7 @@ export default {
     },
 {
       tag: 'lintje-text-input',
-      title: 'Zoeken, wachtwoord, e-mail en vastleggen per toetsaanslag',
+      title: 'Zoeken, wachtwoord, e-mail, een vaste toevoeging en vastleggen per toetsaanslag',
       specimens: [
         {
           label: 'Zoeken terwijl je typt',
@@ -296,6 +296,15 @@ export default {
           html: '<lintje-text-input name="p.zoek-afwijkend" label="Afwijkend van standaard" value="Eindhoven" modified clearable></lintje-text-input>',
         },
         {
+          label: 'Afwijkend met terugzetten',
+          note: 'Met `reset-label` staat er een link onder het veld die `lintje-reset` stuurt. Een schermlezer hoort het label van het veld erachter.',
+          html: '<lintje-text-input label="Naam" value="Overleg team" hint="Mag leeg blijven" modified reset-label="Leegmaken"></lintje-text-input>',
+          setup(stage) {
+            const field = stage.querySelector('lintje-text-input')
+            field.addEventListener('lintje-reset', () => Object.assign(field, { value: '', modified: false }))
+          },
+        },
+        {
           label: 'Ongeldige tekens',
           html: '<lintje-text-input name="p.zoek-fout" label="Met foutmelding" value="!!" error="Gebruik alleen letters en cijfers."></lintje-text-input>',
         },
@@ -315,6 +324,50 @@ export default {
         {
           label: 'Alleen-lezen',
           html: '<lintje-text-input name="dossier" label="Dossiernummer" value="2026-0412" readonly clearable></lintje-text-input>',
+        },
+        {
+          label: 'Met prefix',
+          note: 'Een vaste tekst die de lezer nooit typt staat in een eigen vak; hij hoort niet bij de waarde.',
+          html: '<lintje-text-input name="p.bedrag" label="Bedrag" prefix="€" value="1250"></lintje-text-input>',
+        },
+        {
+          label: 'Met suffix',
+          html: '<lintje-text-input name="p.adres" label="E-mailadres" suffix="@rijksoverheid.nl" value="j.devries"></lintje-text-input>',
+        },
+        {
+          label: 'Met prefix en suffix',
+          html: '<lintje-text-input name="p.website" label="Website" prefix="www." suffix=".nl" value="rijksoverheid" clearable></lintje-text-input>',
+        },
+        {
+          label: 'Met knop',
+          note: 'De knop legt eerst vast wat getypt is, zoals Enter, en stuurt dan `lintje-action`.',
+          html: '<lintje-text-input name="p.kenteken" label="Kenteken" action="Zoek" value="AB-12-CD"></lintje-text-input>',
+          setup(stage) {
+            const say = log(stage)
+            stage.querySelector('lintje-text-input').addEventListener('lintje-action', (event) => {
+              say(`lintje-action ${JSON.stringify(event.detail)}`)
+            })
+          },
+        },
+        {
+          label: 'Zoekveld met knop',
+          html: '<lintje-text-input type="search" label="Zoek in de regelingen" action="Zoek" value="subsidie"></lintje-text-input>',
+        },
+        {
+          label: 'Toevoeging met fout',
+          html: '<lintje-text-input name="p.dossiernummer" label="Dossiernummer" prefix="DOS-" value="12a" error="Gebruik alleen cijfers." action="Controleer"></lintje-text-input>',
+        },
+        {
+          label: 'Toevoeging alleen-lezen',
+          html: '<lintje-text-input name="p.dossier-vast" label="Dossiernummer" prefix="DOS-" value="2026-0412" readonly action="Controleer"></lintje-text-input>',
+        },
+        {
+          label: 'Toevoeging uitgeschakeld',
+          html: '<lintje-text-input name="p.bedrag-uit" label="Bedrag" prefix="€" suffix="per maand" value="85" disabled action="Controleer"></lintje-text-input>',
+        },
+        {
+          label: 'Toevoeging afwijkend van standaard',
+          html: '<lintje-text-input name="p.domein" label="Domein" prefix="www." suffix=".nl" value="overheid" modified></lintje-text-input>',
         },
       ],
     },
@@ -380,6 +433,20 @@ export default {
           html: '<lintje-textarea label="Omschrijving" modified value="Tas zonder eigenaar, omgeving afgezet."></lintje-textarea>',
         },
         {
+          label: 'Toelichting en teller',
+          note: 'De toelichting links, de teller rechts op dezelfde regel; past dat niet, dan valt de teller eronder.',
+          html: '<lintje-textarea label="Omschrijving" hint="Wat er is gebeurd, in een paar zinnen." maxlength="2000" value="Tas zonder eigenaar bij de balie."></lintje-textarea>',
+        },
+        {
+          label: 'Afwijkend met terugzetten',
+          note: 'De link staat na de teller.',
+          html: '<lintje-textarea label="Omschrijving" maxlength="2000" modified reset-label="Terugzetten naar leeg" value="Tas zonder eigenaar, omgeving afgezet."></lintje-textarea>',
+          setup(stage) {
+            const field = stage.querySelector('lintje-textarea')
+            field.addEventListener('lintje-reset', () => Object.assign(field, { value: '', modified: false }))
+          },
+        },
+        {
           label: 'Over de limiet',
           note: 'De teller zegt hoeveel tekens de tekst korter moet.',
           html: '<lintje-textarea label="Omschrijving" maxlength="40" value="Een tekst die langer is dan de limiet toelaat."></lintje-textarea>',
@@ -443,6 +510,16 @@ export default {
         {
           label: 'Alleen-lezen',
           html: '<lintje-number-input name="p.drempel-vast" label="Drempel" value="5" min="0" max="20" readonly></lintje-number-input>',
+        },
+        {
+          label: 'Prefix zonder stapknoppen',
+          html: '<lintje-number-input name="p.tarief" label="Tarief" value="85" prefix="€"></lintje-number-input>',
+          setup: (stage) => (stage.querySelector('lintje-number-input').stepper = false),
+        },
+        {
+          label: 'Prefix en eenheid',
+          html: '<lintje-number-input name="p.uurtarief" label="Uurtarief" value="85" prefix="€" unit="per uur"></lintje-number-input>',
+          setup: (stage) => (stage.querySelector('lintje-number-input').stepper = false),
         },
       ],
     },

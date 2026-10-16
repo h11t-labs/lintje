@@ -222,6 +222,21 @@ describe('lintje-notifications, what changes', () => {
     expect(newsMessage(3)).toBe('3 nieuwe meldingen')
   })
 
+  it('says one new item twice when the unread grow by one twice in a row', async () => {
+    const element = await mount()
+    const region = element.shadowRoot!.querySelector('[role="status"]')!
+    let items = ITEMS
+    for (const id of ['n0', 'n00']) {
+      items = [{ id, title: 'Samenvatting klaar', when: 'nu', unread: true }, ...items]
+      element.items = items
+      await element.updateComplete
+      expect(region.textContent).toBe('')
+      await nextFrame()
+      await element.updateComplete
+      expect(region.textContent).toBe('1 nieuwe melding')
+    }
+  })
+
   it('moves the focus to the first item when "Alles gelezen" goes', async () => {
     const element = await mount(ITEMS, true)
     const read = element.shadowRoot!.querySelector<HTMLButtonElement>(
