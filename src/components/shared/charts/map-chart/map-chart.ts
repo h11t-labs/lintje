@@ -12,8 +12,9 @@ import { chartIcon, ZOOM_CONTROLS } from '../shared/chart-icons'
 import { renderIcon } from '../../../../icons/render'
 import { renderTooltip } from '../shared/tooltip'
 import { LeafletSurface } from './leaflet'
-import { seriesColor } from '../shared/colors'
-import { markPath } from '../shared/series-shapes'
+import { seriesShapePath } from '../shared/series-shapes'
+import { DEFAULT_SERIES_COLOR } from '../shared/colors'
+import { seriesStyle } from './series-style'
 import { nextRow, type MenuItem } from '../../../actions/menu-button/menu-button'
 import type { ChartController, ChartOptions } from '../shared/controller'
 import { mapDrawings, withUnit, type MapDrawing } from './drawings'
@@ -204,6 +205,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     }
   const selection = active ? byId.get(active) : undefined
   const selectionDrawing = selection ? drawingOf.get(selection.id) : undefined
+  const selectionStyle = seriesStyle(selectionDrawing ?? {}, selection?.series)
   const seriesLabelOf = (value: MapValue) =>
     (value.series && drawingOf.get(value.id)?.seriesLabels?.[value.series]) || undefined
 
@@ -454,7 +456,8 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
             seriesLabelOf(selection)
               ? html`<span class="lintje-map-chart__selection-series">
                 <svg class="lintje-map-chart__series-swatch" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
-                  <path d=${markPath(selection.series, 5.5, 7, 7)} fill=${seriesColor(selection.series) ?? 'currentColor'} />
+                  <path d=${seriesShapePath(selectionStyle.shape, 5.5, 7, 7)}
+                        fill=${selectionStyle.color ?? DEFAULT_SERIES_COLOR} />
                 </svg>${seriesLabelOf(selection)}
               </span>`
               : nothing

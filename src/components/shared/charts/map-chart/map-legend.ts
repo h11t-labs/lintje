@@ -8,7 +8,7 @@ import { formatCompactNumber, formatNumber } from '../../../../core/format'
 import { styleProps } from '../../../../core/style-props'
 import { renderIcon } from '../../../../icons/render'
 import { renderLegend, type LegendItem } from '../shared/axes'
-import { seriesColor } from '../shared/colors'
+import { seriesStyle } from './series-style'
 import { CLASSES, pointRadius, seriesKey } from './marks'
 import { withUnit, type MapDrawing } from './drawings'
 import type { MapSeriesKey } from '../shared/types'
@@ -153,11 +153,12 @@ function seriesItems(drawing: MapDrawing, hiddenSeries: string[]): LegendItem[] 
   ][]) {
     if (!label || !drawing.values.some((value) => value.series === key)) continue
     const id = seriesKey(drawing, key)
+    const style = seriesStyle(drawing, key)
     items.push({
       key: id,
       label,
-      color: seriesColor(key),
-      symbol: key,
+      color: style.color,
+      symbolShape: style.shape,
       shape: 'point',
       hidden: hiddenSeries.includes(id),
     })
