@@ -377,6 +377,8 @@ export class LintjeDataTable extends LintjeContentTileElement {
 
   protected override expandChanged(open: boolean): void {
     if (!open) this.#modalEdges.disconnect()
+    // The copy that shows now starts silent: the last message would be read out again.
+    this.#live.clear()
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {

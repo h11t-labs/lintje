@@ -942,6 +942,10 @@ kleinste correctie, en leg die hier vast.
 - **Wat verandert waar de focus niet staat, zegt een live-regio**: de nieuwe waarde na − of +, de
   beschrijving van de gekozen optie, een verbinding die wisselt. Een bedieningselement zegt alleen
   wat de lezer zelf deed, niet een waarde die de host zet; de eerste keer tekenen zwijgt.
+- **Iets wordt één keer gezegd**: wat de focus krijgt, is geen live-regio — de focus is de
+  melding (de foutsamenvatting is een groep met haar kop als naam); een tweede kopie van een
+  tegel begint met een lege regio; een naam bevat niet de waarde die het element ook als waarde
+  zegt.
 - **Wat niet geopend kan worden, zegt dat in woorden**: een menurij zonder pagina of toegang
   draagt een verborgen "niet beschikbaar" of "geen toegang"; `aria-disabled` op een gewoon element
   zegt niets.

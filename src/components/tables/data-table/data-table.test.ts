@@ -242,6 +242,26 @@ describe('the status region', () => {
     expect(await said(element)).toBe('Pagina 2 van 3')
   })
 
+  it('starts silent in the tile after the expanded copy closes, and speaks again after', async () => {
+    const element = document.createElement('lintje-data-table') as TableElement
+    // `expand()` runs the hook the modal's close runs; setting `expanded` would skip it.
+    const expand = (open: boolean): void =>
+      (element as unknown as { expand(open: boolean): void }).expand(open)
+    element.data = { ...structuredClone(data), expandable: true }
+    document.body.append(element)
+    await element.updateComplete
+    headerCells(element)[1]!.querySelector('button')!.click()
+    expect(await said(element)).toBe('Gesorteerd op aanvragen, aflopend.')
+
+    expand(true)
+    expect(await said(element)).toBe('')
+    expand(false)
+    expect(await said(element)).toBe('')
+
+    headerCells(element)[1]!.querySelector('button')!.click()
+    expect(await said(element)).toBe('Gesorteerd op aanvragen, oplopend.')
+  })
+
   it('says how many rows a filter left when the host gives no total', async () => {
     const element = document.createElement('lintje-data-table') as TableElement
     element.data = {
