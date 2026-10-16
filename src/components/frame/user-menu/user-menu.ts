@@ -32,6 +32,7 @@ import menuButtonCss from '../../actions/menu-button/menu-button.css?inline'
 import userMenuCss from './user-menu.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { standsIn } from '../../../core/focus'
+import { titleWhenCut } from '../../shared/cut-text'
 import type { UserMenuUser } from '../../../types'
 
 let instances = 0
@@ -205,7 +206,7 @@ export class LintjeUserMenu extends LintjeElement {
     })
     const content = html`${
       item.icon ? renderIcon(item.icon, { size: 16, className: 'lintje-menu__icon' }) : nothing
-    }<span class="lintje-menu__label">${item.label}</span>${
+    }<span class="lintje-menu__label" @pointerenter=${titleWhenCut}>${item.label}</span>${
       item.hint ? html`<span class="lintje-menu__hint">${item.hint}</span>` : nothing
     }`
     if (item.href && !item.disabled) {
@@ -239,7 +240,7 @@ export class LintjeUserMenu extends LintjeElement {
     const role = this.inline ? nothing : 'menuitem'
     const tabindex = this.inline ? nothing : '-1'
     const glyph = renderIcon('functioneel-uitloggen', { size: 16, className: 'lintje-menu__icon' })
-    const label = html`${glyph}<span class="lintje-menu__label">Afmelden</span>`
+    const label = html`${glyph}<span class="lintje-menu__label" @pointerenter=${titleWhenCut}>Afmelden</span>`
     if (this.logoutAction) {
       return html`<form class="lintje-user-menu__logout" method="post" action=${this.logoutAction}>
         <input type="hidden" name="csrf_token" .value=${this.csrf} />

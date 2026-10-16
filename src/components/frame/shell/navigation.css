@@ -151,12 +151,12 @@
    in line with the logo. Expanding animates only the width, so the icon stays in place. */
 .lintje-nav__item {
   position: relative;
-  height: var(--h-nav-row);
+  min-height: var(--h-nav-row);
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: var(--space-3);
-  padding: 0 22px;
+  padding: var(--space-2) 22px;
   border-left: var(--nav-edge) solid transparent;
   font-size: 1rem;
   color: var(--color-nav-text);
@@ -178,7 +178,13 @@
 .lintje-nav__item.is-no-page { color: var(--color-nav-disabled); cursor: default; }
 .lintje-nav__item.is-no-access { color: var(--color-nav-disabled); text-decoration: line-through; cursor: not-allowed; }
 
-.lintje-nav__label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.lintje-nav__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* The `title` of a cut label needs a pointer: under the keyboard's focus, without hover and below
+   768 px the label wraps whole. */
+.lintje-nav__item:focus-visible .lintje-nav__label { white-space: normal; overflow-wrap: anywhere; }
+@media (hover: none), screen and (max-width: 767px) {
+  .lintje-nav__label { white-space: normal; overflow-wrap: anywhere; }
+}
 .lintje-nav--rail.is-expanded .lintje-nav__label,
 .lintje-nav--rail.is-expanded .lintje-nav__metric {
   animation: lintje-nav-text-in var(--dur-base) var(--ease-in-motion) 80ms backwards;

@@ -22,6 +22,7 @@ import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../overlays/popover/popover'
 import { filterOptions, splitMatch } from '../combobox/combobox'
+import { LiveMessage } from '../../shared/live-message'
 import { LintjeInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
 import type { FilterOption } from '../../../types'
@@ -69,7 +70,6 @@ export class LintjeTagInput extends LintjeInputElement {
     stacked: { type: Boolean, reflect: true },
     text: { state: true },
     flash: { state: true },
-    news: { state: true },
     active: { state: true },
     suggesting: { state: true },
   }
@@ -81,12 +81,12 @@ export class LintjeTagInput extends LintjeInputElement {
   stacked: boolean = false
   protected text: string = ''
   protected flash: string | null = null
-  protected news: string = ''
   protected active: number = -1
   /** Off after Escape, on again with the next keystroke. */
   protected suggesting: boolean = false
 
   #flashTimer: ReturnType<typeof setTimeout> | null = null
+  readonly #news = new LiveMessage(this)
 
   override disconnectedCallback(): void {
     if (this.#flashTimer !== null) clearTimeout(this.#flashTimer)
@@ -110,7 +110,7 @@ export class LintjeTagInput extends LintjeInputElement {
   }
 
   private get listOpen(): boolean {
-    return this.suggesting && !this.disabled && this.suggestions.length > 0
+    return this.suggesting && !this.isDisabled && this.suggestions.length > 0
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
@@ -136,7 +136,7 @@ export class LintjeTagInput extends LintjeInputElement {
       this.light(duplicate)
       news.push(`${this.labelOf(duplicate)} staat er al`)
     }
-    if (news.length) this.news = news.join('. ')
+    if (news.length) this.#news.say(news.join('. '))
     if (!added.length) return
     this.value = next
     this.announce(next)
@@ -152,11 +152,11 @@ export class LintjeTagInput extends LintjeInputElement {
   }
 
   private async removeChip(index: number, then: number | 'input'): Promise<void> {
-    if (this.disabled) return
+    if (this.isDisabled) return
     const word = this.value[index]
     const next = this.value.filter((_, at) => at !== index)
     this.value = next
-    this.news = `${this.labelOf(word)} verwijderd`
+    this.#news.say(`${this.labelOf(word)} verwijderd`)
     this.announce(next)
     await this.updateComplete
     if (then === 'input' || then < 0 || then >= next.length) this.input?.focus()
@@ -265,7 +265,7 @@ export class LintjeTagInput extends LintjeInputElement {
     return html`<li class="lintje-tag-input__item">
       <span class=${classMap({ 'lintje-tag-input__chip': true, 'is-flash': this.flash === word })}
         >${label}${
-          this.disabled
+          this.isDisabled
             ? nothing
             : html`<button
               type="button"
@@ -316,7 +316,7 @@ export class LintjeTagInput extends LintjeInputElement {
         class=${classMap({
           'lintje-tag-input': true,
           'is-error': Boolean(this.error),
-          'is-disabled': this.disabled,
+          'is-disabled': this.isDisabled,
         })}
         role="group"
         aria-labelledby=${this.labelId}
@@ -341,7 +341,7 @@ export class LintjeTagInput extends LintjeInputElement {
           aria-describedby=${this.describedBy === nothing ? KEYS_ID : `${this.describedBy} ${KEYS_ID}`}
           aria-invalid=${this.error ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @input=${this.onInput}
           @keydown=${this.onKeydown}
           @paste=${this.onPaste}
@@ -357,7 +357,7 @@ export class LintjeTagInput extends LintjeInputElement {
       >
         ${this.renderSuggestions()}
       </lintje-popover>
-      <span class="visually-hidden" role="status">${this.news}</span>
+      <span class="visually-hidden" role="status">${this.#news.text}</span>
       <span id=${KEYS_ID} hidden
         >Enter of een komma voegt een woord toe. Pijl links of Backspace gaat naar de woorden;
         daar verwijdert Backspace of Delete een woord.</span

@@ -20,6 +20,7 @@ import { renderHistogramChart } from '../histogram-chart/histogram-chart'
 import { renderRadarChart } from '../radar-chart/radar-chart'
 
 export function renderChart(spec: ChartSpec, options: ChartOptions): TemplateResult {
+  options.controller.follow(spec)
   switch (spec.kind) {
     case 'line':
       return renderLineChart(spec, options)

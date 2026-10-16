@@ -24,6 +24,8 @@ type Pressable = HTMLElement & {
   busy?: boolean
   label?: string
   reason?: string
+  description?: string
+  href?: string
   updateComplete: Promise<unknown>
 }
 
@@ -95,6 +97,36 @@ describe('lintje-button', () => {
     await element.updateComplete
     expect(inner(element).hasAttribute('aria-describedby')).toBe(false)
   })
+
+  for (const href of [undefined, '#upload']) {
+    const kind = href === undefined ? 'button' : 'link'
+    const control = (element: Pressable): HTMLElement =>
+      element.shadowRoot!.querySelector(href === undefined ? 'button' : 'a')!
+
+    it(`reads the description and then the reason on a disabled ${kind}`, async () => {
+      const element = await make('lintje-button', {
+        label: 'Uploaden',
+        disabled: true,
+        reason: 'Kies eerst een bestand.',
+        description: 'Maximaal 10 MB',
+        href,
+      })
+      const ids = control(element).getAttribute('aria-describedby')!.split(' ')
+      const texts = ids.map((id) => element.shadowRoot!.getElementById(id)?.textContent)
+      expect(texts).toEqual(['Maximaal 10 MB', 'Kies eerst een bestand.'])
+      expect(control(element).hasAttribute('aria-description')).toBe(false)
+    })
+
+    it(`keeps aria-description on a ${kind} without a reason`, async () => {
+      const element = await make('lintje-button', {
+        label: 'Uploaden',
+        description: 'Maximaal 10 MB',
+        href,
+      })
+      expect(control(element).getAttribute('aria-description')).toBe('Maximaal 10 MB')
+      expect(control(element).hasAttribute('aria-describedby')).toBe(false)
+    })
+  }
 
   it('passes the click on once it is available again', async () => {
     const element = await make('lintje-button', { label: 'Opslaan', disabled: true })
