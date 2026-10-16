@@ -352,7 +352,6 @@ export interface WmsBasemap {
   attribution: string
 }
 
-/** What one layer of a stacked map draws: a map's variant, without the scope picker. */
 /**
  * How a layer's points are sized. Without it a point's radius grows from 3 to 18 px with the
  * square root of its figure's share of the layer's largest, and keeps that size at every zoom.
@@ -375,6 +374,7 @@ export interface MapPointSize {
   zoom?: boolean
 }
 
+/** What one layer of a stacked map draws: a map's variant, without the scope picker. */
 export type MapPlotVariant = 'polygons' | 'points' | 'flows' | 'choropleth'
 
 /**

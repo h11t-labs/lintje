@@ -64,6 +64,9 @@ const hasRing = (value: MapValue): boolean => (value.polygon?.length ?? 0) > 2
 /** The radius a point may follow the zoom between, in px (`MapPointSize.zoom`). */
 export const ZOOM_RADIUS = { min: 2, max: 28 }
 
+/** The radius of a point without a figure and of the scope picker's points, in px (rule 15). */
+export const FIXED_RADIUS = 6
+
 /**
  * The radius of a point with a figure: between `size.min` and `size.max` (3 and 18 px) by the
  * square root of its share of the layer's largest — or `size.min` for every point when the
@@ -273,11 +276,11 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
     (value) => value.id,
     (value) => {
       const [x, y] = project(value.lon!, value.lat!)
-      // A point without a figure takes the picker's fixed size (rule 15).
-      const radius =
-        drawing.variant === 'points' && value.value != null
-          ? pointRadius(value.value, drawing.max, drawing.size)
-          : 6
+      // A point without a figure takes the picker's fixed size (rule 15), unless its layer sizes
+      // no point by its figure: then it is as small as the rest.
+      const sized =
+        drawing.variant === 'points' && (value.value != null || drawing.size?.by === 'none')
+      const radius = sized ? pointRadius(value.value ?? 0, drawing.max, drawing.size) : FIXED_RADIUS
       // A series gives the point a data colour and its own shape (rule 13).
       const colour = seriesColor(value.series)
       const seriesName = (value.series && drawing.seriesLabels?.[value.series]) || undefined
@@ -290,7 +293,7 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
          data-at=${at(x, y)}
          data-mark-id=${value.id}
          data-r=${radius}
-         data-zoom=${drawing.size?.zoom ? '' : nothing}
+         data-zoom=${drawing.variant === 'points' && drawing.size?.zoom ? '' : nothing}
          role="button" tabindex=${gone(value) ? -1 : 0} aria-hidden=${gone(value) ? 'true' : nothing}
          aria-pressed=${String(isChosen(context, value.id))}
          aria-label=${`${value.label}: ${figure}${seriesName ? `, ${seriesName}` : ''}`}

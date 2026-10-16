@@ -216,15 +216,25 @@ describe('lintje-map series', () => {
     expect(legendRows(ranged)).toEqual([{ layer: 'Punten', key: '12 – 21 min' }])
 
     document.body.innerHTML = ''
-    const alike = await mapTile(tileData({ size: { by: 'none', min: 5 } }))
+    const alike = await mapTile(
+      tileData({
+        size: { by: 'none', min: 5 },
+        seriesLabels: { 'sky-blue': 'Op norm', 'dark-yellow': 'Boven norm' },
+      }),
+    )
     expect(shapeOf(alike, 'ein').getAttribute('d')).toBe(
       seriesShapePath(seriesShape('dark-yellow'), 5),
     )
     expect(shapeOf(alike, 'ams-e').getAttribute('d')).toBe(
       seriesShapePath(seriesShape('sky-blue'), 5),
     )
-    // Nothing to explain about size: the legend has no size key, only the layer and its series.
+    // A point without a figure is as small as the rest, not the picker's fixed size.
+    expect(Number(point(alike, 'rtm').getAttribute('data-r'))).toBe(5)
+    // Nothing to explain about size: the legend has no size key, only the layer and its series,
+    // without the rule that otherwise parts the key from them.
     expect(legendRows(alike)).toEqual([{ layer: 'Punten', key: '' }])
+    expect(alike.renderRoot.querySelector('.lintje-map-legend__rule')).toBeNull()
+    expect(legendLines(alike)).toEqual(['Op norm', 'Boven norm', 'geen gegevens'])
   })
 
   it('marks a point that follows the zoom for the surface, with its radius', async () => {
@@ -235,6 +245,11 @@ describe('lintje-map series', () => {
     document.body.innerHTML = ''
     const still = await mapTile(tileData())
     expect(point(still, 'ein').hasAttribute('data-zoom')).toBe(false)
+    // The scope picker's points keep their fixed size at every zoom: `size` sizes a layer of points.
+    document.body.innerHTML = ''
+    const picker = await mapTile(tileData({ variant: 'scope-picker', size: { zoom: true } }))
+    expect(point(picker, 'ein').hasAttribute('data-zoom')).toBe(false)
+    expect(Number(point(picker, 'ein').getAttribute('data-r'))).toBe(6)
   })
 
   it('draws a legend above the map for every series a point uses', async () => {

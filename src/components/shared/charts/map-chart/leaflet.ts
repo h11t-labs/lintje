@@ -11,7 +11,14 @@ import type { ChartController } from '../shared/controller'
 import { prefersReducedMotion } from '../../../../core/motion'
 import { clearance, hidden, keyboardFocus, overlayBoxes, REVEAL_MARGIN, type Box } from './reveal'
 import { mapDrawings, type MapDrawing } from './drawings'
-import { renderData, renderRegion, type LandShape, type Project, ZOOM_RADIUS } from './marks'
+import {
+  FIXED_RADIUS,
+  renderData,
+  renderRegion,
+  type LandShape,
+  type Project,
+  ZOOM_RADIUS,
+} from './marks'
 import { distanceKm, flatRing, idsInArea, rectRing } from './area'
 import { GEOS, type FeatureCollection } from './geo'
 import type { MapArea, MapSpec, MapTool, MapValue, WmsBasemap } from '../shared/types'
@@ -58,7 +65,7 @@ function symbolTransform(symbol: SVGGElement, scale: number): string {
  */
 function symbolScale(symbol: SVGGElement, scale: number): number {
   if (symbol.dataset.zoom == null) return 1 / scale
-  const radius = Number(symbol.dataset.r) || 6
+  const radius = Number(symbol.dataset.r) || FIXED_RADIUS
   const wanted = Math.min(ZOOM_RADIUS.max, Math.max(ZOOM_RADIUS.min, radius * scale))
   return wanted / (radius * scale)
 }
