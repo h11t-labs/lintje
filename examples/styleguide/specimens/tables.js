@@ -1,5 +1,5 @@
 // The tables category (Tabellen en lijsten): the specimens of its elements.
-import { log } from '../shared.js'
+import { linkLog, log } from '../shared.js'
 import { desks, meta, regions } from '../../_data/load.js'
 
 // The worksheet specimens of `lintje-data-table` play the host: each listens for the table's
@@ -272,12 +272,15 @@ const NOTES = [
 const compactData = {
   caption: 'Loketten met een toelichting en de trend tegenover vorige week',
   title: 'Loketten met toelichting',
-  subtitle: 'De toelichting op één regel, de trend als pijltje',
+  subtitle: 'De toelichting op één regel, de trend als pijltje met de cijfers in de tooltip',
   columns: [
     { key: 'name', header: 'Loket' },
     { key: 'note', header: 'Toelichting', truncate: true },
     { key: 'requests', header: 'Aanvragen', align: 'right', mobileMeasure: true },
-    { key: 'change', header: 'Trend', align: 'right', format: 'change-compact' },
+    {
+      key: 'change', header: 'Trend', align: 'right', format: 'change-compact',
+      tooltip: '{change} tegenover vorige week · {previous} aanvragen toen',
+    },
   ],
   rows: desks.slice(0, NOTES.length).map((point, index) => ({
     id: point.id,
@@ -285,6 +288,8 @@ const compactData = {
     note: NOTES[index],
     requests: point.requests,
     change: point.change,
+    // Carried for the trend's tooltip, not drawn: last week's figure.
+    previous: Math.round(point.requests / (1 + point.change / 100)),
   })),
   rowKey: 'id',
   clickable: true,
@@ -678,6 +683,17 @@ export default {
           setup: (stage) => dashboard(stage, compactData),
         },
         {
+          label: 'Compact zonder rijactie',
+          note: 'Tab bereikt elke rij om de trend met zijn uitleg te lezen; Enter opent niets.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => table(stage, {
+            ...compactData,
+            title: 'Loketten met een leesbare trend',
+            clickable: false,
+            expandable: false,
+          }),
+        },
+        {
           label: 'Kiesbaar',
           note: 'Vink loketten aan om ze te vergelijken.',
           html: '<lintje-data-table></lintje-data-table>',
@@ -690,6 +706,38 @@ export default {
               selectable: true,
               checkedIds: [],
               pageSize: 5,
+            }),
+        },
+        {
+          label: 'Rijen met een link',
+          note: 'Elke rij heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => {
+            const element = table(stage, {
+              ...tableData,
+              title: 'Loketten',
+              subtitle: 'Elke rij met een link',
+              rows: tableData.rows.slice(0, 4).map((row) => ({ ...row, href: `?loket=${row.id}` })),
+              pageSize: undefined,
+              expandable: false,
+            })
+            linkLog(stage, element, ['lintje-row-click'])
+          },
+        },
+        {
+          label: 'Gekozen en aangevinkt',
+          note:
+            'Eén rij is gekozen en heeft de balk, twee zijn aangevinkt en hebben alleen het vlak.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) =>
+            dashboard(stage, {
+              ...tableData,
+              title: 'Loketten',
+              subtitle: 'Een gekozen rij en twee aangevinkte',
+              selectable: true,
+              rows: tableData.rows.slice(0, 4),
+              selectedId: tableData.rows[0].id,
+              checkedIds: [tableData.rows[1].id, tableData.rows[2].id],
             }),
         },
         {
@@ -914,6 +962,7 @@ export default {
         },
         {
           label: 'Gekozen',
+          note: 'Wijs een andere rij aan: onder de muis krijgt ze het vlak, de gekozen rij ook de balk.',
           html: '<lintje-list label="Opnames" selected-id="r2"></lintje-list>',
           setup(stage) {
             const list = stage.querySelector('lintje-list')
@@ -1147,6 +1196,19 @@ export default {
               { label: 'Sprekers', value: '3, vast', tone: 'changed', action: { href: '#el-description-list', label: 'Terugzetten' } },
               { label: 'Microfoon', value: 'Vergaderset (USB): we horen niets', tone: 'warning', span: 2, slot: 'mic', icon: 'beeld-en-geluid-microfoon' },
               { label: 'Woordenlijsten', tags: ['Afkortingen Rijksoverheid', 'Namen team Planning'], span: 2 },
+            ]
+          },
+        },
+        {
+          label: 'Link in een getint vak',
+          note:
+            'Een link en een actie op een statustint nemen `--color-link-on-status`: in donker ' +
+            'wit, in licht de primaire kleur.',
+          html: '<lintje-description-list layout="grid"></lintje-description-list>',
+          setup(stage) {
+            stage.querySelector('lintje-description-list').items = [
+              { label: 'Verlopen', value: 'Bewijs van inschrijving', href: '#el-description-list', tone: 'warning', action: { href: '#el-description-list', label: 'Vernieuwen' }, span: 2 },
+              { label: 'Geldig', value: 'Identiteitsbewijs', href: '#el-description-list', tone: 'success', action: { href: '#el-description-list' }, span: 2 },
             ]
           },
         },

@@ -7,9 +7,15 @@
  * happy-dom has no layout, so that the box does not move is proven where it
  * runs, in headless Chrome.
  */
-import { beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import './filter-zone'
 import type { LintjeFilterZone } from './filter-zone'
+
+// The page's own `scrollY` comes back afterwards: the files after this one share the window.
+const scrollY = Object.getOwnPropertyDescriptor(window, 'scrollY')!
+afterAll(() => {
+  Object.defineProperty(window, 'scrollY', scrollY)
+})
 
 beforeAll(() => {
   // The zone observes a sentinel as soon as it renders; happy-dom has no observer.

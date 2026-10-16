@@ -36,7 +36,7 @@
   background: var(--color-bg-surface);
   color: var(--color-accent-text);
 }
-.lintje-icon-button--outlined:not(.is-disabled):hover { background: var(--color-bg-selected); }
+.lintje-icon-button--outlined:not(.is-disabled):hover { background: var(--color-bg-subtle); }
 
 .lintje-icon-button--flat { background: transparent; color: var(--color-text-primary); }
 .lintje-icon-button--flat:not(.is-disabled):hover { background: var(--color-bg-subtle); }

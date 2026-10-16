@@ -22,6 +22,18 @@ const steps = (element: LintjeNumberInput): HTMLButtonElement[] => [
   ...element.shadowRoot!.querySelectorAll<HTMLButtonElement>('.lintje-number-input__step'),
 ]
 
+const region = (element: LintjeNumberInput): string =>
+  element.shadowRoot!.querySelector('[role="status"]')!.textContent ?? ''
+const frame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()))
+
+/** What the status region says, after its fill frame. */
+async function said(element: LintjeNumberInput): Promise<string> {
+  await element.updateComplete
+  await frame()
+  await element.updateComplete
+  return region(element)
+}
+
 beforeEach(() => {
   document.body.innerHTML = ''
 })
@@ -29,9 +41,24 @@ beforeEach(() => {
 describe('lintje-number-input', () => {
   it('describes the field by its unit, before the hint', async () => {
     const element = await mount({ unit: 'min', stepper: false, hint: 'Hele minuten', value: 5 })
-    const unit = element.shadowRoot!.querySelector('.lintje-number-input__unit')!
+    const unit = element.shadowRoot!.querySelector('.lintje-field__addon--suffix')!
     const hint = element.shadowRoot!.querySelector('.lintje-field__hint')!
+    expect(unit.textContent).toBe('min')
     expect(control(element).getAttribute('aria-describedby')).toBe(`${unit.id} ${hint.id}`)
+  })
+
+  it('describes the field by its prefix, then its unit', async () => {
+    const element = await mount({ prefix: '€', unit: 'per uur', stepper: false })
+    const prefix = element.shadowRoot!.querySelector('.lintje-field__addon--prefix')!
+    const unit = element.shadowRoot!.querySelector('.lintje-field__addon--suffix')!
+    expect(prefix.textContent).toBe('€')
+    expect(control(element).getAttribute('aria-describedby')).toBe(`${prefix.id} ${unit.id}`)
+  })
+
+  it('draws no prefix or unit with the stepper', async () => {
+    const element = await mount({ prefix: '€', unit: 'min', value: 5 })
+    expect(element.shadowRoot!.querySelector('.lintje-field__addon')).toBeNull()
+    expect(control(element).hasAttribute('aria-describedby')).toBe(false)
   })
 
   it('names the steps by what they do, whatever the step', async () => {
@@ -65,5 +92,21 @@ describe('lintje-number-input', () => {
   it('disables both steps natively when the whole field is disabled', async () => {
     const element = await mount({ value: 5, disabled: true })
     expect(steps(element).map((step) => step.disabled)).toEqual([true, true])
+  })
+
+  it('says the new value after a press on a step, and nothing after a value of the host', async () => {
+    const element = await mount({ value: 3 })
+    steps(element)[1]!.click()
+    expect(await said(element)).toBe('4')
+
+    const quiet = await mount({ value: 3 })
+    quiet.value = 7
+    expect(await said(quiet)).toBe('')
+  })
+
+  it('says nothing for a press at a bound', async () => {
+    const element = await mount({ value: 0, min: 0 })
+    steps(element)[0]!.click()
+    expect(await said(element)).toBe('')
   })
 })

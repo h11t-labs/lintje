@@ -1,6 +1,6 @@
 /** What a control posts in a native form: the wire shape of each kind of value. */
 import { describe, expect, it } from 'vitest'
-import { formEntries } from './controls'
+import { formEntries, postsEmpty } from './controls'
 
 describe('formEntries', () => {
   it('posts a text or a number under the name, and an empty string for nothing chosen', () => {
@@ -27,5 +27,23 @@ describe('formEntries', () => {
       ['periode-from', '2026-10-01'],
       ['periode-to', ''],
     ])
+  })
+})
+
+describe('postsEmpty', () => {
+  it('is true when nothing is posted, or one part is empty', () => {
+    expect(postsEmpty('')).toBe(true)
+    expect(postsEmpty(null)).toBe(true)
+    expect(postsEmpty(false)).toBe(true)
+    expect(postsEmpty([])).toBe(true)
+    expect(postsEmpty({ from: '2026-10-01', to: null })).toBe(true)
+  })
+
+  it('is false when every part has a value', () => {
+    expect(postsEmpty('Jan')).toBe(false)
+    expect(postsEmpty(0)).toBe(false)
+    expect(postsEmpty(true)).toBe(false)
+    expect(postsEmpty(['a'])).toBe(false)
+    expect(postsEmpty({ from: '2026-10-01', to: '2026-10-04' })).toBe(false)
   })
 })
