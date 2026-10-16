@@ -366,6 +366,13 @@ lagen:
 | Styleguide | `bundle/styleguide.browser.test.ts` | elk specimen getekend, in licht en donker, op 1440 en 390 px, met axe | elk specimen, vanzelf |
 | Browser | `*.browser.test.ts` | wat layout, echte focus of een aanwijzer nodig heeft | per mechanisme, zie hieronder |
 
+De unittestbestanden die een worker draait, delen één venster (`isolate: false`): het opzetten
+ervan kostte de helft van de run. `src/bundle/unit-setup.ts` zet vóór elk bestand de pagina terug
+naar wat een vers venster geeft. Wat een test aan een prototype of aan `window` verandert, zet hij
+zelf terug in `afterAll`; een test die de registry van een pagina zonder iets anders bekijkt, of
+een module mockt met `vi.mock`, hoort in het project `unit-window` (`vitest.config.ts`). De run die een lek vindt is
+`npx vitest run --project 'unit*' --no-file-parallelism`: één worker, elk bestand erft alles.
+
 **Een browsertest hoort bij een mechanisme, niet bij een component.** Gedrag dat componenten
 delen, heeft één contract in `src/bundle/contracts/`, met een tabel van elk element dat het
 mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat in de tabel.
