@@ -819,6 +819,9 @@ pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
 - **Eén duur voor interfacebeweging** (`--dur-base`). Elk onderdeel heeft een eigen token dat
   ernaar wijst, zodat er één kan veranderen zonder een component aan te raken. Hoverfeedback is
   korter; databeweging (een grafiek intekenen, een waarde optellen) is langer.
+- **Een vak dat openklapt, knipt zijn inhoud af zolang het groeit en niet langer**: daarna hangt
+  een popover of focusring eruit. Het wacht alleen op een hoogte die echt beweegt; staat die
+  meteen, dan laat het meteen los.
 - **Een teller van ongelezen springt erin als hij verschijnt**, voorbij zijn maat en terug. Een
   nieuw getal in een teller die al getoond wordt, schuift omhoog naar binnen, zoals een KPI-tegel
   doet.
