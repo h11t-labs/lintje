@@ -1,6 +1,6 @@
 /**
- * `<lintje-number-input>` — a −/+ stepper around a centred value, or a unit on the right without
- * the stepper.
+ * `<lintje-number-input>` — a −/+ stepper around a centred value, or without the stepper a fixed
+ * text before the value (`prefix`) and a unit after it.
  *
  * It commits on `change`; a press on − or + commits at once and says the new value, since the
  * focus stays on the step. At `min` or `max` the step stays focusable but does nothing.
@@ -13,12 +13,11 @@ import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
+import { addonDescribedBy, renderAddon } from '../shared/addon'
 import { LiveMessage } from '../../shared/live-message'
 import { LintjeFormInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
 import numberInputCss from './number-input.css?inline'
-
-const UNIT_ID = 'lintje-number-input-unit'
 
 export class LintjeNumberInput extends LintjeFormInputElement {
   static override styles = [iconStyles, shadowCss(inputCss), shadowCss(numberInputCss)]
@@ -28,6 +27,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     min: { type: Number },
     max: { type: Number },
     step: { type: Number },
+    prefix: { type: String },
     unit: { type: String },
     stepper: { type: Boolean },
     stacked: { type: Boolean, reflect: true },
@@ -38,6 +38,8 @@ export class LintjeNumberInput extends LintjeFormInputElement {
   declare min?: number
   declare max?: number
   step: number = 1
+  /** The fixed text before the value, e.g. "€", which describes the field; only without the stepper. */
+  override prefix: string | null = null
   /** The unit on the right, e.g. "min", which describes the field; only without the stepper. */
   declare unit?: string
   /** The −/+ buttons. Bind as `.stepper=${false}`, never `?stepper=`. */
@@ -100,22 +102,22 @@ export class LintjeNumberInput extends LintjeFormInputElement {
   }
 
   protected override render(): TemplateResult {
-    const unit = Boolean(this.unit) && !this.stepper
-    const described = [unit ? UNIT_ID : '', this.describedBy === nothing ? '' : this.describedBy]
-      .filter(Boolean)
-      .join(' ')
+    const prefix = this.stepper ? undefined : this.prefix
+    const unit = this.stepper ? undefined : this.unit
+    const addon = { readonly: this.readonly, disabled: this.isDisabled }
     return html`<div class="lintje-field">
       ${this.renderLabel(this.controlId)}
       <div
         class=${classMap({
           'lintje-number-input': true,
-          'lintje-number-input--unit': unit,
+          'lintje-number-input--addon': Boolean(prefix || unit),
           'is-error': Boolean(this.error),
           'is-readonly': this.readonly,
           'is-disabled': this.isDisabled,
         })}
       >
         ${this.stepper ? this.stepButton(-1) : nothing}
+        ${renderAddon('prefix', prefix, addon)}
         <input
           type="number"
           id=${this.controlId}
@@ -125,7 +127,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
           max=${this.max ?? nothing}
           step=${this.step}
           aria-labelledby=${this.labelId}
-          aria-describedby=${described || nothing}
+          aria-describedby=${addonDescribedBy(Boolean(prefix), Boolean(unit), this.describedBy)}
           aria-invalid=${this.error ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
           ?required=${this.required}
@@ -134,11 +136,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
           @change=${this.change}
           @keydown=${(event: KeyboardEvent) => this.submitOnEnter(event, () => this.change(event))}
         />
-        ${
-          unit
-            ? html`<span id=${UNIT_ID} class="lintje-number-input__unit">${this.unit}</span>`
-            : nothing
-        }
+        ${renderAddon('suffix', unit, addon)}
         ${this.stepper ? this.stepButton(1) : nothing}
       </div>
       ${this.renderFoot()}
