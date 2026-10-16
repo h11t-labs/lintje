@@ -8,6 +8,7 @@ import { ref } from 'lit/directives/ref.js'
 import { keyed } from 'lit/directives/keyed.js'
 import { styleProps } from '../../../../core/style-props'
 import { formatNumber } from '../../../../core/format'
+import { isNewTabClick } from '../../../../core/links'
 import { chartIcon, ZOOM_CONTROLS } from '../shared/chart-icons'
 import { renderIcon } from '../../../../icons/render'
 import { renderTooltip } from '../shared/tooltip'
@@ -129,8 +130,11 @@ export function scaleLabel(metres: number): string {
  */
 export interface MapOptions extends Omit<ChartOptions, 'description' | 'onSelect' | 'selectedId'> {
   description?: string
-  /** An area or point was clicked; the whole mark travels, as the panel needs its figure. */
-  onSelect?: (mark: MapValue) => void
+  /**
+   * An area or point was clicked; the whole mark travels, as the panel needs its figure. `newTab`
+   * for a modifier or middle click on a mark with an `href`, which leaves the selection be.
+   */
+  onSelect?: (mark: MapValue, newTab?: boolean) => void
   /** The selection was undone (chosen mark again, empty map, Escape, close); travels the id. */
   onClear?: (previousId: string) => void
   onLayerChange?: (value: string) => void
@@ -228,11 +232,19 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     onArea?.(null, [])
     controller.requestUpdate()
   }
-  const select = (value: MapValue) => {
+  const select = (value: MapValue, newTab = false) => {
+    if (newTab) return onSelect?.(value, true)
     if (value.id === active) return clear()
     controller.mapSelection = value.id
     onSelect?.(value)
     controller.requestUpdate()
+  }
+  // The panel's link: a modifier or middle click opens it in a new tab, as on a link.
+  const setScope = (event: MouseEvent, value: MapValue) => {
+    if (isNewTabClick(event)) {
+      event.preventDefault()
+      onSelect?.(value, true)
+    } else if (event.type === 'click') onSelect?.(value)
   }
   // A shape is a tool: it stays in hand after drawing, and a new area replaces the last.
   const drawn = (next: MapArea) => {
@@ -471,7 +483,8 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
             onSelect && selection.href
               ? html`
             <button type="button" class="lintje-map-chart__set-scope"
-                    @click=${() => onSelect(selection)}>
+                    @click=${(event: MouseEvent) => setScope(event, selection)}
+                    @auxclick=${(event: MouseEvent) => setScope(event, selection)}>
               ${selectLabel} ${renderIcon('functioneel-locatiemarker', { size: 14 })}
             </button>
           `

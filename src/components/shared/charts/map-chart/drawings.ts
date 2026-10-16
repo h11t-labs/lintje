@@ -3,7 +3,14 @@
  * svg map, the basemap and the tile's CSV read the same list, so a figure always speaks the unit
  * and the series names of its own layer.
  */
-import type { MapSeriesKey, MapSeriesStyle, MapSpec, MapValue, MapVariant } from '../shared/types'
+import type {
+  MapPointSize,
+  MapSeriesKey,
+  MapSeriesStyle,
+  MapSpec,
+  MapValue,
+  MapVariant,
+} from '../shared/types'
 
 export type DrawingVariant = Exclude<MapVariant, 'plots'>
 
@@ -22,6 +29,8 @@ export interface MapDrawing {
   destination?: { lon: number; lat: number; label: string }
   seriesLabels?: Partial<Record<MapSeriesKey, string>>
   seriesStyles?: Partial<Record<MapSeriesKey, MapSeriesStyle>>
+  /** How this layer's points are sized; `pointRadius` reads it. */
+  size?: MapPointSize
 }
 
 const NAMES: Record<DrawingVariant, string> = {
@@ -56,6 +65,7 @@ export function mapDrawings(data: MapSpec, unit: string): MapDrawing[] {
         destination: data.destination,
         seriesLabels: data.seriesLabels,
         seriesStyles: data.seriesStyles,
+        size: data.size,
       },
     ]
   }
@@ -76,6 +86,7 @@ export function mapDrawings(data: MapSpec, unit: string): MapDrawing[] {
       seriesStyles: plot.seriesStyles
         ? { ...data.seriesStyles, ...plot.seriesStyles }
         : data.seriesStyles,
+      size: plot.size ?? data.size,
     }
   })
 }
