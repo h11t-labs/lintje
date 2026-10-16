@@ -88,6 +88,31 @@ describe('lintje-file-upload while files are dragged over it', () => {
     expect(shown(element)).toBe('of sleep ze hierheen')
   })
 
+  it('points at itself while the drag is beside it, and fills only once it is over it', async () => {
+    const element = await mount()
+    const data = carrying('verslag.pdf', 'bijlage.pdf')
+    await drag(element, 'dragenter', data, document.body)
+    expect(shown(element)).toBe('Sleep 2 bestanden hierheen')
+    expect(zone(element).classList.contains('is-dragging')).toBe(true)
+    expect(zone(element).classList.contains('is-over')).toBe(false)
+    await drag(element, 'dragenter', data)
+    expect(shown(element)).toBe('Laat los om 2 bestanden toe te voegen')
+    expect(zone(element).classList.contains('is-over')).toBe(true)
+    await drag(element, 'dragleave', data)
+    expect(shown(element)).toBe('Sleep 2 bestanden hierheen')
+    expect(zone(element).classList.contains('is-over')).toBe(false)
+  })
+
+  it('stays filled while the drag crosses into the zone’s own text', async () => {
+    const element = await mount()
+    const data = carrying('verslag.pdf')
+    await drag(element, 'dragenter', data)
+    const text = element.shadowRoot!.querySelector('.lintje-file-upload__text')!
+    await drag(element, 'dragenter', data, text)
+    await drag(element, 'dragleave', data)
+    expect(zone(element).classList.contains('is-over')).toBe(true)
+  })
+
   it('ignores a drag without files', async () => {
     const element = await mount()
     const data = new DataTransfer()
@@ -121,7 +146,7 @@ describe('lintje-file-upload when files are dropped beside it', () => {
     const element = await mount()
     const data = carrying('verslag.pdf')
     await drag(element, 'dragenter', data, document.body)
-    expect(shown(element)).toBe('Laat los om 1 bestand toe te voegen')
+    expect(shown(element)).toBe('Sleep het bestand hierheen')
     await drag(element, 'dragleave', data, document.body)
     expect(shown(element)).toBe('of sleep ze hierheen')
   })

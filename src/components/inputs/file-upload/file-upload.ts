@@ -144,6 +144,7 @@ export class LintjeFileUpload extends LintjeInputElement {
     fill: { type: Boolean, reflect: true },
     dragging: { state: true },
     dragCount: { state: true },
+    over: { state: true },
     refused: { state: true },
     news: { state: true },
   }
@@ -160,11 +161,14 @@ export class LintjeFileUpload extends LintjeInputElement {
   protected dragging: boolean = false
   /** How many are dragged: 0 when the browser does not say. */
   protected dragCount: number = 0
+  /** Whether the dragged files are over the zone itself, where letting go adds them. */
+  protected over: boolean = false
   protected refused: UploadFile[] = []
   protected news: string = ''
 
   readonly #mobile = new MediaController(this, MOBILE)
   #depth: number = 0
+  #overDepth: number = 0
   #refusedCount: number = 0
   /** The row that held the focus before the rows changed, and where it stood. */
   #focusedRow: { id: string; index: number } | null = null
@@ -184,7 +188,9 @@ export class LintjeFileUpload extends LintjeInputElement {
 
   private readonly onDragEnd = (): void => {
     this.#depth = 0
+    this.#overDepth = 0
     this.dragging = false
+    this.over = false
   }
 
   /**
@@ -310,6 +316,20 @@ export class LintjeFileUpload extends LintjeInputElement {
   private onDragOver(event: DragEvent): void {
     if (this.disabled || !hasFiles(event)) return
     event.preventDefault()
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy'
+  }
+
+  // Counted, because entering a child of the zone leaves the zone first.
+  private onZoneEnter(event: DragEvent): void {
+    if (this.disabled || !hasFiles(event)) return
+    this.#overDepth += 1
+    this.over = true
+  }
+
+  private onZoneLeave(): void {
+    if (!this.over) return
+    this.#overDepth = Math.max(0, this.#overDepth - 1)
+    if (this.#overDepth === 0) this.over = false
   }
 
   private onDrop(event: DragEvent): void {
@@ -329,6 +349,10 @@ export class LintjeFileUpload extends LintjeInputElement {
 
   private get dropText(): string {
     const count = this.dragCount
+    if (!this.over) {
+      if (!count) return 'Sleep de bestanden hierheen'
+      return `Sleep ${count === 1 ? 'het bestand' : `${count} bestanden`} hierheen`
+    }
     if (!count) return 'Laat los om de bestanden toe te voegen'
     return `Laat los om ${count} ${count === 1 ? 'bestand' : 'bestanden'} toe te voegen`
   }
@@ -405,9 +429,12 @@ export class LintjeFileUpload extends LintjeInputElement {
           'lintje-file-upload': true,
           'lintje-file-upload--fill': this.fill,
           'is-dragging': dragging,
+          'is-over': dragging && this.over,
           'is-error': Boolean(this.error),
           'is-disabled': this.disabled,
         })}
+        @dragenter=${this.onZoneEnter}
+        @dragleave=${this.onZoneLeave}
         @dragover=${this.onDragOver}
         @drop=${this.onDrop}
       >
