@@ -13,6 +13,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import './map'
 import { downloadCsv } from '../../shared/download'
+import { seriesColor } from '../../shared/charts/shared/colors'
+import { seriesShape, seriesShapePath } from '../../shared/charts/shared/series-shapes'
+import { pointRadius } from '../../shared/charts/map-chart/marks'
 import type { MapData, MapValue } from '../../../types'
 
 interface MapTile extends HTMLElement {
@@ -198,6 +201,70 @@ describe('lintje-map selection', () => {
 describe('lintje-map series', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
+  })
+
+  it('draws a styled series in its own shape and colour, in the legend and the panel too', async () => {
+    const element = await mapTile(
+      tileData({
+        values: [{ ...POINTS[0], series: 'bron-a' }, { ...POINTS[1], series: 'bron-b' }, POINTS[2]],
+        seriesLabels: { 'bron-a': 'Bron A', 'bron-b': 'Bron B' },
+        seriesStyles: {
+          'bron-a': { color: 'neutral', shape: 'square' },
+          'bron-b': { color: 'neutral', shape: 'diamond' },
+        },
+      }),
+    )
+    const shape = (id: string) =>
+      point(element, id).querySelector<SVGPathElement>('.lintje-map-chart__point-shape')!
+    // Both points in the one neutral colour; the shape tells them apart (rule 13).
+    expect(shape('ams-e').style.getPropertyValue('--lintje-series')).toBe(
+      'var(--color-chart-secondary)',
+    )
+    expect(shape('ein').style.getPropertyValue('--lintje-series')).toBe(
+      'var(--color-chart-secondary)',
+    )
+    expect(shape('ams-e').getAttribute('d')).toBe(seriesShapePath('square', pointRadius(12, 21)))
+    expect(shape('ein').getAttribute('d')).toBe(seriesShapePath('diamond', pointRadius(21, 21)))
+    // The legend: one line per styled series, its marker in that shape.
+    expect(legendLines(element)).toEqual(['Bron A', 'Bron B', 'geen gegevens'])
+    const markers = [
+      ...element.renderRoot.querySelectorAll<SVGPathElement>('.lintje-legend__marker--symbol path'),
+    ].map((path) => path.getAttribute('d'))
+    expect(markers).toEqual([
+      seriesShapePath('square', 4.5, 7, 7),
+      seriesShapePath('diamond', 4.5, 7, 7),
+    ])
+    // The selection panel's swatch follows the same style.
+    await click(element, point(element, 'ein'))
+    const swatch = element.renderRoot.querySelector<SVGPathElement>(
+      '.lintje-map-chart__series-swatch path',
+    )!
+    expect(swatch.getAttribute('d')).toBe(seriesShapePath('diamond', 5.5, 7, 7))
+    expect(swatch.getAttribute('fill')).toBe('var(--color-chart-secondary)')
+  })
+
+  it('a colour name keeps its own pair, and a key with neither draws the default', async () => {
+    const element = await mapTile(
+      tileData({
+        values: [{ ...POINTS[0], series: 'onbekend' }, POINTS[1]],
+        seriesLabels: { onbekend: 'Onbekend', 'dark-yellow': 'Boven norm' },
+      }),
+    )
+    const shape = (id: string) =>
+      point(element, id).querySelector<SVGPathElement>('.lintje-map-chart__point-shape')!
+    expect(shape('ams-e').style.getPropertyValue('--lintje-series')).toBe('')
+    expect(shape('ams-e').getAttribute('d')).toBe(seriesShapePath('circle', pointRadius(12, 21)))
+    expect(shape('ein').style.getPropertyValue('--lintje-series')).toBe(seriesColor('dark-yellow'))
+    expect(shape('ein').getAttribute('d')).toBe(
+      seriesShapePath(seriesShape('dark-yellow'), pointRadius(21, 21)),
+    )
+    // The panel's swatch draws the default colour, as the point and the legend do.
+    await click(element, point(element, 'ams-e'))
+    const swatch = element.renderRoot.querySelector<SVGPathElement>(
+      '.lintje-map-chart__series-swatch path',
+    )!
+    expect(swatch.getAttribute('d')).toBe(seriesShapePath('circle', 5.5, 7, 7))
+    expect(swatch.getAttribute('fill')).toBe('var(--color-chart-default)')
   })
 
   it('draws a legend above the map for every series a point uses', async () => {

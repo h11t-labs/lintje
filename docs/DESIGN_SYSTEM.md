@@ -159,13 +159,22 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
 
 - **De namen bestaan één keer**, in `src/tokens/colors.ts`. De unies van het contract, de
   accenten van een KPI, de kleurentabel van de grafieken en de reeksen van de kaart volgen eruit.
-  De volgorde ligt vast en een kleur komt er alleen achteraan bij: op een kaart heeft elke kleur
-  de vorm op haar plaats, en een ingevoegde kleur zou elke reeks erna van vorm laten wisselen.
+  De volgorde ligt vast en een kleur komt er alleen achteraan bij: op een kaart is de vorm op
+  haar plaats het standaardpaar van elke kleur, en een ingevoegde kleur zou elke reeks erna van
+  vorm laten wisselen.
+- **Het paar kleur-vorm van een kaartreeks is een standaard, geen garantie.** Zonder stijl
+  tekent een reeks de kleur van haar naam met de vorm daarvan; met een stijl (`seriesStyles`:
+  een kleur, een vorm, of allebei) beslist de pagina, zoals ze beslist welke variabele hemelblauw
+  is. Een stijl is er voor reeksen die alleen in vorm verschillen, in één neutrale kleur, waar
+  de kleur anders een betekenis zou dragen die er niet is; het onderscheid blijft dan bij de
+  vorm en de legenda (regel 13).
 - **Hemelblauw is de standaard.** Een figuur die geen kleur noemt, tekent in
   `--color-chart-default`, en de gedeelde tintladder (`--color-chart-tint-*`) is die van
   hemelblauw.
 
-- **Vergelijking is altijd grijs; trend, drempel en doel altijd de nadrukkleur.**
+- **Vergelijking is altijd grijs; trend, drempel en doel altijd de nadrukkleur.** `neutral` is
+  de rol van een reeks die in kleur niets draagt, zoals gelijkwaardige bronnen op een kaart: ze
+  tekent datzelfde grijs en is nooit een nieuwe datakleur.
 - Vast is de kleur van een variabele. De grijzen (`--data-comparison`, `--data-other`), het
   raster en de nadrukkleur volgen de modus; geel als tekst heeft een eigen token
   (`--color-chart-dark-yellow-text`), omdat geel geen tekstkleur is. "Overig" is in donker zo
