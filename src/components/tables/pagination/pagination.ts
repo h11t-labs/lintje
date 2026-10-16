@@ -25,6 +25,7 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import buttonCss from '../../actions/button/button.css?inline'
 import paginationCss from './pagination.css?inline'
 import { isPlainClick } from '../../../core/links'
+import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import '../../actions/menu-button/menu-button'
 
 export type PageSlot = number | 'gap'
@@ -127,18 +128,15 @@ export class LintjePagination extends LintjeElement {
   protected compact: boolean = false
   /** The count and the size choice below the pages: the three zones do not fit on one line. */
   protected stacked: boolean = false
-  #resize: ResizeObserver | null = null
+  #resize = new FrameResizeObserver(() => this.fit())
 
   override connectedCallback(): void {
     super.connectedCallback()
-    if (typeof ResizeObserver === 'undefined') return
-    this.#resize = new ResizeObserver(() => this.fit())
     this.#resize.observe(this)
   }
 
   override disconnectedCallback(): void {
-    this.#resize?.disconnect()
-    this.#resize = null
+    this.#resize.disconnect()
     super.disconnectedCallback()
   }
 

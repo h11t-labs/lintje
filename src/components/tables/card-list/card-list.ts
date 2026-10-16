@@ -16,6 +16,7 @@ import {
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { styleProps } from '../../../core/style-props'
+import { LiveMessage } from '../../shared/live-message'
 import '../card/card'
 import '../../feedback/empty-state/empty-state'
 import type { CardData, CardLayout } from '../card/card'
@@ -34,7 +35,6 @@ export class LintjeCardList extends LintjeElement {
     loadingCount: { type: Number, attribute: 'loading-count' },
     maxColumns: { type: Number, attribute: 'max-columns' },
     emptyText: { type: String, attribute: 'empty-text' },
-    spoken: { state: true },
   }
 
   items: CardData[] = []
@@ -54,19 +54,10 @@ export class LintjeCardList extends LintjeElement {
   /** The most cards side by side: more than three stops reading as a row of choices. */
   maxColumns: number = 3
   emptyText: string = 'Er is hier nog niets.'
-  /** What the status region says: drawn empty first and filled a frame later, so it is heard. */
-  spoken: string = ''
+  readonly #spoken = new LiveMessage(this)
 
-  private fillFrame = 0
-
-  override disconnectedCallback(): void {
-    cancelAnimationFrame(this.fillFrame)
-    this.fillFrame = 0
-    super.disconnectedCallback()
-  }
-
-  protected override updated(changed: PropertyValues<this>): void {
-    super.updated(changed)
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
     if (!changed.has('loading')) return
     const was = changed.get('loading')
     // Only what follows a load is said: a list that arrives whole is no news.
@@ -77,15 +68,11 @@ export class LintjeCardList extends LintjeElement {
       : count
         ? `Gegevens geladen: ${count} ${count === 1 ? 'item' : 'items'}.`
         : `Gegevens geladen. ${this.emptyText}`
-    cancelAnimationFrame(this.fillFrame)
-    this.fillFrame = requestAnimationFrame(() => {
-      this.fillFrame = 0
-      this.spoken = text
-    })
+    this.#spoken.say(text)
   }
 
   protected override render(): TemplateResult {
-    return html`<span class="visually-hidden" role="status">${this.spoken}</span>${this.renderBody()}`
+    return html`<span class="visually-hidden" role="status">${this.#spoken.text}</span>${this.renderBody()}`
   }
 
   private renderBody(): TemplateResult {

@@ -237,7 +237,7 @@ describe('Escape inside the drawer', () => {
     expect(reasons).toEqual([])
   })
 
-  it('is not a toast’s to answer while the focus stands in the drawer', async () => {
+  it('is not a toast’s to answer from outside the toast', async () => {
     const toast = document.createElement('lintje-toast')
     let closed = 0
     toast.addEventListener('lintje-close', () => closed++)
@@ -251,6 +251,6 @@ describe('Escape inside the drawer', () => {
     drawer.open = false
     await drawer.updateComplete
     escape()
-    expect(closed).toBe(1)
+    expect(closed).toBe(0)
   })
 })

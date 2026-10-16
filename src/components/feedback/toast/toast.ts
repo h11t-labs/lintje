@@ -12,7 +12,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { holdsFocus } from '../../../core/focus'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import { deepActiveElement, ownsEscape } from '../../shared/focus-trap'
+import { deepActiveElement } from '../../shared/focus-trap'
 import { TONE_ICON, type Tone } from '../../shared/tone'
 import toastCss from './toast.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
@@ -61,9 +61,11 @@ export class LintjeToast extends LintjeElement {
   /** The last element outside the toast that had the focus: where it goes back to. */
   #before: HTMLElement | null = null
 
-  /** Not while the focus is in a dialog: that Escape is the dialog's. */
+  /** An Escape elsewhere is not the toast's; its own goes no further, so a window around stays. */
   readonly #onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape' && ownsEscape(this)) this.#close()
+    if (event.key !== 'Escape' || event.defaultPrevented) return
+    event.stopPropagation()
+    this.#close()
   }
 
   readonly #onFocusIn = (): void => {
@@ -81,11 +83,11 @@ export class LintjeToast extends LintjeElement {
   constructor() {
     super()
     this.addEventListener('focusout', this.#onFocusOut)
+    this.addEventListener('keydown', this.#onKeyDown)
   }
 
   override connectedCallback(): void {
     super.connectedCallback()
-    document.addEventListener('keydown', this.#onKeyDown)
     document.addEventListener('focusin', this.#onFocusIn)
     this.#before = deepActiveElement()
     this.#start()
@@ -98,7 +100,6 @@ export class LintjeToast extends LintjeElement {
   }
 
   override disconnectedCallback(): void {
-    document.removeEventListener('keydown', this.#onKeyDown)
     document.removeEventListener('focusin', this.#onFocusIn)
     clearTimeout(this.#timer)
     if (this.#fillFrame) cancelAnimationFrame(this.#fillFrame)

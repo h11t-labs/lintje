@@ -309,8 +309,10 @@ De commando's staan in de [`README`](README.md), wat de build oplevert in
 [`examples/README.md`](examples/README.md).
 
 `tokens.css` is de enige plek waar een tokenwaarde bestaat. Het eigen stylesheet van elk component is
-`?inline` en reist mee in de module, dus daar is niets te scopen en niets te
-minifyen.
+`?inline` en reist mee in de module, dus daar is niets te scopen. De build minificeert die
+stylesheets (lightningcss, zonder browserdoel: niets wordt omlaag vertaald), dus wat een element
+uit een token leest, is de korte schrijfwijze — `.9s` voor `900ms`, `#0000001a` voor een `rgba()`.
+Het paginabestand `tokens.css` blijft zoals het geschreven is.
 
 De styleguide is de referentie: een wijziging aan een component wordt daar gecontroleerd, in licht
 **en** donker, op 1440 **en** 390 px.
@@ -366,6 +368,13 @@ lagen:
 | Styleguide | `bundle/styleguide.browser.test.ts` | elk specimen getekend, in licht en donker, op 1440 en 390 px, met axe | elk specimen, vanzelf |
 | Browser | `*.browser.test.ts` | wat layout, echte focus of een aanwijzer nodig heeft | per mechanisme, zie hieronder |
 
+De unittestbestanden die een worker draait, delen één venster (`isolate: false`): het opzetten
+ervan kostte de helft van de run. `src/bundle/unit-setup.ts` zet vóór elk bestand de pagina terug
+naar wat een vers venster geeft. Wat een test aan een prototype of aan `window` verandert, zet hij
+zelf terug in `afterAll`; een test die de registry van een pagina zonder iets anders bekijkt, of
+een module mockt met `vi.mock`, hoort in het project `unit-window` (`vitest.config.ts`). De run die een lek vindt is
+`npx vitest run --project 'unit*' --no-file-parallelism`: één worker, elk bestand erft alles.
+
 **Een browsertest hoort bij een mechanisme, niet bij een component.** Gedrag dat componenten
 delen, heeft één contract in `src/bundle/contracts/`, met een tabel van elk element dat het
 mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat in de tabel.
@@ -383,6 +392,14 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
   markering van de andere weergave, niet alleen een andere hoogte.
 - `sticky.browser.test.ts` — wat plakt: het houdt zijn hoogte vrij als scroll-padding, en een
   bedieningselement dat de focus krijgt, staat er niet onder.
+- `choice-foot.browser.test.ts` — de hint en de foutmelding onder een vinkje of schakelaar, ook
+  die van een optie in een groep of multiselect, beginnen waar de labeltekst begint; die van een
+  groep en van een rij van een instelling staan tegen de rand.
+- `required.browser.test.ts` — elke invoer met `required` in een natief `<form>`: leeg houdt hij
+  het versturen tegen, gevuld of uitgeschakeld niet, en de melding van de browser landt op het
+  bedieningselement dat ook de focus krijgt.
+- `reduced-motion.browser.test.ts` — verminderde beweging, waarmee elke browsertest draait: een
+  vak dat openklapt, laat zijn inhoud los zodra zijn hoogte staat.
 
 Een nieuw element dat een mechanisme gebruikt, krijgt een rij in diens tabel, geen eigen bestand.
 Een component krijgt alleen een eigen `*.browser.test.ts` voor een mechanisme dat het zelf heeft:
