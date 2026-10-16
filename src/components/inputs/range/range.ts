@@ -77,6 +77,11 @@ export class LintjeRange extends LintjeInputElement {
     super.disconnectedCallback()
   }
 
+  // A handle always stands on a step, so `required` never holds a form back.
+  protected override get missing(): boolean {
+    return false
+  }
+
   // A value from outside ends the drag's draft.
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)

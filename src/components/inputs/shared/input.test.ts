@@ -31,6 +31,7 @@ import '../date-input/date-input'
 import '../time-input/time-input'
 import '../text-editor/text-editor'
 import '../file-upload/file-upload'
+import '../slot-picker/slot-picker'
 import '../field/field'
 import type { LintjeInputElement } from './input'
 import { deepActiveElement } from '../../../core/focus'
@@ -207,8 +208,11 @@ describe.each([...CONTROLS, ...FURTHER])('%s, its label and its foot', (tag, fil
   })
 })
 
-describe('required on a control without form participation', () => {
+describe("required on an input's control", () => {
   it.each([
+    ['lintje-text-input', 'input'],
+    ['lintje-number-input', 'input'],
+    ['lintje-textarea', 'textarea'],
     ['lintje-select', '[aria-required]'],
     ['lintje-checkbox', 'input'],
     ['lintje-radio-group', '[role="radiogroup"]'],
@@ -217,6 +221,7 @@ describe('required on a control without form participation', () => {
     ['lintje-date-input', 'input'],
     ['lintje-time-input', 'input'],
     ['lintje-text-editor', '[role="textbox"]'],
+    ['lintje-slot-picker', '[role="radiogroup"]'],
   ])('%s says aria-required on its control', async (tag, selector) => {
     const element = await mount(tag, (e) => Object.assign(e, { options: OPTIONS }), {
       required: true,
@@ -224,6 +229,19 @@ describe('required on a control without form participation', () => {
     expect(element.renderRoot.querySelector(selector)?.getAttribute('aria-required')).toBe('true')
     expect(element.hasAttribute('required')).toBe(true)
   })
+
+  // Their one control is a button, a role on which ARIA does not allow `aria-required`: the
+  // form's message says what is missing. The file upload's button is `lintje-button`'s own.
+  it.each(['lintje-multiselect', 'lintje-date-range', 'lintje-file-upload'])(
+    '%s reflects required and keeps aria-required off its button',
+    async (tag) => {
+      const element = await mount(tag, (e) => Object.assign(e, { options: OPTIONS }), {
+        required: true,
+      })
+      expect(element.hasAttribute('required')).toBe(true)
+      expect(element.renderRoot.querySelector('[aria-required]')).toBeNull()
+    },
+  )
 })
 
 describe('a setting row', () => {
