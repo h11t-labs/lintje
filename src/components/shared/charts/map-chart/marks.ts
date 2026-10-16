@@ -9,6 +9,7 @@
 import { svg, nothing, type SVGTemplateResult } from 'lit'
 import { repeat } from 'lit/directives/repeat.js'
 import { styleProps } from '../../../../core/style-props'
+import { isNewTabClick } from '../../../../core/links'
 import { formatNumber } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
 import { DEFAULT_SERIES_COLOR } from '../shared/colors'
@@ -50,7 +51,7 @@ export interface MarksContext {
   /** The marks a drawn area chose: outlined as a chosen mark is, the flows beside them muted. */
   chosen: Set<string>
   controller: ChartController
-  select: (value: MapValue) => void
+  select: (value: MapValue, newTab?: boolean) => void
   project: Project
   /** On a basemap the tiles are the land: only the areas with a row are drawn. */
   tiled: boolean
@@ -82,6 +83,20 @@ const markState = (context: MarksContext, id: string, off: boolean): string =>
 /** A click or a double click on a mark is the mark's, not the map's. */
 function stop(event: Event): void {
   event.stopPropagation()
+}
+
+/**
+ * A click on a mark, bound to `click` and `auxclick`. A modifier or middle click on a mark with an
+ * `href` opens it in a new tab, as on a link; without one, the middle button does nothing.
+ */
+function onPick(select: MarksContext['select'], value: MapValue) {
+  return (event: MouseEvent) => {
+    stop(event)
+    if (value.href && isNewTabClick(event)) {
+      event.preventDefault()
+      select(value, true)
+    } else if (event.type === 'click') select(value)
+  }
 }
 
 /** Enter or space chooses a mark, as a click does. */
@@ -160,10 +175,8 @@ function renderAreas(drawing: MapDrawing, context: MarksContext, land: LandShape
          role="button" tabindex=${off ? -1 : 0} aria-hidden=${off ? 'true' : nothing}
          aria-pressed=${String(isChosen(context, value.id))}
          aria-label=${`${value.label}: ${figure}${value.detail ? `, ${value.detail}` : ''}`}
-         @click=${(event: MouseEvent) => {
-           stop(event)
-           select(value)
-         }}
+         @click=${onPick(select, value)}
+         @auxclick=${onPick(select, value)}
          @dblclick=${stop}
          @mousemove=${(event: MouseEvent) =>
            controller.showTooltip(event, {
@@ -224,10 +237,8 @@ function renderFlows(
           aria-pressed=${String(isChosen(context, value.id))}
           aria-label=${`${route}: ${withUnit(formatNumber(value.value!), drawing.unit)}${value.detail ? `, ${value.detail}` : ''}`}
           @keydown=${onChoose(select, value)}
-          @click=${(event: MouseEvent) => {
-            stop(event)
-            select(value)
-          }}
+          @click=${onPick(select, value)}
+          @auxclick=${onPick(select, value)}
           @dblclick=${stop}
           @mousemove=${(event: MouseEvent) =>
             controller.showTooltip(event, {
@@ -284,10 +295,8 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
          role="button" tabindex=${gone(value) ? -1 : 0} aria-hidden=${gone(value) ? 'true' : nothing}
          aria-pressed=${String(isChosen(context, value.id))}
          aria-label=${`${value.label}: ${figure}${seriesName ? `, ${seriesName}` : ''}`}
-         @click=${(event: MouseEvent) => {
-           stop(event)
-           select(value)
-         }}
+         @click=${onPick(select, value)}
+         @auxclick=${onPick(select, value)}
          @dblclick=${stop}
          @mousemove=${(event: MouseEvent) =>
            controller.showTooltip(event, {

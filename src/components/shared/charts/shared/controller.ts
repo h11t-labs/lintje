@@ -27,8 +27,11 @@ export interface ChartOptions {
   expanded?: boolean
   /** Cross-drill: the chosen mark's id. The chart keeps no selection of its own. */
   selectedId?: string | null
-  /** A mark that carries a `href` was activated. Without this the marks stay inert. */
-  onSelect?: (mark: ChartSelection) => void
+  /**
+   * A mark that carries a `href` was activated; `newTab` for a modifier or middle click. Without
+   * this the marks stay inert.
+   */
+  onSelect?: (mark: ChartSelection, newTab?: boolean) => void
   /** The selection was undone (chosen mark again, or Escape); the id travels for focus. */
   onClear?: (previousId: string) => void
 }

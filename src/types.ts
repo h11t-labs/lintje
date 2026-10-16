@@ -162,7 +162,8 @@ export interface TileData {
 
 /**
  * Events: `lintje-mark-select` `{id, label, href}` when a mark with a `href` is clicked,
- * `{id: null, href: clearHref}` when the selection is undone.
+ * `{id: null, href: clearHref}` when the selection is undone; uncancelled, the page goes to
+ * that `href`.
  */
 export interface ChartData extends FrameSettings, TileData, ContentState {
   chart: ChartSpec
@@ -182,7 +183,8 @@ export interface ChartData extends FrameSettings, TileData, ContentState {
  * Events: `lintje-mark-select` `{id, label, href?}` on a click on an area or point,
  * `{id: null, href: clearHref}` when undone; `lintje-layer-change` with the chosen layer;
  * with `controls.lasso` or `controls.circle`, `lintje-area-select` `{area, ids}` for a drawn area and
- * `{area: null, ids: []}` when it is undone.
+ * `{area: null, ids: []}` when it is undone. An uncancelled `lintje-mark-select` goes to its
+ * `href`.
  */
 export interface MapData extends FrameSettings, TileData, ContentState, MapSpec {}
 
@@ -294,7 +296,8 @@ export interface SortState {
 
 /**
  * Events: `lintje-row-click` with `{id, label, href?}` in a clickable table;
- * `lintje-row-open` with `{id, label, href?}` from the name of an `openable` one;
+ * `lintje-row-open` with `{id, label, href?}` from the name of an `openable` one; uncancelled,
+ * either goes to the row's `href`;
  * `lintje-checked-change` with the checked keys in a selectable one;
  * `lintje-sort-change` with `{key, direction}` or `null`;
  * `lintje-cell-edit` `{id, column, value}` from an `editor` column;

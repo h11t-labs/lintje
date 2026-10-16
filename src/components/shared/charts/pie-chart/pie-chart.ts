@@ -157,7 +157,7 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
                 ${styleProps({ 'transform-origin': `${radius}px ${radius}px` })}
                 data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
                 aria-pressed=${mark.pressed} aria-label=${mark.label}
-                @click=${mark.click} @keydown=${mark.keydown}
+                @click=${mark.click} @auxclick=${mark.click} @keydown=${mark.keydown}
                 @mousemove=${(event: MouseEvent) => {
                   setHover(i)
                   controller.showTooltip(event, {
