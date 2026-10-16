@@ -172,6 +172,18 @@ describe('the map surface', () => {
     ).toBe('rotate(45) scale(0.5)')
   })
 
+  it('lets a point that follows the zoom grow with the ground, within 2–28 px', () => {
+    const { instance, container } = surface({}, { ...DATA, size: { zoom: true } })
+    const largest = mark(container, 'ein') // 18 px: one zoom in would make it 36, so it stops at 28
+    const smaller = mark(container, 'rtm') // 8/21 of the figure: well inside the band, so it doubles
+    expect(largest.style.transform).toMatch(/ scale\(1\)$/)
+    instance.zoomIn()
+    const radius = (symbol: SVGElement) => Number(symbol.getAttribute('data-r'))
+    expect(largest.style.transform).toMatch(` scale(${28 / (radius(largest) * 2)})`)
+    expect(smaller.style.transform).toMatch(/ scale\(1\)$/)
+    expect(radius(smaller) * 2).toBeLessThan(28)
+  })
+
   it('draws the credit with a basemap only, and leaves the land to its tiles', () => {
     const plain = surface()
     expect(plain.container.querySelector('.leaflet-control-attribution')).toBeNull()

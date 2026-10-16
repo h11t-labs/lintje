@@ -733,12 +733,13 @@ die de host noemt, tonen hun naam; de rest leest de lezer uit de tooltip of de t
 boven, en het toetsenbord volgt de stapel; een choropleet kleurt het land zelf en ligt daarom
 altijd onderop. Er is één selectie over alle lagen en één legenda, boven de kaart zoals bij
 elke grafiek, met per laag één regel: haar naam — die van de host, anders die van haar soort —
-met het vakje van een checkbox ervoor, dat de laag aan en uit zet, dan haar sleutel, dan haar
-reeksen, elk een schakelaar zoals in elke legenda, en achteraan "geen gegevens" als een mark van
-die laag geen cijfer heeft. Een kleur die in meer
-lagen dient, staat bij elke laag en schakelt per laag. De sleutel is dezelfde tekening als de
-kaart: vijf klassen van 0 tot het maximum, drie cirkels van klein naar groot met het bereik, of
-één wig van dun naar dik met het bereik; een cijfer spreekt altijd de eenheid van zijn eigen laag.
+met het vakje van een checkbox ervoor, dat de laag aan en uit zet, dan haar sleutel — of niets,
+voor een laag van punten waarvan het getal geen maat is —, dan haar reeksen, elk een schakelaar
+zoals in elke legenda, en achteraan "geen gegevens" als een mark van die laag geen cijfer heeft.
+Een kleur die in meer lagen dient, staat bij elke laag en schakelt per laag. De sleutel is
+dezelfde tekening als de kaart: vijf klassen van 0 tot het maximum, drie cirkels van klein naar
+groot met het bereik, of één wig van dun naar dik met het bereik; een cijfer spreekt altijd de
+eenheid van zijn eigen laag.
 Meer dan drie lagen vouwen op de tegel onder "Nog n lagen"; de vergroting toont alles, en daar
 krijgt elke klasse haar bereik en staan de cirkels genest op ware maat met hun getal. Op een
 telefoon staat de naam boven de sleutel en krijgen de reeksen een eigen regel. Een vlak dat niet
