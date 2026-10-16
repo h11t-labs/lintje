@@ -15,10 +15,11 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeGridItemElement } from '../../shared/grid-item-element'
 import { footDescribedBy, renderFieldFoot } from './field-foot'
-import { formEntries, readControl, writeControl } from '../../shared/controls'
+import { formEntries, postsEmpty, readControl, writeControl } from '../../shared/controls'
 
 const OPTIONAL = '(niet verplicht)'
 const MODIFIED = 'afwijkend van standaard'
+const MISSING = 'Vul dit veld in.'
 
 /** What an input may commit. A host serialises it into the URL. */
 export type InputValue = string | number | boolean | null
@@ -59,7 +60,11 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
    * `lintje-reset`. A reader hears the field's `label` after it.
    */
   declare resetLabel?: string
-  /** The field must be filled. Draws nothing; sets `aria-required` and form validity. */
+  /**
+   * The field must be filled. Draws nothing. While it is empty and enabled it holds back the
+   * native `<form>` around it, with the browser's message at the control; the control says
+   * `aria-required` where its role allows it.
+   */
   required: boolean = false
   /** Marks the label "(niet verplicht)", inside the label so it is in the accessible name. */
   optional: boolean = false
@@ -75,6 +80,8 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     typeof this.attachInternals === 'function' ? this.attachInternals() : null
   #first: unknown
   #seen = false
+  /** Set while a validity sync waits for a part a child element draws. */
+  #waiting = false
 
   constructor() {
     super()
@@ -98,6 +105,35 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
       for (const [key, value] of formEntries(this.name, this.postedValue)) data.append(key, value)
     }
     this.internals.setFormValue(data)
+    this.syncValidity()
+  }
+
+  /** Empty for the form: it posts nothing, or one of its values is empty. Counts without `name`. */
+  protected get missing(): boolean {
+    return this.required && !this.disabled && postsEmpty(this.postedValue)
+  }
+
+  /** Reports `required` to the native form, the message anchored where the focus goes. */
+  protected syncValidity(): void {
+    const internals = this.internals
+    if (!internals) return
+    if (!this.missing) {
+      internals.setValidity({})
+      return
+    }
+    const anchor = this.focusTarget
+    const message = (anchor as HTMLInputElement | null)?.validationMessage || MISSING
+    internals.setValidity({ valueMissing: true }, message, anchor ?? undefined)
+    // A part a child element draws appears after the child's own update; once is enough.
+    if (anchor || this.#waiting) return
+    this.#waiting = true
+    const parts = [...this.renderRoot.querySelectorAll('*')].map(
+      (node) => (node as Partial<{ updateComplete: Promise<unknown> }>).updateComplete,
+    )
+    void Promise.all(parts).then(() => {
+      this.syncValidity()
+      this.#waiting = false
+    })
   }
 
   formResetCallback(): void {
@@ -118,18 +154,26 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     return 'lintje-input-control'
   }
 
-  /** Focuses the native control, else the checked radio, else the first focusable part. */
-  protected focusControl(options?: FocusOptions): void {
-    // Disabled is out of the tab order: a label click or a script's `focus()` lands nowhere.
-    if (this.disabled) return
+  /**
+   * What takes the focus: the native control, else the checked radio, else the first focusable
+   * part. The browser also anchors a form's message there.
+   */
+  protected get focusTarget(): HTMLElement | null {
     const root = this.renderRoot
-    const target =
+    return (
       root.querySelector<HTMLElement>(`#${this.controlId}`) ??
       root.querySelector<HTMLElement>('input[type="radio"]:checked:not(:disabled)') ??
       [...root.querySelectorAll<HTMLElement>('input, select, button, textarea')].find(
         (node) => !(node as HTMLInputElement).disabled,
-      )
-    target?.focus(options)
+      ) ??
+      null
+    )
+  }
+
+  protected focusControl(options?: FocusOptions): void {
+    // Disabled is out of the tab order: a label click or a script's `focus()` lands nowhere.
+    if (this.disabled) return
+    this.focusTarget?.focus(options)
   }
 
   override focus(options?: FocusOptions): void {
@@ -290,25 +334,22 @@ export abstract class LintjeFormInputElement extends LintjeInputElement {
     this.initialValue = this.value
   }
 
+  protected override get postedValue(): unknown {
+    return this.formValue
+  }
+
+  // A read-only field cannot be filled, so it never holds the form back, as natively.
+  protected override get missing(): boolean {
+    return super.missing && !this.readonly
+  }
+
   // The base posts via `syncForm`; these post a string and set validity in `updated`.
   protected override syncForm(): void {}
 
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
-    const internals = this.internals
-    if (!internals) return
-    internals.setFormValue(this.disabled ? null : this.formValue)
-    const control = this.nativeControl
-    const missing = this.required && !this.disabled && !this.readonly && this.formValue === ''
-    if (missing && control) {
-      internals.setValidity(
-        { valueMissing: true },
-        control.validationMessage || 'Vul dit veld in.',
-        control,
-      )
-    } else {
-      internals.setValidity({})
-    }
+    this.internals?.setFormValue(this.disabled ? null : this.formValue)
+    this.syncValidity()
   }
 
   /**

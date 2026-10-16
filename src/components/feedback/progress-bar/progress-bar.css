@@ -16,16 +16,16 @@
 .lintje-progress--error .lintje-progress__mark { color: var(--color-error-line); }
 .lintje-progress--paused .lintje-progress__mark { color: var(--color-text-muted); }
 
-/* The accent LINE, not the fill colour, keeps 3:1 on the dark surface. */
-.lintje-progress__track { height: 6px; background: var(--color-border-default); overflow: hidden; }
+/* Every fill is a line colour, not a fill colour: it keeps 3:1 on the track in dark. */
+.lintje-progress__track { height: 6px; background: var(--color-progress-track); overflow: hidden; }
 .lintje-progress__fill {
   height: 100%;
   background: var(--color-accent-line);
   transition: width var(--dur-base) var(--ease-in-motion);
 }
 
-.lintje-progress--done .lintje-progress__fill { background: var(--color-success); }
-.lintje-progress--error .lintje-progress__fill { background: var(--color-error); }
+.lintje-progress--done .lintje-progress__fill { background: var(--color-success-line); }
+.lintje-progress--error .lintje-progress__fill { background: var(--color-error-line); }
 .lintje-progress--error .lintje-progress__label { color: var(--color-error-text); }
 .lintje-progress--paused .lintje-progress__fill { background: var(--color-text-muted); }
 
