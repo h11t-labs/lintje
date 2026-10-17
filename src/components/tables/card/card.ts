@@ -23,11 +23,15 @@ import { LintjeElement, define } from '../../../core/element'
 import { isPlainClick } from '../../../core/links'
 import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
+import { LiveMessage } from '../../shared/live-message'
 import { TONE_ICON, type Tone } from '../../shared/tone'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
 import '../../actions/icon-button/icon-button'
 import '../../feedback/skeleton/skeleton'
+import '../person/person'
+import '../person-group/person-group'
+import type { Person } from '../../../types'
 import cardCss from './card.css?inline'
 
 export type CardStatusTone = Tone
@@ -67,10 +71,16 @@ export interface CardIconAction {
   iconPressed?: string
 }
 
+/** One of `person`, `people` or `value`; with more, `person` wins, then `people`. */
 export interface CardFact {
+  /** The term: "Behandelaar", "Meelezers"; also the name of a row of people. */
   label: string
   /** Text the host formatted. Missing is a dash, never 0. */
-  value: string | null
+  value?: string | null
+  /** One person at 24 px; `null` is "Niet toegewezen". On a card that is a link, never a link. */
+  person?: Person | null
+  /** A row of people that opens the list of everyone: a control of its own, also on a link. */
+  people?: Person[]
 }
 
 export interface CardMedia {
@@ -110,7 +120,6 @@ export class LintjeCard extends LintjeElement {
     headingLevel: { type: Number, attribute: 'heading-level' },
     compact: { type: Boolean, reflect: true },
     loading: { type: Boolean, reflect: true },
-    spoken: { state: true },
   }
 
   declare data?: CardData
@@ -125,40 +134,22 @@ export class LintjeCard extends LintjeElement {
   compact: boolean = false
   /** Draws the card's shape in skeletons, at the size the content will take. */
   loading: boolean = false
-  /** What the status region says once the card has loaded: filled a frame after it is drawn. */
-  spoken: string = ''
-
   // The region is drawn from the first load on, and stays, so the change to "geladen" is heard.
   private hasRegion = false
   private wasBusy = false
-  private fillFrame = 0
+  readonly #spoken = new LiveMessage(this)
 
   private get busy(): boolean {
     return this.loading || !this.data
   }
 
-  override disconnectedCallback(): void {
-    cancelAnimationFrame(this.fillFrame)
-    this.fillFrame = 0
-    super.disconnectedCallback()
-  }
-
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
-    if (this.busy) this.hasRegion = true
-  }
-
-  protected override updated(changed: PropertyValues<this>): void {
-    super.updated(changed)
     const busy = this.busy
+    if (busy) this.hasRegion = true
     if (busy === this.wasBusy) return
     this.wasBusy = busy
-    const text = busy ? 'Gegevens laden…' : 'Gegevens geladen.'
-    cancelAnimationFrame(this.fillFrame)
-    this.fillFrame = requestAnimationFrame(() => {
-      this.fillFrame = 0
-      this.spoken = text
-    })
+    this.#spoken.say(busy ? 'Gegevens laden…' : 'Gegevens geladen.')
   }
 
   readonly #mobile = new MediaController(this, MOBILE)
@@ -184,8 +175,13 @@ export class LintjeCard extends LintjeElement {
     const path = event.composedPath()
     const on = (name: string): boolean =>
       path.some((node) => node instanceof HTMLElement && node.classList.contains(name))
-    // An icon action is a control of its own, also on a card that is a link.
+    // An icon action is a control of its own, also on a card that is a link; so is a row of
+    // people, with its list.
     if (on('lintje-card__icon-action')) return
+    if (
+      path.some((node) => node instanceof HTMLElement && node.localName === 'lintje-person-group')
+    )
+      return
     const onTitle = on('lintje-card__link')
     // On the title the browser follows the href unless the host cancels the event.
     if (onTitle) this.followLink(href, event)
@@ -250,21 +246,44 @@ export class LintjeCard extends LintjeElement {
     </p>`
   }
 
+  /** On a card that is a link, a person is no second link: the card opens. */
+  private shownPerson(person: Person): Person {
+    return this.isLink ? { ...person, href: undefined } : person
+  }
+
+  private renderFactValue(fact: CardFact): unknown {
+    if (fact.person !== undefined) {
+      return html`<lintje-person
+        size="small"
+        .person=${fact.person && this.shownPerson(fact.person)}
+      ></lintje-person>`
+    }
+    if (fact.people) {
+      return html`<lintje-person-group
+        size="small"
+        label=${fact.label}
+        .people=${fact.people.map((person) => this.shownPerson(person))}
+      ></lintje-person-group>`
+    }
+    if (fact.value == null || fact.value === '') {
+      return html`<span class="lintje-card__missing"
+        ><span aria-hidden="true">—</span><span class="visually-hidden">geen waarde</span></span
+      >`
+    }
+    return fact.value
+  }
+
   private renderFacts(facts: CardFact[]): TemplateResult {
     return html`<dl class="lintje-card__facts">
       ${facts.map(
-        (fact) => html`<div class="lintje-card__fact">
+        (fact) => html`<div
+          class=${classMap({
+            'lintje-card__fact': true,
+            'has-person': fact.person !== undefined || Boolean(fact.people),
+          })}
+        >
           <dt class="lintje-card__fact-label">${fact.label}</dt>
-          <dd class="lintje-card__fact-value">
-            ${
-              fact.value === null || fact.value === ''
-                ? html`<span class="lintje-card__missing"
-                    ><span aria-hidden="true">—</span
-                    ><span class="visually-hidden">geen waarde</span></span
-                  >`
-                : fact.value
-            }
-          </dd>
+          <dd class="lintje-card__fact-value">${this.renderFactValue(fact)}</dd>
         </div>`,
       )}
     </dl>`
@@ -310,7 +329,7 @@ export class LintjeCard extends LintjeElement {
   protected override render(): TemplateResult {
     return html`${
       this.hasRegion
-        ? html`<span class="visually-hidden" role="status">${this.spoken}</span>`
+        ? html`<span class="visually-hidden" role="status">${this.#spoken.text}</span>`
         : nothing
     }${this.renderCard()}`
   }

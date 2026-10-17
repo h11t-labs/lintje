@@ -10,6 +10,8 @@
   justify-content: center;
   min-height: var(--h-logobar);
   overflow: hidden;
+  /* The ribbon is the bar's unit, so the logo grows with the reader's text size as the bar does. */
+  --lintje-logo-ribbon: var(--w-ribbon);
   background: var(--color-logobar-bg);
   color: var(--color-logobar-text);
 }

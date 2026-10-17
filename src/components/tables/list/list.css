@@ -91,6 +91,7 @@
 .lintje-list__progress { margin-top: var(--space-1); }
 .lintje-list__icon { grid-area: icon; color: var(--color-text-muted); }
 .lintje-list__facts { grid-area: facts; display: flex; align-items: center; gap: var(--space-3); }
+.lintje-list__person { font: var(--text-small); }
 .lintje-list__meta {
   font: var(--text-small);
   color: var(--color-text-muted);

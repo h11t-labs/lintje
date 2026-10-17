@@ -31,6 +31,7 @@ import {
 import zoneCss from './filter-zone.css?inline'
 import { scrollRoot } from '../../../core/host-config'
 import { holdsFocus } from '../../../core/focus'
+import { heightSettleMs } from '../../shared/transition'
 
 export class LintjeFilterZone extends LintjeElement {
   static override styles = [iconStyles, shadowCss(zoneCss)]
@@ -43,7 +44,6 @@ export class LintjeFilterZone extends LintjeElement {
     stick: { type: String },
     sentence: { attribute: false },
     settled: { state: true },
-    scrollable: { state: true },
   }
 
   total: number = 0
@@ -54,13 +54,14 @@ export class LintjeFilterZone extends LintjeElement {
   /** The open transition is done, so the body may stop clipping the popovers hanging out of it. */
   protected settled: boolean = true
   private settleTimer: ReturnType<typeof setTimeout> | undefined
-  /** The stuck panel is taller than the space below the top bar. Scrolling clips popovers. */
-  protected scrollable: boolean = false
   /** `fixed` where the zone's own box is too small to stick in (a component mount). */
   stick: 'sticky' | 'fixed' = 'sticky'
   sentence: SentencePart[] = []
 
   private readonly mobile = new MediaController(this, MOBILE)
+  /** Carries `:state(phone)`, which follows the controller as the template does; `null` in happy-dom. */
+  readonly #internals: ElementInternals | null =
+    typeof this.attachInternals === 'function' ? this.attachInternals() : null
   private observer: IntersectionObserver | null = null
   // `undefined` until the first update: `null === null` would skip the first report.
   private observed: HTMLElement | null | undefined = undefined
@@ -83,23 +84,27 @@ export class LintjeFilterZone extends LintjeElement {
     super.disconnectedCallback()
   }
 
-  // Adds up the two boxes instead of reading `scrollHeight`, which counts an open popover and
-  // would switch the scroll on, cutting off that popover.
+  // `is-scrollable`: the stuck panel is taller than the space below the top bar, and scrolling
+  // clips popovers. Adds up the two boxes instead of reading `scrollHeight`, which counts an open
+  // popover and would switch the scroll on, cutting off that popover. Written straight onto the
+  // bar: a reactive property set after a render would draw the zone twice.
   private measureOverflow(): void {
     const inner = this.renderRoot.querySelector<HTMLElement>('.lintje-filter-bar__body-inner')
     const row = this.renderRoot.querySelector<HTMLElement>(
       '.lintje-filter-bar__header, .lintje-summary-bar',
     )
-    if (!inner || !row) {
-      this.scrollable = false
-      return
-    }
-    const topBar = lengthPx(inner, '--h-topbar', 56)
-    this.scrollable = row.offsetHeight + inner.offsetHeight > window.innerHeight - topBar
+    const bar = this.renderRoot.querySelector<HTMLElement>('.lintje-filter-bar')
+    if (!bar) return
+    const topBar = inner ? lengthPx(inner, '--h-topbar', 56) : 0
+    const scrollable =
+      inner !== null &&
+      row !== null &&
+      row.offsetHeight + inner.offsetHeight > window.innerHeight - topBar
+    bar.classList.toggle('is-scrollable', scrollable)
   }
 
-  // The wait is the body's own `transition-duration`, not `--dur-collapse`: under
-  // `prefers-reduced-motion` the token is 0 ms but `tokens/base.css` still gives 80 ms.
+  // The wait is the body's computed transition of its height, not `--dur-collapse`: whatever
+  // `tokens/base.css` lets move under reduced motion decides it.
   private timeSettling(expanded: boolean): void {
     clearTimeout(this.settleTimer)
     if (!expanded) {
@@ -107,7 +112,7 @@ export class LintjeFilterZone extends LintjeElement {
       return
     }
     const body = this.renderRoot.querySelector<HTMLElement>('.lintje-filter-bar__body')
-    const duration = body ? parseFloat(getComputedStyle(body).transitionDuration) * 1000 : 0
+    const duration = heightSettleMs(body)
     this.settled = !(duration > 0)
     if (!this.settled) this.settleTimer = setTimeout(() => (this.settled = true), duration)
   }
@@ -125,24 +130,31 @@ export class LintjeFilterZone extends LintjeElement {
   // that held the focus is replaced, so the focus goes to the toggle instead of the page.
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
-    if (!changed.has('open') && !changed.has('modified')) return
-    const row = this.renderRoot.querySelector('.lintje-filter-bar__header, .lintje-summary-bar')
-    this.#rowHadFocus = this.#rowHadFocus || (row != null && holdsFocus(row))
-  }
-
-  protected override updated(changed: PropertyValues<this>): void {
-    if (this.#rowHadFocus) {
-      this.#rowHadFocus = false
-      if (!holdsFocus(this)) {
-        this.renderRoot.querySelector<HTMLElement>('.lintje-filter-toggle')?.focus()
-      }
-    }
+    // Whether the zone opens follows from its state and the breakpoint, so `settled` is known
+    // before the render. The body it times is the one already drawn.
     const expanded = !this.mobile.matches && zoneExpanded(this.state)
     if (expanded !== this.wasExpanded) {
       const first = this.wasExpanded === undefined
       this.wasExpanded = expanded
       this.watchPageScroll(expanded)
       if (!first) this.timeSettling(expanded)
+    }
+    if (!changed.has('open') && !changed.has('modified')) return
+    const row = this.renderRoot.querySelector('.lintje-filter-bar__header, .lintje-summary-bar')
+    this.#rowHadFocus = this.#rowHadFocus || (row != null && holdsFocus(row))
+  }
+
+  protected override updated(changed: PropertyValues<this>): void {
+    const states = this.#internals?.states
+    if (states) {
+      if (this.mobile.matches) states.add('phone')
+      else states.delete('phone')
+    }
+    if (this.#rowHadFocus) {
+      this.#rowHadFocus = false
+      if (!holdsFocus(this)) {
+        this.renderRoot.querySelector<HTMLElement>('.lintje-filter-toggle')?.focus()
+      }
     }
     this.measureOverflow()
     const sentinel =
@@ -247,7 +259,6 @@ export class LintjeFilterZone extends LintjeElement {
           'is-settled': expanded && this.settled,
           'is-sticky': this.scrolled,
           'is-stuck-open': this.scrolled && expanded,
-          'is-scrollable': this.scrollable,
           'lintje-filter-bar--fixed': this.stick === 'fixed',
           'lintje-filter-bar--wrap': this.total > 4,
         })}
@@ -333,14 +344,13 @@ export class LintjeFilterZone extends LintjeElement {
   }
 
   // `expanded` is the rendered state, not `open`: stuck and collapsed the zone is closed
-  // however the URL reads.
+  // however the URL reads. Its name is the word it shows; `aria-expanded` says the state.
   private renderToggle(expanded: boolean): TemplateResult {
     return html`<button
       type="button"
       class=${classMap({ 'lintje-filter-toggle': true, 'is-expanded': expanded })}
       aria-expanded=${expanded}
       aria-controls="filter-body"
-      aria-label=${expanded ? 'Filters verbergen' : 'Filters tonen'}
       @click=${() => this.act({ type: expanded ? 'collapse' : 'expand' })}
     >
       Filters

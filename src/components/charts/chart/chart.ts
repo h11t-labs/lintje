@@ -2,7 +2,10 @@
  * `<lintje-chart>` — a chart in its tile, with loading, empty and error states.
  *
  * Expand and download are handled here. The table view is the element's own state, built from the
- * CSV rows; it never reaches the URL.
+ * CSV rows; it never reaches the URL. A mark with an `href` goes there after its
+ * `lintje-mark-select`, and undoing goes to `data.clearHref`: the event is cancelable, and a host
+ * that routes itself cancels it. A modifier or middle click on a mark opens its `href` in a new
+ * tab, without that event.
  *
  * Events: `lintje-mark-select` `{ id, label, href }` (a mark with an `href` was clicked;
  * deselected, `{ id: null, label: null, href: data.clearHref }`).
@@ -486,6 +489,19 @@ export class LintjeChart extends LintjeContentTileElement {
     ></lintje-data-table>`
   }
 
+  /**
+   * The host may take the choice over by cancelling the event; else the page goes to its `href`.
+   * A modifier or middle click opens the `href` in a new tab, without the event.
+   */
+  private select(
+    detail: { id: string | null; label: string | null; href?: string },
+    newTab = false,
+  ): void {
+    if (newTab) {
+      if (detail.href) this.followLink(detail.href, undefined, undefined, { newTab: true })
+    } else if (this.emit('lintje-mark-select', detail) && detail.href) this.followLink(detail.href)
+  }
+
   /** Returns focus to the cleared mark, or to the drawing when the mark is gone. */
   private async focusMark(id: string): Promise<void> {
     await this.updateComplete
@@ -505,9 +521,9 @@ export class LintjeChart extends LintjeContentTileElement {
       description: this.data?.description ?? '',
       mobile: this.#mobile.matches,
       selectedId: this.data?.selectedId ?? null,
-      onSelect: ({ id, label, href }) => this.emit('lintje-mark-select', { id, label, href }),
+      onSelect: ({ id, label, href }, newTab) => this.select({ id, label, href }, newTab),
       onClear: (previousId) => {
-        this.emit('lintje-mark-select', { id: null, label: null, href: this.data?.clearHref })
+        this.select({ id: null, label: null, href: this.data?.clearHref })
         void this.focusMark(previousId)
       },
     }

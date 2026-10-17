@@ -1,5 +1,5 @@
 // The tables category (Tabellen en lijsten): the specimens of its elements.
-import { log } from '../shared.js'
+import { linkLog, log } from '../shared.js'
 import { desks, meta, regions } from '../../_data/load.js'
 
 // The worksheet specimens of `lintje-data-table` play the host: each listens for the table's
@@ -272,12 +272,15 @@ const NOTES = [
 const compactData = {
   caption: 'Loketten met een toelichting en de trend tegenover vorige week',
   title: 'Loketten met toelichting',
-  subtitle: 'De toelichting op één regel, de trend als pijltje',
+  subtitle: 'De toelichting op één regel, de trend als pijltje met de cijfers in de tooltip',
   columns: [
     { key: 'name', header: 'Loket' },
     { key: 'note', header: 'Toelichting', truncate: true },
     { key: 'requests', header: 'Aanvragen', align: 'right', mobileMeasure: true },
-    { key: 'change', header: 'Trend', align: 'right', format: 'change-compact' },
+    {
+      key: 'change', header: 'Trend', align: 'right', format: 'change-compact',
+      tooltip: '{change} tegenover vorige week · {previous} aanvragen toen',
+    },
   ],
   rows: desks.slice(0, NOTES.length).map((point, index) => ({
     id: point.id,
@@ -285,6 +288,8 @@ const compactData = {
     note: NOTES[index],
     requests: point.requests,
     change: point.change,
+    // Carried for the trend's tooltip, not drawn: last week's figure.
+    previous: Math.round(point.requests / (1 + point.change / 100)),
   })),
   rowKey: 'id',
   clickable: true,
@@ -526,6 +531,73 @@ const DETAILS = [
   { label: 'Toelichting', value: null },
 ]
 
+/* --- People ----------------------------------------------------------------- */
+
+// Fictional colleagues; the photo is the gallery's grey stand-in, never a face.
+const PEOPLE = {
+  jv: { name: 'J. de Vries', initials: 'JV', role: 'Senior behandelaar' },
+  ab: { name: 'A. Bakker', initials: 'AB', role: 'Behandelaar' },
+  sy: { name: 'S. Yılmaz', initials: 'SY', role: 'Jurist', photo: 'media/afbeelding.svg' },
+  mj: { name: 'M. Jansen', initials: 'MJ', role: 'Teamleider' },
+  rv: { name: 'R. Visser', initials: 'RV', role: 'Adviseur' },
+  ld: { name: 'L. de Boer', role: 'Extern adviseur' },
+}
+const READERS = ['ab', 'sy', 'mj', 'rv', 'ld', 'jv'].map((id) => PEOPLE[id])
+
+const REQUESTS = [
+  { id: 'a1', name: 'Omgevingsvergunning Dorpsstraat 4', kind: 'Bouwen', handler: 'jv', days: 12 },
+  { id: 'a2', name: 'Kapvergunning Parklaan', kind: 'Kappen', handler: null, days: 3 },
+  { id: 'a3', name: 'Evenement Koningsdag', kind: 'Evenement', handler: 'ab', days: 28 },
+  { id: 'a4', name: 'Uitrit Molenweg 17', kind: 'Uitrit', handler: 'sy', days: 6 },
+  { id: 'a5', name: 'Terras Marktplein', kind: 'Terras', handler: 'ab', days: 9 },
+]
+
+const handlerColumn = {
+  key: 'handler',
+  header: 'Behandelaar',
+  format: 'person',
+  people: PEOPLE,
+  filter: { kind: 'options', options: ['jv', 'ab', 'sy'].map((value) => ({ value })) },
+}
+
+const requestsData = {
+  caption: 'Aanvragen met soort, behandelaar en dagen in behandeling',
+  title: 'Aanvragen',
+  subtitle: 'Gesorteerd op behandelaar',
+  columns: [
+    { key: 'name', header: 'Aanvraag' },
+    { key: 'kind', header: 'Soort' },
+    handlerColumn,
+    { key: 'days', header: 'Dagen', align: 'right', mobileMeasure: true },
+  ],
+  rows: REQUESTS,
+  rowKey: 'id',
+  sort: { key: 'handler', direction: 'asc' },
+  clickable: true,
+  expandable: true,
+}
+
+/** The worksheet of requests: a chosen handler stands once the host sets it. */
+function assigning(stage) {
+  const element = table(stage, {
+    ...requestsData,
+    title: 'Aanvragen toewijzen',
+    subtitle: 'Kies een behandelaar in de cel',
+    clickable: false,
+    columns: requestsData.columns.map((column) =>
+      column.key === 'handler' ? { ...column, filter: undefined, editor: { kind: 'select' } } : column,
+    ),
+    rows: REQUESTS.map((row) => ({ ...row })),
+  })
+  const say = log(stage)
+  element.addEventListener('lintje-cell-edit', (event) => {
+    const { id, column, value } = event.detail
+    say(`lintje-cell-edit ${JSON.stringify(event.detail)}`)
+    const rows = element.data.rows.map((row) => (row.id === id ? { ...row, [column]: value } : row))
+    element.data = { ...element.data, rows }
+  })
+}
+
 const ACTIVITY = [
   {
     who: 'J. de Vries',
@@ -551,6 +623,14 @@ const ACTIVITY = [
     when: 'gisteren om 15:48',
     at: '2026-10-03T15:48:00+02:00',
   },
+]
+
+/** The same history, with people: their circle before the name, "Systeem" on the same line. */
+const PEOPLE_ACTIVITY = [
+  { who: { ...PEOPLE.jv, role: undefined, href: '#el-activity-log' }, what: 'wees de aanvraag toe aan A. Bakker', when: 'vandaag om 10:42', at: '2026-10-04T10:42:00+02:00' },
+  { who: 'Systeem', what: 'stuurde de ontvangstbevestiging', when: 'vandaag om 09:31', at: '2026-10-04T09:31:00+02:00' },
+  { who: PEOPLE.sy, what: 'voegde een advies toe', when: 'gisteren om 16:05', at: '2026-10-03T16:05:00+02:00' },
+  { who: PEOPLE.ld, what: 'maakte de aanvraag aan', when: 'gisteren om 15:48', at: '2026-10-03T15:48:00+02:00' },
 ]
 
 /** Twelve older entries, so "Toon eerdere" has something to show. */
@@ -606,6 +686,21 @@ const PRODUCTS = [
     status: { label: 'Tijdelijk niet beschikbaar', tone: 'error' },
   },
 ]
+
+/** A case as a card: who handles it and who reads along. */
+const CASE = {
+  id: 'zaak-2026-118',
+  title: 'Omgevingsvergunning Dorpsstraat 4',
+  href: '#el-card',
+  meta: ['Zaak 2026-118', 'Bouwen'],
+  description: 'Verbouwing van een woning met een dakkapel aan de voorkant.',
+  facts: [
+    { label: 'Behandelaar', person: PEOPLE.jv },
+    { label: 'Meelezers', people: READERS },
+    { label: 'Termijn', value: '8 weken' },
+  ],
+  status: { label: 'In behandeling', tone: 'busy' },
+}
 
 /** The kinds of a catalogue as link cards: the whole card is the way in. */
 const KINDS = [
@@ -678,6 +773,31 @@ export default {
           setup: (stage) => dashboard(stage, compactData),
         },
         {
+          label: 'Behandelaar',
+          note:
+            'Een kolom met `format: \'person\'` toont de persoon uit `people`, gesorteerd op ' +
+            'de naam; een lege cel is "Niet toegewezen". De naam is geen link: de rij opent.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => dashboard(stage, requestsData),
+        },
+        {
+          label: 'Behandelaar kiezen',
+          note: 'In het werkblad biedt de keuzelijst "Niet toegewezen" en de personen.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: assigning,
+        },
+        {
+          label: 'Compact zonder rijactie',
+          note: 'Tab bereikt elke rij om de trend met zijn uitleg te lezen; Enter opent niets.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => table(stage, {
+            ...compactData,
+            title: 'Loketten met een leesbare trend',
+            clickable: false,
+            expandable: false,
+          }),
+        },
+        {
           label: 'Kiesbaar',
           note: 'Vink loketten aan om ze te vergelijken.',
           html: '<lintje-data-table></lintje-data-table>',
@@ -691,6 +811,22 @@ export default {
               checkedIds: [],
               pageSize: 5,
             }),
+        },
+        {
+          label: 'Rijen met een link',
+          note: 'Elke rij heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => {
+            const element = table(stage, {
+              ...tableData,
+              title: 'Loketten',
+              subtitle: 'Elke rij met een link',
+              rows: tableData.rows.slice(0, 4).map((row) => ({ ...row, href: `?loket=${row.id}` })),
+              pageSize: undefined,
+              expandable: false,
+            })
+            linkLog(stage, element, ['lintje-row-click'])
+          },
         },
         {
           label: 'Gekozen en aangevinkt',
@@ -809,6 +945,18 @@ export default {
           setup: (stage) => filters(stage, { filters: { category: ['Veiligheid', 'Overlast'] } }),
         },
         {
+          label: 'Een lange filterchip',
+          note: 'Een chip die niet op de regel past, loopt door en blijft binnen de tabel.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) =>
+            filters(stage, {
+              filters: {
+                title: 'wachtrij bij de bezoekersbalie',
+                category: ['Veiligheid', 'Verkeer', 'Overlast', 'Overig'],
+              },
+            }),
+        },
+        {
           label: 'Kolommen kiezen',
           note:
             'Het icoon in de kop van de laatste kolom kiest de kolommen. Een verborgen kolom ' +
@@ -864,6 +1012,24 @@ export default {
             void element.updateComplete.then(() =>
               element.shadowRoot.querySelector('.lintje-data-table__full .lintje-data-table__group-toggle')?.click(),
             )
+          },
+        },
+        {
+          label: 'Groepen kiezen',
+          note: 'Elke groepskop heeft een vinkje voor haar rijen. De eerste regio is gekozen, de tweede half.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => {
+            const [first, second] = REGIONS.map((region) => deskRows.filter((row) => row.region === region))
+            dashboard(stage, {
+              ...sheetData,
+              title: 'Loketten per regio',
+              subtitle: 'Kies een regio in haar kop',
+              groupBy: 'region',
+              groupTotals,
+              groupsPerPage: 3,
+              selectable: true,
+              checkedIds: [...first.map((row) => row.id), second[0].id],
+            })
           },
         },
       ],
@@ -954,6 +1120,18 @@ export default {
           },
         },
         {
+          label: 'Met een behandelaar',
+          note: 'De persoon staat bij de feiten, vóór de status; zonder persoon "Niet toegewezen".',
+          html: '<lintje-list label="Aanvragen"></lintje-list>',
+          setup(stage) {
+            stage.querySelector('lintje-list').items = [
+              { id: 'a1', title: 'Omgevingsvergunning Dorpsstraat 4', sub: 'Bouwen · 12 dagen', person: PEOPLE.jv, status: { label: 'In behandeling', tone: 'busy' }, meta: '10:42' },
+              { id: 'a2', title: 'Kapvergunning Parklaan', sub: 'Kappen · 3 dagen', person: null, status: { label: 'Nieuw', tone: 'info' }, meta: '09:15' },
+              { id: 'a3', title: 'Evenement Koningsdag', sub: 'Evenement · 28 dagen', person: PEOPLE.sy, meta: 'gisteren' },
+            ]
+          },
+        },
+        {
           label: 'Sprekers',
           note: 'Elke rij heeft een kleurbalk, zoals in de speler en het transcript, en een menu.',
           html: '<lintje-list label="Sprekers"></lintje-list>',
@@ -999,6 +1177,17 @@ export default {
           html: '<lintje-card></lintje-card>',
           setup(stage) {
             stage.querySelector('lintje-card').data = PRODUCTS[0]
+            listen(stage)
+          },
+        },
+        {
+          label: 'Met behandelaar en meelezers',
+          note:
+            'Een persoon en een rijtje personen als feit. Op een kaart die een link is, is het ' +
+            'rijtje een eigen knop: het opent de lijst en niet de kaart.',
+          html: '<lintje-card></lintje-card>',
+          setup(stage) {
+            stage.querySelector('lintje-card').data = CASE
             listen(stage)
           },
         },
@@ -1181,6 +1370,18 @@ export default {
           },
         },
         {
+          label: 'Toetsen',
+          note: 'Met `keys` is de waarde een rij toetsen, zoals in het overzicht van de sneltoetsen.',
+          html: '<lintje-description-list></lintje-description-list>',
+          setup(stage) {
+            stage.querySelector('lintje-description-list').items = [
+              { label: 'Zoeken', keys: ['/'] },
+              { label: 'Opslaan', keys: ['Ctrl', 'S'] },
+              { label: 'Vorige regel', keys: ['↑'] },
+            ]
+          },
+        },
+        {
           label: 'In het raster',
           note: 'De twee lijsten nemen `span="8"` en `span="4"` van het raster.',
           html: `<lintje-grid>
@@ -1206,6 +1407,19 @@ export default {
             tree.nodes = structuredClone(UNITS)
             tree.expanded = ['dh', 'verdiepingen']
             lazyArrivals(tree)
+          },
+        },
+        {
+          label: 'Een lange naam',
+          note:
+            'Met een aanwijzer staat de naam op één regel, met de hele naam in de tooltip. Onder ' +
+            'de focus van het toetsenbord, zonder hover en op een telefoon loopt hij door.',
+          html: '<div style="max-width: 240px"><lintje-tree-view label="Eenheden"></lintje-tree-view></div>',
+          setup(stage) {
+            stage.querySelector('lintje-tree-view').nodes = [
+              { id: 'lang', label: 'Vergaderzalen op de derde verdieping van het oostelijke gebouw', count: 4 },
+              { id: 'kort', label: 'Vertrek', count: 3 },
+            ]
           },
         },
         {
@@ -1265,6 +1479,108 @@ export default {
           setup(stage) {
             stage.querySelector('lintje-activity-log').entries = LONG_ACTIVITY
           },
+        },
+        {
+          label: 'Met personen',
+          note:
+            'Een persoon heeft het rondje vóór de naam. "Systeem" is geen persoon: geen rondje, ' +
+            'wel dezelfde lijn.',
+          html: '<lintje-activity-log heading="Geschiedenis"></lintje-activity-log>',
+          setup(stage) {
+            stage.querySelector('lintje-activity-log').entries = PEOPLE_ACTIVITY
+            listen(stage)
+          },
+        },
+      ],
+    },
+    {
+      tag: 'lintje-person',
+      title: 'Eén persoon: een rondje met foto, initialen of icoon, met de naam ernaast',
+      specimens: [
+        {
+          label: 'Drie maten',
+          note: 'Klein voor een cel of rij, gewoon, en groot zo hoog als twee regels.',
+          html:
+            '<div class="guide__stack"><lintje-person size="small"></lintje-person>' +
+            '<lintje-person></lintje-person><lintje-person size="large"></lintje-person></div>',
+          setup(stage) {
+            for (const person of stage.querySelectorAll('lintje-person')) person.person = PEOPLE.jv
+          },
+        },
+        {
+          label: 'Foto of initialen of icoon of leeg',
+          note:
+            'De vorm volgt wat er is. Zonder initialen en foto het icoon; zonder persoon het ' +
+            'gestreepte rondje met het woord.',
+          html:
+            '<div class="guide__stack"><lintje-person data-id="sy"></lintje-person>' +
+            '<lintje-person data-id="ab"></lintje-person><lintje-person data-id="ld"></lintje-person>' +
+            '<lintje-person></lintje-person><lintje-person empty="Nog niemand"></lintje-person></div>',
+          setup(stage) {
+            for (const person of stage.querySelectorAll('lintje-person[data-id]')) {
+              person.person = PEOPLE[person.dataset.id]
+            }
+          },
+        },
+        {
+          label: 'Zonder tweede regel',
+          note: 'Alleen de naam, in het gewicht van waar hij staat.',
+          html: '<lintje-person></lintje-person>',
+          setup(stage) {
+            stage.querySelector('lintje-person').person = { ...PEOPLE.mj, role: undefined }
+          },
+        },
+        {
+          label: 'Naam als link',
+          note: 'Met `href` zijn rondje en naam één link; de naam onderstreept onder de aanwijzer.',
+          html: '<lintje-person></lintje-person>',
+          setup(stage) {
+            stage.querySelector('lintje-person').person = { ...PEOPLE.jv, href: '#el-person' }
+            listen(stage)
+          },
+        },
+        {
+          label: 'Sprekerskleur',
+          note: 'Alleen waar de personen de variabele zijn, zoals de sprekers van een opname.',
+          html:
+            '<div class="guide__stack"><lintje-person color="sky-blue"></lintje-person>' +
+            '<lintje-person color="dark-yellow"></lintje-person><lintje-person color="pink"></lintje-person></div>',
+          setup(stage) {
+            const speakers = [
+              { name: 'Spreker 1', initials: 'S1' },
+              { name: 'Spreker 2', initials: 'S2' },
+              { name: 'Spreker 3', initials: 'S3' },
+            ]
+            stage.querySelectorAll('lintje-person').forEach((person, index) => (person.person = speakers[index]))
+          },
+        },
+      ],
+    },
+    {
+      tag: 'lintje-person-group',
+      title: 'Een rijtje overlappende rondjes dat een lijst van iedereen opent',
+      specimens: [
+        {
+          label: 'Zes personen',
+          note: 'Drie rondjes en "+3"; een klik opent de lijst met naam en functie.',
+          html: '<lintje-person-group label="Meelezers"></lintje-person-group>',
+          setup(stage) {
+            stage.querySelector('lintje-person-group').people = READERS.map((person, index) =>
+              index === 0 ? { ...person, href: '#el-person-group' } : person,
+            )
+            listen(stage)
+          },
+        },
+        {
+          label: 'Twee personen',
+          html: '<lintje-person-group label="Behandelaars" size="medium"></lintje-person-group>',
+          setup(stage) {
+            stage.querySelector('lintje-person-group').people = [PEOPLE.jv, PEOPLE.ab]
+          },
+        },
+        {
+          label: 'Leeg',
+          html: '<lintje-person-group label="Meelezers"></lintje-person-group>',
         },
       ],
     },

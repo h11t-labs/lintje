@@ -297,7 +297,67 @@ describe('a name built as a string', () => {
 })
 
 describe('back to the default', () => {
-  it.each(['lintje-select', 'lintje-segmented', 'lintje-toggle'])(
+  const RESETTABLE = [
+    'lintje-select',
+    'lintje-segmented',
+    'lintje-toggle',
+    'lintje-text-input',
+    'lintje-textarea',
+  ]
+
+  it('names its field after its own words, in hidden text', async () => {
+    const element = await mount('lintje-select', (e) => Object.assign(e, { options: OPTIONS }), {
+      label: 'Leeftijd',
+      optional: true,
+      modified: true,
+      resetLabel: 'Terugzetten naar 2 tot 12',
+    })
+    const reset = element.renderRoot.querySelector<HTMLButtonElement>('.lintje-field__reset')!
+    // The name starts with what is shown (2.5.3); "(niet verplicht)" is not part of the field's name.
+    expect(reset.textContent).toBe('Terugzetten naar 2 tot 12, Leeftijd')
+    expect(reset.querySelector('.visually-hidden')!.textContent).toBe(', Leeftijd')
+  })
+
+  it('is only its own words without a label', async () => {
+    const element = await mount('lintje-text-input', () => {}, {
+      label: '',
+      modified: true,
+      resetLabel: 'Leegmaken',
+    })
+    const reset = element.renderRoot.querySelector<HTMLButtonElement>('.lintje-field__reset')!
+    expect(reset.textContent).toBe('Leegmaken')
+    expect(reset.querySelector('.visually-hidden')).toBeNull()
+  })
+
+  it.each(['text', 'search'])('stands under the hint of a %s field', async (type) => {
+    const element = await mount('lintje-text-input', () => {}, {
+      type,
+      hint: 'Mag leeg blijven',
+      modified: true,
+      resetLabel: 'Leegmaken',
+    })
+    const foot = [...element.renderRoot.querySelector('.lintje-field')!.children].slice(-2)
+    expect(foot[0].classList.contains('lintje-field__hint')).toBe(true)
+    expect(foot[1].classList.contains('lintje-field__reset')).toBe(true)
+  })
+
+  it('keeps the counter of the textarea, with the link after it', async () => {
+    const element = await mount('lintje-textarea', () => {}, {
+      maxlength: 200,
+      value: 'Tas',
+      error: 'Omschrijving is te kort',
+      modified: true,
+      resetLabel: 'Terugzetten naar leeg',
+    })
+    const [foot, reset] = [...element.renderRoot.querySelector('.lintje-field')!.children].slice(-2)
+    expect([...foot!.children].map((node) => node.classList[0])).toEqual([
+      'lintje-field__error',
+      'lintje-textarea__counter',
+    ])
+    expect(reset!.classList[0]).toBe('lintje-field__reset')
+  })
+
+  it.each(RESETTABLE)(
     '%s offers its reset link only while modified, and only asks',
     async (tag) => {
       const element = await mount(tag, (e) => Object.assign(e, { options: OPTIONS }), {
@@ -308,7 +368,7 @@ describe('back to the default', () => {
       Object.assign(element, { modified: true })
       await (element as unknown as { updateComplete: Promise<unknown> }).updateComplete
       const reset = element.renderRoot.querySelector<HTMLButtonElement>('.lintje-field__reset')!
-      expect(reset.textContent!.trim()).toBe('Terugzetten naar 2 tot 12')
+      expect(reset.textContent!.trim()).toBe('Terugzetten naar 2 tot 12, Sprekers')
       let asked = 0
       element.addEventListener('lintje-reset', () => (asked += 1))
       reset.click()
@@ -316,7 +376,7 @@ describe('back to the default', () => {
     },
   )
 
-  it.each(['lintje-select', 'lintje-segmented', 'lintje-toggle'])(
+  it.each(RESETTABLE)(
     '%s hands the focus to its control before the reset removes the link',
     async (tag) => {
       const element = await mount(tag, (e) => Object.assign(e, { options: OPTIONS }), {
@@ -546,7 +606,11 @@ describe('read-only, per control', () => {
       readonly: true,
     })
     expect(element.renderRoot.querySelector('.lintje-text-input__clear')).toBeNull()
-    expect(native(element).classList.contains('is-readonly')).toBe(true)
+    expect(
+      element.renderRoot
+        .querySelector('.lintje-text-input__box')
+        ?.classList.contains('is-readonly'),
+    ).toBe(true)
   })
 
   it('lintje-number-input makes −/+ aria-disabled and lets them do nothing', async () => {
@@ -748,7 +812,8 @@ describe('the stylesheets', () => {
   it("fills the toggle's off track with the field edge, inside its 40 × 22 box", () => {
     const shared = css('shared/input.css')
     const track = shared.match(/^\.lintje-choice__switch\s*\{([^}]*)\}/m)?.[1] ?? ''
-    expect(track).toContain('width: 40px; height: 22px;')
+    expect(shared).toContain(':host(lintje-toggle) { --lintje-choice-control: 40px; }')
+    expect(track).toContain('width: var(--lintje-choice-control); height: 22px;')
     expect(track).toContain('background: var(--color-border-field);')
     expect(track).not.toContain('box-shadow')
     expect(track).not.toMatch(/(^|[^-])border:/)

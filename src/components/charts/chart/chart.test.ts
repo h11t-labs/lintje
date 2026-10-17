@@ -287,6 +287,36 @@ describe('lintje-chart error state', () => {
 
 describe('lintje-chart focus after a clear', () => {
   it('lands on the drawing, focusable from a script only, when the cleared mark is gone', async () => {
+    const values = [[3, 5]]
+    const data: ChartData = {
+      description: 'Een rooster.',
+      chart: {
+        kind: 'heatmap',
+        columnLabels: ['ma', 'di'],
+        rowLabels: ['Noord'],
+        values,
+        links: [[{ id: 'noord-ma', href: '/p?r=noord&d=ma' }, null]],
+      },
+      selectedId: 'noord-ma',
+    }
+    const element = await tile(data)
+    // The host answers the clear with a chart in which the cell no longer drills.
+    element.addEventListener('lintje-mark-select', () => {
+      element.data = {
+        ...data,
+        chart: { kind: 'heatmap', columnLabels: ['ma', 'di'], rowLabels: ['Noord'], values },
+      }
+    })
+    const mark = element.renderRoot.querySelector('[data-mark-id="noord-ma"]')
+    mark?.dispatchEvent(new MouseEvent('click'))
+    await element.updateComplete
+    await element.updateComplete
+    const drawing = element.renderRoot.querySelector('.lintje-heatmap')
+    expect(drawing?.getAttribute('tabindex')).toBe('-1')
+    expect((element.renderRoot as ShadowRoot).activeElement).toBe(drawing)
+  })
+
+  it('lands on a pie’s drawing, which keeps its place in the tab order', async () => {
     const segments = [
       { label: 'Noord', value: 12, id: 'noord', href: '/p?r=noord' },
       { label: 'Zuid', value: 8 },
@@ -297,7 +327,6 @@ describe('lintje-chart focus after a clear', () => {
       selectedId: 'noord',
     }
     const element = await tile(data)
-    // The host answers the clear with a chart in which the slice no longer drills.
     element.addEventListener('lintje-mark-select', () => {
       element.data = { ...data, chart: { kind: 'pie', segments: [{ label: 'Noord', value: 12 }] } }
     })
@@ -306,8 +335,97 @@ describe('lintje-chart focus after a clear', () => {
     await element.updateComplete
     await element.updateComplete
     const drawing = element.renderRoot.querySelector('.lintje-pie-chart__svg')
-    expect(drawing?.getAttribute('tabindex')).toBe('-1')
+    expect(drawing?.getAttribute('tabindex')).toBe('0')
     expect((element.renderRoot as ShadowRoot).activeElement).toBe(drawing)
+  })
+})
+
+describe('lintje-chart, a mark with an href', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  const PIE: ChartData = {
+    description: 'Een taart.',
+    chart: {
+      kind: 'pie',
+      segments: [
+        { label: 'Noord', value: 12, id: 'noord', href: '?regio=noord' },
+        { label: 'Zuid', value: 8, id: 'zuid', href: '?regio=zuid' },
+      ],
+    },
+  }
+  const stub = () => vi.spyOn(window.location, 'assign').mockImplementation(() => {})
+  const mark = (element: LintjeChart, id: string) =>
+    element.renderRoot.querySelector(`[data-mark-id="${id}"]`)!
+  const heard = (element: LintjeChart) => {
+    const details: unknown[] = []
+    element.addEventListener('lintje-mark-select', (event) =>
+      details.push((event as CustomEvent).detail),
+    )
+    return details
+  }
+
+  it('goes there after lintje-mark-select when nobody cancels it, by click and by Enter', async () => {
+    const assign = stub()
+    const element = await tile(PIE)
+    const selects = heard(element)
+    mark(element, 'noord').dispatchEvent(new MouseEvent('click'))
+    expect(selects).toEqual([{ id: 'noord', label: 'Noord', href: '?regio=noord' }])
+    expect(assign).toHaveBeenCalledWith('?regio=noord')
+    mark(element, 'zuid').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
+    expect(assign).toHaveBeenLastCalledWith('?regio=zuid')
+  })
+
+  it('stays when the host cancels the event', async () => {
+    const assign = stub()
+    const element = await tile(PIE)
+    element.addEventListener('lintje-mark-select', (event) => event.preventDefault())
+    mark(element, 'noord').dispatchEvent(new MouseEvent('click'))
+    expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('opens it in a new tab on a modifier or middle click, without lintje-mark-select', async () => {
+    const assign = stub()
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const element = await tile(PIE)
+    const selects = heard(element)
+    mark(element, 'noord').dispatchEvent(new MouseEvent('click', { ctrlKey: true }))
+    mark(element, 'zuid').dispatchEvent(new MouseEvent('auxclick', { button: 1 }))
+    mark(element, 'zuid').dispatchEvent(new MouseEvent('auxclick', { button: 2 }))
+    expect(selects).toEqual([])
+    expect(open.mock.calls).toEqual([
+      ['?regio=noord', '_blank', 'noopener'],
+      ['?regio=zuid', '_blank', 'noopener'],
+    ])
+    expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('opens no tab when the host cancels lintje-navigate', async () => {
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const element = await tile(PIE)
+    element.addEventListener('lintje-navigate', (event) => event.preventDefault())
+    mark(element, 'noord').dispatchEvent(new MouseEvent('auxclick', { button: 1 }))
+    expect(open).not.toHaveBeenCalled()
+  })
+
+  it('goes to clearHref when the chosen mark is undone, unless cancelled', async () => {
+    const assign = stub()
+    const element = await tile({ ...PIE, selectedId: 'noord', clearHref: '?' })
+    const selects = heard(element)
+    mark(element, 'noord').dispatchEvent(new MouseEvent('click'))
+    expect(selects).toEqual([{ id: null, label: null, href: '?' }])
+    expect(assign).toHaveBeenCalledWith('?')
+    element.addEventListener('lintje-mark-select', (event) => event.preventDefault())
+    mark(element, 'noord').dispatchEvent(new MouseEvent('click'))
+    expect(assign).toHaveBeenCalledTimes(1)
+  })
+
+  it('only sends the event when undone without a clearHref', async () => {
+    const assign = stub()
+    const element = await tile({ ...PIE, selectedId: 'noord' })
+    const selects = heard(element)
+    mark(element, 'noord').dispatchEvent(new MouseEvent('click'))
+    expect(selects).toEqual([{ id: null, label: null, href: undefined }])
+    expect(assign).not.toHaveBeenCalled()
   })
 })
 

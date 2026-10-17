@@ -13,23 +13,13 @@ import {
   type TemplateResult,
 } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
-import { styleProps, type StyleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
-import { place, samePlace, viewport, type Place } from '../../shared/place'
+import { place, samePlace, stand, viewport, type Place } from '../../shared/place'
 import tooltipCss from './tooltip.css?inline'
 
 export const TOOLTIP_DELAY = 300
 /** How long the bubble waits after the pointer leaves: time to cross the gap onto it. */
 export const TOOLTIP_LINGER = 150
-
-function spotStyle(spot: Place | null): StyleProps {
-  if (!spot) return {}
-  return {
-    top: spot.top === null ? null : `${spot.top}px`,
-    bottom: spot.bottom === null ? null : `${spot.bottom}px`,
-    left: `${spot.left}px`,
-  }
-}
 
 export class LintjeTooltip extends LintjeElement {
   static override styles = shadowCss(tooltipCss)
@@ -39,7 +29,6 @@ export class LintjeTooltip extends LintjeElement {
     noDescribe: { type: Boolean, attribute: 'no-describe' },
     placement: { type: String },
     open: { state: true },
-    spot: { state: true },
   }
 
   text: string = ''
@@ -48,7 +37,8 @@ export class LintjeTooltip extends LintjeElement {
   /** Above the element, or `left` of it, level with it: for a column of buttons along an edge. */
   placement: 'top' | 'left' = 'top'
   open: boolean = false
-  protected spot: Place | null = null
+  /** Where the bubble stands, written onto it; `null` for a bubble not yet placed. */
+  #spot: Place | null = null
 
   private timer: ReturnType<typeof setTimeout> | undefined
   private reflowFrame: number = 0
@@ -125,25 +115,30 @@ export class LintjeTooltip extends LintjeElement {
 
   private measure(): void {
     const target = this.target
-    if (!target) return
     const bubble = this.renderRoot.querySelector<HTMLElement>('.lintje-tooltip')
-    const box = { width: bubble?.offsetWidth ?? 0, height: bubble?.offsetHeight ?? 0 }
+    if (!target || !bubble) return
+    const rect = target.getBoundingClientRect()
     const side = this.placement === 'left' ? 'left-center' : 'top-center'
-    const next = place(target.getBoundingClientRect(), box, viewport(), side, 8)
-    if (!samePlace(this.spot, next)) this.spot = next
+    // A new bubble first stands at its element, so it takes the size it will have there.
+    if (!this.#spot) stand(bubble, place(rect, { width: 0, height: 0 }, viewport(), side, 8))
+    const box = { width: bubble.offsetWidth, height: bubble.offsetHeight }
+    const next = place(rect, box, viewport(), side, 8)
+    if (samePlace(this.#spot, next)) return
+    stand(bubble, next)
+    this.#spot = next
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
     if (changed.has('text') || changed.has('noDescribe')) this.describe()
-    if (!changed.has('open')) return
-    if (this.open) this.measure()
-    else this.spot = null
   }
 
+  // Placed after the render, before the paint: the bubble exists only now. A closed one leaves
+  // the DOM, so the next opens unplaced.
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
     if (this.open) this.measure()
+    else this.#spot = null
   }
 
   /**
@@ -171,11 +166,7 @@ export class LintjeTooltip extends LintjeElement {
 
   protected override render(): TemplateResult {
     return html`<slot @slotchange=${this.describe}></slot>${
-      this.open
-        ? html`<span class="lintje-tooltip" role="tooltip" ${styleProps(spotStyle(this.spot))}
-            >${this.text}</span
-          >`
-        : nothing
+      this.open ? html`<span class="lintje-tooltip" role="tooltip">${this.text}</span>` : nothing
     }`
   }
 }

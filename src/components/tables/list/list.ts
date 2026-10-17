@@ -7,7 +7,7 @@
  * `lintje-row-action`. A row with `rename` turns its title into a field in place; the host keeps
  * that state, as for every row.
  *
- * Events: `lintje-row-click` `{ id, label, href? }`, `lintje-row-action` `{ id, label, value }` (a
+ * Events: `lintje-row-click` `{ id, label, href? }`, `lintje-row-action` `{ id, label, action }` (a
  * chosen menu row or the row's own action), `lintje-row-rename` `{ id, value }`,
  * `lintje-row-rename-cancel` `{ id }`.
  */
@@ -33,12 +33,14 @@ import type { LintjeTextInput } from '../../inputs/text-input/text-input'
 import '../../feedback/badge/badge'
 import '../../actions/button/button'
 import '../../feedback/progress-bar/progress-bar'
+import '../person/person'
 import type { MenuEntry } from '../../actions/menu-button/menu-button'
 import type { BadgeTone } from '../../feedback/badge/badge'
 import listCss from './list.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { focusTarget } from '../../shared/focus-trap'
 import { MediaController } from '../../../core/media'
+import type { Person, RowActionDetail, RowClickDetail } from '../../../types'
 
 export interface ListItem {
   id: string
@@ -62,6 +64,11 @@ export interface ListItem {
   icon?: string
   /** A data colour as a bar along the row (`sky-blue`): a speaker, as in the player and transcript. */
   swatch?: string
+  /**
+   * Who handles or made it, before the status: never a link, since the row opens. `null` is
+   * "Niet toegewezen"; without the field no person.
+   */
+  person?: Person | null
   /** The state as a word ("Bezig"), drawn as a badge in the badge's tone. */
   status?: { label: string; tone?: BadgeTone }
   /** 0–100 while the work runs: a bar under the muted line, held (muted) when the status warns. */
@@ -92,12 +99,6 @@ interface HeldFocus {
   onTitle: boolean
   /** The focus was in a rename row, whose field and buttons go when the rename ends. */
   renaming?: boolean
-}
-
-export interface RowClickDetail {
-  id: string
-  label: string
-  href?: string
 }
 
 export class LintjeList extends LintjeElement {
@@ -285,11 +286,25 @@ export class LintjeList extends LintjeElement {
 
   private onAction(event: CustomEvent<string>, item: ListItem): void {
     event.stopPropagation()
-    this.emit('lintje-row-action', { id: item.id, label: item.title, value: event.detail })
+    this.rowAction(item, event.detail)
+  }
+
+  private rowAction(item: ListItem, action: string): void {
+    this.emit('lintje-row-action', {
+      id: item.id,
+      label: item.title,
+      action,
+    } satisfies RowActionDetail)
   }
 
   // Where the title is cut to one line, the whole of it stands in the tooltip. The chosen row is
   // said on its title: that is where the focus lands, not on the row.
+  /** At 24 px, in the letter of the facts; passed without `href`, as the row opens. */
+  private renderPerson(person: Person | null): TemplateResult {
+    const shown = person && { ...person, href: undefined }
+    return html`<lintje-person class="lintje-list__person" size="small" .person=${shown}></lintje-person>`
+  }
+
   private renderTitle(item: ListItem): TemplateResult {
     const current = item.id === this.selectedId ? 'true' : nothing
     if (item.href) {
@@ -327,7 +342,7 @@ export class LintjeList extends LintjeElement {
       variant="link"
       size="compact"
       data-part="action"
-      @click=${() => this.emit('lintje-row-action', { id: item.id, label: item.title, value: action.value })}
+      @click=${() => this.rowAction(item, action.value)}
       >${name}</lintje-button
     >`
   }
@@ -368,8 +383,9 @@ export class LintjeList extends LintjeElement {
         }
       </div>
       ${
-        item.status || item.meta
+        item.status || item.meta || item.person !== undefined
           ? html`<div class="lintje-list__facts">
+              ${item.person !== undefined ? this.renderPerson(item.person) : nothing}
               ${
                 item.status
                   ? html`<lintje-badge tone=${item.status.tone ?? 'neutral'}>${item.status.label}</lintje-badge>`
