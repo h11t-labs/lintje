@@ -569,7 +569,9 @@ De besluiten hieronder gelden voor alle elementen.
   die nooit een kolom zijn, op desktop en telefoon dezelfde lijst. Open of dicht is beeld, geen
   toestand: het gaat niet naar de host en niet in de URL.
 - **Groepen houden de volgorde van de host.** Sorteren werkt binnen een groep, een pagina breekt
-  nooit in een groep, en een ingeklapte groep draagt haar subtotalen op haar eigen regel.
+  nooit in een groep, en een ingeklapte groep draagt haar subtotalen op haar eigen regel. In een
+  kiesbare tabel heeft een groepskop een vinkje voor haar rijen, aan, half of uit zoals "Alles
+  selecteren", ook ingeklapt.
 - **Een rij is klikbaar of selecteerbaar**, nooit allebei. Een naam die zijn rij opent, maakt de
   rij niet klikbaar: de naam is de link, dus een selecteerbare tabel kan zijn rijen nog steeds
   openen. Een naam die opent, wordt niet in zijn cel bewerkt.

@@ -228,6 +228,90 @@ describe('groups', () => {
   })
 })
 
+describe('a group in a selectable table', () => {
+  const grouped = { groupBy: 'region', selectable: true }
+
+  /** The box in each group heading, Midden then Zuidwest; `null` where a group has none. */
+  function boxes(element: TableElement, table = 'full'): (HTMLInputElement | null)[] {
+    return [
+      ...shadow(element).querySelectorAll(
+        `.lintje-data-table__${table} .lintje-data-table__group-row`,
+      ),
+    ].map((row) => row.querySelector<HTMLInputElement>('.lintje-choice__input'))
+  }
+
+  function heard(element: TableElement): string[][] {
+    const seen: string[][] = []
+    element.addEventListener('lintje-checked-change', (event) =>
+      seen.push((event as CustomEvent<string[]>).detail),
+    )
+    return seen
+  }
+
+  it('is on, half or off by the rows of its group', async () => {
+    const element = await mount({ ...grouped, checkedIds: ['u', 'r'] })
+    const [midden, zuidwest] = boxes(element)
+    expect(midden?.checked).toBe(true)
+    expect(midden?.indeterminate).toBe(false)
+    expect(zuidwest?.checked).toBe(false)
+    expect(zuidwest?.indeterminate).toBe(true)
+    element.data = { ...element.data, checkedIds: [] }
+    await element.updateComplete
+    expect(boxes(element).map((box) => [box?.checked, box?.indeterminate])).toEqual([
+      [false, false],
+      [false, false],
+    ])
+  })
+
+  it('stands in the check column and is named after its group', async () => {
+    const element = await mount(grouped)
+    const box = boxes(element)[1]
+    expect(box?.closest('td')?.classList.contains('lintje-data-table__check-cell')).toBe(true)
+    const label = box?.closest('label')?.querySelector('.lintje-choice__label .visually-hidden')
+    expect(label?.textContent).toBe('Groep Zuidwest selecteren')
+    // The phone's heading has the same box.
+    expect(boxes(element, 'mobile')[1]?.closest('label')?.textContent).toContain(
+      'Groep Zuidwest selecteren',
+    )
+  })
+
+  it('checks only the rows of its group that can be checked', async () => {
+    const element = await mount({ ...grouped, checkedIds: ['u'], uncheckableIds: ['d'] })
+    const seen = heard(element)
+    boxes(element)[1]?.click()
+    expect(seen).toEqual([['u', 'r']])
+  })
+
+  it('takes the rows of its group out and leaves the others', async () => {
+    const element = await mount({ ...grouped, checkedIds: ['u', 'r', 'd'] })
+    const seen = heard(element)
+    boxes(element)[1]?.click()
+    expect(seen).toEqual([['u']])
+  })
+
+  it('works on a collapsed group', async () => {
+    const element = await mount(grouped)
+    shadow(element)
+      .querySelectorAll<HTMLButtonElement>(
+        '.lintje-data-table__full .lintje-data-table__group-toggle',
+      )[1]
+      ?.click()
+    await element.updateComplete
+    expect(names(element)).toEqual(['Utrecht'])
+    const seen = heard(element)
+    boxes(element)[1]?.click()
+    // In the group's order: sorted by name.
+    expect(seen).toEqual([['d', 'r']])
+  })
+
+  it('is not there for a group without a row to check', async () => {
+    const element = await mount({ ...grouped, uncheckableIds: ['u'] })
+    expect(boxes(element)[0]).toBeNull()
+    expect(boxes(element, 'mobile')[0]).toBeNull()
+    expect(boxes(element)[1]).not.toBeNull()
+  })
+})
+
 describe('the pager’s count', () => {
   it('says a filter narrowed the total', () => {
     expect(rangeText(1, 25, 40, { many: 'rijen', one: 'rij' }, 131)).toBe(
