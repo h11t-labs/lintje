@@ -21,6 +21,7 @@ import { durationMs, prefersReducedMotion } from '../../../core/motion'
 import { onBeforePrint } from '../../../core/print'
 import { shadowCss } from '../../../core/styles'
 import { LintjeGridItemElement, spanStyles } from '../../shared/grid-item-element'
+import { LiveMessage } from '../../shared/live-message'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../feedback/status-dot/status-dot'
 import '../../feedback/skeleton/skeleton'
@@ -147,6 +148,7 @@ export class LintjeKpi extends LintjeGridItemElement {
     message: { type: String },
     lastKnown: { type: String, attribute: 'last-known' },
     index: { type: Number },
+    quiet: { type: Boolean },
     counting: { state: true },
     drawn: { state: true },
     sparklineBox: { state: true },
@@ -185,6 +187,8 @@ export class LintjeKpi extends LintjeGridItemElement {
   /** The last known value and its date, shown below a failed result. */
   declare lastKnown?: string
   index: number = 0
+  /** Says no state of its own: a `lintje-kpi-row` speaks once for all its KPIs. */
+  quiet: boolean = false
 
   counting: (string | null)[] = []
   /** The sparkline draws in once the tile is in view, like the count. */
@@ -192,6 +196,7 @@ export class LintjeKpi extends LintjeGridItemElement {
   /** The measured box of the sparkline, so the drawing is never stretched. */
   sparklineBox = SPARKLINE_FALLBACK
 
+  readonly #live = new LiveMessage(this)
   #counts: (Counted | null)[] = []
   #resize: ResizeObserver | null = null
   #signature = ''
@@ -273,6 +278,12 @@ export class LintjeKpi extends LintjeGridItemElement {
 
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
+    // Loading, empty or failed is seen only as blocks or a line: it is said, though not on the
+    // first drawing.
+    if (changed.has('state') && changed.get('state') !== undefined && !this.quiet) {
+      const words = kpiStateWords(this.state, this.message)
+      if (words) this.#live.say(words)
+    }
     const values =
       this.state !== 'ready'
         ? []
@@ -333,6 +344,11 @@ export class LintjeKpi extends LintjeGridItemElement {
       }
       <p class="lintje-kpi__label">${this.label}</p>
       ${this.body(figures, primary)}
+      ${
+        this.quiet
+          ? nothing
+          : html`<p class="visually-hidden" role="status" aria-atomic="false">${this.#live.text}</p>`
+      }
     </div>`
   }
 
@@ -593,6 +609,14 @@ export class LintjeKpi extends LintjeGridItemElement {
       }${tail ? html`<span class="lintje-kpi__suffix">${tail}</span>` : nothing}
     </p>`
   }
+}
+
+/** What a state says, as its line shows it: `null` for a ready KPI. */
+export function kpiStateWords(state: ContentStateKind, message?: string): string | null {
+  if (state === 'loading') return 'Laden'
+  if (state === 'empty') return message ?? 'Geen gegevens'
+  if (state === 'error') return message ?? 'Niet geladen'
+  return null
 }
 
 define('lintje-kpi', LintjeKpi)

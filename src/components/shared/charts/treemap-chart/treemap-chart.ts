@@ -141,7 +141,12 @@ export function renderTreemapChart(spec: TreemapSpec, options: ChartOptions): Te
   return html`
     <div class="lintje-chart-wrap lintje-treemap ${spec.small ? 'lintje-chart--small' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
-         @keydown=${(event: KeyboardEvent) => controller.dismiss(event) || selection.escape(event)}>
+         @keydown=${(event: KeyboardEvent) => {
+           if (controller.dismiss(event)) return
+           const clearing = event.key === 'Escape' && selection.active != null
+           selection.escape(event)
+           if (clearing) controller.sayStatus('Keuze opgeheven')
+         }}>
       ${legend.length ? renderLegend({ items: legend }) : nothing}
       <p class="lintje-treemap__total">${totalLine}</p>
       ${options.mobile ? drawRows(context) : drawMap(context, selection.interactive)}
@@ -371,7 +376,13 @@ function drawMap(context: Context, interactive: boolean): TemplateResult {
     if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget) {
       const cell = index == null ? undefined : cells[index]
       const choose = cell ? marks[cell.group].keydown : undefined
-      if (typeof choose === 'function') choose(event)
+      if (typeof choose !== 'function') return
+      choose(event)
+      // The outline is seen; the choice is said, as the focus stays on the drawing.
+      const chosen = marks[cell!.group].state.includes('is-selected')
+      controller.sayStatus(
+        chosen ? 'Keuze opgeheven' : `${model.groups[cell!.group]!.label} gekozen`,
+      )
       return
     }
     keys.keydown(event)

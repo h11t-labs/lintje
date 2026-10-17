@@ -40,6 +40,11 @@
         -webkit-font-smoothing: antialiased;
       }
       .view { display: flex; flex-direction: column; gap: var(--grid-gutter); }
+      /* A region a screen reader hears and the eye does not see. */
+      .status-line {
+        position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+        overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+      }
       .view[hidden],
       .view [hidden],
       .panel[hidden],
@@ -378,6 +383,7 @@
 
       <!-- ?pagina=instellingen: what holds for every recording, and the kinds of conversation. -->
       <div class="view" id="settings-view" hidden>
+        <p id="settings-saved" class="status-line" role="status"></p>
         <div class="split split--nav">
           <div class="split__side">
             <lintje-sub-nav id="settings-nav" label="Instellingen"></lintje-sub-nav>

@@ -162,6 +162,9 @@ export class ChartController {
   // The last `selectedId` the host sent: the map adopts a new one but owns its selection in
   // between, or the host's value would win every render and a click could never clear it.
   hostSelection: string | null | undefined = undefined
+  /** What the map's live region says about a drawn area: emptied, and filled a frame later. */
+  mapSaid = ''
+  private mapSayFrame = 0
   /** The map's surface, created on the first render; `detach()` destroys it. */
   leaflet: LeafletSurface | null = null
   /** Centre and zoom of the Leaflet map. `detach()` keeps it so a re-attach does not reset. */
@@ -246,6 +249,7 @@ export class ChartController {
   detach(): void {
     this.unwatch()
     this.clearPointerTimer()
+    if (typeof cancelAnimationFrame !== 'undefined') cancelAnimationFrame(this.mapSayFrame)
     if (this.mapHintTimer) clearTimeout(this.mapHintTimer)
     this.mapHintTimer = null
     this.leaflet?.destroy()
@@ -420,6 +424,31 @@ export class ChartController {
     if (!this.watching) return
     this.watching = false
     window.removeEventListener('keydown', this.onWindowKey, true)
+  }
+
+  /**
+   * The chart's status region says what a choice on the drawing did, emptied first and filled a
+   * frame later, so the same sentence twice is heard twice (`LiveMessage`).
+   */
+  sayStatus(text: string): void {
+    cancelAnimationFrame(this.mapSayFrame)
+    this.status = ''
+    this.requestUpdate()
+    this.mapSayFrame = requestAnimationFrame(() => {
+      this.status = text
+      this.requestUpdate()
+    })
+  }
+
+  /** The map says a sentence in its live region, also the same one twice (`LiveMessage`). */
+  sayOnMap(text: string): void {
+    cancelAnimationFrame(this.mapSayFrame)
+    this.mapSaid = ''
+    this.requestUpdate()
+    this.mapSayFrame = requestAnimationFrame(() => {
+      this.mapSaid = text
+      this.requestUpdate()
+    })
   }
 
   toggleLayer(index: number): void {

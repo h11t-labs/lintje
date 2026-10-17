@@ -150,8 +150,16 @@ describe('lintje-text-input type="search"', () => {
   it('keeps the live line in the tree before there is a count', async () => {
     const element = await mount({ type: 'search' })
     const hint = element.renderRoot.querySelector('.lintje-field__hint')!
-    expect(hint.hasAttribute('hidden')).toBe(true)
+    // In the tree and only out of sight, so its first count is read out.
+    expect(hint.hasAttribute('hidden')).toBe(false)
+    expect(hint.classList.contains('visually-hidden')).toBe(true)
+    expect(hint.getAttribute('aria-live')).toBe('polite')
     expect(control(element).hasAttribute('aria-describedby')).toBe(false)
+    element.hint = '12 resultaten'
+    await element.updateComplete
+    expect(element.renderRoot.querySelector('.lintje-field__hint')).toBe(hint)
+    expect(hint.textContent).toBe('12 resultaten')
+    expect(hint.classList.contains('visually-hidden')).toBe(false)
   })
 
   it('shows the cross as soon as there is text, and Escape clears', async () => {

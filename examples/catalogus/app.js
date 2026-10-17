@@ -394,6 +394,23 @@ function withoutQuestion() {
   return `${location.pathname}?${next}`
 }
 
+/**
+ * What the reader's filter left, said from a region that stands there: the cards change out of
+ * the focus's sight. Emptied first and filled a frame later, so the same count twice is heard.
+ */
+function sayCount(count) {
+  const status = $('catalogue-status')
+  status.textContent = ''
+  requestAnimationFrame(() => {
+    status.textContent =
+      count === 0
+        ? 'Geen product past bij je zoekterm en filters.'
+        : count === 1
+          ? '1 product'
+          : `${count} producten`
+  })
+}
+
 function renderCatalogue() {
   const values = Object.fromEntries(FILTERS.map((filter) => [filter.key, valueOf(filter)]))
   const question = (params.get('q') ?? '').trim()
@@ -410,6 +427,7 @@ function renderCatalogue() {
   $('clear-question').hidden = !question
   $('clear-question').href = withoutQuestion()
   $('catalogue').items = found.map(card)
+  return found.length
 }
 
 // The filters live in the URL (rule 14): write it, then draw again from it.
@@ -421,12 +439,12 @@ $('filters').addEventListener('lintje-values-change', (event) => {
     else params.set(filter.key, value)
   }
   history.replaceState(null, '', `${location.pathname}?${params}`)
-  renderCatalogue()
+  sayCount(renderCatalogue())
 })
 $('reset').addEventListener('click', () => {
   for (const key of ['q', ...FILTERS.map((filter) => filter.key)]) params.delete(key)
   history.replaceState(null, '', `${location.pathname}?${params}`)
-  renderCatalogue()
+  sayCount(renderCatalogue())
 })
 
 /* A product's page ---------------------------------------------------------------------------- */

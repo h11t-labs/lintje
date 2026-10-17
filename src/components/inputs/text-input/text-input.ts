@@ -156,11 +156,12 @@ export class LintjeTextInput extends LintjeFormInputElement {
     const ids = { hintId: this.hintId, errorId: this.errorId }
     if (this.type !== 'search')
       return html`${renderFieldFoot(this.hint, message, ids)}${this.renderReset()}`
+    // Empty it is only out of sight: in the tree, so its first count is read out too.
     return html`${message ? renderFieldFoot(undefined, message, ids) : nothing}<span
         id=${this.hintId}
-        class="lintje-field__hint"
+        class=${this.hint ? 'lintje-field__hint' : 'lintje-field__hint visually-hidden'}
         aria-live="polite"
-        ?hidden=${!this.hint || Boolean(message)}
+        ?hidden=${Boolean(message)}
         >${this.hint ?? ''}</span
       >${this.renderReset()}`
   }

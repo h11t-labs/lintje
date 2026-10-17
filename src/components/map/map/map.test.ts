@@ -928,6 +928,36 @@ describe('lintje-map area', () => {
     expect(areas).toHaveLength(2)
     expect(areas.at(-1)!.detail.area.ring).toHaveLength(4)
   })
+
+  it('says what a drawn area chose, from a region that stands there already, each time', async () => {
+    const element = await mapTile(tileData({ controls: { rect: true } }))
+    const region = (): string =>
+      element.renderRoot
+        .querySelector('.lintje-map-chart > [role="status"]')
+        ?.textContent?.trim() ?? 'geen regio'
+    const said = async (): Promise<string> => {
+      await element.updateComplete
+      await new Promise((resolve) => requestAnimationFrame(resolve))
+      await element.updateComplete
+      return region()
+    }
+    expect(region()).toBe('')
+    tools(element)[0].click()
+    await element.updateComplete
+    const press = presser(element)
+    press('pointerdown', 300, 100)
+    press('pointermove', 500, 300)
+    press('pointerup', 500, 300)
+    const first = await said()
+    expect(first).toMatch(/^(Niets|\d+ op de kaart) gekozen, binnen de rechthoek$/)
+    // The same area again is said again: the region is emptied first.
+    press('pointerdown', 300, 100)
+    press('pointermove', 500, 300)
+    press('pointerup', 500, 300)
+    await element.updateComplete
+    expect(region()).toBe('')
+    expect(await said()).toBe(first)
+  })
 })
 
 describe('lintje-map controls', () => {
