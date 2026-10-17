@@ -17,9 +17,10 @@ import '../../components/inputs/tag-input/tag-input'
 import '../../components/inputs/text-editor/text-editor'
 import '../../components/frame/notifications/notifications'
 import '../../components/tables/data-table/data-table'
+import '../../components/content/log-viewer/log-viewer'
 import '../../components/frame/user-menu/user-menu'
 import '../../components/frame/shell/shell'
-import type { DataTableData, FilterOption, ShellData } from '../../types'
+import type { DataTableData, FilterOption, LogViewerData, ShellData } from '../../types'
 
 type Lit = HTMLElement & { updateComplete: Promise<unknown> }
 
@@ -73,10 +74,7 @@ type Check =
  * `<row> [<context>] :: <check>`. A finding that matches none fails its row; an entry that
  * matches nothing in a whole run fails too, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = [
-  // #98
-  /^lintje-date-range \[scroller\] :: on top/,
-]
+const KNOWN: RegExp[] = []
 const seen = new Set<RegExp>()
 let ran = 0
 
@@ -317,6 +315,36 @@ async function openShellTool(
     surface: () => shell.shadowRoot!.querySelector(`.lintje-${tool}__popover`),
     returnsTo: button,
     opener: button,
+  }
+}
+
+/** The user menu from the side menu's foot, at the bottom of the screen: it opens above. */
+async function openShellFoot(stage: HTMLElement): Promise<Opened> {
+  // The menu is the screen's height: from the top of the page its foot is on the screen.
+  stage.style.margin = '0'
+  stage.style.width = '1100px'
+  const shell = create<Lit & { data: ShellData }>('lintje-shell')
+  shell.data = {
+    ...SHELL,
+    layout: 'side',
+    user: { name: 'Sanne de Vries', role: 'Beleidsmedewerker', initials: 'SV' },
+    userMenu: [
+      { value: 'profiel', label: 'Mijn profiel' },
+      { value: 'instellingen', label: 'Instellingen' },
+    ],
+    version: '2.4.1',
+  }
+  stage.append(shell)
+  await shell.updateComplete
+  const menu = shell.shadowRoot!.querySelector<Lit>('.lintje-nav__user-menu')!
+  await menu.updateComplete
+  const trigger = part(menu, '.lintje-user-menu__trigger')
+  await press(trigger, '{Enter}')
+  return {
+    anchor: trigger,
+    surface: () => popoverSurface(menu),
+    returnsTo: trigger,
+    opener: trigger,
   }
 }
 
@@ -585,6 +613,36 @@ const ROWS: Row[] = [
       openInTable(stage, { columnChooser: true }, '.lintje-data-table__chooser-button'),
   },
   {
+    // At the stage's width the filter row folds its three menus into one, under the search.
+    name: 'lintje-log-viewer (menu)',
+    onScroll: 'follows',
+    opens: 'in panel',
+    shiftTab: 'closes',
+    async open(stage) {
+      const viewer = create<Lit & { data: LogViewerData }>('lintje-log-viewer')
+      viewer.data = {
+        title: 'Importlog',
+        live: true,
+        entries: [{ id: 'a', time: '14:03:21.004', level: 'info', message: 'Start import' }],
+      }
+      stage.append(viewer)
+      await viewer.updateComplete
+      const menus = (): Element[] =>
+        deepAll(viewer.shadowRoot!, '.lintje-log-viewer__tools lintje-menu-button')
+      const [menu] = await until(menus, (found) => found.length === 1)
+      const trigger = part(menu!, '.lintje-menu-button__trigger')
+      // A reader scrolls to the menu first: it stands below the tile's title and the search.
+      trigger.scrollIntoView({ block: 'nearest' })
+      await press(trigger, '{Enter}')
+      return {
+        anchor: trigger,
+        surface: () => popoverSurface(viewer),
+        returnsTo: trigger,
+        opener: trigger,
+      }
+    },
+  },
+  {
     name: 'lintje-user-menu',
     onScroll: 'follows',
     opens: 'in panel',
@@ -650,6 +708,14 @@ const ROWS: Row[] = [
         opener: button,
       }
     },
+  },
+  {
+    name: 'lintje-shell (user menu in the side menu’s foot)',
+    onScroll: 'follows',
+    pageOnly: true,
+    opens: 'in panel',
+    shiftTab: 'closes',
+    open: openShellFoot,
   },
   ...(['side', 'top'] as const).flatMap((layout) =>
     (['view', 'share'] as const).map((tool): Row => ({

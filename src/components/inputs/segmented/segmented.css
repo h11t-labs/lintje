@@ -15,7 +15,7 @@
 }
 .lintje-segmented.is-error { border: 2px solid var(--color-error); }
 /* Disabled keeps the quiet border, also over an error. */
-:host([disabled]) .lintje-segmented { border: 1px solid var(--color-border-strong); }
+:host(:disabled) .lintje-segmented { border: 1px solid var(--color-border-strong); }
 .lintje-segmented__option {
   display: flex; align-items: center; gap: var(--space-2);
   padding: 0 var(--space-3);
@@ -42,6 +42,8 @@
   box-shadow: 0 0 0 1px var(--color-accent-line), inset 0 0 0 1px var(--color-accent-line);
   font-weight: 700;
 }
+/* A focused option lies over the chosen one, so its ring stays whole on all four sides. */
+.lintje-segmented__option:focus-visible { position: relative; z-index: 2; }
 .lintje-segmented__option:disabled.is-active {
   background: var(--color-border-strong);
   color: var(--color-text-disabled);
@@ -76,5 +78,5 @@
 @media (forced-colors: active) {
   .lintje-segmented__option { border: 1px solid Canvas; }
   .lintje-segmented__option.is-active { border-color: Highlight; }
-  :host([disabled]) .lintje-segmented__option.is-active { border-color: GrayText; }
+  :host(:disabled) .lintje-segmented__option.is-active { border-color: GrayText; }
 }

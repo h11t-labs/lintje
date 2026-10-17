@@ -9,13 +9,15 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
 import { renderBadge } from '../../feedback/badge/badge'
-import { hasPage, unavailableWord, type NavGroup } from './header'
+import { HOME_LABEL, hasPage, unavailableWord, type NavGroup } from './header'
 import type { ShellData, ShellLink } from '../../../types'
 import type { LintjeShell } from './shell'
+import type { LintjeUserMenu } from '../user-menu/user-menu'
 import { isPlainClick } from '../../../core/links'
 import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import { focusTarget, tabbables } from '../../shared/focus-trap'
 import { lengthPx } from '../../../core/length'
+import { titleWhenCut } from '../../shared/cut-text'
 
 /** The pin's name stays the same; `aria-pressed` says whether the menu is pinned. */
 export const PIN_LABEL = 'Menu vastzetten'
@@ -42,10 +44,17 @@ function matches(element: Element | null | undefined, selector: string): boolean
 const keyboardInside = (nav: Element): boolean =>
   holdsFocus(nav) && matches(deepActiveElement(), ':focus-visible')
 
+/** The user menu in the foot is open: it stands beside the expanded rail, so the rail stays. */
+const userMenuOpen = (nav: Element): boolean =>
+  Boolean(nav.querySelector<LintjeUserMenu>('.lintje-nav__user-menu')?.open)
+
+/** The rail stays expanded while the keyboard is in it or the user menu is open. */
+const holdsRail = (nav: Element): boolean => keyboardInside(nav) || userMenuOpen(nav)
+
 /**
  * The rail expands under the pointer and around the keyboard focus, and Escape folds it. What
- * only the expanded rail draws (the pin, "Afmelden") hands the focus back to the control before
- * it, else the one after, which does not expand the rail again.
+ * only the expanded rail draws (the pin) hands the focus back to the control before it, else the
+ * one after, which does not expand the rail again.
  */
 function railEvents(shell: LintjeShell, rail: boolean) {
   return {
@@ -53,7 +62,7 @@ function railEvents(shell: LintjeShell, rail: boolean) {
       if (rail) shell.railExpanded = true
     },
     mouseleave: (event: MouseEvent): void => {
-      if (!keyboardInside(event.currentTarget as Element)) shell.railExpanded = false
+      if (!holdsRail(event.currentTarget as Element)) shell.railExpanded = false
     },
     focusin: (): void => {
       if (shell.railRefocus) shell.railRefocus = false
@@ -63,7 +72,13 @@ function railEvents(shell: LintjeShell, rail: boolean) {
       const nav = event.currentTarget as Element
       const next = event.relatedTarget
       if (next instanceof Node && nav.contains(next)) return
-      if (!matches(nav, ':hover')) shell.railExpanded = false
+      if (!matches(nav, ':hover') && !userMenuOpen(nav)) shell.railExpanded = false
+    },
+    /** The user menu closed: what holds the rail without it decides again. */
+    userMenuToggle: (event: CustomEvent<{ open: boolean }>): void => {
+      const nav = event.currentTarget as Element
+      if (event.detail.open || !rail) return
+      if (!matches(nav, ':hover') && !keyboardInside(nav)) shell.railExpanded = false
     },
     keydown: async (event: KeyboardEvent): Promise<void> => {
       if (event.key !== 'Escape' || !rail || !shell.railExpanded) return
@@ -71,8 +86,7 @@ function railEvents(shell: LintjeShell, rail: boolean) {
       const focused = deepActiveElement()
       const order = tabbables(nav)
       const at = focused ? order.indexOf(focused) : -1
-      const vanishes = (control: Element): boolean =>
-        Boolean(control.closest('.lintje-nav__pin, .lintje-nav__logout'))
+      const vanishes = (control: Element): boolean => Boolean(control.closest('.lintje-nav__pin'))
       shell.railExpanded = false
       if (at < 0 || !vanishes(order[at])) return
       const stays = (control: HTMLElement): boolean => !vanishes(control)
@@ -208,8 +222,8 @@ export function homeLink(
   return html`<a
     href=${home}
     class=${className}
-    aria-label="Naar de startpagina"
-    title="Naar de startpagina"
+    aria-label=${data?.emblem?.label ? nothing : HOME_LABEL}
+    title=${HOME_LABEL}
     @click=${(event: MouseEvent) => {
       if (!isPlainClick(event)) return
       onNavigate?.()
@@ -227,7 +241,7 @@ export function navRow(shell: LintjeShell, item: ShellLink, open: boolean): Temp
     ${
       // In the rail the label is only heard; expanding on hover and focus shows it.
       open
-        ? html`<span class="lintje-nav__label">${item.label}</span>`
+        ? html`<span class="lintje-nav__label" @pointerenter=${titleWhenCut}>${item.label}</span>`
         : html`<span class="visually-hidden">${item.label}</span>`
     }
     ${
@@ -298,6 +312,7 @@ export function renderNavigation(shell: LintjeShell, groups: NavGroup[]): Templa
       @focusin=${on.focusin}
       @focusout=${on.focusout}
       @keydown=${on.keydown}
+      @lintje-toggle=${on.userMenuToggle}
     >
       <div class="lintje-nav__header">
         ${homeLink(shell, 'lintje-nav__home', 44)}
@@ -364,15 +379,7 @@ export function renderNavigation(shell: LintjeShell, groups: NavGroup[]): Templa
       ${renderNavMeta(shell, open)}
       ${
         data?.user
-          ? html`<div class="lintje-nav__footer">
-            <span class="lintje-nav__avatar">${data.user.initials}</span>
-            <!-- Always in the DOM; the rail hides it with opacity. -->
-            <span class="lintje-nav__user">
-              <b>${data.user.name}</b>
-              ${data.user.role ? html`<span class="lintje-nav__role">${data.user.role}</span>` : nothing}
-            </span>
-            ${data.logout ? logoutButton(data.logout, 'lintje-nav__logout-button', open) : nothing}
-          </div>`
+          ? html`<div class="lintje-nav__footer">${shell.renderUserMenu('side', !open)}</div>`
           : nothing
       }
     </nav>
@@ -400,7 +407,7 @@ export function renderNavMeta(shell: LintjeShell, open: boolean): TemplateResult
     const label = feedbackLabel(data.feedback)
     return html`<a class="lintje-nav__item lintje-nav__feedback" href=${data.feedback.href}>
       ${renderIcon('functioneel-mail', { size: 20, label: open ? undefined : label })}
-      ${open ? html`<span class="lintje-nav__label">${label}</span>` : nothing}
+      ${open ? html`<span class="lintje-nav__label" @pointerenter=${titleWhenCut}>${label}</span>` : nothing}
       ${
         open && version
           ? html`<span class="lintje-nav__metric lintje-nav__version">${version}</span>`
@@ -412,25 +419,4 @@ export function renderNavMeta(shell: LintjeShell, open: boolean): TemplateResult
   return html`<p class="lintje-nav__version-row">
     ${open ? html`<span class="lintje-nav__metric lintje-nav__version">${version}</span>` : nothing}
   </p>`
-}
-
-/**
- * Afmelden, in its own form and not a fetch: the server answers with a redirect to the
- * identity provider, which only a navigation follows. The token travels in `csrf_token`,
- * which the middleware reads from a form-encoded body. Collapsed, the form is `hidden` and
- * not merely transparent, so nothing invisible is in the tab order.
- */
-export function logoutButton(
-  logout: NonNullable<ShellData['logout']>,
-  buttonClass: string,
-  open: boolean,
-): TemplateResult {
-  const label = 'Afmelden'
-  const glyph = renderIcon('functioneel-uitloggen', { size: 18 })
-  return html`<form class="lintje-nav__logout" method="post" action=${logout.href} ?hidden=${!open}>
-    <input type="hidden" name="csrf_token" value=${logout.token} />
-    <button type="submit" class=${buttonClass} aria-label=${label} title=${label}>
-      ${glyph === nothing ? html`<span class="lintje-nav__logout-text">${label}</span>` : glyph}
-    </button>
-  </form>`
 }

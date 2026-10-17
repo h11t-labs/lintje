@@ -1,7 +1,7 @@
 /**
  * The disclosure shared by `<lintje-expander>` and `<lintje-explainer>` (`disclosure.css`).
- * `DisclosureSettle` times the open transition off the body's own `transition-duration`, not
- * `--dur-collapse`: reduced motion zeroes the token but `tokens/base.css` still gives 80 ms.
+ * `DisclosureSettle` times the open transition off the body's computed transition of its height,
+ * not `--dur-collapse`: whatever `tokens/base.css` lets move under reduced motion decides the wait.
  */
 import {
   html,
@@ -12,6 +12,7 @@ import {
 } from 'lit'
 import type { HeadingLevel } from './empty-state-block'
 import { renderIcon, renderLeadingIcon } from '../../icons/render'
+import { heightSettleMs } from './transition'
 
 let sequence = 0
 
@@ -48,7 +49,7 @@ export class DisclosureSettle implements ReactiveController {
       this.#set(false)
       return
     }
-    const duration = body ? parseFloat(getComputedStyle(body).transitionDuration) * 1000 : 0
+    const duration = heightSettleMs(body)
     this.#set(!(duration > 0))
     if (!this.settled) this.#timer = setTimeout(() => this.#set(true), duration)
   }

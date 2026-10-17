@@ -12,6 +12,7 @@
 import type { ReactiveController, ReactiveControllerHost } from 'lit'
 import type { LintjeButton } from '../actions/button/button'
 import type { MenuEntry } from '../actions/menu-button/menu-button'
+import { FrameResizeObserver } from './frame-resize-observer'
 
 export interface OverflowItem {
   width: number
@@ -79,9 +80,9 @@ export class OverflowController implements ReactiveController {
   /** The buttons that went into the menu, in order. */
   collapsed: LintjeButton[] = []
 
-  #observer: ResizeObserver | null = null
+  // A frame later: measuring is cheap, but what follows changes the row's height.
+  #observer = new FrameResizeObserver(() => this.measure())
   #observed: Element[] = []
-  #frame: number | null = null
 
   constructor(
     private readonly host: OverflowHost,
@@ -91,11 +92,8 @@ export class OverflowController implements ReactiveController {
   }
 
   hostDisconnected(): void {
-    this.#observer?.disconnect()
-    this.#observer = null
+    this.#observer.disconnect()
     this.#observed = []
-    if (this.#frame !== null) cancelAnimationFrame(this.#frame)
-    this.#frame = null
     this.#apply([])
   }
 
@@ -137,14 +135,15 @@ export class OverflowController implements ReactiveController {
   }
 
   /**
-   * Reads the room and every natural width, and asks for a render when the count changes. The
-   * attributes are written after that render (`hostUpdated`), never inside the observer: a
-   * synchronous change there would resize the row during the observer's own delivery.
+   * Reads the room and every natural width, and writes the outcome straight onto the actions and
+   * the menu, after a render (`hostUpdated`) or a frame after the observer, never inside it: a
+   * synchronous change there would resize the row during the observer's own delivery. A render
+   * asked for here would draw the host twice.
    */
   measure(): void {
     const root = this.host.renderRoot
     const row = root.querySelector<HTMLElement>(this.options.row)
-    const menu = root.querySelector<HTMLElement>(this.options.menu)
+    const menu = root.querySelector<HTMLElement & { items: MenuEntry[] }>(this.options.menu)
     const actions = this.actions
     this.#observe(row ? [row, ...actions] : [])
     if (!row || !menu) return
@@ -163,10 +162,15 @@ export class OverflowController implements ReactiveController {
       row.getBoundingClientRect().width,
     )
     const collapsed = buttons.filter((button) => button !== primary).slice(0, count)
-    if (sameList(collapsed, this.collapsed)) return
-    this.collapsed = collapsed
-    this.#apply(collapsed)
-    this.host.requestUpdate()
+    if (!sameList(collapsed, this.collapsed)) {
+      this.collapsed = collapsed
+      this.#apply(collapsed)
+    }
+    // A menu drawn anew has none of this yet: written after every render.
+    const spare = collapsed.length === 0
+    menu.classList.toggle('is-spare', spare)
+    menu.inert = spare
+    menu.items = this.items()
   }
 
   #apply(collapsed: HTMLElement[]): void {
@@ -179,21 +183,10 @@ export class OverflowController implements ReactiveController {
   }
 
   #observe(boxes: Element[]): void {
-    if (typeof ResizeObserver === 'undefined') return
     if (sameList(boxes, this.#observed)) return
-    this.#observer ??= new ResizeObserver(() => this.#schedule())
     this.#observer.disconnect()
     for (const box of boxes) this.#observer.observe(box)
     this.#observed = boxes
-  }
-
-  /** A frame later: measuring is cheap, but what follows changes the row's height. */
-  #schedule(): void {
-    if (this.#frame !== null) return
-    this.#frame = requestAnimationFrame(() => {
-      this.#frame = null
-      this.measure()
-    })
   }
 }
 

@@ -114,6 +114,39 @@ describe('lintje-repeater', () => {
     const above = removeButton(rows(element)[0]) as unknown as HTMLElement
     expect(above.shadowRoot?.contains(active) || above === active).toBe(true)
   })
+
+  it('says a removed row again when row 2 goes twice in a row, emptying the region first', async () => {
+    const element = await mount(['J. de Vries', 'A. Jansen', 'K. Bakker'])
+    const region = element.shadowRoot!.querySelector('[aria-live]')!
+    const slot = element.shadowRoot!.querySelector('slot')!
+    const frame = (): Promise<void> =>
+      new Promise((resolve) => requestAnimationFrame(() => resolve()))
+    const removeSecond = async (): Promise<void> => {
+      const synced = new Promise((resolve) =>
+        slot.addEventListener('slotchange', resolve, { once: true }),
+      )
+      document.addEventListener(
+        'lintje-row-remove',
+        (event) => rows(element)[(event as CustomEvent<number>).detail].remove(),
+        { once: true },
+      )
+      removeButton(rows(element)[1]).click()
+      await synced
+      await element.updateComplete
+    }
+
+    await removeSecond()
+    await frame()
+    await element.updateComplete
+    expect(region.textContent).toBe('Betrokkene 2 verwijderd')
+
+    await removeSecond()
+    expect(region.textContent).toBe('')
+    await frame()
+    await element.updateComplete
+    expect(region.textContent).toBe('Betrokkene 2 verwijderd')
+    expect(rows(element)).toHaveLength(1)
+  })
 })
 
 describe('firstFocusable()', () => {
