@@ -30,6 +30,12 @@ export interface ChartOptions {
   /** Cross-drill: the chosen mark's id. The chart keeps no selection of its own. */
   selectedId?: string | null
   /**
+   * The host keeps a selection (cross-drill): a mark with a `href` chooses, a toggle. Without it
+   * the mark goes to its `href`, a link, also when the host cancels the event to route itself.
+   * Default: whether `selectedId` is given.
+   */
+  choosing?: boolean
+  /**
    * A mark that carries a `href` was activated; `newTab` for a modifier or middle click. Without
    * this the marks stay inert.
    */

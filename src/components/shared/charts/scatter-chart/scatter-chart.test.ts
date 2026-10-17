@@ -193,7 +193,7 @@ describe('the scatter plot', () => {
     expect(host.querySelector('.lintje-chart__hover-point')).not.toBeNull()
   })
 
-  it('makes a point with a href a button that selects it', () => {
+  it('makes a point with a href a link that selects it', () => {
     const onSelect = vi.fn()
     const { host } = draw(
       {
@@ -208,7 +208,7 @@ describe('the scatter plot', () => {
       { onSelect },
     )
     expect(host.querySelector('svg.lintje-chart__svg')?.getAttribute('role')).toBe('group')
-    const button = host.querySelector('[role="button"]') as SVGElement
+    const button = host.querySelector('[role="link"]') as SVGElement
     expect(button.getAttribute('aria-label')).toBe('Utrecht: Loket, Aanvragen 1, Wachttijd 2 min')
     button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(onSelect).toHaveBeenCalledWith({ id: 'utr', label: 'Utrecht', href: '?loket=utr' })

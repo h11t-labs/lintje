@@ -516,6 +516,9 @@ De besluiten hieronder gelden voor alle elementen.
   de lijst. Het element gaat via `lintje-navigate`, zodat een router het overneemt; een selectie
   ongedaan maken gaat zo naar de `clearHref`. Een klik met een modificatietoets of de middelste
   knop opent de `href` in een nieuw tabblad, zoals een link, via `lintje-navigate` met `newTab`.
+  Zo'n teken in een grafiek heet daarom een link, ook bij een host die het event annuleert om zelf
+  te routeren; alleen waar de host de keuze bijhoudt (`selectedId`, ook `null`) kiest het, en is
+  het een wisselknop met `aria-pressed`.
 - **Toetsen lopen via één register** (`src/core/shortcuts.ts`). Een toets is nooit de enige manier
   om iets te doen, en een toets zonder modificatietoets gaat nooit af zolang de focus in een veld
   staat. De eigen toetsen van een speler (spatie, de pijlen, F, C) werken alleen zolang de focus
@@ -1202,6 +1205,11 @@ kleinste correctie, en leg die hier vast.
   het oppervlak; een donkergele lijn krijgt een rand in zijn tekstkleur; een label op een vulling
   neemt de tekstkleur van die vulling; een gedimd teken of een uitgeschakelde reeks vervaagt zijn
   kleur, nooit zijn woorden.
+- **Een teken dat doorklikt, is een vol aanwijsdoel** (2.5.8), zonder dat de tekening verandert:
+  een tik naast een smal teken kiest het dichtstbijzijnde binnen een halve `--h-target`, in het
+  spreidingsdiagram en tussen de staven; een stroom op de kaart vangt de aanwijzer op een
+  onzichtbare lijn van `--h-target-text`; de rij in de legendatabel van een taart opent wat haar
+  punt opent. Een gekozen cel tekent haar keuze binnen de cel, zodat de focusring erover blijft.
 - **Een entiteitendiagram is één Tab-stop met zijn teller erna**: de gekozen knoop, anders het
   middelpunt. De pijlen gaan naar de buur die het meest in hun richting ligt, Home naar het
   middelpunt, Enter kiest en Escape maakt het ongedaan. Elke knoop is een knop met haar naam en

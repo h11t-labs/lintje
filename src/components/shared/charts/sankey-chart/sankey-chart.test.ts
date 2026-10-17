@@ -482,14 +482,14 @@ describe('the sankey', () => {
     ])
   })
 
-  it('makes a node or a flow with a href a button that selects', () => {
+  it('makes a node or a flow with a href a link that selects', () => {
     const onSelect = vi.fn()
     const spec: SankeySpec = {
       ...THREE,
       flows: THREE.flows.map((flow, i) => (i === 0 ? { ...flow, href: '?stroom=1' } : flow)),
     }
     const { host } = draw(spec, { onSelect })
-    const button = host.querySelector<SVGElement>('.lintje-sankey__band[role="button"]')!
+    const button = host.querySelector<SVGElement>('.lintje-sankey__band[role="link"]')!
     expect(button.getAttribute('aria-label')).toBe(
       'Aanvragen → Compleet: 7.400 (74% van Aanvragen)',
     )

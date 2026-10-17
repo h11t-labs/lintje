@@ -539,6 +539,7 @@ export class LintjeChart extends LintjeContentTileElement {
       description: this.data?.description ?? '',
       mobile: this.#mobile.matches,
       selectedId: this.data?.selectedId ?? null,
+      choosing: this.data?.selectedId !== undefined || this.data?.clearHref !== undefined,
       onSelect: ({ id, label, href }, newTab) => this.select({ id, label, href }, newTab),
       onClear: (previousId) => {
         this.select({ id: null, label: null, href: this.data?.clearHref })

@@ -214,8 +214,8 @@ describe('the treemap', () => {
   it('chooses the part with a click in a sub-part, its "Overig" too', () => {
     const { host, chosen } = draw(spec(NESTED))
     const [zorg] = groups(host)
-    expect(zorg.getAttribute('role')).toBe('button')
-    expect(zorg.getAttribute('aria-pressed')).toBe('false')
+    expect(zorg.getAttribute('role')).toBe('link')
+    expect(zorg.hasAttribute('aria-pressed')).toBe(false)
     for (const area of areas(zorg)) area.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(chosen.map((mark) => mark?.id)).toEqual(['zorg', 'zorg', 'zorg'])
   })
@@ -301,7 +301,7 @@ describe('the treemap below 768 px', () => {
     const { host, chosen } = draw(spec(NESTED), { mobile: true })
     host.querySelector<HTMLButtonElement>('.lintje-treemap__toggle')!.click()
     const choice = host.querySelector<HTMLButtonElement>('.lintje-treemap__part--button')!
-    expect(choice.getAttribute('aria-pressed')).toBe('false')
+    expect(choice.getAttribute('role')).toBe('link')
     choice.click()
     expect(chosen.map((mark) => mark?.id)).toEqual(['zorg'])
     expect(host.querySelector('.lintje-treemap__sub button')).toBeNull()
