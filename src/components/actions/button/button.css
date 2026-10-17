@@ -4,6 +4,7 @@
  */
 :host {
   display: inline-flex;
+  max-width: 100%;
   vertical-align: middle;
 }
 :host([hidden]) { display: none; }
@@ -15,6 +16,7 @@
 /* ------------------------------------------------------------------------ */
 
 .lintje-button {
+  --lintje-button-height: var(--h-button);
   /* Never wider than its place: in a narrow cell the label is cut with an ellipsis. */
   max-width: 100%;
   min-width: 0;
@@ -23,8 +25,10 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  height: var(--h-button);
-  padding: 0 var(--space-4);
+  /* A minimum, so a wrapped label grows the button. The padding keeps a second line off the
+     edge, and stays under what one line leaves of the height, so one line stays as high. */
+  min-height: var(--lintje-button-height);
+  padding: max(0px, min(var(--space-2), (var(--lintje-button-height) - 1lh) / 2 - 1px)) var(--space-4);
   border: 1px solid transparent;
   font-family: var(--font-ui);
   font-size: 1rem;
@@ -42,8 +46,14 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.lintje-button--compact { height: var(--h-button-compact); padding: 0 var(--space-3); }
-.lintje-button--chrome  { height: var(--h-button-chrome);  padding: 0 14px; }
+/* The `title` of a cut label needs a pointer: under the keyboard's focus, without hover and below
+   768 px the label wraps whole, between words where it can. */
+.lintje-button:focus-visible .lintje-button__label { white-space: normal; overflow-wrap: anywhere; }
+@media (hover: none), screen and (max-width: 767px) {
+  .lintje-button__label { white-space: normal; overflow-wrap: anywhere; }
+}
+.lintje-button--compact { --lintje-button-height: var(--h-button-compact); padding-inline: var(--space-3); }
+.lintje-button--chrome  { --lintje-button-height: var(--h-button-chrome);  padding-inline: 14px; }
 /* The compact and chrome button reach the 48 px target through a transparent hit area, 4 px out
    on each side. A row of them keeps 8 px between the boxes, so hit areas never overlap. */
 .lintje-button--compact::after,
@@ -67,7 +77,7 @@
   color: var(--color-accent-text);
   border-color: var(--color-action-secondary-border);
 }
-.lintje-button--secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-bg-selected); }
+.lintje-button--secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-bg-subtle); }
 
 .lintje-button--tertiary {
   background: transparent;
@@ -95,7 +105,7 @@
 .lintje-button--danger-secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-bg-subtle); }
 
 .lintje-button--link {
-  height: auto;
+  min-height: 0;
   padding: 0;
   color: var(--color-link);
   text-decoration: underline;
@@ -110,11 +120,12 @@
 }
 
 /* Disabled is `aria-disabled`: the button keeps its tab order and focus ring. A busy button is
-   not `is-disabled`: it keeps its variant's colours. Native `<button>`s with these classes get
+   not `is-disabled`: it keeps its variant's colours, as does a split menu button's busy half
+   (`is-working`). Native `<button>`s with these classes get
    the look from `:disabled` or `aria-disabled`, without the class. */
 .lintje-button.is-disabled,
 .lintje-button:disabled,
-.lintje-button[aria-disabled='true']:not(.is-busy) {
+.lintje-button[aria-disabled='true']:not(.is-busy, .is-working) {
   opacity: 1;
   cursor: not-allowed;
   background: var(--color-bg-subtle);
@@ -123,7 +134,7 @@
 }
 .lintje-button--link.is-disabled,
 .lintje-button--link:disabled,
-.lintje-button--link[aria-disabled='true']:not(.is-busy) {
+.lintje-button--link[aria-disabled='true']:not(.is-busy, .is-working) {
   background: none;
   border-color: transparent;
   text-decoration: none;
@@ -163,5 +174,5 @@
 @media (forced-colors: active) {
   .lintje-button.is-disabled,
   .lintje-button:disabled,
-  .lintje-button[aria-disabled='true']:not(.is-busy) { color: GrayText; border-color: GrayText; }
+  .lintje-button[aria-disabled='true']:not(.is-busy, .is-working) { color: GrayText; border-color: GrayText; }
 }

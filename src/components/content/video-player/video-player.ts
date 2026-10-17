@@ -22,6 +22,7 @@ import { SPEEDS, indexAt, speedLabel } from '../shared/playback'
 import { LintjePlayerElement } from '../shared/player'
 import playerCss from '../shared/player.css?inline'
 import videoPlayerCss from './video-player.css?inline'
+import { titleWhenCut } from '../../shared/cut-text'
 
 export interface TimedText {
   start: number
@@ -212,7 +213,7 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
         @click=${this.onRetry}
       >
         ${renderIcon('functioneel-refresh', { size: 20 })}
-        <span class="lintje-button__label">Opnieuw proberen</span>
+        <span class="lintje-button__label" @pointerenter=${titleWhenCut}>Opnieuw proberen</span>
       </button>
     </div>`
   }

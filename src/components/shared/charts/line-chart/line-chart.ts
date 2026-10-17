@@ -19,6 +19,7 @@ import { renderTooltip } from '../shared/tooltip'
 import { styleProps } from '../../../../core/style-props'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
+import { LONE_POINT_RADIUS, knownRuns } from '../shared/runs'
 import type { ChartSpec } from '../shared/types'
 
 type LineSpec = Extract<ChartSpec, { kind: 'line' }>
@@ -195,19 +196,11 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
       ${series.map((row) => {
         const color = colorOf(row)
         const casing = row.comparison ? undefined : lineCasing(color)
-        // A missing value breaks the line: no segment bridges it as if it were known (rule 15).
-        const runs: { x: number; y: number }[][] = [[]]
-        row.values.forEach((value, i) => {
-          if (value == null || (isEarly && i > lastKnown)) {
-            if (runs[runs.length - 1].length) runs.push([])
-            return
-          }
-          runs[runs.length - 1].push({
-            x: xPosition(i, labels.length, area),
-            y: yPosition(value, max, area),
-          })
-        })
-        const drawn = runs.filter((run) => run.length > 0)
+        // At an early as-of time the line stops there.
+        const drawn = knownRuns(
+          isEarly ? row.values.slice(0, lastKnown + 1) : row.values,
+          (value, i) => ({ x: xPosition(i, labels.length, area), y: yPosition(value, max, area) }),
+        )
         if (drawn.length === 0) return nothing
         const lastRun = drawn[drawn.length - 1]
         const last = lastRun[lastRun.length - 1]
@@ -232,7 +225,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
                 }
                 ${
                   run.length === 1
-                    ? svg`<circle cx=${run[0].x} cy=${run[0].y} r="2.5" fill=${color} />`
+                    ? svg`<circle cx=${run[0].x} cy=${run[0].y} r=${LONE_POINT_RADIUS} fill=${color} />`
                     : svg`<polyline
                         class="lintje-chart__line"
                         points=${d}
