@@ -66,6 +66,7 @@ export class LintjeMultiselect extends LintjeInputElement {
 
   private reflowFrame: number = 0
   #spot: Place | null = null
+  #width: number | null = null
 
   private readonly onOutsideClick = (event: MouseEvent): void => {
     if (!this.open) return
@@ -138,11 +139,12 @@ export class LintjeMultiselect extends LintjeInputElement {
     const rect = field.getBoundingClientRect()
     const width = Math.max(rect.width, MIN_WIDTH)
     const next = place(rect, { width, height: 0 }, viewport(), 'bottom-start', GAP)
-    if (samePlace(this.#spot, next) && popover.style.width === `${width}px`) return
+    if (samePlace(this.#spot, next) && width === this.#width) return
     stand(popover, next)
     popover.style.setProperty('width', `${width}px`)
     popover.style.setProperty('--lintje-multiselect-space', `${next.space}px`)
     this.#spot = next
+    this.#width = width
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
