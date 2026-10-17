@@ -171,7 +171,8 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
   vorm en de legenda (regel 13).
 - **Hemelblauw is de standaard.** Een figuur die geen kleur noemt, tekent in
   `--color-chart-default`, en de gedeelde tintladder (`--color-chart-tint-*`) is die van
-  hemelblauw.
+  hemelblauw. Een grafiek met meer dan één variabele noemt per reeks de kleur van haar variabele;
+  zonder kleur waarschuwt `lintje-chart` in de ontwikkelbuild. Een vergelijking telt niet mee.
 
 - **Vergelijking is altijd grijs; trend, drempel en doel altijd de nadrukkleur.** `neutral` is
   de rol van een reeks die in kleur niets draagt, zoals gelijkwaardige bronnen op een kaart: ze
