@@ -10,6 +10,7 @@ import {
   type ReactiveControllerHost,
   type TemplateResult,
 } from 'lit'
+import type { HeadingLevel } from './empty-state-block'
 import { renderIcon, renderLeadingIcon } from '../../icons/render'
 import { heightSettleMs } from './transition'
 
@@ -63,18 +64,35 @@ export class DisclosureSettle implements ReactiveController {
 export interface DisclosureHeaderOptions {
   bodyId: string
   open: boolean
-  /** The title text, drawn inside an `<h3>`. */
+  /** The title text, drawn inside the heading. */
   title: unknown
   subtitle?: string
   /** An icon file name. Decorative. */
   icon?: string
   /** The chevron before the title instead of at the end of the row. */
   leading?: boolean
+  /** The heading's level; `h3` when unset. */
+  level?: HeadingLevel
   toggle: () => void
 }
 
+function heading(level: HeadingLevel | undefined, button: TemplateResult): TemplateResult {
+  switch (level) {
+    case 2:
+      return html`<h2 class="lintje-disclosure__heading">${button}</h2>`
+    case 4:
+      return html`<h4 class="lintje-disclosure__heading">${button}</h4>`
+    case 5:
+      return html`<h5 class="lintje-disclosure__heading">${button}</h5>`
+    case 6:
+      return html`<h6 class="lintje-disclosure__heading">${button}</h6>`
+    default:
+      return html`<h3 class="lintje-disclosure__heading">${button}</h3>`
+  }
+}
+
 /**
- * The heading holds the button, not the reverse: an `<h3>` inside a `<button>` is presentational
+ * The heading holds the button, not the reverse: a heading inside a `<button>` is presentational
  * and reaches no assistive technology. Inside the button only phrasing content.
  */
 export function disclosureHeader(options: DisclosureHeaderOptions): TemplateResult {
@@ -82,10 +100,11 @@ export function disclosureHeader(options: DisclosureHeaderOptions): TemplateResu
     size: 16,
     className: 'lintje-disclosure__chevron',
   })
-  const { bodyId, open, title, subtitle, icon, leading, toggle } = options
+  const { bodyId, open, title, subtitle, icon, leading, level, toggle } = options
   const plain = !icon && !subtitle
-  return html`<h3 class="lintje-disclosure__heading">
-    <button
+  return heading(
+    level,
+    html`<button
       type="button"
       class="lintje-disclosure__header"
       aria-expanded=${open}
@@ -100,8 +119,8 @@ export function disclosureHeader(options: DisclosureHeaderOptions): TemplateResu
         ${subtitle ? html`<span class="lintje-disclosure__sub">${subtitle}</span>` : nothing}
       </span>
       ${leading ? nothing : chevron}
-    </button>
-  </h3>`
+    </button>`,
+  )
 }
 
 /** The content stays in the DOM; closed it is `visibility: hidden`. */

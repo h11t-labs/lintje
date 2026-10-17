@@ -23,8 +23,9 @@
     "heading": "Pagina",
     "label": "Indeling",
     "icon": "functioneel-tegelweergave",
-    "intro": "Waar inhoud in staat: het raster van twaalf kolommen, de tegel, tabs, de uitklapper en twee panelen naast elkaar.",
-    "elements": ["grid", "grid-item", "tile", "tabs", "expander", "split-pane"]
+    "intro": "Waar inhoud in staat: het raster van twaalf kolommen, de tegel, tabs, de uitklapper, uitklappers gestapeld als accordeon en twee panelen naast elkaar.",
+    "elements": ["grid", "grid-item", "tile", "tabs", "expander", "accordion", "split-pane"],
+    "composite": ["accordion"]
   },
   {
     "name": "overlays",

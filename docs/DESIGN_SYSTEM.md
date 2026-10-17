@@ -530,6 +530,19 @@ De besluiten hieronder gelden voor alle elementen.
   verloopt en het overzicht van de sneltoetsen zijn een `lintje-dialog` met inhoud van de host,
   voorgedaan in de stijlgids.
 
+### Uitklappers
+
+- **Een accordeon is de gestapelde uitklapper** (`lintje-accordion`), geen tweede element: de rijen
+  zijn uitklappers, getekend met de lijnen van de lijst, één boven de stapel en één onder elke
+  rij, zonder vlak of kaart per rij. Een open kop krijgt geen accentkleur.
+- **De pijl staat vooraan in een accordeon**, zodat de kop als knop leest en de inhoud in lijn met
+  de titel valt; een losse uitklapper houdt hem achteraan.
+- **Meer rijen tegelijk open is de standaard.** Eén tegelijk laat de inhoud onder de lezer vandaan
+  schuiven en is er alleen op verzoek, net als "Alles openen". Wat elke lezer nodig heeft, staat
+  niet achter een kop.
+- **In een tegel is een accordeon een werklijst in een `flush`-tegel**, en op papier staat het
+  open, zoals alles wat dichtklapt.
+
 ### Werklijsten
 
 - **Wat iemand maakte of liet maken, is één lijst**, in elke applicatie: vertaalde teksten,

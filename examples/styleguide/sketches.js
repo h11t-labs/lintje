@@ -46,6 +46,7 @@ export const SKETCHES = {
   tile: { frame: 'tile', rows: 't40 / s30 / img / s40' },
   tabs: { rows: 'tab / l90 / l70 / l50' },
   expander: { rows: '[t50 sp chevd]' },
+  accordion: { rows: 'rule / chevd t50 / rule / chevd t40 / ind l60 / rule / chevd t55 / rule' },
   'split-pane': { rows: 'split' },
   // Overlays
   modal: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'modal', layer: 't50 / l80 / l60 / sp bo25 b30' },
