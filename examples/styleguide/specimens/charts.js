@@ -895,31 +895,6 @@ const chartSpecimen = (chart) => ({
   },
 })
 
-// "Grafiek" / "Tabel": the same figures as a table, the rows the CSV writes. Sunday is not in
-// yet, so it is missing — "—" in the table, never 0.
-const tableSwitch = {
-  label: 'Grafiek of tabel',
-  html: TILE,
-  setup(stage) {
-    stage.querySelector('lintje-chart').data = {
-      chart: {
-        kind: 'line', labels: weekdays, axisTitle: 'Afgehandelde aanvragen per dag',
-        series: [
-          {
-            label: 'Deze week',
-            values: daily.map((row, i) => (i === daily.length - 1 ? null : row.requests)),
-          },
-          { label: 'Vorige week', values: daily.map((row) => row.requests_last_week), comparison: true },
-        ],
-      },
-      description: 'Afgehandelde aanvragen per dag deze week, tegen vorige week. Zondag is nog niet binnen.',
-      title: 'Grafiek of tabel',
-      footnote: 'Bron: fictieve demogegevens',
-      tableSwitch: true,
-    }
-  },
-}
-
 // Missing is never zero (rule 15): a line breaks at the gap, a bar's slot is hatched. Two lines
 // in colour carry their colour's shape at the end (rule 13); the dark yellow one is edged.
 const share = (part) => daily.map((row, i) => (i === 3 ? null : Math.round(row.requests * part)))
@@ -1154,7 +1129,7 @@ export default {
         })),
       },
       states: CHART_STATES,
-      specimens: [tableSwitch],
+      specimens: [],
     },
     {
       tag: 'lintje-note',

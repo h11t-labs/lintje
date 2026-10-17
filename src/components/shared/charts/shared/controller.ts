@@ -11,6 +11,7 @@ import type { ChartSelection } from './mark-select'
 import type { SeriesKey } from './series-shapes'
 import type { KeyMark } from './axes'
 import type { MapArea, MapTool } from './types'
+import { uniqueId } from '../../../../core/id'
 
 /** What every `render*` takes besides its data. */
 export interface ChartOptions {
@@ -103,11 +104,9 @@ const VISIBLE_SHARE = 0.35
 const MIN_DRAWING = 120
 const STEPS = Array.from({ length: 21 }, (_, i) => i / 20)
 
-let sequence = 0
-
 export class ChartController {
   /** Stable per chart: `<desc>` and the hatch pattern are addressed by it. */
-  readonly id = `lintje-chart-${++sequence}`
+  readonly id = uniqueId('lintje-chart')
 
   /* Measurement ----------------------------------------------------------- */
 

@@ -14,9 +14,9 @@
   color: var(--color-text-primary);
   border-radius: var(--radius);
 }
+/* Without a margin the 20 px glyph is centred on the heading's first line. */
 .lintje-error-summary__icon {
   flex: none;
-  margin-top: 2px;
   color: var(--color-error-line);
 }
 .lintje-error-summary__body { min-width: 0; }

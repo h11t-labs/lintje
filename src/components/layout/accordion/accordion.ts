@@ -19,7 +19,7 @@ import {
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { AttributeHold, PropertyHold } from '../../shared/controls'
-import type { HeadingLevel } from '../../shared/empty-state-block'
+import type { HeadingLevel } from '../../shared/heading'
 import { LintjeExpander } from '../expander/expander'
 import '../../actions/button/button'
 import accordionCss from './accordion.css?inline'

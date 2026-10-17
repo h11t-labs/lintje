@@ -1,6 +1,4 @@
 /* The drop zone and the list of files under it. */
-:host { display: block; min-width: 0; }
-:host([hidden]) { display: none; }
 :host([fill]) { height: 100%; }
 :host([fill]) .lintje-field { height: 100%; }
 

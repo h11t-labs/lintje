@@ -1,11 +1,4 @@
 /* The slot picker: a column per day, every time a chip; the radio itself is the shared `choice` input. */
-:host {
-  display: block;
-  min-width: 0;
-}
-:host([hidden]) { display: none; }
-
-/* --- */
 
 /* Every day takes an equal column, however many the host sends. */
 .lintje-slot-picker {

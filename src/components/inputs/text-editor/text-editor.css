@@ -1,11 +1,4 @@
 /* The text editor: a frame with the toolbar on top and the editing surface under it. */
-:host {
-  display: block;
-  min-width: 0;
-}
-:host([hidden]) { display: none; }
-
-/* --- */
 
 /* 1 px field border; with the focus in the surface the ring goes round the whole frame. */
 .lintje-text-editor {

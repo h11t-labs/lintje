@@ -31,6 +31,7 @@ import { isPlainClick } from '../../../core/links'
 import { standsIn } from '../../../core/focus'
 import { stopAfter } from '../../shared/focus-trap'
 import { titleWhenCut } from '../../shared/cut-text'
+import { uniqueId } from '../../../core/id'
 
 export interface MenuItem {
   /** What `lintje-action` carries. */
@@ -66,8 +67,6 @@ const isItem = (entry: MenuEntry): entry is MenuItem =>
 
 /** `flat` is the tertiary without its border, for a trigger among flat icon buttons. */
 export type MenuButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'flat' | 'ellipsis'
-
-let instances = 0
 
 /**
  * The entries of a menu: a heading and the rows under it form a `group` named by it, since a menu
@@ -191,7 +190,7 @@ export class LintjeMenuButton extends LintjeElement {
 
   // The trigger is a native `<button>`, so the ARIA sits on what has the focus; `aria-controls`
   // names the popover, because the `role="menu"` panel is in the popover's shadow root.
-  private readonly menuId = `lintje-menu-${++instances}`
+  private readonly menuId = uniqueId('lintje-menu')
   private pendingFocus: number | null = null
 
   private get unavailable(): boolean {

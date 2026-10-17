@@ -112,6 +112,7 @@ function parseCount(value: string | number | undefined): Counted | null {
   }
 }
 
+// Not `formatNumber`: the grouping and the decimals are those of the text the host gave.
 function formatCount(count: Counted, n: number): string {
   return (
     count.before +

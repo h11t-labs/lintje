@@ -702,19 +702,6 @@ const ROWS: Row[] = [
       shown(element, '.lintje-sankey__bar') && !find(element, '.lintje-sankey__band'),
   },
   {
-    tag: 'lintje-chart',
-    marker: 'the view switch takes a row of its own under the title',
-    mount: () => append(create('lintje-chart', { data: { ...HEATMAP, tableSwitch: true } })),
-    wide: (element) => {
-      const view = find(element, '.lintje-chart__view')
-      return seen(view) && !below(find(element, '.lintje-tile__title'), view)
-    },
-    phone: (element) => {
-      const view = find(element, '.lintje-chart__view')
-      return seen(view) && below(find(element, '.lintje-tile__title'), view)
-    },
-  },
-  {
     tag: 'lintje-tabs',
     marker: 'the tabs keep one line that scrolls instead of wrapping',
     mount: async () => {

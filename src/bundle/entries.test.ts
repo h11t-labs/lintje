@@ -40,7 +40,9 @@ describe('the entries per tag', () => {
   it('reads an import that spans lines and skips a type-only one', () => {
     const imports = [...importsOf(moduleOf('lintje-chart'))]
     expect(imports).toContain('lit')
-    expect(imports).toContain(resolve(SRC, 'components/tables/data-table/data-table.ts'))
+    expect(imports).toContain(
+      resolve(SRC, 'components/shared/charts/dumbbell-chart/dumbbell-chart.ts'),
+    )
     expect(imports).not.toContain(resolve(SRC, 'types.ts'))
   })
 })
