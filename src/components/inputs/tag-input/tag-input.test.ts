@@ -35,6 +35,18 @@ async function press(target: Element, key: string): Promise<void> {
   await Promise.resolve()
 }
 
+const status = (element: LintjeTagInput): string =>
+  element.renderRoot.querySelector('[role="status"]')?.textContent ?? ''
+const frame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()))
+
+/** What the status region says, after its fill frame. */
+async function said(element: LintjeTagInput): Promise<string> {
+  await element.updateComplete
+  await frame()
+  await element.updateComplete
+  return status(element)
+}
+
 function listen(element: LintjeTagInput, name = 'lintje-values-change'): unknown[] {
   const seen: unknown[] = []
   element.addEventListener(name, (event) => seen.push((event as CustomEvent).detail))
@@ -93,9 +105,7 @@ describe('lintje-tag-input', () => {
       { 'p.trefwoorden': ['toegang', 'vergaderzaal', 'afzet'] },
     ])
     expect(field(element).value).toBe('')
-    expect(element.renderRoot.querySelector('[role="status"]')?.textContent).toBe(
-      'afzet toegevoegd',
-    )
+    expect(await said(element)).toBe('afzet toegevoegd')
   })
 
   it('makes a chip of what was typed when the field is left, not when a chip takes the focus', async () => {
@@ -123,22 +133,28 @@ describe('lintje-tag-input', () => {
     await element.updateComplete
     expect(seen).toEqual([])
     expect(element.renderRoot.querySelector('.is-flash')?.textContent?.trim()).toBe('toegang')
-    expect(element.renderRoot.querySelector('[role="status"]')?.textContent).toBe(
-      'toegang staat er al',
-    )
     vi.advanceTimersByTime(1000)
     await element.updateComplete
     expect(element.renderRoot.querySelector('.is-flash')).toBeNull()
+  })
+
+  it('says a word that is there already, also the second time', async () => {
+    const element = await mount({ value: ['toegang'] })
+    await type(element, 'Toegang')
+    await press(field(element), 'Enter')
+    expect(await said(element)).toBe('toegang staat er al')
+    await type(element, 'toegang')
+    await press(field(element), 'Enter')
+    await element.updateComplete
+    expect(status(element)).toBe('')
+    expect(await said(element)).toBe('toegang staat er al')
   })
 
   it('says what it added and which word was there already, in one sentence', async () => {
     const element = await mount({ value: ['toegang'] })
     await type(element, 'afzet, Toegang')
     await press(field(element), 'Enter')
-    await element.updateComplete
-    expect(element.renderRoot.querySelector('[role="status"]')?.textContent).toBe(
-      'afzet toegevoegd. toegang staat er al',
-    )
+    expect(await said(element)).toBe('afzet toegevoegd. toegang staat er al')
   })
 
   it('walks the crosses, each a named button, and tells the field how the keys work', async () => {

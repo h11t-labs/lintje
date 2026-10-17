@@ -21,6 +21,7 @@ import { renderRadarChart } from '../radar-chart/radar-chart'
 import { renderSankeyChart } from '../sankey-chart/sankey-chart'
 
 export function renderChart(spec: ChartSpec, options: ChartOptions): TemplateResult {
+  options.controller.follow(spec)
   switch (spec.kind) {
     case 'line':
       return renderLineChart(spec, options)

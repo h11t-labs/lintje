@@ -1,6 +1,7 @@
 // The charts category (Kerncijfers en grafieken): the specimens of its elements.
 import { CHART_KINDS, CHART_QUESTIONS } from '../../../dist-elements/lintje.js'
-import { meta, number, daily, heatmap, desks, breakdowns, hourly, sankey } from '../../_data/load.js'
+import { meta, number, daily, heatmap, desks, breakdowns, hourly, sankey, forecast } from '../../_data/load.js'
+import { linkLog } from '../shared.js'
 
 const kpi = meta.kpi
 
@@ -164,8 +165,8 @@ const LAST_YEAR = [
 // Every desk as a point, requests against waiting time, one series per kind of desk; the desks
 // that deliver late have no waiting time yet in the second specimen (rule 15).
 const DESK_SERIES = [
-  { key: 'counter', label: 'Loket' },
-  { key: 'service', label: 'Servicepunt' },
+  { key: 'counter', label: 'Loket', color: 'sky-blue' },
+  { key: 'service', label: 'Servicepunt', color: 'dark-yellow' },
 ]
 const deskScatter = (missing = false) => ({
   kind: 'scatter',
@@ -175,6 +176,7 @@ const deskScatter = (missing = false) => ({
   dataLabels: ['Amsterdam Centrum'],
   series: DESK_SERIES.map((kind) => ({
     label: kind.label,
+    color: kind.color,
     points: desks.filter((desk) => desk.kind === kind.key).map((desk) => ({
       label: desk.map_label, id: desk.id, href: `?loket=${desk.id}`,
       x: desk.requests,
@@ -193,6 +195,22 @@ const quality = (missing = false) => ({
     { label: 'Q3 2025', values: [7.4, 6.6, 6.9, 8.4, 8.1, 8.8], comparison: true },
   ],
 })
+// Requests and objections per year, × 1,000: measured up to 2025, then a forecast to 2030 with
+// its 80 % margin. Fictional figures.
+const YEARS = forecast.map((row) => row.year)
+const FORECAST_FROM = forecast.findIndex((row) => row.forecast)
+const yearly = (key) => ({
+  values: forecast.map((row) => row[key]),
+  forecast: {
+    low: forecast.map((row) => row[`${key}_low`]),
+    high: forecast.map((row) => row[`${key}_high`]),
+  },
+})
+const lastMeasured = forecast[FORECAST_FROM - 1]
+const lastYear = forecast.at(-1)
+/** Where measuring stops, its last value, and where the forecast ends with its margin. */
+const forecastSentence = (key, name) =>
+  `${name}: gemeten tot en met ${lastMeasured.year}, ${number(forecast[0][key])} in ${forecast[0].year} en ${number(lastMeasured[key])} in ${lastMeasured.year}. De raming loopt tot ${number(lastYear[key])} in ${lastYear.year}, met een marge van ${number(lastYear[`${key}_low`])} tot ${number(lastYear[`${key}_high`])}.`
 const lateDesks = desks.filter((desk) => desk.data_status === 'delayed').map((desk) => desk.map_label)
 
 // Requests of a fictional permit service from submission to outcome. A flow is changed by its
@@ -297,6 +315,57 @@ const CHARTS = [
     },
   },
   {
+    id: 'line-forecast', title: 'Aanvragen per jaar',
+    subtitle: '× 1.000, gemeten tot en met 2025, daarna raming',
+    description: `Lijn, aanvragen per jaar, × 1.000. ${forecastSentence('requests', 'Aanvragen')} De marge is een interval van 80 %.`,
+    spec: {
+      kind: 'line', labels: YEARS, axisTitle: 'aanvragen × 1.000',
+      forecastFrom: FORECAST_FROM, intervalLabel: 'Marge 80 %',
+      series: [{ label: 'Aanvragen', color: 'sky-blue', ...yearly('requests') }],
+    },
+  },
+  {
+    id: 'line-forecast-two', title: 'Aanvragen en bezwaren per jaar',
+    subtitle: '× 1.000, gemeten tot en met 2025, daarna raming',
+    description: `Lijn, aanvragen en bezwaren per jaar, × 1.000. ${forecastSentence('requests', 'Aanvragen')} ${forecastSentence('objections', 'Bezwaren')}`,
+    spec: {
+      kind: 'line', labels: YEARS, axisTitle: 'aantal × 1.000',
+      forecastFrom: FORECAST_FROM, intervalLabel: 'Marge 80 %',
+      series: [
+        { label: 'Aanvragen', color: 'sky-blue', ...yearly('requests') },
+        { label: 'Bezwaren', color: 'dark-yellow', ...yearly('objections') },
+      ],
+    },
+  },
+  {
+    id: 'line-forecast-plain', title: 'Aanvragen per jaar',
+    subtitle: '× 1.000, gemeten tot en met 2025, daarna raming',
+    description: `Lijn, aanvragen per jaar, × 1.000. Gemeten tot en met ${lastMeasured.year}: van ${number(forecast[0].requests)} naar ${number(lastMeasured.requests)}. De raming loopt op tot ${number(lastYear.requests)} in ${lastYear.year}, zonder marge.`,
+    spec: {
+      kind: 'line', labels: YEARS, axisTitle: 'aanvragen × 1.000',
+      forecastFrom: FORECAST_FROM,
+      series: [{ label: 'Aanvragen', color: 'sky-blue', values: yearly('requests').values }],
+    },
+  },
+  {
+    id: 'line-forecast-gap', title: 'Aanvragen per jaar',
+    subtitle: '× 1.000, gemeten tot en met 2025, daarna raming',
+    description: `Lijn, aanvragen per jaar, × 1.000. ${forecastSentence('requests', 'Aanvragen')} Voor 2028 is er geen raming en geen marge.`,
+    spec: {
+      kind: 'line', labels: YEARS, axisTitle: 'aanvragen × 1.000',
+      forecastFrom: FORECAST_FROM, intervalLabel: 'Marge 80 %',
+      series: [(() => {
+        const { values, forecast: margin } = yearly('requests')
+        const gap = YEARS.indexOf('2028')
+        const without = (list) => list.map((value, i) => (i === gap ? null : value))
+        return {
+          label: 'Aanvragen', color: 'sky-blue', values: without(values),
+          forecast: { low: without(margin.low), high: without(margin.high) },
+        }
+      })()],
+    },
+  },
+  {
     id: 'bar', title: 'Staven met datalabels en trendlijn',
     description: 'Afgehandelde aanvragen per dag deze week, met de vorige week als trendlijn.',
     spec: {
@@ -313,6 +382,16 @@ const CHARTS = [
       axisTitle: 'Afgehandelde aanvragen per dag',
       // Wednesday and Saturday are missing: two pieces of line and a lone point on Sunday.
       trend: daily.map((row, i) => (i === 2 || i === 5 ? null : row.requests_last_week)),
+    },
+  },
+  {
+    id: 'bar-forecast', title: 'Aanvragen per jaar',
+    subtitle: '× 1.000, gemeten tot en met 2025, daarna raming',
+    description: `Staven, aanvragen per jaar, × 1.000. ${forecastSentence('requests', 'Aanvragen')} De marge is een interval van 80 %.`,
+    spec: {
+      kind: 'bar', labels: YEARS, axisTitle: 'Aanvragen × 1.000', color: 'sky-blue',
+      forecastFrom: FORECAST_FROM, intervalLabel: 'Marge 80 %',
+      ...yearly('requests'),
     },
   },
   {
@@ -339,8 +418,8 @@ const CHARTS = [
     spec: {
       kind: 'grouped-bar', labels: weekdays, axisTitle: 'Afgehandelde aanvragen per dag',
       series: [
-        { label: 'Deze week', values: daily.map((row) => row.requests) },
-        { label: 'Vorige week', values: daily.map((row) => row.requests_last_week) },
+        { label: 'Deze week', values: daily.map((row) => row.requests), color: 'sky-blue' },
+        { label: 'Vorige week', values: daily.map((row) => row.requests_last_week), comparison: true },
       ],
     },
   },
@@ -408,6 +487,20 @@ const CHARTS = [
     },
   },
   {
+    id: 'pie-legend', title: 'Taart zonder legendatabel',
+    description: 'Aanvragen naar kanaal: online 412, balie 236, telefoon 158, post 61, overig 33.',
+    spec: {
+      kind: 'pie', legendTable: false,
+      segments: [
+        { label: 'Balie', value: 236 },
+        { label: 'Online', value: 412 },
+        { label: 'Overig', value: 33 },
+        { label: 'Post', value: 61 },
+        { label: 'Telefoon', value: 158 },
+      ],
+    },
+  },
+  {
     id: 'pie-folded', title: 'Taart met meer dan vijf delen',
     description: `Afgehandelde aanvragen per loket: ${largestDesks
       .map((part) => `${part.label} ${number(part.value)}`)
@@ -431,8 +524,8 @@ const CHARTS = [
     description: 'Afgehandelde aanvragen per uur als staven op de linkeras, wachttijd als lijn op de rechteras, tegen de norm van 15 minuten.',
     spec: {
       kind: 'dual-axis', labels: column('hour'),
-      left: { label: 'Aanvragen', values: column('requests'), unit: 'aanvragen' },
-      right: { label: 'Wachttijd', values: column('wait_time'), unit: 'min' },
+      left: { label: 'Aanvragen', values: column('requests'), unit: 'aanvragen', color: 'sky-blue' },
+      right: { label: 'Wachttijd', values: column('wait_time'), unit: 'min', color: 'dark-yellow' },
       threshold: meta.thresholds.wait_time_threshold,
       pendingHours: meta.national_pending_hours,
     },
@@ -455,9 +548,9 @@ const CHARTS = [
     spec: {
       kind: 'radar', axes: ASPECTS, max: 10, threshold: 7,
       series: [
-        { label: 'Regio Noord', values: [7.9, 6.4, 7.1, 8.5, 8.0, 8.7] },
-        { label: 'Regio Zuid', values: [7.1, 7.4, 7.8, 8.1, 8.6, 8.2] },
-        { label: 'Regio Oost', values: [6.8, 7.0, 6.6, 7.9, 7.4, 8.0] },
+        { label: 'Regio Noord', values: [7.9, 6.4, 7.1, 8.5, 8.0, 8.7], color: 'sky-blue' },
+        { label: 'Regio Zuid', values: [7.1, 7.4, 7.8, 8.1, 8.6, 8.2], color: 'dark-yellow' },
+        { label: 'Regio Oost', values: [6.8, 7.0, 6.6, 7.9, 7.4, 8.0], color: 'red' },
       ],
     },
   },
@@ -477,9 +570,31 @@ const CHARTS = [
     },
   },
   {
+    id: 'heatmap-labels', title: 'Heatmap met lange rijlabels',
+    description: 'Wachtenden per loket in de ochtend. Een lange naam staat heel in de tooltip, en loopt op een telefoon door.',
+    spec: {
+      kind: 'heatmap', columnLabels: ['9:00', '10:00', '11:00'],
+      rowLabels: ['Servicepunt in het gemeentehuis van de oostelijke wijken', 'Servicepunt west', 'Stadskantoor'],
+      values: [[12, 18, 9], [6, 11, 14], [8, 7, 10]],
+      unit: 'wachtenden',
+    },
+  },
+  {
     id: 'histogram', title: 'Doorlooptijd van aanvragen',
     description: 'Doorlooptijd van 1.900 afgehandelde aanvragen in klassen van twee dagen. De mediaan is 9,6 dagen, de termijn 21 dagen; 153 aanvragen duurden 22 dagen of langer.',
     spec: processingTime(processingDays),
+  },
+  {
+    id: 'line-light-colours', title: 'Afspraken per regio',
+    description: 'Gemaakte afspraken per maand in drie regio’s, januari tot en met juni. Noord loopt op van 410 naar 520, Midden van 380 naar 455, Zuid daalt van 300 naar 260.',
+    spec: {
+      kind: 'line', labels: ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun'], axisTitle: 'afspraken',
+      series: [
+        { label: 'Noord', values: [410, 432, 455, 470, 498, 520], color: 'mint-green' },
+        { label: 'Midden', values: [380, 395, 402, 420, 438, 455], color: 'pink' },
+        { label: 'Zuid', values: [300, 296, 288, 281, 270, 260], color: 'light-blue' },
+      ],
+    },
   },
 ]
 
@@ -487,7 +602,12 @@ const CHARTS = [
 const VARIANT_NAMES = {
   line: 'Met vergelijking en peilmoment',
   'line-events': 'Met gebeurtenissen',
+  'line-forecast': 'Met raming en marge',
+  'line-forecast-two': 'Twee reeksen met raming',
+  'line-forecast-plain': 'Raming zonder marge',
+  'line-forecast-gap': 'Raming met een ontbrekend jaar',
   bar: 'Met trendlijn',
+  'bar-forecast': 'Met raming en marge',
   'bar-trend-gap': 'Trendlijn met ontbrekende dagen',
   'horizontal-bar': 'Met norm',
   'target-progress': 'Tegen een doel van 100 %',
@@ -499,6 +619,7 @@ const VARIANT_NAMES = {
   pie: 'Taart',
   donut: 'Donut met legendatabel',
   'pie-color': 'In de kleur van haar variabele',
+  'pie-legend': 'Zonder legendatabel',
   'pie-folded': 'Meer dan vijf delen',
   'donut-remainder': 'Donut met de rest van een geheel',
   'dual-axis': 'Aantallen en wachttijd met norm',
@@ -506,6 +627,7 @@ const VARIANT_NAMES = {
   radar: 'Eén variabele met vergelijking en norm',
   'radar-layers': 'Drie lagen',
   heatmap: 'Met klassenlegenda',
+  'heatmap-labels': 'Met lange rijlabels',
   histogram: 'Met mediaan en termijn',
   sankey: 'Drie stappen',
   'sankey-four': 'Vier stappen met een eindigende stroom',
@@ -515,14 +637,22 @@ const VARIANT_NAMES = {
   'sankey-six': 'Zes knopen in één stap',
   'sankey-no-share': 'Zonder aandeel',
   'sankey-phone': 'Op een telefoon',
+  'line-light-colours': 'In lichte kleuren met hun rand',
 }
 
 // What a label cannot say, for the note under it.
 const VARIANT_NOTES = {
+  'heatmap-labels': 'Met een aanwijzer staat een lange naam heel in de tooltip; zonder hover en op een telefoon loopt hij door.',
   line: 'De laatste twee uren zijn nog niet compleet en staan gearceerd.',
   'bar-trend-gap': 'Van woensdag en zaterdag vorige week zijn geen gegevens; daar breekt de trendlijn.',
+  'line-forecast': 'Na 2025 loopt de lijn gestippeld door, met haar marge eromheen. Een geraamd punt heeft een open hoverpunt.',
+  'line-forecast-two': 'Wijs een reeks aan in de legenda: haar marge kleurt en de andere reeks stapt terug.',
+  'line-forecast-plain': 'Een raming zonder marge: alleen de stippels en de sleutel "Raming".',
+  'line-forecast-gap': 'Voor 2028 is er geen raming: de stippels en de marge breken af.',
+  'bar-forecast': 'Een geraamde staaf is open, met haar marge als lijn met kapjes.',
   'stacked-area': 'Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
   'pie-folded': 'De taart houdt de vier grootste delen en vouwt de rest in “Overig”.',
+  'pie-legend': 'De legenda staat boven de taart; aantal en aandeel staan in de tooltip.',
   'radar-layers': 'Wijs een regio aan in de legenda: haar vlak kleurt en de andere lagen stappen terug.',
   'sankey-four': 'Toegekend gaat niet verder naar bezwaar: die aanvragen eindigen in de derde stap.',
   'sankey-small': 'Compleet → Ingetrokken is 12 aanvragen: de band is 2 px, het getal staat in de tooltip en de tabel.',
@@ -531,6 +661,7 @@ const VARIANT_NOTES = {
   'sankey-six': 'De tekening wordt hoger met de stap met de meeste knopen, zodat elke naam zijn ruimte houdt.',
   'sankey-no-share': 'Met `share: false` staat alleen het aantal naast de naam.',
   'sankey-phone': 'Smaller dan 768 px wordt elke overgang een staaf per bron, met een rij per doel eronder.',
+  'line-light-colours': 'Mintgroen, roze en lichtblauw halen als lijn geen 3:1 op wit; in licht ligt er een rand in hun eigen donkere kleur onder.',
 }
 
 // The states a chart tile can be in, put on each specimen of a kind: the tile keeps its size
@@ -600,6 +731,30 @@ const tableSwitch = {
 // Missing is never zero (rule 15): a line breaks at the gap, a bar's slot is hatched. Two lines
 // in colour carry their colour's shape at the end (rule 13); the dark yellow one is edged.
 const share = (part) => daily.map((row, i) => (i === 3 ? null : Math.round(row.requests * part)))
+
+// A bar per day with its own `href`: where a click on it goes, shown under the specimen.
+const linkedMarks = [
+  {
+    kind: 'bar',
+    label: 'Staven met een link',
+    note: 'Elke staaf heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad.',
+    html: TILE,
+    setup(stage) {
+      const element = stage.querySelector('lintje-chart')
+      element.data = {
+        chart: {
+          kind: 'bar', labels: weekdays, values: daily.map((row) => row.requests),
+          axisTitle: 'Afgehandelde aanvragen per dag',
+          links: weekdays.map((day) => ({ id: day, href: `?dag=${encodeURIComponent(day)}` })),
+        },
+        description: 'Afgehandelde aanvragen per dag deze week; elke staaf opent die dag.',
+        title: 'Aanvragen per dag',
+        footnote: 'Bron: fictieve demogegevens',
+      }
+      linkLog(stage, element, ['lintje-mark-select'])
+    },
+  },
+]
 
 const missingValues = [
   {
@@ -791,6 +946,7 @@ export default {
           specimens: [
             ...CHARTS.filter((chart) => chart.spec.kind === kind).map(chartSpecimen),
             ...missingValues.filter((specimen) => specimen.kind === kind),
+            ...linkedMarks.filter((specimen) => specimen.kind === kind),
           ],
         })),
       },

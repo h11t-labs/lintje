@@ -5,22 +5,27 @@
  * names come from their one list, `tokens/colors.ts`.
  */
 import type { DataColor } from './tokens/colors'
-import type { ContentStateKind, Tone } from './components/shared/tone'
+import type { ContentStateKind, Tone, WorkState } from './components/shared/tone'
 import type { StatusTone } from './components/feedback/status-dot/status-dot'
 import type { AnnouncementKind } from './components/shared/announcement-block'
 import type { ChartSpec, MapSpec } from './components/shared/charts/shared/types'
 import type { MenuEntry } from './components/actions/menu-button/menu-button'
 import type { NotificationItem } from './components/frame/notifications/notifications'
+import type { UploadFile } from './components/shared/files'
 
 export type {
   BarSeriesData,
   ChartColor,
   ChartEvent,
+  ChartForecast,
   ChartKind,
   ChartSpec,
   LineSeriesData,
   MapSpec,
   MapValue,
+  MapSeriesKey,
+  MapSeriesColor,
+  MapSeriesStyle,
   MapPlotData,
   MapPlotVariant,
   MapVariant,
@@ -34,6 +39,7 @@ export type {
   MapControls,
   RadarSeriesData,
 } from './components/shared/charts/shared/types'
+export type { SeriesShape } from './components/shared/charts/shared/series-shapes'
 export type { DataColor } from './tokens/colors'
 export type { Tone, WorkState, ContentStateKind } from './components/shared/tone'
 
@@ -161,7 +167,8 @@ export interface TileData {
 
 /**
  * Events: `lintje-mark-select` `{id, label, href}` when a mark with a `href` is clicked,
- * `{id: null, href: clearHref}` when the selection is undone.
+ * `{id: null, href: clearHref}` when the selection is undone; uncancelled, the page goes to
+ * that `href`.
  */
 export interface ChartData extends FrameSettings, TileData, ContentState {
   chart: ChartSpec
@@ -181,7 +188,8 @@ export interface ChartData extends FrameSettings, TileData, ContentState {
  * Events: `lintje-mark-select` `{id, label, href?}` on a click on an area or point,
  * `{id: null, href: clearHref}` when undone; `lintje-layer-change` with the chosen layer;
  * with `controls.lasso` or `controls.circle`, `lintje-area-select` `{area, ids}` for a drawn area and
- * `{area: null, ids: []}` when it is undone.
+ * `{area: null, ids: []}` when it is undone. An uncancelled `lintje-mark-select` goes to its
+ * `href`.
  */
 export interface MapData extends FrameSettings, TileData, ContentState, MapSpec {}
 
@@ -202,10 +210,11 @@ export interface TableColumnData {
   truncate?: boolean
   /**
    * How a value shows; default `number` for numbers. `change`: a signed percentage with ▲ ▼ ●.
-   * `change-compact`: only the ▲ ▼ ● of `change`; a screen reader hears the whole change, and
-   * below 768 px the row's measure shows it whole.
+   * `change-compact`: only the ▲ ▼ ● of `change`, its words in a tooltip (`tooltip`); a screen
+   * reader hears them, and below 768 px the row's measure shows the change whole.
    * `status`: a `StatusTone` (or mapped through `status.tones`) as the status dot with its label.
    * `label`: the value as a badge with the word, tone and icon from `labels`.
+   * `person`: the value is an id in `people`, drawn as `lintje-person`.
    */
   format?:
     | 'text'
@@ -216,6 +225,14 @@ export interface TableColumnData {
     | 'change-compact'
     | 'status'
     | 'label'
+    | 'person'
+  /**
+   * `change-compact`: the words the glyph stands for, as a template with `{key}` placeholders
+   * filled from the row, each value read the way its column reads it (`{change}` gives
+   * "▲ +4,2%"). They are the glyph's tooltip, a screen reader hears them, and under the keyboard's
+   * focus or without hover they stand whole. Without it, the whole change. Other formats ignore it.
+   */
+  tooltip?: string
   decimals?: number
   /** Suffix after the value, e.g. "min". */
   unit?: string
@@ -233,6 +250,13 @@ export interface TableColumnData {
    * value without an entry stands as plain text. Sorting and the CSV use the word.
    */
   labels?: Record<string, TableLabel>
+  /**
+   * `person` format: value → the person it stands for, as `labels` does for a label. An id without
+   * an entry stands as plain text. Sorting, filtering and the CSV use the name.
+   */
+  people?: Record<string, Person>
+  /** `person` format: the word for `null`; default "Niet toegewezen". */
+  empty?: string
   /** Shown muted instead of an exact 0, where 0 means "none" (e.g. "—"). Missing stays `null`. */
   zeroText?: string
   mobileSubline?: boolean
@@ -286,6 +310,24 @@ export interface TableAction {
   disabled?: boolean
 }
 
+/** What `lintje-row-click` and `lintje-row-open` carry, in `lintje-list` and `lintje-data-table`. */
+export interface RowClickDetail {
+  id: string
+  /** The row's name: a list row's title, a table row's first column. */
+  label: string
+  /** The address the host gave the row, if any. */
+  href?: string
+}
+
+/** What `lintje-row-action` carries, in `lintje-list` and `lintje-data-table`. */
+export interface RowActionDetail {
+  id: string
+  /** The row's name: a list row's title, a table row's first column. */
+  label: string
+  /** The `value` of the chosen action. */
+  action: string
+}
+
 export interface SortState {
   key: string
   direction: 'asc' | 'desc'
@@ -293,11 +335,12 @@ export interface SortState {
 
 /**
  * Events: `lintje-row-click` with `{id, label, href?}` in a clickable table;
- * `lintje-row-open` with `{id, label, href?}` from the name of an `openable` one;
+ * `lintje-row-open` with `{id, label, href?}` from the name of an `openable` one; uncancelled,
+ * either goes to the row's `href`;
  * `lintje-checked-change` with the checked keys in a selectable one;
  * `lintje-sort-change` with `{key, direction}` or `null`;
  * `lintje-cell-edit` `{id, column, value}` from an `editor` column;
- * `lintje-row-action` `{id, action}` from `rowActions`;
+ * `lintje-row-action` `{id, label, action}` from `rowActions`;
  * `lintje-bulk-action` `{ids, action}` from `bulkActions`;
  * `lintje-filter-change` `{column, value}` (`string[] | string | null`) from a column `filter`;
  * `lintje-columns-change` `{order, hidden}` from the `columnChooser`.
@@ -552,12 +595,21 @@ export interface ShellGroup {
   links: ShellLink[]
 }
 
-export interface UserMenuUser {
+/** A person as an element shows them. */
+export interface Person {
   name: string
-  /** The function: "Teamleider · Dienst Vergunningen". */
+  /** Written by the host ("JV"): initials are not derived, "J. de Vries" has no rule. */
+  initials?: string
+  /** The second line: function or department ("Senior behandelaar"). */
   role?: string
-  initials: string
+  /** A photo, cropped to the circle; when it does not load, the initials. */
+  photo?: string
+  /** Makes the name a link to a profile. */
+  href?: string
 }
+
+/** The person in the user menu: unchanged for every host that sets it. */
+export type UserMenuUser = Person
 
 /** The light/dark setting as the reader chose it; `system` follows `prefers-color-scheme`. */
 export type ModeSetting = 'system' | 'light' | 'dark'
@@ -690,10 +742,13 @@ export interface ChatTermRange {
 }
 
 export interface ChatMessageData {
+  /** `''` for a message that is only its attachments. */
   text: string
   terms?: ChatTermRange[]
   /** When it was sent, as the host formats it ("08:20"). */
   time?: string
+  /** What was sent along with the question; always `state: 'done'`. */
+  attachments?: UploadFile[]
 }
 
 export interface ChatSuggestion {
@@ -727,6 +782,74 @@ export type ChatBlock =
   | { kind: 'kpi-row'; data: KpiRowData }
   | { kind: 'chart'; data: ChartData }
   | { kind: 'data-table'; data: DataTableData }
+  /** Files the answer gives back or cites, beside the sentence that names them. */
+  | { kind: 'attachments'; items: UploadFile[] }
+
+/** One thing the assistant did for an answer. The host writes the label in its own tense and
+ *  with its outcome: "3 bronnen doorzoeken" while busy, "3 bronnen doorzocht" when done,
+ *  "Tabel ophalen mislukt" or "Tabel ophalen gestopt". */
+export interface ChatStep {
+  label: string
+  /** `done` without it. */
+  state?: Extract<WorkState, 'busy' | 'done' | 'error' | 'cancelled'>
+  /** Short, after the label on the same line: the sources, the table, or why it failed. */
+  detail?: string
+  /** Makes `linkText` in the detail a link: the source's page. */
+  href?: string
+  /** Without it, or when the detail does not hold it, the whole detail is the link. */
+  linkText?: string
+}
+
+/** What the assistant did for one answer, oldest first; steps are only ever added at the end. */
+export interface ChatStepsData {
+  items: ChatStep[]
+  /** How long it took, as the host formats it ("12 s"). Only once nothing is busy: while a step
+   *  runs, it is not drawn. */
+  duration?: string
+}
+
+/** A line between turns, above the question of its turn. */
+export interface ChatDivider {
+  /** `time` ("Gisteren") and `topic` ("Nieuw onderwerp") are quiet; `context`: the conversation
+   *  was trimmed, and what stands above is no longer used. `time` without it. */
+  kind?: 'time' | 'topic' | 'context'
+  label: string
+  /** One sentence under the label. A `context` divider without it says "De assistent neemt de
+   *  vragen hierboven niet meer mee." */
+  note?: string
+}
+
+export type ChatQuestionKind = 'one' | 'many' | 'text'
+
+/** One question the assistant asks before it answers. */
+export interface ChatQuestion {
+  id: string
+  /** The short name in the progress line and the reader's message: "Periode". */
+  label: string
+  /** The question itself: "Welke periode bedoel je?" */
+  text: string
+  kind: ChatQuestionKind
+  /** `one` and `many`; a `description` stands under its label. "Iets anders…" always follows. */
+  options?: FilterOption[]
+  /** The placeholder of the "Iets anders…" field. */
+  otherPlaceholder?: string
+  /** Marks "(niet verplicht)" and offers Overslaan; a question is required without it. */
+  optional?: boolean
+  hint?: string
+  /** `text`: the field's placeholder. */
+  placeholder?: string
+  /** The message when a required question has no answer; "Kies een antwoord." without it
+   *  ("Vul een antwoord in." for `text`). */
+  error?: string
+}
+
+/** What the assistant asks before it answers: `lintje-chat-questions`. */
+export interface ChatQuestionsData {
+  /** 1 to 5. One `one` question without descriptions is drawn in the short form. */
+  questions: ChatQuestion[]
+  /** `sending`: the answers are on their way. */
+  state?: 'open' | 'sending'
+}
 
 /** Where an answer stands. `out-of-scope` needs a source on; `needs-clarification` asks back. */
 export type ChatAnswerState =
@@ -744,18 +867,26 @@ export interface ChatAnswerData {
   text?: string
   blocks?: ChatBlock[]
   strip?: ChatStripData
-  /** `streaming`: the step that is running ("Cijfers berekenen · stap 2 van 3"). */
+  /** `streaming`: the step that is running ("Cijfers berekenen · stap 2 van 3"). With `steps`,
+   *  the running step says it and `status` is not drawn. */
   status?: string
+  /** What the assistant did for this answer, above its text in every state. */
+  steps?: ChatStepsData
   /** `error`: what went wrong, and the way out in words. */
   error?: { title?: string; text: string }
-  /** `out-of-scope` and `needs-clarification`: the real choices, solid. */
-  choices?: ChatSuggestion[]
+  /**
+   * `needs-clarification` and `out-of-scope`: what the assistant asks before it answers, in a box
+   * above the question box. Counts on the last answer only; a new turn ends it.
+   */
+  questions?: ChatQuestionsData
   /** Suggested next questions, dashed. Drawn under the last answer only. */
   followUps?: ChatSuggestion[]
 }
 
 export interface ChatTurnData {
   id: string
+  /** The line above this turn's question: "Gisteren", "Nieuw onderwerp", "Gesprek ingekort". */
+  divider?: ChatDivider
   message: ChatMessageData
   answer?: ChatAnswerData
 }
@@ -797,9 +928,11 @@ export interface ChatStartData {
 
 /**
  * The host owns the conversation and sets `data` again on change.
- * Events: `lintje-message-send`, `lintje-answer-stop`, `lintje-sources-change`,
- * `lintje-draft-change`, `lintje-suggestion-select`, `lintje-message-edit`,
- * `lintje-answer-retry`, `lintje-answer-rate`, `lintje-strip-change`, and the blocks' own
+ * Events: `lintje-message-send`, `lintje-questions-answer`, `lintje-answer-stop`,
+ * `lintje-sources-change`, `lintje-draft-change`, `lintje-suggestion-select`, `lintje-message-edit`,
+ * `lintje-answer-retry`, `lintje-answer-rate`, `lintje-strip-change`, the attachments'
+ * `lintje-files-add`, `lintje-file-remove`, `lintje-file-cancel`, `lintje-file-retry` and
+ * `lintje-file-open`, `lintje-navigate` from a link in a step, and the blocks' own
  * `lintje-mark-select`, `lintje-row-click` and `lintje-sort-change`.
  */
 export interface ChatData extends FrameSettings {
@@ -811,12 +944,18 @@ export interface ChatData extends FrameSettings {
   draftTerms?: ChatDraftTerms
   /** The question box's placeholder; "Stel een vraag over de gegevens" without it. */
   placeholder?: string
+  /**
+   * Files sent along with a question: the paperclip, dragging and pasting. Without it the box
+   * takes no files. `files` are those of the question still being typed; the host keeps them.
+   */
+  upload?: { accept?: string; maxSize?: number; files?: UploadFile[] }
 }
 
 export type { FormValues, FormErrors, StoredDraft } from './components/forms/form/form'
 export type { ErrorSummaryItem } from './components/forms/error-summary/error-summary'
+export type { ChatQuestionAnswer } from './components/chat/chat-questions/chat-questions'
 export type { ErrorPageLink } from './components/feedback/error-page/error-page'
-export type { UploadFile } from './components/inputs/file-upload/file-upload'
+export type { UploadFile } from './components/shared/files'
 export type { DateRange } from './components/inputs/date-range/date-range'
 export type { SlotDay, TimeSlot } from './components/inputs/slot-picker/slot-picker'
 export type { TabItem } from './components/layout/tabs/tabs'
@@ -824,7 +963,7 @@ export type { Step, StepState, StepperOrientation } from './components/forms/ste
 export type { MenuEntry, MenuHeading, MenuItem } from './components/actions/menu-button/menu-button'
 export type { Crumb } from './components/frame/breadcrumbs/breadcrumbs'
 export type { SubNavAction, SubNavGroup, SubNavItem } from './components/frame/sub-nav/sub-nav'
-export type { ListItem, RowClickDetail } from './components/tables/list/list'
+export type { ListItem } from './components/tables/list/list'
 export type {
   CardAction,
   CardData,

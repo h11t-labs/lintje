@@ -41,14 +41,14 @@
 .lintje-range__input.is-raised { z-index: 1; }
 /* Two handles: only the thumbs take the pointer, the track's press is the element's. One
    handle: the input takes the whole track. */
-:host(:not([single]):not([disabled])) .lintje-range { cursor: pointer; }
+:host(:not([single]):not(:disabled)) .lintje-range { cursor: pointer; }
 :host([single]) .lintje-range__input { pointer-events: auto; cursor: pointer; }
 /* Error marks the handle, not the track: a red track would fight the chosen stretch. */
 .lintje-range.is-error .lintje-range__input { --lintje-range-edge: var(--color-error); }
-:host([disabled]) .lintje-range__fill { background: var(--color-border-strong); }
-:host([disabled]) .lintje-range__input { --lintje-range-edge: var(--color-border-strong); }
-:host([disabled]) .lintje-range__input::-webkit-slider-thumb { cursor: not-allowed; }
-:host([disabled]) .lintje-range__input::-moz-range-thumb { cursor: not-allowed; }
+:host(:disabled) .lintje-range__fill { background: var(--color-border-strong); }
+:host(:disabled) .lintje-range__input { --lintje-range-edge: var(--color-border-strong); }
+:host(:disabled) .lintje-range__input::-webkit-slider-thumb { cursor: not-allowed; }
+:host(:disabled) .lintje-range__input::-moz-range-thumb { cursor: not-allowed; }
 .lintje-range__values { font: var(--text-small); color: var(--color-text-muted); }
 .lintje-range__scale {
   position: relative; height: 20px;
@@ -63,8 +63,8 @@
 .lintje-range__mark.is-labelled { background: var(--color-border-strong); }
 .lintje-range__step { position: absolute; top: var(--space-2); white-space: nowrap; }
 .lintje-range__step.is-active { font-weight: 700; color: var(--color-text-primary); }
-:host([disabled]) .lintje-range__values,
-:host([disabled]) .lintje-range__step { color: var(--color-text-disabled); }
+:host(:disabled) .lintje-range__values,
+:host(:disabled) .lintje-range__step { color: var(--color-text-disabled); }
 
 /* Forced colours drop the 4 px fills: they keep their drawing in system colours. */
 @media (forced-colors: active) {
@@ -72,11 +72,11 @@
   .lintje-range__fill { forced-color-adjust: none; }
   .lintje-range__track { background: CanvasText; }
   .lintje-range__fill { background: Highlight; }
-  :host([disabled]) .lintje-range__track,
-  :host([disabled]) .lintje-range__fill { background: GrayText; }
+  :host(:disabled) .lintje-range__track,
+  :host(:disabled) .lintje-range__fill { background: GrayText; }
   /* The ring is a shadow, which forced colours drop: the edge draws it instead. */
   .lintje-range__input::-webkit-slider-thumb { border-color: CanvasText; }
   .lintje-range__input::-moz-range-thumb { border-color: CanvasText; }
-  :host([disabled]) .lintje-range__input::-webkit-slider-thumb { border-color: GrayText; }
-  :host([disabled]) .lintje-range__input::-moz-range-thumb { border-color: GrayText; }
+  :host(:disabled) .lintje-range__input::-webkit-slider-thumb { border-color: GrayText; }
+  :host(:disabled) .lintje-range__input::-moz-range-thumb { border-color: GrayText; }
 }

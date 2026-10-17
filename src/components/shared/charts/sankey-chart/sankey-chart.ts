@@ -746,7 +746,7 @@ function renderDrawing(
   const missing = model.flows.some((flow) => flow.value == null)
   const legend: LegendItem[] = [
     { label: name, color, shape: 'square', fixed: true },
-    { label: 'Stroom: de breedte is het aantal', color, shape: 'band', fixed: true },
+    { label: 'Stroom: de breedte is het aantal', color, shape: 'flow', fixed: true },
     ...(missing ? [{ label: 'Geen gegevens', shape: 'hatch' as const, fixed: true }] : []),
   ]
 

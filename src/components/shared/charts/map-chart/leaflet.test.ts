@@ -141,6 +141,25 @@ describe('the map surface', () => {
     expect(gap.querySelector('.lintje-map-chart__point-shape')?.getAttribute('d')).toContain('6')
   })
 
+  it('hatches a point without a figure on a basemap of series points, its pattern beside it', () => {
+    const { container } = surface(
+      {},
+      {
+        ...DATA,
+        basemap: BASEMAP,
+        values: [
+          DATA.values[0],
+          { id: 'gap', label: 'Gat', value: null, lon: 5, lat: 52, series: 'dark-yellow' as const },
+        ],
+      },
+    )
+    const gap = mark(container, 'gap')
+    const fill = gap.querySelector('.lintje-map-chart__point-hatch')?.getAttribute('fill') ?? ''
+    const [, id] = /^url\(#(.+)\)$/.exec(fill) ?? []
+    expect(id).toMatch(/^map-hatch-/)
+    expect(gap.closest('svg')?.querySelector(`pattern[id="${id}"]`)).not.toBeNull()
+  })
+
   it('scales the drawing to the zoom and the symbols back, so a point keeps its size', () => {
     const { instance, container } = surface()
     const group = container.querySelector('.lintje-map-chart__data')!
@@ -151,6 +170,18 @@ describe('the map surface', () => {
     expect(
       container.querySelector('.lintje-map-chart__hatch')?.getAttribute('patternTransform'),
     ).toBe('rotate(45) scale(0.5)')
+  })
+
+  it('lets a point that follows the zoom grow with the ground, within 2–28 px', () => {
+    const { instance, container } = surface({}, { ...DATA, size: { zoom: true } })
+    const largest = mark(container, 'ein') // 18 px: one zoom in would make it 36, so it stops at 28
+    const smaller = mark(container, 'rtm') // 8/21 of the figure: well inside the band, so it doubles
+    expect(largest.style.transform).toMatch(/ scale\(1\)$/)
+    instance.zoomIn()
+    const radius = (symbol: SVGElement) => Number(symbol.getAttribute('data-r'))
+    expect(largest.style.transform).toMatch(` scale(${28 / (radius(largest) * 2)})`)
+    expect(smaller.style.transform).toMatch(/ scale\(1\)$/)
+    expect(radius(smaller) * 2).toBeLessThan(28)
   })
 
   it('draws the credit with a basemap only, and leaves the land to its tiles', () => {
@@ -197,5 +228,31 @@ describe('the map surface', () => {
     const spy = vi.spyOn(instance.map!, 'panBy')
     rtm.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
     expect(spy).not.toHaveBeenCalled()
+  })
+})
+
+describe('the edge of a map point', () => {
+  beforeEach(() => {
+    document.body.innerHTML = ''
+  })
+
+  it('edges a light series in its dark edge, and a dark one in its own colour', () => {
+    const { container } = surface(
+      {},
+      {
+        ...DATA,
+        seriesLabels: { 'mint-green': 'Licht', 'sky-blue': 'Donker' },
+        values: [
+          { ...DATA.values[0], series: 'mint-green' as const },
+          { ...DATA.values[1], series: 'sky-blue' as const },
+        ],
+      },
+    )
+    const edge = (id: string) =>
+      mark(container, id)
+        .querySelector<SVGElement>('.lintje-map-chart__point-shape--series')!
+        .style.getPropertyValue('--lintje-series-edge')
+    expect(edge('ein')).toBe('var(--color-chart-mint-green-edge)')
+    expect(edge('rtm')).toBe('')
   })
 })

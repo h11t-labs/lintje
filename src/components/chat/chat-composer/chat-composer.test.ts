@@ -10,7 +10,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { deepActiveElement } from '../../../core/focus'
 import './chat-composer'
 import type { LintjeChatComposer } from './chat-composer'
-import type { ChatSourceData, ChatTermData } from '../../../types'
+import type { LintjeAttachment } from '../../content/attachment/attachment'
+import type { ChatSourceData, ChatTermData, UploadFile } from '../../../types'
 
 const SOURCES: ChatSourceData[] = [
   { id: 'requests', label: 'Aanvragen en wachttijden', asOf: 'tot 08:15', selected: true },
@@ -105,6 +106,7 @@ describe('lintje-chat-composer', () => {
         terms: [{ start: 11, end: 20, kind: 'Definitie', certain: true }],
         sources: ['requests'],
         form: 'auto',
+        attachments: [],
       },
     ])
     expect(field(element).textContent).toBe('')
@@ -307,5 +309,237 @@ describe('lintje-chat-composer and its draft', () => {
     } finally {
       vi.useRealTimers()
     }
+  })
+})
+
+describe('lintje-chat-composer with attachments', () => {
+  const DONE: UploadFile = { id: 'd', name: 'beleidsregel-2026.pdf', size: 120_000, state: 'done' }
+  const BUSY: UploadFile = { id: 'b', name: 'aanvragen-q3.xlsx', state: 'busy', progress: 40 }
+  const FAILED: UploadFile = {
+    id: 'f',
+    name: 'verklaring.pdf',
+    state: 'error',
+    message: 'Uploaden mislukt',
+    retry: true,
+  }
+
+  const file = (name: string, kind: string, size = 1000): File => {
+    const made = new File(['x'], name, { type: kind })
+    Object.defineProperty(made, 'size', { value: size })
+    return made
+  }
+
+  const sendButton = (element: LintjeChatComposer): HTMLElement & { disabled: boolean } =>
+    element.renderRoot.querySelector('.lintje-chat-composer__send lintje-button')!
+
+  const chips = (element: LintjeChatComposer): LintjeAttachment[] => [
+    ...element.renderRoot.querySelectorAll<LintjeAttachment>('lintje-attachment'),
+  ]
+
+  const hint = (element: LintjeChatComposer): string | null | undefined =>
+    element.renderRoot.querySelector('.lintje-chat-composer__hint')?.textContent
+
+  it('has a paperclip only with `files`, and none in `variant="edit"`', async () => {
+    const without = await composer()
+    expect(without.renderRoot.querySelector('.lintje-chat-composer__attach')).toBeNull()
+    const ask = await composer({ files: [] })
+    const clip = ask.renderRoot.querySelector('.lintje-chat-composer__attach')!
+    expect(clip.getAttribute('label')).toBe('Bijlage toevoegen')
+    const edit = await composer({ files: [DONE], variant: 'edit' })
+    expect(edit.renderRoot.querySelector('.lintje-chat-composer__attach')).toBeNull()
+    expect(chips(edit)).toHaveLength(0)
+  })
+
+  it('draws the files in the frame, above the field, as removable chips in a labelled list', async () => {
+    const element = await composer({ files: [DONE, BUSY] })
+    const list = element.renderRoot.querySelector('.lintje-chat-composer__frame > ul')!
+    expect(list.getAttribute('aria-label')).toBe('Bijlagen bij je vraag')
+    expect(chips(element).map((chip) => chip.data?.id)).toEqual(['d', 'b'])
+    expect(chips(element).every((chip) => chip.removable)).toBe(true)
+  })
+
+  it('sends with text only', async () => {
+    const element = await composer({ files: [] })
+    const sent = heard(element, 'lintje-message-send')
+    await type(element, 'Hoeveel?')
+    expect(sendButton(element).disabled).toBe(false)
+    await press(element, { key: 'Enter' })
+    expect(sent).toEqual([
+      { text: 'Hoeveel?', terms: [], sources: [], form: 'auto', attachments: [] },
+    ])
+  })
+
+  it('sends with only a done attachment: no text, the ids in `attachments`', async () => {
+    const element = await composer({ files: [DONE, FAILED] })
+    const sent = heard(element, 'lintje-message-send')
+    expect(sendButton(element).disabled).toBe(false)
+    await press(element, { key: 'Enter' })
+    expect(sent).toEqual([{ text: '', terms: [], sources: [], form: 'auto', attachments: ['d'] }])
+  })
+
+  it('does not send with only files that are busy or failed', async () => {
+    const element = await composer({ files: [FAILED] })
+    const sent = heard(element, 'lintje-message-send')
+    expect(sendButton(element).disabled).toBe(true)
+    await press(element, { key: 'Enter' })
+    element.files = [BUSY]
+    await element.updateComplete
+    expect(sendButton(element).disabled).toBe(true)
+    await press(element, { key: 'Enter' })
+    expect(sent).toEqual([])
+  })
+
+  it('waits while an attachment is busy, also with text, and says so', async () => {
+    const element = await composer({ files: [DONE, BUSY] })
+    const sent = heard(element, 'lintje-message-send')
+    await type(element, 'Toets hieraan')
+    expect(sendButton(element).disabled).toBe(true)
+    expect(hint(element)).toBe('Wacht op de upload')
+    await press(element, { key: 'Enter' })
+    expect(sent).toEqual([])
+    element.files = [DONE, { ...BUSY, state: 'done' }]
+    await element.updateComplete
+    expect(hint(element)).toBe('')
+    await press(element, { key: 'Enter' })
+    expect(sent).toEqual([
+      { text: 'Toets hieraan', terms: [], sources: [], form: 'auto', attachments: ['d', 'b'] },
+    ])
+  })
+
+  it('lets "Kies eerst een bron" win over the upload', async () => {
+    const element = await composer({
+      files: [BUSY],
+      sources: SOURCES.map((source) => ({ ...source, selected: false })),
+    })
+    expect(hint(element)).toBe('Kies eerst een bron om een vraag te stellen')
+  })
+
+  it('refuses what does not pass itself, and never sends that file to the host', async () => {
+    const element = await composer({ files: [], accept: '.pdf,.xlsx', maxSize: 20 * 1024 * 1024 })
+    const added = heard(element, 'lintje-files-add')
+    const removed = heard(element, 'lintje-file-remove')
+    const good = file('beleidsregel.pdf', 'application/pdf')
+    element.add([good, file('foto.heic', 'image/heic'), file('scan.pdf', '', 30 * 1024 * 1024)])
+    await element.updateComplete
+    expect(added).toEqual([[good]])
+    const refused = chips(element)
+    await Promise.all(refused.map((chip) => chip.updateComplete))
+    expect(refused.map((chip) => chip.refused)).toEqual([true, true])
+    expect(
+      element.renderRoot.querySelector('.lintje-chat-composer > [role="status"]')?.textContent,
+    ).toBe('foto.heic geweigerd: Dit bestandstype kan niet. scan.pdf geweigerd: Groter dan 20 MB')
+    refused[0].shadowRoot!.querySelector<HTMLElement>('.lintje-attachment__remove')!.click()
+    await element.updateComplete
+    expect(removed).toEqual([])
+    expect(chips(element)).toHaveLength(1)
+  })
+
+  it('lets the events of the host’s chips through', async () => {
+    const element = await composer({ files: [FAILED] })
+    const retried = heard(element, 'lintje-file-retry')
+    const chip = chips(element)[0]
+    await chip.updateComplete
+    chip.shadowRoot!.querySelector<HTMLElement>('.lintje-attachment__retry')!.click()
+    expect(retried).toEqual([{ id: 'f' }])
+  })
+
+  it('says what changes in the files', async () => {
+    const element = await composer({ files: [BUSY] })
+    element.files = [{ ...BUSY, state: 'done' }]
+    await element.updateComplete
+    expect(
+      element.renderRoot.querySelector('.lintje-chat-composer > [role="status"]')?.textContent,
+    ).toBe('aanvragen-q3.xlsx klaar')
+  })
+
+  it('pastes files only when the clipboard carries no text', async () => {
+    const element = await composer({ files: [] })
+    const added = heard(element, 'lintje-files-add')
+    const paste = (text: string): ClipboardEvent => {
+      const event = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent
+      const files = [file('schermafbeelding.png', 'image/png')]
+      Object.defineProperty(event, 'clipboardData', {
+        value: { getData: (kind: string) => (kind === 'text/plain' ? text : ''), files },
+      })
+      field(element).dispatchEvent(event)
+      return event
+    }
+    const withText = paste('Een zin')
+    expect(added).toEqual([])
+    expect(withText.defaultPrevented).toBe(false)
+    const withoutText = paste('')
+    expect(withoutText.defaultPrevented).toBe(true)
+    expect((added[0] as File[]).map((pasted) => pasted.name)).toEqual(['schermafbeelding.png'])
+  })
+
+  it('takes no pasted files without `files`', async () => {
+    const element = await composer()
+    const added = heard(element, 'lintje-files-add')
+    const event = new Event('paste', { bubbles: true, cancelable: true })
+    Object.defineProperty(event, 'clipboardData', {
+      value: { getData: () => '', files: [file('a.png', 'image/png')] },
+    })
+    field(element).dispatchEvent(event)
+    expect(added).toEqual([])
+  })
+
+  it('folded, counts every attachment in its one line and in its button’s name', async () => {
+    const element = await composer({
+      collapsed: true,
+      placeholder: 'Stel een nieuwe vraag',
+      files: [DONE, BUSY, FAILED],
+    })
+    const expand = element.renderRoot.querySelector<HTMLButtonElement>(
+      '.lintje-chat-composer__expand',
+    )!
+    expect(expand.textContent?.trim()).toBe('Stel een nieuwe vraag · 3 bijlagen')
+    expect(expand.getAttribute('aria-label')).toBe('Stel een nieuwe vraag, 3 bijlagen')
+    expect(expand.getAttribute('aria-expanded')).toBe('false')
+    expect(chips(element).every((chip) => chip.closest('[hidden]'))).toBe(true)
+    element.files = [DONE]
+    await element.updateComplete
+    expect(expand.textContent?.trim()).toBe('Stel een nieuwe vraag · 1 bijlage')
+    element.files = []
+    await element.updateComplete
+    expect(expand.textContent?.trim()).toBe('Stel een nieuwe vraag')
+    expect(expand.hasAttribute('aria-label')).toBe(false)
+  })
+})
+
+describe('lintje-chat-composer folded', () => {
+  it('asks to open with a tap and to fold with "Inklappen", and keeps its draft', async () => {
+    const element = await composer({ collapsed: true })
+    const asked = heard(element, 'lintje-composer-expand')
+    const folded = heard(element, 'lintje-composer-collapse')
+    expect(element.renderRoot.querySelector('lintje-multiselect')).toBeNull()
+    element.renderRoot.querySelector<HTMLButtonElement>('.lintje-chat-composer__expand')!.click()
+    expect(asked).toHaveLength(1)
+    element.collapsed = false
+    element.collapsible = true
+    await element.updateComplete
+    await type(element, 'Hoeveel aanvragen?')
+    element.renderRoot.querySelector<HTMLElement>('.lintje-chat-composer__collapse')!.click()
+    expect(folded).toHaveLength(1)
+    element.collapsed = true
+    await element.updateComplete
+    element.collapsed = false
+    await element.updateComplete
+    expect(field(element).textContent).toBe('Hoeveel aanvragen?')
+  })
+
+  it('takes the focus on its one line', async () => {
+    const element = await composer({ collapsed: true })
+    element.focus()
+    expect(deepActiveElement()?.classList.contains('lintje-chat-composer__expand')).toBe(true)
+  })
+
+  it('draws the host’s hint in its bar; a missing source wins', async () => {
+    const element = await composer({ hint: 'Een nieuwe vraag slaat deze vragen over' })
+    const hint = (): string | null | undefined =>
+      element.renderRoot.querySelector('.lintje-chat-composer__hint')?.textContent
+    expect(hint()).toBe('Een nieuwe vraag slaat deze vragen over')
+    element.sources = [{ id: 'a', label: 'Aanvragen' }]
+    await element.updateComplete
+    expect(hint()).toBe('Kies eerst een bron om een vraag te stellen')
   })
 })

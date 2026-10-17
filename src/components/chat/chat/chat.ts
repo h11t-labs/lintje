@@ -8,7 +8,9 @@
  * It sends no events of its own: those of its question box, messages and answers reach the host,
  * with the `turnId` where a turn sent them. The host answers `lintje-message-send` with a new turn,
  * `lintje-message-edit` by asking again without that turn and all after it, and
- * `lintje-strip-change` by answering again with the new assumption.
+ * `lintje-strip-change` by answering again with the new assumption. A turn's `divider` stands as a
+ * centred line above its question. The `questions` of the last answer stand in a box above the
+ * question box until the next turn; on a phone the question box folds to one line meanwhile.
  */
 import {
   html,
@@ -22,16 +24,60 @@ import { repeat } from 'lit/directives/repeat.js'
 import { LintjeElement, define, type FrameSettings } from '../../../core/element'
 import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import { scrollRoot } from '../../../core/host-config'
+import { MediaController } from '../../../core/media'
 import { prefersReducedMotion } from '../../../core/motion'
 import { shadowCss } from '../../../core/styles'
+import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
+import { atEndAfterScroll } from '../../shared/follow'
 import '../chat-answer/chat-answer'
 import '../chat-composer/chat-composer'
 import type { LintjeChatComposer } from '../chat-composer/chat-composer'
 import '../chat-message/chat-message'
+import '../chat-questions/chat-questions'
+import type { LintjeChatQuestions } from '../chat-questions/chat-questions'
 import '../chat-suggestions/chat-suggestions'
 import chatCss from './chat.css?inline'
-import type { ChatData, ChatSourceData, ChatStartData, ChatTurnData } from '../../../types'
+import type {
+  ChatAnswerData,
+  ChatData,
+  ChatDivider,
+  ChatSourceData,
+  ChatStartData,
+  ChatTurnData,
+} from '../../../types'
+
+const TRIMMED = 'De assistent neemt de vragen hierboven niet meer mee.'
+
+/** The two states in which the assistant waits on the reader; only then do its questions count. */
+const ASKING = new Set<ChatAnswerData['state']>(['needs-clarification', 'out-of-scope'])
+
+/**
+ * A line between turns, centred: line, label, line. A plain paragraph in the reading order; the
+ * lines and the arrow are drawing. Not a separator, whose name is often skipped and which holds no
+ * sentence, and not a heading, which would read as standing over what follows.
+ */
+function renderDivider(divider: ChatDivider): TemplateResult {
+  const kind = divider.kind ?? 'time'
+  const context = kind === 'context'
+  const note = divider.note ?? (context ? TRIMMED : undefined)
+  return html`<div
+    class=${classMap({ 'lintje-chat__divider': true, 'lintje-chat__divider--context': context })}
+  >
+    <p class="lintje-chat__divider-label">
+      <span class="lintje-chat__divider-line" aria-hidden="true"></span>
+      <span class="lintje-chat__divider-text"
+        >${
+          context
+            ? renderIcon('functioneel-pijl-omhoog', { className: 'lintje-chat__divider-icon' })
+            : nothing
+        }${divider.label}</span
+      >
+      <span class="lintje-chat__divider-line" aria-hidden="true"></span>
+    </p>
+    ${note ? html`<p class="lintje-chat__divider-note">${note}</p>` : nothing}
+  </div>`
+}
 
 /** The nearest ancestor that scrolls, across slots and shadow roots; without one, the page's. */
 function scrollerOf(element: Element): HTMLElement | null {
@@ -82,13 +128,14 @@ class ScrollRoom {
 }
 
 export class LintjeChat extends LintjeElement {
-  static override styles = shadowCss(chatCss)
+  static override styles = [iconStyles, shadowCss(chatCss)]
 
   static override properties: PropertyDeclarations = {
     data: { attribute: false },
     editingId: { state: true },
     away: { state: true },
     paged: { state: true },
+    composerOpen: { state: true },
   }
 
   declare data?: ChatData | null
@@ -98,11 +145,11 @@ export class LintjeChat extends LintjeElement {
   away: boolean = false
   /** The page scrolls the conversation, so a question sticks under the shell's pinned bar. */
   paged: boolean = false
+  /** On a phone, the reader opened the folded question box while the assistant asks. */
+  composerOpen: boolean = false
 
   /** Pixels from the end that count as away. */
   static readonly AWAY = 120
-  /** Pixels from the end that still count as standing at it. */
-  static readonly AT_END = 8
 
   #turns = 0
   /** The reader stands at the end, so what grows there keeps them at it. */
@@ -111,6 +158,9 @@ export class LintjeChat extends LintjeElement {
   #top = 0
   #growth: ResizeObserver | null = null
   #footerSize: ResizeObserver | null = null
+  readonly #mobile = new MediaController(this)
+  /** The ids of the questions in the box, to see a new set arrive. */
+  #asked = ''
   readonly #roomAbove = new ScrollRoom('scrollPaddingTop')
   readonly #roomBelow = new ScrollRoom('scrollPaddingBottom')
 
@@ -168,13 +218,11 @@ export class LintjeChat extends LintjeElement {
     return this.getBoundingClientRect().bottom - edge
   }
 
-  // An answer that grows leaves the end below the reader without a scroll of theirs: only
-  // scrolling up leaves the end, and only arriving there returns to it.
+  // An answer that grows leaves the end below the reader without a scroll of theirs.
   readonly #onScroll = (): void => {
     const top = scrollerOf(this)?.scrollTop ?? 0
     const beyond = this.beyond()
-    if (top < this.#top) this.#atEnd = false
-    if (beyond <= LintjeChat.AT_END) this.#atEnd = true
+    this.#atEnd = atEndAfterScroll(this.#atEnd, top, this.#top, beyond)
     this.#top = top
     this.away = !this.#atEnd && beyond > LintjeChat.AWAY
   }
@@ -194,12 +242,38 @@ export class LintjeChat extends LintjeElement {
     this.composer?.focus()
   }
 
+  /** The questions of the last answer while it waits on the reader; none while a turn is edited. */
+  private get asking(): ChatAnswerData | null {
+    const turns = this.data?.turns ?? []
+    const answer = turns[turns.length - 1]?.answer
+    if (!answer?.questions?.questions.length || !ASKING.has(answer.state)) return null
+    return this.editingId === null ? answer : null
+  }
+
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
     this.paged = scrollerOf(this) === scrollRoot()
     if ((changed.has('data') || changed.has('editingId')) && holdsFocus(this)) {
       void this.keepFocus()
     }
+    const asked = (this.asking?.questions?.questions ?? []).map((question) => question.id).join(' ')
+    if (asked === this.#asked) return
+    this.#asked = asked
+    this.composerOpen = false
+    // A new box takes the focus from where the reader stood in the conversation.
+    if (asked && holdsFocus(this)) void this.focusQuestions()
+  }
+
+  private async focusQuestions(): Promise<void> {
+    await this.updateComplete
+    this.renderRoot.querySelector<LintjeChatQuestions>('lintje-chat-questions')?.focus()
+  }
+
+  private async openComposer(open: boolean): Promise<void> {
+    this.composerOpen = open
+    await this.updateComplete
+    await this.composer?.updateComplete
+    this.composer?.focus()
   }
 
   /**
@@ -245,6 +319,8 @@ export class LintjeChat extends LintjeElement {
     if (!data) return nothing
     const turns = data.turns ?? []
     const last = turns[turns.length - 1]
+    const asking = this.asking
+    const folds = Boolean(asking) && this.#mobile.matches
     return html`<div class=${classMap({ 'lintje-chat': true, 'lintje-chat--page': this.paged })}>
       <div class="lintje-chat__log" role="log" aria-label="Gesprek">
         ${
@@ -269,15 +345,34 @@ export class LintjeChat extends LintjeElement {
             </div>`
             : nothing
         }
+        <div class="lintje-chat__ask">
+        ${
+          asking
+            ? html`<lintje-chat-questions
+              class="lintje-chat__questions"
+              turn-id=${last.id}
+              .data=${asking.questions}
+            ></lintje-chat-questions>`
+            : nothing
+        }
         <lintje-chat-composer
           class="lintje-chat__composer"
-          placeholder=${data.placeholder ?? nothing}
+          placeholder=${asking ? 'Stel een nieuwe vraag' : (data.placeholder ?? nothing)}
+          hint=${asking ? 'Een nieuwe vraag slaat deze vragen over' : nothing}
+          ?collapsed=${folds && !this.composerOpen}
+          ?collapsible=${folds && this.composerOpen}
+          @lintje-composer-expand=${() => this.openComposer(true)}
+          @lintje-composer-collapse=${() => this.openComposer(false)}
           recall=${last?.message.text ?? nothing}
           ?busy=${turns.some((turn) => turn.answer?.state === 'streaming')}
           .sources=${data.sources}
           .vocabulary=${data.vocabulary}
           .draftTerms=${data.draftTerms}
+          accept=${data.upload?.accept ?? nothing}
+          .maxSize=${data.upload?.maxSize}
+          .files=${data.upload ? (data.upload.files ?? []) : undefined}
         ></lintje-chat-composer>
+        </div>
       </div>
     </div>`
   }
@@ -294,12 +389,14 @@ export class LintjeChat extends LintjeElement {
           const answer = turn.answer
           const replaced = editing && index >= editingIndex
           return html`<section class="lintje-chat__turn">
+            ${turn.divider ? renderDivider(turn.divider) : nothing}
             <lintje-chat-message
               class="lintje-chat__message"
               turn-id=${turn.id}
               text=${turn.message.text}
               time=${turn.message.time ?? nothing}
               .terms=${turn.message.terms}
+              .attachments=${turn.message.attachments}
               .vocabulary=${data.vocabulary}
               .sources=${data.sources}
               ?editable=${!busy && (!editing || index === editingIndex)}
@@ -314,10 +411,10 @@ export class LintjeChat extends LintjeElement {
                   lead=${answer.lead ?? nothing}
                   text=${answer.text ?? nothing}
                   status=${answer.status ?? nothing}
+                  .steps=${answer.steps}
                   .blocks=${answer.blocks}
                   .strip=${answer.strip}
                   .error=${answer.error}
-                  .choices=${answer.choices}
                   .followUps=${answer.followUps}
                   ?current=${index === turns.length - 1 && !editing}
                   ?inert=${replaced}

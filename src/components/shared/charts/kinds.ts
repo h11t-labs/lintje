@@ -32,7 +32,7 @@ export const CHART_KINDS = {
   line: {
     label: 'Lijn',
     question: 'time',
-    use: 'Het verloop van een of meer reeksen over de tijd, met een vergelijking in grijs, een peilmoment of wat er gebeurde.',
+    use: 'Het verloop van een of meer reeksen over de tijd, met een vergelijking in grijs, een peilmoment, een raming met marge of wat er gebeurde.',
     avoid: 'Een paar losse groepen zonder volgorde: neem staven.',
   },
   'stacked-area': {
@@ -52,7 +52,7 @@ export const CHART_KINDS = {
   bar: {
     label: 'Staven',
     question: 'compare',
-    use: 'Eén waarde per groep of per periode, als de losse waarden tellen, met datalabels of een trendlijn.',
+    use: 'Eén waarde per groep of per periode, als de losse waarden tellen, met datalabels, een trendlijn of een raming.',
     avoid: 'Lange namen of veel groepen: neem horizontale staven.',
   },
   'horizontal-bar': {
