@@ -42,7 +42,6 @@
 .lintje-mobile-header.is-compact .lintje-mobile-header__word {
   position: absolute;
   width: 1px; height: 1px;
-  margin: -1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
@@ -70,7 +69,7 @@
   font-size: var(--label-size); font-weight: var(--label-weight);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
   color: var(--color-nav-text-sub);
-  padding: 22px var(--space-5) 6px;
+  padding: var(--space-6) var(--space-5) var(--space-2);
 }
 /* A minimum height: a long label wraps and grows the row, a second line off the edge. */
 .lintje-mobile-menu__item {

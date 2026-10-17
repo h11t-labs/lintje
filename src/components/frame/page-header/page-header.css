@@ -9,8 +9,8 @@
   background: var(--color-bg-title);
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: var(--space-5) var(--space-6) 18px;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-6);
 }
 /* The actions stand level with the title; under a description, level with its last line. */
 .lintje-page-header__row {
@@ -21,7 +21,7 @@
   gap: var(--space-3) var(--space-6);
 }
 .lintje-page-header__row.is-described { align-items: flex-end; }
-.lintje-page-header__heading { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lintje-page-header__heading { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
 .lintje-page-header__actions { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
 .lintje-page-header__actions.is-empty { display: none; }
 .lintje-page-header__actions slot { display: contents; }
@@ -68,7 +68,7 @@
 }
 
 @media screen and (max-width: 767px) {
-  .lintje-page-header { padding: var(--space-4) var(--space-4) 14px; gap: 4px; }
+  .lintje-page-header { padding: var(--space-4); gap: var(--space-1); }
   .lintje-page-header__title { font: var(--text-h1-mobile); }
   .lintje-page-header__meta { font: var(--text-small); margin-top: 0; }
 }
