@@ -182,9 +182,35 @@ export class LintjeFilterBar extends LintjeElement {
     })
   }
 
+  override connectedCallback(): void {
+    super.connectedCallback()
+    if (this.hasUpdated) this.#watchSentence()
+  }
+
   override disconnectedCallback(): void {
     super.disconnectedCallback()
+    this.#sentenceSize?.disconnect()
+    this.#sentenceSize = null
     if (!this.data?.standalone) clearFilterZone()
+  }
+
+  protected override firstUpdated(changed: PropertyValues<this>): void {
+    super.firstUpdated(changed)
+    this.#watchSentence()
+  }
+
+  #sentenceSize: ResizeObserver | null = null
+
+  // The shell keeps the sentence's height free above the focus; below 768 px it wraps.
+  #watchSentence(): void {
+    const zone = this.renderRoot.querySelector('lintje-filter-zone')
+    if (this.#sentenceSize || !zone || typeof ResizeObserver === 'undefined') return
+    this.#sentenceSize = new ResizeObserver(() => {
+      if (this.data?.standalone) return
+      const height = this.mobile.matches ? zone.getBoundingClientRect().height : 0
+      setFrameState({ sentenceHeight: height })
+    })
+    this.#sentenceSize.observe(zone)
   }
 
   private isModified(source: Values, filter: FilterDefinition): boolean {

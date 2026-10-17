@@ -652,7 +652,9 @@ Deze gelden waar een pagina getallen toont die filters vernauwen: een dashboard,
 
 **De filterbalk is in rust dicht**: wat tijdens het lezen op de pagina staat, is de zin; de
 bedieningselementen zijn er zolang de lezer kiest, en verder scrollen sluit ze. Op een telefoon
-zijn de filters een sheet, en wijzigingen gelden pas bij "Toepassen".
+zijn de filters een sheet, en wijzigingen gelden pas bij "Toepassen". Op elke breedte plakt de zin
+bij het scrollen direct onder de balk van de shell, en de shell houdt zijn hoogte vrij boven de
+focus.
 
 **De pijl van een KPI draagt de richting; de kleur bevestigt die alleen.** Waar stijgen slecht is,
 draait de kleur om en de pijl niet.
@@ -1015,9 +1017,10 @@ kleinste correctie, en leg die hier vast.
   kolomkiezer) neemt bij het openen de focus naar zijn eerste veld, en Shift+Tab voorbij zijn
   eerste stop sluit hem ook. Escape in een popover is eerst van zijn element (een opgetilde greep
   zet zijn rij terug), dan van de popover.
-- **Onder 768 px volgt de CSS van de shell en de tabel hun mediacontroller** (`is-phone`), niet
-  een mediaquery: WebKit past een mediaquery in een shadow root na het verkleinen van het venster
-  niet opnieuw toe, terwijl het sjabloon al op `MOBILE` wisselt.
+- **Onder 768 px volgt de CSS van de shell, de tabel en de filterzone hun mediacontroller**
+  (`is-phone`, op een host `:state(phone)`), niet een mediaquery: WebKit past een mediaquery in een
+  shadow root na het verkleinen van het venster niet opnieuw toe, terwijl het sjabloon al op
+  `MOBILE` wisselt.
 
 **Correcties op de huisstijl.** De twee tinten van de primaire kleur in de donkere modus (zie
 [Donker](#donker)); `--color-link-on-status`; de lijnkleur van een statusteken (`--color-*-line`),
