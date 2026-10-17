@@ -1,9 +1,10 @@
 /** `<lintje-status-dot>` — a status as a dot with its word; colour is never the only carrier. */
-import { html, type TemplateResult } from 'lit'
+import { html, type CSSResult, type TemplateResult } from 'lit'
 import { styleProps } from '../../../core/style-props'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import statusDotCss from './status-dot.css?inline'
+import statusDotHostCss from './status-dot-host.css?inline'
 
 import { TONE_WORD, type Tone } from '../../shared/tone'
 
@@ -24,8 +25,38 @@ export const STATUS_LABEL: Record<StatusTone, string> = {
   'no-data': 'geen data',
 }
 
+export const statusDotStyles: CSSResult = shadowCss(statusDotCss)
+
+export interface StatusDotOptions {
+  tone: Tone | StatusTone
+  /** Overrides the Dutch word for the tone. */
+  label?: string
+  /** The dot's diameter in px; default 10. */
+  size?: number
+  className?: string
+}
+
+/** The one drawing of a status dot, also for a root that draws one without the element. */
+export function renderStatusDot({
+  tone,
+  label,
+  size = 10,
+  className,
+}: StatusDotOptions): TemplateResult {
+  const delivery = Object.hasOwn(STATUS_TONE, tone) ? (tone as StatusTone) : undefined
+  const own = delivery ? STATUS_TONE[delivery] : (tone as Tone)
+  const word = delivery ? STATUS_LABEL[delivery] : TONE_WORD[own]
+  return html`<span class="lintje-status ${className ?? ''}">
+    <span
+      class="lintje-status__dot lintje-status__dot--${own}"
+      ${styleProps({ width: `${size}px`, height: `${size}px` })}
+    ></span>
+    <span>${label ?? word}</span>
+  </span>`
+}
+
 export class LintjeStatusDot extends LintjeElement {
-  static override styles = shadowCss(statusDotCss)
+  static override styles = [shadowCss(statusDotHostCss), statusDotStyles]
 
   static override properties = {
     tone: { type: String, reflect: true },
@@ -39,16 +70,7 @@ export class LintjeStatusDot extends LintjeElement {
   size: number = 10
 
   protected override render(): TemplateResult {
-    const delivery = Object.hasOwn(STATUS_TONE, this.tone) ? (this.tone as StatusTone) : undefined
-    const tone = delivery ? STATUS_TONE[delivery] : (this.tone as Tone)
-    const word = delivery ? STATUS_LABEL[delivery] : TONE_WORD[tone]
-    return html`<span class="lintje-status">
-      <span
-        class="lintje-status__dot lintje-status__dot--${tone}"
-        ${styleProps({ width: `${this.size}px`, height: `${this.size}px` })}
-      ></span>
-      <span>${this.label ?? word}</span>
-    </span>`
+    return renderStatusDot({ tone: this.tone, label: this.label, size: this.size })
   }
 }
 

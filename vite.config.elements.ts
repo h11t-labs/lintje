@@ -141,7 +141,7 @@ const BASE = new RegExp(
     String.raw`node_modules[\\/](lit|lit-html|lit-element|@lit)[\\/]`,
     String.raw`[\\/]src[\\/](core|icons|tokens)[\\/]`,
     String.raw`[\\/]components[\\/](actions[\\/](button|icon-button|icon)|feedback[\\/](badge|status-dot|spinner|skeleton|progress-bar)|overlays[\\/](popover|tooltip)|layout[\\/](grid|grid-item|tile))[\\/]`,
-    String.raw`[\\/]components[\\/]shared[\\/](announcement-block|empty-state-block|grid-item-element|length|place|screen-only|span|tone)\.`,
+    String.raw`[\\/]components[\\/]shared[\\/](announcement-block|empty-state-block|grid-item-element|length|place|screen-only|span|tone|tooltip-bubble)\.`,
   ].join('|'),
 )
 
@@ -152,6 +152,13 @@ export default defineConfig(({ mode }) => {
     // The build carries its version (`LINTJE_VERSION`); the source alone says `dev`.
     define: { __LINTJE_VERSION__: JSON.stringify(PACKAGE.version) },
     publicDir: false,
+    // A worker (the graph's layout) is a file of its own beside the module, found from the
+    // module's own address wherever a page serves the folder.
+    base: './',
+    worker: {
+      format: 'es',
+      rolldownOptions: { output: { entryFileNames: 'workers/[name].js', minify: true } },
+    },
     build: {
       outDir,
       // The first run starts the folder over; the second adds to it.

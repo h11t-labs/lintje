@@ -16,13 +16,14 @@ import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { place, samePlace, stand, viewport, type Place } from '../../shared/place'
 import tooltipCss from './tooltip.css?inline'
+import bubbleCss from '../../shared/tooltip-bubble.css?inline'
 
 export const TOOLTIP_DELAY = 300
 /** How long the bubble waits after the pointer leaves: time to cross the gap onto it. */
 export const TOOLTIP_LINGER = 150
 
 export class LintjeTooltip extends LintjeElement {
-  static override styles = shadowCss(tooltipCss)
+  static override styles = [shadowCss(tooltipCss), shadowCss(bubbleCss)]
 
   static override properties: PropertyDeclarations = {
     text: { type: String },

@@ -1,6 +1,6 @@
 {
   "name": "lintje",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "type": "module",
   "description": "Lintje: the Rijkshuisstijl design system as Lit web components",
   "license": "EUPL-1.2",
@@ -75,6 +75,10 @@
       "types": "./dist-elements/map.d.ts",
       "default": "./dist-elements/map.js"
     },
+    "./graph": {
+      "types": "./dist-elements/graph.d.ts",
+      "default": "./dist-elements/graph.js"
+    },
     "./tables": {
       "types": "./dist-elements/tables.d.ts",
       "default": "./dist-elements/tables.js"
@@ -120,10 +124,13 @@
     }
   },
   "devDependencies": {
+    "@dagrejs/dagre": "3.1.1",
     "@nl-rvo/assets": "1.2.1",
+    "@types/d3-force": "^3.0.10",
     "@types/leaflet": "^1.9.22",
     "@vitest/browser-playwright": "^5.0.3",
     "axe-core": "^4.14.0",
+    "d3-force": "3.0.0",
     "happy-dom": "^20.14.6",
     "leaflet": "1.9.4",
     "lit": "3.3.3",

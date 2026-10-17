@@ -13,6 +13,7 @@ import { chartIcon, ZOOM_CONTROLS } from '../shared/chart-icons'
 import { renderIcon } from '../../../../icons/render'
 import { renderTooltip } from '../shared/tooltip'
 import { drawingRole } from '../shared/axes'
+import { HINT_MS, hintText, wheelDoublings, zoomsWith } from '../shared/wheel'
 import { LeafletSurface } from './leaflet'
 import { seriesShapePath } from '../shared/series-shapes'
 import { DEFAULT_SERIES_COLOR, lineCasing } from '../shared/colors'
@@ -76,32 +77,6 @@ const TOOL_HINTS: Record<MapTool, { full: string; short: string }> = {
 }
 
 /* --- The wheel ---------------------------------------------------------------- */
-
-/** Wheel pixels per doubling of the zoom: a mouse notch is about a hundred, a pinch far less. */
-const WHEEL_PX_PER_DOUBLING = 200
-const HINT_MS = 1500
-
-/** A pinch on a trackpad arrives as a wheel with Ctrl, on every platform. */
-function zoomsWith(event: WheelEvent): boolean {
-  return event.ctrlKey || event.metaKey
-}
-
-/** Doublings of the zoom a wheel asks for; lines and pages are turned into pixels. */
-function wheelDoublings(event: WheelEvent): number {
-  const pixels =
-    event.deltaMode === 1
-      ? event.deltaY * 16
-      : event.deltaMode === 2
-        ? event.deltaY * 400
-        : event.deltaY
-  return -pixels / WHEEL_PX_PER_DOUBLING
-}
-
-function hintText(): string {
-  const platform = (navigator as { userAgentData?: { platform?: string } }).userAgentData?.platform
-  const mac = /mac|iphone|ipad/i.test(platform ?? navigator.platform)
-  return `Gebruik ${mac ? '⌘' : 'Ctrl'} + scrollen om te zoomen`
-}
 
 /** The hint, for a moment; another wheel keeps it. */
 function showHint(controller: ChartController): void {

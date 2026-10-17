@@ -650,6 +650,61 @@ De besluiten hieronder gelden voor alle elementen.
   korter, nooit een grijs vak.
 - **Rijen data die items vergelijken, zijn een tabel**, geen kaarten.
 
+### Entiteitendiagram
+
+- **Een graaf van knopen en relaties tekent zichzelf** (`lintje-graph`): de host stuurt de knopen,
+  hun soorten en de relaties, het element deelt in, tekent, klapt in en uit en zoomt. Gelaagd en
+  kracht komen uit een bibliotheek (dagre, d3-force), radiaal is eigen werk; alle drie geven voor
+  dezelfde graaf hetzelfde beeld, en een grote graaf wordt buiten de pagina ingedeeld. Tekenen doet
+  het element zelf, met de tokens. Zonder indeling van de host kiest het element er een naar de
+  vorm: een keten van gerichte relaties gelaagd naar rechts, een naaf radiaal, een hiërarchie
+  gelaagd omlaag, een kring of een groot netwerk door kracht. Die keuze ligt vast zolang het
+  middelpunt er is.
+- **Een knoop is een kaart**: het icoon van haar soort, haar naam in hooguit twee regels, en alleen
+  een tweede regel voor een status of een groep. Uitgezoomd is ze een merkteken met het icoon, de
+  naam ernaast waar hij past; ver uitgezoomd alleen het icoon, de naam in de tooltip.
+- **Soortkleur staat aan**: het icoon en het merkteken nemen de datakleur van hun soort, in de
+  volgorde waarin de host zijn soorten noemt. De legenda boven de tekening noemt per soort icoon,
+  naam en aantal, en zet een soort uit; wat blijft, staat waar het stond.
+- **Het middelpunt is de drukste knoop zoals de host de graaf stuurt, en ligt vast.** Achter een
+  knoop hangt wat het middelpunt alleen via die knoop bereikt, welke kant de pijlen ook op wijzen;
+  daar staat een teller voor, in de kaart aan het eind van de naamregel, de enige plek waar nooit
+  een lijn komt. Dicht toont hij een plusteken en het aantal en staat hij er altijd; open toont hij
+  een minteken, alleen onder de aanwijzer, met focus of als de knoop gekozen is. Hij heeft de
+  opmaak van de avatar. Op een merkteken staat hij rechtsboven op de rand.
+- **Meer dan vijf bladeren van één soort aan één knoop zijn één groep**, als een stapeltje kaarten
+  met hun meervoud als naam: het "Overig" van de taart, toegepast op een graaf. De teller opent ze.
+- **Wat de host nog niet laadde, haalt de teller op**: de knoop vraagt het met een event en de
+  teller is bezig tot de host het stuurt.
+- **Gekozen, ingeklapt en geopend zijn van de host**, zoals een selectie op de kaart: het element
+  toont een klik meteen en vraagt het met een event. Zoom, de uitgezette soorten en de aanwijzer
+  zijn van het element.
+- **Onder de aanwijzer of gekozen blijven de knoop, haar buren en haar lijnen in het licht**, de
+  lijnen in de donkere lijnkleur; de rest stapt terug. Een gekozen knoop draagt de accentrand en de
+  lichte vulling, zonder tooltip: de host toont haar relaties.
+- **De tooltip is die van Lintje**: de naam, een grijze regel met wat bijzonder is (wat verborgen
+  is, wie in een groep zit, anders soort en status), dan een paar relaties als zin en hoeveel er
+  nog zijn. Hij staat onder de knoop, erboven als de ruimte op is. Een lijn onder de aanwijzer
+  noemt haar twee knopen en haar woord.
+- **Een lijn is recht in gelaagd en kracht, gebogen in radiaal**, en haaks als de host dat kiest
+  in een gelaagde indeling. Een rechte lijn buigt om een knoop die in de weg staat. Ze heeft de
+  kleur van de nullijn, een pijlpunt als de relatie een richting heeft, en wordt dikker met het
+  getal dat ze draagt. Het woord staat op de lijn met een halo, mijdt knopen en andere woorden en
+  blijft weg waar het geen plek heeft; uitgezoomd alleen op lijnen in het licht.
+- **Zoomen gaat zoals op de kaart**: Ctrl of ⌘ en het wiel rond de aanwijzer, slepen op de
+  achtergrond, knijpen met twee vingers, en de knoppen rechtsboven: in- en uitzoomen,
+  terugzetten en inzoomen op de gekozen knoop. Terugzetten is dat van de kaart: de hele tekening
+  in beeld, niets gekozen, elke tak weer open en elke groep weer dicht. Past de tekening niet
+  meer, dan staat rechtsonder het overzicht; een klik erop gaat daarheen, en het kader erin is te
+  slepen. Een gepaste tekening houdt de strook van de knoppen vrij.
+- **Bij openen blijft wat er stond staan**: wat verschuift, beweegt naar zijn nieuwe plek, een
+  nieuwe knoop komt uit de knoop waar hij aan hangt en vervaagt in. **Wat wegvalt, gaat eerst**:
+  het vervaagt waar het stond, met zijn lijnen, en pas daarna schuift de rest en volgt de zoom.
+  Wat tegelijk binnenkomt, wacht tot het weg is. Onder verminderde beweging staat alles meteen.
+- **Er is geen tabel of lijst in het element**: het is de tekening. De beschrijving van de host is
+  haar tekstalternatief en de tooltip geeft de relaties. Downloaden geeft de tekening als PNG,
+  zoals de lezer haar ziet, met de legenda en de woorden van de tegel.
+
 ### Gesprek
 
 - **Een antwoord is een lijst blokken die al bestaan** — lopende tekst, cijfers, een grafiek, een
@@ -1142,6 +1197,14 @@ kleinste correctie, en leg die hier vast.
   het oppervlak; een donkergele lijn krijgt een rand in zijn tekstkleur; een label op een vulling
   neemt de tekstkleur van die vulling; een gedimd teken of een uitgeschakelde reeks vervaagt zijn
   kleur, nooit zijn woorden.
+- **Een entiteitendiagram is één Tab-stop met zijn teller erna**: de gekozen knoop, anders het
+  middelpunt. De pijlen gaan naar de buur die het meest in hun richting ligt, Home naar het
+  middelpunt, Enter kiest en Escape maakt het ongedaan. Elke knoop is een knop met haar naam en
+  haar soort; een knoop die met de focus verdwijnt, geeft die aan de knoop die hem inklapte, het
+  eerste lid van de groep die openging, anders het middelpunt.
+- **Een knoop buiten het licht vervaagt zijn icoon en zijn lijnen, nooit zijn naam**:
+  die neemt de gedempte tekstkleur, die 4.5:1 houdt. Het ontwerp liet de hele kaart terugstappen;
+  dat zou haar naam onder de ondergrens brengen.
 - **Een label op een vulling neemt de inkt die op die sport van de ladder 4.5:1 haalt**, wit of
   bijna-zwart, uit één tabel per kleur en per sport. Een sport waar geen van beide dat haalt,
   draagt geen label: de tooltip en de CSV noemen het.

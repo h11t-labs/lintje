@@ -182,6 +182,15 @@
     "composite": ["map"]
   },
   {
+    "name": "graph",
+    "heading": "Gegevens",
+    "label": "Netwerk",
+    "icon": "energie-en-chemie-netwerk",
+    "intro": "Het entiteitendiagram in een tegel: knopen en hun relaties, die zichzelf indelen, in- en uitklappen en zoomen.",
+    "elements": ["graph"],
+    "composite": ["graph"]
+  },
+  {
     "name": "tables",
     "heading": "Gegevens",
     "label": "Tabellen en lijsten",
