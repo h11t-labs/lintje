@@ -24,6 +24,20 @@ export interface LineSeriesData {
   color?: ChartColor
   comparison?: boolean
   area?: boolean
+  /**
+   * The margin around the forecast, one bound per label, `null` before `forecastFrom`. The
+   * forecast values themselves are in `values`. A comparison has no forecast: this is ignored.
+   */
+  forecast?: ChartForecast
+}
+
+/**
+ * The margin of a forecast: a lower and an upper bound per label, `null` where there is none.
+ * A point with one bound only has no margin; the tooltip names that bound.
+ */
+export interface ChartForecast {
+  low?: (number | null)[]
+  high?: (number | null)[]
 }
 
 /**
@@ -82,6 +96,16 @@ export type ChartSpec =
       small?: boolean
       /** Events: a numbered square above their category, listed with their text under the chart. */
       events?: ChartEvent[]
+      /**
+       * The index in `labels` of the first forecast point: before it everything is measured.
+       * Dotted from the last measured point on, with its margin. With it `asOfIndex`, `asOfLabel`
+       * and `pendingHours` do not apply. At 0 or less, or past the labels, there is no forecast.
+       */
+      forecastFrom?: number
+      /** The word in the legend and above the forecast. Default "Raming". */
+      forecastLabel?: string
+      /** The margin's name in the legend, as given ("Marge 80 %"). Default "Marge". */
+      intervalLabel?: string
     }
   | {
       kind: 'bar'
@@ -95,6 +119,17 @@ export type ChartSpec =
       small?: boolean
       /** One entry per value: the drilldown of that bar, or null. */
       links?: (ChartLink | null)[]
+      /**
+       * The index in `labels` of the first forecast bar: it and those after it are open. At 0 or
+       * less, or past the labels, there is no forecast.
+       */
+      forecastFrom?: number
+      /** The margin of the forecast bars, `null` before `forecastFrom`. */
+      forecast?: ChartForecast
+      /** The word in the legend and above the forecast. Default "Raming". */
+      forecastLabel?: string
+      /** The margin's name in the legend, as given ("Marge 80 %"). Default "Marge". */
+      intervalLabel?: string
     }
   | {
       kind: 'horizontal-bar'

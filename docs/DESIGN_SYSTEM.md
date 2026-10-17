@@ -739,7 +739,9 @@ de stijlgids. Past geen soort, dan is het een tabel.
   vierkant voor een staaf of vlak, een lijn voor een lijn, de vorm van de reeks voor een punt,
   gestreept voor een drempel of vergelijking. Elke reeks en elke referentielijn (drempel,
   mediaan) is een schakelaar; een sleutel als "geen gegevens" niet, en één reeks zonder
-  referentielijn ernaast ook niet, want uitgezet laat ze een lege grafiek achter. Een klasse van
+  referentielijn ernaast ook niet, want uitgezet laat ze een lege grafiek achter. Een raming en
+  haar marge zijn sleutels, geen schakelaars: ze zeggen hoe de reeks getekend is. Alleen de reeks
+  schakelt, en haar raming en marge gaan mee. Een klasse van
   de heatmap gaat in dezelfde legenda uit, maar haar cellen dimmen: een lege cel leest als
   geen meting.
 - **De nullijn is donkerder dan het raster.**
@@ -783,6 +785,16 @@ vulling als nul.
 wordt de reeks afgekapt bij het laatste volledige punt en zegt een peilmomentlijn waar. De assen
 houden de volledige periode en schaal, zodat de vorm herkenbaar blijft en een ochtend niet wordt
 opgeblazen tot een piek.
+
+**Een raming zet een gemeten reeks voort**, op een lijn of in staven; het is geen eigen soort.
+Gemeten en geraamd staan nooit ongemarkeerd naast elkaar. Stippels betekenen raming, en alleen
+dat: gestreept blijft van vergelijking en drempel. Een geraamde staaf is open, een geraamd
+hoverpunt ook, en de tooltip en de tabel noemen elk geraamd punt zo. De marge rond een raming vult
+alleen bij één reeks, of bij de reeks die de lezer in de legenda aanwijst, om dezelfde reden als
+bij het spinnendiagram. Met een raming heeft de grafiek één grens: de lijn tussen gemeten en
+geraamd, met beide woorden erboven en het geraamde deel op een eigen ondergrond. Een lopende
+periode wordt dan niet gearceerd of afgekapt; de host laat haar weg of rekent haar tot de raming.
+Een vergelijking heeft geen raming: haar waarden zijn gemeten.
 
 **Gebeurtenissen.** Wat er op een moment gebeurde, is een genummerd vierkantje boven zijn
 categorie met een doorgetrokken lijn tot de nullijn, apart van de gestreepte peilmomentlijn; de

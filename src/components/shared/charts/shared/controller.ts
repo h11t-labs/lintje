@@ -56,11 +56,18 @@ export interface TooltipRow {
   divider?: boolean
   /** The series' shape instead of a square swatch, as its legend draws it. */
   symbol?: SeriesKey
-  /** A line instead of a square swatch, plain or dashed (a norm), as its legend draws it. */
-  marker?: 'line' | 'dashed'
+  /**
+   * Instead of a square swatch, as its legend draws it: a line, plain or dashed (a norm), or
+   * dotted (a forecast); an open square for a forecast bar.
+   */
+  marker?: 'line' | 'dashed' | 'dotted' | 'open'
+  /** A quieter line under the row before it, such as a forecast's margin. */
+  note?: boolean
 }
 export interface TooltipContent {
   title: string
+  /** A word after the title in the muted colour, such as "raming". */
+  note?: string
   rows: TooltipRow[]
   /** The events at this category, under the values: their number and text. */
   events?: { number: number; label: string }[]

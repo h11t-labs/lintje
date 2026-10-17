@@ -456,6 +456,75 @@ describe('lintje-chart table of a radar', () => {
   })
 })
 
+describe('lintje-chart table of a forecast', () => {
+  const head = (found: LintjeDataTable) =>
+    [...found.renderRoot.querySelectorAll('.lintje-data-table__full thead th')].map((cell) =>
+      cell.textContent?.trim(),
+    )
+
+  it('gives a forecast series its bounds after its value, and every row its kind', async () => {
+    const chart: ChartData['chart'] = {
+      kind: 'line',
+      labels: ['2024', '2025', '2026'],
+      forecastFrom: 1,
+      series: [
+        {
+          label: 'Aanvragen',
+          values: [100, 110, 120],
+          forecast: { low: [null, 105, null], high: [null, 115, 130] },
+        },
+        { label: 'Vorig jaar', values: [90, 95, 99], comparison: true },
+      ],
+    }
+    const element = await tile({ ...DATA, chart, tableSwitch: true })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    expect(head(found)).toEqual([
+      '',
+      'Aanvragen',
+      'Aanvragen ondergrens',
+      'Aanvragen bovengrens',
+      'Vorig jaar',
+      'Soort',
+    ])
+    // Before the forecast a bound is empty, not missing; a missing bound after it is "—".
+    expect(cells(found)).toEqual([
+      ['2024', '100', '', '', '90', 'gemeten'],
+      ['2025', '110', '105', '115', '95', 'raming'],
+      ['2026', '120', '—geen gegevens', '130', '99', 'raming'],
+    ])
+  })
+
+  it('names the bounds of a bar chart "Ondergrens" and "Bovengrens", before the trend', async () => {
+    const chart: ChartData['chart'] = {
+      kind: 'bar',
+      labels: ['2024', '2025', '2026'],
+      values: [100, 110, 120],
+      trend: [100, 105, 110],
+      forecastFrom: 2,
+      forecastLabel: 'Prognose',
+      forecast: { low: [null, null, 112], high: [null, null, 128] },
+    }
+    const element = await tile({ ...DATA, chart, tableSwitch: true })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    expect(head(found)).toEqual(['', 'Waarde', 'Ondergrens', 'Bovengrens', 'Trend', 'Soort'])
+    expect(cells(found).map((row) => row.at(-1))).toEqual(['gemeten', 'gemeten', 'prognose'])
+    expect(cells(found)[2]).toEqual(['2026', '120', '112', '128', '110', 'prognose'])
+  })
+
+  it('adds no column without a forecast', async () => {
+    const element = await tile({
+      ...DATA,
+      chart: { ...DATA.chart, forecastFrom: 0 } as ChartData['chart'],
+      tableSwitch: true,
+    })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    expect(head(found)).toEqual(['', 'Deze week', 'Vorige week'])
+  })
+})
+
 describe('lintje-chart series without a colour', () => {
   afterEach(() => {
     vi.restoreAllMocks()

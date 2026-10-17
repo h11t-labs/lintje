@@ -17,6 +17,7 @@ export type {
   BarSeriesData,
   ChartColor,
   ChartEvent,
+  ChartForecast,
   ChartKind,
   ChartSpec,
   LineSeriesData,
