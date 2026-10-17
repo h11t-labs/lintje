@@ -404,11 +404,23 @@ describe('the map and the keyboard', () => {
     const cross = root(element).querySelector('.lintje-map-chart__crosshair')!
     await expect.poll(() => getComputedStyle(cross).display).toBe('block')
     await userEvent.keyboard('{Enter}')
-    // The arrows move the map under the cross; the rectangle runs on to it.
-    await userEvent.keyboard('{ArrowRight}{ArrowDown}')
-    await expect
-      .poll(() => root(element).querySelector('.lintje-map-chart__region--draft'))
-      .not.toBeNull()
+    // The arrows move the map 80 px under the cross; the rectangle runs on to it. Leaflet takes
+    // no arrow while it still pans from the last one.
+    const draft = (): DOMRect | undefined =>
+      root(element).querySelector('.lintje-map-chart__region--draft')?.getBoundingClientRect()
+    /** The size of the draft, once it has stood still for two polls: the pan has ended. */
+    const still = (side: 'width' | 'height') => {
+      const seen: number[] = []
+      return () => {
+        seen.push(Math.round(draft()?.[side] ?? 0))
+        const [a, b, c] = seen.slice(-3)
+        return a === b && b === c ? (c ?? 0) : 0
+      }
+    }
+    await userEvent.keyboard('{ArrowRight}')
+    await expect.poll(still('width')).toBeGreaterThan(40)
+    await userEvent.keyboard('{ArrowDown}')
+    await expect.poll(still('height')).toBeGreaterThan(40)
     await userEvent.keyboard('{Enter}')
     await expect.poll(() => areas.length).toBe(1)
     expect(areas[0]!.area.kind).toBe('lasso')

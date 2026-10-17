@@ -408,8 +408,8 @@
   background: var(--color-text-primary);
   outline: 1px solid var(--color-bg-surface);
 }
-.lintje-map-chart__crosshair::before { top: 0; bottom: 0; left: calc(50% - 1px); width: 2px; }
-.lintje-map-chart__crosshair::after { left: 0; right: 0; top: calc(50% - 1px); height: 2px; }
+.lintje-map-chart__crosshair::before { top: 0; bottom: 0; left: 50%; width: 2px; transform: translateX(-50%); }
+.lintje-map-chart__crosshair::after { left: 0; right: 0; top: 50%; height: 2px; transform: translateY(-50%); }
 
 /* The scale bottom right, as on a road map: the distance, then a bracket as long as it on the
    map; without a frame, on a basemap on the surface over the credit. */
