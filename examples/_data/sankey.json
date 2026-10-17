@@ -1,0 +1,142 @@
+{
+  "three": {
+    "steps": [
+      { "label": "Ingediend", "nodes": [{ "id": "ingediend", "label": "Aanvragen" }] },
+      {
+        "label": "Volledigheid",
+        "nodes": [
+          { "id": "compleet", "label": "Compleet" },
+          { "id": "onvolledig", "label": "Onvolledig" }
+        ]
+      },
+      {
+        "label": "Uitkomst",
+        "nodes": [
+          { "id": "toegekend", "label": "Toegekend" },
+          { "id": "afgewezen", "label": "Afgewezen" },
+          { "id": "ingetrokken", "label": "Ingetrokken" },
+          { "id": "in-behandeling", "label": "In behandeling" }
+        ]
+      }
+    ],
+    "flows": [
+      { "from": "ingediend", "to": "compleet", "value": 7400 },
+      { "from": "ingediend", "to": "onvolledig", "value": 2600 },
+      { "from": "compleet", "to": "toegekend", "value": 5200 },
+      { "from": "compleet", "to": "afgewezen", "value": 1300 },
+      { "from": "compleet", "to": "ingetrokken", "value": 200 },
+      { "from": "compleet", "to": "in-behandeling", "value": 700 },
+      { "from": "onvolledig", "to": "afgewezen", "value": 700 },
+      { "from": "onvolledig", "to": "ingetrokken", "value": 1300 },
+      { "from": "onvolledig", "to": "in-behandeling", "value": 600 }
+    ]
+  },
+  "four": {
+    "steps": [
+      { "label": "Ingediend", "nodes": [{ "id": "ingediend", "label": "Aanvragen" }] },
+      {
+        "label": "Volledigheid",
+        "nodes": [
+          { "id": "compleet", "label": "Compleet" },
+          { "id": "onvolledig", "label": "Onvolledig" }
+        ]
+      },
+      {
+        "label": "Besluit",
+        "nodes": [
+          { "id": "toegekend", "label": "Toegekend" },
+          { "id": "afgewezen", "label": "Afgewezen" }
+        ]
+      },
+      {
+        "label": "Bezwaar",
+        "nodes": [
+          { "id": "ongegrond", "label": "Ongegrond" },
+          { "id": "gegrond", "label": "Gegrond" }
+        ]
+      }
+    ],
+    "flows": [
+      { "from": "ingediend", "to": "compleet", "value": 7400 },
+      { "from": "ingediend", "to": "onvolledig", "value": 2600 },
+      { "from": "compleet", "to": "toegekend", "value": 6000 },
+      { "from": "compleet", "to": "afgewezen", "value": 1400 },
+      { "from": "onvolledig", "to": "toegekend", "value": 900 },
+      { "from": "onvolledig", "to": "afgewezen", "value": 1700 },
+      { "from": "afgewezen", "to": "ongegrond", "value": 1150 },
+      { "from": "afgewezen", "to": "gegrond", "value": 450 }
+    ]
+  },
+  "firstMissing": {
+    "steps": [
+      {
+        "label": "Kanaal",
+        "nodes": [
+          { "id": "online", "label": "Online", "value": 6400 },
+          { "id": "balie", "label": "Balie", "value": 3600 }
+        ]
+      },
+      {
+        "label": "Volledigheid",
+        "nodes": [
+          { "id": "compleet", "label": "Compleet" },
+          { "id": "onvolledig", "label": "Onvolledig" }
+        ]
+      },
+      {
+        "label": "Uitkomst",
+        "nodes": [
+          { "id": "toegekend", "label": "Toegekend" },
+          { "id": "afgewezen", "label": "Afgewezen" },
+          { "id": "ingetrokken", "label": "Ingetrokken" }
+        ]
+      }
+    ],
+    "flows": [
+      { "from": "online", "to": "compleet", "value": 5200 },
+      { "from": "online", "to": "onvolledig", "value": 1200 },
+      { "from": "balie", "to": "compleet", "value": null },
+      { "from": "balie", "to": "onvolledig", "value": null },
+      { "from": "compleet", "to": "toegekend", "value": 4300 },
+      { "from": "compleet", "to": "afgewezen", "value": 900 },
+      { "from": "onvolledig", "to": "afgewezen", "value": 700 },
+      { "from": "onvolledig", "to": "ingetrokken", "value": 500 }
+    ]
+  },
+  "six": {
+    "steps": [
+      { "label": "Ingediend", "nodes": [{ "id": "ingediend", "label": "Aanvragen" }] },
+      {
+        "label": "Volledigheid",
+        "nodes": [
+          { "id": "compleet", "label": "Compleet" },
+          { "id": "onvolledig", "label": "Onvolledig" }
+        ]
+      },
+      {
+        "label": "Uitkomst",
+        "nodes": [
+          { "id": "toegekend", "label": "Toegekend" },
+          { "id": "deels", "label": "Deels toegekend" },
+          { "id": "afgewezen", "label": "Afgewezen" },
+          { "id": "ingetrokken", "label": "Ingetrokken" },
+          { "id": "doorgestuurd", "label": "Doorgestuurd" },
+          { "id": "in-behandeling", "label": "In behandeling" }
+        ]
+      }
+    ],
+    "flows": [
+      { "from": "ingediend", "to": "compleet", "value": 7400 },
+      { "from": "ingediend", "to": "onvolledig", "value": 2600 },
+      { "from": "compleet", "to": "toegekend", "value": 4600 },
+      { "from": "compleet", "to": "deels", "value": 900 },
+      { "from": "compleet", "to": "afgewezen", "value": 1100 },
+      { "from": "compleet", "to": "doorgestuurd", "value": 300 },
+      { "from": "compleet", "to": "in-behandeling", "value": 500 },
+      { "from": "onvolledig", "to": "afgewezen", "value": 600 },
+      { "from": "onvolledig", "to": "ingetrokken", "value": 1400 },
+      { "from": "onvolledig", "to": "doorgestuurd", "value": 200 },
+      { "from": "onvolledig", "to": "in-behandeling", "value": 400 }
+    ]
+  }
+}

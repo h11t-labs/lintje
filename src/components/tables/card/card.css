@@ -78,6 +78,8 @@
   border-top: 1px solid var(--color-border-default);
 }
 .lintje-card__fact:last-child { border-bottom: 1px solid var(--color-border-default); }
+/* A person's circle sets the row's height; the term stands in its middle. */
+.lintje-card__fact.has-person { align-items: center; }
 .lintje-card__fact-label { color: var(--color-text-muted); }
 .lintje-card__fact-value {
   margin: 0;

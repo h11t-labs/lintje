@@ -24,6 +24,25 @@ async function message(props: Partial<LintjeChatMessage>): Promise<LintjeChatMes
 }
 
 describe('lintje-chat-message', () => {
+  it('draws the files sent along above the bar, as chips that open', async () => {
+    const element = await message({
+      attachments: [{ id: 'd', name: 'beleidsregel-2026.pdf', size: 120_000, state: 'done' }],
+    })
+    const list = element.renderRoot.querySelector('ul')!
+    expect(list.getAttribute('aria-label')).toBe('Bijlagen')
+    expect(list.querySelectorAll('li > lintje-attachment')).toHaveLength(1)
+    expect(element.renderRoot.querySelector('.lintje-chat-message__text')).not.toBeNull()
+  })
+
+  it('a message of only files is its chips, without a bar', async () => {
+    const element = await message({
+      text: '',
+      attachments: [{ id: 'd', name: 'beleidsregel-2026.pdf', size: 120_000, state: 'done' }],
+    })
+    expect(element.renderRoot.querySelectorAll('lintje-attachment')).toHaveLength(1)
+    expect(element.renderRoot.querySelector('.lintje-chat-message__text')).toBeNull()
+  })
+
   it('carries the role in a visually hidden word', async () => {
     const element = await message({})
     const text = element.renderRoot.querySelector('.lintje-chat-message__text')

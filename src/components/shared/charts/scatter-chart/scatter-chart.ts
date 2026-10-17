@@ -256,7 +256,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
   const click = (event: MouseEvent) => {
     const i = pick(event)
     const mark = i != null ? marks[i] : null
-    if (mark?.clickable && mark.click !== nothing) mark.click()
+    if (mark?.clickable && mark.click !== nothing) mark.click(event)
   }
   const pointing = hovered != null && marks[controller.hoverIndex!]?.clickable
 
@@ -277,7 +277,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
       `
       : nothing,
 
-    svg`<g @mousemove=${pointer} @mouseleave=${() => controller.hoverAt(null)} @click=${click}>
+    svg`<g @mousemove=${pointer} @mouseleave=${() => controller.hoverAt(null)} @click=${click} @auxclick=${click}>
       <rect class="lintje-chart__hit ${pointing ? 'is-clickable' : ''}"
             x="0" y="0" width=${area.width} height=${area.height} />
       <g>
@@ -289,8 +289,8 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
             const casing = lineCasing(row.color)
             const i = indexOf.get(key)
             const mark = i != null ? marks[i] : undefined
-            // The 1 px edge in the surface keeps overlapping points apart; dark yellow takes its
-            // text colour there, as its line does. A hidden series' point stays, unseen.
+            // The 1 px edge in the surface keeps overlapping points apart; a light colour takes
+            // its dark edge there, as its line does. A hidden series' point stays, unseen.
             return svg`
               <path class="lintje-chart__point lintje-chart__mark ${casing ? '' : 'lintje-chart__segment'} ${mark?.state ?? 'is-off'}"
                     ${styleProps(staggerStyle(rank, drawable.length))}

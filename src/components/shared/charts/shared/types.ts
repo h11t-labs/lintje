@@ -1,5 +1,6 @@
 /** The chart data contract, field for field as `src/types.ts` carries it. */
 import type { DataColor } from '../../../../tokens/colors'
+import type { SeriesShape } from './series-shapes'
 
 /**
  * A chart color: a variable's name (the one list in `tokens/colors.ts`) maps to its token,
@@ -23,6 +24,20 @@ export interface LineSeriesData {
   color?: ChartColor
   comparison?: boolean
   area?: boolean
+  /**
+   * The margin around the forecast, one bound per label, `null` before `forecastFrom`. The
+   * forecast values themselves are in `values`. A comparison has no forecast: this is ignored.
+   */
+  forecast?: ChartForecast
+}
+
+/**
+ * The margin of a forecast: a lower and an upper bound per label, `null` where there is none.
+ * A point with one bound only has no margin; the tooltip names that bound.
+ */
+export interface ChartForecast {
+  low?: (number | null)[]
+  high?: (number | null)[]
 }
 
 /**
@@ -81,6 +96,16 @@ export type ChartSpec =
       small?: boolean
       /** Events: a numbered square above their category, listed with their text under the chart. */
       events?: ChartEvent[]
+      /**
+       * The index in `labels` of the first forecast point: before it everything is measured.
+       * Dotted from the last measured point on, with its margin. With it `asOfIndex`, `asOfLabel`
+       * and `pendingHours` do not apply. At 0 or less, or past the labels, there is no forecast.
+       */
+      forecastFrom?: number
+      /** The word in the legend and above the forecast. Default "Raming". */
+      forecastLabel?: string
+      /** The margin's name in the legend, as given ("Marge 80 %"). Default "Marge". */
+      intervalLabel?: string
     }
   | {
       kind: 'bar'
@@ -94,6 +119,17 @@ export type ChartSpec =
       small?: boolean
       /** One entry per value: the drilldown of that bar, or null. */
       links?: (ChartLink | null)[]
+      /**
+       * The index in `labels` of the first forecast bar: it and those after it are open. At 0 or
+       * less, or past the labels, there is no forecast.
+       */
+      forecastFrom?: number
+      /** The margin of the forecast bars, `null` before `forecastFrom`. */
+      forecast?: ChartForecast
+      /** The word in the legend and above the forecast. Default "Raming". */
+      forecastLabel?: string
+      /** The margin's name in the legend, as given ("Marge 80 %"). Default "Marge". */
+      intervalLabel?: string
     }
   | {
       kind: 'horizontal-bar'
@@ -150,6 +186,7 @@ export type ChartSpec =
       donut?: boolean
       centerValue?: string
       centerLabel?: string
+      /** The legend as a table with counts and shares; `false` puts the shared legend above the pie. */
       legendTable?: boolean
       /** Header of the legend table's first column: what the segments are. */
       labelHeader?: string
@@ -270,6 +307,55 @@ export type ChartSpec =
       labelHeader?: string
       small?: boolean
     }
+  | {
+      kind: 'sankey'
+      /** The steps of the process, left to right: two to four, with up to six nodes each. */
+      steps: SankeyStep[]
+      flows: SankeyFlow[]
+      /** What flows, in the legend, the tooltip and the table, such as "Aanvragen". Default "Aantal". */
+      label?: string
+      /** The variable that flows: one colour for nodes and bands. Default sky blue. */
+      color?: ChartColor
+      unit?: string
+      /** The share beside the count in the labels. Default true. */
+      share?: boolean
+      /** The least height is `--chart-h-small`; the busiest step still makes it taller. */
+      small?: boolean
+    }
+
+/**
+ * A node of a sankey: one category of one step. Its `id` is unique over all steps; with a
+ * `href` it is clickable, like a slice of a pie.
+ */
+export interface SankeyNode {
+  id: string
+  label: string
+  href?: string
+  /**
+   * Its own count, which goes before the sum of its flows. Needed in the first step when a flow
+   * out of it is missing: the part no known flow takes is then drawn as one hatched stub.
+   */
+  value?: number
+}
+
+/** A step of a sankey: its name above the column and its nodes, top to bottom. */
+export interface SankeyStep {
+  label: string
+  nodes: SankeyNode[]
+}
+
+/**
+ * A flow of a sankey between nodes of two consecutive steps; one that skips a step or names an
+ * unknown node is left out, also from the table. `value: null` is no data, never 0 (rule 15).
+ */
+export interface SankeyFlow {
+  from: string
+  to: string
+  value: number | null
+  /** The identity a click carries; without it `from→to`. */
+  id?: string
+  href?: string
+}
 
 /**
  * A layer of a radar chart: one value per axis, `null` for no data (rule 15). Without a colour
@@ -313,7 +399,25 @@ export type ChartKind = ChartSpec['kind']
 export type MapVariant = 'flows' | 'points' | 'choropleth' | 'polygons' | 'plots' | 'scope-picker'
 
 /** A map point's data colour, by name: one of the data colours, each with its own shape. */
-export type MapSeriesKey = DataColor
+/**
+ * What a point's `series` names: a data colour by name, which brings that colour's shape — or
+ * any key of the map's `seriesStyles`, which says what colour and shape it draws with. The
+ * union keeps the colour names as suggestions beside the free key.
+ */
+export type MapSeriesKey = DataColor | (string & {})
+
+/** A series' colour: a data colour, or `neutral` — the comparison grey, for a map whose series differ by shape alone. */
+export type MapSeriesColor = DataColor | 'neutral'
+
+/**
+ * How a series draws, named by its key in `seriesStyles`. Without an entry a series is a data
+ * colour by name with that colour's own shape (rule 13); with one, each part left out keeps
+ * that default — and a key that is no colour name draws the default colour and a circle.
+ */
+export interface MapSeriesStyle {
+  color?: MapSeriesColor
+  shape?: SeriesShape
+}
 
 /** One row of a map: an area, a point or the origin of a flow. */
 export interface MapValue {
@@ -325,7 +429,10 @@ export interface MapValue {
   detail?: string
   lon?: number
   lat?: number
-  /** A data colour by name, and with it that colour's shape (rule 13). No series, no legend. */
+  /**
+   * The series this mark belongs to: a data colour by name, and with it that colour's shape
+   * (rule 13), or a key styled in `seriesStyles`. No series, no legend.
+   */
   series?: MapSeriesKey
   /**
    * The outline of an area that is not in the map's own geometry: a ring of `[lon, lat]` pairs,
@@ -390,6 +497,28 @@ export interface WmsBasemap {
   attribution: string
 }
 
+/**
+ * How a layer's points are sized. Without it a point's radius grows from 3 to 18 px with the
+ * square root of its figure's share of the layer's largest, and keeps that size at every zoom.
+ */
+export interface MapPointSize {
+  /** The smallest radius in px; default 3. */
+  min?: number
+  /** The largest radius in px; default 18. */
+  max?: number
+  /**
+   * `value` (default): the radius follows the figure. `none`: every point draws at `min` — for a
+   * layer whose figure is a count of one, or no size at all, so a national view is not a field
+   * of points all at the largest size.
+   */
+  by?: 'value' | 'none'
+  /**
+   * The radius follows the zoom — twice as large one level in, half a level out, between 2 and
+   * 28 px — so a point reads as fixed to the ground. Default off: a point keeps its pixel size.
+   */
+  zoom?: boolean
+}
+
 /** What one layer of a stacked map draws: a map's variant, without the scope picker. */
 export type MapPlotVariant = 'polygons' | 'points' | 'flows' | 'choropleth'
 
@@ -412,6 +541,10 @@ export interface MapPlotData {
    * several layers; each layer's line in the legend names and switches its own.
    */
   seriesLabels?: Partial<Record<MapSeriesKey, string>>
+  /** How this layer's series draw, over the map's own `seriesStyles`. */
+  seriesStyles?: Partial<Record<MapSeriesKey, MapSeriesStyle>>
+  /** How this layer's points are sized; without it the map's own `size`. */
+  size?: MapPointSize
 }
 
 /** The map's data, as `MapData` in `src/types.ts` carries it, without the tile fields. */
@@ -431,8 +564,14 @@ export interface MapSpec {
   layers?: { value: string; label: string }[]
   /** The `value` of the layer shown; a choice is kept until the host's next `data` changes it. */
   layer?: string
-  /** What each series means, keyed by colour name; each used series gets a legend line. */
+  /** What each series means, keyed by its series key; each used series gets a legend line. */
   seriesLabels?: Partial<Record<MapSeriesKey, string>>
+  /**
+   * How a series draws, keyed as `seriesLabels` is — for series that differ by shape alone, in
+   * one neutral colour, when the colour would carry a meaning that is not there. Without an
+   * entry a series keeps the colour of its name and that colour's shape.
+   */
+  seriesStyles?: Partial<Record<MapSeriesKey, MapSeriesStyle>>
   /** The label of the link in the selection panel; default "Zet als bereik". */
   selectLabel?: string
   /** The URL that undoes the selection, for a page that keeps it in the URL. */
@@ -443,4 +582,6 @@ export interface MapSpec {
   controls?: MapControls
   /** The area the host keeps, from its URL: adopted when it changes, as `selectedId` is. */
   selectedArea?: MapArea | null
+  /** How the points are sized, for every layer that does not say so itself. */
+  size?: MapPointSize
 }

@@ -1,7 +1,8 @@
 /**
  * The keyboard's way to a chart's values: the drawing takes the focus, the arrow keys walk the
  * categories with the tooltip on the one reached, a status region says it, and Escape hides
- * the tooltip — on the chart, and wherever the focus is while a pointer's tooltip shows.
+ * the tooltip — on the chart, and wherever the focus is while a pointer's tooltip shows. New
+ * data closes the keyboard's tooltip, and the next key starts inside it.
  *
  * happy-dom lays nothing out, so what is checked is the markup, the state and the events.
  */
@@ -15,15 +16,21 @@ import type { ChartSpec } from './types'
 function draw(spec: ChartSpec) {
   const host = document.createElement('div')
   document.body.append(host)
+  let current = spec
   const options: ChartOptions = {
-    controller: new ChartController(() => render(renderChart(spec, options), host)),
+    controller: new ChartController(() => render(renderChart(current, options), host)),
     description: 'Een figuur.',
   }
   render(renderChart(spec, options), host)
   const drawing = host.querySelector('svg[tabindex="0"]') as SVGSVGElement
   const key = (name: string, target: Element = drawing) =>
     target.dispatchEvent(new KeyboardEvent('keydown', { key: name, bubbles: true }))
-  return { host, controller: options.controller, drawing, key }
+  /** The host sends new data. */
+  const redraw = (next: ChartSpec) => {
+    current = next
+    render(renderChart(current, options), host)
+  }
+  return { host, controller: options.controller, drawing, key, redraw }
 }
 
 const title = (host: Element) => host.querySelector('.lintje-chart-tooltip__title')?.textContent
@@ -142,6 +149,28 @@ const KINDS: { name: string; spec: ChartSpec; first: string; second: string }[] 
     },
   },
   {
+    name: 'sankey',
+    first: 'Aanvragen (Ingediend)',
+    second: 'Aanvragen → Compleet',
+    spec: {
+      kind: 'sankey',
+      steps: [
+        { label: 'Ingediend', nodes: [{ id: 'in', label: 'Aanvragen', value: 10 }] },
+        {
+          label: 'Volledigheid',
+          nodes: [
+            { id: 'compleet', label: 'Compleet' },
+            { id: 'onvolledig', label: 'Onvolledig' },
+          ],
+        },
+      ],
+      flows: [
+        { from: 'in', to: 'compleet', value: 7 },
+        { from: 'in', to: 'onvolledig', value: null },
+      ],
+    },
+  },
+  {
     name: 'horizontal-bar',
     first: 'Noord',
     second: 'Zuid',
@@ -150,6 +179,20 @@ const KINDS: { name: string; spec: ChartSpec; first: string; second: string }[] 
       rows: [
         { label: 'Noord', value: 3 },
         { label: 'Zuid', value: 4 },
+      ],
+    },
+  },
+  {
+    name: 'pie',
+    first: 'Online',
+    second: 'Balie',
+    spec: {
+      kind: 'pie',
+      legendTable: false,
+      segments: [
+        { label: 'Overig', value: 2 },
+        { label: 'Balie', value: 4 },
+        { label: 'Online', value: 9 },
       ],
     },
   },
@@ -214,6 +257,61 @@ describe.each(KINDS)('the keyboard on a $name chart', ({ spec, first, second }) 
     drawing.dispatchEvent(new FocusEvent('blur'))
     expect(title(host)).toBeUndefined()
     expect(status(host)).toBe('')
+  })
+})
+
+describe('new data under the keyboard', () => {
+  const days = (count: number): ChartSpec => ({
+    kind: 'bar',
+    labels: Array.from({ length: count }, (_, i) => `dag ${i + 1}`),
+    values: Array.from({ length: count }, (_, i) => i + 1),
+    dataLabels: false,
+  })
+
+  it('closes the tooltip and empties the status, which spoke of the old data', () => {
+    const { host, key, redraw } = draw(days(9))
+    key('End')
+    expect(title(host)).toBe('dag 9')
+    expect(status(host)).toContain('dag 9')
+    redraw(days(5))
+    expect(title(host)).toBeUndefined()
+    expect(status(host)).toBe('')
+    expect(host.querySelector('.is-hovered')).toBeNull()
+  })
+
+  it('starts from the last category once the old place is gone', () => {
+    const left = draw(days(9))
+    left.key('End')
+    left.redraw(days(5))
+    left.key('ArrowLeft')
+    expect(title(left.host)).toBe('dag 4')
+    const right = draw(days(9))
+    right.key('End')
+    right.redraw(days(5))
+    right.key('ArrowRight')
+    expect(title(right.host)).toBe('dag 5')
+  })
+
+  it('goes on from the old place while it is there', () => {
+    const { host, key, redraw } = draw(days(9))
+    key('ArrowRight')
+    key('ArrowRight')
+    expect(title(host)).toBe('dag 2')
+    redraw(days(5))
+    key('ArrowRight')
+    expect(title(host)).toBe('dag 3')
+    redraw(days(4))
+    key('ArrowLeft')
+    expect(title(host)).toBe('dag 2')
+    key('Home')
+    expect(title(host)).toBe('dag 1')
+  })
+
+  it('leaves the tooltip alone when the same data comes again', () => {
+    const { host, key, redraw } = draw(days(5))
+    key('ArrowRight')
+    redraw(days(5))
+    expect(title(host)).toBe('dag 1')
   })
 })
 

@@ -82,6 +82,13 @@
   --data-other: var(--neutral-4);
   /* Yellow as TEXT fails contrast on white: light writes a wait time in this dark gold. */
   --data-dark-yellow-text: #B07A00;
+  /* A light colour as a line or a mark reaches 3:1 by an edge: the colour halfway to black,
+     written out so it never follows a mix. Dark yellow takes its text colour. */
+  --data-mint-green-edge: #3B695B;
+  --data-orange-edge: #703800;
+  --data-pink-edge: #784966;
+  --data-yellow-edge: #7C700F;
+  --data-light-blue-edge: #476573;
   /* Grid and emphasis follow the surface, like the two grays. */
   --data-grid: var(--neutral-3);
   --data-emphasis: var(--neutral-6);
@@ -356,6 +363,7 @@
   --radius-round: 50%;
 
   --shadow-sticky: 0 2px 6px var(--alpha-black-08);
+  --shadow-sticky-up: 0 -2px 6px var(--alpha-black-08);
   --shadow-popover: 0 4px 16px var(--alpha-black-14);
   --shadow-nav: 2px 0 8px var(--alpha-black-08);
   --shadow-chart-hover: 0 1px 4px var(--alpha-black-22);
@@ -416,6 +424,7 @@
   --color-text-on-light-fill: var(--ink-black);
   --color-qr-bg: var(--ink-white);
   --color-qr-fg: var(--ink-black);
+  --color-media-bg: var(--ink-black);
 
   /* --- Semantic: borders ------------------------------------------------- */
   --color-border-default: var(--neutral-3);
@@ -431,6 +440,15 @@
   /* A DASHED outline (a suggestion, an uncertain term): neutral-5, because a dashed line has half
      the ink of a solid one and must still reach 3:1. */
   --color-border-suggestion: var(--neutral-5);
+
+  /* --- Semantic: avatar -------------------------------------------------- */
+  /* A person's circle: one neutral fill for everyone; a person is no variable. */
+  --color-avatar-bg: var(--neutral-3);
+  /* The initials and the icon on that fill: 14.5:1 in light, 8.9:1 in dark. */
+  --color-avatar-text: var(--color-text-primary);
+  /* The DASHED edge of the circle where nobody stands yet: neutral-5, as a dashed line has half the
+     ink of a solid one and must still reach 3:1. */
+  --color-avatar-empty-line: var(--neutral-5);
 
   /* --- Semantic: action -------------------------------------------------- */
   --color-action-primary: var(--primary);
@@ -533,6 +551,13 @@
   --color-term-bg: var(--primary-wash);
   /* The chosen option of a row of options: the primary's wash; dark re-points it. */
   --color-choice-active-bg: var(--primary-wash);
+  /* The days between the start and the end of a chosen period: a clear tint of the primary,
+     unlike the grey of a hover or a selected row, so the period reads as one stretch. The
+     endpoints and the words carry the period, so the fill needs no 3:1. Dark re-declares it. */
+  --color-range-bg: oklch(from var(--primary) 0.86 min(c, 0.04) h);
+  /* The edge of a chosen day in a calendar: lighter than its primary fill, as dark's is, so two
+     chosen days and a chosen day beside the period's tint stay apart. Dark re-declares it. */
+  --color-chosen-day-edge: oklch(from var(--primary) 0.8 min(c, 0.1) h);
   /* The 2 px line under a term; dark takes the text tint, as the line tint falls short on it. */
   --color-term-line: var(--color-accent-line);
   /* The 4 px edge of a chosen row; dark takes the text tint, as the line tint falls short on the
@@ -550,17 +575,22 @@
   --color-chart-red: var(--data-red);
   --color-chart-green: var(--data-green);
   --color-chart-mint-green: var(--data-mint-green);
+  --color-chart-mint-green-edge: var(--data-mint-green-edge);
   --color-chart-violet: var(--data-violet);
   --color-chart-orange: var(--data-orange);
+  --color-chart-orange-edge: var(--data-orange-edge);
   --color-chart-pink: var(--data-pink);
+  --color-chart-pink-edge: var(--data-pink-edge);
   --color-chart-dark-green: var(--data-dark-green);
   --color-chart-purple: var(--data-purple);
   --color-chart-ruby-red: var(--data-ruby-red);
   --color-chart-yellow: var(--data-yellow);
+  --color-chart-yellow-edge: var(--data-yellow-edge);
   --color-chart-dark-brown: var(--data-dark-brown);
   --color-chart-brown: var(--data-brown);
   --color-chart-dark-blue: var(--data-dark-blue);
   --color-chart-light-blue: var(--data-light-blue);
+  --color-chart-light-blue-edge: var(--data-light-blue-edge);
   --color-chart-moss-green: var(--data-moss-green);
   --color-chart-secondary: var(--data-comparison); /* comparison, context */
   --color-chart-other: var(--data-other);          /* "Overig" */
@@ -575,6 +605,9 @@
   /* A speaker's colour under a whole fragment: this share of it over the surface, so text keeps
      its contrast in light and in dark. */
   --tint-speaker: 12%;
+  /* What a recording still has to play: this share of the speaker's colour over the surface; in
+     light that is the `-tint-4` step of its ladder. */
+  --tint-speaker-ahead: 45%;
 
   /* These map colours stay deliberately neutral so the data is the only colour on the map. */
   --color-map-water: var(--neutral-0);
@@ -790,18 +823,29 @@
     /* A term's box is the subtle surface: behind a word on #282828 the dark wash would be a hole. */
     --color-term-bg: var(--neutral-2);
     --color-choice-active-bg: var(--neutral-2);
+    /* The dark counterpart: above the surface and the subtle grey, under white text. */
+    --color-range-bg: oklch(from var(--primary) 0.36 min(c, 0.04) h);
+    /* The primary tint, and always a step above the fill: an orange primary is its own tint. */
+    --color-chosen-day-edge: oklch(from var(--primary) max(l + 0.1, 0.55) min(c, 0.15) h);
     --color-term-line: var(--primary-tint-text);
     --color-selected-edge: var(--primary-tint-text);
     --color-progress-track: var(--color-bg-inset);
 
     /* Yellow as text works on the dark surface, so the dark gold is not needed. */
     --color-chart-dark-yellow-text: var(--data-dark-yellow);
+    /* The edges melt into their line: on the dark surface a light colour reaches 3:1 itself. */
+    --color-chart-mint-green-edge: var(--data-mint-green);
+    --color-chart-orange-edge: var(--data-orange);
+    --color-chart-pink-edge: var(--data-pink);
+    --color-chart-yellow-edge: var(--data-yellow);
+    --color-chart-light-blue-edge: var(--data-light-blue);
     /* A label on "Overig" is ink: neutral-4 holds it at 4.16:1, so the gray takes the smallest
        share of neutral-5 that reaches 4.5:1. */
     --data-other: color-mix(in srgb, var(--neutral-5) 11%, var(--neutral-4));
     --color-map-water: var(--neutral-1);
 
     --shadow-sticky: 0 2px 6px var(--alpha-black-40);
+    --shadow-sticky-up: 0 -2px 6px var(--alpha-black-40);
     --shadow-popover: 0 4px 16px var(--alpha-black-55);
     --shadow-nav: 2px 0 8px var(--alpha-black-40);
     --shadow-chart-hover: 0 1px 4px var(--alpha-black-60);

@@ -85,6 +85,7 @@ describe('the data types', () => {
       'histogram',
       'radar',
       'treemap',
+      'sankey',
     ])
     const pie = spec.variants.find((variant) => variant.value === 'pie')!
     const field = (name: string) => pie.fields.find((f) => f.name === name)

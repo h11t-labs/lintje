@@ -46,6 +46,8 @@
       .view[hidden] { display: none; }
       .section { display: flex; flex-direction: column; gap: var(--space-4); }
       .section[hidden] { display: none; }
+      /* A section's heading stays in the page, for aria-labelledby; it reads as prose's heading. */
+      .section__title { margin: 0; font: var(--text-h2); }
 
       /* The question box takes the hero's whole text column. */
       .ask { align-self: stretch; }
@@ -99,15 +101,15 @@
         </lintje-tile>
         <!-- The reader's favourites, once there are any. -->
         <section class="section" id="favourites-section" aria-labelledby="favourites-title" hidden>
-          <lintje-prose><h2 id="favourites-title">Je favorieten</h2></lintje-prose>
+          <h2 class="section__title" id="favourites-title">Je favorieten</h2>
           <lintje-card-list id="favourites" heading-level="3"></lintje-card-list>
         </section>
         <section class="section" aria-labelledby="kinds-title">
-          <lintje-prose><h2 id="kinds-title">Bladeren per soort</h2></lintje-prose>
+          <h2 class="section__title" id="kinds-title">Bladeren per soort</h2>
           <lintje-card-list id="kinds" heading-level="3"></lintje-card-list>
         </section>
         <section class="section" aria-labelledby="popular-title">
-          <lintje-prose><h2 id="popular-title">Veel gebruikt deze maand</h2></lintje-prose>
+          <h2 class="section__title" id="popular-title">Veel gebruikt deze maand</h2>
           <lintje-card-list id="popular" heading-level="3"></lintje-card-list>
         </section>
       </div>
@@ -123,7 +125,8 @@
       <!-- About the platform: what it is, and who to ask. -->
       <div class="view" id="about-view" hidden>
         <div class="about">
-          <lintje-prose>
+          <!-- Formatted text goes in through `html`: the slot of lintje-prose is for plain text. -->
+          <template id="about-source">
             <h2>Wat is het dataplatform?</h2>
             <p>Het dataplatform brengt gegevens, AI-diensten en dashboards samen op één plek, zodat je niet hoeft te zoeken wie wat heeft en hoe je eraan komt.</p>
             <p>In de catalogus staat elk product dat op het platform draait, ook als je er nog geen toegang toe hebt. Zo zie je wat er bestaat, wie de eigenaar is en hoe je toegang vraagt.</p>
@@ -137,7 +140,8 @@
             <p>Toegang geeft de eigenaar van een product, niet het platform. Op de pagina van een product staat hoe je het aanvraagt: in het aanvraagsysteem of per mail aan de contactpersoon. Vermeld waarvoor je het product nodig hebt en voor hoe lang.</p>
             <h2>Een product aanmelden</h2>
             <p>Beheer je zelf een dataproduct, dienst of dashboard dat op het platform draait? Meld het aan bij het team Dataplatform, dan komt het in de catalogus. Je blijft zelf eigenaar en beslist over toegang.</p>
-          </lintje-prose>
+          </template>
+          <lintje-prose id="about-text"></lintje-prose>
           <lintje-tile heading="Contact">
             <lintje-description-list id="about-facts" layout="column"></lintje-description-list>
           </lintje-tile>

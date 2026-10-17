@@ -334,11 +334,8 @@ function drawMap(context: Context, interactive: boolean): TemplateResult {
     const index = controller.hoverIndex
     if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget) {
       const cell = index == null ? undefined : cells[index]
-      const click = cell ? marks[cell.group].click : undefined
-      if (typeof click === 'function') {
-        event.preventDefault()
-        click()
-      }
+      const choose = cell ? marks[cell.group].keydown : undefined
+      if (typeof choose === 'function') choose(event)
       return
     }
     keys.keydown(event)

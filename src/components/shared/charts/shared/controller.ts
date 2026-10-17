@@ -3,6 +3,7 @@
  * The host (a Lit element) creates one controller per chart and passes it in `ChartOptions`.
  */
 import { lengthPx } from '../../../../core/length'
+import { FrameResizeObserver } from '../../frame-resize-observer'
 import { DEFAULT_PLOT_AREA, type PlotArea } from './scale'
 // Type-only, so the module cycle (leaflet.ts needs this file) is erased at build.
 import type { LeafletSurface } from '../map-chart/leaflet'
@@ -26,8 +27,11 @@ export interface ChartOptions {
   expanded?: boolean
   /** Cross-drill: the chosen mark's id. The chart keeps no selection of its own. */
   selectedId?: string | null
-  /** A mark that carries a `href` was activated. Without this the marks stay inert. */
-  onSelect?: (mark: ChartSelection) => void
+  /**
+   * A mark that carries a `href` was activated; `newTab` for a modifier or middle click. Without
+   * this the marks stay inert.
+   */
+  onSelect?: (mark: ChartSelection, newTab?: boolean) => void
   /** The selection was undone (chosen mark again, or Escape); the id travels for focus. */
   onClear?: (previousId: string) => void
 }
@@ -52,13 +56,20 @@ export interface TooltipRow {
   divider?: boolean
   /** The series' shape instead of a square swatch, as its legend draws it. */
   symbol?: SeriesKey
-  /** A line instead of a square swatch, plain or dashed (a norm), as its legend draws it. */
-  marker?: 'line' | 'dashed'
+  /**
+   * Instead of a square swatch, as its legend draws it: a line, plain or dashed (a norm), or
+   * dotted (a forecast); an open square for a forecast bar.
+   */
+  marker?: 'line' | 'dashed' | 'dotted' | 'open'
+  /** A quieter line under the row before it, such as a forecast's margin. */
+  note?: boolean
 }
 export interface TooltipContent {
   /** A line above the title, in the muted text: what the title is part of. */
   kicker?: string
   title: string
+  /** A word after the title in the muted colour, such as "raming". */
+  note?: string
   rows: TooltipRow[]
   /** The events at this category, under the values: their number and text. */
   events?: { number: number; label: string }[]
@@ -106,6 +117,8 @@ export class ChartController {
   hoverIndex: number | null = null
   /** What the keyboard's tooltip says, for the chart's status region; empty otherwise. */
   status = ''
+  /** Where the next arrow key starts while no category is shown: the place before new data. */
+  keyFrom: number | null = null
   hiddenSeries: string[] = []
   /** The series the reader points at or focuses in the legend; `null` for none. */
   emphasis: string | null = null
@@ -113,7 +126,6 @@ export class ChartController {
   hiddenLayers: number[] = []
   /** The parts a treemap on a phone shows opened, by their id. */
   openParts: string[] = []
-  hoverSegment: number | null = null
   selectedCell: { row: number; column: number } | null = null
   /** What a wheel without its modifier shows, until its timer clears it. */
   mapHint: string | null = null
@@ -140,10 +152,13 @@ export class ChartController {
   leafletView: { lat: number; lon: number; zoom: number } | null = null
 
   private readonly notify: () => void
+  /** The data last drawn, and as JSON once its reference changed. */
+  private drawn: unknown = undefined
+  private drawnJson = ''
   /** The chart's box, once attached; the map finds its own buttons in it. */
   element: HTMLElement | null = null
   private measuring: MeasureSpec = {}
-  private resizeObserver: ResizeObserver | null = null
+  private resizeObserver: FrameResizeObserver | null = null
   private intersectionObserver: IntersectionObserver | null = null
 
   constructor(requestUpdate: () => void) {
@@ -199,7 +214,7 @@ export class ChartController {
       return
     }
     if (this.resizeObserver) return
-    this.resizeObserver = new ResizeObserver(() => {
+    this.resizeObserver = new FrameResizeObserver(() => {
       const { width, height } = this
       this.read()
       // The height token can change without a size change (the modal sets it after layout).
@@ -224,6 +239,27 @@ export class ChartController {
     this.resizeObserver = null
     this.intersectionObserver = null
     this.element = null
+  }
+
+  /**
+   * Called with the data before each drawing. New data closes the tooltip and empties the
+   * status, which speak of the old data; the place stays as the keyboard's starting point.
+   */
+  follow(data: unknown): void {
+    if (data === this.drawn) return
+    const first = this.drawn === undefined
+    const json = JSON.stringify(data) ?? ''
+    this.drawn = data
+    if (first || json === this.drawnJson) {
+      this.drawnJson = json
+      return
+    }
+    this.drawnJson = json
+    this.keyFrom = this.hoverIndex ?? this.keyFrom
+    this.hoverIndex = null
+    this.status = ''
+    this.tooltip = null
+    this.unwatchEscape()
   }
 
   /* Tooltip --------------------------------------------------------------- */

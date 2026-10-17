@@ -16,18 +16,48 @@ const TOKENS: Record<string, string> = {
   emphasis: 'var(--color-chart-emphasis)',
 }
 
+/** The data colours white text reaches 4.5:1 on; any other named fill but the rest takes ink. */
+export const DARK_FILLS: ReadonlySet<string> = new Set([
+  'sky-blue',
+  'red',
+  'green',
+  'violet',
+  'dark-green',
+  'purple',
+  'ruby-red',
+  'dark-brown',
+  'brown',
+  'dark-blue',
+  'moss-green',
+])
+
+/**
+ * Whether text on rung `rung` (0 is the colour itself) of a variable's ladder is white: only on
+ * the darkest rung of a dark colour; every lighter rung takes ink.
+ */
+export function whiteOnRung(color: ChartColor | undefined, rung: number): boolean {
+  return rung === 0 && (color == null || DARK_FILLS.has(color))
+}
+
 export function chartColor(color: ChartColor | undefined): string | undefined {
   if (color == null) return undefined
   return TOKENS[color] ?? color
 }
 
 /**
- * The edge under a line drawn in dark yellow: its own text colour, so the line reaches 3:1 on
- * the light surface where the yellow is 1.8:1. In dark that token is the yellow itself and the
- * edge melts into the line.
+ * The light colours that reach 3:1 as a line or a mark only by a dark edge. Dark yellow keeps
+ * its text colour as its edge. In dark each token is the colour itself and the edge melts away.
  */
+const EDGES = new Map<string, string>([
+  [TOKENS['dark-yellow'], 'var(--color-chart-dark-yellow-text)'],
+  ...(['mint-green', 'orange', 'pink', 'yellow', 'light-blue'] as const).map(
+    (color): [string, string] => [TOKENS[color], `var(--color-chart-${color}-edge)`],
+  ),
+])
+
+/** The edge under a line, a point or a legend shape in `color`, if that colour needs one. */
 export function lineCasing(color: string | undefined): string | undefined {
-  return color === TOKENS['dark-yellow'] ? 'var(--color-chart-dark-yellow-text)' : undefined
+  return color == null ? undefined : EDGES.get(color)
 }
 
 /** The text a label on a fill takes: white, ink, or none where neither reaches 4.5:1. */
