@@ -5,8 +5,8 @@
   display: flex; flex-wrap: wrap; align-items: center;
   gap: var(--space-2);
   min-height: var(--h-control);
-  padding: calc((var(--h-control) - var(--h-chip-field)) / 2 - 1px) var(--space-2);
-  border: 1px solid var(--color-border-field);
+  padding: calc((var(--h-control) - var(--h-chip-field)) / 2 - var(--lintje-field-border)) var(--space-2);
+  border: var(--lintje-field-border) solid var(--color-border-field);
   border-radius: var(--radius);
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
@@ -21,13 +21,14 @@
 .lintje-tag-input__remove:focus-visible { outline: none; }
 /* The padding gives back the pixel the 2 px error border takes. */
 .lintje-tag-input.is-error {
-  border: 2px solid var(--color-error);
-  padding: calc((var(--h-control) - var(--h-chip-field)) / 2 - 2px) calc(var(--space-2) - 1px);
+  border: var(--lintje-field-error-border) solid var(--color-error);
+  padding: calc((var(--h-control) - var(--h-chip-field)) / 2 - var(--lintje-field-error-border))
+    calc(var(--space-2) - var(--lintje-field-error-border) + var(--lintje-field-border));
 }
 /* Disabled wins over error: placed after it. */
 .lintje-tag-input.is-disabled {
-  border: 1px solid var(--color-border-strong);
-  padding: calc((var(--h-control) - var(--h-chip-field)) / 2 - 1px) var(--space-2);
+  border: var(--lintje-field-border) solid var(--color-border-strong);
+  padding: calc((var(--h-control) - var(--h-chip-field)) / 2 - var(--lintje-field-border)) var(--space-2);
   background: var(--color-bg-subtle);
   cursor: not-allowed;
 }

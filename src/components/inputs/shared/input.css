@@ -21,6 +21,9 @@
 :host(lintje-toggle) {
   display: block;
   min-width: 0;
+  /* A field's edge and its error edge: what sits inside the box steps in by them, not by space. */
+  --lintje-field-border: 1px;
+  --lintje-field-error-border: 2px;
 }
 /* `min-width: auto`: the segmented control never shrinks below its options, and the select and
    the date range stop at their content's width in a narrow row. */
@@ -136,8 +139,9 @@
 
 /* The button inside the box at its end: the date's calendar, the time's list. */
 .lintje-field__toggle {
-  position: absolute; top: 1px; right: 1px;
-  width: calc(var(--h-control) - 2px); height: calc(var(--h-control) - 2px);
+  position: absolute; top: var(--lintje-field-border); right: var(--lintje-field-border);
+  width: calc(var(--h-control) - 2 * var(--lintje-field-border));
+  height: calc(var(--h-control) - 2 * var(--lintje-field-border));
   display: flex; align-items: center; justify-content: center;
   border-left: 1px solid var(--color-border-default);
   background: transparent;
@@ -153,8 +157,9 @@
 }
 /* The button steps in past the 2 px error border; a disabled field has 1 px again. */
 .lintje-field__box.is-error:not(:disabled) + .lintje-field__toggle {
-  top: 2px; right: 2px;
-  width: calc(var(--h-control) - 4px); height: calc(var(--h-control) - 4px);
+  top: var(--lintje-field-error-border); right: var(--lintje-field-error-border);
+  width: calc(var(--h-control) - 2 * var(--lintje-field-error-border));
+  height: calc(var(--h-control) - 2 * var(--lintje-field-error-border));
 }
 .lintje-field__toggle:hover:not(:disabled) { background: var(--color-bg-subtle); }
 .lintje-field__toggle:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
@@ -277,12 +282,15 @@
 /* Off: edged with the field's edge (3:1, WCAG 1.4.11) as an inset ring, keeping the box size. */
 .lintje-choice__switch {
   box-sizing: border-box;
+  /* The knob stands this far inside the track; forced colours give the ring a pixel of it. */
+  --lintje-choice-switch-inset: 2px;
+  --lintje-choice-switch-ring: 1px;
   width: var(--lintje-choice-control); height: 22px; flex: none;
   border-radius: 11px;
   /* Off is a filled track, not a pale one with a ring: the fill alone reaches 3:1. */
   background: var(--color-border-field);
   display: flex; align-items: center;
-  padding: 2px;
+  padding: var(--lintje-choice-switch-inset);
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-choice__knob {
@@ -336,7 +344,10 @@
   .lintje-choice__radio::after { forced-color-adjust: none; }
   .lintje-choice__input:checked ~ .lintje-choice__radio::after { background: Highlight; }
 
-  .lintje-choice__switch { border: 1px solid CanvasText; padding: 1px; }
+  .lintje-choice__switch {
+    border: var(--lintje-choice-switch-ring) solid CanvasText;
+    padding: calc(var(--lintje-choice-switch-inset) - var(--lintje-choice-switch-ring));
+  }
   .lintje-choice__input:checked ~ .lintje-choice__switch { border-color: Highlight; }
   .lintje-choice__knob { forced-color-adjust: none; background: CanvasText; }
   .lintje-choice__input:checked ~ .lintje-choice__switch .lintje-choice__knob { background: Highlight; }
