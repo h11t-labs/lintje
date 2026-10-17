@@ -7,9 +7,9 @@ import { isKeyMark, renderKeyMark, renderSymbol } from './axes'
 import { lineCasing } from './colors'
 
 /**
- * Places the tooltip right of the pointer, flipping near the tile's edge. A directive, not a
- * `ref`: it runs on every move. Coordinates go through the CSSOM because `style-src 'self'`
- * drops style attributes.
+ * Places the tooltip right of the pointer, flipping near the tile's edge and rising near its
+ * foot. A directive, not a `ref`: it runs on every move. Coordinates go through the CSSOM
+ * because `style-src 'self'` drops style attributes.
  */
 class PlaceTooltipDirective extends Directive {
   constructor(partInfo: PartInfo) {
@@ -31,6 +31,10 @@ class PlaceTooltipDirective extends Directive {
       if (!element.isConnected) return
       const available = element.parentElement?.clientWidth ?? Infinity
       const width = element.offsetWidth
+      // Within the chart top to bottom too: past its foot a modal's body would cut it off.
+      const room = element.parentElement?.clientHeight ?? Infinity
+      const top = Math.min(state.y - 12, room - element.offsetHeight)
+      element.style.top = `${Math.max(0, top)}px`
       let left = state.side === 'left' ? state.x - 12 - width : state.x + 12
       if (state.flip != null && left + width > available - 8) {
         left = state.flip - 12 - width

@@ -527,7 +527,9 @@ De besluiten hieronder gelden voor alle elementen.
   `aria-modal="true"` staat waar de popup niet in zit. Een dialoog zet dus `aria-modal` en
   neemt de focus bij het openen; één die dat niet doet, telt niet mee.
 - **Twee vensters: een groot voor inhoud, een klein voor een vraag of een kort formulier.**
-  `lintje-modal` toont inhoud, zoals een vergrote tegel of een tekst. `lintje-dialog` stelt een
+  `lintje-modal` toont inhoud, zoals een vergrote tegel of een tekst, en is zo hoog als die
+  inhoud, ten hoogste het venster: een grafiek die de ruimte vult, maakt hem vol, een halter of
+  een korte tabel een lagere. `lintje-dialog` stelt een
   vraag of vraagt een paar velden, in één kader zonder lijnen tussen kop, inhoud en knoppen. Een
   vraag die een antwoord nodig heeft, is een `alert`: geen sluitknop, de focus op de veilige knop
   (`autofocus`), en het antwoord als laatste knop, zodat het op een telefoon bovenaan staat.
