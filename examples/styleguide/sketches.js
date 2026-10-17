@@ -114,7 +114,7 @@ export const SKETCHES = {
   'date-range': { rows: 's20 / inic' },
   'slot-picker': { rows: 's30 / s15 s15 s15 / bx bx bx / bx bx bx' },
   'file-upload': { frame: 'drop', center: true, rows: 'bo35 l30 / s45' },
-  'text-editor': { rows: 's20 / [s5 s5 s5 s15 s10] / ta' },
+  'text-editor': { rows: 's20 / [s5 s5 s5 i i] / ta' },
   // Forms
   form: { rows: 's20 / in / s25 / in / s25 sp bo20 b20' },
   'form-section': { frame: 'tile', rows: 'T40 / s20 / in in40' },

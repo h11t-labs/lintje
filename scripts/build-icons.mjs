@@ -126,6 +126,8 @@ const COMPONENT_ICONS = [
   'functioneel-pijl-omlaag', // chat: to the newest turn
   'functioneel-pijl-omhoog', // chat: the divider over a trimmed conversation
   'gereedschap-half-tandwiel-half-brein', // AI label: made by a model
+  'symbolen-en-abstract-opsomming', // the text editor's toolbar
+  'functioneel-link', // the text editor's toolbar
 ]
 
 assemble()
