@@ -189,6 +189,31 @@ describe('groups', () => {
     expect(all()?.textContent?.trim()).toBe('Alles uitklappen')
   })
 
+  it('gives a heading and a total a cell per control column, with that column’s class', async () => {
+    const element = await mount({
+      groupBy: 'region',
+      groupTotals: totals,
+      totals: { requests: 62 },
+      selectable: true,
+      detailFields: [{ key: 'note', label: 'Toelichting' }],
+      rowActions: [{ value: 'openen', label: 'Openen' }],
+    })
+    const rows = [
+      ...shadow(element).querySelectorAll(
+        '.lintje-data-table__full :is(.lintje-data-table__group-row, .lintje-data-table__subtotal, .lintje-data-table__total)',
+      ),
+    ]
+    // Two headings, two subtotals and the total.
+    expect(rows).toHaveLength(5)
+    for (const row of rows) {
+      const cells = [...row.children]
+      expect(cells[0]?.classList.contains('lintje-data-table__check-cell')).toBe(true)
+      expect(cells[1]?.classList.contains('lintje-data-table__detail-cell')).toBe(true)
+      expect(cells.at(-1)?.classList.contains('lintje-data-table__action-cell')).toBe(true)
+      expect(row.querySelector('[colspan]')).toBeNull()
+    }
+  })
+
   it('puts whole groups on a page and counts groups', async () => {
     const element = await mount({ groupBy: 'region', groupsPerPage: 1 })
     expect(names(element)).toEqual(['Utrecht'])

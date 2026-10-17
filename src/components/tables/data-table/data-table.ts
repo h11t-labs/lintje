@@ -1622,7 +1622,6 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const data = this.data as DataTableData
     const column = this.groupColumn as TableColumnData
     const columns = this.shown
-    const lead = (data.selectable ? 1 : 0) + (this.detailColumns.length > 0 ? 1 : 0)
     const subtotals = data.groupTotals?.[group.key]
     const count = group.rows.length
     const heading = html`<button
@@ -1636,12 +1635,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
       <span class="lintje-data-table__group-count">${count} ${count === 1 ? 'rij' : 'rijen'}</span>
     </button>`
     return html`<tr class="lintje-data-table__group-row">
-      ${lead > 0 ? html`<td class="lintje-data-table__cell" colspan=${lead}></td>` : nothing}
+      ${this.leadCells()}
       <th scope="rowgroup" class="lintje-data-table__cell lintje-data-table__group-head">${heading}</th>
       ${columns
         .slice(1)
         .map((entry) => this.totalCell(entry, open ? undefined : subtotals?.[entry.key]))}
-      ${this.actionColumn ? html`<td class="lintje-data-table__cell"></td>` : nothing}
+      ${this.actionCell()}
     </tr>`
   }
 
@@ -1669,14 +1668,34 @@ export class LintjeDataTable extends LintjeContentTileElement {
     columns: TableColumnData[],
     totals: Record<string, TableTotal>,
   ): TemplateResult {
-    const data = this.data as DataTableData
-    const lead = (data.selectable ? 1 : 0) + (this.detailColumns.length > 0 ? 1 : 0)
     return html`<tr class=${className}>
-      ${lead > 0 ? html`<td class="lintje-data-table__cell" colspan=${lead}></td>` : nothing}
+      ${this.leadCells()}
       <th scope="row" class="lintje-data-table__cell lintje-data-table__sum-label">${label}</th>
       ${columns.slice(1).map((column) => this.totalCell(column, totals[column.key]))}
-      ${this.actionColumn ? html`<td class="lintje-data-table__cell"></td>` : nothing}
+      ${this.actionCell()}
     </tr>`
+  }
+
+  /**
+   * The empty check and detail cells before a group's or a total's name: one per column, with its
+   * class, so paper drops them as it drops the column.
+   */
+  private leadCells(): TemplateResult {
+    return html`${
+      this.data?.selectable
+        ? html`<td class="lintje-data-table__cell lintje-data-table__check-cell"></td>`
+        : nothing
+    }${
+      this.detailColumns.length > 0
+        ? html`<td class="lintje-data-table__cell lintje-data-table__detail-cell"></td>`
+        : nothing
+    }`
+  }
+
+  private actionCell(): TemplateResult | typeof nothing {
+    return this.actionColumn
+      ? html`<td class="lintje-data-table__cell lintje-data-table__action-cell"></td>`
+      : nothing
   }
 
   private totalCell(column: TableColumnData, total: TableTotal | undefined): TemplateResult {
