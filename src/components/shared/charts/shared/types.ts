@@ -292,6 +292,22 @@ export type ChartSpec =
       small?: boolean
     }
   | {
+      kind: 'treemap'
+      /** The parts of the whole, in any order: the chart sorts them, the largest top left. */
+      parts: TreemapPart[]
+      /** The variable the whole divides: its parts take this colour's tints. Default sky blue. */
+      color?: ChartColor
+      /** What the value is, in the tooltip, the table and the CSV, e.g. "Uitgaven". Default "Waarde". */
+      label?: string
+      /** The unit in the total line, the tooltip, the table and the CSV, e.g. "mld euro". */
+      unit?: string
+      /** Name and amount in the areas, as far as they fit. Off: no label at all. Default true. */
+      dataLabels?: boolean
+      /** Header of the table's first column: what the parts are. Default "Deel". */
+      labelHeader?: string
+      small?: boolean
+    }
+  | {
       kind: 'sankey'
       /** The steps of the process, left to right: two to four, with up to six nodes each. */
       steps: SankeyStep[]
@@ -350,6 +366,28 @@ export interface RadarSeriesData {
   values: (number | null)[]
   color?: ChartColor
   comparison?: boolean
+}
+
+/**
+ * A part of a treemap's whole. A part with `parts` is their sum: its own `value` is ignored, and
+ * it is missing when all of them are. A click anywhere in it chooses the part, with its `href`.
+ */
+export interface TreemapPart {
+  label: string
+  /** null = no data, never 0 (rule 15): no area, "Geen gegevens" in the legend. */
+  value?: number | null
+  id?: string
+  href?: string
+  /** Its sub-parts, one level deep: they share its tint and are never a choice of their own. */
+  parts?: TreemapSubPart[]
+}
+
+/** A sub-part of a treemap's part: no parts and no `href` of its own. */
+export interface TreemapSubPart {
+  label: string
+  /** null = no data, never 0 (rule 15). */
+  value: number | null
+  id?: string
 }
 
 export type ChartKind = ChartSpec['kind']

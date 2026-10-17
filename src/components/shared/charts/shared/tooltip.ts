@@ -45,6 +45,7 @@ export function renderTooltip(controller: ChartController): TemplateResult | typ
   const { content } = state
   return html`
     <div class="lintje-chart-tooltip" ${placeTooltip(state)}>
+      ${content.kicker ? html`<p class="lintje-chart-tooltip__kicker">${content.kicker}</p>` : nothing}
       <p class="lintje-chart-tooltip__title">${content.title}${
         content.note
           ? html` <span class="lintje-chart-tooltip__title-note">${content.note}</span>`

@@ -760,6 +760,21 @@ de stijlgids. Past geen soort, dan is het een tabel.
   plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) zijn geen delen; ze
   staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde; zonder
   legendatabel staat de gewone legenda boven de tekening, een item per deel en geen schakelaar.
+- **Een treemap vouwt op aandeel, niet op aantal.** Ze toont veel delen en hun onderdelen in één
+  vlak, dus een deel blijft staan zolang het telt: wat onder 1 % van het geheel blijft, wordt
+  samen één grijs "Overig" dat niet klikbaar is, ook binnen een deel, en één klein deel blijft
+  zichzelf. De tabel noemt elk samengevoegd deel apart. Het geheel is het kader: de legenda draagt
+  alleen de sleutels en schakelt niets uit, en de grafiek noemt zelf het totaal van wat getekend
+  is en wat daarin ontbreekt.
+- **Onderdelen van een deel delen zijn tint.** Een eigen tint zou een tweede variabele
+  suggereren; de maat draagt de waarde en de lijn in de oppervlaktekleur de indeling, dun tussen
+  onderdelen en breder tussen delen. Bij twee niveaus is het deel het klikdoel, ook vanuit een
+  onderdeel.
+- **Een vlak noemt zichzelf zo volledig als past**: naam, bedrag en aandeel, dan kleiner, dan
+  zonder aandeel, dan alleen de naam, en als laatste stap de naam afgekapt; waar zelfs dat niet
+  past, blijft het vlak leeg. In een treemap zijn er altijd vlakken te klein voor tekst, dus daar
+  geldt "alles of niets" niet: de maat is er altijd, de naam waar hij past, de tooltip en de
+  tabel geven alles.
 - **Een gestapeld vlak toont de onderverdelingen van één variabele** in haar ladder, de eerste
   onderaan en de donkerste, in volle tinten met een lijn in de oppervlaktekleur tussen de lagen.
   Ontbreekt een laag op een punt, dan breken die laag en alles erboven daar af, want hun
@@ -1103,9 +1118,13 @@ kleinste correctie, en leg die hier vast.
   een kaartgebied met een cijfer halen 3:1; aangrenzende tinten worden gescheiden door een lijn in
   het oppervlak; een donkergele lijn krijgt een rand in zijn tekstkleur; een label op een vulling
   neemt de tekstkleur van die vulling; een gedimd teken of een uitgeschakelde reeks vervaagt zijn
-  kleur, nooit zijn woorden. Waar een label op een band ligt (de rechte strook na een middelste
-  stap van een sankey), wordt gedempte tekst de gewone tekstkleur zodra die band nadruk krijgt:
-  op de sterkere tint haalt gedempt geen 4.5:1.
+  kleur, nooit zijn woorden.
+- **Een label op een vulling neemt de inkt die op die sport van de ladder 4.5:1 haalt**, wit of
+  bijna-zwart, uit één tabel per kleur en per sport. Een sport waar geen van beide dat haalt,
+  draagt geen label: de tooltip en de tabel noemen het.
+  Waar een label op een band ligt (de rechte strook na een middelste stap van een sankey), wordt
+  gedempte tekst de gewone tekstkleur zodra die band nadruk krijgt: op de sterkere tint haalt
+  gedempt geen 4.5:1.
 - **Een bewerking ter plekke houdt haar toetsen**: Enter en Escape tellen alleen in haar veld,
   niet op haar knoppen, en haar Escape beëindigt de bewerking en verder niets. Beëindigd, geeft
   ze de focus aan haar rij of cel.

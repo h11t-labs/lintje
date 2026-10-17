@@ -25,6 +25,7 @@ import { ChartController, type ChartOptions } from '../../shared/charts/shared/c
 import { renderChart } from '../../shared/charts/shared/render-chart'
 import { rowsHeight } from '../../shared/charts/horizontal-bar-chart/horizontal-bar-chart'
 import { binLabel } from '../../shared/charts/histogram-chart/histogram-chart'
+import { treemapRows } from '../../shared/charts/treemap-chart/treemap-parts'
 import { sankeyHeight, sankeyModel } from '../../shared/charts/sankey-chart/sankey-chart'
 import { FORECAST_LABEL, boundsAt, forecastStart } from '../../shared/charts/shared/forecast'
 import {
@@ -78,6 +79,8 @@ function skeletonKind(chart: ChartSpec): ChartSkeletonKind {
       return 'pie'
     case 'heatmap':
       return 'heatmap'
+    case 'treemap':
+      return 'treemap'
     default:
       return 'bar'
   }
@@ -261,6 +264,9 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
         ...chart.bins.map((bin) => [binLabel(bin, chart.unit), bin.from, bin.to ?? '', bin.count]),
       ]
     }
+    case 'treemap':
+      // A row per sub-part; what the drawing folds into "Overig" stands apart.
+      return treemapRows(chart)
     case 'sankey': {
       // A row per flow the chart draws; a missing one keeps its count and its share missing.
       const { flows } = sankeyModel(chart)

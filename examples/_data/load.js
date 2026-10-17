@@ -13,3 +13,6 @@ export const [meta, hourly, daily, desks, regions, breakdowns, origin, originCou
 
 /** A number as the interface writes it. */
 export const number = (value) => value.toLocaleString('nl-NL')
+
+/** A fictional budget in mld euro: policy areas, some with their sub-posts. */
+export const budget = await load('budget')

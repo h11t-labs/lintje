@@ -65,6 +65,8 @@ export interface TooltipRow {
   note?: boolean
 }
 export interface TooltipContent {
+  /** A line above the title, in the muted text: what the title is part of. */
+  kicker?: string
   title: string
   /** A word after the title in the muted colour, such as "raming". */
   note?: string
@@ -122,6 +124,8 @@ export class ChartController {
   emphasis: string | null = null
   /** The layers of a stacked map switched off in its legend, by their place in the stack. */
   hiddenLayers: number[] = []
+  /** The parts a treemap on a phone shows opened, by their id. */
+  openParts: string[] = []
   selectedCell: { row: number; column: number } | null = null
   /** What a wheel without its modifier shows, until its timer clears it. */
   mapHint: string | null = null
@@ -335,6 +339,13 @@ export class ChartController {
     this.hiddenLayers = this.hiddenLayers.includes(index)
       ? this.hiddenLayers.filter((x) => x !== index)
       : [...this.hiddenLayers, index]
+    this.requestUpdate()
+  }
+
+  toggleOpen(id: string): void {
+    this.openParts = this.openParts.includes(id)
+      ? this.openParts.filter((x) => x !== id)
+      : [...this.openParts, id]
     this.requestUpdate()
   }
 

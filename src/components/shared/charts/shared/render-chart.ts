@@ -18,6 +18,7 @@ import { renderScatterChart } from '../scatter-chart/scatter-chart'
 import { renderHeatmap } from '../heatmap-chart/heatmap-chart'
 import { renderHistogramChart } from '../histogram-chart/histogram-chart'
 import { renderRadarChart } from '../radar-chart/radar-chart'
+import { renderTreemapChart } from '../treemap-chart/treemap-chart'
 import { renderSankeyChart } from '../sankey-chart/sankey-chart'
 
 export function renderChart(spec: ChartSpec, options: ChartOptions): TemplateResult {
@@ -49,6 +50,8 @@ export function renderChart(spec: ChartSpec, options: ChartOptions): TemplateRes
       return renderHistogramChart(spec, options)
     case 'radar':
       return renderRadarChart(spec, options)
+    case 'treemap':
+      return renderTreemapChart(spec, options)
     case 'sankey':
       return renderSankeyChart(spec, options)
   }

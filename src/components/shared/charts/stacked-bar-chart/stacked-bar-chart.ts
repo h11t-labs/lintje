@@ -10,14 +10,14 @@ import {
   dataLabelFits,
 } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
-import { chartColor, DARK_FILLS } from '../shared/colors'
+import { chartColor, insideLabelClass, labelInk } from '../shared/colors'
 import { renderChartFrame, renderLegend, type LegendItem, type SvgSlot } from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { layerMotion, layerWeights } from '../shared/layer-motion'
 import { markSelection } from '../shared/mark-select'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
-import { tintsFor } from '../shared/tints'
+import { tintSteps, tintsFor } from '../shared/tints'
 import type { ChartSpec } from '../shared/types'
 
 type StackedBarSpec = Extract<ChartSpec, { kind: 'stacked-bar' }>
@@ -77,12 +77,13 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
   const colorFor = (row: { color?: string }, i: number) =>
     row.color ?? tints[Math.min(i, tints.length - 1)]
 
-  // Without a colour of its own a series is a rung of the ladder: only the darkest carries white.
-  const insideLabel = (j: number) => {
+  // Without a colour of its own a series is a rung of the ladder, which names its ink.
+  const steps = tintSteps(series.length)
+  const insideLabel = (j: number): string | null => {
     const named = spec.series[j].color
     if (named === 'remainder') return 'lintje-chart__data-label--inside-text'
-    const dark = named == null ? j === 0 : DARK_FILLS.has(named)
-    return dark ? 'lintje-chart__data-label--inside' : 'lintje-chart__data-label--inside-light'
+    const ink = labelInk(named, named == null ? steps[Math.min(j, steps.length - 1)] : 1)
+    return ink ? insideLabelClass(ink) : null
   }
 
   const contentAt = (i: number): TooltipContent => ({
@@ -159,13 +160,14 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
                 (segment) => svg`
                 <g class="lintje-chart__series ${
                   !segment.row.hidden &&
+                  insideLabel(segment.j) &&
                   segment.height >= 16 &&
                   dataLabelFits(formatPercent(segment.value), barWidth - 4)
                     ? ''
                     : 'is-off'
                 }">
                   <text x=${group.center} y=${segment.y1 + segment.height / 2 + 4} text-anchor="middle"
-                        class="lintje-chart__data-label ${insideLabel(segment.j)}">${formatPercent(segment.value)}</text>
+                        class="lintje-chart__data-label ${insideLabel(segment.j) ?? ''}">${formatPercent(segment.value)}</text>
                 </g>`,
               )
             : nothing

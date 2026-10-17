@@ -1,6 +1,6 @@
 // The charts category (Kerncijfers en grafieken): the specimens of its elements.
 import { CHART_KINDS, CHART_QUESTIONS } from '../../../dist-elements/lintje.js'
-import { meta, number, daily, heatmap, desks, breakdowns, hourly, sankey, forecast } from '../../_data/load.js'
+import { meta, number, daily, heatmap, desks, breakdowns, hourly, budget, sankey, forecast } from '../../_data/load.js'
 import { linkLog } from '../shared.js'
 
 const kpi = meta.kpi
@@ -212,6 +212,34 @@ const lastYear = forecast.at(-1)
 const forecastSentence = (key, name) =>
   `${name}: gemeten tot en met ${lastMeasured.year}, ${number(forecast[0][key])} in ${forecast[0].year} en ${number(lastMeasured[key])} in ${lastMeasured.year}. De raming loopt tot ${number(lastYear[key])} in ${lastYear.year}, met een marge van ${number(lastYear[`${key}_low`])} tot ${number(lastYear[`${key}_high`])}.`
 const lateDesks = desks.filter((desk) => desk.data_status === 'delayed').map((desk) => desk.map_label)
+
+// A fictional budget in mld euro: twelve policy areas, three with their sub-posts. `missing`
+// names what has no figures: a policy area or a sub-post (rule 15).
+const budgetValue = (part) => part.parts ? part.parts.reduce((sum, sub) => sum + sub.value, 0) : part.value
+const budgetSpec = ({ nested = false, links = false, missing = [], ...extra } = {}) => ({
+  kind: 'treemap', label: 'Uitgaven', unit: 'mld euro', labelHeader: 'Beleidsterrein',
+  parts: budget.map((part) => ({
+    label: part.label, id: part.id,
+    ...(links ? { href: `?terrein=${part.id}` } : {}),
+    ...(nested && part.parts
+      ? { parts: part.parts.map((sub) => ({ label: sub.label, value: missing.includes(sub.label) ? null : sub.value })) }
+      : { value: missing.includes(part.label) ? null : Math.round(budgetValue(part) * 10) / 10 }),
+  })),
+  ...extra,
+})
+const mld = (value) => value.toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+// The total, the three largest with amount and share, what folds into "Overig" and what is missing.
+const budgetDescription = (missing = []) => {
+  const known = (part) => budgetValue(part) - (part.parts ?? []).filter((sub) => missing.includes(sub.label)).reduce((sum, sub) => sum + sub.value, 0)
+  const parts = budget.filter((part) => !missing.includes(part.label)).map((part) => ({ label: part.label, value: known(part) }))
+  const total = parts.reduce((sum, part) => sum + part.value, 0)
+  const share = (value) => `${mld((value / total) * 100)} %`
+  const [a, b, c] = [...parts].sort((x, y) => y.value - x.value)
+  const small = parts.filter((part) => part.value < total / 100).map((part) => part.label)
+  return `Uitgaven per beleidsterrein, totaal ${mld(total)} mld euro${missing.length ? `, zonder ${missing.join(' en ')}: daarvan zijn geen gegevens` : ''}. ` +
+    `De grootste: ${a.label} ${mld(a.value)} (${share(a.value)}), ${b.label} ${mld(b.value)} (${share(b.value)}) en ${c.label} ${mld(c.value)} (${share(c.value)}). ` +
+    `${small.join(' en ')}, elk onder 1 %, staan samen als Overig.`
+}
 
 // Requests of a fictional permit service from submission to outcome. A flow is changed by its
 // two ends: `{ 'compleet>ingetrokken': 12 }`.
@@ -556,6 +584,49 @@ const CHARTS = [
   },
   ...SANKEYS,
   {
+    id: 'treemap', title: 'Uitgaven per beleidsterrein',
+    subtitle: 'Begroting, fictief',
+    description: budgetDescription(),
+    spec: budgetSpec(),
+  },
+  {
+    id: 'treemap-nested', title: 'Uitgaven per beleidsterrein en post',
+    subtitle: 'Begroting, fictief',
+    description: budgetDescription(),
+    spec: budgetSpec({ nested: true }),
+  },
+  {
+    id: 'treemap-chosen', title: 'Uitgaven per beleidsterrein',
+    subtitle: 'Begroting, fictief',
+    description: budgetDescription(),
+    spec: budgetSpec({ links: true }),
+    selectedId: 'onderwijs',
+  },
+  {
+    id: 'treemap-nested-chosen', title: 'Uitgaven per beleidsterrein en post',
+    subtitle: 'Begroting, fictief',
+    description: budgetDescription(),
+    spec: budgetSpec({ nested: true, links: true }),
+    selectedId: 'zorg',
+  },
+  {
+    id: 'treemap-no-labels', title: 'Uitgaven per beleidsterrein',
+    subtitle: 'Begroting, fictief',
+    description: budgetDescription(),
+    spec: budgetSpec({ nested: true, dataLabels: false }),
+  },
+  {
+    id: 'treemap-phone', title: 'Uitgaven per beleidsterrein en post',
+    subtitle: 'Begroting, fictief',
+    description: budgetDescription(),
+    spec: budgetSpec({ nested: true, links: true }),
+    // On a phone the first part stands open, as after a tap on its button.
+    setup: async (element) => {
+      await element.updateComplete
+      element.renderRoot.querySelector('.lintje-treemap__toggle')?.click()
+    },
+  },
+  {
     id: 'heatmap', title: 'Heatmap met klassenlegenda',
     description: 'Aanvragen per uur naar dag van de week en uur van de dag, in vijf klassen.',
     spec: {
@@ -629,6 +700,12 @@ const VARIANT_NAMES = {
   heatmap: 'Met klassenlegenda',
   'heatmap-labels': 'Met lange rijlabels',
   histogram: 'Met mediaan en termijn',
+  treemap: 'Eén niveau',
+  'treemap-nested': 'Twee niveaus',
+  'treemap-chosen': 'Een gekozen vlak',
+  'treemap-nested-chosen': 'Gekozen hoofdpost met onderposten',
+  'treemap-no-labels': 'Zonder datalabels',
+  'treemap-phone': 'Op een telefoon met een open hoofdpost',
   sankey: 'Drie stappen',
   'sankey-four': 'Vier stappen met een eindigende stroom',
   'sankey-small': 'Een kleine stroom',
@@ -654,6 +731,11 @@ const VARIANT_NOTES = {
   'pie-folded': 'De taart houdt de vier grootste delen en vouwt de rest in “Overig”.',
   'pie-legend': 'De legenda staat boven de taart; aantal en aandeel staan in de tooltip.',
   'radar-layers': 'Wijs een regio aan in de legenda: haar vlak kleurt en de andere lagen stappen terug.',
+  treemap: 'Cultuur en media en Sport zijn elk kleiner dan 1 % van het geheel en staan samen als “Overig”.',
+  'treemap-nested': 'Een klik in een onderpost kiest de hoofdpost; de pijltoetsen lopen langs de onderposten.',
+  'treemap-nested-chosen': 'De omlijning staat om de hele hoofdpost; de andere stappen terug.',
+  'treemap-no-labels': 'Naam en bedrag staan in de tooltip en de tabel.',
+  'treemap-phone': 'Onder 768 px: het geheel als strook en een rij per hoofdpost; de eerste staat open. Op een breder scherm de gewone treemap.',
   'sankey-four': 'Toegekend gaat niet verder naar bezwaar: die aanvragen eindigen in de derde stap.',
   'sankey-small': 'Compleet → Ingetrokken is 12 aanvragen: de band is 2 px, het getal staat in de tooltip en de tabel.',
   'sankey-missing': 'Van Onvolledig naar In behandeling zijn geen gegevens: een gearceerde stomp, en In behandeling is minstens het bekende deel.',
@@ -691,7 +773,8 @@ const chartSpecimen = (chart) => ({
   note: VARIANT_NOTES[chart.id],
   html: TILE,
   setup(stage) {
-    stage.querySelector('lintje-chart').data = {
+    const element = stage.querySelector('lintje-chart')
+    element.data = {
       chart: chart.spec,
       description: chart.description,
       title: chart.title,
@@ -699,7 +782,17 @@ const chartSpecimen = (chart) => ({
       footnote: 'Bron: fictieve demogegevens',
       expandable: true,
       download: { filename: `demo-${chart.id}` },
+      selectedId: chart.selectedId,
     }
+    // A chart with links says under the tile where a click would go, and stays on this page. As a
+    // host would, it keeps the chosen mark and hands it back: the chart holds no selection itself.
+    if (JSON.stringify(chart.spec).includes('"href"')) {
+      linkLog(stage, element, ['lintje-mark-select'])
+      element.addEventListener('lintje-mark-select', (event) => {
+        element.data = { ...element.data, selectedId: event.detail.id ?? undefined }
+      })
+    }
+    chart.setup?.(element)
   },
 })
 
@@ -786,6 +879,12 @@ const missingValues = [
     note: 'De lijn breekt bij Tijdigheid, het vlak vervalt en de spaak is gearceerd.',
     description: 'Gemiddelde score per aspect in Q3 2026 tegen Q3 2025. Van Tijdigheid zijn geen gegevens.',
     chart: quality(true),
+  },
+  {
+    label: 'Ontbrekende waarde',
+    note: 'Van Wonen en van Jeugdzorg zijn geen gegevens: ze hebben geen vlak, en de totaalregel noemt ze.',
+    description: budgetDescription(['Wonen', 'Jeugdzorg']),
+    chart: budgetSpec({ nested: true, missing: ['Wonen', 'Jeugdzorg'] }),
   },
   {
     label: 'Ontbrekende waarde',

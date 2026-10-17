@@ -2,7 +2,7 @@
  * Chart colors as a host names them: a variable name becomes its token, anything else is
  * already a CSS color and passes through. No color stays no color.
  */
-import { DATA_COLORS, chartToken } from '../../../../tokens/colors'
+import { DATA_COLORS, chartToken, isDataColor, type DataColor } from '../../../../tokens/colors'
 import { isSeriesKey } from './series-shapes'
 import type { ChartColor } from './types'
 
@@ -58,6 +58,55 @@ const EDGES = new Map<string, string>([
 /** The edge under a line, a point or a legend shape in `color`, if that colour needs one. */
 export function lineCasing(color: string | undefined): string | undefined {
   return color == null ? undefined : EDGES.get(color)
+}
+
+/** The text a label on a fill takes: white, ink, or none where neither reaches 4.5:1. */
+export type LabelInk = 'white' | 'ink' | null
+
+type Rungs = readonly [LabelInk, LabelInk, LabelInk, LabelInk, LabelInk]
+const W = 'white'
+const K = 'ink'
+
+/**
+ * Which text reaches 4.5:1 on each step of each data colour's ladder: step 1 is the colour, 2–5
+ * its tints, as `tintSteps` spreads them. Where neither does (`null`), the fill carries no label;
+ * its tooltip and table still name it. `colour-scheme.test.ts` checks every cell.
+ */
+export const LABEL_INK: Readonly<Record<DataColor, Rungs>> = {
+  'sky-blue': [W, K, K, K, K],
+  'dark-yellow': [K, K, K, K, K],
+  red: [W, K, K, K, K],
+  green: [W, K, K, K, K],
+  'mint-green': [K, K, K, K, K],
+  violet: [W, W, K, K, K],
+  orange: [K, K, K, K, K],
+  pink: [K, K, K, K, K],
+  'dark-green': [W, null, K, K, K],
+  purple: [W, W, null, K, K],
+  'ruby-red': [W, null, K, K, K],
+  yellow: [K, K, K, K, K],
+  'dark-brown': [W, W, K, K, K],
+  brown: [W, K, K, K, K],
+  'dark-blue': [W, K, K, K, K],
+  'light-blue': [K, K, K, K, K],
+  'moss-green': [W, K, K, K, K],
+}
+
+/**
+ * The ink of a label on step `step` of `color`'s ladder; without a colour, the default's. Any
+ * other fill a host names (a role, a CSS colour) is light and takes ink.
+ */
+export function labelInk(color: string | undefined, step = 1): LabelInk {
+  if (color != null && !isDataColor(color)) return K
+  const ink = LABEL_INK[color ?? 'sky-blue'][step - 1]
+  return ink === undefined ? K : ink
+}
+
+/** The class of a label drawn on a mark in that ink. */
+export function insideLabelClass(ink: Exclude<LabelInk, null>): string {
+  return ink === 'white'
+    ? 'lintje-chart__data-label--inside'
+    : 'lintje-chart__data-label--inside-light'
 }
 
 /** The colour of a map point's series; colour names only. */

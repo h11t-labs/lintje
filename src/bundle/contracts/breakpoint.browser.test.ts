@@ -262,6 +262,27 @@ const RADAR: ChartData = {
   },
 }
 
+const TREEMAP: ChartData = {
+  title: 'Uitgaven per terrein',
+  description: 'Uitgaven per terrein, totaal 100 mld euro.',
+  state: 'ready',
+  chart: {
+    kind: 'treemap',
+    unit: 'mld euro',
+    parts: [
+      {
+        label: 'Zorg',
+        parts: [
+          { label: 'Ziekenhuizen', value: 30 },
+          { label: 'Wijkzorg', value: 20 },
+        ],
+      },
+      { label: 'Onderwijs', value: 30 },
+      { label: 'Wonen', value: 20 },
+    ],
+  },
+}
+
 const SANKEY: ChartData = {
   title: 'Aanvragen van indiening tot uitkomst',
   description: 'Aanvragen per stap, van indiening tot uitkomst.',
@@ -633,6 +654,17 @@ const ROWS: Row[] = [
       shown(element, '.lintje-radar__ring') && !find(element, '.lintje-radar__row'),
     phone: (element) =>
       shown(element, '.lintje-radar__row') && !find(element, '.lintje-radar__ring'),
+  },
+  {
+    tag: 'lintje-chart',
+    marker: 'the treemap becomes a strip of the whole over a row per part, opened on a tap',
+    mount: () => append(create('lintje-chart', { data: TREEMAP })),
+    wide: (element) =>
+      shown(element, '.lintje-treemap__area') && !find(element, '.lintje-treemap__row'),
+    phone: (element) =>
+      shown(element, '.lintje-treemap__strip') &&
+      shown(element, '.lintje-treemap__toggle[aria-expanded="false"]') &&
+      !find(element, '.lintje-treemap__area'),
   },
   {
     tag: 'lintje-chart',
