@@ -247,7 +247,7 @@ export class LintjeMultiselect extends LintjeInputElement {
         aria-labelledby="${this.labelId} ${SHOWN_ID} ${VALUE_ID}"
         aria-describedby=${this.describedBy}
         aria-invalid=${this.error ? 'true' : nothing}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         title=${labels.length ? labels.join(', ') : nothing}
         @click=${() => {
           if (this.open) void this.close()

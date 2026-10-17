@@ -12,6 +12,11 @@
    label ends in an ellipsis. */
 .lintje-heatmap__row-label { text-align: right; padding-right: var(--space-2); white-space: nowrap; width: 1%; }
 .lintje-heatmap__row-label-text { display: block; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+/* The `title` needs a pointer: without hover and below 768 px the label wraps whole. */
+@media (hover: none), screen and (max-width: 767px) {
+  .lintje-heatmap__row-label { white-space: normal; }
+  .lintje-heatmap__row-label-text { overflow-wrap: anywhere; }
+}
 .lintje-heatmap__slot { padding: 0; }
 
 .lintje-heatmap__cell {

@@ -46,7 +46,7 @@
 /* Leaflet lets no path in its svg take the pointer; a mark of ours does, by its own class. A
    mark drawn after a redraw keeps the view: marks are in the data group, the group is placed. */
 .lintje-map-chart__data .lintje-map-chart__polygon-shape,
-.lintje-map-chart__data .lintje-map-chart__flow,
+.lintje-map-chart__data .lintje-map-chart__flow-line,
 .lintje-map-chart__data .lintje-map-chart__point-shape { pointer-events: visiblePainted; }
 .lintje-map-chart__destination { pointer-events: none; }
 /* A tool on: the map is a sheet to draw on, also for a finger. */
@@ -69,6 +69,11 @@
 .lintje-map-chart__polygon.is-preview .lintje-map-chart__polygon-shape,
 .lintje-map-chart__point.is-preview .lintje-map-chart__point-shape { stroke: var(--color-text-primary); stroke-width: 2; }
 .lintje-map-chart__flow.is-preview { opacity: 1; }
+/* The focused mark is copied into a layer over the drawing, so its ring lies over every mark
+   drawn after it; the mark itself keeps its place, its focus and the Tab order. The copy does
+   not draw in again. */
+.lintje-map-chart__focus { pointer-events: none; }
+.lintje-map-chart .lintje-map-chart__focus * { animation: none; }
 /* A circle shows its middle, which is what the reader measures from. */
 .lintje-map-chart__region-centre {
   fill: var(--color-text-primary);
@@ -125,31 +130,45 @@
 .lintje-map-chart__polygon.is-selected .lintje-map-chart__polygon-shape { stroke: var(--color-text-primary); stroke-width: 2; }
 .lintje-map-chart__polygon-ring { fill: none; stroke: none; vector-effect: non-scaling-stroke; }
 .lintje-map-chart__polygon:focus-visible { outline: none; }
-.lintje-map-chart__polygon:focus-visible .lintje-map-chart__polygon-ring {
+:is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon) .lintje-map-chart__polygon-ring {
   stroke: var(--color-focus);
   stroke-width: calc(var(--focus-width) * 2 + 2px);
 }
-.lintje-map-chart__polygon:focus-visible .lintje-map-chart__polygon-shape {
+:is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon) .lintje-map-chart__polygon-shape {
   stroke: var(--color-bg-surface);
   stroke-width: 2;
 }
 
 .lintje-map-chart__flow {
-  fill: none;
-  stroke: var(--color-chart-default);
-  stroke-linecap: round;
   opacity: .75;
   cursor: pointer;
-  vector-effect: non-scaling-stroke;
   transition: opacity var(--dur-hover) var(--ease-in-motion);
 }
+.lintje-map-chart__flow-line,
+.lintje-map-chart__flow-ring,
+.lintje-map-chart__flow-gap {
+  fill: none;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.lintje-map-chart__flow-line { stroke: var(--color-chart-default); stroke-width: var(--lintje-flow-width); }
+.lintje-map-chart__flow-ring,
+.lintje-map-chart__flow-gap { stroke: none; pointer-events: none; }
 .lintje-map-chart__flow:hover,
 .lintje-map-chart__flow.is-selected { opacity: 1; }
 /* Something is chosen, a mark or an area: the flows not chosen step back, further than a point. */
 .lintje-map-chart__data.has-selection .lintje-map-chart__flow:not(.is-selected):not(:focus-visible) { opacity: .22; }
-/* A flow is a line: on focus the line itself is the ring, in the focus colour at full strength,
-   also beside the chosen one. */
-.lintje-map-chart__flow:focus-visible { stroke: var(--color-focus); opacity: 1; }
+/* On focus a flow keeps its own colour and width, at full strength also beside the chosen one,
+   and gets the ring of every mark: 3 px outside a 1 px gap in the surface, along both sides. */
+:is(.lintje-map-chart__flow:focus-visible, .lintje-map-chart__focus .lintje-map-chart__flow) { opacity: 1; }
+:is(.lintje-map-chart__flow:focus-visible, .lintje-map-chart__focus .lintje-map-chart__flow) .lintje-map-chart__flow-ring {
+  stroke: var(--color-focus);
+  stroke-width: calc(var(--lintje-flow-width) + var(--focus-width) * 2 + 2px);
+}
+:is(.lintje-map-chart__flow:focus-visible, .lintje-map-chart__focus .lintje-map-chart__flow) .lintje-map-chart__flow-gap {
+  stroke: var(--color-bg-surface);
+  stroke-width: calc(var(--lintje-flow-width) + 2px);
+}
 .lintje-map-chart__destination { fill: var(--color-attention); stroke: var(--color-bg-surface); stroke-width: 2; }
 
 .lintje-map-chart__point { cursor: pointer; }
@@ -185,11 +204,11 @@
    1 px edge in the surface show — so an orange point keeps its ring. The shape is opaque while
    focused, or the ring would show through it. */
 .lintje-map-chart__point-ring { fill: none; stroke: none; vector-effect: non-scaling-stroke; }
-.lintje-map-chart__point:focus-visible .lintje-map-chart__point-ring {
+:is(.lintje-map-chart__point:focus-visible, .lintje-map-chart__focus .lintje-map-chart__point) .lintje-map-chart__point-ring {
   stroke: var(--color-focus);
   stroke-width: calc(var(--focus-width) * 2 + 2px);
 }
-.lintje-map-chart__point:focus-visible .lintje-map-chart__point-shape {
+:is(.lintje-map-chart__point:focus-visible, .lintje-map-chart__focus .lintje-map-chart__point) .lintje-map-chart__point-shape {
   stroke: var(--color-bg-surface);
   stroke-width: 2;
   fill-opacity: 1;
@@ -225,7 +244,7 @@
   }
 
   .lintje-map-chart__polygon,
-  .lintje-map-chart__flow,
+  .lintje-map-chart__flow-line,
   .lintje-map-chart__point-figure {
     animation-duration: calc(var(--dur-draw) * 0.6);
     animation-timing-function: var(--ease-in-motion);
@@ -233,14 +252,14 @@
     animation-fill-mode: backwards;
   }
   .lintje-map-chart__polygon { animation-name: lintje-map-fade; }
-  .lintje-map-chart__flow { animation-name: lintje-map-draw; }
+  .lintje-map-chart__flow-line { animation-name: lintje-map-draw; }
   .lintje-map-chart__point-figure { animation-name: lintje-point-grow; }
 
   .lintje-map-chart__polygon,
-  .lintje-map-chart__flow,
+  .lintje-map-chart__flow-line,
   .lintje-map-chart__point-figure { animation-play-state: paused; }
   [data-in-view] .lintje-map-chart__polygon,
-  [data-in-view] .lintje-map-chart__flow,
+  [data-in-view] .lintje-map-chart__flow-line,
   [data-in-view] .lintje-map-chart__point-figure { animation-play-state: running; }
 }
 @keyframes lintje-map-fade { from { opacity: 0; } }
@@ -537,11 +556,13 @@
   .lintje-map-chart__series-swatch { forced-color-adjust: none; }
   .lintje-map-chart__polygon.is-selected .lintje-map-chart__polygon-shape,
   .lintje-map-chart__point.is-selected .lintje-map-chart__point-shape { stroke: CanvasText; }
-  .lintje-map-chart__point:focus-visible .lintje-map-chart__point-ring,
-  .lintje-map-chart__polygon:focus-visible .lintje-map-chart__polygon-ring,
-  .lintje-map-chart__flow:focus-visible { stroke: Highlight; }
-  .lintje-map-chart__point:focus-visible .lintje-map-chart__point-shape,
-  .lintje-map-chart__polygon:focus-visible .lintje-map-chart__polygon-shape { stroke: Canvas; }
+  .lintje-map-chart__focus { forced-color-adjust: none; }
+  :is(.lintje-map-chart__point:focus-visible, .lintje-map-chart__focus .lintje-map-chart__point) .lintje-map-chart__point-ring,
+  :is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon) .lintje-map-chart__polygon-ring,
+  :is(.lintje-map-chart__flow:focus-visible, .lintje-map-chart__focus .lintje-map-chart__flow) .lintje-map-chart__flow-ring { stroke: Highlight; }
+  :is(.lintje-map-chart__point:focus-visible, .lintje-map-chart__focus .lintje-map-chart__point) .lintje-map-chart__point-shape,
+  :is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon) .lintje-map-chart__polygon-shape,
+  :is(.lintje-map-chart__flow:focus-visible, .lintje-map-chart__focus .lintje-map-chart__flow) .lintje-map-chart__flow-gap { stroke: Canvas; }
   .lintje-map-chart__layer.is-active { border-color: Highlight; }
   .lintje-map-legend__box { forced-color-adjust: none; background: Highlight; border-color: Highlight; color: HighlightText; }
   .lintje-map-legend__layer.is-off .lintje-map-legend__box { background: Canvas; border-color: CanvasText; }

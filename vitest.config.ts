@@ -3,7 +3,9 @@
  *
  * `unit` — every `*.test.ts` under `src/`, in `happy-dom`: what is tested there is the
  * arithmetic — the query, the dirty set, the key diff — and a document with elements is enough
- * for that.
+ * for that. The files a worker runs share one window (`src/bundle/unit-setup.ts` clears the page
+ * between them); `unit-window` gives the few files that need a fresh page or module registry a
+ * window of their own. `npm run test:unit` runs both.
  *
  * `browser` — every `*.browser.test.ts` under `src/`, in a real browser (Vitest's browser mode,
  * driven by Playwright): what needs layout, focus, a pointer or the computed colours. Behaviour
@@ -27,20 +29,41 @@ const emulatePrint: BrowserCommand<[on: boolean]> = async ({ page }, on) => {
 
 const engines = (process.env.LINTJE_BROWSERS ?? 'chromium').split(',') as Engine[]
 
+const unit = {
+  environment: 'happy-dom',
+  // A link the page does not take over is followed: here that only sets the URL.
+  environmentOptions: {
+    happyDOM: { settings: { navigation: { disableMainFrameNavigation: true } } },
+  },
+}
+
+/**
+ * The files that need a window of their own: one looks at the registry of a page that loaded
+ * nothing else, one mocks a module (`vi.mock`), which a module the cache already holds skips.
+ */
+const FRESH_WINDOW = ['src/bundle/forms.test.ts', 'src/components/map/map/map.test.ts']
+
 export default defineConfig({
   test: {
     projects: [
       {
         extends: true,
         test: {
+          ...unit,
           name: 'unit',
-          environment: 'happy-dom',
-          // A link the page does not take over is followed: here that only sets the URL.
-          environmentOptions: {
-            happyDOM: { settings: { navigation: { disableMainFrameNavigation: true } } },
-          },
           include: ['src/**/*.test.ts'],
-          exclude: ['src/**/*.browser.test.ts'],
+          exclude: ['src/**/*.browser.test.ts', ...FRESH_WINDOW],
+          // One window per worker, not per file: setting one up is half the time of the run.
+          isolate: false,
+          setupFiles: ['src/bundle/unit-setup.ts'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          ...unit,
+          name: 'unit-window',
+          include: FRESH_WINDOW,
         },
       },
       {

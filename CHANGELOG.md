@@ -11,6 +11,98 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-16
+
+### Toegevoegd
+
+- De kaart neemt `size`, op de kaart en per laag: `min`/`max` zetten het pixelbereik van een
+  punt (standaard 3–18), `by: 'none'` tekent elke punt op `min` zonder groottesleutel in de
+  legenda, en `zoom: true` laat de straal met de zoom meegaan, tussen 2 en 28 px. Nieuw specimen
+  *Kaart · puntgrootte met de zoom*. (#225)
+- Een kaartreeks krijgt met `seriesStyles` een eigen stijl — een datakleur of `neutral` (het
+  vergelijkingsgrijs), en/of een van de zeventien vormen — los van haar naam; punten, legenda en
+  selectiepaneel tekenen dezelfde stijl. Een reeks zonder stijl is wat ze was. Nieuw specimen
+  *Kaart · reeksen in één kleur*. (#224)
+- Een stap van `lintje-stepper` kan eigen inhoud dragen: een stap met een `value` heeft een slot
+  met die naam. In de kolom staat de inhoud van elke stap onder zijn kop; in de rij en op een
+  telefoon alleen die van de huidige stap, onder de rij of de balk. De referentie noemt een slot
+  met een gebonden naam, zoals dat van `lintje-tabs`, als één slot per item. (#143)
+
+### Gewijzigd
+
+- De build minificeert de modules en de ingesloten CSS: `lintje.js` gaat van 1,9 naar 1,5 MB (gzip van 468 naar 389 kB), `tag/map.js` van 624 naar 438 kB. De CSS wordt niet omlaag vertaald: `color-mix()` en `oklch()` blijven zoals ze geschreven zijn. (#221)
+- De unittests delen één happy-dom-venster per worker en `npm run test:unit` draait daardoor bijna drie keer zo snel; `src/bundle/unit-setup.ts` zet vóór elk bestand de pagina terug, en een test die een lege registry nodig heeft of een module mockt, draait in het project `unit-window`. (#221)
+- Een klikbare rij van `lintje-data-table`, een teken in `lintje-chart` en een markering op
+  `lintje-map` met een `href` gaan erheen na hun event, en een selectie ongedaan maken gaat naar
+  `clearHref`. Een klik met een modifier of de middelste knop opent de `href` in een nieuw tabblad.
+  Een host die zelf navigeert of `selectedId` zet, annuleert het event. (#149)
+- Geen hover neemt nog `--color-bg-selected`; een herkende term met toelichting toont onder de
+  muis een dikkere lijn. (#139)
+
+### Opgelost
+
+- Een brede tabel krijgt geen verticale scrollbalk meer naast zijn smalle horizontale: het vak
+  scrolt alleen opzij. (#226)
+- De legendatabel onder een taart houdt haar kolommen ook in Edge: de rijkop is weer een
+  tabelcel, zodat aantal en % onder hun eigen kop staan; een lang etiket springt in onder zijn
+  eerste regel, met het kleurblokje op die regel. (#222)
+- Een schermlezer hoort de nieuwe waarde na − of + in `lintje-number-input`, de beschrijving van
+  een gekozen optie in `lintje-segmented` en een wisselende verbinding in
+  `lintje-recording-status`; een cel met een toon in `lintje-description-list` draagt het woord
+  van haar teken verborgen vóór de waarde. (#196)
+- De focusring van een optie van `lintje-segmented` naast de gekozen optie is aan alle kanten heel,
+  en de knop van `lintje-file-upload` houdt zijn focus tijdens en na een sleep over de pagina.
+  (#191)
+- Een groep in de navigatiebalk die een tik opende, sluit niet meer meteen weer als er een muis
+  op de pagina staat: het verlaten van de balk sluit alleen een groep die onder de muis openging.
+  (#182)
+- `lintje-expander`, `lintje-explainer` en `lintje-filter-zone` laten hun inhoud los zodra hun
+  hoogte staat; ze wachten alleen op een overgang van de hoogte die echt loopt. (#179)
+- Na wissen leest `lintje-find` geen melding meer voor die nog onderweg was. `lintje-notifications`,
+  `lintje-log-viewer`, `lintje-find`, `lintje-card` en `lintje-card-list` spreken via de gedeelde
+  live-regio, dus ook dezelfde melding twee keer na elkaar klinkt twee keer. (#158)
+- Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame later, zodat de browser
+  geen `ResizeObserver`-lus meer als fout van de pagina meldt; een lusfout laat de browsertest
+  falen. Onder verminderde beweging loopt alleen opacity nog, en staan de focusring en een
+  kleurwissel meteen. (#152)
+- `lintje-segmented` blijft een rij als hij hoogstens één pixel te breed meet: bij zoom in Safari wisselde hij eindeloos tussen rij en kolom tot de pagina werd afgeschoten. In de transcriptie-app delen "Soort gesprek" en "Opnemen met" de breedte niet meer 50/50, zodat de soorten naast de recente opnames op één rij blijven. (#151)
+- Na nieuwe data sluit de tooltip van het toetsenbord en wordt de statusregio leeg; de volgende
+  pijltoets begint binnen de nieuwe data. Een taart neemt altijd de focus en loopt met de pijltjes
+  door haar delen, en zonder legendatabel staat de gewone legenda boven de taart. (#150)
+- Op een aanraakscherm sluit een tweede tik op een geopende groep in de navigatiebalk hem weer. Muis,
+  toetsenbord en "Menu" werken zoals ze deden. (#148)
+- Een bestand dat naast de dropzone van `lintje-file-upload` valt, opent niet meer in de browser:
+  zolang de upload bestanden aanneemt, doet zo'n bestand niets en zegt de aanwijzer buiten de zone
+  dat loslaten niet kan. De zone wijst zichzelf aan zolang je sleept en vult zich pas als het bestand erboven hangt. (#147)
+- Een melding klinkt ook als ze er meteen staat, of voor de tweede keer. Het woord van het wachtvak
+  van `lintje-streaming-text` wordt voorgelezen, en dezelfde melding twee keer na elkaar klinkt
+  twee keer in `lintje-tag-input`, `lintje-file-upload`, `lintje-repeater` en
+  `lintje-sortable-list`. (#146)
+- De terugzetknop van een veld noemt het veld na zijn eigen woorden, en `reset-label` werkt nu
+  ook op `lintje-text-input` en `lintje-textarea`. Een natief veld in `lintje-form` krijgt bij een
+  fout de melding als `aria-description`. (#145)
+- In donker halen de stip van een gekozen keuze in een menu, de balk van een gekozen rij, de lijn
+  onder een term, een link in een getinte cel van `lintje-description-list`, de vulling en het
+  spoor van `lintje-progress-bar`, een foutstap in `lintje-stepper` en de tijdcode op een getint
+  fragment hun contrast. (#139)
+- De stippellijn "lage zekerheid" van `lintje-highlight` haalt in licht 3:1 op haar tint. (#139)
+- De focusring haalt in licht 3:1 op elke lichte ondergrond, ook op de waas van de hero: hij is
+  daar een donkerder oranje; in donker blijft hij het oranje van de huisstijl. (#139)
+- Het omgevingslabel haalt 4,5:1: de tekst is bijna-zwart op het oranje accent en blijft wit op
+  het blauw van defensie. (#139)
+- Een gestapelde staaf leest zijn percentages ook in donker: "Overig" is daar iets lichter, en een
+  label op de rest neemt de tekstkleur. (#139)
+- Escape sluit een toast alleen nog vanuit de toast zelf, en de Escape die een opgetilde verdeling
+  van `lintje-split-pane` terugzet, sluit geen venster eromheen meer. (#139)
+- `lintje-popover` vraagt ook om te sluiten als de focus hem verlaat (`lintje-close` met
+  `reason: 'focus'`); de linkdialoog van `lintje-text-editor` en de panelen van
+  `lintje-data-table` laten de focus dan waar hij heen ging. (#139)
+- De trendlijn van een staafgrafiek breekt bij een ontbrekende waarde in plaats van die te
+  overbruggen; een losse bekende waarde is een stip, zoals in de lijngrafiek. (#139)
+- Een invoer met `required` houdt een native formulier tegen zolang hij leeg is, voor elke invoer
+  en niet alleen tekst, getal en textarea, met de melding van de browser bij het
+  bedieningselement. (#139)
+
 ## [0.5.1] - 2026-10-15
 
 ### Gewijzigd
@@ -299,7 +391,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.5.1...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/h11t-labs/lintje/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/h11t-labs/lintje/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/h11t-labs/lintje/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/h11t-labs/lintje/compare/v0.3.0...v0.4.0

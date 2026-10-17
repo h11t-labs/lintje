@@ -148,7 +148,7 @@ export class LintjeDateInput extends LintjeInputElement {
   }
 
   private openCalendar(): void {
-    if (this.disabled) return
+    if (this.isDisabled) return
     this.focusDay = clampDay(this.value ?? this.todayDay, this.min, this.max)
     this.open = true
     void this.focusCell()
@@ -247,7 +247,7 @@ export class LintjeDateInput extends LintjeInputElement {
           aria-describedby=${this.describedBy}
           aria-invalid=${message ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @change=${this.onChange}
           @keydown=${this.onFieldKeydown}
         />
@@ -257,14 +257,14 @@ export class LintjeDateInput extends LintjeInputElement {
           aria-label="Kalender openen"
           aria-haspopup="dialog"
           aria-expanded=${this.open ? 'true' : 'false'}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @click=${this.toggle}
         >
           ${renderIcon('functioneel-kalender', { size: 18 })}
         </button>
       </div>
       <lintje-popover
-        ?open=${this.open && !this.disabled}
+        ?open=${this.open && !this.isDisabled}
         panel-role="dialog"
         label="Kalender"
         @lintje-close=${this.onPopoverClose}

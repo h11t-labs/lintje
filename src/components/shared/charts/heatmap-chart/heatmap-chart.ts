@@ -145,6 +145,7 @@ export function renderHeatmap(spec: HeatmapSpec, options: ChartOptions): Templat
                               controller.requestUpdate()
                             }
                       }
+                      @auxclick=${mark.click}
                       @mousemove=${
                         compact
                           ? undefined

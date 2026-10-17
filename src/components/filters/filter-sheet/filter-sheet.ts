@@ -6,20 +6,13 @@
  *
  * Events: `lintje-filters-apply`, `lintje-sheet-close`, `lintje-filters-reset`.
  */
-import {
-  html,
-  nothing,
-  type PropertyDeclarations,
-  type TemplateResult,
-  type PropertyValues,
-} from 'lit'
+import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
 import '../../actions/icon-button/icon-button'
-import { holdOverflow, lockScroll } from '../../../core/host-config'
-import { FocusTrap } from '../../shared/focus-trap'
+import { DialogHold } from '../../shared/dialog'
 import { filterSentence, type SentencePart } from '../shared/sentence'
 import sheetCss from './filter-sheet.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
@@ -43,18 +36,12 @@ export class LintjeFilterSheet extends LintjeElement {
   /** The element that scrolls the page; without it the sheet uses `lockScroll`. */
   declare scrollLock?: HTMLElement | null
 
-  private locked: (() => void) | null = null
-  readonly #trap = new FocusTrap()
-
-  private readonly onKeyDown = (event: KeyboardEvent): void => {
-    // Only the dialog on top answers.
-    if (!this.open || event.key !== 'Escape' || !this.#trap.isTopmost()) return
-    // Our own popups stop the key themselves; this is the net for a host's control. The slotted
-    // controls are asked, since a query cannot see into their shadow roots; the event's path
-    // would not do either (Escape with focus on the body has a path of two).
-    if (this.hasOpenPopover()) return
-    this.close()
-  }
+  // Our own popups stop Escape themselves; this is the net for a host's control. The slotted
+  // controls are asked, since a query cannot see into their shadow roots; the event's path
+  // would not do either (Escape with focus on the body has a path of two).
+  readonly #hold = new DialogHold(() => {
+    if (!this.hasOpenPopover()) this.close()
+  })
 
   private hasOpenPopover(): boolean {
     const slot = this.renderRoot.querySelector('slot')
@@ -64,15 +51,8 @@ export class LintjeFilterSheet extends LintjeElement {
     )
   }
 
-  override connectedCallback(): void {
-    super.connectedCallback()
-    document.addEventListener('keydown', this.onKeyDown)
-  }
-
   override disconnectedCallback(): void {
-    document.removeEventListener('keydown', this.onKeyDown)
-    this.unlock()
-    this.#trap.deactivate()
+    this.#hold.release()
     super.disconnectedCallback()
   }
 
@@ -80,26 +60,13 @@ export class LintjeFilterSheet extends LintjeElement {
     this.emitLocal('lintje-sheet-close')
   }
 
-  private lock(): void {
-    if (this.locked) return
-    // Shares the overlay counter, so a modal over the sheet shares the lock.
-    this.locked = this.scrollLock ? holdOverflow(this.scrollLock) : lockScroll()
-  }
-
-  private unlock(): void {
-    this.locked?.()
-    this.locked = null
-  }
-
-  protected override updated(changed: PropertyValues<this>): void {
-    if (!changed.has('open')) return
-    if (this.open) {
-      this.lock()
+  protected override updated(): void {
+    if (this.open && !this.#hold.held) {
       const sheet = this.renderRoot.querySelector<HTMLElement>('.lintje-filter-sheet')
-      if (sheet) this.#trap.activate(sheet)
-    } else {
-      this.unlock()
-      this.#trap.deactivate()
+      // Shares the overlay counter, so a modal over the sheet shares the lock.
+      if (sheet) this.#hold.hold(sheet, { focus: true, scroller: this.scrollLock })
+    } else if (!this.open && this.#hold.held) {
+      this.#hold.release()
     }
   }
 
