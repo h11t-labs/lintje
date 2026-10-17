@@ -685,13 +685,22 @@ describe('lintje-map area', () => {
     ])
     expect(tools(one)[0].classList).not.toContain('lintje-map-chart__tool--menu')
     expect(tools(one)[0].hasAttribute('aria-haspopup')).toBe(false)
+    expect(tools(one)[0].getAttribute('aria-pressed')).toBe('false')
     expect(one.renderRoot.querySelector('lintje-popover')).toBeNull()
+    // One shape is a toggle that keeps its name, on and off.
+    tools(one)[0].click()
+    await one.updateComplete
+    expect(tools(one)[0].getAttribute('aria-pressed')).toBe('true')
+    expect(tools(one)[0].getAttribute('aria-label')).toBe('Selecteer met een cirkel')
+    tools(one)[0].click()
+    await one.updateComplete
 
     const element = await mapTile(tileData({ controls: { lasso: true, circle: true, rect: true } }))
     const [button] = tools(element)
     // No tool in hand: a select button, which opens the menu.
     expect(button.getAttribute('aria-label')).toBe('Selecteren')
-    expect(button.getAttribute('aria-pressed')).toBe('false')
+    // A menu button, never a toggle at once.
+    expect(button.hasAttribute('aria-pressed')).toBe(false)
     expect(button.classList).toContain('lintje-map-chart__tool--menu')
     expect(button.getAttribute('aria-haspopup')).toBe('menu')
     expect(button.getAttribute('aria-expanded')).toBe('false')
@@ -717,7 +726,7 @@ describe('lintje-map area', () => {
     // The menu closes; the circle is in hand: the button shows it, stops it, and the map draws.
     expect(rows(element)).toHaveLength(0)
     expect(tools(element)[0].getAttribute('aria-label')).toBe('Stop met selecteren')
-    expect(tools(element)[0].getAttribute('aria-pressed')).toBe('true')
+    expect(tools(element)[0].hasAttribute('aria-pressed')).toBe(false)
     expect(tools(element)[0].hasAttribute('aria-haspopup')).toBe(false)
     expect(tools(element)[0].classList).toContain('is-active')
     // The circle's own path, from `functioneel-cirkelselectie`.

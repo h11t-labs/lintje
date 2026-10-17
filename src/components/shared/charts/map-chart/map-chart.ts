@@ -63,15 +63,15 @@ const AREA_TOOLS: { tool: MapTool; name: string; text: string; label: string }[]
 /** How to draw with a tool, under the map; a phone gets the short form, for a finger. */
 const TOOL_HINTS: Record<MapTool, { full: string; short: string }> = {
   lasso: {
-    full: 'Sleep om te kiezen, of klik de hoeken · Escape stopt',
+    full: 'Sleep om te kiezen, of klik de hoeken, of zet met Enter een punt in het midden · Escape stopt',
     short: 'Sleep om te kiezen',
   },
   circle: {
-    full: 'Sleep vanuit het midden, of klik het midden en dan de rand · Escape stopt',
+    full: 'Sleep vanuit het midden, of klik het midden en dan de rand, of zet met Enter een punt in het midden · Escape stopt',
     short: 'Sleep vanuit het midden',
   },
   rect: {
-    full: 'Sleep van hoek naar hoek, of klik twee hoeken · Escape stopt',
+    full: 'Sleep van hoek naar hoek, of klik twee hoeken, of zet met Enter een punt in het midden · Escape stopt',
     short: 'Sleep van hoek naar hoek',
   },
 }
@@ -371,10 +371,11 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     const on = controller.mapTool === shown.tool
     const menu = tools.length > 1
     const open = controller.mapMenuOpen
-    // One shape: a button that switches it on and off. More: a select button whose corner says a
-    // menu stands behind it; a click opens the menu, the shape used last checked and focused.
-    // With a shape in hand the button shows it, and a click puts it down.
-    const label = on ? 'Stop met selecteren' : menu ? 'Selecteren' : shown.label
+    // One shape: a toggle that switches it on and off, under one name. More: a select button whose
+    // corner says a menu stands behind it; a click opens the menu, the shape used last checked
+    // and focused. With a shape in hand that button shows it, and a click puts it down: then it
+    // is a plain button, never a toggle and a menu button at once.
+    const label = !menu ? shown.label : on ? 'Stop met selecteren' : 'Selecteren'
     // Keyed by its name: the icon is drawn anew when the shape changes, and grows in.
     const name = on || !menu ? shown.name : 'functioneel-selectie'
     const icon = keyed(
@@ -385,7 +386,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
       <lintje-tooltip class="lintje-map-chart__tip ${first}" text=${label} placement="left" no-describe>
         <button type="button"
                 class="lintje-map-chart__zoom-button lintje-map-chart__tool ${menu ? 'lintje-map-chart__tool--menu' : ''} ${on ? 'is-active' : ''}"
-                aria-label=${label} aria-pressed=${on}
+                aria-label=${label} aria-pressed=${menu ? nothing : String(on)}
                 aria-haspopup=${menu && !on ? 'menu' : nothing} aria-expanded=${menu && !on ? String(open) : nothing}
                 aria-controls=${menu && !on ? menuId : nothing}
                 @click=${() => {
@@ -495,7 +496,8 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
          ${ref(controller.attach)} ?data-in-view=${controller.inView}
          @keydown=${(event: KeyboardEvent) => {
            if (event.key !== 'Escape') return
-           // Escape undoes one thing: the tool, then the chosen mark, then the area.
+           // Escape undoes one thing: the tooltip, the tool, then the chosen mark, then the area.
+           if (controller.dismiss(event)) return
            if (controller.mapTool) controller.mapTool = null
            else if (active) clear()
            else if (area) clearArea()
@@ -535,6 +537,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
         <!-- Leaflet makes the surface a Tab stop; every mark on it is a button. -->
         <div class="lintje-map-chart__leaflet" role=${drawingRole(true)}
              aria-labelledby="${controller.id}-desc" ${ref(leaflet.attach)}></div>
+        ${controller.mapTool ? html`<span class="lintje-map-chart__crosshair" aria-hidden="true"></span>` : nothing}
         ${renderTooltip(controller)}
 
         <!-- Layer switcher top left. -->

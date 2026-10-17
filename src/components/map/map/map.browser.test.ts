@@ -1,10 +1,12 @@
 /**
- * The map's focus in a browser: a ring the map area would clip, and a mark the overlays would
- * hide (WCAG 2.4.7, 2.4.11). happy-dom lays nothing out, and Leaflet pans with an animation.
+ * The map's focus in a browser: a ring the map area would clip, a mark the overlays would hide
+ * (WCAG 2.4.7, 2.4.11), the tooltip of the keyboard's mark, drawing with the keyboard and a thin
+ * flow's target (2.1.1, 2.5.8). happy-dom lays nothing out, and Leaflet pans with an animation.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { server, userEvent } from 'vitest/browser'
 import './map'
+import '../../overlays/modal/modal'
 import type { MapData } from '../../../types'
 
 type MapElement = HTMLElement & { data: MapData; updateComplete: Promise<unknown> }
@@ -366,5 +368,99 @@ describe('the map on a basemap', () => {
     await expect
       .poll(() => inside(maastricht.getBoundingClientRect(), container.getBoundingClientRect()))
       .toBe(true)
+  })
+})
+
+describe('the map and the keyboard', () => {
+  const tooltip = (element: MapElement): HTMLElement | null =>
+    root(element).querySelector<HTMLElement>('.lintje-chart-tooltip')
+  const tool = (element: MapElement): HTMLButtonElement =>
+    root(element).querySelector<HTMLButtonElement>('.lintje-map-chart__tool')!
+  const surface = (element: MapElement): HTMLElement =>
+    root(element).querySelector<HTMLElement>('.leaflet-container')!
+
+  it('shows the tooltip of the mark the keyboard reaches, at the mark, and hides it after', async () => {
+    const element = await mount()
+    const utrecht = mark(element, 'utr') as SVGElement
+    await keyboardFocus(utrecht)
+    await expect.poll(() => tooltip(element)?.textContent).toContain('Utrecht')
+    expect(tooltip(element)!.textContent).toContain('12')
+    const at = utrecht.getBoundingClientRect()
+    const box = tooltip(element)!.getBoundingClientRect()
+    expect(Math.abs(box.top - (at.top + at.height / 2))).toBeLessThan(24)
+    utrecht.blur()
+    await expect.poll(() => tooltip(element)).toBeNull()
+  })
+
+  it('sets the two corners of a rectangle with Enter at the middle of the view', async () => {
+    const element = await mount({ controls: { rect: true } })
+    const areas: { area: { kind: string; ring: unknown[] } }[] = []
+    element.addEventListener('lintje-area-select', (event) =>
+      areas.push((event as CustomEvent).detail),
+    )
+    tool(element).click()
+    await element.updateComplete
+    await keyboardFocus(surface(element))
+    const cross = root(element).querySelector('.lintje-map-chart__crosshair')!
+    await expect.poll(() => getComputedStyle(cross).display).toBe('block')
+    await userEvent.keyboard('{Enter}')
+    // The arrows move the map under the cross; the rectangle runs on to it.
+    await userEvent.keyboard('{ArrowRight}{ArrowDown}')
+    await expect
+      .poll(() => root(element).querySelector('.lintje-map-chart__region--draft'))
+      .not.toBeNull()
+    await userEvent.keyboard('{Enter}')
+    await expect.poll(() => areas.length).toBe(1)
+    expect(areas[0]!.area.kind).toBe('lasso')
+    expect(areas[0]!.area.ring).toHaveLength(4)
+  })
+
+  it('leaves an Escape in a dialog over it to the dialog, with a tool in hand', async () => {
+    const element = await mount({ controls: { rect: true } })
+    tool(element).click()
+    await element.updateComplete
+    const modal = document.createElement('lintje-modal') as HTMLElement & {
+      open: boolean
+      heading: string
+      updateComplete: Promise<unknown>
+    }
+    modal.heading = 'Venster'
+    modal.innerHTML = '<button type="button">Verder</button>'
+    let closed = 0
+    modal.addEventListener('lintje-close', () => closed++)
+    document.body.append(modal)
+    modal.open = true
+    await modal.updateComplete
+    modal.querySelector('button')!.focus()
+    await userEvent.keyboard('{Escape}')
+    expect(closed).toBe(1)
+    expect(tool(element).classList).toContain('is-active')
+  })
+
+  it('takes a click 10 px beside a flow of 1 px', async () => {
+    const element = await mount({
+      basemap: BASEMAP,
+      variant: 'flows',
+      destination: { lon: 4.9, lat: 52.37, label: 'Amsterdam' },
+      values: [MIDDLE, CORNER, { ...SOUTH, value: 0 }],
+    })
+    await expect.poll(() => root(element).querySelectorAll('[data-mark-id]').length).toBe(3)
+    const flow = mark(element, 'maa')
+    const line = flow.querySelector<SVGPathElement>('.lintje-map-chart__flow-line')!
+    expect(getComputedStyle(line).strokeWidth).toBe('1px')
+    // The middle of the line on screen, and the direction across it there.
+    const length = line.getTotalLength()
+    const matrix = line.getScreenCTM()!
+    const onScreen = (at: number): DOMPoint => line.getPointAtLength(at).matrixTransform(matrix)
+    const middle = onScreen(length / 2)
+    const ahead = onScreen(length / 2 + 1)
+    const along = Math.hypot(ahead.x - middle.x, ahead.y - middle.y)
+    const [nx, ny] = [-(ahead.y - middle.y) / along, (ahead.x - middle.x) / along]
+    const beside = root(element).elementFromPoint(middle.x + nx * 10, middle.y + ny * 10)
+    expect(beside?.closest('[data-mark-id]')).toBe(flow)
+    const chosen: unknown[] = []
+    element.addEventListener('lintje-mark-select', (event) => chosen.push(event))
+    beside!.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }))
+    expect(chosen).toHaveLength(1)
   })
 })

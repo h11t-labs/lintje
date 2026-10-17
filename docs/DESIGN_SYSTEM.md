@@ -968,8 +968,9 @@ blijft hij in de hand, een nieuw gebied vervangt het vorige, en hij gaat pas nee
 de knop, Escape of de reset. Eén vorm is een knop die hem opneemt en neerlegt; bij twee of meer
 is het een selectieknop met een hoekje rechtsonder, en opent een klik het menu van de vormen — de
 laatst gebruikte aangevinkt en gefocust, zodat Enter meteen verder gaat. Met een vorm in de hand
-toont de knop die vorm, primair gekleurd zoals een icoonknop die aanstaat, en heet hij "Stop met
-selecteren". De knoppen staan rechtsboven,
+toont de knop die vorm, primair gekleurd zoals een icoonknop die aanstaat. De selectieknop heet dan
+"Stop met selecteren" en is een gewone knop, nooit tegelijk wisselknop en menuknop; één vorm is
+een wisselknop die zijn naam houdt. De knoppen staan rechtsboven,
 ook op een telefoon alle, op de aanraakmaat op een hogere kaart: knijpen is een gebaar met twee
 vingers en uitzoomen moet ook met één. De schaalbalk staat rechtsonder, zonder kader, op een
 ondergrond op het oppervlak boven de bronvermelding: een ronde afstand en daarnaast een beugel
@@ -985,7 +986,11 @@ wat erin zou vallen. De kaart stuurt het gebied en de ids — een rechthoek als 
 hoeken, want in Mercator is een rechthoek op het scherm er een in graden —, en de host bewaart
 het gebied in de URL zoals elk filter. Het gebied blijft staan tot de lezer het wegklikt, ook
 naast een gekozen mark. Wie niet sleept, tekent met klikken; onderaan staat hoe, per vorm, zolang
-de vorm in de hand is; Escape legt haar neer. De resetknop zet de kaart terug: het hele gebied in beeld en niets
+de vorm in de hand is; Escape legt haar neer. Met het toetsenbord zet Enter of spatie op de kaart
+een punt in het midden van het zicht, onder een kruisje, en schuiven de pijltoetsen de kaart
+eronder: een rechthoek is twee punten, een cirkel een midden en een rand, en een lasso sluit met
+Enter op zijn eerste punt. Die Escape is alleen van de kaart zolang de focus in de kaart of nergens
+staat. De resetknop zet de kaart terug: het hele gebied in beeld en niets
 gekozen.
 
 **Leaflet draagt de kaart, het design system tekent de data.** Projectie, verslepen, zoomen en
@@ -1192,7 +1197,7 @@ kleinste correctie, en leg die hier vast.
   verbergt een tooltip. De tekening is een afbeelding, of een groep met haar beschrijving als naam
   zodra een teken een knop is. Een teken met focus krijgt zijn ring buiten een opening van 1 px in
   het oppervlak, zodat een oranje teken zijn ring houdt; op een kaart, waar tekens elkaar raken,
-  ligt het met die ring boven alle andere. De nullijn, de arcering en de rand van
+  ligt het met die ring boven alle andere en toont het de tooltip van de aanwijzer, bij het teken. De nullijn, de arcering en de rand van
   een kaartgebied met een cijfer halen 3:1; aangrenzende tinten worden gescheiden door een lijn in
   het oppervlak; een donkergele lijn krijgt een rand in zijn tekstkleur; een label op een vulling
   neemt de tekstkleur van die vulling; een gedimd teken of een uitgeschakelde reeks vervaagt zijn
