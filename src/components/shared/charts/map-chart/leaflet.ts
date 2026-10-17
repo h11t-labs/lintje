@@ -586,7 +586,12 @@ export class LeafletSurface {
     const group = this.#group
     const layer = this.#focusGroup
     if (!group || !layer) return
-    const focused = (group.getRootNode() as Document | ShadowRoot).activeElement
+    let focused: Element | null = null
+    try {
+      focused = (group.getRootNode() as Document | ShadowRoot).activeElement
+    } catch {
+      // happy-dom's `ShadowRoot.activeElement` throws while a focus event is being dispatched.
+    }
     if (
       !focused ||
       !group.contains(focused) ||
