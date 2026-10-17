@@ -1,12 +1,11 @@
-/* The date range picker. The popover is positioned against the host (`position: relative`). */
+/* The date range picker: a field and its popover, fixed to the viewport at the field. */
 :host {
   display: block;
-  position: relative;
 }
 
 /* --- */
 
-.lintje-date-range-picker { position: relative; display: flex; flex-direction: column; gap: var(--space-2); }
+.lintje-date-range-picker { display: flex; flex-direction: column; gap: var(--space-2); }
 .lintje-date-range-picker__field {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   min-width: 210px; height: var(--h-control);
@@ -26,10 +25,14 @@
 }
 .lintje-date-range-picker__icon { color: var(--color-text-primary); }
 
+/* Fixed, not absolute: a scrolling box around the element would cut it off. The element places
+   it and gives the room on its side as its height. */
 .lintje-date-range-picker__popover {
-  position: absolute; top: calc(100% + 4px); left: 0; z-index: 50;
+  position: fixed; z-index: 50;
   /* Seven cells, six 1 px gaps, the grid's padding and the border. */
   width: calc(7 * var(--h-option) + 6px + 2 * var(--space-2) + 2px);
+  max-height: var(--lintje-date-range-space, none);
+  overflow: auto;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-popover);
   box-shadow: var(--shadow-popover);

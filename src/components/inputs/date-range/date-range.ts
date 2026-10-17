@@ -2,13 +2,20 @@
  * `<lintje-date-range>` — the date range picker: a field and a popover with a calendar, presets
  * and "Wissen"/"Toepassen".
  *
- * Escape closes only the popover; it and "Toepassen" give the focus back to the field. Tab out of
- * the element closes the popover.
+ * The popover is fixed to the viewport, so a scrolling filter bar or tile around it does not cut it
+ * off. Escape closes only the popover; it and "Toepassen" give the focus back to the field. Tab out
+ * of the element closes the popover.
  *
  * Events: `lintje-change` `{ from, to }`, `lintje-values-change` `{ [name]: value }` (with a
  * `name`), `lintje-reset` (the reset link was pressed).
  */
-import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
+import {
+  html,
+  nothing,
+  type PropertyDeclarations,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
 import { holdsFocus, standsIn } from '../../../core/focus'
@@ -16,6 +23,7 @@ import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { LintjeInputElement } from '../shared/input'
 import { ownsEscape } from '../../shared/focus-trap'
+import { place, samePlace, viewport, type Place } from '../../shared/place'
 import '../../actions/button/button'
 import '../../actions/icon-button/icon-button'
 import inputCss from '../shared/input.css?inline'
@@ -32,6 +40,8 @@ import {
 import pickerCss from './date-range.css?inline'
 
 const WEEKDAY_LABELS = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo']
+/** The popover's distance from the field. */
+const GAP = 4
 
 function addDays(date: Date, days: number): Date {
   const result = new Date(date)
@@ -147,6 +157,10 @@ export class LintjeDateRange extends LintjeInputElement {
   /** The day cell that holds the grid's one tab stop, yyyy-mm-dd; `''` until a key or a click. */
   protected focusDay: string = ''
 
+  /** Where the popover stands; not reactive, as it is measured after a render. */
+  private spot: Place | null = null
+  private reflowFrame: number = 0
+
   private readonly onOutsideClick = (event: MouseEvent): void => {
     if (!this.open) return
     if (!event.composedPath().includes(this)) this.open = false
@@ -176,16 +190,59 @@ export class LintjeDateRange extends LintjeInputElement {
     this.open = false
   }
 
+  // Scroll is captured so a scrolling box around the element counts; one measurement per frame.
+  private readonly onReflow = (): void => {
+    if (!this.open || this.reflowFrame) return
+    this.reflowFrame = requestAnimationFrame(() => {
+      this.reflowFrame = 0
+      this.measure()
+    })
+  }
+
   override connectedCallback(): void {
     super.connectedCallback()
     document.addEventListener('mousedown', this.onOutsideClick)
     document.addEventListener('keydown', this.onEscape, true)
+    window.addEventListener('scroll', this.onReflow, { capture: true, passive: true })
+    window.addEventListener('resize', this.onReflow)
   }
 
   override disconnectedCallback(): void {
     document.removeEventListener('mousedown', this.onOutsideClick)
     document.removeEventListener('keydown', this.onEscape, true)
+    window.removeEventListener('scroll', this.onReflow, { capture: true })
+    window.removeEventListener('resize', this.onReflow)
+    if (this.reflowFrame) cancelAnimationFrame(this.reflowFrame)
+    this.reflowFrame = 0
     super.disconnectedCallback()
+  }
+
+  /**
+   * Places the popover at the field. Written straight onto the panel, through the CSSOM as a
+   * strict `style-src` allows: a reactive property set after a render would draw it twice.
+   */
+  private measure(): void {
+    const field = this.renderRoot.querySelector('.lintje-date-range-picker__field')
+    const panel = this.renderRoot.querySelector<HTMLElement>('.lintje-date-range-picker__popover')
+    if (!field || !panel) {
+      this.spot = null
+      return
+    }
+    const box = { width: panel.offsetWidth, height: panel.offsetHeight }
+    const next = place(field.getBoundingClientRect(), box, viewport(), 'bottom-start', GAP)
+    if (samePlace(this.spot, next)) return
+    this.spot = next
+    const px = (value: number | null): string => (value === null ? '' : `${value}px`)
+    panel.style.setProperty('top', px(next.top))
+    panel.style.setProperty('bottom', px(next.bottom))
+    panel.style.setProperty('left', px(next.left))
+    panel.style.setProperty('--lintje-date-range-space', px(next.space))
+  }
+
+  // The panel exists only now, so its size is known; a closed one forgets its place.
+  protected override updated(changed: PropertyValues<this>): void {
+    super.updated(changed)
+    this.measure()
   }
 
   private get day(): Date {

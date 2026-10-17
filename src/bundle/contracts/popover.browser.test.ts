@@ -74,10 +74,7 @@ type Check =
  * `<row> [<context>] :: <check>`. A finding that matches none fails its row; an entry that
  * matches nothing in a whole run fails too, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = [
-  // #98
-  /^lintje-date-range \[scroller\] :: on top/,
-]
+const KNOWN: RegExp[] = []
 const seen = new Set<RegExp>()
 let ran = 0
 
