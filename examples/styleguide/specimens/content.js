@@ -397,6 +397,26 @@ export default {
       ],
     },
     {
+      tag: 'lintje-key',
+      title: 'Een toets op het toetsenbord',
+      specimens: [
+        {
+          label: 'Losse toets',
+          html: 'Druk op <lintje-key>/</lintje-key> om te zoeken.',
+        },
+        {
+          label: 'Combinatie',
+          note: 'Twee toetsen naast elkaar, met een spatie ertussen.',
+          html: 'Bewaar met <lintje-key>Ctrl</lintje-key> <lintje-key>S</lintje-key>.',
+        },
+        {
+          label: 'Pijltoets',
+          note: 'De tekst kan ook uit het attribuut `key` komen.',
+          html: 'Kies met <lintje-key key="↑"></lintje-key> <lintje-key key="↓"></lintje-key> en open met <lintje-key>Enter</lintje-key>.',
+        },
+      ],
+    },
+    {
       tag: 'lintje-highlight',
       title: 'Markering in lopende tekst',
       specimens: [

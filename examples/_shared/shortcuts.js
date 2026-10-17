@@ -18,7 +18,7 @@ export function shortcutOverview(dialog) {
   dialog.addEventListener('lintje-close', () => (dialog.open = false))
 
   const open = () => {
-    list.items = shortcuts().map(({ keys, description }) => ({ label: description, tags: keyLabels(keys) }))
+    list.items = shortcuts().map(({ keys, description }) => ({ label: description, keys: keyLabels(keys) }))
     dialog.open = true
   }
   if (!shown) registerShortcut({ keys: '?', description: 'Dit overzicht', handler: () => shown() })

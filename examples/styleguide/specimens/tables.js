@@ -1243,6 +1243,18 @@ export default {
           },
         },
         {
+          label: 'Toetsen',
+          note: 'Met `keys` is de waarde een rij toetsen, zoals in het overzicht van de sneltoetsen.',
+          html: '<lintje-description-list></lintje-description-list>',
+          setup(stage) {
+            stage.querySelector('lintje-description-list').items = [
+              { label: 'Zoeken', keys: ['/'] },
+              { label: 'Opslaan', keys: ['Ctrl', 'S'] },
+              { label: 'Vorige regel', keys: ['↑'] },
+            ]
+          },
+        },
+        {
           label: 'In het raster',
           note: 'De twee lijsten nemen `span="8"` en `span="4"` van het raster.',
           html: `<lintje-grid>

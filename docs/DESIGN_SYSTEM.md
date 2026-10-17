@@ -514,7 +514,8 @@ De besluiten hieronder gelden voor alle elementen.
   staat. De eigen toetsen van een speler (spatie, de pijlen, F, C) werken alleen zolang de focus
   erin staat, buiten het register.
 - **Een toets op het scherm wordt op één manier getekend**: `<kbd class="lintje-key">`, uit
-  `components/shared/key.css`.
+  `components/shared/key.css`. Een host tekent hem met `<lintje-key>`, één element per toets; een
+  combinatie is twee toetsen naast elkaar.
 - **Escape sluit wat open is**, en in een popover alleen de popover. Een toast sluit met Escape
   alleen vanuit zichzelf: een Escape elders is niet de zijne. Of er een dialoog boven een open
   popup staat, volgt uit de focus: Escape blijft ongemoeid zolang de focus in een
