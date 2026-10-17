@@ -318,4 +318,23 @@ describe('a dumbbell row that drills', () => {
     expect(rows[0].classList).toContain('is-muted')
     expect(rows[1].classList).toContain('is-selected')
   })
+
+  it('is named first by what the row shows, its name and difference, then by the tooltip', () => {
+    const { host, key, controller } = draw(
+      { ...SPEC, rows: SPEC.rows.map((row) => ({ ...row, href: `?loket=${row.label}` })) },
+      { onSelect: () => {} },
+    )
+    const rows = rowsOf(host)
+    expect(difference(rows[1])).toBe('−0,5')
+    expect(rows[1].getAttribute('aria-label')).toBe(
+      'Zwolle −0,5: 2024 7,6, 2026 7,1, t.o.v. norm +0,1',
+    )
+    // The keys still read the tooltip as it stands.
+    key('Home')
+    key('ArrowDown')
+    expect(controller.status).toBe('Zwolle: 2024 7,6, 2026 7,1, Verschil −0,5, t.o.v. norm +0,1')
+    // Without a link a row is no button and has no name of its own.
+    document.body.replaceChildren()
+    expect(rowsOf(draw(SPEC).host)[1].hasAttribute('aria-label')).toBe(false)
+  })
 })

@@ -852,7 +852,8 @@ function renderRows(
           <p class="lintje-sankey__source-head ${head.state}" data-mark-id=${head.markId}
              role=${head.role} tabindex=${head.tabIndex} aria-pressed=${head.pressed}
              aria-label=${head.label} @click=${head.click} @keydown=${head.keydown}>
-            <span>${node.label}</span><span>${count(node)}</span>
+            <!-- The space keeps name and count two words, as the button's name says them (2.5.3). -->
+            <span>${node.label}</span> <span>${count(node)}</span>
           </p>
           <div class="lintje-sankey__bar" aria-hidden="true">
             ${pieces.map((piece) => {
