@@ -30,6 +30,7 @@ import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import keyCss from '../../shared/key.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { titleWhenCut } from '../../shared/cut-text'
+import { resultsText, splitMatch } from '../../shared/search-text'
 
 export interface SearchResult {
   /** What `lintje-action` carries. */
@@ -57,20 +58,11 @@ let instances = 0
 const connected: LintjeAppSearch[] = []
 let unregisterSlash: (() => void) | null = null
 
-/** The label split around the first case-insensitive occurrence of the term; null when absent. */
-export function splitMatch(label: string, query: string): [string, string, string] | null {
-  const term = query.trim()
-  if (!term) return null
-  const at = label.toLocaleLowerCase('nl').indexOf(term.toLocaleLowerCase('nl'))
-  if (at < 0) return null
-  return [label.slice(0, at), label.slice(at, at + term.length), label.slice(at + term.length)]
-}
-
 /** What the live region says; while loading the spinner's own status speaks. */
 export function resultsMessage(count: number, query: string, loading: boolean): string {
   if (loading) return ''
   if (count === 0) return query.trim() ? `Geen resultaten voor “${query.trim()}”` : ''
-  return count === 1 ? '1 resultaat' : `${count} resultaten`
+  return resultsText(count)
 }
 
 export class LintjeAppSearch extends LintjeElement {

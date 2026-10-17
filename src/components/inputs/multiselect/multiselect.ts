@@ -24,6 +24,7 @@ import { LintjeInputElement } from '../shared/input'
 import { ownsEscape } from '../../shared/focus-trap'
 import { holdsFocus, standsIn } from '../../../core/focus'
 import { place, samePlace, viewport, type Place } from '../../shared/place'
+import { resultsText } from '../../shared/search-text'
 import '../checkbox/checkbox'
 import inputCss from '../shared/input.css?inline'
 import multiselectCss from './multiselect.css?inline'
@@ -53,8 +54,6 @@ function anchorStyle(anchor: PopoverAnchor | null): StyleProps {
 function optionLabel(option: FilterOption): string {
   return option.label ?? String(option.value)
 }
-
-const resultsText = (count: number): string => (count === 1 ? '1 resultaat' : `${count} resultaten`)
 
 export class LintjeMultiselect extends LintjeInputElement {
   static override styles = [iconStyles, shadowCss(inputCss), shadowCss(multiselectCss)]
