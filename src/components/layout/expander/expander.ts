@@ -16,7 +16,7 @@ import { shadowCss } from '../../../core/styles'
 import { iconStyles } from '../../../icons/render'
 import { DisclosureSettle, disclosureBody, disclosureHeader } from '../../shared/disclosure'
 import { uniqueId } from '../../../core/id'
-import type { HeadingLevel } from '../../shared/empty-state-block'
+import type { HeadingLevel } from '../../shared/heading'
 import disclosureCss from '../../shared/disclosure.css?inline'
 
 export class LintjeExpander extends LintjeGridItemElement {

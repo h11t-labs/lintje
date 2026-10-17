@@ -10,7 +10,7 @@ import {
   type ReactiveControllerHost,
   type TemplateResult,
 } from 'lit'
-import type { HeadingLevel } from './empty-state-block'
+import { renderHeading, type HeadingLevel } from './heading'
 import { renderIcon, renderLeadingIcon } from '../../icons/render'
 import { heightSettleMs } from './transition'
 
@@ -69,21 +69,6 @@ export interface DisclosureHeaderOptions {
   toggle: () => void
 }
 
-function heading(level: HeadingLevel | undefined, button: TemplateResult): TemplateResult {
-  switch (level) {
-    case 2:
-      return html`<h2 class="lintje-disclosure__heading">${button}</h2>`
-    case 4:
-      return html`<h4 class="lintje-disclosure__heading">${button}</h4>`
-    case 5:
-      return html`<h5 class="lintje-disclosure__heading">${button}</h5>`
-    case 6:
-      return html`<h6 class="lintje-disclosure__heading">${button}</h6>`
-    default:
-      return html`<h3 class="lintje-disclosure__heading">${button}</h3>`
-  }
-}
-
 /**
  * The heading holds the button, not the reverse: a heading inside a `<button>` is presentational
  * and reaches no assistive technology. Inside the button only phrasing content.
@@ -95,8 +80,9 @@ export function disclosureHeader(options: DisclosureHeaderOptions): TemplateResu
   })
   const { bodyId, open, title, subtitle, icon, leading, level, toggle } = options
   const plain = !icon && !subtitle
-  return heading(
+  return renderHeading(
     level,
+    'lintje-disclosure__heading',
     html`<button
       type="button"
       class="lintje-disclosure__header"
