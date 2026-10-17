@@ -541,6 +541,33 @@ const segmentField = (element: LintjeTranscript, id: string): HTMLElement | null
 const segmentText = (element: LintjeTranscript, id: string): HTMLElement =>
   segment(element, id).querySelector<HTMLElement>('.lintje-transcript__text')!
 
+const speakerButton = (element: LintjeTranscript, id: string): HTMLElement | null =>
+  inside(segment(element, id).querySelector('lintje-menu-button'), '.lintje-menu-button__trigger')
+
+/**
+ * Grouped, with a host that answers a speaker change: s2 is given the speaker of s1 from its own
+ * menu, by the keyboard.
+ */
+async function speakerOfTheOneBefore(layout: 'rows' | 'chat'): Promise<LintjeTranscript> {
+  const element = await mount<LintjeTranscript>('lintje-transcript', {
+    segments: SEGMENTS,
+    layout,
+    grouped: true,
+  })
+  element.addEventListener('lintje-segment-speaker', (event) => {
+    const { id, speaker } = (event as CustomEvent<{ id: string; speaker: string }>).detail
+    element.segments = element.segments.map((item) =>
+      item.id === id ? { ...item, speaker } : item,
+    )
+  })
+  speakerButton(element, 's2')!.focus()
+  await userEvent.keyboard('{ArrowDown}')
+  await expect.poll(() => active()?.textContent?.trim()).toBe('Spreker 1')
+  await userEvent.keyboard('{Enter}')
+  await expect.poll(() => element.segments[1]!.speaker).toBe('Spreker 1')
+  return element
+}
+
 /** From the pencil, by the keyboard: the way a reader without a pointer starts an edit. */
 async function editFromPencil(element: LintjeTranscript, id: string): Promise<void> {
   pencil(element, id)!.focus()
@@ -565,6 +592,20 @@ async function savingFromField(): Promise<LintjeTranscript> {
 }
 
 const TRANSCRIPT_ROWS: Row[] = [
+  {
+    name: 'lintje-transcript :: grouped as a chat, a speaker button whose name goes hands its focus to the name of its turn',
+    run: async () => {
+      const element = await speakerOfTheOneBefore('chat')
+      return () => speakerButton(element, 's1')
+    },
+  },
+  {
+    name: 'lintje-transcript :: grouped as rows, a speaker button that joins the turn before keeps its focus',
+    run: async () => {
+      const element = await speakerOfTheOneBefore('rows')
+      return () => speakerButton(element, 's2')
+    },
+  },
   {
     name: 'lintje-transcript :: the pencil hands its focus to the fragment’s field',
     run: async () => {
