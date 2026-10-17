@@ -1,0 +1,34 @@
+/* Inline, in the letter of where it stands: a table cell (16 px), the facts of a card (14 px). */
+/* `font: inherit` undoes the base's own letter on every host. */
+:host { display: inline-flex; min-width: 0; max-width: 100%; vertical-align: middle; font: inherit; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-person {
+  display: inline-flex; align-items: center;
+  gap: var(--space-3);
+  min-width: 0; max-width: 100%;
+  font: inherit;
+  color: var(--color-text-primary);
+}
+.lintje-person--small { gap: var(--space-2); }
+
+.lintje-person__names { display: flex; flex-direction: column; min-width: 0; }
+/* Beside a second line the name is bold; alone it has the weight of where it stands. Where it
+   stands on one line (a table cell, `nowrap`) and runs out of room, it ends in an ellipsis. */
+.lintje-person__name { min-width: 0; overflow: hidden; overflow-wrap: anywhere; text-overflow: ellipsis; }
+.lintje-person__name.is-strong { font-weight: 700; }
+.lintje-person__role { font: var(--text-small); color: var(--color-text-muted); overflow-wrap: anywhere; }
+.lintje-person.is-empty .lintje-person__name { color: var(--color-text-muted); }
+
+/* One target: the name stays dark and underlines under the pointer and with focus, as every name
+   that opens. Its hit area reaches `--h-target` without a larger circle. */
+.lintje-person--link { position: relative; text-decoration: none; }
+.lintje-person--link::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+.lintje-person--link:hover .lintje-person__name,
+.lintje-person--link:focus-visible .lintje-person__name { text-decoration: underline; }

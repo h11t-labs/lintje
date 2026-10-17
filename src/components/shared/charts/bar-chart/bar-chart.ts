@@ -1,20 +1,31 @@
 /**
- * Vertical bars with data labels and an optional trend line. When one label doesn't fit,
- * all data labels drop rather than leaving single bars unlabeled.
+ * Vertical bars with data labels, an optional trend line and a forecast. When one label doesn't
+ * fit, all data labels drop rather than leaving single bars unlabeled. A forecast bar is open,
+ * never the full colour of a measured one.
  */
 import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
 import { styleProps } from '../../../../core/style-props'
-import { axisColumn, axisScale, band, yPosition } from '../shared/scale'
+import { DEFAULT_PLOT_AREA, axisColumn, axisScale, band, yPosition } from '../shared/scale'
 import { formatNumber, formatDataLabel, dataLabelFits } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
-import { DEFAULT_SERIES_COLOR, chartColor } from '../shared/colors'
-import { renderChartFrame, type SvgSlot } from '../shared/axes'
+import { DEFAULT_SERIES_COLOR, chartColor, lineCasing } from '../shared/colors'
+import { renderAsOfMarker, renderChartFrame, renderLegend, type SvgSlot } from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { markSelection } from '../shared/mark-select'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { LONE_POINT_RADIUS, knownRuns } from '../shared/runs'
+import {
+  FORECAST_LABEL,
+  FORECAST_ROOM,
+  INTERVAL_LABEL,
+  boundsAt,
+  forecastStart,
+  hasInterval,
+  intervalRow,
+  intervalValues,
+} from '../shared/forecast'
 import type { ChartSpec } from '../shared/types'
 
 /** Tints of one color, for a subdivision of a single variable. */
@@ -28,10 +39,19 @@ export const TINTS = [
 
 type BarSpec = Extract<ChartSpec, { kind: 'bar' }>
 
+/** The width of the caps on a forecast bar's margin. */
+const INTERVAL_CAP = 8
+
 export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateResult {
   const { controller, description } = options
   const { labels, values, axisTitle, trend, dataLabels = true, small = false, links } = spec
   const color = chartColor(spec.color) ?? DEFAULT_SERIES_COLOR
+  const from = forecastStart(spec.forecastFrom, labels.length)
+  const forecastLabel = spec.forecastLabel ?? FORECAST_LABEL
+  const name = axisTitle ?? 'Waarde'
+  // The edge of an open bar and its margin: a light colour's dark edge, so it reaches 3:1.
+  const edge = lineCasing(color) ?? color
+  const isForecast = (i: number) => from != null && i >= from
   const id = controller.id
   const selection = markSelection(options, links ?? [])
 
@@ -42,10 +62,23 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
     fit: Boolean(options.expanded) && !options.mobile,
   })
 
-  const actualValues = values.filter((value): value is number => value != null)
+  const actualValues = [...values, ...(from != null ? intervalValues(spec.forecast) : [])].filter(
+    (value): value is number => value != null,
+  )
   const { max, ticks } = axisScale(Math.max(...actualValues, 1))
   const axis = axisColumn(ticks, controller.width, { fontFamily: controller.fontFamily })
-  const area = chartArea(options, { left: axis.width })
+  const area = chartArea(options, {
+    left: axis.width,
+    ...(from != null ? { top: DEFAULT_PLOT_AREA.top + FORECAST_ROOM } : {}),
+  })
+  // The margin of a forecast bar, clamped to the plot; none without both bounds.
+  const intervalAt = (i: number) => {
+    if (!isForecast(i) || values[i] == null) return null
+    const { low, high } = boundsAt(spec.forecast, i)
+    if (low == null || high == null) return null
+    const clamp = (value: number) => yPosition(Math.min(max, Math.max(0, value)), max, area)
+    return { top: clamp(high), bottom: clamp(low) }
+  }
   const baseline = area.height - area.bottom
   // Labels only if each fits its band with 4 px to spare.
   const { width: barWidth, bandWidth } = band(0, labels.length, area)
@@ -57,19 +90,28 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
 
   const contentAt = (i: number): TooltipContent => ({
     title: labels[i],
+    ...(isForecast(i) ? { note: forecastLabel.toLowerCase() } : {}),
     rows: [
       {
-        label: axisTitle ?? 'Waarde',
+        label: name,
         value: values[i] == null ? 'geen gegevens' : formatNumber(values[i]!),
         color,
+        ...(isForecast(i) ? { marker: 'open' as const } : {}),
       },
+      ...(isForecast(i) && spec.forecast ? [intervalRow(spec.forecast, i)] : []),
     ],
   })
   const keys = plotKeys(controller, labels.length, (i) => ({
     x: band(i, labels.length, area).center,
-    y: values[i] == null ? area.top : yPosition(values[i]!, max, area),
+    y:
+      values[i] == null
+        ? area.top
+        : Math.min(yPosition(values[i]!, max, area), intervalAt(i)?.top ?? Infinity),
     content: contentAt(i),
   }))
+  // Between the band of the last measured bar and that of the first forecast one.
+  const boundary = from != null ? band(from, labels.length, area) : null
+  const boundaryX = boundary ? boundary.center - boundary.bandWidth / 2 : 0
 
   // A missing value breaks the trend, as it breaks a line (rule 15).
   const trendRuns = knownRuns(trend ?? [], (value, i) => ({
@@ -88,20 +130,37 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
                          @mouseleave=${() => controller.hideTooltip()} />`
       }
       const y = yPosition(value, max, area)
-      const mark = selection.of(links?.[i], labels[i], `${labels[i]}: ${formatNumber(value)}`)
+      const ahead = isForecast(i)
+      const interval = intervalAt(i)
+      const mark = selection.of(
+        links?.[i],
+        labels[i],
+        `${labels[i]}${ahead ? ` ${forecastLabel.toLowerCase()}` : ''}: ${formatNumber(value)}`,
+      )
+      // An open bar keeps its edge inside its band.
+      const inset = ahead ? 0.75 : 0
       return svg`
         <g class="lintje-chart__bar-group ${controller.hoverIndex === i ? 'is-hovered' : ''}"
            ${styleProps(staggerStyle(i, labels.length))}
            @mousemove=${(event: MouseEvent) => controller.showTooltip(event, contentAt(i))}
            @mouseleave=${() => controller.hideTooltip()}>
-          <rect class="lintje-chart__bar lintje-chart__mark ${mark.state}"
-                x=${slot.x} y=${y} width=${slot.width} height=${Math.max(0, baseline - y)} fill=${color}
+          <rect class="lintje-chart__bar lintje-chart__mark ${ahead ? 'lintje-chart__bar--forecast' : ''} ${mark.state}"
+                x=${slot.x + inset} y=${y + inset} width=${Math.max(0, slot.width - 2 * inset)}
+                height=${Math.max(0, baseline - y - inset)} fill=${color}
+                stroke=${ahead ? edge : nothing}
                 data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
                 aria-pressed=${mark.pressed} aria-label=${mark.label}
-                @click=${mark.click} @keydown=${mark.keydown} />
+                @click=${mark.click} @auxclick=${mark.click} @keydown=${mark.keydown} />
+          ${
+            interval
+              ? svg`<path class="lintje-chart__interval" stroke=${edge}
+                          d=${`M${slot.center},${interval.top}V${interval.bottom}M${slot.center - INTERVAL_CAP / 2},${interval.top}h${INTERVAL_CAP}M${slot.center - INTERVAL_CAP / 2},${interval.bottom}h${INTERVAL_CAP}`} />`
+              : nothing
+          }
           ${
             showLabels
-              ? svg`<text x=${slot.center} y=${y - 5} text-anchor="middle" class="lintje-chart__data-label">
+              ? svg`<text x=${slot.center} y=${Math.min(y, interval?.top ?? y) - 5} text-anchor="middle"
+                          class="lintje-chart__data-label">
                     ${formatDataLabel(value, slot.width)}
                   </text>`
               : nothing
@@ -121,12 +180,42 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
           )}
         </g>`
       : nothing,
+    from != null
+      ? renderAsOfMarker({
+          mode: 'forecast',
+          area,
+          x: boundaryX,
+          label: forecastLabel,
+          fontFamily: controller.fontFamily,
+        })
+      : nothing,
   ]
 
   return html`
     <div class="lintje-chart-wrap ${small ? 'lintje-chart--small' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event) || selection.escape(event)}>
+      ${
+        // One series stands alone and is no switch; the forecast and its margin are keys.
+        from != null
+          ? renderLegend({
+              items: [
+                { label: name, color, shape: 'square', fixed: true },
+                { label: forecastLabel, color, shape: 'open', fixed: true },
+                ...(hasInterval(spec.forecast, from, labels.length)
+                  ? [
+                      {
+                        label: spec.intervalLabel ?? INTERVAL_LABEL,
+                        color,
+                        shape: 'interval' as const,
+                        fixed: true,
+                      },
+                    ]
+                  : []),
+              ],
+            })
+          : nothing
+      }
       ${renderChartFrame(
         {
           fontFamily: controller.fontFamily,
@@ -138,6 +227,11 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
           description,
           formatTick: axis.format,
           xLabels: labels.map((label, i) => ({ label, x: band(i, labels.length, area).center })),
+          underlay: boundary
+            ? svg`<rect class="lintje-chart__forecast-ground" x=${boundaryX} y=${area.top}
+                        width=${Math.max(0, area.width - area.right - boundaryX)}
+                        height=${Math.max(0, baseline - area.top)} />`
+            : nothing,
           interactive: selection.interactive,
           keys,
         },

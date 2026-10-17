@@ -3,6 +3,7 @@
  * cannot play media, so the `<audio>` is stubbed: its duration is defined and its events are
  * dispatched by hand, the way a browser would.
  */
+import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import './audio-player'
 import type { LintjeAudioPlayer } from './audio-player'
@@ -244,6 +245,35 @@ describe('lintje-audio-player', () => {
     expect(media.load).toHaveBeenCalled()
   })
 
+  it('sends lintje-retry once from the element when "Opnieuw proberen" is pressed', async () => {
+    const element = await mount({ peaks: [0.5] })
+    const media = stubMedia(element)
+    media.load = vi.fn()
+    media.dispatchEvent(new Event('error'))
+    await element.updateComplete
+    const heard = vi.fn()
+    document.body.addEventListener('lintje-retry', heard)
+    root(element).querySelector<HTMLElement>('lintje-announcement lintje-button')!.click()
+    document.body.removeEventListener('lintje-retry', heard)
+    expect(heard).toHaveBeenCalledTimes(1)
+    expect(heard.mock.calls[0][0].target).toBe(element)
+    expect(media.load).toHaveBeenCalledTimes(1)
+  })
+
+  it('loads the src a host sets in answer to lintje-retry', async () => {
+    const element = await mount({ peaks: [0.5] })
+    const media = stubMedia(element)
+    media.load = vi.fn()
+    media.dispatchEvent(new Event('error'))
+    await element.updateComplete
+    element.addEventListener('lintje-retry', () => (element.src = '/opnames/overleg-nieuw.mp3'))
+    root(element).querySelector<HTMLElement>('lintje-announcement lintje-button')!.click()
+    await element.updateComplete
+    expect(root(element).querySelector('audio')!.getAttribute('src')).toBe(
+      '/opnames/overleg-nieuw.mp3',
+    )
+  })
+
   it('offers the four speeds behind a button that shows the speed, and sets the rate', async () => {
     const element = await mount({ peaks: [0.5] })
     const media = await loaded(element)
@@ -318,6 +348,39 @@ describe('lintje-audio-player', () => {
     )
     const swatch = root(element).querySelector<HTMLElement>('.lintje-audio-player__swatch')!
     expect(swatch.style.getPropertyValue('--lintje-speaker')).toBe('var(--color-chart-sky-blue)')
+  })
+
+  it('draws what is still to come in a lighter colour of its speaker, not see-through', async () => {
+    const element = await mount({
+      peaks: [0.5, 0.5, 0.5, 0.5],
+      segments: [
+        { start: 0, speaker: 'Spreker 1' },
+        { start: 60, speaker: 'Spreker 2' },
+      ],
+    })
+    await loaded(element, 120)
+    element.currentTime = 60
+    ;(element as unknown as { waveWidth: number }).waveWidth = 24
+    await element.updateComplete
+    const peaks = [...root(element).querySelectorAll<HTMLElement>('.lintje-audio-player__peak')]
+    const ahead = peaks.at(-1)!
+    expect(peaks[0]!.classList.contains('is-played')).toBe(true)
+    expect(ahead.classList.contains('is-played')).toBe(false)
+    expect(ahead.classList.contains('has-speaker')).toBe(true)
+    expect(ahead.style.getPropertyValue('--lintje-speaker')).toBe('var(--color-chart-dark-yellow)')
+    expect(ahead.style.opacity).toBe('')
+    // happy-dom has no cascade: the colour is checked as the rule that draws it.
+    const css = readFileSync(
+      'src/components/content/audio-player/audio-player.css',
+      'utf8',
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
+    const rule = css.match(
+      /\.lintje-audio-player__peak\.has-speaker:not\(\.is-played\),\s*\.lintje-audio-player__stretch:not\(\.is-played\)\s*\{([^}]*)\}/,
+    )
+    expect(rule?.[1]).toContain(
+      'background: color-mix(in srgb, var(--lintje-speaker) var(--tint-speaker-ahead), var(--color-bg-surface));',
+    )
+    expect(css).not.toMatch(/opacity/)
   })
 
   it('leaves the legend to the transcript with no-legend, and keeps the speaker in the slider', async () => {

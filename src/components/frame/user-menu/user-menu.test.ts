@@ -155,3 +155,90 @@ describe('lintje-user-menu', () => {
     expect(root.querySelectorAll('.lintje-menu__row')).toHaveLength(4)
   })
 })
+
+describe('the circle of lintje-user-menu', () => {
+  it('names the button by the initials it shows, or by the user without them', async () => {
+    const element = await mount()
+    expect(trigger(element).getAttribute('aria-label')).toBe('JV, menu van J. de Vries')
+    element.user = { name: 'J. de Vries', photo: 'data:image/gif;base64,R0lGODlhAQABAAAAACw=' }
+    await element.updateComplete
+    expect(trigger(element).getAttribute('aria-label')).toBe('Menu van J. de Vries')
+    expect(trigger(element).querySelector('.lintje-avatar img')).not.toBeNull()
+    element.user = { name: 'J. de Vries' }
+    await element.updateComplete
+    expect(trigger(element).getAttribute('aria-label')).toBe('Menu van J. de Vries')
+    expect(trigger(element).querySelector('.lintje-avatar svg')).not.toBeNull()
+  })
+
+  it('draws the 2rem circle of renderAvatar() on the menu, in the button and inline', async () => {
+    const button = trigger(await mount())
+    const avatar = button.querySelector('.lintje-avatar')!
+    expect(avatar.classList.contains('lintje-avatar--medium')).toBe(true)
+    expect(avatar.classList.contains('lintje-avatar--nav')).toBe(true)
+    const inline = await mount({ inline: true })
+    const who = inline.shadowRoot!.querySelector('.lintje-user-menu__who')!
+    expect(who.querySelector('.lintje-avatar--medium.lintje-avatar--nav')).not.toBeNull()
+  })
+
+  it('draws no link for a user with `href`', async () => {
+    const element = await mount({
+      inline: true,
+      user: { name: 'J. de Vries', initials: 'JV', href: '/profiel' },
+    })
+    expect(element.shadowRoot!.querySelector('.lintje-user-menu__who a')).toBeNull()
+  })
+})
+
+describe('lintje-user-menu variant="side"', () => {
+  it('shows the name and role beside the avatar and opens the menu above it', async () => {
+    const element = await mount({ variant: 'side' })
+    const button = trigger(element)
+    expect(button.classList.contains('lintje-user-menu__trigger--side')).toBe(true)
+    expect(button.querySelector('.lintje-user-menu__trigger-name')!.textContent).toBe('J. de Vries')
+    // The name it shows is its name; the role describes it.
+    expect(button.hasAttribute('aria-label')).toBe(false)
+    expect(button.getAttribute('aria-describedby')).toBeTruthy()
+    const popover = element.shadowRoot!.querySelector('lintje-popover')!
+    expect(popover.getAttribute('placement')).toBe('top-start')
+  })
+
+  it('says when it opens and closes, so the side menu can hold its rail', async () => {
+    const element = await mount({ variant: 'side' })
+    const said: boolean[] = []
+    element.addEventListener('lintje-toggle', (event) =>
+      said.push((event as CustomEvent<{ open: boolean }>).detail.open),
+    )
+    trigger(element).click()
+    await element.updateComplete
+    trigger(element).click()
+    await element.updateComplete
+    expect(said).toEqual([true, false])
+  })
+
+  it('closes on a second press of its button, though the panel hangs under the foot', async () => {
+    const element = await mount({ variant: 'side' })
+    // A press as the mouse makes it: down, the focus, then the click.
+    const press = async (): Promise<void> => {
+      const button = trigger(element)
+      button.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, composed: true }))
+      button.focus()
+      button.click()
+      await element.updateComplete
+    }
+    await press()
+    expect(element.open).toBe(true)
+    await press()
+    expect(element.open).toBe(false)
+  })
+
+  it('draws the 2.5rem circle of renderAvatar() on the menu', async () => {
+    const avatar = trigger(await mount({ variant: 'side' })).querySelector('.lintje-avatar')!
+    expect(avatar.classList.contains('lintje-avatar--large')).toBe(true)
+    expect(avatar.classList.contains('lintje-avatar--nav')).toBe(true)
+  })
+
+  it('folds to the avatar in the folded rail', async () => {
+    const element = await mount({ variant: 'side', folded: true })
+    expect(trigger(element).classList.contains('is-folded')).toBe(true)
+  })
+})

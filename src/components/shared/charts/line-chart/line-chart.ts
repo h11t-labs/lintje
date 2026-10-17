@@ -1,10 +1,18 @@
 /**
- * Line and area chart with comparison, hatching, as-of time and events. Missing data is never
- * drawn as 0 (rule 15): `null` points are skipped and the missing part is hatched or cut off.
+ * Line and area chart with comparison, hatching, as-of time, events and a forecast. Missing data
+ * is never drawn as 0 (rule 15): `null` points are skipped and the missing part is hatched or cut
+ * off; a forecast is never drawn as measured (dotted, with an open hover point).
  */
 import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
-import { axisColumn, axisScale, plotWidth, xPosition, yPosition } from '../shared/scale'
+import {
+  DEFAULT_PLOT_AREA,
+  axisColumn,
+  axisScale,
+  plotWidth,
+  xPosition,
+  yPosition,
+} from '../shared/scale'
 import { formatNumber, textWidth } from '../../../../core/format'
 import { DEFAULT_SERIES_COLOR, chartColor, lineCasing } from '../shared/colors'
 import { markPath, SERIES_KEYS, isSeriesKey, type SeriesKey } from '../shared/series-shapes'
@@ -20,7 +28,17 @@ import { styleProps } from '../../../../core/style-props'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { LONE_POINT_RADIUS, knownRuns } from '../shared/runs'
-import type { ChartSpec } from '../shared/types'
+import {
+  FORECAST_LABEL,
+  FORECAST_ROOM,
+  INTERVAL_LABEL,
+  boundsAt,
+  forecastStart,
+  hasInterval,
+  intervalRow,
+  intervalValues,
+} from '../shared/forecast'
+import type { ChartForecast, ChartSpec } from '../shared/types'
 
 type LineSpec = Extract<ChartSpec, { kind: 'line' }>
 
@@ -47,18 +65,57 @@ function eventRows(centres: number[]): number[] {
   })
 }
 
+/**
+ * The stretches of a margin from the last measured point on, each as its upper edge left to
+ * right and its lower edge back: it opens from width zero, and a point without both bounds
+ * breaks it (rule 15). Clamped to the plot, so a negative bound stops on the zero line.
+ */
+function bandPolygons(
+  values: (number | null)[],
+  forecast: ChartForecast,
+  from: number,
+  point: (value: number, index: number) => { x: number; y: number },
+  max: number,
+): string[] {
+  const clamp = (value: number) => Math.min(max, Math.max(0, value))
+  const bounds = values.map((value, i) => {
+    if (i < from - 1) return null
+    if (i === from - 1) return value == null ? null : { low: value, high: value }
+    const { low, high } = boundsAt(forecast, i)
+    return low == null || high == null ? null : { low, high }
+  })
+  const stretches: { low: number; high: number; i: number }[][] = []
+  let stretch: { low: number; high: number; i: number }[] = []
+  bounds.forEach((bound, i) => {
+    if (bound) {
+      stretch.push({ ...bound, i })
+    } else if (stretch.length) {
+      stretches.push(stretch)
+      stretch = []
+    }
+  })
+  if (stretch.length) stretches.push(stretch)
+  return stretches
+    .filter((run) => run.length > 1)
+    .map((run) => {
+      const upper = run.map((b) => point(clamp(b.high), b.i))
+      const lower = run.map((b) => point(clamp(b.low), b.i)).reverse()
+      return [...upper, ...lower].map((p) => `${p.x},${p.y}`).join(' ')
+    })
+}
+
 export function renderLineChart(spec: LineSpec, options: ChartOptions): TemplateResult {
   const { controller, description } = options
-  const {
-    labels,
-    axisTitle,
-    unit,
-    asOfIndex,
-    asOfLabel,
-    pendingHours = 0,
-    fixedMax,
-    small = false,
-  } = spec
+  const { labels, axisTitle, unit, fixedMax, small = false } = spec
+  // A forecast continues a measured series; with only comparisons there is none.
+  const from = spec.series.some((row) => !row.comparison)
+    ? forecastStart(spec.forecastFrom, labels.length)
+    : null
+  const forecastLabel = spec.forecastLabel ?? FORECAST_LABEL
+  // With a forecast the chart has one boundary: no as-of hatching, cut or second line.
+  const asOfIndex = from == null ? spec.asOfIndex : undefined
+  const asOfLabel = from == null ? spec.asOfLabel : undefined
+  const pendingHours = from == null ? (spec.pendingHours ?? 0) : 0
   // One outside the labels draws nothing; the rest are numbered from left to right.
   const events = (spec.events ?? [])
     .filter(
@@ -90,10 +147,12 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
         : (undefined as SeriesKey | undefined),
   }))
   const visible = series.filter((row) => !controller.hiddenSeries.includes(row.label))
-  // Every series sets the scale, so switching one off moves nothing.
-  const allValues = series
-    .flatMap((row) => row.values)
-    .filter((value): value is number => value != null)
+  const forecasts = (row: { comparison?: boolean }) => from != null && !row.comparison
+  // Every series sets the scale, so switching one off moves nothing; a margin sets it too.
+  const allValues = [
+    ...series.flatMap((row) => row.values),
+    ...series.flatMap((row) => (forecasts(row) ? intervalValues(row.forecast) : [])),
+  ].filter((value): value is number => value != null)
   const { max, ticks } = axisScale(fixedMax ?? Math.max(...allValues, 1))
   // The first x label is centered on the plot's left edge; the column keeps room for half of it.
   const axis = axisColumn(ticks, controller.width, {
@@ -110,9 +169,12 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
   )
   const rows = eventRows(centres)
   const rowCount = rows.length ? Math.max(...rows) + 1 : 0
+  const eventsTop = rowCount
+    ? rowCount * (EVENT_CHIP + EVENT_ROW_GAP) + EVENT_GAP
+    : DEFAULT_PLOT_AREA.top
   const area = chartArea(options, {
     left: axis.width,
-    ...(rowCount ? { top: rowCount * (EVENT_CHIP + EVENT_ROW_GAP) + EVENT_GAP } : {}),
+    top: eventsTop + (from != null ? FORECAST_ROOM : 0),
   })
   const chipTop = (i: number) => EVENT_ROW_GAP + rows[i] * (EVENT_CHIP + EVENT_ROW_GAP)
 
@@ -122,42 +184,104 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
   const colorOf = (row: { color?: string; comparison?: boolean }) =>
     row.comparison ? 'var(--color-chart-secondary)' : (row.color ?? DEFAULT_SERIES_COLOR)
 
-  const legend: LegendItem[] = series.map((row) => ({
-    label: row.label,
-    color: colorOf(row),
-    shape: row.comparison ? 'dashed' : 'line',
-    symbol: row.symbol,
-    hidden: controller.hiddenSeries.includes(row.label),
-    fixed: series.length < 2,
-  }))
+  // Of more variables the one pointed at in the legend fills its margin; the others step back.
+  const variables = series.filter((row) => !row.comparison)
+  const shownVariables = visible.filter((row) => !row.comparison)
+  const emphasis =
+    from != null &&
+    shownVariables.length > 1 &&
+    shownVariables.some((row) => row.label === controller.emphasis)
+      ? controller.emphasis
+      : null
+  const filled = (row: { label: string }) =>
+    shownVariables.length === 1 ? shownVariables[0].label === row.label : row.label === emphasis
+
+  // The forecast and its margin are keys, not switches: the series switches them with it.
+  const keyColor = variables.length === 1 ? colorOf(variables[0]) : 'var(--color-text-muted)'
+  const legend: LegendItem[] = [
+    ...series.map((row) => ({
+      label: row.label,
+      color: colorOf(row),
+      shape: row.comparison ? ('dashed' as const) : ('line' as const),
+      symbol: row.symbol,
+      hidden: controller.hiddenSeries.includes(row.label),
+      fixed: series.length < 2,
+    })),
+    ...(from != null
+      ? [{ label: forecastLabel, color: keyColor, shape: 'dotted' as const, fixed: true }]
+      : []),
+    ...(from != null && variables.some((row) => hasInterval(row.forecast, from, labels.length))
+      ? [
+          {
+            label: spec.intervalLabel ?? INTERVAL_LABEL,
+            color: keyColor,
+            shape: 'band' as const,
+            fixed: true,
+          },
+        ]
+      : []),
+  ]
 
   const step = Math.max(1, Math.ceil(labels.length / 8))
   const xLabels = labels
     .map((label, i) => ({ label, x: xPosition(i, labels.length, area), i }))
     .filter((label) => label.i % step === 0)
 
+  const isForecast = (row: { comparison?: boolean }, i: number) => forecasts(row) && i >= from!
+
   function contentAt(i: number): TooltipContent {
     const here = events.filter((event) => event.index === i)
     return {
       title: labels[i],
-      rows: visible.map((row) => ({
-        label: row.label,
-        value: row.values[i] == null ? 'geen gegevens' : formatNumber(row.values[i]!),
-        color: colorOf(row),
-      })),
+      ...(from != null && i >= from ? { note: forecastLabel.toLowerCase() } : {}),
+      rows: visible.flatMap((row) => [
+        {
+          label: row.label,
+          value: row.values[i] == null ? 'geen gegevens' : formatNumber(row.values[i]!),
+          color: colorOf(row),
+          // With a forecast the swatch says how the point is drawn, as the legend does.
+          ...(from != null
+            ? {
+                marker: row.comparison
+                  ? ('dashed' as const)
+                  : isForecast(row, i)
+                    ? ('dotted' as const)
+                    : ('line' as const),
+              }
+            : {}),
+        },
+        ...(isForecast(row, i) && row.forecast ? [intervalRow(row.forecast, i)] : []),
+      ]),
       ...(here.length ? { events: here } : {}),
     }
   }
-  const keys = plotKeys(controller, labels.length, (i) => {
+  const topAt = (i: number): number | null => {
     const known = visible
       .map((row) => row.values[i])
       .filter((value): value is number => value != null)
+    return known.length ? Math.max(...known) : null
+  }
+  const keys = plotKeys(controller, labels.length, (i) => {
+    const top = topAt(i)
     return {
       x: xPosition(i, labels.length, area),
-      y: known.length ? yPosition(Math.max(...known), max, area) : area.top,
+      y: top == null ? area.top : yPosition(top, max, area),
       content: contentAt(i),
     }
   })
+  const focusPoint = (i: number) => {
+    const top = topAt(i)
+    return top == null
+      ? nothing
+      : svg`<circle class="lintje-chart__focus-point" r="7.5"
+                    cx=${xPosition(i, labels.length, area)} cy=${yPosition(top, max, area)} />`
+  }
+
+  // The forecast's part of the drawing, under the grid.
+  const forecastGround = (x: number) =>
+    svg`<rect class="lintje-chart__forecast-ground" x=${x} y=${area.top}
+              width=${Math.max(0, area.width - area.right - x)}
+              height=${Math.max(0, area.height - area.top - area.bottom)} />`
 
   const marks: SvgSlot = [
     pendingHours > 0
@@ -196,19 +320,45 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
       ${series.map((row) => {
         const color = colorOf(row)
         const casing = row.comparison ? undefined : lineCasing(color)
-        // At an early as-of time the line stops there.
+        const at = (value: number, i: number) => ({
+          x: xPosition(i, labels.length, area),
+          y: yPosition(value, max, area),
+          i,
+        })
+        const ahead = forecasts(row)
+        // At an early as-of time the line stops there; a forecast stops the measured line at
+        // its last point and goes on dotted from it.
         const drawn = knownRuns(
-          isEarly ? row.values.slice(0, lastKnown + 1) : row.values,
-          (value, i) => ({ x: xPosition(i, labels.length, area), y: yPosition(value, max, area) }),
+          isEarly
+            ? row.values.slice(0, lastKnown + 1)
+            : ahead
+              ? row.values.slice(0, from!)
+              : row.values,
+          at,
         )
-        if (drawn.length === 0) return nothing
-        const lastRun = drawn[drawn.length - 1]
+        const dotted = ahead
+          ? knownRuns(
+              row.values.map((value, i) => (i < from! - 1 ? null : value)),
+              at,
+              // The last measured point alone is no forecast: the measured line ends there.
+            ).filter((run) => run.length > 1 || run[0].i >= from!)
+          : []
+        const ends = [...drawn, ...dotted]
+        if (ends.length === 0) return nothing
+        const lastRun = ends[ends.length - 1]
         const last = lastRun[lastRun.length - 1]
         const floor = area.height - area.bottom
+        const bands =
+          ahead && row.forecast ? bandPolygons(row.values, row.forecast, from!, at, max) : []
 
         const off = !visible.includes(row)
+        const muted = emphasis != null && row.label !== emphasis
         return svg`
-          <g class="lintje-chart__series ${off ? 'is-off' : ''}">
+          <g class="lintje-chart__series ${off ? 'is-off' : ''} ${muted ? 'is-muted' : ''}">
+            ${bands.map(
+              (points) => svg`<polygon class="lintje-chart__band ${filled(row) ? 'is-filled' : ''}"
+                                       fill=${color} points=${points} />`,
+            )}
             ${drawn.map((run) => {
               const d = run.map((point) => `${point.x},${point.y}`).join(' ')
               return svg`
@@ -235,6 +385,20 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
                 }
               `
             })}
+            ${dotted.map((run) => {
+              const d = run.map((point) => `${point.x},${point.y}`).join(' ')
+              return run.length === 1
+                ? svg`<circle cx=${run[0].x} cy=${run[0].y} r=${LONE_POINT_RADIUS} fill=${color} />`
+                : svg`
+                  ${
+                    casing
+                      ? svg`<polyline class="lintje-chart__line lintje-chart__line--casing lintje-chart__line--forecast"
+                                      points=${d} stroke=${casing} />`
+                      : nothing
+                  }
+                  <polyline class="lintje-chart__line lintje-chart__line--forecast" points=${d} stroke=${color} />
+                `
+            })}
             <!-- The line's own shape at its end; a 4 px point there at an early as-of time. -->
             ${
               row.symbol
@@ -247,6 +411,16 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
         `
       })}
     </g>`,
+
+    from != null
+      ? renderAsOfMarker({
+          mode: 'forecast',
+          area,
+          x: xPosition(from - 1, labels.length, area),
+          label: forecastLabel,
+          fontFamily: controller.fontFamily,
+        })
+      : nothing,
 
     isEarly && asOfLabel
       ? renderAsOfMarker({
@@ -263,16 +437,28 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
         })
       : nothing,
 
-    // A missing value gets no hover point (rule 15).
+    // A missing value gets no hover point (rule 15); a forecast's is open (rule 13).
     controller.hoverIndex != null
       ? visible.map((row) => {
           const index = controller.hoverIndex!
           const value = row.values[index]
           if (value == null || (isEarly && index > lastKnown)) return nothing
-          return svg`<circle class="lintje-chart__hover-point" r="4" fill=${colorOf(row)}
-                             cx=${xPosition(index, labels.length, area)}
-                             cy=${yPosition(value, max, area)} />`
+          const open = isForecast(row, index)
+          const cx = xPosition(index, labels.length, area)
+          const cy = yPosition(value, max, area)
+          // A light colour keeps the dark edge its line has, over the ring in the surface; a
+          // forecast's open point is a ring in its own colour.
+          const casing = open ? undefined : lineCasing(colorOf(row))
+          return svg`<circle class="lintje-chart__hover-point ${open ? 'lintje-chart__hover-point--forecast' : ''}"
+                             r="4" fill=${open ? nothing : colorOf(row)} color=${open ? colorOf(row) : nothing}
+                             cx=${cx} cy=${cy} />
+            ${casing ? svg`<circle class="lintje-chart__hover-casing" r="4" stroke=${casing} cx=${cx} cy=${cy} />` : nothing}`
         })
+      : nothing,
+
+    // The point the keyboard stands on: the top one, where its tooltip stands.
+    controller.hoverIndex != null && controller.status
+      ? focusPoint(controller.hoverIndex)
       : nothing,
 
     labels.map((_, i) => {
@@ -293,7 +479,12 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
          ${styleProps({ '--lintje-event-size': `${EVENT_CHIP}px` })}
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => controller.dismiss(event)}>
-      ${renderLegend({ items: legend, onToggle: (key) => controller.toggleSeries(key) })}
+      ${renderLegend({
+        items: legend,
+        onToggle: (key) => controller.toggleSeries(key),
+        onEmphasis:
+          from != null && variables.length > 1 ? (label) => controller.emphasise(label) : undefined,
+      })}
       ${renderChartFrame(
         {
           fontFamily: controller.fontFamily,
@@ -304,6 +495,8 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
           formatTick: axis.format,
           axisTitle: axisTitle ?? unit,
           xLabels,
+          underlay:
+            from != null ? forecastGround(xPosition(from - 1, labels.length, area)) : nothing,
           // The drawing names its events too; the list below says them again.
           description: events.length
             ? `${description} ${events

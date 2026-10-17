@@ -237,7 +237,14 @@ export function renderDualAxisChart(spec: DualAxisSpec, options: ChartOptions): 
             hoverIndex != null && !rightHidden && right.values[hoverIndex] != null
               ? svg`<circle class="lintje-chart__hover-point" r="4" fill=${rightColor}
                           cx=${band(hoverIndex, labels.length, area).center}
-                          cy=${yPosition(right.values[hoverIndex]!, r.max, area)} />`
+                          cy=${yPosition(right.values[hoverIndex]!, r.max, area)} />
+                    ${
+                      lineCasing(rightColor)
+                        ? svg`<circle class="lintje-chart__hover-casing" r="4" stroke=${lineCasing(rightColor)}
+                                      cx=${band(hoverIndex, labels.length, area).center}
+                                      cy=${yPosition(right.values[hoverIndex]!, r.max, area)} />`
+                        : nothing
+                    }`
               : nothing
           }
           ${labels.map((_, i) => {

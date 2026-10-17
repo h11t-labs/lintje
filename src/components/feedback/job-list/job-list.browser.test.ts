@@ -49,4 +49,18 @@ describe('lintje-job-list keeps the focus', () => {
     expect(deepActiveElement()).toBe(region)
     expect(region.textContent).toBe('Er staan geen taken meer in de lijst.')
   })
+
+  it('where the host puts it when it cancels "lintje-jobs-empty"', async () => {
+    const element = await mount([{ ...BUSY, state: 'cancelled' }])
+    const start = document.createElement('button')
+    document.body.append(start)
+    element.addEventListener('lintje-jobs-empty', (event) => {
+      event.preventDefault()
+      start.focus()
+    })
+    row(element).querySelector('lintje-button')!.focus()
+    element.jobs = []
+    await settle(element)
+    expect(deepActiveElement()).toBe(start)
+  })
 })

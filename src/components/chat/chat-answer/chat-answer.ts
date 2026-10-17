@@ -24,11 +24,13 @@ import '../../actions/icon-button/icon-button'
 import '../../feedback/spinner/spinner'
 import '../../feedback/announcement/announcement'
 import '../../charts/chart/chart'
+import '../chat-steps/chat-steps'
 import '../chat-strip/chat-strip'
 import '../chat-suggestions/chat-suggestions'
 import '../../tables/data-table/data-table'
 import '../../charts/kpi-row/kpi-row'
 import '../../content/prose/prose'
+import '../../content/attachment/attachment'
 import { ANNOUNCE_GAP, COPIED_FOR } from '../../shared/copied'
 import { focusTarget } from '../../shared/focus-trap'
 import { sentenceEnd } from '../../shared/sentence-end'
@@ -37,6 +39,7 @@ import type {
   AnnouncementData,
   ChatAnswerState,
   ChatBlock,
+  ChatStepsData,
   ChatStripData,
   ChatSuggestion,
 } from '../../../types'
@@ -44,17 +47,6 @@ import type {
 export type ChatRating = 'up' | 'down'
 
 const REASONS = ['Klopt niet', 'Niet wat ik vroeg', 'Onduidelijk']
-
-const CHOICES: Partial<Record<ChatAnswerState, { label: string; hint: string }>> = {
-  'needs-clarification': {
-    label: 'Kies je antwoord',
-    hint: 'Of typ je eigen antwoord in het veld.',
-  },
-  'out-of-scope': {
-    label: 'Kies wat je wilt doen',
-    hint: 'Of stel een andere vraag in het veld.',
-  },
-}
 
 export class LintjeChatAnswer extends LintjeElement {
   static override styles = shadowCss(chatAnswerCss)
@@ -66,8 +58,8 @@ export class LintjeChatAnswer extends LintjeElement {
     blocks: { attribute: false },
     strip: { attribute: false },
     status: { type: String },
+    steps: { attribute: false },
     error: { attribute: false },
-    choices: { attribute: false },
     followUps: { attribute: false },
     current: { type: Boolean, reflect: true },
     turnId: { type: String, attribute: 'turn-id' },
@@ -83,12 +75,12 @@ export class LintjeChatAnswer extends LintjeElement {
   declare text?: string
   declare blocks?: ChatBlock[]
   declare strip?: ChatStripData
-  /** `streaming`: the step that is running. */
+  /** `streaming`: the step that is running; not drawn when `steps` has one. */
   declare status?: string
+  /** What the assistant did, above the text in every state; its running step is the status. */
+  declare steps?: ChatStepsData
   /** `error`: what went wrong, and the way out in words. */
   declare error?: { title?: string; text: string }
-  /** The choices of `out-of-scope` and `needs-clarification`. */
-  declare choices?: ChatSuggestion[]
   /** Suggested next questions; drawn on the current answer only. */
   declare followUps?: ChatSuggestion[]
   /** The latest answer: only it can be retried, changed through its strip or followed up. */
@@ -196,9 +188,17 @@ export class LintjeChatAnswer extends LintjeElement {
   protected override render(): TemplateResult {
     const state = this.state
     const finished = state === 'ready'
-    const choices = CHOICES[state]
     return html`<article class="lintje-chat-answer">
       <div class="lintje-chat-answer__body">
+        ${
+          this.steps
+            ? html`<lintje-chat-steps
+              class="lintje-chat-answer__steps"
+              .items=${this.steps.items}
+              duration=${this.steps.duration ?? nothing}
+            ></lintje-chat-steps>`
+            : nothing
+        }
         ${state === 'error' ? this.renderError() : this.renderText()}
         <div class="visually-hidden" role="status" aria-atomic="false">
           ${this.spoken.map((sentence) => html`<p>${sentence}</p>`)}
@@ -216,7 +216,7 @@ export class LintjeChatAnswer extends LintjeElement {
         }
         ${this.renderBlocks()}
         ${
-          state === 'streaming'
+          state === 'streaming' && !this.steps?.items.length
             ? html`<lintje-spinner
               class="lintje-chat-answer__status"
               label=${this.status ?? 'Antwoord schrijven'}
@@ -230,17 +230,6 @@ export class LintjeChatAnswer extends LintjeElement {
         }
         ${finished ? this.renderActions() : nothing}
       </div>
-      ${
-        choices && this.current
-          ? html`<lintje-chat-suggestions
-            kind="choice"
-            turn-id=${this.turnId ?? nothing}
-            label=${choices.label}
-            hint=${choices.hint}
-            .items=${this.choices}
-          ></lintje-chat-suggestions>`
-          : nothing
-      }
       ${
         finished && this.current
           ? html`<lintje-chat-suggestions
@@ -320,6 +309,14 @@ export class LintjeChatAnswer extends LintjeElement {
               span=${block.data.span ?? nothing}
               .data=${block.data}
             ></lintje-data-table>`
+          case 'attachments':
+            return html`<ul class="lintje-chat-answer__attachments" aria-label="Bijlagen">
+              ${block.items.map(
+                (file) => html`<li class="lintje-chat-answer__attachment">
+                  <lintje-attachment .data=${file}></lintje-attachment>
+                </li>`,
+              )}
+            </ul>`
         }
       })}
     </div>`
