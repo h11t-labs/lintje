@@ -448,9 +448,10 @@ De besluiten hieronder gelden voor alle elementen.
   waar de rail langs doorloopt; in de rij en op een telefoon alleen die van de huidige stap,
   onder de rij of de balk.
 - **Een kalender is één maandraster**, in de datuminvoer en de datumreeks evengoed: zoveel weken
-  als de maand heeft, de dagen ernaast leeg, de cellen zonder afstand. Vandaag is een ring in de
-  accentlijn, nooit een statuskleur; een gekozen dag, en begin en eind van een periode, zijn
-  gevuld in de primaire kleur, en de dagen ertussen dragen een tint ervan.
+  als de maand heeft, de dagen ernaast leeg, 1 px tussen de cellen, zodat twee gekozen dagen los
+  van elkaar blijven. Vandaag is een ring in de accentlijn, nooit een statuskleur; een gekozen
+  dag, en begin en eind van een periode, zijn gevuld in de primaire kleur met een lichtere rand,
+  en de dagen ertussen dragen een tint ervan die binnen een week doorloopt.
 
 ### Feedback
 

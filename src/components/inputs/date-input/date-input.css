@@ -68,7 +68,7 @@
 
 /* --- The calendar -------------------------------------------------------- */
 .lintje-date-input__calendar {
-  width: calc(7 * var(--h-option) + 2 * var(--space-3)); max-width: 100%;
+  width: calc(7 * var(--h-option) + 6px + 2 * var(--space-3)); max-width: 100%;
   padding: var(--space-3);
   color: var(--color-text-primary);
 }

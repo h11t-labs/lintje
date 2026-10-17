@@ -29,8 +29,8 @@
    it and gives the room on its side as its height. */
 .lintje-date-range-picker__popover {
   position: fixed; z-index: 50;
-  /* Seven cells, the calendar's padding and the border. */
-  width: calc(7 * var(--h-option) + 2 * var(--space-2) + 2px);
+  /* Seven cells, six 1 px gaps, the calendar's padding and the border. */
+  width: calc(7 * var(--h-option) + 6px + 2 * var(--space-2) + 2px);
   max-height: var(--lintje-date-range-space, none);
   overflow: auto;
   background: var(--color-bg-surface);
@@ -62,8 +62,9 @@
 .lintje-date-range-picker__calendar { padding: var(--space-2); }
 
 .lintje-date-range-picker__presets {
-  /* The row gap keeps the hit areas below from overlapping. */
-  display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-2);
+  /* A dense row of choices: each hit area reaches `--h-option`, and the row gap is what that adds,
+     so the hit areas meet without overlapping. */
+  display: flex; flex-wrap: wrap; gap: calc(var(--h-option) - var(--h-chip)) var(--space-2);
   padding: var(--space-2) var(--space-3);
   border-top: 1px solid var(--color-border-default);
 }
@@ -75,11 +76,11 @@
   background: var(--color-bg-subtle);
   font-size: 0.875rem; color: var(--color-text-primary);
 }
-/* A transparent hit area, above and below only, reaches the target height. */
+/* A transparent hit area, above and below only, reaches the height of an option. */
 .lintje-date-range-picker__preset::after {
   content: '';
   position: absolute;
-  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+  inset: min(0px, calc((100% - var(--h-option)) / 2)) 0;
 }
 /* The accent line, not the fill colour: in dark the primary on #333333 is 1.2:1. */
 .lintje-date-range-picker__preset:hover { border-color: var(--color-accent-line); }
