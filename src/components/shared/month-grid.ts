@@ -1,6 +1,6 @@
 /**
  * The one month grid of the date input and the date range: the weekday heads, the weeks as day
- * buttons, their states and their keys. Its owner draws it in its own root, with `monthGridCss`,
+ * cells, their states and their keys. Its owner draws it in its own root, with `monthGridCss`,
  * and says per day what it means there.
  */
 import { html, nothing, type TemplateResult } from 'lit'
@@ -27,7 +27,7 @@ export interface MonthGrid {
   /** More than one day is selected at once: a period and the days in it. */
   multiselectable?: boolean
   day: (iso: string) => GridDay
-  /** A press on a day that is not blocked. */
+  /** A click, Enter or Space on a day that is not blocked. */
   onPick: (iso: string) => void
   /** An arrow, Home, End or PageUp/PageDown: the day the tab stop goes to, in any month. */
   onMove: (iso: string) => void
@@ -62,8 +62,9 @@ export function renderMonthGrid(grid: MonthGrid): TemplateResult {
           }
           const day = grid.day(iso)
           const today = iso === grid.today
-          return html`<button
-            type="button"
+          // The cell itself takes the focus, as in the WAI-ARIA date picker: a button may not
+          // carry the role of a cell.
+          return html`<span
             role="gridcell"
             class=${classMap({
               'lintje-month-grid__day': true,
@@ -80,9 +81,16 @@ export function renderMonthGrid(grid: MonthGrid): TemplateResult {
             @click=${() => {
               if (!day.blocked) grid.onPick(iso)
             }}
+            @keydown=${(event: KeyboardEvent) => {
+              // What a button did itself. The cell, not the tab stop: a click on a blocked day
+              // focuses it without moving the tab stop.
+              if (event.key !== 'Enter' && event.key !== ' ') return
+              event.preventDefault()
+              if (!day.blocked) grid.onPick(iso)
+            }}
           >
             ${Number(iso.slice(8))}
-          </button>`
+          </span>`
         })}
       </div>`,
     )}

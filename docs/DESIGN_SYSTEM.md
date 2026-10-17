@@ -451,7 +451,9 @@ De besluiten hieronder gelden voor alle elementen.
   als de maand heeft, de dagen ernaast leeg, 1 px tussen de cellen, zodat twee gekozen dagen los
   van elkaar blijven. Vandaag is een ring in de accentlijn, nooit een statuskleur; een gekozen
   dag, en begin en eind van een periode, zijn gevuld in de primaire kleur met een lichtere rand,
-  en de dagen ertussen dragen een tint ervan die binnen een week doorloopt.
+  en de dagen ertussen dragen een tint ervan die binnen een week doorloopt. Een dag is zelf een
+  cel van het raster, geen knop: de cel neemt de focus, de pijlen lopen erlangs en Enter en
+  spatie kiezen hem, zoals het datumraster van de WAI-ARIA Authoring Practices.
 
 ### Feedback
 
