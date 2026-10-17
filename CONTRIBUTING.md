@@ -380,8 +380,8 @@ delen, heeft één contract in `src/bundle/contracts/`, met een tabel van elk el
 mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat in de tabel.
 
 - `dialog.browser.test.ts` — elke gebruiker van `FocusTrap`: de focus gaat erin, Tab blijft
-  erin, Escape sluit, de focus keert terug naar de trigger, en `aria-labelledby` en
-  `aria-describedby` vinden hun doel in de eigen root.
+  erin, de pagina erachter scrolt niet, Escape sluit, de focus keert terug naar de trigger, en
+  `aria-labelledby` en `aria-describedby` vinden hun doel in de eigen root.
 - `popover.browser.test.ts` — elk zwevend paneel aan een anker: het staat aan zijn anker,
   binnen het venster, niet afgesneden door een scrollende voorouder; Escape geeft de focus terug
   aan het anker, Tab voorbij het laatste bedieningselement en een focus elders sluiten het, een
