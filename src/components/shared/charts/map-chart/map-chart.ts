@@ -15,7 +15,7 @@ import { renderTooltip } from '../shared/tooltip'
 import { drawingRole } from '../shared/axes'
 import { LeafletSurface } from './leaflet'
 import { seriesShapePath } from '../shared/series-shapes'
-import { DEFAULT_SERIES_COLOR } from '../shared/colors'
+import { DEFAULT_SERIES_COLOR, lineCasing } from '../shared/colors'
 import { seriesStyle } from './series-style'
 import { nextRow, type MenuItem } from '../../../actions/menu-button/menu-button'
 import type { ChartController, ChartOptions } from '../shared/controller'
@@ -471,7 +471,8 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
               ? html`<span class="lintje-map-chart__selection-series">
                 <svg class="lintje-map-chart__series-swatch" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
                   <path d=${seriesShapePath(selectionStyle.shape, 5.5, 7, 7)}
-                        fill=${selectionStyle.color ?? DEFAULT_SERIES_COLOR} />
+                        fill=${selectionStyle.color ?? DEFAULT_SERIES_COLOR}
+                        stroke=${lineCasing(selectionStyle.color) ?? nothing} />
                 </svg>${seriesLabelOf(selection)}
               </span>`
               : nothing

@@ -1392,9 +1392,15 @@ describe('data and status colour', () => {
     'light-blue',
     'moss-green',
   ]
+  // The light colours that reach 3:1 as a line or a mark only by an edge; dark yellow's is its
+  // text colour.
+  const EDGED = ['mint-green', 'orange', 'pink', 'yellow', 'light-blue']
+  const edgeOf = (name: string) =>
+    name === 'dark-yellow' ? '--color-chart-dark-yellow-text' : `--color-chart-${name}-edge`
   const FIXED = [
     ...DATA.map((name) => `--data-${name}`),
     '--data-dark-yellow-text',
+    ...EDGED.map((name) => `--data-${name}-edge`),
     ...['success', 'warning', 'attention', 'error', 'info'].map((name) => `--status-${name}`),
     ...DATA.flatMap((name) => [75, 60, 45, 30, 15].map((step) => `--data-${name}-${step}`)),
     ...DATA.map((name) => `--color-chart-${name}`),
@@ -1416,7 +1422,7 @@ describe('data and status colour', () => {
     expect([...DATA_COLORS]).toEqual(DATA)
     const ROLES = ['comparison', 'other', 'dark-yellow-text', 'grid', 'emphasis']
     const primitives = Object.keys(LIGHT)
-      .filter((token) => /^--data-[a-z-]+$/.test(token) && !/-\d+$/.test(token))
+      .filter((token) => /^--data-[a-z-]+$/.test(token) && !/-(\d+|edge)$/.test(token))
       .map((token) => token.slice('--data-'.length))
       .filter((name) => !ROLES.includes(name))
     expect(primitives).toEqual(DATA)
@@ -1452,6 +1458,33 @@ describe('data and status colour', () => {
       expect(contrast(values[ink], values[`--data-${name}`]), name).toBeGreaterThanOrEqual(4.5)
     }
   })
+
+  it('edges every colour under 3:1 on the surface or the land, halfway to black', () => {
+    const light = tokensFor('light')
+    const grounds = [light['--neutral-0'], light['--color-map-land']]
+    const short = DATA.filter((name) =>
+      grounds.some((ground) => contrast(light[`--data-${name}`], ground) < 3),
+    )
+    expect(short).toEqual(['dark-yellow', ...EDGED])
+    for (const name of short) {
+      for (const ground of grounds) {
+        expect(contrast(light[edgeOf(name)], ground), name).toBeGreaterThanOrEqual(3)
+      }
+    }
+    for (const name of EDGED) {
+      expect(light[`--data-${name}-edge`], name).toBe(mix(light[`--data-${name}`], 0.5, '#000000'))
+    }
+  })
+
+  for (const theme of THEME_NAMES) {
+    it(`melts every edge into its colour in dark, for ${theme}`, () => {
+      const dark = tokensFor('dark', theme)
+      for (const name of ['dark-yellow', ...EDGED]) {
+        expect(dark[edgeOf(name)], name).toBe(dark[`--data-${name}`])
+        expect(contrast(dark[`--data-${name}`], DARK_SURFACE), name).toBeGreaterThanOrEqual(3)
+      }
+    })
+  }
 
   it('keeps the shared ladder as the sky blue’s, the default colour', () => {
     const values = tokensFor('light')

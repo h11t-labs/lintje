@@ -182,6 +182,9 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
   (`--color-chart-dark-yellow-text`), omdat geel geen tekstkleur is. "Overig" is in donker zo
   licht dat bijna-zwart erop 4.5:1 haalt, en een label op de rest van een geheel (`remainder`)
   neemt de tekstkleur.
+- **Een lichte kleur krijgt als lijn of teken een rand in haar eigen donkere kleur**, zodat ze in
+  licht 3:1 haalt op het oppervlak en op het land van de kaart; in donker smelt de rand weg in de
+  kleur. Een vlak krijgt geen rand.
 - Elke datakleur heeft de tintladder van de Rijkshuisstijl. Een component leest er een van twee
   benoemde reeksen uit — *onderverdelingen van één variabele* (donkerste eerst) en *ordinale
   klassen* (lichtste eerst) — nooit direct een sport. Een kleur waar een animatie naartoe loopt,
@@ -1094,7 +1097,8 @@ kleinste correctie, en leg die hier vast.
 [Donker](#donker)); `--color-link-on-status`; de lijnkleur van een statusteken (`--color-*-line`),
 de statuskleur bijgesteld naar 3:1 op haar eigen tint; de tekstkleur van een statuswoord
 (`--color-error-text`, `--color-success-text`), bijgesteld naar 4.5:1 — lichter in donker, het
-groen ook donkerder in licht; de eigen tekstkleur van donkergeel; tekst op de sequentiële reeks
+groen ook donkerder in licht; de eigen tekstkleur van donkergeel; de donkere rand van een lichte
+datakleur als lijn of teken; tekst op de sequentiële reeks
 vast op bijna-zwart of wit in beide modi; het oranje van de focusring is in licht donkerder, zodat
 het op elke lichte ondergrond 3:1 haalt; de tekst van het omgevingslabel is bijna-zwart waar wit
 op het accent geen 4.5:1 haalt; geel is nooit een lijn of tekst: een los teken in de
@@ -1104,8 +1108,7 @@ toon "let op" neemt de lijnkleur van "aandacht", en een gele vulling staat allee
 glyph, een getal of een woord.
 
 - De datakleuren rood, violet, donkergroen, paars, robijnrood, donkerbruin en donkerblauw halen
-  geen 3:1 op het donkere oppervlak, paars daar nagenoeg niet zichtbaar; geel en lichtblauw
-  halen geen 3:1 op het lichte. Geel heeft geen eigen tekstkleur en geen rand zoals donkergeel.
+  geen 3:1 op het donkere oppervlak, paars daar nagenoeg niet zichtbaar.
 - In het thema `defensie` haalt de lijn onder een herkende term geen 3:1 in licht, en is ze in
   donker hetzelfde oranje als de focusring.
 - De omlijning van een zwevende sheet in donker haalt geen 3:1.

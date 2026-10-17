@@ -82,6 +82,13 @@
   --data-other: var(--neutral-4);
   /* Yellow as TEXT fails contrast on white: light writes a wait time in this dark gold. */
   --data-dark-yellow-text: #B07A00;
+  /* A light colour as a line or a mark reaches 3:1 by an edge: the colour halfway to black,
+     written out so it never follows a mix. Dark yellow takes its text colour. */
+  --data-mint-green-edge: #3B695B;
+  --data-orange-edge: #703800;
+  --data-pink-edge: #784966;
+  --data-yellow-edge: #7C700F;
+  --data-light-blue-edge: #476573;
   /* Grid and emphasis follow the surface, like the two grays. */
   --data-grid: var(--neutral-3);
   --data-emphasis: var(--neutral-6);
@@ -568,17 +575,22 @@
   --color-chart-red: var(--data-red);
   --color-chart-green: var(--data-green);
   --color-chart-mint-green: var(--data-mint-green);
+  --color-chart-mint-green-edge: var(--data-mint-green-edge);
   --color-chart-violet: var(--data-violet);
   --color-chart-orange: var(--data-orange);
+  --color-chart-orange-edge: var(--data-orange-edge);
   --color-chart-pink: var(--data-pink);
+  --color-chart-pink-edge: var(--data-pink-edge);
   --color-chart-dark-green: var(--data-dark-green);
   --color-chart-purple: var(--data-purple);
   --color-chart-ruby-red: var(--data-ruby-red);
   --color-chart-yellow: var(--data-yellow);
+  --color-chart-yellow-edge: var(--data-yellow-edge);
   --color-chart-dark-brown: var(--data-dark-brown);
   --color-chart-brown: var(--data-brown);
   --color-chart-dark-blue: var(--data-dark-blue);
   --color-chart-light-blue: var(--data-light-blue);
+  --color-chart-light-blue-edge: var(--data-light-blue-edge);
   --color-chart-moss-green: var(--data-moss-green);
   --color-chart-secondary: var(--data-comparison); /* comparison, context */
   --color-chart-other: var(--data-other);          /* "Overig" */
@@ -821,6 +833,12 @@
 
     /* Yellow as text works on the dark surface, so the dark gold is not needed. */
     --color-chart-dark-yellow-text: var(--data-dark-yellow);
+    /* The edges melt into their line: on the dark surface a light colour reaches 3:1 itself. */
+    --color-chart-mint-green-edge: var(--data-mint-green);
+    --color-chart-orange-edge: var(--data-orange);
+    --color-chart-pink-edge: var(--data-pink);
+    --color-chart-yellow-edge: var(--data-yellow);
+    --color-chart-light-blue-edge: var(--data-light-blue);
     /* A label on "Overig" is ink: neutral-4 holds it at 4.16:1, so the gray takes the smallest
        share of neutral-5 that reaches 4.5:1. */
     --data-other: color-mix(in srgb, var(--neutral-5) 11%, var(--neutral-4));
