@@ -28,6 +28,7 @@ import '../../components/inputs/toggle/toggle'
 import '../../components/feedback/job-list/job-list'
 import '../../components/tables/list/list'
 import '../../components/map/map/map'
+import '../../components/graph/graph/graph'
 import '../../components/frame/notifications/notifications'
 import '../../components/tables/pagination/pagination'
 import '../../components/forms/repeater/repeater'
@@ -48,7 +49,7 @@ import type {
   LintjeTranscript,
   TranscriptSegment,
 } from '../../components/content/transcript/transcript'
-import type { DataTableData } from '../../types'
+import type { DataTableData, GraphData } from '../../types'
 
 /** One element's case: it builds, puts the focus on a control and makes it go; then says where the focus belongs. */
 interface Row {
@@ -2196,6 +2197,79 @@ const SHELL_ROWS: Row[] = [
   },
 ]
 
+/* --- lintje-graph ---------------------------------------------------------- */
+
+type GraphTile = HTMLElement & { data: GraphData; updateComplete: Promise<unknown> }
+
+/** A ministry with two services, a municipality behind one, and six people behind the other. */
+function graphData(extra: Partial<GraphData> = {}): GraphData {
+  const people = Array.from({ length: 6 }, (_, i) => ({
+    id: `p${i}`,
+    label: `Persoon ${i + 1}`,
+    type: 'person',
+  }))
+  return {
+    description: 'Een ministerie met twee diensten.',
+    types: [
+      { key: 'org', label: 'Organisatie', icon: 'gebouwen-basis-kantoorgebouw' },
+      { key: 'person', label: 'Persoon', plural: 'Personen', icon: 'personen-genderneutraal' },
+    ],
+    nodes: [
+      { id: 'min', label: 'Ministerie van Wonen', type: 'org' },
+      { id: 'a', label: 'Dienst Subsidies', type: 'org' },
+      { id: 'b', label: 'Rijksdienst Gegevens', type: 'org' },
+      { id: 'c', label: 'Gemeente Deventer', type: 'org' },
+      ...people,
+    ],
+    edges: [
+      { from: 'min', to: 'a' },
+      { from: 'min', to: 'b' },
+      { from: 'b', to: 'c' },
+      ...people.map((person) => ({ from: person.id, to: 'a' })),
+    ],
+    ...extra,
+  }
+}
+
+const graphNode = (tile: GraphTile, id: string): HTMLElement | null =>
+  tile.shadowRoot!.querySelector<HTMLElement>(`[data-node="${id}"]`)
+
+const GRAPH_ROWS: Row[] = [
+  {
+    name: 'lintje-graph :: a node folded away by the host hands its focus to the node that folds it',
+    run: async () => {
+      const tile = await mount<GraphTile>('lintje-graph', { data: graphData() })
+      await drawn(() => graphNode(tile, 'c'))
+      graphNode(tile, 'c')!.focus()
+      tile.data = graphData({ collapsed: ['b'] })
+      return () => graphNode(tile, 'b')
+    },
+  },
+  {
+    name: 'lintje-graph :: a group opened from its counter hands its focus to its first member',
+    run: async () => {
+      const tile = await mount<GraphTile>('lintje-graph', { data: graphData() })
+      const counter = () =>
+        graphNode(tile, 'groep:a:person')?.nextElementSibling as HTMLElement | null
+      await drawn(counter)
+      counter()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => graphNode(tile, 'p0')
+    },
+  },
+  {
+    name: 'lintje-graph :: a node the host takes away hands its focus to the centre',
+    run: async () => {
+      const tile = await mount<GraphTile>('lintje-graph', { data: graphData() })
+      await drawn(() => graphNode(tile, 'c'))
+      graphNode(tile, 'c')!.focus()
+      const data = graphData()
+      tile.data = { ...data, nodes: data.nodes.filter((item) => item.id !== 'c') }
+      return () => graphNode(tile, 'min')
+    },
+  },
+]
+
 /* --- The contract ---------------------------------------------------------- */
 
 const ROWS: Row[] = [
@@ -2216,6 +2290,7 @@ const ROWS: Row[] = [
   ...SUB_NAV_ROWS,
   ...PERSON_GROUP_ROWS,
   ...SHELL_ROWS,
+  ...GRAPH_ROWS,
 ]
 
 afterEach(async () => {

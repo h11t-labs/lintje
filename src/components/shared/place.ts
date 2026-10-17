@@ -10,6 +10,7 @@ export type Placement =
   | 'top-start'
   | 'top-end'
   | 'top-center'
+  | 'bottom-center'
   | 'left-center'
   | 'left-start'
 
@@ -64,7 +65,7 @@ export function place(
 
   let left = anchor.left
   if (placement.endsWith('-end')) left = anchor.right - box.width
-  if (placement === 'top-center') left = anchor.left + anchor.width / 2 - box.width / 2
+  if (placement.endsWith('-center')) left = anchor.left + anchor.width / 2 - box.width / 2
   left = Math.max(EDGE, Math.min(left, view.width - box.width - EDGE))
 
   return {

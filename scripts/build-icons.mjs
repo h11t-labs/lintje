@@ -74,8 +74,9 @@ const COMPONENT_ICONS = [
   'functioneel-rechthoekselectie', // map: choose with a rectangle
   'functioneel-selectie', // map: the select button, no shape in hand yet
   'functioneel-locatiemarker', // map: set as scope
-  'functioneel-minus', // the number field's stepper (also the map's zoom out)
-  'functioneel-plus', // the number field's stepper (also the map's zoom in)
+  'functioneel-minus', // the number field's stepper (also the map's zoom out, the graph's counter)
+  'functioneel-plus', // the number field's stepper (also the map's zoom in, the graph's counter)
+  'functioneel-vergrootglas-plus', // graph: zoom to the chosen node
   'functioneel-filters', // the filter bar and the mobile Filters button
   'functioneel-trechter', // the funnel in a filterable table column's head
   'functioneel-kolommen', // the table's column chooser
