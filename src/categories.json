@@ -208,10 +208,11 @@
       "chat",
       "chat-message",
       "chat-answer",
+      "chat-steps",
       "chat-composer",
       "chat-strip",
       "chat-suggestions"
     ],
-    "composite": ["chat", "chat-answer"]
+    "composite": ["chat", "chat-answer", "chat-steps"]
   }
 ]

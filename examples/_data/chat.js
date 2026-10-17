@@ -213,8 +213,12 @@ export function converse(chat, { turns = true } = {}) {
   }
   /** What had arrived stays; a block that was still to come goes. */
   const halt = (turn) => {
+    const steps = turn.answer.steps && {
+      items: turn.answer.steps.items.map((step) =>
+        step.state === 'busy' ? { label: `${step.label} gestopt`, state: 'cancelled' } : step),
+    }
     turn.answer = {
-      ...turn.answer, state: 'stopped', status: undefined,
+      ...turn.answer, state: 'stopped', steps,
       blocks: turn.answer.blocks.filter((block) => (block.data.state ?? block.data.kpis?.[0].state ?? 'ready') === 'ready'),
     }
   }
@@ -225,8 +229,11 @@ export function converse(chat, { turns = true } = {}) {
     const full = weekAnswer(state)
     const words = `${full.lead} ${full.text}`.split(' ')
     const leadWords = full.lead.split(' ').length
+    // The assistant's steps, as a host reports them: each label in its own tense.
+    const read = { label: 'Vraag gelezen', detail: 'periode: afgelopen 7 dagen' }
+    const searched = { label: 'Bron doorzocht', detail: 'Aanvragen en wachttijden', href: '#', linkText: 'Aanvragen en wachttijden' }
     turn.answer = {
-      state: 'streaming', status: 'Vraag lezen · stap 1 van 3',
+      state: 'streaming', steps: { items: [{ label: 'Vraag lezen', state: 'busy' }] },
       blocks: [{ kind: 'kpi-row', data: weekKpis('loading') }, { kind: 'chart', data: weekChart('loading') }],
     }
     render()
@@ -239,10 +246,17 @@ export function converse(chat, { turns = true } = {}) {
       text: words.slice(leadWords, index + 1).join(' '),
     })))
     const written = 400 + words.length * 90
-    at(written, () => ({ status: 'Cijfers berekenen · stap 2 van 3' }))
-    at(written + 900, () => ({ blocks: [full.blocks[0], turn.answer.blocks[1]], status: 'Grafiek tekenen · stap 3 van 3' }))
+    at(300, () => ({ steps: { items: [read, { label: 'Bron doorzoeken', state: 'busy' }] } }))
+    at(written, () => ({ steps: { items: [read, searched, { label: 'Cijfers berekenen', state: 'busy' }] } }))
+    at(written + 900, () => ({
+      blocks: [full.blocks[0], turn.answer.blocks[1]],
+      steps: { items: [read, searched, { label: 'Cijfers berekend', detail: 'per dag, 7 dagen' }, { label: 'Grafiek tekenen', state: 'busy' }] },
+    }))
     at(written + 1800, () => ({ blocks: full.blocks }))
-    at(written + 2000, () => ({ ...full, state: 'ready', status: undefined }))
+    at(written + 2000, () => ({
+      ...full, state: 'ready',
+      steps: { items: [read, searched, { label: 'Cijfers berekend', detail: 'per dag, 7 dagen' }, { label: 'Grafiek getekend' }], duration: `${Math.round((written + 2000) / 1000)} s` },
+    }))
   }
   const ask = (text, found = terms(text)) => {
     const time = new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })

@@ -5,7 +5,7 @@
  * names come from their one list, `tokens/colors.ts`.
  */
 import type { DataColor } from './tokens/colors'
-import type { ContentStateKind, Tone } from './components/shared/tone'
+import type { ContentStateKind, Tone, WorkState } from './components/shared/tone'
 import type { StatusTone } from './components/feedback/status-dot/status-dot'
 import type { AnnouncementKind } from './components/shared/announcement-block'
 import type { ChartSpec, MapSpec } from './components/shared/charts/shared/types'
@@ -763,6 +763,40 @@ export type ChatBlock =
   /** Files the answer gives back or cites, beside the sentence that names them. */
   | { kind: 'attachments'; items: UploadFile[] }
 
+/** One thing the assistant did for an answer. The host writes the label in its own tense and
+ *  with its outcome: "3 bronnen doorzoeken" while busy, "3 bronnen doorzocht" when done,
+ *  "Tabel ophalen mislukt" or "Tabel ophalen gestopt". */
+export interface ChatStep {
+  label: string
+  /** `done` without it. */
+  state?: Extract<WorkState, 'busy' | 'done' | 'error' | 'cancelled'>
+  /** Short, after the label on the same line: the sources, the table, or why it failed. */
+  detail?: string
+  /** Makes `linkText` in the detail a link: the source's page. */
+  href?: string
+  /** Without it, or when the detail does not hold it, the whole detail is the link. */
+  linkText?: string
+}
+
+/** What the assistant did for one answer, oldest first; steps are only ever added at the end. */
+export interface ChatStepsData {
+  items: ChatStep[]
+  /** How long it took, as the host formats it ("12 s"). Only once nothing is busy: while a step
+   *  runs, it is not drawn. */
+  duration?: string
+}
+
+/** A line between turns, above the question of its turn. */
+export interface ChatDivider {
+  /** `time` ("Gisteren") and `topic` ("Nieuw onderwerp") are quiet; `context`: the conversation
+   *  was trimmed, and what stands above is no longer used. `time` without it. */
+  kind?: 'time' | 'topic' | 'context'
+  label: string
+  /** One sentence under the label. A `context` divider without it says "De assistent neemt de
+   *  vragen hierboven niet meer mee." */
+  note?: string
+}
+
 /** Where an answer stands. `out-of-scope` needs a source on; `needs-clarification` asks back. */
 export type ChatAnswerState =
   | 'ready'
@@ -779,8 +813,11 @@ export interface ChatAnswerData {
   text?: string
   blocks?: ChatBlock[]
   strip?: ChatStripData
-  /** `streaming`: the step that is running ("Cijfers berekenen · stap 2 van 3"). */
+  /** `streaming`: the step that is running ("Cijfers berekenen · stap 2 van 3"). With `steps`,
+   *  the running step says it and `status` is not drawn. */
   status?: string
+  /** What the assistant did for this answer, above its text in every state. */
+  steps?: ChatStepsData
   /** `error`: what went wrong, and the way out in words. */
   error?: { title?: string; text: string }
   /** `out-of-scope` and `needs-clarification`: the real choices, solid. */
@@ -791,6 +828,8 @@ export interface ChatAnswerData {
 
 export interface ChatTurnData {
   id: string
+  /** The line above this turn's question: "Gisteren", "Nieuw onderwerp", "Gesprek ingekort". */
+  divider?: ChatDivider
   message: ChatMessageData
   answer?: ChatAnswerData
 }
@@ -836,8 +875,8 @@ export interface ChatStartData {
  * `lintje-draft-change`, `lintje-suggestion-select`, `lintje-message-edit`,
  * `lintje-answer-retry`, `lintje-answer-rate`, `lintje-strip-change`, the attachments'
  * `lintje-files-add`, `lintje-file-remove`, `lintje-file-cancel`, `lintje-file-retry` and
- * `lintje-file-open`, and the blocks' own `lintje-mark-select`, `lintje-row-click` and
- * `lintje-sort-change`.
+ * `lintje-file-open`, `lintje-navigate` from a link in a step, and the blocks' own
+ * `lintje-mark-select`, `lintje-row-click` and `lintje-sort-change`.
  */
 export interface ChatData extends FrameSettings {
   turns: ChatTurnData[]

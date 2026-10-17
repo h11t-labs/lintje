@@ -11,6 +11,23 @@ const MB = 1024 * KB
 const policy = { id: 'beleid', name: 'beleidsregel-2026.pdf', size: 1.2 * MB, state: 'done' }
 const export3 = { id: 'export', name: 'aanvragen-q3.xlsx', size: 48 * KB, state: 'done' }
 
+/** What the assistant did for an answer about objections per month: fictitious. */
+const STEPS = [
+  { label: 'Vraag gelezen', detail: 'periode: de afgelopen 12 maanden' },
+  { label: '3 bronnen doorzocht', detail: 'Bezwaren, Besluiten, Termijnen' },
+  { label: 'Tabel opgehaald', detail: 'Bezwaren, stand 1 oktober 2026', href: '#', linkText: 'Bezwaren' },
+  { label: 'Opgeteld', detail: '4.812 bezwaren in 12 maanden' },
+  { label: 'Grafiek getekend' },
+]
+
+/** One `<lintje-chat-steps>` with its steps; `open` draws it unfolded. */
+const steps = (items, { duration, open = false } = {}) => ({
+  html: `<lintje-chat-steps${open ? ' open' : ''}${duration ? ` duration="${duration}"` : ''}></lintje-chat-steps>`,
+  setup(stage) {
+    stage.querySelector('lintje-chat-steps').items = items
+  },
+})
+
 /** One `<lintje-chat-answer>`; `current` marks the newest answer of a conversation. */
 const answer = (turn, attributes = '') => `<lintje-chat-answer turn-id="demo-${turn}" ${attributes}></lintje-chat-answer>`
 
@@ -31,6 +48,36 @@ export default {
           setup(stage) {
             const { ask } = converse(stage.querySelector('lintje-chat'))
             stage.querySelector('lintje-button').addEventListener('click', () => ask(weekQuestion))
+          },
+        },
+        {
+          label: 'Scheidslijnen',
+          note: 'Een dag, een nieuw onderwerp en een ingekort gesprek, elk boven de vraag van zijn beurt.',
+          html: '<div class="guide__chat"><lintje-chat></lintje-chat></div>',
+          setup(stage) {
+            stage.querySelector('lintje-chat').data = {
+              sources: chatSources(),
+              turns: [
+                {
+                  id: 'd1',
+                  divider: { label: 'Gisteren' },
+                  message: { text: 'Hoeveel bezwaren kwamen er in september binnen?', time: '16:40' },
+                  answer: { lead: 'In september kwamen 412 bezwaren binnen.' },
+                },
+                {
+                  id: 'd2',
+                  divider: { kind: 'topic', label: 'Nieuw onderwerp' },
+                  message: { text: 'Hoe lang duurde een besluit gemiddeld?', time: '09:05' },
+                  answer: { lead: 'Een besluit duurde gemiddeld 41 dagen.' },
+                },
+                {
+                  id: 'd3',
+                  divider: { kind: 'context', label: 'Gesprek ingekort' },
+                  message: { text: 'En in augustus?', time: '09:12' },
+                  answer: { lead: 'In augustus duurde een besluit gemiddeld 44 dagen.' },
+                },
+              ],
+            }
           },
         },
         {
@@ -212,6 +259,52 @@ export default {
               ],
             })
           },
+        },
+      ],
+    },
+    {
+      tag: 'lintje-chat-steps',
+      title: 'Wat de assistent deed voor een antwoord: een reeks stappen die inklapt tot één regel',
+      specimens: [
+        {
+          label: 'Eerste stap bezig',
+          note: 'Eén stap zonder detail heeft geen knop.',
+          ...steps([{ label: 'Vraag lezen', state: 'busy' }]),
+        },
+        {
+          label: 'Latere stap bezig',
+          ...steps([...STEPS.slice(0, 2), { label: 'Bezwaren per maand optellen', state: 'busy' }]),
+        },
+        {
+          label: 'Klaar',
+          ...steps(STEPS, { duration: '12 s' }),
+        },
+        {
+          label: 'Open met details',
+          note: 'Elke stap staat op één regel; de bron is een link.',
+          ...steps(STEPS, { duration: '12 s', open: true }),
+        },
+        {
+          label: 'Een stap mislukt',
+          note: 'De dichte regel toont de mislukte stap; open staat de reden erachter.',
+          ...steps(
+            [
+              ...STEPS.slice(0, 2),
+              {
+                label: 'Tabel behandeltermijnen ophalen mislukt',
+                state: 'error',
+                detail: 'De bron Termijnen gaf binnen 30 s geen antwoord.',
+              },
+              ...STEPS.slice(3),
+            ],
+            { duration: '41 s' },
+          ),
+        },
+        {
+          label: 'Gestopt',
+          ...steps([...STEPS.slice(0, 3), { label: 'Grafiek tekenen gestopt', state: 'cancelled' }], {
+            open: true,
+          }),
         },
       ],
     },

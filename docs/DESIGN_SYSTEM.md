@@ -442,8 +442,8 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een menurij kan een schakelaar zijn of één uit een keuze**: een schakelaar wordt gemarkeerd
   met een vinkje, één uit een keuze met het rondje van een radio, zoals in een formulier; een kop
   boven rijen noemt hun groep en staat aan de rand van het menu.
-- **Een reeks hangt aan een rail**: vierkante tekens verbonden door een lijn, in de stepper en het
-  activiteitenlog evengoed. In de stepper is de lijn doorgetrokken tot de huidige stap en
+- **Een reeks hangt aan een rail**: vierkante tekens verbonden door een lijn, in de stepper, het
+  activiteitenlog en de stappen van de assistent evengoed. In de stepper is de lijn doorgetrokken tot de huidige stap en
   gestreept daarna, zodat de weg die nog te gaan is nooit op kleur alleen rust. Een stap kan
   eigen inhoud dragen, zonder vlak eromheen en zonder eigen kleur: in de kolom onder zijn kop,
   waar de rail langs doorloopt; in de rij en op een telefoon alleen die van de huidige stap,
@@ -624,6 +624,16 @@ De besluiten hieronder gelden voor alle elementen.
 
 - **Een antwoord is een lijst blokken die al bestaan** — lopende tekst, cijfers, een grafiek, een
   tabel. Het gesprek voegt geen eigen visueel patroon toe.
+- **Wat de assistent deed, is een reeks aan de rail die inklapt tot één regel**
+  (`lintje-chat-steps`) — de uitzondering die geen is, want de rail bestaat al. De dichte regel
+  toont wat nu telt: de stap die loopt, anders een mislukte, anders een gestopte, anders het
+  aantal. De groep gaat nooit vanzelf open of dicht, zodat ze niet van hoogte verandert terwijl de
+  lezer leest. Het teken is de staat, niet de soort stap: het werkwoord zegt wat de stap deed.
+  Alleen de eerste stap en een mislukking worden voorgelezen; het antwoord spreekt voor zichzelf.
+- **Een scheidslijn tussen beurten staat gecentreerd**, lijn — label — lijn, als een grens tussen
+  twee delen en niet als kop boven het volgende. Een scheidslijn die over het deel erboven gaat
+  ("Gesprek ingekort"), wijst ernaar en zegt het in woorden, zodat de pijl of het gewicht nooit de
+  enige drager is.
 - **Gestreept is een suggestie, doorgetrokken is een keuze.** Een gestreepte omlijning is iets wat
   de lezer zou kunnen zeggen; een doorgetrokken omlijning is een antwoord waar de assistent op
   wacht. Een bijschrift zegt welke, zodat de lijnstijl nooit de enige drager is.
