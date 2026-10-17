@@ -19,13 +19,13 @@ import { classMap } from 'lit/directives/class-map.js'
 import { keyed } from 'lit/directives/keyed.js'
 import { LintjeElement, define } from '../../../core/element'
 import { holdsFocus, standsIn } from '../../../core/focus'
-import { lockScroll } from '../../../core/host-config'
 import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../feedback/badge/badge'
 import '../../overlays/popover/popover'
-import { FocusTrap } from '../../shared/focus-trap'
+import { DialogHold } from '../../shared/dialog'
+import { LiveMessage } from '../../shared/live-message'
 import notificationsCss from './notifications.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import { isPlainClick } from '../../../core/links'
@@ -63,7 +63,6 @@ export class LintjeNotifications extends LintjeElement {
     items: { attribute: false },
     open: { type: Boolean, reflect: true },
     max: { type: Number },
-    news: { state: true },
   }
 
   items: NotificationItem[] = []
@@ -76,12 +75,11 @@ export class LintjeNotifications extends LintjeElement {
 
   #shown = 0
   #replaced = false
-  /** What the status region says; emptied first, filled a frame later, so a repeat is spoken. */
-  protected news: string = ''
-  #newsFrame = 0
+  readonly #news = new LiveMessage(this)
   #refocus = false
 
   readonly #mobile = new MediaController(this, MOBILE)
+  #wasMobile: boolean | null = null
   readonly #panelId = `lintje-notifications-${++instances}`
 
   private get bell(): HTMLButtonElement | null {
@@ -111,40 +109,31 @@ export class LintjeNotifications extends LintjeElement {
     this.addEventListener('focusout', this.onFocusOut)
   }
 
-  #released: (() => void) | null = null
-  readonly #trap = new FocusTrap()
-
-  /** The sheet on a phone has no popover to answer Escape; it answers only while on top. */
-  readonly #onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape' && this.#trap.isTopmost()) this.hide(true)
-  }
+  /** The sheet on a phone has no popover to answer Escape: the hold does, while it is on top. */
+  readonly #hold = new DialogHold(() => this.hide(true))
 
   override disconnectedCallback(): void {
-    this.#release()
-    if (this.#newsFrame) cancelAnimationFrame(this.#newsFrame)
-    this.#newsFrame = 0
+    this.#hold.release()
     super.disconnectedCallback()
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
+    // A viewport of 768 px or wider closes the open sheet, as it closes the shell's menu. The hold
+    // lets go first, or its trap would pull the bell's focus back into the sheet that goes.
+    if (this.#wasMobile === true && !this.#mobile.matches && this.open) {
+      this.#hold.release()
+      this.hide(true)
+    }
+    this.#wasMobile = this.#mobile.matches
     if (!changed.has('items')) return
     const count = this.unread
     const before = this.#shown
     this.#replaced = before > 0 && count > 0 && count !== before
     this.#shown = count
-    if (this.hasUpdated && count > before) this.#announce(newsMessage(count - before))
+    if (this.hasUpdated && count > before) this.#news.say(newsMessage(count - before))
     const read = this.renderRoot.querySelector('.lintje-notifications__read')
     if (count === 0 && read && holdsFocus(read)) this.#refocus = true
-  }
-
-  #announce(message: string): void {
-    this.news = ''
-    if (this.#newsFrame) cancelAnimationFrame(this.#newsFrame)
-    this.#newsFrame = requestAnimationFrame(() => {
-      this.#newsFrame = 0
-      this.news = message
-    })
   }
 
   protected override updated(changed: PropertyValues<this>): void {
@@ -157,24 +146,14 @@ export class LintjeNotifications extends LintjeElement {
     }
     // Only the phone's sheet is modal.
     const sheet = this.open && this.#mobile.matches
-    if (sheet && !this.#released) this.#hold()
-    else if (!sheet && this.#released) this.#release()
+    if (sheet && !this.#hold.held) this.#holdSheet()
+    else if (!sheet && this.#hold.held) this.#hold.release()
   }
 
-  #hold(): void {
-    this.#released = lockScroll()
-    document.addEventListener('keydown', this.#onKeyDown)
+  #holdSheet(): void {
     const sheet = this.renderRoot.querySelector<HTMLElement>('.lintje-notifications__sheet')
     const close = this.renderRoot.querySelector<HTMLElement>('.lintje-notifications__close')
-    if (sheet) this.#trap.activate(sheet, { focus: close ?? true })
-  }
-
-  #release(): void {
-    if (!this.#released) return
-    document.removeEventListener('keydown', this.#onKeyDown)
-    this.#released()
-    this.#released = null
-    this.#trap.deactivate()
+    if (sheet) this.#hold.hold(sheet, { focus: close ?? true })
   }
 
   private onPopoverClose(event: CustomEvent<{ reason: string }>): void {
@@ -318,7 +297,7 @@ export class LintjeNotifications extends LintjeElement {
             >${this.renderPanel(false)}</lintje-popover
           >`
       }
-      <span class="visually-hidden" role="status">${this.news}</span>`
+      <span class="visually-hidden" role="status">${this.#news.text}</span>`
   }
 }
 

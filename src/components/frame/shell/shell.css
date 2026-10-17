@@ -6,11 +6,13 @@
 /* ------------------------------------------------------------------------ */
 
 /*
- * The page's left edge, for what pins itself to the viewport (the filter bar): the menu's width
- * beside the page, nothing above it. Custom properties reach the slotted content.
+ * The page's left edge and the bar's height, for what pins itself to the viewport or sticks under
+ * the bar (the filter bar): the menu's width beside the page, nothing above it. Custom properties
+ * reach the slotted content.
  */
 .lintje-shell {
   --lintje-shell-left: 0px;
+  --lintje-shell-top: var(--h-topbar);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -24,7 +26,10 @@
 @media (min-width: 1440px) {
   .lintje-shell--side:not(.is-unpinned) { --lintje-shell-left: var(--w-nav); }
 }
-.lintje-shell--side:where(.is-phone) { --lintje-shell-left: 0px; }
+.lintje-shell--side:where(.is-phone) {
+  --lintje-shell-left: 0px;
+  --lintje-shell-top: var(--h-mobile-header);
+}
 .lintje-shell__column {
   flex: 1;
   min-width: 0;
@@ -196,6 +201,7 @@
     display: flex;
     justify-content: center;
     min-height: var(--h-logobar);
+    --lintje-logo-ribbon: var(--w-ribbon);
   }
   .lintje-shell__print-name {
     margin: 0;

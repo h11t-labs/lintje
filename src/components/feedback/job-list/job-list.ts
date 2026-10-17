@@ -23,6 +23,7 @@ import { holdsFocus } from '../../../core/focus'
 import { shadowCss } from '../../../core/styles'
 import '../../tables/list/list'
 import type { ListItem } from '../../tables/list/list'
+import type { RowActionDetail, RowClickDetail } from '../../../types'
 import { WORK_STATE_LABEL, WORK_STATE_TONE, type WorkState } from '../../shared/tone'
 import type { BadgeTone } from '../badge/badge'
 import jobListCss from './job-list.css?inline'
@@ -160,14 +161,14 @@ export class LintjeJobList extends LintjeElement {
   }
 
   // A row's action becomes the job's event.
-  private onAction(event: CustomEvent<{ id: string; value: string }>): void {
+  private onAction(event: CustomEvent<RowActionDetail>): void {
     event.stopPropagation()
-    const { id, value } = event.detail
-    if (value.startsWith('lintje-job-')) this.emit(value as JobEvent, id)
+    const { id, action } = event.detail
+    if (action.startsWith('lintje-job-')) this.emit(action as JobEvent, id)
   }
 
   // A done job's row opens its result, on its name or beside it: the list's click is taken over.
-  private onRowClick(event: CustomEvent<{ id: string; href?: string }>): void {
+  private onRowClick(event: CustomEvent<RowClickDetail>): void {
     event.stopPropagation()
     event.preventDefault()
     if (event.detail.href) this.followLink(event.detail.href)

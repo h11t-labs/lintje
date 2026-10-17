@@ -1,6 +1,6 @@
 {
   "name": "lintje",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "type": "module",
   "description": "Lintje: the Rijkshuisstijl design system as Lit web components",
   "license": "EUPL-1.2",
@@ -102,7 +102,7 @@
     "build:geo": "node scripts/build-geo.mjs",
     "build:elements": "vite build --config vite.config.elements.ts && vite build --config vite.config.elements.ts --mode split && node scripts/build-manifest.mjs && tsc -p tsconfig.types.json && node scripts/build-types.mjs",
     "test": "vitest run",
-    "test:unit": "vitest run --project unit",
+    "test:unit": "vitest run --project 'unit*'",
     "test:browser": "vitest run --project 'browser*'",
     "test:browser:all": "LINTJE_BROWSERS=chromium,webkit vitest run --project 'browser*'",
     "test:watch": "vitest --project unit",

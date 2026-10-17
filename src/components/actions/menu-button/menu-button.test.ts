@@ -225,9 +225,27 @@ describe('lintje-menu-button', () => {
     expect(
       element.shadowRoot!.querySelector('[role="status"]')!.classList.contains('visually-hidden'),
     ).toBe(true)
-    expect(main.hasAttribute('aria-disabled')).toBe(false)
+    expect(main.classList.contains('is-disabled')).toBe(false)
     main.click()
     expect(sent).toEqual(['docx'])
+  })
+
+  it('makes both halves of a split button aria-disabled while busy, and neither otherwise', async () => {
+    const element = await mount({ split: true, label: 'Downloaden', action: 'docx' })
+    const halves = (): HTMLButtonElement[] => [
+      ...element.shadowRoot!.querySelectorAll<HTMLButtonElement>(
+        '.lintje-menu-button__split > button',
+      ),
+    ]
+    expect(halves()).toHaveLength(2)
+    expect(halves().map((half) => half.hasAttribute('aria-disabled'))).toEqual([false, false])
+    element.busyLabel = 'Het Word-document wordt gemaakt'
+    await element.updateComplete
+    expect(halves().map((half) => half.getAttribute('aria-disabled'))).toEqual(['true', 'true'])
+    expect(halves().map((half) => half.classList.contains('is-disabled'))).toEqual([false, false])
+    element.busyLabel = ''
+    await element.updateComplete
+    expect(halves().map((half) => half.hasAttribute('aria-disabled'))).toEqual([false, false])
   })
 
   it('shows the spinner and the sentence in a status beside a disabled trigger while busy', async () => {

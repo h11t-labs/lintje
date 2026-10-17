@@ -213,3 +213,80 @@ describe('lintje-text-input type="email"', () => {
     expect(control(element).getAttribute('aria-describedby')).toBe('lintje-input-error')
   })
 })
+
+describe('lintje-text-input with an addition', () => {
+  const addon = (element: LintjeTextInput, side: 'prefix' | 'suffix'): HTMLElement =>
+    element.renderRoot.querySelector(`.lintje-field__addon--${side}`)!
+  const button = (element: LintjeTextInput): HTMLElement & { disabled: boolean } =>
+    element.renderRoot.querySelector('.lintje-text-input__action')!
+
+  it('describes the field by its prefix and suffix, in that order, before the hint', async () => {
+    const element = await mount({ prefix: 'www.', suffix: '.nl', hint: 'Zonder https' })
+    const hint = element.renderRoot.querySelector('.lintje-field__hint')!
+    expect(addon(element, 'prefix').textContent).toBe('www.')
+    expect(addon(element, 'suffix').textContent).toBe('.nl')
+    expect(control(element).getAttribute('aria-describedby')).toBe(
+      `${addon(element, 'prefix').id} ${addon(element, 'suffix').id} ${hint.id}`,
+    )
+  })
+
+  it('keeps the addition out of the value', async () => {
+    const element = await mount({ name: 'p.site', prefix: 'www.', suffix: '.nl' })
+    const seen = listen(element)
+    type(element, 'rijksoverheid')
+    control(element).dispatchEvent(new Event('change'))
+    expect(seen).toEqual([{ 'p.site': 'rijksoverheid' }])
+  })
+
+  it('commits the typed text first, then sends lintje-action with it', async () => {
+    vi.useFakeTimers()
+    const element = await mount({ name: 'p.kenteken', commitOn: 'input', action: 'Zoek' })
+    const order: string[] = []
+    element.addEventListener('lintje-values-change', (event) =>
+      order.push(`commit ${JSON.stringify((event as CustomEvent).detail)}`),
+    )
+    element.addEventListener('lintje-action', (event) =>
+      order.push(`action ${(event as CustomEvent).detail}`),
+    )
+    type(element, 'AB-12-CD')
+    button(element).click()
+    vi.advanceTimersByTime(400)
+    expect(order).toEqual(['commit {"p.kenteken":"AB-12-CD"}', 'action AB-12-CD'])
+  })
+
+  it('does not commit an unchanged value twice', async () => {
+    const element = await mount({ name: 'p.kenteken', value: 'AB-12-CD', action: 'Zoek' })
+    const seen = listen(element)
+    const actions: unknown[] = []
+    element.addEventListener('lintje-action', (event) =>
+      actions.push((event as CustomEvent).detail),
+    )
+    button(element).click()
+    expect(seen).toEqual([])
+    expect(actions).toEqual(['AB-12-CD'])
+  })
+
+  it('disables the button with the field, and keeps it working when read-only', async () => {
+    const off = await mount({ action: 'Zoek', disabled: true })
+    expect(button(off).disabled).toBe(true)
+    const fixed = await mount({
+      name: 'p.dossier',
+      value: '2026-0412',
+      action: 'Controleer',
+      readonly: true,
+    })
+    const seen = listen(fixed)
+    const actions: unknown[] = []
+    fixed.addEventListener('lintje-action', (event) => actions.push((event as CustomEvent).detail))
+    expect(button(fixed).disabled).toBe(false)
+    button(fixed).click()
+    expect(actions).toEqual(['2026-0412'])
+    expect(seen).toEqual([])
+  })
+
+  it('draws no second button on a password', async () => {
+    const element = await mount({ type: 'password', action: 'Zoek' })
+    expect(element.renderRoot.querySelectorAll('lintje-button')).toHaveLength(1)
+    expect(element.renderRoot.querySelector('.lintje-text-input__action')).toBeNull()
+  })
+})

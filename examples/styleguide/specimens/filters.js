@@ -124,6 +124,26 @@ export default {
             zone.addEventListener('lintje-zone-open-change', (event) => (zone.open = event.detail))
           },
         },
+        {
+          label: 'Dichtgeklapt met een lange zin',
+          note:
+            'Een zin die niet past, staat met een aanwijzer heel in de tooltip. Op een telefoon ' +
+            'loopt hij door.',
+          html: `<lintje-filter-zone total="2" modified="0">${CONTROLS(false)}</lintje-filter-zone>`,
+          setup(stage) {
+            const zone = stage.querySelector('lintje-filter-zone')
+            zone.open = false
+            zone.sentence = [
+              ...sentence(ALL.value).slice(0, -1),
+              { text: ' · ', emphasis: false },
+              { text: 'Periode ', emphasis: false },
+              { text: 'de afgelopen twaalf maanden, zonder de feestdagen en de weken van de zomersluiting', emphasis: true },
+              { text: '.', emphasis: false },
+            ]
+            fillControls(stage)
+            zone.addEventListener('lintje-zone-open-change', (event) => (zone.open = event.detail))
+          },
+        },
       ],
     },
     {
