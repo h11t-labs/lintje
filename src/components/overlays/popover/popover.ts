@@ -19,6 +19,7 @@ import { styleProps, type StyleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
 import { place, samePlace, viewport, type Place, type Placement } from '../../shared/place'
 import { holdsFocus, ownsEscape, standsIn } from '../../../core/focus'
+import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import popoverCss from './popover.css?inline'
 
 function spotStyle(spot: Place | null, minWidth: number | null): StyleProps {
@@ -132,10 +133,13 @@ export class LintjePopover extends LintjeElement {
     window.removeEventListener('resize', this.onReflow)
     if (this.reflowFrame) cancelAnimationFrame(this.reflowFrame)
     this.reflowFrame = 0
+    this.#anchorSize.disconnect()
     super.disconnectedCallback()
   }
 
   private anchorWidth: number | null = null
+  /** An anchor that changes size, such as a rail that unfolds, carries its panel along. */
+  readonly #anchorSize = new FrameResizeObserver(() => this.onReflow())
 
   private measure(): void {
     const anchor = this.anchorElement
@@ -155,8 +159,12 @@ export class LintjePopover extends LintjeElement {
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
     if (!changed.has('open')) return
-    if (this.open) this.measure()
-    else this.spot = null
+    this.#anchorSize.disconnect()
+    if (this.open) {
+      this.measure()
+      const anchor = this.anchorElement
+      if (anchor) this.#anchorSize.observe(anchor)
+    } else this.spot = null
   }
 
   protected override updated(changed: PropertyValues<this>): void {

@@ -288,6 +288,29 @@ export default {
           },
         },
         {
+          label: 'Gebruiker in de voet',
+          note:
+            'Naast de pagina is de voet van het menu de knop van het gebruikersmenu. ' +
+            'Het menu opent erboven, met de rijen van de host, “Afmelden” en de versie.',
+          html: `<lintje-shell>
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>Klik op de naam onderaan het menu.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.data = {
+              name: 'Transcriptie',
+              layout: 'side',
+              emblem: emblem(),
+              navigation: NAVIGATION,
+              user: USER,
+              userMenu: USER_MENU,
+              version: '2.4.1',
+            }
+            stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+          },
+        },
+        {
           label: 'Groep met submenu',
           note:
             'Klik op “Beheer” of wijs het aan. Buiten productie toont de balk de ' +

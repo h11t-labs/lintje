@@ -1799,17 +1799,23 @@ const SHELL_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-shell :: the rail’s "Afmelden", gone on Escape, hands its focus to the menu item before it',
+    name: 'lintje-shell :: a row of the user menu in the rail’s foot, chosen, hands its focus to the foot',
     run: async () => {
       const element = await railWithFocusOn(
         {
           user: { name: 'M. Jansen', initials: 'MJ' },
-          logout: { href: '/afmelden', token: 'proef' },
+          userMenu: [{ value: 'profiel', label: 'Mijn profiel' }],
         },
-        '.lintje-nav__logout-button',
+        '.lintje-nav__user-menu',
       )
-      await userEvent.keyboard('{Escape}')
-      return () => [...element.shadowRoot!.querySelectorAll('.lintje-nav__list a')].at(-1) ?? null
+      const foot = (): HTMLElement | null =>
+        inside(element, '.lintje-nav__user-menu', '.lintje-user-menu__trigger')
+      foot()!.focus()
+      await userEvent.keyboard('{Enter}')
+      // Opened from the keyboard, the focus is on the menu's first row.
+      await expect.poll(() => active()?.textContent?.trim()).toBe('Mijn profiel')
+      await userEvent.keyboard('{Enter}')
+      return foot
     },
   },
   {

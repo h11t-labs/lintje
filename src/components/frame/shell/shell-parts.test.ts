@@ -17,6 +17,7 @@ import { clearFilterZone, setFrameState } from '../../../core/frame-state'
 import { deepActiveElement, tabbables } from '../../shared/focus-trap'
 import { mailSubject, phoneLink } from './top-bar'
 import type { LintjeButton } from '../../actions/button/button'
+import type { LintjeUserMenu } from '../user-menu/user-menu'
 import { ICONS } from '../../../icons/register'
 import { loadIcon, putIcons, resetIcons } from '../../../icons/loader'
 
@@ -302,7 +303,7 @@ describe('the mobile menu panel', () => {
     )
     expect(row.querySelector('.lintje-mobile-menu__version')).toBeNull()
 
-    const user = root(shell).querySelector('lintje-user-menu')!
+    const user = root(shell).querySelector<LintjeUserMenu>('.lintje-shell__sheet-user')!
     expect(user.inline).toBe(true)
     expect(user.user?.initials).toBe('HP')
     expect(user.getAttribute('version')).toBe('1.2.3')
@@ -1369,13 +1370,14 @@ describe('the rail and the keyboard', () => {
 
   it('expands when the focus comes in, folds on Escape and when the focus leaves', async () => {
     const shell = await mount({ logout: { href: '/auth/logout', token: 't' } })
+    const foot = nav(shell).querySelector<LintjeUserMenu>('.lintje-nav__user-menu')!
+    expect(foot.folded).toBe(true)
     const link = nav(shell).querySelector<HTMLAnchorElement>('a.lintje-nav__item')!
     link.focus()
     await shell.updateComplete
     expect(shell.railExpanded).toBe(true)
-    // Expanded, "Afmelden" is in the tab order.
-    const logout = nav(shell).querySelector<HTMLButtonElement>('.lintje-nav__logout-button')!
-    expect(logout.closest('form')!.hidden).toBe(false)
+    // Expanded, the foot shows the name and role beside the avatar.
+    expect(foot.folded).toBe(false)
 
     link.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
     await shell.updateComplete
@@ -1389,19 +1391,90 @@ describe('the rail and the keyboard', () => {
     expect(shell.railExpanded).toBe(false)
   })
 
-  it('hands the focus on when Escape folds away the control that had it', async () => {
+  it('keeps the foot in the folded rail, where Escape leaves the focus on it', async () => {
     const shell = await mount({ logout: { href: '/auth/logout', token: 't' } })
-    const logout = (): HTMLButtonElement =>
-      nav(shell).querySelector<HTMLButtonElement>('.lintje-nav__logout-button')!
-    nav(shell).querySelector<HTMLAnchorElement>('a.lintje-nav__item')!.focus()
+    const foot = nav(shell).querySelector<LintjeUserMenu>('.lintje-nav__user-menu')!
+    const trigger = foot.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-user-menu__trigger')!
+    trigger.focus()
     await shell.updateComplete
-    logout().focus()
-    logout().dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    expect(shell.railExpanded).toBe(true)
+    trigger.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true }),
+    )
     await shell.updateComplete
+    expect(shell.railExpanded).toBe(false)
+    expect(foot.folded).toBe(true)
+    expect(foot.shadowRoot!.activeElement).toBe(trigger)
+  })
+})
+
+/** The foot of the side menu is the button of the same user menu as the top layout's avatar. */
+describe('the foot of the side menu', () => {
+  const USER_DATA: Partial<ShellData> = {
+    userMenu: [
+      { value: 'profiel', label: 'Mijn profiel' },
+      { value: 'instellingen', label: 'Instellingen' },
+    ],
+    logout: { href: '/auth/logout', token: 't' },
+    version: '2.4.1',
+  }
+  const nav = (shell: LintjeShell): HTMLElement =>
+    root(shell).querySelector<HTMLElement>('.lintje-nav')!
+  const foot = (shell: LintjeShell): LintjeUserMenu =>
+    nav(shell).querySelector<LintjeUserMenu>('.lintje-nav__footer lintje-user-menu')!
+  const trigger = (menu: LintjeUserMenu): HTMLButtonElement =>
+    menu.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-user-menu__trigger')!
+
+  it('draws the user menu with the host’s rows and "Afmelden", and no loose "Afmelden"', async () => {
+    const shell = await mount(USER_DATA)
+    const menu = foot(shell)
+    expect(menu.variant).toBe('side')
+    expect(menu.inline).toBe(false)
+    expect(menu.items).toEqual(USER_DATA.userMenu)
+    expect(menu.getAttribute('logout-action')).toBe('/auth/logout')
+    expect(menu.getAttribute('version')).toBe('2.4.1')
+    expect(nav(shell).querySelector('form, .lintje-nav__logout-button')).toBeNull()
+
+    trigger(menu).click()
+    await menu.updateComplete
+    const rows = [...menu.shadowRoot!.querySelectorAll('.lintje-menu__row')].map((row) =>
+      row.textContent!.trim(),
+    )
+    expect(rows).toEqual(['Mijn profiel', 'Instellingen', 'Afmelden'])
+  })
+
+  it('is named by the user, with the role as its description', async () => {
+    const shell = await mount(USER_DATA)
+    const button = trigger(foot(shell))
+    expect(button.hasAttribute('aria-label')).toBe(false)
+    expect(button.getAttribute('aria-haspopup')).toBe('menu')
+    expect(button.getAttribute('aria-expanded')).toBe('false')
+    expect(button.querySelector('.lintje-user-menu__trigger-name')!.textContent).toBe('H. van Pelt')
+    const role = foot(shell).shadowRoot!.getElementById(button.getAttribute('aria-describedby')!)!
+    expect(role.textContent).toBe('Analist')
+  })
+
+  it('keeps the folded rail expanded while the menu is open, and folds it once it closes', async () => {
+    const shell = await mount(USER_DATA)
+    const menu = foot(shell)
+    nav(shell).dispatchEvent(new MouseEvent('mouseenter'))
     await shell.updateComplete
-    expect(logout().closest('form')!.hidden).toBe(true)
-    expect(root(shell).activeElement).toBe(nav(shell).querySelector('a.lintje-nav__item'))
-    // The hand-on does not expand the rail again.
+    expect(shell.railExpanded).toBe(true)
+    trigger(menu).click()
+    await menu.updateComplete
+    expect(menu.open).toBe(true)
+
+    // The pointer leaves the menu: the open user menu holds the rail.
+    nav(shell).dispatchEvent(new MouseEvent('mouseleave'))
+    await shell.updateComplete
+    expect(shell.railExpanded).toBe(true)
+    expect(menu.folded).toBe(false)
+
+    // A press beside it closes the menu, and with the pointer gone the rail folds.
+    document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, composed: true }))
+    await menu.updateComplete
+    await shell.updateComplete
+    expect(menu.open).toBe(false)
     expect(shell.railExpanded).toBe(false)
   })
 })

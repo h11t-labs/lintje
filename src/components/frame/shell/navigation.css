@@ -76,9 +76,8 @@
   font-weight: 700;
   white-space: nowrap;
 }
-/* The pin and Afmelden: a transparent hit area takes the target to 48 px. */
-.lintje-nav__pin::after,
-.lintje-nav__logout-button::after {
+/* The pin: a transparent hit area takes the target to 48 px. */
+.lintje-nav__pin::after {
   content: '';
   position: absolute;
   inset: min(0px, calc((100% - var(--h-target)) / 2));
@@ -246,50 +245,12 @@
   border-left: var(--nav-edge) solid transparent;
 }
 
-/* "Afmelden": a real form, because signing out is a POST that leaves the page. */
-/* The form is `hidden` in the rail, not transparent, so the button is out of the tab order. */
-.lintje-nav__logout { flex: none; margin-left: auto; }
-.lintje-nav__logout[hidden] { display: none; }
-.lintje-nav__logout-button {
-  position: relative;
-  width: var(--h-icon-button); height: var(--h-icon-button);
-  display: flex; align-items: center; justify-content: center;
-  /* Quiet at rest; full text colour on hover and focus. */
-  color: var(--color-nav-text-sub);
-  background: transparent;
-  transition: background var(--dur-hover) var(--ease-in-motion);
-}
-.lintje-nav__logout-button:hover,
-.lintje-nav__logout-button:focus-visible { background: var(--color-nav-hover); color: var(--color-nav-text); }
-.lintje-nav__logout-text { font-size: 0.875rem; font-weight: 700; white-space: nowrap; padding: 0 var(--space-2); }
-
+/* The foot is the button of the user menu (`lintje-user-menu variant="side"`), which draws the
+   avatar, the name and the role. */
 .lintje-nav__footer {
   flex: none;
-  display: flex; align-items: center; gap: 10px;
-  padding: var(--space-4) var(--space-5) var(--space-5) var(--space-4);
   border-top: 1px solid var(--color-nav-line);
-  font-size: 1rem;
 }
-/* As high as name and role together (two 1.25rem lines); the left padding keeps it centred in
-   the rail. */
-.lintje-nav__avatar {
-  width: 2.5rem; height: 2.5rem; flex: none;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: var(--radius-round);
-  background: var(--color-nav-avatar-bg);
-  color: var(--color-nav-avatar-text);
-  font-size: 1rem; font-weight: 700;
-}
-/* Name and role fade and slide in like the headings; `nowrap` keeps one line. */
-.lintje-nav__user {
-  display: flex; flex-direction: column; line-height: 1.25rem;
-  min-width: 0; flex: 1 1 auto; white-space: nowrap;
-  transition: opacity 160ms var(--ease-in-motion) 80ms, transform var(--dur-base) var(--ease-in-motion) 80ms;
-}
-.lintje-nav--rail:not(.is-expanded) .lintje-nav__user { opacity: 0; transform: translateX(-8px); transition: none; }
-.lintje-nav__user > b,
-.lintje-nav__role { overflow: hidden; text-overflow: ellipsis; }
-.lintje-nav__role { font-size: 0.875rem; color: var(--color-nav-text-sub); }
 
 :where(.lintje-shell.is-phone) .lintje-nav,
 :where(.lintje-shell.is-phone) .lintje-nav__scrim { display: none; }
@@ -310,6 +271,5 @@
   .lintje-nav__item.is-active { border-left-color: Highlight; }
   .lintje-nav__item.is-no-page,
   .lintje-nav__item.is-no-access { color: GrayText; }
-  .lintje-nav__avatar { border: 1px solid CanvasText; }
   .lintje-nav__thumb { forced-color-adjust: none; background: CanvasText; }
 }
