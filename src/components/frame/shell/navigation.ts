@@ -9,7 +9,7 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
 import { renderBadge } from '../../feedback/badge/badge'
-import { hasPage, unavailableWord, type NavGroup } from './header'
+import { HOME_LABEL, hasPage, unavailableWord, type NavGroup } from './header'
 import type { ShellData, ShellLink } from '../../../types'
 import type { LintjeShell } from './shell'
 import { isPlainClick } from '../../../core/links'
@@ -209,8 +209,8 @@ export function homeLink(
   return html`<a
     href=${home}
     class=${className}
-    aria-label="Naar de startpagina"
-    title="Naar de startpagina"
+    aria-label=${data?.emblem?.label ? nothing : HOME_LABEL}
+    title=${HOME_LABEL}
     @click=${(event: MouseEvent) => {
       if (!isPlainClick(event)) return
       onNavigate?.()

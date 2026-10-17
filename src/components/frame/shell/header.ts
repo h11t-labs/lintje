@@ -45,6 +45,12 @@ export interface LogoBarOptions {
   home?: { href: string; onNavigate: (event: MouseEvent) => void }
 }
 
+/**
+ * The home link's description. Its name is what the logo shows, the organisation (WCAG 2.5.3);
+ * only a logo without a name leaves this as the name, so the link is never nameless.
+ */
+export const HOME_LABEL = 'Naar de startpagina'
+
 export function renderLogoBar(options: LogoBarOptions): TemplateResult {
   const { logo, emblem, ribbon, environment, home } = options
   const drawing = html`<lintje-logo
@@ -61,8 +67,8 @@ export function renderLogoBar(options: LogoBarOptions): TemplateResult {
         ? html`<a
           class="lintje-logobar__home focus-inset"
           href=${home.href}
-          aria-label="Naar de startpagina"
-          title="Naar de startpagina"
+          aria-label=${emblem?.label ? nothing : HOME_LABEL}
+          title=${HOME_LABEL}
           @click=${(event: MouseEvent) => {
             if (isPlainClick(event)) home.onNavigate(event)
           }}

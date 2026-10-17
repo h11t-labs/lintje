@@ -818,7 +818,8 @@ een balk, en halen hun aanwijsdoel via het klikgebied in de richting waar ze rui
   [`assets/README.md`](../assets/README.md).
 - **Een naam zonder bestand tekent niets en het bedieningselement toont zijn Nederlandse label.**
   Dat is een ondersteunde staat: een host mag een bestand weglaten of vervangen en het
-  bedieningselement blijft zeggen wat het doet. Een gat in de set dat nog
+  bedieningselement blijft zeggen wat het doet. Een icoon met een label houdt dat label als
+  tekstalternatief, ook terwijl het bestand laadt en zonder bestand. Een gat in de set dat nog
   openstaat, is een issue op GitHub.
 
 ## Responsief gedrag
@@ -949,9 +950,12 @@ kleinste correctie, en leg die hier vast.
 - **Wat niet geopend kan worden, zegt dat in woorden**: een menurij zonder pagina of toegang
   draagt een verborgen "niet beschikbaar" of "geen toegang"; `aria-disabled` op een gewoon element
   zegt niets.
-- **De naam van een knop is het woord dat je ziet, en hij zegt zijn staat één keer**: een knop
-  die zijn woord wisselt ("Menu", "Sluiten"), heeft geen `aria-expanded`; een knop met een vast
-  woord ("Filters") wel.
+- **De naam van een bedieningselement is wat je ziet, en het zegt zijn staat één keer** (2.5.3):
+  zijn woord, of de naam in zijn logo, zonder `aria-label` dat het vervangt en zonder tooltip die
+  het herhaalt. Alleen wat geen woord toont, een icoon of een logo zonder naam, krijgt een naam in
+  eigen woorden; een tooltip mag zeggen wat het doet ("Naar de startpagina"). Een knop die zijn
+  woord wisselt ("Menu", "Sluiten"), heeft geen `aria-expanded`; een knop met een vast woord
+  ("Filters") wel.
 - **Een paneel met gereedschap is een disclosure, geen menu** ("Weergave", "Delen"):
   `aria-expanded` zonder `aria-haspopup`, Tab loopt erdoorheen en sluit het bij het verlaten, en
   Escape of een afgerond item geeft de focus terug aan zijn knop.

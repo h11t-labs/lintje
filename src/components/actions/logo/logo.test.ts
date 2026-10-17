@@ -112,6 +112,54 @@ describe('lintje-logo: the name beside the ribbon', () => {
   })
 })
 
+describe('lintje-logo: what a screen reader hears', () => {
+  const said = (logo: LintjeLogo): string | null =>
+    logo.shadowRoot!.querySelector('svg.lintje-logo')!.getAttribute('aria-label')
+  const BYLINE = 'Ministerie van Voorbeelden'
+
+  it('says the name and the byline where the byline is drawn', async () => {
+    for (const name of ['embleem-org', 'embleem-lint']) {
+      const logo = await mount((el) => {
+        el.name = name
+        el.alt = 'Dienst Vergunningen'
+        el.byline = BYLINE
+        el.full = true
+      })
+      expect(said(logo)).toBe('Dienst Vergunningen, Ministerie van Voorbeelden')
+    }
+    const open = await mount((el) => {
+      el.name = 'embleem-org'
+      el.alt = 'Dienst Vergunningen'
+      el.byline = BYLINE
+      el.open = true
+    })
+    expect(said(open)).toBe('Dienst Vergunningen, Ministerie van Voorbeelden')
+  })
+
+  it('says the name alone where no byline is drawn', async () => {
+    const plain = await mount((el) => {
+      el.name = 'embleem-org'
+      el.alt = 'Dienst Vergunningen'
+      el.full = true
+    })
+    expect(said(plain)).toBe('Dienst Vergunningen')
+    // Only the ribbon in frame: the byline is not drawn, so not said.
+    const rail = await mount((el) => {
+      el.name = 'embleem-org'
+      el.alt = 'Dienst Vergunningen'
+      el.byline = BYLINE
+    })
+    expect(said(rail)).toBe('Dienst Vergunningen')
+    const image = await mount((el) => {
+      el.src = 'data:image/svg+xml,%3Csvg%2F%3E'
+      el.alt = 'Dienst Vergunningen'
+      el.byline = BYLINE
+      el.full = true
+    })
+    expect(image.shadowRoot!.querySelector('img')!.getAttribute('alt')).toBe('Dienst Vergunningen')
+  })
+})
+
 describe('lintje-logo: the ribbon in dark', () => {
   it('draws the lintblauw ribbon of the emblem file in the ribbon token, and nothing else', async () => {
     putIcons([
