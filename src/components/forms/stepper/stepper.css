@@ -36,8 +36,9 @@
   position: absolute;
   top: calc((var(--h-target) + var(--h-chip-field)) / 2);
   bottom: calc((var(--h-chip-field) - var(--h-target)) / 2);
-  left: calc(var(--h-chip-field) / 2 - 1px);
-  border-left-width: 2px;
+  --lintje-stepper-line: 2px;
+  left: calc(var(--h-chip-field) / 2 - var(--lintje-stepper-line) / 2);
+  border-left-width: var(--lintje-stepper-line);
 }
 
 .lintje-stepper__body { display: flex; flex-direction: column; }
