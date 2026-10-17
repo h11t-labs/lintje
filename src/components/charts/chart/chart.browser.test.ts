@@ -274,6 +274,7 @@ describe('the image of a chart', () => {
 
   it.each(['light', 'dark'])(
     'becomes a PNG twice the size of the chart in the modal, in %s',
+    { retry: 2, timeout: 30000 },
     async (mode) => {
       document.documentElement.dataset.mode = mode
       const tile = await line()
@@ -302,7 +303,6 @@ describe('the image of a chart', () => {
       expect(picture.width).toBeGreaterThanOrEqual(2 * Math.floor(width))
       expect(picture.width).toBeLessThan(2 * (width + 24))
     },
-    { retry: 2, timeout: 30000 },
   )
 })
 
