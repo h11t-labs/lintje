@@ -175,7 +175,7 @@
 .lintje-log-viewer__live { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: 700; color: var(--color-text-primary); }
 .lintje-log-viewer__sep { margin: 0 var(--space-2); }
 .lintje-log-viewer__state .lintje-badge { margin-right: var(--space-2); }
-.lintje-log-viewer__dot { width: var(--space-2); height: var(--space-2); border-radius: var(--radius-round); background: var(--color-error); }
+.lintje-log-viewer__dot { width: var(--space-2); height: var(--space-2); border-radius: var(--radius-round); background: var(--color-error-line); }
 .lintje-log-viewer__foot-actions { display: inline-flex; align-items: center; gap: var(--space-1); }
 .lintje-log-viewer__count { white-space: nowrap; }
 

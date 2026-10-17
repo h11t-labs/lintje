@@ -1310,6 +1310,24 @@ describe('a mark on a surface other than the plain one', () => {
         '--color-error-line',
       ],
       [`${C}/charts/kpi/kpi.css`, '.lintje-kpi__dot', 'background', '--color-error-line'],
+      [
+        `${C}/feedback/status-dot/status-dot.css`,
+        '.lintje-status__dot--error',
+        'background',
+        '--color-error-line',
+      ],
+      [
+        `${C}/feedback/status-dot/status-dot.css`,
+        '.lintje-status__dot--live',
+        'background',
+        '--color-error-line',
+      ],
+      [
+        `${C}/content/log-viewer/log-viewer.css`,
+        '.lintje-log-viewer__dot',
+        'background',
+        '--color-error-line',
+      ],
       [`${C}/charts/kpi/kpi.css`, '.lintje-trend__glyph--bad', 'color', '--color-error-line'],
       [`${C}/charts/kpi/kpi.css`, '.lintje-trend__glyph--good', 'color', '--color-success-line'],
       [
@@ -1935,16 +1953,12 @@ describe('the edges, marks and rings that say what a control is (WCAG 1.4.11)', 
 
   it('draws no edge or mark in the error fill, which only carries white content', () => {
     // `--color-error` is 2.94:1 on the dark surface; an edge or a mark takes `--color-error-line`.
-    // A fill stays when its own rule writes on it, and the status dots and the live dot beside a
-    // word.
+    // A fill stays only where its own rule writes content on it.
     const FILLS = [
       'tables/data-table/data-table.css .lintje-threshold-cell--above-threshold',
       'feedback/badge/badge.css .lintje-badge--error',
       'feedback/badge/badge.css .lintje-badge--live',
       'content/video-player/video-player.css .lintje-video-player__failed-mark',
-      'feedback/status-dot/status-dot.css .lintje-status__dot--error',
-      'feedback/status-dot/status-dot.css .lintje-status__dot--live',
-      'content/log-viewer/log-viewer.css .lintje-log-viewer__dot',
     ]
     const root = resolvePath(C)
     const found: string[] = []
