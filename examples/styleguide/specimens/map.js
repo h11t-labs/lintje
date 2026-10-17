@@ -197,12 +197,13 @@ function mapSetup(map, extra = {}) {
 }
 
 // Development only; in production this is the organization's own GeoServer, and a host reads
-// these values from its own configuration.
+// these values from its own configuration. The dark style is another layer of the same service.
 const DEMO_BASEMAP = {
   kind: 'wms',
   url: 'https://ows.terrestris.de/osm/service',
   layers: 'OSM-WMS',
   attribution: '© OpenStreetMap contributors, via terrestris',
+  dark: { layers: 'Dark' },
 }
 
 export default {
@@ -236,7 +237,7 @@ export default {
         },
         ...MAPS.map((map) => ({
           label: `${map.label} op een ondergrond`,
-          note: `${map.note} De ondergrond is een WMS-kaart.`,
+          note: `${map.note} De ondergrond is een WMS-kaart, in donker de donkere stijl van dezelfde dienst.`,
           html: MAP_TILE,
           // No `height`: the map takes its own, 400 px and 280 on a phone.
           setup: mapSetup(map, { basemap: DEMO_BASEMAP, height: undefined, title: `${map.title} · ondergrond` }),

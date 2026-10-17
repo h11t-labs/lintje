@@ -20,6 +20,7 @@ import { DEFAULT_SERIES_COLOR, lineCasing } from '../shared/colors'
 import { seriesStyle } from './series-style'
 import { nextRow, type MenuItem } from '../../../actions/menu-button/menu-button'
 import type { ChartController, ChartOptions } from '../shared/controller'
+import type { Mode } from '../../../../core/element'
 import { mapDrawings, withUnit, type MapDrawing } from './drawings'
 import { seriesKey } from './marks'
 import { renderMapLegend } from './map-legend'
@@ -107,6 +108,8 @@ export function scaleLabel(metres: number): string {
  */
 export interface MapOptions extends Omit<ChartOptions, 'description' | 'onSelect' | 'selectedId'> {
   description?: string
+  /** The element's mode, which only the browser knows: it chooses a basemap's dark style. */
+  mode?: Mode
   /**
    * An area or point was clicked; the whole mark travels, as the panel needs its figure. `newTab`
    * for a modifier or middle click on a mark with an `href`, which leaves the selection be.
@@ -131,6 +134,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     controller,
     description = data.description,
     mobile = false,
+    mode = 'light',
     onSelect,
     onClear,
     onLayerChange,
@@ -264,6 +268,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     select,
     clear,
     mobile,
+    mode,
   })
 
   const buttons = ZOOM_CONTROLS.filter((control) =>
