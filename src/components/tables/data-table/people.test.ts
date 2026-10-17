@@ -35,6 +35,7 @@ const data: DataTableData = {
 
 afterEach(() => {
   document.body.innerHTML = ''
+  vi.restoreAllMocks()
 })
 
 async function mount(extra: Partial<DataTableData> = {}): Promise<TableElement> {
@@ -115,7 +116,6 @@ describe('a person column', () => {
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
     ;(element as unknown as { csv(): void }).csv()
     const text = (await file!.text()).replace(/^\uFEFF/, '')
-    vi.restoreAllMocks()
     expect(text.split('\r\n').map((line) => line.split(';'))).toEqual([
       ['Aanvraag', 'Behandelaar'],
       ['Bouwvergunning', 'J. de Vries'],
