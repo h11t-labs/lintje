@@ -317,6 +317,10 @@ export class LintjeSortableList extends LintjeElement {
         @keydown=${(event: KeyboardEvent) => this.onGripKeydown(event, item)}
         @blur=${() => this.onGripBlur(item)}
         @pointerdown=${(event: PointerEvent) => this.onPointerDown(event, item)}
+        @mousedown=${(event: MouseEvent) => {
+          // Where a browser still sends it, the grip in the hand keeps the focus here too.
+          if (this.grabbed) event.preventDefault()
+        }}
         @pointermove=${(event: PointerEvent) => this.onPointerMove(event)}
         @pointerup=${(event: PointerEvent) => this.onPointerUp(event, item)}
         @pointercancel=${() => this.onPointerCancel()}

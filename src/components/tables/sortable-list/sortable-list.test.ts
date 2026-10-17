@@ -179,6 +179,10 @@ describe('lintje-sortable-list', () => {
     const values = collect(element, 'lintje-values-change')
     await tapGrip(element, 'datum')
     await pointer(element, grip(element, 'categorie'), 'pointerdown')
+    // The press leaves the focus on the grip in the hand, also where a browser sends a mousedown.
+    const down = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+    grip(element, 'categorie').dispatchEvent(down)
+    expect(down.defaultPrevented).toBe(true)
     expect(labels(element)).toEqual(['Titel', 'Categorie', 'Ernst', 'Datum'])
     expect(grip(element, 'datum').getAttribute('aria-pressed')).toBe('true')
     expect(values).toEqual([])
