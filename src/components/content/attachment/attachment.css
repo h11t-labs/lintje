@@ -12,8 +12,8 @@
   display: flex; align-items: center;
   gap: var(--space-2);
   max-width: 280px;
-  height: var(--h-chip);
-  padding: 0 var(--space-3) 0 var(--space-2);
+  min-height: var(--h-chip);
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
   --lintje-attachment-border: 1px;
   border: var(--lintje-attachment-border) solid var(--color-border-default);
   background: var(--color-bg-surface);
@@ -57,6 +57,12 @@
 .lintje-attachment__name { display: flex; min-width: 0; white-space: nowrap; }
 .lintje-attachment__stem { min-width: 3ch; overflow: hidden; text-overflow: ellipsis; }
 .lintje-attachment__tail { flex: none; }
+/* Where no pointer shows the title, the whole name runs on: under the focus, without hover and
+   on a phone. Two names that differ in the middle stay apart. */
+:host(:focus-within) .lintje-attachment__name { display: block; white-space: normal; overflow-wrap: anywhere; }
+@media (hover: none), screen and (max-width: 767px) {
+  .lintje-attachment__name { display: block; white-space: normal; overflow-wrap: anywhere; }
+}
 .lintje-attachment__detail { flex: none; white-space: nowrap; color: var(--color-text-muted); }
 .lintje-attachment.is-error .lintje-attachment__detail { color: var(--color-error-text); }
 

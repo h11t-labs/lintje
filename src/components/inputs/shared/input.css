@@ -37,7 +37,8 @@
 :host(lintje-select) {
   width: 180px;
 }
-:host(lintje-time-input) { width: 120px; }
+/* In rem, as its button and padding are: a larger default font leaves the time its room. */
+:host(lintje-time-input) { width: 7.5rem; }
 :host([hidden]) { display: none; }
 /* Below 768 px: the full width, as `stacked`, and the touch height. The text and number fields
    keep their own width: in a row they would grow. */

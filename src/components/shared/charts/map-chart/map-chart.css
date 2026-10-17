@@ -355,14 +355,15 @@
 .lintje-map-chart__menu { min-width: 200px; }
 .lintje-map-chart__menu .lintje-menu__check { margin-left: auto; }
 
-/* How to draw, or how the wheel zooms, along the bottom: out of the way of the data. On a phone
-   it wraps. */
+/* How to draw, or how the wheel zooms, along the bottom: out of the way of the data, over the
+   scale and the panel. It wraps inside the map, at every width. */
 .lintje-map-chart__hint {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   left: 50%; bottom: var(--space-2);
   transform: translateX(-50%);
-  white-space: nowrap;
+  width: max-content;
+  max-width: calc(100% - 2 * var(--space-4));
   margin: 0;
   padding: var(--space-2) var(--space-3);
   font: var(--text-small);
@@ -371,11 +372,6 @@
   border: 1px solid var(--color-border-strong);
   text-align: center;
   pointer-events: none;
-}
-.lintje-map-chart--mobile .lintje-map-chart__hint {
-  white-space: normal;
-  width: max-content;
-  max-width: calc(100% - 2 * var(--space-4));
 }
 
 /* The scale bottom right, as on a road map: the distance, then a bracket as long as it on the
