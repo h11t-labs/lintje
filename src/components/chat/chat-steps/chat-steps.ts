@@ -23,7 +23,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../feedback/spinner/spinner'
-import { nextDisclosureId } from '../../shared/disclosure'
+import { uniqueId } from '../../../core/id'
 import disclosureCss from '../../shared/disclosure.css?inline'
 import { TONE_ICON } from '../../shared/tone'
 import chatStepsCss from './chat-steps.css?inline'
@@ -90,7 +90,7 @@ export class LintjeChatSteps extends LintjeElement {
   /** What the status region has said, one sentence per paragraph. */
   spoken: string[] = []
 
-  readonly #bodyId = nextDisclosureId()
+  readonly #bodyId = uniqueId('lintje-disclosure')
   /** The states the region last knew, by position; `null` before the first draw. */
   #known: StepState[] | null = null
   #frame = 0
