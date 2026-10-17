@@ -167,8 +167,9 @@ export class FocusTrap {
     this.#container = null
     const opener = this.#opener
     this.#opener = null
-    if (!restore) return
-    if (opener?.isConnected && opener !== document.body) opener.focus()
-    if (!opener || deepActiveElement() !== opener) focusContent(container)
+    // Opened with nothing focused (`/` on the page), there is nothing to give back.
+    if (!restore || !opener || opener === document.body) return
+    if (opener.isConnected) opener.focus()
+    if (deepActiveElement() !== opener) focusContent(container)
   }
 }
