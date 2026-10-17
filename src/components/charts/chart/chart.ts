@@ -438,7 +438,11 @@ export class LintjeChart extends LintjeContentTileElement {
     let chart: Element | null | undefined = scope?.querySelector(DRAWING)
     // The image is the whole chart, legend and events with it: what renderChart drew in the scope.
     while (chart && chart.parentElement !== scope) chart = chart.parentElement
-    if (chart) void downloadPng(this.downloadName ?? fileNameOf(data.title), chartImage(chart))
+    if (!chart) return
+    const subtitle =
+      this.#mobile.matches && data.mobileSubtitle ? data.mobileSubtitle : data.subtitle
+    const image = chartImage(chart, { title: data.title, subtitle, footnote: data.footnote })
+    void downloadPng(this.downloadName ?? fileNameOf(data.title), image)
   }
 
   protected override expandChanged(open: boolean): void {

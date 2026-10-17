@@ -198,6 +198,34 @@ describe('the image of a chart', () => {
       600,
     )
 
+  /** The chart's width with the tile's padding and its 1 px edge on both sides. */
+  const framed = (root: Element) =>
+    root.getBoundingClientRect().width +
+    2 * parseFloat(getComputedStyle(root).getPropertyValue('--tile-pad-x')) +
+    2
+
+  it('has the tile around it: the title and subtitle above, the footnote under', async () => {
+    const tile = await line()
+    const image = chartImage(chartOf(tile), {
+      title: 'Aanvragen per week',
+      subtitle: 'Per kanaal',
+      footnote: 'Bron: fictieve demogegevens',
+    })
+    const title = at(image, 'Aanvragen per week')
+    const subtitle = at(image, 'Per kanaal')
+    expect(title.y).toBeLessThan(subtitle.y)
+    expect(subtitle.y).toBeLessThan(at(image, 'Online').y)
+    expect(at(image, 'Bron: fictieve demogegevens').y).toBeGreaterThan(
+      at(image, 'Storing bij het loket').y,
+    )
+    // The title stands in the tile's padding, not against the image's edge.
+    const pad = parseFloat(getComputedStyle(chartOf(tile)).getPropertyValue('--tile-pad-x'))
+    expect(Number(title.text.getAttribute('x'))).toBeGreaterThanOrEqual(pad)
+    // The frame is laid out off screen and gone again.
+    const scope = chartOf(tile).getRootNode() as ShadowRoot
+    expect([...scope.children].filter((child) => child.localName === 'div')).toHaveLength(0)
+  })
+
   it('has the legend above the drawing, the axis title and the events under it', async () => {
     const tile = await line()
     const root = chartOf(tile)
@@ -299,7 +327,7 @@ describe('the image of a chart', () => {
       const blob = saved.mock.calls[0][0] as Blob
       expect(blob.type).toBe('image/png')
       const picture = await createImageBitmap(blob)
-      const width = modal.querySelector('.lintje-chart-wrap')!.getBoundingClientRect().width
+      const width = framed(modal.querySelector('.lintje-chart-wrap')!)
       expect(picture.width).toBeGreaterThanOrEqual(2 * Math.floor(width))
       expect(picture.width).toBeLessThan(2 * (width + 24))
     },
