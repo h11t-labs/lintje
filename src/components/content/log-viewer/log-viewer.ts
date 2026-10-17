@@ -43,6 +43,7 @@ import '../highlight/highlight'
 import { LintjeContentTileElement } from '../../shared/content-tile'
 import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import { COPIED_FOR } from '../../shared/copied'
+import { atEndAfterScroll } from '../../shared/follow'
 import { LiveMessage } from '../../shared/live-message'
 import { downloadCsv, downloadText } from '../../shared/download'
 import type { LogEntry, LogFilter, LogLevel, LogViewerData } from '../../../types'
@@ -89,8 +90,6 @@ const LEVEL_TONE: Record<LogLevel, { tone: BadgeTone; icon?: string }> = {
   debug: { tone: 'subtle' },
 }
 
-/** Pixels from the end that still count as standing at it. */
-const AT_END = 8
 /** New lines are read out at most this often. */
 const SPEAK_EVERY = 5000
 
@@ -147,6 +146,8 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   readonly #live = new LiveMessage(this)
   #fitObserver = new FrameResizeObserver(() => this.refit())
   #observed: Element | null = null
+  #growth: ResizeObserver | null = null
+  #grown: Element | null = null
   /** The segments' width on one line, once measured. */
   #levelsWidth = 0
   #drawnFit: Fit = 'wide'
@@ -160,6 +161,9 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     if (this.#copiedTimer) clearTimeout(this.#copiedTimer)
     this.#fitObserver.disconnect()
     this.#observed = null
+    this.#growth?.disconnect()
+    this.#growth = null
+    this.#grown = null
     super.disconnectedCallback()
   }
 
@@ -240,6 +244,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
     this.watchFit()
+    this.watchGrowth()
     // A new layout keeps the row's width, so its observer stays silent: measure it again.
     if (this.fit !== this.#drawnFit) {
       this.#drawnFit = this.fit
@@ -267,6 +272,20 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     this.#fitObserver.disconnect()
     this.#fitObserver.observe(row)
     this.#observed = row
+  }
+
+  // The rows lay out only once the tile draws its slot, and grow as a line opens: whoever
+  // follows stays at the newest line, also when the log first appears.
+  private watchGrowth(): void {
+    const rows = this.log?.querySelector('.lintje-log-viewer__rows')
+    if (!rows || rows === this.#grown || typeof ResizeObserver === 'undefined') return
+    this.#growth?.disconnect()
+    this.#growth = new ResizeObserver(() => {
+      const log = this.log
+      if (this.following && log) log.scrollTop = log.scrollHeight
+    })
+    this.#growth.observe(rows)
+    this.#grown = rows
   }
 
   private refit(): void {
@@ -305,16 +324,13 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     }
   }
 
-  // Only scrolling up leaves the end, and only arriving at it returns there.
   private readonly onScroll = (): void => {
     const log = this.log
     if (!log) return
-    const atEnd = log.scrollHeight - log.scrollTop - log.clientHeight <= AT_END
-    if (atEnd) {
-      if (!this.following) this.toLatest(false)
-    } else if (log.scrollTop < this.#lastTop - 1 && this.following) {
-      this.following = false
-    }
+    const beyond = log.scrollHeight - log.scrollTop - log.clientHeight
+    const atEnd = atEndAfterScroll(this.following, log.scrollTop, this.#lastTop, beyond)
+    if (atEnd && !this.following) this.toLatest(false)
+    else if (!atEnd) this.following = false
     this.#lastTop = log.scrollTop
   }
 
@@ -760,6 +776,8 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     const unread = !this.following && this.unreadFrom
     const newCount = unread ? shown.length - shown.findIndex((e) => e.id === this.unreadFrom) : 0
 
+    // In the tile the active row is the one tab stop; -1 keeps Firefox from making the
+    // scroller a second one. Keys on that row still scroll it.
     return html`<div
       class=${classMap({
         'lintje-log-viewer__log': true,
@@ -770,7 +788,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       role="log"
       aria-live="off"
       aria-label=${data?.title ?? 'Log'}
-      tabindex=${inTile ? nothing : '0'}
+      tabindex=${inTile ? '-1' : '0'}
       @scroll=${inTile ? this.onScroll : nothing}
       @keydown=${inTile ? this.onRowsKeydown : nothing}
     >

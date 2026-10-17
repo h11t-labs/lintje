@@ -76,6 +76,7 @@ export const SKETCHES = {
   'log-viewer': { frame: 'code', rows: 's15 chip l50 / s15 chip l70 / | s15 chip l40 / s15 chip l60' },
   'document-viewer': { frame: 'tile', rows: 't30 sp chevl s15 chev / i i s10 sp i / doc' },
   gallery: { rows: 'img / cell cell cell' },
+  attachment: { center: true, rows: 'chip chip / chip' },
   // Messages and status
   announcement: { frame: 'band', rows: 'i t60 / l60' },
   toast: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'toast', layer: 't70 / l60' },
@@ -148,7 +149,9 @@ export const SKETCHES = {
   chat: { frame: 'page', rows: 'sp s10 i bubble50 / l60 / tbl' },
   'chat-message': { rows: 'sp s10 i bubble60' },
   'chat-answer': { rows: 't90 / l50 / kpi kpi kpi' },
+  'chat-steps': { rows: 'i s30 chevd / | s40 / | s50 / | s35' },
   'chat-composer': { frame: 'tile', rows: 'l80 / s5 / se35 sp b30' },
+  'chat-questions': { frame: 'tile', rows: 'prog / t50 / ra l40 / rax l35 / ra l30 / sp bt15 b25' },
   'chat-strip': { rows: 's15 s15 s15 / l25 u15 u15 / s20 / u25' },
   'chat-suggestions': { rows: 's40 / dash60 / dash45 dash45' },
 }

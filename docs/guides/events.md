@@ -82,7 +82,7 @@ Een *toestand* is iets wat je bewaart en terugzet op het element (en in de URL m
 | `lintje-layer-change` | `lintje-map` | toestand |
 | `lintje-area-select` | `lintje-map` (met `controls.lasso`, `controls.circle` of `controls.rect`) | toestand |
 | `lintje-filters-open-change` | `lintje-filter-bar` | toestand |
-| `lintje-retry` | `lintje-error-summary`, `lintje-streaming-text` | actie |
+| `lintje-retry` | `lintje-error-summary`, `lintje-streaming-text`, `lintje-audio-player`, `lintje-video-player` | actie |
 | `lintje-files-add`, `lintje-file-remove`, `lintje-file-cancel` | `lintje-file-upload` | actie |
 | `lintje-search` | `lintje-combobox` (`remote`), `lintje-app-search` | actie |
 | `lintje-open` | `lintje-app-search` | actie |
@@ -96,17 +96,23 @@ Een *toestand* is iets wat je bewaart en terugzet op het element (en in de URL m
 | `lintje-time-change`, `lintje-play`, `lintje-pause` | `lintje-audio-player`, `lintje-video-player` | toestand |
 | `lintje-seek` | `lintje-audio-player`, `lintje-video-player`, `lintje-transcript` | actie |
 | `lintje-node-toggle` | `lintje-tree-view` | actie |
-| `lintje-toggle` | `lintje-expander`, `lintje-toggletip` | actie (niets te beantwoorden) |
+| `lintje-toggle` | `lintje-expander`, `lintje-toggletip`, `lintje-user-menu` | actie (niets te beantwoorden) |
 | `lintje-copy`, `lintje-copy-error` | `lintje-copy-button`, `lintje-qr-code` | actie (niets te beantwoorden) |
 | `lintje-job-cancel`, `lintje-job-resume`, `lintje-job-retry`, `lintje-job-remove` | `lintje-job-list` | actie |
+| `lintje-jobs-empty` | `lintje-job-list`: de laatste taak ging met de focus erin; annuleer het en zet de focus zelf op een zichtbaar doel | actie |
 | `lintje-stop` | `lintje-streaming-text` | actie |
 | `lintje-text-change`, `lintje-languages-swap` | `lintje-translator` | toestand, actie |
 | `lintje-segment-edit`, `lintje-segment-save`, `lintje-segment-cancel`, `lintje-segment-speaker`, `lintje-speaker-new`, `lintje-speaker-rename` | `lintje-transcript` | actie |
 | `lintje-action` | `lintje-menu-button`, `lintje-user-menu`, `lintje-app-search`, `lintje-sub-nav` | actie |
 | `lintje-search-open`, `lintje-logout`, `lintje-notification-open`, `lintje-notifications-read` | de shell: `lintje-shell`, `lintje-user-menu`, `lintje-notifications` | actie |
 | `lintje-conflict-keep-mine`, `lintje-conflict-take-theirs`, `lintje-conflict-compare` | `lintje-conflict-alert` | actie |
-| `lintje-message-send`, `lintje-message-edit`, `lintje-suggestion-select`, `lintje-answer-retry`, `lintje-answer-rate`, `lintje-answer-stop` | de chat | actie |
+| `lintje-message-send`, `lintje-questions-answer`, `lintje-message-edit`, `lintje-suggestion-select`, `lintje-answer-retry`, `lintje-answer-rate`, `lintje-answer-stop` | de chat | actie |
 | `lintje-sources-change`, `lintje-draft-change`, `lintje-strip-change` | de chat | toestand |
+
+**Eén vorm voor een rij.** De lijst en de tabel sturen hetzelfde: `lintje-row-action` draagt
+`{ id, label, action }` (`RowActionDetail`), de sleutel van de rij, haar naam en de `value` van de
+gekozen actie; `lintje-row-click` en `lintje-row-open` dragen `{ id, label, href? }`
+(`RowClickDetail`). Beide types komen uit het pakket.
 
 **Het verzoek en zijn antwoord.** Een opslag, een zoekactie, een bestand, een taak om te annuleren, een cel om op te slaan: het
 element stuurt het verzoek en wacht op de property die het beantwoordt (`.options`, `.jobs`,

@@ -147,8 +147,9 @@ describe('renderNavBar, collapsed', () => {
       ['BUTTON', 'Menu'],
     ])
     const menu = shown[0]
-    expect(menu.getAttribute('aria-expanded')).toBe('false')
-    expect(menu.getAttribute('aria-controls')).toBe('nav-menu')
+    // Its word says the state, so it has no aria-expanded, and no panel to name while closed.
+    expect(menu.hasAttribute('aria-expanded')).toBe(false)
+    expect(menu.hasAttribute('aria-controls')).toBe(false)
     expect(menu.querySelector('.lintje-icon')).not.toBeNull()
     // The reader's page is in the menu, yet "Menu" carries no edge: it nearly always would.
     expect(menu.classList.contains('is-active')).toBe(false)
@@ -159,7 +160,9 @@ describe('renderNavBar, collapsed', () => {
     const panel = root.querySelector('#nav-menu')!
     expect(panel.classList.contains('lintje-navbar__submenu')).toBe(true)
     const menu = root.querySelector('#nav-menu-entry')!
-    expect(menu.getAttribute('aria-expanded')).toBe('true')
+    expect(menu.textContent!.trim()).toBe('Sluiten')
+    expect(menu.hasAttribute('aria-expanded')).toBe(false)
+    expect(menu.getAttribute('aria-controls')).toBe('nav-menu')
     expect(menu.classList.contains('is-open')).toBe(true)
     const lists = [...panel.querySelectorAll('.lintje-navbar__pages')]
     expect(

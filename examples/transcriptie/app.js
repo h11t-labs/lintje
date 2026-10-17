@@ -1396,9 +1396,9 @@ function renderSpeakers(item, segments) {
   })
 }
 speakers.addEventListener('lintje-row-action', (event) => {
-  const { id, value } = event.detail
-  if (value === 'naam') renameSpeaker(id)
-  else if (value === 'samenvoegen') openMerge(id)
+  const { id, action } = event.detail
+  if (action === 'naam') renameSpeaker(id)
+  else if (action === 'samenvoegen') openMerge(id)
 })
 $('speaker-add').icon = 'functioneel-plus'
 $('speaker-add').addEventListener('click', () => {

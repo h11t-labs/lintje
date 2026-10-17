@@ -46,30 +46,14 @@
 }
 .lintje-file-upload.is-disabled .lintje-file-upload__meta { color: var(--color-text-disabled); }
 
-/* --- The files ----------------------------------------------------------- */
-.lintje-file-upload__list { display: flex; flex-direction: column; gap: var(--space-3); }
-.lintje-file-upload__row { display: flex; flex-direction: column; gap: var(--space-2); }
-.lintje-file-upload__row-head {
-  display: flex; flex-wrap: wrap; align-items: center;
-  gap: var(--space-2) var(--space-3);
+/* --- The files: attachments that wrap onto the next line ---------------- */
+.lintje-file-upload__list {
+  display: flex; flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0; padding: 0;
+  list-style: none;
 }
-.lintje-file-upload__row-icon { flex: none; }
-.lintje-file-upload__row.is-busy .lintje-file-upload__row-icon { color: var(--color-text-muted); }
-.lintje-file-upload__row.is-done .lintje-file-upload__row-icon { color: var(--color-success); }
-.lintje-file-upload__row.is-error .lintje-file-upload__row-icon { color: var(--color-error); }
-.lintje-file-upload__name {
-  flex: 1 1 120px; min-width: 0;
-  font: var(--text-ui);
-  color: var(--color-text-primary);
-  overflow-wrap: anywhere;
-}
-.lintje-file-upload__detail { color: var(--color-text-muted); }
-.lintje-file-upload__reason {
-  display: block;
-  font: var(--text-small);
-  font-weight: 700;
-  color: var(--color-error-text);
-}
+.lintje-file-upload__row { display: flex; min-width: 0; max-width: 100%; }
 
 /* Below 768 px nobody drags: the words go and the button takes the full width. */
 @media screen and (max-width: 767px) {

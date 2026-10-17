@@ -349,12 +349,12 @@ describe('back to the default', () => {
       modified: true,
       resetLabel: 'Terugzetten naar leeg',
     })
-    const foot = [...element.renderRoot.querySelector('.lintje-field')!.children].slice(-3)
-    expect(foot.map((node) => node.classList[0])).toEqual([
+    const [foot, reset] = [...element.renderRoot.querySelector('.lintje-field')!.children].slice(-2)
+    expect([...foot!.children].map((node) => node.classList[0])).toEqual([
       'lintje-field__error',
       'lintje-textarea__counter',
-      'lintje-field__reset',
     ])
+    expect(reset!.classList[0]).toBe('lintje-field__reset')
   })
 
   it.each(RESETTABLE)(
@@ -606,7 +606,11 @@ describe('read-only, per control', () => {
       readonly: true,
     })
     expect(element.renderRoot.querySelector('.lintje-text-input__clear')).toBeNull()
-    expect(native(element).classList.contains('is-readonly')).toBe(true)
+    expect(
+      element.renderRoot
+        .querySelector('.lintje-text-input__box')
+        ?.classList.contains('is-readonly'),
+    ).toBe(true)
   })
 
   it('lintje-number-input makes −/+ aria-disabled and lets them do nothing', async () => {
@@ -808,7 +812,8 @@ describe('the stylesheets', () => {
   it("fills the toggle's off track with the field edge, inside its 40 × 22 box", () => {
     const shared = css('shared/input.css')
     const track = shared.match(/^\.lintje-choice__switch\s*\{([^}]*)\}/m)?.[1] ?? ''
-    expect(track).toContain('width: 40px; height: 22px;')
+    expect(shared).toContain(':host(lintje-toggle) { --lintje-choice-control: 40px; }')
+    expect(track).toContain('width: var(--lintje-choice-control); height: 22px;')
     expect(track).toContain('background: var(--color-border-field);')
     expect(track).not.toContain('box-shadow')
     expect(track).not.toMatch(/(^|[^-])border:/)

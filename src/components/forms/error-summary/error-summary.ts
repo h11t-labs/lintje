@@ -3,7 +3,11 @@
  *
  * It never validates, and with nothing to show it draws nothing. A link focuses the field, found
  * by `name` or `id` in the summary's own tree or, from a shadow root, in its host's light DOM, and
- * scrolls it into view clear of a sticky top bar and the form's action bar.
+ * scrolls it into view clear of a sticky top bar and the form's action bar. `<name>-other` is the
+ * field under a choice group's "Anders".
+ *
+ * It is no alert: the focus is the announcement. A host that shows it after an attempt calls its
+ * `focus()`, as `lintje-form` does; a page that arrives with its errors set leaves the focus alone.
  *
  * Events: `lintje-retry` ("Opnieuw proberen" was pressed).
  */
@@ -12,7 +16,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { TONE_ICON } from '../../shared/tone'
-import { controlName, focusInside, namedControls } from '../../shared/controls'
+import { controlForKey, focusInside, namedControls, otherField } from '../../shared/controls'
 import '../../actions/button/button'
 import errorSummaryCss from './error-summary.css?inline'
 
@@ -28,9 +32,10 @@ export function summaryHeading(count: number): string {
 }
 
 function fieldIn(scope: ParentNode, field: string): HTMLElement | null {
+  const found = controlForKey(namedControls(scope), field)
+  if (found?.other) return otherField(found.control.shadowRoot ?? found.control) ?? found.control
   return (
-    namedControls(scope).find((control) => controlName(control) === field) ??
-    scope.querySelector<HTMLElement>(`[id="${field.replace(/["\\]/g, '\\$&')}"]`)
+    found?.control ?? scope.querySelector<HTMLElement>(`[id="${field.replace(/["\\]/g, '\\$&')}"]`)
   )
 }
 
@@ -91,7 +96,7 @@ export class LintjeErrorSummary extends LintjeElement {
       (this.items.length ? summaryHeading(this.items.length) : 'Opslaan is niet gelukt')
     return html`<div
       class="lintje-error-summary"
-      role="alert"
+      role="group"
       aria-labelledby="lintje-error-summary-heading"
       tabindex="-1"
     >

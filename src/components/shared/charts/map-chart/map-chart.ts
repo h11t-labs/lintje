@@ -12,6 +12,7 @@ import { isNewTabClick } from '../../../../core/links'
 import { chartIcon, ZOOM_CONTROLS } from '../shared/chart-icons'
 import { renderIcon } from '../../../../icons/render'
 import { renderTooltip } from '../shared/tooltip'
+import { drawingRole } from '../shared/axes'
 import { LeafletSurface } from './leaflet'
 import { seriesShapePath } from '../shared/series-shapes'
 import { DEFAULT_SERIES_COLOR } from '../shared/colors'
@@ -23,6 +24,7 @@ import { seriesKey } from './marks'
 import { renderMapLegend } from './map-legend'
 import type { MapArea, MapControls, MapSpec, MapTool, MapValue } from '../shared/types'
 import { idsInArea, isRect } from './area'
+import { titleWhenCut } from '../../cut-text'
 import '../../../overlays/popover/popover'
 
 /** The map's own height in a tile: on a phone taller, so all its buttons fit on the touch size. */
@@ -440,7 +442,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
                       aria-checked=${String(row.checked)}
                       @click=${() => chooseTool(row.value as MapTool)}>
                 ${renderIcon(row.icon, { size: 16, className: 'lintje-menu__icon' })}
-                <span class="lintje-menu__label">${row.label}</span>
+                <span class="lintje-menu__label" @pointerenter=${titleWhenCut}>${row.label}</span>
                 ${row.checked ? renderIcon('functioneel-vinkje', { size: 16, className: 'lintje-menu__check' }) : nothing}
               </button>`,
             )}
@@ -553,8 +555,10 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
              },
              passive: false,
            }}>
-        <p class="visually-hidden">${description}</p>
-        <div class="lintje-map-chart__leaflet" ${ref(leaflet.attach)}></div>
+        <p id="${controller.id}-desc" class="visually-hidden">${description}</p>
+        <!-- Leaflet makes the surface a Tab stop; every mark on it is a button. -->
+        <div class="lintje-map-chart__leaflet" role=${drawingRole(true)}
+             aria-labelledby="${controller.id}-desc" ${ref(leaflet.attach)}></div>
         ${renderTooltip(controller)}
 
         <!-- Layer switcher top left. -->

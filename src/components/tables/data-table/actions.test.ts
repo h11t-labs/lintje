@@ -97,7 +97,22 @@ describe('row actions', () => {
       new CustomEvent('lintje-action', { detail: 'openen', bubbles: true, composed: true }),
     )
     menu?.parentElement?.click()
-    expect(seen).toEqual(['lintje-row-action {"id":"m1","action":"openen"}'])
+    expect(seen).toEqual([
+      'lintje-row-action {"id":"m1","label":"Onbeheerde tas","action":"openen"}',
+    ])
+  })
+
+  it('sends the same shape from the phone’s row menu', async () => {
+    const element = await mount()
+    const seen: unknown[] = []
+    element.addEventListener('lintje-row-action', (event) =>
+      seen.push((event as CustomEvent).detail),
+    )
+    const menu = root(element).querySelectorAll('.lintje-data-table__mobile lintje-menu-button')[1]
+    menu?.dispatchEvent(
+      new CustomEvent('lintje-action', { detail: 'verwijderen', bubbles: true, composed: true }),
+    )
+    expect(seen).toEqual([{ id: 'm2', label: 'Verloren toegangspas', action: 'verwijderen' }])
   })
 })
 
@@ -153,7 +168,9 @@ describe('the selection bar', () => {
   it('shows the count, a button per action and sends lintje-bulk-action', async () => {
     const element = await mount({ checkedIds: ['m1', 'm3'] })
     const bar = root(element).querySelector('.lintje-data-table__selection') as HTMLElement
-    expect(bar.getAttribute('role')).toBe('toolbar')
+    // A group, not a toolbar: each button is its own Tab stop, with no arrows between them.
+    expect(bar.getAttribute('role')).toBe('group')
+    expect(bar.getAttribute('aria-label')).toBe('Acties op de selectie')
     expect(bar.querySelector('.lintje-data-table__selection-count')?.textContent).toBe(
       '2 geselecteerd',
     )
@@ -165,6 +182,11 @@ describe('the selection bar', () => {
       'Verwijderen',
       'Selectie opheffen',
     ])
+    for (const button of buttons as HTMLElement[]) {
+      await (button as HTMLElement & { updateComplete: Promise<unknown> }).updateComplete
+      expect(button.getAttribute('tabindex')).toBeNull()
+      expect(button.shadowRoot!.querySelector('button')!.tabIndex).toBe(0)
+    }
     expect(buttons[1]?.getAttribute('variant')).toBe('danger-secondary')
     expect(buttons[1]?.getAttribute('size')).toBe('compact')
 

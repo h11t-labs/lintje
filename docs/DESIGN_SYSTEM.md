@@ -96,7 +96,8 @@ De reeks mist een stap tussen het menu en het oppervlak; de pagina is daar het m
 twee.
 
 Wit en bijna-zwart die in beide modi gelijk moeten blijven (tekst op een primaire knop, op het
-menu, een QR-code), zijn `--ink-white` en `--ink-black`, geen neutralen. Een QR-code wordt in
+menu, een QR-code, het beeld van een video), zijn `--ink-white` en `--ink-black`, geen neutralen.
+Een media-oppervlak heeft daarvoor een eigen token, niet dat van tekst op een lichte vulling. Een QR-code wordt in
 donker nooit geïnverteerd: veel camera-apps lezen alleen donkere modules op een lichte rustzone.
 De bibliotheek maakt de code zelf (de generator van Nayuki, meegeleverd), zodat elk deelmenu hem
 heeft zonder werk van de host.
@@ -276,7 +277,9 @@ Besluiten die voor beide gelden:
   onderen als sheets met de kop van de filtersheet — hun naam en een sluitknop — en zijn modaal
   zoals die. Het open menu draagt dan alleen zijn sluitknop. Als het gereedschap van de header
   niet past, gemeten, tonen "Filters" en "Menu" alleen hun glyph; hun woord blijft hun naam.
-- **Het lint is de eenheid.** De logobalk en het logo zijn afgeleid van `--w-ribbon`.
+- **Het lint is de eenheid.** De logobalk en het logo zijn afgeleid van `--w-ribbon`, en groeien
+  dus samen mee met de tekstgrootte van de lezer. Het logo in het menu en in de mobiele header
+  houdt de vaste maat van zijn balk.
 - **Het embleem is het eigen bestand van het thema**, door de host genoemd en getekend zoals het
   bestand tekent. Zonder het bestand is een lege plek beter dan een gok. Eén uitzondering, die van
   de huisstijl zelf: in donker neemt een lintblauw lint de lichtere tint van de Rijkshuisstijl,
@@ -292,6 +295,10 @@ Besluiten die voor beide gelden:
   altijd.
 - **Onder 768 px is er geen rail**: een header met een Menu-knop, en het menu opent
   schermvullend. In de indeling Boven is die header een balk onder de logobalk, met de naam.
+- **De gebruiker heeft in elke indeling hetzelfde menu**: naam en rol, de rijen van de host,
+  "Afmelden" en de versie. De avatar in de balk opent het naar beneden, de voet van het zijmenu
+  naar boven, en op een telefoon staat het onderaan het menu. Zolang het open is, blijft de rail
+  uitgeklapt.
 - **De shell bevat de pagina.** Zijn inhoud houdt zich aan de breedte en padding van de pagina;
   wat van rand tot rand loopt — een hero, de filterbalk, een gesprek — staat erboven.
 - **De instellingen van de lezer zijn van de host**: modus, thema, waar het menu staat. De shell
@@ -358,9 +365,18 @@ De besluiten hieronder gelden voor alle elementen.
   zwaardere rand in de foutkleur met een melding die aan het bedieningselement gekoppeld is;
   uitgeschakeld is het subtiele oppervlak. Een uitgeschakelde knop blijft focusbaar
   (`aria-disabled`); een uitgeschakeld veld valt uit de tabvolgorde.
+- **De toelichting en de foutregel van een keuze springen in tot de tekst van haar label**, bij
+  een vinkje, een schakelaar en een optie in een groep, zodat ze niet lijken op de kop van de
+  optie eronder. Onder een veld met zijn label erboven staan ze tegen de rand, net als in een rij
+  van een instelling, waar de labeltekst zelf links staat.
 - **Een waarde die afwijkt van haar standaard** draagt op elk bedieningselement twee markeringen:
   het label in de accentkleur en een oranje stip. Geen extra rand, geen gekleurd oppervlak.
 - **Een veld legt vast als de lezer het verlaat of op Enter drukt.**
+- **Een vaste toevoeging aan een veld staat in een eigen vak** (een valutateken, een domein, een
+  eenheid, een vast voorvoegsel): het gedempte oppervlak met een lichte lijn naar de invoer, zodat
+  wat vaststaat apart staat van wat de lezer typt. Ze hoort nooit bij de waarde en beschrijft het
+  veld voor een schermlezer. Eén knop in een veld is een secundaire knop aan het eind, zoals
+  Tonen bij een wachtwoord; hij legt eerst vast wat getypt is, zoals Enter.
 - **Een schakelaar is alleen voor direct effect**, nooit in een formulier. Uit is zijn baan
   gevuld in het grijs van de veldrand, niet bleek met een ring: de vulling alleen haalt 3:1.
 - **Een instelling is een rij**: de naam in normaal gewicht en de uitleg eronder links, het
@@ -407,6 +423,12 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een paar keuzes die allemaal in beeld blijven, zijn een groep vinkjes**
   (`lintje-checkbox-group`): één label, één hint en één foutregel voor de groep, zoals de
   radiogroep. Een lange lijst om in te zoeken is de multiselect.
+- **Een eigen antwoord is een optie van de groep, met een veld eronder** (`other`): "Anders,
+  namelijk" staat als laatste, en gekozen staat er een tekstveld onder, ingesprongen tot de lijn
+  van de labels, zodat het leest als het vervolg van de keuze. Nooit een los veld van de host onder
+  de groep. De tekst is een waarde naast de keuze (`<name>-other`) die blijft staan als de keuze
+  weggaat, en de host controleert hem zoals elk veld. Een filter, een rij knoppen en kaarten hebben
+  geen eigen antwoord.
 - **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
   elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
   beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").
@@ -420,12 +442,19 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een menurij kan een schakelaar zijn of één uit een keuze**: een schakelaar wordt gemarkeerd
   met een vinkje, één uit een keuze met het rondje van een radio, zoals in een formulier; een kop
   boven rijen noemt hun groep en staat aan de rand van het menu.
-- **Een reeks hangt aan een rail**: vierkante tekens verbonden door een lijn, in de stepper en het
-  activiteitenlog evengoed. In de stepper is de lijn doorgetrokken tot de huidige stap en
-  gestreept daarna, zodat de weg die nog te gaan is nooit op kleur alleen rust. Een stap kan
-  eigen inhoud dragen, zonder vlak eromheen en zonder eigen kleur: in de kolom onder zijn kop,
-  waar de rail langs doorloopt; in de rij en op een telefoon alleen die van de huidige stap,
-  onder de rij of de balk.
+- **Een reeks hangt aan een rail**: vierkante tekens verbonden door een lijn, in de stepper, het
+  activiteitenlog en de stappen van de assistent evengoed. In de stepper is de lijn doorgetrokken
+  tot de huidige stap en gestreept daarna, zodat de weg die nog te gaan is nooit op kleur alleen
+  rust. Een stap kan eigen inhoud dragen, zonder vlak eromheen en zonder eigen kleur: in de kolom
+  onder zijn kop, waar de rail langs doorloopt; in de rij en op een telefoon alleen die van de
+  huidige stap, onder de rij of de balk.
+- **Een kalender is één maandraster**, in de datuminvoer en de datumreeks evengoed: zoveel weken
+  als de maand heeft, de dagen ernaast leeg, 1 px tussen de cellen, zodat twee gekozen dagen los
+  van elkaar blijven. Vandaag is een ring in de accentlijn, nooit een statuskleur; een gekozen
+  dag, en begin en eind van een periode, zijn gevuld in de primaire kleur met een lichtere rand,
+  en de dagen ertussen dragen een tint ervan die binnen een week doorloopt. Een dag is zelf een
+  cel van het raster, geen knop: de cel neemt de focus, de pijlen lopen erlangs en Enter en
+  spatie kiezen hem, zoals het datumraster van de WAI-ARIA Authoring Practices.
 
 ### Feedback
 
@@ -549,7 +578,9 @@ De besluiten hieronder gelden voor alle elementen.
   die nooit een kolom zijn, op desktop en telefoon dezelfde lijst. Open of dicht is beeld, geen
   toestand: het gaat niet naar de host en niet in de URL.
 - **Groepen houden de volgorde van de host.** Sorteren werkt binnen een groep, een pagina breekt
-  nooit in een groep, en een ingeklapte groep draagt haar subtotalen op haar eigen regel.
+  nooit in een groep, en een ingeklapte groep draagt haar subtotalen op haar eigen regel. In een
+  kiesbare tabel heeft een groepskop een vinkje voor haar rijen, aan, half of uit zoals "Alles
+  selecteren", ook ingeklapt.
 - **Een rij is klikbaar of selecteerbaar**, nooit allebei. Een naam die zijn rij opent, maakt de
   rij niet klikbaar: de naam is de link, dus een selecteerbare tabel kan zijn rijen nog steeds
   openen. Een naam die opent, wordt niet in zijn cel bewerkt.
@@ -570,7 +601,12 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een verandering kan alleen haar pijltje tonen** (`change-compact`): ▲ ▼ ● in de kleur van de
   verandering, voor een smalle kolom. Wat het oog ziet en wat een schermlezer hoort, zijn dan twee
   kopieën: de getekende is verborgen voor de schermlezer, een visueel verborgen kopie draagt de
-  hele waarde. Als enige meetwaarde van een rij onder 768 px staat de verandering er heel.
+  hele waarde. De woorden staan in de tooltip van het pijltje — de hele verandering, of wat de
+  host per rij laat zien met een sjabloon (`tooltip`, met `{sleutel}` uit de rij). Zoals bij
+  afgekapte tekst staan ze nooit alleen in de tooltip: onder de focus van het toetsenbord en
+  zonder hover staan ze voluit op de plaats van het pijltje. Een rij zonder bediening krijgt
+  daarvoor zelf toetsenbordfocus; die focus maakt de rij niet klikbaar. Als enige meetwaarde van een rij
+  onder 768 px staat de verandering er heel.
 - **Onder 768 px wisselt een tabel van vorm**: de identiteit van de rij en één meetwaarde, met de
   andere kolommen op verzoek onder de rij (zie [Toegankelijkheid](#toegankelijkheid)). Geen
   rijkaarten, geen zijwaarts scrollen.
@@ -578,7 +614,8 @@ De besluiten hieronder gelden voor alle elementen.
 ### Afbeeldingen en kaarten
 
 - **Een schermafbeelding wordt heel getoond, nooit bijgesneden**; alleen een miniatuur in een
-  galerij (`lintje-gallery`) toont haar linkerbovenhoek.
+  galerij (`lintje-gallery`) toont haar linkerbovenhoek, en de miniatuur van een bijlage
+  (`lintje-attachment`) haar midden: zo klein blijft alleen het midden herkenbaar.
 - **Een kaart is één item van een collectie** (`lintje-card`), vierkant en plat, zonder schaduw;
   een kaart die een link is, reageert op de aanwijzer zoals een lijstrij. Zonder afbeelding is ze
   korter, nooit een grijs vak.
@@ -588,9 +625,29 @@ De besluiten hieronder gelden voor alle elementen.
 
 - **Een antwoord is een lijst blokken die al bestaan** — lopende tekst, cijfers, een grafiek, een
   tabel. Het gesprek voegt geen eigen visueel patroon toe.
-- **Gestreept is een suggestie, doorgetrokken is een keuze.** Een gestreepte omlijning is iets wat
-  de lezer zou kunnen zeggen; een doorgetrokken omlijning is een antwoord waar de assistent op
-  wacht. Een bijschrift zegt welke, zodat de lijnstijl nooit de enige drager is.
+- **Wat de assistent deed, is een reeks aan de rail die inklapt tot één regel**
+  (`lintje-chat-steps`) — de uitzondering die geen is, want de rail bestaat al. De dichte regel
+  toont wat nu telt: de stap die loopt, anders een mislukte, anders een gestopte, anders het
+  aantal. De groep gaat nooit vanzelf open of dicht, zodat ze niet van hoogte verandert terwijl de
+  lezer leest. Het teken is de staat, niet de soort stap: het werkwoord zegt wat de stap deed.
+  Alleen de eerste stap en een mislukking worden voorgelezen; het antwoord spreekt voor zichzelf.
+- **Een scheidslijn tussen beurten staat gecentreerd**, lijn — label — lijn, als een grens tussen
+  twee delen en niet als kop boven het volgende. Een scheidslijn die over het deel erboven gaat
+  ("Gesprek ingekort"), wijst ernaar en zegt het in woorden, zodat de pijl of het gewicht nooit de
+  enige drager is.
+- **Een suggestie staat onder het antwoord, een vraag van de assistent boven het tikveld.** Een
+  suggestie is gestreept: iets wat de lezer zou kunnen vragen. Een vraag van de assistent wacht
+  op antwoord en staat in de vragenlijst, waar de lezer antwoordt (`lintje-chat-questions`), in
+  hetzelfde kader als het tikveld. Het tikveld blijft eronder werken: een nieuwe vraag slaat de
+  open vragen over, en pas versturen doet dat, nooit het openklappen ervan.
+- **Het antwoord van de lezer is altijd zijn bericht.** Wat hij in de vragenlijst koos, staat in
+  het gesprek als een gewoon bericht van hem, één regel per vraag, zodat het gesprek leest zoals
+  het ging en hij het kan bewerken zoals elke vraag.
+- **"Iets anders" staat altijd in een vraag van de assistent**: de lezer zit nooit vast aan de
+  opties die de assistent bedacht. Het is de `other` van de keuzegroepen, ook in de korte vorm.
+- **Een bestand in het gesprek is een bijlage** (`lintje-attachment`), in het vraagvak, het
+  bericht en het antwoord evengoed: een stille chip die lichter weegt dan een bericht. Een bijlage
+  met een fout gaat nooit mee.
 - **Niets wordt opgeslagen.** De host bezit het gesprek en het transport ervan.
 - **Het gesprek scrolt mee met de pagina**, zoals alle inhoud. Het vraagvak blijft onderaan in
   beeld, en een lezer aan het eind blijft daar terwijl een antwoord groeit; wie omhoog scrolde,
@@ -627,7 +684,9 @@ Deze gelden waar een pagina getallen toont die filters vernauwen: een dashboard,
 
 **De filterbalk is in rust dicht**: wat tijdens het lezen op de pagina staat, is de zin; de
 bedieningselementen zijn er zolang de lezer kiest, en verder scrollen sluit ze. Op een telefoon
-zijn de filters een sheet, en wijzigingen gelden pas bij "Toepassen".
+zijn de filters een sheet, en wijzigingen gelden pas bij "Toepassen". Op elke breedte plakt de zin
+bij het scrollen direct onder de balk van de shell, en de shell houdt zijn hoogte vrij boven de
+focus.
 
 **De pijl van een KPI draagt de richting; de kleur bevestigt die alleen.** Waar stijgen slecht is,
 draait de kleur om en de pijl niet.
@@ -799,7 +858,8 @@ een balk, en halen hun aanwijsdoel via het klikgebied in de richting waar ze rui
   [`assets/README.md`](../assets/README.md).
 - **Een naam zonder bestand tekent niets en het bedieningselement toont zijn Nederlandse label.**
   Dat is een ondersteunde staat: een host mag een bestand weglaten of vervangen en het
-  bedieningselement blijft zeggen wat het doet. Een gat in de set dat nog
+  bedieningselement blijft zeggen wat het doet. Een icoon met een label houdt dat label als
+  tekstalternatief, ook terwijl het bestand laadt en zonder bestand. Een gat in de set dat nog
   openstaat, is een issue op GitHub.
 
 ## Responsief gedrag
@@ -810,6 +870,13 @@ Vier breedtes zijn ontworpen en getest: desktop (vanaf 1440), 1024, 768 en 390 p
 navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de tabel
 (identiteit en één meetwaarde) en de heatmap. Tussen de breedtes lopen bedieningselementen door
 naar een volgende regel; ze overlappen nooit.
+
+**Een sheet die bij een telefoon hoort, sluit als het scherm 768 px of breder wordt** — het menu
+van de shell, de lijst van de meldingen — en geeft de focus aan zijn knop als die blijft staan,
+zoals de bel.
+
+**Bij weinig hoogte plakt de actiebalk van een formulier niet**: onder een viewporthoogte van
+30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10).
 
 **Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame nadat die veranderde.**
 Zo verandert zijn maat nooit in de ronde van zijn waarnemer, die de browser anders als fout van de
@@ -890,16 +957,22 @@ kleinste correctie, en leg die hier vast.
 - **Wat vaak verandert, wordt niet uit de lijst zelf voorgelezen.** Streamende tekst, een
   takenlijst en een waarde die optelt, worden uitgesproken vanuit een live-regio ernaast, in hele
   zinnen.
+- **Nog niet geladen is iets anders dan leeg.** De eerste waarde die de host een lijst geeft, al
+  is het `[]`, is het laden en wordt niet voorgelezen; elke wijziging erna wel, ook de eerste rij
+  in een lijst die leeg laadde.
 - Een waarde die animeert, houdt haar eindwaarde in de toegankelijkheidsboom.
 - Tekst die met CSS `content` getekend wordt (een regelnummer, een placeholder), heeft een leeg
   alternatief, `content: … / ''`; wat een lezer ervan moet horen, staat in de markup
   (`aria-placeholder`).
 - **Tekst die met een beletselteken is afgekapt, staat nooit alleen in een tooltip**: waar geen
   aanwijzer hem toont — onder 768 px, zonder hover, onder de focus van het toetsenbord — loopt hij
-  door op een volgende regel.
+  door op een volgende regel. Tekst die geen focus kan krijgen en geen tooltip heeft, kapt nooit
+  af: hij loopt altijd door.
 - **Wat verdwijnt terwijl de focus erop staat, geeft de focus eerst door**: een toast terug naar
   waar hij vandaan kwam (anders `<main>`), een gesloten mededeling naar de volgende stop op de
-  pagina, "Alles gelezen" naar de eerste melding.
+  pagina, "Alles gelezen" naar de eerste melding. Een element dat leeg raakt en zelf niets
+  zichtbaars overhoudt, vraagt eerst de host met een event dat hij annuleert om de focus op zijn
+  eigen doel te zetten; anders gaat de focus naar de statusregel die zegt dat het leeg is.
 - **Een sessie die verloopt, waarschuwt minstens 20 seconden vooraf** en wordt met één knop
   verlengd (WCAG 2.2.1): in een `lintje-dialog alert persistent`, waarin Escape en de achtergrond
   niets doen omdat de sessie hoe dan ook afloopt.
@@ -920,12 +993,27 @@ kleinste correctie, en leg die hier vast.
 - **Wat verandert waar de focus niet staat, zegt een live-regio**: de nieuwe waarde na − of +, de
   beschrijving van de gekozen optie, een verbinding die wisselt. Een bedieningselement zegt alleen
   wat de lezer zelf deed, niet een waarde die de host zet; de eerste keer tekenen zwijgt.
+- **Iets wordt één keer gezegd**: wat de focus krijgt, is geen live-regio — de focus is de
+  melding (de foutsamenvatting is een groep met haar kop als naam); een tweede kopie van een
+  tegel begint met een lege regio; een naam bevat niet de waarde die het element ook als waarde
+  zegt.
 - **Wat niet geopend kan worden, zegt dat in woorden**: een menurij zonder pagina of toegang
   draagt een verborgen "niet beschikbaar" of "geen toegang"; `aria-disabled` op een gewoon element
   zegt niets.
+- **De naam van een bedieningselement is wat je ziet, en het zegt zijn staat één keer** (2.5.3):
+  zijn woord, of de naam in zijn logo, zonder `aria-label` dat het vervangt en zonder tooltip die
+  het herhaalt. Alleen wat geen woord toont, een icoon of een logo zonder naam, krijgt een naam in
+  eigen woorden; een tooltip mag zeggen wat het doet ("Naar de startpagina"). Een knop die zijn
+  woord wisselt ("Menu", "Sluiten"), heeft geen `aria-expanded`; een knop met een vast woord
+  ("Filters") wel.
 - **Een paneel met gereedschap is een disclosure, geen menu** ("Weergave", "Delen"):
   `aria-expanded` zonder `aria-haspopup`, Tab loopt erdoorheen en sluit het bij het verlaten, en
   Escape of een afgerond item geeft de focus terug aan zijn knop.
+- **Een werkbalk is één Tab-stop**: de pijlen lopen rond langs zijn knoppen, ook langs een die
+  niet kan, en Tab komt terug op de laatst gebruikte. Een rij knoppen met elk een eigen Tab-stop
+  is een `group` met een naam, geen `toolbar`.
+- **Een ingedrukte knop (`aria-pressed`) toont dat hij aan staat** met de primaire vulling en haar
+  rand, ook onder een aanwijzer; uit is hij plat.
 - **Escape geeft de focus alleen terug vanaf waar die was**: een paneel of submenu dat het sluit,
   zet de focus terug op zijn knop alleen als de focus erin of op die knop stond, nooit vanaf
   elders op de pagina.
@@ -935,14 +1023,16 @@ kleinste correctie, en leg die hier vast.
   tabel.
 - **Een vastgeplakte balk bedekt nooit de focus** (2.4.11): de actiebalk van het formulier
   reserveert zijn hoogte als `scroll-padding-bottom` van de scroller, en de foutsamenvatting
-  scrolt een veld naar het midden; de selectiebalk van de tabel scrolt een element waar de focus
-  onder belandt ervan vrij. De vastgeplakte vraag en het vraagvak van het gesprek houden hun hoogte
-  vrij als `scroll-padding` van de scroller, nooit lager dan wat een andere balk daar zette.
+  scrolt een veld naar het midden. Een element waar de focus toch onder belandt, scrollen de
+  actiebalk en de selectiebalk van de tabel van zich vrij, met rand en al. De vastgeplakte vraag
+  en het vraagvak van het gesprek houden hun hoogte vrij als `scroll-padding` van de scroller,
+  nooit lager dan wat een andere balk daar zette.
 - **Een grafiek is ook met het toetsenbord te lezen.** Haar tekening neemt de focus en de
   pijltoetsen lopen langs de categorieën met de tooltip, die een live-regio uitspreekt; Escape
   verbergt een tooltip. De tekening is een afbeelding, of een groep met haar beschrijving als naam
   zodra een teken een knop is. Een teken met focus krijgt zijn ring buiten een opening van 1 px in
-  het oppervlak, zodat een oranje teken zijn ring houdt. De nullijn, de arcering en de rand van
+  het oppervlak, zodat een oranje teken zijn ring houdt; op een kaart, waar tekens elkaar raken,
+  ligt het met die ring boven alle andere. De nullijn, de arcering en de rand van
   een kaartgebied met een cijfer halen 3:1; aangrenzende tinten worden gescheiden door een lijn in
   het oppervlak; een donkergele lijn krijgt een rand in zijn tekstkleur; een label op een vulling
   neemt de tekstkleur van die vulling; een gedimd teken of een uitgeschakelde reeks vervaagt zijn
@@ -950,6 +1040,8 @@ kleinste correctie, en leg die hier vast.
 - **Een bewerking ter plekke houdt haar toetsen**: Enter en Escape tellen alleen in haar veld,
   niet op haar knoppen, en haar Escape beëindigt de bewerking en verder niets. Beëindigd, geeft
   ze de focus aan haar rij of cel.
+- **De toevoeging van een alleen-lezen veld draagt haar tekst in de tekstkleur**, zoals het veld
+  zelf: het gedempte grijs haalt op haar donkerdere vlak in donker geen 4.5:1.
 - **Een element met een naam in eigen woorden houdt wat zijn label zegt**: een greep, knop of
   popup waarvan de naam als tekst wordt opgebouwd, draagt "(niet verplicht)" en het "afwijkend
   van standaard" van de stip zoals het label doet (`labelText` in
@@ -968,9 +1060,10 @@ kleinste correctie, en leg die hier vast.
   kolomkiezer) neemt bij het openen de focus naar zijn eerste veld, en Shift+Tab voorbij zijn
   eerste stop sluit hem ook. Escape in een popover is eerst van zijn element (een opgetilde greep
   zet zijn rij terug), dan van de popover.
-- **Onder 768 px volgt de CSS van de shell en de tabel hun mediacontroller** (`is-phone`), niet
-  een mediaquery: WebKit past een mediaquery in een shadow root na het verkleinen van het venster
-  niet opnieuw toe, terwijl het sjabloon al op `MOBILE` wisselt.
+- **Onder 768 px volgt de CSS van de shell, de tabel en de filterzone hun mediacontroller**
+  (`is-phone`, op een host `:state(phone)`), niet een mediaquery: WebKit past een mediaquery in een
+  shadow root na het verkleinen van het venster niet opnieuw toe, terwijl het sjabloon al op
+  `MOBILE` wisselt.
 
 **Correcties op de huisstijl.** De twee tinten van de primaire kleur in de donkere modus (zie
 [Donker](#donker)); `--color-link-on-status`; de lijnkleur van een statusteken (`--color-*-line`),

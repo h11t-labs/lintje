@@ -1,7 +1,7 @@
 /** The pagination: which pages stand there, what they are called, what a choice sends, where the focus goes. */
 import { readFileSync } from 'node:fs'
 import { resolve as resolvePath } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import './pagination'
 import { pageRange, parsePageSizes, rangeText, type LintjePagination } from './pagination'
 
@@ -267,7 +267,13 @@ describe('lintje-pagination', () => {
 
   it('keeps a step its word as name when only the chevron shows', async () => {
     const element = await mount({ page: 2, pageCount: 7 })
-    Reflect.set(element, 'compact', true)
+    // Every part is wider than the row, which has no room in this document.
+    const rect = new DOMRect(0, 0, 100, 20)
+    vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue([
+      rect,
+    ] as unknown as DOMRectList)
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(rect)
+    element.requestUpdate()
     await element.updateComplete
     const previous = step(element, 'previous')
     expect(previous.textContent!.trim()).toBe('Vorige')
@@ -275,6 +281,7 @@ describe('lintje-pagination', () => {
       'visually-hidden',
     )
     expect(element.shadowRoot!.querySelector('.is-compact')).not.toBeNull()
+    vi.restoreAllMocks()
   })
 
   it('draws a page flat in the link colour, sizes it to the target and lays out three zones', () => {

@@ -1,0 +1,96 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* The frame is `lintje-chat-frame`, shared with the question box under it. */
+.lintje-chat-questions { margin: 0; }
+
+.lintje-chat-questions__progress {
+  display: flex; flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) 0;
+}
+.lintje-chat-questions__count { margin: 0; font: var(--text-small); font-weight: 700; color: var(--color-text-primary); }
+.lintje-chat-questions__label { font-weight: 400; color: var(--color-text-muted); }
+
+.lintje-chat-questions__body {
+  display: flex; flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) 0;
+}
+.lintje-chat-questions__question { margin: 0; font: var(--text-tile-title); color: var(--color-text-primary); }
+.lintje-chat-questions__optional { font-weight: 400; color: var(--color-text-muted); }
+.lintje-chat-questions__hint { margin: 0; font: var(--text-small); color: var(--color-text-muted); }
+
+/* One question at a time; a long list scrolls inside the box, to six and a half rows, so the half
+   row says there is more. The question, its hint and the buttons stay. */
+.lintje-chat-questions__choices {
+  max-height: calc(6.5 * var(--h-target));
+  overflow-y: auto;
+}
+.lintje-chat-questions__choices.is-scrolling { border-bottom: 1px solid var(--color-border-default); }
+.is-phone .lintje-chat-questions__choices { max-height: calc(5.5 * var(--h-touch)); }
+
+/* The bar of the question box: Vorige on the left, Overslaan and Volgende on the right. */
+.lintje-chat-questions__actions {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-2);
+}
+.lintje-chat-questions__back { margin-right: auto; }
+
+/* A phone: a column, as the form's action bar; the main button on top over the full width. */
+.is-phone .lintje-chat-questions__actions {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.is-phone .lintje-chat-questions__next { grid-column: 1 / -1; grid-row: 1; }
+.is-phone .lintje-chat-questions__back { margin-right: 0; }
+
+/* The short form: the choices side by side, a tap sends; "Iets anders…" last. */
+.lintje-chat-questions__chips {
+  display: flex; flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+}
+.lintje-chat-questions__chip {
+  min-height: var(--h-touch);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-choice);
+  background: var(--color-bg-surface);
+  font: var(--text-body);
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-hover);
+}
+.lintje-chat-questions__chip:hover { background: var(--color-bg-subtle); }
+.lintje-chat-questions__chip:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+/* Chosen is quiet, as a chosen option: the wash and an edge in the accent line. */
+.lintje-chat-questions__chip.is-chosen {
+  background: var(--color-choice-active-bg);
+  border-color: var(--color-accent-line);
+}
+.lintje-chat-questions__chip[aria-disabled='true'] { cursor: not-allowed; }
+.is-phone .lintje-chat-questions__chips { flex-direction: column; }
+
+.lintje-chat-questions__own {
+  display: flex; align-items: flex-start;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+  animation: lintje-fade-in var(--dur-base) var(--ease-in-motion) both;
+}
+.lintje-chat-questions__own-field { flex: 1 1 auto; }
+.lintje-chat-questions__own-send { flex: none; }
+.is-phone .lintje-chat-questions__own { flex-direction: column; align-items: stretch; }
+.is-phone .lintje-chat-questions__own-field { --h-control: var(--h-touch); }
+
+@media (forced-colors: active) {
+  .lintje-chat-questions__chip.is-chosen { border-color: Highlight; }
+}

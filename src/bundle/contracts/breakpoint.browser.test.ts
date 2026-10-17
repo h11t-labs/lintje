@@ -1,6 +1,7 @@
 /** Rule 9: what switches view at 768 px, each element by a marker of either view. */
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
+import { deepActiveElement } from '../../core/focus'
 import '../../components/frame/app-search/app-search'
 import '../../components/content/audio-player/audio-player'
 import '../../components/frame/breadcrumbs/breadcrumbs'
@@ -10,6 +11,8 @@ import '../../components/charts/chart/chart'
 import '../../components/chat/chat-answer/chat-answer'
 import '../../components/chat/chat-composer/chat-composer'
 import '../../components/chat/chat-message/chat-message'
+import '../../components/chat/chat-questions/chat-questions'
+import '../../components/chat/chat-steps/chat-steps'
 import '../../components/chat/chat-strip/chat-strip'
 import '../../components/chat/chat/chat'
 import '../../components/overlays/dialog/dialog'
@@ -51,6 +54,7 @@ import '../../components/actions/button/button'
 import '../../components/layout/grid/grid'
 import '../../components/layout/tile/tile'
 import type { LintjeFilterZone } from '../../components/filters/filter-zone/filter-zone'
+import type { LintjeNotifications } from '../../components/frame/notifications/notifications'
 import type { ListItem } from '../../components/tables/list/list'
 import type { Step } from '../../components/forms/stepper/stepper'
 import type { TabItem } from '../../components/layout/tabs/tabs'
@@ -63,6 +67,37 @@ import type {
   MapData,
   ShellData,
 } from '../../types'
+
+/** What the assistant asks: a second, optional question, so Vorige and Overslaan stand. */
+const ASKED: ChatData['turns'][number]['answer'] = {
+  state: 'needs-clarification',
+  text: 'Dat kan ik op meer manieren tellen.',
+  questions: {
+    questions: [
+      {
+        id: 'periode',
+        label: 'Periode',
+        text: 'Welke periode bedoel je?',
+        kind: 'one',
+        options: [
+          { value: '2025', label: 'Heel 2025' },
+          { value: '12m', label: 'Afgelopen 12 maanden' },
+        ],
+      },
+      {
+        id: 'provincies',
+        label: 'Provincies',
+        text: 'Welke provincies tel ik mee?',
+        kind: 'many',
+        optional: true,
+        options: [
+          { value: 'ut', label: 'Utrecht' },
+          { value: 'gld', label: 'Gelderland' },
+        ],
+      },
+    ],
+  },
+}
 
 interface Row {
   tag: string
@@ -441,7 +476,7 @@ const ROWS: Row[] = [
     mount: () =>
       append(create('lintje-shell', { data: { name: 'Vergunningen', navigation: NAVIGATION } })),
     wide: (element) => shown(element, '.lintje-shell__nav a[href="#aanvragen"]'),
-    phone: (element) => shown(element, '[aria-controls="lintje-mobile-menu-panel"]'),
+    phone: (element) => shown(element, '.lintje-mobile-header__button--menu'),
   },
   {
     tag: 'lintje-shell',
@@ -453,7 +488,7 @@ const ROWS: Row[] = [
         }),
       ),
     wide: (element) => shown(element, '.lintje-nav a[href="#aanvragen"]'),
-    phone: (element) => shown(element, '[aria-controls="lintje-mobile-menu-panel"]'),
+    phone: (element) => shown(element, '.lintje-mobile-header__button--menu'),
   },
   {
     tag: 'lintje-shell',
@@ -682,25 +717,32 @@ const ROWS: Row[] = [
   },
   {
     tag: 'lintje-page-header',
-    marker: 'the dashboard’s name stands above the title, the description is left out',
+    marker: 'the dashboard’s name stands above the title, the description stays under it',
     mount: () =>
       append(
         create('lintje-page-header', {
           data: {
             kicker: 'Dienstverlening',
             title: 'Aanvragen',
-            description: 'Alle aanvragen van dit jaar.',
+            description:
+              'Alle aanvragen van dit jaar, per regio en per loket, met de wachttijd en het aantal afwijzingen.',
           },
         }),
       ),
     wide: (element) =>
       shown(element, '.lintje-page-header__description') &&
       !shown(element, '.lintje-page-header__kicker'),
-    phone: (element) =>
-      below(
-        find(element, '.lintje-page-header__kicker'),
-        find(element, '.lintje-page-header__title'),
-      ) && !shown(element, '.lintje-page-header__description'),
+    phone: (element) => {
+      const title = find(element, '.lintje-page-header__title')
+      const description = find(element, '.lintje-page-header__description')
+      return (
+        below(find(element, '.lintje-page-header__kicker'), title) &&
+        seen(description) &&
+        below(title, description) &&
+        box(description).right <= window.innerWidth + 1 &&
+        element.scrollWidth <= element.clientWidth
+      )
+    },
   },
   {
     tag: 'lintje-page-header',
@@ -788,8 +830,10 @@ const ROWS: Row[] = [
           items: [{ id: 'a', title: 'Export klaar', when: '2 minuten geleden', unread: true }],
         }),
       ),
+    // Back at 1440 px the sheet has closed: the popover is there, its panel only while open.
     wide: (element) =>
-      shown(element, '.lintje-notifications__panel') &&
+      find(element, 'lintje-popover') !== null &&
+      (!(element as LintjeNotifications).open || shown(element, '.lintje-notifications__panel')) &&
       !shown(element, '[aria-label="Meldingen sluiten"]'),
     phone: (element) =>
       shown(element, '[role="dialog"][aria-modal="true"] .lintje-notifications__panel') &&
@@ -968,6 +1012,109 @@ const ROWS: Row[] = [
     phone: (element) =>
       shown(element, 'lintje-icon-button[label="Versturen"]') &&
       !shown(element, '.lintje-chat-composer__send lintje-button'),
+  },
+  {
+    tag: 'lintje-chat-questions',
+    marker: 'the buttons stand in a column, Volgende on top over the full width',
+    mount: async () => {
+      const element = await append(create('lintje-chat-questions', { data: ASKED!.questions }))
+      element.step = 1
+      await element.updateComplete
+      return element
+    },
+    wide: (element) =>
+      level(
+        find(element, '.lintje-chat-questions__back'),
+        find(element, '.lintje-chat-questions__next'),
+      ) &&
+      beside(
+        find(element, '.lintje-chat-questions__back'),
+        find(element, '.lintje-chat-questions__next'),
+      ),
+    phone: (element) =>
+      below(
+        find(element, '.lintje-chat-questions__next'),
+        find(element, '.lintje-chat-questions__back'),
+      ) &&
+      below(
+        find(element, '.lintje-chat-questions__next'),
+        find(element, '.lintje-chat-questions__skip'),
+      ) &&
+      Math.abs(
+        box(all(find(element, '.lintje-chat-questions__next')!.shadowRoot!, 'button')[0]!).width -
+          box(find(element, '.lintje-chat-questions__actions')).width,
+      ) < 20,
+  },
+  {
+    tag: 'lintje-chat-questions',
+    marker: 'the short form’s choices stand under each other',
+    mount: () =>
+      append(
+        create('lintje-chat-questions', {
+          data: { questions: [{ ...ASKED!.questions!.questions[0] }] },
+        }),
+      ),
+    wide: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-chat-questions__chip')
+      return beside(first!, second!)
+    },
+    phone: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-chat-questions__chip')
+      return below(first!, second!)
+    },
+  },
+  {
+    tag: 'lintje-chat',
+    marker: 'the question box folds to one line while the assistant asks',
+    mount: () =>
+      append(
+        create('lintje-chat', {
+          data: {
+            turns: [
+              { id: 't1', message: { text: 'Hoeveel aanvragen per provincie?' }, answer: ASKED },
+            ],
+          },
+        }),
+      ),
+    wide: (element) =>
+      shown(element, '.lintje-chat-composer__input') &&
+      !shown(element, '.lintje-chat-composer__expand'),
+    phone: (element) =>
+      shown(element, '.lintje-chat-composer__expand') &&
+      !shown(element, '.lintje-chat-composer__input'),
+  },
+  {
+    tag: 'lintje-chat-steps',
+    marker: 'the button takes the full width, and a long detail runs on instead of cutting',
+    mount: () =>
+      append(
+        create('lintje-chat-steps', {
+          open: true,
+          items: [
+            { label: 'Vraag gelezen' },
+            {
+              label: '3 bronnen doorzocht',
+              detail:
+                'Bezwaren, Besluiten, Termijnen, Klachten, Wachttijden en de behandeltermijnen per maand',
+            },
+          ],
+        }),
+      ),
+    wide: (element) => {
+      const text = all(element.shadowRoot!, '.lintje-chat-steps__text')[1] as HTMLElement
+      return (
+        box(find(element, '.lintje-chat-steps__toggle')).width < box(element).width / 2 &&
+        getComputedStyle(text).whiteSpace === 'nowrap'
+      )
+    },
+    phone: (element) => {
+      const text = all(element.shadowRoot!, '.lintje-chat-steps__text')[1] as HTMLElement
+      return (
+        Math.abs(box(find(element, '.lintje-chat-steps__toggle')).width - box(element).width) < 2 &&
+        getComputedStyle(text).whiteSpace !== 'nowrap' &&
+        text.scrollWidth <= text.clientWidth
+      )
+    },
   },
   {
     tag: 'lintje-shell',
@@ -1407,5 +1554,39 @@ describe('the view below 768 px', () => {
     const names = ROWS.map(nameOf)
     const stale = KNOWN.filter((entry) => !names.some((name) => entry.test(name))).map(String)
     expect(stale, `matches no row, so take out of KNOWN:\n${stale.join('\n')}`).toHaveLength(0)
+  })
+})
+
+describe('a phone’s sheet at 768 px', () => {
+  const bell = (element: HTMLElement): HTMLElement => find(element, '.lintje-notifications__bell')!
+  const notifications = (): Promise<LintjeNotifications> =>
+    append(
+      create('lintje-notifications', {
+        items: [{ id: 'a', title: 'Export klaar', when: '2 minuten geleden', unread: true }],
+      }),
+    )
+
+  it('closes when the viewport widens, with the focus on the bell', async () => {
+    await viewport(390, 844)
+    const element = await notifications()
+    bell(element).focus()
+    bell(element).click()
+    await expect.poll(() => shown(element, '.lintje-notifications__close')).toBe(true)
+    await viewport(1024, 768)
+    await expect.poll(() => element.open).toBe(false)
+    await expect.poll(() => shown(element, '.lintje-notifications__panel')).toBe(false)
+    expect(deepActiveElement()).toBe(bell(element))
+  })
+
+  it('stays open as a sheet when the viewport narrows', async () => {
+    await viewport(1024, 768)
+    const element = await notifications()
+    bell(element).click()
+    await expect.poll(() => shown(element, '.lintje-notifications__panel')).toBe(true)
+    await viewport(390, 844)
+    await expect
+      .poll(() => shown(element, '[role="dialog"] .lintje-notifications__panel'))
+      .toBe(true)
+    expect(element.open).toBe(true)
   })
 })
