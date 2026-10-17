@@ -85,5 +85,5 @@
   .lintje-find { flex-wrap: wrap; height: auto; --lintje-find-line: calc(var(--h-control) - 2 * var(--lintje-find-border)); }
   .lintje-find__control { flex: 1 0 100%; height: var(--lintje-find-line); }
   .lintje-find__icon { top: calc(var(--lintje-find-line) / 2); transform: translateY(-50%); }
-  .lintje-find__count { margin-inline-end: auto; padding-inline-start: var(--space-10); }
+  .lintje-find__count { margin-inline-end: auto; }
 }
