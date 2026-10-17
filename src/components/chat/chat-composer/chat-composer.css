@@ -47,7 +47,9 @@
 
 /* While files hang over the window, the frame is the upload field's drop zone. */
 .lintje-chat-composer__drop {
-  position: absolute; inset: -1px; z-index: 1;
+  /* Over the frame's 1 px border, so the zone's own border replaces it. */
+  --lintje-chat-composer-frame-border: 1px;
+  position: absolute; inset: calc(var(--lintje-chat-composer-frame-border) * -1); z-index: 1;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: var(--space-1);
   padding: var(--space-2) var(--space-4);
@@ -134,7 +136,7 @@
 }
 
 /* A joined group is drawn at the target height itself, so both halves are as tall as "Versturen". */
-.lintje-chat-composer__send { position: relative; flex: none; display: flex; gap: 1px; }
+.lintje-chat-composer__send { --lintje-chat-composer-line: 1px; position: relative; flex: none; display: flex; gap: var(--lintje-chat-composer-line); }
 .lintje-chat-composer__send-half,
 .lintje-chat-composer__attach { --h-icon-button: var(--h-button); }
 .lintje-chat-composer__attach { flex: none; margin-right: auto; }

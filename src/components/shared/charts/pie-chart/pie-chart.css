@@ -13,7 +13,7 @@
 .lintje-pie-chart__label,
 .lintje-pie-chart__value,
 .lintje-pie-chart__total-label,
-.lintje-pie-chart__total { padding: 5px 0; text-align: left; font-weight: 400; }
+.lintje-pie-chart__total { padding: var(--space-1) 0; text-align: left; font-weight: 400; }
 .lintje-pie-chart__column-label {
   font-size: var(--label-size); font-weight: var(--label-weight);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
@@ -34,9 +34,14 @@
 .lintje-pie-chart__label-inner { display: flex; align-items: flex-start; gap: var(--space-2); }
 .lintje-pie-chart__total-label,
 .lintje-pie-chart__total {
-  font-weight: 700; border-top: 1px solid var(--color-border-default); padding-top: 6px;
+  font-weight: 700; border-top: 1px solid var(--color-border-default); padding-top: var(--space-2);
 }
-.lintje-pie-chart__marker { width: 10px; height: 10px; flex: none; display: block; margin-top: calc((1lh - 10px) / 2); }
+.lintje-pie-chart__marker {
+  --lintje-pie-chart-marker: 10px;
+  width: var(--lintje-pie-chart-marker); height: var(--lintje-pie-chart-marker);
+  flex: none; display: block;
+  margin-top: calc((1lh - var(--lintje-pie-chart-marker)) / 2);
+}
 
 /* Hover scales the segment around the center, so its side edges keep their angle. The shadow
    sits on a copy on top (`__lift`); the segment itself only scales and eases back. */
