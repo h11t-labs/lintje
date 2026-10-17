@@ -1574,7 +1574,8 @@ export default {
         {
           label: 'Lijst open',
           note: 'Met `open` staat de lijst met naam en functie van iedereen open, de eerste naam als link.',
-          html: '<lintje-person-group label="Meelezers" open></lintje-person-group>',
+          // The list hangs below the row: room for it, so it does not cover the log.
+          html: '<div style="min-height: calc(10 * var(--space-10))"><lintje-person-group label="Meelezers" open></lintje-person-group></div>',
           setup(stage) {
             stage.querySelector('lintje-person-group').people = READERS.map((person, index) =>
               index === 0 ? { ...person, href: '#el-person-group' } : person,
