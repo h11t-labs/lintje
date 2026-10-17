@@ -84,8 +84,9 @@ applicatie.
 ## Doorklikken en selectie
 
 `lintje-row-click` en `lintje-mark-select` komen van de tabel en van de grafiek- en
-kaarttegels. Volg de `href` die je op die rij of markering hebt gezet, of zet `data.selectedId` zelf.
-Een selectie ongedaan maken is hetzelfde event met de id null en de `href` die je als `clearHref` gaf.
+kaarttegels. Heeft de rij of markering een `href`, dan gaat het element erheen, tenzij je het event
+annuleert; dan zet je `data.selectedId` zelf. Een selectie ongedaan maken is hetzelfde event met de
+id null, en gaat zo naar de `href` die je als `clearHref` gaf.
 `lintje-sort-change` zet `data.sort`, `lintje-checked-change` `data.checkedIds`,
 `lintje-layer-change` de `data.layer` van de kaart.
 

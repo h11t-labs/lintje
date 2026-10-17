@@ -157,10 +157,18 @@ export default {
         },
         {
           label: 'Bezig',
-          html: FORM,
+          note: 'Ook de herhaalde groep staat uit: tijdens het opslaan komt er geen rij bij of af.',
+          html: `<lintje-form>${FIELDS}<lintje-repeater legend="Betrokkenen" item-label="Betrokkene" min="1" max="10"></lintje-repeater>${ACTIONS}</lintje-form>`,
           setup(stage) {
             const form = stage.querySelector('lintje-form')
             form.values = SAVED
+            repeaterHost(stage, PEOPLE)
+            // In a form the fields of a row carry a name, so the form disables them too.
+            stage.querySelectorAll('lintje-repeater-row').forEach((row, index) => {
+              const [name, role] = row.children
+              name.name = `betrokkene.${index}.naam`
+              role.name = `betrokkene.${index}.rol`
+            })
             form.busy = true
           },
         },
@@ -224,6 +232,17 @@ export default {
           html: '<lintje-stepper></lintje-stepper>',
           setup: (stage) =>
             steps(stage, [{ ...STEPS[0], errors: 2 }, STEPS[1], STEPS[2]]),
+        },
+        {
+          label: 'Een lange stapnaam',
+          note: 'Op een telefoon loopt de naam van de huidige stap door, met het aantal rechts.',
+          html: '<lintje-stepper></lintje-stepper>',
+          setup: (stage) =>
+            steps(stage, [
+              STEPS[0],
+              { label: 'Gegevens van de aanvrager en van iedereen die namens hem handelt', state: 'current' },
+              STEPS[2],
+            ]),
         },
         {
           label: 'Fasen met een periode',

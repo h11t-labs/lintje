@@ -82,6 +82,7 @@ const COMPONENT_ICONS = [
   'gebruiksvoorwerpen-hangslot-dicht', // a menu entry without access
   'functioneel-printer', // share menu: print
   'functioneel-mail', // share menu: send as e-mail; the feedback row
+  'communicatie-tekstballonnen-met-vraagteken', // shell: the feedback link
   'functioneel-smartphone', // share menu: open on my phone
   'functioneel-terug', // share menu: back from the QR code
   'functioneel-darkmode', // top bar: the Weergave button; follow the system
