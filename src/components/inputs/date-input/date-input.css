@@ -6,7 +6,7 @@
 /* The shared field box, with room at its end for the button. */
 .lintje-date-input__control {
   width: 100%;
-  padding-right: calc(var(--h-control) - 2px + var(--space-2));
+  padding-right: calc(var(--h-control) - 2 * var(--lintje-field-border) + var(--space-2));
   font-variant-numeric: tabular-nums;
 }
 
