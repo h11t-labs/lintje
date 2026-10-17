@@ -743,6 +743,21 @@ export default {
             ]
           },
         },
+        {
+          label: 'Vinkje en keuze op een telefoon',
+          note: 'Met `inline` is het menu geen menu: een vinkje is dan een selectievakje en een keuze een keuzerondje.',
+          html: `<div style="background: var(--color-nav-bg); max-width: 360px"><lintje-user-menu inline version="2.4.1"></lintje-user-menu></div>`,
+          setup(stage) {
+            const menu = stage.querySelector('lintje-user-menu')
+            menu.user = USER
+            menu.items = [
+              { value: 'compact', label: 'Compacte weergave', checked: true },
+              { value: 'hulp', label: 'Hulpteksten tonen', checked: false },
+              { value: 'nl', label: 'Nederlands', checked: true, radio: true },
+              { value: 'en', label: 'Engels', checked: false, radio: true },
+            ]
+          },
+        },
       ],
     },
     {
