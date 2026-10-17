@@ -1,0 +1,122 @@
+/* One file as a chip of one line; a list of them wraps onto the next line. */
+:host { display: inline-block; max-width: 100%; min-width: 0; vertical-align: top; }
+:host([hidden]) { display: none; }
+
+/* --- */
+
+/* The width follows the content up to its own limit; an error may take more, so the reason does
+   not push the name away. Lighter than a message: no fill, no bold. */
+.lintje-attachment {
+  position: relative;
+  box-sizing: border-box;
+  display: flex; align-items: center;
+  gap: var(--space-2);
+  max-width: 280px;
+  height: var(--h-chip);
+  padding: 0 var(--space-3) 0 var(--space-2);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  font: var(--text-small);
+  color: var(--color-text-primary);
+}
+.lintje-attachment.is-error { max-width: 360px; }
+.lintje-attachment--end { padding-right: var(--space-1); }
+
+.lintje-attachment__main {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; align-items: center;
+  gap: var(--space-2);
+  height: 100%;
+  padding: 0; border: 0; background: none;
+  font: inherit; color: inherit; text-align: left; text-decoration: none;
+}
+/* An opening chip is one target: its click area and its ring cover the whole chip. */
+.lintje-attachment--opens .lintje-attachment__main { cursor: pointer; }
+.lintje-attachment--opens .lintje-attachment__main::after { content: ''; position: absolute; inset: 0; }
+.lintje-attachment--opens:hover { border-color: var(--color-border-heavy); }
+.lintje-attachment--opens:hover .lintje-attachment__name { text-decoration: underline; }
+.lintje-attachment--opens:hover .lintje-attachment__sign { color: var(--color-text-primary); }
+.lintje-attachment__main:focus-visible { outline: none; }
+.lintje-attachment:has(.lintje-attachment__main:focus-visible) {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+.lintje-attachment__icon { flex: none; color: var(--color-text-muted); }
+.lintje-attachment__icon.is-error { color: var(--color-error-line); }
+/* Cropped from the middle, so the subject stays recognisable at this size. */
+.lintje-attachment__thumb {
+  flex: none;
+  display: block;
+  width: var(--space-6); height: var(--space-6);
+  object-fit: cover; object-position: center;
+}
+
+/* Cut in the middle: the stem takes the ellipsis, the last letters and the extension stay. */
+.lintje-attachment__name { display: flex; min-width: 0; white-space: nowrap; }
+.lintje-attachment__stem { min-width: 3ch; overflow: hidden; text-overflow: ellipsis; }
+.lintje-attachment__tail { flex: none; }
+.lintje-attachment__detail { flex: none; white-space: nowrap; color: var(--color-text-muted); }
+.lintje-attachment.is-error .lintje-attachment__detail { color: var(--color-error-text); }
+
+/* A quiet button: 24 px drawn, the target height reached by a transparent area around it. */
+.lintje-attachment__action,
+.lintje-attachment__sign {
+  position: relative;
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: var(--space-6); height: var(--space-6);
+  color: var(--color-text-muted);
+}
+.lintje-attachment__action {
+  padding: 0; border: 0; background: none;
+  cursor: pointer;
+}
+.lintje-attachment__action:hover { color: var(--color-text-primary); }
+.lintje-attachment__action::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((var(--space-6) - var(--h-target)) / 2));
+}
+.lintje-attachment__action:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+.lintje-attachment.is-disabled { color: var(--color-text-disabled); }
+.lintje-attachment.is-disabled .lintje-attachment__icon,
+.lintje-attachment.is-disabled .lintje-attachment__detail { color: var(--color-text-disabled); }
+
+/* The upload's progress: a line over the bottom edge, as wide as how far it is. */
+.lintje-attachment__progress {
+  position: absolute; left: -1px; right: -1px; bottom: -1px;
+  height: 2px;
+  overflow: hidden;
+}
+.lintje-attachment__progress-fill {
+  display: block;
+  width: 0; height: 100%;
+  background: var(--color-accent-line);
+}
+.lintje-attachment__progress.is-indeterminate .lintje-attachment__progress-fill {
+  width: 30%;
+  animation: lintje-attachment-slide var(--dur-skeleton) linear infinite alternate;
+}
+@keyframes lintje-attachment-slide {
+  from { margin-left: 0; }
+  to   { margin-left: 70%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lintje-attachment__progress.is-indeterminate .lintje-attachment__progress-fill {
+    animation: none; margin-left: 35%;
+  }
+}
+
+/* A name that does not fit takes the full width, and is cut there. */
+@media screen and (max-width: 767px) {
+  .lintje-attachment, .lintje-attachment.is-error { max-width: 100%; }
+}
+
+@media (forced-colors: active) {
+  .lintje-attachment__progress-fill { background: CanvasText; }
+}

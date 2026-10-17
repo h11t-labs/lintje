@@ -1243,7 +1243,7 @@ export default {
         },
         {
           label: 'Drie bestanden',
-          note: 'Eén bestand is bezig, één is klaar en één is geweigerd.',
+          note: 'Eén bestand is bezig, één is klaar en één is mislukt en kan opnieuw.',
           html: '<lintje-file-upload label="Bijlagen" accept=".pdf,.jpg,.png" max-size="10485760"></lintje-file-upload>',
           setup(stage) {
             const upload = stage.querySelector('lintje-file-upload')
@@ -1252,10 +1252,11 @@ export default {
               { id: 'f', name: 'foto.jpg', size: 2.4 * MB, state: 'done' },
               {
                 id: 'b',
-                name: 'beeld.mov',
-                size: 38 * MB,
+                name: 'verslag.pdf',
+                size: 3.8 * MB,
                 state: 'error',
-                message: 'Dit bestandstype kan niet',
+                message: 'Uploaden mislukt',
+                retry: true,
               },
             ]
             const drop = (event) =>

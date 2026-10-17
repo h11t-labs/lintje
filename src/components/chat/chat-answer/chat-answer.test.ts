@@ -64,6 +64,35 @@ describe('lintje-chat-answer', () => {
     expect(tags[2].getAttribute('span')).toBe('6')
   })
 
+  it('draws an attachments block as chips in a labelled list, beside the sentence that names them', async () => {
+    const element = await answer({
+      blocks: [
+        { kind: 'prose', text: 'Hier is de tabel als CSV.' },
+        {
+          kind: 'attachments',
+          items: [
+            {
+              id: 'csv',
+              name: 'bezwaren-per-maand.csv',
+              size: 4_200,
+              state: 'done',
+              href: '/a.csv',
+              download: true,
+            },
+            { id: 'bron', name: 'beleidsregel-2026.pdf', detail: 'blz. 4', state: 'done' },
+          ],
+        },
+      ],
+    })
+    const list = element.renderRoot.querySelector('.lintje-chat-answer__blocks > ul')!
+    expect(list.getAttribute('aria-label')).toBe('Bijlagen')
+    const chips = [...list.querySelectorAll('li > lintje-attachment')]
+    expect(chips.map((chip) => (chip as HTMLElement & { data: { id: string } }).data.id)).toEqual([
+      'csv',
+      'bron',
+    ])
+  })
+
   it('ready: the strip and the actions; follow-ups and retry on the current answer only', async () => {
     const followUps = [{ label: 'En gisteren?' }]
     const older = await answer({ strip: STRIP, followUps })

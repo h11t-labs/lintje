@@ -113,7 +113,11 @@ const COMPONENT_ICONS = [
   'functioneel-geluid-aan', // video player: mute
   'functioneel-geluid-uit', // video player: sound on again
   'functioneel-ondertiteling', // the video player's captions
-  'op-kantoor-document-blanco', // file upload: a file row
+  'op-kantoor-document-blanco', // file upload: a file row; attachment: any other file
+  'op-kantoor-document-met-lijnen', // attachment: a document or text
+  'op-kantoor-document-met-vlakken-en-lijnen-erop', // attachment: a spreadsheet
+  'op-kantoor-document-met-tekst-csv', // attachment: a CSV
+  'functioneel-paperclip', // chat: add an attachment
   'functioneel-refresh', // chat: answer again, try again; video player: load again
   'lichaam-duim-omhoog', // chat: a good answer
   'lichaam-duim-omlaag', // chat: a bad answer

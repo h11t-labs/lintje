@@ -62,6 +62,22 @@ const messages = (element: LintjeChat): LintjeChatMessage[] => [
 ]
 
 describe('lintje-chat', () => {
+  it('passes `upload` to the question box and the attachments to their message', async () => {
+    const files = [{ id: 'd', name: 'beleidsregel-2026.pdf', state: 'done' as const }]
+    const element = await chat({
+      turns: [{ id: 't1', message: { text: '', attachments: files } }],
+      upload: { accept: '.pdf', maxSize: 1000, files },
+    })
+    const box = element.renderRoot.querySelector('lintje-chat-composer')!
+    expect(box.files).toEqual(files)
+    expect(box.accept).toBe('.pdf')
+    expect(box.maxSize).toBe(1000)
+    expect(messages(element)[0].attachments).toEqual(files)
+    element.data = { turns: [] }
+    await element.updateComplete
+    expect(box.files).toBeUndefined()
+  })
+
   it('is a labelled log that scrolls with the page, so it is no tab stop of its own', async () => {
     const element = await chat({ turns: TURNS })
     const log = element.renderRoot.querySelector('[role="log"]')

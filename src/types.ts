@@ -11,6 +11,7 @@ import type { AnnouncementKind } from './components/shared/announcement-block'
 import type { ChartSpec, MapSpec } from './components/shared/charts/shared/types'
 import type { MenuEntry } from './components/actions/menu-button/menu-button'
 import type { NotificationItem } from './components/frame/notifications/notifications'
+import type { UploadFile } from './components/shared/files'
 
 export type {
   BarSeriesData,
@@ -719,10 +720,13 @@ export interface ChatTermRange {
 }
 
 export interface ChatMessageData {
+  /** `''` for a message that is only its attachments. */
   text: string
   terms?: ChatTermRange[]
   /** When it was sent, as the host formats it ("08:20"). */
   time?: string
+  /** What was sent along with the question; always `state: 'done'`. */
+  attachments?: UploadFile[]
 }
 
 export interface ChatSuggestion {
@@ -756,6 +760,8 @@ export type ChatBlock =
   | { kind: 'kpi-row'; data: KpiRowData }
   | { kind: 'chart'; data: ChartData }
   | { kind: 'data-table'; data: DataTableData }
+  /** Files the answer gives back or cites, beside the sentence that names them. */
+  | { kind: 'attachments'; items: UploadFile[] }
 
 /** Where an answer stands. `out-of-scope` needs a source on; `needs-clarification` asks back. */
 export type ChatAnswerState =
@@ -828,8 +834,10 @@ export interface ChatStartData {
  * The host owns the conversation and sets `data` again on change.
  * Events: `lintje-message-send`, `lintje-answer-stop`, `lintje-sources-change`,
  * `lintje-draft-change`, `lintje-suggestion-select`, `lintje-message-edit`,
- * `lintje-answer-retry`, `lintje-answer-rate`, `lintje-strip-change`, and the blocks' own
- * `lintje-mark-select`, `lintje-row-click` and `lintje-sort-change`.
+ * `lintje-answer-retry`, `lintje-answer-rate`, `lintje-strip-change`, the attachments'
+ * `lintje-files-add`, `lintje-file-remove`, `lintje-file-cancel`, `lintje-file-retry` and
+ * `lintje-file-open`, and the blocks' own `lintje-mark-select`, `lintje-row-click` and
+ * `lintje-sort-change`.
  */
 export interface ChatData extends FrameSettings {
   turns: ChatTurnData[]
@@ -840,12 +848,17 @@ export interface ChatData extends FrameSettings {
   draftTerms?: ChatDraftTerms
   /** The question box's placeholder; "Stel een vraag over de gegevens" without it. */
   placeholder?: string
+  /**
+   * Files sent along with a question: the paperclip, dragging and pasting. Without it the box
+   * takes no files. `files` are those of the question still being typed; the host keeps them.
+   */
+  upload?: { accept?: string; maxSize?: number; files?: UploadFile[] }
 }
 
 export type { FormValues, FormErrors, StoredDraft } from './components/forms/form/form'
 export type { ErrorSummaryItem } from './components/forms/error-summary/error-summary'
 export type { ErrorPageLink } from './components/feedback/error-page/error-page'
-export type { UploadFile } from './components/inputs/file-upload/file-upload'
+export type { UploadFile } from './components/shared/files'
 export type { DateRange } from './components/inputs/date-range/date-range'
 export type { SlotDay, TimeSlot } from './components/inputs/slot-picker/slot-picker'
 export type { TabItem } from './components/layout/tabs/tabs'
