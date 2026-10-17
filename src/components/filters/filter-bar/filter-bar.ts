@@ -127,6 +127,9 @@ export class LintjeFilterBar extends LintjeElement {
   private readonly mobile = new MediaController(this, MOBILE)
   private readonly frame = new FrameStateController(this)
   private sheetWasOpen = false
+  #wasMobile: boolean | null = null
+  /** The sheet closes because the screen grew past 768 px: its focus goes to the zone's toggle. */
+  #toToggle = false
   private committed = ''
   private declaredOpen: boolean | undefined = undefined
 
@@ -169,6 +172,14 @@ export class LintjeFilterBar extends LintjeElement {
     // A standalone bar keeps its hands off the shell: two bars writing one store would
     // re-render each other without end.
     if (this.data?.standalone) return
+    // From 768 px up there is no sheet: it closes for good, as the notifications' does, and the
+    // button that opened it is gone with the phone's header.
+    const wasMobile = this.#wasMobile
+    this.#wasMobile = this.mobile.matches
+    if (wasMobile && !this.mobile.matches && this.frame.state.sheetOpen) {
+      this.#toToggle = true
+      setFrameState({ sheetOpen: false })
+    }
     const sheetOpen = this.frame.state.sheetOpen
     if (sheetOpen && !this.sheetWasOpen) this.draft = { ...this.values }
     this.sheetWasOpen = sheetOpen
@@ -192,6 +203,25 @@ export class LintjeFilterBar extends LintjeElement {
     this.#sentenceSize?.disconnect()
     this.#sentenceSize = null
     if (!this.data?.standalone) clearFilterZone()
+  }
+
+  protected override updated(changed: PropertyValues<this>): void {
+    super.updated(changed)
+    if (this.#toToggle) {
+      this.#toToggle = false
+      void this.#focusToggle()
+    }
+  }
+
+  /**
+   * Once the sheet has let go and the zone drew its wide form: its "Filters" takes the focus. The
+   * zone hears the breakpoint after this element, so the wait is a frame and its render.
+   */
+  async #focusToggle(): Promise<void> {
+    await new Promise(requestAnimationFrame)
+    const zone = this.renderRoot.querySelector('lintje-filter-zone')
+    await zone?.updateComplete
+    if (!this.mobile.matches) zone?.focus()
   }
 
   protected override firstUpdated(changed: PropertyValues<this>): void {
@@ -375,6 +405,7 @@ export class LintjeFilterBar extends LintjeElement {
 
       <lintje-filter-sheet
         ?open=${sheetOpen}
+        .restoreFocus=${!this.#toToggle}
         .sentence=${sentence(this.visible, this.draft)}
         ?reset-disabled=${this.visible.every((filter) => !this.isModified(this.draft, filter))}
         @lintje-sheet-close=${() => setFrameState({ sheetOpen: false })}

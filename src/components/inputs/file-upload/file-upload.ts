@@ -18,6 +18,7 @@ import {
   type TemplateResult,
 } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
+import { repeat } from 'lit/directives/repeat.js'
 import { define } from '../../../core/element'
 import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
@@ -324,7 +325,12 @@ export class LintjeFileUpload extends LintjeInputElement {
             @lintje-file-cancel=${this.onChipEvent}
             @lintje-file-retry=${this.onChipEvent}
           >
-            ${rows.map((row, index) => this.renderRow(row, index >= files.length))}
+            ${repeat(
+              rows,
+              // Keyed, a file keeps its place and its focus when one above it goes.
+              (row, index) => `${index >= files.length ? 'refused' : 'file'}:${row.id}`,
+              (row, index) => this.renderRow(row, index >= files.length),
+            )}
           </ul>`
           : nothing
       }

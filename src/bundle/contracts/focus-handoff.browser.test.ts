@@ -1,6 +1,6 @@
 /** Focus handoff: when the control with the focus goes, the focus lands on a stated neighbour, never on `body`. */
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { page, userEvent } from 'vitest/browser'
+import { page, server, userEvent } from 'vitest/browser'
 import '../../components/tables/activity-log/activity-log'
 import '../../components/feedback/announcement/announcement'
 import '../../components/content/audio-player/audio-player'
@@ -40,8 +40,19 @@ import '../../components/content/transcript/transcript'
 import '../../components/content/translator/translator'
 import '../../components/content/video-player/video-player'
 import '../../components/frame/shell/shell'
+import '../../components/content/attachment/attachment'
+import '../../components/content/log-viewer/log-viewer'
+import '../../components/filters/filter-bar/filter-bar'
+import '../../components/forms/error-summary/error-summary'
+import '../../components/forms/form-actions/form-actions'
+import '../../components/frame/page-header/page-header'
+import '../../components/inputs/number-input/number-input'
+import '../../components/inputs/text-editor/text-editor'
+import '../../components/overlays/dialog/dialog'
 import '../../components/tables/person-group/person-group'
-import { holdsFocus } from '../../core/focus'
+import { holdsFocus, standsIn, tabbables } from '../../core/focus'
+import { getFrameState as frameState, setFrameState } from '../../core/frame-state'
+import { SHIFT_TAB, TAB } from '../../core/test-keys'
 import type { UploadFile } from '../../components/shared/files'
 import type { LintjeList, ListItem } from '../../components/tables/list/list'
 import type { LintjePagination } from '../../components/tables/pagination/pagination'
@@ -2270,6 +2281,609 @@ const GRAPH_ROWS: Row[] = [
   },
 ]
 
+/* --- What goes away with the focus on it, in the shell ---------------------------------- */
+
+type ShellElement = HTMLElement & { data: Record<string, unknown> }
+
+/** The shown one of the elements that match: each bar draws its own tools, one is hidden. */
+function shown(element: Element, selector: string): HTMLElement | null {
+  return (
+    [...element.shadowRoot!.querySelectorAll<HTMLElement>(selector)].find(
+      (candidate) => candidate.getClientRects().length > 0,
+    ) ?? null
+  )
+}
+
+/** An option of the panel "Weergave" that shows, by its word. */
+function viewOption(element: Element, word: string): HTMLElement | null {
+  const panel = shown(element, '.lintje-view__popover')
+  return (
+    [...(panel?.querySelectorAll<HTMLElement>('.lintje-toggle-group__option') ?? [])].find(
+      (option) => option.textContent?.trim() === word,
+    ) ?? null
+  )
+}
+
+/**
+ * "Weergave" opened from the keyboard, in a shell whose host answers a choice as a page does: it
+ * sets the setting in `data` and carries it in the query of every link.
+ */
+async function viewing(data: Record<string, unknown>): Promise<ShellElement> {
+  const element = (await shell({
+    view: { mode: 'system', layoutChoice: true },
+    navigation: [
+      { label: 'Overzicht', href: '?mode=system#overzicht', active: true },
+      { label: 'Archief', href: '?mode=system#archief' },
+    ],
+    ...data,
+  })) as ShellElement
+  element.addEventListener('lintje-view-change', (event) => {
+    const change = (event as CustomEvent<{ mode?: string; layout?: string }>).detail
+    const current = element.data as { view: Record<string, unknown> }
+    const mode = change.mode ?? String(current.view.mode)
+    element.data = {
+      ...element.data,
+      ...(change.layout ? { layout: change.layout } : {}),
+      view: { ...current.view, mode },
+      navigation: [
+        { label: 'Overzicht', href: `?mode=${mode}#overzicht`, active: true },
+        { label: 'Archief', href: `?mode=${mode}#archief` },
+      ],
+    }
+  })
+  const tool = (): HTMLElement | null => {
+    const found = shown(element, '.lintje-view__button')
+    return button(found) ?? found
+  }
+  await drawn(tool)
+  tool()!.focus()
+  await userEvent.keyboard('{Enter}')
+  await drawn(() => viewOption(element, 'Licht'))
+  return element
+}
+
+/** The bar of the top layout, with its groups collapsed into "Menu" when `collapsed`. */
+async function barWithGroup(collapsed: boolean): Promise<HTMLElement> {
+  const groups = Array.from({ length: collapsed ? 8 : 1 }, (_, index) => ({
+    label: `Afdeling ${index + 1} met een lange naam`,
+    links: [
+      { label: `Besluiten ${index + 1}`, href: `#besluiten-${index + 1}` },
+      { label: `Bezwaren ${index + 1}`, href: `#bezwaren-${index + 1}` },
+    ],
+  }))
+  const element = await shell({
+    navigation: [{ label: 'Overzicht', href: '#overzicht', active: true }, ...groups],
+  })
+  // The host routes the page itself, so the browser does not leave it.
+  element.addEventListener('lintje-navigate', (event) => event.preventDefault())
+  return element
+}
+
+const SHELL_VIEW_ROWS: Row[] = [
+  ...[1440, 390].map((width): Row => ({
+    name: `lintje-shell :: "Weergave", choosing the other layout at ${width} px, stays open with the focus on the choice`,
+    run: async () => {
+      if (width === 390) await phone()
+      const element = await viewing({ layout: 'side' })
+      const top = (): HTMLElement | null => viewOption(element, 'Boven')
+      await drawn(top)
+      top()!.focus()
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(() => element.getAttribute('layout')).toBe('top')
+      await expect.poll(() => top()?.getAttribute('aria-pressed')).toBe('true')
+      return top
+    },
+  })),
+  {
+    name: 'lintje-shell :: "Weergave" at 390 px, after the other layout, holds Tab in its new sheet and hands its focus to its tool on Escape',
+    run: async () => {
+      await phone()
+      const element = await viewing({ layout: 'side' })
+      const top = (): HTMLElement | null => viewOption(element, 'Boven')
+      await drawn(top)
+      top()!.focus()
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(() => top()?.getAttribute('aria-pressed')).toBe('true')
+      const sheet = (): HTMLElement | null => shown(element, '.lintje-view__popover')
+      for (let press = 0; press < 6; press++) {
+        await userEvent.keyboard(TAB)
+        expect(holdsFocus(sheet()!)).toBe(true)
+      }
+      await userEvent.keyboard('{Escape}')
+      await expect.poll(() => sheet()).toBeNull()
+      return () => shown(element, '.lintje-view__button')
+    },
+  },
+  ...[1440, 390].map((width): Row => ({
+    name: `lintje-shell :: "Weergave", choosing dark at ${width} px with the mode in every link, stays open with the focus on the choice`,
+    run: async () => {
+      if (width === 390) await phone()
+      const element = await viewing({ layout: 'side' })
+      const dark = (): HTMLElement | null => viewOption(element, 'Donker')
+      dark()!.focus()
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(() => dark()?.getAttribute('aria-pressed')).toBe('true')
+      return dark
+    },
+  })),
+  {
+    name: 'lintje-shell :: the pin, unpinning the menu from the keyboard at 1440 px, stays with the menu as an expanded rail',
+    run: async () => {
+      const element = (await shell({ layout: 'side', menu: 'pinned', home: '/' })) as ShellElement
+      element.addEventListener('lintje-view-change', (event) => {
+        const { menu } = (event as CustomEvent<{ menu?: string }>).detail
+        if (menu) element.data = { ...element.data, menu }
+      })
+      const home = (): HTMLElement | null => inside(element, '.lintje-nav__home')
+      await drawn(home)
+      home()!.focus()
+      // From the keyboard: a Tab, so the focus is the keyboard's in every browser.
+      await userEvent.keyboard(TAB)
+      const pin = (): HTMLElement | null => inside(element, '.lintje-nav__pin')
+      await expect.poll(() => active()).toBe(pin())
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(() => pin()?.getAttribute('aria-pressed')).toBe('false')
+      return pin
+    },
+  },
+  ...[false, true].map((collapsed): Row => ({
+    name: `lintje-shell :: a page chosen in ${collapsed ? '"Menu"' : 'a group'} of the bar, which the host routes, hands its focus to ${collapsed ? '"Menu"' : 'the group’s button'}`,
+    run: async () => {
+      if (collapsed) await page.viewport(900, 900)
+      const element = await barWithGroup(collapsed)
+      const entry = (): HTMLElement | null =>
+        inside(
+          element,
+          collapsed
+            ? '.lintje-navbar__entry--menu'
+            : '.lintje-navbar__entry--group:not(.lintje-navbar__entry--menu)',
+        )
+      await drawn(entry)
+      entry()!.focus()
+      await userEvent.keyboard('{Enter}')
+      const link = (): HTMLElement | null => inside(element, '.lintje-navbar__submenu a')
+      await drawn(link)
+      link()!.focus()
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(() => inside(element, '.lintje-navbar__submenu')).toBeNull()
+      return entry
+    },
+  })),
+]
+
+/* --- Panels, lists and forms ------------------------------------------------------------ */
+
+const LINES = Array.from({ length: 40 }, (_, index) => ({
+  id: `l${index}`,
+  time: `10:${String(index).padStart(2, '0')}:00`,
+  level: 'info',
+  message: `Regel ${index + 1}`,
+}))
+
+type LogElement = HTMLElement & { data: Record<string, unknown> }
+
+/** The log's own line, by its id. */
+const logLine = (log: Element, id: string): HTMLElement | null =>
+  log.shadowRoot!.querySelector<HTMLElement>(
+    `.lintje-log-viewer__log:not(.lintje-log-viewer__log--expanded) .lintje-log-viewer__row[data-id="${id}"]`,
+  )
+
+/** A log as a host keeps it: it answers a filter with the lines it sends, and keeps the choice. */
+async function logViewer(data: Record<string, unknown>): Promise<LogElement> {
+  const log = await mount<LogElement>('lintje-log-viewer', {
+    data: { title: 'Import', entries: LINES, ...data },
+  })
+  log.addEventListener('lintje-log-filter-change', (event) => {
+    const filter = (event as CustomEvent<{ level: string }>).detail
+    log.data = { ...log.data, filter, entries: filter.level === 'all' ? LINES : [] }
+  })
+  log.addEventListener('lintje-log-select', (event) => {
+    log.data = { ...log.data, selected: (event as CustomEvent<string | null>).detail }
+  })
+  return log
+}
+
+/** A field with a link to it in an error summary, the link pressed from the keyboard. */
+async function summaryLinkTo(field: string, markup: string, setup?: (box: HTMLElement) => void) {
+  const box = document.createElement('div')
+  box.innerHTML = `<lintje-error-summary></lintje-error-summary>${markup}`
+  document.body.append(box)
+  setup?.(box)
+  const summary = box.querySelector('lintje-error-summary') as HTMLElement & {
+    items: unknown[]
+  }
+  summary.items = [{ field, label: 'Veld', message: 'Vul het veld in' }]
+  const link = (): HTMLElement | null => inside(summary, '.lintje-error-summary__link')
+  await drawn(link)
+  link()!.focus()
+  await userEvent.keyboard('{Enter}')
+  return box
+}
+
+const FILTERS = [
+  {
+    key: 'regio',
+    label: 'Regio',
+    kind: 'select',
+    default: 'alle',
+    value: 'alle',
+    options: [
+      { value: 'alle', label: 'Alle regio’s' },
+      { value: 'noord', label: 'Noord' },
+    ],
+  },
+]
+
+const AREA = { kind: 'circle', centre: [5.12, 52.09], radiusKm: 40 }
+
+/** A map with a drawn area chosen, its panel's close drawn. */
+async function mapWithArea(): Promise<HTMLElement> {
+  const tile = await mount<HTMLElement & { data: unknown }>('lintje-map', {
+    data: {
+      variant: 'points',
+      geo: 'netherlands',
+      values: POINTS,
+      unit: 'aanvragen',
+      description: 'Loketten in Nederland.',
+      controls: { circle: true },
+      selectedArea: AREA,
+    },
+  })
+  await drawn(() => tile.shadowRoot!.querySelector('[data-mark-id="zwo"]'))
+  return tile
+}
+
+const mapClose = (tile: Element): HTMLElement | null =>
+  tile.shadowRoot!.querySelector<HTMLElement>('.lintje-map-chart__selection-close')
+
+const SANKEY = {
+  kind: 'sankey',
+  label: 'Aanvragen',
+  steps: [
+    {
+      label: 'Ingediend',
+      nodes: [
+        { id: 'online', label: 'Online', href: '#online' },
+        { id: 'balie', label: 'Balie', href: '#balie' },
+      ],
+    },
+    { label: 'Beoordeeld', nodes: [{ id: 'beoordeeld', label: 'Beoordeeld', href: '#b' }] },
+    { label: 'Uitkomst', nodes: [{ id: 'toegekend', label: 'Toegekend', href: '#t' }] },
+  ],
+  flows: [
+    { from: 'online', to: 'beoordeeld', value: 60 },
+    { from: 'balie', to: 'beoordeeld', value: 40 },
+    { from: 'beoordeeld', to: 'toegekend', value: 90 },
+  ],
+}
+
+const TREEMAP = {
+  kind: 'treemap',
+  label: 'Uitgaven',
+  parts: [
+    { label: 'Zorg', value: 40, id: 'zorg', href: '#zorg' },
+    { label: 'Onderwijs', value: 30, id: 'onderwijs', href: '#onderwijs' },
+    { label: 'Wonen', value: 20, id: 'wonen', href: '#wonen' },
+  ],
+}
+
+/**
+ * A chart on a phone with `selectedId` chosen, whose host answers a choice itself; the focus on
+ * the `place`-th element that stands for that mark.
+ */
+async function chartOnPhone(chart: unknown, id: string, place: number): Promise<ChartElement> {
+  await phone()
+  const data = { title: 'Aanvragen', description: 'Aanvragen per stap.', chart, selectedId: id }
+  const tile = await mount<ChartElement>('lintje-chart', { data })
+  tile.addEventListener('lintje-mark-select', (event) => {
+    event.preventDefault()
+    tile.data = { ...data, selectedId: (event as CustomEvent<{ id: string | null }>).detail.id }
+  })
+  tile.addEventListener('lintje-navigate', (event) => event.preventDefault())
+  const marks = (): HTMLElement[] => [
+    ...tile.shadowRoot!.querySelectorAll<HTMLElement>(`[data-mark-id="${id}"]`),
+  ]
+  await expect.poll(() => marks().length).toBeGreaterThan(place)
+  marks()[place]!.focus()
+  return tile
+}
+
+const PANEL_ROWS: Row[] = [
+  {
+    name: 'lintje-notifications :: "Alles gelezen", with the list emptied by the host, hands its focus to "Geen meldingen"',
+    run: async () => {
+      const bell = await mount<HTMLElement & { items: typeof NOTIFICATIONS }>(
+        'lintje-notifications',
+        { items: NOTIFICATIONS, open: true },
+      )
+      bell.addEventListener('lintje-notifications-read', () => (bell.items = []))
+      const read = (): HTMLElement | null => inside(bell, '.lintje-notifications__read')
+      await expect.poll(read).toBeTruthy()
+      read()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => inside(bell, '.lintje-notifications__empty')
+    },
+  },
+  {
+    name: 'lintje-log-viewer :: "Naar nieuwste", gone once the log follows again, hands its focus to the newest line',
+    run: async () => {
+      const log = await logViewer({ live: true })
+      const box = (): HTMLElement | null => inside(log, '.lintje-log-viewer__log')
+      await drawn(box)
+      await expect.poll(() => box()!.scrollTop).toBeGreaterThan(0)
+      box()!.scrollTop = 0
+      await expect.poll(() => box()!.scrollTop).toBe(0)
+      await new Promise(requestAnimationFrame)
+      log.data = { ...log.data, entries: [...LINES, { ...LINES[0], id: 'l40', message: 'Nieuw' }] }
+      const latest = (): HTMLElement | null =>
+        button(inside(log, '.lintje-log-viewer__latest-button lintje-button'))
+      await drawn(latest)
+      latest()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => logLine(log, 'l40')
+    },
+  },
+  {
+    name: 'lintje-log-viewer :: "Weer tonen", gone with the lines it shows again, hands its focus to the active line',
+    run: async () => {
+      const log = await logViewer({})
+      // The window as "Venster leegmaken" in "Meer" leaves it: the lines up to l19 hidden.
+      ;(log as unknown as { clearedAfter: string }).clearedAfter = 'l19'
+      const again = (): HTMLElement | null =>
+        button(inside(log, '.lintje-log-viewer__note lintje-button'))
+      await drawn(again)
+      again()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => logLine(log, 'l39')
+    },
+  },
+  {
+    name: 'lintje-log-viewer :: "Filter wissen", gone with the lines the host sends, hands its focus to the active line',
+    run: async () => {
+      const log = await logViewer({ entries: [], filter: { level: 'error' } })
+      const clear = (): HTMLElement | null =>
+        button(inside(log, '.lintje-log-viewer__empty lintje-button'))
+      await drawn(clear)
+      clear()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => logLine(log, 'l39')
+    },
+  },
+  {
+    name: 'lintje-log-viewer :: "Keuze opheffen" hands its focus to the line that was chosen',
+    run: async () => {
+      const log = await logViewer({ selected: 'l5' })
+      const lift = (): HTMLElement | null =>
+        button(inside(log, '.lintje-log-viewer__foot lintje-icon-button'))
+      await drawn(lift)
+      lift()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => logLine(log, 'l5')
+    },
+  },
+  {
+    name: 'lintje-form :: "Opnieuw proberen", gone with a save that succeeds, hands its focus to the primary button',
+    run: async () => {
+      const form = document.createElement('lintje-form') as HTMLElement & {
+        busy: boolean
+        errors: unknown
+        saved: () => void
+      }
+      form.innerHTML = `<lintje-text-input name="naam" label="Naam"></lintje-text-input>
+        <lintje-form-actions><lintje-button variant="primary" type="submit">Opslaan</lintje-button></lintje-form-actions>`
+      document.body.append(form)
+      await (form as unknown as Updating).updateComplete
+      form.errors = { form: 'Opslaan is niet gelukt.' }
+      form.addEventListener('lintje-submit', () => {
+        form.busy = true
+        setTimeout(() => {
+          form.busy = false
+          form.saved()
+        }, 50)
+      })
+      const retry = (): HTMLElement | null =>
+        button(inside(form, 'lintje-error-summary', '.lintje-error-summary__message lintje-button'))
+      await drawn(retry)
+      retry()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => button(form.querySelector('lintje-form-actions lintje-button'))
+    },
+  },
+  {
+    name: 'lintje-error-summary :: a link to an upload hands its focus to "Bestanden kiezen"',
+    run: async () => {
+      const box = await summaryLinkTo(
+        'bijlagen',
+        '<lintje-file-upload name="bijlagen" label="Bijlagen"></lintje-file-upload>',
+      )
+      return () => button(inside(box.querySelector('lintje-file-upload'), 'lintje-button'))
+    },
+  },
+  {
+    name: 'lintje-error-summary :: a link to a tag field hands its focus to its field, not to a tag’s cross',
+    run: async () => {
+      const box = await summaryLinkTo(
+        'woorden',
+        '<lintje-tag-input name="woorden" label="Woorden"></lintje-tag-input>',
+        (root) => {
+          ;(root.querySelector('lintje-tag-input') as unknown as { value: string[] }).value = [
+            'een',
+            'twee',
+          ]
+        },
+      )
+      return () => inside(box.querySelector('lintje-tag-input'), 'input')
+    },
+  },
+  {
+    name: 'lintje-error-summary :: a link to a number with buttons hands its focus to its field, not to "Verlagen"',
+    run: async () => {
+      const box = await summaryLinkTo(
+        'aantal',
+        '<lintje-number-input name="aantal" label="Aantal" stepper value="3"></lintje-number-input>',
+      )
+      return () => inside(box.querySelector('lintje-number-input'), 'input')
+    },
+  },
+  {
+    name: 'lintje-error-summary :: a link to a text editor hands its focus to its text, not to "Vet"',
+    run: async () => {
+      const box = await summaryLinkTo(
+        'tekst',
+        '<lintje-text-editor name="tekst" label="Tekst"></lintje-text-editor>',
+      )
+      return () => inside(box.querySelector('lintje-text-editor'), '[contenteditable]')
+    },
+  },
+  {
+    name: 'lintje-file-upload :: a file removed above the one with the focus leaves the focus on that file’s cross',
+    run: async () => {
+      const upload = await uploadWith([
+        ...FILES,
+        { id: 'f3', name: 'foto.jpg', size: 40_000, state: 'done' },
+      ])
+      const third = (): HTMLElement | null =>
+        inside(upload.shadowRoot!.querySelector('[data-id="f3"]'), '.lintje-attachment__remove')
+      await expect.poll(third).toBeTruthy()
+      third()!.focus()
+      upload.files = upload.files.filter((file) => file.id !== 'f1')
+      await (upload as unknown as Updating).updateComplete
+      return third
+    },
+  },
+  {
+    name: 'lintje-chat-composer :: a chip removed above the one with the focus leaves the focus on that chip’s cross',
+    run: async () => {
+      const box = await composerWith([
+        ...ATTACHED,
+        { id: 'a3', name: 'notitie.txt', size: 2_000, state: 'done' },
+      ])
+      const third = (): HTMLElement | null =>
+        inside(box.shadowRoot!.querySelector('[data-id="a3"]'), '.lintje-attachment__remove')
+      await expect.poll(third).toBeTruthy()
+      third()!.focus()
+      box.files = box.files.filter((file) => file.id !== 'a1')
+      await (box as unknown as Updating).updateComplete
+      return third
+    },
+  },
+  {
+    name: 'lintje-file-upload :: a removed file before a failed one hands its focus to that file’s cross, not to "Opnieuw"',
+    run: async () => {
+      const upload = await uploadWith([
+        FILES[0]!,
+        { id: 'f2', name: 'bijlage.pdf', state: 'error', message: 'Te groot', retry: true },
+      ])
+      await expect.poll(() => fileRemove(upload, 0)).toBeTruthy()
+      fileRemove(upload, 0)!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => fileRemove(upload, 0)
+    },
+  },
+  {
+    name: 'lintje-attachment :: "Opnieuw" on a chip without a cross hands its focus to the chip',
+    run: async () => {
+      const chip = await mount<HTMLElement & { data: UploadFile }>('lintje-attachment', {
+        data: { id: 'b1', name: 'besluit.pdf', state: 'error', message: 'Mislukt', retry: true },
+      })
+      chip.addEventListener('lintje-file-retry', () => {
+        chip.data = { ...chip.data, state: 'busy', progress: 10, message: undefined }
+      })
+      const retry = (): HTMLElement | null => inside(chip, '.lintje-attachment__retry')
+      await drawn(retry)
+      retry()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => inside(chip, '.lintje-attachment__main')
+    },
+  },
+  {
+    name: 'lintje-filter-bar :: the sheet, open at 390 px, closes for good at 1024 px and hands its focus to "Filters"',
+    run: async () => {
+      await phone()
+      const bar = await mount<HTMLElement>('lintje-filter-bar', { data: { filters: FILTERS } })
+      setFrameState({ sheetOpen: true })
+      const sheet = (): HTMLElement | null =>
+        inside(bar, 'lintje-filter-sheet', '.lintje-filter-sheet')
+      await drawn(sheet)
+      await expect.poll(() => holdsFocus(sheet()!)).toBe(true)
+      await page.viewport(1024, 900)
+      await expect.poll(() => sheet()).toBeNull()
+      expect(frameState().sheetOpen).toBe(false)
+      return () => inside(bar, 'lintje-filter-zone', '.lintje-filter-toggle')
+    },
+  },
+  ...(['button', 'Escape'] as const).map((how): Row => ({
+    name: `lintje-map :: a drawn area’s panel, gone with ${how === 'button' ? '"Selectie opheffen"' : 'Escape'}, hands its focus to the map`,
+    run: async () => {
+      const tile = await mapWithArea()
+      await drawn(() => mapClose(tile))
+      mapClose(tile)!.focus()
+      await userEvent.keyboard(how === 'button' ? '{Enter}' : '{Escape}')
+      await expect.poll(() => mapClose(tile)).toBeNull()
+      return () => tile.shadowRoot!.querySelector('.leaflet-container')
+    },
+  })),
+  {
+    name: 'lintje-dialog :: closed after its opener went, hands its focus to the shell’s content',
+    run: async () => {
+      const element = await shell({})
+      const opener = document.createElement('button')
+      opener.textContent = 'Verwijderen'
+      element.append(opener)
+      await drawn(() => opener)
+      const dialog = document.createElement('lintje-dialog') as HTMLElement & { open: boolean }
+      Object.assign(dialog, { heading: 'Aanvraag verwijderen?', alert: true })
+      dialog.innerHTML =
+        '<lintje-button slot="actions" variant="danger">Verwijderen</lintje-button>'
+      document.body.append(dialog)
+      opener.focus()
+      dialog.open = true
+      await expect.poll(() => holdsFocus(dialog)).toBe(true)
+      // The answer takes the row with its button away, then the window closes.
+      opener.remove()
+      dialog.open = false
+      return () => inside(element, 'main')
+    },
+  },
+  {
+    name: 'lintje-page-header :: an action that goes into "Meer" hands its focus to "Meer"',
+    run: async () => {
+      const box = document.createElement('div')
+      box.style.width = '900px'
+      box.innerHTML = `<lintje-page-header>
+          <lintje-button slot="actions" variant="tertiary">Exporteren</lintje-button>
+          <lintje-button slot="actions" variant="secondary">Delen met het team</lintje-button>
+          <lintje-button slot="actions" variant="primary">Nieuwe aanvraag</lintje-button>
+        </lintje-page-header>`
+      document.body.append(box)
+      const header = box.querySelector('lintje-page-header') as HTMLElement & { data: unknown }
+      header.data = { title: 'Aanvragen' }
+      const first = (): HTMLElement | null => button(header.querySelector('lintje-button'))
+      await drawn(first)
+      first()!.focus()
+      box.style.width = '320px'
+      const more = (): HTMLElement | null => button(inside(header, '.lintje-page-header__overflow'))
+      await expect.poll(() => header.querySelector('lintje-button')!.inert).toBe(true)
+      return more
+    },
+  },
+  ...(
+    [
+      ['the sankey', 'from the second row of a node', SANKEY, 'beoordeeld', 1],
+      ['the treemap', 'from its row in the list', TREEMAP, 'onderwijs', 0],
+    ] as const
+  ).map(([kind, where, chart, id, place]): Row => ({
+    name: `lintje-chart :: ${kind} on a phone, its choice lifted ${where}, keeps the focus there`,
+    run: async () => {
+      const tile = await chartOnPhone(chart, id, place)
+      const at = active()
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(() => (tile.data as { selectedId: string | null }).selectedId).toBeNull()
+      return () => at
+    },
+  })),
+]
+
 /* --- The contract ---------------------------------------------------------- */
 
 const ROWS: Row[] = [
@@ -2290,12 +2904,15 @@ const ROWS: Row[] = [
   ...SUB_NAV_ROWS,
   ...PERSON_GROUP_ROWS,
   ...SHELL_ROWS,
+  ...SHELL_VIEW_ROWS,
+  ...PANEL_ROWS,
   ...GRAPH_ROWS,
 ]
 
 afterEach(async () => {
   // The viewport goes back while the element is still on the page.
   await page.viewport(1440, 900)
+  setFrameState({ sheetOpen: false })
   document.body.replaceChildren()
   vi.restoreAllMocks()
 })
@@ -2329,5 +2946,128 @@ describe('the known handoffs', () => {
     if (ran < ROWS.length) skip()
     const fixed = KNOWN.filter((entry) => !seen.has(entry)).map(String)
     expect(fixed, `fixed, so take out of KNOWN:\n${fixed.join('\n')}`).toHaveLength(0)
+  })
+})
+
+/* --- The order Tab takes, as it shows -------------------------------------------------- */
+
+describe('the order of the focus trap and of what stands over a drawing', () => {
+  it.skipIf(server.browser === 'webkit')(
+    'in a dialog with a long text that scrolls, Tab goes from the text to the buttons and Shift+Tab back',
+    async () => {
+      const dialog = document.createElement('lintje-dialog') as HTMLElement & { open: boolean }
+      Object.assign(dialog, { heading: 'Voorwaarden', alert: true })
+      dialog.innerHTML = `<p>${'Een lange voorwaarde die doorloopt. '.repeat(400)}</p>
+        <lintje-button slot="actions">Annuleren</lintje-button>
+        <lintje-button slot="actions" variant="primary">Akkoord</lintje-button>`
+      document.body.append(dialog)
+      dialog.open = true
+      const body = (): HTMLElement | null => inside(dialog, '.lintje-dialog__body')
+      await drawn(body)
+      await expect.poll(() => holdsFocus(dialog)).toBe(true)
+      body()!.focus()
+      // Chromium and Firefox make a scroller without anything to focus in it a Tab stop.
+      await expect.poll(() => active()).toBe(body())
+      await userEvent.keyboard(TAB)
+      const cancel = button(dialog.querySelector('lintje-button'))
+      await expect.poll(() => active()).toBe(cancel)
+      await userEvent.keyboard(SHIFT_TAB)
+      await expect.poll(() => active()).toBe(body())
+    },
+  )
+
+  it('in a window, a group of radio buttons is one stop, its checked one', async () => {
+    const dialog = document.createElement('lintje-dialog') as HTMLElement & { open: boolean }
+    Object.assign(dialog, { heading: 'Opvolging', alert: true })
+    dialog.innerHTML = `<lintje-radio-group name="opvolging" label="Opvolging"></lintje-radio-group>
+      <lintje-button slot="actions" variant="primary">Opslaan</lintje-button>`
+    const group = dialog.querySelector('lintje-radio-group') as HTMLElement & {
+      options: unknown[]
+      value: string
+    }
+    group.options = [
+      { value: 'geen', label: 'Geen' },
+      { value: 'eigen', label: 'Eigen team' },
+      { value: 'over', label: 'Overdragen' },
+    ]
+    group.value = 'eigen'
+    document.body.append(dialog)
+    dialog.open = true
+    const checked = (): HTMLElement | null => inside(group, 'input:checked')
+    await drawn(checked)
+    await expect.poll(() => holdsFocus(dialog)).toBe(true)
+    checked()!.focus()
+    // Shift+Tab from the first stop wraps to the last, the action.
+    await userEvent.keyboard(SHIFT_TAB)
+    const save = button(dialog.querySelector('lintje-button'))
+    await expect.poll(() => active()).toBe(save)
+    // Tab from the last wraps to the first stop: the checked button, not the first one.
+    await userEvent.keyboard(TAB)
+    await expect.poll(() => active()).toBe(checked())
+  })
+
+  it('in the narrow filter row of the log, the search is the first stop', async () => {
+    const box = document.createElement('div')
+    box.style.width = '320px'
+    document.body.append(box)
+    const log = document.createElement('lintje-log-viewer') as unknown as LogElement
+    log.data = { title: 'Import', entries: LINES }
+    box.append(log)
+    const row = (): HTMLElement | null => inside(log, '.lintje-log-viewer__filters')
+    await expect.poll(() => row()?.classList.contains('is-narrow')).toBe(true)
+    const first = tabbables(row()!)[0]
+    expect(first && standsIn(first, inside(log, 'lintje-find')!)).toBe(true)
+  })
+
+  it('on the map, the layers and the zoom buttons come before the first mark, and Tab from a chosen mark goes into its panel', async () => {
+    const tile = await mount<HTMLElement & { data: unknown }>('lintje-map', {
+      data: {
+        variant: 'points',
+        geo: 'netherlands',
+        values: POINTS,
+        unit: 'aanvragen',
+        description: 'Loketten in Nederland.',
+        layers: [
+          { value: 'loketten', label: 'Loketten' },
+          { value: 'regio', label: 'Regio' },
+        ],
+        layer: 'loketten',
+        selectedId: 'utr',
+      },
+    })
+    tile.addEventListener('lintje-mark-select', (event) => event.preventDefault())
+    const mark = (): SVGElement | null =>
+      tile.shadowRoot!.querySelector<SVGElement>('[data-mark-id="utr"]')
+    await drawn(mark)
+    // In the source of the one root they stand in: the chrome, then the marks.
+    const order = [
+      ...tile.shadowRoot!.querySelectorAll(
+        '.lintje-map-chart__layer, .lintje-map-chart__zoom-button, [data-mark-id]',
+      ),
+    ]
+    const at = (selector: string): number => order.findIndex((stop) => stop.matches(selector))
+    expect(at('.lintje-map-chart__layer')).toBeGreaterThanOrEqual(0)
+    expect(at('.lintje-map-chart__layer')).toBeLessThan(at('[data-mark-id]'))
+    expect(at('.lintje-map-chart__zoom-button')).toBeLessThan(at('[data-mark-id]'))
+    ;(mark() as unknown as HTMLElement).focus()
+    await userEvent.keyboard(TAB)
+    const close = tile.shadowRoot!.querySelector<HTMLElement>('.lintje-map-chart__selection-close')
+    await expect.poll(() => active()).toBe(close)
+    await userEvent.keyboard(SHIFT_TAB)
+    await expect.poll(() => active()).toBe(mark())
+  })
+
+  it('the filter sheet, closed at 1024 px, stays closed back at 390 px', async () => {
+    await phone()
+    const bar = await mount<HTMLElement>('lintje-filter-bar', { data: { filters: FILTERS } })
+    setFrameState({ sheetOpen: true })
+    const sheet = (): HTMLElement | null =>
+      inside(bar, 'lintje-filter-sheet', '.lintje-filter-sheet')
+    await drawn(sheet)
+    await page.viewport(1024, 900)
+    await expect.poll(() => sheet()).toBeNull()
+    await phone()
+    await new Promise(requestAnimationFrame)
+    expect(sheet()).toBeNull()
   })
 })

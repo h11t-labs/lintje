@@ -21,6 +21,7 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { repeat } from 'lit/directives/repeat.js'
 import { define, type FrameSettings } from '../../../core/element'
+import { deepActiveElement, passFocus } from '../../../core/focus'
 import { formatNumber } from '../../../core/format'
 import { lengthPx } from '../../../core/length'
 import { MediaController } from '../../../core/media'
@@ -140,6 +141,8 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   #jump = false
   /** A filter went to the host: its answer's line count is read out. */
   #asked = false
+  /** "Filter wissen" was pressed: its answer's lines take the focus the button leaves. */
+  #toActive = false
   #pending = { lines: 0, errors: 0 }
   #speakTimer: ReturnType<typeof setTimeout> | null = null
   #copiedTimer: ReturnType<typeof setTimeout> | null = null
@@ -263,6 +266,25 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       const count = this.shown.length
       this.#live.say(count === 1 ? '1 regel' : `${formatNumber(count)} regels`)
     }
+    const row = this.#toActive ? this.activeRow : null
+    if (row) {
+      this.#toActive = false
+      const active = deepActiveElement()
+      // After the update: the line's focus makes it the active one, a change of its own.
+      const lost = !active || active === document.body || !active.isConnected
+      if (lost) void this.updateComplete.then(() => row.focus({ preventScroll: true }))
+    }
+  }
+
+  /** The tile's lines, oldest first. */
+  private get rows(): HTMLElement[] {
+    return [...(this.log?.querySelectorAll<HTMLElement>('.lintje-log-viewer__row') ?? [])]
+  }
+
+  /** The log's one tab stop: the active line, else the newest. */
+  private get activeRow(): HTMLElement | null {
+    const rows = this.rows
+    return rows.find((row) => row.dataset.id === this.activeId) ?? rows.at(-1) ?? null
   }
 
   // The row reads its own width, not the screen's: a tile beside another is narrow on a wide screen.
@@ -725,6 +747,20 @@ export class LintjeLogViewer extends LintjeContentTileElement {
               this.askFilter({ level: event.detail as LogLevel | 'all' })
             }}
           ></lintje-segmented>`
+    const find = html`<lintje-find
+      class="lintje-log-viewer__find"
+      label="Zoeken in log"
+      .value=${search}
+      .total=${this.term ? total : null}
+      .current=${total ? Math.min(this.hit, total) : 0}
+      @lintje-change=${(event: CustomEvent<string>) => {
+        event.stopPropagation()
+        this.askFilter({ search: event.detail })
+      }}
+      @lintje-find-step=${this.onStep}
+    ></lintje-find>`
+    // Narrow, the search stands above the level: first in the source too, so Tab goes as it shows.
+    const narrow = this.fit === 'narrow'
     return html`<div
       class=${classMap({
         'lintje-log-viewer__filters': true,
@@ -732,20 +768,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
         'is-raw': raw,
       })}
     >
-      ${levels}
-      <lintje-find
-        class="lintje-log-viewer__find"
-        label="Zoeken in log"
-        .value=${search}
-        .total=${this.term ? total : null}
-        .current=${total ? Math.min(this.hit, total) : 0}
-        @lintje-change=${(event: CustomEvent<string>) => {
-          event.stopPropagation()
-          this.askFilter({ search: event.detail })
-        }}
-        @lintje-find-step=${this.onStep}
-      ></lintje-find>
-      ${this.renderTools(raw)}
+      ${narrow ? find : nothing}${levels}${narrow ? nothing : find} ${this.renderTools(raw)}
     </div>`
   }
 
@@ -809,7 +832,11 @@ export class LintjeLogViewer extends LintjeContentTileElement {
               <lintje-button
                 variant="link"
                 size="compact"
-                @click=${() => (this.clearedAfter = null)}
+                @click=${(event: Event) => {
+                  // The note goes with what it hid: the focus goes to the active line.
+                  passFocus(event.currentTarget as Element, [this.activeRow])
+                  this.clearedAfter = null
+                }}
                 >Weer tonen</lintje-button
               >
             </p>`
@@ -848,6 +875,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
           size="compact"
           @click=${() => {
             this.#asked = true
+            this.#toActive = true
             this.emit('lintje-log-filter-change', { level: 'all', search: '', onlyHits: false })
           }}
           >Filter wissen</lintje-button
@@ -1044,7 +1072,12 @@ export class LintjeLogViewer extends LintjeContentTileElement {
             icon="functioneel-kruis"
             label="Keuze opheffen"
             variant="flat"
-            @click=${() => this.select(null)}
+            @click=${(event: Event) => {
+              // The foot goes with the choice: the focus goes to the line that was chosen.
+              const row = this.rows.find((line) => line.dataset.id === chosen.id)
+              passFocus(event.currentTarget as Element, [row])
+              this.select(null)
+            }}
           ></lintje-icon-button>
         </span>
       </div>`
@@ -1069,7 +1102,12 @@ export class LintjeLogViewer extends LintjeContentTileElement {
               variant="tertiary"
               size="chrome"
               icon="functioneel-pijl-omlaag"
-              @click=${() => this.toLatest()}
+              @click=${(event: Event) => {
+                // The button goes once the log follows again: the focus goes to the newest line,
+                // as End takes it there.
+                passFocus(event.currentTarget as Element, [this.rows.at(-1)])
+                this.toLatest()
+              }}
               >Naar nieuwste</lintje-button
             >
           </span>

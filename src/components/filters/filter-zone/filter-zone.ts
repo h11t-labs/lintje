@@ -67,6 +67,11 @@ export class LintjeFilterZone extends LintjeElement {
   private observed: HTMLElement | null | undefined = undefined
   private wasExpanded: boolean | undefined = undefined
 
+  /** Focuses the "Filters" toggle: where the bar's sheet gives the focus when it closes at 768 px. */
+  override focus(options?: FocusOptions): void {
+    this.renderRoot.querySelector<HTMLElement>('.lintje-filter-toggle')?.focus(options)
+  }
+
   private readonly onResize = (): void => this.measureOverflow()
   /** The header or summary row held the focus before a re-render that may replace it. */
   #rowHadFocus = false
