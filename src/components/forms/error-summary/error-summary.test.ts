@@ -28,7 +28,7 @@ describe('lintje-error-summary', () => {
     expect(box(element)).toBeNull()
   })
 
-  it('is an alert named by its heading, with one link per field', async () => {
+  it('is a group named by its heading that takes the focus, with one link per field', async () => {
     const element = await mount({
       items: [
         { field: 'titel', label: 'Titel', message: 'er is vandaag al een melding met deze titel' },
@@ -36,7 +36,8 @@ describe('lintje-error-summary', () => {
       ],
     })
     const frame = box(element)!
-    expect(frame.getAttribute('role')).toBe('alert')
+    // The focus is the announcement; an alert as well would be read out twice.
+    expect(frame.getAttribute('role')).toBe('group')
     expect(frame.getAttribute('tabindex')).toBe('-1')
     const heading = element.shadowRoot!.getElementById(frame.getAttribute('aria-labelledby')!)!
     expect(heading.textContent).toBe('Controleer 2 velden')

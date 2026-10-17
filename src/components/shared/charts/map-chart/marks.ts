@@ -9,14 +9,16 @@
 import { svg, nothing, type SVGTemplateResult } from 'lit'
 import { repeat } from 'lit/directives/repeat.js'
 import { styleProps } from '../../../../core/style-props'
+import { isNewTabClick } from '../../../../core/links'
 import { formatNumber } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
-import { DEFAULT_SERIES_COLOR, seriesColor } from '../shared/colors'
-import { markPath } from '../shared/series-shapes'
+import { DEFAULT_SERIES_COLOR, lineCasing } from '../shared/colors'
+import { seriesShapePath } from '../shared/series-shapes'
+import { seriesStyle } from './series-style'
 import type { ChartController } from '../shared/controller'
 import { withUnit, type MapDrawing } from './drawings'
 import { isRect } from './area'
-import type { MapArea, MapSeriesKey, MapValue } from '../shared/types'
+import type { MapArea, MapPointSize, MapSeriesKey, MapValue } from '../shared/types'
 
 /** Longitude and latitude to the surface's reference pixels. */
 export type Project = (lon: number, lat: number) => [number, number]
@@ -49,7 +51,7 @@ export interface MarksContext {
   /** The marks a drawn area chose: outlined as a chosen mark is, the flows beside them muted. */
   chosen: Set<string>
   controller: ChartController
-  select: (value: MapValue) => void
+  select: (value: MapValue, newTab?: boolean) => void
   project: Project
   /** On a basemap the tiles are the land: only the areas with a row are drawn. */
   tiled: boolean
@@ -61,9 +63,22 @@ export interface MarksContext {
 
 const hasRing = (value: MapValue): boolean => (value.polygon?.length ?? 0) > 2
 
-/** The radius of a point with a figure: between 3 and 18 px, by the square root of its share. */
-export function pointRadius(value: number, max: number): number {
-  return 3 + Math.sqrt(value / max) * 15
+/** The radius a point may follow the zoom between, in px (`MapPointSize.zoom`). */
+export const ZOOM_RADIUS = { min: 2, max: 28 }
+
+/** The radius of a point without a figure and of the scope picker's points, in px (rule 15). */
+export const FIXED_RADIUS = 6
+
+/**
+ * The radius of a point with a figure: between `size.min` and `size.max` (3 and 18 px) by the
+ * square root of its share of the layer's largest — or `size.min` for every point when the
+ * figure is no size (`by: 'none'`).
+ */
+export function pointRadius(value: number, max: number, size?: MapPointSize): number {
+  const low = size?.min ?? 3
+  const high = size?.max ?? 18
+  if (size?.by === 'none') return low
+  return low + Math.sqrt(value / max) * (high - low)
 }
 
 /** A series of one layer, as the legend switches it: a colour may serve several layers. */
@@ -81,6 +96,20 @@ const markState = (context: MarksContext, id: string, off: boolean): string =>
 /** A click or a double click on a mark is the mark's, not the map's. */
 function stop(event: Event): void {
   event.stopPropagation()
+}
+
+/**
+ * A click on a mark, bound to `click` and `auxclick`. A modifier or middle click on a mark with an
+ * `href` opens it in a new tab, as on a link; without one, the middle button does nothing.
+ */
+function onPick(select: MarksContext['select'], value: MapValue) {
+  return (event: MouseEvent) => {
+    stop(event)
+    if (value.href && isNewTabClick(event)) {
+      event.preventDefault()
+      select(value, true)
+    } else if (event.type === 'click') select(value)
+  }
 }
 
 /** Enter or space chooses a mark, as a click does. */
@@ -159,10 +188,8 @@ function renderAreas(drawing: MapDrawing, context: MarksContext, land: LandShape
          role="button" tabindex=${off ? -1 : 0} aria-hidden=${off ? 'true' : nothing}
          aria-pressed=${String(isChosen(context, value.id))}
          aria-label=${`${value.label}: ${figure}${value.detail ? `, ${value.detail}` : ''}`}
-         @click=${(event: MouseEvent) => {
-           stop(event)
-           select(value)
-         }}
+         @click=${onPick(select, value)}
+         @auxclick=${onPick(select, value)}
          @dblclick=${stop}
          @mousemove=${(event: MouseEvent) =>
            controller.showTooltip(event, {
@@ -211,22 +238,18 @@ function renderFlows(
           const my = (ay + by) / 2 - Math.hypot(bx - ax, by - ay) * 0.18
           const thickness = 1 + (value.value! / drawing.max) * 7
           const route = `${value.label} → ${destination.label}`
+          const d = `M${at(ax, ay)}Q${at(mx, my)} ${at(bx, by)}`
+          // Built like a point: a ring and a gap in the surface under the line, for the focus.
           return svg`
-        <path
-          d=${`M${at(ax, ay)}Q${at(mx, my)} ${at(bx, by)}`}
-          pathLength="1"
-          ${styleProps(stagger(value))}
+        <g ${styleProps({ ...stagger(value), '--lintje-flow-width': `${thickness}px` })}
           class="lintje-map-chart__flow is-clickable ${markState(context, value.id, off)}"
-          stroke-width=${thickness}
           data-mark-id=${value.id}
           role="button" tabindex=${off ? -1 : 0} aria-hidden=${off ? 'true' : nothing}
           aria-pressed=${String(isChosen(context, value.id))}
           aria-label=${`${route}: ${withUnit(formatNumber(value.value!), drawing.unit)}${value.detail ? `, ${value.detail}` : ''}`}
           @keydown=${onChoose(select, value)}
-          @click=${(event: MouseEvent) => {
-            stop(event)
-            select(value)
-          }}
+          @click=${onPick(select, value)}
+          @auxclick=${onPick(select, value)}
           @dblclick=${stop}
           @mousemove=${(event: MouseEvent) =>
             controller.showTooltip(event, {
@@ -239,7 +262,11 @@ function renderFlows(
                 },
               ],
             })}
-          @mouseleave=${() => controller.hideTooltip()} />
+          @mouseleave=${() => controller.hideTooltip()}>
+          <path d=${d} class="lintje-map-chart__flow-ring" />
+          <path d=${d} class="lintje-map-chart__flow-gap" />
+          <path d=${d} pathLength="1" class="lintje-map-chart__flow-line" />
+        </g>
       `
         },
       )}
@@ -263,29 +290,30 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
     (value) => value.id,
     (value) => {
       const [x, y] = project(value.lon!, value.lat!)
-      // A point without a figure takes the picker's fixed size (rule 15).
-      const radius =
-        drawing.variant === 'points' && value.value != null
-          ? pointRadius(value.value, drawing.max)
-          : 6
-      // A series gives the point a data colour and its own shape (rule 13).
-      const colour = seriesColor(value.series)
+      // A point without a figure takes the picker's fixed size (rule 15), unless its layer sizes
+      // no point by its figure: then it is as small as the rest.
+      const sized =
+        drawing.variant === 'points' && (value.value != null || drawing.size?.by === 'none')
+      const radius = sized ? pointRadius(value.value ?? 0, drawing.max, drawing.size) : FIXED_RADIUS
+      // A series gives the point a colour and a shape (rule 13): its data colour's own pair, or
+      // what its style says.
+      const { color: colour, shape } = seriesStyle(drawing, value.series)
       const seriesName = (value.series && drawing.seriesLabels?.[value.series]) || undefined
       const figure =
         value.value == null ? 'geen gegevens' : withUnit(formatNumber(value.value), drawing.unit)
-      const d = markPath(value.series, radius)
+      const d = seriesShapePath(shape, radius)
       return svg`
       <g ${styleProps(stagger(value))}
          class="lintje-map-chart__point lintje-map-chart__symbol ${markState(context, value.id, gone(value))}"
          data-at=${at(x, y)}
          data-mark-id=${value.id}
+         data-r=${radius}
+         data-zoom=${drawing.variant === 'points' && drawing.size?.zoom ? '' : nothing}
          role="button" tabindex=${gone(value) ? -1 : 0} aria-hidden=${gone(value) ? 'true' : nothing}
          aria-pressed=${String(isChosen(context, value.id))}
          aria-label=${`${value.label}: ${figure}${seriesName ? `, ${seriesName}` : ''}`}
-         @click=${(event: MouseEvent) => {
-           stop(event)
-           select(value)
-         }}
+         @click=${onPick(select, value)}
+         @auxclick=${onPick(select, value)}
          @dblclick=${stop}
          @mousemove=${(event: MouseEvent) =>
            controller.showTooltip(event, {
@@ -306,7 +334,7 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
           <path d=${d} class="lintje-map-chart__point-ring" />
           <path d=${d}
                 class="lintje-map-chart__point-shape ${value.value == null ? 'lintje-map-chart__point-shape--empty' : colour ? 'lintje-map-chart__point-shape--series' : ''}"
-                ${styleProps({ '--lintje-series': colour })} />
+                ${styleProps({ '--lintje-series': colour, '--lintje-series-edge': lineCasing(colour) })} />
           ${
             value.value == null
               ? svg`<path d=${d} class="lintje-map-chart__point-hatch" fill="url(#map-hatch-${id})" />`

@@ -32,7 +32,9 @@
       .pagina { display: flex; flex-direction: column; gap: var(--space-8); }
       .deel { display: flex; flex-direction: column; gap: var(--space-4); }
       /* A section's heading stands on the left edge of the text in the tiles under it. */
-      .tekst { max-width: var(--w-text); padding-inline: var(--tile-pad-x); }
+      .tekst { display: flex; flex-direction: column; gap: var(--space-3); max-width: var(--w-text); padding-inline: var(--tile-pad-x); }
+      /* The heading stays in the page, for aria-labelledby; it reads as prose's heading. */
+      .tekst__kop { margin: 0; font: var(--text-h2); }
 
       @media screen and (max-width: 767.98px) {
         .pagina { gap: var(--space-6); }
@@ -49,29 +51,29 @@
         <lintje-kpi-row id="feiten"></lintje-kpi-row>
 
         <section class="deel" aria-labelledby="deel-stijlgids">
-          <lintje-prose class="tekst">
-            <h2 id="deel-stijlgids">Stijlgids</h2>
-            <p>Elk element op zichzelf, in al zijn toestanden, met eronder wat je erop kunt instellen
-            en wat het terugmeldt.</p>
-          </lintje-prose>
+          <div class="tekst">
+            <h2 class="tekst__kop" id="deel-stijlgids">Stijlgids</h2>
+            <lintje-prose>Elk element op zichzelf, in al zijn toestanden, met eronder wat je erop kunt instellen
+            en wat het terugmeldt.</lintje-prose>
+          </div>
           <lintje-card-list id="categorieen" compact label="Categorieën van de stijlgids"></lintje-card-list>
         </section>
 
         <section class="deel" aria-labelledby="deel-voorbeelden">
-          <lintje-prose class="tekst">
-            <h2 id="deel-voorbeelden">Voorbeelden</h2>
-            <p>Kleine, werkende applicaties, elk op een gewone HTML-pagina. Alle gegevens zijn
-            verzonnen.</p>
-          </lintje-prose>
+          <div class="tekst">
+            <h2 class="tekst__kop" id="deel-voorbeelden">Voorbeelden</h2>
+            <lintje-prose>Kleine, werkende applicaties, elk op een gewone HTML-pagina. Alle gegevens zijn
+            verzonnen.</lintje-prose>
+          </div>
           <lintje-card-list id="voorbeelden" label="Voorbeelden"></lintje-card-list>
         </section>
 
         <section class="deel" aria-labelledby="deel-gebruik">
-          <lintje-prose class="tekst">
-            <h2 id="deel-gebruik">Op je eigen pagina</h2>
-            <p>Eén stylesheet, één module en gewone HTML. Het maakt niet uit wat de pagina maakt:
-            PHP, Python, een statisch bestand of een JavaScript-applicatie.</p>
-          </lintje-prose>
+          <div class="tekst">
+            <h2 class="tekst__kop" id="deel-gebruik">Op je eigen pagina</h2>
+            <lintje-prose>Eén stylesheet, één module en gewone HTML. Het maakt niet uit wat de pagina maakt:
+            PHP, Python, een statisch bestand of een JavaScript-applicatie.</lintje-prose>
+          </div>
           <lintje-grid>
             <lintje-tile id="tegel-gebruik" span="12" heading="Een pagina die een server rendert">
               <lintje-code id="gebruik" language="html" label="Een minimale pagina"></lintje-code>

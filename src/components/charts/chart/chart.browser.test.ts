@@ -1,11 +1,12 @@
 /**
  * A chart mark in a browser: the scatter plot's one pointer target, and the keyboard's ring,
- * never the box the browser draws on a click. The image of a chart: what the screen shows,
- * composed as one `<svg>`, and that as a PNG.
+ * never the box the browser draws on a click. A pie's drawing takes the focus from Tab. The image
+ * of a chart: what the screen shows, composed as one `<svg>`, and that as a PNG.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { server, userEvent } from 'vitest/browser'
 import { chartImage } from '../../shared/download'
+import { TAB } from '../../../core/test-keys'
 import './chart'
 import type { LintjeChart } from './chart'
 
@@ -22,6 +23,8 @@ async function mount(): Promise<LintjeChart> {
       ],
     },
   }
+  // The host keeps the page: a mark with an `href` goes there unless its event is cancelled.
+  tile.addEventListener('lintje-mark-select', (event) => event.preventDefault())
   document.body.append(tile)
   await tile.updateComplete
   await expect.poll(() => slice(tile)?.getClientRects().length ?? 0).toBeGreaterThan(0)
@@ -64,6 +67,7 @@ describe('a scatter point under the pointer', () => {
     }
     const picked: string[] = []
     tile.addEventListener('lintje-mark-select', (event) => {
+      event.preventDefault()
       picked.push(String((event as CustomEvent<{ id: string | null }>).detail.id))
     })
     document.body.append(tile)
@@ -298,4 +302,44 @@ describe('the image of a chart', () => {
       expect(picture.width).toBeLessThan(2 * (width + 24))
     },
   )
+})
+
+describe('a pie without a legend table', () => {
+  it('takes the focus from Tab, with the ring of every drawing', async () => {
+    const tile = document.createElement('lintje-chart')
+    tile.data = {
+      title: 'Aanvragen per kanaal',
+      description: 'Online 12, balie 8.',
+      chart: {
+        kind: 'pie',
+        legendTable: false,
+        segments: [
+          { label: 'Online', value: 12 },
+          { label: 'Balie', value: 8 },
+        ],
+      },
+    }
+    document.body.append(tile)
+    await tile.updateComplete
+    const drawing = tile.shadowRoot!.querySelector<SVGSVGElement>('.lintje-pie-chart__svg')!
+    await expect.poll(() => drawing.getClientRects().length).toBeGreaterThan(0)
+    // Past the tile's own controls, if any, to the drawing.
+    for (let i = 0; i < 6 && tile.shadowRoot!.activeElement !== drawing; i++) {
+      await userEvent.keyboard(TAB)
+    }
+    expect(tile.shadowRoot!.activeElement).toBe(drawing)
+    expect(drawing.matches(':focus-visible')).toBe(true)
+    const probe = document.createElement('span')
+    probe.style.color = 'var(--color-focus)'
+    tile.shadowRoot!.append(probe)
+    const focus = getComputedStyle(probe).color
+    probe.remove()
+    const ring = getComputedStyle(drawing)
+    await expect.poll(() => ring.outlineColor).toBe(focus)
+    expect(ring.outlineStyle).toBe('solid')
+    expect(ring.outlineWidth).toBe('3px')
+    await expect
+      .poll(() => tile.shadowRoot!.querySelector('.lintje-chart-tooltip__title')?.textContent)
+      .toBe('Online')
+  })
 })

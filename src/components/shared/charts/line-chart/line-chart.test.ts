@@ -100,6 +100,17 @@ describe('the line chart', () => {
     ])
   })
 
+  it('edges a mint-green line in its dark edge', () => {
+    const { host } = draw({
+      kind: 'line',
+      labels: ['1', '2'],
+      series: [{ label: 'A', values: [1, 2], color: 'mint-green' }],
+    })
+    expect(host.querySelector('.lintje-chart__line--casing')?.getAttribute('stroke')).toBe(
+      'var(--color-chart-mint-green-edge)',
+    )
+  })
+
   it('hatches the incomplete period at full strength', () => {
     const { host } = draw({
       kind: 'line',

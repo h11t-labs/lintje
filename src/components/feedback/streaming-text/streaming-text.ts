@@ -21,6 +21,7 @@ import { shadowCss } from '../../../core/styles'
 import '../../actions/button/button'
 import type { LintjeButton } from '../../actions/button/button'
 import '../spinner/spinner'
+import { LiveMessage } from '../../shared/live-message'
 import { sentenceEnd } from '../../shared/sentence-end'
 import streamingTextCss from './streaming-text.css?inline'
 
@@ -56,6 +57,8 @@ export class LintjeStreamingText extends LintjeElement {
   spoken: string[] = []
 
   private said = 0
+  /** The waiting word goes in the region: a box inserted together with its word is not heard. */
+  readonly #waiting = new LiveMessage(this)
   /** "Stoppen" had the focus: hand it to "Opnieuw" once that renders. */
   private focusRetry = false
 
@@ -69,6 +72,10 @@ export class LintjeStreamingText extends LintjeElement {
     if (changed.get('state') === 'streaming' && this.ended) {
       const stop = this.renderRoot.querySelector('.lintje-streaming-text__stop')
       if (stop && holdsFocus(stop)) this.focusRetry = true
+    }
+    if (changed.has('state') || changed.has('label')) {
+      if (this.state === 'waiting') this.#waiting.say(this.label)
+      else this.#waiting.clear()
     }
     if (!changed.has('text') && !changed.has('state') && !changed.has('message')) return
     const previous = (changed.get('text') as string | undefined) ?? ''
@@ -113,10 +120,7 @@ export class LintjeStreamingText extends LintjeElement {
 
   private renderBox(): TemplateResult | typeof nothing {
     if (this.state === 'waiting') {
-      return html`<div
-        class="lintje-streaming-text__box lintje-streaming-text__box--waiting"
-        role="status"
-      >
+      return html`<div class="lintje-streaming-text__box lintje-streaming-text__box--waiting">
         <lintje-spinner></lintje-spinner>
         <span class="lintje-streaming-text__waiting">${this.label}</span>
       </div>`
@@ -177,6 +181,7 @@ export class LintjeStreamingText extends LintjeElement {
     >
       ${this.renderBox()} ${this.renderFoot()}
       <div class="visually-hidden" aria-live="polite" aria-atomic="false">
+        ${this.#waiting.text ? html`<p>${this.#waiting.text}</p>` : nothing}
         ${this.spoken.map((sentence) => html`<p>${sentence}</p>`)}
       </div>
     </div>`

@@ -5,6 +5,13 @@
 :host {
   display: block;
 }
+/* Below 768 px the host sticks, not the bar inside it: a sticky box stays within its parent, and
+   the host's parent is the page. The shell names the height of its bar. */
+:host(:state(phone)) {
+  position: sticky;
+  top: var(--lintje-shell-top, var(--h-mobile-header));
+  z-index: 19;
+}
 
 /* --- */
 
@@ -189,9 +196,6 @@
   border-bottom: 1px solid var(--color-border-default);
   padding: var(--space-3) var(--space-4);
   box-shadow: var(--shadow-sticky);
-  position: sticky;
-  top: var(--h-mobile-header);
-  z-index: 19;
 }
 .lintje-filter-bar__mobile-summary {
   display: flex; align-items: flex-start; gap: 10px;

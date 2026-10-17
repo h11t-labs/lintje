@@ -5,6 +5,7 @@
  */
 import { html, nothing, type TemplateResult } from 'lit'
 import { renderIcon } from '../../../icons/render'
+import { titleWhenCut } from '../../shared/cut-text'
 
 export interface SentencePart {
   text: string
@@ -16,7 +17,7 @@ export function filterSentence(parts: SentencePart[], showIcon = true): Template
     showIcon
       ? renderIcon('lichaam-oog', { size: 16, className: 'lintje-filter-summary__icon' })
       : nothing
-  }<span class="lintje-filter-summary__text"
+  }<span class="lintje-filter-summary__text" @pointerenter=${titleWhenCut}
       >${parts.map((part) =>
         part.emphasis ? html`<b>${part.text}</b>` : html`<span>${part.text}</span>`,
       )}</span

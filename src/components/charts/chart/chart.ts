@@ -2,12 +2,21 @@
  * `<lintje-chart>` — a chart in its tile, with loading, empty and error states.
  *
  * Expand and download are handled here. The table view is the element's own state, built from the
- * CSV rows; it never reaches the URL.
+ * CSV rows; it never reaches the URL. A mark with an `href` goes there after its
+ * `lintje-mark-select`, and undoing goes to `data.clearHref`: the event is cancelable, and a host
+ * that routes itself cancels it. A modifier or middle click on a mark opens its `href` in a new
+ * tab, without that event.
  *
  * Events: `lintje-mark-select` `{ id, label, href }` (a mark with an `href` was clicked;
  * deselected, `{ id: null, label: null, href: data.clearHref }`).
  */
-import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
+import {
+  html,
+  nothing,
+  type PropertyDeclarations,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit'
 import { define, type FrameSettings } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { spanStyles } from '../../shared/grid-item-element'
@@ -211,6 +220,29 @@ function decimalsOf(values: CellValue[]): number {
   }, 0)
 }
 
+/**
+ * The labels of the series that are separate variables but name no colour. A comparison is grey
+ * by design and does not count; a figure with one variable may leave its colour to sky blue.
+ */
+function uncolouredSeries(chart: ChartSpec): string[] {
+  let series: { label: string; color?: string; comparison?: boolean }[]
+  switch (chart.kind) {
+    case 'line':
+    case 'grouped-bar':
+    case 'scatter':
+    case 'radar':
+      series = chart.series
+      break
+    case 'dual-axis':
+      series = [chart.left, chart.right]
+      break
+    default:
+      return []
+  }
+  const variables = series.filter((row) => !row.comparison)
+  return variables.length > 1 ? variables.filter((row) => !row.color).map((row) => row.label) : []
+}
+
 /** The CSV rows as a table. A missing value stays `null` (rule 15); rows keep the chart's order. */
 function chartTable(chart: ChartSpec, caption: string): DataTableData {
   const [header = [], ...body] = csvRows(chart)
@@ -265,9 +297,27 @@ export class LintjeChart extends LintjeContentTileElement {
   // The modal draws the same chart with its own controller: the two never share hover or width.
   #modalChart: ChartController | null = null
   readonly #mobile = new MediaController(this)
+  // Each warning once per element; another spec may name other series.
+  readonly #warned = new Set<string>()
 
   protected override get dataSettings(): FrameSettings | undefined {
     return this.data ?? undefined
+  }
+
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
+    if (import.meta.env?.DEV && changed.has('data') && this.data?.chart) this.#warnUncoloured()
+  }
+
+  /** A variable without a colour gets one by its place, which a filter shifts. */
+  #warnUncoloured(): void {
+    const labels = uncolouredSeries(this.data!.chart)
+    if (!labels.length) return
+    const count = labels.length === 1 ? '1 reeks' : `${labels.length} reeksen`
+    const message = `<lintje-chart>: ${count} zonder kleur (${labels.map((label) => `"${label}"`).join(', ')}). Geef elke reeks de kleur van haar variabele.`
+    if (this.#warned.has(message)) return
+    this.#warned.add(message)
+    console.warn(message)
   }
 
   override disconnectedCallback(): void {
@@ -441,6 +491,19 @@ export class LintjeChart extends LintjeContentTileElement {
     ></lintje-data-table>`
   }
 
+  /**
+   * The host may take the choice over by cancelling the event; else the page goes to its `href`.
+   * A modifier or middle click opens the `href` in a new tab, without the event.
+   */
+  private select(
+    detail: { id: string | null; label: string | null; href?: string },
+    newTab = false,
+  ): void {
+    if (newTab) {
+      if (detail.href) this.followLink(detail.href, undefined, undefined, { newTab: true })
+    } else if (this.emit('lintje-mark-select', detail) && detail.href) this.followLink(detail.href)
+  }
+
   /** Returns focus to the cleared mark, or to the drawing when the mark is gone. */
   private async focusMark(id: string): Promise<void> {
     await this.updateComplete
@@ -460,9 +523,9 @@ export class LintjeChart extends LintjeContentTileElement {
       description: this.data?.description ?? '',
       mobile: this.#mobile.matches,
       selectedId: this.data?.selectedId ?? null,
-      onSelect: ({ id, label, href }) => this.emit('lintje-mark-select', { id, label, href }),
+      onSelect: ({ id, label, href }, newTab) => this.select({ id, label, href }, newTab),
       onClear: (previousId) => {
-        this.emit('lintje-mark-select', { id: null, label: null, href: this.data?.clearHref })
+        this.select({ id: null, label: null, href: this.data?.clearHref })
         void this.focusMark(previousId)
       },
     }

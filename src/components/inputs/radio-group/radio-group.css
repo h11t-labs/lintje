@@ -1,6 +1,12 @@
 /* The radio group's stack; the radio itself is the shared `choice`. */
 
 .lintje-radio-group { display: flex; flex-direction: column; }
+/* A row with its description under it, on the labels' line (the radio plus the row's gap) and
+   drawn up into the row's own air, so it reads with its option and not with the next. */
+.lintje-radio-group__option { display: flex; flex-direction: column; }
+.lintje-radio-group__option .lintje-field__hint {
+  margin: calc(var(--space-2) * -1) 0 var(--space-2) calc(24px + 10px);
+}
 /* Cards: the options side by side, each with a line under its label. The chosen one is quiet, as
    in the segmented control: the choice's wash and an edge in the accent line. */
 .lintje-radio-group--cards {

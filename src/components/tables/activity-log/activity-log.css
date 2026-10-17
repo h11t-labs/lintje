@@ -51,6 +51,22 @@
 
 .lintje-activity-log__more { margin-top: var(--space-3); }
 
+/* With a person in the log every name starts on one line: the circle, or its empty room beside a
+   text such as "Systeem", hangs in the body's indent, so the sentence and the moment stand under
+   the name. The 2 px around the 24 px circle make the first line 28 px; the square sits in its
+   middle ((28 − 10) / 2). */
+.lintje-activity-log__list.has-people .lintje-activity-log__body { padding-left: calc(1.5rem + var(--space-2)); }
+.lintje-activity-log__list.has-people .lintje-activity-log__rail::before { flex-basis: 9px; }
+.lintje-activity-log__person,
+.lintje-activity-log__space {
+  margin: 2px 0 2px calc(-1 * (1.5rem + var(--space-2)));
+}
+.lintje-activity-log__space {
+  display: inline-block;
+  width: calc(1.5rem + var(--space-2)); height: 1.5rem;
+  vertical-align: middle;
+}
+
 /* Forced colours drop fills, so the rail is drawn in the text colour. */
 @media (forced-colors: active) {
   .lintje-activity-log__rail::before,

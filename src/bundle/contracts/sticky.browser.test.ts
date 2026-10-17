@@ -1,7 +1,7 @@
 /** What sticks keeps the focus clear of itself (WCAG 2.4.11), each element at each width. */
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, server, userEvent } from 'vitest/browser'
-import { deepActiveElement, standsIn } from '../../core/focus'
+import { deepActiveElement, holdsFocus, standsIn } from '../../core/focus'
 import { SHIFT_TAB, TAB } from '../../core/test-keys'
 import '../../components/chat/chat/chat'
 import '../../components/tables/data-table/data-table'
@@ -34,6 +34,8 @@ interface Row {
   side: 'top' | 'bottom'
   /** Keeps its height as scroll padding; else it scrolls the focus clear itself. */
   reserves: boolean
+  /** Stands right against the bar above it, not merely clear of it. */
+  flush?: boolean
   mount: () => Promise<Scene>
 }
 
@@ -42,12 +44,7 @@ interface Row {
  * issue above it. A check that passes while it matches an entry fails, so the fix takes
  * its entry out.
  */
-const KNOWN: RegExp[] = [
-  // #82: the phone's sentence does not stick; its sticky box stays inside the zone's host.
-  /^lintje-filter-bar :: stuck under the (top|side) layout's bar at 390 px :: /,
-  // #127: WebKit scrolls a text field's text into view, not its border and padding.
-  /^lintje-form-actions :: the action bar at \d+ px :: scrolls .* @ webkit$/,
-]
+const KNOWN: RegExp[] = []
 
 const ENGINES = ['chromium', 'firefox', 'webkit']
 
@@ -189,6 +186,14 @@ const FILTERS: FilterBarData = {
       value: 'Deze week',
       default: 'Deze week',
     },
+    // Two more, so the sentence takes more than one line at 390 px.
+    ...['Afdeling', 'Regio'].map((label) => ({
+      key: label.toLowerCase(),
+      label,
+      kind: 'text' as const,
+      value: `Alle ${label.toLowerCase()}en van het land`,
+      default: '',
+    })),
   ],
 }
 
@@ -279,6 +284,7 @@ function filterRow(layout: 'top' | 'side', width: number): Row {
     width,
     side: 'top',
     reserves: true,
+    flush: true,
     mount: async () => {
       const bar = create('lintje-filter-bar', { data: FILTERS })
       const content = requests(60)
@@ -294,10 +300,36 @@ function filterRow(layout: 'top' | 'side', width: number): Row {
   }
 }
 
-async function chatInBox(): Promise<{ box: HTMLElement; chat: HTMLElement; target: HTMLElement }> {
+/** A last turn whose answer asks: its questions stand in the footer, above the question box. */
+const ASKING = {
+  id: 't9',
+  message: { text: 'Hoeveel aanvragen per provincie?' },
+  answer: {
+    state: 'needs-clarification' as const,
+    text: 'Dat kan ik op meer manieren tellen.',
+    questions: {
+      questions: [
+        {
+          id: 'periode',
+          label: 'Periode',
+          text: 'Welke periode bedoel je?',
+          kind: 'one' as const,
+          options: [
+            { value: '2025', label: 'Heel 2025' },
+            { value: '12m', label: 'Afgelopen 12 maanden' },
+          ],
+        },
+      ],
+    },
+  },
+}
+
+async function chatInBox(
+  asking = false,
+): Promise<{ box: HTMLElement; chat: HTMLElement; target: HTMLElement }> {
   const box = document.createElement('div')
-  box.style.cssText = 'height: 480px; overflow: auto'
-  const chat = create('lintje-chat', { data: { turns: TURNS } })
+  box.style.cssText = `height: ${asking ? 720 : 480}px; overflow: auto`
+  const chat = create('lintje-chat', { data: { turns: asking ? [...TURNS, ASKING] : TURNS } })
   box.append(chat)
   await append(box)
   await chat.updateComplete
@@ -370,6 +402,23 @@ const ROWS: Row[] = [
     reserves: true,
     mount: async () => {
       const { box, chat, target } = await chatInBox()
+      return {
+        scroller: box,
+        cover: () => find(chat, '.lintje-chat__footer'),
+        target,
+        remove: () => chat.remove(),
+      }
+    },
+  },
+  {
+    tag: 'lintje-chat',
+    marker: 'the question box with the assistant’s questions above it',
+    width: 1440,
+    side: 'bottom',
+    reserves: true,
+    mount: async () => {
+      const { box, chat, target } = await chatInBox(true)
+      await expect.poll(() => find(chat, 'lintje-chat-questions')).toBeTruthy()
       return {
         scroller: box,
         cover: () => find(chat, '.lintje-chat__footer'),
@@ -505,6 +554,10 @@ const checks: Record<string, (row: Row) => Promise<void>> = {
     const cover = scene.cover()
     if (above && cover) {
       expect(overlap(cover, above), 'it sticks under the bar above it').toBe(false)
+      if (row.flush) {
+        const gap = cover.getBoundingClientRect().top - above.getBoundingClientRect().bottom
+        expect(Math.abs(gap), 'it stands right under the bar').toBeLessThan(1)
+      }
     }
   },
 }
@@ -552,5 +605,107 @@ describe('what sticks keeps the focus clear of itself', () => {
     )
     const stale = KNOWN.filter((entry) => !names.some((name) => entry.test(name))).map(String)
     expect(stale, `matches no check, so take out of KNOWN:\n${stale.join('\n')}`).toHaveLength(0)
+  })
+})
+
+/* The action bar shows it sticks -------------------------------------------- */
+
+/** Whether the bar's box carries `is-stuck`, and whether it casts a shadow. */
+function shows(bar: HTMLElement): { stuck: boolean; shadow: boolean } {
+  const box = bar.shadowRoot!.querySelector('.lintje-form-actions')!
+  return {
+    stuck: box.classList.contains('is-stuck'),
+    shadow: getComputedStyle(box).boxShadow !== 'none',
+  }
+}
+
+const STUCK = { stuck: true, shadow: true }
+const AT_ITS_PLACE = { stuck: false, shadow: false }
+
+describe('the action bar casts its shadow only while the form scrolls behind it', () => {
+  for (const width of [1440, 390]) {
+    it(`over a long form at ${width} px, and not at its own place below it`, async () => {
+      await viewport(width, width < 768 ? 844 : 900)
+      const { bar } = await formPage()
+      await expect.poll(() => shows(bar), { message: 'at the top' }).toEqual(STUCK)
+      scrollBy(document.documentElement, document.documentElement.scrollHeight)
+      await expect.poll(() => shows(bar), { message: 'at the bottom' }).toEqual(AT_ITS_PLACE)
+      window.scrollTo({ top: 0, behavior: 'instant' })
+      await expect.poll(() => shows(bar), { message: 'back at the top' }).toEqual(STUCK)
+    })
+  }
+
+  it('under a short form that fits the screen', async () => {
+    const form = document.createElement('div')
+    form.innerHTML = '<p><label>Opmerking <input type="text" /></label></p>'
+    document.body.append(form)
+    const bar = create('lintje-form-actions')
+    bar.innerHTML = '<lintje-button variant="primary">Versturen</lintje-button>'
+    await append(bar)
+    await settle()
+    expect(shows(bar)).toEqual(AT_ITS_PLACE)
+  })
+})
+
+describe('the action bar scrolls nothing for the focus in itself', () => {
+  for (const width of [1440, 390]) {
+    it(`at ${width} px`, async () => {
+      await viewport(width, width < 768 ? 844 : 900)
+      const { bar } = await formPage()
+      await expect.poll(() => shows(bar).stuck, { message: 'it sticks' }).toBe(true)
+      const before = document.documentElement.scrollTop
+      // Without the browser's own scroll into view, which brings a sticky box to its own place.
+      bar.querySelector('lintje-button')!.shadowRoot!.querySelector('button')!.focus({
+        preventScroll: true,
+      })
+      await expect.poll(() => holdsFocus(bar), { message: 'the focus is in the bar' }).toBe(true)
+      await settle()
+      expect(document.documentElement.scrollTop).toBe(before)
+    })
+  }
+})
+
+describe('the action bar does not stick on a low screen', () => {
+  /** Whether it sticks at the bottom over the form, and what it reserves. */
+  async function state(bar: HTMLElement): Promise<{ sticks: boolean; reserves: boolean }> {
+    await settle()
+    const fields = document.querySelectorAll('input')
+    const last = fields[fields.length - 1]!.getBoundingClientRect()
+    const box = bar.getBoundingClientRect()
+    const reserved = padding(document.documentElement, 'bottom')
+    return {
+      sticks: getComputedStyle(bar).position === 'sticky' && box.top < last.bottom,
+      reserves: reserved > 0 && reserved >= box.height - 1,
+    }
+  }
+
+  const STICKS = { sticks: true, reserves: true }
+  const AFTER_THE_FORM = { sticks: false, reserves: false }
+
+  // Mounted first, then resized: WebKit keeps the media queries of a sheet no connected element
+  // adopts as they were.
+  it('at 320 × 256 px it stands after the last field and reserves nothing', async () => {
+    const { bar } = await formPage()
+    await viewport(320, 256)
+    await expect.poll(() => state(bar)).toEqual(AFTER_THE_FORM)
+    await expect
+      .poll(() => shows(bar), { message: 'no shadow of a stuck bar' })
+      .toEqual(AT_ITS_PLACE)
+  })
+
+  it('at 390 × 844 px it sticks and reserves its height', async () => {
+    const { bar } = await formPage()
+    await viewport(390, 844)
+    await expect.poll(() => state(bar)).toEqual(STICKS)
+  })
+
+  it('sticks and reserves again as the screen grows, and stops as it shrinks', async () => {
+    const { bar } = await formPage()
+    await viewport(390, 256)
+    await expect.poll(() => state(bar), { message: 'low' }).toEqual(AFTER_THE_FORM)
+    await viewport(390, 844)
+    await expect.poll(() => state(bar), { message: 'high' }).toEqual(STICKS)
+    await viewport(390, 256)
+    await expect.poll(() => state(bar), { message: 'low again' }).toEqual(AFTER_THE_FORM)
   })
 })

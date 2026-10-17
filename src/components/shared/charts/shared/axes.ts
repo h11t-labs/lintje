@@ -4,7 +4,7 @@ import { styleProps } from '../../../../core/style-props'
 import { AXIS_GAP, DEFAULT_PLOT_AREA, plotWidth, yPosition, type PlotArea } from './scale'
 import { formatNumber, textWidth } from '../../../../core/format'
 import type { PlotKeys } from './plot-keys'
-import { markPath, type SeriesKey } from './series-shapes'
+import { markPath, type SeriesKey, seriesShapePath, type SeriesShape } from './series-shapes'
 import { DEFAULT_SERIES_COLOR, lineCasing } from './colors'
 
 /** Anything that may go inside the `<svg>`; built with lit's `svg`, since `html` draws nothing. */
@@ -27,6 +27,8 @@ export interface LegendItem {
   shape?: 'square' | 'line' | 'dashed' | 'point' | 'hatch'
   /** The shape the line carries at its end, drawn on its line marker (rule 13). */
   symbol?: SeriesKey
+  /** A `point` marker's shape when it is not the shape of a colour's name (a map's styled series). */
+  symbolShape?: SeriesShape
   hidden?: boolean
   /**
    * Never a switch: a key such as "geen gegevens", or a lone series with nothing beside it, which
@@ -39,15 +41,19 @@ export interface LegendItem {
 
 /**
  * A series' symbol as a scatter plot draws it, for a marker: its shape in `currentColor`, and a
- * dark-yellow one with the edge of its text colour (`lineCasing`).
+ * light one with its dark edge (`lineCasing`).
  */
 export function renderSymbol(
-  symbol: SeriesKey,
+  symbol: SeriesKey | undefined,
   color: string | undefined,
   centre: number,
+  shape?: SeriesShape,
 ): SVGTemplateResult {
   const casing = lineCasing(color)
-  return svg`<path d=${markPath(symbol, 4.5, centre, centre)} fill="currentColor"
+  const d = shape
+    ? seriesShapePath(shape, 4.5, centre, centre)
+    : markPath(symbol, 4.5, centre, centre)
+  return svg`<path d=${d} fill="currentColor"
                    stroke=${casing ?? nothing} stroke-width=${casing ? 1 : nothing} />`
 }
 
@@ -59,19 +65,21 @@ export function renderLegend({
 }: {
   items: LegendItem[]
   onToggle?: (label: string) => void
-  /** A series pointed at or focused, and `null` once it is left. */
+  /** A series pointed at or focused, and `null` once it is left; without `onToggle`, pointed at. */
   onEmphasis?: (label: string | null) => void
   position?: 'top' | 'bottom' | 'right'
 }): TemplateResult {
   const enter = (item: LegendItem) => () => onEmphasis?.(item.key ?? item.label)
   const leave = () => onEmphasis?.(null)
+  // A legend without switches is no button, yet its items still point at their mark.
+  const pointable = Boolean(onEmphasis) && !onToggle
   const content = (item: LegendItem) => html`
     ${
-      item.symbol && item.shape === 'point'
+      (item.symbol || item.symbolShape) && item.shape === 'point'
         ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
                     ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
                     aria-hidden="true" focusable="false">
-            ${renderSymbol(item.symbol, item.color, 7)}
+            ${renderSymbol(item.symbol, item.color, 7, item.symbolShape)}
           </svg>`
         : item.symbol
           ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
@@ -90,7 +98,9 @@ export function renderLegend({
     <ul class="lintje-legend lintje-legend--${position}">
       ${items.map(
         (item) => html`
-        <li class="lintje-legend__item ${item.hidden ? 'is-hidden' : ''}">
+        <li class="lintje-legend__item ${item.hidden ? 'is-hidden' : ''}"
+            @mouseenter=${pointable ? enter(item) : nothing}
+            @mouseleave=${pointable ? leave : nothing}>
           ${
             onToggle && !item.fixed
               ? html`<button type="button" class="lintje-legend__button"
