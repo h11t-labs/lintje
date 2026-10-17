@@ -9,9 +9,9 @@
  *
  * Events: `lintje-sort-change` `{ key, direction } | null`, `lintje-row-click`
  * `{ id, label, href? }`, `lintje-row-open` `{ id, label, href? }`, `lintje-checked-change`
- * `string[]`, `lintje-cell-edit` `{ id, column, value }`, `lintje-row-action` `{ id, action }`,
- * `lintje-bulk-action` `{ ids, action }`, `lintje-filter-change` `{ column, value }`,
- * `lintje-columns-change` `{ order, hidden }`.
+ * `string[]`, `lintje-cell-edit` `{ id, column, value }`, `lintje-row-action`
+ * `{ id, label, action }`, `lintje-bulk-action` `{ ids, action }`, `lintje-filter-change`
+ * `{ column, value }`, `lintje-columns-change` `{ order, hidden }`.
  */
 import {
   html,
@@ -52,6 +52,8 @@ import type { SortableItem } from '../sortable-list/sortable-list'
 import type {
   CellValue,
   DataTableData,
+  RowActionDetail,
+  RowClickDetail,
   SortState,
   StatusTone,
   TableColumnData,
@@ -83,7 +85,6 @@ import {
 } from './filters'
 
 type Row = Record<string, CellValue>
-type RowDetail = { id: string; label: string; href?: string }
 
 type Panel =
   | { kind: 'filter'; column: string; edges: ScrollEdges }
@@ -597,7 +598,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   /** The row's key, the name in its first column and the `href` the host minted on the row. */
-  private rowDetail(row: Row): RowDetail {
+  private rowDetail(row: Row): RowClickDetail {
     const id = this.rowKey(row)
     const nameColumn = this.columns[0]
     const name = nameColumn ? row[nameColumn.key] : null
@@ -607,6 +608,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
       label: name == null ? id : String(name),
       href: typeof href === 'string' && href !== '' ? href : undefined,
     }
+  }
+
+  private rowAction(row: Row, action: string): void {
+    const { id, label } = this.rowDetail(row)
+    this.emit('lintje-row-action', { id, label, action } satisfies RowActionDetail)
   }
 
   private get initialSort(): SortState {
@@ -1561,7 +1567,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
                 @keydown=${(event: Event) => event.stopPropagation()}
               >
                 ${renderRowActions(rowActions, this.rowDetail(row).label, (action) =>
-                  this.emit('lintje-row-action', { id, action }),
+                  this.rowAction(row, action),
                 )}
               </td>`
             : this.actionColumn
@@ -2019,7 +2025,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
                   ${
                     rowActions
                       ? renderRowActions(rowActions, detail.label, (action) =>
-                          this.emit('lintje-row-action', { id, action }),
+                          this.rowAction(row, action),
                         )
                       : nothing
                   }
