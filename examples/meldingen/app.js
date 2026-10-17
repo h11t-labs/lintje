@@ -677,7 +677,7 @@ function personRow(id, person = {}) {
     name: `betrokkene-${id}-naam`,
     'hide-label': true,
     commit: 'input',
-    placeholder: 'Voorletters en achternaam',
+    placeholder: 'Voorletters en naam',
   })
   const role = element('lintje-select', { name: `betrokkene-${id}-rol`, 'hide-label': true })
   role.options = ROLES

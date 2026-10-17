@@ -55,7 +55,7 @@
   text-transform: uppercase;
   color: var(--color-text-muted);
   background: var(--color-bg-surface);
-  padding: 10px var(--space-3);
+  padding: var(--space-3);
   border-bottom: 2px solid var(--color-border-heavy);
 }
 /* The sorted column: its label is text (4.5:1), the rule under it a line (3:1). */
@@ -207,7 +207,8 @@
 }
 .lintje-data-table__cell--align-right .lintje-data-table__edit-icon { right: auto; left: var(--space-1); }
 .lintje-data-table__cell--editable:hover .lintje-data-table__edit-icon { visibility: visible; }
-.lintje-data-table__cell--editable.is-editing { padding: 2px; vertical-align: top; }
+/* No room above or below: the field is as tall as the row. */
+.lintje-data-table__cell--editable.is-editing { padding: 0 var(--space-1); vertical-align: top; }
 .lintje-data-table__cell--editable.is-editing:hover { background: transparent; }
 .lintje-data-table__editor {
   display: block;
@@ -225,7 +226,7 @@
 .lintje-data-table__editor.is-error { border: 2px solid var(--color-error); }
 .lintje-data-table__edit-error {
   display: block;
-  padding: 2px var(--space-2) var(--space-1);
+  padding: var(--space-1) var(--space-2);
   font-size: 0.875rem; font-weight: 700;
   color: var(--color-error-text);
   text-align: left;
@@ -420,7 +421,7 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__frame { display: none; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile { display: table; }
 .lintje-data-table:where(.is-phone) { margin: 0 calc(var(--tile-pad-x) * -1); }
-:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile { padding: 10px var(--tile-pad-x); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile { padding: var(--space-3) var(--tile-pad-x); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__header-cell--sortable { padding: 0; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile .lintje-data-table__sort-button { padding: 0 var(--tile-pad-x); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-row { border-bottom: 1px solid var(--color-border-default); }
@@ -439,9 +440,9 @@
   font-weight: 400;
 }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-name { display: block; font-size: 0.875rem; font-weight: 700; }
-:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-sub { display: block; font-size: 0.875rem; color: var(--color-text-muted); margin-top: 2px; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-sub { display: block; font-size: 0.875rem; color: var(--color-text-muted); margin-top: var(--space-1); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-measure { display: block; font-size: 0.875rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-status { display: block; font-size: 0.875rem; margin-top: 2px; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-status { display: block; font-size: 0.875rem; margin-top: var(--space-1); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-status--within { color: var(--color-text-muted); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-status--outside { color: var(--color-error-text); font-weight: 700; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__pagination--full { display: none; }

@@ -14,7 +14,7 @@
 .lintje-level-meter__bars {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: var(--space-1);
   height: var(--space-6);
 }
 /* Centred bars read as a voice; their height is the sound. */

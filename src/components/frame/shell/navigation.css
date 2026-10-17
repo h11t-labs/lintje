@@ -57,13 +57,13 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 0 var(--space-4) 0 12px;
+  padding: 0 var(--space-4) 0 var(--space-3);
 }
 
 .lintje-nav__pin {
   position: relative;
   width: var(--h-icon-button); height: var(--h-icon-button);
-  margin-top: 12px;
+  margin-top: var(--space-3);
   display: flex; align-items: center; justify-content: center;
   color: var(--color-nav-text);
   background: transparent;
@@ -115,7 +115,7 @@
   letter-spacing: var(--label-tracking);
   text-transform: uppercase;
   color: var(--color-nav-text-sub);
-  padding: 22px var(--space-5) 6px;
+  padding: var(--space-6) var(--space-5) var(--space-2);
   white-space: nowrap;
   margin: 0;
 }
@@ -131,7 +131,7 @@
 }
 .lintje-nav__separator {
   position: absolute;
-  left: 14px; right: 14px;
+  left: var(--space-4); right: var(--space-4);
   top: 50%;
   height: 1px;
   background: var(--color-nav-line);
@@ -146,8 +146,8 @@
   transition: transform var(--lintje-rail-fade) var(--ease-in-motion) var(--lintje-rail-quick);
 }
 
-/* One row in every mode. A 4 px border + 22 px padding centres the 20 px icon in the 72 px rail,
-   in line with the logo. Expanding animates only the width, so the icon stays in place. */
+/* One row in every mode. The 4 px border and the padding put the 20 px icon under the middle of
+   the logo in the 72 px rail. Expanding animates only the width, so the icon stays in place. */
 .lintje-nav__item {
   position: relative;
   min-height: var(--h-nav-row);
@@ -155,7 +155,7 @@
   align-items: center;
   justify-content: flex-start;
   gap: var(--space-3);
-  padding: var(--space-2) 22px;
+  padding: var(--space-2) var(--space-5);
   border-left: var(--nav-edge) solid transparent;
   font-size: 1rem;
   color: var(--color-nav-text);
@@ -196,7 +196,7 @@
 /* The badge is `badge.css`, adopted by the shell. In the rail a word ("NIEUW")
    does not fit: it becomes a dot, so the rail does not overflow. */
 .lintje-nav--rail:not(.is-expanded) .lintje-nav__badge {
-  position: absolute; top: 2px; right: var(--space-1);
+  position: absolute; top: var(--space-1); right: var(--space-1);
 }
 .lintje-nav--rail:not(.is-expanded) .lintje-nav__badge--new {
   min-width: 8px; width: 8px; height: 8px; padding: 0;
@@ -241,7 +241,7 @@
   margin: 0;
   display: flex;
   align-items: center;
-  padding: 0 22px;
+  padding: 0 var(--space-5);
   border-left: var(--nav-edge) solid transparent;
 }
 

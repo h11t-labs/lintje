@@ -47,8 +47,9 @@
 .lintje-log-viewer__row {
   display: flex; flex-wrap: wrap; align-items: flex-start;
   column-gap: var(--space-3);
-  padding: var(--space-1) var(--space-4) var(--space-1) calc(var(--space-4) - 3px);
-  border-left: 3px solid transparent;
+  --lintje-log-viewer-edge: 3px;
+  padding: var(--space-1) var(--space-4) var(--space-1) calc(var(--space-4) - var(--lintje-log-viewer-edge));
+  border-left: var(--lintje-log-viewer-edge) solid transparent;
 }
 .lintje-log-viewer__row:focus-visible { outline-offset: calc(var(--focus-width) * -1); }
 .lintje-log-viewer__row--error { border-left-color: var(--color-error-line); }

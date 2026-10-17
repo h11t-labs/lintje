@@ -22,11 +22,13 @@
 
 .lintje-sub-nav__list { list-style: none; margin: 0; padding: 0; }
 
-/* The second level hangs from a line, the width of the separators the house style draws. */
+/* The second level hangs from a line, the width of the separators the house style draws; its
+   text stays on the 24 px indent. */
 .lintje-sub-nav__list--nested {
+  --lintje-sub-nav-line: 2px;
   margin-bottom: var(--space-1);
-  padding-left: calc(var(--space-6) - 2px);
-  border-left: 2px solid var(--color-border-default);
+  padding-left: calc(var(--space-6) - var(--lintje-sub-nav-line));
+  border-left: var(--lintje-sub-nav-line) solid var(--color-border-default);
 }
 
 /* The row reaches past the text column on both sides, so the inset focus ring clears the word. */
@@ -64,7 +66,7 @@
 .lintje-sub-nav__link.is-no-access .lintje-sub-nav__label { text-decoration: line-through; }
 
 /* Icon, lock and count stand on the first line of a label that wraps. */
-.lintje-sub-nav__icon { flex: none; margin-top: 2px; }
+.lintje-sub-nav__icon { flex: none; margin-top: var(--space-1); }
 .lintje-sub-nav__lock { flex: none; margin-top: var(--space-1); }
 .lintje-sub-nav__count { flex: none; }
 

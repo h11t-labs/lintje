@@ -42,7 +42,7 @@
   font-weight: 700;
   color: var(--color-text-primary);
 }
-.lintje-sankey__bar { display: flex; gap: 2px; height: var(--space-6); }
+.lintje-sankey__bar { display: flex; gap: var(--space-1); height: var(--space-6); }
 /* A piece as long as its count, a small one 2 px; its share inside when it fits. */
 .lintje-sankey__piece {
   flex: var(--lintje-weight) 1 0;

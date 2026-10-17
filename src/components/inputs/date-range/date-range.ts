@@ -23,7 +23,7 @@ import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { LintjeInputElement } from '../shared/input'
 import { ownsEscape } from '../../shared/focus-trap'
-import { place, samePlace, viewport, type Place } from '../../shared/place'
+import { place, samePlace, stand, viewport, type Place } from '../../shared/place'
 import '../../actions/button/button'
 import '../../actions/icon-button/icon-button'
 import inputCss from '../shared/input.css?inline'
@@ -237,11 +237,8 @@ export class LintjeDateRange extends LintjeInputElement {
     const next = place(field.getBoundingClientRect(), box, viewport(), 'bottom-start', GAP)
     if (samePlace(this.spot, next)) return
     this.spot = next
-    const px = (value: number | null): string => (value === null ? '' : `${value}px`)
-    panel.style.setProperty('top', px(next.top))
-    panel.style.setProperty('bottom', px(next.bottom))
-    panel.style.setProperty('left', px(next.left))
-    panel.style.setProperty('--lintje-date-range-space', px(next.space))
+    stand(panel, next)
+    panel.style.setProperty('--lintje-date-range-space', `${next.space}px`)
   }
 
   // The panel exists only now, so its size is known; a closed one forgets its place.

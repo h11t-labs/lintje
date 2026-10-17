@@ -19,6 +19,7 @@ import type {
   TableColumnData,
   TableOption,
 } from '../../../types'
+import { uniqueId } from '../../../core/id'
 
 export interface CellPosition {
   row: number
@@ -97,15 +98,13 @@ export interface EditingHost {
   editCell(detail: TableCellRef & { value: string | null }): void
 }
 
-let instances = 0
-
 export class CellEditing {
   editing: TableCellRef | null = null
   /** What the table's status line reads out: saving, saved, refused. */
   message: string = ''
 
   readonly #host: EditingHost
-  readonly #prefix = `lintje-data-table-${++instances}`
+  readonly #prefix = uniqueId('lintje-data-table')
   readonly #pending = new Map<string, string>()
   /** The values the host refused, so the field opens again with them. */
   readonly #refused = new Map<string, string>()

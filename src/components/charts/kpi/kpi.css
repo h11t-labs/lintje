@@ -91,7 +91,7 @@
 .lintje-kpi__skeleton { display: flex; flex-direction: column; gap: var(--space-2); }
 
 @media screen and (max-width: 767px) {
-  .lintje-kpi { padding: 12px 14px; gap: var(--space-1); }
+  .lintje-kpi { padding: var(--space-3) var(--space-4); gap: var(--space-1); }
   .lintje-kpi__value { font: var(--text-kpi-mobile); font-variant-numeric: tabular-nums; }
 }
 @media (min-width: 1024px) and (max-width: 1439px) {
@@ -185,7 +185,7 @@
 }
 @container (width < 160px) {
   .lintje-gauge--arc .lintje-kpi__value { font: var(--text-kpi-secondary); font-variant-numeric: tabular-nums; }
-  .lintje-gauge--arc .lintje-kpi__suffix { font-size: 1rem; margin-left: 2px; }
+  .lintje-gauge--arc .lintje-kpi__suffix { font-size: 1rem; margin-left: var(--space-1); }
 }
 
 

@@ -81,16 +81,16 @@
   box-shadow: inset 0 0 0 1px var(--color-action-primary-border);
 }
 
-/* The panels' side inset: their own as they hang from a tool, the filter sheet's as a sheet. */
+/* The panels' side inset, the same as the filter sheet's. */
 .lintje-view__popover,
-.lintje-share__popover { --lintje-panel-inset: 14px; }
+.lintje-share__popover { --lintje-panel-inset: var(--space-4); }
 
 /* "Weergave": the share menu's panel, with a group of words under each heading. */
 .lintje-view { position: relative; }
 /* A panel sets the text colour of its surface: on the navigation bar it would take the bar's. */
 .lintje-view__popover {
   position: absolute;
-  right: 0; top: calc(100% + 4px);
+  right: 0; top: calc(100% + var(--space-1));
   z-index: 41;
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
@@ -107,7 +107,7 @@
 .lintje-share__scrim { position: fixed; inset: 0; z-index: 40; }
 .lintje-share__popover {
   position: absolute;
-  right: 0; top: calc(100% + 4px);
+  right: 0; top: calc(100% + var(--space-1));
   z-index: 41;
   width: 18.75rem;
   background: var(--color-bg-surface);
@@ -121,11 +121,11 @@
   font-size: var(--label-size); font-weight: var(--label-weight);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
   color: var(--color-text-muted);
-  padding: var(--space-3) var(--lintje-panel-inset) 4px;
+  padding: var(--space-3) var(--lintje-panel-inset) var(--space-1);
 }
 .lintje-share__item {
   width: 100%;
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: var(--space-3);
   min-height: var(--h-target);
   padding: 0 var(--lintje-panel-inset);
   font-size: 1rem;
@@ -174,7 +174,7 @@
   animation: lintje-sheet-in var(--dur-sheet) var(--ease-in-motion);
 }
 :where(.lintje-shell.is-phone) .lintje-view__popover,
-:where(.lintje-shell.is-phone) .lintje-share__popover { padding-top: 0; --lintje-panel-inset: var(--space-4); }
+:where(.lintje-shell.is-phone) .lintje-share__popover { padding-top: 0; }
 :where(.lintje-shell.is-phone) .lintje-view__popover:focus,
 :where(.lintje-shell.is-phone) .lintje-share__popover:focus { outline: none; }
 :where(.lintje-shell.is-phone) .lintje-share__phone { display: none; }

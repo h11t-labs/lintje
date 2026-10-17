@@ -90,7 +90,7 @@
   flex: none;
   transition: height var(--dur-hover) var(--ease-in-motion), margin var(--dur-hover) var(--ease-in-motion);
 }
-.lintje-audio-player__bar:hover { height: var(--space-2); margin-block: calc((6px - var(--space-2)) / 2); }
+.lintje-audio-player__bar:hover { height: var(--space-2); margin-block: calc((var(--lintje-player-bar) - var(--space-2)) / 2); }
 .lintje-audio-player__stretch { position: absolute; top: 0; bottom: 0; pointer-events: none; }
 .lintje-audio-player__head {
   position: absolute;
