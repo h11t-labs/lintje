@@ -1,12 +1,13 @@
 /**
  * `<lintje-user-menu>` — the user's avatar in the navigation bar and the menu it opens: name and
- * role, the host's rows (`MenuEntry`), "Afmelden" and the version.
+ * role, the host's rows (`MenuEntry`), "Afmelden" and the version. With `variant="side"` it is
+ * the foot of the side menu: the avatar with the name and role beside it, the menu above it.
  *
  * A menu, not a dialog: it traps no focus, and an Escape in a dialog opened over it is the
  * dialog's.
  *
  * Events: `lintje-action` `string` (the row's value), `lintje-navigate` `{ href }` (a link row),
- * `lintje-logout` (without `logout-action`).
+ * `lintje-logout` (without `logout-action`), `lintje-toggle` `{ open }` (the menu opens or closes).
  */
 import {
   html,
@@ -32,6 +33,7 @@ import menuButtonCss from '../../actions/menu-button/menu-button.css?inline'
 import userMenuCss from './user-menu.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { standsIn } from '../../../core/focus'
+import { titleWhenCut } from '../../shared/cut-text'
 import type { UserMenuUser } from '../../../types'
 
 let instances = 0
@@ -51,6 +53,8 @@ export class LintjeUserMenu extends LintjeElement {
     logoutAction: { type: String, attribute: 'logout-action' },
     csrf: { type: String },
     inline: { type: Boolean, reflect: true },
+    variant: { type: String, reflect: true },
+    folded: { type: Boolean, reflect: true },
     open: { type: Boolean, reflect: true },
   }
 
@@ -67,9 +71,17 @@ export class LintjeUserMenu extends LintjeElement {
   csrf: string = ''
   /** The content without button and popover, on the navigation's colours: for the mobile sheet. */
   inline: boolean = false
+  /**
+   * `bar`: the avatar in the navigation bar, the menu below it. `side`: the foot of the side
+   * menu, named by the user's name with the role beside it, the menu above it.
+   */
+  variant: 'bar' | 'side' = 'bar'
+  /** `side` in the folded rail: only the avatar shows; name and role stay for a screen reader. */
+  folded: boolean = false
   open: boolean = false
 
   readonly #menuId = `lintje-user-menu-${++instances}`
+  readonly #roleId = `lintje-user-menu-role-${instances}`
   #pendingFocus: 'first' | 'last' | null = null
 
   private get trigger(): HTMLButtonElement | null {
@@ -97,12 +109,28 @@ export class LintjeUserMenu extends LintjeElement {
 
   private show(focus: 'first' | 'last'): void {
     this.#pendingFocus = focus
-    this.open = true
+    this.setOpen(true)
   }
 
   private hide(returnFocus: boolean): void {
-    this.open = false
+    this.setOpen(false)
     if (returnFocus) this.trigger?.focus()
+  }
+
+  private setOpen(open: boolean): void {
+    if (this.open === open) return
+    this.open = open
+    this.emit('lintje-toggle', { open })
+  }
+
+  /** A pointer gets the whole name and role as a tooltip, only where they are cut off. */
+  private readonly onTriggerPointerEnter = (): void => {
+    for (const line of this.renderRoot.querySelectorAll<HTMLElement>(
+      '.lintje-user-menu__trigger-name, .lintje-user-menu__trigger-role',
+    )) {
+      if (line.scrollWidth > line.clientWidth) line.title = line.textContent ?? ''
+      else line.removeAttribute('title')
+    }
   }
 
   // The focus leaving the element closes the menu. A press that takes no focus blurs to nothing,
@@ -205,7 +233,7 @@ export class LintjeUserMenu extends LintjeElement {
     })
     const content = html`${
       item.icon ? renderIcon(item.icon, { size: 16, className: 'lintje-menu__icon' }) : nothing
-    }<span class="lintje-menu__label">${item.label}</span>${
+    }<span class="lintje-menu__label" @pointerenter=${titleWhenCut}>${item.label}</span>${
       item.hint ? html`<span class="lintje-menu__hint">${item.hint}</span>` : nothing
     }`
     if (item.href && !item.disabled) {
@@ -239,7 +267,7 @@ export class LintjeUserMenu extends LintjeElement {
     const role = this.inline ? nothing : 'menuitem'
     const tabindex = this.inline ? nothing : '-1'
     const glyph = renderIcon('functioneel-uitloggen', { size: 16, className: 'lintje-menu__icon' })
-    const label = html`${glyph}<span class="lintje-menu__label">Afmelden</span>`
+    const label = html`${glyph}<span class="lintje-menu__label" @pointerenter=${titleWhenCut}>Afmelden</span>`
     if (this.logoutAction) {
       return html`<form class="lintje-user-menu__logout" method="post" action=${this.logoutAction}>
         <input type="hidden" name="csrf_token" .value=${this.csrf} />
@@ -303,25 +331,64 @@ export class LintjeUserMenu extends LintjeElement {
     </div>`
   }
 
+  /** The name and role beside the avatar; the role is the button's description, not its name. */
+  private renderNames(user: UserMenuUser): TemplateResult {
+    return html`<span class="lintje-user-menu__trigger-names">
+      <span class="lintje-user-menu__trigger-name">${user.name}</span>
+      ${
+        user.role
+          ? html`<span class="lintje-user-menu__trigger-role" id=${this.#roleId} aria-hidden="true"
+            >${user.role}</span
+          >`
+          : nothing
+      }
+    </span>`
+  }
+
   protected override render(): TemplateResult {
     if (this.inline) return this.renderContent()
     const user = this.user
+    const side = this.variant === 'side'
+    // The bar's avatar shows only initials; the foot shows the name, which is then its name.
+    const label = !user
+      ? 'Gebruikersmenu'
+      : side
+        ? nothing
+        : `${user.initials}, menu van ${user.name}`
+    // The menu opens away from the trigger: down from the bar, up from the foot.
+    const chevronUp = side ? !this.open : this.open
     return html`<button
         type="button"
-        class=${classMap({ 'lintje-user-menu__trigger': true, 'is-open': this.open })}
-        aria-label=${user ? `${user.initials}, menu van ${user.name}` : 'Gebruikersmenu'}
+        class=${classMap({
+          'lintje-user-menu__trigger': true,
+          'lintje-user-menu__trigger--side': side,
+          'focus-inset': side,
+          'is-open': this.open,
+          'is-folded': side && this.folded,
+        })}
+        aria-label=${label}
+        aria-describedby=${side && user?.role ? this.#roleId : nothing}
         aria-haspopup="menu"
         aria-expanded=${String(this.open)}
         aria-controls=${this.#menuId}
         @click=${() => (this.open ? this.hide(false) : this.show('first'))}
         @keydown=${this.onTriggerKeydown}
+        @pointerenter=${side ? this.onTriggerPointerEnter : nothing}
       >
         <span class="lintje-user-menu__avatar" aria-hidden="true">${user?.initials ?? ''}</span>
-        ${renderIcon('functioneel-delta-omlaag', { size: 16, rotate: this.open ? 180 : undefined })}
+        ${side && user ? this.renderNames(user) : nothing}
+        ${renderIcon('functioneel-delta-omlaag', {
+          size: 16,
+          rotate: chevronUp ? 180 : undefined,
+          className: 'lintje-user-menu__chevron',
+        })}
       </button>
+      ${side ? html`<span class="lintje-user-menu__anchor" aria-hidden="true"></span>` : nothing}
       <lintje-popover
         id=${this.#menuId}
-        placement="bottom-end"
+        placement=${side ? 'top-start' : 'bottom-end'}
+        ?match-width=${side}
+        .anchor=${side ? this.renderRoot?.querySelector('.lintje-user-menu__anchor') : undefined}
         ?open=${this.open}
         @lintje-close=${this.onPopoverClose}
         >${this.renderContent()}</lintje-popover

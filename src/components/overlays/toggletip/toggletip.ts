@@ -14,11 +14,10 @@ import {
   type TemplateResult,
 } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
-import { styleProps, type StyleProps } from '../../../core/style-props'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import { EDGE, place, viewport, type Place } from '../../shared/place'
+import { EDGE, place, samePlace, stand, viewport, type Place } from '../../shared/place'
 import { ownsEscape } from '../../shared/focus-trap'
 import { standsIn } from '../../../core/focus'
 import iconButtonCss from '../../actions/icon-button/icon-button.css?inline'
@@ -37,14 +36,14 @@ export class LintjeToggletip extends LintjeElement {
     label: { type: String },
     placement: { type: String, reflect: true },
     open: { type: Boolean, reflect: true },
-    spot: { state: true },
   }
 
   /** The trigger's accessible name and tooltip. */
   label: string = 'Toelichting'
   placement: ToggletipPlacement = 'bottom-start'
   open: boolean = false
-  protected spot: Place | null = null
+  /** Where the explanation stands, written onto it; `null` while closed. */
+  #spot: Place | null = null
 
   private readonly popoverId = `lintje-toggletip-${++nextId}`
   private reflowFrame: number = 0
@@ -113,36 +112,33 @@ export class LintjeToggletip extends LintjeElement {
     super.disconnectedCallback()
   }
 
+  private get panel(): HTMLElement | null {
+    return this.renderRoot.querySelector<HTMLElement>('.lintje-toggletip__popover')
+  }
+
   private measure(): void {
     const trigger = this.trigger
-    const popover = this.renderRoot.querySelector<HTMLElement>('.lintje-toggletip__popover')
+    const popover = this.panel
     if (!trigger || !popover) return
     const box = { width: popover.offsetWidth, height: popover.offsetHeight }
     const next = place(trigger.getBoundingClientRect(), box, viewport(), this.placement, GAP)
-    const spot = this.spot
-    if (spot && spot.top === next.top && spot.bottom === next.bottom && spot.left === next.left)
-      return
-    this.spot = next
+    if (samePlace(this.#spot, next)) return
+    stand(popover, next)
+    this.#spot = next
   }
 
-  protected override willUpdate(changed: PropertyValues<this>): void {
-    super.willUpdate(changed)
-    if (changed.has('open') && !this.open) this.spot = null
-  }
-
+  // The box stays in the DOM when closed, so its place is taken off. Before the first
+  // measurement it stands at the left edge, to take its natural width.
   protected override updated(changed: PropertyValues<this>): void {
-    if (this.open && (changed.has('open') || changed.has('placement'))) this.measure()
-  }
-
-  private spotStyle(): StyleProps {
-    const spot = this.spot
-    // Before the first measurement it stands at the left edge, to take its natural width.
-    if (!spot) return { top: null, bottom: null, left: `${EDGE}px` }
-    return {
-      top: spot.top === null ? null : `${spot.top}px`,
-      bottom: spot.bottom === null ? null : `${spot.bottom}px`,
-      left: `${spot.left}px`,
+    if (!changed.has('open') && !changed.has('placement')) return
+    const popover = this.panel
+    if (!this.open) {
+      for (const side of ['top', 'bottom', 'left']) popover?.style.removeProperty(side)
+      this.#spot = null
+      return
     }
+    if (popover && !this.#spot) stand(popover, { top: null, bottom: null, left: EDGE, space: 0 })
+    this.measure()
   }
 
   protected override render(): TemplateResult {
@@ -175,7 +171,6 @@ export class LintjeToggletip extends LintjeElement {
           'visually-hidden': !this.open,
         })}
         role="status"
-        ${styleProps(this.open ? this.spotStyle() : {})}
       >
         ${this.open ? html`<slot></slot>` : nothing}
       </div>`

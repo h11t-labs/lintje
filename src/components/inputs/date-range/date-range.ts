@@ -328,6 +328,7 @@ export class LintjeDateRange extends LintjeInputElement {
             <div
               class="lintje-date-range-picker__grid"
               role="grid"
+              aria-multiselectable="true"
               aria-label=${monthLabel(`${shown}-01`)}
               @keydown=${(event: KeyboardEvent) => this.onGridKeydown(event, focus, cells)}
             >
