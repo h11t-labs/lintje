@@ -318,7 +318,8 @@ describe('the map on a basemap', () => {
     expect(getComputedStyle(ring).stroke).toBe(resolved(element, '--color-focus'))
     expect(getComputedStyle(gap).stroke).toBe(resolved(element, '--color-bg-surface'))
     expect(getComputedStyle(line).stroke).toBe(resolved(element, '--color-chart-default'))
-    expect(getComputedStyle(flow).opacity).toBe('1')
+    // Its opacity fades in over the hover duration, also under reduced motion.
+    await expect.poll(() => getComputedStyle(flow).opacity).toBe('1')
     // Its copy lies over every other flow.
     await expect.poll(() => copy(element)).not.toBeNull()
     expect(paintsOver(copy(element)!, mark(element, 'gro'))).toBe(true)
