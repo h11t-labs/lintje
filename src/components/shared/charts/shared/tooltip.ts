@@ -4,6 +4,7 @@ import { directive, Directive, PartType, type ElementPart, type PartInfo } from 
 import { styleProps } from '../../../../core/style-props'
 import type { ChartController, TooltipState } from './controller'
 import { renderSymbol } from './axes'
+import { lineCasing } from './colors'
 
 /**
  * Places the tooltip right of the pointer, flipping near the tile's edge. A directive, not a
@@ -61,7 +62,14 @@ export function renderTooltip(controller: ChartController): TemplateResult | typ
                   ? html`<span class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--${row.marker}"
                                ${styleProps({ color: row.color })}></span>`
                   : row.color
-                    ? html`<span class="lintje-chart-tooltip__marker" ${styleProps({ background: row.color })}></span>`
+                    ? html`<span class="lintje-chart-tooltip__marker"
+                                 ${styleProps({
+                                   background: row.color,
+                                   // A light colour keeps the dark edge it has in the legend.
+                                   'box-shadow': lineCasing(row.color)
+                                     ? `inset 0 0 0 1px ${lineCasing(row.color)}`
+                                     : undefined,
+                                 })}></span>`
                     : nothing
             }
             ${row.label}
