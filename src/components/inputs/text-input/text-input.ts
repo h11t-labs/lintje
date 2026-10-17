@@ -195,6 +195,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
         <div
           class=${classMap({
             'lintje-text-input__box': true,
+            'lintje-field__box': true,
             'is-error': Boolean(this.error),
             'is-readonly': this.readonly,
             'is-disabled': this.isDisabled,
@@ -213,7 +214,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
             <input
               type=${this.inputType}
               id=${this.controlId}
-              class="lintje-text-input__control focus-inset"
+              class="lintje-text-input__control lintje-field__control focus-inset"
               .value=${this.value}
               placeholder=${this.placeholder}
               role=${search ? 'searchbox' : nothing}

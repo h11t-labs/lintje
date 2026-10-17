@@ -1,7 +1,4 @@
 /* The select. Its width is the host's, set from outside by tag. */
-:host { display: block; width: 180px; }
-
-/* ------------------------------------------------------------------------ */
 
 .lintje-select { position: relative; display: flex; align-items: center; }
 .lintje-select__control {
