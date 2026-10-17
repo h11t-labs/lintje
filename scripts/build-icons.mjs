@@ -112,7 +112,8 @@ const COMPONENT_ICONS = [
   'multimedia-player-full-screen-uitgaan', // video player: leave full screen
   'functioneel-geluid-aan', // video player: mute
   'functioneel-geluid-uit', // video player: sound on again
-  'op-kantoor-document-blanco', // attachment: any other file
+  'functioneel-ondertiteling', // the video player's captions
+  'op-kantoor-document-blanco', // file upload: a file row; attachment: any other file
   'op-kantoor-document-met-lijnen', // attachment: a document or text
   'op-kantoor-document-met-vlakken-en-lijnen-erop', // attachment: a spreadsheet
   'op-kantoor-document-met-tekst-csv', // attachment: a CSV

@@ -151,6 +151,64 @@ describe('lintje-job-list', () => {
     )
   })
 
+  it('reads nothing on the load, and the first job in a list that loaded empty', async () => {
+    const element = document.createElement('lintje-job-list')
+    document.body.append(element)
+    await element.updateComplete
+    const status = (): string => element.shadowRoot!.querySelector('[role="status"]')!.textContent!
+
+    element.jobs = []
+    await element.updateComplete
+    expect(status()).toBe('')
+
+    element.jobs = [{ id: 'x', name: 'Export aanvragen', state: 'busy' }]
+    await element.updateComplete
+    expect(status()).toBe('Export aanvragen wordt verwerkt.')
+  })
+
+  it('reads nothing when the first value it gets already holds jobs', async () => {
+    const element = await mount()
+    expect(element.shadowRoot!.querySelector('[role="status"]')!.textContent).toBe('')
+  })
+
+  describe('the last job gone with the focus in the list', () => {
+    async function emptied(cancel: boolean): Promise<{
+      element: LintjeJobList
+      heard: number
+      target: HTMLButtonElement
+    }> {
+      const element = await mount([{ id: 'c', name: 'Proefopname.mp3', state: 'cancelled' }])
+      const target = document.createElement('button')
+      document.body.append(target)
+      let heard = 0
+      element.addEventListener('lintje-jobs-empty', (event) => {
+        heard += 1
+        if (!cancel) return
+        event.preventDefault()
+        target.focus()
+      })
+      rows(element)[0]!.querySelector<HTMLElement>('lintje-button')!.focus()
+      element.jobs = []
+      await element.updateComplete
+      return { element, heard, target }
+    }
+    const region = (element: LintjeJobList): HTMLElement =>
+      element.shadowRoot!.querySelector<HTMLElement>('[role="status"]')!
+
+    it('asks the host, which puts the focus on a target of its own', async () => {
+      const { element, heard, target } = await emptied(true)
+      expect(heard).toBe(1)
+      expect(document.activeElement).toBe(target)
+      expect(region(element).textContent).toBe('Er staan geen taken meer in de lijst.')
+    })
+
+    it('puts the focus on its status region when the host lets it', async () => {
+      const { element, heard } = await emptied(false)
+      expect(heard).toBe(1)
+      expect(element.shadowRoot!.activeElement).toBe(region(element))
+    })
+  })
+
   it('says every state as a whole sentence, a failure with its reason', () => {
     const said = (state: Job['state'], detail?: string): string =>
       spokenState({ id: 'x', name: 'Rapport.docx', state, detail })

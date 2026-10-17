@@ -334,6 +334,22 @@ describe('lintje-log-viewer choosing a line', () => {
     press(third, 'Home')
     await element.updateComplete
     expect(rows(element)[0]!.tabIndex).toBe(0)
+    press(rows(element)[0]!, 'ArrowDown')
+    await element.updateComplete
+    expect(rows(element)[1]!.tabIndex).toBe(0)
+  })
+
+  it('goes to the newest line with End, and follows again', async () => {
+    const element = await mount()
+    const box = scrollable(element)
+    scrollTo(box, 600)
+    scrollTo(box, 100)
+    await element.updateComplete
+    expect(foot(element)).toContain('Staat stil')
+    press(rows(element)[0]!, 'End')
+    await element.updateComplete
+    expect(rows(element).at(-1)!.tabIndex).toBe(0)
+    expect(foot(element)).toContain('Volgt de nieuwste regel')
   })
 
   it('shows the chosen line in the bar, and lets it go', async () => {

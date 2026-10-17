@@ -72,11 +72,12 @@ Een component heeft een eigen map in zijn categorie (regel 20); `components/shar
 - `core/shortcuts.ts` — het ene register van sneltoetsen van de pagina. Een component roept
   `registerShortcut()` aan in `connectedCallback` en de teruggegeven functie in
   `disconnectedCallback`; het luistert nooit zelf op het document.
-- `components/shared/place.ts` — waar een zwevend vak staat: dat van de popover, de tooltip en
-  de toggletip.
+- `components/shared/place.ts` — waar een zwevend vak staat: dat van de popover, de tooltip, de
+  toggletip, de multiselect en de datumreeks.
 - `core/focus.ts` — de focus door shadow roots heen, en van wie de Escape is;
   `components/shared/focus-trap.ts` is de ene trap-stack die elk modaal ding activeert.
 - `components/shared/dialog-close.css` — de ene sluitknop van een dialoog.
+- `components/shared/month-grid.ts` — het ene maandraster, van de datuminvoer en de datumreeks.
 - `components/inputs/shared/field-foot.ts` — de ene voet van elk veld: de hint, of de
   melding die die vervangt.
 - `renderBadge()` (`components/feedback/badge/badge.ts`) — de ene tekening van een badge, ook voor een root

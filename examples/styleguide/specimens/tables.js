@@ -910,6 +910,24 @@ export default {
             )
           },
         },
+        {
+          label: 'Groepen kiezen',
+          note: 'Elke groepskop heeft een vinkje voor haar rijen. De eerste regio is gekozen, de tweede half.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => {
+            const [first, second] = REGIONS.map((region) => deskRows.filter((row) => row.region === region))
+            dashboard(stage, {
+              ...sheetData,
+              title: 'Loketten per regio',
+              subtitle: 'Kies een regio in haar kop',
+              groupBy: 'region',
+              groupTotals,
+              groupsPerPage: 3,
+              selectable: true,
+              checkedIds: [...first.map((row) => row.id), second[0].id],
+            })
+          },
+        },
       ],
     },
 {

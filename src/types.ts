@@ -297,6 +297,24 @@ export interface TableAction {
   disabled?: boolean
 }
 
+/** What `lintje-row-click` and `lintje-row-open` carry, in `lintje-list` and `lintje-data-table`. */
+export interface RowClickDetail {
+  id: string
+  /** The row's name: a list row's title, a table row's first column. */
+  label: string
+  /** The address the host gave the row, if any. */
+  href?: string
+}
+
+/** What `lintje-row-action` carries, in `lintje-list` and `lintje-data-table`. */
+export interface RowActionDetail {
+  id: string
+  /** The row's name: a list row's title, a table row's first column. */
+  label: string
+  /** The `value` of the chosen action. */
+  action: string
+}
+
 export interface SortState {
   key: string
   direction: 'asc' | 'desc'
@@ -309,7 +327,7 @@ export interface SortState {
  * `lintje-checked-change` with the checked keys in a selectable one;
  * `lintje-sort-change` with `{key, direction}` or `null`;
  * `lintje-cell-edit` `{id, column, value}` from an `editor` column;
- * `lintje-row-action` `{id, action}` from `rowActions`;
+ * `lintje-row-action` `{id, label, action}` from `rowActions`;
  * `lintje-bulk-action` `{ids, action}` from `bulkActions`;
  * `lintje-filter-change` `{column, value}` (`string[] | string | null`) from a column `filter`;
  * `lintje-columns-change` `{order, hidden}` from the `columnChooser`.
@@ -848,7 +866,7 @@ export type { Step, StepState, StepperOrientation } from './components/forms/ste
 export type { MenuEntry, MenuHeading, MenuItem } from './components/actions/menu-button/menu-button'
 export type { Crumb } from './components/frame/breadcrumbs/breadcrumbs'
 export type { SubNavAction, SubNavGroup, SubNavItem } from './components/frame/sub-nav/sub-nav'
-export type { ListItem, RowClickDetail } from './components/tables/list/list'
+export type { ListItem } from './components/tables/list/list'
 export type {
   CardAction,
   CardData,
