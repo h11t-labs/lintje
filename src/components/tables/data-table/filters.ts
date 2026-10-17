@@ -17,6 +17,7 @@ import type { SortableItem } from '../sortable-list/sortable-list'
 import type { TableColumnData } from '../../../types'
 import { deepActiveElement, tabbables } from '../../shared/focus-trap'
 import { standsIn } from '../../../core/focus'
+import { titleWhenCut } from '../../shared/cut-text'
 
 export type FilterValue = string[] | string
 
@@ -30,8 +31,13 @@ export function filterOut(value: FilterValue | null | undefined): FilterValue | 
   return Array.isArray(value) ? value : value.trim()
 }
 
+/** An option without a label of its own: in a `person` column, the person's name. */
 function optionLabel(column: TableColumnData, value: string): string {
-  return column.filter?.options?.find((option) => option.value === value)?.label ?? value
+  return (
+    column.filter?.options?.find((option) => option.value === value)?.label ??
+    (column.format === 'person' ? column.people?.[value]?.name : undefined) ??
+    value
+  )
 }
 
 export function chipText(column: TableColumnData, value: FilterValue): string {
@@ -161,7 +167,7 @@ export function renderFilterField(
         <span class="lintje-choice__box" aria-hidden="true"
           ><span class="lintje-choice__mark">✓</span></span
         >
-        <span class="lintje-choice__label">${option.label ?? option.value}</span>
+        <span class="lintje-choice__label">${optionLabel(column, option.value)}</span>
         ${
           option.count == null
             ? nothing
@@ -179,7 +185,8 @@ export function renderFilterPopover(options: {
   onDraft: (value: FilterValue) => void
   onApply: () => void
   onClear: () => void
-  onClose: () => void
+  /** With the popover's reason: a focus that left stays where it went. */
+  onClose: (reason: string) => void
   onLeave: (how: PanelLeave) => boolean
 }): TemplateResult {
   const { column } = options
@@ -191,9 +198,9 @@ export function renderFilterPopover(options: {
     .anchor=${options.anchor}
     @focusout=${leave.focusout}
     @keydown=${leave.keydown}
-    @lintje-close=${(event: Event) => {
+    @lintje-close=${(event: CustomEvent<{ reason: string }>) => {
       event.stopPropagation()
-      options.onClose()
+      options.onClose(event.detail.reason)
     }}
   >
     <div class="lintje-data-table__filter-panel">
@@ -248,6 +255,8 @@ export function renderToolbar(options: {
   chooser?: unknown
   onClearFilter: (column: string, button: HTMLElement) => void
   onClearAll: (button: HTMLElement) => void
+  /** Whether the sheet of filters is open, for the "Filters" button's `aria-expanded`. */
+  sheetOpen: boolean
   onOpenSheet: () => void
 }): TemplateResult {
   const active = options.columns.filter((column) => isFilterActive(options.values[column.key]))
@@ -264,6 +273,8 @@ export function renderToolbar(options: {
               variant="secondary"
               size="compact"
               icon="functioneel-filters"
+              haspopup="dialog"
+              .expanded=${options.sheetOpen}
               @click=${options.onOpenSheet}
               >Filters</lintje-button
             >`
@@ -273,7 +284,7 @@ export function renderToolbar(options: {
       ${active.map((column) => {
         const value = options.values[column.key] as FilterValue
         return html`<span class="lintje-data-table__chip"
-          >${chipText(column, value)}<button
+          ><span class="lintje-data-table__chip-text">${chipText(column, value)}</span><button
             type="button"
             class="lintje-data-table__chip-clear"
             aria-label=${`${funnelLabel(column, null)} wissen`}
@@ -291,7 +302,7 @@ export function renderToolbar(options: {
               class="lintje-button lintje-button--tertiary lintje-button--compact lintje-data-table__clear-all"
               @click=${(event: Event) => options.onClearAll(event.currentTarget as HTMLElement)}
             >
-              <span class="lintje-button__label">Filters wissen</span>
+              <span class="lintje-button__label" @pointerenter=${titleWhenCut}>Filters wissen</span>
             </button>`
           : nothing
       }
@@ -332,7 +343,8 @@ export function renderColumnChooser(options: {
   /** Every column shown, in the host's order; disabled while that is what stands. */
   onReset: () => void
   isDefault: boolean
-  onClose: () => void
+  /** With the popover's reason: a focus that left stays where it went. */
+  onClose: (reason: string) => void
   onLeave: (how: PanelLeave) => boolean
 }): TemplateResult {
   const leave = panelLeave(options.anchor, options.onLeave)
@@ -344,9 +356,9 @@ export function renderColumnChooser(options: {
     .anchor=${options.anchor}
     @focusout=${leave.focusout}
     @keydown=${leave.keydown}
-    @lintje-close=${(event: Event) => {
+    @lintje-close=${(event: CustomEvent<{ reason: string }>) => {
       event.stopPropagation()
-      options.onClose()
+      options.onClose(event.detail.reason)
     }}
   >
     <div class="lintje-data-table__filter-panel">

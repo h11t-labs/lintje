@@ -22,6 +22,16 @@
   touch-action: none;
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
+/* A finger reaches the strip through a transparent hit area at the AA floor (24 px), over the
+   panels' edges; a wider one would cover their content. A mouse keeps the 9 px. */
+@media (pointer: coarse) {
+  .lintje-split-pane__strip { position: relative; z-index: 1; }
+  .lintje-split-pane__strip::after {
+    content: '';
+    position: absolute;
+    inset: 0 calc((100% - var(--h-target-text)) / 2);
+  }
+}
 .lintje-split-pane__handle {
   flex: none;
   width: 7px; height: var(--h-touch);

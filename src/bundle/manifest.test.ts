@@ -53,6 +53,14 @@ describe('the tag reference', () => {
     const slots = of('lintje-tile').slots.map((slot) => slot.name)
     expect(slots).toEqual(expect.arrayContaining(['', 'legend', 'footnote']))
   })
+
+  it('names a slot bound per item after the field, not as the default slot', () => {
+    for (const tag of ['lintje-stepper', 'lintje-tabs']) {
+      const slots = of(tag).slots
+      expect(slots.map((slot) => slot.name)).toEqual(['<value>'])
+      expect(slots[0]!.description).toContain('per item')
+    }
+  })
 })
 
 describe('the data types', () => {
@@ -76,6 +84,9 @@ describe('the data types', () => {
       'heatmap',
       'histogram',
       'radar',
+      'dumbbell',
+      'treemap',
+      'sankey',
     ])
     const pie = spec.variants.find((variant) => variant.value === 'pie')!
     const field = (name: string) => pie.fields.find((f) => f.name === name)

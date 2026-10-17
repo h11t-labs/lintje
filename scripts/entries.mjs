@@ -47,8 +47,17 @@ function resolveImport(from, specifier) {
   return null
 }
 
+const importsCache = new Map()
+
+/**
+ * A file is read once per process: the closure of a hundred tags asks for the same files. The
+ * set is the cache's own; callers read it and never add to it.
+ */
 export function importsOf(file) {
-  const imports = new Set()
+  let imports = importsCache.get(file)
+  if (imports) return imports
+  imports = new Set()
+  importsCache.set(file, imports)
   if (!file.endsWith('.ts')) return imports
   for (const match of readFileSync(file, 'utf8').matchAll(IMPORT)) {
     if (match[1]) continue

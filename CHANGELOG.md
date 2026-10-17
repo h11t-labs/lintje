@@ -11,6 +11,196 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-17
+
+### Toegevoegd
+
+- Een trendpijltje (`change-compact`) draagt zijn woorden in een tooltip: de hele verandering, of
+  per rij een sjabloon met het nieuwe kolomveld `tooltip` (`{sleutel}` uit de rij). Een
+  schermlezer hoort dezelfde woorden, en onder de focus van het toetsenbord en zonder hover staan
+  ze voluit op de plaats van het pijltje. Ook een rij zonder bediening is met Tab bereikbaar om
+  de uitleg te lezen. (#228)
+- `lintje-text-input` krijgt `prefix` en `suffix`, een vaste tekst vóór of achter de invoer in een
+  eigen vak, en `action`, een knop aan het eind die eerst vastlegt en dan `lintje-action` stuurt;
+  `lintje-number-input` krijgt `prefix`, en zijn eenheid staat in hetzelfde vak. (#213)
+- `lintje-radio-group` en `lintje-checkbox-group` hebben `other`: de laatste optie "Anders,
+  namelijk" met een tekstveld eronder zolang ze gekozen is. De tekst is `otherText`, gemeld als
+  `lintje-other-change` en meegestuurd als `<name>-other` in de post, in `lintje-values-change` en
+  in het concept en de submit van `lintje-form`; een fout van de host onder `<name>-other` staat
+  onder het veld (`other-error`), met een ingang in de foutsamenvatting. `OTHER_MISSING_TEXT` is
+  de standaardtekst. (#199)
+- Een omschrijving van een optie staat in `lintje-radio-group` ook in de gewone rijen, onder het
+  label en gekoppeld aan haar radio. (#199)
+- Een groepskop in een gegroepeerde, kiesbare `lintje-data-table` heeft een vinkje voor de kiesbare rijen van haar groep: aan, half of uit, ook ingeklapt en op een telefoon, en het stuurt `lintje-checked-change` zoals een rijvinkje. (#171)
+- `lintje-form-actions` werpt een schaduw naar boven zolang het formulier erachter scrolt, met het nieuwe token `--shadow-sticky-up`; op zijn eigen plek onder het formulier heeft hij geen schaduw. (#160)
+
+### Gewijzigd
+
+- De teller van `lintje-textarea` staat rechts op de regel van de toelichting of de foutmelding,
+  in plaats van op een eigen regel; past het niet naast elkaar, dan valt hij eronder, rechts. (#190)
+- Een actieve `lintje-icon-button` heeft een echte rand, ook in donker en in geforceerde kleuren,
+  en houdt zijn vulling onder de muis. (#189)
+- De voet van het zijmenu opent het gebruikersmenu, boven de voet, met de rijen van de host,
+  "Afmelden" en de versie, zoals de avatar in de bovenindeling; de losse knop "Afmelden" in de
+  voet verdwijnt. `lintje-user-menu` krijgt daarvoor `variant="side"` en `folded`, en stuurt
+  `lintje-toggle` als het menu opent of sluit. (#187)
+- `lintje-form-actions` plakt niet bij een viewport lager dan 30 rem (een telefoon dwars, 400 % zoom): hij staat dan na het laatste veld en houdt geen ruimte vrij onderaan de scroller. (#170)
+- Een open sheet van `lintje-notifications` sluit als het scherm 768 px of breder wordt, net als het menu van de shell, en de focus gaat naar de bel. Daarvoor werd hij een popover. (#169)
+- **Brekend:** `lintje-row-action` van `lintje-list` stuurt `action` in plaats van `value`, zoals de tabel; beide sturen `{ id, label, action }`, en `RowActionDetail` en `RowClickDetail` staan als gedeelde types in het pakket. (#163)
+- `lintje-app-search`, de sheet van `lintje-notifications` onder 768 px en `lintje-filter-sheet` houden zich vast met `DialogHold`, net als de dialoog, de modal en de drawer: de pagina erachter scrolt niet, de focus blijft erin en Escape sluit alleen het bovenste venster, met één stuk code voor alle zes. Voor een gebruiker verandert er niets. (#161)
+
+### Verwijderd
+
+- **Brekend:** `size` op `lintje-icon-button` is weg; het deed niets, de knop is altijd
+  `--h-icon-button`. Een host in TypeScript die `.size` zet, haalt die regel weg. (#200)
+
+### Opgelost
+
+- Het getal in een badge staat midden in zijn vlak, in elke browser: de waarde is afgesneden op hoofdletterhoogte en basislijn, en het tellertje tilt het niet meer een pixel op. (#232)
+- Een live `lintje-log-viewer` opent bij de nieuwste regel in plaats van de oudste, en blijft daar zolang je volgt, ook als een regel openklapt. Het logvenster en `lintje-chat` bepalen "onderaan" met één gedeelde regel. Tab uit een `lintje-menu-button` gaat ook in Firefox naar de volgende stop, en Shift+Tab terug naar de knop. (#211)
+- Onder 768 px blijft de filterzin van `lintje-filter-bar` bij het scrollen direct onder de balk
+  van de shell staan, in de zij- en in de bovenindeling, en de shell houdt de gemeten hoogte van
+  de zin vrij boven de focus. (#209)
+- De toelichting en de foutmelding onder `lintje-checkbox` en `lintje-toggle` beginnen onder de
+  labeltekst, niet onder het vakje of de schakelaar; daarmee springt ook de toelichting bij een
+  optie van `lintje-checkbox-group` en `lintje-multiselect` in. (#206)
+- Elementen die na het tekenen meten (popover, tooltip, toggletip, segmentkeuze, paginering, tabs, schuifbereik, chatinvoer, filterzone, schil en paginakop) tekenen zich niet meer een tweede keer, en `/` staat één keer in het register, hoeveel `lintje-app-search` de pagina ook heeft. Een browsertest faalt voortaan op beide waarschuwingen. (#205)
+- `lintje-page-header` toont zijn beschrijving ook onder 768 px buiten de shell, zodat wat de host onder de titel zet op een telefoon te lezen blijft; de afstand tot de titel is op elke breedte `--space-2`. (#204)
+- `lintje-job-list` leest ook de eerste taak in een lijst die leeg laadde voor: `jobs` is
+  `undefined` tot de host hem zet, en alleen die eerste waarde geldt als laden. Gaat de laatste
+  taak met de focus erin, dan stuurt de lijst `lintje-jobs-empty`; annuleert de host het, dan zet
+  hij de focus zelf op een zichtbaar doel, anders gaat ze naar de statusregel. (#198)
+- Het lint in de logobalk groeit mee met de tekstgrootte van de lezer, net als de balk: in de logobalk en op papier neemt `lintje-logo` zijn breedte uit `--w-ribbon`. (#197)
+- De foutsamenvatting, de uitgeklapte tabel en een enkele `lintje-range` worden niet meer dubbel
+  voorgelezen: de samenvatting is een groep met haar kop als naam en de focus is de melding, de
+  tabel wist haar laatste bericht bij uitklappen en sluiten, en een enkele schuif heet naar zijn
+  label zonder de waarde, die hij één keer zegt uit `aria-valuetext`. (#194)
+- `lintje-map` is een groep met de beschrijving van de kaart als naam; een stroom met focus krijgt
+  de ring van elk ander teken, 3 px buiten een opening van 1 px; en het teken met focus ligt met
+  zijn ring boven alle andere tekens, ook langs een rand die het met een later vlak deelt. (#192)
+- De werkbalk van `lintje-document-viewer` is één Tab-stop: de pijlen lopen rond langs de knoppen,
+  Home en End blijven de eerste en de laatste pagina. "Passend" staat gevuld zolang hij aan staat,
+  en zijn percentage volgt de breedte van de weergave. (#189)
+- De selectiebalk van `lintje-data-table` is een groep, geen werkbalk: elke knop blijft een eigen
+  Tab-stop. (#189)
+- Een bezig `lintje-form` zet ook elke `lintje-repeater` uit: tijdens het opslaan komt er geen rij
+  bij of af, ook niet bij een rij of repeater die dan pas verschijnt. (#186)
+- Een invoer in een `<fieldset disabled>` gaat weer aan zodra de fieldset aan gaat: hij is weer te bedienen, post zijn waarde en houdt een leeg verplicht veld weer tegen. `disabled` blijft van de host; de fieldset schrijft er niet meer in. (#185)
+- Afgekapte tekst loopt door onder de focus van het toetsenbord, zonder hover en onder 768 px in het zijmenu van `lintje-shell`, de resultaten van `lintje-app-search`, de menurijen, `lintje-tree-view`, de rijlabels van een heatmap en de chips van `lintje-multiselect`, en staat met een aanwijzer heel in de tooltip; de stapnaam van `lintje-stepper` op een telefoon, de sprekersnaam in een `readonly` `lintje-transcript` en de naam in `lintje-document-viewer` kappen nooit meer af; een afgekapte filterzin in de dichtgeklapte filterbalk staat heel in de tooltip. (#181)
+- De shell heet naar wat je ziet: de thuislink naar de organisatie in het logo, met "Naar de
+  startpagina" als tooltip, en de knoppen in "Weergave" naar hun woord. `lintje-logo` zegt ook
+  de ondertitel waar die getekend is, het icoon van de feedbacklink zit in de bundel (zonder
+  bestand toont de link zijn woord), en een `<lintje-icon label>` houdt zijn label tijdens het
+  laden en zonder bestand. (#177)
+- Het label van een knop loopt door op een volgende regel onder de focus van het toetsenbord, zonder hover en onder 768 px, en een afgekapt label staat heel in de tooltip; een filterchip van `lintje-data-table` loopt altijd door en blijft binnen de tabel. (#167)
+- `lintje-form-actions` scrolt een element met focus dat deels onder de vastgeplakte balk valt, helemaal van zich vrij, met rand en padding; in WebKit bleef de onderkant van een tekstveld bedekt. (#165)
+- De menuknop en de knop Filters zeggen hun staat één keer: de menuknop van `lintje-shell` op een telefoon en de knop "Menu" van een ingeklapte navigatiebalk heten "Menu" of "Sluiten", naar hun woord, zonder `aria-expanded`, en de knop van `lintje-filter-zone` heet in beide standen "Filters", met `aria-expanded`. (#159)
+- Een knop en de datumreeks zeggen hun hele staat aan een schermlezer: een uitgeschakelde `lintje-button` met een reden leest ook zijn beschrijving, de telefoonknop "Filters" van `lintje-data-table` zegt dat hij een venster opent en of het open is, beide helften van een gesplitste `lintje-menu-button` zijn `aria-disabled` terwijl hij bezig is, en het raster van `lintje-date-range` is meervoudig te kiezen. (#157)
+- Een afgedrukte `lintje-data-table` houdt geen lege cellen over in een groepskop, een subtotaalrij en de totaalrij: die rijen hebben per vinkjes-, detail- en actiekolom een eigen cel die op papier met de kolom verdwijnt, zodat ze niet meer opschuiven ten opzichte van de rijen eronder. (#156)
+
+## [0.6.0] - 2026-10-16
+
+### Toegevoegd
+
+- De kaart neemt `size`, op de kaart en per laag: `min`/`max` zetten het pixelbereik van een
+  punt (standaard 3–18), `by: 'none'` tekent elke punt op `min` zonder groottesleutel in de
+  legenda, en `zoom: true` laat de straal met de zoom meegaan, tussen 2 en 28 px. Nieuw specimen
+  *Kaart · puntgrootte met de zoom*. (#225)
+- Een kaartreeks krijgt met `seriesStyles` een eigen stijl — een datakleur of `neutral` (het
+  vergelijkingsgrijs), en/of een van de zeventien vormen — los van haar naam; punten, legenda en
+  selectiepaneel tekenen dezelfde stijl. Een reeks zonder stijl is wat ze was. Nieuw specimen
+  *Kaart · reeksen in één kleur*. (#224)
+- Een stap van `lintje-stepper` kan eigen inhoud dragen: een stap met een `value` heeft een slot
+  met die naam. In de kolom staat de inhoud van elke stap onder zijn kop; in de rij en op een
+  telefoon alleen die van de huidige stap, onder de rij of de balk. De referentie noemt een slot
+  met een gebonden naam, zoals dat van `lintje-tabs`, als één slot per item. (#143)
+
+### Gewijzigd
+
+- De build minificeert de modules en de ingesloten CSS: `lintje.js` gaat van 1,9 naar 1,5 MB (gzip van 468 naar 389 kB), `tag/map.js` van 624 naar 438 kB. De CSS wordt niet omlaag vertaald: `color-mix()` en `oklch()` blijven zoals ze geschreven zijn. (#221)
+- De unittests delen één happy-dom-venster per worker en `npm run test:unit` draait daardoor bijna drie keer zo snel; `src/bundle/unit-setup.ts` zet vóór elk bestand de pagina terug, en een test die een lege registry nodig heeft of een module mockt, draait in het project `unit-window`. (#221)
+- Een klikbare rij van `lintje-data-table`, een teken in `lintje-chart` en een markering op
+  `lintje-map` met een `href` gaan erheen na hun event, en een selectie ongedaan maken gaat naar
+  `clearHref`. Een klik met een modifier of de middelste knop opent de `href` in een nieuw tabblad.
+  Een host die zelf navigeert of `selectedId` zet, annuleert het event. (#149)
+- Geen hover neemt nog `--color-bg-selected`; een herkende term met toelichting toont onder de
+  muis een dikkere lijn. (#139)
+
+### Opgelost
+
+- Een brede tabel krijgt geen verticale scrollbalk meer naast zijn smalle horizontale: het vak
+  scrolt alleen opzij. (#226)
+- De legendatabel onder een taart houdt haar kolommen ook in Edge: de rijkop is weer een
+  tabelcel, zodat aantal en % onder hun eigen kop staan; een lang etiket springt in onder zijn
+  eerste regel, met het kleurblokje op die regel. (#222)
+- Een schermlezer hoort de nieuwe waarde na − of + in `lintje-number-input`, de beschrijving van
+  een gekozen optie in `lintje-segmented` en een wisselende verbinding in
+  `lintje-recording-status`; een cel met een toon in `lintje-description-list` draagt het woord
+  van haar teken verborgen vóór de waarde. (#196)
+- De focusring van een optie van `lintje-segmented` naast de gekozen optie is aan alle kanten heel,
+  en de knop van `lintje-file-upload` houdt zijn focus tijdens en na een sleep over de pagina.
+  (#191)
+- Een groep in de navigatiebalk die een tik opende, sluit niet meer meteen weer als er een muis
+  op de pagina staat: het verlaten van de balk sluit alleen een groep die onder de muis openging.
+  (#182)
+- `lintje-expander`, `lintje-explainer` en `lintje-filter-zone` laten hun inhoud los zodra hun
+  hoogte staat; ze wachten alleen op een overgang van de hoogte die echt loopt. (#179)
+- Na wissen leest `lintje-find` geen melding meer voor die nog onderweg was. `lintje-notifications`,
+  `lintje-log-viewer`, `lintje-find`, `lintje-card` en `lintje-card-list` spreken via de gedeelde
+  live-regio, dus ook dezelfde melding twee keer na elkaar klinkt twee keer. (#158)
+- Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame later, zodat de browser
+  geen `ResizeObserver`-lus meer als fout van de pagina meldt; een lusfout laat de browsertest
+  falen. Onder verminderde beweging loopt alleen opacity nog, en staan de focusring en een
+  kleurwissel meteen. (#152)
+- `lintje-segmented` blijft een rij als hij hoogstens één pixel te breed meet: bij zoom in Safari wisselde hij eindeloos tussen rij en kolom tot de pagina werd afgeschoten. In de transcriptie-app delen "Soort gesprek" en "Opnemen met" de breedte niet meer 50/50, zodat de soorten naast de recente opnames op één rij blijven. (#151)
+- Na nieuwe data sluit de tooltip van het toetsenbord en wordt de statusregio leeg; de volgende
+  pijltoets begint binnen de nieuwe data. Een taart neemt altijd de focus en loopt met de pijltjes
+  door haar delen, en zonder legendatabel staat de gewone legenda boven de taart. (#150)
+- Op een aanraakscherm sluit een tweede tik op een geopende groep in de navigatiebalk hem weer. Muis,
+  toetsenbord en "Menu" werken zoals ze deden. (#148)
+- Een bestand dat naast de dropzone van `lintje-file-upload` valt, opent niet meer in de browser:
+  zolang de upload bestanden aanneemt, doet zo'n bestand niets en zegt de aanwijzer buiten de zone
+  dat loslaten niet kan. De zone wijst zichzelf aan zolang je sleept en vult zich pas als het bestand erboven hangt. (#147)
+- Een melding klinkt ook als ze er meteen staat, of voor de tweede keer. Het woord van het wachtvak
+  van `lintje-streaming-text` wordt voorgelezen, en dezelfde melding twee keer na elkaar klinkt
+  twee keer in `lintje-tag-input`, `lintje-file-upload`, `lintje-repeater` en
+  `lintje-sortable-list`. (#146)
+- De terugzetknop van een veld noemt het veld na zijn eigen woorden, en `reset-label` werkt nu
+  ook op `lintje-text-input` en `lintje-textarea`. Een natief veld in `lintje-form` krijgt bij een
+  fout de melding als `aria-description`. (#145)
+- In donker halen de stip van een gekozen keuze in een menu, de balk van een gekozen rij, de lijn
+  onder een term, een link in een getinte cel van `lintje-description-list`, de vulling en het
+  spoor van `lintje-progress-bar`, een foutstap in `lintje-stepper` en de tijdcode op een getint
+  fragment hun contrast. (#139)
+- De stippellijn "lage zekerheid" van `lintje-highlight` haalt in licht 3:1 op haar tint. (#139)
+- De focusring haalt in licht 3:1 op elke lichte ondergrond, ook op de waas van de hero: hij is
+  daar een donkerder oranje; in donker blijft hij het oranje van de huisstijl. (#139)
+- Het omgevingslabel haalt 4,5:1: de tekst is bijna-zwart op het oranje accent en blijft wit op
+  het blauw van defensie. (#139)
+- Een gestapelde staaf leest zijn percentages ook in donker: "Overig" is daar iets lichter, en een
+  label op de rest neemt de tekstkleur. (#139)
+- Escape sluit een toast alleen nog vanuit de toast zelf, en de Escape die een opgetilde verdeling
+  van `lintje-split-pane` terugzet, sluit geen venster eromheen meer. (#139)
+- `lintje-popover` vraagt ook om te sluiten als de focus hem verlaat (`lintje-close` met
+  `reason: 'focus'`); de linkdialoog van `lintje-text-editor` en de panelen van
+  `lintje-data-table` laten de focus dan waar hij heen ging. (#139)
+- De trendlijn van een staafgrafiek breekt bij een ontbrekende waarde in plaats van die te
+  overbruggen; een losse bekende waarde is een stip, zoals in de lijngrafiek. (#139)
+- Een invoer met `required` houdt een native formulier tegen zolang hij leeg is, voor elke invoer
+  en niet alleen tekst, getal en textarea, met de melding van de browser bij het
+  bedieningselement. (#139)
+
+## [0.5.1] - 2026-10-15
+
+### Gewijzigd
+
+- Donker houdt de volgorde van licht: menu onder pagina onder oppervlak. De pagina ligt halverwege
+  het menu en het oppervlak, zodat een band, een tegel en de logobalk erop staan; de hero-waas
+  ligt onder de pagina, zoals in licht. (#137)
+- Een inhoudsfout in een tegel, een tabel of een kerncijfer is de toon fout, zoals de losse melding; de foutsamenvatting en een geweigerd bestand nemen het teken en de tint van die toon. Secundaire tekst is één token, `--text-small` (`--text-meta` en `--text-tile-sub` blijven als alias). De duren van de menurail hangen aan `--dur-rail`, de maten van hero en transcript staan op de tekstschaal, en de ruimte tussen een icoon en zijn woord is `--space-2`. (#136)
+- Wat nog openstaat, staat als issue op GitHub; `docs/OPEN_ISSUES.md` is weg. Een issue met het label
+  `agent` zegt wat er mis is, hoe het moet zijn, waar het zit en wanneer het klaar is. (#135)
+
 ## [0.5.0] - 2026-10-14
 
 ### Toegevoegd
@@ -288,7 +478,10 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.5.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/h11t-labs/lintje/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/h11t-labs/lintje/compare/v0.5.1...v0.6.0
+[0.5.1]: https://github.com/h11t-labs/lintje/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/h11t-labs/lintje/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/h11t-labs/lintje/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/h11t-labs/lintje/compare/v0.2.0...v0.3.0

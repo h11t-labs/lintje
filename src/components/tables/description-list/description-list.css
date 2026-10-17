@@ -57,6 +57,7 @@
 
 .lintje-description-list__main { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); min-width: 0; }
 .lintje-description-list__main .lintje-icon { align-self: center; flex: none; }
+.lintje-description-list__keys { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
 .lintje-description-list__tags { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
 .lintje-description-list__tag {
   display: inline-flex; align-items: center;

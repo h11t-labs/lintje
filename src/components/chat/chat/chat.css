@@ -45,6 +45,29 @@
   }
 }
 
+/* A line between turns, centred as a boundary between two parts, not a heading over the next. */
+.lintje-chat__divider { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
+.lintje-chat__divider-label {
+  display: flex; align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  margin: 0;
+  font: var(--text-meta);
+  color: var(--color-text-muted);
+}
+.lintje-chat__divider-line { flex: 1 1 0; height: 1px; background: var(--color-border-default); }
+.lintje-chat__divider-note {
+  margin: 0;
+  font: var(--text-meta);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+/* Trimmed is about everything above: it weighs more, and its arrow points there. */
+.lintje-chat__divider--context .lintje-chat__divider-label { font-weight: 700; color: var(--color-text-primary); }
+.lintje-chat__divider--context .lintje-chat__divider-line { background: var(--color-border-heavy); }
+.lintje-chat__divider-text { display: inline-flex; align-items: center; gap: var(--space-1); }
+.lintje-chat__divider-icon { flex: none; }
+
 .lintje-chat__answer { transition: opacity var(--dur-base) var(--ease-in-motion); }
 .lintje-chat__answer.is-replaced { opacity: 0.45; }
 
@@ -70,7 +93,13 @@
   background: var(--color-bg-surface);
   border-top: 1px solid var(--color-border-default);
 }
-.lintje-chat__composer { max-width: var(--w-text); margin: 0 auto; }
+/* The assistant's questions above the question box, the same width, in the same frame. */
+.lintje-chat__ask {
+  display: flex; flex-direction: column;
+  gap: var(--space-2);
+  max-width: var(--w-text);
+  margin: 0 auto;
+}
 
 /* --- The start screen --- */
 .lintje-chat__intro { display: flex; flex-direction: column; gap: var(--space-4); max-width: 640px; }
@@ -101,4 +130,9 @@
   .lintje-chat__title { font: var(--text-h1); }
   .lintje-chat__footer { padding: var(--space-3) var(--space-4) var(--space-4); }
   .lintje-chat__sources { padding: var(--space-3) var(--space-4); }
+}
+
+/* Forced colours drop fills, so the divider's lines are drawn in the text colour. */
+@media (forced-colors: active) {
+  .lintje-chat__divider-line { forced-color-adjust: none; background: CanvasText; }
 }

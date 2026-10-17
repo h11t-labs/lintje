@@ -38,8 +38,11 @@
   --alpha-white-45: rgba(255, 255, 255, 0.45);
 
   /* --- Focus -------------------------------------------------------------
-     Its own constant: it must not move with the accent or the attention status. */
+     Its own constant: it must not move with the accent or the attention status. The orange is
+     3.22:1 on white and falls short on the light grey surfaces and the status tints; the deep
+     orange is the smallest share of black that reaches 3:1 on all of them. */
   --focus-orange: #E17000;
+  --focus-orange-deep: color-mix(in srgb, var(--focus-orange), black 9%);
 
   /* --- The ribbon --------------------------------------------------------
      Lintblauw, and the Rijkshuisstijl's own lighter tint for the ribbon in the logo in dark. */
@@ -48,7 +51,7 @@
 
   /* --- Data (fixed Rijkshuisstijl, identical in light, dark and every theme)
      The two grays follow the mode: as fixed literals the comparison line landed at 2.69:1
-     on the dark surface. Light #475569 / #94A3B8, dark #B0B0B0 / #7A7A7A. The variables
+     on the dark surface. Light #475569 / #94A3B8, dark #B0B0B0 / #808080. The variables
      stand in the order of `tokens/colors.ts`, the one list of their names. */
   --data-sky-blue: #007BC7;
   --data-dark-yellow: #FFB612;
@@ -79,6 +82,13 @@
   --data-other: var(--neutral-4);
   /* Yellow as TEXT fails contrast on white: light writes a wait time in this dark gold. */
   --data-dark-yellow-text: #B07A00;
+  /* A light colour as a line or a mark reaches 3:1 by an edge: the colour halfway to black,
+     written out so it never follows a mix. Dark yellow takes its text colour. */
+  --data-mint-green-edge: #3B695B;
+  --data-orange-edge: #703800;
+  --data-pink-edge: #784966;
+  --data-yellow-edge: #7C700F;
+  --data-light-blue-edge: #476573;
   /* Grid and emphasis follow the surface, like the two grays. */
   --data-grid: var(--neutral-3);
   --data-emphasis: var(--neutral-6);
@@ -295,7 +305,8 @@
   /* The smallest pointer target. A box that draws smaller reaches it through a
      transparent hit area (`::after`, negative inset). */
   --h-target: 3rem;
-  /* A link in a list of text links: one line of text, the WCAG AA floor, as on rijksoverheid.nl. */
+  /* The WCAG AA floor: a link in a list of text links (one line of text, as on rijksoverheid.nl)
+     and a finger's hit area on a split pane's strip. */
   --h-target-text: 1.5rem;
   /* The two dense exceptions to the target: a date picker day cell and a listbox option row. */
   --h-option: 2.5rem;
@@ -355,6 +366,7 @@
   --radius-round: 50%;
 
   --shadow-sticky: 0 2px 6px var(--alpha-black-08);
+  --shadow-sticky-up: 0 -2px 6px var(--alpha-black-08);
   --shadow-popover: 0 4px 16px var(--alpha-black-14);
   --shadow-nav: 2px 0 8px var(--alpha-black-08);
   --shadow-chart-hover: 0 1px 4px var(--alpha-black-22);
@@ -415,6 +427,7 @@
   --color-text-on-light-fill: var(--ink-black);
   --color-qr-bg: var(--ink-white);
   --color-qr-fg: var(--ink-black);
+  --color-media-bg: var(--ink-black);
 
   /* --- Semantic: borders ------------------------------------------------- */
   --color-border-default: var(--neutral-3);
@@ -430,6 +443,15 @@
   /* A DASHED outline (a suggestion, an uncertain term): neutral-5, because a dashed line has half
      the ink of a solid one and must still reach 3:1. */
   --color-border-suggestion: var(--neutral-5);
+
+  /* --- Semantic: avatar -------------------------------------------------- */
+  /* A person's circle: one neutral fill for everyone; a person is no variable. */
+  --color-avatar-bg: var(--neutral-3);
+  /* The initials and the icon on that fill: 14.5:1 in light, 8.9:1 in dark. */
+  --color-avatar-text: var(--color-text-primary);
+  /* The DASHED edge of the circle where nobody stands yet: neutral-5, as a dashed line has half the
+     ink of a solid one and must still reach 3:1. */
+  --color-avatar-empty-line: var(--neutral-5);
 
   /* --- Semantic: action -------------------------------------------------- */
   --color-action-primary: var(--primary);
@@ -458,7 +480,7 @@
   --color-accent-line: var(--primary);
   --color-accent-text: var(--primary);
 
-  --color-focus: var(--focus-orange);
+  --color-focus: var(--focus-orange-deep);
 
   /* --- Semantic: status -------------------------------------------------- */
   --color-attention: var(--status-attention);
@@ -504,7 +526,9 @@
   /* The theme's ACCENT, not the attention status: on `defensie` the menu is `#E17000` and the
      status colour made the band disappear. `--accent` is document level only. */
   --color-nav-environment-bg: var(--accent);
-  --color-nav-environment-text: var(--color-text-on-fill);
+  /* White is 3.22:1 on the orange accent, ink 3.96:1 on Defensie's blue: above lightness 0.6 the
+     word is ink (`--ink-black`, written as its oklch), below it white. */
+  --color-nav-environment-text: oklch(from var(--accent) clamp(0.208, (0.6 - l) * 1000, 1) clamp(0, (l - 0.6) * 1000, 0.04) 265.8);
   /* The page's surface in both modes. The navigation bar under it is the menu turned a quarter,
      on `--color-nav-*`. */
   --color-logobar-bg: var(--color-bg-surface);
@@ -517,11 +541,9 @@
   --color-navbar-active: var(--primary-hover);
   --color-navbar-active-edge: var(--ink-white);
   --color-navbar-open-text: var(--color-accent-text);
-  /* The start page's band is the primary's wash, so it never reads as the menu. The orange ring
-     misses 3:1 on it; the ring takes the text colour. */
+  /* The start page's band is the primary's wash, so it never reads as the menu. */
   --color-hero-bg: var(--primary-wash);
   --color-hero-text: var(--color-text-primary);
-  --color-hero-focus: var(--color-text-primary);
   /* The site's foot stands on the menu's own fill, as on rijksoverheid.nl; in dark it follows the menu. */
   --color-footer-bg: var(--color-nav-bg);
   --color-footer-text: var(--color-nav-text);
@@ -532,8 +554,21 @@
   --color-term-bg: var(--primary-wash);
   /* The chosen option of a row of options: the primary's wash; dark re-points it. */
   --color-choice-active-bg: var(--primary-wash);
+  /* The days between the start and the end of a chosen period: a clear tint of the primary,
+     unlike the grey of a hover or a selected row, so the period reads as one stretch. The
+     endpoints and the words carry the period, so the fill needs no 3:1. Dark re-declares it. */
+  --color-range-bg: oklch(from var(--primary) 0.86 min(c, 0.04) h);
+  /* The edge of a chosen day in a calendar: lighter than its primary fill, as dark's is, so two
+     chosen days and a chosen day beside the period's tint stay apart. Dark re-declares it. */
+  --color-chosen-day-edge: oklch(from var(--primary) 0.8 min(c, 0.1) h);
   /* The 2 px line under a term; dark takes the text tint, as the line tint falls short on it. */
   --color-term-line: var(--color-accent-line);
+  /* The 4 px edge of a chosen row; dark takes the text tint, as the line tint falls short on the
+     selected surface. */
+  --color-selected-edge: var(--color-accent-line);
+  /* The empty part of a progress bar. Light keeps the border grey: the inset grey vanishes on
+     white; dark sinks it, so every fill reaches 3:1 on it. */
+  --color-progress-track: var(--color-border-default);
 
   /* --- Data colors ------------------------------------------------------- */
   /* One colour per variable, named after the Rijkshuisstijl colour. */
@@ -543,17 +578,22 @@
   --color-chart-red: var(--data-red);
   --color-chart-green: var(--data-green);
   --color-chart-mint-green: var(--data-mint-green);
+  --color-chart-mint-green-edge: var(--data-mint-green-edge);
   --color-chart-violet: var(--data-violet);
   --color-chart-orange: var(--data-orange);
+  --color-chart-orange-edge: var(--data-orange-edge);
   --color-chart-pink: var(--data-pink);
+  --color-chart-pink-edge: var(--data-pink-edge);
   --color-chart-dark-green: var(--data-dark-green);
   --color-chart-purple: var(--data-purple);
   --color-chart-ruby-red: var(--data-ruby-red);
   --color-chart-yellow: var(--data-yellow);
+  --color-chart-yellow-edge: var(--data-yellow-edge);
   --color-chart-dark-brown: var(--data-dark-brown);
   --color-chart-brown: var(--data-brown);
   --color-chart-dark-blue: var(--data-dark-blue);
   --color-chart-light-blue: var(--data-light-blue);
+  --color-chart-light-blue-edge: var(--data-light-blue-edge);
   --color-chart-moss-green: var(--data-moss-green);
   --color-chart-secondary: var(--data-comparison); /* comparison, context */
   --color-chart-other: var(--data-other);          /* "Overig" */
@@ -568,6 +608,9 @@
   /* A speaker's colour under a whole fragment: this share of it over the surface, so text keeps
      its contrast in light and in dark. */
   --tint-speaker: 12%;
+  /* What a recording still has to play: this share of the speaker's colour over the surface; in
+     light that is the `-tint-4` step of its ladder. */
+  --tint-speaker-ahead: 45%;
 
   /* These map colours stay deliberately neutral so the data is the only colour on the map. */
   --color-map-water: var(--neutral-0);
@@ -772,6 +815,9 @@
     --color-border-popover: var(--neutral-3);
     --color-nav-line: var(--neutral-2);
     --color-nav-disabled: var(--neutral-4);
+    /* The deep orange falls under 3:1 on the dark warning tint; the house orange reaches 3.3:1 on
+       every dark surface. */
+    --color-focus: var(--focus-orange);
     /* The menu is neutral here, so its ring is the orange of every other surface. */
     --color-focus-on-theme: var(--color-focus);
     /* The choice edge keeps neutral-4 in dark: it already reaches 3:1 there (3.43:1 on #282828). */
@@ -780,14 +826,29 @@
     /* A term's box is the subtle surface: behind a word on #282828 the dark wash would be a hole. */
     --color-term-bg: var(--neutral-2);
     --color-choice-active-bg: var(--neutral-2);
-    --color-hero-focus: var(--color-focus);
+    /* The dark counterpart: above the surface and the subtle grey, under white text. */
+    --color-range-bg: oklch(from var(--primary) 0.36 min(c, 0.04) h);
+    /* The primary tint, and always a step above the fill: an orange primary is its own tint. */
+    --color-chosen-day-edge: oklch(from var(--primary) max(l + 0.1, 0.55) min(c, 0.15) h);
     --color-term-line: var(--primary-tint-text);
+    --color-selected-edge: var(--primary-tint-text);
+    --color-progress-track: var(--color-bg-inset);
 
     /* Yellow as text works on the dark surface, so the dark gold is not needed. */
     --color-chart-dark-yellow-text: var(--data-dark-yellow);
+    /* The edges melt into their line: on the dark surface a light colour reaches 3:1 itself. */
+    --color-chart-mint-green-edge: var(--data-mint-green);
+    --color-chart-orange-edge: var(--data-orange);
+    --color-chart-pink-edge: var(--data-pink);
+    --color-chart-yellow-edge: var(--data-yellow);
+    --color-chart-light-blue-edge: var(--data-light-blue);
+    /* A label on "Overig" is ink: neutral-4 holds it at 4.16:1, so the gray takes the smallest
+       share of neutral-5 that reaches 4.5:1. */
+    --data-other: color-mix(in srgb, var(--neutral-5) 11%, var(--neutral-4));
     --color-map-water: var(--neutral-1);
 
     --shadow-sticky: 0 2px 6px var(--alpha-black-40);
+    --shadow-sticky-up: 0 -2px 6px var(--alpha-black-40);
     --shadow-popover: 0 4px 16px var(--alpha-black-55);
     --shadow-nav: 2px 0 8px var(--alpha-black-40);
     --shadow-chart-hover: 0 1px 4px var(--alpha-black-60);

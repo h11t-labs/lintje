@@ -108,4 +108,38 @@ describe('lintje-description-list', () => {
       'Namen team Planning',
     ])
   })
+
+  it('draws keys as lintje-key, one per string, and "Geen" without any', async () => {
+    const element = await mount([
+      { label: 'Opslaan', keys: ['Ctrl', 'S'] },
+      { label: 'Niets', keys: [] },
+    ])
+    const [save, none] = [...element.shadowRoot!.querySelectorAll('.lintje-description-list__row')]
+    const keys = [...save!.querySelectorAll('.lintje-description-list__keys lintje-key')]
+    expect(keys.map((key) => key.getAttribute('key'))).toEqual(['Ctrl', 'S'])
+    await Promise.all(
+      keys.map((key) => (key as HTMLElement & { updateComplete: Promise<unknown> }).updateComplete),
+    )
+    expect(keys[0]!.shadowRoot!.querySelector('kbd.lintje-key')!.textContent).toBe('Ctrl')
+    expect(save!.querySelector('li')).toBeNull()
+    expect(none!.querySelector('lintje-key')).toBeNull()
+    expect(none!.textContent).toContain('Geen')
+  })
+
+  it("reads a tone's word before the value, hidden, and none for changed or no tone", async () => {
+    const root = (
+      await mount([
+        { label: 'Microfoon', value: 'Vergaderset', tone: 'warning' },
+        { label: 'Sprekers', value: '3, vast', tone: 'changed' },
+        { label: 'Taal', value: 'Nederlands' },
+      ])
+    ).shadowRoot!
+    const [mic, speakers, language] = [...root.querySelectorAll('.lintje-description-list__main')]
+    const word = mic!.querySelector('.visually-hidden')!
+    expect(word.textContent!.trim()).toBe('let op')
+    expect(mic!.textContent!.replace(/\s+/g, ' ').trim()).toBe('let op Vergaderset')
+    expect(mic!.querySelector('svg')!.closest('[aria-hidden="true"]')).not.toBeNull()
+    expect(speakers!.querySelector('.visually-hidden')).toBeNull()
+    expect(language!.querySelector('.visually-hidden')).toBeNull()
+  })
 })

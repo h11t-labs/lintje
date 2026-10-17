@@ -11,19 +11,21 @@
   box-decoration-break: clone;
 }
 
+/* The status line, not the fill: the orange itself is under 3:1 on its own tint in light. */
 .lintje-highlight--uncertain {
   background: var(--color-attention-bg);
-  border-bottom: 2px dotted var(--color-attention);
+  border-bottom: 2px dotted var(--color-attention-line);
 }
 
 .lintje-highlight--term {
   background: var(--color-bg-selected);
   border: 0;
-  border-bottom: 2px solid var(--color-accent-line);
+  border-bottom: 2px solid var(--color-term-line);
   padding: 0;
 }
 .lintje-highlight--control { cursor: help; }
-.lintje-highlight--control:hover { background: var(--color-bg-subtle); }
+/* The hover thickens the line: in dark the term already stands on the hover's surface. */
+.lintje-highlight--control:hover { border-bottom-width: 3px; }
 
 .lintje-highlight--match {
   background: var(--color-warning);

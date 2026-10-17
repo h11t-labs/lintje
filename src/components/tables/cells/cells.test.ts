@@ -13,6 +13,16 @@ async function mount(props: Partial<LintjeCells>): Promise<LintjeCells> {
 
 afterEach(() => document.body.replaceChildren())
 
+const frame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()))
+
+/** What the status region says, after its fill frame. */
+async function said(element: LintjeCells): Promise<string> {
+  await element.updateComplete
+  await frame()
+  await element.updateComplete
+  return element.shadowRoot!.querySelector('[role="status"]')!.textContent ?? ''
+}
+
 describe('lintje-cells', () => {
   it('sets each fact as a label above its value, the key figure large', async () => {
     const element = await mount({
@@ -144,5 +154,57 @@ describe('lintje-cells', () => {
     expect(cell.classList.contains('is-fill')).toBe(true)
     expect(cell.style.getPropertyValue('--lintje-fill')).toBe('3')
     expect(cell.style.getPropertyValue('--lintje-fill-narrow')).toBe('1')
+  })
+
+  it("reads a tone's word before the value, hidden, and none for changed or no tone", async () => {
+    const root = (
+      await mount({
+        items: [
+          { label: 'Termijn', value: 'Nog 3 dagen', tone: 'warning' },
+          { label: 'Sprekers', value: '3, vast', tone: 'changed' },
+          { label: 'Taal', value: 'Nederlands' },
+        ],
+      })
+    ).shadowRoot!
+    const [due, speakers, language] = [...root.querySelectorAll('.lintje-cells__value')]
+    expect(due!.querySelector('.visually-hidden')!.textContent!.trim()).toBe('let op')
+    expect(due!.textContent!.replace(/\s+/g, ' ').trim()).toBe('let op Nog 3 dagen')
+    expect(due!.querySelector('svg')!.closest('[aria-hidden="true"]')).not.toBeNull()
+    expect(speakers!.querySelector('.visually-hidden')).toBeNull()
+    expect(language!.querySelector('.visually-hidden')).toBeNull()
+  })
+
+  it('draws keys as lintje-key, one per string, and "Geen" without any', async () => {
+    const element = await mount({
+      items: [
+        { label: 'Opslaan', keys: ['Ctrl', 'S'] },
+        { label: 'Niets', keys: [] },
+      ],
+    })
+    const [save, none] = [...element.shadowRoot!.querySelectorAll('.lintje-cells__cell')]
+    const keys = [...save!.querySelectorAll('.lintje-cells__keys lintje-key')]
+    expect(keys.map((key) => key.getAttribute('key'))).toEqual(['Ctrl', 'S'])
+    expect(none!.querySelector('lintje-key')).toBeNull()
+    expect(none!.textContent).toContain('Geen')
+  })
+
+  it('says a change of a live cell, never the first draw, a value that comes, or another cell', async () => {
+    const cells = (connection: string | null, elapsed: string) => [
+      { label: 'Looptijd', value: elapsed },
+      { label: 'Verbinding', value: connection, live: true },
+    ]
+    const element = await mount({ items: cells('Goed', '0:05') })
+    expect(await said(element)).toBe('')
+    element.items = cells('Goed', '0:06')
+    expect(await said(element)).toBe('')
+    element.items = cells('Verbroken', '0:07')
+    expect(await said(element)).toBe('Verbinding: Verbroken')
+    element.items = cells(null, '0:08')
+    await element.updateComplete
+    // A connection that comes back after none is not a change: the region keeps what it said.
+    element.items = cells('Zwak', '0:09')
+    expect(await said(element)).toBe('Verbinding: Verbroken')
+    element.items = cells('Goed', '0:10')
+    expect(await said(element)).toBe('Verbinding: Goed')
   })
 })

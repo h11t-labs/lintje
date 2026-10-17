@@ -23,9 +23,10 @@ peer, alleen voor de typen van de geërfde leden van een element.
 | `tokens.css` | de thema's en de tokens ([thema's](theming.md)) |
 | `fonts.css` | de twee `@font-face`-regels voor RijksSans, die wijzen naar `fonts/` ernaast. Optioneel |
 | `custom-elements.json` | de tag-referentie, gelezen uit de broncode |
+| `tokens.json` | elk token dat een pagina mag noemen, met zijn groep en zijn commentaar uit `tokens.css`; zonder waarde, want die hangt af van modus en thema |
 | `*.d.ts`, `types/` | de typen: een `.d.ts` naast elk bestand hierboven, en de datavormen in `types/types.d.ts`. Met `lit` 3 als devDependency zijn ook de geërfde leden van een element getypeerd |
 | `guides/` | deze handleidingen |
-| `skills/lintje/` | een skill voor een agent die met Lintje bouwt: kopieer de map naar de skills-map van je assistent, bij Claude Code `.claude/skills/` van je applicatie. Hij leest `custom-elements.json` |
+| `skills/lintje/` | een skill voor een agent die met Lintje bouwt: kopieer de map naar de skills-map van je assistent, bij Claude Code `.claude/skills/` van je applicatie. Hij leest `custom-elements.json` en `tokens.json`, en controleert de eigen CSS van je applicatie |
 
 De iconen staan niet in `dist-elements/`: je serveert zelf een kopie van `dist-icons/`
 ([iconen](#iconen)). Het npm-pakket brengt die map mee.
@@ -55,18 +56,18 @@ setIconSource({ base: './icons/' })
 | categorie | tags |
 |---|---|
 | `frame.js` — Paginakader | `shell`, `page-header`, `breadcrumbs`, `sub-nav`, `hero`, `footer`, `user-menu`, `app-search`, `notifications` |
-| `layout.js` — Indeling | `grid`, `grid-item`, `tile`, `tabs`, `expander`, `split-pane` |
+| `layout.js` — Indeling | `grid`, `grid-item`, `tile`, `tabs`, `expander`, `accordion`, `split-pane` |
 | `overlays.js` — Vensters en panelen | `modal`, `dialog`, `drawer`, `popover`, `tooltip`, `toggletip` |
 | `actions.js` — Knoppen en iconen | `button`, `icon-button`, `menu-button`, `copy-button`, `qr-code`, `icon`, `logo` |
-| `content.js` — Tekst en media | `prose`, `code`, `highlight`, `token-value`, `translator`, `audio-player`, `video-player`, `transcript`, `log-viewer`, `document-viewer`, `gallery` |
+| `content.js` — Tekst en media | `prose`, `code`, `key`, `highlight`, `token-value`, `translator`, `audio-player`, `video-player`, `transcript`, `log-viewer`, `document-viewer`, `gallery`, `attachment` |
 | `feedback.js` — Meldingen en status | `announcement`, `toast`, `conflict-alert`, `empty-state`, `error-page`, `badge`, `status-dot`, `spinner`, `skeleton`, `progress-bar`, `job-list`, `streaming-text`, `ai-label`, `level-meter` |
 | `inputs.js` — Invoervelden | `field`, `text-input`, `find`, `textarea`, `number-input`, `select`, `combobox`, `multiselect`, `tag-input`, `checkbox`, `checkbox-group`, `radio-group`, `toggle`, `segmented`, `range`, `date-input`, `time-input`, `date-range`, `slot-picker`, `file-upload`, `text-editor` |
 | `forms.js` — Formulier | `form`, `form-section`, `stepper`, `repeater`, `repeater-row`, `error-summary`, `form-actions` |
 | `filters.js` — Filters | `filter-bar`, `filter-zone`, `filter-sheet` |
 | `charts.js` — Kerncijfers en grafieken | `kpi-row`, `kpi`, `chart`, `note`, `explainer` |
 | `map.js` — Kaart | `map` |
-| `tables.js` — Tabellen en lijsten | `data-table`, `pagination`, `list`, `card`, `card-list`, `description-list`, `cells`, `tree-view`, `sortable-list`, `activity-log` |
-| `chat.js` — Chat met data | `chat`, `chat-message`, `chat-answer`, `chat-composer`, `chat-strip`, `chat-suggestions` |
+| `tables.js` — Tabellen en lijsten | `data-table`, `pagination`, `list`, `card`, `card-list`, `description-list`, `cells`, `tree-view`, `sortable-list`, `activity-log`, `person`, `person-group` |
+| `chat.js` — Chat met data | `chat`, `chat-message`, `chat-answer`, `chat-steps`, `chat-composer`, `chat-questions`, `chat-strip`, `chat-suggestions` |
 
 De tabel volgt `src/categories.json`. `forms.js` laadt `inputs.js` mee: een formulier is niets
 zonder zijn velden. Een pagina met alleen filters of losse velden laadt `filters.js` of
@@ -121,9 +122,9 @@ geregistreerd is: het overzicht is een `<lintje-dialog heading="Sneltoetsen">` d
 daarmee vult en op `?` opent, voorgedaan in de stijlgids (`examples/_shared/shortcuts.js`).
 
 Een toets van één teken zonder Ctrl, Alt of Meta (`/`, `?`) kan de lezer uitzetten, met
-`setCharacterKeys(false)` achter een instelling van de pagina; de keuze blijft
-bewaard in `localStorage`. Met die toetsen uit opent `?` niets, dus bied het overzicht ook aan
-vanuit een knop of een menu.
+`setCharacterKeys(false)`; de keuze blijft bewaard in `localStorage`. Het recept heeft die
+schakelaar al: "Sneltoetsen van één teken" staat in de voet van het overzicht, onder de lijst.
+Met die toetsen uit opent `?` niets, dus bied het overzicht ook aan vanuit een knop of een menu.
 
 ## Een pagina die een eigen container scrollt
 

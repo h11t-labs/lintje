@@ -4,6 +4,8 @@
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import './split-pane'
+import '../../overlays/modal/modal'
+import type { LintjeModal } from '../../overlays/modal/modal'
 import { clampSplit, splitFromKey, splitFromPointer, type LintjeSplitPane } from './split-pane'
 
 async function mount(props: Partial<LintjeSplitPane> = {}): Promise<LintjeSplitPane> {
@@ -23,6 +25,62 @@ const handle = (element: LintjeSplitPane): HTMLElement =>
 
 function press(element: LintjeSplitPane, key: string): void {
   handle(element).dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
+}
+
+/** The split pane in an open modal, which hears an Escape on `document`. */
+async function inModal(): Promise<{
+  element: LintjeSplitPane
+  modal: LintjeModal
+  closes: () => number
+}> {
+  const modal = document.createElement('lintje-modal') as LintjeModal
+  modal.heading = 'Vertalen'
+  let count = 0
+  modal.addEventListener('lintje-close', () => count++)
+  document.body.append(modal)
+  modal.open = true
+  await modal.updateComplete
+  const element = Object.assign(document.createElement('lintje-split-pane'), {
+    startLabel: 'Brontekst',
+    endLabel: 'Vertaling',
+  })
+  modal.append(element)
+  await element.updateComplete
+  return { element, modal, closes: () => count }
+}
+
+async function release(modal: LintjeModal): Promise<void> {
+  modal.open = false
+  await modal.updateComplete
+  modal.remove()
+}
+
+/** Composed, as a real key: out of every shadow root. */
+function escape(element: LintjeSplitPane): void {
+  handle(element).dispatchEvent(
+    new KeyboardEvent('keydown', {
+      key: 'Escape',
+      bubbles: true,
+      composed: true,
+      cancelable: true,
+    }),
+  )
+}
+
+function lift(element: LintjeSplitPane, to: number): void {
+  const root = element.shadowRoot!
+  root.querySelector<HTMLElement>('.lintje-split-pane')!.getBoundingClientRect = () =>
+    ({ left: 0, width: 1000 }) as DOMRect
+  const strip = root.querySelector<HTMLElement>('.lintje-split-pane__strip')!
+  const pane = root.querySelector<HTMLElement>('.lintje-split-pane__pane--end')!
+  const pointer = (target: HTMLElement, type: string, clientX: number): void => {
+    target.dispatchEvent(
+      new PointerEvent(type, { button: 0, pointerId: 1, clientX, bubbles: true, composed: true }),
+    )
+  }
+  pointer(strip, 'pointerdown', 500)
+  pointer(strip, 'pointerup', 500)
+  pointer(pane, 'pointermove', to * 10)
 }
 
 describe('lintje-split-pane', () => {
@@ -97,6 +155,7 @@ describe('lintje-split-pane', () => {
     expect(element.value).toBe(70)
     expect(heard).toEqual([70])
     // The placing click does not also press what it landed on.
+    pointer(pane, 'pointerup', 700)
     const click = new MouseEvent('click', { bubbles: true, composed: true, cancelable: true })
     pane.dispatchEvent(click)
     expect(click.defaultPrevented).toBe(true)
@@ -116,6 +175,69 @@ describe('lintje-split-pane', () => {
     expect(element.value).toBe(70)
     expect(heard).toEqual([70])
     element.remove()
+  })
+
+  it.each(['pointercancel', 'pointerup outside'])(
+    'lets the next click through when the placing press ends in a %s',
+    async (end) => {
+      const element = await mount()
+      const root = element.shadowRoot!
+      const block = root.querySelector<HTMLElement>('.lintje-split-pane')!
+      block.getBoundingClientRect = () => ({ left: 0, width: 1000 }) as DOMRect
+      const strip = root.querySelector<HTMLElement>('.lintje-split-pane__strip')!
+      const pane = root.querySelector<HTMLElement>('.lintje-split-pane__pane--end')!
+      const pointer = (target: HTMLElement, type: string, clientX: number): void => {
+        target.dispatchEvent(
+          new PointerEvent(type, {
+            button: 0,
+            pointerId: 1,
+            clientX,
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+          }),
+        )
+      }
+
+      pointer(strip, 'pointerdown', 500)
+      pointer(strip, 'pointerup', 501)
+      pointer(pane, 'pointerdown', 700)
+      if (end === 'pointercancel') pointer(pane, 'pointercancel', 700)
+      else pointer(document.body, 'pointerup', 700)
+      const click = new MouseEvent('click', { bubbles: true, composed: true, cancelable: true })
+      pane.dispatchEvent(click)
+      expect(click.defaultPrevented).toBe(false)
+      expect(element.value).toBe(70)
+      element.remove()
+    },
+  )
+
+  it('puts a lifted split back on Escape, and the Escape goes no further', async () => {
+    const { element, modal, closes } = await inModal()
+    let heard = 0
+    const listen = (): number => heard++
+    document.addEventListener('keydown', listen)
+    lift(element, 30)
+    expect(element.value).toBe(30)
+    escape(element)
+    document.removeEventListener('keydown', listen)
+    expect(element.value).toBe(50)
+    expect(heard).toBe(0)
+    expect(closes()).toBe(0)
+    await release(modal)
+  })
+
+  it('leaves an Escape on the grip without a lift to the window around it', async () => {
+    const { element, modal, closes } = await inModal()
+    let heard = 0
+    const listen = (): number => heard++
+    document.addEventListener('keydown', listen)
+    handle(element).focus()
+    escape(element)
+    document.removeEventListener('keydown', listen)
+    expect(heard).toBe(1)
+    expect(closes()).toBe(1)
+    await release(modal)
   })
 
   it('moves with the keys, reports every step that moves it and stops at the limits', async () => {

@@ -18,7 +18,7 @@ import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
 import { standsIn } from '../../../core/focus'
 import { shadowCss } from '../../../core/styles'
-import { iconStyles } from '../../../icons/render'
+import { iconStyles, renderIcon } from '../../../icons/render'
 import { LintjeInputElement } from '../shared/input'
 import '../../overlays/popover/popover'
 import '../../actions/button/button'
@@ -34,14 +34,16 @@ interface Tool {
   format: EditorFormat
   label: string
   text: string
+  /** Drawn instead of `text`; without a file the label shows as a word. */
+  icon?: string
 }
 
 const TOOLS: readonly Tool[] = [
   { format: 'bold', label: 'Vet', text: 'B' },
   { format: 'italic', label: 'Cursief', text: 'I' },
   { format: 'heading', label: 'Kop', text: 'H' },
-  { format: 'list', label: 'Opsomming', text: 'Opsomming' },
-  { format: 'link', label: 'Link', text: 'Link' },
+  { format: 'list', label: 'Opsomming', text: 'Opsomming', icon: 'symbolen-en-abstract-opsomming' },
+  { format: 'link', label: 'Link', text: 'Link', icon: 'functioneel-link' },
 ]
 
 const CARRIERS: Record<EditorFormat, readonly string[]> = {
@@ -182,7 +184,7 @@ export class LintjeTextEditor extends LintjeInputElement {
   }
 
   private onFocusOut(event: FocusEvent): void {
-    if (this.disabled) return
+    if (this.isDisabled) return
     const next = event.relatedTarget as Node | null
     const stays = next !== null && this.renderRoot.contains(next)
     if (event.target === this.surface || !stays) this.settle(!stays)
@@ -197,7 +199,7 @@ export class LintjeTextEditor extends LintjeInputElement {
   }
 
   private apply(format: EditorFormat): void {
-    if (this.disabled) return
+    if (this.isDisabled) return
     if (format === 'link') return this.link()
     this.restore()
     exec('defaultParagraphSeparator', 'p')
@@ -261,10 +263,11 @@ export class LintjeTextEditor extends LintjeInputElement {
     this.linkOpen = false
   }
 
-  private onLinkClose(event: Event): void {
+  // A focus that left stays where it went.
+  private onLinkClose(event: CustomEvent<{ reason: string }>): void {
     event.stopPropagation()
     this.linkOpen = false
-    this.restore()
+    if (event.detail?.reason !== 'focus') this.restore()
   }
 
   private onSurfaceKeydown(event: KeyboardEvent): void {
@@ -307,27 +310,30 @@ export class LintjeTextEditor extends LintjeInputElement {
   private renderTool(tool: Tool, index: number): TemplateResult {
     const pressed = this.active.has(tool.format)
     const idle = tool.format === 'link' && this.collapsed && !pressed
+    const glyph = tool.icon ? renderIcon(tool.icon, { size: 16 }) : nothing
+    const content = glyph === nothing ? tool.text : glyph
     return html`<button
       type="button"
       class=${classMap({
         'lintje-text-editor__tool': true,
         [`lintje-text-editor__tool--${tool.format}`]: true,
-        'lintje-text-editor__tool--word': tool.text.length > 1,
+        'lintje-text-editor__tool--word': content === tool.text && tool.text.length > 1,
         'is-pressed': pressed,
         'is-idle': idle,
       })}
       tabindex=${index === this.toolIndex ? '0' : '-1'}
+      title=${tool.label}
       aria-label=${tool.label}
       aria-pressed=${pressed ? 'true' : 'false'}
       aria-disabled=${idle ? 'true' : nothing}
-      ?disabled=${this.disabled}
+      ?disabled=${this.isDisabled}
       @mousedown=${(event: MouseEvent) => event.preventDefault()}
       @click=${() => {
         this.toolIndex = index
         this.apply(tool.format)
       }}
     >
-      ${tool.text}
+      ${content}
     </button>`
   }
 
@@ -338,7 +344,7 @@ export class LintjeTextEditor extends LintjeInputElement {
         class=${classMap({
           'lintje-text-editor': true,
           'is-error': Boolean(this.error),
-          'is-disabled': this.disabled,
+          'is-disabled': this.isDisabled,
         })}
       >
         <div
@@ -381,9 +387,9 @@ export class LintjeTextEditor extends LintjeInputElement {
           aria-describedby=${this.describedBy}
           aria-invalid=${this.error ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
-          aria-disabled=${this.disabled ? 'true' : nothing}
-          contenteditable=${this.disabled ? 'false' : 'true'}
-          tabindex=${this.disabled ? '-1' : '0'}
+          aria-disabled=${this.isDisabled ? 'true' : nothing}
+          contenteditable=${this.isDisabled ? 'false' : 'true'}
+          tabindex=${this.isDisabled ? '-1' : '0'}
           @keydown=${this.onSurfaceKeydown}
           @paste=${this.onPaste}
         ></div>

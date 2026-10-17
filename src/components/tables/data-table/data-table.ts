@@ -3,13 +3,15 @@
  *
  * A missing value is a muted dash, never 0. The table never filters, saves or confirms: it shows a
  * change at once, and the host confirms it in the next `data`. Open rows and collapsed groups are
- * the table's own: it sends nothing for them.
+ * the table's own: it sends nothing for them. A row with an `href` goes there after its
+ * `lintje-row-click` or `lintje-row-open`, which is cancelable: a host that routes itself cancels
+ * it. A modifier or middle click on such a row opens the `href` in a new tab, without that event.
  *
  * Events: `lintje-sort-change` `{ key, direction } | null`, `lintje-row-click`
  * `{ id, label, href? }`, `lintje-row-open` `{ id, label, href? }`, `lintje-checked-change`
- * `string[]`, `lintje-cell-edit` `{ id, column, value }`, `lintje-row-action` `{ id, action }`,
- * `lintje-bulk-action` `{ ids, action }`, `lintje-filter-change` `{ column, value }`,
- * `lintje-columns-change` `{ order, hidden }`.
+ * `string[]`, `lintje-cell-edit` `{ id, column, value }`, `lintje-row-action`
+ * `{ id, label, action }`, `lintje-bulk-action` `{ ids, action }`, `lintje-filter-change`
+ * `{ column, value }`, `lintje-columns-change` `{ order, hidden }`.
  */
 import {
   html,
@@ -21,6 +23,7 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { ref } from 'lit/directives/ref.js'
 import { define, type FrameSettings } from '../../../core/element'
+import { isNewTabClick } from '../../../core/links'
 import { shadowCss } from '../../../core/styles'
 import { spanStyles } from '../../shared/grid-item-element'
 import { LintjeContentTileElement } from '../../shared/content-tile'
@@ -28,6 +31,7 @@ import { formatNumber, formatPercent } from '../../../core/format'
 import { renderChartSkeleton } from '../../shared/charts/shared/chart-states'
 import { chartFrameStyles } from '../../shared/charts/shared/chart-styles'
 import { downloadCsv } from '../../shared/download'
+import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import { MediaController } from '../../../core/media'
 import tileHostCss from '../../shared/view-tile.css?inline'
 import inputCss from '../../inputs/shared/input.css?inline'
@@ -38,8 +42,10 @@ import { badgeStyles, renderBadge } from '../../feedback/badge/badge'
 import '../../feedback/announcement/announcement'
 import '../../feedback/empty-state/empty-state'
 import '../description-list/description-list'
+import '../cells/cells'
 import '../../actions/menu-button/menu-button'
 import '../pagination/pagination'
+import { NO_PERSON } from '../person/person'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../feedback/status-dot/status-dot'
 import '../../feedback/skeleton/skeleton'
@@ -48,6 +54,8 @@ import type { SortableItem } from '../sortable-list/sortable-list'
 import type {
   CellValue,
   DataTableData,
+  RowActionDetail,
+  RowClickDetail,
   SortState,
   StatusTone,
   TableColumnData,
@@ -57,9 +65,12 @@ import type {
 import { CellEditing, cellKey, type EditGrid } from './editing'
 import { parseDate } from '../../shared/date-format'
 import { focusTarget, tabbables } from '../../shared/focus-trap'
+import { LiveMessage } from '../../shared/live-message'
 import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import type { DescriptionItem } from '../description-list/description-list'
+import type { CellItem } from '../cells/cells'
 import type { MenuEntry } from '../../actions/menu-button/menu-button'
+import { titleWhenCut } from '../../shared/cut-text'
 import { rangeIds, renderRowActions, renderSelectionBar, withRange } from './actions'
 import {
   columnsChange,
@@ -119,6 +130,12 @@ function isNumeric(column: TableColumnData, rows: Row[]): boolean {
 }
 
 function formatText(column: TableColumnData, value: CellValue): string | null {
+  // Not assigned is a value with its word, not a missing figure.
+  if (column.format === 'person') {
+    return value == null
+      ? (column.empty ?? NO_PERSON)
+      : (column.people?.[String(value)]?.name ?? String(value))
+  }
   if (value == null) return null
   if (column.format === 'label') return column.labels?.[String(value)]?.label ?? String(value)
   let text: string
@@ -131,6 +148,15 @@ function formatText(column: TableColumnData, value: CellValue): string | null {
   else if (column.format === 'decimal') text = formatNumber(value, column.decimals ?? 1)
   else text = formatNumber(value, column.decimals ?? 0)
   return column.unit ? `${text} ${column.unit}` : text
+}
+
+/** A `{key}` template filled from a row, each value read the way its column reads it; a gap is "—". */
+function fillTemplate(template: string, row: Row, columns: TableColumnData[]): string {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) => {
+    const column = columns.find((candidate) => candidate.key === key)
+    const value = row[key]
+    return (column ? formatText(column, value) : value == null ? null : String(value)) ?? '—'
+  })
 }
 
 function thresholdStatus(column: TableColumnData, value: CellValue) {
@@ -205,6 +231,23 @@ function fieldColumn(field: TableDetailField): TableColumnData {
   }
 }
 
+/**
+ * A `person` cell: `lintje-person` at 24 px, never a link, since the row's name opens. An id
+ * without an entry in `people` stands as plain text.
+ */
+function personCell(column: TableColumnData, value: CellValue): unknown {
+  if (value == null) {
+    return html`<lintje-person
+      size="small"
+      .person=${null}
+      empty=${column.empty ?? NO_PERSON}
+    ></lintje-person>`
+  }
+  const person = column.people?.[String(value)]
+  if (!person) return String(value)
+  return html`<lintje-person size="small" .person=${{ ...person, href: undefined }}></lintje-person>`
+}
+
 const missing = html`<span aria-hidden="true" class="lintje-data-table__muted">—</span
   ><span class="visually-hidden">geen gegevens</span>`
 
@@ -217,7 +260,7 @@ class ScrollEdges {
   end = false
 
   #element: HTMLElement | null = null
-  #resize: ResizeObserver | null = null
+  #resize = new FrameResizeObserver(() => this.measure())
   readonly #notify: () => void
 
   constructor(notify: () => void) {
@@ -243,16 +286,14 @@ class ScrollEdges {
     this.#element = element
     this.measure()
     element.addEventListener('scroll', this.measure, { passive: true })
-    this.#resize = new ResizeObserver(this.measure)
     this.#resize.observe(element)
     if (element.firstElementChild) this.#resize.observe(element.firstElementChild)
   }
 
   disconnect(): void {
     this.#element?.removeEventListener('scroll', this.measure)
-    this.#resize?.disconnect()
+    this.#resize.disconnect()
     this.#element = null
-    this.#resize = null
   }
 }
 
@@ -285,7 +326,6 @@ export class LintjeDataTable extends LintjeContentTileElement {
     panel: { state: true },
     openRows: { state: true },
     collapsedGroups: { state: true },
-    liveMessage: { state: true },
   }
 
   declare data?: DataTableData | null
@@ -322,8 +362,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
   /** The groups of `groupBy` that stand collapsed, by their value. */
   collapsedGroups: string[] = []
   /** What the table's status region says: a sort, a page, a selection, a filter's result. */
-  liveMessage: string = ''
-  #liveFrame = 0
+  readonly #live = new LiveMessage(this)
   /** A filter went to the host; its answer's row count is read out. */
   #filterAsked = false
 
@@ -356,8 +395,6 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   override disconnectedCallback(): void {
-    cancelAnimationFrame(this.#liveFrame)
-    this.#liveFrame = 0
     cancelAnimationFrame(this.#barFrame)
     this.#barFrame = 0
     this.#edges.disconnect()
@@ -367,6 +404,8 @@ export class LintjeDataTable extends LintjeContentTileElement {
 
   protected override expandChanged(open: boolean): void {
     if (!open) this.#modalEdges.disconnect()
+    // The copy that shows now starts silent: the last message would be read out again.
+    this.#live.clear()
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
@@ -403,7 +442,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     if (this.#filterAsked) {
       this.#filterAsked = false
       const total = this.data?.totalRows
-      this.announce(
+      this.#live.say(
         total == null ? rowCount(this.rows.length) : `${this.rows.length} van ${rowCount(total)}`,
       )
     }
@@ -585,7 +624,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   /** The row's key, the name in its first column and the `href` the host minted on the row. */
-  private rowDetail(row: Row): { id: string; label: string; href?: string } {
+  private rowDetail(row: Row): RowClickDetail {
     const id = this.rowKey(row)
     const nameColumn = this.columns[0]
     const name = nameColumn ? row[nameColumn.key] : null
@@ -595,6 +634,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
       label: name == null ? id : String(name),
       href: typeof href === 'string' && href !== '' ? href : undefined,
     }
+  }
+
+  private rowAction(row: Row, action: string): void {
+    const { id, label } = this.rowDetail(row)
+    this.emit('lintje-row-action', { id, label, action } satisfies RowActionDetail)
   }
 
   private get initialSort(): SortState {
@@ -608,8 +652,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
   /** Missing sorts lowest. */
   private sortValue(column: TableColumnData, row: Row): number | string {
     const value = row[column.key]
-    // A label sorts by the word a reader sees, not by the host's code.
-    if (column.format === 'label' && value != null) return formatText(column, value) ?? ''
+    // A label and a person sort by the word a reader sees, not by the host's code; nobody lowest.
+    if ((column.format === 'label' || column.format === 'person') && value != null)
+      return formatText(column, value) ?? ''
     // A date column holds `dd-mm-jjjj`, which sorts by day as text; its ISO form sorts by date.
     if (column.editor?.kind === 'date') {
       const parsed = parseDate(String(value ?? ''))
@@ -661,25 +706,15 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const column = this.columns.find((candidate) => candidate.key === next.key)
     if (column) {
       const order = next.direction === 'asc' ? 'oplopend' : 'aflopend'
-      this.announce(`Gesorteerd op ${column.header.toLocaleLowerCase('nl')}, ${order}.`)
+      this.#live.say(`Gesorteerd op ${column.header.toLocaleLowerCase('nl')}, ${order}.`)
     }
-  }
-
-  /** Empties the region and fills it a frame later, so the same words are read again. */
-  private announce(message: string): void {
-    this.liveMessage = ''
-    cancelAnimationFrame(this.#liveFrame)
-    this.#liveFrame = requestAnimationFrame(() => {
-      this.#liveFrame = 0
-      this.liveMessage = message
-    })
   }
 
   private setChecked(ids: string[]): void {
     this.checkedIds = ids
     this.emit('lintje-checked-change', ids)
     if (this.data?.bulkActions) {
-      this.announce(ids.length > 0 ? `${ids.length} geselecteerd` : 'Selectie opgeheven')
+      this.#live.say(ids.length > 0 ? `${ids.length} geselecteerd` : 'Selectie opgeheven')
     }
   }
 
@@ -916,9 +951,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
   private csv(): void {
     const data = this.data
     if (!data?.download) return
-    // A label is the word a reader sees; a total is its value, with its own label first.
+    // A label and a person are the word a reader sees; a total is its value, with its own label first.
     const value = (column: TableColumnData, cell: CellValue): CellValue =>
-      column.format === 'label' && cell != null ? formatText(column, cell) : cell
+      (column.format === 'label' && cell != null) || column.format === 'person'
+        ? formatText(column, cell)
+        : cell
     const totals = data.totals
     downloadCsv(data.download.filename, [
       data.columns.map((column) => column.header),
@@ -1044,7 +1081,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       }
       ${mobile ? this.selectionBar(true) : nothing} ${this.panels(edges)}
       ${active && this.columns.some((column) => column.editor) ? this.#editing.renderStatus() : nothing}
-      <span class="visually-hidden" role="status">${active ? this.liveMessage : ''}</span>
+      <span class="visually-hidden" role="status">${active ? this.#live.text : ''}</span>
     </div>`
   }
 
@@ -1073,6 +1110,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       chooser: tools,
       onClearFilter: (key, button) => void this.clearFilter(key, button),
       onClearAll: (button) => void this.clearAllFilters(button),
+      sheetOpen: this.panel?.kind === 'sheet' && this.panel.edges === edges,
       onOpenSheet: () => this.openPanel({ kind: 'sheet', edges }, null),
     })
   }
@@ -1088,10 +1126,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
       class="lintje-button lintje-button--tertiary lintje-button--compact lintje-data-table__group-all"
       @click=${() => {
         this.collapsedGroups = anyOpen ? keys : []
-        this.announce(anyOpen ? 'Alle groepen ingeklapt' : 'Alle groepen uitgeklapt')
+        this.#live.say(anyOpen ? 'Alle groepen ingeklapt' : 'Alle groepen uitgeklapt')
       }}
     >
-      <span class="lintje-button__label">${anyOpen ? 'Alles inklappen' : 'Alles uitklappen'}</span>
+      <span class="lintje-button__label" @pointerenter=${titleWhenCut}>${anyOpen ? 'Alles inklappen' : 'Alles uitklappen'}</span>
     </button>`
   }
 
@@ -1180,7 +1218,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
           ),
         onReset: () => this.resetColumns(),
         isDefault: this.columnsAreDefault,
-        onClose: () => this.closePanel(panel),
+        onClose: (reason) => this.closePanel(panel, reason !== 'focus'),
         onLeave: (how) => this.leavePanel(panel, how),
       })
     }
@@ -1216,7 +1254,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       },
       onApply: () => this.applyFilters([column.key], false),
       onClear: () => this.applyFilters([column.key], true),
-      onClose: () => this.closePanel(panel),
+      onClose: (reason) => this.closePanel(panel, reason !== 'focus'),
       onLeave: (how) => this.leavePanel(panel, how),
     })
   }
@@ -1464,6 +1502,21 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const rowActions = data.rowActions?.length ? data.rowActions : null
     const detailColumns = this.detailColumns
     const id = this.rowKey(row)
+    const hasControls =
+      (selectable && !this.uncheckable.has(id)) ||
+      data.openable ||
+      rowActions ||
+      detailColumns.length > 0 ||
+      columns.some((column) => column.editor)
+    // A static row needs a keyboard stop to reveal the compact change's words.
+    const revealsChange =
+      !hasControls &&
+      columns.some(
+        (column) =>
+          column.format === 'change-compact' &&
+          typeof row[column.key] === 'number' &&
+          !(row[column.key] === 0 && column.zeroText != null),
+      )
     const selected = id === data.selectedId
     const isChecked = this.checkedIds.includes(id)
     const isOpen = detailColumns.length > 0 && this.openRows.includes(id)
@@ -1482,9 +1535,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
           'is-checked': isChecked,
           'is-open': isOpen,
         })}
-        tabindex=${clickable ? 0 : nothing}
+        tabindex=${clickable || revealsChange ? 0 : nothing}
         aria-selected=${clickable ? selected : nothing}
-        @click=${clickable ? () => this.emit('lintje-row-click', this.rowDetail(row)) : nothing}
+        @click=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
+        @auxclick=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
         @keydown=${clickable ? (event: KeyboardEvent) => this.rowKeydown(event, row) : nothing}
       >
         ${
@@ -1509,7 +1563,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
           const truncate = column.truncate === true
           const content = truncate
             ? this.truncatedCell(column, row[column.key])
-            : this.cell(column, row[column.key])
+            : this.cell(column, row[column.key], row)
           const alignRight = this.alignsRight(column)
           if (column.editor)
             return this.editableCell(row, rowIndex, column, index === 0, alignRight, content, grid)
@@ -1542,7 +1596,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
                 @keydown=${(event: Event) => event.stopPropagation()}
               >
                 ${renderRowActions(rowActions, this.rowDetail(row).label, (action) =>
-                  this.emit('lintje-row-action', { id, action }),
+                  this.rowAction(row, action),
                 )}
               </td>`
             : this.actionColumn
@@ -1581,18 +1635,31 @@ export class LintjeDataTable extends LintjeContentTileElement {
     </button>`
   }
 
-  /** What a row's columns leave out, as label and value. */
+  /**
+   * What a row's columns leave out, as label and value: the facts side by side under a row of
+   * the table, a list under a row on the phone.
+   */
   private detailList(row: Row, columns: TableColumnData[], layout: 'row' | 'grid'): TemplateResult {
+    // A person keeps the circle here: it stands in the item's slot.
+    const slot = (column: TableColumnData): string => `person-${column.key}`
+    const items = columns.map((column): DescriptionItem & CellItem =>
+      column.format === 'person'
+        ? { label: column.header, slot: slot(column) }
+        : { label: column.header, value: cellText(column, row[column.key]) },
+    )
+    const people = columns
+      .filter((column) => column.format === 'person')
+      .map(
+        (column) => html`<span slot=${slot(column)}>${personCell(column, row[column.key])}</span>`,
+      )
+    if (layout === 'row') {
+      return html`<lintje-description-list .items=${items}>${people}</lintje-description-list>`
+    }
     // As many cells to a line as fill the lines evenly: a gap at the end reads as a missing value.
     const lines = Math.ceil(columns.length / 4)
-    return html`<lintje-description-list
-      layout=${layout}
-      .columns=${Math.ceil(columns.length / lines)}
-      .items=${columns.map((column): DescriptionItem => ({
-        label: column.header,
-        value: cellText(column, row[column.key]),
-      }))}
-    ></lintje-description-list>`
+    return html`<lintje-cells .columns=${Math.ceil(columns.length / lines)} .items=${items}
+      >${people}</lintje-cells
+    >`
   }
 
   /**
@@ -1603,7 +1670,6 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const data = this.data as DataTableData
     const column = this.groupColumn as TableColumnData
     const columns = this.shown
-    const lead = (data.selectable ? 1 : 0) + (this.detailColumns.length > 0 ? 1 : 0)
     const subtotals = data.groupTotals?.[group.key]
     const count = group.rows.length
     const heading = html`<button
@@ -1617,12 +1683,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
       <span class="lintje-data-table__group-count">${count} ${count === 1 ? 'rij' : 'rijen'}</span>
     </button>`
     return html`<tr class="lintje-data-table__group-row">
-      ${lead > 0 ? html`<td class="lintje-data-table__cell" colspan=${lead}></td>` : nothing}
+      ${this.leadCells(this.groupCheck(group))}
       <th scope="rowgroup" class="lintje-data-table__cell lintje-data-table__group-head">${heading}</th>
       ${columns
         .slice(1)
         .map((entry) => this.totalCell(entry, open ? undefined : subtotals?.[entry.key]))}
-      ${this.actionColumn ? html`<td class="lintje-data-table__cell"></td>` : nothing}
+      ${this.actionCell()}
     </tr>`
   }
 
@@ -1650,14 +1716,34 @@ export class LintjeDataTable extends LintjeContentTileElement {
     columns: TableColumnData[],
     totals: Record<string, TableTotal>,
   ): TemplateResult {
-    const data = this.data as DataTableData
-    const lead = (data.selectable ? 1 : 0) + (this.detailColumns.length > 0 ? 1 : 0)
     return html`<tr class=${className}>
-      ${lead > 0 ? html`<td class="lintje-data-table__cell" colspan=${lead}></td>` : nothing}
+      ${this.leadCells()}
       <th scope="row" class="lintje-data-table__cell lintje-data-table__sum-label">${label}</th>
       ${columns.slice(1).map((column) => this.totalCell(column, totals[column.key]))}
-      ${this.actionColumn ? html`<td class="lintje-data-table__cell"></td>` : nothing}
+      ${this.actionCell()}
     </tr>`
+  }
+
+  /**
+   * The check and detail cells before a group's or a total's name: one per column, with its
+   * class, so paper drops them as it drops the column. Only a group's heading has a check.
+   */
+  private leadCells(check: unknown = nothing): TemplateResult {
+    return html`${
+      this.data?.selectable
+        ? html`<td class="lintje-data-table__cell lintje-data-table__check-cell">${check}</td>`
+        : nothing
+    }${
+      this.detailColumns.length > 0
+        ? html`<td class="lintje-data-table__cell lintje-data-table__detail-cell"></td>`
+        : nothing
+    }`
+  }
+
+  private actionCell(): TemplateResult | typeof nothing {
+    return this.actionColumn
+      ? html`<td class="lintje-data-table__cell lintje-data-table__action-cell"></td>`
+      : nothing
   }
 
   private totalCell(column: TableColumnData, total: TableTotal | undefined): TemplateResult {
@@ -1938,7 +2024,8 @@ export class LintjeDataTable extends LintjeContentTileElement {
         })}
         tabindex=${clickable ? 0 : nothing}
         aria-selected=${clickable ? selected : nothing}
-        @click=${clickable ? () => this.emit('lintje-row-click', detail) : nothing}
+        @click=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
+        @auxclick=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
         @keydown=${clickable ? (event: KeyboardEvent) => this.rowKeydown(event, row) : nothing}
       >
         <th scope="row" class="lintje-data-table__mobile-cell">
@@ -1980,7 +2067,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
                   ${
                     rowActions
                       ? renderRowActions(rowActions, detail.label, (action) =>
-                          this.emit('lintje-row-action', { id, action }),
+                          this.rowAction(row, action),
                         )
                       : nothing
                   }
@@ -2009,18 +2096,24 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const column = this.groupColumn as TableColumnData
     const subtotal = this.data?.groupTotals?.[group.key]?.[measureColumn.key]
     const count = group.rows.length
+    const toggle = html`<button
+      type="button"
+      class="lintje-data-table__group-toggle"
+      aria-expanded=${open ? 'true' : 'false'}
+      @click=${() => this.toggleGroup(group.key)}
+    >
+      ${renderIcon('functioneel-delta-omlaag', { size: 16, rotate: open ? undefined : 270 })}
+      <span class="lintje-data-table__group-name">${this.cell(column, group.value)}</span>
+      <span class="lintje-data-table__group-count">${count} ${count === 1 ? 'rij' : 'rijen'}</span>
+    </button>`
+    const check = this.groupCheck(group)
     return html`<tr class="lintje-data-table__group-row">
       <th scope="rowgroup" class="lintje-data-table__mobile-cell lintje-data-table__group-head">
-        <button
-          type="button"
-          class="lintje-data-table__group-toggle"
-          aria-expanded=${open ? 'true' : 'false'}
-          @click=${() => this.toggleGroup(group.key)}
-        >
-          ${renderIcon('functioneel-delta-omlaag', { size: 16, rotate: open ? undefined : 270 })}
-          <span class="lintje-data-table__group-name">${this.cell(column, group.value)}</span>
-          <span class="lintje-data-table__group-count">${count} ${count === 1 ? 'rij' : 'rijen'}</span>
-        </button>
+        ${
+          check === nothing
+            ? toggle
+            : html`<span class="lintje-data-table__mobile-check">${check}${toggle}</span>`
+        }
       </th>
       <td class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--align-right">
         ${
@@ -2068,7 +2161,26 @@ export class LintjeDataTable extends LintjeContentTileElement {
     if (event.target !== event.currentTarget) return
     if (event.key !== 'Enter' && event.key !== ' ') return
     event.preventDefault()
-    this.emit('lintje-row-click', this.rowDetail(row))
+    this.activate('lintje-row-click', row)
+  }
+
+  /**
+   * The host may take the row over by cancelling the event; else the page goes to its `href`. A
+   * modifier or middle click opens the `href` in a new tab, as on a link, without the event.
+   */
+  private activate(
+    name: 'lintje-row-click' | 'lintje-row-open',
+    row: Row,
+    event?: MouseEvent,
+  ): void {
+    const detail = this.rowDetail(row)
+    if (event && detail.href && isNewTabClick(event)) {
+      event.preventDefault()
+      return this.followLink(detail.href, undefined, undefined, { newTab: true })
+    }
+    // Without an href the middle button does nothing; a modifier click is still a click.
+    if (event?.type === 'auxclick') return
+    if (this.emit(name, detail) && detail.href) this.followLink(detail.href)
   }
 
   /** The page is view state, not a number: it stays out of the URL. The table counts from 0. */
@@ -2097,7 +2209,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       @lintje-page-change=${(event: CustomEvent<{ page: number }>) => {
         event.stopPropagation()
         go(event.detail.page - 1)
-        this.announce(`Pagina ${event.detail.page} van ${pageCount}`)
+        this.#live.say(`Pagina ${event.detail.page} van ${pageCount}`)
       }}
     ></lintje-pagination>`
   }
@@ -2110,16 +2222,21 @@ export class LintjeDataTable extends LintjeContentTileElement {
     return html`<button
       type="button"
       class="lintje-data-table__open"
-      @click=${(event: Event) => {
+      @click=${(event: MouseEvent) => {
         event.stopPropagation()
-        this.emit('lintje-row-open', this.rowDetail(row))
+        this.activate('lintje-row-open', row, event)
+      }}
+      @auxclick=${(event: MouseEvent) => {
+        event.stopPropagation()
+        this.activate('lintje-row-open', row, event)
       }}
     >
       ${content}
     </button>`
   }
 
-  private cell(column: TableColumnData, value: CellValue): unknown {
+  private cell(column: TableColumnData, value: CellValue, row?: Row): unknown {
+    if (column.format === 'person') return personCell(column, value)
     if (value === 0 && column.zeroText != null) {
       return html`<span class="lintje-data-table__muted">${column.zeroText}</span>`
     }
@@ -2154,12 +2271,16 @@ export class LintjeDataTable extends LintjeContentTileElement {
       // Colour and glyph together (rule 13).
       const tone = value === 0 ? 'flat' : value > 0 ? 'up' : 'down'
       if (column.format === 'change-compact') {
-        // The glyph alone is seen; a reader hears the whole change.
+        // The glyph alone is seen, its words in the tooltip; a reader hears them, and where no
+        // pointer shows a tooltip they stand whole in its place, as a truncated value does.
+        const words = column.tooltip && row ? fillTemplate(column.tooltip, row, this.columns) : text
         return html`<span
-            class="lintje-data-table__change lintje-data-table__change--${tone}"
+            class="lintje-data-table__change lintje-data-table__change--${tone} lintje-data-table__change--compact"
             aria-hidden="true"
+            title=${words}
             >${value > 0 ? '▲' : value < 0 ? '▼' : '●'}</span
-          ><span class="visually-hidden">${text}</span>`
+          ><span class="lintje-data-table__change-words" aria-hidden="true">${words}</span
+          ><span class="visually-hidden">${words}</span>`
       }
       return html`<span class="lintje-data-table__change lintje-data-table__change--${tone}">${text}</span>`
     }
@@ -2202,11 +2323,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const template = this.data?.mobileSublineTemplate
     let text: string | null = null
     if (template) {
-      text = template.replace(/\{(\w+)\}/g, (_, key: string) => {
-        const column = this.columns.find((candidate) => candidate.key === key)
-        const value = row[key]
-        return (column ? formatText(column, value) : value == null ? null : String(value)) ?? '—'
-      })
+      text = fillTemplate(template, row, this.columns)
     } else if (this.sublineColumns.length > 0) {
       text = this.sublineColumns
         .map((column) => formatText(column, row[column.key]) ?? '—')
@@ -2238,6 +2355,31 @@ export class LintjeDataTable extends LintjeContentTileElement {
       rows.length > 0 && count === rows.length,
       count > 0,
       (on) => this.setChecked(on ? rows.map((row) => this.rowKey(row)) : []),
+    )
+  }
+
+  /**
+   * A group's box: on, half or off by its rows that can be checked. It leaves other groups as they
+   * are; a group without such rows has none.
+   */
+  private groupCheck(group: Group): TemplateResult | typeof nothing {
+    if (!this.data?.selectable) return nothing
+    const uncheckable = this.uncheckable
+    const ids = group.rows.map((row) => this.rowKey(row)).filter((id) => !uncheckable.has(id))
+    if (ids.length === 0) return nothing
+    const checked = new Set(this.checkedIds)
+    const count = ids.filter((id) => checked.has(id)).length
+    const name = formatText(this.groupColumn as TableColumnData, group.value) ?? 'Zonder waarde'
+    return this.checkbox(
+      html`<span class="visually-hidden">${`Groep ${name} selecteren`}</span>`,
+      count === ids.length,
+      count > 0,
+      (on) => {
+        const inGroup = new Set(ids)
+        this.setChecked(
+          on ? withRange(this.checkedIds, ids) : this.checkedIds.filter((id) => !inGroup.has(id)),
+        )
+      },
     )
   }
 

@@ -151,6 +151,27 @@ describe('a column filter', () => {
     expect(root(element).querySelector('lintje-popover')).toBeNull()
   })
 
+  it('closes on a focus that left, and leaves the focus where it went', async () => {
+    const element = await mount()
+    const elsewhere = document.createElement('button')
+    document.body.append(elsewhere)
+    funnels(element)[1]?.click()
+    await element.updateComplete
+    const popover = root(element).querySelector('lintje-popover') as HTMLElement
+    elsewhere.focus()
+    popover.dispatchEvent(
+      new CustomEvent('lintje-close', {
+        detail: { reason: 'focus' },
+        bubbles: true,
+        composed: true,
+      }),
+    )
+    await element.updateComplete
+    expect(root(element).querySelector('lintje-popover')).toBeNull()
+    expect(document.activeElement).toBe(elsewhere)
+    elsewhere.remove()
+  })
+
   it('clears from the chip with null', async () => {
     const element = await mount({ filters: { title: 'pas' } })
     const changes: unknown[] = []
@@ -161,6 +182,25 @@ describe('a column filter', () => {
     expect(clear?.getAttribute('aria-label')).toBe('Filter op titel wissen')
     clear?.click()
     expect(changes).toEqual([{ column: 'title', value: null }])
+  })
+})
+
+describe('the phone button "Filters"', () => {
+  it('says it opens a dialog, and whether the sheet is open', async () => {
+    const element = await mount()
+    const host = root(element).querySelector('.lintje-data-table__sheet-button') as HTMLElement & {
+      updateComplete: Promise<unknown>
+    }
+    await host.updateComplete
+    const button = () => host.shadowRoot!.querySelector('button') as HTMLButtonElement
+    expect(host.textContent?.trim()).toBe('Filters')
+    expect(button().getAttribute('aria-haspopup')).toBe('dialog')
+    expect(button().getAttribute('aria-expanded')).toBe('false')
+    host.click()
+    await element.updateComplete
+    await host.updateComplete
+    expect(root(element).querySelector('lintje-drawer')).not.toBeNull()
+    expect(button().getAttribute('aria-expanded')).toBe('true')
   })
 })
 

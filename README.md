@@ -84,7 +84,7 @@ npm run release 0.2.0    # changelog en versie in één commit; de tag v0.2.0 op
 
 | script | uitvoer | gecommit |
 |---|---|---|
-| `npm run build:elements` | `dist-elements/` — de bundel en zijn delen, `tokens.css`, `fonts.css` met `fonts/`, `custom-elements.json`, de typen (`*.d.ts`, `types/`), de handleidingen (`guides/`) en de skill voor een agent (`skills/lintje/`) ([`loading.md`](docs/guides/loading.md)) | nee |
+| `npm run build:elements` | `dist-elements/` — de bundel en zijn delen, `tokens.css`, `fonts.css` met `fonts/`, `custom-elements.json`, `tokens.json`, de typen (`*.d.ts`, `types/`), de handleidingen (`guides/`) en de skill voor een agent (`skills/lintje/`) ([`loading.md`](docs/guides/loading.md)) | nee |
 | `npm run build:icons` | `dist-icons/`, uit de set van RVO en de eigen iconen in `assets/icons/`; `src/icons/register.ts`, de iconen die de bundel inline meeneemt | alleen `register.ts` |
 | `npm run build:geo` | `assets/geo/*.json` — de kaartgeometrie, uit Natural Earth en PDOK | **ja** |
 
@@ -100,7 +100,7 @@ opent.
 | [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) | de uitgangspunten en besluiten van het ontwerp |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | bijdragen, en het recept voor een component |
 | [`AGENTS.md`](AGENTS.md) | de projectregels, voor mensen en voor AI-assistenten |
-| [`skills/lintje/`](skills/lintje/SKILL.md) | de skill voor een AI-assistent die met Lintje een applicatie bouwt; de build zet hem in `dist-elements/skills/` |
+| [`skills/lintje/`](skills/lintje/SKILL.md) | de skill voor een AI-assistent die met Lintje een applicatie bouwt: de tags en de tokens opzoeken, en de eigen CSS controleren; de build zet hem in `dist-elements/skills/` |
 | [`CHANGELOG.md`](CHANGELOG.md) | wat er veranderde, en wat een host breekt |
 | [`examples/`](examples/index.html) | de voorbeeldapplicaties, met fictieve data |
 | [`assets/`](assets/README.md) | de iconen, de emblemen, de kaartgeometrie en het logo |

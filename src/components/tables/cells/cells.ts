@@ -5,23 +5,32 @@
  *
  * With `columns` the cells stand in an aligned grid, two below 30 rem; without, each takes its
  * own width and the row wraps. On a wash (`surface`) the row stands in one panel. A missing
- * value is a muted dash, never 0. A plain click on a link is cancelled and sent as
+ * value is a muted dash, never 0. A cell marked `live` says a change of its value; the rest
+ * change too often, or too little, to be said. A plain click on a link is cancelled and sent as
  * `lintje-navigate`.
  *
  * Events: `lintje-navigate` `{ href }`.
  */
-import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
+import {
+  html,
+  nothing,
+  type PropertyDeclarations,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
 import { LintjeGridItemElement, spanStyles } from '../../shared/grid-item-element'
 import { shadowCss } from '../../../core/styles'
 import { isPlainClick } from '../../../core/links'
 import { styleProps } from '../../../core/style-props'
-import { TONE_ICON, type Tone } from '../../shared/tone'
+import { TONE_ICON, TONE_WORD, type Tone } from '../../shared/tone'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { badgeStyles, renderBadge } from '../../feedback/badge/badge'
 import { litSteps } from '../../feedback/level-meter/level-meter'
 import '../../feedback/level-meter/level-meter'
+import '../../content/key/key'
+import { LiveMessage } from '../../shared/live-message'
 import cellsCss from './cells.css?inline'
 
 /** A link beside the value, for changing it ("Behandelaar wijzigen" as accessible name). */
@@ -90,17 +99,28 @@ export interface CellItem {
   action?: CellAction
   /** The value as separate tags (word lists, people); `value` is then left out. */
   tags?: string[]
+  /** The value as keyboard keys, one `lintje-key` each (`keyLabels()`); `value` is then left out. */
+  keys?: string[]
   /**
    * `changed`: differs from the default, and says "Aangepast". A shared tone carries its glyph
-   * before the value; the words are the host's.
+   * before the value, with a hidden word for what the glyph says; the rest of the words are the
+   * host's.
    */
   tone?: CellTone
   meter?: CellMeter
   /** Two columns of the grid instead of one, or `fill`: the rest of its row. */
   span?: 1 | 2 | 'fill'
-  /** The name of a slot drawn under the value, for what a string cannot say (a button). */
+  /** The name of a slot drawn under the value, for what a string cannot say (a person, a button). */
   slot?: string
+  /**
+   * A change of the value between two values is said ("Verbinding: Zwak"), found by its label;
+   * the first draw and a value that comes or goes stay silent.
+   */
+  live?: boolean
 }
+
+const isMissing = (value: CellItem['value']): boolean =>
+  value === null || value === undefined || value === ''
 
 export class LintjeCells extends LintjeGridItemElement {
   static override styles = [iconStyles, badgeStyles, spanStyles, shadowCss(cellsCss)]
@@ -116,12 +136,35 @@ export class LintjeCells extends LintjeGridItemElement {
   declare columns?: number
   /** The row takes the surface and a frame, for a wash such as the hero's. */
   surface: boolean = false
+  readonly #live = new LiveMessage(this)
+
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
+    const before = changed.get('items') as CellItem[] | undefined
+    if (!before) return
+    const said = this.items
+      .filter((item) => {
+        if (!item.live || isMissing(item.value)) return false
+        const was = before.find((old) => old.label === item.label)?.value
+        return !isMissing(was) && String(was) !== String(item.value)
+      })
+      .map((item) => `${item.label}: ${item.value}`)
+    if (said.length) this.#live.say(said.join('. '))
+  }
 
   private follow(event: MouseEvent, href: string): void {
     if (isPlainClick(event)) this.followLink(href, event)
   }
 
   private value(item: CellItem): TemplateResult | typeof nothing {
+    if (item.keys) {
+      return item.keys.length
+        ? // The space keeps "Ctrl S" two words for a screen reader; the flex gap draws it.
+          html`<span class="lintje-cells__keys"
+            >${item.keys.map((key, i) => html`${i ? ' ' : ''}<lintje-key key=${key}></lintje-key>`)}</span
+          >`
+        : html`<span class="lintje-cells__missing">Geen</span>`
+    }
     if (item.tags) {
       return item.tags.length
         ? html`<ul class="lintje-cells__tags">
@@ -129,7 +172,7 @@ export class LintjeCells extends LintjeGridItemElement {
           </ul>`
         : html`<span class="lintje-cells__missing">Geen</span>`
     }
-    const missing = item.value === null || item.value === undefined || item.value === ''
+    const missing = isMissing(item.value)
     // A cell whose slot or measured meter says it all has no value of its own, and no dash either.
     if (missing && (item.slot || item.meter?.level != null)) return nothing
     if (missing) {
@@ -183,6 +226,9 @@ export class LintjeCells extends LintjeGridItemElement {
 
   private renderCell(item: CellItem, fill: Fill | undefined): TemplateResult {
     const tone = item.tone
+    // The glyph is hidden; its word is read before the value, once, also while the icon loads.
+    const shared = tone && tone !== 'changed' ? tone : undefined
+    const glyph = shared && TONE_ICON[shared]
     return html`<div
       class=${classMap({
         'lintje-cells__cell': true,
@@ -201,7 +247,13 @@ export class LintjeCells extends LintjeGridItemElement {
         >${item.icon ? renderIcon(item.icon, { size: 16 }) : nothing}${item.label}</dt
       >
       <dd class="lintje-cells__value">
-        ${tone && tone !== 'changed' ? renderIcon(TONE_ICON[tone], { size: 16 }) : nothing}
+        ${
+          shared && glyph
+            ? html`${renderIcon(glyph, { size: 16 })}<span class="visually-hidden"
+                >${TONE_WORD[shared]}</span
+              >`
+            : nothing
+        }
         ${item.meter ? this.meter(item.meter) : nothing} ${this.value(item)}${this.count(item.meter)}
         ${item.detail ? html`<span class="lintje-cells__detail">${item.detail}</span>` : nothing}
         ${
@@ -230,7 +282,8 @@ export class LintjeCells extends LintjeGridItemElement {
       >
         ${this.items.map((item, i) => this.renderCell(item, fills[i]))}
       </dl>
-    </div>`
+    </div>
+    <span class="visually-hidden" role="status">${this.#live.text}</span>`
   }
 }
 

@@ -10,7 +10,7 @@ import { basename, dirname, join, relative, resolve } from 'node:path'
 import { parseSync } from 'rolldown/experimental'
 
 const EVENT_NAME = /^lintje-[a-z0-9-]+$/
-const SLOT = /<slot(?:\s+name="([a-z-]+)")?/g
+const SLOT = /<slot(?:\s+name=(?:"([a-z-]+)"|\$\{([^}]*)\}))?/g
 const LIT_TYPE = {
   String: 'string',
   Number: 'number',
@@ -89,6 +89,16 @@ const unwrap = (node) =>
 
 const keyName = (node) => node.key?.name ?? node.key?.value
 
+/**
+ * A slot by its literal name, or one per item of the data when the name is bound (`<slot
+ * name=${tab.value}>`): the reference then says so instead of the default slot.
+ */
+function slotOf(name, expression) {
+  if (expression === undefined) return { name: name ?? '' }
+  const field = /([a-z]+)\s*$/i.exec(expression)?.[1] ?? 'value'
+  return { name: `<${field}>`, description: `One slot per item, named by its \`${field}\`.` }
+}
+
 /** One parsed module: its classes, the tags it defines, the events it sends, its slots. */
 function readModule(path) {
   const text = readFileSync(path, 'utf8')
@@ -103,7 +113,7 @@ function readModule(path) {
     events: new Map(),
     dynamicEvents: false,
     literals: new Set(),
-    slots: [...text.matchAll(SLOT)].map((match) => match[1] ?? ''),
+    slots: [...text.matchAll(SLOT)].map(([, name, expression]) => slotOf(name, expression)),
   }
   const header = file.docs[0]
   file.header = header && header.start < 10 ? docText(header.value.slice(1)) : undefined
@@ -141,7 +151,7 @@ function readModule(path) {
     }
     const known = file.events.get(name.value) ?? { composed: false, detail: undefined }
     if (method === 'emit') known.composed = true
-    if (!known.detail && detail) known.detail = detailText(text, detail)
+    if (!known.detail && detail) known.detail = detailText(text, unwrap(detail))
     file.events.set(name.value, known)
   })
   return file
@@ -261,7 +271,7 @@ export function buildManifest(srcDir) {
         .filter((entry) => entry.cls.id.name !== 'LintjeElement')
         .flatMap((entry) => ownMethods(entry.file, entry.cls))
       const events = new Map()
-      const slots = new Set()
+      const slots = new Map()
       for (const module of modulesOf(file, chain)) {
         // A folder of shared helpers serves many tags; only a tag's own folder speaks for it.
         const own = module === file || tagFolders.has(dirname(module.path))
@@ -273,7 +283,7 @@ export function buildManifest(srcDir) {
         if (module.dynamicEvents)
           for (const name of module.literals)
             if (!tagNames.has(name) && !events.has(name)) events.set(name, { composed: true })
-        for (const slot of module.slots) slots.add(slot)
+        for (const slot of module.slots) slots.set(slot.name, slot)
       }
 
       const fields = [...members.values()].map((field) => ({
@@ -322,7 +332,7 @@ export function buildManifest(srcDir) {
             type: { text: event.detail ? `CustomEvent<${event.detail}>` : 'CustomEvent' },
             description: event.composed ? undefined : 'Not composed: it stops at the shadow root.',
           })),
-        slots: [...slots].sort().map((name) => ({ name })),
+        slots: [...slots.values()].sort((a, b) => a.name.localeCompare(b.name)),
         // Not in the schema: the tags this one draws, for the style guide's "Bestaat uit".
         draws: drawnBy(file),
       })

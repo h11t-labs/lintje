@@ -43,8 +43,8 @@ niet.
     `moss-green`), nooit naar een letter. De namen staan één keer in `src/tokens/colors.ts`, in
     een vaste volgorde waar een kleur alleen achteraan bij komt; een nieuwe kleur komt daar en in
     `tokens.css`, met haar tintladder. Datakleur is gelijk in licht, donker en elk thema, behalve
-    `--data-comparison`, `--data-other` en `--color-chart-dark-yellow-text`. Geen
-    grafiekbibliotheek.
+    `--data-comparison`, `--data-other`, `--color-chart-dark-yellow-text` en de randen
+    `--color-chart-<kleur>-edge`. Geen grafiekbibliotheek.
 11. **Iconen zijn bestanden, genoemd naar de bestandsnaam** (`functioneel-delta-omlaag`): de set
     van RVO (`@nl-rvo/assets`), met die van Lintje zelf in `assets/icons/` eroverheen — de
     emblemen en de generieke bedieningselementen die RVO mist; `npm run build:icons` stelt beide

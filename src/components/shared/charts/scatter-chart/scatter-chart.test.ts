@@ -86,6 +86,20 @@ describe('the scatter plot', () => {
     expect(yellow.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-text)')
   })
 
+  it('edges a mint-green point, and its legend shape, in its dark edge', () => {
+    const { host } = draw({
+      ...SPEC,
+      series: [{ ...SPEC.series[0], color: 'mint-green' }, SPEC.series[1]],
+    })
+    const edge = 'var(--color-chart-mint-green-edge)'
+    const mint = points(host).filter(
+      (point) => point.getAttribute('fill') === 'var(--color-chart-mint-green)',
+    )
+    expect(mint.map((point) => point.getAttribute('stroke'))).toEqual([edge, edge])
+    const shapes = [...host.querySelectorAll('.lintje-legend__marker--symbol path')]
+    expect(shapes.map((shape) => shape.getAttribute('stroke'))).toContain(edge)
+  })
+
   it('draws no point without both values, never at 0', () => {
     const { host } = draw(SPEC)
     expect(points(host)).toHaveLength(3)

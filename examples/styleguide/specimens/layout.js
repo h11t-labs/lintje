@@ -25,6 +25,20 @@ const LARGE_PANELS = `
   <p slot="document">Sleep een document hierheen of kies er een.</p>
   <p slot="live">Druk op de knop van je taal en begin te praten.</p>`
 
+const FAQ = `
+  <lintje-expander heading="Wie kan de subsidie aanvragen?">
+    <lintje-prose text="Organisaties die in Nederland gevestigd zijn en ingeschreven staan bij de Kamer van Koophandel."></lintje-prose>
+  </lintje-expander>
+  <lintje-expander heading="Welke documenten heb ik nodig?">
+    <lintje-prose text="Een kopie van het identiteitsbewijs van de aanvrager, een recent uittreksel van de Kamer van Koophandel en een begroting van de kosten."></lintje-prose>
+  </lintje-expander>
+  <lintje-expander heading="Hoe lang duurt de beoordeling?">
+    <lintje-prose text="Binnen acht weken na een volledige aanvraag. Ontbreekt er iets, dan staat de termijn stil tot het is aangevuld."></lintje-prose>
+  </lintje-expander>
+  <lintje-expander heading="Wat gebeurt er na de toekenning, en wanneer wordt het bedrag uitbetaald?">
+    <lintje-prose text="Je krijgt een besluit met het bedrag. Het voorschot staat binnen vier weken op je rekening."></lintje-prose>
+  </lintje-expander>`
+
 /** The host's half: it holds `value` and sets it when a tab is chosen. */
 function tabs(stage, value, items = TABS) {
   const element = stage.querySelector('lintje-tabs')
@@ -198,6 +212,61 @@ export default {
             <lintje-icon-button slot="actions" icon="functioneel-kruis" label="Samenvatting verbergen" variant="flat"></lintje-icon-button>
             <lintje-prose text="De ochtenddienst begint maandag om zes uur; de roostermaker is nog niet ingelicht."></lintje-prose>
           </lintje-expander>`,
+        },
+      ],
+    },
+    {
+      tag: 'lintje-accordion',
+      title: 'Uitklappers gestapeld als één lijst, met de lijnen van de lijst',
+      specimens: [
+        {
+          label: 'Dicht en open',
+          note: 'Meer rijen mogen tegelijk open staan. Verberg hier niets wat elke lezer nodig heeft.',
+          html: `<lintje-accordion>${FAQ.replace('<lintje-expander heading="Welke documenten heb ik nodig?"', '<lintje-expander heading="Welke documenten heb ik nodig?" open')}</lintje-accordion>`,
+        },
+        {
+          label: 'Met ondertitel',
+          note: 'De ondertitel staat onder de titeltekst; de pijl blijft op de eerste regel.',
+          html: `<lintje-accordion>
+            <lintje-expander heading="Stap 1: Gegevens" subtitle="Afgerond op 3 oktober">
+              <lintje-prose text="Naam, adres en het nummer bij de Kamer van Koophandel."></lintje-prose>
+            </lintje-expander>
+            <lintje-expander heading="Stap 2: Bijlagen" subtitle="2 van 3 toegevoegd" open>
+              <lintje-prose text="Voeg de begroting toe. Het uittreksel en de kopie van het identiteitsbewijs staan er al."></lintje-prose>
+            </lintje-expander>
+            <lintje-expander heading="Stap 3: Controle" subtitle="Nog niet begonnen">
+              <lintje-prose text="Je ziet alles nog een keer voordat je verstuurt."></lintje-prose>
+            </lintje-expander>
+          </lintje-accordion>`,
+        },
+        {
+          label: 'In een tegel',
+          note:
+            'In een `flush`-tegel reiken de rijen tot de rand en is de lijn van de laatste rij de onderrand. ' +
+            'Met `level` volgt het kopniveau de tegel.',
+          html: `<lintje-tile heading="Toelichting op de meting" subtitle="Peilmoment 1 oktober" flush>
+            <lintje-accordion level="4">
+              <lintje-expander heading="Hoe is de wachttijd gemeten?" open>
+                <lintje-prose text="De wachttijd is de mediaan per kwartier, gemeten vanaf het betreden van de rij tot het bereiken van de balie."></lintje-prose>
+              </lintje-expander>
+              <lintje-expander heading="Welke locaties tellen mee?">
+                <lintje-prose text="Alle loketten die in de meetperiode open waren."></lintje-prose>
+              </lintje-expander>
+              <lintje-expander heading="Waarom ontbreekt september?">
+                <lintje-prose text="In september is er niet gemeten; de periode is gearceerd, niet nul."></lintje-prose>
+              </lintje-expander>
+            </lintje-accordion>
+          </lintje-tile>`,
+        },
+        {
+          label: 'Eén tegelijk open',
+          note: 'Met `exclusive` sluit het openen van een rij de andere. De inhoud schuift dan onder de lezer vandaan.',
+          html: `<lintje-accordion exclusive>${FAQ}</lintje-accordion>`,
+        },
+        {
+          label: 'Alles openen',
+          note: 'Met `toggle-all` staat er een tekstlink boven de rijen; die wordt “Alles sluiten” zodra alles open staat.',
+          html: `<lintje-accordion toggle-all>${FAQ}</lintje-accordion>`,
         },
       ],
     },

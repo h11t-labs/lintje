@@ -25,6 +25,7 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import buttonCss from '../../actions/button/button.css?inline'
 import paginationCss from './pagination.css?inline'
 import { isPlainClick } from '../../../core/links'
+import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import '../../actions/menu-button/menu-button'
 
 export type PageSlot = number | 'gap'
@@ -102,8 +103,6 @@ export class LintjePagination extends LintjeElement {
     unitOne: { type: String, attribute: 'unit-one' },
     hrefTemplate: { type: String, attribute: 'href-template' },
     label: { type: String },
-    compact: { state: true },
-    stacked: { state: true },
   }
 
   page: number = 1
@@ -127,18 +126,15 @@ export class LintjePagination extends LintjeElement {
   protected compact: boolean = false
   /** The count and the size choice below the pages: the three zones do not fit on one line. */
   protected stacked: boolean = false
-  #resize: ResizeObserver | null = null
+  #resize = new FrameResizeObserver(() => this.fit())
 
   override connectedCallback(): void {
     super.connectedCallback()
-    if (typeof ResizeObserver === 'undefined') return
-    this.#resize = new ResizeObserver(() => this.fit())
     this.#resize.observe(this)
   }
 
   override disconnectedCallback(): void {
-    this.#resize?.disconnect()
-    this.#resize = null
+    this.#resize.disconnect()
     super.disconnectedCallback()
   }
 
@@ -180,11 +176,12 @@ export class LintjePagination extends LintjeElement {
       ].map((part) => Math.max(part.getBoundingClientRect().width, part.scrollWidth)),
     )
     const rowGap = parseFloat(getComputedStyle(row).columnGap) || 0
+    // Written straight onto the row as classes, not through reactive properties: set after a
+    // render, those would draw the element twice.
+    this.compact = needed > available + 0.5
+    this.stacked = side > 0 && needed + 2 * (side + rowGap) > available + 0.5
     show(this.compact)
-    const compact = needed > available + 0.5
-    const stacked = side > 0 && needed + 2 * (side + rowGap) > available + 0.5
-    if (compact !== this.compact) this.compact = compact
-    if (stacked !== this.stacked) this.stacked = stacked
+    row.classList.toggle('is-stacked', this.stacked)
   }
 
   private get count(): number {
@@ -347,13 +344,7 @@ export class LintjePagination extends LintjeElement {
     const slots = pageRange(current, count)
     const at = slots.indexOf(current)
     const range = rangeText(current, this.pageSize, this.total, this.countUnit, this.filteredFrom)
-    return html`<div
-      class=${classMap({
-        'lintje-pagination': true,
-        'is-compact': this.compact,
-        'is-stacked': this.stacked,
-      })}
-    >
+    return html`<div class="lintje-pagination">
       ${range ? html`<p class="lintje-pagination__count">${range}</p>` : nothing}
       <nav class="lintje-pagination__nav" aria-label=${this.label}>
         ${this.step('previous', current - 1, current <= 1)}
