@@ -8,12 +8,56 @@
 
 .lintje-chat-composer { position: relative; }
 
-/* The frame is the field, so it takes the field's resting border (3:1). */
-.lintje-chat-composer__frame {
-  display: flex; flex-direction: column;
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-field);
+/* The frame (`lintje-chat-frame`) is the field, so it takes the field's resting border. */
+
+/* Folded while the assistant asks, on a phone: one line in the same frame, a target to open it. */
+.lintje-chat-composer__expand {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--h-touch);
+  padding: 0 var(--space-3);
+  border: 0;
+  background: none;
+  font: var(--text-body);
+  color: var(--color-text-muted);
+  text-align: left;
+  cursor: pointer;
 }
+.lintje-chat-composer__expand:hover { background: var(--color-bg-subtle); }
+.lintje-chat-composer__expand:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+.lintje-chat-composer__expand-icon { flex: none; color: var(--color-text-primary); }
+/* A phone's bar has no room for the word: the chevron, named "Inklappen", leads the bar. */
+.lintje-chat-composer__collapse { flex: none; margin-right: auto; --h-icon-button: var(--h-button); }
+.lintje-chat-composer__collapse:has(+ .lintje-chat-composer__attach) { margin-right: 0; }
+
+/* The attachments stand inside the frame, above the field and on the line of its text, so the
+   frame's border and ring hold them. */
+.lintje-chat-composer__attachments {
+  display: flex; flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4) 0;
+  list-style: none;
+}
+.lintje-chat-composer__attachment-item { display: flex; min-width: 0; max-width: 100%; }
+
+/* While files hang over the window, the frame is the upload field's drop zone. */
+.lintje-chat-composer__drop {
+  position: absolute; inset: -1px; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+  border: 2px solid var(--color-accent-line);
+  background: var(--color-bg-selected);
+  font: var(--text-ui);
+  color: var(--color-text-primary);
+  text-align: center;
+}
+.lintje-chat-composer__drop-meta { font: var(--text-small); color: var(--color-text-muted); }
 
 /* Grows with the text and scrolls at four lines, the captions with it. A line this tall leaves
    a term's caption room above the word. */
@@ -91,7 +135,9 @@
 
 /* A joined group is drawn at the target height itself, so both halves are as tall as "Versturen". */
 .lintje-chat-composer__send { position: relative; flex: none; display: flex; gap: 1px; }
-.lintje-chat-composer__send-half { --h-icon-button: var(--h-button); }
+.lintje-chat-composer__send-half,
+.lintje-chat-composer__attach { --h-icon-button: var(--h-button); }
+.lintje-chat-composer__attach { flex: none; margin-right: auto; }
 
 .lintje-chat-composer__scrim { position: fixed; inset: 0; z-index: 45; }
 .lintje-chat-composer__options {
@@ -142,6 +188,7 @@
 /* A phone: the field stays at 1rem, since a smaller size makes iOS zoom in on focus. */
 @media screen and (max-width: 767px) {
   .lintje-chat-composer__input { padding: var(--space-3) var(--space-3) var(--space-1); }
+  .lintje-chat-composer__attachments { padding: var(--space-3) var(--space-3) 0; }
   .lintje-chat-composer__hint:not(:empty) { flex-basis: 100%; order: -1; text-align: left; }
 }
 

@@ -4,6 +4,8 @@ import { render } from 'lit'
 import { renderIcon } from '../../../icons/render'
 import './card'
 import type { CardData, LintjeCard } from './card'
+import type { LintjePerson } from '../person/person'
+import type { LintjePersonGroup } from '../person-group/person-group'
 
 const PRODUCT: CardData = {
   id: 'vertalen',
@@ -292,5 +294,85 @@ describe('lintje-card', () => {
   it('has no status region when it never loaded', async () => {
     const root = (await mount(PRODUCT)).shadowRoot!
     expect(root.querySelector('[role="status"]')).toBeNull()
+  })
+})
+
+describe('people on a card', () => {
+  const JV = { name: 'J. de Vries', initials: 'JV', href: '/mensen/jv' }
+  const READERS = [
+    { name: 'A. Bakker', initials: 'AB', href: '/mensen/ab' },
+    { name: 'S. Yılmaz', initials: 'SY' },
+    { name: 'M. Jansen', initials: 'MJ' },
+  ]
+  const WITH_PEOPLE: CardData = {
+    ...PRODUCT,
+    facts: [
+      { label: 'Behandelaar', person: JV },
+      { label: 'Meelezers', people: READERS },
+      { label: 'Bron', value: 'Register' },
+    ],
+  }
+
+  const fact = (element: LintjeCard, index: number): HTMLElement =>
+    element.shadowRoot!.querySelectorAll<HTMLElement>('.lintje-card__fact')[index]!
+
+  it('draws a person or a row of people on the right, named by the term, without a value', async () => {
+    const element = await mount({ ...WITH_PEOPLE, href: undefined })
+    const handler = fact(element, 0)
+    expect(handler.querySelector('dt')!.textContent).toBe('Behandelaar')
+    const person = handler.querySelector<LintjePerson>('dd lintje-person')!
+    expect(person.getAttribute('size')).toBe('small')
+    // On a card that is no link, a person with `href` is a link.
+    expect(person.person?.href).toBe('/mensen/jv')
+    const group = fact(element, 1).querySelector<LintjePersonGroup>('dd lintje-person-group')!
+    expect(group.getAttribute('label')).toBe('Meelezers')
+    expect(group.getAttribute('size')).toBe('small')
+    expect(group.people).toHaveLength(3)
+    expect(fact(element, 1).querySelector('.lintje-card__missing')).toBeNull()
+    expect(fact(element, 2).querySelector('dd')!.textContent!.trim()).toBe('Register')
+  })
+
+  it('takes `person` before `people` before `value`, and null as nobody', async () => {
+    const element = await mount({
+      ...PRODUCT,
+      facts: [
+        { label: 'Eigenaar', person: null, people: READERS, value: 'x' },
+        { label: 'Lezers', people: READERS, value: 'x' },
+      ],
+    })
+    const nobody = fact(element, 0).querySelector('lintje-person')!
+    expect(nobody.person).toBeNull()
+    expect(fact(element, 0).querySelector('lintje-person-group')).toBeNull()
+    expect(fact(element, 1).querySelector('lintje-person-group')).not.toBeNull()
+    expect(fact(element, 1).querySelector('dd')!.textContent).not.toContain('x')
+  })
+
+  it('on a card that is a link: no person link, and the row and its list open no card', async () => {
+    const element = await mount(WITH_PEOPLE)
+    expect(element.shadowRoot!.querySelector('.lintje-card.is-link')).not.toBeNull()
+    const person = fact(element, 0).querySelector('lintje-person')!
+    expect(person.person?.href).toBeUndefined()
+    const group = fact(element, 1).querySelector('lintje-person-group')!
+    expect(group.people.every((reader) => reader.href === undefined)).toBe(true)
+    const navigated: string[] = []
+    element.addEventListener('lintje-navigate', (event) => {
+      navigated.push((event as CustomEvent<{ href: string }>).detail.href)
+      event.preventDefault()
+    })
+    await group.updateComplete
+    const button = group.shadowRoot!.querySelector<HTMLButtonElement>('button')!
+    button.click()
+    await group.updateComplete
+    expect(group.open).toBe(true)
+    group.shadowRoot!.querySelector<HTMLElement>('.lintje-person-group__heading')!.click()
+    expect(navigated).toEqual([])
+    // Elsewhere on the card it still opens.
+    element.shadowRoot!.querySelector<HTMLElement>('.lintje-card__description')!.click()
+    expect(navigated).toEqual(['/producten/vertalen'])
+  })
+
+  it('leaves the facts out on a compact card, these too', async () => {
+    const element = await mount(WITH_PEOPLE, { compact: '' })
+    expect(element.shadowRoot!.querySelector('lintje-person, lintje-person-group')).toBeNull()
   })
 })

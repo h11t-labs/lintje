@@ -1,5 +1,5 @@
 // The map category (Kaart): the specimens of its elements.
-import { log } from '../shared.js'
+import { linkLog, log } from '../shared.js'
 import { originCountries, desks, origin, meta } from '../../_data/load.js'
 
 // The nine data colours after the first eight, with the Dutch name the legend shows.
@@ -34,6 +34,8 @@ const LIGHT_SERIES = [
   ['pink', 'Roze'],
   ['light-blue', 'Lichtblauw'],
 ]
+// The same kinds as series keys of their own, styled rather than named after a colour.
+const KIND_STYLED = { counter: 'balie', service: 'servicepunt' }
 
 // "Overig" has no coordinates in the demo data: it counts towards the scale and draws no flow.
 const MAPS = [
@@ -136,6 +138,37 @@ const MAPS = [
       description: 'Loketten in Nederland in drie reeksen in lichte kleuren, elk met een eigen vorm; de grootte van het teken is het aantal aanvragen.',
     },
   },
+  {
+    id: 'map-point-size', label: 'Puntgrootte', title: 'Kaart · puntgrootte met de zoom',
+    note: 'Met `size` is het aantal geen grootte (`by: none`) en groeit een punt mee met de zoom (`zoom: true`): zoom in en de punten blijven bij hun plek horen.',
+    data: {
+      variant: 'points', geo: 'netherlands', unit: 'loketten', height: 320,
+      size: { by: 'none', min: 5, zoom: true },
+      values: desks.map((point) => ({
+        id: point.id, label: point.map_label, value: 1,
+        detail: `${point.wait_time} min wachttijd`, lon: point.lon, lat: point.lat,
+      })),
+      description: 'Elk loket als één punt van vaste grootte, die met de zoom meegroeit.',
+    },
+  },
+  {
+    id: 'map-series-style', label: 'Reeksen in één kleur', title: 'Kaart · reeksen in één kleur',
+    note: 'Met `seriesStyles` draagt de vorm het onderscheid en is de kleur neutraal: de bron is geen schaal.',
+    data: {
+      variant: 'points', geo: 'netherlands', unit: 'aanvragen', height: 320,
+      seriesLabels: { balie: 'Balie', servicepunt: 'Servicepunt' },
+      seriesStyles: {
+        balie: { color: 'neutral', shape: 'square' },
+        servicepunt: { color: 'neutral', shape: 'diamond' },
+      },
+      values: desks.map((point) => ({
+        id: point.id, label: point.map_label, value: point.requests,
+        detail: `${point.wait_time} min wachttijd`, lon: point.lon, lat: point.lat,
+        series: KIND_STYLED[point.kind],
+      })),
+      description: 'Loketten per soort in één neutrale kleur: een vierkant is een balie, een ruit een servicepunt; de grootte is het aantal aanvragen.',
+    },
+  },
 ]
 
 const MAP_TILE = '<lintje-map></lintje-map>'
@@ -185,6 +218,22 @@ export default {
           html: MAP_TILE,
           setup: mapSetup(map),
         })),
+        {
+          label: 'Punten met een link',
+          note: 'Elke stip heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad.',
+          html: MAP_TILE,
+          setup(stage) {
+            const tile = stage.querySelector('lintje-map')
+            const points = MAPS.find((map) => map.id === 'map-points')
+            tile.data = {
+              ...points.data,
+              title: 'Kaart · punten met een link',
+              values: points.data.values.map((value) => ({ ...value, href: `?loket=${value.id}` })),
+              footnote: 'Bron: fictieve demogegevens',
+            }
+            linkLog(stage, tile, ['lintje-mark-select'])
+          },
+        },
         ...MAPS.map((map) => ({
           label: `${map.label} op een ondergrond`,
           note: `${map.note} De ondergrond is een WMS-kaart.`,

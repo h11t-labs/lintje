@@ -256,7 +256,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
   const click = (event: MouseEvent) => {
     const i = pick(event)
     const mark = i != null ? marks[i] : null
-    if (mark?.clickable && mark.click !== nothing) mark.click()
+    if (mark?.clickable && mark.click !== nothing) mark.click(event)
   }
   const pointing = hovered != null && marks[controller.hoverIndex!]?.clickable
 
@@ -277,7 +277,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
       `
       : nothing,
 
-    svg`<g @mousemove=${pointer} @mouseleave=${() => controller.hoverAt(null)} @click=${click}>
+    svg`<g @mousemove=${pointer} @mouseleave=${() => controller.hoverAt(null)} @click=${click} @auxclick=${click}>
       <rect class="lintje-chart__hit ${pointing ? 'is-clickable' : ''}"
             x="0" y="0" width=${area.width} height=${area.height} />
       <g>

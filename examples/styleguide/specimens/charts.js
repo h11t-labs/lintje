@@ -1,6 +1,7 @@
 // The charts category (Kerncijfers en grafieken): the specimens of its elements.
 import { CHART_KINDS, CHART_QUESTIONS } from '../../../dist-elements/lintje.js'
 import { meta, number, daily, heatmap, desks, breakdowns, hourly } from '../../_data/load.js'
+import { linkLog } from '../shared.js'
 
 const kpi = meta.kpi
 
@@ -164,8 +165,8 @@ const LAST_YEAR = [
 // Every desk as a point, requests against waiting time, one series per kind of desk; the desks
 // that deliver late have no waiting time yet in the second specimen (rule 15).
 const DESK_SERIES = [
-  { key: 'counter', label: 'Loket' },
-  { key: 'service', label: 'Servicepunt' },
+  { key: 'counter', label: 'Loket', color: 'sky-blue' },
+  { key: 'service', label: 'Servicepunt', color: 'dark-yellow' },
 ]
 const deskScatter = (missing = false) => ({
   kind: 'scatter',
@@ -175,6 +176,7 @@ const deskScatter = (missing = false) => ({
   dataLabels: ['Amsterdam Centrum'],
   series: DESK_SERIES.map((kind) => ({
     label: kind.label,
+    color: kind.color,
     points: desks.filter((desk) => desk.kind === kind.key).map((desk) => ({
       label: desk.map_label, id: desk.id, href: `?loket=${desk.id}`,
       x: desk.requests,
@@ -270,8 +272,8 @@ const CHARTS = [
     spec: {
       kind: 'grouped-bar', labels: weekdays, axisTitle: 'Afgehandelde aanvragen per dag',
       series: [
-        { label: 'Deze week', values: daily.map((row) => row.requests) },
-        { label: 'Vorige week', values: daily.map((row) => row.requests_last_week) },
+        { label: 'Deze week', values: daily.map((row) => row.requests), color: 'sky-blue' },
+        { label: 'Vorige week', values: daily.map((row) => row.requests_last_week), comparison: true },
       ],
     },
   },
@@ -339,6 +341,20 @@ const CHARTS = [
     },
   },
   {
+    id: 'pie-legend', title: 'Taart zonder legendatabel',
+    description: 'Aanvragen naar kanaal: online 412, balie 236, telefoon 158, post 61, overig 33.',
+    spec: {
+      kind: 'pie', legendTable: false,
+      segments: [
+        { label: 'Balie', value: 236 },
+        { label: 'Online', value: 412 },
+        { label: 'Overig', value: 33 },
+        { label: 'Post', value: 61 },
+        { label: 'Telefoon', value: 158 },
+      ],
+    },
+  },
+  {
     id: 'pie-folded', title: 'Taart met meer dan vijf delen',
     description: `Afgehandelde aanvragen per loket: ${largestDesks
       .map((part) => `${part.label} ${number(part.value)}`)
@@ -362,8 +378,8 @@ const CHARTS = [
     description: 'Afgehandelde aanvragen per uur als staven op de linkeras, wachttijd als lijn op de rechteras, tegen de norm van 15 minuten.',
     spec: {
       kind: 'dual-axis', labels: column('hour'),
-      left: { label: 'Aanvragen', values: column('requests'), unit: 'aanvragen' },
-      right: { label: 'Wachttijd', values: column('wait_time'), unit: 'min' },
+      left: { label: 'Aanvragen', values: column('requests'), unit: 'aanvragen', color: 'sky-blue' },
+      right: { label: 'Wachttijd', values: column('wait_time'), unit: 'min', color: 'dark-yellow' },
       threshold: meta.thresholds.wait_time_threshold,
       pendingHours: meta.national_pending_hours,
     },
@@ -386,9 +402,9 @@ const CHARTS = [
     spec: {
       kind: 'radar', axes: ASPECTS, max: 10, threshold: 7,
       series: [
-        { label: 'Regio Noord', values: [7.9, 6.4, 7.1, 8.5, 8.0, 8.7] },
-        { label: 'Regio Zuid', values: [7.1, 7.4, 7.8, 8.1, 8.6, 8.2] },
-        { label: 'Regio Oost', values: [6.8, 7.0, 6.6, 7.9, 7.4, 8.0] },
+        { label: 'Regio Noord', values: [7.9, 6.4, 7.1, 8.5, 8.0, 8.7], color: 'sky-blue' },
+        { label: 'Regio Zuid', values: [7.1, 7.4, 7.8, 8.1, 8.6, 8.2], color: 'dark-yellow' },
+        { label: 'Regio Oost', values: [6.8, 7.0, 6.6, 7.9, 7.4, 8.0], color: 'red' },
       ],
     },
   },
@@ -404,6 +420,16 @@ const CHARTS = [
         columnLabels: heatmapWeekdays, rowLabels: hours,
         values: hours.map((hour) => heatmapWeekdays.map((weekday) => heatmapValue(weekday, hour))),
       },
+    },
+  },
+  {
+    id: 'heatmap-labels', title: 'Heatmap met lange rijlabels',
+    description: 'Wachtenden per loket in de ochtend. Een lange naam staat heel in de tooltip, en loopt op een telefoon door.',
+    spec: {
+      kind: 'heatmap', columnLabels: ['9:00', '10:00', '11:00'],
+      rowLabels: ['Servicepunt in het gemeentehuis van de oostelijke wijken', 'Servicepunt west', 'Stadskantoor'],
+      values: [[12, 18, 9], [6, 11, 14], [8, 7, 10]],
+      unit: 'wachtenden',
     },
   },
   {
@@ -441,6 +467,7 @@ const VARIANT_NAMES = {
   pie: 'Taart',
   donut: 'Donut met legendatabel',
   'pie-color': 'In de kleur van haar variabele',
+  'pie-legend': 'Zonder legendatabel',
   'pie-folded': 'Meer dan vijf delen',
   'donut-remainder': 'Donut met de rest van een geheel',
   'dual-axis': 'Aantallen en wachttijd met norm',
@@ -448,16 +475,19 @@ const VARIANT_NAMES = {
   radar: 'Eén variabele met vergelijking en norm',
   'radar-layers': 'Drie lagen',
   heatmap: 'Met klassenlegenda',
+  'heatmap-labels': 'Met lange rijlabels',
   histogram: 'Met mediaan en termijn',
   'line-light-colours': 'In lichte kleuren met hun rand',
 }
 
 // What a label cannot say, for the note under it.
 const VARIANT_NOTES = {
+  'heatmap-labels': 'Met een aanwijzer staat een lange naam heel in de tooltip; zonder hover en op een telefoon loopt hij door.',
   line: 'De laatste twee uren zijn nog niet compleet en staan gearceerd.',
   'bar-trend-gap': 'Van woensdag en zaterdag vorige week zijn geen gegevens; daar breekt de trendlijn.',
   'stacked-area': 'Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
   'pie-folded': 'De taart houdt de vier grootste delen en vouwt de rest in “Overig”.',
+  'pie-legend': 'De legenda staat boven de taart; aantal en aandeel staan in de tooltip.',
   'radar-layers': 'Wijs een regio aan in de legenda: haar vlak kleurt en de andere lagen stappen terug.',
   'line-light-colours': 'Mintgroen, roze en lichtblauw halen als lijn geen 3:1 op wit; in licht ligt er een rand in hun eigen donkere kleur onder.',
 }
@@ -529,6 +559,30 @@ const tableSwitch = {
 // Missing is never zero (rule 15): a line breaks at the gap, a bar's slot is hatched. Two lines
 // in colour carry their colour's shape at the end (rule 13); the dark yellow one is edged.
 const share = (part) => daily.map((row, i) => (i === 3 ? null : Math.round(row.requests * part)))
+
+// A bar per day with its own `href`: where a click on it goes, shown under the specimen.
+const linkedMarks = [
+  {
+    kind: 'bar',
+    label: 'Staven met een link',
+    note: 'Elke staaf heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad.',
+    html: TILE,
+    setup(stage) {
+      const element = stage.querySelector('lintje-chart')
+      element.data = {
+        chart: {
+          kind: 'bar', labels: weekdays, values: daily.map((row) => row.requests),
+          axisTitle: 'Afgehandelde aanvragen per dag',
+          links: weekdays.map((day) => ({ id: day, href: `?dag=${encodeURIComponent(day)}` })),
+        },
+        description: 'Afgehandelde aanvragen per dag deze week; elke staaf opent die dag.',
+        title: 'Aanvragen per dag',
+        footnote: 'Bron: fictieve demogegevens',
+      }
+      linkLog(stage, element, ['lintje-mark-select'])
+    },
+  },
+]
 
 const missingValues = [
   {
@@ -720,6 +774,7 @@ export default {
           specimens: [
             ...CHARTS.filter((chart) => chart.spec.kind === kind).map(chartSpecimen),
             ...missingValues.filter((specimen) => specimen.kind === kind),
+            ...linkedMarks.filter((specimen) => specimen.kind === kind),
           ],
         })),
       },

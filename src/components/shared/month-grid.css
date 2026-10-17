@@ -1,0 +1,71 @@
+/* The month grid of the date input and the date range, drawn in its owner's root. */
+
+/* --- */
+
+/* A 1 px gap keeps two chosen days apart; a period's tint spans it within a week. */
+.lintje-month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; }
+/* A row is there for the grid's ARIA only. */
+.lintje-month-grid__row { display: contents; }
+.lintje-month-grid__weekday {
+  padding: var(--space-1) 0;
+  text-align: center;
+  font-size: var(--label-size); font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.lintje-month-grid__day {
+  height: var(--h-option);
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  /* What a button had: a day is pressed, not read. */
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-month-grid__day:hover { background: var(--color-bg-subtle); }
+.lintje-month-grid__day.is-today { box-shadow: inset 0 0 0 1px var(--color-accent-line); }
+/* A tint of the primary, unlike a hover's grey, so a period reads as one stretch; the hover keeps
+   it, so a day in the period stays told from a plain one under the mouse. */
+.lintje-month-grid__day.is-in-range,
+.lintje-month-grid__day.is-in-range:hover {
+  --lintje-month-grid-span: -1px 0 0 var(--color-range-bg), 1px 0 0 var(--color-range-bg);
+  background: var(--color-range-bg);
+  box-shadow: var(--lintje-month-grid-span);
+}
+.lintje-month-grid__day.is-in-range:first-child { --lintje-month-grid-span: 1px 0 0 var(--color-range-bg); }
+.lintje-month-grid__day.is-in-range:last-child { --lintje-month-grid-span: -1px 0 0 var(--color-range-bg); }
+.lintje-month-grid__day.is-in-range.is-today {
+  box-shadow: inset 0 0 0 1px var(--color-accent-line), var(--lintje-month-grid-span);
+}
+/* The edge is an inset ring, so the cell keeps its size. */
+.lintje-month-grid__day.is-selected {
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  box-shadow: inset 0 0 0 1px var(--color-chosen-day-edge);
+  font-weight: 700;
+}
+.lintje-month-grid__day.is-selected.is-today {
+  box-shadow: inset 0 0 0 1px var(--color-chosen-day-edge),
+              inset 0 0 0 2px var(--color-accent-line);
+}
+/* Outside what may be chosen: arrow keys still pass over it. */
+.lintje-month-grid__day.is-blocked {
+  background: transparent;
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+/* Forced colours drop rings and fills: they become borders inside the cell. */
+@media (forced-colors: active) {
+  .lintje-month-grid__day.is-in-range { border-block: 1px solid CanvasText; }
+  .lintje-month-grid__day.is-today { border: 1px solid CanvasText; }
+  .lintje-month-grid__day.is-selected { border: 1px solid Highlight; }
+  .lintje-month-grid__day.is-selected.is-today:not(:focus-visible) {
+    outline: 1px solid CanvasText;
+    outline-offset: -2px;
+  }
+  .lintje-month-grid__day.is-blocked { color: GrayText; }
+}
