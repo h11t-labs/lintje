@@ -84,7 +84,7 @@
 .lintje-tag-input__option {
   display: flex; align-items: center;
   min-height: var(--h-option);
-  padding: 0 14px;
+  padding: 0 var(--space-4);
   cursor: pointer;
 }
 .lintje-tag-input__option:hover,

@@ -21,7 +21,7 @@
   display: flex; align-items: center;
   width: 100%;
   min-height: var(--h-option);
-  padding: 0 14px;
+  padding: 0 var(--space-4);
   background: transparent;
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
