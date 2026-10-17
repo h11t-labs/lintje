@@ -7,7 +7,7 @@
  * `ownsEscape(this)` (`core/focus.ts`, re-exported here).
  */
 
-import { deepActiveElement } from '../../core/focus'
+import { deepActiveElement, standsIn } from '../../core/focus'
 
 export { deepActiveElement, modalAround, ownsEscape } from '../../core/focus'
 
@@ -57,6 +57,14 @@ export function tabbables(root: ParentNode): HTMLElement[] {
   }
   for (const child of Array.from(root.children)) visit(child)
   return found
+}
+
+/** The first stop after `element` in the document that is not inside `skip`. */
+export function stopAfter(element: HTMLElement, skip: Node): HTMLElement | null {
+  const order = tabbables(document.body)
+  const at = order.indexOf(element)
+  if (at < 0) return null
+  return order.slice(at + 1).find((stop) => !standsIn(stop, skip)) ?? null
 }
 
 /** The element itself when Tab stops on it, else its first stop (through its shadow root). */

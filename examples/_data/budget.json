@@ -1,0 +1,48 @@
+[
+  {
+    "id": "sociale-zekerheid",
+    "label": "Sociale zekerheid",
+    "parts": [
+      { "label": "Ouderdomspensioen", "value": 55.2 },
+      { "label": "Arbeidsongeschiktheid", "value": 19.6 },
+      { "label": "Kinderopvang en toeslagen", "value": 14.3 },
+      { "label": "Werkloosheid", "value": 12.4 },
+      { "label": "Bijstand", "value": 8.4 },
+      { "label": "Overige regelingen", "value": 0.8 }
+    ]
+  },
+  {
+    "id": "zorg",
+    "label": "Zorg",
+    "parts": [
+      { "label": "Ziekenhuiszorg", "value": 31.2 },
+      { "label": "Langdurige zorg", "value": 29.5 },
+      { "label": "Huisartsen en wijkzorg", "value": 12.6 },
+      { "label": "Geneesmiddelen", "value": 9.8 },
+      { "label": "Jeugdzorg", "value": 7.1 },
+      { "label": "Geestelijke gezondheid", "value": 6.7 },
+      { "label": "Preventie", "value": 1.0 },
+      { "label": "Opleidingen", "value": 0.5 }
+    ]
+  },
+  {
+    "id": "onderwijs",
+    "label": "Onderwijs",
+    "parts": [
+      { "label": "Primair onderwijs", "value": 14.9 },
+      { "label": "Voortgezet onderwijs", "value": 11.2 },
+      { "label": "Hoger onderwijs", "value": 10.8 },
+      { "label": "Beroepsonderwijs", "value": 7.0 },
+      { "label": "Studiefinanciering", "value": 4.7 }
+    ]
+  },
+  { "id": "gemeenten", "label": "Gemeenten en provincies", "value": 38.2 },
+  { "id": "economie", "label": "Economie en ondernemen", "value": 22.3 },
+  { "id": "infrastructuur", "label": "Infrastructuur en water", "value": 16.9 },
+  { "id": "klimaat", "label": "Klimaat en energie", "value": 12.5 },
+  { "id": "wonen", "label": "Wonen", "value": 10.3 },
+  { "id": "internationaal", "label": "Internationale samenwerking", "value": 5.4 },
+  { "id": "landbouw", "label": "Landbouw en natuur", "value": 3.9 },
+  { "id": "cultuur", "label": "Cultuur en media", "value": 3.0 },
+  { "id": "sport", "label": "Sport", "value": 1.2 }
+]

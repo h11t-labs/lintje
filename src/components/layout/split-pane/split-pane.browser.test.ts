@@ -60,8 +60,7 @@ describe('lintje-split-pane dragged', () => {
     expect(changes).toEqual([30])
     expect(part(element, '[role="separator"]').getAttribute('aria-valuenow')).toBe('30')
     expect(block(element).classList.contains('is-dragging')).toBe(false)
-    // The strip is 9 px; the first panel takes its share of the rest. Reduced motion still
-    // eases every property for 80 ms (`tokens/base.css`), so the width is polled.
+    // The strip is 9 px; the first panel takes its share of the rest.
     await expect
       .poll(() => start(element).getBoundingClientRect().width)
       .toBeCloseTo((width - 2 - 9) * 0.3, 0)

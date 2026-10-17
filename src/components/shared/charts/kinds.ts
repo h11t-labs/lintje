@@ -11,7 +11,7 @@ export type ChartQuestion = 'time' | 'compare' | 'parts' | 'spread' | 'relation'
 export const CHART_QUESTIONS: Readonly<Record<ChartQuestion, string>> = {
   time: 'Hoe verloopt het in de tijd?',
   compare: 'Hoe verhouden groepen zich?',
-  parts: 'Uit welke delen bestaat het geheel?',
+  parts: 'Uit welke delen bestaat het geheel, en waar komen ze terecht?',
   spread: 'Hoe is het verdeeld?',
   relation: 'Hangen twee maten samen?',
   target: 'Halen we het doel?',
@@ -32,7 +32,7 @@ export const CHART_KINDS = {
   line: {
     label: 'Lijn',
     question: 'time',
-    use: 'Het verloop van een of meer reeksen over de tijd, met een vergelijking in grijs, een peilmoment of wat er gebeurde.',
+    use: 'Het verloop van een of meer reeksen over de tijd, met een vergelijking in grijs, een peilmoment, een raming met marge of wat er gebeurde.',
     avoid: 'Een paar losse groepen zonder volgorde: neem staven.',
   },
   'stacked-area': {
@@ -52,7 +52,7 @@ export const CHART_KINDS = {
   bar: {
     label: 'Staven',
     question: 'compare',
-    use: 'Eén waarde per groep of per periode, als de losse waarden tellen, met datalabels of een trendlijn.',
+    use: 'Eén waarde per groep of per periode, als de losse waarden tellen, met datalabels, een trendlijn of een raming.',
     avoid: 'Lange namen of veel groepen: neem horizontale staven.',
   },
   'horizontal-bar': {
@@ -65,7 +65,15 @@ export const CHART_KINDS = {
     label: 'Gegroepeerde staven',
     question: 'compare',
     use: 'Twee of drie reeksen naast elkaar per groep, om ze binnen de groep te vergelijken.',
-    avoid: 'Meer dan drie reeksen: de groepen worden onleesbaar. Neem een lijn of een tabel.',
+    avoid:
+      'Meer dan drie reeksen: de groepen worden onleesbaar. Neem een lijn of een tabel. Eén maat op twee momenten bij veel groepen: neem Voor en na.',
+  },
+  dumbbell: {
+    label: 'Voor en na',
+    question: 'compare',
+    use: 'Eén maat per groep op twee momenten, als de verandering per groep de boodschap is: veel groepen, lange namen, met een norm.',
+    avoid:
+      'Twee groepen naast elkaar, of vijf groepen of minder: neem gegroepeerde staven. Meer dan twee momenten: neem een lijn.',
   },
   radar: {
     label: 'Spinnendiagram',
@@ -85,7 +93,21 @@ export const CHART_KINDS = {
     label: 'Taart of donut',
     question: 'parts',
     use: 'De delen van één geheel op één moment, tot vijf; meer vouwt tot "Overig". Een donut toont ook het deel van een geheel, met het cijfer in het midden.',
-    avoid: 'Een verloop in de tijd, of delen die bijna even groot zijn: neem gestapelde staven.',
+    avoid:
+      'Een verloop in de tijd, of delen die bijna even groot zijn: neem gestapelde staven. Meer dan vijf delen die tellen, of delen met onderdelen: neem een treemap.',
+  },
+  treemap: {
+    label: 'Treemap',
+    question: 'parts',
+    use: 'Veel delen van één geheel op één moment — meer dan vijf, waar de taart vouwt — of delen met onderdelen, zoals een begroting met hoofdposten en onderposten.',
+    avoid:
+      'Tot vijf delen zonder onderdelen: neem een taart. Een verloop in de tijd: neem gestapelde staven of een gestapeld vlak. Delen precies tegen elkaar afmeten: neem horizontale staven; oppervlakken lezen minder precies dan lengtes.',
+  },
+  sankey: {
+    label: 'Sankey',
+    question: 'parts',
+    use: 'Hoe één aantal zich over twee tot vier stappen van een proces verdeelt, zoals aanvragen van indiening tot uitkomst. Ook wel stroomdiagram.',
+    avoid: 'Stromen tussen plaatsen: neem de kaart. Eén geheel op één moment: neem een taart.',
   },
   histogram: {
     label: 'Histogram',

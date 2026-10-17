@@ -5,7 +5,8 @@
  * slotted in `actions` stands beside the title, outside its button: a few icon buttons about the
  * content.
  *
- * Events: `lintje-toggle` `boolean` (open, after the reader pressed the title).
+ * Events: `lintje-toggle` `boolean` (open, after the reader pressed the title, or after the
+ * `lintje-accordion` it stands in opened or closed it for the reader).
  */
 import { html, type PropertyDeclarations, type PropertyValues, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -19,6 +20,7 @@ import {
   disclosureHeader,
   nextDisclosureId,
 } from '../../shared/disclosure'
+import type { HeadingLevel } from '../../shared/empty-state-block'
 import disclosureCss from '../../shared/disclosure.css?inline'
 
 export class LintjeExpander extends LintjeGridItemElement {
@@ -32,6 +34,7 @@ export class LintjeExpander extends LintjeGridItemElement {
     flat: { type: Boolean, reflect: true },
     leading: { type: Boolean, reflect: true },
     columns: { type: Boolean, reflect: true },
+    level: { type: Number },
   }
 
   heading: string = ''
@@ -48,6 +51,8 @@ export class LintjeExpander extends LintjeGridItemElement {
    * of text beside their speaker; a narrow expander stacks them again.
    */
   columns: boolean = false
+  /** The title's heading level, 2 to 6; `h3` when unset. */
+  declare level?: HeadingLevel
 
   readonly #bodyId = nextDisclosureId()
   readonly #settle = new DisclosureSettle(this)
@@ -80,6 +85,7 @@ export class LintjeExpander extends LintjeGridItemElement {
           subtitle: this.subtitle,
           icon: this.icon,
           leading: this.leading || this.columns,
+          level: this.level,
           toggle: () => {
             this.open = !this.open
             this.emit('lintje-toggle', this.open)

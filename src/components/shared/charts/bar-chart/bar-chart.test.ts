@@ -11,12 +11,13 @@ import type { ChartSpec } from '../shared/types'
 type BarSpec = Extract<ChartSpec, { kind: 'bar' }>
 
 /** Drawn at a width of its own: happy-dom measures every element as 0 wide. */
-function draw(spec: BarSpec): HTMLElement {
+function draw(spec: BarSpec, more: Partial<ChartOptions> = {}): HTMLElement {
   const host = document.createElement('div')
   document.body.append(host)
   const options: ChartOptions = {
     controller: new ChartController(() => render(renderBarChart(spec, options), host)),
     description: 'Staven.',
+    ...more,
   }
   options.controller.width = 600
   render(renderBarChart(spec, options), host)
@@ -91,5 +92,113 @@ describe('the bar chart', () => {
     })
     expect(host.querySelectorAll('.lintje-chart__bar')).toHaveLength(6)
     expect(host.querySelectorAll('.lintje-chart__missing')).toHaveLength(1)
+  })
+})
+
+describe('a forecast on the bar chart', () => {
+  const YEARS = ['2021', '2022', '2023', '2024', '2025', '2026']
+  const spec: BarSpec = {
+    kind: 'bar',
+    labels: YEARS,
+    values: [10, 12, 14, 16, 18, 20],
+    color: 'dark-yellow',
+    axisTitle: 'Aanvragen',
+    forecastFrom: 4,
+    forecast: { low: [null, null, null, null, 15, null], high: [null, null, null, null, 21, 26] },
+    intervalLabel: 'Marge 80 %',
+  }
+
+  it('draws a forecast bar open, with its margin from low to high with caps', () => {
+    const host = draw(spec)
+    const bars = [...host.querySelectorAll('.lintje-chart__bar')]
+    expect(bars.map((bar) => bar.classList.contains('lintje-chart__bar--forecast'))).toEqual([
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+    ])
+    // The edge of a light colour is its dark edge, so the open bar reaches 3:1.
+    expect(bars[4].getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-text)')
+    expect(bars[3].hasAttribute('stroke')).toBe(false)
+    // Only 2025 has both bounds; 2026 has none.
+    const intervals = [...host.querySelectorAll('.lintje-chart__interval')]
+    expect(intervals).toHaveLength(1)
+    const d = intervals[0].getAttribute('d')!
+    expect(d).toMatch(/h8M.*h8$/)
+    expect(intervals[0].closest('.lintje-chart__bar-group')).toBe(bars[4].parentElement)
+  })
+
+  it('puts the boundary between the last measured bar and the first forecast one', () => {
+    const host = draw(spec)
+    const bars = [...host.querySelectorAll('.lintje-chart__bar')]
+    const end = Number(bars[3].getAttribute('x')) + Number(bars[3].getAttribute('width'))
+    const start = Number(bars[4].getAttribute('x'))
+    const x = Number(host.querySelector('.lintje-chart__boundary line')!.getAttribute('x1'))
+    expect(x).toBeGreaterThan(end)
+    expect(x).toBeLessThan(start)
+    expect(Number(host.querySelector('.lintje-chart__forecast-ground')!.getAttribute('x'))).toBe(x)
+  })
+
+  it('has a legend of keys: the series, "Raming" and the margin, none of them a switch', () => {
+    const host = draw(spec)
+    const items = [...host.querySelectorAll('.lintje-legend__item')]
+    expect(items.map((item) => item.textContent?.trim())).toEqual([
+      'Aanvragen',
+      'Raming',
+      'Marge 80 %',
+    ])
+    expect(host.querySelector('.lintje-legend button')).toBeNull()
+    expect(host.querySelector('.lintje-legend__marker--open')).not.toBeNull()
+    expect(host.querySelector('.lintje-legend__marker--interval')).not.toBeNull()
+    // Without a forecast there is no legend, as before.
+    expect(draw({ ...spec, forecastFrom: undefined }).querySelector('.lintje-legend')).toBeNull()
+  })
+
+  it('says "raming" in the tooltip with the margin, and names a forecast bar so', () => {
+    const controller = new ChartController(() => {})
+    const host = draw(
+      { ...spec, links: YEARS.map((year) => ({ id: year, href: `?jaar=${year}` })) },
+      { controller, onSelect: () => {} },
+    )
+    const svg = host.querySelector('svg.lintje-chart__svg') as SVGElement
+    svg.dispatchEvent(new FocusEvent('focus'))
+    svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }))
+    svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }))
+    expect(controller.tooltip?.content).toEqual({
+      title: '2025',
+      note: 'raming',
+      rows: [
+        {
+          label: 'Aanvragen',
+          value: '18',
+          color: 'var(--color-chart-dark-yellow)',
+          marker: 'open',
+        },
+        { label: 'laag – hoog', value: '15 – 21', note: true },
+      ],
+    })
+    // A forecast bar with a link is clickable like any bar.
+    const bar = host.querySelectorAll('.lintje-chart__bar')[5]
+    expect(bar.getAttribute('role')).toBe('button')
+    expect(bar.getAttribute('aria-label')).toBe('2026 raming: 20')
+  })
+
+  it('keeps data labels on a forecast bar, above its margin', () => {
+    const host = draw(spec)
+    const labels = [...host.querySelectorAll('.lintje-chart__data-label')]
+    expect(labels).toHaveLength(6)
+    const interval = host.querySelector('.lintje-chart__interval')!.getAttribute('d')!
+    const top = Number(interval.split('V')[0].split(',')[1])
+    expect(Number(labels[4].getAttribute('y'))).toBeLessThan(top)
+  })
+
+  it('scales to the highest bound', () => {
+    const host = draw(spec)
+    const ticks = [...host.querySelectorAll('text.lintje-chart__axis-label[text-anchor="end"]')]
+      .map((text) => Number(text.textContent?.trim()))
+      .filter(Number.isFinite)
+    expect(Math.max(...ticks)).toBeGreaterThanOrEqual(26)
   })
 })

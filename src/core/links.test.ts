@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { LintjeElement, define } from './element'
 
 class LinkProbe extends LintjeElement {
-  follow(href: string, event?: Event): void {
-    this.followLink(href, event)
+  follow(href: string, event?: Event, newTab = false): void {
+    this.followLink(href, event, undefined, { newTab })
   }
 }
 define('lintje-link-probe', LinkProbe)
@@ -51,5 +51,23 @@ describe('followLink', () => {
     element.addEventListener('lintje-navigate', (event) => event.preventDefault())
     element.follow('/wachtrij')
     expect(assign).toHaveBeenCalledTimes(1)
+  })
+
+  it('opens a new tab and says so, unless the host cancels', () => {
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const assign = vi.spyOn(window.location, 'assign').mockImplementation(() => {})
+    const element = mount()
+    const heard: unknown[] = []
+    element.addEventListener('lintje-navigate', (event) =>
+      heard.push((event as CustomEvent).detail),
+    )
+    element.follow('/opnames', undefined, true)
+    expect(heard).toEqual([{ href: '/opnames', newTab: true }])
+    expect(open).toHaveBeenCalledWith('/opnames', '_blank', 'noopener')
+    expect(assign).not.toHaveBeenCalled()
+
+    element.addEventListener('lintje-navigate', (event) => event.preventDefault())
+    element.follow('/wachtrij', undefined, true)
+    expect(open).toHaveBeenCalledTimes(1)
   })
 })

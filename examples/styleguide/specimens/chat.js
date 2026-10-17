@@ -1,13 +1,58 @@
 // The chat category (Chat met data): the specimens of its elements.
-import { weekQuestion, converse, term, weekChart, weekKpis, weekLead, vocabulary, chatSources, weekStrip } from '../../_data/chat.js'
+import { weekQuestion, converse, term, weekChart, weekKpis, weekLead, vocabulary, chatSources, weekStrip, weekAnswer, askingTurn, askedQuestions } from '../../_data/chat.js'
 import { desks } from '../../_data/load.js'
 
 const amsterdam = desks.filter((desk) => desk.name.startsWith('Loket Amsterdam'))
 
 const regionQuestion = 'Hoe lang was de wachttijd in Zuid?'
 
+const KB = 1024
+const MB = 1024 * KB
+const policy = { id: 'beleid', name: 'beleidsregel-2026.pdf', size: 1.2 * MB, state: 'done' }
+const export3 = { id: 'export', name: 'aanvragen-q3.xlsx', size: 48 * KB, state: 'done' }
+
+/** What the assistant did for an answer about objections per month: fictitious. */
+const STEPS = [
+  { label: 'Vraag gelezen', detail: 'periode: de afgelopen 12 maanden' },
+  { label: '3 bronnen doorzocht', detail: 'Bezwaren, Besluiten, Termijnen' },
+  { label: 'Tabel opgehaald', detail: 'Bezwaren, stand 1 oktober 2026', href: '#', linkText: 'Bezwaren' },
+  { label: 'Opgeteld', detail: '4.812 bezwaren in 12 maanden' },
+  { label: 'Grafiek getekend' },
+]
+
+/** One `<lintje-chat-steps>` with its steps; `open` draws it unfolded. */
+const steps = (items, { duration, open = false } = {}) => ({
+  html: `<lintje-chat-steps${open ? ' open' : ''}${duration ? ` duration="${duration}"` : ''}></lintje-chat-steps>`,
+  setup(stage) {
+    stage.querySelector('lintje-chat-steps').items = items
+  },
+})
+
 /** One `<lintje-chat-answer>`; `current` marks the newest answer of a conversation. */
 const answer = (turn, attributes = '') => `<lintje-chat-answer turn-id="demo-${turn}" ${attributes}></lintje-chat-answer>`
+
+/** An answer that asks, with its questions in the short form under it, as the chat stacks them. */
+const asks = (turn, state) => `<div class="guide__stack">
+  ${answer(turn, `state="${state}" current`)}
+  <lintje-chat-questions turn-id="demo-${turn}"></lintje-chat-questions>
+</div>`
+
+/** What the assistant asks, in steps; `change` puts the box in a state. */
+const questions = (change = () => ({})) => ({
+  html: '<lintje-chat-questions turn-id="demo-questions"></lintje-chat-questions>',
+  setup(stage) {
+    const box = stage.querySelector('lintje-chat-questions')
+    const data = askedQuestions()
+    box.data = data
+    // New questions start over: the state goes on once they are drawn.
+    void box.updateComplete.then(() => Object.assign(box, change(data)))
+  },
+})
+
+const AMSTERDAM = {
+  id: 'loket', label: 'Loket', text: 'Welk loket bedoel je?', kind: 'one',
+  options: [{ label: 'Amsterdam als geheel', value: 'amsterdam' }, ...amsterdam.map((desk) => ({ label: desk.name, value: desk.id }))],
+}
 
 export default {
   elements: [
@@ -26,6 +71,59 @@ export default {
           setup(stage) {
             const { ask } = converse(stage.querySelector('lintje-chat'))
             stage.querySelector('lintje-button').addEventListener('click', () => ask(weekQuestion))
+          },
+        },
+        {
+          label: 'Scheidslijnen',
+          note: 'Een dag, een nieuw onderwerp en een ingekort gesprek, elk boven de vraag van zijn beurt.',
+          html: '<div class="guide__chat"><lintje-chat></lintje-chat></div>',
+          setup(stage) {
+            stage.querySelector('lintje-chat').data = {
+              sources: chatSources(),
+              turns: [
+                {
+                  id: 'd1',
+                  divider: { label: 'Gisteren' },
+                  message: { text: 'Hoeveel bezwaren kwamen er in september binnen?', time: '16:40' },
+                  answer: { lead: 'In september kwamen 412 bezwaren binnen.' },
+                },
+                {
+                  id: 'd2',
+                  divider: { kind: 'topic', label: 'Nieuw onderwerp' },
+                  message: { text: 'Hoe lang duurde een besluit gemiddeld?', time: '09:05' },
+                  answer: { lead: 'Een besluit duurde gemiddeld 41 dagen.' },
+                },
+                {
+                  id: 'd3',
+                  divider: { kind: 'context', label: 'Gesprek ingekort' },
+                  message: { text: 'En in augustus?', time: '09:12' },
+                  answer: { lead: 'In augustus duurde een besluit gemiddeld 44 dagen.' },
+                },
+              ],
+            }
+          },
+        },
+        {
+          label: 'Door de vragen',
+          note: 'De assistent vraagt door voordat hij telt. Beantwoord de vragen in de box boven het tikveld.',
+          html: '<div class="guide__chat"><lintje-chat></lintje-chat></div>',
+          setup(stage) {
+            converse(stage.querySelector('lintje-chat'), { asking: true })
+          },
+        },
+        {
+          label: 'Vragen overgeslagen',
+          note: 'Een nieuwe vraag uit het tikveld slaat de open vragen over: de box is weg en de assistent zegt in de strip wat hij aannam.',
+          html: '<div class="guide__chat"><lintje-chat></lintje-chat></div>',
+          setup(stage) {
+            const state = { period: 'week', desks: 'all', compare: false }
+            stage.querySelector('lintje-chat').data = {
+              sources: chatSources(),
+              turns: [
+                askingTurn('s1'),
+                { id: 's2', message: { text: weekQuestion, time: '08:25' }, answer: weekAnswer(state) },
+              ],
+            }
           },
         },
         {
@@ -54,6 +152,25 @@ export default {
           },
         },
         {
+          label: 'Met bijlagen',
+          note: 'De bestanden die met de vraag meegingen, staan erboven.',
+          html: '<lintje-chat-message turn-id="demo-attached" time="08:26" editable></lintje-chat-message>',
+          setup(stage) {
+            Object.assign(stage.querySelector('lintje-chat-message'), {
+              text: 'Toets de aanvragen van het derde kwartaal aan deze beleidsregel.',
+              attachments: [policy, export3],
+            })
+          },
+        },
+        {
+          label: 'Alleen een bijlage',
+          note: 'Een bericht zonder tekst bestaat alleen uit de chips, zonder bel.',
+          html: '<lintje-chat-message turn-id="demo-only-file" time="08:27"></lintje-chat-message>',
+          setup(stage) {
+            Object.assign(stage.querySelector('lintje-chat-message'), { text: '', attachments: [export3] })
+          },
+        },
+        {
           label: 'Bewerken',
           html: '<lintje-chat-message turn-id="demo-editing" time="08:20" editable editing></lintje-chat-message>',
           setup(stage) {
@@ -64,7 +181,7 @@ export default {
     },
     {
       tag: 'lintje-chat-answer',
-      title: 'Het antwoord op een vraag: tekst, blokken, keuzes en de staat ervan',
+      title: 'Het antwoord op een vraag: tekst, blokken en de staat ervan',
       specimens: [
         {
           label: 'Komt binnen',
@@ -123,23 +240,49 @@ export default {
         },
         {
           label: 'Bron staat uit',
-          html: answer('scope', 'state="out-of-scope" current'),
+          note: 'De acties staan als vraag van de host in de korte vorm, boven het tikveld.',
+          html: asks('scope', 'out-of-scope'),
           setup(stage) {
-            Object.assign(stage.querySelector('lintje-chat-answer'), {
-              text: 'Deze vraag gaat over de bezetting van de loketten. Die bron staat nu uit.',
-              choices: [{ label: 'Bron Bezetting toevoegen en opnieuw vragen', value: 'add-source:staffing' }],
-            })
+            stage.querySelector('lintje-chat-answer').text =
+              'Deze vraag gaat over de bezetting van de loketten. Die bron staat nu uit.'
+            stage.querySelector('lintje-chat-questions').data = {
+              questions: [
+                {
+                  id: 'actie', label: 'Actie', text: 'Wat wil je doen?', kind: 'one',
+                  options: [
+                    { label: 'Bron Bezetting toevoegen en opnieuw vragen', value: 'add-source:staffing' },
+                    { label: 'Zoek in alle bronnen', value: 'all-sources' },
+                  ],
+                },
+              ],
+            }
           },
         },
         {
           label: 'Verduidelijkingsvraag',
-          html: answer('clarify', 'state="needs-clarification" current'),
+          html: asks('clarify', 'needs-clarification'),
+          setup(stage) {
+            stage.querySelector('lintje-chat-answer').text = `Amsterdam heeft ${amsterdam.length} loketten.`
+            stage.querySelector('lintje-chat-questions').data = { questions: [AMSTERDAM] }
+          },
+        },
+        {
+          label: 'Met een bestand en een bron',
+          note: 'Een bijlage is een blok, bij de zin die haar noemt.',
+          html: answer('files'),
           setup(stage) {
             Object.assign(stage.querySelector('lintje-chat-answer'), {
-              text: `Amsterdam heeft ${amsterdam.length} loketten. Welke bedoel je?`,
-              choices: [
-                { label: 'Amsterdam als geheel', value: 'amsterdam' },
-                ...amsterdam.map((desk) => ({ label: desk.name, value: desk.id })),
+              lead: 'In het derde kwartaal kwamen 1.284 aanvragen binnen.',
+              blocks: [
+                { kind: 'prose', text: 'Hier is de tabel als CSV, per maand en per soort aanvraag.' },
+                {
+                  kind: 'attachments',
+                  items: [
+                    { id: 'csv', name: 'aanvragen-per-maand.csv', size: 6 * KB, state: 'done', href: '#', download: true },
+                  ],
+                },
+                { kind: 'prose', text: 'De termijn komt uit de beleidsregel van dit jaar.' },
+                { kind: 'attachments', items: [{ id: 'bron', name: 'beleidsregel-2026.pdf', detail: 'blz. 4', state: 'done' }] },
               ],
             })
           },
@@ -167,6 +310,52 @@ export default {
               ],
             })
           },
+        },
+      ],
+    },
+    {
+      tag: 'lintje-chat-steps',
+      title: 'Wat de assistent deed voor een antwoord: een reeks stappen die inklapt tot één regel',
+      specimens: [
+        {
+          label: 'Eerste stap bezig',
+          note: 'Eén stap zonder detail heeft geen knop.',
+          ...steps([{ label: 'Vraag lezen', state: 'busy' }]),
+        },
+        {
+          label: 'Latere stap bezig',
+          ...steps([...STEPS.slice(0, 2), { label: 'Bezwaren per maand optellen', state: 'busy' }]),
+        },
+        {
+          label: 'Klaar',
+          ...steps(STEPS, { duration: '12 s' }),
+        },
+        {
+          label: 'Open met details',
+          note: 'Elke stap staat op één regel; de bron is een link.',
+          ...steps(STEPS, { duration: '12 s', open: true }),
+        },
+        {
+          label: 'Een stap mislukt',
+          note: 'De dichte regel toont de mislukte stap; open staat de reden erachter.',
+          ...steps(
+            [
+              ...STEPS.slice(0, 2),
+              {
+                label: 'Tabel behandeltermijnen ophalen mislukt',
+                state: 'error',
+                detail: 'De bron Termijnen gaf binnen 30 s geen antwoord.',
+              },
+              ...STEPS.slice(3),
+            ],
+            { duration: '41 s' },
+          ),
+        },
+        {
+          label: 'Gestopt',
+          ...steps([...STEPS.slice(0, 3), { label: 'Grafiek tekenen gestopt', state: 'cancelled' }], {
+            open: true,
+          }),
         },
       ],
     },
@@ -199,6 +388,53 @@ export default {
           html: '<lintje-chat-composer plain placeholder="Bijvoorbeeld: kan ik audio naar tekst omzetten?"></lintje-chat-composer>',
         },
         {
+          label: 'Met bijlagen',
+          note: 'Eén is klaar, één is bezig en één is mislukt; zolang er een bezig is, wacht Versturen.',
+          html: '<lintje-chat-composer accept=".pdf,.xlsx,.csv" max-size="20971520"></lintje-chat-composer>',
+          setup(stage) {
+            const box = stage.querySelector('lintje-chat-composer')
+            Object.assign(box, {
+              sources: chatSources(),
+              vocabulary,
+              text: 'Toets de aanvragen aan deze beleidsregel.',
+              files: [
+                policy,
+                { id: 'busy', name: 'aanvragen-q3.xlsx', size: 48 * KB, state: 'busy', progress: 64 },
+                { id: 'failed', name: 'verklaring.pdf', size: 482 * KB, state: 'error', message: 'Uploaden mislukt', retry: true },
+              ],
+            })
+            box.addEventListener('lintje-file-remove', (event) => {
+              box.files = box.files.filter((file) => file.id !== event.detail.id)
+            })
+          },
+        },
+        {
+          label: 'Zes bijlagen',
+          note: 'Ze lopen door naar een volgende regel en blijven alle zichtbaar.',
+          html: '<lintje-chat-composer></lintje-chat-composer>',
+          setup(stage) {
+            Object.assign(stage.querySelector('lintje-chat-composer'), {
+              sources: chatSources(),
+              files: [
+                policy,
+                export3,
+                { id: 'csv', name: 'bezwaren-per-maand.csv', size: 4 * KB, state: 'done' },
+                { id: 'notitie', name: 'notitie-overleg.docx', size: 92 * KB, state: 'done' },
+                { id: 'foto', name: 'formulier.jpg', size: 2.4 * MB, state: 'done', thumbnail: 'media/afbeelding.svg' },
+                { id: 'kader', name: 'kader-uitvoering-2026-definitief.pdf', size: 640 * KB, state: 'done' },
+              ],
+            })
+          },
+        },
+        {
+          label: 'Ingeklapt met bijlagen',
+          note: 'Op een telefoon klapt het tikveld in tot één regel zolang de assistent vragen stelt; de regel telt de bijlagen.',
+          html: '<lintje-chat-composer collapsed placeholder="Stel een nieuwe vraag"></lintje-chat-composer>',
+          setup(stage) {
+            Object.assign(stage.querySelector('lintje-chat-composer'), { sources: chatSources(), files: [policy, export3] })
+          },
+        },
+        {
           label: 'Geen bron gekozen',
           html: '<lintje-chat-composer></lintje-chat-composer>',
           setup(stage) {
@@ -208,6 +444,87 @@ export default {
               text: 'Hoeveel aanvragen waren er vorige week?',
             })
           },
+        },
+      ],
+    },
+    {
+      tag: 'lintje-chat-questions',
+      title: 'Wat de assistent vraagt voordat hij antwoordt, boven het tikveld',
+      specimens: [
+        {
+          label: 'Korte vorm',
+          note: 'Eén vraag met korte keuzes: een tik verstuurt. "Iets anders…" opent een eigen veld.',
+          html: '<lintje-chat-questions turn-id="demo-short"></lintje-chat-questions>',
+          setup(stage) {
+            stage.querySelector('lintje-chat-questions').data = {
+              questions: [
+                {
+                  id: 'periode', label: 'Periode', text: 'Welke periode bedoel je?', kind: 'one',
+                  options: [
+                    { value: '12m', label: 'Afgelopen 12 maanden' },
+                    { value: '2025', label: 'Heel 2025' },
+                    { value: 'q3', label: 'Derde kwartaal 2026' },
+                  ],
+                },
+              ],
+            }
+          },
+        },
+        {
+          label: 'Buiten de bronnen',
+          note: 'De host zet de acties als één vraag, met zijn eigen vraagtekst.',
+          html: '<lintje-chat-questions turn-id="demo-scope"></lintje-chat-questions>',
+          setup(stage) {
+            stage.querySelector('lintje-chat-questions').data = {
+              questions: [
+                {
+                  id: 'actie', label: 'Actie', text: 'Wat wil je doen?', kind: 'one',
+                  options: [
+                    { value: 'add-source', label: 'Bron Klachten toevoegen en opnieuw vragen' },
+                    { value: 'all', label: 'Zoek in alle bronnen' },
+                  ],
+                },
+              ],
+            }
+          },
+        },
+        {
+          label: 'Eén keuze met omschrijvingen',
+          note: 'Een keuze met een omschrijving maakt er stappen van, ook bij één vraag.',
+          ...questions(),
+        },
+        {
+          label: 'Meer keuzes in een lange lijst',
+          note: 'De lijst scrolt binnen de box; de vraag en de knoppen blijven staan.',
+          ...questions(() => ({ step: 1 })),
+        },
+        {
+          label: 'Vrije tekst',
+          ...questions(() => ({ step: 2 })),
+        },
+        {
+          label: 'Iets anders gekozen',
+          ...questions(() => ({ drafts: { periode: { values: ['other'], other: 'Het eerste halfjaar van 2026', text: '' } } })),
+        },
+        {
+          label: 'Fout',
+          note: 'Volgende bij een verplichte vraag zonder antwoord.',
+          ...questions((data) => ({ problems: { periode: { error: data.questions[0].error } } })),
+        },
+        {
+          label: 'Fout bij Iets anders',
+          ...questions(() => ({
+            drafts: { periode: { values: ['other'], other: '', text: '' } },
+            problems: { periode: { otherError: 'Vul in wat je bedoelt.' } },
+          })),
+        },
+        {
+          label: 'Bezig met versturen',
+          ...questions((data) => ({
+            data: { ...data, state: 'sending' },
+            step: 2,
+            drafts: { periode: { values: ['2025'], other: '', text: '' } },
+          })),
         },
       ],
     },
@@ -236,7 +553,7 @@ export default {
     },
     {
       tag: 'lintje-chat-suggestions',
-      title: 'Vervolgvragen en keuzes onder een antwoord',
+      title: 'Vervolgvragen onder een antwoord',
       specimens: [
         {
           label: 'Links uitgelijnd',
@@ -258,23 +575,6 @@ export default {
             stage.querySelector('lintje-chat-suggestions').items = [
               { label: 'Hoe is dit verdeeld over de loketten?' },
               { label: 'Hoe verhoudt dit zich tot de week ervoor?' },
-            ]
-          },
-        },
-        {
-          label: 'Keuzes',
-          note: 'Doorgetrokken is een echte keuze.',
-          html: `<lintje-chat-suggestions
-            turn-id="demo-choices"
-            kind="choice"
-            label="Kies je antwoord"
-            hint="Of typ je eigen antwoord in het veld."
-          ></lintje-chat-suggestions>`,
-          setup(stage) {
-            stage.querySelector('lintje-chat-suggestions').items = [
-              { label: 'Amsterdam als geheel' },
-              { label: 'Loket Amsterdam Centrum' },
-              { label: 'Loket Amsterdam Zuidoost' },
             ]
           },
         },

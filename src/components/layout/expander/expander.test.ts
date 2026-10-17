@@ -175,4 +175,11 @@ describe('the expander title', () => {
       'Toelichting op de meting',
     )
   })
+
+  it('takes the level it is given, around the same button', async () => {
+    const element = await expander(false, { level: 2 } as Partial<Expander>)
+    const heading = element.shadowRoot!.querySelector('.lintje-disclosure__heading')!
+    expect(heading.localName).toBe('h2')
+    expect(heading.querySelector(':scope > button.lintje-disclosure__header')).not.toBeNull()
+  })
 })

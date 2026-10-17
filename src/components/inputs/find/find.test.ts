@@ -37,6 +37,24 @@ function press(element: LintjeFind, key: string, shiftKey = false): void {
   control(element).dispatchEvent(new KeyboardEvent('keydown', { key, shiftKey, bubbles: true }))
 }
 
+/** Every update done, also the one a status region asks for from `updated()`. */
+async function settled(element: LintjeFind): Promise<void> {
+  while (!(await element.updateComplete));
+}
+
+/** A host that counts: busy on a new term, then its answer, with no hits. */
+async function answerNone(element: LintjeFind, term: string): Promise<void> {
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+  type(element, term)
+  vi.advanceTimersByTime(300)
+  vi.useRealTimers()
+  await settled(element)
+  element.busy = false
+  element.total = 0
+  element.current = 0
+  await settled(element)
+}
+
 /** Two frames: the status region is emptied, then filled a frame later. */
 async function spoken(element: LintjeFind): Promise<string> {
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
@@ -216,6 +234,27 @@ describe('lintje-find status region', () => {
     element.addEventListener('lintje-find-step', () => (element.current = 7))
     press(element, 'Enter', true)
     expect(await spoken(element)).toBe('Terug bij de laatste treffer, 7 van 7')
+  })
+
+  it('says no hits twice when the host answers two terms in a row with none', async () => {
+    const element = await mount()
+    element.addEventListener('lintje-change', () => (element.busy = true))
+    await answerNone(element, 'certificaat')
+    expect(status(element)).toBe('')
+    expect(await spoken(element)).toBe('Geen treffers')
+    await answerNone(element, 'certificaten')
+    expect(status(element)).toBe('')
+    expect(await spoken(element)).toBe('Geen treffers')
+  })
+
+  it('stays empty when the field is cleared while a message is on its way', async () => {
+    const element = await mount()
+    element.addEventListener('lintje-change', () => (element.busy = true))
+    await answerNone(element, 'certificaat')
+    press(element, 'Escape')
+    await settled(element)
+    expect(element.value).toBe('')
+    expect(await spoken(element)).toBe('')
   })
 
   it('stays quiet when the host changes the count on its own', async () => {

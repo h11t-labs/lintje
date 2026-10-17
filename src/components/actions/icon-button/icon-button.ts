@@ -23,7 +23,6 @@ export class LintjeIconButton extends LintjeElement {
     variant: { type: String, reflect: true },
     active: { type: Boolean, reflect: true },
     disabled: { type: Boolean, reflect: true },
-    size: { type: Number },
     pressed: { type: Boolean },
     expanded: { type: Boolean },
     description: { type: String },
@@ -33,8 +32,6 @@ export class LintjeIconButton extends LintjeElement {
   declare icon?: string
   /** The accessible name and the tooltip. Required: the button has no text. */
   label: string = ''
-  /** Accepted for hosts that set it; the box is always `--h-icon-button`. */
-  size: 28 | 32 | 36 | 40 | 44 = 32
   variant: IconButtonVariant = 'outlined'
   active: boolean = false
   disabled: boolean = false

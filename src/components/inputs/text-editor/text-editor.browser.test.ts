@@ -125,6 +125,8 @@ describe('lintje-text-editor formats the selection', () => {
     await press(element, 'Opsomming')
     expect(surface(element).querySelector('ul > li')?.textContent).toBe('uw paspoort')
     expect(tool(element, 'Opsomming').getAttribute('aria-pressed')).toBe('true')
+    // Pressed, the button still draws its icon, in the pressed text colour.
+    expect(tool(element, 'Opsomming').querySelector('svg')).not.toBeNull()
     await leave(element)
     expect(element.value).toBe('Neem mee:\n\n- uw paspoort')
   })

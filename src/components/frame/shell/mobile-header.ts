@@ -61,7 +61,7 @@ export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): Temp
     aria-modal=${open ? 'true' : nothing}
     aria-label=${open ? 'Menu' : nothing}
   >
-    <header class=${classMap({ 'lintje-mobile-header': true, 'is-compact': shell.headerCompact })}>
+    <header class="lintje-mobile-header">
       ${
         shell.layout === 'top'
           ? // The logo is in the logo bar above; this name is the page's one h1 below 768 px.
@@ -112,12 +112,13 @@ export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): Temp
               }`
         }
         <!-- One button in both states, so opening the menu leaves the focus
-             where it is: only the label and the glyph change places. -->
+             where it is: only the label and the glyph change places. Its word says
+             the state, so it has no aria-expanded to say it again, and it names its
+             panel only while there is one. -->
         <button
           type="button"
-          class="lintje-mobile-header__button"
-          aria-expanded=${open}
-          aria-controls="lintje-mobile-menu-panel"
+          class="lintje-mobile-header__button lintje-mobile-header__button--menu"
+          aria-controls=${open ? 'lintje-mobile-menu-panel' : nothing}
           @click=${() => {
             shell.menuOpen = !shell.menuOpen
           }}
@@ -161,7 +162,7 @@ export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): Temp
               </div>`,
             )}
           </nav>
-          ${renderMobileMeta(shell)} ${shell.renderUserMenu(true)}
+          ${renderMobileMeta(shell)} ${shell.renderUserMenu('sheet')}
         </div>`
         : nothing
     }

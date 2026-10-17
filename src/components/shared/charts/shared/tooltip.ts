@@ -3,12 +3,13 @@ import { html, nothing, type TemplateResult } from 'lit'
 import { directive, Directive, PartType, type ElementPart, type PartInfo } from 'lit/directive.js'
 import { styleProps } from '../../../../core/style-props'
 import type { ChartController, TooltipState } from './controller'
-import { renderSymbol } from './axes'
+import { isKeyMark, renderKeyMark, renderSymbol } from './axes'
+import { lineCasing } from './colors'
 
 /**
- * Places the tooltip right of the pointer, flipping near the tile's edge. A directive, not a
- * `ref`: it runs on every move. Coordinates go through the CSSOM because `style-src 'self'`
- * drops style attributes.
+ * Places the tooltip right of the pointer, flipping near the tile's edge and rising near its
+ * foot. A directive, not a `ref`: it runs on every move. Coordinates go through the CSSOM
+ * because `style-src 'self'` drops style attributes.
  */
 class PlaceTooltipDirective extends Directive {
   constructor(partInfo: PartInfo) {
@@ -29,7 +30,17 @@ class PlaceTooltipDirective extends Directive {
     requestAnimationFrame(() => {
       if (!element.isConnected) return
       const available = element.parentElement?.clientWidth ?? Infinity
-      element.style.left = `${Math.max(0, Math.min(state.x + 12, available - element.offsetWidth - 8))}px`
+      const width = element.offsetWidth
+      // Within the chart top to bottom too: past its foot a modal's body would cut it off.
+      const room = element.parentElement?.clientHeight ?? Infinity
+      const top = Math.min(state.y - 12, room - element.offsetHeight)
+      element.style.top = `${Math.max(0, top)}px`
+      let left = state.side === 'left' ? state.x - 12 - width : state.x + 12
+      if (state.flip != null && left + width > available - 8) {
+        left = state.flip - 12 - width
+        if (left < 0) left = (available - width) / 2
+      }
+      element.style.left = `${Math.max(0, Math.min(left, available - width - 8))}px`
     })
     return nothing
   }
@@ -43,26 +54,46 @@ export function renderTooltip(controller: ChartController): TemplateResult | typ
   const { content } = state
   return html`
     <div class="lintje-chart-tooltip" ${placeTooltip(state)}>
-      <p class="lintje-chart-tooltip__title">${content.title}</p>
+      ${content.kicker ? html`<p class="lintje-chart-tooltip__kicker">${content.kicker}</p>` : nothing}
+      <p class="lintje-chart-tooltip__title">${content.title}${
+        content.note
+          ? html` <span class="lintje-chart-tooltip__title-note">${content.note}</span>`
+          : nothing
+      }</p>
       ${content.rows.map(
         (row) => html`
-        <p class="lintje-chart-tooltip__row ${row.divider ? 'lintje-chart-tooltip__row--divider' : ''}">
+        <p class="lintje-chart-tooltip__row ${row.divider ? 'lintje-chart-tooltip__row--divider' : ''} ${row.note ? 'lintje-chart-tooltip__row--note' : ''}">
           <span class="lintje-chart-tooltip__label">
             ${
               row.symbol
                 ? html`<svg class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--symbol"
                             viewBox="0 0 14 14" ${styleProps({ color: row.color })}
                             aria-hidden="true" focusable="false">${renderSymbol(row.symbol, row.color, 7)}</svg>`
-                : row.marker
-                  ? html`<span class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--${row.marker}"
+                : isKeyMark(row.marker)
+                  ? html`<svg class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--symbol"
+                              viewBox="0 0 14 14" ${styleProps({ color: row.color })}
+                              aria-hidden="true" focusable="false">${renderKeyMark(row.marker, row.color, 7)}</svg>`
+                  : row.marker
+                    ? html`<span class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--${row.marker}"
                                ${styleProps({ color: row.color })}></span>`
-                  : row.color
-                    ? html`<span class="lintje-chart-tooltip__marker" ${styleProps({ background: row.color })}></span>`
-                    : nothing
+                    : row.color
+                      ? html`<span class="lintje-chart-tooltip__marker"
+                                   ${styleProps({
+                                     background: row.color,
+                                     // A light colour keeps the dark edge it has in the legend.
+                                     'box-shadow': lineCasing(row.color)
+                                       ? `inset 0 0 0 1px ${lineCasing(row.color)}`
+                                       : undefined,
+                                   })}></span>`
+                      : nothing
             }
             ${row.label}
           </span>
-          <span class="lintje-chart-tooltip__value">${row.value}</span>
+          <span class="lintje-chart-tooltip__value">${row.value}${
+            row.aside
+              ? html`<span class="lintje-chart-tooltip__note"> · ${row.aside}</span>`
+              : nothing
+          }</span>
         </p>
       `,
       )}

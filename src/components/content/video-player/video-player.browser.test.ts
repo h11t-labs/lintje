@@ -125,3 +125,28 @@ describe('lintje-video-player in full screen', () => {
     await expect.poll(() => button(element, 'Volledig scherm')).toBeTruthy()
   })
 })
+
+describe('lintje-video-player in a narrow tile', () => {
+  it('moves the captions from the bar into the menu, and back when it widens', async () => {
+    const element = await mount()
+    const rows = (): string[] =>
+      (
+        root(element).querySelector('lintje-menu-button') as HTMLElement & { items: unknown[] }
+      ).items
+        .filter(
+          (item): item is { value: string } =>
+            typeof item === 'object' && item !== null && 'value' in item,
+        )
+        .map((item) => item.value)
+    await expect.poll(() => button(element, 'Ondertiteling')).toBeTruthy()
+    expect(rows()).not.toContain('ondertiteling')
+
+    element.style.width = '220px'
+    await expect.poll(() => button(element, 'Ondertiteling')).toBeFalsy()
+    expect(rows()).toContain('ondertiteling')
+
+    element.style.width = '640px'
+    await expect.poll(() => button(element, 'Ondertiteling')).toBeTruthy()
+    expect(rows()).not.toContain('ondertiteling')
+  })
+})

@@ -1,0 +1,134 @@
+/* The steps of one answer: one line that unfolds into a series on a rail. */
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* --- */
+
+.lintje-chat-steps {
+  font: var(--text-small);
+  color: var(--color-text-primary);
+}
+
+/* The closed line. As a button it is drawn at the chip height and reaches the target height
+   through a transparent area. */
+.lintje-chat-steps__head {
+  position: relative;
+  display: inline-flex; align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  min-height: var(--h-chip-field);
+  padding: 0 var(--space-2);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+.lintje-chat-steps__toggle {
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.lintje-chat-steps__toggle::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+.lintje-chat-steps__toggle:hover { background: var(--color-bg-subtle); }
+.lintje-chat-steps__toggle:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+.lintje-chat-steps__summary { min-width: 0; }
+.lintje-chat-steps__now.is-error { color: var(--color-error-text); }
+.lintje-chat-steps__rest { color: var(--color-text-muted); }
+.lintje-chat-steps__chevron { flex: none; }
+
+/* The mark is the state, never the kind of step: a square is done, the ring runs, the cross
+   failed, the open square stopped. One column, as wide as the ring and the cross. */
+.lintje-chat-steps__mark {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: var(--space-4); height: var(--space-4);
+}
+.lintje-chat-steps__square {
+  box-sizing: border-box;
+  width: 10px; height: 10px;
+  background: var(--color-border-heavy);
+}
+.lintje-chat-steps__square--open {
+  background: none;
+  border: 2px solid var(--color-border-heavy);
+}
+.lintje-chat-steps__cross { color: var(--color-error-line); }
+.lintje-chat-steps__spinner { display: flex; }
+
+/* Open: the list indents to the text of the line above it, one line per step. */
+.lintje-chat-steps__list {
+  margin: var(--space-1) 0 0 calc(var(--space-2) + var(--space-4) + var(--space-2));
+  padding: 0;
+  list-style: none;
+}
+.lintje-chat-steps__step {
+  display: flex;
+  gap: var(--space-2);
+  padding-bottom: var(--space-1);
+}
+.lintje-chat-steps__step.is-last { padding-bottom: 0; }
+
+/* The rail: the mark on the first line of its step, joined by a line to the marks above and
+   below it. A square is smaller than the ring and the cross, so its stubs are longer. */
+.lintje-chat-steps__step { --lintje-chat-steps-mark: var(--space-4); }
+.lintje-chat-steps__step.is-done,
+.lintje-chat-steps__step.is-cancelled { --lintje-chat-steps-mark: 10px; }
+.lintje-chat-steps__rail {
+  flex: 0 0 var(--space-4);
+  display: flex; flex-direction: column; align-items: center;
+}
+.lintje-chat-steps__rail::before {
+  content: '';
+  flex: 0 0 calc((1lh - var(--lintje-chat-steps-mark)) / 2);
+  width: 2px;
+  background: var(--color-border-default);
+}
+.lintje-chat-steps__step:first-child .lintje-chat-steps__rail::before { visibility: hidden; }
+.lintje-chat-steps__rail .lintje-chat-steps__mark { height: var(--lintje-chat-steps-mark); }
+.lintje-chat-steps__line {
+  flex: 1 1 auto;
+  width: 2px;
+  margin-bottom: calc(var(--space-1) * -1);
+  background: var(--color-border-default);
+}
+.lintje-chat-steps__step.is-last .lintje-chat-steps__line { visibility: hidden; }
+
+/* A detail that does not fit is cut; the whole of it stays in the DOM and in `title`, and runs
+   on to the next line wherever no pointer shows that: with the focus in the group, on a phone. */
+.lintje-chat-steps__text {
+  flex: 1 1 auto; min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lintje-chat-steps:focus-within .lintje-chat-steps__text { white-space: normal; overflow-wrap: anywhere; }
+.lintje-chat-steps__step.is-error .lintje-chat-steps__label { color: var(--color-error-text); }
+.lintje-chat-steps__detail { color: var(--color-text-muted); }
+.lintje-chat-steps__link { color: var(--color-link); text-decoration: underline; }
+.lintje-chat-steps__link:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+/* A phone: the button takes the full width and the touch height, with the chevron at its edge,
+   and a step never cuts. */
+@media screen and (max-width: 767px) {
+  .lintje-chat-steps__toggle { display: flex; width: 100%; min-height: var(--h-touch); }
+  .lintje-chat-steps__toggle::after { inset: 0; }
+  .lintje-chat-steps__toggle .lintje-chat-steps__chevron { margin-left: auto; }
+  .lintje-chat-steps__text { white-space: normal; overflow-wrap: anywhere; }
+}
+
+/* Forced colours drop fills, so the rail is drawn in the text colour. */
+@media (forced-colors: active) {
+  .lintje-chat-steps__square,
+  .lintje-chat-steps__line,
+  .lintje-chat-steps__rail::before { forced-color-adjust: none; background: CanvasText; }
+  .lintje-chat-steps__square--open { background: none; border-color: CanvasText; }
+}

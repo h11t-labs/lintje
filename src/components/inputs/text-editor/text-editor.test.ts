@@ -76,6 +76,33 @@ describe('lintje-text-editor', () => {
     ])
   })
 
+  it('draws Opsomming and Link as an icon, not a word, as wide as the letters', async () => {
+    const element = await mount()
+    const [list, link] = tools(element).slice(3)
+    for (const tool of [list!, link!]) {
+      expect(tool.querySelector('svg')).not.toBeNull()
+      expect(tool.textContent!.trim()).toBe('')
+      expect(tool.classList.contains('lintje-text-editor__tool--word')).toBe(false)
+    }
+    expect(list!.getAttribute('aria-label')).toBe('Opsomming')
+    expect(list!.getAttribute('aria-pressed')).toBe('false')
+    expect(link!.getAttribute('aria-label')).toBe('Link')
+    expect(link!.getAttribute('aria-pressed')).toBe('false')
+    expect(link!.getAttribute('aria-disabled')).toBe('true')
+    expect(link!.classList.contains('is-idle')).toBe(true)
+  })
+
+  it('shows the name of each button as its tooltip', async () => {
+    const element = await mount()
+    expect(tools(element).map((tool) => tool.title)).toEqual([
+      'Vet',
+      'Cursief',
+      'Kop',
+      'Opsomming',
+      'Link',
+    ])
+  })
+
   it('moves the tab stop with the arrow keys, round the ends, and with Home and End', async () => {
     const element = await mount()
     const toolbar = element.shadowRoot!.querySelector('[role="toolbar"]')!
