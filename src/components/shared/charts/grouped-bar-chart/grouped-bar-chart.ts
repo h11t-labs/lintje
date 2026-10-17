@@ -94,8 +94,8 @@ export function renderGroupedBarChart(spec: GroupedBarSpec, options: ChartOption
     return svg`
       <g class="lintje-chart__bar-group ${controller.hoverIndex === i ? 'is-hovered' : ''}"
          ${styleProps(staggerStyle(i, labels.length))}
-         @mousemove=${(event: MouseEvent) => controller.showTooltip(event, contentAt(i))}
-         @mouseleave=${() => controller.hideTooltip()}>
+         @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+         @mouseleave=${keys.leave}>
         ${series.map((row, j) => {
           const value = row.values[i]
           const y = yPosition(value, max, area)

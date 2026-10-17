@@ -18,11 +18,19 @@ export interface PlotPoint {
   flip?: number
 }
 
-/** What the drawing (the `<svg>`) takes. */
+/** What the drawing (the `<svg>`) takes, and its marks. */
 export interface PlotKeys {
   keydown: (event: KeyboardEvent) => void
   focus: (event: FocusEvent) => void
   blur: () => void
+  /**
+   * The pointer on category `index`, or the focus on its mark (`now`): the keyboard's tooltip at
+   * the keyboard's place, without the status. The pointer's follows to another category only
+   * after a moment, so the pointer can reach it (`ChartController.pointTo`).
+   */
+  point: (event: Event, index: number, now?: boolean) => void
+  /** The pointer left the marks. */
+  leave: () => void
 }
 
 const NEXT = new Set(['ArrowRight', 'ArrowDown'])
@@ -56,14 +64,14 @@ export function plotKeys(
   count: number,
   at: (index: number) => PlotPoint,
 ): PlotKeys {
-  const show = (drawing: Element, index: number) => {
+  /** The tooltip of `index` at its place; the keyboard's says it in the status region too. */
+  const place = (drawing: Element, index: number, spoken: boolean): void => {
     const point = at(index)
     const anchor = drawing.closest('[data-tooltip-anchor]')
     const box = drawing.getBoundingClientRect()
     const origin = anchor?.getBoundingClientRect() ?? box
     controller.hoverIndex = index
-    controller.keyFrom = null
-    controller.status = point.sentence ?? tooltipSentence(point.content)
+    controller.status = spoken ? (point.sentence ?? tooltipSentence(point.content)) : ''
     const left = box.left - origin.left
     controller.showTooltipAt(
       left + point.x,
@@ -71,6 +79,10 @@ export function plotKeys(
       point.content,
       point.side ?? (point.flip != null ? left + point.flip : undefined),
     )
+  }
+  const show = (drawing: Element, index: number) => {
+    controller.keyFrom = null
+    place(drawing, index, true)
   }
   return {
     keydown(event) {
@@ -92,6 +104,16 @@ export function plotKeys(
       const drawing = event.currentTarget as Element
       if (event.target !== drawing || count === 0 || !fromKeyboard(drawing)) return
       show(drawing, Math.min(controller.hoverIndex ?? 0, count - 1))
+    },
+    point(event, index, now = false) {
+      const target = event.currentTarget as Element
+      const drawing = target.closest('svg') ?? target
+      const go = () => place(drawing, index, false)
+      if (now) go()
+      else controller.pointTo(index, go)
+    },
+    leave() {
+      controller.pointerLeft()
     },
     blur() {
       controller.keyFrom = null

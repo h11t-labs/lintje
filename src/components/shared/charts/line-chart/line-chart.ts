@@ -468,8 +468,8 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
         <rect x=${x - bandWidth / 2} y=${area.top} width=${bandWidth}
               height=${area.height - area.top - area.bottom}
               fill="transparent"
-              @mousemove=${(event: MouseEvent) => controller.hoverAt(i, event, contentAt(i))}
-              @mouseleave=${() => controller.hoverAt(null)} />
+              @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+              @mouseleave=${keys.leave} />
       `
     }),
   ]

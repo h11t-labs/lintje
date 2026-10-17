@@ -104,6 +104,12 @@ export interface MeasureSpec {
   fit?: boolean
 }
 
+/**
+ * How long the pointer's tooltip waits before it follows the pointer to another mark or goes:
+ * on its way to the tooltip the pointer may cross a neighbour (WCAG 1.4.13).
+ */
+export const POINTER_GRACE = 200
+
 /** Share of the element — or of the viewport, for an element taller than that — that must show. */
 const VISIBLE_SHARE = 0.35
 /** However much a chart carries around its drawing, the drawing keeps this. */
@@ -161,6 +167,9 @@ export class ChartController {
   /** Centre and zoom of the Leaflet map. `detach()` keeps it so a re-attach does not reset. */
   leafletView: { lat: number; lon: number; zoom: number } | null = null
 
+  /** What the pointer's tooltip stands for (a category, a mark); `undefined` for the keyboard's. */
+  private pointerKey: unknown = undefined
+  private pointerTimer: ReturnType<typeof setTimeout> | null = null
   private readonly notify: () => void
   /** The data last drawn, and as JSON once its reference changed. */
   private drawn: unknown = undefined
@@ -236,6 +245,7 @@ export class ChartController {
   /** Stop observing; the host calls it when the chart leaves the DOM for good. */
   detach(): void {
     this.unwatch()
+    this.clearPointerTimer()
     if (this.mapHintTimer) clearTimeout(this.mapHintTimer)
     this.mapHintTimer = null
     this.leaflet?.destroy()
@@ -269,28 +279,80 @@ export class ChartController {
     this.hoverIndex = null
     this.status = ''
     this.tooltip = null
+    this.clearPointerTimer()
+    this.pointerKey = undefined
     this.unwatchEscape()
   }
 
   /* Tooltip --------------------------------------------------------------- */
 
   /**
-   * Coordinates are relative to the `data-tooltip-anchor` element, not the svg's parent.
-   * `from` starts the anchor search; Leaflet passes its container because its events
-   * do not have the drawn shape as `currentTarget`.
+   * The pointer on a mark without a keyboard place of its own (a map's mark, a heatmap's cell):
+   * the tooltip stands at the middle of what shows of the mark, not at the pointer, relative to
+   * the `data-tooltip-anchor`. `from` is the mark when it is not the event's `currentTarget`.
    */
   showTooltip(event: MouseEvent, content: TooltipContent, from?: Element): void {
     const target = from ?? event.currentTarget
     if (!(target instanceof Element)) return
     const anchor = target.closest('[data-tooltip-anchor]')
     if (!anchor) return
-    const box = anchor.getBoundingClientRect()
-    this.showTooltipAt(event.clientX - box.left, event.clientY - box.top, content)
+    this.pointTo(target, () => {
+      const area = anchor.getBoundingClientRect()
+      const box = target.getBoundingClientRect()
+      this.showTooltipAt(
+        (Math.max(box.left, area.left) + Math.min(box.right, area.right)) / 2 - area.left,
+        (Math.max(box.top, area.top) + Math.min(box.bottom, area.bottom)) / 2 - area.top,
+        content,
+      )
+    })
+  }
+
+  /**
+   * The pointer is on the mark or category `key`, and `show` stands its tooltip. The same key
+   * changes nothing; another waits `POINTER_GRACE`, so the pointer can cross a neighbour on its
+   * way to the tooltip, and the tooltip under the pointer keeps it.
+   */
+  pointTo(key: unknown, show: () => void): void {
+    this.clearPointerTimer()
+    if (this.tooltip && key === this.pointerKey) return
+    const go = () => {
+      this.pointerTimer = null
+      show()
+      this.pointerKey = key
+    }
+    if (this.tooltip && this.pointerKey !== undefined) {
+      this.pointerTimer = setTimeout(go, POINTER_GRACE)
+    } else go()
+  }
+
+  /** The pointer left the marks: the tooltip goes after `POINTER_GRACE`, unless it reaches it. */
+  pointerLeft(): void {
+    this.clearPointerTimer()
+    if (!this.tooltip || this.pointerKey === undefined) return
+    this.pointerTimer = setTimeout(() => {
+      this.pointerTimer = null
+      this.hoverAt(null)
+    }, POINTER_GRACE)
+  }
+
+  /** The pointer is on the tooltip: it stays, and goes once the pointer leaves it too. */
+  enterTooltip(): void {
+    this.clearPointerTimer()
+  }
+
+  leaveTooltip(): void {
+    this.pointerLeft()
+  }
+
+  private clearPointerTimer(): void {
+    if (this.pointerTimer) clearTimeout(this.pointerTimer)
+    this.pointerTimer = null
   }
 
   /** The tooltip at a place relative to the `data-tooltip-anchor`: the keyboard's way in. */
   /** `place`: `left` stands it left of `x`; a number is where it ends when it does not fit right. */
   showTooltipAt(x: number, y: number, content: TooltipContent, place?: 'left' | number): void {
+    this.pointerKey = undefined
     this.tooltip = {
       x,
       y,
@@ -303,20 +365,22 @@ export class ChartController {
   }
 
   hideTooltip(): void {
+    this.clearPointerTimer()
+    this.pointerKey = undefined
     if (!this.tooltip) return
     this.tooltip = null
     this.unwatchEscape()
     this.requestUpdate()
   }
 
-  hoverAt(index: number | null, event?: MouseEvent, content?: TooltipContent): void {
+  /** No category under the pointer or the keyboard: the tooltip goes at once. */
+  hoverAt(index: number | null): void {
     this.hoverIndex = index
-    if (event && content) this.showTooltip(event, content)
-    else {
-      this.tooltip = null
-      this.unwatchEscape()
-      this.requestUpdate()
-    }
+    this.clearPointerTimer()
+    this.pointerKey = undefined
+    this.tooltip = null
+    this.unwatchEscape()
+    this.requestUpdate()
   }
 
   /**
@@ -326,16 +390,22 @@ export class ChartController {
   dismiss(event: KeyboardEvent): boolean {
     if (event.key !== 'Escape' || !this.tooltip) return false
     event.stopPropagation()
+    event.preventDefault()
     this.hideTooltip()
     return true
   }
 
   /*
    * A tooltip under a resting pointer is dismissed with Escape wherever the focus is (WCAG
-   * 1.4.13), so the window is listened to while one shows. It does not stop the key.
+   * 1.4.13), so the window is listened to while one shows, before anything else hears the key.
+   * That Escape is the tooltip's: a window around it sees it prevented and stays open. One from
+   * inside the chart is left to the chart's own `dismiss`.
    */
   private readonly onWindowKey = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape') this.hideTooltip()
+    if (event.key !== 'Escape' || !this.tooltip) return
+    if (this.element && event.composedPath().includes(this.element)) return
+    event.preventDefault()
+    this.hideTooltip()
   }
 
   private watching = false
@@ -343,13 +413,13 @@ export class ChartController {
   private watchEscape(): void {
     if (this.watching || typeof window === 'undefined') return
     this.watching = true
-    window.addEventListener('keydown', this.onWindowKey)
+    window.addEventListener('keydown', this.onWindowKey, true)
   }
 
   private unwatchEscape(): void {
     if (!this.watching) return
     this.watching = false
-    window.removeEventListener('keydown', this.onWindowKey)
+    window.removeEventListener('keydown', this.onWindowKey, true)
   }
 
   toggleLayer(index: number): void {

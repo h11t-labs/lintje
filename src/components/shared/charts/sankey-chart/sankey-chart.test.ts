@@ -8,7 +8,7 @@
  */
 import { render } from 'lit'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ChartController, type ChartOptions } from '../shared/controller'
+import { ChartController, POINTER_GRACE, type ChartOptions } from '../shared/controller'
 import {
   renderSankeyChart,
   sankeyHeight,
@@ -553,6 +553,22 @@ describe('the sankey', () => {
     // Drawn after the bands, so it wins where they meet.
     const band = host.querySelector('.lintje-sankey__band')!
     expect(band.compareDocumentPosition(hits[0]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('keeps the tooltip of a band while the pointer goes over to it, the shared way', () => {
+    vi.useFakeTimers()
+    const { host, controller } = draw(THREE)
+    const band = host.querySelector('.lintje-sankey__band')!.parentElement!
+    band.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }))
+    expect(controller.tooltip?.content.title).toBe('Aanvragen → Compleet')
+    band.parentElement!.parentElement!.dispatchEvent(new MouseEvent('mouseleave'))
+    controller.enterTooltip()
+    vi.advanceTimersByTime(POINTER_GRACE * 2)
+    expect(controller.tooltip?.content.title).toBe('Aanvragen → Compleet')
+    controller.leaveTooltip()
+    vi.advanceTimersByTime(POINTER_GRACE)
+    expect(controller.tooltip).toBeNull()
+    vi.useRealTimers()
   })
 
   it('shows the tooltip of a flow the keyboard reaches, and hides it when the focus goes', () => {

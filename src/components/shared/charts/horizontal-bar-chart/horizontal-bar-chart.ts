@@ -105,8 +105,8 @@ export function renderHorizontalBarChart(
           )
           return svg`
             <g class="lintje-chart__bar-row ${controller.hoverIndex === i ? 'is-hovered' : ''}"
-               @mousemove=${(event: MouseEvent) => controller.showTooltip(event, contentAt(i))}
-               @mouseleave=${() => controller.hideTooltip()}>
+               @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+               @mouseleave=${keys.leave}>
               <!-- Hit area across the whole row, so the tooltip doesn't flicker between bars. -->
               <rect x=${0} y=${y - 5} width=${width} height=${rowHeight} fill="transparent" />
               <text x=${labelEnd} y=${y + barHeight - 3} text-anchor="end" class="lintje-chart__axis-label">${column.fit(row.label)}</text>

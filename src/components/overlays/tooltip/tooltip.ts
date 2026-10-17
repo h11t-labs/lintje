@@ -76,9 +76,14 @@ export class LintjeTooltip extends LintjeElement {
   }
   private readonly onFocusIn = (): void => this.show(0)
   private readonly onFocusOut = (): void => this.hide()
-  /** On the document: a tooltip opened by the pointer is dismissed wherever the focus is. */
+  /**
+   * On the document: a tooltip opened by the pointer is dismissed wherever the focus is, and that
+   * Escape is its own: what stands around it (a menu) sees it prevented and stays open.
+   */
   private readonly onKeydown = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape' && this.open) this.hide()
+    if (event.key !== 'Escape' || !this.open) return
+    event.preventDefault()
+    this.hide()
   }
   /** Fixed to the viewport, so it is placed again when what holds its element scrolls. */
   private readonly onReflow = (): void => {

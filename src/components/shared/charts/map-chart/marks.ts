@@ -236,7 +236,7 @@ function renderAreas(drawing: MapDrawing, context: MarksContext, land: LandShape
          @auxclick=${onPick(select, value)}
          @dblclick=${stop}
          @mousemove=${(event: MouseEvent) => controller.showTooltip(event, markTip(drawing, value))}
-         @mouseleave=${() => controller.hideTooltip()}
+         @mouseleave=${() => controller.pointerLeft()}
          @keydown=${onChoose(select, value)}>
         <path d=${d} class="lintje-map-chart__polygon-ring" />
         <path d=${d}
@@ -287,7 +287,7 @@ function renderFlows(
           @auxclick=${onPick(select, value)}
           @dblclick=${stop}
           @mousemove=${(event: MouseEvent) => controller.showTooltip(event, markTip(drawing, value))}
-          @mouseleave=${() => controller.hideTooltip()}>
+          @mouseleave=${() => controller.pointerLeft()}>
           <path d=${d} class="lintje-map-chart__flow-ring" />
           <path d=${d} class="lintje-map-chart__flow-gap" />
           <path d=${d} pathLength="1" class="lintje-map-chart__flow-line" />
@@ -343,7 +343,7 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
          @auxclick=${onPick(select, value)}
          @dblclick=${stop}
          @mousemove=${(event: MouseEvent) => controller.showTooltip(event, markTip(drawing, value))}
-         @mouseleave=${() => controller.hideTooltip()}
+         @mouseleave=${() => controller.pointerLeft()}
          @keydown=${onChoose(select, value)}>
         <!-- The figure grows in: its own group, as the animation's transform would replace the
              placement of the point. The focus ring is behind the shape, shown on focus only. -->

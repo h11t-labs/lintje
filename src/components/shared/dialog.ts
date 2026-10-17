@@ -17,8 +17,9 @@ export class DialogHold {
   readonly #onEscape: () => void
   #released: (() => void) | null = null
 
+  // An Escape something inside already answered (`preventDefault`) is not the window's.
   readonly #onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape' && this.#trap.isTopmost()) this.#onEscape()
+    if (event.key === 'Escape' && !event.defaultPrevented && this.#trap.isTopmost()) this.#onEscape()
   }
 
   /** `onEscape` runs only for the window on top; a window with its own condition checks it there. */
