@@ -69,16 +69,35 @@ export class LintjeModal extends LintjeElement {
     if (this.open) this.#fit()
   }
 
-  /** Writes the body's inner height to `--chart-h-expanded`, before the chart first measures. */
+  /**
+   * Writes the room the body may take to `--chart-h-expanded`, before the chart first measures:
+   * the scrim's height less its padding, the dialog's edge, header and footer and the body's
+   * padding. The dialog is as high as its content, so the room never comes from the body itself:
+   * a chart that fills it makes the dialog full height, one with a height of its own a lower one.
+   */
   #fit(): void {
+    const scrim = this.renderRoot.querySelector<HTMLElement>('.lintje-modal__scrim')
+    const dialog = this.renderRoot.querySelector<HTMLElement>('.lintje-modal')
     const body = this.renderRoot.querySelector<HTMLElement>('.lintje-modal__body')
-    if (!body) return
-    const style = getComputedStyle(body)
-    const inner = body.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
-    if (inner > 0) body.style.setProperty('--chart-h-expanded', `${Math.floor(inner)}px`)
+    if (!scrim || !dialog || !body) return
+    const px = (element: Element, property: string): number =>
+      parseFloat(getComputedStyle(element).getPropertyValue(property)) || 0
+    const height = (selector: string): number =>
+      dialog.querySelector<HTMLElement>(selector)?.offsetHeight ?? 0
+    const room =
+      scrim.clientHeight -
+      px(scrim, 'padding-top') -
+      px(scrim, 'padding-bottom') -
+      px(dialog, 'border-top-width') -
+      px(dialog, 'border-bottom-width') -
+      height('.lintje-modal__header') -
+      height('.lintje-modal__footer') -
+      px(body, 'padding-top') -
+      px(body, 'padding-bottom')
+    if (room > 0) body.style.setProperty('--chart-h-expanded', `${Math.floor(room)}px`)
     if (!this.#bodySize && typeof ResizeObserver !== 'undefined') {
       this.#bodySize = new ResizeObserver(() => this.#fit())
-      this.#bodySize.observe(body)
+      this.#bodySize.observe(scrim)
     }
   }
 
