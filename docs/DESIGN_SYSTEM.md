@@ -350,7 +350,7 @@ eronder staat.
   van binnen ook getekend is: een multiselect tekent checkboxen en is één veld, een tegel houdt
   elke inhoud vast en is één kader. Ordent hij zelf een verzameling, dan is hij samengesteld.
 - **Een bouwsteen bereikt nooit iets samengestelds**, ook niet via een bestand in diens map. Een
-  samengestelde tag mag een andere bevatten: een grafiek toont haar cijfers ook als tabel.
+  samengestelde tag mag een andere bevatten: een antwoord in het gesprek toont een grafiek.
 - **Een tag gebruikt een andere via zijn tag, zijn module of zijn stylesheet.** Een hulpbestand
   dat meer tags nodig hebben, staat in een `shared/`-map, nooit in de map van één van hen.
 - **Een onderdeel heeft de laag van zijn ouder**: `repeater-row` die van `repeater`, `filter-zone`
@@ -756,6 +756,9 @@ de stijlgids. Past geen soort, dan is het een tabel.
   echte maat houdt in een smalle tegel.
 - **Elke grafiek heeft een `<desc>`** met een leesbare samenvatting: het toegankelijke
   alternatief.
+- **Een tegel toont één weergave**: geen wissel tussen de tekening en een tabel, ook niet bij een
+  kaart of een diagram. De tooltip en de CSV geven de cijfers; een tabel die de lezer nodig heeft,
+  staat apart.
 - **Hover verandert nooit de lengte die de waarde draagt.**
 - **Een taart rangschikt en vouwt zelf.** Haar delen zijn de onderverdelingen van één variabele:
   de kleur van de spec, of hemelblauw. Het grootste deel is het donkerste, in welke volgorde de
@@ -767,7 +770,7 @@ de stijlgids. Past geen soort, dan is het een tabel.
 - **Een treemap vouwt op aandeel, niet op aantal.** Ze toont veel delen en hun onderdelen in één
   vlak, dus een deel blijft staan zolang het telt: wat onder 1 % van het geheel blijft, wordt
   samen één grijs "Overig" dat niet klikbaar is, ook binnen een deel, en één klein deel blijft
-  zichzelf. De tabel noemt elk samengevoegd deel apart. Het geheel is het kader: de legenda draagt
+  zichzelf. De CSV noemt elk samengevoegd deel apart. Het geheel is het kader: de legenda draagt
   alleen de sleutels en schakelt niets uit, en de grafiek noemt zelf het totaal van wat getekend
   is en wat daarin ontbreekt.
 - **Onderdelen van een deel delen zijn tint.** Een eigen tint zou een tweede variabele
@@ -778,7 +781,7 @@ de stijlgids. Past geen soort, dan is het een tabel.
   zonder aandeel, dan alleen de naam, en als laatste stap de naam afgekapt; waar zelfs dat niet
   past, blijft het vlak leeg. In een treemap zijn er altijd vlakken te klein voor tekst, dus daar
   geldt "alles of niets" niet: de maat is er altijd, de naam waar hij past, de tooltip en de
-  tabel geven alles.
+  CSV geven alles.
 - **Een gestapeld vlak toont de onderverdelingen van één variabele** in haar ladder, de eerste
   onderaan en de donkerste, in volle tinten met een lijn in de oppervlaktekleur tussen de lagen.
   Ontbreekt een laag op een punt, dan breken die laag en alles erboven daar af, want hun
@@ -797,7 +800,7 @@ de stijlgids. Past geen soort, dan is het een tabel.
   draagt in plaats van een lengte, zoals het halterdiagram, mag de as inkorten.
 - **Een waarde buiten een ingekorte as staat op de rand, met een afkapteken**: een klein
   driehoekje in de kleur van het punt dat naar buiten wijst. De as blijft zoals de host haar koos;
-  de echte waarde staat in de tooltip, de tabel en de CSV, en een verschil rekent ermee. De
+  de echte waarde staat in de tooltip en de CSV, en een verschil rekent ermee. De
   legenda noemt het teken "Buiten de as" zolang er zo'n punt is. Een punt verdwijnt nooit en de as
   rekt nooit stilletjes op.
 
@@ -813,7 +816,7 @@ onderverdelingen, en hun naam en getal zeggen wat ze zijn.
   één variabele over elkaar liggen, wordt het donkerder in dezelfde kleur. Vlakken van twee
   variabelen mengen tot een kleur die geen variabele heeft (zie het spinnendiagram).
 - **Een knoop is een deel van het geheel, een stroom een deel van zijn bron.** Zo staat het
-  aandeel in het label, de tooltip en de tabel, en nergens door elkaar.
+  aandeel in het label, de tooltip en de CSV, en nergens door elkaar.
 - Een ontbrekende stroom is een gearceerde stomp bij de bron, nooit een band van 0, en het doel is
   dan "minstens" het bekende deel. Een kleine stroom houdt een zichtbare band rond zijn echte
   plek; zijn echte getal staat in de woorden. Stromen samenvoegen tot "Overig" doet de host, want
@@ -838,7 +841,7 @@ opgeblazen tot een piek.
 **Een raming zet een gemeten reeks voort**, op een lijn of in staven; het is geen eigen soort.
 Gemeten en geraamd staan nooit ongemarkeerd naast elkaar. Stippels betekenen raming, en alleen
 dat: gestreept blijft van vergelijking en drempel. Een geraamde staaf is open, een geraamd
-hoverpunt ook, en de tooltip en de tabel noemen elk geraamd punt zo. De marge rond een raming vult
+hoverpunt ook, en de tooltip en de CSV noemen elk geraamd punt zo. De marge rond een raming vult
 alleen bij één reeks, of bij de reeks die de lezer in de legenda aanwijst, om dezelfde reden als
 bij het spinnendiagram. Met een raming heeft de grafiek één grens: de lijn tussen gemeten en
 geraamd, met beide woorden erboven en het geraamde deel op een eigen ondergrond. Een lopende
@@ -849,7 +852,7 @@ Een vergelijking heeft geen raming: haar waarden zijn gemeten.
 categorie met een doorgetrokken lijn tot de nullijn, apart van de gestreepte peilmomentlijn; de
 reeksen liggen eroverheen. Ze zijn genummerd van links naar rechts, en een vierkantje dat een
 ander zou raken, zakt een rij, zodat elk nummer zichtbaar blijft. De tekst staat altijd in een lijst onder de grafiek, ook op een
-telefoon, en in de tooltip, de tabel en de CSV: de tekening alleen draagt de betekenis nooit.
+telefoon, en in de tooltip en de CSV: de tekening alleen draagt de betekenis nooit.
 
 **Klassen** (heatmap, choropleet) krijgen hun grenzen uit de getoonde data, afgerond op stappen
 die een lezer herkent. Een host zet de grenzen vast als twee perioden op kleur vergelijkbaar
@@ -884,7 +887,7 @@ de naam op een eigen regel boven de halter.
 **In een spreidingsdiagram is een reeks ook een kleur en een vorm**: dezelfde vorm die die kleur
 op de kaart heeft, met gelijke oppervlakte, zodat geen reeks luider is. Een punt heeft een rand in
 de oppervlaktekleur, zodat punten die elkaar overlappen te onderscheiden blijven. Alleen de punten
-die de host noemt, tonen hun naam; de rest leest de lezer uit de tooltip of de tabel.
+die de host noemt, tonen hun naam; de rest leest de lezer uit de tooltip of de CSV.
 
 **Een kaart stapelt haar lagen en blijft één kaart.** De eerste laag ligt onder en de laatste
 boven, en het toetsenbord volgt de stapel; een choropleet kleurt het land zelf en ligt daarom
@@ -1141,7 +1144,7 @@ kleinste correctie, en leg die hier vast.
   kleur, nooit zijn woorden.
 - **Een label op een vulling neemt de inkt die op die sport van de ladder 4.5:1 haalt**, wit of
   bijna-zwart, uit één tabel per kleur en per sport. Een sport waar geen van beide dat haalt,
-  draagt geen label: de tooltip en de tabel noemen het.
+  draagt geen label: de tooltip en de CSV noemen het.
   Waar een label op een band ligt (de rechte strook na een middelste stap van een sankey), wordt
   gedempte tekst de gewone tekstkleur zodra die band nadruk krijgt: op de sterkere tint haalt
   gedempt geen 4.5:1.

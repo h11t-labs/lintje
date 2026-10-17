@@ -295,8 +295,7 @@ export default {
               lead: 'Zaterdag was de drukste dag in beide weken.',
               text: 'Links de afgelopen week, rechts dezelfde week tegen de week ervoor.',
               blocks: [
-                // Half as wide, a tile has no room for the table switch beside its title.
-                { kind: 'chart', data: { ...weekChart('ready'), span: 6, footnote: undefined, tableSwitch: false } },
+                { kind: 'chart', data: { ...weekChart('ready'), span: 6, footnote: undefined } },
                 {
                   kind: 'chart',
                   data: {
@@ -304,7 +303,6 @@ export default {
                     span: 6,
                     title: 'Tegen de week ervoor',
                     footnote: undefined,
-                    tableSwitch: false,
                   },
                 },
               ],
