@@ -41,7 +41,6 @@ import { NavScrollbar, feedbackLabel, renderNavigation } from './navigation'
 import { renderMobileHeader } from './mobile-header'
 import { renderBarTools, renderTopBar } from './top-bar'
 import {
-  RIBBON_WIDTH,
   SubmenuController,
   renderHeaderScrim,
   renderLogoBar,
@@ -511,13 +510,12 @@ export class LintjeShell extends LintjeElement {
     >`
   }
 
-  private renderLogo(ribbon: number): TemplateResult {
+  private renderLogo(): TemplateResult {
     const data = this.data as ShellData
     const home = data.home
     return renderLogoBar({
       logo: data.logo,
       emblem: data.emblem,
-      ribbon,
       environment: data.environment,
       home: home ? { href: home, onNavigate: (event) => this.follow(home, event) } : undefined,
     })
@@ -530,7 +528,6 @@ export class LintjeShell extends LintjeElement {
       <div class="lintje-shell__print-logo">
         <lintje-logo
           full
-          width=${RIBBON_WIDTH.desktop}
           src=${data.logo ?? nothing}
           name=${data.emblem?.name ?? nothing}
           alt=${data.emblem?.label ?? nothing}
@@ -563,7 +560,7 @@ export class LintjeShell extends LintjeElement {
 
   /** The slot of the nav bar keeps its height while the bar itself is pinned to the viewport. */
   private renderTop(data: ShellData, groups: NavGroup[]): TemplateResult {
-    return html`${this.renderLogo(RIBBON_WIDTH.desktop)}
+    return html`${this.renderLogo()}
       <div class="lintje-shell__sentinel" aria-hidden="true"></div>
       <div class=${classMap({ 'lintje-shell__nav': true, 'is-stuck': this.barStuck })}>
         ${renderNavBar({
@@ -584,7 +581,7 @@ export class LintjeShell extends LintjeElement {
   }
 
   private renderTopPhone(groups: NavGroup[]): TemplateResult {
-    return html`${this.renderLogo(RIBBON_WIDTH.phone)}
+    return html`${this.renderLogo()}
       <div class="lintje-shell__sentinel" aria-hidden="true"></div>
       <div class=${classMap({ 'lintje-shell__mobile-bar': true, 'is-stuck': this.barStuck })}>
         <div class="lintje-shell__mobile-pin">${renderMobileHeader(this, groups)}</div>
