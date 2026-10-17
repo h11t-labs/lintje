@@ -7,8 +7,7 @@
  *
  * Events: `lintje-toggle` `{ open }`, `lintje-navigate` `{ href }` (from a name in the list).
  */
-import { html, type PropertyDeclarations, type TemplateResult } from 'lit'
-import { styleMap } from 'lit/directives/style-map.js'
+import { html, type PropertyDeclarations, type PropertyValues, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles } from '../../../icons/render'
@@ -56,6 +55,14 @@ export class LintjePersonGroup extends LintjeElement {
 
   readonly #listId = `lintje-person-group-${++instances}`
 
+  /** Where two circles overlap; the button keeps the room they take when they spread. */
+  #overlaps = 0
+
+  protected override updated(changed: PropertyValues<this>): void {
+    super.updated(changed)
+    this.trigger?.style.setProperty('--lintje-person-group-overlaps', String(this.#overlaps))
+  }
+
   private get trigger(): HTMLButtonElement | null {
     return this.renderRoot.querySelector<HTMLButtonElement>('.lintje-person-group__button')
   }
@@ -85,6 +92,7 @@ export class LintjePersonGroup extends LintjeElement {
     const max = Math.max(2, Math.floor(Number(this.max) || 0))
     const shown = people.length > max ? people.slice(0, max - 1) : people
     const more = people.length - shown.length
+    this.#overlaps = shown.length + (more > 0 ? 1 : 0) - 1
     const label = this.label || 'Personen'
     // The name starts with what the button shows, so a reader who speaks it is understood (2.5.3).
     const seen = [
@@ -101,9 +109,6 @@ export class LintjePersonGroup extends LintjeElement {
       <button
         type="button"
         class="lintje-person-group__button lintje-person-group__button--${size}"
-        style=${styleMap({
-          '--lintje-person-group-overlaps': String(shown.length + (more > 0 ? 1 : 0) - 1),
-        })}
         aria-label=${name}
         aria-expanded=${String(this.open)}
         aria-controls=${this.#listId}
