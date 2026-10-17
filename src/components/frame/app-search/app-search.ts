@@ -31,6 +31,7 @@ import keyCss from '../../shared/key.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { titleWhenCut } from '../../shared/cut-text'
 import { resultsText, splitMatch } from '../../shared/search-text'
+import { uniqueId } from '../../../core/id'
 
 export interface SearchResult {
   /** What `lintje-action` carries. */
@@ -51,8 +52,6 @@ export type AppSearchCloseReason = 'escape' | 'scrim' | 'button' | 'choice'
 
 /** Milliseconds after the last keystroke before `lintje-search` is sent. */
 export const SEARCH_DELAY = 200
-
-let instances = 0
 
 // One `/` for the page, however many searches it holds: the latest connected one asks to open.
 const connected: LintjeAppSearch[] = []
@@ -97,7 +96,7 @@ export class LintjeAppSearch extends LintjeElement {
   readonly #debounce = new Debounce(this, SEARCH_DELAY)
   // The field is a native `<input>` in this root: `aria-controls` and `aria-activedescendant`
   // cannot cross a root.
-  readonly #id = `lintje-app-search-${++instances}`
+  readonly #id = uniqueId('lintje-app-search')
   readonly #hold = new DialogHold(() => this.close('escape'))
 
   private get results(): SearchResult[] {

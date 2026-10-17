@@ -17,6 +17,7 @@ import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { badgeStyles, renderBadge } from '../../feedback/badge/badge'
 import subNavCss from './sub-nav.css?inline'
+import { uniqueId } from '../../../core/id'
 
 export interface SubNavItem {
   label: string
@@ -68,8 +69,6 @@ export function activeEntry(groups: SubNavGroup[]): { item: SubNavItem; group?: 
   return null
 }
 
-let instances = 0
-
 export class LintjeSubNav extends LintjeElement {
   static override styles = [iconStyles, badgeStyles, shadowCss(subNavCss)]
 
@@ -96,7 +95,7 @@ export class LintjeSubNav extends LintjeElement {
   open: boolean = false
 
   #mobile = new MediaController(this, MOBILE)
-  #id = `lintje-sub-nav-${++instances}`
+  #id = uniqueId('lintje-sub-nav')
 
   /** The phone's list hides what it holds: a focus in it goes to its button first, not the page. */
   #close(): void {

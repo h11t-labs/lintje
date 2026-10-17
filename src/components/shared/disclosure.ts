@@ -14,13 +14,6 @@ import type { HeadingLevel } from './empty-state-block'
 import { renderIcon, renderLeadingIcon } from '../../icons/render'
 import { heightSettleMs } from './transition'
 
-let sequence = 0
-
-export function nextDisclosureId(): string {
-  sequence += 1
-  return `lintje-disclosure-${sequence}`
-}
-
 export class DisclosureSettle implements ReactiveController {
   /** False while the body is growing; the box clips until then. */
   settled = true
