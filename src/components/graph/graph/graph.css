@@ -17,7 +17,6 @@
 /* One finger moves the page, as on the map; two zoom the drawing. */
 .lintje-graph__area {
   position: relative;
-  isolation: isolate;
   overflow: hidden;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
@@ -55,10 +54,16 @@
   left: 0; top: 0;
   pointer-events: auto;
 }
-/* What appears fades in, what leaves fades out where it stood. */
+/* What appears fades in, what leaves fades out where it stood. What comes while something leaves
+   waits until it has gone. */
 .lintje-graph__node,
+.lintje-graph__counter,
 .lintje-graph__edge,
 .lintje-graph__word { animation: lintje-fade-in var(--dur-graph) var(--ease-fade); }
+.lintje-graph__node.is-late,
+.lintje-graph__counter.is-late,
+.lintje-graph__edge.is-late,
+.lintje-graph__word.is-late { animation-delay: var(--dur-graph); animation-fill-mode: backwards; }
 /* Out of the light a node steps back: its icon and its lines fade to 45 %, its name keeps
    4.5:1 in the secondary text colour. */
 .lintje-graph__edge,
@@ -66,10 +71,12 @@
 .lintje-graph__edge.is-dim,
 .lintje-graph__node.is-dim .lintje-graph__glyph { opacity: 0.45; }
 .lintje-graph__node.is-dim { color: var(--color-text-secondary); }
-.lintje-graph__node.is-leaving {
+.lintje-graph__node.is-leaving,
+.lintje-graph__edge.is-leaving {
   pointer-events: none;
   animation: lintje-graph-fade-out var(--dur-graph) var(--ease-fade) forwards;
 }
+.lintje-graph__edge.is-leaving .lintje-graph__hit { pointer-events: none; }
 @keyframes lintje-graph-fade-out { to { opacity: 0; } }
 
 /* A card grows and shrinks with the zoom (`--lintje-graph-k`); its width, its height and the room

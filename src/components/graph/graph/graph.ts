@@ -37,7 +37,7 @@ import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import { place, stand, viewport, type Rect } from '../../shared/place'
 import { avatarStyles, renderAvatar } from '../../shared/avatar'
 import { renderStatusDot, statusDotStyles } from '../../feedback/status-dot/status-dot'
-import { downloadCsv } from '../../shared/download'
+import { chartImage, downloadPng } from '../../shared/download'
 import { renderChartSkeleton } from '../../shared/charts/shared/chart-states'
 import { chartFrameStyles } from '../../shared/charts/shared/chart-styles'
 import { renderLegend, type LegendItem } from '../../shared/charts/shared/axes'
@@ -61,6 +61,7 @@ import { routeEdges, type RouteEdge, type Shape } from './routes'
 import {
   boundsOf,
   centreOn,
+  type Bounds,
   fit,
   fits,
   levelAt,
@@ -74,7 +75,7 @@ import '../../feedback/announcement/announcement'
 import '../../feedback/spinner/spinner'
 import '../../layout/tile/tile'
 import '../../overlays/tooltip/tooltip'
-import type { CellValue, GraphData, GraphLayout, GraphLines, GraphNodeType } from '../../../types'
+import type { GraphData, GraphLayout, GraphLines, GraphNodeType } from '../../../types'
 
 /** The drawing's height in px, in the tile and on a phone. */
 export const GRAPH_HEIGHT = { desktop: 480, mobile: 360 } as const
@@ -123,6 +124,8 @@ class Surface {
   /** The node that holds the keyboard's focus. */
   focused: string | null = null
   drag: { x: number; y: number; view: View; moved: boolean; id: number } | null = null
+  /** The frame of the overview held by a pointer, and where in it the pointer took it. */
+  overviewDrag: { offset: Point; id: number } | null = null
   /** Two fingers on a touch screen, for the pinch. */
   touches = new Map<number, Point>()
   pinch: { distance: number; view: View } | null = null
@@ -180,9 +183,15 @@ interface Placed {
   key: string
 }
 
+/**
+ * A change of layout on its way. What leaves fades first, for `delay`; then the rest moves from
+ * `from` to its new place and a fitted view follows from the box it showed.
+ */
 interface Motion {
   from: Record<string, Point>
+  fromBounds: Bounds
   start: number
+  delay: number
   duration: number
 }
 
@@ -264,9 +273,14 @@ export class LintjeGraph extends LintjeContentTileElement {
   #frame = 0
   #leaving = new Map<string, Leaving>()
   #fadeTimer: ReturnType<typeof setTimeout> | undefined
-  /** The nodes and sizes of the last layout, for what leaves it. */
+  /** The nodes, sizes and lines of the last layout, for what leaves it. */
   #nodesSeen = new Map<string, DrawnNode>()
   #sizesSeen = new Map<string, { width: number; height: number }>()
+  #edgesSeen: DrawnEdge[] = []
+  /** The lines of what is leaving, fading with it. */
+  #leavingEdges: DrawnEdge[] = []
+  /** Nodes that come while others leave: they wait until those have gone. */
+  #late = new Set<string>()
   /** The node or counter that held the focus as the update began. */
   #focusBefore: FocusedPart | null = null
   /** Text size in px and the font, read where the element stands. */
@@ -510,13 +524,33 @@ export class LintjeGraph extends LintjeContentTileElement {
     return lines
   }
 
-  /** A new layout: what stood moves to its new place, a new node comes from its neighbour. */
+  /**
+   * A new layout. What leaves fades first where it stood, with its lines; then what stays moves
+   * to its new place, a new node comes out of its neighbour and the fitted view follows.
+   */
   private apply(layout: Placed): void {
     const before = this.#layout ? this.positionsNow() : null
-    const previous = this.#layout
+    const fromBounds = before ? boundsOf(before, this.#sizesSeen) : null
     this.#layout = layout
     const duration = before && !prefersReducedMotion() ? durationMs(this, '--dur-graph') : 0
+    const leaving = new Set<string>()
     if (before && duration > 0) {
+      for (const [id, at] of Object.entries(before)) {
+        if (layout.positions[id] || this.#leaving.has(id)) continue
+        const node = this.#nodesSeen.get(id)
+        const size = this.#sizesSeen.get(id)
+        if (!node || !size) continue
+        this.#leaving.set(id, { node, at, size })
+        leaving.add(id)
+      }
+    }
+    for (const id of Object.keys(layout.positions)) this.#leaving.delete(id)
+    const delay = leaving.size ? duration : 0
+    this.#leavingEdges = this.#edgesSeen.filter(
+      (edge) => this.#leaving.has(edge.from) || this.#leaving.has(edge.to),
+    )
+    this.#late = new Set(delay ? Object.keys(layout.positions).filter((id) => !before?.[id]) : [])
+    if (before && fromBounds && duration > 0) {
       const from: Record<string, Point> = {}
       const model = this.#model!
       for (const id of Object.keys(layout.positions)) {
@@ -525,26 +559,20 @@ export class LintjeGraph extends LintjeContentTileElement {
           [...(model.neighbours.get(id) ?? [])].map((other) => before[other]).find(Boolean)
         if (start) from[id] = start
       }
-      this.#motion = { from, start: performance.now(), duration }
+      this.#motion = { from, fromBounds, start: performance.now(), delay, duration }
       this.tick()
     } else this.#motion = null
-    // A node that left fades where it stood.
-    if (previous && before && duration > 0) {
-      for (const [id, at] of Object.entries(before)) {
-        if (layout.positions[id] || this.#leaving.has(id)) continue
-        const node = this.#nodesSeen.get(id)
-        const size = this.#sizesSeen.get(id)
-        if (node && size) this.#leaving.set(id, { node, at, size })
-      }
+    if (this.#leaving.size) {
       clearTimeout(this.#fadeTimer)
       this.#fadeTimer = setTimeout(() => {
         this.#leaving.clear()
+        this.#leavingEdges = []
         this.requestUpdate()
       }, duration)
     }
-    for (const id of Object.keys(layout.positions)) this.#leaving.delete(id)
     this.#nodesSeen = new Map(this.#model!.nodes.map((node) => [node.id, node]))
     this.#sizesSeen = new Map(this.#sizes)
+    this.#edgesSeen = this.#model!.edges
   }
 
   private tick(): void {
@@ -552,10 +580,19 @@ export class LintjeGraph extends LintjeContentTileElement {
     this.#frame = requestAnimationFrame(() => {
       this.#frame = 0
       this.requestUpdate()
-      if (this.#motion && performance.now() - this.#motion.start < this.#motion.duration)
-        this.tick()
-      else this.#motion = null
+      const motion = this.#motion
+      if (motion && performance.now() - motion.start < motion.delay + motion.duration) this.tick()
+      else {
+        this.#motion = null
+        this.#late.clear()
+      }
     })
+  }
+
+  /** How far a motion has come, eased; nothing yet while what leaves still fades. */
+  private progress(motion: Motion): number {
+    const t = (performance.now() - motion.start - motion.delay) / motion.duration
+    return easing(this, '--ease-in-motion')(Math.min(1, Math.max(0, t)))
   }
 
   /** Where each node stands now, on its way from its last place to its new one. */
@@ -564,8 +601,7 @@ export class LintjeGraph extends LintjeContentTileElement {
     if (!layout) return {}
     const motion = this.#motion
     if (!motion) return layout.positions
-    const t = Math.min(1, (performance.now() - motion.start) / motion.duration)
-    const eased = easing(this, '--ease-in-motion')(t)
+    const eased = this.progress(motion)
     const now: Record<string, Point> = {}
     for (const [id, to] of Object.entries(layout.positions)) {
       const from = motion.from[id]
@@ -612,6 +648,21 @@ export class LintjeGraph extends LintjeContentTileElement {
     this.requestUpdate()
   }
 
+  /**
+   * Back to the start, as the map's reset: the whole drawing in view, nothing chosen, every
+   * folded branch open again and every opened group closed. The host hears each change.
+   */
+  private reset(surface: Surface): void {
+    surface.view = null
+    for (const id of this.#collapsed) this.emit('lintje-node-toggle', { id, open: true })
+    for (const id of this.#opened) this.emit('lintje-node-toggle', { id, open: false })
+    if (this.#collapsed.size || this.#opened.size) this.#stale = true
+    this.#collapsed = new Set()
+    this.#opened = new Set()
+    if (this.#selected) this.select(null)
+    this.requestUpdate()
+  }
+
   private toggleType(key: string): void {
     if (this.#hiddenTypes.has(key)) this.#hiddenTypes.delete(key)
     else this.#hiddenTypes.add(key)
@@ -654,7 +705,19 @@ export class LintjeGraph extends LintjeContentTileElement {
   private viewOf(surface: Surface): View | null {
     if (surface.view) return surface.view
     if (!this.#layout) return null
-    return fit(boundsOf(this.#layout.positions, this.#sizes), surface, surface.controls)
+    const to = boundsOf(this.#layout.positions, this.#sizes)
+    const motion = this.#motion
+    if (!motion) return fit(to, surface, surface.controls)
+    // The fitted view goes with the nodes, from the box it showed to the new one.
+    const t = this.progress(motion)
+    const from = motion.fromBounds
+    const box = {
+      x: from.x + (to.x - from.x) * t,
+      y: from.y + (to.y - from.y) * t,
+      width: from.width + (to.width - from.width) * t,
+      height: from.height + (to.height - from.height) * t,
+    }
+    return fit(box, surface, surface.controls)
   }
 
   private zoom(surface: Surface, factor: number, at?: Point): void {
@@ -832,47 +895,74 @@ export class LintjeGraph extends LintjeContentTileElement {
     this.requestUpdate()
   }
 
-  private onOverview(
-    surface: Surface,
-    event: MouseEvent,
-    map: { scale: number; x: number; y: number },
-  ): void {
-    const view = this.viewOf(surface)
-    if (!view) return
+  /** A point of the overview as a point of the graph. */
+  private overviewPoint(event: PointerEvent, map: { scale: number; x: number; y: number }): Point {
     const box = (event.currentTarget as HTMLElement).getBoundingClientRect()
-    const world = {
+    return {
       x: (event.clientX - box.left - map.x) / map.scale,
       y: (event.clientY - box.top - map.y) / map.scale,
     }
-    surface.view = centreOn(view, world, surface)
+  }
+
+  /**
+   * The overview: a press outside its frame goes there, and the frame follows the pointer while
+   * it is held, from where it was taken.
+   */
+  private onOverviewDown(
+    surface: Surface,
+    event: PointerEvent,
+    map: { scale: number; x: number; y: number },
+  ): void {
+    const view = this.viewOf(surface)
+    if (!view || event.button !== 0) return
+    const at = this.overviewPoint(event, map)
+    const centre = {
+      x: (surface.width / 2 - view.x) / view.k,
+      y: (surface.height / 2 - view.y) / view.k,
+    }
+    const inside =
+      Math.abs(at.x - centre.x) <= surface.width / 2 / view.k &&
+      Math.abs(at.y - centre.y) <= surface.height / 2 / view.k
+    const offset = inside ? { x: at.x - centre.x, y: at.y - centre.y } : { x: 0, y: 0 }
+    if (!inside) surface.view = centreOn(view, at, surface)
+    surface.overviewDrag = { offset, id: event.pointerId }
+    ;(event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId)
     this.requestUpdate()
   }
 
-  /* --- The file ------------------------------------------------------------------ */
-
-  private relationRows(): CellValue[][] {
-    const data = this.data
-    if (!data) return []
-    const names = new Map(data.nodes.map((node) => [node.id, node.label]))
-    const withValue = data.edges.some((edge) => edge.value != null)
-    return data.edges
-      .filter((edge) => names.has(edge.from) && names.has(edge.to))
-      .map((edge) => {
-        const word = edge.label || 'verbonden met'
-        const row: CellValue[] = [names.get(edge.from)!, word, names.get(edge.to)!]
-        if (withValue) row.push(edge.value ?? null, edge.unit ?? '')
-        return row
-      })
+  private onOverviewMove(
+    surface: Surface,
+    event: PointerEvent,
+    map: { scale: number; x: number; y: number },
+  ): void {
+    const drag = surface.overviewDrag
+    const view = this.viewOf(surface)
+    if (!drag || drag.id !== event.pointerId || !view) return
+    const at = this.overviewPoint(event, map)
+    surface.view = centreOn(view, { x: at.x - drag.offset.x, y: at.y - drag.offset.y }, surface)
+    this.requestUpdate()
   }
 
-  private csv(): void {
+  /* --- The image ----------------------------------------------------------------- */
+
+  /**
+   * The drawing as the reader sees it, with its legend and the words of its tile, as a PNG; the
+   * zoom buttons, the overview and the tooltip stay out.
+   */
+  private png(): void {
     const data = this.data
-    if (!data?.download) return
-    const withValue = data.edges.some((edge) => edge.value != null)
-    downloadCsv(data.download.filename, [
-      ['Van', 'Relatie', 'Naar', ...(withValue ? ['Aantal', 'Eenheid'] : [])],
-      ...this.relationRows(),
-    ])
+    const surface = this.expanded && this.#modal ? this.#modal : this.#tile
+    const root = surface.area?.closest('.lintje-graph')
+    if (!data?.download || !root) return
+    const image = chartImage(
+      root,
+      { title: data.title, subtitle: data.subtitle, footnote: data.footnote },
+      {
+        skip: '.lintje-graph__zoom, .lintje-graph__overview, .lintje-graph__hint, .lintje-graph__busy, .lintje-graph__tip',
+        buttons: '.lintje-graph__card, .lintje-graph__counter',
+      },
+    )
+    void downloadPng(data.download.filename, image)
   }
 
   /* --- Drawing ------------------------------------------------------------------ */
@@ -939,7 +1029,7 @@ export class LintjeGraph extends LintjeContentTileElement {
       }}
       @lintje-tile-download=${(event: Event) => {
         event.stopPropagation()
-        this.csv()
+        this.png()
       }}
     >
       ${
@@ -956,7 +1046,7 @@ export class LintjeGraph extends LintjeContentTileElement {
         heading: data.title,
         subtitle,
         footnote: data.footnote,
-        csv: data.download ? () => this.csv() : undefined,
+        png: data.download ? () => this.png() : undefined,
       },
     )}`
   }
@@ -1093,32 +1183,73 @@ export class LintjeGraph extends LintjeContentTileElement {
       labelled: level === 'card' || isLit(edge),
       lit: isLit(edge),
     }))
+    const routeOptions = {
+      lines: this.lines,
+      layered:
+        layout.kind === 'layered-right'
+          ? ('right' as const)
+          : layout.kind === 'layered-down'
+            ? ('down' as const)
+            : null,
+      labelWidth: (text: string) => this.wordWidth(text),
+    }
     const routes = new Map(
-      routeEdges(routeInput, shapes, {
-        lines: this.lines,
-        layered:
-          layout.kind === 'layered-right'
-            ? 'right'
-            : layout.kind === 'layered-down'
-              ? 'down'
-              : null,
-        routed,
-        labelWidth: (text) => this.wordWidth(text),
-      }).map((route) => [route.key, route]),
+      routeEdges(routeInput, shapes, { ...routeOptions, routed }).map((route) => [
+        route.key,
+        route,
+      ]),
     )
+    // The lines of what leaves fade with it, from where it stood.
+    const goneShapes = new Map(shapes)
+    for (const [id, gone] of this.#leaving) {
+      const centre = screen(gone.at)
+      goneShapes.set(
+        id,
+        level === 'card'
+          ? {
+              cx: centre.x,
+              cy: centre.y,
+              hw: (gone.size.width * k) / 2,
+              hh: (gone.size.height * k) / 2,
+              round: false,
+            }
+          : { cx: centre.x, cy: centre.y, hw: MARK.radius, hh: MARK.radius, round: true },
+      )
+    }
+    const leavingEdges = this.#leavingEdges.filter(
+      (edge) => goneShapes.has(edge.from) && goneShapes.has(edge.to),
+    )
+    for (const route of routeEdges(
+      leavingEdges.map((edge) => ({
+        key: edge.key,
+        from: edge.from,
+        to: edge.to,
+        label: '',
+        direction: edge.direction,
+        width: widthOf(edge),
+        labelled: false,
+        lit: false,
+      })),
+      goneShapes,
+      routeOptions,
+    ))
+      routes.set(route.key, route)
+    const leavingKeys = new Set(leavingEdges.map((edge) => edge.key))
+    const late = (edge: DrawnEdge) => this.#late.has(edge.from) || this.#late.has(edge.to)
 
     const lines = svg`<svg class="lintje-graph__lines" width=${surface.width} height=${surface.height}
         viewBox="0 0 ${surface.width} ${surface.height}" aria-hidden="true" focusable="false">
       <desc>${data.description}</desc>
       ${repeat(
-        edges,
+        [...edges, ...leavingEdges],
         (edge) => edge.key,
         (edge) => {
           const route = routes.get(edge.key)
           if (!route) return nothing
           const lit = isLit(edge)
           const hot = Boolean(hover && 'edge' in hover && hover.edge === edge.key)
-          return svg`<g class="lintje-graph__edge ${lit ? 'is-lit' : ''} ${litEdges && !lit ? 'is-dim' : ''} ${hot ? 'is-hot' : ''}">
+          const state = leavingKeys.has(edge.key) ? 'is-leaving' : late(edge) ? 'is-late' : ''
+          return svg`<g class="lintje-graph__edge ${lit ? 'is-lit' : ''} ${litEdges && !lit ? 'is-dim' : ''} ${hot ? 'is-hot' : ''} ${state}">
             <path class="lintje-graph__line" d=${route.d} stroke-width=${round(widthOf(edge) + (hot ? 1 : 0))}></path>
             ${route.arrows.map((d) => svg`<path class="lintje-graph__arrow" d=${d}></path>`)}
             <path class="lintje-graph__hit" d=${route.d}
@@ -1139,7 +1270,7 @@ export class LintjeGraph extends LintjeContentTileElement {
         (edge) => {
           const at = routes.get(edge.key)!.label!
           const lit = isLit(edge)
-          return svg`<text class="lintje-graph__word ${lit ? 'is-lit' : ''}"
+          return svg`<text class="lintje-graph__word ${lit ? 'is-lit' : ''} ${late(edge) ? 'is-late' : ''}"
                            x=${at.x} y=${at.y}>${edge.label}</text>`
         },
       )}
@@ -1205,7 +1336,10 @@ export class LintjeGraph extends LintjeContentTileElement {
         showOverview
           ? html`<div class="lintje-graph__overview" aria-hidden="true"
                     ${styleProps({ width: `${OVERVIEW.width}px`, height: `${OVERVIEW.height}px` })}
-                    @click=${(event: MouseEvent) => this.onOverview(surface, event, map)}>
+                    @pointerdown=${(event: PointerEvent) => this.onOverviewDown(surface, event, map)}
+                    @pointermove=${(event: PointerEvent) => this.onOverviewMove(surface, event, map)}
+                    @pointerup=${() => (surface.overviewDrag = null)}
+                    @pointercancel=${() => (surface.overviewDrag = null)}>
               ${shown.map((node) => {
                 const at = now[node.id]!
                 return html`<span class="lintje-graph__overview-dot"
@@ -1308,7 +1442,7 @@ export class LintjeGraph extends LintjeContentTileElement {
       selected ? 'is-selected' : '',
       spot.dim ? 'is-dim' : '',
       hovered ? 'is-hover' : '',
-      spot.leaving ? 'is-leaving' : '',
+      spot.leaving ? 'is-leaving' : this.#late.has(node.id) ? 'is-late' : '',
     ].join(' ')
     const sub = node.status
       ? renderStatusDot({
@@ -1399,7 +1533,7 @@ export class LintjeGraph extends LintjeContentTileElement {
       : { x: spot.x - 2, y: spot.y - MARK.radius - COUNTER.size + 2 }
     const sign = card ? COUNTER.sign : 10
     return html`<button type="button"
-        class="lintje-graph__counter ${card ? '' : 'lintje-graph__counter--small'} ${counter.open ? 'is-open' : ''} ${quiet ? 'is-quiet' : ''}"
+        class="lintje-graph__counter ${card ? '' : 'lintje-graph__counter--small'} ${counter.open ? 'is-open' : ''} ${quiet ? 'is-quiet' : ''} ${this.#late.has(node.id) ? 'is-late' : ''}"
         tabindex=${stop ? 0 : -1}
         aria-label=${counter.label}
         aria-busy=${counter.busy ? 'true' : nothing}
@@ -1486,21 +1620,18 @@ export class LintjeGraph extends LintjeContentTileElement {
         act: () => this.zoom(surface, 1 / ZOOM.step),
       },
       {
-        label: 'Passend',
+        label: 'Tekening terugzetten',
         icon: 'functioneel-refresh',
         flip: 'horizontal' as const,
-        text: 'Passend',
-        act: () => {
-          surface.view = null
-          this.requestUpdate()
-        },
+        text: 'Terug',
+        act: () => this.reset(surface),
       },
       ...(this.#selected && this.#model?.byId.has(this.#selected)
         ? [
             {
-              label: 'Bij selectie',
+              label: 'Inzoomen op de gekozen knoop',
               icon: 'functioneel-vergrootglas-plus',
-              text: 'Bij selectie',
+              text: 'Gekozen',
               act: () => this.zoomToSelection(surface),
             },
           ]

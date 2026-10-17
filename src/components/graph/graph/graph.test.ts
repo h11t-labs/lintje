@@ -212,6 +212,19 @@ describe('lintje-graph', () => {
     expect(nodeOf(element, 'x')).not.toBeNull()
   })
 
+  it('sets it all back with its reset: every branch open, nothing chosen', async () => {
+    const element = await mount(graphData({ collapsed: ['c'], selected: 'a' }))
+    const toggles = listen(element, 'lintje-node-toggle')
+    const selects = listen(element, 'lintje-node-select')
+    root(element)
+      .querySelector<HTMLButtonElement>('button[aria-label="Tekening terugzetten"]')!
+      .click()
+    await element.updateComplete
+    expect(toggles).toEqual([{ id: 'c', open: true }])
+    expect(selects).toEqual([{ id: null, label: null }])
+    expect(nodeOf(element, 'p1')).not.toBeNull()
+  })
+
   it('switches a kind off in its legend', async () => {
     const element = await mount(graphData())
     root(element).querySelectorAll<HTMLButtonElement>('.lintje-legend__button')[1]!.click()

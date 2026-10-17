@@ -27,7 +27,11 @@ function host(tile) {
     const { id, open } = event.detail
     const opened = tile.data.opened ?? []
     const collapsed = tile.data.collapsed ?? []
-    if (id.startsWith('groep:')) tile.data = { ...tile.data, opened: [...opened, id] }
+    if (id.startsWith('groep:'))
+      tile.data = {
+        ...tile.data,
+        opened: open ? [...opened, id] : opened.filter((item) => item !== id),
+      }
     else
       tile.data = {
         ...tile.data,

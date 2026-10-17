@@ -253,8 +253,9 @@ export type GraphLines = 'straight' | 'curved' | 'orthogonal'
 
 /**
  * Events: `lintje-node-select` `{id, label}` for a chosen node, `{id: null, label: null}` when
- * undone; `lintje-node-toggle` `{id, open}` when a branch or a group is opened or folded;
- * `lintje-node-expand` `{id}` when a node with `more` is opened.
+ * undone; `lintje-node-toggle` `{id, open}` when a branch or a group is opened or folded, one per
+ * node when the reset button sets it all back; `lintje-node-expand` `{id}` when a node with `more`
+ * is opened. With `download` the tile offers the drawing as a PNG.
  */
 export interface GraphData extends FrameSettings, TileData, ContentState {
   /** The kinds in the order the legend and the colours take them. */

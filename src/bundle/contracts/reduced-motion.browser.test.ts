@@ -145,13 +145,15 @@ it('stands a graph’s nodes in their new place at once', async () => {
   const element = document.createElement('lintje-graph') as LintjeElement & { data: GraphData }
   element.data = data
   document.body.append(element)
-  // The drawing fits itself once its box is measured, a frame after it is drawn.
-  await new Promise(requestAnimationFrame)
-  await new Promise(requestAnimationFrame)
-  await element.updateComplete
   const place = () =>
-    element.shadowRoot!.querySelector<HTMLElement>('[data-node="a"]')!.style.transform
-  const before = place()
+    element.shadowRoot!.querySelector<HTMLElement>('[data-node="a"]')?.style.transform
+  // The drawing fits itself once its box is measured, a frame or two after it is drawn.
+  let before = place()
+  for (let still = 0; still < 3;) {
+    await new Promise(requestAnimationFrame)
+    still = place() === before ? still + 1 : 0
+    before = place()
+  }
   element.data = { ...data, layout: 'layered-right' }
   await element.updateComplete
   const after = place()

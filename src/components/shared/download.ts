@@ -48,6 +48,7 @@ const PAINT = [
   'stroke-dasharray',
   'stroke-linecap',
   'stroke-linejoin',
+  'paint-order',
   'opacity',
   'visibility',
   'color',
@@ -113,7 +114,18 @@ interface Origin {
   left: number
   top: number
   reach: { left: number; top: number; right: number; bottom: number }
+  options: ImageOptions
 }
+
+/** What an element that is no chart tells the image about itself. */
+export interface ImageOptions {
+  /** Its controls, left out as a tooltip is: zoom buttons, an overview. */
+  skip?: string
+  /** Buttons that are content, drawn with their own box: a node that is a card. */
+  buttons?: string
+}
+
+let clips = 0
 
 const SIDES = ['top', 'right', 'bottom', 'left'] as const
 
@@ -125,11 +137,35 @@ function paintBox(
   out: Element,
 ): void {
   // A button and a row under the pointer have a state of their own, not one the reader chose.
-  if (element.localName === 'button' || element.classList.contains('is-hovered')) return
+  const content = origin.options.buttons ? element.matches(origin.options.buttons) : false
+  if ((element.localName === 'button' && !content) || element.classList.contains('is-hovered'))
+    return
   const box = element.getBoundingClientRect()
   const x = box.left - origin.left
   const y = box.top - origin.top
   const { width, height } = box
+  // A round box, a dot or a counter, with one edge all round.
+  const corner = style.borderTopLeftRadius
+  const radius = corner.endsWith('%') ? (width * parseFloat(corner)) / 100 : parseFloat(corner)
+  if (radius > 0) {
+    const weight = parseFloat(style.borderTopWidth) || 0
+    const edged = weight && style.borderTopStyle !== 'none'
+    if (transparent(style.backgroundColor) && !edged) return
+    create(
+      'rect',
+      {
+        x: x + weight / 2,
+        y: y + weight / 2,
+        width: Math.max(0, width - weight),
+        height: Math.max(0, height - weight),
+        rx: Math.min(radius, width / 2, height / 2),
+        fill: transparent(style.backgroundColor) ? 'none' : style.backgroundColor,
+        ...(edged ? { stroke: style.borderTopColor, 'stroke-width': weight } : {}),
+      },
+      out,
+    )
+    return
+  }
   if (!transparent(style.backgroundColor)) {
     create('rect', { x, y, width, height, fill: style.backgroundColor }, out)
   }
@@ -265,6 +301,7 @@ function paintDrawing(drawing: SVGSVGElement, origin: Origin, out: Element): voi
 
 function paint(element: Element, origin: Origin, struck: boolean, out: Element): void {
   if (element.matches(CONTROL)) return
+  if (origin.options.skip && element.matches(origin.options.skip)) return
   if (element instanceof SVGSVGElement) {
     if (element.getClientRects().length) paintDrawing(element, origin, out)
     return
@@ -274,9 +311,27 @@ function paint(element: Element, origin: Origin, struck: boolean, out: Element):
   const group = style.opacity === '1' ? out : create('g', { opacity: style.opacity }, out)
   paintBox(element, style, origin, group)
   const strike = struck || style.textDecorationLine.includes('line-through')
+  // What a box cuts off on screen, it cuts off in the image.
+  let inner = group
+  if (style.overflow === 'hidden' || style.overflow === 'clip') {
+    const box = element.getBoundingClientRect()
+    const id = `lintje-image-clip-${++clips}`
+    const clip = create('clipPath', { id }, group)
+    create(
+      'rect',
+      {
+        x: box.left - origin.left,
+        y: box.top - origin.top,
+        width: box.width,
+        height: box.height,
+      },
+      clip,
+    )
+    inner = create('g', { 'clip-path': `url(#${id})` }, group)
+  }
   for (const child of element.childNodes) {
-    if (child instanceof Text) paintText(child, style, strike, origin, group)
-    else if (child instanceof Element) paint(child, origin, strike, group)
+    if (child instanceof Text) paintText(child, style, strike, origin, inner)
+    else if (child instanceof Element) paint(child, origin, strike, inner)
   }
 }
 
@@ -348,7 +403,11 @@ function layOutFrame(root: Element, box: DOMRect, frame: ImageFrame): HTMLElemen
  * axis titles, drawing, events and legend table where they stand on screen. With a `frame`, the
  * tile around it as well: its padding and edge, the title and subtitle above, the footnote below.
  */
-export function chartImage(root: Element, frame?: ImageFrame): SVGSVGElement {
+export function chartImage(
+  root: Element,
+  frame?: ImageFrame,
+  options: ImageOptions = {},
+): SVGSVGElement {
   // The image shows the marks as they end, never halfway through drawing in: a norm, a label or a
   // dot still fading or sliding in would be copied faint or out of place.
   for (const animation of root.getAnimations?.({ subtree: true }) ?? []) animation.finish()
@@ -363,11 +422,11 @@ export function chartImage(root: Element, frame?: ImageFrame): SVGSVGElement {
       const outer = tile.getBoundingClientRect()
       const inner = place.getBoundingClientRect()
       reach = { left: 0, top: 0, right: outer.width, bottom: outer.height }
-      paint(tile, { left: outer.left, top: outer.top, reach }, false, image)
+      paint(tile, { left: outer.left, top: outer.top, reach, options }, false, image)
       // The chart where the place stands in the tile.
       at = { left: box.left - (inner.left - outer.left), top: box.top - (inner.top - outer.top) }
     }
-    paint(root, { ...at, reach }, false, image)
+    paint(root, { ...at, reach, options }, false, image)
     const left = Math.floor(reach.left)
     const top = Math.floor(reach.top)
     const width = Math.max(1, Math.ceil(reach.right) - left)

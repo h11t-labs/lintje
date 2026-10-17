@@ -692,14 +692,18 @@ De besluiten hieronder gelden voor alle elementen.
   getal dat ze draagt. Het woord staat op de lijn met een halo, mijdt knopen en andere woorden en
   blijft weg waar het geen plek heeft; uitgezoomd alleen op lijnen in het licht.
 - **Zoomen gaat zoals op de kaart**: Ctrl of ⌘ en het wiel rond de aanwijzer, slepen op de
-  achtergrond, knijpen met twee vingers, en de knoppen rechtsboven, met "Passend" en "Bij
-  selectie". Past de tekening niet meer, dan staat rechtsonder het overzicht; een klik erop gaat
-  daarheen. Een gepaste tekening houdt de strook van de knoppen vrij.
+  achtergrond, knijpen met twee vingers, en de knoppen rechtsboven: in- en uitzoomen,
+  terugzetten en inzoomen op de gekozen knoop. Terugzetten is dat van de kaart: de hele tekening
+  in beeld, niets gekozen, elke tak weer open en elke groep weer dicht. Past de tekening niet
+  meer, dan staat rechtsonder het overzicht; een klik erop gaat daarheen, en het kader erin is te
+  slepen. Een gepaste tekening houdt de strook van de knoppen vrij.
 - **Bij openen blijft wat er stond staan**: wat verschuift, beweegt naar zijn nieuwe plek, een
-  nieuwe knoop komt uit de knoop waar hij aan hangt en vervaagt in, wat wegvalt vervaagt uit.
-  Onder verminderde beweging staat alles meteen.
+  nieuwe knoop komt uit de knoop waar hij aan hangt en vervaagt in. **Wat wegvalt, gaat eerst**:
+  het vervaagt waar het stond, met zijn lijnen, en pas daarna schuift de rest en volgt de zoom.
+  Wat tegelijk binnenkomt, wacht tot het weg is. Onder verminderde beweging staat alles meteen.
 - **Er is geen tabel of lijst in het element**: het is de tekening. De beschrijving van de host is
-  haar tekstalternatief, de tooltip en de CSV geven de relaties.
+  haar tekstalternatief en de tooltip geeft de relaties. Downloaden geeft de tekening als PNG,
+  zoals de lezer haar ziet, met de legenda en de woorden van de tegel.
 
 ### Gesprek
 
