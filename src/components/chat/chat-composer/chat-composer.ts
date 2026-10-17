@@ -134,6 +134,28 @@ function locate(field: FieldText, offset: number): { node: Text; offset: number 
   return null
 }
 
+type ComposedSelection = Selection & {
+  getComposedRanges?: (...args: unknown[]) => StaticRange[]
+}
+
+/**
+ * The caret as a range in `root`: WebKit's document selection stops at the host, its composed
+ * range reaches into the field. Older WebKit takes the roots as arguments, newer in a dictionary.
+ */
+function composedCaret(selection: Selection | null, root: ShadowRoot): StaticRange | undefined {
+  const composed = selection as ComposedSelection | null
+  if (!composed?.getComposedRanges) return undefined
+  for (const args of [[{ shadowRoots: [root] }], [root]]) {
+    try {
+      const range = composed.getComposedRanges(...args)[0]
+      if (range && root.contains(range.endContainer)) return range
+    } catch {
+      /* the other form */
+    }
+  }
+  return undefined
+}
+
 interface Caption {
   left: number
   top: number
@@ -494,9 +516,14 @@ export class LintjeChatComposer extends LintjeElement {
       field.text = ''
     }
     const selection = this.selection()
-    const focus = field.nodes.find(({ node }) => node === selection?.focusNode)
+    let caret = { node: selection?.focusNode, offset: selection?.focusOffset ?? 0 }
+    if (caret.node && !input.contains(caret.node)) {
+      const range = composedCaret(selection, this.renderRoot as ShadowRoot)
+      if (range) caret = { node: range.endContainer, offset: range.endOffset }
+    }
+    const focus = field.nodes.find(({ node }) => node === caret.node)
     this.draft = field.text
-    this.caret = focus ? focus.start + (selection?.focusOffset ?? 0) : field.text.length
+    this.caret = focus ? focus.start + caret.offset : field.text.length
   }
 
   private write(text: string, caret: number = text.length, focus: boolean = true): void {

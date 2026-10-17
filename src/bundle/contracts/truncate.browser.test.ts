@@ -116,7 +116,9 @@ function shown(element: Element, selector: string): HTMLElement {
   return matches.find(drawn) ?? matches[0]!
 }
 
-const cut = (text: HTMLElement): boolean => text.scrollWidth > text.clientWidth
+/** Overflow does not apply to an inline box, whose `scrollWidth` Firefox still reports. */
+const cut = (text: HTMLElement): boolean =>
+  getComputedStyle(text).display !== 'inline' && text.scrollWidth > text.clientWidth
 
 function lines(text: HTMLElement): number {
   const height = parseFloat(getComputedStyle(text).lineHeight)

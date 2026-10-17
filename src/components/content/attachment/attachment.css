@@ -59,7 +59,7 @@
 .lintje-attachment__tail { flex: none; }
 /* Where no pointer shows the title, the whole name runs on: under the focus, without hover and
    on a phone. Two names that differ in the middle stay apart. */
-:host(:focus-within) .lintje-attachment__name { display: block; white-space: normal; overflow-wrap: anywhere; }
+.lintje-attachment:focus-within .lintje-attachment__name { display: block; white-space: normal; overflow-wrap: anywhere; }
 @media (hover: none), screen and (max-width: 767px) {
   .lintje-attachment__name { display: block; white-space: normal; overflow-wrap: anywhere; }
 }

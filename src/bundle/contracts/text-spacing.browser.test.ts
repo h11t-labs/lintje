@@ -69,13 +69,29 @@ const box = (element: Element): DOMRect => element.getBoundingClientRect()
 
 const cut = (text: Element): boolean => text.scrollWidth > text.clientWidth
 
-/** Within `outer`, to half a pixel; `sides` picks which edges count. */
-function within(element: Element, outer: Element, sides: 'x' | 'y' | 'xy' = 'xy'): boolean {
+/** Within `outer`, to `slack` px; `sides` picks which edges count. */
+function within(
+  element: Element,
+  outer: Element,
+  sides: 'x' | 'y' | 'xy' = 'xy',
+  slack = 0.5,
+): boolean {
   const a = box(element)
   const b = box(outer)
-  const x = a.left >= b.left - 0.5 && a.right <= b.right + 0.5
-  const y = a.top >= b.top - 0.5 && a.bottom <= b.bottom + 0.5
+  const x = a.left >= b.left - slack && a.right <= b.right + slack
+  const y = a.top >= b.top - slack && a.bottom <= b.bottom + slack
   return sides === 'x' ? x : sides === 'y' ? y : x && y
+}
+
+/**
+ * How far a text in a drawing sticks out of `outer`, past what engines differ in: a canvas
+ * measures a pixel off what svg draws.
+ */
+const DRAWN = 2
+function outside(text: Element, outer: Element): string {
+  const a = box(text)
+  const b = box(outer)
+  return `${Math.round(Math.max(b.left - a.left, a.right - b.right, b.top - a.top, a.bottom - b.bottom))} px`
 }
 
 /** Texts side by side that touch or cross, by the text of the first. */
@@ -83,7 +99,9 @@ function overlapping(texts: Element[]): string[] {
   const sorted = [...texts].sort((a, b) => box(a).left - box(b).left)
   return sorted.flatMap((text, i) => {
     const next = sorted[i + 1]
-    return next && box(text).right > box(next).left + 0.5 ? [text.textContent!.trim()] : []
+    return next && box(text).right > box(next).left + DRAWN
+      ? [`${text.textContent!.trim()} by ${Math.round(box(text).right - box(next).left)} px`]
+      : []
   })
 }
 
@@ -247,8 +265,8 @@ const ROWS: Row[] = [
       return [
         ...overlapping(x).map((label) => `x label "${label}" over the next`),
         ...y
-          .filter((label) => !within(label, svg, 'x'))
-          .map((label) => `y label "${label.textContent!.trim()}" outside the chart`),
+          .filter((label) => !within(label, svg, 'x', DRAWN))
+          .map((label) => `y label "${label.textContent!.trim()}" out by ${outside(label, svg)}`),
       ]
     },
   },
@@ -293,8 +311,8 @@ const ROWS: Row[] = [
     faults: (element) => {
       const svg = all(element.shadowRoot!, '.lintje-chart__svg')[0]!
       return [...svg.querySelectorAll('.lintje-sankey__label text')]
-        .filter((text) => !within(text, svg, 'x'))
-        .map((text) => `"${text.textContent!.trim()}" outside the drawing`)
+        .filter((text) => !within(text, svg, 'x', DRAWN))
+        .map((text) => `"${text.textContent!.trim()}" out by ${outside(text, svg)}`)
     },
   },
   {
@@ -332,7 +350,9 @@ const ROWS: Row[] = [
           const bottom = top + Number(rect.getAttribute('height'))
           return x >= left && x < right && y > top && y <= bottom
         })
-        return area && within(label, area) ? [] : [`"${label.textContent!.trim()}" over its edge`]
+        return area && within(label, area, 'xy', DRAWN)
+          ? []
+          : [`"${label.textContent!.trim()}" out by ${area ? outside(label, area) : '?'}`]
       })
     },
   },
@@ -413,10 +433,12 @@ describe('text at a larger default font', () => {
       '.lintje-time-input__control',
     )!
     const style = getComputedStyle(control)
+    const edges = ['borderLeftWidth', 'paddingLeft', 'paddingRight', 'borderRightWidth'] as const
     const available =
-      control.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+      box(control).width - edges.reduce((sum, edge) => sum + parseFloat(style[edge]), 0)
     const context = document.createElement('canvas').getContext('2d')!
     context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
-    expect(context.measureText(control.value).width).toBeLessThanOrEqual(available)
+    const sizes = [box(input).width, box(control).width, ...edges.map((edge) => style[edge])]
+    expect(context.measureText(control.value).width, sizes.join(' ')).toBeLessThanOrEqual(available)
   })
 })
