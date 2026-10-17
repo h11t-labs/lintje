@@ -730,7 +730,7 @@ function renderDrawing(
       // On the straight run the share takes the text colour while the bands under it are
       // emphasised: the muted text does not reach 4.5:1 on the stronger tint.
       const emphasised = s > 0 && s < last && node.outflow.some((flow) => related?.flows.has(flow))
-      const text = svg`<text x=${x} y=${layout.values ? middle - 3 : middle + 5} text-anchor=${anchor}
+      const words = svg`<text x=${x} y=${layout.values ? middle - 3 : middle + 5} text-anchor=${anchor}
               class="lintje-sankey__name">${node.label}</text>
         ${
           layout.values
@@ -744,9 +744,9 @@ function renderDrawing(
         box.h === 0 ? markOf(selection, node, node.label, sentenceOf({ kind: 'node', node })) : null
       if (mark?.clickable) {
         // The label is the button of a node without height: its ring and target are its box.
-        const width =
+        const boxWidth =
           Math.max(nameWidth(node), layout.values ? valueWidth(node) : 0) + 2 * LABEL_GAP
-        const height = layout.values ? LABEL_ROOM : NAME_LINE
+        const boxHeight = layout.values ? LABEL_ROOM : NAME_LINE
         // Its name is what it shows, in that order (WCAG 2.5.3).
         const spoken = layout.values ? `${node.label} ${line.count}${line.share}` : node.label
         return svg`<g class="lintje-sankey__label lintje-sankey__label--control ${own(mark)} ${emphasised ? 'is-emphasised' : ''} ${current(i)}"
@@ -756,14 +756,14 @@ function renderDrawing(
             @mousemove=${(event: MouseEvent) => i != null && point(event, i)}
             @focus=${(event: FocusEvent) => i != null && point(event, i)}
             @blur=${() => controller.hoverAt(null)}>
-          <rect class="lintje-sankey__label-box" x=${first ? x + LABEL_GAP - width : x - LABEL_GAP}
-                y=${middle - Math.max(height, NODE_TARGET) / 2} width=${width}
-                height=${Math.max(height, NODE_TARGET)} />
-          ${text}
+          <rect class="lintje-sankey__label-box" x=${first ? x + LABEL_GAP - boxWidth : x - LABEL_GAP}
+                y=${middle - Math.max(boxHeight, NODE_TARGET) / 2} width=${boxWidth}
+                height=${Math.max(boxHeight, NODE_TARGET)} />
+          ${words}
         </g>`
       }
       return svg`<g class="lintje-sankey__label ${emphasised ? 'is-emphasised' : ''}">
-        ${text}
+        ${words}
       </g>`
     }),
   )
