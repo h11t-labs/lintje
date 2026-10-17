@@ -1003,11 +1003,11 @@ export default {
         },
         {
           label: 'Geweigerd op 320 px',
-          note: 'Zo breed als de ruimte op een scherm van 320 px.',
+          note: 'Zo breed als het vraagvak zijn bijlagen laat op een scherm van 320 px.',
           ...attachments(
             [{ id: 't', name: 'scan.heic', size: 1.8 * MB, state: 'error', message: 'Dit bestandstype kan niet' }],
             'removable refused',
-            288,
+            262,
           ),
         },
         {

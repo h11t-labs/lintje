@@ -1058,9 +1058,9 @@ const ROWS: Row[] = [
     tag: 'lintje-attachment',
     marker: 'a refused file keeps its reason and its cross inside the chip at 320 px',
     mount: async () => {
-      // As wide as a screen of 320 px leaves it, at both widths.
+      // As wide as the question box leaves its files on a screen of 320 px, at both widths.
       const room = document.createElement('div')
-      room.style.width = '288px'
+      room.style.width = '262px'
       document.body.append(room)
       const element = create('lintje-attachment', {
         data: { id: 's', name: 'scan.heic', state: 'error', message: 'Dit bestandstype kan niet' },

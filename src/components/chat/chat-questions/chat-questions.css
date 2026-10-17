@@ -34,7 +34,7 @@
 /* One question at a time; a long list scrolls inside the box, to six and a half rows, so the half
    row says there is more. The question, its hint, its error and the buttons stay. The padding is
    room for the focus ring, which the scroller would cut; the margin keeps the choices on their
-   line. */
+   line, except below, where the line under a list that scrolls keeps its distance to the buttons. */
 .lintje-chat-questions__choices {
   max-height: calc(6.5 * var(--h-target));
   margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0;
