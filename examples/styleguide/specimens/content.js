@@ -7,9 +7,9 @@ const FOOTNOTE = 'Bron: Zaaksysteem · waarde van 08:15'
 const KB = 1024
 const MB = 1024 * KB
 
-/** A row of attachments, one per file, each with the same attributes. */
-const attachments = (files, attributes = '') => ({
-  html: `<div class="guide__row">${files.map(() => `<lintje-attachment ${attributes}></lintje-attachment>`).join('')}</div>`,
+/** A row of attachments, one per file, each with the same attributes; `width` narrows the row. */
+const attachments = (files, attributes = '', width) => ({
+  html: `<div class="guide__row"${width ? ` style="max-width: ${width}px"` : ''}>${files.map(() => `<lintje-attachment ${attributes}></lintje-attachment>`).join('')}</div>`,
   setup(stage) {
     stage.querySelectorAll('lintje-attachment').forEach((chip, index) => (chip.data = files[index]))
   },
@@ -1002,6 +1002,15 @@ export default {
           ),
         },
         {
+          label: 'Geweigerd op 320 px',
+          note: 'Zo breed als de ruimte op een scherm van 320 px.',
+          ...attachments(
+            [{ id: 't', name: 'scan.heic', size: 1.8 * MB, state: 'error', message: 'Dit bestandstype kan niet' }],
+            'removable refused',
+            288,
+          ),
+        },
+        {
           label: 'Mislukt',
           note: 'Een fout van de host, met Opnieuw omdat hij `retry` zet.',
           ...attachments(
@@ -1010,11 +1019,29 @@ export default {
           ),
         },
         {
+          label: 'Mislukt zonder kruisje',
+          note: 'In een bericht of een antwoord: alleen Opnieuw.',
+          ...attachments([
+            { id: 'n', name: 'verklaring.pdf', size: 482 * KB, state: 'error', message: 'Uploaden mislukt', retry: true },
+          ]),
+        },
+        {
           label: 'Lange naam',
           note: 'De naam kapt in het midden af; de extensie en de laatste letters blijven staan.',
           ...attachments([
             { id: 'l', name: 'beleidsregel-subsidie-duurzame-energie-definitief.pdf', size: 860 * KB, state: 'done' },
           ]),
+        },
+        {
+          label: 'Lange namen te verwijderen',
+          note: 'Twee namen die alleen in het midden verschillen, in een vraagvak.',
+          ...attachments(
+            [
+              { id: 'b1', name: 'begroting-2026-versie-1-concept.pdf', size: 860 * KB, state: 'done' },
+              { id: 'b2', name: 'begroting-2026-versie-2-concept.pdf', size: 864 * KB, state: 'done' },
+            ],
+            'removable',
+          ),
         },
         {
           label: 'Te verwijderen',
