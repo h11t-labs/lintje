@@ -270,7 +270,7 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
     )
   }
 
-  /** The same `captions` as the menu row and the C key; pressed and filled while they show. */
+  /** The same `captions` as the menu row and the C key; pressed and underlined while they show. */
   private renderCaptions(): TemplateResult {
     return this.renderIconButton(
       'functioneel-ondertiteling',
@@ -279,7 +279,7 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
       {
         disabled: false,
         pressed: this.captions,
-        className: `lintje-video-player__captions${this.captions ? ' is-active' : ''}`,
+        className: `lintje-video-player__captions${this.captions ? ' is-on' : ''}`,
       },
     )
   }
@@ -297,7 +297,9 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
           }
         </div>
         <div class="lintje-video-player__buttons">
-          ${this.renderPlay()} ${this.renderMute()} ${this.renderCaptions()}
+          ${this.renderPlay()} ${this.renderMute()}
+          <span class="lintje-video-player__end">
+          ${this.renderCaptions()}
           <lintje-menu-button
             class="lintje-video-player__more"
             icon
@@ -320,6 +322,7 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
                   this.toggleFullscreen(),
                 )
           }
+          </span>
         </div>
       </div>
     </div>`
