@@ -607,7 +607,7 @@ function renderStart() {
     ? `${running.name} loopt op je telefoon; met Meelezen volg je hem hier.`
     : ''
   $('source-status').hidden = !$('source-status').text
-  $('upload-note').text = `Het transcriberen begint zodra een bestand binnen is; meerdere tegelijk kan. Soort gesprek: ${kind.label} · taal wordt herkend.`
+  $('upload-note').text = `Het transcriberen begint zodra een bestand binnen is; meerdere tegelijk kan. Elk bestand verschijnt bovenaan in Recente opnames, waar je het opent. Soort gesprek: ${kind.label} · taal wordt herkend.`
   // A recording on the phone takes the hero: its name, how it is doing and what is said now.
   const hero = $('hero')
   hero.heading = running ? running.name : 'Wat wil je transcriberen?'
@@ -651,7 +651,8 @@ $('phone-simulate').addEventListener('click', () => {
   if (!recordings.some((item) => item.state === 'live')) startLive({ phone: true })
 })
 
-/* Files: the upload, then a place in the queue; the first one opens when nothing is open. */
+/* Files: the upload, then a place in the queue. Nothing opens by itself: the file appears at the
+   top of "Recente opnames", the reader opens it from there, and the focus stays where it is. */
 const upload = $('upload')
 let uploads = 0
 upload.addEventListener('lintje-files-add', (event) => {
@@ -682,8 +683,7 @@ upload.addEventListener('lintje-files-add', (event) => {
         },
         ...recordings,
       ]
-      if (!find(openId)) openRecording(`j-${id}`)
-      else render()
+      render()
     }, 300)
   }
 })
@@ -811,6 +811,37 @@ function renderJobs() {
 
 const allJobs = $('all-jobs')
 
+/* What cannot be undone asks first: removing a recording, and stopping a live one without
+   keeping what was recorded. The answer closes the question before it acts, so the question
+   gives the focus back to its opener and the list hands it on from there. */
+const deleteModal = $('delete-modal')
+const discardModal = $('discard-modal')
+let asked = null
+for (const modal of [deleteModal, discardModal]) {
+  modal.addEventListener('lintje-close', () => (modal.open = false))
+  modal.querySelector('[data-close]').addEventListener('click', () => (modal.open = false))
+}
+function askRemove(id) {
+  asked = id
+  $('delete-text').textContent = `“${find(id)?.name}” wordt verwijderd, met het transcript en je verbeteringen. Dit kun je niet terugdraaien.`
+  deleteModal.open = true
+}
+function askDiscard(id) {
+  asked = id
+  $('discard-text').textContent = `Wat er van “${find(id)?.name}” is opgenomen, gaat verloren. Dit kun je niet terugdraaien.`
+  discardModal.open = true
+}
+deleteModal.querySelector('[data-answer]').addEventListener('click', () => {
+  deleteModal.open = false
+  recordings = recordings.filter((item) => item.id !== asked)
+  if (asked === openId) openRecording(null)
+  else render()
+})
+discardModal.querySelector('[data-answer]').addEventListener('click', () => {
+  discardModal.open = false
+  endLive(false)
+})
+
 /** Both lists of recordings answer alike: a done row opens it on this page, without a reload. */
 function wireJobs(list) {
   list.addEventListener('lintje-navigate', (event) => {
@@ -818,15 +849,11 @@ function wireJobs(list) {
     openRecording(new URL(event.detail.href, location.href).searchParams.get('opname'))
   })
   list.addEventListener('lintje-job-cancel', (event) => {
-    if (find(event.detail)?.state === 'live') return endLive(false)
+    if (find(event.detail)?.state === 'live') return askDiscard(event.detail)
     changeRecording(event.detail, { state: 'cancelled', progress: null, cancelledAt: clock() })
   })
   list.addEventListener('lintje-job-retry', (event) => changeRecording(event.detail, { state: 'queued', progress: null }))
-  list.addEventListener('lintje-job-remove', (event) => {
-    recordings = recordings.filter((item) => item.id !== event.detail)
-    if (event.detail === openId) openRecording(null)
-    else render()
-  })
+  list.addEventListener('lintje-job-remove', (event) => askRemove(event.detail))
 }
 wireJobs(queue)
 wireJobs(allJobs)
