@@ -180,8 +180,8 @@ function paintBox(
 
 /**
  * A text node as a `<text>` per line it takes on screen: its words are measured one by one, so a
- * label that wraps wraps in the image too. A line keeps its width on screen: the image is set in
- * the system face (the web font is not embedded), and its neighbours must not run into it.
+ * label that wraps wraps in the image too. A line keeps its width on screen: where the web font
+ * could not be embedded the image falls back to the system face, and no neighbour runs into it.
  */
 function paintText(
   node: Text,
@@ -349,6 +349,9 @@ function layOutFrame(root: Element, box: DOMRect, frame: ImageFrame): HTMLElemen
  * tile around it as well: its padding and edge, the title and subtitle above, the footnote below.
  */
 export function chartImage(root: Element, frame?: ImageFrame): SVGSVGElement {
+  // The image shows the marks as they end, never halfway through drawing in: a norm, a label or a
+  // dot still fading or sliding in would be copied faint or out of place.
+  for (const animation of root.getAnimations?.({ subtree: true }) ?? []) animation.finish()
   const box = root.getBoundingClientRect()
   const image = document.createElementNS(SVG_NS, 'svg')
   const laid = frame ? layOutFrame(root, box, frame) : null
@@ -382,10 +385,64 @@ export function chartImage(root: Element, frame?: ImageFrame): SVGSVGElement {
   }
 }
 
+let pageFonts: Promise<string> | null = null
+
+/**
+ * The page's `@font-face` rules with their files inlined, so an image set in RijksSans keeps it:
+ * an image drawn from a data URL loads nothing of its own. A sheet the page may not read, or a
+ * file that does not come, leaves that face out and the image falls back to the system face.
+ */
+function embeddedFonts(): Promise<string> {
+  pageFonts ??= (async () => {
+    const faces: { css: string; url: string }[] = []
+    for (const sheet of document.styleSheets) {
+      let rules: CSSRuleList
+      try {
+        rules = sheet.cssRules
+      } catch {
+        continue
+      }
+      for (const rule of rules) {
+        if (!(rule instanceof CSSFontFaceRule)) continue
+        const found = /url\(\s*['"]?([^'")]+)['"]?\s*\)/.exec(rule.style.getPropertyValue('src'))
+        if (found)
+          faces.push({
+            css: rule.cssText,
+            url: new URL(found[1], sheet.href ?? location.href).href,
+          })
+      }
+    }
+    const inlined = await Promise.all(
+      faces.map(async ({ css, url }) => {
+        try {
+          const blob = await (await fetch(url)).blob()
+          const data = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(String(reader.result))
+            reader.onerror = () => reject(reader.error)
+            reader.readAsDataURL(blob)
+          })
+          return css.replace(/url\([^)]*\)/, `url("${data}")`)
+        } catch {
+          return ''
+        }
+      }),
+    )
+    return inlined.join('\n')
+  })()
+  return pageFonts
+}
+
 /** An `<svg>` with its own `width`, `height` and surface (`chartImage`) as a PNG, twice its size. */
 async function pngOf(svg: SVGSVGElement): Promise<Blob | null> {
   const width = Math.max(1, Number(svg.getAttribute('width')))
   const height = Math.max(1, Number(svg.getAttribute('height')))
+  const fonts = await embeddedFonts()
+  if (fonts) {
+    const style = document.createElementNS(SVG_NS, 'style')
+    style.textContent = fonts
+    svg.prepend(style)
+  }
   const source = new XMLSerializer().serializeToString(svg)
   const image = new Image()
   image.decoding = 'sync'
@@ -406,8 +463,8 @@ async function pngOf(svg: SVGSVGElement): Promise<Blob | null> {
 }
 
 /**
- * An image of `chartImage` as a PNG. A drawing still on the page is made one first, alone. The
- * web font is not embedded: the image is set in the system face.
+ * An image of `chartImage` as a PNG, in the page's web font. A drawing still on the page is made
+ * one first, alone.
  */
 export async function downloadPng(filename: string, svg: SVGSVGElement): Promise<void> {
   const name = filename.toLowerCase().endsWith('.png') ? filename : `${filename}.png`
