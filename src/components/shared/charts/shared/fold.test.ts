@@ -32,6 +32,23 @@ describe('foldStack', () => {
     expect(foldStack(rows, (row) => !('color' in row))).toEqual(rows)
   })
 
+  it('folds into the host’s own "Overig", in its place, as the pie does', () => {
+    const rows = [...parts(6), { label: 'Overig', values: [10, 10] }]
+    const folded = foldStack(rows, () => true)
+    expect(folded.map((row) => row.label)).toEqual([
+      'Deel 3',
+      'Deel 4',
+      'Deel 5',
+      'Deel 6',
+      'Overig',
+    ])
+    expect(folded[4].values).toEqual([10 + 1 + 2, 10 + 2 + 3])
+    expect(isOtherPart(folded[4]) && folded[4].folded.map((row) => row.label)).toEqual([
+      'Deel 1',
+      'Deel 2',
+    ])
+  })
+
   it('leaves "Overig" missing where a folded part is missing, never the sum of the rest', () => {
     const rows = parts(6).map((row, i) => (i === 0 ? { ...row, values: [null, 2] } : row))
     expect(foldStack(rows, () => true).at(-1)!.values).toEqual([null, 2 + 3])

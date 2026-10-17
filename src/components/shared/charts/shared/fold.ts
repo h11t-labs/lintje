@@ -22,27 +22,32 @@ const total = (values: readonly (number | null)[]): number =>
 export const isOtherPart = <S>(row: S | OtherPart<S>): row is OtherPart<S> =>
   Array.isArray((row as OtherPart<S>).folded)
 
+/** A part the host already calls "Overig": no rung of its own, and what folds joins it. */
+const isOther = (row: { label: string }): boolean => row.label.toLowerCase().startsWith('overig')
+
 /**
- * `series` with the parts that take a rung (`takesTint`) folded past five. A missing value in a
- * folded part leaves "Overig" missing there too, never the sum of the rest (rule 15).
+ * `series` with the parts that take a rung (`takesTint`) folded past five, into the host's own
+ * "Overig" where it sent one, as the pie does. A missing value in a folded part leaves "Overig"
+ * missing there too, never the sum of the rest (rule 15).
  */
 export function foldStack<S extends { label: string; values: readonly (number | null)[] }>(
   series: readonly S[],
   takesTint: (row: S) => boolean,
 ): (S | OtherPart<S>)[] {
-  const ladder = series.filter(takesTint)
+  const ladder = series.filter((row) => takesTint(row) && !isOther(row))
   if (ladder.length <= LADDER_PARTS) return [...series]
   const kept = new Set(
     [...ladder].sort((a, b) => total(b.values) - total(a.values)).slice(0, LADDER_PARTS - 1),
   )
   const folded = ladder.filter((row) => !kept.has(row))
+  const own = series.find(isOther)
+  const joined = own ? [own, ...folded] : folded
   const values = folded[0].values.map((_, i) =>
-    folded.some((row) => row.values[i] == null)
+    joined.some((row) => row.values[i] == null)
       ? null
-      : folded.reduce((sum, row) => sum + (row.values[i] as number), 0),
+      : joined.reduce((sum, row) => sum + (row.values[i] as number), 0),
   )
-  return [
-    ...series.filter((row) => !folded.includes(row)),
-    { label: 'Overig', values, color: 'other', folded },
-  ]
+  const other: OtherPart<S> = { label: own?.label ?? 'Overig', values, color: 'other', folded }
+  const rest = series.filter((row) => !folded.includes(row))
+  return own ? rest.map((row) => (row === own ? other : row)) : [...rest, other]
 }
