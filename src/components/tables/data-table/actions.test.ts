@@ -97,7 +97,22 @@ describe('row actions', () => {
       new CustomEvent('lintje-action', { detail: 'openen', bubbles: true, composed: true }),
     )
     menu?.parentElement?.click()
-    expect(seen).toEqual(['lintje-row-action {"id":"m1","action":"openen"}'])
+    expect(seen).toEqual([
+      'lintje-row-action {"id":"m1","label":"Onbeheerde tas","action":"openen"}',
+    ])
+  })
+
+  it('sends the same shape from the phone’s row menu', async () => {
+    const element = await mount()
+    const seen: unknown[] = []
+    element.addEventListener('lintje-row-action', (event) =>
+      seen.push((event as CustomEvent).detail),
+    )
+    const menu = root(element).querySelectorAll('.lintje-data-table__mobile lintje-menu-button')[1]
+    menu?.dispatchEvent(
+      new CustomEvent('lintje-action', { detail: 'verwijderen', bubbles: true, composed: true }),
+    )
+    expect(seen).toEqual([{ id: 'm2', label: 'Verloren toegangspas', action: 'verwijderen' }])
   })
 })
 

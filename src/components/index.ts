@@ -243,7 +243,7 @@ export type { SubNavAction, SubNavGroup, SubNavItem } from './frame/sub-nav/sub-
 export { LintjePagination, pageRange } from './tables/pagination/pagination'
 export type { PageSlot } from './tables/pagination/pagination'
 export { LintjeList } from './tables/list/list'
-export type { ListItem, RowClickDetail } from './tables/list/list'
+export type { ListItem } from './tables/list/list'
 export { LintjeCard } from './tables/card/card'
 export type {
   CardAction,
@@ -324,6 +324,8 @@ export type {
   KpiRowData,
   MapData,
   NoteData,
+  RowActionDetail,
+  RowClickDetail,
   SortState,
   TableColumnData,
   TileData,

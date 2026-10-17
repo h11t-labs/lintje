@@ -238,13 +238,11 @@ function renderFlows(
           const my = (ay + by) / 2 - Math.hypot(bx - ax, by - ay) * 0.18
           const thickness = 1 + (value.value! / drawing.max) * 7
           const route = `${value.label} → ${destination.label}`
+          const d = `M${at(ax, ay)}Q${at(mx, my)} ${at(bx, by)}`
+          // Built like a point: a ring and a gap in the surface under the line, for the focus.
           return svg`
-        <path
-          d=${`M${at(ax, ay)}Q${at(mx, my)} ${at(bx, by)}`}
-          pathLength="1"
-          ${styleProps(stagger(value))}
+        <g ${styleProps({ ...stagger(value), '--lintje-flow-width': `${thickness}px` })}
           class="lintje-map-chart__flow is-clickable ${markState(context, value.id, off)}"
-          stroke-width=${thickness}
           data-mark-id=${value.id}
           role="button" tabindex=${off ? -1 : 0} aria-hidden=${off ? 'true' : nothing}
           aria-pressed=${String(isChosen(context, value.id))}
@@ -264,7 +262,11 @@ function renderFlows(
                 },
               ],
             })}
-          @mouseleave=${() => controller.hideTooltip()} />
+          @mouseleave=${() => controller.hideTooltip()}>
+          <path d=${d} class="lintje-map-chart__flow-ring" />
+          <path d=${d} class="lintje-map-chart__flow-gap" />
+          <path d=${d} pathLength="1" class="lintje-map-chart__flow-line" />
+        </g>
       `
         },
       )}

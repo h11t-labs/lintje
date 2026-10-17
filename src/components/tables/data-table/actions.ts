@@ -2,7 +2,7 @@
  * Actions in `<lintje-data-table>`: a menu at the end of every row (`rowActions`) and a bar of
  * actions on the checked rows (`bulkActions`).
  *
- * A row choice is `lintje-row-action` `{ id, action }`, a bar choice `lintje-bulk-action`
+ * A row choice is `lintje-row-action` `{ id, label, action }`, a bar choice `lintje-bulk-action`
  * `{ ids, action }`. The table does not confirm: the host does before a destructive action.
  */
 import { html, nothing, type TemplateResult } from 'lit'

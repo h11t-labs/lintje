@@ -20,7 +20,7 @@ import {
 } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
-import { deepActiveElement, holdsFocus } from '../../../core/focus'
+import { deepActiveElement, holdsFocus, standsIn } from '../../../core/focus'
 import { prefersReducedMotion } from '../../../core/motion'
 import { shadowCss } from '../../../core/styles'
 import '../../actions/button/button'
@@ -186,6 +186,8 @@ export class LintjeTranscript extends LintjeElement {
   private followed: string | null = null
   /** The segment whose field had the focus when its save began. */
   private savedFrom: string | null = null
+  /** The segment whose speaker button had the focus when `segments` changed. */
+  private speakerFrom: string | null = null
 
   private get currentIndex(): number {
     if (this.currentTime == null) return -1
@@ -269,6 +271,35 @@ export class LintjeTranscript extends LintjeElement {
       const field = this.segmentElement(this.busyId)?.querySelector('lintje-textarea')
       this.savedFrom = field && holdsFocus(field) ? this.busyId : null
     }
+    if (changed.has('segments') && this.layout === 'chat' && this.grouped) {
+      const active = deepActiveElement()
+      const speaker = active
+        ? [...this.renderRoot.querySelectorAll('.lintje-transcript__speaker')].find((item) =>
+            standsIn(active, item),
+          )
+        : undefined
+      this.speakerFrom =
+        speaker?.closest<HTMLElement>('.lintje-transcript__segment')?.dataset.id ?? null
+    }
+  }
+
+  /**
+   * Grouped as a chat, a fragment that takes the speaker of the one before hides its name, button
+   * and all: the focus goes to the name of its turn instead of dropping to the page.
+   */
+  private keepSpeakerFocus(): void {
+    const id = this.speakerFrom
+    this.speakerFrom = null
+    if (!id) return
+    let index = this.segments.findIndex((segment) => segment.id === id)
+    if (index < 1) return
+    const speaker = this.segments[index]!.speaker
+    while (index > 0 && this.segments[index - 1]!.speaker === speaker) index--
+    if (this.segments[index]!.id === id) return
+    this.focusInside(
+      this.segmentElement(this.segments[index]!.id)?.querySelector('.lintje-transcript__speaker'),
+      '.lintje-menu-button__trigger',
+    )
   }
 
   /**
@@ -294,6 +325,7 @@ export class LintjeTranscript extends LintjeElement {
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
     if (changed.has('busyId')) this.keepSaveFocus()
+    if (changed.has('segments')) this.keepSpeakerFocus()
     if (changed.has('editingId')) {
       const before = changed.get('editingId') as string | null | undefined
       if (this.editingId) {

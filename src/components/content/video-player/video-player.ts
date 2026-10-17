@@ -7,11 +7,19 @@
  * load says so on the picture, with "Opnieuw proberen".
  *
  * Events: `lintje-time-change` `number` (seconds, at most four times a second), `lintje-seek`
- * `number` (seconds: the reader moved the position), `lintje-play`, `lintje-pause`.
+ * `number` (seconds: the reader moved the position), `lintje-play`, `lintje-pause`, `lintje-retry`
+ * ("Opnieuw proberen" was pressed).
  */
-import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
+import {
+  html,
+  nothing,
+  type PropertyDeclarations,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
+import { lengthPx } from '../../../core/length'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import buttonCss from '../../actions/button/button.css?inline'
@@ -23,6 +31,7 @@ import { LintjePlayerElement } from '../shared/player'
 import playerCss from '../shared/player.css?inline'
 import videoPlayerCss from './video-player.css?inline'
 import { titleWhenCut } from '../../shared/cut-text'
+import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 
 export interface TimedText {
   start: number
@@ -57,11 +66,12 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
     described: { type: Boolean, reflect: true },
     fullscreen: { state: true },
     muted: { state: true },
+    narrow: { state: true },
   }
 
   /** The captions: the transcript's segments, or any `{ start, text }[]`. */
   segments: TimedText[] = []
-  /** Whether the captions show; the reader switches it, in "Meer opties" or with C. */
+  /** Whether the captions show; the reader switches it with the bar's button or with C. */
   captions: boolean = false
   /**
    * The same video with an audio description: "Meer opties" offers it when given, and the switch
@@ -73,6 +83,10 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
 
   protected fullscreen: boolean = false
   protected muted: boolean = false
+  /** The bar holds fewer than five buttons: the captions move from the bar into the menu. */
+  protected narrow: boolean = false
+  #resize = new FrameResizeObserver(() => this.fit())
+  #measured: Element | null = null
 
   protected readonly mediaSelector = 'video'
 
@@ -93,7 +107,28 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
 
   override disconnectedCallback(): void {
     document.removeEventListener('fullscreenchange', this.onFullscreenChange)
+    this.#resize.disconnect()
+    this.#measured = null
     super.disconnectedCallback()
+  }
+
+  protected override updated(changed: PropertyValues<this>): void {
+    super.updated(changed)
+    const bar = this.renderRoot.querySelector('.lintje-video-player__buttons')
+    if (!bar || bar === this.#measured) return
+    this.#resize.disconnect()
+    this.#resize.observe(bar)
+    this.#measured = bar
+    this.fit()
+  }
+
+  /** Five 48 px buttons and the gaps between them; the bar's width, not the screen's. */
+  private fit(): void {
+    const bar = this.#measured as HTMLElement | null
+    if (!bar) return
+    const needed = 5 * lengthPx(bar, '--h-touch', 48) + 4 * lengthPx(bar, '--space-1', 4)
+    const narrow = bar.clientWidth > 0 && bar.clientWidth < needed
+    if (narrow !== this.narrow) this.narrow = narrow
   }
 
   /** What the `<video>` plays: the described version when the reader chose it. */
@@ -131,7 +166,10 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
 
   private get menuItems(): MenuEntry[] {
     return [
-      { value: CAPTIONS, label: 'Ondertiteling', checked: this.captions, hint: 'C' },
+      // The bar's button switches the captions; the menu only does where the button fell away.
+      ...(this.narrow
+        ? [{ value: CAPTIONS, label: 'Ondertiteling', checked: this.captions, hint: 'C' }]
+        : []),
       ...(this.describedSrc
         ? [{ value: DESCRIBED, label: 'Audiodescriptie', checked: this.described }]
         : []),
@@ -269,6 +307,20 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
     )
   }
 
+  /** The same `captions` as the C key; pressed and underlined while they show. */
+  private renderCaptions(): TemplateResult {
+    return this.renderIconButton(
+      'functioneel-ondertiteling',
+      'Ondertiteling',
+      () => (this.captions = !this.captions),
+      {
+        disabled: false,
+        pressed: this.captions,
+        className: `lintje-video-player__captions${this.captions ? ' is-on' : ''}`,
+      },
+    )
+  }
+
   protected override render(): TemplateResult {
     return html`<div class="lintje-video-player" role="group" aria-label=${this.name || 'Video'} @keydown=${this.onKeydown}>
       ${this.renderStage()}
@@ -283,6 +335,8 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
         </div>
         <div class="lintje-video-player__buttons">
           ${this.renderPlay()} ${this.renderMute()}
+          <span class="lintje-video-player__end">
+          ${this.narrow ? nothing : this.renderCaptions()}
           <lintje-menu-button
             class="lintje-video-player__more"
             icon
@@ -305,6 +359,7 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
                   this.toggleFullscreen(),
                 )
           }
+          </span>
         </div>
       </div>
     </div>`

@@ -619,6 +619,33 @@ const segmentField = (element: LintjeTranscript, id: string): HTMLElement | null
 const segmentText = (element: LintjeTranscript, id: string): HTMLElement =>
   segment(element, id).querySelector<HTMLElement>('.lintje-transcript__text')!
 
+const speakerButton = (element: LintjeTranscript, id: string): HTMLElement | null =>
+  inside(segment(element, id).querySelector('lintje-menu-button'), '.lintje-menu-button__trigger')
+
+/**
+ * Grouped, with a host that answers a speaker change: s2 is given the speaker of s1 from its own
+ * menu, by the keyboard.
+ */
+async function speakerOfTheOneBefore(layout: 'rows' | 'chat'): Promise<LintjeTranscript> {
+  const element = await mount<LintjeTranscript>('lintje-transcript', {
+    segments: SEGMENTS,
+    layout,
+    grouped: true,
+  })
+  element.addEventListener('lintje-segment-speaker', (event) => {
+    const { id, speaker } = (event as CustomEvent<{ id: string; speaker: string }>).detail
+    element.segments = element.segments.map((item) =>
+      item.id === id ? { ...item, speaker } : item,
+    )
+  })
+  speakerButton(element, 's2')!.focus()
+  await userEvent.keyboard('{ArrowDown}')
+  await expect.poll(() => active()?.textContent?.trim()).toBe('Spreker 1')
+  await userEvent.keyboard('{Enter}')
+  await expect.poll(() => element.segments[1]!.speaker).toBe('Spreker 1')
+  return element
+}
+
 /** From the pencil, by the keyboard: the way a reader without a pointer starts an edit. */
 async function editFromPencil(element: LintjeTranscript, id: string): Promise<void> {
   pencil(element, id)!.focus()
@@ -643,6 +670,20 @@ async function savingFromField(): Promise<LintjeTranscript> {
 }
 
 const TRANSCRIPT_ROWS: Row[] = [
+  {
+    name: 'lintje-transcript :: grouped as a chat, a speaker button whose name goes hands its focus to the name of its turn',
+    run: async () => {
+      const element = await speakerOfTheOneBefore('chat')
+      return () => speakerButton(element, 's1')
+    },
+  },
+  {
+    name: 'lintje-transcript :: grouped as rows, a speaker button that joins the turn before keeps its focus',
+    run: async () => {
+      const element = await speakerOfTheOneBefore('rows')
+      return () => speakerButton(element, 's2')
+    },
+  },
   {
     name: 'lintje-transcript :: the pencil hands its focus to the fragment’s field',
     run: async () => {
@@ -838,7 +879,7 @@ const INPUT_ROWS: Row[] = [
       })
       date.shadowRoot!.querySelector<HTMLElement>('.lintje-date-input__toggle')!.focus()
       await userEvent.keyboard('{Enter}')
-      await expect.poll(() => active()?.classList.contains('lintje-date-input__day')).toBe(true)
+      await expect.poll(() => active()?.classList.contains('lintje-month-grid__day')).toBe(true)
       await userEvent.keyboard('{Enter}')
       return () => date.shadowRoot!.querySelector('.lintje-date-input__control')
     },
@@ -953,6 +994,20 @@ const ENTRIES = Array.from({ length: 14 }, (_, index) => ({
   when: `${index + 1} maart`,
 }))
 
+/** A job list with one failed job, the focus on its "Opnieuw". */
+async function lastJobFocused(): Promise<HTMLElement & { jobs: unknown[] }> {
+  const jobs = await mount<HTMLElement & { jobs: unknown[] }>('lintje-job-list', {
+    jobs: [
+      { id: 'j1', name: 'Rapport.docx', state: 'error', detail: 'Het bestand is beschadigd.' },
+    ],
+  })
+  const action = (): HTMLElement | null =>
+    button(inside(jobs.shadowRoot!.querySelector('lintje-list'), '.lintje-list__row lintje-button'))
+  await expect.poll(action).toBeTruthy()
+  action()!.focus()
+  return jobs
+}
+
 const NOTIFICATIONS = [
   { id: 'n1', title: 'Nieuwe aanvraag', when: '10:12', unread: true },
   { id: 'n2', title: 'Besluit verstuurd', when: '09:40', unread: true },
@@ -1012,18 +1067,24 @@ const COLLECTION_ROWS: Row[] = [
   {
     name: 'lintje-job-list :: the last job gone hands its focus to the status region',
     run: async () => {
-      const jobs = await mount<HTMLElement & { jobs: unknown[] }>('lintje-job-list', {
-        jobs: [
-          { id: 'j1', name: 'Rapport.docx', state: 'error', detail: 'Het bestand is beschadigd.' },
-        ],
-      })
-      const list = (): Element | null => jobs.shadowRoot!.querySelector('lintje-list')
-      const action = (): HTMLElement | null =>
-        button(inside(list(), '.lintje-list__row lintje-button'))
-      await expect.poll(action).toBeTruthy()
-      action()!.focus()
+      const jobs = await lastJobFocused()
       jobs.jobs = []
       return () => jobs.shadowRoot!.querySelector('[role="status"]')
+    },
+  },
+  {
+    name: 'lintje-job-list :: the last job gone, "lintje-jobs-empty" cancelled, hands its focus to the host\'s target',
+    run: async () => {
+      const jobs = await lastJobFocused()
+      const start = document.createElement('button')
+      start.textContent = 'Nieuwe export'
+      document.body.append(start)
+      jobs.addEventListener('lintje-jobs-empty', (event) => {
+        event.preventDefault()
+        start.focus()
+      })
+      jobs.jobs = []
+      return () => start
     },
   },
   {

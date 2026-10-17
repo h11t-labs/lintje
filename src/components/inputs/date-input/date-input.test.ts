@@ -21,9 +21,9 @@ const control = (element: LintjeDateInput): HTMLInputElement =>
   element.shadowRoot!.querySelector('.lintje-date-input__control')!
 const toggle = (element: LintjeDateInput): HTMLButtonElement =>
   element.shadowRoot!.querySelector('.lintje-date-input__toggle')!
-const cell = (element: LintjeDateInput, day: number): HTMLButtonElement =>
-  [...element.shadowRoot!.querySelectorAll<HTMLButtonElement>('.lintje-date-input__day')].find(
-    (button) => button.textContent!.trim() === String(day),
+const cell = (element: LintjeDateInput, day: number): HTMLElement =>
+  [...element.shadowRoot!.querySelectorAll<HTMLElement>('.lintje-month-grid__day')].find(
+    (node) => node.textContent!.trim() === String(day),
   )!
 
 async function type(element: LintjeDateInput, text: string): Promise<void> {
@@ -160,8 +160,8 @@ describe('the calendar', () => {
     expect(cell(element, 3).getAttribute('tabindex')).toBe('0')
     expect(cell(element, 4).getAttribute('aria-current')).toBe('date')
     // October 2026 starts on a Thursday: three empty cells before the first.
-    const first = element.shadowRoot!.querySelectorAll('.lintje-date-input__row')[1]
-    expect(first.querySelectorAll('.lintje-date-input__blank')).toHaveLength(3)
+    const first = element.shadowRoot!.querySelectorAll('.lintje-month-grid__row')[1]
+    expect(first.querySelectorAll('.lintje-month-grid__blank')).toHaveLength(3)
   })
 
   it('moves the focus with the keys and turns the month', async () => {
@@ -235,4 +235,60 @@ describe('the calendar', () => {
     await element.updateComplete
     expect(element.open).toBe(false)
   })
+
+  it('draws each day as a cell of the grid, not as a button with the role of one', async () => {
+    const element = await mount({ value: '2026-10-03' })
+    toggle(element).click()
+    await element.updateComplete
+    const grid = element.shadowRoot!.querySelector('[role="grid"]')!
+    expect(grid.querySelectorAll('button[role]')).toHaveLength(0)
+    const days = [...grid.querySelectorAll('.lintje-month-grid__day')]
+    expect(days).toHaveLength(31)
+    for (const day of days) {
+      expect(day.localName).not.toBe('button')
+      expect(day.getAttribute('role')).toBe('gridcell')
+      expect(day.getAttribute('tabindex')).toMatch(/^(0|-1)$/)
+      expect(day.getAttribute('aria-label')).toBeTruthy()
+      expect(day.getAttribute('aria-selected')).toMatch(/^(true|false)$/)
+    }
+    expect(days.filter((day) => day.getAttribute('tabindex') === '0')).toEqual([cell(element, 3)])
+  })
+
+  for (const key of ['Enter', ' ']) {
+    it(`picks the day with the focus on ${key === ' ' ? 'Space' : key}, as a click does`, async () => {
+      const element = await mount({ value: '2026-10-03', max: '2026-10-20' })
+      const seen = listen(element)
+      toggle(element).click()
+      await element.updateComplete
+      const press = async (name: string): Promise<KeyboardEvent> => {
+        const event = new KeyboardEvent('keydown', { key: name, bubbles: true, cancelable: true })
+        element
+          .shadowRoot!.querySelector('.lintje-month-grid__day[tabindex="0"]')!
+          .dispatchEvent(event)
+        await element.updateComplete
+        return event
+      }
+      // A click focuses a blocked day without moving the tab stop: the key acts on that day.
+      cell(element, 24).click()
+      const onBlocked = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true })
+      cell(element, 24).dispatchEvent(onBlocked)
+      await element.updateComplete
+      expect(onBlocked.defaultPrevented).toBe(true)
+      expect(seen.local).toEqual([])
+      expect(element.open).toBe(true)
+      await press('ArrowDown')
+      await press('ArrowDown')
+      // The 24th is past `max`: the key reaches it, and picks nothing.
+      await press('ArrowDown')
+      expect(cell(element, 24).getAttribute('aria-disabled')).toBe('true')
+      expect((await press(key)).defaultPrevented).toBe(true)
+      expect(seen.local).toEqual([])
+      expect(element.open).toBe(true)
+      await press('ArrowUp')
+      await press(key)
+      expect(seen.local).toEqual(['2026-10-17'])
+      expect(element.open).toBe(false)
+      expect(control(element).value).toBe('17-10-2026')
+    })
+  }
 })

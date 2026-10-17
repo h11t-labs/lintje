@@ -29,6 +29,7 @@ import { prefersReducedMotion } from '../../../core/motion'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
+import { atEndAfterScroll } from '../../shared/follow'
 import '../chat-answer/chat-answer'
 import '../chat-composer/chat-composer'
 import type { LintjeChatComposer } from '../chat-composer/chat-composer'
@@ -149,8 +150,6 @@ export class LintjeChat extends LintjeElement {
 
   /** Pixels from the end that count as away. */
   static readonly AWAY = 120
-  /** Pixels from the end that still count as standing at it. */
-  static readonly AT_END = 8
 
   #turns = 0
   /** The reader stands at the end, so what grows there keeps them at it. */
@@ -219,13 +218,11 @@ export class LintjeChat extends LintjeElement {
     return this.getBoundingClientRect().bottom - edge
   }
 
-  // An answer that grows leaves the end below the reader without a scroll of theirs: only
-  // scrolling up leaves the end, and only arriving there returns to it.
+  // An answer that grows leaves the end below the reader without a scroll of theirs.
   readonly #onScroll = (): void => {
     const top = scrollerOf(this)?.scrollTop ?? 0
     const beyond = this.beyond()
-    if (top < this.#top) this.#atEnd = false
-    if (beyond <= LintjeChat.AT_END) this.#atEnd = true
+    this.#atEnd = atEndAfterScroll(this.#atEnd, top, this.#top, beyond)
     this.#top = top
     this.away = !this.#atEnd && beyond > LintjeChat.AWAY
   }
