@@ -12,30 +12,41 @@
 }
 .lintje-person-group__empty { color: var(--color-text-muted); }
 
-/* The whole row is one button, without a box at rest. Its fill reaches `--space-1` around the
+/* The whole row is one button, without a box at rest. Its box reaches `--space-1` around the
    circles, so it stands in by as much; its hit area reaches `--h-target`. */
 .lintje-person-group__button {
+  --lintje-person-group-ring: var(--lintje-avatar-gap, var(--color-bg-surface));
   position: relative;
   display: inline-flex; align-items: center;
   margin: calc(-1 * var(--space-1));
   padding: var(--space-1);
-  --lintje-person-group-ring: var(--lintje-avatar-gap, var(--color-bg-surface));
-  transition: background var(--dur-hover) var(--ease-in-motion);
+  /* Room on the right for the circles to spread into, so the row never pushes what follows. */
+  padding-right: calc(var(--space-1) + var(--lintje-person-group-overlaps, 0) * 2 * var(--space-1));
+  transition: padding var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-person-group__button::after {
   content: '';
   position: absolute;
   inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
 }
+
+/* At rest they overlap by `--space-1`, each with a 2 px ring in the ground; more overlap covers the
+   initials. Under the pointer and while the list is open they spread apart inside an accent edge:
+   a box of grey would swallow the grey circles and their rings. */
+.lintje-person-group__button .lintje-avatar { box-shadow: 0 0 0 2px var(--lintje-person-group-ring); }
+.lintje-person-group__button .lintje-avatar + .lintje-avatar {
+  margin-left: calc(-1 * var(--space-1));
+  transition: margin var(--dur-hover) var(--ease-in-motion);
+}
 .lintje-person-group__button:hover,
 .lintje-person-group__button[aria-expanded='true'] {
-  background: var(--color-bg-subtle);
-  --lintje-person-group-ring: var(--color-bg-subtle);
+  padding-right: var(--space-1);
+  box-shadow: inset 0 0 0 1px var(--color-accent-line);
 }
-
-/* They overlap by `--space-1`, each with a 2 px ring in the ground; more overlap covers the initials. */
-.lintje-person-group__button .lintje-avatar { box-shadow: 0 0 0 2px var(--lintje-person-group-ring); }
-.lintje-person-group__button .lintje-avatar + .lintje-avatar { margin-left: calc(-1 * var(--space-1)); }
+.lintje-person-group__button:hover .lintje-avatar + .lintje-avatar,
+.lintje-person-group__button[aria-expanded='true'] .lintje-avatar + .lintje-avatar {
+  margin-left: var(--space-1);
+}
 
 .lintje-person-group__panel { width: 17.5rem; max-width: 100%; }
 .lintje-person-group__heading {
@@ -52,7 +63,7 @@
   padding: var(--space-1) var(--space-4);
 }
 
-/* Forced colours: the open button keeps a Highlight edge. */
+/* Forced colours drop the edge's shadow: the open button keeps a Highlight outline. */
 @media (forced-colors: active) {
   .lintje-person-group__button[aria-expanded='true'] { outline: 1px solid Highlight; outline-offset: -1px; }
 }
