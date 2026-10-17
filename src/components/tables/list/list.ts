@@ -7,7 +7,7 @@
  * `lintje-row-action`. A row with `rename` turns its title into a field in place; the host keeps
  * that state, as for every row.
  *
- * Events: `lintje-row-click` `{ id, label, href? }`, `lintje-row-action` `{ id, label, value }` (a
+ * Events: `lintje-row-click` `{ id, label, href? }`, `lintje-row-action` `{ id, label, action }` (a
  * chosen menu row or the row's own action), `lintje-row-rename` `{ id, value }`,
  * `lintje-row-rename-cancel` `{ id }`.
  */
@@ -40,7 +40,7 @@ import listCss from './list.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { focusTarget } from '../../shared/focus-trap'
 import { MediaController } from '../../../core/media'
-import type { Person } from '../../../types'
+import type { Person, RowActionDetail, RowClickDetail } from '../../../types'
 
 export interface ListItem {
   id: string
@@ -99,12 +99,6 @@ interface HeldFocus {
   onTitle: boolean
   /** The focus was in a rename row, whose field and buttons go when the rename ends. */
   renaming?: boolean
-}
-
-export interface RowClickDetail {
-  id: string
-  label: string
-  href?: string
 }
 
 export class LintjeList extends LintjeElement {
@@ -292,7 +286,15 @@ export class LintjeList extends LintjeElement {
 
   private onAction(event: CustomEvent<string>, item: ListItem): void {
     event.stopPropagation()
-    this.emit('lintje-row-action', { id: item.id, label: item.title, value: event.detail })
+    this.rowAction(item, event.detail)
+  }
+
+  private rowAction(item: ListItem, action: string): void {
+    this.emit('lintje-row-action', {
+      id: item.id,
+      label: item.title,
+      action,
+    } satisfies RowActionDetail)
   }
 
   // Where the title is cut to one line, the whole of it stands in the tooltip. The chosen row is
@@ -340,7 +342,7 @@ export class LintjeList extends LintjeElement {
       variant="link"
       size="compact"
       data-part="action"
-      @click=${() => this.emit('lintje-row-action', { id: item.id, label: item.title, value: action.value })}
+      @click=${() => this.rowAction(item, action.value)}
       >${name}</lintje-button
     >`
   }

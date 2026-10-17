@@ -7,7 +7,9 @@
  * with an `href` opens a done job's result, or what runs where it can be followed.
  *
  * Events: `lintje-job-cancel`, `lintje-job-retry`, `lintje-job-resume`, `lintje-job-remove`, each
- * `string` (the job's id), `lintje-navigate` `{ href }` (a row with an `href`; cancel it to route).
+ * `string` (the job's id), `lintje-navigate` `{ href }` (a row with an `href`; cancel it to route),
+ * `lintje-jobs-empty` (the last job went with the focus in the list; cancel it to put the focus on
+ * a visible target of your own, or it lands on the status region).
  */
 import {
   html,
@@ -21,6 +23,7 @@ import { holdsFocus } from '../../../core/focus'
 import { shadowCss } from '../../../core/styles'
 import '../../tables/list/list'
 import type { ListItem } from '../../tables/list/list'
+import type { RowActionDetail, RowClickDetail } from '../../../types'
 import { WORK_STATE_LABEL, WORK_STATE_TONE, type WorkState } from '../../shared/tone'
 import type { BadgeTone } from '../badge/badge'
 import jobListCss from './job-list.css?inline'
@@ -112,12 +115,17 @@ export class LintjeJobList extends LintjeElement {
     spoken: { state: true },
   }
 
-  jobs: Job[] = []
+  /**
+   * The jobs, in the host's order. Unset until the host loads them: the first value is the load
+   * and is not read out; every change after it is, also the first job in an empty list.
+   */
+  jobs: Job[] | undefined = undefined
   /** The level of a group's heading ("Vandaag"), as on `lintje-list`. */
   headingLevel: 2 | 3 | 4 | 5 | 6 = 3
   spoken: string = ''
 
   private known = new Map<string, JobState>()
+  private loaded = false
   private emptiedWithFocus = false
 
   protected override willUpdate(changed: PropertyValues<this>): void {
@@ -125,7 +133,8 @@ export class LintjeJobList extends LintjeElement {
     if (!changed.has('jobs')) return
     const list = this.renderRoot.querySelector('lintje-list')
     this.emptiedWithFocus = !this.jobs?.length && Boolean(list && holdsFocus(list))
-    const first = this.known.size === 0
+    const first = !this.loaded
+    this.loaded = true
     const moved: string[] = []
     const next = new Map<string, JobState>()
     for (const job of this.jobs ?? []) {
@@ -138,11 +147,13 @@ export class LintjeJobList extends LintjeElement {
     else if (this.emptiedWithFocus) this.spoken = 'Er staan geen taken meer in de lijst.'
   }
 
-  // With the list gone there is no row left to go to: the region says the list is empty.
+  // With the list gone there is no row left to go to: the host may point to its own visible
+  // target, else the focus goes to the region that says the list is empty.
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
     if (!this.emptiedWithFocus) return
     this.emptiedWithFocus = false
+    if (!this.emit('lintje-jobs-empty')) return
     const region = this.renderRoot.querySelector<HTMLElement>('[role="status"]')
     if (!region) return
     region.tabIndex = -1
@@ -150,14 +161,14 @@ export class LintjeJobList extends LintjeElement {
   }
 
   // A row's action becomes the job's event.
-  private onAction(event: CustomEvent<{ id: string; value: string }>): void {
+  private onAction(event: CustomEvent<RowActionDetail>): void {
     event.stopPropagation()
-    const { id, value } = event.detail
-    if (value.startsWith('lintje-job-')) this.emit(value as JobEvent, id)
+    const { id, action } = event.detail
+    if (action.startsWith('lintje-job-')) this.emit(action as JobEvent, id)
   }
 
   // A done job's row opens its result, on its name or beside it: the list's click is taken over.
-  private onRowClick(event: CustomEvent<{ id: string; href?: string }>): void {
+  private onRowClick(event: CustomEvent<RowClickDetail>): void {
     event.stopPropagation()
     event.preventDefault()
     if (event.detail.href) this.followLink(event.detail.href)

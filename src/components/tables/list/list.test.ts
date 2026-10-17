@@ -139,7 +139,7 @@ describe('lintje-list', () => {
     menu.dispatchEvent(
       new CustomEvent('lintje-action', { detail: 'verwijderen', bubbles: true, composed: true }),
     )
-    expect(actions).toEqual([{ id: 'c', label: 'Overdracht nachtdienst', value: 'verwijderen' }])
+    expect(actions).toEqual([{ id: 'c', label: 'Overdracht nachtdienst', action: 'verwijderen' }])
     expect(plain).toEqual([])
 
     menu.click()
@@ -202,7 +202,7 @@ describe('lintje-list as a work list', () => {
     let clicked = false
     element.addEventListener('lintje-row-click', () => (clicked = true))
     rows(element)[0]!.querySelector<HTMLElement>('lintje-button')!.click()
-    expect(heard).toEqual([{ id: 'b', label: 'Brief-aan-bewoners.pdf', value: 'annuleren' }])
+    expect(heard).toEqual([{ id: 'b', label: 'Brief-aan-bewoners.pdf', action: 'annuleren' }])
     expect(clicked).toBe(false)
   })
 

@@ -9,14 +9,6 @@ import { chipText, renderFilterField } from './filters'
 import type { LintjePerson } from '../person/person'
 import type { DataTableData, TableCellRef, TableColumnData } from '../../../types'
 
-const csv = vi.hoisted(() => ({ rows: [] as unknown[][] }))
-vi.mock('../../shared/download', async (original) => ({
-  ...(await original<typeof import('../../shared/download')>()),
-  downloadCsv: (_name: string, written: unknown[][]) => {
-    csv.rows = written
-  },
-}))
-
 type TableElement = HTMLElement & { data: DataTableData; updateComplete: Promise<unknown> }
 
 const handler: TableColumnData = {
@@ -113,8 +105,18 @@ describe('a person column', () => {
 
   it('writes the name in the CSV, and nobody as `empty`', async () => {
     const element = await mount({ download: { filename: 'aanvragen' } })
+    // The unit files share one module graph, so the file is caught where it leaves, not mocked.
+    let file: Blob | undefined
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => {
+      file = blob as Blob
+      return 'blob:aanvragen'
+    })
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
     ;(element as unknown as { csv(): void }).csv()
-    expect(csv.rows).toEqual([
+    const text = (await file!.text()).replace(/^\uFEFF/, '')
+    vi.restoreAllMocks()
+    expect(text.split('\r\n').map((line) => line.split(';'))).toEqual([
       ['Aanvraag', 'Behandelaar'],
       ['Bouwvergunning', 'J. de Vries'],
       ['Kapvergunning', 'Niet toegewezen'],

@@ -4,7 +4,9 @@
  * `menu-button.css` is adopted beside this file: the rows are its `.lintje-menu__row`.
  */
 :host { display: inline-flex; flex: none; vertical-align: middle; }
-:host([inline]) { display: block; }
+:host([inline]),
+:host([variant="side"]) { display: block; }
+:host([variant="side"]) { position: relative; }
 :host([hidden]) { display: none; }
 
 /* ------------------------------------------------------------------------ */
@@ -20,6 +22,46 @@
 }
 .lintje-user-menu__trigger:hover,
 .lintje-user-menu__trigger.is-open { background: var(--color-nav-hover); }
+
+/* The foot of the side menu: the whole row is the button. The left padding keeps the avatar
+   centred in the 72 px rail. */
+.lintje-user-menu__trigger--side {
+  justify-content: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+  height: auto;
+  padding: var(--space-4) var(--space-5) var(--space-5) var(--space-4);
+  text-align: left;
+  font-size: 1rem;
+}
+.lintje-user-menu__trigger-names {
+  display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0;
+  line-height: 1.25rem;
+}
+/* One line each under a pointer, cut off with the whole text as a tooltip. */
+.lintje-user-menu__trigger-name,
+.lintje-user-menu__trigger-role { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lintje-user-menu__trigger-name { font-weight: 700; }
+.lintje-user-menu__trigger-role { font-size: 0.875rem; color: var(--color-nav-text-sub); }
+/* Where no pointer shows the tooltip, under the keyboard's focus or without hover, they wrap. */
+.lintje-user-menu__trigger--side:focus-visible :is(.lintje-user-menu__trigger-name, .lintje-user-menu__trigger-role) {
+  white-space: normal; overflow-wrap: anywhere;
+}
+@media (hover: none) {
+  .lintje-user-menu__trigger-name,
+  .lintje-user-menu__trigger-role { white-space: normal; overflow-wrap: anywhere; }
+}
+/* The words fade and slide in after the rail starts to widen, as the menu's labels do. */
+.lintje-user-menu__trigger-names {
+  transition:
+    opacity calc(var(--dur-rail) * 0.8) var(--ease-in-motion) calc(var(--dur-rail) * 0.4),
+    transform var(--dur-rail) var(--ease-in-motion) calc(var(--dur-rail) * 0.4);
+}
+.lintje-user-menu__trigger--side .lintje-user-menu__chevron {
+  transition: opacity calc(var(--dur-rail) * 0.8) var(--ease-in-motion) calc(var(--dur-rail) * 0.4);
+}
+.lintje-user-menu__trigger.is-folded .lintje-user-menu__trigger-names { opacity: 0; transform: translateX(-8px); transition: none; }
+.lintje-user-menu__trigger.is-folded .lintje-user-menu__chevron { opacity: 0; transition: none; }
 
 .lintje-user-menu__panel {
   width: 17.5rem;
@@ -81,3 +123,9 @@
   .lintje-user-menu__panel.is-inline :focus-visible { outline-color: Highlight; }
   .lintje-user-menu__trigger.is-open:not(:focus-visible) { outline: 1px solid Highlight; outline-offset: -1px; }
 }
+
+/* In the foot, the menu is as wide as the side menu, inset by the viewport's own edge on both
+   sides: it hangs from this strip, not from the avatar. */
+.lintje-user-menu__anchor { position: absolute; inset: 0 var(--space-2); pointer-events: none; }
+/* At least the width of a row's words, also from a folded rail. */
+:host([variant="side"]) .lintje-user-menu__panel { width: auto; min-width: 15rem; }

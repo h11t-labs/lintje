@@ -17,6 +17,7 @@ import type { SortableItem } from '../sortable-list/sortable-list'
 import type { TableColumnData } from '../../../types'
 import { deepActiveElement, tabbables } from '../../shared/focus-trap'
 import { standsIn } from '../../../core/focus'
+import { titleWhenCut } from '../../shared/cut-text'
 
 export type FilterValue = string[] | string
 
@@ -254,6 +255,8 @@ export function renderToolbar(options: {
   chooser?: unknown
   onClearFilter: (column: string, button: HTMLElement) => void
   onClearAll: (button: HTMLElement) => void
+  /** Whether the sheet of filters is open, for the "Filters" button's `aria-expanded`. */
+  sheetOpen: boolean
   onOpenSheet: () => void
 }): TemplateResult {
   const active = options.columns.filter((column) => isFilterActive(options.values[column.key]))
@@ -270,6 +273,8 @@ export function renderToolbar(options: {
               variant="secondary"
               size="compact"
               icon="functioneel-filters"
+              haspopup="dialog"
+              .expanded=${options.sheetOpen}
               @click=${options.onOpenSheet}
               >Filters</lintje-button
             >`
@@ -279,7 +284,7 @@ export function renderToolbar(options: {
       ${active.map((column) => {
         const value = options.values[column.key] as FilterValue
         return html`<span class="lintje-data-table__chip"
-          >${chipText(column, value)}<button
+          ><span class="lintje-data-table__chip-text">${chipText(column, value)}</span><button
             type="button"
             class="lintje-data-table__chip-clear"
             aria-label=${`${funnelLabel(column, null)} wissen`}
@@ -297,7 +302,7 @@ export function renderToolbar(options: {
               class="lintje-button lintje-button--tertiary lintje-button--compact lintje-data-table__clear-all"
               @click=${(event: Event) => options.onClearAll(event.currentTarget as HTMLElement)}
             >
-              <span class="lintje-button__label">Filters wissen</span>
+              <span class="lintje-button__label" @pointerenter=${titleWhenCut}>Filters wissen</span>
             </button>`
           : nothing
       }

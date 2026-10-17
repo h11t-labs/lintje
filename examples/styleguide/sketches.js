@@ -46,6 +46,7 @@ export const SKETCHES = {
   tile: { frame: 'tile', rows: 't40 / s30 / img / s40' },
   tabs: { rows: 'tab / l90 / l70 / l50' },
   expander: { rows: '[t50 sp chevd]' },
+  accordion: { rows: 'rule / chevd t50 / rule / chevd t40 / ind l60 / rule / chevd t55 / rule' },
   'split-pane': { rows: 'split' },
   // Overlays
   modal: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'modal', layer: 't50 / l80 / l60 / sp bo25 b30' },
@@ -66,6 +67,7 @@ export const SKETCHES = {
   // Text and media
   prose: { rows: 'T50 / l90 / l80 / l85 / l40' },
   code: { frame: 'code', rows: 'l30 / l60 / l50 / l70 / l20' },
+  key: { center: true, rows: 'bo14 bo14' },
   highlight: { rows: 'l25 mark35 / l70' },
   'token-value': { rows: 'l30 cbx l20 / l30 cbx l20 / l30 l35' },
   translator: { frame: 'tile', rows: 'se io se / split' },
@@ -75,6 +77,7 @@ export const SKETCHES = {
   'log-viewer': { frame: 'code', rows: 's15 chip l50 / s15 chip l70 / | s15 chip l40 / s15 chip l60' },
   'document-viewer': { frame: 'tile', rows: 't30 sp chevl s15 chev / i i s10 sp i / doc' },
   gallery: { rows: 'img / cell cell cell' },
+  attachment: { center: true, rows: 'chip chip / chip' },
   // Messages and status
   announcement: { frame: 'band', rows: 'i t60 / l60' },
   toast: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'toast', layer: 't70 / l60' },
@@ -112,7 +115,7 @@ export const SKETCHES = {
   'date-range': { rows: 's20 / inic' },
   'slot-picker': { rows: 's30 / s15 s15 s15 / bx bx bx / bx bx bx' },
   'file-upload': { frame: 'drop', center: true, rows: 'bo35 l30 / s45' },
-  'text-editor': { rows: 's20 / [s5 s5 s5 s15 s10] / ta' },
+  'text-editor': { rows: 's20 / [s5 s5 s5 i i] / ta' },
   // Forms
   form: { rows: 's20 / in / s25 / in / s25 sp bo20 b20' },
   'form-section': { frame: 'tile', rows: 'T40 / s20 / in in40' },
@@ -149,7 +152,9 @@ export const SKETCHES = {
   chat: { frame: 'page', rows: 'sp s10 i bubble50 / l60 / tbl' },
   'chat-message': { rows: 'sp s10 i bubble60' },
   'chat-answer': { rows: 't90 / l50 / kpi kpi kpi' },
+  'chat-steps': { rows: 'i s30 chevd / | s40 / | s50 / | s35' },
   'chat-composer': { frame: 'tile', rows: 'l80 / s5 / se35 sp b30' },
+  'chat-questions': { frame: 'tile', rows: 'prog / t50 / ra l40 / rax l35 / ra l30 / sp bt15 b25' },
   'chat-strip': { rows: 's15 s15 s15 / l25 u15 u15 / s20 / u25' },
   'chat-suggestions': { rows: 's40 / dash60 / dash45 dash45' },
 }

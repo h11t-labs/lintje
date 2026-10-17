@@ -23,8 +23,9 @@
     "heading": "Pagina",
     "label": "Indeling",
     "icon": "functioneel-tegelweergave",
-    "intro": "Waar inhoud in staat: het raster van twaalf kolommen, de tegel, tabs, de uitklapper en twee panelen naast elkaar.",
-    "elements": ["grid", "grid-item", "tile", "tabs", "expander", "split-pane"]
+    "intro": "Waar inhoud in staat: het raster van twaalf kolommen, de tegel, tabs, de uitklapper, uitklappers gestapeld als accordeon en twee panelen naast elkaar.",
+    "elements": ["grid", "grid-item", "tile", "tabs", "expander", "accordion", "split-pane"],
+    "composite": ["accordion"]
   },
   {
     "name": "overlays",
@@ -56,10 +57,11 @@
     "heading": "Basis",
     "label": "Tekst en media",
     "icon": "op-kantoor-document-met-lijnen",
-    "intro": "Lopende tekst, code, een gemarkeerde zoekterm en de waarde van een token; een tekst en zijn vertaling; audio, video, het transcript dat meeloopt, logregels die live binnenkomen, een document op het scherm en afbeeldingen om door te bladeren.",
+    "intro": "Lopende tekst, code, een toets, een gemarkeerde zoekterm en de waarde van een token; een tekst en zijn vertaling; audio, video, het transcript dat meeloopt, logregels die live binnenkomen, een document op het scherm, afbeeldingen om door te bladeren en een bestand als bijlage.",
     "elements": [
       "prose",
       "code",
+      "key",
       "highlight",
       "token-value",
       "translator",
@@ -68,7 +70,8 @@
       "transcript",
       "log-viewer",
       "document-viewer",
-      "gallery"
+      "gallery",
+      "attachment"
     ],
     "composite": [
       "translator",
@@ -209,10 +212,12 @@
       "chat",
       "chat-message",
       "chat-answer",
+      "chat-steps",
       "chat-composer",
+      "chat-questions",
       "chat-strip",
       "chat-suggestions"
     ],
-    "composite": ["chat", "chat-answer"]
+    "composite": ["chat", "chat-answer", "chat-steps", "chat-questions"]
   }
 ]

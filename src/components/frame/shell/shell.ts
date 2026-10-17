@@ -41,7 +41,6 @@ import { NavScrollbar, feedbackLabel, renderNavigation } from './navigation'
 import { renderMobileHeader } from './mobile-header'
 import { renderBarTools, renderTopBar } from './top-bar'
 import {
-  RIBBON_WIDTH,
   SubmenuController,
   renderHeaderScrim,
   renderLogoBar,
@@ -60,6 +59,11 @@ import { avatarStyles } from '../../shared/avatar'
 const MAIN_ID = 'lintje-shell-main'
 
 const isGroup = (entry: ShellLink | ShellGroup): entry is ShellGroup => 'links' in entry
+
+/** What a slot shows: an element, or text that is more than white space. */
+const isContent = (node: Node): boolean =>
+  node.nodeType === Node.ELEMENT_NODE ||
+  (node.nodeType === Node.TEXT_NODE && Boolean(node.textContent?.trim()))
 
 const activePage = (data?: ShellData | null): ShellLink | undefined =>
   data?.navigation
@@ -100,7 +104,6 @@ export class LintjeShell extends LintjeElement {
     data: { attribute: false },
     layout: { type: String, reflect: true },
     openGroup: { state: true },
-    barStuck: { state: true },
     railExpanded: { state: true },
     menuOpen: { state: true },
     menuLeaving: { state: true },
@@ -108,7 +111,6 @@ export class LintjeShell extends LintjeElement {
     sharePhone: { state: true },
     viewOpen: { state: true },
     toolsCompact: { state: true },
-    headerCompact: { state: true },
     hasContent: { state: true },
     toast: { state: true },
     toastKind: { state: true },
@@ -124,8 +126,8 @@ export class LintjeShell extends LintjeElement {
   layout: 'side' | 'top' = 'top'
   /** Top layout: index of the open group; `WHOLE_MENU`; or `null`. */
   openGroup: number | null = null
-  /** Top layout: the logo bar has scrolled away and the bar under it is pinned. */
-  barStuck: boolean = false
+  /** Top layout: the logo bar has scrolled away and the bar under it is pinned (`is-stuck`). */
+  #barStuck: boolean = false
   railExpanded: boolean = false
   /** The next focus in the rail is the shell's own hand-on after Escape: it does not expand. */
   railRefocus: boolean = false
@@ -138,8 +140,6 @@ export class LintjeShell extends LintjeElement {
   viewOpen: boolean = false
   /** Side layout: the name and the labelled tools do not fit in the top bar, so the tools are bare icons. */
   toolsCompact: boolean = false
-  /** Below 768 px: the header's tools do not fit, so "Filters" and "Menu" show only their glyph. */
-  headerCompact: boolean = false
   /** The `header` or default slot holds something; without, `full` takes the room. */
   hasContent: boolean = true
   declare toast?: string | null
@@ -274,6 +274,9 @@ export class LintjeShell extends LintjeElement {
     }
     if (changed.has('shareOpen') && !this.shareOpen) this.sharePhone = false
     if (changed.has('data')) this.layout = this.data?.layout === 'side' ? 'side' : 'top'
+    // A slot that stays empty sends no `slotchange`: the first data counts the content once.
+    if (changed.has('data') && changed.get('data') === undefined)
+      this.hasContent = this.#holdsContent()
   }
 
   /**
@@ -282,8 +285,6 @@ export class LintjeShell extends LintjeElement {
    */
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
-    // A slot that stays empty sends no `slotchange`: the first render counts the content once.
-    if (changed.has('data') && changed.get('data') === undefined) this.#onSlotChange()
     if (changed.has('menuOpen')) {
       if (this.menuOpen) {
         this.#menuReleased ??= lockScroll()
@@ -293,15 +294,17 @@ export class LintjeShell extends LintjeElement {
         this.#releaseMenu()
         this.#menuTrap.deactivate(false)
         this.renderRoot
-          .querySelector<HTMLButtonElement>('[aria-controls="lintje-mobile-menu-panel"]')
+          .querySelector<HTMLButtonElement>('.lintje-mobile-header__button--menu')
           ?.focus()
       }
     }
     this.#holdSheet()
-    this.measureFit()
+    this.#observeFit(changed.has('data') || changed.has('layout'))
+    this.#fitHeader()
     this.#padScroll()
     if (this.#nested || this.layout !== 'top') return
     if (changed.has('data') || changed.has('layout')) this.measureScroll()
+    else this.#markStuck()
   }
 
   /**
@@ -317,7 +320,13 @@ export class LintjeShell extends LintjeElement {
       this.mobile.matches && this.layout === 'side'
         ? lengthPx(this, '--h-mobile-header', 72)
         : lengthPx(this, '--h-topbar', 56)
-    const filters = this.store.state.hasFilters ? lengthPx(this, '--h-contextbar', 48) : 0
+    const { hasFilters, sentenceHeight } = this.store.state
+    // Below 768 px the sentence wraps, so the filter bar measures it.
+    const filters = !hasFilters
+      ? 0
+      : this.mobile.matches && sentenceHeight > 0
+        ? sentenceHeight
+        : lengthPx(this, '--h-contextbar', 48)
     root.style.scrollPaddingTop = `${Math.round(bar + filters)}px`
   }
 
@@ -333,38 +342,44 @@ export class LintjeShell extends LintjeElement {
    * Each width compared is independent of the outcome, so neither can flip back and forth.
    */
   measureFit(): void {
-    const bar = this.renderRoot.querySelector<HTMLElement>('.lintje-top-bar')
-    const header = this.renderRoot.querySelector<HTMLElement>('.lintje-mobile-header')
-    this.#observeFit([bar, header].filter((box): box is HTMLElement => box !== null))
-
-    const words = bar?.querySelector<HTMLElement>('.lintje-top-bar__words')
-    const tools = bar?.querySelector<HTMLElement>('.lintje-top-bar__actions')
-    if (this.layout === 'side' && bar && words && tools && bar.clientWidth) {
-      if (!this.toolsCompact) this.#labelledTools = tools.getBoundingClientRect().width
-      const style = getComputedStyle(bar)
-      const room = bar.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
-      const need = words.scrollWidth + lengthPx(this, '--space-6', 24) + this.#labelledTools
-      const compact = need > room + 0.5
-      if (compact !== this.toolsCompact) this.toolsCompact = compact
-    }
-
-    if (header?.clientWidth) {
-      // The words shown for one reading, before anything paints.
-      const was = header.classList.contains('is-compact')
-      header.classList.remove('is-compact')
-      const compact = header.scrollWidth > header.clientWidth + 0.5
-      header.classList.toggle('is-compact', was)
-      if (compact !== this.headerCompact) this.headerCompact = compact
-    }
+    this.#fitTools()
+    this.#fitHeader()
   }
 
-  #observeFit(boxes: HTMLElement[]): void {
+  // Bare icons are another template, so this is measured in the observer, whose first report
+  // comes before the paint, and not after a render: that would draw the shell twice.
+  #fitTools(): void {
+    const bar = this.renderRoot.querySelector<HTMLElement>('.lintje-top-bar')
+    const words = bar?.querySelector<HTMLElement>('.lintje-top-bar__words')
+    const tools = bar?.querySelector<HTMLElement>('.lintje-top-bar__actions')
+    if (this.layout !== 'side' || !bar || !words || !tools || !bar.clientWidth) return
+    if (!this.toolsCompact) this.#labelledTools = tools.getBoundingClientRect().width
+    const style = getComputedStyle(bar)
+    const room = bar.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+    const need = words.scrollWidth + lengthPx(this, '--space-6', 24) + this.#labelledTools
+    const compact = need > room + 0.5
+    if (compact !== this.toolsCompact) this.toolsCompact = compact
+  }
+
+  // Only a class: written straight onto the header, so it can follow a render.
+  #fitHeader(): void {
+    const header = this.renderRoot.querySelector<HTMLElement>('.lintje-mobile-header')
+    if (!header?.clientWidth) return
+    // The words shown for one reading, before anything paints.
+    header.classList.remove('is-compact')
+    header.classList.toggle('is-compact', header.scrollWidth > header.clientWidth + 0.5)
+  }
+
+  /** Observes the bars; a bar observed anew is reported once more, with new data in it. */
+  #observeFit(again: boolean): void {
     if (typeof ResizeObserver === 'undefined') return
-    if (
+    const boxes = [
+      ...this.renderRoot.querySelectorAll<HTMLElement>('.lintje-top-bar, .lintje-mobile-header'),
+    ]
+    const same =
       boxes.length === this.#fitObserved.length &&
       boxes.every((box, i) => box === this.#fitObserved[i])
-    )
-      return
+    if (same && !again) return
     this.#fitObserver ??= new ResizeObserver(() => this.measureFit())
     this.#fitObserver.disconnect()
     for (const box of boxes) this.#fitObserver.observe(box)
@@ -383,7 +398,16 @@ export class LintjeShell extends LintjeElement {
   measureScroll(): void {
     const slot = this.renderRoot.querySelector('.lintje-shell__nav, .lintje-shell__mobile-bar')
     if (!slot) return
-    this.barStuck = slot.getBoundingClientRect().top < 0
+    this.#barStuck = slot.getBoundingClientRect().top < 0
+    this.#markStuck()
+  }
+
+  // Straight onto the bar's slot, which a render may have replaced: a reactive property set after
+  // a render would draw the shell twice.
+  #markStuck(): void {
+    this.renderRoot
+      .querySelector('.lintje-shell__nav, .lintje-shell__mobile-bar')
+      ?.classList.toggle('is-stuck', this.#barStuck)
   }
 
   /* --- What the parts call -------------------------------------------- */
@@ -451,10 +475,20 @@ export class LintjeShell extends LintjeElement {
   #onSlotChange(): void {
     const slots = this.renderRoot.querySelectorAll<HTMLSlotElement>('.lintje-shell__content slot')
     this.hasContent = Array.from(slots).some((slot) =>
-      slot
-        .assignedNodes({ flatten: true })
-        .some((node) => node.nodeType === Node.ELEMENT_NODE || node.textContent?.trim()),
+      slot.assignedNodes({ flatten: true }).some(isContent),
     )
+  }
+
+  /** What the `header` and default slots will hold, read from the children before a render. */
+  #holdsContent(): boolean {
+    return Array.from(this.childNodes).some((node) => {
+      const slot = node instanceof Element ? node.slot : ''
+      if (slot !== '' && slot !== 'header') return false
+      // A slot passed on (a shell inside another) holds what is assigned to it.
+      return node instanceof HTMLSlotElement
+        ? node.assignedNodes({ flatten: true }).some(isContent)
+        : isContent(node)
+    })
   }
 
   /* --- Parts ------------------------------------------------------------ */
@@ -479,13 +513,23 @@ export class LintjeShell extends LintjeElement {
     return html`<lintje-notifications .items=${items}></lintje-notifications>`
   }
 
-  /** In the bar the avatar opens it; `inline`, it is the foot of the mobile menu. */
-  renderUserMenu(inline: boolean): TemplateResult | typeof nothing {
+  /**
+   * `bar`: the avatar in the bar opens it. `sheet`: inline, the foot of the mobile menu. `side`:
+   * the foot of the side menu opens it, folded to the avatar in the folded rail.
+   */
+  renderUserMenu(place: 'bar' | 'sheet' | 'side', folded = false): TemplateResult | typeof nothing {
     const data = this.data
     if (!data?.user) return nothing
+    const className = {
+      bar: 'lintje-shell__user',
+      sheet: 'lintje-shell__sheet-user',
+      side: 'lintje-nav__user-menu',
+    }[place]
     return html`<lintje-user-menu
-      class=${inline ? 'lintje-shell__sheet-user' : 'lintje-shell__user'}
-      ?inline=${inline}
+      class=${className}
+      ?inline=${place === 'sheet'}
+      variant=${place === 'side' ? 'side' : nothing}
+      ?folded=${folded}
       .user=${data.user}
       .items=${data.userMenu ?? []}
       version=${data.version ?? nothing}
@@ -503,13 +547,12 @@ export class LintjeShell extends LintjeElement {
     >`
   }
 
-  private renderLogo(ribbon: number): TemplateResult {
+  private renderLogo(): TemplateResult {
     const data = this.data as ShellData
     const home = data.home
     return renderLogoBar({
       logo: data.logo,
       emblem: data.emblem,
-      ribbon,
       environment: data.environment,
       home: home ? { href: home, onNavigate: (event) => this.follow(home, event) } : undefined,
     })
@@ -522,7 +565,6 @@ export class LintjeShell extends LintjeElement {
       <div class="lintje-shell__print-logo">
         <lintje-logo
           full
-          width=${RIBBON_WIDTH.desktop}
           src=${data.logo ?? nothing}
           name=${data.emblem?.name ?? nothing}
           alt=${data.emblem?.label ?? nothing}
@@ -534,25 +576,30 @@ export class LintjeShell extends LintjeElement {
   }
 
   private renderNavEnd(data: ShellData): TemplateResult {
-    const feedback = data.feedback
     return html`${this.renderSearch()}${this.renderNotifications()}${renderBarTools(this)}${
-      feedback
-        ? html`<a
-            class="lintje-shell__tool"
-            href=${feedback.href}
-            aria-label=${feedbackLabel(feedback)}
-            title=${feedbackLabel(feedback)}
-            >${renderIcon('communicatie-tekstballonnen-met-vraagteken', { size: 20 })}</a
-          >`
-        : nothing
-    }${this.renderUserMenu(false)}`
+      data.feedback ? this.renderFeedbackTool(data.feedback) : nothing
+    }${this.renderUserMenu('bar')}`
+  }
+
+  /** The feedback link as a bare tool: its glyph, or its word without the icon file. */
+  private renderFeedbackTool(feedback: NonNullable<ShellData['feedback']>): TemplateResult {
+    const label = feedbackLabel(feedback)
+    const glyph = renderIcon('communicatie-tekstballonnen-met-vraagteken', { size: 20 })
+    const drawn = glyph !== nothing
+    return html`<a
+      class=${classMap({ 'lintje-shell__tool': true, 'lintje-shell__tool--text': !drawn })}
+      href=${feedback.href}
+      aria-label=${drawn ? label : nothing}
+      title=${drawn ? label : nothing}
+      >${drawn ? glyph : label}</a
+    >`
   }
 
   /** The slot of the nav bar keeps its height while the bar itself is pinned to the viewport. */
   private renderTop(data: ShellData, groups: NavGroup[]): TemplateResult {
-    return html`${this.renderLogo(RIBBON_WIDTH.desktop)}
+    return html`${this.renderLogo()}
       <div class="lintje-shell__sentinel" aria-hidden="true"></div>
-      <div class=${classMap({ 'lintje-shell__nav': true, 'is-stuck': this.barStuck })}>
+      <div class="lintje-shell__nav">
         ${renderNavBar({
           id: 'lintje-shell-nav',
           groups,
@@ -571,9 +618,9 @@ export class LintjeShell extends LintjeElement {
   }
 
   private renderTopPhone(groups: NavGroup[]): TemplateResult {
-    return html`${this.renderLogo(RIBBON_WIDTH.phone)}
+    return html`${this.renderLogo()}
       <div class="lintje-shell__sentinel" aria-hidden="true"></div>
-      <div class=${classMap({ 'lintje-shell__mobile-bar': true, 'is-stuck': this.barStuck })}>
+      <div class="lintje-shell__mobile-bar">
         <div class="lintje-shell__mobile-pin">${renderMobileHeader(this, groups)}</div>
       </div>`
   }
