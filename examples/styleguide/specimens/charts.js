@@ -883,6 +883,8 @@ const chartSpecimen = (chart) => ({
       download: { filename: `demo-${chart.id}` },
       selectedId: chart.selectedId,
     }
+    // A chart with links says under the tile where a click would go, and stays on this page.
+    if (JSON.stringify(chart.spec).includes('"href"')) linkLog(stage, element, ['lintje-mark-select'])
     chart.setup?.(element)
   },
 })
