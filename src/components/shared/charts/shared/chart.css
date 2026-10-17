@@ -368,7 +368,7 @@
 .lintje-chart__hover-point--forecast { fill: var(--color-bg-surface); stroke: currentColor; }
 /* The point the keyboard stands on. */
 .lintje-chart__focus-point { fill: none; stroke: var(--color-focus); stroke-width: 3; pointer-events: none; }
-/* The edge of a dark-yellow hover point (`lineCasing`), over its ring. */
+/* The edge of a light-coloured hover point (`lineCasing`), over its ring. */
 .lintje-chart__hover-casing { fill: none; stroke-width: 1; pointer-events: none; }
 
 /* The scatter plot's one pointer target, under its points: the nearest point within half of

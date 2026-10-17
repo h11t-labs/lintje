@@ -4,15 +4,21 @@
  * The field is plain text; the element never writes markup into it. Terms are marked through the
  * CSS Custom Highlight API, so typing and undo stay the browser's; without it the field is
  * unmarked. The source selection is the host's; the draft, the send key (kept in `localStorage`)
- * and the answer form are the element's own.
+ * and the answer form are the element's own. With `files` it takes attachments — the paperclip,
+ * dragging and pasting — and the host keeps them, as with `lintje-file-upload`; a file it refuses
+ * itself stays its own and never reaches the host. A question may be only its attachments.
+ * `lintje-chat` folds it to one line (`collapsed`) while the assistant asks, on a phone.
  *
- * Events: `lintje-message-send` `{ text, terms, sources, form }`, `lintje-answer-stop`,
- * `lintje-sources-change` `{ ids }`, `lintje-draft-change` `{ text }` (200 ms after the last key);
- * with `variant="edit"` instead `lintje-submit` `{ text, terms }` and `lintje-cancel`.
+ * Events: `lintje-message-send` `{ text, terms, sources, form, attachments }` (`attachments`: the
+ * ids of the done files), `lintje-answer-stop`, `lintje-sources-change` `{ ids }`,
+ * `lintje-draft-change` `{ text }` (200 ms after the last key), `lintje-files-add` `File[]`; from
+ * its chips `lintje-file-remove` `{ id }`, `lintje-file-cancel` `{ id }` and `lintje-file-retry`
+ * `{ id }`; with `variant="edit"` instead `lintje-submit` `{ text, terms }` and `lintje-cancel`.
  */
 import {
   html,
   nothing,
+  render,
   type PropertyDeclarations,
   type PropertyValues,
   type TemplateResult,
@@ -23,14 +29,27 @@ import { holdsFocus } from '../../../core/focus'
 import { MediaController } from '../../../core/media'
 import { styleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
+import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
 import '../../actions/icon-button/icon-button'
+import '../../content/attachment/attachment'
 import '../../inputs/multiselect/multiselect'
 import '../../inputs/radio-group/radio-group'
 import type { LintjeMultiselect } from '../../inputs/multiselect/multiselect'
 import { completions, recogniseTerms, wordBefore } from '../shared/chat-terms'
+import {
+  carriesFiles,
+  dropText,
+  limitsText,
+  pastedFiles,
+  refusal,
+  RowFocus,
+  rowNews,
+  type UploadFile,
+} from '../../shared/files'
 import keyCss from '../../shared/key.css?inline'
 import chatComposerCss from './chat-composer.css?inline'
+import frameCss from '../shared/frame.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
 import type {
   ChatAnswerForm,
@@ -56,6 +75,7 @@ const SEND_KEYS: FilterOption[] = [
 ]
 
 const SEND_KEY_STORE = 'lintje-chat-send-key'
+const PLACEHOLDER = 'Stel een vraag over de gegevens'
 
 /** The send key in words, in the field's description: the menu that sets it is a popup. */
 const SEND_KEY_SAID: Record<ChatSendKey, string> = {
@@ -123,8 +143,25 @@ interface Caption {
   room?: number
 }
 
+const renderCaption = (caption: Caption): TemplateResult =>
+  html`<span
+    class=${classMap({ 'lintje-chat-composer__caption': true, 'is-uncertain': !caption.certain })}
+    ${styleProps({
+      left: `${caption.left}px`,
+      top: `${caption.top}px`,
+      maxWidth: caption.room === undefined ? null : `${caption.room}px`,
+    })}
+    >${caption.kind}</span
+  >`
+
 export class LintjeChatComposer extends LintjeElement {
-  static override styles = [shadowCss(keyCss), shadowCss(chatComposerCss), shadowCss(screenOnlyCss)]
+  static override styles = [
+    iconStyles,
+    shadowCss(keyCss),
+    shadowCss(frameCss),
+    shadowCss(chatComposerCss),
+    shadowCss(screenOnlyCss),
+  ]
 
   static override properties: PropertyDeclarations = {
     variant: { type: String, reflect: true },
@@ -139,18 +176,28 @@ export class LintjeChatComposer extends LintjeElement {
     draftTerms: { attribute: false },
     optionsOpen: { type: Boolean, attribute: 'options-open', reflect: true },
     plain: { type: Boolean, reflect: true },
+    accept: { type: String },
+    maxSize: { type: Number, attribute: 'max-size' },
+    files: { attribute: false },
+    hint: { type: String },
+    collapsed: { type: Boolean, reflect: true },
+    collapsible: { type: Boolean },
+    refused: { state: true },
+    dragging: { state: true },
+    dragCount: { state: true },
+    news: { state: true },
     draft: { state: true },
     caret: { state: true },
     completionIndex: { state: true },
     completionOff: { state: true },
-    captions: { state: true },
   }
 
   /** `edit` is the frame a sent message is changed in: no picker, no split send. */
   variant: ChatComposerVariant = 'ask'
   /** The text to start from. Setting it again replaces what stands in the field. */
   text: string = ''
-  placeholder: string = 'Stel een vraag over de gegevens'
+  /** Left out or emptied, "Stel een vraag over de gegevens". */
+  placeholder: string = PLACEHOLDER
   /** An answer is arriving: "Stoppen" stands in for the send button. */
   busy: boolean = false
   /** The last question, which ↑ brings back into an empty field. */
@@ -168,14 +215,38 @@ export class LintjeChatComposer extends LintjeElement {
   /** Only "Versturen": no choice of the answer's form, no send key. For a question that is not a
    * conversation with data, such as the one on a start page that searches a catalogue. */
   plain: boolean = false
+  /** The file chooser's filter and the box's own check: ".pdf,.xlsx" or "image/*". */
+  accept: string = ''
+  /** The largest file, in bytes. */
+  declare maxSize?: number
+  /** The host's files for the question being typed. Without it, no paperclip: the box takes no files. */
+  declare files?: UploadFile[]
+  /** A line in the bar beside the send button; "Kies eerst een bron" and "Wacht op de upload" win. */
+  declare hint?: string
+  /**
+   * One line that opens the box, with how many attachments wait in it; no source picker. A tap
+   * asks `lintje-chat` to open it. Only a phone's while the assistant asks.
+   */
+  collapsed: boolean = false
+  /** Open, it offers "Inklappen", which asks `lintje-chat` to fold it again. */
+  collapsible: boolean = false
 
+  /** The files the box refused itself: they stay until the reader removes them. */
+  refused: UploadFile[] = []
+  dragging: boolean = false
+  /** How many are dragged: 0 when the browser does not say. */
+  dragCount: number = 0
+  /** What changed in the attachments, for the status region. */
+  news: string = ''
   draft: string = ''
   /** The caret as an offset into the draft. */
   caret: number = 0
   completionIndex: number = 0
   /** The reader dismissed the list, or took from it; typing brings it back. */
   completionOff: boolean = false
-  captions: Caption[] = []
+  /** The kind under each recognised term, measured after a render and drawn by `paint()`. */
+  #captions: Caption[] = []
+  #layer: HTMLElement | null = null
 
   readonly #mobile = new MediaController(this)
   /** Whether the browser keeps the field to plain text by itself. */
@@ -185,6 +256,56 @@ export class LintjeChatComposer extends LintjeElement {
   #announce: ReturnType<typeof setTimeout> | undefined
   /** "Stoppen" and the send button stand in for each other; one leaving with the focus. */
   #refocus = false
+  #depth = 0
+  #refusedCount = 0
+  readonly #rowFocus = new RowFocus()
+
+  private readonly onDragEnter = (event: DragEvent): void => {
+    if (!this.takesFiles || !carriesFiles(event)) return
+    this.#depth += 1
+    this.dragging = true
+    this.dragCount = event.dataTransfer?.items?.length ?? 0
+  }
+
+  private readonly onDragLeave = (): void => {
+    if (!this.dragging) return
+    this.#depth = Math.max(0, this.#depth - 1)
+    if (this.#depth === 0) this.dragging = false
+  }
+
+  private readonly onDragEnd = (): void => {
+    this.#depth = 0
+    this.dragging = false
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback()
+    document.addEventListener('dragenter', this.onDragEnter)
+    document.addEventListener('dragleave', this.onDragLeave)
+    document.addEventListener('drop', this.onDragEnd)
+    document.addEventListener('dragend', this.onDragEnd)
+  }
+
+  /** Attachments belong to a new question; an edited one keeps those of its message. */
+  private get takesFiles(): boolean {
+    return this.variant === 'ask' && this.files !== undefined
+  }
+
+  private get readyIds(): string[] {
+    return (this.files ?? []).filter((file) => file.state === 'done').map((file) => file.id)
+  }
+
+  private get uploading(): boolean {
+    return (this.files ?? []).some((file) => file.state === 'busy')
+  }
+
+  /** Text or a done attachment, nothing still uploading, and a source on. */
+  private get canSend(): boolean {
+    const content = this.draft.trim() !== '' || this.readyIds.length > 0
+    return content && !this.uploading && !this.noSource
+  }
+  /** The draft came from the host's `text`: the field takes it after the render. */
+  #written = false
 
   private get input(): HTMLElement | null {
     return this.renderRoot.querySelector<HTMLElement>('.lintje-chat-composer__input')
@@ -210,6 +331,11 @@ export class LintjeChatComposer extends LintjeElement {
   }
 
   override disconnectedCallback(): void {
+    document.removeEventListener('dragenter', this.onDragEnter)
+    document.removeEventListener('dragleave', this.onDragLeave)
+    document.removeEventListener('drop', this.onDragEnd)
+    document.removeEventListener('dragend', this.onDragEnd)
+    this.onDragEnd()
     this.clearHighlights()
     this.#resize?.disconnect()
     this.#resize = null
@@ -233,6 +359,17 @@ export class LintjeChatComposer extends LintjeElement {
 
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
+    if (changed.has('files') || changed.has('refused')) this.#rowFocus.hold(this.chips)
+    if (changed.has('files') && changed.get('files') !== undefined) {
+      const news = rowNews(changed.get('files') ?? [], this.files ?? [])
+      if (news) this.news = news
+    }
+    // The host's text becomes the draft before the render; the field takes it after.
+    if (changed.has('text') && this.text !== this.draft) {
+      this.draft = this.text
+      this.caret = this.text.length
+      this.#written = true
+    }
     if (!changed.has('busy') || changed.get('busy') === undefined) return
     const leaving = this.renderRoot.querySelector(
       this.busy ? '.lintje-chat-composer__send' : '.lintje-chat-composer__stop',
@@ -240,8 +377,13 @@ export class LintjeChatComposer extends LintjeElement {
     if (leaving && holdsFocus(leaving)) this.#refocus = true
   }
 
-  protected override updated(changed: PropertyValues<this>): void {
-    if (changed.has('text') && this.text !== this.draft) this.write(this.text, undefined, false)
+  protected override updated(): void {
+    if (this.#written) {
+      this.#written = false
+      this.write(this.draft, undefined, false)
+    }
+    // The cross of the next chip, else the paperclip: never the page.
+    this.#rowFocus.restore(this.chips, () => this.focusPaperclip())
     this.paint()
     // The field, where the next question starts; the send button is off while it is empty.
     if (this.#refocus) {
@@ -251,7 +393,78 @@ export class LintjeChatComposer extends LintjeElement {
   }
 
   override focus(): void {
+    if (this.collapsed && this.variant === 'ask') {
+      this.renderRoot.querySelector<HTMLElement>('.lintje-chat-composer__expand')?.focus()
+      return
+    }
     this.write(this.draft)
+  }
+
+  private get chips(): HTMLElement[] {
+    return [...this.renderRoot.querySelectorAll<HTMLElement>('.lintje-chat-composer__attachment')]
+  }
+
+  private focusPaperclip(): void {
+    const clip = this.renderRoot.querySelector<HTMLElement>('.lintje-chat-composer__attach')
+    ;(clip?.shadowRoot?.querySelector<HTMLElement>('button') ?? clip)?.focus()
+  }
+
+  /** Sends the files that pass with `lintje-files-add` and keeps a chip for those it refuses. */
+  add(chosen: File[]): void {
+    if (!this.takesFiles || !chosen.length) return
+    const passed: File[] = []
+    const refused: UploadFile[] = []
+    for (const file of chosen) {
+      const reason = refusal(file, this.accept, this.maxSize)
+      if (!reason) {
+        passed.push(file)
+        continue
+      }
+      this.#refusedCount += 1
+      refused.push({
+        id: `lintje-refused-${this.#refusedCount}`,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        state: 'error',
+        message: reason,
+      })
+    }
+    if (refused.length) {
+      this.refused = [...this.refused, ...refused]
+      this.news = rowNews([], refused, true)
+    }
+    if (passed.length) this.emit('lintje-files-add', passed)
+  }
+
+  private pick(): void {
+    this.renderRoot.querySelector<HTMLInputElement>('.lintje-chat-composer__file-input')?.click()
+  }
+
+  private onPicked(event: Event): void {
+    const input = event.target as HTMLInputElement
+    this.add([...(input.files ?? [])])
+    input.value = ''
+  }
+
+  private onDragOver(event: DragEvent): void {
+    if (!this.takesFiles || !carriesFiles(event)) return
+    event.preventDefault()
+  }
+
+  private onDrop(event: DragEvent): void {
+    if (!this.takesFiles || !carriesFiles(event)) return
+    event.preventDefault()
+    this.onDragEnd()
+    this.add([...(event.dataTransfer?.files ?? [])])
+  }
+
+  /** A chip of the box's own refusal is the box's alone: its event stops here and the chip goes. */
+  private onChipEvent(event: Event): void {
+    const { id } = (event as CustomEvent<{ id: string }>).detail
+    if (!this.refused.some((file) => file.id === id)) return
+    event.stopPropagation()
+    this.refused = this.refused.filter((file) => file.id !== id)
   }
 
   /** Opens the source picker; the start screen's "Wijzigen" asks for it. */
@@ -302,6 +515,12 @@ export class LintjeChatComposer extends LintjeElement {
   }
 
   private onPaste(event: ClipboardEvent): void {
+    const files = this.takesFiles ? pastedFiles(event) : []
+    if (files.length) {
+      event.preventDefault()
+      this.add(files)
+      return
+    }
     if (this.#plain) return
     event.preventDefault()
     document.execCommand('insertText', false, event.clipboardData?.getData('text/plain') ?? '')
@@ -356,13 +575,18 @@ export class LintjeChatComposer extends LintjeElement {
 
   private send(): void {
     const text = this.draft.trim()
-    if (!text || this.noSource || (this.busy && this.variant === 'ask')) return
-    const terms = this.termsFor(text)
     if (this.variant === 'edit') {
-      this.emitLocal('lintje-submit', { text, terms })
+      if (text) this.emitLocal('lintje-submit', { text, terms: this.termsFor(text) })
       return
     }
-    this.emit('lintje-message-send', { text, terms, sources: this.selectedIds, form: this.form })
+    if (!this.canSend || this.busy) return
+    this.emit('lintje-message-send', {
+      text,
+      terms: text ? this.termsFor(text) : [],
+      sources: this.selectedIds,
+      form: this.form,
+      attachments: this.readyIds,
+    })
     this.write('')
   }
 
@@ -412,7 +636,14 @@ export class LintjeChatComposer extends LintjeElement {
       const next = captions[index + 1]
       if (next && next.top === caption.top) caption.room = Math.max(0, next.left - caption.left - 4)
     })
-    if (JSON.stringify(captions) !== JSON.stringify(this.captions)) this.captions = captions
+    // Drawn into their own box, outside the element's render: they follow from a measurement after
+    // it, and a reactive property set there would draw the composer twice.
+    const layer = this.renderRoot.querySelector<HTMLElement>('.lintje-chat-composer__captions')
+    if (!layer) return
+    if (layer === this.#layer && JSON.stringify(captions) === JSON.stringify(this.#captions)) return
+    this.#layer = layer
+    this.#captions = captions
+    render(captions.map(renderCaption), layer)
   }
 
   private setSendKey(key: ChatSendKey): void {
@@ -435,7 +666,8 @@ export class LintjeChatComposer extends LintjeElement {
   }
 
   protected override render(): TemplateResult {
-    const list = this.suggestions
+    const collapsed = this.collapsed && this.variant === 'ask'
+    const list = collapsed ? [] : this.suggestions
     const active = Math.min(this.completionIndex, list.length - 1)
     const terms = this.termsIn(this.draft)
     const heard = terms
@@ -446,6 +678,7 @@ export class LintjeChatComposer extends LintjeElement {
       })
       .join(', ')
     return html`<div class="lintje-chat-composer lintje-chat-composer--${this.variant}">
+      ${collapsed ? this.renderCollapsed() : nothing}
       ${
         list.length
           ? html`<div
@@ -475,7 +708,17 @@ export class LintjeChatComposer extends LintjeElement {
           </div>`
           : nothing
       }
-      <div class="lintje-chat-composer__frame">
+      <div
+        class=${classMap({
+          'lintje-chat-frame': true,
+          'lintje-chat-composer__frame': true,
+          'is-dragging': this.dragging && this.takesFiles,
+        })}
+        ?hidden=${collapsed}
+        @dragover=${this.onDragOver}
+        @drop=${this.onDrop}
+      >
+        ${this.renderAttachments()}
         <div class="lintje-chat-composer__field">
           <div
             class=${classMap({
@@ -487,33 +730,18 @@ export class LintjeChatComposer extends LintjeElement {
             aria-multiline="true"
             aria-label=${this.variant === 'edit' ? 'Je vraag bewerken' : 'Je vraag'}
             aria-describedby="hint send-key"
-            aria-placeholder=${this.placeholder}
+            aria-placeholder=${this.placeholderText}
             aria-autocomplete=${this.vocabulary?.length ? 'list' : nothing}
             aria-controls=${list.length ? 'completions' : nothing}
             aria-activedescendant=${list.length ? `completion-${active}` : nothing}
-            data-placeholder=${this.placeholder}
+            data-placeholder=${this.placeholderText}
             @input=${this.onInput}
             @keydown=${this.onKeydown}
             @keyup=${this.read}
             @mouseup=${this.read}
             @paste=${this.onPaste}
           ></div>
-          <div class="lintje-chat-composer__captions" aria-hidden="true">
-            ${this.captions.map(
-              (caption) => html`<span
-                class=${classMap({
-                  'lintje-chat-composer__caption': true,
-                  'is-uncertain': !caption.certain,
-                })}
-                ${styleProps({
-                  left: `${caption.left}px`,
-                  top: `${caption.top}px`,
-                  maxWidth: caption.room === undefined ? null : `${caption.room}px`,
-                })}
-                >${caption.kind}</span
-              >`,
-            )}
-          </div>
+          <div class="lintje-chat-composer__captions" aria-hidden="true"></div>
         </div>
         <span id="send-key" class="visually-hidden"
           >${SEND_KEY_SAID[this.plain ? 'enter' : this.sendKey]}</span
@@ -522,14 +750,122 @@ export class LintjeChatComposer extends LintjeElement {
         <div class="lintje-chat-composer__bar">
           ${this.variant === 'edit' ? this.renderEdit() : this.renderAsk()}
         </div>
+        ${this.takesFiles && this.dragging ? this.renderDrop() : nothing}
       </div>
+      ${
+        this.takesFiles
+          ? html`<span class="visually-hidden" role="status">${this.news}</span>`
+          : nothing
+      }
+    </div>`
+  }
+
+  // A removed attribute leaves `null`: the field still says what it is for.
+  private get placeholderText(): string {
+    return this.placeholder || PLACEHOLDER
+  }
+
+  /** "Stel een nieuwe vraag · 2 bijlagen": every chip counts, also one busy or refused. */
+  private get attachmentCount(): number {
+    return this.takesFiles ? (this.files ?? []).length + this.refused.length : 0
+  }
+
+  // The open box stays drawn under it, hidden, so the draft and the field's set-up are kept.
+  private renderCollapsed(): TemplateResult {
+    const count = this.attachmentCount
+    const files = count ? `${count} ${count === 1 ? 'bijlage' : 'bijlagen'}` : ''
+    return html`<div class="lintje-chat-frame">
+        <button
+          type="button"
+          class="lintje-chat-composer__expand"
+          aria-expanded="false"
+          aria-label=${files ? `${this.placeholderText}, ${files}` : nothing}
+          @click=${() => this.emitLocal('lintje-composer-expand')}
+        >
+          <span>${files ? `${this.placeholderText} · ${files}` : this.placeholderText}</span>
+          ${renderIcon('functioneel-delta-omlaag', {
+            size: 16,
+            rotate: 180,
+            className: 'lintje-chat-composer__expand-icon',
+          })}
+        </button>
+      </div>`
+  }
+
+  private renderAttachments(): TemplateResult | typeof nothing {
+    const files = this.files ?? []
+    const all = [...files, ...this.refused]
+    if (!this.takesFiles || !all.length) return nothing
+    return html`<ul
+      class="lintje-chat-composer__attachments"
+      aria-label="Bijlagen bij je vraag"
+      @lintje-file-remove=${this.onChipEvent}
+      @lintje-file-cancel=${this.onChipEvent}
+      @lintje-file-retry=${this.onChipEvent}
+    >
+      ${all.map(
+        (file, index) => html`<li class="lintje-chat-composer__attachment-item">
+          <lintje-attachment
+            class="lintje-chat-composer__attachment"
+            data-id=${file.id}
+            removable
+            ?refused=${index >= files.length}
+            .data=${file}
+          ></lintje-attachment>
+        </li>`,
+      )}
+    </ul>`
+  }
+
+  /** While files hang over the window, the frame is the drop zone of the upload field. */
+  private renderDrop(): TemplateResult {
+    const limits = limitsText(this.accept, this.maxSize)
+    return html`<div class="lintje-chat-composer__drop">
+      ${renderIcon('functioneel-upload', { size: 20 })}
+      <strong class="lintje-chat-composer__drop-text">${dropText(this.dragCount)}</strong>
+      ${limits ? html`<span class="lintje-chat-composer__drop-meta">${limits}</span>` : nothing}
     </div>`
   }
 
   private renderAsk(): TemplateResult {
     const sources = this.sources ?? []
-    const empty = this.draft.trim() === ''
+    const off = !this.canSend
+    const hint = this.noSource
+      ? 'Kies eerst een bron om een vraag te stellen'
+      : this.uploading
+        ? 'Wacht op de upload'
+        : (this.hint ?? '')
     return html`${
+      this.collapsible
+        ? html`<lintje-icon-button
+            class="lintje-chat-composer__collapse"
+            icon="functioneel-delta-omlaag"
+            label="Inklappen"
+            variant="flat"
+            .expanded=${true}
+            @click=${() => this.emitLocal('lintje-composer-collapse')}
+          ></lintje-icon-button>`
+        : nothing
+    }${
+      this.takesFiles
+        ? html`<lintje-icon-button
+              class="lintje-chat-composer__attach"
+              icon="functioneel-paperclip"
+              label="Bijlage toevoegen"
+              variant="flat"
+              @click=${this.pick}
+            ></lintje-icon-button>
+            <input
+              class="lintje-chat-composer__file-input"
+              type="file"
+              hidden
+              multiple
+              tabindex="-1"
+              accept=${this.accept || nothing}
+              @change=${this.onPicked}
+            />`
+        : nothing
+    }${
       sources.length
         ? html`<lintje-multiselect
             class="lintje-chat-composer__sources"
@@ -549,9 +885,7 @@ export class LintjeChatComposer extends LintjeElement {
           ></lintje-multiselect>`
         : nothing
     }
-      <span id="hint" class="lintje-chat-composer__hint" role="status"
-        >${this.noSource ? 'Kies eerst een bron om een vraag te stellen' : ''}</span
-      >
+      <span id="hint" class="lintje-chat-composer__hint" role="status">${hint}</span>
       ${
         this.busy
           ? html`<lintje-button
@@ -569,13 +903,13 @@ export class LintjeChatComposer extends LintjeElement {
                   icon="functioneel-verzenden"
                   label="Versturen"
                   active
-                  ?disabled=${empty || this.noSource}
+                  ?disabled=${off}
                   @click=${() => this.send()}
                 ></lintje-icon-button>`
                 : html`<lintje-button
                   variant="primary"
                   icon="functioneel-verzenden"
-                  ?disabled=${empty || this.noSource}
+                  ?disabled=${off}
                   @click=${() => this.send()}
                   >Versturen</lintje-button
                 >`
@@ -587,7 +921,7 @@ export class LintjeChatComposer extends LintjeElement {
                     class="lintje-chat-composer__send-half lintje-chat-composer__options-toggle"
                     icon="functioneel-delta-omlaag"
                     label="Opties bij versturen"
-                    ?active=${!(empty || this.noSource)}
+                    ?active=${!off}
                     .expanded=${this.optionsOpen}
                     @click=${() => this.toggleOptions(!this.optionsOpen)}
                   ></lintje-icon-button>

@@ -212,11 +212,11 @@ function evaluateColorMix(value: string): string {
 }
 
 /**
- * The OKLCH forms the tokens use: `oklch(from #hex L C h)`, where L is a number or
- * `max(l, N)` and C is `c` or `min(c, N)`.
+ * The OKLCH forms the tokens use: `oklch(from #hex L C h)`, where L is a number,
+ * `max(l, N)` or `max(l + D, N)` and C is `c` or `min(c, N)`.
  */
 const OKLCH_FROM =
-  /oklch\(\s*from\s+(#[0-9a-fA-F]{3,6})\s+(?:([\d.]+)|max\(\s*l\s*,\s*([\d.]+)\s*\))\s+(?:c|min\(\s*c\s*,\s*([\d.]+)\s*\))\s+h\s*\)/i
+  /oklch\(\s*from\s+(#[0-9a-fA-F]{3,6})\s+(?:([\d.]+)|max\(\s*l\s*(?:\+\s*([\d.]+)\s*)?,\s*([\d.]+)\s*\))\s+(?:c|min\(\s*c\s*,\s*([\d.]+)\s*\))\s+h\s*\)/i
 
 /**
  * The step between two colours on the origin's lightness:
@@ -266,9 +266,9 @@ function evaluateOklch(value: string): string {
   } else {
     lightness =
       match[2] === undefined
-        ? Math.max(own, Number.parseFloat(match[3]))
+        ? Math.max(own + Number.parseFloat(match[3] ?? '0'), Number.parseFloat(match[4]))
         : Number.parseFloat(match[2])
-    c = match[4] === undefined ? chroma : Math.min(chroma, Number.parseFloat(match[4]))
+    c = match[5] === undefined ? chroma : Math.min(chroma, Number.parseFloat(match[5]))
   }
   const a = c * Math.cos(hue)
   const b = c * Math.sin(hue)
@@ -590,6 +590,49 @@ describe('the header of the top layout', () => {
           contrast(values['--color-logobar-text'], values['--color-logobar-bg']),
           `${mode} ${theme}`,
         ).toBeGreaterThanOrEqual(4.5)
+      }
+    }
+  })
+})
+
+describe('the fill of a chosen period', () => {
+  it('carries the text at 4.5:1 and stands out from a hover and a selection, in every theme and mode', () => {
+    for (const mode of ['light', 'dark'] as const) {
+      for (const theme of THEME_NAMES) {
+        const values = tokensFor(mode, theme)
+        const fill = values['--color-range-bg']
+        expect(fill, `${mode} ${theme}`).toMatch(/^#[0-9A-F]{6}$/)
+        expect(
+          contrast(values['--color-text-primary'], fill),
+          `${mode} ${theme}`,
+        ).toBeGreaterThanOrEqual(4.5)
+        expect(fill, `${mode} ${theme}`).not.toBe(values['--color-bg-subtle'])
+        expect(fill, `${mode} ${theme}`).not.toBe(values['--color-bg-selected'])
+        // Better seen on the surface than either grey.
+        const surface = values['--color-bg-surface']
+        for (const grey of [values['--color-bg-subtle'], values['--color-bg-selected']])
+          expect(contrast(fill, surface), `${mode} ${theme}`).toBeGreaterThan(
+            contrast(grey, surface),
+          )
+      }
+    }
+    // A clear tint in light: rijksoverheid's period is light blue, not near-white.
+    expect(tokensFor('light', 'rijksoverheid')['--color-range-bg']).toBe('#BAD5E9')
+  })
+})
+
+describe('the edge of a chosen day', () => {
+  // As far apart as dark's primary tint is from its fill, which is where the edge came from.
+  it('stands apart from its primary fill, in every theme and mode', () => {
+    for (const mode of ['light', 'dark'] as const) {
+      for (const theme of THEME_NAMES) {
+        const values = tokensFor(mode, theme)
+        const edge = values['--color-chosen-day-edge']
+        expect(edge, `${mode} ${theme}`).toMatch(/^#[0-9A-F]{6}$/)
+        expect(
+          contrast(edge, values['--color-action-primary']),
+          `${mode} ${theme}`,
+        ).toBeGreaterThanOrEqual(1.25)
       }
     }
   })
@@ -954,7 +997,11 @@ describe('the status words', () => {
     const WORDS: [string, string, string][] = [
       ['src/components/inputs/shared/input.css', '.lintje-field__error', 'error'],
       ['src/components/inputs/textarea/textarea.css', '.lintje-textarea__counter.is-over', 'error'],
-      ['src/components/inputs/file-upload/file-upload.css', '.lintje-file-upload__reason', 'error'],
+      [
+        'src/components/content/attachment/attachment.css',
+        '.lintje-attachment.is-error .lintje-attachment__detail',
+        'error',
+      ],
       [
         'src/components/feedback/progress-bar/progress-bar.css',
         '.lintje-progress--error .lintje-progress__label',
@@ -1251,6 +1298,22 @@ describe('the inline user menu', () => {
   }
 })
 
+describe('the media surface', () => {
+  it('stays ink black in both modes and every theme, with the caption at 4.5:1 on it', () => {
+    for (const mode of ['light', 'dark'] as const) {
+      for (const theme of THEME_NAMES) {
+        const values = tokensFor(mode, theme)
+        expect(values['--color-media-bg'], `${mode} ${theme}`).toBe(values['--ink-black'])
+        expect(values['--color-media-bg'], `${mode} ${theme}`).toBe('#0F172A')
+        expect(
+          contrast(values['--color-text-on-fill'], values['--color-media-bg']),
+          `${mode} ${theme}`,
+        ).toBeGreaterThanOrEqual(4.5)
+      }
+    }
+  })
+})
+
 describe('the badge', () => {
   /** Each `lintje-badge` tone as `badge.css` draws it: [ink, fill]. */
   const TONES: Record<string, [string, string]> = {
@@ -1329,9 +1392,15 @@ describe('data and status colour', () => {
     'light-blue',
     'moss-green',
   ]
+  // The light colours that reach 3:1 as a line or a mark only by an edge; dark yellow's is its
+  // text colour.
+  const EDGED = ['mint-green', 'orange', 'pink', 'yellow', 'light-blue']
+  const edgeOf = (name: string) =>
+    name === 'dark-yellow' ? '--color-chart-dark-yellow-text' : `--color-chart-${name}-edge`
   const FIXED = [
     ...DATA.map((name) => `--data-${name}`),
     '--data-dark-yellow-text',
+    ...EDGED.map((name) => `--data-${name}-edge`),
     ...['success', 'warning', 'attention', 'error', 'info'].map((name) => `--status-${name}`),
     ...DATA.flatMap((name) => [75, 60, 45, 30, 15].map((step) => `--data-${name}-${step}`)),
     ...DATA.map((name) => `--color-chart-${name}`),
@@ -1353,7 +1422,7 @@ describe('data and status colour', () => {
     expect([...DATA_COLORS]).toEqual(DATA)
     const ROLES = ['comparison', 'other', 'dark-yellow-text', 'grid', 'emphasis']
     const primitives = Object.keys(LIGHT)
-      .filter((token) => /^--data-[a-z-]+$/.test(token) && !/-\d+$/.test(token))
+      .filter((token) => /^--data-[a-z-]+$/.test(token) && !/-(\d+|edge)$/.test(token))
       .map((token) => token.slice('--data-'.length))
       .filter((name) => !ROLES.includes(name))
     expect(primitives).toEqual(DATA)
@@ -1389,6 +1458,33 @@ describe('data and status colour', () => {
       expect(contrast(values[ink], values[`--data-${name}`]), name).toBeGreaterThanOrEqual(4.5)
     }
   })
+
+  it('edges every colour under 3:1 on the surface or the land, halfway to black', () => {
+    const light = tokensFor('light')
+    const grounds = [light['--neutral-0'], light['--color-map-land']]
+    const short = DATA.filter((name) =>
+      grounds.some((ground) => contrast(light[`--data-${name}`], ground) < 3),
+    )
+    expect(short).toEqual(['dark-yellow', ...EDGED])
+    for (const name of short) {
+      for (const ground of grounds) {
+        expect(contrast(light[edgeOf(name)], ground), name).toBeGreaterThanOrEqual(3)
+      }
+    }
+    for (const name of EDGED) {
+      expect(light[`--data-${name}-edge`], name).toBe(mix(light[`--data-${name}`], 0.5, '#000000'))
+    }
+  })
+
+  for (const theme of THEME_NAMES) {
+    it(`melts every edge into its colour in dark, for ${theme}`, () => {
+      const dark = tokensFor('dark', theme)
+      for (const name of ['dark-yellow', ...EDGED]) {
+        expect(dark[edgeOf(name)], name).toBe(dark[`--data-${name}`])
+        expect(contrast(dark[`--data-${name}`], DARK_SURFACE), name).toBeGreaterThanOrEqual(3)
+      }
+    })
+  }
 
   it('keeps the shared ladder as the sky blue’s, the default colour', () => {
     const values = tokensFor('light')

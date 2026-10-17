@@ -68,6 +68,23 @@ describe('the legend', () => {
     const buttons = [...element.querySelectorAll('.lintje-legend__button')]
     expect(buttons.map((button) => button.textContent?.trim())).toEqual(['Aanvragen', 'Norm'])
   })
+
+  it('edges the shape of a light colour in its dark edge, and not a dark one', () => {
+    const element = host([
+      {
+        label: 'Licht',
+        color: 'var(--color-chart-mint-green)',
+        symbol: 'mint-green',
+        shape: 'point',
+      },
+      { label: 'Donker', color: 'var(--color-chart-sky-blue)', symbol: 'sky-blue', shape: 'point' },
+    ])
+    const shapes = [...element.querySelectorAll('.lintje-legend__marker--symbol path')]
+    expect(shapes.map((shape) => shape.getAttribute('stroke'))).toEqual([
+      'var(--color-chart-mint-green-edge)',
+      null,
+    ])
+  })
 })
 
 describe('the boundary of a forecast', () => {

@@ -150,7 +150,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
                 stroke=${ahead ? edge : nothing}
                 data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
                 aria-pressed=${mark.pressed} aria-label=${mark.label}
-                @click=${mark.click} @keydown=${mark.keydown} />
+                @click=${mark.click} @auxclick=${mark.click} @keydown=${mark.keydown} />
           ${
             interval
               ? svg`<path class="lintje-chart__interval" stroke=${edge}
