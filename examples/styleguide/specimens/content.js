@@ -512,14 +512,14 @@ export default {
         },
         {
           label: 'Sprekers in kleur',
-          note: 'De legenda van de sprekers staat erboven.',
+          note: 'De legenda van de sprekers staat erboven. Halverwege afgespeeld: wat nog komt, heeft een lichtere kleur van dezelfde spreker.',
           html: audio(),
           setup(stage) {
             const player = stage.querySelector('lintje-audio-player')
             player.peaks = PEAKS
             player.segments = SEGMENTS
             player.src = silentRecording()
-            player.currentTime = 20
+            player.currentTime = 45
           },
         },
         {
@@ -548,7 +548,7 @@ export default {
             const player = stage.querySelector('lintje-audio-player')
             player.segments = SEGMENTS
             player.src = silentRecording()
-            player.currentTime = 20
+            player.currentTime = 45
           },
         },
         {
@@ -609,7 +609,7 @@ export default {
         },
         {
           label: 'Menu met meer opties',
-          note: 'Het menu zet ondertiteling, audiodescriptie en snelheid.',
+          note: 'Het menu zet audiodescriptie en snelheid; op een smalle balk ook de ondertiteling.',
           html: '<lintje-video-player name="Hoorzitting zaal 4" captions></lintje-video-player>',
           async setup(stage) {
             const player = stage.querySelector('lintje-video-player')
@@ -791,6 +791,14 @@ export default {
           html: '<lintje-log-viewer></lintje-log-viewer>',
           setup(stage) {
             wireLog(stage, { live: true, lines: MIXED_LOG })
+          },
+        },
+        {
+          label: 'Niets voor dit filter',
+          note: '"Filter wissen" vraagt de host om alle regels terug.',
+          html: '<lintje-log-viewer></lintje-log-viewer>',
+          setup(stage) {
+            wireLog(stage, { live: true, filter: { search: 'certificaat', onlyHits: true } })
           },
         },
         {

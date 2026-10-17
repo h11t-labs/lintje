@@ -23,7 +23,7 @@ import '../../components/frame/shell/shell'
 import '../../components/map/map/map'
 import '../../components/tables/card/card'
 import '../../components/tables/data-table/data-table'
-import type { ExplainerData, MapData, ShellData } from '../../types'
+import type { DataTableData, ExplainerData, MapData, ShellData } from '../../types'
 
 declare module 'vitest/browser' {
   interface BrowserCommands {
@@ -173,6 +173,57 @@ describe('the shell on paper', () => {
       expect(head.textContent).toContain('Dashboard Vergunningen · Acceptatie')
     })
   }
+})
+
+describe('a table on paper', () => {
+  const data: DataTableData = {
+    caption: 'Aanvragen per afdeling',
+    rowKey: 'id',
+    selectable: true,
+    groupBy: 'unit',
+    columns: [
+      { key: 'id', header: 'Aanvraag' },
+      { key: 'unit', header: 'Afdeling' },
+      { key: 'amount', header: 'Bedrag' },
+    ],
+    rows: [
+      { id: '1041', unit: 'Inkoop', amount: 120 },
+      { id: '1042', unit: 'Inkoop', amount: 360 },
+    ],
+    detailFields: [{ key: 'note', label: 'Toelichting' }],
+    rowActions: [{ value: 'openen', label: 'Openen' }],
+    groupTotals: { Inkoop: { amount: 480 } },
+    totals: { amount: 480 },
+  }
+
+  it('drops the control cells of a heading and a total, so their first cell lines up', async () => {
+    const table = await mount<HTMLElement & { data: DataTableData }>(
+      'lintje-data-table',
+      (element) => (element.data = data),
+    )
+    const root = table.shadowRoot!
+    const rows = ['__row', '__group-row', '__subtotal', '__total'].map((name) =>
+      root.querySelector(`.lintje-data-table__full .lintje-data-table${name}`)!,
+    )
+    const controls = rows.flatMap((row) => [
+      ...row.querySelectorAll(
+        ':scope > :is(.lintje-data-table__check-cell, .lintje-data-table__detail-cell, .lintje-data-table__action-cell)',
+      ),
+    ])
+    // A row, a heading, a subtotal and the total, each with a check, a detail and an action cell.
+    expect(controls).toHaveLength(12)
+    const read = () => ({
+      shown: controls.filter((cell) => getComputedStyle(cell).display !== 'none').length,
+      starts: rows.map((row) => {
+        const first = [...row.children].find((cell) => getComputedStyle(cell).display !== 'none')
+        return Math.round(first!.getBoundingClientRect().left)
+      }),
+    })
+    const { screen, paper } = await onPaper(read)
+    expect(screen.shown).toBe(12)
+    expect(paper.shown).toBe(0)
+    expect(new Set(paper.starts).size).toBe(1)
+  })
 })
 
 describe('what folds shut is printed open', () => {

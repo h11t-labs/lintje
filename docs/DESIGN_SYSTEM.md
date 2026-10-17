@@ -96,7 +96,8 @@ De reeks mist een stap tussen het menu en het oppervlak; de pagina is daar het m
 twee.
 
 Wit en bijna-zwart die in beide modi gelijk moeten blijven (tekst op een primaire knop, op het
-menu, een QR-code), zijn `--ink-white` en `--ink-black`, geen neutralen. Een QR-code wordt in
+menu, een QR-code, het beeld van een video), zijn `--ink-white` en `--ink-black`, geen neutralen.
+Een media-oppervlak heeft daarvoor een eigen token, niet dat van tekst op een lichte vulling. Een QR-code wordt in
 donker nooit geïnverteerd: veel camera-apps lezen alleen donkere modules op een lichte rustzone.
 De bibliotheek maakt de code zelf (de generator van Nayuki, meegeleverd), zodat elk deelmenu hem
 heeft zonder werk van de host.
@@ -447,6 +448,13 @@ De besluiten hieronder gelden voor alle elementen.
   eigen inhoud dragen, zonder vlak eromheen en zonder eigen kleur: in de kolom onder zijn kop,
   waar de rail langs doorloopt; in de rij en op een telefoon alleen die van de huidige stap,
   onder de rij of de balk.
+- **Een kalender is één maandraster**, in de datuminvoer en de datumreeks evengoed: zoveel weken
+  als de maand heeft, de dagen ernaast leeg, 1 px tussen de cellen, zodat twee gekozen dagen los
+  van elkaar blijven. Vandaag is een ring in de accentlijn, nooit een statuskleur; een gekozen
+  dag, en begin en eind van een periode, zijn gevuld in de primaire kleur met een lichtere rand,
+  en de dagen ertussen dragen een tint ervan die binnen een week doorloopt. Een dag is zelf een
+  cel van het raster, geen knop: de cel neemt de focus, de pijlen lopen erlangs en Enter en
+  spatie kiezen hem, zoals het datumraster van de WAI-ARIA Authoring Practices.
 
 ### Feedback
 
@@ -569,7 +577,9 @@ De besluiten hieronder gelden voor alle elementen.
   die nooit een kolom zijn, op desktop en telefoon dezelfde lijst. Open of dicht is beeld, geen
   toestand: het gaat niet naar de host en niet in de URL.
 - **Groepen houden de volgorde van de host.** Sorteren werkt binnen een groep, een pagina breekt
-  nooit in een groep, en een ingeklapte groep draagt haar subtotalen op haar eigen regel.
+  nooit in een groep, en een ingeklapte groep draagt haar subtotalen op haar eigen regel. In een
+  kiesbare tabel heeft een groepskop een vinkje voor haar rijen, aan, half of uit zoals "Alles
+  selecteren", ook ingeklapt.
 - **Een rij is klikbaar of selecteerbaar**, nooit allebei. Een naam die zijn rij opent, maakt de
   rij niet klikbaar: de naam is de link, dus een selecteerbare tabel kan zijn rijen nog steeds
   openen. Een naam die opent, wordt niet in zijn cel bewerkt.
@@ -939,6 +949,9 @@ kleinste correctie, en leg die hier vast.
 - **Wat vaak verandert, wordt niet uit de lijst zelf voorgelezen.** Streamende tekst, een
   takenlijst en een waarde die optelt, worden uitgesproken vanuit een live-regio ernaast, in hele
   zinnen.
+- **Nog niet geladen is iets anders dan leeg.** De eerste waarde die de host een lijst geeft, al
+  is het `[]`, is het laden en wordt niet voorgelezen; elke wijziging erna wel, ook de eerste rij
+  in een lijst die leeg laadde.
 - Een waarde die animeert, houdt haar eindwaarde in de toegankelijkheidsboom.
 - Tekst die met CSS `content` getekend wordt (een regelnummer, een placeholder), heeft een leeg
   alternatief, `content: … / ''`; wat een lezer ervan moet horen, staat in de markup
@@ -949,7 +962,9 @@ kleinste correctie, en leg die hier vast.
   af: hij loopt altijd door.
 - **Wat verdwijnt terwijl de focus erop staat, geeft de focus eerst door**: een toast terug naar
   waar hij vandaan kwam (anders `<main>`), een gesloten mededeling naar de volgende stop op de
-  pagina, "Alles gelezen" naar de eerste melding.
+  pagina, "Alles gelezen" naar de eerste melding. Een element dat leeg raakt en zelf niets
+  zichtbaars overhoudt, vraagt eerst de host met een event dat hij annuleert om de focus op zijn
+  eigen doel te zetten; anders gaat de focus naar de statusregel die zegt dat het leeg is.
 - **Een sessie die verloopt, waarschuwt minstens 20 seconden vooraf** en wordt met één knop
   verlengd (WCAG 2.2.1): in een `lintje-dialog alert persistent`, waarin Escape en de achtergrond
   niets doen omdat de sessie hoe dan ook afloopt.
@@ -1007,7 +1022,8 @@ kleinste correctie, en leg die hier vast.
   pijltoetsen lopen langs de categorieën met de tooltip, die een live-regio uitspreekt; Escape
   verbergt een tooltip. De tekening is een afbeelding, of een groep met haar beschrijving als naam
   zodra een teken een knop is. Een teken met focus krijgt zijn ring buiten een opening van 1 px in
-  het oppervlak, zodat een oranje teken zijn ring houdt. De nullijn, de arcering en de rand van
+  het oppervlak, zodat een oranje teken zijn ring houdt; op een kaart, waar tekens elkaar raken,
+  ligt het met die ring boven alle andere. De nullijn, de arcering en de rand van
   een kaartgebied met een cijfer halen 3:1; aangrenzende tinten worden gescheiden door een lijn in
   het oppervlak; een donkergele lijn krijgt een rand in zijn tekstkleur; een label op een vulling
   neemt de tekstkleur van die vulling; een gedimd teken of een uitgeschakelde reeks vervaagt zijn

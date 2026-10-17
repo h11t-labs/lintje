@@ -9,9 +9,9 @@
  *
  * Events: `lintje-sort-change` `{ key, direction } | null`, `lintje-row-click`
  * `{ id, label, href? }`, `lintje-row-open` `{ id, label, href? }`, `lintje-checked-change`
- * `string[]`, `lintje-cell-edit` `{ id, column, value }`, `lintje-row-action` `{ id, action }`,
- * `lintje-bulk-action` `{ ids, action }`, `lintje-filter-change` `{ column, value }`,
- * `lintje-columns-change` `{ order, hidden }`.
+ * `string[]`, `lintje-cell-edit` `{ id, column, value }`, `lintje-row-action`
+ * `{ id, label, action }`, `lintje-bulk-action` `{ ids, action }`, `lintje-filter-change`
+ * `{ column, value }`, `lintje-columns-change` `{ order, hidden }`.
  */
 import {
   html,
@@ -52,6 +52,8 @@ import type { SortableItem } from '../sortable-list/sortable-list'
 import type {
   CellValue,
   DataTableData,
+  RowActionDetail,
+  RowClickDetail,
   SortState,
   StatusTone,
   TableColumnData,
@@ -83,7 +85,6 @@ import {
 } from './filters'
 
 type Row = Record<string, CellValue>
-type RowDetail = { id: string; label: string; href?: string }
 
 type Panel =
   | { kind: 'filter'; column: string; edges: ScrollEdges }
@@ -597,7 +598,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   /** The row's key, the name in its first column and the `href` the host minted on the row. */
-  private rowDetail(row: Row): RowDetail {
+  private rowDetail(row: Row): RowClickDetail {
     const id = this.rowKey(row)
     const nameColumn = this.columns[0]
     const name = nameColumn ? row[nameColumn.key] : null
@@ -607,6 +608,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
       label: name == null ? id : String(name),
       href: typeof href === 'string' && href !== '' ? href : undefined,
     }
+  }
+
+  private rowAction(row: Row, action: string): void {
+    const { id, label } = this.rowDetail(row)
+    this.emit('lintje-row-action', { id, label, action } satisfies RowActionDetail)
   }
 
   private get initialSort(): SortState {
@@ -1561,7 +1567,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
                 @keydown=${(event: Event) => event.stopPropagation()}
               >
                 ${renderRowActions(rowActions, this.rowDetail(row).label, (action) =>
-                  this.emit('lintje-row-action', { id, action }),
+                  this.rowAction(row, action),
                 )}
               </td>`
             : this.actionColumn
@@ -1622,7 +1628,6 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const data = this.data as DataTableData
     const column = this.groupColumn as TableColumnData
     const columns = this.shown
-    const lead = (data.selectable ? 1 : 0) + (this.detailColumns.length > 0 ? 1 : 0)
     const subtotals = data.groupTotals?.[group.key]
     const count = group.rows.length
     const heading = html`<button
@@ -1636,12 +1641,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
       <span class="lintje-data-table__group-count">${count} ${count === 1 ? 'rij' : 'rijen'}</span>
     </button>`
     return html`<tr class="lintje-data-table__group-row">
-      ${lead > 0 ? html`<td class="lintje-data-table__cell" colspan=${lead}></td>` : nothing}
+      ${this.leadCells(this.groupCheck(group))}
       <th scope="rowgroup" class="lintje-data-table__cell lintje-data-table__group-head">${heading}</th>
       ${columns
         .slice(1)
         .map((entry) => this.totalCell(entry, open ? undefined : subtotals?.[entry.key]))}
-      ${this.actionColumn ? html`<td class="lintje-data-table__cell"></td>` : nothing}
+      ${this.actionCell()}
     </tr>`
   }
 
@@ -1669,14 +1674,34 @@ export class LintjeDataTable extends LintjeContentTileElement {
     columns: TableColumnData[],
     totals: Record<string, TableTotal>,
   ): TemplateResult {
-    const data = this.data as DataTableData
-    const lead = (data.selectable ? 1 : 0) + (this.detailColumns.length > 0 ? 1 : 0)
     return html`<tr class=${className}>
-      ${lead > 0 ? html`<td class="lintje-data-table__cell" colspan=${lead}></td>` : nothing}
+      ${this.leadCells()}
       <th scope="row" class="lintje-data-table__cell lintje-data-table__sum-label">${label}</th>
       ${columns.slice(1).map((column) => this.totalCell(column, totals[column.key]))}
-      ${this.actionColumn ? html`<td class="lintje-data-table__cell"></td>` : nothing}
+      ${this.actionCell()}
     </tr>`
+  }
+
+  /**
+   * The check and detail cells before a group's or a total's name: one per column, with its
+   * class, so paper drops them as it drops the column. Only a group's heading has a check.
+   */
+  private leadCells(check: unknown = nothing): TemplateResult {
+    return html`${
+      this.data?.selectable
+        ? html`<td class="lintje-data-table__cell lintje-data-table__check-cell">${check}</td>`
+        : nothing
+    }${
+      this.detailColumns.length > 0
+        ? html`<td class="lintje-data-table__cell lintje-data-table__detail-cell"></td>`
+        : nothing
+    }`
+  }
+
+  private actionCell(): TemplateResult | typeof nothing {
+    return this.actionColumn
+      ? html`<td class="lintje-data-table__cell lintje-data-table__action-cell"></td>`
+      : nothing
   }
 
   private totalCell(column: TableColumnData, total: TableTotal | undefined): TemplateResult {
@@ -2000,7 +2025,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
                   ${
                     rowActions
                       ? renderRowActions(rowActions, detail.label, (action) =>
-                          this.emit('lintje-row-action', { id, action }),
+                          this.rowAction(row, action),
                         )
                       : nothing
                   }
@@ -2029,18 +2054,24 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const column = this.groupColumn as TableColumnData
     const subtotal = this.data?.groupTotals?.[group.key]?.[measureColumn.key]
     const count = group.rows.length
+    const toggle = html`<button
+      type="button"
+      class="lintje-data-table__group-toggle"
+      aria-expanded=${open ? 'true' : 'false'}
+      @click=${() => this.toggleGroup(group.key)}
+    >
+      ${renderIcon('functioneel-delta-omlaag', { size: 16, rotate: open ? undefined : 270 })}
+      <span class="lintje-data-table__group-name">${this.cell(column, group.value)}</span>
+      <span class="lintje-data-table__group-count">${count} ${count === 1 ? 'rij' : 'rijen'}</span>
+    </button>`
+    const check = this.groupCheck(group)
     return html`<tr class="lintje-data-table__group-row">
       <th scope="rowgroup" class="lintje-data-table__mobile-cell lintje-data-table__group-head">
-        <button
-          type="button"
-          class="lintje-data-table__group-toggle"
-          aria-expanded=${open ? 'true' : 'false'}
-          @click=${() => this.toggleGroup(group.key)}
-        >
-          ${renderIcon('functioneel-delta-omlaag', { size: 16, rotate: open ? undefined : 270 })}
-          <span class="lintje-data-table__group-name">${this.cell(column, group.value)}</span>
-          <span class="lintje-data-table__group-count">${count} ${count === 1 ? 'rij' : 'rijen'}</span>
-        </button>
+        ${
+          check === nothing
+            ? toggle
+            : html`<span class="lintje-data-table__mobile-check">${check}${toggle}</span>`
+        }
       </th>
       <td class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--align-right">
         ${
@@ -2281,6 +2312,31 @@ export class LintjeDataTable extends LintjeContentTileElement {
       rows.length > 0 && count === rows.length,
       count > 0,
       (on) => this.setChecked(on ? rows.map((row) => this.rowKey(row)) : []),
+    )
+  }
+
+  /**
+   * A group's box: on, half or off by its rows that can be checked. It leaves other groups as they
+   * are; a group without such rows has none.
+   */
+  private groupCheck(group: Group): TemplateResult | typeof nothing {
+    if (!this.data?.selectable) return nothing
+    const uncheckable = this.uncheckable
+    const ids = group.rows.map((row) => this.rowKey(row)).filter((id) => !uncheckable.has(id))
+    if (ids.length === 0) return nothing
+    const checked = new Set(this.checkedIds)
+    const count = ids.filter((id) => checked.has(id)).length
+    const name = formatText(this.groupColumn as TableColumnData, group.value) ?? 'Zonder waarde'
+    return this.checkbox(
+      html`<span class="visually-hidden">${`Groep ${name} selecteren`}</span>`,
+      count === ids.length,
+      count > 0,
+      (on) => {
+        const inGroup = new Set(ids)
+        this.setChecked(
+          on ? withRange(this.checkedIds, ids) : this.checkedIds.filter((id) => !inGroup.has(id)),
+        )
+      },
     )
   }
 

@@ -1082,6 +1082,11 @@ export default {
           note: 'Met `stacked` krijgt het veld de volle breedte en de aanraakhoogte.',
           html: '<lintje-date-input label="Datum" value="2026-10-03" stacked></lintje-date-input>',
         },
+        {
+          label: 'Kalender open',
+          note: 'Hetzelfde maandraster als de datumreeks: vandaag met een ring, de gekozen dag gevuld.',
+          html: '<lintje-date-input label="Datum" value="2026-10-03" today="2026-10-14" open></lintje-date-input>',
+        },
       ],
     },
     {
@@ -1152,6 +1157,17 @@ export default {
           label: 'Uitgeschakeld',
           html: '<lintje-date-range label="Periode" disabled></lintje-date-range>',
           setup: setRange,
+        },
+        {
+          label: 'Open met een gekozen periode',
+          note: 'De dagen tussen begin en eind zijn getint, ook over het weekend heen.',
+          html: '<lintje-date-range label="Periode"></lintje-date-range>',
+          async setup(stage) {
+            setRange(stage)
+            const element = stage.querySelector('lintje-date-range')
+            await element.updateComplete
+            element.shadowRoot.querySelector('.lintje-date-range-picker__field').click()
+          },
         },
       ],
     },
