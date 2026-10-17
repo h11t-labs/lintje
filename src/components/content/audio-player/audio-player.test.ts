@@ -3,6 +3,7 @@
  * cannot play media, so the `<audio>` is stubbed: its duration is defined and its events are
  * dispatched by hand, the way a browser would.
  */
+import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import './audio-player'
 import type { LintjeAudioPlayer } from './audio-player'
@@ -347,6 +348,39 @@ describe('lintje-audio-player', () => {
     )
     const swatch = root(element).querySelector<HTMLElement>('.lintje-audio-player__swatch')!
     expect(swatch.style.getPropertyValue('--lintje-speaker')).toBe('var(--color-chart-sky-blue)')
+  })
+
+  it('draws what is still to come in a lighter colour of its speaker, not see-through', async () => {
+    const element = await mount({
+      peaks: [0.5, 0.5, 0.5, 0.5],
+      segments: [
+        { start: 0, speaker: 'Spreker 1' },
+        { start: 60, speaker: 'Spreker 2' },
+      ],
+    })
+    await loaded(element, 120)
+    element.currentTime = 60
+    ;(element as unknown as { waveWidth: number }).waveWidth = 24
+    await element.updateComplete
+    const peaks = [...root(element).querySelectorAll<HTMLElement>('.lintje-audio-player__peak')]
+    const ahead = peaks.at(-1)!
+    expect(peaks[0]!.classList.contains('is-played')).toBe(true)
+    expect(ahead.classList.contains('is-played')).toBe(false)
+    expect(ahead.classList.contains('has-speaker')).toBe(true)
+    expect(ahead.style.getPropertyValue('--lintje-speaker')).toBe('var(--color-chart-dark-yellow)')
+    expect(ahead.style.opacity).toBe('')
+    // happy-dom has no cascade: the colour is checked as the rule that draws it.
+    const css = readFileSync(
+      'src/components/content/audio-player/audio-player.css',
+      'utf8',
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
+    const rule = css.match(
+      /\.lintje-audio-player__peak\.has-speaker:not\(\.is-played\),\s*\.lintje-audio-player__stretch:not\(\.is-played\)\s*\{([^}]*)\}/,
+    )
+    expect(rule?.[1]).toContain(
+      'background: color-mix(in srgb, var(--lintje-speaker) var(--tint-speaker-ahead), var(--color-bg-surface));',
+    )
+    expect(css).not.toMatch(/opacity/)
   })
 
   it('leaves the legend to the transcript with no-legend, and keeps the speaker in the slider', async () => {

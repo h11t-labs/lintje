@@ -584,6 +584,9 @@
   /* A speaker's colour under a whole fragment: this share of it over the surface, so text keeps
      its contrast in light and in dark. */
   --tint-speaker: 12%;
+  /* What a recording still has to play: this share of the speaker's colour over the surface; in
+     light that is the `-tint-4` step of its ladder. */
+  --tint-speaker-ahead: 45%;
 
   /* These map colours stay deliberately neutral so the data is the only colour on the map. */
   --color-map-water: var(--neutral-0);

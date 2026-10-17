@@ -501,14 +501,14 @@ export default {
         },
         {
           label: 'Sprekers in kleur',
-          note: 'De legenda van de sprekers staat erboven.',
+          note: 'De legenda van de sprekers staat erboven. Halverwege afgespeeld: wat nog komt, heeft een lichtere kleur van dezelfde spreker.',
           html: audio(),
           setup(stage) {
             const player = stage.querySelector('lintje-audio-player')
             player.peaks = PEAKS
             player.segments = SEGMENTS
             player.src = silentRecording()
-            player.currentTime = 20
+            player.currentTime = 45
           },
         },
         {
@@ -537,7 +537,7 @@ export default {
             const player = stage.querySelector('lintje-audio-player')
             player.segments = SEGMENTS
             player.src = silentRecording()
-            player.currentTime = 20
+            player.currentTime = 45
           },
         },
         {
