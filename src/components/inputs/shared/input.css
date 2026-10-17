@@ -1,28 +1,60 @@
 /*
- * The fields' own boxes and the `.lintje-choice` rules of the checkbox, radio and toggle.
- * `lintje-data-table` adopts this sheet too for its selectable rows' checkbox; the
- * `:host(lintje-multiselect)` blocks do not match there.
+ * What the inputs share: their hosts, the box of the text, date and time fields, and the
+ * `.lintje-choice` of the checkbox, radio and toggle. `lintje-data-table` adopts this sheet too,
+ * for its selectable rows' checkbox: the rules that lay out a field's host name its tag.
  */
-:host(lintje-multiselect) {
-  display: block;
-  min-width: 0;
-  width: 180px;
-}
-:host(lintje-range) {
-  display: block;
-  min-width: 0;
-  width: 180px;
-}
-:host(lintje-text-input),
-:host(lintje-number-input),
 :host(lintje-checkbox),
 :host(lintje-checkbox-group),
-:host(lintje-toggle),
-:host(lintje-radio-group) {
+:host(lintje-combobox),
+:host(lintje-date-input),
+:host(lintje-file-upload),
+:host(lintje-multiselect),
+:host(lintje-number-input),
+:host(lintje-radio-group),
+:host(lintje-range),
+:host(lintje-slot-picker),
+:host(lintje-tag-input),
+:host(lintje-text-editor),
+:host(lintje-text-input),
+:host(lintje-textarea),
+:host(lintje-time-input),
+:host(lintje-toggle) {
   display: block;
   min-width: 0;
 }
+/* `min-width: auto`: the segmented control never shrinks below its options, and the select and
+   the date range stop at their content's width in a narrow row. */
+:host(lintje-date-range),
+:host(lintje-segmented),
+:host(lintje-select) {
+  display: block;
+}
+:host(lintje-multiselect),
+:host(lintje-range),
+:host(lintje-select) {
+  width: 180px;
+}
+:host(lintje-time-input) { width: 120px; }
 :host([hidden]) { display: none; }
+/* Below 768 px: the full width, as `stacked`, and the touch height. The text and number fields
+   keep their own width: in a row they would grow. */
+@media screen and (max-width: 767px) {
+  :host(lintje-combobox),
+  :host(lintje-date-input),
+  :host(lintje-tag-input),
+  :host(lintje-textarea),
+  :host(lintje-time-input) {
+    width: 100%;
+  }
+  :host(lintje-combobox),
+  :host(lintje-date-input),
+  :host(lintje-number-input),
+  :host(lintje-tag-input),
+  :host(lintje-text-input),
+  :host(lintje-time-input) {
+    --h-control: var(--h-touch);
+  }
+}
 /* A choice's control and its gap to the label text: the hint and error under a lone choice
    indent by both, so they start where the label text does. */
 :host { --lintje-choice-control: 24px; --lintje-choice-gap: 10px; }
@@ -75,6 +107,57 @@
 }
 .lintje-field__addon.is-readonly { color: var(--color-text-primary); }
 .lintje-field__addon.is-disabled { color: var(--color-text-disabled); }
+
+/* --- The box of the text, date and time fields ----------------------------- */
+/* The frame and the typing part in it; in the date and time fields the input is both. */
+.lintje-field__box {
+  height: var(--h-control);
+  border: 1px solid var(--color-border-field);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius);
+}
+.lintje-field__box.is-error { border: 2px solid var(--color-error); }
+/* Read-only as disabled: the subtle surface, the strong border; its text stays primary. */
+.lintje-field__box.is-readonly,
+.lintje-field__box.is-disabled,
+.lintje-field__box:disabled {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-subtle);
+}
+.lintje-field__control {
+  padding: 0 14px;
+  color: var(--color-text-primary);
+  font-size: 1rem;
+}
+.lintje-field__control::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+/* Off, the hint in an empty field is as faint as a value would be: else the field looks on. */
+.lintje-field__control:disabled::placeholder { color: var(--color-text-disabled); }
+.lintje-field__control:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
+
+/* The button inside the box at its end: the date's calendar, the time's list. */
+.lintje-field__toggle {
+  position: absolute; top: 1px; right: 1px;
+  width: calc(var(--h-control) - 2px); height: calc(var(--h-control) - 2px);
+  display: flex; align-items: center; justify-content: center;
+  border-left: 1px solid var(--color-border-default);
+  background: transparent;
+  color: var(--color-accent-text);
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+/* A transparent hit area reaches the target height, never to the left where the typing part is. */
+.lintje-field__toggle::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) min(0px, calc(100% - var(--h-target)))
+    min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+/* The button steps in past the 2 px error border; a disabled field has 1 px again. */
+.lintje-field__box.is-error:not(:disabled) + .lintje-field__toggle {
+  top: 2px; right: 2px;
+  width: calc(var(--h-control) - 4px); height: calc(var(--h-control) - 4px);
+}
+.lintje-field__toggle:hover:not(:disabled) { background: var(--color-bg-subtle); }
+.lintje-field__toggle:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
 
 /* --- A setting's row: name and hint on the left, the control on the right ----- */
 /* A row reads its own width, not the screen's: in a drawer it stays a column. */

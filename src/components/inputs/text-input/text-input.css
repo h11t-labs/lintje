@@ -7,20 +7,6 @@
 .lintje-text-input__box {
   flex: 1; min-width: 0;
   display: flex; align-items: stretch;
-  height: var(--h-control);
-  border: 1px solid var(--color-border-field);
-  background: var(--color-bg-surface);
-  border-radius: var(--radius);
-}
-.lintje-text-input__box.is-error { border: 2px solid var(--color-error); }
-/* Read-only: the subtle surface, the strong border, the text still primary. */
-.lintje-text-input__box.is-readonly {
-  border: 1px solid var(--color-border-strong);
-  background: var(--color-bg-subtle);
-}
-.lintje-text-input__box.is-disabled {
-  border: 1px solid var(--color-border-strong);
-  background: var(--color-bg-subtle);
 }
 .lintje-text-input__entry {
   position: relative;
@@ -29,17 +15,10 @@
 }
 .lintje-text-input__control {
   flex: 1; min-width: 0; align-self: stretch;
-  padding: 0 14px;
   border: 0;
   background: none;
-  color: var(--color-text-primary);
-  font-size: 1rem;
 }
-.lintje-text-input__control::placeholder { color: var(--color-text-placeholder); opacity: 1; }
-/* Off, the hint in an empty field is as faint as a value would be: else the field looks on. */
-.lintje-text-input__control:disabled::placeholder { color: var(--color-text-disabled); }
 .lintje-text-input__control[readonly] { cursor: default; }
-.lintje-text-input__control:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
 .lintje-text-input--clearable .lintje-text-input__control {
   padding-right: calc(var(--h-icon-button) + var(--space-1));
 }

@@ -1,13 +1,8 @@
 /* The multi-line text field. */
-:host { display: block; min-width: 0; }
-:host([hidden]) { display: none; }
+
 /* Plain takes the type of where it stands, past the UI type every element sets on itself, and
    fills the height the surface gives it. */
 :host([variant='plain']) { display: flex; flex-direction: column; font: inherit; }
-/* Below 768 px: the full width, as `stacked`. */
-@media screen and (max-width: 767px) {
-  :host { width: 100%; }
-}
 
 /* --- */
 

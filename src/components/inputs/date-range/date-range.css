@@ -1,9 +1,4 @@
 /* The date range picker: a field and its popover, fixed to the viewport at the field. */
-:host {
-  display: block;
-}
-
-/* --- */
 
 .lintje-date-range-picker { display: flex; flex-direction: column; gap: var(--space-2); }
 .lintje-date-range-picker__field {
@@ -92,11 +87,6 @@
   font: var(--text-small); color: var(--color-text-muted);
 }
 .lintje-date-range-picker__actions { display: flex; gap: var(--space-2); justify-content: flex-end; }
-
-/* --- Stacked in the filter sheet ----------------------------------------- */
-:host([stacked]) {
-  width: 100%;
-}
 
 /* Below 768 px the 48 px cells would run off a narrow phone: the popover keeps the page's gutter
    on either side and the cells share what is left. */

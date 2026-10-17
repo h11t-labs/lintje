@@ -1,7 +1,4 @@
-/* The segmented control keeps `min-width: auto`: it never shrinks below its options. */
-:host { display: block; }
-
-/* ------------------------------------------------------------------------ */
+/* The segmented control: a few short options in one frame. */
 
 /* The frame hugs its options: a wider host leaves its room outside the border, not in it. It
    never grows past its room, so the element can read that room off the frame. */
