@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Datacatalogus — Lintje</title>
+    <title>Start — Datacatalogus</title>
     <!--
       Datacatalogus: every product of a data platform in one place — data products, AI services
       and dashboards — whether the reader has access or not, with the owner and the way in. A
@@ -105,7 +105,8 @@
           <lintje-card-list id="favourites" heading-level="3"></lintje-card-list>
         </section>
         <section class="section" aria-labelledby="kinds-title">
-          <h2 class="section__title" id="kinds-title">Bladeren per soort</h2>
+          <!-- `tabindex`: the focus comes here when the last favourite goes. -->
+          <h2 class="section__title" id="kinds-title" tabindex="-1">Bladeren per soort</h2>
           <lintje-card-list id="kinds" heading-level="3"></lintje-card-list>
         </section>
         <section class="section" aria-labelledby="popular-title">

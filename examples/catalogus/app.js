@@ -5,6 +5,7 @@
  * fictional. The reader's favourites stand in localStorage, where a real application would ask
  * its server.
  */
+import { focusOn, handOff } from '../_shared/page.js'
 import { THEMES, answerLogout, carry, emblem, modeOf, searchWith, shellSettingsOf, themeOf } from '../_shared/settings.js'
 
 let params = new URLSearchParams(location.search)
@@ -340,6 +341,8 @@ function drawStart() {
 /** The cards of the start page, again after a heart changed. */
 function drawStartCards() {
   const mine = PRODUCTS.filter(isFavourite).sort((a, b) => a.title.localeCompare(b.title, 'nl'))
+  // The last heart goes with its section; the focus goes to the section after it.
+  if (!mine.length) handOff($('favourites-section'), $('kinds-title'))
   $('favourites-section').hidden = !mine.length
   $('favourites').items = mine.map(card)
   $('popular').items = PRODUCTS.filter((item) => item.popular)
@@ -423,7 +426,17 @@ $('filters').addEventListener('lintje-values-change', (event) => {
   history.replaceState(null, '', `${location.pathname}?${params}`)
   renderCatalogue()
 })
+/** The bar's first filter, or the toggle that unfolds the filters while they are folded away. */
+function focusFirstFilter() {
+  const bar = $('filters').shadowRoot
+  const first = bar?.querySelector('lintje-filter-zone lintje-field > *')
+  const shown = first?.checkVisibility?.({ visibilityProperty: true })
+  focusOn(shown ? first : bar?.querySelector('lintje-filter-zone'))
+}
+
 $('reset').addEventListener('click', () => {
+  // "Alle filters wissen" goes with the empty result: the focus goes to the filters it cleared.
+  handOff($('reset'), focusFirstFilter)
   for (const key of ['q', ...FILTERS.map((filter) => filter.key)]) params.delete(key)
   history.replaceState(null, '', `${location.pathname}?${params}`)
   renderCatalogue()
@@ -546,6 +559,8 @@ if (view === 'start') renderStart()
 else if (view === 'catalogue') renderCatalogue()
 else if (view === 'about') renderAbout()
 else renderProduct(product)
+// Every view is a page of its own; the tab reads which.
+document.title = `${view === 'start' ? 'Start' : $('page-header').data.title} — Datacatalogus`
 
 /** The view again after the favourites changed: the hearts, and what shows because of them. */
 function redraw() {

@@ -37,6 +37,8 @@ stylesheet en één module nodig; al het andere is markup die je template schrij
 <html lang="nl" data-mode="light">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nieuwe melding — Meldingen</title>
     <link rel="stylesheet" href="/static/lintje/fonts.css" /> <!-- with fonts/ beside it; optional -->
     <link rel="stylesheet" href="/static/lintje/tokens.css" />
     <script type="module" src="/static/lintje/lintje.js"></script>
@@ -70,6 +72,10 @@ stylesheet en één module nodig; al het andere is markup die je template schrij
 </html>
 ```
 
+De `<title>` noemt de pagina vóór de applicatie: zo heet ze in het tabblad, de geschiedenis en
+een bladwijzer. Zonder de viewport-regel rekent een telefoon met een venster van ongeveer 980 px en
+toont hij de desktopvorm verkleind: geen menuknop, geen filtersheet, geen telefoonvorm van de tabel.
+
 Drie dingen laten dit werken zonder eigen script.
 
 **Links zijn links.** De navigatie tekent echte `<a href>`-elementen en de browser volgt
@@ -102,6 +108,33 @@ bedieningselement onder zijn `name` post:
 
 Toon een geweigerde waarde door het veld te renderen met zijn `error`-attribuut. Een `error` houdt het
 versturen niet tegen: het is het antwoord van de server op een eerdere verzending.
+
+Zet bij een geweigerde verzending ook de fouten bij elkaar, boven het formulier: `lintje-error-summary`,
+met per fout een link naar zijn veld. `field` is de `name` van het veld; de link zet de focus erin.
+Het overzicht werkt ook buiten `lintje-form`, maar neemt de focus niet zelf: de pagina zet hem er
+één keer op als ze geladen is, zodat de lezer eerst hoort wat er mis is en niet bovenaan begint.
+
+```html
+<lintje-error-summary id="fouten">
+  <script type="application/json" data-prop="items">
+    [
+      { "field": "naam", "label": "Naam", "message": "Vul je naam in" },
+      { "field": "omschrijving", "label": "Omschrijving", "message": "Vul een omschrijving in" }
+    ]
+  </script>
+</lintje-error-summary>
+<form method="post" action="/meldingen">
+  <lintje-text-input name="naam" label="Naam" error="Vul je naam in"></lintje-text-input>
+  <lintje-textarea name="omschrijving" label="Omschrijving" error="Vul een omschrijving in"></lintje-textarea>
+  …
+</form>
+<script type="module">
+  const summary = document.getElementById('fouten')
+  await customElements.whenDefined('lintje-error-summary')
+  await summary.updateComplete // drawn, with its frame to focus
+  summary.focus()
+</script>
+```
 
 ## Een pagina met script
 

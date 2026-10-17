@@ -257,6 +257,9 @@ export function renderReference(
       all.textContent = 'Alle tonen'
       all.addEventListener('click', () => {
         for (const row of rest) row.hidden = false
+        // The button goes with its row; the focus goes to the first attribute it showed.
+        rest[0].tabIndex = -1
+        rest[0].focus()
         more.hidden = true
         rest = []
       })

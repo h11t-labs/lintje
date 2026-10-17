@@ -255,10 +255,10 @@ function follow(href, { keepScroll = false } = {}) {
     location.href = url.href
     return
   }
-  // A link within the page (`#referentie`) only scrolls.
+  // A link within the page (`#referentie`) only scrolls, and takes the focus along.
   if (url.search === location.search && url.hash) {
     history.replaceState(null, '', url.href)
-    reveal()
+    reveal({ focus: true })
     return
   }
   const before = placeOf(new URL(location.href))
@@ -268,8 +268,11 @@ function follow(href, { keepScroll = false } = {}) {
   if (same) history.replaceState(null, '', target)
   else history.pushState(null, '', target)
   render({ keepScroll })
-  if (url.hash && !url.hash.startsWith('#el-')) reveal()
-  else if (!keepScroll) window.scrollTo(0, 0)
+  if (url.hash && !url.hash.startsWith('#el-')) return reveal({ focus: true })
+  if (!keepScroll) window.scrollTo(0, 0)
+  // Another page, or the same one drawn anew for another kind, without a page load: the keyboard
+  // and a screen reader start at its content instead of at `body`.
+  if (!same || before.group !== after.group) shell.focusContent()
 }
 
 // The shell asks; the page decides. A category or an element is a page of this guide, another
@@ -354,12 +357,16 @@ appSearch.addEventListener('lintje-navigate', (event) => {
  * Goes to the place the hash names. The sections did not exist when the browser applied the
  * hash, and they have their height only once the elements in them have rendered.
  */
-async function reveal() {
+async function reveal({ focus = false } = {}) {
   const target = document.getElementById(location.hash.slice(1))
   if (!target) return
   await Promise.all([...host.querySelectorAll('*')].map((node) => node.updateComplete))
   await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
   target.scrollIntoView()
+  // Followed from a link, the focus goes along: else Tab would go on from the link.
+  if (!focus) return
+  if (target.tabIndex < 0 && !target.hasAttribute('tabindex')) target.tabIndex = -1
+  target.focus({ preventScroll: true })
 }
 
 // The guide is one page: a link inside a specimen goes nowhere.
@@ -369,10 +376,13 @@ for (const name of ['lintje-navigate', 'lintje-row-click', 'lintje-notification-
 // A link to an element's older address: draw its page.
 window.addEventListener('hashchange', () => {
   if (location.hash.startsWith('#el-')) follow(location.href)
-  else reveal()
+  else reveal({ focus: true })
 })
 // Back and forward: the address has changed, draw what it says.
-window.addEventListener('popstate', () => render())
+window.addEventListener('popstate', () => {
+  render()
+  shell.focusContent()
+})
 
 render()
 reveal()

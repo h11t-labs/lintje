@@ -410,7 +410,8 @@ export function renderElementPage(host, item, context) {
   nav.expanded = true
   nav.label = 'Op deze pagina'
   main.append(...Object.values(panels))
-  page.append(main, nav)
+  // First in the source, so Tab and a screen reader reach it where it shows below 1024 px.
+  page.append(nav, main)
   const counts = {}
   const drawTabs = () => {
     tabs.tabs = shownTabs.map(([value, label]) => ({
@@ -528,12 +529,18 @@ export function renderElementPage(host, item, context) {
         shownBy.set(key, [...(shownBy.get(key) ?? []), label])
   }
 
-  // "Te zien in" leads to the specimen of that name.
+  // "Te zien in" leads to the specimen of that name, and the focus to its heading: the tab it
+  // was pressed in is hidden now.
   const onSeen = (name) => {
     open('voorbeelden')
     const row = [...examples.querySelectorAll('.guide__example')].find(
       (node) => node.querySelector('.guide__example-name')?.textContent === name,
     )
+    const head = row?.querySelector('.guide__example-name')
+    if (head) {
+      head.tabIndex = -1
+      head.focus({ preventScroll: true })
+    }
     requestAnimationFrame(() => row?.scrollIntoView({ block: 'start' }))
   }
 

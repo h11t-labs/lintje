@@ -13,6 +13,7 @@ terwijl de lezer scrolt.
 
 ```html
 <div class="artikel">
+  <lintje-sub-nav expanded label="Op deze pagina"></lintje-sub-nav>
   <article>
     <h2 id="wie">Wie kan een vergunning aanvragen</h2>
     …
@@ -20,7 +21,6 @@ terwijl de lezer scrolt.
     <h3 id="online">Online aanvragen</h3>
     …
   </article>
-  <lintje-sub-nav expanded label="Op deze pagina"></lintje-sub-nav>
 </div>
 ```
 
@@ -88,6 +88,10 @@ De update na `load` en `resize` vangt een pagina die pas na het script haar hoog
 Vanaf 1024 px staat de lijst naast de tekst en plakt ze onder de balk van de shell. Smaller staat ze
 boven de tekst, en onder 768 px is ze de knop van het submenu, die de lijst openklapt.
 
+In de broncode staat de lijst vóór de tekst. Smaller dan 1024 px bereiken Tab en een schermlezer
+haar dan waar je haar ziet, en niet pas na de hele tekst; vanaf 1024 px zet `order` haar rechts
+ernaast.
+
 ```css
 .artikel {
   display: flex;
@@ -99,10 +103,10 @@ boven de tekst, en onder 768 px is ze de knop van het submenu, die de lijst open
 .artikel > lintje-sub-nav { flex: 1 1 240px; max-width: var(--w-nav); }
 
 @media screen and (max-width: 1023px) {
-  .artikel > lintje-sub-nav { order: -1; flex-basis: 100%; max-width: none; }
+  .artikel > lintje-sub-nav { flex-basis: 100%; max-width: none; }
 }
 @media screen and (min-width: 1024px) {
-  .artikel > lintje-sub-nav { position: sticky; top: calc(var(--h-topbar) + var(--space-6)); }
+  .artikel > lintje-sub-nav { order: 1; position: sticky; top: calc(var(--h-topbar) + var(--space-6)); }
 }
 ```
 
