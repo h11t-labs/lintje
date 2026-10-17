@@ -6,6 +6,7 @@ import { formatNumber, textWidth } from '../../../../core/format'
 import type { PlotKeys } from './plot-keys'
 import { markPath, type SeriesKey, seriesShapePath, type SeriesShape } from './series-shapes'
 import { DEFAULT_SERIES_COLOR, lineCasing } from './colors'
+import { FORECAST_ROOM } from './forecast'
 import { renderIcon } from '../../../../icons/render'
 
 /** Anything that may go inside the `<svg>`; built with lit's `svg`, since `html` draws nothing. */
@@ -24,8 +25,23 @@ export const MEDIAN_KEY = 'reference:median'
 export interface LegendItem {
   label: string
   color?: string
-  /** `point`: the series' symbol alone, as a scatter plot or a map draws it; `hatch` is "no data". */
-  shape?: 'square' | 'line' | 'dashed' | 'point' | 'hatch'
+  /**
+   * `point`: the series' symbol alone, as a scatter plot or a map draws it; `hatch` is "no data".
+   * A forecast's keys: `dotted` its line, `open` its bar, `band` and `interval` its margin. `flow`
+   * is a sankey's flow, in its colour at the band's tint. A dumbbell's keys are its `KeyMark`s.
+   */
+  shape?:
+    | 'square'
+    | 'line'
+    | 'dashed'
+    | 'point'
+    | 'hatch'
+    | 'dotted'
+    | 'open'
+    | 'band'
+    | 'interval'
+    | 'flow'
+    | KeyMark
   /** The shape the line carries at its end, drawn on its line marker (rule 13). */
   symbol?: SeriesKey
   /** A `point` marker's shape when it is not the shape of a colour's name (a map's styled series). */
@@ -46,7 +62,7 @@ export interface LegendItem {
 
 /**
  * A series' symbol as a scatter plot draws it, for a marker: its shape in `currentColor`, and a
- * dark-yellow one with the edge of its text colour (`lineCasing`).
+ * light one with its dark edge (`lineCasing`).
  */
 export function renderSymbol(
   symbol: SeriesKey | undefined,
@@ -60,6 +76,34 @@ export function renderSymbol(
     : markPath(symbol, 4.5, centre, centre)
   return svg`<path d=${d} fill="currentColor"
                    stroke=${casing ?? nothing} stroke-width=${casing ? 1 : nothing} />`
+}
+
+/** A dumbbell's marks as a key: the earlier moment's ring, the later one's dot, off the axis. */
+export type KeyMark = 'ring' | 'dot' | 'off-axis'
+
+/** A key mark in `currentColor` in a 14 px box; a dark-yellow dot keeps its edge (`lineCasing`). */
+export function renderKeyMark(
+  mark: KeyMark,
+  color: string | undefined,
+  centre: number,
+): SVGTemplateResult {
+  if (mark === 'ring') {
+    return svg`<circle cx=${centre} cy=${centre} r="6" fill="var(--color-bg-surface)"
+                       stroke="currentColor" stroke-width="2" />`
+  }
+  if (mark === 'off-axis') {
+    return svg`<path d=${`M${centre - 2.5} ${centre - 3}L${centre + 2.5} ${centre}L${centre - 2.5} ${centre + 3}Z`}
+                     fill="currentColor" />`
+  }
+  const casing = lineCasing(color)
+  return svg`<circle cx=${centre} cy=${centre} r="4" fill="currentColor"
+                     stroke=${casing ?? nothing} stroke-width=${casing ? 1 : nothing} />`
+}
+
+const KEY_MARKS = new Set<string>(['ring', 'dot', 'off-axis'])
+
+export function isKeyMark(shape: string | undefined): shape is KeyMark {
+  return shape != null && KEY_MARKS.has(shape)
 }
 
 export function renderLegend({
@@ -83,20 +127,26 @@ export function renderLegend({
       item.icon
         ? html`<span class="lintje-legend__marker lintje-legend__marker--icon"
                      ${styleProps({ color: item.color })}>${renderIcon(item.icon, { size: 16 })}</span>`
-        : (item.symbol || item.symbolShape) && item.shape === 'point'
+        : isKeyMark(item.shape)
           ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
+                    ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
+                    aria-hidden="true" focusable="false">
+            ${renderKeyMark(item.shape, item.color, 7)}
+          </svg>`
+          : (item.symbol || item.symbolShape) && item.shape === 'point'
+            ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
                     ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
                     aria-hidden="true" focusable="false">
             ${renderSymbol(item.symbol, item.color, 7, item.symbolShape)}
           </svg>`
-          : item.symbol
-            ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
+            : item.symbol
+              ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
                     ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
                     aria-hidden="true" focusable="false">
             <line x1="0" x2="14" y1="7" y2="7" stroke="currentColor" stroke-width="3" />
             <path d=${markPath(item.symbol, 4, 7, 7)} fill="currentColor" />
           </svg>`
-            : html`<span class="lintje-legend__marker lintje-legend__marker--${item.shape ?? 'square'}"
+              : html`<span class="lintje-legend__marker lintje-legend__marker--${item.shape ?? 'square'}"
                      ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
                      aria-hidden="true"></span>`
     }
@@ -145,6 +195,8 @@ export interface ChartFrameOptions {
   height?: number
   /** Extra definitions (hatch patterns etc.). */
   defs?: SvgSlot
+  /** Drawn under the grid, such as the ground of a forecast. */
+  underlay?: SvgSlot
   zeroLine?: boolean
   /** How a tick is written; `axisColumn` decides between full and compact. Default full. */
   formatTick?: (tick: number) => string
@@ -236,6 +288,7 @@ export function renderChartFrame(
     xTitle,
     description,
     defs,
+    underlay,
     zeroLine = true,
     formatTick = formatNumber,
     id,
@@ -272,6 +325,7 @@ export function renderChartFrame(
           ${renderFocusRing(id)}
           ${defs}
         </defs>
+        ${underlay}
 
         <!-- Grid + axis labels -->
         ${ticks.map((tick) => {
@@ -311,25 +365,37 @@ export function renderChartFrame(
   `
 }
 
+/** The boundary of a forecast: one line at `x`, "Gemeten" left of it and the forecast's word right. */
+export interface ForecastBoundary {
+  mode: 'forecast'
+  area?: PlotArea
+  x: number
+  /** The forecast's word, `forecastLabel`. */
+  label: string
+  /** The resolved `--font-ui`, for measuring whether the word fits right of the line. */
+  fontFamily?: string
+}
+
 /**
  * The as-of marker. Up to 6 pending hours (tail) it draws nothing and the missing hours are
- * hatched; beyond that (early) the series is cut off, with a line, a label and a note.
+ * hatched; beyond that (early) the series is cut off, with a line, a label and a note. A
+ * forecast's boundary (`mode: 'forecast'`) always draws, with its two words above the plot.
  */
-export function renderAsOfMarker({
-  area = DEFAULT_PLOT_AREA,
-  index,
-  count,
-  label,
-  lastValue,
-  pendingHours,
-}: {
-  area?: PlotArea
-  index: number
-  count: number
-  label: string
-  lastValue?: string
-  pendingHours: number
-}): SvgSlot {
+export function renderAsOfMarker(
+  options:
+    | ForecastBoundary
+    | {
+        mode?: 'as-of'
+        area?: PlotArea
+        index: number
+        count: number
+        label: string
+        lastValue?: string
+        pendingHours: number
+      },
+): SvgSlot {
+  if (options.mode === 'forecast') return renderForecastBoundary(options)
+  const { area = DEFAULT_PLOT_AREA, index, count, label, lastValue, pendingHours } = options
   const x = area.left + (plotWidth(area) * index) / (count - 1)
   const isEarly = pendingHours > 6
   const remainingWidth = area.width - area.right - x
@@ -356,6 +422,29 @@ export function renderAsOfMarker({
             text-anchor="middle" class="lintje-chart__as-of-note">
         nog geen gegevens · ${pendingHours} ${pendingHours === 1 ? 'uur' : 'uren'} volgen
       </text>
+    </g>
+  `
+}
+
+const BOUNDARY_GAP = 6
+
+function renderForecastBoundary({
+  area = DEFAULT_PLOT_AREA,
+  x,
+  label,
+  fontFamily,
+}: ForecastBoundary): SVGTemplateResult {
+  const y = area.top - 8
+  // A word that would run past the plot ends at its edge.
+  const right = area.width - area.right
+  const fits = x + BOUNDARY_GAP + textWidth(label, fontFamily, 700) <= right
+  return svg`
+    <g class="lintje-chart__boundary">
+      <line x1=${x} x2=${x} y1=${area.top - FORECAST_ROOM} y2=${area.height - area.bottom}
+            stroke="var(--color-text-primary)" stroke-width="1.5" stroke-dasharray="4 3" />
+      <text x=${x - BOUNDARY_GAP} y=${y} text-anchor="end" class="lintje-chart__axis-label">Gemeten</text>
+      <text x=${fits ? x + BOUNDARY_GAP : right} y=${y} text-anchor=${fits ? 'start' : 'end'}
+            class="lintje-chart__as-of-label">${label}</text>
     </g>
   `
 }

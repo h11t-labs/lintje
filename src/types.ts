@@ -17,6 +17,7 @@ export type {
   BarSeriesData,
   ChartColor,
   ChartEvent,
+  ChartForecast,
   ChartKind,
   ChartSpec,
   LineSeriesData,
@@ -29,11 +30,17 @@ export type {
   MapPlotVariant,
   MapVariant,
   ScatterPoint,
+  SankeyFlow,
+  SankeyNode,
+  SankeyStep,
   ScatterSeriesData,
+  DumbbellRow,
   WmsBasemap,
   MapArea,
   MapControls,
   RadarSeriesData,
+  TreemapPart,
+  TreemapSubPart,
 } from './components/shared/charts/shared/types'
 export type { SeriesShape } from './components/shared/charts/shared/series-shapes'
 export type { DataColor } from './tokens/colors'
@@ -174,8 +181,6 @@ export interface ChartData extends FrameSettings, TileData, ContentState {
   selectedId?: string | null
   /** The URL that undoes the selection; clicking the chosen mark again and Escape follow it. */
   clearHref?: string
-  /** Offers "Grafiek" / "Tabel" in the header while `ready`; the table shows the CSV's rows. */
-  tableSwitch?: boolean
 }
 
 /* Map tile ----------------------------------------------------------------- */

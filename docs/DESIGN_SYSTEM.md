@@ -171,7 +171,8 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
   vorm en de legenda (regel 13).
 - **Hemelblauw is de standaard.** Een figuur die geen kleur noemt, tekent in
   `--color-chart-default`, en de gedeelde tintladder (`--color-chart-tint-*`) is die van
-  hemelblauw.
+  hemelblauw. Een grafiek met meer dan één variabele noemt per reeks de kleur van haar variabele;
+  zonder kleur waarschuwt `lintje-chart` in de ontwikkelbuild. Een vergelijking telt niet mee.
 
 - **Vergelijking is altijd grijs; trend, drempel en doel altijd de nadrukkleur.** `neutral` is
   de rol van een reeks die in kleur niets draagt, zoals gelijkwaardige bronnen op een kaart: ze
@@ -181,6 +182,9 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
   (`--color-chart-dark-yellow-text`), omdat geel geen tekstkleur is. "Overig" is in donker zo
   licht dat bijna-zwart erop 4.5:1 haalt, en een label op de rest van een geheel (`remainder`)
   neemt de tekstkleur.
+- **Een lichte kleur krijgt als lijn of teken een rand in haar eigen donkere kleur**, zodat ze in
+  licht 3:1 haalt op het oppervlak en op het land van de kaart; in donker smelt de rand weg in de
+  kleur. Een vlak krijgt geen rand.
 - Elke datakleur heeft de tintladder van de Rijkshuisstijl. Een component leest er een van twee
   benoemde reeksen uit — *onderverdelingen van één variabele* (donkerste eerst) en *ordinale
   klassen* (lichtste eerst) — nooit direct een sport. Een kleur waar een animatie naartoe loopt,
@@ -233,11 +237,13 @@ pagina heeft de `h1` en de titel de `h2`.
 - **Vaste hoogtes zijn tokens**: rijen, balken, velden, knoppen, chips. Een bedieningselement
   naast een ander neemt de hoogte van dat andere.
 - **Elk aanwijsdoel is minstens `--h-target`.** Een vak dat kleiner tekent, haalt dat via een
-  transparant klikgebied, nooit via een grotere tekening. Twee uitzonderingen: een lijst
+  transparant klikgebied, nooit via een grotere tekening. Drie uitzonderingen: een lijst
   tekstlinks (de kolommen van een footer), waarin elke link een regel tekst op de WCAG
-  AA-ondergrens is (`--h-target-text`), zoals op rijksoverheid.nl; en een dichte rij keuzes — een
+  AA-ondergrens is (`--h-target-text`), zoals op rijksoverheid.nl; een dichte rij keuzes — een
   dag in de datumkiezer, een optie in een keuzelijst, een rij in een boomstructuur — op
-  `--h-option`.
+  `--h-option`; en een strook tussen twee panelen, waarvan het klikgebied over de randen van de
+  panelen valt: een vinger krijgt daar de AA-ondergrens, een muis alleen de strook, omdat een
+  breder gebied de inhoud en de scrollbalk van de panelen afdekt.
 - **Een grid van 12 kolommen.** De tussenruimte is gelijk aan de zijpadding van de pagina en de
   tekstinspringing van de balken erboven, zodat tegels uitlijnen met de tekst erboven.
 - **De inhoud heeft een maximale breedte**, midden in de ruimte die het menu overlaat. Wat de
@@ -344,7 +350,7 @@ eronder staat.
   van binnen ook getekend is: een multiselect tekent checkboxen en is één veld, een tegel houdt
   elke inhoud vast en is één kader. Ordent hij zelf een verzameling, dan is hij samengesteld.
 - **Een bouwsteen bereikt nooit iets samengestelds**, ook niet via een bestand in diens map. Een
-  samengestelde tag mag een andere bevatten: een grafiek toont haar cijfers ook als tabel.
+  samengestelde tag mag een andere bevatten: een antwoord in het gesprek toont een grafiek.
 - **Een tag gebruikt een andere via zijn tag, zijn module of zijn stylesheet.** Een hulpbestand
   dat meer tags nodig hebben, staat in een `shared/`-map, nooit in de map van één van hen.
 - **Een onderdeel heeft de laag van zijn ouder**: `repeater-row` die van `repeater`, `filter-zone`
@@ -523,7 +529,9 @@ De besluiten hieronder gelden voor alle elementen.
   `aria-modal="true"` staat waar de popup niet in zit. Een dialoog zet dus `aria-modal` en
   neemt de focus bij het openen; één die dat niet doet, telt niet mee.
 - **Twee vensters: een groot voor inhoud, een klein voor een vraag of een kort formulier.**
-  `lintje-modal` toont inhoud, zoals een vergrote tegel of een tekst. `lintje-dialog` stelt een
+  `lintje-modal` toont inhoud, zoals een vergrote tegel of een tekst, en is zo hoog als die
+  inhoud, ten hoogste het venster: een grafiek die de ruimte vult, maakt hem vol, een halter of
+  een korte tabel een lagere. `lintje-dialog` stelt een
   vraag of vraagt een paar velden, in één kader zonder lijnen tussen kop, inhoud en knoppen. Een
   vraag die een antwoord nodig heeft, is een `alert`: geen sluitknop, de focus op de veilige knop
   (`autofocus`), en het antwoord als laatste knop, zodat het op een telefoon bovenaan staat.
@@ -775,8 +783,8 @@ breekt de lijn, en de beschrijving van de host is haar tekstalternatief, zoals b
 Eén grammatica, geen grafiekbibliotheek.
 
 **Een grafiek kies je op de vraag van de lezer**, niet op wat er mooi uitziet: verloopt het in de
-tijd, hoe verhouden groepen zich, uit welke delen bestaat het geheel, hoe is het verdeeld, hangen
-twee maten samen, halen we het doel. Elke soort beantwoordt één van die vragen en zegt ook wanneer
+tijd, hoe verhouden groepen zich, uit welke delen bestaat het geheel en waar komen ze terecht, hoe
+is het verdeeld, hangen twee maten samen, halen we het doel. Elke soort beantwoordt één van die vragen en zegt ook wanneer
 een andere beter past; die keuze staat bij de soorten in `components/shared/charts/kinds.ts` en in
 de stijlgids. Past geen soort, dan is het een tabel.
 
@@ -786,7 +794,10 @@ de stijlgids. Past geen soort, dan is het een tabel.
   vierkant voor een staaf of vlak, een lijn voor een lijn, de vorm van de reeks voor een punt,
   gestreept voor een drempel of vergelijking. Elke reeks en elke referentielijn (drempel,
   mediaan) is een schakelaar; een sleutel als "geen gegevens" niet, en één reeks zonder
-  referentielijn ernaast ook niet, want uitgezet laat ze een lege grafiek achter. Een klasse van
+  referentielijn ernaast ook niet, want uitgezet laat ze een lege grafiek achter. Een raming en
+  haar marge zijn sleutels, geen schakelaars: ze zeggen hoe de reeks getekend is. Alleen de reeks
+  schakelt, en haar raming en marge gaan mee. Is er niets uit te zetten zonder het geheel te
+  breken, zoals een knoop van een sankey, dan heeft de legenda geen schakelaar. Een klasse van
   de heatmap gaat in dezelfde legenda uit, maar haar cellen dimmen: een lege cel leest als
   geen meting.
 - **De nullijn is donkerder dan het raster.**
@@ -796,6 +807,9 @@ de stijlgids. Past geen soort, dan is het een tabel.
   echte maat houdt in een smalle tegel.
 - **Elke grafiek heeft een `<desc>`** met een leesbare samenvatting: het toegankelijke
   alternatief.
+- **Een tegel toont één weergave**: geen wissel tussen de tekening en een tabel, ook niet bij een
+  kaart of een diagram. De tooltip en de CSV geven de cijfers; een tabel die de lezer nodig heeft,
+  staat apart.
 - **Hover verandert nooit de lengte die de waarde draagt.**
 - **Een taart rangschikt en vouwt zelf.** Haar delen zijn de onderverdelingen van één variabele:
   de kleur van de spec, of hemelblauw. Het grootste deel is het donkerste, in welke volgorde de
@@ -804,6 +818,21 @@ de stijlgids. Past geen soort, dan is het een tabel.
   plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) zijn geen delen; ze
   staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde; zonder
   legendatabel staat de gewone legenda boven de tekening, een item per deel en geen schakelaar.
+- **Een treemap vouwt op aandeel, niet op aantal.** Ze toont veel delen en hun onderdelen in één
+  vlak, dus een deel blijft staan zolang het telt: wat onder 1 % van het geheel blijft, wordt
+  samen één grijs "Overig" dat niet klikbaar is, ook binnen een deel, en één klein deel blijft
+  zichzelf. De CSV noemt elk samengevoegd deel apart. Het geheel is het kader: de legenda draagt
+  alleen de sleutels en schakelt niets uit, en de grafiek noemt zelf het totaal van wat getekend
+  is en wat daarin ontbreekt.
+- **Onderdelen van een deel delen zijn tint.** Een eigen tint zou een tweede variabele
+  suggereren; de maat draagt de waarde en de lijn in de oppervlaktekleur de indeling, dun tussen
+  onderdelen en breder tussen delen. Bij twee niveaus is het deel het klikdoel, ook vanuit een
+  onderdeel.
+- **Een vlak noemt zichzelf zo volledig als past**: naam, bedrag en aandeel, dan kleiner, dan
+  zonder aandeel, dan alleen de naam, en als laatste stap de naam afgekapt; waar zelfs dat niet
+  past, blijft het vlak leeg. In een treemap zijn er altijd vlakken te klein voor tekst, dus daar
+  geldt "alles of niets" niet: de maat is er altijd, de naam waar hij past, de tooltip en de
+  CSV geven alles.
 - **Een gestapeld vlak toont de onderverdelingen van één variabele** in haar ladder, de eerste
   onderaan en de donkerste, in volle tinten met een lijn in de oppervlaktekleur tussen de lagen.
   Ontbreekt een laag op een punt, dan breken die laag en alles erboven daar af, want hun
@@ -818,6 +847,35 @@ de stijlgids. Past geen soort, dan is het een tabel.
   en wordt onder haar midden genoemd.
 - **Een mediaan is een doorgetrokken nadruklijn**, naast de gestreepte van een drempel, elk met
   zijn label naast de lijn. Raken de labels elkaar, dan zakt het rechter een regel.
+- **Een staaf begint bij 0, want haar lengte draagt de waarde.** Een grafiek die een positie
+  draagt in plaats van een lengte, zoals het halterdiagram, mag de as inkorten.
+- **Een waarde buiten een ingekorte as staat op de rand, met een afkapteken**: een klein
+  driehoekje in de kleur van het punt dat naar buiten wijst. De as blijft zoals de host haar koos;
+  de echte waarde staat in de tooltip en de CSV, en een verschil rekent ermee. De
+  legenda noemt het teken "Buiten de as" zolang er zo'n punt is. Een punt verdwijnt nooit en de as
+  rekt nooit stilletjes op.
+
+**Een sankey toont hoe één aantal door de stappen van een proces stroomt.** Een stap is een
+kolom knopen, een stroom een band zo breed als zijn aantal, met één schaal voor alle stappen.
+Wat stroomt is één variabele, dus knopen en banden hebben één kleur: de uitkomsten zijn
+onderverdelingen, en hun naam en getal zeggen wat ze zijn.
+
+- **Een variabele kleurt niet naar haar uitkomst.** "Afgewezen" in rood en "Toegekend" in groen
+  is oordelen met kleur, en het rood leest als een status die het niet is. Ook geen tint per
+  stap: de kolom draagt de stap al, en een lichtere kolom leest als minder.
+- **Banden van één kleur mogen elkaar kruisen; vlakken van meer kleuren niet.** Waar banden van
+  één variabele over elkaar liggen, wordt het donkerder in dezelfde kleur. Vlakken van twee
+  variabelen mengen tot een kleur die geen variabele heeft (zie het spinnendiagram).
+- **Een knoop is een deel van het geheel, een stroom een deel van zijn bron.** Zo staat het
+  aandeel in het label, de tooltip en de CSV, en nergens door elkaar.
+- Een ontbrekende stroom is een gearceerde stomp bij de bron, nooit een band van 0, en het doel is
+  dan "minstens" het bekende deel. Een kleine stroom houdt een zichtbare band rond zijn echte
+  plek; zijn echte getal staat in de woorden. Stromen samenvoegen tot "Overig" doet de host, want
+  het verandert de route die hij declareerde.
+- De namen staan er altijd: de tekening wordt hoger met de drukste stap. Getal en aandeel zijn
+  alles of niets.
+- Onder 768 px stelt hij per overgang zijn vraag — waar gaat het heen — met per bron één staaf,
+  verdeeld over haar doelen in de tintladder, en een rij per doel eronder als legenda.
 
 **Een kerncijfer op zijn schaal is een KPI, geen grafiek.** De meter is een instelling van
 `lintje-kpi`: een halve boog met het getal in de mond, of een balk onder het getal. De vulling is
@@ -831,11 +889,21 @@ wordt de reeks afgekapt bij het laatste volledige punt en zegt een peilmomentlij
 houden de volledige periode en schaal, zodat de vorm herkenbaar blijft en een ochtend niet wordt
 opgeblazen tot een piek.
 
+**Een raming zet een gemeten reeks voort**, op een lijn of in staven; het is geen eigen soort.
+Gemeten en geraamd staan nooit ongemarkeerd naast elkaar. Stippels betekenen raming, en alleen
+dat: gestreept blijft van vergelijking en drempel. Een geraamde staaf is open, een geraamd
+hoverpunt ook, en de tooltip en de CSV noemen elk geraamd punt zo. De marge rond een raming vult
+alleen bij één reeks, of bij de reeks die de lezer in de legenda aanwijst, om dezelfde reden als
+bij het spinnendiagram. Met een raming heeft de grafiek één grens: de lijn tussen gemeten en
+geraamd, met beide woorden erboven en het geraamde deel op een eigen ondergrond. Een lopende
+periode wordt dan niet gearceerd of afgekapt; de host laat haar weg of rekent haar tot de raming.
+Een vergelijking heeft geen raming: haar waarden zijn gemeten.
+
 **Gebeurtenissen.** Wat er op een moment gebeurde, is een genummerd vierkantje boven zijn
 categorie met een doorgetrokken lijn tot de nullijn, apart van de gestreepte peilmomentlijn; de
 reeksen liggen eroverheen. Ze zijn genummerd van links naar rechts, en een vierkantje dat een
 ander zou raken, zakt een rij, zodat elk nummer zichtbaar blijft. De tekst staat altijd in een lijst onder de grafiek, ook op een
-telefoon, en in de tooltip, de tabel en de CSV: de tekening alleen draagt de betekenis nooit.
+telefoon, en in de tooltip en de CSV: de tekening alleen draagt de betekenis nooit.
 
 **Klassen** (heatmap, choropleet) krijgen hun grenzen uit de getoonde data, afgerond op stappen
 die een lezer herkent. Een host zet de grenzen vast als twee perioden op kleur vergelijkbaar
@@ -858,10 +926,19 @@ de waarden en de rijen op een telefoon bewegen niet mee. De tooltip tekent een l
 legenda: de vorm van haar reeks, een grijze lijn voor de vergelijking, gestreept voor de norm. Een ontbrekende waarde breekt de lijn, laat het vlak vervallen en arceert de spaak.
 Onder 768 px wordt elke as een rij staven.
 
+**Een halterdiagram toont één maat op twee momenten, per rij.** Het eerdere moment is een open
+ring in het grijs van de vergelijking, het latere een stip in de kleur van de variabele: ze
+verschillen in vorm én kleur. De verbinding ertussen oordeelt niet, net als de vulling van de
+meter: of stijgen goed is, weet de grafiek niet, en groen of rood zou een oordeel vellen dat de host
+niet gaf. De richting staat als verschil met teken in een vaste kolom naast elke rij, ook bij het
+kleinste verschil, waar een pijlpunt niet past. De rijen staan in de volgorde van de host; een
+ontbrekend moment laat de verbinding en het verschil vallen en arceert de rij. Onder 768 px staat
+de naam op een eigen regel boven de halter.
+
 **In een spreidingsdiagram is een reeks ook een kleur en een vorm**: dezelfde vorm die die kleur
 op de kaart heeft, met gelijke oppervlakte, zodat geen reeks luider is. Een punt heeft een rand in
 de oppervlaktekleur, zodat punten die elkaar overlappen te onderscheiden blijven. Alleen de punten
-die de host noemt, tonen hun naam; de rest leest de lezer uit de tooltip of de tabel.
+die de host noemt, tonen hun naam; de rest leest de lezer uit de tooltip of de CSV.
 
 **Een kaart stapelt haar lagen en blijft één kaart.** De eerste laag ligt onder en de laatste
 boven, en het toetsenbord volgt de stapel; een choropleet kleurt het land zelf en ligt daarom
@@ -1008,6 +1085,10 @@ staand of liggend; Lintje zet geen paginaformaat.
 - **Het vel heeft een eigen marge**, ook als de browser er geen geeft: ruim genoeg voor de kop-
   en voetregel van de browser, smal genoeg dat een staand vel de vorm van 768 tot 1024 houdt.
   Balken en inhoud beginnen op die marge, op één lijn.
+- **Een plaatje van een grafiek (PNG) volgt dezelfde regel als papier**: wat de grafiek op het
+  scherm toont — legenda, astitels, tekening, gebeurtenissen, legendatabel — in de schikking van
+  het scherm; tooltip, focus, hover en knoppen niet. Anders dan papier blijft het in de modus van
+  de lezer.
 
 ## Toegankelijkheid
 
@@ -1120,6 +1201,12 @@ kleinste correctie, en leg die hier vast.
 - **Een knoop buiten het licht vervaagt zijn icoon en zijn lijnen, nooit zijn naam**:
   die neemt de gedempte tekstkleur, die 4.5:1 houdt. Het ontwerp liet de hele kaart terugstappen;
   dat zou haar naam onder de ondergrens brengen.
+- **Een label op een vulling neemt de inkt die op die sport van de ladder 4.5:1 haalt**, wit of
+  bijna-zwart, uit één tabel per kleur en per sport. Een sport waar geen van beide dat haalt,
+  draagt geen label: de tooltip en de CSV noemen het.
+  Waar een label op een band ligt (de rechte strook na een middelste stap van een sankey), wordt
+  gedempte tekst de gewone tekstkleur zodra die band nadruk krijgt: op de sterkere tint haalt
+  gedempt geen 4.5:1.
 - **Een bewerking ter plekke houdt haar toetsen**: Enter en Escape tellen alleen in haar veld,
   niet op haar knoppen, en haar Escape beëindigt de bewerking en verder niets. Beëindigd, geeft
   ze de focus aan haar rij of cel.
@@ -1152,7 +1239,8 @@ kleinste correctie, en leg die hier vast.
 [Donker](#donker)); `--color-link-on-status`; de lijnkleur van een statusteken (`--color-*-line`),
 de statuskleur bijgesteld naar 3:1 op haar eigen tint; de tekstkleur van een statuswoord
 (`--color-error-text`, `--color-success-text`), bijgesteld naar 4.5:1 — lichter in donker, het
-groen ook donkerder in licht; de eigen tekstkleur van donkergeel; tekst op de sequentiële reeks
+groen ook donkerder in licht; de eigen tekstkleur van donkergeel; de donkere rand van een lichte
+datakleur als lijn of teken; tekst op de sequentiële reeks
 vast op bijna-zwart of wit in beide modi; het oranje van de focusring is in licht donkerder, zodat
 het op elke lichte ondergrond 3:1 haalt; de tekst van het omgevingslabel is bijna-zwart waar wit
 op het accent geen 4.5:1 haalt; geel is nooit een lijn of tekst: een los teken in de
@@ -1162,8 +1250,7 @@ toon "let op" neemt de lijnkleur van "aandacht", en een gele vulling staat allee
 glyph, een getal of een woord.
 
 - De datakleuren rood, violet, donkergroen, paars, robijnrood, donkerbruin en donkerblauw halen
-  geen 3:1 op het donkere oppervlak, paars daar nagenoeg niet zichtbaar; geel en lichtblauw
-  halen geen 3:1 op het lichte. Geel heeft geen eigen tekstkleur en geen rand zoals donkergeel.
+  geen 3:1 op het donkere oppervlak, paars daar nagenoeg niet zichtbaar.
 - In het thema `defensie` haalt de lijn onder een herkende term geen 3:1 in licht, en is ze in
   donker hetzelfde oranje als de focusring.
 - De omlijning van een zwevende sheet in donker haalt geen 3:1.

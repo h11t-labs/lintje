@@ -100,6 +100,17 @@ describe('the line chart', () => {
     ])
   })
 
+  it('edges a mint-green line in its dark edge', () => {
+    const { host } = draw({
+      kind: 'line',
+      labels: ['1', '2'],
+      series: [{ label: 'A', values: [1, 2], color: 'mint-green' }],
+    })
+    expect(host.querySelector('.lintje-chart__line--casing')?.getAttribute('stroke')).toBe(
+      'var(--color-chart-mint-green-edge)',
+    )
+  })
+
   it('hatches the incomplete period at full strength', () => {
     const { host } = draw({
       kind: 'line',
@@ -308,5 +319,308 @@ describe('the line chart', () => {
         /\.lintje-chart__as-of-note \{[^}]*stroke: var\(--color-bg-surface\);[^}]*paint-order: stroke fill;/,
       )
     })
+  })
+})
+
+describe('a forecast on the line chart', () => {
+  const years = ['2021', '2022', '2023', '2024', '2025', '2026']
+  const spec: LineSpec = {
+    kind: 'line',
+    labels: years,
+    forecastFrom: 3,
+    intervalLabel: 'Marge 80 %',
+    series: [
+      {
+        label: 'A',
+        values: [10, 12, 14, 16, 18, 20],
+        forecast: { low: [null, null, null, 15, 16, 17], high: [null, null, null, 17, 20, 23] },
+      },
+    ],
+  }
+  const two: LineSpec = {
+    ...spec,
+    series: [
+      { ...spec.series[0], color: 'sky-blue' },
+      {
+        label: 'B',
+        color: 'dark-yellow',
+        values: [5, 6, 7, 8, 9, 10],
+        forecast: { low: [null, null, null, 7, 8, 9], high: [null, null, null, 9, 10, 11] },
+      },
+    ],
+  }
+  const points = (element: Element) =>
+    element
+      .getAttribute('points')!
+      .split(' ')
+      .map((point) => point.split(',').map(Number))
+  const measured = (host: Element) => [
+    ...host.querySelectorAll(
+      '.lintje-chart__line:not(.lintje-chart__line--casing):not(.lintje-chart__line--forecast)',
+    ),
+  ]
+  /** The numbers of the value axis. */
+  const ticks = (host: Element) =>
+    [...host.querySelectorAll('text.lintje-chart__axis-label[text-anchor="end"]')]
+      .map((text) => Number(text.textContent?.trim()))
+      .filter(Number.isFinite)
+  const dotted = (host: Element) => [
+    ...host.querySelectorAll('.lintje-chart__line--forecast:not(.lintje-chart__line--casing)'),
+  ]
+
+  it('goes on dotted from the last measured point, in the same colour', () => {
+    const { host } = draw(spec)
+    const [line] = measured(host)
+    const [forecast] = dotted(host)
+    expect(points(line)).toHaveLength(3)
+    expect(points(forecast)).toHaveLength(4)
+    expect(points(forecast)[0]).toEqual(points(line)[2])
+    expect(forecast.getAttribute('stroke')).toBe(line.getAttribute('stroke'))
+    // The dots are the stylesheet's, and mean only a forecast.
+    const css = readFileSync(resolve('src/components/shared/charts/shared/chart.css'), 'utf8')
+    expect(css).toMatch(
+      /\.lintje-chart__line--forecast \{ stroke-dasharray: 0 5; stroke-linecap: round; \}/,
+    )
+  })
+
+  it('opens the margin from width zero at the last measured point', () => {
+    const { host } = draw(spec)
+    const band = host.querySelector('.lintje-chart__band')!
+    const corners = points(band)
+    // Upper edge left to right, lower edge back: the first and last corner are one point.
+    expect(corners).toHaveLength(8)
+    expect(corners[0]).toEqual(corners[corners.length - 1])
+    expect(corners[0]).toEqual(points(measured(host)[0])[2])
+    // One series fills its margin.
+    expect(band.classList.contains('is-filled')).toBe(true)
+  })
+
+  it('lays the forecast on its own ground, under the grid, with one boundary and two words', () => {
+    const { host } = draw(spec)
+    const ground = host.querySelector('.lintje-chart__forecast-ground')!
+    const grid = host.querySelector('line[stroke="var(--color-chart-grid)"]')!
+    expect(ground.compareDocumentPosition(grid) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    const boundary = host.querySelectorAll('.lintje-chart__boundary')
+    expect(boundary).toHaveLength(1)
+    const words = [...boundary[0].querySelectorAll('text')].map((text) => text.textContent)
+    expect(words).toEqual(['Gemeten', 'Raming'])
+    expect(boundary[0].querySelector('line')?.getAttribute('x1')).toBe(ground.getAttribute('x'))
+  })
+
+  it('fills only the margin of the series with emphasis, and steps the others back', () => {
+    const { host, controller } = draw(two)
+    const bands = () => [...host.querySelectorAll('.lintje-chart__band')]
+    expect(bands()).toHaveLength(2)
+    expect(bands().some((band) => band.classList.contains('is-filled'))).toBe(false)
+
+    const button = [...host.querySelectorAll('.lintje-legend__button')].find(
+      (b) => b.textContent?.trim() === 'B',
+    )!
+    button.dispatchEvent(new MouseEvent('mouseenter'))
+    expect(controller.emphasis).toBe('B')
+    expect(bands().map((band) => band.classList.contains('is-filled'))).toEqual([false, true])
+    const groups = [...host.querySelectorAll('.lintje-chart__series')]
+    expect(groups.map((group) => group.classList.contains('is-muted'))).toEqual([true, false])
+
+    button.dispatchEvent(new MouseEvent('mouseleave'))
+    expect(bands().some((band) => band.classList.contains('is-filled'))).toBe(false)
+    // The same nodes: the emphasis draws nothing in again.
+    expect(bands()).toHaveLength(2)
+  })
+
+  it('keeps the dark-yellow edge under the dots', () => {
+    const { host } = draw(two)
+    const casing = host.querySelector('.lintje-chart__line--casing.lintje-chart__line--forecast')
+    expect(casing?.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-text)')
+  })
+
+  it('draws an open hover point in the forecast and a full one on measured points', () => {
+    const { host, controller } = draw(spec)
+    controller.hoverIndex = 4
+    controller.requestUpdate()
+    const open = host.querySelector('.lintje-chart__hover-point')!
+    expect(open.classList.contains('lintje-chart__hover-point--forecast')).toBe(true)
+    expect(open.hasAttribute('fill')).toBe(false)
+    expect(open.getAttribute('color')).toBe('var(--color-chart-default)')
+    controller.hoverIndex = 2
+    controller.requestUpdate()
+    const full = host.querySelector('.lintje-chart__hover-point')!
+    expect(full.classList.contains('lintje-chart__hover-point--forecast')).toBe(false)
+    expect(full.getAttribute('fill')).toBe('var(--color-chart-default)')
+  })
+
+  it('says "raming" in the tooltip and gives the margin as low – high', () => {
+    const { host, controller } = draw(spec)
+    const svg = host.querySelector('svg.lintje-chart__svg') as SVGElement
+    svg.dispatchEvent(new FocusEvent('focus'))
+    svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }))
+    expect(controller.tooltip?.content.note).toBe('raming')
+    expect(controller.tooltip?.content.rows).toEqual([
+      { label: 'A', value: '20', color: 'var(--color-chart-default)', marker: 'dotted' },
+      { label: 'laag – hoog', value: '17 – 23', note: true },
+    ])
+    expect(controller.status).toBe('2026 raming: A 20, laag – hoog 17 – 23')
+    expect(host.querySelector('.lintje-chart-tooltip__title-note')?.textContent).toBe('raming')
+    // The point the keyboard stands on has the focus ring.
+    expect(host.querySelector('.lintje-chart__focus-point')).not.toBeNull()
+
+    svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home' }))
+    expect(controller.tooltip?.content.note).toBeUndefined()
+    expect(controller.tooltip?.content.rows).toEqual([
+      { label: 'A', value: '10', color: 'var(--color-chart-default)', marker: 'line' },
+    ])
+  })
+
+  it('names the one bound there is, or says there is no margin', () => {
+    const { host, controller } = draw({
+      ...spec,
+      series: [
+        {
+          ...spec.series[0],
+          forecast: {
+            low: [null, null, null, 15, null, 17],
+            high: [null, null, null, 18, null, null],
+          },
+        },
+      ],
+    })
+    const svg = host.querySelector('svg.lintje-chart__svg') as SVGElement
+    svg.dispatchEvent(new FocusEvent('focus'))
+    const rowAt = (key: string) => {
+      svg.dispatchEvent(new KeyboardEvent('keydown', { key }))
+      return controller.tooltip?.content.rows[1]
+    }
+    rowAt('Home')
+    rowAt('ArrowRight')
+    rowAt('ArrowRight')
+    expect(rowAt('ArrowRight')).toEqual({ label: 'laag – hoog', value: '15 – 18', note: true })
+    expect(rowAt('ArrowRight')).toEqual({ label: 'laag – hoog', value: 'geen marge', note: true })
+    expect(rowAt('ArrowRight')).toEqual({ label: 'ondergrens', value: '17', note: true })
+    // The margin stops where a bound is missing.
+    expect(host.querySelectorAll('.lintje-chart__band')).toHaveLength(1)
+    expect(points(host.querySelector('.lintje-chart__band')!)).toHaveLength(4)
+  })
+
+  it('draws a forecast without a margin with only its key', () => {
+    const { host } = draw({ ...spec, series: [{ ...spec.series[0], forecast: undefined }] })
+    expect(dotted(host)).toHaveLength(1)
+    expect(host.querySelector('.lintje-chart__band')).toBeNull()
+    const keys = [...host.querySelectorAll('.lintje-legend__label')].map((l) => l.textContent)
+    expect(keys).toEqual(['A', 'Raming'])
+  })
+
+  it('switches the forecast and its margin off with their series', () => {
+    const { host, controller } = draw(two)
+    controller.toggleSeries('A')
+    const group = host.querySelectorAll('.lintje-chart__series')[0]
+    expect(group.classList.contains('is-off')).toBe(true)
+    expect(group.querySelector('.lintje-chart__line--forecast')).not.toBeNull()
+    expect(group.querySelector('.lintje-chart__band')).not.toBeNull()
+    // The other series alone now: its margin fills.
+    const other = host.querySelectorAll('.lintje-chart__series')[1]
+    expect(other.querySelector('.lintje-chart__band.is-filled')).not.toBeNull()
+  })
+
+  it('makes "Raming" and "Marge" keys: no button, no aria-pressed, nothing switches', () => {
+    const { host, controller } = draw(two)
+    const items = [...host.querySelectorAll('.lintje-legend__item')]
+    expect(items.map((item) => item.textContent?.trim())).toEqual([
+      'A',
+      'B',
+      'Raming',
+      'Marge 80 %',
+    ])
+    for (const item of items.slice(2)) {
+      expect(item.querySelector('button')).toBeNull()
+      expect(item.querySelector('[aria-pressed]')).toBeNull()
+      ;(item as HTMLElement).click()
+    }
+    expect(controller.hiddenSeries).toEqual([])
+    // With more series the keys are neutral; with one they take its colour.
+    const marker = items[2].querySelector('.lintje-legend__marker--dotted') as HTMLElement
+    expect(marker.style.color).toBe('var(--color-text-muted)')
+    const one = draw(spec).host.querySelector('.lintje-legend__marker--dotted') as HTMLElement
+    expect(one.style.color).toBe('var(--color-chart-default)')
+  })
+
+  it('draws no hatching, no cut and no second boundary for an as-of time', () => {
+    const { host } = draw({ ...spec, asOfIndex: 2, asOfLabel: '12:00', pendingHours: 20 })
+    expect(host.querySelector('rect[fill^="url(#hatch-"]')).toBeNull()
+    expect(host.querySelector('.lintje-chart__as-of-note')).toBeNull()
+    expect(host.querySelectorAll('line[stroke-dasharray="4 3"]')).toHaveLength(1)
+    // Not cut at the as-of time: the forecast runs to the last label.
+    expect(points(dotted(host)[0])).toHaveLength(4)
+  })
+
+  it('draws as without a forecast when forecastFrom names no point after the first', () => {
+    for (const forecastFrom of [0, -1, 6, 9]) {
+      const { host } = draw({ ...spec, forecastFrom })
+      expect(dotted(host)).toHaveLength(0)
+      expect(host.querySelector('.lintje-chart__band')).toBeNull()
+      expect(host.querySelector('.lintje-chart__boundary')).toBeNull()
+      expect(points(measured(host)[0])).toHaveLength(6)
+    }
+  })
+
+  it('starts the dots loose on forecastFrom when the last measured point is missing', () => {
+    const { host } = draw({
+      ...spec,
+      series: [{ ...spec.series[0], values: [10, 12, null, 16, null, 20] }],
+    })
+    // The measured line, a lone forecast point and a lone point at the end.
+    expect(points(measured(host)[0])).toHaveLength(2)
+    expect(dotted(host)).toHaveLength(0)
+    const band = points(host.querySelector('.lintje-chart__band')!)
+    // The margin starts at 2024 with its own width.
+    expect(band[0][1]).not.toEqual(band[band.length - 1][1])
+  })
+
+  it('gives a comparison no forecast: it stays grey and dashed to the end', () => {
+    const { host } = draw({
+      ...spec,
+      series: [
+        spec.series[0],
+        {
+          label: 'Vorig jaar',
+          values: [9, 11, 13, 15, 17, 19],
+          comparison: true,
+          forecast: { low: [null, null, null, 1, 1, 1], high: [null, null, null, 99, 99, 99] },
+        },
+      ],
+    })
+    const comparison = host.querySelector('polyline[stroke-dasharray="5 4"]')!
+    expect(points(comparison)).toHaveLength(6)
+    expect(host.querySelectorAll('.lintje-chart__band')).toHaveLength(1)
+    // Its margin sets no scale either.
+    expect(Math.max(...ticks(host))).toBeLessThan(99)
+  })
+
+  it('scales to the highest bound and stops a negative bound on the zero line', () => {
+    const { host } = draw({
+      ...spec,
+      series: [
+        {
+          ...spec.series[0],
+          forecast: { low: [null, null, null, -5, -5, -5], high: [null, null, null, 30, 40, 50] },
+        },
+      ],
+    })
+    expect(Math.max(...ticks(host))).toBeGreaterThanOrEqual(50)
+    const zero = Number(
+      host.querySelector('line[stroke="var(--color-chart-zero)"]')!.getAttribute('y1'),
+    )
+    const band = points(host.querySelector('.lintje-chart__band')!)
+    expect(Math.max(...band.map(([, y]) => y))).toBeLessThanOrEqual(zero)
+  })
+
+  it('stops the margin at the top of the plot under a fixed maximum', () => {
+    const { host } = draw({ ...spec, fixedMax: 20 })
+    const top = Math.min(
+      ...[...host.querySelectorAll('line[stroke="var(--color-chart-grid)"]')].map((line) =>
+        Number(line.getAttribute('y1')),
+      ),
+    )
+    const band = points(host.querySelector('.lintje-chart__band')!)
+    expect(Math.min(...band.map(([, y]) => y))).toBeGreaterThanOrEqual(top)
   })
 })

@@ -62,8 +62,6 @@ export const weekChart = (state, compare = false) => ({
   description: 'Afgehandelde aanvragen per dag in de week van 1 t/m 7 september.',
   footnote: sourceLine,
   state,
-  // The reader may want the same figures as a table: the tile's own switch.
-  tableSwitch: true,
   chart: compare
     ? {
         kind: 'grouped-bar', small: true, labels: weekdays,

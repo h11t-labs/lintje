@@ -149,6 +149,42 @@ const KINDS: { name: string; spec: ChartSpec; first: string; second: string }[] 
     },
   },
   {
+    name: 'dumbbell',
+    first: 'Noord',
+    second: 'Zuid',
+    spec: {
+      kind: 'dumbbell',
+      fromLabel: '2024',
+      toLabel: '2026',
+      rows: [
+        { label: 'Noord', from: 6.8, to: 7.3 },
+        { label: 'Zuid', from: 7.1, to: null },
+      ],
+    },
+  },
+  {
+    name: 'sankey',
+    first: 'Aanvragen (Ingediend)',
+    second: 'Aanvragen → Compleet',
+    spec: {
+      kind: 'sankey',
+      steps: [
+        { label: 'Ingediend', nodes: [{ id: 'in', label: 'Aanvragen', value: 10 }] },
+        {
+          label: 'Volledigheid',
+          nodes: [
+            { id: 'compleet', label: 'Compleet' },
+            { id: 'onvolledig', label: 'Onvolledig' },
+          ],
+        },
+      ],
+      flows: [
+        { from: 'in', to: 'compleet', value: 7 },
+        { from: 'in', to: 'onvolledig', value: null },
+      ],
+    },
+  },
+  {
     name: 'horizontal-bar',
     first: 'Noord',
     second: 'Zuid',

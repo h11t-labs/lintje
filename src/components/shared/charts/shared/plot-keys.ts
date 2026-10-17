@@ -11,6 +11,11 @@ export interface PlotPoint {
   x: number
   y: number
   content: TooltipContent
+  /** What the status region says instead of the tooltip read as one sentence. */
+  sentence?: string
+  side?: 'left'
+  /** Where the tooltip ends when it does not fit right of `x` (`TooltipState.flip`). */
+  flip?: number
 }
 
 /** What the drawing (the `<svg>`) takes. */
@@ -25,7 +30,12 @@ const PREVIOUS = new Set(['ArrowLeft', 'ArrowUp'])
 
 /** The tooltip's text as one sentence, for a screen reader. */
 export function tooltipSentence(content: TooltipContent): string {
-  const values = `${content.title}: ${content.rows.map((row) => `${row.label} ${row.value}`.trim()).join(', ')}`
+  const title = [content.kicker, content.note ? `${content.title} ${content.note}` : content.title]
+    .filter(Boolean)
+    .join(', ')
+  const values = `${title}: ${content.rows
+    .map((row) => `${row.label} ${row.value}${row.aside ? `, ${row.aside}` : ''}`.trim())
+    .join(', ')}`
   const events = (content.events ?? []).map(
     (event) => `Gebeurtenis ${event.number}: ${event.label}`,
   )
@@ -53,11 +63,13 @@ export function plotKeys(
     const origin = anchor?.getBoundingClientRect() ?? box
     controller.hoverIndex = index
     controller.keyFrom = null
-    controller.status = tooltipSentence(point.content)
+    controller.status = point.sentence ?? tooltipSentence(point.content)
+    const left = box.left - origin.left
     controller.showTooltipAt(
-      box.left - origin.left + point.x,
+      left + point.x,
       box.top - origin.top + point.y,
       point.content,
+      point.side ?? (point.flip != null ? left + point.flip : undefined),
     )
   }
   return {

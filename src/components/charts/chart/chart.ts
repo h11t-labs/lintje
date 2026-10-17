@@ -1,8 +1,7 @@
 /**
  * `<lintje-chart>` — a chart in its tile, with loading, empty and error states.
  *
- * Expand and download are handled here. The table view is the element's own state, built from the
- * CSV rows; it never reaches the URL. A mark with an `href` goes there after its
+ * Expand and download are handled here. A mark with an `href` goes there after its
  * `lintje-mark-select`, and undoing goes to `data.clearHref`: the event is cancelable, and a host
  * that routes itself cancels it. A modifier or middle click on a mark opens its `href` in a new
  * tab, without that event.
@@ -10,7 +9,13 @@
  * Events: `lintje-mark-select` `{ id, label, href }` (a mark with an `href` was clicked;
  * deselected, `{ id: null, label: null, href: data.clearHref }`).
  */
-import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
+import {
+  html,
+  nothing,
+  type PropertyDeclarations,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit'
 import { define, type FrameSettings } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { spanStyles } from '../../shared/grid-item-element'
@@ -18,33 +23,31 @@ import { LintjeContentTileElement } from '../../shared/content-tile'
 import { ChartController, type ChartOptions } from '../../shared/charts/shared/controller'
 import { renderChart } from '../../shared/charts/shared/render-chart'
 import { rowsHeight } from '../../shared/charts/horizontal-bar-chart/horizontal-bar-chart'
+import {
+  dumbbellDecimals,
+  dumbbellDifference,
+  dumbbellHeight,
+} from '../../shared/charts/dumbbell-chart/dumbbell-chart'
 import { binLabel } from '../../shared/charts/histogram-chart/histogram-chart'
+import { treemapRows } from '../../shared/charts/treemap-chart/treemap-parts'
+import { sankeyHeight, sankeyModel } from '../../shared/charts/sankey-chart/sankey-chart'
+import { FORECAST_LABEL, boundsAt, forecastStart } from '../../shared/charts/shared/forecast'
 import {
   renderChartSkeleton,
   type ChartSkeletonKind,
 } from '../../shared/charts/shared/chart-states'
 import { chartStyles } from '../../shared/charts/shared/chart-styles'
 import type { ChartSpec } from '../../shared/charts/shared/types'
-import { downloadCsv, downloadPng, type CsvCell } from '../../shared/download'
+import { chartImage, downloadCsv, downloadPng, type CsvCell } from '../../shared/download'
 import { MediaController } from '../../../core/media'
 import skeletonCss from '../../feedback/skeleton/skeleton.css?inline'
 import tileHostCss from '../../shared/view-tile.css?inline'
-import chartCss from './chart.css?inline'
 import '../../feedback/announcement/announcement'
-import '../../tables/data-table/data-table'
-import '../../inputs/segmented/segmented'
 import '../../layout/tile/tile'
-import type { CellValue, ChartData, DataTableData, FilterOption } from '../../../types'
-
-type ChartView = 'chart' | 'table'
+import type { CellValue, ChartData } from '../../../types'
 
 /** The chart's own drawing; a legend marker or an icon is an `<svg>` too. */
 const DRAWING = '.lintje-chart__svg, .lintje-pie-chart__svg'
-
-const VIEW_OPTIONS: FilterOption[] = [
-  { value: 'chart', label: 'Grafiek' },
-  { value: 'table', label: 'Tabel' },
-]
 
 /** A file name from the title ("Aanvragen per uur" → "aanvragen-per-uur"). */
 function fileNameOf(title: string | undefined): string {
@@ -70,26 +73,55 @@ function skeletonKind(chart: ChartSpec): ChartSkeletonKind {
       return 'pie'
     case 'heatmap':
       return 'heatmap'
+    case 'treemap':
+      return 'treemap'
     default:
       return 'bar'
   }
 }
 
-function stateHeight(chart: ChartSpec): string | undefined {
+function stateHeight(chart: ChartSpec, mobile: boolean): string | undefined {
   switch (chart.kind) {
     case 'horizontal-bar':
     case 'target-progress':
       // Without rows the stand-in is as tall as any chart.
       return chart.rows.length ? `${rowsHeight(chart.rows.length)}px` : undefined
+    case 'dumbbell':
+      return chart.rows.length ? `${dumbbellHeight(chart.rows.length, mobile)}px` : undefined
     case 'pie':
     case 'heatmap':
       return undefined
+    case 'sankey':
+      // The busiest step makes the drawing taller than the token, never lower.
+      return `max(${sankeyHeight(chart)}px, var(${chart.small ? '--chart-h-small' : '--chart-h-main'}))`
     default:
       return chart.small ? 'var(--chart-h-small)' : undefined
   }
 }
 
-/** The rows of the CSV download, header first; the table view shows the same rows. */
+/**
+ * A forecast's columns: its bounds after the value, and what each row is at the end, so a
+ * forecast never stands unmarked among measured figures. Before the forecast a bound is an
+ * empty cell, not a missing value: there is no bound there.
+ */
+function forecastColumns(chart: Extract<ChartSpec, { kind: 'line' | 'bar' }>) {
+  // As the drawing: a forecast continues a measured series, so with only comparisons there is none.
+  const measured = chart.kind === 'bar' || chart.series.some((series) => !series.comparison)
+  const from = measured ? forecastStart(chart.forecastFrom, chart.labels.length) : null
+  const word = (chart.forecastLabel ?? FORECAST_LABEL).toLowerCase()
+  return {
+    from,
+    bounds: (forecast: Parameters<typeof boundsAt>[0], i: number): CsvCell[] => {
+      if (from == null || i < from) return ['', '']
+      const { low, high } = boundsAt(forecast, i)
+      return [low, high]
+    },
+    kind: (i: number): CsvCell[] => (from == null ? [] : [i < from ? 'gemeten' : word]),
+    kindHeader: from == null ? [] : ['Soort'],
+  }
+}
+
+/** The rows of the CSV download, header first. */
 function csvRows(chart: ChartSpec): CsvCell[][] {
   switch (chart.kind) {
     case 'line': {
@@ -100,28 +132,53 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
           .filter((event) => event.index === i)
           .map((event) => event.label)
           .join('; ')
+      const forecast = forecastColumns(chart)
+      // A comparison has no forecast, so no bounds.
+      const bounded = (series: (typeof chart.series)[number]) =>
+        forecast.from != null && !series.comparison && series.forecast != null
       return [
         [
           '',
-          ...chart.series.map((series) => series.label),
+          ...chart.series.flatMap((series) => [
+            series.label,
+            ...(bounded(series)
+              ? [`${series.label} ondergrens`, `${series.label} bovengrens`]
+              : []),
+          ]),
           ...(events.length ? ['Gebeurtenis'] : []),
+          ...forecast.kindHeader,
         ],
         ...chart.labels.map((label, i) => [
           label,
-          ...chart.series.map((series) => series.values[i]),
+          ...chart.series.flatMap((series) => [
+            series.values[i],
+            ...(bounded(series) ? forecast.bounds(series.forecast, i) : []),
+          ]),
           ...(events.length ? [eventAt(i)] : []),
+          ...forecast.kind(i),
         ]),
       ]
     }
-    case 'bar':
+    case 'bar': {
+      const forecast = forecastColumns(chart)
+      const bounded = forecast.from != null && chart.forecast != null
       return [
-        ['', chart.axisTitle ?? 'Waarde', ...(chart.trend ? ['Trend'] : [])],
+        [
+          '',
+          chart.axisTitle ?? 'Waarde',
+          ...(bounded ? ['Ondergrens', 'Bovengrens'] : []),
+          ...(chart.trend ? ['Trend'] : []),
+          ...forecast.kindHeader,
+        ],
         ...chart.labels.map((label, i) => [
           label,
           chart.values[i],
+          ...(bounded ? forecast.bounds(chart.forecast, i) : []),
           ...(chart.trend ? [chart.trend[i]] : []),
+          ...forecast.kind(i),
         ]),
       ]
+    }
     case 'horizontal-bar':
       return [
         ['', chart.unit ? `Waarde (${chart.unit})` : 'Waarde'],
@@ -195,12 +252,50 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
         ]),
       ]
     }
+    case 'dumbbell': {
+      // The real values, also beyond the axis; the difference is missing when an end is.
+      const decimals = dumbbellDecimals(chart.rows)
+      const norm = chart.threshold != null ? [chart.thresholdLabel ?? 'Norm'] : []
+      return [
+        ['', chart.fromLabel, chart.toLabel, 'Verschil', ...norm],
+        ...chart.rows.map((row) => [
+          row.label,
+          row.from,
+          row.to,
+          dumbbellDifference(row, decimals),
+          ...(chart.threshold != null ? [chart.threshold] : []),
+        ]),
+      ]
+    }
     case 'histogram': {
       const bound = (name: string) => (chart.unit ? `${name} (${chart.unit})` : name)
       // An open class has no upper bound: an empty cell, never a missing value (rule 15).
       return [
         ['Klasse', bound('Van'), bound('Tot'), 'Aantal'],
         ...chart.bins.map((bin) => [binLabel(bin, chart.unit), bin.from, bin.to ?? '', bin.count]),
+      ]
+    }
+    case 'treemap':
+      // A row per sub-part; what the drawing folds into "Overig" stands apart.
+      return treemapRows(chart)
+    case 'sankey': {
+      // A row per flow the chart draws; a missing one keeps its count and its share missing.
+      const { flows } = sankeyModel(chart)
+      return [
+        [
+          'Van',
+          'Naar',
+          chart.unit ? `Aantal (${chart.unit})` : 'Aantal',
+          'Aandeel van de bron (%)',
+        ],
+        ...flows.map((flow) => [
+          flow.from.label,
+          flow.to.label,
+          flow.value,
+          flow.value == null || flow.from.size <= 0
+            ? null
+            : Math.round((flow.value / flow.from.size) * 100),
+        ]),
       ]
     }
   }
@@ -214,35 +309,27 @@ function decimalsOf(values: CellValue[]): number {
   }, 0)
 }
 
-/** The CSV rows as a table. A missing value stays `null` (rule 15); rows keep the chart's order. */
-function chartTable(chart: ChartSpec, caption: string): DataTableData {
-  const [header = [], ...body] = csvRows(chart)
-  const columns = header.map((cell, index) => {
-    const values = body.map((row) => (row[index] ?? null) as CellValue)
-    // A column of names is text, wherever it stands (a scatter plot has two); an empty cell
-    // (a histogram's open class) leaves a column of numbers a column of numbers.
-    return index === 0 || values.some((value) => typeof value === 'string' && value !== '')
-      ? { key: `c${index}`, header: String(cell ?? ''), format: 'text' as const, sortable: false }
-      : {
-          key: `c${index}`,
-          header: String(cell ?? ''),
-          format: 'decimal' as const,
-          decimals: decimalsOf(values),
-          align: 'right' as const,
-          sortable: false,
-        }
-  })
-  return {
-    caption,
-    columns,
-    rows: body.map((row, i) => ({
-      row: String(i),
-      ...Object.fromEntries(columns.map((column, index) => [column.key, row[index] ?? null])),
-    })),
-    rowKey: 'row',
-    defaultSort: { key: 'row', direction: 'asc' },
-    pageSize: Math.max(body.length, 1),
+/**
+ * The labels of the series that are separate variables but name no colour. A comparison is grey
+ * by design and does not count; a figure with one variable may leave its colour to sky blue.
+ */
+function uncolouredSeries(chart: ChartSpec): string[] {
+  let series: { label: string; color?: string; comparison?: boolean }[]
+  switch (chart.kind) {
+    case 'line':
+    case 'grouped-bar':
+    case 'scatter':
+    case 'radar':
+      series = chart.series
+      break
+    case 'dual-axis':
+      series = [chart.left, chart.right]
+      break
+    default:
+      return []
   }
+  const variables = series.filter((row) => !row.comparison)
+  return variables.length > 1 ? variables.filter((row) => !row.color).map((row) => row.label) : []
 }
 
 export class LintjeChart extends LintjeContentTileElement {
@@ -252,25 +339,39 @@ export class LintjeChart extends LintjeContentTileElement {
     shadowCss(tileHostCss),
     shadowCss(skeletonCss),
     ...chartStyles,
-    shadowCss(chartCss),
   ]
 
   static override properties: PropertyDeclarations = {
     data: { attribute: false },
-    view: { state: true },
   }
 
   declare data?: ChartData | null
-
-  view: ChartView = 'chart'
 
   readonly #chart = new ChartController(() => this.requestUpdate())
   // The modal draws the same chart with its own controller: the two never share hover or width.
   #modalChart: ChartController | null = null
   readonly #mobile = new MediaController(this)
+  // Each warning once per element; another spec may name other series.
+  readonly #warned = new Set<string>()
 
   protected override get dataSettings(): FrameSettings | undefined {
     return this.data ?? undefined
+  }
+
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
+    if (import.meta.env?.DEV && changed.has('data') && this.data?.chart) this.#warnUncoloured()
+  }
+
+  /** A variable without a colour gets one by its place, which a filter shifts. */
+  #warnUncoloured(): void {
+    const labels = uncolouredSeries(this.data!.chart)
+    if (!labels.length) return
+    const count = labels.length === 1 ? '1 reeks' : `${labels.length} reeksen`
+    const message = `<lintje-chart>: ${count} zonder kleur (${labels.map((label) => `"${label}"`).join(', ')}). Geef elke reeks de kleur van haar variabele.`
+    if (this.#warned.has(message)) return
+    this.#warned.add(message)
+    console.warn(message)
   }
 
   override disconnectedCallback(): void {
@@ -282,10 +383,6 @@ export class LintjeChart extends LintjeContentTileElement {
 
   private get ready(): boolean {
     return (this.data?.state ?? 'ready') === 'ready'
-  }
-
-  private get showsTable(): boolean {
-    return Boolean(this.data?.tableSwitch) && this.ready && this.view === 'table'
   }
 
   private get expandable(): boolean {
@@ -310,8 +407,14 @@ export class LintjeChart extends LintjeContentTileElement {
     if (!data) return
     // Both charts are light children; the tag says which one the reader sees.
     const scope = this.renderRoot.querySelector(this.expanded ? 'lintje-modal' : 'lintje-tile')
-    const svg = scope?.querySelector<SVGSVGElement>(DRAWING)
-    if (svg) void downloadPng(this.downloadName ?? fileNameOf(data.title), svg)
+    let chart: Element | null | undefined = scope?.querySelector(DRAWING)
+    // The image is the whole chart, legend and events with it: what renderChart drew in the scope.
+    while (chart && chart.parentElement !== scope) chart = chart.parentElement
+    if (!chart) return
+    const subtitle =
+      this.#mobile.matches && data.mobileSubtitle ? data.mobileSubtitle : data.subtitle
+    const image = chartImage(chart, { title: data.title, subtitle, footnote: data.footnote })
+    void downloadPng(this.downloadName ?? fileNameOf(data.title), image)
   }
 
   protected override expandChanged(open: boolean): void {
@@ -330,8 +433,6 @@ export class LintjeChart extends LintjeContentTileElement {
     const subtitle =
       this.#mobile.matches && data.mobileSubtitle ? data.mobileSubtitle : data.subtitle
     const titleId = this.id ? `${this.id}-tile` : undefined
-    const viewSwitch = data.tableSwitch && ready ? this.viewSwitch() : nothing
-    const table = this.showsTable
 
     return html`<lintje-tile
         id=${titleId ?? nothing}
@@ -347,7 +448,7 @@ export class LintjeChart extends LintjeContentTileElement {
         state=${data.state ?? 'ready'}
         message=${data.message ?? nothing}
         last-known=${data.lastKnown ?? nothing}
-        content-height=${stateHeight(data.chart) ?? nothing}
+        content-height=${stateHeight(data.chart, this.#mobile.matches) ?? nothing}
         @lintje-tile-expand=${(event: Event) => {
           event.stopPropagation()
           this.expand(true)
@@ -357,7 +458,6 @@ export class LintjeChart extends LintjeContentTileElement {
           this.csv()
         }}
       >
-        ${viewSwitch}
         ${
           data.notice
             ? html`<lintje-announcement
@@ -371,23 +471,15 @@ export class LintjeChart extends LintjeContentTileElement {
       </lintje-tile>
 
       ${this.renderExpandModal(
-        !this.expanded
-          ? nothing
-          : table
-            ? this.table()
-            : this.#modalChart
-              ? renderChart(data.chart, {
-                  ...this.chartOptions(this.#modalChart),
-                  expanded: true,
-                })
-              : nothing,
+        this.expanded && this.#modalChart
+          ? renderChart(data.chart, { ...this.chartOptions(this.#modalChart), expanded: true })
+          : nothing,
         {
           heading: data.title,
           subtitle,
           footnote: data.footnote,
           csv: () => this.csv(),
-          // A table is no drawing: no PNG.
-          png: table ? undefined : () => this.png(),
+          png: () => this.png(),
         },
       )}`
   }
@@ -400,7 +492,7 @@ export class LintjeChart extends LintjeContentTileElement {
         return html`<div slot="loading">
           ${renderChartSkeleton({
             kind: skeletonKind(data.chart),
-            height: stateHeight(data.chart),
+            height: stateHeight(data.chart, this.#mobile.matches),
             status: false,
           })}
         </div>`
@@ -408,38 +500,8 @@ export class LintjeChart extends LintjeContentTileElement {
       case 'error':
         return nothing
       default:
-        return this.showsTable
-          ? this.table()
-          : renderChart(data.chart, this.chartOptions(this.#chart))
+        return renderChart(data.chart, this.chartOptions(this.#chart))
     }
-  }
-
-  /** Header actions from 768 px; below that a row of its own in the `notice` slot. */
-  private viewSwitch(): TemplateResult {
-    const mobile = this.#mobile.matches
-    return html`<lintje-segmented
-      class="lintje-chart__view"
-      slot=${mobile ? 'notice' : 'actions'}
-      label="Weergave"
-      hide-label
-      ?stacked=${mobile}
-      .value=${this.view}
-      .options=${VIEW_OPTIONS}
-      @lintje-change=${(event: CustomEvent<string>) => {
-        event.stopPropagation()
-        this.view = event.detail === 'table' ? 'table' : 'chart'
-      }}
-    ></lintje-segmented>`
-  }
-
-  private table(): TemplateResult {
-    const data = this.data as ChartData
-    const caption = data.title ? `${data.title}, als tabel` : 'Grafiek als tabel'
-    return html`<lintje-data-table
-      class="lintje-chart__table"
-      bare
-      .data=${chartTable(data.chart, caption)}
-    ></lintje-data-table>`
   }
 
   /**
@@ -461,7 +523,10 @@ export class LintjeChart extends LintjeContentTileElement {
     const scope = this.renderRoot.querySelector(this.expanded ? 'lintje-modal' : 'lintje-tile')
     const mark = scope?.querySelector<SVGElement>(`[data-mark-id="${CSS.escape(id)}"]`)
     const target =
-      mark ?? scope?.querySelector<HTMLElement | SVGElement>(`${DRAWING}, .lintje-heatmap`)
+      mark ??
+      scope?.querySelector<HTMLElement | SVGElement>(
+        `${DRAWING}, .lintje-heatmap, .lintje-sankey--rows`,
+      )
     // The drawing takes the focus from a script only; it does not join the tab order for it.
     if (target && !target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
     target?.focus()

@@ -9,6 +9,7 @@ import { DEFAULT_PLOT_AREA, type PlotArea } from './scale'
 import type { LeafletSurface } from '../map-chart/leaflet'
 import type { ChartSelection } from './mark-select'
 import type { SeriesKey } from './series-shapes'
+import type { KeyMark } from './axes'
 import type { MapArea, MapTool } from './types'
 
 /** What every `render*` takes besides its data. */
@@ -56,11 +57,22 @@ export interface TooltipRow {
   divider?: boolean
   /** The series' shape instead of a square swatch, as its legend draws it. */
   symbol?: SeriesKey
-  /** A line instead of a square swatch, plain or dashed (a norm), as its legend draws it. */
-  marker?: 'line' | 'dashed'
+  /**
+   * Instead of a square swatch, as its legend draws it: a line, plain or dashed (a norm), or
+   * dotted (a forecast); an open square for a forecast bar; a dumbbell's ring or dot.
+   */
+  marker?: 'line' | 'dashed' | 'dotted' | 'open' | KeyMark
+  /** A quieter line under the row before it, such as a forecast's margin. */
+  note?: boolean
+  /** A muted word after the value, such as "buiten de as". */
+  aside?: string
 }
 export interface TooltipContent {
+  /** A line above the title, in the muted text: what the title is part of. */
+  kicker?: string
   title: string
+  /** A word after the title in the muted colour, such as "raming". */
+  note?: string
   rows: TooltipRow[]
   /** The events at this category, under the values: their number and text. */
   events?: { number: number; label: string }[]
@@ -69,6 +81,10 @@ export interface TooltipState {
   x: number
   y: number
   content: TooltipContent
+  /** `left` stands the tooltip left of `x`, for a mark whose right side carries its label. */
+  side?: 'left'
+  /** Where the tooltip ends when it does not fit right of `x`; centred when it fits neither. */
+  flip?: number
 }
 
 /** What the chart asks the controller to watch; set by the chart, not by the host. */
@@ -113,6 +129,8 @@ export class ChartController {
   emphasis: string | null = null
   /** The layers of a stacked map switched off in its legend, by their place in the stack. */
   hiddenLayers: number[] = []
+  /** The parts a treemap on a phone shows opened, by their id. */
+  openParts: string[] = []
   selectedCell: { row: number; column: number } | null = null
   /** What a wheel without its modifier shows, until its timer clears it. */
   mapHint: string | null = null
@@ -266,8 +284,15 @@ export class ChartController {
   }
 
   /** The tooltip at a place relative to the `data-tooltip-anchor`: the keyboard's way in. */
-  showTooltipAt(x: number, y: number, content: TooltipContent): void {
-    this.tooltip = { x, y, content }
+  /** `place`: `left` stands it left of `x`; a number is where it ends when it does not fit right. */
+  showTooltipAt(x: number, y: number, content: TooltipContent, place?: 'left' | number): void {
+    this.tooltip = {
+      x,
+      y,
+      content,
+      side: place === 'left' ? 'left' : undefined,
+      flip: typeof place === 'number' ? place : undefined,
+    }
     this.watchEscape()
     this.requestUpdate()
   }
@@ -326,6 +351,13 @@ export class ChartController {
     this.hiddenLayers = this.hiddenLayers.includes(index)
       ? this.hiddenLayers.filter((x) => x !== index)
       : [...this.hiddenLayers, index]
+    this.requestUpdate()
+  }
+
+  toggleOpen(id: string): void {
+    this.openParts = this.openParts.includes(id)
+      ? this.openParts.filter((x) => x !== id)
+      : [...this.openParts, id]
     this.requestUpdate()
   }
 

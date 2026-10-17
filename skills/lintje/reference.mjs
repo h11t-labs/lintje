@@ -1,19 +1,40 @@
 /**
- * Looks up Lintje's tag reference (`custom-elements.json`) so an agent reads one tag instead of
- * the whole file.
+ * Looks up Lintje's tag reference (`custom-elements.json`) or its tokens (`tokens.json`) so an
+ * agent reads one tag or one group instead of the whole file.
  *
  *   node reference.mjs <custom-elements.json>          every tag, with its first line
  *   node reference.mjs <custom-elements.json> <tag>    one tag: attributes, properties, events, slots
+ *   node reference.mjs <tokens.json> [word]            every token a page may name, by group;
+ *                                                      a word keeps the names or groups with it
  */
 import { readFileSync } from 'node:fs'
 
 const [file, tag] = process.argv.slice(2)
 if (!file) {
-  console.error('node reference.mjs <custom-elements.json> [lintje-<name>]')
+  console.error('node reference.mjs <custom-elements.json> [lintje-<name>] | <tokens.json> [word]')
   process.exit(1)
 }
 
 const manifest = JSON.parse(readFileSync(file, 'utf8'))
+
+// Names and meaning only: the value depends on the mode and theme, which only a browser knows.
+if (manifest.tokens) {
+  const word = tag?.toLowerCase() ?? ''
+  const found = manifest.tokens.filter(
+    (token) => token.name.includes(word) || token.group.toLowerCase().includes(word),
+  )
+  if (!found.length) {
+    console.error(`No token or group with "${tag}"; run without a word for the list.`)
+    process.exit(1)
+  }
+  let group
+  for (const token of found) {
+    if (token.group !== group)
+      console.log(`${group === undefined ? '' : '\n'}${(group = token.group)}`)
+    console.log(`  ${token.name}${token.comment ? ` — ${token.comment}` : ''}`)
+  }
+  process.exit(0)
+}
 const elements = manifest.modules
   .flatMap((module) => module.declarations ?? [])
   .filter((declaration) => declaration.customElement)

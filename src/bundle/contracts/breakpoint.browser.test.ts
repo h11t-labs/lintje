@@ -264,6 +264,68 @@ const RADAR: ChartData = {
   },
 }
 
+const DUMBBELL: ChartData = {
+  title: 'Tevredenheid per loket',
+  description: 'Gemiddeld rapportcijfer per loket in 2024 en 2026.',
+  state: 'ready',
+  chart: {
+    kind: 'dumbbell',
+    fromLabel: '2024',
+    toLabel: '2026',
+    min: 5,
+    max: 9,
+    rows: [
+      { label: 'Groningen', from: 6.8, to: 7.3 },
+      { label: 'Zwolle', from: 7.2, to: 7.2 },
+      { label: 'Utrecht', from: 7.6, to: 7.1 },
+    ],
+  },
+}
+
+const TREEMAP: ChartData = {
+  title: 'Uitgaven per terrein',
+  description: 'Uitgaven per terrein, totaal 100 mld euro.',
+  state: 'ready',
+  chart: {
+    kind: 'treemap',
+    unit: 'mld euro',
+    parts: [
+      {
+        label: 'Zorg',
+        parts: [
+          { label: 'Ziekenhuizen', value: 30 },
+          { label: 'Wijkzorg', value: 20 },
+        ],
+      },
+      { label: 'Onderwijs', value: 30 },
+      { label: 'Wonen', value: 20 },
+    ],
+  },
+}
+
+const SANKEY: ChartData = {
+  title: 'Aanvragen van indiening tot uitkomst',
+  description: 'Aanvragen per stap, van indiening tot uitkomst.',
+  state: 'ready',
+  chart: {
+    kind: 'sankey',
+    steps: [
+      { label: 'Ingediend', nodes: [{ id: 'in', label: 'Aanvragen' }] },
+      {
+        label: 'Uitkomst',
+        nodes: [
+          { id: 'toegekend', label: 'Toegekend' },
+          { id: 'afgewezen', label: 'Afgewezen' },
+        ],
+      },
+    ],
+    flows: [
+      { from: 'in', to: 'toegekend', value: 740 },
+      { from: 'in', to: 'afgewezen', value: 260 },
+    ],
+  },
+}
+
 const TABS: TabItem[] = [
   { value: 'overzicht', label: 'Overzicht' },
   { value: 'aanvragen', label: 'Aanvragen', count: 12 },
@@ -632,16 +694,31 @@ const ROWS: Row[] = [
   },
   {
     tag: 'lintje-chart',
-    marker: 'the view switch takes a row of its own under the title',
-    mount: () => append(create('lintje-chart', { data: { ...HEATMAP, tableSwitch: true } })),
-    wide: (element) => {
-      const view = find(element, '.lintje-chart__view')
-      return seen(view) && !below(find(element, '.lintje-tile__title'), view)
-    },
-    phone: (element) => {
-      const view = find(element, '.lintje-chart__view')
-      return seen(view) && below(find(element, '.lintje-tile__title'), view)
-    },
+    marker: 'the dumbbell drops its name column: each name stands above its row',
+    mount: () => append(create('lintje-chart', { data: DUMBBELL })),
+    wide: (element) =>
+      shown(element, '.lintje-dumbbell__name') && !find(element, '.lintje-dumbbell__name--above'),
+    phone: (element) => shown(element, '.lintje-dumbbell__name--above'),
+  },
+  {
+    tag: 'lintje-chart',
+    marker: 'the treemap becomes a strip of the whole over a row per part, opened on a tap',
+    mount: () => append(create('lintje-chart', { data: TREEMAP })),
+    wide: (element) =>
+      shown(element, '.lintje-treemap__area') && !find(element, '.lintje-treemap__row'),
+    phone: (element) =>
+      shown(element, '.lintje-treemap__strip') &&
+      shown(element, '.lintje-treemap__toggle[aria-expanded="false"]') &&
+      !find(element, '.lintje-treemap__area'),
+  },
+  {
+    tag: 'lintje-chart',
+    marker: 'the sankey becomes a bar per source with a row per target',
+    mount: () => append(create('lintje-chart', { data: SANKEY })),
+    wide: (element) =>
+      shown(element, '.lintje-sankey__band') && !find(element, '.lintje-sankey__bar'),
+    phone: (element) =>
+      shown(element, '.lintje-sankey__bar') && !find(element, '.lintje-sankey__band'),
   },
   {
     tag: 'lintje-tabs',

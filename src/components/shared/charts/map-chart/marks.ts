@@ -12,7 +12,7 @@ import { styleProps } from '../../../../core/style-props'
 import { isNewTabClick } from '../../../../core/links'
 import { formatNumber } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
-import { DEFAULT_SERIES_COLOR } from '../shared/colors'
+import { DEFAULT_SERIES_COLOR, lineCasing } from '../shared/colors'
 import { seriesShapePath } from '../shared/series-shapes'
 import { seriesStyle } from './series-style'
 import type { ChartController } from '../shared/controller'
@@ -334,7 +334,7 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
           <path d=${d} class="lintje-map-chart__point-ring" />
           <path d=${d}
                 class="lintje-map-chart__point-shape ${value.value == null ? 'lintje-map-chart__point-shape--empty' : colour ? 'lintje-map-chart__point-shape--series' : ''}"
-                ${styleProps({ '--lintje-series': colour })} />
+                ${styleProps({ '--lintje-series': colour, '--lintje-series-edge': lineCasing(colour) })} />
           ${
             value.value == null
               ? svg`<path d=${d} class="lintje-map-chart__point-hatch" fill="url(#map-hatch-${id})" />`

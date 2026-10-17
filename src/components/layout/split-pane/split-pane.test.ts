@@ -155,6 +155,7 @@ describe('lintje-split-pane', () => {
     expect(element.value).toBe(70)
     expect(heard).toEqual([70])
     // The placing click does not also press what it landed on.
+    pointer(pane, 'pointerup', 700)
     const click = new MouseEvent('click', { bubbles: true, composed: true, cancelable: true })
     pane.dispatchEvent(click)
     expect(click.defaultPrevented).toBe(true)
@@ -175,6 +176,41 @@ describe('lintje-split-pane', () => {
     expect(heard).toEqual([70])
     element.remove()
   })
+
+  it.each(['pointercancel', 'pointerup outside'])(
+    'lets the next click through when the placing press ends in a %s',
+    async (end) => {
+      const element = await mount()
+      const root = element.shadowRoot!
+      const block = root.querySelector<HTMLElement>('.lintje-split-pane')!
+      block.getBoundingClientRect = () => ({ left: 0, width: 1000 }) as DOMRect
+      const strip = root.querySelector<HTMLElement>('.lintje-split-pane__strip')!
+      const pane = root.querySelector<HTMLElement>('.lintje-split-pane__pane--end')!
+      const pointer = (target: HTMLElement, type: string, clientX: number): void => {
+        target.dispatchEvent(
+          new PointerEvent(type, {
+            button: 0,
+            pointerId: 1,
+            clientX,
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+          }),
+        )
+      }
+
+      pointer(strip, 'pointerdown', 500)
+      pointer(strip, 'pointerup', 501)
+      pointer(pane, 'pointerdown', 700)
+      if (end === 'pointercancel') pointer(pane, 'pointercancel', 700)
+      else pointer(document.body, 'pointerup', 700)
+      const click = new MouseEvent('click', { bubbles: true, composed: true, cancelable: true })
+      pane.dispatchEvent(click)
+      expect(click.defaultPrevented).toBe(false)
+      expect(element.value).toBe(70)
+      element.remove()
+    },
+  )
 
   it('puts a lifted split back on Escape, and the Escape goes no further', async () => {
     const { element, modal, closes } = await inModal()

@@ -6,7 +6,15 @@ import { html, nothing, type TemplateResult } from 'lit'
 import { styleProps } from '../../../../core/style-props'
 import { chartIcon, ZOOM_CONTROLS } from './chart-icons'
 
-export type ChartSkeletonKind = 'line' | 'bar' | 'pie' | 'donut' | 'heatmap' | 'map' | 'table'
+export type ChartSkeletonKind =
+  | 'line'
+  | 'bar'
+  | 'pie'
+  | 'donut'
+  | 'heatmap'
+  | 'map'
+  | 'table'
+  | 'treemap'
 
 function skeleton(
   width: number | string = '100%',
@@ -67,6 +75,13 @@ export function renderChartSkeleton({
           : nothing
       }
       ${kind === 'heatmap' ? Array.from({ length: 35 }, () => skeleton('100%', '100%')) : nothing}
+      ${
+        kind === 'treemap'
+          ? [0, 1, 2].map((i) =>
+              skeleton('100%', '100%', i === 0 ? 'lintje-chart-skeleton__lead' : ''),
+            )
+          : nothing
+      }
       ${
         kind === 'map'
           ? html`

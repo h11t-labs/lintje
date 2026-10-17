@@ -24,6 +24,20 @@ export interface LineSeriesData {
   color?: ChartColor
   comparison?: boolean
   area?: boolean
+  /**
+   * The margin around the forecast, one bound per label, `null` before `forecastFrom`. The
+   * forecast values themselves are in `values`. A comparison has no forecast: this is ignored.
+   */
+  forecast?: ChartForecast
+}
+
+/**
+ * The margin of a forecast: a lower and an upper bound per label, `null` where there is none.
+ * A point with one bound only has no margin; the tooltip names that bound.
+ */
+export interface ChartForecast {
+  low?: (number | null)[]
+  high?: (number | null)[]
 }
 
 /**
@@ -82,6 +96,16 @@ export type ChartSpec =
       small?: boolean
       /** Events: a numbered square above their category, listed with their text under the chart. */
       events?: ChartEvent[]
+      /**
+       * The index in `labels` of the first forecast point: before it everything is measured.
+       * Dotted from the last measured point on, with its margin. With it `asOfIndex`, `asOfLabel`
+       * and `pendingHours` do not apply. At 0 or less, or past the labels, there is no forecast.
+       */
+      forecastFrom?: number
+      /** The word in the legend and above the forecast. Default "Raming". */
+      forecastLabel?: string
+      /** The margin's name in the legend, as given ("Marge 80 %"). Default "Marge". */
+      intervalLabel?: string
     }
   | {
       kind: 'bar'
@@ -95,6 +119,17 @@ export type ChartSpec =
       small?: boolean
       /** One entry per value: the drilldown of that bar, or null. */
       links?: (ChartLink | null)[]
+      /**
+       * The index in `labels` of the first forecast bar: it and those after it are open. At 0 or
+       * less, or past the labels, there is no forecast.
+       */
+      forecastFrom?: number
+      /** The margin of the forecast bars, `null` before `forecastFrom`. */
+      forecast?: ChartForecast
+      /** The word in the legend and above the forecast. Default "Raming". */
+      forecastLabel?: string
+      /** The margin's name in the legend, as given ("Marge 80 %"). Default "Marge". */
+      intervalLabel?: string
     }
   | {
       kind: 'horizontal-bar'
@@ -256,6 +291,105 @@ export type ChartSpec =
       dataLabels?: boolean
       small?: boolean
     }
+  | {
+      kind: 'dumbbell'
+      /** The rows in the host's order; the chart never sorts them. */
+      rows: DumbbellRow[]
+      /** The earlier moment ('2024'): a grey ring, in the legend, the tooltip and the table. */
+      fromLabel: string
+      /** The later moment ('2026'): a dot in `color`. */
+      toLabel: string
+      /** The later moment's colour; without it the default chart colour. */
+      color?: ChartColor
+      /**
+       * The ends of the axis. A dumbbell carries a position, not a length, so the axis may be
+       * shortened; without them it runs from 0 to a round value above the data and the norm.
+       * A value outside stands on the edge with an off-axis mark and never stretches the axis.
+       */
+      min?: number
+      max?: number
+      unit?: string
+      /** A vertical norm, dashed in the emphasis colour. */
+      threshold?: number
+      thresholdLabel?: string
+    }
+  | {
+      kind: 'treemap'
+      /** The parts of the whole, in any order: the chart sorts them, the largest top left. */
+      parts: TreemapPart[]
+      /** The variable the whole divides: its parts take this colour's tints. Default sky blue. */
+      color?: ChartColor
+      /** What the value is, in the tooltip, the table and the CSV, e.g. "Uitgaven". Default "Waarde". */
+      label?: string
+      /** The unit in the total line, the tooltip, the table and the CSV, e.g. "mld euro". */
+      unit?: string
+      /** Name and amount in the areas, as far as they fit. Off: no label at all. Default true. */
+      dataLabels?: boolean
+      /** Header of the table's first column: what the parts are. Default "Deel". */
+      labelHeader?: string
+      small?: boolean
+    }
+  | {
+      kind: 'sankey'
+      /** The steps of the process, left to right: two to four, with up to six nodes each. */
+      steps: SankeyStep[]
+      flows: SankeyFlow[]
+      /** What flows, in the legend, the tooltip and the table, such as "Aanvragen". Default "Aantal". */
+      label?: string
+      /** The variable that flows: one colour for nodes and bands. Default sky blue. */
+      color?: ChartColor
+      unit?: string
+      /** The share beside the count in the labels. Default true. */
+      share?: boolean
+      /** The least height is `--chart-h-small`; the busiest step still makes it taller. */
+      small?: boolean
+    }
+
+/**
+ * A node of a sankey: one category of one step. Its `id` is unique over all steps; with a
+ * `href` it is clickable, like a slice of a pie.
+ */
+export interface SankeyNode {
+  id: string
+  label: string
+  href?: string
+  /**
+   * Its own count, which goes before the sum of its flows. Needed in the first step when a flow
+   * out of it is missing: the part no known flow takes is then drawn as one hatched stub.
+   */
+  value?: number
+}
+
+/** A step of a sankey: its name above the column and its nodes, top to bottom. */
+export interface SankeyStep {
+  label: string
+  nodes: SankeyNode[]
+}
+
+/**
+ * A flow of a sankey between nodes of two consecutive steps; one that skips a step or names an
+ * unknown node is left out, also from the table. `value: null` is no data, never 0 (rule 15).
+ */
+export interface SankeyFlow {
+  from: string
+  to: string
+  value: number | null
+  /** The identity a click carries; without it `from→to`. */
+  id?: string
+  href?: string
+}
+
+/**
+ * One row of a dumbbell chart: one measure at two moments. `null` is no data, never 0 (rule
+ * 15); with a `href` the row is clickable, as a row of horizontal bars is.
+ */
+export interface DumbbellRow {
+  label: string
+  from: number | null
+  to: number | null
+  id?: string
+  href?: string
+}
 
 /**
  * A layer of a radar chart: one value per axis, `null` for no data (rule 15). Without a colour
@@ -266,6 +400,28 @@ export interface RadarSeriesData {
   values: (number | null)[]
   color?: ChartColor
   comparison?: boolean
+}
+
+/**
+ * A part of a treemap's whole. A part with `parts` is their sum: its own `value` is ignored, and
+ * it is missing when all of them are. A click anywhere in it chooses the part, with its `href`.
+ */
+export interface TreemapPart {
+  label: string
+  /** null = no data, never 0 (rule 15): no area, "Geen gegevens" in the legend. */
+  value?: number | null
+  id?: string
+  href?: string
+  /** Its sub-parts, one level deep: they share its tint and are never a choice of their own. */
+  parts?: TreemapSubPart[]
+}
+
+/** A sub-part of a treemap's part: no parts and no `href` of its own. */
+export interface TreemapSubPart {
+  label: string
+  /** null = no data, never 0 (rule 15). */
+  value: number | null
+  id?: string
 }
 
 export type ChartKind = ChartSpec['kind']

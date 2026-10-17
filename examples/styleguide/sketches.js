@@ -171,10 +171,13 @@ export const KIND_SKETCHES = {
   'grouped-bar': 'cgroup',
   'stacked-bar': 'cstack',
   pie: 'cpie',
+  treemap: 'ctree',
+  sankey: 'csankey',
   histogram: 'chist',
   heatmap: 'cheat',
   scatter: 'cscatter',
   radar: 'cradar',
+  dumbbell: 'cdumbbell',
   'target-progress': 'ctarget',
 }
 
@@ -196,14 +199,20 @@ const CHARTS = {
     '<g class="i"><rect x="8" y="26" width="16" height="24"/><rect x="32" y="20" width="16" height="30"/><rect x="56" y="30" width="16" height="20"/><rect x="80" y="22" width="16" height="28"/></g><g class="w"><rect x="8" y="10" width="16" height="16"/><rect x="32" y="6" width="16" height="14"/><rect x="56" y="14" width="16" height="16"/><rect x="80" y="4" width="16" height="18"/></g>',
   cpie:
     '<circle class="w" cx="50" cy="25" r="23"/><path class="i" d="M50 25 L50 2 A23 23 0 0 1 71 34 Z"/>',
+  csankey:
+    '<g class="w" opacity=".5"><path d="M10 4 C30 4 30 2 50 2 L50 30 C30 30 30 32 10 32 Z"/><path d="M10 32 C30 32 30 34 50 34 L50 46 C30 46 30 46 10 46 Z"/><path d="M58 2 C76 2 76 4 92 4 L92 22 C76 22 76 20 58 20 Z"/><path d="M58 20 C76 20 76 28 92 28 L92 38 C76 38 76 30 58 30 Z"/><path d="M58 34 C76 34 76 38 92 38 L92 46 C76 46 76 42 58 42 Z"/></g><g class="i"><rect x="4" y="4" width="6" height="42"/><rect x="50" y="2" width="8" height="28"/><rect x="50" y="34" width="8" height="12"/><rect x="92" y="4" width="6" height="18"/><rect x="92" y="28" width="6" height="18"/></g>',
   chist:
     '<g class="i"><rect x="0" y="36" width="16" height="14"/><rect x="17" y="20" width="16" height="30"/><rect x="34" y="6" width="16" height="44"/><rect x="51" y="16" width="16" height="34"/><rect x="68" y="30" width="16" height="20"/><rect x="85" y="42" width="15" height="8"/></g>',
   cheat:
     '<g class="w"><rect x="0" y="0" width="24" height="12"/><rect x="50" y="0" width="24" height="12"/><rect x="26" y="13" width="24" height="12"/><rect x="76" y="13" width="24" height="12"/><rect x="0" y="26" width="24" height="12"/><rect x="50" y="38" width="24" height="12"/></g><g class="i"><rect x="26" y="0" width="24" height="12"/><rect x="76" y="0" width="24" height="12"/><rect x="0" y="13" width="24" height="12"/><rect x="50" y="13" width="24" height="12"/><rect x="26" y="26" width="24" height="12"/><rect x="76" y="26" width="24" height="12"/><rect x="0" y="38" width="24" height="12"/><rect x="26" y="38" width="24" height="12"/><rect x="76" y="38" width="24" height="12"/><rect x="50" y="26" width="24" height="12"/></g>',
   cscatter:
     '<g class="i"><circle cx="8" cy="42" r="3"/><circle cx="22" cy="36" r="3"/><circle cx="34" cy="38" r="3"/><circle cx="48" cy="26" r="3"/><circle cx="60" cy="30" r="3"/><circle cx="74" cy="18" r="3"/><circle cx="88" cy="12" r="3"/></g><line class="w" x1="0" y1="22" x2="100" y2="22" stroke-dasharray="3 3"/>',
+  ctree:
+    '<rect class="i" x="0" y="0" width="54" height="50"/><g class="w"><rect x="56" y="0" width="44" height="28"/><rect x="56" y="30" width="26" height="20"/><rect x="84" y="30" width="16" height="20"/></g>',
   cradar:
     '<polygon class="w" fill="none" points="50,2 72,13.5 72,36.5 50,48 28,36.5 28,13.5"/><polygon class="i" points="50,8 66,16.5 62,32 50,44 34,34 30,14"/>',
+  cdumbbell:
+    '<g class="w"><line x1="10" y1="8" x2="80" y2="8" stroke-dasharray="3 3"/></g><g class="i"><line x1="30" y1="8" x2="70" y2="8"/><line x1="44" y1="25" x2="62" y2="25"/><line x1="24" y1="42" x2="50" y2="42"/><circle cx="70" cy="8" r="4"/><circle cx="62" cy="25" r="4"/><circle cx="24" cy="42" r="4"/></g><g class="w"><circle cx="30" cy="8" r="4"/><circle cx="44" cy="25" r="4"/><circle cx="50" cy="42" r="4"/></g>',
   ctarget:
     '<g class="w"><rect x="0" y="4" width="100" height="9"/><rect x="0" y="20" width="100" height="9"/><rect x="0" y="36" width="100" height="9"/></g><g class="i"><rect x="0" y="4" width="80" height="9"/><rect x="0" y="20" width="56" height="9"/><rect x="0" y="36" width="34" height="9"/></g><line class="i" x1="74" y1="0" x2="74" y2="50"/>',
   map: '<path class="w" d="M38 2 L62 4 L72 14 L66 24 L74 34 L62 48 L44 46 L34 36 L24 32 L30 18 Z"/><g class="i"><circle cx="46" cy="22" r="3"/><circle cx="58" cy="30" r="4"/><circle cx="40" cy="36" r="2.5"/></g>',

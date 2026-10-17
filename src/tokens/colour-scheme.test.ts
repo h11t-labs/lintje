@@ -33,6 +33,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { resolve as resolvePath } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { DATA_COLORS } from './colors'
+import { LABEL_INK } from '../components/shared/charts/shared/colors'
 
 /* --- the two stylesheets, as the browser reads them ----------------------- */
 
@@ -1392,9 +1393,15 @@ describe('data and status colour', () => {
     'light-blue',
     'moss-green',
   ]
+  // The light colours that reach 3:1 as a line or a mark only by an edge; dark yellow's is its
+  // text colour.
+  const EDGED = ['mint-green', 'orange', 'pink', 'yellow', 'light-blue']
+  const edgeOf = (name: string) =>
+    name === 'dark-yellow' ? '--color-chart-dark-yellow-text' : `--color-chart-${name}-edge`
   const FIXED = [
     ...DATA.map((name) => `--data-${name}`),
     '--data-dark-yellow-text',
+    ...EDGED.map((name) => `--data-${name}-edge`),
     ...['success', 'warning', 'attention', 'error', 'info'].map((name) => `--status-${name}`),
     ...DATA.flatMap((name) => [75, 60, 45, 30, 15].map((step) => `--data-${name}-${step}`)),
     ...DATA.map((name) => `--color-chart-${name}`),
@@ -1416,7 +1423,7 @@ describe('data and status colour', () => {
     expect([...DATA_COLORS]).toEqual(DATA)
     const ROLES = ['comparison', 'other', 'dark-yellow-text', 'grid', 'emphasis']
     const primitives = Object.keys(LIGHT)
-      .filter((token) => /^--data-[a-z-]+$/.test(token) && !/-\d+$/.test(token))
+      .filter((token) => /^--data-[a-z-]+$/.test(token) && !/-(\d+|edge)$/.test(token))
       .map((token) => token.slice('--data-'.length))
       .filter((name) => !ROLES.includes(name))
     expect(primitives).toEqual(DATA)
@@ -1432,7 +1439,7 @@ describe('data and status colour', () => {
   })
 
   it('carries a label on each colour in white or in ink, whichever reaches 4.5:1', () => {
-    // Restates the stacked bar's DARK_FILLS: a label on these is white, on the rest ink.
+    // Restates DARK_FILLS in charts/shared/colors.ts: a label on these is white, on the rest ink.
     const WHITE_ON = [
       'sky-blue',
       'red',
@@ -1452,6 +1459,73 @@ describe('data and status colour', () => {
       expect(contrast(values[ink], values[`--data-${name}`]), name).toBeGreaterThanOrEqual(4.5)
     }
   })
+
+  // The charts' table of label ink, cell by cell: the ink it names reaches 4.5:1 on that step of
+  // the ladder, and a step without ink is one where neither does.
+  const STEP_TOKEN = (name: string, step: number) =>
+    step === 1 ? `--color-chart-${name}` : `--color-chart-${name}-tint-${step}`
+  for (const name of DATA) {
+    for (const step of [1, 2, 3, 4, 5]) {
+      const ink = LABEL_INK[name as keyof typeof LABEL_INK][step - 1]
+      it(`writes a label on ${name} step ${step} in ${ink ?? 'nothing'}`, () => {
+        for (const mode of ['light', 'dark'] as const) {
+          const values = tokensFor(mode)
+          const fill = values[STEP_TOKEN(name, step)]
+          const white = contrast(values['--color-text-on-fill'], fill)
+          const dark = contrast(values['--color-text-on-light-fill'], fill)
+          if (ink === 'white') expect(white, mode).toBeGreaterThanOrEqual(4.5)
+          else if (ink === 'ink') expect(dark, mode).toBeGreaterThanOrEqual(4.5)
+          else expect(Math.max(white, dark), mode).toBeLessThan(4.5)
+        }
+      })
+    }
+  }
+
+  it('names a label ink for every colour, step for step', () => {
+    expect(Object.keys(LABEL_INK)).toEqual(DATA)
+    for (const rungs of Object.values(LABEL_INK)) expect(rungs).toHaveLength(5)
+  })
+
+  for (const mode of ['light', 'dark'] as const) {
+    it(`keeps a label on a dimmed step of the default ladder at 4.5:1 in ${mode}`, () => {
+      // A chosen mark dims the others to .45 over the surface; their label is the text colour.
+      const values = tokensFor(mode)
+      for (const step of [1, 2, 3, 4, 5]) {
+        const dimmed = mix(values[`--color-chart-tint-${step}`], 0.45, values['--color-bg-surface'])
+        expect(
+          contrast(values['--color-text-primary'], dimmed),
+          `step ${step}`,
+        ).toBeGreaterThanOrEqual(4.5)
+      }
+    })
+  }
+
+  it('edges every colour under 3:1 on the surface or the land, halfway to black', () => {
+    const light = tokensFor('light')
+    const grounds = [light['--neutral-0'], light['--color-map-land']]
+    const short = DATA.filter((name) =>
+      grounds.some((ground) => contrast(light[`--data-${name}`], ground) < 3),
+    )
+    expect(short).toEqual(['dark-yellow', ...EDGED])
+    for (const name of short) {
+      for (const ground of grounds) {
+        expect(contrast(light[edgeOf(name)], ground), name).toBeGreaterThanOrEqual(3)
+      }
+    }
+    for (const name of EDGED) {
+      expect(light[`--data-${name}-edge`], name).toBe(mix(light[`--data-${name}`], 0.5, '#000000'))
+    }
+  })
+
+  for (const theme of THEME_NAMES) {
+    it(`melts every edge into its colour in dark, for ${theme}`, () => {
+      const dark = tokensFor('dark', theme)
+      for (const name of ['dark-yellow', ...EDGED]) {
+        expect(dark[edgeOf(name)], name).toBe(dark[`--data-${name}`])
+        expect(contrast(dark[`--data-${name}`], DARK_SURFACE), name).toBeGreaterThanOrEqual(3)
+      }
+    })
+  }
 
   it('keeps the shared ladder as the sky blue’s, the default colour', () => {
     const values = tokensFor('light')

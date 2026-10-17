@@ -29,6 +29,11 @@ const ZONES = [
 }))
 
 const KIND_SERIES = { counter: 'dark-green', service: 'purple' }
+const LIGHT_SERIES = [
+  ['mint-green', 'Mintgroen'],
+  ['pink', 'Roze'],
+  ['light-blue', 'Lichtblauw'],
+]
 // The same kinds as series keys of their own, styled rather than named after a colour.
 const KIND_STYLED = { counter: 'balie', service: 'servicepunt' }
 
@@ -116,6 +121,21 @@ const MAPS = [
         },
       ],
       description: 'Meldingen per werkgebied in vijf klassen, met daarover de loketten: de grootte van het teken is het aantal aanvragen, de kleur en vorm het soort loket.',
+    },
+  },
+  {
+    // The light colours: in light each point has an edge in its own dark colour, for 3:1 on the land.
+    id: 'map-light-colours', label: 'Lichte kleuren', title: 'Kaart · lichte kleuren',
+    note: 'Mintgroen, roze en lichtblauw krijgen in licht een rand in hun eigen donkere kleur.',
+    data: {
+      variant: 'points', geo: 'netherlands', unit: 'aanvragen', height: 320,
+      values: desks.map((point, i) => ({
+        id: point.id, label: point.map_label, value: point.requests,
+        lon: point.lon, lat: point.lat,
+        series: LIGHT_SERIES[i % LIGHT_SERIES.length][0],
+      })),
+      seriesLabels: Object.fromEntries(LIGHT_SERIES),
+      description: 'Loketten in Nederland in drie reeksen in lichte kleuren, elk met een eigen vorm; de grootte van het teken is het aantal aanvragen.',
     },
   },
   {

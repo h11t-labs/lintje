@@ -66,7 +66,7 @@ Per soort is er ook een benoemde functie, met de kaderonderdelen en de toestande
 | --- | --- |
 | `controller` | de `ChartController` voor deze grafiek. Eén per grafiek. |
 | `description` | de `<desc>`: het toegankelijke alternatief. Verplicht. |
-| `mobile` | onder 768 px. De host beslist, op basis van een media query (`MediaController`, `core/media.ts`). De heatmap neemt dan het `mobile`-grid van de spec — zonder dat kantelt een grid dat breder is dan hoog (`phoneGrid`) — en laat zijn hover-tooltip vallen; de kaart wordt lager. Het spinnendiagram wordt een rij staven per as. |
+| `mobile` | onder 768 px. De host beslist, op basis van een media query (`MediaController`, `core/media.ts`). De heatmap neemt dan het `mobile`-grid van de spec — zonder dat kantelt een grid dat breder is dan hoog (`phoneGrid`) — en laat zijn hover-tooltip vallen; de kaart wordt lager. Het spinnendiagram wordt een rij staven per as, de sankey per overgang een staaf per bron met een rij per doel; het halterdiagram zet de naam boven elke rij. De treemap wordt een strook van het geheel met een rij per deel, uit te klappen naar zijn onderdelen (`openParts` in de controller). |
 | `height` | een vaste hoogte in px in plaats van het token `--chart-h-main` / `--chart-h-small`. |
 | `plotArea` | een eigen `PlotArea` in plaats van de gemeten. |
 | `expanded` | getekend in de vergrotingsmodal: de grafiek mag de hoogte van de body nemen; de taart groeit en zijn tabel wordt een kolom. |
@@ -110,8 +110,8 @@ dingen bijten:
 ### Een markering die doorklikt
 
 Elke grafieksoort met een markering om op te klikken — staven, gegroepeerde staven, horizontale staven,
-taartpunten, gestapelde segmenten, heatmapcellen, de punten van een spreidingsdiagram; geen
-lijnpunten — volgt datzelfde
+taartpunten, gestapelde segmenten, heatmapcellen, de punten van een spreidingsdiagram, de delen
+van een treemap, de knopen en stromen van een sankey; geen lijnpunten — volgt datzelfde
 contract, via `ChartOptions`: `selectedId`, `onSelect` en `onClear`. Een markering
 wordt een `role="button"` met `aria-pressed` als, en alleen als, haar datapunt
 een `href` draagt die de host heeft aangemaakt. Een markering die een record is (`rows`, `segments`)
@@ -162,7 +162,7 @@ host zonder Lit moet ze zelf bundelen.
 
 ## De CSS
 
-`shared/chart.css`, `pie-chart/pie-chart.css`, `heatmap-chart/heatmap-chart.css` en `map-chart/map-chart.css` bevatten de eigen BEM-regels
+`shared/chart.css`, `pie-chart/pie-chart.css`, `heatmap-chart/heatmap-chart.css`, `treemap-chart/treemap-chart.css`, `sankey-chart/sankey-chart.css` en `map-chart/map-chart.css` bevatten de eigen BEM-regels
 van de grafieken. De knopreset, `visually-hidden` en de keyframes komen uit
 `tokens/base.css`, dat elk element adopteert.
 
