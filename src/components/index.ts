@@ -118,6 +118,7 @@ export { LintjeIconButton } from './actions/icon-button/icon-button'
 export type { IconButtonVariant } from './actions/icon-button/icon-button'
 export { LintjeStatusDot, STATUS_LABEL } from './feedback/status-dot/status-dot'
 export { TONE_ICON, TONE_WORD, WORK_STATE_LABEL, WORK_STATE_TONE } from './shared/tone'
+export { OTHER_MISSING_TEXT } from './shared/other'
 export type { ContentStateKind, Tone, WorkState } from './shared/tone'
 export { LintjeSkeleton } from './feedback/skeleton/skeleton'
 export { LintjeGrid } from './layout/grid/grid'
@@ -237,7 +238,7 @@ export type { SubNavAction, SubNavGroup, SubNavItem } from './frame/sub-nav/sub-
 export { LintjePagination, pageRange } from './tables/pagination/pagination'
 export type { PageSlot } from './tables/pagination/pagination'
 export { LintjeList } from './tables/list/list'
-export type { ListItem, RowClickDetail } from './tables/list/list'
+export type { ListItem } from './tables/list/list'
 export { LintjeCard } from './tables/card/card'
 export type {
   CardAction,
@@ -317,6 +318,8 @@ export type {
   KpiRowData,
   MapData,
   NoteData,
+  RowActionDetail,
+  RowClickDetail,
   SortState,
   TableColumnData,
   TileData,

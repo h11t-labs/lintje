@@ -1,7 +1,12 @@
-/** The log viewer in a browser: its filter row fits the tile's width, not the screen's. */
+/**
+ * The log viewer in a browser: its filter row fits the tile's width, not the screen's, and
+ * following, "Naar nieuwste" and a step to a hit scroll its log, never the page.
+ */
 import { afterEach, describe, expect, it } from 'vitest'
 import './log-viewer'
 import type { LintjeLogViewer } from './log-viewer'
+import type { LintjeFind } from '../../inputs/find/find'
+import type { LogEntry, LogViewerData } from '../../../types'
 
 async function mount(width: number, raw = false): Promise<LintjeLogViewer> {
   const box = document.body.appendChild(document.createElement('div'))
@@ -72,5 +77,85 @@ describe('lintje-log-viewer fits its filter row', () => {
     const element = await mount(500, true)
     await expect.poll(() => tools(element)).toBe(1)
     expect(top(part(element, 'lintje-find'))).toBe(top(part(element, '.lintje-log-viewer__tools')))
+  })
+})
+
+const lines = (from: number, count: number, hits: number[] = []): LogEntry[] =>
+  Array.from({ length: count }, (_, index) => {
+    const n = from + index
+    return {
+      id: `r${n}`,
+      time: `14:03:${String(n % 60).padStart(2, '0')}.000`,
+      level: 'info',
+      source: 'import',
+      message: hits.includes(n) ? `Batch ${n}: timeout na 3000 ms` : `Batch ${n} gelezen`,
+    }
+  })
+
+/** A viewer between two tall blocks, so the page itself can scroll, and stands scrolled to it. */
+async function onPage(data: Partial<LogViewerData>): Promise<LintjeLogViewer> {
+  const block = (): HTMLElement => {
+    const div = document.createElement('div')
+    div.style.height = '1500px'
+    return div
+  }
+  document.body.append(block())
+  const element = document.body.appendChild(document.createElement('lintje-log-viewer'))
+  element.style.display = 'block'
+  element.style.width = '1300px'
+  document.body.append(block())
+  element.data = { title: 'Importlog', live: true, entries: lines(1, 60), ...data }
+  await element.updateComplete
+  window.scrollTo(0, element.getBoundingClientRect().top + window.scrollY - 40)
+  return element
+}
+
+const logOf = (element: LintjeLogViewer): HTMLElement => part(element, '.lintje-log-viewer__log')!
+const beyond = (log: HTMLElement): number => log.scrollHeight - log.scrollTop - log.clientHeight
+const foot = (element: LintjeLogViewer): string =>
+  part(element, '.lintje-log-viewer__foot')?.textContent?.replace(/\s+/g, ' ') ?? ''
+
+describe('lintje-log-viewer follows in its own log', () => {
+  it('stands still when scrolled up, and goes to the newest without moving the page', async () => {
+    const element = await onPage({})
+    const log = logOf(element)
+    await expect.poll(() => beyond(log)).toBeLessThanOrEqual(8)
+    const page = window.scrollY
+    expect(page).toBeGreaterThan(0)
+
+    log.scrollTop = 0
+    await expect.poll(() => foot(element)).toContain('Staat stil')
+    element.data = { ...element.data!, entries: lines(1, 65) }
+    await element.updateComplete
+    await expect.poll(() => foot(element)).toContain('5 nieuwe regels onder')
+    expect(log.scrollTop).toBe(0)
+    expect(window.scrollY).toBe(page)
+
+    part(element, '.lintje-log-viewer__latest lintje-button')!.click()
+    await expect.poll(() => beyond(log)).toBeLessThanOrEqual(8)
+    await expect.poll(() => foot(element)).toContain('Volgt de nieuwste regel')
+    expect(window.scrollY).toBe(page)
+  })
+
+  it('brings a hit into the log with a step, and leaves the page where it was', async () => {
+    const element = await onPage({ entries: lines(1, 60, [3, 55]), filter: { search: 'timeout' } })
+    const log = logOf(element)
+    const current = (): HTMLElement | null =>
+      element.shadowRoot!.querySelector<HTMLElement>('lintje-highlight[current]')
+    const inLog = (): boolean => {
+      const box = log.getBoundingClientRect()
+      const at = current()!.getBoundingClientRect()
+      return at.top >= box.top && at.bottom <= box.bottom
+    }
+    await expect.poll(inLog).toBe(true)
+    const page = window.scrollY
+    const before = log.scrollTop
+
+    part(element, 'lintje-find')!.dispatchEvent(new CustomEvent('lintje-find-step', { detail: 1 }))
+    await expect.poll(() => current()?.closest('[data-id]')?.getAttribute('data-id')).toBe('r55')
+    await expect.poll(inLog).toBe(true)
+    expect(log.scrollTop).toBeGreaterThan(before)
+    expect(window.scrollY).toBe(page)
+    expect((part(element, 'lintje-find') as LintjeFind).current).toBe(2)
   })
 })

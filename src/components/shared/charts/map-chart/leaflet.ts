@@ -11,7 +11,14 @@ import type { ChartController } from '../shared/controller'
 import { prefersReducedMotion } from '../../../../core/motion'
 import { clearance, hidden, keyboardFocus, overlayBoxes, REVEAL_MARGIN, type Box } from './reveal'
 import { mapDrawings, type MapDrawing } from './drawings'
-import { renderData, renderRegion, type LandShape, type Project } from './marks'
+import {
+  FIXED_RADIUS,
+  renderData,
+  renderRegion,
+  type LandShape,
+  type Project,
+  ZOOM_RADIUS,
+} from './marks'
 import { distanceKm, flatRing, idsInArea, rectRing } from './area'
 import { GEOS, type FeatureCollection } from './geo'
 import type { MapArea, MapSpec, MapTool, MapValue, WmsBasemap } from '../shared/types'
@@ -48,6 +55,19 @@ const CLOSE_PX = 10
 function symbolTransform(symbol: SVGGElement, scale: number): string {
   const [x, y] = (symbol.dataset.at ?? '0 0').split(' ')
   return `translate(${x}px, ${y}px) scale(${scale})`
+}
+
+/**
+ * How far a symbol scales back against the group's `scale`: all the way, so it keeps its pixel
+ * size — or, for a point that follows the zoom (`data-zoom`, `MapPointSize.zoom`), only past the
+ * radius the zoom would give it outside 2–28 px, so it grows and shrinks with the ground until
+ * it would vanish or swamp the map.
+ */
+function symbolScale(symbol: SVGGElement, scale: number): number {
+  if (symbol.dataset.zoom == null) return 1 / scale
+  const radius = Number(symbol.dataset.r) || FIXED_RADIUS
+  const wanted = Math.min(ZOOM_RADIUS.max, Math.max(ZOOM_RADIUS.min, radius * scale))
+  return wanted / (radius * scale)
 }
 
 /** Leaflet's zoom animation: `cubic-bezier(0, 0, 0.25, 1)`, sampled at a share `t` of its time. */
@@ -100,7 +120,7 @@ export interface LeafletSyncOptions {
   zoom: boolean
   /** The scale bar shows: a move redraws the map so it follows. */
   scale: boolean
-  select: (value: MapValue) => void
+  select: (value: MapValue, newTab?: boolean) => void
   clear: () => void
   /** Below 768 px, where a one-finger drag belongs to the page (rule 9). */
   mobile: boolean
@@ -611,7 +631,7 @@ export class LeafletSurface {
     const inverse = 1 / scale
     for (const symbol of this.#symbols()) {
       symbol.style.transitionTimingFunction = ''
-      symbol.style.transform = symbolTransform(symbol, inverse)
+      symbol.style.transform = symbolTransform(symbol, symbolScale(symbol, scale))
     }
     group
       .querySelector('.lintje-map-chart__hatch')
@@ -628,11 +648,11 @@ export class LeafletSurface {
     const group = this.#group
     if (!map || !group) return
     const ratio = map.getZoomScale(zoom, map.getZoom())
-    const inverse = 1 / map.getZoomScale(zoom, this.#referenceZoom)
+    const target = map.getZoomScale(zoom, this.#referenceZoom)
     const easing = reciprocalEasing(ratio)
     for (const symbol of this.#symbols()) {
       symbol.style.transitionTimingFunction = easing
-      symbol.style.transform = symbolTransform(symbol, inverse)
+      symbol.style.transform = symbolTransform(symbol, symbolScale(symbol, target))
     }
   }
 
