@@ -609,6 +609,9 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een rij is klikbaar of selecteerbaar**, nooit allebei. Een naam die zijn rij opent, maakt de
   rij niet klikbaar: de naam is de link, dus een selecteerbare tabel kan zijn rijen nog steeds
   openen. Een naam die opent, wordt niet in zijn cel bewerkt.
+- **De naam van een klikbare rij is haar Tab-stop**, zoals de titel in de werklijst: een link met
+  de `href` van de rij, anders een knop, met `aria-current` op de gekozen rij. De rij zelf houdt
+  haar klik voor de aanwijzer, op een telefoon ook.
 - **Rijacties zijn een rustige ⋮**: plat, zonder vak. Een vak in elke rij weegt zwaarder dan de
   data ernaast.
 - **Op een applicatiepagina staat een tabel op de pagina**, zonder tegel: de kop of tab van de
@@ -622,7 +625,8 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een kolom kan haar waarden afkappen** (`truncate`): één regel met een beletselteken, zo breed
   als haar langste waarde tot een grens, zodat één lange toelichting de tabel niet breder maakt.
   Zoals elke afgekapte tekst staat de hele waarde in de tooltip en loopt ze door onder de focus
-  van het toetsenbord en zonder hover; onder 768 px kapt niets af.
+  van het toetsenbord en zonder hover; een rij zonder bediening krijgt daarvoor zelf
+  toetsenbordfocus. Onder 768 px kapt niets af.
 - **Een verandering kan alleen haar pijltje tonen** (`change-compact`): ▲ ▼ ● in de kleur van de
   verandering, voor een smalle kolom. Wat het oog ziet en wat een schermlezer hoort, zijn dan twee
   kopieën: de getekende is verborgen voor de schermlezer, een visueel verborgen kopie draagt de
