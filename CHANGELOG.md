@@ -11,6 +11,108 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-17
+
+### Toegevoegd
+
+- Entiteitendiagram `lintje-graph` in een eigen categorie, Netwerk: een host stuurt knopen, hun soorten en hun relaties, en het element deelt ze in (gelaagd, door kracht of radiaal), tekent ze als kaarten of uitgezoomd als merktekens, groepeert meer dan vijf bladeren van één soort, klapt takken in en uit met een teller in de kaart, haalt op aanvraag buren op, zoomt zoals de kaart, met een overzicht, en geeft de tekening als PNG. Boven honderd knopen wordt de indeling in een worker berekend (`dist-elements/workers/`). (#247)
+- Een treemap (`kind: 'treemap'`) toont de delen van een groot geheel en hun onderdelen in één vlak; de inkt van een label op een vulling staat per kleur en per sport in één tabel. (#220)
+- `<lintje-person>` toont één persoon met foto, initialen of icoon en de naam ernaast, en
+  `<lintje-person-group>` een rijtje overlappende rondjes dat een lijst van iedereen opent.
+  Een persoon staat ook in de tabel (`format: 'person'`), op een rij van de lijst, als feit op
+  een kaart en in de geschiedenis. (#219)
+- `lintje-accordion`: uitklappers gestapeld als één lijst, met de lijnen van de lijst en de pijl
+  vooraan, met `exclusive` en `toggle-all`; `lintje-expander` krijgt `level` voor het kopniveau.
+  (#218)
+- Een lijn- en een staafgrafiek tonen na het gemeten deel een raming (`forecastFrom`) met
+  optioneel haar marge (`forecast: { low, high }`): gestippeld of als open staaf, achter één grens
+  met "Gemeten" en "Raming", met een open hoverpunt, "raming" in de tooltip en de grenzen en de
+  soort in de tabel en de CSV. (#217)
+- `lintje-chart` tekent een halterdiagram (`kind: 'dumbbell'`, "Voor en na"): één maat per rij op
+  twee momenten, een grijze ring en een stip in de kleur van de variabele, met het verschil met
+  teken ernaast. De host mag de as inkorten; een waarde erbuiten staat op de rand met een
+  afkapteken en heet in de legenda "Buiten de as". (#216)
+- `lintje-chart` tekent een sankey (`kind: 'sankey'`): hoe één aantal over twee tot vier stappen van een proces stroomt. Hij heeft één kleur en één schaal, een gearceerde stomp voor een ontbrekende stroom, toetsenbord en tooltip, een tabel per stroom en onder 768 px een staaf per bron. De vraag `parts` luidt nu "Uit welke delen bestaat het geheel, en waar komen ze terecht?". (#215)
+- `lintje-chat-questions`: de vragen van de assistent in een box boven het tikveld, in de korte
+  vorm (knopjes, één tik verstuurt) of in stappen met Vorige, Volgende en Versturen, met "Iets
+  anders…" in elke keuzevraag en het event `lintje-questions-answer`. `lintje-chat` tekent de box
+  bij `questions` op het laatste antwoord en klapt het tikveld op de telefoon in tot één regel, met
+  het aantal bijlagen. (#212)
+- `lintje-chart` waarschuwt in de ontwikkelbuild als een lijn, gegroepeerde staaf, dubbele as, spreiding of spinnendiagram meer dan één variabele heeft en een reeks daarvan geen kleur noemt; een vergelijking telt niet mee en het beeld verandert niet. (#208)
+- De skill voor een host zoekt ook de tokens op (`reference.mjs` op `tokens.json`, per groep en te
+  filteren) en controleert de eigen CSS en HTML van een applicatie met `check.mjs`: een literal
+  kleur, een primitief, een token dat niet bestaat, ruimte buiten de 4 px-schaal, en als hint een
+  element waar een tag voor is. `tokens.json` draagt daarvoor de groep van elk token. (#202)
+- `<lintje-chat-steps>` toont wat de assistent deed voor een antwoord als een reeks stappen aan de
+  rail die inklapt tot één regel: de stap die loopt, een mislukte, of het aantal en de duur.
+  `lintje-chat-answer` tekent hem uit `steps`, in plaats van zijn eigen laadring, en `lintje-chat`
+  tekent met `divider` een scheidslijn boven een beurt: "Gisteren", "Nieuw onderwerp" of "Gesprek
+  ingekort". (#184)
+- Het overzicht van de sneltoetsen heeft in zijn voet de schakelaar "Sneltoetsen van één teken":
+  uit werken alleen de toetsen met Ctrl, Alt of Cmd, en de keuze blijft bewaard in de browser.
+  (#183)
+- `<lintje-key>` tekent een toets zoals Lintje dat binnen zijn elementen doet, en
+  `lintje-description-list` toont met `keys` een waarde als toetsen; het overzicht van de
+  sneltoetsen toont daarmee toetsen in plaats van labels. (#176)
+- `lintje-video-player` heeft een knop "Ondertiteling" rechts in de bedieningsbalk, naast "Meer opties" en volledig scherm; zolang de ondertitels aanstaan is hij ingedrukt en onderstreept zoals een actief tabblad, met een eigen icoon `functioneel-ondertiteling`. De toets C blijft; de rij in "Meer opties" staat er alleen nog op een balk die te smal is voor de knop. (#175)
+- `<lintje-attachment>` toont een bestand als stille chip van één regel: het icoon of een
+  miniatuur, de naam en de maat, bezig of met een fout. Het vraagvak van de chat krijgt een
+  paperclip, slepen en plakken; een bericht en een antwoord tonen hun bijlagen. (#173)
+
+### Gewijzigd
+
+- Alle ruimte in de invoervelden en formulieren ligt op de 4 px-schaal: de zijruimte van een veld is 16 px (was 14), de ruimte tussen een keuzevakje en zijn label 12 px (was 10), en de andere maten schuiven hooguit 2 px; de vaste hoogtes blijven. (#263)
+- Ook in tabellen, lijsten, grafieken, tegels, de filterbalk, het gesprek, de kaart en de gedeelde onderdelen ligt alle ruimte op de schaal van 4 px: rijen en tegels worden 2 tot 6 px hoger, een knop in een balk 4 px breder, en een cel die wordt bewerkt maakt haar rij niet meer hoger. Een unittest faalt nu op elke ruimte buiten de schaal in de CSS onder `src/`. (#262)
+- `renderStatusDot()` tekent de statusstip ook in een root zonder het element, zoals `renderBadge()`; de legenda van een grafiek kan per item een icoon en een aantal tonen; `place()` kent `bottom-center`; het plaatje van `chartImage()` tekent ronde vakken, snijdt af wat het scherm afsnijdt, en laat een element eigen bedieningselementen weglaten en eigen knoppen tekenen. (#247)
+- De invoeren delen hun hostregels in `inputs/shared/input.css`, met één telefoonregel, en tekstveld, datum en tijd delen daar hun box en datum en tijd hun knop rechts in het veld. Er verandert niets zichtbaars. (#246)
+- Alle ruimte in het paginakader ligt op de schaal van 4 px: de kop van een groep in het zijmenu en het telefoonmenu, de paginakop, de panelen "Weergave" en "Delen", de meldingen en het submenu schuiven 1 tot 4 px, en in de rail staat een icoon onder het midden van het logo. (#245)
+- De markering van een zoekterm, het aantal resultaten, de plek van een zwevend paneel, een uniek id en een kop op het gevraagde niveau komen elk uit één functie; wat een lezer ziet en hoort, blijft gelijk. De referentie van `lintje-form-actions` zegt bij `state` wat elke waarde toont. (#243)
+- Het venster van een vergrote tegel (`lintje-modal`) is zo hoog als zijn inhoud, ten hoogste het venster: een grafiek die de ruimte vult, maakt het vol, een halterdiagram of een korte tabel een lager venster. (#240)
+- Het gebruikersmenu en het zijmenu tekenen de avatar met dezelfde tekening als een persoon,
+  en kunnen een foto tonen; `initials` is optioneel. `who` in de geschiedenis kan een persoon
+  zijn, en `value` op een feit van een kaart is optioneel. (#219)
+- De knoppen Opsomming en Link van `lintje-text-editor` zijn een icoon in plaats van een woord,
+  even breed als B, I en H; Link neemt het nieuwe eigen icoon `functioneel-link`. Elke knop van de
+  opmaakbalk toont zijn naam als tooltip. (#214)
+- De slot van `lintje-prose` is voor gewone tekst; opgemaakte inhoud gaat via `html`. Het
+  specimen en de voorbeelden zetten geen koppen of lijsten meer in de slot. (#201)
+- De meldingen-app leest het teruggezette concept uit `restoredDraft` en `restoredAt` van `lintje-form` in plaats van uit `localStorage`, en de handleiding over events noemt beide. Transcriptie, vertalen en catalogus wisselen van modus en thema zonder de pagina te herladen; hun links nemen de nieuwe instellingen mee. (#188)
+- `lintje-date-input` en `lintje-date-range` delen één maandraster. De kalender van de datumreeks ziet er nu uit als die van de datuminvoer: zoveel rijen als de maand nodig heeft, 1 px tussen de cellen (met de tint van een periode doorlopend binnen een week), een gekozen dag met een lichtere rand ook in licht, vandaag als ring in de accentlijn in plaats van statusblauw, en de dagen buiten de maand leeg. De rijen voorkeuzes staan dichter op elkaar, als een dichte rij keuzes op `--h-option`. De dagen in de kalender heten nu `lintje-month-grid__day`. (#180)
+- Wat in `lintje-audio-player` nog moet spelen, heeft een vaste, lichtere kleur van zijn spreker in plaats van die kleur op 40 % dekking: de sprekerkleur gemengd met het oppervlak (`--tint-speaker-ahead`), in licht de trede `-tint-4` van haar tintladder. De ondergrond schemert niet meer door. (#178)
+- `<lintje-file-upload>` toont zijn bestanden als bijlagen in plaats van rijen, met Opnieuw als de
+  host `retry` zet; een fout van de host heet voor een schermlezer "mislukt". (#173)
+- "Opnieuw proberen" in `lintje-audio-player` en `lintje-video-player` laadt de opname opnieuw en stuurt nu ook `lintje-retry`, zodat een host een nieuwe `src` kan zetten of de fout kan melden. (#166)
+- In de kalender van `lintje-date-range` krijgen de dagen tussen begin en eind een lichte tint van de primaire kleur, het nieuwe token `--color-range-bg`, in plaats van het bijna onzichtbare grijs. De vulling loopt in een rij zonder naad door en blijft staan onder de muis. (#164)
+- Het beeld van `lintje-video-player` neemt een eigen token, `--color-media-bg`, inktzwart in licht en donker, in plaats van de kleur van tekst op een lichte vulling. Er verandert niets zichtbaars. (#162)
+
+### Verwijderd
+
+- **Brekend:** het veld `tableSwitch` is weg uit `ChartData`, dus een host die het nog meegeeft, krijgt een typefout. Een grafiektegel wisselt niet meer tussen grafiek en tabel: `lintje-chart` tekent geen "Grafiek" / "Tabel" meer in zijn kop. De cijfers staan in de tooltip en de CSV; een tabel die de lezer nodig heeft, staat apart. (#244)
+- **Brekend:** `ChatAnswerData.choices` en de property `choices` van `lintje-chat-answer`, `kind`
+  en `hint` van `lintje-chat-suggestions` en `kind` in `lintje-suggestion-select`. Een host die
+  `choices` zette, zet op hetzelfde antwoord `questions` met één vraag van het soort `one` en zijn
+  eigen vraagtekst, en luistert naar `lintje-questions-answer`. (#212)
+
+### Opgelost
+
+- Een tweede klik op de gebruiker in de voet van het zijmenu sluit het gebruikersmenu, in plaats van het opnieuw te openen. `lintje-popover` kent daarvoor `opener`: de knop die het paneel opent, als dat niet het anker is. (#238)
+- Mintgroen, lichtblauw, roze, geel en oranje halen als lijn of teken in licht 3:1: ze krijgen een
+  rand in hun eigen donkere kleur (`--color-chart-<kleur>-edge`), onder de lijn, om een punt van
+  een spreiding of de kaart en om hun vorm in de legenda, zoals donkergeel die al had. In donker
+  smelt de rand weg in de kleur. (#210)
+- Een aanraking die afbreekt of buiten het element wordt losgelaten, laat niets meer achter: in `lintje-split-pane` werkt de volgende klik weer, en in `lintje-tabs` tekent een focus met het toetsenbord weer zijn ring. (#207)
+- De strook van `lintje-split-pane` heeft op een aanraakscherm een onzichtbaar raakvlak van 24 px, zodat een vinger hem kan verslepen of optillen; met een muis en in beeld blijft hij 9 px. (#203)
+- Het plaatje van een grafiek ("Downloaden als PNG") ziet eruit als de tegel: de titel en
+  ondertitel boven, de bron onder, met de marge en de rand van de tegel, en daarbinnen de
+  legenda, de astitels, de gebeurtenissen en de legendatabel van een taart, waar ze op het
+  scherm staan. Een uitgezette
+  reeks staat doorgestreept in de legenda en ontbreekt in de tekening. (#195)
+- Een dag in de kalender van `lintje-date-input` en `lintje-date-range` is een cel van het raster
+  die zelf de focus neemt, geen knop met de rol van een cel; Enter en spatie kiezen de dag met de
+  focus, zoals een klik. (#193)
+- In `lintje-transcript` als gegroepeerd gesprek gaat de focus van een sprekerknop die verdwijnt naar de naam van zijn beurt, niet naar de pagina. In de lijst ligt het raakvlak van de tijdcode niet meer over de sprekerknop erboven: een klik op de naam opent altijd het sprekermenu. (#174)
+- Het paneel van `lintje-date-range` staat vast aan zijn veld en wordt niet meer afgesneden door een tegel of filterzone die scrolt; het klapt boven het veld als daar meer ruimte is en volgt een scroll. `lintje-multiselect` plaatst zijn paneel met dezelfde rekensom en loopt op een laag scherm niet meer buiten beeld. (#168)
+
 ## [0.7.0] - 2026-10-17
 
 ### Toegevoegd
@@ -478,7 +580,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.7.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/h11t-labs/lintje/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/h11t-labs/lintje/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/h11t-labs/lintje/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/h11t-labs/lintje/compare/v0.5.0...v0.5.1
