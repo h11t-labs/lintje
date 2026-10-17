@@ -389,6 +389,7 @@ export class LintjeUserMenu extends LintjeElement {
         placement=${side ? 'top-start' : 'bottom-end'}
         ?match-width=${side}
         .anchor=${side ? this.renderRoot?.querySelector('.lintje-user-menu__anchor') : undefined}
+        .opener=${side ? this.trigger : undefined}
         ?open=${this.open}
         @lintje-close=${this.onPopoverClose}
         >${this.renderContent()}</lintje-popover

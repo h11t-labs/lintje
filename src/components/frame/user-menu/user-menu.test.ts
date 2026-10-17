@@ -215,6 +215,22 @@ describe('lintje-user-menu variant="side"', () => {
     expect(said).toEqual([true, false])
   })
 
+  it('closes on a second press of its button, though the panel hangs under the foot', async () => {
+    const element = await mount({ variant: 'side' })
+    // A press as the mouse makes it: down, the focus, then the click.
+    const press = async (): Promise<void> => {
+      const button = trigger(element)
+      button.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, composed: true }))
+      button.focus()
+      button.click()
+      await element.updateComplete
+    }
+    await press()
+    expect(element.open).toBe(true)
+    await press()
+    expect(element.open).toBe(false)
+  })
+
   it('draws the 2.5rem circle of renderAvatar() on the menu', async () => {
     const avatar = trigger(await mount({ variant: 'side' })).querySelector('.lintje-avatar')!
     expect(avatar.classList.contains('lintje-avatar--large')).toBe(true)

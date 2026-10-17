@@ -31,6 +31,7 @@ export class LintjePopover extends LintjeElement {
     panelRole: { type: String, attribute: 'panel-role' },
     matchWidth: { type: Boolean, attribute: 'match-width' },
     anchor: { attribute: false },
+    opener: { attribute: false },
   }
 
   /** The owner's; the popover never opens or closes itself. */
@@ -42,6 +43,11 @@ export class LintjePopover extends LintjeElement {
   matchWidth: boolean = false
   /** What the panel hangs under; default the previous sibling. */
   declare anchor?: Element | null
+  /**
+   * The control that opens the panel, where it is not the anchor: a press on it, or the focus it
+   * takes, is not outside, so the owner's own toggle closes the panel instead of opening it again.
+   */
+  declare opener?: Element | null
   /** Where the panel stands, written onto it; `null` for a panel not yet placed. */
   #spot: Place | null = null
 
@@ -51,11 +57,19 @@ export class LintjePopover extends LintjeElement {
     return this.anchor ?? this.previousElementSibling
   }
 
+  /** Whether an event passed through the panel, its anchor or its opener. */
+  private fromOwn(path: EventTarget[]): boolean {
+    const anchor = this.anchorElement
+    return (
+      path.includes(this) ||
+      (anchor !== null && path.includes(anchor)) ||
+      (this.opener != null && path.includes(this.opener))
+    )
+  }
+
   private readonly onOutsidePress = (event: MouseEvent): void => {
     if (!this.open) return
-    const path = event.composedPath()
-    const anchor = this.anchorElement
-    if (path.includes(this) || (anchor && path.includes(anchor))) return
+    if (this.fromOwn(event.composedPath())) return
     this.emit('lintje-close', { reason: 'outside' })
   }
 
@@ -66,8 +80,7 @@ export class LintjePopover extends LintjeElement {
   private readonly onFocusIn = (event: FocusEvent): void => {
     if (!this.open) return
     const path = event.composedPath()
-    const anchor = this.anchorElement
-    if (path.includes(this) || (anchor && path.includes(anchor))) return
+    if (this.fromOwn(path)) return
     const next = path[0]
     if (next instanceof Node && standsIn(this, next)) return
     this.emit('lintje-close', { reason: 'focus' })
