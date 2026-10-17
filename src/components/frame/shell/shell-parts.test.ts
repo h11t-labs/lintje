@@ -41,7 +41,7 @@ const DATA: ShellData = {
       links: [{ label: 'Overzicht', icon: 'functioneel-home', href: '/', active: true }],
     },
   ],
-  user: { initials: 'HP', name: 'H. van Pelt', role: 'Analist' },
+  user: { initials: 'MV', name: 'M. Visser', role: 'Analist' },
   pageName: 'Overzicht',
   view: VIEW,
   share: true,
@@ -307,7 +307,7 @@ describe('the mobile menu panel', () => {
 
     const user = root(shell).querySelector<LintjeUserMenu>('.lintje-shell__sheet-user')!
     expect(user.inline).toBe(true)
-    expect(user.user?.initials).toBe('HP')
+    expect(user.user?.initials).toBe('MV')
     expect(user.getAttribute('version')).toBe('1.2.3')
   })
 
@@ -610,7 +610,7 @@ describe('the top layout', () => {
       Node.DOCUMENT_POSITION_FOLLOWING,
     )
     expect(menu.inline).toBe(false)
-    expect(menu.user?.initials).toBe('HP')
+    expect(menu.user?.initials).toBe('MV')
     expect(menu.getAttribute('version')).toBe('2.4.1')
     expect(menu.getAttribute('logout-action')).toBe('/auth/logout')
 
@@ -1451,7 +1451,7 @@ describe('the foot of the side menu', () => {
     expect(button.hasAttribute('aria-label')).toBe(false)
     expect(button.getAttribute('aria-haspopup')).toBe('menu')
     expect(button.getAttribute('aria-expanded')).toBe('false')
-    expect(button.querySelector('.lintje-user-menu__trigger-name')!.textContent).toBe('H. van Pelt')
+    expect(button.querySelector('.lintje-user-menu__trigger-name')!.textContent).toBe('M. Visser')
     const role = foot(shell).shadowRoot!.getElementById(button.getAttribute('aria-describedby')!)!
     expect(role.textContent).toBe('Analist')
   })
@@ -1638,26 +1638,26 @@ describe('the user’s circle in the shell', () => {
   it('draws 2.5rem in the foot of the side menu; folded in the rail, name and role stay unseen', async () => {
     const shell = await mount({
       logout: { href: '/auth/logout', token: 't' },
-      user: { initials: 'HP', name: 'H. van Pelt', role: 'Analist', href: '/profiel' },
+      user: { initials: 'MV', name: 'M. Visser', role: 'Analist', href: '/profiel' },
     })
     const nav = root(shell).querySelector<HTMLElement>('.lintje-nav')!
     const menu = await foot(shell)
     const button = menu.shadowRoot!.querySelector('.lintje-user-menu__trigger')!
     expect(sized(circle(button), 'large')).toBe(true)
-    expect(circle(button)!.textContent!.trim()).toBe('HP')
+    expect(circle(button)!.textContent!.trim()).toBe('MV')
     // In the folded rail name and role are in the DOM, hidden by the rail.
     expect(nav.classList.contains('lintje-nav--rail')).toBe(true)
     expect(nav.classList.contains('is-expanded')).toBe(false)
     expect(menu.folded).toBe(true)
     expect(button.querySelector('.lintje-user-menu__trigger-names')!.textContent).toContain(
-      'H. van Pelt',
+      'M. Visser',
     )
     // `href` draws no link: a profile page is a row of `userMenu`.
     expect(button.querySelector('a')).toBeNull()
   })
 
   it('shows the photo in the foot, in the same size', async () => {
-    const shell = await mount({ user: { name: 'H. van Pelt', role: 'Analist', photo: PHOTO } })
+    const shell = await mount({ user: { name: 'M. Visser', role: 'Analist', photo: PHOTO } })
     const avatar = circle((await foot(shell)).shadowRoot)
     expect(sized(avatar, 'large')).toBe(true)
     expect(avatar!.querySelector('img')!.getAttribute('src')).toBe(PHOTO)
@@ -1675,7 +1675,7 @@ describe('the user’s circle in the shell', () => {
     await sheet.updateComplete
     const who = sheet.shadowRoot!.querySelector('.lintje-user-menu__who')
     expect(sized(circle(who), 'medium')).toBe(true)
-    expect(circle(who)!.textContent!.trim()).toBe('HP')
+    expect(circle(who)!.textContent!.trim()).toBe('MV')
   })
 })
 
