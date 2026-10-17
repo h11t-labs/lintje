@@ -499,7 +499,7 @@ historyList.label = view === 'history' ? 'Eerder vertaalde teksten' : 'Eerder ve
 $('history').footnote =
   view === 'history' ? 'Je teksten blijven op dit apparaat.' : 'Teksten blijven op dit apparaat, documenten bij je afdeling.'
 historyList.addEventListener('lintje-row-action', (event) => {
-  if (event.detail.value !== 'verwijderen') return
+  if (event.detail.action !== 'verwijderen') return
   const id = event.detail.id
   if (HISTORY.some((item) => item.id === id)) {
     HISTORY = HISTORY.filter((item) => item.id !== id)
@@ -734,6 +734,11 @@ for (const list of [queue, jobsList]) {
     renderDocs()
   })
 }
+// The queue hides when its last document goes; the focus goes on to the upload for the next one.
+queue.addEventListener('lintje-jobs-empty', (event) => {
+  event.preventDefault()
+  upload.focus()
+})
 
 /** One step of the server: the busy document moves a page on; when none runs, the next starts. */
 function tick() {

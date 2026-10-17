@@ -125,6 +125,8 @@ describe('lintje-date-range', () => {
     expect(rows[0].querySelectorAll('[role="columnheader"]')).toHaveLength(7)
     expect(rows[1].querySelectorAll('[role="gridcell"]')).toHaveLength(7)
     expect(grid(element).getAttribute('aria-label')).toBe('oktober 2026')
+    // A range selects every day in it, so the grid takes more than one.
+    expect(grid(element).getAttribute('aria-multiselectable')).toBe('true')
     const stops = days(element).filter((day) => day.getAttribute('tabindex') === '0')
     expect(stops).toEqual([cell(element, 5)])
   })

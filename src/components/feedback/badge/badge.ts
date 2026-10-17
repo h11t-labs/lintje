@@ -67,9 +67,9 @@ export function renderBadge(options: BadgeOptions): TemplateResult {
     })}
     >${glyph}${
       label
-        ? html`<span aria-hidden="true">${value}</span
+        ? html`<span class="lintje-badge__value" aria-hidden="true">${value}</span
             ><span class="visually-hidden">${label}</span>`
-        : value
+        : html`<span class="lintje-badge__value">${value}</span>`
     }</span
   >`
 }

@@ -693,6 +693,17 @@ export default {
           },
         },
         {
+          label: 'Alleen lezen met een lange naam',
+          note: 'Zonder iets wat de focus neemt, loopt een lange sprekersnaam door.',
+          html: '<lintje-transcript readonly></lintje-transcript>',
+          setup(stage) {
+            stage.querySelector('lintje-transcript').segments = SEGMENTS.slice(0, 2).map((segment, index) => ({
+              ...segment,
+              speaker: index === 0 ? 'Voorzitter van de commissie bezwaarschriften' : segment.speaker,
+            }))
+          },
+        },
+        {
           label: 'Met de speler verbonden',
           note: 'Speler en transcript volgen elkaar en tonen wat nu speelt.',
           html: `${audio()}<lintje-transcript></lintje-transcript>`,
@@ -772,6 +783,14 @@ export default {
           },
         },
         {
+          label: 'Niets voor dit filter',
+          note: '"Filter wissen" vraagt de host om alle regels terug.',
+          html: '<lintje-log-viewer></lintje-log-viewer>',
+          setup(stage) {
+            wireLog(stage, { live: true, filter: { search: 'certificaat', onlyHits: true } })
+          },
+        },
+        {
           label: 'Ruwe uitvoer',
           note: 'Geen regel heeft een tijd, niveau of bron: alleen de tekst, met het regelnummer.',
           html: '<lintje-log-viewer></lintje-log-viewer>',
@@ -848,8 +867,24 @@ export default {
           },
         },
         {
+          label: 'Op een vaste zoom',
+          note: '"Passend" is uit; aan staat hij gevuld, zoals in de rust hierboven.',
+          html: '<lintje-document-viewer name="Brief gemeente.pdf" zoom="150"></lintje-document-viewer>',
+          setup(stage) {
+            stage.querySelector('lintje-document-viewer').pages = letterPages()
+          },
+        },
+        {
           label: 'Bezig',
           html: '<lintje-document-viewer name="Brief gemeente.pdf"></lintje-document-viewer>',
+        },
+        {
+          label: 'Een lange naam',
+          note: 'De naam neemt geen focus, dus hij loopt door in plaats van af te kappen.',
+          html: '<lintje-document-viewer name="Besluit op de aanvraag omgevingsvergunning voor het verbouwen van het pand aan de Lange Voorhout.pdf"></lintje-document-viewer>',
+          setup(stage) {
+            stage.querySelector('lintje-document-viewer').pages = letterPages().slice(0, 1)
+          },
         },
         {
           label: 'Fout',
