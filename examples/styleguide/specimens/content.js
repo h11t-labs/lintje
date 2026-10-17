@@ -783,6 +783,14 @@ export default {
           },
         },
         {
+          label: 'Niets voor dit filter',
+          note: '"Filter wissen" vraagt de host om alle regels terug.',
+          html: '<lintje-log-viewer></lintje-log-viewer>',
+          setup(stage) {
+            wireLog(stage, { live: true, filter: { search: 'certificaat', onlyHits: true } })
+          },
+        },
+        {
           label: 'Ruwe uitvoer',
           note: 'Geen regel heeft een tijd, niveau of bron: alleen de tekst, met het regelnummer.',
           html: '<lintje-log-viewer></lintje-log-viewer>',
