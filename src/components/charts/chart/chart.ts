@@ -31,7 +31,7 @@ import {
 } from '../../shared/charts/shared/chart-states'
 import { chartStyles } from '../../shared/charts/shared/chart-styles'
 import type { ChartSpec } from '../../shared/charts/shared/types'
-import { downloadCsv, downloadPng, type CsvCell } from '../../shared/download'
+import { chartImage, downloadCsv, downloadPng, type CsvCell } from '../../shared/download'
 import { MediaController } from '../../../core/media'
 import skeletonCss from '../../feedback/skeleton/skeleton.css?inline'
 import tileHostCss from '../../shared/view-tile.css?inline'
@@ -357,8 +357,14 @@ export class LintjeChart extends LintjeContentTileElement {
     if (!data) return
     // Both charts are light children; the tag says which one the reader sees.
     const scope = this.renderRoot.querySelector(this.expanded ? 'lintje-modal' : 'lintje-tile')
-    const svg = scope?.querySelector<SVGSVGElement>(DRAWING)
-    if (svg) void downloadPng(this.downloadName ?? fileNameOf(data.title), svg)
+    let chart: Element | null | undefined = scope?.querySelector(DRAWING)
+    // The image is the whole chart, legend and events with it: what renderChart drew in the scope.
+    while (chart && chart.parentElement !== scope) chart = chart.parentElement
+    if (!chart) return
+    const subtitle =
+      this.#mobile.matches && data.mobileSubtitle ? data.mobileSubtitle : data.subtitle
+    const image = chartImage(chart, { title: data.title, subtitle, footnote: data.footnote })
+    void downloadPng(this.downloadName ?? fileNameOf(data.title), image)
   }
 
   protected override expandChanged(open: boolean): void {
