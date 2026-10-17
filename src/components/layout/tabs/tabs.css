@@ -3,6 +3,9 @@
 
 /* ------------------------------------------------------------------------ */
 
+/* Never wider than its parent: below 768 px only the list scrolls. */
+.lintje-tabs { min-width: 0; max-width: 100%; }
+
 /* `position: relative` makes the row the tabs' offset parent, for scrolling the chosen tab into sight. */
 .lintje-tabs__list {
   position: relative;
@@ -106,7 +109,8 @@
 .lintje-tabs__icon { flex: none; }
 .lintje-tabs__text { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
 .lintje-tabs__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); }
-.lintje-tabs__hint { font: var(--text-small); color: var(--color-text-muted); }
+/* The hint stands under the label at every width; with little room it wraps. */
+.lintje-tabs__hint { font: var(--text-small); color: var(--color-text-muted); overflow-wrap: anywhere; }
 .lintje-tabs--panel .lintje-tabs__panel { padding: var(--space-6); }
 
 @media screen and (max-width: 767px) {
@@ -119,7 +123,6 @@
   }
   .lintje-tabs--panel .lintje-tabs__text { align-items: center; }
   .lintje-tabs--panel .lintje-tabs__head { justify-content: center; }
-  .lintje-tabs--panel .lintje-tabs__hint { display: none; }
   .lintje-tabs--panel .lintje-tabs__panel { padding: var(--space-4); }
 }
 

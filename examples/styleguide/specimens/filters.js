@@ -48,9 +48,10 @@ export default {
       tag: 'lintje-filter-bar',
       wide: true,
       title: 'De filterbalk: de filters die de pagina declareert, als zone en als blad',
-      // A page holds one filter bar: it owns the filter count in the mobile header and the
-      // sheet, and one bar per page writes the store that says whether the sheet is open.
-      // The style guide page has no other filter bar, so this one stands once, full width.
+      // A page holds one filter bar in the shell: it owns the filter count in the mobile header
+      // and the sheet, and one bar per page writes the store that says whether the sheet is open.
+      // The style guide page has no other such bar, so this one stands once, full width; the
+      // standalone bar beside it writes nothing there.
       specimens: [
         {
           label: 'Drie filters',
@@ -90,6 +91,44 @@ export default {
             const say = log(stage)
             bar.addEventListener('lintje-values-change', (event) => {
               say(`lintje-values-change ${JSON.stringify(event.detail)}`)
+            })
+          },
+        },
+        {
+          label: 'Los op de pagina',
+          note:
+            'Met `standalone` hoort de balk niet bij de schil en schrijft hij daar niets. Onder ' +
+            '768 px staat naast de zin een eigen knop Filters, die het filterblad opent.',
+          html: '<lintje-filter-bar></lintje-filter-bar>',
+          setup(stage) {
+            const bar = stage.querySelector('lintje-filter-bar')
+            const filters = [
+              {
+                key: 'region',
+                label: 'Regio',
+                kind: 'select',
+                value: 'alle',
+                default: 'alle',
+                options: REGIONS,
+              },
+              {
+                key: 'kind',
+                label: 'Soort loket',
+                kind: 'segmented',
+                value: 'alle',
+                default: 'alle',
+                options: KINDS,
+              },
+            ]
+            bar.data = { standalone: true, open: true, filters }
+            const say = log(stage)
+            // The host confirms what the bar commits with the next `data`.
+            bar.addEventListener('lintje-values-change', (event) => {
+              say(`lintje-values-change ${JSON.stringify(event.detail)}`)
+              bar.data = {
+                ...bar.data,
+                filters: filters.map((filter) => ({ ...filter, value: event.detail[filter.key] })),
+              }
             })
           },
         },

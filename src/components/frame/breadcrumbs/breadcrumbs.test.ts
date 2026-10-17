@@ -1,5 +1,5 @@
 /** The breadcrumbs: the trail's structure, the folded middle and the click it takes over. */
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import './breadcrumbs'
 import { trail, type Crumb, type LintjeBreadcrumbs } from './breadcrumbs'
 
@@ -73,6 +73,37 @@ describe('lintje-breadcrumbs', () => {
     const click = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 })
     element.shadowRoot!.querySelector('a')!.dispatchEvent(click)
     expect(click.defaultPrevented).toBe(true)
+  })
+})
+
+describe('lintje-breadcrumbs on a phone', () => {
+  const viewport = (width: number): void =>
+    (
+      window as unknown as { happyDOM: { setViewport(size: { width: number }): void } }
+    ).happyDOM.setViewport({ width })
+
+  afterEach(() => {
+    document.body.replaceChildren()
+    viewport(1024)
+  })
+
+  it('links to the nearest level up that has a page, past a group without one', async () => {
+    viewport(390)
+    const element = await mount([
+      { label: 'Instellingen', href: '/instellingen' },
+      { label: 'Beheer' },
+      { label: 'Gebruikers' },
+    ])
+    const links = element.shadowRoot!.querySelectorAll('a')
+    expect(links).toHaveLength(1)
+    expect(links[0]!.getAttribute('href')).toBe('/instellingen')
+    expect(links[0]!.textContent?.trim()).toBe('Instellingen')
+  })
+
+  it('shows nothing when no level up has a page', async () => {
+    viewport(390)
+    const element = await mount([{ label: 'Beheer' }, { label: 'Gebruikers' }])
+    expect(element.shadowRoot!.querySelector('nav')).toBeNull()
   })
 })
 

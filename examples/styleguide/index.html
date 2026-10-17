@@ -491,7 +491,8 @@
         font: var(--text-small);
         color: var(--color-text-secondary);
       }
-      .guide__icon span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      /* The file name is the name in code: it breaks, whole, rather than end in an ellipsis. */
+      .guide__icon span { min-width: 0; overflow-wrap: anywhere; }
 
       @media screen and (max-width: 1023.98px) {
         .guide__toc { order: -1; flex-basis: 100%; max-width: none; }

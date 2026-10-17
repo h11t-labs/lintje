@@ -441,6 +441,9 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile.is-narrow { overflow-wrap: anywhere; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile.is-narrow .lintje-data-table__mobile-cell--name { width: auto; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile.is-narrow .lintje-threshold-cell { overflow-wrap: normal; }
+/* There the toggle and the row menu take the WCAG floor of 24 px, their hit area still the target.
+   On the menu's host: its own shadow root sets the token again. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile.is-narrow :is(.lintje-data-table__mobile-toggle, .lintje-data-table__row-menu) { --h-icon-button: var(--h-target-text); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-actions { display: flex; align-items: center; justify-content: flex-end; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell {
   padding: var(--space-2) var(--tile-pad-x);

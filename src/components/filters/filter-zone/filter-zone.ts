@@ -2,10 +2,11 @@
  * `<lintje-filter-zone>` — the filter bar: one place for everything that narrows the numbers.
  *
  * The controls come in through the slot and the sentence as parts; the owner keeps the state. The
- * zone is expanded, scrolled (a sticky summary bar) or, below 768 px, the sentence only.
+ * zone is expanded, scrolled (a sticky summary bar) or, below 768 px, the sentence only — with
+ * `sheet`, beside a "Filters" button that asks for the owner's sheet.
  *
  * Events: `lintje-filters-reset`, `lintje-zone-open-change` `boolean`,
- * `lintje-zone-scrolled-change` `boolean`.
+ * `lintje-zone-scrolled-change` `boolean`, `lintje-zone-sheet-open`.
  */
 import {
   html,
@@ -42,6 +43,8 @@ export class LintjeFilterZone extends LintjeElement {
     open: { type: Boolean },
     scrolled: { type: Boolean },
     stick: { type: String },
+    sheet: { type: Boolean },
+    sheetOpen: { type: Boolean, attribute: 'sheet-open' },
     sentence: { attribute: false },
     settled: { state: true },
   }
@@ -56,6 +59,13 @@ export class LintjeFilterZone extends LintjeElement {
   private settleTimer: ReturnType<typeof setTimeout> | undefined
   /** `fixed` where the zone's own box is too small to stick in (a component mount). */
   stick: 'sticky' | 'fixed' = 'sticky'
+  /**
+   * Below 768 px a "Filters" button stands beside the sentence and asks for the owner's sheet: a
+   * bar outside the shell has no header to open it from.
+   */
+  sheet: boolean = false
+  /** The owner's sheet is open: the button's `aria-expanded`. */
+  sheetOpen: boolean = false
   sentence: SentencePart[] = []
 
   private readonly mobile = new MediaController(this, MOBILE)
@@ -237,8 +247,27 @@ export class LintjeFilterZone extends LintjeElement {
 
   protected override render(): TemplateResult {
     if (this.mobile.matches) {
-      return html`<div class="lintje-filter-bar lintje-filter-bar--mobile">
+      return html`<div
+        class=${classMap({
+          'lintje-filter-bar': true,
+          'lintje-filter-bar--mobile': true,
+          'lintje-filter-bar--sheet': this.sheet,
+        })}
+      >
         <p class="lintje-filter-bar__mobile-summary">${filterSentence(this.sentence)}</p>
+        ${
+          this.sheet
+            ? html`<button
+                type="button"
+                class="lintje-filter-toggle lintje-filter-bar__sheet-button"
+                aria-haspopup="dialog"
+                aria-expanded=${this.sheetOpen}
+                @click=${() => this.emitLocal('lintje-zone-sheet-open')}
+              >
+                ${renderIcon('functioneel-filters', { size: 16 })} Filters
+              </button>`
+            : nothing
+        }
       </div>`
     }
 

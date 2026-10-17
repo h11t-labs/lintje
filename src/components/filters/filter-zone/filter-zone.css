@@ -201,6 +201,9 @@
   display: flex; align-items: flex-start; gap: var(--space-3);
   font: var(--text-ui); line-height: 1.4;
 }
+/* A bar outside the shell: its button stands beside the sentence, which wraps in what is left. */
+.lintje-filter-bar--sheet { display: flex; align-items: center; gap: var(--space-3); }
+.lintje-filter-bar--sheet .lintje-filter-bar__mobile-summary { flex: 1 1 0; min-width: 0; }
 .lintje-filter-bar__mobile-summary .lintje-filter-summary__icon { margin-top: var(--space-1); }
 
 /* --- Pinned instead of sticky ---------------------------------------------- */

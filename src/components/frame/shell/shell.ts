@@ -286,6 +286,7 @@ export class LintjeShell extends LintjeElement {
     if (changed.has('menuOpen')) {
       if (this.menuOpen) {
         this.#menuReleased ??= lockScroll()
+        this.#placeMenu()
         const region = this.renderRoot.querySelector<HTMLElement>('.lintje-mobile-chrome')
         if (region) this.#menuTrap.activate(region, { focus: false })
       } else if (changed.get('menuOpen') === true) {
@@ -303,6 +304,20 @@ export class LintjeShell extends LintjeElement {
     if (this.#nested || this.layout !== 'top') return
     if (changed.has('data') || changed.has('layout')) this.measureScroll()
     else this.#markStuck()
+  }
+
+  /**
+   * Under the top layout's logo bar the open menu starts where its header ends, which depends on
+   * how far the page was scrolled, and ends at the bottom of the screen: the page holds still
+   * while it is open, so one measurement holds.
+   */
+  #placeMenu(): void {
+    if (this.layout !== 'top') return
+    const pin = this.renderRoot.querySelector('.lintje-shell__mobile-pin')
+    const menu = this.renderRoot.querySelector<HTMLElement>('.lintje-mobile-menu')
+    if (!pin || !menu) return
+    const top = Math.max(0, Math.round(pin.getBoundingClientRect().bottom))
+    menu.style.setProperty('--lintje-mobile-menu-top', `${top}px`)
   }
 
   /**

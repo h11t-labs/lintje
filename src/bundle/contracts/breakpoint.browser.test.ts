@@ -1,6 +1,10 @@
-/** Rule 9: what switches view at 768 px, each element by a marker of either view. */
+/**
+ * Rule 9: what switches view at 768 px, each element by a marker of either view; and WCAG 1.4.10:
+ * at 320 px wide, and at 320 × 256, a page scrolls only up and down and loses nothing.
+ */
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
+import '../index'
 import { deepActiveElement } from '../../core/focus'
 import '../../components/frame/app-search/app-search'
 import '../../components/content/audio-player/audio-player'
@@ -736,15 +740,16 @@ const ROWS: Row[] = [
   },
   {
     tag: 'lintje-tabs',
-    marker: 'a panel tab stands its icon above the label and drops the hint',
+    marker: 'a panel tab stands its icon above the label, and keeps the hint under it',
     mount: () =>
       append(create('lintje-tabs', { tabs: PANEL_TABS, variant: 'panel', label: 'Onderdelen' })),
     wide: (element) =>
       shown(element, '.lintje-tabs__hint') &&
       level(find(element, '.lintje-tabs__icon'), find(element, '.lintje-tabs__label')),
     phone: (element) =>
-      !shown(element, '.lintje-tabs__hint') &&
-      below(find(element, '.lintje-tabs__icon'), find(element, '.lintje-tabs__label')),
+      shown(element, '.lintje-tabs__hint') &&
+      below(find(element, '.lintje-tabs__icon'), find(element, '.lintje-tabs__label')) &&
+      below(find(element, '.lintje-tabs__label'), find(element, '.lintje-tabs__hint')),
   },
   {
     tag: 'lintje-stepper',
@@ -1703,5 +1708,294 @@ describe('a phone’s sheet at 768 px', () => {
       .poll(() => shown(element, '[role="dialog"] .lintje-notifications__panel'))
       .toBe(true)
     expect(element.open).toBe(true)
+  })
+})
+
+/* Reflow at 320 px (WCAG 1.4.10) ------------------------------------------ */
+
+interface Specimen {
+  label?: string
+  html?: string
+  setup?: (stage: HTMLElement) => void
+}
+
+interface GuideElement {
+  tag?: string
+  specimens: Specimen[]
+  groups?: { items: { specimens: Specimen[] }[] }
+}
+
+/** 400 % zoom on 1280 × 1024, and a phone held sideways. */
+const NARROW = [
+  { name: '320 × 640', width: 320, height: 640 },
+  { name: '320 × 256', width: 320, height: 256 },
+]
+
+/** The elements that lost something or widened the page at 320 px, by their style guide's specimens. */
+const REFLOWING = [
+  'lintje-attachment',
+  'lintje-breadcrumbs',
+  'lintje-chart',
+  'lintje-chat-questions',
+  'lintje-data-table',
+  'lintje-dialog',
+  'lintje-document-viewer',
+  'lintje-filter-bar',
+  'lintje-find',
+  'lintje-hero',
+  'lintje-modal',
+  'lintje-page-header',
+  'lintje-pagination',
+  'lintje-segmented',
+  'lintje-shell',
+  'lintje-tabs',
+]
+
+const guides = import.meta.glob<{ default: { elements: GuideElement[] } }>(
+  '../../../examples/styleguide/specimens/*.js',
+)
+const GUIDE = (await Promise.all(Object.values(guides).map((load) => load())))
+  .flatMap((module) => module.default.elements)
+  .filter((item) => item.tag && REFLOWING.includes(item.tag))
+
+type Updating = Element & { updateComplete?: Promise<unknown> }
+
+/** Every element drawn, a few frames on: what an element starts lands a frame later. */
+async function settled(): Promise<void> {
+  for (let round = 0; round < 4; round++) {
+    await Promise.all(
+      all(document.body, '*').map((element) => (element as Updating).updateComplete),
+    )
+    await new Promise(requestAnimationFrame)
+  }
+}
+
+/** An element's specimens, each in a stage of its own, as the style guide builds them. */
+function drawSpecimens(item: GuideElement): void {
+  const host = document.createElement('main')
+  const specimens = [
+    ...(item.groups?.items.flatMap((group) => group.specimens) ?? []),
+    ...item.specimens,
+  ]
+  for (const specimen of specimens) {
+    // A specimen's `log()` writes under the stage, in the figure around it.
+    const figure = document.createElement('figure')
+    figure.className = 'guide__specimen'
+    // A phone's page keeps 16 px on either side: a tile of 288 px at 320.
+    figure.style.margin = '0'
+    figure.style.padding = '0 16px'
+    figure.dataset.label = specimen.label ?? ''
+    const stage = document.createElement('div')
+    stage.className = 'guide__stage'
+    stage.innerHTML = specimen.html ?? ''
+    figure.append(stage)
+    host.append(figure)
+    specimen.setup?.(stage)
+  }
+  document.body.append(host)
+}
+
+/** The specimens with a part past the screen's right edge (inside a scroller too), by that part. */
+const pastTheEdge = (): string[] =>
+  [...document.querySelectorAll<HTMLElement>('figure')].flatMap((figure) => {
+    const part = all(figure, '*').find((element) => box(element).right > window.innerWidth + 1)
+    return part
+      ? [`${figure.dataset.label} :: ${part.localName}.${part.getAttribute('class')}`]
+      : []
+  })
+
+describe('the page at 320 px', () => {
+  it('has every element of the table in the style guide', () => {
+    const found = GUIDE.map((item) => item.tag)
+    expect(REFLOWING.filter((tag) => !found.includes(tag))).toEqual([])
+  })
+
+  describe.each(NARROW)('at $name', ({ width, height }) => {
+    it.each(GUIDE.map((item) => [item.tag!, item] as const))(
+      'is no wider than the screen with %s',
+      async (_, item) => {
+        drawSpecimens(item)
+        await settled()
+        // WebKit keeps a sheet's media queries as they were while no connected element adopts it.
+        await viewport(width, height)
+        await settled()
+        expect(
+          document.documentElement.scrollWidth,
+          `wider than the screen; past its edge: ${pastTheEdge().join(', ')}`,
+        ).toBeLessThanOrEqual(window.innerWidth)
+      },
+    )
+  })
+})
+
+/** Whether the element stands wholly on the screen. */
+const onScreen = (element: Element | null): boolean =>
+  box(element).top >= -1 &&
+  box(element).bottom <= window.innerHeight + 1 &&
+  box(element).left >= -1 &&
+  box(element).right <= window.innerWidth + 1
+
+describe('little height: 320 × 256', () => {
+  it('scrolls a dialog, so its text stands and every button can be reached and pressed', async () => {
+    const dialog = create('lintje-dialog', { heading: 'Wijzigingen niet opgeslagen' })
+    dialog.innerHTML = `${'Je verlaat dit formulier zonder op te slaan. '.repeat(6)}
+      Wil je het concept bewaren?
+      <lintje-button slot="actions" variant="tertiary">Weggooien</lintje-button>
+      <lintje-button slot="actions" variant="secondary">Hier blijven</lintje-button>
+      <lintje-button slot="actions" variant="primary">Concept opslaan</lintje-button>`
+    dialog.open = true
+    await append(dialog)
+    await viewport(320, 256)
+    await settled()
+    expect(box(find(dialog, '.lintje-dialog__body')).height).toBeGreaterThan(40)
+    const pressed: string[] = []
+    for (const button of dialog.querySelectorAll('lintje-button')) {
+      button.addEventListener('click', () => pressed.push(button.textContent!.trim()))
+      button.scrollIntoView({ block: 'nearest' })
+      await expect.poll(() => onScreen(button), { message: button.textContent! }).toBe(true)
+      await userEvent.click(button)
+    }
+    expect(pressed).toEqual(['Weggooien', 'Hier blijven', 'Concept opslaan'])
+  })
+
+  it('lets the questions and the question box of a chat scroll with the conversation', async () => {
+    const chat = await append(
+      create('lintje-chat', {
+        data: { turns: [{ id: 't1', message: { text: 'Hoeveel aanvragen?' }, answer: ASKED }] },
+      }),
+    )
+    const footer = (): HTMLElement => find(chat, '.lintje-chat__footer')!
+    await expect.poll(() => getComputedStyle(footer()).position).toBe('sticky')
+    await viewport(320, 256)
+    await expect.poll(() => getComputedStyle(footer()).position).not.toBe('sticky')
+    // Nothing sticks at the bottom, so nothing is kept free there.
+    await expect
+      .poll(() => parseFloat(document.documentElement.style.scrollPaddingBottom) || 0)
+      .toBe(0)
+    // The answer that asks stands above the questions, on the screen at the top of the page.
+    window.scrollTo(0, 0)
+    const answer = find(chat, 'lintje-chat-answer')
+    expect(box(answer).top).toBeLessThan(window.innerHeight)
+    expect(box(answer).bottom).toBeLessThanOrEqual(box(footer()).top + 1)
+  })
+
+  it('ends the open phone menu of the top layout at the bottom of the screen', async () => {
+    const shell = await append(
+      create('lintje-shell', {
+        data: {
+          name: 'Vergunningen',
+          navigation: [...OFFICES, ...OFFICES].map((label, index) => ({
+            label,
+            href: `#loket-${index}`,
+          })),
+          user: { name: 'J. de Vries', initials: 'JV' },
+        },
+      }),
+    )
+    await viewport(320, 256)
+    const menuButton = (): HTMLElement | null => find(shell, '.lintje-mobile-header__button--menu')
+    await expect.poll(() => seen(menuButton())).toBe(true)
+    window.scrollTo(0, 0)
+    menuButton()!.click()
+    const menu = (): HTMLElement | null => find(shell, '.lintje-mobile-menu')
+    await expect.poll(() => seen(menu())).toBe(true)
+    await settled()
+    expect(Math.abs(box(menu()).bottom - window.innerHeight)).toBeLessThan(2)
+    // What lies under the screen's edge is reached by scrolling the menu.
+    const items = all(menu()!, 'a, button')
+    const last = items.at(-1)!
+    last.scrollIntoView({ block: 'nearest' })
+    await expect.poll(() => onScreen(last)).toBe(true)
+  })
+})
+
+describe('the narrow screen', () => {
+  it('gives a standalone filter bar its own Filters button and sheet on a phone', async () => {
+    const bar = await append(
+      create('lintje-filter-bar', { data: { ...FILTERS, standalone: true } }),
+    )
+    await viewport(390, 844)
+    const button = (): HTMLElement | null => find(bar, '.lintje-filter-bar__sheet-button')
+    await expect.poll(() => seen(button())).toBe(true)
+    expect(button()!.textContent).toContain('Filters')
+    // By the keyboard: Safari gives a clicked button no focus to come back to.
+    button()!.focus()
+    await userEvent.keyboard('{Enter}')
+    const sheet = find(bar, 'lintje-filter-sheet')!
+    await expect.poll(() => seen(find(sheet, '.lintje-filter-sheet'))).toBe(true)
+    // The same controls as in the zone, in the sheet.
+    expect(sheet.querySelectorAll('lintje-field')).toHaveLength(FILTERS.filters.length)
+    expect(seen(sheet.querySelector('lintje-field'))).toBe(true)
+    const apply = all(sheet.shadowRoot!, 'lintje-button').find((control) =>
+      control.textContent?.includes('Toepassen'),
+    ) as HTMLElement
+    await userEvent.click(apply)
+    await expect.poll(() => seen(find(sheet, '.lintje-filter-sheet'))).toBe(false)
+    await expect.poll(() => deepActiveElement()).toBe(button())
+  })
+
+  it('stands a segmented control as a column when its row does not fit a flex row of 288 px', async () => {
+    await viewport(390, 844)
+    const row = document.createElement('div')
+    Object.assign(row.style, { display: 'flex', width: '288px' })
+    const control = create('lintje-segmented', {
+      label: 'Soort loket',
+      value: 'alle',
+      options: [
+        { value: 'alle', label: 'Alle loketten' },
+        { value: 'balie', label: 'Balie' },
+        { value: 'service', label: 'Servicepunt' },
+        { value: 'mobiel', label: 'Mobiel loket' },
+      ],
+    })
+    row.append(control)
+    await append(row)
+    await expect
+      .poll(() => find(control, '.lintje-segmented')?.classList.contains('is-column'))
+      .toBe(true)
+    expect(box(control).width).toBeLessThanOrEqual(288)
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth)
+  })
+
+  it('gives the term of a find a line of its own at 320 px, its count and buttons under it', async () => {
+    // On a page with the phone's 16 px at either side.
+    const sheet = document.createElement('div')
+    sheet.style.paddingInline = '16px'
+    const element = create('lintje-find', { value: 'aanvraag', total: 1248, current: 128 })
+    sheet.append(element)
+    await append(sheet)
+    await viewport(320, 640)
+    const control = (): HTMLElement | null => find(element, '.lintje-find__control')
+    await expect.poll(() => box(control()).width).toBeGreaterThan(200)
+    expect(below(control(), find(element, '.lintje-find__count'))).toBe(true)
+    expect(below(control(), find(element, '.lintje-find__button--clear'))).toBe(true)
+    expect(box(find(element, '.lintje-find')).right).toBeLessThanOrEqual(window.innerWidth)
+  })
+
+  it('wraps the reason of a refused attachment inside its chip at 320 px', async () => {
+    const room = document.createElement('div')
+    // What a refused chip leaves in the question box of a chat at 320 px, give or take a font.
+    room.style.width = '160px'
+    const chip = create('lintje-attachment', {
+      removable: true,
+      refused: true,
+      data: {
+        id: 't',
+        name: 'scan.heic',
+        size: 1_800_000,
+        state: 'error',
+        message: 'Dit bestandstype kan niet',
+      },
+    })
+    room.append(chip)
+    await append(room)
+    await viewport(320, 640)
+    await settled()
+    const frame = box(find(chip, '.lintje-attachment'))
+    const reason = box(find(chip, '.lintje-attachment__detail'))
+    const cross = box(find(chip, '.lintje-attachment__remove'))
+    expect(frame.right).toBeLessThanOrEqual(box(room).right + 1)
+    expect(reason.right, 'the reason, before the cross').toBeLessThanOrEqual(cross.left + 1)
+    expect(cross.right, 'the cross').toBeLessThanOrEqual(frame.right + 1)
   })
 })

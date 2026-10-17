@@ -118,10 +118,11 @@
   gap: var(--space-3);
 }
 .lintje-shell--top .lintje-mobile-header__actions { margin-top: 0; flex: none; }
+/* From the bottom of the header to the bottom of the screen, wherever the logo bar above it
+   stands: `--lintje-mobile-menu-top` is measured as the menu opens. */
 .lintje-shell--top .lintje-mobile-menu {
-  position: absolute;
-  inset: 100% 0 auto 0;
-  height: calc(100dvh - var(--h-topbar));
+  position: fixed;
+  inset: var(--lintje-mobile-menu-top, var(--h-topbar)) 0 0 0;
 }
 /* 16 px so two lines fit inside the 56 px bar; longer is cut with an ellipsis. */
 .lintje-mobile-header__title {

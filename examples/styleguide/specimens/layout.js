@@ -173,7 +173,7 @@ export default {
           label: 'Groot boven een paneel',
           note:
             'Met `variant="panel"` heeft elke tab een icoon, een uitleg en een label. ' +
-            'Op een telefoon staat het icoon boven de naam.',
+            'Op een telefoon staat het icoon boven de naam en de uitleg eronder.',
           html: `<lintje-tabs variant="panel" label="Wat wil je vertalen?">${LARGE_PANELS}</lintje-tabs>`,
           setup: (stage) => tabs(stage, undefined, LARGE),
         },
