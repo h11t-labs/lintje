@@ -664,7 +664,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
-          note: 'Kies een resultaat met de pijltjes. Druk / om het zoekveld te openen.',
+          note: 'Kies een resultaat met de pijltjes. Dit specimen opent met zijn knop; / opent het zoekveld van de stijlgids.',
           html: '<lintje-button variant="secondary" data-open>Zoeken openen</lintje-button><lintje-app-search label="Zoeken in Transcriptie"></lintje-app-search>',
           setup(stage) {
             const search = stage.querySelector('lintje-app-search')
