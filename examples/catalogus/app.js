@@ -7,16 +7,13 @@
  */
 import { THEMES, answerLogout, carry, emblem, modeOf, searchWith, shellSettingsOf, themeOf } from '../_shared/settings.js'
 
-let params = new URLSearchParams(location.search)
+const params = new URLSearchParams(location.search)
 const root = document.documentElement
-// The application's own theme unless the reader picked one of Lintje's; the emblem follows.
-const organisation = () => (params.has('theme') ? themeOf(location.search) : 'rijksoverheid')
-// Mode and theme stand on <html> before the elements load; the elements follow a change.
-function applySettings() {
-  root.dataset.mode = modeOf(location.search)
-  root.dataset.theme = params.has('theme') ? themeOf(location.search) : 'catalogus'
-}
-applySettings()
+root.dataset.mode = modeOf(location.search)
+// The application's own theme unless the reader picked one of Lintje's.
+const chosen = params.has('theme')
+root.dataset.theme = chosen ? themeOf(location.search) : 'catalogus'
+const organisation = chosen ? themeOf(location.search) : 'rijksoverheid'
 
 const lintje = await import('../../dist-elements/lintje.js')
 lintje.setIconSource({ base: '../../dist-icons/' })
@@ -153,41 +150,35 @@ const PAGES = { catalogus: 'catalogue', over: 'about' }
 const view = product ? 'product' : (PAGES[params.get('pagina')] ?? 'start')
 
 // "Weergave" offers the application's own purple beside Lintje's themes.
+const settings = shellSettingsOf(location.search)
 const THEME_LABELS = { catalogus: 'Catalogus' }
 
-function renderShell() {
-  const settings = shellSettingsOf(location.search)
-  shell.data = {
-    name: 'Datacatalogus',
-    emblem: emblem(organisation()),
-    navigation: [
-      { label: 'Start', href: here(''), active: view === 'start' },
-      { label: 'Catalogus', href: here('pagina=catalogus'), active: view === 'catalogue' || view === 'product' },
-      { label: 'Over het platform', href: here('pagina=over'), active: view === 'about' },
-    ],
-    view: {
-      ...settings.view,
-      themes: [{ value: 'catalogus', label: THEME_LABELS.catalogus }, ...settings.view.themes],
-      theme: root.dataset.theme,
-    },
-    search: true,
-    user: { name: 'J. de Vries', role: 'Analist', initials: 'JV' },
-  }
+shell.data = {
+  name: 'Datacatalogus',
+  emblem: emblem(organisation),
+  navigation: [
+    { label: 'Start', href: here(''), active: view === 'start' },
+    { label: 'Catalogus', href: here('pagina=catalogus'), active: view === 'catalogue' || view === 'product' },
+    { label: 'Over het platform', href: here('pagina=over'), active: view === 'about' },
+  ],
+  view: {
+    ...settings.view,
+    themes: [{ value: 'catalogus', label: THEME_LABELS.catalogus }, ...settings.view.themes],
+    theme: root.dataset.theme,
+  },
+  search: true,
+  user: { name: 'J. de Vries', role: 'Analist', initials: 'JV' },
 }
-renderShell()
 answerLogout(shell)
 
-// The reader's settings stand in the URL; the application's own theme is the default here, so it
-// is never written. The page stays, and its links carry the new settings.
+// The reader's settings stand in the URL; the application's own theme is the default here, so it is never written.
 shell.addEventListener('lintje-view-change', (event) => {
   const { theme, ...rest } = event.detail
-  params = new URLSearchParams(searchWith(params.toString(), rest))
-  if (theme === 'catalogus') params.delete('theme')
-  else if (theme && THEMES.includes(theme)) params.set('theme', theme)
-  const query = params.toString()
-  history.replaceState(null, '', `${location.pathname}${query ? `?${query}` : ''}`)
-  applySettings()
-  relink()
+  const next = new URLSearchParams(searchWith(location.search, rest))
+  if (theme === 'catalogus') next.delete('theme')
+  else if (theme && THEMES.includes(theme)) next.set('theme', theme)
+  const query = next.toString()
+  location.href = `${location.pathname}${query ? `?${query}` : ''}`
 })
 
 // Every link on the page comes here and is followed: there is no router to hand it to.
@@ -202,9 +193,12 @@ const search = $('search')
 const result = (item) => ({ id: item.id, label: item.title, meta: `${KINDS[item.kind].label} · ${item.owner}`, href: productHref(item) })
 const RECENT = () => [{ label: 'Veel gebruikt', items: PRODUCTS.filter((item) => item.popular).map(result) }]
 
-/** The results for a term; without one, the products used most. */
-function searchFor(text) {
-  const term = text.trim()
+search.groups = RECENT()
+shell.addEventListener('lintje-search-open', () => (search.open = true))
+search.addEventListener('lintje-open', () => (search.open = true))
+search.addEventListener('lintje-close', () => (search.open = false))
+search.addEventListener('lintje-search', (event) => {
+  const term = event.detail.trim()
   if (!term) {
     search.groups = RECENT()
     return
@@ -212,12 +206,7 @@ function searchFor(text) {
   const scored = PRODUCTS.map((item) => [item, score(item, term)]).filter(([, points]) => points > 0)
   scored.sort((a, b) => b[1] - a[1])
   search.groups = scored.length ? [{ label: 'Producten', items: scored.slice(0, 6).map(([item]) => result(item)) }] : []
-}
-search.groups = RECENT()
-shell.addEventListener('lintje-search-open', () => (search.open = true))
-search.addEventListener('lintje-open', () => (search.open = true))
-search.addEventListener('lintje-close', () => (search.open = false))
-search.addEventListener('lintje-search', (event) => searchFor(event.detail))
+})
 search.addEventListener('lintje-action', (event) => {
   const item = PRODUCTS.find((entry) => entry.id === event.detail)
   if (item) location.href = productHref(item)
@@ -307,6 +296,9 @@ const EXAMPLES = [
 ]
 
 function renderStart() {
+  $('hero').href = here('pagina=catalogus')
+  const question = (params.get('q') ?? '').trim()
+  if (question) renderAnswer(question)
   // A row opens its product's page; the list leaves the following to the host.
   $('answer-products').addEventListener('lintje-row-click', (event) => {
     event.preventDefault()
@@ -322,14 +314,6 @@ function renderStart() {
   $('question').addEventListener('lintje-message-send', (event) => ask(event.detail.text ?? ''))
   $('examples').items = EXAMPLES.map((label) => ({ label }))
   $('examples').addEventListener('lintje-suggestion-select', (event) => ask(event.detail.value))
-  drawStart()
-}
-
-/** What the start page links to; again after the settings changed. */
-function drawStart() {
-  $('hero').href = here('pagina=catalogus')
-  const question = (params.get('q') ?? '').trim()
-  if (question) renderAnswer(question)
   $('kinds').items = Object.entries(KINDS).map(([kind, info]) => {
     const count = PRODUCTS.filter((item) => item.kind === kind).length
     return { id: kind, title: info.plural, href: here(`pagina=catalogus&soort=${kind}`), meta: [`${count} producten`], description: info.text }
@@ -448,7 +432,11 @@ function renderProduct(item) {
   $('page-header').data = { title: item.title, description: item.description }
   drawProductFavourite(item)
   $('favourite').addEventListener('click', () => setFavourite(item.id, !isFavourite(item)))
-  drawCrumbs(item)
+  $('crumbs').items = [
+    { label: 'Catalogus', href: here('pagina=catalogus') },
+    { label: kind.plural, href: here(`pagina=catalogus&soort=${item.kind}`) },
+    { label: item.title },
+  ]
   $('crumbs').hidden = false
   $('facts').items = [
     { label: 'Soort', value: kind.label },
@@ -483,14 +471,6 @@ function renderProduct(item) {
   }
 }
 
-function drawCrumbs(item) {
-  $('crumbs').items = [
-    { label: 'Catalogus', href: here('pagina=catalogus') },
-    { label: KINDS[item.kind].plural, href: here(`pagina=catalogus&soort=${item.kind}`) },
-    { label: item.title },
-  ]
-}
-
 /* About the platform -------------------------------------------------------------------- */
 
 function renderAbout() {
@@ -510,25 +490,22 @@ function renderAbout() {
 
 /* The footer, on every page ------------------------------------------------------------------- */
 
-function renderFooter() {
-  $('footer').data = {
-    tagline: 'Datacatalogus — alle producten van het dataplatform op één plek',
-    columns: [
-      {
-        heading: 'Catalogus',
-        links: Object.entries(KINDS).map(([kind, info]) => ({ label: info.plural, href: here(`pagina=catalogus&soort=${kind}`) })),
-      },
-      { heading: 'Over het platform', links: [{ label: 'Wat is het dataplatform?', href: here('pagina=over') }, { label: 'Een product aanmelden', href: 'mailto:dataplatform@example.org?subject=Product%20aanmelden' }] },
-      { heading: 'Hulp', links: [{ label: 'Contact', href: here('pagina=over') }, { label: 'Toegang aanvragen', href: here('pagina=over') }] },
-    ],
-    links: [
-      { label: 'Privacy', href: '#privacy' },
-      { label: 'Toegankelijkheid', href: '#toegankelijkheid' },
-    ],
-    note: 'Versie 1.0.0 · een voorbeeld met fictieve gegevens',
-  }
+$('footer').data = {
+  tagline: 'Datacatalogus — alle producten van het dataplatform op één plek',
+  columns: [
+    {
+      heading: 'Catalogus',
+      links: Object.entries(KINDS).map(([kind, info]) => ({ label: info.plural, href: here(`pagina=catalogus&soort=${kind}`) })),
+    },
+    { heading: 'Over het platform', links: [{ label: 'Wat is het dataplatform?', href: here('pagina=over') }, { label: 'Een product aanmelden', href: 'mailto:dataplatform@example.org?subject=Product%20aanmelden' }] },
+    { heading: 'Hulp', links: [{ label: 'Contact', href: here('pagina=over') }, { label: 'Toegang aanvragen', href: here('pagina=over') }] },
+  ],
+  links: [
+    { label: 'Privacy', href: '#privacy' },
+    { label: 'Toegankelijkheid', href: '#toegankelijkheid' },
+  ],
+  note: 'Versie 1.0.0 · een voorbeeld met fictieve gegevens',
 }
-renderFooter()
 
 /* The view the URL asks for ----------------------------------------------------------------------- */
 
@@ -552,14 +529,4 @@ function redraw() {
   if (view === 'start') drawStartCards()
   else if (view === 'catalogue') renderCatalogue()
   else if (view === 'product') drawProductFavourite(product)
-}
-
-/** Every link that carries the reader's settings, again after they changed. */
-function relink() {
-  renderShell()
-  renderFooter()
-  searchFor(search.query)
-  if (view === 'start') drawStart()
-  else if (view === 'catalogue') renderCatalogue()
-  else if (view === 'product') drawCrumbs(product)
 }

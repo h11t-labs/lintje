@@ -305,8 +305,7 @@
   /* The smallest pointer target. A box that draws smaller reaches it through a
      transparent hit area (`::after`, negative inset). */
   --h-target: 3rem;
-  /* The WCAG AA floor: a link in a list of text links (one line of text, as on rijksoverheid.nl)
-     and a finger's hit area on a split pane's strip. */
+  /* A link in a list of text links: one line of text, the WCAG AA floor, as on rijksoverheid.nl. */
   --h-target-text: 1.5rem;
   /* The two dense exceptions to the target: a date picker day cell and a listbox option row. */
   --h-option: 2.5rem;

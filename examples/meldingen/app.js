@@ -742,8 +742,7 @@ const FILLED_UPLOADS = [
 const DRAFT_PREFIX = 'lintje-draft:'
 const draftKey = () => (demo() ? `meldingen-demo-${demo()}` : 'meldingen-nieuw')
 
-/** The draft `lintje-form` keeps, in its documented shape `{ savedAt, values }`; or null. The
-    overview has no form to ask, so it reads the store itself. */
+/** The draft `lintje-form` keeps, in its documented shape `{ savedAt, values }`; or null. */
 function storedDraft(key) {
   try {
     return JSON.parse(localStorage.getItem(DRAFT_PREFIX + key) ?? 'null')
@@ -838,10 +837,8 @@ async function renderForm() {
     const values = { ...FILLED, omschrijving: 'Zwarte tas zonder label, al 20 minuten zonder eigenaar bij de bezoekersbalie.' }
     localStorage.setItem(DRAFT_PREFIX + key, JSON.stringify({ savedAt, values }))
   }
+  const draft = storedDraft(key)
   form.draftKey = key
-  // The form reads its draft before any field exists: the rows it names can be drawn first.
-  const draft = form.restoredDraft
-  const restoredAt = form.restoredAt
 
   // The options and the starting rows, before the form writes its values into the fields.
   form.querySelector('[name=categorie]').options = CATEGORY_OPTIONS
@@ -854,12 +851,7 @@ async function renderForm() {
   const filled = demo() === 'fouten' || demo() === 'controleren'
   const repeater = form.querySelector('lintje-repeater')
   const ids = filled ? ['p1', 'p2'] : ['p1']
-  // The rows the draft names beside the starting ones, so the form writes their values in.
-  for (const name of Object.keys(draft ?? {})) {
-    const id = /^betrokkene-(p\d+)-(naam|rol)$/.exec(name)?.[1]
-    if (id && !ids.includes(id)) ids.push(id)
-  }
-  rowId = Math.max(...ids.map((id) => Number(id.slice(1))))
+  rowId = ids.length
   for (const id of ids) repeater.append(personRow(id))
   renumber(repeater)
   form.values = filled
@@ -870,10 +862,22 @@ async function renderForm() {
   wireForm(form, repeater)
   await form.updateComplete
 
+  // The restored draft can name rows the page has not drawn: add them, with their values.
+  const values = form.collect()
+  const known = new Set(ids)
+  for (const name of Object.keys(values)) {
+    const match = /^betrokkene-(p\d+)-(naam|rol)$/.exec(name)
+    if (!match || known.has(match[1])) continue
+    known.add(match[1])
+    rowId = Math.max(rowId, Number(match[1].slice(1)))
+    repeater.append(personRow(match[1], { naam: values[`betrokkene-${match[1]}-naam`], rol: values[`betrokkene-${match[1]}-rol`] }))
+  }
+  renumber(repeater)
+
   // "Je concept is teruggezet", with the moment it was written.
   const notice = main.querySelector('#restored')
-  if (restoredAt) {
-    const time = clock(restoredAt)
+  if (draft && form.dirty) {
+    const time = clock(new Date(draft.savedAt))
     notice.data = { kind: 'ok', title: 'Je concept is teruggezet.', text: `Het is van ${time}, van voor het afmelden.` }
     notice.hidden = false
   }

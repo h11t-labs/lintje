@@ -42,13 +42,12 @@ const sample = `
 `
 
 describe('the token reference', () => {
-  it('takes the comment above a token or behind it, and its section as its group', () => {
-    const group = 'Section'
+  it('takes the comment above a token or behind it, and no heading or tooling note', () => {
     expect(tokensOf(sample)).toEqual([
-      { name: '--one', comment: 'Above the first, over two lines.', group },
-      { name: '--two', comment: 'behind the second', group },
-      { name: '--three', comment: '', group },
-      { name: '--four', comment: '', group },
+      { name: '--one', comment: 'Above the first, over two lines.' },
+      { name: '--two', comment: 'behind the second' },
+      { name: '--three', comment: '' },
+      { name: '--four', comment: '' },
     ])
   })
 

@@ -173,30 +173,15 @@ export class LintjeSplitPane extends LintjeElement {
   private readonly onPlace = (event: PointerEvent): void => {
     if (!this.#lifted || event.button !== 0) return
     event.preventDefault()
+    this.#placed = true
     const next = this.splitAt(event.clientX)
     this.#drop()
-    this.#placed = true
-    document.addEventListener('pointerup', this.onPlacingEnd, true)
-    document.addEventListener('pointercancel', this.onPlacingEnd, true)
     this.commit(next ?? this.value, this.#dragFrom)
-  }
-
-  /** A placing press that is cancelled or released outside brings no click: the next one counts. */
-  private readonly onPlacingEnd = (event: PointerEvent): void => {
-    const block = this.block
-    if (event.type === 'pointerup' && block && event.composedPath().includes(block)) return
-    this.#unplace()
-  }
-
-  #unplace(): void {
-    this.#placed = false
-    document.removeEventListener('pointerup', this.onPlacingEnd, true)
-    document.removeEventListener('pointercancel', this.onPlacingEnd, true)
   }
 
   private readonly onPlacedClick = (event: Event): void => {
     if (!this.#placed) return
-    this.#unplace()
+    this.#placed = false
     event.preventDefault()
     event.stopPropagation()
   }
@@ -220,7 +205,6 @@ export class LintjeSplitPane extends LintjeElement {
 
   override disconnectedCallback(): void {
     this.#drop()
-    this.#unplace()
     super.disconnectedCallback()
   }
 

@@ -9,7 +9,7 @@ import { answerLogout, carry, emblem, modeOf, searchWith, shellSettingsOf, theme
 
 /* The URL: languages, the open document, mode, theme and the demo state ------------------- */
 
-let params = new URLSearchParams(location.search)
+const params = new URLSearchParams(location.search)
 const DEMO = params.get('demo') === '1'
 // A text opened again from the history page: read once, then left out of every link.
 const again = params.get('tekst')
@@ -40,17 +40,12 @@ function hrefWith(key, value, more = {}) {
   return query ? `?${query}` : location.pathname
 }
 
-/** A finished document's page, made when it is drawn: a link carries the settings of now. */
-const docHref = (doc) => hrefWith('document', doc.id)
+const theme = themeOf(location.search)
 
-// Mode and theme stand on <html> before the elements load, so they draw in them from the start;
-// the elements follow a change while the page runs.
+// Mode and theme stand on <html> before the elements load, so they draw in them from the start.
 const root = document.documentElement
-function applySettings() {
-  root.dataset.mode = modeOf(location.search)
-  root.dataset.theme = themeOf(location.search)
-}
-applySettings()
+root.dataset.mode = modeOf(location.search)
+root.dataset.theme = theme
 
 const lintje = await import('../../dist-elements/lintje.js')
 
@@ -67,7 +62,7 @@ const USER = { name: 'J. de Vries', role: 'Medewerker · Afdeling Vertalingen', 
 const documentId = params.get('document')
 /** Which page: the start, the history, or a document beside its translation. */
 let view = params.get('view') === 'geschiedenis' ? 'history' : documentId ? 'document' : 'start'
-const historyHref = () => hrefWith('view', 'geschiedenis', { tab: null })
+const historyHref = hrefWith('view', 'geschiedenis', { tab: null })
 const shell = $('shell')
 let notifications = [
   {
@@ -75,7 +70,7 @@ let notifications = [
     title: 'Vertaling klaar',
     text: 'Brief aanvrager.docx',
     when: 'vandaag om 10:12',
-    document: 'd1',
+    href: hrefWith('document', 'd1'),
     unread: true,
   },
   { id: 'n1', title: 'Vertaling mislukt', text: 'Scan formulier.pdf · het bestand is beveiligd', when: 'gisteren om 15:40' },
@@ -83,26 +78,27 @@ let notifications = [
 
 // "Weergave" holds the mode and the theme, the search button opens the search; the profile menu
 // is only the reader's own. The logo leads back to Lintje's start page.
+const settings = shellSettingsOf(location.search)
+
 function renderShell() {
   shell.data = {
     name: 'Vertalen',
-    emblem: emblem(themeOf(location.search)),
+    emblem: emblem(theme),
     home: carry('../'),
     navigation: [
       { label: 'Vertalen', href: hrefWith('view', null), active: view !== 'history' },
-      { label: 'Geschiedenis', href: historyHref(), active: view === 'history' },
+      { label: 'Geschiedenis', href: historyHref, active: view === 'history' },
     ],
-    view: shellSettingsOf(location.search).view,
+    view: settings.view,
     search: true,
     user: USER,
     version: '1.0.0',
-    // A notification names its document; the link carries the settings of now.
-    notifications: notifications.map(({ document: id, ...item }) => (id ? { ...item, href: hrefWith('document', id) } : item)),
+    notifications,
   }
 }
 
-function notify(title, text, id) {
-  notifications = [{ id: `n${Date.now()}`, title, text, document: id, when: 'zojuist', unread: true }, ...notifications]
+function notify(title, text, href) {
+  notifications = [{ id: `n${Date.now()}`, title, text, href, when: 'zojuist', unread: true }, ...notifications]
   renderShell()
 }
 
@@ -112,14 +108,9 @@ shell.addEventListener('lintje-navigate', (event) => {
   event.preventDefault()
   location.href = event.detail.href
 })
-// The mode and the theme stand in the URL; the page stays, and its links carry the new ones.
+// The mode and the theme stand in the URL; the page loads again with them.
 shell.addEventListener('lintje-view-change', (event) => {
-  const search = searchWith(params.toString(), event.detail)
-  params = new URLSearchParams(search)
-  history.replaceState(null, '', `${location.pathname}${search}`)
-  applySettings()
-  renderShell()
-  renderLinks()
+  location.href = `${location.pathname}${searchWith(location.search, event.detail)}`
 })
 answerLogout(shell)
 shell.addEventListener('lintje-notification-open', (event) => {
@@ -484,7 +475,7 @@ const docRow = (doc) => ({
   id: doc.id,
   icon: 'op-kantoor-document-blanco',
   title: doc.name,
-  href: docHref(doc),
+  href: doc.href,
   sub: `${doc.pair} · ${pageWord(doc.pages)}`,
   meta: doc.when,
   group: doc.group,
@@ -517,6 +508,9 @@ historyList.addEventListener('lintje-row-action', (event) => {
   renderDocs()
   toast('Verwijderd uit je geschiedenis.')
 })
+$('hero').href = historyHref
+$('history-all').href = historyHref
+$('docs-all').href = historyHref
 
 /** A text translated before, back in the field with its translation; from the history page via
  * the start (?tekst=…). */
@@ -559,7 +553,7 @@ const textResult = (item) => ({
   meta: `Tekst · ${languageName(item.source)} → ${languageName(item.target)} · ${item.when}`,
   href: hrefWith('view', null, { tab: null, tekst: item.id }),
 })
-const docResult = (doc) => ({ id: doc.id, label: doc.name, meta: `Document · ${doc.pair} · ${doc.when}`, href: docHref(doc) })
+const docResult = (doc) => ({ id: doc.id, label: doc.name, meta: `Document · ${doc.pair} · ${doc.when}`, href: doc.href })
 const finished = () => docs.filter((doc) => doc.state === 'done')
 const recentResults = () => [
   {
@@ -576,9 +570,8 @@ shell.addEventListener('lintje-search-open', () => {
 })
 search.addEventListener('lintje-open', () => (search.open = true))
 search.addEventListener('lintje-close', () => (search.open = false))
-/** The results for a term; without one, the recent ones. */
-function searchFor(text) {
-  const term = text.trim().toLowerCase()
+search.addEventListener('lintje-search', (event) => {
+  const term = event.detail.trim().toLowerCase()
   if (!term) {
     search.groups = recentResults()
     return
@@ -589,8 +582,7 @@ function searchFor(text) {
     ...(texts.length ? [{ label: 'Teksten', items: texts.slice(0, 6).map(textResult) }] : []),
     ...(found.length ? [{ label: 'Documenten', items: found.slice(0, 6).map(docResult) }] : []),
   ]
-}
-search.addEventListener('lintje-search', (event) => searchFor(event.detail))
+})
 search.addEventListener('lintje-navigate', (event) => {
   event.preventDefault()
   location.href = event.detail.href
@@ -624,6 +616,7 @@ let docs = [
     state: 'done',
     pair: 'Engels → Nederlands',
     pages: 3,
+    href: hrefWith('document', 'd1'),
     when: '10:12',
     group: 'Vandaag',
     ago: 61,
@@ -648,6 +641,7 @@ let docs = [
     state: 'done',
     pair,
     pages,
+    href: hrefWith('document', `d${index + 3}`),
     ...MOMENTS[index],
   })),
 ]
@@ -660,6 +654,8 @@ try {
 } catch {
   // No storage: the server starts over.
 }
+// A link carries the page's settings of now, not those of when the document was done.
+for (const doc of docs) if (doc.state === 'done') doc.href = hrefWith('document', doc.id)
 for (const doc of docs) PAGES.set(doc.id, doc.pages)
 
 const pageWord = (count) => `${count} ${count === 1 ? 'pagina' : 'pagina’s'}`
@@ -684,7 +680,7 @@ function jobFields(doc) {
     id: doc.id,
     name: doc.name,
     state: 'done',
-    href: docHref(doc),
+    href: doc.href,
     detail: `${doc.pair} · ${pageWord(doc.pages)}`,
     meta: doc.when,
     group: doc.group,
@@ -756,12 +752,13 @@ function tick() {
     moveDoc(busy.id, { at: busy.at + 1 })
     return
   }
+  const href = hrefWith('document', busy.id)
   // Newest first: a finished document goes to the top of what was done today.
-  docs = [{ ...busy, state: 'done', when: 'zojuist', group: 'Vandaag', ago: -Date.now() }, ...docs.filter((doc) => doc.id !== busy.id)]
+  docs = [{ ...busy, state: 'done', href, when: 'zojuist', group: 'Vandaag', ago: -Date.now() }, ...docs.filter((doc) => doc.id !== busy.id)]
   renderDocs()
-  notify('Vertaling klaar', busy.name, busy.id)
+  notify('Vertaling klaar', busy.name, href)
   // Ready, it is not opened by itself: the reader may be typing or uploading the next one.
-  toast(`${busy.name} is vertaald.`, 'ok', { label: 'Openen', run: () => (location.href = docHref(busy)) })
+  toast(`${busy.name} is vertaald.`, 'ok', { label: 'Openen', run: () => (location.href = href) })
 }
 
 /* A new document: the upload, then a place in the queue. */
@@ -843,6 +840,7 @@ function openHistory() {
   $('doc-download').hidden = true
   $('history').heading = 'Teksten'
   $('done-docs').heading = 'Documenten'
+  $('crumbs').items = [{ label: 'Vertalen', href: hrefWith('view', null) }, { label: 'Geschiedenis' }]
   document.title = 'Geschiedenis — Vertalen'
 }
 
@@ -856,6 +854,13 @@ function openDocument(doc) {
     description: `${doc.pair} · ${pageWord(count)} · vertaald vandaag om 10:12`,
   }
   document.title = `${doc.name} — Vertalen`
+
+  const crumbs = $('crumbs')
+  crumbs.items = [
+    { label: 'Vertalen', href: hrefWith('document', null) },
+    { label: 'Geschiedenis', href: historyHref },
+    { label: doc.name },
+  ]
 
   const viewer = $('viewer')
   viewer.name = doc.name
@@ -872,22 +877,6 @@ function openDocument(doc) {
 
 /* Start --------------------------------------------------------------------------------- */
 
-/** The links that carry the reader's settings; again after a change of mode or theme. */
-function renderLinks() {
-  for (const id of ['hero', 'history-all', 'docs-all']) $(id).href = historyHref()
-  searchFor(search.query)
-  if (openDoc) {
-    $('crumbs').items = [
-      { label: 'Vertalen', href: hrefWith('document', null) },
-      { label: 'Geschiedenis', href: historyHref() },
-      { label: openDoc.name },
-    ]
-    return
-  }
-  if (view === 'history') $('crumbs').items = [{ label: 'Vertalen', href: hrefWith('view', null) }, { label: 'Geschiedenis' }]
-  renderDocs()
-}
-
 const openDoc = documentId && docs.find((doc) => doc.id === documentId && doc.state === 'done')
 if (documentId && !openDoc) {
   // Removed, or not done yet: the start, and a word on why.
@@ -898,10 +887,9 @@ if (documentId && !openDoc) {
 }
 if (openDoc) {
   openDocument(openDoc)
-  renderLinks()
 } else {
   if (view === 'history') openHistory()
-  renderLinks()
+  renderDocs()
   if (DEMO) {
     // A telling state: a translation half streamed, a document half way.
     translation.text = DUTCH.split(' ').slice(0, 18).join(' ')
