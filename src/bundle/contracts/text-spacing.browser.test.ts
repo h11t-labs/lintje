@@ -413,7 +413,7 @@ describe('text at a larger default font', () => {
       '.lintje-time-input__control',
     )!
     const style = getComputedStyle(control)
-    const room =
+    const available =
       control.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
     const context = document.createElement('canvas').getContext('2d')!
     context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`

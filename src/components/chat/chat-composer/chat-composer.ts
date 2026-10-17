@@ -654,6 +654,15 @@ export class LintjeChatComposer extends LintjeElement {
     this.#layer = layer
     this.#captions = captions
     render(captions.map(renderCaption), layer)
+    // A caption that stands whole hides those it reaches on its line: a part of one would read
+    // as a word of its own.
+    const spans = [...layer.children] as HTMLElement[]
+    const current = captions.findIndex((caption) => caption.current)
+    const reach = current < 0 ? 0 : captions[current]!.left + spans[current]!.offsetWidth
+    captions.forEach((caption, i) => {
+      const covered = i > current && current >= 0 && caption.top === captions[current]!.top
+      spans[i]?.classList.toggle('is-covered', covered && caption.left < reach)
+    })
   }
 
   private setSendKey(key: ChatSendKey): void {

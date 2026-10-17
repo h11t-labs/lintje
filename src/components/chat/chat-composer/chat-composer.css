@@ -125,9 +125,9 @@
 .lintje-chat-composer__caption.is-current {
   z-index: 1;
   overflow: visible;
-  padding-right: var(--space-1);
   background: var(--color-bg-surface);
 }
+.lintje-chat-composer__caption.is-covered { visibility: hidden; }
 
 .lintje-chat-composer__bar {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end;
