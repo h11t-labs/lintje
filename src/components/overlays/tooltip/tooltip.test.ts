@@ -131,7 +131,12 @@ describe('lintje-tooltip in an open menu', () => {
       label: 'Acties',
       items: [
         { value: 'bewaren', label: 'Bewaren' },
-        { value: 'delen', label: 'Delen', disabled: true, reason: 'Je hebt geen recht om te delen' },
+        {
+          value: 'delen',
+          label: 'Delen',
+          disabled: true,
+          reason: 'Je hebt geen recht om te delen',
+        },
       ],
     }) as LintjeMenuButton
     document.body.append(menu)
