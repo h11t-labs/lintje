@@ -1667,7 +1667,7 @@ const VIEW_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-filter-zone :: "Filters tonen" hands its focus to "Filters verbergen"',
+    name: 'lintje-filter-zone :: "Filters", opening the zone, keeps its focus',
     run: async () => {
       const element = await zone(false, 0)
       await pressInZone(element, '.lintje-filter-toggle')
@@ -1676,7 +1676,7 @@ const VIEW_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-filter-zone :: the sentence, pressed, hands its focus to "Filters verbergen"',
+    name: 'lintje-filter-zone :: the sentence, pressed, hands its focus to "Filters"',
     run: async () => {
       const element = await zone(false, 0)
       await pressInZone(element, '.lintje-summary-bar__sentence')
@@ -1876,17 +1876,23 @@ const SHELL_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-shell :: the rail’s "Afmelden", gone on Escape, hands its focus to the menu item before it',
+    name: 'lintje-shell :: a row of the user menu in the rail’s foot, chosen, hands its focus to the foot',
     run: async () => {
       const element = await railWithFocusOn(
         {
           user: { name: 'M. Jansen', initials: 'MJ' },
-          logout: { href: '/afmelden', token: 'proef' },
+          userMenu: [{ value: 'profiel', label: 'Mijn profiel' }],
         },
-        '.lintje-nav__logout-button',
+        '.lintje-nav__user-menu',
       )
-      await userEvent.keyboard('{Escape}')
-      return () => [...element.shadowRoot!.querySelectorAll('.lintje-nav__list a')].at(-1) ?? null
+      const foot = (): HTMLElement | null =>
+        inside(element, '.lintje-nav__user-menu', '.lintje-user-menu__trigger')
+      foot()!.focus()
+      await userEvent.keyboard('{Enter}')
+      // Opened from the keyboard, the focus is on the menu's first row.
+      await expect.poll(() => active()?.textContent?.trim()).toBe('Mijn profiel')
+      await userEvent.keyboard('{Enter}')
+      return foot
     },
   },
   {
@@ -1928,8 +1934,7 @@ const SHELL_ROWS: Row[] = [
       const element = await shell({})
       element.addEventListener('lintje-navigate', (event) => event.preventDefault())
       await phone()
-      const menu = (): HTMLElement | null =>
-        inside(element, '[aria-controls="lintje-mobile-menu-panel"]')
+      const menu = (): HTMLElement | null => inside(element, '.lintje-mobile-header__button--menu')
       await drawn(menu)
       menu()!.focus()
       await userEvent.keyboard('{Enter}')

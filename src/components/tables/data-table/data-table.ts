@@ -65,6 +65,7 @@ import { LiveMessage } from '../../shared/live-message'
 import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import type { DescriptionItem } from '../description-list/description-list'
 import type { MenuEntry } from '../../actions/menu-button/menu-button'
+import { titleWhenCut } from '../../shared/cut-text'
 import { rangeIds, renderRowActions, renderSelectionBar, withRange } from './actions'
 import {
   columnsChange,
@@ -376,6 +377,8 @@ export class LintjeDataTable extends LintjeContentTileElement {
 
   protected override expandChanged(open: boolean): void {
     if (!open) this.#modalEdges.disconnect()
+    // The copy that shows now starts silent: the last message would be read out again.
+    this.#live.clear()
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
@@ -1072,6 +1075,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       chooser: tools,
       onClearFilter: (key, button) => void this.clearFilter(key, button),
       onClearAll: (button) => void this.clearAllFilters(button),
+      sheetOpen: this.panel?.kind === 'sheet' && this.panel.edges === edges,
       onOpenSheet: () => this.openPanel({ kind: 'sheet', edges }, null),
     })
   }
@@ -1090,7 +1094,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         this.#live.say(anyOpen ? 'Alle groepen ingeklapt' : 'Alle groepen uitgeklapt')
       }}
     >
-      <span class="lintje-button__label">${anyOpen ? 'Alles inklappen' : 'Alles uitklappen'}</span>
+      <span class="lintje-button__label" @pointerenter=${titleWhenCut}>${anyOpen ? 'Alles inklappen' : 'Alles uitklappen'}</span>
     </button>`
   }
 

@@ -5,6 +5,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve as resolvePath } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { registerShortcut, shortcuts } from '../../../core/shortcuts'
 import './app-search'
 import { resultsMessage, splitMatch, type LintjeAppSearch, type SearchGroup } from './app-search'
 
@@ -65,6 +66,46 @@ describe('lintje-app-search', () => {
     element.addEventListener('lintje-open', () => opened++)
     document.body.dispatchEvent(new KeyboardEvent('keydown', { key: '/', bubbles: true }))
     expect(opened).toBe(1)
+  })
+
+  it('registers / once for the page, for the latest search connected', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const searches = [await mount(), await mount(), await mount()]
+    expect(shortcuts().filter((shortcut) => shortcut.keys === '/')).toEqual([
+      { keys: '/', description: 'Zoeken', inFields: false },
+    ])
+    expect(warn).not.toHaveBeenCalled()
+
+    const opened: LintjeAppSearch[] = []
+    for (const search of searches) search.addEventListener('lintje-open', () => opened.push(search))
+    const slash = (): boolean =>
+      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: '/', bubbles: true }))
+    slash()
+    expect(opened).toEqual([searches[2]])
+
+    searches[2].remove()
+    slash()
+    expect(opened).toEqual([searches[2], searches[1]])
+
+    searches[0].remove()
+    searches[1].remove()
+    slash()
+    expect(opened).toHaveLength(2)
+    expect(shortcuts().some((shortcut) => shortcut.keys === '/')).toBe(false)
+    warn.mockRestore()
+  })
+
+  it('still warns when the host registers / beside a search', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await mount()
+    const unregister = registerShortcut({
+      keys: '/',
+      description: 'Eigen zoeken',
+      handler: () => {},
+    })
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"/" is registered twice'))
+    unregister()
+    warn.mockRestore()
   })
 
   it('is a dialog with a combobox that controls the listbox and points at the chosen row', async () => {

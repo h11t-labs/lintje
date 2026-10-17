@@ -841,6 +841,18 @@ export default {
           setup: (stage) => filters(stage, { filters: { category: ['Veiligheid', 'Overlast'] } }),
         },
         {
+          label: 'Een lange filterchip',
+          note: 'Een chip die niet op de regel past, loopt door en blijft binnen de tabel.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) =>
+            filters(stage, {
+              filters: {
+                title: 'wachtrij bij de bezoekersbalie',
+                category: ['Veiligheid', 'Verkeer', 'Overlast', 'Overig'],
+              },
+            }),
+        },
+        {
           label: 'Kolommen kiezen',
           note:
             'Het icoon in de kop van de laatste kolom kiest de kolommen. Een verborgen kolom ' +
@@ -1238,6 +1250,19 @@ export default {
             tree.nodes = structuredClone(UNITS)
             tree.expanded = ['dh', 'verdiepingen']
             lazyArrivals(tree)
+          },
+        },
+        {
+          label: 'Een lange naam',
+          note:
+            'Met een aanwijzer staat de naam op één regel, met de hele naam in de tooltip. Onder ' +
+            'de focus van het toetsenbord, zonder hover en op een telefoon loopt hij door.',
+          html: '<div style="max-width: 240px"><lintje-tree-view label="Eenheden"></lintje-tree-view></div>',
+          setup(stage) {
+            stage.querySelector('lintje-tree-view').nodes = [
+              { id: 'lang', label: 'Vergaderzalen op de derde verdieping van het oostelijke gebouw', count: 4 },
+              { id: 'kort', label: 'Vertrek', count: 3 },
+            ]
           },
         },
         {

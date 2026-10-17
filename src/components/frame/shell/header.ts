@@ -29,27 +29,27 @@ export interface NavGroup {
   items: ShellLink[]
 }
 
-/** The ribbon's width in px; matches `--w-ribbon`. */
-export const RIBBON_WIDTH = { desktop: 48, phone: 40 } as const
-
 export interface LogoBarOptions {
   /** URL or data URI of an emblem the host resolved itself; wins over `emblem`. */
   logo?: string
   /** The theme's emblem (the ribbon) by file name, with the organisation's name and byline. */
   emblem?: { name: string; label: string; byline?: string }
-  /** `RIBBON_WIDTH.desktop` or `.phone`. */
-  ribbon: number
   /** The environment outside production ("Acceptatie"); a phone shows its first three letters. */
   environment?: string
   /** Without it the logo is not a link. */
   home?: { href: string; onNavigate: (event: MouseEvent) => void }
 }
 
+/**
+ * The home link's description. Its name is what the logo shows, the organisation (WCAG 2.5.3);
+ * only a logo without a name leaves this as the name, so the link is never nameless.
+ */
+export const HOME_LABEL = 'Naar de startpagina'
+
 export function renderLogoBar(options: LogoBarOptions): TemplateResult {
-  const { logo, emblem, ribbon, environment, home } = options
+  const { logo, emblem, environment, home } = options
   const drawing = html`<lintje-logo
     full
-    width=${ribbon}
     src=${logo ?? nothing}
     name=${emblem?.name ?? nothing}
     alt=${emblem?.label ?? nothing}
@@ -61,8 +61,8 @@ export function renderLogoBar(options: LogoBarOptions): TemplateResult {
         ? html`<a
           class="lintje-logobar__home focus-inset"
           href=${home.href}
-          aria-label="Naar de startpagina"
-          title="Naar de startpagina"
+          aria-label=${emblem?.label ? nothing : HOME_LABEL}
+          title=${HOME_LABEL}
           @click=${(event: MouseEvent) => {
             if (isPlainClick(event)) home.onNavigate(event)
           }}
@@ -221,8 +221,8 @@ function barPanel(
         'is-open': open,
         ...extra,
       })}
-      aria-expanded=${String(open)}
-      aria-controls=${panel}
+      aria-expanded=${whole ? nothing : String(open)}
+      aria-controls=${whole && !open ? nothing : panel}
       @pointerdown=${
         whole
           ? nothing
@@ -426,24 +426,33 @@ export class SubmenuController implements ReactiveController {
     if (this.#mobile.matches && this.host.openGroup !== null) this.host.openGroup = null
   }
 
+  // `collapsed` draws another bar, so it is measured in the observer, whose first report on a new
+  // box comes before the paint, and not after a render: that would draw the host twice.
   hostUpdated(): void {
-    this.measure()
+    const root = this.host.renderRoot
+    const nav = root.querySelector('.lintje-navbar__entries')
+    const list = root.querySelector('.lintje-navbar__list')
+    this.#observe([nav, list].filter((box): box is Element => box !== null))
+    this.#giveRoom()
+  }
+
+  /** An open panel gets the room under the bar to scroll inside itself. */
+  #giveRoom(): void {
+    const bar = this.#bar
+    if (!bar || this.host.openGroup === null) return
+    const room = Math.max(0, window.innerHeight - bar.getBoundingClientRect().bottom)
+    bar.style.setProperty('--lintje-navbar-room', `${Math.floor(room)}px`)
   }
 
   /**
    * A change of `collapsed` closes whatever was open, whose entry has gone. Without layout it
-   * leaves the state as is. An open panel gets the room under the bar to scroll inside itself.
+   * leaves the state as is.
    */
   measure(): void {
     const root = this.host.renderRoot
     const nav = root.querySelector('.lintje-navbar__entries')
     const list = root.querySelector('.lintje-navbar__list')
-    this.#observe([nav, list].filter((box): box is Element => box !== null))
-    const bar = this.#bar
-    if (bar && this.host.openGroup !== null) {
-      const room = Math.max(0, window.innerHeight - bar.getBoundingClientRect().bottom)
-      bar.style.setProperty('--lintje-navbar-room', `${Math.floor(room)}px`)
-    }
+    this.#giveRoom()
     if (!nav || !list) return
     const need = list.getBoundingClientRect().width
     if (!need) return

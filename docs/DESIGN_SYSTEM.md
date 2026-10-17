@@ -276,7 +276,9 @@ Besluiten die voor beide gelden:
   onderen als sheets met de kop van de filtersheet — hun naam en een sluitknop — en zijn modaal
   zoals die. Het open menu draagt dan alleen zijn sluitknop. Als het gereedschap van de header
   niet past, gemeten, tonen "Filters" en "Menu" alleen hun glyph; hun woord blijft hun naam.
-- **Het lint is de eenheid.** De logobalk en het logo zijn afgeleid van `--w-ribbon`.
+- **Het lint is de eenheid.** De logobalk en het logo zijn afgeleid van `--w-ribbon`, en groeien
+  dus samen mee met de tekstgrootte van de lezer. Het logo in het menu en in de mobiele header
+  houdt de vaste maat van zijn balk.
 - **Het embleem is het eigen bestand van het thema**, door de host genoemd en getekend zoals het
   bestand tekent. Zonder het bestand is een lege plek beter dan een gok. Eén uitzondering, die van
   de huisstijl zelf: in donker neemt een lintblauw lint de lichtere tint van de Rijkshuisstijl,
@@ -292,6 +294,10 @@ Besluiten die voor beide gelden:
   altijd.
 - **Onder 768 px is er geen rail**: een header met een Menu-knop, en het menu opent
   schermvullend. In de indeling Boven is die header een balk onder de logobalk, met de naam.
+- **De gebruiker heeft in elke indeling hetzelfde menu**: naam en rol, de rijen van de host,
+  "Afmelden" en de versie. De avatar in de balk opent het naar beneden, de voet van het zijmenu
+  naar boven, en op een telefoon staat het onderaan het menu. Zolang het open is, blijft de rail
+  uitgeklapt.
 - **De shell bevat de pagina.** Zijn inhoud houdt zich aan de breedte en padding van de pagina;
   wat van rand tot rand loopt — een hero, de filterbalk, een gesprek — staat erboven.
 - **De instellingen van de lezer zijn van de host**: modus, thema, waar het menu staat. De shell
@@ -660,7 +666,9 @@ Deze gelden waar een pagina getallen toont die filters vernauwen: een dashboard,
 
 **De filterbalk is in rust dicht**: wat tijdens het lezen op de pagina staat, is de zin; de
 bedieningselementen zijn er zolang de lezer kiest, en verder scrollen sluit ze. Op een telefoon
-zijn de filters een sheet, en wijzigingen gelden pas bij "Toepassen".
+zijn de filters een sheet, en wijzigingen gelden pas bij "Toepassen". Op elke breedte plakt de zin
+bij het scrollen direct onder de balk van de shell, en de shell houdt zijn hoogte vrij boven de
+focus.
 
 **De pijl van een KPI draagt de richting; de kleur bevestigt die alleen.** Waar stijgen slecht is,
 draait de kleur om en de pijl niet.
@@ -832,7 +840,8 @@ een balk, en halen hun aanwijsdoel via het klikgebied in de richting waar ze rui
   [`assets/README.md`](../assets/README.md).
 - **Een naam zonder bestand tekent niets en het bedieningselement toont zijn Nederlandse label.**
   Dat is een ondersteunde staat: een host mag een bestand weglaten of vervangen en het
-  bedieningselement blijft zeggen wat het doet. Een gat in de set dat nog
+  bedieningselement blijft zeggen wat het doet. Een icoon met een label houdt dat label als
+  tekstalternatief, ook terwijl het bestand laadt en zonder bestand. Een gat in de set dat nog
   openstaat, is een issue op GitHub.
 
 ## Responsief gedrag
@@ -843,6 +852,10 @@ Vier breedtes zijn ontworpen en getest: desktop (vanaf 1440), 1024, 768 en 390 p
 navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de tabel
 (identiteit en één meetwaarde) en de heatmap. Tussen de breedtes lopen bedieningselementen door
 naar een volgende regel; ze overlappen nooit.
+
+**Een sheet die bij een telefoon hoort, sluit als het scherm 768 px of breder wordt** — het menu
+van de shell, de lijst van de meldingen — en geeft de focus aan zijn knop als die blijft staan,
+zoals de bel.
 
 **Bij weinig hoogte plakt de actiebalk van een formulier niet**: onder een viewporthoogte van
 30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10).
@@ -932,7 +945,8 @@ kleinste correctie, en leg die hier vast.
   (`aria-placeholder`).
 - **Tekst die met een beletselteken is afgekapt, staat nooit alleen in een tooltip**: waar geen
   aanwijzer hem toont — onder 768 px, zonder hover, onder de focus van het toetsenbord — loopt hij
-  door op een volgende regel.
+  door op een volgende regel. Tekst die geen focus kan krijgen en geen tooltip heeft, kapt nooit
+  af: hij loopt altijd door.
 - **Wat verdwijnt terwijl de focus erop staat, geeft de focus eerst door**: een toast terug naar
   waar hij vandaan kwam (anders `<main>`), een gesloten mededeling naar de volgende stop op de
   pagina, "Alles gelezen" naar de eerste melding.
@@ -955,12 +969,27 @@ kleinste correctie, en leg die hier vast.
 - **Wat verandert waar de focus niet staat, zegt een live-regio**: de nieuwe waarde na − of +, de
   beschrijving van de gekozen optie, een verbinding die wisselt. Een bedieningselement zegt alleen
   wat de lezer zelf deed, niet een waarde die de host zet; de eerste keer tekenen zwijgt.
+- **Iets wordt één keer gezegd**: wat de focus krijgt, is geen live-regio — de focus is de
+  melding (de foutsamenvatting is een groep met haar kop als naam); een tweede kopie van een
+  tegel begint met een lege regio; een naam bevat niet de waarde die het element ook als waarde
+  zegt.
 - **Wat niet geopend kan worden, zegt dat in woorden**: een menurij zonder pagina of toegang
   draagt een verborgen "niet beschikbaar" of "geen toegang"; `aria-disabled` op een gewoon element
   zegt niets.
+- **De naam van een bedieningselement is wat je ziet, en het zegt zijn staat één keer** (2.5.3):
+  zijn woord, of de naam in zijn logo, zonder `aria-label` dat het vervangt en zonder tooltip die
+  het herhaalt. Alleen wat geen woord toont, een icoon of een logo zonder naam, krijgt een naam in
+  eigen woorden; een tooltip mag zeggen wat het doet ("Naar de startpagina"). Een knop die zijn
+  woord wisselt ("Menu", "Sluiten"), heeft geen `aria-expanded`; een knop met een vast woord
+  ("Filters") wel.
 - **Een paneel met gereedschap is een disclosure, geen menu** ("Weergave", "Delen"):
   `aria-expanded` zonder `aria-haspopup`, Tab loopt erdoorheen en sluit het bij het verlaten, en
   Escape of een afgerond item geeft de focus terug aan zijn knop.
+- **Een werkbalk is één Tab-stop**: de pijlen lopen rond langs zijn knoppen, ook langs een die
+  niet kan, en Tab komt terug op de laatst gebruikte. Een rij knoppen met elk een eigen Tab-stop
+  is een `group` met een naam, geen `toolbar`.
+- **Een ingedrukte knop (`aria-pressed`) toont dat hij aan staat** met de primaire vulling en haar
+  rand, ook onder een aanwijzer; uit is hij plat.
 - **Escape geeft de focus alleen terug vanaf waar die was**: een paneel of submenu dat het sluit,
   zet de focus terug op zijn knop alleen als de focus erin of op die knop stond, nooit vanaf
   elders op de pagina.
@@ -1006,9 +1035,10 @@ kleinste correctie, en leg die hier vast.
   kolomkiezer) neemt bij het openen de focus naar zijn eerste veld, en Shift+Tab voorbij zijn
   eerste stop sluit hem ook. Escape in een popover is eerst van zijn element (een opgetilde greep
   zet zijn rij terug), dan van de popover.
-- **Onder 768 px volgt de CSS van de shell en de tabel hun mediacontroller** (`is-phone`), niet
-  een mediaquery: WebKit past een mediaquery in een shadow root na het verkleinen van het venster
-  niet opnieuw toe, terwijl het sjabloon al op `MOBILE` wisselt.
+- **Onder 768 px volgt de CSS van de shell, de tabel en de filterzone hun mediacontroller**
+  (`is-phone`, op een host `:state(phone)`), niet een mediaquery: WebKit past een mediaquery in een
+  shadow root na het verkleinen van het venster niet opnieuw toe, terwijl het sjabloon al op
+  `MOBILE` wisselt.
 
 **Correcties op de huisstijl.** De twee tinten van de primaire kleur in de donkere modus (zie
 [Donker](#donker)); `--color-link-on-status`; de lijnkleur van een statusteken (`--color-*-line`),
