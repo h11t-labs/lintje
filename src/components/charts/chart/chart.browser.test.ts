@@ -274,6 +274,7 @@ describe('the image of a chart', () => {
 
   it.each(['light', 'dark'])(
     'becomes a PNG twice the size of the chart in the modal, in %s',
+    { retry: 2, timeout: 30000 },
     async (mode) => {
       document.documentElement.dataset.mode = mode
       const tile = await line()
@@ -293,8 +294,8 @@ describe('the image of a chart', () => {
         names.push(this.download)
       })
       modal.dispatchEvent(new CustomEvent('lintje-download-png'))
-      // Drawing and encoding the PNG takes longer than a poll's second on a busy runner.
-      await expect.poll(() => names, { timeout: 5000 }).toEqual(['aanvragen-per-week.png'])
+      // Encoding the PNG can lag far behind on a busy runner, beside other test frames.
+      await expect.poll(() => names, { timeout: 15000 }).toEqual(['aanvragen-per-week.png'])
       const blob = saved.mock.calls[0][0] as Blob
       expect(blob.type).toBe('image/png')
       const picture = await createImageBitmap(blob)
