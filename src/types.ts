@@ -21,6 +21,9 @@ export type {
   LineSeriesData,
   MapSpec,
   MapValue,
+  MapSeriesKey,
+  MapSeriesColor,
+  MapSeriesStyle,
   MapPlotData,
   MapPlotVariant,
   MapVariant,
@@ -31,6 +34,7 @@ export type {
   MapControls,
   RadarSeriesData,
 } from './components/shared/charts/shared/types'
+export type { SeriesShape } from './components/shared/charts/shared/series-shapes'
 export type { DataColor } from './tokens/colors'
 export type { Tone, WorkState, ContentStateKind } from './components/shared/tone'
 
@@ -158,7 +162,8 @@ export interface TileData {
 
 /**
  * Events: `lintje-mark-select` `{id, label, href}` when a mark with a `href` is clicked,
- * `{id: null, href: clearHref}` when the selection is undone.
+ * `{id: null, href: clearHref}` when the selection is undone; uncancelled, the page goes to
+ * that `href`.
  */
 export interface ChartData extends FrameSettings, TileData, ContentState {
   chart: ChartSpec
@@ -178,7 +183,8 @@ export interface ChartData extends FrameSettings, TileData, ContentState {
  * Events: `lintje-mark-select` `{id, label, href?}` on a click on an area or point,
  * `{id: null, href: clearHref}` when undone; `lintje-layer-change` with the chosen layer;
  * with `controls.lasso` or `controls.circle`, `lintje-area-select` `{area, ids}` for a drawn area and
- * `{area: null, ids: []}` when it is undone.
+ * `{area: null, ids: []}` when it is undone. An uncancelled `lintje-mark-select` goes to its
+ * `href`.
  */
 export interface MapData extends FrameSettings, TileData, ContentState, MapSpec {}
 
@@ -199,8 +205,8 @@ export interface TableColumnData {
   truncate?: boolean
   /**
    * How a value shows; default `number` for numbers. `change`: a signed percentage with ▲ ▼ ●.
-   * `change-compact`: only the ▲ ▼ ● of `change`; a screen reader hears the whole change, and
-   * below 768 px the row's measure shows it whole.
+   * `change-compact`: only the ▲ ▼ ● of `change`, its words in a tooltip (`tooltip`); a screen
+   * reader hears them, and below 768 px the row's measure shows the change whole.
    * `status`: a `StatusTone` (or mapped through `status.tones`) as the status dot with its label.
    * `label`: the value as a badge with the word, tone and icon from `labels`.
    */
@@ -213,6 +219,13 @@ export interface TableColumnData {
     | 'change-compact'
     | 'status'
     | 'label'
+  /**
+   * `change-compact`: the words the glyph stands for, as a template with `{key}` placeholders
+   * filled from the row, each value read the way its column reads it (`{change}` gives
+   * "▲ +4,2%"). They are the glyph's tooltip, a screen reader hears them, and under the keyboard's
+   * focus or without hover they stand whole. Without it, the whole change. Other formats ignore it.
+   */
+  tooltip?: string
   decimals?: number
   /** Suffix after the value, e.g. "min". */
   unit?: string
@@ -283,6 +296,24 @@ export interface TableAction {
   disabled?: boolean
 }
 
+/** What `lintje-row-click` and `lintje-row-open` carry, in `lintje-list` and `lintje-data-table`. */
+export interface RowClickDetail {
+  id: string
+  /** The row's name: a list row's title, a table row's first column. */
+  label: string
+  /** The address the host gave the row, if any. */
+  href?: string
+}
+
+/** What `lintje-row-action` carries, in `lintje-list` and `lintje-data-table`. */
+export interface RowActionDetail {
+  id: string
+  /** The row's name: a list row's title, a table row's first column. */
+  label: string
+  /** The `value` of the chosen action. */
+  action: string
+}
+
 export interface SortState {
   key: string
   direction: 'asc' | 'desc'
@@ -290,11 +321,12 @@ export interface SortState {
 
 /**
  * Events: `lintje-row-click` with `{id, label, href?}` in a clickable table;
- * `lintje-row-open` with `{id, label, href?}` from the name of an `openable` one;
+ * `lintje-row-open` with `{id, label, href?}` from the name of an `openable` one; uncancelled,
+ * either goes to the row's `href`;
  * `lintje-checked-change` with the checked keys in a selectable one;
  * `lintje-sort-change` with `{key, direction}` or `null`;
  * `lintje-cell-edit` `{id, column, value}` from an `editor` column;
- * `lintje-row-action` `{id, action}` from `rowActions`;
+ * `lintje-row-action` `{id, label, action}` from `rowActions`;
  * `lintje-bulk-action` `{ids, action}` from `bulkActions`;
  * `lintje-filter-change` `{column, value}` (`string[] | string | null`) from a column `filter`;
  * `lintje-columns-change` `{order, hidden}` from the `columnChooser`.
@@ -821,7 +853,7 @@ export type { Step, StepState, StepperOrientation } from './components/forms/ste
 export type { MenuEntry, MenuHeading, MenuItem } from './components/actions/menu-button/menu-button'
 export type { Crumb } from './components/frame/breadcrumbs/breadcrumbs'
 export type { SubNavAction, SubNavGroup, SubNavItem } from './components/frame/sub-nav/sub-nav'
-export type { ListItem, RowClickDetail } from './components/tables/list/list'
+export type { ListItem } from './components/tables/list/list'
 export type {
   CardAction,
   CardData,

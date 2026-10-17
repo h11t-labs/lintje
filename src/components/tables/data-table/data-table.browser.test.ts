@@ -180,18 +180,44 @@ describe('a truncated column', () => {
     const cell = short.closest('td')!
     expect(cell.clientWidth - short.scrollWidth).toBeLessThanOrEqual(24 + 1)
   })
+})
 
-  it('wraps the whole value under the keyboard focus', async () => {
-    const element = await mountIn(900)
-    const [long] = texts(element)
-    const row = long.closest('tr')!
-    const height = row.getBoundingClientRect().height
-    // After a key press a focus moved by script is a keyboard focus.
-    await userEvent.keyboard('{Shift}')
-    row.focus()
+describe('a compact change column', () => {
+  it.each([true, false])('shows its words through Tab with clickable=%s', async (clickable) => {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = {
+      caption: 'Loketten met hun trend',
+      rowKey: 'name',
+      clickable,
+      columns: [
+        { key: 'name', header: 'Loket' },
+        {
+          key: 'change',
+          header: 'Trend',
+          format: 'change-compact',
+          tooltip: '{change} tegenover vorige week',
+        },
+      ],
+      rows: [{ name: 'Utrecht', change: 4 }],
+    }
+    document.body.append(element)
+    await element.updateComplete
+    const glyph = inShadow<HTMLElement>(
+      element,
+      '.lintje-data-table__full .lintje-data-table__change--compact',
+    )
+    const words = inShadow<HTMLElement>(
+      element,
+      '.lintje-data-table__full .lintje-data-table__change-words',
+    )
+    expect(getComputedStyle(glyph).display).not.toBe('none')
+    expect(getComputedStyle(words).display).toBe('none')
+    const row = glyph.closest('tr')!
+    await userEvent.keyboard('{Tab}{Tab}{Tab}')
     await expect.poll(() => row.matches(':focus-visible')).toBe(true)
-    expect(getComputedStyle(long).whiteSpace).toBe('normal')
-    expect(row.getBoundingClientRect().height).toBeGreaterThan(height)
+    expect(getComputedStyle(glyph).display).toBe('none')
+    expect(getComputedStyle(words).display).not.toBe('none')
+    expect(words.textContent).toBe('▲ +4% tegenover vorige week')
   })
 })
 

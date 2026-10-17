@@ -4,7 +4,7 @@
  *
  * Sources in order: `src` (a mask in the text colour); the register; the loader (names from
  * data); `nothing`. A name without a file draws nothing: compare the result with `nothing` and
- * show the Dutch label instead.
+ * show the Dutch label instead. While the file loads, the empty box carries the `label`.
  */
 import { html, nothing, type CSSResult, type TemplateResult } from 'lit'
 import { unsafeSVG } from 'lit/directives/unsafe-svg.js'
@@ -119,7 +119,9 @@ export function renderIcon(
       width=${size}
       height=${size}
       viewBox="0 0 24 24"
-      aria-hidden="true"
+      role=${role}
+      aria-label=${ariaLabel}
+      aria-hidden=${ariaHidden}
     ></svg>`
     // Deferred: not near the screen yet, so not a miss and no redraw.
     if (defer && name) return box
