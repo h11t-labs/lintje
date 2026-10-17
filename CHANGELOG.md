@@ -11,6 +11,93 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-17
+
+### Toegevoegd
+
+- Een trendpijltje (`change-compact`) draagt zijn woorden in een tooltip: de hele verandering, of
+  per rij een sjabloon met het nieuwe kolomveld `tooltip` (`{sleutel}` uit de rij). Een
+  schermlezer hoort dezelfde woorden, en onder de focus van het toetsenbord en zonder hover staan
+  ze voluit op de plaats van het pijltje. Ook een rij zonder bediening is met Tab bereikbaar om
+  de uitleg te lezen. (#228)
+- `lintje-text-input` krijgt `prefix` en `suffix`, een vaste tekst vóór of achter de invoer in een
+  eigen vak, en `action`, een knop aan het eind die eerst vastlegt en dan `lintje-action` stuurt;
+  `lintje-number-input` krijgt `prefix`, en zijn eenheid staat in hetzelfde vak. (#213)
+- `lintje-radio-group` en `lintje-checkbox-group` hebben `other`: de laatste optie "Anders,
+  namelijk" met een tekstveld eronder zolang ze gekozen is. De tekst is `otherText`, gemeld als
+  `lintje-other-change` en meegestuurd als `<name>-other` in de post, in `lintje-values-change` en
+  in het concept en de submit van `lintje-form`; een fout van de host onder `<name>-other` staat
+  onder het veld (`other-error`), met een ingang in de foutsamenvatting. `OTHER_MISSING_TEXT` is
+  de standaardtekst. (#199)
+- Een omschrijving van een optie staat in `lintje-radio-group` ook in de gewone rijen, onder het
+  label en gekoppeld aan haar radio. (#199)
+- Een groepskop in een gegroepeerde, kiesbare `lintje-data-table` heeft een vinkje voor de kiesbare rijen van haar groep: aan, half of uit, ook ingeklapt en op een telefoon, en het stuurt `lintje-checked-change` zoals een rijvinkje. (#171)
+- `lintje-form-actions` werpt een schaduw naar boven zolang het formulier erachter scrolt, met het nieuwe token `--shadow-sticky-up`; op zijn eigen plek onder het formulier heeft hij geen schaduw. (#160)
+
+### Gewijzigd
+
+- De teller van `lintje-textarea` staat rechts op de regel van de toelichting of de foutmelding,
+  in plaats van op een eigen regel; past het niet naast elkaar, dan valt hij eronder, rechts. (#190)
+- Een actieve `lintje-icon-button` heeft een echte rand, ook in donker en in geforceerde kleuren,
+  en houdt zijn vulling onder de muis. (#189)
+- De voet van het zijmenu opent het gebruikersmenu, boven de voet, met de rijen van de host,
+  "Afmelden" en de versie, zoals de avatar in de bovenindeling; de losse knop "Afmelden" in de
+  voet verdwijnt. `lintje-user-menu` krijgt daarvoor `variant="side"` en `folded`, en stuurt
+  `lintje-toggle` als het menu opent of sluit. (#187)
+- `lintje-form-actions` plakt niet bij een viewport lager dan 30 rem (een telefoon dwars, 400 % zoom): hij staat dan na het laatste veld en houdt geen ruimte vrij onderaan de scroller. (#170)
+- Een open sheet van `lintje-notifications` sluit als het scherm 768 px of breder wordt, net als het menu van de shell, en de focus gaat naar de bel. Daarvoor werd hij een popover. (#169)
+- **Brekend:** `lintje-row-action` van `lintje-list` stuurt `action` in plaats van `value`, zoals de tabel; beide sturen `{ id, label, action }`, en `RowActionDetail` en `RowClickDetail` staan als gedeelde types in het pakket. (#163)
+- `lintje-app-search`, de sheet van `lintje-notifications` onder 768 px en `lintje-filter-sheet` houden zich vast met `DialogHold`, net als de dialoog, de modal en de drawer: de pagina erachter scrolt niet, de focus blijft erin en Escape sluit alleen het bovenste venster, met één stuk code voor alle zes. Voor een gebruiker verandert er niets. (#161)
+
+### Verwijderd
+
+- **Brekend:** `size` op `lintje-icon-button` is weg; het deed niets, de knop is altijd
+  `--h-icon-button`. Een host in TypeScript die `.size` zet, haalt die regel weg. (#200)
+
+### Opgelost
+
+- Het getal in een badge staat midden in zijn vlak, in elke browser: de waarde is afgesneden op hoofdletterhoogte en basislijn, en het tellertje tilt het niet meer een pixel op. (#232)
+- Een live `lintje-log-viewer` opent bij de nieuwste regel in plaats van de oudste, en blijft daar zolang je volgt, ook als een regel openklapt. Het logvenster en `lintje-chat` bepalen "onderaan" met één gedeelde regel. Tab uit een `lintje-menu-button` gaat ook in Firefox naar de volgende stop, en Shift+Tab terug naar de knop. (#211)
+- Onder 768 px blijft de filterzin van `lintje-filter-bar` bij het scrollen direct onder de balk
+  van de shell staan, in de zij- en in de bovenindeling, en de shell houdt de gemeten hoogte van
+  de zin vrij boven de focus. (#209)
+- De toelichting en de foutmelding onder `lintje-checkbox` en `lintje-toggle` beginnen onder de
+  labeltekst, niet onder het vakje of de schakelaar; daarmee springt ook de toelichting bij een
+  optie van `lintje-checkbox-group` en `lintje-multiselect` in. (#206)
+- Elementen die na het tekenen meten (popover, tooltip, toggletip, segmentkeuze, paginering, tabs, schuifbereik, chatinvoer, filterzone, schil en paginakop) tekenen zich niet meer een tweede keer, en `/` staat één keer in het register, hoeveel `lintje-app-search` de pagina ook heeft. Een browsertest faalt voortaan op beide waarschuwingen. (#205)
+- `lintje-page-header` toont zijn beschrijving ook onder 768 px buiten de shell, zodat wat de host onder de titel zet op een telefoon te lezen blijft; de afstand tot de titel is op elke breedte `--space-2`. (#204)
+- `lintje-job-list` leest ook de eerste taak in een lijst die leeg laadde voor: `jobs` is
+  `undefined` tot de host hem zet, en alleen die eerste waarde geldt als laden. Gaat de laatste
+  taak met de focus erin, dan stuurt de lijst `lintje-jobs-empty`; annuleert de host het, dan zet
+  hij de focus zelf op een zichtbaar doel, anders gaat ze naar de statusregel. (#198)
+- Het lint in de logobalk groeit mee met de tekstgrootte van de lezer, net als de balk: in de logobalk en op papier neemt `lintje-logo` zijn breedte uit `--w-ribbon`. (#197)
+- De foutsamenvatting, de uitgeklapte tabel en een enkele `lintje-range` worden niet meer dubbel
+  voorgelezen: de samenvatting is een groep met haar kop als naam en de focus is de melding, de
+  tabel wist haar laatste bericht bij uitklappen en sluiten, en een enkele schuif heet naar zijn
+  label zonder de waarde, die hij één keer zegt uit `aria-valuetext`. (#194)
+- `lintje-map` is een groep met de beschrijving van de kaart als naam; een stroom met focus krijgt
+  de ring van elk ander teken, 3 px buiten een opening van 1 px; en het teken met focus ligt met
+  zijn ring boven alle andere tekens, ook langs een rand die het met een later vlak deelt. (#192)
+- De werkbalk van `lintje-document-viewer` is één Tab-stop: de pijlen lopen rond langs de knoppen,
+  Home en End blijven de eerste en de laatste pagina. "Passend" staat gevuld zolang hij aan staat,
+  en zijn percentage volgt de breedte van de weergave. (#189)
+- De selectiebalk van `lintje-data-table` is een groep, geen werkbalk: elke knop blijft een eigen
+  Tab-stop. (#189)
+- Een bezig `lintje-form` zet ook elke `lintje-repeater` uit: tijdens het opslaan komt er geen rij
+  bij of af, ook niet bij een rij of repeater die dan pas verschijnt. (#186)
+- Een invoer in een `<fieldset disabled>` gaat weer aan zodra de fieldset aan gaat: hij is weer te bedienen, post zijn waarde en houdt een leeg verplicht veld weer tegen. `disabled` blijft van de host; de fieldset schrijft er niet meer in. (#185)
+- Afgekapte tekst loopt door onder de focus van het toetsenbord, zonder hover en onder 768 px in het zijmenu van `lintje-shell`, de resultaten van `lintje-app-search`, de menurijen, `lintje-tree-view`, de rijlabels van een heatmap en de chips van `lintje-multiselect`, en staat met een aanwijzer heel in de tooltip; de stapnaam van `lintje-stepper` op een telefoon, de sprekersnaam in een `readonly` `lintje-transcript` en de naam in `lintje-document-viewer` kappen nooit meer af; een afgekapte filterzin in de dichtgeklapte filterbalk staat heel in de tooltip. (#181)
+- De shell heet naar wat je ziet: de thuislink naar de organisatie in het logo, met "Naar de
+  startpagina" als tooltip, en de knoppen in "Weergave" naar hun woord. `lintje-logo` zegt ook
+  de ondertitel waar die getekend is, het icoon van de feedbacklink zit in de bundel (zonder
+  bestand toont de link zijn woord), en een `<lintje-icon label>` houdt zijn label tijdens het
+  laden en zonder bestand. (#177)
+- Het label van een knop loopt door op een volgende regel onder de focus van het toetsenbord, zonder hover en onder 768 px, en een afgekapt label staat heel in de tooltip; een filterchip van `lintje-data-table` loopt altijd door en blijft binnen de tabel. (#167)
+- `lintje-form-actions` scrolt een element met focus dat deels onder de vastgeplakte balk valt, helemaal van zich vrij, met rand en padding; in WebKit bleef de onderkant van een tekstveld bedekt. (#165)
+- De menuknop en de knop Filters zeggen hun staat één keer: de menuknop van `lintje-shell` op een telefoon en de knop "Menu" van een ingeklapte navigatiebalk heten "Menu" of "Sluiten", naar hun woord, zonder `aria-expanded`, en de knop van `lintje-filter-zone` heet in beide standen "Filters", met `aria-expanded`. (#159)
+- Een knop en de datumreeks zeggen hun hele staat aan een schermlezer: een uitgeschakelde `lintje-button` met een reden leest ook zijn beschrijving, de telefoonknop "Filters" van `lintje-data-table` zegt dat hij een venster opent en of het open is, beide helften van een gesplitste `lintje-menu-button` zijn `aria-disabled` terwijl hij bezig is, en het raster van `lintje-date-range` is meervoudig te kiezen. (#157)
+- Een afgedrukte `lintje-data-table` houdt geen lege cellen over in een groepskop, een subtotaalrij en de totaalrij: die rijen hebben per vinkjes-, detail- en actiekolom een eigen cel die op papier met de kolom verdwijnt, zodat ze niet meer opschuiven ten opzichte van de rijen eronder. (#156)
+
 ## [0.6.0] - 2026-10-16
 
 ### Toegevoegd
@@ -391,7 +478,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.6.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/h11t-labs/lintje/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/h11t-labs/lintje/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/h11t-labs/lintje/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/h11t-labs/lintje/compare/v0.4.0...v0.5.0
