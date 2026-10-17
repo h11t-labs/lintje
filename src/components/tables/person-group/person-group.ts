@@ -8,6 +8,7 @@
  * Events: `lintje-toggle` `{ open }`, `lintje-navigate` `{ href }` (from a name in the list).
  */
 import { html, type PropertyDeclarations, type TemplateResult } from 'lit'
+import { styleMap } from 'lit/directives/style-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles } from '../../../icons/render'
@@ -100,6 +101,9 @@ export class LintjePersonGroup extends LintjeElement {
       <button
         type="button"
         class="lintje-person-group__button lintje-person-group__button--${size}"
+        style=${styleMap({
+          '--lintje-person-group-overlaps': String(shown.length + (more > 0 ? 1 : 0) - 1),
+        })}
         aria-label=${name}
         aria-expanded=${String(this.open)}
         aria-controls=${this.#listId}
