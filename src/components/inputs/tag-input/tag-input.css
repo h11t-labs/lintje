@@ -1,15 +1,4 @@
 /* The keyword field: chips and the typing part in one box that grows in height. */
-:host { display: block; min-width: 0; }
-:host([hidden]) { display: none; }
-/* Below 768 px: the touch height and the full width, as `stacked`. */
-@media screen and (max-width: 767px) {
-  :host {
-    width: 100%;
-    --h-control: var(--h-touch);
-  }
-}
-
-/* --- */
 
 /* The padding centres a chip in the control height; wrapped chips grow the box. */
 .lintje-tag-input {
@@ -95,7 +84,7 @@
 .lintje-tag-input__option {
   display: flex; align-items: center;
   min-height: var(--h-option);
-  padding: 0 14px;
+  padding: 0 var(--space-4);
   cursor: pointer;
 }
 .lintje-tag-input__option:hover,

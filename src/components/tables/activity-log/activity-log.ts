@@ -8,6 +8,7 @@ import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'l
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
+import { renderHeading } from '../../shared/heading'
 import '../../actions/button/button'
 import '../person/person'
 import type { Person } from '../../../types'
@@ -61,20 +62,12 @@ export class LintjeActivityLog extends LintjeElement {
 
   private renderHeading(): TemplateResult | typeof nothing {
     if (!this.heading) return nothing
-    const text = this.heading
-    const id = 'lintje-activity-log-heading'
-    switch (this.level) {
-      case 2:
-        return html`<h2 id=${id} class="lintje-activity-log__heading">${text}</h2>`
-      case 4:
-        return html`<h4 id=${id} class="lintje-activity-log__heading">${text}</h4>`
-      case 5:
-        return html`<h5 id=${id} class="lintje-activity-log__heading">${text}</h5>`
-      case 6:
-        return html`<h6 id=${id} class="lintje-activity-log__heading">${text}</h6>`
-      default:
-        return html`<h3 id=${id} class="lintje-activity-log__heading">${text}</h3>`
-    }
+    return renderHeading(
+      this.level,
+      'lintje-activity-log__heading',
+      this.heading,
+      'lintje-activity-log-heading',
+    )
   }
 
   /** A person's circle before the name; a text keeps the circle's room empty where others have one. */

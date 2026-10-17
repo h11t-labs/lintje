@@ -8,14 +8,11 @@ import { html, type PropertyDeclarations, type PropertyValues, type TemplateResu
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles } from '../../../icons/render'
-import {
-  emptyStateBlockStyles,
-  renderEmptyStateBlock,
-  type HeadingLevel,
-} from '../../shared/empty-state-block'
+import { emptyStateBlockStyles, renderEmptyStateBlock } from '../../shared/empty-state-block'
+import type { HeadingLevel } from '../../shared/heading'
 import emptyStateCss from './empty-state.css?inline'
 
-export type { HeadingLevel } from '../../shared/empty-state-block'
+export type { HeadingLevel } from '../../shared/heading'
 
 export class LintjeEmptyState extends LintjeElement {
   static override styles = [iconStyles, shadowCss(emptyStateCss), emptyStateBlockStyles]

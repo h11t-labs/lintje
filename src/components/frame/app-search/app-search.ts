@@ -30,6 +30,8 @@ import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import keyCss from '../../shared/key.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { titleWhenCut } from '../../shared/cut-text'
+import { resultsText, splitMatch } from '../../shared/search-text'
+import { uniqueId } from '../../../core/id'
 
 export interface SearchResult {
   /** What `lintje-action` carries. */
@@ -51,26 +53,15 @@ export type AppSearchCloseReason = 'escape' | 'scrim' | 'button' | 'choice'
 /** Milliseconds after the last keystroke before `lintje-search` is sent. */
 export const SEARCH_DELAY = 200
 
-let instances = 0
-
 // One `/` for the page, however many searches it holds: the latest connected one asks to open.
 const connected: LintjeAppSearch[] = []
 let unregisterSlash: (() => void) | null = null
-
-/** The label split around the first case-insensitive occurrence of the term; null when absent. */
-export function splitMatch(label: string, query: string): [string, string, string] | null {
-  const term = query.trim()
-  if (!term) return null
-  const at = label.toLocaleLowerCase('nl').indexOf(term.toLocaleLowerCase('nl'))
-  if (at < 0) return null
-  return [label.slice(0, at), label.slice(at, at + term.length), label.slice(at + term.length)]
-}
 
 /** What the live region says; while loading the spinner's own status speaks. */
 export function resultsMessage(count: number, query: string, loading: boolean): string {
   if (loading) return ''
   if (count === 0) return query.trim() ? `Geen resultaten voor “${query.trim()}”` : ''
-  return count === 1 ? '1 resultaat' : `${count} resultaten`
+  return resultsText(count)
 }
 
 export class LintjeAppSearch extends LintjeElement {
@@ -105,7 +96,7 @@ export class LintjeAppSearch extends LintjeElement {
   readonly #debounce = new Debounce(this, SEARCH_DELAY)
   // The field is a native `<input>` in this root: `aria-controls` and `aria-activedescendant`
   // cannot cross a root.
-  readonly #id = `lintje-app-search-${++instances}`
+  readonly #id = uniqueId('lintje-app-search')
   readonly #hold = new DialogHold(() => this.close('escape'))
 
   private get results(): SearchResult[] {

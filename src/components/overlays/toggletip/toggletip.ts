@@ -22,12 +22,11 @@ import { ownsEscape } from '../../shared/focus-trap'
 import { standsIn } from '../../../core/focus'
 import iconButtonCss from '../../actions/icon-button/icon-button.css?inline'
 import toggletipCss from './toggletip.css?inline'
+import { uniqueId } from '../../../core/id'
 
 export type ToggletipPlacement = 'bottom-start' | 'bottom-end'
 
 const GAP = 4
-
-let nextId = 0
 
 export class LintjeToggletip extends LintjeElement {
   static override styles = [iconStyles, shadowCss(iconButtonCss), shadowCss(toggletipCss)]
@@ -45,7 +44,7 @@ export class LintjeToggletip extends LintjeElement {
   /** Where the explanation stands, written onto it; `null` while closed. */
   #spot: Place | null = null
 
-  private readonly popoverId = `lintje-toggletip-${++nextId}`
+  private readonly popoverId = uniqueId('lintje-toggletip')
   private reflowFrame: number = 0
 
   private get trigger(): HTMLButtonElement | null {

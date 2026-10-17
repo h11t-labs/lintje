@@ -88,7 +88,7 @@
   flex: 1 1 auto; min-height: 0;
   max-height: 220px; overflow-y: auto;
   padding: var(--space-2);
-  display: flex; flex-direction: column; gap: 2px;
+  display: flex; flex-direction: column; gap: var(--space-1);
 }
 /* The `lintje-checkbox` row reads `--h-target` in its shadow root: point it at the option height. */
 .lintje-multiselect__option { --h-target: var(--h-option); }

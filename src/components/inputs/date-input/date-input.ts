@@ -240,7 +240,12 @@ export class LintjeDateInput extends LintjeInputElement {
           id=${this.controlId}
           inputmode="numeric"
           autocomplete="off"
-          class=${classMap({ 'lintje-date-input__control': true, 'is-error': Boolean(message) })}
+          class=${classMap({
+            'lintje-date-input__control': true,
+            'lintje-field__box': true,
+            'lintje-field__control': true,
+            'is-error': Boolean(message),
+          })}
           .value=${live(this.text)}
           placeholder=${this.placeholder || nothing}
           aria-labelledby=${this.labelId}
@@ -253,7 +258,7 @@ export class LintjeDateInput extends LintjeInputElement {
         />
         <button
           type="button"
-          class="lintje-date-input__toggle"
+          class="lintje-date-input__toggle lintje-field__toggle"
           aria-label="Kalender openen"
           aria-haspopup="dialog"
           aria-expanded=${this.open ? 'true' : 'false'}

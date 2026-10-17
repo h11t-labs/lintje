@@ -230,6 +230,14 @@ describe('lintje-tag-input', () => {
     expect(element.value).toEqual(['vz', 'afzetting'])
   })
 
+  it('draws a suggestion whole, with the typed text in bold', async () => {
+    const element = await mount({ options: [{ value: 'vz', label: 'Vergaderzaal' }] })
+    await type(element, 'zaal')
+    const option = element.renderRoot.querySelector('[role="option"]')!
+    expect(option.textContent?.trim()).toBe('Vergaderzaal')
+    expect(option.querySelector('strong')?.textContent).toBe('zaal')
+  })
+
   it('draws the error with its glyph and points at it', async () => {
     const element = await mount({ error: 'Hoogstens 10 trefwoorden' })
     const message = element.renderRoot.querySelector('.lintje-field__error')!
