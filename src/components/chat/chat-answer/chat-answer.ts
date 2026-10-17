@@ -48,17 +48,6 @@ export type ChatRating = 'up' | 'down'
 
 const REASONS = ['Klopt niet', 'Niet wat ik vroeg', 'Onduidelijk']
 
-const CHOICES: Partial<Record<ChatAnswerState, { label: string; hint: string }>> = {
-  'needs-clarification': {
-    label: 'Kies je antwoord',
-    hint: 'Of typ je eigen antwoord in het veld.',
-  },
-  'out-of-scope': {
-    label: 'Kies wat je wilt doen',
-    hint: 'Of stel een andere vraag in het veld.',
-  },
-}
-
 export class LintjeChatAnswer extends LintjeElement {
   static override styles = shadowCss(chatAnswerCss)
 
@@ -71,7 +60,6 @@ export class LintjeChatAnswer extends LintjeElement {
     status: { type: String },
     steps: { attribute: false },
     error: { attribute: false },
-    choices: { attribute: false },
     followUps: { attribute: false },
     current: { type: Boolean, reflect: true },
     turnId: { type: String, attribute: 'turn-id' },
@@ -93,8 +81,6 @@ export class LintjeChatAnswer extends LintjeElement {
   declare steps?: ChatStepsData
   /** `error`: what went wrong, and the way out in words. */
   declare error?: { title?: string; text: string }
-  /** The choices of `out-of-scope` and `needs-clarification`. */
-  declare choices?: ChatSuggestion[]
   /** Suggested next questions; drawn on the current answer only. */
   declare followUps?: ChatSuggestion[]
   /** The latest answer: only it can be retried, changed through its strip or followed up. */
@@ -202,7 +188,6 @@ export class LintjeChatAnswer extends LintjeElement {
   protected override render(): TemplateResult {
     const state = this.state
     const finished = state === 'ready'
-    const choices = CHOICES[state]
     return html`<article class="lintje-chat-answer">
       <div class="lintje-chat-answer__body">
         ${
@@ -245,17 +230,6 @@ export class LintjeChatAnswer extends LintjeElement {
         }
         ${finished ? this.renderActions() : nothing}
       </div>
-      ${
-        choices && this.current
-          ? html`<lintje-chat-suggestions
-            kind="choice"
-            turn-id=${this.turnId ?? nothing}
-            label=${choices.label}
-            hint=${choices.hint}
-            .items=${this.choices}
-          ></lintje-chat-suggestions>`
-          : nothing
-      }
       ${
         finished && this.current
           ? html`<lintje-chat-suggestions

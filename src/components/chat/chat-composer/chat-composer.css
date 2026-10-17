@@ -8,13 +8,31 @@
 
 .lintje-chat-composer { position: relative; }
 
-/* The frame is the field, so it takes the field's resting border (3:1). */
-.lintje-chat-composer__frame {
-  position: relative;
-  display: flex; flex-direction: column;
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-field);
+/* The frame (`lintje-chat-frame`) is the field, so it takes the field's resting border. */
+
+/* Folded while the assistant asks, on a phone: one line in the same frame, a target to open it. */
+.lintje-chat-composer__expand {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--h-touch);
+  padding: 0 var(--space-3);
+  border: 0;
+  background: none;
+  font: var(--text-body);
+  color: var(--color-text-muted);
+  text-align: left;
+  cursor: pointer;
 }
+.lintje-chat-composer__expand:hover { background: var(--color-bg-subtle); }
+.lintje-chat-composer__expand:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+.lintje-chat-composer__expand-icon { flex: none; color: var(--color-text-primary); }
+/* A phone's bar has no room for the word: the chevron, named "Inklappen", leads the bar. */
+.lintje-chat-composer__collapse { flex: none; margin-right: auto; --h-icon-button: var(--h-button); }
+.lintje-chat-composer__collapse:has(+ .lintje-chat-composer__attach) { margin-right: 0; }
 
 /* The attachments stand inside the frame, above the field and on the line of its text, so the
    frame's border and ring hold them. */

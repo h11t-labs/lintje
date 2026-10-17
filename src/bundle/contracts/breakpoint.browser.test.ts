@@ -11,6 +11,7 @@ import '../../components/charts/chart/chart'
 import '../../components/chat/chat-answer/chat-answer'
 import '../../components/chat/chat-composer/chat-composer'
 import '../../components/chat/chat-message/chat-message'
+import '../../components/chat/chat-questions/chat-questions'
 import '../../components/chat/chat-steps/chat-steps'
 import '../../components/chat/chat-strip/chat-strip'
 import '../../components/chat/chat/chat'
@@ -66,6 +67,37 @@ import type {
   MapData,
   ShellData,
 } from '../../types'
+
+/** What the assistant asks: a second, optional question, so Vorige and Overslaan stand. */
+const ASKED: ChatData['turns'][number]['answer'] = {
+  state: 'needs-clarification',
+  text: 'Dat kan ik op meer manieren tellen.',
+  questions: {
+    questions: [
+      {
+        id: 'periode',
+        label: 'Periode',
+        text: 'Welke periode bedoel je?',
+        kind: 'one',
+        options: [
+          { value: '2025', label: 'Heel 2025' },
+          { value: '12m', label: 'Afgelopen 12 maanden' },
+        ],
+      },
+      {
+        id: 'provincies',
+        label: 'Provincies',
+        text: 'Welke provincies tel ik mee?',
+        kind: 'many',
+        optional: true,
+        options: [
+          { value: 'ut', label: 'Utrecht' },
+          { value: 'gld', label: 'Gelderland' },
+        ],
+      },
+    ],
+  },
+}
 
 interface Row {
   tag: string
@@ -980,6 +1012,76 @@ const ROWS: Row[] = [
     phone: (element) =>
       shown(element, 'lintje-icon-button[label="Versturen"]') &&
       !shown(element, '.lintje-chat-composer__send lintje-button'),
+  },
+  {
+    tag: 'lintje-chat-questions',
+    marker: 'the buttons stand in a column, Volgende on top over the full width',
+    mount: async () => {
+      const element = await append(create('lintje-chat-questions', { data: ASKED!.questions }))
+      element.step = 1
+      await element.updateComplete
+      return element
+    },
+    wide: (element) =>
+      level(
+        find(element, '.lintje-chat-questions__back'),
+        find(element, '.lintje-chat-questions__next'),
+      ) &&
+      beside(
+        find(element, '.lintje-chat-questions__back'),
+        find(element, '.lintje-chat-questions__next'),
+      ),
+    phone: (element) =>
+      below(
+        find(element, '.lintje-chat-questions__next'),
+        find(element, '.lintje-chat-questions__back'),
+      ) &&
+      below(
+        find(element, '.lintje-chat-questions__next'),
+        find(element, '.lintje-chat-questions__skip'),
+      ) &&
+      Math.abs(
+        box(all(find(element, '.lintje-chat-questions__next')!.shadowRoot!, 'button')[0]!).width -
+          box(find(element, '.lintje-chat-questions__actions')).width,
+      ) < 20,
+  },
+  {
+    tag: 'lintje-chat-questions',
+    marker: 'the short form’s choices stand under each other',
+    mount: () =>
+      append(
+        create('lintje-chat-questions', {
+          data: { questions: [{ ...ASKED!.questions!.questions[0] }] },
+        }),
+      ),
+    wide: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-chat-questions__chip')
+      return beside(first!, second!)
+    },
+    phone: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-chat-questions__chip')
+      return below(first!, second!)
+    },
+  },
+  {
+    tag: 'lintje-chat',
+    marker: 'the question box folds to one line while the assistant asks',
+    mount: () =>
+      append(
+        create('lintje-chat', {
+          data: {
+            turns: [
+              { id: 't1', message: { text: 'Hoeveel aanvragen per provincie?' }, answer: ASKED },
+            ],
+          },
+        }),
+      ),
+    wide: (element) =>
+      shown(element, '.lintje-chat-composer__input') &&
+      !shown(element, '.lintje-chat-composer__expand'),
+    phone: (element) =>
+      shown(element, '.lintje-chat-composer__expand') &&
+      !shown(element, '.lintje-chat-composer__input'),
   },
   {
     tag: 'lintje-chat-steps',

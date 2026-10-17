@@ -106,7 +106,7 @@ Een *toestand* is iets wat je bewaart en terugzet op het element (en in de URL m
 | `lintje-action` | `lintje-menu-button`, `lintje-user-menu`, `lintje-app-search`, `lintje-sub-nav` | actie |
 | `lintje-search-open`, `lintje-logout`, `lintje-notification-open`, `lintje-notifications-read` | de shell: `lintje-shell`, `lintje-user-menu`, `lintje-notifications` | actie |
 | `lintje-conflict-keep-mine`, `lintje-conflict-take-theirs`, `lintje-conflict-compare` | `lintje-conflict-alert` | actie |
-| `lintje-message-send`, `lintje-message-edit`, `lintje-suggestion-select`, `lintje-answer-retry`, `lintje-answer-rate`, `lintje-answer-stop` | de chat | actie |
+| `lintje-message-send`, `lintje-questions-answer`, `lintje-message-edit`, `lintje-suggestion-select`, `lintje-answer-retry`, `lintje-answer-rate`, `lintje-answer-stop` | de chat | actie |
 | `lintje-sources-change`, `lintje-draft-change`, `lintje-strip-change` | de chat | toestand |
 
 **Eén vorm voor een rij.** De lijst en de tabel sturen hetzelfde: `lintje-row-action` draagt

@@ -210,9 +210,10 @@
       "chat-answer",
       "chat-steps",
       "chat-composer",
+      "chat-questions",
       "chat-strip",
       "chat-suggestions"
     ],
-    "composite": ["chat", "chat-answer", "chat-steps"]
+    "composite": ["chat", "chat-answer", "chat-steps", "chat-questions"]
   }
 ]

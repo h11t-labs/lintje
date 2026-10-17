@@ -443,11 +443,11 @@ De besluiten hieronder gelden voor alle elementen.
   met een vinkje, één uit een keuze met het rondje van een radio, zoals in een formulier; een kop
   boven rijen noemt hun groep en staat aan de rand van het menu.
 - **Een reeks hangt aan een rail**: vierkante tekens verbonden door een lijn, in de stepper, het
-  activiteitenlog en de stappen van de assistent evengoed. In de stepper is de lijn doorgetrokken tot de huidige stap en
-  gestreept daarna, zodat de weg die nog te gaan is nooit op kleur alleen rust. Een stap kan
-  eigen inhoud dragen, zonder vlak eromheen en zonder eigen kleur: in de kolom onder zijn kop,
-  waar de rail langs doorloopt; in de rij en op een telefoon alleen die van de huidige stap,
-  onder de rij of de balk.
+  activiteitenlog en de stappen van de assistent evengoed. In de stepper is de lijn doorgetrokken
+  tot de huidige stap en gestreept daarna, zodat de weg die nog te gaan is nooit op kleur alleen
+  rust. Een stap kan eigen inhoud dragen, zonder vlak eromheen en zonder eigen kleur: in de kolom
+  onder zijn kop, waar de rail langs doorloopt; in de rij en op een telefoon alleen die van de
+  huidige stap, onder de rij of de balk.
 - **Een kalender is één maandraster**, in de datuminvoer en de datumreeks evengoed: zoveel weken
   als de maand heeft, de dagen ernaast leeg, 1 px tussen de cellen, zodat twee gekozen dagen los
   van elkaar blijven. Vandaag is een ring in de accentlijn, nooit een statuskleur; een gekozen
@@ -634,9 +634,16 @@ De besluiten hieronder gelden voor alle elementen.
   twee delen en niet als kop boven het volgende. Een scheidslijn die over het deel erboven gaat
   ("Gesprek ingekort"), wijst ernaar en zegt het in woorden, zodat de pijl of het gewicht nooit de
   enige drager is.
-- **Gestreept is een suggestie, doorgetrokken is een keuze.** Een gestreepte omlijning is iets wat
-  de lezer zou kunnen zeggen; een doorgetrokken omlijning is een antwoord waar de assistent op
-  wacht. Een bijschrift zegt welke, zodat de lijnstijl nooit de enige drager is.
+- **Een suggestie staat onder het antwoord, een vraag van de assistent boven het tikveld.** Een
+  suggestie is gestreept: iets wat de lezer zou kunnen vragen. Een vraag van de assistent wacht
+  op antwoord en staat in de vragenlijst, waar de lezer antwoordt (`lintje-chat-questions`), in
+  hetzelfde kader als het tikveld. Het tikveld blijft eronder werken: een nieuwe vraag slaat de
+  open vragen over, en pas versturen doet dat, nooit het openklappen ervan.
+- **Het antwoord van de lezer is altijd zijn bericht.** Wat hij in de vragenlijst koos, staat in
+  het gesprek als een gewoon bericht van hem, één regel per vraag, zodat het gesprek leest zoals
+  het ging en hij het kan bewerken zoals elke vraag.
+- **"Iets anders" staat altijd in een vraag van de assistent**: de lezer zit nooit vast aan de
+  opties die de assistent bedacht. Het is de `other` van de keuzegroepen, ook in de korte vorm.
 - **Een bestand in het gesprek is een bijlage** (`lintje-attachment`), in het vraagvak, het
   bericht en het antwoord evengoed: een stille chip die lichter weegt dan een bericht. Een bijlage
   met een fout gaat nooit mee.

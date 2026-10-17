@@ -9,6 +9,7 @@ import '../../components/chat/chat/chat'
 import '../../components/chat/chat-answer/chat-answer'
 import '../../components/chat/chat-composer/chat-composer'
 import '../../components/chat/chat-message/chat-message'
+import '../../components/chat/chat-questions/chat-questions'
 import '../../components/feedback/conflict-alert/conflict-alert'
 import '../../components/tables/data-table/data-table'
 import '../../components/filters/filter-zone/filter-zone'
@@ -1258,6 +1259,129 @@ async function chatComposer(): Promise<Composer> {
   return mount<Composer>('lintje-chat-composer', { busy: false, text: 'Hoeveel aanvragen?' })
 }
 
+/* --- lintje-chat-questions ------------------------------------------------ */
+
+const ASKED = {
+  questions: [
+    {
+      id: 'periode',
+      label: 'Periode',
+      text: 'Welke periode bedoel je?',
+      kind: 'one' as const,
+      options: [
+        { value: '2025', label: 'Heel 2025', description: '1 januari tot en met 31 december 2025' },
+        { value: '12m', label: 'Afgelopen 12 maanden' },
+      ],
+    },
+    {
+      id: 'provincies',
+      label: 'Provincies',
+      text: 'Welke provincies tel ik mee?',
+      kind: 'many' as const,
+      options: [
+        { value: 'ut', label: 'Utrecht' },
+        { value: 'gld', label: 'Gelderland' },
+      ],
+    },
+  ],
+}
+
+type Questions = HTMLElement & { updateComplete: Promise<unknown> }
+
+/** The first choice of the question on screen: a radio or a row's box. */
+const firstChoice = (box: Element | null): HTMLElement | null =>
+  inside(box, 'lintje-radio-group', 'input') ??
+  inside(box, 'lintje-checkbox-group', 'lintje-checkbox', 'input')
+
+const nextButton = (box: Element | null): HTMLElement | null =>
+  button(inside(box, '.lintje-chat-questions__next'))
+
+/** A conversation whose last answer asks, with the focus in its question box. */
+async function askingChat(): Promise<HTMLElement & { data: unknown }> {
+  const chat = await mount<HTMLElement & { data: unknown }>('lintje-chat', {
+    data: {
+      turns: [
+        { id: 't1', message: { text: 'Hoeveel aanvragen?' }, answer: { state: 'streaming' } },
+      ],
+    },
+  })
+  const composer = inside(chat, 'lintje-chat-composer')
+  await expect.poll(() => composerField(composer)).toBeTruthy()
+  composerField(composer)!.focus()
+  chat.data = {
+    turns: [
+      {
+        id: 't1',
+        message: { text: 'Hoeveel aanvragen?' },
+        answer: { state: 'needs-clarification', text: 'Welke periode?', questions: ASKED },
+      },
+    ],
+  }
+  return chat
+}
+
+const QUESTIONS_ROWS: Row[] = [
+  {
+    name: 'lintje-chat :: the questions, when they open, take the focus on their first choice',
+    run: async () => {
+      const chat = await askingChat()
+      return () => firstChoice(inside(chat, 'lintje-chat-questions'))
+    },
+  },
+  {
+    name: 'lintje-chat-questions :: Volgende hands the focus to the next question’s first choice',
+    run: async () => {
+      const box = await mount<Questions>('lintje-chat-questions', { data: ASKED })
+      await expect.poll(() => firstChoice(box)).toBeTruthy()
+      firstChoice(box)!.click()
+      await expect.poll(() => nextButton(box)).toBeTruthy()
+      nextButton(box)!.focus()
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(() => inside(box, 'lintje-checkbox-group')).toBeTruthy()
+      return () => firstChoice(box)
+    },
+  },
+  {
+    name: 'lintje-chat-questions :: Vorige, gone on the first question, hands its focus to its choice',
+    run: async () => {
+      const box = await mount<Questions & { step: number }>('lintje-chat-questions', {
+        data: ASKED,
+      })
+      await box.updateComplete
+      box.step = 1
+      const back = (): HTMLElement | null => button(inside(box, '.lintje-chat-questions__back'))
+      await expect.poll(back).toBeTruthy()
+      back()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => firstChoice(box)
+    },
+  },
+  {
+    name: 'lintje-chat :: the questions, answered, hand the focus to the question box',
+    run: async () => {
+      const chat = await askingChat()
+      const box = (): Element | null => inside(chat, 'lintje-chat-questions')
+      await expect.poll(() => active() === firstChoice(box())).toBe(true)
+      chat.addEventListener('lintje-questions-answer', (event) => {
+        chat.data = {
+          turns: [
+            ...((chat.data as { turns: unknown[] }).turns ?? []),
+            { id: 't2', message: { text: (event as CustomEvent<{ text: string }>).detail.text } },
+          ],
+        }
+      })
+      firstChoice(box())!.click()
+      nextButton(box())!.click()
+      await expect.poll(() => inside(box(), 'lintje-checkbox-group')).toBeTruthy()
+      await expect.poll(() => firstChoice(box())).toBeTruthy()
+      firstChoice(box())!.click()
+      nextButton(box())!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => composerField(inside(chat, 'lintje-chat-composer'))
+    },
+  },
+]
+
 const CONVERSATION_ROWS: Row[] = [
   {
     name: 'lintje-streaming-text :: "Stoppen", gone when the stream ends, hands its focus to the text',
@@ -2050,6 +2174,7 @@ const ROWS: Row[] = [
   ...COLLECTION_ROWS,
   ...MESSAGE_ROWS,
   ...CONVERSATION_ROWS,
+  ...QUESTIONS_ROWS,
   ...MEDIA_ROWS,
   ...REDRAWN_ROWS,
   ...VIEW_ROWS,
