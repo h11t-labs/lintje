@@ -344,7 +344,11 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
           ${
             from != null && to != null && !together
               ? svg`<g class="lintje-chart__series ${fromOn && toOn ? '' : 'is-off'}">
-                  <line class="lintje-dumbbell__link" x1=${from.x} x2=${to.x} y1=${cy} y2=${cy} />
+                  <line class="lintje-dumbbell__link" x1=${from.x} x2=${to.x} y1=${cy} y2=${cy}
+                        ${styleProps({
+                          ...staggerStyle(i, rows.length),
+                          '--lintje-dumbbell-from': `${from.x}px`,
+                        })} />
                 </g>`
               : nothing
           }

@@ -218,9 +218,16 @@
       calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0)) backwards;
   }
   .lintje-chart__reference .lintje-chart__data-label { animation: none; }
-  /* A dumbbell's dot slides once from the ring to its place, with the bars' timing. */
+  /* A dumbbell's dot slides once from the ring to its place, with the bars' timing, and its link
+     grows out of the ring with it: the line is never there before the dot. */
   .lintje-dumbbell__dot {
     animation: lintje-dumbbell-slide calc(var(--dur-draw) * 0.6) var(--ease-in-motion)
+      calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0)) backwards;
+  }
+  .lintje-dumbbell__link {
+    transform-box: view-box;
+    transform-origin: var(--lintje-dumbbell-from, 0) 0;
+    animation: lintje-grow-x calc(var(--dur-draw) * 0.6) var(--ease-in-motion)
       calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0)) backwards;
   }
   /* A radar's layers grow from the centre once, with the bars' timing; the norm comes after. */
@@ -244,7 +251,8 @@
   .lintje-chart__reference,
   .lintje-chart__point,
   .lintje-radar__layer,
-  .lintje-dumbbell__dot { animation-play-state: paused; }
+  .lintje-dumbbell__dot,
+  .lintje-dumbbell__link { animation-play-state: paused; }
   [data-in-view] .lintje-chart__reveal,
   [data-in-view] .lintje-chart__bar-group,
   [data-in-view] .lintje-chart__bar--horizontal,
@@ -252,7 +260,8 @@
   [data-in-view] .lintje-chart__reference,
   [data-in-view] .lintje-chart__point,
   [data-in-view] .lintje-radar__layer,
-  [data-in-view] .lintje-dumbbell__dot { animation-play-state: running; }
+  [data-in-view] .lintje-dumbbell__dot,
+  [data-in-view] .lintje-dumbbell__link { animation-play-state: running; }
 }
 @keyframes lintje-reveal {
   from { clip-path: inset(-8px calc(100% + 8px) -8px -8px); }
