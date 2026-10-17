@@ -41,7 +41,7 @@ export class LintjePageHeader extends LintjeElement {
   declare data?: PageHeaderData | null
   /**
    * In `lintje-shell`'s `header` slot: an application's title row, flush in the content column,
-   * with no band, the description at every width and no top bar to tell.
+   * with no band and no top bar to tell.
    */
   inShell: boolean = false
   /** An empty actions slot takes no place, so a long title never wraps onto an empty line. */
@@ -108,7 +108,7 @@ export class LintjePageHeader extends LintjeElement {
     if (!data) return nothing
     const isMobile = this.mobile.matches
     const inShell = this.inShell
-    const showDescription = Boolean(data.description) && (inShell || !isMobile)
+    const showDescription = Boolean(data.description)
     const spare = this.overflow.collapsed.length === 0
     const { asOf, source, more } = data
 
