@@ -417,6 +417,7 @@
   --color-text-on-light-fill: var(--ink-black);
   --color-qr-bg: var(--ink-white);
   --color-qr-fg: var(--ink-black);
+  --color-media-bg: var(--ink-black);
 
   /* --- Semantic: borders ------------------------------------------------- */
   --color-border-default: var(--neutral-3);

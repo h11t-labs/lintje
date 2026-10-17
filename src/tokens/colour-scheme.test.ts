@@ -1294,6 +1294,22 @@ describe('the inline user menu', () => {
   }
 })
 
+describe('the media surface', () => {
+  it('stays ink black in both modes and every theme, with the caption at 4.5:1 on it', () => {
+    for (const mode of ['light', 'dark'] as const) {
+      for (const theme of THEME_NAMES) {
+        const values = tokensFor(mode, theme)
+        expect(values['--color-media-bg'], `${mode} ${theme}`).toBe(values['--ink-black'])
+        expect(values['--color-media-bg'], `${mode} ${theme}`).toBe('#0F172A')
+        expect(
+          contrast(values['--color-text-on-fill'], values['--color-media-bg']),
+          `${mode} ${theme}`,
+        ).toBeGreaterThanOrEqual(4.5)
+      }
+    }
+  })
+})
+
 describe('the badge', () => {
   /** Each `lintje-badge` tone as `badge.css` draws it: [ink, fill]. */
   const TONES: Record<string, [string, string]> = {

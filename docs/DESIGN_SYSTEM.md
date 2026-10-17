@@ -96,7 +96,8 @@ De reeks mist een stap tussen het menu en het oppervlak; de pagina is daar het m
 twee.
 
 Wit en bijna-zwart die in beide modi gelijk moeten blijven (tekst op een primaire knop, op het
-menu, een QR-code), zijn `--ink-white` en `--ink-black`, geen neutralen. Een QR-code wordt in
+menu, een QR-code, het beeld van een video), zijn `--ink-white` en `--ink-black`, geen neutralen.
+Een media-oppervlak heeft daarvoor een eigen token, niet dat van tekst op een lichte vulling. Een QR-code wordt in
 donker nooit geïnverteerd: veel camera-apps lezen alleen donkere modules op een lichte rustzone.
 De bibliotheek maakt de code zelf (de generator van Nayuki, meegeleverd), zodat elk deelmenu hem
 heeft zonder werk van de host.
