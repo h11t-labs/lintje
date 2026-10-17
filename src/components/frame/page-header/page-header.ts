@@ -41,7 +41,7 @@ export class LintjePageHeader extends LintjeElement {
   declare data?: PageHeaderData | null
   /**
    * In `lintje-shell`'s `header` slot: an application's title row, flush in the content column,
-   * with no band, the description at every width and no top bar to tell.
+   * with no band and no top bar to tell.
    */
   inShell: boolean = false
   /** An empty actions slot takes no place, so a long title never wraps onto an empty line. */
@@ -108,8 +108,7 @@ export class LintjePageHeader extends LintjeElement {
     if (!data) return nothing
     const isMobile = this.mobile.matches
     const inShell = this.inShell
-    const showDescription = Boolean(data.description) && (inShell || !isMobile)
-    const spare = this.overflow.collapsed.length === 0
+    const showDescription = Boolean(data.description)
     const { asOf, source, more } = data
 
     // Parts are collected, not laid out over template lines: whitespace between two expressions
@@ -163,12 +162,11 @@ export class LintjePageHeader extends LintjeElement {
             }
           </div>
           <div class=${classMap({ 'lintje-page-header__actions': true, 'is-empty': !this.hasActions })}>
+            <!-- Spare, inert and its items are written by the overflow controller. -->
             <lintje-menu-button
-              class=${classMap({ 'lintje-page-header__overflow': true, 'is-spare': spare })}
-              ?inert=${spare}
+              class="lintje-page-header__overflow"
               label="Meer"
               accessible-label="Meer acties"
-              .items=${this.overflow.items()}
               @lintje-action=${(event: CustomEvent<string>) => {
                 event.stopPropagation()
                 this.overflow.activate(event.detail)

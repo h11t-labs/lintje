@@ -183,6 +183,18 @@ describe('lintje-log-viewer following', () => {
     vi.advanceTimersByTime(1)
     expect(await spoken(element)).toBe('2 nieuwe regels, waarvan 1 fout')
   })
+
+  it('says one new line twice when one line comes in twice in a row', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const element = await mount()
+    for (const n of [5, 6]) {
+      await add(element, line(n))
+      vi.advanceTimersByTime(5000)
+      await element.updateComplete
+      expect(status(element)).toBe('')
+      expect(await spoken(element)).toBe('1 nieuwe regel')
+    }
+  })
 })
 
 describe('lintje-log-viewer filter and find', () => {

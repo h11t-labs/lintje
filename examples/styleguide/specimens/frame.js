@@ -288,6 +288,29 @@ export default {
           },
         },
         {
+          label: 'Gebruiker in de voet',
+          note:
+            'Naast de pagina is de voet van het menu de knop van het gebruikersmenu. ' +
+            'Het menu opent erboven, met de rijen van de host, “Afmelden” en de versie.',
+          html: `<lintje-shell>
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>Klik op de naam onderaan het menu.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.data = {
+              name: 'Transcriptie',
+              layout: 'side',
+              emblem: emblem(),
+              navigation: NAVIGATION,
+              user: USER,
+              userMenu: USER_MENU,
+              version: '2.4.1',
+            }
+            stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+          },
+        },
+        {
           label: 'Groep met submenu',
           note:
             'Klik op “Beheer” of wijs het aan. Buiten productie toont de balk de ' +
@@ -597,6 +620,23 @@ export default {
           },
         },
         {
+          label: 'Een lange keuze',
+          note: 'Onder de focus van het toetsenbord en op een telefoon loopt een lange keuze door.',
+          html: `<span style="${BAR}"><lintje-user-menu version="2.4.1"></lintje-user-menu></span>`,
+          setup(stage) {
+            const menu = stage.querySelector('lintje-user-menu')
+            menu.user = USER
+            menu.items = [
+              ...USER_MENU,
+              {
+                value: 'organisatie',
+                label:
+                  'Wisselen naar een andere organisatie waarvoor je gemachtigd bent, met haar eigen aanvragen en instellingen',
+              },
+            ]
+          },
+        },
+        {
           label: 'Afmelden als formulier',
           note: 'Met `logout-action` en `csrf` meldt de knop af met een formulier.',
           html: `<span style="${BAR}"><lintje-user-menu version="2.4.1" logout-action="#el-user-menu" csrf="demo-token"></lintje-user-menu></span>`,
@@ -624,7 +664,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
-          note: 'Kies een resultaat met de pijltjes. Druk / om het zoekveld te openen.',
+          note: 'Kies een resultaat met de pijltjes. Dit specimen opent met zijn knop; / opent het zoekveld van de stijlgids.',
           html: '<lintje-button variant="secondary" data-open>Zoeken openen</lintje-button><lintje-app-search label="Zoeken in Transcriptie"></lintje-app-search>',
           setup(stage) {
             const search = stage.querySelector('lintje-app-search')
@@ -641,6 +681,35 @@ export default {
             stage.querySelector('[data-open]').addEventListener('click', () => {
               search.query = 'team'
               search.loading = true
+              search.open = true
+            })
+          },
+        },
+        {
+          label: 'Een lang resultaat',
+          note:
+            'Het gekozen resultaat en elk resultaat op een telefoon lopen door; met een aanwijzer ' +
+            'staat de hele tekst in de tooltip.',
+          html: '<lintje-button variant="secondary" data-open>Zoeken naar een lang resultaat</lintje-button><lintje-app-search label="Zoeken in Transcriptie"></lintje-app-search>',
+          setup(stage) {
+            const search = stage.querySelector('lintje-app-search')
+            search.addEventListener('lintje-close', () => (search.open = false))
+            stage.querySelector('[data-open]').addEventListener('click', () => {
+              search.query = 'overleg'
+              search.groups = [
+                {
+                  label: 'Opnames',
+                  items: [
+                    { id: 'kort', label: 'Teamoverleg 2 oktober', meta: '4:12' },
+                    {
+                      id: 'lang',
+                      label:
+                        'Overleg over de planning van de ochtenddienst, de bezetting van de balie en de afspraken met de gemeente',
+                      meta: '47:12',
+                    },
+                  ],
+                },
+              ]
               search.open = true
             })
           },
