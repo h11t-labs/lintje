@@ -245,6 +245,14 @@ describe('the foot of the side menu', () => {
     const { shell, trigger } = await mountRail()
     await userEvent.click(trigger)
     await expectAbove(trigger)
+    // As wide as the side menu, inset by the viewport's edge on both sides.
+    await expect
+      .poll(() => {
+        const panel = panelOf(trigger)!.getBoundingClientRect()
+        const foot = trigger.getBoundingClientRect()
+        return [Math.round(panel.left - foot.left), Math.round(foot.right - panel.right)]
+      })
+      .toEqual([8, 8])
     expect(trigger.getAttribute('aria-expanded')).toBe('true')
 
     // The pointer leaves the menu for the top bar: the open user menu holds the rail.
