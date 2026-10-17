@@ -96,9 +96,9 @@ const CARD = {
   min: 40,
 }
 /** A mark's circle, and the gap before its name. */
-const MARK = { radius: 14, gap: 6 }
+const MARK = { radius: 14, gap: 8 }
 /** The counter: its target, its sign, the space beside its number, its inset and gap in a card. */
-const COUNTER = { size: 24, sign: 12, pad: 5, digit: 7, inset: 12, gap: 6 }
+const COUNTER = { size: 24, sign: 12, pad: 4, digit: 7, inset: 12, gap: 6 }
 /** The thinnest and the thickest line, by the number a relation carries. */
 const STROKE = { min: 1.5, max: 4 }
 /** A pointer that moves less than this is a click, not a drag. */
@@ -459,9 +459,8 @@ export class LintjeGraph extends LintjeContentTileElement {
    * clear target round a smaller drawing. */
   private counterWidth(count: number, small = false): number {
     const digits = String(count).length
-    if (small)
-      return Math.max(COUNTER.size, 4 + 2 * (COUNTER.pad - 1) + 10 + 1 + digits * COUNTER.digit)
-    return Math.max(COUNTER.size, 2 * COUNTER.pad + COUNTER.sign + 1 + digits * COUNTER.digit)
+    if (small) return Math.max(COUNTER.size, 4 * COUNTER.pad + 10 + digits * COUNTER.digit)
+    return Math.max(COUNTER.size, 2 * COUNTER.pad + COUNTER.sign + digits * COUNTER.digit)
   }
 
   /** The room a card keeps at its end for its counter, in px at zoom 1. */
