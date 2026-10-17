@@ -135,3 +135,65 @@ describe('closed until the reader opens it', () => {
     expect(quiet).toEqual([])
   })
 })
+
+describe('stuck and open over the page', () => {
+  /** A zone with one control, whose owner follows what it asks, as `lintje-filter-bar` does. */
+  async function stuckOpen(scrolled = true): Promise<{
+    element: LintjeFilterZone
+    control: HTMLButtonElement
+    outside: HTMLButtonElement
+    asked: boolean[]
+  }> {
+    const element = await mount(true)
+    element.scrolled = scrolled
+    const control = document.createElement('button')
+    element.append(control)
+    const outside = document.createElement('button')
+    document.body.append(outside)
+    const asked: boolean[] = []
+    element.addEventListener('lintje-zone-open-change', (event) => {
+      asked.push((event as CustomEvent<boolean>).detail)
+      element.open = (event as CustomEvent<boolean>).detail
+    })
+    await element.updateComplete
+    return { element, control, outside, asked }
+  }
+
+  const leave = (from: Element, to: Node | null): void => {
+    from.dispatchEvent(
+      new FocusEvent('focusout', { relatedTarget: to, bubbles: true, composed: true }),
+    )
+  }
+
+  it('closes as the focus leaves it, and the focus stays where it went', async () => {
+    const { element, control, outside, asked } = await stuckOpen()
+    control.focus()
+    leave(control, element.shadowRoot!.querySelector('.lintje-filter-toggle'))
+    leave(control, null)
+    leave(control, document.body)
+    expect(asked).toEqual([])
+    outside.focus()
+    leave(control, outside)
+    await element.updateComplete
+    expect(asked).toEqual([false])
+    expect(document.activeElement).toBe(outside)
+  })
+
+  it('stays open as the focus leaves it in the page, where it covers nothing', async () => {
+    const { control, outside, asked } = await stuckOpen(false)
+    outside.focus()
+    leave(control, outside)
+    expect(asked).toEqual([])
+  })
+
+  it('closes on Escape, with the focus on the toggle', async () => {
+    const { element, control, asked } = await stuckOpen()
+    control.focus()
+    control.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true }),
+    )
+    await element.updateComplete
+    expect(asked).toEqual([false])
+    expect(element.shadowRoot!.activeElement).toBe(toggle(element))
+  })
+})

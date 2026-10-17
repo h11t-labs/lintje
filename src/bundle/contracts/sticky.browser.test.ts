@@ -9,6 +9,7 @@ import '../../components/forms/form-actions/form-actions'
 import { tabbables } from '../../components/shared/focus-trap'
 import '../../components/filters/filter-bar/filter-bar'
 import '../../components/frame/shell/shell'
+import '../../components/feedback/toast/toast'
 import type { ChatData, DataTableData, FilterBarData, ShellData } from '../../types'
 
 interface Scene {
@@ -26,6 +27,9 @@ interface Scene {
   remove: () => void
 }
 
+/** What a walk starts from: the open panel, whose first or last stop has the focus. */
+type Opens = (scene: Scene) => Promise<HTMLElement>
+
 interface Row {
   tag: string
   marker: string
@@ -36,6 +40,13 @@ interface Row {
   reserves: boolean
   /** Stands right against the bar above it, not merely clear of it. */
   flush?: boolean
+  /** Walks Tab and Shift+Tab along the stops under it, not only to the one control. */
+  walks?: boolean
+  /**
+   * A panel that lies over the page while it is open and closes as the focus leaves it: only the
+   * walks, which start on its last stop for Tab and on its first for Shift+Tab.
+   */
+  opens?: Opens
   mount: () => Promise<Scene>
 }
 
@@ -105,11 +116,41 @@ const centre = (element: Element): number => {
   return (box.top + box.bottom) / 2
 }
 
+/** One step up the flat tree: into the slot, out of a shadow root. */
+const up = (node: Element): Element | null =>
+  node.assignedSlot ?? node.parentElement ?? ((node.getRootNode() as ShadowRoot).host || null)
+
 /** The part of the scroller the reader sees, in viewport coordinates. */
 function view(scroller: HTMLElement): { top: number; bottom: number } {
   if (scroller === document.documentElement) return { top: 0, bottom: scroller.clientHeight }
   const top = scroller.getBoundingClientRect().top + scroller.clientTop
   return { top, bottom: top + scroller.clientHeight }
+}
+
+/**
+ * Some of the control shows: in the scroller's sight and on top at one point at least, so
+ * nothing covers it entirely. A box the size of nothing (a radio) shows as what holds it.
+ */
+function inSight(control: Element, scroller: HTMLElement): boolean {
+  let box: Element | null = control
+  while (box && !seen(box)) box = up(box)
+  if (!box) return false
+  const rect = box.getBoundingClientRect()
+  // A stop past the scroller's own box shows in the page.
+  const sight = view(standsIn(box, scroller) ? scroller : document.documentElement)
+  const top = Math.max(rect.top, sight.top, 0)
+  const bottom = Math.min(rect.bottom, sight.bottom, window.innerHeight)
+  const left = Math.max(rect.left, 0)
+  const right = Math.min(rect.right, window.innerWidth)
+  if (bottom - top < 2 || right - left < 2) return false
+  const xs = [left + 1, (left + right) / 2, right - 1]
+  const ys = [top + 1, (top + bottom) / 2, bottom - 1]
+  return xs.some((x) =>
+    ys.some((y) => {
+      const hit = hitAt(x, y)
+      return hit !== null && standsIn(hit, box)
+    }),
+  )
 }
 
 function scrollBy(scroller: HTMLElement, top: number): void {
@@ -385,6 +426,149 @@ function formRow(width: number): Row {
   }
 }
 
+/** A bar of the host's own, marked for the shell, at one edge. */
+function hostBar(side: Row['side']): HTMLElement {
+  const bar = document.createElement('div')
+  bar.dataset.sticky = side
+  bar.textContent = side === 'top' ? 'Zoeken in de aanvragen' : 'Speler'
+  bar.style.cssText = `position: sticky; ${side}: ${side === 'top' ? 'var(--h-topbar)' : '0'};
+    z-index: 2; height: 64px; background: var(--color-bg-surface)`
+  return bar
+}
+
+function hostBarRow(side: Row['side'], width: number): Row {
+  return {
+    tag: 'lintje-shell',
+    marker: `a bar of the host’s own at the ${side} at ${width} px`,
+    width,
+    side,
+    reserves: true,
+    walks: true,
+    mount: async () => {
+      const bar = hostBar(side)
+      const content = requests(60)
+      await shell('top', side === 'top' ? [bar, content] : [content, bar])
+      return {
+        scroller: document.documentElement,
+        cover: () => (bar.isConnected ? bar : null),
+        target: content.querySelectorAll('a')[30]!,
+        remove: () => bar.remove(),
+      }
+    },
+  }
+}
+
+function toastRow(width: number): Row {
+  return {
+    tag: 'lintje-toast',
+    marker: `a toast that stays, above the action bar at ${width} px`,
+    width,
+    side: 'bottom',
+    reserves: true,
+    walks: true,
+    mount: async () => {
+      const { target } = await formPage()
+      // The width of the page, so the toast in its corner stands over the fields at 1440 px too.
+      for (const field of document.querySelectorAll('input')) field.style.width = '100%'
+      const toast = create('lintje-toast', { kind: 'error' })
+      toast.textContent = 'Opslaan is niet gelukt. Probeer het zo nog eens.'
+      await append(toast)
+      const cover = (): HTMLElement | null =>
+        toast.isConnected ? find(toast, '.lintje-toast') : null
+      await expect.poll(() => cover()?.querySelector('.lintje-toast__close')).toBeTruthy()
+      return { scroller: document.documentElement, cover, target, remove: () => toast.remove() }
+    },
+  }
+}
+
+const ZONE_ROW: Row = {
+  tag: 'lintje-filter-bar',
+  marker: 'stuck open under the top layout’s bar at 1440 px',
+  width: 1440,
+  side: 'top',
+  reserves: false,
+  walks: true,
+  mount: async () => {
+    const bar = create('lintje-filter-bar', { data: FILTERS })
+    const content = requests(60)
+    // Links above the zone too, for the way out with Shift+Tab.
+    await shell('top', [requests(10), bar, content])
+    return {
+      scroller: document.documentElement,
+      cover: () => find(bar, '.lintje-filter-bar.is-stuck-open'),
+      target: content.querySelector('a')!,
+      remove: () => bar.remove(),
+    }
+  },
+  opens: async (scene) => {
+    const bar = document.querySelector('lintje-filter-bar')!
+    // Only just past the top bar: the links after the zone stand under the panel it opens.
+    const sentinel = all(bar.shadowRoot!, '.lintje-filter-bar__sentinel')[0]!
+    scrollBy(scene.scroller, sentinel.getBoundingClientRect().top - 40)
+    await expect
+      .poll(() => find(bar, '.lintje-filter-bar.is-sticky'), { message: 'it sticks' })
+      .toBeTruthy()
+    find(bar, '.lintje-filter-toggle')!.click()
+    await expect
+      .poll(() => find(bar, '.lintje-filter-bar.is-settled'), { message: 'it opens' })
+      .toBeTruthy()
+    expect(scene.cover(), 'it stays stuck, open').toBeTruthy()
+    return scene.cover()!
+  },
+}
+
+const FOLLOWING: ChatData['turns'] = TURNS.map((turn, index) =>
+  index < TURNS.length - 1
+    ? turn
+    : {
+        ...turn,
+        answer: {
+          ...turn.answer,
+          followUps: [
+            { label: 'En per provincie?' },
+            { label: 'En vorig jaar?' },
+            { label: 'Hoe lang duurde het gemiddeld?' },
+          ],
+        },
+      },
+)
+
+function composerRow(width: number): Row {
+  return {
+    tag: 'lintje-chat-composer',
+    marker: `the send options over the follow-up questions at ${width} px`,
+    width,
+    side: 'bottom',
+    reserves: false,
+    walks: true,
+    mount: async () => {
+      const box = document.createElement('div')
+      box.style.cssText = 'height: 560px; overflow: auto'
+      const chat = create('lintje-chat', { data: { turns: FOLLOWING } })
+      box.append(chat)
+      await append(box)
+      // Somewhere for Tab to go after the question box.
+      document.body.append(requests(WALK + 3))
+      await expect.poll(() => find(chat, 'lintje-chat-suggestions')).toBeTruthy()
+      await settle()
+      const suggestions = find(chat, 'lintje-chat-suggestions')!
+      return {
+        scroller: box,
+        cover: () => find(chat, '.lintje-chat-composer__options'),
+        target: all(suggestions.shadowRoot!, 'button').at(-1) as HTMLElement,
+        remove: () => chat.remove(),
+      }
+    },
+    opens: async (scene) => {
+      const chat = scene.scroller.querySelector('lintje-chat')!
+      const toggle = find(chat, '.lintje-chat-composer__options-toggle')!
+      ;(toggle.shadowRoot?.querySelector('button') ?? toggle).click()
+      await expect.poll(() => scene.cover(), { message: 'it opens' }).toBeTruthy()
+      return scene.cover()!
+    },
+  }
+}
+
 const ROWS: Row[] = [
   shellRow('top', 1440),
   shellRow('top', 390),
@@ -445,6 +629,15 @@ const ROWS: Row[] = [
   },
   formRow(1440),
   formRow(390),
+  toastRow(1440),
+  toastRow(390),
+  hostBarRow('top', 1440),
+  hostBarRow('top', 390),
+  hostBarRow('bottom', 1440),
+  hostBarRow('bottom', 390),
+  ZONE_ROW,
+  composerRow(1440),
+  composerRow(390),
   {
     tag: 'lintje-data-table',
     marker: 'the selection bar at the top at 1440 px',
@@ -499,20 +692,56 @@ const ROWS: Row[] = [
 
 const RESERVES = 'keeps its height as scroll padding, and gives it back'
 const CLEARS = 'scrolls a control the keyboard reaches under it clear'
+const WALKS_ON = 'leaves no stop Tab reaches under it'
+const WALKS_BACK = 'leaves no stop Shift+Tab reaches under it'
 
-/** The keyboard's way to the control: from below it for a bar on top, from above for one below. */
-async function tabTo(scene: Scene, side: Row['side']): Promise<void> {
+/** How many stops a walk looks at. */
+const WALK = 5
+
+/** The focus on the stop the key leaves for the control, with the control under what sticks. */
+async function beside(scene: Scene, key: string): Promise<void> {
   const stops = tabbables(document.body)
   const at = stops.indexOf(scene.target)
   expect(at, 'the control is a Tab stop').toBeGreaterThan(-1)
-  const start = stops[side === 'top' ? at + 1 : at - 1]!
+  const start = stops[key === SHIFT_TAB ? at + 1 : at - 1]!
   start.focus({ preventScroll: true })
   await settle()
   await bury(scene)
-  await userEvent.keyboard(side === 'top' ? SHIFT_TAB : TAB)
+}
+
+/** The keyboard's way to the control: from below it for a bar on top, from above for one below. */
+async function tabTo(scene: Scene, side: Row['side']): Promise<void> {
+  const key = side === 'top' ? SHIFT_TAB : TAB
+  await beside(scene, key)
+  await userEvent.keyboard(key)
   await expect
     .poll(() => deepActiveElement(), { message: 'the focus is on the control' })
     .toBe(scene.target)
+}
+
+/** From under what sticks, or from the open panel's edge, stop after stop: each one shows. */
+async function walk(row: Row, key: string): Promise<void> {
+  const scene = await row.mount()
+  if (row.opens) {
+    const stops = tabbables(await row.opens(scene))
+    stops[key === SHIFT_TAB ? 0 : stops.length - 1]!.focus({ preventScroll: true })
+    await settle()
+  } else {
+    await beside(scene, key)
+  }
+  // What the poll sees: `shows`, or the stop that does not, so a failure names it.
+  const shows = (): string => {
+    const focused = deepActiveElement()
+    if (focused && focused !== document.body && inSight(focused, scene.scroller)) return 'shows'
+    const name = focused?.getAttribute('aria-label') ?? focused?.textContent?.trim().slice(0, 40)
+    return `${focused?.localName ?? 'nothing'} "${name ?? ''}"`
+  }
+  for (let step = 1; step <= WALK; step += 1) {
+    await userEvent.keyboard(key)
+    await expect
+      .poll(shows, { message: `stop ${step} is in sight, not covered entirely` })
+      .toBe('shows')
+  }
 }
 
 const checks: Record<string, (row: Row) => Promise<void>> = {
@@ -560,12 +789,18 @@ const checks: Record<string, (row: Row) => Promise<void>> = {
       }
     }
   },
+  [WALKS_ON]: (row) => walk(row, TAB),
+  [WALKS_BACK]: (row) => walk(row, SHIFT_TAB),
 }
 
 const nameOf = (row: Row, check: string): string => `${row.tag} :: ${row.marker} :: ${check}`
 
 const cases = ROWS.flatMap((row) =>
-  (row.reserves ? [RESERVES, CLEARS] : [CLEARS]).map((check) => ({ row, check })),
+  [
+    ...(row.reserves ? [RESERVES] : []),
+    ...(row.opens ? [] : [CLEARS]),
+    ...(row.walks ? [WALKS_ON, WALKS_BACK] : []),
+  ].map((check) => ({ row, check })),
 )
 
 beforeAll(() => {
@@ -708,4 +943,29 @@ describe('the action bar does not stick on a low screen', () => {
     await viewport(390, 256)
     await expect.poll(() => state(bar), { message: 'low again' }).toEqual(AFTER_THE_FORM)
   })
+})
+
+/* A toast stands above the action bar ----------------------------------------- */
+
+describe('a toast stands above the action bar, and back at its own place without it', () => {
+  for (const width of [1440, 390]) {
+    it(`at ${width} px, also one that goes by itself`, async () => {
+      await viewport(width, width < 768 ? 844 : 900)
+      const { bar } = await formPage()
+      const toast = create('lintje-toast', { kind: 'ok' })
+      toast.textContent = 'Opgeslagen'
+      await append(toast)
+      const box = (): DOMRect => find(toast, '.lintje-toast')!.getBoundingClientRect()
+      await expect
+        .poll(() => box().bottom <= bar.getBoundingClientRect().top + 1, {
+          message: 'above the bar',
+        })
+        .toBe(true)
+      const gap = parseFloat(getComputedStyle(document.documentElement).fontSize) * 1.5
+      bar.remove()
+      await expect
+        .poll(() => window.innerHeight - box().bottom <= gap + 1, { message: 'at its own place' })
+        .toBe(true)
+    })
+  }
 })

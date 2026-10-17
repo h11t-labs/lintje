@@ -25,7 +25,7 @@ import {
 } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
-import { holdsFocus } from '../../../core/focus'
+import { deepActiveElement, holdsFocus, standsIn } from '../../../core/focus'
 import { MediaController } from '../../../core/media'
 import { styleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
@@ -260,6 +260,35 @@ export class LintjeChatComposer extends LintjeElement {
   #refusedCount = 0
   readonly #rowFocus = new RowFocus()
 
+  /** Whether `node` stands in the open options panel or on its toggle. */
+  private atOptions(node: EventTarget | null): boolean {
+    if (!(node instanceof Node)) return false
+    return Array.from(
+      this.renderRoot.querySelectorAll(
+        '.lintje-chat-composer__options, .lintje-chat-composer__options-toggle',
+      ),
+    ).some((part) => standsIn(node, part))
+  }
+
+  /**
+   * The open options lie over what stands above the box: the focus leaving them closes them and
+   * stays where it went. A press that takes no focus blurs to nothing, which is not elsewhere.
+   */
+  private readonly onFocusOut = (event: FocusEvent): void => {
+    if (!this.optionsOpen || !event.relatedTarget || this.atOptions(event.relatedTarget)) return
+    this.optionsOpen = false
+  }
+
+  /** After the focus moved with it: a press beside the options closes them, as the focus did. */
+  private readonly onOutsidePress = async (event: MouseEvent): Promise<void> => {
+    if (!this.optionsOpen || event.composedPath().some((node) => this.atOptions(node))) return
+    this.optionsOpen = false
+    await this.updateComplete
+    // The focus stood in the options and went nowhere: it goes to their toggle.
+    const now = deepActiveElement()
+    if (!now || now === document.body) this.focusOptionsToggle()
+  }
+
   private readonly onDragEnter = (event: DragEvent): void => {
     if (!this.takesFiles || !carriesFiles(event)) return
     this.#depth += 1
@@ -284,6 +313,7 @@ export class LintjeChatComposer extends LintjeElement {
     document.addEventListener('dragleave', this.onDragLeave)
     document.addEventListener('drop', this.onDragEnd)
     document.addEventListener('dragend', this.onDragEnd)
+    document.addEventListener('click', this.onOutsidePress)
   }
 
   /** Attachments belong to a new question; an edited one keeps those of its message. */
@@ -335,6 +365,7 @@ export class LintjeChatComposer extends LintjeElement {
     document.removeEventListener('dragleave', this.onDragLeave)
     document.removeEventListener('drop', this.onDragEnd)
     document.removeEventListener('dragend', this.onDragEnd)
+    document.removeEventListener('click', this.onOutsidePress)
     this.onDragEnd()
     this.clearHighlights()
     this.#resize?.disconnect()
@@ -658,11 +689,16 @@ export class LintjeChatComposer extends LintjeElement {
   private async toggleOptions(open: boolean): Promise<void> {
     this.optionsOpen = open
     await this.updateComplete
-    const target = this.renderRoot.querySelector<HTMLElement>(
-      open ? '.lintje-chat-composer__options' : '.lintje-chat-composer__options-toggle',
+    if (open) this.renderRoot.querySelector<HTMLElement>('.lintje-chat-composer__options')?.focus()
+    else this.focusOptionsToggle()
+  }
+
+  private focusOptionsToggle(): void {
+    const toggle = this.renderRoot.querySelector<HTMLElement>(
+      '.lintje-chat-composer__options-toggle',
     )
     // The inner `<button>` takes focus, not its host element.
-    ;(target?.shadowRoot?.querySelector<HTMLElement>('button') ?? target)?.focus()
+    ;(toggle?.shadowRoot?.querySelector<HTMLElement>('button') ?? toggle)?.focus()
   }
 
   protected override render(): TemplateResult {
@@ -677,7 +713,10 @@ export class LintjeChatComposer extends LintjeElement {
         return kind.length ? `${word} (${kind.join(', ')})` : word
       })
       .join(', ')
-    return html`<div class="lintje-chat-composer lintje-chat-composer--${this.variant}">
+    return html`<div
+      class="lintje-chat-composer lintje-chat-composer--${this.variant}"
+      @focusout=${this.onFocusOut}
+    >
       ${collapsed ? this.renderCollapsed() : nothing}
       ${
         list.length
@@ -932,11 +971,7 @@ export class LintjeChatComposer extends LintjeElement {
   }
 
   private renderSendOptions(): TemplateResult {
-    return html`<span
-        class="lintje-chat-composer__scrim"
-        @click=${() => this.toggleOptions(false)}
-      ></span>
-      <div
+    return html`<div
         class="lintje-chat-composer__options"
         role="dialog"
         aria-label="Opties bij versturen"

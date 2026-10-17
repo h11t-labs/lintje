@@ -10,9 +10,9 @@
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
-import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import { scrollRoot } from '../../../core/host-config'
 import { MediaController, MOBILE } from '../../../core/media'
+import { keepRoom, releaseRoom, scrollFocusClear } from '../../../core/scroll-room'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { AttributeHold, PropertyHold } from '../../shared/controls'
@@ -36,26 +36,6 @@ export function clockTime(value: string | Date | null | undefined): string {
   if (Number.isNaN(date.getTime())) return ''
   const pad = (n: number): string => String(n).padStart(2, '0')
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
-
-/** The bars on the page, each with its height; the scroller keeps room for the tallest. */
-const reserved = new Map<LintjeFormActions, number>()
-let padded: { element: HTMLElement; before: string } | null = null
-
-function reserve(): void {
-  const room = Math.max(0, ...reserved.values())
-  if (reserved.size === 0) {
-    if (padded) padded.element.style.scrollPaddingBottom = padded.before
-    padded = null
-    return
-  }
-  const root = scrollRoot()
-  if (!root) return
-  if (padded?.element !== root) {
-    if (padded) padded.element.style.scrollPaddingBottom = padded.before
-    padded = { element: root, before: root.style.scrollPaddingBottom }
-  }
-  root.style.scrollPaddingBottom = `${room}px`
 }
 
 /** What scrolls the root: the window for the page's own scroller. */
@@ -130,28 +110,12 @@ export class LintjeFormActions extends LintjeElement {
   }
 
   #clearOfFocus(): void {
-    const focused = deepActiveElement()
-    // `body` after the focused field left before this frame: there is nothing to clear.
-    if (!focused || focused === document.body || holdsFocus(this)) return
-    if (getComputedStyle(this).position !== 'sticky') return
-    const room = this.getBoundingClientRect()
-    const box = focused.getBoundingClientRect()
-    const left = Math.max(box.left, room.left)
-    const right = Math.min(box.right, room.right)
-    if (box.bottom <= room.top || box.top >= room.bottom || left >= right) return
-    // Only what the bar covers: a sheet or dialog over the bar is not under it.
-    const y = (Math.max(box.top, room.top) + Math.min(box.bottom, room.bottom)) / 2
-    const scope = this.getRootNode() as Document | ShadowRoot
-    const hit = scope.elementFromPoint((left + right) / 2, y)
-    if (!hit || !this.contains(hit)) return
-    scrollRoot()?.scrollBy({ top: box.bottom - room.top, behavior: 'instant' })
+    if (getComputedStyle(this).position === 'sticky') scrollFocusClear(this, this, 'bottom')
   }
 
   // A bar that does not stick covers nothing, so it keeps no room.
   #reserveOwn(): void {
-    if (this.#low.matches) reserved.delete(this)
-    else reserved.set(this, this.offsetHeight)
-    reserve()
+    keepRoom(this, scrollRoot(), 'bottom', this.#low.matches ? 0 : this.offsetHeight)
   }
 
   override connectedCallback(): void {
@@ -197,8 +161,7 @@ export class LintjeFormActions extends LintjeElement {
     if (this.#focusFrame) cancelAnimationFrame(this.#focusFrame)
     this.#stuckFrame = 0
     this.#focusFrame = 0
-    reserved.delete(this)
-    reserve()
+    releaseRoom(this)
     this.#busy.release()
     this.#disabled.release()
     this.#block.release()
@@ -208,7 +171,7 @@ export class LintjeFormActions extends LintjeElement {
   protected override updated(): void {
     this.#hold()
     // The height query may have changed sides.
-    if (this.isConnected && reserved.has(this) === this.#low.matches) this.#reserveOwn()
+    if (this.isConnected) this.#reserveOwn()
   }
 
   #hold(): void {
