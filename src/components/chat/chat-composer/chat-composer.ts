@@ -18,6 +18,7 @@
 import {
   html,
   nothing,
+  render,
   type PropertyDeclarations,
   type PropertyValues,
   type TemplateResult,
@@ -142,6 +143,17 @@ interface Caption {
   room?: number
 }
 
+const renderCaption = (caption: Caption): TemplateResult =>
+  html`<span
+    class=${classMap({ 'lintje-chat-composer__caption': true, 'is-uncertain': !caption.certain })}
+    ${styleProps({
+      left: `${caption.left}px`,
+      top: `${caption.top}px`,
+      maxWidth: caption.room === undefined ? null : `${caption.room}px`,
+    })}
+    >${caption.kind}</span
+  >`
+
 export class LintjeChatComposer extends LintjeElement {
   static override styles = [
     iconStyles,
@@ -178,7 +190,6 @@ export class LintjeChatComposer extends LintjeElement {
     caret: { state: true },
     completionIndex: { state: true },
     completionOff: { state: true },
-    captions: { state: true },
   }
 
   /** `edit` is the frame a sent message is changed in: no picker, no split send. */
@@ -233,7 +244,9 @@ export class LintjeChatComposer extends LintjeElement {
   completionIndex: number = 0
   /** The reader dismissed the list, or took from it; typing brings it back. */
   completionOff: boolean = false
-  captions: Caption[] = []
+  /** The kind under each recognised term, measured after a render and drawn by `paint()`. */
+  #captions: Caption[] = []
+  #layer: HTMLElement | null = null
 
   readonly #mobile = new MediaController(this)
   /** Whether the browser keeps the field to plain text by itself. */
@@ -291,6 +304,8 @@ export class LintjeChatComposer extends LintjeElement {
     const content = this.draft.trim() !== '' || this.readyIds.length > 0
     return content && !this.uploading && !this.noSource
   }
+  /** The draft came from the host's `text`: the field takes it after the render. */
+  #written = false
 
   private get input(): HTMLElement | null {
     return this.renderRoot.querySelector<HTMLElement>('.lintje-chat-composer__input')
@@ -349,6 +364,12 @@ export class LintjeChatComposer extends LintjeElement {
       const news = rowNews(changed.get('files') ?? [], this.files ?? [])
       if (news) this.news = news
     }
+    // The host's text becomes the draft before the render; the field takes it after.
+    if (changed.has('text') && this.text !== this.draft) {
+      this.draft = this.text
+      this.caret = this.text.length
+      this.#written = true
+    }
     if (!changed.has('busy') || changed.get('busy') === undefined) return
     const leaving = this.renderRoot.querySelector(
       this.busy ? '.lintje-chat-composer__send' : '.lintje-chat-composer__stop',
@@ -356,8 +377,11 @@ export class LintjeChatComposer extends LintjeElement {
     if (leaving && holdsFocus(leaving)) this.#refocus = true
   }
 
-  protected override updated(changed: PropertyValues<this>): void {
-    if (changed.has('text') && this.text !== this.draft) this.write(this.text, undefined, false)
+  protected override updated(): void {
+    if (this.#written) {
+      this.#written = false
+      this.write(this.draft, undefined, false)
+    }
     // The cross of the next chip, else the paperclip: never the page.
     this.#rowFocus.restore(this.chips, () => this.focusPaperclip())
     this.paint()
@@ -612,7 +636,14 @@ export class LintjeChatComposer extends LintjeElement {
       const next = captions[index + 1]
       if (next && next.top === caption.top) caption.room = Math.max(0, next.left - caption.left - 4)
     })
-    if (JSON.stringify(captions) !== JSON.stringify(this.captions)) this.captions = captions
+    // Drawn into their own box, outside the element's render: they follow from a measurement after
+    // it, and a reactive property set there would draw the composer twice.
+    const layer = this.renderRoot.querySelector<HTMLElement>('.lintje-chat-composer__captions')
+    if (!layer) return
+    if (layer === this.#layer && JSON.stringify(captions) === JSON.stringify(this.#captions)) return
+    this.#layer = layer
+    this.#captions = captions
+    render(captions.map(renderCaption), layer)
   }
 
   private setSendKey(key: ChatSendKey): void {
@@ -710,22 +741,7 @@ export class LintjeChatComposer extends LintjeElement {
             @mouseup=${this.read}
             @paste=${this.onPaste}
           ></div>
-          <div class="lintje-chat-composer__captions" aria-hidden="true">
-            ${this.captions.map(
-              (caption) => html`<span
-                class=${classMap({
-                  'lintje-chat-composer__caption': true,
-                  'is-uncertain': !caption.certain,
-                })}
-                ${styleProps({
-                  left: `${caption.left}px`,
-                  top: `${caption.top}px`,
-                  maxWidth: caption.room === undefined ? null : `${caption.room}px`,
-                })}
-                >${caption.kind}</span
-              >`,
-            )}
-          </div>
+          <div class="lintje-chat-composer__captions" aria-hidden="true"></div>
         </div>
         <span id="send-key" class="visually-hidden"
           >${SEND_KEY_SAID[this.plain ? 'enter' : this.sendKey]}</span

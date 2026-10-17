@@ -135,14 +135,15 @@ export class OverflowController implements ReactiveController {
   }
 
   /**
-   * Reads the room and every natural width, and asks for a render when the count changes. The
-   * attributes are written after that render (`hostUpdated`), never inside the observer: a
-   * synchronous change there would resize the row during the observer's own delivery.
+   * Reads the room and every natural width, and writes the outcome straight onto the actions and
+   * the menu, after a render (`hostUpdated`) or a frame after the observer, never inside it: a
+   * synchronous change there would resize the row during the observer's own delivery. A render
+   * asked for here would draw the host twice.
    */
   measure(): void {
     const root = this.host.renderRoot
     const row = root.querySelector<HTMLElement>(this.options.row)
-    const menu = root.querySelector<HTMLElement>(this.options.menu)
+    const menu = root.querySelector<HTMLElement & { items: MenuEntry[] }>(this.options.menu)
     const actions = this.actions
     this.#observe(row ? [row, ...actions] : [])
     if (!row || !menu) return
@@ -161,10 +162,15 @@ export class OverflowController implements ReactiveController {
       row.getBoundingClientRect().width,
     )
     const collapsed = buttons.filter((button) => button !== primary).slice(0, count)
-    if (sameList(collapsed, this.collapsed)) return
-    this.collapsed = collapsed
-    this.#apply(collapsed)
-    this.host.requestUpdate()
+    if (!sameList(collapsed, this.collapsed)) {
+      this.collapsed = collapsed
+      this.#apply(collapsed)
+    }
+    // A menu drawn anew has none of this yet: written after every render.
+    const spare = collapsed.length === 0
+    menu.classList.toggle('is-spare', spare)
+    menu.inert = spare
+    menu.items = this.items()
   }
 
   #apply(collapsed: HTMLElement[]): void {

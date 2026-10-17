@@ -422,6 +422,16 @@ const CHARTS = [
     },
   },
   {
+    id: 'heatmap-labels', title: 'Heatmap met lange rijlabels',
+    description: 'Wachtenden per loket in de ochtend. Een lange naam staat heel in de tooltip, en loopt op een telefoon door.',
+    spec: {
+      kind: 'heatmap', columnLabels: ['9:00', '10:00', '11:00'],
+      rowLabels: ['Servicepunt in het gemeentehuis van de oostelijke wijken', 'Servicepunt west', 'Stadskantoor'],
+      values: [[12, 18, 9], [6, 11, 14], [8, 7, 10]],
+      unit: 'wachtenden',
+    },
+  },
+  {
     id: 'histogram', title: 'Doorlooptijd van aanvragen',
     description: 'Doorlooptijd van 1.900 afgehandelde aanvragen in klassen van twee dagen. De mediaan is 9,6 dagen, de termijn 21 dagen; 153 aanvragen duurden 22 dagen of langer.',
     spec: processingTime(processingDays),
@@ -452,11 +462,13 @@ const VARIANT_NAMES = {
   radar: 'Eén variabele met vergelijking en norm',
   'radar-layers': 'Drie lagen',
   heatmap: 'Met klassenlegenda',
+  'heatmap-labels': 'Met lange rijlabels',
   histogram: 'Met mediaan en termijn',
 }
 
 // What a label cannot say, for the note under it.
 const VARIANT_NOTES = {
+  'heatmap-labels': 'Met een aanwijzer staat een lange naam heel in de tooltip; zonder hover en op een telefoon loopt hij door.',
   line: 'De laatste twee uren zijn nog niet compleet en staan gearceerd.',
   'bar-trend-gap': 'Van woensdag en zaterdag vorige week zijn geen gegevens; daar breekt de trendlijn.',
   'stacked-area': 'Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
