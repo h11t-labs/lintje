@@ -19,6 +19,7 @@ import {
 } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
+import { formatNumber } from '../../../core/format'
 import { shadowCss } from '../../../core/styles'
 import { styleProps } from '../../../core/style-props'
 import { iconStyles } from '../../../icons/render'
@@ -29,16 +30,14 @@ import { Debounce } from '../../shared/debounce'
 import type { CommitOn } from '../text-input/text-input'
 import textareaCss from './textarea.css?inline'
 
-const COUNT = new Intl.NumberFormat('nl-NL')
-
 export function counterText(length: number, limit: number): string {
-  return `${COUNT.format(length)} / ${COUNT.format(limit)} tekens`
+  return `${formatNumber(length)} / ${formatNumber(limit)} tekens`
 }
 
 export function limitMessage(length: number, limit: number | undefined): string {
   if (!limit || length <= limit) return ''
   const over = length - limit
-  return `Maak de tekst ${COUNT.format(over)} ${over === 1 ? 'teken' : 'tekens'} korter`
+  return `Maak de tekst ${formatNumber(over)} ${over === 1 ? 'teken' : 'tekens'} korter`
 }
 
 export function counterSpeaks(length: number, limit: number): boolean {
