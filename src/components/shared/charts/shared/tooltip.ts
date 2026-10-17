@@ -3,7 +3,7 @@ import { html, nothing, type TemplateResult } from 'lit'
 import { directive, Directive, PartType, type ElementPart, type PartInfo } from 'lit/directive.js'
 import { styleProps } from '../../../../core/style-props'
 import type { ChartController, TooltipState } from './controller'
-import { renderSymbol } from './axes'
+import { isKeyMark, renderKeyMark, renderSymbol } from './axes'
 import { lineCasing } from './colors'
 
 /**
@@ -30,8 +30,13 @@ class PlaceTooltipDirective extends Directive {
     requestAnimationFrame(() => {
       if (!element.isConnected) return
       const available = element.parentElement?.clientWidth ?? Infinity
-      const left = state.side === 'left' ? state.x - 12 - element.offsetWidth : state.x + 12
-      element.style.left = `${Math.max(0, Math.min(left, available - element.offsetWidth - 8))}px`
+      const width = element.offsetWidth
+      let left = state.side === 'left' ? state.x - 12 - width : state.x + 12
+      if (state.flip != null && left + width > available - 8) {
+        left = state.flip - 12 - width
+        if (left < 0) left = (available - width) / 2
+      }
+      element.style.left = `${Math.max(0, Math.min(left, available - width - 8))}px`
     })
     return nothing
   }
@@ -60,23 +65,31 @@ export function renderTooltip(controller: ChartController): TemplateResult | typ
                 ? html`<svg class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--symbol"
                             viewBox="0 0 14 14" ${styleProps({ color: row.color })}
                             aria-hidden="true" focusable="false">${renderSymbol(row.symbol, row.color, 7)}</svg>`
-                : row.marker
-                  ? html`<span class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--${row.marker}"
+                : isKeyMark(row.marker)
+                  ? html`<svg class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--symbol"
+                              viewBox="0 0 14 14" ${styleProps({ color: row.color })}
+                              aria-hidden="true" focusable="false">${renderKeyMark(row.marker, row.color, 7)}</svg>`
+                  : row.marker
+                    ? html`<span class="lintje-chart-tooltip__marker lintje-chart-tooltip__marker--${row.marker}"
                                ${styleProps({ color: row.color })}></span>`
-                  : row.color
-                    ? html`<span class="lintje-chart-tooltip__marker"
-                                 ${styleProps({
-                                   background: row.color,
-                                   // A light colour keeps the dark edge it has in the legend.
-                                   'box-shadow': lineCasing(row.color)
-                                     ? `inset 0 0 0 1px ${lineCasing(row.color)}`
-                                     : undefined,
-                                 })}></span>`
-                    : nothing
+                    : row.color
+                      ? html`<span class="lintje-chart-tooltip__marker"
+                                   ${styleProps({
+                                     background: row.color,
+                                     // A light colour keeps the dark edge it has in the legend.
+                                     'box-shadow': lineCasing(row.color)
+                                       ? `inset 0 0 0 1px ${lineCasing(row.color)}`
+                                       : undefined,
+                                   })}></span>`
+                      : nothing
             }
             ${row.label}
           </span>
-          <span class="lintje-chart-tooltip__value">${row.value}</span>
+          <span class="lintje-chart-tooltip__value">${row.value}${
+            row.aside
+              ? html`<span class="lintje-chart-tooltip__note"> · ${row.aside}</span>`
+              : nothing
+          }</span>
         </p>
       `,
       )}

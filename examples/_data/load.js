@@ -11,6 +11,9 @@ export const [meta, hourly, daily, desks, regions, breakdowns, origin, originCou
     ['meta', 'hourly', 'daily', 'desks', 'regions', 'breakdowns', 'origin', 'origin_countries', 'heatmap', 'sankey', 'forecast'].map(load),
   )
 
+/** The satisfaction per desk in two years, on a scale of 1 to 10: a dumbbell's figures. */
+export const satisfaction = await load('satisfaction')
+
 /** A number as the interface writes it. */
 export const number = (value) => value.toLocaleString('nl-NL')
 

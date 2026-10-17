@@ -149,6 +149,20 @@ const KINDS: { name: string; spec: ChartSpec; first: string; second: string }[] 
     },
   },
   {
+    name: 'dumbbell',
+    first: 'Noord',
+    second: 'Zuid',
+    spec: {
+      kind: 'dumbbell',
+      fromLabel: '2024',
+      toLabel: '2026',
+      rows: [
+        { label: 'Noord', from: 6.8, to: 7.3 },
+        { label: 'Zuid', from: 7.1, to: null },
+      ],
+    },
+  },
+  {
     name: 'sankey',
     first: 'Aanvragen (Ingediend)',
     second: 'Aanvragen → Compleet',

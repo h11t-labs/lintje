@@ -262,6 +262,24 @@ const RADAR: ChartData = {
   },
 }
 
+const DUMBBELL: ChartData = {
+  title: 'Tevredenheid per loket',
+  description: 'Gemiddeld rapportcijfer per loket in 2024 en 2026.',
+  state: 'ready',
+  chart: {
+    kind: 'dumbbell',
+    fromLabel: '2024',
+    toLabel: '2026',
+    min: 5,
+    max: 9,
+    rows: [
+      { label: 'Groningen', from: 6.8, to: 7.3 },
+      { label: 'Zwolle', from: 7.2, to: 7.2 },
+      { label: 'Utrecht', from: 7.6, to: 7.1 },
+    ],
+  },
+}
+
 const TREEMAP: ChartData = {
   title: 'Uitgaven per terrein',
   description: 'Uitgaven per terrein, totaal 100 mld euro.',
@@ -654,6 +672,14 @@ const ROWS: Row[] = [
       shown(element, '.lintje-radar__ring') && !find(element, '.lintje-radar__row'),
     phone: (element) =>
       shown(element, '.lintje-radar__row') && !find(element, '.lintje-radar__ring'),
+  },
+  {
+    tag: 'lintje-chart',
+    marker: 'the dumbbell drops its name column: each name stands above its row',
+    mount: () => append(create('lintje-chart', { data: DUMBBELL })),
+    wide: (element) =>
+      shown(element, '.lintje-dumbbell__name') && !find(element, '.lintje-dumbbell__name--above'),
+    phone: (element) => shown(element, '.lintje-dumbbell__name--above'),
   },
   {
     tag: 'lintje-chart',

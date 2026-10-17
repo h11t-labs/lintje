@@ -175,6 +175,7 @@ export const KIND_SKETCHES = {
   heatmap: 'cheat',
   scatter: 'cscatter',
   radar: 'cradar',
+  dumbbell: 'cdumbbell',
   'target-progress': 'ctarget',
 }
 
@@ -208,6 +209,8 @@ const CHARTS = {
     '<rect class="i" x="0" y="0" width="54" height="50"/><g class="w"><rect x="56" y="0" width="44" height="28"/><rect x="56" y="30" width="26" height="20"/><rect x="84" y="30" width="16" height="20"/></g>',
   cradar:
     '<polygon class="w" fill="none" points="50,2 72,13.5 72,36.5 50,48 28,36.5 28,13.5"/><polygon class="i" points="50,8 66,16.5 62,32 50,44 34,34 30,14"/>',
+  cdumbbell:
+    '<g class="w"><line x1="10" y1="8" x2="80" y2="8" stroke-dasharray="3 3"/></g><g class="i"><line x1="30" y1="8" x2="70" y2="8"/><line x1="44" y1="25" x2="62" y2="25"/><line x1="24" y1="42" x2="50" y2="42"/><circle cx="70" cy="8" r="4"/><circle cx="62" cy="25" r="4"/><circle cx="24" cy="42" r="4"/></g><g class="w"><circle cx="30" cy="8" r="4"/><circle cx="44" cy="25" r="4"/><circle cx="50" cy="42" r="4"/></g>',
   ctarget:
     '<g class="w"><rect x="0" y="4" width="100" height="9"/><rect x="0" y="20" width="100" height="9"/><rect x="0" y="36" width="100" height="9"/></g><g class="i"><rect x="0" y="4" width="80" height="9"/><rect x="0" y="20" width="56" height="9"/><rect x="0" y="36" width="34" height="9"/></g><line class="i" x1="74" y1="0" x2="74" y2="50"/>',
   map: '<path class="w" d="M38 2 L62 4 L72 14 L66 24 L74 34 L62 48 L44 46 L34 36 L24 32 L30 18 Z"/><g class="i"><circle cx="46" cy="22" r="3"/><circle cx="58" cy="30" r="4"/><circle cx="40" cy="36" r="2.5"/></g>',

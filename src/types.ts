@@ -34,6 +34,7 @@ export type {
   SankeyNode,
   SankeyStep,
   ScatterSeriesData,
+  DumbbellRow,
   WmsBasemap,
   MapArea,
   MapControls,

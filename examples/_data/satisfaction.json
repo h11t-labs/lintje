@@ -1,0 +1,13 @@
+[
+  { "desk": "Groningen", "from": 6.8, "to": 7.3 },
+  { "desk": "Leeuwarden", "from": 7.4, "to": 7.6 },
+  { "desk": "Zwolle", "from": 7.2, "to": 7.2 },
+  { "desk": "Enschede", "from": 7.0, "to": 7.4 },
+  { "desk": "Arnhem", "from": 6.5, "to": 6.1 },
+  { "desk": "Utrecht", "from": 7.6, "to": 7.1 },
+  { "desk": "Amsterdam Centrum", "from": 6.9, "to": 7.0 },
+  { "desk": "Den Haag", "from": 6.6, "to": 7.2 },
+  { "desk": "Middelburg", "from": 7.5, "to": 7.8 },
+  { "desk": "Eindhoven", "from": 7.0, "to": 6.8 },
+  { "desk": "Maastricht", "from": 6.7, "to": 7.4 }
+]

@@ -84,6 +84,7 @@ describe('the data types', () => {
       'heatmap',
       'histogram',
       'radar',
+      'dumbbell',
       'treemap',
       'sankey',
     ])

@@ -65,7 +65,15 @@ export const CHART_KINDS = {
     label: 'Gegroepeerde staven',
     question: 'compare',
     use: 'Twee of drie reeksen naast elkaar per groep, om ze binnen de groep te vergelijken.',
-    avoid: 'Meer dan drie reeksen: de groepen worden onleesbaar. Neem een lijn of een tabel.',
+    avoid:
+      'Meer dan drie reeksen: de groepen worden onleesbaar. Neem een lijn of een tabel. Eén maat op twee momenten bij veel groepen: neem Voor en na.',
+  },
+  dumbbell: {
+    label: 'Voor en na',
+    question: 'compare',
+    use: 'Eén maat per groep op twee momenten, als de verandering per groep de boodschap is: veel groepen, lange namen, met een norm.',
+    avoid:
+      'Twee groepen naast elkaar, of vijf groepen of minder: neem gegroepeerde staven. Meer dan twee momenten: neem een lijn.',
   },
   radar: {
     label: 'Spinnendiagram',

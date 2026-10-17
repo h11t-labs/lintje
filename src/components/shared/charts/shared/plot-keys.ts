@@ -14,6 +14,8 @@ export interface PlotPoint {
   /** What the status region says instead of the tooltip read as one sentence. */
   sentence?: string
   side?: 'left'
+  /** Where the tooltip ends when it does not fit right of `x` (`TooltipState.flip`). */
+  flip?: number
 }
 
 /** What the drawing (the `<svg>`) takes. */
@@ -31,7 +33,9 @@ export function tooltipSentence(content: TooltipContent): string {
   const title = [content.kicker, content.note ? `${content.title} ${content.note}` : content.title]
     .filter(Boolean)
     .join(', ')
-  const values = `${title}: ${content.rows.map((row) => `${row.label} ${row.value}`.trim()).join(', ')}`
+  const values = `${title}: ${content.rows
+    .map((row) => `${row.label} ${row.value}${row.aside ? `, ${row.aside}` : ''}`.trim())
+    .join(', ')}`
   const events = (content.events ?? []).map(
     (event) => `Gebeurtenis ${event.number}: ${event.label}`,
   )
@@ -60,11 +64,12 @@ export function plotKeys(
     controller.hoverIndex = index
     controller.keyFrom = null
     controller.status = point.sentence ?? tooltipSentence(point.content)
+    const left = box.left - origin.left
     controller.showTooltipAt(
-      box.left - origin.left + point.x,
+      left + point.x,
       box.top - origin.top + point.y,
       point.content,
-      point.side,
+      point.side ?? (point.flip != null ? left + point.flip : undefined),
     )
   }
   return {

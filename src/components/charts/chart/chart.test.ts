@@ -456,6 +456,44 @@ describe('lintje-chart table of a radar', () => {
   })
 })
 
+describe('lintje-chart table of a dumbbell', () => {
+  it('writes both moments, the difference and the norm, real values beyond the axis', async () => {
+    const element = await tile({
+      title: 'Tevredenheid',
+      description: 'Tevredenheid per loket.',
+      tableSwitch: true,
+      chart: {
+        kind: 'dumbbell',
+        fromLabel: '2024',
+        toLabel: '2026',
+        min: 5,
+        max: 9,
+        threshold: 7,
+        rows: [
+          { label: 'Utrecht', from: 3.8, to: 6.1 },
+          { label: 'Zwolle', from: 7.6, to: 7.1 },
+          { label: 'Breda', from: 7.2, to: null },
+        ],
+      },
+    })
+    await switchTo(element, 'table')
+    const found = (await table(element)) as LintjeDataTable
+    const head = [...found.renderRoot.querySelectorAll('.lintje-data-table__full thead th')]
+    expect(head.map((cell) => cell.textContent?.trim())).toEqual([
+      '',
+      '2024',
+      '2026',
+      'Verschil',
+      'Norm',
+    ])
+    const rows = cells(found)
+    expect(rows[0]).toEqual(['Utrecht', '3,8', '6,1', '2,3', '7'])
+    expect(rows[1]).toEqual(['Zwolle', '7,6', '7,1', '-0,5', '7'])
+    expect(rows[2][2]).toContain('geen gegevens')
+    expect(rows[2][3]).toContain('geen gegevens')
+  })
+})
+
 describe('lintje-chart of a sankey', () => {
   const SANKEY: ChartData = {
     title: 'Aanvragen van indiening tot uitkomst',
