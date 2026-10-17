@@ -6,7 +6,8 @@
  * Every choice question ends in "Iets anders…". What the reader picked is the element's own until
  * it sends, and starts over only when the questions change (other ids). It checks its own questions
  * at Volgende and Versturen. `focus()` puts the focus on the first choice; `lintje-chat` calls it
- * when the box appears while the focus is in the conversation. The host sets `state: 'sending'`
+ * when the box appears while the focus is in the conversation and the question box holds no
+ * draft. The host sets `state: 'sending'`
  * while it waits, then adds a turn with `text` as the reader's message, which ends the questions.
  *
  * Events: `lintje-questions-answer` `{ turnId, answers, text }` (`answers`: per question
@@ -24,6 +25,7 @@ import { keyed } from 'lit/directives/keyed.js'
 import { LintjeElement, define } from '../../../core/element'
 import { MediaController } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
+import { iconStyles, renderIcon } from '../../../icons/render'
 import { OTHER_VALUE, otherField } from '../../shared/controls'
 import { OTHER_MISSING_TEXT, renderOtherField } from '../../shared/other'
 import '../../actions/button/button'
@@ -76,7 +78,7 @@ export function isShortForm(questions: ChatQuestion[]): boolean {
 }
 
 export class LintjeChatQuestions extends LintjeElement {
-  static override styles = [shadowCss(frameCss), shadowCss(chatQuestionsCss)]
+  static override styles = [iconStyles, shadowCss(frameCss), shadowCss(chatQuestionsCss)]
 
   static override properties: PropertyDeclarations = {
     data: { attribute: false },
@@ -371,9 +373,14 @@ export class LintjeChatQuestions extends LintjeElement {
   private renderShort(question: ChatQuestion): TemplateResult {
     const draft = this.draft(question.id)
     const problem = this.problems[question.id] ?? {}
-    return html`<div class="lintje-chat-questions__body" role="group" aria-labelledby="question">
+    return html`<div
+      class="lintje-chat-questions__body"
+      role="group"
+      aria-labelledby="question"
+      aria-describedby=${question.hint ? 'hint' : nothing}
+    >
       <p id="question" class="lintje-chat-questions__question">${question.text}</p>
-      ${question.hint ? html`<p class="lintje-chat-questions__hint">${question.hint}</p>` : nothing}
+      ${question.hint ? html`<p id="hint" class="lintje-chat-questions__hint">${question.hint}</p>` : nothing}
       <div class="lintje-chat-questions__chips">
         ${(question.options ?? []).map(
           (option) => html`<button
@@ -436,6 +443,7 @@ export class LintjeChatQuestions extends LintjeElement {
             .filter(Boolean)
             .join(' ')
         : question.hint
+    const error = this.problems[question.id]?.error
     return html`<div class="lintje-chat-questions__progress">
         <p class="lintje-chat-questions__count" aria-hidden="true">
           ${count} <span class="lintje-chat-questions__label">· ${question.label}</span>
@@ -455,9 +463,16 @@ export class LintjeChatQuestions extends LintjeElement {
               : nothing
           }
         </p>
-        ${hint ? html`<p class="lintje-chat-questions__hint">${hint}</p>` : nothing}
+        ${hint ? html`<p class="lintje-chat-questions__hint" aria-hidden="true">${hint}</p>` : nothing}
+        ${
+          error
+            ? html`<p class="lintje-chat-questions__error" role="alert">
+              ${renderIcon('functioneel-waarschuwing', { size: 14 })}${error}
+            </p>`
+            : nothing
+        }
         <div class="lintje-chat-questions__choices">
-          ${keyed(question.id, this.renderControl(question))}
+          ${keyed(question.id, this.renderControl(question, [error, hint].filter(Boolean).join(' ')))}
         </div>
       </div>
       <div class="lintje-chat-questions__actions">
@@ -497,14 +512,14 @@ export class LintjeChatQuestions extends LintjeElement {
       </div>`
   }
 
-  // The question stands above as the visible legend; the group carries it as its own hidden label,
-  // so the choices alone scroll and a reader hears the question with the focus.
-  private renderControl(question: ChatQuestion): TemplateResult {
+  // The question, its hint and its error stand above the choices, so the choices alone scroll and
+  // stay in view with the focus; the group carries them as its hidden label and description.
+  private renderControl(question: ChatQuestion, description: string): TemplateResult {
     const draft = this.draft(question.id)
     const problem = this.problems[question.id] ?? {}
     const common = {
       label: question.text,
-      error: problem.error,
+      description: description || undefined,
       required: !question.optional,
       optional: Boolean(question.optional),
     }
@@ -514,8 +529,8 @@ export class LintjeChatQuestions extends LintjeElement {
         label=${common.label}
         hide-label
         placeholder=${question.placeholder ?? ''}
+        .description=${common.description}
         .value=${draft.text}
-        .error=${common.error}
         ?required=${common.required}
         ?optional=${common.optional}
         @lintje-change=${(event: CustomEvent<string>) => {
@@ -537,9 +552,9 @@ export class LintjeChatQuestions extends LintjeElement {
         other-label=${OTHER_LABEL}
         other-placeholder=${question.otherPlaceholder ?? nothing}
         .options=${question.options ?? []}
+        .description=${common.description}
         .selected=${draft.values}
         .otherText=${draft.other}
-        .error=${common.error}
         .otherError=${problem.otherError}
         ?required=${common.required}
         ?optional=${common.optional}
@@ -558,9 +573,9 @@ export class LintjeChatQuestions extends LintjeElement {
       other-label=${OTHER_LABEL}
       other-placeholder=${question.otherPlaceholder ?? nothing}
       .options=${question.options ?? []}
+      .description=${common.description}
       .value=${draft.values[0] ?? ''}
       .otherText=${draft.other}
-      .error=${common.error}
       .otherError=${problem.otherError}
       ?required=${common.required}
       ?optional=${common.optional}

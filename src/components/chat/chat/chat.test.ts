@@ -400,6 +400,39 @@ describe('lintje-chat and the assistant’s questions', () => {
     expect(composer(element).hint ?? '').toBe('')
   })
 
+  it('takes the focus from an empty question box, and leaves it in one with a draft', async () => {
+    type Field = HTMLElement & { text: string; updateComplete: Promise<unknown> }
+    const settle = async (element: LintjeChat): Promise<void> => {
+      await element.updateComplete
+      await new Promise((settled) => requestAnimationFrame(settled))
+      await new Promise((settled) => setTimeout(settled))
+    }
+    for (const draft of ['', 'En per regio']) {
+      const waiting = asking('needs-clarification')
+      const element = await chat({
+        turns: [TURNS[0], { ...waiting.turns[1], answer: { state: 'streaming' } }],
+      })
+      const field = composer(element) as unknown as Field
+      field.text = draft
+      await field.updateComplete
+      const input = field.shadowRoot!.querySelector<HTMLElement>('.lintje-chat-composer__input')!
+      input.focus()
+      element.data = waiting
+      await settle(element)
+      const questions = box(element)!
+      if (draft) {
+        // A space would pick a choice: the reader types on, and the status region says it.
+        expect(deepActiveElement()).toBe(input)
+        expect(questions.shadowRoot!.querySelector('[role="status"]')?.textContent).toBe(
+          'Assistent vraagt',
+        )
+      } else {
+        expect(deepActiveElement()?.classList.contains('lintje-chat-questions__chip')).toBe(true)
+      }
+      element.remove()
+    }
+  })
+
   it('lets the answers through with the turn', async () => {
     const element = await chat(asking('needs-clarification'))
     const details: unknown[] = []

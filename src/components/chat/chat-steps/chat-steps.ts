@@ -41,6 +41,26 @@ const MARK: Record<StepState, Mark> = {
 
 const stateOf = (step: ChatStep): StepState => step.state ?? 'done'
 
+/** The state in words, after a label that does not say it already: the mark alone is a drawing. */
+const STATE_WORD: Partial<Record<Mark, string>> = {
+  ring: 'bezig',
+  cross: 'mislukt',
+  open: 'gestopt',
+}
+
+function renderStateWord(label: string, mark: Mark): TemplateResult | typeof nothing {
+  const word = STATE_WORD[mark]
+  if (!word || label.toLowerCase().includes(word)) return nothing
+  return html`<span class="visually-hidden">, ${word}</span>`
+}
+
+/** The whole line as `title`, only while it is cut: a line that fits needs no tooltip. */
+function titleWhenCut(event: Event, line: string): void {
+  const text = event.currentTarget as HTMLElement
+  if (text.scrollWidth > text.clientWidth) text.title = line
+  else text.removeAttribute('title')
+}
+
 export const stepCount = (count: number): string => `${count} ${count === 1 ? 'stap' : 'stappen'}`
 
 /** A sentence for the status region: the label closed with a full stop, then the detail. */
@@ -172,8 +192,10 @@ export class LintjeChatSteps extends LintjeElement {
       <span class="lintje-chat-steps__rail">
         ${this.renderMark(MARK[state])}<span class="lintje-chat-steps__line" aria-hidden="true"></span>
       </span>
-      <span class="lintje-chat-steps__text" title=${line}
-        ><span class="lintje-chat-steps__label">${step.label}</span>${
+      <span
+        class="lintje-chat-steps__text"
+        @pointerenter=${(event: PointerEvent) => titleWhenCut(event, line)}
+        ><span class="lintje-chat-steps__label">${step.label}${renderStateWord(step.label, MARK[state])}</span>${
           step.detail
             ? html`<span class="lintje-chat-steps__detail"> · ${this.renderDetail(step)}</span>`
             : nothing
@@ -188,7 +210,7 @@ export class LintjeChatSteps extends LintjeElement {
         summary.label
           ? html`<span
               class=${classMap({ 'lintje-chat-steps__now': true, 'is-error': Boolean(summary.failed) })}
-              >${summary.label}</span
+              >${summary.label}${renderStateWord(summary.label, summary.mark)}</span
             >`
           : nothing
       }${

@@ -260,8 +260,9 @@ export class LintjeChat extends LintjeElement {
     if (asked === this.#asked) return
     this.#asked = asked
     this.composerOpen = false
-    // A new box takes the focus from where the reader stood in the conversation.
-    if (asked && holdsFocus(this)) void this.focusQuestions()
+    // A new box takes the focus from where the reader stood in the conversation, unless they are
+    // typing a next question: a space would then pick a choice. The box's status region says it.
+    if (asked && holdsFocus(this) && !this.composer?.draft) void this.focusQuestions()
   }
 
   private async focusQuestions(): Promise<void> {

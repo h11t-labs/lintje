@@ -60,7 +60,8 @@
 .lintje-attachment__detail { flex: none; white-space: nowrap; color: var(--color-text-muted); }
 .lintje-attachment.is-error .lintje-attachment__detail { color: var(--color-error-text); }
 
-/* A quiet button: 24 px drawn, the target height reached by a transparent area around it. */
+/* A quiet button: 24 px drawn, the target height reached by a transparent area above and below
+   it; beside it the area reaches half the gap, so it never lies over the button next to it. */
 .lintje-attachment__action,
 .lintje-attachment__sign {
   position: relative;
@@ -77,7 +78,8 @@
 .lintje-attachment__action::after {
   content: '';
   position: absolute;
-  inset: min(0px, calc((var(--space-6) - var(--h-target)) / 2));
+  inset-block: min(0px, calc((var(--space-6) - var(--h-target)) / 2));
+  inset-inline: calc(var(--space-2) / -2);
 }
 .lintje-attachment__action:focus-visible {
   outline: var(--focus-width) solid var(--color-focus);
