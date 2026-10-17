@@ -1,0 +1,14 @@
+/*
+ * The frame that the question box and the assistant's questions above it share: one border at the
+ * field's resting edge (3:1), on the surface, square and without shadow. What stands inside is
+ * each element's own.
+ */
+
+/* --- */
+
+.lintje-chat-frame {
+  position: relative;
+  display: flex; flex-direction: column;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-field);
+}

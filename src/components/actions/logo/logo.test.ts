@@ -24,6 +24,15 @@ async function mount(set: (logo: LintjeLogo) => void): Promise<LintjeLogo> {
 const nameOf = (logo: LintjeLogo) =>
   logo.shadowRoot!.querySelector<HTMLElement>('.lintje-logo__name')
 
+/** A length the logo writes, in px, as a browser resolves it where no one sets the ribbon. */
+function px(length: string): number {
+  const match =
+    /^(?:calc\()?var\(--lintje-logo-ribbon, ([\d.]+)px\)(?: \* (\d+) \/ (\d+)\))?$/.exec(length)
+  if (!match) throw new Error(`not a length of the ribbon: ${length}`)
+  const [, ribbon, units, per] = match
+  return units ? (Number(ribbon) * Number(units)) / Number(per) : Number(ribbon)
+}
+
 beforeEach(() => {
   putIcons([
     ['embleem-lint', RIBBON_ONLY],
@@ -50,7 +59,7 @@ describe('lintje-logo: the name beside the ribbon', () => {
     expect(name.getAttribute('aria-hidden')).toBe('true')
     expect(logo.shadowRoot!.querySelector('svg')!.getAttribute('aria-label')).toBe('Rijksoverheid')
     // It starts where the ribbon ends: the whole file is the ribbon.
-    expect(name.style.left).toBe('48px')
+    expect(px(name.style.left)).toBe(48)
   })
 
   it('writes it in the open menu too', async () => {
@@ -78,7 +87,7 @@ describe('lintje-logo: the name beside the ribbon', () => {
       el.width = 38
     })
     // In the whole drawing the ribbon ends at 154 + 38 of 346 units; at 38 px wide that is 192 px.
-    expect(nameOf(logo)!.style.left).toBe('192px')
+    expect(px(nameOf(logo)!.style.left)).toBe(192)
     expect(nameOf(logo)!.textContent?.trim()).toBe('Dienst Vergunningen')
   })
 
@@ -109,6 +118,110 @@ describe('lintje-logo: the name beside the ribbon', () => {
     expect(css).toMatch(/\.lintje-logo__name\s*\{[^}]*color:\s*inherit/)
     expect(css).toMatch(/\.lintje-logo__name\s*\{[^}]*position:\s*absolute/)
     expect(css).not.toMatch(/font-size:\s*\d+px/)
+  })
+})
+
+describe('lintje-logo: its size', () => {
+  const size = (element: Element | null) => {
+    const { width, height } = (element as HTMLElement).style
+    return [px(width), px(height)]
+  }
+
+  // The sizes `width` gave in whole px before the ribbon became a CSS length.
+  it('keeps the sizes of `width` where no one sets the ribbon', async () => {
+    const full = await mount((el) => {
+      el.name = 'embleem-org'
+      el.alt = 'Rijksoverheid'
+      el.full = true
+      el.width = 48
+    })
+    const root = full.shadowRoot!
+    const [frameWidth, frameHeight] = size(root.querySelector('.lintje-logo__frame'))
+    expect(frameWidth).toBeCloseTo(437, 0)
+    expect(frameHeight).toBeCloseTo(95, 0)
+    expect(size(root.querySelector('svg'))[0]).toBeCloseTo(437, 0)
+    expect(px(nameOf(full)!.style.left)).toBeCloseTo(243, 0)
+
+    const rail = await mount((el) => {
+      el.name = 'embleem-org'
+      el.width = 44
+    })
+    const [railWidth, railHeight] = size(rail.shadowRoot!.querySelector('.lintje-logo__frame'))
+    expect(railWidth).toBe(44)
+    expect(railHeight).toBeCloseTo(87, 0)
+    expect(size(rail.shadowRoot!.querySelector('svg'))[0]).toBeCloseTo(222, 0)
+
+    // A file on its own viewBox keeps its own ratio.
+    const own = await mount((el) => {
+      el.name = 'embleem-lint'
+      el.width = 32
+    })
+    expect(size(own.shadowRoot!.querySelector('svg'))).toEqual([32, 64])
+
+    const image = await mount((el) => {
+      el.src = 'data:image/svg+xml,%3Csvg%2F%3E'
+      el.width = 48
+    })
+    const [imageWidth, imageHeight] = size(image.shadowRoot!.querySelector('img'))
+    expect(imageWidth).toBe(48)
+    expect(imageHeight).toBeCloseTo(95, 0)
+  })
+
+  it('takes the ribbon from `--lintje-logo-ribbon` where a surrounding element sets it', async () => {
+    const logo = await mount((el) => {
+      el.name = 'embleem-org'
+      el.full = true
+    })
+    const frame = logo.shadowRoot!.querySelector<HTMLElement>('.lintje-logo__frame')!
+    expect(frame.style.width).toContain('var(--lintje-logo-ribbon, 44px)')
+  })
+})
+
+describe('lintje-logo: what a screen reader hears', () => {
+  const said = (logo: LintjeLogo): string | null =>
+    logo.shadowRoot!.querySelector('svg.lintje-logo')!.getAttribute('aria-label')
+  const BYLINE = 'Ministerie van Voorbeelden'
+
+  it('says the name and the byline where the byline is drawn', async () => {
+    for (const name of ['embleem-org', 'embleem-lint']) {
+      const logo = await mount((el) => {
+        el.name = name
+        el.alt = 'Dienst Vergunningen'
+        el.byline = BYLINE
+        el.full = true
+      })
+      expect(said(logo)).toBe('Dienst Vergunningen, Ministerie van Voorbeelden')
+    }
+    const open = await mount((el) => {
+      el.name = 'embleem-org'
+      el.alt = 'Dienst Vergunningen'
+      el.byline = BYLINE
+      el.open = true
+    })
+    expect(said(open)).toBe('Dienst Vergunningen, Ministerie van Voorbeelden')
+  })
+
+  it('says the name alone where no byline is drawn', async () => {
+    const plain = await mount((el) => {
+      el.name = 'embleem-org'
+      el.alt = 'Dienst Vergunningen'
+      el.full = true
+    })
+    expect(said(plain)).toBe('Dienst Vergunningen')
+    // Only the ribbon in frame: the byline is not drawn, so not said.
+    const rail = await mount((el) => {
+      el.name = 'embleem-org'
+      el.alt = 'Dienst Vergunningen'
+      el.byline = BYLINE
+    })
+    expect(said(rail)).toBe('Dienst Vergunningen')
+    const image = await mount((el) => {
+      el.src = 'data:image/svg+xml,%3Csvg%2F%3E'
+      el.alt = 'Dienst Vergunningen'
+      el.byline = BYLINE
+      el.full = true
+    })
+    expect(image.shadowRoot!.querySelector('img')!.getAttribute('alt')).toBe('Dienst Vergunningen')
   })
 })
 

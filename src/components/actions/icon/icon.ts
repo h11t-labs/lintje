@@ -2,9 +2,10 @@
  * `<lintje-icon>` — one icon, named by its file in `dist-icons/` (without `.svg`).
  *
  * For plain HTML pages; inside a component use `renderIcon()`, which this element also draws
- * through. It takes `src`, else the register, else a loaded file; without any it draws nothing.
+ * through. It takes `src`, else the register, else a loaded file. Without any it draws nothing
+ * you see: with a `label` that label stays, as hidden text, so a screen reader still hears it.
  */
-import { nothing, type TemplateResult } from 'lit'
+import { html, nothing, type TemplateResult } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { ICONS, type IconGlyph, type IconName } from '../../../icons/register'
@@ -65,12 +66,16 @@ export class LintjeIcon extends LintjeElement {
   }
 
   protected override render(): TemplateResult | typeof nothing {
-    return renderIcon(this.name, {
+    const icon = renderIcon(this.name, {
       size: this.size,
       label: this.label,
       src: this.src,
       defer: this.lazy && !this.#near,
     })
+    if (icon === nothing && this.label) {
+      return html`<span class="visually-hidden">${this.label}</span>`
+    }
+    return icon
   }
 }
 

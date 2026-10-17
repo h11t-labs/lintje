@@ -16,6 +16,9 @@
   white-space: nowrap;
 }
 .lintje-badge__icon { flex: none; margin-inline-end: var(--space-1); }
+/* Trimmed to cap height and baseline, the figure centres on its ink, whatever the font's metrics
+   and the browser's rounding: untrimmed it sits 1 to 2 px high. */
+.lintje-badge__value { text-box: trim-both cap alphabetic; }
 
 /* Neutral: a line and a word, for what has not started. Subtle: the gray surface, for what is over. */
 .lintje-badge--neutral {
@@ -48,19 +51,18 @@
   background: currentColor;
 }
 
-/* The quiet counter. The 2 px at its foot lift the figure 1 px: the house font's digits sit low. */
+/* The quiet counter. */
 .lintje-badge--count,
 .lintje-badge--unread {
   min-width: 1.5rem;
-  padding: 0 var(--space-1) 2px;
+  padding: 0 var(--space-1);
 }
 .lintje-badge--count {
   background: var(--color-bg-subtle);
   color: var(--color-text-primary);
   border-color: var(--color-border-default);
 }
-/* Smaller than a label: it sits on a glyph's corner and must not cover it. At 12 px the
-   digits need no lift. */
+/* Smaller than a label: it sits on a glyph's corner and must not cover it. */
 .lintje-badge--unread {
   height: 1.25rem; min-width: 1.25rem;
   padding: 0 var(--space-1);

@@ -184,7 +184,7 @@ export class LintjeTextEditor extends LintjeInputElement {
   }
 
   private onFocusOut(event: FocusEvent): void {
-    if (this.disabled) return
+    if (this.isDisabled) return
     const next = event.relatedTarget as Node | null
     const stays = next !== null && this.renderRoot.contains(next)
     if (event.target === this.surface || !stays) this.settle(!stays)
@@ -199,7 +199,7 @@ export class LintjeTextEditor extends LintjeInputElement {
   }
 
   private apply(format: EditorFormat): void {
-    if (this.disabled) return
+    if (this.isDisabled) return
     if (format === 'link') return this.link()
     this.restore()
     exec('defaultParagraphSeparator', 'p')
@@ -326,7 +326,7 @@ export class LintjeTextEditor extends LintjeInputElement {
       aria-label=${tool.label}
       aria-pressed=${pressed ? 'true' : 'false'}
       aria-disabled=${idle ? 'true' : nothing}
-      ?disabled=${this.disabled}
+      ?disabled=${this.isDisabled}
       @mousedown=${(event: MouseEvent) => event.preventDefault()}
       @click=${() => {
         this.toolIndex = index
@@ -344,7 +344,7 @@ export class LintjeTextEditor extends LintjeInputElement {
         class=${classMap({
           'lintje-text-editor': true,
           'is-error': Boolean(this.error),
-          'is-disabled': this.disabled,
+          'is-disabled': this.isDisabled,
         })}
       >
         <div
@@ -387,9 +387,9 @@ export class LintjeTextEditor extends LintjeInputElement {
           aria-describedby=${this.describedBy}
           aria-invalid=${this.error ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
-          aria-disabled=${this.disabled ? 'true' : nothing}
-          contenteditable=${this.disabled ? 'false' : 'true'}
-          tabindex=${this.disabled ? '-1' : '0'}
+          aria-disabled=${this.isDisabled ? 'true' : nothing}
+          contenteditable=${this.isDisabled ? 'false' : 'true'}
+          tabindex=${this.isDisabled ? '-1' : '0'}
           @keydown=${this.onSurfaceKeydown}
           @paste=${this.onPaste}
         ></div>
