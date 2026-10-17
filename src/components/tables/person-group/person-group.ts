@@ -16,8 +16,7 @@ import '../person/person'
 import '../../overlays/popover/popover'
 import type { Person } from '../../../types'
 import personGroupCss from './person-group.css?inline'
-
-let instances = 0
+import { uniqueId } from '../../../core/id'
 
 /** "1 persoon", "6 personen". */
 const count = (n: number): string => `${n} ${n === 1 ? 'persoon' : 'personen'}`
@@ -53,7 +52,7 @@ export class LintjePersonGroup extends LintjeElement {
   /** Whether the list stands open. */
   open: boolean = false
 
-  readonly #listId = `lintje-person-group-${++instances}`
+  readonly #listId = uniqueId('lintje-person-group')
 
   /** Where two circles overlap; the button keeps the room they take when they spread. */
   #overlaps = 0

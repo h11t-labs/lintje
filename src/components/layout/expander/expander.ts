@@ -14,13 +14,9 @@ import { define } from '../../../core/element'
 import { LintjeGridItemElement } from '../../shared/grid-item-element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles } from '../../../icons/render'
-import {
-  DisclosureSettle,
-  disclosureBody,
-  disclosureHeader,
-  nextDisclosureId,
-} from '../../shared/disclosure'
-import type { HeadingLevel } from '../../shared/empty-state-block'
+import { DisclosureSettle, disclosureBody, disclosureHeader } from '../../shared/disclosure'
+import { uniqueId } from '../../../core/id'
+import type { HeadingLevel } from '../../shared/heading'
 import disclosureCss from '../../shared/disclosure.css?inline'
 
 export class LintjeExpander extends LintjeGridItemElement {
@@ -54,7 +50,7 @@ export class LintjeExpander extends LintjeGridItemElement {
   /** The title's heading level, 2 to 6; `h3` when unset. */
   declare level?: HeadingLevel
 
-  readonly #bodyId = nextDisclosureId()
+  readonly #bodyId = uniqueId('lintje-disclosure')
   readonly #settle = new DisclosureSettle(this)
 
   protected override updated(changed: PropertyValues<this>): void {

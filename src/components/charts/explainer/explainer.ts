@@ -16,12 +16,8 @@ import { define, type FrameSettings } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { LintjeGridItemElement, spanStyles } from '../../shared/grid-item-element'
 import { iconStyles } from '../../../icons/render'
-import {
-  DisclosureSettle,
-  disclosureBody,
-  disclosureHeader,
-  nextDisclosureId,
-} from '../../shared/disclosure'
+import { DisclosureSettle, disclosureBody, disclosureHeader } from '../../shared/disclosure'
+import { uniqueId } from '../../../core/id'
 import disclosureCss from '../../shared/disclosure.css?inline'
 import explainerCss from './explainer.css?inline'
 import type { ExplainerData } from '../../../types'
@@ -47,7 +43,7 @@ export class LintjeExplainer extends LintjeGridItemElement {
   // A new `defaultOpen` re-opens or re-closes.
   #basis: boolean | undefined | null = null
 
-  readonly #bodyId = nextDisclosureId()
+  readonly #bodyId = uniqueId('lintje-disclosure')
   readonly #settle = new DisclosureSettle(this)
 
   protected override get dataSettings(): FrameSettings | undefined {

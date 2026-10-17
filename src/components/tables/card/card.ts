@@ -23,6 +23,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { isPlainClick } from '../../../core/links'
 import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
+import { renderHeading } from '../../shared/heading'
 import { LiveMessage } from '../../shared/live-message'
 import { TONE_ICON, type Tone } from '../../shared/tone'
 import { iconStyles, renderIcon } from '../../../icons/render'
@@ -222,19 +223,13 @@ export class LintjeCard extends LintjeElement {
     ></lintje-icon-button>`
   }
 
-  private heading(content: TemplateResult): TemplateResult {
-    if (this.headingLevel === 2) return html`<h2 class="lintje-card__title">${content}</h2>`
-    if (this.headingLevel === 4) return html`<h4 class="lintje-card__title">${content}</h4>`
-    return html`<h3 class="lintje-card__title">${content}</h3>`
-  }
-
   private renderTitle(data: CardData): TemplateResult {
     const content = data.href
       ? html`<a class="lintje-card__link" href=${data.href} @click=${this.onTitleClick}
           >${data.title}</a
         >`
       : html`${data.title}`
-    return this.heading(content)
+    return renderHeading(this.headingLevel, 'lintje-card__title', content)
   }
 
   private renderStatus(status: CardStatus): TemplateResult {

@@ -7,7 +7,7 @@ import { resolve as resolvePath } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { registerShortcut, shortcuts } from '../../../core/shortcuts'
 import './app-search'
-import { resultsMessage, splitMatch, type LintjeAppSearch, type SearchGroup } from './app-search'
+import { resultsMessage, type LintjeAppSearch, type SearchGroup } from './app-search'
 
 const GROUPS: SearchGroup[] = [
   {
@@ -45,14 +45,7 @@ const key = (element: LintjeAppSearch, name: string): void => {
 }
 
 describe('helpers', () => {
-  it('splits a label around the term, without case', () => {
-    expect(splitMatch('Teamoverleg 2 oktober', 'teamoverleg')).toEqual([
-      '',
-      'Teamoverleg',
-      ' 2 oktober',
-    ])
-    expect(splitMatch('Nieuwe opname', 'xyz')).toBeNull()
-    expect(splitMatch('Nieuwe opname', '  ')).toBeNull()
+  it('says how many results there are, or that there are none', () => {
     expect(resultsMessage(3, 'team', false)).toBe('3 resultaten')
     expect(resultsMessage(0, 'teamoverlg', false)).toBe('Geen resultaten voor “teamoverlg”')
   })
