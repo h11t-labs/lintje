@@ -51,7 +51,7 @@
 .lintje-list__row.is-static:hover { background: none; }
 .lintje-list__row.is-selected {
   background: var(--color-bg-selected);
-  box-shadow: inset 4px 0 0 var(--color-accent-line);
+  box-shadow: inset 4px 0 0 var(--color-selected-edge);
 }
 /* The ring goes inside the whole row: the outside would be cut off by the list's container. */
 .lintje-list__row:has(.lintje-list__title:focus-visible) {

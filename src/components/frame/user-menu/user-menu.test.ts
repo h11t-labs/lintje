@@ -118,6 +118,9 @@ describe('lintje-user-menu', () => {
     document.body.append(dialog)
     const inDialog = dialog.querySelector('button')!
     inDialog.focus()
+    // The focus leaving closed it; open again to see the Escape.
+    element.open = true
+    await element.updateComplete
     inDialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
     await element.updateComplete
     expect(element.open).toBe(true)
@@ -150,5 +153,37 @@ describe('lintje-user-menu', () => {
     expect(root.querySelector('lintje-popover')).toBeNull()
     expect(root.querySelector('[role="menuitem"]')).toBeNull()
     expect(root.querySelectorAll('.lintje-menu__row')).toHaveLength(4)
+  })
+})
+
+describe('lintje-user-menu variant="side"', () => {
+  it('shows the name and role beside the avatar and opens the menu above it', async () => {
+    const element = await mount({ variant: 'side' })
+    const button = trigger(element)
+    expect(button.classList.contains('lintje-user-menu__trigger--side')).toBe(true)
+    expect(button.querySelector('.lintje-user-menu__trigger-name')!.textContent).toBe('J. de Vries')
+    // The name it shows is its name; the role describes it.
+    expect(button.hasAttribute('aria-label')).toBe(false)
+    expect(button.getAttribute('aria-describedby')).toBeTruthy()
+    const popover = element.shadowRoot!.querySelector('lintje-popover')!
+    expect(popover.getAttribute('placement')).toBe('top-start')
+  })
+
+  it('says when it opens and closes, so the side menu can hold its rail', async () => {
+    const element = await mount({ variant: 'side' })
+    const said: boolean[] = []
+    element.addEventListener('lintje-toggle', (event) =>
+      said.push((event as CustomEvent<{ open: boolean }>).detail.open),
+    )
+    trigger(element).click()
+    await element.updateComplete
+    trigger(element).click()
+    await element.updateComplete
+    expect(said).toEqual([true, false])
+  })
+
+  it('folds to the avatar in the folded rail', async () => {
+    const element = await mount({ variant: 'side', folded: true })
+    expect(trigger(element).classList.contains('is-folded')).toBe(true)
   })
 })

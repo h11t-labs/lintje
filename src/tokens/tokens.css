@@ -38,8 +38,11 @@
   --alpha-white-45: rgba(255, 255, 255, 0.45);
 
   /* --- Focus -------------------------------------------------------------
-     Its own constant: it must not move with the accent or the attention status. */
+     Its own constant: it must not move with the accent or the attention status. The orange is
+     3.22:1 on white and falls short on the light grey surfaces and the status tints; the deep
+     orange is the smallest share of black that reaches 3:1 on all of them. */
   --focus-orange: #E17000;
+  --focus-orange-deep: color-mix(in srgb, var(--focus-orange), black 9%);
 
   /* --- The ribbon --------------------------------------------------------
      Lintblauw, and the Rijkshuisstijl's own lighter tint for the ribbon in the logo in dark. */
@@ -48,7 +51,7 @@
 
   /* --- Data (fixed Rijkshuisstijl, identical in light, dark and every theme)
      The two grays follow the mode: as fixed literals the comparison line landed at 2.69:1
-     on the dark surface. Light #475569 / #94A3B8, dark #B0B0B0 / #7A7A7A. The variables
+     on the dark surface. Light #475569 / #94A3B8, dark #B0B0B0 / #808080. The variables
      stand in the order of `tokens/colors.ts`, the one list of their names. */
   --data-sky-blue: #007BC7;
   --data-dark-yellow: #FFB612;
@@ -353,6 +356,7 @@
   --radius-round: 50%;
 
   --shadow-sticky: 0 2px 6px var(--alpha-black-08);
+  --shadow-sticky-up: 0 -2px 6px var(--alpha-black-08);
   --shadow-popover: 0 4px 16px var(--alpha-black-14);
   --shadow-nav: 2px 0 8px var(--alpha-black-08);
   --shadow-chart-hover: 0 1px 4px var(--alpha-black-22);
@@ -456,7 +460,7 @@
   --color-accent-line: var(--primary);
   --color-accent-text: var(--primary);
 
-  --color-focus: var(--focus-orange);
+  --color-focus: var(--focus-orange-deep);
 
   /* --- Semantic: status -------------------------------------------------- */
   --color-attention: var(--status-attention);
@@ -502,7 +506,9 @@
   /* The theme's ACCENT, not the attention status: on `defensie` the menu is `#E17000` and the
      status colour made the band disappear. `--accent` is document level only. */
   --color-nav-environment-bg: var(--accent);
-  --color-nav-environment-text: var(--color-text-on-fill);
+  /* White is 3.22:1 on the orange accent, ink 3.96:1 on Defensie's blue: above lightness 0.6 the
+     word is ink (`--ink-black`, written as its oklch), below it white. */
+  --color-nav-environment-text: oklch(from var(--accent) clamp(0.208, (0.6 - l) * 1000, 1) clamp(0, (l - 0.6) * 1000, 0.04) 265.8);
   /* The page's surface in both modes. The navigation bar under it is the menu turned a quarter,
      on `--color-nav-*`. */
   --color-logobar-bg: var(--color-bg-surface);
@@ -515,11 +521,9 @@
   --color-navbar-active: var(--primary-hover);
   --color-navbar-active-edge: var(--ink-white);
   --color-navbar-open-text: var(--color-accent-text);
-  /* The start page's band is the primary's wash, so it never reads as the menu. The orange ring
-     misses 3:1 on it; the ring takes the text colour. */
+  /* The start page's band is the primary's wash, so it never reads as the menu. */
   --color-hero-bg: var(--primary-wash);
   --color-hero-text: var(--color-text-primary);
-  --color-hero-focus: var(--color-text-primary);
   /* The site's foot stands on the menu's own fill, as on rijksoverheid.nl; in dark it follows the menu. */
   --color-footer-bg: var(--color-nav-bg);
   --color-footer-text: var(--color-nav-text);
@@ -532,6 +536,12 @@
   --color-choice-active-bg: var(--primary-wash);
   /* The 2 px line under a term; dark takes the text tint, as the line tint falls short on it. */
   --color-term-line: var(--color-accent-line);
+  /* The 4 px edge of a chosen row; dark takes the text tint, as the line tint falls short on the
+     selected surface. */
+  --color-selected-edge: var(--color-accent-line);
+  /* The empty part of a progress bar. Light keeps the border grey: the inset grey vanishes on
+     white; dark sinks it, so every fill reaches 3:1 on it. */
+  --color-progress-track: var(--color-border-default);
 
   /* --- Data colors ------------------------------------------------------- */
   /* One colour per variable, named after the Rijkshuisstijl colour. */
@@ -770,6 +780,9 @@
     --color-border-popover: var(--neutral-3);
     --color-nav-line: var(--neutral-2);
     --color-nav-disabled: var(--neutral-4);
+    /* The deep orange falls under 3:1 on the dark warning tint; the house orange reaches 3.3:1 on
+       every dark surface. */
+    --color-focus: var(--focus-orange);
     /* The menu is neutral here, so its ring is the orange of every other surface. */
     --color-focus-on-theme: var(--color-focus);
     /* The choice edge keeps neutral-4 in dark: it already reaches 3:1 there (3.43:1 on #282828). */
@@ -778,14 +791,19 @@
     /* A term's box is the subtle surface: behind a word on #282828 the dark wash would be a hole. */
     --color-term-bg: var(--neutral-2);
     --color-choice-active-bg: var(--neutral-2);
-    --color-hero-focus: var(--color-focus);
     --color-term-line: var(--primary-tint-text);
+    --color-selected-edge: var(--primary-tint-text);
+    --color-progress-track: var(--color-bg-inset);
 
     /* Yellow as text works on the dark surface, so the dark gold is not needed. */
     --color-chart-dark-yellow-text: var(--data-dark-yellow);
+    /* A label on "Overig" is ink: neutral-4 holds it at 4.16:1, so the gray takes the smallest
+       share of neutral-5 that reaches 4.5:1. */
+    --data-other: color-mix(in srgb, var(--neutral-5) 11%, var(--neutral-4));
     --color-map-water: var(--neutral-1);
 
     --shadow-sticky: 0 2px 6px var(--alpha-black-40);
+    --shadow-sticky-up: 0 -2px 6px var(--alpha-black-40);
     --shadow-popover: 0 4px 16px var(--alpha-black-55);
     --shadow-nav: 2px 0 8px var(--alpha-black-40);
     --shadow-chart-hover: 0 1px 4px var(--alpha-black-60);

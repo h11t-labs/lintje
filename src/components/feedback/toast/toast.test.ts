@@ -156,6 +156,44 @@ describe('lintje-toast', () => {
     expect(focusAtClose).toBe(before)
   })
 
+  it.each([
+    ['error', undefined],
+    ['warning', undefined],
+    ['ok', 'Ongedaan maken'],
+  ] as const)('stays open on an Escape elsewhere: %s', async (kind, action) => {
+    const elsewhere = document.createElement('button')
+    document.body.append(elsewhere)
+    const { toast, closed } = await mount(action, kind)
+    toast.filled = true
+    await toast.updateComplete
+    elsewhere.focus()
+    elsewhere.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true }),
+    )
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    expect(closed()).toBe(0)
+  })
+
+  it.each(['.lintje-toast__close', '.lintje-toast__action'])(
+    'closes on an Escape from %s, and the Escape goes no further',
+    async (selector) => {
+      const { toast, closed } = await mount('Ongedaan maken', 'error')
+      toast.filled = true
+      await toast.updateComplete
+      let heard = 0
+      const listen = (): number => heard++
+      document.addEventListener('keydown', listen)
+      const button = toast.shadowRoot!.querySelector<HTMLButtonElement>(selector)!
+      button.focus()
+      button.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true }),
+      )
+      document.removeEventListener('keydown', listen)
+      expect(closed()).toBe(1)
+      expect(heard).toBe(0)
+    },
+  )
+
   it('gives the focus to the main region when the earlier element is gone', async () => {
     const main = document.createElement('main')
     main.tabIndex = -1

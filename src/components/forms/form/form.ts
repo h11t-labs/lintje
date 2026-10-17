@@ -4,7 +4,8 @@
  *
  * Its `<form>` is in the shadow root, so slotted fields have no form owner: Enter and a submit
  * button reach it through the element's own handlers, once. It stops `lintje-values-change`, so
- * form input never reaches the URL.
+ * form input never reaches the URL. A choice group's "Anders" text is a value of its own, under
+ * `<name>-other`, in the draft, the submit and `errors.fields`.
  *
  * Events: `lintje-submit` `{ values }`, `lintje-invalid` `FormErrors`, `lintje-dirty-change`
  * `boolean`.
@@ -23,13 +24,18 @@ import { shadowCss } from '../../../core/styles'
 import type { ErrorSummaryItem, LintjeErrorSummary } from '../error-summary/error-summary'
 import type { FormActionsState } from '../form-actions/form-actions'
 import {
+  OTHER_SUFFIX,
   PropertyHold,
   announces,
+  controlForKey,
   controlName,
+  holdsOther,
   namedControls,
   namedControlsIn,
+  otherChosen,
   readControl,
   writeControl,
+  type OtherHolder,
 } from '../../shared/controls'
 import '../error-summary/error-summary'
 import '../form-actions/form-actions'
@@ -64,17 +70,42 @@ const ONE_LINE = new Set([
   'time',
 ])
 
+/** A host's own `aria-description` on a native field, kept while the form's message replaces it. */
+const ownDescription = new WeakMap<HTMLElement, string | null>()
+
 /**
  * A native field slotted into the form has no error line of its own: it is marked invalid and
- * its message stands in the summary. A `lintje-*` input draws its own.
+ * carries its message as `aria-description`, since `aria-describedby` cannot reach into the
+ * form's shadow root. A `lintje-*` input draws its own.
  */
-function markInvalid(control: HTMLElement, invalid: boolean): void {
+function markInvalid(control: HTMLElement, message: string): void {
   if (control.localName.includes('-')) return
-  if (invalid) control.setAttribute('aria-invalid', 'true')
-  else control.removeAttribute('aria-invalid')
+  if (message) {
+    if (!ownDescription.has(control))
+      ownDescription.set(control, control.getAttribute('aria-description'))
+    control.setAttribute('aria-invalid', 'true')
+    control.setAttribute('aria-description', message)
+    return
+  }
+  control.removeAttribute('aria-invalid')
+  if (!ownDescription.has(control)) return
+  const own = ownDescription.get(control)
+  ownDescription.delete(control)
+  if (own == null) control.removeAttribute('aria-description')
+  else control.setAttribute('aria-description', own)
 }
 
 const same = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b)
+
+/**
+ * A repeater has no name but adds and removes rows: `busy` disables it with the fields, and it
+ * passes that on to its rows and its add button. Not every `disabled`: the action bar holds its own.
+ */
+function repeatersIn(node: Node): HTMLElement[] {
+  if (!(node instanceof HTMLElement)) return []
+  const own = node.localName === 'lintje-repeater' ? [node] : []
+  return [...own, ...node.querySelectorAll<HTMLElement>('lintje-repeater')]
+}
 
 /** The stored draft, or `null` when there is none, it is unreadable, or it is older than `ttl` hours. */
 export function readDraft(
@@ -138,11 +169,21 @@ export class LintjeForm extends LintjeElement {
   readonly #fields = new MutationObserver((records) => {
     const added: HTMLElement[] = []
     const removed: HTMLElement[] = []
+    const repeaters: HTMLElement[] = []
     for (const record of records) {
-      for (const node of record.addedNodes) added.push(...namedControlsIn(node))
+      for (const node of record.addedNodes) {
+        added.push(...namedControlsIn(node))
+        repeaters.push(...repeatersIn(node))
+      }
       for (const node of record.removedNodes) removed.push(...namedControlsIn(node))
     }
     this.#adopt(added.filter((control) => this.contains(control)))
+    if (this.busy) {
+      this.#fieldsDisabled.apply(
+        repeaters.filter((repeater) => this.contains(repeater)),
+        true,
+      )
+    }
     // A node that moved inside the form is reported removed and added: it stays.
     const present = new Set(namedControls(this).map(controlName))
     for (const control of removed) {
@@ -162,11 +203,27 @@ export class LintjeForm extends LintjeElement {
     const value = (event as CustomEvent).detail
     // A field that leaves its value to its host gets it back here: the form is that host.
     if (!same(readControl(control), value)) writeControl(control, value)
-    if (same(value, this.values[name])) delete this.#draft[name]
-    else this.#draft[name] = value
-    this.#storeDraft()
+    this.#keep(name, value)
     this.#clearError(name, control)
+    // The text of "Anders" no longer counts once it is not chosen, nor does its message.
+    if (holdsOther(control) && !otherChosen(value)) this.#clearError(name + OTHER_SUFFIX)
     this.#settle('dirty')
+  }
+
+  readonly #onOtherChange = (event: Event): void => {
+    const control = event.target as HTMLElement
+    const name = controlName(control)
+    if (control === this || !name) return
+    const key = name + OTHER_SUFFIX
+    this.#keep(key, (event as CustomEvent<string>).detail)
+    this.#clearError(key)
+    this.#settle('dirty')
+  }
+
+  #keep(key: string, value: unknown): void {
+    if (same(value, this.values[key])) delete this.#draft[key]
+    else this.#draft[key] = value
+    this.#storeDraft()
   }
 
   readonly #onValuesChange = (event: Event): void => {
@@ -217,6 +274,7 @@ export class LintjeForm extends LintjeElement {
   override connectedCallback(): void {
     super.connectedCallback()
     this.addEventListener('lintje-change', this.#onChange)
+    this.addEventListener('lintje-other-change', this.#onOtherChange)
     this.addEventListener('lintje-values-change', this.#onValuesChange)
     this.addEventListener('keydown', this.#onKeyDown)
     this.addEventListener('click', this.#onClick)
@@ -226,6 +284,7 @@ export class LintjeForm extends LintjeElement {
   override disconnectedCallback(): void {
     this.#fields.disconnect()
     this.removeEventListener('lintje-change', this.#onChange)
+    this.removeEventListener('lintje-other-change', this.#onOtherChange)
     this.removeEventListener('lintje-values-change', this.#onValuesChange)
     this.removeEventListener('keydown', this.#onKeyDown)
     this.removeEventListener('click', this.#onClick)
@@ -235,24 +294,36 @@ export class LintjeForm extends LintjeElement {
     super.disconnectedCallback()
   }
 
-  /** The values to send: `values` with the draft over it; silent and native controls are read. */
+  /**
+   * The values to send: `values` with the draft over it; silent and native controls are read. A
+   * group with "Anders" adds `<name>-other`: its text while "Anders" is chosen, else `null`.
+   */
   collect(): FormValues {
     const values: FormValues = { ...this.values, ...this.#draft }
     for (const control of namedControls(this)) {
       const name = controlName(control)
       if (!announces(control) || !(name in values)) values[name] = readControl(control)
+      if (!holdsOther(control)) continue
+      const key = name + OTHER_SUFFIX
+      const text = key in values ? values[key] : control.otherText
+      values[key] = otherChosen(values[name]) ? (text ?? '') : null
     }
     return values
   }
 
-  /** Drops a field from `values` and the draft; the form does this when a named field leaves. */
+  /**
+   * Drops a field from `values` and the draft, with its "Anders" text; the form does this when a
+   * named field leaves.
+   */
   forget(name: string): void {
-    const inValues = name in this.values
-    if (!inValues && !(name in this.#draft)) return
-    delete this.#draft[name]
-    if (inValues) {
+    const keys = [name, name + OTHER_SUFFIX].filter(
+      (key) => key in this.values || key in this.#draft,
+    )
+    if (!keys.length) return
+    for (const key of keys) delete this.#draft[key]
+    if (keys.some((key) => key in this.values)) {
       const values = { ...this.values }
-      delete values[name]
+      for (const key of keys) delete values[key]
       this.#quiet = true
       this.values = values
     }
@@ -322,10 +393,7 @@ export class LintjeForm extends LintjeElement {
   #adopt(controls: HTMLElement[]): void {
     if (!controls.length || !this.hasUpdated) return
     const values = { ...this.values, ...this.#draft }
-    for (const control of controls) {
-      const name = controlName(control)
-      if (name in values) writeControl(control, values[name])
-    }
+    for (const control of controls) this.#write(control, values)
     if (this.busy) this.#fieldsDisabled.apply(controls, true)
     if (this.#mobile.matches) {
       this.#stacked.apply(
@@ -384,18 +452,26 @@ export class LintjeForm extends LintjeElement {
 
   #writeFields(): void {
     const values = { ...this.values, ...this.#draft }
-    for (const control of namedControls(this)) {
-      const name = controlName(control)
-      if (name in values) writeControl(control, values[name])
-    }
+    for (const control of namedControls(this)) this.#write(control, values)
   }
 
-  #clearError(name: string, control: HTMLElement): void {
-    if (!this.errors?.fields[name]) return
+  #write(control: HTMLElement, values: FormValues): void {
+    const name = controlName(control)
+    if (name in values) writeControl(control, values[name])
+    const key = name + OTHER_SUFFIX
+    if (holdsOther(control) && key in values) control.otherText = String(values[key] ?? '')
+  }
+
+  /** Takes the message under `key` away, from the errors and from `control`, else its field. */
+  #clearError(key: string, control?: HTMLElement): void {
+    if (!this.errors?.fields[key]) return
     const fields = { ...this.errors.fields }
-    delete fields[name]
-    if ('error' in control) (control as unknown as { error?: string }).error = undefined
-    else markInvalid(control, false)
+    delete fields[key]
+    const found = control ? { control, other: false } : controlForKey(namedControls(this), key)
+    if (found?.other) (found.control as HTMLElement & OtherHolder).otherError = undefined
+    else if (found && 'error' in found.control)
+      (found.control as unknown as { error?: string }).error = undefined
+    else if (found) markInvalid(found.control, '')
     this.#clearing = true
     this.errors = { ...this.errors, fields }
   }
@@ -409,11 +485,19 @@ export class LintjeForm extends LintjeElement {
       const message = fields[name]
       if ('error' in control)
         (control as unknown as { error?: string }).error = message || undefined
-      else markInvalid(control, Boolean(message))
+      else markInvalid(control, message ?? '')
+      const label = (control as unknown as { label?: string }).label || undefined
       if (message && !placed.has(name)) {
         placed.add(name)
-        const label = (control as unknown as { label?: string }).label
-        items.push({ field: name, label: label || undefined, message })
+        items.push({ field: name, label, message })
+      }
+      if (!holdsOther(control)) continue
+      const key = name + OTHER_SUFFIX
+      const other = fields[key]
+      control.otherError = other || undefined
+      if (other && !placed.has(key)) {
+        placed.add(key)
+        items.push({ field: key, label, message: other })
       }
     }
     for (const [name, message] of Object.entries(fields)) {
@@ -456,8 +540,9 @@ export class LintjeForm extends LintjeElement {
     if (changed.has('values') && !this.#quiet) this.#writeFields()
     this.#quiet = false
     if (changed.has('busy')) {
-      if (this.busy) this.#fieldsDisabled.apply(namedControls(this), true)
-      else {
+      if (this.busy) {
+        this.#fieldsDisabled.apply([...namedControls(this), ...repeatersIn(this)], true)
+      } else {
         this.#fieldsDisabled.release()
         this.#restoreFocus()
       }

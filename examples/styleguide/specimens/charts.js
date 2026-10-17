@@ -1,6 +1,7 @@
 // The charts category (Kerncijfers en grafieken): the specimens of its elements.
 import { CHART_KINDS, CHART_QUESTIONS } from '../../../dist-elements/lintje.js'
 import { meta, number, daily, heatmap, desks, breakdowns, hourly } from '../../_data/load.js'
+import { linkLog } from '../shared.js'
 
 const kpi = meta.kpi
 
@@ -237,6 +238,16 @@ const CHARTS = [
     },
   },
   {
+    id: 'bar-trend-gap', title: 'Staven met een onderbroken trendlijn',
+    description: 'Afgehandelde aanvragen per dag deze week, met de vorige week als trendlijn. Van woensdag en zaterdag vorige week zijn geen gegevens, dus daar breekt de trendlijn.',
+    spec: {
+      kind: 'bar', labels: weekdays, values: daily.map((row) => row.requests),
+      axisTitle: 'Afgehandelde aanvragen per dag',
+      // Wednesday and Saturday are missing: two pieces of line and a lone point on Sunday.
+      trend: daily.map((row, i) => (i === 2 || i === 5 ? null : row.requests_last_week)),
+    },
+  },
+  {
     id: 'horizontal-bar', title: 'Horizontale staven met norm',
     description: 'Wachttijd in het laatste uur per loket, tegen de norm van 15 minuten.',
     spec: {
@@ -282,6 +293,19 @@ const CHARTS = [
     },
   },
   {
+    id: 'stacked-bar-other', title: 'Gestapelde staven met overig en de rest',
+    description: 'Aanvragen per maand naar stand: toegekend, overig en nog open, als aandeel van alle aanvragen.',
+    spec: {
+      kind: 'stacked-bar', labels: ['jan', 'feb', 'mrt', 'apr'],
+      axisTitle: 'Aandeel per stand', normalized: true,
+      series: [
+        { label: 'Toegekend', values: [48, 52, 57, 63], color: 'sky-blue' },
+        { label: 'Overig', values: [22, 20, 18, 17], color: 'other' },
+        { label: 'Nog open', values: [30, 28, 25, 20], color: 'remainder' },
+      ],
+    },
+  },
+  {
     id: 'stacked-area', title: 'Aanvragen per kanaal',
     subtitle: 'Per week, week 24 tot en met 35',
     description: 'Aanvragen per week naar kanaal, week 24 tot en met 35. Online groeit van 610 naar 735, balie, post en telefoon dalen licht. Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
@@ -313,6 +337,20 @@ const CHARTS = [
     spec: {
       kind: 'pie', labelHeader: 'Grond', color: 'dark-blue',
       segments: breakdown('rejection_grounds').map((row) => ({ label: row.label, value: row.value })),
+    },
+  },
+  {
+    id: 'pie-legend', title: 'Taart zonder legendatabel',
+    description: 'Aanvragen naar kanaal: online 412, balie 236, telefoon 158, post 61, overig 33.',
+    spec: {
+      kind: 'pie', legendTable: false,
+      segments: [
+        { label: 'Balie', value: 236 },
+        { label: 'Online', value: 412 },
+        { label: 'Overig', value: 33 },
+        { label: 'Post', value: 61 },
+        { label: 'Telefoon', value: 158 },
+      ],
     },
   },
   {
@@ -384,6 +422,16 @@ const CHARTS = [
     },
   },
   {
+    id: 'heatmap-labels', title: 'Heatmap met lange rijlabels',
+    description: 'Wachtenden per loket in de ochtend. Een lange naam staat heel in de tooltip, en loopt op een telefoon door.',
+    spec: {
+      kind: 'heatmap', columnLabels: ['9:00', '10:00', '11:00'],
+      rowLabels: ['Servicepunt in het gemeentehuis van de oostelijke wijken', 'Servicepunt west', 'Stadskantoor'],
+      values: [[12, 18, 9], [6, 11, 14], [8, 7, 10]],
+      unit: 'wachtenden',
+    },
+  },
+  {
     id: 'histogram', title: 'Doorlooptijd van aanvragen',
     description: 'Doorlooptijd van 1.900 afgehandelde aanvragen in klassen van twee dagen. De mediaan is 9,6 dagen, de termijn 21 dagen; 153 aanvragen duurden 22 dagen of langer.',
     spec: processingTime(processingDays),
@@ -395,15 +443,18 @@ const VARIANT_NAMES = {
   line: 'Met vergelijking en peilmoment',
   'line-events': 'Met gebeurtenissen',
   bar: 'Met trendlijn',
+  'bar-trend-gap': 'Trendlijn met ontbrekende dagen',
   'horizontal-bar': 'Met norm',
   'target-progress': 'Tegen een doel van 100 %',
   'grouped-bar': 'Twee reeksen per groep',
   'stacked-bar': 'In aantallen',
   'stacked-bar-normalized': 'Op 100 %',
+  'stacked-bar-other': 'Met overig en de rest',
   'stacked-area': 'Per kanaal met een ontbrekende week',
   pie: 'Taart',
   donut: 'Donut met legendatabel',
   'pie-color': 'In de kleur van haar variabele',
+  'pie-legend': 'Zonder legendatabel',
   'pie-folded': 'Meer dan vijf delen',
   'donut-remainder': 'Donut met de rest van een geheel',
   'dual-axis': 'Aantallen en wachttijd met norm',
@@ -411,14 +462,18 @@ const VARIANT_NAMES = {
   radar: 'Eén variabele met vergelijking en norm',
   'radar-layers': 'Drie lagen',
   heatmap: 'Met klassenlegenda',
+  'heatmap-labels': 'Met lange rijlabels',
   histogram: 'Met mediaan en termijn',
 }
 
 // What a label cannot say, for the note under it.
 const VARIANT_NOTES = {
+  'heatmap-labels': 'Met een aanwijzer staat een lange naam heel in de tooltip; zonder hover en op een telefoon loopt hij door.',
   line: 'De laatste twee uren zijn nog niet compleet en staan gearceerd.',
+  'bar-trend-gap': 'Van woensdag en zaterdag vorige week zijn geen gegevens; daar breekt de trendlijn.',
   'stacked-area': 'Van de post in week 29 zijn geen gegevens, dus die week ontbreekt het totaal.',
   'pie-folded': 'De taart houdt de vier grootste delen en vouwt de rest in “Overig”.',
+  'pie-legend': 'De legenda staat boven de taart; aantal en aandeel staan in de tooltip.',
   'radar-layers': 'Wijs een regio aan in de legenda: haar vlak kleurt en de andere lagen stappen terug.',
 }
 
@@ -489,6 +544,30 @@ const tableSwitch = {
 // Missing is never zero (rule 15): a line breaks at the gap, a bar's slot is hatched. Two lines
 // in colour carry their colour's shape at the end (rule 13); the dark yellow one is edged.
 const share = (part) => daily.map((row, i) => (i === 3 ? null : Math.round(row.requests * part)))
+
+// A bar per day with its own `href`: where a click on it goes, shown under the specimen.
+const linkedMarks = [
+  {
+    kind: 'bar',
+    label: 'Staven met een link',
+    note: 'Elke staaf heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad.',
+    html: TILE,
+    setup(stage) {
+      const element = stage.querySelector('lintje-chart')
+      element.data = {
+        chart: {
+          kind: 'bar', labels: weekdays, values: daily.map((row) => row.requests),
+          axisTitle: 'Afgehandelde aanvragen per dag',
+          links: weekdays.map((day) => ({ id: day, href: `?dag=${encodeURIComponent(day)}` })),
+        },
+        description: 'Afgehandelde aanvragen per dag deze week; elke staaf opent die dag.',
+        title: 'Aanvragen per dag',
+        footnote: 'Bron: fictieve demogegevens',
+      }
+      linkLog(stage, element, ['lintje-mark-select'])
+    },
+  },
+]
 
 const missingValues = [
   {
@@ -680,6 +759,7 @@ export default {
           specimens: [
             ...CHARTS.filter((chart) => chart.spec.kind === kind).map(chartSpecimen),
             ...missingValues.filter((specimen) => specimen.kind === kind),
+            ...linkedMarks.filter((specimen) => specimen.kind === kind),
           ],
         })),
       },

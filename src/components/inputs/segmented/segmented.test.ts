@@ -22,6 +22,20 @@ async function mount(props: Partial<LintjeSegmented> = {}): Promise<LintjeSegmen
 const frame = (element: LintjeSegmented): HTMLElement =>
   element.renderRoot.querySelector<HTMLElement>('.lintje-segmented')!
 
+const optionButtons = (element: LintjeSegmented): HTMLButtonElement[] => [
+  ...frame(element).querySelectorAll<HTMLButtonElement>('.lintje-segmented__option'),
+]
+const nextFrame = (): Promise<void> =>
+  new Promise((resolve) => requestAnimationFrame(() => resolve()))
+
+/** What the status region says, after its fill frame. */
+async function said(element: LintjeSegmented): Promise<string> {
+  await element.updateComplete
+  await nextFrame()
+  await element.updateComplete
+  return element.renderRoot.querySelector('[role="status"]')!.textContent ?? ''
+}
+
 beforeEach(() => {
   document.body.innerHTML = ''
 })
@@ -83,5 +97,25 @@ describe('lintje-segmented', () => {
       (option) => option.querySelector('lintje-badge[variant="count"]')?.textContent,
     )
     expect(badges).toEqual(['4', '0', undefined])
+  })
+
+  it("says the description of the reader's own choice, and nothing for one without or for the host", async () => {
+    const described = [
+      { value: 'week', label: 'Week' },
+      { value: 'maand', label: 'Maand', description: 'Telt per kalendermaand.' },
+      { value: 'jaar', label: 'Jaar' },
+    ]
+    const element = await mount({ options: described })
+    optionButtons(element)[1]!.click()
+    expect(await said(element)).toBe('Telt per kalendermaand.')
+    optionButtons(element)[2]!.click()
+    expect(await said(element)).toBe('')
+
+    const quiet = await mount({ options: described })
+    quiet.value = 'maand'
+    expect(await said(quiet)).toBe('')
+    expect(frame(quiet).getAttribute('aria-describedby')).toBe(
+      quiet.renderRoot.querySelector('.lintje-segmented__description')!.id,
+    )
   })
 })
