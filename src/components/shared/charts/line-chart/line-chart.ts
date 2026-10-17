@@ -269,9 +269,12 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
           const index = controller.hoverIndex!
           const value = row.values[index]
           if (value == null || (isEarly && index > lastKnown)) return nothing
-          return svg`<circle class="lintje-chart__hover-point" r="4" fill=${colorOf(row)}
-                             cx=${xPosition(index, labels.length, area)}
-                             cy=${yPosition(value, max, area)} />`
+          const cx = xPosition(index, labels.length, area)
+          const cy = yPosition(value, max, area)
+          // A light colour keeps the dark edge its line has, over the ring in the surface.
+          const casing = lineCasing(colorOf(row))
+          return svg`<circle class="lintje-chart__hover-point" r="4" fill=${colorOf(row)} cx=${cx} cy=${cy} />
+            ${casing ? svg`<circle class="lintje-chart__hover-casing" r="4" stroke=${casing} cx=${cx} cy=${cy} />` : nothing}`
         })
       : nothing,
 
