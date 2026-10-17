@@ -21,6 +21,7 @@ import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../feedback/spinner/spinner'
 import treeViewCss from './tree-view.css?inline'
+import { titleWhenCut } from '../../shared/cut-text'
 
 export interface TreeNode {
   id: string
@@ -230,7 +231,7 @@ export class LintjeTreeView extends LintjeElement {
         }}
       >
         ${this.arrow(node)}
-        <span class="lintje-tree__label">${node.label}</span>
+        <span class="lintje-tree__label" @pointerenter=${titleWhenCut}>${node.label}</span>
         ${
           branch && !open && count
             ? html`<span class="lintje-tree__count">· ${count}</span>`

@@ -79,7 +79,7 @@ export function renderSelectionBar(
       )
   return html`<div
     class="lintje-data-table__selection ${mobile ? 'lintje-data-table__selection--mobile' : ''}"
-    role="toolbar"
+    role="group"
     aria-label="Acties op de selectie"
   >
     <!-- The table's own status region reads the count: one inserted with its bar would not be. -->

@@ -70,6 +70,24 @@ describe('the stacked bars', () => {
     ])
   })
 
+  it('writes ink on "Overig", the text colour on the rest, white on a dark colour', () => {
+    const host = draw({
+      kind: 'stacked-bar',
+      normalized: true,
+      labels: ['ma'],
+      series: [
+        { label: 'Rood', values: [40], color: 'red' },
+        { label: 'Overig', values: [30], color: 'other' },
+        { label: 'Rest', values: [30], color: 'remainder' },
+      ],
+    })
+    expect(labelClasses(host)).toEqual([
+      'lintje-chart__data-label--inside',
+      'lintje-chart__data-label--inside-light',
+      'lintje-chart__data-label--inside-text',
+    ])
+  })
+
   it('writes white on every dark data colour, the newer ones too', () => {
     const host = draw({
       kind: 'stacked-bar',

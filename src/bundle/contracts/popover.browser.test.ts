@@ -74,8 +74,6 @@ type Check =
  * matches nothing in a whole run fails too, so the fix takes its entry out.
  */
 const KNOWN: RegExp[] = [
-  // #99
-  /^lintje-popover \[focus\] :: (tab out|focus away) — still open/,
   // #98
   /^lintje-date-range \[scroller\] :: on top/,
 ]
@@ -319,6 +317,36 @@ async function openShellTool(
     surface: () => shell.shadowRoot!.querySelector(`.lintje-${tool}__popover`),
     returnsTo: button,
     opener: button,
+  }
+}
+
+/** The user menu from the side menu's foot, at the bottom of the screen: it opens above. */
+async function openShellFoot(stage: HTMLElement): Promise<Opened> {
+  // The menu is the screen's height: from the top of the page its foot is on the screen.
+  stage.style.margin = '0'
+  stage.style.width = '1100px'
+  const shell = create<Lit & { data: ShellData }>('lintje-shell')
+  shell.data = {
+    ...SHELL,
+    layout: 'side',
+    user: { name: 'Sanne de Vries', role: 'Beleidsmedewerker', initials: 'SV' },
+    userMenu: [
+      { value: 'profiel', label: 'Mijn profiel' },
+      { value: 'instellingen', label: 'Instellingen' },
+    ],
+    version: '2.4.1',
+  }
+  stage.append(shell)
+  await shell.updateComplete
+  const menu = shell.shadowRoot!.querySelector<Lit>('.lintje-nav__user-menu')!
+  await menu.updateComplete
+  const trigger = part(menu, '.lintje-user-menu__trigger')
+  await press(trigger, '{Enter}')
+  return {
+    anchor: trigger,
+    surface: () => popoverSurface(menu),
+    returnsTo: trigger,
+    opener: trigger,
   }
 }
 
@@ -652,6 +680,14 @@ const ROWS: Row[] = [
         opener: button,
       }
     },
+  },
+  {
+    name: 'lintje-shell (user menu in the side menu’s foot)',
+    onScroll: 'follows',
+    pageOnly: true,
+    opens: 'in panel',
+    shiftTab: 'closes',
+    open: openShellFoot,
   },
   ...(['side', 'top'] as const).flatMap((layout) =>
     (['view', 'share'] as const).map((tool): Row => ({

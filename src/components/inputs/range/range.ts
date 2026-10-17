@@ -77,16 +77,19 @@ export class LintjeRange extends LintjeInputElement {
     super.disconnectedCallback()
   }
 
+  // A handle always stands on a step, so `required` never holds a form back.
+  protected override get missing(): boolean {
+    return false
+  }
+
   // A value from outside ends the drag's draft.
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
     if (changed.has('value')) this.draft = null
     if (changed.has('from') || changed.has('to')) this.draftPair = null
-  }
-
-  // Fallback for when the observer never fires: an element hidden when connected (the filter
-  // sheet's controls) does not always get an entry when it appears.
-  protected override updated(): void {
+    // Fallback for when the observer never fires: an element hidden when connected (the filter
+    // sheet's controls) does not always get an entry when it appears. The width is the
+    // container's, so it is read before the render, not after it.
     const width = this.offsetWidth
     if (width && Math.round(width) !== Math.round(this.trackWidth)) this.trackWidth = width
   }
@@ -134,7 +137,7 @@ export class LintjeRange extends LintjeInputElement {
 
   // Arrows move one step, PageUp/PageDown a tenth of the scale, Home/End the ends.
   private key(event: KeyboardEvent): void {
-    if (this.disabled) return
+    if (this.isDisabled) return
     const page = pageStep(this.steps?.length ?? 0)
     const move: Partial<Record<string, number>> = {
       ArrowRight: 1,
@@ -171,7 +174,7 @@ export class LintjeRange extends LintjeInputElement {
   }
 
   private onTrackPress(event: PointerEvent): void {
-    if (this.single || this.disabled || event.target instanceof HTMLInputElement) return
+    if (this.single || this.isDisabled || event.target instanceof HTMLInputElement) return
     const box = (event.currentTarget as HTMLElement).getBoundingClientRect()
     if (!box.width || this.lastIndex < 1) return
     const ratio = Math.min(1, Math.max(0, (event.clientX - box.left) / box.width))
@@ -190,19 +193,16 @@ export class LintjeRange extends LintjeInputElement {
   private handles(): TemplateResult {
     const last = this.lastIndex
     if (this.single) {
+      // Named from the label's words: the visible label also holds the value, said by valuetext.
       return html`<input
         type="range"
         class="lintje-range__input"
-        role="slider"
         min="0"
         max=${last}
         .value=${String(this.index)}
-        ?disabled=${this.disabled}
-        aria-labelledby=${this.labelId}
+        ?disabled=${this.isDisabled}
+        aria-label=${this.labelText || nothing}
         aria-describedby=${this.describedBy}
-        aria-valuemin=${(this.steps ?? [])[0] ?? 0}
-        aria-valuemax=${(this.steps ?? [])[last] ?? 0}
-        aria-valuenow=${(this.steps ?? [])[this.index] ?? 0}
         aria-valuetext=${this.valueText}
         aria-invalid=${this.error ? 'true' : nothing}
         @keydown=${this.key}
@@ -221,7 +221,7 @@ export class LintjeRange extends LintjeInputElement {
         min="0"
         max=${last}
         .value=${String(from)}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         aria-label="${this.label} van${this.labelSuffixText}"
         aria-valuetext=${this.stepText(from)}
         aria-describedby=${this.describedBy}
@@ -235,7 +235,7 @@ export class LintjeRange extends LintjeInputElement {
         min="0"
         max=${last}
         .value=${String(to)}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         aria-label="${this.label} tot en met${this.labelSuffixText}"
         aria-valuetext=${this.stepText(to)}
         aria-describedby=${this.describedBy}

@@ -13,9 +13,12 @@ import '../../inputs/multiselect/multiselect'
 import '../../inputs/date-range/date-range'
 import '../../inputs/range/range'
 import '../../inputs/file-upload/file-upload'
+import '../repeater/repeater'
 import { DRAFT_PREFIX, readDraft, type FormValues, type LintjeForm } from './form'
 import type { LintjeErrorSummary } from '../error-summary/error-summary'
 import type { LintjeFormActions } from '../form-actions/form-actions'
+import type { LintjeRepeater, LintjeRepeaterRow } from '../repeater/repeater'
+import type { LintjeButton } from '../../actions/button/button'
 import type { LintjeTextInput } from '../../inputs/text-input/text-input'
 
 /** What a field does when it commits: the non-composed `lintje-change` with its value. */
@@ -418,6 +421,27 @@ describe('lintje-form', () => {
     expect(native.hasAttribute('aria-invalid')).toBe(false)
   })
 
+  it('gives a native field its message as a description, and the host its own back', async () => {
+    const form = await mount()
+    const native = document.createElement('input')
+    native.name = 'kenmerk'
+    native.setAttribute('aria-description', 'Staat boven aan de brief')
+    const select = document.createElement('select')
+    select.name = 'soort'
+    form.append(native, select)
+    await tick()
+    form.errors = { fields: { kenmerk: 'Kenmerk is verplicht', soort: 'Kies een soort' } }
+    await form.updateComplete
+    expect(native.getAttribute('aria-description')).toBe('Kenmerk is verplicht')
+    expect(select.getAttribute('aria-invalid')).toBe('true')
+    expect(select.getAttribute('aria-description')).toBe('Kies een soort')
+    form.errors = { fields: {} }
+    await form.updateComplete
+    expect(native.getAttribute('aria-description')).toBe('Staat boven aan de brief')
+    expect(select.hasAttribute('aria-invalid')).toBe(false)
+    expect(select.hasAttribute('aria-description')).toBe(false)
+  })
+
   it('commits a textarea once on Ctrl+Enter, and submits once', async () => {
     const form = document.createElement('lintje-form')
     form.innerHTML = '<lintje-textarea name="omschrijving" label="Omschrijving"></lintje-textarea>'
@@ -539,6 +563,137 @@ describe('lintje-form', () => {
     form.setAttribute('draft-key', 'rijen')
     expect(form.restoredDraft).toEqual({ 'rij.0.naam': 'Jansen' })
     expect(form.restoredAt?.getTime()).toBe(savedAt)
+  })
+
+  describe('a repeater while busy', () => {
+    function row(index: number): LintjeRepeaterRow {
+      const element = document.createElement('lintje-repeater-row')
+      element.innerHTML = `<lintje-text-input name="betrokkene.${index}.naam" label="Naam"></lintje-text-input>`
+      return element
+    }
+
+    function repeater(rows: number): LintjeRepeater {
+      const element = Object.assign(document.createElement('lintje-repeater'), {
+        legend: 'Betrokkenen',
+        itemLabel: 'Betrokkene',
+      })
+      for (let index = 1; index <= rows; index++) element.append(row(index))
+      return element
+    }
+
+    /** The slot reports its rows after a render; then the repeater and its rows draw again. */
+    async function settle(element: LintjeRepeater): Promise<void> {
+      await element.updateComplete
+      await tick()
+      await element.updateComplete
+      for (const item of rows(element)) await item.updateComplete
+    }
+
+    const rows = (element: LintjeRepeater): LintjeRepeaterRow[] => [
+      ...element.querySelectorAll('lintje-repeater-row'),
+    ]
+    const addButton = (element: LintjeRepeater): LintjeButton =>
+      element.shadowRoot!.querySelector('lintje-button')!
+    const removeButton = (item: LintjeRepeaterRow): HTMLElement & { disabled: boolean } =>
+      item.shadowRoot!.querySelector('lintje-icon-button')!
+
+    async function mountWith(element: LintjeRepeater): Promise<LintjeForm> {
+      const form = await mount()
+      form.querySelector('lintje-form-section')!.append(element)
+      await settle(element)
+      return form
+    }
+
+    /** Whether the repeater, each row, each remove button and the add button are all `disabled`. */
+    function states(element: LintjeRepeater): boolean[] {
+      return [
+        element.disabled,
+        addButton(element).disabled,
+        ...rows(element).flatMap((item) => [item.disabled, removeButton(item).disabled]),
+      ]
+    }
+
+    async function setBusy(
+      form: LintjeForm,
+      element: LintjeRepeater,
+      busy: boolean,
+    ): Promise<void> {
+      form.busy = busy
+      await form.updateComplete
+      await settle(element)
+    }
+
+    it('disables the repeater, its rows, their remove buttons and the add button, and hands back after', async () => {
+      const element = repeater(2)
+      const form = await mountWith(element)
+      expect(states(element)).toEqual([false, false, false, false, false, false])
+
+      await setBusy(form, element, true)
+      expect(states(element)).toEqual([true, true, true, true, true, true])
+
+      await setBusy(form, element, false)
+      expect(states(element)).toEqual([false, false, false, false, false, false])
+    })
+
+    it('keeps a repeater the host disabled disabled after', async () => {
+      const element = Object.assign(repeater(2), { disabled: true })
+      const form = await mountWith(element)
+      await setBusy(form, element, true)
+      await setBusy(form, element, false)
+      expect(element.disabled).toBe(true)
+      expect(rows(element).map((item) => item.disabled)).toEqual([true, true])
+    })
+
+    it('disables a row added while busy at once, and hands it back after', async () => {
+      const element = repeater(1)
+      const form = await mountWith(element)
+      await setBusy(form, element, true)
+
+      const late = row(2)
+      element.append(late)
+      await settle(element)
+      const input = late.querySelector<LintjeTextInput>('lintje-text-input')!
+      expect(late.disabled).toBe(true)
+      expect(removeButton(late).disabled).toBe(true)
+      expect(input.disabled).toBe(true)
+
+      await setBusy(form, element, false)
+      expect(late.disabled).toBe(false)
+      expect(removeButton(late).disabled).toBe(false)
+      expect(input.disabled).toBe(false)
+    })
+
+    it('disables a repeater added while busy at once, and hands it back after', async () => {
+      const form = await mount()
+      form.busy = true
+      await form.updateComplete
+
+      const element = repeater(2)
+      form.querySelector('lintje-form-section')!.append(element)
+      await settle(element)
+      expect(states(element)).toEqual([true, true, true, true, true, true])
+
+      await setBusy(form, element, false)
+      expect(states(element)).toEqual([false, false, false, false, false, false])
+    })
+
+    it('leaves the buttons of the action bar to the bar: the primary busy, the others disabled', async () => {
+      const element = repeater(1)
+      const form = await mountWith(element)
+      const actions = form.querySelector<LintjeFormActions>('lintje-form-actions')!
+      const primary = actions.querySelector<LintjeButton>('lintje-button[variant="primary"]')!
+      const cancel = actions.querySelector<LintjeButton>('lintje-button[variant="tertiary"]')!
+
+      await setBusy(form, element, true)
+      await actions.updateComplete
+      expect([primary.busy, primary.disabled]).toEqual([true, false])
+      expect([cancel.busy, cancel.disabled]).toEqual([false, true])
+
+      await setBusy(form, element, false)
+      await actions.updateComplete
+      expect([primary.busy, primary.disabled]).toEqual([false, false])
+      expect([cancel.busy, cancel.disabled]).toEqual([false, false])
+    })
   })
 
   describe('the draft', () => {
