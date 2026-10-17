@@ -728,8 +728,8 @@ breekt de lijn, en de beschrijving van de host is haar tekstalternatief, zoals b
 Eén grammatica, geen grafiekbibliotheek.
 
 **Een grafiek kies je op de vraag van de lezer**, niet op wat er mooi uitziet: verloopt het in de
-tijd, hoe verhouden groepen zich, uit welke delen bestaat het geheel, hoe is het verdeeld, hangen
-twee maten samen, halen we het doel. Elke soort beantwoordt één van die vragen en zegt ook wanneer
+tijd, hoe verhouden groepen zich, uit welke delen bestaat het geheel en waar komen ze terecht, hoe
+is het verdeeld, hangen twee maten samen, halen we het doel. Elke soort beantwoordt één van die vragen en zegt ook wanneer
 een andere beter past; die keuze staat bij de soorten in `components/shared/charts/kinds.ts` en in
 de stijlgids. Past geen soort, dan is het een tabel.
 
@@ -741,7 +741,8 @@ de stijlgids. Past geen soort, dan is het een tabel.
   mediaan) is een schakelaar; een sleutel als "geen gegevens" niet, en één reeks zonder
   referentielijn ernaast ook niet, want uitgezet laat ze een lege grafiek achter. Een raming en
   haar marge zijn sleutels, geen schakelaars: ze zeggen hoe de reeks getekend is. Alleen de reeks
-  schakelt, en haar raming en marge gaan mee. Een klasse van
+  schakelt, en haar raming en marge gaan mee. Is er niets uit te zetten zonder het geheel te
+  breken, zoals een knoop van een sankey, dan heeft de legenda geen schakelaar. Een klasse van
   de heatmap gaat in dezelfde legenda uit, maar haar cellen dimmen: een lege cel leest als
   geen meting.
 - **De nullijn is donkerder dan het raster.**
@@ -773,6 +774,28 @@ de stijlgids. Past geen soort, dan is het een tabel.
   en wordt onder haar midden genoemd.
 - **Een mediaan is een doorgetrokken nadruklijn**, naast de gestreepte van een drempel, elk met
   zijn label naast de lijn. Raken de labels elkaar, dan zakt het rechter een regel.
+
+**Een sankey toont hoe één aantal door de stappen van een proces stroomt.** Een stap is een
+kolom knopen, een stroom een band zo breed als zijn aantal, met één schaal voor alle stappen.
+Wat stroomt is één variabele, dus knopen en banden hebben één kleur: de uitkomsten zijn
+onderverdelingen, en hun naam en getal zeggen wat ze zijn.
+
+- **Een variabele kleurt niet naar haar uitkomst.** "Afgewezen" in rood en "Toegekend" in groen
+  is oordelen met kleur, en het rood leest als een status die het niet is. Ook geen tint per
+  stap: de kolom draagt de stap al, en een lichtere kolom leest als minder.
+- **Banden van één kleur mogen elkaar kruisen; vlakken van meer kleuren niet.** Waar banden van
+  één variabele over elkaar liggen, wordt het donkerder in dezelfde kleur. Vlakken van twee
+  variabelen mengen tot een kleur die geen variabele heeft (zie het spinnendiagram).
+- **Een knoop is een deel van het geheel, een stroom een deel van zijn bron.** Zo staat het
+  aandeel in het label, de tooltip en de tabel, en nergens door elkaar.
+- Een ontbrekende stroom is een gearceerde stomp bij de bron, nooit een band van 0, en het doel is
+  dan "minstens" het bekende deel. Een kleine stroom houdt een zichtbare band rond zijn echte
+  plek; zijn echte getal staat in de woorden. Stromen samenvoegen tot "Overig" doet de host, want
+  het verandert de route die hij declareerde.
+- De namen staan er altijd: de tekening wordt hoger met de drukste stap. Getal en aandeel zijn
+  alles of niets.
+- Onder 768 px stelt hij per overgang zijn vraag — waar gaat het heen — met per bron één staaf,
+  verdeeld over haar doelen in de tintladder, en een rij per doel eronder als legenda.
 
 **Een kerncijfer op zijn schaal is een KPI, geen grafiek.** De meter is een instelling van
 `lintje-kpi`: een halve boog met het getal in de mond, of een balk onder het getal. De vulling is
@@ -1080,7 +1103,9 @@ kleinste correctie, en leg die hier vast.
   een kaartgebied met een cijfer halen 3:1; aangrenzende tinten worden gescheiden door een lijn in
   het oppervlak; een donkergele lijn krijgt een rand in zijn tekstkleur; een label op een vulling
   neemt de tekstkleur van die vulling; een gedimd teken of een uitgeschakelde reeks vervaagt zijn
-  kleur, nooit zijn woorden.
+  kleur, nooit zijn woorden. Waar een label op een band ligt (de rechte strook na een middelste
+  stap van een sankey), wordt gedempte tekst de gewone tekstkleur zodra die band nadruk krijgt:
+  op de sterkere tint haalt gedempt geen 4.5:1.
 - **Een bewerking ter plekke houdt haar toetsen**: Enter en Escape tellen alleen in haar veld,
   niet op haar knoppen, en haar Escape beëindigt de bewerking en verder niets. Beëindigd, geeft
   ze de focus aan haar rij of cel.

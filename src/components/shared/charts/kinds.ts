@@ -11,7 +11,7 @@ export type ChartQuestion = 'time' | 'compare' | 'parts' | 'spread' | 'relation'
 export const CHART_QUESTIONS: Readonly<Record<ChartQuestion, string>> = {
   time: 'Hoe verloopt het in de tijd?',
   compare: 'Hoe verhouden groepen zich?',
-  parts: 'Uit welke delen bestaat het geheel?',
+  parts: 'Uit welke delen bestaat het geheel, en waar komen ze terecht?',
   spread: 'Hoe is het verdeeld?',
   relation: 'Hangen twee maten samen?',
   target: 'Halen we het doel?',
@@ -86,6 +86,12 @@ export const CHART_KINDS = {
     question: 'parts',
     use: 'De delen van één geheel op één moment, tot vijf; meer vouwt tot "Overig". Een donut toont ook het deel van een geheel, met het cijfer in het midden.',
     avoid: 'Een verloop in de tijd, of delen die bijna even groot zijn: neem gestapelde staven.',
+  },
+  sankey: {
+    label: 'Sankey',
+    question: 'parts',
+    use: 'Hoe één aantal zich over twee tot vier stappen van een proces verdeelt, zoals aanvragen van indiening tot uitkomst. Ook wel stroomdiagram.',
+    avoid: 'Stromen tussen plaatsen: neem de kaart. Eén geheel op één moment: neem een taart.',
   },
   histogram: {
     label: 'Histogram',

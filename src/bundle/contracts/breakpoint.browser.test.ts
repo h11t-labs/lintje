@@ -262,6 +262,29 @@ const RADAR: ChartData = {
   },
 }
 
+const SANKEY: ChartData = {
+  title: 'Aanvragen van indiening tot uitkomst',
+  description: 'Aanvragen per stap, van indiening tot uitkomst.',
+  state: 'ready',
+  chart: {
+    kind: 'sankey',
+    steps: [
+      { label: 'Ingediend', nodes: [{ id: 'in', label: 'Aanvragen' }] },
+      {
+        label: 'Uitkomst',
+        nodes: [
+          { id: 'toegekend', label: 'Toegekend' },
+          { id: 'afgewezen', label: 'Afgewezen' },
+        ],
+      },
+    ],
+    flows: [
+      { from: 'in', to: 'toegekend', value: 740 },
+      { from: 'in', to: 'afgewezen', value: 260 },
+    ],
+  },
+}
+
 const TABS: TabItem[] = [
   { value: 'overzicht', label: 'Overzicht' },
   { value: 'aanvragen', label: 'Aanvragen', count: 12 },
@@ -610,6 +633,15 @@ const ROWS: Row[] = [
       shown(element, '.lintje-radar__ring') && !find(element, '.lintje-radar__row'),
     phone: (element) =>
       shown(element, '.lintje-radar__row') && !find(element, '.lintje-radar__ring'),
+  },
+  {
+    tag: 'lintje-chart',
+    marker: 'the sankey becomes a bar per source with a row per target',
+    mount: () => append(create('lintje-chart', { data: SANKEY })),
+    wide: (element) =>
+      shown(element, '.lintje-sankey__band') && !find(element, '.lintje-sankey__bar'),
+    phone: (element) =>
+      shown(element, '.lintje-sankey__bar') && !find(element, '.lintje-sankey__band'),
   },
   {
     tag: 'lintje-chart',

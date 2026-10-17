@@ -11,6 +11,9 @@ export interface PlotPoint {
   x: number
   y: number
   content: TooltipContent
+  /** What the status region says instead of the tooltip read as one sentence. */
+  sentence?: string
+  side?: 'left'
 }
 
 /** What the drawing (the `<svg>`) takes. */
@@ -54,11 +57,12 @@ export function plotKeys(
     const origin = anchor?.getBoundingClientRect() ?? box
     controller.hoverIndex = index
     controller.keyFrom = null
-    controller.status = tooltipSentence(point.content)
+    controller.status = point.sentence ?? tooltipSentence(point.content)
     controller.showTooltipAt(
       box.left - origin.left + point.x,
       box.top - origin.top + point.y,
       point.content,
+      point.side,
     )
   }
   return {

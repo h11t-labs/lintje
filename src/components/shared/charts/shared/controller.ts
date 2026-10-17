@@ -76,6 +76,8 @@ export interface TooltipState {
   x: number
   y: number
   content: TooltipContent
+  /** `left` stands the tooltip left of `x`, for a mark whose right side carries its label. */
+  side?: 'left'
 }
 
 /** What the chart asks the controller to watch; set by the chart, not by the host. */
@@ -273,8 +275,8 @@ export class ChartController {
   }
 
   /** The tooltip at a place relative to the `data-tooltip-anchor`: the keyboard's way in. */
-  showTooltipAt(x: number, y: number, content: TooltipContent): void {
-    this.tooltip = { x, y, content }
+  showTooltipAt(x: number, y: number, content: TooltipContent, side?: 'left'): void {
+    this.tooltip = { x, y, content, side }
     this.watchEscape()
     this.requestUpdate()
   }

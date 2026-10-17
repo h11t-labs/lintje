@@ -1438,7 +1438,7 @@ describe('data and status colour', () => {
   })
 
   it('carries a label on each colour in white or in ink, whichever reaches 4.5:1', () => {
-    // Restates the stacked bar's DARK_FILLS: a label on these is white, on the rest ink.
+    // Restates DARK_FILLS in charts/shared/colors.ts: a label on these is white, on the rest ink.
     const WHITE_ON = [
       'sky-blue',
       'red',

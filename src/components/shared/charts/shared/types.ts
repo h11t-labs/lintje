@@ -291,6 +291,55 @@ export type ChartSpec =
       dataLabels?: boolean
       small?: boolean
     }
+  | {
+      kind: 'sankey'
+      /** The steps of the process, left to right: two to four, with up to six nodes each. */
+      steps: SankeyStep[]
+      flows: SankeyFlow[]
+      /** What flows, in the legend, the tooltip and the table, such as "Aanvragen". Default "Aantal". */
+      label?: string
+      /** The variable that flows: one colour for nodes and bands. Default sky blue. */
+      color?: ChartColor
+      unit?: string
+      /** The share beside the count in the labels. Default true. */
+      share?: boolean
+      /** The least height is `--chart-h-small`; the busiest step still makes it taller. */
+      small?: boolean
+    }
+
+/**
+ * A node of a sankey: one category of one step. Its `id` is unique over all steps; with a
+ * `href` it is clickable, like a slice of a pie.
+ */
+export interface SankeyNode {
+  id: string
+  label: string
+  href?: string
+  /**
+   * Its own count, which goes before the sum of its flows. Needed in the first step when a flow
+   * out of it is missing: the part no known flow takes is then drawn as one hatched stub.
+   */
+  value?: number
+}
+
+/** A step of a sankey: its name above the column and its nodes, top to bottom. */
+export interface SankeyStep {
+  label: string
+  nodes: SankeyNode[]
+}
+
+/**
+ * A flow of a sankey between nodes of two consecutive steps; one that skips a step or names an
+ * unknown node is left out, also from the table. `value: null` is no data, never 0 (rule 15).
+ */
+export interface SankeyFlow {
+  from: string
+  to: string
+  value: number | null
+  /** The identity a click carries; without it `from→to`. */
+  id?: string
+  href?: string
+}
 
 /**
  * A layer of a radar chart: one value per axis, `null` for no data (rule 15). Without a colour

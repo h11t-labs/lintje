@@ -16,6 +16,29 @@ const TOKENS: Record<string, string> = {
   emphasis: 'var(--color-chart-emphasis)',
 }
 
+/** The data colours white text reaches 4.5:1 on; any other named fill but the rest takes ink. */
+export const DARK_FILLS: ReadonlySet<string> = new Set([
+  'sky-blue',
+  'red',
+  'green',
+  'violet',
+  'dark-green',
+  'purple',
+  'ruby-red',
+  'dark-brown',
+  'brown',
+  'dark-blue',
+  'moss-green',
+])
+
+/**
+ * Whether text on rung `rung` (0 is the colour itself) of a variable's ladder is white: only on
+ * the darkest rung of a dark colour; every lighter rung takes ink.
+ */
+export function whiteOnRung(color: ChartColor | undefined, rung: number): boolean {
+  return rung === 0 && (color == null || DARK_FILLS.has(color))
+}
+
 export function chartColor(color: ChartColor | undefined): string | undefined {
   if (color == null) return undefined
   return TOKENS[color] ?? color

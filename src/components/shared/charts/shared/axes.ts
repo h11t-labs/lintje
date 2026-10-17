@@ -26,9 +26,20 @@ export interface LegendItem {
   color?: string
   /**
    * `point`: the series' symbol alone, as a scatter plot or a map draws it; `hatch` is "no data".
-   * A forecast's keys: `dotted` its line, `open` its bar, `band` and `interval` its margin.
+   * A forecast's keys: `dotted` its line, `open` its bar, `band` and `interval` its margin. `flow`
+   * is a sankey's flow, in its colour at the band's tint.
    */
-  shape?: 'square' | 'line' | 'dashed' | 'point' | 'hatch' | 'dotted' | 'open' | 'band' | 'interval'
+  shape?:
+    | 'square'
+    | 'line'
+    | 'dashed'
+    | 'point'
+    | 'hatch'
+    | 'dotted'
+    | 'open'
+    | 'band'
+    | 'interval'
+    | 'flow'
   /** The shape the line carries at its end, drawn on its line marker (rule 13). */
   symbol?: SeriesKey
   /** A `point` marker's shape when it is not the shape of a colour's name (a map's styled series). */
