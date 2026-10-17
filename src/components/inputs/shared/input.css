@@ -1,7 +1,7 @@
 /*
  * What the inputs share: their hosts, the box of the text, date and time fields, and the
  * `.lintje-choice` of the checkbox, radio and toggle. `lintje-data-table` adopts this sheet too,
- * for its selectable rows' checkbox: a host rule names its tags, so it does not reach the table.
+ * for its selectable rows' checkbox: the rules that lay out a field's host name its tag.
  */
 :host(lintje-checkbox),
 :host(lintje-checkbox-group),
