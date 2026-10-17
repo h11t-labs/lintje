@@ -7,12 +7,12 @@
 .lintje-status__dot--success { background: var(--color-success); }
 .lintje-status__dot--warning { background: var(--color-warning); }
 .lintje-status__dot--attention { background: var(--color-attention); }
-.lintje-status__dot--error { background: var(--color-error); }
+.lintje-status__dot--error { background: var(--color-error-line); }
 .lintje-status__dot--info { background: var(--color-info); }
 .lintje-status__dot--busy { background: var(--color-action-primary); }
 .lintje-status__dot--neutral { background: var(--color-text-muted); }
 .lintje-status__dot--subtle { background: var(--color-text-muted); }
-.lintje-status__dot--live { background: var(--color-error); }
+.lintje-status__dot--live { background: var(--color-error-line); }
 
 /* Forced colours: the dot's fill is dropped, so it keeps its drawing as one CanvasText dot. */
 @media (forced-colors: active) {
