@@ -24,6 +24,8 @@ type Pressable = HTMLElement & {
   busy?: boolean
   label?: string
   reason?: string
+  description?: string
+  href?: string
   updateComplete: Promise<unknown>
 }
 
@@ -95,6 +97,36 @@ describe('lintje-button', () => {
     await element.updateComplete
     expect(inner(element).hasAttribute('aria-describedby')).toBe(false)
   })
+
+  for (const href of [undefined, '#upload']) {
+    const kind = href === undefined ? 'button' : 'link'
+    const control = (element: Pressable): HTMLElement =>
+      element.shadowRoot!.querySelector(href === undefined ? 'button' : 'a')!
+
+    it(`reads the description and then the reason on a disabled ${kind}`, async () => {
+      const element = await make('lintje-button', {
+        label: 'Uploaden',
+        disabled: true,
+        reason: 'Kies eerst een bestand.',
+        description: 'Maximaal 10 MB',
+        href,
+      })
+      const ids = control(element).getAttribute('aria-describedby')!.split(' ')
+      const texts = ids.map((id) => element.shadowRoot!.getElementById(id)?.textContent)
+      expect(texts).toEqual(['Maximaal 10 MB', 'Kies eerst een bestand.'])
+      expect(control(element).hasAttribute('aria-description')).toBe(false)
+    })
+
+    it(`keeps aria-description on a ${kind} without a reason`, async () => {
+      const element = await make('lintje-button', {
+        label: 'Uploaden',
+        description: 'Maximaal 10 MB',
+        href,
+      })
+      expect(control(element).getAttribute('aria-description')).toBe('Maximaal 10 MB')
+      expect(control(element).hasAttribute('aria-describedby')).toBe(false)
+    })
+  }
 
   it('passes the click on once it is available again', async () => {
     const element = await make('lintje-button', { label: 'Opslaan', disabled: true })
@@ -183,14 +215,15 @@ describe('lintje-button with an href', () => {
 })
 
 describe('lintje-icon-button', () => {
-  it('ignores a size attribute from older markup', async () => {
-    const element = document.createElement('lintje-icon-button') as Pressable
-    element.setAttribute('size', 'compact')
-    element.label = 'Sluiten'
-    document.body.append(element)
-    await element.updateComplete
-    expect(inner(element).style.width).toBe('')
-    expect(inner(element).className).not.toMatch(/compact/)
+  it('has one size: a size attribute from older markup changes nothing', async () => {
+    const plain = await make('lintje-icon-button', { label: 'Sluiten' })
+    const sized = document.createElement('lintje-icon-button') as Pressable
+    sized.setAttribute('size', '44')
+    sized.label = 'Sluiten'
+    document.body.append(sized)
+    await sized.updateComplete
+    expect('size' in sized).toBe(false)
+    expect(inner(sized).outerHTML).toBe(inner(plain).outerHTML)
   })
 
   it('is focusable and aria-disabled while disabled, and lets no click through', async () => {

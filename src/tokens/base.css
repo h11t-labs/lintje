@@ -80,7 +80,7 @@ input, select, textarea { font: inherit; color: inherit; }
   to   { opacity: 1; transform: none; }
 }
 
-/* prefers-reduced-motion: all durations 0 except opacity (80 ms). */
+/* prefers-reduced-motion: only opacity transitions (80 ms); the rest stands at once. */
 @media (prefers-reduced-motion: reduce) {
   :host {
     --dur-base: 0ms; --dur-hover: 0ms; --dur-popover: 0ms; --dur-submenu: 0ms; --dur-toast: 0ms; --dur-scrim: 0ms; --dur-rail: 0ms; --dur-collapse: 0ms;
@@ -89,6 +89,7 @@ input, select, textarea { font: inherit; color: inherit; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    transition-property: opacity !important;
     transition-duration: 80ms !important;
     scroll-behavior: auto !important;
   }

@@ -9,11 +9,14 @@ import '../../components/chat/chat/chat'
 import '../../components/chat/chat-answer/chat-answer'
 import '../../components/chat/chat-composer/chat-composer'
 import '../../components/chat/chat-message/chat-message'
+import '../../components/chat/chat-questions/chat-questions'
 import '../../components/feedback/conflict-alert/conflict-alert'
 import '../../components/tables/data-table/data-table'
 import '../../components/filters/filter-zone/filter-zone'
 import '../../components/forms/form/form'
+import '../../components/inputs/checkbox-group/checkbox-group'
 import '../../components/inputs/date-input/date-input'
+import '../../components/inputs/radio-group/radio-group'
 import '../../components/inputs/time-input/time-input'
 import '../../components/inputs/date-range/date-range'
 import '../../components/inputs/file-upload/file-upload'
@@ -37,7 +40,7 @@ import '../../components/content/translator/translator'
 import '../../components/content/video-player/video-player'
 import '../../components/frame/shell/shell'
 import { holdsFocus } from '../../core/focus'
-import type { UploadFile } from '../../components/inputs/file-upload/file-upload'
+import type { UploadFile } from '../../components/shared/files'
 import type { LintjeList, ListItem } from '../../components/tables/list/list'
 import type { LintjePagination } from '../../components/tables/pagination/pagination'
 import type {
@@ -449,12 +452,16 @@ async function uploadWith(files: UploadFile[]): Promise<HTMLElement & { files: U
   return upload
 }
 
+/** The cross a chip draws, inside its own root. */
+const chipCross = (root: ParentNode, index: number): HTMLElement | null =>
+  inside(root.querySelectorAll('lintje-attachment')[index], '.lintje-attachment__remove')
+
 const fileRemove = (upload: Element, index: number): HTMLElement | null =>
-  button(upload.shadowRoot!.querySelectorAll('.lintje-file-upload__row lintje-button')[index])
+  chipCross(upload.shadowRoot!, index)
 
 const FILE_UPLOAD_ROWS: Row[] = [
   {
-    name: 'lintje-file-upload :: a file’s Verwijderen hands its focus to the next file’s',
+    name: 'lintje-file-upload :: a chip’s cross hands its focus to the next file’s',
     run: async () => {
       const upload = await uploadWith(FILES)
       await expect.poll(() => fileRemove(upload, 0)).toBeTruthy()
@@ -464,13 +471,116 @@ const FILE_UPLOAD_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-file-upload :: the only file’s Verwijderen hands its focus to "Bestanden kiezen"',
+    name: 'lintje-file-upload :: the only chip’s cross hands its focus to "Bestanden kiezen"',
     run: async () => {
       const upload = await uploadWith(FILES.slice(0, 1))
       await expect.poll(() => fileRemove(upload, 0)).toBeTruthy()
       fileRemove(upload, 0)!.focus()
       await userEvent.keyboard('{Enter}')
       return () => button(upload.shadowRoot!.querySelector('.lintje-file-upload__button'))
+    },
+  },
+  {
+    name: 'lintje-file-upload :: "Bestanden kiezen" keeps its focus through a drag over the page',
+    run: async () => {
+      const upload = await uploadWith([])
+      const chooser = (): HTMLElement | null =>
+        upload.shadowRoot!.querySelector<HTMLElement>('.lintje-file-upload__button')
+      await expect.poll(() => button(chooser())).toBeTruthy()
+      button(chooser())!.focus()
+      const data = new DataTransfer()
+      data.items.add(new File(['inhoud'], 'verslag.pdf', { type: 'application/pdf' }))
+      const drag = async (type: string): Promise<void> => {
+        document.body.dispatchEvent(
+          new DragEvent(type, {
+            dataTransfer: data,
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+          }),
+        )
+        await (upload as unknown as Updating).updateComplete
+      }
+      await drag('dragenter')
+      expect(chooser()!.classList.contains('visually-hidden')).toBe(true)
+      expect(active()).toBe(button(chooser()))
+      await drag('drop')
+      expect(chooser()!.classList.contains('visually-hidden')).toBe(false)
+      expect(chooser()!.getBoundingClientRect().width).toBeGreaterThan(1)
+      return () => button(chooser())
+    },
+  },
+]
+
+/* --- lintje-chat-composer: its attachments ------------------------------- */
+
+const ATTACHED: UploadFile[] = [
+  { id: 'a1', name: 'beleidsregel-2026.pdf', size: 120_000, state: 'done' },
+  { id: 'a2', name: 'aanvragen-q3.xlsx', size: 48_000, state: 'done' },
+]
+
+/** A host as a page has it: it keeps the files, drops a removed one and retries a failed one. */
+async function composerWith(files: UploadFile[]): Promise<HTMLElement & { files: UploadFile[] }> {
+  const box = await mount<HTMLElement & { files: UploadFile[] }>('lintje-chat-composer', { files })
+  box.addEventListener('lintje-file-remove', (event) => {
+    const { id } = (event as CustomEvent<{ id: string }>).detail
+    box.files = box.files.filter((file) => file.id !== id)
+  })
+  box.addEventListener('lintje-file-retry', (event) => {
+    const { id } = (event as CustomEvent<{ id: string }>).detail
+    box.files = box.files.map((file) =>
+      file.id === id ? { ...file, state: 'busy', progress: 0, message: undefined } : file,
+    )
+  })
+  return box
+}
+
+const composerCross = (box: Element, index: number): HTMLElement | null =>
+  chipCross(box.shadowRoot!, index)
+
+const COMPOSER_ROWS: Row[] = [
+  {
+    name: 'lintje-chat-composer :: a chip’s cross hands its focus to the next chip’s',
+    run: async () => {
+      const box = await composerWith(ATTACHED)
+      await expect.poll(() => composerCross(box, 0)).toBeTruthy()
+      composerCross(box, 0)!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => composerCross(box, 0)
+    },
+  },
+  {
+    name: 'lintje-chat-composer :: the last chip’s cross hands its focus to the paperclip',
+    run: async () => {
+      const box = await composerWith(ATTACHED.slice(0, 1))
+      await expect.poll(() => composerCross(box, 0)).toBeTruthy()
+      composerCross(box, 0)!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => button(box.shadowRoot!.querySelector('.lintje-chat-composer__attach'))
+    },
+  },
+  {
+    name: 'lintje-chat-composer :: "Opnieuw" hands its focus to the cross of the same chip',
+    run: async () => {
+      const box = await composerWith([
+        ATTACHED[0],
+        {
+          id: 'f',
+          name: 'verklaring.pdf',
+          state: 'error',
+          message: 'Uploaden mislukt',
+          retry: true,
+        },
+      ])
+      const retry = (): HTMLElement | null =>
+        inside(
+          box.shadowRoot!.querySelectorAll('lintje-attachment')[1],
+          '.lintje-attachment__retry',
+        )
+      await expect.poll(retry).toBeTruthy()
+      retry()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => composerCross(box, 1)
     },
   },
 ]
@@ -509,6 +619,33 @@ const segmentField = (element: LintjeTranscript, id: string): HTMLElement | null
 const segmentText = (element: LintjeTranscript, id: string): HTMLElement =>
   segment(element, id).querySelector<HTMLElement>('.lintje-transcript__text')!
 
+const speakerButton = (element: LintjeTranscript, id: string): HTMLElement | null =>
+  inside(segment(element, id).querySelector('lintje-menu-button'), '.lintje-menu-button__trigger')
+
+/**
+ * Grouped, with a host that answers a speaker change: s2 is given the speaker of s1 from its own
+ * menu, by the keyboard.
+ */
+async function speakerOfTheOneBefore(layout: 'rows' | 'chat'): Promise<LintjeTranscript> {
+  const element = await mount<LintjeTranscript>('lintje-transcript', {
+    segments: SEGMENTS,
+    layout,
+    grouped: true,
+  })
+  element.addEventListener('lintje-segment-speaker', (event) => {
+    const { id, speaker } = (event as CustomEvent<{ id: string; speaker: string }>).detail
+    element.segments = element.segments.map((item) =>
+      item.id === id ? { ...item, speaker } : item,
+    )
+  })
+  speakerButton(element, 's2')!.focus()
+  await userEvent.keyboard('{ArrowDown}')
+  await expect.poll(() => active()?.textContent?.trim()).toBe('Spreker 1')
+  await userEvent.keyboard('{Enter}')
+  await expect.poll(() => element.segments[1]!.speaker).toBe('Spreker 1')
+  return element
+}
+
 /** From the pencil, by the keyboard: the way a reader without a pointer starts an edit. */
 async function editFromPencil(element: LintjeTranscript, id: string): Promise<void> {
   pencil(element, id)!.focus()
@@ -533,6 +670,20 @@ async function savingFromField(): Promise<LintjeTranscript> {
 }
 
 const TRANSCRIPT_ROWS: Row[] = [
+  {
+    name: 'lintje-transcript :: grouped as a chat, a speaker button whose name goes hands its focus to the name of its turn',
+    run: async () => {
+      const element = await speakerOfTheOneBefore('chat')
+      return () => speakerButton(element, 's1')
+    },
+  },
+  {
+    name: 'lintje-transcript :: grouped as rows, a speaker button that joins the turn before keeps its focus',
+    run: async () => {
+      const element = await speakerOfTheOneBefore('rows')
+      return () => speakerButton(element, 's2')
+    },
+  },
   {
     name: 'lintje-transcript :: the pencil hands its focus to the fragment’s field',
     run: async () => {
@@ -627,7 +778,59 @@ async function tagInput(): Promise<HTMLElement> {
   })
 }
 
+const SOURCES = [
+  { value: 'gemeente', label: 'Via de gemeente' },
+  { value: 'website', label: 'Op de website' },
+]
+
+/** A group with "Anders" chosen and the focus in its field. */
+async function otherOpen<T extends HTMLElement>(tag: string, props: object): Promise<T> {
+  const group = await mount<T>(tag, {
+    name: 'bron',
+    label: 'Hoe hoorde u van de regeling?',
+    options: SOURCES,
+    other: true,
+    ...props,
+  })
+  const field = (): HTMLElement | null => inside(group, '[data-other]', 'input')
+  await expect.poll(field).toBeTruthy()
+  field()!.focus()
+  await expect.poll(() => active() === field()).toBe(true)
+  return group
+}
+
 const INPUT_ROWS: Row[] = [
+  {
+    name: 'lintje-radio-group :: the host sets a value without "Anders": the focus goes to the option',
+    run: async () => {
+      const group = await otherOpen<HTMLElement & { value: string }>('lintje-radio-group', {
+        value: 'other',
+      })
+      group.value = 'website'
+      return () => inside(group, 'input[value="other"]')
+    },
+  },
+  {
+    name: 'lintje-checkbox-group :: a form reset takes "Anders" away: the focus goes to the option',
+    run: async () => {
+      const form = document.createElement('form')
+      document.body.append(form)
+      const group = document.createElement('lintje-checkbox-group')
+      form.append(group)
+      Object.assign(group, {
+        name: 'bron',
+        label: 'Hoe hoorde u van de regeling?',
+        options: SOURCES,
+        other: true,
+      })
+      await (group as unknown as Updating).updateComplete
+      inside(group, '.lintje-checkbox-group__other', 'input')!.click()
+      const field = (): HTMLElement | null => inside(group, '[data-other]', 'input')
+      await expect.poll(() => active() === field()).toBe(true)
+      form.reset()
+      return () => inside(group, '.lintje-checkbox-group__other', 'input')
+    },
+  },
   {
     name: 'lintje-tag-input :: a chip’s cross, clicked, hands its focus to the field',
     run: async () => {
@@ -676,7 +879,7 @@ const INPUT_ROWS: Row[] = [
       })
       date.shadowRoot!.querySelector<HTMLElement>('.lintje-date-input__toggle')!.focus()
       await userEvent.keyboard('{Enter}')
-      await expect.poll(() => active()?.classList.contains('lintje-date-input__day')).toBe(true)
+      await expect.poll(() => active()?.classList.contains('lintje-month-grid__day')).toBe(true)
       await userEvent.keyboard('{Enter}')
       return () => date.shadowRoot!.querySelector('.lintje-date-input__control')
     },
@@ -736,6 +939,8 @@ const INPUT_ROWS: Row[] = [
       ['lintje-select', 'select'],
       ['lintje-segmented', '.lintje-segmented__option'],
       ['lintje-toggle', '.lintje-choice__input'],
+      ['lintje-text-input', 'input'],
+      ['lintje-textarea', 'textarea'],
     ] as const
   ).map(([tag, control]): Row => ({
     name: `${tag} :: the reset link, gone when the host resets, hands its focus to the control`,
@@ -788,6 +993,20 @@ const ENTRIES = Array.from({ length: 14 }, (_, index) => ({
   what: `Stap ${14 - index} afgerond`,
   when: `${index + 1} maart`,
 }))
+
+/** A job list with one failed job, the focus on its "Opnieuw". */
+async function lastJobFocused(): Promise<HTMLElement & { jobs: unknown[] }> {
+  const jobs = await mount<HTMLElement & { jobs: unknown[] }>('lintje-job-list', {
+    jobs: [
+      { id: 'j1', name: 'Rapport.docx', state: 'error', detail: 'Het bestand is beschadigd.' },
+    ],
+  })
+  const action = (): HTMLElement | null =>
+    button(inside(jobs.shadowRoot!.querySelector('lintje-list'), '.lintje-list__row lintje-button'))
+  await expect.poll(action).toBeTruthy()
+  action()!.focus()
+  return jobs
+}
 
 const NOTIFICATIONS = [
   { id: 'n1', title: 'Nieuwe aanvraag', when: '10:12', unread: true },
@@ -848,18 +1067,24 @@ const COLLECTION_ROWS: Row[] = [
   {
     name: 'lintje-job-list :: the last job gone hands its focus to the status region',
     run: async () => {
-      const jobs = await mount<HTMLElement & { jobs: unknown[] }>('lintje-job-list', {
-        jobs: [
-          { id: 'j1', name: 'Rapport.docx', state: 'error', detail: 'Het bestand is beschadigd.' },
-        ],
-      })
-      const list = (): Element | null => jobs.shadowRoot!.querySelector('lintje-list')
-      const action = (): HTMLElement | null =>
-        button(inside(list(), '.lintje-list__row lintje-button'))
-      await expect.poll(action).toBeTruthy()
-      action()!.focus()
+      const jobs = await lastJobFocused()
       jobs.jobs = []
       return () => jobs.shadowRoot!.querySelector('[role="status"]')
+    },
+  },
+  {
+    name: 'lintje-job-list :: the last job gone, "lintje-jobs-empty" cancelled, hands its focus to the host\'s target',
+    run: async () => {
+      const jobs = await lastJobFocused()
+      const start = document.createElement('button')
+      start.textContent = 'Nieuwe export'
+      document.body.append(start)
+      jobs.addEventListener('lintje-jobs-empty', (event) => {
+        event.preventDefault()
+        start.focus()
+      })
+      jobs.jobs = []
+      return () => start
     },
   },
   {
@@ -1033,6 +1258,129 @@ async function chatComposer(): Promise<Composer> {
   // The first `busy` the composer gets is its start, not a change.
   return mount<Composer>('lintje-chat-composer', { busy: false, text: 'Hoeveel aanvragen?' })
 }
+
+/* --- lintje-chat-questions ------------------------------------------------ */
+
+const ASKED = {
+  questions: [
+    {
+      id: 'periode',
+      label: 'Periode',
+      text: 'Welke periode bedoel je?',
+      kind: 'one' as const,
+      options: [
+        { value: '2025', label: 'Heel 2025', description: '1 januari tot en met 31 december 2025' },
+        { value: '12m', label: 'Afgelopen 12 maanden' },
+      ],
+    },
+    {
+      id: 'provincies',
+      label: 'Provincies',
+      text: 'Welke provincies tel ik mee?',
+      kind: 'many' as const,
+      options: [
+        { value: 'ut', label: 'Utrecht' },
+        { value: 'gld', label: 'Gelderland' },
+      ],
+    },
+  ],
+}
+
+type Questions = HTMLElement & { updateComplete: Promise<unknown> }
+
+/** The first choice of the question on screen: a radio or a row's box. */
+const firstChoice = (box: Element | null): HTMLElement | null =>
+  inside(box, 'lintje-radio-group', 'input') ??
+  inside(box, 'lintje-checkbox-group', 'lintje-checkbox', 'input')
+
+const nextButton = (box: Element | null): HTMLElement | null =>
+  button(inside(box, '.lintje-chat-questions__next'))
+
+/** A conversation whose last answer asks, with the focus in its question box. */
+async function askingChat(): Promise<HTMLElement & { data: unknown }> {
+  const chat = await mount<HTMLElement & { data: unknown }>('lintje-chat', {
+    data: {
+      turns: [
+        { id: 't1', message: { text: 'Hoeveel aanvragen?' }, answer: { state: 'streaming' } },
+      ],
+    },
+  })
+  const composer = inside(chat, 'lintje-chat-composer')
+  await expect.poll(() => composerField(composer)).toBeTruthy()
+  composerField(composer)!.focus()
+  chat.data = {
+    turns: [
+      {
+        id: 't1',
+        message: { text: 'Hoeveel aanvragen?' },
+        answer: { state: 'needs-clarification', text: 'Welke periode?', questions: ASKED },
+      },
+    ],
+  }
+  return chat
+}
+
+const QUESTIONS_ROWS: Row[] = [
+  {
+    name: 'lintje-chat :: the questions, when they open, take the focus on their first choice',
+    run: async () => {
+      const chat = await askingChat()
+      return () => firstChoice(inside(chat, 'lintje-chat-questions'))
+    },
+  },
+  {
+    name: 'lintje-chat-questions :: Volgende hands the focus to the next question’s first choice',
+    run: async () => {
+      const box = await mount<Questions>('lintje-chat-questions', { data: ASKED })
+      await expect.poll(() => firstChoice(box)).toBeTruthy()
+      firstChoice(box)!.click()
+      await expect.poll(() => nextButton(box)).toBeTruthy()
+      nextButton(box)!.focus()
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(() => inside(box, 'lintje-checkbox-group')).toBeTruthy()
+      return () => firstChoice(box)
+    },
+  },
+  {
+    name: 'lintje-chat-questions :: Vorige, gone on the first question, hands its focus to its choice',
+    run: async () => {
+      const box = await mount<Questions & { step: number }>('lintje-chat-questions', {
+        data: ASKED,
+      })
+      await box.updateComplete
+      box.step = 1
+      const back = (): HTMLElement | null => button(inside(box, '.lintje-chat-questions__back'))
+      await expect.poll(back).toBeTruthy()
+      back()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => firstChoice(box)
+    },
+  },
+  {
+    name: 'lintje-chat :: the questions, answered, hand the focus to the question box',
+    run: async () => {
+      const chat = await askingChat()
+      const box = (): Element | null => inside(chat, 'lintje-chat-questions')
+      await expect.poll(() => active() === firstChoice(box())).toBe(true)
+      chat.addEventListener('lintje-questions-answer', (event) => {
+        chat.data = {
+          turns: [
+            ...((chat.data as { turns: unknown[] }).turns ?? []),
+            { id: 't2', message: { text: (event as CustomEvent<{ text: string }>).detail.text } },
+          ],
+        }
+      })
+      firstChoice(box())!.click()
+      nextButton(box())!.click()
+      await expect.poll(() => inside(box(), 'lintje-checkbox-group')).toBeTruthy()
+      await expect.poll(() => firstChoice(box())).toBeTruthy()
+      firstChoice(box())!.click()
+      nextButton(box())!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => composerField(inside(chat, 'lintje-chat-composer'))
+    },
+  },
+]
 
 const CONVERSATION_ROWS: Row[] = [
   {
@@ -1311,7 +1659,9 @@ async function chosenSlice(
     clearHref: '/p',
   }
   const tile = await mount<ChartElement>('lintje-chart', { data })
+  // The host answers the clear itself, so the tile does not go to `clearHref`.
   tile.addEventListener('lintje-mark-select', (event) => {
+    event.preventDefault()
     if ((event as CustomEvent<{ id: string | null }>).detail.id === null) tile.data = answer(data)
   })
   const mark = (): HTMLElement | null =>
@@ -1502,7 +1852,7 @@ const VIEW_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-filter-zone :: "Filters tonen" hands its focus to "Filters verbergen"',
+    name: 'lintje-filter-zone :: "Filters", opening the zone, keeps its focus',
     run: async () => {
       const element = await zone(false, 0)
       await pressInZone(element, '.lintje-filter-toggle')
@@ -1511,7 +1861,7 @@ const VIEW_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-filter-zone :: the sentence, pressed, hands its focus to "Filters verbergen"',
+    name: 'lintje-filter-zone :: the sentence, pressed, hands its focus to "Filters"',
     run: async () => {
       const element = await zone(false, 0)
       await pressInZone(element, '.lintje-summary-bar__sentence')
@@ -1554,6 +1904,37 @@ const VIEW_ROWS: Row[] = [
       return field
     },
   },
+  ...(
+    [
+      ['the add button', (element: Element) => element.shadowRoot!.querySelector('lintje-button')],
+      [
+        'the remove button of a row',
+        (element: Element) =>
+          element
+            .querySelector('lintje-repeater-row')!
+            .shadowRoot!.querySelector('lintje-icon-button'),
+      ],
+    ] as const
+  ).map(([what, host]): Row => ({
+    name: `lintje-form :: ${what} of a repeater, disabled while the form saves, gets its focus back after`,
+    run: async () => {
+      const form = document.createElement('lintje-form') as HTMLElement & { busy: boolean }
+      const element = await repeater(2)
+      form.append(element)
+      document.body.append(form)
+      await (form as unknown as Updating).updateComplete
+      const control = (): HTMLElement | null => button(host(element))
+      await drawn(control)
+      control()!.focus()
+      form.busy = true
+      await expect.poll(() => (host(element) as { disabled?: boolean } | null)?.disabled).toBe(true)
+      form.busy = false
+      await expect
+        .poll(() => (host(element) as { disabled?: boolean } | null)?.disabled)
+        .toBe(false)
+      return control
+    },
+  })),
 ]
 
 /* --- lintje-sub-nav -------------------------------------------------------- */
@@ -1680,17 +2061,23 @@ const SHELL_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-shell :: the rail’s "Afmelden", gone on Escape, hands its focus to the menu item before it',
+    name: 'lintje-shell :: a row of the user menu in the rail’s foot, chosen, hands its focus to the foot',
     run: async () => {
       const element = await railWithFocusOn(
         {
           user: { name: 'M. Jansen', initials: 'MJ' },
-          logout: { href: '/afmelden', token: 'proef' },
+          userMenu: [{ value: 'profiel', label: 'Mijn profiel' }],
         },
-        '.lintje-nav__logout-button',
+        '.lintje-nav__user-menu',
       )
-      await userEvent.keyboard('{Escape}')
-      return () => [...element.shadowRoot!.querySelectorAll('.lintje-nav__list a')].at(-1) ?? null
+      const foot = (): HTMLElement | null =>
+        inside(element, '.lintje-nav__user-menu', '.lintje-user-menu__trigger')
+      foot()!.focus()
+      await userEvent.keyboard('{Enter}')
+      // Opened from the keyboard, the focus is on the menu's first row.
+      await expect.poll(() => active()?.textContent?.trim()).toBe('Mijn profiel')
+      await userEvent.keyboard('{Enter}')
+      return foot
     },
   },
   {
@@ -1732,8 +2119,7 @@ const SHELL_ROWS: Row[] = [
       const element = await shell({})
       element.addEventListener('lintje-navigate', (event) => event.preventDefault())
       await phone()
-      const menu = (): HTMLElement | null =>
-        inside(element, '[aria-controls="lintje-mobile-menu-panel"]')
+      const menu = (): HTMLElement | null => inside(element, '.lintje-mobile-header__button--menu')
       await drawn(menu)
       menu()!.focus()
       await userEvent.keyboard('{Enter}')
@@ -1782,11 +2168,13 @@ const ROWS: Row[] = [
   ...DATA_TABLE_ROWS,
   ...PAGINATION_ROWS,
   ...FILE_UPLOAD_ROWS,
+  ...COMPOSER_ROWS,
   ...TRANSCRIPT_ROWS,
   ...INPUT_ROWS,
   ...COLLECTION_ROWS,
   ...MESSAGE_ROWS,
   ...CONVERSATION_ROWS,
+  ...QUESTIONS_ROWS,
   ...MEDIA_ROWS,
   ...REDRAWN_ROWS,
   ...VIEW_ROWS,

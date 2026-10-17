@@ -4,7 +4,8 @@
  * It shows images only: the host renders a PDF to page images, and gives each page's text in
  * `texts`, which a screen reader reads after the page. The file behind "Downloaden" is the
  * accessible version: a tagged PDF, not a scan. Page and zoom are the element's; every change is
- * reported.
+ * reported. The toolbar is one Tab stop: the arrows move along its buttons, while Home and End
+ * stay the first and the last page, as PageUp, PageDown, + and − stay the page and the zoom.
  *
  * Events: `lintje-page-change` `number` (the page, from 1), `lintje-zoom-change`
  * `number | 'fit'` (a percentage), `lintje-download`.
@@ -22,6 +23,7 @@ import { styleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import iconButtonCss from '../../actions/icon-button/icon-button.css?inline'
+import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import '../../actions/button/button'
 import '../../feedback/skeleton/skeleton'
 import '../../feedback/empty-state/empty-state'
@@ -84,6 +86,7 @@ export class LintjeDocumentViewer extends LintjeElement {
     naturalWidth: { state: true },
     fitPercent: { state: true },
     said: { state: true },
+    tool: { state: true },
   }
 
   /** One image URL per page: the host renders a PDF to these. */
@@ -105,8 +108,31 @@ export class LintjeDocumentViewer extends LintjeElement {
   protected fitPercent: number = 100
   /** What a change of page or zoom says in the status region; empty until one is made. */
   protected said: string = ''
+  /** The toolbar button that holds the toolbar's one Tab stop. */
+  protected tool: number = 0
 
   private shown: string | null = null
+  // "Passend" is a share of the view's width, so it is measured again whenever that changes.
+  private readonly resize = new FrameResizeObserver(() => this.measureFit())
+
+  override connectedCallback(): void {
+    super.connectedCallback()
+    if (this.hasUpdated) this.observeView()
+  }
+
+  override disconnectedCallback(): void {
+    super.disconnectedCallback()
+    this.resize.disconnect()
+  }
+
+  protected override firstUpdated(): void {
+    this.observeView()
+  }
+
+  private observeView(): void {
+    const view = this.renderRoot.querySelector('.lintje-document-viewer__view')
+    if (view) this.resize.observe(view)
+  }
 
   private get urls(): string[] {
     if (this.pages && this.pages.length > 0) return this.pages
@@ -200,6 +226,31 @@ export class LintjeDocumentViewer extends LintjeElement {
     if (handled) event.preventDefault()
   }
 
+  /** The arrows move the one Tab stop along the toolbar; Home and End stay the pages'. */
+  private onToolbarKeydown(event: KeyboardEvent): void {
+    if (event.ctrlKey || event.metaKey || event.altKey) return
+    const step = ({ ArrowRight: 1, ArrowLeft: -1 } as Record<string, number>)[event.key]
+    if (step === undefined) return
+    event.preventDefault()
+    const buttons = this.toolButtons()
+    const from = buttons.indexOf(event.composedPath()[0] as HTMLButtonElement)
+    const next = ((from === -1 ? this.tool : from) + step + buttons.length) % buttons.length
+    this.tool = next
+    buttons[next]?.focus()
+  }
+
+  /** A button reached by click or by focus takes the Tab stop. */
+  private onToolbarFocusin(event: FocusEvent): void {
+    const index = this.toolButtons().indexOf(event.composedPath()[0] as HTMLButtonElement)
+    if (index !== -1) this.tool = index
+  }
+
+  private toolButtons(): HTMLButtonElement[] {
+    return [
+      ...this.renderRoot.querySelectorAll<HTMLButtonElement>('.lintje-document-viewer__button'),
+    ]
+  }
+
   /** A zoomed page that can still scroll that way keeps the page keys for scrolling. */
   private scrollsItself(event: KeyboardEvent): boolean {
     const view = this.renderRoot.querySelector<HTMLElement>('.lintje-document-viewer__view')
@@ -240,6 +291,7 @@ export class LintjeDocumentViewer extends LintjeElement {
     icon: string,
     label: string,
     onClick: () => void,
+    index: number,
     options: { flip?: boolean; disabled?: boolean } = {},
   ): TemplateResult {
     // `aria-disabled`, not `disabled`: the last page takes "Volgende pagina" away from under
@@ -253,6 +305,7 @@ export class LintjeDocumentViewer extends LintjeElement {
         'lintje-document-viewer__button': true,
         'is-disabled': disabled,
       })}
+      tabindex=${index === this.tool ? '0' : '-1'}
       aria-label=${label}
       title=${label}
       aria-disabled=${disabled ? 'true' : nothing}
@@ -269,13 +322,20 @@ export class LintjeDocumentViewer extends LintjeElement {
     const page = clampPage(this.page, count)
     const zoom = this.zoom
     const current = zoom === 'fit' ? this.fitPercent : zoom
-    return html`<div class="lintje-document-viewer__toolbar" role="toolbar" aria-label="Document">
+    return html`<div
+      class="lintje-document-viewer__toolbar"
+      role="toolbar"
+      aria-label="Document"
+      @keydown=${this.onToolbarKeydown}
+      @focusin=${this.onToolbarFocusin}
+    >
       <div class="lintje-document-viewer__name">${this.name}</div>
       <div class="lintje-document-viewer__group">
         ${this.renderButton(
           'functioneel-delta-rechts',
           'Vorige pagina',
           () => this.goTo(page - 1),
+          0,
           {
             flip: true,
             disabled: page <= 1,
@@ -286,30 +346,44 @@ export class LintjeDocumentViewer extends LintjeElement {
           'functioneel-delta-rechts',
           'Volgende pagina',
           () => this.goTo(page + 1),
+          1,
           {
             disabled: page >= count,
           },
         )}
       </div>
       <div class="lintje-document-viewer__group">
-        ${this.renderButton('functioneel-vergrootglas-minus', 'Uitzoomen', () => this.zoomBy(-1), {
-          disabled: current <= ZOOM_MIN,
-        })}
+        ${this.renderButton(
+          'functioneel-vergrootglas-minus',
+          'Uitzoomen',
+          () => this.zoomBy(-1),
+          2,
+          {
+            disabled: current <= ZOOM_MIN,
+          },
+        )}
         <span class="lintje-document-viewer__figure lintje-document-viewer__zoom"
           >${zoomLabel(zoom, this.naturalWidth ? this.fitPercent : undefined)}</span
         >
-        ${this.renderButton('functioneel-vergrootglas-plus', 'Inzoomen', () => this.zoomBy(1), {
+        ${this.renderButton('functioneel-vergrootglas-plus', 'Inzoomen', () => this.zoomBy(1), 3, {
           disabled: current >= ZOOM_MAX,
         })}
         <button
           type="button"
-          class="lintje-icon-button lintje-icon-button--flat lintje-icon-button--text lintje-document-viewer__button"
+          class=${classMap({
+            'lintje-icon-button': true,
+            'lintje-icon-button--flat': true,
+            'lintje-icon-button--text': true,
+            'lintje-document-viewer__button': true,
+            'is-active': zoom === 'fit',
+          })}
+          tabindex=${this.tool === 4 ? '0' : '-1'}
           aria-pressed=${String(zoom === 'fit')}
           @click=${() => this.setZoom('fit')}
         >
           <span class="lintje-icon-button__label">Passend</span>
         </button>
-        ${this.renderButton('functioneel-downloaden', 'Downloaden', () => this.download(), {
+        ${this.renderButton('functioneel-downloaden', 'Downloaden', () => this.download(), 5, {
           disabled: count === 0,
         })}
       </div>
