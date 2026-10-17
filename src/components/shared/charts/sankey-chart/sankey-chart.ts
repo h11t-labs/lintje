@@ -45,8 +45,11 @@ const STEP_ROW = 24
 /** A band of 1 px at its tint cannot be seen. */
 const MIN_BAND = 2
 const STUB_WIDTH = 28
-/** A node's target reaches this far past it on either side; a thin band's is this tall. */
-const NODE_REACH = 4
+/**
+ * A node's target is this wide and, where its slot has the room, this tall, over the bands at it
+ * (WCAG 2.5.8); a thin band's is `MIN_HIT` tall.
+ */
+const NODE_TARGET = 24
 const MIN_HIT = 8
 
 /* --- The model: what each node and flow counts, without any geometry ------------------ */
@@ -505,15 +508,12 @@ function renderDrawing(
     const share = showShare ? nodeShare(node) : null
     return { count: count(node), share: share == null ? '' : ` · ${share}` }
   }
-  const layout = sankeyLayout(model, {
-    width,
-    height,
-    nameWidth: (node) => (textWidth(node.label, fontFamily) * 14) / 12,
-    valueWidth: (node) => {
-      const line = valueLine(node)
-      return textWidth(line.count, fontFamily, 700) + textWidth(line.share, fontFamily)
-    },
-  })
+  const nameWidth = (node: SankeyNodeModel) => (textWidth(node.label, fontFamily) * 14) / 12
+  const valueWidth = (node: SankeyNodeModel) => {
+    const line = valueLine(node)
+    return textWidth(line.count, fontFamily, 700) + textWidth(line.share, fontFamily)
+  }
+  const layout = sankeyLayout(model, { width, height, nameWidth, valueWidth })
   const stops = sankeyStops(model)
   const last = model.steps.length - 1
 
@@ -605,8 +605,9 @@ function renderDrawing(
   }
   const keys = plotKeys(controller, stops.length, at)
 
-  // The pointer stands the tooltip where the keyboard would, beside the mark, not the pointer.
-  const point = (event: MouseEvent, i: number) => {
+  // The pointer stands the tooltip where the keyboard would, beside the mark, not the pointer;
+  // so does the focus on a mark.
+  const point = (event: Event, i: number) => {
     if (controller.hoverIndex === i && controller.tooltip && !controller.status) return
     const drawing = (event.currentTarget as Element).closest('svg')
     const anchor = drawing?.closest('[data-tooltip-anchor]')
@@ -667,7 +668,9 @@ function renderDrawing(
               class="lintje-chart__mark lintje-sankey__band ${own(mark)} ${active ? 'is-active' : ''} ${dimmed(active)} ${current(i)}"
               data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
               aria-pressed=${mark.pressed} aria-label=${mark.label}
-              @click=${mark.click} @keydown=${mark.keydown} />
+              @click=${mark.click} @keydown=${mark.keydown}
+              @focus=${mark.clickable ? (event: FocusEvent) => i != null && point(event, i) : nothing}
+              @blur=${mark.clickable ? () => controller.hoverAt(null) : nothing} />
         ${
           band.thickness < MIN_HIT
             ? svg`<path class="lintje-sankey__hit lintje-sankey__hit--line ${mark.clickable ? 'is-clickable' : ''}"
@@ -694,18 +697,22 @@ function renderDrawing(
       const box = layout.node.get(node)!
       const i = stopIndex.get(node)
       const mark = markOf(selection, node, node.label, sentenceOf({ kind: 'node', node }))
-      const hit = Math.max(box.h, MIN_HIT)
+      const hit = Math.max(box.h, Math.min(NODE_TARGET, box.slot))
+      // A node without height that drills has its label as its button, there to see and reach.
+      if (box.h === 0 && mark.clickable) return nothing
       return svg`<g @mousemove=${(event: MouseEvent) => i != null && point(event, i)}>
         <rect class="lintje-sankey__hit ${mark.clickable ? 'is-clickable' : ''}"
-              x=${box.x - NODE_REACH} y=${box.y + box.h / 2 - hit / 2}
-              width=${NODE_WIDTH + 2 * NODE_REACH} height=${hit} @click=${mark.click} />
+              x=${box.x + NODE_WIDTH / 2 - NODE_TARGET / 2} y=${box.y + box.h / 2 - hit / 2}
+              width=${NODE_TARGET} height=${hit} @click=${mark.click} />
         ${
           box.h > 0
             ? svg`<rect class="lintje-chart__mark lintje-sankey__node ${own(mark)} ${dimmed(related?.nodes.has(node) ?? false)} ${current(i)}"
                         x=${box.x} y=${box.y} width=${NODE_WIDTH} height=${box.h} fill=${color}
                         data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
                         aria-pressed=${mark.pressed} aria-label=${mark.label}
-                        @click=${mark.click} @keydown=${mark.keydown} />`
+                        @click=${mark.click} @keydown=${mark.keydown}
+                        @focus=${mark.clickable ? (event: FocusEvent) => i != null && point(event, i) : nothing}
+                        @blur=${mark.clickable ? () => controller.hoverAt(null) : nothing} />`
             : nothing
         }
       </g>`
@@ -723,8 +730,7 @@ function renderDrawing(
       // On the straight run the share takes the text colour while the bands under it are
       // emphasised: the muted text does not reach 4.5:1 on the stronger tint.
       const emphasised = s > 0 && s < last && node.outflow.some((flow) => related?.flows.has(flow))
-      return svg`<g class="lintje-sankey__label ${emphasised ? 'is-emphasised' : ''}">
-        <text x=${x} y=${layout.values ? middle - 3 : middle + 5} text-anchor=${anchor}
+      const text = svg`<text x=${x} y=${layout.values ? middle - 3 : middle + 5} text-anchor=${anchor}
               class="lintje-sankey__name">${node.label}</text>
         ${
           layout.values
@@ -732,7 +738,32 @@ function renderDrawing(
                         class="lintje-chart__data-label lintje-sankey__value">${line.count}<tspan
                         class="lintje-sankey__share">${line.share}</tspan></text>`
             : nothing
-        }
+        }`
+      const i = stopIndex.get(node)
+      const mark =
+        box.h === 0 ? markOf(selection, node, node.label, sentenceOf({ kind: 'node', node })) : null
+      if (mark?.clickable) {
+        // The label is the button of a node without height: its ring and target are its box.
+        const width =
+          Math.max(nameWidth(node), layout.values ? valueWidth(node) : 0) + 2 * LABEL_GAP
+        const height = layout.values ? LABEL_ROOM : NAME_LINE
+        // Its name is what it shows, in that order (WCAG 2.5.3).
+        const spoken = layout.values ? `${node.label} ${line.count}${line.share}` : node.label
+        return svg`<g class="lintje-sankey__label lintje-sankey__label--control ${own(mark)} ${emphasised ? 'is-emphasised' : ''} ${current(i)}"
+            data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
+            aria-pressed=${mark.pressed} aria-label=${spoken}
+            @click=${mark.click} @keydown=${mark.keydown}
+            @mousemove=${(event: MouseEvent) => i != null && point(event, i)}
+            @focus=${(event: FocusEvent) => i != null && point(event, i)}
+            @blur=${() => controller.hoverAt(null)}>
+          <rect class="lintje-sankey__label-box" x=${first ? x + LABEL_GAP - width : x - LABEL_GAP}
+                y=${middle - Math.max(height, NODE_TARGET) / 2} width=${width}
+                height=${Math.max(height, NODE_TARGET)} />
+          ${text}
+        </g>`
+      }
+      return svg`<g class="lintje-sankey__label ${emphasised ? 'is-emphasised' : ''}">
+        ${text}
       </g>`
     }),
   )
@@ -849,7 +880,7 @@ function renderRows(
           <p class="lintje-sankey__source-head ${head.state}" data-mark-id=${head.markId}
              role=${head.role} tabindex=${head.tabIndex} aria-pressed=${head.pressed}
              aria-label=${head.label} @click=${head.click} @keydown=${head.keydown}>
-            <span>${node.label}</span><span>${count(node)}</span>
+            <span>${node.label}</span> <span>${count(node)}</span>
           </p>
           <div class="lintje-sankey__bar" aria-hidden="true">
             ${pieces.map((piece) => {

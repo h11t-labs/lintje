@@ -10,6 +10,7 @@ import { html, svg, nothing, type TemplateResult } from 'lit'
 import { keyed } from 'lit/directives/keyed.js'
 import { ref } from 'lit/directives/ref.js'
 import { styleProps } from '../../../../core/style-props'
+import { lengthPx } from '../../../../core/length'
 import { formatNumber, formatPercent, textWidth } from '../../../../core/format'
 import { renderIcon } from '../../../../icons/render'
 import { isDataColor } from '../../../../tokens/colors'
@@ -299,6 +300,41 @@ function renderLabel(cell: Cell, ink: string | null, muted: boolean): SvgSlot {
   )
 }
 
+/**
+ * The part a click at a point chooses over the one under it: a clickable part thinner than `size`
+ * takes `size` across its thin side, centred on it, over its neighbours (WCAG 2.5.8), and the
+ * nearest of two such wins. `null` leaves the click to the part under the pointer.
+ */
+export function thinPartAt(
+  boxes: TreemapRect[],
+  clickable: boolean[],
+  x: number,
+  y: number,
+  size: number,
+): number | null {
+  const grown = (start: number, length: number): [number, number] =>
+    length >= size
+      ? [start, start + length]
+      : [start + length / 2 - size / 2, start + length / 2 + size / 2]
+  let best: number | null = null
+  let distance = Infinity
+  boxes.forEach((box, g) => {
+    if (!clickable[g] || (box.width >= size && box.height >= size)) return
+    const [x0, x1] = grown(box.x, box.width)
+    const [y0, y1] = grown(box.y, box.height)
+    if (x < x0 || x > x1 || y < y0 || y > y1) return
+    const d = Math.hypot(
+      Math.max(box.x - x, 0, x - box.x - box.width),
+      Math.max(box.y - y, 0, y - box.y - box.height),
+    )
+    if (d < distance) {
+      best = g
+      distance = d
+    }
+  })
+  return best
+}
+
 function drawMap(context: Context, interactive: boolean): TemplateResult {
   const { spec, model, options, inks, marks } = context
   const { controller, description } = options
@@ -360,6 +396,29 @@ function drawMap(context: Context, interactive: boolean): TemplateResult {
     if (controller.hoverIndex == null) return
     controller.hoverAt(null)
   }
+  // Heard before the part under the pointer: a thin part beside it may take the click.
+  const clickable = model.groups.map((_, g) => marks[g].clickable)
+  const thin = (event: MouseEvent) => {
+    const drawing = event.currentTarget as SVGSVGElement
+    const matrix = drawing.getScreenCTM?.()
+    const box = drawing.getBoundingClientRect()
+    const point = matrix
+      ? new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse())
+      : { x: event.clientX - box.left, y: event.clientY - box.top }
+    const g = thinPartAt(
+      boxes,
+      clickable,
+      point.x,
+      point.y,
+      lengthPx(drawing, '--h-target-text', 24),
+    )
+    const under = (event.target as Element).closest?.('[data-part-id]')
+    if (g == null || under?.getAttribute('data-part-id') === model.groups[g]!.id) return
+    const click = marks[g]!.click
+    if (click === nothing) return
+    event.stopPropagation()
+    click(event)
+  }
 
   const active = controller.hoverIndex != null ? cells[controller.hoverIndex] : undefined
   const area = (cell: Cell, extra = '') =>
@@ -380,7 +439,8 @@ function drawMap(context: Context, interactive: boolean): TemplateResult {
       <svg viewBox="0 0 ${width} ${height}" width=${width} height=${height}
            class="lintje-chart__svg lintje-treemap__svg" ${styleProps({ height: `${height}px`, ...focusRingStyle(id) })}
            role=${drawingRole(interactive)} aria-labelledby="${id}-desc" tabindex="0"
-           @keydown=${keydown} @focus=${keys.focus} @blur=${keys.blur} @mouseleave=${leave}>
+           @keydown=${keydown} @focus=${keys.focus} @blur=${keys.blur} @mouseleave=${leave}
+           @click=${{ handleEvent: thin, capture: true }} @auxclick=${{ handleEvent: thin, capture: true }}>
         <desc id="${id}-desc">${description}</desc>
         <defs>${renderFocusRing(id)}</defs>
         ${keyed(

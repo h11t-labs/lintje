@@ -5,7 +5,7 @@
  * of a chart: what the screen shows, composed as one `<svg>`, and that as a PNG.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { server, userEvent } from 'vitest/browser'
+import { page, server, userEvent } from 'vitest/browser'
 import { chartImage } from '../../shared/download'
 import { TAB } from '../../../core/test-keys'
 import './chart'
@@ -207,6 +207,120 @@ describe('a chosen heatmap cell', () => {
     expect(style.outlineWidth).toBe('3px')
     // The choice still shows: a line inside the cell.
     expect(style.boxShadow).toContain('inset')
+  })
+})
+
+/** The colour a token resolves to in a tile's root. */
+function colourIn(tile: Element, token: string): string {
+  const probe = document.createElement('span')
+  probe.style.color = `var(${token})`
+  tile.shadowRoot!.append(probe)
+  const colour = getComputedStyle(probe).color
+  probe.remove()
+  return colour
+}
+
+/** Tab from a button before the tile until `target` has the focus, as a keyboard does. */
+async function tabTo(tile: LintjeChart, target: () => Element | null): Promise<void> {
+  const before = document.createElement('button')
+  before.textContent = 'Ervoor'
+  document.body.prepend(before)
+  before.focus()
+  for (let i = 0; i < 12 && tile.shadowRoot!.activeElement !== target(); i++) {
+    await userEvent.keyboard(TAB)
+  }
+}
+
+describe('a chosen row of a sankey on a phone', () => {
+  afterEach(async () => {
+    await page.viewport(1440, 900)
+    await expect.poll(() => window.innerWidth).toBe(1440)
+  })
+
+  it('keeps the focus ring over its choice', async () => {
+    const tile = document.createElement('lintje-chart')
+    tile.data = {
+      title: 'Aanvragen',
+      description: 'Van ingediend naar besluit.',
+      selectedId: 'in→ja',
+      chart: {
+        kind: 'sankey',
+        label: 'Aanvragen',
+        steps: [
+          { label: 'Ingediend', nodes: [{ id: 'in', label: 'Aanvragen' }] },
+          {
+            label: 'Besluit',
+            nodes: [
+              { id: 'ja', label: 'Toegekend' },
+              { id: 'nee', label: 'Afgewezen' },
+            ],
+          },
+        ],
+        flows: [
+          { from: 'in', to: 'ja', value: 70, href: '?besluit=ja' },
+          { from: 'in', to: 'nee', value: 30, href: '?besluit=nee' },
+        ],
+      },
+    }
+    document.body.append(tile)
+    await tile.updateComplete
+    // Mounted first, then narrowed: WebKit keeps a stale media query otherwise.
+    await page.viewport(390, 844)
+    await expect.poll(() => window.innerWidth).toBe(390)
+    const row = (): HTMLElement | null =>
+      tile.shadowRoot!.querySelector<HTMLElement>('.lintje-sankey__row-mark.is-selected')
+    await expect.poll(() => row()).not.toBeNull()
+    await tabTo(tile, row)
+    expect(tile.shadowRoot!.activeElement).toBe(row())
+    const style = getComputedStyle(row()!)
+    expect(style.outlineColor).toBe(colourIn(tile, '--color-focus'))
+    expect(style.outlineWidth).toBe('3px')
+  })
+})
+
+describe('a thin part of a treemap', () => {
+  it('takes a click beside it, within 24 px across', async () => {
+    const tile = document.createElement('lintje-chart')
+    tile.style.display = 'block'
+    tile.style.width = '400px'
+    tile.data = {
+      title: 'Uitgaven',
+      description: 'Zorg is het grootst.',
+      chart: {
+        kind: 'treemap',
+        parts: [
+          { id: 'zorg', label: 'Zorg', value: 97, href: '?deel=zorg' },
+          { id: 'klein', label: 'Klein', value: 1.5, href: '?deel=klein' },
+          { id: 'ook', label: 'Ook klein', value: 1.5, href: '?deel=ook' },
+        ],
+      },
+    }
+    const picked: string[] = []
+    tile.addEventListener('lintje-mark-select', (event) => {
+      event.preventDefault()
+      picked.push(String((event as CustomEvent<{ id: string | null }>).detail.id))
+    })
+    document.body.append(tile)
+    await tile.updateComplete
+    const part = (id: string): SVGGElement | null =>
+      tile.shadowRoot!.querySelector<SVGGElement>(`.lintje-treemap__group[data-part-id="${id}"]`)
+    await expect.poll(() => part('klein')?.getClientRects().length ?? 0).toBeGreaterThan(0)
+    const svg = tile.shadowRoot!.querySelector<SVGSVGElement>('.lintje-treemap__svg')!
+    await expect
+      .poll(() => Math.abs(svg.getBoundingClientRect().width - svg.viewBox.baseVal.width))
+      .toBeLessThan(1)
+    const thin = part('klein')!.getBoundingClientRect()
+    expect(Math.min(thin.width, thin.height)).toBeLessThan(16)
+    // Just outside the thin side, on the big part beside it, within 12 px of the part's middle.
+    const wide = thin.width < thin.height
+    const beside = 12 - Math.min(thin.width, thin.height) / 2 - 2
+    const x = wide ? thin.left - beside : thin.left + thin.width / 2
+    const y = wide ? thin.top + thin.height / 2 : thin.top - beside
+    const under = tile.shadowRoot!.elementFromPoint(x, y)!.closest('[data-part-id]')
+    expect(under?.getAttribute('data-part-id')).toBe('zorg')
+    const box = svg.getBoundingClientRect()
+    await userEvent.click(svg, { position: { x: x - box.left, y: y - box.top } })
+    expect(picked).toEqual(['klein'])
   })
 })
 
