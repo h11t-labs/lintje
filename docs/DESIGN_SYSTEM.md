@@ -839,6 +839,10 @@ navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de
 (identiteit en één meetwaarde) en de heatmap. Tussen de breedtes lopen bedieningselementen door
 naar een volgende regel; ze overlappen nooit.
 
+**Een sheet die bij een telefoon hoort, sluit als het scherm 768 px of breder wordt** — het menu
+van de shell, de lijst van de meldingen — en geeft de focus aan zijn knop als die blijft staan,
+zoals de bel.
+
 **Bij weinig hoogte plakt de actiebalk van een formulier niet**: onder een viewporthoogte van
 30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10).
 

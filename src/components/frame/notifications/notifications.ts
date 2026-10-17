@@ -79,6 +79,7 @@ export class LintjeNotifications extends LintjeElement {
   #refocus = false
 
   readonly #mobile = new MediaController(this, MOBILE)
+  #wasMobile: boolean | null = null
   readonly #panelId = `lintje-notifications-${++instances}`
 
   private get bell(): HTMLButtonElement | null {
@@ -118,6 +119,13 @@ export class LintjeNotifications extends LintjeElement {
 
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
+    // A viewport of 768 px or wider closes the open sheet, as it closes the shell's menu. The hold
+    // lets go first, or its trap would pull the bell's focus back into the sheet that goes.
+    if (this.#wasMobile === true && !this.#mobile.matches && this.open) {
+      this.#hold.release()
+      this.hide(true)
+    }
+    this.#wasMobile = this.#mobile.matches
     if (!changed.has('items')) return
     const count = this.unread
     const before = this.#shown
