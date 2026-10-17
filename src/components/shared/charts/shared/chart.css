@@ -243,6 +243,9 @@
 .lintje-legend__item.is-hidden .lintje-legend__label { text-decoration: line-through; }
 
 .lintje-legend__marker { flex: none; display: block; }
+/* A kind of node: its icon in its colour, and how many of it the drawing holds. */
+.lintje-legend__marker--icon { display: flex; }
+.lintje-legend__count { color: var(--color-text-secondary); }
 .lintje-legend__marker--symbol { width: 14px; height: 14px; }
 .lintje-legend__marker--square    { width: 12px; height: 12px; background: currentColor; }
 .lintje-legend__marker--line  { width: 14px; height: 3px;  background: currentColor; }

@@ -6,6 +6,7 @@ import { formatNumber, textWidth } from '../../../../core/format'
 import type { PlotKeys } from './plot-keys'
 import { markPath, type SeriesKey, seriesShapePath, type SeriesShape } from './series-shapes'
 import { DEFAULT_SERIES_COLOR, lineCasing } from './colors'
+import { renderIcon } from '../../../../icons/render'
 
 /** Anything that may go inside the `<svg>`; built with lit's `svg`, since `html` draws nothing. */
 export type SvgSlot =
@@ -37,6 +38,10 @@ export interface LegendItem {
   fixed?: boolean
   /** What `onToggle` receives; without it the label. */
   key?: string
+  /** An icon file name, drawn in the item's colour instead of a marker: a kind of node. */
+  icon?: string
+  /** How many of it there are, after the label. */
+  count?: number
 }
 
 /**
@@ -75,24 +80,28 @@ export function renderLegend({
   const pointable = Boolean(onEmphasis) && !onToggle
   const content = (item: LegendItem) => html`
     ${
-      (item.symbol || item.symbolShape) && item.shape === 'point'
-        ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
+      item.icon
+        ? html`<span class="lintje-legend__marker lintje-legend__marker--icon"
+                     ${styleProps({ color: item.color })}>${renderIcon(item.icon, { size: 16 })}</span>`
+        : (item.symbol || item.symbolShape) && item.shape === 'point'
+          ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
                     ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
                     aria-hidden="true" focusable="false">
             ${renderSymbol(item.symbol, item.color, 7, item.symbolShape)}
           </svg>`
-        : item.symbol
-          ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
+          : item.symbol
+            ? html`<svg class="lintje-legend__marker lintje-legend__marker--symbol" viewBox="0 0 14 14"
                     ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
                     aria-hidden="true" focusable="false">
             <line x1="0" x2="14" y1="7" y2="7" stroke="currentColor" stroke-width="3" />
             <path d=${markPath(item.symbol, 4, 7, 7)} fill="currentColor" />
           </svg>`
-          : html`<span class="lintje-legend__marker lintje-legend__marker--${item.shape ?? 'square'}"
+            : html`<span class="lintje-legend__marker lintje-legend__marker--${item.shape ?? 'square'}"
                      ${styleProps({ color: item.color ?? DEFAULT_SERIES_COLOR })}
                      aria-hidden="true"></span>`
     }
     <span class="lintje-legend__label">${item.label}</span>
+    ${item.count === undefined ? nothing : html`<span class="lintje-legend__count">${item.count}</span>`}
   `
   return html`
     <ul class="lintje-legend lintje-legend--${position}">

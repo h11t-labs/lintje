@@ -27,6 +27,7 @@ export const LINTJE_VIEWS = [
   'data-table',
   'announcement',
   'map',
+  'graph',
   'explainer',
   'note',
   'chat',

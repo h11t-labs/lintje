@@ -65,6 +65,7 @@ setIconSource({ base: './icons/' })
 | `filters.js` — Filters | `filter-bar`, `filter-zone`, `filter-sheet` |
 | `charts.js` — Kerncijfers en grafieken | `kpi-row`, `kpi`, `chart`, `note`, `explainer` |
 | `map.js` — Kaart | `map` |
+| `graph.js` — Netwerk | `graph` |
 | `tables.js` — Tabellen en lijsten | `data-table`, `pagination`, `list`, `card`, `card-list`, `description-list`, `tree-view`, `sortable-list`, `activity-log`, `person`, `person-group` |
 | `chat.js` — Chat met data | `chat`, `chat-message`, `chat-answer`, `chat-steps`, `chat-composer`, `chat-questions`, `chat-strip`, `chat-suggestions` |
 

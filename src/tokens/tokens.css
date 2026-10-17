@@ -362,6 +362,10 @@
   --shadow-chart-hover: 0 1px 4px var(--alpha-black-22);
   --shadow-scroll-start: inset 12px 0 10px -10px var(--alpha-black-18);
   --shadow-scroll-end: inset -12px 0 10px -10px var(--alpha-black-18);
+  /* A group of cards in a graph: two edges stepped out behind the card, without blur. */
+  --shadow-stack:
+    4px 4px 0 -1px var(--color-bg-surface), 4px 4px 0 0 var(--color-border-default),
+    8px 8px 0 -1px var(--color-bg-surface), 8px 8px 0 0 var(--color-border-default);
 
   --color-overlay-page: var(--alpha-black-60);
   --color-overlay-nav: var(--alpha-black-16);
@@ -393,6 +397,8 @@
   --dur-layer: 400ms; /* @kind other */
   --dur-skeleton: 1200ms; /* @kind other */
   --dur-wave: 600ms; /* @kind other */
+  /* A graph's nodes moving to their new place, after another layout or an opened branch. */
+  --dur-graph: 320ms; /* @kind other */
 
   /* --- Semantic: surfaces ------------------------------------------------ */
   --color-bg-page: var(--neutral-1);
@@ -596,6 +602,8 @@
   /* What a recording still has to play: this share of the speaker's colour over the surface; in
      light that is the `-tint-4` step of its ladder. */
   --tint-speaker-ahead: 45%;
+  /* A graph's mark, zoomed out: this share of its kind's colour over the surface. */
+  --tint-graph-mark: 15%;
 
   /* These map colours stay deliberately neutral so the data is the only colour on the map. */
   --color-map-water: var(--neutral-0);
