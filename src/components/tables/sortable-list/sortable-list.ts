@@ -84,6 +84,8 @@ export class LintjeSortableList extends LintjeElement {
   protected grabbed: { id: string; from: number } | null = null
   protected drag: Drag | null = null
   readonly #message = new LiveMessage(this)
+  /** The grip pressed while a row is in the hand, until its click. */
+  #pressed: string | null = null
 
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
@@ -198,11 +200,13 @@ export class LintjeSortableList extends LintjeElement {
   /* --- Pointer ------------------------------------------------------------- */
 
   private onPointerDown(event: PointerEvent, item: SortableItem): void {
+    this.#pressed = null
     if (event.button !== 0) return
     if (this.grabbed) {
-      // A row in the hand goes down where the tapped grip stands, before the blur can drop it.
+      // The grip in the hand keeps the focus, so its blur does not put the row down; the click
+      // on this grip does, and a release beside it changes nothing.
       event.preventDefault()
-      this.dropAt(item)
+      this.#pressed = item.id
       return
     }
     const rows = [...this.renderRoot.querySelectorAll<HTMLElement>('.lintje-sortable-list__row')]
@@ -252,7 +256,14 @@ export class LintjeSortableList extends LintjeElement {
     void this.focusGrip(item.id)
   }
 
+  private onGripClick(item: SortableItem): void {
+    const pressed = this.#pressed
+    this.#pressed = null
+    if (pressed === item.id) this.dropAt(item)
+  }
+
   private onPointerCancel(): void {
+    this.#pressed = null
     if (!this.drag) return
     this.drag = null
     this.#message.clear()
@@ -309,6 +320,7 @@ export class LintjeSortableList extends LintjeElement {
         @pointermove=${(event: PointerEvent) => this.onPointerMove(event)}
         @pointerup=${(event: PointerEvent) => this.onPointerUp(event, item)}
         @pointercancel=${() => this.onPointerCancel()}
+        @click=${() => this.onGripClick(item)}
       >
         ${renderIcon('functioneel-sleep', { size: 16 })}
       </button>

@@ -48,6 +48,28 @@ async function press(element: LintjeSortableList, id: string, key: string): Prom
   await element.updateComplete
 }
 
+async function pointer(element: LintjeSortableList, target: Element, type: string): Promise<void> {
+  target.dispatchEvent(
+    new PointerEvent(type, {
+      bubbles: true,
+      composed: true,
+      cancelable: true,
+      button: 0,
+      pointerId: 1,
+      clientY: 10,
+    }),
+  )
+  await element.updateComplete
+}
+
+/** A tap let go on the grip it pressed: down, up and the click that follows. */
+async function tapGrip(element: LintjeSortableList, id: string): Promise<void> {
+  await pointer(element, grip(element, id), 'pointerdown')
+  await pointer(element, grip(element, id), 'pointerup')
+  grip(element, id).dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }))
+  await element.updateComplete
+}
+
 function collect(element: LintjeSortableList, name: string): unknown[] {
   const details: unknown[] = []
   element.addEventListener(name, (event) => details.push((event as CustomEvent).detail))
@@ -132,14 +154,7 @@ describe('lintje-sortable-list', () => {
   it('picks up on a tap and puts down on a tap on another grip, without a drag', async () => {
     const element = await mount({ name: 'kolommen' })
     const values = collect(element, 'lintje-values-change')
-    const tap = async (id: string): Promise<void> => {
-      for (const type of ['pointerdown', 'pointerup']) {
-        grip(element, id).dispatchEvent(
-          new PointerEvent(type, { bubbles: true, button: 0, pointerId: 1, clientY: 10 }),
-        )
-        await element.updateComplete
-      }
-    }
+    const tap = (id: string): Promise<void> => tapGrip(element, id)
 
     await tap('datum')
     expect(await said(element)).toBe('Datum opgepakt. Plaats 4 van 4.')
@@ -158,6 +173,47 @@ describe('lintje-sortable-list', () => {
     expect(await said(element)).toBe('Ernst neergelegd op plaats 4.')
     expect(values).toHaveLength(1)
   })
+
+  it('keeps the row in the hand until a tap on another grip is let go there', async () => {
+    const element = await mount({ name: 'kolommen' })
+    const values = collect(element, 'lintje-values-change')
+    await tapGrip(element, 'datum')
+    await pointer(element, grip(element, 'categorie'), 'pointerdown')
+    expect(labels(element)).toEqual(['Titel', 'Categorie', 'Ernst', 'Datum'])
+    expect(grip(element, 'datum').getAttribute('aria-pressed')).toBe('true')
+    expect(values).toEqual([])
+    await pointer(element, grip(element, 'categorie'), 'pointerup')
+    grip(element, 'categorie').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    await element.updateComplete
+    expect(labels(element)).toEqual(['Titel', 'Datum', 'Categorie', 'Ernst'])
+    expect(values).toEqual([{ kolommen: ['titel', 'datum', 'categorie', 'ernst'] }])
+  })
+
+  it.each(['pointerup outside', 'pointercancel'])(
+    'keeps the row in the hand and the order when a tap on a grip ends in a %s',
+    async (end) => {
+      const element = await mount({ name: 'kolommen' })
+      const local = collect(element, 'lintje-change')
+      await tapGrip(element, 'datum')
+      await pointer(element, grip(element, 'titel'), 'pointerdown')
+      if (end === 'pointercancel') {
+        await pointer(element, grip(element, 'titel'), 'pointercancel')
+        // A click after a cancel is not that tap's: it puts nothing down either.
+        grip(element, 'titel').dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      } else {
+        await pointer(element, document.body, 'pointerup')
+        document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      }
+      await element.updateComplete
+      expect(labels(element)).toEqual(['Titel', 'Categorie', 'Ernst', 'Datum'])
+      expect(grip(element, 'datum').getAttribute('aria-pressed')).toBe('true')
+      expect(local).toEqual([])
+      // The next tap counts.
+      await tapGrip(element, 'titel')
+      expect(labels(element)).toEqual(['Datum', 'Titel', 'Categorie', 'Ernst'])
+      expect(local).toEqual([['datum', 'titel', 'categorie', 'ernst']])
+    },
+  )
 
   it('with checkable draws a box per row and tells the checked ids', async () => {
     const element = await mount({

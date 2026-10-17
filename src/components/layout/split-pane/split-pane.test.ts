@@ -151,11 +151,14 @@ describe('lintje-split-pane', () => {
     pointer(pane, 'pointermove', 640)
     expect(element.value).toBe(64)
     expect(heard).toEqual([])
-    pointer(pane, 'pointerdown', 700)
+    // The press only holds on to the split; it goes down where the press is let go.
+    pointer(pane, 'pointerdown', 640)
+    expect(heard).toEqual([])
+    pointer(pane, 'pointermove', 700)
+    pointer(pane, 'pointerup', 700)
     expect(element.value).toBe(70)
     expect(heard).toEqual([70])
     // The placing click does not also press what it landed on.
-    pointer(pane, 'pointerup', 700)
     const click = new MouseEvent('click', { bubbles: true, composed: true, cancelable: true })
     pane.dispatchEvent(click)
     expect(click.defaultPrevented).toBe(true)
@@ -178,9 +181,13 @@ describe('lintje-split-pane', () => {
   })
 
   it.each(['pointercancel', 'pointerup outside'])(
-    'lets the next click through when the placing press ends in a %s',
+    'keeps the split lifted and lets the next click through when the placing press ends in a %s',
     async (end) => {
-      const element = await mount()
+      const element = await mount({ storageKey: 'vertalen' })
+      const heard: number[] = []
+      element.addEventListener('lintje-split-change', (event) =>
+        heard.push((event as CustomEvent<number>).detail),
+      )
       const root = element.shadowRoot!
       const block = root.querySelector<HTMLElement>('.lintje-split-pane')!
       block.getBoundingClientRect = () => ({ left: 0, width: 1000 }) as DOMRect
@@ -207,10 +214,48 @@ describe('lintje-split-pane', () => {
       const click = new MouseEvent('click', { bubbles: true, composed: true, cancelable: true })
       pane.dispatchEvent(click)
       expect(click.defaultPrevented).toBe(false)
-      expect(element.value).toBe(70)
+      expect(element.value).toBe(50)
+      expect(heard).toEqual([])
+      expect(localStorage.getItem('vertalen')).toBeNull()
+
+      // Still lifted: the split follows the pointer, and the next press let go in the block counts.
+      pointer(pane, 'pointermove', 600)
+      expect(element.value).toBe(60)
+      pointer(pane, 'pointerdown', 650)
+      pointer(pane, 'pointerup', 650)
+      expect(heard).toEqual([65])
+      expect(localStorage.getItem('vertalen')).toBe('65')
       element.remove()
     },
   )
+
+  it('places nothing when Escape puts the split back during the placing press', async () => {
+    const element = await mount()
+    const heard: number[] = []
+    element.addEventListener('lintje-split-change', (event) =>
+      heard.push((event as CustomEvent<number>).detail),
+    )
+    const root = element.shadowRoot!
+    const pane = root.querySelector<HTMLElement>('.lintje-split-pane__pane--end')!
+    const pointer = (type: string): void => {
+      pane.dispatchEvent(
+        new PointerEvent(type, {
+          button: 0,
+          pointerId: 1,
+          clientX: 300,
+          bubbles: true,
+          composed: true,
+        }),
+      )
+    }
+    lift(element, 30)
+    pointer('pointerdown')
+    press(element, 'Escape')
+    pointer('pointerup')
+    expect(element.value).toBe(50)
+    expect(heard).toEqual([])
+    element.remove()
+  })
 
   it('puts a lifted split back on Escape, and the Escape goes no further', async () => {
     const { element, modal, closes } = await inModal()

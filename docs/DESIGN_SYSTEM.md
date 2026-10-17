@@ -1136,6 +1136,11 @@ kleinste correctie, en leg die hier vast.
 - **Een sneltoets van één teken kan uit** (`/`, `?`) met `setCharacterKeys(false)`,
   onthouden per browser, met de schakelaar in het overzicht van de sneltoetsen. Een combinatie met
   Ctrl, Alt of Cmd werkt altijd.
+- **Een klik of tik handelt bij het loslaten op hetzelfde doel** (2.5.2): bij het indrukken
+  onthoudt een element alleen waar gedrukt is, en houdt het zo nodig de focus vast. Loslaten
+  naast het doel of een `pointercancel` (een vinger die gaat scrollen) breekt af en laat alles
+  staan zoals het was; een opgetilde verdeling of een rij in de hand blijft opgetild. Een sleep
+  telt bij het loslaten.
 - **De popup van een veld sluit als de focus het veld verlaat**, zodat hij nooit het volgende veld
   bedekt; gesloten met Escape of met zijn eigen actie, geeft hij de focus terug aan het veld.
 - De optie waarop de toetsen van een lijst staan (`aria-activedescendant`), draagt de focusring
