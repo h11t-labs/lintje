@@ -927,6 +927,9 @@ kleinste correctie, en leg die hier vast.
 - **Wat vaak verandert, wordt niet uit de lijst zelf voorgelezen.** Streamende tekst, een
   takenlijst en een waarde die optelt, worden uitgesproken vanuit een live-regio ernaast, in hele
   zinnen.
+- **Nog niet geladen is iets anders dan leeg.** De eerste waarde die de host een lijst geeft, al
+  is het `[]`, is het laden en wordt niet voorgelezen; elke wijziging erna wel, ook de eerste rij
+  in een lijst die leeg laadde.
 - Een waarde die animeert, houdt haar eindwaarde in de toegankelijkheidsboom.
 - Tekst die met CSS `content` getekend wordt (een regelnummer, een placeholder), heeft een leeg
   alternatief, `content: … / ''`; wat een lezer ervan moet horen, staat in de markup
@@ -937,7 +940,9 @@ kleinste correctie, en leg die hier vast.
   af: hij loopt altijd door.
 - **Wat verdwijnt terwijl de focus erop staat, geeft de focus eerst door**: een toast terug naar
   waar hij vandaan kwam (anders `<main>`), een gesloten mededeling naar de volgende stop op de
-  pagina, "Alles gelezen" naar de eerste melding.
+  pagina, "Alles gelezen" naar de eerste melding. Een element dat leeg raakt en zelf niets
+  zichtbaars overhoudt, vraagt eerst de host met een event dat hij annuleert om de focus op zijn
+  eigen doel te zetten; anders gaat de focus naar de statusregel die zegt dat het leeg is.
 - **Een sessie die verloopt, waarschuwt minstens 20 seconden vooraf** en wordt met één knop
   verlengd (WCAG 2.2.1): in een `lintje-dialog alert persistent`, waarin Escape en de achtergrond
   niets doen omdat de sessie hoe dan ook afloopt.
