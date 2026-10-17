@@ -65,7 +65,7 @@
   color: var(--color-action-primary-text);
 }
 .lintje-icon-button.is-live:not(.is-disabled):hover { background: var(--color-action-primary-hover); }
-.lintje-icon-button__waves { display: inline-flex; align-items: center; gap: 2px; height: 16px; }
+.lintje-icon-button__waves { display: inline-flex; align-items: center; gap: var(--space-1); height: 16px; }
 .lintje-icon-button__wave {
   width: 2px;
   height: 100%;

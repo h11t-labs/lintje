@@ -25,6 +25,6 @@
 
 @media screen and (max-width: 767px) {
   .lintje-explainer__list { display: block; }
-  .lintje-explainer__description { margin-top: 2px; }
+  .lintje-explainer__description { margin-top: var(--space-1); }
   .lintje-explainer__description + .lintje-explainer__term { margin-top: var(--space-3); }
 }

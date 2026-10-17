@@ -5,7 +5,7 @@
    (`marks.ts`), styled below as any chart. */
 
 /* The overlays draw compact, like the buttons of a bar; on a phone at the touch floor. */
-.lintje-map-chart { --map-overlay-h: var(--h-button-chrome); }
+.lintje-map-chart { --map-overlay-h: var(--h-button-chrome); --map-overlay-line: 1px; }
 .lintje-map-chart--mobile { --map-overlay-h: var(--h-touch); }
 
 .lintje-map-chart__area {
@@ -283,12 +283,12 @@
    `--h-target`. */
 .lintje-map-chart__layer {
   position: relative;
-  height: var(--map-overlay-h); padding: 0 10px;
+  height: var(--map-overlay-h); padding: 0 var(--space-3);
   font: var(--text-small);
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border-strong);
-  margin-left: -1px;
+  border: var(--map-overlay-line) solid var(--color-border-strong);
+  margin-left: calc(var(--map-overlay-line) * -1);
   cursor: pointer;
 }
 .lintje-map-chart__layer::after {
@@ -313,8 +313,8 @@
   display: flex; align-items: center; justify-content: center;
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border-strong);
-  margin-top: -1px;
+  border: var(--map-overlay-line) solid var(--color-border-strong);
+  margin-top: calc(var(--map-overlay-line) * -1);
   cursor: pointer;
 }
 .lintje-map-chart__zoom-button::after {
@@ -326,7 +326,7 @@
 .lintje-map-chart__zoom-button:hover { background: var(--color-bg-subtle); }
 /* Each button sits in its tooltip, which says on hover and focus what the button does. The
    select button stands apart from the zoom. */
-.lintje-map-chart__tip { display: flex; margin-top: -1px; }
+.lintje-map-chart__tip { display: flex; margin-top: calc(var(--map-overlay-line) * -1); }
 .lintje-map-chart__tip:first-child { margin-top: 0; }
 .lintje-map-chart__tip .lintje-map-chart__zoom-button { margin-top: 0; }
 .lintje-map-chart__tip--first { margin-top: var(--space-2); }
@@ -347,7 +347,7 @@
 .lintje-map-chart__tool--menu::before {
   content: '';
   position: absolute;
-  right: 2px; bottom: 2px;
+  right: var(--space-1); bottom: var(--space-1);
   border: 4px solid transparent;
   border-right-color: currentColor;
   border-bottom-color: currentColor;
@@ -500,9 +500,9 @@
   width: 200px;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-strong);
-  padding: 10px 12px;
+  padding: var(--space-3);
   font-size: 0.875rem;
-  display: flex; flex-direction: column; gap: 3px;
+  display: flex; flex-direction: column; gap: var(--space-1);
 }
 .lintje-map-chart__selection--below {
   position: relative;
@@ -510,7 +510,7 @@
   width: auto;
   margin-top: var(--space-2);
   flex-direction: row; flex-wrap: wrap; align-items: baseline;
-  gap: 2px var(--space-2);
+  gap: var(--space-1) var(--space-2);
   padding-right: var(--space-10);
 }
 .lintje-map-chart__selection-title {
@@ -518,7 +518,7 @@
   color: var(--color-text-muted);
 }
 .lintje-map-chart__selection-value { color: var(--color-text-secondary); }
-.lintje-map-chart__selection-series { display: flex; align-items: center; gap: 5px; }
+.lintje-map-chart__selection-series { display: flex; align-items: center; gap: var(--space-1); }
 /* The way out of a selection, top right of the panel; the title keeps its room. An icon
    button: a 40 px box whose transparent hit area takes the target to 48. */
 .lintje-map-chart__selection-close {

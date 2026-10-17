@@ -32,10 +32,11 @@
 .lintje-tile {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  --lintje-tile-border: 1px;
+  gap: var(--space-4);
   min-width: 0;
   background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-default);
+  border: var(--lintje-tile-border) solid var(--color-border-default);
   border-radius: var(--radius);
   padding: var(--tile-pad-y) var(--tile-pad-x);
 }
@@ -58,7 +59,7 @@
 .lintje-tile__heading--icon .lintje-tile__title,
 .lintje-tile__heading--icon .lintje-tile__sub { grid-column: 2; }
 .lintje-tile__title { font: var(--text-tile-title); color: var(--color-text-primary); }
-.lintje-tile__sub { font: var(--text-small); color: var(--color-text-muted); margin-top: 2px; }
+.lintje-tile__sub { font: var(--text-small); color: var(--color-text-muted); margin-top: var(--space-1); }
 /* The actions are 40 px icon buttons beside a title of one line: they stand out above and below
    it, so the head is the title's height and a tile without a subtitle keeps no empty band. */
 .lintje-tile__actions {
@@ -106,8 +107,8 @@
 /* Without a footnote the last row's line is the frame's: no empty strip under it. A pager under
    the rows gives the strip back through --lintje-inset-end. */
 .lintje-tile--flush:has(> .lintje-tile__footnote[hidden]) > .lintje-tile__body {
-  margin-bottom: calc(var(--tile-pad-y) * -1 - 1px);
-  --lintje-inset-end: calc(var(--tile-pad-y) + 1px);
+  margin-bottom: calc(var(--tile-pad-y) * -1 - var(--lintje-tile-border));
+  --lintje-inset-end: calc(var(--tile-pad-y) + var(--lintje-tile-border));
 }
 
 /* Enlarging and downloading are for the screen. A tile split over two sheets is a block:
@@ -115,5 +116,5 @@
 @media print {
   .lintje-tile__actions { display: none; }
   :host([breakable]) .lintje-tile { display: block; }
-  :host([breakable]) .lintje-tile > :not(:first-child) { margin-top: 14px; }
+  :host([breakable]) .lintje-tile > :not(:first-child) { margin-top: var(--space-4); }
 }

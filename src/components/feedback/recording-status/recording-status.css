@@ -11,7 +11,7 @@
 .lintje-recording-status__signal {
   display: inline-flex;
   align-items: flex-end;
-  gap: 3px;
+  gap: var(--space-1);
   height: var(--space-6);
 }
 .lintje-recording-status__step {

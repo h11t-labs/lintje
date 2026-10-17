@@ -88,7 +88,7 @@
 .lintje-filter-bar__controls {
   display: flex;
   gap: var(--grid-gutter);
-  padding: 14px calc(var(--space-6) + var(--page-gutter)) 18px;
+  padding: var(--space-4) calc(var(--space-6) + var(--page-gutter)) var(--space-5);
   align-items: flex-start;
   flex-wrap: wrap;
 }
@@ -101,8 +101,8 @@
 }
 
 .lintje-filter-bar__summary {
-  display: flex; align-items: center; gap: 10px;
-  padding: 0 calc(var(--space-6) + var(--page-gutter)) 14px;
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: 0 calc(var(--space-6) + var(--page-gutter)) var(--space-4);
   font: var(--text-ui);
   color: var(--color-text-primary);
 }
@@ -117,7 +117,7 @@
   padding: 0 calc(var(--space-6) + var(--page-gutter));
 }
 .lintje-summary-bar__sentence {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: var(--space-3);
   font: var(--text-ui);
   color: var(--color-text-primary);
   min-width: 0;
@@ -198,10 +198,10 @@
   box-shadow: var(--shadow-sticky);
 }
 .lintje-filter-bar__mobile-summary {
-  display: flex; align-items: flex-start; gap: 10px;
+  display: flex; align-items: flex-start; gap: var(--space-3);
   font: var(--text-ui); line-height: 1.4;
 }
-.lintje-filter-bar__mobile-summary .lintje-filter-summary__icon { margin-top: 2px; }
+.lintje-filter-bar__mobile-summary .lintje-filter-summary__icon { margin-top: var(--space-1); }
 
 /* --- Pinned instead of sticky ---------------------------------------------- */
 .lintje-filter-bar--fixed.is-sticky {

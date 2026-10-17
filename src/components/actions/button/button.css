@@ -25,11 +25,12 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
+  --lintje-button-border: 1px;
   /* A minimum, so a wrapped label grows the button. The padding keeps a second line off the
      edge, and stays under what one line leaves of the height, so one line stays as high. */
   min-height: var(--lintje-button-height);
-  padding: max(0px, min(var(--space-2), (var(--lintje-button-height) - 1lh) / 2 - 1px)) var(--space-4);
-  border: 1px solid transparent;
+  padding: max(0px, min(var(--space-2), (var(--lintje-button-height) - 1lh) / 2 - var(--lintje-button-border))) var(--space-4);
+  border: var(--lintje-button-border) solid transparent;
   font-family: var(--font-ui);
   font-size: 1rem;
   font-weight: 700;
@@ -53,7 +54,7 @@
   .lintje-button__label { white-space: normal; overflow-wrap: anywhere; }
 }
 .lintje-button--compact { --lintje-button-height: var(--h-button-compact); padding-inline: var(--space-3); }
-.lintje-button--chrome  { --lintje-button-height: var(--h-button-chrome);  padding-inline: 14px; }
+.lintje-button--chrome  { --lintje-button-height: var(--h-button-chrome);  padding-inline: var(--space-4); }
 /* The compact and chrome button reach the 48 px target through a transparent hit area, 4 px out
    on each side. A row of them keeps 8 px between the boxes, so hit areas never overlap. */
 .lintje-button--compact::after,
