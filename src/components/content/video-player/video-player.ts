@@ -7,7 +7,8 @@
  * load says so on the picture, with "Opnieuw proberen".
  *
  * Events: `lintje-time-change` `number` (seconds, at most four times a second), `lintje-seek`
- * `number` (seconds: the reader moved the position), `lintje-play`, `lintje-pause`.
+ * `number` (seconds: the reader moved the position), `lintje-play`, `lintje-pause`, `lintje-retry`
+ * ("Opnieuw proberen" was pressed).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -22,6 +23,7 @@ import { SPEEDS, indexAt, speedLabel } from '../shared/playback'
 import { LintjePlayerElement } from '../shared/player'
 import playerCss from '../shared/player.css?inline'
 import videoPlayerCss from './video-player.css?inline'
+import { titleWhenCut } from '../../shared/cut-text'
 
 export interface TimedText {
   start: number
@@ -212,7 +214,7 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
         @click=${this.onRetry}
       >
         ${renderIcon('functioneel-refresh', { size: 20 })}
-        <span class="lintje-button__label">Opnieuw proberen</span>
+        <span class="lintje-button__label" @pointerenter=${titleWhenCut}>Opnieuw proberen</span>
       </button>
     </div>`
   }
@@ -268,6 +270,20 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
     )
   }
 
+  /** The same `captions` as the menu row and the C key; pressed and filled while they show. */
+  private renderCaptions(): TemplateResult {
+    return this.renderIconButton(
+      'functioneel-ondertiteling',
+      'Ondertiteling',
+      () => (this.captions = !this.captions),
+      {
+        disabled: false,
+        pressed: this.captions,
+        className: `lintje-video-player__captions${this.captions ? ' is-active' : ''}`,
+      },
+    )
+  }
+
   protected override render(): TemplateResult {
     return html`<div class="lintje-video-player" role="group" aria-label=${this.name || 'Video'} @keydown=${this.onKeydown}>
       ${this.renderStage()}
@@ -281,7 +297,7 @@ export class LintjeVideoPlayer extends LintjePlayerElement {
           }
         </div>
         <div class="lintje-video-player__buttons">
-          ${this.renderPlay()} ${this.renderMute()}
+          ${this.renderPlay()} ${this.renderMute()} ${this.renderCaptions()}
           <lintje-menu-button
             class="lintje-video-player__more"
             icon

@@ -245,6 +245,35 @@ describe('lintje-audio-player', () => {
     expect(media.load).toHaveBeenCalled()
   })
 
+  it('sends lintje-retry once from the element when "Opnieuw proberen" is pressed', async () => {
+    const element = await mount({ peaks: [0.5] })
+    const media = stubMedia(element)
+    media.load = vi.fn()
+    media.dispatchEvent(new Event('error'))
+    await element.updateComplete
+    const heard = vi.fn()
+    document.body.addEventListener('lintje-retry', heard)
+    root(element).querySelector<HTMLElement>('lintje-announcement lintje-button')!.click()
+    document.body.removeEventListener('lintje-retry', heard)
+    expect(heard).toHaveBeenCalledTimes(1)
+    expect(heard.mock.calls[0][0].target).toBe(element)
+    expect(media.load).toHaveBeenCalledTimes(1)
+  })
+
+  it('loads the src a host sets in answer to lintje-retry', async () => {
+    const element = await mount({ peaks: [0.5] })
+    const media = stubMedia(element)
+    media.load = vi.fn()
+    media.dispatchEvent(new Event('error'))
+    await element.updateComplete
+    element.addEventListener('lintje-retry', () => (element.src = '/opnames/overleg-nieuw.mp3'))
+    root(element).querySelector<HTMLElement>('lintje-announcement lintje-button')!.click()
+    await element.updateComplete
+    expect(root(element).querySelector('audio')!.getAttribute('src')).toBe(
+      '/opnames/overleg-nieuw.mp3',
+    )
+  })
+
   it('offers the four speeds behind a button that shows the speed, and sets the rate', async () => {
     const element = await mount({ peaks: [0.5] })
     const media = await loaded(element)

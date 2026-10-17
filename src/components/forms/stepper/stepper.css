@@ -79,7 +79,7 @@
 .lintje-stepper__step--current .lintje-stepper__name { font-weight: 700; }
 /* Done: the frame is a line (3:1), the check stands for a word (4.5:1). */
 .lintje-stepper__marker--done { border-color: var(--color-accent-line); color: var(--color-accent-text); }
-.lintje-stepper__marker--done.is-error { border-color: var(--color-error); color: var(--color-error); }
+.lintje-stepper__marker--done.is-error { border-color: var(--color-error-line); color: var(--color-error-text); }
 
 .lintje-stepper__name--link {
   position: relative;
@@ -97,10 +97,12 @@
 
 .lintje-stepper--phone { display: flex; flex-direction: column; gap: var(--space-2); }
 .lintje-stepper--phone .lintje-stepper__content { margin-top: 0; }
+/* The summary only exists below 768 px, where no pointer shows a tooltip: the name wraps, and
+   the count stays on its first line. */
 .lintje-stepper__summary {
-  display: flex; justify-content: space-between; gap: var(--space-3);
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3);
 }
-.lintje-stepper__current { font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lintje-stepper__current { font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
 .lintje-stepper__count { flex: none; color: var(--color-text-muted); }
 
 /* Forced colours: the current step's fill is dropped, so its border turns Highlight. */

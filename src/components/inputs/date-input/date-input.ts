@@ -24,26 +24,28 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import { LintjeInputElement } from '../shared/input'
 import '../../overlays/popover/popover'
 import inputCss from '../shared/input.css?inline'
+import monthGridCss from '../../shared/month-grid.css?inline'
 import dateInputCss from './date-input.css?inline'
 import {
   addDays,
   addMonths,
   clampDay,
-  DAY_MOVES,
-  dayLabel,
   formatDate,
   isIso,
   monthLabel,
-  monthWeeks,
   parseDate,
   partsOf,
-  startOfMonth,
   todayIso,
-  WEEKDAYS,
 } from '../../shared/date-format'
+import { focusGridDay, renderMonthGrid } from '../../shared/month-grid'
 
 export class LintjeDateInput extends LintjeInputElement {
-  static override styles = [iconStyles, shadowCss(inputCss), shadowCss(dateInputCss)]
+  static override styles = [
+    iconStyles,
+    shadowCss(inputCss),
+    shadowCss(monthGridCss),
+    shadowCss(dateInputCss),
+  ]
 
   static override properties: PropertyDeclarations = {
     value: { type: String },
@@ -146,7 +148,7 @@ export class LintjeDateInput extends LintjeInputElement {
   }
 
   private openCalendar(): void {
-    if (this.disabled) return
+    if (this.isDisabled) return
     this.focusDay = clampDay(this.value ?? this.todayDay, this.min, this.max)
     this.open = true
     void this.focusCell()
@@ -159,7 +161,7 @@ export class LintjeDateInput extends LintjeInputElement {
 
   private async focusCell(): Promise<void> {
     await this.updateComplete
-    this.renderRoot.querySelector<HTMLElement>('.lintje-date-input__day[tabindex="0"]')?.focus()
+    focusGridDay(this.renderRoot)
   }
 
   private onPopoverClose(event: CustomEvent<{ reason: string }>): void {
@@ -185,11 +187,8 @@ export class LintjeDateInput extends LintjeInputElement {
     this.renderRoot.querySelector<HTMLInputElement>('.lintje-date-input__control')?.focus()
   }
 
-  private onGridKeydown(event: KeyboardEvent): void {
-    const move = DAY_MOVES[event.key]
-    if (!move) return
-    event.preventDefault()
-    this.focusDay = move(this.focusDay)
+  private moveTo(day: string): void {
+    this.focusDay = day
     void this.focusCell()
   }
 
@@ -199,8 +198,6 @@ export class LintjeDateInput extends LintjeInputElement {
 
   private renderCalendar(): TemplateResult {
     const focus = this.focusDay || this.todayDay
-    const month = startOfMonth(focus).slice(0, 7)
-    const today = this.todayDay
     return html`<div class="lintje-date-input__calendar">
       <div class="lintje-date-input__month">
         <button
@@ -223,48 +220,13 @@ export class LintjeDateInput extends LintjeInputElement {
           ${renderIcon('functioneel-delta-rechts', { size: 16 })}
         </button>
       </div>
-      <div
-        class="lintje-date-input__grid"
-        role="grid"
-        aria-label=${monthLabel(focus)}
-        @keydown=${this.onGridKeydown}
-      >
-        <div class="lintje-date-input__row" role="row">
-          ${WEEKDAYS.map(
-            (name) =>
-              html`<span class="lintje-date-input__weekday" role="columnheader">${name}</span>`,
-          )}
-        </div>
-        ${monthWeeks(focus).map(
-          (week) => html`<div class="lintje-date-input__row" role="row">
-            ${week.map((day) => {
-              // The weeks around the month stay empty: arrows that leave the month turn it.
-              if (!day.startsWith(month)) {
-                return html`<span class="lintje-date-input__blank" role="gridcell"></span>`
-              }
-              const blocked = Boolean(this.outOfBounds(day))
-              return html`<button
-                type="button"
-                role="gridcell"
-                class=${classMap({
-                  'lintje-date-input__day': true,
-                  'is-blocked': blocked,
-                  'is-today': day === today,
-                  'is-selected': day === this.value,
-                })}
-                tabindex=${day === focus ? '0' : '-1'}
-                aria-label=${dayLabel(day)}
-                aria-selected=${day === this.value ? 'true' : 'false'}
-                aria-current=${day === today ? 'date' : nothing}
-                aria-disabled=${blocked ? 'true' : nothing}
-                @click=${() => this.pick(day)}
-              >
-                ${Number(day.slice(8))}
-              </button>`
-            })}
-          </div>`,
-        )}
-      </div>
+      ${renderMonthGrid({
+        focus,
+        today: this.todayDay,
+        day: (day) => ({ selected: day === this.value, blocked: Boolean(this.outOfBounds(day)) }),
+        onPick: (day) => this.pick(day),
+        onMove: (day) => this.moveTo(day),
+      })}
     </div>`
   }
 
@@ -285,7 +247,7 @@ export class LintjeDateInput extends LintjeInputElement {
           aria-describedby=${this.describedBy}
           aria-invalid=${message ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @change=${this.onChange}
           @keydown=${this.onFieldKeydown}
         />
@@ -295,14 +257,14 @@ export class LintjeDateInput extends LintjeInputElement {
           aria-label="Kalender openen"
           aria-haspopup="dialog"
           aria-expanded=${this.open ? 'true' : 'false'}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @click=${this.toggle}
         >
           ${renderIcon('functioneel-kalender', { size: 18 })}
         </button>
       </div>
       <lintje-popover
-        ?open=${this.open && !this.disabled}
+        ?open=${this.open && !this.isDisabled}
         panel-role="dialog"
         label="Kalender"
         @lintje-close=${this.onPopoverClose}

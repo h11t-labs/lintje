@@ -157,8 +157,11 @@ export default defineConfig(({ mode }) => {
       // The first run starts the folder over; the second adds to it.
       emptyOutDir: !split,
       target: 'es2022',
-      // The copied CSS travels as it is written.
-      cssMinify: false,
+      // The copied CSS is minified (lightningcss) but not lowered: without a browser target a
+      // `color-mix()` or an `oklch()` travels as written, and `toShadowCss()` reads the bare
+      // attribute values the minifier leaves.
+      cssMinify: true,
+      cssTarget: 'esnext',
       lib: split
         ? { entry: splitEntries(), formats: ['es'] }
         : {
@@ -166,7 +169,9 @@ export default defineConfig(({ mode }) => {
             formats: ['es'],
             fileName: () => 'lintje.js',
           },
-      rollupOptions: split
+      // A library build keeps its whitespace for a bundler downstream; these files are what a page
+      // loads as they are, so `output.minify` takes it out. The pure annotations stay.
+      rolldownOptions: split
         ? {
             // A tag's code stands in the tag's own file, and another file that needs it imports
             // it from there. Without this the bundler keeps an entry's exports exact, moves the
@@ -176,9 +181,10 @@ export default defineConfig(({ mode }) => {
               entryFileNames: '[name].js',
               chunkFileNames: 'chunks/[name]-[hash].js',
               codeSplitting: { groups: [{ name: 'base', test: BASE }] },
+              minify: true,
             },
           }
-        : { output: { entryFileNames: 'lintje.js' } },
+        : { output: { entryFileNames: 'lintje.js', minify: true } },
     },
   }
 })

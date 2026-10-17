@@ -53,7 +53,7 @@ export class LintjeSelect extends LintjeInputElement {
           aria-describedby=${this.describedBy}
           aria-invalid=${this.error ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           .value=${this.value}
           @change=${this.choose}
         >

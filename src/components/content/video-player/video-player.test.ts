@@ -117,6 +117,35 @@ describe('lintje-video-player', () => {
     )
   })
 
+  it('sends lintje-retry once from the element when "Opnieuw proberen" is pressed', async () => {
+    const element = await mount()
+    const media = await loaded(element)
+    media.load = vi.fn()
+    media.dispatchEvent(new Event('error'))
+    await element.updateComplete
+    const heard = vi.fn()
+    document.body.addEventListener('lintje-retry', heard)
+    root(element).querySelector<HTMLButtonElement>('.lintje-video-player__retry')!.click()
+    document.body.removeEventListener('lintje-retry', heard)
+    expect(heard).toHaveBeenCalledTimes(1)
+    expect(heard.mock.calls[0][0].target).toBe(element)
+    expect(media.load).toHaveBeenCalledTimes(1)
+  })
+
+  it('loads the src a host sets in answer to lintje-retry', async () => {
+    const element = await mount()
+    const media = await loaded(element)
+    media.load = vi.fn()
+    media.dispatchEvent(new Event('error'))
+    await element.updateComplete
+    element.addEventListener('lintje-retry', () => (element.src = '/opnames/hoorzitting-nieuw.mp4'))
+    root(element).querySelector<HTMLButtonElement>('.lintje-video-player__retry')!.click()
+    await element.updateComplete
+    expect(root(element).querySelector('video')!.getAttribute('src')).toBe(
+      '/opnames/hoorzitting-nieuw.mp4',
+    )
+  })
+
   it('shows the big play button while it stands still and hides it while it plays', async () => {
     const element = await mount()
     await loaded(element)
@@ -152,6 +181,38 @@ describe('lintje-video-player', () => {
       .dispatchEvent(new KeyboardEvent('keydown', { key: 'c', bubbles: true, composed: true }))
     await element.updateComplete
     expect(element.captions).toBe(false)
+  })
+
+  it('has a captions button in the bar between sound and the menu, pressed while they show', async () => {
+    const element = await mount({ segments: SEGMENTS })
+    await loaded(element)
+    const button = (): HTMLButtonElement =>
+      root(element).querySelector<HTMLButtonElement>('button[aria-label="Ondertiteling"]')!
+    const bar = root(element).querySelector('.lintje-video-player__buttons')!
+    const order = [...bar.children].map(
+      (child) => child.getAttribute('aria-label') ?? child.tagName,
+    )
+    expect(order.indexOf('Ondertiteling')).toBe(order.indexOf('Geluid dempen') + 1)
+    expect(order[order.indexOf('Ondertiteling') + 1]).toBe('LINTJE-MENU-BUTTON')
+    expect(button().getAttribute('aria-pressed')).toBe('false')
+
+    button().click()
+    await element.updateComplete
+    expect(element.captions).toBe(true)
+    expect(button().getAttribute('aria-pressed')).toBe('true')
+    expect(button().classList.contains('is-active')).toBe(true)
+    expect(menu(element).items[0]).toMatchObject({ label: 'Ondertiteling', checked: true })
+
+    // The menu row and the C key follow the same captions, and so does the button.
+    await choose(element, 'ondertiteling')
+    expect(button().getAttribute('aria-pressed')).toBe('false')
+    expect(button().classList.contains('is-active')).toBe(false)
+    root(element)
+      .querySelector('[role="slider"]')!
+      .dispatchEvent(new KeyboardEvent('keydown', { key: 'c', bubbles: true, composed: true }))
+    await element.updateComplete
+    expect(element.captions).toBe(true)
+    expect(button().getAttribute('aria-pressed')).toBe('true')
   })
 
   it('answers C and F also while the focus is on the menu button', async () => {

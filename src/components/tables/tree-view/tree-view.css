@@ -14,18 +14,22 @@
   outline-offset: calc(var(--focus-width) * -1);
 }
 
+/* A minimum height: a wrapped label grows the row. The padding centres one line as before, and
+   the arrow and the count stay on the first line. */
 .lintje-tree__row {
-  display: flex; align-items: center;
+  --lintje-tree-pad: calc((var(--h-option) - 1lh) / 2);
+  display: flex; align-items: flex-start;
   gap: var(--space-1);
-  height: var(--h-option);
-  padding: 0 var(--space-2) 0 calc(var(--space-2) + var(--lintje-tree-depth, 0) * var(--space-5));
+  min-height: var(--h-option);
+  padding: var(--lintje-tree-pad) var(--space-2) var(--lintje-tree-pad)
+    calc(var(--space-2) + var(--lintje-tree-depth, 0) * var(--space-5));
   cursor: pointer;
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-tree__row:hover { background: var(--color-bg-subtle); }
 .lintje-tree__row.is-selected {
   background: var(--color-bg-selected);
-  box-shadow: inset 4px 0 0 var(--color-accent-line);
+  box-shadow: inset 4px 0 0 var(--color-selected-edge);
   font-weight: 700;
 }
 
@@ -33,6 +37,7 @@
   flex: none;
   display: inline-flex; align-items: center; justify-content: center;
   width: 16px; height: 16px;
+  margin-top: calc((1lh - 16px) / 2);
   color: var(--color-text-muted);
 }
 /* The fold target reaches 24 × 24 px with a transparent hit area; it stays inside the gap. */
@@ -43,10 +48,16 @@
   inset: calc(var(--space-1) * -1);
 }
 .lintje-tree__label {
-  min-width: 0;
+  min-width: 0; align-self: baseline;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.lintje-tree__count { flex: none; font-weight: 400; color: var(--color-text-muted); }
+/* The `title` of a cut label needs a pointer: under the keyboard's focus, without hover and below
+   768 px the label wraps whole. */
+.lintje-tree__item:focus-visible > .lintje-tree__row .lintje-tree__label { white-space: normal; overflow-wrap: anywhere; }
+@media (hover: none), screen and (max-width: 767px) {
+  .lintje-tree__label { white-space: normal; overflow-wrap: anywhere; }
+}
+.lintje-tree__count { flex: none; align-self: baseline; font-weight: 400; color: var(--color-text-muted); }
 
 @media (prefers-reduced-motion: reduce) {
   .lintje-tree__row { transition: none; }

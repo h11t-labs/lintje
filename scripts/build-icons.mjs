@@ -82,6 +82,7 @@ const COMPONENT_ICONS = [
   'gebruiksvoorwerpen-hangslot-dicht', // a menu entry without access
   'functioneel-printer', // share menu: print
   'functioneel-mail', // share menu: send as e-mail; the feedback row
+  'communicatie-tekstballonnen-met-vraagteken', // shell: the feedback link
   'functioneel-smartphone', // share menu: open on my phone
   'functioneel-terug', // share menu: back from the QR code
   'functioneel-darkmode', // top bar: the Weergave button; follow the system
@@ -111,6 +112,7 @@ const COMPONENT_ICONS = [
   'multimedia-player-full-screen-uitgaan', // video player: leave full screen
   'functioneel-geluid-aan', // video player: mute
   'functioneel-geluid-uit', // video player: sound on again
+  'functioneel-ondertiteling', // the video player's captions
   'op-kantoor-document-blanco', // file upload: a file row
   'functioneel-refresh', // chat: answer again, try again; video player: load again
   'lichaam-duim-omhoog', // chat: a good answer

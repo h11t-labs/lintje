@@ -87,7 +87,7 @@ export class LintjeSlotPicker extends LintjeInputElement {
 
   private renderSlot(day: SlotDay, slot: TimeSlot): TemplateResult {
     const chosen = slot.value === this.value
-    const disabled = this.disabled || Boolean(slot.full)
+    const disabled = this.isDisabled || Boolean(slot.full)
     return html`<label
       class=${classMap({
         'lintje-slot-picker__slot': true,
