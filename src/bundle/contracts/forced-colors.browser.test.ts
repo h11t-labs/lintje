@@ -39,8 +39,9 @@ function system(name: string): string {
   return colour
 }
 
-/** Reads `read` with forced colours on; false when the engine does not emulate them. */
+/** Reads `read` with forced colours on; false when the engine does not draw them (WebKit). */
 async function forced<R>(read: () => R): Promise<R | false> {
+  if (!CSS.supports('forced-color-adjust', 'none')) return false
   await commands.emulateForcedColors(true)
   await frame()
   try {
