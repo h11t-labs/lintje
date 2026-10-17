@@ -29,27 +29,27 @@ export interface NavGroup {
   items: ShellLink[]
 }
 
-/** The ribbon's width in px; matches `--w-ribbon`. */
-export const RIBBON_WIDTH = { desktop: 48, phone: 40 } as const
-
 export interface LogoBarOptions {
   /** URL or data URI of an emblem the host resolved itself; wins over `emblem`. */
   logo?: string
   /** The theme's emblem (the ribbon) by file name, with the organisation's name and byline. */
   emblem?: { name: string; label: string; byline?: string }
-  /** `RIBBON_WIDTH.desktop` or `.phone`. */
-  ribbon: number
   /** The environment outside production ("Acceptatie"); a phone shows its first three letters. */
   environment?: string
   /** Without it the logo is not a link. */
   home?: { href: string; onNavigate: (event: MouseEvent) => void }
 }
 
+/**
+ * The home link's description. Its name is what the logo shows, the organisation (WCAG 2.5.3);
+ * only a logo without a name leaves this as the name, so the link is never nameless.
+ */
+export const HOME_LABEL = 'Naar de startpagina'
+
 export function renderLogoBar(options: LogoBarOptions): TemplateResult {
-  const { logo, emblem, ribbon, environment, home } = options
+  const { logo, emblem, environment, home } = options
   const drawing = html`<lintje-logo
     full
-    width=${ribbon}
     src=${logo ?? nothing}
     name=${emblem?.name ?? nothing}
     alt=${emblem?.label ?? nothing}
@@ -61,8 +61,8 @@ export function renderLogoBar(options: LogoBarOptions): TemplateResult {
         ? html`<a
           class="lintje-logobar__home focus-inset"
           href=${home.href}
-          aria-label="Naar de startpagina"
-          title="Naar de startpagina"
+          aria-label=${emblem?.label ? nothing : HOME_LABEL}
+          title=${HOME_LABEL}
           @click=${(event: MouseEvent) => {
             if (isPlainClick(event)) home.onNavigate(event)
           }}
@@ -188,6 +188,15 @@ function pageLink(options: NavBarOptions, item: ShellLink): TemplateResult {
   >`
 }
 
+/** A finger is down on this entry; its click is a tap. */
+const touching = new WeakSet<Element>()
+/** This entry's group was opened by a tap, so leaving the bar leaves it open. Every way of opening
+ * a group (its `mouseenter` or its click) sets or clears the mark. */
+const tapped = new WeakSet<Element>()
+/** Whether a group was open when a finger came down on it: the tap's own `mouseenter` opens it
+ * before the click arrives. */
+const openAtTouch = new WeakMap<Element, boolean>()
+
 function barPanel(
   options: NavBarOptions,
   index: number,
@@ -212,14 +221,44 @@ function barPanel(
         'is-open': open,
         ...extra,
       })}
-      aria-expanded=${String(open)}
-      aria-controls=${panel}
+      aria-expanded=${whole ? nothing : String(open)}
+      aria-controls=${whole && !open ? nothing : panel}
+      @pointerdown=${
+        whole
+          ? nothing
+          : (event: PointerEvent) => {
+              const button = event.currentTarget as Element
+              if (event.pointerType === 'touch') {
+                touching.add(button)
+                openAtTouch.set(button, open)
+              } else {
+                touching.delete(button)
+                openAtTouch.delete(button)
+              }
+            }
+      }
       @click=${(event: MouseEvent) => {
-        // A group's pointer click never closes: hover has opened it already, and closing again
-        // would make the entry blink. "Menu" opens on a click only, so every click toggles it.
-        options.onOpen(open && (whole || event.detail === 0) ? null : index)
+        const button = event.currentTarget as Element
+        // A tap brings its own `mouseenter` before this click, so the mark goes on here.
+        if (event.detail !== 0 && touching.has(button)) tapped.add(button)
+        else tapped.delete(button)
+        touching.delete(button)
+        // A mouse click never closes a group: hover has opened it already, and closing again
+        // would make the entry blink. A tap and "Menu" toggle, as do Enter and space.
+        const touched = openAtTouch.get(button)
+        openAtTouch.delete(button)
+        const was = touched ?? open
+        const toggles = whole || event.detail === 0 || touched !== undefined
+        options.onOpen(was && toggles ? null : index)
       }}
-      @mouseenter=${whole ? nothing : () => options.onOpen(index)}
+      @mouseenter=${
+        whole
+          ? nothing
+          : (event: MouseEvent) => {
+              tapped.delete(event.currentTarget as Element)
+              options.onOpen(index)
+            }
+      }
     >
       ${
         whole
@@ -280,9 +319,13 @@ function barMenu(options: NavBarOptions): TemplateResult {
 
 export function renderNavBar(options: NavBarOptions): TemplateResult {
   const collapsed = Boolean(options.collapsed)
-  // "Menu" was opened by a click, so leaving the bar does not close it.
-  const leave = (): void => {
-    if (options.open !== WHOLE_MENU) options.onOpen(null)
+  // "Menu" was opened by a click and a group by a tap, so leaving the bar closes neither: the
+  // mouse resting elsewhere on the page takes the hover back after a tap.
+  const leave = (event: MouseEvent): void => {
+    if (options.open === WHOLE_MENU) return
+    const entry = (event.currentTarget as Element).querySelector('.lintje-navbar__entry.is-open')
+    if (entry && tapped.has(entry)) return
+    options.onOpen(null)
   }
   return html`<div class="lintje-navbar" @mouseleave=${leave}>
     <div class="lintje-navbar__start">
@@ -383,24 +426,33 @@ export class SubmenuController implements ReactiveController {
     if (this.#mobile.matches && this.host.openGroup !== null) this.host.openGroup = null
   }
 
+  // `collapsed` draws another bar, so it is measured in the observer, whose first report on a new
+  // box comes before the paint, and not after a render: that would draw the host twice.
   hostUpdated(): void {
-    this.measure()
+    const root = this.host.renderRoot
+    const nav = root.querySelector('.lintje-navbar__entries')
+    const list = root.querySelector('.lintje-navbar__list')
+    this.#observe([nav, list].filter((box): box is Element => box !== null))
+    this.#giveRoom()
+  }
+
+  /** An open panel gets the room under the bar to scroll inside itself. */
+  #giveRoom(): void {
+    const bar = this.#bar
+    if (!bar || this.host.openGroup === null) return
+    const room = Math.max(0, window.innerHeight - bar.getBoundingClientRect().bottom)
+    bar.style.setProperty('--lintje-navbar-room', `${Math.floor(room)}px`)
   }
 
   /**
    * A change of `collapsed` closes whatever was open, whose entry has gone. Without layout it
-   * leaves the state as is. An open panel gets the room under the bar to scroll inside itself.
+   * leaves the state as is.
    */
   measure(): void {
     const root = this.host.renderRoot
     const nav = root.querySelector('.lintje-navbar__entries')
     const list = root.querySelector('.lintje-navbar__list')
-    this.#observe([nav, list].filter((box): box is Element => box !== null))
-    const bar = this.#bar
-    if (bar && this.host.openGroup !== null) {
-      const room = Math.max(0, window.innerHeight - bar.getBoundingClientRect().bottom)
-      bar.style.setProperty('--lintje-navbar-room', `${Math.floor(room)}px`)
-    }
+    this.#giveRoom()
     if (!nav || !list) return
     const need = list.getBoundingClientRect().width
     if (!need) return

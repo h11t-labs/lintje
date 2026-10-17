@@ -67,7 +67,6 @@ export class LintjeTabs extends LintjeElement {
     value: { type: String },
     label: { type: String },
     variant: { type: String, reflect: true },
-    edges: { state: true },
   }
 
   tabs: TabItem[] = []
@@ -79,8 +78,6 @@ export class LintjeTabs extends LintjeElement {
    * with an icon and a hint; on a phone the icon stands above the label and the hint goes.
    */
   variant: TabsVariant = 'line'
-  protected edges: { start: boolean; end: boolean } = { start: false, end: false }
-
   #resize: ResizeObserver | null = null
   /** A press inside a panel: Safari focuses the panel itself when the pressed control takes no
       focus, and that focus draws no ring. */
@@ -149,11 +146,13 @@ export class LintjeTabs extends LintjeElement {
     if (!this.tabs[next]?.href) this.choose(next)
   }
 
+  // Straight onto the list: a reactive property set after a render would draw it twice.
   private measureEdges(): void {
     const list = this.list
     if (!list) return
-    const next = scrollEdges(list.scrollLeft, list.clientWidth, list.scrollWidth)
-    if (next.start !== this.edges.start || next.end !== this.edges.end) this.edges = next
+    const edges = scrollEdges(list.scrollLeft, list.clientWidth, list.scrollWidth)
+    list.classList.toggle('is-scroll-start', edges.start)
+    list.classList.toggle('is-scroll-end', edges.end)
   }
 
   protected override firstUpdated(): void {
@@ -166,10 +165,10 @@ export class LintjeTabs extends LintjeElement {
 
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
-    if (!changed.has('value') && !changed.has('tabs')) return
     const list = this.list
     const tab = this.tabElement(this.selectedIndex)
-    if (list && tab && list.scrollWidth > list.clientWidth) {
+    const moved = changed.has('value') || changed.has('tabs')
+    if (moved && list && tab && list.scrollWidth > list.clientWidth) {
       list.scrollLeft = scrollToShow(
         tab.offsetLeft,
         tab.offsetWidth,
@@ -246,11 +245,7 @@ export class LintjeTabs extends LintjeElement {
     const chosen = this.selectedIndex
     const nav = this.isNav
     const list = html`<div
-      class=${classMap({
-        'lintje-tabs__list': true,
-        'is-scroll-start': this.edges.start,
-        'is-scroll-end': this.edges.end,
-      })}
+      class="lintje-tabs__list"
       role=${nav ? nothing : 'tablist'}
       aria-label=${nav ? nothing : this.label || nothing}
       @keydown=${nav ? nothing : this.onKeydown}
