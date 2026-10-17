@@ -1,6 +1,6 @@
 /** The move that clears a focused mark of the map's overlays. */
 import { describe, expect, it } from 'vitest'
-import { clearance, hidden, type Box } from './reveal'
+import { clearance, hidden, OVERLAYS, type Box } from './reveal'
 
 const box = (left: number, top: number, right: number, bottom: number): Box => ({
   left,
@@ -40,5 +40,11 @@ describe('hidden', () => {
 
   it('does not for a mark of which a part shows', () => {
     expect(hidden(box(540, 20, 580, 30), VIEW, [ZOOM])).toBe(false)
+  })
+})
+
+describe('what stands over the drawing', () => {
+  it('holds the drawing hint too, so a mark is not left under it', () => {
+    expect(OVERLAYS.split(', ')).toContain('.lintje-map-chart__hint')
   })
 })
