@@ -7,7 +7,7 @@ bouw hem in je pipeline en serveer hem in zijn geheel als statische bestanden. L
 Het npm-pakket `lintje` (`npm install lintje`) bevat dezelfde map, met een naam per ingang:
 `lintje` is `lintje.js`, `lintje/core` is `core.js`, `lintje/<category>` een categorie,
 `lintje/tag/<name>` één tag, en `lintje/tokens.css`, `/fonts.css` en `/icons/<name>.svg` de
-bestanden ernaast. Het heeft geen verplichte dependencies: Lit en Leaflet zitten in de build. `lit` 3 is een optionele
+bestanden ernaast. Het heeft geen verplichte dependencies: Lit, Leaflet, dagre en d3-force zitten in de build. `lit` 3 is een optionele
 peer, alleen voor de typen van de geërfde leden van een element.
 
 ## Twee manieren van laden, en een pagina kiest er één
@@ -20,6 +20,7 @@ peer, alleen voor de typen van de geërfde leden van een element.
 | `tag/<name>.js` | één tag: `tag/shell.js` is `<lintje-shell>` |
 | `dev.js` | een controle voor tijdens het ontwikkelen: het waarschuwt voor een tag die je vergat te importeren |
 | `chunks/` | de code die die bestanden delen. Importeer er nooit uit: de namen veranderen bij elke build |
+| `workers/layout-worker.js` | de indeling van een groot entiteitendiagram (`lintje-graph`), buiten de pagina berekend. De module vindt hem naast zich; ontbreekt hij, of laat het beleid van de pagina geen worker toe, dan deelt de pagina de graaf zelf in |
 | `tokens.css` | de thema's en de tokens ([thema's](theming.md)) |
 | `fonts.css` | de twee `@font-face`-regels voor RijksSans, die wijzen naar `fonts/` ernaast. Optioneel |
 | `custom-elements.json` | de tag-referentie, gelezen uit de broncode |
