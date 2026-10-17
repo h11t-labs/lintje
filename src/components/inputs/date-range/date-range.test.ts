@@ -89,13 +89,11 @@ async function mount(props: Partial<LintjeDateRange> = {}): Promise<LintjeDateRa
 const field = (element: LintjeDateRange): HTMLButtonElement =>
   element.shadowRoot!.querySelector('.lintje-date-range-picker__field')!
 const days = (element: LintjeDateRange): HTMLButtonElement[] => [
-  ...element.shadowRoot!.querySelectorAll<HTMLButtonElement>('.lintje-date-range-picker__day'),
+  ...element.shadowRoot!.querySelectorAll<HTMLButtonElement>('.lintje-month-grid__day'),
 ]
-/** A day of the month in view, not one of the weeks around it. */
+/** A day of the month in view; the weeks around it are blank. */
 const cell = (element: LintjeDateRange, day: number): HTMLButtonElement =>
-  days(element).find(
-    (button) => !button.classList.contains('is-outside') && button.textContent!.trim() === `${day}`,
-  )!
+  days(element).find((button) => button.textContent!.trim() === `${day}`)!
 const grid = (element: LintjeDateRange): HTMLElement =>
   element.shadowRoot!.querySelector('[role="grid"]')!
 
@@ -120,8 +118,9 @@ describe('lintje-date-range', () => {
 
   it('draws the calendar as a grid of weeks with one tab stop', async () => {
     const element = await openWith({ from: '05-10-2026', to: '07-10-2026' })
+    // October 2026 spans five weeks, under the row of weekdays.
     const rows = grid(element).querySelectorAll(':scope > [role="row"]')
-    expect(rows).toHaveLength(7)
+    expect(rows).toHaveLength(6)
     expect(rows[0].querySelectorAll('[role="columnheader"]')).toHaveLength(7)
     expect(rows[1].querySelectorAll('[role="gridcell"]')).toHaveLength(7)
     expect(grid(element).getAttribute('aria-label')).toBe('oktober 2026')
@@ -149,7 +148,7 @@ describe('lintje-date-range', () => {
     for (const day of inside) expect(day.getAttribute('aria-label')).toMatch(/, in periode$/)
     for (const day of [2, 13]) {
       expect(cell(element, day).classList.contains('is-in-range')).toBe(false)
-      expect(cell(element, day).classList.contains('is-endpoint')).toBe(true)
+      expect(cell(element, day).classList.contains('is-selected')).toBe(true)
     }
   })
 

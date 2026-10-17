@@ -538,6 +538,9 @@
      unlike the grey of a hover or a selected row, so the period reads as one stretch. The
      endpoints and the words carry the period, so the fill needs no 3:1. Dark re-declares it. */
   --color-range-bg: oklch(from var(--primary) 0.86 min(c, 0.04) h);
+  /* The edge of a chosen day in a calendar: lighter than its primary fill, as dark's is, so two
+     chosen days and a chosen day beside the period's tint stay apart. Dark re-declares it. */
+  --color-chosen-day-edge: oklch(from var(--primary) 0.8 min(c, 0.1) h);
   /* The 2 px line under a term; dark takes the text tint, as the line tint falls short on it. */
   --color-term-line: var(--color-accent-line);
   /* The 4 px edge of a chosen row; dark takes the text tint, as the line tint falls short on the
@@ -797,6 +800,8 @@
     --color-choice-active-bg: var(--neutral-2);
     /* The dark counterpart: above the surface and the subtle grey, under white text. */
     --color-range-bg: oklch(from var(--primary) 0.36 min(c, 0.04) h);
+    /* The primary tint, and always a step above the fill: an orange primary is its own tint. */
+    --color-chosen-day-edge: oklch(from var(--primary) max(l + 0.1, 0.55) min(c, 0.15) h);
     --color-term-line: var(--primary-tint-text);
     --color-selected-edge: var(--primary-tint-text);
     --color-progress-track: var(--color-bg-inset);

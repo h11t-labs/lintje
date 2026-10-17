@@ -1082,6 +1082,11 @@ export default {
           note: 'Met `stacked` krijgt het veld de volle breedte en de aanraakhoogte.',
           html: '<lintje-date-input label="Datum" value="2026-10-03" stacked></lintje-date-input>',
         },
+        {
+          label: 'Kalender open',
+          note: 'Hetzelfde maandraster als de datumreeks: vandaag met een ring, de gekozen dag gevuld.',
+          html: '<lintje-date-input label="Datum" value="2026-10-03" today="2026-10-14" open></lintje-date-input>',
+        },
       ],
     },
     {
