@@ -131,7 +131,7 @@ export class LintjeModal extends LintjeElement {
         @click=${(event: Event) => event.stopPropagation()}
       >
         <header class="lintje-modal__header">
-          <div>
+          <div class="lintje-modal__heading">
             <h2 class="lintje-modal__title">${this.heading}</h2>
             ${
               this.subtitle ? html`<p class="lintje-modal__subtitle">${this.subtitle}</p>` : nothing

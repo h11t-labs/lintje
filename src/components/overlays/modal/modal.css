@@ -31,6 +31,11 @@
   padding: var(--space-5) var(--space-6);
   border-bottom: 1px solid var(--color-border-default);
 }
+/* As high as the close button at least, so a heading without a subtitle stands level with it. */
+.lintje-modal__heading {
+  min-width: 0; min-height: var(--h-icon-button);
+  display: flex; flex-direction: column; justify-content: center;
+}
 .lintje-modal__title { font: var(--text-h2); }
 .lintje-modal__subtitle { font: var(--text-small); color: var(--color-text-muted); margin-top: var(--space-1); }
 .lintje-modal__close:hover { color: var(--color-text-primary); }
