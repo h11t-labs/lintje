@@ -72,11 +72,12 @@ Een component heeft een eigen map in zijn categorie (regel 20); `components/shar
 - `core/shortcuts.ts` — het ene register van sneltoetsen van de pagina. Een component roept
   `registerShortcut()` aan in `connectedCallback` en de teruggegeven functie in
   `disconnectedCallback`; het luistert nooit zelf op het document.
-- `components/shared/place.ts` — waar een zwevend vak staat: dat van de popover, de tooltip en
-  de toggletip.
+- `components/shared/place.ts` — waar een zwevend vak staat: dat van de popover, de tooltip, de
+  toggletip, de multiselect en de datumreeks.
 - `core/focus.ts` — de focus door shadow roots heen, en van wie de Escape is;
   `components/shared/focus-trap.ts` is de ene trap-stack die elk modaal ding activeert.
 - `components/shared/dialog-close.css` — de ene sluitknop van een dialoog.
+- `components/shared/month-grid.ts` — het ene maandraster, van de datuminvoer en de datumreeks.
 - `components/inputs/shared/field-foot.ts` — de ene voet van elk veld: de hint, of de
   melding die die vervangt.
 - `renderBadge()` (`components/feedback/badge/badge.ts`) — de ene tekening van een badge, ook voor een root
@@ -380,8 +381,8 @@ delen, heeft één contract in `src/bundle/contracts/`, met een tabel van elk el
 mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat in de tabel.
 
 - `dialog.browser.test.ts` — elke gebruiker van `FocusTrap`: de focus gaat erin, Tab blijft
-  erin, Escape sluit, de focus keert terug naar de trigger, en `aria-labelledby` en
-  `aria-describedby` vinden hun doel in de eigen root.
+  erin, de pagina erachter scrolt niet, Escape sluit, de focus keert terug naar de trigger, en
+  `aria-labelledby` en `aria-describedby` vinden hun doel in de eigen root.
 - `popover.browser.test.ts` — elk zwevend paneel aan een anker: het staat aan zijn anker,
   binnen het venster, niet afgesneden door een scrollende voorouder; Escape geeft de focus terug
   aan het anker, Tab voorbij het laatste bedieningselement en een focus elders sluiten het, een
@@ -392,9 +393,16 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
   markering van de andere weergave, niet alleen een andere hoogte.
 - `sticky.browser.test.ts` — wat plakt: het houdt zijn hoogte vrij als scroll-padding, en een
   bedieningselement dat de focus krijgt, staat er niet onder.
+- `choice-foot.browser.test.ts` — de hint en de foutmelding onder een vinkje of schakelaar, ook
+  die van een optie in een groep of multiselect, beginnen waar de labeltekst begint; die van een
+  groep en van een rij van een instelling staan tegen de rand.
 - `required.browser.test.ts` — elke invoer met `required` in een natief `<form>`: leeg houdt hij
   het versturen tegen, gevuld of uitgeschakeld niet, en de melding van de browser landt op het
   bedieningselement dat ook de focus krijgt.
+- `truncate.browser.test.ts` — tekst met een beletselteken: met een aanwijzer staat hij op één
+  regel en, als hij is afgekapt, heel in de `title`; onder de focus van het toetsenbord en op 390
+  en 320 px loopt hij door en blijft hij binnen zijn ouder. Tekst die niets een `title` laat tonen,
+  kapt nooit af.
 - `reduced-motion.browser.test.ts` — verminderde beweging, waarmee elke browsertest draait: een
   vak dat openklapt, laat zijn inhoud los zodra zijn hoogte staat.
 
@@ -406,6 +414,13 @@ Een contract toetst wat een host of gebruiker merkt: focus, events, wat zichtbaa
 staat ten opzichte van iets anders. Geen pixelwaarden die de CSS al vastlegt. Een rij die vandaag
 faalt, staat in de `KNOWN`-lijst van haar bestand, met het nummer van haar issue erboven; een entry
 die nergens meer op past, laat de test falen, zodat de fix hem weghaalt.
+
+Elke browsertest faalt op de waarschuwing `change-in-update` van Lit en op een toets die twee keer
+in `registerShortcut` staat (`bundle/browser-setup.ts`). Een element tekent zich dus één keer: wat
+het uit zijn eigenschappen kan afleiden, rekent het uit in `willUpdate`, en wat het na het tekenen
+meet, schrijft het direct op de DOM (`classList`, `style.setProperty`), niet in een bewaakte
+eigenschap. Kiest een meting een andere template, dan meet het element in zijn `ResizeObserver`:
+die meldt een vak dat hij opnieuw waarneemt nog vóór het scherm ververst.
 
 ## Events
 

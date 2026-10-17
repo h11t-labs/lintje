@@ -2,7 +2,8 @@
  * The one filter toggle.
  *
  * What is checked here is what the button *is*: one class in both states, the
- * right label and `aria-expanded`, and a click that asks for the other state.
+ * word it shows as its name and `aria-expanded`, and a click that asks for the
+ * other state.
  * happy-dom has no layout, so that the box does not move is proven where it
  * runs, in headless Chrome.
  */
@@ -57,11 +58,13 @@ describe('the filter toggle', () => {
     expect(collapsed?.closest('.lintje-summary-bar')).not.toBeNull()
   })
 
-  it('says which state it is in, in Dutch', async () => {
-    expect(toggle(await mount(true))?.getAttribute('aria-expanded')).toBe('true')
-    expect(toggle(await mount(true))?.getAttribute('aria-label')).toBe('Filters verbergen')
-    expect(toggle(await mount(false))?.getAttribute('aria-expanded')).toBe('false')
-    expect(toggle(await mount(false))?.getAttribute('aria-label')).toBe('Filters tonen')
+  it('is named by the word it shows and says its state once, in aria-expanded', async () => {
+    for (const expanded of [true, false]) {
+      const button = toggle(await mount(expanded))
+      expect(button?.hasAttribute('aria-label')).toBe(false)
+      expect(button?.textContent?.trim()).toBe('Filters')
+      expect(button?.getAttribute('aria-expanded')).toBe(String(expanded))
+    }
   })
 
   it('turns the chevron rather than swapping the glyph', async () => {

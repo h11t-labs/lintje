@@ -144,3 +144,37 @@ describe('lintje-audio-player draws as many bars as its width holds', () => {
     await expectFit(element)
   })
 })
+
+/** A computed colour as 0–255 channels, whatever syntax the browser serialises it in. */
+function channels(colour: string): number[] {
+  const context = document.createElement('canvas').getContext('2d', { willReadFrequently: true })!
+  context.fillStyle = colour
+  context.fillRect(0, 0, 1, 1)
+  return Array.from(context.getImageData(0, 0, 1, 1).data.slice(0, 3))
+}
+
+describe('lintje-audio-player draws what is still to come', () => {
+  for (const [kind, peaks, selector] of [
+    ['waveform', PEAKS, '.lintje-audio-player__peak.has-speaker'],
+    ['bar', null, '.lintje-audio-player__stretch'],
+  ] as const) {
+    it(`on the ${kind} as the speaker's lighter colour, not see-through`, async () => {
+      const element = await mount(peaks)
+      const ahead = (): HTMLElement | undefined =>
+        [...element.shadowRoot!.querySelectorAll<HTMLElement>(selector)].find(
+          (piece) => !piece.classList.contains('is-played'),
+        )
+      await expect.poll(() => ahead()).toBeTruthy()
+      // Nothing played yet: the first speaker, sky blue, comes first.
+      const piece = ahead()!
+      expect(piece.style.getPropertyValue('--lintje-speaker')).toBe('var(--color-chart-sky-blue)')
+      const style = getComputedStyle(piece)
+      expect(style.opacity).toBe('1')
+      // In light, the `-tint-4` step of the sky-blue ladder: --data-sky-blue-45, #8CC4E6.
+      const [red, green, blue] = channels(style.backgroundColor)
+      expect(red).toBeCloseTo(0x8c, -0.5)
+      expect(green).toBeCloseTo(0xc4, -0.5)
+      expect(blue).toBeCloseTo(0xe6, -0.5)
+    })
+  }
+})

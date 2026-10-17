@@ -30,7 +30,7 @@ export class LintjeToggle extends LintjeInputElement {
 
   protected override render(): TemplateResult {
     return html`<div class="lintje-field">
-      <label class=${classMap({ 'lintje-choice': true, 'is-disabled': this.disabled })}>
+      <label class=${classMap({ 'lintje-choice': true, 'is-disabled': this.isDisabled })}>
         <input
           type="checkbox"
           role="switch"
@@ -38,7 +38,7 @@ export class LintjeToggle extends LintjeInputElement {
           .checked=${this.checked}
           aria-describedby=${this.describedBy}
           aria-invalid=${this.error ? 'true' : nothing}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @change=${this.change}
         />
         <span class="lintje-choice__switch" aria-hidden="true">

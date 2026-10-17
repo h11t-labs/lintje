@@ -43,3 +43,12 @@
   animation: lintje-fade-in var(--dur-base) var(--ease-in-motion) both;
 }
 .lintje-chat-answer__reasons-label { margin-right: var(--space-1); }
+
+/* Files the answer gives back: the same chips as in a question, beside the sentence that names them. */
+.lintje-chat-answer__attachments {
+  display: flex; flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0; padding: 0;
+  list-style: none;
+}
+.lintje-chat-answer__attachment { display: flex; min-width: 0; max-width: 100%; }

@@ -64,6 +64,35 @@ describe('lintje-chat-answer', () => {
     expect(tags[2].getAttribute('span')).toBe('6')
   })
 
+  it('draws an attachments block as chips in a labelled list, beside the sentence that names them', async () => {
+    const element = await answer({
+      blocks: [
+        { kind: 'prose', text: 'Hier is de tabel als CSV.' },
+        {
+          kind: 'attachments',
+          items: [
+            {
+              id: 'csv',
+              name: 'bezwaren-per-maand.csv',
+              size: 4_200,
+              state: 'done',
+              href: '/a.csv',
+              download: true,
+            },
+            { id: 'bron', name: 'beleidsregel-2026.pdf', detail: 'blz. 4', state: 'done' },
+          ],
+        },
+      ],
+    })
+    const list = element.renderRoot.querySelector('.lintje-chat-answer__blocks > ul')!
+    expect(list.getAttribute('aria-label')).toBe('Bijlagen')
+    const chips = [...list.querySelectorAll('li > lintje-attachment')]
+    expect(chips.map((chip) => (chip as HTMLElement & { data: { id: string } }).data.id)).toEqual([
+      'csv',
+      'bron',
+    ])
+  })
+
   it('ready: the strip and the actions; follow-ups and retry on the current answer only', async () => {
     const followUps = [{ label: 'En gisteren?' }]
     const older = await answer({ strip: STRIP, followUps })
@@ -96,6 +125,30 @@ describe('lintje-chat-answer', () => {
     expect(spinner?.closest('[aria-busy]')).toBeNull()
     expect(has(element, 'lintje-chat-strip')).toBe(false)
     expect(has(element, 'lintje-icon-button')).toBe(false)
+  })
+
+  it('with steps: draws them first in its body, in every state, and no ring of its own', async () => {
+    const steps = {
+      items: [{ label: 'Vraag gelezen' }, { label: 'Cijfers berekenen', state: 'busy' as const }],
+    }
+    const element = await answer({ state: 'streaming', status: 'Cijfers berekenen', steps })
+    const body = element.renderRoot.querySelector('.lintje-chat-answer__body')!
+    expect(body.firstElementChild?.localName).toBe('lintje-chat-steps')
+    expect(has(element, 'lintje-spinner')).toBe(false)
+    element.state = 'error'
+    await element.updateComplete
+    expect(body.firstElementChild?.localName).toBe('lintje-chat-steps')
+  })
+
+  it('with empty steps keeps its own ring, as without them', async () => {
+    const element = await answer({
+      state: 'streaming',
+      status: 'Vraag lezen',
+      steps: { items: [] },
+    })
+    expect(element.renderRoot.querySelector('lintje-spinner')?.getAttribute('label')).toBe(
+      'Vraag lezen',
+    )
   })
 
   it('streaming: the log does not read the text; whole sentences are spoken beside it', async () => {
@@ -203,17 +256,12 @@ describe('lintje-chat-answer', () => {
     expect(has(older, 'lintje-button[slot="action"]')).toBe(false)
   })
 
-  it('a question back: solid choices under their own label, per state', async () => {
-    const choices = [{ label: 'Loket A' }]
-    const clarify = await answer({ state: 'needs-clarification', choices, current: true })
-    const asked = clarify.renderRoot.querySelector('lintje-chat-suggestions')
-    expect(asked?.getAttribute('kind')).toBe('choice')
-    expect(asked?.getAttribute('label')).toBe('Kies je antwoord')
-
-    const scope = await answer({ state: 'out-of-scope', choices, current: true })
-    expect(scope.renderRoot.querySelector('lintje-chat-suggestions')?.getAttribute('label')).toBe(
-      'Kies wat je wilt doen',
-    )
+  it('a question back draws no choices of its own: they stand in the questions box', async () => {
+    const clarify = await answer({ state: 'needs-clarification', current: true })
+    expect(has(clarify, 'lintje-chat-suggestions')).toBe(false)
+    expect('choices' in clarify).toBe(false)
+    const scope = await answer({ state: 'out-of-scope', current: true })
+    expect(has(scope, 'lintje-chat-suggestions')).toBe(false)
     expect(has(scope, 'lintje-icon-button')).toBe(false)
   })
 

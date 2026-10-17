@@ -3,7 +3,7 @@
  *
  * Events: `lintje-time-change` (seconds; at most four a second while playing, at once after a
  * seek or pause), `lintje-seek` (seconds: the reader moved the position, with the bar, a key or a
- * skip), `lintje-play`, `lintje-pause`.
+ * skip), `lintje-play`, `lintje-pause`, `lintje-retry` ("Opnieuw proberen" was pressed).
  *
  * Setting `currentTime` seeks without an event of its own, so a host that answers
  * `lintje-time-change` by setting it cannot loop. A seek before the duration is known is kept.
@@ -139,9 +139,11 @@ export abstract class LintjePlayerElement extends LintjeElement {
     if (media) media.playbackRate = speed
   }
 
+  /** Loads again and tells the host, which may answer with a new `src` for a lasting failure. */
   protected retry(): void {
     this.failed = false
     this.media?.load()
+    this.emit('lintje-retry')
   }
 
   private readonly onMetadata = (): void => {

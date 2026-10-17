@@ -177,6 +177,18 @@
 .lintje-data-table__change--flat { color: var(--color-text-muted); }
 .lintje-data-table__change--up   { color: var(--color-success-text); }
 .lintje-data-table__change--down { color: var(--color-error-text); }
+/* A compact change: the glyph, its words in the `title`. Where no pointer shows that — under the
+   keyboard's focus, without hover — the words stand in the glyph's place, as a truncated value
+   wraps whole. */
+.lintje-data-table__change-words { display: none; white-space: normal; }
+.lintje-data-table__row:focus-visible .lintje-data-table__change-words,
+.lintje-data-table__row:has(:focus-visible) .lintje-data-table__change-words { display: inline; }
+.lintje-data-table__row:focus-visible .lintje-data-table__change--compact,
+.lintje-data-table__row:has(:focus-visible) .lintje-data-table__change--compact { display: none; }
+@media (hover: none) {
+  .lintje-data-table__change-words { display: inline; }
+  .lintje-data-table__change--compact { display: none; }
+}
 
 /* Each representation has its own pager; the phone's is hidden on desktop. */
 .lintje-data-table__pagination { padding-top: var(--space-3); }
@@ -253,18 +265,22 @@
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2);
   font: var(--text-small);
 }
+/* A chip has no ellipsis, so no tooltip: a long one wraps, never wider than its row. The text
+   holds the room above and below a second line; the × stays at the right, in the middle. */
 .lintje-data-table__chip {
   display: inline-flex; align-items: center; gap: var(--space-1);
-  height: var(--h-chip);
+  min-height: var(--h-chip);
+  max-width: 100%; min-width: 0;
   padding: 0 var(--space-1) 0 var(--space-2);
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border-default);
   color: var(--color-text-primary);
-  white-space: nowrap;
 }
+.lintje-data-table__chip-text { min-width: 0; padding-block: var(--space-1); overflow-wrap: anywhere; }
 /* A transparent hit area reaches the target height up and down; sideways stands other content. */
 .lintje-data-table__chip-clear {
   position: relative;
+  flex: none;
   width: var(--h-chip-field); height: var(--h-chip-field);
   display: flex; align-items: center; justify-content: center;
   color: var(--color-text-muted);
@@ -438,6 +454,7 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__group-toggle { display: block; padding-block: var(--space-3); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__group-toggle .lintje-icon { vertical-align: -2px; margin-inline-end: var(--space-2); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__group-count { margin-inline-start: var(--space-2); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-check > .lintje-data-table__group-toggle { flex: 1; min-width: 0; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__group-row .lintje-data-table__mobile-cell--align-right { vertical-align: middle; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__total { border-top: 2px solid var(--color-border-heavy); }
 

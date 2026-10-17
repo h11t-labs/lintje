@@ -45,12 +45,14 @@
 .lintje-icon-button--tile { background: transparent; color: var(--color-text-muted); }
 .lintje-icon-button--tile:not(.is-disabled):hover, .lintje-icon-button--tile:focus-visible { color: var(--color-text-primary); }
 
-/* The active button takes the primary-fill border, so the square keeps an edge in dark. */
+/* The active button takes the primary-fill border, so the square keeps an edge in dark; a
+   pointer over it keeps the fill, or pressed would read as released. */
 .lintje-icon-button.is-active {
+  border: 1px solid var(--color-action-primary-border);
   background: var(--color-action-primary);
   color: var(--color-action-primary-text);
-  border-color: var(--color-action-primary-border);
 }
+.lintje-icon-button.is-active:not(.is-disabled):hover { background: var(--color-action-primary); }
 
 /* Live: it listens or speaks now. The primary fill with its border, and bars that move beside
    the icon, so the state is never colour alone; the box grows to hold them. */

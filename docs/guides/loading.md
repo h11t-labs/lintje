@@ -58,7 +58,7 @@ setIconSource({ base: './icons/' })
 | `layout.js` — Indeling | `grid`, `grid-item`, `tile`, `tabs`, `expander`, `split-pane` |
 | `overlays.js` — Vensters en panelen | `modal`, `dialog`, `drawer`, `popover`, `tooltip`, `toggletip` |
 | `actions.js` — Knoppen en iconen | `button`, `icon-button`, `menu-button`, `copy-button`, `qr-code`, `icon`, `logo` |
-| `content.js` — Tekst en media | `prose`, `code`, `key`, `highlight`, `token-value`, `translator`, `audio-player`, `video-player`, `transcript`, `log-viewer`, `document-viewer`, `gallery` |
+| `content.js` — Tekst en media | `prose`, `code`, `key`, `highlight`, `token-value`, `translator`, `audio-player`, `video-player`, `transcript`, `log-viewer`, `document-viewer`, `gallery`, `attachment` |
 | `feedback.js` — Meldingen en status | `announcement`, `toast`, `conflict-alert`, `empty-state`, `error-page`, `badge`, `status-dot`, `spinner`, `skeleton`, `progress-bar`, `job-list`, `streaming-text`, `ai-label`, `level-meter`, `recording-status` |
 | `inputs.js` — Invoervelden | `field`, `text-input`, `find`, `textarea`, `number-input`, `select`, `combobox`, `multiselect`, `tag-input`, `checkbox`, `checkbox-group`, `radio-group`, `toggle`, `segmented`, `range`, `date-input`, `time-input`, `date-range`, `slot-picker`, `file-upload`, `text-editor` |
 | `forms.js` — Formulier | `form`, `form-section`, `stepper`, `repeater`, `repeater-row`, `error-summary`, `form-actions` |
@@ -66,7 +66,7 @@ setIconSource({ base: './icons/' })
 | `charts.js` — Kerncijfers en grafieken | `kpi-row`, `kpi`, `chart`, `note`, `explainer` |
 | `map.js` — Kaart | `map` |
 | `tables.js` — Tabellen en lijsten | `data-table`, `pagination`, `list`, `card`, `card-list`, `description-list`, `tree-view`, `sortable-list`, `activity-log` |
-| `chat.js` — Chat met data | `chat`, `chat-message`, `chat-answer`, `chat-composer`, `chat-strip`, `chat-suggestions` |
+| `chat.js` — Chat met data | `chat`, `chat-message`, `chat-answer`, `chat-steps`, `chat-composer`, `chat-questions`, `chat-strip`, `chat-suggestions` |
 
 De tabel volgt `src/categories.json`. `forms.js` laadt `inputs.js` mee: een formulier is niets
 zonder zijn velden. Een pagina met alleen filters of losse velden laadt `filters.js` of

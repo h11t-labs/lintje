@@ -30,26 +30,16 @@ describe('lintje-chat-suggestions', () => {
     expect(label?.textContent).toBe('Jij, als vervolgvraag')
   })
 
-  it('carries the kind as a modifier: a suggestion by default, a choice when told', async () => {
-    const suggestion = await suggestions({ items: [{ label: 'En gisteren?' }] })
-    expect(
-      suggestion.renderRoot.querySelector('.lintje-chat-suggestions--suggestion'),
-    ).not.toBeNull()
-    const choice = await suggestions({
-      kind: 'choice',
-      items: [{ label: 'Loket A' }],
-      hint: 'Of typ zelf.',
-    })
-    expect(choice.renderRoot.querySelector('.lintje-chat-suggestions--choice')).not.toBeNull()
-    expect(choice.renderRoot.querySelector('.lintje-chat-suggestions__hint')?.textContent).toBe(
-      'Of typ zelf.',
-    )
+  it('is only suggestions: no kind, no hint', async () => {
+    const element = await suggestions({ items: [{ label: 'En gisteren?' }] })
+    expect(element.hasAttribute('kind')).toBe(false)
+    expect('kind' in element).toBe(false)
+    expect('hint' in element).toBe(false)
   })
 
-  it('sends one composed event with the turn, the kind and the value', async () => {
+  it('sends one composed event with the turn and the value', async () => {
     const element = await suggestions({
       turnId: 't1',
-      kind: 'choice',
       items: [{ label: 'Loket A', value: 'desk-a' }, { label: 'Alle samen' }],
     })
     const events: CustomEvent[] = []
@@ -60,8 +50,8 @@ describe('lintje-chat-suggestions', () => {
     buttons[0].click()
     buttons[1].click()
     expect(events.map((event) => event.detail)).toEqual([
-      { turnId: 't1', kind: 'choice', label: 'Loket A', value: 'desk-a' },
-      { turnId: 't1', kind: 'choice', label: 'Alle samen', value: 'Alle samen' },
+      { turnId: 't1', label: 'Loket A', value: 'desk-a' },
+      { turnId: 't1', label: 'Alle samen', value: 'Alle samen' },
     ])
   })
 

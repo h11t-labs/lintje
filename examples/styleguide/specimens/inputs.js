@@ -201,7 +201,7 @@ function fakeUploads(upload) {
 }
 
 const BIJLAGEN = [
-  { value: 'id', label: 'Kopie van een identiteitsbewijs' },
+  { value: 'id', label: 'Kopie van een identiteitsbewijs', description: 'Paspoort of identiteitskaart' },
   { value: 'loon', label: 'Loonstrook', description: 'Van de laatste maand' },
   { value: 'huur', label: 'Huurcontract' },
 ]
@@ -212,6 +212,38 @@ function bijlagen(stage, selected) {
   group.options = BIJLAGEN
   group.selected = selected
 }
+
+const CHANNELS = [
+  { value: 'gemeente', label: 'Via de gemeente' },
+  { value: 'website', label: 'Op rijksoverheid.nl' },
+  { value: 'brief', label: 'Per brief' },
+  { value: 'bekende', label: 'Van een bekende' },
+]
+
+/** Gives the stage's choice group the channels with "Anders", a choice and a text of its own. */
+function channels(stage, chosen, text = '') {
+  const group = stage.querySelector('lintje-radio-group, lintje-checkbox-group')
+  group.options = CHANNELS
+  group.otherText = text
+  if (group.localName === 'lintje-radio-group') group.value = chosen
+  else group.selected = chosen ? [chosen] : []
+}
+
+/** Writes the stage's choice and its "Anders" text into a log line under it. */
+function logOther(stage) {
+  const say = log(stage, 'Nog niets verstuurd.')
+  const group = stage.querySelector('lintje-radio-group, lintje-checkbox-group')
+  for (const name of ['lintje-change', 'lintje-other-change']) {
+    group.addEventListener(name, ({ detail }) => say(`${name}: ${JSON.stringify(detail)}`))
+  }
+}
+
+const OTHER_FORM = `<lintje-form>
+  <lintje-radio-group name="kanaal" label="Hoe hoorde u van de regeling?" other other-placeholder="Bijvoorbeeld: op een informatieavond"></lintje-radio-group>
+  <lintje-form-actions>
+    <lintje-button variant="primary" type="submit">Versturen</lintje-button>
+  </lintje-form-actions>
+</lintje-form>`
 
 /** Writes every `lintje-change` of the stage's element into a log line under it. */
 function logChanges(stage, tag) {
@@ -251,7 +283,7 @@ export default {
     },
 {
       tag: 'lintje-text-input',
-      title: 'Zoeken, wachtwoord, e-mail en vastleggen per toetsaanslag',
+      title: 'Zoeken, wachtwoord, e-mail, een vaste toevoeging en vastleggen per toetsaanslag',
       specimens: [
         {
           label: 'Zoeken terwijl je typt',
@@ -325,6 +357,50 @@ export default {
           label: 'Alleen-lezen',
           html: '<lintje-text-input name="dossier" label="Dossiernummer" value="2026-0412" readonly clearable></lintje-text-input>',
         },
+        {
+          label: 'Met prefix',
+          note: 'Een vaste tekst die de lezer nooit typt staat in een eigen vak; hij hoort niet bij de waarde.',
+          html: '<lintje-text-input name="p.bedrag" label="Bedrag" prefix="€" value="1250"></lintje-text-input>',
+        },
+        {
+          label: 'Met suffix',
+          html: '<lintje-text-input name="p.adres" label="E-mailadres" suffix="@rijksoverheid.nl" value="j.devries"></lintje-text-input>',
+        },
+        {
+          label: 'Met prefix en suffix',
+          html: '<lintje-text-input name="p.website" label="Website" prefix="www." suffix=".nl" value="rijksoverheid" clearable></lintje-text-input>',
+        },
+        {
+          label: 'Met knop',
+          note: 'De knop legt eerst vast wat getypt is, zoals Enter, en stuurt dan `lintje-action`.',
+          html: '<lintje-text-input name="p.kenteken" label="Kenteken" action="Zoek" value="AB-12-CD"></lintje-text-input>',
+          setup(stage) {
+            const say = log(stage)
+            stage.querySelector('lintje-text-input').addEventListener('lintje-action', (event) => {
+              say(`lintje-action ${JSON.stringify(event.detail)}`)
+            })
+          },
+        },
+        {
+          label: 'Zoekveld met knop',
+          html: '<lintje-text-input type="search" label="Zoek in de regelingen" action="Zoek" value="subsidie"></lintje-text-input>',
+        },
+        {
+          label: 'Toevoeging met fout',
+          html: '<lintje-text-input name="p.dossiernummer" label="Dossiernummer" prefix="DOS-" value="12a" error="Gebruik alleen cijfers." action="Controleer"></lintje-text-input>',
+        },
+        {
+          label: 'Toevoeging alleen-lezen',
+          html: '<lintje-text-input name="p.dossier-vast" label="Dossiernummer" prefix="DOS-" value="2026-0412" readonly action="Controleer"></lintje-text-input>',
+        },
+        {
+          label: 'Toevoeging uitgeschakeld',
+          html: '<lintje-text-input name="p.bedrag-uit" label="Bedrag" prefix="€" suffix="per maand" value="85" disabled action="Controleer"></lintje-text-input>',
+        },
+        {
+          label: 'Toevoeging afwijkend van standaard',
+          html: '<lintje-text-input name="p.domein" label="Domein" prefix="www." suffix=".nl" value="overheid" modified></lintje-text-input>',
+        },
       ],
     },
     {
@@ -387,6 +463,11 @@ export default {
         {
           label: 'Afwijkend van standaard',
           html: '<lintje-textarea label="Omschrijving" modified value="Tas zonder eigenaar, omgeving afgezet."></lintje-textarea>',
+        },
+        {
+          label: 'Toelichting en teller',
+          note: 'De toelichting links, de teller rechts op dezelfde regel; past dat niet, dan valt de teller eronder.',
+          html: '<lintje-textarea label="Omschrijving" hint="Wat er is gebeurd, in een paar zinnen." maxlength="2000" value="Tas zonder eigenaar bij de balie."></lintje-textarea>',
         },
         {
           label: 'Afwijkend met terugzetten',
@@ -461,6 +542,16 @@ export default {
         {
           label: 'Alleen-lezen',
           html: '<lintje-number-input name="p.drempel-vast" label="Drempel" value="5" min="0" max="20" readonly></lintje-number-input>',
+        },
+        {
+          label: 'Prefix zonder stapknoppen',
+          html: '<lintje-number-input name="p.tarief" label="Tarief" value="85" prefix="€"></lintje-number-input>',
+          setup: (stage) => (stage.querySelector('lintje-number-input').stepper = false),
+        },
+        {
+          label: 'Prefix en eenheid',
+          html: '<lintje-number-input name="p.uurtarief" label="Uurtarief" value="85" prefix="€" unit="per uur"></lintje-number-input>',
+          setup: (stage) => (stage.querySelector('lintje-number-input').stepper = false),
         },
       ],
     },
@@ -561,6 +652,20 @@ export default {
           setup: setSelected(SOURCES, ['balie', 'online']),
         },
         {
+          label: 'Een lange keuze',
+          note:
+            'Met een aanwijzer staat de hele keuze in de tooltip van het veld. Onder de focus van ' +
+            'het toetsenbord, zonder hover en op een telefoon loopt de chip door.',
+          html: '<div style="max-width: 320px"><lintje-multiselect label="Loket"></lintje-multiselect></div>',
+          setup: setSelected(
+            [
+              { value: 'oost', label: 'Servicepunt in het gemeentehuis van de oostelijke wijken' },
+              { value: 'west', label: 'Servicepunt west' },
+            ],
+            ['oost'],
+          ),
+        },
+        {
           label: 'Afwijkend van standaard',
           html: '<lintje-multiselect label="Bron van de aanvraag" modified></lintje-multiselect>',
           setup: setSelected(SOURCES, ['telefoon']),
@@ -641,7 +746,7 @@ export default {
       specimens: [
         {
           label: 'Rust',
-          note: 'Loonstrook heeft een toelichting onder de optie. Eronder staat wat de host hoort.',
+          note: 'Een toelichting staat onder haar optie, ingesprongen tot de labeltekst. Eronder staat wat de host hoort.',
           html: '<lintje-checkbox-group name="bijlagen" label="Welke bijlagen stuurt u mee?" hint="Kies alles wat van toepassing is."></lintje-checkbox-group>',
           setup(stage) {
             bijlagen(stage, ['loon'])
@@ -663,6 +768,36 @@ export default {
           html: '<lintje-checkbox-group name="bijlagen-uit" label="Uitgeschakeld" disabled></lintje-checkbox-group>',
           setup: (stage) => bijlagen(stage, ['id']),
         },
+        {
+          label: 'Anders niet gekozen',
+          note: 'Met `other` is de laatste optie "Anders, namelijk". Vink haar aan: het veld verschijnt eronder, met de focus erin.',
+          html: '<lintje-checkbox-group name="kanalen" label="Hoe hoorde u van de regeling?" hint="Kies alles wat van toepassing is." other other-placeholder="Bijvoorbeeld: op een informatieavond"></lintje-checkbox-group>',
+          setup(stage) {
+            channels(stage, 'website')
+            logOther(stage)
+          },
+        },
+        {
+          label: 'Anders gekozen en leeg',
+          html: '<lintje-checkbox-group name="kanalen-leeg" label="Hoe hoorde u van de regeling?" other other-placeholder="Bijvoorbeeld: op een informatieavond"></lintje-checkbox-group>',
+          setup: (stage) => channels(stage, 'other'),
+        },
+        {
+          label: 'Anders ingevuld',
+          html: '<lintje-checkbox-group name="kanalen-ingevuld" label="Hoe hoorde u van de regeling?" other></lintje-checkbox-group>',
+          setup: (stage) => channels(stage, 'other', 'Op een informatieavond'),
+        },
+        {
+          label: 'Fout bij Anders',
+          note: 'De host zet `other-error` als "Anders" gekozen is en het veld leeg, met `OTHER_MISSING_TEXT`.',
+          html: '<lintje-checkbox-group name="kanalen-fout" label="Hoe hoorde u van de regeling?" other other-error="Vul in wat je bedoelt."></lintje-checkbox-group>',
+          setup: (stage) => channels(stage, 'other'),
+        },
+        {
+          label: 'Anders uitgeschakeld',
+          html: '<lintje-checkbox-group name="kanalen-uit" label="Hoe hoorde u van de regeling?" other disabled></lintje-checkbox-group>',
+          setup: (stage) => channels(stage, 'other', 'Op een informatieavond'),
+        },
       ],
     },
     {
@@ -683,6 +818,69 @@ export default {
           label: 'Uitgeschakeld',
           html: '<lintje-radio-group name="p.weergave-uit" label="Uitgeschakeld" disabled></lintje-radio-group>',
           setup: (stage) => view(stage, 'dag'),
+        },
+        {
+          label: 'Met omschrijvingen',
+          note: 'Een omschrijving staat onder het label van haar optie en hoort bij haar eigen radio.',
+          html: '<lintje-radio-group name="levering" label="Hoe wilt u het besluit ontvangen?"></lintje-radio-group>',
+          setup(stage) {
+            const group = stage.querySelector('lintje-radio-group')
+            group.options = [
+              { value: 'post', label: 'Per post', description: 'Binnen vijf werkdagen in de brievenbus' },
+              { value: 'online', label: 'In de berichtenbox', description: 'Op de dag van het besluit' },
+              { value: 'beide', label: 'Allebei' },
+            ]
+            group.value = 'online'
+          },
+        },
+        {
+          label: 'Anders niet gekozen',
+          note: 'Met `other` is de laatste optie "Anders, namelijk". Kies haar met een klik of spatie en de focus gaat in het veld; met een pijltoets blijft ze in de groep.',
+          html: '<lintje-radio-group name="kanaal" label="Hoe hoorde u van de regeling?" other other-placeholder="Bijvoorbeeld: op een informatieavond"></lintje-radio-group>',
+          setup(stage) {
+            channels(stage, 'gemeente')
+            logOther(stage)
+          },
+        },
+        {
+          label: 'Anders gekozen en leeg',
+          html: '<lintje-radio-group name="kanaal-leeg" label="Hoe hoorde u van de regeling?" other other-placeholder="Bijvoorbeeld: op een informatieavond"></lintje-radio-group>',
+          setup: (stage) => channels(stage, 'other'),
+        },
+        {
+          label: 'Anders ingevuld',
+          html: '<lintje-radio-group name="kanaal-ingevuld" label="Hoe hoorde u van de regeling?" other></lintje-radio-group>',
+          setup: (stage) => channels(stage, 'other', 'Op een informatieavond'),
+        },
+        {
+          label: 'Fout bij Anders',
+          html: '<lintje-radio-group name="kanaal-fout" label="Hoe hoorde u van de regeling?" other other-error="Vul in wat je bedoelt."></lintje-radio-group>',
+          setup: (stage) => channels(stage, 'other'),
+        },
+        {
+          label: 'Anders uitgeschakeld',
+          html: '<lintje-radio-group name="kanaal-uit" label="Hoe hoorde u van de regeling?" other disabled></lintje-radio-group>',
+          setup: (stage) => channels(stage, 'other', 'Op een informatieavond'),
+        },
+        {
+          label: 'In een formulier',
+          note: "De host gaf `errors.fields['kanaal-other']` terug. De foutsamenvatting brengt de focus naar het veld van \"Anders\"; typen haalt de fout weg.",
+          html: OTHER_FORM,
+          setup(stage) {
+            const form = stage.querySelector('lintje-form')
+            stage.querySelector('lintje-radio-group').options = CHANNELS
+            form.values = { kanaal: 'other', 'kanaal-other': '' }
+            form.errors = { fields: { 'kanaal-other': 'Vul in wat je bedoelt.' } }
+            form.addEventListener('lintje-submit', ({ detail }) => {
+              const { kanaal, 'kanaal-other': text } = detail.values
+              const fields = {}
+              if (!kanaal) fields.kanaal = 'Kies een antwoord.'
+              else if (kanaal === 'other' && !String(text ?? '').trim())
+                fields['kanaal-other'] = 'Vul in wat je bedoelt.'
+              if (Object.keys(fields).length) form.errors = { fields }
+              else form.saved()
+            })
+          },
         },
         {
           label: 'Als kaarten',
@@ -884,6 +1082,11 @@ export default {
           note: 'Met `stacked` krijgt het veld de volle breedte en de aanraakhoogte.',
           html: '<lintje-date-input label="Datum" value="2026-10-03" stacked></lintje-date-input>',
         },
+        {
+          label: 'Kalender open',
+          note: 'Hetzelfde maandraster als de datumreeks: vandaag met een ring, de gekozen dag gevuld.',
+          html: '<lintje-date-input label="Datum" value="2026-10-03" today="2026-10-14" open></lintje-date-input>',
+        },
       ],
     },
     {
@@ -954,6 +1157,17 @@ export default {
           label: 'Uitgeschakeld',
           html: '<lintje-date-range label="Periode" disabled></lintje-date-range>',
           setup: setRange,
+        },
+        {
+          label: 'Open met een gekozen periode',
+          note: 'De dagen tussen begin en eind zijn getint, ook over het weekend heen.',
+          html: '<lintje-date-range label="Periode"></lintje-date-range>',
+          async setup(stage) {
+            setRange(stage)
+            const element = stage.querySelector('lintje-date-range')
+            await element.updateComplete
+            element.shadowRoot.querySelector('.lintje-date-range-picker__field').click()
+          },
         },
       ],
     },
@@ -1029,7 +1243,7 @@ export default {
         },
         {
           label: 'Drie bestanden',
-          note: 'Eén bestand is bezig, één is klaar en één is geweigerd.',
+          note: 'Eén bestand is bezig, één is klaar en één is mislukt en kan opnieuw.',
           html: '<lintje-file-upload label="Bijlagen" accept=".pdf,.jpg,.png" max-size="10485760"></lintje-file-upload>',
           setup(stage) {
             const upload = stage.querySelector('lintje-file-upload')
@@ -1038,10 +1252,11 @@ export default {
               { id: 'f', name: 'foto.jpg', size: 2.4 * MB, state: 'done' },
               {
                 id: 'b',
-                name: 'beeld.mov',
-                size: 38 * MB,
+                name: 'verslag.pdf',
+                size: 3.8 * MB,
                 state: 'error',
-                message: 'Dit bestandstype kan niet',
+                message: 'Uploaden mislukt',
+                retry: true,
               },
             ]
             const drop = (event) =>
