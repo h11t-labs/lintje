@@ -3,6 +3,8 @@
  * every choice question, its own checks at Volgende and Versturen, and one event with the answers
  * and the reader's message.
  */
+import { readFileSync } from 'node:fs'
+import { resolve as resolvePath } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { deepActiveElement } from '../../../core/focus'
 import { otherField } from '../../shared/controls'
@@ -257,6 +259,19 @@ describe('lintje-chat-questions, the steps', () => {
     await settle(element)
     expect(root(element).querySelector('.lintje-chat-questions__error')).toBeNull()
     expect(control<LintjeRadioGroup>(element).description).toBeUndefined()
+  })
+
+  it('leaves the choices that scroll room for the focus ring, on their line', () => {
+    // Read from disk, not imported: vitest does not run the CSS pipeline.
+    const css = readFileSync(
+      resolvePath('src/components/chat/chat-questions/chat-questions.css'),
+      'utf8',
+    )
+    const choices = css.slice(css.indexOf('.lintje-chat-questions__choices {'))
+    expect(choices).toMatch(/^[^}]*padding: var\(--space-2\)/)
+    expect(choices).toMatch(
+      /^[^}]*margin: calc\(var\(--space-2\) \* -1\) calc\(var\(--space-2\) \* -1\) 0/,
+    )
   })
 
   it('describes the group with the hint, which a reader hears with the focus', async () => {

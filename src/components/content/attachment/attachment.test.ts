@@ -1,4 +1,6 @@
 /** The attachment: the icon of its kind, the name cut in the middle, what it opens and its states. */
+import { readFileSync } from 'node:fs'
+import { resolve as resolvePath } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import './attachment'
 import { fileIcon, splitName, type LintjeAttachment } from './attachment'
@@ -186,6 +188,19 @@ describe('lintje-attachment', () => {
     element.refused = true
     await element.updateComplete
     expect(said(element)).toBe('verklaring.pdf, geweigerd: Uploaden mislukt')
+  })
+
+  it('keeps the click area of a button off the button beside it', () => {
+    // Read from disk, not imported: vitest does not run the CSS pipeline.
+    const css = readFileSync(
+      resolvePath('src/components/content/attachment/attachment.css'),
+      'utf8',
+    )
+    const area = css.slice(css.indexOf('.lintje-attachment__action::after'))
+    expect(area).toMatch(/^[^}]*inset-inline: calc\(var\(--space-2\) \/ -2\)/)
+    expect(area).toMatch(
+      /^[^}]*inset-block: min\(0px, calc\(\(var\(--space-6\) - var\(--h-target\)\) \/ 2\)\)/,
+    )
   })
 
   it('a failed file’s cross says what went wrong, for a reader who Tabs to it', async () => {
