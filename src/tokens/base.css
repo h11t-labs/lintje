@@ -84,7 +84,7 @@ input, select, textarea { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   :host {
     --dur-base: 0ms; --dur-hover: 0ms; --dur-popover: 0ms; --dur-submenu: 0ms; --dur-toast: 0ms; --dur-scrim: 0ms; --dur-rail: 0ms; --dur-collapse: 0ms;
-    --dur-modal: 0ms; --dur-sheet: 0ms; --dur-kpi: 0ms; --dur-badge: 0ms; --dur-draw: 0ms;
+    --dur-modal: 0ms; --dur-sheet: 0ms; --dur-kpi: 0ms; --dur-badge: 0ms; --dur-draw: 0ms; --dur-graph: 0ms;
   }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

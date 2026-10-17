@@ -10,7 +10,9 @@ import '../../components/actions/button/button'
 import type { LintjeButton } from '../../components/actions/button/button'
 import '../../components/filters/filter-zone/filter-zone'
 import '../../components/layout/expander/expander'
+import '../../components/graph/graph/graph'
 import type { LintjeElement } from '../../core/element'
+import type { GraphData } from '../../types'
 import { heightSettleMs } from '../../components/shared/transition'
 
 afterEach(() => {
@@ -123,4 +125,38 @@ describe.each([
     expect(settled).toBe(wait === 0)
     await expect.poll(() => root.classList.contains('is-settled')).toBe(true)
   })
+})
+
+it('stands a graph’s nodes in their new place at once', async () => {
+  const data: GraphData = {
+    description: 'Een ministerie met twee diensten.',
+    types: [{ key: 'org', label: 'Organisatie', icon: 'gebouwen-basis-kantoorgebouw' }],
+    layout: 'layered-down',
+    nodes: [
+      { id: 'min', label: 'Ministerie van Wonen', type: 'org' },
+      { id: 'a', label: 'Dienst Subsidies', type: 'org' },
+      { id: 'b', label: 'Rijksdienst Gegevens', type: 'org' },
+    ],
+    edges: [
+      { from: 'min', to: 'a' },
+      { from: 'min', to: 'b' },
+    ],
+  }
+  const element = document.createElement('lintje-graph') as LintjeElement & { data: GraphData }
+  element.data = data
+  document.body.append(element)
+  // The drawing fits itself once its box is measured, a frame after it is drawn.
+  await new Promise(requestAnimationFrame)
+  await new Promise(requestAnimationFrame)
+  await element.updateComplete
+  const place = () =>
+    element.shadowRoot!.querySelector<HTMLElement>('[data-node="a"]')!.style.transform
+  const before = place()
+  element.data = { ...data, layout: 'layered-right' }
+  await element.updateComplete
+  const after = place()
+  expect(after).not.toBe(before)
+  await new Promise(requestAnimationFrame)
+  await new Promise(requestAnimationFrame)
+  expect(place()).toBe(after)
 })

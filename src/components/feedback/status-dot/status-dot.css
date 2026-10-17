@@ -1,8 +1,7 @@
-:host { display: inline-flex; vertical-align: middle; }
-:host([hidden]) { display: none; }
-
-/* ------------------------------------------------------------------------ */
-
+/*
+ * The status dot's drawing, shared by `<lintje-status-dot>` and every root that draws one through
+ * `renderStatusDot()`. It holds no `:host` rule; the element's own box is `status-dot-host.css`.
+ */
 .lintje-status { display: inline-flex; align-items: center; gap: var(--space-2); font: var(--text-small); }
 .lintje-status__dot { border-radius: var(--radius-round); flex: none; display: block; }
 .lintje-status__dot--success { background: var(--color-success); }

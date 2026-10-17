@@ -37,6 +37,7 @@ import '../../components/inputs/text-input/text-input'
 import '../../components/charts/kpi-row/kpi-row'
 import '../../components/tables/list/list'
 import '../../components/map/map/map'
+import '../../components/graph/graph/graph'
 import '../../components/overlays/modal/modal'
 import '../../components/frame/notifications/notifications'
 import '../../components/tables/pagination/pagination'
@@ -61,6 +62,7 @@ import type { TabItem } from '../../components/layout/tabs/tabs'
 import type {
   ChartData,
   ChatData,
+  GraphData,
   DataTableData,
   FilterBarData,
   KpiRowData,
@@ -424,6 +426,23 @@ const PICTURE =
   encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90"><rect width="160" height="90" fill="#ccc"/></svg>',
   )
+
+const GRAPH: GraphData = {
+  title: 'Samenwerking',
+  description: 'Een ministerie met twee diensten en een gemeente.',
+  types: [{ key: 'org', label: 'Organisatie', icon: 'gebouwen-basis-kantoorgebouw' }],
+  nodes: [
+    { id: 'min', label: 'Ministerie van Wonen', type: 'org' },
+    { id: 'a', label: 'Dienst Subsidies', type: 'org' },
+    { id: 'b', label: 'Rijksdienst Gegevens', type: 'org' },
+    { id: 'c', label: 'Gemeente Deventer', type: 'org' },
+  ],
+  edges: [
+    { from: 'min', to: 'a' },
+    { from: 'min', to: 'b' },
+    { from: 'b', to: 'c' },
+  ],
+}
 
 const MAP: MapData = {
   title: 'Loketten',
@@ -1582,6 +1601,13 @@ const ROWS: Row[] = [
       ) === true,
   },
   subtitleRow('lintje-data-table', TABLE),
+  {
+    tag: 'lintje-graph',
+    marker: 'the zoom buttons take the touch size over a lower drawing',
+    mount: () => append(create('lintje-graph', { data: GRAPH })),
+    wide: (element) => find(element, '.lintje-graph')?.classList.contains('is-phone') === false,
+    phone: (element) => find(element, '.lintje-graph')?.classList.contains('is-phone') === true,
+  },
 ]
 
 /* The contract ------------------------------------------------------------ */

@@ -41,6 +41,7 @@ import './charts/explainer/explainer'
 import './charts/kpi/kpi'
 import './charts/kpi-row/kpi-row'
 import './map/map/map'
+import './graph/graph/graph'
 import './overlays/modal/modal'
 import './charts/note/note'
 import './content/prose/prose'
@@ -168,6 +169,7 @@ export { LintjeExplainer } from './charts/explainer/explainer'
 export { LintjeKpi } from './charts/kpi/kpi'
 export { LintjeKpiRow } from './charts/kpi-row/kpi-row'
 export { LintjeMap } from './map/map/map'
+export { LintjeGraph } from './graph/graph/graph'
 export { LintjeModal } from './overlays/modal/modal'
 export { LintjeNote } from './charts/note/note'
 export { LintjeProse } from './content/prose/prose'
@@ -328,6 +330,14 @@ export type {
   ChartData,
   DataTableData,
   ExplainerData,
+  GraphData,
+  GraphDirection,
+  GraphEdge,
+  GraphLayout,
+  GraphLines,
+  GraphNode,
+  GraphNodeStatus,
+  GraphNodeType,
   KpiData,
   KpiRowData,
   MapData,
