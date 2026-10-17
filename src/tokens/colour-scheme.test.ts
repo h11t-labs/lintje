@@ -212,11 +212,11 @@ function evaluateColorMix(value: string): string {
 }
 
 /**
- * The OKLCH forms the tokens use: `oklch(from #hex L C h)`, where L is a number or
- * `max(l, N)` and C is `c` or `min(c, N)`.
+ * The OKLCH forms the tokens use: `oklch(from #hex L C h)`, where L is a number,
+ * `max(l, N)` or `max(l + D, N)` and C is `c` or `min(c, N)`.
  */
 const OKLCH_FROM =
-  /oklch\(\s*from\s+(#[0-9a-fA-F]{3,6})\s+(?:([\d.]+)|max\(\s*l\s*,\s*([\d.]+)\s*\))\s+(?:c|min\(\s*c\s*,\s*([\d.]+)\s*\))\s+h\s*\)/i
+  /oklch\(\s*from\s+(#[0-9a-fA-F]{3,6})\s+(?:([\d.]+)|max\(\s*l\s*(?:\+\s*([\d.]+)\s*)?,\s*([\d.]+)\s*\))\s+(?:c|min\(\s*c\s*,\s*([\d.]+)\s*\))\s+h\s*\)/i
 
 /**
  * The step between two colours on the origin's lightness:
@@ -266,9 +266,9 @@ function evaluateOklch(value: string): string {
   } else {
     lightness =
       match[2] === undefined
-        ? Math.max(own, Number.parseFloat(match[3]))
+        ? Math.max(own + Number.parseFloat(match[3] ?? '0'), Number.parseFloat(match[4]))
         : Number.parseFloat(match[2])
-    c = match[4] === undefined ? chroma : Math.min(chroma, Number.parseFloat(match[4]))
+    c = match[5] === undefined ? chroma : Math.min(chroma, Number.parseFloat(match[5]))
   }
   const a = c * Math.cos(hue)
   const b = c * Math.sin(hue)
@@ -590,6 +590,49 @@ describe('the header of the top layout', () => {
           contrast(values['--color-logobar-text'], values['--color-logobar-bg']),
           `${mode} ${theme}`,
         ).toBeGreaterThanOrEqual(4.5)
+      }
+    }
+  })
+})
+
+describe('the fill of a chosen period', () => {
+  it('carries the text at 4.5:1 and stands out from a hover and a selection, in every theme and mode', () => {
+    for (const mode of ['light', 'dark'] as const) {
+      for (const theme of THEME_NAMES) {
+        const values = tokensFor(mode, theme)
+        const fill = values['--color-range-bg']
+        expect(fill, `${mode} ${theme}`).toMatch(/^#[0-9A-F]{6}$/)
+        expect(
+          contrast(values['--color-text-primary'], fill),
+          `${mode} ${theme}`,
+        ).toBeGreaterThanOrEqual(4.5)
+        expect(fill, `${mode} ${theme}`).not.toBe(values['--color-bg-subtle'])
+        expect(fill, `${mode} ${theme}`).not.toBe(values['--color-bg-selected'])
+        // Better seen on the surface than either grey.
+        const surface = values['--color-bg-surface']
+        for (const grey of [values['--color-bg-subtle'], values['--color-bg-selected']])
+          expect(contrast(fill, surface), `${mode} ${theme}`).toBeGreaterThan(
+            contrast(grey, surface),
+          )
+      }
+    }
+    // A clear tint in light: rijksoverheid's period is light blue, not near-white.
+    expect(tokensFor('light', 'rijksoverheid')['--color-range-bg']).toBe('#BAD5E9')
+  })
+})
+
+describe('the edge of a chosen day', () => {
+  // As far apart as dark's primary tint is from its fill, which is where the edge came from.
+  it('stands apart from its primary fill, in every theme and mode', () => {
+    for (const mode of ['light', 'dark'] as const) {
+      for (const theme of THEME_NAMES) {
+        const values = tokensFor(mode, theme)
+        const edge = values['--color-chosen-day-edge']
+        expect(edge, `${mode} ${theme}`).toMatch(/^#[0-9A-F]{6}$/)
+        expect(
+          contrast(edge, values['--color-action-primary']),
+          `${mode} ${theme}`,
+        ).toBeGreaterThanOrEqual(1.25)
       }
     }
   })

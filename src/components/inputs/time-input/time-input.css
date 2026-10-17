@@ -31,6 +31,7 @@
   border-radius: var(--radius);
 }
 .lintje-time-input__control::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+.lintje-time-input__control:disabled::placeholder { color: var(--color-text-disabled); }
 .lintje-time-input__control.is-error { border: 2px solid var(--color-error); }
 /* Disabled wins over error: after it, the whole border back to 1 px strong. */
 .lintje-time-input__control:disabled {

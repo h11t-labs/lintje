@@ -101,6 +101,31 @@ describe('lintje-multiselect popover', () => {
     expect(popover?.style.getPropertyValue('--lintje-multiselect-space')).toMatch(/px$/)
   })
 
+  it('is never taller than the room there is, even below 180 px', async () => {
+    const height = Object.getOwnPropertyDescriptor(window, 'innerHeight')
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 200 })
+    try {
+      const element = document.createElement('lintje-multiselect') as LintjeMultiselect
+      element.label = 'Ernst'
+      element.options = options
+      document.body.append(element)
+      await element.updateComplete
+      const field = element.renderRoot.querySelector<HTMLElement>('.lintje-multiselect__field')!
+      field.getBoundingClientRect = () =>
+        ({ top: 20, bottom: 60, left: 16, right: 216, width: 200, height: 40 }) as DOMRect
+      element.open = true
+      await element.updateComplete
+      const popover = element.renderRoot.querySelector<HTMLElement>('.lintje-multiselect__popover')!
+      // Below the field: 200 - 60 - 4 (gap) - 8 (edge), more than the 8 above it.
+      expect(popover.style.top).toBe('64px')
+      expect(popover.style.getPropertyValue('--lintje-multiselect-space')).toBe('128px')
+      expect(popover.style.width).toBe('260px')
+    } finally {
+      if (height) Object.defineProperty(window, 'innerHeight', height)
+      else delete (window as { innerHeight?: number }).innerHeight
+    }
+  })
+
   it('reads the CSS variable the popover is given for its height', () => {
     expect(multiselectCss).toContain('max-height: var(--lintje-multiselect-space, none)')
   })
