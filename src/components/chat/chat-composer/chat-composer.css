@@ -121,6 +121,13 @@
   color: var(--color-accent-text);
 }
 .lintje-chat-composer__caption.is-uncertain { color: var(--color-text-muted); }
+/* With the caret in its word a cut caption stands whole, on the surface over the next one. */
+.lintje-chat-composer__caption.is-current {
+  z-index: 1;
+  overflow: visible;
+  padding-right: var(--space-1);
+  background: var(--color-bg-surface);
+}
 
 .lintje-chat-composer__bar {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end;

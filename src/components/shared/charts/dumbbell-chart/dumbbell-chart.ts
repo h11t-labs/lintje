@@ -8,7 +8,7 @@
 import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
 import { styleProps } from '../../../../core/style-props'
-import { formatNumber, textWidth, truncateToWidth } from '../../../../core/format'
+import { formatNumber, textWidth, wrapToWidth } from '../../../../core/format'
 import { axisScale, rowLabelColumn } from '../shared/scale'
 import { staggerStyle } from '../shared/stagger'
 import { chartColor, DEFAULT_SERIES_COLOR, lineCasing } from '../shared/colors'
@@ -34,6 +34,8 @@ export const TO_KEY = 'moment:to'
 
 const ROW = 28
 const PHONE_ROW = 44
+/** On a phone, each line of a name after its first makes the row this much taller. */
+const NAME_LINE = 20
 /** Above the first row: the head of the difference column and the norm's label. */
 const HEAD = 24
 /** Under the last row: the scale. */
@@ -51,7 +53,10 @@ const COLUMN_GAP = 8
 const NO_DATA = 'geen gegevens'
 const OFF_AXIS = 'buiten de as'
 
-/** The chart's height: a row each, the head above and the scale under them. */
+/**
+ * The chart's height with every name on one line: a row each, the head above and the scale
+ * under them. On a phone a name that runs on makes its row taller.
+ */
 export function dumbbellHeight(count: number, mobile = false): number {
   return HEAD + count * (mobile ? PHONE_ROW : ROW) + FOOT
 }
@@ -141,27 +146,31 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
   const toNorm = (value: number) => Number((value - threshold!).toFixed(normDecimals)) || 0
   const differences = rows.map((row) => dumbbellDifference(row, decimals))
 
-  const height = dumbbellHeight(rows.length, mobile)
-  controller.measure({ width: true, height })
   const width = controller.width
-  const fontFamily = controller.fontFamily
-  const row = mobile ? PHONE_ROW : ROW
+  const font = controller.font
+  // On a phone the name stands above its row in full: a long one runs on and the row grows.
+  const names = rows.map((item) =>
+    mobile ? wrapToWidth(item.label, width, font, 400, 14) : [item.label],
+  )
+  const heights = names.map((lines) => (mobile ? PHONE_ROW + (lines.length - 1) * NAME_LINE : ROW))
+  const tops = heights.reduce((list, rowHeight, i) => [...list, list[i]! + rowHeight], [HEAD])
+  const plotBottom = tops[rows.length]!
+  const height = plotBottom + FOOT
+  controller.measure({ width: true, height })
 
   const { min, max, ticks } = dumbbellAxis(spec)
   const tickDecimals = Math.max(0, ...ticks.map(fractionDigits))
   const column = rowLabelColumn(
     rows.map((item) => item.label),
     width,
-    { fontFamily },
+    { font },
   )
   // The difference column is as wide as its widest text, so the axis never moves with a toggle.
   const differenceWidth = Math.ceil(
     Math.max(
-      textWidth('Verschil', fontFamily),
-      textWidth(NO_DATA, fontFamily),
-      ...differences.map((value) =>
-        value == null ? 0 : textWidth(signed(value), fontFamily, 700),
-      ),
+      textWidth('Verschil', font),
+      textWidth(NO_DATA, font),
+      ...differences.map((value) => (value == null ? 0 : textWidth(signed(value), font, 700))),
     ),
   )
   const axisLeft = mobile ? EDGE : column.barStart + EDGE
@@ -171,8 +180,7 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
   const pointOf = (value: number | null): Point | null =>
     value == null ? null : { value, x: x(value), side: value < min ? -1 : value > max ? 1 : 0 }
   const points = rows.map((item) => ({ from: pointOf(item.from), to: pointOf(item.to) }))
-  const centreOf = (i: number) => HEAD + i * row + (mobile ? 31 : ROW / 2)
-  const plotBottom = HEAD + rows.length * row
+  const centreOf = (i: number) => tops[i]! + (mobile ? heights[i]! - PHONE_ROW + 31 : ROW / 2)
 
   const links = rows.map((item) =>
     item.href ? { id: item.id ?? item.label, href: item.href } : null,
@@ -263,7 +271,7 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
     return {
       x: Math.max(...xs) + reach,
       flip: Math.min(...xs) - reach,
-      y: mobile ? HEAD + (i + 1) * row + 12 : centreOf(i),
+      y: mobile ? tops[i + 1]! + 12 : centreOf(i),
       content: contentAt(i),
     }
   }
@@ -290,7 +298,7 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
           const nx = x(threshold)
           const label = spec.thresholdLabel ?? `norm ${formatNumber(threshold, normDecimals)}`
           // A label that would run into the difference column stands left of its line.
-          const right = nx + 6 + textWidth(label, fontFamily) <= axisRight + EDGE
+          const right = nx + 6 + textWidth(label, font) <= axisRight + EDGE
           return svg`<g class="lintje-chart__series ${normOn ? '' : 'is-off'}">
             <line class="lintje-chart__reference lintje-dumbbell__norm" x1=${nx} x2=${nx}
                   y1=${HEAD - 4} y2=${plotBottom} />
@@ -316,7 +324,7 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
     norm,
     svg`<g @mouseleave=${() => controller.hoverAt(null)}>${rows.map((item, i) => {
       const { from, to } = points[i]
-      const top = HEAD + i * row
+      const top = tops[i]!
       const cy = centreOf(i)
       const difference = differences[i]
       // Both beyond one edge lie on each other, as an unchanged row does, under one mark.
@@ -337,7 +345,11 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
           }
           ${
             mobile
-              ? svg`<text x="0" y=${top + 14} class="lintje-dumbbell__name lintje-dumbbell__name--above">${truncateToWidth(item.label, (width * 12) / 14, fontFamily)}</text>`
+              ? svg`<text x="0" y=${top + 14} class="lintje-dumbbell__name lintje-dumbbell__name--above">${names[
+                  i
+                ]!.map(
+                  (line, n) => svg`<tspan x="0" dy=${n ? NAME_LINE : 0}>${line}</tspan>`,
+                )}</text>`
               : svg`<text x=${column.labelEnd} y=${cy + 4} text-anchor="end"
                           class="lintje-chart__axis-label lintje-dumbbell__name">${column.fit(item.label)}</text>`
           }
@@ -389,7 +401,7 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
                   class="lintje-chart__data-label lintje-dumbbell__difference ${difference == null ? 'lintje-dumbbell__no-value' : ''}">${difference == null ? NO_DATA : signed(difference)}</text>
           </g>
           <!-- The whole row answers, so the tooltip does not flicker between ring and dot. -->
-          <rect class="lintje-chart__hit" x="0" y=${top} width=${width} height=${row}
+          <rect class="lintje-chart__hit" x="0" y=${top} width=${width} height=${heights[i]}
                 @mouseenter=${(event: MouseEvent) => showRow(event, i)} />
         </g>
       `

@@ -88,8 +88,8 @@ export function renderStackedAreaChart(
   const { max, ticks } = axisScale(Math.max(...reach, 1))
   // The first x label is centered on the plot's left edge; the column keeps room for half of it.
   const axis = axisColumn(ticks, controller.width, {
-    fontFamily: controller.fontFamily,
-    minimum: Math.ceil(textWidth(labels[0] ?? '', controller.fontFamily) / 2),
+    font: controller.font,
+    minimum: Math.ceil(textWidth(labels[0] ?? '', controller.font) / 2),
   })
   const area = chartArea(options, { left: axis.width })
   const floor = area.height - area.bottom
@@ -181,7 +181,7 @@ export function renderStackedAreaChart(
     const from = x(first)
     const width = x(last) - from
     const ceiling = Math.min(floor, ...segments.flatMap((s) => [s.left, s.right]))
-    const fits = textWidth(NO_DATA, controller.fontFamily) + 8 <= width && ceiling - area.top >= 20
+    const fits = textWidth(NO_DATA, controller.font) + 8 <= width && ceiling - area.top >= 20
     return { segments, from, width, ceiling, fits }
   })
 
@@ -258,7 +258,7 @@ export function renderStackedAreaChart(
       ${renderLegend({ items: legend, onToggle: (key) => controller.toggleSeries(key) })}
       ${renderChartFrame(
         {
-          fontFamily: controller.fontFamily,
+          font: controller.font,
           id,
           ticks,
           max,

@@ -417,6 +417,6 @@ describe('text at a larger default font', () => {
       control.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
     const context = document.createElement('canvas').getContext('2d')!
     context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
-    expect(context.measureText(control.value).width).toBeLessThanOrEqual(room)
+    expect(context.measureText(control.value).width).toBeLessThanOrEqual(available)
   })
 })

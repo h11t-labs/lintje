@@ -137,3 +137,23 @@ describe.skipIf(server.browser !== 'chromium')('lintje-sortable-list with a fing
     expect(deepActiveElement()).toBe(grip(element, 'naam'))
   })
 })
+
+describe('lintje-sortable-list rows', () => {
+  it('stand at the touch height on one line and grow with a label that wraps', async () => {
+    const element = await mount()
+    const touchHeight = rows(element)[0]!.getBoundingClientRect().height
+    expect(touchHeight).toBe(48)
+    element.checkable = true
+    element.items = [
+      { id: 'naam', label: 'Naam' },
+      { id: 'lang', label: 'Datum van de laatste wijziging door de behandelaar van de aanvraag' },
+    ]
+    await settle(element)
+    const [short, long] = rows(element).map((row) => row.getBoundingClientRect())
+    expect(short!.height).toBe(touchHeight)
+    expect(long!.height).toBeGreaterThan(touchHeight)
+    const label = rows(element)[1]!.querySelector('lintje-checkbox')!
+    const text = label.shadowRoot!.querySelector('.lintje-choice__label')!.getBoundingClientRect()
+    expect(text.bottom).toBeLessThanOrEqual(long!.bottom)
+  })
+})

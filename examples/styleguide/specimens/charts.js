@@ -707,7 +707,10 @@ const CHARTS = [
   {
     id: 'dumbbell-phone', title: 'Tevredenheid per loket',
     subtitle: 'Gemiddeld rapportcijfer, 2024 en 2026',
-    spec: satisfactionSpec(SATISFACTION.slice(0, 5), { min: 5, max: 9 }),
+    spec: satisfactionSpec(
+      [{ ...SATISFACTION[0], label: 'Groningen, loket voor ondernemers en instellingen' }, ...SATISFACTION.slice(1, 5)],
+      { min: 5, max: 9 },
+    ),
   },
   {
     id: 'heatmap', title: 'Heatmap met klassenlegenda',
@@ -824,7 +827,7 @@ const VARIANT_NOTES = {
   'dumbbell-short': 'Een halter draagt een positie, geen lengte: de host mag de as inkorten.',
   'dumbbell-off-axis': 'Utrecht 2024 valt buiten de as: het punt staat op de rand met een afkapteken, de tooltip en de tabel geven 3,8.',
   'dumbbell-hidden': '2024 staat uit in de legenda: de ringen, de verbindingen en de verschillen verdwijnen, de as blijft.',
-  'dumbbell-phone': 'Onder 768 px staat de naam boven de halter, die de volle breedte krijgt.',
+  'dumbbell-phone': 'Onder 768 px staat de naam boven de halter, die de volle breedte krijgt. Een lange naam loopt door op een volgende regel en de rij groeit mee.',
   treemap: 'Cultuur en media en Sport zijn elk kleiner dan 1 % van het geheel en staan samen als “Overig”.',
   'treemap-nested': 'Een klik in een onderpost kiest de hoofdpost; de pijltoetsen lopen langs de onderposten.',
   'treemap-nested-chosen': 'De omlijning staat om de hele hoofdpost; de andere stappen terug.',

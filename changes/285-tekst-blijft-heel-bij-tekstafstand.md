@@ -1,0 +1,3 @@
+### Opgelost
+
+- Tekst blijft heel bij een grotere regel-, letter- of woordafstand en een grotere standaardletter: een rij van `lintje-sortable-list` groeit mee, de groepskop in het open zijmenu, de bron van een logregel, de tekenaanwijzing van de kaart, een stap in `lintje-chat-steps`, de naam van een bijlage en een naam in het halterdiagram op een telefoon lopen door, het bijschrift in het vraagvak staat heel met de cursor in zijn woord, de assen, de sankey en de treemap meten met de afstand en de letter van de lezer, `lintje-stepper` meet opnieuw als zijn labels breder worden, en `lintje-time-input` is in rem. (#285)

@@ -1125,6 +1125,10 @@ kleinste correctie, en leg die hier vast.
   aanwijzer hem toont — onder 768 px, zonder hover, onder de focus van het toetsenbord — loopt hij
   door op een volgende regel. Tekst die geen focus kan krijgen en geen tooltip heeft, kapt nooit
   af: hij loopt altijd door.
+- **De tekstafstand en de lettergrootte van de lezer krijgen ruimte** (1.4.12, 1.4.4): een rij
+  waarin tekst afbreekt, groeit mee, en wat een element zelf meet — de assen en labels van een
+  grafiek, of een rij stappen past — meet met de lettergrootte en de letter- en woordafstand van
+  wat het tekent.
 - **Wat verdwijnt terwijl de focus erop staat, geeft de focus eerst door**: een toast terug naar
   waar hij vandaan kwam (anders `<main>`), een gesloten mededeling naar de volgende stop op de
   pagina, "Alles gelezen" naar de eerste melding. Een element dat leeg raakt en zelf niets

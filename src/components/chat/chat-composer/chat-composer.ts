@@ -139,13 +139,19 @@ interface Caption {
   top: number
   kind: string
   certain: boolean
+  /** The caret is in its word: it stands whole, over the next caption. */
+  current: boolean
   /** The room up to the next caption on the same line; a longer caption is cut. */
   room?: number
 }
 
 const renderCaption = (caption: Caption): TemplateResult =>
   html`<span
-    class=${classMap({ 'lintje-chat-composer__caption': true, 'is-uncertain': !caption.certain })}
+    class=${classMap({
+      'lintje-chat-composer__caption': true,
+      'is-uncertain': !caption.certain,
+      'is-current': caption.current,
+    })}
     ${styleProps({
       left: `${caption.left}px`,
       top: `${caption.top}px`,
@@ -611,6 +617,7 @@ export class LintjeChatComposer extends LintjeElement {
     this.clearHighlights()
     const field = readField(input)
     const frame = box.getBoundingClientRect()
+    const focused = (this.renderRoot as ShadowRoot).activeElement === input
     const captions: Caption[] = []
     for (const term of this.termsIn(field.text)) {
       const from = locate(field, term.start)
@@ -629,12 +636,15 @@ export class LintjeChatComposer extends LintjeElement {
           top: Math.round(first.top - frame.top + box.scrollTop),
           kind: term.kind,
           certain: term.certain !== false,
+          current: focused && this.caret >= term.start && this.caret <= term.end,
         })
       }
     }
     captions.forEach((caption, index) => {
       const next = captions[index + 1]
-      if (next && next.top === caption.top) caption.room = Math.max(0, next.left - caption.left - 4)
+      if (next && next.top === caption.top && !caption.current) {
+        caption.room = Math.max(0, next.left - caption.left - 4)
+      }
     })
     // Drawn into their own box, outside the element's render: they follow from a measurement after
     // it, and a reactive property set there would draw the composer twice.
@@ -739,6 +749,8 @@ export class LintjeChatComposer extends LintjeElement {
             @keydown=${this.onKeydown}
             @keyup=${this.read}
             @mouseup=${this.read}
+            @focus=${this.paint}
+            @blur=${this.paint}
             @paste=${this.onPaste}
           ></div>
           <div class="lintje-chat-composer__captions" aria-hidden="true"></div>

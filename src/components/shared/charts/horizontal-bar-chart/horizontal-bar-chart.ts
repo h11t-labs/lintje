@@ -48,7 +48,7 @@ export function renderHorizontalBarChart(
   const column = rowLabelColumn(
     rows.map((row) => row.label),
     width,
-    { fontFamily: controller.fontFamily },
+    { font: controller.font },
   )
   const { labelEnd, barStart } = column
   const max = Math.max(...rows.map((row) => row.value), threshold ?? 0) * 1.15

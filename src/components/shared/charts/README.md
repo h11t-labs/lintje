@@ -73,14 +73,15 @@ Per soort is er ook een benoemde functie, met de kaderonderdelen en de toestande
 
 Het plotgebied begint bij `DEFAULT_PLOT_AREA` (`scale.ts`) met de gemeten breedte en hoogte
 van de controller. Elke grafiek met assen vervangt daarna `left` door
-`axisColumn(ticks, width, { fontFamily })`: het breedste ticklabel (gemeten op een
+`axisColumn(ticks, width, { font })`: het breedste ticklabel (gemeten op een
 canvas in het aslettertype) plus `AXIS_GAP`, begrensd op `AXIS_COLUMN_MAX` en
-`AXIS_COLUMN_SHARE`. Als de volledige labels niet
+`AXIS_COLUMN_SHARE`. `font` is `controller.font`: het aslabel zoals de grafiek het tekent, met
+de lettergrootte en de letter- en woordafstand van de lezer, zodat elke meting die meeneemt. Als de volledige labels niet
 binnen de grenzen passen, is de `format` van de kolom de compacte — geef die aan
 `renderChartFrame` als `formatTick`. De grafiek met twee assen meet beide kolommen;
 een lijngrafiek geeft als `minimum` de halve breedte van het eerste x-label mee, dat
 gecentreerd staat op de linkerrand van de plot. Grafieken met een label per rij (horizontale
-staven, doelvoortgang) gebruiken in plaats daarvan `rowLabelColumn(labels, width, { fontFamily })`:
+staven, doelvoortgang) gebruiken in plaats daarvan `rowLabelColumn(labels, width, { font })`:
 het breedste label, begrensd op `ROW_LABEL_SHARE` en `ROW_LABEL_MAX`, waarbij `fit()`
 een breder label inkort met een beletselteken.
 

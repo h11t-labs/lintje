@@ -39,8 +39,8 @@ export function renderDualAxisChart(spec: DualAxisSpec, options: ChartOptions): 
   const r = axisScale(
     Math.max(...right.values.filter((value): value is number => value != null), threshold ?? 0, 1),
   )
-  const leftAxis = axisColumn(l.ticks, controller.width, { fontFamily: controller.fontFamily })
-  const rightAxis = axisColumn(r.ticks, controller.width, { fontFamily: controller.fontFamily })
+  const leftAxis = axisColumn(l.ticks, controller.width, { font: controller.font })
+  const rightAxis = axisColumn(r.ticks, controller.width, { font: controller.font })
   const area = chartArea(options, { left: leftAxis.width, right: rightAxis.width })
   const baseline = area.height - area.bottom
 

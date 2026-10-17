@@ -373,8 +373,8 @@ function drawRadar({
       : Math.max(controller.height, Math.min(MAX_HEIGHT, Math.round(width * ASPECT))))
 
   const angle = (i: number) => -Math.PI / 2 + (2 * Math.PI * i) / count
-  const fontFamily = controller.fontFamily
-  const nameWidth = (name: string) => (textWidth(name, fontFamily) * 14) / 12
+  const font = controller.font
+  const nameWidth = (name: string) => (textWidth(name, font) * 14) / 12
   const side = Math.max(
     0,
     ...axes.map((name, i) =>
@@ -582,7 +582,7 @@ function drawRows({
   const scaleTop = axes.length * rowHeight
   const height = scaleTop + 16
   const x = (value: number) => 0.5 + (Math.max(0, Math.min(value, max)) / max) * plot
-  const fontFamily = controller.fontFamily
+  const font = controller.font
   const variable = layers.find((layer) => !layer.comparison)
   const pointed = shown.find((layer) => !layer.comparison)
   const active = controller.hoverIndex
@@ -611,7 +611,7 @@ function drawRows({
         }
         ${
           below
-            ? svg`<g class=${off}><text x=${width - textWidth(text, fontFamily, 700) - 6} y=${top + 14} text-anchor="end"
+            ? svg`<g class=${off}><text x=${width - textWidth(text, font, 700) - 6} y=${top + 14} text-anchor="end"
                        class="lintje-chart__axis-label lintje-radar__value">onder norm</text></g>`
             : nothing
         }

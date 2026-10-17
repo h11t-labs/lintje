@@ -156,8 +156,8 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
   const { max, ticks } = axisScale(fixedMax ?? Math.max(...allValues, 1))
   // The first x label is centered on the plot's left edge; the column keeps room for half of it.
   const axis = axisColumn(ticks, controller.width, {
-    fontFamily: controller.fontFamily,
-    minimum: Math.ceil(textWidth(labels[0] ?? '', controller.fontFamily) / 2),
+    font: controller.font,
+    minimum: Math.ceil(textWidth(labels[0] ?? '', controller.font) / 2),
   })
   // The squares stay inside the drawing at its ends; x does not depend on the top.
   const across = chartArea(options, { left: axis.width })
@@ -418,7 +418,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
           area,
           x: xPosition(from - 1, labels.length, area),
           label: forecastLabel,
-          fontFamily: controller.fontFamily,
+          font: controller.font,
         })
       : nothing,
 
@@ -487,7 +487,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
       })}
       ${renderChartFrame(
         {
-          fontFamily: controller.fontFamily,
+          font: controller.font,
           id,
           ticks,
           max,

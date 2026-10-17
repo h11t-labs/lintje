@@ -41,7 +41,7 @@ export function renderGroupedBarChart(spec: GroupedBarSpec, options: ChartOption
   )
   // Every series sets the scale, so switching one off moves nothing up or down.
   const { max, ticks } = axisScale(Math.max(...series.flatMap((row) => row.values), 1))
-  const axis = axisColumn(ticks, controller.width, { fontFamily: controller.fontFamily })
+  const axis = axisColumn(ticks, controller.width, { font: controller.font })
   const area = chartArea(options, { left: axis.width })
   const baseline = area.height - area.bottom
   const slotWidth = band(0, labels.length, area).width / Math.max(1, visible.length)
@@ -136,7 +136,7 @@ export function renderGroupedBarChart(spec: GroupedBarSpec, options: ChartOption
       ${renderLegend({ items: legend, onToggle: (key) => controller.toggleSeries(key) })}
       ${renderChartFrame(
         {
-          fontFamily: controller.fontFamily,
+          font: controller.font,
           id,
           ticks,
           max,

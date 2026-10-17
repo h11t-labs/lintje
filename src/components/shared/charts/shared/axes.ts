@@ -2,7 +2,7 @@
 import { html, svg, nothing, type SVGTemplateResult, type TemplateResult } from 'lit'
 import { styleProps } from '../../../../core/style-props'
 import { AXIS_GAP, DEFAULT_PLOT_AREA, plotWidth, yPosition, type PlotArea } from './scale'
-import { formatNumber, textWidth } from '../../../../core/format'
+import { formatNumber, textWidth, type TextFont } from '../../../../core/format'
 import type { PlotKeys } from './plot-keys'
 import { markPath, type SeriesKey, seriesShapePath, type SeriesShape } from './series-shapes'
 import { DEFAULT_SERIES_COLOR, lineCasing } from './colors'
@@ -200,8 +200,8 @@ export interface ChartFrameOptions {
   zeroLine?: boolean
   /** How a tick is written; `axisColumn` decides between full and compact. Default full. */
   formatTick?: (tick: number) => string
-  /** The resolved `--font-ui`, for measuring the x labels. */
-  fontFamily?: string
+  /** The axis labels' type (`controller.font`), for measuring the x labels. */
+  font?: TextFont
   id: string
   /** Some mark is a button: the drawing is a group named by its description, not an image. */
   interactive?: boolean
@@ -252,11 +252,11 @@ const X_LABEL_DROP = 20
  */
 export function thinLabels<T extends { label: string; x: number; anchor?: XAnchor }>(
   labels: T[],
-  fontFamily = '',
+  font: TextFont | string = '',
 ): T[] {
   if (labels.length < 2) return labels
   const spans = labels.map((label) => {
-    const width = textWidth(label.label, fontFamily)
+    const width = textWidth(label.label, font)
     const left =
       label.anchor === 'end'
         ? label.x - width
@@ -293,7 +293,7 @@ export function renderChartFrame(
     formatTick = formatNumber,
     id,
     height,
-    fontFamily,
+    font,
     interactive,
     keys,
   }: ChartFrameOptions,
@@ -347,7 +347,7 @@ export function renderChartFrame(
         ${children}
 
         <!-- x-axis labels -->
-        ${thinLabels(xLabels ?? [], fontFamily).map(
+        ${thinLabels(xLabels ?? [], font).map(
           (label) => svg`
           <text x=${label.x} y=${area.height - area.bottom + X_LABEL_DROP} text-anchor=${label.anchor ?? 'middle'} class="lintje-chart__axis-label">
             ${label.label}
@@ -372,8 +372,8 @@ export interface ForecastBoundary {
   x: number
   /** The forecast's word, `forecastLabel`. */
   label: string
-  /** The resolved `--font-ui`, for measuring whether the word fits right of the line. */
-  fontFamily?: string
+  /** The axis labels' type (`controller.font`), for measuring whether the word fits. */
+  font?: TextFont
 }
 
 /**
@@ -432,12 +432,12 @@ function renderForecastBoundary({
   area = DEFAULT_PLOT_AREA,
   x,
   label,
-  fontFamily,
+  font,
 }: ForecastBoundary): SVGTemplateResult {
   const y = area.top - 8
   // A word that would run past the plot ends at its edge.
   const right = area.width - area.right
-  const fits = x + BOUNDARY_GAP + textWidth(label, fontFamily, 700) <= right
+  const fits = x + BOUNDARY_GAP + textWidth(label, font, 700) <= right
   return svg`
     <g class="lintje-chart__boundary">
       <line x1=${x} x2=${x} y1=${area.top - FORECAST_ROOM} y2=${area.height - area.bottom}
