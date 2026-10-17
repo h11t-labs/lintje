@@ -57,7 +57,13 @@ interface Row {
  * The rows that fail today, by name; each has its GitHub issue above it. A row that passes while
  * it matches an entry fails, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = []
+const KNOWN: RegExp[] = [
+  // #271: at 390 px, under a mouse, the foot keeps its ellipsis: `user-menu.css` lets name and
+  // role wrap only under the keyboard's focus and `(hover: none)`. The shell never draws the foot
+  // below 768 px (see the `lintje-shell` row), so only a host that mounts `variant="side"` itself
+  // meets it.
+  /^lintje-user-menu :: name in the side foot$/,
+]
 
 const LONG = 'Wijzigingen in de aanvraag opslaan en doorsturen naar de behandelaar van het loket'
 const SHORT = 'Opslaan'
@@ -154,6 +160,21 @@ async function tabInto(element: HTMLElement): Promise<void> {
   await userEvent.keyboard(TAB)
 }
 
+/**
+ * Tab from a field before the element until the focus stands on `target`: an element that is not
+ * the first stop in its page, as the foot of the shell's side menu.
+ */
+function tabUntil(target: (element: HTMLElement) => HTMLElement) {
+  return async (element: HTMLElement): Promise<void> => {
+    const start = Object.assign(document.createElement('input'), { ariaLabel: 'Zoeken' })
+    element.before(start)
+    start.focus()
+    for (let step = 0; step < 20 && deepActiveElement() !== target(element); step++) {
+      await userEvent.keyboard(TAB)
+    }
+  }
+}
+
 /** The arrow keys onto the second row of an open menu: the first takes the focus as it opens. */
 async function arrowToSecond(element: HTMLElement): Promise<void> {
   const target = all(element.shadowRoot!, '.lintje-menu__row')[1]!
@@ -193,42 +214,6 @@ function table(data: Partial<DataTableData>, width: number) {
     }
     element.data = JSON.parse(JSON.stringify(element.data).replaceAll('{words}', words))
     return append(element, room(width))
-  }
-}
-
-/**
- * The name or the role in the foot of the side menu, which the shell draws only from 768 px: below
- * it the foot is the user menu's inline form in the open menu panel, where they wrap.
- */
-function foot(field: 'name' | 'role'): Row {
-  return {
-    name: `lintje-user-menu :: ${field} in the side foot`,
-    title: 'measured',
-    mount: (words) =>
-      append(
-        Object.assign(document.createElement('lintje-shell'), {
-          data: {
-            name: 'Vergunningen',
-            layout: 'side',
-            menu: 'pinned',
-            navigation: [{ label: 'Overzicht', href: '#overzicht', icon: 'functioneel-home' }],
-            user: {
-              name: field === 'name' ? words : 'Sanne de Vries',
-              role: field === 'role' ? words : 'Beleidsmedewerker',
-              initials: 'SV',
-            },
-          },
-        }),
-      ),
-    text: (element) =>
-      shown(element, `.lintje-user-menu__trigger-${field}, .lintje-user-menu__${field}`),
-    focus: (element) => shown(element, '.lintje-user-menu__trigger--side').focus(),
-    phone: async (element) => {
-      const shell = element as HTMLElement & { menuOpen: boolean; updateComplete: Promise<unknown> }
-      shell.menuOpen = true
-      await shell.updateComplete
-    },
-    room: (element) => element,
   }
 }
 
@@ -431,8 +416,47 @@ const ROWS: Row[] = [
     phone: (element) => reopen(element, '.lintje-user-menu__trigger'),
     room: (element) => all(element.shadowRoot!, '.lintje-menu__row')[1]!,
   },
-  foot('name'),
-  foot('role'),
+  {
+    name: 'lintje-user-menu :: name in the side foot',
+    title: 'measured',
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-user-menu'), {
+          variant: 'side',
+          user: { name: words, role: 'Beleidsmedewerker', initials: 'SV' },
+        }),
+        // As wide as the side menu.
+        room(288),
+      ),
+    text: (element) => inShadow(element, '.lintje-user-menu__trigger-name'),
+    focus: tabInto,
+    room: (element) => element.parentElement!,
+  },
+  {
+    // The shell draws the foot from 768 px; below it the name stands in the open menu panel.
+    name: 'lintje-shell :: name in the side foot',
+    title: 'measured',
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-shell'), {
+          data: {
+            name: 'Vergunningen',
+            layout: 'side',
+            menu: 'pinned',
+            navigation: [{ label: 'Overzicht', href: '#overzicht', icon: 'functioneel-home' }],
+            user: { name: words, role: 'Beleidsmedewerker', initials: 'SV' },
+          },
+        }),
+      ),
+    text: (element) => shown(element, '.lintje-user-menu__trigger-name, .lintje-user-menu__name'),
+    focus: tabUntil((element) => shown(element, '.lintje-user-menu__trigger--side')),
+    phone: async (element) => {
+      const shell = element as HTMLElement & { menuOpen: boolean; updateComplete: Promise<unknown> }
+      shell.menuOpen = true
+      await shell.updateComplete
+    },
+    room: (element) => element,
+  },
   {
     name: 'lintje-tree-view :: label',
     title: 'measured',
