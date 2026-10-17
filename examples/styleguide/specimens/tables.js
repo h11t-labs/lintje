@@ -1572,6 +1572,17 @@ export default {
           },
         },
         {
+          label: 'Lijst open',
+          note: 'Met `open` staat de lijst met naam en functie van iedereen open, de eerste naam als link.',
+          html: '<lintje-person-group label="Meelezers" open></lintje-person-group>',
+          setup(stage) {
+            stage.querySelector('lintje-person-group').people = READERS.map((person, index) =>
+              index === 0 ? { ...person, href: '#el-person-group' } : person,
+            )
+            listen(stage)
+          },
+        },
+        {
           label: 'Twee personen',
           html: '<lintje-person-group label="Behandelaars" size="medium"></lintje-person-group>',
           setup(stage) {

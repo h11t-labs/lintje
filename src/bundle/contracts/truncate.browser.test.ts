@@ -196,6 +196,42 @@ function table(data: Partial<DataTableData>, width: number) {
   }
 }
 
+/**
+ * The name or the role in the foot of the side menu, which the shell draws only from 768 px: below
+ * it the foot is the user menu's inline form in the open menu panel, where they wrap.
+ */
+function foot(field: 'name' | 'role'): Row {
+  return {
+    name: `lintje-user-menu :: ${field} in the side foot`,
+    title: 'measured',
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-shell'), {
+          data: {
+            name: 'Vergunningen',
+            layout: 'side',
+            menu: 'pinned',
+            navigation: [{ label: 'Overzicht', href: '#overzicht', icon: 'functioneel-home' }],
+            user: {
+              name: field === 'name' ? words : 'Sanne de Vries',
+              role: field === 'role' ? words : 'Beleidsmedewerker',
+              initials: 'SV',
+            },
+          },
+        }),
+      ),
+    text: (element) =>
+      shown(element, `.lintje-user-menu__trigger-${field}, .lintje-user-menu__${field}`),
+    focus: (element) => shown(element, '.lintje-user-menu__trigger--side').focus(),
+    phone: async (element) => {
+      const shell = element as HTMLElement & { menuOpen: boolean; updateComplete: Promise<unknown> }
+      shell.menuOpen = true
+      await shell.updateComplete
+    },
+    room: (element) => element,
+  }
+}
+
 const ROWS: Row[] = [
   {
     name: 'lintje-button',
@@ -395,6 +431,8 @@ const ROWS: Row[] = [
     phone: (element) => reopen(element, '.lintje-user-menu__trigger'),
     room: (element) => all(element.shadowRoot!, '.lintje-menu__row')[1]!,
   },
+  foot('name'),
+  foot('role'),
   {
     name: 'lintje-tree-view :: label',
     title: 'measured',

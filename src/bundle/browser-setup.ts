@@ -33,6 +33,9 @@ const KNOWN_TWICE: string[] = [
   // #96: the stepper's row or column is another template, and measuring it in its observer
   // resizes the stepper inside the observer's own delivery (#56).
   'lintje-stepper',
+  // #271: an accordion whose rows all stand open at load sets `allOpen` from `updated()`, so the
+  // link is drawn a second time as "Alles sluiten".
+  'lintje-accordion',
 ]
 
 declare global {
