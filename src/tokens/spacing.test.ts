@@ -39,6 +39,18 @@ const px = (value: string) => [...value.matchAll(PX)].map((match) => Number(matc
 const sentinel = (property: string, value: string, block: Map<string, string>) =>
   property === 'margin-bottom' && value.trim() === '-1px' && block.get('height')?.trim() === '1px'
 
+/**
+ * The visually hidden pattern (absolute, 1 × 1 px, clipped): its `margin: -1px` keeps the one
+ * pixel from sticking out of a row that must not scroll.
+ */
+const visuallyHidden = (property: string, value: string, block: Map<string, string>) =>
+  property === 'margin' &&
+  value.trim() === '-1px' &&
+  block.get('position')?.trim() === 'absolute' &&
+  block.get('width')?.trim() === '1px' &&
+  block.get('height')?.trim() === '1px' &&
+  block.has('clip')
+
 /** Every spacing declaration off the scale in one stylesheet. */
 const offScale = (file: string, css: string): Offence[] => {
   // Blank out comments but keep their newlines, so the line numbers stay right.
@@ -52,6 +64,7 @@ const offScale = (file: string, css: string): Offence[] => {
     for (const declaration of declarations) {
       const [text, property, value] = declaration as unknown as [string, string, string]
       if (!SPACING.test(property) || sentinel(property, value, block)) continue
+      if (visuallyHidden(property, value, block)) continue
       if (px(value).every((n) => n % 4 === 0)) continue
       offences.push({
         file,
@@ -70,6 +83,7 @@ describe('the 4 px scale', () => {
       @media (min-width: 768px) { .b { margin-top: calc(var(--h-row) - 2px); gap: 8px; } }
       .c { height: 1px; margin-bottom: -1px; }
       .d { width: 1px; height: 1px; margin: -1px; top: 0; --x: 3px; }
+      .e { position: absolute; width: 1px; height: 1px; margin: -1px; clip: rect(0 0 0 0); }
     `
     expect(offScale('x.css', css).map((o) => `${o.line} ${o.declaration}`)).toEqual([
       '2 padding: 10px var(--space-2)',
