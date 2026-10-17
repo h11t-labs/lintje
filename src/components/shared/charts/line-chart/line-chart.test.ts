@@ -13,13 +13,14 @@ import type { ChartSpec } from '../shared/types'
 
 type LineSpec = Extract<ChartSpec, { kind: 'line' }>
 
-function draw(spec: LineSpec): { host: HTMLElement; controller: ChartController } {
+function draw(spec: LineSpec, width?: number): { host: HTMLElement; controller: ChartController } {
   const host = document.createElement('div')
   document.body.append(host)
   const options: ChartOptions = {
     controller: new ChartController(() => render(renderLineChart(spec, options), host)),
     description: 'Een lijn.',
   }
+  if (width != null) options.controller.width = width
   render(renderLineChart(spec, options), host)
   return { host, controller: options.controller }
 }
@@ -459,7 +460,7 @@ describe('a forecast on the line chart', () => {
       { label: 'A', value: '20', color: 'var(--color-chart-default)', marker: 'dotted' },
       { label: 'laag – hoog', value: '17 – 23', note: true },
     ])
-    expect(controller.status).toBe('2026 raming: A 20, laag – hoog 17 – 23')
+    expect(controller.status).toBe('2026: A raming 20, laag – hoog 17 – 23')
     expect(host.querySelector('.lintje-chart-tooltip__title-note')?.textContent).toBe('raming')
     // The point the keyboard stands on has the focus ring.
     expect(host.querySelector('.lintje-chart__focus-point')).not.toBeNull()
@@ -469,6 +470,66 @@ describe('a forecast on the line chart', () => {
     expect(controller.tooltip?.content.rows).toEqual([
       { label: 'A', value: '10', color: 'var(--color-chart-default)', marker: 'line' },
     ])
+  })
+
+  it('says "raming" at a forecast value, so a comparison there is heard as measured', () => {
+    const { host, controller } = draw({
+      ...spec,
+      series: [
+        ...spec.series,
+        { label: 'Vorig jaar', values: [9, 11, 13, 15, 17, 19], comparison: true },
+      ],
+    })
+    const svg = host.querySelector('svg.lintje-chart__svg') as SVGElement
+    svg.dispatchEvent(new FocusEvent('focus'))
+    svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }))
+    expect(controller.status).toBe('2026: A raming 20, laag – hoog 17 – 23, Vorig jaar 19')
+    // The tooltip still says it once, by the title, with the dashed swatch for the comparison.
+    expect(controller.tooltip?.content.note).toBe('raming')
+    svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home' }))
+    expect(controller.status).toBe('2021: A 10, Vorig jaar 9')
+  })
+
+  it('names where measuring stops in the description of the drawing', () => {
+    const { host } = draw(spec)
+    expect(host.querySelector('desc')?.textContent).toBe(
+      'Een lijn. Gemeten tot en met 2023, daarna raming.',
+    )
+    const own = draw({ ...spec, forecastLabel: 'Prognose', forecastFrom: 5 }).host
+    expect(own.querySelector('desc')?.textContent).toBe(
+      'Een lijn. Gemeten tot en met 2025, daarna prognose.',
+    )
+  })
+
+  it('gives the forecast’s word a row of its own when it does not fit right of the line', () => {
+    const words = (host: Element) =>
+      [...host.querySelectorAll('.lintje-chart__boundary text')].map((text) => ({
+        x: Number(text.getAttribute('x')),
+        y: Number(text.getAttribute('y')),
+        anchor: text.getAttribute('text-anchor'),
+      }))
+    const top = (host: Element) =>
+      Number(host.querySelector('.lintje-chart__forecast-ground')!.getAttribute('y'))
+    const wide = draw(spec, 320).host
+    const [measured, forecast] = words(wide)
+    expect(forecast).toMatchObject({ anchor: 'start', y: measured.y })
+
+    // A forecast of only the last of eleven years, on a phone: the part right of the line is
+    // narrower than the word.
+    const eleven = Array.from({ length: 11 }, (_, i) => String(2020 + i))
+    const last: LineSpec = {
+      kind: 'line',
+      labels: eleven,
+      forecastFrom: 10,
+      series: [{ label: 'A', values: eleven.map((_, i) => 10 + i) }],
+    }
+    const narrow = draw(last, 320).host
+    const [gemeten, raming] = words(narrow)
+    const line = narrow.querySelector('.lintje-chart__boundary line')!
+    expect(raming).toMatchObject({ anchor: 'end', x: 320 - 8, y: gemeten.y - 16 })
+    // Above the line's end, and the plot a row lower to leave it that room.
+    expect(raming.y).toBeLessThan(Number(line.getAttribute('y1')))
+    expect(top(narrow)).toBe(top(wide) + 16)
   })
 
   it('names the one bound there is, or says there is no margin', () => {

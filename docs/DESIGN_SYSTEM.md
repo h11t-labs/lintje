@@ -825,7 +825,9 @@ de stijlgids. Past geen soort, dan is het een tabel.
 - **Een treemap vouwt op aandeel, niet op aantal.** Ze toont veel delen en hun onderdelen in één
   vlak, dus een deel blijft staan zolang het telt: wat onder 1 % van het geheel blijft, wordt
   samen één grijs "Overig" dat niet klikbaar is, ook binnen een deel, en één klein deel blijft
-  zichzelf. De CSV noemt elk samengevoegd deel apart. Het geheel is het kader: de legenda draagt
+  zichzelf. De CSV noemt elk samengevoegd deel apart. Een aandeel is er een in het geheel, ook bij
+  een onderdeel in de rijen op een telefoon; alleen de tooltip noemt daarnaast dat in zijn deel.
+  Het geheel is het kader: de legenda draagt
   alleen de sleutels en schakelt niets uit, en de grafiek noemt zelf het totaal van wat getekend
   is en wat daarin ontbreekt.
 - **Onderdelen van een deel delen zijn tint.** Een eigen tint zou een tweede variabele
@@ -899,9 +901,12 @@ dat: gestreept blijft van vergelijking en drempel. Een geraamde staaf is open, e
 hoverpunt ook, en de tooltip en de CSV noemen elk geraamd punt zo. De marge rond een raming vult
 alleen bij één reeks, of bij de reeks die de lezer in de legenda aanwijst, om dezelfde reden als
 bij het spinnendiagram. Met een raming heeft de grafiek één grens: de lijn tussen gemeten en
-geraamd, met beide woorden erboven en het geraamde deel op een eigen ondergrond. Een lopende
-periode wordt dan niet gearceerd of afgekapt; de host laat haar weg of rekent haar tot de raming.
-Een vergelijking heeft geen raming: haar waarden zijn gemeten.
+geraamd, met beide woorden erboven en het geraamde deel op een eigen ondergrond. Past het woord
+van de raming niet rechts van de lijn, dan staat het een regel hoger, nooit over de lijn of over
+"Gemeten". Een lopende periode wordt dan niet gearceerd of afgekapt; de host laat haar weg of
+rekent haar tot de raming. Een vergelijking heeft geen raming: haar waarden zijn gemeten. Een
+schermlezer hoort dat ook: de naam van de tekening zegt waar het meten ophoudt, zoals ze haar
+gebeurtenissen noemt, en "raming" staat bij elke geraamde waarde, niet bij de categorie.
 
 **Gebeurtenissen.** Wat er op een moment gebeurde, is een genummerd vierkantje boven zijn
 categorie met een doorgetrokken lijn tot de nullijn, apart van de gestreepte peilmomentlijn; de
@@ -1190,7 +1195,8 @@ kleinste correctie, en leg die hier vast.
 - **Een grafiek is ook met het toetsenbord te lezen.** Haar tekening neemt de focus en de
   pijltoetsen lopen langs de categorieën met de tooltip, die een live-regio uitspreekt; Escape
   verbergt een tooltip. De tekening is een afbeelding, of een groep met haar beschrijving als naam
-  zodra een teken een knop is. Een teken met focus krijgt zijn ring buiten een opening van 1 px in
+  zodra een teken een knop is; in een groep zijn de getekende namen en getallen verborgen voor
+  een schermlezer, want de knoppen zeggen ze al. Een teken met focus krijgt zijn ring buiten een opening van 1 px in
   het oppervlak, zodat een oranje teken zijn ring houdt; op een kaart, waar tekens elkaar raken,
   ligt het met die ring boven alle andere. De nullijn, de arcering en de rand van
   een kaartgebied met een cijfer halen 3:1; aangrenzende tinten worden gescheiden door een lijn in

@@ -26,14 +26,16 @@ import {
 import { renderTooltip } from '../shared/tooltip'
 import { styleProps } from '../../../../core/style-props'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
-import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
+import { plotKeys, renderPlotStatus, tooltipSentence } from '../shared/plot-keys'
 import { LONE_POINT_RADIUS, knownRuns } from '../shared/runs'
 import {
   FORECAST_LABEL,
-  FORECAST_ROOM,
   INTERVAL_LABEL,
   boundsAt,
+  forecastDescription,
+  forecastRoom,
   forecastStart,
+  forecastWordFits,
   hasInterval,
   intervalRow,
   intervalValues,
@@ -172,9 +174,17 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
   const eventsTop = rowCount
     ? rowCount * (EVENT_CHIP + EVENT_ROW_GAP) + EVENT_GAP
     : DEFAULT_PLOT_AREA.top
+  const fits =
+    from == null ||
+    forecastWordFits(
+      xPosition(from - 1, labels.length, across),
+      across,
+      forecastLabel,
+      controller.fontFamily,
+    )
   const area = chartArea(options, {
     left: axis.width,
-    top: eventsTop + (from != null ? FORECAST_ROOM : 0),
+    top: eventsTop + (from != null ? forecastRoom(fits) : 0),
   })
   const chipTop = (i: number) => EVENT_ROW_GAP + rows[i] * (EVENT_CHIP + EVENT_ROW_GAP)
 
@@ -261,12 +271,28 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
       .filter((value): value is number => value != null)
     return known.length ? Math.max(...known) : null
   }
+  // A screen reader hears "raming" at each forecast value, not at the category: a comparison
+  // there is measured, which the tooltip shows by its dashed swatch.
+  const sentenceAt = (i: number, content: TooltipContent): string | undefined =>
+    from != null && i >= from
+      ? tooltipSentence({
+          ...content,
+          note: undefined,
+          rows: content.rows.map((row) =>
+            row.marker === 'dotted'
+              ? { ...row, label: `${row.label} ${forecastLabel.toLowerCase()}` }
+              : row,
+          ),
+        })
+      : undefined
   const keys = plotKeys(controller, labels.length, (i) => {
     const top = topAt(i)
+    const content = contentAt(i)
     return {
       x: xPosition(i, labels.length, area),
       y: top == null ? area.top : yPosition(top, max, area),
-      content: contentAt(i),
+      content,
+      sentence: sentenceAt(i, content),
     }
   })
   const focusPoint = (i: number) => {
@@ -497,14 +523,17 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
           xLabels,
           underlay:
             from != null ? forecastGround(xPosition(from - 1, labels.length, area)) : nothing,
-          // The drawing names its events too; the list below says them again.
-          description: events.length
-            ? `${description} ${events
-                .map(
-                  (event) => `Gebeurtenis ${event.number}, ${labels[event.index]}: ${event.label}.`,
-                )
-                .join(' ')}`
-            : description,
+          // The drawing names where measuring stops and its events too; the list below says
+          // the events again.
+          description: [
+            description,
+            from != null ? forecastDescription(labels, from, forecastLabel) : '',
+            ...events.map(
+              (event) => `Gebeurtenis ${event.number}, ${labels[event.index]}: ${event.label}.`,
+            ),
+          ]
+            .filter(Boolean)
+            .join(' '),
           keys,
         },
         marks,
