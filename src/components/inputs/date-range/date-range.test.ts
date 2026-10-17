@@ -142,6 +142,17 @@ describe('lintje-date-range', () => {
     expect(cell(element, 7).getAttribute('aria-current')).toBe('date')
   })
 
+  it('fills every day between start and end, across a week, and names it in the period', async () => {
+    const element = await openWith({ from: '02-10-2026', to: '13-10-2026' })
+    const inside = days(element).filter((day) => day.classList.contains('is-in-range'))
+    expect(inside.map((day) => Number(day.textContent))).toEqual([3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+    for (const day of inside) expect(day.getAttribute('aria-label')).toMatch(/, in periode$/)
+    for (const day of [2, 13]) {
+      expect(cell(element, day).classList.contains('is-in-range')).toBe(false)
+      expect(cell(element, day).classList.contains('is-endpoint')).toBe(true)
+    }
+  })
+
   it('moves the tab stop with the keys and turns the month on PageDown', async () => {
     const element = await openWith({ from: '05-10-2026', to: '07-10-2026' })
     const press = async (key: string): Promise<void> => {

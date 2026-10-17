@@ -1153,6 +1153,17 @@ export default {
           html: '<lintje-date-range label="Periode" disabled></lintje-date-range>',
           setup: setRange,
         },
+        {
+          label: 'Open met een gekozen periode',
+          note: 'De dagen tussen begin en eind zijn getint, ook over het weekend heen.',
+          html: '<lintje-date-range label="Periode"></lintje-date-range>',
+          async setup(stage) {
+            setRange(stage)
+            const element = stage.querySelector('lintje-date-range')
+            await element.updateComplete
+            element.shadowRoot.querySelector('.lintje-date-range-picker__field').click()
+          },
+        },
       ],
     },
     {
