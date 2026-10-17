@@ -784,8 +784,14 @@ const chartSpecimen = (chart) => ({
       download: { filename: `demo-${chart.id}` },
       selectedId: chart.selectedId,
     }
-    // A chart with links says under the tile where a click would go, and stays on this page.
-    if (JSON.stringify(chart.spec).includes('"href"')) linkLog(stage, element, ['lintje-mark-select'])
+    // A chart with links says under the tile where a click would go, and stays on this page. As a
+    // host would, it keeps the chosen mark and hands it back: the chart holds no selection itself.
+    if (JSON.stringify(chart.spec).includes('"href"')) {
+      linkLog(stage, element, ['lintje-mark-select'])
+      element.addEventListener('lintje-mark-select', (event) => {
+        element.data = { ...element.data, selectedId: event.detail.id ?? undefined }
+      })
+    }
     chart.setup?.(element)
   },
 })
