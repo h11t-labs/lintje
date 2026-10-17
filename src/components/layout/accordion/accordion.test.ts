@@ -1,6 +1,5 @@
-import { afterEach, describe, expect, it } from 'vitest'
-import './accordion'
-import type { LintjeAccordion } from './accordion'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { LintjeAccordion } from './accordion'
 import type { LintjeExpander } from '../expander/expander'
 
 afterEach(() => {
@@ -39,6 +38,27 @@ const press = async (row: LintjeExpander): Promise<void> => {
 
 const link = (element: LintjeAccordion): HTMLElement | null =>
   element.shadowRoot!.querySelector('lintje-button')
+
+describe('lintje-accordion at load', () => {
+  it('draws once when every row starts open, and the link says "Alles sluiten"', async () => {
+    const render = vi.spyOn(LintjeAccordion.prototype as unknown as { render(): unknown }, 'render')
+    try {
+      const wrap = document.createElement('div')
+      wrap.innerHTML = `<lintje-accordion toggle-all>${[1, 2]
+        .map((n) => `<lintje-expander heading="Vraag ${n}" open><p>Antwoord</p></lintje-expander>`)
+        .join('')}</lintje-accordion>`
+      const element = wrap.firstElementChild as LintjeAccordion
+      document.body.append(element)
+      await settled(element)
+      await tick()
+      await settled(element)
+      expect(render).toHaveBeenCalledTimes(1)
+      expect(link(element)!.textContent!.trim()).toBe('Alles sluiten')
+    } finally {
+      render.mockRestore()
+    }
+  })
+})
 
 describe('lintje-accordion', () => {
   it('draws each expander as a row: flat, the chevron first', async () => {
