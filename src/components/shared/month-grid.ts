@@ -24,6 +24,8 @@ export interface MonthGrid {
   focus: string
   /** The day marked as today, ISO. */
   today: string
+  /** More than one day is selected at once: a period and the days in it. */
+  multiselectable?: boolean
   day: (iso: string) => GridDay
   /** A press on a day that is not blocked. */
   onPick: (iso: string) => void
@@ -42,6 +44,7 @@ export function renderMonthGrid(grid: MonthGrid): TemplateResult {
   return html`<div
     class="lintje-month-grid"
     role="grid"
+    aria-multiselectable=${grid.multiselectable ? 'true' : nothing}
     aria-label=${monthLabel(grid.focus)}
     @keydown=${onKeydown}
   >

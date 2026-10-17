@@ -152,6 +152,10 @@ describe('the calendar', () => {
     expect(element.shadowRoot!.querySelector('[role="grid"]')!.getAttribute('aria-label')).toBe(
       'oktober 2026',
     )
+    // One day is chosen: a single-select grid.
+    expect(
+      element.shadowRoot!.querySelector('[role="grid"]')!.hasAttribute('aria-multiselectable'),
+    ).toBe(false)
     expect(cell(element, 3).getAttribute('aria-selected')).toBe('true')
     expect(cell(element, 3).getAttribute('tabindex')).toBe('0')
     expect(cell(element, 4).getAttribute('aria-current')).toBe('date')

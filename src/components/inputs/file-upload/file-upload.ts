@@ -3,7 +3,8 @@
  *
  * It never uploads: it checks files against `accept` and `max-size`, sends the ones that pass with
  * `lintje-files-add` and draws the rows from `files`. A file it refuses never reaches the host.
- * Its value is the ids of the rows that are done.
+ * Its value is the ids of the rows that are done. While it takes files, a file dropped beside the
+ * zone does nothing, instead of opening in the browser.
  *
  * Events: `lintje-files-add` `File[]`, `lintje-file-remove` `{ id }`, `lintje-file-cancel`
  * `{ id }`, `lintje-change` `string[]`, `lintje-values-change` `{ [name]: value }` (with a
@@ -25,6 +26,7 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
 import '../../feedback/progress-bar/progress-bar'
 import { focusTarget } from '../../shared/focus-trap'
+import { LiveMessage } from '../../shared/live-message'
 import { TONE_ICON } from '../../shared/tone'
 import { LintjeInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
@@ -143,8 +145,8 @@ export class LintjeFileUpload extends LintjeInputElement {
     fill: { type: Boolean, reflect: true },
     dragging: { state: true },
     dragCount: { state: true },
+    over: { state: true },
     refused: { state: true },
-    news: { state: true },
   }
 
   /** The host's rows: one per file of `lintje-files-add`, moved busy, then done or error. */
@@ -159,17 +161,20 @@ export class LintjeFileUpload extends LintjeInputElement {
   protected dragging: boolean = false
   /** How many are dragged: 0 when the browser does not say. */
   protected dragCount: number = 0
+  /** Whether the dragged files are over the zone itself, where letting go adds them. */
+  protected over: boolean = false
   protected refused: UploadFile[] = []
-  protected news: string = ''
 
   readonly #mobile = new MediaController(this, MOBILE)
+  readonly #news = new LiveMessage(this)
   #depth: number = 0
+  #overDepth: number = 0
   #refusedCount: number = 0
   /** The row that held the focus before the rows changed, and where it stood. */
   #focusedRow: { id: string; index: number } | null = null
 
   private readonly onDragEnter = (event: DragEvent): void => {
-    if (this.disabled || !hasFiles(event)) return
+    if (this.isDisabled || !hasFiles(event)) return
     this.#depth += 1
     this.dragging = true
     this.dragCount = event.dataTransfer?.items?.length ?? 0
@@ -183,21 +188,37 @@ export class LintjeFileUpload extends LintjeInputElement {
 
   private readonly onDragEnd = (): void => {
     this.#depth = 0
+    this.#overDepth = 0
     this.dragging = false
+    this.over = false
+  }
+
+  /**
+   * A file dropped beside the zone would open in the browser and take the filled-in form with it.
+   * The zone, a second upload or a host's own target has already taken what it accepts.
+   */
+  private readonly onDragOutside = (event: DragEvent): void => {
+    if (this.isDisabled || event.defaultPrevented || !hasFiles(event)) return
+    event.preventDefault()
+    if (event.type === 'dragover' && event.dataTransfer) event.dataTransfer.dropEffect = 'none'
   }
 
   override connectedCallback(): void {
     super.connectedCallback()
     document.addEventListener('dragenter', this.onDragEnter)
     document.addEventListener('dragleave', this.onDragLeave)
+    document.addEventListener('dragover', this.onDragOutside)
     document.addEventListener('drop', this.onDragEnd)
+    document.addEventListener('drop', this.onDragOutside)
     document.addEventListener('dragend', this.onDragEnd)
   }
 
   override disconnectedCallback(): void {
     document.removeEventListener('dragenter', this.onDragEnter)
     document.removeEventListener('dragleave', this.onDragLeave)
+    document.removeEventListener('dragover', this.onDragOutside)
     document.removeEventListener('drop', this.onDragEnd)
+    document.removeEventListener('drop', this.onDragOutside)
     document.removeEventListener('dragend', this.onDragEnd)
     this.onDragEnd()
     super.disconnectedCallback()
@@ -210,7 +231,7 @@ export class LintjeFileUpload extends LintjeInputElement {
     if (!changed.has('files')) return
     const before = changed.get('files') as UploadFile[] | undefined
     const news = rowNews(before ?? [], this.files ?? [])
-    if (news) this.news = news
+    if (news) this.#news.say(news)
     if (before === undefined) return
     const done = doneIds(this.files)
     if (done.join('\n') !== doneIds(before).join('\n')) this.announce(done)
@@ -243,7 +264,7 @@ export class LintjeFileUpload extends LintjeInputElement {
   }
 
   add(chosen: File[]): void {
-    if (this.disabled || !chosen.length) return
+    if (this.isDisabled || !chosen.length) return
     const files = this.single ? chosen.slice(0, 1) : chosen
     const passed: File[] = []
     const refused: UploadFile[] = []
@@ -264,7 +285,7 @@ export class LintjeFileUpload extends LintjeInputElement {
     }
     if (refused.length) {
       this.refused = [...this.refused, ...refused]
-      this.news = rowNews([], refused)
+      this.#news.say(rowNews([], refused))
     }
     if (passed.length) this.emit('lintje-files-add', passed)
   }
@@ -293,12 +314,26 @@ export class LintjeFileUpload extends LintjeInputElement {
   }
 
   private onDragOver(event: DragEvent): void {
-    if (this.disabled || !hasFiles(event)) return
+    if (this.isDisabled || !hasFiles(event)) return
     event.preventDefault()
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy'
+  }
+
+  // Counted, because entering a child of the zone leaves the zone first.
+  private onZoneEnter(event: DragEvent): void {
+    if (this.isDisabled || !hasFiles(event)) return
+    this.#overDepth += 1
+    this.over = true
+  }
+
+  private onZoneLeave(): void {
+    if (!this.over) return
+    this.#overDepth = Math.max(0, this.#overDepth - 1)
+    if (this.#overDepth === 0) this.over = false
   }
 
   private onDrop(event: DragEvent): void {
-    if (this.disabled) return
+    if (this.isDisabled) return
     event.preventDefault()
     this.onDragEnd()
     this.add([...(event.dataTransfer?.files ?? [])])
@@ -314,6 +349,10 @@ export class LintjeFileUpload extends LintjeInputElement {
 
   private get dropText(): string {
     const count = this.dragCount
+    if (!this.over) {
+      if (!count) return 'Sleep de bestanden hierheen'
+      return `Sleep ${count === 1 ? 'het bestand' : `${count} bestanden`} hierheen`
+    }
     if (!count) return 'Laat los om de bestanden toe te voegen'
     return `Laat los om ${count} ${count === 1 ? 'bestand' : 'bestanden'} toe te voegen`
   }
@@ -379,10 +418,11 @@ export class LintjeFileUpload extends LintjeInputElement {
 
   protected override render(): TemplateResult {
     const rows = [...(this.files ?? []), ...this.refused]
-    const dragging = this.dragging && !this.disabled
+    const dragging = this.dragging && !this.isDisabled
     const meta = this.metaText
     const choose = this.single ? 'Bestand kiezen' : 'Bestanden kiezen'
     const description = [meta, this.footMessage || this.hint].filter(Boolean).join('. ')
+    // A drag hides the button instead of removing it, so a button with the focus keeps it.
     return html`<div class="lintje-field">
       ${this.label ? this.renderLabel() : nothing}
       <div
@@ -390,29 +430,32 @@ export class LintjeFileUpload extends LintjeInputElement {
           'lintje-file-upload': true,
           'lintje-file-upload--fill': this.fill,
           'is-dragging': dragging,
+          'is-over': dragging && this.over,
           'is-error': Boolean(this.error),
-          'is-disabled': this.disabled,
+          'is-disabled': this.isDisabled,
         })}
+        @dragenter=${this.onZoneEnter}
+        @dragleave=${this.onZoneLeave}
         @dragover=${this.onDragOver}
         @drop=${this.onDrop}
       >
+        <lintje-button
+          class=${classMap({ 'lintje-file-upload__button': true, 'visually-hidden': dragging })}
+          variant="secondary"
+          icon="functioneel-upload"
+          ?block=${this.#mobile.matches}
+          ?disabled=${this.isDisabled}
+          ?invalid=${Boolean(this.error)}
+          accessible-name=${this.label ? `${choose}, ${this.labelText}` : nothing}
+          description=${description || nothing}
+          @click=${this.pick}
+          >${choose}</lintje-button
+        >
         ${
           dragging
             ? html`${renderIcon('functioneel-upload', { size: 20, className: 'lintje-file-upload__icon' })}
                 <strong class="lintje-file-upload__text">${this.dropText}</strong>`
-            : html`<lintje-button
-                  class="lintje-file-upload__button"
-                  variant="secondary"
-                  icon="functioneel-upload"
-                  ?block=${this.#mobile.matches}
-                  ?disabled=${this.disabled}
-                  ?invalid=${Boolean(this.error)}
-                  accessible-name=${this.label ? `${choose}, ${this.labelText}` : nothing}
-                  description=${description || nothing}
-                  @click=${this.pick}
-                  >${choose}</lintje-button
-                >
-                <span class="lintje-file-upload__text"
+            : html`<span class="lintje-file-upload__text"
                   >${this.single ? 'of sleep het hierheen' : 'of sleep ze hierheen'}</span
                 >
                 ${meta ? html`<span class="lintje-file-upload__meta">${meta}</span>` : nothing}`
@@ -424,7 +467,7 @@ export class LintjeFileUpload extends LintjeInputElement {
           tabindex="-1"
           accept=${this.accept || nothing}
           ?multiple=${!this.single}
-          ?disabled=${this.disabled}
+          ?disabled=${this.isDisabled}
           @change=${this.onPicked}
         />
       </div>
@@ -435,7 +478,7 @@ export class LintjeFileUpload extends LintjeInputElement {
           </ul>`
           : nothing
       }
-      <span class="visually-hidden" role="status">${this.news}</span>
+      <span class="visually-hidden" role="status">${this.#news.text}</span>
       ${this.renderFoot()}
     </div>`
   }

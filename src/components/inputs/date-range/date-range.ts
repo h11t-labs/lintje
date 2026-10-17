@@ -339,7 +339,7 @@ export class LintjeDateRange extends LintjeInputElement {
         aria-haspopup="dialog"
         aria-describedby=${this.describedBy}
         aria-invalid=${this.error ? 'true' : nothing}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         @click=${this.toggle}
       >
         <span>${rangeLabel}</span>
@@ -377,6 +377,7 @@ export class LintjeDateRange extends LintjeInputElement {
               ${renderMonthGrid({
                 focus,
                 today,
+                multiselectable: true,
                 day: (day) => {
                   const start = day === from
                   const end = day === to
