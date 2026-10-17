@@ -55,6 +55,8 @@
   overflow: auto;
   margin: calc(var(--lintje-dialog-ring) * -1) calc(var(--space-6) * -1);
   padding: var(--lintje-dialog-ring) var(--space-6);
+  /* A field the focus scrolls to keeps its ring in view too. */
+  scroll-padding-block: var(--lintje-dialog-ring);
   font: var(--text-body);
 }
 

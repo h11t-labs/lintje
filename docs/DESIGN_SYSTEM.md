@@ -1146,7 +1146,19 @@ kleinste correctie, en leg die hier vast.
 - **De popup van een veld sluit als de focus het veld verlaat**, zodat hij nooit het volgende veld
   bedekt; gesloten met Escape of met zijn eigen actie, geeft hij de focus terug aan het veld.
 - De optie waarop de toetsen van een lijst staan (`aria-activedescendant`), draagt de focusring
-  binnen haar rij: haar vulling alleen haalt ongeveer 1.1:1.
+  binnen haar rij: haar vulling alleen haalt ongeveer 1.1:1. Ook een aanvulling in het vraagvak;
+  een rij onder de aanwijzer houdt alleen de vulling.
+- **Een scrollvak dat het toetsenbord moet bereiken, is een Tab-stop met een rol en een naam**
+  (2.1.1): Safari geeft een scroller er zelf geen. Een codeblok heet "Codeblok", ook een `pre` in
+  de html van `lintje-prose`; een tegel die zelf scrolt, draagt haar titel. De ring staat erbinnen.
+- **De focusring is aan alle vier de kanten heel**: een scrollvak houdt de ring van wat erin staat
+  vrij, en een deel dat tegen zijn buur ligt (een segment, een helft van een gesplitste knop) ligt
+  met de focus boven die buur. Bij twee handvatten op één balk staat de ring om het handvat met de
+  focus, niet om de balk.
+- **Een lijst losse tekstlinks heeft doelen van minstens 24 px** (2.5.8), in de voet en in de
+  foutsamenvatting: zo'n link staat niet in een zin.
+- **Een dag die niet gekozen mag worden, kiest na een klik niets, maar wordt de Tab-stop**: de
+  pijltoetsen rekenen vanaf de dag met de focus (2.4.3).
 - **Een mark van een grafiek of kaart tekent na een klik geen kader.** Chromium geeft een
   SVG-element met `tabindex` zijn eigen outline, ook zonder `:focus-visible`; `:focus` zet die af,
   en de ring blijft die van het toetsenbord.
