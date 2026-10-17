@@ -598,7 +598,7 @@ export default {
         },
         {
           label: 'Menu met meer opties',
-          note: 'Het menu zet ondertiteling, audiodescriptie en snelheid.',
+          note: 'Het menu zet audiodescriptie en snelheid; op een smalle balk ook de ondertiteling.',
           html: '<lintje-video-player name="Hoorzitting zaal 4" captions></lintje-video-player>',
           async setup(stage) {
             const player = stage.querySelector('lintje-video-player')

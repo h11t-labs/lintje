@@ -23,6 +23,12 @@ async function mount(props: Partial<LintjeVideoPlayer> = {}): Promise<LintjeVide
   return element
 }
 
+/** The values of the menu's rows. */
+const rowValues = (element: LintjeVideoPlayer): string[] =>
+  menu(element)
+    .items.filter((item) => typeof item === 'object' && 'value' in item)
+    .map((item) => (item as { value: string }).value)
+
 async function loaded(element: LintjeVideoPlayer, duration = 120): Promise<HTMLVideoElement> {
   const media = element.shadowRoot!.querySelector('video')!
   let paused = true
@@ -160,30 +166,7 @@ describe('lintje-video-player', () => {
     expect(root(element).querySelector('.lintje-video-player__big-play')).toBeNull()
   })
 
-  it('switches the captions in the menu and on C, and shows the segment that sounds', async () => {
-    const element = await mount({ segments: SEGMENTS })
-    await loaded(element)
-    const row = (): unknown => menu(element).items[0]
-    expect(row()).toMatchObject({ label: 'Ondertiteling', checked: false, hint: 'C' })
-    expect(root(element).querySelector('.lintje-video-player__caption')).toBeNull()
-
-    await choose(element, 'ondertiteling')
-    element.currentTime = 12
-    await element.updateComplete
-    expect(element.captions).toBe(true)
-    expect(row()).toMatchObject({ checked: true })
-    expect(root(element).querySelector('.lintje-video-player__caption')!.textContent!.trim()).toBe(
-      'Is dat afgestemd met de roostermaker?',
-    )
-
-    root(element)
-      .querySelector('[role="slider"]')!
-      .dispatchEvent(new KeyboardEvent('keydown', { key: 'c', bubbles: true, composed: true }))
-    await element.updateComplete
-    expect(element.captions).toBe(false)
-  })
-
-  it('has a captions button at the end of the bar before the menu, pressed while they show', async () => {
+  it('switches the captions with the button and on C, and shows the segment that sounds', async () => {
     const element = await mount({ segments: SEGMENTS })
     await loaded(element)
     const button = (): HTMLButtonElement =>
@@ -193,28 +176,43 @@ describe('lintje-video-player', () => {
     const order = [...end.children].map(
       (child) => child.getAttribute('aria-label') ?? child.tagName,
     )
-    expect(order[0]).toBe('Ondertiteling')
-    expect(order[1]).toBe('LINTJE-MENU-BUTTON')
-    expect(end.querySelector('button[aria-label="Geluid dempen"]')).toBeNull()
+    expect(order.slice(0, 2)).toEqual(['Ondertiteling', 'LINTJE-MENU-BUTTON'])
+    // The button is there, so the menu has no row for it.
+    expect(rowValues(element)).not.toContain('ondertiteling')
     expect(button().getAttribute('aria-pressed')).toBe('false')
+    expect(root(element).querySelector('.lintje-video-player__caption')).toBeNull()
 
     button().click()
+    element.currentTime = 12
     await element.updateComplete
     expect(element.captions).toBe(true)
     expect(button().getAttribute('aria-pressed')).toBe('true')
     expect(button().classList.contains('is-on')).toBe(true)
-    expect(menu(element).items[0]).toMatchObject({ label: 'Ondertiteling', checked: true })
+    expect(root(element).querySelector('.lintje-video-player__caption')!.textContent!.trim()).toBe(
+      'Is dat afgestemd met de roostermaker?',
+    )
 
-    // The menu row and the C key follow the same captions, and so does the button.
-    await choose(element, 'ondertiteling')
-    expect(button().getAttribute('aria-pressed')).toBe('false')
-    expect(button().classList.contains('is-on')).toBe(false)
     root(element)
       .querySelector('[role="slider"]')!
       .dispatchEvent(new KeyboardEvent('keydown', { key: 'c', bubbles: true, composed: true }))
     await element.updateComplete
+    expect(element.captions).toBe(false)
+    expect(button().getAttribute('aria-pressed')).toBe('false')
+    expect(button().classList.contains('is-on')).toBe(false)
+  })
+
+  it('moves the captions into the menu where the bar is too narrow for their button', async () => {
+    const element = await mount({ segments: SEGMENTS })
+    await loaded(element)
+    ;(element as unknown as { narrow: boolean }).narrow = true
+    await element.updateComplete
+    expect(root(element).querySelector('button[aria-label="Ondertiteling"]')).toBeNull()
+    const row = (): unknown => menu(element).items[0]
+    expect(row()).toMatchObject({ label: 'Ondertiteling', checked: false, hint: 'C' })
+
+    await choose(element, 'ondertiteling')
     expect(element.captions).toBe(true)
-    expect(button().getAttribute('aria-pressed')).toBe('true')
+    expect(row()).toMatchObject({ checked: true })
   })
 
   it('answers C and F also while the focus is on the menu button', async () => {
