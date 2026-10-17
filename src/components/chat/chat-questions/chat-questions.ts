@@ -87,7 +87,6 @@ export class LintjeChatQuestions extends LintjeElement {
     skipped: { state: true },
     otherOpen: { state: true },
     said: { state: true },
-    scrolls: { state: true },
   }
 
   declare data?: ChatQuestionsData | null
@@ -103,8 +102,6 @@ export class LintjeChatQuestions extends LintjeElement {
   otherOpen: boolean = false
   /** What the status region says. */
   said: string = ''
-  /** The choices are taller than the box lets them be: a line under them says there is more. */
-  scrolls: boolean = false
 
   readonly #mobile = new MediaController(this)
   #ids = ''
@@ -157,10 +154,11 @@ export class LintjeChatQuestions extends LintjeElement {
     if (this.sending) this.say('Antwoorden versturen')
   }
 
+  // Choices taller than their box get a line under them that says there is more. Measured after
+  // drawing, so it goes on the DOM, not into a property that would draw again.
   private measure(): void {
     const list = this.renderRoot.querySelector<HTMLElement>('.lintje-chat-questions__choices')
-    const scrolls = Boolean(list && list.scrollHeight > list.clientHeight + 1)
-    if (scrolls !== this.scrolls) this.scrolls = scrolls
+    list?.classList.toggle('is-scrolling', list.scrollHeight > list.clientHeight + 1)
   }
 
   protected override updated(changed: PropertyValues<this>): void {
@@ -458,9 +456,7 @@ export class LintjeChatQuestions extends LintjeElement {
           }
         </p>
         ${hint ? html`<p class="lintje-chat-questions__hint">${hint}</p>` : nothing}
-        <div
-          class=${classMap({ 'lintje-chat-questions__choices': true, 'is-scrolling': this.scrolls })}
-        >
+        <div class="lintje-chat-questions__choices">
           ${keyed(question.id, this.renderControl(question))}
         </div>
       </div>
