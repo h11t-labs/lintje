@@ -280,27 +280,106 @@ function paint(element: Element, origin: Origin, struck: boolean, out: Element):
   }
 }
 
+/** What the tile around a chart says; the image draws it around the chart, as the tile does. */
+export interface ImageFrame {
+  title?: string
+  subtitle?: string
+  footnote?: string
+}
+
+/** A block of the frame with the tile's type, as `tile.css` sets it. */
+function frameText(tag: string, text: string, css: string): HTMLElement {
+  const element = document.createElement(tag)
+  element.textContent = text
+  element.style.cssText = `margin: 0; ${css}`
+  return element
+}
+
 /**
- * The chart in `root` as one `<svg>` as wide as it is on screen, on the surface of the mode the
- * reader looks in: legend, axis titles, drawing, events and legend table where they stand.
+ * The tile around the chart, laid out off screen in the tile's tokens: its padding, its edge and
+ * surface, the title and subtitle above and the footnote below, and a place as large as the chart.
+ * It is laid out in the chart's own root, so the tokens of its mode and theme apply.
  */
-export function chartImage(root: Element): SVGSVGElement {
+function layOutFrame(root: Element, box: DOMRect, frame: ImageFrame): HTMLElement[] {
+  const tile = document.createElement('div')
+  tile.style.cssText = `position: fixed; left: -100000px; top: 0; box-sizing: content-box;
+    width: ${box.width}px; display: flex; flex-direction: column; gap: var(--space-4);
+    padding: var(--tile-pad-y) var(--tile-pad-x); background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-default);`
+  if (frame.title || frame.subtitle) {
+    const head = document.createElement('div')
+    if (frame.title)
+      head.append(
+        frameText(
+          'p',
+          frame.title,
+          'font: var(--text-tile-title); color: var(--color-text-primary);',
+        ),
+      )
+    if (frame.subtitle)
+      head.append(
+        frameText(
+          'p',
+          frame.subtitle,
+          'font: var(--text-small); color: var(--color-text-muted); margin-top: 2px;',
+        ),
+      )
+    tile.append(head)
+  }
+  const place = document.createElement('div')
+  place.style.cssText = `height: ${box.height}px;`
+  tile.append(place)
+  if (frame.footnote)
+    tile.append(
+      frameText(
+        'p',
+        frame.footnote,
+        `font: var(--text-small); color: var(--color-text-muted);
+         border-top: 1px solid var(--color-border-default); padding-top: var(--space-2);`,
+      ),
+    )
+  const scope = root.getRootNode()
+  ;(scope instanceof ShadowRoot ? scope : document.body).append(tile)
+  return [tile, place]
+}
+
+/**
+ * The chart in `root` as one `<svg>` on the surface of the mode the reader looks in: the legend,
+ * axis titles, drawing, events and legend table where they stand on screen. With a `frame`, the
+ * tile around it as well: its padding and edge, the title and subtitle above, the footnote below.
+ */
+export function chartImage(root: Element, frame?: ImageFrame): SVGSVGElement {
   const box = root.getBoundingClientRect()
-  const reach = { left: 0, top: 0, right: box.width, bottom: box.height }
   const image = document.createElementNS(SVG_NS, 'svg')
-  paint(root, { left: box.left, top: box.top, reach }, false, image)
-  const left = Math.floor(reach.left)
-  const top = Math.floor(reach.top)
-  const width = Math.max(1, Math.ceil(reach.right) - left)
-  const height = Math.max(1, Math.ceil(reach.bottom) - top)
-  image.setAttribute('xmlns', SVG_NS)
-  image.setAttribute('width', String(width))
-  image.setAttribute('height', String(height))
-  image.setAttribute('viewBox', `${left} ${top} ${width} ${height}`)
-  const surface = surfaceColour(root)
-  if (surface)
-    image.prepend(create('rect', { x: left, y: top, width, height, fill: surface }, image))
-  return image
+  const laid = frame ? layOutFrame(root, box, frame) : null
+  try {
+    let reach = { left: 0, top: 0, right: box.width, bottom: box.height }
+    let at = { left: box.left, top: box.top }
+    if (laid) {
+      const [tile, place] = laid
+      const outer = tile.getBoundingClientRect()
+      const inner = place.getBoundingClientRect()
+      reach = { left: 0, top: 0, right: outer.width, bottom: outer.height }
+      paint(tile, { left: outer.left, top: outer.top, reach }, false, image)
+      // The chart where the place stands in the tile.
+      at = { left: box.left - (inner.left - outer.left), top: box.top - (inner.top - outer.top) }
+    }
+    paint(root, { ...at, reach }, false, image)
+    const left = Math.floor(reach.left)
+    const top = Math.floor(reach.top)
+    const width = Math.max(1, Math.ceil(reach.right) - left)
+    const height = Math.max(1, Math.ceil(reach.bottom) - top)
+    image.setAttribute('xmlns', SVG_NS)
+    image.setAttribute('width', String(width))
+    image.setAttribute('height', String(height))
+    image.setAttribute('viewBox', `${left} ${top} ${width} ${height}`)
+    const surface = surfaceColour(root)
+    if (surface)
+      image.prepend(create('rect', { x: left, y: top, width, height, fill: surface }, image))
+    return image
+  } finally {
+    laid?.[0].remove()
+  }
 }
 
 /** An `<svg>` with its own `width`, `height` and surface (`chartImage`) as a PNG, twice its size. */
