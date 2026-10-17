@@ -76,6 +76,21 @@ describe('lintje-tabs', () => {
     expect(panel.classList.contains('is-pressed')).toBe(false)
   })
 
+  it.each(['pointercancel', 'pointerup outside'])(
+    'forgets a press that ends in a %s, so the next focus draws its ring',
+    async (end) => {
+      const panel = panels(await mount())[0]!
+      const pointer = (target: EventTarget, type: string): void => {
+        target.dispatchEvent(new PointerEvent(type, { bubbles: true, composed: true }))
+      }
+      pointer(panel, 'pointerdown')
+      if (end === 'pointercancel') pointer(panel, 'pointercancel')
+      else pointer(document.body, 'pointerup')
+      panel.dispatchEvent(new FocusEvent('focus'))
+      expect(panel.classList.contains('is-pressed')).toBe(false)
+    },
+  )
+
   it('chooses the first tab without a value and never sets value itself', async () => {
     const element = await mount()
     expect(element.selectedIndex).toBe(0)

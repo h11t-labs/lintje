@@ -29,12 +29,14 @@ function hrefWith(key, value) {
   return query ? `?${query}` : location.pathname
 }
 
-const theme = themeOf(location.search)
-
-// Mode and theme stand on <html> before the elements load, so they draw in them from the start.
+// Mode and theme stand on <html> before the elements load, so they draw in them from the start;
+// the elements follow a change while the page runs.
 const root = document.documentElement
-root.dataset.mode = modeOf(location.search)
-root.dataset.theme = theme
+function applySettings() {
+  root.dataset.mode = modeOf(location.search)
+  root.dataset.theme = themeOf(location.search)
+}
+applySettings()
 
 const lintje = await import('../../dist-elements/lintje.js')
 
@@ -270,7 +272,7 @@ function renderShell() {
   const dark = root.dataset.mode === 'dark'
   shell.data = {
     name: 'Transcriptie',
-    emblem: emblem(theme),
+    emblem: emblem(themeOf(location.search)),
     navigation: NAVIGATION.map(({ page, ...link }) => ({ ...link, active: page === pageOf() })),
     user: USER,
     userMenu: [
@@ -297,9 +299,12 @@ shell.addEventListener('lintje-action', (event) => {
   const value = event.detail?.value ?? event.detail
   if (value === 'start') location.href = carry('../')
   if (value !== 'modus') return
-  // The mode is in the URL; the page loads again in the other one.
+  // The mode is in the URL; the page stays, and its links carry the new one.
   setParam('mode', root.dataset.mode === 'dark' ? 'light' : 'dark')
-  location.reload()
+  applySettings()
+  renderShell()
+  render()
+  if (pageOf() === 'instellingen') renderSettingsNav()
 })
 shell.addEventListener('lintje-logout', () => toast('Afmelden kan niet in dit voorbeeld.'))
 shell.addEventListener('lintje-notification-open', (event) => {
@@ -1001,6 +1006,7 @@ function openRecording(id) {
 window.addEventListener('popstate', () => {
   params = new URLSearchParams(location.search)
   openId = params.get('opname')
+  applySettings()
   renderShell()
   render()
 })
@@ -1762,16 +1768,21 @@ $('st-layout').options = [
   { value: 'ovc', label: 'OVC-indeling' },
 ]
 
-function renderSettings() {
+function renderSettingsNav() {
   const which = params.get('soort-instelling') ?? 'algemeen'
-  const isGeneral = !KINDS[which]
   $('settings-nav').groups = [
-    { label: 'Voor al je opnames', items: [{ label: 'Algemeen', href: hrefWith('soort-instelling', null), active: isGeneral }] },
+    { label: 'Voor al je opnames', items: [{ label: 'Algemeen', href: hrefWith('soort-instelling', null), active: !KINDS[which] }] },
     {
       label: 'Soorten gesprek',
       items: Object.entries(KINDS).map(([id, kind]) => ({ label: kind.label, href: hrefWith('soort-instelling', id), active: id === which })),
     },
   ]
+}
+
+function renderSettings() {
+  const which = params.get('soort-instelling') ?? 'algemeen'
+  const isGeneral = !KINDS[which]
+  renderSettingsNav()
   $('settings-nav').action = { label: 'Nieuw soort gesprek', value: 'nieuw' }
   $('settings-heading').html = isGeneral
     ? '<h2>Algemeen</h2><p>Geldt voor al je opnames, welk soort gesprek het ook is.</p>'

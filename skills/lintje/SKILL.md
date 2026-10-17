@@ -1,6 +1,6 @@
 ---
 name: lintje
-description: Lintje gebruiken in een eigen applicatie — een pagina, formulier, tabel of dashboard bouwen met `lintje-*`-tags, een tag kiezen, zijn data zetten of op zijn events reageren. Leest de tag-referentie uit `custom-elements.json`.
+description: Lintje gebruiken in een eigen applicatie — een pagina, formulier, tabel of dashboard bouwen met `lintje-*`-tags, een tag kiezen, zijn data zetten of op zijn events reageren, eigen CSS met de tokens schrijven en controleren. Leest de tag-referentie uit `custom-elements.json` en de tokens uit `tokens.json`.
 ---
 
 # Lintje in een eigen applicatie
@@ -11,7 +11,7 @@ responsieve gedrag zitten in de elementen.
 
 ## 1. Vind de build
 
-Zoek de map met `lintje.js` en `custom-elements.json` naast elkaar:
+Zoek de map met `lintje.js`, `custom-elements.json` en `tokens.json` naast elkaar:
 
 ```bash
 find . -name custom-elements.json -not -path '*/.git/*' | xargs -n1 dirname
@@ -58,8 +58,18 @@ niet heeft.
   is een echte `<a href>`; een applicatie met een router annuleert `lintje-navigate`.
 - **Bewaar wat de cijfers verandert in de URL** — filters, sortering, pagina, modus — en zet het
   terug als data.
-- **Stijl eigen inhoud met de tokens**: `var(--color-*)`, `var(--space-1)` … `var(--space-10)`,
-  `var(--text-*)`. Een element zelf krijgt geen eigen CSS; een variant is een attribuut.
+- **Stijl eigen inhoud met de tokens**: een semantisch token, nooit een literal kleur en nooit een
+  primitief (`--neutral-*`, `--data-*`, `--status-*`); ruimte uit `--space-1` … `--space-10`, een
+  hoogte uit `--h-*`. Zoek het token op, met een woord om te filteren:
+
+  ```bash
+  node <deze skill>/reference.mjs <naslag>/tokens.json
+  node <deze skill>/reference.mjs <naslag>/tokens.json bg
+  ```
+
+  Wat daar niet staat, noem je niet. De uitzondering is een eigen thema: dat zet alleen `--primary`
+  en `--accent` (`<naslag>/guides/theming.md`). Een element zelf krijgt geen eigen CSS; een
+  variant is een attribuut.
 - **Schrijf Nederlands**: elke tekst die een lezer ziet, en `lang="nl"` op `<html>`. Thema en modus
   zijn `data-theme` en `data-mode` op `<html>`.
 - **Toon ontbrekende cijfers als `null`**, nooit als `0`. Een grafiek krijgt zijn `description`,
@@ -72,10 +82,21 @@ geërfde leden van een element getypeerd.
 
 ## 4. Controleer
 
+Draai de controle op elk bestand met eigen CSS of HTML: stylesheets, pagina's, templates.
+
+```bash
+node <deze skill>/check.mjs <naslag>/tokens.json <bestand…>
+```
+
+Hij meldt per regel een literal kleur, een primitief, een token dat niet bestaat en ruimte buiten
+de 4 px-schaal, met wat erin hoort, en als hint een `<table>`, `<dialog>`, `<button>`, `<select>`
+of `<input>` waar een tag voor is. Los elke fout op of noem hem bij je oplevering, met de reden.
+
 De pagina is klaar als:
 
 - de typecheck slaagt en de console met `dev.js` stil is;
-- elk zichtbaar onderdeel een `lintje-*`-tag is of eigen inhoud die alleen tokens noemt;
+- `check.mjs` geen fout meldt, en elk zichtbaar onderdeel een `lintje-*`-tag is of eigen
+  inhoud die alleen tokens noemt;
 - hij werkt in licht en donker, en op 390, 768 en 1024 px breed;
 - een herladen of gedeelde URL dezelfde weergave toont.
 
