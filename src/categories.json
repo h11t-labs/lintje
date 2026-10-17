@@ -186,7 +186,7 @@
     "heading": "Gegevens",
     "label": "Tabellen en lijsten",
     "icon": "symbolen-en-abstract-opsomming",
-    "intro": "De tabel als overzicht en als werkblad, met het bladeren eronder, en gegevens die geen tabel zijn: een lijst, kaarten voor een verzameling, eigenschappen met hun waarde, een boom, een volgorde en een logboek.",
+    "intro": "De tabel als overzicht en als werkblad, met het bladeren eronder, en gegevens die geen tabel zijn: een lijst, kaarten voor een verzameling, eigenschappen met hun waarde, een boom, een volgorde, een logboek, een persoon en een rijtje personen.",
     "elements": [
       "data-table",
       "pagination",
@@ -196,7 +196,9 @@
       "description-list",
       "tree-view",
       "sortable-list",
-      "activity-log"
+      "activity-log",
+      "person",
+      "person-group"
     ],
     "composite": ["data-table", "list", "card-list", "activity-log"]
   },

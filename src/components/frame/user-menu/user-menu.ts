@@ -20,6 +20,7 @@ import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
+import { avatarStyles, renderAvatar } from '../../shared/avatar'
 import {
   nextRow,
   renderMenuEntries,
@@ -34,13 +35,14 @@ import userMenuCss from './user-menu.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { standsIn } from '../../../core/focus'
 import { titleWhenCut } from '../../shared/cut-text'
-import type { UserMenuUser } from '../../../types'
+import type { Person } from '../../../types'
 
 let instances = 0
 
 export class LintjeUserMenu extends LintjeElement {
   static override styles = [
     iconStyles,
+    avatarStyles,
     shadowCss(menuCss),
     shadowCss(menuButtonCss),
     shadowCss(userMenuCss),
@@ -58,7 +60,7 @@ export class LintjeUserMenu extends LintjeElement {
     open: { type: Boolean, reflect: true },
   }
 
-  declare user?: UserMenuUser | null
+  declare user?: Person | null
   items: MenuEntry[] = []
   /** Shown at the bottom: "Versie 2.4.1". */
   declare version?: string
@@ -301,11 +303,7 @@ export class LintjeUserMenu extends LintjeElement {
       ${
         user
           ? html`<div class="lintje-user-menu__who">
-            ${
-              this.inline
-                ? html`<span class="lintje-user-menu__avatar" aria-hidden="true">${user.initials}</span>`
-                : nothing
-            }
+            ${this.inline ? renderAvatar(user, { onNav: true }) : nothing}
             <div class="lintje-user-menu__names">
               <p class="lintje-user-menu__name">${user.name}</p>
               ${user.role ? html`<p class="lintje-user-menu__role">${user.role}</p>` : nothing}
@@ -332,7 +330,7 @@ export class LintjeUserMenu extends LintjeElement {
   }
 
   /** The name and role beside the avatar; the role is the button's description, not its name. */
-  private renderNames(user: UserMenuUser): TemplateResult {
+  private renderNames(user: Person): TemplateResult {
     return html`<span class="lintje-user-menu__trigger-names">
       <span class="lintje-user-menu__trigger-name">${user.name}</span>
       ${
@@ -354,7 +352,9 @@ export class LintjeUserMenu extends LintjeElement {
       ? 'Gebruikersmenu'
       : side
         ? nothing
-        : `${user.initials}, menu van ${user.name}`
+        : user.initials
+          ? `${user.initials}, menu van ${user.name}`
+          : `Menu van ${user.name}`
     // The menu opens away from the trigger: down from the bar, up from the foot.
     const chevronUp = side ? !this.open : this.open
     return html`<button
@@ -375,7 +375,7 @@ export class LintjeUserMenu extends LintjeElement {
         @keydown=${this.onTriggerKeydown}
         @pointerenter=${side ? this.onTriggerPointerEnter : nothing}
       >
-        <span class="lintje-user-menu__avatar" aria-hidden="true">${user?.initials ?? ''}</span>
+        ${renderAvatar(user ?? null, { onNav: true, size: side ? 'large' : 'medium' })}
         ${side && user ? this.renderNames(user) : nothing}
         ${renderIcon('functioneel-delta-omlaag', {
           size: 16,

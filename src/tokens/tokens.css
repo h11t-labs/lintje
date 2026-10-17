@@ -434,6 +434,15 @@
      the ink of a solid one and must still reach 3:1. */
   --color-border-suggestion: var(--neutral-5);
 
+  /* --- Semantic: avatar -------------------------------------------------- */
+  /* A person's circle: one neutral fill for everyone; a person is no variable. */
+  --color-avatar-bg: var(--neutral-3);
+  /* The initials and the icon on that fill: 14.5:1 in light, 8.9:1 in dark. */
+  --color-avatar-text: var(--color-text-primary);
+  /* The DASHED edge of the circle where nobody stands yet: neutral-5, as a dashed line has half the
+     ink of a solid one and must still reach 3:1. */
+  --color-avatar-empty-line: var(--neutral-5);
+
   /* --- Semantic: action -------------------------------------------------- */
   --color-action-primary: var(--primary);
   --color-action-primary-hover: var(--primary-hover);

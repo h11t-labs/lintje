@@ -44,6 +44,7 @@ import '../../feedback/empty-state/empty-state'
 import '../description-list/description-list'
 import '../../actions/menu-button/menu-button'
 import '../pagination/pagination'
+import { NO_PERSON } from '../person/person'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../feedback/status-dot/status-dot'
 import '../../feedback/skeleton/skeleton'
@@ -127,6 +128,12 @@ function isNumeric(column: TableColumnData, rows: Row[]): boolean {
 }
 
 function formatText(column: TableColumnData, value: CellValue): string | null {
+  // Not assigned is a value with its word, not a missing figure.
+  if (column.format === 'person') {
+    return value == null
+      ? (column.empty ?? NO_PERSON)
+      : (column.people?.[String(value)]?.name ?? String(value))
+  }
   if (value == null) return null
   if (column.format === 'label') return column.labels?.[String(value)]?.label ?? String(value)
   let text: string
@@ -220,6 +227,23 @@ function fieldColumn(field: TableDetailField): TableColumnData {
     decimals: field.decimals,
     unit: field.unit,
   }
+}
+
+/**
+ * A `person` cell: `lintje-person` at 24 px, never a link, since the row's name opens. An id
+ * without an entry in `people` stands as plain text.
+ */
+function personCell(column: TableColumnData, value: CellValue): unknown {
+  if (value == null) {
+    return html`<lintje-person
+      size="small"
+      .person=${null}
+      empty=${column.empty ?? NO_PERSON}
+    ></lintje-person>`
+  }
+  const person = column.people?.[String(value)]
+  if (!person) return String(value)
+  return html`<lintje-person size="small" .person=${{ ...person, href: undefined }}></lintje-person>`
 }
 
 const missing = html`<span aria-hidden="true" class="lintje-data-table__muted">—</span
@@ -626,8 +650,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
   /** Missing sorts lowest. */
   private sortValue(column: TableColumnData, row: Row): number | string {
     const value = row[column.key]
-    // A label sorts by the word a reader sees, not by the host's code.
-    if (column.format === 'label' && value != null) return formatText(column, value) ?? ''
+    // A label and a person sort by the word a reader sees, not by the host's code; nobody lowest.
+    if ((column.format === 'label' || column.format === 'person') && value != null)
+      return formatText(column, value) ?? ''
     // A date column holds `dd-mm-jjjj`, which sorts by day as text; its ISO form sorts by date.
     if (column.editor?.kind === 'date') {
       const parsed = parseDate(String(value ?? ''))
@@ -924,9 +949,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
   private csv(): void {
     const data = this.data
     if (!data?.download) return
-    // A label is the word a reader sees; a total is its value, with its own label first.
+    // A label and a person are the word a reader sees; a total is its value, with its own label first.
     const value = (column: TableColumnData, cell: CellValue): CellValue =>
-      column.format === 'label' && cell != null ? formatText(column, cell) : cell
+      (column.format === 'label' && cell != null) || column.format === 'person'
+        ? formatText(column, cell)
+        : cell
     const totals = data.totals
     downloadCsv(data.download.filename, [
       data.columns.map((column) => column.header),
@@ -1610,14 +1637,23 @@ export class LintjeDataTable extends LintjeContentTileElement {
   private detailList(row: Row, columns: TableColumnData[], layout: 'row' | 'grid'): TemplateResult {
     // As many cells to a line as fill the lines evenly: a gap at the end reads as a missing value.
     const lines = Math.ceil(columns.length / 4)
+    // A person keeps the circle here: it stands in the item's slot.
+    const slot = (column: TableColumnData): string => `person-${column.key}`
     return html`<lintje-description-list
       layout=${layout}
       .columns=${Math.ceil(columns.length / lines)}
-      .items=${columns.map((column): DescriptionItem => ({
-        label: column.header,
-        value: cellText(column, row[column.key]),
-      }))}
-    ></lintje-description-list>`
+      .items=${columns.map((column): DescriptionItem =>
+        column.format === 'person'
+          ? { label: column.header, slot: slot(column) }
+          : { label: column.header, value: cellText(column, row[column.key]) },
+      )}
+      >${columns
+        .filter((column) => column.format === 'person')
+        .map(
+          (column) =>
+            html`<span slot=${slot(column)}>${personCell(column, row[column.key])}</span>`,
+        )}</lintje-description-list
+    >`
   }
 
   /**
@@ -2194,6 +2230,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   private cell(column: TableColumnData, value: CellValue, row?: Row): unknown {
+    if (column.format === 'person') return personCell(column, value)
     if (value === 0 && column.zeroText != null) {
       return html`<span class="lintje-data-table__muted">${column.zeroText}</span>`
     }

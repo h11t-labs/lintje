@@ -41,7 +41,7 @@ const DATA: ShellData = {
       links: [{ label: 'Overzicht', icon: 'functioneel-home', href: '/', active: true }],
     },
   ],
-  user: { initials: 'HP', name: 'H. van Pelt', role: 'Analist' },
+  user: { initials: 'MV', name: 'M. Visser', role: 'Analist' },
   pageName: 'Overzicht',
   view: VIEW,
   share: true,
@@ -307,7 +307,7 @@ describe('the mobile menu panel', () => {
 
     const user = root(shell).querySelector<LintjeUserMenu>('.lintje-shell__sheet-user')!
     expect(user.inline).toBe(true)
-    expect(user.user?.initials).toBe('HP')
+    expect(user.user?.initials).toBe('MV')
     expect(user.getAttribute('version')).toBe('1.2.3')
   })
 
@@ -610,7 +610,7 @@ describe('the top layout', () => {
       Node.DOCUMENT_POSITION_FOLLOWING,
     )
     expect(menu.inline).toBe(false)
-    expect(menu.user?.initials).toBe('HP')
+    expect(menu.user?.initials).toBe('MV')
     expect(menu.getAttribute('version')).toBe('2.4.1')
     expect(menu.getAttribute('logout-action')).toBe('/auth/logout')
 
@@ -1451,7 +1451,7 @@ describe('the foot of the side menu', () => {
     expect(button.hasAttribute('aria-label')).toBe(false)
     expect(button.getAttribute('aria-haspopup')).toBe('menu')
     expect(button.getAttribute('aria-expanded')).toBe('false')
-    expect(button.querySelector('.lintje-user-menu__trigger-name')!.textContent).toBe('H. van Pelt')
+    expect(button.querySelector('.lintje-user-menu__trigger-name')!.textContent).toBe('M. Visser')
     const role = foot(shell).shadowRoot!.getElementById(button.getAttribute('aria-describedby')!)!
     expect(role.textContent).toBe('Analist')
   })
@@ -1614,6 +1614,68 @@ describe('the bars that stay at the top', () => {
     const shell = await mount({ layout: 'top' })
     const name = root(shell).querySelector('h1.lintje-shell__name')!
     expect(name.getAttribute('title')).toBe('Dashboard Vergunningen')
+  })
+})
+
+/** The user stands in four places; each draws the circle of `renderAvatar()` on the menu's colours. */
+describe('the user’s circle in the shell', () => {
+  // A data URI: happy-dom would fetch a path from a server that is not there.
+  const PHOTO = 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
+  const circle = (scope: ParentNode | null | undefined): HTMLElement | null =>
+    scope?.querySelector<HTMLElement>('.lintje-avatar') ?? null
+  const sized = (avatar: HTMLElement | null, size: 'medium' | 'large'): boolean =>
+    Boolean(
+      avatar?.classList.contains(`lintje-avatar--${size}`) &&
+      avatar.classList.contains('lintje-avatar--nav'),
+    )
+
+  const foot = async (shell: LintjeShell): Promise<LintjeUserMenu> => {
+    const menu = root(shell).querySelector<LintjeUserMenu>('.lintje-nav__footer lintje-user-menu')!
+    await menu.updateComplete
+    return menu
+  }
+
+  it('draws 2.5rem in the foot of the side menu; folded in the rail, name and role stay unseen', async () => {
+    const shell = await mount({
+      logout: { href: '/auth/logout', token: 't' },
+      user: { initials: 'MV', name: 'M. Visser', role: 'Analist', href: '/profiel' },
+    })
+    const nav = root(shell).querySelector<HTMLElement>('.lintje-nav')!
+    const menu = await foot(shell)
+    const button = menu.shadowRoot!.querySelector('.lintje-user-menu__trigger')!
+    expect(sized(circle(button), 'large')).toBe(true)
+    expect(circle(button)!.textContent!.trim()).toBe('MV')
+    // In the folded rail name and role are in the DOM, hidden by the rail.
+    expect(nav.classList.contains('lintje-nav--rail')).toBe(true)
+    expect(nav.classList.contains('is-expanded')).toBe(false)
+    expect(menu.folded).toBe(true)
+    expect(button.querySelector('.lintje-user-menu__trigger-names')!.textContent).toContain(
+      'M. Visser',
+    )
+    // `href` draws no link: a profile page is a row of `userMenu`.
+    expect(button.querySelector('a')).toBeNull()
+  })
+
+  it('shows the photo in the foot, in the same size', async () => {
+    const shell = await mount({ user: { name: 'M. Visser', role: 'Analist', photo: PHOTO } })
+    const avatar = circle((await foot(shell)).shadowRoot)
+    expect(sized(avatar, 'large')).toBe(true)
+    expect(avatar!.querySelector('img')!.getAttribute('src')).toBe(PHOTO)
+  })
+
+  it('draws 2rem in the button of the top bar and inline in the phone’s menu', async () => {
+    const shell = await mount({ layout: 'top' })
+    const bar = root(shell).querySelector<LintjeUserMenu>('.lintje-navbar__end lintje-user-menu')!
+    await bar.updateComplete
+    expect(sized(circle(bar.shadowRoot), 'medium')).toBe(true)
+
+    const side = await mount()
+    await open(side)
+    const sheet = [...root(side).querySelectorAll('lintje-user-menu')].find((menu) => menu.inline)!
+    await sheet.updateComplete
+    const who = sheet.shadowRoot!.querySelector('.lintje-user-menu__who')
+    expect(sized(circle(who), 'medium')).toBe(true)
+    expect(circle(who)!.textContent!.trim()).toBe('MV')
   })
 })
 

@@ -156,6 +156,39 @@ describe('lintje-user-menu', () => {
   })
 })
 
+describe('the circle of lintje-user-menu', () => {
+  it('names the button by the initials it shows, or by the user without them', async () => {
+    const element = await mount()
+    expect(trigger(element).getAttribute('aria-label')).toBe('JV, menu van J. de Vries')
+    element.user = { name: 'J. de Vries', photo: 'data:image/gif;base64,R0lGODlhAQABAAAAACw=' }
+    await element.updateComplete
+    expect(trigger(element).getAttribute('aria-label')).toBe('Menu van J. de Vries')
+    expect(trigger(element).querySelector('.lintje-avatar img')).not.toBeNull()
+    element.user = { name: 'J. de Vries' }
+    await element.updateComplete
+    expect(trigger(element).getAttribute('aria-label')).toBe('Menu van J. de Vries')
+    expect(trigger(element).querySelector('.lintje-avatar svg')).not.toBeNull()
+  })
+
+  it('draws the 2rem circle of renderAvatar() on the menu, in the button and inline', async () => {
+    const button = trigger(await mount())
+    const avatar = button.querySelector('.lintje-avatar')!
+    expect(avatar.classList.contains('lintje-avatar--medium')).toBe(true)
+    expect(avatar.classList.contains('lintje-avatar--nav')).toBe(true)
+    const inline = await mount({ inline: true })
+    const who = inline.shadowRoot!.querySelector('.lintje-user-menu__who')!
+    expect(who.querySelector('.lintje-avatar--medium.lintje-avatar--nav')).not.toBeNull()
+  })
+
+  it('draws no link for a user with `href`', async () => {
+    const element = await mount({
+      inline: true,
+      user: { name: 'J. de Vries', initials: 'JV', href: '/profiel' },
+    })
+    expect(element.shadowRoot!.querySelector('.lintje-user-menu__who a')).toBeNull()
+  })
+})
+
 describe('lintje-user-menu variant="side"', () => {
   it('shows the name and role beside the avatar and opens the menu above it', async () => {
     const element = await mount({ variant: 'side' })
@@ -180,6 +213,12 @@ describe('lintje-user-menu variant="side"', () => {
     trigger(element).click()
     await element.updateComplete
     expect(said).toEqual([true, false])
+  })
+
+  it('draws the 2.5rem circle of renderAvatar() on the menu', async () => {
+    const avatar = trigger(await mount({ variant: 'side' })).querySelector('.lintje-avatar')!
+    expect(avatar.classList.contains('lintje-avatar--large')).toBe(true)
+    expect(avatar.classList.contains('lintje-avatar--nav')).toBe(true)
   })
 
   it('folds to the avatar in the folded rail', async () => {

@@ -195,6 +195,7 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
 - **De sprekers van een opname zijn categorisch**: ze nemen hemelblauw, donkergeel, roze,
   mintgroen, violet en groen in volgorde van eerste optreden, daarna het grijs van "overig".
   Oranje valt af: dat is de focusring. Een spreker wordt altijd naast de kleur genoemd.
+  Het rondje van een spreker deelt zijn kleur met de golfvorm en het transcript.
 
 ### Status en destructieve actie
 
@@ -624,6 +625,13 @@ De besluiten hieronder gelden voor alle elementen.
   andere kolommen op verzoek onder de rij (zie [Toegankelijkheid](#toegankelijkheid)). Geen
   rijkaarten, geen zijwaarts scrollen.
 
+### Personen
+
+- **Een persoon is neutraal.** Het rondje heeft één vulling voor iedereen; alleen waar de
+  personen zelf de variabele zijn — de sprekers van een opname — neemt het hun datakleur. De naam
+  staat er altijd naast. Een tekst als "Systeem" is geen persoon en krijgt geen rondje. Een
+  persoon in een tabel, rij of kaart die zelf opent, is geen link.
+
 ### Afbeeldingen en kaarten
 
 - **Een schermafbeelding wordt heel getoond, nooit bijgesneden**; alleen een miniatuur in een
@@ -1019,6 +1027,9 @@ kleinste correctie, en leg die hier vast.
   eigen woorden; een tooltip mag zeggen wat het doet ("Naar de startpagina"). Een knop die zijn
   woord wisselt ("Menu", "Sluiten"), heeft geen `aria-expanded`; een knop met een vast woord
   ("Filters") wel.
+- **Een knop die initialen toont, begint zijn naam met wat te zien is** (2.5.3): het
+  gebruikersmenu in de balk heet "JV, menu van J. de Vries", het rijtje personen "AB SY MJ +3,
+  Meelezers: A. Bakker, …". Zonder initialen is het alleen de naam.
 - **Een paneel met gereedschap is een disclosure, geen menu** ("Weergave", "Delen"):
   `aria-expanded` zonder `aria-haspopup`, Tab loopt erdoorheen en sluit het bij het verlaten, en
   Escape of een afgerond item geeft de focus terug aan zijn knop.

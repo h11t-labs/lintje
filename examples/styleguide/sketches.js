@@ -146,6 +146,8 @@ export const SKETCHES = {
   'tree-view': { rows: 'chevd l30 / ind chevd l35 / ind ind ind l30 / # ind ind ind t30 / ind ind ind l30 / ind chev l25' },
   'sortable-list': { rows: '[grip l30] / [grip l40] / [grip l25]' },
   'activity-log': { rows: 't30 / log' },
+  person: { center: true, rows: 'av t40' },
+  'person-group': { center: true, rows: 'av av av av' },
   // Chat
   chat: { frame: 'page', rows: 'sp s10 i bubble50 / l60 / tbl' },
   'chat-message': { rows: 'sp s10 i bubble60' },

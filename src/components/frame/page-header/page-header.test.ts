@@ -45,7 +45,7 @@ async function mountPage(): Promise<HTMLElement> {
     name: 'Dashboard Vergunningen',
     layout: 'side',
     navigation: [],
-    user: { initials: 'HP', name: 'H. van Pelt', role: 'Analist' },
+    user: { initials: 'MV', name: 'M. Visser', role: 'Analist' },
     pageName: 'Overzicht',
   }
   const header = document.createElement('lintje-page-header') as LintjePageHeader

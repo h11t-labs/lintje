@@ -128,6 +128,7 @@ const COMPONENT_ICONS = [
   'gereedschap-half-tandwiel-half-brein', // AI label: made by a model
   'symbolen-en-abstract-opsomming', // the text editor's toolbar
   'functioneel-link', // the text editor's toolbar
+  'functioneel-user', // avatar: a person without initials or photo
 ]
 
 assemble()

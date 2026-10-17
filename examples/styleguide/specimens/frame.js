@@ -6,6 +6,9 @@ const BAR = 'display: inline-flex; align-items: center; height: 48px; padding: 0
 
 const USER = { name: 'J. de Vries', role: 'Teamleider · Dienst Vergunningen', initials: 'JV' }
 
+/** The same user with a photo: the gallery's grey stand-in, never a face. */
+const USER_PHOTO = { ...USER, photo: 'media/afbeelding.svg' }
+
 const USER_MENU = [
   { value: 'weergave', label: 'Weergave' },
   { value: 'sneltoetsen', label: 'Sneltoetsen', hint: '?' },
@@ -392,6 +395,36 @@ export default {
             shell.data = { name: 'Registratie en afhandeling van meldingen in de openbare ruimte', navigation: NAVIGATION }
           },
         },
+        ...[
+          { label: 'Voet van het vaste zijmenu', menu: 'pinned', user: USER },
+          { label: 'Voet van het zijmenu met een foto', menu: 'pinned', user: USER_PHOTO },
+          { label: 'Voet in de rail', menu: 'unpinned', user: USER },
+          { label: 'Voet in de rail met een foto', menu: 'unpinned', user: USER_PHOTO },
+        ].map(({ label, menu, user }) => ({
+          label,
+          note:
+            menu === 'pinned'
+              ? 'Vanaf 1440 px: het rondje zo hoog als naam en functie samen. Smaller is het de rail.'
+              : 'Alleen het rondje, midden in de rail. Wijs de rail aan: hij klapt uit en naam en ' +
+                'functie vervagen in.',
+          html: `<lintje-shell>
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>De gebruiker staat onderaan het menu.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.data = {
+              name: 'Transcriptie',
+              layout: 'side',
+              menu,
+              emblem: emblem(),
+              navigation: NAVIGATION,
+              user,
+              logout: { href: '#el-shell', token: 'demo-token' },
+            }
+            stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+          },
+        })),
       ],
     },
 {
@@ -620,6 +653,26 @@ export default {
           },
         },
         {
+          label: 'Open',
+          note: 'Open neemt de knop de hovervulling en draait de chevron.',
+          html: `<span style="${BAR}"><lintje-user-menu version="2.4.1" open></lintje-user-menu></span>`,
+          setup(stage) {
+            const menu = stage.querySelector('lintje-user-menu')
+            menu.user = USER
+            menu.items = USER_MENU
+          },
+        },
+        {
+          label: 'Met een foto',
+          note: 'De foto staat in hetzelfde rondje; zonder initialen heet de knop "Menu van …".',
+          html: `<span style="${BAR}"><lintje-user-menu version="2.4.1"></lintje-user-menu></span>`,
+          setup(stage) {
+            const menu = stage.querySelector('lintje-user-menu')
+            menu.user = { ...USER_PHOTO, initials: undefined }
+            menu.items = USER_MENU
+          },
+        },
+        {
           label: 'Een lange keuze',
           note: 'Onder de focus van het toetsenbord en op een telefoon loopt een lange keuze door.',
           html: `<span style="${BAR}"><lintje-user-menu version="2.4.1"></lintje-user-menu></span>`,
@@ -653,6 +706,15 @@ export default {
           setup(stage) {
             const menu = stage.querySelector('lintje-user-menu')
             menu.user = USER
+            menu.items = USER_MENU
+          },
+        },
+        {
+          label: 'Op een telefoon met een foto',
+          html: `<div style="background: var(--color-nav-bg); max-width: 360px"><lintje-user-menu inline version="2.4.1"></lintje-user-menu></div>`,
+          setup(stage) {
+            const menu = stage.querySelector('lintje-user-menu')
+            menu.user = USER_PHOTO
             menu.items = USER_MENU
           },
         },

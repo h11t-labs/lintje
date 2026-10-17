@@ -96,7 +96,7 @@ Een *toestand* is iets wat je bewaart en terugzet op het element (en in de URL m
 | `lintje-time-change`, `lintje-play`, `lintje-pause` | `lintje-audio-player`, `lintje-video-player` | toestand |
 | `lintje-seek` | `lintje-audio-player`, `lintje-video-player`, `lintje-transcript` | actie |
 | `lintje-node-toggle` | `lintje-tree-view` | actie |
-| `lintje-toggle` | `lintje-expander`, `lintje-toggletip`, `lintje-user-menu` | actie (niets te beantwoorden) |
+| `lintje-toggle` | `lintje-expander`, `lintje-toggletip`, `lintje-user-menu`, `lintje-person-group` | actie (niets te beantwoorden) |
 | `lintje-copy`, `lintje-copy-error` | `lintje-copy-button`, `lintje-qr-code` | actie (niets te beantwoorden) |
 | `lintje-job-cancel`, `lintje-job-resume`, `lintje-job-retry`, `lintje-job-remove` | `lintje-job-list` | actie |
 | `lintje-jobs-empty` | `lintje-job-list`: de laatste taak ging met de focus erin; annuleer het en zet de focus zelf op een zichtbaar doel | actie |
