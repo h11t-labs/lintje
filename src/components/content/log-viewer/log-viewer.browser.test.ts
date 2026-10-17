@@ -5,6 +5,7 @@
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
+import { SHIFT_TAB, TAB } from '../../../core/test-keys'
 import './log-viewer'
 import type { LintjeLogViewer } from './log-viewer'
 import type { LintjeFind } from '../../inputs/find/find'
@@ -208,20 +209,20 @@ describe('lintje-log-viewer in its modal', () => {
     expect(last.closest('[role="grid"]')?.getAttribute('aria-label')).toBe('Importlog')
 
     // From the dialog, Tab comes to the newest line, the one tab stop of the rows.
-    for (let n = 0; n < 8 && focused(element) !== last; n++) await userEvent.keyboard('{Tab}')
+    for (let n = 0; n < 8 && focused(element) !== last; n++) await userEvent.keyboard(TAB)
     expect(focused(element)).toBe(last)
-    await userEvent.keyboard('{Tab}')
+    await userEvent.keyboard(TAB)
     const open = last.querySelector<HTMLElement>('.lintje-log-viewer__open')!
     expect(focused(element)).toBe(open)
-    await userEvent.keyboard('{Tab}')
+    await userEvent.keyboard(TAB)
     expect(focused(element)).toBe(last.querySelector('.lintje-log-viewer__more'))
 
-    await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+    await userEvent.keyboard(SHIFT_TAB)
     expect(focused(element)).toBe(open)
     await userEvent.keyboard('{Enter}')
     await expect.poll(() => last.querySelector('lintje-code')).not.toBeNull()
 
-    await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+    await userEvent.keyboard(SHIFT_TAB)
     expect(focused(element)).toBe(last)
     await userEvent.keyboard('{ArrowUp}')
     await expect.poll(() => focused(element)).toBe(modalRows(element).at(-2))
@@ -235,7 +236,7 @@ describe('lintje-log-viewer in its modal', () => {
       element.data = { ...element.data!, selected: (event as CustomEvent<string | null>).detail }
     })
     const last = modalRows(element).at(-1)!
-    for (let n = 0; n < 8 && focused(element) !== last; n++) await userEvent.keyboard('{Tab}')
+    for (let n = 0; n < 8 && focused(element) !== last; n++) await userEvent.keyboard(TAB)
     await userEvent.keyboard('{Enter}')
     await expect.poll(() => last.getAttribute('aria-selected')).toBe('true')
     const region = part(element, 'lintje-modal [role="status"]')!

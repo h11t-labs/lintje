@@ -186,9 +186,15 @@ describe('a chosen heatmap cell', () => {
     await expect.poll(() => cell().getClientRects().length).toBeGreaterThan(0)
     await userEvent.click(cell())
     await expect.poll(() => cell().classList.contains('is-selected')).toBe(true)
-    cell().blur()
-    await userEvent.keyboard('{Shift}')
-    cell().focus()
+    // A scripted focus gets no ring in WebKit and Firefox: Tab comes to the cell, from before it.
+    const before = document.createElement('button')
+    before.textContent = 'Ervoor'
+    document.body.prepend(before)
+    before.focus()
+    for (let i = 0; i < 12 && tile.shadowRoot!.activeElement !== cell(); i++) {
+      await userEvent.keyboard(TAB)
+    }
+    expect(tile.shadowRoot!.activeElement).toBe(cell())
     expect(cell().matches(':focus-visible')).toBe(true)
     const probe = document.createElement('span')
     probe.style.color = 'var(--color-focus)'
