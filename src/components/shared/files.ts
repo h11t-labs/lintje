@@ -29,6 +29,7 @@ export interface UploadFile {
   retry?: boolean
 }
 
+// Not `formatNumber`: one decimal without a trailing ",0" ("2 MB", "1,5 MB").
 const DECIMAL = new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 })
 
 export function formatSize(bytes: number): string {

@@ -26,6 +26,7 @@ import '../../feedback/spinner/spinner'
 import { LintjeInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
 import { Debounce } from '../../shared/debounce'
+import { resultsText, splitMatch } from '../../shared/search-text'
 import type { FilterOption } from '../../../types'
 import comboboxCss from './combobox.css?inline'
 
@@ -33,17 +34,6 @@ export function filterOptions(options: FilterOption[], query: string): FilterOpt
   const needle = query.trim().toLowerCase()
   if (!needle) return options
   return options.filter((option) => option.label.toLowerCase().includes(needle))
-}
-
-export function splitMatch(label: string, query: string): [string, string, string] {
-  const needle = query.trim().toLowerCase()
-  const at = needle ? label.toLowerCase().indexOf(needle) : -1
-  if (at < 0) return [label, '', '']
-  return [label.slice(0, at), label.slice(at, at + needle.length), label.slice(at + needle.length)]
-}
-
-export function resultsText(count: number): string {
-  return count === 1 ? '1 resultaat' : `${count} resultaten`
 }
 
 const LIST_ID = 'lintje-combobox-list'
@@ -193,7 +183,7 @@ export class LintjeCombobox extends LintjeInputElement {
   }
 
   private renderOption(option: FilterOption, index: number): TemplateResult {
-    const [before, match, after] = splitMatch(option.label, this.text ?? '')
+    const parts = splitMatch(option.label, this.text ?? '')
     const chosen = option.value === this.value
     return html`<li
       id=${optionId(index)}
@@ -206,7 +196,7 @@ export class LintjeCombobox extends LintjeInputElement {
       aria-selected=${chosen ? 'true' : 'false'}
       @click=${() => this.choose(option)}
     >
-      ${before}${match ? html`<strong class="lintje-combobox__match">${match}</strong>` : nothing}${after}
+      ${parts ? html`${parts[0]}<strong class="lintje-combobox__match">${parts[1]}</strong>${parts[2]}` : option.label}
     </li>`
   }
 

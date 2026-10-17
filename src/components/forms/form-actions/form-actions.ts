@@ -86,8 +86,11 @@ export class LintjeFormActions extends LintjeElement {
   }
 
   /**
-   * Set by the surrounding `lintje-form` (with `saved-at`); standing alone, the host sets it. On
-   * `busy` the primary button turns `busy` and the others `disabled`; after, each has what it had.
+   * What the status line shows: `''` nothing; `dirty` "Wijzigingen nog niet opgeslagen"; `busy`
+   * "Bezig met opslaan", with the primary button `busy` and the others `disabled` (after, each
+   * has what it had); `saved` "Opgeslagen om 10:42", the time from `saved-at`; `draft` "Concept
+   * opgeslagen om 10:42", when `lintje-form` kept a draft in the browser (`saveDraft()`, Ctrl+S).
+   * Set by the surrounding `lintje-form`, with `saved-at`; standing alone, the host sets it.
    */
   state: FormActionsState = ''
   /** When it was saved: "10:42" or anything `Date` parses. */

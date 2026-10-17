@@ -36,8 +36,7 @@ import { isPlainClick } from '../../../core/links'
 import { standsIn } from '../../../core/focus'
 import { titleWhenCut } from '../../shared/cut-text'
 import type { Person } from '../../../types'
-
-let instances = 0
+import { uniqueId } from '../../../core/id'
 
 export class LintjeUserMenu extends LintjeElement {
   static override styles = [
@@ -82,8 +81,8 @@ export class LintjeUserMenu extends LintjeElement {
   folded: boolean = false
   open: boolean = false
 
-  readonly #menuId = `lintje-user-menu-${++instances}`
-  readonly #roleId = `lintje-user-menu-role-${instances}`
+  readonly #menuId = uniqueId('lintje-user-menu')
+  readonly #roleId = uniqueId('lintje-user-menu-role')
   #pendingFocus: 'first' | 'last' | null = null
 
   private get trigger(): HTMLButtonElement | null {
