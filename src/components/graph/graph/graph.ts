@@ -263,7 +263,7 @@ export class LintjeGraph extends LintjeContentTileElement {
   #motion: Motion | null = null
   #frame = 0
   #leaving = new Map<string, Leaving>()
-  #leaveTimer: ReturnType<typeof setTimeout> | undefined
+  #fadeTimer: ReturnType<typeof setTimeout> | undefined
   /** The nodes and sizes of the last layout, for what leaves it. */
   #nodesSeen = new Map<string, DrawnNode>()
   #sizesSeen = new Map<string, { width: number; height: number }>()
@@ -276,6 +276,16 @@ export class LintjeGraph extends LintjeContentTileElement {
     return this.data ?? undefined
   }
 
+  override connectedCallback(): void {
+    super.connectedCallback()
+    window.addEventListener('scroll', this.#onScroll, { capture: true, passive: true })
+  }
+
+  /** The tooltip stands on the viewport, so it is placed again when the page scrolls. */
+  readonly #onScroll = (): void => {
+    if (this.surfaces().some((surface) => surface.tip)) this.placeTips()
+  }
+
   override disconnectedCallback(): void {
     window.removeEventListener('scroll', this.#onScroll, { capture: true })
     this.#tile.detach()
@@ -283,7 +293,7 @@ export class LintjeGraph extends LintjeContentTileElement {
     this.#runner.destroy()
     cancelAnimationFrame(this.#frame)
     this.#frame = 0
-    clearTimeout(this.#leaveTimer)
+    clearTimeout(this.#fadeTimer)
     super.disconnectedCallback()
   }
 
@@ -526,8 +536,8 @@ export class LintjeGraph extends LintjeContentTileElement {
         const size = this.#sizesSeen.get(id)
         if (node && size) this.#leaving.set(id, { node, at, size })
       }
-      clearTimeout(this.#leaveTimer)
-      this.#leaveTimer = setTimeout(() => {
+      clearTimeout(this.#fadeTimer)
+      this.#fadeTimer = setTimeout(() => {
         this.#leaving.clear()
         this.requestUpdate()
       }, duration)
@@ -1552,16 +1562,6 @@ export class LintjeGraph extends LintjeContentTileElement {
       shown(model.centre)
     // After the update, so the focus that follows is a change of its own.
     if (target) queueMicrotask(() => target.focus())
-  }
-
-  override connectedCallback(): void {
-    super.connectedCallback()
-    window.addEventListener('scroll', this.#onScroll, { capture: true, passive: true })
-  }
-
-  /** The tooltip stands on the viewport, so it is placed again when the page scrolls. */
-  readonly #onScroll = (): void => {
-    if (this.surfaces().some((surface) => surface.tip)) this.placeTips()
   }
 
   /** Each tooltip 12 px under its node or the pointer, above it when the room is too small. */
