@@ -408,6 +408,9 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
   kapt nooit af.
 - `reduced-motion.browser.test.ts` — verminderde beweging, waarmee elke browsertest draait: een
   vak dat openklapt, laat zijn inhoud los zodra zijn hoogte staat.
+- `forced-colors.browser.test.ts` — geforceerde kleuren (`forced-colors: active` geëmuleerd): wat
+  een vulling droeg, staat er opnieuw in systeemkleuren, zoals de rand in `Highlight` van een knop
+  die aan staat.
 
 Een nieuw element dat een mechanisme gebruikt, krijgt een rij in diens tabel, geen eigen bestand.
 Een component krijgt alleen een eigen `*.browser.test.ts` voor een mechanisme dat het zelf heeft:

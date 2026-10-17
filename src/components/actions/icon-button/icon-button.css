@@ -90,9 +90,9 @@
 .lintje-icon-button.is-disabled { cursor: not-allowed; color: var(--color-text-disabled); }
 .lintje-icon-button--outlined.is-disabled { background: var(--color-bg-surface); border-color: var(--color-border-default); }
 
-/* Forced colours: the active fill is dropped, so its border turns Highlight. */
+/* Forced colours: the active fill is dropped, so its border is drawn in Highlight. */
 @media (forced-colors: active) {
   .lintje-icon-button.is-active,
-  .lintje-icon-button.is-live { border-color: Highlight; }
+  .lintje-icon-button.is-live { border: 1px solid Highlight; }
   .lintje-icon-button.is-disabled { color: GrayText; border-color: GrayText; }
 }

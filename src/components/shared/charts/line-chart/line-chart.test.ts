@@ -85,7 +85,7 @@ describe('the line chart', () => {
     expect(host.querySelector('.lintje-legend__marker--symbol')).toBeNull()
   })
 
-  it('edges a dark-yellow line in its text colour, and no other', () => {
+  it('edges a dark-yellow line in its dark edge, and no other', () => {
     const { host } = draw({
       kind: 'line',
       labels: ['1', '2'],
@@ -96,7 +96,7 @@ describe('the line chart', () => {
     })
     const casings = [...host.querySelectorAll('.lintje-chart__line--casing')]
     expect(casings.map((casing) => casing.getAttribute('stroke'))).toEqual([
-      'var(--color-chart-dark-yellow-text)',
+      'var(--color-chart-dark-yellow-edge)',
     ])
   })
 
@@ -431,7 +431,7 @@ describe('a forecast on the line chart', () => {
   it('keeps the dark-yellow edge under the dots', () => {
     const { host } = draw(two)
     const casing = host.querySelector('.lintje-chart__line--casing.lintje-chart__line--forecast')
-    expect(casing?.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-text)')
+    expect(casing?.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-edge)')
   })
 
   it('draws an open hover point in the forecast and a full one on measured points', () => {

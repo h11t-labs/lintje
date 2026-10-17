@@ -37,7 +37,7 @@
   border-color: var(--color-accent-line);
 }
 .lintje-file-upload.is-over { background: var(--color-bg-selected); }
-.lintje-file-upload.is-error { border-style: solid; border-color: var(--color-error); }
+.lintje-file-upload.is-error { border-style: solid; border-color: var(--color-error-line); }
 .lintje-file-upload.is-disabled {
   background: var(--color-bg-subtle);
   color: var(--color-text-disabled);

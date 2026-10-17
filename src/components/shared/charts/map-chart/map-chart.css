@@ -140,7 +140,6 @@
 }
 
 .lintje-map-chart__flow {
-  opacity: .75;
   cursor: pointer;
   transition: opacity var(--dur-hover) var(--ease-in-motion);
 }
@@ -154,8 +153,6 @@
 .lintje-map-chart__flow-line { stroke: var(--color-chart-default); stroke-width: var(--lintje-flow-width); }
 .lintje-map-chart__flow-ring,
 .lintje-map-chart__flow-gap { stroke: none; pointer-events: none; }
-.lintje-map-chart__flow:hover,
-.lintje-map-chart__flow.is-selected { opacity: 1; }
 /* Something is chosen, a mark or an area: the flows not chosen step back, further than a point. */
 .lintje-map-chart__data.has-selection .lintje-map-chart__flow:not(.is-selected):not(:focus-visible) { opacity: .22; }
 /* On focus a flow keeps its own colour and width, at full strength also beside the chosen one,
@@ -564,7 +561,8 @@
   :is(.lintje-map-chart__point:focus-visible, .lintje-map-chart__focus .lintje-map-chart__point) .lintje-map-chart__point-shape,
   :is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon) .lintje-map-chart__polygon-shape,
   :is(.lintje-map-chart__flow:focus-visible, .lintje-map-chart__focus .lintje-map-chart__flow) .lintje-map-chart__flow-gap { stroke: Canvas; }
-  .lintje-map-chart__layer.is-active { border-color: Highlight; }
+  .lintje-map-chart__layer.is-active,
+  .lintje-map-chart__tool.is-active { border-color: Highlight; }
   .lintje-map-legend__box { forced-color-adjust: none; background: Highlight; border-color: Highlight; color: HighlightText; }
   .lintje-map-legend__layer.is-off .lintje-map-legend__box { background: Canvas; border-color: CanvasText; }
   .lintje-map-chart .leaflet-container:focus-visible::after { border-color: Highlight; }

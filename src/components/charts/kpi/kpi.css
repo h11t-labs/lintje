@@ -58,7 +58,7 @@
 .lintje-kpi__count-final { opacity: 0; }
 .lintje-kpi__note { font: var(--text-small); color: var(--color-text-primary); }
 .lintje-kpi__note--error { display: flex; align-items: center; gap: var(--space-2); }
-.lintje-kpi__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-error); flex: none; }
+.lintje-kpi__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-error-line); flex: none; }
 .lintje-kpi__detail { font: var(--text-small); color: var(--color-text-muted); }
 
 /* The wrapper is the query container, so a row can stack in a narrow KPI without containing it. */
@@ -132,8 +132,8 @@
   color: var(--color-text-primary);
 }
 .lintje-trend__glyph { font-size: 1rem; font-weight: 700; line-height: 1.2; flex: none; }
-.lintje-trend__glyph--good     { color: var(--color-success); }
-.lintje-trend__glyph--bad   { color: var(--color-error); }
+.lintje-trend__glyph--good     { color: var(--color-success-line); }
+.lintje-trend__glyph--bad   { color: var(--color-error-line); }
 .lintje-trend__glyph--neutral { color: var(--color-text-muted); }
 .lintje-trend__detail { font: var(--text-small); color: var(--color-text-muted); }
 

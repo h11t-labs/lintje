@@ -137,12 +137,13 @@
 }
 
 .lintje-audio-player__volume { display: flex; align-items: center; gap: var(--space-1); flex: none; }
-/* A transparent area above and below the line takes the pointer, as on the position bar. */
+/* A transparent area above and below the line takes the pointer, as on the position bar. The
+   track is the field's edge (3:1) and the head marks the level, also when it is low or muted. */
 .lintje-audio-player__level {
   position: relative;
   width: calc(2 * var(--space-10));
   height: 6px;
-  background: var(--color-border-default);
+  background: var(--color-border-field);
   cursor: pointer;
   touch-action: none;
 }
@@ -174,6 +175,7 @@
   .lintje-audio-player__peak.is-played,
   .lintje-audio-player__stretch.is-played,
   .lintje-audio-player__level-fill { background: Highlight; }
+  .lintje-audio-player__level-head { background: Highlight; outline: 1px solid Canvas; }
 }
 
 /* A phone of 320 px still fits mute, the three buttons and the speed: each keeps its 48 px. */
