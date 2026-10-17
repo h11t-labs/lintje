@@ -444,10 +444,15 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
           const value = row.values[index]
           if (value == null || (isEarly && index > lastKnown)) return nothing
           const open = isForecast(row, index)
+          const cx = xPosition(index, labels.length, area)
+          const cy = yPosition(value, max, area)
+          // A light colour keeps the dark edge its line has, over the ring in the surface; a
+          // forecast's open point is a ring in its own colour.
+          const casing = open ? undefined : lineCasing(colorOf(row))
           return svg`<circle class="lintje-chart__hover-point ${open ? 'lintje-chart__hover-point--forecast' : ''}"
                              r="4" fill=${open ? nothing : colorOf(row)} color=${open ? colorOf(row) : nothing}
-                             cx=${xPosition(index, labels.length, area)}
-                             cy=${yPosition(value, max, area)} />`
+                             cx=${cx} cy=${cy} />
+            ${casing ? svg`<circle class="lintje-chart__hover-casing" r="4" stroke=${casing} cx=${cx} cy=${cy} />` : nothing}`
         })
       : nothing,
 
