@@ -117,6 +117,35 @@ describe('lintje-video-player', () => {
     )
   })
 
+  it('sends lintje-retry once from the element when "Opnieuw proberen" is pressed', async () => {
+    const element = await mount()
+    const media = await loaded(element)
+    media.load = vi.fn()
+    media.dispatchEvent(new Event('error'))
+    await element.updateComplete
+    const heard = vi.fn()
+    document.body.addEventListener('lintje-retry', heard)
+    root(element).querySelector<HTMLButtonElement>('.lintje-video-player__retry')!.click()
+    document.body.removeEventListener('lintje-retry', heard)
+    expect(heard).toHaveBeenCalledTimes(1)
+    expect(heard.mock.calls[0][0].target).toBe(element)
+    expect(media.load).toHaveBeenCalledTimes(1)
+  })
+
+  it('loads the src a host sets in answer to lintje-retry', async () => {
+    const element = await mount()
+    const media = await loaded(element)
+    media.load = vi.fn()
+    media.dispatchEvent(new Event('error'))
+    await element.updateComplete
+    element.addEventListener('lintje-retry', () => (element.src = '/opnames/hoorzitting-nieuw.mp4'))
+    root(element).querySelector<HTMLButtonElement>('.lintje-video-player__retry')!.click()
+    await element.updateComplete
+    expect(root(element).querySelector('video')!.getAttribute('src')).toBe(
+      '/opnames/hoorzitting-nieuw.mp4',
+    )
+  })
+
   it('shows the big play button while it stands still and hides it while it plays', async () => {
     const element = await mount()
     await loaded(element)

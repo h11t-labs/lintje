@@ -7,7 +7,8 @@
  * load says so on the picture, with "Opnieuw proberen".
  *
  * Events: `lintje-time-change` `number` (seconds, at most four times a second), `lintje-seek`
- * `number` (seconds: the reader moved the position), `lintje-play`, `lintje-pause`.
+ * `number` (seconds: the reader moved the position), `lintje-play`, `lintje-pause`, `lintje-retry`
+ * ("Opnieuw proberen" was pressed).
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
