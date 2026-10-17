@@ -336,7 +336,7 @@ const FIELDS: Field[] = [
     tag: 'lintje-text-input',
     box: '.lintje-text-input__box',
     entry: '.lintje-text-input__control',
-    end: '14px',
+    end: '16px',
   },
   {
     tag: 'lintje-date-input',
@@ -400,7 +400,7 @@ function drawn(look: Look): Record<string, string> {
     fill: colourOf(quiet ? '--color-bg-subtle' : '--color-bg-surface'),
     text: colourOf(look === 'disabled' ? '--color-text-disabled' : '--color-text-primary'),
     radius: '0px',
-    start: '14px',
+    start: '16px',
     size: '16px',
     height: '48',
   }

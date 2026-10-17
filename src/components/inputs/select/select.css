@@ -5,7 +5,7 @@
   appearance: none;
   width: 100%;
   height: var(--h-control);
-  padding: 0 34px 0 14px;
+  padding: 0 calc(var(--space-8) + var(--space-1)) 0 var(--space-4);
   border: 1px solid var(--color-border-field);
   background: var(--color-bg-surface);
   font-size: 1rem;
@@ -20,4 +20,4 @@
   cursor: not-allowed;
 }
 .lintje-select__control:disabled { border: 1px solid var(--color-border-strong); }
-.lintje-select__icon { position: absolute; right: 12px; pointer-events: none; color: var(--color-text-primary); }
+.lintje-select__icon { position: absolute; right: var(--space-3); pointer-events: none; color: var(--color-text-primary); }

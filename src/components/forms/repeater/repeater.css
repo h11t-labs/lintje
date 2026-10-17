@@ -13,7 +13,7 @@
 /* The legend stands above its rows as a field's label does above its control; the gap lives in
    the body, because browsers differ on whether a legend takes part in a fieldset's flex gap. */
 .lintje-repeater__legend {
-  padding: 0 0 6px;
+  padding: 0 0 var(--space-2);
   font-size: 0.875rem; font-weight: 700;
   color: var(--color-text-primary);
 }

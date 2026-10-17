@@ -5,7 +5,7 @@
 /* The shared field box, with room at its end for the button. */
 .lintje-time-input__control {
   width: 100%;
-  padding-right: calc(var(--h-control) - 2px + var(--space-2));
+  padding-right: calc(var(--h-control) - 2 * var(--lintje-field-border) + var(--space-2));
   font-variant-numeric: tabular-nums;
 }
 
@@ -21,7 +21,7 @@
   display: flex; align-items: center;
   width: 100%;
   min-height: var(--h-option);
-  padding: 0 14px;
+  padding: 0 var(--space-4);
   background: transparent;
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;

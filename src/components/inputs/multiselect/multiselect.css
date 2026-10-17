@@ -30,8 +30,9 @@
   display: inline-flex; align-items: flex-start; gap: var(--space-2);
   min-height: var(--h-chip-field);
   padding: 0 0 0 var(--space-2);
+  --lintje-multiselect-chip-border: 1px;
   background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border-default);
+  border: var(--lintje-multiselect-chip-border) solid var(--color-border-default);
   font-size: 0.875rem; white-space: nowrap;
   /* The label shortens with an ellipsis, the cross and counter never shrink; the whole
      selection is in the field's `title`. */
@@ -40,7 +41,7 @@
 /* One line stands in the middle of the chip; a wrapped one grows it, the × on its first line. */
 .lintje-multiselect__chip-label {
   overflow: hidden; text-overflow: ellipsis; min-width: 2ch;
-  padding-block: calc((var(--h-chip-field) - 2px - 1lh) / 2);
+  padding-block: calc((var(--h-chip-field) - 2 * var(--lintje-multiselect-chip-border) - 1lh) / 2);
 }
 /* The field's `title` needs a pointer: under the keyboard's focus, without hover and below 768 px
    the chips and the summary wrap whole. */
@@ -88,7 +89,7 @@
   flex: 1 1 auto; min-height: 0;
   max-height: 220px; overflow-y: auto;
   padding: var(--space-2);
-  display: flex; flex-direction: column; gap: 2px;
+  display: flex; flex-direction: column; gap: var(--space-1);
 }
 /* The `lintje-checkbox` row reads `--h-target` in its shadow root: point it at the option height. */
 .lintje-multiselect__option { --h-target: var(--h-option); }
