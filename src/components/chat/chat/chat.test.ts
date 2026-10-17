@@ -433,6 +433,32 @@ describe('lintje-chat and the assistant’s questions', () => {
     }
   })
 
+  it('on a phone leaves the question box open while the reader types in it', async () => {
+    const happy = (window as unknown as { happyDOM?: { setViewport(size: object): void } }).happyDOM
+    happy?.setViewport({ width: 390, height: 844 })
+    try {
+      const waiting = asking('needs-clarification')
+      const element = await chat({
+        turns: [TURNS[0], { ...waiting.turns[1], answer: { state: 'streaming' } }],
+      })
+      const field = composer(element) as unknown as HTMLElement & {
+        text: string
+        updateComplete: Promise<unknown>
+      }
+      field.text = 'En per regio'
+      await field.updateComplete
+      const input = field.shadowRoot!.querySelector<HTMLElement>('.lintje-chat-composer__input')!
+      input.focus()
+      element.data = waiting
+      await element.updateComplete
+      expect(composer(element).collapsed).toBe(false)
+      expect(composer(element).collapsible).toBe(true)
+      expect(deepActiveElement()).toBe(input)
+    } finally {
+      happy?.setViewport({ width: 1024, height: 768 })
+    }
+  })
+
   it('lets the answers through with the turn', async () => {
     const element = await chat(asking('needs-clarification'))
     const details: unknown[] = []

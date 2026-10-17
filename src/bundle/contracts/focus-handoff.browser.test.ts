@@ -1416,6 +1416,19 @@ const QUESTIONS_ROWS: Row[] = [
     },
   },
   {
+    name: 'lintje-chat :: on a phone, the questions arriving while the question box holds a draft leave it open, with the focus',
+    run: async () => {
+      await phone()
+      const chat = await askingChat(ASKED, 'En per regio')
+      const box = (): Element | null => inside(chat, 'lintje-chat-questions')
+      await expect.poll(() => firstChoice(box())).toBeTruthy()
+      await new Promise(requestAnimationFrame)
+      await new Promise(requestAnimationFrame)
+      expect(inside(chat, '.lintje-chat-composer__expand')).toBeNull()
+      return () => composerField(inside(chat, 'lintje-chat-composer'))
+    },
+  },
+  {
     name: 'lintje-chat :: a choice in the short form hands the focus to the question box',
     run: async () => {
       const chat = await askingChat(ASKED_SHORT)
