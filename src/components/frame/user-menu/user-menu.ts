@@ -383,9 +383,12 @@ export class LintjeUserMenu extends LintjeElement {
           className: 'lintje-user-menu__chevron',
         })}
       </button>
+      ${side ? html`<span class="lintje-user-menu__anchor" aria-hidden="true"></span>` : nothing}
       <lintje-popover
         id=${this.#menuId}
         placement=${side ? 'top-start' : 'bottom-end'}
+        ?match-width=${side}
+        .anchor=${side ? this.renderRoot?.querySelector('.lintje-user-menu__anchor') : undefined}
         ?open=${this.open}
         @lintje-close=${this.onPopoverClose}
         >${this.renderContent()}</lintje-popover
