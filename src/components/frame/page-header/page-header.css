@@ -46,7 +46,7 @@
   .lintje-page-header__edit { opacity: 1; }
 }
 .lintje-page-header__description {
-  margin-top: 6px;
+  margin-top: var(--space-2);
   max-width: var(--w-text);
   font-size: 1rem;
   line-height: 1.5;

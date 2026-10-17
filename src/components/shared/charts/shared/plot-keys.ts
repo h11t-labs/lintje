@@ -11,6 +11,9 @@ export interface PlotPoint {
   x: number
   y: number
   content: TooltipContent
+  /** What the status region says instead of the tooltip read as one sentence. */
+  sentence?: string
+  side?: 'left'
   /** Where the tooltip ends when it does not fit right of `x` (`TooltipState.flip`). */
   flip?: number
 }
@@ -27,8 +30,11 @@ const PREVIOUS = new Set(['ArrowLeft', 'ArrowUp'])
 
 /** The tooltip's text as one sentence, for a screen reader. */
 export function tooltipSentence(content: TooltipContent): string {
-  const values = `${content.title}: ${content.rows
-    .map((row) => `${row.label} ${row.value}${row.note ? `, ${row.note}` : ''}`.trim())
+  const title = [content.kicker, content.note ? `${content.title} ${content.note}` : content.title]
+    .filter(Boolean)
+    .join(', ')
+  const values = `${title}: ${content.rows
+    .map((row) => `${row.label} ${row.value}${row.aside ? `, ${row.aside}` : ''}`.trim())
     .join(', ')}`
   const events = (content.events ?? []).map(
     (event) => `Gebeurtenis ${event.number}: ${event.label}`,
@@ -56,20 +62,23 @@ export function plotKeys(
     const box = drawing.getBoundingClientRect()
     const origin = anchor?.getBoundingClientRect() ?? box
     controller.hoverIndex = index
-    controller.status = tooltipSentence(point.content)
+    controller.keyFrom = null
+    controller.status = point.sentence ?? tooltipSentence(point.content)
     const left = box.left - origin.left
     controller.showTooltipAt(
       left + point.x,
       box.top - origin.top + point.y,
       point.content,
-      point.flip != null ? left + point.flip : undefined,
+      point.side ?? (point.flip != null ? left + point.flip : undefined),
     )
   }
   return {
     keydown(event) {
       // A mark inside the drawing has keys of its own.
       if (event.target !== event.currentTarget || count === 0) return
-      const current = controller.hoverIndex ?? -1
+      // A place from before new data may lie past the end: then the last category is it.
+      const from = controller.hoverIndex ?? controller.keyFrom
+      const current = from == null ? -1 : Math.min(from, count - 1)
       let index: number
       if (NEXT.has(event.key)) index = Math.min(count - 1, current + 1)
       else if (PREVIOUS.has(event.key)) index = Math.max(0, current - 1)
@@ -85,6 +94,7 @@ export function plotKeys(
       show(drawing, Math.min(controller.hoverIndex ?? 0, count - 1))
     },
     blur() {
+      controller.keyFrom = null
       if (controller.hoverIndex == null && !controller.status) return
       controller.hoverIndex = null
       controller.status = ''

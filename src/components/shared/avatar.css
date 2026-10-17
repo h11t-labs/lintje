@@ -1,0 +1,55 @@
+/* A person's circle, drawn by `renderAvatar()`: neutral for everyone, the photo over the initials. */
+.lintje-avatar {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none;
+  width: 2rem; height: 2rem;
+  border-radius: var(--radius-round);
+  background: var(--color-avatar-bg);
+  color: var(--color-avatar-text);
+  font-size: 0.875rem; font-weight: 700; line-height: 1;
+  overflow: hidden;
+  user-select: none;
+}
+/* A short label on something larger, as a counter: the axis step, bold. */
+.lintje-avatar--small { width: 1.5rem; height: 1.5rem; font: var(--text-axis); font-weight: 700; }
+.lintje-avatar--large { width: 2.5rem; height: 2.5rem; font-size: 1rem; }
+
+.lintje-avatar__initials { white-space: nowrap; }
+.lintje-avatar__icon { display: block; }
+
+/* The photo lies over the initials; its 1 px edge keeps a light photo on white, and a dark one in
+   dark, from dissolving. The outline is drawn over the picture, inside the circle. */
+.lintje-avatar__photo {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-round);
+  outline: 1px solid var(--color-border-default);
+  outline-offset: -1px;
+}
+.lintje-avatar__photo[hidden] { display: none; }
+
+/* Nobody here yet: dashed, like the way still to go in the stepper. */
+.lintje-avatar.is-empty {
+  background: transparent;
+  border: 1px dashed var(--color-avatar-empty-line);
+}
+
+/* On the menu: white with near-black initials in both modes and every theme. */
+.lintje-avatar--nav { background: var(--color-nav-avatar-bg); color: var(--color-nav-avatar-text); }
+.lintje-avatar--nav .lintje-avatar__photo { outline-color: var(--color-nav-line); }
+
+/* A speaker's colour, where the people are the variable; each ink reaches 4.5:1 on its fill. */
+.lintje-avatar--sky-blue { background: var(--color-chart-sky-blue); color: var(--color-text-on-fill); }
+.lintje-avatar--violet { background: var(--color-chart-violet); color: var(--color-text-on-fill); }
+.lintje-avatar--green { background: var(--color-chart-green); color: var(--color-text-on-fill); }
+.lintje-avatar--dark-yellow { background: var(--color-chart-dark-yellow); color: var(--color-text-on-light-fill); }
+.lintje-avatar--pink { background: var(--color-chart-pink); color: var(--color-text-on-light-fill); }
+.lintje-avatar--mint-green { background: var(--color-chart-mint-green); color: var(--color-text-on-light-fill); }
+
+/* Forced colours drop the fill: a CanvasText ring keeps the circle; the empty one keeps its dashes. */
+@media (forced-colors: active) {
+  .lintje-avatar { border: 1px solid CanvasText; }
+  .lintje-avatar.is-empty { border-style: dashed; }
+}

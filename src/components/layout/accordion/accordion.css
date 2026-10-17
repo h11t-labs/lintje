@@ -1,0 +1,23 @@
+/*
+ * The lines are the list's: one over the stack and one under each row. The rows themselves are
+ * expanders, drawn as rows by their own `row` rules.
+ */
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* --- */
+
+/* In a flush tile the link keeps the tile's padding, as the rows' text does. */
+.lintje-accordion__bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-2);
+  padding-inline: var(--lintje-inset, 0px);
+}
+.lintje-accordion__rows { border-top: 1px solid var(--color-border-default); }
+.lintje-accordion__rows ::slotted(lintje-expander) { border-bottom: 1px solid var(--color-border-default); }
+
+/* The link has nothing to say on paper, where every row prints open. */
+@media print {
+  .lintje-accordion__bar { display: none; }
+}

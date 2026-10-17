@@ -139,7 +139,7 @@ describe('lintje-list', () => {
     menu.dispatchEvent(
       new CustomEvent('lintje-action', { detail: 'verwijderen', bubbles: true, composed: true }),
     )
-    expect(actions).toEqual([{ id: 'c', label: 'Overdracht nachtdienst', value: 'verwijderen' }])
+    expect(actions).toEqual([{ id: 'c', label: 'Overdracht nachtdienst', action: 'verwijderen' }])
     expect(plain).toEqual([])
 
     menu.click()
@@ -202,7 +202,7 @@ describe('lintje-list as a work list', () => {
     let clicked = false
     element.addEventListener('lintje-row-click', () => (clicked = true))
     rows(element)[0]!.querySelector<HTMLElement>('lintje-button')!.click()
-    expect(heard).toEqual([{ id: 'b', label: 'Brief-aan-bewoners.pdf', value: 'annuleren' }])
+    expect(heard).toEqual([{ id: 'b', label: 'Brief-aan-bewoners.pdf', action: 'annuleren' }])
     expect(clicked).toBe(false)
   })
 
@@ -269,5 +269,39 @@ describe('lintje-list as a work list', () => {
       'Eerder:1',
       'Vandaag:1',
     ])
+  })
+})
+
+describe('a person on a row of lintje-list', () => {
+  const JV = { name: 'J. de Vries', initials: 'JV', href: '/mensen/jv' }
+
+  it('stands at the facts before the status, at 24 px and without a link', async () => {
+    const element = await mount({
+      items: [{ id: 'a', title: 'Aanvraag', person: JV, status: { label: 'Bezig' }, meta: 'nu' }],
+    })
+    const facts = rows(element)[0]!.querySelector('.lintje-list__facts')!
+    const parts = [...facts.children].map((child) => child.localName)
+    expect(parts).toEqual(['lintje-person', 'lintje-badge', 'span'])
+    const person = facts.querySelector('lintje-person')!
+    // 24 px fits the row of `--h-target`, as the badge beside it does.
+    expect(person.getAttribute('size')).toBe('small')
+    expect(person.person?.name).toBe('J. de Vries')
+    expect(person.person?.href).toBeUndefined()
+  })
+
+  it('reads "Niet toegewezen" for null, and draws nothing without the field', async () => {
+    const element = await mount({
+      items: [
+        { id: 'a', title: 'Eerste', person: null },
+        { id: 'b', title: 'Tweede' },
+      ],
+    })
+    const [first, second] = rows(element)
+    const nobody = first!.querySelector('lintje-person')!
+    expect(nobody.person).toBeNull()
+    await nobody.updateComplete
+    expect(nobody.shadowRoot!.textContent).toContain('Niet toegewezen')
+    expect(second!.querySelector('lintje-person')).toBeNull()
+    expect(second!.querySelector('.lintje-list__facts')).toBeNull()
   })
 })

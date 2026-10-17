@@ -2,12 +2,21 @@
  * `<lintje-chart>` — a chart in its tile, with loading, empty and error states.
  *
  * Expand and download are handled here. The table view is the element's own state, built from the
- * CSV rows; it never reaches the URL.
+ * CSV rows; it never reaches the URL. A mark with an `href` goes there after its
+ * `lintje-mark-select`, and undoing goes to `data.clearHref`: the event is cancelable, and a host
+ * that routes itself cancels it. A modifier or middle click on a mark opens its `href` in a new
+ * tab, without that event.
  *
  * Events: `lintje-mark-select` `{ id, label, href }` (a mark with an `href` was clicked;
  * deselected, `{ id: null, label: null, href: data.clearHref }`).
  */
-import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
+import {
+  html,
+  nothing,
+  type PropertyDeclarations,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit'
 import { define, type FrameSettings } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { spanStyles } from '../../shared/grid-item-element'
@@ -21,13 +30,16 @@ import {
   dumbbellHeight,
 } from '../../shared/charts/dumbbell-chart/dumbbell-chart'
 import { binLabel } from '../../shared/charts/histogram-chart/histogram-chart'
+import { treemapRows } from '../../shared/charts/treemap-chart/treemap-parts'
+import { sankeyHeight, sankeyModel } from '../../shared/charts/sankey-chart/sankey-chart'
+import { FORECAST_LABEL, boundsAt, forecastStart } from '../../shared/charts/shared/forecast'
 import {
   renderChartSkeleton,
   type ChartSkeletonKind,
 } from '../../shared/charts/shared/chart-states'
 import { chartStyles } from '../../shared/charts/shared/chart-styles'
 import type { ChartSpec } from '../../shared/charts/shared/types'
-import { downloadCsv, downloadPng, type CsvCell } from '../../shared/download'
+import { chartImage, downloadCsv, downloadPng, type CsvCell } from '../../shared/download'
 import { MediaController } from '../../../core/media'
 import skeletonCss from '../../feedback/skeleton/skeleton.css?inline'
 import tileHostCss from '../../shared/view-tile.css?inline'
@@ -72,6 +84,8 @@ function skeletonKind(chart: ChartSpec): ChartSkeletonKind {
       return 'pie'
     case 'heatmap':
       return 'heatmap'
+    case 'treemap':
+      return 'treemap'
     default:
       return 'bar'
   }
@@ -88,8 +102,33 @@ function stateHeight(chart: ChartSpec, mobile: boolean): string | undefined {
     case 'pie':
     case 'heatmap':
       return undefined
+    case 'sankey':
+      // The busiest step makes the drawing taller than the token, never lower.
+      return `max(${sankeyHeight(chart)}px, var(${chart.small ? '--chart-h-small' : '--chart-h-main'}))`
     default:
       return chart.small ? 'var(--chart-h-small)' : undefined
+  }
+}
+
+/**
+ * A forecast's columns: its bounds after the value, and what each row is at the end, so a
+ * forecast never stands unmarked among measured figures. Before the forecast a bound is an
+ * empty cell, not a missing value: there is no bound there.
+ */
+function forecastColumns(chart: Extract<ChartSpec, { kind: 'line' | 'bar' }>) {
+  // As the drawing: a forecast continues a measured series, so with only comparisons there is none.
+  const measured = chart.kind === 'bar' || chart.series.some((series) => !series.comparison)
+  const from = measured ? forecastStart(chart.forecastFrom, chart.labels.length) : null
+  const word = (chart.forecastLabel ?? FORECAST_LABEL).toLowerCase()
+  return {
+    from,
+    bounds: (forecast: Parameters<typeof boundsAt>[0], i: number): CsvCell[] => {
+      if (from == null || i < from) return ['', '']
+      const { low, high } = boundsAt(forecast, i)
+      return [low, high]
+    },
+    kind: (i: number): CsvCell[] => (from == null ? [] : [i < from ? 'gemeten' : word]),
+    kindHeader: from == null ? [] : ['Soort'],
   }
 }
 
@@ -104,28 +143,53 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
           .filter((event) => event.index === i)
           .map((event) => event.label)
           .join('; ')
+      const forecast = forecastColumns(chart)
+      // A comparison has no forecast, so no bounds.
+      const bounded = (series: (typeof chart.series)[number]) =>
+        forecast.from != null && !series.comparison && series.forecast != null
       return [
         [
           '',
-          ...chart.series.map((series) => series.label),
+          ...chart.series.flatMap((series) => [
+            series.label,
+            ...(bounded(series)
+              ? [`${series.label} ondergrens`, `${series.label} bovengrens`]
+              : []),
+          ]),
           ...(events.length ? ['Gebeurtenis'] : []),
+          ...forecast.kindHeader,
         ],
         ...chart.labels.map((label, i) => [
           label,
-          ...chart.series.map((series) => series.values[i]),
+          ...chart.series.flatMap((series) => [
+            series.values[i],
+            ...(bounded(series) ? forecast.bounds(series.forecast, i) : []),
+          ]),
           ...(events.length ? [eventAt(i)] : []),
+          ...forecast.kind(i),
         ]),
       ]
     }
-    case 'bar':
+    case 'bar': {
+      const forecast = forecastColumns(chart)
+      const bounded = forecast.from != null && chart.forecast != null
       return [
-        ['', chart.axisTitle ?? 'Waarde', ...(chart.trend ? ['Trend'] : [])],
+        [
+          '',
+          chart.axisTitle ?? 'Waarde',
+          ...(bounded ? ['Ondergrens', 'Bovengrens'] : []),
+          ...(chart.trend ? ['Trend'] : []),
+          ...forecast.kindHeader,
+        ],
         ...chart.labels.map((label, i) => [
           label,
           chart.values[i],
+          ...(bounded ? forecast.bounds(chart.forecast, i) : []),
           ...(chart.trend ? [chart.trend[i]] : []),
+          ...forecast.kind(i),
         ]),
       ]
+    }
     case 'horizontal-bar':
       return [
         ['', chart.unit ? `Waarde (${chart.unit})` : 'Waarde'],
@@ -222,6 +286,29 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
         ...chart.bins.map((bin) => [binLabel(bin, chart.unit), bin.from, bin.to ?? '', bin.count]),
       ]
     }
+    case 'treemap':
+      // A row per sub-part; what the drawing folds into "Overig" stands apart.
+      return treemapRows(chart)
+    case 'sankey': {
+      // A row per flow the chart draws; a missing one keeps its count and its share missing.
+      const { flows } = sankeyModel(chart)
+      return [
+        [
+          'Van',
+          'Naar',
+          chart.unit ? `Aantal (${chart.unit})` : 'Aantal',
+          'Aandeel van de bron (%)',
+        ],
+        ...flows.map((flow) => [
+          flow.from.label,
+          flow.to.label,
+          flow.value,
+          flow.value == null || flow.from.size <= 0
+            ? null
+            : Math.round((flow.value / flow.from.size) * 100),
+        ]),
+      ]
+    }
   }
 }
 
@@ -231,6 +318,29 @@ function decimalsOf(values: CellValue[]): number {
     const fraction = String(value).split('.')[1] ?? ''
     return Math.max(most, fraction.length)
   }, 0)
+}
+
+/**
+ * The labels of the series that are separate variables but name no colour. A comparison is grey
+ * by design and does not count; a figure with one variable may leave its colour to sky blue.
+ */
+function uncolouredSeries(chart: ChartSpec): string[] {
+  let series: { label: string; color?: string; comparison?: boolean }[]
+  switch (chart.kind) {
+    case 'line':
+    case 'grouped-bar':
+    case 'scatter':
+    case 'radar':
+      series = chart.series
+      break
+    case 'dual-axis':
+      series = [chart.left, chart.right]
+      break
+    default:
+      return []
+  }
+  const variables = series.filter((row) => !row.comparison)
+  return variables.length > 1 ? variables.filter((row) => !row.color).map((row) => row.label) : []
 }
 
 /** The CSV rows as a table. A missing value stays `null` (rule 15); rows keep the chart's order. */
@@ -287,9 +397,27 @@ export class LintjeChart extends LintjeContentTileElement {
   // The modal draws the same chart with its own controller: the two never share hover or width.
   #modalChart: ChartController | null = null
   readonly #mobile = new MediaController(this)
+  // Each warning once per element; another spec may name other series.
+  readonly #warned = new Set<string>()
 
   protected override get dataSettings(): FrameSettings | undefined {
     return this.data ?? undefined
+  }
+
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
+    if (import.meta.env?.DEV && changed.has('data') && this.data?.chart) this.#warnUncoloured()
+  }
+
+  /** A variable without a colour gets one by its place, which a filter shifts. */
+  #warnUncoloured(): void {
+    const labels = uncolouredSeries(this.data!.chart)
+    if (!labels.length) return
+    const count = labels.length === 1 ? '1 reeks' : `${labels.length} reeksen`
+    const message = `<lintje-chart>: ${count} zonder kleur (${labels.map((label) => `"${label}"`).join(', ')}). Geef elke reeks de kleur van haar variabele.`
+    if (this.#warned.has(message)) return
+    this.#warned.add(message)
+    console.warn(message)
   }
 
   override disconnectedCallback(): void {
@@ -329,8 +457,10 @@ export class LintjeChart extends LintjeContentTileElement {
     if (!data) return
     // Both charts are light children; the tag says which one the reader sees.
     const scope = this.renderRoot.querySelector(this.expanded ? 'lintje-modal' : 'lintje-tile')
-    const svg = scope?.querySelector<SVGSVGElement>(DRAWING)
-    if (svg) void downloadPng(this.downloadName ?? fileNameOf(data.title), svg)
+    let chart: Element | null | undefined = scope?.querySelector(DRAWING)
+    // The image is the whole chart, legend and events with it: what renderChart drew in the scope.
+    while (chart && chart.parentElement !== scope) chart = chart.parentElement
+    if (chart) void downloadPng(this.downloadName ?? fileNameOf(data.title), chartImage(chart))
   }
 
   protected override expandChanged(open: boolean): void {
@@ -461,13 +591,29 @@ export class LintjeChart extends LintjeContentTileElement {
     ></lintje-data-table>`
   }
 
+  /**
+   * The host may take the choice over by cancelling the event; else the page goes to its `href`.
+   * A modifier or middle click opens the `href` in a new tab, without the event.
+   */
+  private select(
+    detail: { id: string | null; label: string | null; href?: string },
+    newTab = false,
+  ): void {
+    if (newTab) {
+      if (detail.href) this.followLink(detail.href, undefined, undefined, { newTab: true })
+    } else if (this.emit('lintje-mark-select', detail) && detail.href) this.followLink(detail.href)
+  }
+
   /** Returns focus to the cleared mark, or to the drawing when the mark is gone. */
   private async focusMark(id: string): Promise<void> {
     await this.updateComplete
     const scope = this.renderRoot.querySelector(this.expanded ? 'lintje-modal' : 'lintje-tile')
     const mark = scope?.querySelector<SVGElement>(`[data-mark-id="${CSS.escape(id)}"]`)
     const target =
-      mark ?? scope?.querySelector<HTMLElement | SVGElement>(`${DRAWING}, .lintje-heatmap`)
+      mark ??
+      scope?.querySelector<HTMLElement | SVGElement>(
+        `${DRAWING}, .lintje-heatmap, .lintje-sankey--rows`,
+      )
     // The drawing takes the focus from a script only; it does not join the tab order for it.
     if (target && !target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
     target?.focus()
@@ -480,9 +626,9 @@ export class LintjeChart extends LintjeContentTileElement {
       description: this.data?.description ?? '',
       mobile: this.#mobile.matches,
       selectedId: this.data?.selectedId ?? null,
-      onSelect: ({ id, label, href }) => this.emit('lintje-mark-select', { id, label, href }),
+      onSelect: ({ id, label, href }, newTab) => this.select({ id, label, href }, newTab),
       onClear: (previousId) => {
-        this.emit('lintje-mark-select', { id: null, label: null, href: this.data?.clearHref })
+        this.select({ id: null, label: null, href: this.data?.clearHref })
         void this.focusMark(previousId)
       },
     }

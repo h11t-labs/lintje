@@ -18,7 +18,9 @@ import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import '../../feedback/badge/badge'
+import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import { LintjeInputElement } from '../shared/input'
+import { LiveMessage } from '../../shared/live-message'
 import inputCss from '../shared/input.css?inline'
 import segmentedCss from './segmented.css?inline'
 import type { FilterOption } from '../../../types'
@@ -34,7 +36,6 @@ export class LintjeSegmented extends LintjeInputElement {
     bold: { type: Boolean },
     stacked: { type: Boolean, reflect: true },
     options: { attribute: false },
-    column: { state: true },
   }
 
   value: string = ''
@@ -42,32 +43,27 @@ export class LintjeSegmented extends LintjeInputElement {
   bold: boolean = false
   stacked: boolean = false
   declare options?: FilterOption[]
-  protected column: boolean = false
+  /** The options stand in a column: `is-column` on the frame, set by the measurement. */
+  #column: boolean = false
   /** The row's own width, measured while it is a row: the column turns back once that fits. */
   #rowWidth = 0
-  #observer: ResizeObserver | null = null
+  #observer = new FrameResizeObserver(() => this.#fit())
+  readonly #live = new LiveMessage(this)
 
   override connectedCallback(): void {
     super.connectedCallback()
-    if (typeof ResizeObserver === 'undefined') return
-    this.#observer = new ResizeObserver(() => this.#fit())
     this.#observer.observe(this)
   }
 
   override disconnectedCallback(): void {
-    this.#observer?.disconnect()
-    this.#observer = null
+    this.#observer.disconnect()
     super.disconnectedCallback()
-  }
-
-  protected override willUpdate(changed: PropertyValues<this>): void {
-    super.willUpdate(changed)
-    // Other options make another row: it is measured again as a row.
-    if (changed.has('options')) this.column = false
   }
 
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
+    // Other options make another row: it is measured again as a row.
+    if (changed.has('options')) this.#setColumn(false)
     this.#fit()
   }
 
@@ -79,14 +75,24 @@ export class LintjeSegmented extends LintjeInputElement {
   #fit(): void {
     const frame = this.renderRoot.querySelector<HTMLElement>('.lintje-segmented')
     if (!frame || !frame.clientWidth) return
-    if (!this.column) this.#rowWidth = frame.scrollWidth
-    const column = this.#rowWidth > frame.clientWidth + 1
-    if (column !== this.column) this.column = column
+    if (!this.#column) this.#rowWidth = frame.scrollWidth
+    this.#setColumn(this.#rowWidth > frame.clientWidth + 1)
   }
 
+  // Straight onto the frame: a reactive property set after a render would draw it twice.
+  #setColumn(column: boolean): void {
+    this.#column = column
+    this.renderRoot.querySelector('.lintje-segmented')?.classList.toggle('is-column', column)
+  }
+
+  // The description changes under the options, away from the focus: a reader's own choice says
+  // it, a value the host sets does not.
   private choose(value: string): void {
     this.value = value
     this.commit(value)
+    const description = this.options?.find((option) => option.value === value)?.description
+    if (description) this.#live.say(description)
+    else this.#live.clear()
   }
 
   protected override render(): TemplateResult {
@@ -103,7 +109,6 @@ export class LintjeSegmented extends LintjeInputElement {
       <div
         class=${classMap({
           'lintje-segmented': true,
-          'is-column': this.column,
           'is-error': Boolean(this.error),
         })}
         role="group"
@@ -120,7 +125,7 @@ export class LintjeSegmented extends LintjeInputElement {
               'is-bold': this.bold && option.value === this.value,
             })}
             aria-pressed=${option.value === this.value}
-            ?disabled=${this.disabled}
+            ?disabled=${this.isDisabled}
             @click=${() => this.choose(option.value)}
           >
             ${option.label}${
@@ -137,6 +142,7 @@ export class LintjeSegmented extends LintjeInputElement {
           : nothing
       }
       ${this.renderFoot()}
+      <span class="visually-hidden" role="status">${this.#live.text}</span>
     </div>`
   }
 }

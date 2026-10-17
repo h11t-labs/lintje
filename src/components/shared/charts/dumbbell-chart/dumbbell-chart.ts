@@ -227,7 +227,7 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
     value: value == null ? NO_DATA : withUnit(value),
     marker,
     color: tone,
-    note: point != null && point.side !== 0 ? OFF_AXIS : undefined,
+    aside: point != null && point.side !== 0 ? OFF_AXIS : undefined,
   })
   const contentAt = (i: number): TooltipContent => {
     const item = rows[i]

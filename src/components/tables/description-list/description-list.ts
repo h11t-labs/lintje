@@ -14,9 +14,10 @@ import { shadowCss } from '../../../core/styles'
 import descriptionListCss from './description-list.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { styleProps } from '../../../core/style-props'
-import { TONE_ICON, type Tone } from '../../shared/tone'
+import { TONE_ICON, TONE_WORD, type Tone } from '../../shared/tone'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { badgeStyles, renderBadge } from '../../feedback/badge/badge'
+import '../../content/key/key'
 
 /** A link on the right of the value, for changing it ("Locatie wijzigen" as accessible name). */
 export interface DescriptionAction {
@@ -34,6 +35,8 @@ export interface DescriptionItem {
   action?: DescriptionAction
   /** The value as separate tags (word lists, people); `value` is then left out. */
   tags?: string[]
+  /** The value as keyboard keys, one `lintje-key` each (`keyLabels()`); `value` is then left out. */
+  keys?: string[]
   /** Grid: an icon by the label, by file name. */
   icon?: string
   /** Grid: two columns instead of one. */
@@ -41,8 +44,9 @@ export interface DescriptionItem {
   /** Grid: the one figure a reader looks at, as large as a key figure. */
   large?: boolean
   /**
-   * `changed`: differs from the default, and says "Aangepast". A shared tone carries its
-   * glyph when it has one, and the words are the host's (in the value or its slot).
+   * `changed`: differs from the default, and says "Aangepast". A shared tone carries its glyph
+   * when it has one, with a hidden word for what the glyph says; the rest of the words are the
+   * host's (in the value or its slot).
    */
   tone?: DescriptionTone
   /** The name of a slot drawn under the value, for what a string cannot say (a meter, a button). */
@@ -79,7 +83,20 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
     if (isPlainClick(event)) this.followLink(href, event)
   }
 
+  private slotOnly(item: DescriptionItem): boolean {
+    const missing = item.value === null || item.value === undefined || item.value === ''
+    return Boolean(item.slot) && missing && !item.tags && !item.tone
+  }
+
   private value(item: DescriptionItem): TemplateResult {
+    if (item.keys) {
+      return item.keys.length
+        ? // The space keeps "Ctrl S" two words for a screen reader; the flex gap draws it.
+          html`<span class="lintje-description-list__keys"
+            >${item.keys.map((key, i) => html`${i ? ' ' : ''}<lintje-key key=${key}></lintje-key>`)}</span
+          >`
+        : html`<span class="lintje-description-list__missing">Geen</span>`
+    }
     if (item.tags) {
       return item.tags.length
         ? html`<ul class="lintje-description-list__tags">
@@ -123,6 +140,9 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
   private renderItem(item: DescriptionItem): TemplateResult {
     const grid = this.layout === 'grid'
     const tone = item.tone
+    // The glyph is hidden; its word is read before the value, once, also while the icon loads.
+    const shared = tone && tone !== 'changed' ? tone : undefined
+    const glyph = shared && TONE_ICON[shared]
     return html`<div
       class=${classMap({
         'lintje-description-list__row': true,
@@ -135,10 +155,21 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
         >${grid && item.icon ? renderIcon(item.icon, { size: 16 }) : nothing}${item.label}</dt
       >
       <dd class="lintje-description-list__value">
-        <span class="lintje-description-list__main">
-          ${tone && tone !== 'changed' ? renderIcon(TONE_ICON[tone], { size: 16 }) : nothing}
-          ${this.value(item)}
-        </span>
+        ${
+          // A slot that says it all stands where the value would, not after an empty one.
+          this.slotOnly(item)
+            ? nothing
+            : html`<span class="lintje-description-list__main">
+                ${
+                  shared && glyph
+                    ? html`${renderIcon(glyph, { size: 16 })}<span class="visually-hidden"
+                        >${TONE_WORD[shared]}</span
+                      >`
+                    : nothing
+                }
+                ${this.value(item)}
+              </span>`
+        }
         ${item.slot ? html`<slot name=${item.slot}></slot>` : nothing}
         ${
           tone === 'changed'

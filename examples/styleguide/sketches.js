@@ -46,6 +46,7 @@ export const SKETCHES = {
   tile: { frame: 'tile', rows: 't40 / s30 / img / s40' },
   tabs: { rows: 'tab / l90 / l70 / l50' },
   expander: { rows: '[t50 sp chevd]' },
+  accordion: { rows: 'rule / chevd t50 / rule / chevd t40 / ind l60 / rule / chevd t55 / rule' },
   'split-pane': { rows: 'split' },
   // Overlays
   modal: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'modal', layer: 't50 / l80 / l60 / sp bo25 b30' },
@@ -66,6 +67,7 @@ export const SKETCHES = {
   // Text and media
   prose: { rows: 'T50 / l90 / l80 / l85 / l40' },
   code: { frame: 'code', rows: 'l30 / l60 / l50 / l70 / l20' },
+  key: { center: true, rows: 'bo14 bo14' },
   highlight: { rows: 'l25 mark35 / l70' },
   'token-value': { rows: 'l30 cbx l20 / l30 cbx l20 / l30 l35' },
   translator: { frame: 'tile', rows: 'se io se / split' },
@@ -75,6 +77,7 @@ export const SKETCHES = {
   'log-viewer': { frame: 'code', rows: 's15 chip l50 / s15 chip l70 / | s15 chip l40 / s15 chip l60' },
   'document-viewer': { frame: 'tile', rows: 't30 sp chevl s15 chev / i i s10 sp i / doc' },
   gallery: { rows: 'img / cell cell cell' },
+  attachment: { center: true, rows: 'chip chip / chip' },
   // Messages and status
   announcement: { frame: 'band', rows: 'i t60 / l60' },
   toast: { frame: 'page', rows: 'l90 / l70 / l50 / l60', over: 'toast', layer: 't70 / l60' },
@@ -112,7 +115,7 @@ export const SKETCHES = {
   'date-range': { rows: 's20 / inic' },
   'slot-picker': { rows: 's30 / s15 s15 s15 / bx bx bx / bx bx bx' },
   'file-upload': { frame: 'drop', center: true, rows: 'bo35 l30 / s45' },
-  'text-editor': { rows: 's20 / [s5 s5 s5 s15 s10] / ta' },
+  'text-editor': { rows: 's20 / [s5 s5 s5 i i] / ta' },
   // Forms
   form: { rows: 's20 / in / s25 / in / s25 sp bo20 b20' },
   'form-section': { frame: 'tile', rows: 'T40 / s20 / in in40' },
@@ -143,11 +146,15 @@ export const SKETCHES = {
   'tree-view': { rows: 'chevd l30 / ind chevd l35 / ind ind ind l30 / # ind ind ind t30 / ind ind ind l30 / ind chev l25' },
   'sortable-list': { rows: '[grip l30] / [grip l40] / [grip l25]' },
   'activity-log': { rows: 't30 / log' },
+  person: { center: true, rows: 'av t40' },
+  'person-group': { center: true, rows: 'av av av av' },
   // Chat
   chat: { frame: 'page', rows: 'sp s10 i bubble50 / l60 / tbl' },
   'chat-message': { rows: 'sp s10 i bubble60' },
   'chat-answer': { rows: 't90 / l50 / kpi kpi kpi' },
+  'chat-steps': { rows: 'i s30 chevd / | s40 / | s50 / | s35' },
   'chat-composer': { frame: 'tile', rows: 'l80 / s5 / se35 sp b30' },
+  'chat-questions': { frame: 'tile', rows: 'prog / t50 / ra l40 / rax l35 / ra l30 / sp bt15 b25' },
   'chat-strip': { rows: 's15 s15 s15 / l25 u15 u15 / s20 / u25' },
   'chat-suggestions': { rows: 's40 / dash60 / dash45 dash45' },
 }
@@ -162,6 +169,8 @@ export const KIND_SKETCHES = {
   'grouped-bar': 'cgroup',
   'stacked-bar': 'cstack',
   pie: 'cpie',
+  treemap: 'ctree',
+  sankey: 'csankey',
   histogram: 'chist',
   heatmap: 'cheat',
   scatter: 'cscatter',
@@ -188,12 +197,16 @@ const CHARTS = {
     '<g class="i"><rect x="8" y="26" width="16" height="24"/><rect x="32" y="20" width="16" height="30"/><rect x="56" y="30" width="16" height="20"/><rect x="80" y="22" width="16" height="28"/></g><g class="w"><rect x="8" y="10" width="16" height="16"/><rect x="32" y="6" width="16" height="14"/><rect x="56" y="14" width="16" height="16"/><rect x="80" y="4" width="16" height="18"/></g>',
   cpie:
     '<circle class="w" cx="50" cy="25" r="23"/><path class="i" d="M50 25 L50 2 A23 23 0 0 1 71 34 Z"/>',
+  csankey:
+    '<g class="w" opacity=".5"><path d="M10 4 C30 4 30 2 50 2 L50 30 C30 30 30 32 10 32 Z"/><path d="M10 32 C30 32 30 34 50 34 L50 46 C30 46 30 46 10 46 Z"/><path d="M58 2 C76 2 76 4 92 4 L92 22 C76 22 76 20 58 20 Z"/><path d="M58 20 C76 20 76 28 92 28 L92 38 C76 38 76 30 58 30 Z"/><path d="M58 34 C76 34 76 38 92 38 L92 46 C76 46 76 42 58 42 Z"/></g><g class="i"><rect x="4" y="4" width="6" height="42"/><rect x="50" y="2" width="8" height="28"/><rect x="50" y="34" width="8" height="12"/><rect x="92" y="4" width="6" height="18"/><rect x="92" y="28" width="6" height="18"/></g>',
   chist:
     '<g class="i"><rect x="0" y="36" width="16" height="14"/><rect x="17" y="20" width="16" height="30"/><rect x="34" y="6" width="16" height="44"/><rect x="51" y="16" width="16" height="34"/><rect x="68" y="30" width="16" height="20"/><rect x="85" y="42" width="15" height="8"/></g>',
   cheat:
     '<g class="w"><rect x="0" y="0" width="24" height="12"/><rect x="50" y="0" width="24" height="12"/><rect x="26" y="13" width="24" height="12"/><rect x="76" y="13" width="24" height="12"/><rect x="0" y="26" width="24" height="12"/><rect x="50" y="38" width="24" height="12"/></g><g class="i"><rect x="26" y="0" width="24" height="12"/><rect x="76" y="0" width="24" height="12"/><rect x="0" y="13" width="24" height="12"/><rect x="50" y="13" width="24" height="12"/><rect x="26" y="26" width="24" height="12"/><rect x="76" y="26" width="24" height="12"/><rect x="0" y="38" width="24" height="12"/><rect x="26" y="38" width="24" height="12"/><rect x="76" y="38" width="24" height="12"/><rect x="50" y="26" width="24" height="12"/></g>',
   cscatter:
     '<g class="i"><circle cx="8" cy="42" r="3"/><circle cx="22" cy="36" r="3"/><circle cx="34" cy="38" r="3"/><circle cx="48" cy="26" r="3"/><circle cx="60" cy="30" r="3"/><circle cx="74" cy="18" r="3"/><circle cx="88" cy="12" r="3"/></g><line class="w" x1="0" y1="22" x2="100" y2="22" stroke-dasharray="3 3"/>',
+  ctree:
+    '<rect class="i" x="0" y="0" width="54" height="50"/><g class="w"><rect x="56" y="0" width="44" height="28"/><rect x="56" y="30" width="26" height="20"/><rect x="84" y="30" width="16" height="20"/></g>',
   cradar:
     '<polygon class="w" fill="none" points="50,2 72,13.5 72,36.5 50,48 28,36.5 28,13.5"/><polygon class="i" points="50,8 66,16.5 62,32 50,44 34,34 30,14"/>',
   cdumbbell:

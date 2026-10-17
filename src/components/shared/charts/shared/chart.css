@@ -60,6 +60,24 @@
 .lintje-chart__line { stroke-width: 2.5; fill: none; stroke-linejoin: round; }
 /* 1 px either side of the line, under it (`lineCasing`). */
 .lintje-chart__line--casing { stroke-width: 4.5; }
+/* A forecast is dotted, and only a forecast: dashes belong to a comparison and a threshold.
+   A casing under it is dotted too, so each dot keeps its edge. */
+.lintje-chart__line--forecast { stroke-dasharray: 0 5; stroke-linecap: round; }
+/* The forecast's part of the drawing, under the grid. */
+.lintje-chart__forecast-ground { fill: var(--color-bg-subtle); }
+/* The margin of a forecast fills as a line chart's area does, but only alone or with emphasis:
+   overlapping margins mix into a colour no variable has. Every band is drawn, so the emphasis
+   only fills one. */
+.lintje-chart__band { fill-opacity: 0; transition: fill-opacity var(--dur-hover) var(--ease-in-motion); }
+.lintje-chart__band.is-filled { fill-opacity: .14; }
+/* Of more series the one pointed at in the legend leads; the others step back as in a radar. */
+.lintje-chart__series.is-muted { opacity: .45; }
+/* A forecast bar is open: its colour faint with an edge (`stroke`), never the full colour of a
+   measured one. Its muted state outweighs that of any mark, so it stays fainter. */
+.lintje-chart__bar.lintje-chart__bar--forecast { fill-opacity: .14; stroke-width: 1.5; }
+.lintje-chart__bar.lintje-chart__bar--forecast.is-muted { fill-opacity: .06; stroke-opacity: .45; }
+/* The margin of a forecast bar: a line from low to high with caps. */
+.lintje-chart__interval { fill: none; stroke-width: 1.5; pointer-events: none; }
 
 /* Bars. transform-box: fill-box puts the origin in the bar's own box instead of the svg's:
    a bar widens around its own middle. A horizontal bar is anchored at the category axis. */
@@ -290,9 +308,39 @@
   background: repeating-linear-gradient(45deg, var(--color-chart-hatch) 0 2px, transparent 2px 6px);
   border: 1px solid var(--color-border-default);
 }
+/* A sankey's flow: a band in its colour at the tint the bands are drawn in. */
+.lintje-legend__marker--flow {
+  width: 16px; height: 10px;
+  background: color-mix(in srgb, currentColor 25%, transparent);
+}
 .lintje-legend__marker--dashed {
   width: 14px; height: 0;
   border-top: 2px dashed currentColor;
+}
+/* A forecast's keys: its dotted line, its open bar, and its margin as a band or with caps. */
+.lintje-legend__marker--dotted {
+  width: 16px; height: 0;
+  border-top: 3px dotted currentColor;
+}
+.lintje-legend__marker--open,
+.lintje-legend__marker--band {
+  position: relative;
+  width: 12px; height: 12px;
+  border: 1.5px solid currentColor;
+}
+.lintje-legend__marker--band { border-width: 1px; }
+.lintje-legend__marker--open::before,
+.lintje-legend__marker--band::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: .14;
+}
+.lintje-legend__marker--interval {
+  width: 9px; height: 12px;
+  border-block: 1.5px solid currentColor;
+  background: linear-gradient(currentColor, currentColor) center / 1.5px 100% no-repeat;
 }
 
 /* --- Tooltip ------------------------------------------------------------- */
@@ -311,12 +359,29 @@
   max-width: 320px;
 }
 .lintje-chart-tooltip__title { font-weight: 700; margin-bottom: 4px; }
+.lintje-chart-tooltip__kicker { color: var(--color-text-muted); }
+.lintje-chart-tooltip__title-note { font-weight: 400; color: var(--color-text-muted); }
 .lintje-chart-tooltip__row { display: flex; align-items: center; gap: var(--space-2); justify-content: space-between; }
 .lintje-chart-tooltip__label { display: flex; align-items: center; gap: var(--space-2); }
 .lintje-chart-tooltip__marker { width: 10px; height: 10px; flex: none; }
 .lintje-chart-tooltip__marker--symbol { width: 14px; height: 14px; }
 .lintje-chart-tooltip__marker--line { width: 14px; height: 3px; background: currentColor; }
 .lintje-chart-tooltip__marker--dashed { width: 14px; height: 0; border-top: 2px dashed currentColor; }
+.lintje-chart-tooltip__marker--dotted { width: 14px; height: 0; border-top: 3px dotted currentColor; }
+.lintje-chart-tooltip__marker--open { position: relative; border: 1.5px solid currentColor; }
+.lintje-chart-tooltip__marker--open::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: .14;
+}
+/* A forecast's margin under its value: no swatch, in line with the series' name, quieter. */
+.lintje-chart-tooltip__row--note .lintje-chart-tooltip__label {
+  padding-left: calc(14px + var(--space-2));
+  color: var(--color-text-muted);
+}
+.lintje-chart-tooltip__row--note .lintje-chart-tooltip__value { font-weight: 400; }
 .lintje-chart-tooltip__row--divider {
   border-top: 1px solid var(--color-border-popover);
   margin-top: var(--space-1);
@@ -344,7 +409,11 @@
    with a ring in the surface color, so it stays legible on the line and on the
    filled area below it. No animation: hover does not redraw. */
 .lintje-chart__hover-point { stroke: var(--color-bg-surface); stroke-width: 2; pointer-events: none; }
-/* The edge of a dark-yellow hover point (`lineCasing`), over its ring. */
+/* On a forecast the point is open: the surface inside a ring in the series' colour (`color`). */
+.lintje-chart__hover-point--forecast { fill: var(--color-bg-surface); stroke: currentColor; }
+/* The point the keyboard stands on. */
+.lintje-chart__focus-point { fill: none; stroke: var(--color-focus); stroke-width: 3; pointer-events: none; }
+/* The edge of a light-coloured hover point (`lineCasing`), over its ring. */
 .lintje-chart__hover-casing { fill: none; stroke-width: 1; pointer-events: none; }
 
 /* The scatter plot's one pointer target, under its points: the nearest point within half of
@@ -502,6 +571,8 @@
   .lintje-chart__reveal,
   .lintje-chart__hover-point,
   .lintje-chart__hover-casing,
+  .lintje-chart__band,
+  .lintje-chart__interval,
   .lintje-chart__hit,
   .lintje-chart__off-axis,
   .lintje-dumbbell__link,
@@ -536,6 +607,7 @@
   .lintje-chart__mark.is-selected { stroke: CanvasText; }
   .lintje-chart__focus-ring { flood-color: Highlight; }
   .lintje-dumbbell__focus { stroke: Highlight; }
+  .lintje-chart__focus-point { stroke: Highlight; }
   .lintje-chart__focus-gap { flood-color: Canvas; }
   /* An event's square in the reader's text colour, its number in the canvas. */
   .lintje-chart__event-line { stroke: CanvasText; }
