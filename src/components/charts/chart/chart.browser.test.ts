@@ -293,7 +293,8 @@ describe('the image of a chart', () => {
         names.push(this.download)
       })
       modal.dispatchEvent(new CustomEvent('lintje-download-png'))
-      await expect.poll(() => names).toEqual(['aanvragen-per-week.png'])
+      // Drawing and encoding the PNG takes longer than a poll's second on a busy runner.
+      await expect.poll(() => names, { timeout: 5000 }).toEqual(['aanvragen-per-week.png'])
       const blob = saved.mock.calls[0][0] as Blob
       expect(blob.type).toBe('image/png')
       const picture = await createImageBitmap(blob)
