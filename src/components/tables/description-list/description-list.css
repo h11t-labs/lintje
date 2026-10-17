@@ -1,7 +1,4 @@
 :host { display: block; min-width: 0; }
-/* A size container has no width of its own: in a column that shrinks to its content it would
-   be none, so the grid takes the room it stands in. */
-:host([layout='grid']) { container-type: inline-size; width: 100%; }
 :host([hidden]) { display: none; }
 
 /* ------------------------------------------------------------------------ */
@@ -52,13 +49,13 @@
 .lintje-description-list--column .lintje-description-list__label { padding: 0; font: var(--text-small); }
 .lintje-description-list--column .lintje-description-list__value { padding: 0; }
 @media screen and (max-width: 767px) {
-  .lintje-description-list:not(.lintje-description-list--grid) .lintje-description-list__row { display: block; border-bottom: 0; }
-  .lintje-description-list:not(.lintje-description-list--grid) .lintje-description-list__row + .lintje-description-list__row { margin-top: 10px; }
-  .lintje-description-list:not(.lintje-description-list--grid) .lintje-description-list__label { padding: 0; font: var(--text-small); }
-  .lintje-description-list:not(.lintje-description-list--grid) .lintje-description-list__value { padding: 0; }
+  .lintje-description-list__row { display: block; border-bottom: 0; }
+  .lintje-description-list__row + .lintje-description-list__row { margin-top: 10px; }
+  .lintje-description-list__label { padding: 0; font: var(--text-small); }
+  .lintje-description-list__value { padding: 0; }
 }
 
-.lintje-description-list__main { display: inline-flex; align-items: baseline; gap: var(--space-2); min-width: 0; }
+.lintje-description-list__main { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); min-width: 0; }
 .lintje-description-list__main .lintje-icon { align-self: center; flex: none; }
 .lintje-description-list__keys { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
 .lintje-description-list__tags { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
@@ -71,105 +68,17 @@
   font-weight: 700;
 }
 
-/* --- Grid: cells side by side, divided by a line, each with its own tone ----------------- */
-.lintje-description-list--grid {
-  display: grid;
-  grid-template-columns: repeat(var(--lintje-columns, 4), minmax(0, 1fr));
-  gap: 1px;
-  background: var(--color-border-default);
-}
-.lintje-description-list--grid .lintje-description-list__row {
-  display: flex; flex-direction: column; gap: var(--space-1);
-  min-width: 0;
-  padding: var(--space-3) var(--space-4);
-  border: 0;
-  background: var(--color-bg-subtle);
-}
-.lintje-description-list--grid .lintje-description-list__row.is-wide { grid-column: span 2; }
-/* On a surface that is not the page's own (a hero's wash) the cells are panels: the surface, framed. */
-:host([surface]) .lintje-description-list--grid { border: 1px solid var(--color-border-default); }
-:host([surface]) .lintje-description-list--grid .lintje-description-list__row:not(.is-changed):not(.is-success):not(.is-info):not(.is-attention):not(.is-warning):not(.is-error) {
-  background: var(--color-bg-surface);
-}
-.lintje-description-list--grid .lintje-description-list__label {
-  display: flex; align-items: center; gap: var(--space-2);
-  padding: 0;
-  font: var(--text-small);
-}
-.lintje-description-list--grid .lintje-description-list__value {
-  /* The values of one row stand on one line, however tall each is. */
-  flex: 1 1 auto;
-  flex-direction: column; align-items: flex-start; justify-content: center;
-  gap: var(--space-2);
-  padding: 0;
-  font-weight: 700;
-}
-/* What differs from the default: the chosen option's quiet surface with an edge on top. */
-.lintje-description-list--grid .is-changed {
-  background: var(--color-choice-active-bg);
-  box-shadow: inset 0 3px 0 var(--color-accent-line);
-}
-.lintje-description-list--grid .lintje-description-list__row.is-success {
-  background: var(--color-success-bg);
-  box-shadow: inset 0 3px 0 var(--color-success-line);
-}
-.lintje-description-list--grid .lintje-description-list__row.is-info {
-  background: var(--color-info-bg);
-  box-shadow: inset 0 3px 0 var(--color-info-line);
-}
-.lintje-description-list--grid .lintje-description-list__row.is-attention {
-  background: var(--color-attention-bg);
-  box-shadow: inset 0 3px 0 var(--color-attention-line);
-}
-.lintje-description-list--grid .lintje-description-list__row.is-warning {
-  background: var(--color-warning-bg);
-  box-shadow: inset 0 3px 0 var(--color-attention-line);
-}
-.lintje-description-list--grid .lintje-description-list__row.is-error {
-  background: var(--color-error-bg);
-  box-shadow: inset 0 3px 0 var(--color-error-line);
-}
-/* A word on a status tint: in dark the link colour falls short there. The hover keeps its own. */
-.lintje-description-list--grid .is-success .lintje-description-list__link,
-.lintje-description-list--grid .is-success .lintje-description-list__action,
-.lintje-description-list--grid .is-info .lintje-description-list__link,
-.lintje-description-list--grid .is-info .lintje-description-list__action,
-.lintje-description-list--grid .is-attention .lintje-description-list__link,
-.lintje-description-list--grid .is-attention .lintje-description-list__action,
-.lintje-description-list--grid .is-warning .lintje-description-list__link,
-.lintje-description-list--grid .is-warning .lintje-description-list__action,
-.lintje-description-list--grid .is-error .lintje-description-list__link,
-.lintje-description-list--grid .is-error .lintje-description-list__action { color: var(--color-link-on-status); }
-.lintje-description-list--grid .lintje-description-list__row .lintje-description-list__link:hover,
-.lintje-description-list--grid .lintje-description-list__row .lintje-description-list__action:hover { color: var(--color-link-hover); }
-.lintje-description-list__row.is-success .lintje-description-list__main .lintje-icon { color: var(--color-success-line); }
-.lintje-description-list__row.is-info .lintje-description-list__main .lintje-icon { color: var(--color-info-line); }
-.lintje-description-list__row.is-error .lintje-description-list__main .lintje-icon { color: var(--color-error-line); }
-.lintje-description-list__row.is-attention .lintje-description-list__main .lintje-icon { color: var(--color-attention-line); }
-.lintje-description-list__row.is-warning .lintje-description-list__main .lintje-icon { color: var(--color-attention-line); }
-.lintje-description-list__row.is-busy .lintje-description-list__main .lintje-icon { color: var(--color-accent-text); }
-.lintje-description-list__row.is-neutral .lintje-description-list__main .lintje-icon { color: var(--color-text-muted); }
-.lintje-description-list__row.is-subtle .lintje-description-list__main .lintje-icon { color: var(--color-text-muted); }
-.lintje-description-list__row.is-live .lintje-description-list__main .lintje-icon { color: var(--color-error-line); }
-.lintje-description-list--grid .lintje-description-list__action { font: var(--text-small); font-weight: 700; }
-.lintje-description-list--grid .is-large .lintje-description-list__value {
-  font: var(--text-kpi);
-  letter-spacing: var(--kpi-tracking);
-  font-variant-numeric: tabular-nums;
-}
-@container (max-width: 30rem) {
-  .lintje-description-list--grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  /* A wide cell, and a last one alone on its row, take the whole row: no empty cell beside it. */
-  .lintje-description-list--grid .lintje-description-list__row.is-wide,
-  .lintje-description-list--grid .lintje-description-list__row:last-child:nth-child(odd) {
-    grid-column: 1 / -1;
-  }
-}
+/* A tone is its glyph before the value; the words stay the host's. */
+.is-success .lintje-description-list__main .lintje-icon { color: var(--color-success-line); }
+.is-info .lintje-description-list__main .lintje-icon { color: var(--color-info-line); }
+.is-error .lintje-description-list__main .lintje-icon,
+.is-live .lintje-description-list__main .lintje-icon { color: var(--color-error-line); }
+.is-attention .lintje-description-list__main .lintje-icon,
+.is-warning .lintje-description-list__main .lintje-icon { color: var(--color-attention-line); }
+.is-busy .lintje-description-list__main .lintje-icon { color: var(--color-accent-text); }
+.is-neutral .lintje-description-list__main .lintje-icon,
+.is-subtle .lintje-description-list__main .lintje-icon { color: var(--color-text-muted); }
 
 @media (prefers-reduced-motion: reduce) {
   .lintje-description-list__action { transition: none; }
-}
-
-@media (forced-colors: active) {
-  .lintje-description-list--grid .lintje-description-list__row { border: 1px solid CanvasText; }
 }

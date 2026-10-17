@@ -2,7 +2,8 @@
  * `<lintje-description-list>` — label-value pairs for a detail or a review screen, a real `<dl>`.
  *
  * A missing value (`null`, `undefined` or `''`) is a muted dash, never 0. A plain click on a link
- * is cancelled and sent as `lintje-navigate`.
+ * is cancelled and sent as `lintje-navigate`. The facts of one thing side by side are
+ * `<lintje-cells>`.
  *
  * Events: `lintje-navigate` `{ href }`.
  */
@@ -13,7 +14,6 @@ import { LintjeGridItemElement, spanStyles } from '../../shared/grid-item-elemen
 import { shadowCss } from '../../../core/styles'
 import descriptionListCss from './description-list.css?inline'
 import { isPlainClick } from '../../../core/links'
-import { styleProps } from '../../../core/style-props'
 import { TONE_ICON, TONE_WORD, type Tone } from '../../shared/tone'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { badgeStyles, renderBadge } from '../../feedback/badge/badge'
@@ -37,24 +37,21 @@ export interface DescriptionItem {
   tags?: string[]
   /** The value as keyboard keys, one `lintje-key` each (`keyLabels()`); `value` is then left out. */
   keys?: string[]
-  /** Grid: an icon by the label, by file name. */
-  icon?: string
-  /** Grid: two columns instead of one. */
-  span?: 1 | 2
-  /** Grid: the one figure a reader looks at, as large as a key figure. */
-  large?: boolean
   /**
    * `changed`: differs from the default, and says "Aangepast". A shared tone carries its glyph
    * when it has one, with a hidden word for what the glyph says; the rest of the words are the
    * host's (in the value or its slot).
    */
   tone?: DescriptionTone
-  /** The name of a slot drawn under the value, for what a string cannot say (a meter, a button). */
+  /**
+   * The name of a slot drawn under the value, for what a string cannot say (a person). Without a
+   * value it stands where the value would.
+   */
   slot?: string
 }
 
 export type DescriptionTone = 'changed' | Tone
-export type DescriptionListLayout = 'row' | 'column' | 'grid'
+export type DescriptionListLayout = 'row' | 'column'
 
 export class LintjeDescriptionList extends LintjeGridItemElement {
   static override styles = [iconStyles, badgeStyles, spanStyles, shadowCss(descriptionListCss)]
@@ -62,21 +59,10 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
   static override properties: PropertyDeclarations = {
     items: { attribute: false },
     layout: { type: String, reflect: true },
-    columns: { type: Number },
-    surface: { type: Boolean, reflect: true },
   }
 
   items: DescriptionItem[] = []
-  /** Grid: how many cells stand side by side where there is room; two below 30rem. */
-  columns: number = 4
-  /** Grid: the cells take the surface and a frame, for a wash such as the hero's. */
-  surface: boolean = false
-  /**
-   * `column` keeps the label above the value at every width; `row` only below 768 px. `grid` sets
-   * the pairs as cells side by side, for a summary of what is about to happen ("Deze opname"): a
-   * cell can take two columns, an icon and a tone, show its value as tags, and take richer content
-   * through a slot named by the item (`slot`).
-   */
+  /** `column` keeps the label above the value at every width; `row` only below 768 px. */
   layout: DescriptionListLayout = 'row'
 
   private follow(event: MouseEvent, href: string): void {
@@ -85,7 +71,7 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
 
   private slotOnly(item: DescriptionItem): boolean {
     const missing = item.value === null || item.value === undefined || item.value === ''
-    return Boolean(item.slot) && missing && !item.tags && !item.tone
+    return Boolean(item.slot) && missing && !item.tags && !item.keys && !item.tone
   }
 
   private value(item: DescriptionItem): TemplateResult {
@@ -105,8 +91,6 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
         : html`<span class="lintje-description-list__missing">Geen</span>`
     }
     const missing = item.value === null || item.value === undefined || item.value === ''
-    // A cell whose slot says it all has no value of its own, and no dash either.
-    if (missing && item.slot) return html``
     if (missing) {
       return html`<span class="lintje-description-list__missing"
         ><span aria-hidden="true">—</span><span class="visually-hidden">geen waarde</span></span
@@ -138,7 +122,6 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
   }
 
   private renderItem(item: DescriptionItem): TemplateResult {
-    const grid = this.layout === 'grid'
     const tone = item.tone
     // The glyph is hidden; its word is read before the value, once, also while the icon loads.
     const shared = tone && tone !== 'changed' ? tone : undefined
@@ -146,14 +129,10 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
     return html`<div
       class=${classMap({
         'lintje-description-list__row': true,
-        'is-wide': grid && item.span === 2,
-        'is-large': grid && Boolean(item.large),
         [`is-${tone}`]: Boolean(tone),
       })}
     >
-      <dt class="lintje-description-list__label"
-        >${grid && item.icon ? renderIcon(item.icon, { size: 16 }) : nothing}${item.label}</dt
-      >
+      <dt class="lintje-description-list__label">${item.label}</dt>
       <dd class="lintje-description-list__value">
         ${
           // A slot that says it all stands where the value would, not after an empty one.
@@ -168,18 +147,18 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
                     : nothing
                 }
                 ${this.value(item)}
+                ${
+                  tone === 'changed'
+                    ? renderBadge({
+                        value: 'Aangepast',
+                        tone: 'neutral',
+                        className: 'lintje-description-list__changed',
+                      })
+                    : nothing
+                }
               </span>`
         }
         ${item.slot ? html`<slot name=${item.slot}></slot>` : nothing}
-        ${
-          tone === 'changed'
-            ? renderBadge({
-                value: 'Aangepast',
-                tone: 'neutral',
-                className: 'lintje-description-list__changed',
-              })
-            : nothing
-        }
         ${this.action(item)}
       </dd>
     </div>`
@@ -189,11 +168,8 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
     const classes = classMap({
       'lintje-description-list': true,
       'lintje-description-list--column': this.layout === 'column',
-      'lintje-description-list--grid': this.layout === 'grid',
     })
-    return html`<dl class=${classes} ${styleProps({ '--lintje-columns': String(this.columns) })}>
-      ${this.items.map((item) => this.renderItem(item))}
-    </dl>`
+    return html`<dl class=${classes}>${this.items.map((item) => this.renderItem(item))}</dl>`
   }
 }
 
