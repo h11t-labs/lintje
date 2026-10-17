@@ -13,7 +13,9 @@ import '../../components/feedback/conflict-alert/conflict-alert'
 import '../../components/tables/data-table/data-table'
 import '../../components/filters/filter-zone/filter-zone'
 import '../../components/forms/form/form'
+import '../../components/inputs/checkbox-group/checkbox-group'
 import '../../components/inputs/date-input/date-input'
+import '../../components/inputs/radio-group/radio-group'
 import '../../components/inputs/time-input/time-input'
 import '../../components/inputs/date-range/date-range'
 import '../../components/inputs/file-upload/file-upload'
@@ -473,6 +475,36 @@ const FILE_UPLOAD_ROWS: Row[] = [
       return () => button(upload.shadowRoot!.querySelector('.lintje-file-upload__button'))
     },
   },
+  {
+    name: 'lintje-file-upload :: "Bestanden kiezen" keeps its focus through a drag over the page',
+    run: async () => {
+      const upload = await uploadWith([])
+      const chooser = (): HTMLElement | null =>
+        upload.shadowRoot!.querySelector<HTMLElement>('.lintje-file-upload__button')
+      await expect.poll(() => button(chooser())).toBeTruthy()
+      button(chooser())!.focus()
+      const data = new DataTransfer()
+      data.items.add(new File(['inhoud'], 'verslag.pdf', { type: 'application/pdf' }))
+      const drag = async (type: string): Promise<void> => {
+        document.body.dispatchEvent(
+          new DragEvent(type, {
+            dataTransfer: data,
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+          }),
+        )
+        await (upload as unknown as Updating).updateComplete
+      }
+      await drag('dragenter')
+      expect(chooser()!.classList.contains('visually-hidden')).toBe(true)
+      expect(active()).toBe(button(chooser()))
+      await drag('drop')
+      expect(chooser()!.classList.contains('visually-hidden')).toBe(false)
+      expect(chooser()!.getBoundingClientRect().width).toBeGreaterThan(1)
+      return () => button(chooser())
+    },
+  },
 ]
 
 /* --- lintje-transcript ----------------------------------------------------- */
@@ -668,7 +700,59 @@ async function tagInput(): Promise<HTMLElement> {
   })
 }
 
+const SOURCES = [
+  { value: 'gemeente', label: 'Via de gemeente' },
+  { value: 'website', label: 'Op de website' },
+]
+
+/** A group with "Anders" chosen and the focus in its field. */
+async function otherOpen<T extends HTMLElement>(tag: string, props: object): Promise<T> {
+  const group = await mount<T>(tag, {
+    name: 'bron',
+    label: 'Hoe hoorde u van de regeling?',
+    options: SOURCES,
+    other: true,
+    ...props,
+  })
+  const field = (): HTMLElement | null => inside(group, '[data-other]', 'input')
+  await expect.poll(field).toBeTruthy()
+  field()!.focus()
+  await expect.poll(() => active() === field()).toBe(true)
+  return group
+}
+
 const INPUT_ROWS: Row[] = [
+  {
+    name: 'lintje-radio-group :: the host sets a value without "Anders": the focus goes to the option',
+    run: async () => {
+      const group = await otherOpen<HTMLElement & { value: string }>('lintje-radio-group', {
+        value: 'other',
+      })
+      group.value = 'website'
+      return () => inside(group, 'input[value="other"]')
+    },
+  },
+  {
+    name: 'lintje-checkbox-group :: a form reset takes "Anders" away: the focus goes to the option',
+    run: async () => {
+      const form = document.createElement('form')
+      document.body.append(form)
+      const group = document.createElement('lintje-checkbox-group')
+      form.append(group)
+      Object.assign(group, {
+        name: 'bron',
+        label: 'Hoe hoorde u van de regeling?',
+        options: SOURCES,
+        other: true,
+      })
+      await (group as unknown as Updating).updateComplete
+      inside(group, '.lintje-checkbox-group__other', 'input')!.click()
+      const field = (): HTMLElement | null => inside(group, '[data-other]', 'input')
+      await expect.poll(() => active() === field()).toBe(true)
+      form.reset()
+      return () => inside(group, '.lintje-checkbox-group__other', 'input')
+    },
+  },
   {
     name: 'lintje-tag-input :: a chip’s cross, clicked, hands its focus to the field',
     run: async () => {
@@ -717,7 +801,7 @@ const INPUT_ROWS: Row[] = [
       })
       date.shadowRoot!.querySelector<HTMLElement>('.lintje-date-input__toggle')!.focus()
       await userEvent.keyboard('{Enter}')
-      await expect.poll(() => active()?.classList.contains('lintje-date-input__day')).toBe(true)
+      await expect.poll(() => active()?.classList.contains('lintje-month-grid__day')).toBe(true)
       await userEvent.keyboard('{Enter}')
       return () => date.shadowRoot!.querySelector('.lintje-date-input__control')
     },
@@ -777,6 +861,8 @@ const INPUT_ROWS: Row[] = [
       ['lintje-select', 'select'],
       ['lintje-segmented', '.lintje-segmented__option'],
       ['lintje-toggle', '.lintje-choice__input'],
+      ['lintje-text-input', 'input'],
+      ['lintje-textarea', 'textarea'],
     ] as const
   ).map(([tag, control]): Row => ({
     name: `${tag} :: the reset link, gone when the host resets, hands its focus to the control`,
@@ -829,6 +915,20 @@ const ENTRIES = Array.from({ length: 14 }, (_, index) => ({
   what: `Stap ${14 - index} afgerond`,
   when: `${index + 1} maart`,
 }))
+
+/** A job list with one failed job, the focus on its "Opnieuw". */
+async function lastJobFocused(): Promise<HTMLElement & { jobs: unknown[] }> {
+  const jobs = await mount<HTMLElement & { jobs: unknown[] }>('lintje-job-list', {
+    jobs: [
+      { id: 'j1', name: 'Rapport.docx', state: 'error', detail: 'Het bestand is beschadigd.' },
+    ],
+  })
+  const action = (): HTMLElement | null =>
+    button(inside(jobs.shadowRoot!.querySelector('lintje-list'), '.lintje-list__row lintje-button'))
+  await expect.poll(action).toBeTruthy()
+  action()!.focus()
+  return jobs
+}
 
 const NOTIFICATIONS = [
   { id: 'n1', title: 'Nieuwe aanvraag', when: '10:12', unread: true },
@@ -889,18 +989,24 @@ const COLLECTION_ROWS: Row[] = [
   {
     name: 'lintje-job-list :: the last job gone hands its focus to the status region',
     run: async () => {
-      const jobs = await mount<HTMLElement & { jobs: unknown[] }>('lintje-job-list', {
-        jobs: [
-          { id: 'j1', name: 'Rapport.docx', state: 'error', detail: 'Het bestand is beschadigd.' },
-        ],
-      })
-      const list = (): Element | null => jobs.shadowRoot!.querySelector('lintje-list')
-      const action = (): HTMLElement | null =>
-        button(inside(list(), '.lintje-list__row lintje-button'))
-      await expect.poll(action).toBeTruthy()
-      action()!.focus()
+      const jobs = await lastJobFocused()
       jobs.jobs = []
       return () => jobs.shadowRoot!.querySelector('[role="status"]')
+    },
+  },
+  {
+    name: 'lintje-job-list :: the last job gone, "lintje-jobs-empty" cancelled, hands its focus to the host\'s target',
+    run: async () => {
+      const jobs = await lastJobFocused()
+      const start = document.createElement('button')
+      start.textContent = 'Nieuwe export'
+      document.body.append(start)
+      jobs.addEventListener('lintje-jobs-empty', (event) => {
+        event.preventDefault()
+        start.focus()
+      })
+      jobs.jobs = []
+      return () => start
     },
   },
   {
@@ -942,6 +1048,23 @@ const MESSAGE_ROWS: Row[] = [
       await expect.poll(close).toBeTruthy()
       close()!.focus()
       await userEvent.keyboard('{Enter}')
+      return () => before
+    },
+  },
+  {
+    name: 'lintje-toast :: closed with Escape from inside, it hands the focus back to where it was',
+    run: async () => {
+      const before = Object.assign(document.createElement('button'), { textContent: 'Opslaan' })
+      document.body.append(before)
+      before.focus()
+      const toast = await mount<HTMLElement>('lintje-toast', {
+        kind: 'error',
+        textContent: 'Opslaan is mislukt.',
+      })
+      const close = (): HTMLElement | null => inside(toast, '.lintje-toast__close')
+      await expect.poll(close).toBeTruthy()
+      close()!.focus()
+      await userEvent.keyboard('{Escape}')
       return () => before
     },
   },
@@ -1335,7 +1458,9 @@ async function chosenSlice(
     clearHref: '/p',
   }
   const tile = await mount<ChartElement>('lintje-chart', { data })
+  // The host answers the clear itself, so the tile does not go to `clearHref`.
   tile.addEventListener('lintje-mark-select', (event) => {
+    event.preventDefault()
     if ((event as CustomEvent<{ id: string | null }>).detail.id === null) tile.data = answer(data)
   })
   const mark = (): HTMLElement | null =>
@@ -1526,7 +1651,7 @@ const VIEW_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-filter-zone :: "Filters tonen" hands its focus to "Filters verbergen"',
+    name: 'lintje-filter-zone :: "Filters", opening the zone, keeps its focus',
     run: async () => {
       const element = await zone(false, 0)
       await pressInZone(element, '.lintje-filter-toggle')
@@ -1535,7 +1660,7 @@ const VIEW_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-filter-zone :: the sentence, pressed, hands its focus to "Filters verbergen"',
+    name: 'lintje-filter-zone :: the sentence, pressed, hands its focus to "Filters"',
     run: async () => {
       const element = await zone(false, 0)
       await pressInZone(element, '.lintje-summary-bar__sentence')
@@ -1578,6 +1703,37 @@ const VIEW_ROWS: Row[] = [
       return field
     },
   },
+  ...(
+    [
+      ['the add button', (element: Element) => element.shadowRoot!.querySelector('lintje-button')],
+      [
+        'the remove button of a row',
+        (element: Element) =>
+          element
+            .querySelector('lintje-repeater-row')!
+            .shadowRoot!.querySelector('lintje-icon-button'),
+      ],
+    ] as const
+  ).map(([what, host]): Row => ({
+    name: `lintje-form :: ${what} of a repeater, disabled while the form saves, gets its focus back after`,
+    run: async () => {
+      const form = document.createElement('lintje-form') as HTMLElement & { busy: boolean }
+      const element = await repeater(2)
+      form.append(element)
+      document.body.append(form)
+      await (form as unknown as Updating).updateComplete
+      const control = (): HTMLElement | null => button(host(element))
+      await drawn(control)
+      control()!.focus()
+      form.busy = true
+      await expect.poll(() => (host(element) as { disabled?: boolean } | null)?.disabled).toBe(true)
+      form.busy = false
+      await expect
+        .poll(() => (host(element) as { disabled?: boolean } | null)?.disabled)
+        .toBe(false)
+      return control
+    },
+  })),
 ]
 
 /* --- lintje-sub-nav -------------------------------------------------------- */
@@ -1704,17 +1860,23 @@ const SHELL_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-shell :: the rail’s "Afmelden", gone on Escape, hands its focus to the menu item before it',
+    name: 'lintje-shell :: a row of the user menu in the rail’s foot, chosen, hands its focus to the foot',
     run: async () => {
       const element = await railWithFocusOn(
         {
           user: { name: 'M. Jansen', initials: 'MJ' },
-          logout: { href: '/afmelden', token: 'proef' },
+          userMenu: [{ value: 'profiel', label: 'Mijn profiel' }],
         },
-        '.lintje-nav__logout-button',
+        '.lintje-nav__user-menu',
       )
-      await userEvent.keyboard('{Escape}')
-      return () => [...element.shadowRoot!.querySelectorAll('.lintje-nav__list a')].at(-1) ?? null
+      const foot = (): HTMLElement | null =>
+        inside(element, '.lintje-nav__user-menu', '.lintje-user-menu__trigger')
+      foot()!.focus()
+      await userEvent.keyboard('{Enter}')
+      // Opened from the keyboard, the focus is on the menu's first row.
+      await expect.poll(() => active()?.textContent?.trim()).toBe('Mijn profiel')
+      await userEvent.keyboard('{Enter}')
+      return foot
     },
   },
   {
@@ -1756,8 +1918,7 @@ const SHELL_ROWS: Row[] = [
       const element = await shell({})
       element.addEventListener('lintje-navigate', (event) => event.preventDefault())
       await phone()
-      const menu = (): HTMLElement | null =>
-        inside(element, '[aria-controls="lintje-mobile-menu-panel"]')
+      const menu = (): HTMLElement | null => inside(element, '.lintje-mobile-header__button--menu')
       await drawn(menu)
       menu()!.focus()
       await userEvent.keyboard('{Enter}')

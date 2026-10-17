@@ -115,7 +115,7 @@ export function renderGroupedBarChart(spec: GroupedBarSpec, options: ChartOption
                     data-mark-id=${mark?.markId ?? nothing} role=${mark?.role ?? nothing}
                     tabindex=${mark?.tabIndex ?? nothing} aria-pressed=${mark?.pressed ?? nothing}
                     aria-label=${mark?.label ?? nothing} aria-hidden=${mark ? nothing : 'true'}
-                    @click=${mark?.click ?? nothing} @keydown=${mark?.keydown ?? nothing} />
+                    @click=${mark?.click ?? nothing} @auxclick=${mark?.click ?? nothing} @keydown=${mark?.keydown ?? nothing} />
               <!-- Every label keeps its node and fades, so one that fits after a switch does not
                    draw in again. -->
               <g class="lintje-chart__series ${!row.hidden && showLabels ? '' : 'is-off'}">

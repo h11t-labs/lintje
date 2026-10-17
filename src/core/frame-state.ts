@@ -13,6 +13,8 @@ export interface FrameState {
   modifiedCount: number
   summary: string
   hasFilters: boolean
+  /** Below 768 px, the height of the filter sentence that sticks under the bar; else 0. */
+  sentenceHeight: number
 }
 
 let state: FrameState = {
@@ -22,6 +24,7 @@ let state: FrameState = {
   modifiedCount: 0,
   summary: '',
   hasFilters: false,
+  sentenceHeight: 0,
 }
 
 const listeners = new Set<() => void>()
@@ -75,6 +78,7 @@ export function clearFilterZone(): void {
     hasFilters: false,
     modifiedCount: 0,
     summary: '',
+    sentenceHeight: 0,
     scrolled: false,
     sheetOpen: false,
   })

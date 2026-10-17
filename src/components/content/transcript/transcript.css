@@ -43,6 +43,9 @@
   background: color-mix(in srgb, var(--lintje-speaker, var(--color-chart-other)) var(--tint-speaker), var(--color-bg-surface));
   border-top-color: var(--color-bg-surface);
 }
+/* A link on the speaker's tint, the timecode among them, reads as on a status tint: in dark the
+   link colour falls short there. In a chat only the bubble is tinted. */
+:host([tinted]:not([layout='chat'])) .lintje-transcript__segment { --color-link: var(--color-link-on-status); }
 
 /* The fragment that sounds, and the one in editing: a ring, so the speaker's colour stays. */
 .lintje-transcript__segment.is-current,
@@ -86,13 +89,12 @@
   left: calc(-1 * var(--space-2));
   max-width: 100%;
 }
+/* Read-only, nothing in a fragment takes the focus, so no tooltip could show a cut name: it wraps. */
 .lintje-transcript__speaker.is-static {
   left: 0;
   font: var(--text-small);
   font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 .lintje-transcript__now { font: var(--text-small); color: var(--color-text-muted); }
 

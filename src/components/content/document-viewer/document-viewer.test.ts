@@ -88,6 +88,64 @@ describe('lintje-document-viewer', () => {
     expect(root(element).querySelector('img')!.getAttribute('src')).toBe('/brief/2.png')
   })
 
+  it('gives the toolbar one Tab stop that the arrows move round, and keeps Home and End for the pages', async () => {
+    const element = await mount({ page: 3 })
+    const pages = collect(element, 'lintje-page-change')
+    const toolbar = root(element).querySelector<HTMLElement>('[role="toolbar"]')!
+    const tools = (): HTMLButtonElement[] => [...toolbar.querySelectorAll('button')]
+    const stops = (): string[] =>
+      tools()
+        .filter((tool) => tool.getAttribute('tabindex') === '0')
+        .map((tool) => tool.getAttribute('aria-label') ?? tool.textContent!.trim())
+    const press = async (key: string): Promise<void> => {
+      root(element).activeElement!.dispatchEvent(
+        new KeyboardEvent('keydown', { key, bubbles: true, composed: true, cancelable: true }),
+      )
+      await element.updateComplete
+    }
+    expect(tools()).toHaveLength(6)
+    expect(stops()).toEqual(['Vorige pagina'])
+
+    tools()[0]!.focus()
+    await press('ArrowLeft')
+    expect(stops()).toEqual(['Downloaden'])
+    expect(root(element).activeElement).toBe(button(element, 'Downloaden'))
+    await press('ArrowRight')
+    await press('ArrowRight')
+    expect(stops()).toEqual(['Volgende pagina'])
+    expect(root(element).activeElement).toBe(button(element, 'Volgende pagina'))
+    await press('ArrowLeft')
+    expect(stops()).toEqual(['Vorige pagina'])
+
+    await press('End')
+    await press('Home')
+    expect(pages).toEqual([5, 1])
+    // An unavailable button stays a stop of the arrows.
+    expect(off(element, 'Vorige pagina')).toBe(true)
+    await press('ArrowRight')
+    await press('ArrowLeft')
+    expect(root(element).activeElement).toBe(button(element, 'Vorige pagina'))
+  })
+
+  it('gives the Tab stop to the button last used', async () => {
+    const element = await mount()
+    button(element, 'Inzoomen').focus()
+    await element.updateComplete
+    expect(button(element, 'Inzoomen').getAttribute('tabindex')).toBe('0')
+    expect(button(element, 'Vorige pagina').getAttribute('tabindex')).toBe('-1')
+  })
+
+  it('draws "Passend" pressed while the zoom is fit, and released after zooming in', async () => {
+    const element = await mount()
+    const fit = (): HTMLButtonElement => root(element).querySelector('[aria-pressed]')!
+    expect(fit().classList.contains('is-active')).toBe(true)
+    expect(fit().getAttribute('aria-pressed')).toBe('true')
+    button(element, 'Inzoomen').click()
+    await element.updateComplete
+    expect(fit().classList.contains('is-active')).toBe(false)
+    expect(fit().getAttribute('aria-pressed')).toBe('false')
+  })
+
   it('disables previous on the first page and next on the last', async () => {
     const element = await mount()
     expect(off(element, 'Vorige pagina')).toBe(true)

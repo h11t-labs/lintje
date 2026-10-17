@@ -23,26 +23,18 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import { LintjeInputElement } from '../shared/input'
 import { ownsEscape } from '../../shared/focus-trap'
 import { holdsFocus, standsIn } from '../../../core/focus'
+import { place, samePlace, viewport, type Place } from '../../shared/place'
 import '../checkbox/checkbox'
 import inputCss from '../shared/input.css?inline'
 import multiselectCss from './multiselect.css?inline'
 import type { FilterOption } from '../../../types'
 
-/** Where the popover stands, in viewport pixels; `bottom` is set when it flips above. */
-interface PopoverAnchor {
-  top: number | null
-  bottom: number | null
-  left: number
-  width: number
-  /** The popover's `max-height`. */
-  space: number
-}
+/** Where the popover stands, and its width: the field's, at least `MIN_WIDTH`. */
+type PopoverAnchor = Place & { width: number }
 
+/** The popover's distance from the field. */
 const GAP = 4
-const EDGE = 8
-/** Below this much room the popover flips above the field. */
 const MIN_WIDTH = 260
-const MIN_SPACE = 180
 const VALUE_ID = 'lintje-multiselect-value'
 const SHOWN_ID = 'lintje-multiselect-shown'
 
@@ -155,33 +147,15 @@ export class LintjeMultiselect extends LintjeInputElement {
     super.disconnectedCallback()
   }
 
+  // Measured before the popover is drawn: its height is unknown, so `place()` flips on its
+  // smallest room, and the list scrolls within the room there is.
   private measure(): void {
     const field = this.renderRoot.querySelector<HTMLElement>('.lintje-multiselect__field')
     if (!field) return
     const rect = field.getBoundingClientRect()
-    const viewHeight = window.innerHeight || document.documentElement.clientHeight
-    const viewWidth = window.innerWidth || document.documentElement.clientWidth
     const width = Math.max(rect.width, MIN_WIDTH)
-    const below = viewHeight - rect.bottom - GAP - EDGE
-    const above = rect.top - GAP - EDGE
-    const flip = below < MIN_SPACE && above > below
-    const next: PopoverAnchor = {
-      top: flip ? null : rect.bottom + GAP,
-      bottom: flip ? viewHeight - rect.top + GAP : null,
-      left: Math.max(EDGE, Math.min(rect.left, viewWidth - width - EDGE)),
-      width,
-      space: Math.max(MIN_SPACE, flip ? above : below),
-    }
-    const current = this.anchor
-    if (
-      current &&
-      current.top === next.top &&
-      current.bottom === next.bottom &&
-      current.left === next.left &&
-      current.width === next.width &&
-      current.space === next.space
-    )
-      return
+    const next = { ...place(rect, { width, height: 0 }, viewport(), 'bottom-start', GAP), width }
+    if (samePlace(this.anchor, next) && this.anchor?.width === next.width) return
     this.anchor = next
   }
 
@@ -273,7 +247,7 @@ export class LintjeMultiselect extends LintjeInputElement {
         aria-labelledby="${this.labelId} ${SHOWN_ID} ${VALUE_ID}"
         aria-describedby=${this.describedBy}
         aria-invalid=${this.error ? 'true' : nothing}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         title=${labels.length ? labels.join(', ') : nothing}
         @click=${() => {
           if (this.open) void this.close()

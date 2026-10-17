@@ -22,12 +22,11 @@
   border-bottom: 1px solid var(--color-border-default);
   font: var(--text-ui);
 }
+/* The name takes no focus, so no tooltip could show it to a keyboard: it wraps. */
 .lintje-document-viewer__name {
   flex: 1 1 auto;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
   font-weight: 700;
 }
 .lintje-document-viewer__group { display: flex; align-items: center; gap: var(--space-1); }

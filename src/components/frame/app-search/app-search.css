@@ -80,7 +80,7 @@
   justify-content: space-between;
   gap: var(--space-4);
   min-height: var(--h-control);
-  padding: 0 var(--space-4);
+  padding: var(--space-2) var(--space-4);
   color: var(--color-text-primary);
   text-decoration: none;
   cursor: pointer;
@@ -96,6 +96,12 @@
   outline-offset: calc(var(--focus-width) * -1);
 }
 .lintje-app-search__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The `title` of a cut label needs a pointer: on the chosen row (the keyboard's virtual focus),
+   without hover and below 768 px the label wraps whole. */
+.lintje-app-search__option.is-active .lintje-app-search__label { white-space: normal; overflow-wrap: anywhere; }
+@media (hover: none), screen and (max-width: 767px) {
+  .lintje-app-search__label { white-space: normal; overflow-wrap: anywhere; }
+}
 .lintje-app-search__match { font-weight: 700; }
 .lintje-app-search__meta { flex: none; color: var(--color-text-muted); }
 
