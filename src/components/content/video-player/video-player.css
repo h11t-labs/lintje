@@ -85,7 +85,11 @@
   padding: var(--space-3) var(--space-3) var(--space-2);
 }
 .lintje-video-player__timeline { display: flex; align-items: center; gap: var(--space-3); }
-.lintje-video-player__buttons { display: flex; align-items: center; gap: var(--space-1); }
+.lintje-video-player__buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
 .lintje-video-player__speed {
   flex: none;
   padding: 0 var(--space-1);
@@ -95,8 +99,12 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+/* Play and sound at the start; what changes the view (captions, more, full screen) at the end. */
+.lintje-video-player__end { display: flex; align-items: center; gap: var(--space-1); margin-left: auto; }
+/* On: the line of an active tab under the icon, quiet beside the filled play button. */
+.lintje-video-player__captions.is-on { box-shadow: inset 0 -3px 0 var(--color-accent-line); }
 /* The menu's trigger takes the 48 px of the player's other buttons. */
-.lintje-video-player__more { margin-left: auto; --h-icon-button: var(--h-touch); }
+.lintje-video-player__more { --h-icon-button: var(--h-touch); }
 
 .lintje-video-player:fullscreen { display: flex; flex-direction: column; border: 0; }
 .lintje-video-player:fullscreen .lintje-video-player__stage {
@@ -109,8 +117,10 @@
   .lintje-video-player { border-left: 0; border-right: 0; }
 }
 
-/* Forced colours drop the fills: the speed and the mark keep an outline. */
+/* Forced colours drop fills and shadows: the speed and the mark keep an outline, the captions'
+   line becomes a border. */
 @media (forced-colors: active) {
   .lintje-video-player__speed,
   .lintje-video-player__failed-mark { outline: 1px solid CanvasText; }
+  .lintje-video-player__captions.is-on { border-bottom: 3px solid Highlight; }
 }
