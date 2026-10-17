@@ -29,6 +29,7 @@ import menuButtonCss from './menu-button.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { standsIn } from '../../../core/focus'
+import { stopAfter } from '../../shared/focus-trap'
 import { titleWhenCut } from '../../shared/cut-text'
 
 export interface MenuItem {
@@ -281,11 +282,18 @@ export class LintjeMenuButton extends LintjeElement {
         event.preventDefault()
         this.focusRow(nextRow(rows, rows.length, -1))
         return
-      case 'Tab':
-        // Tab goes on from the trigger, past the menu that stands after it.
-        if (!event.shiftKey) this.trigger?.focus()
+      case 'Tab': {
+        // Tab goes on from the trigger, past the menu that stands after it. The menu moves the
+        // focus itself: Firefox loses its place when the menu that holds it hides.
+        const trigger = this.trigger
+        const next = event.shiftKey ? trigger : trigger && stopAfter(trigger, this)
+        if (next) {
+          event.preventDefault()
+          next.focus()
+        } else trigger?.focus()
         this.hide(false)
         return
+      }
       case ' ': {
         const row = this.rowElements()[current]
         if (row instanceof HTMLAnchorElement) {
