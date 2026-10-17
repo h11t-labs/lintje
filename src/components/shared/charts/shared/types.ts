@@ -590,7 +590,11 @@ export interface MapPlotData {
 /** The map's data, as `MapData` in `src/types.ts` carries it, without the tile fields. */
 export interface MapSpec {
   variant: MapVariant
-  geo?: 'world' | 'netherlands'
+  /**
+   * The built-in geometry, without fetching: the countries of the world (default), the
+   * Netherlands as one area, or its twelve provinces, each named by its ISO 3166-2 code (`NL-UT`).
+   */
+  geo?: 'world' | 'netherlands' | 'provinces'
   /** The marks of a one-variant map; empty with `variant: 'plots'`. */
   values: MapValue[]
   /** With `variant: 'plots'`: the layers, bottom first. */
