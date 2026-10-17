@@ -1,7 +1,8 @@
 /**
  * The field of an own answer ("Anders, namelijk"): a `lintje-text-input` under the option that
  * opens it, labelled by the option's word. The choice groups and the chat questions' "Iets
- * anders…" draw it. It checks nothing: whoever draws it sets the host's message as `error`.
+ * anders…" draw it. It checks nothing: whoever draws it sets the host's message as `error`, so it
+ * says it must be filled with `aria-required` alone.
  */
 import { html, nothing, type TemplateResult } from 'lit'
 import { otherField } from './controls'
@@ -28,6 +29,7 @@ export function renderOtherField(options: OtherFieldOptions): TemplateResult {
     class=${options.className ?? nothing}
     data-other
     hide-label
+    soft-required
     label=${options.label}
     .value=${options.text}
     placeholder=${options.placeholder ?? ''}

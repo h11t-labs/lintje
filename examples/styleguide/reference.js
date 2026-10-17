@@ -64,6 +64,13 @@ function element(name, className, text) {
   return node
 }
 
+/** A comment from the source: English, as the source is, on a Dutch page. */
+function sourceComment(text) {
+  const node = element('p', 'guide__comment', text)
+  node.lang = 'en'
+  return node
+}
+
 /**
  * One entry of the reference as a row: its name (and how HTML writes it), its type or its
  * values, its default, its source comment — quoted as one, in English — and the specimens that
@@ -87,7 +94,7 @@ function propRow({ name, attribute, type, initial, required, about, seen }, onSe
     line.append(value)
   }
   body.append(line)
-  if (about) body.append(element('p', 'guide__comment', about))
+  if (about) body.append(sourceComment(about))
   if (seen?.length) {
     const where = element('p', 'guide__meta guide__seen', 'Te zien in ')
     seen.forEach((label, i) => {

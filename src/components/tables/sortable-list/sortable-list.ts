@@ -327,7 +327,7 @@ export class LintjeSortableList extends LintjeElement {
 
   protected override render(): TemplateResult {
     return html`<div class="lintje-sortable-list">
-      <ul class="lintje-sortable-list__rows" aria-label=${this.label ?? nothing}>
+      <ul class="lintje-sortable-list__rows" role="list" aria-label=${this.label ?? nothing}>
         ${repeat(
           this.order,
           (item) => item.id,

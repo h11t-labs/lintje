@@ -24,6 +24,7 @@ import { avatarStyles, renderAvatar } from '../../shared/avatar'
 import {
   nextRow,
   renderMenuEntries,
+  renderMenuMark,
   type MenuEntry,
   type MenuItem,
 } from '../../actions/menu-button/menu-button'
@@ -223,18 +224,24 @@ export class LintjeUserMenu extends LintjeElement {
     }
   }
 
+  /** A switch or a choice says its state as in `lintje-menu-button`; inline, as outside a menu. */
+  private rowRole(item: MenuItem): string | typeof nothing {
+    if (item.checked === undefined) return this.inline ? nothing : 'menuitem'
+    if (this.inline) return item.radio ? 'radio' : 'checkbox'
+    return item.radio ? 'menuitemradio' : 'menuitemcheckbox'
+  }
+
   private renderRow(item: MenuItem): TemplateResult {
     const role = this.inline ? nothing : 'menuitem'
     const tabindex = this.inline ? nothing : '-1'
+    const switched = item.checked !== undefined
     const classes = classMap({
       'lintje-menu__row': true,
       'focus-inset': true,
       'is-danger': Boolean(item.danger),
       'is-disabled': Boolean(item.disabled),
     })
-    const content = html`${
-      item.icon ? renderIcon(item.icon, { size: 16, className: 'lintje-menu__icon' }) : nothing
-    }<span class="lintje-menu__label" @pointerenter=${titleWhenCut}>${item.label}</span>${
+    const content = html`${renderMenuMark(item)}<span class="lintje-menu__label" @pointerenter=${titleWhenCut}>${item.label}</span>${
       item.hint ? html`<span class="lintje-menu__hint">${item.hint}</span>` : nothing
     }`
     if (item.href && !item.disabled) {
@@ -250,8 +257,9 @@ export class LintjeUserMenu extends LintjeElement {
     const row = html`<button
       type="button"
       class=${classes}
-      role=${role}
+      role=${this.rowRole(item)}
       tabindex=${tabindex}
+      aria-checked=${switched ? String(Boolean(item.checked)) : nothing}
       aria-disabled=${item.disabled ? 'true' : nothing}
       @click=${(event: MouseEvent) => this.choose(item, event)}
     >

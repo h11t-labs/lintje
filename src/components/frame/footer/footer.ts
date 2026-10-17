@@ -66,7 +66,7 @@ export class LintjeFooter extends LintjeElement {
                 ${columns.map(
                   (column) => html`<section class="lintje-footer__column">
                     <h2 class="lintje-footer__heading">${column.heading}</h2>
-                    <ul class="lintje-footer__list">
+                    <ul class="lintje-footer__list" role="list">
                       ${column.links.map((item) => html`<li>${this.link(item, 'lintje-footer__link')}</li>`)}
                     </ul>
                   </section>`,
@@ -79,7 +79,7 @@ export class LintjeFooter extends LintjeElement {
             ? html`<div class="lintje-footer__bottom">
                 ${
                   links.length
-                    ? html`<ul class="lintje-footer__meta">
+                    ? html`<ul class="lintje-footer__meta" role="list">
                         ${links.map((item) => html`<li>${this.link(item, 'lintje-footer__meta-link')}</li>`)}
                       </ul>`
                     : nothing

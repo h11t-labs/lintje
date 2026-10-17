@@ -120,6 +120,7 @@ export class LintjeActivityLog extends LintjeElement {
       ${this.renderHeading()}
       <ol
         class=${classMap({ 'lintje-activity-log__list': true, 'has-people': people })}
+        role="list"
         aria-labelledby=${this.heading ? 'lintje-activity-log-heading' : nothing}
       >
         ${shown.map((entry, index) => this.entry(entry, index, index === shown.length - 1, people))}

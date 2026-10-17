@@ -255,7 +255,7 @@ export class LintjeChatSteps extends LintjeElement {
         </button>
         <div class="lintje-disclosure__body" id=${this.#bodyId}>
           <div class="lintje-disclosure__body-inner">
-            <ol class="lintje-chat-steps__list">
+            <ol class="lintje-chat-steps__list" role="list">
               ${items.map((step, index) => this.renderStep(step, index, index === items.length - 1))}
             </ol>
           </div>

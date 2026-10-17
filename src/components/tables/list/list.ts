@@ -45,6 +45,8 @@ import type { Person, RowActionDetail, RowClickDetail } from '../../../types'
 export interface ListItem {
   id: string
   title: string
+  /** The language of the title when it is not the page's (`en`), as `lang` on it. */
+  lang?: string
   /** Makes the title a link. */
   href?: string
   /** The muted line under the title: "47:12 · 3 sprekers". */
@@ -307,17 +309,23 @@ export class LintjeList extends LintjeElement {
 
   private renderTitle(item: ListItem): TemplateResult {
     const current = item.id === this.selectedId ? 'true' : nothing
+    const lang = item.lang || nothing
     if (item.href) {
       return html`<a
         class="lintje-list__title"
         href=${item.href}
         title=${item.title}
+        lang=${lang}
         aria-current=${current}
         >${item.title}</a
       >`
     }
     if (item.clickable === false) {
-      return html`<span class="lintje-list__title" title=${item.title} aria-current=${current}
+      return html`<span
+        class="lintje-list__title"
+        title=${item.title}
+        lang=${lang}
+        aria-current=${current}
         >${item.title}</span
       >`
     }
@@ -325,6 +333,7 @@ export class LintjeList extends LintjeElement {
       type="button"
       class="lintje-list__title"
       title=${item.title}
+      lang=${lang}
       aria-current=${current}
     >
       ${item.title}
@@ -429,7 +438,8 @@ export class LintjeList extends LintjeElement {
       (item) => item.id,
       (item) => this.row(item),
     )
-    if (!run.label) return html`<ul class="lintje-list" aria-label=${label ?? nothing}>${rows}</ul>`
+    if (!run.label)
+      return html`<ul class="lintje-list" role="list" aria-label=${label ?? nothing}>${rows}</ul>`
     return html`<div
         class="lintje-list__group"
         id="lintje-list-group-${index}"
@@ -437,7 +447,7 @@ export class LintjeList extends LintjeElement {
         aria-level=${this.headingLevel}
         >${run.label}</div
       >
-      <ul class="lintje-list" aria-labelledby="lintje-list-group-${index}">${rows}</ul>`
+      <ul class="lintje-list" role="list" aria-labelledby="lintje-list-group-${index}">${rows}</ul>`
   }
 
   protected override render(): TemplateResult {

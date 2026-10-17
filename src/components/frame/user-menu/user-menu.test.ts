@@ -146,6 +146,45 @@ describe('lintje-user-menu', () => {
     expect(row.getAttribute('aria-disabled')).toBe('true')
   })
 
+  it.each([
+    [false, 'menuitemcheckbox', 'menuitemradio'],
+    [true, 'checkbox', 'radio'],
+  ])(
+    'draws a switch with its check and a choice with its circle, and says their state (inline: %s)',
+    async (inline, switchRole, choiceRole) => {
+      const element = await mount({
+        inline,
+        items: [
+          { value: 'compact', label: 'Compacte weergave', checked: true },
+          { value: 'hulp', label: 'Hulpteksten', checked: false },
+          { heading: 'Taal' },
+          { value: 'nl', label: 'Nederlands', checked: true, radio: true },
+          { value: 'en', label: 'English', checked: false, radio: true },
+        ],
+      })
+      const rows = [...element.shadowRoot!.querySelectorAll<HTMLElement>('button.lintje-menu__row')]
+      const switched = rows.slice(0, 4)
+      expect(switched.map((row) => row.getAttribute('role'))).toEqual([
+        switchRole,
+        switchRole,
+        choiceRole,
+        choiceRole,
+      ])
+      expect(switched.map((row) => row.getAttribute('aria-checked'))).toEqual([
+        'true',
+        'false',
+        'true',
+        'false',
+      ])
+      expect(switched[0].querySelector('.lintje-menu__check')).not.toBeNull()
+      expect(switched[1].querySelector('.lintje-menu__slot')).not.toBeNull()
+      expect(switched[2].querySelector('.lintje-menu__radio.is-checked')).not.toBeNull()
+      expect(switched[3].querySelector('.lintje-menu__radio:not(.is-checked)')).not.toBeNull()
+      // Afmelden is no switch.
+      expect(rows.at(-1)!.hasAttribute('aria-checked')).toBe(false)
+    },
+  )
+
   it('draws the content without button and popover when inline', async () => {
     const element = await mount({ inline: true })
     const root = element.shadowRoot!

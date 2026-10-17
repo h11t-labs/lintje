@@ -118,7 +118,7 @@ export class LintjeErrorPage extends LintjeElement {
           ? html`<h2 id="links-heading" class="lintje-error-page__links-heading">${heading}</h2>`
           : html`<h3 id="links-heading" class="lintje-error-page__links-heading">${heading}</h3>`
       }
-      <ul class="lintje-error-page__list">
+      <ul class="lintje-error-page__list" role="list">
         ${this.links.map(
           (link) => html`<li class="lintje-error-page__item">
             <a

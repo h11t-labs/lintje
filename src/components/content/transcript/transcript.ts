@@ -491,6 +491,7 @@ export class LintjeTranscript extends LintjeElement {
       <slot name="lead"></slot>
       <ol
         class="lintje-transcript__list"
+        role="list"
         @wheel=${this.onUserScroll}
         @touchmove=${this.onUserScroll}
         @keydown=${this.onListKeydown}

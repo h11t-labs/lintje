@@ -135,10 +135,12 @@ const FRAME_STYLE = `
   body { margin: 0; background: var(--color-bg-surface); color: var(--color-text-primary);
     font: var(--text-ui); font-family: var(--font-ui); }
   .guide__stage { padding: var(--space-8); }
+  .guide__stage--page { padding: 0; }
   .guide__row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
   .guide__stack { display: flex; flex-direction: column; gap: var(--space-3); }`
 
-function frameDocument(html) {
+/** `page`: the specimen is the page itself, a shell, so its stage has no room around it. */
+function frameDocument(html, page = false) {
   const root = document.documentElement
   return `<!doctype html><html lang="nl" data-mode="${root.dataset.mode ?? 'light'}"
     data-theme="${root.dataset.theme ?? ''}"><head><meta charset="utf-8">
@@ -146,7 +148,7 @@ function frameDocument(html) {
     <link rel="stylesheet" href="../../src/tokens/fonts.css">
     <link rel="stylesheet" href="../../dist-elements/tokens.css">
     <style>${FRAME_STYLE}</style></head>
-    <body><div class="guide__stage">${html ?? ''}</div><script type="module">
+    <body><div class="guide__stage${page ? ' guide__stage--page' : ''}">${html ?? ''}</div><script type="module">
     import { setIconSource } from '../../dist-elements/lintje.js'
     setIconSource({ base: '../../dist-icons/' })
     </script></body></html>`
@@ -173,16 +175,18 @@ function prepare(stage, setup, item, state) {
  * `frame` draws it in a page of its own, open: an overlay is `position: fixed` and traps the
  * focus, so on the guide's page it would cover the guide and hold its keyboard. Its `[data-open]`
  * button opens it; without one, `true` opens the element's own tags, a selector the ones it names. The frame is inert while the overlay opens,
- * so its focus does not pull the guide's page along.
+ * so its focus does not pull the guide's page along. `'page'` opens nothing: a shell, whose
+ * `main`, `h1` and skip link would be the guide page's second.
  */
 export function renderSpecimen({ label, html, setup, frame: own }, { item, state } = {}) {
   const figure = element('figure', 'guide__specimen')
   const frame = own ?? item?.frame
   if (frame) {
-    const iframe = element('iframe', 'guide__frame')
+    const page = frame === 'page'
+    const iframe = element('iframe', page ? 'guide__frame guide__frame--page' : 'guide__frame')
     iframe.title = label ?? item?.tag ?? 'Voorbeeld'
     iframe.inert = true
-    iframe.srcdoc = frameDocument(html)
+    iframe.srcdoc = frameDocument(html, page)
     // Until the frame stands, the code is read from the markup alone.
     figure.stage = element('div')
     figure.stage.innerHTML = html ?? ''
@@ -191,7 +195,7 @@ export function renderSpecimen({ label, html, setup, frame: own }, { item, state
       async () => {
         const stage = iframe.contentDocument.querySelector('.guide__stage')
         prepare(stage, setup, item, state)
-        const open = frame === true ? item?.tag : frame
+        const open = frame === true ? item?.tag : page ? null : frame
         const overlays = open ? [...stage.querySelectorAll(open)] : []
         // The opener opens it as the host would, filling what it fills; without one, `open`.
         const opener = stage.querySelector('[data-open]')

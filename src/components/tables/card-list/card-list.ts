@@ -105,6 +105,7 @@ export class LintjeCardList extends LintjeElement {
     )
     return html`<ul
       class="lintje-card-list"
+      role="list"
       aria-label=${this.label ?? nothing}
       aria-busy=${this.loading ? 'true' : nothing}
       ${styleProps({ '--card-list-columns': columns })}

@@ -53,6 +53,7 @@ export class LintjeDateInput extends LintjeInputElement {
     max: { type: String },
     today: { type: String },
     placeholder: { type: String },
+    autocomplete: { type: String },
     stacked: { type: Boolean, reflect: true },
     open: { type: Boolean, reflect: true },
     text: { state: true },
@@ -69,6 +70,11 @@ export class LintjeDateInput extends LintjeInputElement {
   /** The day the calendar marks as today, ISO. Defaults to the real one. */
   declare today?: string
   placeholder: string = ''
+  /**
+   * What the day is, passed to the native field as is (`bday`), so the browser and assistive
+   * software can fill it in; without it the field says `off`.
+   */
+  autocomplete: string = ''
   stacked: boolean = false
   /** Whether the calendar is open. Reflected, so a sheet can leave Escape to it. */
   open: boolean = false
@@ -239,7 +245,7 @@ export class LintjeDateInput extends LintjeInputElement {
           type="text"
           id=${this.controlId}
           inputmode="numeric"
-          autocomplete="off"
+          autocomplete=${this.autocomplete || 'off'}
           class=${classMap({
             'lintje-date-input__control': true,
             'lintje-field__box': true,

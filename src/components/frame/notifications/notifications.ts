@@ -231,7 +231,7 @@ export class LintjeNotifications extends LintjeElement {
       </div>
       ${
         this.items.length
-          ? html`<ul class="lintje-notifications__list">
+          ? html`<ul class="lintje-notifications__list" role="list">
             ${this.items.map((item) => this.renderItem(item))}
           </ul>`
           : html`<p class="lintje-notifications__empty">

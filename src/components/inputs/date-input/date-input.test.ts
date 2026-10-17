@@ -71,6 +71,27 @@ describe('lintje-date-input', () => {
     expect(looseSeen.values).toEqual([])
   })
 
+  it.each(['03102026', '031026'])(
+    'reads %s, typed on a number pad without a dash, as the day',
+    async (text) => {
+      const element = await mount()
+      const seen = listen(element)
+      await type(element, text)
+      expect(control(element).value).toBe('03-10-2026')
+      expect(seen.local).toEqual(['2026-10-03'])
+      expect(element.shadowRoot!.querySelector('.lintje-field__hint')!.textContent).toBe(
+        'dd-mm-jjjj',
+      )
+    },
+  )
+
+  it('says off to autocomplete, unless the host names what the day is', async () => {
+    const plain = await mount()
+    expect(control(plain).getAttribute('autocomplete')).toBe('off')
+    const birthday = await mount({ autocomplete: 'bday' })
+    expect(control(birthday).getAttribute('autocomplete')).toBe('bday')
+  })
+
   it('sends null for an emptied field', async () => {
     const element = await mount({ value: '2026-10-03' })
     const seen = listen(element)

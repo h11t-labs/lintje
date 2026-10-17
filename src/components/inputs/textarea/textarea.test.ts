@@ -171,6 +171,22 @@ describe('lintje-textarea', () => {
   })
 })
 
+describe('lintje-textarea autocomplete and language', () => {
+  it('passes autocomplete to the native field, and none without it', async () => {
+    const native = (element: LintjeTextarea) => element.shadowRoot!.querySelector('textarea')!
+    expect(native(await mount()).hasAttribute('autocomplete')).toBe(false)
+    const address = await mount({ autocomplete: 'street-address' })
+    expect(native(address).getAttribute('autocomplete')).toBe('street-address')
+  })
+
+  it('puts the text language on the native field only, not on its label', async () => {
+    const element = await mount({ label: 'Brontekst', textLang: 'en' })
+    expect(element.shadowRoot!.querySelector('textarea')!.getAttribute('lang')).toBe('en')
+    expect(element.hasAttribute('lang')).toBe(false)
+    expect(element.shadowRoot!.querySelector('.lintje-label')!.closest('[lang]')).toBeNull()
+  })
+})
+
 describe('lintje-textarea rows and variant', () => {
   it('shows three lines by default, and as many as rows asks', async () => {
     const plain = await mount()

@@ -2,7 +2,7 @@
  * `<lintje-radio-group>` — one option per line, for options that do not fit `lintje-segmented`.
  *
  * With `other` the last option is "Anders", value `other`, with a text field under it while it is
- * chosen; a click, a tap or Space puts the focus in it, an arrow key does not. The group checks
+ * chosen; the focus stays on the option, and the field is the next Tab stop. The group checks
  * nothing: the host sets `error`, and `other-error` for an empty field. Cards draw no "Anders".
  *
  * Events: `lintje-change` `string`, `lintje-other-change` `string` (the field's text, on leaving
@@ -37,9 +37,6 @@ export class LintjeRadioGroup extends LintjeChoiceGroupElement {
   /** `cards`: the options side by side as cards, each with its description. */
   variant: 'lines' | 'cards' = 'lines'
 
-  /** The last key was an arrow: the browser's arrows move the choice, and the focus stays. */
-  #byArrow = false
-
   protected override get otherChosen(): boolean {
     return this.value === OTHER_VALUE
   }
@@ -58,7 +55,6 @@ export class LintjeRadioGroup extends LintjeChoiceGroupElement {
   private choose(value: string): void {
     this.value = value
     this.commit(value)
-    if (value === OTHER_VALUE && this.drawsOther && !this.#byArrow) void this.focusOther()
   }
 
   private renderOption(option: FilterOption, index: number, other = false): TemplateResult {
@@ -112,8 +108,6 @@ export class LintjeRadioGroup extends LintjeChoiceGroupElement {
       ${this.renderLabel()}
       <div
         class=${classMap({ 'lintje-radio-group': true, 'lintje-radio-group--cards': this.variant === 'cards' })}
-        @keydown=${(event: KeyboardEvent) => (this.#byArrow = event.key.startsWith('Arrow'))}
-        @pointerdown=${() => (this.#byArrow = false)}
       >
         ${(this.options ?? []).map((option, index) => this.renderOption(option, index))}
         ${other ? this.renderOption({ value: OTHER_VALUE, label: this.otherLabel }, -1, true) : nothing}
