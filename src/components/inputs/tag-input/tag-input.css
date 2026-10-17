@@ -45,8 +45,9 @@
   font-size: 0.875rem; white-space: nowrap;
 }
 .lintje-tag-input.is-disabled .lintje-tag-input__chip { padding-right: var(--space-2); }
-/* A word typed twice flashes its chip. */
+/* A word typed twice flashes its chip, beside the words in the foot that say so. */
 .lintje-tag-input__chip.is-flash { border-color: var(--color-accent-line); }
+.lintje-tag-input__repeated { font: var(--text-small); color: var(--color-text-primary); }
 .lintje-tag-input.is-disabled .lintje-tag-input__chip { color: var(--color-text-disabled); }
 /* A transparent hit area, above and below only, reaches the target height. */
 .lintje-tag-input__remove {

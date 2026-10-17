@@ -105,11 +105,22 @@ export interface NavBarOptions {
 export const hasPage = (item: ShellLink): boolean => Boolean(item.href) && !item.noAccess
 
 /** Why an entry cannot be opened, in words: `aria-disabled` means nothing on a plain span, and
- * the muted colour alone is no reason (rule 13). */
+ * the muted colour alone is no reason (rule 13). Only heard: where the label is not shown. */
 export function unavailableWord(item: ShellLink): TemplateResult {
   return html`<span class="visually-hidden"
     >${item.noAccess ? ', geen toegang' : ', niet beschikbaar'}</span
   >`
+}
+
+/** The lock, or the words "geen toegang": the strikethrough alone is not a reason (rule 13). */
+export function noAccessMark(className: string): TemplateResult {
+  const glyph = renderIcon('gebruiksvoorwerpen-hangslot-dicht', { size: 16, label: 'Geen toegang' })
+  return glyph === nothing ? html`<span class=${className}>geen toegang</span>` : glyph
+}
+
+/** An entry without a page says so where it is seen, in small text; heard once, after a pause. */
+export function unavailableNote(className: string): TemplateResult {
+  return html`<span class=${className}><span class="visually-hidden">, </span>niet beschikbaar</span>`
 }
 
 function follow(options: NavBarOptions, item: ShellLink, event: MouseEvent): void {
@@ -131,8 +142,17 @@ function pageBadge(item: ShellLink): TemplateResult | typeof nothing {
 
 function barLink(options: NavBarOptions, item: ShellLink): TemplateResult {
   if (!hasPage(item)) {
-    return html`<span class="lintje-navbar__entry is-unavailable" aria-disabled="true"
-      >${item.label}${unavailableWord(item)}</span
+    // Behind the label: the lock of an entry without access, else the words.
+    return html`<span
+      class=${classMap({
+        'lintje-navbar__entry': true,
+        'is-unavailable': true,
+        'is-no-access': Boolean(item.noAccess),
+      })}
+      aria-disabled="true"
+      ><span class="lintje-navbar__label">${item.label}</span>${
+        item.noAccess ? noAccessMark('lintje-navbar__note') : unavailableNote('lintje-navbar__note')
+      }</span
     >`
   }
   const active = Boolean(item.active)
@@ -149,6 +169,7 @@ function pageLink(options: NavBarOptions, item: ShellLink): TemplateResult {
   const content = html`${renderIcon(item.icon, { size: 20, src: item.iconSrc })}
     <span class="lintje-navbar__page-text">
       <span class="lintje-navbar__label">${item.label}</span>
+      ${hasPage(item) || item.noAccess ? nothing : unavailableNote('lintje-navbar__note')}
       ${
         item.metric
           ? html`<span class="lintje-navbar__metric"
@@ -159,13 +180,7 @@ function pageLink(options: NavBarOptions, item: ShellLink): TemplateResult {
           : nothing
       }
     </span>
-    ${
-      item.noAccess
-        ? renderIcon('gebruiksvoorwerpen-hangslot-dicht', { size: 16, label: 'Geen toegang' })
-        : hasPage(item)
-          ? nothing
-          : unavailableWord(item)
-    }
+    ${item.noAccess ? noAccessMark('lintje-navbar__note') : nothing}
     ${pageBadge(item)}`
   if (!hasPage(item)) {
     return html`<span

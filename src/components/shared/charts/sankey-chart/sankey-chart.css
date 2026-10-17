@@ -22,8 +22,8 @@
 .lintje-sankey__label { pointer-events: none; }
 .lintje-sankey__name { font: var(--text-small); fill: var(--color-text-primary); }
 .lintje-sankey__share { font-weight: 400; fill: var(--color-text-muted); }
-/* On a middle step's straight run, under emphasised bands the muted share drops below 4.5:1. */
-.lintje-sankey__label.is-emphasised .lintje-sankey__share { fill: var(--color-text-primary); }
+/* On a middle step's straight run the muted share drops below 4.5:1 on a light band's tint. */
+.lintje-sankey__label.is-on-band .lintje-sankey__share { fill: var(--color-text-primary); }
 
 /* Below 768 px: per transition a bar per source, with a row per target under it. */
 .lintje-sankey--rows { gap: var(--space-4); }

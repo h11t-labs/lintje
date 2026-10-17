@@ -13,6 +13,7 @@ import { chartArea, type ChartOptions, type TooltipContent } from '../shared/con
 import { layerMotion, layerWeights } from '../shared/layer-motion'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { tintsFor } from '../shared/tints'
+import { foldStack, isOtherPart } from '../shared/fold'
 import type { ChartSpec } from '../shared/types'
 
 type StackedAreaSpec = Extract<ChartSpec, { kind: 'stacked-area' }>
@@ -36,11 +37,13 @@ export function renderStackedAreaChart(
   })
 
   // The colours belong to the parts, not to what is shown: switching one off moves no colour.
-  // Past five parts the order still carries meaning, so they keep the lightest tint.
-  const tints = tintsFor(spec.series.length, spec.color)
-  const series = spec.series.map((row, j) => ({
+  // Past five parts the smallest fold into a grey "Overig" on top, so no two share a tint.
+  const parts = foldStack(spec.series, () => true)
+  const tints = tintsFor(parts.filter((row) => !isOtherPart(row)).length, spec.color)
+  const series = parts.map((row, j) => ({
     ...row,
-    color: tints[Math.min(j, tints.length - 1)],
+    folded: isOtherPart(row) ? row.folded : [],
+    color: isOtherPart(row) ? 'var(--color-chart-other)' : tints[j],
     hidden: controller.hiddenSeries.includes(row.label),
   }))
   const visible = series.filter((row) => !row.hidden)
@@ -139,11 +142,19 @@ export function renderStackedAreaChart(
     return {
       title: labels[i],
       rows: [
-        ...[...visible].reverse().map((row) => ({
-          label: row.label,
-          value: row.values[i] == null ? NO_DATA : formatNumber(row.values[i]!),
-          color: row.color,
-        })),
+        ...[...visible].reverse().flatMap((row) => [
+          {
+            label: row.label,
+            value: row.values[i] == null ? NO_DATA : formatNumber(row.values[i]!),
+            color: row.color,
+          },
+          // The parts "Overig" holds, each named, in a quieter line under it.
+          ...row.folded.map((part) => ({
+            label: part.label,
+            value: part.values[i] == null ? NO_DATA : formatNumber(part.values[i]!),
+            note: true,
+          })),
+        ]),
         ...(visible.length > 0
           ? [
               {

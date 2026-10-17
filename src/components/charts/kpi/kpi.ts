@@ -515,12 +515,14 @@ export class LintjeKpi extends LintjeGridItemElement {
           class="lintje-trend__glyph lintje-trend__glyph--${tone}"
           aria-hidden="true"
           >${GLYPH[direction]}</span
-        >${
-          // The glyph shows the direction; whether that is good is only its colour, so say it.
+        ><span class="lintje-trend__text">${
+          // The glyph shows the direction; whether that is good is a word, the colour confirms it.
           tone === 'neutral'
             ? nothing
-            : html`<span class="visually-hidden">${tone === 'good' ? 'gunstig' : 'ongunstig'}: </span>`
-        }<span>${sentence}</span></p>
+            : html`<span class="lintje-trend__verdict"
+                  >${tone === 'good' ? 'Gunstig' : 'Ongunstig'}</span
+                ><span class="visually-hidden">: </span>`
+        }${sentence}</span></p>
       ${
         withDetail && this.detail
           ? html`<p class="lintje-trend__detail">${this.detail}</p>`

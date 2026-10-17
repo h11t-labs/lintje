@@ -381,6 +381,10 @@ export class LintjeChat extends LintjeElement {
     const editingIndex = turns.findIndex((turn) => turn.id === this.editingId)
     const editing = editingIndex !== -1
     const busy = turns.some((turn) => turn.answer?.state === 'streaming')
+    // The first answer the edit replaces carries the word; the rest follow it.
+    const firstReplaced = editing
+      ? turns.findIndex((turn, index) => index >= editingIndex && turn.answer)
+      : -1
     return html`<div class="lintje-chat__list">
       ${repeat(
         turns,
@@ -402,6 +406,11 @@ export class LintjeChat extends LintjeElement {
               ?editable=${!busy && (!editing || index === editingIndex)}
               @lintje-editing-change=${this.onEditingChange}
             ></lintje-chat-message>
+            ${
+              index === firstReplaced
+                ? html`<p class="lintje-chat__replaced-note">Wordt vervangen</p>`
+                : nothing
+            }
             ${
               answer
                 ? html`<lintje-chat-answer

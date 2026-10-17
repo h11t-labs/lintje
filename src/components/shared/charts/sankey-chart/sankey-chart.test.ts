@@ -527,6 +527,62 @@ describe('the sankey below 768 px', () => {
     expect(host.querySelector('.lintje-legend')).toBeNull()
   })
 
+  it('never gives two of six targets one tint: the smallest two fold into one grey piece', () => {
+    const outcomes = [
+      'Toegekend',
+      'Afgewezen',
+      'Ingetrokken',
+      'Doorgestuurd',
+      'Vervallen',
+      'Elders',
+    ]
+    const spec: SankeySpec = {
+      kind: 'sankey',
+      label: 'Aanvragen',
+      steps: [
+        { label: 'Ingediend', nodes: [{ id: 'in', label: 'Aanvragen' }] },
+        {
+          label: 'Uitkomst',
+          nodes: outcomes.map((label) => ({ id: label.toLowerCase(), label })),
+        },
+      ],
+      flows: outcomes.map((label, i) => ({
+        from: 'in',
+        to: label.toLowerCase(),
+        value: [500, 400, 300, 200, 100, 60][i],
+      })),
+    }
+    const { host } = draw(spec, { mobile: true })
+    const fills = [...host.querySelectorAll<HTMLElement>('.lintje-sankey__piece')].map(
+      (piece) => piece.style.background,
+    )
+    expect(fills).toHaveLength(5)
+    expect(new Set(fills).size).toBe(5)
+    expect(fills[4]).toBe('var(--color-chart-other)')
+    // Every target keeps its row; the two folded ones carry the grey of their piece.
+    const swatches = [...host.querySelectorAll<HTMLElement>('.lintje-sankey__swatch')].map(
+      (swatch) => swatch.style.background,
+    )
+    expect(swatches).toEqual([...fills.slice(0, 4), fills[4], fills[4]])
+  })
+
+  it('writes a share on a piece only in the ink that reaches 4.5:1 on its rung', () => {
+    // Dark green's second rung carries neither white nor ink at 4.5:1.
+    const { host } = draw({ ...THREE, color: 'dark-green' }, { mobile: true })
+    const pieces = [
+      ...[...host.querySelectorAll('.lintje-sankey__source')][1].querySelectorAll(
+        '.lintje-sankey__piece',
+      ),
+    ]
+    expect(pieces.map((piece) => piece.className.replace('lintje-sankey__piece ', ''))).toEqual([
+      'lintje-sankey__piece--white',
+      'lintje-sankey__piece--unlabelled',
+      'lintje-sankey__piece--ink',
+      'lintje-sankey__piece--rest',
+    ])
+    expect(pieces[1].textContent!.trim()).toBe('')
+  })
+
   it('gives each missing flow its own row, and their piece one hatch', () => {
     const spec: SankeySpec = {
       ...THREE,

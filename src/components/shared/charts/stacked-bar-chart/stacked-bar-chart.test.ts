@@ -121,13 +121,19 @@ describe('the stacked bars', () => {
     expect(fills(host)).toEqual([TINT(1), TINT(4), TINT(1), TINT(4)])
   })
 
-  it('keeps more than five series and gives the ones past five the lightest tint', () => {
+  it('never gives two of seven parts one tint: the smallest three fold into a grey "Overig"', () => {
     const host = draw({
       kind: 'stacked-bar',
       labels: ['ma'],
       series: Array.from({ length: 7 }, (_, i) => ({ label: `Reeks ${i + 1}`, values: [i + 1] })),
     })
-    expect(fills(host)).toEqual([TINT(1), TINT(2), TINT(3), TINT(4), TINT(5), TINT(5), TINT(5)])
+    // The four largest keep their order, bottom first; "Overig" stands on top.
+    const drawn = fills(host)
+    expect(drawn).toEqual([TINT(1), TINT(2), TINT(3), TINT(4), 'var(--color-chart-other)'])
+    expect(new Set(drawn).size).toBe(drawn.length)
+    expect(
+      [...host.querySelectorAll('.lintje-legend__item')].map((item) => item.textContent?.trim()),
+    ).toEqual(['Reeks 4', 'Reeks 5', 'Reeks 6', 'Reeks 7', 'Overig'])
   })
 
   it('parts the segments with a line in the surface', () => {

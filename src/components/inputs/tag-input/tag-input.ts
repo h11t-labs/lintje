@@ -71,6 +71,7 @@ export class LintjeTagInput extends LintjeInputElement {
     stacked: { type: Boolean, reflect: true },
     text: { state: true },
     flash: { state: true },
+    repeated: { state: true },
     active: { state: true },
     suggesting: { state: true },
   }
@@ -82,6 +83,8 @@ export class LintjeTagInput extends LintjeInputElement {
   stacked: boolean = false
   protected text: string = ''
   protected flash: string | null = null
+  /** The word typed again that stands already, shown in the foot until the reader types on. */
+  protected repeated: string | null = null
   protected active: number = -1
   /** Off after Escape, on again with the next keystroke. */
   protected suggesting: boolean = false
@@ -133,6 +136,7 @@ export class LintjeTagInput extends LintjeInputElement {
     this.active = -1
     const news: string[] = []
     if (added.length) news.push(`${added.map((word) => this.labelOf(word)).join(', ')} toegevoegd`)
+    this.repeated = duplicate === null ? null : this.labelOf(duplicate)
     if (duplicate !== null) {
       this.light(duplicate)
       news.push(`${this.labelOf(duplicate)} staat er al`)
@@ -170,6 +174,7 @@ export class LintjeTagInput extends LintjeInputElement {
 
   private onInput(event: Event): void {
     this.text = (event.target as HTMLInputElement).value
+    this.repeated = null
     this.suggesting = true
     this.active = this.suggestions.length ? 0 : -1
   }
@@ -364,6 +369,14 @@ export class LintjeTagInput extends LintjeInputElement {
         daar verwijdert Backspace of Delete een woord.</span
       >
       ${this.renderFoot()}
+      ${
+        // The status region already said it: the words are seen here, not heard twice.
+        this.repeated === null
+          ? nothing
+          : html`<span class="lintje-tag-input__repeated" aria-hidden="true"
+              >${this.repeated} staat er al</span
+            >`
+      }
     </div>`
   }
 }
