@@ -156,9 +156,21 @@ export class LintjeElement extends LitElement {
   /**
    * Reports a link the reader chose as `lintje-navigate`. A host that routes itself cancels the
    * event; otherwise the browser follows the click or, without a click (a key), the element goes
-   * there: the one place an element navigates.
+   * there: the one place an element navigates. With `newTab` — a modifier or middle click on what
+   * is no `<a>` — the detail says so and the element opens the href in a new tab.
    */
-  protected followLink(href: string, event?: Event, detail: unknown = { href }): void {
+  protected followLink(
+    href: string,
+    event?: Event,
+    detail: Record<string, unknown> = { href },
+    { newTab = false }: { newTab?: boolean } = {},
+  ): void {
+    if (newTab) {
+      if (this.emit('lintje-navigate', { ...detail, newTab: true })) {
+        window.open(href, '_blank', 'noopener')
+      }
+      return
+    }
     if (!this.emit('lintje-navigate', detail)) event?.preventDefault()
     else if (!event) window.location.assign(href)
   }

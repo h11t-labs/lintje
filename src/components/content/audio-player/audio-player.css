@@ -102,12 +102,15 @@
   pointer-events: none;
 }
 
-/* One colour per speaker (`--lintje-speaker`, set per bar); what is still to come is quieter. */
+/* One colour per speaker (`--lintje-speaker`, set per bar); what is still to come is a lighter
+   colour of its own, not a see-through one, so no ground shows through. */
 .lintje-audio-player__peak.has-speaker,
 .lintje-audio-player__stretch,
 .lintje-audio-player__swatch { background: var(--lintje-speaker); }
 .lintje-audio-player__peak.has-speaker:not(.is-played),
-.lintje-audio-player__stretch:not(.is-played) { opacity: 0.4; }
+.lintje-audio-player__stretch:not(.is-played) {
+  background: color-mix(in srgb, var(--lintje-speaker) var(--tint-speaker-ahead), var(--color-bg-surface));
+}
 
 .lintje-audio-player__cursor {
   position: absolute;

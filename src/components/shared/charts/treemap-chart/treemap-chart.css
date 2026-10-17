@@ -1,0 +1,148 @@
+/* The line under the legend: the total of what is drawn, and what is missing from it. */
+.lintje-treemap__total { font: var(--text-axis); color: var(--color-text-muted); margin-bottom: var(--space-2); }
+
+/* The areas take the tints of one variable; the lines on their borders are the surface, 1 px
+   between sub-parts (`lintje-chart__segment`) and 4 px between parts, so the size carries the
+   value and the lines the division. */
+.lintje-treemap__svg { overflow: visible; }
+.lintje-treemap__edge { fill: none; stroke: var(--color-bg-surface); stroke-width: var(--space-1); pointer-events: none; }
+.lintje-treemap__group.is-clickable { cursor: pointer; }
+.lintje-treemap__group.is-muted .lintje-treemap__area,
+.lintje-treemap__lift.is-muted .lintje-treemap__area,
+.lintje-treemap__focus.is-muted .lintje-treemap__area { fill-opacity: .45; }
+/* Under a copy, so a dimmed area reads the same lifted as in place. */
+.lintje-treemap__ground { fill: var(--color-bg-surface); }
+/* Inside the 4 px line, so a neighbour does not cover the chosen part's outline. */
+.lintje-treemap__outline { fill: none; pointer-events: none; }
+
+/* A name in 14 px bold or 12 px, an amount in 12 px; dimmed, the label keeps its words in the
+   text colour. */
+.lintje-treemap__label { font-size: 0.75rem; font-weight: 400; pointer-events: none; }
+.lintje-treemap__label--14 { font-size: 0.875rem; }
+.lintje-treemap__label--bold { font-weight: 700; }
+.lintje-treemap__label--muted { fill: var(--color-text-primary); }
+
+/* The area under the pointer or the keys once more on top: lifted, never grown, as the area is
+   the value; the keyboard's ring around it, over its neighbours. */
+.lintje-treemap__lift,
+.lintje-treemap__focus { pointer-events: none; }
+.lintje-treemap__lift { filter: drop-shadow(var(--shadow-chart-hover)); }
+.lintje-treemap__focus { visibility: hidden; }
+.lintje-treemap__svg:focus-visible .lintje-treemap__focus { visibility: visible; }
+.lintje-treemap__focus .lintje-treemap__ground { filter: var(--lintje-focus-ring); }
+.lintje-treemap__lift .lintje-chart__data-label,
+.lintje-treemap__focus .lintje-chart__data-label { animation: none; }
+
+/* The parts appear once, one after another in the drawn order, with the bars' timing. */
+@media (prefers-reduced-motion: no-preference) {
+  .lintje-treemap__group,
+  .lintje-treemap__piece {
+    animation: lintje-fade-in calc(var(--dur-draw) * 0.6) var(--ease-in-motion)
+      calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0)) backwards;
+    animation-play-state: paused;
+  }
+  [data-in-view] .lintje-treemap__group,
+  [data-in-view] .lintje-treemap__piece { animation-play-state: running; }
+  .lintje-treemap__lift { animation: lintje-lift var(--dur-hover) var(--ease-in-motion) backwards; }
+}
+
+/* --- Below 768 px: the whole as one strip, a row per part ------------------- */
+.lintje-treemap__strip { margin-bottom: var(--space-4); }
+.lintje-treemap__rows { display: flex; flex-direction: column; gap: var(--space-2); }
+.lintje-treemap__row {
+  display: grid;
+  grid-template-columns: var(--h-option) minmax(0, 1fr);
+  align-items: center;
+}
+.lintje-treemap__rows--flat .lintje-treemap__row { grid-template-columns: minmax(0, 1fr); }
+.lintje-treemap__toggle,
+.lintje-treemap__toggle-space {
+  width: var(--h-option);
+  height: var(--h-option);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+}
+.lintje-treemap__toggle:hover { background: var(--color-bg-subtle); }
+/* Swatch, name, amount and share on a line, the bar under the name, so every bar starts at the
+   same edge and shares one scale with the sub-parts' bars. */
+.lintje-treemap__part {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto 3.5em;
+  column-gap: var(--space-2);
+  row-gap: var(--space-1);
+  align-items: baseline;
+  width: 100%;
+  padding-block: var(--space-1);
+  font: var(--text-small);
+  color: var(--color-text-primary);
+  text-align: left;
+}
+.lintje-treemap__part--button:hover { background: var(--color-bg-subtle); }
+.lintje-treemap__swatch { width: 12px; height: 12px; align-self: center; }
+.lintje-treemap__swatch--hatch {
+  background: repeating-linear-gradient(45deg, var(--color-chart-hatch) 0 2px, transparent 2px 6px);
+  border: 1px solid var(--color-border-default);
+}
+.lintje-treemap__name { min-width: 0; overflow-wrap: break-word; }
+.lintje-treemap__count { color: var(--color-text-muted); }
+.lintje-treemap__amount { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+.lintje-treemap__amount--none { font-weight: 400; color: var(--color-text-muted); }
+.lintje-treemap__share {
+  font: var(--text-axis);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.lintje-treemap__track {
+  grid-column: 2 / -1;
+  display: block;
+  height: 8px;
+  border-left: 1px solid var(--color-chart-zero);
+}
+.lintje-treemap__track--sub { height: 4px; }
+.lintje-treemap__bar { display: block; height: 100%; }
+.lintje-treemap__subs {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-1) 0 var(--space-2) calc(12px + var(--space-2));
+}
+.lintje-treemap__sub {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 3.5em;
+  column-gap: var(--space-2);
+  row-gap: var(--space-1);
+  align-items: baseline;
+  font: var(--text-small);
+}
+.lintje-treemap__sub .lintje-treemap__track { grid-column: 1 / -1; }
+/* The chosen row carries the outline the chosen area has; the others step back (rule 13). */
+.lintje-treemap__row.is-selected .lintje-treemap__swatch { outline: 2px solid var(--color-text-primary); }
+.lintje-treemap__row.is-selected .lintje-treemap__name { font-weight: 700; }
+.lintje-treemap__row.is-muted .lintje-treemap__swatch,
+.lintje-treemap__row.is-muted .lintje-treemap__bar { opacity: .45; }
+
+/* The skeleton: one large area beside two smaller ones. */
+.lintje-chart-skeleton--treemap {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  grid-template-rows: 3fr 2fr;
+  gap: var(--space-1);
+}
+.lintje-chart-skeleton__lead { grid-row: 1 / -1; }
+
+/* Forced colours: the areas, the strip and the swatches keep their tints, as `chart.css` keeps
+   every data mark; the lines between them are the canvas. */
+@media (forced-colors: active) {
+  .lintje-treemap__area,
+  .lintje-treemap__piece,
+  .lintje-treemap__swatch,
+  .lintje-treemap__bar { forced-color-adjust: none; }
+  .lintje-treemap__edge,
+  .lintje-treemap__ground { stroke: Canvas; fill: Canvas; }
+  .lintje-treemap__edge { fill: none; }
+  .lintje-treemap__row.is-selected .lintje-treemap__swatch { outline-color: CanvasText; }
+}

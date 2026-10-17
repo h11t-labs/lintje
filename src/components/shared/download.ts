@@ -1,7 +1,11 @@
 /**
  * The downloads a tile offers: the numbers as CSV (semicolons, decimal comma and a byte order
- * mark, so a Dutch spreadsheet opens columns) and the chart's `<svg>` as PNG.
+ * mark, so a Dutch spreadsheet opens columns) and the image of a chart as PNG.
  * A missing value is an empty cell, never 0 (rule 15).
+ *
+ * The image is what the chart shows on screen without its controls, composed as one `<svg>`
+ * (`chartImage`) before it becomes a PNG. Every part is drawn where the screen has it, in plain
+ * SVG: HTML in a `<foreignObject>` does not reliably reach a canvas, in WebKit least of all.
  */
 
 export type CsvCell = string | number | null | undefined
@@ -45,6 +49,8 @@ const PAINT = [
   'stroke-linecap',
   'stroke-linejoin',
   'opacity',
+  'visibility',
+  'color',
   'font-family',
   'font-size',
   'font-weight',
@@ -72,23 +78,372 @@ export function surfaceColour(svg: Element): string {
   return token(svg) || token(document.documentElement)
 }
 
-/** The chart's `<svg>` as a PNG, twice its size. The web font is not embedded: the system face. */
-export async function downloadPng(filename: string, svg: SVGSVGElement): Promise<void> {
-  const name = filename.toLowerCase().endsWith('.png') ? filename : `${filename}.png`
-  const box = svg.getBoundingClientRect()
-  const width = Math.max(1, Math.round(box.width))
-  const height = Math.max(1, Math.round(box.height))
+const SVG_NS = 'http://www.w3.org/2000/svg'
 
-  const copy = svg.cloneNode(true) as SVGSVGElement
-  copy.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-  copy.setAttribute('width', String(width))
-  copy.setAttribute('height', String(height))
-  inlinePaint(svg, copy)
+/** Controls and what only a pointer or a screen reader meets; a legend button draws as its content. */
+const CONTROL = '.lintje-chart-tooltip, .visually-hidden, [role="status"]'
 
-  // The page's background, so dark mode is not black text on transparent.
-  const background = surfaceColour(svg)
+/** In a drawing: the hover's marks, the pointer's targets, and what the legend switched off. */
+const DRAWING_CONTROL = [
+  '.lintje-chart__hover-point',
+  '.lintje-chart__hover-casing',
+  '.lintje-chart__hit',
+  '.lintje-chart__bar--lifted',
+  '.lintje-pie-chart__lift',
+  '.lintje-radar__lift',
+  '.lintje-chart__series.is-off',
+  '.lintje-chart__point.is-off',
+].join(', ')
 
-  const source = new XMLSerializer().serializeToString(copy)
+type Attributes = Record<string, string | number>
+
+function create(name: string, attributes: Attributes, parent: Element): SVGElement {
+  const element = document.createElementNS(SVG_NS, name)
+  for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, String(value))
+  parent.append(element)
+  return element
+}
+
+function transparent(colour: string): boolean {
+  return colour === '' || colour === 'transparent' || /[,/]\s*0\)$/.test(colour)
+}
+
+/** What the image is measured from, the chart's top left corner, and how far its paint reaches. */
+interface Origin {
+  left: number
+  top: number
+  reach: { left: number; top: number; right: number; bottom: number }
+}
+
+const SIDES = ['top', 'right', 'bottom', 'left'] as const
+
+/** A box's fill, its borders and an outline that marks a choice; a focus ring is no part of it. */
+function paintBox(
+  element: Element,
+  style: CSSStyleDeclaration,
+  origin: Origin,
+  out: Element,
+): void {
+  // A button and a row under the pointer have a state of their own, not one the reader chose.
+  if (element.localName === 'button' || element.classList.contains('is-hovered')) return
+  const box = element.getBoundingClientRect()
+  const x = box.left - origin.left
+  const y = box.top - origin.top
+  const { width, height } = box
+  if (!transparent(style.backgroundColor)) {
+    create('rect', { x, y, width, height, fill: style.backgroundColor }, out)
+  }
+  for (const side of SIDES) {
+    const weight = parseFloat(style.getPropertyValue(`border-${side}-width`))
+    const kind = style.getPropertyValue(`border-${side}-style`)
+    if (!weight || kind === 'none' || kind === 'hidden') continue
+    const half = weight / 2
+    const [x1, y1, x2, y2] = {
+      top: [x, y + half, x + width, y + half],
+      right: [x + width - half, y, x + width - half, y + height],
+      bottom: [x, y + height - half, x + width, y + height - half],
+      left: [x + half, y, x + half, y + height],
+    }[side]
+    const dashed = kind === 'dashed' || kind === 'dotted'
+    create(
+      'line',
+      {
+        x1,
+        y1,
+        x2,
+        y2,
+        stroke: style.getPropertyValue(`border-${side}-color`),
+        'stroke-width': weight,
+        ...(dashed ? { 'stroke-dasharray': `${2 * weight} ${weight}` } : {}),
+      },
+      out,
+    )
+  }
+  const outline = parseFloat(style.outlineWidth)
+  if (outline && style.outlineStyle !== 'none' && !element.matches(':focus')) {
+    const grow = (parseFloat(style.outlineOffset) || 0) + outline / 2
+    create(
+      'rect',
+      {
+        x: x - grow,
+        y: y - grow,
+        width: width + 2 * grow,
+        height: height + 2 * grow,
+        fill: 'none',
+        stroke: style.outlineColor,
+        'stroke-width': outline,
+      },
+      out,
+    )
+  }
+}
+
+/**
+ * A text node as a `<text>` per line it takes on screen: its words are measured one by one, so a
+ * label that wraps wraps in the image too. A line keeps its width on screen: where the web font
+ * could not be embedded the image falls back to the system face, and no neighbour runs into it.
+ */
+function paintText(
+  node: Text,
+  style: CSSStyleDeclaration,
+  struck: boolean,
+  origin: Origin,
+  out: Element,
+): void {
+  const range = document.createRange()
+  const lines: { words: string[]; left: number; right: number; top: number; bottom: number }[] = []
+  for (const word of node.data.matchAll(/\S+/g)) {
+    range.setStart(node, word.index)
+    range.setEnd(node, word.index + word[0].length)
+    const { left, right, top, bottom, width, height } = range.getBoundingClientRect()
+    if (!width) continue
+    const line = lines[lines.length - 1]
+    if (line && Math.abs(top - line.top) < height / 2) {
+      line.words.push(word[0])
+      line.right = right
+      line.bottom = Math.max(line.bottom, bottom)
+    } else {
+      lines.push({ words: [word[0]], left, right, top, bottom })
+    }
+  }
+  for (const line of lines) {
+    const words = line.words.join(' ')
+    const text = create(
+      'text',
+      {
+        x: line.left - origin.left,
+        y: (line.top + line.bottom) / 2 - origin.top,
+        'dominant-baseline': 'central',
+        textLength: line.right - line.left,
+        lengthAdjust: 'spacingAndGlyphs',
+        fill: style.color,
+        'font-family': style.fontFamily,
+        'font-size': style.fontSize,
+        'font-weight': style.fontWeight,
+        ...(struck ? { 'text-decoration': 'line-through' } : {}),
+      },
+      out,
+    )
+    // SVG text has no text-transform of its own in every engine.
+    text.textContent =
+      style.textTransform === 'uppercase'
+        ? words.toUpperCase()
+        : style.textTransform === 'lowercase'
+          ? words.toLowerCase()
+          : words
+  }
+}
+
+/** A drawing as it stands, its paint inlined, without what only the pointer brings up. */
+function paintDrawing(drawing: SVGSVGElement, origin: Origin, out: Element): void {
+  const box = drawing.getBoundingClientRect()
+  const x = box.left - origin.left
+  const y = box.top - origin.top
+  const overflow = getComputedStyle(drawing).overflow
+  const copy = drawing.cloneNode(true) as SVGSVGElement
+  // First: the paint is copied child by child, by position.
+  inlinePaint(drawing, copy)
+  for (const control of copy.querySelectorAll(DRAWING_CONTROL)) control.remove()
+  copy.setAttribute('x', String(x))
+  copy.setAttribute('y', String(y))
+  copy.setAttribute('width', String(box.width))
+  copy.setAttribute('height', String(box.height))
+  copy.setAttribute('overflow', overflow)
+  out.append(copy)
+  // A last x label may stand past the drawing's edge, as it does on screen.
+  if (overflow !== 'visible') return
+  const { reach } = origin
+  for (const text of drawing.querySelectorAll('text')) {
+    if (text.closest(DRAWING_CONTROL)) continue
+    const bounds = text.getBoundingClientRect()
+    reach.left = Math.min(reach.left, bounds.left - origin.left)
+    reach.top = Math.min(reach.top, bounds.top - origin.top)
+    reach.right = Math.max(reach.right, bounds.right - origin.left)
+    reach.bottom = Math.max(reach.bottom, bounds.bottom - origin.top)
+  }
+}
+
+function paint(element: Element, origin: Origin, struck: boolean, out: Element): void {
+  if (element.matches(CONTROL)) return
+  if (element instanceof SVGSVGElement) {
+    if (element.getClientRects().length) paintDrawing(element, origin, out)
+    return
+  }
+  const style = getComputedStyle(element)
+  if (style.display === 'none' || style.visibility === 'hidden') return
+  const group = style.opacity === '1' ? out : create('g', { opacity: style.opacity }, out)
+  paintBox(element, style, origin, group)
+  const strike = struck || style.textDecorationLine.includes('line-through')
+  for (const child of element.childNodes) {
+    if (child instanceof Text) paintText(child, style, strike, origin, group)
+    else if (child instanceof Element) paint(child, origin, strike, group)
+  }
+}
+
+/** What the tile around a chart says; the image draws it around the chart, as the tile does. */
+export interface ImageFrame {
+  title?: string
+  subtitle?: string
+  footnote?: string
+}
+
+/** A block of the frame with the tile's type, as `tile.css` sets it. */
+function frameText(tag: string, text: string, css: string): HTMLElement {
+  const element = document.createElement(tag)
+  element.textContent = text
+  element.style.cssText = `margin: 0; ${css}`
+  return element
+}
+
+/**
+ * The tile around the chart, laid out off screen in the tile's tokens: its padding, its edge and
+ * surface, the title and subtitle above and the footnote below, and a place as large as the chart.
+ * It is laid out in the chart's own root, so the tokens of its mode and theme apply.
+ */
+function layOutFrame(root: Element, box: DOMRect, frame: ImageFrame): HTMLElement[] {
+  const tile = document.createElement('div')
+  tile.style.cssText = `position: fixed; left: -100000px; top: 0; box-sizing: content-box;
+    width: ${box.width}px; display: flex; flex-direction: column; gap: var(--space-4);
+    padding: var(--tile-pad-y) var(--tile-pad-x); background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-default);`
+  if (frame.title || frame.subtitle) {
+    const head = document.createElement('div')
+    if (frame.title)
+      head.append(
+        frameText(
+          'p',
+          frame.title,
+          'font: var(--text-tile-title); color: var(--color-text-primary);',
+        ),
+      )
+    if (frame.subtitle)
+      head.append(
+        frameText(
+          'p',
+          frame.subtitle,
+          'font: var(--text-small); color: var(--color-text-muted); margin-top: 2px;',
+        ),
+      )
+    tile.append(head)
+  }
+  const place = document.createElement('div')
+  place.style.cssText = `height: ${box.height}px;`
+  tile.append(place)
+  if (frame.footnote)
+    tile.append(
+      frameText(
+        'p',
+        frame.footnote,
+        `font: var(--text-small); color: var(--color-text-muted);
+         border-top: 1px solid var(--color-border-default); padding-top: var(--space-2);`,
+      ),
+    )
+  const scope = root.getRootNode()
+  ;(scope instanceof ShadowRoot ? scope : document.body).append(tile)
+  return [tile, place]
+}
+
+/**
+ * The chart in `root` as one `<svg>` on the surface of the mode the reader looks in: the legend,
+ * axis titles, drawing, events and legend table where they stand on screen. With a `frame`, the
+ * tile around it as well: its padding and edge, the title and subtitle above, the footnote below.
+ */
+export function chartImage(root: Element, frame?: ImageFrame): SVGSVGElement {
+  // The image shows the marks as they end, never halfway through drawing in: a norm, a label or a
+  // dot still fading or sliding in would be copied faint or out of place.
+  for (const animation of root.getAnimations?.({ subtree: true }) ?? []) animation.finish()
+  const box = root.getBoundingClientRect()
+  const image = document.createElementNS(SVG_NS, 'svg')
+  const laid = frame ? layOutFrame(root, box, frame) : null
+  try {
+    let reach = { left: 0, top: 0, right: box.width, bottom: box.height }
+    let at = { left: box.left, top: box.top }
+    if (laid) {
+      const [tile, place] = laid
+      const outer = tile.getBoundingClientRect()
+      const inner = place.getBoundingClientRect()
+      reach = { left: 0, top: 0, right: outer.width, bottom: outer.height }
+      paint(tile, { left: outer.left, top: outer.top, reach }, false, image)
+      // The chart where the place stands in the tile.
+      at = { left: box.left - (inner.left - outer.left), top: box.top - (inner.top - outer.top) }
+    }
+    paint(root, { ...at, reach }, false, image)
+    const left = Math.floor(reach.left)
+    const top = Math.floor(reach.top)
+    const width = Math.max(1, Math.ceil(reach.right) - left)
+    const height = Math.max(1, Math.ceil(reach.bottom) - top)
+    image.setAttribute('xmlns', SVG_NS)
+    image.setAttribute('width', String(width))
+    image.setAttribute('height', String(height))
+    image.setAttribute('viewBox', `${left} ${top} ${width} ${height}`)
+    const surface = surfaceColour(root)
+    if (surface)
+      image.prepend(create('rect', { x: left, y: top, width, height, fill: surface }, image))
+    return image
+  } finally {
+    laid?.[0].remove()
+  }
+}
+
+let pageFonts: Promise<string> | null = null
+
+/**
+ * The page's `@font-face` rules with their files inlined, so an image set in RijksSans keeps it:
+ * an image drawn from a data URL loads nothing of its own. A sheet the page may not read, or a
+ * file that does not come, leaves that face out and the image falls back to the system face.
+ */
+function embeddedFonts(): Promise<string> {
+  pageFonts ??= (async () => {
+    const faces: { css: string; url: string }[] = []
+    for (const sheet of document.styleSheets) {
+      let rules: CSSRuleList
+      try {
+        rules = sheet.cssRules
+      } catch {
+        continue
+      }
+      for (const rule of rules) {
+        if (!(rule instanceof CSSFontFaceRule)) continue
+        const found = /url\(\s*['"]?([^'")]+)['"]?\s*\)/.exec(rule.style.getPropertyValue('src'))
+        if (found)
+          faces.push({
+            css: rule.cssText,
+            url: new URL(found[1], sheet.href ?? location.href).href,
+          })
+      }
+    }
+    const inlined = await Promise.all(
+      faces.map(async ({ css, url }) => {
+        try {
+          const blob = await (await fetch(url)).blob()
+          const data = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(String(reader.result))
+            reader.onerror = () => reject(reader.error)
+            reader.readAsDataURL(blob)
+          })
+          return css.replace(/url\([^)]*\)/, `url("${data}")`)
+        } catch {
+          return ''
+        }
+      }),
+    )
+    return inlined.join('\n')
+  })()
+  return pageFonts
+}
+
+/** An `<svg>` with its own `width`, `height` and surface (`chartImage`) as a PNG, twice its size. */
+async function pngOf(svg: SVGSVGElement): Promise<Blob | null> {
+  const width = Math.max(1, Number(svg.getAttribute('width')))
+  const height = Math.max(1, Number(svg.getAttribute('height')))
+  const fonts = await embeddedFonts()
+  if (fonts) {
+    const style = document.createElementNS(SVG_NS, 'style')
+    style.textContent = fonts
+    svg.prepend(style)
+  }
+  const source = new XMLSerializer().serializeToString(svg)
   const image = new Image()
   image.decoding = 'sync'
   await new Promise<void>((resolve, reject) => {
@@ -102,12 +457,17 @@ export async function downloadPng(filename: string, svg: SVGSVGElement): Promise
   canvas.width = width * scale
   canvas.height = height * scale
   const context = canvas.getContext('2d')
-  if (!context) return
-  if (background) {
-    context.fillStyle = background
-    context.fillRect(0, 0, canvas.width, canvas.height)
-  }
+  if (!context) return null
   context.drawImage(image, 0, 0, canvas.width, canvas.height)
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
+  return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
+}
+
+/**
+ * An image of `chartImage` as a PNG, in the page's web font. A drawing still on the page is made
+ * one first, alone.
+ */
+export async function downloadPng(filename: string, svg: SVGSVGElement): Promise<void> {
+  const name = filename.toLowerCase().endsWith('.png') ? filename : `${filename}.png`
+  const blob = await pngOf(svg.isConnected ? chartImage(svg) : svg)
   if (blob) save(blob, name)
 }

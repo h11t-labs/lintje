@@ -83,6 +83,7 @@
   font-size: 1rem;
 }
 .lintje-tag-input__input::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+.lintje-tag-input__input:disabled::placeholder { color: var(--color-text-disabled); }
 .lintje-tag-input__input:disabled { cursor: not-allowed; }
 
 .lintje-tag-input__list {

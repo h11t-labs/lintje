@@ -2,13 +2,20 @@
  * `<lintje-date-range>` — the date range picker: a field and a popover with a calendar, presets
  * and "Wissen"/"Toepassen".
  *
- * Escape closes only the popover; it and "Toepassen" give the focus back to the field. Tab out of
- * the element closes the popover.
+ * The popover is fixed to the viewport, so a scrolling filter bar or tile around it does not cut it
+ * off. Escape closes only the popover; it and "Toepassen" give the focus back to the field. Tab out
+ * of the element closes the popover.
  *
  * Events: `lintje-change` `{ from, to }`, `lintje-values-change` `{ [name]: value }` (with a
  * `name`), `lintje-reset` (the reset link was pressed).
  */
-import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
+import {
+  html,
+  nothing,
+  type PropertyDeclarations,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
 import { holdsFocus, standsIn } from '../../../core/focus'
@@ -16,22 +23,24 @@ import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { LintjeInputElement } from '../shared/input'
 import { ownsEscape } from '../../shared/focus-trap'
+import { place, samePlace, viewport, type Place } from '../../shared/place'
 import '../../actions/button/button'
 import '../../actions/icon-button/icon-button'
 import inputCss from '../shared/input.css?inline'
+import monthGridCss from '../../shared/month-grid.css?inline'
 import {
-  addDays as addIsoDays,
   addMonths,
-  DAY_MOVES,
-  dayLabel,
+  formatDate as formatIso,
   monthLabel,
+  parseDate,
   startOfMonth,
-  startOfWeek,
   todayIso,
 } from '../../shared/date-format'
+import { focusGridDay, renderMonthGrid } from '../../shared/month-grid'
 import pickerCss from './date-range.css?inline'
 
-const WEEKDAY_LABELS = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo']
+/** The popover's distance from the field. */
+const GAP = 4
 
 function addDays(date: Date, days: number): Date {
   const result = new Date(date)
@@ -78,20 +87,15 @@ export interface DateRange {
   to: string | null
 }
 
-/** dd-mm-yyyy */
+/** dd-mm-yyyy, the local day of `date`. */
 export function formatDate(date: Date): string {
-  return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`
+  return formatIso(todayIso(date))
 }
 
-/** dd-mm-yyyy to yyyy-mm-dd. */
-const iso = (value: string | null): string | null =>
-  value ? value.split('-').reverse().join('-') : null
-
-function parseDate(value: string | null): Date | null {
-  if (!value) return null
-  const [day, month, year] = value.split('-').map(Number)
-  if (!day || !month || !year) return null
-  return new Date(year, month - 1, day)
+/** dd-mm-yyyy to yyyy-mm-dd; `null` for none or for what is no day. */
+function iso(value: string | null): string | null {
+  const parsed = value ? parseDate(value) : null
+  return parsed?.kind === 'ok' ? parsed.iso : null
 }
 
 /** yyyy-mm-dd to a local `Date`, as the presets count. */
@@ -100,16 +104,27 @@ function dateOf(day: string): Date {
   return new Date(year, month - 1, date)
 }
 
+/** The local `Date` of a dd-mm-yyyy day. */
+function dayOf(value: string | null): Date | null {
+  const day = iso(value)
+  return day ? dateOf(day) : null
+}
+
 /** What a day cell adds to its name: its part in the range. */
 function rangePart(start: boolean, end: boolean, inside: boolean): string {
-  if (start && end) return ', begin- en einddatum'
-  if (start) return ', begindatum'
-  if (end) return ', einddatum'
-  return inside ? ', in periode' : ''
+  if (start && end) return 'begin- en einddatum'
+  if (start) return 'begindatum'
+  if (end) return 'einddatum'
+  return inside ? 'in periode' : ''
 }
 
 export class LintjeDateRange extends LintjeInputElement {
-  static override styles = [iconStyles, shadowCss(pickerCss), shadowCss(inputCss)]
+  static override styles = [
+    iconStyles,
+    shadowCss(monthGridCss),
+    shadowCss(pickerCss),
+    shadowCss(inputCss),
+  ]
 
   static override properties: PropertyDeclarations = {
     accessibleName: { type: String, attribute: 'accessible-name' },
@@ -147,6 +162,10 @@ export class LintjeDateRange extends LintjeInputElement {
   /** The day cell that holds the grid's one tab stop, yyyy-mm-dd; `''` until a key or a click. */
   protected focusDay: string = ''
 
+  /** Where the popover stands; not reactive, as it is measured after a render. */
+  private spot: Place | null = null
+  private reflowFrame: number = 0
+
   private readonly onOutsideClick = (event: MouseEvent): void => {
     if (!this.open) return
     if (!event.composedPath().includes(this)) this.open = false
@@ -176,16 +195,59 @@ export class LintjeDateRange extends LintjeInputElement {
     this.open = false
   }
 
+  // Scroll is captured so a scrolling box around the element counts; one measurement per frame.
+  private readonly onReflow = (): void => {
+    if (!this.open || this.reflowFrame) return
+    this.reflowFrame = requestAnimationFrame(() => {
+      this.reflowFrame = 0
+      this.measure()
+    })
+  }
+
   override connectedCallback(): void {
     super.connectedCallback()
     document.addEventListener('mousedown', this.onOutsideClick)
     document.addEventListener('keydown', this.onEscape, true)
+    window.addEventListener('scroll', this.onReflow, { capture: true, passive: true })
+    window.addEventListener('resize', this.onReflow)
   }
 
   override disconnectedCallback(): void {
     document.removeEventListener('mousedown', this.onOutsideClick)
     document.removeEventListener('keydown', this.onEscape, true)
+    window.removeEventListener('scroll', this.onReflow, { capture: true })
+    window.removeEventListener('resize', this.onReflow)
+    if (this.reflowFrame) cancelAnimationFrame(this.reflowFrame)
+    this.reflowFrame = 0
     super.disconnectedCallback()
+  }
+
+  /**
+   * Places the popover at the field. Written straight onto the panel, through the CSSOM as a
+   * strict `style-src` allows: a reactive property set after a render would draw it twice.
+   */
+  private measure(): void {
+    const field = this.renderRoot.querySelector('.lintje-date-range-picker__field')
+    const panel = this.renderRoot.querySelector<HTMLElement>('.lintje-date-range-picker__popover')
+    if (!field || !panel) {
+      this.spot = null
+      return
+    }
+    const box = { width: panel.offsetWidth, height: panel.offsetHeight }
+    const next = place(field.getBoundingClientRect(), box, viewport(), 'bottom-start', GAP)
+    if (samePlace(this.spot, next)) return
+    this.spot = next
+    const px = (value: number | null): string => (value === null ? '' : `${value}px`)
+    panel.style.setProperty('top', px(next.top))
+    panel.style.setProperty('bottom', px(next.bottom))
+    panel.style.setProperty('left', px(next.left))
+    panel.style.setProperty('--lintje-date-range-space', px(next.space))
+  }
+
+  // The panel exists only now, so its size is known; a closed one forgets its place.
+  protected override updated(changed: PropertyValues<this>): void {
+    super.updated(changed)
+    this.measure()
   }
 
   private get day(): Date {
@@ -196,42 +258,36 @@ export class LintjeDateRange extends LintjeInputElement {
     this.open = !this.open
     if (this.open) {
       this.draft = { ...this.range }
-      this.month = parseDate(this.range.from) ?? this.day
+      this.month = dayOf(this.range.from) ?? this.day
       this.focusDay = ''
     }
   }
 
-  private select(date: Date): void {
-    const from = parseDate(this.draft.from)
-    const to = parseDate(this.draft.to)
-    if (!from || (from && to)) this.draft = { from: formatDate(date), to: null }
-    else if (date < from) this.draft = { from: formatDate(date), to: formatDate(from) }
-    else this.draft = { from: this.draft.from, to: formatDate(date) }
+  private select(day: string): void {
+    const from = iso(this.draft.from)
+    const text = formatIso(day)
+    if (!from || iso(this.draft.to)) this.draft = { from: text, to: null }
+    else if (day < from) this.draft = { from: text, to: formatIso(from) }
+    else this.draft = { from: this.draft.from, to: text }
   }
 
   private applyPreset(name: string): void {
     const range = presetRange(name, this.day, this.maxDate)
     if (!range) return
     this.draft = range
-    this.month = parseDate(range.from) ?? this.day
+    this.month = dayOf(range.from) ?? this.day
     this.focusDay = ''
   }
 
-  private pick(day: string, blocked: boolean): void {
-    if (blocked) return
+  private pick(day: string): void {
     this.focusDay = day
-    this.select(dateOf(day))
+    this.select(day)
   }
 
-  /** Moves the tab stop; the month turns when the day is not in view, or on PageUp/PageDown. */
-  private onGridKeydown(event: KeyboardEvent, focus: string, cells: string[]): void {
-    const move = DAY_MOVES[event.key]
-    if (!move) return
-    event.preventDefault()
-    const next = move(focus)
-    this.focusDay = next
-    if (event.key.startsWith('Page') || !cells.includes(next))
-      this.month = dateOf(startOfMonth(next))
+  /** Moves the tab stop; the month follows it. */
+  private moveTo(day: string): void {
+    this.focusDay = day
+    this.month = dateOf(startOfMonth(day))
     void this.focusCell()
   }
 
@@ -242,9 +298,7 @@ export class LintjeDateRange extends LintjeInputElement {
 
   private async focusCell(): Promise<void> {
     await this.updateComplete
-    this.renderRoot
-      .querySelector<HTMLElement>('.lintje-date-range-picker__day[tabindex="0"]')
-      ?.focus()
+    focusGridDay(this.renderRoot)
   }
 
   private apply(): void {
@@ -255,25 +309,19 @@ export class LintjeDateRange extends LintjeInputElement {
 
   protected override render(): TemplateResult {
     const today = todayIso(this.day)
-    const month = this.month ?? parseDate(this.range.from) ?? this.day
+    const month = this.month ?? dayOf(this.range.from) ?? this.day
     const shown = todayIso(month).slice(0, 7)
     const from = iso(this.draft.from)
     const to = iso(this.draft.to)
     const last = this.maxDate ? todayIso(this.maxDate) : null
-
-    const first = startOfWeek(`${shown}-01`)
-    const cells = Array.from({ length: 42 }, (_, index) => addIsoDays(first, index))
-    const weeks = Array.from({ length: 6 }, (_, week) => cells.slice(week * 7, week * 7 + 7))
     const focus =
-      [this.focusDay, from, today].find((day) => day && cells.includes(day)) ?? `${shown}-01`
+      [this.focusDay, from, today].find((day) => day && day.startsWith(shown)) ?? `${shown}-01`
 
     const fieldName = this.accessibleName || this.labelText
     const chosen = Boolean(this.range.from && this.range.to)
     const rangeLabel = chosen ? `${this.range.from} – ${this.range.to}` : 'dd-mm-jjjj – dd-mm-jjjj'
-    const fromDate = parseDate(this.draft.from)
-    const toDate = parseDate(this.draft.to)
     const days =
-      fromDate && toDate ? Math.round((toDate.getTime() - fromDate.getTime()) / 86_400_000) + 1 : 0
+      from && to ? Math.round((dateOf(to).getTime() - dateOf(from).getTime()) / 86_400_000) + 1 : 0
     // "Wissen" empties the draft: over a chosen range that is a change to apply.
     const applicable = days > 0 || (chosen && !this.draft.from && !this.draft.to)
 
@@ -291,7 +339,7 @@ export class LintjeDateRange extends LintjeInputElement {
         aria-haspopup="dialog"
         aria-describedby=${this.describedBy}
         aria-invalid=${this.error ? 'true' : nothing}
-        ?disabled=${this.disabled}
+        ?disabled=${this.isDisabled}
         @click=${this.toggle}
       >
         <span>${rangeLabel}</span>
@@ -325,50 +373,25 @@ export class LintjeDateRange extends LintjeInputElement {
               </button>
             </div>
 
-            <div
-              class="lintje-date-range-picker__grid"
-              role="grid"
-              aria-label=${monthLabel(`${shown}-01`)}
-              @keydown=${(event: KeyboardEvent) => this.onGridKeydown(event, focus, cells)}
-            >
-              <div class="lintje-date-range-picker__row" role="row">
-                ${WEEKDAY_LABELS.map(
-                  (day) =>
-                    html`<span class="lintje-date-range-picker__weekday" role="columnheader"
-                      >${day}</span
-                    >`,
-                )}
-              </div>
-              ${weeks.map(
-                (week) => html`<div class="lintje-date-range-picker__row" role="row">
-                  ${week.map((day) => {
-                    const blocked = last !== null && day > last
-                    const isStart = day === from
-                    const isEnd = day === to
-                    const inRange = from !== null && to !== null && day > from && day < to
-                    return html`<button
-                      type="button"
-                      role="gridcell"
-                      tabindex=${day === focus ? '0' : '-1'}
-                      aria-label=${dayLabel(day) + rangePart(isStart, isEnd, inRange)}
-                      aria-selected=${isStart || isEnd || inRange ? 'true' : 'false'}
-                      aria-current=${day === today ? 'date' : nothing}
-                      aria-disabled=${blocked ? 'true' : nothing}
-                      class=${classMap({
-                        'lintje-date-range-picker__day': true,
-                        'is-outside': !day.startsWith(shown),
-                        'is-blocked': blocked,
-                        'is-today': day === today,
-                        'is-endpoint': isStart || isEnd,
-                        'is-in-range': inRange,
-                      })}
-                      @click=${() => this.pick(day, blocked)}
-                    >
-                      ${Number(day.slice(8))}
-                    </button>`
-                  })}
-                </div>`,
-              )}
+            <div class="lintje-date-range-picker__calendar">
+              ${renderMonthGrid({
+                focus,
+                today,
+                multiselectable: true,
+                day: (day) => {
+                  const start = day === from
+                  const end = day === to
+                  const inRange = from !== null && to !== null && day > from && day < to
+                  return {
+                    selected: start || end,
+                    inRange,
+                    blocked: last !== null && day > last,
+                    note: rangePart(start, end, inRange),
+                  }
+                },
+                onPick: (day) => this.pick(day),
+                onMove: (day) => this.moveTo(day),
+              })}
             </div>
 
             <div class="lintje-date-range-picker__presets">

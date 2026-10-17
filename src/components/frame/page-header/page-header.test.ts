@@ -27,9 +27,15 @@ beforeAll(() => {
   globalThis.IntersectionObserver ??= Stub as unknown as typeof IntersectionObserver
 })
 
+const viewport = (width: number): void =>
+  (
+    window as unknown as { happyDOM: { setViewport(size: { width: number }): void } }
+  ).happyDOM.setViewport({ width })
+
 const mounted: HTMLElement[] = []
 afterEach(() => {
   for (const element of mounted.splice(0)) element.remove()
+  viewport(1024)
 })
 
 async function mountPage(): Promise<HTMLElement> {
@@ -39,7 +45,7 @@ async function mountPage(): Promise<HTMLElement> {
     name: 'Dashboard Vergunningen',
     layout: 'side',
     navigation: [],
-    user: { initials: 'HP', name: 'H. van Pelt', role: 'Analist' },
+    user: { initials: 'MV', name: 'M. Visser', role: 'Analist' },
     pageName: 'Overzicht',
   }
   const header = document.createElement('lintje-page-header') as LintjePageHeader
@@ -111,6 +117,19 @@ describe('lintje-page-header without a shell', () => {
     expect(root.querySelector('h2')!.textContent).toBe('Meldingen')
     expect(root.querySelector('.lintje-page-header__description')!.textContent).toBe('32 meldingen')
     expect(root.querySelector('.lintje-page-header__kicker')).toBeNull()
+  })
+
+  it('keeps the description under the title below 768 px', async () => {
+    viewport(390)
+    const header = document.createElement('lintje-page-header') as LintjePageHeader
+    header.data = { kicker: 'Beheer', title: 'Meldingen', description: '32 meldingen' }
+    document.body.append(header)
+    mounted.push(header)
+    await header.updateComplete
+    const root = header.shadowRoot!
+    // The kicker only stands there below 768 px, so it proves the phone view is drawn.
+    expect(root.querySelector('.lintje-page-header__kicker')!.textContent).toBe('Beheer')
+    expect(root.querySelector('.lintje-page-header__description')!.textContent).toBe('32 meldingen')
   })
 
   it('puts breadcrumbs above the title and actions on its right, through named slots', async () => {

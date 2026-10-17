@@ -41,7 +41,10 @@ import '../../inputs/select/select'
 import '../code/code'
 import '../highlight/highlight'
 import { LintjeContentTileElement } from '../../shared/content-tile'
+import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import { COPIED_FOR } from '../../shared/copied'
+import { atEndAfterScroll } from '../../shared/follow'
+import { LiveMessage } from '../../shared/live-message'
 import { downloadCsv, downloadText } from '../../shared/download'
 import type { LogEntry, LogFilter, LogLevel, LogViewerData } from '../../../types'
 import {
@@ -87,8 +90,6 @@ const LEVEL_TONE: Record<LogLevel, { tone: BadgeTone; icon?: string }> = {
   debug: { tone: 'subtle' },
 }
 
-/** Pixels from the end that still count as standing at it. */
-const AT_END = 8
 /** New lines are read out at most this often. */
 const SPEAK_EVERY = 5000
 
@@ -106,7 +107,6 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     opened: { state: true },
     activeId: { state: true },
     copied: { state: true },
-    message: { state: true },
     fit: { state: true },
   }
 
@@ -130,7 +130,6 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   /** The line the arrow keys stand on. */
   protected activeId: string | null = null
   protected copied: 'menu' | 'line' | 'link' | null = null
-  protected message: string = ''
   protected fit: Fit = 'wide'
 
   readonly #mobile = new MediaController(this)
@@ -144,9 +143,11 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   #pending = { lines: 0, errors: 0 }
   #speakTimer: ReturnType<typeof setTimeout> | null = null
   #copiedTimer: ReturnType<typeof setTimeout> | null = null
-  #sayFrame = 0
-  #fitObserver: ResizeObserver | null = null
+  readonly #live = new LiveMessage(this)
+  #fitObserver = new FrameResizeObserver(() => this.refit())
   #observed: Element | null = null
+  #growth: ResizeObserver | null = null
+  #grown: Element | null = null
   /** The segments' width on one line, once measured. */
   #levelsWidth = 0
   #drawnFit: Fit = 'wide'
@@ -158,10 +159,11 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   override disconnectedCallback(): void {
     if (this.#speakTimer) clearTimeout(this.#speakTimer)
     if (this.#copiedTimer) clearTimeout(this.#copiedTimer)
-    cancelAnimationFrame(this.#sayFrame)
-    this.#fitObserver?.disconnect()
-    this.#fitObserver = null
+    this.#fitObserver.disconnect()
     this.#observed = null
+    this.#growth?.disconnect()
+    this.#growth = null
+    this.#grown = null
     super.disconnectedCallback()
   }
 
@@ -235,13 +237,14 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       const what = count === 1 ? '1 nieuwe regel' : `${formatNumber(count)} nieuwe regels`
       const bad =
         errors === 0 ? '' : errors === 1 ? ', waarvan 1 fout' : `, waarvan ${errors} fouten`
-      this.say(`${what}${bad}`)
+      this.#live.say(`${what}${bad}`)
     }, SPEAK_EVERY)
   }
 
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
     this.watchFit()
+    this.watchGrowth()
     // A new layout keeps the row's width, so its observer stays silent: measure it again.
     if (this.fit !== this.#drawnFit) {
       this.#drawnFit = this.fit
@@ -258,18 +261,31 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     if (changed.has('data') && this.#asked) {
       this.#asked = false
       const count = this.shown.length
-      this.say(count === 1 ? '1 regel' : `${formatNumber(count)} regels`)
+      this.#live.say(count === 1 ? '1 regel' : `${formatNumber(count)} regels`)
     }
   }
 
   // The row reads its own width, not the screen's: a tile beside another is narrow on a wide screen.
   private watchFit(): void {
     const row = this.renderRoot.querySelector('.lintje-log-viewer__filters')
-    if (!row || row === this.#observed || typeof ResizeObserver === 'undefined') return
-    this.#fitObserver?.disconnect()
-    this.#fitObserver = new ResizeObserver(() => this.refit())
+    if (!row || row === this.#observed) return
+    this.#fitObserver.disconnect()
     this.#fitObserver.observe(row)
     this.#observed = row
+  }
+
+  // The rows lay out only once the tile draws its slot, and grow as a line opens: whoever
+  // follows stays at the newest line, also when the log first appears.
+  private watchGrowth(): void {
+    const rows = this.log?.querySelector('.lintje-log-viewer__rows')
+    if (!rows || rows === this.#grown || typeof ResizeObserver === 'undefined') return
+    this.#growth?.disconnect()
+    this.#growth = new ResizeObserver(() => {
+      const log = this.log
+      if (this.following && log) log.scrollTop = log.scrollHeight
+    })
+    this.#growth.observe(rows)
+    this.#grown = rows
   }
 
   private refit(): void {
@@ -308,16 +324,13 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     }
   }
 
-  // Only scrolling up leaves the end, and only arriving at it returns there.
   private readonly onScroll = (): void => {
     const log = this.log
     if (!log) return
-    const atEnd = log.scrollHeight - log.scrollTop - log.clientHeight <= AT_END
-    if (atEnd) {
-      if (!this.following) this.toLatest(false)
-    } else if (log.scrollTop < this.#lastTop - 1 && this.following) {
-      this.following = false
-    }
+    const beyond = log.scrollHeight - log.scrollTop - log.clientHeight
+    const atEnd = atEndAfterScroll(this.following, log.scrollTop, this.#lastTop, beyond)
+    if (atEnd && !this.following) this.toLatest(false)
+    else if (!atEnd) this.following = false
     this.#lastTop = log.scrollTop
   }
 
@@ -326,13 +339,6 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     this.unreadFrom = null
     const log = this.log
     if (scroll && log) log.scrollTop = log.scrollHeight
-  }
-
-  // Emptied first: the same words again are no change to a live region.
-  private say(text: string): void {
-    cancelAnimationFrame(this.#sayFrame)
-    this.message = ''
-    this.#sayFrame = requestAnimationFrame(() => (this.message = text))
   }
 
   /* Host requests ----------------------------------------------------------- */
@@ -375,7 +381,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     this.copied = which
     if (this.#copiedTimer) clearTimeout(this.#copiedTimer)
     this.#copiedTimer = setTimeout(() => (this.copied = null), COPIED_FOR)
-    this.say('Gekopieerd')
+    this.#live.say('Gekopieerd')
   }
 
   private get fileName(): string {
@@ -747,7 +753,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     return html`<div class="lintje-log-viewer__frame">
         ${this.renderLines(raw, mobile, 'tile')} ${this.renderFoot()}
       </div>
-      <p class="visually-hidden" role="status" aria-atomic="false">${this.message}</p>`
+      <p class="visually-hidden" role="status" aria-atomic="false">${this.#live.text}</p>`
   }
 
   private renderLines(raw: boolean, mobile: boolean, place: 'tile' | 'modal'): TemplateResult {
@@ -770,6 +776,8 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     const unread = !this.following && this.unreadFrom
     const newCount = unread ? shown.length - shown.findIndex((e) => e.id === this.unreadFrom) : 0
 
+    // In the tile the active row is the one tab stop; -1 keeps Firefox from making the
+    // scroller a second one. Keys on that row still scroll it.
     return html`<div
       class=${classMap({
         'lintje-log-viewer__log': true,
@@ -780,7 +788,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       role="log"
       aria-live="off"
       aria-label=${data?.title ?? 'Log'}
-      tabindex=${inTile ? nothing : '0'}
+      tabindex=${inTile ? '-1' : '0'}
       @scroll=${inTile ? this.onScroll : nothing}
       @keydown=${inTile ? this.onRowsKeydown : nothing}
     >

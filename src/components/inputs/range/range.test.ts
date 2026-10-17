@@ -144,14 +144,40 @@ describe('the single-handle slider', () => {
     expect(seen).toEqual([20])
   })
 
-  it('says its bounds, its value and the value in words', async () => {
+  it('is named by its label without the value, and says the value once, in words', async () => {
     const element = await mount(15)
     const input = slider(element)
-    expect(input.getAttribute('role')).toBe('slider')
-    expect(input.getAttribute('aria-valuemin')).toBe('5')
-    expect(input.getAttribute('aria-valuemax')).toBe('30')
-    expect(input.getAttribute('aria-valuenow')).toBe('15')
+    expect(input.getAttribute('aria-label')).toBe('Wachttijddrempel')
+    expect(input.hasAttribute('aria-labelledby')).toBe(false)
+    // The native range gives the index as its value; a step may be text, a value must be a number.
+    for (const attribute of ['role', 'aria-valuemin', 'aria-valuemax', 'aria-valuenow']) {
+      expect(input.hasAttribute(attribute)).toBe(false)
+    }
     expect(input.getAttribute('aria-valuetext')).toBe('15 min')
+    // The visible label keeps the value behind it.
+    expect(element.renderRoot.querySelector('.lintje-field__value')?.textContent).toBe('15 min')
+  })
+
+  it('says "(niet verplicht)" in its name when it is optional', async () => {
+    const element = await mount(15)
+    element.optional = true
+    await element.updateComplete
+    expect(slider(element).getAttribute('aria-label')).toBe('Wachttijddrempel (niet verplicht)')
+  })
+
+  it('says a step that is text as its value, with no number for it', async () => {
+    const element = document.createElement('lintje-range') as LintjeRange
+    element.single = true
+    element.label = 'Maand'
+    element.steps = ['jan', 'feb', 'mrt']
+    element.value = 'feb'
+    document.body.append(element)
+    await element.updateComplete
+    const input = slider(element)
+    expect(input.getAttribute('aria-label')).toBe('Maand')
+    expect(input.getAttribute('aria-valuetext')).toBe('feb')
+    expect(input.hasAttribute('aria-valuenow')).toBe(false)
+    expect(input.value).toBe('1')
   })
 
   it('draws one handle, filled from the lowest step to it', async () => {
