@@ -1,7 +1,7 @@
 /**
  * Where a floating box stands against its anchor, in viewport pixels: below or above at a fixed
  * gap, flipped when the room is too small and the other side has more, never past the viewport.
- * Shared by the popover and the tooltip.
+ * Shared by the popover, the tooltip, the toggletip, the multiselect and the date range.
  */
 
 export type Placement =
@@ -86,4 +86,15 @@ export function viewport(): { width: number; height: number } {
     width: window.innerWidth || document.documentElement.clientWidth || 1024,
     height: window.innerHeight || document.documentElement.clientHeight || 768,
   }
+}
+
+/**
+ * Writes the place onto its box through the CSSOM, as a strict `style-src` allows. Measured after
+ * a render, it never goes through a reactive property: that would draw the element twice.
+ */
+export function stand(box: HTMLElement, spot: Place): void {
+  const px = (value: number | null): string => (value === null ? '' : `${value}px`)
+  box.style.setProperty('top', px(spot.top))
+  box.style.setProperty('bottom', px(spot.bottom))
+  box.style.setProperty('left', px(spot.left))
 }

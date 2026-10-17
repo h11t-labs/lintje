@@ -315,8 +315,8 @@ function renderStart() {
   $('answer-products').addEventListener('lintje-row-action', (event) => {
     const item = PRODUCTS.find((entry) => entry.id === event.detail.id)
     if (!item) return
-    if (event.detail.value === 'openen') window.open(`https://example.org/catalogus/${item.id}`, '_blank', 'noopener')
-    else if (event.detail.value === 'aanvragen') location.href = `${productHref(item)}#toegang`
+    if (event.detail.action === 'openen') window.open(`https://example.org/catalogus/${item.id}`, '_blank', 'noopener')
+    else if (event.detail.action === 'aanvragen') location.href = `${productHref(item)}#toegang`
     else location.href = productHref(item)
   })
   $('question').addEventListener('lintje-message-send', (event) => ask(event.detail.text ?? ''))
@@ -498,6 +498,7 @@ function renderAbout() {
     title: 'Over het dataplatform',
     description: 'Het dataplatform achter de catalogus: wat het is, wat erop staat en wie je kunt vragen.',
   }
+  $('about-text').html = $('about-source').innerHTML
   $('about-facts').items = [
     { label: 'Team', value: 'Team Dataplatform' },
     { label: 'Product aanmelden', value: 'dataplatform@example.org', href: 'mailto:dataplatform@example.org?subject=Product%20aanmelden' },

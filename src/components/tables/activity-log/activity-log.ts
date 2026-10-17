@@ -9,11 +9,16 @@ import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import '../../actions/button/button'
+import '../person/person'
+import type { Person } from '../../../types'
 import activityLogCss from './activity-log.css?inline'
 
 export interface ActivityEntry {
-  /** A name, or "Systeem". */
-  who: string
+  /**
+   * Someone, with the circle before the name and a link with `href`; or a text that is no person
+   * ("Systeem"), as the bold name alone.
+   */
+  who: string | Person
   /** The rest of the sentence: "wijzigde de omschrijving". */
   what: string
   /** The moment as the host wrote it, in Dutch. */
@@ -72,7 +77,24 @@ export class LintjeActivityLog extends LintjeElement {
     }
   }
 
-  private entry(entry: ActivityEntry, index: number, last: boolean): TemplateResult {
+  /** A person's circle before the name; a text keeps the circle's room empty where others have one. */
+  private who(who: string | Person, people: boolean): TemplateResult {
+    if (typeof who !== 'string') {
+      return html`<strong class="lintje-activity-log__who"
+        ><lintje-person class="lintje-activity-log__person" size="small" .person=${who}></lintje-person
+      ></strong>`
+    }
+    return html`${
+      people ? html`<span class="lintje-activity-log__space" aria-hidden="true"></span>` : nothing
+    }<strong class="lintje-activity-log__who">${who}</strong>`
+  }
+
+  private entry(
+    entry: ActivityEntry,
+    index: number,
+    last: boolean,
+    people: boolean,
+  ): TemplateResult {
     return html`<li
       class=${classMap({
         'lintje-activity-log__entry': true,
@@ -86,7 +108,7 @@ export class LintjeActivityLog extends LintjeElement {
       </span>
       <div class="lintje-activity-log__body">
         <p class="lintje-activity-log__what">
-          <strong class="lintje-activity-log__who">${entry.who}</strong> ${entry.what}
+          ${this.who(entry.who, people)} ${entry.what}
         </p>
         ${
           entry.at
@@ -100,13 +122,14 @@ export class LintjeActivityLog extends LintjeElement {
   protected override render(): TemplateResult {
     const shown = this.entries.slice(0, Math.max(0, this.limit))
     const hidden = this.entries.length - shown.length
+    const people = this.entries.some((entry) => typeof entry.who !== 'string')
     return html`<section class="lintje-activity-log">
       ${this.renderHeading()}
       <ol
-        class="lintje-activity-log__list"
+        class=${classMap({ 'lintje-activity-log__list': true, 'has-people': people })}
         aria-labelledby=${this.heading ? 'lintje-activity-log-heading' : nothing}
       >
-        ${shown.map((entry, index) => this.entry(entry, index, index === shown.length - 1))}
+        ${shown.map((entry, index) => this.entry(entry, index, index === shown.length - 1, people))}
       </ol>
       ${
         hidden > 0

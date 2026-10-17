@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import { resolve as resolvePath } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { DATA_COLORS } from '../../../../tokens/colors'
-import { tintsFor } from './tints'
+import { tintSteps, tintsFor } from './tints'
 
 // Read from disk: vitest does not run the CSS pipeline. Comments out, so prose is no match.
 const css = readFileSync(resolvePath('src/tokens/tokens.css'), 'utf8').replace(
@@ -23,6 +23,12 @@ describe('tintsFor', () => {
     expect(tintsFor(3)).toEqual([TINT(1), TINT(2), TINT(4)])
     expect(tintsFor(4)).toEqual([TINT(1), TINT(2), TINT(3), TINT(4)])
     expect(tintsFor(5)).toEqual([TINT(1), TINT(2), TINT(3), TINT(4), TINT(5)])
+  })
+
+  it('names the steps it spreads, so a label can find its ink', () => {
+    expect(tintSteps(2)).toEqual([1, 4])
+    expect(tintSteps(9)).toEqual([1, 2, 3, 4, 5])
+    expect(tintSteps(0)).toEqual([])
   })
 
   it('draws nothing without parts', () => {

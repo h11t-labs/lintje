@@ -18,7 +18,7 @@
 }
 
 /* The name hangs outside the drawing's box, so the ribbon keeps its place whatever the name's
-   length. Its left is set inline, in px, from the ribbon's width. */
+   length. Its left is set inline, from the ribbon's width. */
 .lintje-logo__lockup { position: relative; display: block; }
 .lintje-logo__name {
   position: absolute;

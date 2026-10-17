@@ -26,7 +26,8 @@ lintje-filter-zone lintje-toggle {
 /* A select's width, so the placeholder stays on one line. */
 lintje-filter-zone lintje-multiselect { width: 180px; }
 
+/* No box of its own: the zone's parent is the page, so the zone can stick in it. */
 :host {
-  display: block;
+  display: contents;
 }
 :host([hidden]) { display: none; }

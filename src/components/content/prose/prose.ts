@@ -1,8 +1,9 @@
 /**
  * `<lintje-prose>` — a block of text on the type scale: `html`, else `text`, else the slot.
  *
- * The host renders the markdown and sanitises it: `html` is written into the shadow root as it
- * stands.
+ * `html` is for formatted content: the host renders the markdown and sanitises it, and it is
+ * written into the shadow root as it stands. `text` is one paragraph. The slot is for plain text
+ * only, in the block's font and colour: a heading, list or paragraph in it gets no styling.
  */
 import { html, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { unsafeHTML } from 'lit/directives/unsafe-html.js'
@@ -23,7 +24,7 @@ export class LintjeProse extends LintjeGridItemElement {
     tone: { type: String, reflect: true },
   }
 
-  /** Server-rendered, server-sanitised HTML. A property only. */
+  /** Formatted content: server-rendered, server-sanitised HTML. A property only. */
   declare html?: string
   /** One paragraph. Ignored when `html` is set. */
   declare text?: string

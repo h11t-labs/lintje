@@ -11,7 +11,14 @@ import type { ChartController } from '../shared/controller'
 import { prefersReducedMotion } from '../../../../core/motion'
 import { clearance, hidden, keyboardFocus, overlayBoxes, REVEAL_MARGIN, type Box } from './reveal'
 import { mapDrawings, type MapDrawing } from './drawings'
-import { renderData, renderRegion, type LandShape, type Project } from './marks'
+import {
+  FIXED_RADIUS,
+  renderData,
+  renderRegion,
+  type LandShape,
+  type Project,
+  ZOOM_RADIUS,
+} from './marks'
 import { distanceKm, flatRing, idsInArea, rectRing } from './area'
 import { GEOS, type FeatureCollection } from './geo'
 import type { MapArea, MapSpec, MapTool, MapValue, WmsBasemap } from '../shared/types'
@@ -48,6 +55,19 @@ const CLOSE_PX = 10
 function symbolTransform(symbol: SVGGElement, scale: number): string {
   const [x, y] = (symbol.dataset.at ?? '0 0').split(' ')
   return `translate(${x}px, ${y}px) scale(${scale})`
+}
+
+/**
+ * How far a symbol scales back against the group's `scale`: all the way, so it keeps its pixel
+ * size — or, for a point that follows the zoom (`data-zoom`, `MapPointSize.zoom`), only past the
+ * radius the zoom would give it outside 2–28 px, so it grows and shrinks with the ground until
+ * it would vanish or swamp the map.
+ */
+function symbolScale(symbol: SVGGElement, scale: number): number {
+  if (symbol.dataset.zoom == null) return 1 / scale
+  const radius = Number(symbol.dataset.r) || FIXED_RADIUS
+  const wanted = Math.min(ZOOM_RADIUS.max, Math.max(ZOOM_RADIUS.min, radius * scale))
+  return wanted / (radius * scale)
 }
 
 /** Leaflet's zoom animation: `cubic-bezier(0, 0, 0.25, 1)`, sampled at a share `t` of its time. */
@@ -100,7 +120,7 @@ export interface LeafletSyncOptions {
   zoom: boolean
   /** The scale bar shows: a move redraws the map so it follows. */
   scale: boolean
-  select: (value: MapValue) => void
+  select: (value: MapValue, newTab?: boolean) => void
   clear: () => void
   /** Below 768 px, where a one-finger drag belongs to the page (rule 9). */
   mobile: boolean
@@ -145,6 +165,8 @@ export class LeafletSurface {
   #attribution: L.Control.Attribution | null = null
   /** The design system's own group in Leaflet's svg, holding the whole drawing. */
   #group: SVGGElement | null = null
+  /** A copy of the focused mark over the drawing, so nothing drawn after it covers its ring. */
+  #focusGroup: SVGGElement | null = null
   /** The area being drawn, over the drawing, placed as it is. */
   #draftGroup: SVGGElement | null = null
   #draft: {
@@ -314,6 +336,7 @@ export class LeafletSurface {
     this.#tiles = null
     this.#attribution = null
     this.#group = null
+    this.#focusGroup = null
     this.#draftGroup = null
     this.#draft = null
     this.#basemapKey = ''
@@ -392,7 +415,11 @@ export class LeafletSurface {
     if (!svg) return null
     const group = document.createElementNS(SVG_NS, 'g')
     group.setAttribute('class', 'lintje-map-chart__data')
-    group.addEventListener('focusin', (event) => this.#reveal(event.target as Element))
+    group.addEventListener('focusin', (event) => {
+      this.#reveal(event.target as Element)
+      this.#copyFocus()
+    })
+    group.addEventListener('focusout', () => this.#focusGroup?.replaceChildren())
     group.addEventListener('keydown', (event) => {
       // A choice opens the selection panel, which may stand over the chosen mark.
       if (event.key !== 'Enter' && event.key !== ' ') return
@@ -401,6 +428,11 @@ export class LeafletSurface {
     })
     svg.append(group)
     this.#group = group
+    const focus = document.createElementNS(SVG_NS, 'g')
+    focus.setAttribute('class', 'lintje-map-chart__focus')
+    focus.setAttribute('aria-hidden', 'true')
+    svg.append(focus)
+    this.#focusGroup = focus
     const draft = document.createElementNS(SVG_NS, 'g')
     draft.setAttribute('class', 'lintje-map-chart__draft')
     svg.append(draft)
@@ -541,7 +573,51 @@ export class LeafletSurface {
       'has-selection',
       this.#options.area != null || this.#options.active != null,
     )
+    this.#copyFocus()
     this.#place(map)
+  }
+
+  /**
+   * The focused mark, copied over the whole drawing: svg paints in document order, and moving
+   * the mark itself would lose its focus and its place in the Tab order. Only for the keyboard's
+   * focus: after a click there is no ring to lift.
+   */
+  #copyFocus(): void {
+    const group = this.#group
+    const layer = this.#focusGroup
+    if (!group || !layer) return
+    let focused: Element | null = null
+    try {
+      focused = (group.getRootNode() as Document | ShadowRoot).activeElement
+    } catch {
+      // happy-dom's `ShadowRoot.activeElement` throws while a focus event is being dispatched.
+    }
+    if (
+      !focused ||
+      !group.contains(focused) ||
+      !focused.hasAttribute('data-mark-id') ||
+      !keyboardFocus(focused)
+    ) {
+      layer.replaceChildren()
+      return
+    }
+    const copy = focused.cloneNode(true) as Element
+    for (const name of [
+      'data-mark-id',
+      'role',
+      'tabindex',
+      'aria-pressed',
+      'aria-label',
+      'aria-hidden',
+    ])
+      copy.removeAttribute(name)
+    // A strict Content-Security-Policy drops a cloned style attribute; the CSSOM carries it over.
+    const targets = [copy, ...copy.querySelectorAll('*')]
+    ;[focused, ...focused.querySelectorAll('*')].forEach((source, n) => {
+      if (source instanceof SVGElement && source.style.length)
+        (targets[n] as SVGElement).style.cssText = source.style.cssText
+    })
+    layer.replaceChildren(copy)
   }
 
   /**
@@ -555,11 +631,12 @@ export class LeafletSurface {
     const origin = map.getPixelOrigin()
     const transform = `translate(${-origin.x} ${-origin.y}) scale(${scale})`
     group.setAttribute('transform', transform)
+    this.#focusGroup?.setAttribute('transform', transform)
     this.#draftGroup?.setAttribute('transform', transform)
     const inverse = 1 / scale
     for (const symbol of this.#symbols()) {
       symbol.style.transitionTimingFunction = ''
-      symbol.style.transform = symbolTransform(symbol, inverse)
+      symbol.style.transform = symbolTransform(symbol, symbolScale(symbol, scale))
     }
     group
       .querySelector('.lintje-map-chart__hatch')
@@ -576,11 +653,11 @@ export class LeafletSurface {
     const group = this.#group
     if (!map || !group) return
     const ratio = map.getZoomScale(zoom, map.getZoom())
-    const inverse = 1 / map.getZoomScale(zoom, this.#referenceZoom)
+    const target = map.getZoomScale(zoom, this.#referenceZoom)
     const easing = reciprocalEasing(ratio)
     for (const symbol of this.#symbols()) {
       symbol.style.transitionTimingFunction = easing
-      symbol.style.transform = symbolTransform(symbol, inverse)
+      symbol.style.transform = symbolTransform(symbol, symbolScale(symbol, target))
     }
   }
 
@@ -720,7 +797,7 @@ export class LeafletSurface {
 
   /** The symbols of the drawing and of the area being drawn: what keeps its size in pixels. */
   #symbols(): SVGGElement[] {
-    return [this.#group, this.#draftGroup].flatMap((group) =>
+    return [this.#group, this.#focusGroup, this.#draftGroup].flatMap((group) =>
       group ? [...group.querySelectorAll<SVGGElement>('.lintje-map-chart__symbol')] : [],
     )
   }

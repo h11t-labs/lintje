@@ -10,12 +10,14 @@ import { html, nothing, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
 import '../../feedback/spinner/spinner'
+import { NO_PERSON } from '../person/person'
 import type {
   CellValue,
   DataTableData,
   TableCellError,
   TableCellRef,
   TableColumnData,
+  TableOption,
 } from '../../../types'
 
 export interface CellPosition {
@@ -60,6 +62,21 @@ export function editText(value: CellValue): string {
   return value == null ? '' : String(value)
 }
 
+/**
+ * The options of a `select` editor. A `person` column without its own takes the people, in their
+ * order, after the empty word: its value `''` is sent as `null`.
+ */
+export function editorOptions(column: TableColumnData): TableOption[] {
+  if (column.editor?.options || column.format !== 'person') return column.editor?.options ?? []
+  return [
+    { value: '', label: column.empty ?? NO_PERSON },
+    ...Object.entries(column.people ?? {}).map(([value, person]) => ({
+      value,
+      label: person.name,
+    })),
+  ]
+}
+
 export type CellMode =
   | { kind: 'rest' }
   | { kind: 'busy'; value: string }
@@ -77,7 +94,7 @@ export interface EditGrid {
 /** The table one save is about, and how the controller reaches it. */
 export interface EditingHost {
   requestUpdate(): void
-  editCell(detail: TableCellRef & { value: string }): void
+  editCell(detail: TableCellRef & { value: string | null }): void
 }
 
 let instances = 0
@@ -180,7 +197,9 @@ export class CellEditing {
       if (refused) this.#dismissed.add(key)
       this.#pending.set(key, value)
       this.message = 'Wordt opgeslagen'
-      this.#host.editCell({ id: ref.id, column: ref.column, value })
+      const column = grid.columns.find((candidate) => candidate.key === ref.column)
+      const none = column?.format === 'person' && value === ''
+      this.#host.editCell({ id: ref.id, column: ref.column, value: none ? null : value })
     }
     this.editing = null
     this.#focus = { key, target: 'cell' }
@@ -241,8 +260,13 @@ export class CellEditing {
   ): unknown {
     const mode = this.mode(ref, original)
     if (mode.kind === 'busy') {
+      // A chosen person stands as the reader chose them: by name, not by id.
+      const said =
+        column.format === 'person'
+          ? editorOptions(column).find((option) => option.value === mode.value)?.label
+          : undefined
       return html`<span class="lintje-data-table__busy"
-        ><lintje-spinner size="16"></lintje-spinner><span>${mode.value}</span></span
+        ><lintje-spinner size="16"></lintje-spinner><span>${said ?? mode.value}</span></span
       >`
     }
     if (mode.kind === 'rest') {
@@ -289,7 +313,7 @@ export class CellEditing {
             @keydown=${onKeydown}
             @blur=${onBlur}
           >
-            ${(editor.options ?? []).map(
+            ${editorOptions(column).map(
               (option) =>
                 html`<option value=${option.value} ?selected=${option.value === mode.value}>
                   ${option.label ?? option.value}

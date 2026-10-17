@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import './activity-log'
 import type { ActivityEntry, LintjeActivityLog } from './activity-log'
+import type { LintjePerson } from '../person/person'
 
 function entries(count: number): ActivityEntry[] {
   return Array.from({ length: count }, (_, index) => ({
@@ -78,5 +79,57 @@ describe('lintje-activity-log', () => {
     await element.updateComplete
     await new Promise((resolve) => setTimeout(resolve))
     expect(element.shadowRoot!.activeElement).toBe(items(element)[10])
+  })
+})
+
+describe('a person in lintje-activity-log', () => {
+  const JV = { name: 'J. de Vries', initials: 'JV' }
+
+  it('puts the circle before the bold name and keeps the sentence', async () => {
+    const element = await mount({
+      entries: [{ who: JV, what: 'wees de aanvraag toe', when: 'vandaag, 10:12' }],
+    })
+    const what = element.shadowRoot!.querySelector('.lintje-activity-log__what')!
+    const person = what.querySelector<LintjePerson>(
+      'strong.lintje-activity-log__who lintje-person',
+    )!
+    expect(person.getAttribute('size')).toBe('small')
+    expect(person.person).toEqual(JV)
+    await person.updateComplete
+    expect(person.shadowRoot!.querySelector('.lintje-avatar')).not.toBeNull()
+    const said = `${person.person?.name}${what.textContent!.replace(/\s+/g, ' ')}`.trim()
+    expect(said).toBe('J. de Vries wees de aanvraag toe')
+  })
+
+  it('makes a person with `href` a link: an entry opens nothing itself', async () => {
+    const element = await mount({
+      entries: [{ who: { ...JV, href: '/mensen/jv' }, what: 'keurde goed', when: 'gisteren' }],
+    })
+    const person = element.shadowRoot!.querySelector('lintje-person')!
+    await person.updateComplete
+    expect(person.shadowRoot!.querySelector('a')!.getAttribute('href')).toBe('/mensen/jv')
+  })
+
+  it('draws no circle and no icon for a text, but keeps its room where a person stands', async () => {
+    const element = await mount({
+      entries: [
+        { who: JV, what: 'wees de aanvraag toe', when: 'vandaag' },
+        { who: 'Systeem', what: 'maakte de aanvraag aan', when: 'gisteren' },
+      ],
+    })
+    const [person, system] = items(element)
+    expect(element.shadowRoot!.querySelector('ol')!.classList.contains('has-people')).toBe(true)
+    expect(system!.querySelector('lintje-person, svg')).toBeNull()
+    expect(system!.querySelector('.lintje-activity-log__space')).not.toBeNull()
+    expect(system!.querySelector('.lintje-activity-log__who')!.textContent).toBe('Systeem')
+    expect(person!.querySelector('.lintje-activity-log__space')).toBeNull()
+  })
+
+  it('stays as it was with only texts', async () => {
+    const element = await mount({ entries: entries(2) })
+    expect(element.shadowRoot!.querySelector('ol')!.classList.contains('has-people')).toBe(false)
+    expect(
+      element.shadowRoot!.querySelector('.lintje-activity-log__space, lintje-person'),
+    ).toBeNull()
   })
 })

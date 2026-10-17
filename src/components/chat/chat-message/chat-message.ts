@@ -1,5 +1,6 @@
 /**
- * `<lintje-chat-message>` — what the reader asked: a filled bar on the right.
+ * `<lintje-chat-message>` — what the reader asked: a filled bar on the right, with the files sent
+ * along above it. A message of only files is its chips, without a bar.
  *
  * Editing is the message's own state, in a `lintje-chat-composer`. It never changes its own text:
  * asking again is an event, and the host replaces the turn.
@@ -13,11 +14,12 @@ import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import '../../actions/icon-button/icon-button'
+import '../../content/attachment/attachment'
 import '../chat-composer/chat-composer'
 import type { LintjeChatComposer } from '../chat-composer/chat-composer'
 import { termParts } from '../shared/chat-terms'
 import chatMessageCss from './chat-message.css?inline'
-import type { ChatSourceData, ChatTermData, ChatTermRange } from '../../../types'
+import type { ChatSourceData, ChatTermData, ChatTermRange, UploadFile } from '../../../types'
 
 export class LintjeChatMessage extends LintjeElement {
   static override styles = shadowCss(chatMessageCss)
@@ -25,6 +27,7 @@ export class LintjeChatMessage extends LintjeElement {
   static override properties: PropertyDeclarations = {
     text: { type: String },
     terms: { attribute: false },
+    attachments: { attribute: false },
     time: { type: String },
     editable: { type: Boolean },
     editing: { type: Boolean, reflect: true },
@@ -35,6 +38,8 @@ export class LintjeChatMessage extends LintjeElement {
 
   text: string = ''
   declare terms?: ChatTermRange[]
+  /** What was sent along with the question. */
+  declare attachments?: UploadFile[]
   /** When it was sent, as the host formats it ("08:20"). */
   declare time?: string
   editable: boolean = false
@@ -63,9 +68,22 @@ export class LintjeChatMessage extends LintjeElement {
   }
 
   private renderSent(): TemplateResult {
+    const files = this.attachments ?? []
+    const text = this.text !== ''
     // The text comes first in the document and last on the line, so a screen reader reads it first.
-    return html`<div class="lintje-chat-message">
-      <p class="lintje-chat-message__text">${this.renderText()}</p>
+    return html`${
+      files.length
+        ? html`${text ? nothing : html`<span class="visually-hidden">Jij: </span>`}
+            <ul class="lintje-chat-message__attachments" aria-label="Bijlagen">
+              ${files.map(
+                (file) => html`<li class="lintje-chat-message__attachment">
+                  <lintje-attachment .data=${file}></lintje-attachment>
+                </li>`,
+              )}
+            </ul>`
+        : nothing
+    }<div class="lintje-chat-message">
+      ${text ? html`<p class="lintje-chat-message__text">${this.renderText()}</p>` : nothing}
       <div class="lintje-chat-message__meta">
         ${
           this.editable
