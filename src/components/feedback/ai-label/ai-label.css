@@ -14,9 +14,14 @@
   max-width: 100%;
   height: auto;
   min-height: 1.5rem;
+  padding-block: var(--space-1);
   line-height: 1.25;
   white-space: normal;
 }
 .lintje-ai-label__badge { display: inline-flex; align-items: center; gap: var(--space-1); min-width: 0; }
 .lintje-ai-label__icon { flex: none; }
+/* The badge trims its value to the cap height, which lifts a flex box inside it: the box centres
+   itself instead, and the words take the trim. */
+.lintje-ai-label__box .lintje-badge__value { display: contents; }
+.lintje-ai-label__words { text-box: trim-both cap alphabetic; }
 .lintje-ai-label__hint { font: var(--text-small); color: var(--color-text-muted); }
