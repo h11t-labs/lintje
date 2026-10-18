@@ -3,9 +3,15 @@
  * hide (WCAG 2.4.7, 2.4.11). happy-dom lays nothing out, and Leaflet pans with an animation.
  */
 import { afterEach, describe, expect, it } from 'vitest'
-import { server, userEvent } from 'vitest/browser'
+import { commands, server, userEvent } from 'vitest/browser'
 import './map'
 import type { MapData } from '../../../types'
+
+declare module 'vitest/browser' {
+  interface BrowserCommands {
+    emulateForcedColors: (on: boolean) => Promise<void>
+  }
+}
 
 type MapElement = HTMLElement & { data: MapData; updateComplete: Promise<unknown> }
 
@@ -16,10 +22,10 @@ const SOUTH = { id: 'maa', label: 'Maastricht', value: 8, lon: 5.69, lat: 50.85 
 
 const BASEMAP = { kind: 'wms' as const, url: 'https://wms.invalid/', layers: 'x', attribution: 'x' }
 
-async function mount(extra: Partial<MapData> = {}): Promise<MapElement> {
+async function mount(extra: Partial<MapData> = {}, width = 320): Promise<MapElement> {
   // Narrow, so the country fills the width and its corner reaches the overlays.
   const frame = document.createElement('div')
-  frame.style.width = '320px'
+  frame.style.width = `${width}px`
   const element = document.createElement('lintje-map') as MapElement
   element.data = {
     variant: 'points',
@@ -52,7 +58,8 @@ const zoomButtons = (element: MapElement): DOMRect =>
 /** The focus layer over the drawing, and the copy of the focused mark in it. */
 const focusLayer = (element: MapElement): Element =>
   root(element).querySelector('.lintje-map-chart__focus')!
-const copy = (element: MapElement): Element | null => focusLayer(element).firstElementChild
+const copy = (element: MapElement): Element | null =>
+  focusLayer(element).querySelector('.is-focused')
 
 /** A colour token as the browser resolves it, through a probe in the map's own root. */
 function resolved(element: MapElement, token: string): string {
@@ -367,4 +374,132 @@ describe('the map on a basemap', () => {
       .poll(() => inside(maastricht.getBoundingClientRect(), container.getBoundingClientRect()))
       .toBe(true)
   })
+})
+
+describe('an emphasised area of the geometry', () => {
+  // Gelderland and Utrecht first: their neighbours are drawn after them, over their edge.
+  const PROVINCES: MapData['values'] = [
+    { id: 'NL-GE', label: 'Gelderland', value: 9 },
+    { id: 'NL-UT', label: 'Utrecht', value: 4 },
+    { id: 'NL-NB', label: 'Noord-Brabant', value: 6 },
+    { id: 'NL-ZH', label: 'Zuid-Holland', value: 7 },
+    { id: 'NL-NH', label: 'Noord-Holland', value: 8 },
+    { id: 'NL-FL', label: 'Flevoland', value: 2 },
+    { id: 'NL-OV', label: 'Overijssel', value: 5 },
+    { id: 'NL-LI', label: 'Limburg', value: 3 },
+  ]
+  const provinces = (extra: Partial<MapData> = {}): Promise<MapElement> =>
+    mount({ variant: 'choropleth', geo: 'provinces', values: PROVINCES, ...extra }, 640)
+  const shape = (element: MapElement, id: string): SVGPathElement =>
+    mark(element, id).querySelector('.lintje-map-chart__polygon-shape')!
+
+  /** The lifted outline of an area: a copy of its shape over every mark of the drawing. */
+  function outlineOver(element: MapElement, id: string, state: string): SVGPathElement {
+    const lifted = focusLayer(element).querySelector(`.lintje-map-chart__polygon.${state}`)!
+    const outline = lifted.querySelector<SVGPathElement>('.lintje-map-chart__polygon-shape')!
+    expect(outline.getAttribute('d')).toBe(shape(element, id).getAttribute('d'))
+    for (const other of root(element).querySelectorAll('.lintje-map-chart__data [data-mark-id]'))
+      expect(paintsOver(outline, other), other.getAttribute('data-mark-id')!).toBe(true)
+    // The outline alone: the fill stays the drawing's, and no ring or hatch is drawn again.
+    expect(getComputedStyle(outline).fill).toBe('none')
+    expect(getComputedStyle(lifted.querySelector('.lintje-map-chart__polygon-ring')!).display).toBe(
+      'none',
+    )
+    expect(lifted.hasAttribute('data-mark-id')).toBe(false)
+    return outline
+  }
+
+  /** A point inside an area where the pointer reaches it, not a neighbour or a gap. */
+  function pointIn(element: MapElement, id: string): { x: number; y: number } {
+    const target = shape(element, id)
+    const box = target.getBoundingClientRect()
+    for (let step = 0; step < 400; step++) {
+      // Out from the middle of the box, in a widening square.
+      const ring = Math.floor(Math.sqrt(step))
+      const x = box.left + box.width / 2 + ((step % 7) - 3) * ring * 3
+      const y = box.top + box.height / 2 + ((Math.floor(step / 7) % 7) - 3) * ring * 3
+      if (root(element).elementFromPoint(x, y) === target)
+        return { x: x - box.left, y: y - box.top }
+    }
+    throw new Error(`no point inside ${id}`)
+  }
+
+  afterEach(async () => {
+    delete document.documentElement.dataset.mode
+    await userEvent.unhover(document.body)
+  })
+
+  it.each(['light', 'dark'])(
+    'lays the outline of the area under the pointer over its neighbours, in %s',
+    async (mode) => {
+      document.documentElement.dataset.mode = mode
+      const element = await provinces()
+      // Without the lift, Utrecht and Brabant would cover half of Gelderland's edge.
+      expect(paintsOver(mark(element, 'NL-UT'), mark(element, 'NL-GE'))).toBe(true)
+      expect(paintsOver(mark(element, 'NL-NB'), mark(element, 'NL-GE'))).toBe(true)
+      await userEvent.hover(shape(element, 'NL-GE'), { position: pointIn(element, 'NL-GE') })
+      await expect
+        .poll(() => focusLayer(element).querySelector('.lintje-map-chart__polygon.is-hovered'))
+        .not.toBeNull()
+      const outline = outlineOver(element, 'NL-GE', 'is-hovered')
+      expect(getComputedStyle(outline).stroke).toBe(resolved(element, '--color-text-primary'))
+      expect(getComputedStyle(outline).strokeWidth).toBe('1.5px')
+      // The pointer moves on: the outline goes with it.
+      await userEvent.hover(shape(element, 'NL-OV'), { position: pointIn(element, 'NL-OV') })
+      await expect
+        .poll(() =>
+          focusLayer(element)
+            .querySelector('.is-hovered .lintje-map-chart__polygon-shape')
+            ?.getAttribute('d'),
+        )
+        .toBe(shape(element, 'NL-OV').getAttribute('d'))
+      expect(focusLayer(element).querySelectorAll('.is-hovered')).toHaveLength(1)
+    },
+  )
+
+  it.each(['light', 'dark'])(
+    'lays the outline of a chosen area over its neighbours, in %s',
+    async (mode) => {
+      document.documentElement.dataset.mode = mode
+      const element = await provinces({ selectedId: 'NL-UT' })
+      await expect.poll(() => mark(element, 'NL-UT').classList.contains('is-selected')).toBe(true)
+      const outline = outlineOver(element, 'NL-UT', 'is-selected')
+      expect(getComputedStyle(outline).stroke).toBe(resolved(element, '--color-text-primary'))
+      expect(getComputedStyle(outline).strokeWidth).toBe('2px')
+      // Only what stands out is lifted: the neighbours stay in the drawing alone.
+      expect(focusLayer(element).children).toHaveLength(1)
+    },
+  )
+
+  it('lays the ring of a focused chosen area on top, once', async () => {
+    const element = await provinces({ selectedId: 'NL-UT' })
+    await keyboardFocus(mark(element, 'NL-UT'))
+    await expect.poll(() => copy(element)).not.toBeNull()
+    // Its focus copy is the whole mark and stands in for the chosen one.
+    expect(focusLayer(element).children).toHaveLength(1)
+    const ring = copy(element)!.querySelector('.lintje-map-chart__polygon-ring')!
+    expect(getComputedStyle(ring).stroke).toBe(resolved(element, '--color-focus'))
+    ;(mark(element, 'NL-UT') as SVGElement).blur()
+    await expect.poll(() => copy(element)).toBeNull()
+    outlineOver(element, 'NL-UT', 'is-selected')
+  })
+
+  // Playwright emulates forced colours in Chromium.
+  it.runIf(server.browser === 'chromium')(
+    'outlines a chosen area in CanvasText over its neighbours with forced colours',
+    async () => {
+      await commands.emulateForcedColors(true)
+      try {
+        const element = await provinces({ selectedId: 'NL-UT' })
+        await expect.poll(() => focusLayer(element).children.length).toBe(1)
+        const outline = outlineOver(element, 'NL-UT', 'is-selected')
+        const probe = document.createElement('i')
+        probe.style.color = 'CanvasText'
+        document.body.append(probe)
+        expect(getComputedStyle(outline).stroke).toBe(getComputedStyle(probe).color)
+      } finally {
+        await commands.emulateForcedColors(false)
+      }
+    },
+  )
 })
