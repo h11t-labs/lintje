@@ -166,6 +166,17 @@ export function markTip(drawing: MapDrawing, value: MapValue): TooltipContent {
   }
 }
 
+/** The pointer's tooltip on a mark; none while a tool is on, as the map is then a sheet to draw on. */
+function tipUnder(
+  controller: ChartController,
+  event: MouseEvent,
+  drawing: MapDrawing,
+  value: MapValue,
+): void {
+  if (controller.mapTool) return
+  controller.showTooltip(event, markTip(drawing, value))
+}
+
 /** Draw-in stagger in x-order, west to east. */
 function westToEast(marks: MapValue[]) {
   const order = new Map([...marks].sort((a, b) => a.lon! - b.lon!).map((mark, n) => [mark.id, n]))
@@ -235,7 +246,7 @@ function renderAreas(drawing: MapDrawing, context: MarksContext, land: LandShape
          @click=${onPick(select, value)}
          @auxclick=${onPick(select, value)}
          @dblclick=${stop}
-         @mousemove=${(event: MouseEvent) => controller.showTooltip(event, markTip(drawing, value))}
+         @mousemove=${(event: MouseEvent) => tipUnder(controller, event, drawing, value)}
          @mouseleave=${() => controller.pointerLeft()}
          @keydown=${onChoose(select, value)}>
         <path d=${d} class="lintje-map-chart__polygon-ring" />
@@ -286,7 +297,7 @@ function renderFlows(
           @click=${onPick(select, value)}
           @auxclick=${onPick(select, value)}
           @dblclick=${stop}
-          @mousemove=${(event: MouseEvent) => controller.showTooltip(event, markTip(drawing, value))}
+          @mousemove=${(event: MouseEvent) => tipUnder(controller, event, drawing, value)}
           @mouseleave=${() => controller.pointerLeft()}>
           <path d=${d} class="lintje-map-chart__flow-ring" />
           <path d=${d} class="lintje-map-chart__flow-gap" />
@@ -342,7 +353,7 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
          @click=${onPick(select, value)}
          @auxclick=${onPick(select, value)}
          @dblclick=${stop}
-         @mousemove=${(event: MouseEvent) => controller.showTooltip(event, markTip(drawing, value))}
+         @mousemove=${(event: MouseEvent) => tipUnder(controller, event, drawing, value)}
          @mouseleave=${() => controller.pointerLeft()}
          @keydown=${onChoose(select, value)}>
         <!-- The figure grows in: its own group, as the animation's transform would replace the
