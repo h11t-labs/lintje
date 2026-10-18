@@ -457,6 +457,24 @@ export abstract class LintjeChoiceGroupElement extends LintjeInputElement {
   /** The field held the focus and goes in this update: the focus goes to the option. */
   #handBack = false
 
+  /** The last press was the pointer's: the reader looks at what they pressed, so nothing scrolls. */
+  #pointer = false
+
+  /**
+   * Brings the row that takes the keyboard's focus wholly into view, also in a list that scrolls:
+   * WebKit leaves a row that is partly in view where it is, with its focus ring cut.
+   */
+  protected readonly revealRow = (event: Event): void => {
+    const pointer = this.#pointer
+    this.#pointer = event.type === 'pointerdown'
+    if (event.type === 'focusin' && !pointer) {
+      const row = event
+        .composedPath()
+        .find((node) => node instanceof HTMLElement && node.classList.contains('lintje-choice'))
+      ;(row as HTMLElement | undefined)?.scrollIntoView({ block: 'nearest' })
+    }
+  }
+
   /** "Anders" is the choice, or one of them. */
   protected abstract get otherChosen(): boolean
 

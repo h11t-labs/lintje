@@ -269,6 +269,8 @@ describe('lintje-chat-questions, the steps', () => {
     )
     const choices = css.slice(css.indexOf('.lintje-chat-questions__choices {'))
     expect(choices).toMatch(/^[^}]*padding: var\(--space-2\)/)
+    // Kept when the focus scrolls a choice or a field into view.
+    expect(choices).toMatch(/^[^}]*scroll-padding: var\(--space-2\)/)
     expect(choices).toMatch(
       /^[^}]*margin: calc\(var\(--space-2\) \* -1\) calc\(var\(--space-2\) \* -1\) 0/,
     )
