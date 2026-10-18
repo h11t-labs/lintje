@@ -70,6 +70,15 @@ async function tapGrip(element: LintjeSortableList, id: string): Promise<void> {
   await element.updateComplete
 }
 
+/** Which rows draw the drop line, and on which side. */
+const lines = (element: LintjeSortableList): string[] =>
+  [...element.shadowRoot!.querySelectorAll('.is-drop-before, .is-drop-after')].map(
+    (row) =>
+      `${row.classList.contains('is-drop-before') ? 'boven' : 'onder'} ${row.textContent?.trim()}`,
+  )
+const lifted = (element: LintjeSortableList, id: string): boolean =>
+  grip(element, id).closest('li')!.classList.contains('is-lifted')
+
 function collect(element: LintjeSortableList, name: string): unknown[] {
   const details: unknown[] = []
   element.addEventListener(name, (event) => details.push((event as CustomEvent).detail))
@@ -191,6 +200,49 @@ describe('lintje-sortable-list', () => {
     await element.updateComplete
     expect(labels(element)).toEqual(['Titel', 'Datum', 'Categorie', 'Ernst'])
     expect(values).toEqual([{ kolommen: ['titel', 'datum', 'categorie', 'ernst'] }])
+  })
+
+  it('draws the drop line on the pressed grip’s side the row will land on, while it is pressed', async () => {
+    const element = await mount()
+    await tapGrip(element, 'datum')
+    const target = grip(element, 'categorie')
+    await pointer(element, target, 'pointerdown')
+    expect(lines(element)).toEqual(['boven Categorie'])
+    target.dispatchEvent(new PointerEvent('pointerleave', { buttons: 1 }))
+    await element.updateComplete
+    expect(lines(element)).toEqual([])
+    target.dispatchEvent(new PointerEvent('pointerenter', { buttons: 1 }))
+    await element.updateComplete
+    expect(lines(element)).toEqual(['boven Categorie'])
+    await pointer(element, target, 'pointercancel')
+    expect(lines(element)).toEqual([])
+    expect(labels(element)).toEqual(['Titel', 'Categorie', 'Ernst', 'Datum'])
+    expect(grip(element, 'datum').getAttribute('aria-pressed')).toBe('true')
+
+    // A row from above lands below the grip it is put on; on its own grip it draws no line.
+    await press(element, 'datum', 'Escape')
+    await tapGrip(element, 'titel')
+    await pointer(element, grip(element, 'ernst'), 'pointerdown')
+    expect(lines(element)).toEqual(['onder Ernst'])
+    await pointer(element, grip(element, 'titel'), 'pointerdown')
+    expect(lines(element)).toEqual([])
+    await press(element, 'titel', 'Escape')
+  })
+
+  it('moves the row on the release, tells it once, and keeps it lifted until it has landed', async () => {
+    const element = await mount({ name: 'kolommen' })
+    const values = collect(element, 'lintje-values-change')
+    await tapGrip(element, 'datum')
+    await tapGrip(element, 'categorie')
+    expect(labels(element)).toEqual(['Titel', 'Datum', 'Categorie', 'Ernst'])
+    expect(values).toEqual([{ kolommen: ['titel', 'datum', 'categorie', 'ernst'] }])
+    expect(lines(element)).toEqual([])
+    expect(grip(element, 'datum').getAttribute('aria-pressed')).toBe('false')
+    expect(lifted(element, 'datum')).toBe(true)
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    await element.updateComplete
+    expect(lifted(element, 'datum')).toBe(false)
+    expect(values).toHaveLength(1)
   })
 
   it.each(['pointerup outside', 'pointercancel'])(

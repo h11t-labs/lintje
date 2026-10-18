@@ -11,6 +11,8 @@ import type { LintjeButton } from '../../components/actions/button/button'
 import '../../components/filters/filter-zone/filter-zone'
 import '../../components/layout/expander/expander'
 import '../../components/graph/graph/graph'
+import '../../components/tables/sortable-list/sortable-list'
+import type { LintjeSortableList } from '../../components/tables/sortable-list/sortable-list'
 import type { LintjeElement } from '../../core/element'
 import type { GraphData } from '../../types'
 import { heightSettleMs } from '../../components/shared/transition'
@@ -161,4 +163,34 @@ it('stands a graph’s nodes in their new place at once', async () => {
   await new Promise(requestAnimationFrame)
   await new Promise(requestAnimationFrame)
   expect(place()).toBe(after)
+})
+
+it('stands a sortable row in its new place at once, moved by a key or put down by a tap', async () => {
+  const element = Object.assign(document.createElement('lintje-sortable-list'), {
+    items: [
+      { id: 'naam', label: 'Naam' },
+      { id: 'datum', label: 'Datum' },
+      { id: 'status', label: 'Status' },
+    ],
+  }) as LintjeSortableList
+  document.body.append(element)
+  await element.updateComplete
+  const root = element.shadowRoot!
+  const rows = () => [...root.querySelectorAll<HTMLElement>('.lintje-sortable-list__row')]
+  const grip = (id: string) =>
+    root.querySelector<HTMLElement>(`.lintje-sortable-list__grip[data-id="${id}"]`)!
+  const moving = () =>
+    rows().filter((row) => row.getAnimations().length || getComputedStyle(row).translate !== 'none')
+
+  grip('naam').focus()
+  await userEvent.keyboard(' ')
+  await userEvent.keyboard('{ArrowDown}')
+  await element.updateComplete
+  expect(rows().map((row) => row.dataset.id)).toEqual(['datum', 'naam', 'status'])
+  expect(moving()).toEqual([])
+
+  await userEvent.click(grip('status'))
+  await element.updateComplete
+  expect(rows().map((row) => row.dataset.id)).toEqual(['datum', 'status', 'naam'])
+  expect(moving()).toEqual([])
 })
