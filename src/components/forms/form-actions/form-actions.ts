@@ -4,7 +4,8 @@
  *
  * While connected it reserves its height as the page scroller's `scroll-padding-bottom`, so a
  * field the focus scrolls to is not hidden behind it, and scrolls a focused element that still
- * ends up under it clear. While the form scrolls behind it, it casts its shadow upward. Below a
+ * ends up under it clear. While the form scrolls behind it, it casts its shadow upward and, below
+ * 768 px, runs from edge to edge of the screen, its buttons in line with the fields. Below a
  * viewport height of 30rem it does not stick and reserves nothing: it stands after the last field.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
@@ -13,6 +14,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { scrollRoot } from '../../../core/host-config'
 import { MediaController, MOBILE } from '../../../core/media'
 import { keepRoom, releaseRoom, scrollFocusClear } from '../../../core/scroll-room'
+import { styleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { AttributeHold, PropertyHold } from '../../shared/controls'
@@ -36,6 +38,14 @@ export function clockTime(value: string | Date | null | undefined): string {
   if (Number.isNaN(date.getTime())) return ''
   const pad = (n: number): string => String(n).padStart(2, '0')
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+/** How far the bar stands in from each side of what the root shows. */
+function inset(bar: HTMLElement, root: HTMLElement): [number, number] {
+  const left =
+    root === document.scrollingElement ? 0 : root.getBoundingClientRect().left + root.clientLeft
+  const box = bar.getBoundingClientRect()
+  return [Math.max(0, box.left - left), Math.max(0, left + root.clientWidth - box.right)]
 }
 
 /** What scrolls the root: the window for the page's own scroller. */
@@ -63,6 +73,7 @@ export class LintjeFormActions extends LintjeElement {
     state: { type: String, reflect: true },
     savedAt: { type: String, attribute: 'saved-at' },
     stuck: { state: true },
+    bleed: { state: true },
   }
 
   /**
@@ -76,6 +87,8 @@ export class LintjeFormActions extends LintjeElement {
   /** When it was saved: "10:42" or anything `Date` parses. */
   declare savedAt?: string
   protected stuck = false
+  /** Stuck on a phone: how far the bar reaches past its own box to the screen's left and right. */
+  protected bleed: [number, number] | null = null
 
   readonly #mobile = new MediaController(this, MOBILE)
   readonly #low = new MediaController(this, LOW)
@@ -94,6 +107,9 @@ export class LintjeFormActions extends LintjeElement {
       this.#stuckFrame = 0
       const root = scrollRoot()
       this.stuck = root != null && this.isConnected && stuckIn(this, root)
+      // Measured on the host, which keeps its own box: only the bar inside it reaches out.
+      const bleed = this.stuck && this.#mobile.matches ? inset(this, root!) : null
+      if (bleed?.join() !== this.bleed?.join()) this.bleed = bleed
     })
   }
 
@@ -211,7 +227,18 @@ export class LintjeFormActions extends LintjeElement {
   }
 
   protected override render(): TemplateResult {
-    return html`<div class=${classMap({ 'lintje-form-actions': true, 'is-stuck': this.stuck })}>
+    const [left, right] = this.bleed ?? [0, 0]
+    return html`<div
+      class=${classMap({
+        'lintje-form-actions': true,
+        'is-stuck': this.stuck,
+        'is-full': this.bleed !== null,
+      })}
+      ${styleProps({
+        '--lintje-form-actions-left': this.bleed && `${left}px`,
+        '--lintje-form-actions-right': this.bleed && `${right}px`,
+      })}
+    >
       <div class="lintje-form-actions__status" role="status">${this.renderStatus()}</div>
       <div class="lintje-form-actions__buttons">
         <slot @slotchange=${() => this.#hold()}></slot>

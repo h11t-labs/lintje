@@ -131,7 +131,7 @@ function view(scroller: HTMLElement): { top: number; bottom: number } {
  * Some of the control shows: in the scroller's sight and on top at one point at least, so
  * nothing covers it entirely. A box the size of nothing (a radio) shows as what holds it.
  */
-function inSight(control: Element, scroller: HTMLElement): boolean {
+function uncovered(control: Element, scroller: HTMLElement): boolean {
   let box: Element | null = control
   while (box && !seen(box)) box = up(box)
   if (!box) return false
@@ -730,16 +730,16 @@ async function walk(row: Row, key: string): Promise<void> {
     await beside(scene, key)
   }
   // What the poll sees: `shows`, or the stop that does not, so a failure names it.
-  const shows = (): string => {
+  const showing = (): string => {
     const focused = deepActiveElement()
-    if (focused && focused !== document.body && inSight(focused, scene.scroller)) return 'shows'
+    if (focused && focused !== document.body && uncovered(focused, scene.scroller)) return 'shows'
     const name = focused?.getAttribute('aria-label') ?? focused?.textContent?.trim().slice(0, 40)
     return `${focused?.localName ?? 'nothing'} "${name ?? ''}"`
   }
   for (let step = 1; step <= WALK; step += 1) {
     await userEvent.keyboard(key)
     await expect
-      .poll(shows, { message: `stop ${step} is in sight, not covered entirely` })
+      .poll(showing, { message: `stop ${step} is in sight, not covered entirely` })
       .toBe('shows')
   }
 }
@@ -879,6 +879,64 @@ describe('the action bar casts its shadow only while the form scrolls behind it'
     await append(bar)
     await settle()
     expect(shows(bar)).toEqual(AT_ITS_PLACE)
+  })
+})
+
+describe('the stuck action bar runs from edge to edge on a phone', () => {
+  /** A page with a gutter, the fields in a panel, and the bar under it, as an application has. */
+  async function panelPage(): Promise<{ bar: HTMLElement; field: HTMLElement }> {
+    const gutter = document.createElement('div')
+    gutter.style.padding = '0 var(--space-4)'
+    const panel = document.createElement('div')
+    panel.style.cssText = 'padding: var(--space-6); border: 1px solid var(--color-border-default)'
+    for (let index = 1; index <= 30; index += 1) {
+      const line = document.createElement('p')
+      line.innerHTML = `<label>Opmerking ${index} <input type="text" /></label>`
+      panel.append(line)
+    }
+    const bar = create('lintje-form-actions')
+    bar.innerHTML = '<lintje-button variant="primary">Versturen</lintje-button>'
+    gutter.append(panel, bar)
+    await append(gutter)
+    await bar.updateComplete
+    return { bar, field: panel.querySelector('label')! }
+  }
+
+  const box = (bar: HTMLElement): HTMLElement =>
+    bar.shadowRoot!.querySelector('.lintje-form-actions')!
+  const button = (bar: HTMLElement): HTMLElement =>
+    bar.querySelector('lintje-button')!.shadowRoot!.querySelector('button')!
+
+  it('at 390 px reaches both sides of the screen, its button in line with the fields', async () => {
+    // Mounted first, then resized: WebKit keeps the media queries of a sheet no connected element
+    // adopts as they were.
+    const { bar, field } = await panelPage()
+    await viewport(390, 844)
+    await expect.poll(() => shows(bar).stuck, { message: 'it sticks' }).toBe(true)
+    await expect
+      .poll(() => {
+        const edges = box(bar).getBoundingClientRect()
+        return [edges.left, edges.right]
+      })
+      .toEqual([0, document.documentElement.clientWidth])
+    expect(button(bar).getBoundingClientRect().left).toBeCloseTo(
+      field.getBoundingClientRect().left,
+      0,
+    )
+    scrollBy(document.documentElement, document.documentElement.scrollHeight)
+    await expect
+      .poll(() => box(bar).getBoundingClientRect().left, { message: 'at its own place' })
+      .toBeCloseTo(bar.getBoundingClientRect().left, 0)
+  })
+
+  it('at 1280 px keeps to the page, as wide as the panel above it', async () => {
+    await viewport(1280, 900)
+    const { bar, field } = await panelPage()
+    await expect.poll(() => shows(bar).stuck, { message: 'it sticks' }).toBe(true)
+    const edges = box(bar).getBoundingClientRect()
+    const panel = field.closest('div')!.getBoundingClientRect()
+    expect([edges.left, edges.right]).toEqual([panel.left, panel.right])
+    expect(box(bar).classList.contains('is-full')).toBe(false)
   })
 })
 

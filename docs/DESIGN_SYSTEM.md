@@ -1031,6 +1031,10 @@ zoals de bel.
 **Bij weinig hoogte plakt de actiebalk van een formulier niet**: onder een viewporthoogte van
 30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10).
 
+**Op een telefoon loopt de vastgeplakte actiebalk van rand tot rand**, zonder zijranden, met zijn
+knoppen op één lijn met de velden; op zijn eigen plek na het laatste veld is hij de laatste rij van
+het formulier.
+
 **Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame nadat die veranderde.**
 Zo verandert zijn maat nooit in de ronde van zijn waarnemer, die de browser anders als fout van de
 pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
