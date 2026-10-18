@@ -408,11 +408,13 @@ export default {
           { label: 'Voet in de rail met een foto', menu: 'unpinned', user: USER_PHOTO },
         ].map(({ label, menu, user }) => ({
           label,
+          // The foot of the menu beside the page as from 1440 px, at any window.
+          frameWidth: 1440,
           note:
-            menu === 'pinned'
+            (menu === 'pinned'
               ? 'Vanaf 1440 px: het rondje zo hoog als naam en functie samen. Smaller is het de rail.'
               : 'Alleen het rondje, midden in de rail. Wijs de rail aan: hij klapt uit en naam en ' +
-                'functie vervagen in.',
+                'functie vervagen in.') + ' Het kader tekent de schil op 1440 px, verkleind tot de kolom.',
           frame: 'page',
           html: `<lintje-shell>
             <lintje-page-header slot="header"></lintje-page-header>
