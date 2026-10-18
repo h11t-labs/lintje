@@ -393,7 +393,21 @@ describe('the map and the keyboard', () => {
   })
 
   it('sets the two corners of a rectangle with Enter at the middle of the view', async () => {
-    const element = await mount({ controls: { rect: true } })
+    // An area stands already: it goes at the first Enter, and the host hears once, at the end.
+    const element = await mount({
+      controls: { rect: true },
+      selectedArea: {
+        kind: 'lasso',
+        ring: [
+          [5.0, 52.0],
+          [5.4, 52.0],
+          [5.4, 52.3],
+          [5.0, 52.3],
+        ],
+      },
+    })
+    const panel = (): Element | null => root(element).querySelector('.lintje-map-chart__selection')
+    expect(panel()).not.toBeNull()
     const areas: { area: { kind: string; ring: unknown[] } }[] = []
     element.addEventListener('lintje-area-select', (event) =>
       areas.push((event as CustomEvent).detail),
@@ -404,6 +418,7 @@ describe('the map and the keyboard', () => {
     const cross = root(element).querySelector('.lintje-map-chart__crosshair')!
     await expect.poll(() => getComputedStyle(cross).display).toBe('block')
     await userEvent.keyboard('{Enter}')
+    await expect.poll(panel).toBeNull()
     // The arrows move the map 80 px under the cross; the rectangle runs on to it. Leaflet takes
     // no arrow while it still pans from the last one.
     const draft = (): DOMRect | undefined =>
@@ -425,6 +440,7 @@ describe('the map and the keyboard', () => {
     await expect.poll(() => areas.length).toBe(1)
     expect(areas[0]!.area.kind).toBe('lasso')
     expect(areas[0]!.area.ring).toHaveLength(4)
+    await expect.poll(panel).not.toBeNull()
   })
 
   it('leaves an Escape in a dialog over it to the dialog, with a tool in hand', async () => {

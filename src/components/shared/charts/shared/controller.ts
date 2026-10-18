@@ -152,6 +152,8 @@ export class ChartController {
   mapLegendOpen = false
   /** The area that chose marks, and the last one the host sent, compared as JSON. */
   mapArea: MapArea | null = null
+  /** The area that steps aside while a new one is drawn, to come back if that one is undone. */
+  mapAreaAside: MapArea | null = null
   hostArea: string | undefined = undefined
   // The last `selectedId` the host sent: the map adopts a new one but owns its selection in
   // between, or the host's value would win every render and a click could never clear it.

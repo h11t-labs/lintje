@@ -173,6 +173,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
   if (controller.hostArea !== hostArea) {
     controller.hostArea = hostArea
     controller.mapArea = selectedArea
+    controller.mapAreaAside = null
   }
   const area = tools.length > 0 ? controller.mapArea : null
   const chosen = area ? idsInArea(area, drawings, data.geo) : []
@@ -202,10 +203,12 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     onClear?.(previous)
     controller.requestUpdate()
   }
-  // A drawn area stays until it is dismissed: its panel's close, Escape or the reset.
+  // A drawn area stays until it is dismissed: its panel's close, Escape or the reset; also one that
+  // stands aside while a new one is drawn, as the host still holds it.
   const clearArea = () => {
-    if (!controller.mapArea) return
+    if (!controller.mapArea && !controller.mapAreaAside) return
     controller.mapArea = null
+    controller.mapAreaAside = null
     onArea?.(null, [])
     controller.requestUpdate()
   }
@@ -225,8 +228,24 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
   }
   // A shape is a tool: it stays in hand after drawing, and a new area replaces the last.
   const drawn = (next: MapArea) => {
+    controller.mapAreaAside = null
     controller.mapArea = next
     onArea?.(next, idsInArea(next, drawings, data.geo))
+    controller.requestUpdate()
+  }
+  // A new area begins: the one that stands goes from sight, its outline and panel, without
+  // telling the host; the host hears once, of the new area (rule 14).
+  const drawStart = () => {
+    if (!controller.mapArea) return
+    controller.mapAreaAside = controller.mapArea
+    controller.mapArea = null
+    controller.requestUpdate()
+  }
+  // Undone (Escape, a press taken back) or choosing nothing: the old area is back as it was.
+  const drawCancel = () => {
+    if (!controller.mapAreaAside) return
+    controller.mapArea = controller.mapAreaAside
+    controller.mapAreaAside = null
     controller.requestUpdate()
   }
   const setTool = (tool: MapTool | null) => {
@@ -260,6 +279,8 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     zoom: controls.zoom,
     scale: controls.scale,
     drawn,
+    drawStart,
+    drawCancel,
     stopTool: () => setTool(null),
     select,
     clear,
