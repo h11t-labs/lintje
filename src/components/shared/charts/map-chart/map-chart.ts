@@ -25,6 +25,8 @@ import { seriesKey } from './marks'
 import { renderMapLegend } from './map-legend'
 import type { MapArea, MapControls, MapSpec, MapTool, MapValue } from '../shared/types'
 import { idsInArea, isRect } from './area'
+import { keyboardFocus } from './reveal'
+import { standsIn } from '../../../../core/focus'
 import { titleWhenCut } from '../../cut-text'
 import '../../../overlays/popover/popover'
 
@@ -60,19 +62,25 @@ const AREA_TOOLS: { tool: MapTool; name: string; text: string; label: string }[]
   },
 ]
 
-/** How to draw with a tool, under the map; a phone gets the short form, for a finger. */
-const TOOL_HINTS: Record<MapTool, { full: string; short: string }> = {
+/**
+ * How to draw with a tool, under the map, in the way the reader works: with a pointer (on a phone
+ * the short form, for a finger), or with the keyboard while its focus is in the map.
+ */
+export const TOOL_HINTS: Record<MapTool, { pointer: string; short: string; keys: string }> = {
   lasso: {
-    full: 'Sleep om te kiezen, of klik de hoeken, of zet met Enter een punt in het midden · Escape stopt',
+    pointer: 'Sleep om te kiezen, of klik de hoeken · Escape stopt',
     short: 'Sleep om te kiezen',
+    keys: 'Pijltoetsen schuiven de kaart onder het kruisje · Enter zet een hoek, Enter op de eerste sluit · Escape stopt',
   },
   circle: {
-    full: 'Sleep vanuit het midden, of klik het midden en dan de rand, of zet met Enter een punt in het midden · Escape stopt',
-    short: 'Sleep vanuit het midden',
+    pointer: 'Sleep van het midden naar de rand, of klik het midden en dan de rand · Escape stopt',
+    short: 'Sleep van het midden naar de rand',
+    keys: 'Pijltoetsen schuiven de kaart onder het kruisje · Enter zet het midden, daarna de rand · Escape stopt',
   },
   rect: {
-    full: 'Sleep van hoek naar hoek, of klik twee hoeken, of zet met Enter een punt in het midden · Escape stopt',
+    pointer: 'Sleep van hoek naar hoek, of klik twee hoeken · Escape stopt',
     short: 'Sleep van hoek naar hoek',
+    keys: 'Pijltoetsen schuiven de kaart onder het kruisje · Enter zet een hoek, daarna de andere · Escape stopt',
   },
 }
 
@@ -281,7 +289,11 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     drawn,
     drawStart,
     drawCancel,
-    stopTool: () => setTool(null),
+    // Escape with no area being drawn puts the tool down, and the focus on its button.
+    stopTool: () => {
+      setTool(null)
+      trigger()?.focus()
+    },
     select,
     clear,
     mobile,
@@ -509,12 +521,35 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
   const hint = controller.mapHint
     ? controller.mapHint
     : controller.mapTool
-      ? TOOL_HINTS[controller.mapTool][mobile ? 'short' : 'full']
+      ? TOOL_HINTS[controller.mapTool][
+          controller.mapKeyboard ? 'keys' : mobile ? 'short' : 'pointer'
+        ]
       : null
+  // The hint follows the way the reader works: the keyboard's while its focus is in the map.
+  // Read a frame on: WebKit settles `:focus-visible` after the focus event.
+  const onFocusIn = (event: FocusEvent) => {
+    const target = event.composedPath()[0] as Element
+    const read = () => {
+      const keyboard = target.isConnected && keyboardFocus(target)
+      if (keyboard === controller.mapKeyboard) return
+      controller.mapKeyboard = keyboard
+      controller.requestUpdate()
+    }
+    read()
+    requestAnimationFrame(read)
+  }
+  const onFocusOut = (event: FocusEvent) => {
+    const next = event.relatedTarget
+    if (next instanceof Node && controller.element && standsIn(next, controller.element)) return
+    if (!controller.mapKeyboard) return
+    controller.mapKeyboard = false
+    controller.requestUpdate()
+  }
 
   return html`
     <div class="lintje-map-chart ${mobile ? 'lintje-map-chart--mobile' : ''} ${basemap ? 'lintje-map-chart--basemap' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView}
+         @focusin=${onFocusIn} @focusout=${onFocusOut}
          @keydown=${(event: KeyboardEvent) => {
            if (event.key !== 'Escape') return
            // Escape undoes one thing: the tooltip, the tool, then the chosen mark, then the area.

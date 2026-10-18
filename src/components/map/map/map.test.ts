@@ -12,6 +12,7 @@
  */
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import './map'
+import { TOOL_HINTS } from '../../shared/charts/map-chart/map-chart'
 import { downloadCsv } from '../../shared/download'
 import { seriesColor } from '../../shared/charts/shared/colors'
 import { seriesShape, seriesShapePath } from '../../shared/charts/shared/series-shapes'
@@ -891,6 +892,58 @@ describe('lintje-map area', () => {
     // The tool stays in hand after drawing; only the draft is gone.
     expect(tools(element)[0].getAttribute('aria-pressed')).toBe('true')
     expect(element.renderRoot.querySelector('.lintje-map-chart__region--draft')).toBeNull()
+  })
+
+  it('says how to draw in the way the reader works: with a pointer, or with the keys', async () => {
+    const element = await mapTile(tileData({ controls: { circle: true, rect: true } }))
+    const hint = () => element.renderRoot.querySelector('.lintje-map-chart__hint')?.textContent
+    await pickTool(element, 'Cirkel')
+    expect(hint()).toBe(TOOL_HINTS.circle.pointer)
+    expect(hint()).toBe(
+      'Sleep van het midden naar de rand, of klik het midden en dan de rand · Escape stopt',
+    )
+    // The keyboard's focus comes into the map: the keys' sentence.
+    const surface = element.renderRoot.querySelector<HTMLElement>('.leaflet-container')!
+    const matches = surface.matches.bind(surface)
+    surface.matches = ((selector: string) =>
+      selector === ':focus-visible' || matches(selector)) as typeof surface.matches
+    surface.dispatchEvent(new FocusEvent('focusin', { bubbles: true, composed: true }))
+    await element.updateComplete
+    expect(hint()).toBe(
+      'Pijltoetsen schuiven de kaart onder het kruisje · Enter zet het midden, daarna de rand · Escape stopt',
+    )
+    surface.dispatchEvent(
+      new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: document.body }),
+    )
+    await element.updateComplete
+    expect(hint()).toBe(TOOL_HINTS.circle.pointer)
+    expect(TOOL_HINTS.rect).toEqual({
+      pointer: 'Sleep van hoek naar hoek, of klik twee hoeken · Escape stopt',
+      short: 'Sleep van hoek naar hoek',
+      keys: 'Pijltoetsen schuiven de kaart onder het kruisje · Enter zet een hoek, daarna de andere · Escape stopt',
+    })
+  })
+
+  it('takes Escape smallest first: the drawing, then the tool, the focus to its button', async () => {
+    const element = await mapTile(tileData({ controls: { circle: true, rect: true } }))
+    await pickTool(element, 'Cirkel')
+    const press = presser(element)
+    press('pointerdown', 400, 200)
+    press('pointerup', 400, 200)
+    press('pointermove', 500, 260)
+    const draft = () => element.renderRoot.querySelector('.lintje-map-chart__region--draft')
+    expect(draft()).not.toBeNull()
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    const escape = () =>
+      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    escape()
+    await element.updateComplete
+    expect(draft()).toBeNull()
+    expect(tools(element)[0].classList).toContain('is-active')
+    escape()
+    await element.updateComplete
+    expect(tools(element)[0].classList).not.toContain('is-active')
+    expect(element.shadowRoot!.activeElement).toBe(tools(element)[0])
   })
 
   describe('a new area over one that stands', () => {
