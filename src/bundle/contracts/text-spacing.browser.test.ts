@@ -103,6 +103,14 @@ function outside(text: Element, outer: Element): string {
   return `${Math.round(Math.max(b.left - a.left, a.right - b.right, b.top - a.top, a.bottom - b.bottom))} px`
 }
 
+/** A row's height around a text: the text with the row's padding and border, or its least. */
+function hugging(row: Element, text: Element): number {
+  const style = getComputedStyle(row)
+  const edges = ['paddingTop', 'paddingBottom', 'borderTopWidth', 'borderBottomWidth'] as const
+  const around = edges.reduce((sum, edge) => sum + parseFloat(style[edge]), 0)
+  return Math.max(parseFloat(style.minHeight), box(text).height + around)
+}
+
 /** Texts side by side that touch or cross, by the text of the first. */
 function overlapping(texts: Element[]): string[] {
   const sorted = [...texts].sort((a, b) => box(a).left - box(b).left)
@@ -197,6 +205,9 @@ const ROWS: Row[] = [
           ...(Math.abs(middle(box(check)) - middle(firstLine(label))) < 2
             ? []
             : [`box ${i + 1} off the first line`]),
+          ...(Math.abs(box(row).height - hugging(row, label)) < 1
+            ? []
+            : [`row ${i + 1} not as tall as its text`]),
         ]
       })
     },

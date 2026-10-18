@@ -138,7 +138,9 @@ describe('where the foot stays at the edge', () => {
 })
 
 const CONTROL = '.lintje-choice__box, .lintje-choice__radio, .lintje-choice__switch'
+/** Three lines and more at 220 px, and two in a radio group's option. */
 const WRAPS = 'Elke ochtend één bericht met alle wijzigingen in de aanvragen van de afgelopen dag'
+const TWO_LINES = 'Elke ochtend één bericht met de wijzigingen'
 
 const middle = (box: DOMRect): number => box.top + box.height / 2
 
@@ -150,22 +152,25 @@ function firstLine(text: Element): DOMRect {
 }
 
 describe('the control of a choice', () => {
-  const choices: [string, object][] = [
-    ['lintje-checkbox', { label: WRAPS }],
-    ['lintje-toggle', { label: WRAPS }],
-    ['lintje-radio-group', { options: [{ value: 'a', label: WRAPS }] }],
+  const choices: [string, object, number][] = [
+    ['lintje-checkbox', { label: WRAPS }, 3],
+    ['lintje-toggle', { label: WRAPS }, 3],
+    ['lintje-radio-group', { options: [{ value: 'a', label: TWO_LINES }] }, 2],
   ]
-  for (const [tag, props] of choices) {
-    it(`stands on the first line of a label that wraps: ${tag}`, async () => {
-      const narrow = Object.assign(document.createElement('div'), { style: 'width: 240px' })
+  for (const [tag, props, least] of choices) {
+    it(`stands on the first line of a label that wraps, which grows it no more than its text: ${tag}`, async () => {
+      const narrow = Object.assign(document.createElement('div'), { style: 'width: 220px' })
       const root = (await draw(tag, props, narrow)).renderRoot
+      const choice = root.querySelector('.lintje-choice')!
       const label = root.querySelector('.lintje-choice__label')!
       const line = firstLine(label)
-      expect(label.getBoundingClientRect().height, 'more than one line').toBeGreaterThan(
-        line.height * 1.5,
-      )
+      const text = label.getBoundingClientRect()
+      expect(Math.round(text.height / line.height), 'lines').toBeGreaterThanOrEqual(least)
       const control = root.querySelector(CONTROL)!.getBoundingClientRect()
       expect(Math.abs(middle(control) - middle(line))).toBeLessThan(2)
+      // As tall as the label's text, or as the target where that is more: no air is added.
+      const target = parseFloat(getComputedStyle(choice).minHeight)
+      expect(choice.getBoundingClientRect().height).toBeCloseTo(Math.max(target, text.height), 0)
     })
   }
 
@@ -173,6 +178,7 @@ describe('the control of a choice', () => {
     const root = (await draw('lintje-checkbox', {})).renderRoot
     const choice = root.querySelector('.lintje-choice')!.getBoundingClientRect()
     const target = parseFloat(getComputedStyle(root.querySelector('.lintje-choice')!).minHeight)
+    expect(target).toBe(48)
     expect(choice.height).toBeCloseTo(target, 1)
     const box = root.querySelector(CONTROL)!.getBoundingClientRect()
     const label = root.querySelector('.lintje-choice__label')!.getBoundingClientRect()

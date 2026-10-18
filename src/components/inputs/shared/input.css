@@ -211,15 +211,18 @@
 .lintje-field__reset:hover { color: var(--color-link-hover); }
 
 /* --- Checkbox, radio, toggle ---------------------------------------------- */
-/* The padding centres one line in the target, as the menu's rows do; a label that wraps keeps
-   the box on its first line. Each control takes one line's height, centred on it. */
+/* The control stands on the first line of its label: each control takes one line's height,
+   centred on it, at the top of the row's one flex line, which is centred in the target. A label
+   that wraps grows the row as tall as its text, no more. */
 .lintje-choice {
-  display: flex; align-items: flex-start; gap: var(--lintje-choice-gap);
+  display: flex; flex-wrap: wrap; align-content: center; align-items: flex-start;
+  gap: var(--lintje-choice-gap);
   min-height: var(--h-target);
-  padding-block: max(0px, (var(--h-target) - 1lh) / 2);
   font-size: 1rem;
   cursor: pointer;
 }
+/* Beside its control, never on a line of its own: the room that is left, up to its text. */
+.lintje-choice__label { flex: 1 1 0; min-width: 0; max-width: max-content; }
 /* Under its label, and drawn up into the row's own air, so it reads with its option and not with
    the next one in a group. */
 .lintje-choice ~ .lintje-field__hint,

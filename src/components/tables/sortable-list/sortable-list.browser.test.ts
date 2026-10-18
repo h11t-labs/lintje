@@ -198,6 +198,15 @@ describe('lintje-sortable-list rows', () => {
       expect(Math.abs(atGrip! - atFirst!)).toBeLessThan(2)
       expect(Math.abs(atBox! - atFirst!)).toBeLessThan(2)
       expect(atFirst!).toBeLessThan(middle(long!.getBoundingClientRect()) - 10)
+      // The row is as tall as the label's text and its own padding and border, no more.
+      const style = getComputedStyle(long!)
+      const edges = ['paddingTop', 'paddingBottom', 'borderTopWidth', 'borderBottomWidth'] as const
+      const around = edges.reduce((sum, edge) => sum + parseFloat(style[edge]), 0)
+      const text = long!
+        .querySelector('lintje-checkbox')!
+        .shadowRoot!.querySelector('.lintje-choice__label')!
+        .getBoundingClientRect()
+      expect(long!.getBoundingClientRect().height).toBeCloseTo(text.height + around, 0)
       // The grip's hit area is the row's height.
       const hit = getComputedStyle(grip(element, 'lang'), '::after')
       expect(parseFloat(hit.height)).toBeCloseTo(long!.getBoundingClientRect().height, 0)
