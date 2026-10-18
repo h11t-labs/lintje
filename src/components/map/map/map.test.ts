@@ -893,6 +893,89 @@ describe('lintje-map area', () => {
     expect(element.renderRoot.querySelector('.lintje-map-chart__region--draft')).toBeNull()
   })
 
+  describe('a new area over one that stands', () => {
+    async function withArea() {
+      const element = await mapTile(tileData({ controls: { rect: true } }))
+      const areas: CustomEvent[] = []
+      element.addEventListener('lintje-area-select', (event) => areas.push(event as CustomEvent))
+      tools(element)[0].click()
+      await element.updateComplete
+      const press = presser(element)
+      press('pointerdown', 300, 100)
+      press('pointermove', 500, 300)
+      press('pointerup', 500, 300)
+      await element.updateComplete
+      const shown = panel(element)?.textContent?.replace(/\s+/g, ' ').trim()
+      return { element, areas, press, shown }
+    }
+    const outline = (element: MapTile) =>
+      element.renderRoot.querySelector(
+        'path.lintje-map-chart__region:not(.lintje-map-chart__region--draft)',
+      )
+    const draft = (element: MapTile) =>
+      element.renderRoot.querySelector('.lintje-map-chart__region--draft')
+    const escape = () =>
+      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+
+    it('lets the old one go the moment the new one begins, telling the host nothing', async () => {
+      const { element, areas, press, shown } = await withArea()
+      expect(areas).toHaveLength(1)
+      expect(shown).toContain('binnen de rechthoek')
+      expect(outline(element)).not.toBeNull()
+      press('pointerdown', 350, 150)
+      await element.updateComplete
+      expect(panel(element)).toBeNull()
+      expect(outline(element)).toBeNull()
+      press('pointermove', 450, 250)
+      expect(draft(element)).not.toBeNull()
+      expect(areas).toHaveLength(1)
+    })
+
+    it('sends one event, with the new area, once it is done', async () => {
+      const { element, areas, press } = await withArea()
+      const first = areas[0]!.detail.area
+      press('pointerdown', 350, 150)
+      press('pointermove', 450, 250)
+      press('pointerup', 450, 250)
+      await element.updateComplete
+      expect(areas).toHaveLength(2)
+      expect(areas[1]!.detail.area).not.toEqual(first)
+      expect(panel(element)).not.toBeNull()
+      expect(outline(element)).not.toBeNull()
+    })
+
+    it('brings the old one back as it was on Escape or a press taken back, and sends nothing', async () => {
+      const { element, areas, press, shown } = await withArea()
+      press('pointerdown', 350, 150)
+      press('pointermove', 450, 250)
+      escape()
+      await element.updateComplete
+      expect(draft(element)).toBeNull()
+      expect(panel(element)?.textContent?.replace(/\s+/g, ' ').trim()).toBe(shown)
+      expect(outline(element)).not.toBeNull()
+      press('pointerdown', 350, 150)
+      press('pointermove', 450, 250)
+      press('pointercancel', 450, 250)
+      await element.updateComplete
+      expect(draft(element)).toBeNull()
+      expect(panel(element)?.textContent?.replace(/\s+/g, ' ').trim()).toBe(shown)
+      expect(areas).toHaveLength(1)
+    })
+
+    it('does the same from the keyboard: Enter begins, Escape brings the old one back', async () => {
+      const { element, areas, shown } = await withArea()
+      const surface = element.renderRoot.querySelector<HTMLElement>('.leaflet-container')!
+      surface.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+      await element.updateComplete
+      expect(panel(element)).toBeNull()
+      expect(outline(element)).toBeNull()
+      escape()
+      await element.updateComplete
+      expect(panel(element)?.textContent?.replace(/\s+/g, ' ').trim()).toBe(shown)
+      expect(areas).toHaveLength(1)
+    })
+  })
+
   it('draws a rectangle from corner to corner, as a lasso of four, and names it in the panel', async () => {
     const element = await mapTile(tileData({ controls: { lasso: true, rect: true } }))
     const areas: CustomEvent[] = []

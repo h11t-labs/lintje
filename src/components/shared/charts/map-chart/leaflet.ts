@@ -126,6 +126,10 @@ export interface LeafletSyncOptions {
   /** The drawing tool that is on, and what a finished area goes to. */
   tool: MapTool | null
   drawn: (area: MapArea) => void
+  /** A new area begins: the one standing steps aside, until the new one is done or undone. */
+  drawStart: () => void
+  /** The new area was undone or chose nothing: the one that stood comes back. */
+  drawCancel: () => void
   /** Escape with no area being drawn: the tool goes off. */
   stopTool: () => void
   /** Panning with the mouse, and zooming by double click and pinch; the host may switch them off. */
@@ -213,6 +217,8 @@ export class LeafletSurface {
     chosen: [],
     tool: null,
     drawn: () => {},
+    drawStart: () => {},
+    drawCancel: () => {},
     stopTool: () => {},
     drag: true,
     zoom: true,
@@ -422,6 +428,14 @@ export class LeafletSurface {
     container.addEventListener('click', (event) => this.#swallow(event), true)
     container.addEventListener('dblclick', (event) => this.#closeLasso(event), true)
     container.addEventListener('keydown', (event) => this.#key(event))
+    // A press the browser takes back (a scroll, a second finger) undoes what it began (2.5.2).
+    container.addEventListener(
+      'pointercancel',
+      () => {
+        if (this.#draft?.press) this.#cancelDraft()
+      },
+      true,
+    )
     // The renderer's svg holds the drawing; Leaflet positions it in layer points and scales it
     // along with a zoom animation. It exists once the map has a view.
     L.svg({ padding: 0.5 }).addTo(map)
@@ -748,6 +762,7 @@ export class LeafletSurface {
         dragged: false,
         keyboard: false,
       }
+      this.#options.drawStart()
     } else {
       draft.press = { x: event.clientX, y: event.clientY }
       draft.dragged = false
@@ -845,6 +860,7 @@ export class LeafletSurface {
         dragged: false,
         keyboard: true,
       }
+      this.#options.drawStart()
       this.#renderDraft()
       return
     }
@@ -892,13 +908,14 @@ export class LeafletSurface {
 
   #finish(): void {
     const area = this.#draft?.area
-    this.#cancelDraft()
+    this.#clearDraft()
     if (!area) return
     // A ring of fewer than three corners, a flat rectangle or a circle without a radius chooses
-    // nothing.
+    // nothing: the area that stood comes back.
     const drawn =
       area.kind === 'lasso' ? area.ring.length > 2 && !flatRing(area.ring) : area.radiusKm > 0
     if (drawn) this.#options.drawn(area)
+    else this.#options.drawCancel()
   }
 
   /**
@@ -918,7 +935,14 @@ export class LeafletSurface {
     else this.#options.stopTool()
   }
 
+  /** What is being drawn is undone: the area that stood before it comes back, and nothing is sent. */
   #cancelDraft(): void {
+    const drawing = this.#draft != null
+    this.#clearDraft()
+    if (drawing) this.#options.drawCancel()
+  }
+
+  #clearDraft(): void {
     this.#draft = null
     if (this.#draftGroup) render(nothingTemplate, this.#draftGroup)
     cancelAnimationFrame(this.#previewFrame)

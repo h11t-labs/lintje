@@ -999,7 +999,9 @@ beide uiteinden en zijn boog. Wat de rand raakt, telt niet mee, en tijdens het t
 wat erin zou vallen. De kaart stuurt het gebied en de ids — een rechthoek als lasso van vier
 hoeken, want in Mercator is een rechthoek op het scherm er een in graden —, en de host bewaart
 het gebied in de URL zoals elk filter. Het gebied blijft staan tot de lezer het wegklikt, ook
-naast een gekozen mark. Wie niet sleept, tekent met klikken; onderaan staat hoe, per vorm, zolang
+naast een gekozen mark. Begint de lezer een nieuw gebied, dan valt het oude met zijn paneel
+meteen weg, zonder dat de host het hoort; Escape of een druk die de browser terugneemt, zet het
+terug zoals het was, en de host hoort alleen het nieuwe gebied. Wie niet sleept, tekent met klikken; onderaan staat hoe, per vorm, zolang
 de vorm in de hand is; Escape legt haar neer. Met het toetsenbord zet Enter of spatie op de kaart
 een punt in het midden van het zicht, onder een kruisje, en schuiven de pijltoetsen de kaart
 eronder: een rechthoek is twee punten, een cirkel een midden en een rand, en een lasso sluit met
