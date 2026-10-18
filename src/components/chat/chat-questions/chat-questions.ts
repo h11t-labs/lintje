@@ -471,7 +471,8 @@ export class LintjeChatQuestions extends LintjeElement {
             </p>`
             : nothing
         }
-        <div class="lintje-chat-questions__choices">
+        <!-- Firefox makes a scroller a tab stop of its own; the choices in it are the stops. -->
+        <div class="lintje-chat-questions__choices" tabindex="-1">
           ${keyed(question.id, this.renderControl(question, [error, hint].filter(Boolean).join(' ')))}
         </div>
       </div>
