@@ -70,17 +70,17 @@ export const TOOL_HINTS: Record<MapTool, { pointer: string; short: string; keys:
   lasso: {
     pointer: 'Sleep om te kiezen, of klik de hoeken · Escape stopt',
     short: 'Sleep om te kiezen',
-    keys: 'Pijltoetsen schuiven de kaart onder het kruisje · Enter zet een hoek, Enter op de eerste sluit · Escape stopt',
+    keys: 'Pijltoetsen schuiven de kaart · Enter zet een hoek, Enter op de eerste sluit · Escape stopt',
   },
   circle: {
     pointer: 'Sleep van het midden naar de rand, of klik het midden en dan de rand · Escape stopt',
     short: 'Sleep van het midden naar de rand',
-    keys: 'Pijltoetsen schuiven de kaart onder het kruisje · Enter zet het midden, daarna de rand · Escape stopt',
+    keys: 'Pijltoetsen schuiven de kaart · Enter zet het midden, daarna de rand · Escape stopt',
   },
   rect: {
     pointer: 'Sleep van hoek naar hoek, of klik twee hoeken · Escape stopt',
     short: 'Sleep van hoek naar hoek',
-    keys: 'Pijltoetsen schuiven de kaart onder het kruisje · Enter zet een hoek, daarna de andere · Escape stopt',
+    keys: 'Pijltoetsen schuiven de kaart · Enter zet een hoek, daarna de andere · Escape stopt',
   },
 }
 

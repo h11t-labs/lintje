@@ -910,7 +910,7 @@ describe('lintje-map area', () => {
     surface.dispatchEvent(new FocusEvent('focusin', { bubbles: true, composed: true }))
     await element.updateComplete
     expect(hint()).toBe(
-      'Pijltoetsen schuiven de kaart onder het kruisje · Enter zet het midden, daarna de rand · Escape stopt',
+      'Pijltoetsen schuiven de kaart · Enter zet het midden, daarna de rand · Escape stopt',
     )
     surface.dispatchEvent(
       new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: document.body }),
@@ -920,7 +920,7 @@ describe('lintje-map area', () => {
     expect(TOOL_HINTS.rect).toEqual({
       pointer: 'Sleep van hoek naar hoek, of klik twee hoeken · Escape stopt',
       short: 'Sleep van hoek naar hoek',
-      keys: 'Pijltoetsen schuiven de kaart onder het kruisje · Enter zet een hoek, daarna de andere · Escape stopt',
+      keys: 'Pijltoetsen schuiven de kaart · Enter zet een hoek, daarna de andere · Escape stopt',
     })
   })
 
