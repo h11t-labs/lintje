@@ -69,6 +69,15 @@ const box = (element: Element): DOMRect => element.getBoundingClientRect()
 
 const cut = (text: Element): boolean => text.scrollWidth > text.clientWidth
 
+const middle = (rect: DOMRect): number => rect.top + rect.height / 2
+
+/** The box of the first line of a text. */
+function firstLine(text: Element): DOMRect {
+  const range = document.createRange()
+  range.selectNodeContents(text)
+  return range.getClientRects()[0]!
+}
+
 /** Within `outer`, to `slack` px; `sides` picks which edges count. */
 function within(
   element: Element,
@@ -180,10 +189,14 @@ const ROWS: Row[] = [
       const rows = all(element.shadowRoot!, '.lintje-sortable-list__row')
       return rows.flatMap((row, i) => {
         const label = all(row, '.lintje-choice__label')[0]!
+        const check = all(row, '.lintje-choice__box')[0]!
         const next = rows[i + 1]
         return [
           ...(within(label, row, 'y') ? [] : [`label ${i + 1} outside its row`]),
           ...(next && box(row).bottom > box(next).top + 0.5 ? [`row ${i + 1} over the next`] : []),
+          ...(Math.abs(middle(box(check)) - middle(firstLine(label))) < 2
+            ? []
+            : [`box ${i + 1} off the first line`]),
         ]
       })
     },

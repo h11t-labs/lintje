@@ -1,8 +1,12 @@
-/** The hint and error under a lone choice start where its label text does. */
+/**
+ * The hint and error under a lone choice start where its label text does, and its control stands
+ * on the first line of a label that wraps, as the menu's icons do.
+ */
 import { afterEach, describe, expect, it } from 'vitest'
 import '../../components/inputs/checkbox/checkbox'
 import '../../components/inputs/checkbox-group/checkbox-group'
 import '../../components/inputs/multiselect/multiselect'
+import '../../components/inputs/radio-group/radio-group'
 import '../../components/inputs/toggle/toggle'
 import type { LintjeInputElement } from '../../components/inputs/shared/input'
 
@@ -130,5 +134,49 @@ describe('where the foot stays at the edge', () => {
     const root = toggle.renderRoot
     expect(left(root, '.lintje-field__hint')).toBeCloseTo(left(root, '.lintje-choice__label'), 0)
     expect(left(root, '.lintje-field__hint')).toBeCloseTo(left(root, '.lintje-field'), 0)
+  })
+})
+
+const CONTROL = '.lintje-choice__box, .lintje-choice__radio, .lintje-choice__switch'
+const WRAPS = 'Elke ochtend één bericht met alle wijzigingen in de aanvragen van de afgelopen dag'
+
+const middle = (box: DOMRect): number => box.top + box.height / 2
+
+/** The box of the first line of a text. */
+function firstLine(text: Element): DOMRect {
+  const range = document.createRange()
+  range.selectNodeContents(text)
+  return range.getClientRects()[0]!
+}
+
+describe('the control of a choice', () => {
+  const choices: [string, object][] = [
+    ['lintje-checkbox', { label: WRAPS }],
+    ['lintje-toggle', { label: WRAPS }],
+    ['lintje-radio-group', { options: [{ value: 'a', label: WRAPS }] }],
+  ]
+  for (const [tag, props] of choices) {
+    it(`stands on the first line of a label that wraps: ${tag}`, async () => {
+      const narrow = Object.assign(document.createElement('div'), { style: 'width: 240px' })
+      const root = (await draw(tag, props, narrow)).renderRoot
+      const label = root.querySelector('.lintje-choice__label')!
+      const line = firstLine(label)
+      expect(label.getBoundingClientRect().height, 'more than one line').toBeGreaterThan(
+        line.height * 1.5,
+      )
+      const control = root.querySelector(CONTROL)!.getBoundingClientRect()
+      expect(Math.abs(middle(control) - middle(line))).toBeLessThan(2)
+    })
+  }
+
+  it('stands in the middle of a choice of one line, which keeps its target height', async () => {
+    const root = (await draw('lintje-checkbox', {})).renderRoot
+    const choice = root.querySelector('.lintje-choice')!.getBoundingClientRect()
+    const target = parseFloat(getComputedStyle(root.querySelector('.lintje-choice')!).minHeight)
+    expect(choice.height).toBeCloseTo(target, 1)
+    const box = root.querySelector(CONTROL)!.getBoundingClientRect()
+    const label = root.querySelector('.lintje-choice__label')!.getBoundingClientRect()
+    expect(middle(box)).toBeCloseTo(middle(choice), 0)
+    expect(middle(label)).toBeCloseTo(middle(choice), 0)
   })
 })

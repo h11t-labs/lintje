@@ -12,15 +12,17 @@
   font: var(--text-ui);
 }
 
-/* A label that wraps makes its row taller; one line keeps the touch height. */
+/* A label that wraps makes its row taller; one line keeps the touch height. Grip, checkbox and
+   the label's first line stand on one line, `--lintje-sortable-list-line` high. */
 .lintje-sortable-list__row {
   position: relative;
-  display: flex; align-items: center;
+  display: flex; align-items: flex-start;
   gap: var(--space-2);
   min-height: var(--h-touch);
   padding: var(--space-1) var(--space-2);
   background: var(--color-bg-surface);
   --lintje-sortable-list-border: 1px;
+  --lintje-sortable-list-line: calc(var(--h-touch) - 2 * var(--space-1) - 2 * var(--lintje-sortable-list-border));
   border: var(--lintje-sortable-list-border) solid var(--color-border-default);
   color: var(--color-text-primary);
 }
@@ -48,10 +50,10 @@
 /* The grip is the only handle, so a finger on the row still scrolls. Its hit area reaches the
    row's full height, up and down only. */
 .lintje-sortable-list__grip {
-  position: relative;
   flex: none;
   display: inline-flex; align-items: center; justify-content: center;
   width: var(--h-chip-field); height: var(--h-chip-field);
+  margin-top: calc((var(--lintje-sortable-list-line) - var(--h-chip-field)) / 2);
   color: var(--color-text-muted);
   cursor: grab;
   touch-action: none;
@@ -60,7 +62,9 @@
 .lintje-sortable-list__grip::after {
   content: '';
   position: absolute;
-  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+  inset-block: calc(var(--lintje-sortable-list-border) * -1);
+  left: var(--space-2);
+  width: var(--h-chip-field);
 }
 .lintje-sortable-list__grip:hover { color: var(--color-text-primary); }
 .lintje-sortable-list__row.is-lifted .lintje-sortable-list__grip {
@@ -70,12 +74,13 @@
 
 .lintje-sortable-list__label {
   min-width: 0;
+  margin-top: calc((var(--lintje-sortable-list-line) - 1lh) / 2);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-/* The row is the target: the checkbox's own is what is left inside it. */
+/* The row is the target: the checkbox's own is its line, and its first line is the grip's. */
 .lintje-sortable-list__check {
   min-width: 0;
-  --h-target: calc(var(--h-touch) - 2 * var(--space-1) - 2 * var(--lintje-sortable-list-border));
+  --h-target: var(--lintje-sortable-list-line);
 }
 
 .lintje-sortable-list__status {

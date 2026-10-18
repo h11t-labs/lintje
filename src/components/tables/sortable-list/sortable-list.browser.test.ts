@@ -138,7 +138,30 @@ describe.skipIf(server.browser !== 'chromium')('lintje-sortable-list with a fing
   })
 })
 
+const middle = (box: DOMRect): number => box.top + box.height / 2
+
+/** The box of the first line of a text. */
+function firstLine(text: Element): DOMRect {
+  const range = document.createRange()
+  range.selectNodeContents(text)
+  return range.getClientRects()[0]!
+}
+
+/** The middles of a row's grip, its box and the first line of its label. */
+function line(row: HTMLElement): number[] {
+  const check = row.querySelector('lintje-checkbox')!.shadowRoot!
+  return [
+    middle(row.querySelector('.lintje-sortable-list__grip')!.getBoundingClientRect()),
+    middle(check.querySelector('.lintje-choice__box')!.getBoundingClientRect()),
+    middle(firstLine(check.querySelector('.lintje-choice__label')!)),
+  ]
+}
+
 describe('lintje-sortable-list rows', () => {
+  afterEach(() => {
+    document.documentElement.style.fontSize = ''
+  })
+
   it('stand at the touch height on one line and grow with a label that wraps', async () => {
     const element = await mount()
     const touchHeight = rows(element)[0]!.getBoundingClientRect().height
@@ -156,4 +179,28 @@ describe('lintje-sortable-list rows', () => {
     const text = label.shadowRoot!.querySelector('.lintje-choice__label')!.getBoundingClientRect()
     expect(text.bottom).toBeLessThanOrEqual(long!.bottom)
   })
+
+  // At the default size and at 200 %: a larger letter makes the row and its line taller alike.
+  for (const size of ['', '32px']) {
+    it(`keep grip, box and the first line of a label on one line${size ? ' at 200 %' : ''}`, async () => {
+      document.documentElement.style.fontSize = size
+      const element = await mount()
+      element.checkable = true
+      element.items = [
+        { id: 'naam', label: 'Naam' },
+        { id: 'lang', label: 'Datum van de laatste wijziging door de behandelaar van de aanvraag' },
+      ]
+      await settle(element)
+      const [short, long] = rows(element)
+      const one = middle(short!.getBoundingClientRect())
+      for (const at of line(short!)) expect(Math.abs(at - one)).toBeLessThan(2)
+      const [atGrip, atBox, atFirst] = line(long!)
+      expect(Math.abs(atGrip! - atFirst!)).toBeLessThan(2)
+      expect(Math.abs(atBox! - atFirst!)).toBeLessThan(2)
+      expect(atFirst!).toBeLessThan(middle(long!.getBoundingClientRect()) - 10)
+      // The grip's hit area is the row's height.
+      const hit = getComputedStyle(grip(element, 'lang'), '::after')
+      expect(parseFloat(hit.height)).toBeCloseTo(long!.getBoundingClientRect().height, 0)
+    })
+  }
 })

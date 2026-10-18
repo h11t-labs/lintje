@@ -211,9 +211,12 @@
 .lintje-field__reset:hover { color: var(--color-link-hover); }
 
 /* --- Checkbox, radio, toggle ---------------------------------------------- */
+/* The padding centres one line in the target, as the menu's rows do; a label that wraps keeps
+   the box on its first line. Each control takes one line's height, centred on it. */
 .lintje-choice {
-  display: flex; align-items: center; gap: var(--lintje-choice-gap);
+  display: flex; align-items: flex-start; gap: var(--lintje-choice-gap);
   min-height: var(--h-target);
+  padding-block: max(0px, (var(--h-target) - 1lh) / 2);
   font-size: 1rem;
   cursor: pointer;
 }
@@ -237,15 +240,18 @@
 
 .lintje-choice__box {
   width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
+  margin-block: calc((1lh - var(--lintje-choice-control)) / 2);
   display: flex; align-items: center; justify-content: center;
   border: 2px solid var(--color-border-choice);
   background: var(--color-bg-surface);
-  color: var(--color-action-primary-text); font-size: 0.875rem; font-weight: 700; line-height: 1;
+  color: var(--color-action-primary-text); font-weight: 700;
   transition: background-color var(--dur-hover) var(--ease-in-motion),
     border-color var(--dur-hover) var(--ease-in-motion);
 }
-/* The mark is always drawn and grows in when the box is checked, so checking and unchecking both move. */
+/* The mark is always drawn and grows in when the box is checked, so checking and unchecking both
+   move. Its own size and line: the box keeps the label's, by which it stands on the first line. */
 .lintje-choice__mark {
+  font-size: 0.875rem; line-height: 1;
   opacity: 0; transform: scale(0.4);
   transition: opacity var(--dur-hover) var(--ease-in-motion),
     transform var(--dur-hover) var(--ease-in-motion);
@@ -268,6 +274,7 @@
 
 .lintje-choice__radio {
   width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
+  margin-block: calc((1lh - var(--lintje-choice-control)) / 2);
   border: 2px solid var(--color-border-choice);
   border-radius: 50%;
   background: var(--color-bg-surface);
@@ -286,7 +293,9 @@
   /* The knob stands this far inside the track; forced colours give the ring a pixel of it. */
   --lintje-choice-switch-inset: 2px;
   --lintje-choice-switch-ring: 1px;
-  width: var(--lintje-choice-control); height: 22px; flex: none;
+  --lintje-choice-switch-height: 22px;
+  width: var(--lintje-choice-control); height: var(--lintje-choice-switch-height); flex: none;
+  margin-block: calc((1lh - var(--lintje-choice-switch-height)) / 2);
   border-radius: 11px;
   /* Off is a filled track, not a pale one with a ring: the fill alone reaches 3:1. */
   background: var(--color-border-field);
