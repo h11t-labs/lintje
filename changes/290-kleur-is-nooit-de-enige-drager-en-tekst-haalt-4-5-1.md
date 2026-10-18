@@ -4,4 +4,5 @@
 
 ### Gewijzigd
 
-- Een stapel met meer dan vijf delen in één kleur vouwt de kleinste tot één grijs "Overig" bovenop, zoals de taart; de tooltip noemt de gevouwen delen, de CSV elk deel. (#290)
+- Een stapel met meer dan vijf delen in één kleur vouwt de kleinste tot één "Overig" bovenop, zoals de taart; de tooltip noemt de gevouwen delen ingesprongen eronder, de CSV elk deel. (#290)
+- "Overig" van een taart, een stapel en de staaf van een sankey op een telefoon is de laatste, lichtste sport van de ladder van de variabele in plaats van grijs; heeft elk deel een eigen kleur, dan blijft het grijs. (#290)

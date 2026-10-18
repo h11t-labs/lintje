@@ -13,7 +13,7 @@ import { chartArea, type ChartOptions, type TooltipContent } from '../shared/con
 import { layerMotion, layerWeights } from '../shared/layer-motion'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { tintsFor } from '../shared/tints'
-import { foldStack, isOtherPart } from '../shared/fold'
+import { drawsAsOther, foldStack, isOtherPart } from '../shared/fold'
 import type { ChartSpec } from '../shared/types'
 
 type StackedAreaSpec = Extract<ChartSpec, { kind: 'stacked-area' }>
@@ -37,13 +37,16 @@ export function renderStackedAreaChart(
   })
 
   // The colours belong to the parts, not to what is shown: switching one off moves no colour.
-  // Past five parts the smallest fold into a grey "Overig" on top, so no two share a tint.
+  // Past five parts the smallest fold into "Overig" on top, so no two share a tint; "Overig"
+  // spreads over the ladder with the parts and takes its last rung.
   const parts = foldStack(spec.series, () => true)
-  const tints = tintsFor(parts.filter((row) => !isOtherPart(row)).length, spec.color)
-  const series = parts.map((row, j) => ({
+  const others = parts.filter(drawsAsOther).length
+  const tints = tintsFor(parts.length - others + (others ? 1 : 0), spec.color)
+  let rung = 0
+  const series = parts.map((row) => ({
     ...row,
     folded: isOtherPart(row) ? row.folded : [],
-    color: isOtherPart(row) ? 'var(--color-chart-other)' : tints[j],
+    color: drawsAsOther(row) ? tints[tints.length - 1] : tints[rung++],
     hidden: controller.hiddenSeries.includes(row.label),
   }))
   const visible = series.filter((row) => !row.hidden)
@@ -148,11 +151,11 @@ export function renderStackedAreaChart(
             value: row.values[i] == null ? NO_DATA : formatNumber(row.values[i]!),
             color: row.color,
           },
-          // The parts "Overig" holds, each named, in a quieter line under it.
+          // The parts "Overig" holds, each named, indented under it.
           ...row.folded.map((part) => ({
             label: part.label,
             value: part.values[i] == null ? NO_DATA : formatNumber(part.values[i]!),
-            note: true,
+            part: true,
           })),
         ]),
         ...(visible.length > 0

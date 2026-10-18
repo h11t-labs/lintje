@@ -179,9 +179,9 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
   de rol van een reeks die in kleur niets draagt, zoals gelijkwaardige bronnen op een kaart: ze
   tekent datzelfde grijs en is nooit een nieuwe datakleur.
 - Vast is de kleur van een variabele. De grijzen (`--data-comparison`, `--data-other`), het
-  raster en de nadrukkleur volgen de modus. **Geel is nooit tekst.** "Overig" is in donker zo
-  licht dat bijna-zwart erop 4.5:1 haalt, en een label op de rest van een geheel (`remainder`)
-  neemt de tekstkleur.
+  raster en de nadrukkleur volgen de modus. **Geel is nooit tekst.** Het grijs van "Overig"
+  (`--data-other`, in een treemap en bij de sprekers) is in donker zo licht dat bijna-zwart erop
+  4.5:1 haalt, en een label op de rest van een geheel (`remainder`) neemt de tekstkleur.
 - **Een lichte kleur krijgt als lijn of teken een rand in haar eigen donkere kleur**
   (`--color-chart-<kleur>-edge`; die van donkergeel is een eigen donker goud), zodat ze in licht
   3:1 haalt op het oppervlak en op het land van de kaart; in donker smelt de rand weg in de kleur
@@ -199,8 +199,14 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
   de hele ladder. Nooit lichter dan het aantal vraagt.
 - **Geen twee delen van één variabele krijgen dezelfde tint.** Zijn er meer dan vijf, dan houden
   een taart, een stapel en de staaf van een sankey op een telefoon de vier grootste en vouwen ze de
-  rest tot één grijs "Overig" (`--color-chart-other`); een stapel houdt daarbij haar volgorde, met
-  "Overig" bovenop. De tooltip noemt de gevouwen delen, de CSV elk deel.
+  rest tot één "Overig"; een stapel houdt daarbij haar volgorde, met "Overig" bovenop. De tooltip
+  noemt de gevouwen delen, ingesprongen onder "Overig" en zonder vakje, de CSV elk deel.
+- **"Overig" is het laatste lid van de set van de variabele.** De delen en "Overig" spreiden samen
+  over de ladder, en "Overig" neemt de laatste, lichtste sport: vier delen en "Overig" de hele
+  ladder, twee delen en "Overig" de eerste, tweede en vierde. Dat geldt voor wat vouwt, voor het
+  eigen "Overig" van de host en voor `color: 'other'`; een andere kleur die de host een deel geeft,
+  wint. Heeft elk deel een eigen kleur, dan is er geen ladder en blijft "Overig" grijs, zoals in
+  een treemap, waar "Overig" delen in verschillende kleuren verzamelt.
 - Categorische kleuren alleen als de variabelen echt verschillende dingen zijn.
 - **De sprekers van een opname zijn categorisch**: ze nemen hemelblauw, donkergeel, roze,
   mintgroen, violet en groen in volgorde van eerste optreden, daarna het grijs van "overig".
@@ -828,10 +834,10 @@ de stijlgids. Past geen soort, dan is het een tabel.
 - **Hover verandert nooit de lengte die de waarde draagt.**
 - **Een taart rangschikt en vouwt zelf.** Haar delen zijn de onderverdelingen van één variabele:
   de kleur van de spec, of hemelblauw. Het grootste deel is het donkerste, in welke volgorde de
-  host ze ook stuurt, en de tinten spreiden over de ladder met het aantal delen. Meer dan vijf
-  delen worden vier en één grijs "Overig" dat niet klikbaar is: een samengevoegd stuk heeft geen
-  plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) zijn geen delen; ze
-  staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde; zonder
+  host ze ook stuurt, en de tinten spreiden over de ladder met het aantal delen en "Overig". Meer
+  dan vijf delen worden vier en één "Overig" dat niet klikbaar is: een samengevoegd stuk heeft geen
+  plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) staan achteraan:
+  "Overig" in de laatste sport, de rest in haar eigen lichtgrijs. De legendatabel volgt de getekende volgorde; zonder
   legendatabel staat de gewone legenda boven de tekening, een item per deel en geen schakelaar.
 - **Een treemap vouwt op aandeel, niet op aantal.** Ze toont veel delen en hun onderdelen in één
   vlak, dus een deel blijft staan zolang het telt: wat onder 1 % van het geheel blijft, wordt

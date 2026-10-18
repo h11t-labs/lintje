@@ -121,19 +121,42 @@ describe('the stacked bars', () => {
     expect(fills(host)).toEqual([TINT(1), TINT(4), TINT(1), TINT(4)])
   })
 
-  it('never gives two of seven parts one tint: the smallest three fold into a grey "Overig"', () => {
+  it('never gives two of seven parts one tint: the smallest three fold into "Overig", the last step', () => {
     const host = draw({
       kind: 'stacked-bar',
       labels: ['ma'],
       series: Array.from({ length: 7 }, (_, i) => ({ label: `Reeks ${i + 1}`, values: [i + 1] })),
     })
     // The four largest keep their order, bottom first; "Overig" stands on top.
-    const drawn = fills(host)
-    expect(drawn).toEqual([TINT(1), TINT(2), TINT(3), TINT(4), 'var(--color-chart-other)'])
-    expect(new Set(drawn).size).toBe(drawn.length)
+    expect(fills(host)).toEqual([TINT(1), TINT(2), TINT(3), TINT(4), TINT(5)])
     expect(
       [...host.querySelectorAll('.lintje-legend__item')].map((item) => item.textContent?.trim()),
     ).toEqual(['Reeks 4', 'Reeks 5', 'Reeks 6', 'Reeks 7', 'Overig'])
+  })
+
+  it('takes the last step for the host’s own "Overig" too, and keeps it gray beside colours of their own', () => {
+    // Two parts and "Overig" spread over the ladder as three: 1, 2 and 4.
+    const ladder = draw({
+      kind: 'stacked-bar',
+      labels: ['ma'],
+      series: [
+        { label: 'A', values: [5] },
+        { label: 'B', values: [3] },
+        { label: 'Overig', values: [1], color: 'other' },
+      ],
+    })
+    expect(fills(ladder)).toEqual([TINT(1), TINT(2), TINT(4)])
+    document.body.innerHTML = ''
+    // Every part has a colour of its own: no ladder to join, so "Overig" stays gray.
+    const named = draw({
+      kind: 'stacked-bar',
+      labels: ['ma'],
+      series: [
+        { label: 'Toegekend', values: [5], color: 'sky-blue' },
+        { label: 'Overig', values: [1], color: 'other' },
+      ],
+    })
+    expect(fills(named)).toEqual(['var(--color-chart-sky-blue)', 'var(--color-chart-other)'])
   })
 
   it('parts the segments with a line in the surface', () => {

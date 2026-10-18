@@ -813,19 +813,20 @@ function renderRows(
   const sections = model.steps.slice(0, -1).map((step, t) => {
     const next = model.steps[t + 1]
     // The same target takes the same tint at every source. Past five the smallest fold into one
-    // grey "Overig" piece, as a stack folds, so no two pieces share a tint.
+    // "Overig" piece, as a stack folds, so no two pieces share a tint: the ladder's last rung.
     const kept =
       next.nodes.length > LADDER_PARTS
         ? new Set([...next.nodes].sort((a, b) => b.size - a.size).slice(0, LADDER_PARTS - 1))
         : new Set(next.nodes)
     const ladder = next.nodes.filter((node) => kept.has(node))
-    const tints = tintsFor(ladder.length, named)
-    const steps = tintSteps(ladder.length)
-    const fillOf = (node: SankeyNodeModel) =>
-      kept.has(node) ? tints[ladder.indexOf(node)] : 'var(--color-chart-other)'
+    const rungs = ladder.length + (kept.size < next.nodes.length ? 1 : 0)
+    const tints = tintsFor(rungs, named)
+    const steps = tintSteps(rungs)
+    const rungOf = (node: SankeyNodeModel) => (kept.has(node) ? ladder.indexOf(node) : rungs - 1)
+    const fillOf = (node: SankeyNodeModel) => tints[rungOf(node)]
     // The ink that reaches 4.5:1 on the piece's rung; none where neither does.
-    const inkOf = (node: SankeyNodeModel) =>
-      kept.has(node) ? labelInk(named, steps[ladder.indexOf(node)]) : labelInk('other')
+    const inkOf = (node: SankeyNodeModel) => labelInk(named, steps[rungOf(node)])
+    const otherInk = labelInk(named, steps[rungs - 1])
     const sources = step.nodes.filter((node) => node.outflow.length > 0 || node.size > 0)
     return html`<section class="lintje-sankey__transition">
       <p class="lintje-sankey__heading">${step.label} → ${lower(next.label)}</p>
@@ -853,9 +854,9 @@ function renderRows(
         if (other > 0)
           pieces.push({
             weight: other,
-            fill: 'var(--color-chart-other)',
-            kind: 'ink',
-            share: pct(other, node.size),
+            fill: tints[rungs - 1],
+            kind: otherInk ?? 'unlabelled',
+            share: otherInk ? pct(other, node.size) : undefined,
           })
         if (node.rest > 0)
           pieces.push({
@@ -867,6 +868,52 @@ function renderRows(
         const room = Math.max(0, width - 2 * Math.max(0, pieces.length - 1))
         const all = pieces.reduce((sum, piece) => sum + piece.weight, 0) || 1
         const head = markOf(selection, node, node.label, `${node.label}: ${count(node)}`)
+        // The targets "Overig" holds, in their order: a row of its own, theirs indented under it.
+        const folded = node.outflow.filter((flow) => !kept.has(flow.to))
+        const flowRow = (flow: SankeyFlowModel, part = false): TemplateResult => {
+          const link = flow.href ? flow : flow.to
+          const sentence =
+            flow.value == null
+              ? `${flow.to.label}: geen gegevens`
+              : `${flow.to.label}: ${formatNumber(flow.value)}, ${pct(flow.value, node.size)} van ${node.label}`
+          const mark = markOf(selection, link, flow.to.label, sentence)
+          return html`<li class="lintje-sankey__row ${part ? 'lintje-sankey__row--part' : ''}">
+            <span class="lintje-sankey__row-mark ${mark.state}" data-mark-id=${mark.markId}
+                  role=${mark.role} tabindex=${mark.tabIndex} aria-pressed=${mark.pressed}
+                  aria-label=${mark.label} @click=${mark.click} @keydown=${mark.keydown}>
+              ${
+                part
+                  ? nothing
+                  : html`<span class="lintje-sankey__swatch ${flow.value == null ? 'lintje-sankey__swatch--missing' : ''}"
+                        ${styleProps({ background: flow.value == null ? undefined : fillOf(flow.to) })}></span>`
+              }
+              <span class="lintje-sankey__row-name">${flow.to.label}</span>
+              ${
+                flow.value == null
+                  ? html`<span class="lintje-sankey__row-share">geen gegevens</span>`
+                  : html`<span class="lintje-sankey__row-count">${formatNumber(flow.value)}</span>
+                      <span class="lintje-sankey__row-share">${pct(flow.value, node.size)}</span>`
+              }
+            </span>
+          </li>`
+        }
+        // A missing part leaves "Overig" missing too, never the sum of the rest (rule 15).
+        const otherRow = (flows: SankeyFlowModel[]): TemplateResult => {
+          const known = flows.every((flow) => flow.value != null)
+          const sum = flows.reduce((total, flow) => total + (flow.value ?? 0), 0)
+          return html`<li class="lintje-sankey__row">
+            <span class="lintje-sankey__row-mark">
+              <span class="lintje-sankey__swatch" ${styleProps({ background: tints[rungs - 1] })}></span>
+              <span class="lintje-sankey__row-name">Overig</span>
+              ${
+                known
+                  ? html`<span class="lintje-sankey__row-count">${formatNumber(sum)}</span>
+                      <span class="lintje-sankey__row-share">${pct(sum, node.size)}</span>`
+                  : html`<span class="lintje-sankey__row-share">geen gegevens</span>`
+              }
+            </span>
+          </li>`
+        }
         return html`<div class="lintje-sankey__source">
           <p class="lintje-sankey__source-head ${head.state}" data-mark-id=${head.markId}
              role=${head.role} tabindex=${head.tabIndex} aria-pressed=${head.pressed}
@@ -884,29 +931,12 @@ function renderRows(
             })}
           </div>
           <ul class="lintje-sankey__rows">
-            ${node.outflow.map((flow) => {
-              const link = flow.href ? flow : flow.to
-              const sentence =
-                flow.value == null
-                  ? `${flow.to.label}: geen gegevens`
-                  : `${flow.to.label}: ${formatNumber(flow.value)}, ${pct(flow.value, node.size)} van ${node.label}`
-              const mark = markOf(selection, link, flow.to.label, sentence)
-              return html`<li class="lintje-sankey__row">
-                <span class="lintje-sankey__row-mark ${mark.state}" data-mark-id=${mark.markId}
-                      role=${mark.role} tabindex=${mark.tabIndex} aria-pressed=${mark.pressed}
-                      aria-label=${mark.label} @click=${mark.click} @keydown=${mark.keydown}>
-                  <span class="lintje-sankey__swatch ${flow.value == null ? 'lintje-sankey__swatch--missing' : ''}"
-                        ${styleProps({ background: flow.value == null ? undefined : fillOf(flow.to) })}></span>
-                  <span class="lintje-sankey__row-name">${flow.to.label}</span>
-                  ${
-                    flow.value == null
-                      ? html`<span class="lintje-sankey__row-share">geen gegevens</span>`
-                      : html`<span class="lintje-sankey__row-count">${formatNumber(flow.value)}</span>
-                          <span class="lintje-sankey__row-share">${pct(flow.value, node.size)}</span>`
-                  }
-                </span>
-              </li>`
-            })}
+            ${[
+              ...node.outflow.filter((flow) => kept.has(flow.to)).map((flow) => flowRow(flow)),
+              ...(folded.length
+                ? [otherRow(folded), ...folded.map((flow) => flowRow(flow, true))]
+                : []),
+            ]}
             ${
               node.rest > 0
                 ? html`<li class="lintje-sankey__row">

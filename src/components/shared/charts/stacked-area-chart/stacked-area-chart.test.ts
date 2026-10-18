@@ -188,10 +188,23 @@ describe('the stacked area', () => {
     const tints = [...host.querySelectorAll('.lintje-chart__reveal > g')].map(
       (group) => group.querySelector('polygon, circle')?.getAttribute('fill') ?? null,
     )
-    expect(tints).toHaveLength(5)
-    expect(new Set(tints).size).toBe(5)
-    expect(tints[4]).toBe('var(--color-chart-other)')
+    // The four largest and "Overig" spread over the ladder together; "Overig" takes its last step.
+    expect(tints).toEqual([1, 2, 3, 4, 5].map((n) => `var(--color-chart-tint-${n})`))
     walk(host, 'Home')
+    // The folded parts stand indented under "Overig", without a swatch.
+    const rows = [...host.querySelectorAll('.lintje-chart-tooltip__row')]
+    expect(rows.map((row) => row.classList.contains('lintje-chart-tooltip__row--part'))).toEqual([
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+    ])
+    expect(rows[1].querySelector('.lintje-chart-tooltip__marker')).toBeNull()
     // A missing folded part leaves "Overig" missing too (rule 15).
     expect(tooltipRows(host).map((row) => row.text)).toEqual([
       'Overig geen gegevens',

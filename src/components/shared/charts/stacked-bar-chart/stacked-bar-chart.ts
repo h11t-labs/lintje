@@ -21,7 +21,7 @@ import { layerMotion, layerWeights } from '../shared/layer-motion'
 import { markSelection } from '../shared/mark-select'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { tintSteps, tintsFor } from '../shared/tints'
-import { foldStack, isOtherPart } from '../shared/fold'
+import { drawsAsOther, foldStack, isOtherPart, namesOther } from '../shared/fold'
 import type { ChartSpec } from '../shared/types'
 
 type StackedBarSpec = Extract<ChartSpec, { kind: 'stacked-bar' }>
@@ -38,19 +38,27 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
     fit: Boolean(options.expanded) && !options.mobile,
   })
 
-  // A part without a colour of its own takes the next rung of the ladder.
+  // A part without a colour of its own takes the next rung of the ladder. "Overig" joins the
+  // ladder as its last rung; where every part has a colour of its own there is none, and it is
+  // gray.
   const parts = foldStack(spec.series, (row) => row.color == null)
+  const ladder = parts.filter((row) => row.color == null && !namesOther(row)).length
+  const joins = ladder > 0 && parts.some(drawsAsOther)
+  const rungCount = ladder + (joins ? 1 : 0)
   let rungs = 0
-  const series = parts.map((row, j) => ({
-    ...row,
-    values: row.values as number[],
-    links: isOtherPart(row) ? undefined : row.links,
-    folded: isOtherPart(row) ? row.folded : [],
-    j,
-    rung: row.color == null ? rungs++ : -1,
-    color: chartColor(row.color),
-    hidden: controller.hiddenSeries.includes(row.label),
-  }))
+  const series = parts.map((row, j) => {
+    const other = drawsAsOther(row)
+    return {
+      ...row,
+      values: row.values as number[],
+      links: isOtherPart(row) ? undefined : row.links,
+      folded: isOtherPart(row) ? row.folded : [],
+      j,
+      rung: other ? (joins ? rungCount - 1 : -1) : row.color == null ? rungs++ : -1,
+      color: other ? (joins ? undefined : chartColor('other')) : chartColor(row.color),
+      hidden: controller.hiddenSeries.includes(row.label),
+    }
+  })
   const visible = series.filter((row) => !row.hidden)
   const selection = markSelection(
     options,
@@ -83,15 +91,16 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
 
   // The ladder spreads with the number of parts in it, as the pie spreads its parts; the
   // stacking order carries meaning, so the parts keep it.
-  const tints = tintsFor(rungs)
+  const tints = tintsFor(rungCount)
   const colorFor = (row: { color?: string; rung: number }) => row.color ?? tints[row.rung]
 
   // Without a colour of its own a series is a rung of the ladder, which names its ink.
-  const steps = tintSteps(rungs)
+  const steps = tintSteps(rungCount)
   const insideLabel = (j: number): string | null => {
     const named = parts[j].color
     if (named === 'remainder') return 'lintje-chart__data-label--inside-text'
-    const ink = labelInk(named, named == null ? steps[series[j].rung] : 1)
+    const { rung } = series[j]
+    const ink = rung >= 0 ? labelInk(undefined, steps[rung]) : labelInk(named, 1)
     return ink ? insideLabelClass(ink) : null
   }
 
@@ -103,11 +112,11 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
         value: normalized ? formatPercent(share(row.values[i], i)) : formatNumber(row.values[i]),
         color: colorFor(row),
       },
-      // The parts "Overig" holds, each named, in a quieter line under it.
+      // The parts "Overig" holds, each named, indented under it.
       ...row.folded.map((part) => ({
         label: part.label,
         value: normalized ? formatPercent(share(part.values[i], i)) : formatNumber(part.values[i]),
-        note: true,
+        part: true,
       })),
     ]),
   })
