@@ -103,9 +103,10 @@
 .lintje-user-menu__panel.is-inline .lintje-user-menu__version,
 .lintje-user-menu__panel.is-inline .lintje-menu__hint { color: var(--color-nav-text); }
 .lintje-user-menu__panel.is-inline .lintje-user-menu__version { padding: var(--space-2) var(--space-5); }
+/* A touch row: the menu's own padding centres one line in it, and a wrapped label grows it. */
 .lintje-user-menu__panel.is-inline .lintje-menu__row {
-  height: var(--h-touch);
-  padding: 0 var(--space-5);
+  --lintje-menu-row: var(--h-touch);
+  padding-inline: var(--space-5);
   color: var(--color-nav-text);
 }
 .lintje-user-menu__panel.is-inline .lintje-menu__row:hover { background: var(--color-nav-hover); }

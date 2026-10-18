@@ -733,6 +733,8 @@ export default {
           html: `<span style="${BAR}"><lintje-user-menu version="2.4.1" open></lintje-user-menu></span>`,
           setup(stage) {
             const menu = stage.querySelector('lintje-user-menu')
+            // Room under the open menu, so it does not lie over the next specimen.
+            stage.style.minHeight = '440px'
             menu.user = USER
             menu.items = [
               { value: 'compact', label: 'Compacte weergave', checked: true },
