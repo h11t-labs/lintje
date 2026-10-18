@@ -1058,9 +1058,11 @@ pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
   een curve blijft bij het uitgaan een schim staan. Het tekent nooit opnieuw in.
 - **Een keuze beweegt mee**: het vinkje van een checkbox groeit in bij aanvinken en krimpt weg bij
   uitvinken, op de duur van hoverfeedback.
-- **Een rij die met een tik of een pijltoets verhuist, schuift naar haar nieuwe plaats** en de
-  rijen ertussen schuiven mee; ze houdt haar opgetilde vorm tot ze ligt. Een gesleepte rij volgt
-  de aanwijzer al en ligt meteen.
+- **Een sorteerbare lijst toont zelf de nieuwe volgorde**, zonder lijn of zin erbij: bij slepen
+  schuiven de andere rijen opzij zodra het midden van de gesleepte rij het midden van een buur
+  passeert, en losgelaten zakt de rij in haar gat; met een tik of een pijltoets gaat de rij meteen
+  naar haar plaats. De rijen schuiven kort, zodat het oog volgt, en de verplaatste rij houdt haar
+  opgetilde vorm tot ze ligt. Een schermlezer hoort wat er gebeurt uit een verborgen live-regio.
 - **De focusring is nooit geanimeerd.**
 - **Verminderde beweging laat niets weg, alleen de beweging.** Alleen een vervaging blijft, kort;
   al het andere, ook de focusring en een kleur, staat meteen.

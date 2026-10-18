@@ -1,11 +1,11 @@
 /**
  * The sortable list: the reorder and drop arithmetic, the keyboard path with what the status
- * line says, and the events. happy-dom has no layout, so the pointer drag is checked on
- * `dropIndex()` and in the browser; a tap needs none.
+ * line says, and the events. happy-dom has no layout, so a drag is given row boxes to measure;
+ * a tap needs none.
  */
 import { describe, expect, it } from 'vitest'
 import './sortable-list'
-import { dropIndex, moveItem, type LintjeSortableList, type SortableItem } from './sortable-list'
+import { dragIndex, moveItem, type LintjeSortableList, type SortableItem } from './sortable-list'
 
 const ITEMS: SortableItem[] = [
   { id: 'titel', label: 'Titel' },
@@ -70,12 +70,25 @@ async function tapGrip(element: LintjeSortableList, id: string): Promise<void> {
   await element.updateComplete
 }
 
-/** Which rows draw the drop line, and on which side. */
-const lines = (element: LintjeSortableList): string[] =>
-  [...element.shadowRoot!.querySelectorAll('.is-drop-before, .is-drop-after')].map(
-    (row) =>
-      `${row.classList.contains('is-drop-before') ? 'boven' : 'onder'} ${row.textContent?.trim()}`,
+/** No row draws a drop line: the list itself shows the order. */
+const lines = (element: LintjeSortableList): number =>
+  element.shadowRoot!.querySelectorAll('.is-drop-before, .is-drop-after, [class*="drop"]').length
+const rowOf = (element: LintjeSortableList, id: string): HTMLElement =>
+  grip(element, id).closest('li')!
+
+/** Gives the rows boxes, 48 px high every 52 px, so a drag can measure them. */
+function lay(element: LintjeSortableList): void {
+  element.shadowRoot!.querySelectorAll<HTMLElement>('li').forEach((row, index) => {
+    row.getBoundingClientRect = () => new DOMRect(0, index * 52, 300, 48)
+  })
+}
+
+async function drag(element: LintjeSortableList, id: string, type: string, clientY: number) {
+  grip(element, id).dispatchEvent(
+    new PointerEvent(type, { bubbles: true, cancelable: true, button: 0, pointerId: 2, clientY }),
   )
+  await element.updateComplete
+}
 const lifted = (element: LintjeSortableList, id: string): boolean =>
   grip(element, id).closest('li')!.classList.contains('is-lifted')
 
@@ -85,18 +98,22 @@ function collect(element: LintjeSortableList, name: string): unknown[] {
   return details
 }
 
-describe('moveItem() and dropIndex()', () => {
+describe('moveItem() and dragIndex()', () => {
   it('moves one entry and keeps the rest in order', () => {
     expect(moveItem(['a', 'b', 'c', 'd'], 2, 1)).toEqual(['a', 'c', 'b', 'd'])
     expect(moveItem(['a', 'b', 'c', 'd'], 0, 3)).toEqual(['b', 'c', 'd', 'a'])
     expect(moveItem(['a', 'b'], 1, 9)).toEqual(['a', 'b'])
   })
 
-  it('lands below every row whose middle is above the pointer', () => {
-    const middles = [22, 70, 118]
-    expect(dropIndex(middles, 0)).toBe(0)
-    expect(dropIndex(middles, 50)).toBe(1)
-    expect(dropIndex(middles, 500)).toBe(3)
+  it('passes a neighbour when the dragged row’s centre passes that neighbour’s middle', () => {
+    const slots = [24, 76, 128, 180]
+    expect(dragIndex(slots, 70, 0)).toBe(0)
+    expect(dragIndex(slots, 80, 0)).toBe(1)
+    expect(dragIndex(slots, 500, 0)).toBe(3)
+    // Back up, it passes the neighbour above at that one's middle, not before.
+    expect(dragIndex(slots, 60, 1)).toBe(1)
+    expect(dragIndex(slots, 20, 1)).toBe(0)
+    expect(dragIndex(slots, -50, 3)).toBe(0)
   })
 })
 
@@ -192,6 +209,8 @@ describe('lintje-sortable-list', () => {
     const down = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
     grip(element, 'categorie').dispatchEvent(down)
     expect(down.defaultPrevented).toBe(true)
+    // Nothing moves while the press is down, and no line marks a place.
+    expect(lines(element)).toBe(0)
     expect(labels(element)).toEqual(['Titel', 'Categorie', 'Ernst', 'Datum'])
     expect(grip(element, 'datum').getAttribute('aria-pressed')).toBe('true')
     expect(values).toEqual([])
@@ -202,32 +221,61 @@ describe('lintje-sortable-list', () => {
     expect(values).toEqual([{ kolommen: ['titel', 'datum', 'categorie', 'ernst'] }])
   })
 
-  it('draws the drop line on the pressed grip’s side the row will land on, while it is pressed', async () => {
+  it('says what happens out of sight only: the sentence is for a screen reader', async () => {
     const element = await mount()
-    await tapGrip(element, 'datum')
-    const target = grip(element, 'categorie')
-    await pointer(element, target, 'pointerdown')
-    expect(lines(element)).toEqual(['boven Categorie'])
-    target.dispatchEvent(new PointerEvent('pointerleave', { buttons: 1 }))
-    await element.updateComplete
-    expect(lines(element)).toEqual([])
-    target.dispatchEvent(new PointerEvent('pointerenter', { buttons: 1 }))
-    await element.updateComplete
-    expect(lines(element)).toEqual(['boven Categorie'])
-    await pointer(element, target, 'pointercancel')
-    expect(lines(element)).toEqual([])
-    expect(labels(element)).toEqual(['Titel', 'Categorie', 'Ernst', 'Datum'])
-    expect(grip(element, 'datum').getAttribute('aria-pressed')).toBe('true')
-
-    // A row from above lands below the grip it is put on; on its own grip it draws no line.
-    await press(element, 'datum', 'Escape')
-    await tapGrip(element, 'titel')
-    await pointer(element, grip(element, 'ernst'), 'pointerdown')
-    expect(lines(element)).toEqual(['onder Ernst'])
-    await pointer(element, grip(element, 'titel'), 'pointerdown')
-    expect(lines(element)).toEqual([])
-    await press(element, 'titel', 'Escape')
+    expect(element.shadowRoot!.querySelector('[role="status"]')!.className).toBe('visually-hidden')
   })
+
+  it('moves the other rows out of the way while a row is dragged, and tells the order once', async () => {
+    const element = await mount({ name: 'kolommen' })
+    const local = collect(element, 'lintje-change')
+    lay(element)
+    await drag(element, 'titel', 'pointerdown', 24)
+    // Past the middle of Categorie (76): Categorie takes the place above.
+    await drag(element, 'titel', 'pointermove', 84)
+    expect(rowOf(element, 'categorie').style.getPropertyValue('translate')).toBe('0 -52px')
+    expect(rowOf(element, 'ernst').style.getPropertyValue('translate')).toBe('')
+    expect(rowOf(element, 'titel').style.transform).toBe('translateY(60px)')
+    expect(lines(element)).toBe(0)
+    await drag(element, 'titel', 'pointermove', 140)
+    expect(rowOf(element, 'ernst').style.getPropertyValue('translate')).toBe('0 -52px')
+    // Ernst now stands at 76: only past that middle does it move back, not at its own 128.
+    await drag(element, 'titel', 'pointermove', 110)
+    expect(rowOf(element, 'ernst').style.getPropertyValue('translate')).toBe('0 -52px')
+    await drag(element, 'titel', 'pointermove', 70)
+    expect(rowOf(element, 'ernst').style.getPropertyValue('translate')).toBe('')
+    expect(rowOf(element, 'categorie').style.getPropertyValue('translate')).toBe('0 -52px')
+    expect(labels(element)).toEqual(['Titel', 'Categorie', 'Ernst', 'Datum'])
+    expect(local).toEqual([])
+
+    await drag(element, 'titel', 'pointerup', 70)
+    expect(labels(element)).toEqual(['Categorie', 'Titel', 'Ernst', 'Datum'])
+    expect(local).toEqual([['categorie', 'titel', 'ernst', 'datum']])
+    expect(rowOf(element, 'categorie').style.getPropertyValue('translate')).toBe('')
+    expect(rowOf(element, 'titel').style.transform).toBe('')
+    expect(lines(element)).toBe(0)
+  })
+
+  it.each(['Escape', 'pointercancel'])(
+    'puts every row back and tells nothing when a drag ends in %s',
+    async (end) => {
+      const element = await mount({ name: 'kolommen' })
+      const local = collect(element, 'lintje-change')
+      lay(element)
+      await drag(element, 'datum', 'pointerdown', 180)
+      await drag(element, 'datum', 'pointermove', 10)
+      expect(rowOf(element, 'titel').style.getPropertyValue('translate')).toBe('0 52px')
+      if (end === 'Escape') await press(element, 'datum', 'Escape')
+      else await drag(element, 'datum', 'pointercancel', 10)
+      await drag(element, 'datum', 'pointerup', 10)
+      expect(labels(element)).toEqual(['Titel', 'Categorie', 'Ernst', 'Datum'])
+      for (const id of ['titel', 'categorie', 'ernst']) {
+        expect(rowOf(element, id).style.getPropertyValue('translate')).toBe('')
+      }
+      expect(rowOf(element, 'datum').style.transform).toBe('')
+      expect(local).toEqual([])
+    },
+  )
 
   it('moves the row on the release, tells it once, and keeps it lifted until it has landed', async () => {
     const element = await mount({ name: 'kolommen' })
@@ -236,7 +284,7 @@ describe('lintje-sortable-list', () => {
     await tapGrip(element, 'categorie')
     expect(labels(element)).toEqual(['Titel', 'Datum', 'Categorie', 'Ernst'])
     expect(values).toEqual([{ kolommen: ['titel', 'datum', 'categorie', 'ernst'] }])
-    expect(lines(element)).toEqual([])
+    expect(lines(element)).toBe(0)
     expect(grip(element, 'datum').getAttribute('aria-pressed')).toBe('false')
     expect(lifted(element, 'datum')).toBe(true)
     await new Promise((resolve) => setTimeout(resolve, 20))

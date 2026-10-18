@@ -4,4 +4,4 @@
 
 ### Gewijzigd
 
-- `lintje-sortable-list`: met een rij in de hand toont een druk op een greep met de lijn waar de rij landt; bij het loslaten, en met een pijltoets, schuift de rij naar haar nieuwe plaats en blijft ze opgetild tot ze ligt. Onder verminderde beweging staat ze er meteen. (#281)
+- `lintje-sortable-list` toont zelf de nieuwe volgorde: bij slepen schuiven de andere rijen opzij zodra de gesleepte rij het midden van een buur passeert, en met een tik of een pijltoets gaat de rij meteen naar haar plaats, met een korte schuifbeweging. De droplijn en de zichtbare zin onder de lijst zijn weg; een schermlezer hoort de zin nog. Escape of een `pointercancel` tijdens het slepen zet alle rijen terug. (#281)

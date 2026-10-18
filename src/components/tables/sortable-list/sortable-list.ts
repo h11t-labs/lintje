@@ -42,10 +42,14 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
   return next
 }
 
-/** Where a dragged row lands: how many of the other rows (`middles`, top to bottom) are above. */
-export function dropIndex(middles: readonly number[], pointerY: number): number {
-  let index = 0
-  while (index < middles.length && middles[index]! < pointerY) index++
+/**
+ * The place of a dragged row whose centre is at `centre`, now at `at`: it passes a neighbour when
+ * it passes that neighbour's middle. `slots` are the middles of the places, top to bottom.
+ */
+export function dragIndex(slots: readonly number[], centre: number, at: number): number {
+  let index = at
+  while (index < slots.length - 1 && centre > slots[index + 1]!) index++
+  while (index > 0 && centre < slots[index - 1]!) index--
   return index
 }
 
@@ -58,7 +62,8 @@ interface Drag {
   to: number
   startY: number
   dy: number
-  middles: number[]
+  /** The middle of every place, measured when the drag began. */
+  slots: number[]
   pointerId: number
 }
 
@@ -73,7 +78,6 @@ export class LintjeSortableList extends LintjeElement {
     order: { state: true },
     grabbed: { state: true },
     drag: { state: true },
-    aim: { state: true },
     landing: { state: true },
   }
 
@@ -89,8 +93,6 @@ export class LintjeSortableList extends LintjeElement {
   readonly #message = new LiveMessage(this)
   /** The grip pressed while a row is in the hand, until its click. */
   #pressed: string | null = null
-  /** That grip while the press is on it: the drop line shows where the row will land. */
-  protected aim: string | null = null
   /** The row that was put down, lifted until it has slid into its place. */
   protected landing: string | null = null
   #landed?: ReturnType<typeof setTimeout>
@@ -170,6 +172,13 @@ export class LintjeSortableList extends LintjeElement {
   }
 
   private onGripKeydown(event: KeyboardEvent, item: SortableItem): void {
+    if (this.drag) {
+      if (event.key !== 'Escape') return
+      this.cancelDrag()
+      event.preventDefault()
+      event.stopPropagation()
+      return
+    }
     const holding = this.grabbed?.id === item.id
     switch (event.key) {
       case ' ':
@@ -226,29 +235,25 @@ export class LintjeSortableList extends LintjeElement {
       // on this grip does, and a release beside it changes nothing.
       event.preventDefault()
       this.#pressed = item.id
-      this.aim = item.id
-      // A finger is held by the grip it touched; let go, the grip hears it slide off.
-      const grip = event.currentTarget as HTMLElement
-      if (grip.hasPointerCapture?.(event.pointerId)) grip.releasePointerCapture(event.pointerId)
       return
     }
-    const rows = [...this.renderRoot.querySelectorAll<HTMLElement>('.lintje-sortable-list__row')]
     const from = this.indexOf(item.id)
-    const middles = rows
-      .filter((_, index) => index !== from)
-      .map((row) => {
-        const box = row.getBoundingClientRect()
-        return box.top + box.height / 2
-      })
-    ;(event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId)
+    const slots = this.rows().map((row) => {
+      const box = row.getBoundingClientRect()
+      return box.top + box.height / 2
+    })
+    const grip = event.currentTarget as HTMLElement
+    grip.setPointerCapture?.(event.pointerId)
     event.preventDefault()
+    // The grip takes the focus, so Escape can put the rows back during the drag.
+    grip.focus()
     this.drag = {
       id: item.id,
       from,
       to: from,
       startY: event.clientY,
       dy: 0,
-      middles,
+      slots,
       pointerId: event.pointerId,
     }
     this.#message.say(`${item.label} opgepakt. ${this.place(from)}`)
@@ -257,13 +262,13 @@ export class LintjeSortableList extends LintjeElement {
   private onPointerMove(event: PointerEvent): void {
     const drag = this.drag
     if (!drag || event.pointerId !== drag.pointerId) return
-    const to = dropIndex(drag.middles, event.clientY)
+    const dy = event.clientY - drag.startY
+    const to = dragIndex(drag.slots, (drag.slots[drag.from] ?? 0) + dy, drag.to)
     if (to !== drag.to) this.#message.say(this.place(to))
-    this.drag = { ...drag, dy: event.clientY - drag.startY, to }
+    this.drag = { ...drag, dy, to }
   }
 
   private onPointerUp(event: PointerEvent, item: SortableItem): void {
-    this.aim = null
     const drag = this.drag
     if (!drag || event.pointerId !== drag.pointerId) return
     if (drag.to === drag.from && Math.abs(drag.dy) < TAP_SLOP) {
@@ -272,33 +277,35 @@ export class LintjeSortableList extends LintjeElement {
       void this.focusGrip(item.id)
       return
     }
-    this.order = moveItem(this.order, drag.from, drag.to)
-    this.#message.say(`${item.label} neergelegd op plaats ${drag.to + 1}.`)
-    this.drag = null
-    this.commit(drag.to !== drag.from)
-    // The press is cancelled, so no browser focuses the grip on its own.
+    // The row settles from under the pointer into the gap the others left it.
+    this.land(item.id, () => {
+      this.order = moveItem(this.order, drag.from, drag.to)
+      this.#message.say(`${item.label} neergelegd op plaats ${drag.to + 1}.`)
+      this.drag = null
+      this.commit(drag.to !== drag.from)
+    })
     void this.focusGrip(item.id)
+  }
+
+  /** A drag that is cancelled puts every row back and tells nothing. */
+  private cancelDrag(): void {
+    const drag = this.drag
+    if (!drag) return
+    this.land(drag.id, () => {
+      this.drag = null
+    })
+    this.#message.clear()
   }
 
   private onGripClick(item: SortableItem): void {
     const pressed = this.#pressed
     this.#pressed = null
-    this.aim = null
     if (pressed === item.id) this.dropAt(item)
-  }
-
-  /** The pointer leaves or comes back to the pressed grip: the drop line goes or returns. */
-  private onGripHover(event: PointerEvent, item: SortableItem): void {
-    if (this.#pressed !== item.id) return
-    this.aim = event.type === 'pointerenter' && event.buttons & 1 ? item.id : null
   }
 
   private onPointerCancel(): void {
     this.#pressed = null
-    this.aim = null
-    if (!this.drag) return
-    this.drag = null
-    this.#message.clear()
+    this.cancelDrag()
   }
 
   /* --- Boxes --------------------------------------------------------------- */
@@ -362,36 +369,31 @@ export class LintjeSortableList extends LintjeElement {
 
   /* --- Drawing ------------------------------------------------------------- */
 
-  private dropLine(index: number): 'before' | 'after' | null {
+  /** How far a row moves out of the way of the dragged one: to the place next to it. */
+  private shift(index: number): number | null {
     const drag = this.drag
-    if (drag) {
-      if (drag.to === drag.from || index === drag.from) return null
-      const others = this.order.map((_, at) => at).filter((at) => at !== drag.from)
-      if (drag.to < others.length) return others[drag.to] === index ? 'before' : null
-      return others[others.length - 1] === index ? 'after' : null
-    }
-    // A press on another grip while a row is in the hand: the side of it the row lands on.
-    if (!this.grabbed || this.aim === null) return null
-    const from = this.indexOf(this.grabbed.id)
-    const to = this.indexOf(this.aim)
-    if (index !== to || from === to) return null
-    return from < to ? 'after' : 'before'
+    if (!drag || index === drag.from) return null
+    const { from, to, slots } = drag
+    if (from < to && index > from && index <= to) return slots[index - 1]! - slots[index]!
+    if (to < from && index >= to && index < from) return slots[index + 1]! - slots[index]!
+    return null
   }
 
   private row(item: SortableItem, index: number): TemplateResult {
     const dragging = this.drag?.id === item.id
     const lifted = dragging || this.grabbed?.id === item.id
-    const line = this.dropLine(index)
+    const shift = this.shift(index)
     return html`<li
       data-id=${item.id}
       class=${classMap({
         'lintje-sortable-list__row': true,
         'is-lifted': lifted || this.landing === item.id,
         'is-dragging': dragging,
-        'is-drop-before': line === 'before',
-        'is-drop-after': line === 'after',
       })}
-      ${styleProps({ transform: dragging ? `translateY(${this.drag!.dy}px)` : null })}
+      ${styleProps({
+        transform: dragging ? `translateY(${this.drag!.dy}px)` : null,
+        translate: shift ? `0 ${shift}px` : null,
+      })}
     >
       <button
         type="button"
@@ -410,8 +412,6 @@ export class LintjeSortableList extends LintjeElement {
         @pointermove=${(event: PointerEvent) => this.onPointerMove(event)}
         @pointerup=${(event: PointerEvent) => this.onPointerUp(event, item)}
         @pointercancel=${() => this.onPointerCancel()}
-        @pointerleave=${(event: PointerEvent) => this.onGripHover(event, item)}
-        @pointerenter=${(event: PointerEvent) => this.onGripHover(event, item)}
         @click=${() => this.onGripClick(item)}
       >
         ${renderIcon('functioneel-sleep', { size: 16 })}
@@ -443,7 +443,7 @@ export class LintjeSortableList extends LintjeElement {
         Escape zet terug. Of tik op de greep en daarna op de greep van de plaats waar de rij
         heen moet.
       </p>
-      <p class="lintje-sortable-list__status" role="status">${this.#message.text}</p>
+      <p class="visually-hidden" role="status">${this.#message.text}</p>
     </div>`
   }
 }

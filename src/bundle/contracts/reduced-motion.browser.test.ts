@@ -4,7 +4,7 @@
  * out as soon as its height stands, and waits only while a transition of that height really runs.
  */
 import { afterEach, describe, expect, it } from 'vitest'
-import { page, userEvent } from 'vitest/browser'
+import { cdp, page, server, userEvent } from 'vitest/browser'
 import { TAB } from '../../core/test-keys'
 import '../../components/actions/button/button'
 import type { LintjeButton } from '../../components/actions/button/button'
@@ -165,32 +165,97 @@ it('stands a graph’s nodes in their new place at once', async () => {
   expect(place()).toBe(after)
 })
 
-it('stands a sortable row in its new place at once, moved by a key or put down by a tap', async () => {
-  const element = Object.assign(document.createElement('lintje-sortable-list'), {
-    items: [
-      { id: 'naam', label: 'Naam' },
-      { id: 'datum', label: 'Datum' },
-      { id: 'status', label: 'Status' },
-    ],
-  }) as LintjeSortableList
-  document.body.append(element)
-  await element.updateComplete
-  const root = element.shadowRoot!
-  const rows = () => [...root.querySelectorAll<HTMLElement>('.lintje-sortable-list__row')]
-  const grip = (id: string) =>
-    root.querySelector<HTMLElement>(`.lintje-sortable-list__grip[data-id="${id}"]`)!
-  const moving = () =>
-    rows().filter((row) => row.getAnimations().length || getComputedStyle(row).translate !== 'none')
+describe('a sortable list', () => {
+  async function mountList(): Promise<LintjeSortableList> {
+    const element = Object.assign(document.createElement('lintje-sortable-list'), {
+      items: [
+        { id: 'naam', label: 'Naam' },
+        { id: 'datum', label: 'Datum' },
+        { id: 'status', label: 'Status' },
+      ],
+    }) as LintjeSortableList
+    element.style.width = '400px'
+    document.body.append(element)
+    await element.updateComplete
+    return element
+  }
+  const rows = (element: LintjeSortableList) => [
+    ...element.shadowRoot!.querySelectorAll<HTMLElement>('.lintje-sortable-list__row'),
+  ]
+  const grip = (element: LintjeSortableList, id: string) =>
+    element.shadowRoot!.querySelector<HTMLElement>(`.lintje-sortable-list__grip[data-id="${id}"]`)!
+  const order = (element: LintjeSortableList) => rows(element).map((row) => row.dataset.id)
+  /** Rows still on their way: a transition that runs, or a shift that was not let go. */
+  const moving = (element: LintjeSortableList) =>
+    rows(element).filter(
+      (row) => row.getAnimations().length || getComputedStyle(row).translate !== 'none',
+    )
 
-  grip('naam').focus()
-  await userEvent.keyboard(' ')
-  await userEvent.keyboard('{ArrowDown}')
-  await element.updateComplete
-  expect(rows().map((row) => row.dataset.id)).toEqual(['datum', 'naam', 'status'])
-  expect(moving()).toEqual([])
+  it('stands a row in its new place at once, moved by a key or put down by a tap', async () => {
+    const element = await mountList()
+    grip(element, 'naam').focus()
+    await userEvent.keyboard(' ')
+    await userEvent.keyboard('{ArrowDown}')
+    await element.updateComplete
+    expect(order(element)).toEqual(['datum', 'naam', 'status'])
+    expect(moving(element)).toEqual([])
 
-  await userEvent.click(grip('status'))
-  await element.updateComplete
-  expect(rows().map((row) => row.dataset.id)).toEqual(['datum', 'status', 'naam'])
-  expect(moving()).toEqual([])
+    await userEvent.click(grip(element, 'status'))
+    await element.updateComplete
+    expect(order(element)).toEqual(['datum', 'status', 'naam'])
+    expect(moving(element)).toEqual([])
+  })
+
+  it('stands a dragged row in its place at once when it is let go', async () => {
+    const element = await mountList()
+    const last = rows(element)[2]!
+    await userEvent.dragAndDrop(grip(element, 'naam'), last, {
+      targetPosition: { x: 40, y: last.offsetHeight - 2 },
+    })
+    await element.updateComplete
+    expect(order(element)).toEqual(['datum', 'status', 'naam'])
+    expect(moving(element)).toEqual([])
+  })
+
+  // A held mouse button comes only through the DevTools protocol, which only Chromium speaks.
+  it.skipIf(server.browser !== 'chromium')(
+    'moves the other rows out of the way at once while a row is dragged',
+    async () => {
+      const element = await mountList()
+      const frame = window.frameElement!.getBoundingClientRect()
+      const scale = frame.width / window.innerWidth
+      const mouse = (
+        type: 'mouseMoved' | 'mousePressed' | 'mouseReleased',
+        x: number,
+        y: number,
+        buttons: number,
+      ) =>
+        cdp().send('Input.dispatchMouseEvent', {
+          type,
+          x: frame.left + x * scale,
+          y: frame.top + y * scale,
+          button: 'left',
+          buttons,
+          clickCount: 1,
+        })
+      const start = grip(element, 'naam').getBoundingClientRect()
+      const x = start.left + start.width / 2
+      const y = start.top + start.height / 2
+      const second = rows(element)[1]!.getBoundingClientRect()
+      const first = rows(element)[0]!.getBoundingClientRect().top
+      await mouse('mouseMoved', x, y, 0)
+      await mouse('mousePressed', x, y, 1)
+      await mouse('mouseMoved', x, second.bottom - 2, 1)
+      await element.updateComplete
+      const datum = rows(element)[1]!
+      expect(getComputedStyle(datum).translate).not.toBe('none')
+      expect(datum.getAnimations()).toEqual([])
+      // Already in the place Naam left, not on its way there.
+      expect(datum.getBoundingClientRect().top).toBeCloseTo(first, 0)
+      await mouse('mouseReleased', x, second.bottom - 2, 0)
+      await element.updateComplete
+      expect(order(element)).toEqual(['datum', 'naam', 'status'])
+      expect(moving(element)).toEqual([])
+    },
+  )
 })
