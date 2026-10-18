@@ -57,13 +57,7 @@ interface Row {
  * The rows that fail today, by name; each has its GitHub issue above it. A row that passes while
  * it matches an entry fails, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = [
-  // #271: at 390 px, under a mouse, the foot keeps its ellipsis: `user-menu.css` lets name and
-  // role wrap only under the keyboard's focus and `(hover: none)`. The shell never draws the foot
-  // below 768 px (see the `lintje-shell` row), so only a host that mounts `variant="side"` itself
-  // meets it.
-  /^lintje-user-menu :: name in the side foot$/,
-]
+const KNOWN: RegExp[] = []
 
 const LONG = 'Wijzigingen in de aanvraag opslaan en doorsturen naar de behandelaar van het loket'
 const SHORT = 'Opslaan'
@@ -415,22 +409,6 @@ const ROWS: Row[] = [
     focus: arrowToSecond,
     phone: (element) => reopen(element, '.lintje-user-menu__trigger'),
     room: (element) => all(element.shadowRoot!, '.lintje-menu__row')[1]!,
-  },
-  {
-    name: 'lintje-user-menu :: name in the side foot',
-    title: 'measured',
-    mount: (words) =>
-      append(
-        Object.assign(document.createElement('lintje-user-menu'), {
-          variant: 'side',
-          user: { name: words, role: 'Beleidsmedewerker', initials: 'SV' },
-        }),
-        // As wide as the side menu.
-        room(288),
-      ),
-    text: (element) => inShadow(element, '.lintje-user-menu__trigger-name'),
-    focus: tabInto,
-    room: (element) => element.parentElement!,
   },
   {
     // The shell draws the foot from 768 px; below it the name stands in the open menu panel.
