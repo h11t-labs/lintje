@@ -7,6 +7,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { server, userEvent } from 'vitest/browser'
 import './map'
 import '../../overlays/modal/modal'
+import { TOOL_HINTS } from '../../shared/charts/map-chart/map-chart'
+import { SHIFT_TAB } from '../../../core/test-keys'
 import type { MapData } from '../../../types'
 
 type MapElement = HTMLElement & { data: MapData; updateComplete: Promise<unknown> }
@@ -441,6 +443,63 @@ describe('the map and the keyboard', () => {
     expect(areas[0]!.area.kind).toBe('lasso')
     expect(areas[0]!.area.ring).toHaveLength(4)
     await expect.poll(panel).not.toBeNull()
+  })
+
+  it('takes Escape smallest first, with the pointer and the keys, and gives the tool button the focus', async () => {
+    const element = await mount({ controls: { circle: true, rect: true } })
+    const on = (): boolean => tool(element).classList.contains('is-active')
+    const hint = (): string | undefined =>
+      root(element).querySelector('.lintje-map-chart__hint')?.textContent?.trim()
+    const draft = (): Element | null => root(element).querySelector('.lintje-map-chart__draft > *')
+    const pick = async (name: string): Promise<void> => {
+      await userEvent.click(tool(element))
+      const row = await expect
+        .poll(() =>
+          [...root(element).querySelectorAll<HTMLElement>('.lintje-menu__row')].find((each) =>
+            each.textContent?.includes(name),
+          ),
+        )
+        .toBeTruthy()
+      void row
+      await userEvent.click(
+        [...root(element).querySelectorAll<HTMLElement>('.lintje-menu__row')].find((each) =>
+          each.textContent?.includes(name),
+        )!,
+      )
+      await expect.poll(on).toBe(true)
+    }
+
+    // The pointer: the circle's middle with a click, then Escape twice.
+    await pick('Cirkel')
+    expect(hint()).toBe(TOOL_HINTS.circle.pointer)
+    const box = surface(element).getBoundingClientRect()
+    await userEvent.click(surface(element), {
+      position: { x: box.width / 2, y: box.height / 2 },
+    })
+    await expect.poll(draft).not.toBeNull()
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(draft).toBeNull()
+    expect(on()).toBe(true)
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(on).toBe(false)
+    expect(root(element).activeElement).toBe(tool(element))
+
+    // The keys: the map's keyboard focus says how, Enter sets the middle, Escape twice.
+    await pick('Cirkel')
+    // Back from the tool button to the map with the keyboard, as a reader does: a pointer's last
+    // click would keep a scripted focus from its ring in WebKit.
+    for (let i = 0; i < 40 && root(element).activeElement !== surface(element); i++)
+      await userEvent.keyboard(SHIFT_TAB)
+    expect(root(element).activeElement).toBe(surface(element))
+    await expect.poll(hint).toBe(TOOL_HINTS.circle.keys)
+    await userEvent.keyboard('{Enter}')
+    await expect.poll(draft).not.toBeNull()
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(draft).toBeNull()
+    expect(on()).toBe(true)
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(on).toBe(false)
+    expect(root(element).activeElement).toBe(tool(element))
   })
 
   it('leaves an Escape in a dialog over it to the dialog, with a tool in hand', async () => {

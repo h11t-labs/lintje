@@ -1001,11 +1001,13 @@ hoeken, want in Mercator is een rechthoek op het scherm er een in graden —, en
 het gebied in de URL zoals elk filter. Het gebied blijft staan tot de lezer het wegklikt, ook
 naast een gekozen mark. Begint de lezer een nieuw gebied, dan valt het oude met zijn paneel
 meteen weg, zonder dat de host het hoort; Escape of een druk die de browser terugneemt, zet het
-terug zoals het was, en de host hoort alleen het nieuwe gebied. Wie niet sleept, tekent met klikken; onderaan staat hoe, per vorm, zolang
-de vorm in de hand is; Escape legt haar neer. Met het toetsenbord zet Enter of spatie op de kaart
-een punt in het midden van het zicht, onder een kruisje, en schuiven de pijltoetsen de kaart
-eronder: een rechthoek is twee punten, een cirkel een midden en een rand, en een lasso sluit met
-Enter op zijn eerste punt. Die Escape is alleen van de kaart zolang de focus in de kaart of nergens
+terug zoals het was, en de host hoort alleen het nieuwe gebied. Wie niet sleept, tekent met klikken. Met het toetsenbord zet Enter of spatie op de kaart een
+punt in het midden van het zicht, onder een kruisje, en schuiven de pijltoetsen de kaart eronder:
+een rechthoek is twee punten, een cirkel een midden en een rand, en een lasso sluit met Enter op
+zijn eerste punt. Onderaan staat hoe, per vorm, zolang de vorm in de hand is, in de manier waarop
+de lezer werkt: met de aanwijzer, of met de toetsen zolang de focus van het toetsenbord in de kaart
+staat. Escape is eerst van het kleinste: het breekt een tekening af, en anders legt het de vorm
+neer, met de focus op haar knop. Die Escape is van de kaart zolang de focus in de kaart of nergens
 staat. De resetknop zet de kaart terug: het hele gebied in beeld en niets
 gekozen.
 

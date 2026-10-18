@@ -151,6 +151,8 @@ export class ChartController {
   mapTool: MapTool | null = null
   /** The tool the map's one select button shows: the last one used, until a shape is chosen. */
   mapLastTool: MapTool | null = null
+  /** The keyboard's focus is in the map: the drawing hint speaks of the keys. */
+  mapKeyboard = false
   /** The menu of tools stands open, and which row takes the focus once it has drawn. */
   mapMenuOpen = false
   mapMenuFocus: 'first' | 'last' | 'checked' | null = null
