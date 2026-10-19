@@ -414,8 +414,8 @@
   --color-bg-subtle: var(--neutral-2);
   --color-bg-title: var(--neutral-1);
   /* Between steps 2 and 3: on the cool-grey ramp neutral-2 sits too close to the page to read
-     as a band. */
-  --color-bg-filter: color-mix(in srgb, var(--neutral-2), var(--neutral-3));
+     as a band. Without the ramp's blue: on a band this wide it reads as a colour. */
+  --color-bg-filter: oklch(from color-mix(in srgb, var(--neutral-2), var(--neutral-3)) l 0 h);
   --color-bg-selected: var(--neutral-2);
   --color-bg-inset: var(--neutral-2);
 
@@ -436,7 +436,7 @@
   /* --- Semantic: borders ------------------------------------------------- */
   --color-border-default: var(--neutral-3);
   --color-border-strong: var(--neutral-3);
-  --color-border-filter: var(--neutral-3);
+  --color-border-filter: oklch(from var(--neutral-3) l 0 h);
   --color-border-heavy: var(--neutral-4);
   /* The resting edge of a field box: 3:1 (WCAG 1.4.11) on the surface and the filter band. */
   --color-border-field: var(--neutral-5);

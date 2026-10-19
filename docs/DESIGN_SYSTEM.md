@@ -83,7 +83,9 @@ OKLCH.
 ### Donker
 
 **Licht is de koelgrijze reeks van rijksoverheid.nl.** Gedempte tekst neemt de stap die 4.5:1
-houdt op het subtiele oppervlak, niet de stap die de reeks "500" noemt.
+houdt op het subtiele oppervlak, niet de stap die de reeks "500" noemt. De filterzone is de
+uitzondering: zij is echt grijs, omdat het blauw van de reeks op een band van die breedte als kleur
+leest en niet bij elk thema past.
 
 **De hover is donkerder in licht en lichter in donker.** In licht draagt hij witte tekst en houdt
 een donkerdere vulling die tekst in elk thema op AA; in donker zou een donkerdere vulling
