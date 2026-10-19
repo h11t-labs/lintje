@@ -11,6 +11,12 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.8.3] - 2026-10-19
+
+### Gewijzigd
+
+- De filterbalk is in licht echt grijs in plaats van blauwgrijs, in elk thema; het zoekveld in de shell volgt hem. Donker blijft gelijk. (#299)
+
 ## [0.8.2] - 2026-10-18
 
 ### Opgelost
@@ -592,7 +598,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.8.2...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.8.3...HEAD
+[0.8.3]: https://github.com/h11t-labs/lintje/compare/v0.8.2...v0.8.3
 [0.8.2]: https://github.com/h11t-labs/lintje/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/h11t-labs/lintje/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/h11t-labs/lintje/compare/v0.7.0...v0.8.0
