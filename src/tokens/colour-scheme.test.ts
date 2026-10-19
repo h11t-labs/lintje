@@ -213,11 +213,11 @@ function evaluateColorMix(value: string): string {
 }
 
 /**
- * The OKLCH forms the tokens use: `oklch(from #hex L C h)`, where L is a number,
- * `max(l, N)` or `max(l + D, N)` and C is `c` or `min(c, N)`.
+ * The OKLCH forms the tokens use: `oklch(from #hex L C h)`, where L is `l`, a number,
+ * `max(l, N)` or `max(l + D, N)` and C is `c`, a number or `min(c, N)`.
  */
 const OKLCH_FROM =
-  /oklch\(\s*from\s+(#[0-9a-fA-F]{3,6})\s+(?:([\d.]+)|max\(\s*l\s*(?:\+\s*([\d.]+)\s*)?,\s*([\d.]+)\s*\))\s+(?:c|min\(\s*c\s*,\s*([\d.]+)\s*\))\s+h\s*\)/i
+  /oklch\(\s*from\s+(#[0-9a-fA-F]{3,6})\s+(?:([\d.]+)|l|max\(\s*l\s*(?:\+\s*([\d.]+)\s*)?,\s*([\d.]+)\s*\))\s+(?:c|([\d.]+)|min\(\s*c\s*,\s*([\d.]+)\s*\))\s+h\s*\)/i
 
 /**
  * The step between two colours on the origin's lightness:
@@ -266,10 +266,17 @@ function evaluateOklch(value: string): string {
     hue = (degrees * Math.PI) / 180
   } else {
     lightness =
-      match[2] === undefined
-        ? Math.max(own + Number.parseFloat(match[3] ?? '0'), Number.parseFloat(match[4]))
-        : Number.parseFloat(match[2])
-    c = match[5] === undefined ? chroma : Math.min(chroma, Number.parseFloat(match[5]))
+      match[2] !== undefined
+        ? Number.parseFloat(match[2])
+        : match[4] !== undefined
+          ? Math.max(own + Number.parseFloat(match[3] ?? '0'), Number.parseFloat(match[4]))
+          : own
+    c =
+      match[5] !== undefined
+        ? Number.parseFloat(match[5])
+        : match[6] !== undefined
+          ? Math.min(chroma, Number.parseFloat(match[6]))
+          : chroma
   }
   const a = c * Math.cos(hue)
   const b = c * Math.sin(hue)
@@ -460,6 +467,11 @@ describe('the mixer', () => {
     expect(evaluateOklch('oklch(from #E17000 max(l, 0.55) c h)')).toBe('#E17000')
     expect(oklch(lift('#0E3B6E', 0.71))[1]).toBeCloseTo(oklch('#0E3B6E')[1], 2)
   })
+
+  it('evaluates the oklch() form that drops the chroma and keeps the lightness', () => {
+    expect(evaluateOklch('oklch(from #E2E8F0 l 0 h)')).toBe('#E7E7E7')
+    expect(evaluateOklch('oklch(from #4A4A4A l 0 h)')).toBe('#4A4A4A')
+  })
 })
 
 describe('the theme layer', () => {
@@ -573,6 +585,22 @@ describe('the header of the top layout', () => {
     expect(page - menu).toBeCloseTo(surface - page, 2)
     expect(dark['--color-bg-title']).toBe(dark['--color-bg-page'])
     expect(dark['--color-bg-inset']).toBe(dark['--neutral-1'])
+  })
+
+  it('draws the filter band in pure grey in light, between steps 2 and 3, and step 2 in dark', () => {
+    for (const theme of THEME_NAMES) {
+      const light = tokensFor('light', theme)
+      for (const token of ['--color-bg-filter', '--color-border-filter'])
+        expect(oklch(light[token])[1], `${theme} ${token}`).toBeLessThan(0.001)
+      const [band, step2, step3] = ['--color-bg-filter', '--neutral-2', '--neutral-3'].map(
+        (name) => oklch(light[name])[0],
+      )
+      expect(band).toBeGreaterThan(step3)
+      expect(band).toBeLessThan(step2)
+      const dark = tokensFor('dark', theme)
+      expect(dark['--color-bg-filter']).toBe(dark['--neutral-2'])
+      expect(dark['--color-border-filter']).toBe(dark['--neutral-3'])
+    }
   })
 
   it('draws the ribbon in lintblauw in light and in the house style’s #004A8D in dark', () => {
