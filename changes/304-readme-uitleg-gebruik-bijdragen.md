@@ -1,3 +1,3 @@
 ### Gewijzigd
 
-- De README legt in gewoon Nederlands uit wat Lintje is, hoe je het gebruikt en hoe je bijdraagt; de buildscripts, het uitbrengen en de bestanden van de build staan in `assets/README.md`, `CONTRIBUTING.md` en de handleiding *Laden*. (#304)
+- De README begint met wat je met Lintje maakt, legt de naam en de verhouding tot de Rijksoverheid uit in een eigen kader, en zegt daarna in gewoon Nederlands hoe je Lintje gebruikt en hoe je bijdraagt; de buildscripts, het uitbrengen en de bestanden van de build staan in `assets/README.md`, `CONTRIBUTING.md` en de handleiding *Laden*. (#304)

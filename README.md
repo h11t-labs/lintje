@@ -8,20 +8,32 @@
 [![npm](https://img.shields.io/npm/v/lintje?label=npm)](https://www.npmjs.com/package/lintje)
 [![Licentie: EUPL-1.2](https://img.shields.io/npm/l/lintje?label=licentie)](LICENSE)
 
-Lintje is de Rijkshuisstijl als bouwstenen voor het web: het kader rond een pagina, knoppen,
-invoervelden, formulieren, tabellen, grafieken, kaarten en meer. Je schrijft een tag als
-`<lintje-button>` in je HTML, en het element tekent zich in de huisstijl: in licht en donker, in
-zes thema's, op elk scherm tot een telefoon van 390 px breed, en met WCAG AA als ondergrens. Het is
-voor applicaties en websites; een dashboard is er één van. De naam komt van het lint in het logo
-van de Rijksoverheid.
+**Met Lintje bouw je webapplicaties en websites in de Rijkshuisstijl.** Bijvoorbeeld:
 
-De elementen zijn standaard webcomponenten (custom elements), geschreven met
-[Lit](https://lit.dev). Ze werken in elke pagina, wat die ook maakt: PHP, Python, een statisch
-bestand of een JavaScript-applicatie. Ze kennen geen domein: wat ze tonen, geeft je pagina ze mee.
-Je ziet ze allemaal in de [stijlgids](https://h11t-labs.github.io/lintje/), met de
-voorbeeldapplicaties ernaast.
+- een dashboard met filters, kerncijfers, grafieken, een kaart en een tabel;
+- een register van meldingen: een tabel die je sorteert en filtert, en een nieuwe melding in drie
+  stappen;
+- een formulier dat een concept bewaart en zijn fouten op één plek samenvat;
+- een productcatalogus met filters en een pagina per product;
+- een chat met je gegevens, of een opname die je als tekst naast de audio leest.
 
-> **Lintje is geen officieel product van de Rijksoverheid** en is er niet aan verbonden. De
+Bekijk ze, en elk element los in de stijlgids, op
+[h11t-labs.github.io/lintje](https://h11t-labs.github.io/lintje/).
+
+Je schrijft een tag als `<lintje-button>` in je HTML, en het element tekent zich in de huisstijl:
+in licht en donker, in zes thema's, op elk scherm tot een telefoon van 390 px breed, en met WCAG
+AA als ondergrens. De elementen zijn standaard webcomponenten (custom elements), geschreven met
+[Lit](https://lit.dev). Ze werken dus in elke pagina, hoe die ook gemaakt wordt: met PHP, Python,
+als statisch bestand of als JavaScript-applicatie. Ze kennen geen domein: wat ze tonen, geeft je
+pagina ze mee.
+
+> **Over de naam**
+>
+> Lintje is genoemd naar het lint: de staande blauwe band in het logo van de Rijksoverheid. Het
+> logo van Lintje is dat lint, één keer gevouwen tot een L, zonder embleem en zonder de naam van
+> een organisatie.
+>
+> Lintje is **geen officieel product van de Rijksoverheid** en is er niet aan verbonden. De
 > Rijkshuisstijl en de emblemen zijn van de Rijksoverheid en van de organisatie wier embleem het
 > is; alleen een organisatie die de huisstijl mag voeren, gebruikt ze. Lintje levert de code, niet
 > dat recht.
@@ -102,14 +114,14 @@ npm run build:elements                   # bouwt de elementen in dist-elements/
 npm run dev                              # de stijlgids en de voorbeelden op localhost:5180/examples/
 ```
 
-Een pull request slaagt voor deze vier; de controle op GitHub draait ze ook, in Chromium, WebKit en
-Firefox:
+Een pull request slaagt voor deze controles; GitHub draait ze ook, in Chromium, WebKit en Firefox:
 
 ```bash
 npm run typecheck      # de typen kloppen
 npm run lint           # de code volgt de regels, ook welke laag wat mag importeren
 npm run format:check   # de opmaak klopt; npm run format zet hem goed
 npm test               # de unittests, en elk voorbeeld uit de stijlgids in een browser
+npm run build:elements # de build lukt
 ```
 
 Bekijk je wijziging in de stijlgids, in licht én donker, breed én smal. Elke pull request schrijft
