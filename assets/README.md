@@ -45,7 +45,6 @@ Rijkslogo.
 | `logo/lintje-wordmark.svg` | het beeldmerk en het woordmerk | licht |
 | `logo/lintje-diap.svg` | het beeldmerk in wit | donker, of de kleur van het menu |
 | `logo/lintje-wordmark-dark.svg` | het beeldmerk en het woordmerk in wit | donker, of de kleur van het menu |
-| `logo/lintje-favicon.svg` | het beeldmerk als favicon van de voorbeelden | volgt het kleurenschema van de browser |
 
 Lintblauw heeft te weinig contrast met een donker oppervlak of met het menu van een thema, dus die nemen het `-diap`-bestand.
 Een pagina die het kleurenschema van de lezer volgt, noemt ze allebei:

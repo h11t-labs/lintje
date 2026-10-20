@@ -1,8 +1,7 @@
 # Publishes the examples and the style guide on GitHub Pages once release.yml has published a
 # version, so the site shows a released version; "Run workflow" publishes main by hand. The site
-# mirrors the repository root, because every page reaches back to dist-elements/, dist-icons/,
-# src/tokens/fonts.css and the favicon in assets/logo/ by a relative path, and fonts.css in turn
-# to the fonts in node_modules/.
+# mirrors the repository root, because every page reaches back to dist-elements/, dist-icons/ and
+# src/tokens/fonts.css by a relative path, and fonts.css in turn to the fonts in node_modules/.
 name: Pages
 
 on:
@@ -38,9 +37,8 @@ jobs:
       - run: npm run build:elements
       - name: Assemble the site
         run: |
-          mkdir -p _site/src/tokens _site/assets _site/node_modules/@nl-rvo/assets
+          mkdir -p _site/src/tokens _site/node_modules/@nl-rvo/assets
           cp -r examples dist-elements dist-icons _site/
-          cp -r assets/logo _site/assets/
           cp src/tokens/fonts.css _site/src/tokens/
           cp -r node_modules/@nl-rvo/assets/fonts _site/node_modules/@nl-rvo/assets/
           printf '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=examples/"><title>Lintje</title><a href="examples/">Lintje</a>\n' > _site/index.html
