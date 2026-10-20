@@ -285,7 +285,7 @@ Besluiten die voor beide gelden:
 - **Onder 768 px draagt de header dezelfde iconen**, en zoeken, "Weergave" en "Delen" openen van
   onderen als sheets met de kop van de filtersheet — hun naam en een sluitknop — en zijn modaal
   zoals die. Het open menu draagt dan alleen zijn sluitknop. Als het gereedschap van de header
-  niet past, gemeten, tonen "Filters" en "Menu" alleen hun glyph; hun woord blijft hun naam.
+  niet past, gemeten, toont "Menu" alleen zijn glyph; zijn woord blijft zijn naam.
 - **Het lint is de eenheid.** De logobalk en het logo zijn afgeleid van `--w-ribbon`, en groeien
   dus samen mee met de tekstgrootte van de lezer. Het logo in het menu en in de mobiele header
   houdt de vaste maat van zijn balk.
@@ -770,9 +770,10 @@ Deze gelden waar een pagina getallen toont die filters vernauwen: een dashboard,
 
 **De filterbalk is in rust dicht**: wat tijdens het lezen op de pagina staat, is de zin; de
 bedieningselementen zijn er zolang de lezer kiest, en verder scrollen sluit ze. Op een telefoon
-zijn de filters een sheet, en wijzigingen gelden pas bij "Toepassen". Op elke breedte plakt de zin
-bij het scrollen direct onder de balk van de shell, en de shell houdt zijn hoogte vrij boven de
-focus.
+zijn de filters een sheet, en wijzigingen gelden pas bij "Toepassen". De zin opent hem: de hele
+balk is de knop, met het aantal aangepaste filters en een pijl, dus de header heeft geen eigen
+knop "Filters". Op elke breedte plakt de zin bij het scrollen direct onder de balk van de shell,
+en de shell houdt zijn hoogte vrij boven de focus.
 
 **De pijl van een KPI draagt de richting; de kleur bevestigt die alleen.** Waar stijgen slecht is,
 draait de kleur om en de pijl niet.

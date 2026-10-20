@@ -8,12 +8,13 @@ import '../../components/frame/app-search/app-search'
 import '../../components/overlays/dialog/dialog'
 import '../../components/overlays/drawer/drawer'
 import '../../components/filters/filter-sheet/filter-sheet'
+import '../../components/filters/filter-bar/filter-bar'
 import '../../components/inputs/text-input/text-input'
 import '../../components/overlays/modal/modal'
 import '../../components/frame/notifications/notifications'
 import '../../components/actions/button/button'
 import '../../components/frame/shell/shell'
-import type { ShellData } from '../../types'
+import type { FilterBarData, ShellData } from '../../types'
 import { SHIFT_TAB, TAB } from '../../core/test-keys'
 
 type Find = (element: HTMLElement) => HTMLElement | null | undefined
@@ -48,6 +49,20 @@ const ran: string[] = []
 
 const shadow = (element: HTMLElement, selector: string): HTMLElement | null =>
   element.shadowRoot!.querySelector<HTMLElement>(selector)
+
+const ZAAKNUMMER = {
+  key: 'zaak',
+  label: 'Zaaknummer',
+  kind: 'text',
+  value: '',
+  default: '',
+} as const
+const filterSheet = (bar: HTMLElement): HTMLElement | null =>
+  bar.shadowRoot!.querySelector<HTMLElement>('lintje-filter-sheet')
+const filterSentence = (bar: HTMLElement): HTMLElement | null | undefined =>
+  bar
+    .shadowRoot!.querySelector('lintje-filter-zone')
+    ?.shadowRoot?.querySelector<HTMLElement>('.lintje-filter-bar__mobile-summary')
 
 /** A host as a page has it: its button sets `open`, every request to close clears it. */
 function hosted(
@@ -176,6 +191,25 @@ const ROWS: Row[] = [
     first: (element) => shadow(element, '.lintje-filter-sheet'),
     closers: [['de sluitknop', (element) => shadow(element, '.lintje-filter-sheet__close')]],
   },
+  ...[false, true].map((standalone): Row => ({
+    name: `lintje-filter-bar${standalone ? ' standalone' : ''} op 390 px`,
+    phone: true,
+    mount: () => {
+      const element = Object.assign(document.createElement('lintje-filter-bar'), {
+        data: { standalone, filters: [ZAAKNUMMER] } satisfies FilterBarData,
+      })
+      document.body.append(element)
+      // The sentence under the header opens the sheet.
+      return { element, trigger: (bar) => filterSentence(bar) }
+    },
+    first: (bar) => filterSheet(bar)?.shadowRoot?.querySelector('.lintje-filter-sheet'),
+    closers: [
+      [
+        'de sluitknop',
+        (bar) => filterSheet(bar)?.shadowRoot?.querySelector('.lintje-filter-sheet__close'),
+      ],
+    ],
+  })),
   {
     name: 'lintje-app-search',
     mount: () => hosted(document.createElement('lintje-app-search')),

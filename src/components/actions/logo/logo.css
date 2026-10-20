@@ -18,20 +18,27 @@
 }
 
 /* The name hangs outside the drawing's box, so the ribbon keeps its place whatever the name's
-   length. Its left is set inline, from the ribbon's width. */
+   length. Its left and `--lintje-ribbon` are set inline, from the ribbon's width. */
 .lintje-logo__lockup { position: relative; display: block; }
+/* The lockup of rijksoverheid.nl's header, to the pixel: it sets size, gap, top and the width of
+   the logo (7 ribbons, 5 on a phone) per ribbon, not as one ratio, so each ribbon has its own. */
 .lintje-logo__name {
   position: absolute;
-  top: 55%;
+  top: calc(var(--lintje-ribbon) * 53 / 48);
   display: flex;
   flex-direction: column;
-  margin-left: var(--space-3);
+  margin-left: calc(var(--lintje-ribbon) * 12.5 / 48);
   width: max-content;
-  max-width: 20rem;
-  font: 700 1rem/1.2 var(--font-ui);
-  color: inherit;
+  max-width: calc(var(--lintje-ribbon) * (6 - 12.5 / 48));
+  font: 625 calc(var(--lintje-ribbon) * 15 / 48) / calc(17.6 / 15) var(--font-ui);
+  color: var(--color-logo-name);
 }
-.lintje-logo__byline { font-weight: 400; font-style: italic; }
+.lintje-logo__byline { font-weight: 400; }
 @media screen and (max-width: 767px) {
-  .lintje-logo__name { max-width: 9rem; font-size: 0.875rem; }
+  .lintje-logo__name {
+    top: calc(var(--lintje-ribbon) * 41 / 40);
+    margin-left: calc(var(--lintje-ribbon) * 9 / 40);
+    max-width: calc(var(--lintje-ribbon) * (4 - 9 / 40));
+    font-size: calc(var(--lintje-ribbon) * 12 / 40);
+  }
 }
