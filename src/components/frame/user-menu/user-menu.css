@@ -113,15 +113,18 @@
 .lintje-user-menu__panel.is-inline .lintje-menu__row.is-disabled,
 .lintje-user-menu__panel.is-inline .lintje-menu__row.is-disabled .lintje-menu__hint { color: var(--color-nav-disabled); }
 .lintje-user-menu__panel.is-inline .lintje-menu__separator { background: var(--color-nav-line); }
-/* Beside the name: a square touch target in the look of the mobile header's buttons. */
+/* Beside the name: the glyph alone on a square touch target, filled only under the pointer as a
+   row is. */
 .lintje-user-menu__panel.is-inline .lintje-user-menu__logout { flex: none; }
 .lintje-user-menu__logout-button {
   display: flex; align-items: center; justify-content: center;
   width: var(--h-touch); height: var(--h-touch);
-  background: var(--color-nav-active);
+  /* The 20 px glyph's edge, not the target's, lines up with the rows' hints. */
+  margin-right: calc((20px - var(--h-touch)) / 2);
   color: var(--color-nav-text);
-  border: 1px solid var(--color-nav-line);
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
+.lintje-user-menu__logout-button:hover { background: var(--color-nav-hover); }
 
 /* On the theme fill the orange ring disappears: the on-theme ring, as the side menu. */
 .lintje-user-menu__trigger:focus-visible,
