@@ -17,6 +17,7 @@ import {
   type TemplateResult,
 } from 'lit'
 import { define, type FrameSettings } from '../../../core/element'
+import { deepActiveElement } from '../../../core/focus'
 import { shadowCss } from '../../../core/styles'
 import { spanStyles } from '../../shared/grid-item-element'
 import { LintjeContentTileElement } from '../../shared/content-tile'
@@ -517,9 +518,15 @@ export class LintjeChart extends LintjeContentTileElement {
     } else if (this.emit('lintje-mark-select', detail) && detail.href) this.followLink(detail.href)
   }
 
-  /** Returns focus to the cleared mark, or to the drawing when the mark is gone. */
-  private async focusMark(id: string): Promise<void> {
+  /**
+   * Returns focus to the cleared mark, or to the drawing when the mark is gone. `from` is where the
+   * focus was: a node of the sankey on a phone stands in more than one place, and keeps the one.
+   */
+  private async focusMark(id: string, from: Element | null = null): Promise<void> {
     await this.updateComplete
+    if (from instanceof HTMLElement && from.isConnected && from.dataset.markId === id) {
+      return from.focus()
+    }
     const scope = this.renderRoot.querySelector(this.expanded ? 'lintje-modal' : 'lintje-tile')
     const mark = scope?.querySelector<SVGElement>(`[data-mark-id="${CSS.escape(id)}"]`)
     const target =
@@ -541,8 +548,9 @@ export class LintjeChart extends LintjeContentTileElement {
       selectedId: this.data?.selectedId ?? null,
       onSelect: ({ id, label, href }, newTab) => this.select({ id, label, href }, newTab),
       onClear: (previousId) => {
+        const from = deepActiveElement()
         this.select({ id: null, label: null, href: this.data?.clearHref })
-        void this.focusMark(previousId)
+        void this.focusMark(previousId, from)
       },
     }
   }

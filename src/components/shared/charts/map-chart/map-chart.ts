@@ -6,6 +6,7 @@
 import { html, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
 import { keyed } from 'lit/directives/keyed.js'
+import { passFocus } from '../../../../core/focus'
 import { styleProps } from '../../../../core/style-props'
 import { formatNumber } from '../../../../core/format'
 import { isNewTabClick } from '../../../../core/links'
@@ -202,9 +203,16 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     onClear?.(previous)
     controller.requestUpdate()
   }
-  // A drawn area stays until it is dismissed: its panel's close, Escape or the reset.
+  // A drawn area stays until it is dismissed: its panel's close, Escape or the reset. The panel
+  // goes with it, and its focus to the map itself, as a cleared mark's goes back to the mark.
   const clearArea = () => {
     if (!controller.mapArea) return
+    const panel = controller.element?.querySelector('.lintje-map-chart__selection')
+    const map = controller.element?.querySelector<HTMLElement>('.leaflet-container')
+    if (panel && map) {
+      if (!map.hasAttribute('tabindex')) map.tabIndex = -1
+      passFocus(panel, [map])
+    }
     controller.mapArea = null
     onArea?.(null, [])
     controller.requestUpdate()
@@ -490,10 +498,30 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
       ? TOOL_HINTS[controller.mapTool][mobile ? 'short' : 'full']
       : null
 
+  // The panel of a chosen mark stands after the map in the source, its tab order is the mark's:
+  // Tab from the mark goes into it, Shift+Tab from its first button back to the mark.
+  const tabPanel = (event: KeyboardEvent) => {
+    const root = controller.element
+    const first = root?.querySelector<HTMLElement>('.lintje-map-chart__selection button')
+    const mark =
+      active && root
+        ? [...root.querySelectorAll<SVGElement>('[data-mark-id]')].find(
+            (node) => node.getAttribute('data-mark-id') === active,
+          )
+        : undefined
+    if (!first || !mark) return
+    const from = event.composedPath()[0]
+    if (!event.shiftKey && from === mark) first.focus()
+    else if (event.shiftKey && from === first) mark.focus()
+    else return
+    event.preventDefault()
+  }
+
   return html`
     <div class="lintje-map-chart ${mobile ? 'lintje-map-chart--mobile' : ''} ${basemap ? 'lintje-map-chart--basemap' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView}
          @keydown=${(event: KeyboardEvent) => {
+           if (event.key === 'Tab') return tabPanel(event)
            if (event.key !== 'Escape') return
            // Escape undoes one thing: the tool, then the chosen mark, then the area.
            if (controller.mapTool) controller.mapTool = null
@@ -532,12 +560,9 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
              passive: false,
            }}>
         <p id="${controller.id}-desc" class="visually-hidden">${description}</p>
-        <!-- Leaflet makes the surface a Tab stop; every mark on it is a button. -->
-        <div class="lintje-map-chart__leaflet" role=${drawingRole(true)}
-             aria-labelledby="${controller.id}-desc" ${ref(leaflet.attach)}></div>
-        ${renderTooltip(controller)}
 
-        <!-- Layer switcher top left. -->
+        <!-- The chrome stands before the map in the source, so Tab reaches it before every mark;
+             it stands over the map where it shows. Layer switcher top left. -->
         ${
           layers && layers.length > 1
             ? html`
@@ -554,8 +579,6 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
         `
             : nothing
         }
-
-        ${hint ? html`<p class="lintje-map-chart__hint" role="status">${hint}</p>` : nothing}
 
         <!-- Zoom, reset and the drawing tools top right, those the host keeps. -->
         ${
@@ -575,6 +598,13 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
         `
             : nothing
         }
+
+        <!-- Leaflet makes the surface a Tab stop; every mark on it is a button. -->
+        <div class="lintje-map-chart__leaflet" role=${drawingRole(true)}
+             aria-labelledby="${controller.id}-desc" ${ref(leaflet.attach)}></div>
+        ${renderTooltip(controller)}
+
+        ${hint ? html`<p class="lintje-map-chart__hint" role="status">${hint}</p>` : nothing}
 
         <!-- The scale bottom right: a round distance, and a bracket as long as it on the map. -->
         ${
