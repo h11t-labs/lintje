@@ -1417,7 +1417,9 @@ describe('the foot of the side menu', () => {
     const rows = [...menu.shadowRoot!.querySelectorAll('.lintje-menu__row')].map((row) =>
       row.textContent!.trim(),
     )
-    expect(rows).toEqual(['Mijn profiel', 'Instellingen', 'Afmelden'])
+    expect(rows).toEqual(['Mijn profiel', 'Instellingen'])
+    const logout = menu.shadowRoot!.querySelector('.lintje-user-menu__logout-button')!
+    expect(logout.getAttribute('aria-label')).toBe('Afmelden')
   })
 
   it('is named by the user, with the role as its description', async () => {

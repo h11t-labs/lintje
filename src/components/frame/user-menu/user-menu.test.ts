@@ -60,7 +60,7 @@ describe('lintje-user-menu', () => {
     expect(popover.getAttribute('placement')).toBe('bottom-end')
   })
 
-  it('puts name and role above the menu, the rows and Afmelden inside it, the version below', async () => {
+  it('puts name and role with Afmelden above the menu, the rows inside it, the version below', async () => {
     const element = await mount({ open: true })
     const root = element.shadowRoot!
     const menu = root.querySelector('[role="menu"]')!
@@ -69,7 +69,9 @@ describe('lintje-user-menu', () => {
     const rows = [...menu.querySelectorAll('[role="menuitem"]')].map(
       (row) => row.querySelector('.lintje-menu__label')!.textContent,
     )
-    expect(rows).toEqual(['Weergave', 'Sneltoetsen', 'Vragen of feedback', 'Afmelden'])
+    expect(rows).toEqual(['Weergave', 'Sneltoetsen', 'Vragen of feedback'])
+    const logout = root.querySelector('.lintje-user-menu__who .lintje-user-menu__logout-button')!
+    expect(logout.getAttribute('aria-label')).toBe('Afmelden')
     expect(root.querySelector('.lintje-user-menu__version')!.textContent).toBe('Versie 2.4.1')
   })
 
@@ -91,11 +93,24 @@ describe('lintje-user-menu', () => {
     expect(element.open).toBe(false)
   })
 
+  it('lets the arrows reach Afmelden after the rows, never first', async () => {
+    const element = await mount({ open: true })
+    const root = element.shadowRoot!
+    const panel = root.querySelector('.lintje-user-menu__panel')!
+    const press = (key: string): void => {
+      panel.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
+    }
+    press('Home')
+    expect(root.activeElement?.textContent?.trim()).toBe('Weergave')
+    press('End')
+    expect(root.activeElement?.getAttribute('aria-label')).toBe('Afmelden')
+  })
+
   it('asks to log out without logout-action, and posts a form with the token with it', async () => {
     const asking = await mount({ open: true })
     let logouts = 0
     asking.addEventListener('lintje-logout', () => logouts++)
-    asking.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-user-menu__logout-row')!.click()
+    asking.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-user-menu__logout-button')!.click()
     expect(logouts).toBe(1)
     // The row leaves with the menu: the focus goes back to the avatar.
     expect(asking.shadowRoot!.activeElement).toBe(trigger(asking))
@@ -162,8 +177,10 @@ describe('lintje-user-menu', () => {
           { value: 'en', label: 'English', checked: false, radio: true },
         ],
       })
-      const rows = [...element.shadowRoot!.querySelectorAll<HTMLElement>('button.lintje-menu__row')]
-      const switched = rows.slice(0, 4)
+      const switched = [
+        ...element.shadowRoot!.querySelectorAll<HTMLElement>('button.lintje-menu__row'),
+      ]
+      expect(switched).toHaveLength(4)
       expect(switched.map((row) => row.getAttribute('role'))).toEqual([
         switchRole,
         switchRole,
@@ -180,8 +197,9 @@ describe('lintje-user-menu', () => {
       expect(switched[1].querySelector('.lintje-menu__slot')).not.toBeNull()
       expect(switched[2].querySelector('.lintje-menu__radio.is-checked')).not.toBeNull()
       expect(switched[3].querySelector('.lintje-menu__radio:not(.is-checked)')).not.toBeNull()
-      // Afmelden is no switch.
-      expect(rows.at(-1)!.hasAttribute('aria-checked')).toBe(false)
+      // Afmelden, beside the name, is no switch.
+      const logout = element.shadowRoot!.querySelector('.lintje-user-menu__logout-button')!
+      expect(logout.hasAttribute('aria-checked')).toBe(false)
     },
   )
 
@@ -191,7 +209,18 @@ describe('lintje-user-menu', () => {
     expect(root.querySelector('.lintje-user-menu__trigger')).toBeNull()
     expect(root.querySelector('lintje-popover')).toBeNull()
     expect(root.querySelector('[role="menuitem"]')).toBeNull()
-    expect(root.querySelectorAll('.lintje-menu__row')).toHaveLength(4)
+    expect(root.querySelectorAll('.lintje-menu__row')).toHaveLength(3)
+  })
+
+  it('puts Afmelden beside the name when inline, named by its word', async () => {
+    const element = await mount({ inline: true, logoutAction: '/auth/logout', csrf: 'abc123' })
+    const root = element.shadowRoot!
+    const button = root.querySelector<HTMLButtonElement>(
+      '.lintje-user-menu__who .lintje-user-menu__logout-button',
+    )!
+    expect(button.getAttribute('aria-label')).toBe('Afmelden')
+    expect(button.type).toBe('submit')
+    expect(root.querySelector('.lintje-user-menu__logout-row')).toBeNull()
   })
 })
 

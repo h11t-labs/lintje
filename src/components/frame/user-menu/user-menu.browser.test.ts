@@ -39,7 +39,7 @@ const rows = (element: LintjeUserMenu): HTMLElement[] => [
 ]
 
 describe('lintje-user-menu inline', () => {
-  it('draws a one-line row 48 px high with its text in the middle, "Afmelden" too', async () => {
+  it('draws a one-line row 48 px high with its text in the middle, with a hint, a check or a circle too', async () => {
     const element = await mount()
     const all = rows(element)
     expect(all.map((row) => row.textContent!.trim())).toEqual([
@@ -48,7 +48,6 @@ describe('lintje-user-menu inline', () => {
       'Compacte weergave',
       'Nederlands',
       'Engels',
-      'Afmelden',
     ])
     for (const row of all) {
       const box = row.getBoundingClientRect()
