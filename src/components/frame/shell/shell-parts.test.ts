@@ -146,10 +146,10 @@ async function open(shell: LintjeShell): Promise<void> {
 }
 
 describe('the closed mobile header', () => {
-  it('carries Filters and Menu', async () => {
+  it('carries Menu, and no Filters: the sentence under it opens the filters', async () => {
     setFrameState({ hasFilters: true }) // a filter zone stands on this page
     const shell = await mount()
-    expect(buttons(shell).map((button) => button.textContent?.trim())).toEqual(['Filters', 'Menu'])
+    expect(buttons(shell).map((button) => button.textContent?.trim())).toEqual(['Menu'])
     expect(panel(shell)).toBeNull()
   })
 
@@ -177,8 +177,7 @@ describe('the closed mobile header', () => {
     viewport(1024)
   })
 
-  it('keeps the words of Filters and Menu for the reader when only their glyphs fit', async () => {
-    setFrameState({ hasFilters: true })
+  it('keeps the word of Menu for the reader when only its glyph fits', async () => {
     const shell = await mount()
     const header = root(shell).querySelector<HTMLElement>('.lintje-mobile-header')!
     // happy-dom has no layout: the words are told to be wider than the header.
@@ -187,14 +186,7 @@ describe('the closed mobile header', () => {
     shell.requestUpdate()
     await shell.updateComplete
     expect(header.classList.contains('is-compact')).toBe(true)
-    expect(buttons(shell).map((button) => button.textContent?.trim())).toEqual(['Filters', 'Menu'])
-  })
-
-  it('has no Filters button on a page without a filter zone', async () => {
-    clearFilterZone()
-    const shell = await mount()
     expect(buttons(shell).map((button) => button.textContent?.trim())).toEqual(['Menu'])
-    setFrameState({ hasFilters: true })
   })
 
   it('carries search and the bell when the data asks for them, and gives their place up when open', async () => {
@@ -213,23 +205,6 @@ describe('the closed mobile header', () => {
   it('draws the menu glyph before its word', async () => {
     const shell = await mount()
     expect(contentOrder(menuButton(shell))).toEqual(['icon', 'text'])
-  })
-
-  it('counts the modified filters in the header badge', async () => {
-    setFrameState({ hasFilters: true, modifiedCount: 3 })
-    const shell = await mount()
-    const filters = buttons(shell)[0]!
-    const badge = filters.querySelector('.lintje-mobile-header__badge')!
-    // The figure is seen, the sentence heard.
-    expect(badge.querySelector('[aria-hidden="true"]')?.textContent).toBe('3')
-    expect(badge.querySelector('.visually-hidden')?.textContent).toBe('3 aangepast')
-    // It opens the filter sheet, a modal dialog, and says whether it is open.
-    expect(filters.getAttribute('aria-haspopup')).toBe('dialog')
-    expect(filters.getAttribute('aria-expanded')).toBe('false')
-    setFrameState({ sheetOpen: true })
-    await shell.updateComplete
-    expect(filters.getAttribute('aria-expanded')).toBe('true')
-    setFrameState({ modifiedCount: 0, sheetOpen: false })
   })
 })
 
