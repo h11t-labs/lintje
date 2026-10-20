@@ -2,9 +2,9 @@
 
 Een element haalt nooit iets op en schrijft nooit de URL; het gaat alleen naar een adres dat jij gaf,
 en nooit als je zijn event annuleert ([links](#links)). Het stuurt een event en wacht tot jij een
-property zet. Elk event is een `CustomEvent`, bubbling en composed, dus één listener
-op `document` hoort het vanaf elke diepte: de payload is `event.detail`, `event.target` het element
-dat het stuurde. Welke tag wat stuurt, staat in de styleguide, onder elk element.
+eigenschap zet. Elk event is een `CustomEvent` met `bubbles` en `composed`, dus één luisteraar
+op `document` hoort het vanaf elke diepte: de inhoud is `event.detail`, `event.target` het element
+dat het stuurde. Welke tag wat stuurt, staat in de stijlgids, onder elk element.
 
 ## Links
 
@@ -41,7 +41,7 @@ dingen:
 Zet de focus ook bij Terug en Vooruit in de browser (`popstate`): ook dan tekent de router een
 nieuwe weergave.
 
-Een klik met een modifier, of met een andere knop, is altijd van de browser: een nieuw tabblad, een
+Een klik met een toets als Ctrl of Cmd ingedrukt, of met een andere muisknop, is altijd van de browser: een nieuw tabblad, een
 download. Waar geen klik te volgen is — een resultaat dat je met Enter kiest in de zoekfunctie, een
 klik naast de titel van een kaart, een rij van de takenlijst — gaat het element zelf naar het adres, tenzij je het event annuleert. Een linkrij van `lintje-list` (`lintje-row-click`) en een melding met een `href`
 (`lintje-notification-open`) werken op dezelfde manier.
@@ -50,7 +50,7 @@ Zo werken ook een klikbare rij van `lintje-data-table` (`lintje-row-click`, `lin
 teken in `lintje-chart` en een markering op `lintje-map` (`lintje-mark-select`) met een `href`:
 eerst het event, en annuleert niemand het, dan gaat het element naar de `href`, via
 `lintje-navigate`, zodat een router het daar opvangt. Een selectie ongedaan maken gaat zo naar de
-`clearHref`. Zonder `href` is er alleen het event. Een klik met een modifier of met de middelste
+`clearHref`. Zonder `href` is er alleen het event. Een klik met een toets als Ctrl of Cmd ingedrukt, of met de middelste
 knop op zo'n rij of teken stuurt hun event niet, maar opent de `href` in een nieuw tabblad, zoals
 een link: dan heeft `lintje-navigate` `{ href, newTab: true }`. Een router die `lintje-navigate`
 annuleert, ziet aan `newTab` dat de lezer een nieuw tabblad vroeg, en opent het zelf of laat het.
@@ -61,7 +61,7 @@ Een instelling van de lezer in de shell — modus, thema, waar het menu staat �
 
 ## Formulieren
 
-In een native `<form>` posten de invoerelementen hun waarden zoals native bedieningselementen dat doen, en geen event heeft
+In een gewoon `<form>` posten de invoerelementen hun waarden zoals de bedieningselementen van de browser dat doen, en geen event heeft
 een antwoord nodig ([een eerste pagina](start.md) heeft de tabel van wat elk bedieningselement post). Een invoer met een naam
 stuurt daar toch `lintje-values-change`; negeer het.
 
@@ -93,7 +93,7 @@ Een *toestand* is iets wat je bewaart en terugzet op het element (en in de URL m
 | event | van | soort |
 |---|---|---|
 | `lintje-navigate` | elk element dat een link tekent | actie |
-| `lintje-view-change` | `lintje-shell`: "Weergave" en de pin van het menu | toestand |
+| `lintje-view-change` | `lintje-shell`: "Weergave" en de punaise van het menu | toestand |
 | `lintje-title-edit` | `lintje-page-header` | actie |
 | `lintje-submit`, `lintje-dirty-change` | `lintje-form` | actie, toestand |
 | `lintje-values-change` | een invoer met een `name` buiten een `lintje-form`, `lintje-filter-bar`, `lintje-tree-view` en `lintje-sortable-list` met een `name` | toestand |
@@ -138,10 +138,10 @@ Een *toestand* is iets wat je bewaart en terugzet op het element (en in de URL m
 **Eén vorm voor een rij.** De lijst en de tabel sturen hetzelfde: `lintje-row-action` draagt
 `{ id, label, action }` (`RowActionDetail`), de sleutel van de rij, haar naam en de `value` van de
 gekozen actie; `lintje-row-click` en `lintje-row-open` dragen `{ id, label, href? }`
-(`RowClickDetail`). Beide types komen uit het pakket.
+(`RowClickDetail`). Beide typen komen uit het pakket.
 
 **Het verzoek en zijn antwoord.** Een opslag, een zoekactie, een bestand, een taak om te annuleren, een cel om op te slaan: het
-element stuurt het verzoek en wacht op de property die het beantwoordt (`.options`, `.jobs`,
+element stuurt het verzoek en wacht op de eigenschap die het beantwoordt (`.options`, `.jobs`,
 `busy`, `.errors`, `busyCells`). Het toont de wijziging van de lezer meteen en verwacht dat je volgende
 waarde die bevestigt.
 
@@ -161,7 +161,7 @@ transcript.addEventListener('lintje-seek', (event) => {
 })
 ```
 
-**Events die niet van jou zijn.** Een composed event dat niet in de tabel staat, hoort bij wie het
-onderdeel heeft geopend: `lintje-close` van een modal, een dialoog, een drawer of een popover, en `lintje-invalid` van het formulier (een echo van je eigen `.errors`). Een view
-vangt de events van zijn eigen onderdelen af — het uitvouwen en downloaden van de tegel, het sluiten van de modal — zodat één
+**Events die niet van jou zijn.** Een event met `composed` dat niet in de tabel staat, hoort bij wie het
+onderdeel heeft geopend: `lintje-close` van een venster, een dialoog, een paneel opzij of een zwevend paneel, en `lintje-invalid` van het formulier (een echo van je eigen `.errors`). Een view
+vangt de events van zijn eigen onderdelen af — het uitvouwen en downloaden van de tegel, het sluiten van het venster — zodat één
 actie voor jou één event is. Een pagina die zo'n onderdeel zelf opent, is die eigenaar, en hoort ze.

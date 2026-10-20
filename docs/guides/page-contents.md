@@ -79,9 +79,9 @@ schedule()
 ```
 
 Een klik op een item is een gewone link: de browser springt naar de kop, en het submenu meldt de
-klik als `lintje-navigate` ([events](events.md)). Scrolt je pagina een eigen container
-(`setHostConfig({ scrollRoot })`), luister dan daar naar `scroll` en lees daar de scroll-padding.
-De update na `load` en `resize` vangt een pagina die pas na het script haar hoogte kreeg.
+klik als `lintje-navigate` ([events](events.md)). Scrolt je pagina een eigen vak
+(`setHostConfig({ scrollRoot })`), luister dan daar naar `scroll` en lees daar `scroll-padding-top`.
+Het bijwerken na `load` en `resize` vangt een pagina die pas na het script haar hoogte kreeg.
 
 ## De lijst plaatsen
 
