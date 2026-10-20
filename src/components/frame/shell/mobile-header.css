@@ -87,6 +87,8 @@
 }
 .lintje-mobile-menu__item.is-muted { color: var(--color-nav-disabled); }
 .lintje-mobile-menu__label { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+/* Why an entry cannot be opened: a small line under its label. */
+.lintje-mobile-menu__note { display: block; font: var(--text-small); }
 .lintje-mobile-menu__meta { font-size: 0.875rem; color: var(--color-nav-disabled); flex: none; }
 /* The environment band and the feedback row with the version: below 768 px there is no rail,
    and a page's own footer is the host's, so this is the only place they can stand. */

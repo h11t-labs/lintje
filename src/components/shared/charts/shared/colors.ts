@@ -16,29 +16,6 @@ const TOKENS: Record<string, string> = {
   emphasis: 'var(--color-chart-emphasis)',
 }
 
-/** The data colours white text reaches 4.5:1 on; any other named fill but the rest takes ink. */
-export const DARK_FILLS: ReadonlySet<string> = new Set([
-  'sky-blue',
-  'red',
-  'green',
-  'violet',
-  'dark-green',
-  'purple',
-  'ruby-red',
-  'dark-brown',
-  'brown',
-  'dark-blue',
-  'moss-green',
-])
-
-/**
- * Whether text on rung `rung` (0 is the colour itself) of a variable's ladder is white: only on
- * the darkest rung of a dark colour; every lighter rung takes ink.
- */
-export function whiteOnRung(color: ChartColor | undefined, rung: number): boolean {
-  return rung === 0 && (color == null || DARK_FILLS.has(color))
-}
-
 export function chartColor(color: ChartColor | undefined): string | undefined {
   if (color == null) return undefined
   return TOKENS[color] ?? color
@@ -99,6 +76,47 @@ export function labelInk(color: string | undefined, step = 1): LabelInk {
   if (color != null && !isDataColor(color)) return K
   const ink = LABEL_INK[color ?? 'sky-blue'][step - 1]
   return ink === undefined ? K : ink
+}
+
+/** The text a label on a dimmed fill takes: the text colour, ink, or none. */
+export type DimmedInk = 'text' | 'ink' | null
+
+const T = 'text'
+
+/**
+ * Which text reaches 4.5:1 on each step of each ladder once it is dimmed (`fill-opacity: .45` over
+ * the surface), in light and in dark alike, as no component draws by mode: the text colour
+ * (near-black in light, white in dark), the near-black ink of a light fill, or neither (`null`),
+ * where the dimmed area carries no label and its tooltip names it. `colour-scheme.test.ts` checks
+ * every cell.
+ */
+export const DIMMED_INK: Readonly<
+  Record<DataColor, readonly [DimmedInk, DimmedInk, DimmedInk, DimmedInk, DimmedInk]>
+> = {
+  'sky-blue': [T, T, T, T, T],
+  'dark-yellow': [T, T, null, null, K],
+  red: [T, T, T, T, T],
+  green: [T, T, T, T, T],
+  'mint-green': [T, T, null, null, null],
+  violet: [T, T, T, T, T],
+  orange: [T, T, T, T, null],
+  pink: [T, T, T, null, null],
+  'dark-green': [T, T, T, T, T],
+  purple: [T, T, T, T, T],
+  'ruby-red': [T, T, T, T, T],
+  yellow: [null, null, null, K, K],
+  'dark-brown': [T, T, T, T, T],
+  brown: [T, T, T, T, T],
+  'dark-blue': [T, T, T, T, T],
+  'light-blue': [T, T, null, null, K],
+  'moss-green': [T, T, T, T, T],
+}
+
+/** The ink of a label on step `step` of `color`'s ladder once dimmed; as `labelInk`, by default. */
+export function dimmedLabelInk(color: string | undefined, step = 1): DimmedInk {
+  if (color != null && !isDataColor(color)) return T
+  const ink = DIMMED_INK[color ?? 'sky-blue'][step - 1]
+  return ink === undefined ? T : ink
 }
 
 /** The class of a label drawn on a mark in that ink. */

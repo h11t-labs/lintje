@@ -1471,7 +1471,11 @@ describe('the mobile menu’s groups', () => {
     const heading = root(shell).getElementById(group.getAttribute('aria-labelledby')!)!
     expect(heading.textContent!.trim()).toBe('Aanvragen')
     const muted = group.querySelector('.lintje-mobile-menu__item.is-muted')!
-    expect(muted.querySelector('.visually-hidden')!.textContent).toBe(', niet beschikbaar')
+    // Seen under the label, heard once.
+    expect(
+      muted.querySelector('.lintje-mobile-menu__label .lintje-mobile-menu__note')!.textContent,
+    ).toBe(', niet beschikbaar')
+    expect(muted.textContent!.match(/niet beschikbaar/g)).toHaveLength(1)
   })
 })
 

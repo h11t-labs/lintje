@@ -190,6 +190,8 @@
 }
 @keyframes lintje-nav-text-in { from { opacity: 0; transform: translateX(-8px); } }
 .lintje-nav__metric { font-size: 0.875rem; color: var(--color-nav-text-sub); flex: none; }
+/* Why an entry cannot be opened: a small line under its label, not only its lighter colour. */
+.lintje-nav__note { display: block; font: var(--text-small); }
 .lintje-nav__item.is-no-access .lintje-nav__metric { text-decoration: none; }
 .lintje-nav__item.is-no-page .lintje-nav__metric { color: var(--color-nav-disabled); }
 

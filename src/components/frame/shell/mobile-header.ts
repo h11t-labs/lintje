@@ -2,10 +2,10 @@
 import { html, nothing, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
-import { hasPage, unavailableWord, type NavGroup } from './header'
+import { hasPage, noAccessMark, unavailableNote, type NavGroup } from './header'
 import type { ShellLink } from '../../../types'
 import type { LintjeShell } from './shell'
-import { feedbackLabel, homeLink, noAccessMark, versionText } from './navigation'
+import { feedbackLabel, homeLink, versionText } from './navigation'
 import { renderBarTools } from './top-bar'
 import { isPlainClick } from '../../../core/links'
 
@@ -144,9 +144,12 @@ export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): Temp
 export function renderMobileItem(shell: LintjeShell, item: ShellLink): TemplateResult {
   const content = html`
     ${renderIcon(item.icon, { size: 20, src: item.iconSrc })}
-    <span class="lintje-mobile-menu__label">${item.label}</span>
+    <span class="lintje-mobile-menu__label"
+      >${item.label}${
+        hasPage(item) || item.noAccess ? nothing : unavailableNote('lintje-mobile-menu__note')
+      }</span
+    >
     ${item.noAccess ? noAccessMark('lintje-mobile-menu__meta') : nothing}
-    ${hasPage(item) || item.noAccess ? nothing : unavailableWord(item)}
   `
   if (!hasPage(item)) {
     return html`<span class="lintje-mobile-menu__item is-muted" aria-disabled="true"

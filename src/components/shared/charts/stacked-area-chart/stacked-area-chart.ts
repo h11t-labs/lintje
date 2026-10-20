@@ -13,6 +13,7 @@ import { chartArea, type ChartOptions, type TooltipContent } from '../shared/con
 import { layerMotion, layerWeights } from '../shared/layer-motion'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { tintsFor } from '../shared/tints'
+import { drawsAsOther, foldStack, isOtherPart } from '../shared/fold'
 import type { ChartSpec } from '../shared/types'
 
 type StackedAreaSpec = Extract<ChartSpec, { kind: 'stacked-area' }>
@@ -36,11 +37,16 @@ export function renderStackedAreaChart(
   })
 
   // The colours belong to the parts, not to what is shown: switching one off moves no colour.
-  // Past five parts the order still carries meaning, so they keep the lightest tint.
-  const tints = tintsFor(spec.series.length, spec.color)
-  const series = spec.series.map((row, j) => ({
+  // Past five parts the smallest fold into "Overig" on top, so no two share a tint; "Overig"
+  // spreads over the ladder with the parts and takes its last rung.
+  const parts = foldStack(spec.series, () => true)
+  const others = parts.filter(drawsAsOther).length
+  const tints = tintsFor(parts.length - others + (others ? 1 : 0), spec.color)
+  let rung = 0
+  const series = parts.map((row) => ({
     ...row,
-    color: tints[Math.min(j, tints.length - 1)],
+    folded: isOtherPart(row) ? row.folded : [],
+    color: drawsAsOther(row) ? tints[tints.length - 1] : tints[rung++],
     hidden: controller.hiddenSeries.includes(row.label),
   }))
   const visible = series.filter((row) => !row.hidden)
@@ -139,11 +145,19 @@ export function renderStackedAreaChart(
     return {
       title: labels[i],
       rows: [
-        ...[...visible].reverse().map((row) => ({
-          label: row.label,
-          value: row.values[i] == null ? NO_DATA : formatNumber(row.values[i]!),
-          color: row.color,
-        })),
+        ...[...visible].reverse().flatMap((row) => [
+          {
+            label: row.label,
+            value: row.values[i] == null ? NO_DATA : formatNumber(row.values[i]!),
+            color: row.color,
+          },
+          // The parts "Overig" holds, each named, indented under it.
+          ...row.folded.map((part) => ({
+            label: part.label,
+            value: part.values[i] == null ? NO_DATA : formatNumber(part.values[i]!),
+            part: true,
+          })),
+        ]),
         ...(visible.length > 0
           ? [
               {

@@ -33,7 +33,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { resolve as resolvePath } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { DATA_COLORS } from './colors'
-import { LABEL_INK } from '../components/shared/charts/shared/colors'
+import { DIMMED_INK, LABEL_INK } from '../components/shared/charts/shared/colors'
 
 /* --- the two stylesheets, as the browser reads them ----------------------- */
 
@@ -1614,7 +1614,7 @@ describe('data and status colour', () => {
   })
 
   it('carries a label on each colour in white or in ink, whichever reaches 4.5:1', () => {
-    // Restates DARK_FILLS in charts/shared/colors.ts: a label on these is white, on the rest ink.
+    // Restates the first rung of LABEL_INK in charts/shared/colors.ts: white on these, ink on the rest.
     const WHITE_ON = [
       'sky-blue',
       'red',
@@ -1659,7 +1659,31 @@ describe('data and status colour', () => {
   it('names a label ink for every colour, step for step', () => {
     expect(Object.keys(LABEL_INK)).toEqual(DATA)
     for (const rungs of Object.values(LABEL_INK)) expect(rungs).toHaveLength(5)
+    expect(Object.keys(DIMMED_INK)).toEqual(DATA)
+    for (const rungs of Object.values(DIMMED_INK)) expect(rungs).toHaveLength(5)
   })
+
+  // The same for a dimmed step (`fill-opacity: .45` over the surface): one ink for both modes,
+  // the text colour where it reaches 4.5:1, else the near-black ink, else no label.
+  for (const name of DATA) {
+    it(`writes a label on a dimmed step of ${name} in the ink its table names, in both modes`, () => {
+      const reaches = (token: string, step: number) =>
+        (['light', 'dark'] as const).every((mode) => {
+          const values = tokensFor(mode)
+          const dimmed = mix(values[STEP_TOKEN(name, step)], 0.45, values['--color-bg-surface'])
+          return contrast(values[token], dimmed) >= 4.5
+        })
+      for (const step of [1, 2, 3, 4, 5]) {
+        const ink = DIMMED_INK[name as keyof typeof DIMMED_INK][step - 1]
+        const text = reaches('--color-text-primary', step)
+        const dark = reaches('--color-text-on-light-fill', step)
+        const cell = `${name} step ${step}`
+        if (ink === 'text') expect(text, cell).toBe(true)
+        else if (ink === 'ink') expect([text, dark], cell).toEqual([false, true])
+        else expect([text, dark], cell).toEqual([false, false])
+      }
+    })
+  }
 
   for (const mode of ['light', 'dark'] as const) {
     it(`keeps a label on a dimmed step of the default ladder at 4.5:1 in ${mode}`, () => {

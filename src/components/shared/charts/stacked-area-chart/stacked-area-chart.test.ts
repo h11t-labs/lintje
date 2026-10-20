@@ -176,6 +176,49 @@ describe('the stacked area', () => {
     expect(host.querySelectorAll('.lintje-chart__hover-point')).toHaveLength(3)
   })
 
+  it('never gives two of seven parts one tint, and names the folded ones under "Overig"', () => {
+    const { host } = draw({
+      kind: 'stacked-area',
+      labels: ['1', '2'],
+      series: Array.from({ length: 7 }, (_, i) => ({
+        label: `Deel ${i + 1}`,
+        values: [i === 0 ? null : 10 * (i + 1), 10 * (i + 1)],
+      })),
+    })
+    const tints = [...host.querySelectorAll('.lintje-chart__reveal > g')].map(
+      (group) => group.querySelector('polygon, circle')?.getAttribute('fill') ?? null,
+    )
+    // The four largest and "Overig" spread over the ladder together; "Overig" takes its last step.
+    expect(tints).toEqual([1, 2, 3, 4, 5].map((n) => `var(--color-chart-tint-${n})`))
+    walk(host, 'Home')
+    // The folded parts stand indented under "Overig", without a swatch.
+    const rows = [...host.querySelectorAll('.lintje-chart-tooltip__row')]
+    expect(rows.map((row) => row.classList.contains('lintje-chart-tooltip__row--part'))).toEqual([
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+    ])
+    expect(rows[1].querySelector('.lintje-chart-tooltip__marker')).toBeNull()
+    // A missing folded part leaves "Overig" missing too (rule 15).
+    expect(tooltipRows(host).map((row) => row.text)).toEqual([
+      'Overig geen gegevens',
+      'Deel 1 geen gegevens',
+      'Deel 2 20',
+      'Deel 3 30',
+      'Deel 7 70',
+      'Deel 6 60',
+      'Deel 5 50',
+      'Deel 4 40',
+      'Totaal geen gegevens',
+    ])
+  })
+
   it('names the total "Totaal getoond" while a part is switched off', () => {
     const { host, controller } = draw(SPEC)
     controller.toggleSeries('Post')
