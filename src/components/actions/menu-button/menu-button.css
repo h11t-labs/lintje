@@ -22,6 +22,8 @@
 /* Split: two halves of one button, the page showing through the 1 px between them. */
 .lintje-menu-button__split { --lintje-menu-button-line: 1px; display: inline-flex; gap: var(--lintje-menu-button-line); min-width: 0; }
 .lintje-menu-button__split .lintje-menu-button__trigger--split.lintje-button { width: var(--h-button); padding: 0; }
+/* The half with the focus lies over its neighbour, so its ring is whole, as with the segments. */
+.lintje-menu-button__split > .lintje-button:focus-visible { position: relative; z-index: 1; }
 /* Busy, a split button's ring takes its icon's square: the label stays and nothing moves. */
 .lintje-menu-button__busy {
   flex: none;

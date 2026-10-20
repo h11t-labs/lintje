@@ -185,6 +185,12 @@
 .lintje-chat-composer__completion:last-child { border-bottom: 0; }
 .lintje-chat-composer__completion:hover,
 .lintje-chat-composer__completion.is-active { background: var(--color-bg-subtle); }
+/* The row the keys stand on, as an option of lintje-combobox: the fill alone is about 1.1:1, so
+   the focus ring inside the row. A row under the pointer keeps only the fill. */
+.lintje-chat-composer__completion.is-active {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: calc(var(--focus-width) * -1);
+}
 .lintje-chat-composer__completion-kind { font: var(--text-small); color: var(--color-text-muted); }
 
 /* A phone: the field stays at 1rem, since a smaller size makes iOS zoom in on focus. */
@@ -194,7 +200,7 @@
   .lintje-chat-composer__hint:not(:empty) { flex-basis: 100%; order: -1; text-align: left; }
 }
 
-/* Forced colours drop the chosen completion's fill, so it takes an outline. */
+/* Forced colours: the ring in the system's Highlight. */
 @media (forced-colors: active) {
-  .lintje-chat-composer__completion.is-active { outline: 1px solid Highlight; outline-offset: -1px; }
+  .lintje-chat-composer__completion.is-active { outline-color: Highlight; }
 }

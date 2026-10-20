@@ -73,6 +73,8 @@
   line-height: 1.6;
 }
 .lintje-prose pre code { padding: 0; background: none; border: none; }
+/* A block is a scroller with a Tab stop (prose.ts): its ring stands inside it. */
+.lintje-prose pre:focus-visible { outline-offset: calc(var(--focus-width) * -1); }
 
 .lintje-prose blockquote {
   margin: 0;

@@ -46,13 +46,17 @@
 .lintje-dialog__close { margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0; }
 .lintje-dialog__close:hover { color: var(--color-text-primary); }
 
-/* A long form scrolls here; the padding keeps a field's focus ring inside the scroll box. */
+/* A long form scrolls here. The padding is a field's whole focus ring, its offset and its width,
+   so the ring stays whole in the scroll box; the margin gives the room back. */
 .lintje-dialog__body {
+  --lintje-dialog-ring: calc(var(--focus-width) + var(--focus-offset));
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-  margin: calc(var(--focus-width) * -1) calc(var(--space-6) * -1);
-  padding: var(--focus-width) var(--space-6);
+  margin: calc(var(--lintje-dialog-ring) * -1) calc(var(--space-6) * -1);
+  padding: var(--lintje-dialog-ring) var(--space-6);
+  /* A field the focus scrolls to keeps its ring in view too. */
+  scroll-padding-block: var(--lintje-dialog-ring);
   font: var(--text-body);
 }
 
