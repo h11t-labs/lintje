@@ -1298,7 +1298,13 @@ function replaceHits(onlyCurrent) {
   undoReplace = { id: item.id, segments: item.segments }
   changeRecording(item.id, { segments })
   $('replaced').hidden = false
-  $('replaced').data = { kind: 'ok', title: `${count} keer vervangen:`, text: `${wanted} → ${by || '(leeg)'}` }
+  // A live notice: the count is news the focus does not reach.
+  $('replaced').data = {
+    kind: 'ok',
+    title: `${count} keer vervangen:`,
+    text: `${wanted} → ${by || '(leeg)'}`,
+    live: true,
+  }
   renderTranscript()
 }
 $('replace-one').addEventListener('click', () => replaceHits(true))
@@ -1802,6 +1808,10 @@ function saved() {
   savedAt = clock()
   PAGE_HEADINGS.instellingen = { title: 'Instellingen', description: `Wijzigingen worden meteen bewaard · bewaard om ${savedAt}` }
   renderOpen()
+  // The header changes out of the focus's sight: a region that stands there says it, a frame on.
+  const status = $('settings-saved')
+  status.textContent = ''
+  requestAnimationFrame(() => (status.textContent = `Bewaard om ${savedAt}`))
 }
 const KIND_FIELDS = {
   'st-language': 'language', 'st-soft': 'soft', 'st-lists': 'lists', 'st-spk-mode': 'mode',
