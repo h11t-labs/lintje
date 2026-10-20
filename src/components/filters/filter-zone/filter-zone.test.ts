@@ -135,3 +135,49 @@ describe('closed until the reader opens it', () => {
     expect(quiet).toEqual([])
   })
 })
+
+describe('below 768 px, the sentence', () => {
+  const viewport = (width: number): void =>
+    (
+      window as unknown as { happyDOM: { setViewport(size: { width: number }): void } }
+    ).happyDOM.setViewport({ width })
+  const sentence = (element: LintjeFilterZone): HTMLButtonElement =>
+    element.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-filter-bar__mobile-summary')!
+
+  beforeAll(() => viewport(390))
+  afterAll(() => viewport(1024))
+
+  it('is the button that asks the owner for its sheet, and says whether it is open', async () => {
+    const element = await mount(false)
+    const button = sentence(element)
+    expect(button.tagName).toBe('BUTTON')
+    expect(button.getAttribute('aria-haspopup')).toBe('dialog')
+    expect(button.getAttribute('aria-expanded')).toBe('false')
+    let sheetAsked = 0
+    const zoneAsked: boolean[] = []
+    element.addEventListener('lintje-zone-sheet-open', () => sheetAsked++)
+    element.addEventListener('lintje-zone-open-change', (event) => {
+      zoneAsked.push((event as CustomEvent<boolean>).detail)
+    })
+    button.click()
+    // The sheet, not the zone: the zone's open state is the URL's and stays as it is.
+    expect(sheetAsked).toBe(1)
+    expect(zoneAsked).toEqual([])
+    element.sheetOpen = true
+    await element.updateComplete
+    expect(button.getAttribute('aria-expanded')).toBe('true')
+  })
+
+  it('counts the modified filters in a badge before its triangle', async () => {
+    const element = await mount(false)
+    expect(sentence(element).querySelector('.lintje-badge')).toBeNull()
+    element.modified = 3
+    await element.updateComplete
+    const end = sentence(element).querySelector('.lintje-filter-bar__mobile-end')!
+    // The figure is seen, the sentence heard.
+    const badge = end.querySelector('.lintje-badge--attention')!
+    expect(badge.querySelector('[aria-hidden="true"]')?.textContent).toBe('3')
+    expect(badge.querySelector('.visually-hidden')?.textContent).toBe('3 aangepast')
+    expect(end.lastElementChild?.tagName.toLowerCase()).toBe('svg')
+  })
+})
