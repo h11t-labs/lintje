@@ -168,8 +168,13 @@ export class LeafletSurface {
   #attribution: L.Control.Attribution | null = null
   /** The design system's own group in Leaflet's svg, holding the whole drawing. */
   #group: SVGGElement | null = null
-  /** A copy of the focused mark over the drawing, so nothing drawn after it covers its ring. */
+  /**
+   * Copies of the marks that stand out, over the drawing: the chosen areas, the one under the
+   * pointer and the focused mark, so nothing drawn after them covers their outline or ring.
+   */
   #focusGroup: SVGGElement | null = null
+  /** The area under the pointer. */
+  #hovered: Element | null = null
   /** The area being drawn, over the drawing, placed as it is. */
   #draftGroup: SVGGElement | null = null
   #draft: {
@@ -341,6 +346,7 @@ export class LeafletSurface {
     this.#attribution = null
     this.#group = null
     this.#focusGroup = null
+    this.#hovered = null
     this.#draftGroup = null
     this.#draft = null
     this.#basemapKey = ''
@@ -421,9 +427,17 @@ export class LeafletSurface {
     group.setAttribute('class', 'lintje-map-chart__data')
     group.addEventListener('focusin', (event) => {
       this.#reveal(event.target as Element)
-      this.#copyFocus()
+      this.#lift()
     })
-    group.addEventListener('focusout', () => this.#focusGroup?.replaceChildren())
+    group.addEventListener('focusout', () => this.#lift(false))
+    group.addEventListener('pointerover', (event) => {
+      this.#hovered = (event.target as Element).closest('.lintje-map-chart__polygon')
+      this.#lift()
+    })
+    group.addEventListener('pointerout', () => {
+      this.#hovered = null
+      this.#lift()
+    })
     group.addEventListener('keydown', (event) => {
       // A choice opens the selection panel, which may stand over the chosen mark.
       if (event.key !== 'Enter' && event.key !== ' ') return
@@ -581,22 +595,24 @@ export class LeafletSurface {
       'has-selection',
       this.#options.area != null || this.#options.active != null,
     )
-    this.#copyFocus()
+    this.#lift()
     this.#place(map)
   }
 
   /**
-   * The focused mark, copied over the whole drawing: svg paints in document order, and moving
-   * the mark itself would lose its focus and its place in the Tab order. Only for the keyboard's
-   * focus: after a click there is no ring to lift.
+   * The marks that stand out, copied over the whole drawing: svg paints in document order, and
+   * moving a mark itself would lose its focus and its place in the Tab order. The chosen areas
+   * and the one under the pointer are copied as their outline, so a neighbour drawn after them
+   * does not cover half of it; the mark the keyboard focused whole, for its ring, on top. After a
+   * click there is no ring to lift. `focus` false: the focus is leaving the drawing.
    */
-  #copyFocus(): void {
+  #lift(focus = true): void {
     const group = this.#group
     const layer = this.#focusGroup
     if (!group || !layer) return
     let focused: Element | null = null
     try {
-      focused = (group.getRootNode() as Document | ShadowRoot).activeElement
+      focused = focus ? (group.getRootNode() as Document | ShadowRoot).activeElement : null
     } catch {
       // happy-dom's `ShadowRoot.activeElement` throws while a focus event is being dispatched.
     }
@@ -605,11 +621,27 @@ export class LeafletSurface {
       !group.contains(focused) ||
       !focused.hasAttribute('data-mark-id') ||
       !keyboardFocus(focused)
-    ) {
-      layer.replaceChildren()
-      return
-    }
-    const copy = focused.cloneNode(true) as Element
+    )
+      focused = null
+    const chosen = [
+      ...group.querySelectorAll('.lintje-map-chart__polygon.is-selected:not(.is-off)'),
+    ].filter((area) => area !== focused)
+    // Beside a chosen area the rest steps back, and the pointer lifts nothing out of it.
+    const hovered = group.classList.contains('has-area') ? null : this.#hovered
+    const pointed =
+      hovered && group.contains(hovered) && hovered !== focused && !chosen.includes(hovered)
+        ? [hovered]
+        : []
+    layer.replaceChildren(
+      ...chosen.map((area) => this.#copyOf(area)),
+      ...pointed.map((area) => this.#copyOf(area, 'is-hovered')),
+      ...(focused ? [this.#copyOf(focused, 'is-focused')] : []),
+    )
+  }
+
+  /** A mark as a drawing only: no button, no stop, nothing a reader hears; `state` says why. */
+  #copyOf(mark: Element, state?: string): Element {
+    const copy = mark.cloneNode(true) as Element
     for (const name of [
       'data-mark-id',
       'role',
@@ -619,13 +651,14 @@ export class LeafletSurface {
       'aria-hidden',
     ])
       copy.removeAttribute(name)
+    if (state) copy.classList.add(state)
     // A strict Content-Security-Policy drops a cloned style attribute; the CSSOM carries it over.
     const targets = [copy, ...copy.querySelectorAll('*')]
-    ;[focused, ...focused.querySelectorAll('*')].forEach((source, n) => {
+    ;[mark, ...mark.querySelectorAll('*')].forEach((source, n) => {
       if (source instanceof SVGElement && source.style.length)
         (targets[n] as SVGElement).style.cssText = source.style.cssText
     })
-    layer.replaceChildren(copy)
+    return copy
   }
 
   /**
@@ -843,6 +876,8 @@ export class LeafletSurface {
     for (const mark of group.querySelectorAll('[data-mark-id]'))
       mark.classList.toggle('is-preview', ids.has(mark.getAttribute('data-mark-id')!))
     group.classList.toggle('is-previewing', usable === true)
+    // The lifted outlines step back with the rest while an area is drawn.
+    this.#focusGroup?.classList.toggle('is-previewing', usable === true)
   }
 
   /**
