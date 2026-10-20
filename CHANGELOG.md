@@ -11,6 +11,18 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-20
+
+### Toegevoegd
+
+- De voorbeelden en de stijlgids hebben een favicon: het beeldmerk van Lintje in wit op lintblauw. (#301)
+
+### Gewijzigd
+
+- De README begint met wat je met Lintje maakt, legt de naam en de verhouding tot de Rijksoverheid uit in een eigen kader, toont welke groepen elementen er zijn, en zegt daarna in gewoon Nederlands hoe je Lintje gebruikt en hoe je bijdraagt; de buildscripts, het uitbrengen en de bestanden van de build staan in `assets/README.md`, `CONTRIBUTING.md` en de handleiding *Laden*. De handleidingen gebruiken dezelfde woorden: stijlgids, eigenschap, pakket, venster en paneel in plaats van styleguide, property, package, modal en drawer. (#304)
+- Onder 768 px opent de "Je ziet"-zin onder de header de filtersheet, met het aantal aangepaste filters en een pijl; de knop "Filters" in de header vervalt. Een losse filterbalk (`standalone`) opent voortaan ook zijn eigen sheet. (#303)
+- De naam naast het lint staat zoals op rijksoverheid.nl: gewicht 625, 15 px naast een lint van 48 px en 12 px naast een lint van 40 px, met dezelfde tussenruimte, hoogte en breedte, in lintblauw (in donker in de tekstkleur); de tweede regel is rechtop. (#302)
+
 ## [0.8.3] - 2026-10-19
 
 ### Gewijzigd
@@ -598,7 +610,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.8.3...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/h11t-labs/lintje/compare/v0.8.3...v0.9.0
 [0.8.3]: https://github.com/h11t-labs/lintje/compare/v0.8.2...v0.8.3
 [0.8.2]: https://github.com/h11t-labs/lintje/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/h11t-labs/lintje/compare/v0.8.0...v0.8.1
