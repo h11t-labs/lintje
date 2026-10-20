@@ -5,8 +5,10 @@
 
 # Lintje
 
-[![npm](https://img.shields.io/npm/v/lintje?label=npm)](https://www.npmjs.com/package/lintje)
-[![Licentie: EUPL-1.2](https://img.shields.io/npm/l/lintje?label=licentie)](LICENSE)
+[![npm](https://img.shields.io/npm/v/lintje)](https://www.npmjs.com/package/lintje)
+[![Release](https://github.com/h11t-labs/lintje/actions/workflows/release.yml/badge.svg)](https://github.com/h11t-labs/lintje/actions/workflows/release.yml)
+[![Pages](https://github.com/h11t-labs/lintje/actions/workflows/pages.yml/badge.svg)](https://h11t-labs.github.io/lintje/)
+[![Licentie: EUPL-1.2](https://img.shields.io/npm/l/lintje)](LICENSE)
 
 **Met Lintje bouw je webapplicaties en websites in de Rijkshuisstijl.** Bijvoorbeeld:
 
