@@ -6,8 +6,6 @@
   Link een venstertje opent, en de taal van een brontekst, een lijstrij en een zoekresultaat. Bij
   "Anders, namelijk" blijft de focus op de keuze en zegt het veld dat het ingevuld moet worden;
   een datum is ook als "03102026" te typen. (#288)
-- Een rij van het gebruikersmenu in de mobiele navigatie zet haar tekst midden in haar 48 px, zoals
-  elke menurij; voorheen stond hij bovenaan. Een label dat afbreekt, maakt de rij hoger. (#288)
 - In de stijlgids staat elk voorbeeld van de schil in een eigen kader, zodat de pagina één `main`
   en één `h1` heeft. Het kader tekent op de breedte van het venster, de voet van het zijmenu op
   1440 px, en verkleint tot de kolom. (#288)
