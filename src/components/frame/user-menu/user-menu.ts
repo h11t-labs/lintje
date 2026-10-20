@@ -70,7 +70,10 @@ export class LintjeUserMenu extends LintjeElement {
   declare logoutAction?: string
   /** The session's CSRF token, posted with "Afmelden" in a hidden `csrf_token` field. */
   csrf: string = ''
-  /** The content without button and popover, on the navigation's colours: for the mobile sheet. */
+  /**
+   * The content without button and popover, on the navigation's colours: for the mobile sheet.
+   * "Afmelden" is a glyph beside the name there.
+   */
   inline: boolean = false
   /**
    * `bar`: the avatar in the navigation bar, the menu below it. `side`: the foot of the side
@@ -264,32 +267,38 @@ export class LintjeUserMenu extends LintjeElement {
     return row
   }
 
-  private renderLogout(): TemplateResult {
+  /** `compact`: the glyph alone, beside the name inline; its word is its accessible name. */
+  private renderLogout(compact = false): TemplateResult {
     const role = this.inline ? nothing : 'menuitem'
     const tabindex = this.inline ? nothing : '-1'
-    const glyph = renderIcon('functioneel-uitloggen', { size: 16, className: 'lintje-menu__icon' })
-    const label = html`${glyph}<span class="lintje-menu__label" @pointerenter=${titleWhenCut}>Afmelden</span>`
+    const classes = compact
+      ? 'lintje-user-menu__logout-button'
+      : 'lintje-menu__row lintje-user-menu__logout-row focus-inset'
+    const content = compact
+      ? renderIcon('functioneel-uitloggen', { size: 20 })
+      : html`${renderIcon('functioneel-uitloggen', { size: 16, className: 'lintje-menu__icon' })}<span
+            class="lintje-menu__label"
+            @pointerenter=${titleWhenCut}
+            >Afmelden</span
+          >`
+    const label = compact ? 'Afmelden' : nothing
     if (this.logoutAction) {
       return html`<form class="lintje-user-menu__logout" method="post" action=${this.logoutAction}>
         <input type="hidden" name="csrf_token" .value=${this.csrf} />
-        <button
-          type="submit"
-          class="lintje-menu__row lintje-user-menu__logout-row focus-inset"
-          role=${role}
-          tabindex=${tabindex}
-        >
-          ${label}
+        <button type="submit" class=${classes} role=${role} tabindex=${tabindex} aria-label=${label}>
+          ${content}
         </button>
       </form>`
     }
     return html`<button
       type="button"
-      class="lintje-menu__row lintje-user-menu__logout-row focus-inset"
+      class=${classes}
       role=${role}
       tabindex=${tabindex}
+      aria-label=${label}
       @click=${() => this.logout()}
     >
-      ${label}
+      ${content}
     </button>`
   }
 
@@ -307,6 +316,7 @@ export class LintjeUserMenu extends LintjeElement {
               <p class="lintje-user-menu__name">${user.name}</p>
               ${user.role ? html`<p class="lintje-user-menu__role">${user.role}</p>` : nothing}
             </div>
+            ${this.inline ? this.renderLogout(true) : nothing}
           </div>`
           : nothing
       }
@@ -322,7 +332,13 @@ export class LintjeUserMenu extends LintjeElement {
             </div>`
             : nothing
         }
-        <div class="lintje-user-menu__group lintje-user-menu__group--logout">${this.renderLogout()}</div>
+        ${
+          this.inline && user
+            ? nothing
+            : html`<div class="lintje-user-menu__group lintje-user-menu__group--logout">
+              ${this.renderLogout()}
+            </div>`
+        }
       </div>
       ${this.version ? html`<p class="lintje-user-menu__version">Versie ${this.version}</p>` : nothing}
     </div>`

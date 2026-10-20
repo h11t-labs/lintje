@@ -152,7 +152,18 @@ describe('lintje-user-menu', () => {
     expect(root.querySelector('.lintje-user-menu__trigger')).toBeNull()
     expect(root.querySelector('lintje-popover')).toBeNull()
     expect(root.querySelector('[role="menuitem"]')).toBeNull()
-    expect(root.querySelectorAll('.lintje-menu__row')).toHaveLength(4)
+    expect(root.querySelectorAll('.lintje-menu__row')).toHaveLength(3)
+  })
+
+  it('puts Afmelden beside the name when inline, named by its word', async () => {
+    const element = await mount({ inline: true, logoutAction: '/auth/logout', csrf: 'abc123' })
+    const root = element.shadowRoot!
+    const button = root.querySelector<HTMLButtonElement>(
+      '.lintje-user-menu__who .lintje-user-menu__logout-button',
+    )!
+    expect(button.getAttribute('aria-label')).toBe('Afmelden')
+    expect(button.type).toBe('submit')
+    expect(root.querySelector('.lintje-user-menu__logout-row')).toBeNull()
   })
 })
 

@@ -75,7 +75,7 @@
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-border-default);
 }
-.lintje-user-menu__names { min-width: 0; }
+.lintje-user-menu__names { flex: 1; min-width: 0; }
 .lintje-user-menu__name { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
 .lintje-user-menu__role { margin: 0; font-size: 0.875rem; color: var(--color-text-muted); }
 
@@ -113,6 +113,15 @@
 .lintje-user-menu__panel.is-inline .lintje-menu__row.is-disabled,
 .lintje-user-menu__panel.is-inline .lintje-menu__row.is-disabled .lintje-menu__hint { color: var(--color-nav-disabled); }
 .lintje-user-menu__panel.is-inline .lintje-menu__separator { background: var(--color-nav-line); }
+/* Beside the name: a square touch target in the look of the mobile header's buttons. */
+.lintje-user-menu__panel.is-inline .lintje-user-menu__logout { flex: none; }
+.lintje-user-menu__logout-button {
+  display: flex; align-items: center; justify-content: center;
+  width: var(--h-touch); height: var(--h-touch);
+  background: var(--color-nav-active);
+  color: var(--color-nav-text);
+  border: 1px solid var(--color-nav-line);
+}
 
 /* On the theme fill the orange ring disappears: the on-theme ring, as the side menu. */
 .lintje-user-menu__trigger:focus-visible,
