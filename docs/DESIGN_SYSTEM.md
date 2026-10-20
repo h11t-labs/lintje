@@ -304,10 +304,10 @@ Besluiten die voor beide gelden:
   altijd.
 - **Onder 768 px is er geen rail**: een header met een Menu-knop, en het menu opent
   schermvullend. In de indeling Boven is die header een balk onder de logobalk, met de naam.
-- **De gebruiker heeft in elke indeling hetzelfde menu**: naam en rol, de rijen van de host,
-  "Afmelden" en de versie. De avatar in de balk opent het naar beneden, de voet van het zijmenu
-  naar boven, en op een telefoon staat het onderaan het menu. Zolang het open is, blijft de rail
-  uitgeklapt.
+- **De gebruiker heeft in elke indeling hetzelfde menu**: naam en rol met "Afmelden" als icoon
+  ernaast, de rijen van de host en de versie. De avatar in de balk opent het naar beneden, de voet
+  van het zijmenu naar boven, en op een telefoon staat het onderaan het menu. Met de pijltjes komt
+  "Afmelden" na de rijen. Zolang het open is, blijft de rail uitgeklapt.
 - **De shell bevat de pagina.** Zijn inhoud houdt zich aan de breedte en padding van de pagina;
   wat van rand tot rand loopt — een hero, de filterbalk, een gesprek — staat erboven.
 - **De instellingen van de lezer zijn van de host**: modus, thema, waar het menu staat. De shell

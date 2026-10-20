@@ -70,12 +70,13 @@
   color: var(--color-text-primary);
 }
 
+/* Right as wide as top and bottom: "Afmelden" stands in an even margin. */
 .lintje-user-menu__who {
   display: flex; align-items: center; gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-border-default);
 }
-.lintje-user-menu__names { min-width: 0; }
+.lintje-user-menu__names { flex: 1; min-width: 0; }
 .lintje-user-menu__name { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
 .lintje-user-menu__role { margin: 0; font-size: 0.875rem; color: var(--color-text-muted); }
 
@@ -84,6 +85,16 @@
 .lintje-user-menu__group:first-child.lintje-user-menu__group--logout { border-top: 0; }
 .lintje-user-menu__logout { display: flex; flex-direction: column; margin: 0; }
 .lintje-user-menu__logout-row { font-weight: 700; }
+/* Beside the name: the glyph alone on a square touch target, filled only under the pointer as a
+   row is. */
+.lintje-user-menu__who .lintje-user-menu__logout { flex: none; }
+.lintje-user-menu__logout-button {
+  display: flex; align-items: center; justify-content: center;
+  width: var(--h-touch); height: var(--h-touch);
+  color: inherit;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-user-menu__logout-button:hover { background: var(--color-bg-subtle); }
 
 .lintje-user-menu__version {
   margin: 0;
@@ -97,18 +108,22 @@
 .lintje-user-menu__panel.is-inline .lintje-user-menu__who,
 .lintje-user-menu__panel.is-inline .lintje-user-menu__group--logout,
 .lintje-user-menu__panel.is-inline .lintje-user-menu__version { border-color: var(--color-nav-line); }
-.lintje-user-menu__panel.is-inline .lintje-user-menu__who { padding: var(--space-4) var(--space-5); }
+.lintje-user-menu__panel.is-inline .lintje-user-menu__who {
+  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5);
+}
 /* Small text on the theme fill takes the menu's own ink: the sub tint is 3.82:1 on #01689B. */
 .lintje-user-menu__panel.is-inline .lintje-user-menu__role,
 .lintje-user-menu__panel.is-inline .lintje-user-menu__version,
 .lintje-user-menu__panel.is-inline .lintje-menu__hint { color: var(--color-nav-text); }
 .lintje-user-menu__panel.is-inline .lintje-user-menu__version { padding: var(--space-2) var(--space-5); }
+/* The row's height through its variable: its padding centres the first line. */
 .lintje-user-menu__panel.is-inline .lintje-menu__row {
-  height: var(--h-touch);
-  padding: 0 var(--space-5);
+  --lintje-menu-row: var(--h-touch);
+  padding-inline: var(--space-5);
   color: var(--color-nav-text);
 }
-.lintje-user-menu__panel.is-inline .lintje-menu__row:hover { background: var(--color-nav-hover); }
+.lintje-user-menu__panel.is-inline .lintje-menu__row:hover,
+.lintje-user-menu__panel.is-inline .lintje-user-menu__logout-button:hover { background: var(--color-nav-hover); }
 .lintje-user-menu__panel.is-inline .lintje-menu__row.is-disabled,
 .lintje-user-menu__panel.is-inline .lintje-menu__row.is-disabled .lintje-menu__hint { color: var(--color-nav-disabled); }
 .lintje-user-menu__panel.is-inline .lintje-menu__separator { background: var(--color-nav-line); }
