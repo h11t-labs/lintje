@@ -38,7 +38,7 @@
   /* Square when only the glyph shows (`headerCompact`). */
   min-width: var(--h-touch);
 }
-/* Without room the words are read, not shown: the glyph and the badge stay. */
+/* Without room the words are read, not shown: the glyph stays. */
 .lintje-mobile-header.is-compact .lintje-mobile-header__word {
   position: absolute;
   width: 1px; height: 1px;
@@ -47,9 +47,6 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
-/* The modified-filters count is the badge's `attention` tone: near-black on the
-   orange, because white on #E17000 is 3.2:1. */
-
 .lintje-mobile-menu {
   position: fixed;
   inset: var(--h-mobile-header) 0 0 0;

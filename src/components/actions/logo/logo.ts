@@ -80,7 +80,7 @@ export class LintjeLogo extends LintjeElement {
       <span
         class="lintje-logo__name"
         aria-hidden="true"
-        ${styleProps({ left: ribbonEnd })}
+        ${styleProps({ left: ribbonEnd, '--lintje-ribbon': this.#length(RIBBON.width) })}
         ><span class="lintje-logo__name-line">${this.alt}</span>${
           this.byline ? html`<span class="lintje-logo__byline">${this.byline}</span>` : nothing
         }</span

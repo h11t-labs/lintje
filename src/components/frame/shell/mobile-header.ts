@@ -2,8 +2,6 @@
 import { html, nothing, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
-import { renderBadge } from '../../feedback/badge/badge'
-import { setFrameState } from '../../../core/frame-state'
 import { hasPage, noAccessMark, unavailableNote, type NavGroup } from './header'
 import type { ShellLink } from '../../../types'
 import type { LintjeShell } from './shell'
@@ -48,7 +46,6 @@ export function renderMobileMeta(shell: LintjeShell): TemplateResult {
  */
 export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): TemplateResult {
   const data = shell.data
-  const count = shell.store.state.modifiedCount
   const open = shell.menuOpen
   const word = 'lintje-mobile-header__word'
   const close = (): void => {
@@ -84,31 +81,6 @@ export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): Temp
             : html`${shell.renderSearch()}${shell.renderNotifications()}${
                 // Only where this header shows, so an open panel is never drawn twice.
                 shell.mobile.matches ? renderBarTools(shell) : nothing
-              }${
-                !shell.store.state.hasFilters
-                  ? // No filter zone on this page: a Filters button would open nothing.
-                    nothing
-                  : html`<button
-                    type="button"
-                    class="lintje-mobile-header__button"
-                    aria-haspopup="dialog"
-                    aria-expanded=${shell.store.state.sheetOpen}
-                    @click=${() => setFrameState({ sheetOpen: true })}
-                  >
-                    ${renderIcon('functioneel-filters', { size: 16 })}
-                    <span class=${word}>Filters</span>
-                    ${
-                      count > 0
-                        ? // The number of modified filters: the attention badge, near-black on orange.
-                          renderBadge({
-                            value: count,
-                            label: `${count} aangepast`,
-                            tone: 'attention',
-                            className: 'lintje-mobile-header__badge',
-                          })
-                        : nothing
-                    }
-                  </button>`
               }`
         }
         <!-- One button in both states, so opening the menu leaves the focus
