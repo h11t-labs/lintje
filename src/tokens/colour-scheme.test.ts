@@ -610,15 +610,25 @@ describe('the header of the top layout', () => {
     }
   })
 
-  it('writes the name beside the ribbon in the text colour, at 4.5:1 in every theme and mode', () => {
+  it('writes the name beside the ribbon in lintblauw in light and in the text colour in dark', () => {
+    for (const theme of THEME_NAMES) {
+      expect(tokensFor('light', theme)['--color-logo-name'], theme).toBe('#154273')
+      const dark = tokensFor('dark', theme)
+      expect(dark['--color-logo-name'], theme).toBe(dark['--color-text-primary'])
+    }
+  })
+
+  it('carries the logo bar’s text and the name at 4.5:1 in every theme and mode', () => {
     for (const mode of ['light', 'dark'] as const) {
       for (const theme of THEME_NAMES) {
         const values = tokensFor(mode, theme)
         expect(values['--color-logobar-text']).toBe(values['--color-text-primary'])
-        expect(
-          contrast(values['--color-logobar-text'], values['--color-logobar-bg']),
-          `${mode} ${theme}`,
-        ).toBeGreaterThanOrEqual(4.5)
+        for (const text of ['--color-logobar-text', '--color-logo-name']) {
+          expect(
+            contrast(values[text], values['--color-logobar-bg']),
+            `${text} ${mode} ${theme}`,
+          ).toBeGreaterThanOrEqual(4.5)
+        }
       }
     }
   })
