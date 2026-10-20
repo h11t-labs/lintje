@@ -9,7 +9,7 @@ export interface FrameState {
   titleHidden: boolean
   scrolled: boolean
   sheetOpen: boolean
-  /** Filters that differ from their default, for the mobile header's badge. */
+  /** Filters that differ from their default. */
   modifiedCount: number
   summary: string
   hasFilters: boolean
