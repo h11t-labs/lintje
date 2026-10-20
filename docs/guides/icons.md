@@ -4,7 +4,7 @@ Lintje haalt elk icoon op uit de iconenmap die jouw pagina serveert: de map die 
 `setIconSource` aanwijst ([laden](loading.md#iconen)). Een eigen icoon toevoegen is dus: een
 SVG-bestand in die map zetten en het bij zijn naam noemen. Er is niets te bouwen of te registreren.
 
-Er is één iconenmap per pagina. Iconen uit een andere bron — een eigen map, een package van je
+Er is één iconenmap per pagina. Iconen uit een andere bron — een eigen map, een pakket van je
 organisatie — kopieer je dus in die map, naast de iconen van Lintje.
 
 ## Zit het al in de set?
@@ -58,10 +58,10 @@ Zonder `label` is het icoon versiering en slaat een schermlezer het over; met `l
 afbeelding met die naam. Lintje haalt het bestand op de eerste keer dat de naam getekend wordt, één
 keer per pagina.
 
-## Een hele set uit een eigen package
+## Een hele set uit een eigen pakket
 
-Heeft je organisatie een package met iconen, bijvoorbeeld in `icons/svg/*.svg`, kopieer de
-bestanden dan in je build-stap in de iconenmap, elk met hetzelfde voorvoegsel:
+Heeft je organisatie een pakket met iconen, bijvoorbeeld in `icons/svg/*.svg`, kopieer de
+bestanden dan in je bouwstap in de iconenmap, elk met hetzelfde voorvoegsel:
 
 ```bash
 mkdir -p public/icons
@@ -71,11 +71,11 @@ for f in node_modules/@organisatie/iconen/icons/svg/*.svg; do
 done
 ```
 
-Met `setIconSource({ base: '/icons/' })` is `icons/svg/dossier.svg` uit het package daarna
-`intern-dossier`, en de iconen van Lintje werken gewoon door. Doordat de kopie in de build-stap
-staat, gaat een nieuwe versie van Lintje of van het package vanzelf mee.
+Met `setIconSource({ base: '/icons/' })` is `icons/svg/dossier.svg` uit het pakket daarna
+`intern-dossier`, en de iconen van Lintje werken gewoon door. Doordat de kopie in de bouwstap
+staat, gaat een nieuwe versie van Lintje of van het pakket vanzelf mee.
 
-Controleer een paar bestanden uit het package voordat je de hele set gebruikt. Een set uit een
+Controleer een paar bestanden uit het pakket voordat je de hele set gebruikt. Een set uit een
 ontwerptool wijkt vaak af van wat Lintje tekent:
 
 - **Een kleur als attribuut** (`fill="#154273"`) blijft staan: het icoon kleurt dan niet mee met de
@@ -86,7 +86,7 @@ ontwerptool wijkt vaak af van wat Lintje tekent:
   omtrekicoon verliest zijn lijnen.
 - **Een omtrekicoon** heeft `fill="none"` op elke vorm nodig, niet alleen op de `<svg>`.
 
-Wijkt de set af, zet de bestanden dan één keer om in het package zelf, of in de build-stap met een
+Wijkt de set af, zet de bestanden dan één keer om in het pakket zelf, of in de bouwstap met een
 SVG-optimalisator die stijlen omzet naar attributen (SVGO met `inlineStyles` en
 `convertStyleToAttrs`), en vervang de vaste kleuren door `currentColor`.
 
@@ -100,7 +100,7 @@ welk adres er werd opgevraagd:
   ([laden](loading.md#twee-manieren-van-laden-en-een-pagina-kiest-er-één)).
 - **Een 404 in jouw map:** de bestandsnaam klopt niet met de naam. Let op hoofdletters en laat
   `.svg` weg uit de naam.
-- **Het oude icoon blijft staan:** de browser heeft het bestand gecachet. Geef `setIconSource` een
+- **Het oude icoon blijft staan:** de browser heeft het bestand nog in zijn cache. Geef `setIconSource` een
   nieuwe `version`.
 - **Een omtrekicoon is een gevuld vlak:** zet `fill="none"` op elke vorm, niet alleen op de
   `<svg>`.
@@ -131,13 +131,13 @@ Een bestand met de naam van een icoon uit de set vervangt dat icoon. Weglaten ka
 de naam niets, en een knop toont zijn tekst in plaats van het icoon.
 
 De iconen die de elementen zelf tekenen — de pijltjes, het kruis, de statustekens, de knoppen van
-de spelers — zitten in Lintje zelf en zijn niet te vervangen. De styleguide toont ze bij het
+de spelers — zitten in Lintje zelf en zijn niet te vervangen. De stijlgids toont ze bij het
 element `icon`, onder "register".
 
 ## Een nieuwe versie van Lintje
 
 Een nieuwe versie brengt een nieuwe iconenmap mee. Bewaar je eigen iconen daarom in een eigen map
-of package en kopieer ze in je build-stap in de iconenmap, zoals hierboven; geef `setIconSource`
+of pakket en kopieer ze in je bouwstap in de iconenmap, zoals hierboven; geef `setIconSource`
 daarna een nieuwe `version`.
 
 Een icoon dat ook andere applicaties nodig hebben, hoort in Lintje zelf:
