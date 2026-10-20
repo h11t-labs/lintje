@@ -42,6 +42,27 @@ Lintje is nog in versie 0.x: tot 1.0 kan een tag, een eigenschap of een event no
 [`CHANGELOG.md`](CHANGELOG.md) zegt per versie wat er veranderde en wat dat voor je pagina breekt.
 Lintje wordt getest in Chromium, WebKit en Firefox.
 
+## Wat erin zit
+
+De elementen staan in groepen, dezelfde als in de stijlgids:
+
+| Groep | Wat erin zit |
+|---|---|
+| Paginakader | wat om elke pagina staat: het menu, de paginakop met het kruimelpad, het submenu, de voet, zoeken en meldingen |
+| Indeling | het raster, de tegel, tabs, uitklappers en twee panelen naast elkaar |
+| Vensters en panelen | het venster, de dialoog, het paneel opzij, het zwevende paneel en de tooltip |
+| Knoppen en iconen | knoppen, kopiëren (ook als QR-code), de iconen en het beeldmerk van je organisatie |
+| Tekst en media | lopende tekst en code, audio en video met een meelopend transcript, een document, afbeeldingen en bijlagen |
+| Meldingen en status | een mededeling, een korte bevestiging, een lege toestand, een foutpagina, een status, laden en voortgang |
+| Invoervelden | elk veld om iets in te vullen of te kiezen: tekst, getal, keuzelijst, datum, tijd, bestand en een teksteditor |
+| Formulier | secties, stappen, een groep velden die zich herhaalt, het overzicht van fouten en de knoppen onderaan |
+| Filters | de filterbalk met de zin die zegt wat je ziet, en op een telefoon een blad |
+| Kerncijfers en grafieken | de cijfers bovenaan een pagina, de grafieken en de tekst die ze uitlegt |
+| Kaart | een kaart met stromen, punten of gebieden in kleur |
+| Netwerk | een diagram van dingen en hun relaties, dat zichzelf indeelt |
+| Tabellen en lijsten | de tabel als overzicht en als werkblad, lijsten, kaarten, een boom, een logboek en personen |
+| Chat met data | een gesprek over de gegevens: de vraag, en het antwoord met cijfers en grafieken |
+
 ## Gebruiken
 
 Installeer het pakket:
