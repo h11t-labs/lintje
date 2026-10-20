@@ -2,11 +2,11 @@
  * `<lintje-filter-zone>` — the filter bar: one place for everything that narrows the numbers.
  *
  * The controls come in through the slot and the sentence as parts; the owner keeps the state. The
- * zone is expanded, scrolled (a sticky summary bar) or, below 768 px, the sentence only — with
- * `sheet`, beside a "Filters" button that asks for the owner's sheet.
+ * zone is expanded, scrolled (a sticky summary bar) or, below 768 px, the sentence only: a button
+ * that asks the owner to open its sheet.
  *
  * Events: `lintje-filters-reset`, `lintje-zone-open-change` `boolean`,
- * `lintje-zone-scrolled-change` `boolean`, `lintje-zone-sheet-open`.
+ * `lintje-zone-scrolled-change` `boolean`, `lintje-zone-sheet-open` (below 768 px).
  */
 import {
   html,
@@ -19,6 +19,7 @@ import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
+import { badgeStyles, renderBadge } from '../../feedback/badge/badge'
 import { lengthPx } from '../../../core/length'
 import { MOBILE, MediaController } from '../../../core/media'
 import { filterSentence, type SentencePart } from '../shared/sentence'
@@ -35,16 +36,15 @@ import { holdsFocus } from '../../../core/focus'
 import { heightSettleMs } from '../../shared/transition'
 
 export class LintjeFilterZone extends LintjeElement {
-  static override styles = [iconStyles, shadowCss(zoneCss)]
+  static override styles = [iconStyles, badgeStyles, shadowCss(zoneCss)]
 
   static override properties: PropertyDeclarations = {
     total: { type: Number },
     modified: { type: Number },
     open: { type: Boolean },
     scrolled: { type: Boolean },
-    stick: { type: String },
-    sheet: { type: Boolean },
     sheetOpen: { type: Boolean, attribute: 'sheet-open' },
+    stick: { type: String },
     sentence: { attribute: false },
     settled: { state: true },
   }
@@ -54,18 +54,13 @@ export class LintjeFilterZone extends LintjeElement {
   /** The reader's choice to show the controls, held in the owner's URL. */
   open: boolean = false
   scrolled: boolean = false
+  /** Below 768 px, whether the owner's sheet is open: the sentence that opens it says so. */
+  sheetOpen: boolean = false
   /** The open transition is done, so the body may stop clipping the popovers hanging out of it. */
   protected settled: boolean = true
   private settleTimer: ReturnType<typeof setTimeout> | undefined
   /** `fixed` where the zone's own box is too small to stick in (a component mount). */
   stick: 'sticky' | 'fixed' = 'sticky'
-  /**
-   * Below 768 px a "Filters" button stands beside the sentence and asks for the owner's sheet: a
-   * bar outside the shell has no header to open it from.
-   */
-  sheet: boolean = false
-  /** The owner's sheet is open: the button's `aria-expanded`. */
-  sheetOpen: boolean = false
   sentence: SentencePart[] = []
 
   private readonly mobile = new MediaController(this, MOBILE)
@@ -247,27 +242,30 @@ export class LintjeFilterZone extends LintjeElement {
 
   protected override render(): TemplateResult {
     if (this.mobile.matches) {
-      return html`<div
-        class=${classMap({
-          'lintje-filter-bar': true,
-          'lintje-filter-bar--mobile': true,
-          'lintje-filter-bar--sheet': this.sheet,
-        })}
-      >
-        <p class="lintje-filter-bar__mobile-summary">${filterSentence(this.sentence)}</p>
-        ${
-          this.sheet
-            ? html`<button
-                type="button"
-                class="lintje-filter-toggle lintje-filter-bar__sheet-button"
-                aria-haspopup="dialog"
-                aria-expanded=${this.sheetOpen}
-                @click=${() => this.emitLocal('lintje-zone-sheet-open')}
-              >
-                ${renderIcon('functioneel-filters', { size: 16 })} Filters
-              </button>`
-            : nothing
-        }
+      // The sentence that sticks under the header is the way to the sheet; the ring is inset,
+      // since the bar runs from edge to edge of the screen.
+      return html`<div class="lintje-filter-bar lintje-filter-bar--mobile">
+        <button
+          type="button"
+          class="lintje-filter-bar__mobile-summary focus-inset"
+          aria-haspopup="dialog"
+          aria-expanded=${this.sheetOpen}
+          @click=${() => this.emitLocal('lintje-zone-sheet-open')}
+        >
+          ${filterSentence(this.sentence)}
+          <span class="lintje-filter-bar__mobile-end">
+            ${
+              this.modified > 0
+                ? renderBadge({
+                    value: this.modified,
+                    label: `${this.modified} aangepast`,
+                    tone: 'attention',
+                  })
+                : nothing
+            }
+            ${renderIcon('functioneel-delta-omlaag', { size: 16 })}
+          </span>
+        </button>
       </div>`
     }
 

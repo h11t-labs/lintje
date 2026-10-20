@@ -1,6 +1,6 @@
 /**
  * `<lintje-filter-bar>` — the host's declared filters in the filter zone and, below 768 px, the
- * sheet. In the shell the phone header opens the sheet; a `standalone` bar has its own button.
+ * sheet that the zone's sentence opens.
  *
  * Values cross as the canonical strings the host writes to the URL. A change in the bar commits at
  * once, the sheet on "Toepassen"; the host confirms with the next `data`. Put one filter bar on a
@@ -124,7 +124,7 @@ export class LintjeFilterBar extends LintjeElement {
   /** The sheet's draft: nothing applies before "Toepassen". */
   draft: Values = {}
   open: boolean = false
-  /** A standalone bar's own sheet: the shell's store is not its to write. */
+  /** A standalone bar's sheet: the shell's store holds the sheet of the page's one bar. */
   ownSheetOpen: boolean = false
 
   private readonly mobile = new MediaController(this, MOBILE)
@@ -143,6 +143,15 @@ export class LintjeFilterBar extends LintjeElement {
    */
   private get visible(): FilterDefinition[] {
     return this.filters.filter((filter) => !filter.hidden)
+  }
+
+  private get sheetOpen(): boolean {
+    return this.data?.standalone ? this.ownSheetOpen : this.frame.state.sheetOpen
+  }
+
+  private setSheetOpen(open: boolean): void {
+    if (this.data?.standalone) this.ownSheetOpen = open
+    else setFrameState({ sheetOpen: open })
   }
 
   private get defaults(): Values {
@@ -169,8 +178,6 @@ export class LintjeFilterBar extends LintjeElement {
         this.open = declaredOpen
       }
     }
-    // A phone's sheet closes at 768 px and wider.
-    if (!this.mobile.matches) this.ownSheetOpen = false
     const sheetOpen = this.sheetOpen
     if (sheetOpen && !this.sheetWasOpen) this.draft = { ...this.values }
     this.sheetWasOpen = sheetOpen
@@ -216,15 +223,6 @@ export class LintjeFilterBar extends LintjeElement {
       setFrameState({ sentenceHeight: height })
     })
     this.#sentenceSize.observe(zone)
-  }
-
-  private get sheetOpen(): boolean {
-    return this.data?.standalone ? this.ownSheetOpen : this.frame.state.sheetOpen
-  }
-
-  private closeSheet(): void {
-    if (this.data?.standalone) this.ownSheetOpen = false
-    else setFrameState({ sheetOpen: false })
   }
 
   private isModified(source: Values, filter: FilterDefinition): boolean {
@@ -367,7 +365,6 @@ export class LintjeFilterBar extends LintjeElement {
   protected override render(): TemplateResult {
     const parts = sentence(this.visible, this.values)
     const sheetOpen = this.sheetOpen && this.mobile.matches
-    const standalone = Boolean(this.data?.standalone)
 
     // `.open` is a property: `?open` would only add the attribute, never clear the zone's default.
     return html`
@@ -377,7 +374,6 @@ export class LintjeFilterBar extends LintjeElement {
         .modified=${this.modifiedCount}
         .open=${this.open}
         ?scrolled=${this.frame.state.scrolled}
-        .sheet=${standalone}
         .sheetOpen=${sheetOpen}
         .sentence=${parts}
         @lintje-filters-reset=${() => this.commit(this.defaults)}
@@ -386,7 +382,7 @@ export class LintjeFilterBar extends LintjeElement {
           this.emit('lintje-filters-open-change', event.detail)
         }}
         @lintje-zone-scrolled-change=${(event: CustomEvent<boolean>) => setScrolled(event.detail)}
-        @lintje-zone-sheet-open=${() => (this.ownSheetOpen = true)}
+        @lintje-zone-sheet-open=${() => this.setSheetOpen(true)}
       >
         ${this.fields(this.values, false, (next) => this.commit(next))}
       </lintje-filter-zone>
@@ -395,13 +391,13 @@ export class LintjeFilterBar extends LintjeElement {
         ?open=${sheetOpen}
         .sentence=${sentence(this.visible, this.draft)}
         ?reset-disabled=${this.visible.every((filter) => !this.isModified(this.draft, filter))}
-        @lintje-sheet-close=${() => this.closeSheet()}
+        @lintje-sheet-close=${() => this.setSheetOpen(false)}
         @lintje-filters-reset=${() => {
           this.draft = this.defaults
         }}
         @lintje-filters-apply=${() => {
           this.commit(this.draft)
-          this.closeSheet()
+          this.setSheetOpen(false)
         }}
       >
         ${this.fields(this.draft, true, (next) => {

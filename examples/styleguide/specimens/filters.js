@@ -48,10 +48,9 @@ export default {
       tag: 'lintje-filter-bar',
       wide: true,
       title: 'De filterbalk: de filters die de pagina declareert, als zone en als blad',
-      // A page holds one filter bar in the shell: it owns the filter count in the mobile header
-      // and the sheet, and one bar per page writes the store that says whether the sheet is open.
-      // The style guide page has no other such bar, so this one stands once, full width; the
-      // standalone bar beside it writes nothing there.
+      // A page holds one filter bar in the shell: one bar per page writes the store that says
+      // whether the sheet is open. The style guide page has no other such bar, so this one
+      // stands once, full width; the standalone bar under it keeps its own sheet.
       specimens: [
         {
           label: 'Drie filters',
@@ -98,7 +97,7 @@ export default {
           label: 'Los op de pagina',
           note:
             'Met `standalone` hoort de balk niet bij de schil en schrijft hij daar niets. Onder ' +
-            '768 px staat naast de zin een eigen knop Filters, die het filterblad opent.',
+            '768 px is de zin een knop die het eigen filterblad van de balk opent.',
           html: '<lintje-filter-bar></lintje-filter-bar>',
           setup(stage) {
             const bar = stage.querySelector('lintje-filter-bar')

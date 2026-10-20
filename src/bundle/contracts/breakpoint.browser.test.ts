@@ -506,7 +506,7 @@ function oneLine(element: HTMLElement): boolean {
   return level(tabs[0]!, tabs.at(-1)!)
 }
 
-/** The header's "Filters" button, which opens the filters as a sheet. */
+/** A "Filters" button in the header: the sentence under it opens the sheet instead. */
 const filtersButton = (shell: HTMLElement): HTMLElement | undefined =>
   all(shell.shadowRoot!, '.lintje-mobile-header__button').find((button) =>
     button.textContent?.includes('Filters'),
@@ -1260,7 +1260,7 @@ const ROWS: Row[] = [
   },
   {
     tag: 'lintje-filter-bar',
-    marker: 'in the shell a "Filters" button in the header takes the fields’ place',
+    marker: 'in the shell the sentence, which opens the sheet, takes the fields’ place',
     mount: async () => {
       const element = create('lintje-shell', {
         data: { name: 'Vergunningen', navigation: NAVIGATION },
@@ -1269,7 +1269,10 @@ const ROWS: Row[] = [
       return append(element)
     },
     wide: (element) => shown(element, 'lintje-field') && !seen(filtersButton(element)),
-    phone: (element) => seen(filtersButton(element)) && !shown(element, 'lintje-field'),
+    phone: (element) =>
+      shown(element, 'button.lintje-filter-bar__mobile-summary') &&
+      !seen(filtersButton(element)) &&
+      !shown(element, 'lintje-field'),
   },
   {
     tag: 'lintje-grid',
@@ -1910,14 +1913,16 @@ describe('little height: 320 × 256', () => {
 })
 
 describe('the narrow screen', () => {
-  it('gives a standalone filter bar its own Filters button and sheet on a phone', async () => {
+  it('opens the own sheet of a standalone filter bar from its sentence on a phone', async () => {
     const bar = await append(
       create('lintje-filter-bar', { data: { ...FILTERS, standalone: true } }),
     )
     await viewport(390, 844)
-    const button = (): HTMLElement | null => find(bar, '.lintje-filter-bar__sheet-button')
+    // Outside the shell there is no header: the sentence is the way to the sheet (#303).
+    const button = (): HTMLElement | null => find(bar, 'button.lintje-filter-bar__mobile-summary')
     await expect.poll(() => seen(button())).toBe(true)
-    expect(button()!.textContent).toContain('Filters')
+    expect(button()!.textContent).toContain('Je ziet')
+    expect(button()!.getAttribute('aria-haspopup')).toBe('dialog')
     // By the keyboard: Safari gives a clicked button no focus to come back to.
     button()!.focus()
     await userEvent.keyboard('{Enter}')

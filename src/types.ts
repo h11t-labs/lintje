@@ -648,10 +648,7 @@ export interface FilterBarData extends FrameSettings {
   filters: FilterDefinition[]
   /** The URL's `filters` param: false when the user collapsed the bar. */
   open?: boolean
-  /**
-   * A bar in the page's content: draws its own sentence, never writes the shell's state. Below
-   * 768 px a "Filters" button beside the sentence opens its own sheet.
-   */
+  /** A bar in the page's content: its own sentence and sheet, never the shell's state. */
   standalone?: boolean
 }
 
