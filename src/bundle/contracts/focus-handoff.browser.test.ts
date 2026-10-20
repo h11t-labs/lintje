@@ -51,7 +51,7 @@ import '../../components/inputs/text-editor/text-editor'
 import '../../components/overlays/dialog/dialog'
 import '../../components/tables/person-group/person-group'
 import { holdsFocus, standsIn, tabbables } from '../../core/focus'
-import { getFrameState as frameState, setFrameState } from '../../core/frame-state'
+import { setFrameState } from '../../core/frame-state'
 import { SHIFT_TAB, TAB } from '../../core/test-keys'
 import type { UploadFile } from '../../components/shared/files'
 import type { LintjeList, ListItem } from '../../components/tables/list/list'
@@ -2514,6 +2514,31 @@ const FILTERS = [
   },
 ]
 
+/** A filter bar as a page has it below 768 px: in a shell, or standalone with its own sheet. */
+async function filterBarOnPhone(standalone: boolean): Promise<HTMLElement> {
+  const data = { filters: FILTERS, ...(standalone ? { standalone: true } : {}) }
+  if (standalone) return mount<HTMLElement>('lintje-filter-bar', { data })
+  const element = await shell({})
+  const bar = Object.assign(document.createElement('lintje-filter-bar'), { data })
+  element.append(bar)
+  await (bar as unknown as Updating).updateComplete
+  return bar
+}
+
+const filterSheet = (bar: Element): HTMLElement | null =>
+  inside(bar, 'lintje-filter-sheet', '.lintje-filter-sheet')
+
+/** The phone's sentence pressed from the keyboard: the sheet opens and holds the focus. */
+async function openSheetFromSentence(bar: Element): Promise<void> {
+  const sentence = (): HTMLElement | null =>
+    inside(bar, 'lintje-filter-zone', '.lintje-filter-bar__mobile-summary')
+  await drawn(sentence)
+  sentence()!.focus()
+  await userEvent.keyboard('{Enter}')
+  await drawn(() => filterSheet(bar))
+  await expect.poll(() => holdsFocus(filterSheet(bar)!)).toBe(true)
+}
+
 const AREA = { kind: 'circle', centre: [5.12, 52.09], radiusKm: 40 }
 
 /** A map with a drawn area chosen, its panel's close drawn. */
@@ -2796,22 +2821,21 @@ const PANEL_ROWS: Row[] = [
       return () => inside(chip, '.lintje-attachment__main')
     },
   },
-  {
-    name: 'lintje-filter-bar :: the sheet, open at 390 px, closes for good at 1024 px and hands its focus to "Filters"',
+  ...(['in a shell', 'standalone'] as const).map((where): Row => ({
+    name: `lintje-filter-bar :: ${where}, the sheet open at 390 px closes for good at 1024 px and hands its focus to the sentence`,
     run: async () => {
       await phone()
-      const bar = await mount<HTMLElement>('lintje-filter-bar', { data: { filters: FILTERS } })
-      setFrameState({ sheetOpen: true })
-      const sheet = (): HTMLElement | null =>
-        inside(bar, 'lintje-filter-sheet', '.lintje-filter-sheet')
-      await drawn(sheet)
-      await expect.poll(() => holdsFocus(sheet()!)).toBe(true)
+      const bar = await filterBarOnPhone(where === 'standalone')
+      await openSheetFromSentence(bar)
       await page.viewport(1024, 900)
-      await expect.poll(() => sheet()).toBeNull()
-      expect(frameState().sheetOpen).toBe(false)
-      return () => inside(bar, 'lintje-filter-zone', '.lintje-filter-toggle')
+      await expect.poll(() => filterSheet(bar)).toBeNull()
+      expect(
+        (bar.shadowRoot!.querySelector('lintje-filter-sheet') as HTMLElement & { open: boolean })
+          .open,
+      ).toBe(false)
+      return () => inside(bar, 'lintje-filter-zone', '.lintje-summary-bar__sentence')
     },
-  },
+  })),
   ...(['button', 'Escape'] as const).map((how): Row => ({
     name: `lintje-map :: a drawn area’s panel, gone with ${how === 'button' ? '"Selectie opheffen"' : 'Escape'}, hands its focus to the map`,
     run: async () => {
@@ -3057,17 +3081,17 @@ describe('the order of the focus trap and of what stands over a drawing', () => 
     await expect.poll(() => active()).toBe(mark())
   })
 
-  it('the filter sheet, closed at 1024 px, stays closed back at 390 px', async () => {
-    await phone()
-    const bar = await mount<HTMLElement>('lintje-filter-bar', { data: { filters: FILTERS } })
-    setFrameState({ sheetOpen: true })
-    const sheet = (): HTMLElement | null =>
-      inside(bar, 'lintje-filter-sheet', '.lintje-filter-sheet')
-    await drawn(sheet)
-    await page.viewport(1024, 900)
-    await expect.poll(() => sheet()).toBeNull()
-    await phone()
-    await new Promise(requestAnimationFrame)
-    expect(sheet()).toBeNull()
-  })
+  it.each(['in a shell', 'standalone'] as const)(
+    'the filter sheet %s, closed at 1024 px, stays closed back at 390 px',
+    async (where) => {
+      await phone()
+      const bar = await filterBarOnPhone(where === 'standalone')
+      await openSheetFromSentence(bar)
+      await page.viewport(1024, 900)
+      await expect.poll(() => filterSheet(bar)).toBeNull()
+      await phone()
+      await new Promise(requestAnimationFrame)
+      expect(filterSheet(bar)).toBeNull()
+    },
+  )
 })

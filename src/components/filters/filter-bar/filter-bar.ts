@@ -1,6 +1,6 @@
 /**
  * `<lintje-filter-bar>` — the host's declared filters in the filter zone and, below 768 px, the
- * sheet.
+ * sheet that the zone's sentence opens.
  *
  * Values cross as the canonical strings the host writes to the URL. A change in the bar commits at
  * once, the sheet on "Toepassen"; the host confirms with the next `data`. Put one filter bar on a
@@ -111,6 +111,7 @@ export class LintjeFilterBar extends LintjeElement {
     values: { state: true },
     draft: { state: true },
     open: { state: true },
+    ownSheetOpen: { state: true },
   }
 
   declare data?: FilterBarData | null
@@ -123,13 +124,15 @@ export class LintjeFilterBar extends LintjeElement {
   /** The sheet's draft: nothing applies before "Toepassen". */
   draft: Values = {}
   open: boolean = false
+  /** A standalone bar's sheet: the shell's store holds the sheet of the page's one bar. */
+  ownSheetOpen: boolean = false
 
   private readonly mobile = new MediaController(this, MOBILE)
   private readonly frame = new FrameStateController(this)
   private sheetWasOpen = false
   #wasMobile: boolean | null = null
-  /** The sheet closes because the screen grew past 768 px: its focus goes to the zone's toggle. */
-  #toToggle = false
+  /** The sheet closes because the screen grew past 768 px: its focus goes to the zone's sentence. */
+  #toZone = false
   private committed = ''
   private declaredOpen: boolean | undefined = undefined
 
@@ -143,6 +146,15 @@ export class LintjeFilterBar extends LintjeElement {
    */
   private get visible(): FilterDefinition[] {
     return this.filters.filter((filter) => !filter.hidden)
+  }
+
+  private get sheetOpen(): boolean {
+    return this.data?.standalone ? this.ownSheetOpen : this.frame.state.sheetOpen
+  }
+
+  private setSheetOpen(open: boolean): void {
+    if (this.data?.standalone) this.ownSheetOpen = open
+    else setFrameState({ sheetOpen: open })
   }
 
   private get defaults(): Values {
@@ -169,20 +181,20 @@ export class LintjeFilterBar extends LintjeElement {
         this.open = declaredOpen
       }
     }
+    // From 768 px up there is no sheet: it closes for good, as the notifications' does, and the
+    // phone's sentence that opened it is gone with the phone's form of the zone.
+    const wasMobile = this.#wasMobile
+    this.#wasMobile = this.mobile.matches
+    if (wasMobile && !this.mobile.matches && this.sheetOpen) {
+      this.#toZone = true
+      this.setSheetOpen(false)
+    }
+    const sheetOpen = this.sheetOpen
+    if (sheetOpen && !this.sheetWasOpen) this.draft = { ...this.values }
+    this.sheetWasOpen = sheetOpen
     // A standalone bar keeps its hands off the shell: two bars writing one store would
     // re-render each other without end.
     if (this.data?.standalone) return
-    // From 768 px up there is no sheet: it closes for good, as the notifications' does, and the
-    // button that opened it is gone with the phone's header.
-    const wasMobile = this.#wasMobile
-    this.#wasMobile = this.mobile.matches
-    if (wasMobile && !this.mobile.matches && this.frame.state.sheetOpen) {
-      this.#toToggle = true
-      setFrameState({ sheetOpen: false })
-    }
-    const sheetOpen = this.frame.state.sheetOpen
-    if (sheetOpen && !this.sheetWasOpen) this.draft = { ...this.values }
-    this.sheetWasOpen = sheetOpen
     // Written while updating, not after: the store tells this element too, and a later write
     // would schedule a second update (lit.dev/msg/change-in-update).
     const parts = sentence(this.visible, this.values)
@@ -207,17 +219,18 @@ export class LintjeFilterBar extends LintjeElement {
 
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
-    if (this.#toToggle) {
-      this.#toToggle = false
-      void this.#focusToggle()
+    if (this.#toZone) {
+      this.#toZone = false
+      void this.#focusZone()
     }
   }
 
   /**
-   * Once the sheet has let go and the zone drew its wide form: its "Filters" takes the focus. The
-   * zone hears the breakpoint after this element, so the wait is a frame and its render.
+   * Once the sheet has let go and the zone drew its wide form, the zone takes the focus (its
+   * sentence). The zone hears the breakpoint after this element, so the wait is a frame and its
+   * render.
    */
-  async #focusToggle(): Promise<void> {
+  async #focusZone(): Promise<void> {
     await new Promise(requestAnimationFrame)
     const zone = this.renderRoot.querySelector('lintje-filter-zone')
     await zone?.updateComplete
@@ -382,7 +395,7 @@ export class LintjeFilterBar extends LintjeElement {
 
   protected override render(): TemplateResult {
     const parts = sentence(this.visible, this.values)
-    const sheetOpen = this.frame.state.sheetOpen && this.mobile.matches && !this.data?.standalone
+    const sheetOpen = this.sheetOpen && this.mobile.matches
 
     // `.open` is a property: `?open` would only add the attribute, never clear the zone's default.
     return html`
@@ -392,6 +405,7 @@ export class LintjeFilterBar extends LintjeElement {
         .modified=${this.modifiedCount}
         .open=${this.open}
         ?scrolled=${this.frame.state.scrolled}
+        .sheetOpen=${sheetOpen}
         .sentence=${parts}
         @lintje-filters-reset=${() => this.commit(this.defaults)}
         @lintje-zone-open-change=${(event: CustomEvent<boolean>) => {
@@ -399,22 +413,23 @@ export class LintjeFilterBar extends LintjeElement {
           this.emit('lintje-filters-open-change', event.detail)
         }}
         @lintje-zone-scrolled-change=${(event: CustomEvent<boolean>) => setScrolled(event.detail)}
+        @lintje-zone-sheet-open=${() => this.setSheetOpen(true)}
       >
         ${this.fields(this.values, false, (next) => this.commit(next))}
       </lintje-filter-zone>
 
       <lintje-filter-sheet
         ?open=${sheetOpen}
-        .restoreFocus=${!this.#toToggle}
+        .restoreFocus=${!this.#toZone}
         .sentence=${sentence(this.visible, this.draft)}
         ?reset-disabled=${this.visible.every((filter) => !this.isModified(this.draft, filter))}
-        @lintje-sheet-close=${() => setFrameState({ sheetOpen: false })}
+        @lintje-sheet-close=${() => this.setSheetOpen(false)}
         @lintje-filters-reset=${() => {
           this.draft = this.defaults
         }}
         @lintje-filters-apply=${() => {
           this.commit(this.draft)
-          setFrameState({ sheetOpen: false })
+          this.setSheetOpen(false)
         }}
       >
         ${this.fields(this.draft, true, (next) => {
