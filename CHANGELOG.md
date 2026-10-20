@@ -11,6 +11,13 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-10-20
+
+### Gewijzigd
+
+- Tijdens het slepen in `lintje-sortable-list` schuiven de andere rijen opzij naar hun nieuwe plek, omhoog en omlaag op hetzelfde moment; de lijn en de zichtbare statusregel vervallen (een schermlezer hoort de melding nog). Na het loslaten krijgt de greep alleen focus als hij die al had. (#307)
+- "Afmelden" staat in het gebruikersmenu als icoon naast de naam, in de balk, in de zijbalk en op een telefoon; met de pijltjes komt het na de rijen. Op een telefoon staan de rijen van het gebruikersmenu verticaal gecentreerd, en in de indeling Boven vallen "Afmelden" en de versie niet meer onder de rand van het scherm. (#306)
+
 ## [0.9.0] - 2026-10-20
 
 ### Toegevoegd
@@ -610,7 +617,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.9.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.9.1...HEAD
+[0.9.1]: https://github.com/h11t-labs/lintje/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/h11t-labs/lintje/compare/v0.8.3...v0.9.0
 [0.8.3]: https://github.com/h11t-labs/lintje/compare/v0.8.2...v0.8.3
 [0.8.2]: https://github.com/h11t-labs/lintje/compare/v0.8.1...v0.8.2
