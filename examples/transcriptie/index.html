@@ -434,6 +434,20 @@
     </lintje-dialog>
 
 
+    <!-- Removing a recording and stopping a live one without keeping it cannot be undone: both ask
+         first, with the safe answer first. -->
+    <lintje-dialog id="delete-modal" alert heading="Opname verwijderen?">
+      <span id="delete-text"></span>
+      <lintje-button slot="actions" variant="secondary" autofocus data-close>Annuleren</lintje-button>
+      <lintje-button slot="actions" variant="danger" data-answer>Verwijderen</lintje-button>
+    </lintje-dialog>
+
+    <lintje-dialog id="discard-modal" alert heading="Opname stoppen zonder te bewaren?">
+      <span id="discard-text"></span>
+      <lintje-button slot="actions" variant="secondary" autofocus data-close>Doorgaan met opnemen</lintje-button>
+      <lintje-button slot="actions" variant="danger" data-answer>Stoppen zonder bewaren</lintje-button>
+    </lintje-dialog>
+
     <lintje-dialog id="merge-modal" wide heading="Sprekers samenvoegen">
       <lintje-select id="merge-into" class="adjust-grid__field" label="Samenvoegen met"></lintje-select>
       <lintje-button slot="actions" id="merge-cancel" variant="tertiary">Annuleren</lintje-button>
