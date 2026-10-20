@@ -85,12 +85,11 @@
 .lintje-user-menu__logout { display: flex; flex-direction: column; margin: 0; }
 .lintje-user-menu__logout-row { font-weight: 700; }
 /* Beside the name: the glyph alone on a square touch target, filled only under the pointer as a
-   row is. Its edge, not the target's, lines up with the rows' hints. */
+   row is. */
 .lintje-user-menu__who .lintje-user-menu__logout { flex: none; }
 .lintje-user-menu__logout-button {
   display: flex; align-items: center; justify-content: center;
   width: var(--h-touch); height: var(--h-touch);
-  margin-right: calc((20px - var(--h-touch)) / 2);
   color: inherit;
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
