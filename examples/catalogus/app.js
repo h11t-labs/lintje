@@ -426,7 +426,7 @@ $('filters').addEventListener('lintje-values-change', (event) => {
   history.replaceState(null, '', `${location.pathname}?${params}`)
   renderCatalogue()
 })
-/** The bar's first filter, or the toggle that unfolds the filters while they are folded away. */
+/** The bar's first filter, or what unfolds the filters while they are folded away. */
 function focusFirstFilter() {
   const bar = $('filters').shadowRoot
   const first = bar?.querySelector('lintje-filter-zone lintje-field > *')
