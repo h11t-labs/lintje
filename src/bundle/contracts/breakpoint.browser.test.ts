@@ -506,7 +506,7 @@ function oneLine(element: HTMLElement): boolean {
   return level(tabs[0]!, tabs.at(-1)!)
 }
 
-/** The header's "Filters" button, which opens the filters as a sheet. */
+/** A "Filters" button in the header: the sentence under it opens the sheet instead. */
 const filtersButton = (shell: HTMLElement): HTMLElement | undefined =>
   all(shell.shadowRoot!, '.lintje-mobile-header__button').find((button) =>
     button.textContent?.includes('Filters'),
@@ -1297,7 +1297,7 @@ const ROWS: Row[] = [
   },
   {
     tag: 'lintje-filter-bar',
-    marker: 'in the shell a "Filters" button in the header takes the fields’ place',
+    marker: 'in the shell the sentence, which opens the sheet, takes the fields’ place',
     mount: async () => {
       const element = create('lintje-shell', {
         data: { name: 'Vergunningen', navigation: NAVIGATION },
@@ -1306,7 +1306,10 @@ const ROWS: Row[] = [
       return append(element)
     },
     wide: (element) => shown(element, 'lintje-field') && !seen(filtersButton(element)),
-    phone: (element) => seen(filtersButton(element)) && !shown(element, 'lintje-field'),
+    phone: (element) =>
+      shown(element, 'button.lintje-filter-bar__mobile-summary') &&
+      !seen(filtersButton(element)) &&
+      !shown(element, 'lintje-field'),
   },
   {
     tag: 'lintje-grid',

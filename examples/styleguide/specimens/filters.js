@@ -48,8 +48,8 @@ export default {
       tag: 'lintje-filter-bar',
       wide: true,
       title: 'De filterbalk: de filters die de pagina declareert, als zone en als blad',
-      // A page holds one filter bar: it owns the filter count in the mobile header and the
-      // sheet, and one bar per page writes the store that says whether the sheet is open.
+      // A page holds one filter bar: one bar per page writes the store that says whether the
+      // sheet is open.
       // The style guide page has no other filter bar, so this one stands once, full width.
       specimens: [
         {
