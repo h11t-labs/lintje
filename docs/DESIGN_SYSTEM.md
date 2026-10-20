@@ -1062,10 +1062,10 @@ pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
 - **Een keuze beweegt mee**: het vinkje van een checkbox groeit in bij aanvinken en krimpt weg bij
   uitvinken, op de duur van hoverfeedback.
 - **Een sorteerbare lijst toont zelf de nieuwe volgorde**, zonder lijn of zin erbij: bij slepen
-  schuiven de andere rijen opzij zodra het midden van de gesleepte rij het midden van een buur
-  passeert, en losgelaten zakt de rij in haar gat; met een tik of een pijltoets gaat de rij meteen
-  naar haar plaats. De rijen schuiven kort, zodat het oog volgt, en de verplaatste rij houdt haar
-  opgetilde vorm tot ze ligt. Een schermlezer hoort wat er gebeurt uit een verborgen live-regio.
+  schuiven de andere rijen opzij zodra de gesleepte rij er de helft van bedekt, omhoog en omlaag
+  gelijk, en bij het loslaten staat de volgorde er meteen. Met een tik of een pijltoets schuift de
+  rij kort naar haar nieuwe plaats, zodat het oog volgt, en houdt ze haar opgetilde vorm tot ze
+  ligt. Een schermlezer hoort wat er gebeurt uit een verborgen live-regio.
 - **De focusring is nooit geanimeerd.**
 - **Verminderde beweging laat niets weg, alleen de beweging.** Alleen een vervaging blijft, kort;
   al het andere, ook de focusring en een kleur, staat meteen.

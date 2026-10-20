@@ -4,4 +4,4 @@
 
 ### Gewijzigd
 
-- `lintje-sortable-list` toont zelf de nieuwe volgorde: bij slepen schuiven de andere rijen opzij zodra de gesleepte rij het midden van een buur passeert, en met een tik of een pijltoets gaat de rij meteen naar haar plaats, met een korte schuifbeweging. De droplijn en de zichtbare zin onder de lijst zijn weg; een schermlezer hoort de zin nog. Escape of een `pointercancel` tijdens het slepen zet alle rijen terug. (#281)
+- `lintje-sortable-list`: een rij die met een tik op een andere greep of met een pijltoets verhuist, schuift kort naar haar nieuwe plaats en blijft opgetild tot ze ligt; onder verminderde beweging staat ze er meteen. Escape tijdens het slepen zet alle rijen terug en meldt niets. (#281)

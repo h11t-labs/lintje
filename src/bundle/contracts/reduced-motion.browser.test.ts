@@ -248,7 +248,7 @@ describe('a sortable list', () => {
       await mouse('mouseMoved', x, second.bottom - 2, 1)
       await element.updateComplete
       const datum = rows(element)[1]!
-      expect(getComputedStyle(datum).translate).not.toBe('none')
+      expect(datum.style.transform).not.toBe('')
       expect(datum.getAnimations()).toEqual([])
       // Already in the place Naam left, not on its way there.
       expect(datum.getBoundingClientRect().top).toBeCloseTo(first, 0)

@@ -19,10 +19,9 @@
   height: var(--h-touch);
   padding: 0 var(--space-2);
   background: var(--color-bg-surface);
-  --lintje-sortable-list-border: 1px;
-  border: var(--lintje-sortable-list-border) solid var(--color-border-default);
+  border: 1px solid var(--color-border-default);
   color: var(--color-text-primary);
-  /* A row that moves slides into its new place, also out of the way of a dragged one. */
+  /* A row moved by a tap or a key slides into its new place. */
   transition: translate var(--dur-base) var(--ease-in-motion);
 }
 .lintje-sortable-list__row.is-lifted {
@@ -31,8 +30,13 @@
   box-shadow: var(--shadow-popover);
   font-weight: 700;
 }
-/* The row follows the pointer through the CSSOM; nothing eases it. */
-.lintje-sortable-list__row.is-dragging { transition: none; }
+/* While a row is dragged the others slide aside to show where it lands. Only then: at the drop
+   the order changes and every offset goes at once, so nothing slides back. The dragged row
+   follows the pointer through the CSSOM; nothing eases it. */
+.lintje-sortable-list.is-sorting .lintje-sortable-list__row {
+  transition: transform var(--dur-base) var(--ease-in-motion);
+}
+.lintje-sortable-list.is-sorting .lintje-sortable-list__row.is-dragging { transition: none; }
 
 /* The grip is the only handle, so a finger on the row still scrolls. Its hit area reaches the
    row's full height, up and down only. */
@@ -71,7 +75,8 @@
 /* Reduced motion: nothing eases; the state still shows at once. */
 @media (prefers-reduced-motion: reduce) {
   .lintje-sortable-list__row,
-  .lintje-sortable-list__grip { transition: none; }
+  .lintje-sortable-list__grip,
+  .lintje-sortable-list.is-sorting .lintje-sortable-list__row { transition: none; }
 }
 
 /* Forced colours: the lifted row's shadow is dropped, so its edge turns Highlight. */

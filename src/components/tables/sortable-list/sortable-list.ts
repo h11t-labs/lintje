@@ -43,13 +43,18 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
 }
 
 /**
- * The place of a dragged row whose centre is at `centre`, now at `at`: it passes a neighbour when
- * it passes that neighbour's middle. `slots` are the middles of the places, top to bottom.
+ * Where a dragged row lands: how many of the other rows (`middles`, top to bottom) are above it.
+ * A row gives way once the dragged row covers half of it, the same going up as going down: the
+ * rows above are passed by its `top` edge, the rows below by its `bottom`.
  */
-export function dragIndex(slots: readonly number[], centre: number, at: number): number {
-  let index = at
-  while (index < slots.length - 1 && centre > slots[index + 1]!) index++
-  while (index > 0 && centre < slots[index - 1]!) index--
+export function dropIndex(
+  middles: readonly number[],
+  from: number,
+  top: number,
+  bottom: number,
+): number {
+  let index = 0
+  while (index < middles.length && middles[index]! < (index < from ? top : bottom)) index++
   return index
 }
 
@@ -62,8 +67,14 @@ interface Drag {
   to: number
   startY: number
   dy: number
-  /** The middle of every place, measured when the drag began. */
-  slots: number[]
+  /** The dragged row's edges where it was picked up. */
+  top: number
+  bottom: number
+  middles: number[]
+  /** How far a row moves to make room: its height and the gap. */
+  step: number
+  /** Whether the grip had the focus before the press, which cancels the browser's own focus. */
+  focused: boolean
   pointerId: number
 }
 
@@ -104,6 +115,7 @@ export class LintjeSortableList extends LintjeElement {
 
   override disconnectedCallback(): void {
     clearTimeout(this.#landed)
+    document.removeEventListener('keydown', this.onDragKey, true)
     super.disconnectedCallback()
   }
 
@@ -172,13 +184,6 @@ export class LintjeSortableList extends LintjeElement {
   }
 
   private onGripKeydown(event: KeyboardEvent, item: SortableItem): void {
-    if (this.drag) {
-      if (event.key !== 'Escape') return
-      this.cancelDrag()
-      event.preventDefault()
-      event.stopPropagation()
-      return
-    }
     const holding = this.grabbed?.id === item.id
     switch (event.key) {
       case ' ':
@@ -237,25 +242,32 @@ export class LintjeSortableList extends LintjeElement {
       this.#pressed = item.id
       return
     }
+    const rows = [...this.renderRoot.querySelectorAll<HTMLElement>('.lintje-sortable-list__row')]
     const from = this.indexOf(item.id)
-    const slots = this.rows().map((row) => {
-      const box = row.getBoundingClientRect()
-      return box.top + box.height / 2
-    })
-    const grip = event.currentTarget as HTMLElement
-    grip.setPointerCapture?.(event.pointerId)
+    const boxes = rows.map((row) => row.getBoundingClientRect())
+    const middles = boxes
+      .filter((_, index) => index !== from)
+      .map((box) => box.top + box.height / 2)
+    const step = boxes.length > 1 ? boxes[1]!.top - boxes[0]!.top : 0
+    const target = event.currentTarget as HTMLElement
+    const focused = target.matches(':focus')
+    target.setPointerCapture?.(event.pointerId)
     event.preventDefault()
-    // The grip takes the focus, so Escape can put the rows back during the drag.
-    grip.focus()
     this.drag = {
       id: item.id,
       from,
       to: from,
       startY: event.clientY,
       dy: 0,
-      slots,
+      top: boxes[from]!.top,
+      bottom: boxes[from]!.bottom,
+      middles,
+      step,
+      focused,
       pointerId: event.pointerId,
     }
+    // Escape puts the rows back during the drag, wherever the focus is.
+    document.addEventListener('keydown', this.onDragKey, true)
     this.#message.say(`${item.label} opgepakt. ${this.place(from)}`)
   }
 
@@ -263,7 +275,7 @@ export class LintjeSortableList extends LintjeElement {
     const drag = this.drag
     if (!drag || event.pointerId !== drag.pointerId) return
     const dy = event.clientY - drag.startY
-    const to = dragIndex(drag.slots, (drag.slots[drag.from] ?? 0) + dy, drag.to)
+    const to = dropIndex(drag.middles, drag.from, drag.top + dy, drag.bottom + dy)
     if (to !== drag.to) this.#message.say(this.place(to))
     this.drag = { ...drag, dy, to }
   }
@@ -271,36 +283,41 @@ export class LintjeSortableList extends LintjeElement {
   private onPointerUp(event: PointerEvent, item: SortableItem): void {
     const drag = this.drag
     if (!drag || event.pointerId !== drag.pointerId) return
+    document.removeEventListener('keydown', this.onDragKey, true)
     if (drag.to === drag.from && Math.abs(drag.dy) < TAP_SLOP) {
       this.drag = null
       this.pickUp(item)
       void this.focusGrip(item.id)
       return
     }
-    // The row settles from under the pointer into the gap the others left it.
-    this.land(item.id, () => {
-      this.order = moveItem(this.order, drag.from, drag.to)
-      this.#message.say(`${item.label} neergelegd op plaats ${drag.to + 1}.`)
-      this.drag = null
-      this.commit(drag.to !== drag.from)
-    })
-    void this.focusGrip(item.id)
-  }
-
-  /** A drag that is cancelled puts every row back and tells nothing. */
-  private cancelDrag(): void {
-    const drag = this.drag
-    if (!drag) return
-    this.land(drag.id, () => {
-      this.drag = null
-    })
-    this.#message.clear()
+    this.order = moveItem(this.order, drag.from, drag.to)
+    this.#message.say(`${item.label} neergelegd op plaats ${drag.to + 1}.`)
+    this.drag = null
+    this.commit(drag.to !== drag.from)
+    // A grip that had the focus keeps it through the move; one that had none gets none.
+    if (drag.focused) void this.focusGrip(item.id)
   }
 
   private onGripClick(item: SortableItem): void {
     const pressed = this.#pressed
     this.#pressed = null
     if (pressed === item.id) this.dropAt(item)
+  }
+
+  /** A drag that is cancelled puts every row back and tells nothing. */
+  private cancelDrag(): void {
+    document.removeEventListener('keydown', this.onDragKey, true)
+    if (!this.drag) return
+    this.drag = null
+    this.#message.clear()
+  }
+
+  private readonly onDragKey = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape' || !this.drag) return
+    // Stopped: the Escape ends the drag and closes no window around it.
+    event.preventDefault()
+    event.stopPropagation()
+    this.cancelDrag()
   }
 
   private onPointerCancel(): void {
@@ -330,7 +347,7 @@ export class LintjeSortableList extends LintjeElement {
 
   /**
    * Changes the order, and the rows slide from where they stood to their new place: inverted on
-   * `translate`, which a drag's `transform` leaves alone, and let go on the row's transition.
+   * `translate`, which the drag's `transform` leaves alone, and let go on the row's transition.
    */
   private async slide(change: () => void): Promise<void> {
     const before = new Map(
@@ -369,20 +386,20 @@ export class LintjeSortableList extends LintjeElement {
 
   /* --- Drawing ------------------------------------------------------------- */
 
-  /** How far a row moves out of the way of the dragged one: to the place next to it. */
-  private shift(index: number): number | null {
+  /** How far a row stands from its place while another is dragged: it makes room for the drop. */
+  private offset(index: number): number | null {
     const drag = this.drag
-    if (!drag || index === drag.from) return null
-    const { from, to, slots } = drag
-    if (from < to && index > from && index <= to) return slots[index - 1]! - slots[index]!
-    if (to < from && index >= to && index < from) return slots[index + 1]! - slots[index]!
-    return null
+    if (!drag) return null
+    if (index === drag.from) return drag.dy
+    if (drag.from < index && index <= drag.to) return -drag.step
+    if (drag.to <= index && index < drag.from) return drag.step
+    return 0
   }
 
   private row(item: SortableItem, index: number): TemplateResult {
     const dragging = this.drag?.id === item.id
     const lifted = dragging || this.grabbed?.id === item.id
-    const shift = this.shift(index)
+    const offset = this.offset(index)
     return html`<li
       data-id=${item.id}
       class=${classMap({
@@ -390,10 +407,7 @@ export class LintjeSortableList extends LintjeElement {
         'is-lifted': lifted || this.landing === item.id,
         'is-dragging': dragging,
       })}
-      ${styleProps({
-        transform: dragging ? `translateY(${this.drag!.dy}px)` : null,
-        translate: shift ? `0 ${shift}px` : null,
-      })}
+      ${styleProps({ transform: offset ? `translateY(${offset}px)` : null })}
     >
       <button
         type="button"
@@ -430,7 +444,9 @@ export class LintjeSortableList extends LintjeElement {
   }
 
   protected override render(): TemplateResult {
-    return html`<div class="lintje-sortable-list">
+    return html`<div
+      class=${classMap({ 'lintje-sortable-list': true, 'is-sorting': this.drag !== null })}
+    >
       <ul class="lintje-sortable-list__rows" aria-label=${this.label ?? nothing}>
         ${repeat(
           this.order,
