@@ -77,7 +77,7 @@ const COMPONENT_ICONS = [
   'functioneel-minus', // the number field's stepper (also the map's zoom out, the graph's counter)
   'functioneel-plus', // the number field's stepper (also the map's zoom in, the graph's counter)
   'functioneel-vergrootglas-plus', // graph: zoom to the chosen node
-  'functioneel-filters', // the filter bar and the mobile Filters button
+  'functioneel-filters', // the filter bar
   'functioneel-trechter', // the funnel in a filterable table column's head
   'functioneel-kolommen', // the table's column chooser
   'gebruiksvoorwerpen-hangslot-dicht', // a menu entry without access
