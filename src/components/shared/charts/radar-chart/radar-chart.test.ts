@@ -162,7 +162,7 @@ describe('the radar', () => {
     expect(host.querySelectorAll('.lintje-radar__gap')).toHaveLength(1)
     expect(host.textContent).toContain('Geen gegevens')
     expect(host.textContent).toContain('geen gegevens')
-    controller.hoverAt(1, new MouseEvent('mousemove'), undefined)
+    controller.hoverAt(1)
     // No hover point is drawn where the value is missing.
     expect(host.querySelectorAll('.lintje-chart__hover-point')).toHaveLength(1)
   })

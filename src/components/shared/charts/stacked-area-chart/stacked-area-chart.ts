@@ -245,8 +245,8 @@ export function renderStackedAreaChart(
         <rect x=${x(i) - bandWidth / 2} y=${area.top} width=${bandWidth}
               height=${floor - area.top}
               fill="transparent"
-              @mousemove=${(event: MouseEvent) => controller.hoverAt(i, event, contentAt(i))}
-              @mouseleave=${() => controller.hoverAt(null)} />
+              @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+              @mouseleave=${keys.leave} />
       `
     }),
   ]

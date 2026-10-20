@@ -7,7 +7,7 @@ import { isKeyMark, renderKeyMark, renderSymbol } from './axes'
 import { lineCasing } from './colors'
 
 /**
- * Places the tooltip right of the pointer, flipping near the tile's edge and rising near its
+ * Places the tooltip right of its mark, flipping near the tile's edge and rising near its
  * foot. A directive, not a `ref`: it runs on every move. Coordinates go through the CSSOM
  * because `style-src 'self'` drops style attributes.
  */
@@ -36,8 +36,10 @@ class PlaceTooltipDirective extends Directive {
       const top = Math.min(state.y - 12, room - element.offsetHeight)
       element.style.top = `${Math.max(0, top)}px`
       let left = state.side === 'left' ? state.x - 12 - width : state.x + 12
-      if (state.flip != null && left + width > available - 8) {
-        left = state.flip - 12 - width
+      // It takes the pointer, so it never stands over its own mark: what does not fit right
+      // of it goes left of it, or of where the mark ends (`flip`).
+      if (left + width > available - 8) {
+        left = (state.flip ?? state.x) - 12 - width
         if (left < 0) left = (available - width) / 2
       }
       element.style.left = `${Math.max(0, Math.min(left, available - width - 8))}px`
@@ -53,7 +55,8 @@ export function renderTooltip(controller: ChartController): TemplateResult | typ
   if (!state) return nothing
   const { content } = state
   return html`
-    <div class="lintje-chart-tooltip" ${placeTooltip(state)}>
+    <div class="lintje-chart-tooltip" ${placeTooltip(state)}
+         @mouseenter=${() => controller.enterTooltip()} @mouseleave=${() => controller.leaveTooltip()}>
       ${content.kicker ? html`<p class="lintje-chart-tooltip__kicker">${content.kicker}</p>` : nothing}
       <p class="lintje-chart-tooltip__title">${content.title}${
         content.note

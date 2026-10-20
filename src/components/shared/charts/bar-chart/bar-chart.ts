@@ -128,8 +128,8 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
       if (value == null) {
         return svg`<rect class="lintje-chart__missing" x=${slot.x} y=${area.top} width=${slot.width}
                          height=${Math.max(0, baseline - area.top)} fill="url(#hatch-${id})"
-                         @mousemove=${(event: MouseEvent) => controller.showTooltip(event, contentAt(i))}
-                         @mouseleave=${() => controller.hideTooltip()} />`
+                         @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+                         @mouseleave=${keys.leave} />`
       }
       const y = yPosition(value, max, area)
       const ahead = isForecast(i)
@@ -145,8 +145,8 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
       return svg`
         <g class="lintje-chart__bar-group ${controller.hoverIndex === i ? 'is-hovered' : ''}"
            ${styleProps(staggerStyle(i, labels.length))}
-           @mousemove=${(event: MouseEvent) => controller.showTooltip(event, contentAt(i))}
-           @mouseleave=${() => controller.hideTooltip()}>
+           @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+           @mouseleave=${keys.leave}>
           <rect class="lintje-chart__bar lintje-chart__mark ${ahead ? 'lintje-chart__bar--forecast' : ''} ${mark.state}"
                 x=${slot.x + inset} y=${y + inset} width=${Math.max(0, slot.width - 2 * inset)}
                 height=${Math.max(0, baseline - y - inset)} fill=${color}

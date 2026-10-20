@@ -1,7 +1,11 @@
-/** The transcript in a browser: the timecode's hit area never lies over a button of its fragment. */
+/**
+ * The transcript in a browser: the timecode's hit area never lies over a button of its fragment,
+ * and the Escape of an edit in a window ends the edit, not the window.
+ */
 import { afterEach, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import './transcript'
+import '../../overlays/dialog/dialog'
 import type { LintjeTranscript, TranscriptSegment } from './transcript'
 
 const SEGMENTS: TranscriptSegment[] = [
@@ -99,5 +103,34 @@ describe('the timecode’s hit area', () => {
       const box = time.getBoundingClientRect()
       expect(root.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)).toBe(time)
     }
+  })
+})
+
+describe('an edit in a window', () => {
+  it('ends with Escape in its field, and the window stays open', async () => {
+    const dialog = Object.assign(document.createElement('lintje-dialog'), {
+      heading: 'Fragment bewerken',
+    }) as HTMLElement & { open: boolean; updateComplete: Promise<unknown> }
+    const element = Object.assign(document.createElement('lintje-transcript'), {
+      segments: SEGMENTS,
+      editingId: 's1',
+    })
+    const cancels: unknown[] = []
+    element.addEventListener('lintje-segment-cancel', (event) =>
+      cancels.push((event as CustomEvent).detail),
+    )
+    let closes = 0
+    dialog.addEventListener('lintje-close', () => closes++)
+    dialog.append(element)
+    document.body.append(dialog)
+    dialog.open = true
+    await dialog.updateComplete
+    await element.updateComplete
+    const field = element.shadowRoot!.querySelector('lintje-textarea')!
+    await expect.poll(() => field.shadowRoot?.querySelector('textarea')).toBeTruthy()
+    field.shadowRoot!.querySelector('textarea')!.focus()
+    await userEvent.keyboard('{Escape}')
+    expect(cancels).toEqual(['s1'])
+    expect(closes).toBe(0)
   })
 })

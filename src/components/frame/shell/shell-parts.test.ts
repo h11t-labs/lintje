@@ -1368,6 +1368,19 @@ describe('the rail and the keyboard', () => {
     expect(shell.railExpanded).toBe(false)
   })
 
+  it('folds the rail expanded under the pointer on an Escape in the page, the focus staying', async () => {
+    const shell = await mount()
+    const page = document.body.appendChild(document.createElement('button'))
+    page.focus()
+    nav(shell).dispatchEvent(new MouseEvent('mouseenter'))
+    await shell.updateComplete
+    expect(shell.railExpanded).toBe(true)
+    page.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    await shell.updateComplete
+    expect(shell.railExpanded).toBe(false)
+    expect(document.activeElement).toBe(page)
+  })
+
   it('keeps the foot in the folded rail, where Escape leaves the focus on it', async () => {
     const shell = await mount({ logout: { href: '/auth/logout', token: 't' } })
     const foot = nav(shell).querySelector<LintjeUserMenu>('.lintje-nav__user-menu')!

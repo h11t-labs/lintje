@@ -178,3 +178,21 @@ describe('lintje-audio-player draws what is still to come', () => {
     })
   }
 })
+
+describe('the time label over the position', () => {
+  it.each([
+    ['the wave', PEAKS],
+    ['the bar', null],
+  ])('stands clear of the speakers above %s', async (_, peaks) => {
+    const element = await mount(peaks)
+    const track = slider(element)!
+    await userEvent.hover(track, { position: { x: 40, y: 2 } })
+    const label = (): HTMLElement | null =>
+      element.shadowRoot!.querySelector<HTMLElement>('.lintje-audio-player__cursor-time')
+    await expect.poll(() => label()).not.toBeNull()
+    const legend = element.shadowRoot!.querySelector('.lintje-audio-player__legend')!
+    expect(label()!.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      legend.getBoundingClientRect().bottom,
+    )
+  })
+})
