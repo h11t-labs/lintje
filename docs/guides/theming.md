@@ -2,7 +2,7 @@
 
 ## `tokens.css`
 
-Eén bestand dat de build uitgeeft: de thema's, dan de tokens. Het moet op de *pagina* staan: de thema's
+Eén bestand dat het bouwen oplevert: de thema's, dan de tokens. Het moet op de *pagina* staan: de thema's
 zijn op documentniveau. Het is ook waarmee je eigen inhoud zich opmaakt:
 
 ```css
@@ -14,14 +14,14 @@ body {
 }
 ```
 
-**Het bestand is niet optioneel.** De properties van het thema staan alleen daar, dus zonder het bestand heeft een
+**Het bestand is niet optioneel.** De variabelen van het thema staan alleen daar, dus zonder het bestand heeft een
 element geen primaire kleur.
 
 ## Het lettertype
 
-RijksSans komt uit de assets van RVO (`@nl-rvo/assets`). `fonts.css` bevat de twee `@font-face`-regels
-en noemt de twee bestanden in `fonts/` ernaast, waar de build ze neerzet. Serveer `fonts/` met
-`fonts.css` en link het op de pagina; een pagina zonder tekent in de fallback van `--font-ui`.
+RijksSans komt uit de set van RVO (`@nl-rvo/assets`). `fonts.css` bevat de twee `@font-face`-regels
+en noemt de twee bestanden in `fonts/` ernaast, waar het bouwen ze neerzet. Serveer `fonts/` met
+`fonts.css` en link het op de pagina; een pagina zonder tekent in het reservelettertype van `--font-ui`.
 
 ## Het thema
 
@@ -38,9 +38,9 @@ Eén attribuut op het document: `<html data-theme="marine">`. Een pagina die er 
 }
 ```
 
-Die twee zijn alles wat een thema zet; hovers, lijnen en tinten worden afgeleid. In donker krijgen lijnen
+Die twee zijn alles wat een thema zet; de kleur bij aanwijzen, lijnen en tinten worden afgeleid. In donker krijgen lijnen
 en tekst een lichtere tint van de primaire kleur, afgestemd op de zes thema's die de bibliotheek draagt; een
-eigen thema is niet getoetst aan de ondergrenzen van het design system.
+eigen thema is niet getoetst aan de ondergrenzen van Lintje.
 [`../DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md) zegt waarom.
 
 De afgeleide kleuren gebruiken `color-mix()` en relatieve kleur (`oklch(from …)`): Chrome/Edge 122+,
@@ -54,7 +54,7 @@ dan `light`.
 
 Het gewone geval is één regel: `<html data-mode="dark">`. Een element
 leest `prefers-color-scheme` nooit zelf. Om het systeem van de lezer te volgen, zet je het attribuut
-vanuit script, vóór de eerste paint:
+vanuit script, voordat de pagina voor het eerst getekend wordt:
 
 ```js
 const dark = matchMedia('(prefers-color-scheme: dark)')
@@ -75,6 +75,6 @@ De `data` van de shell heeft er twee velden voor, en `logo` wint.
   de naam van de organisatie, geschreven als tekst naast het lint in de logobalk, en `byline` een
   tweede regel eronder. De bestanden zijn de `embleem-*` in `dist-icons/`.
 
-Zonder een van beide houdt de header een leeg vak van de juiste maat.
+Zonder een van beide houdt de shell op die plek een leeg vak van de juiste maat.
 
 **Teken een Rijkshuisstijl-embleem nooit na en benader het nooit.** Zonder het bestand lever je de lege plek.
