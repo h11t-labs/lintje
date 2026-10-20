@@ -121,7 +121,7 @@
 .lintje-shell--top .lintje-mobile-menu {
   position: absolute;
   inset: 100% 0 auto 0;
-  height: calc(100dvh - var(--h-topbar));
+  height: calc(100dvh - var(--lintje-mobile-menu-top, var(--h-topbar)));
 }
 /* 16 px so two lines fit inside the 56 px bar; longer is cut with an ellipsis. */
 .lintje-mobile-header__title {

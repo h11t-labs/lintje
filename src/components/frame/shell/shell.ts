@@ -287,7 +287,12 @@ export class LintjeShell extends LintjeElement {
       if (this.menuOpen) {
         this.#menuReleased ??= lockScroll()
         const region = this.renderRoot.querySelector<HTMLElement>('.lintje-mobile-chrome')
-        if (region) this.#menuTrap.activate(region, { focus: false })
+        if (region) {
+          // Under a logo bar still in view the panel is shorter by it; the page cannot scroll now.
+          const bar = region.querySelector('.lintje-mobile-header')?.getBoundingClientRect()
+          if (bar) region.style.setProperty('--lintje-mobile-menu-top', `${bar.bottom}px`)
+          this.#menuTrap.activate(region, { focus: false })
+        }
       } else if (changed.get('menuOpen') === true) {
         this.#releaseMenu()
         this.#menuTrap.deactivate(false)
