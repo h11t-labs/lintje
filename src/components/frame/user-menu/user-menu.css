@@ -84,6 +84,17 @@
 .lintje-user-menu__group:first-child.lintje-user-menu__group--logout { border-top: 0; }
 .lintje-user-menu__logout { display: flex; flex-direction: column; margin: 0; }
 .lintje-user-menu__logout-row { font-weight: 700; }
+/* Beside the name: the glyph alone on a square touch target, filled only under the pointer as a
+   row is. Its edge, not the target's, lines up with the rows' hints. */
+.lintje-user-menu__who .lintje-user-menu__logout { flex: none; }
+.lintje-user-menu__logout-button {
+  display: flex; align-items: center; justify-content: center;
+  width: var(--h-touch); height: var(--h-touch);
+  margin-right: calc((20px - var(--h-touch)) / 2);
+  color: inherit;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-user-menu__logout-button:hover { background: var(--color-bg-subtle); }
 
 .lintje-user-menu__version {
   margin: 0;
@@ -109,22 +120,11 @@
   padding-inline: var(--space-5);
   color: var(--color-nav-text);
 }
-.lintje-user-menu__panel.is-inline .lintje-menu__row:hover { background: var(--color-nav-hover); }
+.lintje-user-menu__panel.is-inline .lintje-menu__row:hover,
+.lintje-user-menu__panel.is-inline .lintje-user-menu__logout-button:hover { background: var(--color-nav-hover); }
 .lintje-user-menu__panel.is-inline .lintje-menu__row.is-disabled,
 .lintje-user-menu__panel.is-inline .lintje-menu__row.is-disabled .lintje-menu__hint { color: var(--color-nav-disabled); }
 .lintje-user-menu__panel.is-inline .lintje-menu__separator { background: var(--color-nav-line); }
-/* Beside the name: the glyph alone on a square touch target, filled only under the pointer as a
-   row is. */
-.lintje-user-menu__panel.is-inline .lintje-user-menu__logout { flex: none; }
-.lintje-user-menu__logout-button {
-  display: flex; align-items: center; justify-content: center;
-  width: var(--h-touch); height: var(--h-touch);
-  /* The 20 px glyph's edge, not the target's, lines up with the rows' hints. */
-  margin-right: calc((20px - var(--h-touch)) / 2);
-  color: var(--color-nav-text);
-  transition: background var(--dur-hover) var(--ease-in-motion);
-}
-.lintje-user-menu__logout-button:hover { background: var(--color-nav-hover); }
 
 /* On the theme fill the orange ring disappears: the on-theme ring, as the side menu. */
 .lintje-user-menu__trigger:focus-visible,

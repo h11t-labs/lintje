@@ -1,6 +1,6 @@
 /**
  * `<lintje-user-menu>` — the user's avatar in the navigation bar and the menu it opens: name and
- * role, the host's rows (`MenuEntry`), "Afmelden" and the version. With `variant="side"` it is
+ * role with "Afmelden" beside them, the host's rows (`MenuEntry`) and the version. With `variant="side"` it is
  * the foot of the side menu: the avatar with the name and role beside it, the menu above it.
  *
  * A menu, not a dialog: it traps no focus, and an Escape in a dialog opened over it is the
@@ -70,10 +70,7 @@ export class LintjeUserMenu extends LintjeElement {
   declare logoutAction?: string
   /** The session's CSRF token, posted with "Afmelden" in a hidden `csrf_token` field. */
   csrf: string = ''
-  /**
-   * The content without button and popover, on the navigation's colours: for the mobile sheet.
-   * "Afmelden" is a glyph beside the name there.
-   */
+  /** The content without button and popover, on the navigation's colours: for the mobile sheet. */
   inline: boolean = false
   /**
    * `bar`: the avatar in the navigation bar, the menu below it. `side`: the foot of the side
@@ -92,8 +89,11 @@ export class LintjeUserMenu extends LintjeElement {
     return this.renderRoot.querySelector<HTMLButtonElement>('.lintje-user-menu__trigger')
   }
 
+  /** "Afmelden" beside the name comes last: the first arrow down never lands on it. */
   private rowElements(): HTMLElement[] {
-    return [...this.renderRoot.querySelectorAll<HTMLElement>('.lintje-menu__row')]
+    const logout = this.renderRoot.querySelector<HTMLElement>('.lintje-user-menu__logout-button')
+    const rows = [...this.renderRoot.querySelectorAll<HTMLElement>('.lintje-menu__row')]
+    return logout ? [...rows, logout] : rows
   }
 
   /** The rows as `nextRow()` reads them: only whether each one is disabled counts. */
@@ -267,12 +267,15 @@ export class LintjeUserMenu extends LintjeElement {
     return row
   }
 
-  /** `compact`: the glyph alone, beside the name inline; its word is its accessible name. */
+  /**
+   * `compact`: the glyph alone beside the name, its word its accessible name. A button, not a
+   * menu item: it stands outside the menu, but the arrows reach it after the rows.
+   */
   private renderLogout(compact = false): TemplateResult {
-    const role = this.inline ? nothing : 'menuitem'
+    const role = this.inline || compact ? nothing : 'menuitem'
     const tabindex = this.inline ? nothing : '-1'
     const classes = compact
-      ? 'lintje-user-menu__logout-button'
+      ? 'lintje-user-menu__logout-button focus-inset'
       : 'lintje-menu__row lintje-user-menu__logout-row focus-inset'
     const content = compact
       ? renderIcon('functioneel-uitloggen', { size: 20 })
@@ -316,7 +319,7 @@ export class LintjeUserMenu extends LintjeElement {
               <p class="lintje-user-menu__name">${user.name}</p>
               ${user.role ? html`<p class="lintje-user-menu__role">${user.role}</p>` : nothing}
             </div>
-            ${this.inline ? this.renderLogout(true) : nothing}
+            ${this.renderLogout(true)}
           </div>`
           : nothing
       }
@@ -333,7 +336,7 @@ export class LintjeUserMenu extends LintjeElement {
             : nothing
         }
         ${
-          this.inline && user
+          user
             ? nothing
             : html`<div class="lintje-user-menu__group lintje-user-menu__group--logout">
               ${this.renderLogout()}

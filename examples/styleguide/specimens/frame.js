@@ -294,7 +294,7 @@ export default {
           label: 'Gebruiker in de voet',
           note:
             'Naast de pagina is de voet van het menu de knop van het gebruikersmenu. ' +
-            'Het menu opent erboven, met de rijen van de host, “Afmelden” en de versie.',
+            'Het menu opent erboven: de naam met “Afmelden” ernaast, de rijen van de host en de versie.',
           html: `<lintje-shell>
             <lintje-page-header slot="header"></lintje-page-header>
             <p>Klik op de naam onderaan het menu.</p>
