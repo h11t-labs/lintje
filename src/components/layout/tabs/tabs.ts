@@ -75,7 +75,7 @@ export class LintjeTabs extends LintjeElement {
   label: string = ''
   /**
    * `line` (default): a row over the content. `panel`: large tabs that head a bordered panel, each
-   * with an icon and a hint; on a phone the icon stands above the label and the hint goes.
+   * with an icon and a hint; on a phone the icon stands above the label, the hint under it.
    */
   variant: TabsVariant = 'line'
   #resize: ResizeObserver | null = null

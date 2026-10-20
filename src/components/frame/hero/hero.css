@@ -57,7 +57,8 @@
   }
 }
 .lintje-hero__heading { display: flex; flex-direction: column; gap: var(--space-3); }
-.lintje-hero__title { margin: 0; font: var(--text-h1-display); }
+/* A long compound ("Omgevingsvergunningaanvragen") breaks rather than run off a 320 px screen. */
+.lintje-hero__title { margin: 0; font: var(--text-h1-display); overflow-wrap: anywhere; }
 .lintje-hero__description {
   margin: 0;
   max-width: var(--w-text);

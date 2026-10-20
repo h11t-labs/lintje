@@ -18,10 +18,12 @@
   align-items: center;
   gap: var(--space-2) var(--space-4);
 }
+/* Sharing a line with the size choice, the count wraps rather than widen the page (320 px). */
 .lintje-pagination.is-stacked {
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas: "nav nav" "count size";
 }
+.lintje-pagination.is-stacked .lintje-pagination__count { white-space: normal; }
 
 .lintje-pagination__nav {
   grid-area: nav; justify-self: center;
@@ -90,9 +92,10 @@
 
 @media screen and (max-width: 767px) {
   .lintje-pagination {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas: "nav nav" "count size";
   }
+  .lintje-pagination__count { white-space: normal; }
   .lintje-pagination__nav {
     justify-self: stretch;
     flex-wrap: nowrap; justify-content: space-between;

@@ -52,6 +52,9 @@ const TRIMMED = 'De assistent neemt de vragen hierboven niet meer mee.'
 /** The two states in which the assistant waits on the reader; only then do its questions count. */
 const ASKING = new Set<ChatAnswerData['state']>(['needs-clarification', 'out-of-scope'])
 
+/** Below this height the footer does not stick (`chat.css`). */
+const LOW = '(height < 30rem)'
+
 /**
  * A line between turns, centred: line, label, line. A plain paragraph in the reading order; the
  * lines and the arrow are drawing. Not a separator, whose name is often skipped and which holds no
@@ -159,6 +162,8 @@ export class LintjeChat extends LintjeElement {
   #growth: ResizeObserver | null = null
   #footerSize: ResizeObserver | null = null
   readonly #mobile = new MediaController(this)
+  readonly #low = new MediaController(this, LOW)
+  #wasLow = false
   /** The ids of the questions in the box, to see a new set arrive. */
   #asked = ''
   readonly #roomAbove = new ScrollRoom('scrollPaddingTop')
@@ -204,7 +209,9 @@ export class LintjeChat extends LintjeElement {
       above = Math.max(above, (parseFloat(style.top) || 0) + message.offsetHeight)
     }
     this.#roomAbove.reserve(scroller, above)
-    this.#roomBelow.reserve(scroller, footer.offsetHeight)
+    // A footer that stands after the conversation (little height) covers nothing.
+    const sticks = getComputedStyle(footer).position === 'sticky'
+    this.#roomBelow.reserve(scroller, sticks ? footer.offsetHeight : 0)
   }
 
   /** How far the conversation's end lies below what its scroller shows. */
@@ -292,8 +299,10 @@ export class LintjeChat extends LintjeElement {
     const footer = this.renderRoot.querySelector<HTMLElement>('.lintje-chat__footer')
     if (footer) this.#footerSize?.observe(footer)
     const turns = this.data?.turns?.length ?? 0
-    // A question that starts or stops sticking need not change a size the observers see.
-    if (turns !== this.#turns || changed.has('editingId') || changed.has('paged')) {
+    // A question or the footer that starts or stops sticking may leave every size as it was.
+    const low = this.#low.matches !== this.#wasLow
+    this.#wasLow = this.#low.matches
+    if (turns !== this.#turns || changed.has('editingId') || changed.has('paged') || low) {
       this.reserveRoom()
     }
     if (!changed.has('data')) return

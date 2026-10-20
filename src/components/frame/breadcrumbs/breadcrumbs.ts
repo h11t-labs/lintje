@@ -82,8 +82,12 @@ export class LintjeBreadcrumbs extends LintjeElement {
     ></lintje-menu-button>`
   }
 
+  // The nearest level up that is a page: a group without one ("Beheer") is skipped.
   private renderPhone(): TemplateResult | typeof nothing {
-    const back = this.items.at(-2)
+    const back = this.items
+      .slice(0, -1)
+      .reverse()
+      .find((item) => item.href)
     if (!back?.href) return nothing
     const href = back.href
     return html`<nav class="lintje-breadcrumbs lintje-breadcrumbs--back" aria-label=${this.label}>

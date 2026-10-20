@@ -369,7 +369,8 @@
   min-width: 160px;
   /* Its own width, whatever its position: shrink-to-fit narrowed it near the right edge. */
   width: max-content;
-  max-width: 320px;
+  /* Never wider than the chart: on a 320 px screen its text wraps inside it. */
+  max-width: min(320px, 100%);
 }
 .lintje-chart-tooltip__title { font-weight: 700; margin-bottom: 4px; }
 .lintje-chart-tooltip__kicker { color: var(--color-text-muted); }
