@@ -207,7 +207,7 @@
   text-align: left;
 }
 .lintje-filter-bar__mobile-summary:hover { background: var(--color-bg-subtle); }
-.lintje-filter-bar__mobile-summary .lintje-filter-summary__icon { margin-top: var(--space-1); }
+.lintje-filter-bar__mobile-summary .lintje-filter-summary__icon { margin-top: calc((1lh - 16px) / 2); }
 .lintje-filter-bar__mobile-summary .lintje-filter-summary__text { flex: 1; min-width: 0; }
 /* Level with the first line, whatever the sentence wraps to. */
 .lintje-filter-bar__mobile-end {
