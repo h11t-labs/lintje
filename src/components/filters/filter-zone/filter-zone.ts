@@ -3,7 +3,8 @@
  *
  * The controls come in through the slot and the sentence as parts; the owner keeps the state. The
  * zone is expanded, scrolled (a sticky summary bar) or, below 768 px, the sentence only: a button
- * that asks the owner to open its sheet.
+ * that asks the owner to open its sheet. Stuck and expanded it lies over the page, so it asks to
+ * close as the focus leaves it, and on Escape, which puts the focus on its toggle.
  *
  * Events: `lintje-filters-reset`, `lintje-zone-open-change` `boolean`,
  * `lintje-zone-scrolled-change` `boolean`, `lintje-zone-sheet-open` (below 768 px).
@@ -32,7 +33,7 @@ import {
 } from './zone-state'
 import zoneCss from './filter-zone.css?inline'
 import { scrollRoot } from '../../../core/host-config'
-import { holdsFocus } from '../../../core/focus'
+import { holdsFocus, ownsEscape, standsIn } from '../../../core/focus'
 import { heightSettleMs } from '../../shared/transition'
 
 export class LintjeFilterZone extends LintjeElement {
@@ -75,6 +76,35 @@ export class LintjeFilterZone extends LintjeElement {
   private readonly onResize = (): void => this.measureOverflow()
   /** The header or summary row held the focus before a re-render that may replace it. */
   #rowHadFocus = false
+  /** Escape closed the stuck panel: the focus goes to the toggle once it is drawn closed. */
+  #toToggle = false
+
+  /** Stuck and expanded, the panel lies over the page instead of in it. */
+  get #overPage(): boolean {
+    return this.scrolled && !this.mobile.matches && zoneExpanded(this.state)
+  }
+
+  // As a floating panel at a button: a press that takes no focus blurs to nothing, or to a
+  // focusable box around the zone, and neither is elsewhere.
+  readonly #onFocusOut = (event: FocusEvent): void => {
+    const next = event.relatedTarget as Node | null
+    if (!this.#overPage || !next || standsIn(next, this) || standsIn(this, next)) return
+    this.act({ type: 'collapse' })
+  }
+
+  readonly #onKeyDown = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape' || event.defaultPrevented || !this.#overPage) return
+    if (!ownsEscape(this)) return
+    event.stopPropagation()
+    this.#toToggle = true
+    this.act({ type: 'collapse' })
+  }
+
+  constructor() {
+    super()
+    this.addEventListener('focusout', this.#onFocusOut)
+    this.addEventListener('keydown', this.#onKeyDown)
+  }
 
   override connectedCallback(): void {
     super.connectedCallback()
@@ -154,6 +184,11 @@ export class LintjeFilterZone extends LintjeElement {
     if (states) {
       if (this.mobile.matches) states.add('phone')
       else states.delete('phone')
+    }
+    if (this.#toToggle && !zoneExpanded(this.state)) {
+      this.#toToggle = false
+      this.#rowHadFocus = false
+      this.renderRoot.querySelector<HTMLElement>('.lintje-filter-toggle')?.focus()
     }
     if (this.#rowHadFocus) {
       this.#rowHadFocus = false

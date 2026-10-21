@@ -141,7 +141,6 @@
 .lintje-chat-composer__attach { --h-icon-button: var(--h-button); }
 .lintje-chat-composer__attach { flex: none; margin-right: auto; }
 
-.lintje-chat-composer__scrim { position: fixed; inset: 0; z-index: 45; }
 .lintje-chat-composer__options {
   position: absolute; right: 0; bottom: calc(100% + var(--space-2)); z-index: 46;
   width: 320px; max-width: calc(100vw - 2 * var(--space-4));

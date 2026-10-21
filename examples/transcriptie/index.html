@@ -302,7 +302,7 @@
         <lintje-tile id="rec-panel" flush>
           <div class="reading">
             <div class="reading__main">
-              <div class="tools">
+              <div class="tools" data-sticky="top">
                 <div class="tools__search">
                   <lintje-find id="search" class="tools__field" label="Zoek in het transcript"></lintje-find>
                   <lintje-button id="replace-toggle" variant="link" size="compact" hidden>Vervangen…</lintje-button>
@@ -337,7 +337,7 @@
               <lintje-empty-state id="no-match" compact hidden text="">
                 <lintje-button id="clear-search" variant="link">Zoekopdracht wissen</lintje-button>
               </lintje-empty-state>
-              <lintje-announcement id="catch-up" class="catch-up" hidden>
+              <lintje-announcement id="catch-up" class="catch-up" data-sticky="bottom" hidden>
                 <lintje-button id="catch-up-now" slot="action" variant="link" size="compact">Naar de live tekst</lintje-button>
               </lintje-announcement>
             </div>
@@ -420,7 +420,7 @@
           </div>
         </div>
       </div>
-      <div slot="footer" class="dock" id="dock" hidden>
+      <div slot="footer" class="dock" id="dock" data-sticky="bottom" hidden>
         <div class="dock__inner">
           <lintje-audio-player id="player" flush no-legend></lintje-audio-player>
         </div>

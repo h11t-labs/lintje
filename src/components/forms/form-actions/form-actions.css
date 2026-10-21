@@ -28,6 +28,16 @@
 }
 /* Only while the form scrolls behind it: at its own place the bar is the form's last row. */
 .lintje-form-actions.is-stuck { box-shadow: var(--shadow-sticky-up); }
+/* Stuck on a phone it runs from edge to edge, as far as `LintjeFormActions` measured; its padding
+   grows as much, so its buttons stay in line with the fields. */
+.lintje-form-actions.is-full {
+  margin-left: calc(-1 * var(--lintje-form-actions-left));
+  margin-right: calc(-1 * var(--lintje-form-actions-right));
+  padding-left: calc(var(--space-6) + var(--lintje-form-actions-left));
+  padding-right: calc(var(--space-6) + var(--lintje-form-actions-right));
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
 
 /* The words carry the state; the dot and the check only support it (rule 13). */
 .lintje-form-actions__status {

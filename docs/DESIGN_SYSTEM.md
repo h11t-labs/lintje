@@ -1034,6 +1034,10 @@ zoals de bel.
 **Bij weinig hoogte plakt de actiebalk van een formulier niet**: onder een viewporthoogte van
 30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10).
 
+**Op een telefoon loopt de vastgeplakte actiebalk van rand tot rand**, zonder zijranden, met zijn
+knoppen op één lijn met de velden; op zijn eigen plek na het laatste veld is hij de laatste rij van
+het formulier.
+
 **Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame nadat die veranderde.**
 Zo verandert zijn maat nooit in de ronde van zijn waarnemer, die de browser anders als fout van de
 pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
@@ -1184,12 +1188,17 @@ kleinste correctie, en leg die hier vast.
   en één meetwaarde, haar rijmenu, en een knop die de andere kolommen eronder opent als
   beschrijvingslijst; "Sorteren" sorteert op elke kolom. Een cel bewerken blijft voor de bredere
   tabel.
-- **Een vastgeplakte balk bedekt nooit de focus** (2.4.11): de actiebalk van het formulier
-  reserveert zijn hoogte als `scroll-padding-bottom` van de scroller, en de foutsamenvatting
-  scrolt een veld naar het midden. Een element waar de focus toch onder belandt, scrollen de
-  actiebalk en de selectiebalk van de tabel van zich vrij, met rand en al. De vastgeplakte vraag
-  en het vraagvak van het gesprek houden hun hoogte vrij als `scroll-padding` van de scroller,
-  nooit lager dan wat een andere balk daar zette.
+- **Een vastgeplakte balk bedekt nooit de focus** (2.4.11): wat aan een rand van de scroller
+  plakt, houdt de ruimte die het bedekt vrij als `scroll-padding`, en de scroller houdt per rand
+  de grootste vrij, nooit minder dan wat de host er zelf zette. Zo doen de balk van de shell met
+  de filterbalk eronder, de actiebalk van het formulier, de vastgeplakte vraag en het vraagvak van
+  het gesprek, een toast die blijft staan, en een eigen balk van de host met `data-sticky`, die de
+  shell meet. De foutsamenvatting scrolt een veld naar het midden. Een element waar de focus toch
+  onder belandt, scrollen de actiebalk, de toast en de selectiebalk van de tabel van zich vrij,
+  met rand en al. Een toast staat boven wat verder onderaan plakt, nooit eroverheen. Een paneel
+  dat over de pagina ligt (de vastgezette, opengeklapte filterzone, de opties van het vraagvak)
+  sluit zodra de focus het verlaat en laat de focus waar hij heen ging; Escape sluit het met de
+  focus op zijn knop.
 - **Een grafiek is ook met het toetsenbord te lezen.** Haar tekening neemt de focus en de
   pijltoetsen lopen langs de categorieën met de tooltip, die een live-regio uitspreekt; Escape
   verbergt een tooltip. De tekening is een afbeelding, of een groep met haar beschrijving als naam

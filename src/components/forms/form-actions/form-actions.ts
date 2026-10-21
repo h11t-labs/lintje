@@ -4,15 +4,17 @@
  *
  * While connected it reserves its height as the page scroller's `scroll-padding-bottom`, so a
  * field the focus scrolls to is not hidden behind it, and scrolls a focused element that still
- * ends up under it clear. While the form scrolls behind it, it casts its shadow upward. Below a
+ * ends up under it clear. While the form scrolls behind it, it casts its shadow upward and, below
+ * 768 px, runs from edge to edge of the screen, its buttons in line with the fields. Below a
  * viewport height of 30rem it does not stick and reserves nothing: it stands after the last field.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { LintjeElement, define } from '../../../core/element'
-import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import { scrollRoot } from '../../../core/host-config'
 import { MediaController, MOBILE } from '../../../core/media'
+import { keepRoom, releaseRoom, scrollFocusClear } from '../../../core/scroll-room'
+import { styleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { AttributeHold, PropertyHold } from '../../shared/controls'
@@ -38,24 +40,12 @@ export function clockTime(value: string | Date | null | undefined): string {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
-/** The bars on the page, each with its height; the scroller keeps room for the tallest. */
-const reserved = new Map<LintjeFormActions, number>()
-let padded: { element: HTMLElement; before: string } | null = null
-
-function reserve(): void {
-  const room = Math.max(0, ...reserved.values())
-  if (reserved.size === 0) {
-    if (padded) padded.element.style.scrollPaddingBottom = padded.before
-    padded = null
-    return
-  }
-  const root = scrollRoot()
-  if (!root) return
-  if (padded?.element !== root) {
-    if (padded) padded.element.style.scrollPaddingBottom = padded.before
-    padded = { element: root, before: root.style.scrollPaddingBottom }
-  }
-  root.style.scrollPaddingBottom = `${room}px`
+/** How far the bar stands in from each side of what the root shows. */
+function inset(bar: HTMLElement, root: HTMLElement): [number, number] {
+  const left =
+    root === document.scrollingElement ? 0 : root.getBoundingClientRect().left + root.clientLeft
+  const box = bar.getBoundingClientRect()
+  return [Math.max(0, box.left - left), Math.max(0, left + root.clientWidth - box.right)]
 }
 
 /** What scrolls the root: the window for the page's own scroller. */
@@ -83,6 +73,7 @@ export class LintjeFormActions extends LintjeElement {
     state: { type: String, reflect: true },
     savedAt: { type: String, attribute: 'saved-at' },
     stuck: { state: true },
+    bleed: { state: true },
   }
 
   /**
@@ -96,6 +87,8 @@ export class LintjeFormActions extends LintjeElement {
   /** When it was saved: "10:42" or anything `Date` parses. */
   declare savedAt?: string
   protected stuck = false
+  /** Stuck on a phone: how far the bar reaches past its own box to the screen's left and right. */
+  protected bleed: [number, number] | null = null
 
   readonly #mobile = new MediaController(this, MOBILE)
   readonly #low = new MediaController(this, LOW)
@@ -114,6 +107,9 @@ export class LintjeFormActions extends LintjeElement {
       this.#stuckFrame = 0
       const root = scrollRoot()
       this.stuck = root != null && this.isConnected && stuckIn(this, root)
+      // Measured on the host, which keeps its own box: only the bar inside it reaches out.
+      const bleed = this.stuck && this.#mobile.matches ? inset(this, root!) : null
+      if (bleed?.join() !== this.bleed?.join()) this.bleed = bleed
     })
   }
 
@@ -130,28 +126,12 @@ export class LintjeFormActions extends LintjeElement {
   }
 
   #clearOfFocus(): void {
-    const focused = deepActiveElement()
-    // `body` after the focused field left before this frame: there is nothing to clear.
-    if (!focused || focused === document.body || holdsFocus(this)) return
-    if (getComputedStyle(this).position !== 'sticky') return
-    const room = this.getBoundingClientRect()
-    const box = focused.getBoundingClientRect()
-    const left = Math.max(box.left, room.left)
-    const right = Math.min(box.right, room.right)
-    if (box.bottom <= room.top || box.top >= room.bottom || left >= right) return
-    // Only what the bar covers: a sheet or dialog over the bar is not under it.
-    const y = (Math.max(box.top, room.top) + Math.min(box.bottom, room.bottom)) / 2
-    const scope = this.getRootNode() as Document | ShadowRoot
-    const hit = scope.elementFromPoint((left + right) / 2, y)
-    if (!hit || !this.contains(hit)) return
-    scrollRoot()?.scrollBy({ top: box.bottom - room.top, behavior: 'instant' })
+    if (getComputedStyle(this).position === 'sticky') scrollFocusClear(this, this, 'bottom')
   }
 
   // A bar that does not stick covers nothing, so it keeps no room.
   #reserveOwn(): void {
-    if (this.#low.matches) reserved.delete(this)
-    else reserved.set(this, this.offsetHeight)
-    reserve()
+    keepRoom(this, scrollRoot(), 'bottom', this.#low.matches ? 0 : this.offsetHeight)
   }
 
   override connectedCallback(): void {
@@ -197,8 +177,7 @@ export class LintjeFormActions extends LintjeElement {
     if (this.#focusFrame) cancelAnimationFrame(this.#focusFrame)
     this.#stuckFrame = 0
     this.#focusFrame = 0
-    reserved.delete(this)
-    reserve()
+    releaseRoom(this)
     this.#busy.release()
     this.#disabled.release()
     this.#block.release()
@@ -208,7 +187,7 @@ export class LintjeFormActions extends LintjeElement {
   protected override updated(): void {
     this.#hold()
     // The height query may have changed sides.
-    if (this.isConnected && reserved.has(this) === this.#low.matches) this.#reserveOwn()
+    if (this.isConnected) this.#reserveOwn()
   }
 
   #hold(): void {
@@ -248,7 +227,18 @@ export class LintjeFormActions extends LintjeElement {
   }
 
   protected override render(): TemplateResult {
-    return html`<div class=${classMap({ 'lintje-form-actions': true, 'is-stuck': this.stuck })}>
+    const [left, right] = this.bleed ?? [0, 0]
+    return html`<div
+      class=${classMap({
+        'lintje-form-actions': true,
+        'is-stuck': this.stuck,
+        'is-full': this.bleed !== null,
+      })}
+      ${styleProps({
+        '--lintje-form-actions-left': this.bleed && `${left}px`,
+        '--lintje-form-actions-right': this.bleed && `${right}px`,
+      })}
+    >
       <div class="lintje-form-actions__status" role="status">${this.renderStatus()}</div>
       <div class="lintje-form-actions__buttons">
         <slot @slotchange=${() => this.#hold()}></slot>

@@ -543,3 +543,71 @@ describe('lintje-chat-composer folded', () => {
     expect(hint()).toBe('Kies eerst een bron om een vraag te stellen')
   })
 })
+
+describe('the send options and the focus', () => {
+  const panel = (element: LintjeChatComposer): HTMLElement | null =>
+    element.renderRoot.querySelector('.lintje-chat-composer__options')
+
+  async function opened(): Promise<LintjeChatComposer> {
+    const element = await composer()
+    element.renderRoot.querySelector<HTMLElement>('.lintje-chat-composer__options-toggle')!.click()
+    await element.updateComplete
+    expect(panel(element)).not.toBeNull()
+    return element
+  }
+
+  const toggleButton = (element: LintjeChatComposer): HTMLElement | null | undefined =>
+    element.renderRoot
+      .querySelector('.lintje-chat-composer__options-toggle')
+      ?.shadowRoot?.querySelector('button')
+
+  const leave = (element: LintjeChatComposer, to: Node | null): void => {
+    panel(element)!.dispatchEvent(
+      new FocusEvent('focusout', { relatedTarget: to, bubbles: true, composed: true }),
+    )
+  }
+
+  it('close as the focus leaves them and their toggle, and the focus stays where it went', async () => {
+    const element = await opened()
+    leave(element, element.renderRoot.querySelector('.lintje-chat-composer__options-toggle'))
+    leave(element, panel(element)!.querySelector('lintje-radio-group'))
+    leave(element, null)
+    await element.updateComplete
+    expect(element.optionsOpen).toBe(true)
+    // A press in the field: the focus goes there first, then the press lands.
+    field(element).focus()
+    leave(element, field(element))
+    field(element).click()
+    await element.updateComplete
+    expect(element.optionsOpen).toBe(false)
+    expect(deepActiveElement()).toBe(field(element))
+  })
+
+  it('close on a press beside them that takes no focus, with the focus on their toggle', async () => {
+    const element = await opened()
+    const beside = document.createElement('p')
+    document.body.append(beside)
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    beside.click()
+    await element.updateComplete
+    await element.updateComplete
+    expect(element.optionsOpen).toBe(false)
+    expect(deepActiveElement()).toBe(toggleButton(element))
+  })
+
+  it('stay open on a press inside them', async () => {
+    const element = await opened()
+    panel(element)!.querySelector<HTMLElement>('.lintje-chat-composer__shortcuts')!.click()
+    await element.updateComplete
+    expect(element.optionsOpen).toBe(true)
+  })
+
+  it('close on Escape, with the focus on their toggle', async () => {
+    const element = await opened()
+    panel(element)!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    await element.updateComplete
+    await element.updateComplete
+    expect(element.optionsOpen).toBe(false)
+    expect(deepActiveElement()).toBe(toggleButton(element))
+  })
+})
