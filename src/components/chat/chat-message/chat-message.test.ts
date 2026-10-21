@@ -43,6 +43,17 @@ describe('lintje-chat-message', () => {
     expect(element.renderRoot.querySelector('.lintje-chat-message__text')).toBeNull()
   })
 
+  it('says who sent the files before them, and not again in the bar', async () => {
+    const element = await message({
+      attachments: [{ id: 'd', name: 'beleidsregel-2026.pdf', size: 120_000, state: 'done' }],
+    })
+    const speaker = element.renderRoot.querySelector('.visually-hidden')
+    expect(speaker?.textContent).toBe('Jij: ')
+    expect(speaker?.nextElementSibling?.localName).toBe('ul')
+    const text = element.renderRoot.querySelector('.lintje-chat-message__text')
+    expect(text?.textContent).toBe('Hoe lang was de wachttijd in Zuid?')
+  })
+
   it('carries the role in a visually hidden word', async () => {
     const element = await message({})
     const text = element.renderRoot.querySelector('.lintje-chat-message__text')

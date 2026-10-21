@@ -15,7 +15,7 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { holdsFocus } from '../../../core/focus'
 import { LintjeGridItemElement } from '../../shared/grid-item-element'
-import { footDescribedBy, renderFieldFoot } from './field-foot'
+import { describedWith, footDescribedBy, renderDescription, renderFieldFoot } from './field-foot'
 import {
   OTHER_SUFFIX,
   OTHER_VALUE,
@@ -423,9 +423,15 @@ export abstract class LintjeChoiceGroupElement extends LintjeInputElement {
     otherText: { attribute: false },
     otherPlaceholder: { type: String, attribute: 'other-placeholder' },
     otherError: { type: String, attribute: 'other-error' },
+    description: { type: String },
   }
 
   declare options?: FilterOption[]
+  /**
+   * Read after the label and never drawn: what the host shows about the group itself, such as
+   * the hint above a group whose label it hides.
+   */
+  declare description?: string
   /**
    * Ends the options in "Anders", value `other`, with a text field under it while it is chosen.
    * Left out when an option of the host already has the value `other`.
@@ -451,6 +457,24 @@ export abstract class LintjeChoiceGroupElement extends LintjeInputElement {
   /** The field held the focus and goes in this update: the focus goes to the option. */
   #handBack = false
 
+  /** The last press was the pointer's: the reader looks at what they pressed, so nothing scrolls. */
+  #pointer = false
+
+  /**
+   * Brings the row that takes the keyboard's focus wholly into view, also in a list that scrolls:
+   * WebKit leaves a row that is partly in view where it is, with its focus ring cut.
+   */
+  protected readonly revealRow = (event: Event): void => {
+    const pointer = this.#pointer
+    this.#pointer = event.type === 'pointerdown'
+    if (event.type === 'focusin' && !pointer) {
+      const row = event
+        .composedPath()
+        .find((node) => node instanceof HTMLElement && node.classList.contains('lintje-choice'))
+      ;(row as HTMLElement | undefined)?.scrollIntoView({ block: 'nearest' })
+    }
+  }
+
   /** "Anders" is the choice, or one of them. */
   protected abstract get otherChosen(): boolean
 
@@ -461,6 +485,14 @@ export abstract class LintjeChoiceGroupElement extends LintjeInputElement {
     if (this.#warned.has(key)) return
     this.#warned.add(key)
     console.warn(`<${this.localName}>: ${message}`)
+  }
+
+  protected override get describedBy(): string | typeof nothing {
+    return describedWith(this.description, super.describedBy)
+  }
+
+  protected override renderFoot(): TemplateResult | typeof nothing {
+    return html`${renderDescription(this.description)}${super.renderFoot()}`
   }
 
   /** The group draws "Anders": `other` is on and no option of the host holds its value. */

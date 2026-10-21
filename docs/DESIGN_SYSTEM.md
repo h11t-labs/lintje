@@ -725,7 +725,10 @@ De besluiten hieronder gelden voor alle elementen.
   suggestie is gestreept: iets wat de lezer zou kunnen vragen. Een vraag van de assistent wacht
   op antwoord en staat in de vragenlijst, waar de lezer antwoordt (`lintje-chat-questions`), in
   hetzelfde kader als het tikveld. Het tikveld blijft eronder werken: een nieuwe vraag slaat de
-  open vragen over, en pas versturen doet dat, nooit het openklappen ervan.
+  open vragen over, en pas versturen doet dat, nooit het openklappen ervan. Komen de vragen
+  terwijl de lezer al een volgende vraag typt, dan blijft de focus in het tikveld, dat ook op een
+  telefoon open blijft, en zegt alleen de statusregel dat de assistent iets vraagt: een spatie zou
+  anders een keuze versturen.
 - **Het antwoord van de lezer is altijd zijn bericht.** Wat hij in de vragenlijst koos, staat in
   het gesprek als een gewoon bericht van hem, één regel per vraag, zodat het gesprek leest zoals
   het ging en hij het kan bewerken zoals elke vraag.

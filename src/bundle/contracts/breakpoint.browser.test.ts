@@ -3,6 +3,7 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { deepActiveElement } from '../../core/focus'
 import '../../components/frame/app-search/app-search'
+import '../../components/content/attachment/attachment'
 import '../../components/content/audio-player/audio-player'
 import '../../components/frame/breadcrumbs/breadcrumbs'
 import '../../components/tables/card-list/card-list'
@@ -114,7 +115,10 @@ interface Row {
  * The rows that fail today, by `<tag> :: <marker>`; each has its GitHub issue above it. A
  * row that passes while it matches an entry fails, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = []
+const KNOWN: RegExp[] = [
+  // #251
+  /^lintje-attachment :: a refused file keeps its reason and its cross inside the chip at 320 px$/,
+]
 
 /* Helpers ----------------------------------------------------------------- */
 
@@ -1048,6 +1052,44 @@ const ROWS: Row[] = [
     phone: (element) => {
       const [cancel, save] = element.querySelectorAll('lintje-button')
       return below(save!, cancel!)
+    },
+  },
+  {
+    tag: 'lintje-attachment',
+    marker: 'a refused file keeps its reason and its cross inside the chip at 320 px',
+    mount: async () => {
+      // At 390 px as wide as the question box leaves its files on a screen of 320 px.
+      const room = document.createElement('div')
+      room.style.width = 'clamp(262px, 100vw - 128px, 600px)'
+      document.body.append(room)
+      const element = create('lintje-attachment', {
+        data: { id: 's', name: 'scan.heic', state: 'error', message: 'Dit bestandstype kan niet' },
+        removable: true,
+        refused: true,
+      })
+      room.append(element)
+      await element.updateComplete
+      return element
+    },
+    // Wide, the reason stands beside the name on the chip's one line.
+    wide: (element) => {
+      const name = find(element, '.lintje-attachment__name')
+      const reason = find(element, '.lintje-attachment__detail')
+      return seen(reason) && beside(name, reason) && level(name, reason)
+    },
+    phone: (element) => {
+      const chip = find(element, '.lintje-attachment')!
+      const reason = find(element, '.lintje-attachment__detail')
+      const cross = find(element, '.lintje-attachment__remove')
+      const inside = (part: Element | null, outer: Element | null): boolean =>
+        box(part).left >= box(outer).left - 1 && box(part).right <= box(outer).right + 1
+      return (
+        seen(reason) &&
+        inside(reason, chip) &&
+        inside(cross, chip) &&
+        inside(chip, element.parentElement) &&
+        !level(find(element, '.lintje-attachment__name'), reason)
+      )
     },
   },
   {
