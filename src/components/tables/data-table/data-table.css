@@ -433,6 +433,14 @@
    cell padding below does not give the column its start back. */
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell.lintje-data-table__mobile-cell--actions,
 :where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__mobile-cell--actions { width: 1%; padding-inline-start: 0; }
+/* The name takes what the measure and the actions leave, and breaks inside a word rather than
+   widen the table past its tile; the measure keeps its words whole. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell--name { width: 100%; overflow-wrap: anywhere; }
+/* Even the measure's whole words do not fit (320 px, 400 % zoom): every word may break, and the
+   columns share the room. `is-narrow` comes from the measurement in data-table.ts. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile.is-narrow { overflow-wrap: anywhere; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile.is-narrow .lintje-data-table__mobile-cell--name { width: auto; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile.is-narrow .lintje-threshold-cell { overflow-wrap: normal; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-actions { display: flex; align-items: center; justify-content: flex-end; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell {
   padding: var(--space-2) var(--tile-pad-x);
