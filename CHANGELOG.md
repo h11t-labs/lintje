@@ -11,6 +11,12 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-10-21
+
+### Opgelost
+
+- De pagina verspringt niet meer opzij als de zoekbox of een ander venster opent: de ruimte van de scrollbalk blijft vrij. (#310)
+
 ## [0.9.1] - 2026-10-20
 
 ### Gewijzigd
@@ -617,7 +623,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.9.1...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.9.2...HEAD
+[0.9.2]: https://github.com/h11t-labs/lintje/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/h11t-labs/lintje/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/h11t-labs/lintje/compare/v0.8.3...v0.9.0
 [0.8.3]: https://github.com/h11t-labs/lintje/compare/v0.8.2...v0.8.3
