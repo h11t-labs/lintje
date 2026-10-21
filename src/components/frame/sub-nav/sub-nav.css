@@ -66,8 +66,8 @@
 .lintje-sub-nav__link.is-no-access .lintje-sub-nav__label { text-decoration: line-through; }
 
 /* Icon, lock and count stand on the first line of a label that wraps. */
-.lintje-sub-nav__icon { flex: none; margin-top: var(--space-1); }
-.lintje-sub-nav__lock { flex: none; margin-top: var(--space-1); }
+.lintje-sub-nav__icon { flex: none; margin-top: calc((1lh - 20px) / 2); }
+.lintje-sub-nav__lock { flex: none; margin-top: calc((1lh - 16px) / 2); }
 .lintje-sub-nav__count { flex: none; }
 
 /* Below 768 px: one button with the reader's page, which opens the list in place. */
