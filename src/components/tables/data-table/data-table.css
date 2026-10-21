@@ -38,9 +38,9 @@
 /* A styled scrollbar is a classic one: it doesn't hide between scrolls like an overlay one. */
 .lintje-data-table__scroller::-webkit-scrollbar { height: 8px; }
 .lintje-data-table__scroller::-webkit-scrollbar-track { background: var(--color-bg-subtle); }
-.lintje-data-table__scroller::-webkit-scrollbar-thumb { background: var(--color-border-heavy); }
+.lintje-data-table__scroller::-webkit-scrollbar-thumb { background: var(--color-border-field); }
 @supports not selector(::-webkit-scrollbar) {
-  .lintje-data-table__scroller { scrollbar-width: thin; scrollbar-color: var(--color-border-heavy) var(--color-bg-subtle); }
+  .lintje-data-table__scroller { scrollbar-width: thin; scrollbar-color: var(--color-border-field) var(--color-bg-subtle); }
 }
 
 .lintje-data-table__header-cell,
@@ -223,7 +223,7 @@
 }
 .lintje-data-table__cell--align-right .lintje-data-table__editor { font-variant-numeric: tabular-nums; }
 .lintje-data-table__editor::placeholder { color: var(--color-text-placeholder); opacity: 1; }
-.lintje-data-table__editor.is-error { border: 2px solid var(--color-error); }
+.lintje-data-table__editor.is-error { border: 2px solid var(--color-error-line); }
 .lintje-data-table__edit-error {
   display: block;
   padding: var(--space-1) var(--space-2);

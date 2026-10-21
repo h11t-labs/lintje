@@ -1169,6 +1169,18 @@ export default {
             element.shadowRoot.querySelector('.lintje-date-range-picker__field').click()
           },
         },
+        {
+          label: 'Vandaag binnen de periode',
+          note: 'Ligt vandaag tussen begin en eind, dan houdt zijn ring ook op de tint van de periode 3:1.',
+          html: '<lintje-date-range label="Periode"></lintje-date-range>',
+          async setup(stage) {
+            setRange(stage)
+            const element = stage.querySelector('lintje-date-range')
+            element.today = new Date(2026, 8, 4)
+            await element.updateComplete
+            element.shadowRoot.querySelector('.lintje-date-range-picker__field').click()
+          },
+        },
       ],
     },
     {

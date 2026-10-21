@@ -120,7 +120,7 @@ describe('a forecast on the bar chart', () => {
       true,
     ])
     // The edge of a light colour is its dark edge, so the open bar reaches 3:1.
-    expect(bars[4].getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-text)')
+    expect(bars[4].getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-edge)')
     expect(bars[3].hasAttribute('stroke')).toBe(false)
     // Only 2025 has both bounds; 2026 has none.
     const intervals = [...host.querySelectorAll('.lintje-chart__interval')]

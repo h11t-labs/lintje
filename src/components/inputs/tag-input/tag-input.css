@@ -21,7 +21,7 @@
 .lintje-tag-input__remove:focus-visible { outline: none; }
 /* The padding gives back the pixel the 2 px error border takes. */
 .lintje-tag-input.is-error {
-  border: var(--lintje-field-error-border) solid var(--color-error);
+  border: var(--lintje-field-error-border) solid var(--color-error-line);
   padding: calc((var(--h-control) - var(--h-chip-field)) / 2 - var(--lintje-field-error-border))
     calc(var(--space-2) - var(--lintje-field-error-border) + var(--lintje-field-border));
 }

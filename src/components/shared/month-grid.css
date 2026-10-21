@@ -38,7 +38,7 @@
 .lintje-month-grid__day.is-in-range:first-child { --lintje-month-grid-span: 1px 0 0 var(--color-range-bg); }
 .lintje-month-grid__day.is-in-range:last-child { --lintje-month-grid-span: -1px 0 0 var(--color-range-bg); }
 .lintje-month-grid__day.is-in-range.is-today {
-  box-shadow: inset 0 0 0 1px var(--color-accent-line), var(--lintje-month-grid-span);
+  box-shadow: inset 0 0 0 1px var(--color-today-in-range), var(--lintje-month-grid-span);
 }
 /* The edge is an inset ring, so the cell keeps its size. */
 .lintje-month-grid__day.is-selected {
@@ -47,9 +47,10 @@
   box-shadow: inset 0 0 0 1px var(--color-chosen-day-edge);
   font-weight: 700;
 }
+/* Today inside the edge: the content's colour on the primary fill, as the accent is the fill. */
 .lintje-month-grid__day.is-selected.is-today {
   box-shadow: inset 0 0 0 1px var(--color-chosen-day-edge),
-              inset 0 0 0 2px var(--color-accent-line);
+              inset 0 0 0 2px var(--color-action-primary-text);
 }
 /* Outside what may be chosen: arrow keys still pass over it. */
 .lintje-month-grid__day.is-blocked {

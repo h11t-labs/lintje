@@ -115,9 +115,10 @@ contrastondergrenzen verschillen:
 
 In licht zijn alle drie de primaire kleur. De lijntint is per constructie 3:1, dus **een woord
 wordt nooit getekend in `--color-accent-line`**. Een lijn op een vlak dat lichter is dan het
-oppervlak (een gekozen rij, een actief menu-item, een term) neemt in donker de teksttint: de
-lijntint haalt alleen op het oppervlak 3:1. Daarvoor zijn er `--color-selected-edge`,
-`--color-nav-active-edge` en `--color-term-line`.
+oppervlak (een gekozen rij, een actief menu-item, een term, vandaag in een gekozen periode) neemt
+in donker de teksttint: de lijntint haalt alleen op het oppervlak 3:1. Daarvoor zijn er
+`--color-selected-edge`, `--color-nav-active-edge`, `--color-term-line` en
+`--color-today-in-range`.
 
 **Een tint voor de donkere modus tilt alleen de waargenomen lichtheid op** (OKLCH): hij houdt de
 eigen kleurtoon en chroma van de kleur, zodat hij leest als de primaire kleur, niet als
@@ -180,13 +181,14 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
   de rol van een reeks die in kleur niets draagt, zoals gelijkwaardige bronnen op een kaart: ze
   tekent datzelfde grijs en is nooit een nieuwe datakleur.
 - Vast is de kleur van een variabele. De grijzen (`--data-comparison`, `--data-other`), het
-  raster en de nadrukkleur volgen de modus; geel als tekst heeft een eigen token
-  (`--color-chart-dark-yellow-text`), omdat geel geen tekstkleur is. "Overig" is in donker zo
+  raster en de nadrukkleur volgen de modus. **Geel is nooit tekst.** "Overig" is in donker zo
   licht dat bijna-zwart erop 4.5:1 haalt, en een label op de rest van een geheel (`remainder`)
   neemt de tekstkleur.
-- **Een lichte kleur krijgt als lijn of teken een rand in haar eigen donkere kleur**, zodat ze in
-  licht 3:1 haalt op het oppervlak en op het land van de kaart; in donker smelt de rand weg in de
-  kleur. Een vlak krijgt geen rand.
+- **Een lichte kleur krijgt als lijn of teken een rand in haar eigen donkere kleur**
+  (`--color-chart-<kleur>-edge`; die van donkergeel is een eigen donker goud), zodat ze in licht
+  3:1 haalt op het oppervlak en op het land van de kaart; in donker smelt de rand weg in de kleur
+  en ligt het land op het oppervlak, zodat een kleur daar leest als op een tegel. Een vlak krijgt
+  geen rand.
 - Elke datakleur heeft de tintladder van de Rijkshuisstijl. Een component leest er een van twee
   benoemde reeksen uit — *onderverdelingen van één variabele* (donkerste eerst) en *ordinale
   klassen* (lichtste eerst) — nooit direct een sport. Een kleur waar een animatie naartoe loopt,
@@ -387,7 +389,8 @@ De besluiten hieronder gelden voor alle elementen.
   veld voor een schermlezer. Eén knop in een veld is een secundaire knop aan het eind, zoals
   Tonen bij een wachtwoord; hij legt eerst vast wat getypt is, zoals Enter.
 - **Een schakelaar is alleen voor direct effect**, nooit in een formulier. Uit is zijn baan
-  gevuld in het grijs van de veldrand, niet bleek met een ring: de vulling alleen haalt 3:1.
+  gevuld in het grijs van de veldrand, niet bleek met een ring: de vulling alleen haalt 3:1. Aan
+  is het bolletje de inhoud op de primaire vulling, zodat zijn plaats ook in donker 3:1 haalt.
 - **Een instelling is een rij**: de naam in normaal gewicht en de uitleg eronder links, het
   bedieningselement rechts (`layout="row"`); de kop van de sectie erboven is de vette. De rij
   leest haar eigen breedte, dus ze stapelt op een telefoon en in een lade evengoed. Een instelling
@@ -902,7 +905,8 @@ dat: gestreept blijft van vergelijking en drempel. Een geraamde staaf is open, e
 hoverpunt ook, en de tooltip en de CSV noemen elk geraamd punt zo. De marge rond een raming vult
 alleen bij één reeks, of bij de reeks die de lezer in de legenda aanwijst, om dezelfde reden als
 bij het spinnendiagram. Met een raming heeft de grafiek één grens: de lijn tussen gemeten en
-geraamd, met beide woorden erboven en het geraamde deel op een eigen ondergrond. Een lopende
+geraamd, met beide woorden erboven en het geraamde deel op een eigen ondergrond, in donker onder
+het oppervlak, zodat de stippels er 3:1 houden. Een lopende
 periode wordt dan niet gearceerd of afgekapt; de host laat haar weg of rekent haar tot de raming.
 Een vergelijking heeft geen raming: haar waarden zijn gemeten.
 
@@ -1112,7 +1116,11 @@ kleinste correctie, en leg die hier vast.
 - **Eén `h1` per pagina**: de naam van de shell, ook onder 768 px. Een paginatitel is een `h2`,
   die van een tegel een `h3` ([Een eerste pagina](guides/start.md)).
 - **Geforceerde kleuren zijn het palet van de lezer, geen thema**: een component tekent alleen
-  opnieuw wat een vulling of een schaduw droeg, in systeemkleuren.
+  opnieuw wat een vulling of een schaduw droeg, in systeemkleuren: een knop die aan staat een
+  rand in `Highlight`, een icoon uit een bestand de tekstkleur van zijn ouder.
+- **De foutrand van een veld neemt `--color-error-line`**, net als een ander foutteken: in de
+  foutstaat is die rand de enige omtrek van het veld, en `--color-error` haalt in donker geen 3:1.
+  Die rode vulling blijft voor wat er witte inhoud op zet, zoals een badge.
 - Elke grafiek heeft een `<desc>`, elke tabel een `<caption>`.
 - **Wat vaak verandert, wordt niet uit de lijst zelf voorgelezen.** Streamende tekst, een
   takenlijst en een waarde die optelt, worden uitgesproken vanuit een live-regio ernaast, in hele
@@ -1197,9 +1205,9 @@ kleinste correctie, en leg die hier vast.
   het oppervlak, zodat een oranje teken zijn ring houdt; op een kaart, waar tekens elkaar raken,
   ligt het met die ring boven alle andere. De nullijn, de arcering en de rand van
   een kaartgebied met een cijfer halen 3:1; aangrenzende tinten worden gescheiden door een lijn in
-  het oppervlak; een donkergele lijn krijgt een rand in zijn tekstkleur; een label op een vulling
+  het oppervlak; een donkergele lijn krijgt een rand in haar donkere goud; een label op een vulling
   neemt de tekstkleur van die vulling; een gedimd teken of een uitgeschakelde reeks vervaagt zijn
-  kleur, nooit zijn woorden.
+  kleur, nooit zijn woorden of de ring van de focus.
 - **Een entiteitendiagram is één Tab-stop met zijn teller erna**: de gekozen knoop, anders het
   middelpunt. De pijlen gaan naar de buur die het meest in hun richting ligt, Home naar het
   middelpunt, Enter kiest en Escape maakt het ongedaan. Elke knoop is een knop met haar naam en
@@ -1246,9 +1254,8 @@ kleinste correctie, en leg die hier vast.
 [Donker](#donker)); `--color-link-on-status`; de lijnkleur van een statusteken (`--color-*-line`),
 de statuskleur bijgesteld naar 3:1 op haar eigen tint; de tekstkleur van een statuswoord
 (`--color-error-text`, `--color-success-text`), bijgesteld naar 4.5:1 — lichter in donker, het
-groen ook donkerder in licht; de eigen tekstkleur van donkergeel; de donkere rand van een lichte
-datakleur als lijn of teken; tekst op de sequentiële reeks
-vast op bijna-zwart of wit in beide modi; het oranje van de focusring is in licht donkerder, zodat
+groen ook donkerder in licht; de donkere rand van een lichte datakleur als lijn of teken; tekst
+op de sequentiële reeks vast op bijna-zwart of wit in beide modi; het oranje van de focusring is in licht donkerder, zodat
 het op elke lichte ondergrond 3:1 haalt; de tekst van het omgevingslabel is bijna-zwart waar wit
 op het accent geen 4.5:1 haalt; geel is nooit een lijn of tekst: een los teken in de
 toon "let op" neemt de lijnkleur van "aandacht", en een gele vulling staat alleen naast een woord.

@@ -55,7 +55,11 @@
 .lintje-log-viewer__row--error { border-left-color: var(--color-error-line); }
 .lintje-log-viewer__row.is-selected {
   background: var(--color-choice-active-bg);
-  box-shadow: inset 0 0 0 1px var(--color-accent-line);
+  box-shadow: inset 0 0 0 1px var(--color-selected-edge);
+}
+/* Forced colours drop the fill and the inset edge: the chosen row is outlined in Highlight. */
+@media (forced-colors: active) {
+  .lintje-log-viewer__row.is-selected:not(:focus-visible) { outline: 1px solid Highlight; outline-offset: -1px; }
 }
 
 .lintje-log-viewer__toggle { flex: 0 0 var(--space-6); height: var(--space-6); }
@@ -171,7 +175,7 @@
 .lintje-log-viewer__live { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: 700; color: var(--color-text-primary); }
 .lintje-log-viewer__sep { margin: 0 var(--space-2); }
 .lintje-log-viewer__state .lintje-badge { margin-right: var(--space-2); }
-.lintje-log-viewer__dot { width: var(--space-2); height: var(--space-2); border-radius: var(--radius-round); background: var(--color-error); }
+.lintje-log-viewer__dot { width: var(--space-2); height: var(--space-2); border-radius: var(--radius-round); background: var(--color-error-line); }
 .lintje-log-viewer__foot-actions { display: inline-flex; align-items: center; gap: var(--space-1); }
 .lintje-log-viewer__count { white-space: nowrap; }
 

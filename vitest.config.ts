@@ -27,6 +27,11 @@ const emulatePrint: BrowserCommand<[on: boolean]> = async ({ page }, on) => {
   await page.emulateMedia({ media: on ? 'print' : 'screen' })
 }
 
+/** Draws the page in the system's palette, as a contrast theme does (`forced-colors.browser.test.ts`). */
+const emulateForcedColors: BrowserCommand<[on: boolean]> = async ({ page }, on) => {
+  await page.emulateMedia({ forcedColors: on ? 'active' : 'none' })
+}
+
 const engines = (process.env.LINTJE_BROWSERS ?? 'chromium').split(',') as Engine[]
 
 const unit = {
@@ -100,7 +105,7 @@ export default defineConfig({
             // A failed test writes no picture into `src/`.
             screenshotFailures: false,
             viewport: { width: 1440, height: 900 },
-            commands: { emulatePrint },
+            commands: { emulatePrint, emulateForcedColors },
             // WebKit on the Linux runner of the CI misses a one-second poll now and then (a viewport
             // that has not flipped yet, a toast's close button not drawn yet); on macOS it never
             // does. One more try separates that from a real failure.

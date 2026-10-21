@@ -25,7 +25,7 @@
 .lintje-textarea__control::placeholder { color: var(--color-text-placeholder); opacity: 1; }
 .lintje-textarea__control:disabled::placeholder { color: var(--color-text-disabled); }
 /* The padding gives back the pixel the 2 px error border takes. */
-.lintje-textarea__control.is-error { border: 2px solid var(--color-error); padding: calc(var(--space-2) - var(--lintje-field-error-border) + var(--lintje-field-border)) calc(var(--space-4) - var(--lintje-field-error-border) + var(--lintje-field-border)); }
+.lintje-textarea__control.is-error { border: 2px solid var(--color-error-line); padding: calc(var(--space-2) - var(--lintje-field-error-border) + var(--lintje-field-border)) calc(var(--space-4) - var(--lintje-field-error-border) + var(--lintje-field-border)); }
 /* Disabled wins over read-only, read-only over error. */
 .lintje-textarea__control.is-readonly {
   border: 1px solid var(--color-border-strong);
@@ -58,7 +58,7 @@
   font: inherit;
   resize: none;
 }
-.lintje-textarea__control--plain.is-error { padding: 0 0 var(--space-1); border: 0; border-bottom: 2px solid var(--color-error); }
+.lintje-textarea__control--plain.is-error { padding: 0 0 var(--space-1); border: 0; border-bottom: 2px solid var(--color-error-line); }
 
 /* The hint or the error left, the counter right; where they do not fit, the counter drops under
    it, as the actions of a form do. */
