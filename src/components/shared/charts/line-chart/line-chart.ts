@@ -511,7 +511,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
       )}
       ${
         events.length
-          ? html`<ol class="lintje-chart-events" aria-label="Gebeurtenissen">
+          ? html`<ol class="lintje-chart-events" role="list" aria-label="Gebeurtenissen">
               ${events.map(
                 (event) => html`<li class="lintje-chart-events__item">
                   <span class="lintje-event-chip"><span class="lintje-event-chip__number">${event.number}</span></span>

@@ -342,9 +342,15 @@ export abstract class LintjeFormInputElement extends LintjeInputElement {
     // Reflected: a form submits under the `name` attribute.
     name: { type: String, reflect: true },
     readonly: { type: Boolean, reflect: true },
+    autocomplete: { type: String },
   }
 
   readonly: boolean = false
+  /**
+   * What the field asks for, passed to the native control as is (`name`, `email`, `bday-year`),
+   * so the browser and assistive software can fill it in.
+   */
+  autocomplete: string = ''
 
   abstract value: unknown
 
@@ -494,14 +500,6 @@ export abstract class LintjeChoiceGroupElement extends LintjeInputElement {
     this.otherText = text
     this.emitLocal('lintje-other-change', text)
     if (this.name) this.emit('lintje-values-change', this.valuesChange(readControl(this)))
-  }
-
-  /** After "Anders" is chosen by a click, a tap or Space: the focus goes into its field. */
-  protected async focusOther(): Promise<void> {
-    await this.updateComplete
-    const field = otherField(this.renderRoot)
-    await field?.updateComplete
-    field?.focus()
   }
 
   override formResetCallback(): void {

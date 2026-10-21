@@ -62,6 +62,7 @@ export class LintjeTextarea extends LintjeFormInputElement {
     stacked: { type: Boolean, reflect: true },
     rows: { type: Number },
     variant: { type: String, reflect: true },
+    textLang: { type: String, attribute: 'text-lang' },
   }
 
   value: string = ''
@@ -78,6 +79,11 @@ export class LintjeTextarea extends LintjeFormInputElement {
    * stands and the full height, for a surface that frames the text and draws the ring itself.
    */
   variant: TextareaVariant = 'field'
+  /**
+   * The language of the text in the field (`en`), as `lang` on the native control: the label,
+   * the hint and the counter keep the page's.
+   */
+  declare textLang?: string
 
   private readonly typing = new Debounce(this)
 
@@ -215,8 +221,10 @@ export class LintjeTextarea extends LintjeFormInputElement {
         })}
         rows=${this.rows}
         ${styleProps({ '--lintje-rows': this.rows })}
+        lang=${this.textLang || nothing}
         .value=${this.value}
         placeholder=${this.placeholder || nothing}
+        autocomplete=${this.autocomplete || nothing}
         aria-labelledby=${this.labelId}
         aria-describedby=${this.describedBy}
         aria-invalid=${message ? 'true' : nothing}

@@ -135,20 +135,30 @@ const FRAME_STYLE = `
   body { margin: 0; background: var(--color-bg-surface); color: var(--color-text-primary);
     font: var(--text-ui); font-family: var(--font-ui); }
   .guide__stage { padding: var(--space-8); }
+  .guide__stage--page { padding: 0; }
   .guide__row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
   .guide__stack { display: flex; flex-direction: column; gap: var(--space-3); }`
 
-function frameDocument(html) {
+/** What a framed page loads, from the guide's own address; a test points it at the source. */
+export const frameSources = {
+  base: () => new URL('.', location.href).href,
+  styles: ['../../src/tokens/fonts.css', '../../dist-elements/tokens.css'],
+  bundle: '../../dist-elements/lintje.js',
+  icons: '../../dist-icons/',
+}
+
+/** `page`: the specimen is the page itself, a shell, so its stage has no room around it. */
+function frameDocument(html, page = false) {
   const root = document.documentElement
+  const { styles, bundle, icons } = frameSources
   return `<!doctype html><html lang="nl" data-mode="${root.dataset.mode ?? 'light'}"
     data-theme="${root.dataset.theme ?? ''}"><head><meta charset="utf-8">
-    <base href="${new URL('.', location.href)}">
-    <link rel="stylesheet" href="../../src/tokens/fonts.css">
-    <link rel="stylesheet" href="../../dist-elements/tokens.css">
+    <base href="${frameSources.base()}">
+    ${styles.map((href) => `<link rel="stylesheet" href="${href}">`).join('')}
     <style>${FRAME_STYLE}</style></head>
-    <body><div class="guide__stage">${html ?? ''}</div><script type="module">
-    import { setIconSource } from '../../dist-elements/lintje.js'
-    setIconSource({ base: '../../dist-icons/' })
+    <body><div class="guide__stage${page ? ' guide__stage--page' : ''}">${html ?? ''}</div><script type="module">
+    import { setIconSource } from '${bundle}'
+    setIconSource({ base: '${icons}' })
     </script></body></html>`
 }
 
@@ -165,6 +175,43 @@ function prepare(stage, setup, item, state) {
   if (item && state) applyState(stage, item, state)
 }
 
+/** A page frame's own height, before it is scaled. */
+const PAGE_HEIGHT = 560
+
+/**
+ * A page frame in a box of the row's width: the frame keeps its own width, `width` or the
+ * window's, and is scaled down to the row, never up. The box's height follows from its width,
+ * so the observer only scales and never resizes what it watches.
+ */
+function fitted(iframe, width) {
+  const box = element('div', 'guide__frame-box')
+  // Hidden overflow lets the ratio set the height: the unscaled frame inside does not.
+  Object.assign(box.style, { overflow: 'hidden', maxHeight: `${PAGE_HEIGHT}px` })
+  iframe.style.height = `${PAGE_HEIGHT}px`
+  box.append(iframe)
+  let own = 0
+  const size = () => {
+    own = width ?? window.innerWidth
+    iframe.style.width = `${own}px`
+    box.style.aspectRatio = `${own} / ${PAGE_HEIGHT}`
+  }
+  const scale = () => {
+    const ratio = Math.min(1, box.clientWidth / own)
+    iframe.style.transform = ratio < 1 ? `scale(${ratio})` : ''
+  }
+  size()
+  new ResizeObserver(scale).observe(box)
+  if (width == null) {
+    const follow = () => {
+      if (!box.isConnected) return window.removeEventListener('resize', follow)
+      size()
+      scale()
+    }
+    window.addEventListener('resize', follow)
+  }
+  return box
+}
+
 /**
  * One specimen: the stage its markup stands on, with `setup` run on it, in a figure that holds
  * what the guide adds around it. `state` is put on afterwards. The figure's `stage` is the
@@ -173,16 +220,19 @@ function prepare(stage, setup, item, state) {
  * `frame` draws it in a page of its own, open: an overlay is `position: fixed` and traps the
  * focus, so on the guide's page it would cover the guide and hold its keyboard. Its `[data-open]`
  * button opens it; without one, `true` opens the element's own tags, a selector the ones it names. The frame is inert while the overlay opens,
- * so its focus does not pull the guide's page along.
+ * so its focus does not pull the guide's page along. `'page'` opens nothing: a shell, whose
+ * `main`, `h1` and skip link would be the guide page's second. Its frame is as wide as the window,
+ * or `frameWidth`, so the shell takes the breakpoints of that width, scaled down to the row.
  */
-export function renderSpecimen({ label, html, setup, frame: own }, { item, state } = {}) {
+export function renderSpecimen({ label, html, setup, frame: own, frameWidth }, { item, state } = {}) {
   const figure = element('figure', 'guide__specimen')
   const frame = own ?? item?.frame
   if (frame) {
-    const iframe = element('iframe', 'guide__frame')
+    const page = frame === 'page'
+    const iframe = element('iframe', page ? 'guide__frame guide__frame--page' : 'guide__frame')
     iframe.title = label ?? item?.tag ?? 'Voorbeeld'
     iframe.inert = true
-    iframe.srcdoc = frameDocument(html)
+    iframe.srcdoc = frameDocument(html, page)
     // Until the frame stands, the code is read from the markup alone.
     figure.stage = element('div')
     figure.stage.innerHTML = html ?? ''
@@ -191,7 +241,7 @@ export function renderSpecimen({ label, html, setup, frame: own }, { item, state
       async () => {
         const stage = iframe.contentDocument.querySelector('.guide__stage')
         prepare(stage, setup, item, state)
-        const open = frame === true ? item?.tag : frame
+        const open = frame === true ? item?.tag : page ? null : frame
         const overlays = open ? [...stage.querySelectorAll(open)] : []
         // The opener opens it as the host would, filling what it fills; without one, `open`.
         const opener = stage.querySelector('[data-open]')
@@ -208,7 +258,8 @@ export function renderSpecimen({ label, html, setup, frame: own }, { item, state
       },
       { once: true },
     )
-    figure.append(iframe)
+    if (page) figure.append(fitted(iframe, frameWidth))
+    else figure.append(iframe)
     return figure
   }
   const stage = element('div', 'guide__stage')

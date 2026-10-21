@@ -126,6 +126,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
           min=${this.min ?? nothing}
           max=${this.max ?? nothing}
           step=${this.step}
+          autocomplete=${this.autocomplete || nothing}
           aria-labelledby=${this.labelId}
           aria-describedby=${addonDescribedBy(Boolean(prefix), Boolean(unit), this.describedBy)}
           aria-invalid=${this.error ? 'true' : nothing}

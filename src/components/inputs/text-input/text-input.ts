@@ -45,10 +45,10 @@ export class LintjeTextInput extends LintjeFormInputElement {
     stacked: { type: Boolean, reflect: true },
     type: { type: String },
     commitOn: { type: String, attribute: 'commit' },
-    autocomplete: { type: String },
     prefix: { type: String },
     suffix: { type: String },
     action: { type: String },
+    softRequired: { type: Boolean, attribute: 'soft-required' },
     revealed: { state: true },
   }
 
@@ -63,8 +63,6 @@ export class LintjeTextInput extends LintjeFormInputElement {
    * bundles keystrokes and commits 300 ms after the last.
    */
   commitOn: CommitOn = 'change'
-  /** Passed to the native input as is. */
-  autocomplete: string = ''
   /** The fixed text before the input, as written ("€", "www."); never part of `value`. */
   override prefix: string | null = null
   /** The fixed text after the input (".nl", "@rijksoverheid.nl"); never part of `value`. */
@@ -74,6 +72,11 @@ export class LintjeTextInput extends LintjeFormInputElement {
    * then sends `lintje-action`; it works when `readonly`. Ignored for a password.
    */
   declare action?: string
+  /**
+   * Says the field must be filled, as `aria-required` only: unlike `required` it holds back no
+   * form, for a field whose holder checks it, such as the one under "Anders, namelijk".
+   */
+  softRequired: boolean = false
   protected revealed: boolean = false
 
   private readonly typing = new Debounce(this)
@@ -224,7 +227,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
               aria-labelledby=${this.labelId}
               aria-describedby=${addonDescribedBy(Boolean(this.prefix), Boolean(this.suffix), this.describedBy)}
               aria-invalid=${this.error ? 'true' : nothing}
-              aria-required=${this.required ? 'true' : nothing}
+              aria-required=${this.required || this.softRequired ? 'true' : nothing}
               ?required=${this.required}
               ?readonly=${this.readonly}
               ?disabled=${this.isDisabled}

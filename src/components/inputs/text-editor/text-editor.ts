@@ -310,6 +310,8 @@ export class LintjeTextEditor extends LintjeInputElement {
   private renderTool(tool: Tool, index: number): TemplateResult {
     const pressed = this.active.has(tool.format)
     const idle = tool.format === 'link' && this.collapsed && !pressed
+    // In a link, Link takes it away: a toggle that is on. Elsewhere it opens the link dialog.
+    const opens = tool.format === 'link' && !pressed
     const glyph = tool.icon ? renderIcon(tool.icon, { size: 16 }) : nothing
     const content = glyph === nothing ? tool.text : glyph
     return html`<button
@@ -324,7 +326,9 @@ export class LintjeTextEditor extends LintjeInputElement {
       tabindex=${index === this.toolIndex ? '0' : '-1'}
       title=${tool.label}
       aria-label=${tool.label}
-      aria-pressed=${pressed ? 'true' : 'false'}
+      aria-pressed=${opens ? nothing : pressed ? 'true' : 'false'}
+      aria-haspopup=${opens ? 'dialog' : nothing}
+      aria-expanded=${opens ? String(this.linkOpen) : nothing}
       aria-disabled=${idle ? 'true' : nothing}
       ?disabled=${this.isDisabled}
       @mousedown=${(event: MouseEvent) => event.preventDefault()}

@@ -494,7 +494,7 @@ function drawRows(context: Context): TemplateResult {
         }
         ${
           nested && open
-            ? html`<ul class="lintje-treemap__subs" id=${subsId}>
+            ? html`<ul class="lintje-treemap__subs" role="list" id=${subsId}>
                 ${group.areas.map(
                   (
                     area,
@@ -540,6 +540,6 @@ function drawRows(context: Context): TemplateResult {
       <desc id="${id}-desc">${description}</desc>
       ${keyed(JSON.stringify(spec.parts), svg`${pieces}`)}
     </svg>
-    <ul class="lintje-treemap__rows ${model.nested ? '' : 'lintje-treemap__rows--flat'}">${rows}${missing}</ul>
+    <ul class="lintje-treemap__rows ${model.nested ? '' : 'lintje-treemap__rows--flat'}" role="list">${rows}${missing}</ul>
   `
 }

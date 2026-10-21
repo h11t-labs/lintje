@@ -32,6 +32,14 @@ describe('parseDate()', () => {
     }
   })
 
+  it('reads eight or six digits in a row as day, month and year, as a number pad types them', () => {
+    expect(parseDate('03102026', 2026)).toEqual({ kind: 'ok', iso: '2026-10-03' })
+    expect(parseDate('031026', 2026)).toEqual({ kind: 'ok', iso: '2026-10-03' })
+    expect(parseDate('310226', 2026)).toEqual({ kind: 'invalid', reason: 'day' })
+    expect(parseDate('3102026', 2026)).toEqual({ kind: 'invalid', reason: 'format' })
+    expect(parseDate('31026', 2026)).toEqual({ kind: 'invalid', reason: 'format' })
+  })
+
   it('takes an ISO day as it stands', () => {
     expect(parseDate('2026-10-03')).toEqual({ kind: 'ok', iso: '2026-10-03' })
   })

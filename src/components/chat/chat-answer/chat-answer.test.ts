@@ -64,6 +64,15 @@ describe('lintje-chat-answer', () => {
     expect(tags[2].getAttribute('span')).toBe('6')
   })
 
+  it("draws a KPI's label as an h3, level with the title of a chart beside it", async () => {
+    const element = await answer({ blocks: BLOCKS })
+    const row = element.renderRoot.querySelector('lintje-kpi-row')!
+    await row.updateComplete
+    const kpi = row.shadowRoot!.querySelector('lintje-kpi')!
+    await kpi.updateComplete
+    expect(kpi.shadowRoot!.querySelector('.lintje-kpi__label')?.localName).toBe('h3')
+  })
+
   it('draws an attachments block as chips in a labelled list, beside the sentence that names them', async () => {
     const element = await answer({
       blocks: [

@@ -436,8 +436,9 @@ De besluiten hieronder gelden voor alle elementen.
   namelijk" staat als laatste, en gekozen staat er een tekstveld onder, ingesprongen tot de lijn
   van de labels, zodat het leest als het vervolg van de keuze. Nooit een los veld van de host onder
   de groep. De tekst is een waarde naast de keuze (`<name>-other`) die blijft staan als de keuze
-  weggaat, en de host controleert hem zoals elk veld. Een filter, een rij knoppen en kaarten hebben
-  geen eigen antwoord.
+  weggaat, en de host controleert hem zoals elk veld. Gekozen houdt de optie de focus en is het veld
+  de volgende Tab-stop; het veld zegt alleen met `aria-required` dat het ingevuld moet worden, zodat
+  het geen formulier tegenhoudt. Een filter, een rij knoppen en kaarten hebben geen eigen antwoord.
 - **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
   elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
   beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").
@@ -1110,7 +1111,7 @@ kleinste correctie, en leg die hier vast.
 - **Een veld is verplicht tenzij het anders zegt**: de optionele zijn gemarkeerd, "(niet
   verplicht)", binnen het label. Geen sterretje.
 - **Eén `h1` per pagina**: de naam van de shell, ook onder 768 px. Een paginatitel is een `h2`,
-  die van een tegel een `h3` ([Een eerste pagina](guides/start.md)).
+  die van een tegel en het label van een kerncijfer een `h3` ([Een eerste pagina](guides/start.md)).
 - **Geforceerde kleuren zijn het palet van de lezer, geen thema**: een component tekent alleen
   opnieuw wat een vulling of een schaduw droeg, in systeemkleuren.
 - Elke grafiek heeft een `<desc>`, elke tabel een `<caption>`.
@@ -1124,6 +1125,8 @@ kleinste correctie, en leg die hier vast.
 - Tekst die met CSS `content` getekend wordt (een regelnummer, een placeholder), heeft een leeg
   alternatief, `content: … / ''`; wat een lezer ervan moet horen, staat in de markup
   (`aria-placeholder`).
+- **Een lijst zonder opsommingsteken zegt `role="list"`**, tenzij ze in een `nav` staat:
+  `base.css` haalt de tekens van elke lijst, en WebKit noemt haar dan geen lijst meer.
 - **Tekst die met een beletselteken is afgekapt, staat nooit alleen in een tooltip**: waar geen
   aanwijzer hem toont — onder 768 px, zonder hover, onder de focus van het toetsenbord — loopt hij
   door op een volgende regel. Tekst die geen focus kan krijgen en geen tooltip heeft, kapt nooit

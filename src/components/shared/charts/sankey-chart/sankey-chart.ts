@@ -861,7 +861,7 @@ function renderRows(
                   >${fits ? piece.share : nothing}</span>`
             })}
           </div>
-          <ul class="lintje-sankey__rows">
+          <ul class="lintje-sankey__rows" role="list">
             ${node.outflow.map((flow) => {
               const link = flow.href ? flow : flow.to
               const sentence =
