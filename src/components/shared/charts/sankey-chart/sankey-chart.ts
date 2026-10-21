@@ -750,10 +750,12 @@ function renderDrawing(
     ...(missing ? [{ label: 'Geen gegevens', shape: 'hatch' as const, fixed: true }] : []),
   ]
 
+  // In a group the buttons say every name and count already; the labels would say them again.
+  const hidden = selection.interactive ? 'true' : nothing
   const body: SvgSlot = [
-    stepNames,
+    svg`<g aria-hidden=${hidden}>${stepNames}</g>`,
     svg`<g @mouseleave=${() => controller.hoverAt(null)}>${transitions}${nodes}</g>`,
-    labels,
+    svg`<g aria-hidden=${hidden}>${labels}</g>`,
   ]
 
   return html`
@@ -815,8 +817,9 @@ function renderRows(
     const tints = tintsFor(next.nodes.length, named)
     const rung = (node: SankeyNodeModel) => Math.min(node.index, tints.length - 1)
     const sources = step.nodes.filter((node) => node.outflow.length > 0 || node.size > 0)
-    return html`<section class="lintje-sankey__transition">
-      <p class="lintje-sankey__heading">${step.label} → ${lower(next.label)}</p>
+    const heading = `${id}-transition-${t}`
+    return html`<section class="lintje-sankey__transition" role="group" aria-labelledby=${heading}>
+      <p class="lintje-sankey__heading" id=${heading}>${step.label} → ${lower(next.label)}</p>
       ${sources.map((node) => {
         const pieces: { weight: number; fill: string; kind: string; share?: string }[] = []
         let stubbed = false
@@ -849,7 +852,8 @@ function renderRows(
           <p class="lintje-sankey__source-head ${head.state}" data-mark-id=${head.markId}
              role=${head.role} tabindex=${head.tabIndex} aria-pressed=${head.pressed}
              aria-label=${head.label} @click=${head.click} @keydown=${head.keydown}>
-            <span>${node.label}</span><span>${count(node)}</span>
+            <!-- The space keeps name and count two words, as the button's name says them (2.5.3). -->
+            <span>${node.label}</span> <span>${count(node)}</span>
           </p>
           <div class="lintje-sankey__bar" aria-hidden="true">
             ${pieces.map((piece) => {
