@@ -15,7 +15,7 @@ import { formatNumber, formatPercent } from '../../../../core/format'
 import { chartColor } from '../shared/colors'
 import { renderTooltip } from '../shared/tooltip'
 import type { ChartOptions, TooltipContent } from '../shared/controller'
-import { markSelection } from '../shared/mark-select'
+import { markSelection, type MarkAttributes } from '../shared/mark-select'
 import { drawingRole, focusRingStyle, renderFocusRing, renderLegend } from '../shared/axes'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { tintsFor } from '../shared/tints'
@@ -134,6 +134,29 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
   const hover = controller.hoverIndex
   const lifted = hover != null ? arcs[hover] : undefined
 
+  // A slice that drills is a small target; its legend row does the same, the name its link or
+  // button (WCAG 2.5.8).
+  const rowLabel = (segment: PieSegment, i: number) => {
+    const name = html`<span class="lintje-pie-chart__label-inner">
+      <span class="lintje-pie-chart__marker" ${styleProps({ background: colors[i] })}></span>${segment.label}
+    </span>`
+    const mark: MarkAttributes = selection.of(links[i], segment.label, segment.label)
+    const click = mark.click
+    if (!mark.clickable || click === nothing) return name
+    if (mark.role === 'link')
+      return html`<a class="lintje-pie-chart__action" href=${links[i]!.href!}
+          @click=${(event: MouseEvent) => {
+            event.preventDefault()
+            click(event)
+          }}
+          @auxclick=${(event: MouseEvent) => {
+            event.preventDefault()
+            click(event)
+          }}>${name}</a>`
+    return html`<button type="button" class="lintje-pie-chart__action" aria-pressed=${mark.pressed}
+        @click=${click}>${name}</button>`
+  }
+
   const setHover = (index: number | null) => {
     controller.hoverIndex = index
     controller.requestUpdate()
@@ -231,11 +254,7 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
               (segment, i) => html`
               <tr class="lintje-pie-chart__row ${hover === i ? 'is-hovered' : ''} ${rowState(i)}"
                   @mouseenter=${() => setHover(i)} @mouseleave=${() => setHover(null)}>
-                <th scope="row" class="lintje-pie-chart__label">
-                  <span class="lintje-pie-chart__label-inner">
-                    <span class="lintje-pie-chart__marker" ${styleProps({ background: colors[i] })}></span>${segment.label}
-                  </span>
-                </th>
+                <th scope="row" class="lintje-pie-chart__label">${rowLabel(segment, i)}</th>
                 <td class="lintje-pie-chart__value">${formatNumber(segment.value)}</td>
                 <td class="lintje-pie-chart__value">${formatPercent((segment.value / total) * 100)}</td>
               </tr>

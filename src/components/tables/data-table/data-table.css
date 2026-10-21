@@ -206,7 +206,8 @@
   visibility: hidden;
 }
 .lintje-data-table__cell--align-right .lintje-data-table__edit-icon { right: auto; left: var(--space-1); }
-.lintje-data-table__cell--editable:hover .lintje-data-table__edit-icon { visibility: visible; }
+.lintje-data-table__cell--editable:hover .lintje-data-table__edit-icon,
+.lintje-data-table__cell--editable:focus-visible .lintje-data-table__edit-icon { visibility: visible; }
 /* No room above or below: the field is as tall as the row. */
 .lintje-data-table__cell--editable.is-editing { padding: 0 var(--space-1); vertical-align: top; }
 .lintje-data-table__cell--editable.is-editing:hover { background: transparent; }
@@ -334,6 +335,8 @@
 .lintje-data-table__chooser-button[aria-expanded='true'],
 .lintje-data-table__detail-toggle:hover,
 .lintje-data-table__mobile-toggle:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
+/* The detail toggle touches the scroller's left edge, which clips: its ring sits inside. */
+.lintje-data-table__detail-toggle:focus-visible { outline-offset: -3px; }
 .lintje-data-table__funnel.is-filtered {
   background: var(--color-action-primary);
   border-color: var(--color-action-primary-border);

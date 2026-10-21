@@ -30,6 +30,12 @@ export interface ChartOptions {
   /** Cross-drill: the chosen mark's id. The chart keeps no selection of its own. */
   selectedId?: string | null
   /**
+   * The host keeps a selection (cross-drill): a mark with a `href` chooses, a toggle. Without it
+   * the mark goes to its `href`, a link, also when the host cancels the event to route itself.
+   * Default: whether `selectedId` is given.
+   */
+  choosing?: boolean
+  /**
    * A mark that carries a `href` was activated; `newTab` for a modifier or middle click. Without
    * this the marks stay inert.
    */
@@ -139,6 +145,8 @@ export class ChartController {
   mapTool: MapTool | null = null
   /** The tool the map's one select button shows: the last one used, until a shape is chosen. */
   mapLastTool: MapTool | null = null
+  /** The keyboard's focus is in the map: the drawing hint speaks of the keys. */
+  mapKeyboard = false
   /** The menu of tools stands open, and which row takes the focus once it has drawn. */
   mapMenuOpen = false
   mapMenuFocus: 'first' | 'last' | 'checked' | null = null
@@ -146,6 +154,8 @@ export class ChartController {
   mapLegendOpen = false
   /** The area that chose marks, and the last one the host sent, compared as JSON. */
   mapArea: MapArea | null = null
+  /** The area that steps aside while a new one is drawn, to come back if that one is undone. */
+  mapAreaAside: MapArea | null = null
   hostArea: string | undefined = undefined
   // The last `selectedId` the host sent: the map adopts a new one but owns its selection in
   // between, or the host's value would win every render and a click could never clear it.

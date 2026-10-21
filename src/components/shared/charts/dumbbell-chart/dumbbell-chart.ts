@@ -383,7 +383,13 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
                 </g>`
               : nothing
           }
-          ${focus ? svg`<circle class="lintje-dumbbell__focus" cx=${focus.x} cy=${cy} r=${FOCUS} />` : nothing}
+          ${
+            // Without a drawn point the ring goes round the whole row, inside its edge.
+            focus
+              ? svg`<circle class="lintje-dumbbell__focus" cx=${focus.x} cy=${cy} r=${FOCUS} />`
+              : svg`<rect class="lintje-dumbbell__focus" x="1.5" y=${top + 1.5}
+                          width=${Math.max(0, width - 3)} height=${Math.max(0, row - 3)} />`
+          }
           <g class="lintje-chart__series ${fromOn && toOn ? '' : 'is-off'}">
             <text x=${width} y=${cy + 4} text-anchor="end"
                   class="lintje-chart__data-label lintje-dumbbell__difference ${difference == null ? 'lintje-dumbbell__no-value' : ''}">${difference == null ? NO_DATA : signed(difference)}</text>

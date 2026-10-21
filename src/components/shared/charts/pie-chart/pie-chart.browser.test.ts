@@ -86,3 +86,34 @@ describe('the legend table of a pie', () => {
     for (const line of lines.slice(1)) expect(line.left).toBeGreaterThanOrEqual(swatch.right)
   })
 })
+
+describe('the legend table of a pie that drills', () => {
+  it('opens a row as its slice does, from a link of at least 24 px', async () => {
+    const element = document.createElement('lintje-chart') as ChartElement
+    element.data = {
+      chart: {
+        kind: 'pie',
+        legendTable: true,
+        segments: [
+          { id: 'noord', label: 'Noord', value: 12, href: '?regio=noord' },
+          { id: 'zuid', label: 'Zuid', value: 1, href: '?regio=zuid' },
+        ],
+      },
+      description: 'Aanvragen per regio.',
+    }
+    const picked: unknown[] = []
+    element.addEventListener('lintje-mark-select', (event) => {
+      event.preventDefault()
+      picked.push((event as CustomEvent<{ id: string }>).detail.id)
+    })
+    document.body.append(element)
+    await element.updateComplete
+    const link = (): HTMLAnchorElement | null =>
+      element.renderRoot.querySelectorAll<HTMLAnchorElement>('.lintje-pie-chart__row a')[1] ?? null
+    await expect.poll(() => link()?.getClientRects().length ?? 0).toBeGreaterThan(0)
+    expect(link()!.getAttribute('href')).toBe('?regio=zuid')
+    expect(link()!.getBoundingClientRect().height).toBeGreaterThanOrEqual(24)
+    link()!.click()
+    expect(picked).toEqual(['zuid'])
+  })
+})

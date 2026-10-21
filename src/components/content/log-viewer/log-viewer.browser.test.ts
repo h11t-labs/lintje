@@ -1,8 +1,11 @@
 /**
- * The log viewer in a browser: its filter row fits the tile's width, not the screen's, and
- * following, "Naar nieuwste" and a step to a hit scroll its log, never the page.
+ * The log viewer in a browser: its filter row fits the tile's width, not the screen's,
+ * following, "Naar nieuwste" and a step to a hit scroll its log, never the page, and the
+ * expanded log has the keys of the tile.
  */
 import { afterEach, describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
+import { SHIFT_TAB, TAB } from '../../../core/test-keys'
 import './log-viewer'
 import type { LintjeLogViewer } from './log-viewer'
 import type { LintjeFind } from '../../inputs/find/find'
@@ -157,5 +160,86 @@ describe('lintje-log-viewer follows in its own log', () => {
     expect(log.scrollTop).toBeGreaterThan(before)
     expect(window.scrollY).toBe(page)
     expect((part(element, 'lintje-find') as LintjeFind).current).toBe(2)
+  })
+})
+
+describe('lintje-log-viewer in its modal', () => {
+  const longMessage = Array.from({ length: 8 }, (_, n) => `Stap ${n + 1}`).join('\n')
+
+  async function expanded(): Promise<LintjeLogViewer> {
+    const element = document.body.appendChild(document.createElement('lintje-log-viewer'))
+    element.style.display = 'block'
+    element.style.width = '900px'
+    element.data = {
+      title: 'Importlog',
+      expandable: true,
+      entries: [
+        ...lines(1, 3),
+        {
+          id: 'last',
+          time: '14:03:27.000',
+          level: 'error',
+          message: longMessage,
+          details: '{ "batch": 4 }',
+        },
+      ],
+    }
+    await element.updateComplete
+    const tile = part(element, 'lintje-tile')!
+    await expect
+      .poll(() => tile.shadowRoot?.querySelector('lintje-icon-button[label="Vergroot"]'))
+      .toBeTruthy()
+    tile.shadowRoot!.querySelector<HTMLElement>('lintje-icon-button[label="Vergroot"]')!.click()
+    await expect.poll(() => part(element, '.lintje-log-viewer__log--expanded')).not.toBeNull()
+    return element
+  }
+
+  const modalRows = (element: LintjeLogViewer): HTMLElement[] => [
+    ...part(element, '.lintje-log-viewer__log--expanded')!.querySelectorAll<HTMLElement>(
+      '.lintje-log-viewer__row',
+    ),
+  ]
+  const focused = (element: LintjeLogViewer): Element | null => element.shadowRoot!.activeElement
+
+  it('reaches the active line and its buttons with Tab, walks with the arrows, opens with Enter', async () => {
+    const element = await expanded()
+    const last = modalRows(element).at(-1)!
+    expect(last.getAttribute('role')).toBe('row')
+    expect(last.getAttribute('aria-selected')).toBe('false')
+    expect(last.closest('[role="grid"]')?.getAttribute('aria-label')).toBe('Importlog')
+
+    // From the dialog, Tab comes to the newest line, the one tab stop of the rows.
+    for (let n = 0; n < 8 && focused(element) !== last; n++) await userEvent.keyboard(TAB)
+    expect(focused(element)).toBe(last)
+    await userEvent.keyboard(TAB)
+    const open = last.querySelector<HTMLElement>('.lintje-log-viewer__open')!
+    expect(focused(element)).toBe(open)
+    await userEvent.keyboard(TAB)
+    expect(focused(element)).toBe(last.querySelector('.lintje-log-viewer__more'))
+
+    await userEvent.keyboard(SHIFT_TAB)
+    expect(focused(element)).toBe(open)
+    await userEvent.keyboard('{Enter}')
+    await expect.poll(() => last.querySelector('lintje-code')).not.toBeNull()
+
+    await userEvent.keyboard(SHIFT_TAB)
+    expect(focused(element)).toBe(last)
+    await userEvent.keyboard('{ArrowUp}')
+    await expect.poll(() => focused(element)).toBe(modalRows(element).at(-2))
+    expect(modalRows(element).at(-2)!.tabIndex).toBe(0)
+    expect(last.tabIndex).toBe(-1)
+  })
+
+  it('says the chosen line in a region of its own', async () => {
+    const element = await expanded()
+    element.addEventListener('lintje-log-select', (event) => {
+      element.data = { ...element.data!, selected: (event as CustomEvent<string | null>).detail }
+    })
+    const last = modalRows(element).at(-1)!
+    for (let n = 0; n < 8 && focused(element) !== last; n++) await userEvent.keyboard(TAB)
+    await userEvent.keyboard('{Enter}')
+    await expect.poll(() => last.getAttribute('aria-selected')).toBe('true')
+    const region = part(element, 'lintje-modal [role="status"]')!
+    await expect.poll(() => region.textContent?.trim()).toBe('Regel van 14:03:27.000 gekozen')
   })
 })

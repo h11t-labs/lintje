@@ -32,6 +32,16 @@
    under its first line, and the swatch stands on that line. */
 .lintje-pie-chart__label { vertical-align: middle; }
 .lintje-pie-chart__label-inner { display: flex; align-items: flex-start; gap: var(--space-2); }
+/* The name of a row that drills opens it as its slice does, on a target of at least 24 px; dark,
+   as a name that opens is, underlined under the pointer. */
+.lintje-pie-chart__action {
+  display: flex; align-items: center;
+  width: 100%; min-height: var(--h-target-text);
+  color: var(--color-text-primary);
+  text-align: left;
+  text-decoration: none;
+}
+.lintje-pie-chart__action:hover { text-decoration: underline; }
 .lintje-pie-chart__total-label,
 .lintje-pie-chart__total {
   font-weight: 700; border-top: 1px solid var(--color-border-default); padding-top: var(--space-2);
