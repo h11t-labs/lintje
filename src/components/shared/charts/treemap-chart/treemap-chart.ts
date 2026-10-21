@@ -10,7 +10,7 @@ import { html, svg, nothing, type TemplateResult } from 'lit'
 import { keyed } from 'lit/directives/keyed.js'
 import { ref } from 'lit/directives/ref.js'
 import { styleProps } from '../../../../core/style-props'
-import { formatNumber, formatPercent, textWidth } from '../../../../core/format'
+import { formatNumber, formatPercent, textWidth, type TextFont } from '../../../../core/format'
 import { renderIcon } from '../../../../icons/render'
 import { isDataColor } from '../../../../tokens/colors'
 import { chartColor, DEFAULT_SERIES_COLOR, insideLabelClass, labelInk } from '../shared/colors'
@@ -192,24 +192,25 @@ function tooltipOf(
   return { kicker, title: area.label, rows }
 }
 
-/** The lines of a label placed from the top left of a box, and the height they take. */
-function place(lines: LabelLine[], x: number, y: number): Cell['lines'] {
+/** The lines of a label placed from the top left of a box, `scale` as large as designed. */
+function place(lines: LabelLine[], x: number, y: number, scale: number): Cell['lines'] {
   let top = y
   return lines.map((line) => {
-    const placed = { text: line.text, x, y: top + line.size, line }
-    top += LINE_HEIGHT[line.size]
+    const placed = { text: line.text, x, y: top + line.size * scale, line }
+    top += LINE_HEIGHT[line.size] * scale
     return placed
   })
 }
 
-const linesHeight = (lines: LabelLine[]) =>
-  lines.reduce((sum, line) => sum + LINE_HEIGHT[line.size], 0)
+const linesHeight = (lines: LabelLine[], scale: number) =>
+  lines.reduce((sum, line) => sum + LINE_HEIGHT[line.size] * scale, 0)
 
 /** Every area of the drawing in the keyboard's order: part after part, large to small. */
-function cellsOf(context: Context, width: number, height: number, fontFamily: string): Cell[] {
+function cellsOf(context: Context, width: number, height: number, font: TextFont): Cell[] {
   const { model, colors, inks, format, share } = context
+  const scale = font.scale ?? 1
   const measure = (text: string, size: number, bold: boolean) =>
-    (textWidth(text, fontFamily, bold ? 700 : 400) * size) / 12
+    textWidth(text, font, bold ? 700 : 400, size)
   const boxes = squarify(
     model.groups.map((group) => group.value),
     { x: 0, y: 0, width, height },
@@ -225,6 +226,7 @@ function cellsOf(context: Context, width: number, height: number, fontFamily: st
               { name: group.label, amount: format(group.value), share: share(group.value) },
               box,
               measure,
+              scale,
             )
           : []
       return [
@@ -235,7 +237,7 @@ function cellsOf(context: Context, width: number, height: number, fontFamily: st
           label: group.label,
           value: group.value,
           other: group.other,
-          lines: place(lines, box.x + LABEL_PAD, box.y + LABEL_PAD),
+          lines: place(lines, box.x + LABEL_PAD, box.y + LABEL_PAD, scale),
           content: tooltipOf(context, group, group, color, false),
         },
       ]
@@ -255,17 +257,19 @@ function cellsOf(context: Context, width: number, height: number, fontFamily: st
                 { name: group.label, amount: format(group.value), share: share(group.value) },
                 rect,
                 measure,
+                scale,
               )
             : []
-        const used = header.length ? linesHeight(header) + HEADER_GAP : 0
+        const used = header.length ? linesHeight(header, scale) + HEADER_GAP : 0
         const own = fitLabel(
           { name: area.label, amount: format(area.value) },
           { width: rect.width, height: rect.height - used },
           measure,
+          scale,
         )
         lines = [
-          ...place(header, rect.x + LABEL_PAD, rect.y + LABEL_PAD),
-          ...place(own, rect.x + LABEL_PAD, rect.y + LABEL_PAD + used),
+          ...place(header, rect.x + LABEL_PAD, rect.y + LABEL_PAD, scale),
+          ...place(own, rect.x + LABEL_PAD, rect.y + LABEL_PAD + used, scale),
         ]
       }
       return {
@@ -311,7 +315,7 @@ function drawMap(context: Context, interactive: boolean): TemplateResult {
   })
   const width = controller.width
   const height = controller.height
-  const cells = cellsOf(context, width, height, controller.fontFamily)
+  const cells = cellsOf(context, width, height, controller.font)
   const boxes = squarify(
     model.groups.map((group) => group.value),
     { x: 0, y: 0, width, height },

@@ -60,7 +60,7 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
   const { max, ticks } = normalized
     ? { max: 100, ticks: [0, 25, 50, 75, 100] }
     : axisScale(Math.max(...totals, 1))
-  const axis = axisColumn(ticks, controller.width, { fontFamily: controller.fontFamily })
+  const axis = axisColumn(ticks, controller.width, { font: controller.font })
   const area = chartArea(options, { left: axis.width })
   const baseline = area.height - area.bottom
   const { width: barWidth, bandWidth } = band(0, labels.length, area)
@@ -191,7 +191,7 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
       ${renderLegend({ items: legend, onToggle: (key) => controller.toggleSeries(key) })}
       ${renderChartFrame(
         {
-          fontFamily: controller.fontFamily,
+          font: controller.font,
           id,
           ticks,
           max,

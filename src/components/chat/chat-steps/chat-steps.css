@@ -100,7 +100,8 @@
 .lintje-chat-steps__step.is-last .lintje-chat-steps__line { visibility: hidden; }
 
 /* A detail that does not fit is cut; the whole of it stays in the DOM and in `title`, and runs
-   on to the next line wherever no pointer shows that: with the focus in the group, on a phone. */
+   on to the next line wherever no pointer shows that: with the focus in the group, on a phone,
+   on a screen without hover. */
 .lintje-chat-steps__text {
   flex: 1 1 auto; min-width: 0;
   white-space: nowrap;
@@ -122,6 +123,8 @@
   .lintje-chat-steps__toggle { display: flex; width: 100%; min-height: var(--h-touch); }
   .lintje-chat-steps__toggle::after { inset: 0; }
   .lintje-chat-steps__toggle .lintje-chat-steps__chevron { margin-left: auto; }
+}
+@media (hover: none), screen and (max-width: 767px) {
   .lintje-chat-steps__text { white-space: normal; overflow-wrap: anywhere; }
 }
 

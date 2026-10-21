@@ -107,7 +107,8 @@
 .lintje-nav__list:focus-within + .lintje-nav__thumb { transition: none; }
 .lintje-nav__group { display: flex; flex-direction: column; }
 
-/* The same height in both modes, so every row below stays in place when the rail expands. */
+/* In the open menu a long heading wraps. In the rail it is one line, expanded or not, so every
+   row below stays in place when the rail expands. */
 .lintje-nav__section-heading {
   position: relative;
   font-size: var(--label-size);
@@ -116,9 +117,9 @@
   text-transform: uppercase;
   color: var(--color-nav-text-sub);
   padding: var(--space-6) var(--space-5) var(--space-2);
-  white-space: nowrap;
   margin: 0;
 }
+.lintje-nav--rail .lintje-nav__section-heading { white-space: nowrap; }
 /* A line in the rail, text once it expands: the text fades in after the width starts. */
 .lintje-nav__section-label {
   display: block;

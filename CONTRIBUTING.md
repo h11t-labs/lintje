@@ -403,9 +403,12 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
   het versturen tegen, gevuld of uitgeschakeld niet, en de melding van de browser landt op het
   bedieningselement dat ook de focus krijgt.
 - `truncate.browser.test.ts` — tekst met een beletselteken: met een aanwijzer staat hij op één
-  regel en, als hij is afgekapt, heel in de `title`; onder de focus van het toetsenbord en op 390
-  en 320 px loopt hij door en blijft hij binnen zijn ouder. Tekst die niets een `title` laat tonen,
-  kapt nooit af.
+  regel en, als hij is afgekapt, heel in de `title`; onder de focus van het toetsenbord, zonder
+  hover en op 390 en 320 px loopt hij door en blijft hij binnen zijn ouder. Tekst die niets een
+  `title` laat tonen, kapt nooit af.
+- `text-spacing.browser.test.ts` — de tekstafstand van de lezer (1.4.12) in elke shadow root en
+  een grotere standaardletter (1.4.4): geen tekst wordt afgesneden of ligt over andere tekst, ook
+  niet wat een element zelf meet, zoals de assen van een grafiek.
 - `reduced-motion.browser.test.ts` — verminderde beweging, waarmee elke browsertest draait: een
   vak dat openklapt, laat zijn inhoud los zodra zijn hoogte staat.
 

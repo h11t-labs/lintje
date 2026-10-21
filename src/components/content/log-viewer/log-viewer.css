@@ -73,10 +73,12 @@
 .lintje-log-viewer__pick { font: inherit; color: inherit; text-align: left; }
 .lintje-log-viewer__pick:hover { color: var(--color-link); text-decoration: underline; }
 .lintje-log-viewer__level-cell { flex: 0 0 6.5rem; display: flex; min-height: var(--space-6); }
+/* A longer source wraps in its column: it stands whole nowhere else. */
 .lintje-log-viewer__source {
   flex: 0 0 10ch;
+  max-width: 100%;
   color: var(--color-text-muted);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 .lintje-log-viewer__message { flex: 1 1 0; min-width: 0; }
 .lintje-log-viewer__body { display: block; white-space: pre-wrap; overflow-wrap: anywhere; }

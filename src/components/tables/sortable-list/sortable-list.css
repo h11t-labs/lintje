@@ -12,12 +12,15 @@
   font: var(--text-ui);
 }
 
+/* A label that wraps makes its row as tall as its text; one line keeps the touch height. Grip,
+   checkbox and the label's first line stand on one line, as in a choice: each a line high, at the
+   top of the row's one flex line, which is centred in the row. */
 .lintje-sortable-list__row {
   position: relative;
-  display: flex; align-items: center;
+  display: flex; flex-wrap: wrap; align-content: center; align-items: flex-start;
   gap: var(--space-2);
-  height: var(--h-touch);
-  padding: 0 var(--space-2);
+  min-height: var(--h-touch);
+  padding: var(--space-1) var(--space-2);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
   color: var(--color-text-primary);
@@ -39,10 +42,10 @@
 /* The grip is the only handle, so a finger on the row still scrolls. Its hit area reaches the
    row's full height, up and down only. */
 .lintje-sortable-list__grip {
-  position: relative;
   flex: none;
   display: inline-flex; align-items: center; justify-content: center;
   width: var(--h-chip-field); height: var(--h-chip-field);
+  margin-block: calc((1lh - var(--h-chip-field)) / 2);
   color: var(--color-text-muted);
   cursor: grab;
   touch-action: none;
@@ -51,7 +54,9 @@
 .lintje-sortable-list__grip::after {
   content: '';
   position: absolute;
-  inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
+  inset-block: calc(var(--lintje-sortable-list-border) * -1);
+  left: var(--space-2);
+  width: var(--h-chip-field);
 }
 .lintje-sortable-list__grip:hover { color: var(--color-text-primary); }
 .lintje-sortable-list__row.is-lifted .lintje-sortable-list__grip {
@@ -59,15 +64,21 @@
   cursor: grabbing;
 }
 
+/* Never on a line of its own: the room beside the grip, up to its text. */
 .lintje-sortable-list__label {
-  min-width: 0;
+  flex: 1 1 0; min-width: 0; max-width: max-content;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.lintje-sortable-list__check { min-width: 0; }
+/* The row is the target: the checkbox is as tall as its text, its first line the grip's. */
+.lintje-sortable-list__check {
+  flex: 1 1 0; min-width: 0;
+  --h-target: 1lh;
+}
 
 @media screen and (max-width: 767px) {
   .lintje-sortable-list__row { padding-left: 0; }
-  .lintje-sortable-list__grip { width: var(--h-touch); height: 100%; }
+  .lintje-sortable-list__grip { width: var(--h-touch); }
+  .lintje-sortable-list__grip::after { left: 0; width: var(--h-touch); }
 }
 
 /* Reduced motion: nothing eases; the state still shows at once. */
