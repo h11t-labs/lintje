@@ -221,6 +221,39 @@ describe('lintje-chat-composer', () => {
     expect(element.renderRoot.querySelector('[role="option"]')).toBeNull()
   })
 
+  it('takes a completion on its click, and keeps the focus in the field on the press', async () => {
+    const element = await composer({ vocabulary: VOCABULARY })
+    await type(element, 'Hoe was de bez')
+    const option = element.renderRoot.querySelector<HTMLElement>('[role="option"]')!
+    const down = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+    option.dispatchEvent(down)
+    await element.updateComplete
+    expect(down.defaultPrevented).toBe(true)
+    expect(field(element).textContent).toBe('Hoe was de bez')
+    option.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+    option.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    await element.updateComplete
+    expect(field(element).textContent).toBe('Hoe was de bezetting ')
+    expect(element.renderRoot.querySelector('[role="option"]')).toBeNull()
+  })
+
+  it.each(['released beside it', 'cancelled'])(
+    'chooses nothing on a press on a completion that is %s',
+    async (end) => {
+      const element = await composer({ vocabulary: VOCABULARY })
+      await type(element, 'Hoe was de bez')
+      const option = element.renderRoot.querySelector<HTMLElement>('[role="option"]')!
+      option.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }))
+      option.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
+      if (end === 'cancelled')
+        option.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true }))
+      else document.body.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+      await element.updateComplete
+      expect(field(element).textContent).toBe('Hoe was de bez')
+      expect(element.renderRoot.querySelector('[role="option"]')).not.toBeNull()
+    },
+  )
+
   it('says the recognised terms in words, and which are not certain', async () => {
     const element = await composer({ sources: SOURCES, vocabulary: VOCABULARY })
     await type(element, 'wachttijd en bezetting')

@@ -21,6 +21,8 @@
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
   color: var(--color-text-primary);
+  /* A row moved by a tap or a key slides into its new place. */
+  transition: translate var(--dur-base) var(--ease-in-motion);
 }
 .lintje-sortable-list__row.is-lifted {
   z-index: 1;
@@ -72,6 +74,7 @@
 
 /* Reduced motion: nothing eases; the state still shows at once. */
 @media (prefers-reduced-motion: reduce) {
+  .lintje-sortable-list__row,
   .lintje-sortable-list__grip,
   .lintje-sortable-list.is-sorting .lintje-sortable-list__row { transition: none; }
 }
