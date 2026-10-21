@@ -529,6 +529,12 @@ export interface WmsBasemap {
   transparent?: boolean
   /** Shown bottom right; the service's terms usually require it. Required. */
   attribution: string
+  /**
+   * The basemap in dark mode, for a service that offers a dark style at another address or as
+   * another layer. A field left out takes the light one; `format`, `version`, `transparent` and
+   * `attribution` are shared. Without it both modes draw the light basemap.
+   */
+  dark?: { url?: string; layers?: string }
 }
 
 /**

@@ -8,6 +8,7 @@
 import * as L from 'leaflet'
 import { nothing as nothingTemplate, render } from 'lit'
 import type { ChartController } from '../shared/controller'
+import type { Mode } from '../../../../core/element'
 import { prefersReducedMotion } from '../../../../core/motion'
 import { clearance, hidden, keyboardFocus, overlayBoxes, REVEAL_MARGIN, type Box } from './reveal'
 import { mapDrawings, type MapDrawing } from './drawings'
@@ -124,6 +125,8 @@ export interface LeafletSyncOptions {
   clear: () => void
   /** Below 768 px, where a one-finger drag belongs to the page (rule 9). */
   mobile: boolean
+  /** The element's mode: a basemap with a `dark` style draws it in dark. */
+  mode: Mode
 }
 
 /** The part of Leaflet 1.9's private zoom animation that `destroy()` ends. */
@@ -203,6 +206,7 @@ export class LeafletSurface {
     select: () => {},
     clear: () => {},
     mobile: false,
+    mode: 'light',
   }
   #data: MapSpec | null = null
 
@@ -503,9 +507,13 @@ export class LeafletSurface {
   }
 
   #ensureTiles(map: L.Map, basemap: WmsBasemap): void {
+    // The key holds what the mode chose, so without a dark style a switch keeps the same tiles.
+    const dark = this.#options.mode === 'dark' ? basemap.dark : undefined
+    const url = dark?.url ?? basemap.url
+    const layers = dark?.layers ?? basemap.layers
     const key = [
-      basemap.url,
-      basemap.layers,
+      url,
+      layers,
       basemap.format,
       basemap.version,
       basemap.transparent,
@@ -515,8 +523,8 @@ export class LeafletSurface {
     if (this.#tiles) map.removeLayer(this.#tiles)
     this.#basemapKey = key
     this.#attribution ??= L.control.attribution({ prefix: LEAFLET_PREFIX }).addTo(map)
-    this.#tiles = L.tileLayer.wms(basemap.url, {
-      layers: basemap.layers,
+    this.#tiles = L.tileLayer.wms(url, {
+      layers,
       format: basemap.format ?? 'image/png',
       // 1.3.0 asks for `CRS=EPSG:3857`, not the 1.1.1 `SRS=`.
       version: basemap.version ?? '1.3.0',
