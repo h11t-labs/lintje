@@ -107,6 +107,8 @@ en de `<caption>` van de tabel. Schrijf ze alsof de figuur er niet was.
 <!doctype html>
 <html lang="nl" data-mode="light" data-theme="rijksoverheid">
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Overzicht — Dashboard Vergunningen</title>
   <link rel="stylesheet" href="./dist-elements/fonts.css" /> <!-- with fonts/ beside it -->
   <link rel="stylesheet" href="./dist-elements/tokens.css" />
   <!-- the body block of theming.md -->

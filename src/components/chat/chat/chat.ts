@@ -8,9 +8,11 @@
  * It sends no events of its own: those of its question box, messages and answers reach the host,
  * with the `turnId` where a turn sent them. The host answers `lintje-message-send` with a new turn,
  * `lintje-message-edit` by asking again without that turn and all after it, and
- * `lintje-strip-change` by answering again with the new assumption. A turn's `divider` stands as a
- * centred line above its question. The `questions` of the last answer stand in a box above the
- * question box until the next turn; on a phone the question box folds to one line meanwhile.
+ * `lintje-strip-change` with the answer under the new assumption, in place and in the state
+ * `ready`: a streaming answer drops the strip, and the focus with it, while the reader chooses in
+ * it. A turn's `divider` stands as a centred line above its question. The `questions` of the last
+ * answer stand in a box above the question box until the next turn; on a phone the question box
+ * folds to one line meanwhile.
  */
 import {
   html,

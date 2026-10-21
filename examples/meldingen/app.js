@@ -31,7 +31,7 @@ import '../../dist-elements/tag/drawer.js'
 import '../../dist-elements/tag/menu-button.js'
 import '../../dist-elements/tag/prose.js'
 import '../../dist-elements/tag/toast.js'
-import { plural, toast } from '../_shared/page.js'
+import { focusOn, plural, toast } from '../_shared/page.js'
 import { shortcutOverview } from '../_shared/shortcuts.js'
 import {
   CARRIED_TO_APPS,
@@ -779,7 +779,7 @@ const FORM = `
         <lintje-repeater legend="Naam en rol" item-label="Betrokkene" min="1" max="10"></lintje-repeater>
       </lintje-form-section>
       <lintje-form-section variant="tile" heading="Bijlagen" description="Foto's of een verklaring. Niet verplicht.">
-        <lintje-file-upload label="Bijlagen" hide-label accept=".pdf,.jpg,.png" max-size="10485760"></lintje-file-upload>
+        <lintje-file-upload name="bijlagen" label="Bijlagen" hide-label accept=".pdf,.jpg,.png" max-size="10485760"></lintje-file-upload>
       </lintje-form-section>
     </div>
     <div class="stack stack--wide" data-step="2" hidden>
@@ -1077,8 +1077,7 @@ function renderStep() {
   if (field) {
     requestAnimationFrame(() => {
       field.scrollIntoView({ block: 'center' })
-      const inner = field.shadowRoot?.querySelector('input, textarea, button, [tabindex]')
-      inner?.focus()
+      focusOn(field)
     })
   }
 }
@@ -1087,8 +1086,16 @@ function renderStep() {
 
 let shown = ''
 
+/** What the tab reads: the view, and on the form its step. */
+function titleOf() {
+  if (page() !== 'nieuw') return 'Overzicht'
+  const current = step()
+  return `Nieuwe melding, stap ${current} van ${STEPS.length}: ${STEPS[current - 1]}`
+}
+
 function render() {
   renderShell()
+  document.title = `${titleOf()} — Meldingen`
   const current = page()
   overview.hidden = exportMenu.hidden = newButton.hidden = current !== 'overzicht'
   newPage.hidden = current !== 'nieuw'
@@ -1122,13 +1129,43 @@ function navigate(href, { force = false } = {}) {
   if (leaving && !force && form?.dirty) return leaveForm(href)
   history.pushState(null, '', url.search ? `${url.search}${url.hash}` : `${url.pathname}${url.hash}`)
   render()
+  arrive()
+}
+
+/** The first field of the step that shows; on the review, its first "Wijzigen". */
+function focusStep() {
+  const part = newPage.querySelector(`[data-step="${step()}"]`)
+  const first = part?.querySelector('[name], lintje-description-list')
+  if (first) focusOn(first)
+}
+
+/** Where the router drew last: the page, and on the form its step. */
+let drawnAt = null
+
+/**
+ * After the router drew: a new page puts the focus on its content, a new step on its first
+ * field. A frame later, so a window that led here (the search, "Weggaan?") has given its focus
+ * back first. `?stap=1#locatie` puts it in that field itself.
+ */
+function arrive() {
+  const before = drawnAt
+  const now = { page: page(), step: step() }
+  drawnAt = now
+  if (!before || location.hash) return
+  requestAnimationFrame(() => {
+    if (now.page !== before.page) shell.focusContent()
+    else if (now.page === 'nieuw' && now.step !== before.step) focusStep()
+  })
 }
 
 document.addEventListener('lintje-navigate', (event) => {
   event.preventDefault()
   if (event.detail?.href) navigate(event.detail.href)
 })
-window.addEventListener('popstate', render)
+window.addEventListener('popstate', () => {
+  render()
+  arrive()
+})
 newButton.addEventListener('click', () => navigate(formLink()))
 
 /* --- Leaving the form with unsaved input -------------------------------------------------- */
@@ -1175,7 +1212,17 @@ function answer(term) {
 search.groups = RECENT()
 shell.addEventListener('lintje-search-open', () => (search.open = true))
 search.addEventListener('lintje-open', () => (search.open = true))
-search.addEventListener('lintje-close', () => (search.open = false))
+/** The report chosen in the search: its drawer opens once the search has let go of the focus. */
+let chosen = null
+search.addEventListener('lintje-close', async (event) => {
+  search.open = false
+  const id = event.detail?.reason === 'choice' ? chosen : null
+  chosen = null
+  if (!id) return
+  // Opened before, the drawer would take the search's field as its opener, gone once it closes.
+  await search.updateComplete
+  openDrawer(id)
+})
 search.addEventListener('lintje-search', (event) => {
   search.loading = true
   clearTimeout(search.timer)
@@ -1186,7 +1233,7 @@ search.addEventListener('lintje-search', (event) => {
 })
 search.addEventListener('lintje-action', (event) => {
   event.stopPropagation()
-  openDrawer(event.detail)
+  chosen = event.detail
 })
 
 /* --- Shortcuts: what this page adds, shown by "?" ----------------------------------------- */
@@ -1216,6 +1263,7 @@ if (demo() === 'filters') {
   view.hidden = ['id']
 }
 render()
+arrive()
 if (demo() === 'lade') openDrawer(ROWS[2].id)
 if (demo() === 'zoeken') {
   search.open = true

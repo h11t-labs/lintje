@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lintje — dashboard</title>
+    <title>Overzicht — Dashboard Vergunningen</title>
     <!--
       A dashboard as a host composes it: the shell with its menu, the filter bar with the
       "Je ziet" sentence, and one overview page — page header, announcement, KPI row, charts,
@@ -125,7 +125,7 @@
       /* The shell ----------------------------------------------------------- */
       // A menu as a host builds it, with the icons named by their file: every one of them from
       // the house set in `dist-icons/`. `page` is this page's own route; an entry without
-      // `page` or `href` has no page yet.
+      // `page` or `href` has no page yet and reads "niet beschikbaar": only "Overzicht" is drawn.
       const MENU = [
         { label: 'Overzicht', icon: 'functioneel-home', page: '/' },
         // "Vraag het de data" is the chat example, a page of this same fictional dashboard.
@@ -133,7 +133,7 @@
         {
           label: 'Vergunningen',
           links: [
-            { label: 'Aanvragen', icon: 'op-kantoor-document-met-lijnen-en-lint', page: '/requests', metric: { value: '148.230', label: 'afgehandeld vandaag' } },
+            { label: 'Aanvragen', icon: 'op-kantoor-document-met-lijnen-en-lint', metric: { value: '148.230', label: 'afgehandeld vandaag' } },
             { label: 'Wachttijden', icon: 'functioneel-klok', metric: { value: '11 min', label: 'gemiddeld · norm 15' } },
             { label: 'Afwijzingen', icon: 'functioneel-kruis', metric: { value: '37', label: 'vandaag · ▲ 6' } },
             { label: 'Buitenland', icon: 'functioneel-locatiemarker', metric: { value: number(origin.reduce((sum, place) => sum + place.value, 0)), label: 'aanvragen uit het buitenland' }, badge: { value: 3, tone: 'action' } },
@@ -151,8 +151,8 @@
         {
           label: 'Beheer',
           links: [
-            { label: 'Operationele monitoring', icon: 'symbolen-en-abstract-opsomming', page: '/monitoring' },
-            { label: 'Aanlevering en datakwaliteit', icon: 'computer-en-internet-database', page: '/data-quality' },
+            { label: 'Operationele monitoring', icon: 'symbolen-en-abstract-opsomming' },
+            { label: 'Aanlevering en datakwaliteit', icon: 'computer-en-internet-database' },
           ],
         },
         // Not the dashboard's own: the way back to the other examples.
@@ -274,6 +274,9 @@
         event.preventDefault()
         route = hash.slice(1)
         renderLocation()
+        // The route drew its page: the tab says which, and the keyboard starts at its content.
+        document.title = 'Overzicht — Dashboard Vergunningen'
+        shell.focusContent()
       })
 
       /* Mode, menu and theme live in the query, as they do in the app */

@@ -402,7 +402,8 @@ export function renderFoundationPage(host, page, tokens) {
   nav.expanded = true
   nav.label = 'Op deze pagina'
   const layout = element('div', 'guide__page')
-  layout.append(main, nav)
+  // First in the source, so Tab and a screen reader reach it where it shows below 1024 px.
+  layout.append(nav, main)
   host.append(layout)
   follow(nav, toc)
 }
