@@ -375,6 +375,8 @@
      declared here is declared again on every element's host and would beat the page's value. No
      building block reads it. */
   --radius-corner: 0px;
+  /* The quotation in running text: the house style's one corner as a quote mark, top left. */
+  --radius-quote: 24px;
   --radius-round: 50%;
 
   --shadow-sticky: 0 2px 6px var(--alpha-black-08);

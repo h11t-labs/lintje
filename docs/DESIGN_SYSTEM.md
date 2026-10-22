@@ -234,7 +234,10 @@ bestanden serveert, staat in
 Tekst die een host niet zelf schreef — gerenderde markdown, een notitie — gaat door
 `lintje-prose`, dat de schaal op gewone tags legt, zodat een pagina nooit een kop opnieuw opmaakt
 in haar eigen stylesheet. In prose begint een blok bij `h3`; `h1` en `h2` lezen hetzelfde, want de
-pagina heeft de `h1` en de titel de `h2`.
+pagina heeft de `h1` en de titel de `h2`. De koppen staan in de primaire kleur, zoals de
+huisstijl ze zet (de teksttint, want een kop is een woord). Een citaat is het kader van de
+huisstijl: twee lijnen in de accentlijn, boven en links, met de ene afgeronde hoek waar ze elkaar
+raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<blockquote>`).
 
 ## Ruimte, maat en vorm
 
@@ -272,7 +275,9 @@ pagina heeft de `h1` en de titel de `h2`.
   hoek in een vlak met een hoek. Lintje laat die keuze aan de pagina: `--radius-corner` staat op
   0, de host zet `--lintje-radius-corner` op de pagina, en alleen de band van de hero als
   paginakop leest hem; geen enkele bouwsteen. Zinnige waarden zijn een halve tot anderhalve lint
-  (24, 48 of 72 px).
+  (24, 48 of 72 px). De ene uitzondering is het citaat in lopende tekst: als citaat-element
+  heeft het zijn eigen hoek van 24 px (`--radius-quote`), de hoek van de huisstijl als
+  aanhalingsteken.
 - **Schaduwen geven diepte aan en verder niets**: een vastgeplakte balk, een popover, het menu
   over de pagina. Alleen de gedefinieerde `--shadow-*`.
 
