@@ -50,11 +50,6 @@
 .lintje-timeline__label { color: var(--color-text-muted); }
 /* The moment's own slot, under the sentence and the link. */
 .lintje-timeline__content { margin-top: var(--space-2); }
-/* Under the moment the date is a detail, as in a log: its own small line, close under it. */
-.lintje-timeline__list.has-date-below .lintje-timeline__date {
-  font: var(--text-small);
-  color: var(--color-text-muted);
-}
 .lintje-timeline__body { min-width: 0; padding-bottom: var(--space-8); }
 .lintje-timeline__list--stack .lintje-timeline__body { padding-bottom: var(--space-6); }
 .lintje-timeline__row:last-child .lintje-timeline__body,
@@ -65,8 +60,8 @@
 .lintje-timeline__who { font-weight: 700; }
 
 /* With someone among the moments every name starts on one line: the circle of a person, or the
-   one with an icon of what is no person, hangs in the body's indent, so the sentence and the date
-   stand under the name. The 4 px around the 24 px circle make that line 2rem. */
+   one with an icon of what is no person, hangs in the body's indent, so the sentence and what is
+   under it stand under the name. The 4 px around the 24 px circle make that line 2rem. */
 .lintje-timeline__list.has-people .lintje-timeline__row--moment .lintje-timeline__body {
   padding-left: calc(1.5rem + var(--space-2));
 }
@@ -78,12 +73,8 @@
 /* The date before the rail, or a mark, stands in the middle of that taller line. */
 .lintje-timeline__list--start.has-people .lintje-timeline__when,
 .lintje-timeline__list--start.has-people .lintje-timeline__when .lintje-timeline__date { line-height: 2rem; }
-.lintje-timeline__list--start.has-people .lintje-timeline__row--moment .lintje-timeline__stub,
-.lintje-timeline__list--stack.has-people.has-date-below .lintje-timeline__row--moment .lintje-timeline__stub {
+.lintje-timeline__list--start.has-people .lintje-timeline__row--moment .lintje-timeline__stub {
   flex-basis: calc(1rem - var(--lintje-timeline-mark) / 2);
-}
-.lintje-timeline__list--sides.has-people.has-date-below .lintje-timeline__mark {
-  top: calc(1rem - var(--lintje-timeline-mark) / 2);
 }
 .lintje-timeline__text { margin: 0; font: var(--text-body); }
 .lintje-timeline__link {

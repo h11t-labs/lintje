@@ -37,7 +37,6 @@ import timelineCss from './timeline.css?inline'
 export type TimelineSide = 'start' | 'end'
 export type TimelinePlacement = 'start' | 'alternate' | 'sides'
 export type TimelineOrientation = 'vertical' | 'horizontal'
-export type TimelineDates = 'before' | 'below'
 
 /** Who did something when that is no person: a name and the icon in its circle. */
 export interface TimelineActor {
@@ -336,7 +335,6 @@ export class LintjeTimeline extends LintjeElement {
     level: { type: Number },
     placement: { type: String, reflect: true },
     orientation: { type: String, reflect: true },
-    dates: { type: String, reflect: true },
     sides: { attribute: false },
     today: { type: String },
     todayAt: { type: String, attribute: 'today-at' },
@@ -359,11 +357,6 @@ export class LintjeTimeline extends LintjeElement {
    * fit, and on a phone, the timeline stands.
    */
   orientation: TimelineOrientation = 'vertical'
-  /**
-   * `before`: on one side the date stands before the rail, elsewhere above the title. `below`:
-   * under the moment, small, as a log has it.
-   */
-  dates: TimelineDates = 'before'
   /** The names over the two sides with `placement="sides"`: `['U', 'Wij']`. */
   declare sides?: [string, string]
   /** The label of today on the rail: "Vandaag, 21 oktober". */
@@ -526,22 +519,19 @@ export class LintjeTimeline extends LintjeElement {
   }
 
   /**
-   * A moment's three lines. Above the title its date and label; with the date in a column, or
-   * under the moment, only the label. Under it the date when it stands there, the sentence, the
-   * link and the moment's slot.
+   * A moment's three lines: above the title its date and label, or only the label when the date
+   * stands in a column; the title; under it the sentence, the link and the moment's slot.
    */
   private renderBody(moment: TimelineMoment, column: boolean, prefix?: string): TemplateResult {
-    const below = this.dates === 'below'
     const date = this.renderDate(moment, prefix)
     const label = moment.label
-    const over =
-      column || below
-        ? label
-          ? html`<span class="lintje-timeline__over"
+    const over = column
+      ? label
+        ? html`<span class="lintje-timeline__over"
               ><span class="lintje-timeline__label">${label}</span></span
             >`
-          : nothing
-        : html`<span class="lintje-timeline__over"
+        : nothing
+      : html`<span class="lintje-timeline__over"
             >${date}${label ? html`<span class="lintje-timeline__label"> · ${label}</span>` : nothing}</span
           >`
     const title =
@@ -551,7 +541,7 @@ export class LintjeTimeline extends LintjeElement {
             ${this.renderWho(moment.who)} ${moment.title}
           </p>`
     const link = moment.link
-    return html`${over}${title}${below ? date : nothing}
+    return html`${over}${title}
       ${moment.text ? html`<p class="lintje-timeline__text">${moment.text}</p>` : nothing}
       ${
         link
@@ -617,15 +607,13 @@ export class LintjeTimeline extends LintjeElement {
     shown: { from: number; to: number },
     people: boolean,
   ): TemplateResult {
-    const below = this.dates === 'below'
-    const stack = this.#mobile.matches || below
+    const stack = this.#mobile.matches
     return html`<ol
       class=${classMap({
         'lintje-timeline__list': true,
         'lintje-timeline__list--start': !stack,
         'lintje-timeline__list--stack': stack,
         'has-people': people,
-        'has-date-below': this.dates === 'below',
       })}
       aria-labelledby=${this.heading ? 'lintje-timeline-heading' : nothing}
     >
@@ -675,7 +663,6 @@ export class LintjeTimeline extends LintjeElement {
             'lintje-timeline__list': true,
             'lintje-timeline__list--sides': true,
             'has-people': people,
-            'has-date-below': this.dates === 'below',
           })}
           aria-labelledby=${this.heading ? 'lintje-timeline-heading' : nothing}
         >
@@ -744,7 +731,6 @@ export class LintjeTimeline extends LintjeElement {
             'lintje-timeline__list': true,
             'lintje-timeline__list--row': true,
             'has-people': people,
-            'has-date-below': this.dates === 'below',
           })}
           aria-labelledby=${this.heading ? 'lintje-timeline-heading' : nothing}
         >

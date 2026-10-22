@@ -1652,15 +1652,6 @@ export default {
           },
         },
         {
-          label: 'De tijd onder de regel',
-          note: 'Met dates="below" staat de tijd klein onder wat er gebeurde, zoals in een logboek.',
-          html: '<lintje-timeline heading="Geschiedenis" dates="below"></lintje-timeline>',
-          setup(stage) {
-            stage.querySelector('lintje-timeline').moments = PEOPLE_HISTORY
-            listen(stage)
-          },
-        },
-        {
           label: 'Zonder momenten',
           note: 'Geen lege rail: één zin, die de host meegeeft.',
           html:

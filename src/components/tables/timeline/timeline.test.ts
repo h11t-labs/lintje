@@ -292,19 +292,13 @@ describe('lintje-timeline', () => {
     expect(body.lastElementChild!.matches('.lintje-timeline__content')).toBe(true)
   })
 
-  it('keeps only the label above when the date stands in a column or under the moment', async () => {
+  it('keeps only the label above the title when the date stands in a column', async () => {
     const moment = { when: '9 september 2026', label: 'Uw actie', title: 'Aanvulling gestuurd' }
     const element = await mount({ moments: [moment] })
-    const over = (): string => text(element.shadowRoot!.querySelector('.lintje-timeline__over')!)
-    expect(over()).toBe('Uw actie')
+    expect(text(element.shadowRoot!.querySelector('.lintje-timeline__over')!)).toBe('Uw actie')
     expect(text(element.shadowRoot!.querySelector('.lintje-timeline__when')!)).toBe(
       '9 september 2026',
     )
-    element.dates = 'below'
-    await element.updateComplete
-    expect(over()).toBe('Uw actie')
-    const title = element.shadowRoot!.querySelector('.lintje-timeline__title')!
-    expect(title.nextElementSibling!.matches('.lintje-timeline__date')).toBe(true)
   })
 
   it('sends a plain click on a link as lintje-navigate', async () => {
@@ -414,18 +408,6 @@ describe('lintje-timeline as a history', () => {
     expect(text(system!.querySelector('.lintje-timeline__who')!)).toBe('Systeem')
     expect(team!.querySelector('.lintje-timeline__actor')).not.toBeNull()
     expect(text(team!.querySelector('.lintje-timeline__who')!)).toBe('Afdeling Vergunningen')
-  })
-
-  it('puts the date under the moment with dates="below", and before the rail without', async () => {
-    const element = await mount({ moments: history(2) })
-    expect(moments(element)[0]!.querySelector('.lintje-timeline__when')).not.toBeNull()
-    element.dates = 'below'
-    await element.updateComplete
-    const row = moments(element)[0]!
-    expect(row.querySelector('.lintje-timeline__when')).toBeNull()
-    const body = row.querySelector('.lintje-timeline__body')!
-    expect(body.lastElementChild!.matches('.lintje-timeline__date')).toBe(true)
-    expect(body.firstElementChild!.matches('.lintje-timeline__title')).toBe(true)
   })
 
   it('keeps no room without anyone who did something', async () => {
