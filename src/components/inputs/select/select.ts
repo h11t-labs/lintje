@@ -65,7 +65,9 @@ export class LintjeSelect extends LintjeInputElement {
               </option>`,
           )}
         </select>
-        ${renderIcon('functioneel-delta-omlaag', { size: 16, className: 'lintje-select__icon' })}
+        <span class="lintje-select__box" aria-hidden="true"
+          >${renderIcon('functioneel-delta-omlaag', { size: 16 })}</span
+        >
       </div>
       ${this.renderFoot()}
     </div>`

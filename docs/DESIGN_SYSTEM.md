@@ -427,6 +427,8 @@ De besluiten hieronder gelden voor alle elementen.
   waar de labeltekst zelf links staat.
 - **Een waarde die afwijkt van haar standaard** draagt op elk bedieningselement twee markeringen:
   het label in de accentkleur en een oranje stip. Geen extra rand, geen gekleurd oppervlak.
+- **Een keuzelijst draagt het pijlvak van de huisstijl**: aan het eind van het veld, binnen zijn
+  rand, een vak in de primaire kleur met het witte teken; uitgeschakeld grijs, zoals het veld.
 - **Een veld legt vast als de lezer het verlaat of op Enter drukt.**
 - **Een vaste toevoeging aan een veld staat in een eigen vak** (een valutateken, een domein, een
   eenheid, een vast voorvoegsel): het gedempte oppervlak met een lichte lijn naar de invoer, zodat
