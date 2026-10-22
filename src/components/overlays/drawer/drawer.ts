@@ -1,5 +1,7 @@
 /**
- * `<lintje-drawer>` — a side panel over the page, for a detail or a short form.
+ * `<lintje-drawer>` — a side panel over the page, for a detail or a short form, from the right
+ * or (`side="left"`) the left, with the host's one corner (`--lintje-radius-corner`) at its top
+ * towards the page.
  *
  * The host holds `open`: Escape, the close button and the scrim only ask. While `busy` none
  * of them asks. Focus goes to the first field, else the close button.
@@ -32,6 +34,7 @@ export class LintjeDrawer extends LintjeElement {
 
   static override properties: PropertyDeclarations = {
     open: { type: Boolean, reflect: true },
+    side: { type: String, reflect: true },
     heading: { type: String },
     subtitle: { type: String },
     busy: { type: Boolean, reflect: true },
@@ -43,6 +46,8 @@ export class LintjeDrawer extends LintjeElement {
    * is the host's call.
    */
   open: boolean = false
+  /** The edge it slides in from; `right` unless the host says `left`. */
+  side: 'right' | 'left' = 'right'
   /** The title and the dialog's accessible name; without it the dialog is "Zijpaneel". */
   heading: string = ''
   declare subtitle?: string

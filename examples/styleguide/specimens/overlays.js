@@ -233,6 +233,17 @@ export default {
           setup: (stage) => drawer(stage, true),
         },
         {
+          label: 'Van links',
+          note:
+            'Met `side="left"` schuift het paneel van links in; de hoek van de host ' +
+            '(`--lintje-radius-corner`, hier 24 px) staat bovenaan aan de kant van de pagina.',
+          html: `<div style="--lintje-radius-corner: 24px">
+            <lintje-button variant="secondary" data-open>Filters tonen</lintje-button>
+            <lintje-drawer heading="Filters" side="left"><p>De filters van de lijst, als lade naast de pagina.</p></lintje-drawer>
+          </div>`,
+          setup: (stage) => drawer(stage),
+        },
+        {
           label: 'Zonder veld',
           note: 'Zonder veld krijgt de sluitknop de focus.',
           html: `<lintje-button variant="secondary" data-open>Details tonen</lintje-button>

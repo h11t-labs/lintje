@@ -519,6 +519,9 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
   elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
   beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").
+- **Een lade schuift van rechts in, of van links** (`side="left"`), met de hoek van de host
+  (`--lintje-radius-corner`) bovenaan aan de kant van de pagina, zoals de huisstijl een lade
+  tekent; op een telefoon is ze schermvullend en zonder hoek.
 - **De sluier onder een dialoog, een venster en een lade is het koelgrijs van de huisstijl op
   80 %** (Cool Gray 900); in donker is hij zwart op 60 %, omdat het koelgrijs een donkere pagina
   blauw kleurt. Het venster staat erop met zijn eigen oppervlak en rand.
