@@ -92,9 +92,8 @@ describe('lying layout', () => {
     const layout = rowLayout(PROJECT, 'start', 758)
     expect(layout.fits).toBe(true)
     expect(layout.places[0]!.x).toBe(5)
-    expect(layout.places.map((place) => place.x)).toEqual(
-      [...layout.places.map((place) => place.x)].sort((a, b) => a - b),
-    )
+    const xs = layout.places.map((place) => place.x)
+    expect(xs).toEqual([...xs].sort((a, b) => a - b))
     expect(layout.places.every((place) => place.up)).toBe(true)
     expect(layout.years.map((year) => year.label)).toEqual([
       '2020',
