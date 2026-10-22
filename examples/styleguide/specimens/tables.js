@@ -598,50 +598,25 @@ function assigning(stage) {
   })
 }
 
-/** What happened to a report, the newest first: who did what. */
+/** What happened to an application, the newest first: who did what, a person with a circle. */
 const HISTORY = [
-  {
-    who: 'J. de Vries',
-    title: 'wijzigde de omschrijving',
-    when: 'vandaag om 10:42',
-    at: '2026-10-04T10:42:00+02:00',
-  },
-  {
-    who: 'Systeem',
-    title: 'rondde het transcriberen af',
-    when: 'vandaag om 09:31',
-    at: '2026-10-04T09:31:00+02:00',
-  },
-  {
-    who: 'M. Jansen',
-    title: 'voegde 2 bijlagen toe',
-    when: 'gisteren om 16:05',
-    at: '2026-10-03T16:05:00+02:00',
-  },
-  {
-    who: 'M. Jansen',
-    title: 'maakte de melding aan',
-    when: 'gisteren om 15:48',
-    at: '2026-10-03T15:48:00+02:00',
-  },
-]
-
-/** The same history, with people: their circle before the name, "Systeem" on the same line. */
-const PEOPLE_HISTORY = [
   { who: { ...PEOPLE.jv, role: undefined, href: '#el-timeline' }, title: 'wees de aanvraag toe aan A. Bakker', when: 'vandaag om 10:42', at: '2026-10-04T10:42:00+02:00' },
   { who: 'Systeem', title: 'stuurde de ontvangstbevestiging', when: 'vandaag om 09:31', at: '2026-10-04T09:31:00+02:00' },
   { who: PEOPLE.sy, title: 'voegde een advies toe', when: 'gisteren om 16:05', at: '2026-10-03T16:05:00+02:00' },
   { who: PEOPLE.ld, title: 'maakte de aanvraag aan', when: 'gisteren om 15:48', at: '2026-10-03T15:48:00+02:00' },
 ]
 
-/** Twelve older moments, so "Toon eerdere" has something to show. */
+/** A report over three weeks, the days on the rail and only the time beside each moment. */
 const LONG_HISTORY = [
-  ...HISTORY,
-  ...Array.from({ length: 12 }, (_, index) => ({
-    who: index % 2 ? 'A. Bakker' : 'Systeem',
-    title: index % 2 ? 'bekeek de melding' : 'stuurde een herinnering',
-    when: `${30 - index} september 2026, 16:05`,
-    at: `2026-09-${String(30 - index).padStart(2, '0')}T16:05:00+02:00`,
+  { group: 'Vandaag', when: '10:42', at: '2026-10-04T10:42:00+02:00', who: PEOPLE.ab, title: 'sloot de melding' },
+  { group: 'Vandaag', when: '09:31', at: '2026-10-04T09:31:00+02:00', who: 'Systeem', title: 'stuurde de bevestiging aan de melder' },
+  { group: 'Gisteren', when: '16:05', at: '2026-10-03T16:05:00+02:00', who: PEOPLE.sy, title: 'voegde een advies toe' },
+  ...Array.from({ length: 13 }, (_, index) => ({
+    group: `${30 - Math.floor(index / 2) * 2} september`,
+    when: index % 2 ? '11:20' : '15:48',
+    at: `2026-09-${String(30 - Math.floor(index / 2) * 2).padStart(2, '0')}T${index % 2 ? '11:20' : '15:48'}:00+02:00`,
+    who: index % 2 ? 'Systeem' : PEOPLE.ab,
+    title: index % 2 ? 'stuurde een herinnering' : 'vroeg om een aanvulling',
   })),
 ]
 
@@ -1625,30 +1600,22 @@ export default {
         {
           label: 'Een geschiedenis',
           note:
-            'Wie deed wat, het nieuwste boven: de host geeft die volgorde. Bij elke regel staat ' +
-            'de tijd; de nieuwste staat in de accentlijn.',
+            'Wie deed wat, het nieuwste boven: de host geeft die volgorde. Een persoon heeft het ' +
+            'rondje vóór de naam; "Systeem" is geen persoon en krijgt een rondje met een icoon.',
           html: '<lintje-timeline heading="Geschiedenis"></lintje-timeline>',
           setup(stage) {
             stage.querySelector('lintje-timeline').moments = HISTORY
+            listen(stage)
           },
         },
         {
           label: 'Een lange geschiedenis',
-          note: '"Toon eerdere" onder de lijst laat er telkens tien meer zien.',
-          html: '<lintje-timeline heading="Geschiedenis" limit="4" step="10"></lintje-timeline>',
+          note:
+            'De dagen staan op de rail, naast elk moment alleen de tijd. "Toon eerdere" onder de ' +
+            'lijst laat er telkens tien meer zien.',
+          html: '<lintje-timeline heading="Geschiedenis" limit="5" step="10"></lintje-timeline>',
           setup(stage) {
             stage.querySelector('lintje-timeline').moments = LONG_HISTORY
-          },
-        },
-        {
-          label: 'Met personen',
-          note:
-            'Een persoon heeft het rondje vóór de naam. "Systeem" is geen persoon: een rondje met ' +
-            'een icoon. De tijd staat in een kolom vóór de rail.',
-          html: '<lintje-timeline heading="Geschiedenis"></lintje-timeline>',
-          setup(stage) {
-            stage.querySelector('lintje-timeline').moments = PEOPLE_HISTORY
-            listen(stage)
           },
         },
         {
