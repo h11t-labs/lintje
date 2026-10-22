@@ -275,7 +275,7 @@ export default {
               <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
               <lintje-button slot="actions" variant="primary">Opslaan</lintje-button>
             </lintje-page-header>
-            <p>Hier staat de inhoud van de app, hoogstens 1360 px breed.</p>
+            <p>Hier staat de inhoud van de app, hoogstens 1280 px breed.</p>
           </lintje-shell>`,
           setup(stage) {
             const shell = stage.querySelector('lintje-shell')
@@ -449,7 +449,7 @@ export default {
           note: 'De hero in het slot `full` loopt van rand tot rand; de inhoud blijft in de kolom.',
           html: `<lintje-shell>
             <lintje-hero slot="full" heading="Wat wil je vertalen?" description="Typ een tekst, upload een document of voer een live gesprek."></lintje-hero>
-            <p>De inhoud staat onder de hero, in de kolom van hoogstens 1360 px.</p>
+            <p>De inhoud staat onder de hero, in de kolom van hoogstens 1280 px.</p>
           </lintje-shell>`,
           setup(stage) {
             const shell = stage.querySelector('lintje-shell')

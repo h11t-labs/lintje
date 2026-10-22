@@ -147,7 +147,7 @@
   padding: var(--page-pad-y) calc(var(--page-pad-x) + var(--page-gutter)) var(--space-10);
 }
 .lintje-shell__content[hidden] { display: none; }
-:where(.lintje-shell.is-phone) .lintje-shell__content { padding: var(--space-4) var(--space-4) var(--space-8); gap: var(--space-3); }
+:where(.lintje-shell.is-phone) .lintje-shell__content { padding: var(--space-4) var(--page-pad-x) var(--space-8); gap: var(--space-3); }
 
 /*
  * Top layout. The navigation bar cannot be `sticky`: it would stick inside the header's own box

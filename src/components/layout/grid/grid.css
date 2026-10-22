@@ -15,8 +15,9 @@
 @media (min-width: 768px) and (max-width: 1023px), print and (max-width: 1023px) {
   :host([variant='kpi-row']) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+/* A phone has the house style's four columns; an item takes all four unless it says otherwise. */
 @media screen and (max-width: 767px) {
-  :host { grid-template-columns: minmax(0, 1fr); }
+  :host { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   :host([variant='kpi-row']) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -32,5 +33,6 @@
   ::slotted([span='8']) { grid-column: span 12; }
 }
 @media screen and (max-width: 767px) {
-  ::slotted([span]) { grid-column: span 1; }
+  ::slotted([span]) { grid-column: span 4; }
+  :host([variant='kpi-row']) ::slotted([span]) { grid-column: span 1; }
 }

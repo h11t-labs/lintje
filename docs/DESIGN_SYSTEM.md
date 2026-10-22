@@ -258,16 +258,17 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
   `--h-option`; en een strook tussen twee panelen, waarvan het klikgebied over de randen van de
   panelen valt: een vinger krijgt daar de AA-ondergrens, een muis alleen de strook, omdat een
   breder gebied de inhoud en de scrollbalk van de panelen afdekt.
-- **Een grid van 12 kolommen.** De tussenruimte is gelijk aan de zijpadding van de pagina en de
-  tekstinspringing van de balken erboven, zodat tegels uitlijnen met de tekst erboven.
+- **Een grid van 12 kolommen, met de maten van de huisstijl.** Op een desktop een buitenmarge
+  van één lint en een goot van een halve lint; op een tablet beide een halve lint; op een
+  telefoon een marge van 20 px, vier kolommen en een goot van 12 px (de stap van de schaal het
+  dichtst bij de 10 px van de huisstijl). Een tegel neemt op een telefoon alle vier de kolommen;
+  alleen de kerncijfers staan er twee naast elkaar. De balken boven de pagina springen even ver
+  in als de inhoud, zodat tegels uitlijnen met de tekst erboven.
 - **De inhoud heeft een maximale breedte**, midden in de ruimte die het menu overlaat. Wat de
   pagina indeelt — de kleur van een balk, de lijn boven het vraagvak van het gesprek — loopt tot
   de randen; alleen wat erin staat, houdt zich aan die breedte.
-- **De marges wijken af van de huisstijl, en dat is een besluit.** De huisstijl vraagt op een
-  desktop een buitenmarge van één lint, een inhoud van hoogstens 1280 px en op een telefoon vier
-  kolommen met een goot van 10 px. Lintje houdt een halve lint als marge en als goot, een inhoud
-  van 1360 px en op een telefoon één kolom: een applicatie toont tabellen en grafieken, die de
-  breedte nodig hebben, en een tegel is op een telefoon nooit smaller dan het scherm.
+- **De inhoud is hoogstens 1280 px breed**, zoals de huisstijl; een host die breder wil, zet
+  `--lintje-content-width`.
 - **De hoeken zijn klein.** De huisstijl tekent online knoppen en velden met vier kleine
   afgeronde hoeken, en zo tekent Lintje elke knop (ook de icoonknop, de segmenten en de
   schakelgroep in de balk), elk invoervak, het vinkje en de chips (`--radius-control`), en met

@@ -330,8 +330,9 @@
   --w-message: 560px;
   /* A language choice in the translator's bar. */
   --w-translator-language: 18rem;
-  /* The widest the page's content gets. A host sets `--lintje-content-width` to change it. */
-  --w-content: 1360px;
+  /* The widest the page's content gets, the house style's 1280 px. A host sets
+     `--lintje-content-width` to change it. */
+  --w-content: 1280px;
   --nav-edge: 4px;
   /* The ribbon is the unit: 48 px, 40 on a phone. Both bars are in rem, so they grow with the
      reader's text size. */
@@ -358,7 +359,9 @@
   --w-field: 480px;
 
   --page-pad-y: 32px;
-  --page-pad-x: 24px;
+  /* The page's side margin: one ribbon on a desktop, half a ribbon on a tablet, 20 px on a
+     phone, as the house style lays the page out. */
+  --page-pad-x: 48px;
   /* What a full-width bar or the content adds to its side padding so what stands in it keeps to
      `--w-content`; the percentage is taken of the box the bar stands in. */
   --page-gutter: max(
@@ -973,13 +976,23 @@
   }
 }
 
+/* A tablet keeps the gutter as its margin, half a ribbon. */
+@media screen and (max-width: 1023px) {
+  :root {
+    --page-pad-x: 24px;
+  }
+}
+
 /* ============================================================================
-   Below 768 px the gutter follows the page padding and every pointer target is the touch
-   floor. Screen only: a portrait page is narrower than 768 px and keeps the desktop form.
+   Below 768 px the page has the house style's phone margin and a narrow gutter, and every
+   pointer target is the touch floor. The house style's gutter is 10 px; 12 is the step of the
+   scale nearest to it. Screen only: a portrait page is narrower than 768 px and keeps the
+   desktop form.
    ========================================================================= */
 @media screen and (max-width: 767px) {
   :root {
-    --grid-gutter: 16px;
+    --page-pad-x: 20px;
+    --grid-gutter: 12px;
     --h-target: var(--h-touch);
     --h-option: var(--h-touch);
     --chart-h-expanded: 320px;
