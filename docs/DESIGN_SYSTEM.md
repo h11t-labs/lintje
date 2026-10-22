@@ -521,8 +521,10 @@ De besluiten hieronder gelden voor alle elementen.
 - **De sluier onder een dialoog, een venster en een lade is het koelgrijs van de huisstijl op
   80 %** (Cool Gray 900); in donker is hij zwart op 60 %, omdat het koelgrijs een donkere pagina
   blauw kleurt. Het venster staat erop met zijn eigen oppervlak en rand.
-- **Een dialoog met een formulier is smal** en zo hoog als zijn inhoud; een zin over het resultaat
-  staat links in de voet, de knoppen rechts.
+- **Een dialoog met een formulier is smal** en zo hoog als zijn inhoud; de knoppen staan links in
+  de voet, het antwoord eerst, zoals de huisstijl een dialoog tekent, en een zin over het
+  resultaat erachter. De titel staat in de primaire kleur; het grote venster heeft geen lijnen
+  tussen kop, inhoud en voet.
 - **Een bezige knop houdt zijn breedte en zijn kleuren**; alleen de inhoud maakt plaats voor de
   ring.
 - **Een limiet waarschuwt en blokkeert nooit**: een geplakte tekst komt er heel in.
