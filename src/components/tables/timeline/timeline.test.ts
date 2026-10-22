@@ -270,6 +270,43 @@ describe('lintje-timeline', () => {
     expect(root.querySelector('.lintje-timeline__axis')).toBeNull()
   })
 
+  it('puts the date and a label above the title, and a slot per moment under it', async () => {
+    const element = await mount({
+      placement: 'alternate',
+      moments: [
+        {
+          when: '9 september 2026',
+          label: 'Uw actie',
+          title: 'Aanvulling gestuurd',
+          text: 'Uw aanvraag is compleet.',
+          value: 'compleet',
+        },
+      ],
+    })
+    const body = element.shadowRoot!.querySelector('.lintje-timeline__body')!
+    const over = body.querySelector('.lintje-timeline__over')!
+    expect(text(over)).toBe('9 september 2026 · Uw actie')
+    expect(over.nextElementSibling!.matches('.lintje-timeline__title')).toBe(true)
+    const slot = body.querySelector<HTMLSlotElement>('.lintje-timeline__content slot')!
+    expect(slot.name).toBe('compleet')
+    expect(body.lastElementChild!.matches('.lintje-timeline__content')).toBe(true)
+  })
+
+  it('keeps only the label above when the date stands in a column or under the moment', async () => {
+    const moment = { when: '9 september 2026', label: 'Uw actie', title: 'Aanvulling gestuurd' }
+    const element = await mount({ moments: [moment] })
+    const over = (): string => text(element.shadowRoot!.querySelector('.lintje-timeline__over')!)
+    expect(over()).toBe('Uw actie')
+    expect(text(element.shadowRoot!.querySelector('.lintje-timeline__when')!)).toBe(
+      '9 september 2026',
+    )
+    element.dates = 'below'
+    await element.updateComplete
+    expect(over()).toBe('Uw actie')
+    const title = element.shadowRoot!.querySelector('.lintje-timeline__title')!
+    expect(title.nextElementSibling!.matches('.lintje-timeline__date')).toBe(true)
+  })
+
   it('sends a plain click on a link as lintje-navigate', async () => {
     const element = await mount({
       moments: [

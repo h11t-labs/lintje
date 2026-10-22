@@ -5,8 +5,10 @@
  * never reads the clock. Where now is follows from the data: planned moments sit at the end still
  * to come; without them the first and last `at` decide; without those, the oldest comes first.
  * From there come the accent on the last moment that happened, the stroke of `today`, and which
- * moments `limit` keeps back behind "Toon eerdere". Lying, every moment stands at its place in
- * time; a row that does not fit stands up. Below 768 px every moment stands on one side.
+ * moments `limit` keeps back behind "Toon eerdere". A moment has three lines: the date and a label
+ * above, the title, and under it a sentence, a link and its own slot. Lying, every moment stands
+ * at its place in time; a row that does not fit stands up. Below 768 px every moment stands on one
+ * side.
  *
  * Events: `lintje-navigate` `{ href }` for a plain click on a moment's link.
  */
@@ -57,6 +59,8 @@ export interface TimelineMoment {
    * without it stands apart after the end of that rail.
    */
   at?: string
+  /** A word or two after the date, above the title: whose step or what kind ("Uw actie"). */
+  label?: string
   /** What happened. After `who` it is the rest of the sentence: "wijzigde de omschrijving". */
   title: string
   /**
@@ -67,6 +71,11 @@ export interface TimelineMoment {
   /** A sentence or two under the title. */
   text?: string
   link?: TimelineLink
+  /**
+   * The name of the moment's slot: a child of `<lintje-timeline>` with `slot="<value>"` stands
+   * under the sentence and the link, a badge or an attachment, any Lintje element or plain HTML.
+   */
+  value?: string
   /**
    * Still to come: a hollow mark on a dashed rail. Say it in `when` too ("Verwacht vóór 1
    * december 2026"), so it never rests on the drawing alone.
@@ -516,15 +525,33 @@ export class LintjeTimeline extends LintjeElement {
     )}<strong class="lintje-timeline__who">${actor.name}</strong>`
   }
 
-  private renderContent(moment: TimelineMoment): TemplateResult {
-    const link = moment.link
+  /**
+   * A moment's three lines. Above the title its date and label; with the date in a column, or
+   * under the moment, only the label. Under it the date when it stands there, the sentence, the
+   * link and the moment's slot.
+   */
+  private renderBody(moment: TimelineMoment, column: boolean, prefix?: string): TemplateResult {
+    const below = this.dates === 'below'
+    const date = this.renderDate(moment, prefix)
+    const label = moment.label
+    const over =
+      column || below
+        ? label
+          ? html`<span class="lintje-timeline__over"
+              ><span class="lintje-timeline__label">${label}</span></span
+            >`
+          : nothing
+        : html`<span class="lintje-timeline__over"
+            >${date}${label ? html`<span class="lintje-timeline__label"> · ${label}</span>` : nothing}</span
+          >`
     const title =
       moment.who === undefined
         ? html`<p class="lintje-timeline__title">${moment.title}</p>`
         : html`<p class="lintje-timeline__title lintje-timeline__title--said">
             ${this.renderWho(moment.who)} ${moment.title}
           </p>`
-    return html`${title}
+    const link = moment.link
+    return html`${over}${title}${below ? date : nothing}
       ${moment.text ? html`<p class="lintje-timeline__text">${moment.text}</p>` : nothing}
       ${
         link
@@ -535,15 +562,12 @@ export class LintjeTimeline extends LintjeElement {
               >${link.label}</a
             >`
           : nothing
+      }
+      ${
+        moment.value
+          ? html`<div class="lintje-timeline__content"><slot name=${moment.value}></slot></div>`
+          : nothing
       }`
-  }
-
-  /** A moment's date and content, the date above or below as `dates` says. */
-  private renderMoment(moment: TimelineMoment): TemplateResult {
-    const date = this.renderDate(moment)
-    return this.dates === 'below'
-      ? html`${this.renderContent(moment)}${date}`
-      : html`${date}${this.renderContent(moment)}`
   }
 
   /** The name of a moment's side, in front of its date where the sides are not drawn. */
@@ -613,7 +637,7 @@ export class LintjeTimeline extends LintjeElement {
             ${stack ? nothing : html`<span class="lintje-timeline__when">${this.renderDate(row.moment)}</span>`}
             ${rail}
             <div class="lintje-timeline__body">
-              ${stack && !below ? this.renderDate(row.moment, name) : nothing}${this.renderContent(row.moment)}${below ? this.renderDate(row.moment, name) : nothing}
+              ${this.renderBody(row.moment, !stack, stack ? name : undefined)}
             </div>
           </li>`
         }
@@ -676,7 +700,7 @@ export class LintjeTimeline extends LintjeElement {
             >
               <div class="lintje-timeline__body">
                 ${name ? html`<span class="visually-hidden">${name}: </span>` : nothing}
-                ${this.renderMoment(row.moment)}
+                ${this.renderBody(row.moment, false)}
               </div>
               <span class="lintje-timeline__mark" aria-hidden="true"></span>
             </li>`
@@ -753,7 +777,7 @@ export class LintjeTimeline extends LintjeElement {
             >
               <div class="lintje-timeline__body">
                 ${name ? html`<span class="visually-hidden">${name}: </span>` : nothing}
-                ${this.renderMoment(row.moment)}
+                ${this.renderBody(row.moment, false)}
               </div>
               <span class="lintje-timeline__mark" aria-hidden="true"></span>
             </li>`

@@ -36,6 +36,7 @@
 
 /* Every first line is as tall as a title's, so a mark, tick or stroke sits in its middle. */
 .lintje-timeline__when,
+.lintje-timeline__over,
 .lintje-timeline__date,
 .lintje-timeline__today {
   font: var(--text-small);
@@ -43,6 +44,12 @@
 }
 .lintje-timeline__when { text-align: right; padding-bottom: var(--space-8); }
 .lintje-timeline__date { display: block; color: var(--color-text-primary); }
+/* Above the title: the date and a label after it, the label quieter. */
+.lintje-timeline__over { display: block; }
+.lintje-timeline__over .lintje-timeline__date { display: inline; }
+.lintje-timeline__label { color: var(--color-text-muted); }
+/* The moment's own slot, under the sentence and the link. */
+.lintje-timeline__content { margin-top: var(--space-2); }
 /* Under the moment the date is a detail, as in a log: its own small line, close under it. */
 .lintje-timeline__list.has-date-below .lintje-timeline__date {
   font: var(--text-small);

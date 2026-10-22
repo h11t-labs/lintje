@@ -679,6 +679,14 @@ const TIMELINE_OUTAGE = [
   { when: '10:40', at: '2026-10-21T10:40', title: 'Opgelost', text: 'Iedereen kan weer inloggen.' },
 ]
 
+/** The same outage with who acted above each title, and a badge in the slot of two moments. */
+const TIMELINE_OUTAGE_LABELLED = [
+  { when: '08:12', at: '2026-10-21T08:12', label: 'Systeem', title: 'Storing gemeld', text: 'Inloggen lukt niet voor een deel van de gebruikers.', value: 'ernst' },
+  { when: '08:30', at: '2026-10-21T08:30', label: 'Storingsdienst', title: 'Oorzaak gevonden', text: 'Een verlopen certificaat.', link: { label: 'Bekijk het incident', href: '#el-timeline' } },
+  { when: '09:05', at: '2026-10-21T09:05', label: 'Storingsdienst', title: 'Herstel gestart' },
+  { when: '10:40', at: '2026-10-21T10:40', label: 'Storingsdienst', title: 'Opgelost', text: 'Iedereen kan weer inloggen.', value: 'opgelost' },
+]
+
 /** A bill from its first exploration to the day it applies: years on the rail, one still to come. */
 const TIMELINE_BILL = [
   { when: '11 maart', at: '2024-03-11', group: '2024', title: 'Verkenning gestart', text: 'Het ministerie vroeg uitvoerders wat er aan de oude regeling schortte.' },
@@ -1519,6 +1527,21 @@ export default {
           html: '<lintje-timeline heading="Storing inlogdienst, 21 oktober 2026"></lintje-timeline>',
           setup(stage) {
             stage.querySelector('lintje-timeline').moments = TIMELINE_OUTAGE
+          },
+        },
+        {
+          label: 'Een label en eigen inhoud',
+          note:
+            'Boven de kop de tijd en een label, onder de zin de link en een badge die de host ' +
+            'per moment in een slot zet.',
+          html:
+            '<lintje-timeline heading="Storing inlogdienst, 21 oktober 2026" placement="alternate">' +
+            '<lintje-badge slot="ernst" tone="error">Ernst hoog</lintje-badge>' +
+            '<lintje-badge slot="opgelost" tone="success">Opgelost</lintje-badge>' +
+            '</lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = TIMELINE_OUTAGE_LABELLED
+            listen(stage)
           },
         },
         {

@@ -460,7 +460,10 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een tijdlijn is dezelfde rail, met de tijd erlangs**, en een logboek is een tijdlijn: wie
   deed wat, met het rondje van een persoon vóór de naam. De host bepaalt de volgorde, het oudste
   of het nieuwste boven; waar nu is, leest de tijdlijn uit wat gepland is of uit de tijden. Een
-  moment staat aan één kant met de datum ervoor, om en om, of per kant met een naam erboven. Om en om schuiven de momenten
+  moment staat aan één kant met de datum ervoor, om en om, of per kant met een naam erboven. Een
+  moment heeft drie regels: boven de kop klein de datum en een label, dan de kop, en eronder de
+  zin, een link en eigen inhoud van de host, zoals een badge; staat de datum onder, dan direct
+  onder de kop. Om en om schuiven de momenten
   in elkaar, maar een moment begint nooit vóór het vorige. Vandaag is een streep op de rail die de
   host noemt; daarna is de rail gestreept en is een teken hol. Het laatste moment dat geweest is,
   staat in de accentlijn. De rail van de tijdlijn weegt zwaar, met donkere tekens: wie een reeks
