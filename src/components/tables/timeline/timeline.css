@@ -8,6 +8,7 @@
   --lintje-timeline-mark: 10px;
   --lintje-timeline-line: 2px;
   --lintje-timeline-today: 26px;
+  --lintje-timeline-rail-y: 0px;
   font: var(--text-ui);
   color: var(--color-text-primary);
 }
@@ -142,16 +143,97 @@
 }
 .lintje-timeline__list--sides .lintje-timeline__today { display: block; padding-bottom: 0; }
 
+/* Lying: the element measures how high the rail stands; each label hangs from a stem. */
+.lintje-timeline__lying { display: flex; }
+.lintje-timeline__names {
+  position: relative;
+  flex: 0 0 4rem;
+  margin-right: var(--space-4);
+  font-weight: 700;
+}
+.lintje-timeline__name { position: absolute; left: 0; }
+.lintje-timeline__axis { position: relative; flex: 1 1 auto; min-width: 0; }
+.lintje-timeline__axis-rail {
+  position: absolute;
+  top: calc(var(--lintje-timeline-rail-y) - var(--lintje-timeline-line) / 2);
+  height: var(--lintje-timeline-line);
+  background: var(--color-border-heavy);
+}
+.lintje-timeline__axis-rail--planned {
+  height: 0;
+  background: none;
+  border-top: var(--lintje-timeline-line) dashed var(--color-border-heavy);
+}
+.lintje-timeline__list--row > .lintje-timeline__row {
+  position: absolute;
+  box-sizing: border-box;
+  margin-left: calc(-1 * var(--lintje-timeline-line) / 2);
+  padding-left: var(--space-2);
+  border-left: var(--lintje-timeline-line) solid var(--color-border-default);
+}
+.lintje-timeline__list--row > .lintje-timeline__row.is-planned {
+  border-left-style: dashed;
+  border-left-color: var(--color-border-heavy);
+}
+.lintje-timeline__row--up {
+  bottom: calc(100% - var(--lintje-timeline-rail-y) + var(--lintje-timeline-mark) / 2);
+  padding-bottom: var(--space-3);
+}
+.lintje-timeline__row--down {
+  top: calc(var(--lintje-timeline-rail-y) + var(--lintje-timeline-mark) / 2);
+  padding-top: var(--space-3);
+}
+.lintje-timeline__list--row .lintje-timeline__body { padding-bottom: 0; }
+.lintje-timeline__list--row .lintje-timeline__mark {
+  position: absolute;
+  left: calc(-1 * (var(--lintje-timeline-line) + var(--lintje-timeline-mark)) / 2);
+}
+.lintje-timeline__row--up .lintje-timeline__mark { bottom: calc(-1 * var(--lintje-timeline-mark)); }
+.lintje-timeline__row--down .lintje-timeline__mark { top: calc(-1 * var(--lintje-timeline-mark)); }
+/* Today stands across the lying rail; its label above it, or under it beside the years. */
+.lintje-timeline__list--row > .lintje-timeline__row--today {
+  top: calc(var(--lintje-timeline-rail-y) - var(--lintje-timeline-today) / 2);
+  padding: 0;
+  border: 0;
+}
+.lintje-timeline__list--row .lintje-timeline__row--today .lintje-timeline__tick {
+  display: block;
+  width: var(--lintje-timeline-line);
+  height: var(--lintje-timeline-today);
+  background: var(--color-text-primary);
+}
+.lintje-timeline__list--row .lintje-timeline__today {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  padding: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.lintje-timeline__list--row .lintje-timeline__row--today.is-below .lintje-timeline__today {
+  top: calc(var(--lintje-timeline-today) / 2 + var(--space-2));
+  bottom: auto;
+}
+.lintje-timeline__year {
+  position: absolute;
+  top: calc(var(--lintje-timeline-rail-y) + var(--space-3));
+  font: var(--text-axis);
+  color: var(--color-text-muted);
+  transform: translateX(-50%);
+}
+
 /* Forced colours drop fills, so the rail is drawn in the text colour. */
 @media (forced-colors: active) {
   .lintje-timeline__stub,
   .lintje-timeline__line,
   .lintje-timeline__spine,
+  .lintje-timeline__axis-rail,
   .lintje-timeline__mark,
   .lintje-timeline__tick { forced-color-adjust: none; background: CanvasText; }
   .lintje-timeline__stub.is-dashed,
   .lintje-timeline__line.is-dashed,
-  .lintje-timeline__spine--planned { background: none; border-color: CanvasText; }
+  .lintje-timeline__spine--planned,
+  .lintje-timeline__axis-rail--planned { background: none; border-color: CanvasText; }
   .lintje-timeline__row.is-latest .lintje-timeline__mark { background: Highlight; }
   .lintje-timeline__row.is-planned .lintje-timeline__mark { background: Canvas; border-color: CanvasText; }
 }

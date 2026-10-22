@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import './timeline'
 import {
   latestIndex,
+  rowLayout,
   shownMoments,
   stagger,
   timelineRows,
@@ -77,6 +78,52 @@ describe('timeline layout', () => {
       { side: 'start', height: 95 },
     ])
     expect(tops).toEqual([0, 64, 128, 219])
+  })
+})
+
+const PROJECT: TimelineMoment[] = ['2019', '2021', '2023', '2025'].map((year) => ({
+  when: year,
+  at: year,
+  title: `In ${year}`,
+}))
+
+describe('lying layout', () => {
+  it('places each moment in proportion to its time, half a mark in, with a year under the rail', () => {
+    const layout = rowLayout(PROJECT, 'start', 758)
+    expect(layout.fits).toBe(true)
+    expect(layout.places[0]!.x).toBe(5)
+    expect(layout.places.map((place) => place.x)).toEqual(
+      [...layout.places.map((place) => place.x)].sort((a, b) => a - b),
+    )
+    expect(layout.places.every((place) => place.up)).toBe(true)
+    expect(layout.years.map((year) => year.label)).toEqual([
+      '2020',
+      '2021',
+      '2022',
+      '2023',
+      '2024',
+      '2025',
+    ])
+  })
+
+  it('does not fit when a label would have less than its minimum', () => {
+    expect(rowLayout(PROJECT, 'start', 500).fits).toBe(false)
+    expect(rowLayout(PROJECT, 'alternate', 500).fits).toBe(true)
+  })
+
+  it('puts a moment without a time apart, after the end of the rail', () => {
+    const layout = rowLayout(APPLICATION, 'sides', 1200, '2026-10-21')
+    const apart = layout.places.filter((place) => place.apart)
+    expect(apart).toHaveLength(2)
+    expect(apart.every((place) => place.x > layout.end)).toBe(true)
+    expect(layout.boundary).toBe(layout.today)
+  })
+
+  it("ends a label above the rail before today's label", () => {
+    const layout = rowLayout(APPLICATION.slice(0, 3), 'sides', 1000, '2026-10-21')
+    const above = layout.places[2]!
+    expect(above.up).toBe(true)
+    expect(above.x + above.width).toBeLessThanOrEqual(layout.today! - 40)
   })
 })
 
@@ -162,6 +209,29 @@ describe('lintje-timeline', () => {
     expect(text(root.querySelector('.lintje-timeline__empty')!)).toBe(
       'Er is nog niets gebeurd met deze aanvraag.',
     )
+  })
+
+  it('lies along a rail when it fits, with labels above and under it and today across it', async () => {
+    const element = await mount({
+      moments: APPLICATION.slice(0, 3),
+      orientation: 'horizontal',
+      placement: 'sides',
+      sides: ['U', 'Wij'],
+      today: 'Vandaag',
+      todayAt: '2026-10-21',
+    })
+    ;(element as unknown as { width: number }).width = 1000
+    await element.updateComplete
+    const root = element.shadowRoot!
+    expect(root.querySelector('.lintje-timeline__axis')).not.toBeNull()
+    const sides = rows(element)
+      .filter((row) => row.matches('.lintje-timeline__row--moment'))
+      .map((row) => (row.classList.contains('lintje-timeline__row--up') ? 'up' : 'down'))
+    expect(sides).toEqual(['up', 'down', 'up'])
+    expect(text(root.querySelector('.lintje-timeline__row--today')!)).toBe('Vandaag')
+    ;(element as unknown as { width: number }).width = 300
+    await element.updateComplete
+    expect(root.querySelector('.lintje-timeline__axis')).toBeNull()
   })
 
   it('sends a plain click on a link as lintje-navigate', async () => {

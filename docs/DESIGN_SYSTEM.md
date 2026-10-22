@@ -463,8 +463,9 @@ De besluiten hieronder gelden voor alle elementen.
   host noemt; daarna is de rail gestreept en is een teken hol. Het laatste moment dat geweest is,
   staat in de accentlijn. De rail van de tijdlijn en het activiteitenlog weegt zwaar, met
   donkere tekens: wie een reeks leest, volgt de lijn. Een lange reeks krijgt koppen op de rail
-  en toont eerst de laatste momenten. Op een telefoon staat alles aan één kant, de datum boven de
-  kop.
+  en toont eerst de laatste momenten. Liggend staat elk moment op zijn plek in de tijd, met zijn
+  label aan een steel boven of onder de rail; past een label niet tot het volgende, dan staat de
+  tijdlijn. Op een telefoon staat alles aan één kant, de datum boven de kop.
 - **Een kalender is één maandraster**, in de datuminvoer en de datumreeks evengoed: zoveel weken
   als de maand heeft, de dagen ernaast leeg, 1 px tussen de cellen, zodat twee gekozen dagen los
   van elkaar blijven. Vandaag is een ring in de accentlijn, nooit een statuskleur; een gekozen

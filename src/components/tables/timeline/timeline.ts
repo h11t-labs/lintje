@@ -4,6 +4,7 @@
  * The host writes every date in Dutch and marks what is still to come; the element never reads
  * the clock. `today` is a stroke on the rail between the last moment that happened and the first
  * planned one. With `limit` the latest moments show first and a button above them shows the rest.
+ * Lying, every moment stands at its place in time from `at`; a row that does not fit stands up.
  * Below 768 px every moment stands on one side, its date above its title.
  *
  * Events: `lintje-navigate` `{ href }` for a plain click on a moment's link.
@@ -20,6 +21,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { isPlainClick } from '../../../core/links'
 import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
+import { styleProps } from '../../../core/style-props'
 import { renderHeading, type HeadingLevel } from '../../shared/heading'
 import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import '../../actions/button/button'
@@ -27,6 +29,7 @@ import timelineCss from './timeline.css?inline'
 
 export type TimelineSide = 'start' | 'end'
 export type TimelinePlacement = 'start' | 'alternate' | 'sides'
+export type TimelineOrientation = 'vertical' | 'horizontal'
 
 export interface TimelineLink {
   label: string
@@ -36,7 +39,10 @@ export interface TimelineLink {
 export interface TimelineMoment {
   /** The moment as the host wrote it, in Dutch: "3 augustus 2026", "08:12", "Nog niet bekend". */
   when: string
-  /** The same moment as ISO 8601, for `<time datetime>`. */
+  /**
+   * The same moment as ISO 8601, for `<time datetime>` and for its place on a lying rail. A moment
+   * without it stands apart after the end of that rail.
+   */
   at?: string
   title: string
   /** A sentence or two under the title. */
@@ -141,6 +147,121 @@ export function stagger(items: { side: TimelineSide; height: number }[]): number
   })
 }
 
+/** The side of a mark, as `--lintje-timeline-mark`. */
+const MARK = 10
+/** The narrowest and widest a label is on a lying rail; any narrower and the row stands up. */
+const LABEL_MIN = 160
+const LABEL_MAX = 300
+/** The space between two labels on one side, `--space-4`. */
+const LABEL_GAP = 16
+/** The room today's label takes above a lying rail, centred on its stroke. */
+const TODAY_ROOM = 80
+/** The names of the sides before a lying rail: their 4rem column and the `--space-4` after it. */
+const NAMES = 80
+
+export interface RowPlace {
+  x: number
+  up: boolean
+  width: number
+  /** Without `at`: after the end of the rail. */
+  apart: boolean
+}
+
+export interface RowLayout {
+  places: RowPlace[]
+  /** Where the rail starts: half a mark in, so the first mark stays inside the element. */
+  begin: number
+  /** The rail is drawn through to here, dashed after it. */
+  boundary: number
+  end: number
+  today?: number
+  /** A year at the start of each year, under a rail with every moment above it. */
+  years: { x: number; label: string }[]
+  fits: boolean
+}
+
+const time = (at: string | undefined): number | undefined => {
+  const value = at ? Date.parse(at) : NaN
+  return Number.isFinite(value) ? value : undefined
+}
+
+/**
+ * Where each moment stands on a lying rail `width` wide: in proportion to its time, with room
+ * after the last for its label and for every moment without a time. It fits when each label
+ * has `LABEL_MIN` before the next one on its side.
+ */
+export function rowLayout(
+  moments: TimelineMoment[],
+  placement: TimelinePlacement,
+  width: number,
+  todayAt?: string,
+): RowLayout {
+  const times = moments.map((moment) => time(moment.at))
+  const known = times.filter((value): value is number => value !== undefined)
+  const now = time(todayAt)
+  const apart = times.flatMap((value, index) => (value === undefined ? [index] : []))
+  const begin = MARK / 2
+  const length = width - begin - LABEL_MIN - apart.length * (LABEL_MIN + LABEL_GAP)
+  if (!known.length || length < 0) {
+    return { places: [], begin, boundary: begin, end: begin, years: [], fits: false }
+  }
+  const start = Math.min(...known)
+  const stop = Math.max(...known, ...(now === undefined ? [] : [now]))
+  const scale = (value: number): number =>
+    begin + (stop > start ? ((value - start) / (stop - start)) * length : 0)
+  const xs = times.map((value, index) =>
+    value === undefined
+      ? begin + length + (apart.indexOf(index) + 1) * (LABEL_MIN + LABEL_GAP)
+      : scale(value),
+  )
+  const up = moments.map((moment, index) =>
+    placement === 'sides'
+      ? moment.side !== 'end'
+      : placement === 'alternate'
+        ? index % 2 === 0
+        : true,
+  )
+  const today = now !== undefined && now >= start ? scale(now) : undefined
+  // With labels on both sides today's label stands above the rail, so a label there ends before it.
+  const block = today !== undefined && placement !== 'start' ? today - TODAY_ROOM / 2 : undefined
+  const places = moments.map((_, index) => {
+    const next = up.findIndex((side, other) => other > index && side === up[index])
+    let end = next < 0 ? width : xs[next]! - LABEL_GAP
+    if (up[index] && block !== undefined && block > xs[index]!) end = Math.min(end, block)
+    const room = end - xs[index]!
+    return {
+      x: xs[index]!,
+      up: up[index]!,
+      width: Math.min(LABEL_MAX, room),
+      apart: times[index] === undefined,
+    }
+  })
+  const dated = places.filter((place) => !place.apart)
+  const last = dated.at(-1)?.x ?? begin
+  const latest = latestIndex(moments)
+  const planned = moments.some((moment, index) => moment.planned && times[index] !== undefined)
+  const boundary =
+    today ?? (planned && latest >= 0 && times[latest] !== undefined ? xs[latest]! : last)
+  const years: RowLayout['years'] = []
+  const year = (value: number): number => new Date(value).getUTCFullYear()
+  if (placement === 'start' && year(stop) - year(start) >= 2) {
+    for (let label = year(start) + 1; label <= year(stop); label++) {
+      const x = scale(Date.UTC(label, 0, 1))
+      if (today === undefined || Math.abs(x - today) > LABEL_GAP * 3)
+        years.push({ x, label: String(label) })
+    }
+  }
+  return {
+    places,
+    begin,
+    boundary,
+    end: Math.max(last, today ?? 0),
+    today,
+    years,
+    fits: places.every((place) => place.width >= LABEL_MIN),
+  }
+}
+
 /** The row from which the rail is dashed: today, else the last moment that happened. */
 function boundary(rows: TimelineRow[], moments: TimelineMoment[]): number {
   const today = rows.findIndex((row) => row.kind === 'today')
@@ -158,11 +279,14 @@ export class LintjeTimeline extends LintjeElement {
     heading: { type: String },
     level: { type: Number },
     placement: { type: String, reflect: true },
+    orientation: { type: String, reflect: true },
     sides: { attribute: false },
     today: { type: String },
+    todayAt: { type: String, attribute: 'today-at' },
     limit: { type: Number },
     empty: { type: String },
     expanded: { state: true },
+    width: { state: true },
   }
 
   /** The moments, the oldest first. */
@@ -172,18 +296,30 @@ export class LintjeTimeline extends LintjeElement {
   level: HeadingLevel = 3
   /** `start`: on one side, the date before the rail. `alternate`: in turn. `sides`: by `side`. */
   placement: TimelinePlacement = 'start'
+  /**
+   * `horizontal` lays the moments along a rail at their place in time; when their labels do not
+   * fit, and on a phone, the timeline stands.
+   */
+  orientation: TimelineOrientation = 'vertical'
   /** The names over the two sides with `placement="sides"`: `['U', 'Wij']`. */
   declare sides?: [string, string]
   /** The label of today on the rail: "Vandaag, 21 oktober". */
   declare today?: string
+  /** Today as ISO 8601: where its stroke stands on a lying rail. Without it a lying rail has none. */
+  declare todayAt?: string
   /** How many of the latest moments show before "Toon eerdere"; all of them without it. */
   declare limit?: number
   /** The sentence that stands without moments. */
   empty: string = 'Er is nog niets gebeurd.'
   protected expanded = false
+  /** The element's width, measured: what a lying rail is laid out against. */
+  protected width = 0
 
   #mobile = new MediaController(this, MOBILE)
-  #resize = new FrameResizeObserver(() => this.fit())
+  #resize = new FrameResizeObserver(() => {
+    if (this.clientWidth !== this.width) this.width = this.clientWidth
+    this.fit()
+  })
 
   override connectedCallback(): void {
     super.connectedCallback()
@@ -204,8 +340,42 @@ export class LintjeTimeline extends LintjeElement {
     return this.placement !== 'start' && !this.#mobile.matches
   }
 
-  /** On two sides the items stand where `stagger` puts them; the spine runs between the marks. */
   private fit(): void {
+    this.fitRow()
+    this.fitSides()
+  }
+
+  /**
+   * A lying rail stands under the tallest label above it; the labels below, the years and the
+   * names of the sides take their place from it.
+   */
+  private fitRow(): void {
+    const axis = this.renderRoot.querySelector<HTMLElement>('.lintje-timeline__axis')
+    if (!axis) return
+    const tallest = (selector: string): number =>
+      Math.max(
+        0,
+        ...[...axis.querySelectorAll(selector)].map((item) => item.getBoundingClientRect().height),
+      )
+    const today = axis.querySelector<HTMLElement>('.lintje-timeline__row--today:not(.is-below)')
+    const above = Math.max(
+      tallest('.lintje-timeline__row--up'),
+      today ? tallest('.lintje-timeline__row--today .lintje-timeline__today') + LABEL_GAP : 0,
+    )
+    const under = axis.querySelector(
+      '.lintje-timeline__year, .lintje-timeline__row--today.is-below',
+    )
+    const below = Math.max(tallest('.lintje-timeline__row--down'), under ? 2 * LABEL_GAP : 0)
+    const rail = above + MARK / 2
+    axis.style.setProperty('--lintje-timeline-rail-y', `${rail}px`)
+    axis.style.setProperty('height', `${rail + MARK / 2 + below}px`)
+    const names = this.renderRoot.querySelectorAll<HTMLElement>('.lintje-timeline__name')
+    names[0]?.style.setProperty('top', `${(rail - names[0].offsetHeight) / 2}px`)
+    names[1]?.style.setProperty('top', `${rail + (below - names[1].offsetHeight) / 2}px`)
+  }
+
+  /** On two sides the items stand where `stagger` puts them; the spine runs between the marks. */
+  private fitSides(): void {
     const list = this.renderRoot.querySelector<HTMLElement>('.lintje-timeline__list--sides')
     if (!list) return
     const items = [...list.children] as HTMLElement[]
@@ -389,6 +559,91 @@ export class LintjeTimeline extends LintjeElement {
       </div>`
   }
 
+  /** Lying: each moment at its place in time, its label above or under the rail. */
+  private renderRow(
+    rows: TimelineRow[],
+    layout: RowLayout,
+    first: number,
+    latest: number,
+  ): TemplateResult {
+    const names = this.placement === 'sides' ? this.sides : undefined
+    const px = (value: number): string => `${Math.round(value)}px`
+    return html`<div class="lintje-timeline__lying">
+      ${
+        names
+          ? html`<div class="lintje-timeline__names" aria-hidden="true">
+              <span class="lintje-timeline__name">${names[0]}</span>
+              <span class="lintje-timeline__name">${names[1]}</span>
+            </div>`
+          : nothing
+      }
+      <div class="lintje-timeline__axis">
+        <span
+          class="lintje-timeline__axis-rail"
+          aria-hidden="true"
+          ${styleProps({ left: px(layout.begin), width: px(layout.boundary - layout.begin) })}
+        ></span>
+        <span
+          class="lintje-timeline__axis-rail lintje-timeline__axis-rail--planned"
+          aria-hidden="true"
+          ${styleProps({ left: px(layout.boundary), width: px(layout.end - layout.boundary) })}
+        ></span>
+        <ol
+          class="lintje-timeline__list lintje-timeline__list--row"
+          aria-labelledby=${this.heading ? 'lintje-timeline-heading' : nothing}
+        >
+          ${rows.map((row) => {
+            if (row.kind === 'today') {
+              if (layout.today === undefined) return nothing
+              return html`<li
+                class=${classMap({
+                  'lintje-timeline__row': true,
+                  'lintje-timeline__row--today': true,
+                  'is-below': this.placement === 'start',
+                })}
+                ${styleProps({ left: px(layout.today) })}
+              >
+                <span class="lintje-timeline__tick" aria-hidden="true"></span>
+                <span class="lintje-timeline__today">${row.label}</span>
+              </li>`
+            }
+            if (row.kind !== 'moment') return nothing
+            const place = layout.places[row.index - first]!
+            const name = this.sideName(row.moment)
+            return html`<li
+              class=${classMap({
+                ...this.rowClasses(row, latest),
+                'lintje-timeline__row--up': place.up,
+                'lintje-timeline__row--down': !place.up,
+              })}
+              ${styleProps({ left: px(place.x), width: px(place.width) })}
+            >
+              <div class="lintje-timeline__body">
+                ${name ? html`<span class="visually-hidden">${name}: </span>` : nothing}
+                ${this.renderDate(row.moment)}${this.renderContent(row.moment)}
+              </div>
+              <span class="lintje-timeline__mark" aria-hidden="true"></span>
+            </li>`
+          })}
+        </ol>
+        ${layout.years.map(
+          (year) =>
+            html`<span class="lintje-timeline__year" aria-hidden="true" ${styleProps({ left: px(year.x) })}
+              >${year.label}</span
+            >`,
+        )}
+      </div>
+    </div>`
+  }
+
+  /** The layout of a lying rail, or none when the timeline stands. */
+  private lying(first: number): RowLayout | undefined {
+    if (this.orientation !== 'horizontal' || this.#mobile.matches || !this.width) return undefined
+    const width = this.width - (this.placement === 'sides' && this.sides ? NAMES : 0)
+    const layout = rowLayout(this.moments.slice(first), this.placement, width, this.todayAt)
+    return layout.fits ? layout : undefined
+  }
+
   protected override render(): TemplateResult {
     const heading = this.heading
       ? renderHeading(
@@ -406,8 +661,9 @@ export class LintjeTimeline extends LintjeElement {
     }
     const { first, hidden } = shownMoments(this.moments, this.limit, this.expanded)
     this.hiddenBefore = hidden
+    const layout = this.lying(first)
     const twoSided = this.twoSided
-    const rows = timelineRows(this.moments, first, this.today, !twoSided)
+    const rows = timelineRows(this.moments, first, this.today, !twoSided && !layout)
     const latest = latestIndex(this.moments)
     const split = boundary(rows, this.moments)
     return html`<section class="lintje-timeline">
@@ -422,7 +678,13 @@ export class LintjeTimeline extends LintjeElement {
             >`
           : nothing
       }
-      ${twoSided ? this.renderTwoSides(rows, latest, split) : this.renderOneSide(rows, latest, split)}
+      ${
+        layout
+          ? this.renderRow(rows, layout, first, latest)
+          : twoSided
+            ? this.renderTwoSides(rows, latest, split)
+            : this.renderOneSide(rows, latest, split)
+      }
     </section>`
   }
 }

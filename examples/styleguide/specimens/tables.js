@@ -661,6 +661,15 @@ const TIMELINE_APPLICATION = [
   { when: 'Nog niet bekend', title: 'Uitbetaling', text: 'Zes weken na een positief besluit.', planned: true, side: 'end' },
 ]
 
+/** The same kind of application over most of a year, spread enough to lie along a rail. */
+const TIMELINE_YEAR = [
+  { when: '3 februari 2026', at: '2026-02-03', title: 'Aanvraag ingediend', text: 'U ontving een ontvangstbevestiging.', side: 'start' },
+  { when: '2 april 2026', at: '2026-04-02', title: 'Aanvulling gevraagd', text: 'We vroegen om de begroting.', side: 'end' },
+  { when: '28 mei 2026', at: '2026-05-28', title: 'Aanvulling gestuurd', side: 'start' },
+  { when: '14 augustus 2026', at: '2026-08-14', title: 'Besluit', text: 'De subsidie is toegekend.', side: 'end' },
+  { when: 'Verwacht 1 december 2026', at: '2026-12-01', title: 'Uitbetaling', planned: true, side: 'end' },
+]
+
 /** One morning of an outage, by the minute. */
 const TIMELINE_OUTAGE = [
   { when: '08:12', at: '2026-10-21T08:12', title: 'Storing gemeld', text: 'Inloggen lukt niet voor een deel van de gebruikers.' },
@@ -1580,6 +1589,46 @@ export default {
             const timeline = stage.querySelector('lintje-timeline')
             timeline.sides = ['U', 'Wij']
             timeline.moments = TIMELINE_APPLICATION
+          },
+        },
+        {
+          label: 'Liggend aan één kant',
+          wide: true,
+          note:
+            'Elk moment op zijn plek in de tijd, de jaren onder de rail. Past de rij niet, of op ' +
+            'een telefoon, dan staat de tijdlijn.',
+          html:
+            '<lintje-timeline heading="Zo verliep de verbouwing van het kantoor" ' +
+            'orientation="horizontal"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = TIMELINE_PROJECT
+            listen(stage)
+          },
+        },
+        {
+          label: 'Liggend om en om',
+          wide: true,
+          note: 'Momenten die dicht op elkaar vallen, staan aan weerskanten van de rail.',
+          html:
+            '<lintje-timeline heading="Storing inlogdienst, 21 oktober 2026" ' +
+            'orientation="horizontal" placement="alternate"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = TIMELINE_OUTAGE
+          },
+        },
+        {
+          label: 'Liggend per kant',
+          wide: true,
+          note:
+            'U boven, wij onder, met vandaag op de rail. Wat nog geen datum heeft, staat los ' +
+            'achter het eind van de rail.',
+          html:
+            '<lintje-timeline heading="Uw aanvraag voor een subsidie" orientation="horizontal" ' +
+            'placement="sides" today="Vandaag" today-at="2026-10-21"></lintje-timeline>',
+          setup(stage) {
+            const timeline = stage.querySelector('lintje-timeline')
+            timeline.sides = ['U', 'Wij']
+            timeline.moments = TIMELINE_YEAR
           },
         },
         {

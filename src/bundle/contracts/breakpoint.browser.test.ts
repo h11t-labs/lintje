@@ -774,6 +774,33 @@ const ROWS: Row[] = [
     },
   },
   {
+    tag: 'lintje-timeline',
+    marker: 'a lying timeline stands, every moment on one side',
+    mount: () =>
+      append(
+        create('lintje-timeline', {
+          orientation: 'horizontal',
+          placement: 'alternate',
+          moments: ['2019', '2021', '2023'].map((year) => ({
+            when: year,
+            at: year,
+            title: `Fase ${year}`,
+          })),
+        }),
+      ),
+    wide: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-timeline__row--moment')
+      return (
+        shown(element, '.lintje-timeline__axis') &&
+        box(second ?? null).left > box(first ?? null).left + 1
+      )
+    },
+    phone: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-timeline__row--moment')
+      return !shown(element, '.lintje-timeline__axis') && below(first ?? null, second ?? null)
+    },
+  },
+  {
     tag: 'lintje-stepper',
     marker: 'one line "Stap 3 van 5" with a bar',
     mount: () =>
