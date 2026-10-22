@@ -783,6 +783,40 @@ describe('contrast', () => {
       }
     })
 
+    it(`draws ${theme}'s light menu legibly: its words, its hovered and its active row`, () => {
+      for (const mode of ['light', 'dark'] as const) {
+        const values = tokensFor(mode, theme)
+        // The surface in both modes, as the logo bar: in dark that is a step above the page.
+        expect(values['--color-nav-light-bg'], mode).toBe(values['--color-bg-surface'])
+        // Defensie's orange as a word on a light surface, and white on it, is the accepted
+        // shortfall of everything that draws in that primary.
+        if (theme !== 'defensie' || mode === 'dark') {
+          expect(
+            contrast(values['--color-nav-light-text'], values['--color-nav-light-bg']),
+            `${mode} word`,
+          ).toBeGreaterThanOrEqual(4.5)
+          expect(
+            contrast(values['--color-nav-light-active-text'], values['--color-nav-light-active']),
+            `${mode} active word`,
+          ).toBeGreaterThanOrEqual(4.5)
+          // The edge beside the active row, as the line under a term: Defensie's orange on the
+          // wash is 2.8:1, the same accepted shortfall; the bold word carries the row there.
+          expect(
+            contrast(values['--color-nav-light-active-edge'], values['--color-nav-light-active']),
+            `${mode} active edge`,
+          ).toBeGreaterThanOrEqual(3.0)
+        }
+        expect(
+          contrast(values['--color-nav-light-hover-text'], values['--color-nav-light-hover']),
+          `${mode} hover`,
+        ).toBeGreaterThanOrEqual(theme === 'defensie' ? 3.0 : 4.5)
+        expect(
+          contrast(values['--color-focus'], values['--color-nav-light-bg']),
+          `${mode} ring`,
+        ).toBeGreaterThanOrEqual(3.0)
+      }
+    })
+
     it(`writes on ${theme}'s primary band in ink or white, whichever reaches 4.5:1, with a white ring`, () => {
       for (const mode of ['light', 'dark'] as const) {
         const values = tokensFor(mode, theme)

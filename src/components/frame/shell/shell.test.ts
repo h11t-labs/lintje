@@ -42,6 +42,15 @@ async function mount(data: ShellData | null = DATA): Promise<LintjeShell> {
 }
 
 describe('lintje-shell', () => {
+  it('mirrors the menu’s tone on the element, filled unless the host says light', async () => {
+    const element = await mount()
+    expect(element.navTone).toBe('filled')
+    element.setAttribute('nav-tone', 'light')
+    await element.updateComplete
+    expect(element.navTone).toBe('light')
+    expect(element.shadowRoot!.querySelector('.lintje-navbar')).not.toBeNull()
+  })
+
   it('draws nothing without data', async () => {
     const element = await mount(null)
     expect(element.shadowRoot!.querySelector('.lintje-shell')).toBeNull()

@@ -76,9 +76,12 @@ OKLCH.
   element adopteert `tokens.css` op zijn eigen host, dus een token dat daar gedeclareerd is, zou
   het geërfde thema verslaan. De properties van het thema staan daarom alleen in `themes.css` en
   erven naar binnen.
-- **De standaard primaire kleur is donkerblauw, niet lintblauw.** Het lint is lintblauw; op een
-  menu van hetzelfde blauw verdwijnt het. De navigatiebalk is het menu, een kwartslag gedraaid:
-  dezelfde kleuren.
+- **De standaard primaire kleur is donkerblauw, niet lintblauw.** Dat is een besluit voor de oude
+  huisstijl, met het menu gevuld in de primaire kleur: het lint is lintblauw en verdwijnt op een
+  menu van hetzelfde blauw. De navigatiebalk is het menu, een kwartslag gedraaid: dezelfde
+  kleuren. In de nieuwe huisstijl is het menu wit (`nav-tone="light"` op de shell, zie
+  [Navigatie en shell](#navigatie-en-shell)) en speelt dit niet: de primaire kleur kleurt daar de
+  band, de knoppen en de woorden in het menu.
 
 ### Donker
 
@@ -283,6 +286,16 @@ indelingen, naar keuze van de host:
 
 Besluiten die voor beide gelden:
 
+- **Het menu is gevuld in de themakleur, of licht; de host kiest.** Gevuld is de standaard: de
+  rail en de navigatiebalk in de primaire kleur, met witte tekst. Licht (`nav-tone="light"`) is
+  de navigatiebalk zoals de huisstijl hem tekent en de side navigation van Mijn Omgeving: het
+  oppervlak met een lijn eronder of ernaast, de woorden in de tekstkleur van het accent, een
+  rij onder de aanwijzer gevuld in de primaire kleur met wit erop, de pagina van de lezer in de
+  waas met de accentlijn als rand en vet, en in de balk onderstreept. Het is een tweede set
+  waarden voor dezelfde menutokens, dus de rail, de balk en de mobiele header veranderen verder
+  niet; de kop van de rail met het lint verandert in geen van beide. In donker is de lichte toon
+  het spiegelbeeld van licht: de balk en de rail op het oppervlak, zoals de logobalk, een stap
+  boven de pagina.
 - **De navigatiebalk is één rij.** Als de items niet passen, gemeten en niet per breakpoint,
   maken ze plaats voor één item, "Menu", waarvan het paneel het hele menu bevat. Een groep opent
   bij hover; op een aanraakscherm opent een tik een groep en sluit een tweede tik hem. Een groep

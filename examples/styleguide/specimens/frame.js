@@ -291,6 +291,58 @@ export default {
           },
         },
         {
+          label: 'Lichte navigatiebalk',
+          note:
+            'Met `nav-tone="light"` is de balk wit met de tekst in de primaire kleur en de ' +
+            'actieve pagina onderstreept, zoals de huisstijl de navigatiebalk tekent. ' +
+            'De logobalk en de rest van de pagina veranderen niet.',
+          html: `<lintje-shell nav-tone="light">
+            <lintje-page-header slot="header">
+              <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
+            </lintje-page-header>
+            <p>Dezelfde schil, met de balk op het oppervlak.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.style.minHeight = '0'
+            shell.data = {
+              name: 'Transcriptie',
+              emblem: emblem(),
+              navigation: NAVIGATION,
+              user: USER,
+              userMenu: USER_MENU,
+              search: true,
+              notifications: NOTIFICATIONS,
+            }
+            stage.querySelector('lintje-page-header').data = { title: 'Teamoverleg 2 oktober' }
+            stage.querySelector('lintje-breadcrumbs').items = [{ label: 'Opnames', href: '#opnames' }, { label: 'Teamoverleg 2 oktober' }]
+          },
+        },
+        {
+          label: 'Lichte rail',
+          note:
+            'Naast de pagina is het lichte menu de side navigation van de huisstijl: wit met een ' +
+            'lijn ernaast, de pagina van de lezer vet in de waas met de accentlijn als rand, een ' +
+            'rij onder de aanwijzer gevuld in de primaire kleur. De kop met het lint verandert niet.',
+          html: `<lintje-shell nav-tone="light">
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>Wijs een rij in het menu aan.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.data = {
+              name: 'Transcriptie',
+              layout: 'side',
+              emblem: emblem(),
+              navigation: GROUPED.flatMap((entry) => (entry.links ? [entry] : [{ ...entry, icon: entry.label === 'Opnames' ? 'beeld-en-geluid-microfoon' : 'functioneel-klok' }])),
+              user: USER,
+              userMenu: USER_MENU,
+              version: '2.4.1',
+            }
+            stage.querySelector('lintje-page-header').data = { title: 'Woordenlijst' }
+          },
+        },
+        {
           label: 'Gebruiker in de voet',
           note:
             'Naast de pagina is de voet van het menu de knop van het gebruikersmenu. ' +

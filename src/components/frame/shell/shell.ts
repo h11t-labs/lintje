@@ -3,7 +3,9 @@
  * beside it, the mobile header and menu below 768 px, and a `<main>` with the host's content.
  *
  * It never fetches and never reads the URL: the active page and the reader's settings are the
- * host's, and a change goes out as `lintje-view-change` and comes back as data. `full` runs edge
+ * host's, and a change goes out as `lintje-view-change` and comes back as data. `nav-tone`
+ * chooses the menu's colours: filled in the theme's colour, or light as the house style's bar
+ * and side navigation. `full` runs edge
  * to edge above the content, `header` holds the `lintje-page-header` and `footer` the
  * `lintje-footer`. The events of its parts (`lintje-action`, `lintje-logout`,
  * `lintje-notification-open`, `lintje-notifications-read`) reach the host as they are.
@@ -101,6 +103,7 @@ export class LintjeShell extends LintjeElement {
   static override properties: PropertyDeclarations = {
     data: { attribute: false },
     layout: { type: String, reflect: true },
+    navTone: { type: String, attribute: 'nav-tone', reflect: true },
     openGroup: { state: true },
     railExpanded: { state: true },
     menuOpen: { state: true },
@@ -122,6 +125,12 @@ export class LintjeShell extends LintjeElement {
 
   /** `data.layout`, mirrored on the element so its stylesheet can tell the two apart. */
   layout: 'side' | 'top' = 'top'
+  /**
+   * `filled`: the menu in the theme's colour, beside or above the page. `light`: the house
+   * style's white bar and side navigation, with the words in the primary colour, a row under the
+   * pointer filled in it and the reader's page in its wash. The host's choice, like the layout.
+   */
+  navTone: 'filled' | 'light' = 'filled'
   /** Top layout: index of the open group; `WHOLE_MENU`; or `null`. */
   openGroup: number | null = null
   /** Top layout: the logo bar has scrolled away and the bar under it is pinned (`is-stuck`). */

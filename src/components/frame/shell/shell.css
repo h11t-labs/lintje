@@ -22,6 +22,65 @@
 }
 /* A specimen's bars (z-index 25–31) would otherwise cover the outer shell's open menus. */
 .lintje-shell.is-nested { isolation: isolate; }
+
+/*
+ * `nav-tone="light"`: the house style's white bar and side navigation, as a second set of values
+ * for the menu's own tokens, so the rail, the bar and the mobile chrome draw as always. They are
+ * set on every element under them, not on the container: an element with a shadow root (the user
+ * menu, the bell, the logo, a button) declares the tokens again on its own host. The white
+ * surface takes the standard ring. The bar keeps its own hover and active, pointed at their light
+ * values after the general set, so the tools in the bar stay quiet.
+ */
+:host([nav-tone='light']) .lintje-nav,
+:host([nav-tone='light']) .lintje-nav *,
+:host([nav-tone='light']) .lintje-navbar,
+:host([nav-tone='light']) .lintje-navbar *,
+:host([nav-tone='light']) .lintje-mobile-chrome,
+:host([nav-tone='light']) .lintje-mobile-chrome *,
+:host([nav-tone='light']) .lintje-shell__mobile-bar,
+:host([nav-tone='light']) .lintje-shell__mobile-bar * {
+  --color-nav-bg: var(--color-nav-light-bg);
+  --color-nav-text: var(--color-nav-light-text);
+  --color-nav-text-sub: var(--color-nav-light-text-sub);
+  --color-nav-hover: var(--color-nav-light-hover);
+  --color-nav-hover-text: var(--color-nav-light-hover-text);
+  --color-nav-active: var(--color-nav-light-active);
+  --color-nav-active-edge: var(--color-nav-light-active-edge);
+  --color-nav-active-text: var(--color-nav-light-active-text);
+  --color-nav-line: var(--color-nav-light-line);
+  --color-nav-disabled: var(--color-nav-light-disabled);
+  --color-nav-avatar-bg: var(--color-nav-light-avatar-bg);
+  --color-nav-avatar-text: var(--color-nav-light-avatar-text);
+  --color-focus-on-theme: var(--color-focus);
+}
+:host([nav-tone='light']) .lintje-navbar,
+:host([nav-tone='light']) .lintje-navbar * {
+  --color-navbar-hover: var(--color-navbar-light-hover);
+  --color-navbar-active: var(--color-navbar-light-active);
+  --color-navbar-active-edge: var(--color-navbar-light-active-edge);
+  --color-nav-hover: var(--color-navbar-hover);
+  /* The bar's hover is the subtle surface, not the primary fill of the rail: the words keep their ink. */
+  --color-nav-hover-text: var(--color-nav-light-text);
+  --color-nav-active: var(--color-navbar-active);
+  --color-nav-active-edge: var(--color-navbar-active-edge);
+}
+/* A white bar and a white rail are told from the page by a line, drawn inside so nothing moves. */
+:host([nav-tone='light']) .lintje-navbar { box-shadow: inset 0 -1px 0 var(--color-nav-line); }
+/* The open entry paints over the bar, so it carries the line itself, at the bar's edge: below
+   its own transparent edge, which `bottom: 0` would stop above. The line stays whole and level. */
+:host([nav-tone='light']) .lintje-navbar__entry.is-open { position: relative; }
+:host([nav-tone='light']) .lintje-navbar__entry.is-open::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: calc(-1 * var(--nav-edge));
+  height: 1px;
+  background: var(--color-nav-line);
+}
+:host([nav-tone='light']) .lintje-nav { box-shadow: inset -1px 0 0 var(--color-nav-line), var(--shadow-nav); }
+:host([nav-tone='light']) .lintje-mobile-header { box-shadow: inset 0 -1px 0 var(--color-nav-line); }
+/* The reader's page is bold on the white rail, as the house style's side navigation has it. */
+:host([nav-tone='light']) .lintje-nav__item.is-active,
+:host([nav-tone='light']) .lintje-mobile-menu__item.is-active { font-weight: 700; }
 .lintje-shell--side { --lintje-shell-left: var(--w-rail); flex-direction: row; }
 @media (min-width: 1440px) {
   .lintje-shell--side:not(.is-unpinned) { --lintje-shell-left: var(--w-nav); }

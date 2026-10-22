@@ -520,6 +520,8 @@
   --color-nav-text: var(--ink-white);
   --color-nav-text-sub: var(--alpha-white-82);
   --color-nav-hover: var(--primary-hover);
+  /* The word of a row under the pointer; the light tone fills that row in the primary. */
+  --color-nav-hover-text: var(--ink-white);
   --color-nav-active: var(--primary-hover);
   --color-nav-active-edge: var(--ink-white);
   --color-nav-active-text: var(--ink-white);
@@ -553,6 +555,31 @@
   --color-navbar-active: var(--primary-hover);
   --color-navbar-active-edge: var(--ink-white);
   --color-navbar-open-text: var(--color-accent-text);
+  /* --- Navigation, light tone --------------------------------------------
+     `nav-tone="light"` on the shell: the house style's white navigation bar and side navigation.
+     The shell points the `--color-nav-*` and `--color-navbar-*` names at these under its menu, its
+     bar and the mobile chrome; a menu that stays filled never reads them. The surface, with the
+     words in the accent's text tint; a row under the pointer fills in the primary with white on
+     it, the reader's page takes the wash with the accent's line at its edge. In dark every name
+     here follows its semantic token, so the tone stays neutral there as the menu does. */
+  --color-nav-light-bg: var(--color-bg-surface);
+  --color-nav-light-text: var(--color-accent-text);
+  --color-nav-light-text-sub: var(--color-text-muted);
+  --color-nav-light-hover: var(--primary);
+  --color-nav-light-hover-text: var(--ink-white);
+  --color-nav-light-active: var(--primary-wash);
+  --color-nav-light-active-edge: var(--color-accent-line);
+  --color-nav-light-active-text: var(--color-accent-text);
+  --color-nav-light-line: var(--color-border-default);
+  --color-nav-light-disabled: var(--color-text-disabled);
+  /* The avatar on the white rail is the page's grey circle: a white one would vanish. */
+  --color-nav-light-avatar-bg: var(--color-avatar-bg);
+  --color-nav-light-avatar-text: var(--color-avatar-text);
+  /* The bar's entries: a quiet hover, no fill under the active entry, its edge the underline. */
+  --color-navbar-light-hover: var(--color-bg-subtle);
+  --color-navbar-light-active: var(--color-bg-surface);
+  --color-navbar-light-active-edge: var(--color-accent-line);
+
   /* The start page's band is the primary's wash, so it never reads as the menu. */
   --color-hero-bg: var(--primary-wash);
   --color-hero-text: var(--color-text-primary);
@@ -824,6 +851,17 @@
     --color-nav-text: var(--neutral-6);
     --color-nav-text-sub: var(--neutral-5);
     --color-nav-hover: var(--neutral-2);
+    --color-nav-hover-text: var(--neutral-6);
+    /* The light tone's active row steps up to the subtle surface: the wash lies under the surface
+       in dark and the row would sink into the rail. Its edge takes the text tint, as the line
+       tint reaches 3:1 on the surface only. */
+    --color-nav-light-hover: var(--neutral-2);
+    --color-nav-light-hover-text: var(--neutral-6);
+    /* The rail and the bar already differ from the page in dark: the line that tells a white rail
+       from a white page stays as quiet as it is in light, one step up from the rail. */
+    --color-nav-light-line: var(--neutral-2);
+    --color-nav-light-active: var(--neutral-2);
+    --color-nav-light-active-edge: var(--primary-tint-text);
     --color-nav-active: var(--neutral-2);
     --color-nav-active-edge: var(--primary-tint-text);
     --color-navbar-hover: var(--neutral-2);

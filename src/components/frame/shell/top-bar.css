@@ -39,6 +39,7 @@
 .lintje-top-bar__actions > * {
   --color-nav-text: var(--color-text-primary);
   --color-nav-hover: var(--color-bg-subtle);
+  --color-nav-hover-text: var(--color-text-primary);
   --lintje-tool-height: var(--h-button-chrome);
 }
 
