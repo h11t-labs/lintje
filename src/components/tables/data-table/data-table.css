@@ -73,6 +73,7 @@
   font: inherit; color: inherit; text-align: inherit;
   /* A button resets these; the header's label style must reach the label. */
   text-transform: inherit; letter-spacing: inherit;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-data-table__header-cell--align-right .lintje-data-table__sort-button { justify-content: flex-end; }
 /* Tracking also follows the last letter; it widened the table 1 px past its tile at 1024 px.
@@ -96,7 +97,9 @@
 .lintje-data-table__sort-icon > .is-off { visibility: hidden; }
 .lintje-data-table__sort-icon > .is-on { color: var(--color-accent-text); }
 
-.lintje-data-table__row { border-bottom: 1px solid var(--color-border-default); }
+.lintje-data-table__row { border-bottom: 1px solid var(--color-border-default); 
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
 /* Filler rows keep a short last page as tall as a full one. */
 .lintje-data-table__row--filler { border-bottom-color: transparent; }
 /* A row is one line: no cell wraps, not even at a hyphen ("04-10-2026"). */
@@ -137,6 +140,7 @@
 
 .lintje-data-table__row.is-clickable { cursor: pointer; }
 .lintje-data-table__row.is-clickable:hover,
+.lintje-data-table__mobile-row { transition: background var(--dur-hover) var(--ease-in-motion); }
 .lintje-data-table__mobile-row.is-clickable:hover { background: var(--color-bg-subtle); }
 /* Selected and hover share a surface; the 4 px edge is the only carrier, so it must stay visible. */
 .lintje-data-table__row.is-selected,
@@ -196,7 +200,9 @@
 
 /* --- Editing a cell (editing.ts) ------------------------------------------ */
 /* The pencil sits at the end of the text, at the start for a number. */
-.lintje-data-table__cell--editable { position: relative; }
+.lintje-data-table__cell--editable { position: relative; 
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
 .lintje-data-table__cell--editable:hover { background: var(--color-bg-subtle); }
 .lintje-data-table__edit-icon {
   position: absolute;
@@ -286,6 +292,7 @@
   width: var(--h-chip-field); height: var(--h-chip-field);
   display: flex; align-items: center; justify-content: center;
   color: var(--color-text-muted);
+  transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-data-table__chip-clear::after {
   content: '';
@@ -314,6 +321,7 @@
   margin-left: auto;
   border: 1px solid transparent;
   color: var(--color-text-muted);
+  transition: background var(--dur-hover) var(--ease-in-motion), color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-data-table__funnel::after {
   content: '';
@@ -330,6 +338,7 @@
   margin-left: auto;
   border: 1px solid transparent;
   color: var(--color-text-muted);
+  transition: background var(--dur-hover) var(--ease-in-motion), color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-data-table__chooser-button:hover,
 .lintje-data-table__chooser-button[aria-expanded='true'],
@@ -393,6 +402,7 @@
   min-height: var(--h-table-row);
   padding: 0 var(--space-3);
   font: inherit; font-weight: 700; color: var(--color-text-primary); text-align: left;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-data-table__group-toggle:hover { background: var(--color-bg-subtle); }
 .lintje-data-table__group-toggle:focus-visible { outline-offset: -3px; }

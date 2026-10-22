@@ -29,7 +29,7 @@
 .lintje-menu__radio {
   box-sizing: border-box;
   width: 16px; height: 16px;
-  border: 2px solid var(--color-border-choice);
+  border: 1px solid var(--color-border-choice);
   border-radius: var(--radius-round);
   background: var(--color-bg-surface);
   display: inline-flex; align-items: center; justify-content: center;

@@ -22,6 +22,7 @@
   border-radius: var(--radius);
   overflow: clip;
   background: var(--color-bg-surface);
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-radio-group__card:hover:not(.is-chosen, .is-disabled) { background: var(--color-bg-subtle); }
 .lintje-radio-group__card.is-chosen {

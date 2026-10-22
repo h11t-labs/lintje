@@ -370,7 +370,10 @@
   /* Its own width, whatever its position: shrink-to-fit narrowed it near the right edge. */
   width: max-content;
   max-width: 320px;
+  /* Comes in on the hover duration, as every hover does; a fade, so reduced motion keeps it. */
+  animation: lintje-chart-tooltip-in var(--dur-hover) var(--ease-in-motion);
 }
+@keyframes lintje-chart-tooltip-in { from { opacity: 0; } }
 .lintje-chart-tooltip__title { font-weight: 700; margin-bottom: 4px; }
 .lintje-chart-tooltip__kicker { color: var(--color-text-muted); }
 .lintje-chart-tooltip__title-note { font-weight: 400; color: var(--color-text-muted); }

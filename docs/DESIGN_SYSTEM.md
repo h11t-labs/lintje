@@ -94,9 +94,12 @@ leest en niet bij elk thema past.
 een donkerdere vulling die tekst in elk thema op AA; in donker zou een donkerdere vulling
 wegzakken in de pagina.
 
-**Donker is geen inversie.** Het is de reeks van Logius: dezelfde voor elk thema behalve de
-primaire kleur. Donker herdefinieert de zeven `--neutral-*` en laat de paar namen waarvan de
-betekenis verandert ergens anders naar wijzen. Een losse donkere kleur wordt nooit geschreven.
+**Donker is geen inversie, en dat is een bewuste afwijking van de huisstijl.** De huisstijl
+keert in donker zijn koelgrijsreeks om (050 wordt 900), maar die reeks is blauwgrijs: op lichte
+waarden valt de zweem weg, op donkere leest hij als marineblauw, en zo'n ondergrond concurreert
+met de blauwe datakleuren van een dashboard. Lintje neemt daarom de neutrale reeks van Logius:
+dezelfde voor elk thema behalve de primaire kleur. Donker herdefinieert de zeven `--neutral-*` en
+laat de paar namen waarvan de betekenis verandert ergens anders naar wijzen. Een losse donkere kleur wordt nooit geschreven.
 De reeks mist een stap tussen het menu en het oppervlak; de pagina is daar het midden van die
 twee.
 
@@ -357,6 +360,8 @@ Besluiten die voor beide gelden:
   een knop met de huidige taal en een pijltje, de talen in een lijst eronder met de taal van de
   pagina gevuld in de primaire kleur, elke taal in haar eigen `lang`. Een taal met een `href` is
   een link, zodat een pagina per taal zonder script werkt.
+- **De logobalk en de mobiele header blijven onder de statusbalk van een telefoon**
+  (`env(safe-area-inset-top)`): het lint begint onder de notch, zoals de huisstijl vraagt.
 - **Een skiplink naar de inhoud is de eerste tabstop.**
 - **De naam van de shell staat in een balk op één regel**, afgekapt met een beletselteken voordat
   hij de items eruit duwt.
@@ -437,6 +442,8 @@ De besluiten hieronder gelden voor alle elementen.
   waar de labeltekst zelf links staat.
 - **Een waarde die afwijkt van haar standaard** draagt op elk bedieningselement twee markeringen:
   het label in de accentkleur en een oranje stip. Geen extra rand, geen gekleurd oppervlak.
+- **Het vinkje en de radio hebben een rand van 1 px in de accentlijn**, zoals de huisstijl ze in
+  lintblauw tekent; het label van een veld staat vet op de bodygrootte, en het kruimelpad ook.
 - **Een keuzelijst draagt het pijlvak van de huisstijl**: aan het eind van het veld, binnen zijn
   rand, een vak in de primaire kleur met het witte teken; uitgeschakeld grijs, zoals het veld.
 - **Een veld legt vast als de lezer het verlaat of op Enter drukt.**
@@ -506,6 +513,9 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
   elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
   beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").
+- **De sluier onder een dialoog, een venster en een lade is het koelgrijs van de huisstijl op
+  80 %** (Cool Gray 900); in donker is hij zwart op 60 %, omdat het koelgrijs een donkere pagina
+  blauw kleurt. Het venster staat erop met zijn eigen oppervlak en rand.
 - **Een dialoog met een formulier is smal** en zo hoog als zijn inhoud; een zin over het resultaat
   staat links in de voet, de knoppen rechts.
 - **Een bezige knop houdt zijn breedte en zijn kleuren**; alleen de inhoud maakt plaats voor de
@@ -1113,7 +1123,8 @@ pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
   terug gaat, is de uitzondering: die gaat recht.
 - **Eén duur voor interfacebeweging** (`--dur-base`). Elk onderdeel heeft een eigen token dat
   ernaar wijst, zodat er één kan veranderen zonder een component aan te raken. Hoverfeedback is
-  korter; databeweging (een grafiek intekenen, een waarde optellen) is langer.
+  korter, en alles wat onder de aanwijzer van kleur, vulling of rand verandert, doet dat met die
+  overgang; databeweging (een grafiek intekenen, een waarde optellen) is langer.
 - **Een vak dat openklapt, knipt zijn inhoud af zolang het groeit en niet langer**: daarna hangt
   een popover of focusring eruit. Het wacht alleen op een hoogte die echt beweegt; staat die
   meteen, dan laat het meteen los.

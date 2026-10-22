@@ -57,6 +57,7 @@
   width: var(--space-6); align-self: stretch;
   display: inline-flex; align-items: center; justify-content: center;
   color: var(--color-text-muted);
+  transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-tag-input__remove:hover { color: var(--color-text-primary); }
 .lintje-tag-input__remove::after {
@@ -89,6 +90,7 @@
   min-height: var(--h-option);
   padding: 0 var(--space-4);
   cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-tag-input__option:hover,
 .lintje-tag-input__option.is-active { background: var(--color-bg-subtle); }

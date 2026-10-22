@@ -43,7 +43,9 @@
 }
 .lintje-dialog__heading { font: var(--text-h2); }
 /* The close button reaches into the padding, so it does not make the heading's line taller. */
-.lintje-dialog__close { margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0; }
+.lintje-dialog__close { margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0; 
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
 .lintje-dialog__close:hover { color: var(--color-text-primary); }
 
 /* A long form scrolls here; the padding keeps a field's focus ring inside the scroll box. */

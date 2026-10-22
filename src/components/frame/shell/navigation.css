@@ -69,6 +69,7 @@
   color: var(--color-nav-text);
   background: transparent;
   flex: none;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-nav__pin--text {
   width: auto;
@@ -163,7 +164,8 @@
   color: var(--color-nav-text);
   text-decoration: none;
   white-space: nowrap;
-  transition: background var(--dur-hover) var(--ease-in-motion);
+  transition: background var(--dur-hover) var(--ease-in-motion),
+              color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-nav__item:hover:not(.is-no-page):not(.is-no-access) {
   background: var(--color-nav-hover);
@@ -193,7 +195,9 @@
   animation: lintje-nav-text-in var(--dur-base) var(--ease-in-motion) 80ms backwards;
 }
 @keyframes lintje-nav-text-in { from { opacity: 0; transform: translateX(-8px); } }
-.lintje-nav__metric { font-size: 0.875rem; color: var(--color-nav-text-sub); flex: none; }
+.lintje-nav__metric { font-size: 0.875rem; color: var(--color-nav-text-sub); flex: none; 
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
 .lintje-nav__item.is-no-access .lintje-nav__metric { text-decoration: none; }
 .lintje-nav__item.is-no-page .lintje-nav__metric { color: var(--color-nav-disabled); }
 

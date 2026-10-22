@@ -110,6 +110,8 @@
   --alpha-black-40: rgba(0, 0, 0, 0.4);
   --alpha-black-55: rgba(0, 0, 0, 0.55);
   --alpha-black-60: rgba(0, 0, 0, 0.6);
+  /* Cool Gray 900 at 80 %: the house style's veil under a dialog. */
+  --alpha-slate-80: rgba(15, 23, 42, 0.8);
 }
 
 /* ============================================================================
@@ -393,7 +395,9 @@
     4px 4px 0 -1px var(--color-bg-surface), 4px 4px 0 0 var(--color-border-default),
     8px 8px 0 -1px var(--color-bg-surface), 8px 8px 0 0 var(--color-border-default);
 
-  --color-overlay-page: var(--alpha-black-60);
+  /* The veil under a dialog, a modal and a drawer: the house style's cool grey at 80 %, in both
+     modes; the window's surface and border stand on it alike (light 1.3:1 edge, dark 1.6:1). */
+  --color-overlay-page: var(--alpha-slate-80);
   --color-overlay-nav: var(--alpha-black-16);
 
   --focus-width: 3px;
@@ -458,8 +462,9 @@
   --color-border-heavy: var(--neutral-4);
   /* The resting edge of a field box: 3:1 (WCAG 1.4.11) on the surface and the filter band. */
   --color-border-field: var(--neutral-5);
-  /* The 2 px edge of a checkbox and a radio: 3:1 on the surface; dark re-points it. */
-  --color-border-choice: var(--neutral-5);
+  /* The 1 px edge of a checkbox and a radio: the accent's line, as the house style draws it in
+     lintblauw; 3:1 on the surface in both modes by the line tint's construction. */
+  --color-border-choice: var(--color-accent-line);
   /* In dark a sheet is the same #282828 as the tile under it, so this line separates them. */
   --color-border-popover: var(--neutral-3);
   /* A DASHED outline (a suggestion, an uncertain term): neutral-5, because a dashed line has half
@@ -581,8 +586,8 @@
   --color-logobar-text: var(--color-text-primary);
   /* The ribbon in the emblem; only the logo re-points it in dark, never lintblauw elsewhere. */
   --color-logo-ribbon: var(--ribbon-blue);
-  /* The name beside it, in lintblauw as rijksoverheid.nl writes it. */
-  --color-logo-name: var(--ribbon-blue);
+  /* The name beside it, in the text colour: the wordmark is black, in both house styles. */
+  --color-logo-name: var(--color-text-primary);
   /* What marks an entry in that bar. They name the primitives, never `--color-nav-*`: the bar
      points those at these, and the two would refer to each other. */
   --color-navbar-hover: var(--primary-hover);
@@ -922,8 +927,6 @@
     --color-focus: var(--focus-orange);
     /* The menu is neutral here, so its ring is the orange of every other surface. */
     --color-focus-on-theme: var(--color-focus);
-    /* The choice edge keeps neutral-4 in dark: it already reaches 3:1 there (3.43:1 on #282828). */
-    --color-border-choice: var(--neutral-4);
 
     /* A term's box is the subtle surface: behind a word on #282828 the dark wash would be a hole. */
     --color-term-bg: var(--neutral-2);
@@ -952,6 +955,8 @@
     --shadow-sticky: 0 2px 6px var(--alpha-black-40);
     --shadow-sticky-up: 0 -2px 6px var(--alpha-black-40);
     --shadow-popover: 0 4px 16px var(--alpha-black-55);
+    /* The cool grey of the light veil tints a dark page blue: black here. */
+    --color-overlay-page: var(--alpha-black-60);
     --shadow-nav: 2px 0 8px var(--alpha-black-40);
     --shadow-chart-hover: 0 1px 4px var(--alpha-black-60);
     --shadow-scroll-start: inset 12px 0 10px -10px var(--alpha-black-60);

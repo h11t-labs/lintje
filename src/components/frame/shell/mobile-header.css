@@ -7,7 +7,10 @@
 
 .lintje-mobile-header {
   display: none;
-  height: var(--h-mobile-header);
+  box-sizing: border-box;
+  /* Under a phone's status bar: the header grows by the inset and keeps its content under it. */
+  height: calc(var(--h-mobile-header) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
   flex: none;
   background: var(--color-nav-bg);
   align-items: flex-start;
@@ -50,7 +53,7 @@
 }
 .lintje-mobile-menu {
   position: fixed;
-  inset: var(--h-mobile-header) 0 0 0;
+  inset: calc(var(--h-mobile-header) + env(safe-area-inset-top, 0px)) 0 0 0;
   z-index: 24;
   background: var(--color-nav-bg);
   color: var(--color-nav-text);

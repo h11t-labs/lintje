@@ -68,7 +68,9 @@
 /* Icon, lock and count stand on the first line of a label that wraps. */
 .lintje-sub-nav__icon { flex: none; margin-top: calc((1lh - 20px) / 2); }
 .lintje-sub-nav__lock { flex: none; margin-top: calc((1lh - 16px) / 2); }
-.lintje-sub-nav__count { flex: none; }
+.lintje-sub-nav__count { flex: none; 
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
 
 /* Below 768 px: one button with the reader's page, which opens the list in place. */
 .lintje-sub-nav__toggle {

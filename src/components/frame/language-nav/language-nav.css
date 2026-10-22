@@ -29,6 +29,7 @@
 
 /* The list: the menu's rows, the page's language filled in the primary. */
 .lintje-language-nav :is(ul) { list-style: none; margin: 0; }
+.lintje-language-nav__row { transition: background var(--dur-hover) var(--ease-in-motion), color var(--dur-hover) var(--ease-in-motion); }
 .lintje-language-nav__row.is-current,
 .lintje-language-nav__row.is-current:hover {
   background: var(--color-action-primary);

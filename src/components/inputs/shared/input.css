@@ -77,9 +77,10 @@
   border-left: var(--space-1) solid var(--color-error-line);
   padding-left: var(--space-4);
 }
+/* The label on the body size, bold, as the house style's form field has it. */
 .lintje-label {
   display: flex; align-items: baseline; gap: var(--space-2);
-  font-size: 0.875rem; font-weight: 700; color: var(--color-text-primary);
+  font: var(--text-ui); font-weight: 700; color: var(--color-text-primary);
   padding: 0;
 }
 .lintje-label.is-modified { color: var(--color-accent-text); }
@@ -214,6 +215,7 @@
   font-weight: 700;
   text-decoration: underline;
   cursor: pointer;
+  transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-field__reset:hover { color: var(--color-link-hover); }
 
@@ -242,10 +244,11 @@
   .lintje-choice__other { --h-control: var(--h-touch); }
 }
 
+/* The box and the circle: 1 px in the accent's line, as the house style draws them. */
 .lintje-choice__box {
   width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
   display: flex; align-items: center; justify-content: center;
-  border: 2px solid var(--color-border-choice);
+  border: 1px solid var(--color-border-choice);
   border-radius: var(--radius-control);
   background: var(--color-bg-surface);
   color: var(--color-action-primary-text); font-size: 0.875rem; font-weight: 700; line-height: 1;
@@ -276,7 +279,7 @@
 
 .lintje-choice__radio {
   width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
-  border: 2px solid var(--color-border-choice);
+  border: 1px solid var(--color-border-choice);
   border-radius: 50%;
   background: var(--color-bg-surface);
   display: flex; align-items: center; justify-content: center;

@@ -136,6 +136,8 @@
 /* Without content the last edge-to-edge part takes the room left: a conversation keeps its
    question box at the bottom of a short page. */
 .lintje-shell__main.is-bare ::slotted([slot='full']) { flex: 1 0 auto; }
+/* A bar in `full` stands right under the shell's bar, which draws the line between them. */
+.lintje-shell__main ::slotted([slot='full']) { --lintje-filter-bar-line: transparent; }
 
 /* The content keeps to the design system's maximum width, as the bars above it do. */
 .lintje-shell__content {
@@ -170,11 +172,17 @@
   left: 0;
   right: 0;
 }
+/* Under the logo bar, which carries the status bar's inset; pinned to the top it takes it itself. */
 .lintje-shell--top .lintje-mobile-header {
   position: static;
   height: var(--h-topbar);
+  padding-top: 0;
   align-items: center;
   gap: var(--space-3);
+}
+.lintje-shell--top .lintje-shell__mobile-bar.is-stuck .lintje-mobile-header {
+  height: calc(var(--h-topbar) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
 }
 .lintje-shell--top .lintje-mobile-header__actions { margin-top: 0; flex: none; }
 .lintje-shell--top .lintje-mobile-menu {

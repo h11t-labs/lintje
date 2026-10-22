@@ -9,6 +9,8 @@
   align-items: flex-start;
   justify-content: center;
   min-height: var(--h-logobar);
+  /* Under a phone's status bar the ribbon starts below it, as the house style asks. */
+  padding-top: env(safe-area-inset-top, 0px);
   overflow: hidden;
   /* The ribbon is the bar's unit, so the logo grows with the reader's text size as the bar does. */
   --lintje-logo-ribbon: var(--w-ribbon);
@@ -114,7 +116,8 @@
   font: var(--text-body);
   white-space: nowrap;
   text-decoration: none;
-  transition: background var(--dur-hover) var(--ease-in-motion);
+  transition: background var(--dur-hover) var(--ease-in-motion),
+              color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-navbar__entry:hover:not(.is-unavailable) { background: var(--color-navbar-hover); }
 .lintje-navbar__entry:hover:not(.is-unavailable) .lintje-navbar__label { text-decoration: underline; }

@@ -123,6 +123,7 @@
 }
 .lintje-app-search__hint { display: inline-flex; align-items: center; gap: var(--space-1); }
 
+.lintje-app-search__close { transition: color var(--dur-hover) var(--ease-in-motion); }
 .lintje-app-search__close:hover { color: var(--color-text-primary); }
 
 /* Phone: a sheet from below, as "Weergave", "Delen" and the filters open, with their head. Its

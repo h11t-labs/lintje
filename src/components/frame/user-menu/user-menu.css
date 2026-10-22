@@ -18,7 +18,8 @@
   min-width: var(--h-touch); height: var(--lintje-tool-height, var(--h-touch));
   padding: 0 var(--space-3);
   color: var(--color-nav-text);
-  transition: background var(--dur-hover) var(--ease-in-motion);
+  transition: background var(--dur-hover) var(--ease-in-motion),
+              color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-user-menu__trigger:hover,
 .lintje-user-menu__trigger.is-open { background: var(--color-nav-hover); }

@@ -23,6 +23,7 @@
   color: var(--color-text-muted);
   text-align: left;
   cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-chat-composer__expand:hover { background: var(--color-bg-subtle); }
 .lintje-chat-composer__expand:focus-visible {
@@ -184,6 +185,7 @@
   font: var(--text-ui);
   color: var(--color-text-primary);
   cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-chat-composer__completion:last-child { border-bottom: 0; }
 .lintje-chat-composer__completion:hover,

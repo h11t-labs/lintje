@@ -36,7 +36,9 @@
 
 .lintje-description-list__missing { color: var(--color-text-muted); }
 
-.lintje-description-list__link { color: var(--color-link); }
+.lintje-description-list__link { color: var(--color-link); 
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
 .lintje-description-list__action {
   flex: none;
   font-weight: 700;

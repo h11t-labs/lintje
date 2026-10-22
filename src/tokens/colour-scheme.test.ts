@@ -610,11 +610,12 @@ describe('the header of the top layout', () => {
     }
   })
 
-  it('writes the name beside the ribbon in lintblauw in light and in the text colour in dark', () => {
-    for (const theme of THEME_NAMES) {
-      expect(tokensFor('light', theme)['--color-logo-name'], theme).toBe('#154273')
-      const dark = tokensFor('dark', theme)
-      expect(dark['--color-logo-name'], theme).toBe(dark['--color-text-primary'])
+  it('writes the name beside the ribbon in the text colour, in both modes', () => {
+    for (const mode of ['light', 'dark'] as const) {
+      for (const theme of THEME_NAMES) {
+        const values = tokensFor(mode, theme)
+        expect(values['--color-logo-name'], `${theme} ${mode}`).toBe(values['--color-text-primary'])
+      }
     }
   })
 

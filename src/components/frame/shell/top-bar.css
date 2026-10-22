@@ -31,7 +31,8 @@
 }
 .lintje-top-bar__page.is-visible { opacity: 1; }
 
-.lintje-top-bar__actions { display: flex; flex: none; align-items: center; gap: var(--space-3); }
+/* The tools stand close, as at the end of the navigation bar: each has its own padding. */
+.lintje-top-bar__actions { display: flex; flex: none; align-items: center; gap: var(--space-1); }
 .lintje-top-bar__key { margin-left: var(--space-1); }
 /* The tools of the navigation bar stand here on the page's surface; an element with a shadow
    root declares the tokens again on its own host, so they are set on each one too. */
@@ -135,6 +136,7 @@
   font-size: 1rem;
   text-align: left;
   color: var(--color-text-primary);
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-share__item:hover { background: var(--color-bg-subtle); }
 /* Where an icon is still missing: the label keeps the column's text edge. */

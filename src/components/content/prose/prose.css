@@ -45,7 +45,7 @@
 .lintje-prose small { font: var(--text-small); color: var(--color-text-muted); }
 .lintje-prose figcaption { font: var(--text-small); color: var(--color-text-muted); }
 
-.lintje-prose a { color: var(--color-link); text-decoration: underline; }
+.lintje-prose a { color: var(--color-link); text-decoration: underline; transition: color var(--dur-hover) var(--ease-in-motion); }
 .lintje-prose a:hover { color: var(--color-link-hover); }
 
 /* `base.css` takes the markers off every `ul`/`ol`; prose needs them back. */

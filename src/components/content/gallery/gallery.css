@@ -32,6 +32,7 @@
   border: 1px solid var(--color-border-default);
   background: var(--color-bg-subtle);
   cursor: pointer;
+  transition: border-color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-gallery__thumb:hover { border-color: var(--color-border-heavy); }
 /* The chosen one carries the selected edge, and aria-current says it in words. */

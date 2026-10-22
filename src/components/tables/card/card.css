@@ -13,7 +13,8 @@
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius);
   color: var(--color-text-primary);
-  transition: background var(--dur-hover) var(--ease-in-motion);
+  transition: background var(--dur-hover) var(--ease-in-motion),
+              border-color var(--dur-hover) var(--ease-in-motion);
 }
 /* A linked card answers the pointer as a list row does: the subtle fill, the title underlined. */
 .lintje-card.is-link { cursor: pointer; }
@@ -62,7 +63,9 @@
   overflow-wrap: break-word;
   hyphens: auto;
 }
-.lintje-card__link { color: var(--color-link); text-decoration: none; }
+.lintje-card__link { color: var(--color-link); text-decoration: none; 
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
 .lintje-card__link:hover { color: var(--color-link-hover); text-decoration: underline; }
 .lintje-card__icon-action { flex: none; }
 /* A linked card says it leads on with the chevron at the end of its title row. */
