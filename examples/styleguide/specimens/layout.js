@@ -185,6 +185,9 @@ export default {
       specimens: [
         {
           label: 'Dicht',
+          note:
+            'De accordeonrij van de huisstijl: een lijn erboven en eronder, de pijl vooraan en de ' +
+            'kop in de primaire kleur.',
           html: `<lintje-expander heading="Toelichting op de meting">
             <lintje-prose text="De wachttijd is de mediaan per kwartier, gemeten vanaf het betreden van de rij."></lintje-prose>
           </lintje-expander>`,
@@ -196,18 +199,23 @@ export default {
           </lintje-expander>`,
         },
         {
+          label: 'Als kaart',
+          note: 'Met `card` is een losse uitklapper een omlijnd vlak op het oppervlak.',
+          html: `<lintje-expander heading="Toelichting op de meting" card>
+            <lintje-prose text="De wachttijd is de mediaan per kwartier, gemeten vanaf het betreden van de rij."></lintje-prose>
+          </lintje-expander>`,
+        },
+        {
           label: 'Zonder eigen vlak',
-          note: 'Met `flat` is een uitklapper in een tegel geen tweede kaart.',
+          note: 'Met `flat` is een uitklapper in een tegel geen tweede kaart en heeft hij geen lijnen.',
           html: `<lintje-expander heading="Zonder eigen vlak (flat)" flat>
             <lintje-prose text="In een tegel is een uitklapper geen tweede kaart."></lintje-prose>
           </lintje-expander>`,
         },
         {
-          label: 'Pijl vooraan met acties',
-          note:
-            'Met `leading` staat de pijl vooraan en de inhoud in lijn met de titel. ' +
-            'Het slot `actions` zet knoppen naast de titel.',
-          html: `<lintje-expander heading="Samenvatting" subtitle="AI-bewerking · 09:31" leading open>
+          label: 'Met acties',
+          note: 'Het slot `actions` zet knoppen naast de titel, buiten de knop van de kop.',
+          html: `<lintje-expander heading="Samenvatting" subtitle="AI-bewerking · 09:31" open>
             <lintje-icon-button slot="actions" icon="functioneel-refresh" label="Samenvatting opnieuw maken" variant="flat"></lintje-icon-button>
             <lintje-icon-button slot="actions" icon="functioneel-kruis" label="Samenvatting verbergen" variant="flat"></lintje-icon-button>
             <lintje-prose text="De ochtenddienst begint maandag om zes uur; de roostermaker is nog niet ingelicht."></lintje-prose>

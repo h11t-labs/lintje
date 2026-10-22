@@ -31,7 +31,13 @@ beforeAll(() => {
   )
 })
 
-type Expander = HTMLElement & { open: boolean; heading: string; updateComplete: Promise<unknown> }
+type Expander = HTMLElement & {
+  open: boolean
+  heading: string
+  card: boolean
+  flat: boolean
+  updateComplete: Promise<unknown>
+}
 type Tile = HTMLElement & { heading?: string; icon?: string; updateComplete: Promise<unknown> }
 type KpiRow = HTMLElement & { data: KpiRowData; updateComplete: Promise<unknown> }
 
@@ -181,5 +187,22 @@ describe('the expander title', () => {
     const heading = element.shadowRoot!.querySelector('.lintje-disclosure__heading')!
     expect(heading.localName).toBe('h2')
     expect(heading.querySelector(':scope > button.lintje-disclosure__header')).not.toBeNull()
+  })
+})
+
+describe('the form of lintje-expander', () => {
+  it('puts the chevron before the title in every form, and draws the card only when asked', async () => {
+    const element = await expander(false)
+    const header = element.shadowRoot!.querySelector('.lintje-disclosure__header')!
+    expect(header.firstElementChild!.classList.contains('lintje-disclosure__chevron')).toBe(true)
+    expect(section(element).classList.contains('lintje-disclosure--leading')).toBe(true)
+    expect(section(element).classList.contains('lintje-expander--card')).toBe(false)
+    element.card = true
+    await element.updateComplete
+    expect(section(element).classList.contains('lintje-expander--card')).toBe(true)
+    // Flat wins: inside a tile the expander is no card.
+    element.flat = true
+    await element.updateComplete
+    expect(section(element).classList.contains('lintje-expander--card')).toBe(false)
   })
 })

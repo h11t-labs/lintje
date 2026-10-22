@@ -114,22 +114,31 @@
   .lintje-expander--columns .lintje-disclosure__content { margin-left: calc(16px + var(--space-3)); padding-top: 0; }
 }
 
+/* The house style's accordion row: a line above and under it, the title bold in the primary. */
 .lintje-expander {
+  border-top: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--color-border-default);
+  padding: var(--space-1) 0;
+}
+.lintje-expander .lintje-disclosure__title { color: var(--color-accent-text); }
+/* `card`: an outlined card on the surface, for one expander on its own. */
+.lintje-expander--card {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius);
-  padding: var(--tile-pad-y) var(--tile-pad-x);
+  padding: var(--space-2) var(--tile-pad-x) var(--tile-pad-y);
 }
-/* `flat`: an expander inside a tile is not a second card. */
+/* `flat`: an expander inside a tile is not a second card, and draws no lines. */
 .lintje-expander--flat { background: none; border: none; padding: 0; }
-.lintje-expander__content { font: var(--text-body); color: var(--color-text-secondary); }
+.lintje-expander__content { font: var(--text-body); color: var(--color-text-primary); }
 /* The actions stand beside the title's button, never inside it. */
 .lintje-expander__top { display: flex; align-items: flex-start; gap: var(--space-2); }
 .lintje-expander__top .lintje-disclosure__heading { flex: 1 1 auto; min-width: 0; }
 .lintje-expander__actions { display: flex; flex: none; align-items: center; gap: var(--space-1); }
 
-/* `row`, set by `lintje-accordion` only: a row between its lines, the text kept in by
+/* `row`, set by `lintje-accordion` only: a row between the list's lines, the text kept in by
    --lintje-inset as a list row's is, so in a flush tile the hover reaches the frame. */
+:host([row]) .lintje-expander { border: 0; padding: 0; }
 :host([row]) .lintje-disclosure__header { padding: var(--space-3) var(--lintje-inset, var(--space-3)); }
 :host([row]) .lintje-disclosure__header:focus-visible { outline-offset: calc(var(--focus-width) * -1); }
 :host([row]) .lintje-expander__top { transition: background var(--dur-hover) var(--ease-in-motion); }

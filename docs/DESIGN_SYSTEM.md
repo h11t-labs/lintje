@@ -592,11 +592,14 @@ De besluiten hieronder gelden voor alle elementen.
 
 ### Uitklappers
 
+- **De uitklapper is de accordeonrij van de huisstijl**: een lijn erboven en eronder, de pijl
+  vooraan, de kop vet in de tekstkleur van het accent, de inhoud ingesprongen in lijn met de
+  titel. Open of dicht, de kop houdt dezelfde kleur. Een losse uitklapper die een eigen vlak
+  nodig heeft, is de variant `card`: omlijnd op het oppervlak; in een tegel is hij `flat`, zonder
+  lijnen en zonder vlak.
 - **Een accordeon is de gestapelde uitklapper** (`lintje-accordion`), geen tweede element: de rijen
   zijn uitklappers, getekend met de lijnen van de lijst, één boven de stapel en één onder elke
-  rij, zonder vlak of kaart per rij. Een open kop krijgt geen accentkleur.
-- **De pijl staat vooraan in een accordeon**, zodat de kop als knop leest en de inhoud in lijn met
-  de titel valt; een losse uitklapper houdt hem achteraan.
+  rij, zonder vlak of kaart per rij.
 - **Meer rijen tegelijk open is de standaard.** Eén tegelijk laat de inhoud onder de lezer vandaan
   schuiven en is er alleen op verzoek, net als "Alles openen". Wat elke lezer nodig heeft, staat
   niet achter een kop.
