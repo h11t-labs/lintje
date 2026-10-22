@@ -120,7 +120,7 @@
   --primary-line: color-mix(in srgb, var(--primary), white 22%);
   /* The dark tints lift only the perceived lightness, so they keep the primary's colour; a mix
      with white greys it. Each lightness is the smallest hundredth that clears its floor in every
-     theme: 3:1 on #282828 for a line, 4.5:1 on #333333 (neutral-2), the lightest neutral
+     theme: 3:1 on #282828 (the page) for a line, 4.5:1 on #333333 (neutral-2), the lightest neutral
      surface a word stands on, for text. A primary that is lighter already keeps its own. */
   --primary-tint: oklch(from var(--primary) max(l, 0.55) c h);
   --primary-tint-text: oklch(from var(--primary) max(l, 0.71) c h);
@@ -471,7 +471,7 @@
   /* The 1 px edge of a checkbox and a radio: the accent's line, as the house style draws it in
      lintblauw; 3:1 on the surface in both modes by the line tint's construction. */
   --color-border-choice: var(--color-accent-line);
-  /* In dark a sheet is the same #282828 as the tile under it, so this line separates them. */
+  /* In dark a sheet is the same #1D1D1D as the tile under it, so this line separates them. */
   --color-border-popover: var(--neutral-3);
   /* A DASHED outline (a suggestion, an uncertain term): neutral-5, because a dashed line has half
      the ink of a solid one and must still reach 3:1. */
@@ -836,14 +836,16 @@
 
    Redefines the seven `--neutral-*` primitives, re-declares `--primary-hover` lighter and
    re-points the layer-2/3 names whose meaning changes; everything that merely follows a
-   neutral is absent on purpose. Page and tiles are both #282828, the border separates them: the
-   step below is the menu's, so it stays a band beside the page and under the logo bar.
-   Screen only: paper is always light, whatever the reader chose.
+   neutral is absent on purpose. The order is the mirror of light: the surface (a tile, the
+   logo bar, a light menu) is the darkest, the page a step lighter, the subtle fill lighter
+   still; the filled menu steps below the surface, so it stays a band beside the page and
+   under the logo bar, as its primary fill does in light. Screen only: paper is always light,
+   whatever the reader chose.
    ========================================================================= */
 @media screen {
   [data-mode='dark'] {
-    --neutral-0: #282828;
-    --neutral-1: #1D1D1D;
+    --neutral-0: #1D1D1D;
+    --neutral-1: #282828;
     --neutral-2: #333333;
     --neutral-3: #4A4A4A;
     --neutral-4: #7A7A7A;
@@ -856,24 +858,22 @@
     --color-action-secondary-hover: var(--neutral-2);
     --color-action-secondary-pressed: var(--neutral-3);
 
-    /* The order of light holds: menu under page under surface. The series has no step between
-       the menu (neutral-1, L 0.231) and the surface (L 0.277), so the page is their midpoint
-       (L 0.252); neutral-1 itself was too dark for the menu's step under it. */
-    --color-bg-page: color-mix(in srgb, var(--neutral-0), var(--neutral-1));
-    --color-bg-title: var(--color-bg-page);
-    /* The hero's wash sits halfway between the menu and the page, under the page as in light:
-       a panel or tab on it is lighter than its ground. */
-    --primary-wash: oklch(from var(--primary) 0.241 min(c, 0.02) h);
+    /* The hero's wash is a step above the page, as it is a step below it in light: a panel or
+       tab on it is darker than its ground, as a white one is lighter there. */
+    --primary-wash: oklch(from var(--primary) 0.3 min(c, 0.02) h);
+    /* The band in the primary colour is damped, as the house style damps a communication colour
+       in dark: on the wash's lightness, a step above the page, with more of the theme's hue in it
+       than the wash has and white on it in every theme. */
+    --color-hero-primary-bg: oklch(from var(--primary) 0.3 min(c, 0.05) h);
+    --color-hero-primary-text: var(--neutral-6);
 
-    /* The filter zone must read as a band, so in dark it steps UP to neutral-2 (neutral-1 turned
-       the fields in it into light boxes). `--color-bg-inset` is "sunken": neutral-1, under the
-       page, as in light. */
+    /* The filter zone reads as a band a step above the page, as it is a step below it in light.
+       Sunken (`--color-bg-inset`) is the page's grey: a step above the surface, as a step below
+       it in light. */
     --color-bg-filter: var(--neutral-2);
     --color-bg-inset: var(--neutral-1);
 
-    --color-text-inverse: var(--neutral-1);
-
-    /* Colour that must read by itself on #282828 becomes the tint; a FILL keeps the primary. */
+    /* Colour that must read by itself on #1D1D1D becomes the tint; a FILL keeps the primary. */
     --color-action-primary-border: var(--primary-tint);
     --color-action-secondary-border: var(--primary-tint);
     /* Danger hover: 8 % white is the most that keeps white text at 4.5:1 (4.56:1). The border and
@@ -885,9 +885,11 @@
     --color-action-danger-text: oklch(from var(--status-error) max(l, 0.71) min(c, 0.18) h);
     /* A status mark at 3:1 on its own tint. */
     --color-attention-line: var(--status-attention);
-    --color-error-line: oklch(from var(--status-error) max(l, 0.6) c h);
-    --color-info-line: oklch(from var(--status-info) max(l, 0.58) c h);
-    --color-success-line: oklch(from var(--status-success) max(l, 0.57) c h);
+    --color-error-line: oklch(from var(--status-error) max(l, 0.58) c h);
+    /* The info blue and the green reach 3:1 on the page and on their tint by themselves: the
+       floor lies under them. */
+    --color-info-line: oklch(from var(--status-info) max(l, 0.5) c h);
+    --color-success-line: oklch(from var(--status-success) max(l, 0.5) c h);
     /* A status word at 4.5:1 on #333333, lifted as the danger word is. */
     --color-error-text: oklch(from var(--status-error) max(l, 0.71) min(c, 0.18) h);
     --color-success-text: oklch(from var(--status-success) max(l, 0.68) min(c, 0.18) h);
@@ -902,11 +904,11 @@
     --color-logo-ribbon: var(--ribbon-blue-dark);
     --color-logo-name: var(--color-text-primary);
 
-    /* The menu is neutral in dark: near-black, under the page, in the rail and in the bar alike,
-       so it stays its own band beside the page and under the logo bar. Hover and active are one
-       step up, as they are one fill in light; the edge is the text tint, as the line tint is
-       3:1 on neutral-0 only. */
-    --color-nav-bg: var(--neutral-1);
+    /* The filled menu is neutral in dark: a step below the surface, in the rail and in the bar
+       alike, so it stays its own band beside the page and under the logo bar, as its primary
+       fill does in light. Hover and active are one step up, as they are one fill in light; the
+       edge is the text tint, as the line tint is 3:1 on the page only. */
+    --color-nav-bg: color-mix(in srgb, var(--neutral-0), #000000 25%);
     --color-nav-text: var(--neutral-6);
     --color-nav-text-sub: var(--neutral-5);
     --color-nav-hover: var(--neutral-2);
@@ -963,7 +965,7 @@
     /* A label on "Overig" is ink: neutral-4 holds it at 4.16:1, so the gray takes the smallest
        share of neutral-5 that reaches 4.5:1. */
     --data-other: color-mix(in srgb, var(--neutral-5) 11%, var(--neutral-4));
-    --color-map-water: var(--neutral-1);
+    --color-map-water: var(--neutral-0);
 
     --shadow-sticky: 0 2px 6px var(--alpha-black-40);
     --shadow-sticky-up: 0 -2px 6px var(--alpha-black-40);

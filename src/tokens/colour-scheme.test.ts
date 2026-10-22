@@ -248,7 +248,9 @@ function oklch(colour: string): [number, number, number] {
 
 /**
  * Replace an `oklch(from #hex …)` form by its hex. A result outside sRGB throws: the browser
- * gamut-maps it and this file could no longer say which hex it draws.
+ * gamut-maps it and this file could no longer say which hex it draws. The one form that keeps
+ * the origin's chroma on a set lightness (`oklch(from #hex N c h)`) is mapped as the browser
+ * maps it: the chroma comes down until the colour fits, the lightness and the hue stay.
  */
 function evaluateOklch(value: string): string {
   const step = OKLCH_STEP.exec(value)
@@ -278,19 +280,35 @@ function evaluateOklch(value: string): string {
           ? Math.min(chroma, Number.parseFloat(match[6]))
           : chroma
   }
-  const a = c * Math.cos(hue)
-  const b = c * Math.sin(hue)
-  const l = (lightness + 0.3963377774 * a + 0.2158037573 * b) ** 3
-  const m = (lightness - 0.1055613458 * a - 0.0638541728 * b) ** 3
-  const s = (lightness - 0.0894841775 * a - 1.291485548 * b) ** 3
-  const channels = [
-    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
-    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
-    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
-  ].map(toGamma)
+  const toChannels = (chromaAt: number): number[] => {
+    const a = chromaAt * Math.cos(hue)
+    const b = chromaAt * Math.sin(hue)
+    const l = (lightness + 0.3963377774 * a + 0.2158037573 * b) ** 3
+    const m = (lightness - 0.1055613458 * a - 0.0638541728 * b) ** 3
+    const s = (lightness - 0.0894841775 * a - 1.291485548 * b) ** 3
+    return [
+      4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+      -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+      -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+    ].map(toGamma)
+  }
   // The tolerance absorbs the round trip of a colour on the sRGB edge, such as Defensie's orange.
-  if (channels.some((channel) => channel < -1e-4 || channel > 1 + 1e-4))
-    throw new Error(`outside sRGB: ${match[0]}`)
+  const fits = (list: number[]): boolean =>
+    list.every((channel) => channel >= -1e-4 && channel <= 1 + 1e-4)
+  let channels = toChannels(c)
+  const keepsChroma =
+    step === null && match[2] !== undefined && match[5] === undefined && match[6] === undefined
+  if (!fits(channels) && keepsChroma) {
+    let low = 0
+    let high = c
+    for (let i = 0; i < 24; i++) {
+      const mid = (low + high) / 2
+      if (fits(toChannels(mid))) low = mid
+      else high = mid
+    }
+    channels = toChannels(low)
+  }
+  if (!fits(channels)) throw new Error(`outside sRGB: ${match[0]}`)
   const hex = toHex(channels.map((channel) => Math.round(Math.min(1, Math.max(0, channel)) * 255)))
   return `${value.slice(0, match.index)}${hex}${value.slice(match.index + match[0].length)}`
 }
@@ -340,7 +358,9 @@ function tokensFor(
 /* --- the specification ---------------------------------------------------- */
 
 /** The dark surface of a tile and the logo bar; the line tint is defined against exactly this. */
-const DARK_SURFACE = '#282828'
+const DARK_SURFACE = '#1D1D1D'
+/** The page: the lightest plain ground a mark or a tint stands on in dark. */
+const DARK_PAGE = '#282828'
 
 /**
  * The lightest neutral surface coloured TEXT stands on in dark (neutral-2: the
@@ -370,14 +390,14 @@ const SPECIFICATION: Record<string, [string, string, string, string, string, str
  * neutral-2. The dark neutrals are the Logius range and are pinned here too.
  */
 const NEUTRALS_LIGHT = ['#FFFFFF', '#F8FAFC', '#F1F5F9', '#E2E8F0', '#94A3B8', '#475569', '#0F172A']
-const NEUTRALS_DARK = ['#282828', '#1D1D1D', '#333333', '#4A4A4A', '#7A7A7A', '#B0B0B0', '#FFFFFF']
+const NEUTRALS_DARK = ['#1D1D1D', '#282828', '#333333', '#4A4A4A', '#7A7A7A', '#B0B0B0', '#FFFFFF']
 const NEUTRAL_NAMES = NEUTRALS_LIGHT.map((_, step) => `--neutral-${step}`)
 
 const THEME_NAMES = Object.keys(SPECIFICATION)
 
 /** The floor each of the two tints is sized against (WCAG 1.4.11 and 1.4.3). */
 const TINT_FLOORS: [string, number, string][] = [
-  ['--primary-tint', 3.0, DARK_SURFACE],
+  ['--primary-tint', 3.0, DARK_PAGE],
   ['--primary-tint-text', 4.5, DARK_TEXT_SURFACE],
 ]
 
@@ -519,20 +539,19 @@ describe('the header of the top layout', () => {
     for (const declaration of own) expect(declaration).not.toMatch(/var\(--color-nav-/)
   })
 
-  it('stands a panel and its tabs on the hero lighter than the hero, in dark too', () => {
-    // Lighter is higher in dark: menu, hero, page, panel (surface), inactive tab (subtle). The
-    // hero and the page share the one step between the menu and the surface, so their gaps
-    // are half-steps.
+  it('stands a panel and its tabs on the hero darker than the hero, in dark too', () => {
+    // The mirror of light: the filled menu lowest, then the surface (a panel), the page, the
+    // hero's wash and the subtle fill (an inactive tab), each a step lighter.
     for (const theme of THEME_NAMES) {
       const dark = tokensFor('dark', theme)
       const ladder = [
         '--color-nav-bg',
-        '--color-hero-bg',
-        '--color-bg-page',
         '--color-bg-surface',
+        '--color-bg-page',
+        '--color-hero-bg',
         '--color-bg-subtle',
       ]
-      const gaps = [0.008, 0.008, 0.02, 0.02]
+      const gaps = [0.02, 0.03, 0.015, 0.015]
       const lightness = ladder.map((token) => oklch(dark[token])[0])
       for (let i = 1; i < ladder.length; i++) {
         expect(lightness[i], `${theme}: ${ladder[i]} above ${ladder[i - 1]}`).toBeGreaterThan(
@@ -545,7 +564,11 @@ describe('the header of the top layout', () => {
   it('keeps the menu in dark neutral and apart from the logo bar', () => {
     for (const theme of THEME_NAMES) {
       const dark = tokensFor('dark', theme)
-      expect(dark['--color-nav-bg'], theme).toBe(dark['--neutral-1'])
+      // A step below the surface, so it stays a band under the logo bar.
+      expect(oklch(dark['--color-nav-bg'])[1], theme).toBeLessThan(0.001)
+      expect(oklch(dark['--color-nav-bg'])[0], theme).toBeLessThan(
+        oklch(dark['--neutral-0'])[0] - 0.02,
+      )
       expect(dark['--color-nav-bg'], theme).not.toBe(dark['--color-logobar-bg'])
     }
   })
@@ -570,21 +593,20 @@ describe('the header of the top layout', () => {
     const dark = tokensFor('dark', 'rijksoverheid')
     expect(light['--color-logobar-bg']).toBe('#FFFFFF')
     expect(dark['--color-logobar-bg']).toBe(dark['--color-bg-surface'])
-    expect(dark['--color-logobar-bg']).toBe('#282828')
+    expect(dark['--color-logobar-bg']).toBe('#1D1D1D')
   })
 
-  it('puts the page under the surface in both modes: a step in light, half a step in dark', () => {
-    const light = tokensFor('light', 'rijksoverheid')
-    const dark = tokensFor('dark', 'rijksoverheid')
-    expect(light['--color-bg-page']).toBe(light['--neutral-1'])
-    expect(light['--color-bg-title']).toBe(light['--color-bg-page'])
-    // Halfway between the menu (neutral-1) and the surface, and sunken is a step under it.
-    const [surface, menu, page] = ['--neutral-0', '--neutral-1', '--color-bg-page'].map(
-      (name) => oklch(dark[name])[0],
-    )
-    expect(page - menu).toBeCloseTo(surface - page, 2)
-    expect(dark['--color-bg-title']).toBe(dark['--color-bg-page'])
-    expect(dark['--color-bg-inset']).toBe(dark['--neutral-1'])
+  it('puts the page a step from the surface in both modes: below it in light, above it in dark', () => {
+    for (const mode of ['light', 'dark'] as const) {
+      const values = tokensFor(mode, 'rijksoverheid')
+      expect(values['--color-bg-page'], mode).toBe(values['--neutral-1'])
+      expect(values['--color-bg-title'], mode).toBe(values['--color-bg-page'])
+      const [surface, page] = ['--neutral-0', '--neutral-1'].map((name) => oklch(values[name])[0])
+      expect(mode === 'light' ? surface - page : page - surface, mode).toBeGreaterThan(0.01)
+    }
+    // Sunken: the subtle grey in light, the page's grey in dark; a step from the surface either way.
+    expect(tokensFor('light')['--color-bg-inset']).toBe(tokensFor('light')['--neutral-2'])
+    expect(tokensFor('dark')['--color-bg-inset']).toBe(tokensFor('dark')['--neutral-1'])
   })
 
   it('draws the filter band in pure grey in light, between steps 2 and 3, and step 2 in dark', () => {
@@ -685,7 +707,7 @@ describe('contrast', () => {
       const dark = tokensFor('dark', theme)
       // Each tint's whole reason to exist:
       // 3:1 for a line (WCAG 1.4.11), 4.5:1 for a word (1.4.3).
-      expect(contrast(dark['--primary-tint'], DARK_SURFACE)).toBeGreaterThanOrEqual(3.0)
+      expect(contrast(dark['--primary-tint'], DARK_PAGE)).toBeGreaterThanOrEqual(3.0)
       expect(contrast(dark['--primary-tint-text'], DARK_TEXT_SURFACE)).toBeGreaterThanOrEqual(4.5)
       // A primary fill carries white content in both modes.
       for (const values of [light, dark]) {
@@ -823,7 +845,17 @@ describe('contrast', () => {
         const values = tokensFor(mode, theme)
         const band = values['--color-hero-primary-bg']
         const word = values['--color-hero-primary-text']
-        expect(band, mode).toBe(values['--primary'])
+        // In light the primary itself; in dark its hue on the wash's lightness, damped but with
+        // more of the theme in it than the wash.
+        if (mode === 'light') expect(band).toBe(values['--primary'])
+        else {
+          const [l, c, h] = oklch(band)
+          const [, ownChroma, ownHue] = oklch(values['--primary'])
+          expect(l).toBeCloseTo(0.3, 2)
+          expect(c).toBeLessThanOrEqual(0.051)
+          expect(c).toBeGreaterThan(oklch(values['--primary-wash'])[1])
+          if (ownChroma > 0.02) expect(h).toBeCloseTo(ownHue, 1)
+        }
         expect([values['--ink-black'], values['--ink-white']], mode).toContain(word)
         expect(contrast(word, band), mode).toBeGreaterThanOrEqual(4.5)
         expect(contrast(values['--color-hero-primary-focus'], band), mode).toBeGreaterThanOrEqual(
@@ -944,13 +976,20 @@ describe('the dark lifts', () => {
     }
   })
 
-  it('lifts each status mark to 3:1 on its own tint', () => {
+  it('lifts each status mark to 3:1 on the lighter of the page and its own tint', () => {
     const dark = tokensFor('dark')
     for (const status of ['error', 'info', 'success']) {
       const token = `--color-${status}-line`
       const colour = dark[`--status-${status}`]
+      const tint = dark[`--color-${status}-bg`]
+      const ground = contrast(WHITE, tint) < contrast(WHITE, DARK_PAGE) ? tint : DARK_PAGE
       expect(dark[token]).toBe(lift(colour, liftOf(token, 'dark')))
-      expectSmallestLift(token, [colour], () => dark[`--color-${status}-bg`], 3.0)
+      expect(contrast(dark[token], DARK_PAGE), token).toBeGreaterThanOrEqual(3.0)
+      expect(contrast(dark[token], tint), token).toBeGreaterThanOrEqual(3.0)
+      // A colour that reaches 3:1 by itself is not lifted: the floor stays under its lightness.
+      if (contrast(colour, ground) >= 3.0)
+        expect(liftOf(token, 'dark')).toBeLessThan(oklch(colour)[0])
+      else expectSmallestLift(token, [colour], () => ground, 3.0)
     }
   })
 })
@@ -983,13 +1022,13 @@ describe('the danger action', () => {
     const dark = tokensFor('dark')
     expect(light['--color-action-danger-border']).toBe(light['--color-action-danger'])
     // The red itself is 2.94:1 on the dark surface; the tint is the smallest lift that clears 3:1.
-    expect(contrast(dark['--status-error'], DARK_SURFACE)).toBeLessThan(3.0)
+    expect(contrast(dark['--status-error'], DARK_PAGE)).toBeLessThan(3.0)
     const lightness = liftOf('--color-action-danger-border', 'dark')
     expect(dark['--color-action-danger-border']).toBe(lift(dark['--status-error'], lightness))
     expectSmallestLift(
       '--color-action-danger-border',
       [dark['--status-error']],
-      () => DARK_SURFACE,
+      () => DARK_PAGE,
       3.0,
     )
   })
@@ -1075,7 +1114,7 @@ describe('the status words', () => {
     for (const status of STATUSES) {
       const token = `--color-${status}-text`
       const colour = dark[`--status-${status}`]
-      expect(contrast(colour, DARK_SURFACE), `${status} itself`).toBeLessThan(4.5)
+      expect(contrast(colour, DARK_PAGE), `${status} itself`).toBeLessThan(4.5)
       expect(dark[token]).toBe(lift(colour, liftOf(token, 'dark'), 0.18))
       expectSmallestLift(token, [colour], () => dark['--color-bg-subtle'], 4.5, 0.18)
     }
@@ -1609,7 +1648,7 @@ describe('data and status colour', () => {
       const dark = tokensFor('dark', theme)
       for (const name of ['dark-yellow', ...EDGED]) {
         expect(dark[edgeOf(name)], name).toBe(dark[`--data-${name}`])
-        expect(contrast(dark[`--data-${name}`], DARK_SURFACE), name).toBeGreaterThanOrEqual(3)
+        expect(contrast(dark[`--data-${name}`], DARK_PAGE), name).toBeGreaterThanOrEqual(3)
       }
     })
   }
@@ -1647,7 +1686,7 @@ describe('data and status colour', () => {
       }
       expect(light['--data-other']).toBe(light['--neutral-4'])
       const dark = tokensFor('dark', theme)
-      expect(contrast(dark['--data-comparison'], DARK_SURFACE)).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(dark['--data-comparison'], DARK_PAGE)).toBeGreaterThanOrEqual(4.5)
       // A stacked bar writes ink on "Overig": in dark the gray takes the smallest whole share of
       // neutral-5 that carries it at 4.5:1.
       const other = (n: number) => mix(dark['--neutral-5'], n / 100, dark['--neutral-4'])
@@ -1655,7 +1694,7 @@ describe('data and status colour', () => {
         (n) => contrast(dark['--ink-black'], other(n)) >= 4.5,
       )
       expect(dark['--data-other']).toBe(other(share!))
-      expect(contrast(dark['--data-other'], DARK_SURFACE)).toBeGreaterThanOrEqual(3.0)
+      expect(contrast(dark['--data-other'], DARK_PAGE)).toBeGreaterThanOrEqual(3.0)
       // A label on the rest of a whole is the text colour.
       for (const values of [light, dark]) {
         expect(
@@ -1686,11 +1725,11 @@ describe('data and status colour', () => {
 
   it('puts the five status surfaces at their specified values', () => {
     const SURFACES: Record<string, [string, string]> = {
-      '--color-attention-bg': ['#FAEAD9', '#443322'],
-      '--color-error-bg': ['#F9DFDD', '#422826'],
-      '--color-info-bg': ['#D9EBF7', '#223440'],
-      '--color-success-bg': ['#E1EDDB', '#2B3624'],
-      '--color-warning-bg': ['#FFF4DB', '#483D25'],
+      '--color-attention-bg': ['#FAEAD9', '#3A2919'],
+      '--color-error-bg': ['#F9DFDD', '#391F1D'],
+      '--color-info-bg': ['#D9EBF7', '#192B36'],
+      '--color-success-bg': ['#E1EDDB', '#212D1A'],
+      '--color-warning-bg': ['#FFF4DB', '#3F341B'],
     }
     const light = tokensFor('light')
     const dark = tokensFor('dark')

@@ -94,14 +94,19 @@ leest en niet bij elk thema past.
 een donkerdere vulling die tekst in elk thema op AA; in donker zou een donkerdere vulling
 wegzakken in de pagina.
 
-**Donker is geen inversie, en dat is een bewuste afwijking van de huisstijl.** De huisstijl
-keert in donker zijn koelgrijsreeks om (050 wordt 900), maar die reeks is blauwgrijs: op lichte
-waarden valt de zweem weg, op donkere leest hij als marineblauw, en zo'n ondergrond concurreert
-met de blauwe datakleuren van een dashboard. Lintje neemt daarom de neutrale reeks van Logius:
-dezelfde voor elk thema behalve de primaire kleur. Donker herdefinieert de zeven `--neutral-*` en
-laat de paar namen waarvan de betekenis verandert ergens anders naar wijzen. Een losse donkere kleur wordt nooit geschreven.
-De reeks mist een stap tussen het menu en het oppervlak; de pagina is daar het midden van die
-twee.
+**Donker is het spiegelbeeld van licht, in neutraal grijs.** De volgorde keert om: in licht is
+het oppervlak (een tegel, de logobalk, een licht menu) het lichtst en ligt de pagina een stap
+eronder; in donker is het oppervlak het donkerst en ligt de pagina een stap erboven, de subtiele
+vulling weer een stap hoger. Het gevulde menu van de oude huisstijl staat een stap onder het
+oppervlak, zoals zijn blauw in licht een eigen band is. De tinten zelf zijn niet de omgekeerde
+koelgrijsreeks van de huisstijl: die is blauwgrijs, leest op donkere waarden als marineblauw en
+concurreert met de blauwe datakleuren van een dashboard, dus Lintje neemt de neutrale reeks van
+Logius, dezelfde voor elk thema behalve de primaire kleur. Donker herdefinieert de zeven
+`--neutral-*` en laat de paar namen waarvan de betekenis verandert ergens anders naar wijzen. Een
+losse donkere kleur wordt nooit geschreven. De band in de primaire kleur (de hero, de paginakop
+bij een licht menu) is in donker gedempt: op de lichtheid van de waas, een stap boven de pagina,
+met meer van de tint van het thema erin dan de waas heeft (OKLCH houdt de tint, de verzadiging
+is begrensd) en wit erop; op volle sterkte zou hij het enige felle vlak van de pagina zijn.
 
 Wit en bijna-zwart die in beide modi gelijk moeten blijven (tekst op een primaire knop, op het
 menu, een QR-code, het beeld van een video), zijn `--ink-white` en `--ink-black`, geen neutralen.
@@ -315,7 +320,7 @@ Besluiten die voor beide gelden:
   waarden voor dezelfde menutokens, dus de rail, de balk en de mobiele header veranderen verder
   niet; de kop van de rail met het lint verandert in geen van beide. In donker is de lichte toon
   het spiegelbeeld van licht: de balk en de rail op het oppervlak, zoals de logobalk, een stap
-  boven de pagina. Bij een licht menu verhuist de kleur naar de paginakop:
+  onder de pagina. Bij een licht menu verhuist de kleur naar de paginakop:
   `lintje-page-header` en `lintje-hero` in de shell worden dan vanzelf de band in de primaire
   kleur, met de hoek van de host, en elke knop erop tekent zichzelf in zijn omgekeerde vorm; een
   host kiest daar niets voor, en een hero die de waas wil houden, zegt `tone="wash"`.
