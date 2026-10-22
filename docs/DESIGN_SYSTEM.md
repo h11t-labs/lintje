@@ -696,8 +696,9 @@ De besluiten hieronder gelden voor alle elementen.
   data ernaast.
 - **Op een applicatiepagina staat een tabel op de pagina**, zonder tegel: de kop of tab van de
   pagina noemt hem. In een dashboard blijft hij een tegel tussen tegels.
-- **Pagineren is plat, zoals op rijksoverheid.nl**, gecentreerd onder wat het pagineert: de
-  nummers in de linkkleur zonder vak, de huidige pagina het ene gevulde vierkant, "Vorige" en
+- **Pagineren is plat, zoals de huisstijl het tekent**, gecentreerd onder wat het pagineert: de
+  nummers in de linkkleur zonder vak, de huidige pagina het ene licht getinte vierkant met het
+  cijfer donker en vet, "Vorige" en
   "Volgende" woorden met een chevron. Waar de woorden niet passen, blijven alleen de chevrons; het
   woord blijft de naam. Aan beide uiteinden blijft de stap staan, uitgeschakeld, zodat de rij niet
   verschuift.
@@ -1350,8 +1351,8 @@ glyph, een getal of een woord.
 - De omlijning van een zwevende sheet in donker haalt geen 3:1.
 - In het thema `defensie` haalt alles wat in `--primary` tekent geen AA: witte tekst op het
   oranje van het menu en de footer is 3.2:1, onder de 4.5:1 die WCAG voor gewone tekst vraagt, en
-  de tweede regel van het menu (82 % wit) 2.6:1; wit op de oranje vulling van de primaire knop, de
-  huidige pagina van de paginering, de kopieerknop en de badge `busy` is 3.22:1 (de hover in
+  de tweede regel van het menu (82 % wit) 2.6:1; wit op de oranje vulling van de primaire knop,
+  de kopieerknop en de badge `busy` is 3.22:1 (de hover in
   donker 2.80:1); een link en accenttekst op wit zijn 3.22:1, en de gekozen optie van
   `lintje-segmented` 2.81:1. Het wacht op een donkerdere vulling voor dat thema.
 

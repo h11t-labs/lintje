@@ -58,16 +58,15 @@
 }
 .lintje-pagination__page:hover { background: var(--color-bg-subtle); color: var(--color-link-hover); }
 
-/* The one filled square; its edge is the primary button's, the tint that carries it in dark. */
+/* The one square: the house style's light tint with the digit dark and bold. */
 .lintje-pagination__page.is-current {
-  background: var(--color-action-primary);
-  border-color: var(--color-action-primary-border);
-  color: var(--color-action-primary-text);
+  background: var(--color-choice-active-bg);
+  color: var(--color-text-primary);
   font-weight: 700;
   cursor: default;
 }
 /* Choosing the current page does nothing, so it does not answer the pointer. */
-.lintje-pagination__page.is-current:hover { background: var(--color-action-primary); }
+.lintje-pagination__page.is-current:hover { background: var(--color-choice-active-bg); color: var(--color-text-primary); }
 
 /* As wide as a number, so the seven slots keep one length. */
 .lintje-pagination__gap {
