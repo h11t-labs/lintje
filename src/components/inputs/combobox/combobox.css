@@ -5,7 +5,7 @@
   width: 100%; height: var(--h-control);
   padding: 0 var(--space-10) 0 var(--space-4);
   border: 1px solid var(--color-border-field);
-  border-radius: var(--radius);
+  border-radius: var(--radius-control);
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
   font-size: 1rem;

@@ -117,6 +117,7 @@
 .lintje-expander {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
   padding: var(--tile-pad-y) var(--tile-pad-x);
 }
 /* `flat`: an expander inside a tile is not a second card. */

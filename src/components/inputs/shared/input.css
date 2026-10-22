@@ -125,7 +125,7 @@
   height: var(--h-control);
   border: 1px solid var(--color-border-field);
   background: var(--color-bg-surface);
-  border-radius: var(--radius);
+  border-radius: var(--radius-control);
 }
 .lintje-field__box.is-error { border: 2px solid var(--color-error); background: var(--color-error-bg); }
 /* Read-only as disabled: the subtle surface, the strong border; its text stays primary. */
@@ -246,6 +246,7 @@
   width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
   display: flex; align-items: center; justify-content: center;
   border: 2px solid var(--color-border-choice);
+  border-radius: var(--radius-control);
   background: var(--color-bg-surface);
   color: var(--color-action-primary-text); font-size: 0.875rem; font-weight: 700; line-height: 1;
   transition: background-color var(--dur-hover) var(--ease-in-motion),

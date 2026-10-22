@@ -259,8 +259,14 @@ pagina heeft de `h1` en de titel de `h2`.
   kolommen met een goot van 10 px. Lintje houdt een halve lint als marge en als goot, een inhoud
   van 1360 px en op een telefoon één kolom: een applicatie toont tabellen en grafieken, die de
   breedte nodig hebben, en een tegel is op een telefoon nooit smaller dan het scherm.
-- **Radius is 0.** Rond is alleen wat een cirkel ís: een stip, een radio, een schakelaar, een
-  avatar, een teller, de laadring.
+- **De hoeken zijn klein.** De huisstijl tekent online knoppen en velden met vier kleine
+  afgeronde hoeken, en zo tekent Lintje elke knop (ook de icoonknop, de segmenten en de
+  schakelgroep in de balk), elk invoervak, het vinkje en de chips (`--radius-control`), en met
+  dezelfde hoek elk omkaderd blok: een kaart, een tegel, een kerncijfer, een dialoog, een melding
+  (`--radius`). Een host die de oude huisstijl tekent, zet `--lintje-radius` en
+  `--lintje-radius-control` op 0 op de pagina; de tokens lezen die met terugval, zodat de waarde
+  van de pagina elk element bereikt. Nooit groter dan de kleine hoek. Rond is alleen wat een
+  cirkel ís: een stip, een radio, een schakelaar, een avatar, een teller, de laadring.
 - **De ene afgeronde hoek is van de host.** De vormtaal van de huisstijl is een rechthoek met één
   afgeronde hoek: minstens één en hoogstens drie per beeld, spaarzaam, en nooit een vlak met een
   hoek in een vlak met een hoek. Lintje laat die keuze aan de pagina: `--radius-corner` staat op

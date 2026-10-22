@@ -36,7 +36,8 @@
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
-  border-radius: var(--radius);
+  /* A host that joins buttons into one shape (the split send) rounds only the outer corners. */
+  border-radius: var(--lintje-button-radius, var(--radius-control));
   transition: background var(--dur-hover) var(--ease-in-motion),
               color var(--dur-hover) var(--ease-in-motion),
               border-color var(--dur-hover) var(--ease-in-motion);

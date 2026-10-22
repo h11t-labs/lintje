@@ -10,7 +10,7 @@
   background: var(--color-bg-surface);
   font-size: 1rem;
   color: var(--color-text-primary);
-  border-radius: var(--radius);
+  border-radius: var(--radius-control);
 }
 .lintje-select__control.is-bold { font-weight: 700; }
 .lintje-select__control.is-error { border: 2px solid var(--color-error); background: var(--color-error-bg); }

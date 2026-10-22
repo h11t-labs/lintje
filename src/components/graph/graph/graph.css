@@ -23,6 +23,7 @@
   overflow: hidden;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
   cursor: grab;
   touch-action: pan-x pan-y;
   user-select: none;
@@ -255,6 +256,7 @@
   overflow: hidden;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
   cursor: pointer;
 }
 .lintje-graph__overview-dot {

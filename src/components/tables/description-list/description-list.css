@@ -88,7 +88,7 @@
 }
 .lintje-description-list--grid .lintje-description-list__row.is-wide { grid-column: span 2; }
 /* On a surface that is not the page's own (a hero's wash) the cells are panels: the surface, framed. */
-:host([surface]) .lintje-description-list--grid { border: 1px solid var(--color-border-default); }
+:host([surface]) .lintje-description-list--grid { border: 1px solid var(--color-border-default); border-radius: var(--radius); overflow: clip; }
 :host([surface]) .lintje-description-list--grid .lintje-description-list__row:not(.is-changed):not(.is-success):not(.is-info):not(.is-attention):not(.is-warning):not(.is-error) {
   background: var(--color-bg-surface);
 }

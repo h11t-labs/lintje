@@ -14,6 +14,7 @@
   object-fit: contain;
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
   box-sizing: border-box;
 }
 .lintje-gallery__caption { font: var(--text-small); color: var(--color-text-muted); }

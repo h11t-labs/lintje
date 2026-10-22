@@ -402,7 +402,7 @@ function drawn(look: Look): Record<string, string> {
       quiet ? '--color-bg-subtle' : look === 'error' ? '--color-error-bg' : '--color-bg-surface',
     ),
     text: colourOf(look === 'disabled' ? '--color-text-disabled' : '--color-text-primary'),
-    radius: '0px',
+    radius: '4px',
     start: '16px',
     size: '16px',
     height: '48',

@@ -17,7 +17,7 @@
   display: flex; align-items: center;
   height: var(--h-control);
   border: 1px solid var(--color-border-field);
-  border-radius: var(--radius);
+  border-radius: var(--radius-control);
   background: var(--color-bg-surface);
 }
 /* The ring goes round the whole box, not round the input inside it. */

@@ -363,7 +363,12 @@
   /* Sticky context = top bar + summary bar. */
   --h-sticky: calc(var(--h-topbar) + var(--h-contextbar));
 
-  --radius: 0px;
+  /* The small corners of the house style online: on a button and a field, and on every framed
+     block, a card, a tile, a dialog. A host that draws the earlier house style sets
+     `--lintje-radius` and `--lintje-radius-control` to 0 on the page: read here with a fallback,
+     the page's value reaches every element's host, which declares the token again. */
+  --radius: var(--lintje-radius, 4px);
+  --radius-control: var(--lintje-radius-control, 4px);
   /* The house style's one rounded corner on a page-level surface, the band of a hero as the page's
      head: 0 is a square corner. A host sets `--lintje-radius-corner` on the page to change it
      (half to one and a half ribbon: 24, 48, 72 px), as it sets `--lintje-content-width`: a token

@@ -47,7 +47,10 @@
   display: flex;
   height: var(--h-button-chrome);
   border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
 }
+.lintje-toggle-group__option:first-child { border-radius: calc(var(--radius-control) - 1px) 0 0 calc(var(--radius-control) - 1px); }
+.lintje-toggle-group__option:last-child { border-radius: 0 calc(var(--radius-control) - 1px) calc(var(--radius-control) - 1px) 0; }
 .lintje-toggle-group__option {
   position: relative;
   width: var(--h-button-chrome);
