@@ -385,9 +385,10 @@ Besluiten die voor beide gelden:
   tabs boven een omrand paneel, voor de paar modi waartussen een hele pagina wisselt: elk met een
   icoon en een hint, waarbij het eigen oppervlak van het paneel doorloopt in de gekozen, zonder
   lijn. Op een telefoon zet de grote tab zijn icoon boven zijn label en laat hij de hint weg.
-- **Een submenu is typografisch** (`lintje-sub-nav`), naar de side-nav van de Rijkshuisstijl
-  Community: links zonder vulling en zonder rand, de pagina van de lezer vet in de tekstkleur,
-  groepen gescheiden door ruimte, nooit door een lijn.
+- **Een submenu is de side navigation van de huisstijl** (`lintje-sub-nav`): links in de
+  linkkleur zonder rand, de pagina van de lezer vet op de waas van de primaire kleur, een rij
+  onder de aanwijzer gevuld in de primaire kleur met wit erop, groepen gescheiden door ruimte,
+  nooit door een lijn.
 - **"Op deze pagina" is het submenu, geen eigen element**: dezelfde rijen, met ankers naar de
   koppen van een lange pagina, en met `expanded`, zodat elk niveau er staat en de lijst niet
   verspringt terwijl ze gelezen wordt. De host vult de ankers, volgt het scrollen en zet de

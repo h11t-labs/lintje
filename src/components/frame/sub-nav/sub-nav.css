@@ -3,8 +3,9 @@
 
 /* ------------------------------------------------------------------------ */
 
-/* Typographic, as the Rijkshuisstijl's side-nav: links in the link colour, the reader's page in
-   the text colour and bold, groups apart by space alone. No fill and no edge. */
+/* The house style's side navigation: links in the link colour, the reader's page bold on the
+   primary's wash, a row under the pointer filled in the primary with white on it, groups apart by
+   space alone. */
 .lintje-sub-nav { font: var(--text-ui); }
 
 .lintje-sub-nav__group + .lintje-sub-nav__group { margin-top: var(--space-6); }
@@ -36,8 +37,8 @@
   display: flex; align-items: flex-start; gap: var(--space-2);
   box-sizing: border-box;
   min-height: var(--h-nav-row);
-  margin: 0 calc(var(--space-2) * -1);
-  padding: var(--space-3) var(--space-2);
+  margin: 0 calc(var(--space-4) * -1);
+  padding: var(--space-3) var(--space-4);
   border: 0;
   background: none;
   font: inherit;
@@ -46,18 +47,18 @@
   text-align: left;
   text-decoration: none;
   cursor: pointer;
-  transition: color var(--dur-hover) var(--ease-in-motion);
+  transition: color var(--dur-hover) var(--ease-in-motion), background var(--dur-hover) var(--ease-in-motion);
 }
-.lintje-sub-nav__link--action { width: calc(100% + var(--space-2) * 2); }
+.lintje-sub-nav__link--action { width: calc(100% + var(--space-4) * 2); }
 
-/* Only the word is underlined: an icon or a count under a line reads as part of the link text. */
-.lintje-sub-nav__label { min-width: 0; text-underline-offset: 0.2em; }
-.lintje-sub-nav__link:hover { color: var(--color-link-hover); }
-.lintje-sub-nav__link:hover .lintje-sub-nav__label { text-decoration: underline; }
+.lintje-sub-nav__label { min-width: 0; }
+/* Under the pointer the row fills in the primary; its word, icon and count turn white. */
+.lintje-sub-nav__link:hover:not(.is-no-page):not(.is-no-access) { background: var(--color-action-primary); color: var(--color-action-primary-text); }
+.lintje-sub-nav__link:hover:not(.is-no-page):not(.is-no-access) .lintje-sub-nav__count { color: inherit; }
 
-/* Bold carries the reader's page beside the colour (rule 13); on a fill, the side menu does not. */
-.lintje-sub-nav__link.is-current { color: var(--color-text-primary); font-weight: 700; cursor: default; }
-.lintje-sub-nav__link.is-current .lintje-sub-nav__label { text-decoration: none; }
+/* The reader's page: the wash with the word bold, so colour never carries it alone (rule 13). */
+.lintje-sub-nav__link.is-current { background: var(--color-choice-active-bg); color: var(--color-text-primary); font-weight: 700; cursor: default; }
+.lintje-sub-nav__link.is-current:hover { background: var(--color-choice-active-bg); color: var(--color-text-primary); }
 .lintje-sub-nav__link.is-ancestor { color: var(--color-text-primary); }
 
 .lintje-sub-nav__link.is-no-page,
