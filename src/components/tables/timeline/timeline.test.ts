@@ -371,6 +371,18 @@ describe('lintje-timeline as a history', () => {
     expect(person!.querySelector('.lintje-timeline__space')).toBeNull()
   })
 
+  it('puts the date under the moment with dates="below", and before the rail without', async () => {
+    const element = await mount({ moments: history(2) })
+    expect(moments(element)[0]!.querySelector('.lintje-timeline__when')).not.toBeNull()
+    element.dates = 'below'
+    await element.updateComplete
+    const row = moments(element)[0]!
+    expect(row.querySelector('.lintje-timeline__when')).toBeNull()
+    const body = row.querySelector('.lintje-timeline__body')!
+    expect(body.lastElementChild!.matches('.lintje-timeline__date')).toBe(true)
+    expect(body.firstElementChild!.matches('.lintje-timeline__title')).toBe(true)
+  })
+
   it('keeps no room with only texts', async () => {
     const element = await mount({ moments: history(2) })
     expect(element.shadowRoot!.querySelector('ol')!.classList.contains('has-people')).toBe(false)

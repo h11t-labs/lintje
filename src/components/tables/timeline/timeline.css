@@ -43,6 +43,8 @@
 }
 .lintje-timeline__when { text-align: right; padding-bottom: var(--space-8); }
 .lintje-timeline__date { display: block; color: var(--color-text-primary); }
+/* Under the moment the date is a detail, as in a log. */
+.lintje-timeline__list.has-date-below .lintje-timeline__date { color: var(--color-text-muted); }
 .lintje-timeline__body { min-width: 0; padding-bottom: var(--space-8); }
 .lintje-timeline__list--stack .lintje-timeline__body { padding-bottom: var(--space-6); }
 .lintje-timeline__row:last-child .lintje-timeline__body,
@@ -67,9 +69,15 @@
   width: calc(1.5rem + var(--space-2)); height: 1.5rem;
   vertical-align: middle;
 }
-.lintje-timeline__list--start.has-people .lintje-timeline__when { line-height: 2rem; }
-.lintje-timeline__list--start.has-people .lintje-timeline__row--moment .lintje-timeline__stub {
+/* The date before the rail, or a mark, stands in the middle of that taller line. */
+.lintje-timeline__list--start.has-people .lintje-timeline__when,
+.lintje-timeline__list--start.has-people .lintje-timeline__when .lintje-timeline__date { line-height: 2rem; }
+.lintje-timeline__list--start.has-people .lintje-timeline__row--moment .lintje-timeline__stub,
+.lintje-timeline__list--stack.has-people.has-date-below .lintje-timeline__row--moment .lintje-timeline__stub {
   flex-basis: calc(1rem - var(--lintje-timeline-mark) / 2);
+}
+.lintje-timeline__list--sides.has-people.has-date-below .lintje-timeline__mark {
+  top: calc(1rem - var(--lintje-timeline-mark) / 2);
 }
 .lintje-timeline__text { margin: 0; font: var(--text-body); }
 .lintje-timeline__link {

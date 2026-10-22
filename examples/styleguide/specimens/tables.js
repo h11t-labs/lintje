@@ -1621,8 +1621,17 @@ export default {
           label: 'Met personen',
           note:
             'Een persoon heeft het rondje vóór de naam. "Systeem" is geen persoon: geen rondje, ' +
-            'wel dezelfde lijn.',
+            'wel dezelfde lijn. De tijd staat in een kolom vóór de rail.',
           html: '<lintje-timeline heading="Geschiedenis"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = PEOPLE_HISTORY
+            listen(stage)
+          },
+        },
+        {
+          label: 'De tijd onder de regel',
+          note: 'Met dates="below" staat de tijd klein onder wat er gebeurde, zoals in een logboek.',
+          html: '<lintje-timeline heading="Geschiedenis" dates="below"></lintje-timeline>',
           setup(stage) {
             stage.querySelector('lintje-timeline').moments = PEOPLE_HISTORY
             listen(stage)

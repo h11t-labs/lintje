@@ -4,4 +4,4 @@
 
 ### Verwijderd
 
-- **Brekend:** `lintje-activity-log` vervalt; een logboek is nu een `lintje-timeline`. Geef `entries` als `moments`, elk `{ who, title: what, when, at }`, het nieuwste eerst zoals voorheen, en `limit="10" step="10"` voor tien per keer. Het type `ActivityEntry` vervalt met het element. (#316)
+- **Brekend:** `lintje-activity-log` vervalt; een logboek is nu een `lintje-timeline`. Geef `entries` als `moments`, elk `{ who, title: what, when, at }`, het nieuwste eerst zoals voorheen, `limit="10" step="10"` voor tien per keer, en `dates="below"` voor de tijd onder de regel. Het type `ActivityEntry` vervalt met het element. (#316)
