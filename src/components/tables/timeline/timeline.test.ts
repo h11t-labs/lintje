@@ -2,7 +2,9 @@
 import { describe, expect, it } from 'vitest'
 import './timeline'
 import {
+  dashedBetween,
   latestIndex,
+  newestFirst,
   rowLayout,
   shownMoments,
   stagger,
@@ -11,6 +13,7 @@ import {
   type LintjeTimeline,
   type TimelineMoment,
 } from './timeline'
+import type { LintjePerson } from '../person/person'
 
 const APPLICATION: TimelineMoment[] = [
   { when: '3 augustus 2026', at: '2026-08-03', title: 'Aanvraag ingediend', side: 'start' },
@@ -27,6 +30,12 @@ const BILL: TimelineMoment[] = [
   { when: 'Verwacht 1 januari', title: 'Inwerkingtreding', group: '2027', planned: true },
 ]
 
+const PROJECT: TimelineMoment[] = ['2019', '2021', '2023', '2025'].map((year) => ({
+  when: year,
+  at: year,
+  title: `In ${year}`,
+}))
+
 async function mount(props: Partial<LintjeTimeline>): Promise<LintjeTimeline> {
   const element = Object.assign(document.createElement('lintje-timeline'), props)
   document.body.append(element)
@@ -40,15 +49,46 @@ const rows = (element: LintjeTimeline): HTMLElement[] => [
 const text = (node: Element): string => node.textContent!.replace(/\s+/g, ' ').trim()
 
 describe('timeline layout', () => {
-  it('puts today before the first planned moment, or after the last', () => {
-    expect(todayIndex(APPLICATION)).toBe(3)
-    expect(todayIndex(APPLICATION.slice(0, 3))).toBe(3)
-    expect(latestIndex(APPLICATION)).toBe(2)
-    expect(latestIndex([{ when: 'Later', title: 'Later', planned: true }])).toBe(-1)
+  it('reads which end is now from what is planned, else from the times, else the oldest first', () => {
+    expect(newestFirst(APPLICATION)).toBe(false)
+    expect(newestFirst([...APPLICATION].reverse())).toBe(true)
+    expect(newestFirst(PROJECT)).toBe(false)
+    expect(newestFirst([...PROJECT].reverse())).toBe(true)
+    expect(newestFirst(BILL.slice(0, 3))).toBe(false)
+  })
+
+  it('puts today between what happened and what is planned, in either order', () => {
+    expect(todayIndex(APPLICATION, false)).toBe(3)
+    expect(todayIndex(APPLICATION.slice(0, 3), false)).toBe(3)
+    expect(todayIndex([...APPLICATION].reverse(), true)).toBe(2)
+    expect(todayIndex([...PROJECT].reverse(), true)).toBe(0)
+    expect(latestIndex(APPLICATION, false)).toBe(2)
+    expect(latestIndex([...APPLICATION].reverse(), true)).toBe(2)
+    expect(latestIndex([{ when: 'Later', title: 'Later', planned: true }], false)).toBe(-1)
+  })
+
+  it('dashes the rail next to what is still to come, in either order', () => {
+    const forward = timelineRows(APPLICATION, 0, 5, 'Vandaag', false, false)
+    expect(forward.slice(0, -1).map((_, at) => dashedBetween(forward, at))).toEqual([
+      false,
+      false,
+      false,
+      true,
+      true,
+    ])
+    const back = [...APPLICATION].reverse()
+    const backward = timelineRows(back, 0, 5, 'Vandaag', false, true)
+    expect(backward.slice(0, -1).map((_, at) => dashedBetween(backward, at))).toEqual([
+      true,
+      true,
+      false,
+      false,
+      false,
+    ])
   })
 
   it('starts a group where it changes and puts today among the rows', () => {
-    const kinds = timelineRows(BILL, 0, 'Vandaag', true).map((row) =>
+    const kinds = timelineRows(BILL, 0, 4, 'Vandaag', true, false).map((row) =>
       row.kind === 'moment' ? row.moment.title : `${row.kind}:${row.label}`,
     )
     expect(kinds).toEqual([
@@ -61,13 +101,16 @@ describe('timeline layout', () => {
       'group:2027',
       'Inwerkingtreding',
     ])
-    expect(timelineRows(BILL, 0, undefined, false).every((row) => row.kind === 'moment')).toBe(true)
+    expect(
+      timelineRows(BILL, 0, 4, undefined, false, false).every((row) => row.kind === 'moment'),
+    ).toBe(true)
   })
 
-  it('shows the latest moments under a limit, and all of them once expanded', () => {
-    expect(shownMoments(BILL, 2, false)).toEqual({ first: 2, hidden: 2 })
-    expect(shownMoments(BILL, 2, true)).toEqual({ first: 0, hidden: 0 })
-    expect(shownMoments(BILL, undefined, false)).toEqual({ first: 0, hidden: 0 })
+  it('keeps the oldest back under a limit, at whichever end they are', () => {
+    expect(shownMoments(BILL, 2, 0, false)).toEqual({ from: 2, to: 4, hidden: 2 })
+    expect(shownMoments(BILL, 2, 1, false)).toEqual({ from: 1, to: 4, hidden: 1 })
+    expect(shownMoments(BILL, 2, 0, true)).toEqual({ from: 0, to: 2, hidden: 2 })
+    expect(shownMoments(BILL, undefined, 0, false)).toEqual({ from: 0, to: 4, hidden: 0 })
   })
 
   it('staggers two sides: never before the one above, clear of its own side', () => {
@@ -80,12 +123,6 @@ describe('timeline layout', () => {
     expect(tops).toEqual([0, 64, 128, 219])
   })
 })
-
-const PROJECT: TimelineMoment[] = ['2019', '2021', '2023', '2025'].map((year) => ({
-  when: year,
-  at: year,
-  title: `In ${year}`,
-}))
 
 describe('lying layout', () => {
   it('places each moment in proportion to its time, half a mark in, with a year under the rail', () => {
@@ -246,5 +283,97 @@ describe('lintje-timeline', () => {
     })
     element.shadowRoot!.querySelector<HTMLAnchorElement>('.lintje-timeline__link')!.click()
     expect(seen).toEqual([{ href: '/besluit' }])
+  })
+})
+
+/** A history as the activity log had it: who did what, the newest first. */
+function history(count: number): TimelineMoment[] {
+  return Array.from({ length: count }, (_, index) => ({
+    who: index % 2 ? 'M. Jansen' : 'J. de Vries',
+    title: `deed stap ${count - index}`,
+    when: `${30 - index} oktober 2026, 10:00`,
+    at: `2026-10-${String(30 - index).padStart(2, '0')}T10:00:00+02:00`,
+  }))
+}
+
+const moments = (element: LintjeTimeline): HTMLElement[] =>
+  rows(element).filter((row) => row.matches('.lintje-timeline__row--moment'))
+
+describe('lintje-timeline as a history', () => {
+  it('marks the newest when it comes first, and keeps the oldest back below', async () => {
+    const element = await mount({ moments: history(23), limit: 10, step: 10 })
+    const root = element.shadowRoot!
+    expect(moments(element)).toHaveLength(10)
+    expect(moments(element)[0]!.classList.contains('is-latest')).toBe(true)
+    const more = root.querySelector<HTMLElement>('.lintje-timeline__more')!
+    expect(more.previousElementSibling!.matches('ol')).toBe(true)
+    expect(text(more)).toBe('Toon 10 eerdere momenten')
+    more.click()
+    await element.updateComplete
+    expect(moments(element)).toHaveLength(20)
+    expect(text(root.querySelector('.lintje-timeline__more')!)).toBe('Toon 3 eerdere momenten')
+    root.querySelector<HTMLElement>('.lintje-timeline__more')!.click()
+    await element.updateComplete
+    expect(moments(element)).toHaveLength(23)
+    expect(root.querySelector('.lintje-timeline__more')).toBeNull()
+  })
+
+  it('puts the focus on the first new moment when the last press takes the button away', async () => {
+    const element = await mount({ moments: history(13), limit: 10, step: 10 })
+    element.shadowRoot!.querySelector<HTMLElement>('.lintje-timeline__more')!.click()
+    await element.updateComplete
+    await new Promise((resolve) => setTimeout(resolve))
+    expect(element.shadowRoot!.activeElement).toBe(moments(element)[10])
+  })
+
+  it('says who and what in one sentence, the name bold and the rest not', async () => {
+    const element = await mount({ moments: history(1) })
+    const title = element.shadowRoot!.querySelector('.lintje-timeline__title')!
+    expect(title.classList.contains('lintje-timeline__title--said')).toBe(true)
+    expect(text(title)).toBe('J. de Vries deed stap 1')
+    expect(text(title.querySelector('strong.lintje-timeline__who')!)).toBe('J. de Vries')
+  })
+
+  const JV = { name: 'J. de Vries', initials: 'JV' }
+
+  it('puts the circle of a person before the bold name', async () => {
+    const element = await mount({
+      moments: [{ who: JV, title: 'wees de aanvraag toe', when: 'vandaag, 10:12' }],
+    })
+    const title = element.shadowRoot!.querySelector('.lintje-timeline__title')!
+    const person = title.querySelector<LintjePerson>('strong.lintje-timeline__who lintje-person')!
+    expect(person.getAttribute('size')).toBe('small')
+    expect(person.person).toEqual(JV)
+    await person.updateComplete
+    expect(person.shadowRoot!.querySelector('.lintje-avatar')).not.toBeNull()
+  })
+
+  it('makes a person with `href` a link', async () => {
+    const element = await mount({
+      moments: [{ who: { ...JV, href: '/mensen/jv' }, title: 'keurde goed', when: 'gisteren' }],
+    })
+    const person = element.shadowRoot!.querySelector('lintje-person')!
+    await person.updateComplete
+    expect(person.shadowRoot!.querySelector('a')!.getAttribute('href')).toBe('/mensen/jv')
+  })
+
+  it('draws no circle for a text, but keeps its room where a person stands', async () => {
+    const element = await mount({
+      moments: [
+        { who: JV, title: 'wees de aanvraag toe', when: 'vandaag' },
+        { who: 'Systeem', title: 'maakte de aanvraag aan', when: 'gisteren' },
+      ],
+    })
+    const [person, system] = moments(element)
+    expect(element.shadowRoot!.querySelector('ol')!.classList.contains('has-people')).toBe(true)
+    expect(system!.querySelector('lintje-person')).toBeNull()
+    expect(system!.querySelector('.lintje-timeline__space')).not.toBeNull()
+    expect(person!.querySelector('.lintje-timeline__space')).toBeNull()
+  })
+
+  it('keeps no room with only texts', async () => {
+    const element = await mount({ moments: history(2) })
+    expect(element.shadowRoot!.querySelector('ol')!.classList.contains('has-people')).toBe(false)
+    expect(element.shadowRoot!.querySelector('.lintje-timeline__space, lintje-person')).toBeNull()
   })
 })

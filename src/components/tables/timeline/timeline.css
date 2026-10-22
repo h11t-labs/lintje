@@ -47,6 +47,29 @@
 .lintje-timeline__row:last-child .lintje-timeline__body,
 .lintje-timeline__row:last-child .lintje-timeline__when { padding-bottom: 0; }
 .lintje-timeline__title { margin: 0; font-weight: 700; }
+/* After who did it, the title is the rest of the sentence. */
+.lintje-timeline__title--said { font-weight: 400; }
+.lintje-timeline__who { font-weight: 700; }
+
+/* With a person among the moments every name starts on one line: the circle, or its empty room
+   beside a text such as "Systeem", hangs in the body's indent, so the sentence and the date stand
+   under the name. The 4 px around the 24 px circle make that line 2rem. */
+.lintje-timeline__list.has-people .lintje-timeline__row--moment .lintje-timeline__body {
+  padding-left: calc(1.5rem + var(--space-2));
+}
+.lintje-timeline__person,
+.lintje-timeline__space {
+  margin: var(--space-1) 0 var(--space-1) calc(-1 * (1.5rem + var(--space-2)));
+}
+.lintje-timeline__space {
+  display: inline-block;
+  width: calc(1.5rem + var(--space-2)); height: 1.5rem;
+  vertical-align: middle;
+}
+.lintje-timeline__list--start.has-people .lintje-timeline__when { line-height: 2rem; }
+.lintje-timeline__list--start.has-people .lintje-timeline__row--moment .lintje-timeline__stub {
+  flex-basis: calc(1rem - var(--lintje-timeline-mark) / 2);
+}
 .lintje-timeline__text { margin: 0; font: var(--text-body); }
 .lintje-timeline__link {
   display: inline-block;
