@@ -1069,6 +1069,7 @@ export type {
   DescriptionAction,
 } from './components/tables/description-list/description-list'
 export type {
+  TimelineActor,
   TimelineLink,
   TimelineMoment,
   TimelinePlacement,

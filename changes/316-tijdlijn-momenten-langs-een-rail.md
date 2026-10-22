@@ -1,6 +1,6 @@
 ### Toegevoegd
 
-- Een tijdlijn: momenten langs een rail, staand of liggend, aan één kant, om en om of per kant, met vandaag op de rail en eerst de momenten het dichtst bij nu. Een moment kan zeggen wie het deed, met het rondje van een persoon. (#316)
+- Een tijdlijn: momenten langs een rail, staand of liggend, aan één kant, om en om of per kant, met vandaag op de rail en eerst de momenten het dichtst bij nu. Een moment kan zeggen wie het deed: een persoon met zijn rondje, of wat geen persoon is ("Systeem") met een icoon in het rondje. (#316)
 
 ### Verwijderd
 

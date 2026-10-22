@@ -357,18 +357,26 @@ describe('lintje-timeline as a history', () => {
     expect(person.shadowRoot!.querySelector('a')!.getAttribute('href')).toBe('/mensen/jv')
   })
 
-  it('draws no circle for a text, but keeps its room where a person stands', async () => {
+  it('gives what is no person a circle with the cogs, or with the icon the host names', async () => {
     const element = await mount({
       moments: [
         { who: JV, title: 'wees de aanvraag toe', when: 'vandaag' },
         { who: 'Systeem', title: 'maakte de aanvraag aan', when: 'gisteren' },
+        {
+          who: { name: 'Afdeling Vergunningen', icon: 'gebouwen-basis-kantoorgebouw' },
+          title: 'nam het over',
+          when: 'eergisteren',
+        },
       ],
     })
-    const [person, system] = moments(element)
+    const [person, system, team] = moments(element)
     expect(element.shadowRoot!.querySelector('ol')!.classList.contains('has-people')).toBe(true)
+    expect(person!.querySelector('.lintje-timeline__actor')).toBeNull()
     expect(system!.querySelector('lintje-person')).toBeNull()
-    expect(system!.querySelector('.lintje-timeline__space')).not.toBeNull()
-    expect(person!.querySelector('.lintje-timeline__space')).toBeNull()
+    expect(system!.querySelector('.lintje-timeline__actor')).not.toBeNull()
+    expect(text(system!.querySelector('.lintje-timeline__who')!)).toBe('Systeem')
+    expect(team!.querySelector('.lintje-timeline__actor')).not.toBeNull()
+    expect(text(team!.querySelector('.lintje-timeline__who')!)).toBe('Afdeling Vergunningen')
   })
 
   it('puts the date under the moment with dates="below", and before the rail without', async () => {
@@ -383,9 +391,9 @@ describe('lintje-timeline as a history', () => {
     expect(body.firstElementChild!.matches('.lintje-timeline__title')).toBe(true)
   })
 
-  it('keeps no room with only texts', async () => {
-    const element = await mount({ moments: history(2) })
+  it('keeps no room without anyone who did something', async () => {
+    const element = await mount({ moments: PROJECT })
     expect(element.shadowRoot!.querySelector('ol')!.classList.contains('has-people')).toBe(false)
-    expect(element.shadowRoot!.querySelector('.lintje-timeline__space, lintje-person')).toBeNull()
+    expect(element.shadowRoot!.querySelector('.lintje-timeline__actor, lintje-person')).toBeNull()
   })
 })

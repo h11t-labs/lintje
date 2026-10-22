@@ -279,6 +279,7 @@ export { LintjeErrorPage } from './feedback/error-page/error-page'
 export type { ErrorPageLink } from './feedback/error-page/error-page'
 export { LintjeTimeline } from './tables/timeline/timeline'
 export type {
+  TimelineActor,
   TimelineLink,
   TimelineMoment,
   TimelinePlacement,

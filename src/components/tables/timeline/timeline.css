@@ -57,21 +57,17 @@
 .lintje-timeline__title--said { font-weight: 400; }
 .lintje-timeline__who { font-weight: 700; }
 
-/* With a person among the moments every name starts on one line: the circle, or its empty room
-   beside a text such as "Systeem", hangs in the body's indent, so the sentence and the date stand
-   under the name. The 4 px around the 24 px circle make that line 2rem. */
+/* With someone among the moments every name starts on one line: the circle of a person, or the
+   one with an icon of what is no person, hangs in the body's indent, so the sentence and the date
+   stand under the name. The 4 px around the 24 px circle make that line 2rem. */
 .lintje-timeline__list.has-people .lintje-timeline__row--moment .lintje-timeline__body {
   padding-left: calc(1.5rem + var(--space-2));
 }
 .lintje-timeline__person,
-.lintje-timeline__space {
+.lintje-timeline__actor {
   margin: var(--space-1) 0 var(--space-1) calc(-1 * (1.5rem + var(--space-2)));
 }
-.lintje-timeline__space {
-  display: inline-block;
-  width: calc(1.5rem + var(--space-2)); height: 1.5rem;
-  vertical-align: middle;
-}
+.lintje-timeline__actor { display: inline-flex; margin-right: var(--space-2); vertical-align: middle; }
 /* The date before the rail, or a mark, stands in the middle of that taller line. */
 .lintje-timeline__list--start.has-people .lintje-timeline__when,
 .lintje-timeline__list--start.has-people .lintje-timeline__when .lintje-timeline__date { line-height: 2rem; }

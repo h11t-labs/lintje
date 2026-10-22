@@ -1620,8 +1620,8 @@ export default {
         {
           label: 'Met personen',
           note:
-            'Een persoon heeft het rondje vóór de naam. "Systeem" is geen persoon: geen rondje, ' +
-            'wel dezelfde lijn. De tijd staat in een kolom vóór de rail.',
+            'Een persoon heeft het rondje vóór de naam. "Systeem" is geen persoon: een rondje met ' +
+            'een icoon. De tijd staat in een kolom vóór de rail.',
           html: '<lintje-timeline heading="Geschiedenis"></lintje-timeline>',
           setup(stage) {
             stage.querySelector('lintje-timeline').moments = PEOPLE_HISTORY

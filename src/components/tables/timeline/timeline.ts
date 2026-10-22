@@ -25,6 +25,8 @@ import { shadowCss } from '../../../core/styles'
 import { styleProps } from '../../../core/style-props'
 import { renderHeading, type HeadingLevel } from '../../shared/heading'
 import { FrameResizeObserver } from '../../shared/frame-resize-observer'
+import { avatarStyles, renderAvatar } from '../../shared/avatar'
+import { iconStyles } from '../../../icons/render'
 import '../../actions/button/button'
 import '../person/person'
 import type { Person } from '../../../types'
@@ -34,6 +36,13 @@ export type TimelineSide = 'start' | 'end'
 export type TimelinePlacement = 'start' | 'alternate' | 'sides'
 export type TimelineOrientation = 'vertical' | 'horizontal'
 export type TimelineDates = 'before' | 'below'
+
+/** Who did something when that is no person: a name and the icon in its circle. */
+export interface TimelineActor {
+  name: string
+  /** The icon's file name; the cogs (`gereedschap-tandwielen`) without it. */
+  icon?: string
+}
 
 export interface TimelineLink {
   label: string
@@ -51,10 +60,10 @@ export interface TimelineMoment {
   /** What happened. After `who` it is the rest of the sentence: "wijzigde de omschrijving". */
   title: string
   /**
-   * Who did it: someone, with the circle before the name and a link with `href`, or a text that
-   * is no person ("Systeem"), as the bold name alone.
+   * Who did it: someone, with the circle before the name and a link with `href`; or what is no
+   * person ("Systeem"), a name with an icon in the circle: the cogs, or the one `icon` names.
    */
-  who?: string | Person
+  who?: string | Person | TimelineActor
   /** A sentence or two under the title. */
   text?: string
   link?: TimelineLink
@@ -310,7 +319,7 @@ export function rowLayout(
 }
 
 export class LintjeTimeline extends LintjeElement {
-  static override styles = shadowCss(timelineCss)
+  static override styles = [iconStyles, avatarStyles, shadowCss(timelineCss)]
 
   static override properties: PropertyDeclarations = {
     moments: { attribute: false },
@@ -489,25 +498,31 @@ export class LintjeTimeline extends LintjeElement {
       : html`<span class="lintje-timeline__date">${when}</span>`
   }
 
-  /** A person's circle before the name; a text keeps the circle's room empty where others have one. */
-  private renderWho(who: string | Person, people: boolean): TemplateResult {
-    if (typeof who !== 'string') {
+  /** A person's circle before the name; what is no person has an icon in its circle. */
+  private renderWho(who: string | Person | TimelineActor): TemplateResult {
+    if (typeof who !== 'string' && !('icon' in who)) {
       return html`<strong class="lintje-timeline__who"
         ><lintje-person class="lintje-timeline__person" size="small" .person=${who}></lintje-person
       ></strong>`
     }
-    return html`${
-      people ? html`<span class="lintje-timeline__space" aria-hidden="true"></span>` : nothing
-    }<strong class="lintje-timeline__who">${who}</strong>`
+    const actor = typeof who === 'string' ? { name: who } : who
+    return html`${renderAvatar(
+      { name: actor.name },
+      {
+        size: 'small',
+        icon: actor.icon ?? 'gereedschap-tandwielen',
+        className: 'lintje-timeline__actor',
+      },
+    )}<strong class="lintje-timeline__who">${actor.name}</strong>`
   }
 
-  private renderContent(moment: TimelineMoment, people: boolean): TemplateResult {
+  private renderContent(moment: TimelineMoment): TemplateResult {
     const link = moment.link
     const title =
       moment.who === undefined
         ? html`<p class="lintje-timeline__title">${moment.title}</p>`
         : html`<p class="lintje-timeline__title lintje-timeline__title--said">
-            ${this.renderWho(moment.who, people)} ${moment.title}
+            ${this.renderWho(moment.who)} ${moment.title}
           </p>`
     return html`${title}
       ${moment.text ? html`<p class="lintje-timeline__text">${moment.text}</p>` : nothing}
@@ -524,11 +539,11 @@ export class LintjeTimeline extends LintjeElement {
   }
 
   /** A moment's date and content, the date above or below as `dates` says. */
-  private renderMoment(moment: TimelineMoment, people: boolean): TemplateResult {
+  private renderMoment(moment: TimelineMoment): TemplateResult {
     const date = this.renderDate(moment)
     return this.dates === 'below'
-      ? html`${this.renderContent(moment, people)}${date}`
-      : html`${date}${this.renderContent(moment, people)}`
+      ? html`${this.renderContent(moment)}${date}`
+      : html`${date}${this.renderContent(moment)}`
   }
 
   /** The name of a moment's side, in front of its date where the sides are not drawn. */
@@ -598,7 +613,7 @@ export class LintjeTimeline extends LintjeElement {
             ${stack ? nothing : html`<span class="lintje-timeline__when">${this.renderDate(row.moment)}</span>`}
             ${rail}
             <div class="lintje-timeline__body">
-              ${stack && !below ? this.renderDate(row.moment, name) : nothing}${this.renderContent(row.moment, people)}${below ? this.renderDate(row.moment, name) : nothing}
+              ${stack && !below ? this.renderDate(row.moment, name) : nothing}${this.renderContent(row.moment)}${below ? this.renderDate(row.moment, name) : nothing}
             </div>
           </li>`
         }
@@ -661,7 +676,7 @@ export class LintjeTimeline extends LintjeElement {
             >
               <div class="lintje-timeline__body">
                 ${name ? html`<span class="visually-hidden">${name}: </span>` : nothing}
-                ${this.renderMoment(row.moment, people)}
+                ${this.renderMoment(row.moment)}
               </div>
               <span class="lintje-timeline__mark" aria-hidden="true"></span>
             </li>`
@@ -738,7 +753,7 @@ export class LintjeTimeline extends LintjeElement {
             >
               <div class="lintje-timeline__body">
                 ${name ? html`<span class="visually-hidden">${name}: </span>` : nothing}
-                ${this.renderMoment(row.moment, people)}
+                ${this.renderMoment(row.moment)}
               </div>
               <span class="lintje-timeline__mark" aria-hidden="true"></span>
             </li>`
@@ -803,7 +818,7 @@ export class LintjeTimeline extends LintjeElement {
       newest,
     )
     const latest = latestIndex(this.moments, newest)
-    const people = this.moments.some((moment) => moment.who && typeof moment.who !== 'string')
+    const people = this.moments.some((moment) => moment.who !== undefined)
     const more = shown.hidden > 0 ? this.renderMore(shown, newest) : nothing
     return html`<section class="lintje-timeline">
       ${heading} ${newest ? nothing : more}

@@ -650,8 +650,9 @@ De besluiten hieronder gelden voor alle elementen.
 
 - **Een persoon is neutraal.** Het rondje heeft één vulling voor iedereen; alleen waar de
   personen zelf de variabele zijn — de sprekers van een opname — neemt het hun datakleur. De naam
-  staat er altijd naast. Een tekst als "Systeem" is geen persoon en krijgt geen rondje. Een
-  persoon in een tabel, rij of kaart die zelf opent, is geen link.
+  staat er altijd naast. Wat geen persoon is, zoals "Systeem", krijgt een rondje met een icoon in
+  plaats van initialen, zodat de namen in een tijdlijn op één lijn blijven. Een persoon in een
+  tabel, rij of kaart die zelf opent, is geen link.
 
 ### Afbeeldingen en kaarten
 
