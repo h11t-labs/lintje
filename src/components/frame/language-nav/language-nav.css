@@ -1,0 +1,36 @@
+/* The host is the button's box; the list is a fixed popover and takes no space. */
+:host { display: inline-flex; flex: none; vertical-align: middle; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+/* The button reads as a link in the bar, as the house style draws it: the current language,
+   underlined, with the chevron that says it opens a list. On the navigation bar the shell sets
+   `--lintje-language-nav-ink`, which inherits in. */
+.lintje-language-nav { position: relative; display: inline-flex; }
+.lintje-language-nav__button {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  min-height: var(--h-touch);
+  padding: 0 var(--space-2);
+  color: var(--lintje-language-nav-ink, var(--color-link));
+  font: var(--text-ui);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-language-nav__button:hover { color: var(--lintje-language-nav-ink, var(--color-link-hover)); }
+/* The list stands on the page's surface, whatever the bar's ring: the standard ring. */
+.lintje-language-nav .lintje-menu :focus-visible { outline-color: var(--color-focus); }
+.lintje-language-nav__chevron {
+  flex: none;
+  transition: transform var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-language-nav__button.is-open .lintje-language-nav__chevron { transform: rotate(180deg); }
+
+/* The list: the menu's rows, the page's language filled in the primary. */
+.lintje-language-nav :is(ul) { list-style: none; margin: 0; }
+.lintje-language-nav__row.is-current,
+.lintje-language-nav__row.is-current:hover {
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+}

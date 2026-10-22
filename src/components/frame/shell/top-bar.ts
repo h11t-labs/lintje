@@ -78,6 +78,8 @@ export function renderTopBar(shell: LintjeShell): TemplateResult {
     </div>
 
     <div class="lintje-top-bar__actions">
+      <!-- The host's end of the bar; below 768 px the mobile header carries the slot. -->
+      ${shell.mobile.matches ? nothing : html`<slot name="end"></slot>`}
       ${
         shell.toolsCompact
           ? html`${shell.renderSearch()}${shell.renderNotifications()}${renderBarTools(shell)}`

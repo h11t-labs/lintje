@@ -231,6 +231,15 @@
 }
 .lintje-navbar .lintje-shell__tool { height: var(--h-navbar); }
 
+/* What the host puts at the end of the bar (the language choice) writes in the bar's ink and
+   takes its ring, by inheritance from the slot; in the side layout's top bar it stands on the
+   page's surface as it is. */
+.lintje-navbar__end > slot[name='end'],
+.lintje-mobile-header__actions > slot[name='end'] {
+  --lintje-language-nav-ink: var(--color-nav-text);
+  --lintje-focus: var(--color-focus-on-theme);
+}
+
 /* The panels hang from the bar, not the tool. They stand on the page's surface: standard ring. */
 .lintje-navbar .lintje-view,
 .lintje-navbar .lintje-share { position: static; }

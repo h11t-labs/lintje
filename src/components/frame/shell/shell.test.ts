@@ -51,6 +51,12 @@ describe('lintje-shell', () => {
     expect(element.shadowRoot!.querySelector('.lintje-navbar')).not.toBeNull()
   })
 
+  it('keeps a slot at the end of the bar for the host, before the search', async () => {
+    const element = await mount()
+    const end = element.shadowRoot!.querySelector('.lintje-navbar__end')!
+    expect(end.firstElementChild!.getAttribute('name')).toBe('end')
+  })
+
   it('draws nothing without data', async () => {
     const element = await mount(null)
     expect(element.shadowRoot!.querySelector('.lintje-shell')).toBeNull()

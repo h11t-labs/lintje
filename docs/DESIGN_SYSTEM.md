@@ -353,6 +353,10 @@ Besluiten die voor beide gelden:
   en onder een lijn de vaste links. Een formulier of een taakpagina krijgt de compacte voet
   (`variant="compact"`): de regel en de vaste links op één rij op het subtiele oppervlak, zonder
   kolommen.
+- **De taalkeuze staat aan het eind van de balk** (`lintje-language-nav`, in het slot `end`):
+  een knop met de huidige taal en een pijltje, de talen in een lijst eronder met de taal van de
+  pagina gevuld in de primaire kleur, elke taal in haar eigen `lang`. Een taal met een `href` is
+  een link, zodat een pagina per taal zonder script werkt.
 - **Een skiplink naar de inhoud is de eerste tabstop.**
 - **De naam van de shell staat in een balk op één regel**, afgekapt met een beletselteken voordat
   hij de items eruit duwt.

@@ -20,6 +20,7 @@ import './overlays/popover/popover'
 import './overlays/tooltip/tooltip'
 import './frame/shell/shell'
 import './frame/user-menu/user-menu'
+import './frame/language-nav/language-nav'
 import './frame/page-header/page-header'
 import './filters/filter-bar/filter-bar'
 import './feedback/announcement/announcement'
@@ -351,6 +352,8 @@ export type {
 
 export { LintjeShell } from './frame/shell/shell'
 export { LintjeUserMenu } from './frame/user-menu/user-menu'
+export { LintjeLanguageNav } from './frame/language-nav/language-nav'
+export type { Language } from './frame/language-nav/language-nav'
 export { LintjePageHeader } from './frame/page-header/page-header'
 export { LintjeFilterBar } from './filters/filter-bar/filter-bar'
 export type {

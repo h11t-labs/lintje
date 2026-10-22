@@ -5,7 +5,8 @@
  * It never fetches and never reads the URL: the active page and the reader's settings are the
  * host's, and a change goes out as `lintje-view-change` and comes back as data. `nav-tone`
  * chooses the menu's colours: filled in the theme's colour, or light as the house style's bar
- * and side navigation. `full` runs edge
+ * and side navigation. `end` takes what a host puts at the end of the bar, such as
+ * `lintje-language-nav`, before the search and the user. `full` runs edge
  * to edge above the content, `header` holds the `lintje-page-header` and `footer` the
  * `lintje-footer`. The events of its parts (`lintje-action`, `lintje-logout`,
  * `lintje-notification-open`, `lintje-notifications-read`) reach the host as they are.
@@ -588,7 +589,7 @@ export class LintjeShell extends LintjeElement {
   }
 
   private renderNavEnd(data: ShellData): TemplateResult {
-    return html`${this.renderSearch()}${this.renderNotifications()}${renderBarTools(this)}${
+    return html`<slot name="end"></slot>${this.renderSearch()}${this.renderNotifications()}${renderBarTools(this)}${
       data.feedback ? this.renderFeedbackTool(data.feedback) : nothing
     }${this.renderUserMenu('bar')}`
   }

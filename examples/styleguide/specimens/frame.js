@@ -209,6 +209,24 @@ const SUB_NAV_PAGE = [
   },
 ]
 
+const LANGUAGES = [
+  { code: 'nl', label: 'Nederlands', href: '#nl' },
+  { code: 'en', label: 'English', href: '#en' },
+  { code: 'fy', label: 'Frysk', href: '#fy' },
+]
+
+/** The host holds the page's language: a choice makes it the current one. */
+function languages(stage, current = 'nl') {
+  const element = stage.querySelector('lintje-language-nav')
+  element.languages = LANGUAGES
+  element.current = current
+  element.addEventListener('lintje-navigate', (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+  })
+  element.addEventListener('lintje-language-change', (event) => (element.current = event.detail.code))
+}
+
 /** The host holds the reader's page: a click makes the chosen entry the active one. */
 function subNav(stage, groups, action, label = 'Instellingen') {
   const element = stage.querySelector('lintje-sub-nav')
@@ -297,14 +315,16 @@ export default {
             'actieve pagina onderstreept, zoals de huisstijl de navigatiebalk tekent. ' +
             'De logobalk en de rest van de pagina veranderen niet.',
           html: `<lintje-shell nav-tone="light">
+            <lintje-language-nav slot="end"></lintje-language-nav>
             <lintje-page-header slot="header">
               <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
             </lintje-page-header>
-            <p>Dezelfde schil, met de balk op het oppervlak.</p>
+            <p>Dezelfde schil, met de balk op het oppervlak en de taalkeuze in het slot <code>end</code>.</p>
           </lintje-shell>`,
           setup(stage) {
             const shell = stage.querySelector('lintje-shell')
             shell.style.minHeight = '0'
+            languages(stage)
             shell.data = {
               name: 'Transcriptie',
               emblem: emblem(),
@@ -800,6 +820,26 @@ export default {
             menu.user = USER_PHOTO
             menu.items = USER_MENU
           },
+        },
+      ],
+    },
+    {
+      tag: 'lintje-language-nav',
+      title: 'De taalkeuze: de huidige taal op een knop, de talen in een lijst eronder',
+      specimens: [
+        {
+          label: 'Rust',
+          note:
+            'De knop noemt de taal van de pagina; elke taal heeft haar eigen `lang`. Een keuze ' +
+            'stuurt `lintje-language-change`, en een taal met een `href` wordt gevolgd als link.',
+          html: '<lintje-language-nav></lintje-language-nav>',
+          setup: (stage) => languages(stage),
+        },
+        {
+          label: 'Open',
+          note: 'De taal van de pagina is gevuld in de primaire kleur.',
+          html: '<lintje-language-nav open></lintje-language-nav>',
+          setup: (stage) => languages(stage, 'en'),
         },
       ],
     },
