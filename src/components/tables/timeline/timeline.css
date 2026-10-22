@@ -43,8 +43,11 @@
 }
 .lintje-timeline__when { text-align: right; padding-bottom: var(--space-8); }
 .lintje-timeline__date { display: block; color: var(--color-text-primary); }
-/* Under the moment the date is a detail, as in a log. */
-.lintje-timeline__list.has-date-below .lintje-timeline__date { color: var(--color-text-muted); }
+/* Under the moment the date is a detail, as in a log: its own small line, close under it. */
+.lintje-timeline__list.has-date-below .lintje-timeline__date {
+  font: var(--text-small);
+  color: var(--color-text-muted);
+}
 .lintje-timeline__body { min-width: 0; padding-bottom: var(--space-8); }
 .lintje-timeline__list--stack .lintje-timeline__body { padding-bottom: var(--space-6); }
 .lintje-timeline__row:last-child .lintje-timeline__body,
