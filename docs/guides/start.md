@@ -39,6 +39,7 @@ stylesheet en één module nodig; al het andere is HTML uit je eigen sjablonen:
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="/static/lintje/fonts.css" /> <!-- with fonts/ beside it; optional -->
     <link rel="stylesheet" href="/static/lintje/tokens.css" />
+    <link rel="icon" type="image/svg+xml" href="/static/lintje/favicon-lint.svg" /> <!-- assets/logo/favicon-lint.svg: the ribbon alone, as the house style's favicon -->
     <script type="module" src="/static/lintje/lintje.js"></script>
     <!-- the body block of theming.md -->
     <style>body { margin: 0; background: var(--color-bg-page); color: var(--color-text-primary); font: var(--text-ui); }</style>
