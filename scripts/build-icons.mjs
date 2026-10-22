@@ -59,6 +59,7 @@ const COMPONENT_ICONS = [
   'functioneel-vinkje', // selected
   'functioneel-delta-omlaag', // select, accordion, table sort, filter toggle
   'functioneel-delta-rechts', // drilldown, pagination
+  'gereedschap-tandwielen', // timeline: who did it, when that is no person ("Systeem")
   'functioneel-waarschuwing', // the warning announcement's mark, error state, input error
   'functioneel-foutmelding', // the outage announcement's and the error toast's mark
   'functioneel-info', // the info announcement's mark; inline alert

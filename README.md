@@ -62,7 +62,7 @@ De elementen staan in groepen, dezelfde als in de stijlgids:
 | Kerncijfers en grafieken | de cijfers bovenaan een pagina, de grafieken en de tekst die ze uitlegt |
 | Kaart | een kaart met stromen, punten of gebieden in kleur |
 | Netwerk | een diagram van dingen en hun relaties, dat zichzelf indeelt |
-| Tabellen en lijsten | de tabel als overzicht en als werkblad, lijsten, kaarten, een boom, een logboek en personen |
+| Tabellen en lijsten | de tabel als overzicht en als werkblad, lijsten, kaarten, een boom, een tijdlijn of logboek en personen |
 | Chat met data | een gesprek over de gegevens: de vraag, en het antwoord met cijfers en grafieken |
 
 ## Gebruiken

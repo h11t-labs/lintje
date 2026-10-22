@@ -23,6 +23,8 @@ export interface AvatarOptions {
   color?: SpeakerColour
   /** The circle stands on the menu and takes its colours. */
   onNav?: boolean
+  /** The icon without initials: the user, unless what stands there is no person. */
+  icon?: string
   className?: string
 }
 
@@ -36,7 +38,7 @@ function hideOnError(event: Event): void {
 
 /** `null` is the empty place: a dashed circle with nothing in it. */
 export function renderAvatar(person: Person | null, options: AvatarOptions = {}): TemplateResult {
-  const { size = 'medium', color, onNav = false, className } = options
+  const { size = 'medium', color, onNav = false, className, icon = 'functioneel-user' } = options
   const colour = !onNav && color && color !== 'other' ? color : null
   const classes = classMap({
     'lintje-avatar': true,
@@ -55,7 +57,7 @@ export function renderAvatar(person: Person | null, options: AvatarOptions = {})
   // Under the photo stand the initials or the icon, so nothing jumps while it loads or if it fails.
   const under = person.initials
     ? html`<span class="lintje-avatar__initials">${person.initials}</span>`
-    : renderIcon('functioneel-user', { size: ICON_SIZE[size], className: 'lintje-avatar__icon' })
+    : renderIcon(icon, { size: ICON_SIZE[size], className: 'lintje-avatar__icon' })
   const photo = person.photo
     ? keyed(
         person.photo,
