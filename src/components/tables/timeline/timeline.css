@@ -1,0 +1,157 @@
+:host { display: block; min-width: 0; }
+:host([hidden]) { display: none; }
+
+/* ------------------------------------------------------------------------ */
+
+.lintje-timeline {
+  /* The mark, the rail and today's stroke: two sides compute their places from these. */
+  --lintje-timeline-mark: 10px;
+  --lintje-timeline-line: 2px;
+  --lintje-timeline-today: 26px;
+  font: var(--text-ui);
+  color: var(--color-text-primary);
+}
+.lintje-timeline__heading {
+  margin: 0 0 var(--space-3);
+  font: var(--text-tile-title);
+}
+.lintje-timeline__empty { margin: 0; color: var(--color-text-muted); }
+.lintje-timeline__more { display: block; margin-bottom: var(--space-2); }
+.lintje-timeline__list { list-style: none; margin: 0; padding: 0; }
+
+/* One side: a date column as wide as the longest date, the rail, the moment. */
+.lintje-timeline__list--start {
+  display: grid;
+  grid-template-columns: fit-content(12rem) 10px minmax(0, 1fr);
+  column-gap: var(--space-3);
+}
+.lintje-timeline__list--start > .lintje-timeline__row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+.lintje-timeline__list--stack > .lintje-timeline__row { display: flex; gap: var(--space-3); }
+
+/* Every first line is as tall as a title's, so a mark, tick or stroke sits in its middle. */
+.lintje-timeline__when,
+.lintje-timeline__date,
+.lintje-timeline__today {
+  font: var(--text-small);
+  line-height: 1.4rem;
+}
+.lintje-timeline__when { text-align: right; padding-bottom: var(--space-8); }
+.lintje-timeline__date { display: block; color: var(--color-text-primary); }
+.lintje-timeline__body { min-width: 0; padding-bottom: var(--space-8); }
+.lintje-timeline__list--stack .lintje-timeline__body { padding-bottom: var(--space-6); }
+.lintje-timeline__row:last-child .lintje-timeline__body,
+.lintje-timeline__row:last-child .lintje-timeline__when { padding-bottom: 0; }
+.lintje-timeline__title { margin: 0; font-weight: 700; }
+.lintje-timeline__text { margin: 0; font: var(--text-body); }
+.lintje-timeline__link {
+  display: inline-block;
+  margin-top: var(--space-1);
+  color: var(--color-link);
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-timeline__link:hover { color: var(--color-link-hover); }
+
+.lintje-timeline__group { padding-bottom: var(--space-4); font-weight: 700; }
+.lintje-timeline__list--start .lintje-timeline__group { text-align: right; }
+.lintje-timeline__today { padding-bottom: var(--space-6); font-weight: 700; }
+.lintje-timeline__row:last-child .lintje-timeline__today { padding-bottom: 0; }
+
+/* The rail: a stub down to the first line's middle, the mark, and the line to the next row. */
+.lintje-timeline__rail {
+  flex: 0 0 10px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.lintje-timeline__stub {
+  flex: 0 0 calc(0.7rem - 5px);
+  width: 2px;
+  background: var(--color-border-heavy);
+}
+.lintje-timeline__line {
+  flex: 1 1 auto;
+  width: 2px;
+  background: var(--color-border-heavy);
+}
+/* After today the rail is dashed, so what is still to come never rests on colour alone. */
+.lintje-timeline__stub.is-dashed,
+.lintje-timeline__line.is-dashed {
+  width: 0;
+  background: none;
+  border-left: 2px dashed var(--color-border-heavy);
+}
+.lintje-timeline__stub.is-hidden,
+.lintje-timeline__line.is-hidden { visibility: hidden; }
+.lintje-timeline__mark {
+  flex: none;
+  box-sizing: border-box;
+  width: 10px; height: 10px;
+  background: var(--color-text-muted);
+}
+.lintje-timeline__row.is-latest .lintje-timeline__mark { background: var(--color-accent-line); }
+.lintje-timeline__row.is-planned .lintje-timeline__mark {
+  background: var(--color-bg-surface);
+  border: 2px solid var(--color-text-muted);
+}
+.lintje-timeline__row--group .lintje-timeline__stub,
+.lintje-timeline__row--today .lintje-timeline__stub { flex-basis: calc(0.7rem - 1px); }
+.lintje-timeline__tick { flex: none; height: 2px; }
+.lintje-timeline__row--group .lintje-timeline__tick { width: 14px; background: var(--color-text-muted); }
+.lintje-timeline__row--today .lintje-timeline__tick { width: var(--lintje-timeline-today); background: var(--color-text-primary); }
+
+/* Two sides: the spine in the middle; the element measures where each moment stands. */
+.lintje-timeline__heads {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: calc(2 * var(--space-4) + var(--lintje-timeline-mark));
+  padding-bottom: var(--space-3);
+  font-weight: 700;
+}
+.lintje-timeline__head--start { text-align: right; }
+.lintje-timeline__track { position: relative; }
+.lintje-timeline__spine {
+  position: absolute;
+  left: calc(50% - var(--lintje-timeline-line) / 2);
+  width: 2px;
+  background: var(--color-border-heavy);
+}
+.lintje-timeline__spine--planned {
+  width: 0;
+  background: none;
+  border-left: 2px dashed var(--color-border-heavy);
+}
+.lintje-timeline__list--sides { position: relative; }
+.lintje-timeline__list--sides > .lintje-timeline__row {
+  position: absolute;
+  top: 0;
+  box-sizing: border-box;
+  width: calc(50% - var(--space-4) - var(--lintje-timeline-mark) / 2);
+}
+.lintje-timeline__row--start { left: 0; text-align: right; }
+.lintje-timeline__row--end { left: calc(50% + var(--space-4) + var(--lintje-timeline-mark) / 2); }
+.lintje-timeline__list--sides .lintje-timeline__body { padding-bottom: 0; }
+.lintje-timeline__list--sides .lintje-timeline__mark { position: absolute; top: calc(0.7rem - var(--lintje-timeline-mark) / 2); }
+.lintje-timeline__row--start .lintje-timeline__mark { right: calc(-1 * (var(--space-4) + var(--lintje-timeline-mark))); }
+.lintje-timeline__row--end .lintje-timeline__mark { left: calc(-1 * (var(--space-4) + var(--lintje-timeline-mark))); }
+.lintje-timeline__list--sides .lintje-timeline__tick {
+  position: absolute;
+  top: calc(0.7rem - var(--lintje-timeline-line) / 2);
+  left: calc(-1 * (var(--space-4) + (var(--lintje-timeline-mark) + var(--lintje-timeline-today)) / 2));
+}
+.lintje-timeline__list--sides .lintje-timeline__today { display: block; padding-bottom: 0; }
+
+/* Forced colours drop fills, so the rail is drawn in the text colour. */
+@media (forced-colors: active) {
+  .lintje-timeline__stub,
+  .lintje-timeline__line,
+  .lintje-timeline__spine,
+  .lintje-timeline__mark,
+  .lintje-timeline__tick { forced-color-adjust: none; background: CanvasText; }
+  .lintje-timeline__stub.is-dashed,
+  .lintje-timeline__line.is-dashed,
+  .lintje-timeline__spine--planned { background: none; border-color: CanvasText; }
+  .lintje-timeline__row.is-latest .lintje-timeline__mark { background: Highlight; }
+  .lintje-timeline__row.is-planned .lintje-timeline__mark { background: Canvas; border-color: CanvasText; }
+}

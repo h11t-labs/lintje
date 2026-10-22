@@ -23,19 +23,19 @@
   content: '';
   flex: 0 0 6px;
   width: 2px;
-  background: var(--color-border-default);
+  background: var(--color-border-heavy);
 }
 .lintje-activity-log__entry.is-newest .lintje-activity-log__rail::before { visibility: hidden; }
 .lintje-activity-log__mark {
   flex: none;
   width: 10px; height: 10px;
-  background: var(--color-border-heavy);
+  background: var(--color-text-muted);
 }
 .lintje-activity-log__entry.is-newest .lintje-activity-log__mark { background: var(--color-accent-line); }
 .lintje-activity-log__line {
   flex: 1 1 auto;
   width: 2px;
-  background: var(--color-border-default);
+  background: var(--color-border-heavy);
 }
 .lintje-activity-log__entry.is-last .lintje-activity-log__line { visibility: hidden; }
 

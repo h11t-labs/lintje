@@ -206,10 +206,11 @@
       "tree-view",
       "sortable-list",
       "activity-log",
+      "timeline",
       "person",
       "person-group"
     ],
-    "composite": ["data-table", "list", "card-list", "activity-log"]
+    "composite": ["data-table", "list", "card-list", "activity-log", "timeline"]
   },
   {
     "name": "chat",

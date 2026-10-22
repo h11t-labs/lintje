@@ -33,6 +33,7 @@ import '../../components/frame/notifications/notifications'
 import '../../components/tables/pagination/pagination'
 import '../../components/forms/repeater/repeater'
 import '../../components/tables/sortable-list/sortable-list'
+import '../../components/tables/timeline/timeline'
 import '../../components/feedback/streaming-text/streaming-text'
 import '../../components/frame/sub-nav/sub-nav'
 import '../../components/feedback/toast/toast'
@@ -1064,6 +1065,24 @@ const COLLECTION_ROWS: Row[] = [
         .poll(() => log.shadowRoot!.querySelectorAll('.lintje-activity-log__entry').length)
         .toBe(20)
       return () => kept
+    },
+  },
+  {
+    name: 'lintje-timeline :: "Toon eerdere", gone with the earlier moments, hands its focus to the first moment',
+    run: async () => {
+      const timeline = await mount<HTMLElement>('lintje-timeline', {
+        limit: 2,
+        moments: ['2019', '2021', '2023', '2025'].map((year) => ({
+          when: year,
+          title: `In ${year}`,
+        })),
+      })
+      const more = (): HTMLElement | null =>
+        button(timeline.shadowRoot!.querySelector('.lintje-timeline__more'))
+      await expect.poll(more).toBeTruthy()
+      more()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => timeline.shadowRoot!.querySelector('.lintje-timeline__row--moment')
     },
   },
   {

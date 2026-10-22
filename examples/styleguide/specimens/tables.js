@@ -644,6 +644,45 @@ const LONG_ACTIVITY = [
   })),
 ]
 
+/** How a renovation went, one moment every two years, the latest with a link. */
+const TIMELINE_PROJECT = [
+  { when: '2019', at: '2019', title: 'Verkenning', text: 'We onderzochten of het gebouw nog dertig jaar mee kan.' },
+  { when: '2021', at: '2021', title: 'Besluit', text: 'De minister koos voor verbouwen in plaats van nieuwbouw.', link: { label: 'Lees het besluit', href: '#el-timeline' } },
+  { when: '2023', at: '2023', title: 'Start van de verbouwing', text: 'De medewerkers verhuisden tijdelijk naar een ander pand.' },
+  { when: '2025', at: '2025', title: 'Oplevering', text: 'Het gebouw ging weer open, met de helft minder energieverbruik.' },
+]
+
+/** An application: what the applicant did on one side, the organisation on the other. */
+const TIMELINE_APPLICATION = [
+  { when: '3 augustus 2026', at: '2026-08-03', title: 'Aanvraag ingediend', text: 'U ontving een ontvangstbevestiging per e-mail.', side: 'start' },
+  { when: '20 augustus 2026', at: '2026-08-20', title: 'Aanvulling gevraagd', text: 'We vroegen om de begroting van het project.', side: 'end' },
+  { when: '9 september 2026', at: '2026-09-09', title: 'Aanvulling gestuurd', text: 'Uw aanvraag is compleet en wordt beoordeeld.', side: 'start' },
+  { when: 'Verwacht vóór 1 december 2026', title: 'Besluit', text: 'U krijgt het besluit per post en in Mijn omgeving.', planned: true, side: 'end' },
+  { when: 'Nog niet bekend', title: 'Uitbetaling', text: 'Zes weken na een positief besluit.', planned: true, side: 'end' },
+]
+
+/** One morning of an outage, by the minute. */
+const TIMELINE_OUTAGE = [
+  { when: '08:12', at: '2026-10-21T08:12', title: 'Storing gemeld', text: 'Inloggen lukt niet voor een deel van de gebruikers.' },
+  { when: '08:30', at: '2026-10-21T08:30', title: 'Oorzaak gevonden', text: 'Een verlopen certificaat.' },
+  { when: '09:05', at: '2026-10-21T09:05', title: 'Herstel gestart' },
+  { when: '10:40', at: '2026-10-21T10:40', title: 'Opgelost', text: 'Iedereen kan weer inloggen.' },
+]
+
+/** A bill from its first exploration to the day it applies: years on the rail, one still to come. */
+const TIMELINE_BILL = [
+  { when: '11 maart', at: '2024-03-11', group: '2024', title: 'Verkenning gestart', text: 'Het ministerie vroeg uitvoerders wat er aan de oude regeling schortte.' },
+  { when: '8 juli', at: '2024-07-08', group: '2024', title: 'Rondetafelgesprekken' },
+  { when: '30 september', at: '2024-09-30', group: '2024', title: 'Eerste versie van het voorstel' },
+  { when: '2 december', at: '2024-12-02', group: '2024', title: 'Uitvoeringstoetsen aangevraagd' },
+  { when: '14 januari', at: '2025-01-14', group: '2025', title: 'Internetconsultatie geopend', text: 'Iedereen kon tot 1 maart reageren op het voorstel.' },
+  { when: '2 april', at: '2025-04-02', group: '2025', title: 'Reacties verwerkt', text: 'De belangrijkste reacties staan in de toelichting bij het voorstel.', link: { label: 'Lees de toelichting', href: '#el-timeline' } },
+  { when: '23 september', at: '2025-09-23', group: '2025', title: 'Advies van de Raad van State' },
+  { when: '10 februari', at: '2026-02-10', group: '2026', title: 'Aangenomen door de Tweede Kamer' },
+  { when: '16 juni', at: '2026-06-16', group: '2026', title: 'Aangenomen door de Eerste Kamer', text: 'Het voorstel is nu wet en wacht op publicatie.' },
+  { when: 'Verwacht 1 januari', group: '2027', title: 'Inwerkingtreding', text: 'De regeling geldt voor aanvragen vanaf die dag.', planned: true },
+]
+
 /** Products of a catalogue: every kind of card, with fictional owners and grey stand-in pictures. */
 const PRODUCTS = [
   {
@@ -1490,6 +1529,65 @@ export default {
             stage.querySelector('lintje-activity-log').entries = PEOPLE_ACTIVITY
             listen(stage)
           },
+        },
+      ],
+    },
+    {
+      tag: 'lintje-timeline',
+      title: 'Momenten langs een rail: hoe iets in de tijd verliep',
+      specimens: [
+        {
+          label: 'Aan één kant',
+          note: 'De tijden staan vóór de rail, in een kolom zo breed als de langste.',
+          html: '<lintje-timeline heading="Storing inlogdienst, 21 oktober 2026"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = TIMELINE_OUTAGE
+          },
+        },
+        {
+          label: 'Een lange reeks',
+          note:
+            'De jaren staan op de rail. Eerst de laatste momenten; "Toon eerdere" toont de rest. ' +
+            'Vandaag staat tussen wat geweest is en wat nog komt.',
+          html:
+            '<lintje-timeline heading="Zo komt de nieuwe regeling tot stand" limit="6" ' +
+            'today="Vandaag, 21 oktober"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = TIMELINE_BILL
+            listen(stage)
+          },
+        },
+        {
+          label: 'Om en om',
+          note: 'De momenten schuiven in elkaar: een moment begint naast het vorige, nooit ervoor.',
+          html:
+            '<lintje-timeline heading="Zo verliep de verbouwing van het kantoor" ' +
+            'placement="alternate"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = TIMELINE_PROJECT
+            listen(stage)
+          },
+        },
+        {
+          label: 'Per kant',
+          note:
+            'Wat u deed links, wat wij deden rechts. Op een telefoon staat alles aan één kant en ' +
+            'gaat de naam voor de datum.',
+          html:
+            '<lintje-timeline heading="Uw aanvraag voor een subsidie" placement="sides" ' +
+            'today="Vandaag, 21 oktober"></lintje-timeline>',
+          setup(stage) {
+            const timeline = stage.querySelector('lintje-timeline')
+            timeline.sides = ['U', 'Wij']
+            timeline.moments = TIMELINE_APPLICATION
+          },
+        },
+        {
+          label: 'Zonder momenten',
+          note: 'Geen lege rail: één zin, die de host meegeeft.',
+          html:
+            '<lintje-timeline heading="Uw aanvraag voor een subsidie" ' +
+            'empty="Er is nog niets gebeurd met deze aanvraag."></lintje-timeline>',
         },
       ],
     },
