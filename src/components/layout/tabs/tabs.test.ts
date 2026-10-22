@@ -151,6 +151,12 @@ describe('lintje-tabs of links only', () => {
     expect(links[1]!.classList.contains('is-active')).toBe(true)
     expect(links[2]!.hasAttribute('href')).toBe(false)
     expect(links[2]!.getAttribute('aria-disabled')).toBe('true')
+    // The content under a row of links is the page's own: no empty panel takes room under it,
+    // and what the host slots under the chosen one gets its panel.
+    expect(root.querySelector('.lintje-tabs__panel')).toBeNull()
+    element.insertAdjacentHTML('beforeend', '<p slot="samenvatting">Kort</p>')
+    element.requestUpdate()
+    await element.updateComplete
     expect(root.querySelector('.lintje-tabs__panel slot')!.getAttribute('name')).toBe(
       'samenvatting',
     )

@@ -77,21 +77,37 @@
 }
 .lintje-hero__action:hover { text-decoration-thickness: 2px; }
 
-/* The page's head: the primary itself, with the host's one corner top right. In dark the fill is
-   edged by the primary-fill border, as every primary fill is. */
+/* The page's head: the primary itself, with the host's one corner top right, and no line. */
 .lintje-hero--primary .lintje-hero__band {
   background: var(--color-hero-primary-bg);
   color: var(--color-hero-primary-text);
   border-top-right-radius: var(--lintje-radius-corner, var(--radius-corner));
-  box-shadow: inset 0 -1px 0 var(--color-action-primary-border);
 }
-/* The band's inverse ring and the trail's ink reach what stands on the band's ink by inheritance:
-   a token set on a slotted element loses to the dark re-declaration in that element's own root.
-   Only the text column: a panel or a picture beside it brings its own surface and ring. */
+/* The band's inverse ring, the trail's ink and the buttons' reverse reach what stands on the
+   band by inheritance: a token set on a slotted element loses to the dark re-declaration in that
+   element's own root. Only the text column: a panel or a picture beside it brings its own
+   surface and ring. The same set stands on the page head's band (`page-header.css`). */
 .lintje-hero--primary .lintje-hero__body {
   --lintje-focus: var(--color-hero-primary-focus);
   --lintje-focus-inner: var(--color-hero-primary-focus-inner);
   --lintje-breadcrumbs-ink: var(--color-hero-primary-text);
+  --lintje-button-primary-bg: var(--color-action-inverse);
+  --lintje-button-primary-text: var(--color-action-inverse-text);
+  --lintje-button-primary-border: var(--color-action-inverse);
+  --lintje-button-primary-hover: var(--color-action-inverse-hover);
+  --lintje-button-primary-pressed: var(--color-action-inverse-pressed);
+  --lintje-button-secondary-bg: transparent;
+  --lintje-button-secondary-text: var(--color-hero-primary-text);
+  --lintje-button-secondary-border: var(--color-hero-primary-text);
+  --lintje-button-secondary-hover: var(--color-action-inverse-secondary-hover);
+  --lintje-button-secondary-pressed: var(--color-action-inverse-secondary-pressed);
+  --lintje-button-tertiary-text: var(--color-hero-primary-text);
+  --lintje-button-tertiary-hover: var(--color-action-inverse-secondary-hover);
+  --lintje-button-tertiary-pressed: var(--color-action-inverse-secondary-pressed);
+  --lintje-suggestions-ink: var(--color-hero-primary-text);
+  --lintje-suggestions-ink-muted: var(--color-hero-primary-text);
+  --lintje-suggestions-line: var(--color-hero-primary-text);
+  --lintje-suggestions-hover: var(--color-action-inverse-secondary-hover);
 }
 
 /* Pulled up by the room the band keeps for it; without content it takes no space. */

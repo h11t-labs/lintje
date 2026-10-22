@@ -7,9 +7,9 @@
  * chooses the menu's colours: filled in the theme's colour, or light as the house style's bar
  * and side navigation, and `mobile-bar` where the phone's header stands. `end` takes what a host
  * puts at the end of the bar, such as
- * `lintje-language-nav`, before the search and the user. `full` runs edge
- * to edge above the content, `header` holds the `lintje-page-header` and `footer` the
- * `lintje-footer`. The events of its parts (`lintje-action`, `lintje-logout`,
+ * `lintje-language-nav`, before the search and the user. `header` holds the `lintje-page-header`,
+ * the page's head; `full` runs edge to edge under it and above the content (a filter bar, a
+ * hero) and `footer` holds the `lintje-footer`. The events of its parts (`lintje-action`, `lintje-logout`,
  * `lintje-notification-open`, `lintje-notifications-read`) reach the host as they are.
  *
  * Events: `lintje-navigate` `{ href }`, `lintje-view-change` `ShellViewChange`,
@@ -494,7 +494,9 @@ export class LintjeShell extends LintjeElement {
   }
 
   #onSlotChange(): void {
-    const slots = this.renderRoot.querySelectorAll<HTMLSlotElement>('.lintje-shell__content slot')
+    const slots = this.renderRoot.querySelectorAll<HTMLSlotElement>(
+      '.lintje-shell__main slot:not([name="full"])',
+    )
     this.hasContent = Array.from(slots).some((slot) =>
       slot.assignedNodes({ flatten: true }).some(isContent),
     )
@@ -653,9 +655,9 @@ export class LintjeShell extends LintjeElement {
       class=${classMap({ 'lintje-shell__main': true, 'is-bare': !this.hasContent })}
       tabindex="-1"
     >
+      <slot name="header" @slotchange=${onSlotChange}></slot>
       <slot name="full" @slotchange=${onSlotChange}></slot>
       <div class="lintje-shell__content" ?hidden=${!this.hasContent}>
-        <slot name="header" @slotchange=${onSlotChange}></slot>
         <slot @slotchange=${onSlotChange}></slot>
       </div>
     </main>`

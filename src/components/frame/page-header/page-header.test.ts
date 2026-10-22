@@ -249,3 +249,22 @@ describe('lintje-page-header editable', () => {
     expect(asked).toBe(1)
   })
 })
+
+describe('lintje-page-header in a shell with a light menu', () => {
+  it('is the band while the shell says nav-tone="light", and follows a change', async () => {
+    const shell = document.createElement('lintje-shell')
+    shell.setAttribute('nav-tone', 'light')
+    const header = document.createElement('lintje-page-header') as LintjePageHeader
+    header.slot = 'header'
+    header.data = { title: 'Overzicht' }
+    shell.append(header)
+    document.body.append(shell)
+    await header.updateComplete
+    const block = () => header.shadowRoot!.querySelector('.lintje-page-header')!
+    expect(block().classList.contains('lintje-page-header--band')).toBe(true)
+    shell.removeAttribute('nav-tone')
+    await new Promise((resolve) => setTimeout(resolve))
+    await header.updateComplete
+    expect(block().classList.contains('lintje-page-header--band')).toBe(false)
+  })
+})

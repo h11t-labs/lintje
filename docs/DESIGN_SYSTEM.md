@@ -315,7 +315,10 @@ Besluiten die voor beide gelden:
   waarden voor dezelfde menutokens, dus de rail, de balk en de mobiele header veranderen verder
   niet; de kop van de rail met het lint verandert in geen van beide. In donker is de lichte toon
   het spiegelbeeld van licht: de balk en de rail op het oppervlak, zoals de logobalk, een stap
-  boven de pagina.
+  boven de pagina. Bij een licht menu verhuist de kleur naar de paginakop:
+  `lintje-page-header` en `lintje-hero` in de shell worden dan vanzelf de band in de primaire
+  kleur, met de hoek van de host, en elke knop erop tekent zichzelf in zijn omgekeerde vorm; een
+  host kiest daar niets voor, en een hero die de waas wil houden, zegt `tone="wash"`.
 - **De navigatiebalk is één rij.** Als de items niet passen, gemeten en niet per breakpoint,
   maken ze plaats voor één item, "Menu", waarvan het paneel het hele menu bevat. Een groep opent
   bij hover; op een aanraakscherm opent een tik een groep en sluit een tweede tik hem. Een groep
@@ -483,8 +486,10 @@ De besluiten hieronder gelden voor alle elementen.
   hoofdactie; secundair is omlijnd in de primaire kleur, met onder de aanwijzer de waas; tertiair
   is alleen het woord in de primaire kleur, zonder kader, voor de derde actie in een rij (annuleren,
   wissen, de weg terug) en het gereedschap in een balk. Ingedrukt is elke knop een stap voorbij
-  zijn hover. Op een themavulling, zoals de band van een hero als paginakop, staan `inverse`
-  (wit met het woord in de primaire kleur) en `inverse-secondary` (wit omlijnd, wit woord).
+  zijn hover. Op een themavulling (de band van een hero of van een paginakop) tekent elke knop
+  zichzelf vanzelf omgekeerd, via de overervende `--lintje-button-*`-hooks die het vlak zet:
+  primair wit met het woord in de primaire kleur, secundair wit omlijnd, tertiair een wit woord.
+  Buiten zo'n vlak kiest een host die vorm zelf met `inverse` en `inverse-secondary`.
 - **Een uitgeschakelde knop zegt waarom**: `reason` wordt met de knop voorgelezen; de host zegt
   het ook op de pagina.
 - **Acties die niet op één regel passen, klappen in** naar één menu "Meer", vóór de acties die

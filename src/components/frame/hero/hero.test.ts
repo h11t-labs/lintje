@@ -13,6 +13,33 @@ async function mount(props: Partial<LintjeHero>, inner = ''): Promise<LintjeHero
 
 afterEach(() => document.body.replaceChildren())
 
+describe('lintje-hero in a shell with a light menu', () => {
+  const primary = (hero: LintjeHero): boolean =>
+    hero.shadowRoot!.querySelector('.lintje-hero')!.classList.contains('lintje-hero--primary')
+
+  it("is primary by itself, follows the menu's tone, and leaves a chosen tone alone", async () => {
+    const shell = document.createElement('div')
+    // Only the attribute matters: the shell's own rendering plays no part here.
+    const host = Object.assign(document.createElement('lintje-shell'), { navTone: 'light' })
+    host.setAttribute('nav-tone', 'light')
+    document.body.append(shell)
+    shell.append(host)
+    const hero = Object.assign(document.createElement('lintje-hero'), { heading: 'Start' })
+    const washed = Object.assign(document.createElement('lintje-hero'), { heading: 'Start' })
+    washed.setAttribute('tone', 'wash')
+    host.append(hero, washed)
+    await hero.updateComplete
+    await washed.updateComplete
+    expect(primary(hero)).toBe(true)
+    expect(primary(washed)).toBe(false)
+
+    host.setAttribute('nav-tone', 'filled')
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    await hero.updateComplete
+    expect(primary(hero)).toBe(false)
+  })
+})
+
 describe('lintje-hero', () => {
   it('draws the title as an h2 with the introduction under it', async () => {
     const element = await mount({ heading: 'Wat wil je vertalen?', description: 'Typ een tekst.' })

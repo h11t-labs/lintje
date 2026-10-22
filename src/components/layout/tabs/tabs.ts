@@ -272,9 +272,13 @@ export class LintjeTabs extends LintjeElement {
       'lintje-tabs--panel': this.variant === 'panel',
     })
     if (nav) {
+      // Under a row of links the content is usually the page's own: a panel only for what the
+      // host slots under the chosen one, so an empty panel adds no room under the row.
+      const value = this.tabs[chosen]!.value
+      const slotted = this.querySelector(`[slot="${CSS.escape(value)}"]`) !== null
       return html`<div class=${classes}>
         <nav aria-label=${this.label || nothing}>${list}</nav>
-        <div class="lintje-tabs__panel"><slot name=${this.tabs[chosen]!.value}></slot></div>
+        ${slotted ? html`<div class="lintje-tabs__panel"><slot name=${value}></slot></div>` : nothing}
       </div>`
     }
     return html`<div class=${classes}>

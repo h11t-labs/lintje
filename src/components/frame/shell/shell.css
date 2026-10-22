@@ -137,18 +137,36 @@
 /* Without content the last edge-to-edge part takes the room left: a conversation keeps its
    question box at the bottom of a short page. */
 .lintje-shell__main.is-bare ::slotted([slot='full']) { flex: 1 0 auto; }
-/* A bar in `full` stands right under the shell's bar, which draws the line between them. */
+/* A bar in `full` stands right under the shell's bar or the page's head, which draw the line
+   between them. */
 .lintje-shell__main ::slotted([slot='full']) { --lintje-filter-bar-line: transparent; }
+/* The page's head stands above what runs edge to edge, in the content column by its own inset;
+   as a band or with tabs it runs edge to edge and pads its words itself (`page-header.css`). */
+.lintje-shell__main ::slotted([slot='header']) {
+  padding: var(--page-pad-y) calc(var(--page-pad-x) + var(--page-gutter)) 0;
+}
+.lintje-shell__main ::slotted(lintje-page-header[has-tabs]) { padding-inline: 0; }
+:host([nav-tone='light']) .lintje-shell__main ::slotted(lintje-page-header) { padding: 0; }
+:where(.lintje-shell.is-phone) ::slotted([slot='header']) { padding-top: var(--space-4); }
+/* Under a head the content starts a row's gap lower, as it stood a row under the head before. */
+:host(:has(> [slot='header']:not([hidden]))) .lintje-shell__content { padding-top: var(--grid-gutter); }
+:host(:has(> [slot='header']:not([hidden]))) :where(.lintje-shell.is-phone) .lintje-shell__content { padding-top: var(--space-3); }
 
-/* The content keeps to the design system's maximum width, as the bars above it do. */
+/* The content keeps to the design system's maximum width, as the bars above it do: a grid whose
+   outer tracks are the page's side padding, so a part that must run edge to edge (the page head
+   as a band) spans `full` while everything else stands in `content`. */
 .lintje-shell__content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--grid-gutter);
-  padding: var(--page-pad-y) calc(var(--page-pad-x) + var(--page-gutter)) var(--space-10);
+  display: grid;
+  grid-template-columns:
+    [full-start] calc(var(--page-pad-x) + var(--page-gutter))
+    [content-start] minmax(0, 1fr) [content-end]
+    calc(var(--page-pad-x) + var(--page-gutter)) [full-end];
+  row-gap: var(--grid-gutter);
+  padding: var(--page-pad-y) 0 var(--space-10);
 }
 .lintje-shell__content[hidden] { display: none; }
-:where(.lintje-shell.is-phone) .lintje-shell__content { padding: var(--space-4) var(--page-pad-x) var(--space-8); gap: var(--space-3); }
+.lintje-shell__content ::slotted(*) { grid-column: content; }
+:where(.lintje-shell.is-phone) .lintje-shell__content { padding: var(--space-4) 0 var(--space-8); row-gap: var(--space-3); }
 
 /*
  * Top layout. The navigation bar cannot be `sticky`: it would stick inside the header's own box

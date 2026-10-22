@@ -1250,7 +1250,7 @@ describe('the content box', () => {
     mounted.push(shell)
     await shell.updateComplete
     // happy-dom fires no `slotchange` for a slot's first assignment; a browser does.
-    for (const slot of root(shell).querySelectorAll('.lintje-shell__content slot')) {
+    for (const slot of root(shell).querySelectorAll('main slot')) {
       slot.dispatchEvent(new Event('slotchange'))
     }
     await shell.updateComplete

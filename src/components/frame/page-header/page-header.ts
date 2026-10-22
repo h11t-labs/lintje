@@ -4,7 +4,11 @@
  * The title is an h2: the page's h1 is the shell's `name`. Actions that do not fit on one line go
  * into one menu, "Meer": the first goes first, the last never, and a chosen row clicks its button,
  * so the host's own listener sees the click. In the page's content it is a band that tells the
- * shell when the title scrolls under the top bar.
+ * shell when the title scrolls under the top bar. In a shell whose menu is light
+ * (`nav-tone="light"`), in either slot, it is the page's band in the primary colour, with the
+ * host's corner, and every button in `actions` turns to its reverse by itself. `meta` takes a
+ * line of facts under the title, `tabs` a `lintje-tabs` row on the head's lower edge: the parts
+ * of the page, in the band's ink on the band.
  *
  * Events: `lintje-title-edit` (the pencil was pressed: the page renames, the header only asks).
  */
@@ -34,7 +38,9 @@ export class LintjePageHeader extends LintjeElement {
   static override properties: PropertyDeclarations = {
     data: { attribute: false },
     inShell: { state: true },
+    band: { state: true },
     hasActions: { state: true },
+    hasTabs: { type: Boolean, attribute: 'has-tabs', reflect: true },
     editable: { type: Boolean, reflect: true },
   }
 
@@ -44,8 +50,13 @@ export class LintjePageHeader extends LintjeElement {
    * with no band and no top bar to tell.
    */
   inShell: boolean = false
+  /** In a shell with a light menu, in any slot: the band in the primary colour, read from the shell's attribute. */
+  band: boolean = false
   /** An empty actions slot takes no place, so a long title never wraps onto an empty line. */
   hasActions: boolean = false
+  /** With a row of tabs the head ends on their line and sticks under the top bar, risen by what
+   * stands above the tabs, so only their row stays in view. */
+  hasTabs: boolean = false
   /** A pencil beside the title, shown while it is pointed at or focused, asks to rename it. */
   editable: boolean = false
 
@@ -60,14 +71,38 @@ export class LintjePageHeader extends LintjeElement {
     slot: 'actions',
   })
   private observer: IntersectionObserver | null = null
+  /** Watches the shell's `nav-tone`, so the band follows a change of the menu's tone. */
+  #tone: MutationObserver | null = null
+  /** Measures what stands above the tabs: the head sticks that much above the top bar. */
+  #lift: ResizeObserver | null = null
 
   override connectedCallback(): void {
     super.connectedCallback()
     this.inShell = this.slot === 'header' && this.parentElement?.localName === 'lintje-shell'
+    const shell = this.closest('lintje-shell')
+    if (shell) {
+      const read = (): void => {
+        this.band = shell.getAttribute('nav-tone') === 'light'
+      }
+      read()
+      this.#tone = new MutationObserver(read)
+      this.#tone.observe(shell, { attributes: true, attributeFilter: ['nav-tone'] })
+    }
+    this.#lift = new ResizeObserver(() => {
+      const tabs = this.querySelector<HTMLElement>('[slot="tabs"]')
+      if (!tabs) return
+      const lift = tabs.getBoundingClientRect().top - this.getBoundingClientRect().top
+      this.style.setProperty('--lintje-page-header-lift', `${Math.round(lift)}px`)
+    })
+    this.#lift.observe(this)
   }
 
   override disconnectedCallback(): void {
     this.stopObserving()
+    this.#tone?.disconnect()
+    this.#tone = null
+    this.#lift?.disconnect()
+    this.#lift = null
     if (!this.inShell) setTitleHidden(false)
     super.disconnectedCallback()
   }
@@ -129,10 +164,20 @@ export class LintjePageHeader extends LintjeElement {
     return html`
       ${
         data.announcement
-          ? html`<lintje-announcement .data=${data.announcement}></lintje-announcement>`
+          ? html`<lintje-announcement
+              class=${classMap({ 'lintje-page-header__announcement': true, 'is-inset': this.band })}
+              .data=${data.announcement}
+            ></lintje-announcement>`
           : nothing
       }
-      <div class=${classMap({ 'lintje-page-header': true, 'lintje-page-header--shell': inShell })}>
+      <div
+        class=${classMap({
+          'lintje-page-header': true,
+          'lintje-page-header--shell': inShell,
+          'lintje-page-header--band': this.band,
+          'has-tabs': this.hasTabs,
+        })}
+      >
         <slot name="breadcrumbs"></slot>
         ${
           isMobile && data.kicker
@@ -182,6 +227,13 @@ export class LintjePageHeader extends LintjeElement {
           </div>
         </div>
         ${meta.length > 0 ? html`<p class="lintje-page-header__meta">${meta}</p>` : nothing}
+        <slot name="meta"></slot>
+        <slot
+          name="tabs"
+          @slotchange=${(event: Event) => {
+            this.hasTabs = (event.target as HTMLSlotElement).assignedElements().length > 0
+          }}
+        ></slot>
       </div>
     `
   }

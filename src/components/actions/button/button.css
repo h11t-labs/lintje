@@ -67,32 +67,35 @@
 
 /* The 1 px border is transparent, so the primary fill fills it in light; in dark it draws the
    tint, the only thing that separates a #0E3B6E box from a #282828 surface (1.31:1). */
+/* The three weights read the `--lintje-button-*` hooks first: a surface in the primary (the band
+   of a hero or a page head) sets them, and every button on it turns to its reverse without the
+   host choosing a variant. The hooks inherit, through the button's own root. */
 .lintje-button--primary {
-  background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
-  border-color: var(--color-action-primary-border);
+  background: var(--lintje-button-primary-bg, var(--color-action-primary));
+  color: var(--lintje-button-primary-text, var(--color-action-primary-text));
+  border-color: var(--lintje-button-primary-border, var(--color-action-primary-border));
 }
-.lintje-button--primary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-action-primary-hover); }
+.lintje-button--primary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--lintje-button-primary-hover, var(--color-action-primary-hover)); }
 /* Pressed is a step past hover, on every filled or tinted variant. */
-.lintje-button--primary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--color-action-primary-pressed); }
+.lintje-button--primary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--lintje-button-primary-pressed, var(--color-action-primary-pressed)); }
 
 .lintje-button--secondary {
-  background: var(--color-bg-surface);
-  color: var(--color-accent-text);
-  border-color: var(--color-action-secondary-border);
+  background: var(--lintje-button-secondary-bg, var(--color-bg-surface));
+  color: var(--lintje-button-secondary-text, var(--color-accent-text));
+  border-color: var(--lintje-button-secondary-border, var(--color-action-secondary-border));
 }
-.lintje-button--secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-action-secondary-hover); }
-.lintje-button--secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--color-action-secondary-pressed); }
+.lintje-button--secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--lintje-button-secondary-hover, var(--color-action-secondary-hover)); }
+.lintje-button--secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--lintje-button-secondary-pressed, var(--color-action-secondary-pressed)); }
 
 /* The third weight of the house style: a word in the primary, no box. The border stays, transparent,
    so the button keeps its height beside the others. */
 .lintje-button--tertiary {
   background: transparent;
-  color: var(--color-action-tertiary-text);
+  color: var(--lintje-button-tertiary-text, var(--color-action-tertiary-text));
   border-color: transparent;
 }
-.lintje-button--tertiary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-action-tertiary-hover); }
-.lintje-button--tertiary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--color-action-tertiary-pressed); }
+.lintje-button--tertiary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--lintje-button-tertiary-hover, var(--color-action-tertiary-hover)); }
+.lintje-button--tertiary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--lintje-button-tertiary-pressed, var(--color-action-tertiary-pressed)); }
 
 /* On a theme fill (the primary band, the menu): white with the primary's word, or outlined in
    white with a white word. The ring on that fill is the host's: the band sets `--color-focus`. */
