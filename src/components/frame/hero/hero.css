@@ -109,4 +109,9 @@
   }
   .lintje-hero__title { font: var(--text-h1); }
   .lintje-hero__description { font: var(--text-body); }
+  /* On a phone the house style allows half a ribbon at most, top left. */
+  .lintje-hero--primary .lintje-hero__band {
+    border-top-right-radius: 0;
+    border-top-left-radius: min(var(--lintje-radius-corner, var(--radius-corner)), calc(var(--w-ribbon) / 2));
+  }
 }

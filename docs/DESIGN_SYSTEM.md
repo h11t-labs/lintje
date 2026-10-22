@@ -378,7 +378,8 @@ Besluiten die voor beide gelden:
   de huisstijl hem op de sites van de Marechaussee en het RIVM tekent: kruimelpad, titel en
   inleiding in wit op de primaire kleur, met de ene hoek van de host rechtsboven
   (`--lintje-radius-corner`). Waar wit op een lichte primaire kleur geen 4,5:1 haalt (het oranje van
-  Defensie), is de tekst bijna-zwart, zoals het omgevingslabel beslist. Dan is dat de ene band
+  Defensie), is de tekst bijna-zwart, zoals het omgevingslabel beslist. Op een telefoon staat de
+  hoek linksboven en is hij hoogstens een halve lint, zoals de huisstijl vraagt. Dan is dat de ene band
   van de pagina: niet naast een hero in de waas, en klein naast een gevulde rail, anders vechten
   twee vlakken om de kleur.
 - **Tabs komen in twee vormen.** Een rij boven de inhoud, de gekozen tab onderstreept; en grote
