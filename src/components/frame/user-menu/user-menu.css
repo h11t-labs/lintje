@@ -22,7 +22,9 @@
               color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-user-menu__trigger:hover,
-.lintje-user-menu__trigger.is-open { background: var(--color-nav-hover); }
+.lintje-user-menu__trigger.is-open { background: var(--color-nav-hover); color: var(--color-nav-hover-text); }
+/* On the hover fill the role takes the words' colour: in the light tone the fill is the primary. */
+.lintje-user-menu__trigger:is(:hover, .is-open) .lintje-user-menu__trigger-role { color: inherit; }
 
 /* The foot of the side menu: the whole row is the button. The left padding keeps the avatar
    centred in the 72 px rail. */
@@ -77,6 +79,8 @@
   padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-border-default);
 }
+/* Without rows under it the line would double the panel's own edge. */
+.lintje-user-menu__who:has(+ .lintje-user-menu__menu.is-empty) { border-bottom: 0; }
 .lintje-user-menu__names { flex: 1; min-width: 0; }
 .lintje-user-menu__name { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
 .lintje-user-menu__role { margin: 0; font-size: 0.875rem; color: var(--color-text-muted); }
@@ -145,6 +149,8 @@
 
 /* In the foot, the menu is as wide as the side menu, inset by the viewport's own edge on both
    sides: it hangs from this strip, not from the avatar. */
-.lintje-user-menu__anchor { position: absolute; inset: 0 var(--space-2); pointer-events: none; }
+/* The panel stands on the foot of the rail as wide as the rail, without a margin that would read
+   as a card floating on it. */
+.lintje-user-menu__anchor { position: absolute; inset: 0; pointer-events: none; }
 /* At least the width of a row's words, also from a folded rail. */
 :host([variant="side"]) .lintje-user-menu__panel { width: auto; min-width: 15rem; }
