@@ -361,6 +361,12 @@
   --h-sticky: calc(var(--h-topbar) + var(--h-contextbar));
 
   --radius: 0px;
+  /* The house style's one rounded corner on a page-level surface, the band of a hero as the page's
+     head: 0 is a square corner. A host sets `--lintje-radius-corner` on the page to change it
+     (half to one and a half ribbon: 24, 48, 72 px), as it sets `--lintje-content-width`: a token
+     declared here is declared again on every element's host and would beat the page's value. No
+     building block reads it. */
+  --radius-corner: 0px;
   --radius-round: 50%;
 
   --shadow-sticky: 0 2px 6px var(--alpha-black-08);

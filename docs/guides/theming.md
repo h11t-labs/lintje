@@ -46,6 +46,21 @@ eigen thema is niet getoetst aan de ondergrenzen van Lintje.
 De afgeleide kleuren gebruiken `color-mix()` en relatieve kleur (`oklch(from …)`): Chrome/Edge 122+,
 Firefox 128+, Safari 18+.
 
+## De afgeronde hoek
+
+De huisstijl tekent per beeld één (hoogstens drie) afgeronde hoek. Lintje laat die keuze aan de
+pagina: het token `--radius-corner` staat op 0 en alleen de band van `lintje-hero` als paginakop
+(`tone="primary"`) leest hem, rechtsboven. Een halve tot anderhalve lint is een zinnige maat; zet
+hem op de pagina als `--lintje-radius-corner`, zoals `--lintje-content-width` (een token uit
+`tokens.css` zelf overschrijven haalt de elementen niet: elk element declareert het opnieuw op
+zijn eigen host):
+
+```css
+:root {
+  --lintje-radius-corner: 48px;
+}
+```
+
 ## Modus
 
 Elk element bepaalt hem zelf, en de eerste stap die iets zegt, wint: zijn eigen `mode`-attribuut;

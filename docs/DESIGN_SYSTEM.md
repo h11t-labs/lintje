@@ -251,8 +251,19 @@ pagina heeft de `h1` en de titel de `h2`.
 - **De inhoud heeft een maximale breedte**, midden in de ruimte die het menu overlaat. Wat de
   pagina indeelt — de kleur van een balk, de lijn boven het vraagvak van het gesprek — loopt tot
   de randen; alleen wat erin staat, houdt zich aan die breedte.
+- **De marges wijken af van de huisstijl, en dat is een besluit.** De huisstijl vraagt op een
+  desktop een buitenmarge van één lint, een inhoud van hoogstens 1280 px en op een telefoon vier
+  kolommen met een goot van 10 px. Lintje houdt een halve lint als marge en als goot, een inhoud
+  van 1360 px en op een telefoon één kolom: een applicatie toont tabellen en grafieken, die de
+  breedte nodig hebben, en een tegel is op een telefoon nooit smaller dan het scherm.
 - **Radius is 0.** Rond is alleen wat een cirkel ís: een stip, een radio, een schakelaar, een
   avatar, een teller, de laadring.
+- **De ene afgeronde hoek is van de host.** De vormtaal van de huisstijl is een rechthoek met één
+  afgeronde hoek: minstens één en hoogstens drie per beeld, spaarzaam, en nooit een vlak met een
+  hoek in een vlak met een hoek. Lintje laat die keuze aan de pagina: `--radius-corner` staat op
+  0, de host zet `--lintje-radius-corner` op de pagina, en alleen de band van de hero als
+  paginakop leest hem; geen enkele bouwsteen. Zinnige waarden zijn een halve tot anderhalve lint
+  (24, 48 of 72 px).
 - **Schaduwen geven diepte aan en verder niets**: een vastgeplakte balk, een popover, het menu
   over de pagina. Alleen de gedefinieerde `--shadow-*`.
 
