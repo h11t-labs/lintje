@@ -41,6 +41,7 @@ export class LintjeSelect extends LintjeInputElement {
   protected override render(): TemplateResult {
     return html`<div class="lintje-field">
       ${this.renderLabel(this.controlId)}
+      ${this.renderMessages()}
       <div class="lintje-select">
         <select
           id=${this.controlId}

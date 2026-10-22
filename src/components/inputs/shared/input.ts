@@ -302,12 +302,20 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     return this.label ? `${this.label}${this.labelSuffixText}` : ''
   }
 
-  protected renderFoot(): TemplateResult | typeof nothing {
-    const foot = renderFieldFoot(this.hint, this.footMessage, {
+  /**
+   * The hint, or the message that replaces it, between the label and the control: the house
+   * style puts a field's error above what it is about. A lone choice draws it under its label.
+   */
+  protected renderMessages(): TemplateResult | typeof nothing {
+    return renderFieldFoot(this.hint, this.footMessage, {
       hintId: this.hintId,
       errorId: this.errorId,
     })
-    return html`${foot}${this.renderReset()}`
+  }
+
+  /** Under the control: the way back to the default. */
+  protected renderFoot(): TemplateResult | typeof nothing {
+    return this.renderReset()
   }
 
   /**

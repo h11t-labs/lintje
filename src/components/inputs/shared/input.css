@@ -33,10 +33,13 @@
   display: block;
 }
 :host(lintje-multiselect),
-:host(lintje-range),
-:host(lintje-select) {
+:host(lintje-range) {
   width: 180px;
 }
+/* A select fills the column it stands in, as a text field does, up to a field's widest; stacked
+   it is the full width, as every field. */
+:host(lintje-select) { width: 100%; max-width: var(--w-field); }
+:host(lintje-select[stacked]) { max-width: none; }
 :host(lintje-time-input) { width: 120px; }
 :host([hidden]) { display: none; }
 /* Below 768 px: the full width, as `stacked`, and the touch height. The text and number fields
@@ -69,6 +72,11 @@
    equal specificity. A disabled control cannot be in error, so its rule sets the whole border. */
 
 .lintje-field { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+/* A field in error: the house style's bar at its left, from the label down to the control. */
+.lintje-field:has(> .lintje-field__error) {
+  border-left: var(--space-1) solid var(--color-error-line);
+  padding-left: var(--space-4);
+}
 .lintje-label {
   display: flex; align-items: baseline; gap: var(--space-2);
   font-size: 0.875rem; font-weight: 700; color: var(--color-text-primary);
@@ -119,7 +127,7 @@
   background: var(--color-bg-surface);
   border-radius: var(--radius);
 }
-.lintje-field__box.is-error { border: 2px solid var(--color-error); }
+.lintje-field__box.is-error { border: 2px solid var(--color-error); background: var(--color-error-bg); }
 /* Read-only as disabled: the subtle surface, the strong border; its text stays primary. */
 .lintje-field__box.is-readonly,
 .lintje-field__box.is-disabled,

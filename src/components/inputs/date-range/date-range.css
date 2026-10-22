@@ -11,7 +11,7 @@
   font-size: 1rem;
 }
 .lintje-date-range-picker__field.is-filled { color: var(--color-text-primary); font-weight: 700; }
-.lintje-date-range-picker__field.is-error { border: 2px solid var(--color-error); }
+.lintje-date-range-picker__field.is-error { border: 2px solid var(--color-error); background: var(--color-error-bg); }
 .lintje-date-range-picker__field:disabled {
   border: 1px solid var(--color-border-strong);
   background: var(--color-bg-subtle);

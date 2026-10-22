@@ -401,14 +401,19 @@ De besluiten hieronder gelden voor alle elementen.
 
 ### Bedieningselementen en formulieren
 
-- **Elk bedieningselement kent dezelfde toestanden, op dezelfde manier getekend.** Een fout is een
-  zwaardere rand in de foutkleur met een melding die aan het bedieningselement gekoppeld is;
-  uitgeschakeld is het subtiele oppervlak. Een uitgeschakelde knop blijft focusbaar
+- **Elk bedieningselement kent dezelfde toestanden, op dezelfde manier getekend.** Een fout is
+  de melding boven het bedieningselement, gekoppeld aan dat element, zoals de huisstijl het veld
+  opbouwt: label, toelichting, foutregel, dan het veld. In een rij staan de vakken van de velden
+  op één lijn: een toelichting boven het ene veld tilt zijn label, niet de vakken ernaast. Een
+  keuzelijst vult haar kolom zoals een tekstveld, tot `--w-field`. Het hele veld krijgt een balk links in de
+  foutkleur, en een invoervak naast zijn zwaardere rand in de foutkleur ook de fouttint als
+  vulling. Uitgeschakeld is het subtiele oppervlak. Een uitgeschakelde knop blijft focusbaar
   (`aria-disabled`); een uitgeschakeld veld valt uit de tabvolgorde.
 - **De toelichting en de foutregel van een keuze springen in tot de tekst van haar label**, bij
   een vinkje, een schakelaar en een optie in een groep, zodat ze niet lijken op de kop van de
-  optie eronder. Onder een veld met zijn label erboven staan ze tegen de rand, net als in een rij
-  van een instelling, waar de labeltekst zelf links staat.
+  optie eronder; bij een losse keuze staan ze onder haar label, want die heeft geen label erboven.
+  Onder het label van een veld staan ze tegen de rand, net als in een rij van een instelling,
+  waar de labeltekst zelf links staat.
 - **Een waarde die afwijkt van haar standaard** draagt op elk bedieningselement twee markeringen:
   het label in de accentkleur en een oranje stip. Geen extra rand, geen gekleurd oppervlak.
 - **Een veld legt vast als de lezer het verlaat of op Enter drukt.**

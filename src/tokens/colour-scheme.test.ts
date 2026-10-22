@@ -825,7 +825,9 @@ describe('contrast', () => {
         expect(band, mode).toBe(values['--primary'])
         expect([values['--ink-black'], values['--ink-white']], mode).toContain(word)
         expect(contrast(word, band), mode).toBeGreaterThanOrEqual(4.5)
-        expect(contrast(values['--color-hero-primary-focus'], band), mode).toBeGreaterThanOrEqual(3.0)
+        expect(contrast(values['--color-hero-primary-focus'], band), mode).toBeGreaterThanOrEqual(
+          3.0,
+        )
       }
     })
 

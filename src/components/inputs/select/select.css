@@ -13,7 +13,7 @@
   border-radius: var(--radius);
 }
 .lintje-select__control.is-bold { font-weight: 700; }
-.lintje-select__control.is-error { border: 2px solid var(--color-error); }
+.lintje-select__control.is-error { border: 2px solid var(--color-error); background: var(--color-error-bg); }
 .lintje-select__control:disabled {
   background: var(--color-bg-subtle);
   color: var(--color-text-disabled);

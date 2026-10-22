@@ -178,33 +178,34 @@ export class LintjeTextarea extends LintjeFormInputElement {
     return Boolean(this.maxlength) && !this.isDisabled
   }
 
-  protected override renderFoot(): TemplateResult | typeof nothing {
-    const foot = renderFieldFoot(
+  protected override renderMessages(): TemplateResult | typeof nothing {
+    return renderFieldFoot(
       this.hint,
       this.footMessage,
       { hintId: this.hintId, errorId: this.errorId },
       !this.#over || this.#alertLimit,
     )
-    if (!this.counterShown) return html`${foot}${this.renderReset()}`
+  }
+
+  // The counter stands under the field, at its right; the message is above it, as in every field.
+  protected override renderFoot(): TemplateResult | typeof nothing {
+    if (!this.counterShown) return this.renderReset()
     const limit = this.maxlength!
     const length = this.value.length
-    const counter = html`<span
+    return html`<span
       id=${this.counterId}
       part="counter"
       class=${classMap({ 'lintje-textarea__counter': true, 'is-over': length > limit })}
       aria-live=${counterSpeaks(length, limit) ? 'polite' : 'off'}
       >${counterText(length, limit)}</span
-    >`
-    // Wrapped only beside a hint or an error: a counter alone stays out of a box, so a surface
-    // that lifts it out of the flow (`::part(counter)`) keeps no empty line under the text.
-    if (foot === nothing) return html`${counter}${this.renderReset()}`
-    return html`<div class="lintje-textarea__foot">${foot}${counter}</div>${this.renderReset()}`
+    >${this.renderReset()}`
   }
 
   protected override render(): TemplateResult {
     const message = this.message
     return html`<div class="lintje-field">
       ${this.renderLabel(this.controlId)}
+      ${this.renderMessages()}
       <textarea
         id=${this.controlId}
         class=${classMap({

@@ -63,7 +63,9 @@ describe('lintje-hero', () => {
     )
     const root = element.shadowRoot!
     const body = root.querySelector('.lintje-hero__body')!
-    const slots = [...body.querySelectorAll(':scope > slot')].map((slot) => slot.getAttribute('name'))
+    const slots = [...body.querySelectorAll(':scope > slot')].map((slot) =>
+      slot.getAttribute('name'),
+    )
     expect(slots.slice(0, 2)).toEqual(['breadcrumbs', 'status'])
     expect(root.querySelector('.lintje-hero.has-panel')).toBeNull()
     root.querySelector('slot[name="panel"]')!.dispatchEvent(new Event('slotchange'))
@@ -89,7 +91,9 @@ describe('lintje-hero as the page’s head', () => {
       '<nav slot="breadcrumbs">Home</nav>',
     )
     const root = element.shadowRoot!
-    expect(root.querySelector('.lintje-hero')!.classList.contains('lintje-hero--primary')).toBe(true)
+    expect(root.querySelector('.lintje-hero')!.classList.contains('lintje-hero--primary')).toBe(
+      true,
+    )
     const body = root.querySelector('.lintje-hero__body')!
     const order = [...body.children].map((child) =>
       child.localName === 'slot' ? `slot:${child.getAttribute('name') ?? ''}` : child.className,

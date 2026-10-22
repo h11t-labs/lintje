@@ -329,16 +329,18 @@ describe('back to the default', () => {
     expect(reset.querySelector('.visually-hidden')).toBeNull()
   })
 
-  it.each(['text', 'search'])('stands under the hint of a %s field', async (type) => {
+  it.each(['text', 'search'])('stands under a %s field, whose hint is above it', async (type) => {
     const element = await mount('lintje-text-input', () => {}, {
       type,
       hint: 'Mag leeg blijven',
       modified: true,
       resetLabel: 'Leegmaken',
     })
-    const foot = [...element.renderRoot.querySelector('.lintje-field')!.children].slice(-2)
-    expect(foot[0].classList.contains('lintje-field__hint')).toBe(true)
-    expect(foot[1].classList.contains('lintje-field__reset')).toBe(true)
+    const parts = [...element.renderRoot.querySelector('.lintje-field')!.children].map(
+      (node) => node.classList[0],
+    )
+    expect(parts.slice(0, 2)).toEqual(['lintje-label', 'lintje-field__hint'])
+    expect(parts.at(-1)).toBe('lintje-field__reset')
   })
 
   it('keeps the counter of the textarea, with the link after it', async () => {
@@ -349,12 +351,11 @@ describe('back to the default', () => {
       modified: true,
       resetLabel: 'Terugzetten naar leeg',
     })
-    const [foot, reset] = [...element.renderRoot.querySelector('.lintje-field')!.children].slice(-2)
-    expect([...foot!.children].map((node) => node.classList[0])).toEqual([
-      'lintje-field__error',
-      'lintje-textarea__counter',
-    ])
-    expect(reset!.classList[0]).toBe('lintje-field__reset')
+    const parts = [...element.renderRoot.querySelector('.lintje-field')!.children].map(
+      (node) => node.classList[0],
+    )
+    expect(parts.slice(0, 2)).toEqual(['lintje-label', 'lintje-field__error'])
+    expect(parts.slice(-2)).toEqual(['lintje-textarea__counter', 'lintje-field__reset'])
   })
 
   it.each(RESETTABLE)(

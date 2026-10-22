@@ -58,7 +58,7 @@ const OPTIONS = [
 ]
 
 /** The widths that a host sets itself. */
-const FIXED = [120, 180]
+const FIXED = [120, 180, 480]
 
 /** Shrinks to 0 in a row, fills a block, narrower than a row. */
 const FIELD: Seen = { minWidth: '0px', block: 'fill', row: 'content', control: 48 }
@@ -87,8 +87,9 @@ const HOSTS: Host[] = [
     tag: 'lintje-select',
     control: '.lintje-select__control',
     props: { options: OPTIONS },
-    wide: { ...WIDE_180, minWidth: 'auto' },
-    phone: { ...WIDE_180, minWidth: 'auto' },
+    // Its column's width, up to a field's widest: 480 in a wide block, the phone's width there.
+    wide: { ...FIELD, block: 480, row: 480, minWidth: 'auto' },
+    phone: { ...FULL, minWidth: 'auto' },
   },
   {
     tag: 'lintje-combobox',
@@ -397,7 +398,9 @@ function drawn(look: Look): Record<string, string> {
     edge: colourOf(
       look === 'error' ? '--color-error' : quiet ? '--color-border-strong' : '--color-border-field',
     ),
-    fill: colourOf(quiet ? '--color-bg-subtle' : '--color-bg-surface'),
+    fill: colourOf(
+      quiet ? '--color-bg-subtle' : look === 'error' ? '--color-error-bg' : '--color-bg-surface',
+    ),
     text: colourOf(look === 'disabled' ? '--color-text-disabled' : '--color-text-primary'),
     radius: '0px',
     start: '16px',

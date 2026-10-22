@@ -97,7 +97,7 @@ function foot(element: LintjeTextarea) {
   }
 }
 
-describe('lintje-textarea stands its counter beside the foot line', () => {
+describe('lintje-textarea stands its line above the field and its counter under it', () => {
   afterEach(async () => {
     await page.viewport(1440, 900)
   })
@@ -109,28 +109,29 @@ describe('lintje-textarea stands its counter beside the foot line', () => {
   ]
   for (const width of [1440, 390]) {
     for (const [name, props] of cases) {
-      it(`puts ${name} left and the counter right, on one line, at ${width} px`, async () => {
+      it(`puts ${name} above the field and the counter under it, right, at ${width} px`, async () => {
         await page.viewport(width, 900)
         const element = await mount(props)
         // Below 768 px the field takes the full width, as on a phone.
         if (width < 768) element.style.width = ''
         await element.updateComplete
         const { control, line, counter } = foot(element)
-        expect(counter.top).toBeCloseTo(line.top, 0)
+        expect(line.bottom).toBeLessThanOrEqual(control.top)
         expect(line.left).toBeCloseTo(control.left, 0)
+        expect(counter.top).toBeGreaterThanOrEqual(control.bottom)
         expect(counter.right).toBeCloseTo(control.right, 0)
-        expect(counter.left).toBeGreaterThan(line.right)
       })
     }
   }
 
-  it('drops the counter under a long message in a narrow field, still right', async () => {
+  it('keeps the counter under the field, right, beside a long message in a narrow field', async () => {
     const element = await mount({ maxlength: 40, value: OVER })
     element.style.width = '240px'
     element.error = 'Schrijf de omschrijving zonder namen of adressen van andere mensen.'
     await element.updateComplete
     const { control, line, counter } = foot(element)
-    expect(counter.top).toBeGreaterThanOrEqual(line.bottom)
+    expect(line.bottom).toBeLessThanOrEqual(control.top)
+    expect(counter.top).toBeGreaterThanOrEqual(control.bottom)
     expect(counter.right).toBeCloseTo(control.right, 0)
     expect(counter.right).toBeLessThanOrEqual(element.getBoundingClientRect().right)
   })

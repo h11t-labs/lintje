@@ -25,7 +25,7 @@
 .lintje-textarea__control::placeholder { color: var(--color-text-placeholder); opacity: 1; }
 .lintje-textarea__control:disabled::placeholder { color: var(--color-text-disabled); }
 /* The padding gives back the pixel the 2 px error border takes. */
-.lintje-textarea__control.is-error { border: 2px solid var(--color-error); padding: calc(var(--space-2) - var(--lintje-field-error-border) + var(--lintje-field-border)) calc(var(--space-4) - var(--lintje-field-error-border) + var(--lintje-field-border)); }
+.lintje-textarea__control.is-error { border: 2px solid var(--color-error); background: var(--color-error-bg); padding: calc(var(--space-2) - var(--lintje-field-error-border) + var(--lintje-field-border)) calc(var(--space-4) - var(--lintje-field-error-border) + var(--lintje-field-border)); }
 /* Disabled wins over read-only, read-only over error. */
 .lintje-textarea__control.is-readonly {
   border: 1px solid var(--color-border-strong);
@@ -60,27 +60,11 @@
 }
 .lintje-textarea__control--plain.is-error { padding: 0 0 var(--space-1); border: 0; border-bottom: 2px solid var(--color-error); }
 
-/* The hint or the error left, the counter right; where they do not fit, the counter drops under
-   it, as the actions of a form do. */
-.lintje-textarea__foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: var(--space-2) var(--space-4);
-}
+/* The counter stands under the field at its right; the message is above the field, as in every
+   field. In a setting's row the counter keeps the field's column. */
 .lintje-textarea__counter {
   align-self: flex-end;
   font: var(--text-small);
   color: var(--color-text-muted);
 }
-.lintje-textarea__foot > .lintje-textarea__counter { align-self: auto; margin-left: auto; }
 .lintje-textarea__counter.is-over { color: var(--color-error-text); font-weight: 700; }
-
-/* A setting's row: the hint or the error keeps its place under the name, the counter stands under
-   the field. */
-@container (min-width: 35rem) {
-  :host([layout='row']) .lintje-textarea__foot { display: contents; }
-  :host([layout='row']) .lintje-textarea__foot > .lintje-field__hint,
-  :host([layout='row']) .lintje-textarea__foot > .lintje-field__error { grid-column: 1; grid-row: 2; align-self: start; }
-  :host([layout='row']) .lintje-textarea__foot > .lintje-textarea__counter { grid-column: 2; grid-row: 2; }
-}
