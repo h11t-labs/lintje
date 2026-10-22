@@ -31,9 +31,11 @@ a { color: var(--color-link); }
 
 input, select, textarea { font: inherit; color: inherit; }
 
-/* Focus: always orange 3 px, never animated. */
+/* Focus: always orange 3 px, never animated. A surface that carries another ring (the primary
+   band of a hero) sets `--lintje-focus`, which inherits into everything on it, through the
+   shadow roots that declare the tokens again. */
 :focus-visible {
-  outline: var(--focus-width) solid var(--color-focus);
+  outline: var(--focus-width) solid var(--lintje-focus, var(--color-focus));
   outline-offset: var(--focus-offset);
 }
 /* Where the outside would be clipped (tiles in a grid, table rows) the ring sits inside. */

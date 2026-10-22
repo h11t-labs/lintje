@@ -63,7 +63,8 @@ describe('lintje-hero', () => {
     )
     const root = element.shadowRoot!
     const body = root.querySelector('.lintje-hero__body')!
-    expect(body.firstElementChild!.getAttribute('name')).toBe('status')
+    const slots = [...body.querySelectorAll(':scope > slot')].map((slot) => slot.getAttribute('name'))
+    expect(slots.slice(0, 2)).toEqual(['breadcrumbs', 'status'])
     expect(root.querySelector('.lintje-hero.has-panel')).toBeNull()
     root.querySelector('slot[name="panel"]')!.dispatchEvent(new Event('slotchange'))
     await element.updateComplete
@@ -78,5 +79,22 @@ describe('lintje-hero', () => {
     element.shadowRoot!.querySelector('slot[name="aside"]')!.dispatchEvent(new Event('slotchange'))
     await element.updateComplete
     expect(element.shadowRoot!.querySelector('.lintje-hero.has-aside')).not.toBeNull()
+  })
+})
+
+describe('lintje-hero as the page’s head', () => {
+  it('draws the primary band with the trail before the title', async () => {
+    const element = await mount(
+      { heading: 'Resultaten', tone: 'primary' },
+      '<nav slot="breadcrumbs">Home</nav>',
+    )
+    const root = element.shadowRoot!
+    expect(root.querySelector('.lintje-hero')!.classList.contains('lintje-hero--primary')).toBe(true)
+    const body = root.querySelector('.lintje-hero__body')!
+    const order = [...body.children].map((child) =>
+      child.localName === 'slot' ? `slot:${child.getAttribute('name') ?? ''}` : child.className,
+    )
+    expect(order.indexOf('slot:breadcrumbs')).toBeLessThan(order.indexOf('lintje-hero__heading'))
+    expect(element.getAttribute('tone')).toBe('primary')
   })
 })

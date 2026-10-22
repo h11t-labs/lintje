@@ -582,6 +582,21 @@ export default {
           },
         },
         {
+          label: 'Als paginakop',
+          note:
+            'Met `tone="primary"` is de hero de kop van een werkpagina: kruimelpad, titel en ' +
+            'inleiding in wit op de primaire kleur. De hoek rechtsboven is die van de host ' +
+            '(`--lintje-radius-corner`, hier 48 px); een pagina die geen hoek wil, laat hem weg.',
+          html: `<div style="--lintje-radius-corner: 48px">
+            <lintje-hero tone="primary" heading="Aanvragen en wachttijden" description="Alle cijfers over de loketten, per regio en per soort loket, bijgewerkt tot vanochtend.">
+              <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
+            </lintje-hero>
+          </div>`,
+          setup(stage) {
+            crumbs(stage, [{ label: 'Home', href: '#home' }, { label: 'Cijfers', href: '#cijfers' }, { label: 'Aanvragen en wachttijden' }])
+          },
+        },
+        {
           label: 'Met tabs over de onderrand',
           note: 'Het slot `overlap` legt grote tabs half over de onderrand.',
           html: `<lintje-hero heading="Wat wil je vertalen?" description="Je ziet de vertaling meteen.">

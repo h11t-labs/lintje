@@ -330,6 +330,13 @@ Besluiten die voor beide gelden:
   primaire kleur, zodat band en menu nooit samenvloeien. Eén per pagina, en nooit op een
   werkpagina dieper in. Zijn afbeelding ondersteunt de titel; ze is nooit een tweede weg verder en
   zegt nooit iets wat nergens anders staat.
+- **De paginakop mag een band in de primaire kleur zijn** (`lintje-hero tone="primary"`), zoals
+  de huisstijl hem op de sites van de Marechaussee en het RIVM tekent: kruimelpad, titel en
+  inleiding in wit op de primaire kleur, met de ene hoek van de host rechtsboven
+  (`--lintje-radius-corner`). Waar wit op een lichte primaire kleur geen 4,5:1 haalt (het oranje van
+  Defensie), is de tekst bijna-zwart, zoals het omgevingslabel beslist. Dan is dat de ene band
+  van de pagina: niet naast een hero in de waas, en klein naast een gevulde rail, anders vechten
+  twee vlakken om de kleur.
 - **Tabs komen in twee vormen.** Een rij boven de inhoud, de gekozen tab onderstreept; en grote
   tabs boven een omrand paneel, voor de paar modi waartussen een hele pagina wisselt: elk met een
   icoon en een hint, waarbij het eigen oppervlak van het paneel doorloopt in de gekozen, zonder

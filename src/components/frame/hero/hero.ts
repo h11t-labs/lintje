@@ -6,7 +6,9 @@
  * `full` slot. The title is an h2: the page's h1 is the shell's `name`. The default slot takes a
  * search field or a short form under the introduction, `aside` one picture beside the text (left
  * out below 1024 px), `panel` content beside the text, and `overlap` what stands half over the
- * band's lower edge, such as a panel of tabs.
+ * band's lower edge, such as a panel of tabs. With `tone="primary"` it is the page's head: the
+ * `breadcrumbs` slot takes the trail above the title, and the band draws the host's corner
+ * (`--lintje-radius-corner` on the page, 0 by default).
  *
  * Events: `lintje-navigate` `{ href }` (the action).
  */
@@ -23,6 +25,7 @@ export class LintjeHero extends LintjeElement {
 
   static override properties: PropertyDeclarations = {
     heading: { type: String },
+    tone: { type: String, reflect: true },
     description: { type: String },
     action: { type: String },
     href: { type: String },
@@ -32,6 +35,11 @@ export class LintjeHero extends LintjeElement {
   }
 
   heading: string = ''
+  /**
+   * `wash`: the start page's band in the primary's wash. `primary`: the page's head in the
+   * primary colour itself, white text and the host's one corner (`--lintje-radius-corner`) top right.
+   */
+  tone: 'wash' | 'primary' = 'wash'
   declare description?: string
   /** The one link onward under the introduction; drawn only with `href`. */
   declare action?: string
@@ -60,6 +68,7 @@ export class LintjeHero extends LintjeElement {
     return html`<div
       class=${classMap({
         'lintje-hero': true,
+        'lintje-hero--primary': this.tone === 'primary',
         'has-overlap': this.hasOverlap,
         'has-aside': this.hasAside,
         'has-panel': this.hasPanel,
@@ -67,6 +76,7 @@ export class LintjeHero extends LintjeElement {
     >
       <div class="lintje-hero__band">
         <div class="lintje-hero__body">
+          <slot name="breadcrumbs"></slot>
           <slot name="status"></slot>
           <div class="lintje-hero__heading">
             <h2 class="lintje-hero__title">${this.heading}</h2>

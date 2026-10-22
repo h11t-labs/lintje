@@ -556,6 +556,13 @@
   /* The start page's band is the primary's wash, so it never reads as the menu. */
   --color-hero-bg: var(--primary-wash);
   --color-hero-text: var(--color-text-primary);
+  /* The band as the page's head (`tone="primary"`): the primary itself, with the one corner of
+     the house style. Its word is white, or ink where white falls under 4.5:1 on a light primary
+     (Defensie's orange), as the environment label decides: ink above lightness 0.6. The ring is
+     white, which reaches 3:1 on every primary. */
+  --color-hero-primary-bg: var(--primary);
+  --color-hero-primary-text: oklch(from var(--primary) clamp(0.208, (0.6 - l) * 1000, 1) clamp(0, (l - 0.6) * 1000, 0.04) 265.8);
+  --color-hero-primary-focus: var(--ink-white);
   /* The site's foot stands on the menu's own fill, as on rijksoverheid.nl; in dark it follows the menu. */
   --color-footer-bg: var(--color-nav-bg);
   --color-footer-text: var(--color-nav-text);

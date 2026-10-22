@@ -783,6 +783,18 @@ describe('contrast', () => {
       }
     })
 
+    it(`writes on ${theme}'s primary band in ink or white, whichever reaches 4.5:1, with a white ring`, () => {
+      for (const mode of ['light', 'dark'] as const) {
+        const values = tokensFor(mode, theme)
+        const band = values['--color-hero-primary-bg']
+        const word = values['--color-hero-primary-text']
+        expect(band, mode).toBe(values['--primary'])
+        expect([values['--ink-black'], values['--ink-white']], mode).toContain(word)
+        expect(contrast(word, band), mode).toBeGreaterThanOrEqual(4.5)
+        expect(contrast(values['--color-hero-primary-focus'], band), mode).toBeGreaterThanOrEqual(3.0)
+      }
+    })
+
     it(`lifts ${theme}'s tints in lightness only, never darker than the primary`, () => {
       const values = tokensFor('dark', theme)
       const [lightness, chroma, hue] = oklch(values['--primary'])
