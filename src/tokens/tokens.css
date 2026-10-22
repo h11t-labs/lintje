@@ -36,6 +36,7 @@
   --ink-black: #0F172A;
   --alpha-white-82: rgba(255, 255, 255, 0.82);
   --alpha-white-45: rgba(255, 255, 255, 0.45);
+  --alpha-white-16: rgba(255, 255, 255, 0.16);
 
   /* --- Focus -------------------------------------------------------------
      Its own constant: it must not move with the accent or the attention status. The orange is
@@ -468,14 +469,36 @@
   /* --- Semantic: action -------------------------------------------------- */
   --color-action-primary: var(--primary);
   --color-action-primary-hover: var(--primary-hover);
+  /* Pressed is a step past hover: darker in light, lighter in dark, as the hover goes. */
+  --color-action-primary-pressed: color-mix(in srgb, var(--primary), black 40%);
   --color-action-primary-text: var(--ink-white);
   /* A primary fill in dark is a dark box on a dark page (WCAG 1.4.11): it gets a tint border. */
   --color-action-primary-border: var(--primary);
   --color-action-secondary-border: var(--primary);
+  /* The outlined button's hover is the primary's wash, as the house style tints it; pressed a
+     step deeper into the wash. Dark re-points both to the neutral steps: the wash sits under the
+     surface there. */
+  --color-action-secondary-hover: var(--primary-wash);
+  --color-action-secondary-pressed: oklch(from var(--primary) 0.9 min(c, 0.04) h);
+  /* The tertiary button is a word in the primary, without a box: the house style's third weight.
+     Its hover is the subtle surface, pressed a step past it. */
+  --color-action-tertiary-text: var(--color-accent-text);
+  --color-action-tertiary-hover: var(--color-bg-subtle);
+  --color-action-tertiary-pressed: var(--color-border-default);
+  /* On a theme fill: the inverse button is white with the primary's word, and lets a little of
+     the primary through under the pointer; its outlined form is white on white, lit by white and
+     pressed by black at a low alpha. The same in dark: the fill under it stays the primary. */
+  --color-action-inverse: var(--ink-white);
+  --color-action-inverse-text: var(--primary);
+  --color-action-inverse-hover: color-mix(in srgb, var(--ink-white), var(--primary) 10%);
+  --color-action-inverse-pressed: color-mix(in srgb, var(--ink-white), var(--primary) 20%);
+  --color-action-inverse-secondary-hover: var(--alpha-white-16);
+  --color-action-inverse-secondary-pressed: var(--alpha-black-14);
   /* The destructive fill: the error red, white text on it (5.01:1). Hover is darker in light,
      lighter in dark. In dark the border is a tint, because #D52B1E is 2.94:1 on #282828. */
   --color-action-danger: var(--status-error);
   --color-action-danger-hover: color-mix(in srgb, var(--status-error), black 30%);
+  --color-action-danger-pressed: color-mix(in srgb, var(--status-error), black 40%);
   --color-action-danger-border: var(--status-error);
   /* The word of the outlined danger button; dark re-points it (the red is 2.94:1 on #282828). */
   --color-action-danger-text: var(--status-error);
@@ -799,6 +822,9 @@
 
     /* The hover goes UP in dark: the light mix would put a near-black fill on the near-black page. */
     --primary-hover: color-mix(in srgb, var(--primary), white 12%);
+    --color-action-primary-pressed: color-mix(in srgb, var(--primary), white 24%);
+    --color-action-secondary-hover: var(--neutral-2);
+    --color-action-secondary-pressed: var(--neutral-3);
 
     /* The order of light holds: menu under page under surface. The series has no step between
        the menu (neutral-1, L 0.231) and the surface (L 0.277), so the page is their midpoint
@@ -824,6 +850,7 @@
        the word lift the red as the primary's tints do, to 3:1 on #282828 and 4.5:1 on #333333,
        the hover surface; the word's chroma cap keeps it inside sRGB. */
     --color-action-danger-hover: color-mix(in srgb, var(--status-error), white 8%);
+    --color-action-danger-pressed: color-mix(in srgb, var(--status-error), white 16%);
     --color-action-danger-border: oklch(from var(--status-error) max(l, 0.58) c h);
     --color-action-danger-text: oklch(from var(--status-error) max(l, 0.71) min(c, 0.18) h);
     /* A status mark at 3:1 on its own tint. */

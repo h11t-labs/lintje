@@ -11,7 +11,7 @@
 /* ------------------------------------------------------------------------ */
 
 .lintje-menu-button__trigger.lintje-button--secondary.is-open { background: var(--color-bg-selected); }
-.lintje-menu-button__trigger.lintje-button--tertiary.is-open { background: var(--color-bg-subtle); }
+.lintje-menu-button__trigger.lintje-button--tertiary.is-open { background: var(--color-action-tertiary-hover); }
 .lintje-menu-button__trigger.lintje-icon-button--outlined.is-open { background: var(--color-bg-selected); }
 .lintje-menu-button__trigger.lintje-icon-button--flat.is-open { background: var(--color-bg-subtle); }
 

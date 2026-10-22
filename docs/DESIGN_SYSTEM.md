@@ -440,6 +440,12 @@ De besluiten hieronder gelden voor alle elementen.
 - **Wat op het punt staat te gebeuren, is een samenvatting in cellen** (`layout="grid"`): één cel
   per instelling, wat gewijzigd is in het rustige oppervlak van de gekozen optie met "Aangepast",
   een probleem in zijn statustoon met zijn glyph, zijn woorden en de actie die het oplost.
+- **Een knop heeft de drie gewichten van de huisstijl.** Primair is gevuld, voor de ene
+  hoofdactie; secundair is omlijnd in de primaire kleur, met onder de aanwijzer de waas; tertiair
+  is alleen het woord in de primaire kleur, zonder kader, voor de derde actie in een rij (annuleren,
+  wissen, de weg terug) en het gereedschap in een balk. Ingedrukt is elke knop een stap voorbij
+  zijn hover. Op een themavulling, zoals de band van een hero als paginakop, staan `inverse`
+  (wit met het woord in de primaire kleur) en `inverse-secondary` (wit omlijnd, wit woord).
 - **Een uitgeschakelde knop zegt waarom**: `reason` wordt met de knop voorgelezen; de host zegt
   het ook op de pagina.
 - **Acties die niet op één regel passen, klappen in** naar één menu "Meer", vóór de acties die
