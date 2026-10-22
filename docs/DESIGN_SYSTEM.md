@@ -273,8 +273,9 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
 - **De ene afgeronde hoek is van de host.** De vormtaal van de huisstijl is een rechthoek met één
   afgeronde hoek: minstens één en hoogstens drie per beeld, spaarzaam, en nooit een vlak met een
   hoek in een vlak met een hoek. Lintje laat die keuze aan de pagina: `--radius-corner` staat op
-  0, de host zet `--lintje-radius-corner` op de pagina, en alleen de band van de hero als
-  paginakop leest hem; geen enkele bouwsteen. Zinnige waarden zijn een halve tot anderhalve lint
+  0, de host zet `--lintje-radius-corner` op de pagina, en alleen de band aan de kop van de
+  pagina (de hero, de paginakop bij een licht menu) leest hem rechtsboven en de voet linksonder,
+  als zijn spiegelbeeld; geen enkele bouwsteen. Zinnige waarden zijn een halve tot anderhalve lint
   (24, 48 of 72 px). De ene uitzondering is het citaat in lopende tekst: als citaat-element
   heeft het zijn eigen hoek van 24 px (`--radius-quote`), de hoek van de huisstijl als
   aanhalingsteken.
@@ -347,6 +348,11 @@ Besluiten die voor beide gelden:
   wat van rand tot rand loopt — een hero, de filterbalk, een gesprek — staat erboven.
 - **De instellingen van de lezer zijn van de host**: modus, thema, waar het menu staat. De shell
   toont ze en vraagt om een wijziging; hij bewaart er geen en leest geen URL.
+- **De voet is die van de huisstijl**: op de vulling van het menu, de regel die zegt wat de site
+  is cursief in het gewone gewicht, kolommen met een vette kop en links met een chevron ervoor,
+  en onder een lijn de vaste links. Een formulier of een taakpagina krijgt de compacte voet
+  (`variant="compact"`): de regel en de vaste links op één rij op het subtiele oppervlak, zonder
+  kolommen.
 - **Een skiplink naar de inhoud is de eerste tabstop.**
 - **De naam van de shell staat in een balk op één regel**, afgekapt met een beletselteken voordat
   hij de items eruit duwt.

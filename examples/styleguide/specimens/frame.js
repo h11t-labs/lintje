@@ -695,6 +695,22 @@ export default {
           },
         },
         {
+          label: 'Compact',
+          note:
+            'Met `variant="compact"` is de voet die van een formulier of een taakpagina: de ' +
+            'regel en de vaste links op één rij, op het lichte vlak; kolommen tekent hij niet.',
+          html: '<lintje-footer variant="compact"></lintje-footer>',
+          setup(stage) {
+            const footer = stage.querySelector('lintje-footer')
+            footer.data = {
+              tagline: 'Datacatalogus — het dataplatform van de organisatie',
+              links: [{ label: 'Privacy', href: '#el-footer' }, { label: 'Toegankelijkheid', href: '#el-footer' }, { label: 'Cookies', href: '#el-footer' }],
+              note: 'Versie 1.0.0',
+            }
+            footer.addEventListener('lintje-navigate', (event) => event.preventDefault())
+          },
+        },
+        {
           label: 'Alleen de vaste links',
           html: '<lintje-footer></lintje-footer>',
           setup(stage) {

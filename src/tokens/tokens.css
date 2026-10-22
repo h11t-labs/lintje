@@ -262,6 +262,8 @@
      transcript in its large size. */
   --text-translation: 400 1.25rem/1.5 var(--font-ui);
   --text-ui: 400 1rem/1.4 var(--font-ui);
+  /* The footer's tagline: the house style's payoff, italic in the regular weight. */
+  --text-tagline: italic 400 1.5rem/1.3 var(--font-ui);
   /* Secondary text is one token: a hint, a sub-line, a meta line, a date. */
   --text-small: 400 0.875rem/1.45 var(--font-ui);
   /* Former names of the same token; they go with the next breaking release. */
@@ -627,6 +629,10 @@
   --color-footer-text: var(--color-nav-text);
   --color-footer-line: var(--color-nav-line);
   --color-footer-focus: var(--color-focus-on-theme);
+  /* The compact foot of a form or a task page: the subtle surface, the page's own text and links. */
+  --color-footer-compact-bg: var(--color-bg-subtle);
+  --color-footer-compact-text: var(--color-text-primary);
+  --color-footer-compact-link: var(--color-link);
 
   /* The box behind a recognised term: the primary's wash; dark re-points it. */
   --color-term-bg: var(--primary-wash);

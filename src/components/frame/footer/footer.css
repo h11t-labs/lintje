@@ -7,6 +7,8 @@
   background: var(--color-footer-bg);
   color: var(--color-footer-text);
   font: var(--text-ui);
+  /* The host's one corner, bottom left: the mirror of the band's corner at the page's head. */
+  border-bottom-left-radius: var(--lintje-radius-corner, var(--radius-corner));
 }
 .lintje-footer :focus-visible { outline-color: var(--color-footer-focus); }
 
@@ -17,7 +19,8 @@
   padding: var(--space-10) calc(var(--page-pad-x) + var(--page-gutter)) var(--space-8);
 }
 
-.lintje-footer__tagline { margin: 0; font: var(--text-h2); }
+/* The house style's payoff: italic, in the regular weight. */
+.lintje-footer__tagline { margin: 0; font: var(--text-tagline); }
 
 .lintje-footer__columns {
   display: grid;
@@ -25,11 +28,7 @@
   gap: var(--space-8) var(--grid-gutter);
 }
 .lintje-footer__column { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
-.lintje-footer__heading {
-  margin: 0;
-  font-size: var(--label-size); font-weight: var(--label-weight);
-  letter-spacing: var(--label-tracking); text-transform: uppercase;
-}
+.lintje-footer__heading { margin: 0; font: var(--text-tile-title); }
 .lintje-footer__list,
 .lintje-footer__meta { list-style: none; margin: 0; padding: 0; }
 .lintje-footer__list { display: flex; flex-direction: column; gap: var(--space-3); }
@@ -41,8 +40,8 @@
   color: inherit;
   text-decoration: none;
 }
-/* A list of text links keeps the house style's rhythm: a line high, 12 px apart. */
-.lintje-footer__link { min-height: var(--h-target-text); }
+/* A list of text links keeps the house style's rhythm: a line high, 12 px apart, a chevron first. */
+.lintje-footer__link { min-height: var(--h-target-text); gap: var(--space-1); }
 .lintje-footer__link:hover,
 .lintje-footer__meta-link:hover { text-decoration: underline; text-underline-offset: 0.2em; }
 
@@ -58,7 +57,34 @@
 /* The full text colour: a muted one would fall under 4.5:1 on the theme's fill. */
 .lintje-footer__note { margin: 0; font: var(--text-small); }
 
+/* Compact: the foot of a form or a task page, the tagline and the fixed links on one row on the
+   subtle surface, in the page's own text and link colours and with the standard ring. */
+.lintje-footer--compact {
+  background: var(--color-footer-compact-bg);
+  color: var(--color-footer-compact-text);
+  border-bottom-left-radius: 0;
+}
+.lintje-footer--compact :focus-visible { outline-color: var(--color-focus); }
+.lintje-footer--compact .lintje-footer__inner {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+  padding-top: var(--space-5);
+  padding-bottom: var(--space-5);
+}
+.lintje-footer--compact .lintje-footer__tagline { font: var(--text-translation); font-style: italic; }
+.lintje-footer--compact .lintje-footer__bottom { padding-top: 0; border-top: 0; }
+.lintje-footer--compact .lintje-footer__meta-link {
+  color: var(--color-footer-compact-link);
+  text-decoration: underline;
+}
+
 @media screen and (max-width: 767px) {
+  /* On a phone the house style allows half a ribbon at most. */
+  .lintje-footer { border-bottom-left-radius: min(var(--lintje-radius-corner, var(--radius-corner)), calc(var(--w-ribbon) / 2)); }
   .lintje-footer__inner { padding-top: var(--space-8); }
   .lintje-footer__columns { grid-template-columns: minmax(0, 1fr); }
+  .lintje-footer--compact .lintje-footer__inner { flex-direction: column; align-items: flex-start; padding-top: var(--space-5); }
 }

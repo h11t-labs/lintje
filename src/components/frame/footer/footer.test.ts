@@ -48,6 +48,23 @@ describe('lintje-footer', () => {
     expect(heard).toEqual(['/dataproducten'])
   })
 
+  it('sets a chevron before every column link, and none before a fixed link', async () => {
+    const root = (await mount(DATA)).shadowRoot!
+    expect(root.querySelector('.lintje-footer__link svg')).not.toBeNull()
+    expect(root.querySelector('.lintje-footer__meta-link svg')).toBeNull()
+  })
+
+  it('leaves the columns out of the compact foot and keeps the tagline and the fixed links', async () => {
+    const element = await mount(DATA)
+    element.variant = 'compact'
+    await element.updateComplete
+    const root = element.shadowRoot!
+    expect(root.querySelector('.lintje-footer--compact')).not.toBeNull()
+    expect(root.querySelector('.lintje-footer__columns')).toBeNull()
+    expect(root.querySelector('.lintje-footer__tagline')).not.toBeNull()
+    expect(root.querySelectorAll('.lintje-footer__meta-link')).toHaveLength(1)
+  })
+
   it('draws only what it is given', async () => {
     const root = (await mount({ links: [{ label: 'Privacy', href: '/privacy' }] })).shadowRoot!
     expect(root.querySelector('.lintje-footer__tagline')).toBeNull()
