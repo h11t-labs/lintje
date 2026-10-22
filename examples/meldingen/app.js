@@ -38,6 +38,7 @@ import {
   carry,
   emblem,
   modeOf,
+  applyStyle,
   searchWith,
   shellSettingsOf,
   themeOf,
@@ -257,6 +258,7 @@ function renderShell() {
   const root = document.documentElement
   root.dataset.mode = modeOf(location.search)
   root.dataset.theme = theme()
+  applyStyle(shell)
   shell.data = {
     name: 'Meldingen',
     emblem: emblem(theme()),

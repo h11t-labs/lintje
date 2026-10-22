@@ -53,10 +53,10 @@
   </head>
   <body>
     <!-- The shell holds the page: the menu beside it (or with `?layout=top` above it), the
-         filter bar edge to edge, and the content at the page's width. `nav-tone="light"` draws
-         the menu as the house style's side navigation, on the surface; leave it out for the
-         filled menu in the theme's colour. -->
-    <lintje-shell id="shell" nav-tone="light">
+         filter bar edge to edge, and the content at the page's width. "Weergave" chooses the
+         house style: the light menu with the rounded corner, or the filled menu in the theme's
+         colour (`?style=classic`). -->
+    <lintje-shell id="shell">
       <!-- The filter bar pins itself under the top bar. -->
       <lintje-filter-bar id="filters" slot="full"></lintje-filter-bar>
       <!--
@@ -92,7 +92,7 @@
 
       // The fictional figures, shared by the examples.
       const { meta, hourly, daily, desks, regions, breakdowns, origin, number } = await import('../_data/load.js')
-      const { themeOf, modeOf, emblem, carry, shellSettingsOf, searchWith, answerLogout } = await import(
+      const { themeOf, modeOf, emblem, carry, shellSettingsOf, searchWith, applyStyle, answerLogout } = await import(
         '../_shared/settings.js'
       )
       const column = (key) => hourly.map((row) => row[key])
@@ -286,6 +286,7 @@
       function applySettings() {
         root.dataset.mode = modeOf(search)
         root.dataset.theme = themeOf(search)
+        applyStyle(shell, search)
       }
 
       function setSearch(next) {

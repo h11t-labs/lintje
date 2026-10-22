@@ -30,10 +30,6 @@
       [hidden] {
         display: none !important;
       }
-      /* The host's one rounded corner, on the band that heads "Nieuwe melding". */
-      :root {
-        --lintje-radius-corner: 48px;
-      }
       body {
         margin: 0;
         background: var(--color-bg-page);
@@ -88,7 +84,7 @@
     <!-- `nav-tone="light"`: the navigation bar white with the words in the primary colour, as the
          house style draws it. "Nieuwe melding" opens under a band in the primary colour with the
          host's corner; the overview keeps the page header with its actions. -->
-    <lintje-shell id="shell" nav-tone="light">
+    <lintje-shell id="shell">
       <lintje-hero slot="full" id="band" tone="primary" hidden>
         <lintje-breadcrumbs slot="breadcrumbs" id="band-crumbs"></lintje-breadcrumbs>
       </lintje-hero>

@@ -124,8 +124,10 @@ bestand sluit, laat er een paar vallen.
 
 `?theme=<name>` tekent een pagina in een van de zes thema's — `rijksoverheid` (de standaard),
 `marechaussee`, `landmacht`, `marine`, `luchtmacht`, `defensie` — `?mode=dark` in donker (zonder
-beslist het systeem van de lezer). De twee reizen mee van pagina naar pagina; elke pagina leest ze via `_shared/settings.js`, en elke link tussen voorbeelden
-gaat via zijn `carry()`.
+beslist het systeem van de lezer). `?style=classic` tekent de oude huisstijl: het menu gevuld in
+de themakleur en alles recht; zonder de nieuwe, het lichte menu, de kleine hoeken op knoppen en
+kaarten en de ronde hoek van 48 px op de band, die `?corner=square` weglaat (`applyStyle()`). Ze reizen mee van pagina naar pagina; elke pagina
+leest ze via `_shared/settings.js`, en elke link tussen voorbeelden gaat via zijn `carry()`.
 
 Elke pagina staat in `lintje-shell`. De styleguide, het dashboard, de chat en de voorpagina
 laten de lezer de indeling kiezen: het menu naast de pagina (de standaard) of, met

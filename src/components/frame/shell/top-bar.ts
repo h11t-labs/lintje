@@ -259,6 +259,34 @@ export function renderView(shell: LintjeShell, view: ShellView): TemplateResult 
               </div>`
           : nothing
       }
+      ${
+        view.style
+          ? html`<p class="lintje-share__heading">Huisstijl</p>
+              <div class="lintje-view__row">
+                <div class="lintje-toggle-group" role="group" aria-label="Oude of nieuwe huisstijl">
+                  ${toggle('Oud', view.style === 'classic', () =>
+                    shell.changeView({ style: 'classic' }),
+                  )}
+                  ${toggle('Nieuw', view.style === 'new', () => shell.changeView({ style: 'new' }))}
+                </div>
+              </div>`
+          : nothing
+      }
+      ${
+        view.corner
+          ? html`<p class="lintje-share__heading">Hoek</p>
+              <div class="lintje-view__row">
+                <div class="lintje-toggle-group" role="group" aria-label="Hoek van de band">
+                  ${toggle('Recht', view.corner === 'square', () =>
+                    shell.changeView({ corner: 'square' }),
+                  )}
+                  ${toggle('Rond', view.corner === 'round', () =>
+                    shell.changeView({ corner: 'round' }),
+                  )}
+                </div>
+              </div>`
+          : nothing
+      }
       ${renderThemes(shell, view)}
     </div>
   `

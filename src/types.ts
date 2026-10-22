@@ -710,6 +710,14 @@ export interface ShellView {
   themes?: { value: string; label: string }[]
   /** The theme that stands now: one of `themes`. Without it the first is marked. */
   theme?: string
+  /** The house style the page follows, when the host lets the reader choose: `classic` is the
+   * menu filled in the theme's colour with square corners, `new` the light menu with the
+   * rounded corner. The host draws it (`nav-tone`, `--lintje-radius-corner`). */
+  style?: 'classic' | 'new'
+  /** The corner of the band at the page's head, when the host lets the reader choose: `round`
+   * is the house style's one rounded corner, `square` none. The host draws it
+   * (`--lintje-radius-corner`). */
+  corner?: 'square' | 'round'
 }
 
 /** What the reader changed in "Weergave" or with the pin: one key per `lintje-view-change`. */
@@ -717,6 +725,8 @@ export interface ShellViewChange {
   mode?: ModeSetting
   layout?: 'side' | 'top'
   theme?: string
+  style?: 'classic' | 'new'
+  corner?: 'square' | 'round'
   menu?: 'pinned' | 'unpinned'
 }
 

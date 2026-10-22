@@ -130,6 +130,7 @@
       function render() {
         root.dataset.mode = settings.modeOf(location.search)
         root.dataset.theme = theme()
+        settings.applyStyle(shell)
 
         // Real addresses: the browser follows an entry by itself, with the settings behind it.
         const page = ({ label, icon, href }) => ({ label, icon, href: carry(href) })

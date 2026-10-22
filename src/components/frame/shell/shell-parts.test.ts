@@ -509,6 +509,31 @@ describe('what "Weergave" offers when the host lets the reader choose', () => {
     ])
   })
 
+  it('presses the house style the host draws, and sends the other one', async () => {
+    const fresh = await view(await mount({ view: { ...VIEW, style: 'new' } }))
+    expect(groups(fresh)).toEqual(['Licht of donker', 'Huisstijl'])
+    expect(option(fresh, 'Nieuw').getAttribute('aria-pressed')).toBe('true')
+    expect(option(fresh, 'Oud').getAttribute('aria-pressed')).toBe('false')
+    expect(await changesAfter(fresh, () => option(fresh, 'Oud').click())).toEqual([
+      { style: 'classic' },
+    ])
+
+    const classic = await view(await mount({ view: { ...VIEW, style: 'classic' } }))
+    expect(option(classic, 'Oud').getAttribute('aria-pressed')).toBe('true')
+    expect(await changesAfter(classic, () => option(classic, 'Nieuw').click())).toEqual([
+      { style: 'new' },
+    ])
+  })
+
+  it('presses the corner the host draws, and sends the other one', async () => {
+    const round = await view(await mount({ view: { ...VIEW, corner: 'round' } }))
+    expect(groups(round)).toEqual(['Licht of donker', 'Hoek'])
+    expect(option(round, 'Rond').getAttribute('aria-pressed')).toBe('true')
+    expect(await changesAfter(round, () => option(round, 'Recht').click())).toEqual([
+      { corner: 'square' },
+    ])
+  })
+
   it('offers the themes as one radio group, the chosen one checked, and sends a choice', async () => {
     const shell = await view(
       await mount({ view: { ...VIEW, themes: THEMES, theme: 'marechaussee' } }),

@@ -5,7 +5,7 @@
  * fictional. The reader's favourites stand in localStorage, where a real application would ask
  * its server.
  */
-import { THEMES, answerLogout, carry, emblem, modeOf, searchWith, shellSettingsOf, themeOf } from '../_shared/settings.js'
+import { THEMES, answerLogout, applyStyle, carry, emblem, modeOf, searchWith, shellSettingsOf, themeOf } from '../_shared/settings.js'
 
 let params = new URLSearchParams(location.search)
 const root = document.documentElement
@@ -15,6 +15,7 @@ const organisation = () => (params.has('theme') ? themeOf(location.search) : 'ri
 function applySettings() {
   root.dataset.mode = modeOf(location.search)
   root.dataset.theme = params.has('theme') ? themeOf(location.search) : 'catalogus'
+  applyStyle(document.getElementById('shell'))
 }
 applySettings()
 
