@@ -26,6 +26,18 @@ export const TONE_ICON: Partial<Record<Tone, string>> = {
   info: 'functioneel-info',
 }
 
+/**
+ * The same glyphs in the house style's coloured form, for a status block (a message, a toast, the
+ * summary of a form): the shape in the status colour with the glyph white.
+ */
+export const TONE_ICON_COLOURED: Partial<Record<Tone, string>> = {
+  success: 'functioneel-cirkel-vinkje-gekleurd',
+  warning: 'functioneel-waarschuwing-gekleurd',
+  attention: 'functioneel-waarschuwing-gekleurd',
+  error: 'functioneel-foutmelding-gekleurd',
+  info: 'functioneel-info-gekleurd',
+}
+
 /** The word a tone stands for when an element has nothing more specific to say. */
 export const TONE_WORD: Record<Tone, string> = {
   neutral: 'onbekend',

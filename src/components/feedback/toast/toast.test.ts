@@ -66,10 +66,10 @@ describe('lintje-toast', () => {
   })
 
   it.each([
-    ['ok', 'functioneel-cirkel-vinkje'],
-    ['error', 'functioneel-foutmelding'],
-    ['info', 'functioneel-info'],
-    ['warning', 'functioneel-waarschuwing'],
+    ['ok', 'functioneel-cirkel-vinkje-gekleurd'],
+    ['error', 'functioneel-foutmelding-gekleurd'],
+    ['info', 'functioneel-info-gekleurd'],
+    ['warning', 'functioneel-waarschuwing-gekleurd'],
   ] as const)('draws the shared glyph for %s', async (kind, icon) => {
     const { toast } = await mount(undefined, kind)
     toast.filled = true

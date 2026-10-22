@@ -560,10 +560,11 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een melding kiest haar marge naar haar eigen breedte**, op dezelfde grens als haar actie:
   smal is ze krap, breed ruim. De host kiest geen compacte vorm.
 - **Wat vanzelf verdwijnt, is een toast; wat bij een veld hoort, is de foutregel van het veld.**
-- **Een statusbericht draagt het eigen teken van de set voor zijn soort**, los op de tint in de
-  lijnkleur van de status, met in diezelfde kleur de balk links van de huisstijl: een driehoek
-  voor een waarschuwing, een cirkel met een kruis voor een storing of mislukking, het vierkant
-  met *i* voor info en de cirkel met een vinkje voor ok. Een
+- **Een statusbericht draagt het gekleurde teken van de huisstijl voor zijn soort**: de vorm
+  gevuld in de lijnkleur van de status met het teken erin wit, op de tint, met in diezelfde
+  kleur de balk links: een driehoek voor een waarschuwing, een cirkel met een kruis voor een
+  storing of mislukking, het vierkant met *i* voor info en de cirkel met een vinkje voor ok.
+  Elders (een badge, een kaart, een regel) blijft het teken in één kleur. Een
   titel staat op een eigen regel naast het teken, de tekst eronder. Alleen de foutregel van een
   veld houdt de driehoek; de foutsamenvatting van een formulier en een geweigerd bestand nemen het
   teken en de tint van de toon fout, zoals elk statusblok.

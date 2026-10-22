@@ -126,7 +126,13 @@ export type { ButtonSize, ButtonVariant } from './actions/button/button'
 export { LintjeIconButton } from './actions/icon-button/icon-button'
 export type { IconButtonVariant } from './actions/icon-button/icon-button'
 export { LintjeStatusDot, STATUS_LABEL } from './feedback/status-dot/status-dot'
-export { TONE_ICON, TONE_WORD, WORK_STATE_LABEL, WORK_STATE_TONE } from './shared/tone'
+export {
+  TONE_ICON,
+  TONE_ICON_COLOURED,
+  TONE_WORD,
+  WORK_STATE_LABEL,
+  WORK_STATE_TONE,
+} from './shared/tone'
 export { OTHER_MISSING_TEXT } from './shared/other'
 export type { ContentStateKind, Tone, WorkState } from './shared/tone'
 export { LintjeSkeleton } from './feedback/skeleton/skeleton'
