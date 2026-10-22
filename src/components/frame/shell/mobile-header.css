@@ -21,12 +21,18 @@
   overflow-x: clip;
 }
 :where(.lintje-shell.is-phone) .lintje-mobile-header { display: flex; }
-/* On the theme fill the ring is the on-theme one, as in the desktop menu. */
-.lintje-mobile-header :focus-visible,
-.lintje-mobile-menu :focus-visible { outline-color: var(--color-focus-on-theme); }
+/* On the theme fill the ring is the inverse one, as in the desktop menu, by the inherited hooks. */
+.lintje-mobile-header,
+.lintje-mobile-menu {
+  --lintje-focus: var(--color-focus-on-theme);
+  --lintje-focus-inner: var(--color-focus-on-theme-inner);
+}
 /* "Weergave" and "Delen" open from this header as sheets on the page's surface: standard ring. */
-.lintje-mobile-header .lintje-view__popover :focus-visible,
-.lintje-mobile-header .lintje-share__popover :focus-visible { outline-color: var(--color-focus); }
+.lintje-mobile-header .lintje-view__popover,
+.lintje-mobile-header .lintje-share__popover {
+  --lintje-focus: var(--color-focus);
+  --lintje-focus-inner: var(--color-focus-inner);
+}
 
 .lintje-mobile-header__actions { margin-top: var(--space-3); display: flex; gap: var(--space-2); }
 .lintje-mobile-header__button {

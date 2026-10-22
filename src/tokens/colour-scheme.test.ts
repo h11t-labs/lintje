@@ -709,11 +709,12 @@ describe('contrast', () => {
       expect(dark['--primary-hover']).toBe(mix(dark['--primary'], 0.88))
       expect(dark['--color-action-primary-hover']).toBe(dark['--primary-hover'])
       expect(dark['--color-link-hover']).toBe(dark['--neutral-6'])
-      // Dark keeps the house orange: the deep one is 2.6:1 on the dark warning tint.
-      expect(dark['--color-focus']).toBe('#E17000')
+      // The ring turns in dark: white with the dark line inside.
+      expect(dark['--color-focus']).toBe('#FFFFFF')
+      expect(dark['--color-focus-inner']).toBe('#0F172A')
     })
 
-    it(`rings focus in ${theme} at 3:1 on every surface it stands on, the lightest orange that does`, () => {
+    it(`rings focus in ${theme} at 3:1 on every surface it stands on, the inner line opposite`, () => {
       const surfaces = [
         '--neutral-0',
         '--neutral-1',
@@ -725,8 +726,6 @@ describe('contrast', () => {
         '--color-hero-bg',
         ...['success', 'warning', 'attention', 'error', 'info'].map((name) => `--color-${name}-bg`),
       ]
-      const reaches = (values: Record<string, string>, ring: string) =>
-        surfaces.every((surface) => contrast(ring, values[surface]) >= 3.0)
       for (const mode of ['light', 'dark'] as const) {
         const values = tokensFor(mode, theme)
         for (const surface of surfaces) {
@@ -735,16 +734,15 @@ describe('contrast', () => {
             `${mode}: ring on ${surface}`,
           ).toBeGreaterThanOrEqual(3.0)
         }
+        // The line inside the ring is the opposite ink, so the ring reads on any fill too.
+        expect(
+          contrast(values['--color-focus'], values['--color-focus-inner']),
+          `${mode}: inner line`,
+        ).toBeGreaterThanOrEqual(3.0)
       }
-      // In light the ring is the house orange with the smallest whole share of black that
-      // reaches 3:1 on every theme's light surfaces.
-      const lights = THEME_NAMES.map((name) => tokensFor('light', name))
-      const share = [...Array(101).keys()].find((n) =>
-        lights.every((values) => reaches(values, mix('#E17000', 1 - n / 100, '#000000'))),
-      )
-      expect(tokensFor('light', theme)['--color-focus']).toBe(
-        mix('#E17000', 1 - share! / 100, '#000000'),
-      )
+      // The house style's ring: ink in light, white in dark.
+      expect(tokensFor('light', theme)['--color-focus']).toBe('#0F172A')
+      expect(tokensFor('light', theme)['--color-focus-inner']).toBe('#FFFFFF')
     })
 
     it(`writes ${theme}'s environment label in ink or white, whichever reaches 4.5:1`, () => {
@@ -759,17 +757,19 @@ describe('contrast', () => {
     })
 
     it(`draws ${theme}'s focus ring on the theme fill at 3:1`, () => {
-      // Orange is 1.89:1 on the rijksoverheid menu and 1:1 on Defensie's: on the
-      // theme fill the ring is white in light. In dark the menu is neutral-1, and
-      // the ring there is the orange of every other surface.
+      // Ink is under 3:1 on every primary: on the theme fill the ring is the house style's
+      // inverse, white with the dark line inside. In dark the menu is neutral-1, and the ring
+      // there is that of every other surface.
       const light = tokensFor('light', theme)
       const dark = tokensFor('dark', theme)
       expect(light['--color-nav-bg']).toBe(light['--primary'])
       expect(light['--color-focus-on-theme']).toBe('#FFFFFF')
+      expect(light['--color-focus-on-theme-inner']).toBe('#0F172A')
       expect(
         contrast(light['--color-focus-on-theme'], light['--color-nav-bg']),
       ).toBeGreaterThanOrEqual(3.0)
       expect(dark['--color-focus-on-theme']).toBe(dark['--color-focus'])
+      expect(dark['--color-focus-on-theme-inner']).toBe(dark['--color-focus-inner'])
       expect(
         contrast(dark['--color-focus-on-theme'], dark['--color-nav-bg']),
       ).toBeGreaterThanOrEqual(3.0)

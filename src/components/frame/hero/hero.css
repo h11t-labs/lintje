@@ -85,11 +85,12 @@
   border-top-right-radius: var(--lintje-radius-corner, var(--radius-corner));
   box-shadow: inset 0 -1px 0 var(--color-action-primary-border);
 }
-/* The band's ring and the trail's ink reach what stands on the band's ink by inheritance: a token
-   set on a slotted element loses to the dark re-declaration in that element's own root. Only the
-   text column: a panel or a picture beside it brings its own surface and keeps the usual ring. */
+/* The band's inverse ring and the trail's ink reach what stands on the band's ink by inheritance:
+   a token set on a slotted element loses to the dark re-declaration in that element's own root.
+   Only the text column: a panel or a picture beside it brings its own surface and ring. */
 .lintje-hero--primary .lintje-hero__body {
   --lintje-focus: var(--color-hero-primary-focus);
+  --lintje-focus-inner: var(--color-hero-primary-focus-inner);
   --lintje-breadcrumbs-ink: var(--color-hero-primary-text);
 }
 

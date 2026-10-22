@@ -148,5 +148,6 @@ niet.
 
 WCAG AA is de ondergrens, ook waar het ontwerp iets anders suggereert: houd de identiteit, maak
 de kleinste correctie en leg die vast in `DESIGN_SYSTEM.md` onder Toegankelijkheid. Focus is
-altijd `--color-focus`, 3 px, nooit geanimeerd. Elke grafiek krijgt een `<desc>`, elke tabel een
+altijd de ring van de huisstijl: `--color-focus`, 2 px, met de binnenlijn `--color-focus-inner`,
+nooit geanimeerd. Elke grafiek krijgt een `<desc>`, elke tabel een
 `<caption>`.

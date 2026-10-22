@@ -10,7 +10,10 @@
   /* The host's one corner, bottom left: the mirror of the band's corner at the page's head. */
   border-bottom-left-radius: var(--lintje-radius-corner, var(--radius-corner));
 }
-.lintje-footer :focus-visible { outline-color: var(--color-footer-focus); }
+.lintje-footer {
+  --lintje-focus: var(--color-footer-focus);
+  --lintje-focus-inner: var(--color-footer-focus-inner);
+}
 
 /* The text keeps to the content column, as the bars above the page do. */
 .lintje-footer__inner {
@@ -64,7 +67,10 @@
   color: var(--color-footer-compact-text);
   border-bottom-left-radius: 0;
 }
-.lintje-footer--compact :focus-visible { outline-color: var(--color-focus); }
+.lintje-footer--compact {
+  --lintje-focus: var(--color-focus);
+  --lintje-focus-inner: var(--color-focus-inner);
+}
 .lintje-footer--compact .lintje-footer__inner {
   flex-direction: row;
   flex-wrap: wrap;

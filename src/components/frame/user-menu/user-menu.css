@@ -129,9 +129,12 @@
 .lintje-user-menu__panel.is-inline .lintje-menu__row.is-disabled .lintje-menu__hint { color: var(--color-nav-disabled); }
 .lintje-user-menu__panel.is-inline .lintje-menu__separator { background: var(--color-nav-line); }
 
-/* On the theme fill the orange ring disappears: the on-theme ring, as the side menu. */
-.lintje-user-menu__trigger:focus-visible,
-.lintje-user-menu__panel.is-inline :focus-visible { outline-color: var(--color-focus-on-theme); }
+/* On the theme fill the ring is the inverse one, as the side menu, by the inherited hooks. */
+.lintje-user-menu__trigger,
+.lintje-user-menu__panel.is-inline {
+  --lintje-focus: var(--color-focus-on-theme);
+  --lintje-focus-inner: var(--color-focus-on-theme-inner);
+}
 
 /* Forced colours: the open button keeps a Highlight edge. */
 @media (forced-colors: active) {

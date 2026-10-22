@@ -102,7 +102,7 @@ describe('the map', () => {
     await keyboardFocus(container)
     // A layer over the panes, inside the map: an outline would lie under them.
     await expect.poll(() => getComputedStyle(container, '::after').borderTopStyle).toBe('solid')
-    expect(getComputedStyle(container, '::after').borderTopWidth).toBe('3px')
+    expect(getComputedStyle(container, '::after').borderTopWidth).toBe('2px')
     expect(getComputedStyle(container, '::after').zIndex).toBe('1000')
   })
 
@@ -117,7 +117,7 @@ describe('the map', () => {
     const ring = copy(element)!.querySelector('.lintje-map-chart__point-ring')!
     expect(paintsOver(ring, mark(element, 'utr-2'))).toBe(true)
     expect(getComputedStyle(ring).stroke).toBe(resolved(element, '--color-focus'))
-    expect(getComputedStyle(ring).strokeWidth).toBe('8px')
+    expect(getComputedStyle(ring).strokeWidth).toBe('6px')
     // The copy is only drawn: no button, no stop, nothing a reader hears.
     expect(copy(element)!.hasAttribute('tabindex')).toBe(false)
     expect(copy(element)!.hasAttribute('data-mark-id')).toBe(false)
@@ -214,8 +214,8 @@ describe('a stacked map', () => {
     const element = await stacked()
     await keyboardFocus(mark(element, 'zone'))
     const ring = mark(element, 'zone').querySelector('.lintje-map-chart__polygon-ring')!
-    // 3 px outside the 1 px gap the shape's edge leaves in the surface: 2 × 3 + 2.
-    await expect.poll(() => getComputedStyle(ring).strokeWidth).toBe('8px')
+    // 2 px outside the 1 px gap the shape's edge leaves in the surface: 2 × 2 + 2.
+    await expect.poll(() => getComputedStyle(ring).strokeWidth).toBe('6px')
     expect(getComputedStyle(ring).stroke).not.toBe('none')
     expect(getComputedStyle(mark(element, 'zone')).outlineStyle).toBe('none')
   })
@@ -255,7 +255,7 @@ describe('a stacked map', () => {
     // Nothing drawn after the copy: the east zone and every other mark lie under it.
     expect(paintsOver(ring, mark(element, 'east'))).toBe(true)
     expect(getComputedStyle(ring).stroke).toBe(resolved(element, '--color-focus'))
-    expect(getComputedStyle(ring).strokeWidth).toBe('8px')
+    expect(getComputedStyle(ring).strokeWidth).toBe('6px')
     expect(root(element).activeElement).toBe(west)
   })
 
@@ -280,7 +280,7 @@ describe('the map on a basemap', () => {
     await keyboardFocus(container)
     // A layer over the panes, inside the map: an outline would lie under them.
     await expect.poll(() => getComputedStyle(container, '::after').borderTopStyle).toBe('solid')
-    expect(getComputedStyle(container, '::after').borderTopWidth).toBe('3px')
+    expect(getComputedStyle(container, '::after').borderTopWidth).toBe('2px')
     expect(getComputedStyle(container, '::after').zIndex).toBe('1000')
   })
 
@@ -298,7 +298,7 @@ describe('the map on a basemap', () => {
     await expect.poll(() => getComputedStyle(flow).opacity).toBe('1')
   })
 
-  it('rings a focused flow of the smallest width 3 px outside a 1 px gap, in its own colour', async () => {
+  it('rings a focused flow of the smallest width 2 px outside a 1 px gap, in its own colour', async () => {
     const element = await mount({
       basemap: BASEMAP,
       variant: 'flows',
@@ -311,8 +311,8 @@ describe('the map on a basemap', () => {
     const line = flow.querySelector('.lintje-map-chart__flow-line')!
     const ring = flow.querySelector('.lintje-map-chart__flow-ring')!
     const gap = flow.querySelector('.lintje-map-chart__flow-gap')!
-    await expect.poll(() => getComputedStyle(ring).strokeWidth).toBe('9px')
-    // A line of 1 px, a gap of 1 px either side, and 3 px of ring outside that.
+    await expect.poll(() => getComputedStyle(ring).strokeWidth).toBe('7px')
+    // A line of 1 px, a gap of 1 px either side, and 2 px of ring outside that.
     expect(getComputedStyle(line).strokeWidth).toBe('1px')
     expect(getComputedStyle(gap).strokeWidth).toBe('3px')
     expect(getComputedStyle(ring).stroke).toBe(resolved(element, '--color-focus'))

@@ -60,7 +60,7 @@ const PAGES = {
         id: 'action',
         label: 'Actie en accent',
         note: 'Uit het thema. In donker splitst het accent in een vlak, een lijn (3:1) en een woord (4.5:1).',
-        claims: by(/^--color-(action-|link|accent|focus$)/),
+        claims: by(/^--color-(action-|link|accent|focus(-inner)?$)/),
       },
       {
         id: 'status',

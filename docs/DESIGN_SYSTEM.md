@@ -206,7 +206,8 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
 - Categorische kleuren alleen als de variabelen echt verschillende dingen zijn.
 - **De sprekers van een opname zijn categorisch**: ze nemen hemelblauw, donkergeel, roze,
   mintgroen, violet en groen in volgorde van eerste optreden, daarna het grijs van "overig".
-  Oranje valt af: dat is de focusring. Een spreker wordt altijd naast de kleur genoemd.
+  Oranje valt af: dat is het accent en de aandachtsstatus. Een spreker wordt altijd naast de
+  kleur genoemd.
   Het rondje van een spreker deelt zijn kleur met de golfvorm en het transcript.
 
 ### Status en destructieve actie
@@ -217,7 +218,7 @@ in beide modi 3:1 haalt. Een actie die niet ongedaan kan worden, neemt de **fout
 primaire kleur**. De kleur is de waarschuwing, niet de instemming: de actie vraagt nog steeds om
 bevestiging in een dialoog.
 
-De focusring heeft een eigen token en volgt noch het accent noch een status.
+De focusring heeft eigen tokens en volgt noch het accent noch een status.
 
 ## Typografie
 
@@ -1187,10 +1188,14 @@ WCAG AA is de ondergrens, ook waar de huisstijl anders suggereert: houd de ident
 kleinste correctie, en leg die hier vast.
 
 - Eerst semantische HTML: `nav`, `main`, `table` met `th` en `scope`, `dl` voor definities.
-- **Focus is `--color-focus`, `--focus-width` breed, buiten de rand** — binnen (`focus-inset`)
-  alleen waar buiten zou worden afgesneden. In licht is de ring een donkerder oranje, dat op elke
-  lichte ondergrond 3:1 haalt; in donker is hij het oranje van de huisstijl. Op de eigen vulling
-  van het thema (het menu in licht) is de ring wit.
+- **Focus is de ring van de huisstijl**: een lijn van `--focus-width` in `--color-focus` op
+  `--focus-offset` buiten de rand, met in die tussenruimte een lijn in de tegengestelde inkt
+  (`--color-focus-inner`), zodat de ring op elke ondergrond leest; binnen (`focus-inset`) alleen
+  waar buiten zou worden afgesneden, de lichte lijn dan aan de rand. In licht is de ring
+  bijna-zwart met wit erin, in donker wit met bijna-zwart erin. Op de eigen vulling van het thema
+  (het menu, de band van een hero) is het de inverse ring: wit met de donkere lijn erin. Een vlak
+  dat een andere ring draagt, zet `--lintje-focus` en `--lintje-focus-inner`, die overerven in
+  alles wat erop staat.
 - **Een veld is verplicht tenzij het anders zegt**: de optionele zijn gemarkeerd, "(niet
   verplicht)", binnen het label. Geen sterretje.
 - **Eén `h1` per pagina**: de naam van de shell, ook onder 768 px. Een paginatitel is een `h2`,
@@ -1332,8 +1337,7 @@ de statuskleur bijgesteld naar 3:1 op haar eigen tint; de tekstkleur van een sta
 (`--color-error-text`, `--color-success-text`), bijgesteld naar 4.5:1 — lichter in donker, het
 groen ook donkerder in licht; de eigen tekstkleur van donkergeel; de donkere rand van een lichte
 datakleur als lijn of teken; tekst op de sequentiële reeks
-vast op bijna-zwart of wit in beide modi; het oranje van de focusring is in licht donkerder, zodat
-het op elke lichte ondergrond 3:1 haalt; de tekst van het omgevingslabel is bijna-zwart waar wit
+vast op bijna-zwart of wit in beide modi; de tekst van het omgevingslabel is bijna-zwart waar wit
 op het accent geen 4.5:1 haalt; geel is nooit een lijn of tekst: een los teken in de
 toon "let op" neemt de lijnkleur van "aandacht", en een gele vulling staat alleen naast een woord.
 
@@ -1342,8 +1346,7 @@ glyph, een getal of een woord.
 
 - De datakleuren rood, violet, donkergroen, paars, robijnrood, donkerbruin en donkerblauw halen
   geen 3:1 op het donkere oppervlak, paars daar nagenoeg niet zichtbaar.
-- In het thema `defensie` haalt de lijn onder een herkende term geen 3:1 in licht, en is ze in
-  donker hetzelfde oranje als de focusring.
+- In het thema `defensie` haalt de lijn onder een herkende term geen 3:1 in licht.
 - De omlijning van een zwevende sheet in donker haalt geen 3:1.
 - In het thema `defensie` haalt alles wat in `--primary` tekent geen AA: witte tekst op het
   oranje van het menu en de footer is 3.2:1, onder de 4.5:1 die WCAG voor gewone tekst vraagt, en

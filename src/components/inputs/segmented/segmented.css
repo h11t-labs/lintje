@@ -45,6 +45,9 @@
 }
 /* A focused option lies over the chosen one, so its ring stays whole on all four sides. */
 .lintje-segmented__option:focus-visible { position: relative; z-index: 2; }
+.lintje-segmented__option.is-active:focus-visible {
+  box-shadow: 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)), 0 0 0 1px var(--color-accent-line), inset 0 0 0 1px var(--color-accent-line);
+}
 .lintje-segmented__option:disabled.is-active {
   background: var(--color-border-strong);
   color: var(--color-text-disabled);

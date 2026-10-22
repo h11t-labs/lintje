@@ -20,7 +20,10 @@
 }
 .lintje-language-nav__button:hover { color: var(--lintje-language-nav-ink, var(--color-link-hover)); }
 /* The list stands on the page's surface, whatever the bar's ring: the standard ring. */
-.lintje-language-nav .lintje-menu :focus-visible { outline-color: var(--color-focus); }
+.lintje-language-nav .lintje-menu {
+  --lintje-focus: var(--color-focus);
+  --lintje-focus-inner: var(--color-focus-inner);
+}
 .lintje-language-nav__chevron {
   flex: none;
   transition: transform var(--dur-hover) var(--ease-in-motion);

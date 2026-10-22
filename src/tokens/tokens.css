@@ -38,13 +38,6 @@
   --alpha-white-45: rgba(255, 255, 255, 0.45);
   --alpha-white-16: rgba(255, 255, 255, 0.16);
 
-  /* --- Focus -------------------------------------------------------------
-     Its own constant: it must not move with the accent or the attention status. The orange is
-     3.22:1 on white and falls short on the light grey surfaces and the status tints; the deep
-     orange is the smallest share of black that reaches 3:1 on all of them. */
-  --focus-orange: #E17000;
-  --focus-orange-deep: color-mix(in srgb, var(--focus-orange), black 9%);
-
   /* --- The ribbon --------------------------------------------------------
      Lintblauw, and the Rijkshuisstijl's own lighter tint for the ribbon in the logo in dark. */
   --ribbon-blue: #154273;
@@ -411,7 +404,9 @@
   --color-overlay-page: var(--alpha-slate-80);
   --color-overlay-nav: var(--alpha-black-16);
 
-  --focus-width: 3px;
+  /* The house style's ring: a 2 px line at 2 px from the box, the gap filled by a line in the
+     opposite ink, so the ring reads on every surface. */
+  --focus-width: 2px;
   --focus-offset: 2px;
 
   /* --- Motion ------------------------------------------------------------ */
@@ -540,7 +535,10 @@
   --color-accent-line: var(--primary);
   --color-accent-text: var(--primary);
 
-  --color-focus: var(--focus-orange-deep);
+  /* The focus ring: the house style's dark line with a white line inside it; dark turns both.
+     Its own tokens: they follow neither the accent nor a status. */
+  --color-focus: var(--ink-black);
+  --color-focus-inner: var(--ink-white);
 
   /* --- Semantic: status -------------------------------------------------- */
   --color-attention: var(--status-attention);
@@ -582,9 +580,10 @@
   /* The avatar is white with black initials wherever it stands, in both modes. */
   --color-nav-avatar-bg: var(--ink-white);
   --color-nav-avatar-text: var(--ink-black);
-  /* Orange fails on the theme fill (1.89:1 on #01689B, 1:1 on #E17000); white reaches 3:1 on
-     all six primaries. Dark re-points it to the orange. */
+  /* On the theme's fill the ring is the house style's inverse: white with the dark line inside;
+     white reaches 3:1 on all six primaries. Dark re-points both to the standard ring. */
   --color-focus-on-theme: var(--ink-white);
+  --color-focus-on-theme-inner: var(--ink-black);
   /* The theme's ACCENT, not the attention status: on `defensie` the menu is `#E17000` and the
      status colour made the band disappear. `--accent` is document level only. */
   --color-nav-environment-bg: var(--accent);
@@ -636,15 +635,17 @@
   /* The band as the page's head (`tone="primary"`): the primary itself, with the one corner of
      the house style. Its word is white, or ink where white falls under 4.5:1 on a light primary
      (Defensie's orange), as the environment label decides: ink above lightness 0.6. The ring is
-     white, which reaches 3:1 on every primary. */
+     the inverse one: white, which reaches 3:1 on every primary, with the dark line inside. */
   --color-hero-primary-bg: var(--primary);
   --color-hero-primary-text: oklch(from var(--primary) clamp(0.208, (0.6 - l) * 1000, 1) clamp(0, (l - 0.6) * 1000, 0.04) 265.8);
   --color-hero-primary-focus: var(--ink-white);
+  --color-hero-primary-focus-inner: var(--ink-black);
   /* The site's foot stands on the menu's own fill, as on rijksoverheid.nl; in dark it follows the menu. */
   --color-footer-bg: var(--color-nav-bg);
   --color-footer-text: var(--color-nav-text);
   --color-footer-line: var(--color-nav-line);
   --color-footer-focus: var(--color-focus-on-theme);
+  --color-footer-focus-inner: var(--color-focus-on-theme-inner);
   /* The compact foot of a form or a task page: the subtle surface, the page's own text and links. */
   --color-footer-compact-bg: var(--color-bg-subtle);
   --color-footer-compact-text: var(--color-text-primary);
@@ -933,11 +934,12 @@
     --color-border-popover: var(--neutral-3);
     --color-nav-line: var(--neutral-2);
     --color-nav-disabled: var(--neutral-4);
-    /* The deep orange falls under 3:1 on the dark warning tint; the house orange reaches 3.3:1 on
-       every dark surface. */
-    --color-focus: var(--focus-orange);
-    /* The menu is neutral here, so its ring is the orange of every other surface. */
+    /* The inverse ring of the house style: white with the dark line inside. */
+    --color-focus: var(--ink-white);
+    --color-focus-inner: var(--ink-black);
+    /* The menu is neutral here, so its ring is that of every other surface. */
     --color-focus-on-theme: var(--color-focus);
+    --color-focus-on-theme-inner: var(--color-focus-inner);
 
     /* A term's box is the subtle surface: behind a word on #282828 the dark wash would be a hole. */
     --color-term-bg: var(--neutral-2);

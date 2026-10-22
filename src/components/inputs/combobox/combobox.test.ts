@@ -211,7 +211,7 @@ describe('the option the keys stand on', () => {
     // Read from disk: vitest does not run the CSS pipeline, so an `?inline` import is empty.
     const css = readFileSync('src/components/inputs/combobox/combobox.css', 'utf8')
     expect(css).toMatch(
-      /__option\.is-active \{\s*outline: var\(--focus-width\) solid var\(--color-focus\);\s*outline-offset: calc\(var\(--focus-width\) \* -1\);/,
+      /__option\.is-active \{\s*outline: var\(--focus-width\) solid var\(--color-focus\);\s*outline-offset: calc\(-1 \* \(var\(--focus-width\) \+ var\(--focus-offset\)\)\);/,
     )
   })
 })

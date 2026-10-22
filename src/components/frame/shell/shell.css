@@ -52,6 +52,7 @@
   --color-nav-avatar-bg: var(--color-nav-light-avatar-bg);
   --color-nav-avatar-text: var(--color-nav-light-avatar-text);
   --color-focus-on-theme: var(--color-focus);
+  --color-focus-on-theme-inner: var(--color-focus-inner);
 }
 :host([nav-tone='light']) .lintje-navbar,
 :host([nav-tone='light']) .lintje-navbar * {
@@ -246,6 +247,7 @@
 .lintje-mobile-header__actions > slot[name='end'] {
   --lintje-language-nav-ink: var(--color-nav-text);
   --lintje-focus: var(--color-focus-on-theme);
+  --lintje-focus-inner: var(--color-focus-on-theme-inner);
 }
 
 /* The panels hang from the bar, not the tool. They stand on the page's surface: standard ring. */
@@ -256,8 +258,11 @@
   top: 100%;
   right: calc(var(--space-3) + var(--page-gutter));
 }
-.lintje-navbar .lintje-view__popover :focus-visible,
-.lintje-navbar .lintje-share__popover :focus-visible { outline-color: var(--color-focus); }
+.lintje-navbar .lintje-view__popover,
+.lintje-navbar .lintje-share__popover {
+  --lintje-focus: var(--color-focus);
+  --lintje-focus-inner: var(--color-focus-inner);
+}
 
 .lintje-shell__sheet-user { border-top: 1px solid var(--color-nav-line); }
 
@@ -288,6 +293,5 @@
 }
 
 @media (forced-colors: active) {
-  .lintje-navbar .lintje-view__popover :focus-visible,
-  .lintje-navbar .lintje-share__popover :focus-visible { outline-color: Highlight; }
+  .lintje-navbar :focus-visible { outline-color: Highlight; }
 }

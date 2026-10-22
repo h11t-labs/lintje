@@ -85,6 +85,9 @@
   color: var(--color-action-primary-text);
   box-shadow: inset 0 0 0 1px var(--color-action-primary-border);
 }
+.lintje-toggle-group__option.is-active:focus-visible {
+  box-shadow: 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)), inset 0 0 0 1px var(--color-action-primary-border);
+}
 
 /* The panels' side inset, the same as the filter sheet's. */
 .lintje-view__popover,
