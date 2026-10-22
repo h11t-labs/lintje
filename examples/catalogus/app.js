@@ -172,6 +172,7 @@ function renderShell() {
     },
     search: true,
     user: { name: 'J. de Vries', role: 'Analist', initials: 'JV' },
+    userMenu: [{ value: 'start', label: 'Lintje-startpagina' }],
   }
 }
 renderShell()
@@ -214,6 +215,11 @@ function searchFor(text) {
   search.groups = scored.length ? [{ label: 'Producten', items: scored.slice(0, 6).map(([item]) => result(item)) }] : []
 }
 search.groups = RECENT()
+// The start page opens the way this one looks.
+shell.addEventListener('lintje-action', (event) => {
+  if (event.target !== shell && event.target.localName !== 'lintje-user-menu') return
+  if (event.detail === 'start') location.href = carry('../')
+})
 shell.addEventListener('lintje-search-open', () => (search.open = true))
 search.addEventListener('lintje-open', () => (search.open = true))
 search.addEventListener('lintje-close', () => (search.open = false))

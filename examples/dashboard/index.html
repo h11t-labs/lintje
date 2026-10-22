@@ -53,8 +53,10 @@
   </head>
   <body>
     <!-- The shell holds the page: the menu beside it (or with `?layout=top` above it), the
-         filter bar edge to edge, and the content at the page's width. -->
-    <lintje-shell id="shell">
+         filter bar edge to edge, and the content at the page's width. `nav-tone="light"` draws
+         the menu as the house style's side navigation, on the surface; leave it out for the
+         filled menu in the theme's colour. -->
+    <lintje-shell id="shell" nav-tone="light">
       <!-- The filter bar pins itself under the top bar. -->
       <lintje-filter-bar id="filters" slot="full"></lintje-filter-bar>
       <!--

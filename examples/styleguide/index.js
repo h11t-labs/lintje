@@ -74,7 +74,6 @@ const root = document.documentElement
 const shell = document.getElementById('shell')
 answerLogout(shell)
 const pageHeader = document.getElementById('page-header')
-const band = document.getElementById('band')
 const crumbs = document.getElementById('crumbs')
 const host = document.getElementById('elements')
 const appSearch = document.getElementById('search')
@@ -178,7 +177,6 @@ function render({ keepScroll = false } = {}) {
   }
   if (foundation) {
     pageHeader.hidden = false
-    band.hidden = true
     pageHeader.data = { kicker: 'Lintje stijlgids', title: foundation.label, description: foundation.intro }
     crumbs.items = [{ label: 'Startpagina', href: carry('../') }, { label: FOUNDATION.heading }, { label: foundation.label }]
     // A token reads the mode and the theme itself: a new one draws nothing again.
@@ -186,16 +184,27 @@ function render({ keepScroll = false } = {}) {
     if (drawn === drawing) return
     drawn = drawing
     host.replaceChildren()
-    band.replaceChildren()
+    for (const part of pageHeader.querySelectorAll('[slot="meta"], [slot="tabs"]')) part.remove()
     renderFoundationPage(host, foundation, tokens)
     return
   }
   const heading = MENU.find((group) => group.items.includes(category)).heading
-  // An element's page draws its own head, in a band above the content; a category's is the
-  // page header.
-  pageHeader.hidden = Boolean(item)
-  band.hidden = !item
-  if (!item) {
+  // The page header names the page, a category or an element, with its facts and its parts:
+  // with a light menu it is the band in the primary colour.
+  pageHeader.hidden = false
+  if (item) {
+    pageHeader.data = {
+      kicker: 'Lintje stijlgids',
+      title: item.tag ?? item.title,
+      description: item.tag ? item.title : undefined,
+    }
+    crumbs.items = [
+      { label: 'Startpagina', href: carry('../') },
+      { label: heading },
+      { label: category.label, href: addressOf({ category }) },
+      { label: nameOf(item) },
+    ]
+  } else {
     pageHeader.data = { kicker: 'Lintje stijlgids', title: category.label, description: category.intro }
     // A heading has no page of its own: its crumb is text.
     crumbs.items = [{ label: 'Startpagina', href: carry('../') }, { label: heading }, { label: category.label }]
@@ -208,17 +217,11 @@ function render({ keepScroll = false } = {}) {
   drawn = drawing
   const scroll = window.scrollY
   host.replaceChildren()
-  band.replaceChildren()
+  for (const part of pageHeader.querySelectorAll('[slot="meta"], [slot="tabs"]')) part.remove()
   if (item) {
     const module = declarations.get(item.tag)?.module
     renderElementPage(host, item, {
-      band,
-      crumbs: [
-        { label: 'Startpagina', href: carry('../') },
-        { label: heading },
-        { label: category.label, href: addressOf({ category }) },
-        { label: nameOf(item) },
-      ],
+      head: pageHeader,
       source: module ? `${SOURCE}${module}` : undefined,
       declarations,
       types: dataTypes.types,
