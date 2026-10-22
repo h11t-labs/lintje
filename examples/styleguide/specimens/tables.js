@@ -598,47 +598,48 @@ function assigning(stage) {
   })
 }
 
-const ACTIVITY = [
+/** What happened to a report, the newest first: who did what. */
+const HISTORY = [
   {
     who: 'J. de Vries',
-    what: 'wijzigde de omschrijving',
+    title: 'wijzigde de omschrijving',
     when: 'vandaag om 10:42',
     at: '2026-10-04T10:42:00+02:00',
   },
   {
     who: 'Systeem',
-    what: 'rondde het transcriberen af',
+    title: 'rondde het transcriberen af',
     when: 'vandaag om 09:31',
     at: '2026-10-04T09:31:00+02:00',
   },
   {
     who: 'M. Jansen',
-    what: 'voegde 2 bijlagen toe',
+    title: 'voegde 2 bijlagen toe',
     when: 'gisteren om 16:05',
     at: '2026-10-03T16:05:00+02:00',
   },
   {
     who: 'M. Jansen',
-    what: 'maakte de melding aan',
+    title: 'maakte de melding aan',
     when: 'gisteren om 15:48',
     at: '2026-10-03T15:48:00+02:00',
   },
 ]
 
 /** The same history, with people: their circle before the name, "Systeem" on the same line. */
-const PEOPLE_ACTIVITY = [
-  { who: { ...PEOPLE.jv, role: undefined, href: '#el-activity-log' }, what: 'wees de aanvraag toe aan A. Bakker', when: 'vandaag om 10:42', at: '2026-10-04T10:42:00+02:00' },
-  { who: 'Systeem', what: 'stuurde de ontvangstbevestiging', when: 'vandaag om 09:31', at: '2026-10-04T09:31:00+02:00' },
-  { who: PEOPLE.sy, what: 'voegde een advies toe', when: 'gisteren om 16:05', at: '2026-10-03T16:05:00+02:00' },
-  { who: PEOPLE.ld, what: 'maakte de aanvraag aan', when: 'gisteren om 15:48', at: '2026-10-03T15:48:00+02:00' },
+const PEOPLE_HISTORY = [
+  { who: { ...PEOPLE.jv, role: undefined, href: '#el-timeline' }, title: 'wees de aanvraag toe aan A. Bakker', when: 'vandaag om 10:42', at: '2026-10-04T10:42:00+02:00' },
+  { who: 'Systeem', title: 'stuurde de ontvangstbevestiging', when: 'vandaag om 09:31', at: '2026-10-04T09:31:00+02:00' },
+  { who: PEOPLE.sy, title: 'voegde een advies toe', when: 'gisteren om 16:05', at: '2026-10-03T16:05:00+02:00' },
+  { who: PEOPLE.ld, title: 'maakte de aanvraag aan', when: 'gisteren om 15:48', at: '2026-10-03T15:48:00+02:00' },
 ]
 
-/** Twelve older entries, so "Toon eerdere" has something to show. */
-const LONG_ACTIVITY = [
-  ...ACTIVITY,
+/** Twelve older moments, so "Toon eerdere" has something to show. */
+const LONG_HISTORY = [
+  ...HISTORY,
   ...Array.from({ length: 12 }, (_, index) => ({
     who: index % 2 ? 'A. Bakker' : 'Systeem',
-    what: index % 2 ? 'bekeek de melding' : 'stuurde een herinnering',
+    title: index % 2 ? 'bekeek de melding' : 'stuurde een herinnering',
     when: `${30 - index} september 2026, 16:05`,
     at: `2026-09-${String(30 - index).padStart(2, '0')}T16:05:00+02:00`,
   })),
@@ -1509,39 +1510,6 @@ export default {
       ],
     },
     {
-      tag: 'lintje-activity-log',
-      title: 'Een tijdlijn van wat er met een item is gebeurd',
-      specimens: [
-        {
-          label: 'Rust',
-          note: 'Bij elke regel staat de tijd.',
-          html: '<lintje-activity-log heading="Geschiedenis"></lintje-activity-log>',
-          setup(stage) {
-            stage.querySelector('lintje-activity-log').entries = ACTIVITY
-          },
-        },
-        {
-          label: 'Lange geschiedenis',
-          note: 'Toon eerdere laat de oudere regels zien.',
-          html: '<lintje-activity-log heading="Geschiedenis"></lintje-activity-log>',
-          setup(stage) {
-            stage.querySelector('lintje-activity-log').entries = LONG_ACTIVITY
-          },
-        },
-        {
-          label: 'Met personen',
-          note:
-            'Een persoon heeft het rondje vóór de naam. "Systeem" is geen persoon: geen rondje, ' +
-            'wel dezelfde lijn.',
-          html: '<lintje-activity-log heading="Geschiedenis"></lintje-activity-log>',
-          setup(stage) {
-            stage.querySelector('lintje-activity-log').entries = PEOPLE_ACTIVITY
-            listen(stage)
-          },
-        },
-      ],
-    },
-    {
       tag: 'lintje-timeline',
       title: 'Momenten langs een rail: hoe iets in de tijd verliep',
       specimens: [
@@ -1629,6 +1597,35 @@ export default {
             const timeline = stage.querySelector('lintje-timeline')
             timeline.sides = ['U', 'Wij']
             timeline.moments = TIMELINE_YEAR
+          },
+        },
+        {
+          label: 'Een geschiedenis',
+          note:
+            'Wie deed wat, het nieuwste boven: de host geeft die volgorde. Bij elke regel staat ' +
+            'de tijd; de nieuwste staat in de accentlijn.',
+          html: '<lintje-timeline heading="Geschiedenis"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = HISTORY
+          },
+        },
+        {
+          label: 'Een lange geschiedenis',
+          note: '"Toon eerdere" onder de lijst laat er telkens tien meer zien.',
+          html: '<lintje-timeline heading="Geschiedenis" limit="4" step="10"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = LONG_HISTORY
+          },
+        },
+        {
+          label: 'Met personen',
+          note:
+            'Een persoon heeft het rondje vóór de naam. "Systeem" is geen persoon: geen rondje, ' +
+            'wel dezelfde lijn.',
+          html: '<lintje-timeline heading="Geschiedenis"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = PEOPLE_HISTORY
+            listen(stage)
           },
         },
         {

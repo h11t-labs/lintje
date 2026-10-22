@@ -454,12 +454,16 @@ export class LintjeTimeline extends LintjeElement {
     spine(lower)?.style.setProperty('height', `${Math.max(0, lastY - splitY)}px`)
   }
 
-  /** Shows `step` more, or the rest; the focus goes to the first moment that came in. */
+  /**
+   * Shows `step` more, or the rest. A button that stays keeps the focus; one that goes hands it
+   * to the first moment that came in.
+   */
   private async showEarlier(shown: { from: number; to: number; hidden: number }): Promise<void> {
     const newest = newestFirst(this.moments)
     const extra = this.step ? Math.min(this.step, shown.hidden) : shown.hidden
     this.more += extra
     await this.updateComplete
+    if (this.renderRoot.querySelector('.lintje-timeline__more')) return
     const first = newest ? shown.to : shown.from - extra
     const row = this.renderRoot.querySelector<HTMLElement>(`[data-index="${first}"]`)
     if (!row) return
@@ -739,10 +743,13 @@ export class LintjeTimeline extends LintjeElement {
     return layout.fits ? layout : undefined
   }
 
-  private renderMore(shown: { from: number; to: number; hidden: number }): TemplateResult {
+  private renderMore(
+    shown: { from: number; to: number; hidden: number },
+    after: boolean,
+  ): TemplateResult {
     const count = this.step ? Math.min(this.step, shown.hidden) : shown.hidden
     return html`<lintje-button
-      class="lintje-timeline__more"
+      class="lintje-timeline__more ${after ? 'lintje-timeline__more--after' : ''}"
       variant="link"
       @click=${() => void this.showEarlier(shown)}
       >${count === 1 ? 'Toon 1 eerder moment' : `Toon ${count} eerdere momenten`}</lintje-button
@@ -778,7 +785,7 @@ export class LintjeTimeline extends LintjeElement {
     )
     const latest = latestIndex(this.moments, newest)
     const people = this.moments.some((moment) => moment.who && typeof moment.who !== 'string')
-    const more = shown.hidden > 0 ? this.renderMore(shown) : nothing
+    const more = shown.hidden > 0 ? this.renderMore(shown, newest) : nothing
     return html`<section class="lintje-timeline">
       ${heading} ${newest ? nothing : more}
       ${

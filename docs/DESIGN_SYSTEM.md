@@ -451,19 +451,21 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een menurij kan een schakelaar zijn of één uit een keuze**: een schakelaar wordt gemarkeerd
   met een vinkje, één uit een keuze met het rondje van een radio, zoals in een formulier; een kop
   boven rijen noemt hun groep en staat aan de rand van het menu.
-- **Een reeks hangt aan een rail**: vierkante tekens verbonden door een lijn, in de stepper, het
-  activiteitenlog en de stappen van de assistent evengoed. In de stepper is de lijn doorgetrokken
+- **Een reeks hangt aan een rail**: vierkante tekens verbonden door een lijn, in de stepper, de
+  tijdlijn en de stappen van de assistent evengoed. In de stepper is de lijn doorgetrokken
   tot de huidige stap en gestreept daarna, zodat de weg die nog te gaan is nooit op kleur alleen
   rust. Een stap kan eigen inhoud dragen, zonder vlak eromheen en zonder eigen kleur: in de kolom
   onder zijn kop, waar de rail langs doorloopt; in de rij en op een telefoon alleen die van de
   huidige stap, onder de rij of de balk.
-- **Een tijdlijn is dezelfde rail, met de tijd erlangs**: het oudste moment boven, aan één kant
-  met de datum ervoor, om en om, of per kant met een naam erboven. Om en om schuiven de momenten
+- **Een tijdlijn is dezelfde rail, met de tijd erlangs**, en een logboek is een tijdlijn: wie
+  deed wat, met het rondje van een persoon vóór de naam. De host bepaalt de volgorde, het oudste
+  of het nieuwste boven; waar nu is, leest de tijdlijn uit wat gepland is of uit de tijden. Een
+  moment staat aan één kant met de datum ervoor, om en om, of per kant met een naam erboven. Om en om schuiven de momenten
   in elkaar, maar een moment begint nooit vóór het vorige. Vandaag is een streep op de rail die de
   host noemt; daarna is de rail gestreept en is een teken hol. Het laatste moment dat geweest is,
-  staat in de accentlijn. De rail van de tijdlijn en het activiteitenlog weegt zwaar, met
-  donkere tekens: wie een reeks leest, volgt de lijn. Een lange reeks krijgt koppen op de rail
-  en toont eerst de laatste momenten. Liggend staat elk moment op zijn plek in de tijd, met zijn
+  staat in de accentlijn. De rail van de tijdlijn weegt zwaar, met donkere tekens: wie een reeks
+  leest, volgt de lijn. Een lange reeks krijgt koppen op de rail en toont eerst de momenten het
+  dichtst bij nu; "Toon eerdere" staat waar de rest zit. Liggend staat elk moment op zijn plek in de tijd, met zijn
   label aan een steel boven of onder de rail; past een label niet tot het volgende, dan staat de
   tijdlijn. Op een telefoon staat alles aan één kant, de datum boven de kop.
 - **Een kalender is één maandraster**, in de datuminvoer en de datumreeks evengoed: zoveel weken

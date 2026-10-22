@@ -100,7 +100,6 @@ import './tables/sortable-list/sortable-list'
 import './tables/description-list/description-list'
 import './feedback/empty-state/empty-state'
 import './feedback/error-page/error-page'
-import './tables/activity-log/activity-log'
 import './tables/timeline/timeline'
 import './tables/person/person'
 import './tables/person-group/person-group'
@@ -278,8 +277,6 @@ export type { DescriptionItem, DescriptionAction } from './tables/description-li
 export { LintjeEmptyState } from './feedback/empty-state/empty-state'
 export { LintjeErrorPage } from './feedback/error-page/error-page'
 export type { ErrorPageLink } from './feedback/error-page/error-page'
-export { LintjeActivityLog } from './tables/activity-log/activity-log'
-export type { ActivityEntry } from './tables/activity-log/activity-log'
 export { LintjeTimeline } from './tables/timeline/timeline'
 export type {
   TimelineLink,

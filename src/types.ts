@@ -1068,7 +1068,6 @@ export type {
   DescriptionItem,
   DescriptionAction,
 } from './components/tables/description-list/description-list'
-export type { ActivityEntry } from './components/tables/activity-log/activity-log'
 export type {
   TimelineLink,
   TimelineMoment,
