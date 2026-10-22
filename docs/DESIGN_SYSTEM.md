@@ -231,13 +231,16 @@ bestanden serveert, staat in
   schaalverdeling — mag een stap kleiner (`--text-axis`). Secundaire tekst — een hint, een
   onderregel, een metaregel — is dat ene token, met één regelhoogte, zodat twee hints onder
   elkaar nooit verschillend lezen.
-- Eén schaal, als `--text-*`-tokens. Cijfers zijn tabulair waar ze in een kolom staan of ter
-  plekke veranderen.
+- **Eén schaal, die van de huisstijl**: 12, 14, 16, 20, 24, 32, 40, 48 en 64 px, als
+  `--text-*`-tokens in rem; 28 en 18 staan er niet in. De namen volgen de hiërarchie van de
+  pagina (de `h1` van de pagina, de `h2` van een titel, de titel van een tegel), niet een tag.
+  Cijfers zijn tabulair waar ze in een kolom staan of ter plekke veranderen.
 
 Tekst die een host niet zelf schreef — gerenderde markdown, een notitie — gaat door
 `lintje-prose`, dat de schaal op gewone tags legt, zodat een pagina nooit een kop opnieuw opmaakt
-in haar eigen stylesheet. In prose begint een blok bij `h3`; `h1` en `h2` lezen hetzelfde, want de
-pagina heeft de `h1` en de titel de `h2`. De koppen staan in de primaire kleur, zoals de
+in haar eigen stylesheet. De zes kopniveaus lopen af over de schaal, zoals de huisstijl ze tekent:
+40, 32, 24, 20, 16 en 16 px; een blok dat onder de titel van een pagina staat, begint bij `h3`,
+want de pagina heeft de `h1` en de titel de `h2`. De koppen staan in de primaire kleur, zoals de
 huisstijl ze zet (de teksttint, want een kop is een woord). Een citaat is het kader van de
 huisstijl: twee lijnen in de accentlijn, boven en links, met de ene afgeronde hoek waar ze elkaar
 raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<blockquote>`).

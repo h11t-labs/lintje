@@ -250,10 +250,18 @@
   --font-ui: 'RijksSans', 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'Source Code Pro', ui-monospace, SFMono-Regular, Menlo, monospace;
 
+  /* The house style's scale: 12, 14, 16, 20, 24, 32, 40, 48 and 64 px, in rem. The names follow
+     the page's hierarchy (the page's h1, a title's h2, a tile's title); prose maps its six
+     heading levels onto the steps. */
   --text-dashboard: 700 1.25rem/1.2 var(--font-ui);
-  --text-h1: 700 1.75rem/1.2 var(--font-ui);
+  --text-h1: 700 2rem/1.2 var(--font-ui);
   --text-h1-mobile: 700 1.5rem/1.15 var(--font-ui);
   --text-h1-display: 700 2.5rem/1.1 var(--font-ui);
+  /* The two largest steps: a start page's one line, a figure that reads across a room. */
+  --text-display: 700 3rem/1.1 var(--font-ui);
+  --text-display-large: 700 4rem/1.05 var(--font-ui);
+  /* A section's heading on a long page, between the page's title and a tile's. */
+  --text-section: 700 1.5rem/1.25 var(--font-ui);
   --text-h2: 700 1.25rem/1.25 var(--font-ui);
   --text-tile-title: 700 1rem/1.3 var(--font-ui);
   --text-kpi: 700 2rem/1.1 var(--font-ui);

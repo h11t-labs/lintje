@@ -116,7 +116,7 @@ const PAGES = {
         id: 'headings',
         label: 'Koppen',
         note: 'Van de titel van een startpagina tot de kop van een tegel. Onder 768 px neemt een kop zijn mobiele maat.',
-        claims: by(/^--text-(dashboard|h\d|tile-title)/),
+        claims: by(/^--text-(dashboard|h\d|tile-title|display|section)/),
         show: 'text',
       },
       {

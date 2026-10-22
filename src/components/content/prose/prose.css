@@ -1,7 +1,8 @@
 /*
  * Prose: a block of text the server wrote. The one sheet with type selectors inside a block
  * (rule 24): the content is sanitised HTML from markdown with no hook but its tag name, so the
- * selectors are scoped to `.lintje-prose`. A block starts at `h3`; `h1` and `h2` get the same look.
+ * selectors are scoped to `.lintje-prose`. The six heading levels step down the house style's
+ * scale: 40, 32, 24, 20, 16, 16; the tokens are named after the page's hierarchy, not the tag.
  */
 :host {
   display: block;
@@ -32,12 +33,15 @@
 .lintje-prose * + h5,
 .lintje-prose * + h6 { margin-top: var(--space-5); }
 
-.lintje-prose h1,
-.lintje-prose h2,
-.lintje-prose h3 { font: var(--text-h2); }
-.lintje-prose h4 { font: var(--text-tile-title); }
+.lintje-prose h1 { font: var(--text-h1-display); }
+.lintje-prose h2 { font: var(--text-h1); }
+.lintje-prose h3 { font: var(--text-section); }
+.lintje-prose h4 { font: var(--text-h2); }
 .lintje-prose h5,
-.lintje-prose h6 { font: var(--text-body); font-weight: 700; }
+.lintje-prose h6 { font: var(--text-tile-title); }
+/* The two largest also hold their room: a long title wraps on its own lines. */
+.lintje-prose h1,
+.lintje-prose h2 { text-wrap: balance; }
 
 .lintje-prose p { font: var(--text-body); }
 .lintje-prose strong { font-weight: 700; }
