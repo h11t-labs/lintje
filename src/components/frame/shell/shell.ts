@@ -5,7 +5,8 @@
  * It never fetches and never reads the URL: the active page and the reader's settings are the
  * host's, and a change goes out as `lintje-view-change` and comes back as data. `nav-tone`
  * chooses the menu's colours: filled in the theme's colour, or light as the house style's bar
- * and side navigation. `end` takes what a host puts at the end of the bar, such as
+ * and side navigation, and `mobile-bar` where the phone's header stands. `end` takes what a host
+ * puts at the end of the bar, such as
  * `lintje-language-nav`, before the search and the user. `full` runs edge
  * to edge above the content, `header` holds the `lintje-page-header` and `footer` the
  * `lintje-footer`. The events of its parts (`lintje-action`, `lintje-logout`,
@@ -105,6 +106,7 @@ export class LintjeShell extends LintjeElement {
     data: { attribute: false },
     layout: { type: String, reflect: true },
     navTone: { type: String, attribute: 'nav-tone', reflect: true },
+    mobileBar: { type: String, attribute: 'mobile-bar', reflect: true },
     openGroup: { state: true },
     railExpanded: { state: true },
     menuOpen: { state: true },
@@ -132,6 +134,12 @@ export class LintjeShell extends LintjeElement {
    * pointer filled in it and the reader's page in its wash. The host's choice, like the layout.
    */
   navTone: 'filled' | 'light' = 'filled'
+  /**
+   * Where the header stands below 768 px: at the top of the page (`top`), or stuck to the bottom
+   * of the screen under the thumb (`bottom`), the house style's variant; the menu then opens
+   * above it. The host's choice.
+   */
+  mobileBar: 'top' | 'bottom' = 'top'
   /** Top layout: index of the open group; `WHOLE_MENU`; or `null`. */
   openGroup: number | null = null
   /** Top layout: the logo bar has scrolled away and the bar under it is pinned (`is-stuck`). */

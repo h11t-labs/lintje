@@ -191,6 +191,31 @@
   inset: 100% 0 auto 0;
   height: calc(100dvh - var(--lintje-mobile-menu-top, var(--h-topbar)));
 }
+/* `mobile-bar="bottom"`: nothing pins at the top, the page keeps room for the bar at the bottom,
+   and in the top layout the bar is fixed there in both scroll states, the menu above it. */
+:host([mobile-bar='bottom']) .lintje-shell.is-phone { --lintje-shell-top: 0px; }
+:host([mobile-bar='bottom']) .lintje-shell.is-phone .lintje-shell__main {
+  padding-bottom: calc(var(--h-mobile-header) + env(safe-area-inset-bottom, 0px));
+}
+:host([mobile-bar='bottom']) .lintje-shell__mobile-bar { height: 0; }
+:host([mobile-bar='bottom']) .lintje-shell__mobile-pin,
+:host([mobile-bar='bottom']) .lintje-shell__mobile-bar.is-stuck .lintje-shell__mobile-pin {
+  position: fixed;
+  top: auto; bottom: 0; left: 0; right: 0;
+}
+:host([mobile-bar='bottom']) .lintje-shell--top .lintje-mobile-header,
+:host([mobile-bar='bottom']) .lintje-shell--top .lintje-shell__mobile-bar.is-stuck .lintje-mobile-header {
+  height: calc(var(--h-topbar) + env(safe-area-inset-bottom, 0px));
+  padding-top: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+:host([mobile-bar='bottom']) .lintje-shell--top .lintje-mobile-menu {
+  position: fixed;
+  inset: 0 0 var(--h-topbar) 0;
+  height: auto;
+  animation-name: lintje-sheet-in;
+}
+
 /* 16 px so two lines fit inside the 56 px bar; longer is cut with an ellipsis. */
 .lintje-mobile-header__title {
   display: -webkit-box;

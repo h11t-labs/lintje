@@ -339,6 +339,25 @@ export default {
           },
         },
         {
+          label: 'Header onderaan op een telefoon',
+          note:
+            'Met `mobile-bar="bottom"` plakt de header onder 768 px aan de onderrand van het ' +
+            'scherm, onder de duim, en opent het menu erboven; breder staat hij gewoon bovenaan. ' +
+            'Bekijk het op 390 px.',
+          // In a page of its own: the bar is `position: fixed`, which a nested shell does not contain.
+          frame: true,
+          html: `<lintje-shell mobile-bar="bottom">
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>Op een telefoon staat de balk met Menu onderaan.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.style.minHeight = '0'
+            shell.data = { name: 'Transcriptie', emblem: emblem(), navigation: NAVIGATION, user: USER, userMenu: USER_MENU, search: true }
+            stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+          },
+        },
+        {
           label: 'Lichte rail',
           note:
             'Naast de pagina is het lichte menu de side navigation van de huisstijl: wit met een ' +

@@ -21,6 +21,23 @@
   overflow-x: clip;
 }
 :where(.lintje-shell.is-phone) .lintje-mobile-header { display: flex; }
+/* `mobile-bar="bottom"`: the header is stuck to the bottom of the screen, under the thumb, as the
+   house style's variant, with the status bar's lower inset under it; the menu opens above it and
+   slides up as a sheet. */
+:host([mobile-bar='bottom']) .lintje-mobile-chrome {
+  position: fixed;
+  top: auto; bottom: 0; left: 0; right: 0;
+}
+:host([mobile-bar='bottom']) .lintje-mobile-header {
+  height: calc(var(--h-mobile-header) + env(safe-area-inset-bottom, 0px));
+  padding-top: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: inset 0 1px 0 var(--color-border-default);
+}
+:host([mobile-bar='bottom']) .lintje-mobile-menu {
+  inset: 0 0 calc(var(--h-mobile-header) + env(safe-area-inset-bottom, 0px)) 0;
+  animation-name: lintje-sheet-in;
+}
 /* On the theme fill the ring is the inverse one, as in the desktop menu, by the inherited hooks. */
 .lintje-mobile-header,
 .lintje-mobile-menu {

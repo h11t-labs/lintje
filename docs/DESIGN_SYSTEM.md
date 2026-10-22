@@ -347,7 +347,9 @@ Besluiten die voor beide gelden:
   in de lijst staat. Een schermlezer hoort hem niet: toetsen en het wiel scrollen de lijst zoals
   altijd.
 - **Onder 768 px is er geen rail**: een header met een Menu-knop, en het menu opent
-  schermvullend. In de indeling Boven is die header een balk onder de logobalk, met de naam.
+  schermvullend. In de indeling Boven is die header een balk onder de logobalk, met de naam. De
+  host mag de header onderaan het scherm zetten (`mobile-bar="bottom"`), de variant van de
+  huisstijl onder de duim; het menu opent er dan boven, als een sheet.
 - **De gebruiker heeft in elke indeling hetzelfde menu**: naam en rol met "Afmelden" als icoon
   ernaast, de rijen van de host en de versie. De avatar in de balk opent het naar beneden, de voet
   van het zijmenu naar boven, en op een telefoon staat het onderaan het menu. Met de pijltjes komt
