@@ -1174,6 +1174,10 @@ pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
   ernaar wijst, zodat er één kan veranderen zonder een component aan te raken. Hoverfeedback is
   korter, en alles wat onder de aanwijzer van kleur, vulling of rand verandert, doet dat met die
   overgang; databeweging (een grafiek intekenen, een waarde optellen) is langer.
+- **Een grafiek tekent zich één keer in, als hij in beeld komt**, per soort teken: een lijn van
+  links naar rechts, een staaf vanaf de nullijn, een punt vanuit zijn midden, een taart en een
+  donut met de klok mee vanaf twaalf uur, in de richting waarin hun punten lopen. Met minder
+  beweging staat hij er meteen.
 - **Een vak dat openklapt, knipt zijn inhoud af zolang het groeit en niet langer**: daarna hangt
   een popover of focusring eruit. Het wacht alleen op een hoogte die echt beweegt; staat die
   meteen, dan laat het meteen los.
