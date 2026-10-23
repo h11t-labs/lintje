@@ -1854,6 +1854,20 @@ describe('the earlier house style (without data-style-version)', () => {
     expect(classic('light')['--radius-corner']).toBe('0px')
   })
 
+  it('presses a button in its hover colour, as main does; the new style a step past it', () => {
+    for (const mode of ['light', 'dark'] as const) {
+      const values = classic(mode)
+      const fresh = tokensFor(mode)
+      for (const kind of ['primary', 'secondary', 'tertiary', 'danger']) {
+        const hover = values[`--color-action-${kind}-hover`]
+        expect(values[`--color-action-${kind}-pressed`], `${mode} ${kind}`).toBe(hover)
+        expect(fresh[`--color-action-${kind}-pressed`], `new ${mode} ${kind}`).not.toBe(
+          fresh[`--color-action-${kind}-hover`],
+        )
+      }
+    }
+  })
+
   it('keeps the page at 1360 px with the smaller title and the ribbon margin of 24 px', () => {
     const light = classic('light')
     expect(light['--w-content']).toBe('1360px')

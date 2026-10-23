@@ -133,11 +133,14 @@ function render({ keepScroll = false } = {}) {
   const place = placeOf(new URL(location.href))
   const { foundation, category, item } = place
   root.dataset.mode = modeOf(location.search)
-  // A framed specimen is a page of its own: it follows the guide's mode.
-  for (const frame of host.querySelectorAll('.guide__frame'))
-    frame.contentDocument?.documentElement.setAttribute('data-mode', root.dataset.mode)
   root.dataset.theme = theme()
   applyStyle()
+  // A framed specimen is a page of its own: it follows the guide's mode and house style.
+  for (const frame of host.querySelectorAll('.guide__frame')) {
+    const page = frame.contentDocument?.documentElement
+    if (!page) continue
+    for (const name of ['mode', 'styleVersion', 'styleNewCorner']) page.dataset[name] = root.dataset[name]
+  }
   const label = foundation?.label ?? (item ? nameOf(item) : category.label)
   document.title = `${label} — Lintje stijlgids`
 

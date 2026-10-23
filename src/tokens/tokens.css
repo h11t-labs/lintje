@@ -487,21 +487,21 @@
   /* --- Semantic: action -------------------------------------------------- */
   --color-action-primary: var(--primary);
   --color-action-primary-hover: var(--primary-hover);
-  /* Pressed is a step past hover: darker in light, lighter in dark, as the hover goes. */
-  --color-action-primary-pressed: color-mix(in srgb, var(--primary), black 40%);
+  /* Pressed is the hover; the new style takes it a step past hover. */
+  --color-action-primary-pressed: var(--color-action-primary-hover);
   --color-action-primary-text: var(--ink-white);
   /* A primary fill in dark is a dark box on a dark page (WCAG 1.4.11): it gets a tint border. */
   --color-action-primary-border: var(--primary);
   --color-action-secondary-border: var(--primary);
-  /* The outlined button's hover is the subtle surface, pressed a step past it; the new style
-     tints both in the primary's wash. Dark re-points both to the neutral steps. */
+  /* The outlined button's hover is the subtle surface; the new style tints it in the primary's
+     wash. Dark re-points it to the neutral step. */
   --color-action-secondary-hover: var(--color-bg-subtle);
-  --color-action-secondary-pressed: var(--color-border-default);
+  --color-action-secondary-pressed: var(--color-action-secondary-hover);
   /* The tertiary button is a word in the primary, without a box: the house style's third weight.
-     Its hover is the subtle surface, pressed a step past it. */
+     Its hover is the subtle surface. */
   --color-action-tertiary-text: var(--color-accent-text);
   --color-action-tertiary-hover: var(--color-bg-subtle);
-  --color-action-tertiary-pressed: var(--color-border-default);
+  --color-action-tertiary-pressed: var(--color-action-tertiary-hover);
   /* On a theme fill: the inverse button is white with the primary's word, and lets a little of
      the primary through under the pointer; its outlined form is white on white, lit by white and
      pressed by black at a low alpha. The same in dark: the fill under it stays the primary. */
@@ -515,7 +515,7 @@
      lighter in dark. In dark the border is a tint, because #D52B1E is 2.94:1 on #282828. */
   --color-action-danger: var(--status-error);
   --color-action-danger-hover: color-mix(in srgb, var(--status-error), black 30%);
-  --color-action-danger-pressed: color-mix(in srgb, var(--status-error), black 40%);
+  --color-action-danger-pressed: var(--color-action-danger-hover);
   --color-action-danger-border: var(--status-error);
   /* The word of the outlined danger button; dark re-points it (the red is 2.94:1 on #282828). */
   --color-action-danger-text: var(--status-error);
@@ -868,6 +868,11 @@
      step deeper into the wash. */
   --color-action-secondary-hover: var(--primary-wash);
   --color-action-secondary-pressed: oklch(from var(--primary) 0.9 min(c, 0.04) h);
+  /* Pressed is a step past hover on every filled or tinted button: darker in light, lighter in
+     dark, as the hover goes. */
+  --color-action-primary-pressed: color-mix(in srgb, var(--primary), black 40%);
+  --color-action-tertiary-pressed: var(--color-border-default);
+  --color-action-danger-pressed: color-mix(in srgb, var(--status-error), black 40%);
   /* The house style's one rounded corner, a ribbon wide, on the band at the page's head and on
      the foot. No building block reads it. */
   --radius-corner: 48px;
@@ -899,9 +904,7 @@
 
     /* The hover goes UP in dark: the light mix would put a near-black fill on the near-black page. */
     --primary-hover: color-mix(in srgb, var(--primary), white 12%);
-    --color-action-primary-pressed: color-mix(in srgb, var(--primary), white 24%);
     --color-action-secondary-hover: var(--neutral-2);
-    --color-action-secondary-pressed: var(--neutral-3);
 
     /* The order of light holds: menu under page under surface. The series has no step between
        the menu (neutral-1, L 0.231) and the surface (L 0.277), so the page is their midpoint
@@ -932,7 +935,6 @@
        the word lift the red as the primary's tints do, to 3:1 on #282828 and 4.5:1 on #333333,
        the hover surface; the word's chroma cap keeps it inside sRGB. */
     --color-action-danger-hover: color-mix(in srgb, var(--status-error), white 8%);
-    --color-action-danger-pressed: color-mix(in srgb, var(--status-error), white 16%);
     --color-action-danger-border: oklch(from var(--status-error) max(l, 0.58) c h);
     --color-action-danger-text: oklch(from var(--status-error) max(l, 0.71) min(c, 0.18) h);
     /* A status mark at 3:1 on its own tint. */
@@ -1035,6 +1037,10 @@
      its primary fill does in light. Both selectors weigh the same as one, so what the new style
      sets in light and dark re-points here is said again. */
   [data-mode='dark'][data-style-version='new'] {
+    /* Pressed a step past the lighter hover; the outlined button's pressed on the neutral step. */
+    --color-action-primary-pressed: color-mix(in srgb, var(--primary), white 24%);
+    --color-action-secondary-pressed: var(--neutral-3);
+    --color-action-danger-pressed: color-mix(in srgb, var(--status-error), white 16%);
     --neutral-0: #1D1D1D;
     --neutral-1: #282828;
     --color-bg-page: var(--neutral-1);
