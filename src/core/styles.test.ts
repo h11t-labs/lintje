@@ -16,6 +16,21 @@ describe('toShadowCss', () => {
     )
   })
 
+  it('moves the style and corner blocks onto the host, also as one run', () => {
+    expect(toShadowCss(`[data-style='new'] { --a: 1; }`)).toBe(
+      `:host([data-style='new']) { --a: 1; }`,
+    )
+    expect(toShadowCss(`[data-style=new][data-corner=round]{--a:1}`)).toBe(
+      `:host([data-style=new][data-corner=round]){--a:1}`,
+    )
+    expect(toShadowCss(`@media screen{[data-mode='dark'][data-style='new']{--a:1}}`)).toBe(
+      `@media screen{:host([data-mode='dark'][data-style='new']){--a:1}}`,
+    )
+    expect(toShadowCss(`[data-style=new] .x,[data-mode=dark] .y{--a:1}`)).toBe(
+      `:host([data-style=new]) .x,:host([data-mode=dark]) .y{--a:1}`,
+    )
+  })
+
   it('leaves a host rule the source already wrote alone', () => {
     expect(toShadowCss(`:host([data-mode=dark]){--a:1}`)).toBe(`:host([data-mode=dark]){--a:1}`)
   })
