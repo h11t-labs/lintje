@@ -203,7 +203,7 @@ describe('the form of lintje-expander', () => {
   })
 
   it('in the new style puts the chevron before the title in every form, and draws the card only when asked', async () => {
-    document.documentElement.dataset.style = 'new'
+    document.documentElement.dataset.styleVersion = 'new'
     try {
       const element = await expander(false)
       const header = element.shadowRoot!.querySelector('.lintje-disclosure__header')!
@@ -218,7 +218,7 @@ describe('the form of lintje-expander', () => {
       await element.updateComplete
       expect(section(element).classList.contains('lintje-expander--card')).toBe(false)
     } finally {
-      delete document.documentElement.dataset.style
+      delete document.documentElement.dataset.styleVersion
     }
   })
 })

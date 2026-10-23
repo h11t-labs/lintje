@@ -151,8 +151,8 @@
 :host([data-tone='light']) .lintje-shell__main > slot[name='header']::slotted(lintje-page-header) { padding: 0; }
 :where(.lintje-shell.is-phone) .lintje-shell__main > slot[name='header']::slotted(*) { padding-top: var(--space-4); }
 /* Under a head the content starts a row's gap lower, as it stood a row under the head before. */
-:host([data-style='new']:has(> [slot='header']:not([hidden]))) .lintje-shell__content { padding-top: var(--grid-gutter); }
-:host([data-style='new']:has(> [slot='header']:not([hidden]))) :where(.lintje-shell.is-phone) .lintje-shell__content { padding-top: var(--space-3); }
+:host([data-style-version='new']:has(> [slot='header']:not([hidden]))) .lintje-shell__content { padding-top: var(--grid-gutter); }
+:host([data-style-version='new']:has(> [slot='header']:not([hidden]))) :where(.lintje-shell.is-phone) .lintje-shell__content { padding-top: var(--space-3); }
 
 /* The content keeps to the design system's maximum width, as the bars above it do. */
 .lintje-shell__content {

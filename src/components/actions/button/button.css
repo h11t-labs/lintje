@@ -95,7 +95,7 @@
   color: var(--lintje-button-tertiary-text, var(--color-text-primary));
   border-color: var(--color-border-strong);
 }
-[data-style='new'] .lintje-button--tertiary {
+[data-style-version='new'] .lintje-button--tertiary {
   color: var(--lintje-button-tertiary-text, var(--color-action-tertiary-text));
   border-color: transparent;
 }
@@ -175,9 +175,9 @@
   text-decoration: none;
 }
 /* A boxless button stays boxless when disabled: only its word greys. */
-[data-style='new'] .lintje-button--tertiary.is-disabled,
-[data-style='new'] .lintje-button--tertiary:disabled,
-[data-style='new'] .lintje-button--tertiary[aria-disabled='true']:not(.is-busy, .is-working) {
+[data-style-version='new'] .lintje-button--tertiary.is-disabled,
+[data-style-version='new'] .lintje-button--tertiary:disabled,
+[data-style-version='new'] .lintje-button--tertiary[aria-disabled='true']:not(.is-busy, .is-working) {
   background: transparent;
   border-color: transparent;
 }

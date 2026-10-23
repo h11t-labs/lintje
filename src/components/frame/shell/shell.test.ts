@@ -51,7 +51,7 @@ describe('lintje-shell', () => {
     expect(element.dataset.tone).toBe('light')
     expect(element.shadowRoot!.querySelector('.lintje-navbar')).not.toBeNull()
     element.removeAttribute('nav-tone')
-    document.documentElement.dataset.style = 'new'
+    document.documentElement.dataset.styleVersion = 'new'
     try {
       await new Promise((resolve) => setTimeout(resolve, 0))
       await element.updateComplete
@@ -60,7 +60,7 @@ describe('lintje-shell', () => {
       await element.updateComplete
       expect(element.dataset.tone).toBe('filled')
     } finally {
-      delete document.documentElement.dataset.style
+      delete document.documentElement.dataset.styleVersion
     }
   })
 

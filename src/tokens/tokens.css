@@ -377,7 +377,7 @@
 
   /* The corners: of a framed block (a card, a tile, a dialog), of a button and a field, and the
      one large corner of the page's head and foot. All square in the earlier house style; the new
-     style (`data-style="new"`) sets the small ones below, the large one with `data-corner`. */
+     style (`data-style-version="new"`) sets the small ones below, the large one with `data-page-corner`. */
   --radius: 0px;
   --radius-control: 0px;
   --radius-corner: 0px;
@@ -829,15 +829,15 @@
 }
 
 /* ============================================================================
-   The new house style — `data-style="new"` on `<html>`, mirrored onto every element's host
+   The new house style — `data-style-version="new"` on `<html>`, mirrored onto every element's host
 
    What the house style draws differently online since 2025: the larger page title, the content
    at 1280 px with a ribbon as the page's margin, the small corners on controls and blocks, the
    ring as a dark line with a white line inside, the choice edge in the accent, the cool veil
    and the tinted hover of the outlined button. The large corner of the page's head and foot
-   comes with `data-corner` (round unless `square`). Everything else the two styles share.
+   comes with `data-page-corner` (round unless `square`). Everything else the two styles share.
    ========================================================================= */
-[data-style='new'] {
+[data-style-version='new'] {
   /* The house style's scale: the page's h1 at 32 px. */
   --text-h1: 700 2rem/1.2 var(--font-ui);
   /* The widest the page's content gets, the house style's 1280 px. */
@@ -870,8 +870,8 @@
   --color-action-secondary-pressed: oklch(from var(--primary) 0.9 min(c, 0.04) h);
 }
 /* The house style's one rounded corner, a ribbon wide, on the band at the page's head and on
-   the foot; `data-corner="square"` leaves it out. No building block reads it. */
-[data-style='new'][data-corner='round'] {
+   the foot; `data-page-corner="square"` leaves it out. No building block reads it. */
+[data-style-version='new'][data-page-corner='round'] {
   --radius-corner: 48px;
 }
 
@@ -1032,7 +1032,7 @@
      menu steps below the surface, so it stays a band beside the page and under the logo bar, as
      its primary fill does in light. Both selectors weigh the same as one, so what the new style
      sets in light and dark re-points here is said again. */
-  [data-mode='dark'][data-style='new'] {
+  [data-mode='dark'][data-style-version='new'] {
     --neutral-0: #1D1D1D;
     --neutral-1: #282828;
     --color-bg-page: var(--neutral-1);
@@ -1062,7 +1062,7 @@
 
 /* A tablet keeps the gutter as its margin, half a ribbon. */
 @media screen and (max-width: 1023px) {
-  [data-style='new'] {
+  [data-style-version='new'] {
     --page-pad-x: 24px;
   }
 }
@@ -1081,7 +1081,7 @@
   }
   /* The house style's phone margin and its narrow gutter: 10 px, and 12 is the step of the
      scale nearest to it. */
-  [data-style='new'] {
+  [data-style-version='new'] {
     --page-pad-x: 20px;
     --grid-gutter: 12px;
   }
@@ -1096,7 +1096,7 @@
   /* Both selectors: in a shadow root the new style's block weighs more than `:host` alone, so
      `:root` by itself would lose its print margin there. */
   :root,
-  [data-style='new'] {
+  [data-style-version='new'] {
     /* The paper's margin is the page's edge: bars and content start at it, aligned. */
     --page-pad-x: 0px;
     --color-bg-page: var(--neutral-0);

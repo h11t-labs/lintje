@@ -244,7 +244,7 @@ describe.each(STYLES)('the style guide in the %s house style', (style) => {
     describe.each(VIEWPORTS)('at $name', ({ width, height }) => {
       beforeAll(async () => {
         document.documentElement.dataset.mode = mode
-        document.documentElement.dataset.style = style
+        document.documentElement.dataset.styleVersion = style
         document.documentElement.dataset.theme = 'rijksoverheid'
         await page.viewport(width, height)
       })

@@ -19,36 +19,36 @@ async function mount(): Promise<LintjeElement> {
 
 afterEach(() => {
   document.body.innerHTML = ''
-  root.removeAttribute('data-style')
-  root.removeAttribute('data-corner')
+  root.removeAttribute('data-style-version')
+  root.removeAttribute('data-page-corner')
 })
 
 describe('the house style and the corner', () => {
   it('are classic and round by default, mirrored on the host', async () => {
     const element = await mount()
-    expect(element.dataset.style).toBe('classic')
-    expect(element.dataset.corner).toBe('round')
+    expect(element.dataset.styleVersion).toBe('classic')
+    expect(element.dataset.pageCorner).toBe('round')
     expect(element.resolvedStyle).toBe('classic')
   })
 
   it('follow the nearest ancestor, and a change of it', async () => {
-    root.dataset.style = 'new'
-    root.dataset.corner = 'square'
+    root.dataset.styleVersion = 'new'
+    root.dataset.pageCorner = 'square'
     const element = await mount()
-    expect(element.dataset.style).toBe('new')
-    expect(element.dataset.corner).toBe('square')
-    root.dataset.corner = 'round'
+    expect(element.dataset.styleVersion).toBe('new')
+    expect(element.dataset.pageCorner).toBe('square')
+    root.dataset.pageCorner = 'round'
     await settle()
-    expect(element.dataset.corner).toBe('round')
+    expect(element.dataset.pageCorner).toBe('round')
     expect(element.resolvedCorner).toBe('round')
-    root.removeAttribute('data-style')
+    root.removeAttribute('data-style-version')
     await settle()
-    expect(element.dataset.style).toBe('classic')
+    expect(element.dataset.styleVersion).toBe('classic')
   })
 
   it('treat an unknown value as the default', async () => {
-    root.dataset.style = 'other'
+    root.dataset.styleVersion = 'other'
     const element = await mount()
-    expect(element.dataset.style).toBe('classic')
+    expect(element.dataset.styleVersion).toBe('classic')
   })
 })

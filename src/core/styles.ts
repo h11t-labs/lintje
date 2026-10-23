@@ -12,9 +12,9 @@ import base from '../tokens/base.css?inline'
  * - `@font-face` is dropped: Chromium ignores it in a shadow root; the host page declares fonts.
  * - `:root:not(X)` becomes `:host(:not(X))`: `:host:not(X)` does not match in Chromium.
  *   It runs before the plain `:root` rule.
- * - `[data-mode=…]`, `[data-style=…]` and `[data-corner=…]` become `:host([…])`, with the value
+ * - `[data-mode=…]`, `[data-style-version=…]` and `[data-page-corner=…]` become `:host([…])`, with the value
  *   quoted as the source writes it or bare as the minifier leaves it; a run of them
- *   (`[data-mode='dark'][data-style='new']`) becomes one `:host([…][…])`, as `:host([a])[b]` does
+ *   (`[data-mode='dark'][data-style-version='new']`) becomes one `:host([…][…])`, as `:host([a])[b]` does
  *   not match.
  */
 export function toShadowCss(css: string): string {
@@ -24,7 +24,7 @@ export function toShadowCss(css: string): string {
     .replace(/:root:not\(([^)]*)\)/g, ':host(:not($1))')
     .replace(/:root(?![\w-])/g, ':host')
     .replace(
-      /(^|[\s,{}])((?:\[data-(?:mode|style|corner)=(?:'[^']*'|"[^"]*"|[\w-]+)\])+)/gm,
+      /(^|[\s,{}])((?:\[data-(?:mode|style-version|page-corner)=(?:'[^']*'|"[^"]*"|[\w-]+)\])+)/gm,
       '$1:host($2)',
     )
 }

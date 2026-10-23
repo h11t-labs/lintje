@@ -55,11 +55,11 @@ huisstijl de standaard; de nieuwe kies je met één attribuut op de pagina, dat 
 eigen host spiegelt, zoals `data-mode`:
 
 ```html
-<html lang="nl" data-style="new">
+<html lang="nl" data-style-version="new">
 ```
 
 De grote hoek van de paginakop en de voet (`--radius-corner`, een lint) hoort bij de nieuwe
-huisstijl en heeft zijn eigen schakelaar: `data-corner="square"` op de pagina laat hem weg,
+huisstijl en heeft zijn eigen schakelaar: `data-page-corner="square"` op de pagina laat hem weg,
 zonder dat attribuut is hij rond. In de eerdere huisstijl is alles recht. Het menu van
 `lintje-shell` volgt de huisstijl (licht in de nieuwe, gevuld in de eerdere), tenzij de host het
 zelf kiest met `nav-tone`.

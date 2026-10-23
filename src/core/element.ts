@@ -3,8 +3,8 @@
  * to its styles, resolves the mode onto the host, and emits composed events.
  *
  * The mode resolves in this order: the element's own attribute; the nearest ancestor's
- * `data-mode` (across shadow roots); its `data`; the default. The house style (`data-style`) and
- * the corner of the page's head (`data-corner`) come from the nearest ancestor alone, usually
+ * `data-mode` (across shadow roots); its `data`; the default. The house style (`data-style-version`) and
+ * the corner of the page's head (`data-page-corner`) come from the nearest ancestor alone, usually
  * `<html>`, and are mirrored onto the host the same way: the stylesheets read them there.
  */
 import {
@@ -43,7 +43,7 @@ function watchDocument(): void {
   documentObserver = new MutationObserver(() => refreshSettings())
   documentObserver.observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ['data-mode', 'data-style', 'data-corner'],
+    attributeFilter: ['data-mode', 'data-style-version', 'data-page-corner'],
   })
 }
 
@@ -156,16 +156,16 @@ export class LintjeElement extends LitElement {
     if (!this.isConnected) return
     const settings = this.dataSettings
     const mode = (this.mode ?? inheritedSetting(this, 'mode') ?? settings?.mode ?? 'light') as Mode
-    const style: Style = inheritedSetting(this, 'style') === 'new' ? 'new' : 'classic'
-    const corner: Corner = inheritedSetting(this, 'corner') === 'square' ? 'square' : 'round'
+    const style: Style = inheritedSetting(this, 'style-version') === 'new' ? 'new' : 'classic'
+    const corner: Corner = inheritedSetting(this, 'page-corner') === 'square' ? 'square' : 'round'
     const changed =
       mode !== this.resolvedMode || style !== this.resolvedStyle || corner !== this.resolvedCorner
     this.resolvedMode = mode
     this.resolvedStyle = style
     this.resolvedCorner = corner
     if (this.dataset.mode !== mode) this.dataset.mode = mode
-    if (this.dataset.style !== style) this.dataset.style = style
-    if (this.dataset.corner !== corner) this.dataset.corner = corner
+    if (this.dataset.styleVersion !== style) this.dataset.styleVersion = style
+    if (this.dataset.pageCorner !== corner) this.dataset.pageCorner = corner
     // This element's own value may be what a nested element inherits.
     if (changed) refreshSettings()
   }

@@ -347,7 +347,7 @@ describe('back to the default', () => {
   it.each(['text', 'search'])(
     'stands under a %s field in the new style, whose hint is above it',
     async (type) => {
-      document.documentElement.dataset.style = 'new'
+      document.documentElement.dataset.styleVersion = 'new'
       try {
         const element = await mount('lintje-text-input', () => {}, {
           type,
@@ -359,7 +359,7 @@ describe('back to the default', () => {
         expect(parts.slice(0, 2)).toEqual(['lintje-label', 'lintje-field__hint'])
         expect(parts.at(-1)).toBe('lintje-field__reset')
       } finally {
-        delete document.documentElement.dataset.style
+        delete document.documentElement.dataset.styleVersion
       }
     },
   )
@@ -383,14 +383,14 @@ describe('back to the default', () => {
   })
 
   it('keeps the counter of the textarea under the field in the new style, with the link after it', async () => {
-    document.documentElement.dataset.style = 'new'
+    document.documentElement.dataset.styleVersion = 'new'
     try {
       const element = await mount('lintje-textarea', () => {}, TEXTAREA)
       const parts = partsOf(element)
       expect(parts.slice(0, 2)).toEqual(['lintje-label', 'lintje-field__error'])
       expect(parts.slice(-2)).toEqual(['lintje-textarea__counter', 'lintje-field__reset'])
     } finally {
-      delete document.documentElement.dataset.style
+      delete document.documentElement.dataset.styleVersion
     }
   })
 

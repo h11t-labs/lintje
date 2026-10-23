@@ -35,8 +35,8 @@ AA het oneens zijn, wint AA met de kleinste correctie (zie [Toegankelijkheid](#t
 De Rijkshuisstijl tekent online sinds 2025 anders dan eerst: een wit menu, kleine afgeronde
 hoeken op knoppen en kaders, één grote afgeronde hoek op de kop van de pagina, een donkere
 focusring met een witte lijn erin, de foutmelding boven het veld. Lintje tekent beide, en de
-host kiest met één attribuut op de pagina: `data-style="new"` op `<html>` tekent de nieuwe
-huisstijl, zonder dat attribuut (of `data-style="classic"`) de eerdere. Elk element spiegelt de
+host kiest met één attribuut op de pagina: `data-style-version="new"` op `<html>` tekent de nieuwe
+huisstijl, zonder dat attribuut (of `data-style-version="classic"`) de eerdere. Elk element spiegelt de
 waarde op zijn eigen host, zoals `data-mode`, zodat zijn stylesheet hem leest. **Tot 1.0.0 is de
 eerdere huisstijl de standaard**, zodat een host die bijwerkt niets ziet veranderen; bij 1.0.0
 wisselt de standaard naar de nieuwe.
@@ -52,7 +52,7 @@ de getinte paginering, de dialoogknoppen links zonder lijnen, het gevulde submen
 boven de filterbalk, en in donker het gespiegelde grijs. Wat beide delen, staat niet onder de
 schakelaar: de zwarte naam naast het lint, de overgang op elke hover, de hooks van een band, en
 elke correctie. De grote hoek heeft zijn eigen schakelaar, alleen van betekenis in de nieuwe
-huisstijl: `data-corner="square"` laat hem weg, zonder attribuut is hij rond.
+huisstijl: `data-page-corner="square"` laat hem weg, zonder attribuut is hij rond.
 
 ## Principes
 
@@ -103,7 +103,7 @@ OKLCH.
 - **De standaard primaire kleur is donkerblauw, niet lintblauw.** Dat is een besluit voor de oude
   huisstijl, met het menu gevuld in de primaire kleur: het lint is lintblauw en verdwijnt op een
   menu van hetzelfde blauw. De navigatiebalk is het menu, een kwartslag gedraaid: dezelfde
-  kleuren. In de nieuwe huisstijl (`data-style="new"`) is het menu wit (zie
+  kleuren. In de nieuwe huisstijl (`data-style-version="new"`) is het menu wit (zie
   [Navigatie en shell](#navigatie-en-shell)) en speelt dit niet: de primaire kleur kleurt daar de
   band, de knoppen en de woorden in het menu.
 
@@ -300,7 +300,7 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
 - **De inhoud is hoogstens 1280 px breed**, zoals de huisstijl; een host die breder wil, zet
   `--lintje-content-width`.
 - **De hoeken zijn klein, in de nieuwe huisstijl.** De huisstijl tekent online knoppen en velden
-  met vier kleine afgeronde hoeken, en zo tekent Lintje onder `data-style="new"` elke knop (ook
+  met vier kleine afgeronde hoeken, en zo tekent Lintje onder `data-style-version="new"` elke knop (ook
   de icoonknop, de segmenten en de schakelgroep in de balk), elk invoervak, het vinkje en de
   chips (`--radius-control`, 4 px), en met dezelfde hoek elk omkaderd blok: een kaart, een tegel,
   een kerncijfer, een dialoog, een melding (`--radius`). In de eerdere huisstijl staan beide op
@@ -309,7 +309,7 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
 - **De ene afgeronde hoek is van de pagina.** De vormtaal van de huisstijl is een rechthoek met
   één afgeronde hoek: minstens één en hoogstens drie per beeld, spaarzaam, en nooit een vlak met
   een hoek in een vlak met een hoek. In de nieuwe huisstijl is hij een lint groot
-  (`--radius-corner`, 48 px) en laat `data-corner="square"` op de pagina hem weg; alleen de band
+  (`--radius-corner`, 48 px) en laat `data-page-corner="square"` op de pagina hem weg; alleen de band
   aan de kop van de pagina (de hero, de paginakop bij een licht menu) tekent hem rechtsboven en
   de voet linksonder, als zijn spiegelbeeld; geen enkele bouwsteen. De ene uitzondering is het
   citaat in lopende tekst: als citaat-element heeft het zijn eigen hoek van 24 px

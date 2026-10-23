@@ -83,7 +83,7 @@
 .lintje-page-header--shell.has-tabs { margin-bottom: 0; }
 /* In the new style the head stands above the content, outside its padding: it pads its words to
    the column itself. In the earlier style it stands in the padded content. */
-[data-style='new'] .lintje-page-header--shell.has-tabs {
+[data-style-version='new'] .lintje-page-header--shell.has-tabs {
   padding-inline: calc(var(--page-pad-x) + var(--page-gutter));
 }
 
@@ -144,8 +144,8 @@
 }
 /* In the new style the band runs edge to edge above the content; the words keep to the column by
    the page's own inset. */
-[data-style='new'] .lintje-page-header--band,
-[data-style='new'] .lintje-page-header--shell.lintje-page-header--band {
+[data-style-version='new'] .lintje-page-header--band,
+[data-style-version='new'] .lintje-page-header--shell.lintje-page-header--band {
   padding-inline: calc(var(--page-pad-x) + var(--page-gutter));
 }
 .lintje-page-header--band .lintje-page-header__title,

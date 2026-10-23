@@ -63,13 +63,13 @@
 
 /* The new style: the row reaches out to the column's edge; under the pointer it fills in the
    primary and its word, icon and count turn white; the reader's page stands on the wash, bold. */
-[data-style='new'] .lintje-sub-nav__link { margin: 0 calc(var(--space-4) * -1); padding: var(--space-3) var(--space-4); }
-[data-style='new'] .lintje-sub-nav__link--action { width: calc(100% + var(--space-4) * 2); }
-[data-style='new'] .lintje-sub-nav__link:hover .lintje-sub-nav__label { text-decoration: none; }
-[data-style='new'] .lintje-sub-nav__link:hover:not(.is-no-page):not(.is-no-access) { background: var(--color-action-primary); color: var(--color-action-primary-text); }
-[data-style='new'] .lintje-sub-nav__link:hover:not(.is-no-page):not(.is-no-access) .lintje-sub-nav__count { color: inherit; }
-[data-style='new'] .lintje-sub-nav__link.is-current,
-[data-style='new'] .lintje-sub-nav__link.is-current:hover { background: var(--color-choice-active-bg); color: var(--color-text-primary); }
+[data-style-version='new'] .lintje-sub-nav__link { margin: 0 calc(var(--space-4) * -1); padding: var(--space-3) var(--space-4); }
+[data-style-version='new'] .lintje-sub-nav__link--action { width: calc(100% + var(--space-4) * 2); }
+[data-style-version='new'] .lintje-sub-nav__link:hover .lintje-sub-nav__label { text-decoration: none; }
+[data-style-version='new'] .lintje-sub-nav__link:hover:not(.is-no-page):not(.is-no-access) { background: var(--color-action-primary); color: var(--color-action-primary-text); }
+[data-style-version='new'] .lintje-sub-nav__link:hover:not(.is-no-page):not(.is-no-access) .lintje-sub-nav__count { color: inherit; }
+[data-style-version='new'] .lintje-sub-nav__link.is-current,
+[data-style-version='new'] .lintje-sub-nav__link.is-current:hover { background: var(--color-choice-active-bg); color: var(--color-text-primary); }
 
 .lintje-sub-nav__link.is-no-page,
 .lintje-sub-nav__link.is-no-access { color: var(--color-text-disabled); cursor: default; }

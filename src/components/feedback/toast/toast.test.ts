@@ -85,11 +85,11 @@ describe('lintje-toast', () => {
         return expected.querySelector('svg')!.innerHTML
       }
       expect(await glyph()).toBe(drawn(icon))
-      document.documentElement.dataset.style = 'new'
+      document.documentElement.dataset.styleVersion = 'new'
       try {
         expect(await glyph()).toBe(drawn(coloured))
       } finally {
-        delete document.documentElement.dataset.style
+        delete document.documentElement.dataset.styleVersion
       }
     },
   )

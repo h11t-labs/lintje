@@ -22,7 +22,7 @@
 .lintje-toast--ok   { background: var(--color-success-bg); border-color: var(--color-success-line); color: var(--color-text-primary); }
 .lintje-toast--error { background: var(--color-error-bg);   border-color: var(--color-error-line); color: var(--color-text-primary); }
 /* In the new style the house style's bar at the left, in the status's line colour. */
-[data-style='new'] .lintje-toast { border-left: var(--space-1) solid; }
+[data-style-version='new'] .lintje-toast { border-left: var(--space-1) solid; }
 
 .lintje-toast__icon { flex: none; display: flex; }
 .lintje-toast--ok    .lintje-toast__icon { color: var(--color-success-line); }

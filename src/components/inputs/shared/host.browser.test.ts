@@ -283,7 +283,7 @@ describe('the hosts at 1440 and 390 px', () => {
   // In the new style a select fills its column, up to a field's widest: 480 in a wide block, the
   // phone's width there.
   it('lintje-select in the new style', async () => {
-    document.documentElement.dataset.style = 'new'
+    document.documentElement.dataset.styleVersion = 'new'
     try {
       const host = HOSTS.find((entry) => entry.tag === 'lintje-select')!
       const block = await mount(host.tag, host.props)
@@ -296,7 +296,7 @@ describe('the hosts at 1440 and 390 px', () => {
         phone: { block: 'fill', row: 'fill' },
       })
     } finally {
-      delete document.documentElement.dataset.style
+      delete document.documentElement.dataset.styleVersion
     }
   })
 

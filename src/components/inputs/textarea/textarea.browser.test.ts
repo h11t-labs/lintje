@@ -138,10 +138,10 @@ describe('lintje-textarea stands its counter beside the foot line', () => {
 
 describe('lintje-textarea in the new style stands its line above the field and its counter under it', () => {
   beforeEach(() => {
-    document.documentElement.dataset.style = 'new'
+    document.documentElement.dataset.styleVersion = 'new'
   })
   afterEach(async () => {
-    delete document.documentElement.dataset.style
+    delete document.documentElement.dataset.styleVersion
     await page.viewport(1440, 900)
   })
 

@@ -5,7 +5,7 @@
 }
 /* In the new style the house style's bar at the left of every status block, in the status's line
    colour. */
-[data-style='new'] .lintje-announcement { border-left: var(--space-1) solid; }
+[data-style-version='new'] .lintje-announcement { border-left: var(--space-1) solid; }
 .lintje-announcement__inner {
   display: flex;
   align-items: flex-start;

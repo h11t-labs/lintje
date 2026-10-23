@@ -39,8 +39,8 @@
 :host(lintje-select) { width: 180px; }
 /* In the new style a select fills the column it stands in, as a text field does, up to a field's
    widest; stacked it is the full width, as every field. */
-:host(lintje-select[data-style='new']) { width: 100%; max-width: var(--w-field); }
-:host(lintje-select[data-style='new'][stacked]) { max-width: none; }
+:host(lintje-select[data-style-version='new']) { width: 100%; max-width: var(--w-field); }
+:host(lintje-select[data-style-version='new'][stacked]) { max-width: none; }
 :host(lintje-time-input) { width: 120px; }
 :host([hidden]) { display: none; }
 /* Below 768 px: the full width, as `stacked`, and the touch height. The text and number fields
@@ -75,7 +75,7 @@
 .lintje-field { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
 /* In the new style a field in error carries the house style's bar at its left, from the label
    down to the control. */
-[data-style='new'] .lintje-field:has(> .lintje-field__error) {
+[data-style-version='new'] .lintje-field:has(> .lintje-field__error) {
   border-left: var(--space-1) solid var(--color-error-line);
   padding-left: var(--space-4);
 }
@@ -85,7 +85,7 @@
   padding: 0;
 }
 /* The new style's label is on the body size, bold, as the house style's form field has it. */
-[data-style='new'] .lintje-label { font: var(--text-ui); font-weight: 700; }
+[data-style-version='new'] .lintje-label { font: var(--text-ui); font-weight: 700; }
 .lintje-label.is-modified { color: var(--color-accent-text); }
 .lintje-label__dot {
   width: 6px; height: 6px; border-radius: var(--radius-round);
@@ -288,8 +288,8 @@
   background: var(--color-bg-surface);
   display: flex; align-items: center; justify-content: center;
 }
-[data-style='new'] .lintje-choice__box,
-[data-style='new'] .lintje-choice__radio { border-width: 1px; }
+[data-style-version='new'] .lintje-choice__box,
+[data-style-version='new'] .lintje-choice__radio { border-width: 1px; }
 
 /* Ring and dot take the line accent: the dot stands on the surface by itself, so the primary
    fill would sink into the dark surface. */

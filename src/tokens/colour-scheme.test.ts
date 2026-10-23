@@ -99,9 +99,9 @@ const DARK = set(TOKENS, (s) => s === "[data-mode='dark']" || s === '[data-mode=
 /* The new house style: its light block, with the large corner, and its dark block. */
 const NEW = set(
   TOKENS,
-  (s) => s === "[data-style='new']" || s === "[data-style='new'][data-corner='round']",
+  (s) => s === "[data-style-version='new']" || s === "[data-style-version='new'][data-page-corner='round']",
 )
-const DARK_NEW = set(TOKENS, (s) => s === "[data-mode='dark'][data-style='new']")
+const DARK_NEW = set(TOKENS, (s) => s === "[data-mode='dark'][data-style-version='new']")
 const THEME_SELECTOR = /^\[data-theme='([\w-]+)'\]$/
 const THEME_BLOCKS: Record<string, Record<string, string>> = Object.fromEntries(
   blocks(THEMES)
@@ -1800,7 +1800,7 @@ describe('the lines a chart reads by', () => {
 
 /* --- the earlier house style: the library's default until 1.0.0 ------------- */
 
-describe('the earlier house style (without data-style)', () => {
+describe('the earlier house style (without data-style-version)', () => {
   const classic = (mode: 'light' | 'dark', theme = 'rijksoverheid') =>
     tokensFor(mode, theme, 'classic')
 
@@ -1840,10 +1840,10 @@ describe('the earlier house style (without data-style)', () => {
   })
 
   it("prints both styles at the paper's edge: the print block names the new style too", () => {
-    // `layered()` models source order, not media: in a shadow root `:host([data-style='new'])`
+    // `layered()` models source order, not media: in a shadow root `:host([data-style-version='new'])`
     // outweighs `:host`, so a print override on `:root` alone would lose under the new style.
     const print =
-      /@media print \{\s*\/\*[^*]*\*\/\s*:root,\s*\[data-style='new'\] \{[^}]*--page-pad-x: 0px;/
+      /@media print \{\s*\/\*[^*]*\*\/\s*:root,\s*\[data-style-version='new'\] \{[^}]*--page-pad-x: 0px;/
     expect(read('tokens.css')).toMatch(print)
   })
 

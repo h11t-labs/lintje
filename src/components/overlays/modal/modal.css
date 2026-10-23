@@ -33,9 +33,9 @@
 }
 /* In the new style no lines between head, body and foot, as the house style's window, and the
    title in the primary. */
-[data-style='new'] .lintje-modal__header { padding-bottom: 0; border-bottom: 0; }
-[data-style='new'] .lintje-modal__title { color: var(--color-accent-text); }
-[data-style='new'] .lintje-modal__footer { padding-top: 0; padding-bottom: var(--space-4); border-top: 0; }
+[data-style-version='new'] .lintje-modal__header { padding-bottom: 0; border-bottom: 0; }
+[data-style-version='new'] .lintje-modal__title { color: var(--color-accent-text); }
+[data-style-version='new'] .lintje-modal__footer { padding-top: 0; padding-bottom: var(--space-4); border-top: 0; }
 /* As high as the close button at least, so a heading without a subtitle stands level with it. */
 .lintje-modal__heading {
   min-width: 0; min-height: var(--h-icon-button);

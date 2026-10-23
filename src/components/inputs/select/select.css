@@ -26,8 +26,8 @@
 .lintje-select__box { position: absolute; right: var(--space-3); display: flex; pointer-events: none; color: var(--color-text-primary); }
 /* The new style's chevron box: the primary at the field's end with the glyph in white, inside
    the field's border (1 px at rest, 2 in error); in dark the primary-fill edge keeps it a box. */
-[data-style='new'] .lintje-select__control { padding-right: calc(var(--h-control) + var(--space-2)); }
-[data-style='new'] .lintje-select__box {
+[data-style-version='new'] .lintje-select__control { padding-right: calc(var(--h-control) + var(--space-2)); }
+[data-style-version='new'] .lintje-select__box {
   position: absolute;
   top: var(--lintje-field-border);
   right: var(--lintje-field-border);
@@ -39,14 +39,14 @@
   box-shadow: inset 0 0 0 1px var(--color-action-primary-border);
   border-radius: 0 calc(var(--radius-control) - var(--lintje-field-border)) calc(var(--radius-control) - var(--lintje-field-border)) 0;
 }
-[data-style='new'] .lintje-select__control.is-error ~ .lintje-select__box {
+[data-style-version='new'] .lintje-select__control.is-error ~ .lintje-select__box {
   top: var(--lintje-field-error-border);
   right: var(--lintje-field-error-border);
   bottom: var(--lintje-field-error-border);
   width: calc(var(--h-control) - 2 * var(--lintje-field-error-border));
   border-radius: 0 calc(var(--radius-control) - var(--lintje-field-error-border)) calc(var(--radius-control) - var(--lintje-field-error-border)) 0;
 }
-[data-style='new'] .lintje-select__control:disabled ~ .lintje-select__box {
+[data-style-version='new'] .lintje-select__control:disabled ~ .lintje-select__box {
   background: var(--color-border-strong);
   color: var(--color-text-disabled);
   box-shadow: none;

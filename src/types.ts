@@ -712,11 +712,11 @@ export interface ShellView {
   theme?: string
   /** The house style the page follows, when the host lets the reader choose: `classic` is the
    * menu filled in the theme's colour with square corners, `new` the light menu with the
-   * rounded corners. The host draws it: `data-style` on `<html>`. */
+   * rounded corners. The host draws it: `data-style-version` on `<html>`. */
   style?: 'classic' | 'new'
   /** The corner of the band at the page's head in the new style, when the host lets the reader
    * choose: `round` is the house style's one rounded corner, `square` none. The host draws it:
-   * `data-corner` on `<html>`. */
+   * `data-page-corner` on `<html>`. */
   corner?: 'square' | 'round'
 }
 

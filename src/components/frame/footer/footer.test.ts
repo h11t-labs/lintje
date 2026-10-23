@@ -50,13 +50,13 @@ describe('lintje-footer', () => {
 
   it('in the new style sets a chevron before every column link, and none before a fixed link', async () => {
     expect((await mount(DATA)).shadowRoot!.querySelector('.lintje-footer__link svg')).toBeNull()
-    document.documentElement.dataset.style = 'new'
+    document.documentElement.dataset.styleVersion = 'new'
     try {
       const root = (await mount(DATA)).shadowRoot!
       expect(root.querySelector('.lintje-footer__link svg')).not.toBeNull()
       expect(root.querySelector('.lintje-footer__meta-link svg')).toBeNull()
     } finally {
-      delete document.documentElement.dataset.style
+      delete document.documentElement.dataset.styleVersion
     }
   })
 
