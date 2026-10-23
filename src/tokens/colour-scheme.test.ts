@@ -97,11 +97,10 @@ const THEMES = bare(read('themes.css'))
 const LIGHT = set(TOKENS, (s) => s === ':root')
 const DARK = set(TOKENS, (s) => s === "[data-mode='dark']" || s === '[data-mode="dark"]')
 /* The new house style: its light block, with the large corner, and its dark block. */
-const NEW = set(
+const NEW = set(TOKENS, (s) => s === "[data-style-version='new']")
+const SQUARE = set(
   TOKENS,
-  (s) =>
-    s === "[data-style-version='new']" ||
-    s === "[data-style-version='new'][data-page-corner='round']",
+  (s) => s === "[data-style-version='new'][data-style-new-corner='square']",
 )
 const DARK_NEW = set(TOKENS, (s) => s === "[data-mode='dark'][data-style-version='new']")
 const THEME_SELECTOR = /^\[data-theme='([\w-]+)'\]$/
@@ -1847,6 +1846,12 @@ describe('the earlier house style (without data-style-version)', () => {
     const print =
       /@media print \{\s*\/\*[^*]*\*\/\s*:root,\s*\[data-style-version='new'\] \{[^}]*--page-pad-x: 0px;/
     expect(read('tokens.css')).toMatch(print)
+  })
+
+  it('rounds the large corner in the new style unless it says square, also on <html> alone', () => {
+    expect(NEW['--radius-corner']).toBe('48px')
+    expect(SQUARE['--radius-corner']).toBe('0px')
+    expect(classic('light')['--radius-corner']).toBe('0px')
   })
 
   it('keeps the page at 1360 px with the smaller title and the ribbon margin of 24 px', () => {

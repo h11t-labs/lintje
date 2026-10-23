@@ -8,7 +8,7 @@
  * out below 1024 px), `panel` content beside the text, and `overlap` what stands half over the
  * band's lower edge, such as a panel of tabs. With `tone="primary"` it is the page's head: the
  * `breadcrumbs` slot takes the trail above the title, and the band draws the one corner of the
- * new house style (`--radius-corner`, with `data-page-corner`). In a shell whose menu is light a hero
+ * new house style (`--radius-corner`, with `data-style-new-corner`). In a shell whose menu is light a hero
  * without a `tone` is primary by itself; `tone="wash"` keeps the wash.
  *
  * Events: `lintje-navigate` `{ href }` (the action).

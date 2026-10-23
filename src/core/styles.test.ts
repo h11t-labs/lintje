@@ -20,8 +20,8 @@ describe('toShadowCss', () => {
     expect(toShadowCss(`[data-style-version='new'] { --a: 1; }`)).toBe(
       `:host([data-style-version='new']) { --a: 1; }`,
     )
-    expect(toShadowCss(`[data-style-version=new][data-page-corner=round]{--a:1}`)).toBe(
-      `:host([data-style-version=new][data-page-corner=round]){--a:1}`,
+    expect(toShadowCss(`[data-style-version=new][data-style-new-corner=round]{--a:1}`)).toBe(
+      `:host([data-style-version=new][data-style-new-corner=round]){--a:1}`,
     )
     expect(toShadowCss(`@media screen{[data-mode='dark'][data-style-version='new']{--a:1}}`)).toBe(
       `@media screen{:host([data-mode='dark'][data-style-version='new']){--a:1}}`,

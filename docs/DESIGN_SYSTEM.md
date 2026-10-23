@@ -52,7 +52,7 @@ de getinte paginering, de dialoogknoppen links zonder lijnen, het gevulde submen
 boven de filterbalk, en in donker het gespiegelde grijs. Wat beide delen, staat niet onder de
 schakelaar: de zwarte naam naast het lint, de overgang op elke hover, de hooks van een band, en
 elke correctie. De grote hoek heeft zijn eigen schakelaar, alleen van betekenis in de nieuwe
-huisstijl: `data-page-corner="square"` laat hem weg, zonder attribuut is hij rond.
+huisstijl: `data-style-new-corner="square"` laat hem weg, zonder attribuut is hij rond.
 
 ## Principes
 
@@ -309,7 +309,7 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
 - **De ene afgeronde hoek is van de pagina.** De vormtaal van de huisstijl is een rechthoek met
   één afgeronde hoek: minstens één en hoogstens drie per beeld, spaarzaam, en nooit een vlak met
   een hoek in een vlak met een hoek. In de nieuwe huisstijl is hij een lint groot
-  (`--radius-corner`, 48 px) en laat `data-page-corner="square"` op de pagina hem weg; alleen de band
+  (`--radius-corner`, 48 px) en laat `data-style-new-corner="square"` op de pagina hem weg; alleen de band
   aan de kop van de pagina (de hero, de paginakop bij een licht menu) tekent hem rechtsboven en
   de voet linksonder, als zijn spiegelbeeld; geen enkele bouwsteen. De ene uitzondering is het
   citaat in lopende tekst: als citaat-element heeft het zijn eigen hoek van 24 px

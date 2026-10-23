@@ -677,8 +677,8 @@ export default {
           note:
             'Met `tone="primary"` is de hero de kop van een werkpagina: kruimelpad, titel en ' +
             'inleiding in wit op de primaire kleur. In de nieuwe huisstijl draagt de band de ene ' +
-            'afgeronde hoek rechtsboven (`--radius-corner`); `data-page-corner="square"` laat hem weg.',
-          html: `<div data-style-version="new" data-page-corner="round">
+            'afgeronde hoek rechtsboven (`--radius-corner`); `data-style-new-corner="square"` laat hem weg.',
+          html: `<div data-style-version="new" data-style-new-corner="round">
             <lintje-hero tone="primary" heading="Aanvragen en wachttijden" description="Alle cijfers over de loketten, per regio en per soort loket, bijgewerkt tot vanochtend.">
               <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
             </lintje-hero>

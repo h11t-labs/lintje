@@ -128,7 +128,7 @@ beslist het systeem van de lezer). `?style=classic` tekent de eerdere huisstijl:
 in de themakleur en alles recht; zonder (of met `?style=new`) de nieuwe, het lichte menu, de
 kleine hoeken op knoppen en kaarten en de ronde hoek van 48 px op de band, die `?corner=square`
 weglaat. De voorbeelden openen in de nieuwe huisstijl, de bibliotheek zelf tekent tot 1.0.0 de
-eerdere: `applyStyle()` zet `data-style-version` en `data-page-corner` op de pagina. Ze reizen mee van pagina naar pagina; elke pagina
+eerdere: `applyStyle()` zet `data-style-version` en `data-style-new-corner` op de pagina. Ze reizen mee van pagina naar pagina; elke pagina
 leest ze via `_shared/settings.js`, en elke link tussen voorbeelden gaat via zijn `carry()`.
 
 Elke pagina staat in `lintje-shell`. De styleguide, het dashboard, de chat en de voorpagina

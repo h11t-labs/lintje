@@ -4,7 +4,7 @@
  *
  * The mode resolves in this order: the element's own attribute; the nearest ancestor's
  * `data-mode` (across shadow roots); its `data`; the default. The house style (`data-style-version`) and
- * the corner of the page's head (`data-page-corner`) come from the nearest ancestor alone, usually
+ * the corner of the page's head (`data-style-new-corner`) come from the nearest ancestor alone, usually
  * `<html>`, and are mirrored onto the host the same way: the stylesheets read them there.
  */
 import {
@@ -43,7 +43,7 @@ function watchDocument(): void {
   documentObserver = new MutationObserver(() => refreshSettings())
   documentObserver.observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ['data-mode', 'data-style-version', 'data-page-corner'],
+    attributeFilter: ['data-mode', 'data-style-version', 'data-style-new-corner'],
   })
 }
 
@@ -157,7 +157,8 @@ export class LintjeElement extends LitElement {
     const settings = this.dataSettings
     const mode = (this.mode ?? inheritedSetting(this, 'mode') ?? settings?.mode ?? 'light') as Mode
     const style: Style = inheritedSetting(this, 'style-version') === 'new' ? 'new' : 'classic'
-    const corner: Corner = inheritedSetting(this, 'page-corner') === 'square' ? 'square' : 'round'
+    const corner: Corner =
+      inheritedSetting(this, 'style-new-corner') === 'square' ? 'square' : 'round'
     const changed =
       mode !== this.resolvedMode || style !== this.resolvedStyle || corner !== this.resolvedCorner
     this.resolvedMode = mode
@@ -165,7 +166,7 @@ export class LintjeElement extends LitElement {
     this.resolvedCorner = corner
     if (this.dataset.mode !== mode) this.dataset.mode = mode
     if (this.dataset.styleVersion !== style) this.dataset.styleVersion = style
-    if (this.dataset.pageCorner !== corner) this.dataset.pageCorner = corner
+    if (this.dataset.styleNewCorner !== corner) this.dataset.styleNewCorner = corner
     // This element's own value may be what a nested element inherits.
     if (changed) refreshSettings()
   }

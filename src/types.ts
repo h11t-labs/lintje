@@ -716,7 +716,7 @@ export interface ShellView {
   style?: 'classic' | 'new'
   /** The corner of the band at the page's head in the new style, when the host lets the reader
    * choose: `round` is the house style's one rounded corner, `square` none. The host draws it:
-   * `data-page-corner` on `<html>`. */
+   * `data-style-new-corner` on `<html>`. */
   corner?: 'square' | 'round'
 }
 

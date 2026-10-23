@@ -237,7 +237,7 @@ export default {
           note:
             'Met `side="left"` schuift het paneel van links in; in de nieuwe huisstijl staat de ' +
             'ene afgeronde hoek (`--radius-corner`) bovenaan aan de kant van de pagina.',
-          html: `<div data-style-version="new" data-page-corner="round">
+          html: `<div data-style-version="new" data-style-new-corner="round">
             <lintje-button variant="secondary" data-open>Filters tonen</lintje-button>
             <lintje-drawer heading="Filters" side="left"><p>De filters van de lijst, als lade naast de pagina.</p></lintje-drawer>
           </div>`,

@@ -46,12 +46,12 @@ export const styleOf = (search) => {
 export const cornerOf = (search) =>
   new URLSearchParams(search).get('corner') === 'square' ? 'square' : 'round'
 
-/** Draws the chosen house style: `data-style-version` and `data-page-corner` on the page, which every element
+/** Draws the chosen house style: `data-style-version` and `data-style-new-corner` on the page, which every element
     mirrors onto its host; the shell's tone and every corner follow from there. */
 export function applyStyle(search = location.search) {
   const root = document.documentElement
   root.dataset.styleVersion = styleOf(search)
-  root.dataset.pageCorner = cornerOf(search)
+  root.dataset.styleNewCorner = cornerOf(search)
 }
 
 /** A theme's emblem: the ribbon by file name and the organisation's name as text. */
