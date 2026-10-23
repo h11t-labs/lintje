@@ -30,6 +30,30 @@ thema's van organisaties, beide navigatie-indelingen, de bedieningselementen en 
 tabellen, grafieken, feedback, en hoe alles verandert op een telefoon. Waar de huisstijl en WCAG
 AA het oneens zijn, wint AA met de kleinste correctie (zie [Toegankelijkheid](#toegankelijkheid)).
 
+### Twee huisstijlen, één schakelaar
+
+De Rijkshuisstijl tekent online sinds 2025 anders dan eerst: een wit menu, kleine afgeronde
+hoeken op knoppen en kaders, één grote afgeronde hoek op de kop van de pagina, een donkere
+focusring met een witte lijn erin, de foutmelding boven het veld. Lintje tekent beide, en de
+host kiest met één attribuut op de pagina: `data-style="new"` op `<html>` tekent de nieuwe
+huisstijl, zonder dat attribuut (of `data-style="classic"`) de eerdere. Elk element spiegelt de
+waarde op zijn eigen host, zoals `data-mode`, zodat zijn stylesheet hem leest. **Tot 1.0.0 is de
+eerdere huisstijl de standaard**, zodat een host die bijwerkt niets ziet veranderen; bij 1.0.0
+wisselt de standaard naar de nieuwe.
+
+Onder de schakelaar staat alles wat de nieuwe huisstijl anders tekent: het lichte menu en de
+band in de primaire kleur als paginakop, de kleine hoeken (`--radius`, `--radius-control`), de
+grote hoek (`--radius-corner`), de focusring, de keuzerand in het accent, de koelgrijze sluier,
+de typografische schaal van de paginatitel, de marges en de inhoudsbreedte, de vier kolommen op
+een telefoon, de foutmelding boven het veld met de balk en de fouttint, de balk en de gekleurde
+iconen op een statusblok, de kaderloze tertiaire knop, de uitklapper als accordeonrij, de koppen
+en het citaat in lopende tekst, het pijlvak van de select, de regel en de chevrons van de voet,
+de getinte paginering, de dialoogknoppen links zonder lijnen, het gevulde submenu, de paginakop
+boven de filterbalk, en in donker het gespiegelde grijs. Wat beide delen, staat niet onder de
+schakelaar: de zwarte naam naast het lint, de overgang op elke hover, de hooks van een band, en
+elke correctie. De grote hoek heeft zijn eigen schakelaar, alleen van betekenis in de nieuwe
+huisstijl: `data-corner="square"` laat hem weg, zonder attribuut is hij rond.
+
 ## Principes
 
 1. **Functioneel, niet decoratief.** Vierkante vormen, ingetogen randen, vlakke oppervlakken.
@@ -79,7 +103,7 @@ OKLCH.
 - **De standaard primaire kleur is donkerblauw, niet lintblauw.** Dat is een besluit voor de oude
   huisstijl, met het menu gevuld in de primaire kleur: het lint is lintblauw en verdwijnt op een
   menu van hetzelfde blauw. De navigatiebalk is het menu, een kwartslag gedraaid: dezelfde
-  kleuren. In de nieuwe huisstijl is het menu wit (`nav-tone="light"` op de shell, zie
+  kleuren. In de nieuwe huisstijl (`data-style="new"`) is het menu wit (zie
   [Navigatie en shell](#navigatie-en-shell)) en speelt dit niet: de primaire kleur kleurt daar de
   band, de knoppen en de woorden in het menu.
 
@@ -275,23 +299,21 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
   de randen; alleen wat erin staat, houdt zich aan die breedte.
 - **De inhoud is hoogstens 1280 px breed**, zoals de huisstijl; een host die breder wil, zet
   `--lintje-content-width`.
-- **De hoeken zijn klein.** De huisstijl tekent online knoppen en velden met vier kleine
-  afgeronde hoeken, en zo tekent Lintje elke knop (ook de icoonknop, de segmenten en de
-  schakelgroep in de balk), elk invoervak, het vinkje en de chips (`--radius-control`), en met
-  dezelfde hoek elk omkaderd blok: een kaart, een tegel, een kerncijfer, een dialoog, een melding
-  (`--radius`). Een host die de oude huisstijl tekent, zet `--lintje-radius` en
-  `--lintje-radius-control` op 0 op de pagina; de tokens lezen die met terugval, zodat de waarde
-  van de pagina elk element bereikt. Nooit groter dan de kleine hoek. Rond is alleen wat een
-  cirkel ís: een stip, een radio, een schakelaar, een avatar, een teller, de laadring.
-- **De ene afgeronde hoek is van de host.** De vormtaal van de huisstijl is een rechthoek met één
-  afgeronde hoek: minstens één en hoogstens drie per beeld, spaarzaam, en nooit een vlak met een
-  hoek in een vlak met een hoek. Lintje laat die keuze aan de pagina: `--radius-corner` staat op
-  0, de host zet `--lintje-radius-corner` op de pagina, en alleen de band aan de kop van de
-  pagina (de hero, de paginakop bij een licht menu) leest hem rechtsboven en de voet linksonder,
-  als zijn spiegelbeeld; geen enkele bouwsteen. Zinnige waarden zijn een halve tot anderhalve lint
-  (24, 48 of 72 px). De ene uitzondering is het citaat in lopende tekst: als citaat-element
-  heeft het zijn eigen hoek van 24 px (`--radius-quote`), de hoek van de huisstijl als
-  aanhalingsteken.
+- **De hoeken zijn klein, in de nieuwe huisstijl.** De huisstijl tekent online knoppen en velden
+  met vier kleine afgeronde hoeken, en zo tekent Lintje onder `data-style="new"` elke knop (ook
+  de icoonknop, de segmenten en de schakelgroep in de balk), elk invoervak, het vinkje en de
+  chips (`--radius-control`, 4 px), en met dezelfde hoek elk omkaderd blok: een kaart, een tegel,
+  een kerncijfer, een dialoog, een melding (`--radius`). In de eerdere huisstijl staan beide op
+  0. Nooit groter dan de kleine hoek. Rond is alleen wat een cirkel ís: een stip, een radio, een
+  schakelaar, een avatar, een teller, de laadring.
+- **De ene afgeronde hoek is van de pagina.** De vormtaal van de huisstijl is een rechthoek met
+  één afgeronde hoek: minstens één en hoogstens drie per beeld, spaarzaam, en nooit een vlak met
+  een hoek in een vlak met een hoek. In de nieuwe huisstijl is hij een lint groot
+  (`--radius-corner`, 48 px) en laat `data-corner="square"` op de pagina hem weg; alleen de band
+  aan de kop van de pagina (de hero, de paginakop bij een licht menu) tekent hem rechtsboven en
+  de voet linksonder, als zijn spiegelbeeld; geen enkele bouwsteen. De ene uitzondering is het
+  citaat in lopende tekst: als citaat-element heeft het zijn eigen hoek van 24 px
+  (`--radius-quote`), de hoek van de huisstijl als aanhalingsteken.
 - **Schaduwen geven diepte aan en verder niets**: een vastgeplakte balk, een popover, het menu
   over de pagina. Alleen de gedefinieerde `--shadow-*`.
 
@@ -311,8 +333,9 @@ indelingen, naar keuze van de host:
 
 Besluiten die voor beide gelden:
 
-- **Het menu is gevuld in de themakleur, of licht; de host kiest.** Gevuld is de standaard: de
-  rail en de navigatiebalk in de primaire kleur, met witte tekst. Licht (`nav-tone="light"`) is
+- **Het menu is gevuld in de themakleur, of licht; de huisstijl kiest, of de host.** Gevuld is
+  de eerdere huisstijl: de rail en de navigatiebalk in de primaire kleur, met witte tekst. Licht
+  is de nieuwe, en een host kiest zelf met `nav-tone` op de shell. Licht is
   de navigatiebalk zoals de huisstijl hem tekent en de side navigation van Mijn Omgeving: het
   oppervlak met een lijn eronder of ernaast, de woorden in de tekstkleur van het accent, een
   rij onder de aanwijzer gevuld in de primaire kleur met wit erop, de pagina van de lezer in de
@@ -322,7 +345,7 @@ Besluiten die voor beide gelden:
   het spiegelbeeld van licht: de balk en de rail op het oppervlak, zoals de logobalk, een stap
   onder de pagina. Bij een licht menu verhuist de kleur naar de paginakop:
   `lintje-page-header` en `lintje-hero` in de shell worden dan vanzelf de band in de primaire
-  kleur, met de hoek van de host, en elke knop erop tekent zichzelf in zijn omgekeerde vorm; een
+  kleur, met de grote hoek, en elke knop erop tekent zichzelf in zijn omgekeerde vorm; een
   host kiest daar niets voor, en een hero die de waas wil houden, zegt `tone="wash"`.
 - **De navigatiebalk is één rij.** Als de items niet passen, gemeten en niet per breakpoint,
   maken ze plaats voor één item, "Menu", waarvan het paneel het hele menu bevat. Een groep opent
@@ -386,8 +409,8 @@ Besluiten die voor beide gelden:
   zegt nooit iets wat nergens anders staat.
 - **De paginakop mag een band in de primaire kleur zijn** (`lintje-hero tone="primary"`), zoals
   de huisstijl hem op de sites van de Marechaussee en het RIVM tekent: kruimelpad, titel en
-  inleiding in wit op de primaire kleur, met de ene hoek van de host rechtsboven
-  (`--lintje-radius-corner`). Waar wit op een lichte primaire kleur geen 4,5:1 haalt (het oranje van
+  inleiding in wit op de primaire kleur, in de nieuwe huisstijl met de ene hoek rechtsboven
+  (`--radius-corner`). Waar wit op een lichte primaire kleur geen 4,5:1 haalt (het oranje van
   Defensie), is de tekst bijna-zwart, zoals het omgevingslabel beslist. Op een telefoon staat de
   hoek linksboven en is hij hoogstens een halve lint, zoals de huisstijl vraagt. Dan is dat de ene band
   van de pagina: niet naast een hero in de waas, en klein naast een gevulde rail, anders vechten
@@ -532,8 +555,8 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
   elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
   beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").
-- **Een lade schuift van rechts in, of van links** (`side="left"`), met de hoek van de host
-  (`--lintje-radius-corner`) bovenaan aan de kant van de pagina, zoals de huisstijl een lade
+- **Een lade schuift van rechts in, of van links** (`side="left"`), in de nieuwe huisstijl met
+  de ene hoek (`--radius-corner`) bovenaan aan de kant van de pagina, zoals de huisstijl een lade
   tekent; op een telefoon is ze schermvullend en zonder hoek.
 - **De sluier onder een dialoog, een venster en een lade is het koelgrijs van de huisstijl op
   80 %** (Cool Gray 900); in donker is hij zwart op 60 %, omdat het koelgrijs een donkere pagina

@@ -5,11 +5,12 @@
  * It never fetches and never reads the URL: the active page and the reader's settings are the
  * host's, and a change goes out as `lintje-view-change` and comes back as data. `nav-tone`
  * chooses the menu's colours: filled in the theme's colour, or light as the house style's bar
- * and side navigation, and `mobile-bar` where the phone's header stands. `end` takes what a host
+ * and side navigation; unset, the new house style takes light and the earlier one filled.
+ * `mobile-bar` says where the phone's header stands. `end` takes what a host
  * puts at the end of the bar, such as
  * `lintje-language-nav`, before the search and the user. `header` holds the `lintje-page-header`,
- * the page's head; `full` runs edge to edge under it and above the content (a filter bar, a
- * hero) and `footer` holds the `lintje-footer`. The events of its parts (`lintje-action`, `lintje-logout`,
+ * the page's head; `full` runs edge to edge above the content (a filter bar, a hero), under the
+ * head in the new style and above it in the earlier one; `footer` holds the `lintje-footer`. The events of its parts (`lintje-action`, `lintje-logout`,
  * `lintje-notification-open`, `lintje-notifications-read`) reach the host as they are.
  *
  * Events: `lintje-navigate` `{ href }`, `lintje-view-change` `ShellViewChange`,
@@ -131,9 +132,11 @@ export class LintjeShell extends LintjeElement {
   /**
    * `filled`: the menu in the theme's colour, beside or above the page. `light`: the house
    * style's white bar and side navigation, with the words in the primary colour, a row under the
-   * pointer filled in it and the reader's page in its wash. The host's choice, like the layout.
+   * pointer filled in it and the reader's page in its wash. Unset, the style decides: light in
+   * the new house style, filled in the earlier one. The effective tone stands on the host as
+   * `data-tone`, where the stylesheet, the page head and the hero read it.
    */
-  navTone: 'filled' | 'light' = 'filled'
+  declare navTone?: 'filled' | 'light'
   /**
    * Where the header stands below 768 px: at the top of the page (`top`), or stuck to the bottom
    * of the screen under the thumb (`bottom`), the house style's variant; the menu then opens
@@ -262,6 +265,12 @@ export class LintjeShell extends LintjeElement {
     this.#sheetReleased()
     this.#sheetReleased = null
     this.#sheetTrap.deactivate(restore)
+  }
+
+  override resolveSettings(): void {
+    super.resolveSettings()
+    const tone = this.navTone ?? (this.resolvedStyle === 'new' ? 'light' : 'filled')
+    if (this.dataset.tone !== tone) this.dataset.tone = tone
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
@@ -650,14 +659,19 @@ export class LintjeShell extends LintjeElement {
 
   private renderMain(): TemplateResult {
     const onSlotChange = (): void => this.#onSlotChange()
+    // The new style stands the page's head above what runs edge to edge (a filter bar under it
+    // stays sticky); the earlier one keeps the head in the content column under it.
+    const fresh = this.resolvedStyle === 'new'
+    const header = html`<slot name="header" @slotchange=${onSlotChange}></slot>`
     return html`<main
       id=${MAIN_ID}
       class=${classMap({ 'lintje-shell__main': true, 'is-bare': !this.hasContent })}
       tabindex="-1"
     >
-      <slot name="header" @slotchange=${onSlotChange}></slot>
+      ${fresh ? header : nothing}
       <slot name="full" @slotchange=${onSlotChange}></slot>
       <div class="lintje-shell__content" ?hidden=${!this.hasContent}>
+        ${fresh ? nothing : header}
         <slot @slotchange=${onSlotChange}></slot>
       </div>
     </main>`

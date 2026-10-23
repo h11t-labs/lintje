@@ -1,9 +1,9 @@
 /**
  * `<lintje-expander>` — a title you press; what is slotted under it shows or hides.
  *
- * It is the house style's accordion row: a line above and under it, the chevron before the
- * title in the primary colour, the content in line with the title. Closed, the content stays in
- * the DOM, out of the tab order and the accessibility tree. What is slotted in `actions` stands
+ * An outlined card, or in the new house style its accordion row: a line above and under it, the
+ * chevron before the title in the primary colour, the content in line with the title. Closed,
+ * the content stays in the DOM, out of the tab order and the accessibility tree. What is slotted in `actions` stands
  * beside the title, outside its button: a few icon buttons about the content.
  *
  * Events: `lintje-toggle` `boolean` (open, after the reader pressed the title, or after the
@@ -42,9 +42,9 @@ export class LintjeExpander extends LintjeGridItemElement {
   open: boolean = false
   /** No lines and no surface of its own: an expander inside a tile is not a second card. */
   flat: boolean = false
-  /** An outlined card on the surface instead of the two lines, for one expander on its own. */
+  /** In the new style: an outlined card on the surface instead of the two lines, for one expander on its own. */
   card: boolean = false
-  /** The chevron stands before the title in every form; kept for older markup, it changes nothing. */
+  /** The chevron before the title, the content under the title's text: expanders read as rows. The new style's row always. */
   leading: boolean = false
   /**
    * The title in a column of its own (`--lintje-expander-label`), the content beside it, as rows
@@ -65,6 +65,11 @@ export class LintjeExpander extends LintjeGridItemElement {
     )
   }
 
+  /** The new style's row leads with the chevron; the earlier one on request or in columns. */
+  private get leadingNow(): boolean {
+    return this.leading || this.columns || this.resolvedStyle === 'new'
+  }
+
   protected override render(): TemplateResult {
     return html`<section
       class=${classMap({
@@ -72,7 +77,7 @@ export class LintjeExpander extends LintjeGridItemElement {
         'lintje-expander': true,
         'lintje-expander--flat': this.flat,
         'lintje-expander--card': this.card && !this.flat,
-        'lintje-disclosure--leading': true,
+        'lintje-disclosure--leading': this.leadingNow,
         'lintje-expander--columns': this.columns,
         'is-open': this.open,
         'is-settled': this.#settle.settled,
@@ -85,7 +90,7 @@ export class LintjeExpander extends LintjeGridItemElement {
           title: this.heading,
           subtitle: this.subtitle,
           icon: this.icon,
-          leading: true,
+          leading: this.leadingNow,
           level: this.level,
           toggle: () => {
             this.open = !this.open

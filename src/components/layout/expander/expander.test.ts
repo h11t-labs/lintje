@@ -36,6 +36,7 @@ type Expander = HTMLElement & {
   heading: string
   card: boolean
   flat: boolean
+  leading: boolean
   updateComplete: Promise<unknown>
 }
 type Tile = HTMLElement & { heading?: string; icon?: string; updateComplete: Promise<unknown> }
@@ -191,18 +192,33 @@ describe('the expander title', () => {
 })
 
 describe('the form of lintje-expander', () => {
-  it('puts the chevron before the title in every form, and draws the card only when asked', async () => {
+  it('puts the chevron after the title, or before it on request', async () => {
     const element = await expander(false)
     const header = element.shadowRoot!.querySelector('.lintje-disclosure__header')!
+    expect(header.lastElementChild!.classList.contains('lintje-disclosure__chevron')).toBe(true)
+    expect(section(element).classList.contains('lintje-disclosure--leading')).toBe(false)
+    element.leading = true
+    await element.updateComplete
     expect(header.firstElementChild!.classList.contains('lintje-disclosure__chevron')).toBe(true)
-    expect(section(element).classList.contains('lintje-disclosure--leading')).toBe(true)
-    expect(section(element).classList.contains('lintje-expander--card')).toBe(false)
-    element.card = true
-    await element.updateComplete
-    expect(section(element).classList.contains('lintje-expander--card')).toBe(true)
-    // Flat wins: inside a tile the expander is no card.
-    element.flat = true
-    await element.updateComplete
-    expect(section(element).classList.contains('lintje-expander--card')).toBe(false)
+  })
+
+  it('in the new style puts the chevron before the title in every form, and draws the card only when asked', async () => {
+    document.documentElement.dataset.style = 'new'
+    try {
+      const element = await expander(false)
+      const header = element.shadowRoot!.querySelector('.lintje-disclosure__header')!
+      expect(header.firstElementChild!.classList.contains('lintje-disclosure__chevron')).toBe(true)
+      expect(section(element).classList.contains('lintje-disclosure--leading')).toBe(true)
+      expect(section(element).classList.contains('lintje-expander--card')).toBe(false)
+      element.card = true
+      await element.updateComplete
+      expect(section(element).classList.contains('lintje-expander--card')).toBe(true)
+      // Flat wins: inside a tile the expander is no card.
+      element.flat = true
+      await element.updateComplete
+      expect(section(element).classList.contains('lintje-expander--card')).toBe(false)
+    } finally {
+      delete document.documentElement.dataset.style
+    }
   })
 })

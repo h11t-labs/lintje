@@ -66,20 +66,33 @@ describe('lintje-toast', () => {
   })
 
   it.each([
-    ['ok', 'functioneel-cirkel-vinkje-gekleurd'],
-    ['error', 'functioneel-foutmelding-gekleurd'],
-    ['info', 'functioneel-info-gekleurd'],
-    ['warning', 'functioneel-waarschuwing-gekleurd'],
-  ] as const)('draws the shared glyph for %s', async (kind, icon) => {
-    const { toast } = await mount(undefined, kind)
-    toast.filled = true
-    await toast.updateComplete
-    const expected = document.createElement('div')
-    render(renderIcon(icon), expected)
-    expect(toast.shadowRoot!.querySelector('.lintje-toast__icon svg')!.innerHTML).toBe(
-      expected.querySelector('svg')!.innerHTML,
-    )
-  })
+    ['ok', 'functioneel-cirkel-vinkje', 'functioneel-cirkel-vinkje-gekleurd'],
+    ['error', 'functioneel-foutmelding', 'functioneel-foutmelding-gekleurd'],
+    ['info', 'functioneel-info', 'functioneel-info-gekleurd'],
+    ['warning', 'functioneel-waarschuwing', 'functioneel-waarschuwing-gekleurd'],
+  ] as const)(
+    'draws the shared glyph for %s, coloured in the new style',
+    async (kind, icon, coloured) => {
+      const glyph = async (): Promise<string> => {
+        const { toast } = await mount(undefined, kind)
+        toast.filled = true
+        await toast.updateComplete
+        return toast.shadowRoot!.querySelector('.lintje-toast__icon svg')!.innerHTML
+      }
+      const drawn = (name: string): string => {
+        const expected = document.createElement('div')
+        render(renderIcon(name), expected)
+        return expected.querySelector('svg')!.innerHTML
+      }
+      expect(await glyph()).toBe(drawn(icon))
+      document.documentElement.dataset.style = 'new'
+      try {
+        expect(await glyph()).toBe(drawn(coloured))
+      } finally {
+        delete document.documentElement.dataset.style
+      }
+    },
+  )
 
   it('puts its content into a status region that is already there', async () => {
     const toast = document.createElement('lintje-toast') as LintjeToast

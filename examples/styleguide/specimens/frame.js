@@ -676,9 +676,9 @@ export default {
           label: 'Als paginakop',
           note:
             'Met `tone="primary"` is de hero de kop van een werkpagina: kruimelpad, titel en ' +
-            'inleiding in wit op de primaire kleur. De hoek rechtsboven is die van de host ' +
-            '(`--lintje-radius-corner`, hier 48 px); een pagina die geen hoek wil, laat hem weg.',
-          html: `<div style="--lintje-radius-corner: 48px">
+            'inleiding in wit op de primaire kleur. In de nieuwe huisstijl draagt de band de ene ' +
+            'afgeronde hoek rechtsboven (`--radius-corner`); `data-corner="square"` laat hem weg.',
+          html: `<div data-style="new" data-corner="round">
             <lintje-hero tone="primary" heading="Aanvragen en wachttijden" description="Alle cijfers over de loketten, per regio en per soort loket, bijgewerkt tot vanochtend.">
               <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
             </lintje-hero>

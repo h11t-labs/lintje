@@ -259,6 +259,8 @@ describe('lintje-page-header in a shell with a light menu', () => {
     header.data = { title: 'Overzicht' }
     shell.append(header)
     document.body.append(shell)
+    // happy-dom connects the child before the shell has mirrored its tone: a tick for the observer.
+    await new Promise((resolve) => setTimeout(resolve))
     await header.updateComplete
     const block = () => header.shadowRoot!.querySelector('.lintje-page-header')!
     expect(block().classList.contains('lintje-page-header--band')).toBe(true)

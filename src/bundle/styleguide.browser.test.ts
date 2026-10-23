@@ -66,6 +66,8 @@ const ELEMENTS = (await Promise.all(Object.values(modules).map((load) => load())
   .flatMap(expand)
 
 const MODES = ['light', 'dark'] as const
+/* Both house styles: the earlier one is the default, the new one every #317 change draws under. */
+const STYLES = ['classic', 'new'] as const
 const VIEWPORTS = [
   { name: '1440 px', width: 1440, height: 900 },
   { name: '390 px', width: 390, height: 844 },
@@ -237,39 +239,42 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe.each(MODES)('the style guide in %s', (mode) => {
-  describe.each(VIEWPORTS)('at $name', ({ width, height }) => {
-    beforeAll(async () => {
-      document.documentElement.dataset.mode = mode
-      document.documentElement.dataset.theme = 'rijksoverheid'
-      await page.viewport(width, height)
-    })
+describe.each(STYLES)('the style guide in the %s house style', (style) => {
+  describe.each(MODES)('in %s', (mode) => {
+    describe.each(VIEWPORTS)('at $name', ({ width, height }) => {
+      beforeAll(async () => {
+        document.documentElement.dataset.mode = mode
+        document.documentElement.dataset.style = style
+        document.documentElement.dataset.theme = 'rijksoverheid'
+        await page.viewport(width, height)
+      })
 
-    it.each(ELEMENTS.map((item) => [nameOf(item), item] as const))('%s', async (name, item) => {
-      const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
-      draw(item)
-      await settle()
-      drawn++
-
-      const undefinedTags = deep(document.body)
-        .filter(
-          (element) => element.localName.startsWith('lintje-') && !element.matches(':defined'),
-        )
-        .map((element) => element.localName)
-      expect.soft(undefinedTags, `tags without a definition: ${undefinedTags}`).toHaveLength(0)
-      const logged = errors.mock.calls.map((call) => call.map(String).join(' '))
-      expect.soft(logged, `console.error: ${logged.join(' | ')}`).toHaveLength(0)
-      const missing = [...requested].filter(
-        (icon) => icon !== NO_FILE_ON_PURPOSE && iconIsMissing(icon),
-      )
-      expect.soft(missing, `icons without a file: ${missing}`).toHaveLength(0)
-      let found = await audit(name)
-      // Halfway a transition is no state of the element: look again once it has landed.
-      if (found.length) {
+      it.each(ELEMENTS.map((item) => [nameOf(item), item] as const))('%s', async (name, item) => {
+        const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+        draw(item)
         await settle()
-        found = await audit(name)
-      }
-      expect.soft(found, `axe:\n${found.join('\n')}`).toHaveLength(0)
+        drawn++
+
+        const undefinedTags = deep(document.body)
+          .filter(
+            (element) => element.localName.startsWith('lintje-') && !element.matches(':defined'),
+          )
+          .map((element) => element.localName)
+        expect.soft(undefinedTags, `tags without a definition: ${undefinedTags}`).toHaveLength(0)
+        const logged = errors.mock.calls.map((call) => call.map(String).join(' '))
+        expect.soft(logged, `console.error: ${logged.join(' | ')}`).toHaveLength(0)
+        const missing = [...requested].filter(
+          (icon) => icon !== NO_FILE_ON_PURPOSE && iconIsMissing(icon),
+        )
+        expect.soft(missing, `icons without a file: ${missing}`).toHaveLength(0)
+        let found = await audit(name)
+        // Halfway a transition is no state of the element: look again once it has landed.
+        if (found.length) {
+          await settle()
+          found = await audit(name)
+        }
+        expect.soft(found, `axe:\n${found.join('\n')}`).toHaveLength(0)
+      })
     })
   })
 })
@@ -301,7 +306,7 @@ describe('the specimen labels', () => {
 describe('the known findings', () => {
   it('are all still found', ({ skip }) => {
     // A run of part of the style guide cannot say what is fixed.
-    if (drawn < ELEMENTS.length * MODES.length * VIEWPORTS.length) skip()
+    if (drawn < ELEMENTS.length * STYLES.length * MODES.length * VIEWPORTS.length) skip()
     const fixed = KNOWN.filter((entry) => !seen.has(entry)).map(String)
     expect(fixed, `fixed, so take out of KNOWN:\n${fixed.join('\n')}`).toHaveLength(0)
   })

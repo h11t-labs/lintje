@@ -81,7 +81,7 @@
 .lintje-hero--primary .lintje-hero__band {
   background: var(--color-hero-primary-bg);
   color: var(--color-hero-primary-text);
-  border-top-right-radius: var(--lintje-radius-corner, var(--radius-corner));
+  border-top-right-radius: var(--radius-corner);
 }
 /* The band's inverse ring, the trail's ink and the buttons' reverse reach what stands on the
    band by inheritance: a token set on a slotted element loses to the dark re-declaration in that
@@ -128,6 +128,6 @@
   /* On a phone the house style allows half a ribbon at most, top left. */
   .lintje-hero--primary .lintje-hero__band {
     border-top-right-radius: 0;
-    border-top-left-radius: min(var(--lintje-radius-corner, var(--radius-corner)), calc(var(--w-ribbon) / 2));
+    border-top-left-radius: min(var(--radius-corner), calc(var(--w-ribbon) / 2));
   }
 }

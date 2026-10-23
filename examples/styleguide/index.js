@@ -137,7 +137,7 @@ function render({ keepScroll = false } = {}) {
   for (const frame of host.querySelectorAll('.guide__frame'))
     frame.contentDocument?.documentElement.setAttribute('data-mode', root.dataset.mode)
   root.dataset.theme = theme()
-  applyStyle(shell)
+  applyStyle()
   const label = foundation?.label ?? (item ? nameOf(item) : category.label)
   document.title = `${label} — Lintje stijlgids`
 

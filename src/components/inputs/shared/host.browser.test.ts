@@ -87,9 +87,8 @@ const HOSTS: Host[] = [
     tag: 'lintje-select',
     control: '.lintje-select__control',
     props: { options: OPTIONS },
-    // Its column's width, up to a field's widest: 480 in a wide block, the phone's width there.
-    wide: { ...FIELD, block: 480, row: 480, minWidth: 'auto' },
-    phone: { ...FULL, minWidth: 'auto' },
+    wide: { ...WIDE_180, minWidth: 'auto' },
+    phone: { ...WIDE_180, minWidth: 'auto' },
   },
   {
     tag: 'lintje-combobox',
@@ -281,6 +280,26 @@ describe('the hosts at 1440 and 390 px', () => {
     expect({ wide, phone: look() }).toEqual({ wide: host.wide, phone: host.phone })
   })
 
+  // In the new style a select fills its column, up to a field's widest: 480 in a wide block, the
+  // phone's width there.
+  it('lintje-select in the new style', async () => {
+    document.documentElement.dataset.style = 'new'
+    try {
+      const host = HOSTS.find((entry) => entry.tag === 'lintje-select')!
+      const block = await mount(host.tag, host.props)
+      const row = await mount(host.tag, host.props, 'row')
+      const look = (): Pick<Seen, 'block' | 'row'> => ({ block: widthIn(block), row: widthIn(row) })
+      const wide = look()
+      await viewport(390, 844)
+      expect({ wide, phone: look() }).toEqual({
+        wide: { block: 480, row: 480 },
+        phone: { block: 'fill', row: 'fill' },
+      })
+    } finally {
+      delete document.documentElement.dataset.style
+    }
+  })
+
   // The table adopts input.css for its rows' boxes: no host rule of a field reaches it.
   it('lintje-data-table', async () => {
     const block = await mount('lintje-data-table', { data: TABLE })
@@ -399,10 +418,14 @@ function drawn(look: Look): Record<string, string> {
       look === 'error' ? '--color-error' : quiet ? '--color-border-strong' : '--color-border-field',
     ),
     fill: colourOf(
-      quiet ? '--color-bg-subtle' : look === 'error' ? '--color-error-bg' : '--color-bg-surface',
+      quiet
+        ? '--color-bg-subtle'
+        : look === 'error'
+          ? '--color-bg-field-error'
+          : '--color-bg-surface',
     ),
     text: colourOf(look === 'disabled' ? '--color-text-disabled' : '--color-text-primary'),
-    radius: '4px',
+    radius: '0px',
     start: '16px',
     size: '16px',
     height: '48',

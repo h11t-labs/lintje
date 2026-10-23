@@ -7,9 +7,9 @@
  * search field or a short form under the introduction, `aside` one picture beside the text (left
  * out below 1024 px), `panel` content beside the text, and `overlap` what stands half over the
  * band's lower edge, such as a panel of tabs. With `tone="primary"` it is the page's head: the
- * `breadcrumbs` slot takes the trail above the title, and the band draws the host's corner
- * (`--lintje-radius-corner` on the page, 0 by default). In a shell whose menu is light
- * (`nav-tone="light"`) a hero without a `tone` is primary by itself; `tone="wash"` keeps the wash.
+ * `breadcrumbs` slot takes the trail above the title, and the band draws the one corner of the
+ * new house style (`--radius-corner`, with `data-corner`). In a shell whose menu is light a hero
+ * without a `tone` is primary by itself; `tone="wash"` keeps the wash.
  *
  * Events: `lintje-navigate` `{ href }` (the action).
  */
@@ -39,13 +39,13 @@ export class LintjeHero extends LintjeElement {
   heading: string = ''
   /**
    * `wash`: the start page's band in the primary's wash. `primary`: the page's head in the
-   * primary colour itself, white text and the host's one corner (`--lintje-radius-corner`) top right.
+   * primary colour itself, white text and the one corner of the new house style top right.
    */
   /** Unset, the hero is on the wash, or primary under a light menu: only a chosen tone reflects. */
   declare tone?: 'wash' | 'primary'
-  /** In a shell with a light menu: primary unless the host chose a tone, read from the shell's attribute. */
+  /** In a shell with a light menu: primary unless the host chose a tone, read from the shell's `data-tone`. */
   band: boolean = false
-  /** Watches the shell's `nav-tone`, so the band follows a change of the menu's tone. */
+  /** Watches the shell's effective tone (`data-tone`), so the band follows a change of it. */
   #tone: MutationObserver | null = null
 
   override connectedCallback(): void {
@@ -53,11 +53,11 @@ export class LintjeHero extends LintjeElement {
     const shell = this.closest('lintje-shell')
     if (!shell) return
     const read = (): void => {
-      this.band = shell.getAttribute('nav-tone') === 'light'
+      this.band = shell.dataset.tone === 'light'
     }
     read()
     this.#tone = new MutationObserver(read)
-    this.#tone.observe(shell, { attributes: true, attributeFilter: ['nav-tone'] })
+    this.#tone.observe(shell, { attributes: true, attributeFilter: ['data-tone'] })
   }
 
   override disconnectedCallback(): void {

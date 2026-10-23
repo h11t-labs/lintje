@@ -46,20 +46,23 @@ eigen thema is niet getoetst aan de ondergrenzen van Lintje.
 De afgeleide kleuren gebruiken `color-mix()` en relatieve kleur (`oklch(from …)`): Chrome/Edge 122+,
 Firefox 128+, Safari 18+.
 
-## De afgeronde hoek
+## De huisstijl
 
-De huisstijl tekent per beeld één (hoogstens drie) afgeronde hoek. Lintje laat die keuze aan de
-pagina: het token `--radius-corner` staat op 0 en alleen de band van `lintje-hero` als paginakop
-(`tone="primary"`) leest hem, rechtsboven. Een halve tot anderhalve lint is een zinnige maat; zet
-hem op de pagina als `--lintje-radius-corner`, zoals `--lintje-content-width` (een token uit
-`tokens.css` zelf overschrijven haalt de elementen niet: elk element declareert het opnieuw op
-zijn eigen host):
+De Rijkshuisstijl tekent online sinds 2025 anders dan eerst: een wit menu, kleine afgeronde
+hoeken op knoppen en kaders, één grote hoek op de kop van de pagina, een donkere focusring met
+een witte lijn erin, de foutmelding boven het veld. Lintje tekent beide. Tot 1.0.0 is de eerdere
+huisstijl de standaard; de nieuwe kies je met één attribuut op de pagina, dat elk element op zijn
+eigen host spiegelt, zoals `data-mode`:
 
-```css
-:root {
-  --lintje-radius-corner: 48px;
-}
+```html
+<html lang="nl" data-style="new">
 ```
+
+De grote hoek van de paginakop en de voet (`--radius-corner`, een lint) hoort bij de nieuwe
+huisstijl en heeft zijn eigen schakelaar: `data-corner="square"` op de pagina laat hem weg,
+zonder dat attribuut is hij rond. In de eerdere huisstijl is alles recht. Het menu van
+`lintje-shell` volgt de huisstijl (licht in de nieuwe, gevuld in de eerdere), tenzij de host het
+zelf kiest met `nav-tone`.
 
 ## Modus
 

@@ -258,7 +258,7 @@ function renderShell() {
   const root = document.documentElement
   root.dataset.mode = modeOf(location.search)
   root.dataset.theme = theme()
-  applyStyle(shell)
+  applyStyle()
   shell.data = {
     name: 'Meldingen',
     emblem: emblem(theme()),

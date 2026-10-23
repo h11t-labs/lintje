@@ -1,8 +1,9 @@
 /*
  * Prose: a block of text the server wrote. The one sheet with type selectors inside a block
  * (rule 24): the content is sanitised HTML from markdown with no hook but its tag name, so the
- * selectors are scoped to `.lintje-prose`. The six heading levels step down the house style's
- * scale: 40, 32, 24, 20, 16, 16; the tokens are named after the page's hierarchy, not the tag.
+ * selectors are scoped to `.lintje-prose`. A block starts at `h3`; `h1` and `h2` get the same
+ * look. In the new style the six heading levels step down the house style's scale instead: 40,
+ * 32, 24, 20, 16, 16; the tokens are named after the page's hierarchy, not the tag.
  */
 :host {
   display: block;
@@ -19,13 +20,12 @@
 .lintje-prose--muted { font: var(--text-small); color: var(--color-text-muted); }
 
 .lintje-prose > * + * { margin-top: var(--space-3); }
-/* Headings in the primary colour, as the house style sets them; a word, so the text tint. */
 .lintje-prose h1,
 .lintje-prose h2,
 .lintje-prose h3,
 .lintje-prose h4,
 .lintje-prose h5,
-.lintje-prose h6 { color: var(--color-accent-text); }
+.lintje-prose h6 { color: var(--color-text-primary); }
 .lintje-prose * + h1,
 .lintje-prose * + h2,
 .lintje-prose * + h3,
@@ -33,15 +33,22 @@
 .lintje-prose * + h5,
 .lintje-prose * + h6 { margin-top: var(--space-5); }
 
-.lintje-prose h1 { font: var(--text-h1-display); }
-.lintje-prose h2 { font: var(--text-h1); }
-.lintje-prose h3 { font: var(--text-section); }
-.lintje-prose h4 { font: var(--text-h2); }
-.lintje-prose h5,
-.lintje-prose h6 { font: var(--text-tile-title); }
-/* The two largest also hold their room: a long title wraps on its own lines. */
 .lintje-prose h1,
-.lintje-prose h2 { text-wrap: balance; }
+.lintje-prose h2,
+.lintje-prose h3 { font: var(--text-h2); }
+.lintje-prose h4 { font: var(--text-tile-title); }
+.lintje-prose h5,
+.lintje-prose h6 { font: var(--text-body); font-weight: 700; }
+/* The new style: headings in the primary colour, as the house style sets them (a word, so the
+   text tint), down the scale; the two largest also hold their room, so a long title wraps on its
+   own lines. */
+[data-style='new'] .lintje-prose :is(h1, h2, h3, h4, h5, h6) { color: var(--color-accent-text); }
+[data-style='new'] .lintje-prose h1 { font: var(--text-h1-display); }
+[data-style='new'] .lintje-prose h2 { font: var(--text-h1); }
+[data-style='new'] .lintje-prose h3 { font: var(--text-section); }
+[data-style='new'] .lintje-prose h4 { font: var(--text-h2); }
+[data-style='new'] .lintje-prose :is(h5, h6) { font: var(--text-tile-title); }
+[data-style='new'] .lintje-prose :is(h1, h2) { text-wrap: balance; }
 
 .lintje-prose p { font: var(--text-body); }
 .lintje-prose strong { font-weight: 700; }
@@ -80,10 +87,16 @@
 }
 .lintje-prose pre code { padding: 0; background: none; border: none; }
 
-/* The house style's quotation: a frame of two lines in the primary, above and at the left, with
-   the one corner where they meet; the source line under it, after a dash. */
 .lintje-prose blockquote {
   margin: 0;
+  padding-left: var(--space-4);
+  border-left: 4px solid var(--color-border-strong);
+  color: var(--color-text-secondary);
+}
+/* The new style's quotation, as the house style draws it: a frame of two lines in the primary,
+   above and at the left, with the one corner where they meet; the source line under it, after a
+   dash. */
+[data-style='new'] .lintje-prose blockquote {
   padding: var(--space-6) var(--space-8);
   border-top: 2px solid var(--color-accent-line);
   border-left: 2px solid var(--color-accent-line);
@@ -91,16 +104,14 @@
   color: var(--color-accent-text);
   font: var(--text-translation);
 }
-.lintje-prose blockquote p { font: inherit; }
-.lintje-prose blockquote cite,
-.lintje-prose blockquote footer {
+[data-style='new'] .lintje-prose blockquote p { font: inherit; }
+[data-style='new'] .lintje-prose blockquote :is(cite, footer) {
   display: block;
   margin-top: var(--space-3);
   font: var(--text-body);
   font-style: normal;
 }
-.lintje-prose blockquote cite::before,
-.lintje-prose blockquote footer::before { content: '— '; }
+[data-style='new'] .lintje-prose blockquote :is(cite, footer)::before { content: '— '; }
 
 .lintje-prose hr {
   border: none;

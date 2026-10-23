@@ -56,8 +56,10 @@ niet.
     bestand tekent niets en het bedieningselement toont zijn Nederlandse label. Een icoon dat een
     component *zelf* tekent, komt in `COMPONENT_ICONS` (`scripts/build-icons.mjs`) +
     `npm run build:icons` — houd die lijst kort; elke andere naam wordt per bestand opgehaald.
-12. **Geen afgeronde SaaS-kaarten.** `--radius` is de kleine hoek van de huisstijl (4 px), die
-    een host met `--lintje-radius` op 0 zet; nooit groter. Geen verlopen, geen glassmorphism, geen
+12. **Geen afgeronde SaaS-kaarten.** `--radius` is de kleine hoek van de huisstijl (4 px onder
+    `data-style="new"`, 0 in de eerdere huisstijl, die tot 1.0.0 de standaard is); nooit groter.
+    Alles wat de nieuwe huisstijl anders tekent, staat onder `[data-style='new']` in de tokens
+    of in de eigen CSS van het element, nooit als nieuwe standaard. Geen verlopen, geen glassmorphism, geen
     zwevende widgets, geen schaduwen buiten de gedefinieerde.
 13. **Kleur is nooit de enige drager van betekenis.** Voeg een glyph, getal of tekst toe.
 14. **Filterstatus blijft deelbaar.** Alles wat de cijfers verandert, is de status van de host,

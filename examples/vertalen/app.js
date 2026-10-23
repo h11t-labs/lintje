@@ -49,7 +49,7 @@ const root = document.documentElement
 function applySettings() {
   root.dataset.mode = modeOf(location.search)
   root.dataset.theme = themeOf(location.search)
-  applyStyle(document.getElementById('shell'))
+  applyStyle()
 }
 applySettings()
 

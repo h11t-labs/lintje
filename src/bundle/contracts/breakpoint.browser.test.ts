@@ -1004,11 +1004,11 @@ const ROWS: Row[] = [
         <lintje-button slot="actions" variant="danger">Verwijderen</lintje-button>`
       return append(element)
     },
-    // Wide, the row stands at the left with the answer first, as the house style orders it.
+    // Wide, the row stands at the right with the answer last; the new style turns it round.
     wide: (element) => {
       const answer = find(element, '[variant="danger"]')
       const cancel = find(element, '[variant="secondary"]')
-      return seen(answer) && level(answer, cancel) && box(answer).right <= box(cancel).left
+      return seen(answer) && level(answer, cancel) && box(cancel).right <= box(answer).left
     },
     phone: (element) =>
       below(find(element, '[variant="danger"]'), find(element, '[variant="secondary"]')),

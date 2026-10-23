@@ -4,9 +4,10 @@
  * The title is an h2: the page's h1 is the shell's `name`. Actions that do not fit on one line go
  * into one menu, "Meer": the first goes first, the last never, and a chosen row clicks its button,
  * so the host's own listener sees the click. In the page's content it is a band that tells the
- * shell when the title scrolls under the top bar. In a shell whose menu is light
- * (`nav-tone="light"`), in either slot, it is the page's band in the primary colour, with the
- * host's corner, and every button in `actions` turns to its reverse by itself. `meta` takes a
+ * shell when the title scrolls under the top bar. In a shell whose menu is light (the new house
+ * style, or `nav-tone="light"`), in either slot, it is the page's band in the primary colour,
+ * with the one corner of the new style, and every button in `actions` turns to its reverse by
+ * itself. `meta` takes a
  * line of facts under the title, `tabs` a `lintje-tabs` row on the head's lower edge: the parts
  * of the page, in the band's ink on the band.
  *
@@ -50,7 +51,7 @@ export class LintjePageHeader extends LintjeElement {
    * with no band and no top bar to tell.
    */
   inShell: boolean = false
-  /** In a shell with a light menu, in any slot: the band in the primary colour, read from the shell's attribute. */
+  /** In a shell with a light menu, in any slot: the band in the primary colour, read from the shell's `data-tone`. */
   band: boolean = false
   /** An empty actions slot takes no place, so a long title never wraps onto an empty line. */
   hasActions: boolean = false
@@ -71,7 +72,7 @@ export class LintjePageHeader extends LintjeElement {
     slot: 'actions',
   })
   private observer: IntersectionObserver | null = null
-  /** Watches the shell's `nav-tone`, so the band follows a change of the menu's tone. */
+  /** Watches the shell's effective tone (`data-tone`), so the band follows a change of it. */
   #tone: MutationObserver | null = null
   /** Measures what stands above the tabs: the head sticks that much above the top bar. */
   #lift: ResizeObserver | null = null
@@ -82,11 +83,11 @@ export class LintjePageHeader extends LintjeElement {
     const shell = this.closest('lintje-shell')
     if (shell) {
       const read = (): void => {
-        this.band = shell.getAttribute('nav-tone') === 'light'
+        this.band = shell.dataset.tone === 'light'
       }
       read()
       this.#tone = new MutationObserver(read)
-      this.#tone.observe(shell, { attributes: true, attributeFilter: ['nav-tone'] })
+      this.#tone.observe(shell, { attributes: true, attributeFilter: ['data-tone'] })
     }
     this.#lift = new ResizeObserver(() => {
       const tabs = this.querySelector<HTMLElement>('[slot="tabs"]')

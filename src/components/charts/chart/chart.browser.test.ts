@@ -367,7 +367,7 @@ describe('a pie without a legend table', () => {
     const ring = getComputedStyle(drawing)
     await expect.poll(() => ring.outlineColor).toBe(focus)
     expect(ring.outlineStyle).toBe('solid')
-    expect(ring.outlineWidth).toBe('2px')
+    expect(ring.outlineWidth).toBe('3px')
     await expect
       .poll(() => tile.shadowRoot!.querySelector('.lintje-chart-tooltip__title')?.textContent)
       .toBe('Online')

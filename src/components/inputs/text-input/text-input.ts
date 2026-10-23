@@ -151,7 +151,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
   }
 
   // A search keeps its hint in the tree: a live region that appears with its text is not read out.
-  protected override renderMessages(): TemplateResult | typeof nothing {
+  protected override renderFieldLine(): TemplateResult | typeof nothing {
     const message = this.error ?? ''
     const ids = { hintId: this.hintId, errorId: this.errorId }
     if (this.type !== 'search') return renderFieldFoot(this.hint, message, ids)

@@ -47,7 +47,7 @@ answerLogout(shell)
 function render() {
   root.dataset.mode = modeOf(location.search)
   root.dataset.theme = themeOf(location.search)
-  applyStyle(shell)
+  applyStyle()
   shell.data = {
     name: 'Dashboard Vergunningen',
     emblem: emblem(themeOf(location.search)),

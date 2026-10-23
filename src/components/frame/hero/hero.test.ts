@@ -1,6 +1,7 @@
 /** The hero: its title and introduction, the one action, and the room it keeps for what overlaps. */
 import { afterEach, describe, expect, it } from 'vitest'
 import './hero'
+import '../shell/shell'
 import type { LintjeHero } from './hero'
 
 async function mount(props: Partial<LintjeHero>, inner = ''): Promise<LintjeHero> {
@@ -19,8 +20,8 @@ describe('lintje-hero in a shell with a light menu', () => {
 
   it("is primary by itself, follows the menu's tone, and leaves a chosen tone alone", async () => {
     const shell = document.createElement('div')
-    // Only the attribute matters: the shell's own rendering plays no part here.
-    const host = Object.assign(document.createElement('lintje-shell'), { navTone: 'light' })
+    // The shell mirrors its effective tone as `data-tone`; its rendering plays no part here.
+    const host = document.createElement('lintje-shell')
     host.setAttribute('nav-tone', 'light')
     document.body.append(shell)
     shell.append(host)

@@ -15,7 +15,7 @@ const organisation = () => (params.has('theme') ? themeOf(location.search) : 'ri
 function applySettings() {
   root.dataset.mode = modeOf(location.search)
   root.dataset.theme = params.has('theme') ? themeOf(location.search) : 'catalogus'
-  applyStyle(document.getElementById('shell'))
+  applyStyle()
 }
 applySettings()
 

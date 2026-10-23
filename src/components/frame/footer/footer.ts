@@ -75,7 +75,7 @@ export class LintjeFooter extends LintjeElement {
                   (column) => html`<section class="lintje-footer__column">
                     <h2 class="lintje-footer__heading">${column.heading}</h2>
                     <ul class="lintje-footer__list">
-                      ${column.links.map((item) => html`<li>${this.link(item, 'lintje-footer__link', true)}</li>`)}
+                      ${column.links.map((item) => html`<li>${this.link(item, 'lintje-footer__link', this.resolvedStyle === 'new')}</li>`)}
                     </ul>
                   </section>`,
                 )}

@@ -271,7 +271,7 @@ describe('the option the keys stand on', () => {
     // Read from disk: vitest does not run the CSS pipeline, so an `?inline` import is empty.
     const css = readFileSync('src/components/inputs/tag-input/tag-input.css', 'utf8')
     expect(css).toMatch(
-      /__option\.is-active \{\s*outline: var\(--focus-width\) solid var\(--color-focus\);\s*outline-offset: calc\(-1 \* \(var\(--focus-width\) \+ var\(--focus-offset\)\)\);/,
+      /__option\.is-active \{\s*outline: var\(--focus-width\) solid var\(--color-focus\);\s*outline-offset: var\(--focus-inset\);/,
     )
   })
 })

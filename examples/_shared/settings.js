@@ -31,27 +31,27 @@ export function modeOf(search) {
     above the page, else beside it. */
 export const layoutOf = (search) => (new URLSearchParams(search).get('layout') === 'top' ? 'top' : 'side')
 
+/** The house style the examples open in. The library itself draws the earlier one until 1.0.0;
+    the examples show the new one, and `?style=classic` the earlier. */
+export const DEFAULT_STYLE = 'new'
+
 /** `?style=classic`: the earlier house style, the menu filled in the theme's colour and square
-    corners; without it the new one, the light menu and the rounded corner. */
-export const styleOf = (search) =>
-  new URLSearchParams(search).get('style') === 'classic' ? 'classic' : 'new'
+    corners; `?style=new` the light menu and the rounded corners; without it the default. */
+export const styleOf = (search) => {
+  const name = new URLSearchParams(search).get('style')
+  return name === 'classic' || name === 'new' ? name : DEFAULT_STYLE
+}
 
 /** `?corner=square`: the band at the page's head without the house style's rounded corner. */
 export const cornerOf = (search) =>
   new URLSearchParams(search).get('corner') === 'square' ? 'square' : 'round'
 
-/** Draws the chosen house style: the shell's tone, and the corner the band of a page takes. */
-export function applyStyle(shell, search = location.search) {
-  const fresh = styleOf(search) === 'new'
-  shell.navTone = fresh ? 'light' : 'filled'
-  const round = fresh && cornerOf(search) === 'round'
-  const root = document.documentElement.style
-  root.setProperty('--lintje-radius-corner', round ? '48px' : '0px')
-  // The earlier house style is square throughout; the new one keeps the tokens' own corners.
-  for (const hook of ['--lintje-radius', '--lintje-radius-control']) {
-    if (fresh) root.removeProperty(hook)
-    else root.setProperty(hook, '0px')
-  }
+/** Draws the chosen house style: `data-style` and `data-corner` on the page, which every element
+    mirrors onto its host; the shell's tone and every corner follow from there. */
+export function applyStyle(search = location.search) {
+  const root = document.documentElement
+  root.dataset.style = styleOf(search)
+  root.dataset.corner = cornerOf(search)
 }
 
 /** A theme's emblem: the ribbon by file name and the organisation's name as text. */
@@ -92,7 +92,7 @@ export function searchWith(search, change) {
   if ('menu' in change) write('menu', change.menu, 'pinned')
   if ('layout' in change) write('layout', change.layout, 'side')
   if ('theme' in change) write('theme', change.theme, THEMES[0])
-  if ('style' in change) write('style', change.style, 'new')
+  if ('style' in change) write('style', change.style, DEFAULT_STYLE)
   if ('corner' in change) write('corner', change.corner, 'round')
   const query = params.toString()
   return query ? `?${query}` : ''

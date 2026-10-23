@@ -29,11 +29,13 @@
 .lintje-menu__radio {
   box-sizing: border-box;
   width: 16px; height: 16px;
-  border: 1px solid var(--color-border-choice);
+  border: 2px solid var(--color-border-choice);
   border-radius: var(--radius-round);
   background: var(--color-bg-surface);
   display: inline-flex; align-items: center; justify-content: center;
 }
+[data-style='new'] .lintje-menu__radio { border-width: 1px; }
+
 /* Ring and dot take the line accent, as the form's radio: the primary fill sinks into the dark
    surface. */
 .lintje-menu__radio.is-checked { border-color: var(--color-accent-line); }

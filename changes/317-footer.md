@@ -1,6 +1,6 @@
 ### Gewijzigd
 
-- De voet volgt de huisstijl: de regel cursief in het gewone gewicht, de kolomkoppen vet zonder kleine kapitalen en elke link met een chevron ervoor, en de hoek van de host linksonder (`--lintje-radius-corner`), het spiegelbeeld van de band aan de kop. (#317)
+- De voet volgt de huisstijl: de regel cursief in het gewone gewicht, de kolomkoppen vet zonder kleine kapitalen en elke link met een chevron ervoor, en de ene hoek linksonder (`--radius-corner`), het spiegelbeeld van de band aan de kop. (#317)
 
 ### Toegevoegd
 

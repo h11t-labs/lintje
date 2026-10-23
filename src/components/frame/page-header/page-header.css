@@ -80,8 +80,10 @@
 ::slotted([slot='tabs']) { margin-top: var(--space-4); }
 .lintje-page-header.has-tabs,
 .lintje-page-header--shell.lintje-page-header--band.has-tabs { padding-bottom: 0; }
-.lintje-page-header--shell.has-tabs {
-  margin-bottom: 0;
+.lintje-page-header--shell.has-tabs { margin-bottom: 0; }
+/* In the new style the head stands above the content, outside its padding: it pads its words to
+   the column itself. In the earlier style it stands in the padded content. */
+[data-style='new'] .lintje-page-header--shell.has-tabs {
   padding-inline: calc(var(--page-pad-x) + var(--page-gutter));
 }
 
@@ -115,11 +117,10 @@
    ink, and the trail, the ring and the buttons in their reverse by the inherited hooks. */
 .lintje-page-header--band,
 .lintje-page-header--shell.lintje-page-header--band {
-  /* Edge to edge in the shell's grid; the words keep to the column by the page's own inset. */
-  padding: var(--space-6) calc(var(--page-pad-x) + var(--page-gutter)) var(--space-8);
+  padding: var(--space-6) var(--space-6) var(--space-8);
   background: var(--color-hero-primary-bg);
   color: var(--color-hero-primary-text);
-  border-top-right-radius: var(--lintje-radius-corner, var(--radius-corner));
+  border-top-right-radius: var(--radius-corner);
   --lintje-focus: var(--color-hero-primary-focus);
   --lintje-focus-inner: var(--color-hero-primary-focus-inner);
   --lintje-breadcrumbs-ink: var(--color-hero-primary-text);
@@ -141,6 +142,12 @@
   --lintje-suggestions-line: var(--color-hero-primary-text);
   --lintje-suggestions-hover: var(--color-action-inverse-secondary-hover);
 }
+/* In the new style the band runs edge to edge above the content; the words keep to the column by
+   the page's own inset. */
+[data-style='new'] .lintje-page-header--band,
+[data-style='new'] .lintje-page-header--shell.lintje-page-header--band {
+  padding-inline: calc(var(--page-pad-x) + var(--page-gutter));
+}
 .lintje-page-header--band .lintje-page-header__title,
 .lintje-page-header--band .lintje-page-header__description,
 .lintje-page-header--band .lintje-page-header__meta,
@@ -158,7 +165,7 @@
   .lintje-page-header--band {
     padding: var(--space-5) var(--page-pad-x) var(--space-6);
     border-top-right-radius: 0;
-    border-top-left-radius: min(var(--lintje-radius-corner, var(--radius-corner)), calc(var(--w-ribbon) / 2));
+    border-top-left-radius: min(var(--radius-corner), calc(var(--w-ribbon) / 2));
   }
 }
 

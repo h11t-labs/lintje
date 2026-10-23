@@ -48,10 +48,16 @@ describe('lintje-footer', () => {
     expect(heard).toEqual(['/dataproducten'])
   })
 
-  it('sets a chevron before every column link, and none before a fixed link', async () => {
-    const root = (await mount(DATA)).shadowRoot!
-    expect(root.querySelector('.lintje-footer__link svg')).not.toBeNull()
-    expect(root.querySelector('.lintje-footer__meta-link svg')).toBeNull()
+  it('in the new style sets a chevron before every column link, and none before a fixed link', async () => {
+    expect((await mount(DATA)).shadowRoot!.querySelector('.lintje-footer__link svg')).toBeNull()
+    document.documentElement.dataset.style = 'new'
+    try {
+      const root = (await mount(DATA)).shadowRoot!
+      expect(root.querySelector('.lintje-footer__link svg')).not.toBeNull()
+      expect(root.querySelector('.lintje-footer__meta-link svg')).toBeNull()
+    } finally {
+      delete document.documentElement.dataset.style
+    }
   })
 
   it('leaves the columns out of the compact foot and keeps the tagline and the fixed links', async () => {

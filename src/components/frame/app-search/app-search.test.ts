@@ -244,6 +244,6 @@ describe('the chosen row', () => {
     )
     const rule = /\.lintje-app-search__option\.is-active \{([^}]*)\}/.exec(appSearchCss)![1]
     expect(rule).toContain('outline: var(--focus-width) solid var(--color-focus)')
-    expect(rule).toContain('outline-offset: calc(-1 * (var(--focus-width) + var(--focus-offset)))')
+    expect(rule).toContain('outline-offset: var(--focus-inset)')
   })
 })

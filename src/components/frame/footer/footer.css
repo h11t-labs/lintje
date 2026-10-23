@@ -8,7 +8,7 @@
   color: var(--color-footer-text);
   font: var(--text-ui);
   /* The host's one corner, bottom left: the mirror of the band's corner at the page's head. */
-  border-bottom-left-radius: var(--lintje-radius-corner, var(--radius-corner));
+  border-bottom-left-radius: var(--radius-corner);
 }
 .lintje-footer {
   --lintje-focus: var(--color-footer-focus);
@@ -22,8 +22,9 @@
   padding: var(--space-10) calc(var(--page-pad-x) + var(--page-gutter)) var(--space-8);
 }
 
-/* The house style's payoff: italic, in the regular weight. */
-.lintje-footer__tagline { margin: 0; font: var(--text-tagline); }
+.lintje-footer__tagline { margin: 0; font: var(--text-h2); }
+/* In the new style the house style's payoff: italic, in the regular weight. */
+[data-style='new'] .lintje-footer__tagline { font: var(--text-tagline); }
 
 .lintje-footer__columns {
   display: grid;
@@ -31,7 +32,12 @@
   gap: var(--space-8) var(--grid-gutter);
 }
 .lintje-footer__column { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
-.lintje-footer__heading { margin: 0; font: var(--text-tile-title); }
+.lintje-footer__heading {
+  margin: 0;
+  font-size: var(--label-size); font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+}
+[data-style='new'] .lintje-footer__heading { font: var(--text-tile-title); letter-spacing: 0; text-transform: none; }
 .lintje-footer__list,
 .lintje-footer__meta { list-style: none; margin: 0; padding: 0; }
 .lintje-footer__list { display: flex; flex-direction: column; gap: var(--space-3); }
@@ -43,7 +49,8 @@
   color: inherit;
   text-decoration: none;
 }
-/* A list of text links keeps the house style's rhythm: a line high, 12 px apart, a chevron first. */
+/* A list of text links keeps the house style's rhythm: a line high, 12 px apart; in the new style
+   a chevron first. */
 .lintje-footer__link { min-height: var(--h-target-text); gap: var(--space-1); }
 .lintje-footer__link:hover,
 .lintje-footer__meta-link:hover { text-decoration: underline; text-underline-offset: 0.2em; }
@@ -89,7 +96,7 @@
 
 @media screen and (max-width: 767px) {
   /* On a phone the house style allows half a ribbon at most. */
-  .lintje-footer { border-bottom-left-radius: min(var(--lintje-radius-corner, var(--radius-corner)), calc(var(--w-ribbon) / 2)); }
+  .lintje-footer { border-bottom-left-radius: min(var(--radius-corner), calc(var(--w-ribbon) / 2)); }
   .lintje-footer__inner { padding-top: var(--space-8); }
   .lintje-footer__columns { grid-template-columns: minmax(0, 1fr); }
   .lintje-footer--compact .lintje-footer__inner { flex-direction: column; align-items: flex-start; padding-top: var(--space-5); }

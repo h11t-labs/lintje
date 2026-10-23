@@ -24,21 +24,22 @@
 .lintje-shell.is-nested { isolation: isolate; }
 
 /*
- * `nav-tone="light"`: the house style's white bar and side navigation, as a second set of values
+ * The light tone (`data-tone`, from `nav-tone` or the new house style): the house style's white
+ * bar and side navigation, as a second set of values
  * for the menu's own tokens, so the rail, the bar and the mobile chrome draw as always. They are
  * set on every element under them, not on the container: an element with a shadow root (the user
  * menu, the bell, the logo, a button) declares the tokens again on its own host. The white
  * surface takes the standard ring. The bar keeps its own hover and active, pointed at their light
  * values after the general set, so the tools in the bar stay quiet.
  */
-:host([nav-tone='light']) .lintje-nav,
-:host([nav-tone='light']) .lintje-nav *,
-:host([nav-tone='light']) .lintje-navbar,
-:host([nav-tone='light']) .lintje-navbar *,
-:host([nav-tone='light']) .lintje-mobile-chrome,
-:host([nav-tone='light']) .lintje-mobile-chrome *,
-:host([nav-tone='light']) .lintje-shell__mobile-bar,
-:host([nav-tone='light']) .lintje-shell__mobile-bar * {
+:host([data-tone='light']) .lintje-nav,
+:host([data-tone='light']) .lintje-nav *,
+:host([data-tone='light']) .lintje-navbar,
+:host([data-tone='light']) .lintje-navbar *,
+:host([data-tone='light']) .lintje-mobile-chrome,
+:host([data-tone='light']) .lintje-mobile-chrome *,
+:host([data-tone='light']) .lintje-shell__mobile-bar,
+:host([data-tone='light']) .lintje-shell__mobile-bar * {
   --color-nav-bg: var(--color-nav-light-bg);
   --color-nav-text: var(--color-nav-light-text);
   --color-nav-text-sub: var(--color-nav-light-text-sub);
@@ -54,8 +55,8 @@
   --color-focus-on-theme: var(--color-focus);
   --color-focus-on-theme-inner: var(--color-focus-inner);
 }
-:host([nav-tone='light']) .lintje-navbar,
-:host([nav-tone='light']) .lintje-navbar * {
+:host([data-tone='light']) .lintje-navbar,
+:host([data-tone='light']) .lintje-navbar * {
   --color-navbar-hover: var(--color-navbar-light-hover);
   --color-navbar-active: var(--color-navbar-light-active);
   --color-navbar-active-edge: var(--color-navbar-light-active-edge);
@@ -66,22 +67,22 @@
   --color-nav-active-edge: var(--color-navbar-active-edge);
 }
 /* A white bar and a white rail are told from the page by a line, drawn inside so nothing moves. */
-:host([nav-tone='light']) .lintje-navbar { box-shadow: inset 0 -1px 0 var(--color-nav-line); }
+:host([data-tone='light']) .lintje-navbar { box-shadow: inset 0 -1px 0 var(--color-nav-line); }
 /* The open entry paints over the bar, so it carries the line itself, at the bar's edge: below
    its own transparent edge, which `bottom: 0` would stop above. The line stays whole and level. */
-:host([nav-tone='light']) .lintje-navbar__entry.is-open { position: relative; }
-:host([nav-tone='light']) .lintje-navbar__entry.is-open::after {
+:host([data-tone='light']) .lintje-navbar__entry.is-open { position: relative; }
+:host([data-tone='light']) .lintje-navbar__entry.is-open::after {
   content: '';
   position: absolute;
   left: 0; right: 0; bottom: calc(-1 * var(--nav-edge));
   height: 1px;
   background: var(--color-nav-line);
 }
-:host([nav-tone='light']) .lintje-nav { box-shadow: inset -1px 0 0 var(--color-nav-line), var(--shadow-nav); }
-:host([nav-tone='light']) .lintje-mobile-header { box-shadow: inset 0 -1px 0 var(--color-nav-line); }
+:host([data-tone='light']) .lintje-nav { box-shadow: inset -1px 0 0 var(--color-nav-line), var(--shadow-nav); }
+:host([data-tone='light']) .lintje-mobile-header { box-shadow: inset 0 -1px 0 var(--color-nav-line); }
 /* The reader's page is bold on the white rail, as the house style's side navigation has it. */
-:host([nav-tone='light']) .lintje-nav__item.is-active,
-:host([nav-tone='light']) .lintje-mobile-menu__item.is-active { font-weight: 700; }
+:host([data-tone='light']) .lintje-nav__item.is-active,
+:host([data-tone='light']) .lintje-mobile-menu__item.is-active { font-weight: 700; }
 .lintje-shell--side { --lintje-shell-left: var(--w-rail); flex-direction: row; }
 @media (min-width: 1440px) {
   .lintje-shell--side:not(.is-unpinned) { --lintje-shell-left: var(--w-nav); }
@@ -140,33 +141,28 @@
 /* A bar in `full` stands right under the shell's bar or the page's head, which draw the line
    between them. */
 .lintje-shell__main ::slotted([slot='full']) { --lintje-filter-bar-line: transparent; }
-/* The page's head stands above what runs edge to edge, in the content column by its own inset;
-   as a band or with tabs it runs edge to edge and pads its words itself (`page-header.css`). */
-.lintje-shell__main ::slotted([slot='header']) {
+/* In the new style the page's head stands above what runs edge to edge, in the content column by
+   its own inset; as a band or with tabs it runs edge to edge and pads its words itself
+   (`page-header.css`). In the earlier style it stands in the content, which pads it. */
+.lintje-shell__main > slot[name='header']::slotted(*) {
   padding: var(--page-pad-y) calc(var(--page-pad-x) + var(--page-gutter)) 0;
 }
-.lintje-shell__main ::slotted(lintje-page-header[has-tabs]) { padding-inline: 0; }
-:host([nav-tone='light']) .lintje-shell__main ::slotted(lintje-page-header) { padding: 0; }
-:where(.lintje-shell.is-phone) ::slotted([slot='header']) { padding-top: var(--space-4); }
+.lintje-shell__main > slot[name='header']::slotted(lintje-page-header[has-tabs]) { padding-inline: 0; }
+:host([data-tone='light']) .lintje-shell__main > slot[name='header']::slotted(lintje-page-header) { padding: 0; }
+:where(.lintje-shell.is-phone) .lintje-shell__main > slot[name='header']::slotted(*) { padding-top: var(--space-4); }
 /* Under a head the content starts a row's gap lower, as it stood a row under the head before. */
-:host(:has(> [slot='header']:not([hidden]))) .lintje-shell__content { padding-top: var(--grid-gutter); }
-:host(:has(> [slot='header']:not([hidden]))) :where(.lintje-shell.is-phone) .lintje-shell__content { padding-top: var(--space-3); }
+:host([data-style='new']:has(> [slot='header']:not([hidden]))) .lintje-shell__content { padding-top: var(--grid-gutter); }
+:host([data-style='new']:has(> [slot='header']:not([hidden]))) :where(.lintje-shell.is-phone) .lintje-shell__content { padding-top: var(--space-3); }
 
-/* The content keeps to the design system's maximum width, as the bars above it do: a grid whose
-   outer tracks are the page's side padding, so a part that must run edge to edge (the page head
-   as a band) spans `full` while everything else stands in `content`. */
+/* The content keeps to the design system's maximum width, as the bars above it do. */
 .lintje-shell__content {
-  display: grid;
-  grid-template-columns:
-    [full-start] calc(var(--page-pad-x) + var(--page-gutter))
-    [content-start] minmax(0, 1fr) [content-end]
-    calc(var(--page-pad-x) + var(--page-gutter)) [full-end];
-  row-gap: var(--grid-gutter);
-  padding: var(--page-pad-y) 0 var(--space-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--grid-gutter);
+  padding: var(--page-pad-y) calc(var(--page-pad-x) + var(--page-gutter)) var(--space-10);
 }
 .lintje-shell__content[hidden] { display: none; }
-.lintje-shell__content ::slotted(*) { grid-column: content; }
-:where(.lintje-shell.is-phone) .lintje-shell__content { padding: var(--space-4) 0 var(--space-8); row-gap: var(--space-3); }
+:where(.lintje-shell.is-phone) .lintje-shell__content { padding: var(--space-4) var(--space-4) var(--space-8); gap: var(--space-3); }
 
 /*
  * Top layout. The navigation bar cannot be `sticky`: it would stick inside the header's own box

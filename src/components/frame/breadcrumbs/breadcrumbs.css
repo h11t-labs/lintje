@@ -3,9 +3,11 @@
 
 /* ------------------------------------------------------------------------ */
 
-/* On the body size, as the house style sets the trail. On a fill (the primary band of a hero) the
-   surface sets `--lintje-breadcrumbs-ink`, which inherits in: one ink for the whole trail. */
-.lintje-breadcrumbs { font: var(--text-ui); color: var(--lintje-breadcrumbs-ink, var(--color-text-muted)); }
+/* On a fill (the primary band of a hero) the surface sets `--lintje-breadcrumbs-ink`, which
+   inherits in: one ink for the whole trail. */
+.lintje-breadcrumbs { font: var(--text-small); color: var(--lintje-breadcrumbs-ink, var(--color-text-muted)); }
+/* On the body size, as the house style sets the trail in the new style. */
+[data-style='new'] .lintje-breadcrumbs { font: var(--text-ui); }
 .lintje-breadcrumbs__list {
   display: flex; flex-wrap: wrap; align-items: center;
   gap: var(--space-2);

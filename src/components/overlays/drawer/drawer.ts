@@ -1,7 +1,7 @@
 /**
  * `<lintje-drawer>` — a side panel over the page, for a detail or a short form, from the right
- * or (`side="left"`) the left, with the host's one corner (`--lintje-radius-corner`) at its top
- * towards the page.
+ * or (`side="left"`) the left, with the one corner of the new house style (`--radius-corner`)
+ * at its top towards the page.
  *
  * The host holds `open`: Escape, the close button and the scrim only ask. While `busy` none
  * of them asks. Focus goes to the first field, else the close button.

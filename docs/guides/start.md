@@ -34,7 +34,7 @@ stylesheet en één module nodig; al het andere is HTML uit je eigen sjablonen:
 
 ```html
 <!doctype html>
-<html lang="nl" data-mode="light">
+<html lang="nl" data-mode="light"> <!-- data-style="new" draws the new house style; see theming.md -->
   <head>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="/static/lintje/fonts.css" /> <!-- with fonts/ beside it; optional -->
