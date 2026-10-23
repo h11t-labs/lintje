@@ -99,7 +99,9 @@ const DARK = set(TOKENS, (s) => s === "[data-mode='dark']" || s === '[data-mode=
 /* The new house style: its light block, with the large corner, and its dark block. */
 const NEW = set(
   TOKENS,
-  (s) => s === "[data-style-version='new']" || s === "[data-style-version='new'][data-page-corner='round']",
+  (s) =>
+    s === "[data-style-version='new']" ||
+    s === "[data-style-version='new'][data-page-corner='round']",
 )
 const DARK_NEW = set(TOKENS, (s) => s === "[data-mode='dark'][data-style-version='new']")
 const THEME_SELECTOR = /^\[data-theme='([\w-]+)'\]$/
