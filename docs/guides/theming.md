@@ -46,23 +46,67 @@ eigen thema is niet getoetst aan de ondergrenzen van Lintje.
 De afgeleide kleuren gebruiken `color-mix()` en relatieve kleur (`oklch(from …)`): Chrome/Edge 122+,
 Firefox 128+, Safari 18+.
 
-## De huisstijl
+## De huisstijl: oud en nieuw
 
-De Rijkshuisstijl tekent online sinds 2025 anders dan eerst: een wit menu, kleine afgeronde
-hoeken op knoppen en kaders, één grote hoek op de kop van de pagina, een donkere focusring met
-een witte lijn erin, de foutmelding boven het veld. Lintje tekent beide. Tot 1.0.0 is de eerdere
-huisstijl de standaard; de nieuwe kies je met één attribuut op de pagina, dat elk element op zijn
-eigen host spiegelt, zoals `data-mode`:
+De Rijkshuisstijl tekent online sinds 2025 anders dan eerst. Lintje tekent beide, en jij kiest met
+een attribuut op `<html>`. Elk element spiegelt het op zijn eigen host, zoals `data-mode`, dus de
+keuze geldt voor de hele pagina, ook in shadow roots en iframes die het attribuut overnemen.
+
+| attribuut | waarden | zonder attribuut |
+|---|---|---|
+| `data-style-version` | `classic` (oud) · `new` (nieuw) | `classic`, tot 1.0.0 |
+| `data-style-new-corner` | `round` · `square` | `round`; alleen van betekenis bij `new` |
 
 ```html
-<html lang="nl" data-style-version="new">
+<html lang="nl" data-mode="light" data-style-version="new">
 ```
 
-De grote hoek van de paginakop en de voet (`--radius-corner`, een lint) hoort bij de nieuwe
-huisstijl en heeft zijn eigen schakelaar: `data-style-new-corner="square"` op de pagina laat hem weg,
-zonder dat attribuut is hij rond. In de eerdere huisstijl is alles recht. Het menu van
-`lintje-shell` volgt de huisstijl (licht in de nieuwe, gevuld in de eerdere), tenzij de host het
-zelf kiest met `nav-tone`.
+**Tot 1.0.0 is de oude huisstijl de standaard.** Een pagina die Lintje bijwerkt zonder
+`data-style-version` te zetten, ziet er dus uit zoals eerst. Bij 1.0.0 wordt `new` de standaard;
+wie dan de oude wil houden, zet `data-style-version="classic"`.
+
+| Oud (`classic`) | Nieuw (`new`) |
+|---|---|
+| ![De catalogus in de oude huisstijl: een gevuld menu in de primaire kleur, rechte hoeken.](../images/huisstijl-oud.png) | ![De catalogus in de nieuwe huisstijl: een wit menu, de paginakop als band in de primaire kleur met een grote ronde hoek, kleine ronde hoeken op knoppen en kaarten.](../images/huisstijl-nieuw.png) |
+| **Nieuw zonder grote hoek** (`data-style-new-corner="square"`) | **Nieuw in donker** (`data-mode="dark"`) |
+| ![De nieuwe huisstijl met een rechte paginakop.](../images/huisstijl-nieuw-recht.png) | ![De nieuwe huisstijl in donker: het oppervlak het donkerst, de band gedempt.](../images/huisstijl-nieuw-donker.png) |
+
+Wat de nieuwe huisstijl anders tekent:
+
+- **Het menu is wit**, met de woorden in de primaire kleur, en de kop van de pagina wordt de band
+  in de primaire kleur, met de grote hoek rechtsboven en de voet als spiegelbeeld linksonder. Een
+  filterbalk staat onder die kop. Wil je het menu toch gevuld, of in de oude huisstijl licht, zet
+  dan zelf `nav-tone="filled"` of `nav-tone="light"` op `lintje-shell`.
+- **Kleine ronde hoeken** (4 px) op knoppen, velden, het vinkje en de chips, en op elk omkaderd
+  blok: een kaart, een tegel, een dialoog, een melding. De grote hoek (een lint, 48 px) staat
+  alleen op de kop en de voet van de pagina, en `data-style-new-corner="square"` laat hem weg.
+- **De focusring** is een donkere lijn met een witte lijn erin, in plaats van oranje.
+- **Een formulierveld** toont zijn toelichting en zijn fout boven het veld, met een rode balk
+  ernaast en het veld in de fouttint; de select heeft het pijlvak in de primaire kleur.
+- **Een melding, toast of foutsamenvatting** heeft een balk links en een gekleurd icoon.
+- **De tertiaire knop** is een woord in de primaire kleur zonder kader; de uitklapper is een
+  accordeonrij met lijnen, de dialoog heeft de knoppen links en geen lijnen, de paginering een
+  lichte tint, het submenu een vulling.
+- **De pagina** heeft de schaal en de marges van de huisstijl: een paginatitel van 32 px, inhoud
+  tot 1280 px, een lint marge, vier kolommen op een telefoon.
+- **In donker** is het oppervlak het donkerst en de pagina een stap lichter, het spiegelbeeld van
+  licht.
+
+Laat je de lezer kiezen, dan biedt "Weergave" van `lintje-shell` de keuze als je `style` (en voor de
+hoek `corner`) in zijn `view` zet. Een keuze komt binnen als `lintje-view-change` met `{ style }` of
+`{ corner }`; jij zet daarna het attribuut, zoals bij de modus:
+
+```js
+shell.addEventListener('lintje-view-change', (event) => {
+  const { style, corner } = event.detail
+  if (style) document.documentElement.dataset.styleVersion = style
+  if (corner) document.documentElement.dataset.styleNewCorner = corner
+})
+```
+
+In de voorbeelden reist de keuze mee in de URL: `?style=classic` en `?corner=square`
+([`../../examples/_shared/settings.js`](../../examples/_shared/settings.js)). De voorbeelden openen in
+de nieuwe huisstijl.
 
 ## Modus
 

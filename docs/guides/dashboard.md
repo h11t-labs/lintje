@@ -22,11 +22,14 @@ een link die zonder `?mode=` gedeeld wordt, volgt het systeem van de lezer en ni
 | `menu` | `unpinned` | vastgezet |
 | `layout` | `top` | het menu naast de pagina |
 | `theme` | een thema | `rijksoverheid` |
+| `style` | `classic` · `new` | de huisstijl die je pagina kiest ([thema's](theming.md#de-huisstijl-oud-en-nieuw)) |
+| `corner` | `square` | de grote hoek van de nieuwe huisstijl, rond |
 | `filters` | of de filterbalk openstaat (`data.open`) | ingeklapt |
 
 De sleutel van een filter is degene die je declareert. Spiegel modus en thema naar `data-mode` en
-`data-theme` op `<html>`, want de elementen lezen ze daar: `applySettings` in de
-[minimale pagina](#een-minimale-dashboardpagina) doet het.
+`data-theme` op `<html>`, en de huisstijl naar `data-style-version` en `data-style-new-corner`,
+want de elementen lezen ze daar: `applySettings` in de
+[minimale pagina](#een-minimale-dashboardpagina) doet het voor modus en thema.
 
 ## Filters
 
