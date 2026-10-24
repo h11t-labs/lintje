@@ -126,6 +126,8 @@ Verder lezen:
 
 - [Thema's](docs/guides/theming.md): het thema van je organisatie, licht of donker, en oud of
   nieuw.
+- [De indeling van een pagina](docs/guides/start.md#de-indeling-van-een-pagina): het grid van 12
+  kolommen, `span` en `span-mobile`, en wat er op een telefoon verandert.
 - [Eigen iconen](docs/guides/icons.md), [een dashboard](docs/guides/dashboard.md) en
   [een inhoudsopgave op de pagina](docs/guides/page-contents.md).
 - De [stijlgids](https://h11t-labs.github.io/lintje/) (in deze repository

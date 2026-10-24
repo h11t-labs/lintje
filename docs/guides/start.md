@@ -138,6 +138,42 @@ wat het terug verwacht.
 Een *view* is een tag die één `data`-object neemt (`lintje-shell`, `lintje-data-table`,
 `lintje-chart`, …); elke andere tag is een *onderdeel* met eigen attributen en eigenschappen.
 
+## De indeling van een pagina
+
+`<lintje-grid>` verdeelt de inhoud in 12 kolommen. Zijn kinderen zijn de items: een tegel en een
+veld dragen `span` zelf, andere inhoud zet je in een `<lintje-grid-item>`. `span` is het aantal
+kolommen op een desktop; zonder `span` neemt een item er één.
+
+```html
+<lintje-grid>
+  <lintje-tile span="8" heading="Aanvragen per week">…</lintje-tile>
+  <lintje-tile span="4" heading="Afgehandeld">…</lintje-tile>
+  <lintje-text-input span="4" span-mobile="2" label="Postcode"></lintje-text-input>
+  <lintje-text-input span="4" span-mobile="2" label="Huisnummer"></lintje-text-input>
+  <lintje-grid-item span="4"><p>Toelichting bij het adres.</p></lintje-grid-item>
+</lintje-grid>
+```
+
+| breedte | kolommen | wat een item neemt |
+|---|---|---|
+| desktop, vanaf 1024 px | 12 | zijn `span` |
+| tablet, 768 tot 1023 px | 12 | zijn `span`, behalve `span="4"`, dat 6 wordt, en `span="8"`, dat 12 wordt |
+| telefoon, onder 768 px, oude huisstijl | 1 | de hele breedte |
+| telefoon, onder 768 px, nieuwe huisstijl | 4 | alle vier, of zoveel als `span-mobile` zegt (1 tot 4) |
+
+`columns` op het grid kiest een ander aantal kolommen op een desktop, en `variant="kpi-row"`
+zet kerncijfers op een tablet drie en op een telefoon twee naast elkaar. De breedte van de
+inhoud en de marges eromheen komen uit de huisstijl ([thema's](theming.md#de-huisstijl-oud-en-nieuw));
+een andere breedte zet je met `--lintje-content-width` op de pagina.
+
+**Niets verdwijnt op een telefoon, en niets bestaat alleen daar.** Lintje heeft geen attribuut dat
+een item per schermbreedte verbergt: wie een telefoon gebruikt, of tot 400 % inzoomt, heeft recht
+op dezelfde inhoud (WCAG 1.4.10). Waar een onderdeel op een smal scherm anders moet, wisselt het
+element zelf van vorm: het menu wordt een header met een schermvullend menu, de filters een
+sheet, een tabel toont per rij de identiteit en één meetwaarde, het kruimelpad alleen de weg
+terug, en de afbeelding naast een hero valt onder 1024 px weg. Wil je iets op een telefoon anders
+hebben, vraag het dan als vorm van het element, niet als een verborgen kopie.
+
 ## Afdrukken
 
 Een pagina drukt af zonder dat je er iets voor doet: licht, zonder bediening, met het embleem en de naam

@@ -88,7 +88,8 @@ Wat de nieuwe huisstijl anders tekent:
   accordeonrij met lijnen, de dialoog heeft de knoppen links en geen lijnen, de paginering een
   lichte tint, het submenu een vulling.
 - **De pagina** heeft de schaal en de marges van de huisstijl: een paginatitel van 32 px, inhoud
-  tot 1280 px, een lint marge, vier kolommen op een telefoon.
+  tot 1280 px, een lint marge, vier kolommen op een telefoon, waarvan een item er met
+  `span-mobile` minder neemt ([de indeling](start.md#de-indeling-van-een-pagina)).
 - **In donker** is het oppervlak het donkerst en de pagina een stap lichter, het spiegelbeeld van
   licht.
 
