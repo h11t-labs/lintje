@@ -57,7 +57,14 @@ schema van die browser (`mibrowsers` voor Ivanti Web@Work), terwijl kopiëren en
 Zet de inhoud in de shell. De filterbalk gaat in de `full`-slot, die van rand tot rand loopt
 boven de inhoud; al het andere in de standaardslot, die zich houdt aan de breedte en
 binnenruimte van de pagina (`--w-content`; een andere breedte is `--lintje-content-width` op `<html>`). De
-filterbalk zet zichzelf vast onder de balk.
+filterbalk zet zichzelf vast onder de balk. Een dashboard is breder dan een leespagina: zet de
+inhoud op 1600 px, zodat tegels en tabellen naast elkaar passen.
+
+```css
+:root {
+  --lintje-content-width: 1600px;
+}
+```
 
 ```html
 <lintje-shell id="shell">

@@ -299,7 +299,8 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
 - **De inhoud heeft een maximale breedte**, midden in de ruimte die het menu overlaat. Wat de
   pagina indeelt — de kleur van een balk, de lijn boven het vraagvak van het gesprek — loopt tot
   de randen; alleen wat erin staat, houdt zich aan die breedte.
-- **De inhoud is hoogstens 1280 px breed**, zoals de huisstijl; een host die breder wil, zet
+- **De inhoud is hoogstens 1280 px breed**, zoals de huisstijl, behalve op een pagina met cijfers
+  (1600 px, zie [Pagina's met cijfers](#paginas-met-cijfers)); een host die anders wil, zet
   `--lintje-content-width`.
 - **De hoeken zijn klein, in de nieuwe huisstijl.** De huisstijl tekent online knoppen en velden
   met vier kleine afgeronde hoeken, en zo tekent Lintje onder `data-style-version="new"` elke knop (ook
@@ -897,6 +898,9 @@ Deze gelden waar een pagina getallen toont die filters vernauwen: een dashboard,
    alleen waarden die afwijken van hun standaard. Een standaard staat nooit in de URL.
 6. **Ontbrekende data is nooit nul.** Een ontbrekende waarde is `null` en wordt overgeslagen,
    gearceerd of afgekapt.
+7. **Breder dan een leespagina.** De 1280 px van de huisstijl is een leesbreedte, voor lopende
+   tekst; een pagina met cijfers vergelijkt tegels, tabellen en grafieken naast elkaar en zet de
+   inhoud tot 1600 px (`--lintje-content-width` op de pagina), in beide huisstijlen.
 
 **De filterbalk is in rust dicht**: wat tijdens het lezen op de pagina staat, is de zin; de
 bedieningselementen zijn er zolang de lezer kiest, en verder scrollen sluit ze. Op een telefoon
