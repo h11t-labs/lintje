@@ -10,8 +10,10 @@
 
 /* ------------------------------------------------------------------------ */
 
-.lintje-menu-button__trigger.lintje-button--secondary.is-open { background: var(--color-bg-selected); }
-.lintje-menu-button__trigger.lintje-button--tertiary.is-open { background: var(--color-action-tertiary-hover); }
+/* Open reads the hover's hooks first, so on a filled band (the page's head) it takes the band's
+   reverse as the hover does. */
+.lintje-menu-button__trigger.lintje-button--secondary.is-open { background: var(--lintje-button-secondary-hover, var(--color-bg-selected)); }
+.lintje-menu-button__trigger.lintje-button--tertiary.is-open { background: var(--lintje-button-tertiary-hover, var(--color-action-tertiary-hover)); }
 .lintje-menu-button__trigger.lintje-icon-button--outlined.is-open { background: var(--color-bg-selected); }
 .lintje-menu-button__trigger.lintje-icon-button--flat.is-open { background: var(--color-bg-subtle); }
 
@@ -40,7 +42,7 @@
 @media (prefers-reduced-motion: reduce) {
   .lintje-menu-button__busy { animation: none; }
 }
-.lintje-menu-button__trigger.lintje-button--primary.is-open { background: var(--color-action-primary-hover); }
+.lintje-menu-button__trigger.lintje-button--primary.is-open { background: var(--lintje-button-primary-hover, var(--color-action-primary-hover)); }
 /* Disabled, like the link button, it only loses its ink. */
 .lintje-menu-button__trigger--flat.lintje-button.is-disabled { background: none; border-color: transparent; }
 
