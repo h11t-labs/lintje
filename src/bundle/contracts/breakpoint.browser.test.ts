@@ -53,6 +53,7 @@ import '../../components/frame/page-header/page-header'
 import '../../components/frame/shell/shell'
 import '../../components/actions/button/button'
 import '../../components/layout/grid/grid'
+import '../../components/layout/grid-item/grid-item'
 import '../../components/layout/tile/tile'
 import type { LintjeFilterZone } from '../../components/filters/filter-zone/filter-zone'
 import type { LintjeNotifications } from '../../components/frame/notifications/notifications'
@@ -1004,6 +1005,7 @@ const ROWS: Row[] = [
         <lintje-button slot="actions" variant="danger">Verwijderen</lintje-button>`
       return append(element)
     },
+    // Wide, the row stands at the right with the answer last; the new style turns it round.
     wide: (element) => {
       const answer = find(element, '[variant="danger"]')
       const cancel = find(element, '[variant="secondary"]')
@@ -1279,6 +1281,84 @@ const ROWS: Row[] = [
     },
     wide: (element) => level(element.children[0]!, element.children[1]!),
     phone: (element) => below(element.children[0]!, element.children[1]!),
+  },
+  {
+    tag: 'lintje-grid',
+    marker:
+      'in the new style two items with span-mobile 2 share the row, a third stands under them',
+    mount: async () => {
+      // The style comes from the nearest ancestor, so the wrapper keeps it to this row.
+      const page = document.createElement('div')
+      page.dataset.styleVersion = 'new'
+      const element = create('lintje-grid')
+      element.innerHTML = `<lintje-grid-item span="4" span-mobile="2">Aanvragen</lintje-grid-item>
+        <lintje-grid-item span="4" span-mobile="2">Besluiten</lintje-grid-item>
+        <div span="4">Bezwaren</div>`
+      page.append(element)
+      await append(page)
+      await Promise.all(
+        [...element.children].map(
+          (child) => (child as { updateComplete?: Promise<unknown> }).updateComplete,
+        ),
+      )
+      return element
+    },
+    wide: (element) => {
+      const [first, second, third] = [...element.children]
+      return level(first!, second!) && level(second!, third!)
+    },
+    phone: (element) => {
+      const [first, second, third] = [...element.children]
+      return beside(first!, second!) && below(first!, third!)
+    },
+  },
+  {
+    tag: 'lintje-grid',
+    marker: 'a phone moves an item with order-mobile to the end and leaves out hide-mobile',
+    mount: async () => {
+      const element = create('lintje-grid')
+      element.innerHTML = `<lintje-grid-item span="4" order-mobile="1">Kaart</lintje-grid-item>
+        <lintje-grid-item span="4">Kerncijfers</lintje-grid-item>
+        <lintje-grid-item span="4" hide-mobile>Toelichting</lintje-grid-item>
+        <lintje-grid-item span="4" hide-desktop>Alleen op een telefoon</lintje-grid-item>`
+      await append(element)
+      await Promise.all(
+        [...element.children].map(
+          (child) => (child as { updateComplete?: Promise<unknown> }).updateComplete,
+        ),
+      )
+      return element
+    },
+    wide: (element) => {
+      const [map, figures, note, phoneOnly] = [...element.children]
+      return level(map!, figures!) && seen(note) && !seen(phoneOnly)
+    },
+    phone: (element) => {
+      const [map, figures, note, phoneOnly] = [...element.children]
+      return below(figures!, map!) && !seen(note) && seen(phoneOnly)
+    },
+  },
+  {
+    tag: 'lintje-tile',
+    marker: 'with collapsed-mobile a phone shows the head and a button, the content one tap away',
+    mount: async () => {
+      const element = create('lintje-tile', {
+        heading: 'Aanvragen per regio',
+        collapsedMobile: true,
+      })
+      element.innerHTML = '<p>De kaart met de aanvragen per regio.</p>'
+      return append(element)
+    },
+    wide: (element) =>
+      seen(element.querySelector('p')) && !shown(element, '.lintje-tile__fold-toggle'),
+    phone: (element) => {
+      const toggle = find(element, '.lintje-tile__fold-toggle')
+      return (
+        seen(toggle) &&
+        toggle!.getAttribute('aria-expanded') === 'false' &&
+        !seen(element.querySelector('p'))
+      )
+    },
   },
   {
     tag: 'lintje-tile',

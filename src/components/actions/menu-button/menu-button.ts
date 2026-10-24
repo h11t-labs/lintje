@@ -65,7 +65,7 @@ export type MenuEntry = MenuItem | MenuHeading | 'separator'
 const isItem = (entry: MenuEntry): entry is MenuItem =>
   entry !== 'separator' && !('heading' in entry)
 
-/** `flat` is the tertiary without its border, for a trigger among flat icon buttons. */
+/** `flat` is the tertiary with less side padding, for a trigger among flat icon buttons. */
 export type MenuButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'flat' | 'ellipsis'
 
 /**

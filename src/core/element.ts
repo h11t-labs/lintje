@@ -3,7 +3,9 @@
  * to its styles, resolves the mode onto the host, and emits composed events.
  *
  * The mode resolves in this order: the element's own attribute; the nearest ancestor's
- * `data-mode` (across shadow roots); its `data`; the default.
+ * `data-mode` (across shadow roots); its `data`; the default. The house style (`data-style-version`) and
+ * the corner of the page's head (`data-style-new-corner`) come from the nearest ancestor alone, usually
+ * `<html>`, and are mirrored onto the host the same way: the stylesheets read them there.
  */
 import {
   LitElement,
@@ -15,6 +17,16 @@ import {
 import { baseStyles, tokenStyles } from './styles'
 
 export type Mode = 'light' | 'dark'
+
+/**
+ * `classic`: the earlier house style online, the menu filled in the theme's colour and square
+ * corners, the default until 1.0.0. `new`: the house style as it is drawn now, the light menu,
+ * the small corners on controls and blocks and the one large corner on the page's head.
+ */
+export type Style = 'classic' | 'new'
+
+/** The large corner of the page's head in the new style: `round` draws it, `square` does not. */
+export type Corner = 'round' | 'square'
 
 export interface FrameSettings {
   mode?: Mode
@@ -31,7 +43,7 @@ function watchDocument(): void {
   documentObserver = new MutationObserver(() => refreshSettings())
   documentObserver.observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ['data-mode'],
+    attributeFilter: ['data-mode', 'data-style-version', 'data-style-new-corner'],
   })
 }
 
@@ -71,11 +83,24 @@ export class LintjeElement extends LitElement {
   static properties: PropertyDeclarations = {
     mode: { type: String },
     resolvedMode: { state: true },
+    resolvedStyle: { state: true },
+    resolvedCorner: { state: true },
   }
 
   declare mode?: Mode
 
   resolvedMode: Mode = 'light'
+  /** The house style the element draws. */
+  resolvedStyle: Style = 'classic'
+  resolvedCorner: Corner = 'round'
+
+  /**
+   * Whether the element draws the new house style: the one question a template asks where the
+   * two styles differ in what they render, not only in how it looks.
+   */
+  get isNewStyle(): boolean {
+    return this.resolvedStyle === 'new'
+  }
 
   protected static finalizeStyles(styles?: CSSResultGroup): Array<CSSResultOrNative> {
     return [tokenStyles, baseStyles, ...super.finalizeStyles(styles)]
@@ -134,14 +159,22 @@ export class LintjeElement extends LitElement {
     this.resolveSettings()
   }
 
-  /** Resolves the mode and reflects it. Public for the document observer. */
+  /** Resolves the mode, the style and the corner and reflects them. Public for the document observer. */
   resolveSettings(): void {
     if (!this.isConnected) return
     const settings = this.dataSettings
     const mode = (this.mode ?? inheritedSetting(this, 'mode') ?? settings?.mode ?? 'light') as Mode
-    const changed = mode !== this.resolvedMode
+    const style: Style = inheritedSetting(this, 'style-version') === 'new' ? 'new' : 'classic'
+    const corner: Corner =
+      inheritedSetting(this, 'style-new-corner') === 'square' ? 'square' : 'round'
+    const changed =
+      mode !== this.resolvedMode || style !== this.resolvedStyle || corner !== this.resolvedCorner
     this.resolvedMode = mode
+    this.resolvedStyle = style
+    this.resolvedCorner = corner
     if (this.dataset.mode !== mode) this.dataset.mode = mode
+    if (this.dataset.styleVersion !== style) this.dataset.styleVersion = style
+    if (this.dataset.styleNewCorner !== corner) this.dataset.styleNewCorner = corner
     // This element's own value may be what a nested element inherits.
     if (changed) refreshSettings()
   }

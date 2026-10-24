@@ -324,7 +324,7 @@ export class LintjeUserMenu extends LintjeElement {
           : nothing
       }
       <div
-        class="lintje-user-menu__menu"
+        class=${classMap({ 'lintje-user-menu__menu': true, 'is-empty': !this.items.length && Boolean(user) })}
         role=${this.inline ? 'group' : 'menu'}
         aria-label=${user ? `Menu van ${user.name}` : 'Gebruikersmenu'}
       >
@@ -406,6 +406,7 @@ export class LintjeUserMenu extends LintjeElement {
         id=${this.#menuId}
         placement=${side ? 'top-start' : 'bottom-end'}
         ?match-width=${side}
+        gap=${side ? 0 : nothing}
         .anchor=${side ? this.renderRoot?.querySelector('.lintje-user-menu__anchor') : undefined}
         .opener=${side ? this.trigger : undefined}
         ?open=${this.open}

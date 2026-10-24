@@ -36,7 +36,8 @@
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
-  border-radius: var(--radius);
+  /* A host that joins buttons into one shape (the split send) rounds only the outer corners. */
+  border-radius: var(--lintje-button-radius, var(--radius-control));
   transition: background var(--dur-hover) var(--ease-in-motion),
               color var(--dur-hover) var(--ease-in-motion),
               border-color var(--dur-hover) var(--ease-in-motion);
@@ -66,26 +67,52 @@
 
 /* The 1 px border is transparent, so the primary fill fills it in light; in dark it draws the
    tint, the only thing that separates a #0E3B6E box from a #282828 surface (1.31:1). */
+/* The three weights read the `--lintje-button-*` hooks first: a surface in the primary (the band
+   of a hero or a page head) sets them, and every button on it turns to its reverse without the
+   host choosing a variant. The hooks inherit, through the button's own root. */
 .lintje-button--primary {
-  background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
-  border-color: var(--color-action-primary-border);
+  background: var(--lintje-button-primary-bg, var(--color-action-primary));
+  color: var(--lintje-button-primary-text, var(--color-action-primary-text));
+  border-color: var(--lintje-button-primary-border, var(--color-action-primary-border));
 }
-.lintje-button--primary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-action-primary-hover); }
+.lintje-button--primary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--lintje-button-primary-hover, var(--color-action-primary-hover)); }
+/* Pressed is a step past hover, on every filled or tinted variant. */
+.lintje-button--primary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--lintje-button-primary-pressed, var(--color-action-primary-pressed)); }
 
 .lintje-button--secondary {
-  background: var(--color-bg-surface);
-  color: var(--color-accent-text);
-  border-color: var(--color-action-secondary-border);
+  background: var(--lintje-button-secondary-bg, var(--color-bg-surface));
+  color: var(--lintje-button-secondary-text, var(--color-accent-text));
+  border-color: var(--lintje-button-secondary-border, var(--color-action-secondary-border));
 }
-.lintje-button--secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-bg-subtle); }
+.lintje-button--secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--lintje-button-secondary-hover, var(--color-action-secondary-hover)); }
+.lintje-button--secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--lintje-button-secondary-pressed, var(--color-action-secondary-pressed)); }
 
+/* The third weight: outlined with the text colour, or a word in the primary without a box
+   (`--color-action-tertiary-*`); a transparent border keeps its height beside the others. */
 .lintje-button--tertiary {
   background: transparent;
-  color: var(--color-text-primary);
-  border-color: var(--color-border-strong);
+  color: var(--lintje-button-tertiary-text, var(--color-action-tertiary-text));
+  border-color: var(--color-action-tertiary-border);
 }
-.lintje-button--tertiary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-bg-subtle); }
+.lintje-button--tertiary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--lintje-button-tertiary-hover, var(--color-action-tertiary-hover)); }
+.lintje-button--tertiary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--lintje-button-tertiary-pressed, var(--color-action-tertiary-pressed)); }
+
+/* On a theme fill (the primary band, the menu): white with the primary's word, or outlined in
+   white with a white word. The ring on that fill is the host's: the band sets `--color-focus`. */
+.lintje-button--inverse {
+  background: var(--color-action-inverse);
+  color: var(--color-action-inverse-text);
+  border-color: transparent;
+}
+.lintje-button--inverse:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-action-inverse-hover); }
+.lintje-button--inverse:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--color-action-inverse-pressed); }
+.lintje-button--inverse-secondary {
+  background: transparent;
+  color: var(--color-text-on-fill);
+  border-color: var(--color-text-on-fill);
+}
+.lintje-button--inverse-secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-action-inverse-secondary-hover); }
+.lintje-button--inverse-secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--color-action-inverse-secondary-pressed); }
 
 /* The destructive weight; in dark the border is the red's tint, the only thing reaching 3:1. */
 .lintje-button--danger {
@@ -94,16 +121,18 @@
   border-color: var(--color-action-danger-border);
 }
 .lintje-button--danger:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-action-danger-hover); }
+.lintje-button--danger:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--color-action-danger-pressed); }
 
 /* `danger-secondary`: the quieter destructive form, for a row where the fill would shout. The
-   colour is `--color-action-danger-text`. The hover is the tertiary's `--color-bg-subtle`:
+   colour is `--color-action-danger-text`. The hover is the tertiary's subtle surface:
    the red word on `--color-error-bg` was 3.96:1 in light. */
 .lintje-button--danger-secondary {
   background: var(--color-bg-surface);
   color: var(--color-action-danger-text);
   border-color: var(--color-action-danger-text);
 }
-.lintje-button--danger-secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-bg-subtle); }
+.lintje-button--danger-secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--color-action-tertiary-hover); }
+.lintje-button--danger-secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--color-action-tertiary-pressed); }
 
 .lintje-button--link {
   min-height: 0;
@@ -139,6 +168,13 @@
   background: none;
   border-color: transparent;
   text-decoration: none;
+}
+/* A boxless button stays boxless when disabled: only its word greys. */
+.lintje-button--tertiary.is-disabled,
+.lintje-button--tertiary:disabled,
+.lintje-button--tertiary[aria-disabled='true']:not(.is-busy, .is-working) {
+  background: var(--color-action-tertiary-disabled-bg);
+  border-color: var(--color-action-tertiary-disabled-border);
 }
 
 /* --- Busy --------------------------------------------------------------- */

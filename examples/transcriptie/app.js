@@ -5,7 +5,7 @@
  * Everything is fictional.
  */
 import { dropRemovedFiles, plural, toast } from '../_shared/page.js'
-import { carry, emblem, modeOf, themeOf } from '../_shared/settings.js'
+import { applyStyle, carry, emblem, modeOf, styleOf, themeOf } from '../_shared/settings.js'
 
 /* The URL: the opened recording, the kind of conversation, the tab ------------------------ */
 
@@ -35,6 +35,7 @@ const root = document.documentElement
 function applySettings() {
   root.dataset.mode = modeOf(location.search)
   root.dataset.theme = themeOf(location.search)
+  applyStyle()
 }
 applySettings()
 
@@ -256,6 +257,7 @@ function renderShell() {
     user: USER,
     userMenu: [
       { value: 'modus', label: dark ? 'Lichte modus' : 'Donkere modus', icon: dark ? 'natuur-en-milieu-zon' : 'functioneel-darkmode' },
+      { value: 'huisstijl', label: styleOf(location.search) === 'new' ? 'Oude huisstijl' : 'Nieuwe huisstijl' },
       { value: 'start', label: 'Lintje-startpagina', icon: 'functioneel-home' },
     ],
     version: '1.0.0',
@@ -277,9 +279,10 @@ shell.addEventListener('lintje-navigate', (event) => {
 shell.addEventListener('lintje-action', (event) => {
   const value = event.detail?.value ?? event.detail
   if (value === 'start') location.href = carry('../')
-  if (value !== 'modus') return
-  // The mode is in the URL; the page stays, and its links carry the new one.
-  setParam('mode', root.dataset.mode === 'dark' ? 'light' : 'dark')
+  if (value !== 'modus' && value !== 'huisstijl') return
+  // The mode and the house style are in the URL; the page stays, and its links carry the new one.
+  if (value === 'modus') setParam('mode', root.dataset.mode === 'dark' ? 'light' : 'dark')
+  else setParam('style', styleOf(location.search) === 'new' ? 'classic' : null)
   applySettings()
   renderShell()
   render()

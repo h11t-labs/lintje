@@ -2,6 +2,16 @@
   display: block;
 }
 :host([hidden]) { display: none; }
+/* With tabs the head sticks under the top bar, risen by what stands above the tabs: only their
+   row, the page's parts, stays in view while the page scrolls. */
+:host([has-tabs]) {
+  position: sticky;
+  top: calc(var(--h-topbar) - var(--lintje-page-header-lift, 0px));
+  z-index: 19;
+}
+@media screen and (max-width: 767px) {
+  :host([has-tabs]) { top: calc(var(--h-mobile-header) - var(--lintje-page-header-lift, 0px)); }
+}
 
 /* --- */
 
@@ -10,7 +20,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-5) var(--space-6);
+  /* No inset of its own: the words stand on the column, in line with the page under them. */
+  padding: var(--space-5) 0;
 }
 /* The actions stand level with the title; under a description, level with its last line. */
 .lintje-page-header__row {
@@ -58,6 +69,23 @@
   color: var(--color-text-muted);
 }
 .lintje-page-header__more { color: var(--color-link); font-weight: 700; text-decoration: underline; }
+/* A host's line of facts reads as the meta line; a link in it keeps the head's ink, underlined. */
+::slotted([slot='meta']) {
+  margin: var(--space-2) 0 0;
+  font: var(--text-small);
+  color: var(--color-text-muted);
+  --color-link: currentColor;
+}
+/* The tabs stand on the head's lower edge: their line is its edge, in its ink on the band. */
+::slotted([slot='tabs']) { margin-top: var(--space-4); }
+.lintje-page-header.has-tabs,
+.lintje-page-header--shell.lintje-page-header--band.has-tabs { padding-bottom: 0; }
+.lintje-page-header--shell.has-tabs { margin-bottom: 0; }
+/* In the new style the head stands above the content, outside its padding: it pads its words to
+   the column itself. In the earlier style it stands in the padded content. */
+[data-style-version='new'] .lintje-page-header--shell.has-tabs {
+  padding-inline: calc(var(--page-pad-x) + var(--page-gutter));
+}
 
 .lintje-page-header__kicker {
   font-size: var(--label-size);
@@ -68,7 +96,7 @@
 }
 
 @media screen and (max-width: 767px) {
-  .lintje-page-header { padding: var(--space-4); gap: var(--space-1); }
+  .lintje-page-header { padding: var(--space-4) 0; gap: var(--space-1); }
   .lintje-page-header__title { font: var(--text-h1-mobile); }
   .lintje-page-header__meta { font: var(--text-small); margin-top: 0; }
 }
@@ -78,6 +106,68 @@
 .lintje-page-header--shell .lintje-page-header__heading { gap: var(--space-1); }
 .lintje-page-header--shell .lintje-page-header__title { overflow-wrap: anywhere; }
 .lintje-page-header--shell .lintje-page-header__description { margin-top: 0; }
+
+/* An announcement above a band keeps to the column the band runs out of. */
+.lintje-page-header__announcement.is-inset {
+  margin: 0 calc(var(--page-pad-x) + var(--page-gutter)) var(--grid-gutter);
+}
+
+/* With a light menu the page's head is the band in the primary colour, as the house style heads
+   a page beside a white side navigation: the host's corner top right, the words in the band's
+   ink, and the trail, the ring and the buttons in their reverse by the inherited hooks. */
+.lintje-page-header--band,
+.lintje-page-header--shell.lintje-page-header--band {
+  padding: var(--space-6) var(--space-6) var(--space-8);
+  background: var(--color-hero-primary-bg);
+  color: var(--color-hero-primary-text);
+  border-top-right-radius: var(--radius-corner);
+  --lintje-focus: var(--color-hero-primary-focus);
+  --lintje-focus-inner: var(--color-hero-primary-focus-inner);
+  --lintje-breadcrumbs-ink: var(--color-hero-primary-text);
+  --lintje-button-primary-bg: var(--color-action-inverse);
+  --lintje-button-primary-text: var(--color-action-inverse-text);
+  --lintje-button-primary-border: var(--color-action-inverse);
+  --lintje-button-primary-hover: var(--color-action-inverse-hover);
+  --lintje-button-primary-pressed: var(--color-action-inverse-pressed);
+  --lintje-button-secondary-bg: transparent;
+  --lintje-button-secondary-text: var(--color-hero-primary-text);
+  --lintje-button-secondary-border: var(--color-hero-primary-text);
+  --lintje-button-secondary-hover: var(--color-action-inverse-secondary-hover);
+  --lintje-button-secondary-pressed: var(--color-action-inverse-secondary-pressed);
+  --lintje-button-tertiary-text: var(--color-hero-primary-text);
+  --lintje-button-tertiary-hover: var(--color-action-inverse-secondary-hover);
+  --lintje-button-tertiary-pressed: var(--color-action-inverse-secondary-pressed);
+  --lintje-suggestions-ink: var(--color-hero-primary-text);
+  --lintje-suggestions-ink-muted: var(--color-hero-primary-text);
+  --lintje-suggestions-line: var(--color-hero-primary-text);
+  --lintje-suggestions-hover: var(--color-action-inverse-secondary-hover);
+}
+/* In the new style the band runs edge to edge above the content; the words keep to the column by
+   the page's own inset. */
+[data-style-version='new'] .lintje-page-header--band,
+[data-style-version='new'] .lintje-page-header--shell.lintje-page-header--band {
+  padding-inline: calc(var(--page-pad-x) + var(--page-gutter));
+}
+.lintje-page-header--band .lintje-page-header__title,
+.lintje-page-header--band .lintje-page-header__description,
+.lintje-page-header--band .lintje-page-header__meta,
+.lintje-page-header--band .lintje-page-header__more,
+.lintje-page-header--band ::slotted([slot='meta']),
+.lintje-page-header--band .lintje-page-header__kicker { color: var(--color-hero-primary-text); }
+.lintje-page-header--band ::slotted([slot='tabs']) {
+  --lintje-tabs-ink: var(--color-hero-primary-text);
+  /* The row's line in the ink, faint: the band's lower edge where it sticks over the page. */
+  --lintje-tabs-ink-line: var(--alpha-white-16);
+  --lintje-tabs-hover: var(--color-action-inverse-secondary-hover);
+}
+@media screen and (max-width: 767px) {
+  /* On a phone the house style allows half a ribbon at most, top left. */
+  .lintje-page-header--band {
+    padding: var(--space-5) var(--page-pad-x) var(--space-6);
+    border-top-right-radius: 0;
+    border-top-left-radius: min(var(--radius-corner), calc(var(--w-ribbon) / 2));
+  }
+}
 
 /* On paper the title stands at the paper's edge, in line with the content under it. */
 @media print {

@@ -329,6 +329,11 @@ describe('back to the default', () => {
     expect(reset.querySelector('.visually-hidden')).toBeNull()
   })
 
+  const partsOf = (element: { renderRoot: HTMLElement | DocumentFragment }) =>
+    [...element.renderRoot.querySelector('.lintje-field')!.children].map(
+      (node) => node.classList[0],
+    )
+
   it.each(['text', 'search'])('stands under the hint of a %s field', async (type) => {
     const element = await mount('lintje-text-input', () => {}, {
       type,
@@ -336,25 +341,57 @@ describe('back to the default', () => {
       modified: true,
       resetLabel: 'Leegmaken',
     })
-    const foot = [...element.renderRoot.querySelector('.lintje-field')!.children].slice(-2)
-    expect(foot[0].classList.contains('lintje-field__hint')).toBe(true)
-    expect(foot[1].classList.contains('lintje-field__reset')).toBe(true)
+    expect(partsOf(element).slice(-2)).toEqual(['lintje-field__hint', 'lintje-field__reset'])
   })
 
-  it('keeps the counter of the textarea, with the link after it', async () => {
-    const element = await mount('lintje-textarea', () => {}, {
-      maxlength: 200,
-      value: 'Tas',
-      error: 'Omschrijving is te kort',
-      modified: true,
-      resetLabel: 'Terugzetten naar leeg',
-    })
+  it.each(['text', 'search'])(
+    'stands under a %s field in the new style, whose hint is above it',
+    async (type) => {
+      document.documentElement.dataset.styleVersion = 'new'
+      try {
+        const element = await mount('lintje-text-input', () => {}, {
+          type,
+          hint: 'Mag leeg blijven',
+          modified: true,
+          resetLabel: 'Leegmaken',
+        })
+        const parts = partsOf(element)
+        expect(parts.slice(0, 2)).toEqual(['lintje-label', 'lintje-field__hint'])
+        expect(parts.at(-1)).toBe('lintje-field__reset')
+      } finally {
+        delete document.documentElement.dataset.styleVersion
+      }
+    },
+  )
+
+  const TEXTAREA = {
+    maxlength: 200,
+    value: 'Tas',
+    error: 'Omschrijving is te kort',
+    modified: true,
+    resetLabel: 'Terugzetten naar leeg',
+  }
+
+  it('keeps the counter of the textarea beside its message, with the link after them', async () => {
+    const element = await mount('lintje-textarea', () => {}, TEXTAREA)
     const [foot, reset] = [...element.renderRoot.querySelector('.lintje-field')!.children].slice(-2)
     expect([...foot!.children].map((node) => node.classList[0])).toEqual([
       'lintje-field__error',
       'lintje-textarea__counter',
     ])
     expect(reset!.classList[0]).toBe('lintje-field__reset')
+  })
+
+  it('keeps the counter of the textarea under the field in the new style, with the link after it', async () => {
+    document.documentElement.dataset.styleVersion = 'new'
+    try {
+      const element = await mount('lintje-textarea', () => {}, TEXTAREA)
+      const parts = partsOf(element)
+      expect(parts.slice(0, 2)).toEqual(['lintje-label', 'lintje-field__error'])
+      expect(parts.slice(-2)).toEqual(['lintje-textarea__counter', 'lintje-field__reset'])
+    } finally {
+      delete document.documentElement.dataset.styleVersion
+    }
   })
 
   it.each(RESETTABLE)(

@@ -59,17 +59,32 @@ export default {
   elements: [
 {
       tag: 'lintje-button',
-      title: 'De knop, in zes varianten, drie maten en elke toestand',
+      title: 'De knop, in acht varianten, drie maten en elke toestand',
       specimens: [
         {
           label: 'Vier varianten',
-          note: 'Het attribuut `variant` kiest primair, secundair, tertiair of link.',
+          note:
+            'Het attribuut `variant` kiest primair, secundair, tertiair of link. Tertiair is ' +
+            'het woord in de primaire kleur zonder kader, de derde knop in een rij; ' +
+            'ingedrukt is elke knop een stap donkerder dan onder de aanwijzer.',
           html: `<div class="guide__row">
             <lintje-button variant="primary">Toepassen</lintje-button>
             <lintje-button variant="secondary">Annuleren</lintje-button>
             <lintje-button variant="tertiary">Meer</lintje-button>
             <lintje-button variant="link">Uitleg</lintje-button>
           </div>`,
+        },
+        {
+          label: 'Op een themavulling',
+          note:
+            'Op de band van een hero als paginakop staan `inverse` (wit, het woord in de ' +
+            'primaire kleur) en `inverse-secondary` (wit omlijnd); de band zet de witte ring.',
+          html: `<lintje-hero tone="primary" heading="Aanvraag ingediend" description="U krijgt binnen twee weken bericht.">
+            <div class="guide__row">
+              <lintje-button variant="inverse">Naar mijn aanvragen</lintje-button>
+              <lintje-button variant="inverse-secondary">Aanvraag downloaden</lintje-button>
+            </div>
+          </lintje-hero>`,
         },
         {
           label: 'Onomkeerbare actie',

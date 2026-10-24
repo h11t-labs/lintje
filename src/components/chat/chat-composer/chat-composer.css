@@ -23,6 +23,7 @@
   color: var(--color-text-muted);
   text-align: left;
   cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-chat-composer__expand:hover { background: var(--color-bg-subtle); }
 .lintje-chat-composer__expand:focus-visible {
@@ -139,6 +140,9 @@
 .lintje-chat-composer__send { --lintje-chat-composer-line: 1px; position: relative; flex: none; display: flex; gap: var(--lintje-chat-composer-line); }
 .lintje-chat-composer__send-half,
 .lintje-chat-composer__attach { --h-icon-button: var(--h-button); }
+/* The two halves read as one button: only the outer corners are rounded. */
+.lintje-chat-composer__send > :first-child:not(:last-child) { --lintje-button-radius: var(--radius-control) 0 0 var(--radius-control); }
+.lintje-chat-composer__send > :last-child:not(:first-child) { --lintje-button-radius: 0 var(--radius-control) var(--radius-control) 0; }
 .lintje-chat-composer__attach { flex: none; margin-right: auto; }
 
 .lintje-chat-composer__scrim { position: fixed; inset: 0; z-index: 45; }
@@ -181,6 +185,7 @@
   font: var(--text-ui);
   color: var(--color-text-primary);
   cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-chat-composer__completion:last-child { border-bottom: 0; }
 .lintje-chat-composer__completion:hover,
