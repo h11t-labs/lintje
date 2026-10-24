@@ -1,5 +1,5 @@
 /** The tabs: the ARIA pattern, the panel that shows, the keyboard and the events. */
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import './tabs'
 import { scrollEdges, scrollToShow, type LintjeTabs, type TabItem } from './tabs'
 
@@ -153,10 +153,10 @@ describe('lintje-tabs of links only', () => {
     expect(links[2]!.getAttribute('aria-disabled')).toBe('true')
     // The content under a row of links is the page's own: no empty panel takes room under it,
     // and what the host slots under the chosen one gets its panel.
-    expect(root.querySelector('.lintje-tabs__panel')).toBeNull()
+    const panel = root.querySelector<HTMLElement>('.lintje-tabs__panel')!
+    expect(panel.hidden).toBe(true)
     element.insertAdjacentHTML('beforeend', '<p slot="samenvatting">Kort</p>')
-    element.requestUpdate()
-    await element.updateComplete
+    await vi.waitFor(() => expect(panel.hidden).toBe(false))
     expect(root.querySelector('.lintje-tabs__panel slot')!.getAttribute('name')).toBe(
       'samenvatting',
     )

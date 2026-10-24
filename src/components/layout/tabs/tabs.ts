@@ -67,6 +67,7 @@ export class LintjeTabs extends LintjeElement {
     value: { type: String },
     label: { type: String },
     variant: { type: String, reflect: true },
+    panelSlotted: { state: true },
   }
 
   tabs: TabItem[] = []
@@ -78,6 +79,8 @@ export class LintjeTabs extends LintjeElement {
    * with an icon and a hint; on a phone the icon stands above the label and the hint goes.
    */
   variant: TabsVariant = 'line'
+  /** A row of links: whether the host slotted content under the chosen one. */
+  panelSlotted: boolean = false
   #resize: ResizeObserver | null = null
   /** A press inside a panel: Safari focuses the panel itself when the pressed control takes no
       focus, and that focus draws no ring. */
@@ -94,6 +97,10 @@ export class LintjeTabs extends LintjeElement {
     this.#pressed = false
     document.removeEventListener('pointerup', this.onPressEnd, true)
     document.removeEventListener('pointercancel', this.onPressEnd, true)
+  }
+
+  private onPanelSlotChange(event: Event): void {
+    this.panelSlotted = (event.target as HTMLSlotElement).assignedElements().length > 0
   }
 
   private onPanelFocus(event: FocusEvent): void {
@@ -272,13 +279,13 @@ export class LintjeTabs extends LintjeElement {
       'lintje-tabs--panel': this.variant === 'panel',
     })
     if (nav) {
-      // Under a row of links the content is usually the page's own: a panel only for what the
-      // host slots under the chosen one, so an empty panel adds no room under the row.
-      const value = this.tabs[chosen]!.value
-      const slotted = this.querySelector(`[slot="${CSS.escape(value)}"]`) !== null
+      // Under a row of links the content is usually the page's own: the panel shows only for
+      // what the host slots under the chosen one, also later, so an empty one adds no room.
       return html`<div class=${classes}>
         <nav aria-label=${this.label || nothing}>${list}</nav>
-        ${slotted ? html`<div class="lintje-tabs__panel"><slot name=${value}></slot></div>` : nothing}
+        <div class="lintje-tabs__panel" ?hidden=${!this.panelSlotted}>
+          <slot name=${this.tabs[chosen]!.value} @slotchange=${this.onPanelSlotChange}></slot>
+        </div>
       </div>`
     }
     return html`<div class=${classes}>
