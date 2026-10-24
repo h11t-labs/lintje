@@ -15,7 +15,7 @@
   align-items: center;
   justify-content: center;
   flex: none;
-  border-radius: var(--lintje-button-radius, var(--radius-control));
+  border-radius: var(--radius-control);
   transition: opacity var(--dur-hover) var(--ease-in-motion),
               background var(--dur-hover) var(--ease-in-motion);
 }

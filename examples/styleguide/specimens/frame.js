@@ -313,11 +313,13 @@ export default {
           note:
             'Met `nav-tone="light"` is de balk wit met de tekst in de primaire kleur en de ' +
             'actieve pagina onderstreept, zoals de huisstijl de navigatiebalk tekent. ' +
-            'De logobalk en de rest van de pagina veranderen niet.',
+            'De logobalk en de rest van de pagina veranderen niet. De paginakop is dan de band ' +
+            'in de primaire kleur, met de knoppen in hun omgekeerde kleuren.',
           html: `<lintje-shell nav-tone="light">
             <lintje-language-nav slot="end"></lintje-language-nav>
             <lintje-page-header slot="header">
               <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
+              <lintje-menu-button slot="actions" split variant="primary" label="Downloaden" action="docx" leading-icon="functioneel-downloaden" accessible-label="Andere manieren om te downloaden" placement="bottom-end"></lintje-menu-button>
             </lintje-page-header>
             <p>Dezelfde schil, met de balk op het oppervlak en de taalkeuze in het slot <code>end</code>.</p>
           </lintje-shell>`,
@@ -336,6 +338,12 @@ export default {
             }
             stage.querySelector('lintje-page-header').data = { title: 'Teamoverleg 2 oktober' }
             stage.querySelector('lintje-breadcrumbs').items = [{ label: 'Opnames', href: '#opnames' }, { label: 'Teamoverleg 2 oktober' }]
+            const download = stage.querySelector('lintje-menu-button')
+            download.items = [
+              { value: 'pdf', label: 'PDF', hint: '.pdf' },
+              { value: 'audio', label: 'Audio', hint: '.m4a' },
+            ]
+            download.addEventListener('lintje-action', (event) => event.stopPropagation())
           },
         },
         {

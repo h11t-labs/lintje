@@ -270,6 +270,46 @@ export default {
             ]),
         },
         {
+          label: 'Gesplitst met een paneel',
+          note:
+            'Zonder `items` opent het pijltje de eigen inhoud als paneel: keuzes die geen actie ' +
+            'zijn. Het eerste element krijgt de focus, Escape zet hem terug op het pijltje.',
+          html: `<lintje-menu-button split variant="primary" label="Versturen" action="send" leading-icon="functioneel-verzenden" accessible-label="Opties bij versturen" placement="bottom-end">
+            <lintje-radio-group class="guide__popover-body" tabindex="-1" label="Antwoord als"></lintje-radio-group>
+          </lintje-menu-button>`,
+          setup(stage) {
+            menu(stage, [])
+            stage.querySelector('lintje-radio-group').options = [
+              { value: 'auto', label: 'Wat het beste past' },
+              { value: 'tekst', label: 'Tekst' },
+              { value: 'tabel', label: 'Tabel' },
+            ]
+            stage.querySelector('lintje-radio-group').value = 'auto'
+          },
+        },
+        {
+          label: 'Gesplitst met de actie uit',
+          note:
+            'Met `action-disabled` is alleen de eigen helft uit en opent het pijltje nog: een ' +
+            'bericht dat nog niet weg kan, houdt zijn opties. Het pijltje wordt secundair.',
+          html: '<lintje-menu-button split action-disabled variant="primary" label="Versturen" action="send" leading-icon="functioneel-verzenden" accessible-label="Opties bij versturen"></lintje-menu-button>',
+          setup: (stage) => menu(stage, [{ value: 'later', label: 'Later versturen' }]),
+        },
+        {
+          label: 'Gesplitst als alleen een icoon',
+          note:
+            'Met `icon-only` is de eigen helft alleen zijn icoon, in een vierkant; het label is ' +
+            'zijn naam. Voor een telefoon, waar het label een eigen regel zou nemen.',
+          html: '<lintje-menu-button split icon-only variant="primary" label="Versturen" action="send" leading-icon="functioneel-verzenden" accessible-label="Opties bij versturen" placement="bottom-end"></lintje-menu-button>',
+          setup: (stage) => menu(stage, [{ value: 'later', label: 'Later versturen' }]),
+        },
+        {
+          label: 'Gesplitst en secundair',
+          note: 'De lijn tussen de helften is de inkt van het pijltje, op elk oppervlak.',
+          html: '<lintje-menu-button split label="Exporteren" action="csv" accessible-label="Andere formaten"></lintje-menu-button>',
+          setup: (stage) => menu(stage, EXPORTS),
+        },
+        {
           label: 'Gesplitst en bezig',
           note: 'Alleen het icoon draait; er verspringt niets.',
           html: '<lintje-menu-button split variant="primary" label="Downloaden" action="docx" leading-icon="functioneel-downloaden" busy-label="Het Word-document wordt gemaakt"></lintje-menu-button>',

@@ -20,10 +20,13 @@
 
 .lintje-menu-button__trigger.lintje-button { padding-right: var(--space-3); }
 .lintje-menu-button__trigger--flat.lintje-button { padding-inline: var(--space-2); border-color: transparent; }
-.lintje-menu-button__trigger--square.lintje-button { width: var(--h-button); padding: 0; justify-content: center; }
-/* Split: two halves of one button, the page showing through the 1 px between them. */
-.lintje-menu-button__split { --lintje-menu-button-line: 1px; display: inline-flex; gap: var(--lintje-menu-button-line); min-width: 0; }
-.lintje-menu-button__split .lintje-menu-button__trigger--split.lintje-button { width: var(--h-button); padding: 0; }
+.lintje-menu-button__trigger--square.lintje-button,
+.lintje-menu-button__main--square.lintje-button { width: var(--h-button); padding: 0; justify-content: center; }
+/* Split: two halves of one button, a line in the arrow's ink between them, whatever the surface
+   behind it. The halves share one border there, the arrow's. */
+.lintje-menu-button__split { display: inline-flex; min-width: 0; }
+.lintje-menu-button__split .lintje-menu-button__trigger--split.lintje-button { width: var(--h-button); padding: 0; border-left-color: currentColor; }
+.lintje-menu-button__split .lintje-menu-button__main.lintje-button { border-right-width: 0; }
 /* The two halves read as one button: only the outer corners are rounded. */
 .lintje-menu-button__split .lintje-menu-button__main.lintje-button { border-radius: var(--radius-control) 0 0 var(--radius-control); }
 .lintje-menu-button__split .lintje-menu-button__trigger--split.lintje-button { border-radius: 0 var(--radius-control) var(--radius-control) 0; }

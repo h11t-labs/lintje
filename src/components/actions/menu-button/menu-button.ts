@@ -1,5 +1,9 @@
 /**
- * `<lintje-menu-button>` — a button with a menu of actions.
+ * `<lintje-menu-button>` — a button with a menu of actions, or with a panel of choices.
+ *
+ * Without `items` the button opens its own content instead, as a panel: choices that are not
+ * actions, such as how a message is sent. The panel's first element takes the focus, so it is a
+ * control or has `tabindex="-1"`; Escape puts the focus back on the button.
  *
  * A disabled trigger stays in the tab order and refuses to open. The keys reach disabled rows
  * too, so their `reason` tooltip shows on focus.
@@ -150,6 +154,8 @@ export class LintjeMenuButton extends LintjeElement {
     open: { type: Boolean, reflect: true },
     split: { type: Boolean, reflect: true },
     action: { type: String },
+    actionDisabled: { type: Boolean, attribute: 'action-disabled', reflect: true },
+    iconOnly: { type: Boolean, attribute: 'icon-only', reflect: true },
   }
 
   label: string = ''
@@ -181,12 +187,23 @@ export class LintjeMenuButton extends LintjeElement {
   /** Reflected, so a sheet around it can see a menu is open and leave Escape to it. */
   open: boolean = false
   /**
-   * Two halves of one button, 1 px apart: the label does the usual action (`action`), the arrow
-   * beside it opens the other ways to do it.
+   * Two halves of one button with a line in its ink between them: the label does the usual action
+   * (`action`), the arrow beside it opens the other ways to do it, or the panel.
    */
   split: boolean = false
   /** What a split button's own half sends as `lintje-action`. */
   action: string = ''
+  /**
+   * A split button's own half is off while its arrow still opens: a message that cannot be sent
+   * yet keeps its options. The arrow drops from primary to secondary, so the grey half does not
+   * stand beside the strongest fill.
+   */
+  actionDisabled: boolean = false
+  /**
+   * A split button's own half is its `leading-icon` alone, in a square, named by `label`: a
+   * phone's send button, where the label would take a line of its own.
+   */
+  iconOnly: boolean = false
 
   // The trigger is a native `<button>`, so the ARIA sits on what has the focus; `aria-controls`
   // names the popover, because the `role="menu"` panel is in the popover's shadow root.
@@ -199,6 +216,15 @@ export class LintjeMenuButton extends LintjeElement {
 
   private get rows(): MenuItem[] {
     return this.items.filter(isItem)
+  }
+
+  /** No rows: the arrow opens the element's own content. */
+  private get panel(): boolean {
+    return this.items.length === 0
+  }
+
+  private get popup(): 'menu' | 'dialog' {
+    return this.panel ? 'dialog' : 'menu'
   }
 
   private get trigger(): HTMLButtonElement | null {
@@ -248,7 +274,7 @@ export class LintjeMenuButton extends LintjeElement {
   }
 
   private readonly onTriggerKeydown = (event: KeyboardEvent): void => {
-    if (this.unavailable) return
+    if (this.unavailable || this.panel) return
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault()
       this.show(event.key === 'ArrowDown' ? 'first' : 'last')
@@ -341,16 +367,21 @@ export class LintjeMenuButton extends LintjeElement {
       this.pendingFocus = null
       // The rows are the popover's slotted content: they exist once the popover has drawn.
       const popover = this.renderRoot.querySelector('lintje-popover')
-      void (popover?.updateComplete ?? Promise.resolve()).then(() => this.focusRow(index))
+      void (popover?.updateComplete ?? Promise.resolve()).then(() =>
+        this.panel ? (this.firstElementChild as HTMLElement | null)?.focus() : this.focusRow(index),
+      )
     }
   }
 
-  /** The usual action on the label, the arrow beside it for the rest: one group, 1 px apart. */
+  /** The usual action on the label, the arrow beside it for the rest: one group. */
   private renderSplit(): TemplateResult {
     // Busy, both halves are `aria-disabled` but keep their colours; only `disabled` greys them.
     const disabled = this.unavailable ? 'true' : nothing
+    const actionOff = this.unavailable || this.actionDisabled
     const busy = Boolean(this.busyLabel)
     const variant = this.variant === 'flat' ? 'tertiary' : this.variant
+    const arrowVariant = this.actionDisabled && variant === 'primary' ? 'secondary' : variant
+    const square = this.iconOnly && Boolean(this.leadingIcon)
     return html`<span class="lintje-menu-button__split">
       <button
         type="button"
@@ -358,13 +389,16 @@ export class LintjeMenuButton extends LintjeElement {
           'lintje-button': true,
           [`lintje-button--${variant}`]: true,
           'lintje-menu-button__main': true,
-          'is-disabled': this.disabled,
+          'lintje-menu-button__main--square': square,
+          'is-disabled': this.disabled || this.actionDisabled,
           'is-working': busy,
         })}
-        aria-disabled=${disabled}
+        title=${square ? this.label : nothing}
+        aria-label=${square ? this.label : nothing}
+        aria-disabled=${actionOff ? 'true' : nothing}
         aria-busy=${busy ? 'true' : nothing}
         @click=${() => {
-          if (!this.unavailable) this.emit('lintje-action', this.action)
+          if (!actionOff) this.emit('lintje-action', this.action)
         }}
       >
         ${
@@ -374,13 +408,17 @@ export class LintjeMenuButton extends LintjeElement {
               ? renderIcon(this.leadingIcon, { size: 20, className: 'lintje-button__icon' })
               : nothing
         }
-        <span class="lintje-button__label" @pointerenter=${titleWhenCut}>${this.label}</span>
+        ${
+          square
+            ? nothing
+            : html`<span class="lintje-button__label" @pointerenter=${titleWhenCut}>${this.label}</span>`
+        }
       </button>
       <button
         type="button"
         class=${classMap({
           'lintje-button': true,
-          [`lintje-button--${variant}`]: true,
+          [`lintje-button--${arrowVariant}`]: true,
           'lintje-menu-button__trigger': true,
           'lintje-menu-button__trigger--split': true,
           'is-open': this.open,
@@ -388,7 +426,7 @@ export class LintjeMenuButton extends LintjeElement {
           'is-working': busy,
         })}
         aria-label=${this.accessibleLabel || `Meer bij ${this.label}`}
-        aria-haspopup="menu"
+        aria-haspopup=${this.popup}
         aria-expanded=${String(this.open)}
         aria-controls=${this.menuId}
         aria-disabled=${disabled}
@@ -423,7 +461,7 @@ export class LintjeMenuButton extends LintjeElement {
           'lintje-menu-button__trigger--icon': true,
         })}
         aria-label=${this.label}
-        aria-haspopup="menu"
+        aria-haspopup=${this.popup}
         aria-expanded=${String(this.open)}
         aria-controls=${this.menuId}
         aria-disabled=${disabled}
@@ -438,7 +476,7 @@ export class LintjeMenuButton extends LintjeElement {
         type="button"
         class=${classMap({ ...common, 'lintje-menu-button__trigger--ellipsis': true })}
         aria-label=${this.label}
-        aria-haspopup="menu"
+        aria-haspopup=${this.popup}
         aria-expanded=${String(this.open)}
         aria-controls=${this.menuId}
         aria-disabled=${disabled}
@@ -461,7 +499,7 @@ export class LintjeMenuButton extends LintjeElement {
       })}
       title=${square ? this.accessibleLabel : nothing}
       aria-label=${this.accessibleLabel || nothing}
-      aria-haspopup="menu"
+      aria-haspopup=${this.popup}
       aria-expanded=${String(this.open)}
       aria-controls=${this.menuId}
       aria-disabled=${disabled}
@@ -547,13 +585,17 @@ export class LintjeMenuButton extends LintjeElement {
     // The popover stands right after the trigger: its previous sibling is what it is placed by.
     return html`${this.renderTrigger()}<lintje-popover
         id=${this.menuId}
-        panel-role="menu"
+        panel-role=${this.popup}
         label=${ifDefined(this.accessibleLabel || this.label || undefined)}
         placement=${this.placement}
         ?open=${this.open}
         @lintje-close=${this.onPopoverClose}
       >
-        <div class="lintje-menu" @keydown=${this.onMenuKeydown}>${renderMenuEntries(this.items, this.menuId, (item) => this.renderRow(item))}</div>
+        ${
+          this.panel
+            ? html`<slot></slot>`
+            : html`<div class="lintje-menu" @keydown=${this.onMenuKeydown}>${renderMenuEntries(this.items, this.menuId, (item) => this.renderRow(item))}</div>`
+        }
       </lintje-popover
       ><div
         class=${classMap({
