@@ -1393,7 +1393,7 @@ function renderSpeakers(item, segments) {
     return {
       id: name,
       title: name,
-      icon: 'functioneel-user',
+      avatar: { name },
       swatch: colours.get(name) ?? 'other',
       sub: live ? `${plural(count, 'fragment', 'fragmenten')} tot nu toe` : `${plural(count, 'fragment', 'fragmenten')} · ${mmss(talk.get(name) ?? 0)} spreektijd`,
       clickable: false,
