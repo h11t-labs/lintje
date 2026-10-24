@@ -39,7 +39,11 @@ describe('the tag reference', () => {
 
   it('finds the events a tag sends, also by a name it holds in a table', () => {
     const names = (tag: string) => of(tag).events.map((event) => event.name)
-    expect(names('lintje-tile')).toEqual(['lintje-tile-download', 'lintje-tile-expand', 'lintje-toggle'])
+    expect(names('lintje-tile')).toEqual([
+      'lintje-tile-download',
+      'lintje-tile-expand',
+      'lintje-toggle',
+    ])
     expect(names('lintje-job-list')).toContain('lintje-job-retry')
   })
 
