@@ -88,6 +88,19 @@ export default {
             <lintje-grid-item span="4"><div class="guide__placeholder">span 4</div></lintje-grid-item>
           </lintje-grid>`,
         },
+        {
+          label: 'Plaats en zichtbaarheid',
+          note:
+            'Op een telefoon schuift een item met `order-mobile="1"` achter de rest, valt een item ' +
+            'met `hide-mobile` weg en verschijnt een item met `hide-desktop`. Verberg alleen wat de ' +
+            'pagina ook op een andere manier zegt.',
+          html: `<lintje-grid>
+            <lintje-grid-item span="4" order-mobile="1"><div class="guide__placeholder">order-mobile 1 · op een telefoon als laatste</div></lintje-grid-item>
+            <lintje-grid-item span="4"><div class="guide__placeholder">zonder attribuut</div></lintje-grid-item>
+            <lintje-grid-item span="4" hide-mobile><div class="guide__placeholder">hide-mobile · niet op een telefoon</div></lintje-grid-item>
+            <lintje-grid-item span="12" hide-desktop><div class="guide__placeholder">hide-desktop · alleen op een telefoon</div></lintje-grid-item>
+          </lintje-grid>`,
+        },
       ],
     },
     {
@@ -114,6 +127,15 @@ export default {
           label: 'Klaar',
           html: `<lintje-tile heading="Afwijzingen naar grond" subtitle="Vandaag · 37 afwijzingen" footnote="${FOOTNOTE}" expandable download>
             <div class="guide__placeholder"><lintje-icon name="functioneel-info" size="18"></lintje-icon> Inhoud van een tegel</div>
+          </lintje-tile>`,
+        },
+        {
+          label: 'Ingeklapt op een telefoon',
+          note:
+            'Met `collapsed-mobile` toont een telefoon alleen de kop en een knop Tonen; de inhoud ' +
+            'staat één tik verder. Op een breder scherm verandert er niets.',
+          html: `<lintje-tile heading="Aanvragen per regio" subtitle="Vandaag" collapsed-mobile>
+            <div class="guide__placeholder">De kaart, op een telefoon ingeklapt</div>
           </lintje-tile>`,
         },
         {

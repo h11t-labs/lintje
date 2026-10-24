@@ -43,4 +43,17 @@
   :host([data-style-version='new']) ::slotted([span-mobile='1']) { --lintje-span-mobile: 1; }
   :host([data-style-version='new']) ::slotted([span-mobile='2']) { --lintje-span-mobile: 2; }
   :host([data-style-version='new']) ::slotted([span-mobile='3']) { --lintje-span-mobile: 3; }
+  /* The host's place and showing on a phone, in both styles; a plain element takes them from its
+     attribute: an order of -3 to 3, and `hide-mobile`. */
+  ::slotted([order-mobile]) { order: var(--lintje-order-mobile, 0); }
+  ::slotted([order-mobile='-3']) { --lintje-order-mobile: -3; }
+  ::slotted([order-mobile='-2']) { --lintje-order-mobile: -2; }
+  ::slotted([order-mobile='-1']) { --lintje-order-mobile: -1; }
+  ::slotted([order-mobile='1']) { --lintje-order-mobile: 1; }
+  ::slotted([order-mobile='2']) { --lintje-order-mobile: 2; }
+  ::slotted([order-mobile='3']) { --lintje-order-mobile: 3; }
+  ::slotted([hide-mobile]) { display: none; }
+}
+@media not screen and (max-width: 767px) {
+  ::slotted([hide-desktop]) { display: none; }
 }

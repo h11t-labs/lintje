@@ -164,6 +164,11 @@ export interface TileData {
   span?: number
   /** The subtitle below 768 px, where it says something else (e.g. "tik op een cel"). */
   mobileSubtitle?: string
+  /**
+   * On a phone, below 768 px, the tile shows only its head with a button that unfolds the rest
+   * (`collapsed-mobile` on `lintje-tile`): for a view that matters less there than its neighbours.
+   */
+  collapsedMobile?: boolean
 }
 
 /* Chart tile --------------------------------------------------------------- */

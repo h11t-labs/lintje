@@ -166,13 +166,28 @@ zet kerncijfers op een tablet drie en op een telefoon twee naast elkaar. De bree
 inhoud en de marges eromheen komen uit de huisstijl ([thema's](theming.md#de-huisstijl-oud-en-nieuw));
 een andere breedte zet je met `--lintje-content-width` op de pagina.
 
-**Niets verdwijnt op een telefoon, en niets bestaat alleen daar.** Lintje heeft geen attribuut dat
-een item per schermbreedte verbergt: wie een telefoon gebruikt, of tot 400 % inzoomt, heeft recht
-op dezelfde inhoud (WCAG 1.4.10). Waar een onderdeel op een smal scherm anders moet, wisselt het
-element zelf van vorm: het menu wordt een header met een schermvullend menu, de filters een
-sheet, een tabel toont per rij de identiteit en één meetwaarde, het kruimelpad alleen de weg
-terug, en de afbeelding naast een hero valt onder 1024 px weg. Wil je iets op een telefoon anders
-hebben, vraag het dan als vorm van het element, niet als een verborgen kopie.
+**Wat op een telefoon minder telt, zet je achteraan of klap je in; weglaten is het laatste.**
+Wie een telefoon gebruikt, of op een desktop tot 400 % inzoomt, krijgt deze weergave, en heeft
+recht op dezelfde inhoud (WCAG 1.4.10). Kies daarom van boven naar beneden:
+
+1. **Achteraan**: `order-mobile` op een item zet het op een telefoon verder naar achteren (`1`)
+   of naar voren (`-1`); zonder het attribuut is het 0. Alleen de tekening schuift: de volgorde
+   waarin een schermlezer en de Tab-toets gaan, blijft die van de markup. Verplaats dus een
+   heel blok, zoals een kaart naar het eind, en nooit één veld tussen andere.
+2. **Ingeklapt**: `collapsed-mobile` op `lintje-tile` (en `collapsedMobile` in de `data` van een
+   grafiek, kaart, tabel, graaf of logboek) toont op een telefoon alleen de kop met een knop
+   Tonen; de inhoud staat één tik verder.
+3. **Van vorm gewisseld**: dat doet een element zelf. Het menu wordt een header met een
+   schermvullend menu, de filters een sheet, een tabel toont per rij de identiteit en één
+   meetwaarde, het kruimelpad alleen de weg terug, en de afbeelding naast een hero valt onder
+   1024 px weg.
+4. **Weggelaten**: `hide-mobile` laat een item op een telefoon weg, `hide-desktop` vanaf 768 px.
+   Gebruik het alleen voor wat de pagina ook op een andere manier zegt, zoals een kaart waarvan
+   de cijfers in een tabel staan. Op papier telt de desktopweergave: wat `hide-desktop` draagt,
+   wordt niet afgedrukt. Een verborgen veld in een formulier wordt nog steeds verstuurd.
+
+Op een gewoon element in het grid, zonder eigen Lintje-tag, werkt `order-mobile` van `-3` tot `3`;
+zet het in een `<lintje-grid-item>` voor meer.
 
 ## Afdrukken
 

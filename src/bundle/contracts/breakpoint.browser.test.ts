@@ -1313,6 +1313,54 @@ const ROWS: Row[] = [
     },
   },
   {
+    tag: 'lintje-grid',
+    marker: 'a phone moves an item with order-mobile to the end and leaves out hide-mobile',
+    mount: async () => {
+      const element = create('lintje-grid')
+      element.innerHTML = `<lintje-grid-item span="4" order-mobile="1">Kaart</lintje-grid-item>
+        <lintje-grid-item span="4">Kerncijfers</lintje-grid-item>
+        <lintje-grid-item span="4" hide-mobile>Toelichting</lintje-grid-item>
+        <lintje-grid-item span="4" hide-desktop>Alleen op een telefoon</lintje-grid-item>`
+      await append(element)
+      await Promise.all(
+        [...element.children].map(
+          (child) => (child as { updateComplete?: Promise<unknown> }).updateComplete,
+        ),
+      )
+      return element
+    },
+    wide: (element) => {
+      const [map, figures, note, phoneOnly] = [...element.children]
+      return level(map!, figures!) && seen(note) && !seen(phoneOnly)
+    },
+    phone: (element) => {
+      const [map, figures, note, phoneOnly] = [...element.children]
+      return below(figures!, map!) && !seen(note) && seen(phoneOnly)
+    },
+  },
+  {
+    tag: 'lintje-tile',
+    marker: 'with collapsed-mobile a phone shows the head and a button, the content one tap away',
+    mount: async () => {
+      const element = create('lintje-tile', {
+        heading: 'Aanvragen per regio',
+        collapsedMobile: true,
+      })
+      element.innerHTML = '<p>De kaart met de aanvragen per regio.</p>'
+      return append(element)
+    },
+    wide: (element) =>
+      seen(element.querySelector('p')) && !shown(element, '.lintje-tile__fold-toggle'),
+    phone: (element) => {
+      const toggle = find(element, '.lintje-tile__fold-toggle')
+      return (
+        seen(toggle) &&
+        toggle!.getAttribute('aria-expanded') === 'false' &&
+        !seen(element.querySelector('p'))
+      )
+    },
+  },
+  {
     tag: 'lintje-tile',
     marker: 'the key figure stands above the content, not beside it',
     mount: async () => {

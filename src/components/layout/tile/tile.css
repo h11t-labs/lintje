@@ -74,6 +74,30 @@
   .lintje-tile:not(:hover):not(:focus-within) lintje-icon-button[variant='tile'] { opacity: 1; }
 }
 
+/* `collapsed-mobile`: what stands under the head sits in one box that the phone folds away; it
+   takes no box of its own, so the tile's gap still spaces its parts. Unfolded by the reader, the
+   parts fade in. */
+.lintje-tile__fold { display: contents; }
+.lintje-tile__fold.is-unfolded > :is(.lintje-tile__intro, .lintje-tile__body, .lintje-tile__footnote) {
+  animation: lintje-fade-in var(--dur-collapse) var(--ease-in-motion);
+}
+/* A word in the accent with the chevron before it, a touch target high, as a tertiary button. */
+.lintje-tile__fold-toggle {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  min-height: var(--h-target);
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  font: var(--text-ui); font-weight: 700;
+  color: var(--color-accent-text);
+  cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-tile__fold-toggle:hover { background: var(--color-bg-subtle); }
+.lintje-tile__fold-icon { transition: transform var(--dur-collapse) var(--ease-in-motion); }
+.lintje-tile__fold-toggle.is-open .lintje-tile__fold-icon { transform: rotate(180deg); }
+
 .lintje-tile__intro { font: var(--text-small); color: var(--color-text-secondary); }
 
 /* Body and content are flex columns, so slotted content can place itself in a taller tile. */

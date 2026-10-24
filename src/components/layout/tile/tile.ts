@@ -4,9 +4,11 @@
  * Top to bottom: header, notice, intro, legend, content, legend (`legend-below`), footnote.
  * `slot="aside"` puts a key figure beside the content, above it below 768 px. Hover actions show
  * on focus too, and always on touch screens. The tile expands and downloads nothing itself: the
- * host answers its events.
+ * host answers its events. With `collapsed-mobile` a phone shows only the head and a button that
+ * unfolds the rest, for a tile that matters less there than its neighbours.
  *
- * Events: `lintje-tile-expand`, `lintje-tile-download`.
+ * Events: `lintje-tile-expand`, `lintje-tile-download`, `lintje-toggle` `boolean` (unfolded on a
+ * phone, after the reader pressed the button).
  */
 import { html, nothing, type PropertyValues, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -15,7 +17,9 @@ import { define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { LintjeGridItemElement, spanStyles } from '../../shared/grid-item-element'
 import { length } from '../../shared/length'
-import { iconStyles, renderLeadingIcon } from '../../../icons/render'
+import { iconStyles, renderIcon, renderLeadingIcon } from '../../../icons/render'
+import { MediaController } from '../../../core/media'
+import { uniqueId } from '../../../core/id'
 import '../../actions/button/button'
 import '../../actions/icon-button/icon-button'
 import '../../feedback/status-dot/status-dot'
@@ -50,6 +54,8 @@ export class LintjeTile extends LintjeGridItemElement {
     asideSlotted: { state: true },
     legendBelow: { type: Boolean, attribute: 'legend-below' },
     expandable: { type: Boolean },
+    collapsedMobile: { type: Boolean, attribute: 'collapsed-mobile', reflect: true },
+    unfolded: { state: true },
     download: { type: Boolean },
     state: { type: String, reflect: true },
     message: { type: String },
@@ -73,6 +79,14 @@ export class LintjeTile extends LintjeGridItemElement {
   asideSlotted: boolean = false
   legendBelow: boolean = false
   expandable: boolean = false
+  /**
+   * On a phone, below 768 px, only the head shows with a button that unfolds the rest; on a wider
+   * screen it changes nothing. For a tile that matters less on a phone, such as a map beside the
+   * figures it summarises: it stays one tap away instead of being left out.
+   */
+  collapsedMobile: boolean = false
+  /** On a phone, whether the reader unfolded a `collapsed-mobile` tile. */
+  unfolded: boolean = false
   download: boolean = false
   /** `loading`, `empty` and `error` stand in for the content; the tile keeps its size. */
   state: ContentState = 'ready'
@@ -92,6 +106,8 @@ export class LintjeTile extends LintjeGridItemElement {
   protected filled: string | null = null
 
   #fillFrame = 0
+  readonly #mobile = new MediaController(this)
+  readonly #foldId = uniqueId('lintje-tile-fold')
 
   override connectedCallback(): void {
     super.connectedCallback()
@@ -141,11 +157,38 @@ export class LintjeTile extends LintjeGridItemElement {
     this.asideSlotted = LintjeTile.filled(event)
   }
 
+  /** The button that folds a `collapsed-mobile` tile on a phone: its word, and the title it is about. */
+  private foldToggle(titleId: string): TemplateResult {
+    const open = this.unfolded
+    return html`<button
+      type="button"
+      class=${classMap({ 'lintje-tile__fold-toggle': true, 'is-open': open })}
+      aria-expanded=${open ? 'true' : 'false'}
+      aria-controls=${this.#foldId}
+      aria-describedby=${this.heading ? titleId : nothing}
+      @click=${() => {
+        this.unfolded = !open
+        this.emit('lintje-toggle', this.unfolded)
+      }}
+    >
+      ${renderIcon('functioneel-delta-omlaag', { size: 16, className: 'lintje-tile__fold-icon' })}${
+        open ? 'Verbergen' : 'Tonen'
+      }
+    </button>`
+  }
+
   protected override render(): TemplateResult {
     const ready = this.state === 'ready'
-    const titleId = this.id ? `${this.id}-title` : undefined
+    const foldable = this.collapsedMobile && this.#mobile.matches
+    const folded = foldable && !this.unfolded
+    // A foldable tile names its title for the button, so it has an id of its own when the host gave none.
+    const titleId = this.id ? `${this.id}-title` : foldable ? `${this.#foldId}-title` : undefined
     const head =
-      this.heading || this.subtitle || (this.expandable && ready) || (this.download && ready)
+      this.heading ||
+      this.subtitle ||
+      foldable ||
+      (this.expandable && ready) ||
+      (this.download && ready)
 
     return html`<section
       class=${classMap({ 'lintje-tile': true, 'lintje-tile--flush': this.flush })}
@@ -169,6 +212,7 @@ export class LintjeTile extends LintjeGridItemElement {
               ${this.subtitle ? html`<p class="lintje-tile__sub">${this.subtitle}</p>` : nothing}
             </div>
             <div class="lintje-tile__actions">
+              ${foldable ? this.foldToggle(titleId!) : nothing}
               <slot name="actions"></slot>
               ${
                 this.expandable && ready
@@ -194,6 +238,11 @@ export class LintjeTile extends LintjeGridItemElement {
           </header>`
           : nothing
       }
+      <div
+        id=${this.#foldId}
+        class=${classMap({ 'lintje-tile__fold': true, 'is-unfolded': foldable && this.unfolded })}
+        ?hidden=${folded}
+      >
       <slot name="notice"></slot>
       ${this.intro ? html`<p class="lintje-tile__intro">${this.intro}</p>` : nothing}
       ${this.legendBelow ? nothing : html`<slot name="legend"></slot>`}
@@ -215,6 +264,7 @@ export class LintjeTile extends LintjeGridItemElement {
           @slotchange=${this.onFootnoteChange}
         ></slot>
       </p>
+      </div>
     </section>`
   }
 

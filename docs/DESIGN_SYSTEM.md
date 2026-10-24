@@ -1157,6 +1157,14 @@ navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de
 (identiteit en één meetwaarde) en de heatmap. Tussen de breedtes lopen bedieningselementen door
 naar een volgende regel; ze overlappen nooit.
 
+**Wat op een telefoon minder telt, schuift achteraan of klapt in; weglaten is het laatste.** Een
+host kiest per item `order-mobile` (alleen de tekening schuift, de lees- en focusvolgorde niet),
+`collapsed-mobile` op een tegel (de kop met een knop, de inhoud één tik verder), of `hide-mobile`
+en `hide-desktop`. Weglaten is er voor wat de pagina ook anders zegt: een desktop die tot 400 %
+inzoomt, krijgt de telefoonweergave, en mag niets missen (1.4.10). Op papier telt de
+desktopweergave. Een grafiek tekent zich pas in als hij een maat heeft en in beeld is, ook in een
+tegel die openklapt.
+
 **Een sheet die bij een telefoon hoort, sluit als het scherm 768 px of breder wordt** — het menu
 van de shell, de lijst van de meldingen — en geeft de focus aan zijn knop als die blijft staan,
 zoals de bel.
