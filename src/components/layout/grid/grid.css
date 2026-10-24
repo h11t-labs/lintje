@@ -16,7 +16,7 @@
   :host([variant='kpi-row']) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 /* A phone stacks; in the new style it has the house style's four columns, and an item takes all
-   four unless it says otherwise. */
+   four unless its `span-mobile` says fewer. */
 @media screen and (max-width: 767px) {
   :host { grid-template-columns: minmax(0, 1fr); }
   :host([data-style-version='new']) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -38,4 +38,9 @@
   ::slotted([span]) { grid-column: span 1; }
   :host([data-style-version='new']) ::slotted([span]) { grid-column: span 4; }
   :host([variant='kpi-row']) ::slotted([span]) { grid-column: span 1; }
+  /* A plain element in the grid has no `--lintje-span-mobile` of its own: its attribute counts. */
+  :host([data-style-version='new']) ::slotted([span-mobile]) { grid-column: span var(--lintje-span-mobile, 4); }
+  :host([data-style-version='new']) ::slotted([span-mobile='1']) { --lintje-span-mobile: 1; }
+  :host([data-style-version='new']) ::slotted([span-mobile='2']) { --lintje-span-mobile: 2; }
+  :host([data-style-version='new']) ::slotted([span-mobile='3']) { --lintje-span-mobile: 3; }
 }

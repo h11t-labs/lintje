@@ -53,6 +53,7 @@ import '../../components/frame/page-header/page-header'
 import '../../components/frame/shell/shell'
 import '../../components/actions/button/button'
 import '../../components/layout/grid/grid'
+import '../../components/layout/grid-item/grid-item'
 import '../../components/layout/tile/tile'
 import type { LintjeFilterZone } from '../../components/filters/filter-zone/filter-zone'
 import type { LintjeNotifications } from '../../components/frame/notifications/notifications'
@@ -1280,6 +1281,36 @@ const ROWS: Row[] = [
     },
     wide: (element) => level(element.children[0]!, element.children[1]!),
     phone: (element) => below(element.children[0]!, element.children[1]!),
+  },
+  {
+    tag: 'lintje-grid',
+    marker:
+      'in the new style two items with span-mobile 2 share the row, a third stands under them',
+    mount: async () => {
+      // The style comes from the nearest ancestor, so the wrapper keeps it to this row.
+      const page = document.createElement('div')
+      page.dataset.styleVersion = 'new'
+      const element = create('lintje-grid')
+      element.innerHTML = `<lintje-grid-item span="4" span-mobile="2">Aanvragen</lintje-grid-item>
+        <lintje-grid-item span="4" span-mobile="2">Besluiten</lintje-grid-item>
+        <div span="4">Bezwaren</div>`
+      page.append(element)
+      await append(page)
+      await Promise.all(
+        [...element.children].map(
+          (child) => (child as { updateComplete?: Promise<unknown> }).updateComplete,
+        ),
+      )
+      return element
+    },
+    wide: (element) => {
+      const [first, second, third] = [...element.children]
+      return level(first!, second!) && level(second!, third!)
+    },
+    phone: (element) => {
+      const [first, second, third] = [...element.children]
+      return beside(first!, second!) && below(first!, third!)
+    },
   },
   {
     tag: 'lintje-tile',

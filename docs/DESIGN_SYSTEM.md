@@ -291,8 +291,10 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
 - **Een grid van 12 kolommen, met de maten van de huisstijl.** Op een desktop een buitenmarge
   van één lint en een goot van een halve lint; op een tablet beide een halve lint; op een
   telefoon een marge van 20 px, vier kolommen en een goot van 12 px (de stap van de schaal het
-  dichtst bij de 10 px van de huisstijl). Een tegel neemt op een telefoon alle vier de kolommen;
-  alleen de kerncijfers staan er twee naast elkaar. De balken boven de pagina springen even ver
+  dichtst bij de 10 px van de huisstijl). Een item neemt op een telefoon alle vier de kolommen,
+  tenzij `span-mobile` er minder noemt, zoals een postcode en een huisnummer naast elkaar; de
+  kerncijfers staan er vanzelf twee naast elkaar. In de oude huisstijl stapelt een telefoon in
+  één kolom. De balken boven de pagina springen even ver
   in als de inhoud, zodat tegels uitlijnen met de tekst erboven.
 - **De inhoud heeft een maximale breedte**, midden in de ruimte die het menu overlaat. Wat de
   pagina indeelt — de kleur van een balk, de lijn boven het vraagvak van het gesprek — loopt tot

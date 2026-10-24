@@ -76,6 +76,18 @@ export default {
             <lintje-grid-item span="6"><div class="guide__placeholder">lintje-grid-item span 6</div></lintje-grid-item>
           </lintje-grid>`,
         },
+        {
+          label: 'Op een telefoon',
+          note:
+            'In de nieuwe huisstijl heeft een telefoon vier kolommen. Een item neemt ze alle vier, ' +
+            'tenzij `span-mobile` er minder noemt: hier staan de eerste twee op een telefoon naast ' +
+            'elkaar en de derde eronder. In de oude huisstijl stapelen ze.',
+          html: `<lintje-grid>
+            <lintje-grid-item span="4" span-mobile="2"><div class="guide__placeholder">span 4 · span-mobile 2</div></lintje-grid-item>
+            <lintje-grid-item span="4" span-mobile="2"><div class="guide__placeholder">span 4 · span-mobile 2</div></lintje-grid-item>
+            <lintje-grid-item span="4"><div class="guide__placeholder">span 4</div></lintje-grid-item>
+          </lintje-grid>`,
+        },
       ],
     },
     {
