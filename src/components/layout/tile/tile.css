@@ -130,7 +130,7 @@
 .lintje-tile--flush .lintje-tile__footnote { border-top: 0; padding-top: 0; }
 /* Without a footnote the last row's line is the frame's: no empty strip under it. A pager under
    the rows gives the strip back through --lintje-inset-end. */
-.lintje-tile--flush:has(> .lintje-tile__footnote[hidden]) > .lintje-tile__body {
+.lintje-tile--flush:has(.lintje-tile__footnote[hidden]) .lintje-tile__body {
   margin-bottom: calc(var(--tile-pad-y) * -1 - var(--lintje-tile-border));
   --lintje-inset-end: calc(var(--tile-pad-y) + var(--lintje-tile-border));
 }
@@ -140,5 +140,7 @@
 @media print {
   .lintje-tile__actions { display: none; }
   :host([breakable]) .lintje-tile { display: block; }
-  :host([breakable]) .lintje-tile > :not(:first-child) { margin-top: var(--space-4); }
+  /* The fold draws no box, so its parts take the margin: all but a first part without a head. */
+  :host([breakable]) .lintje-tile__head + .lintje-tile__fold > :first-child,
+  :host([breakable]) .lintje-tile__fold > :not(:first-child) { margin-top: var(--space-4); }
 }
