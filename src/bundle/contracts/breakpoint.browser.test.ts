@@ -1312,6 +1312,40 @@ const ROWS: Row[] = [
       return beside(first!, second!) && below(first!, third!)
     },
   },
+  ...(['new', 'classic'] as const).map((style): Row => ({
+    tag: 'lintje-grid',
+    marker:
+      style === 'new'
+        ? 'in the new style an item without span takes the four columns, span-mobile 2 half'
+        : 'in the earlier style every item takes the one column, span-mobile changes nothing',
+    mount: async () => {
+      const page = document.createElement('div')
+      page.dataset.styleVersion = style
+      const element = create('lintje-grid')
+      element.innerHTML = `<lintje-tile heading="Aanvragen"></lintje-tile>
+          <div>Besluiten</div>
+          <lintje-grid-item>Bezwaren</lintje-grid-item>
+          <lintje-grid-item span="4">Beroepen</lintje-grid-item>
+          <div span="2" span-mobile="2">Klachten</div>
+          <lintje-grid-item span-mobile="2">Meldingen</lintje-grid-item>`
+      page.append(element)
+      await append(page)
+      await Promise.all(
+        [...element.children].map(
+          (child) => (child as { updateComplete?: Promise<unknown> }).updateComplete,
+        ),
+      )
+      return element
+    },
+    wide: (element) => [...element.children].every((child) => level(element.children[0]!, child)),
+    phone: (element) => {
+      const items = [...element.children]
+      const whole = (item: Element): boolean => Math.abs(box(item).width - box(element).width) < 2
+      if (style === 'classic') return items.every(whole)
+      const [first, second] = items.slice(-2)
+      return items.slice(0, -2).every(whole) && beside(first!, second!)
+    },
+  })),
   {
     tag: 'lintje-grid',
     marker: 'a phone moves an item with order-mobile to the end and leaves out hide-mobile',
