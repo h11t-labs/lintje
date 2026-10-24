@@ -73,11 +73,11 @@
    equal specificity. A disabled control cannot be in error, so its rule sets the whole border. */
 
 .lintje-field { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
-/* In the new style a field in error carries the house style's bar at its left, from the label
-   down to the control. */
-[data-style-version='new'] .lintje-field:has(> .lintje-field__error) {
-  border-left: var(--space-1) solid var(--color-error-line);
-  padding-left: var(--space-4);
+/* A field in error carries the house style's bar at its left, from the label down to the
+   control; 0 wide in the earlier style. */
+.lintje-field:has(> .lintje-field__error) {
+  border-left: var(--tone-bar-width) solid var(--color-error-line);
+  padding-left: var(--field-error-inset);
 }
 .lintje-label {
   display: flex; align-items: baseline; gap: var(--space-2);
@@ -248,11 +248,11 @@
 }
 
 /* The box and the circle: 2 px, or in the new style 1 px in the accent's line, as the house style
-   draws them. */
+   draws them (`--border-choice-width`). */
 .lintje-choice__box {
   width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
   display: flex; align-items: center; justify-content: center;
-  border: 2px solid var(--color-border-choice);
+  border: var(--border-choice-width) solid var(--color-border-choice);
   border-radius: var(--radius-control);
   background: var(--color-bg-surface);
   color: var(--color-action-primary-text); font-size: 0.875rem; font-weight: 700; line-height: 1;
@@ -283,13 +283,11 @@
 
 .lintje-choice__radio {
   width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
-  border: 2px solid var(--color-border-choice);
+  border: var(--border-choice-width) solid var(--color-border-choice);
   border-radius: 50%;
   background: var(--color-bg-surface);
   display: flex; align-items: center; justify-content: center;
 }
-[data-style-version='new'] .lintje-choice__box,
-[data-style-version='new'] .lintje-choice__radio { border-width: 1px; }
 
 /* Ring and dot take the line accent: the dot stands on the surface by itself, so the primary
    fill would sink into the dark surface. */

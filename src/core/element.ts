@@ -90,9 +90,17 @@ export class LintjeElement extends LitElement {
   declare mode?: Mode
 
   resolvedMode: Mode = 'light'
-  /** The house style the element draws; a template that differs between the two reads it. */
+  /** The house style the element draws. */
   resolvedStyle: Style = 'classic'
   resolvedCorner: Corner = 'round'
+
+  /**
+   * Whether the element draws the new house style: the one question a template asks where the
+   * two styles differ in what they render, not only in how it looks.
+   */
+  get isNewStyle(): boolean {
+    return this.resolvedStyle === 'new'
+  }
 
   protected static finalizeStyles(styles?: CSSResultGroup): Array<CSSResultOrNative> {
     return [tokenStyles, baseStyles, ...super.finalizeStyles(styles)]

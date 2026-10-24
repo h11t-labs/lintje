@@ -245,7 +245,7 @@ export class LintjeTile extends LintjeGridItemElement {
             text: this.message,
             live: true,
             filled: this.filled === this.regionText,
-            coloured: this.resolvedStyle === 'new',
+            coloured: this.isNewStyle,
           })}
           ${
             this.lastKnown

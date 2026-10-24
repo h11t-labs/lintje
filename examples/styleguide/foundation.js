@@ -100,6 +100,12 @@ const PAGES = {
         note: 'Wat één element zelf noemt: de QR-code, het beeld van een video, de lijn onder een term, de rand van een gekozen rij, het spoor van een voortgangsbalk, een gekozen optie, de dagen van een gekozen periode, de rand van een gekozen dag, de tint onder een spreker en het rondje van een persoon.',
         claims: by(/^--(color-(qr|media|term|choice|selected|progress|range|chosen-day|avatar)-|tint-)/),
       },
+      {
+        id: 'house-style',
+        label: 'Per huisstijl',
+        note: 'Wat een element in de oude en de nieuwe huisstijl anders kleurt: de kop en de tekst van een uitklapper, de huidige pagina, het submenu en de titel van een venster. De oude waarde staat in de tokens, de nieuwe onder data-style-version="new".',
+        claims: by(/^--color-(expander|pagination|sub-nav|modal)-/),
+      },
     ],
   },
   typography: {
@@ -173,7 +179,7 @@ const PAGES = {
       {
         id: 'corner',
         label: 'Hoek, rand en focus',
-        note: 'Geen afgeronde hoeken; alleen een stip of avatar is rond. De rand van de open pagina in het menu, en de focus: altijd 3 px, nooit geanimeerd.',
+        note: 'Recht in de oude huisstijl; in de nieuwe 4 px op knoppen, velden en kaders, en een lint op de kop en de voet van de pagina. Een stip of avatar is altijd rond. De rand van de open pagina in het menu, en de focus: 3 px in de oude, 2 px met een witte lijn erin in de nieuwe, nooit geanimeerd.',
         claims: by(/^--(radius|focus|nav-edge)/),
         show: 'corner',
       },
@@ -190,6 +196,12 @@ const PAGES = {
         note: 'Kort en zonder veer. Druk op Afspelen: een duur loopt met de curve van wat binnenkomt, een curve op viermaal --dur-base, zodat je hem ziet. Wie minder beweging vraagt, krijgt alleen een korte overgang in doorzichtigheid.',
         claims: by(/^--(dur|ease)-/),
         show: 'motion',
+      },
+      {
+        id: 'house-style-size',
+        label: 'Per huisstijl',
+        note: 'Wat een element in de oude en de nieuwe huisstijl anders vormt: de statusbalk, de keuzerand, de uitklapper, het submenu en de lijnen van een venster. De oude waarde staat in de tokens, de nieuwe onder data-style-version="new".',
+        claims: by(/^--(tone-bar|field-error|border-choice|expander|sub-nav|modal)-/),
       },
     ],
   },

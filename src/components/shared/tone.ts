@@ -38,6 +38,11 @@ export const TONE_ICON_COLOURED: Partial<Record<Tone, string>> = {
   info: 'functioneel-info-gekleurd',
 }
 
+/** The glyph of a status block: the coloured form in the new house style, the plain one otherwise. */
+export function statusIcon(tone: Tone, isNewStyle: boolean): string | undefined {
+  return (isNewStyle ? TONE_ICON_COLOURED : TONE_ICON)[tone]
+}
+
 /** The word a tone stands for when an element has nothing more specific to say. */
 export const TONE_WORD: Record<Tone, string> = {
   neutral: 'onbekend',

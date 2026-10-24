@@ -3,9 +3,9 @@
   container-type: inline-size;
   border-radius: var(--radius);
 }
-/* In the new style the house style's bar at the left of every status block, in the status's line
-   colour. */
-[data-style-version='new'] .lintje-announcement { border-left: var(--space-1) solid; }
+/* The house style's bar at the left of every status block, in the status's line colour; 0 wide
+   in the earlier style. */
+.lintje-announcement { border-left: var(--tone-bar-width) solid; }
 .lintje-announcement__inner {
   display: flex;
   align-items: flex-start;

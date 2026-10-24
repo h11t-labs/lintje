@@ -497,9 +497,8 @@
      wash. Dark re-points it to the neutral step. */
   --color-action-secondary-hover: var(--color-bg-subtle);
   --color-action-secondary-pressed: var(--color-action-secondary-hover);
-  /* The tertiary button is a word in the primary, without a box: the house style's third weight.
-     Its hover is the subtle surface. */
-  --color-action-tertiary-text: var(--color-accent-text);
+  /* The tertiary button's hover is the subtle surface; its word and edge are with the
+     components below. */
   --color-action-tertiary-hover: var(--color-bg-subtle);
   --color-action-tertiary-pressed: var(--color-action-tertiary-hover);
   /* On a theme fill: the inverse button is white with the primary's word, and lets a little of
@@ -625,6 +624,46 @@
   --color-navbar-light-hover: var(--color-bg-subtle);
   --color-navbar-light-active: var(--color-bg-surface);
   --color-navbar-light-active-edge: var(--color-accent-line);
+
+  /* --- Components that the two house styles draw differently ------------
+     The earlier style's values; the new style's block below sets its own. An element reads
+     these and never the style itself, so its CSS is the same in both. */
+  /* The status bar at the left of a message, a toast, a form's summary and a field in error,
+     and the room a field keeps beside it. */
+  --tone-bar-width: 0px;
+  --field-error-inset: 0px;
+  /* The edge of a checkbox and a radio. */
+  --border-choice-width: 2px;
+  /* The tertiary button: outlined in the strong border with the text colour, or a word in the
+     primary without a box; disabled, it greys as every button, or keeps no box. */
+  --color-action-tertiary-text: var(--color-text-primary);
+  --color-action-tertiary-border: var(--color-border-strong);
+  --color-action-tertiary-disabled-bg: var(--color-bg-subtle);
+  --color-action-tertiary-disabled-border: var(--color-border-default);
+  /* The expander: an outlined card, or the accordion row with a line above and under it. */
+  --expander-bg: var(--color-bg-surface);
+  --expander-border-block: 1px solid var(--color-border-default);
+  --expander-border-inline: 1px solid var(--color-border-default);
+  --expander-radius: var(--radius);
+  --expander-pad: var(--tile-pad-y) var(--tile-pad-x);
+  --color-expander-title: var(--color-text-primary);
+  --color-expander-content: var(--color-text-secondary);
+  /* The current page in the pagination: the filled square, or the light tint with a dark digit. */
+  --color-pagination-current-bg: var(--color-action-primary);
+  --color-pagination-current-border: var(--color-action-primary-border);
+  --color-pagination-current-text: var(--color-action-primary-text);
+  /* The sub-navigation: typographic, or the row filled under the pointer with the reader's page
+     on the wash; the inset is how far a row reaches past the text column. */
+  --sub-nav-inset: var(--space-2);
+  --sub-nav-hover-decoration: underline;
+  --color-sub-nav-hover-bg: transparent;
+  --color-sub-nav-hover-text: var(--color-link-hover);
+  --color-sub-nav-current-bg: transparent;
+  /* The window: a line between its head, body and foot, or none. */
+  --modal-divider: 1px solid var(--color-border-default);
+  --modal-head-pad-bottom: var(--space-5);
+  --modal-foot-pad: var(--space-3) var(--space-6);
+  --color-modal-title: var(--color-text-primary);
 
   /* The start page's band is the primary's wash, so it never reads as the menu. */
   --color-hero-bg: var(--primary-wash);
@@ -876,6 +915,34 @@
   /* The house style's one rounded corner, a ribbon wide, on the band at the page's head and on
      the foot. No building block reads it. */
   --radius-corner: 48px;
+  /* The components that draw differently: the status bar, the 1 px choice edge, the boxless
+     tertiary, the accordion row, the tinted current page, the filled sub-navigation and the
+     window without lines. */
+  --tone-bar-width: var(--space-1);
+  --field-error-inset: var(--space-4);
+  --border-choice-width: 1px;
+  --color-action-tertiary-text: var(--color-accent-text);
+  --color-action-tertiary-border: transparent;
+  --color-action-tertiary-disabled-bg: transparent;
+  --color-action-tertiary-disabled-border: transparent;
+  --expander-bg: transparent;
+  --expander-border-inline: 0 solid transparent;
+  --expander-radius: 0px;
+  --expander-pad: var(--space-1) 0;
+  --color-expander-title: var(--color-accent-text);
+  --color-expander-content: var(--color-text-primary);
+  --color-pagination-current-bg: var(--color-choice-active-bg);
+  --color-pagination-current-border: transparent;
+  --color-pagination-current-text: var(--color-text-primary);
+  --sub-nav-inset: var(--space-4);
+  --sub-nav-hover-decoration: none;
+  --color-sub-nav-hover-bg: var(--color-action-primary);
+  --color-sub-nav-hover-text: var(--color-action-primary-text);
+  --color-sub-nav-current-bg: var(--color-choice-active-bg);
+  --modal-divider: 0 solid transparent;
+  --modal-head-pad-bottom: 0px;
+  --modal-foot-pad: 0 var(--space-6) var(--space-4);
+  --color-modal-title: var(--color-accent-text);
 }
 /* `data-style-new-corner="square"` leaves the large corner out; without it the corner is round. */
 [data-style-version='new'][data-style-new-corner='square'] {

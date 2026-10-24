@@ -67,7 +67,7 @@ export class LintjeExpander extends LintjeGridItemElement {
 
   /** The new style's row leads with the chevron; the earlier one on request or in columns. */
   private get leadingNow(): boolean {
-    return this.leading || this.columns || this.resolvedStyle === 'new'
+    return this.leading || this.columns || this.isNewStyle
   }
 
   protected override render(): TemplateResult {

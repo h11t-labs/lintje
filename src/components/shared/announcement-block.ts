@@ -8,7 +8,7 @@ import { html, nothing, type CSSResult, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { shadowCss } from '../../core/styles'
 import { renderIcon } from '../../icons/render'
-import { TONE_ICON, TONE_ICON_COLOURED, type Tone } from './tone'
+import { statusIcon, type Tone } from './tone'
 import announcementBlockCss from './announcement-block.css?inline'
 
 /** `outage` interrupts and cannot be closed; `error` is a failure the reader may put away. */
@@ -82,7 +82,7 @@ export function renderAnnouncementBlock(options: AnnouncementBlockOptions): Temp
 
 /** The glyph stands from the first frame, so the block keeps its size when the words arrive. */
 function mark(kind: AnnouncementKind, coloured = false): TemplateResult {
-  const icon = (coloured ? TONE_ICON_COLOURED : TONE_ICON)[ANNOUNCEMENT_TONE[kind]]
+  const icon = statusIcon(ANNOUNCEMENT_TONE[kind], coloured)
   return html`<span class="lintje-announcement__icon" aria-hidden="true"
     >${icon ? renderIcon(icon, { size: 16 }) : nothing}</span
   >`

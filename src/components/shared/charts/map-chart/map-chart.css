@@ -439,7 +439,7 @@
 .lintje-map-legend__box {
   width: 16px; height: 16px; flex: none;
   display: flex; align-items: center; justify-content: center;
-  border: 2px solid var(--color-border-choice);
+  border: var(--border-choice-width) solid var(--color-border-choice);
   background: var(--color-accent);
   color: var(--color-action-primary-text);
   border-color: var(--color-action-primary-border);

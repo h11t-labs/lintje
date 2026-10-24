@@ -87,17 +87,12 @@
 .lintje-button--secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--lintje-button-secondary-hover, var(--color-action-secondary-hover)); }
 .lintje-button--secondary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--lintje-button-secondary-pressed, var(--color-action-secondary-pressed)); }
 
-/* The third weight: outlined in the strong border with the text colour. In the new style it is the
-   house style's third weight, a word in the primary without a box; the border stays, transparent,
-   so the button keeps its height beside the others. */
+/* The third weight: outlined with the text colour, or a word in the primary without a box
+   (`--color-action-tertiary-*`); a transparent border keeps its height beside the others. */
 .lintje-button--tertiary {
   background: transparent;
-  color: var(--lintje-button-tertiary-text, var(--color-text-primary));
-  border-color: var(--color-border-strong);
-}
-[data-style-version='new'] .lintje-button--tertiary {
   color: var(--lintje-button-tertiary-text, var(--color-action-tertiary-text));
-  border-color: transparent;
+  border-color: var(--color-action-tertiary-border);
 }
 .lintje-button--tertiary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):hover { background: var(--lintje-button-tertiary-hover, var(--color-action-tertiary-hover)); }
 .lintje-button--tertiary:not(.is-disabled, .is-busy, :disabled, [aria-disabled='true']):active { background: var(--lintje-button-tertiary-pressed, var(--color-action-tertiary-pressed)); }
@@ -175,11 +170,11 @@
   text-decoration: none;
 }
 /* A boxless button stays boxless when disabled: only its word greys. */
-[data-style-version='new'] .lintje-button--tertiary.is-disabled,
-[data-style-version='new'] .lintje-button--tertiary:disabled,
-[data-style-version='new'] .lintje-button--tertiary[aria-disabled='true']:not(.is-busy, .is-working) {
-  background: transparent;
-  border-color: transparent;
+.lintje-button--tertiary.is-disabled,
+.lintje-button--tertiary:disabled,
+.lintje-button--tertiary[aria-disabled='true']:not(.is-busy, .is-working) {
+  background: var(--color-action-tertiary-disabled-bg);
+  border-color: var(--color-action-tertiary-disabled-border);
 }
 
 /* --- Busy --------------------------------------------------------------- */

@@ -312,7 +312,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
 
   /** The new style puts a field's message above what it is about; the earlier one under it. */
   protected get messagesAbove(): boolean {
-    return this.resolvedStyle === 'new'
+    return this.isNewStyle
   }
 
   /**

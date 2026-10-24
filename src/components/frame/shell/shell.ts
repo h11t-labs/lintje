@@ -269,7 +269,7 @@ export class LintjeShell extends LintjeElement {
 
   override resolveSettings(): void {
     super.resolveSettings()
-    const tone = this.navTone ?? (this.resolvedStyle === 'new' ? 'light' : 'filled')
+    const tone = this.navTone ?? (this.isNewStyle ? 'light' : 'filled')
     if (this.dataset.tone !== tone) this.dataset.tone = tone
   }
 
@@ -661,7 +661,7 @@ export class LintjeShell extends LintjeElement {
     const onSlotChange = (): void => this.#onSlotChange()
     // The new style stands the page's head above what runs edge to edge (a filter bar under it
     // stays sticky); the earlier one keeps the head in the content column under it.
-    const fresh = this.resolvedStyle === 'new'
+    const fresh = this.isNewStyle
     const header = html`<slot name="header" @slotchange=${onSlotChange}></slot>`
     return html`<main
       id=${MAIN_ID}
