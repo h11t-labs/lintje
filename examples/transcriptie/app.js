@@ -1381,7 +1381,7 @@ function renderSpeakers(item, segments) {
     const end = segments[index + 1]?.start ?? item.duration
     talk.set(part.speaker, (talk.get(part.speaker) ?? 0) + Math.max(0, end - part.start))
   })
-  $('speakers-heading').html = `<h2>Sprekers</h2><p>${
+  $('speakers-heading').html = `<h3>Sprekers</h3><p>${
     live
       ? 'Geef een spreker nu al een naam; wat daarna gezegd wordt, krijgt die naam ook.'
       : item.state === 'busy'
@@ -1393,6 +1393,7 @@ function renderSpeakers(item, segments) {
     return {
       id: name,
       title: name,
+      icon: 'functioneel-user',
       swatch: colours.get(name) ?? 'other',
       sub: live ? `${plural(count, 'fragment', 'fragmenten')} tot nu toe` : `${plural(count, 'fragment', 'fragmenten')} · ${mmss(talk.get(name) ?? 0)} spreektijd`,
       clickable: false,
@@ -1762,8 +1763,8 @@ function renderSettings() {
   renderSettingsNav()
   $('settings-nav').action = { label: 'Nieuw soort gesprek', value: 'nieuw' }
   $('settings-heading').html = isGeneral
-    ? '<h2>Algemeen</h2><p>Geldt voor al je opnames, welk soort gesprek het ook is.</p>'
-    : `<h2>${KINDS[which].label}</h2><p>Zo wordt een opname verwerkt als je bij het starten ${KINDS[which].label} kiest. Wat “ook per opname” heet, zet je bij het starten nog anders.</p>`
+    ? '<h3>Algemeen</h3><p>Geldt voor al je opnames, welk soort gesprek het ook is.</p>'
+    : `<h3>${KINDS[which].label}</h3><p>Zo wordt een opname verwerkt als je bij het starten ${KINDS[which].label} kiest. Wat “ook per opname” heet, zet je bij het starten nog anders.</p>`
   $('settings-kind').hidden = isGeneral
   $('settings-all').hidden = !isGeneral
   $('settings-reset').textContent = `${isGeneral ? 'Algemeen' : KINDS[which].label} terugzetten naar de standaard`

@@ -22,6 +22,9 @@
 /* Split: two halves of one button, the page showing through the 1 px between them. */
 .lintje-menu-button__split { --lintje-menu-button-line: 1px; display: inline-flex; gap: var(--lintje-menu-button-line); min-width: 0; }
 .lintje-menu-button__split .lintje-menu-button__trigger--split.lintje-button { width: var(--h-button); padding: 0; }
+/* The two halves read as one button: only the outer corners are rounded. */
+.lintje-menu-button__split .lintje-menu-button__main.lintje-button { border-radius: var(--radius-control) 0 0 var(--radius-control); }
+.lintje-menu-button__split .lintje-menu-button__trigger--split.lintje-button { border-radius: 0 var(--radius-control) var(--radius-control) 0; }
 /* Busy, a split button's ring takes its icon's square: the label stays and nothing moves. */
 .lintje-menu-button__busy {
   flex: none;
