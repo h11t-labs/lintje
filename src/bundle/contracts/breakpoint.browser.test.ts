@@ -1114,14 +1114,14 @@ const ROWS: Row[] = [
   },
   {
     tag: 'lintje-chat-composer',
-    marker: 'an icon button sends in place of "Versturen" in words',
+    marker: 'the send button is its icon alone in place of "Versturen" in words',
     mount: () => append(create('lintje-chat-composer', { text: 'Hoeveel aanvragen?' })),
     wide: (element) =>
-      shown(element, '.lintje-chat-composer__send lintje-button') &&
-      !shown(element, 'lintje-icon-button[label="Versturen"]'),
+      shown(element, '.lintje-chat-composer__send:not([icon-only])') &&
+      !shown(element, '.lintje-chat-composer__send[icon-only]'),
     phone: (element) =>
-      shown(element, 'lintje-icon-button[label="Versturen"]') &&
-      !shown(element, '.lintje-chat-composer__send lintje-button'),
+      shown(element, '.lintje-chat-composer__send[icon-only]') &&
+      !shown(element, '.lintje-chat-composer__send:not([icon-only])'),
   },
   {
     tag: 'lintje-chat-questions',

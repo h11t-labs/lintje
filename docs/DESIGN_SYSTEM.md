@@ -521,6 +521,16 @@ De besluiten hieronder gelden voor alle elementen.
   zichzelf vanzelf omgekeerd, via de overervende `--lintje-button-*`-hooks die het vlak zet:
   primair wit met het woord in de primaire kleur, secundair wit omlijnd, tertiair een wit woord.
   Buiten zo'n vlak kiest een host die vorm zelf met `inverse` en `inverse-secondary`.
+- **Een gesplitste knop is één knop: de menuknop met `split`**, nooit een eigen samenstelling van
+  twee knoppen. De eigen helft doet de gewone actie, het pijltje opent de andere wegen ernaartoe:
+  een menu met `items`, of zonder `items` de eigen inhoud als paneel, voor keuzes die geen actie
+  zijn (hoe een bericht verstuurd wordt). Zo draagt hetzelfde element de export van de transcriptie
+  en de verzendknop van het gesprek, met één bezige toestand en één manier van focus; een eigen
+  tag zou de menuknop als tweede gesplitste knop laten staan. Alleen de buitenhoeken zijn rond, en
+  tussen de helften staat een lijn in de inkt van het pijltje, niet een kier: een kier toont wat
+  erachter ligt en leest alleen op een band als lijn. Met `action-disabled` is alleen de eigen
+  helft uit, zodat een bericht dat nog niet weg kan zijn opties houdt; met `icon-only` is ze op
+  een telefoon alleen haar icoon.
 - **Een uitgeschakelde knop zegt waarom**: `reason` wordt met de knop voorgelezen; de host zegt
   het ook op de pagina.
 - **Acties die niet op één regel passen, klappen in** naar één menu "Meer", vóór de acties die

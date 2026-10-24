@@ -449,6 +449,38 @@ const ROWS: Row[] = [
     },
   },
   {
+    name: 'lintje-menu-button (split, with a panel)',
+    onScroll: 'follows',
+    // The panel's own first element takes the focus; Shift+Tab reaches the arrow beside it,
+    // which still toggles it.
+    opens: 'in panel',
+    shiftTab: 'stays',
+    async open(stage) {
+      const send = create<Lit & { label: string; split: boolean; items: unknown[] }>(
+        'lintje-menu-button',
+        { label: 'Versturen', split: true, items: [] },
+      )
+      const panel = create<HTMLDivElement>('div', { tabIndex: -1 })
+      panel.style.cssText = 'padding: 16px; width: 240px'
+      panel.append(
+        create('p', { textContent: 'Antwoord als' }),
+        create<HTMLButtonElement>('button', { type: 'button', textContent: 'Tabel' }),
+        create<HTMLButtonElement>('button', { type: 'button', textContent: 'Tekst' }),
+      )
+      send.append(panel)
+      stage.append(send)
+      await send.updateComplete
+      const arrow = part(send, '.lintje-menu-button__trigger')
+      await press(arrow, '{Enter}')
+      return {
+        anchor: part(send, '.lintje-menu-button__split'),
+        surface: () => popoverSurface(send),
+        returnsTo: arrow,
+        opener: arrow,
+      }
+    },
+  },
+  {
     name: 'lintje-combobox',
     onScroll: 'follows',
     // A listbox: the focus stays in the field all along, and Tab goes on from it.
