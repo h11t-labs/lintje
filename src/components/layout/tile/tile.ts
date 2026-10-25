@@ -183,6 +183,10 @@ export class LintjeTile extends LintjeGridItemElement {
     const folded = foldable && !this.unfolded
     // A foldable tile names its title for the button, so it has an id of its own when the host gave none.
     const titleId = this.id ? `${this.id}-title` : foldable ? `${this.#foldId}-title` : undefined
+    // A tile that scrolls itself is a Tab stop named by its title: Safari gives a scroller none,
+    // and the host cannot reach into this root to add one (WCAG 2.1.1).
+    const scroller = this.contentScroll
+    const headingId = titleId ?? 'lintje-tile-title'
     const head =
       this.heading ||
       this.subtitle ||
@@ -206,7 +210,10 @@ export class LintjeTile extends LintjeGridItemElement {
               ${renderLeadingIcon(this.icon, 'lintje-tile__icon')}
               ${
                 this.heading
-                  ? html`<h3 id=${titleId ?? nothing} class="lintje-tile__title">${this.heading}</h3>`
+                  ? html`<h3
+                      id=${titleId ?? (scroller ? headingId : nothing)}
+                      class="lintje-tile__title"
+                    >${this.heading}</h3>`
                   : nothing
               }
               ${this.subtitle ? html`<p class="lintje-tile__sub">${this.subtitle}</p>` : nothing}
@@ -255,7 +262,14 @@ export class LintjeTile extends LintjeGridItemElement {
         <div class="lintje-tile__aside" ?hidden=${!this.asideSlotted}>
           <slot name="aside" @slotchange=${this.onAsideChange}></slot>
         </div>
-        <div class="lintje-tile__content">${this.content()}</div>
+        <div
+          class="lintje-tile__content"
+          tabindex=${scroller ? 0 : nothing}
+          role=${scroller && this.heading ? 'region' : nothing}
+          aria-labelledby=${scroller && this.heading ? headingId : nothing}
+        >
+          ${this.content()}
+        </div>
       </div>
       ${this.legendBelow ? html`<slot name="legend"></slot>` : nothing}
       <p class="lintje-tile__footnote" ?hidden=${!this.footnote && !this.footnoteSlotted}>

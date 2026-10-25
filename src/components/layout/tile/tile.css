@@ -105,6 +105,8 @@
 .lintje-tile__content { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 /* A tile with a height of its own scrolls what does not fit (`content-scroll`). */
 :host([content-scroll]) .lintje-tile__content { overflow: auto; }
+/* It is a Tab stop (tile.ts): the ring stands inside it, as in any scroller. */
+:host([content-scroll]) .lintje-tile__content:focus-visible { outline-offset: var(--focus-inset); box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)); }
 .lintje-tile__body--aside { flex-direction: row; gap: var(--space-5); align-items: stretch; }
 .lintje-tile__body--aside .lintje-tile__content { flex: 1; min-width: 0; }
 .lintje-tile__aside { flex: none; display: flex; flex-direction: column; justify-content: center; }
