@@ -1385,6 +1385,53 @@ const ROWS: Row[] = [
       return items.slice(0, -2).every(whole) && beside(first!, second!)
     },
   })),
+  ...(['new', 'classic'] as const).map((style): Row => ({
+    tag: 'lintje-grid',
+    marker:
+      style === 'new'
+        ? 'in the new style a KPI row has two columns, one per item, span-mobile 2 both'
+        : 'in the earlier style a KPI row keeps the width a host element gives itself',
+    mount: async () => {
+      // A host's own KPI that takes its width from its own root, without `span`.
+      if (!customElements.get('test-kpi')) {
+        customElements.define(
+          'test-kpi',
+          class extends HTMLElement {
+            constructor() {
+              super()
+              this.attachShadow({ mode: 'open' }).innerHTML =
+                '<style>:host { display: block; grid-column: span var(--lintje-span, 1); }</style><slot></slot>'
+            }
+          },
+        )
+      }
+      const page = document.createElement('div')
+      page.dataset.styleVersion = style
+      const element = create('lintje-grid', { variant: 'kpi-row' })
+      element.innerHTML = `<test-kpi style="--lintje-span: 2">Aanvragen</test-kpi>
+          <lintje-tile heading="Besluiten"></lintje-tile>
+          <lintje-grid-item span-mobile="2">Bezwaren</lintje-grid-item>`
+      page.append(element)
+      await append(page)
+      await Promise.all(
+        [...element.children].map(
+          (child) => (child as { updateComplete?: Promise<unknown> }).updateComplete,
+        ),
+      )
+      return element
+    },
+    wide: (element) => {
+      const [first, second, third] = [...element.children]
+      return level(first!, second!) && level(second!, third!)
+    },
+    phone: (element) => {
+      const [first, second, third] = [...element.children]
+      const whole = (item: Element): boolean => Math.abs(box(item).width - box(element).width) < 2
+      return style === 'new'
+        ? beside(first!, second!) && below(first!, third!) && whole(third!)
+        : whole(first!) && beside(second!, third!) && below(first!, second!)
+    },
+  })),
   {
     tag: 'lintje-grid',
     marker: 'a phone moves an item with order-mobile to the end and leaves out hide-mobile',
