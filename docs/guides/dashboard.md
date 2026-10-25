@@ -22,11 +22,14 @@ een link die zonder `?mode=` gedeeld wordt, volgt het systeem van de lezer en ni
 | `menu` | `unpinned` | vastgezet |
 | `layout` | `top` | het menu naast de pagina |
 | `theme` | een thema | `rijksoverheid` |
+| `style` | `classic` · `new` | de huisstijl die je pagina kiest ([thema's](theming.md#de-huisstijl-oud-en-nieuw)) |
+| `corner` | `square` | de grote hoek van de nieuwe huisstijl (lade, smalle band), rond |
 | `filters` | of de filterbalk openstaat (`data.open`) | ingeklapt |
 
 De sleutel van een filter is degene die je declareert. Spiegel modus en thema naar `data-mode` en
-`data-theme` op `<html>`, want de elementen lezen ze daar: `applySettings` in de
-[minimale pagina](#een-minimale-dashboardpagina) doet het.
+`data-theme` op `<html>`, en de huisstijl naar `data-style-version` en `data-style-new-corner`,
+want de elementen lezen ze daar: `applySettings` in de
+[minimale pagina](#een-minimale-dashboardpagina) doet het voor modus en thema.
 
 ## Filters
 
@@ -54,7 +57,14 @@ schema van die browser (`mibrowsers` voor Ivanti Web@Work), terwijl kopiëren en
 Zet de inhoud in de shell. De filterbalk gaat in de `full`-slot, die van rand tot rand loopt
 boven de inhoud; al het andere in de standaardslot, die zich houdt aan de breedte en
 binnenruimte van de pagina (`--w-content`; een andere breedte is `--lintje-content-width` op `<html>`). De
-filterbalk zet zichzelf vast onder de balk.
+filterbalk zet zichzelf vast onder de balk. Een dashboard is breder dan een leespagina: zet de
+inhoud op 1600 px, zodat tegels en tabellen naast elkaar passen.
+
+```css
+:root {
+  --lintje-content-width: 1600px;
+}
+```
 
 ```html
 <lintje-shell id="shell">

@@ -13,6 +13,7 @@
 import * as bundle from '../../dist-elements/lintje.js'
 import {
   answerLogout,
+  applyStyle,
   carry,
   emblem,
   modeOf,
@@ -74,7 +75,6 @@ const root = document.documentElement
 const shell = document.getElementById('shell')
 answerLogout(shell)
 const pageHeader = document.getElementById('page-header')
-const band = document.getElementById('band')
 const crumbs = document.getElementById('crumbs')
 const host = document.getElementById('elements')
 const appSearch = document.getElementById('search')
@@ -133,10 +133,14 @@ function render({ keepScroll = false } = {}) {
   const place = placeOf(new URL(location.href))
   const { foundation, category, item } = place
   root.dataset.mode = modeOf(location.search)
-  // A framed specimen is a page of its own: it follows the guide's mode.
-  for (const frame of host.querySelectorAll('.guide__frame'))
-    frame.contentDocument?.documentElement.setAttribute('data-mode', root.dataset.mode)
   root.dataset.theme = theme()
+  applyStyle()
+  // A framed specimen is a page of its own: it follows the guide's mode and house style.
+  for (const frame of host.querySelectorAll('.guide__frame')) {
+    const page = frame.contentDocument?.documentElement
+    if (!page) continue
+    for (const name of ['mode', 'styleVersion', 'styleNewCorner']) page.dataset[name] = root.dataset[name]
+  }
   const label = foundation?.label ?? (item ? nameOf(item) : category.label)
   document.title = `${label} — Lintje stijlgids`
 
@@ -178,7 +182,6 @@ function render({ keepScroll = false } = {}) {
   }
   if (foundation) {
     pageHeader.hidden = false
-    band.hidden = true
     pageHeader.data = { kicker: 'Lintje stijlgids', title: foundation.label, description: foundation.intro }
     crumbs.items = [{ label: 'Startpagina', href: carry('../') }, { label: FOUNDATION.heading }, { label: foundation.label }]
     // A token reads the mode and the theme itself: a new one draws nothing again.
@@ -186,16 +189,27 @@ function render({ keepScroll = false } = {}) {
     if (drawn === drawing) return
     drawn = drawing
     host.replaceChildren()
-    band.replaceChildren()
+    for (const part of pageHeader.querySelectorAll('[slot="meta"], [slot="tabs"]')) part.remove()
     renderFoundationPage(host, foundation, tokens)
     return
   }
   const heading = MENU.find((group) => group.items.includes(category)).heading
-  // An element's page draws its own head, in a band above the content; a category's is the
-  // page header.
-  pageHeader.hidden = Boolean(item)
-  band.hidden = !item
-  if (!item) {
+  // The page header names the page, a category or an element, with its facts and its parts:
+  // with a light menu it is the band in the primary colour.
+  pageHeader.hidden = false
+  if (item) {
+    pageHeader.data = {
+      kicker: 'Lintje stijlgids',
+      title: item.tag ?? item.title,
+      description: item.tag ? item.title : undefined,
+    }
+    crumbs.items = [
+      { label: 'Startpagina', href: carry('../') },
+      { label: heading },
+      { label: category.label, href: addressOf({ category }) },
+      { label: nameOf(item) },
+    ]
+  } else {
     pageHeader.data = { kicker: 'Lintje stijlgids', title: category.label, description: category.intro }
     // A heading has no page of its own: its crumb is text.
     crumbs.items = [{ label: 'Startpagina', href: carry('../') }, { label: heading }, { label: category.label }]
@@ -208,17 +222,11 @@ function render({ keepScroll = false } = {}) {
   drawn = drawing
   const scroll = window.scrollY
   host.replaceChildren()
-  band.replaceChildren()
+  for (const part of pageHeader.querySelectorAll('[slot="meta"], [slot="tabs"]')) part.remove()
   if (item) {
     const module = declarations.get(item.tag)?.module
     renderElementPage(host, item, {
-      band,
-      crumbs: [
-        { label: 'Startpagina', href: carry('../') },
-        { label: heading },
-        { label: category.label, href: addressOf({ category }) },
-        { label: nameOf(item) },
-      ],
+      head: pageHeader,
       source: module ? `${SOURCE}${module}` : undefined,
       declarations,
       types: dataTypes.types,

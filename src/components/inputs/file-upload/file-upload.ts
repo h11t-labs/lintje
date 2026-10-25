@@ -270,6 +270,7 @@ export class LintjeFileUpload extends LintjeInputElement {
     // A drag hides the button instead of removing it, so a button with the focus keeps it.
     return html`<div class="lintje-field">
       ${this.label ? this.renderLabel() : nothing}
+      ${this.renderMessages()}
       <div
         class=${classMap({
           'lintje-file-upload': true,

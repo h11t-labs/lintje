@@ -302,12 +302,31 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     return this.label ? `${this.label}${this.labelSuffixText}` : ''
   }
 
-  protected renderFoot(): TemplateResult | typeof nothing {
-    const foot = renderFieldFoot(this.hint, this.footMessage, {
+  /** The hint, or the message that replaces it, on one line. */
+  protected renderFieldLine(): TemplateResult | typeof nothing {
+    return renderFieldFoot(this.hint, this.footMessage, {
       hintId: this.hintId,
       errorId: this.errorId,
     })
-    return html`${foot}${this.renderReset()}`
+  }
+
+  /** The new style puts a field's message above what it is about; the earlier one under it. */
+  protected get messagesAbove(): boolean {
+    return this.isNewStyle
+  }
+
+  /**
+   * Between the label and the control: in the new style the hint, or the message that replaces
+   * it, as the house style puts a field's error above what it is about; nothing otherwise. A
+   * lone choice draws it under its label.
+   */
+  protected renderMessages(): TemplateResult | typeof nothing {
+    return this.messagesAbove ? this.renderFieldLine() : nothing
+  }
+
+  /** Under the control: the message in the earlier style, and the way back to the default. */
+  protected renderFoot(): TemplateResult | typeof nothing {
+    return html`${this.messagesAbove ? nothing : this.renderFieldLine()}${this.renderReset()}`
   }
 
   /**
