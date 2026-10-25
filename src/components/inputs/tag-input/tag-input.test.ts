@@ -150,6 +150,22 @@ describe('lintje-tag-input', () => {
     expect(await said(element)).toBe('toegang staat er al')
   })
 
+  it('shows in its foot that a word is there already, until the reader types again', async () => {
+    const element = await mount({ value: ['toegang'] })
+    const note = () =>
+      element.renderRoot.querySelector('.lintje-tag-input__repeated')?.textContent?.trim() ?? null
+    await type(element, 'Toegang')
+    await press(field(element), 'Enter')
+    await element.updateComplete
+    // Seen in the foot; heard once, from the status region.
+    expect(note()).toBe('toegang staat er al')
+    expect(
+      element.renderRoot.querySelector('.lintje-tag-input__repeated')?.getAttribute('aria-hidden'),
+    ).toBe('true')
+    await type(element, 'a')
+    expect(note()).toBeNull()
+  })
+
   it('says what it added and which word was there already, in one sentence', async () => {
     const element = await mount({ value: ['toegang'] })
     await type(element, 'afzet, Toegang')

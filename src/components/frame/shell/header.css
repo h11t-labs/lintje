@@ -141,6 +141,9 @@
 }
 .lintje-navbar__entry.is-open .lintje-navbar__label { text-decoration: none; }
 .lintje-navbar__entry.is-unavailable { color: var(--color-nav-disabled); cursor: default; }
+.lintje-navbar__entry.is-no-access .lintje-navbar__label { text-decoration: line-through; }
+/* Why an entry cannot be opened, in words behind the label in the bar, under it in a submenu. */
+.lintje-navbar__note { font: var(--text-small); }
 
 /* The shadow falls down only: `clip-path` cuts what would fall on the bar, so the open entry and
    the panel stay one shape. `--lintje-navbar-room` is measured. */

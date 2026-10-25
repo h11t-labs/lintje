@@ -368,6 +368,7 @@
 /* --- Tooltip ------------------------------------------------------------- */
 .lintje-chart-tooltip {
   --lintje-chart-tooltip-swatch: 14px;
+  --lintje-chart-tooltip-marker: 10px;
   position: absolute;
   z-index: 55;
   pointer-events: none;
@@ -389,7 +390,7 @@
 .lintje-chart-tooltip__title-note { font-weight: 400; color: var(--color-text-muted); }
 .lintje-chart-tooltip__row { display: flex; align-items: center; gap: var(--space-2); justify-content: space-between; }
 .lintje-chart-tooltip__label { display: flex; align-items: center; gap: var(--space-2); }
-.lintje-chart-tooltip__marker { width: 10px; height: 10px; flex: none; }
+.lintje-chart-tooltip__marker { width: var(--lintje-chart-tooltip-marker); height: var(--lintje-chart-tooltip-marker); flex: none; }
 .lintje-chart-tooltip__marker--symbol { width: var(--lintje-chart-tooltip-swatch); height: var(--lintje-chart-tooltip-swatch); }
 .lintje-chart-tooltip__marker--line { width: var(--lintje-chart-tooltip-swatch); height: 3px; background: currentColor; }
 .lintje-chart-tooltip__marker--dashed { width: var(--lintje-chart-tooltip-swatch); height: 0; border-top: 2px dashed currentColor; }
@@ -408,6 +409,13 @@
   color: var(--color-text-muted);
 }
 .lintje-chart-tooltip__row--note .lintje-chart-tooltip__value { font-weight: 400; }
+/* A part of the row above ("Overig"): its name a step in from where the row's own name starts,
+   so it reads as one of that row's, not as a series of its own. */
+.lintje-chart-tooltip__row--part .lintje-chart-tooltip__label {
+  padding-left: calc(var(--lintje-chart-tooltip-marker) + var(--space-2) + var(--space-4));
+  color: var(--color-text-muted);
+}
+.lintje-chart-tooltip__row--part .lintje-chart-tooltip__value { font-weight: 400; color: var(--color-text-muted); }
 .lintje-chart-tooltip__row--divider {
   border-top: 1px solid var(--color-border-popover);
   margin-top: var(--space-1);

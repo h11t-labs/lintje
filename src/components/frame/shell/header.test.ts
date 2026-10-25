@@ -44,6 +44,27 @@ function draw(overrides: Partial<NavBarOptions> = {}): HTMLElement {
 }
 
 describe('renderNavBar', () => {
+  it('writes behind an entry of the bar why it cannot be opened: the words, or the lock', () => {
+    const root = draw({
+      groups: [
+        {
+          items: [
+            { label: 'Overzicht', href: '/' },
+            { label: 'Rapporten' },
+            { label: 'Beheer', href: '/beheer', noAccess: true },
+          ],
+        },
+      ],
+    })
+    const [, none, locked] = [...root.querySelectorAll('.lintje-navbar__entry')]
+    expect(none.classList.contains('is-unavailable')).toBe(true)
+    expect(none.querySelector('.lintje-navbar__note')!.textContent).toBe(', niet beschikbaar')
+    expect(none.textContent!.match(/niet beschikbaar/g)).toHaveLength(1)
+    expect(locked.classList.contains('is-no-access')).toBe(true)
+    expect(locked.querySelector('[aria-label="Geen toegang"], .lintje-navbar__note')).not.toBeNull()
+    expect(locked.textContent).not.toContain('niet beschikbaar')
+  })
+
   it('puts a group without a heading in the bar as links, a group with one as a button', () => {
     const root = draw()
     const entries = [...root.querySelectorAll('.lintje-navbar__entry')]
@@ -70,8 +91,12 @@ describe('renderNavBar', () => {
     expect(pages[1].getAttribute('aria-disabled')).toBe('true')
     expect(pages[1].classList.contains('is-no-access')).toBe(false)
     expect(pages[1].querySelector('.lintje-badge')!.textContent!.trim()).toBe('Nieuw')
-    // aria-disabled means nothing on a span: the words say it, not the muted colour alone.
-    expect(pages[1].querySelector('.visually-hidden')!.textContent).toBe(', niet beschikbaar')
+    // aria-disabled means nothing on a span: the words say it, not the muted colour alone. They
+    // stand under the label, and a reader hears them once, after a pause.
+    const note = pages[1].querySelector('.lintje-navbar__page-text .lintje-navbar__note')!
+    expect(note.textContent).toBe(', niet beschikbaar')
+    expect(note.querySelector('.visually-hidden')!.textContent).toBe(', ')
+    expect(pages[1].textContent!.match(/niet beschikbaar/g)).toHaveLength(1)
 
     // No access is said in words too, not by the strikethrough alone.
     expect(pages[2].classList.contains('is-no-access')).toBe(true)

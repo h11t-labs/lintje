@@ -411,6 +411,9 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
 - `forced-colors.browser.test.ts` — geforceerde kleuren (`forced-colors: active` geëmuleerd): wat
   een vulling droeg, staat er opnieuw in systeemkleuren, zoals de rand in `Highlight` van een knop
   die aan staat.
+- `contrast.browser.test.ts` — tekst die gelezen moet worden, haalt 4.5:1 op wat eronder ligt, in
+  licht en donker, met de dekking van elke voorouder meegerekend; wat alleen een vulling had,
+  heeft ook een lijn.
 
 Een nieuw element dat een mechanisme gebruikt, krijgt een rij in diens tabel, geen eigen bestand.
 Een component krijgt alleen een eigen `*.browser.test.ts` voor een mechanisme dat het zelf heeft:
