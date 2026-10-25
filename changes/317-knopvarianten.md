@@ -6,3 +6,4 @@
 
 - De knopvarianten `inverse` (wit met het woord in de primaire kleur) en `inverse-secondary` (wit omlijnd) voor op een themavulling, zoals de band van een hero als paginakop. (#317)
 - Een geopende `lintje-menu-button` volgt op een gevulde band de hover van die band, zoals elke knop daar; de pijl van een gesplitste knop werd er blauw op blauw. (#317)
+- In de nieuwe huisstijl is een ingedrukte primaire of gevaarlijke knop de schaduwtint 2 van de huisstijl (55 % zwart in de vulling), zoals hover schaduwtint 4 is. (#317)

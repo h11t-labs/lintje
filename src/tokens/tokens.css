@@ -922,10 +922,11 @@
   --color-action-secondary-hover: var(--primary-wash);
   --color-action-secondary-pressed: oklch(from var(--primary) 0.9 min(c, 0.04) h);
   /* Pressed is a step past hover on every filled or tinted button: darker in light, lighter in
-     dark, as the hover goes. */
-  --color-action-primary-pressed: color-mix(in srgb, var(--primary), black 40%);
+     dark, as the hover goes. In light the house style's shade 2 of the fill, as hover (30 %) is
+     its shade 4: 55 % black lands on it within a unit per channel for lintblauw and donkerblauw. */
+  --color-action-primary-pressed: color-mix(in srgb, var(--primary), black 55%);
   --color-action-tertiary-pressed: var(--color-border-default);
-  --color-action-danger-pressed: color-mix(in srgb, var(--status-error), black 40%);
+  --color-action-danger-pressed: color-mix(in srgb, var(--status-error), black 55%);
   /* The house style's one rounded corner, a ribbon wide, on a drawer (its corner free) and on a
      narrow band inside the margins. A band or foot that runs edge to edge stays square. */
   --radius-corner: 48px;
