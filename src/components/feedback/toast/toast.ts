@@ -23,7 +23,7 @@ import {
 } from '../../../core/scroll-room'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { deepActiveElement } from '../../shared/focus-trap'
-import { TONE_ICON, type Tone } from '../../shared/tone'
+import { statusIcon, type Tone } from '../../shared/tone'
 import toastCss from './toast.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
 
@@ -214,7 +214,7 @@ export class LintjeToast extends LintjeElement {
   /** The mark, the message, the action and the close: what goes into the region. */
   private content(): TemplateResult {
     return html`<span class="lintje-toast__icon" aria-hidden="true"
-        >${renderIcon(TONE_ICON[KIND_TONE[this.kind]], {
+        >${renderIcon(statusIcon(KIND_TONE[this.kind], this.isNewStyle), {
           size: 16,
         })}</span
       >

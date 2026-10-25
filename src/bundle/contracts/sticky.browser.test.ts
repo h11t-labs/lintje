@@ -561,8 +561,8 @@ function composerRow(width: number): Row {
     },
     opens: async (scene) => {
       const chat = scene.scroller.querySelector('lintje-chat')!
-      const toggle = find(chat, '.lintje-chat-composer__options-toggle')!
-      ;(toggle.shadowRoot?.querySelector('button') ?? toggle).click()
+      const send = find(chat, '.lintje-chat-composer__send')!
+      send.shadowRoot!.querySelector<HTMLElement>('.lintje-menu-button__trigger')!.click()
       await expect.poll(() => scene.cover(), { message: 'it opens' }).toBeTruthy()
       return scene.cover()!
     },

@@ -9,6 +9,8 @@
   width: var(--h-icon-button); height: var(--h-icon-button); flex: none;
   display: flex; align-items: center; justify-content: center;
   color: var(--color-text-muted);
+  /* The word colour under the pointer moves on the hover duration, as every hover does. */
+  transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-dialog-close::after {
   content: '';

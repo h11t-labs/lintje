@@ -28,6 +28,7 @@
         ?pagina=woordenlijsten      the word lists; ?pagina=instellingen the settings
         ?demo=1                     a telling state on load: j2 open with a search, a job half way
     -->
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
     <link rel="stylesheet" href="../../src/tokens/fonts.css" />
     <link rel="stylesheet" href="../../dist-elements/tokens.css" />
     <style>
@@ -121,8 +122,11 @@
         flex-direction: column;
         gap: var(--space-3);
         min-width: 0;
-        padding: var(--space-3) var(--tile-pad-x) var(--tile-pad-y);
+        /* The tile's own padding, as the tools beside it have; the rows of the list keep to it, so
+           the tile's flush inset that its own rows take does not count here a second time. */
+        padding: var(--tile-pad-y) var(--tile-pad-x);
         border-left: 1px solid var(--color-border-default);
+        --lintje-inset: 0px;
       }
       /* The tools stay under the top bar while the text scrolls under them, as the filters do. */
       .tools {
@@ -134,7 +138,8 @@
         align-items: flex-end;
         justify-content: space-between;
         gap: var(--space-3) var(--space-5);
-        padding: var(--space-3) var(--tile-pad-x);
+        /* The tile's padding: the field lines up with the text of the rows under it. */
+        padding: var(--tile-pad-y) var(--tile-pad-x);
         background: var(--color-bg-surface);
         border-bottom: 1px solid var(--color-border-default);
       }
@@ -185,7 +190,7 @@
         <lintje-breadcrumbs slot="breadcrumbs" id="crumbs" hidden></lintje-breadcrumbs>
         <lintje-button slot="actions" id="pause" variant="secondary" hidden>Pauzeren</lintje-button>
         <lintje-button slot="actions" id="stop" variant="primary" hidden>Stoppen en bewaren</lintje-button>
-        <lintje-button slot="actions" id="reprocess" variant="tertiary" hidden>Opnieuw verwerken</lintje-button>
+        <lintje-button slot="actions" id="reprocess" variant="secondary" hidden>Opnieuw verwerken</lintje-button>
         <lintje-menu-button slot="actions" id="ai-menu" label="AI-bewerkingen" leading-icon="gereedschap-half-tandwiel-half-brein" placement="bottom-end" hidden></lintje-menu-button>
         <lintje-menu-button slot="actions" id="export" split variant="primary" label="Downloaden" action="docx" leading-icon="functioneel-downloaden" accessible-label="Andere manieren om te downloaden of te kopiëren" placement="bottom-end" hidden></lintje-menu-button>
       </lintje-page-header>
@@ -357,7 +362,7 @@
         <div class="split split--nav">
           <div class="split__side">
             <lintje-tile id="words-lists-tile" heading="Lijsten">
-              <lintje-button slot="actions" id="words-new" variant="tertiary" size="compact">Nieuwe lijst</lintje-button>
+              <lintje-button slot="actions" id="words-new" variant="secondary" size="compact">Nieuwe lijst</lintje-button>
               <lintje-list id="words-lists"></lintje-list>
             </lintje-tile>
           </div>

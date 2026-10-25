@@ -25,7 +25,7 @@ const PROSE = `
     <li>Aanvragen die <em>binnen</em> de openingstijden zijn afgehandeld.</li>
   </ul>
   <ol><li>Meten per kwartier.</li><li>Mediaan per uur.</li><li>Afronden op minuten.</li></ol>
-  <blockquote>Ontbrekende gegevens tellen nooit als nul.</blockquote>
+  <blockquote><p>Ontbrekende gegevens tellen nooit als nul.</p><cite>Uitgangspunten van het dashboard</cite></blockquote>
   <p><small>${FOOTNOTE}</small></p>`
 
 /**
