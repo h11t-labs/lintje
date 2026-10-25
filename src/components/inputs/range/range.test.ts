@@ -76,6 +76,26 @@ function committed(element: LintjeRange): number[] {
   return seen
 }
 
+/** The track of the two handles, six steps over 500 px: step n stands at n × 100 px. */
+function trackOf(element: LintjeRange): HTMLElement {
+  const track = element.renderRoot.querySelector<HTMLElement>('.lintje-range')!
+  track.getBoundingClientRect = () => new DOMRect(0, 0, 500, 48)
+  return track
+}
+
+function pointer(target: Element, type: string, clientX: number): void {
+  target.dispatchEvent(
+    new PointerEvent(type, { clientX, bubbles: true, composed: true, cancelable: true }),
+  )
+}
+
+/** A press on the track let go where it began: down, up and the click that follows. */
+function tap(track: HTMLElement, clientX: number, target: Element = track): void {
+  pointer(target, 'pointerdown', clientX)
+  pointer(target, 'pointerup', clientX)
+  target.dispatchEvent(new MouseEvent('click', { clientX, bubbles: true, composed: true }))
+}
+
 const slider = (element: LintjeRange): HTMLInputElement =>
   element.renderRoot.querySelector('input[type=range]') as HTMLInputElement
 
@@ -294,41 +314,68 @@ describe('the two handles', () => {
     }
   })
 
-  it('move the nearer handle to a press on the track, and focus it', async () => {
+  it('move the nearer handle to a press on the track when it is let go, and focus it', async () => {
     const element = await mountPair({ name: 'p.bereik' })
     const seen = committedPairs(element)
-    const track = element.renderRoot.querySelector<HTMLElement>('.lintje-range')!
-    // Six steps over 500 px: step n stands at n × 100 px.
-    track.getBoundingClientRect = () => new DOMRect(0, 0, 500, 48)
-    const pressAt = (x: number, target: Element = track): void => {
-      target.dispatchEvent(
-        new PointerEvent('pointerdown', { clientX: x, bubbles: true, cancelable: true }),
-      )
-    }
-    pressAt(0)
+    const track = trackOf(element)
+    tap(track, 0)
     expect(seen).toEqual([[0, 3]])
     expect(element.shadowRoot!.activeElement).toBe(handle(element, 0))
-    pressAt(490)
+    tap(track, 490)
     expect(seen).toEqual([
       [0, 3],
       [0, 5],
     ])
     expect(element.shadowRoot!.activeElement).toBe(handle(element, 1))
     // A press on a thumb is the native input's own drag.
-    pressAt(100, handle(element, 0))
+    tap(track, 100, handle(element, 0))
     expect(seen).toHaveLength(2)
   })
+
+  it('change nothing on a press on the track until it is let go there', async () => {
+    const element = await mountPair({ name: 'p.bereik' })
+    const seen = committedPairs(element)
+    const track = trackOf(element)
+    pointer(track, 'pointerdown', 0)
+    await element.updateComplete
+    expect(seen).toEqual([])
+    expect(handle(element, 0).value).toBe('1')
+    expect(element.shadowRoot!.activeElement).toBe(handle(element, 0))
+    pointer(track, 'pointerup', 0)
+    track.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    expect(seen).toEqual([[0, 3]])
+  })
+
+  it.each(['pointerup outside', 'pointercancel'])(
+    'change nothing when a press on the track ends in a %s',
+    async (end) => {
+      const element = await mountPair({ name: 'p.bereik' })
+      const seen = committedPairs(element)
+      const track = trackOf(element)
+      pointer(track, 'pointerdown', 490)
+      if (end === 'pointercancel') {
+        pointer(track, 'pointercancel', 490)
+        // A click after a cancel is not that press's: it changes nothing either.
+        track.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      } else {
+        pointer(document.body, 'pointerup', 490)
+        document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      }
+      await element.updateComplete
+      expect(seen).toEqual([])
+      expect([handle(element, 0).value, handle(element, 1).value]).toEqual(['1', '3'])
+      // The next press counts.
+      tap(track, 490)
+      expect(seen).toEqual([[1, 5]])
+    },
+  )
 
   it('part stacked handles by the side of the press, and raise the lower one at the end', async () => {
     const element = await mountPair({ name: 'p.bereik', from: 2, to: 2 })
     const seen = committedPairs(element)
-    const track = element.renderRoot.querySelector<HTMLElement>('.lintje-range')!
-    track.getBoundingClientRect = () => new DOMRect(0, 0, 500, 48)
-    const pressAt = (x: number): void => {
-      track.dispatchEvent(new PointerEvent('pointerdown', { clientX: x, bubbles: true }))
-    }
-    pressAt(100)
-    pressAt(400)
+    const track = trackOf(element)
+    tap(track, 100)
+    tap(track, 400)
     expect(seen).toEqual([
       [1, 2],
       [1, 4],
