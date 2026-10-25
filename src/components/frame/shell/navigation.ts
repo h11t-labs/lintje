@@ -326,9 +326,10 @@ export function renderNavigation(shell: LintjeShell, groups: NavGroup[]): Templa
               title=${PIN_LABEL}
               @click=${(event: MouseEvent) => {
                 shell.changeView({ menu: menu === 'pinned' ? 'unpinned' : 'pinned' })
-                // From the keyboard the rail stays open, so the focused pin stays drawn.
+                // From the keyboard the menu stays an expanded rail around the focus, either way,
+                // so the focused pin stays drawn; it folds as any rail once the focus leaves.
                 const nav = (event.currentTarget as Element).closest('.lintje-nav')
-                if (!nav || !keyboardInside(nav)) shell.railExpanded = false
+                shell.railExpanded = Boolean(nav && keyboardInside(nav))
               }}
             >
               ${pin.content}

@@ -72,6 +72,19 @@ export class LintjeFilterZone extends LintjeElement {
   private observed: HTMLElement | null | undefined = undefined
   private wasExpanded: boolean | undefined = undefined
 
+  /**
+   * Focuses the sentence, the zone's way to its filters: the phone's button or the closed bar's; the
+   * open bar has none, so "Filters". The bar's sheet gives the focus here when it goes at 768 px.
+   */
+  override focus(options?: FocusOptions): void {
+    const root = this.renderRoot
+    ;(
+      root.querySelector<HTMLElement>(
+        '.lintje-filter-bar__mobile-summary, .lintje-summary-bar__sentence',
+      ) ?? root.querySelector<HTMLElement>('.lintje-filter-toggle')
+    )?.focus(options)
+  }
+
   private readonly onResize = (): void => this.measureOverflow()
   /** The header or summary row held the focus before a re-render that may replace it. */
   #rowHadFocus = false

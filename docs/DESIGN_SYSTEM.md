@@ -1321,7 +1321,10 @@ kleinste correctie, en leg die hier vast.
   waar hij vandaan kwam (anders `<main>`), een gesloten mededeling naar de volgende stop op de
   pagina, "Alles gelezen" naar de eerste melding. Een element dat leeg raakt en zelf niets
   zichtbaars overhoudt, vraagt eerst de host met een event dat hij annuleert om de focus op zijn
-  eigen doel te zetten; anders gaat de focus naar de statusregel die zegt dat het leeg is.
+  eigen doel te zetten; anders gaat de focus naar de statusregel die zegt dat het leeg is. Een
+  venster waarvan de opener weg is, geeft de focus bij het sluiten aan `<main>` van de shell,
+  zoals de skiplink (`focusContent()`). Zonder genoemde buur gaat de focus naar de volgende stop na
+  wat verdwijnt, nooit naar `body` (`passFocus()`).
 - **Een sessie die verloopt, waarschuwt minstens 20 seconden vooraf** en wordt met één knop
   verlengd (WCAG 2.2.1): in een `lintje-dialog alert persistent`, waarin Escape en de achtergrond
   niets doen omdat de sessie hoe dan ook afloopt.

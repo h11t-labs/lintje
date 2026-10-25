@@ -74,6 +74,16 @@ const activePage = (data?: ShellData | null): ShellLink | undefined =>
     ?.flatMap((entry) => (isGroup(entry) ? entry.links : [entry]))
     .find((link) => link.active)
 
+/**
+ * Where the active entry leads, without the query: a host that carries the reader's mode and theme
+ * in every link changes the query, not the page. Another entry is another page.
+ */
+function pageKey(data?: ShellData | null): string | undefined {
+  const page = activePage(data)
+  if (!page) return undefined
+  return `${page.label}\u0000${(page.href ?? '').replace(/\?[^#]*/, '')}`
+}
+
 /** Adjacent pages form one group without a heading; a group keeps its label as heading. */
 export function toGroups(navigation: (ShellLink | ShellGroup)[]): NavGroup[] {
   const groups: NavGroup[] = []
@@ -187,6 +197,11 @@ export class LintjeShell extends LintjeElement {
   #sheetReleased: (() => void) | null = null
   /** The scroller that carries the shell's `scroll-padding-top`. */
   #padded: HTMLElement | null = null
+  /** The sheet the trap holds, and the tool it belongs to: another layout draws both anew. */
+  #heldSheet: HTMLElement | null = null
+  #heldTool = ''
+  /** "Weergave" chose another layout from inside its panel: the new panel's choice gets the focus. */
+  #layoutChosen = false
 
   readonly #onEscape = (event: KeyboardEvent): void => {
     if (event.key !== 'Escape') return
@@ -251,20 +266,37 @@ export class LintjeShell extends LintjeElement {
         : null
     if (sheet && !this.#sheetReleased) {
       this.#sheetReleased = lockScroll()
+      this.#heldSheet = sheet
+      this.#heldTool = this.viewOpen ? '.lintje-view__button' : '.lintje-share__button'
       this.#sheetTrap.activate(sheet, {
         focus: sheet.querySelector<HTMLElement>('.lintje-share__close') ?? true,
       })
+    } else if (sheet && sheet !== this.#heldSheet) {
+      // Another layout drew the sheet anew: the trap takes the new one and lets the old go.
+      this.#heldSheet = sheet
+      this.#sheetTrap.activate(sheet, { focus: false })
     } else if (!sheet) {
       this.#releaseSheet(true)
     }
   }
 
-  /** Closing returns the focus to the tool that opened the sheet. */
+  /** Closing returns the focus to the tool that opened the sheet, as the bar that shows draws it. */
   #releaseSheet(restore: boolean): void {
     if (!this.#sheetReleased) return
     this.#sheetReleased()
     this.#sheetReleased = null
-    this.#sheetTrap.deactivate(restore)
+    this.#heldSheet = null
+    const tool = restore ? this.#shownTool(this.#heldTool) : undefined
+    this.#sheetTrap.deactivate(restore && !tool)
+    tool?.focus()
+  }
+
+  /** The tool of that class in the bar that shows: each bar has one, and one is hidden. */
+  #shownTool(selector: string): HTMLElement | undefined {
+    if (!selector) return undefined
+    return Array.from(this.renderRoot.querySelectorAll<HTMLElement>(selector)).find(
+      (button) => button.getClientRects().length > 0,
+    )
   }
 
   override resolveSettings(): void {
@@ -289,16 +321,22 @@ export class LintjeShell extends LintjeElement {
         this.menuLeaving = false
       }
     }
-    // "Weergave" and "Delen" belong to the page they were opened on; another page closes them.
-    if (
-      changed.has('data') &&
-      activePage(changed.get('data'))?.href !== activePage(this.data)?.href
-    ) {
+    // "Weergave" and "Delen" belong to the page they were opened on; another page closes them,
+    // a choice in "Weergave" does not (`pageKey`).
+    if (changed.has('data') && pageKey(changed.get('data')) !== pageKey(this.data)) {
       this.viewOpen = false
       this.shareOpen = false
     }
     if (changed.has('shareOpen') && !this.shareOpen) this.sharePhone = false
-    if (changed.has('data')) this.layout = this.data?.layout === 'side' ? 'side' : 'top'
+    if (changed.has('data')) {
+      const layout = this.data?.layout === 'side' ? 'side' : 'top'
+      // The other layout is another template: the panel stays open in it, and its choice keeps
+      // the focus there.
+      if (layout !== this.layout && this.viewOpen && this.#panelHoldsFocus()) {
+        this.#layoutChosen = true
+      }
+      this.layout = layout
+    }
     // A slot that stays empty sends no `slotchange`: the first data counts the content once.
     if (changed.has('data') && changed.get('data') === undefined)
       this.hasContent = this.#holdsContent()
@@ -329,6 +367,10 @@ export class LintjeShell extends LintjeElement {
       }
     }
     this.#holdSheet()
+    if (this.#layoutChosen) {
+      this.#layoutChosen = false
+      this.#focusLayoutChoice()
+    }
     this.#observeFit(changed.has('data') || changed.has('layout'))
     this.#fitHeader()
     this.#padScroll()
@@ -464,6 +506,17 @@ export class LintjeShell extends LintjeElement {
     this.shareOpen = false
     Array.from(this.renderRoot.querySelectorAll<HTMLElement>(tool))
       .find((button) => button.getClientRects().length > 0)
+      ?.focus()
+  }
+
+  /** The chosen layout in the panel "Weergave" that shows. */
+  #focusLayoutChoice(): void {
+    const panels = Array.from(
+      this.renderRoot.querySelectorAll<HTMLElement>('.lintje-view__popover'),
+    )
+    const panel = panels.find((popover) => popover.getClientRects().length > 0) ?? panels[0]
+    panel
+      ?.querySelector<HTMLElement>('[aria-label="Plaats van het menu"] [aria-pressed="true"]')
       ?.focus()
   }
 

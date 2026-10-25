@@ -10,6 +10,7 @@
  * action goes first, the last never goes, and a menu of one row does not exist.
  */
 import type { ReactiveController, ReactiveControllerHost } from 'lit'
+import { passFocus } from '../../core/focus'
 import type { LintjeButton } from '../actions/button/button'
 import type { MenuEntry } from '../actions/menu-button/menu-button'
 import { FrameResizeObserver } from './frame-resize-observer'
@@ -162,20 +163,23 @@ export class OverflowController implements ReactiveController {
       row.getBoundingClientRect().width,
     )
     const collapsed = buttons.filter((button) => button !== primary).slice(0, count)
-    if (!sameList(collapsed, this.collapsed)) {
-      this.collapsed = collapsed
-      this.#apply(collapsed)
-    }
-    // A menu drawn anew has none of this yet: written after every render.
+    // A menu drawn anew has none of this yet: written after every render, and before the actions
+    // go into it, so it can take the focus of the one that goes.
     const spare = collapsed.length === 0
     menu.classList.toggle('is-spare', spare)
     menu.inert = spare
+    if (!sameList(collapsed, this.collapsed)) {
+      this.collapsed = collapsed
+      this.#apply(collapsed, menu)
+    }
     menu.items = this.items()
   }
 
-  #apply(collapsed: HTMLElement[]): void {
+  #apply(collapsed: HTMLElement[], menu?: HTMLElement): void {
     for (const action of this.actions) {
       const hidden = collapsed.includes(action)
+      // Made inert with the focus on it, it would drop the focus to the page.
+      if (hidden && !action.inert && menu) passFocus(action, [menu])
       if (hidden) action.setAttribute(OVERFLOW, '')
       else action.removeAttribute(OVERFLOW)
       action.inert = hidden

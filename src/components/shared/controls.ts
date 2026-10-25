@@ -8,6 +8,8 @@
  * disabled comes back enabled.
  */
 
+import { deepActiveElement, holdsFocus, isTabbable, tabbables } from '../../core/focus'
+
 const NATIVE = new Set(['input', 'select', 'textarea', 'button'])
 
 /** The control's `name` property, or its `name` attribute before it upgraded. */
@@ -187,15 +189,16 @@ export function announces(control: HTMLElement): boolean {
   return control.localName.startsWith('lintje-')
 }
 
-const FOCUSABLE = 'input, textarea, select, button, a[href], [tabindex]:not([tabindex="-1"])'
-
-/** A `lintje-…` host does not delegate focus, so `host.focus()` is a no-op: focus goes inside. */
+/**
+ * Focuses a field: its own `focus()` first, which an input of Lintje hands to its control (not to
+ * the cross of a tag or a stepper's "Verlagen"); only when the focus is then not in it, the first
+ * stop inside it. A stop with `tabindex="-1"`, `hidden` or `disabled` does not count.
+ */
 export function focusInside(element: HTMLElement, options?: FocusOptions): void {
-  const target =
-    element.shadowRoot?.querySelector<HTMLElement>(FOCUSABLE) ??
-    (element.matches(FOCUSABLE) ? element : element.querySelector<HTMLElement>(FOCUSABLE)) ??
-    element
-  target.focus(options)
+  element.focus(options)
+  const active = deepActiveElement()
+  if (holdsFocus(element) && (active !== element || isTabbable(element))) return
+  ;(tabbables(element.shadowRoot ?? element)[0] ?? element).focus(options)
 }
 
 /** `apply()` remembers the value it first found on an element; `release()` writes it back. */
