@@ -34,13 +34,14 @@ stylesheet en één module nodig; al het andere is HTML uit je eigen sjablonen:
 
 ```html
 <!doctype html>
-<html lang="nl" data-mode="light">
+<html lang="nl" data-mode="light"> <!-- data-style-version="new" draws the new house style; see theming.md -->
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Nieuwe melding — Meldingen</title>
     <link rel="stylesheet" href="/static/lintje/fonts.css" /> <!-- with fonts/ beside it; optional -->
     <link rel="stylesheet" href="/static/lintje/tokens.css" />
+    <link rel="icon" type="image/svg+xml" href="/static/lintje/favicon-lint.svg" /> <!-- assets/logo/favicon-lint.svg: the ribbon alone, as the house style's favicon -->
     <script type="module" src="/static/lintje/lintje.js"></script>
     <!-- the body block of theming.md -->
     <style>body { margin: 0; background: var(--color-bg-page); color: var(--color-text-primary); font: var(--text-ui); }</style>
@@ -169,6 +170,57 @@ wat het terug verwacht.
 
 Een *view* is een tag die één `data`-object neemt (`lintje-shell`, `lintje-data-table`,
 `lintje-chart`, …); elke andere tag is een *onderdeel* met eigen attributen en eigenschappen.
+
+## De indeling van een pagina
+
+`<lintje-grid>` verdeelt de inhoud in 12 kolommen. Zijn kinderen zijn de items: een tegel en een
+veld dragen `span` zelf, andere inhoud zet je in een `<lintje-grid-item>`. `span` is het aantal
+kolommen op een desktop; zonder `span` neemt een item er één.
+
+```html
+<lintje-grid>
+  <lintje-tile span="8" heading="Aanvragen per week">…</lintje-tile>
+  <lintje-tile span="4" heading="Afgehandeld">…</lintje-tile>
+  <lintje-text-input span="4" span-mobile="2" label="Postcode"></lintje-text-input>
+  <lintje-text-input span="4" span-mobile="2" label="Huisnummer"></lintje-text-input>
+  <lintje-grid-item span="4"><p>Toelichting bij het adres.</p></lintje-grid-item>
+</lintje-grid>
+```
+
+| breedte | kolommen | wat een item neemt |
+|---|---|---|
+| desktop, vanaf 1024 px | 12 | zijn `span` |
+| tablet, 768 tot 1023 px | 12 | zijn `span`, behalve `span="4"`, dat 6 wordt, en `span="8"`, dat 12 wordt |
+| telefoon, onder 768 px, oude huisstijl | 1 | de hele breedte |
+| telefoon, onder 768 px, nieuwe huisstijl | 4 | alle vier, of zoveel als `span-mobile` zegt (1 tot 4) |
+
+`columns` op het grid kiest een ander aantal kolommen op een desktop, en `variant="kpi-row"`
+zet kerncijfers op een tablet drie en op een telefoon twee naast elkaar. De breedte van de
+inhoud en de marges eromheen komen uit de huisstijl ([thema's](theming.md#de-huisstijl-oud-en-nieuw));
+een andere breedte zet je met `--lintje-content-width` op de pagina.
+
+**Wat op een telefoon minder telt, zet je achteraan of klap je in; weglaten is het laatste.**
+Wie een telefoon gebruikt, of op een desktop tot 400 % inzoomt, krijgt deze weergave, en heeft
+recht op dezelfde inhoud (WCAG 1.4.10). Kies daarom van boven naar beneden:
+
+1. **Achteraan**: `order-mobile` op een item zet het op een telefoon verder naar achteren (`1`)
+   of naar voren (`-1`); zonder het attribuut is het 0. Alleen de tekening schuift: de volgorde
+   waarin een schermlezer en de Tab-toets gaan, blijft die van de markup. Verplaats dus een
+   heel blok, zoals een kaart naar het eind, en nooit één veld tussen andere.
+2. **Ingeklapt**: `collapsed-mobile` op `lintje-tile` (en `collapsedMobile` in de `data` van een
+   grafiek, kaart, tabel, graaf of logboek) toont op een telefoon alleen de kop met een knop
+   Tonen; de inhoud staat één tik verder.
+3. **Van vorm gewisseld**: dat doet een element zelf. Het menu wordt een header met een
+   schermvullend menu, de filters een sheet, een tabel toont per rij de identiteit en één
+   meetwaarde, het kruimelpad alleen de weg terug, en de afbeelding naast een hero valt onder
+   1024 px weg.
+4. **Weggelaten**: `hide-mobile` laat een item op een telefoon weg, `hide-desktop` vanaf 768 px.
+   Gebruik het alleen voor wat de pagina ook op een andere manier zegt, zoals een kaart waarvan
+   de cijfers in een tabel staan. Op papier telt de desktopweergave: wat `hide-desktop` draagt,
+   wordt niet afgedrukt. Een verborgen veld in een formulier wordt nog steeds verstuurd.
+
+Op een gewoon element in het grid, zonder eigen Lintje-tag, werkt `order-mobile` van `-3` tot `3`;
+zet het in een `<lintje-grid-item>` voor meer.
 
 ## Afdrukken
 

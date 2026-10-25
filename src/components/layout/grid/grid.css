@@ -15,8 +15,11 @@
 @media (min-width: 768px) and (max-width: 1023px), print and (max-width: 1023px) {
   :host([variant='kpi-row']) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+/* A phone stacks; in the new style it has the house style's four columns, and an item takes all
+   four unless its `span-mobile` says fewer. */
 @media screen and (max-width: 767px) {
   :host { grid-template-columns: minmax(0, 1fr); }
+  :host([data-style-version='new']) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   :host([variant='kpi-row']) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -33,4 +36,26 @@
 }
 @media screen and (max-width: 767px) {
   ::slotted([span]) { grid-column: span 1; }
+  /* Every item, with `span` or without; a KPI row keeps its two columns. The earlier style leaves
+     an item without `span` to itself, so a host element's own width holds. */
+  :host([data-style-version='new']) ::slotted(*) { grid-column: span 4; }
+  :host([data-style-version='new'][variant='kpi-row']) ::slotted(*) { grid-column: span 1; }
+  /* A plain element in the grid has no `--lintje-span-mobile` of its own: its attribute counts. */
+  :host([data-style-version='new']) ::slotted([span-mobile]) { grid-column: span var(--lintje-span-mobile, 4); }
+  :host([data-style-version='new']) ::slotted([span-mobile='1']) { --lintje-span-mobile: 1; }
+  :host([data-style-version='new']) ::slotted([span-mobile='2']) { --lintje-span-mobile: 2; }
+  :host([data-style-version='new']) ::slotted([span-mobile='3']) { --lintje-span-mobile: 3; }
+  /* The host's place and showing on a phone, in both styles; a plain element takes them from its
+     attribute: an order of -3 to 3, and `hide-mobile`. */
+  ::slotted([order-mobile]) { order: var(--lintje-order-mobile, 0); }
+  ::slotted([order-mobile='-3']) { --lintje-order-mobile: -3; }
+  ::slotted([order-mobile='-2']) { --lintje-order-mobile: -2; }
+  ::slotted([order-mobile='-1']) { --lintje-order-mobile: -1; }
+  ::slotted([order-mobile='1']) { --lintje-order-mobile: 1; }
+  ::slotted([order-mobile='2']) { --lintje-order-mobile: 2; }
+  ::slotted([order-mobile='3']) { --lintje-order-mobile: 3; }
+  ::slotted([hide-mobile]) { display: none; }
+}
+@media not screen and (max-width: 767px) {
+  ::slotted([hide-desktop]) { display: none; }
 }

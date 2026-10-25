@@ -39,6 +39,7 @@ export const SKETCHES = {
   hero: { frame: 'band', rows: 'T70 / l90 / l70 / u35 chev' },
   footer: { frame: 'band', rows: 't70 / s20 s20 s20 / l20 l20 l20 / l15 l15 l15 / rule / s12 s12' },
   'user-menu': { frame: 'band', center: true, rows: 'av chevd' },
+  'language-nav': { frame: 'band', center: true, rows: 'u30 chevd' },
   'app-search': { frame: 'page', rows: 'l90 / l70 / l50', over: 'search', layer: 'in / l70 / l50 / l60' },
   notifications: { frame: 'band', center: true, rows: 'i dot' },
   // Layout
@@ -147,7 +148,7 @@ export const SKETCHES = {
   'description-list': { rows: 's20 / l40 / s20 / l50 / s20 / l35 sp u15' },
   'tree-view': { rows: 'chevd l30 / ind chevd l35 / ind ind ind l30 / # ind ind ind t30 / ind ind ind l30 / ind chev l25' },
   'sortable-list': { rows: '[grip l30] / [grip l40] / [grip l25]' },
-  'activity-log': { rows: 't30 / log' },
+  timeline: { rows: 't40 / | s15 l45 / | s15 l35 / | s15 l50' },
   person: { center: true, rows: 'av t40' },
   'person-group': { center: true, rows: 'av av av av' },
   // Chat

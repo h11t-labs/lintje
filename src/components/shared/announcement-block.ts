@@ -8,7 +8,7 @@ import { html, nothing, type CSSResult, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { shadowCss } from '../../core/styles'
 import { renderIcon } from '../../icons/render'
-import { TONE_ICON, type Tone } from './tone'
+import { statusIcon, type Tone } from './tone'
 import announcementBlockCss from './announcement-block.css?inline'
 
 /** `outage` interrupts and cannot be closed; `error` is a failure the reader may put away. */
@@ -57,6 +57,8 @@ export interface AnnouncementBlockOptions {
   action?: TemplateResult | typeof nothing
   /** What stands beside the body: the element's `media` slot. */
   media?: TemplateResult | typeof nothing
+  /** The glyph in the house style's coloured form, as the new style draws a status block. */
+  coloured?: boolean
   /** With a handler the block draws its close button. */
   onClose?: () => void
 }
@@ -73,14 +75,14 @@ export function renderAnnouncementBlock(options: AnnouncementBlockOptions): Temp
     role=${live ? ANNOUNCEMENT_ROLE[kind] : nothing}
   >
     <div class="lintje-announcement__inner">
-      ${empty ? html`<div class="lintje-announcement__body"><div class="lintje-announcement__lead">${mark(kind)}</div></div>` : content(kind, options)}
+      ${empty ? html`<div class="lintje-announcement__body"><div class="lintje-announcement__lead">${mark(kind, options.coloured)}</div></div>` : content(kind, options)}
     </div>
   </div>`
 }
 
 /** The glyph stands from the first frame, so the block keeps its size when the words arrive. */
-function mark(kind: AnnouncementKind): TemplateResult {
-  const icon = TONE_ICON[ANNOUNCEMENT_TONE[kind]]
+function mark(kind: AnnouncementKind, coloured = false): TemplateResult {
+  const icon = statusIcon(ANNOUNCEMENT_TONE[kind], coloured)
   return html`<span class="lintje-announcement__icon" aria-hidden="true"
     >${icon ? renderIcon(icon, { size: 16 }) : nothing}</span
   >`
@@ -92,7 +94,7 @@ function content(kind: AnnouncementKind, options: AnnouncementBlockOptions): Tem
   const prefix = html`<span class="visually-hidden">${ANNOUNCEMENT_PREFIX[kind]}: </span>`
   return html`<div class="lintje-announcement__body">
       <div class="lintje-announcement__lead">
-      ${mark(kind)}
+      ${mark(kind, options.coloured)}
       <div class="lintje-announcement__content">
         ${title ? html`<p class="lintje-announcement__title">${prefix}${title}</p>` : nothing}
         ${

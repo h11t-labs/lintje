@@ -5,7 +5,7 @@
  * Everything is fictional.
  */
 import { dropRemovedFiles, focusOn, handOff, plural, toast } from '../_shared/page.js'
-import { carry, emblem, modeOf, themeOf } from '../_shared/settings.js'
+import { applyStyle, carry, emblem, modeOf, styleOf, themeOf } from '../_shared/settings.js'
 
 /* The URL: the opened recording, the kind of conversation, the tab ------------------------ */
 
@@ -35,6 +35,7 @@ const root = document.documentElement
 function applySettings() {
   root.dataset.mode = modeOf(location.search)
   root.dataset.theme = themeOf(location.search)
+  applyStyle()
 }
 applySettings()
 
@@ -256,6 +257,7 @@ function renderShell() {
     user: USER,
     userMenu: [
       { value: 'modus', label: dark ? 'Lichte modus' : 'Donkere modus', icon: dark ? 'natuur-en-milieu-zon' : 'functioneel-darkmode' },
+      { value: 'huisstijl', label: styleOf(location.search) === 'new' ? 'Oude huisstijl' : 'Nieuwe huisstijl' },
       { value: 'start', label: 'Lintje-startpagina', icon: 'functioneel-home' },
     ],
     version: '1.0.0',
@@ -277,9 +279,10 @@ shell.addEventListener('lintje-navigate', (event) => {
 shell.addEventListener('lintje-action', (event) => {
   const value = event.detail?.value ?? event.detail
   if (value === 'start') location.href = carry('../')
-  if (value !== 'modus') return
-  // The mode is in the URL; the page stays, and its links carry the new one.
-  setParam('mode', root.dataset.mode === 'dark' ? 'light' : 'dark')
+  if (value !== 'modus' && value !== 'huisstijl') return
+  // The mode and the house style are in the URL; the page stays, and its links carry the new one.
+  if (value === 'modus') setParam('mode', root.dataset.mode === 'dark' ? 'light' : 'dark')
+  else setParam('style', styleOf(location.search) === 'new' ? 'classic' : null)
   applySettings()
   renderShell()
   render()
@@ -1443,7 +1446,7 @@ function renderSpeakers(item, segments) {
     const end = segments[index + 1]?.start ?? item.duration
     talk.set(part.speaker, (talk.get(part.speaker) ?? 0) + Math.max(0, end - part.start))
   })
-  $('speakers-heading').html = `<h2>Sprekers</h2><p>${
+  $('speakers-heading').html = `<h3>Sprekers</h3><p>${
     live
       ? 'Geef een spreker nu al een naam; wat daarna gezegd wordt, krijgt die naam ook.'
       : item.state === 'busy'
@@ -1455,6 +1458,7 @@ function renderSpeakers(item, segments) {
     return {
       id: name,
       title: name,
+      avatar: { name },
       swatch: colours.get(name) ?? 'other',
       sub: live ? `${plural(count, 'fragment', 'fragmenten')} tot nu toe` : `${plural(count, 'fragment', 'fragmenten')} · ${mmss(talk.get(name) ?? 0)} spreektijd`,
       clickable: false,
@@ -1831,8 +1835,8 @@ function renderSettings() {
   renderSettingsNav()
   $('settings-nav').action = { label: 'Nieuw soort gesprek', value: 'nieuw' }
   $('settings-heading').html = isGeneral
-    ? '<h2>Algemeen</h2><p>Geldt voor al je opnames, welk soort gesprek het ook is.</p>'
-    : `<h2>${KINDS[which].label}</h2><p>Zo wordt een opname verwerkt als je bij het starten ${KINDS[which].label} kiest. Wat “ook per opname” heet, zet je bij het starten nog anders.</p>`
+    ? '<h3>Algemeen</h3><p>Geldt voor al je opnames, welk soort gesprek het ook is.</p>'
+    : `<h3>${KINDS[which].label}</h3><p>Zo wordt een opname verwerkt als je bij het starten ${KINDS[which].label} kiest. Wat “ook per opname” heet, zet je bij het starten nog anders.</p>`
   $('settings-kind').hidden = isGeneral
   $('settings-all').hidden = !isGeneral
   $('settings-reset').textContent = `${isGeneral ? 'Algemeen' : KINDS[which].label} terugzetten naar de standaard`
