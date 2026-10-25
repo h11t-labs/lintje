@@ -1,8 +1,10 @@
 /**
  * `<lintje-breadcrumbs>` — the breadcrumb trail above a page's title.
  *
- * The last item is the current page, never a link. Past four levels the middle collapses into a
- * "…" menu. It never reads the URL: the host passes the levels.
+ * The last item is the current page, never a link. In the new house style the trail shows only
+ * the levels above the page, as the house style draws it: a last item without `href` is the page
+ * itself and stays out, every level shown is a link. Past four levels the middle collapses into
+ * a "…" menu. It never reads the URL: the host passes the levels.
  *
  * Events: `lintje-navigate` `{ href }`.
  */
@@ -82,8 +84,13 @@ export class LintjeBreadcrumbs extends LintjeElement {
     ></lintje-menu-button>`
   }
 
+  /** The levels drawn: in the new house style without the page itself. */
+  private get shown(): Crumb[] {
+    return this.isNewStyle && !this.items.at(-1)?.href ? this.items.slice(0, -1) : this.items
+  }
+
   private renderPhone(): TemplateResult | typeof nothing {
-    const back = this.items.at(-2)
+    const back = this.isNewStyle ? this.shown.at(-1) : this.items.at(-2)
     if (!back?.href) return nothing
     const href = back.href
     return html`<nav class="lintje-breadcrumbs lintje-breadcrumbs--back" aria-label=${this.label}>
@@ -98,16 +105,20 @@ export class LintjeBreadcrumbs extends LintjeElement {
   }
 
   protected override render(): TemplateResult | typeof nothing {
-    if (!this.items.length) return nothing
+    const shown = this.shown
+    if (!shown.length) return nothing
     if (this.#mobile.matches) return this.renderPhone()
-    const { head, folded, tail } = trail(this.items)
-    const last = this.items.length - 1
+    const { head, folded, tail } = trail(shown)
+    // The new style draws no current page: what is left of the trail is the levels above it.
+    const last = this.isNewStyle ? -1 : shown.length - 1
     const entries: TemplateResult[] = head.map((item, index) =>
       this.renderCrumb(item, index === last),
     )
     if (folded.length) {
       entries.push(this.renderMenu(folded))
-      tail.forEach((item, index) => entries.push(this.renderCrumb(item, index === tail.length - 1)))
+      tail.forEach((item, index) =>
+        entries.push(this.renderCrumb(item, !this.isNewStyle && index === tail.length - 1)),
+      )
     }
     return html`<nav class="lintje-breadcrumbs" aria-label=${this.label}>
       <ol class="lintje-breadcrumbs__list">

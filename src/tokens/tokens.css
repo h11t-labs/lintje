@@ -36,8 +36,9 @@
   --ink-black: #0F172A;
   --alpha-white-82: rgba(255, 255, 255, 0.82);
   --alpha-white-45: rgba(255, 255, 255, 0.45);
+  --alpha-white-16: rgba(255, 255, 255, 0.16);
 
-  /* --- Focus -------------------------------------------------------------
+  /* --- Focus, earlier house style ----------------------------------------
      Its own constant: it must not move with the accent or the attention status. The orange is
      3.22:1 on white and falls short on the light grey surfaces and the status tints; the deep
      orange is the smallest share of black that reaches 3:1 on all of them. */
@@ -109,6 +110,8 @@
   --alpha-black-40: rgba(0, 0, 0, 0.4);
   --alpha-black-55: rgba(0, 0, 0, 0.55);
   --alpha-black-60: rgba(0, 0, 0, 0.6);
+  /* Cool Gray 900 at 80 %: the house style's veil under a dialog. */
+  --alpha-slate-80: rgba(15, 23, 42, 0.8);
 }
 
 /* ============================================================================
@@ -124,7 +127,7 @@
   --primary-line: color-mix(in srgb, var(--primary), white 22%);
   /* The dark tints lift only the perceived lightness, so they keep the primary's colour; a mix
      with white greys it. Each lightness is the smallest hundredth that clears its floor in every
-     theme: 3:1 on #282828 for a line, 4.5:1 on #333333 (neutral-2), the lightest neutral
+     theme: 3:1 on #282828 (the page) for a line, 4.5:1 on #333333 (neutral-2), the lightest neutral
      surface a word stands on, for text. A primary that is lighter already keeps its own. */
   --primary-tint: oklch(from var(--primary) max(l, 0.55) c h);
   --primary-tint-text: oklch(from var(--primary) max(l, 0.71) c h);
@@ -247,10 +250,18 @@
   --font-ui: 'RijksSans', 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'Source Code Pro', ui-monospace, SFMono-Regular, Menlo, monospace;
 
+  /* The house style's scale: 12, 14, 16, 20, 24, 32, 40, 48 and 64 px, in rem. The names follow
+     the page's hierarchy (the page's h1, a title's h2, a tile's title); prose maps its six
+     heading levels onto the steps. */
   --text-dashboard: 700 1.25rem/1.2 var(--font-ui);
   --text-h1: 700 1.75rem/1.2 var(--font-ui);
   --text-h1-mobile: 700 1.5rem/1.15 var(--font-ui);
   --text-h1-display: 700 2.5rem/1.1 var(--font-ui);
+  /* The two largest steps: a start page's one line, a figure that reads across a room. */
+  --text-display: 700 3rem/1.1 var(--font-ui);
+  --text-display-large: 700 4rem/1.05 var(--font-ui);
+  /* A section's heading on a long page, between the page's title and a tile's. */
+  --text-section: 700 1.5rem/1.25 var(--font-ui);
   --text-h2: 700 1.25rem/1.25 var(--font-ui);
   --text-tile-title: 700 1rem/1.3 var(--font-ui);
   --text-kpi: 700 2rem/1.1 var(--font-ui);
@@ -261,6 +272,9 @@
      transcript in its large size. */
   --text-translation: 400 1.25rem/1.5 var(--font-ui);
   --text-ui: 400 1rem/1.4 var(--font-ui);
+  /* The footer's tagline: the house style's payoff, italic in the regular weight, a step under
+     its 36–40 px, as an application's foot asks less room than a site's. */
+  --text-tagline: italic 400 2rem/1.25 var(--font-ui);
   /* Secondary text is one token: a hint, a sub-line, a meta line, a date. */
   --text-small: 400 0.875rem/1.45 var(--font-ui);
   /* Former names of the same token; they go with the next breaking release. */
@@ -341,6 +355,8 @@
   --w-gallery-thumb: 120px;
   /* The narrowest column of links in a footer before the columns stand under each other. */
   --w-footer-column: 220px;
+  /* The widest a one-line field grows when it fills its column: a select. */
+  --w-field: 480px;
 
   --page-pad-y: 32px;
   --page-pad-x: 24px;
@@ -360,7 +376,14 @@
   /* Sticky context = top bar + summary bar. */
   --h-sticky: calc(var(--h-topbar) + var(--h-contextbar));
 
+  /* The corners: of a framed block (a card, a tile, a dialog), of a button and a field, and the
+     one large corner of a drawer and a narrow band. All square in the earlier house style; the new style
+     (`data-style-version="new"`) sets them below, the large one with `data-style-new-corner`. */
   --radius: 0px;
+  --radius-control: 0px;
+  --radius-corner: 0px;
+  /* The quotation in running text: the house style's one corner as a quote mark, top left. */
+  --radius-quote: 24px;
   --radius-round: 50%;
 
   --shadow-sticky: 0 2px 6px var(--alpha-black-08);
@@ -378,8 +401,11 @@
   --color-overlay-page: var(--alpha-black-60);
   --color-overlay-nav: var(--alpha-black-16);
 
+  /* The ring: 3 px at 2 px from the box. Where the outside would be clipped it sits inside the
+     box, by `--focus-inset`. */
   --focus-width: 3px;
   --focus-offset: 2px;
+  --focus-inset: calc(-1 * var(--focus-width));
 
   /* --- Motion ------------------------------------------------------------ */
   /* `@kind other` marks these for design tooling as neither colors, sizes nor type; the library
@@ -440,9 +466,15 @@
   --color-border-heavy: var(--neutral-4);
   /* The resting edge of a field box: 3:1 (WCAG 1.4.11) on the surface and the filter band. */
   --color-border-field: var(--neutral-5);
-  /* The 2 px edge of a checkbox and a radio: 3:1 on the surface; dark re-points it. */
+  /* The toggle's off track: the field's grey in both house styles, so off never reads as chosen. */
+  --color-choice-off: var(--neutral-5);
+  /* The fill of a field at rest: the surface; dark in the new style lifts it above the page. */
+  --color-bg-field: var(--color-bg-surface);
+  /* The fill of a field in error: the surface; the new style tints it. */
+  --color-bg-field-error: var(--color-bg-surface);
+  /* The edge of a checkbox and a radio: 3:1 on the surface; dark re-points it. */
   --color-border-choice: var(--neutral-5);
-  /* In dark a sheet is the same #282828 as the tile under it, so this line separates them. */
+  /* In dark a sheet is the same #1D1D1D as the tile under it, so this line separates them. */
   --color-border-popover: var(--neutral-3);
   /* A DASHED outline (a suggestion, an uncertain term): neutral-5, because a dashed line has half
      the ink of a solid one and must still reach 3:1. */
@@ -460,14 +492,34 @@
   /* --- Semantic: action -------------------------------------------------- */
   --color-action-primary: var(--primary);
   --color-action-primary-hover: var(--primary-hover);
+  /* Pressed is the hover; the new style takes it a step past hover. */
+  --color-action-primary-pressed: var(--color-action-primary-hover);
   --color-action-primary-text: var(--ink-white);
   /* A primary fill in dark is a dark box on a dark page (WCAG 1.4.11): it gets a tint border. */
   --color-action-primary-border: var(--primary);
   --color-action-secondary-border: var(--primary);
+  /* The outlined button's hover is the subtle surface; the new style tints it in the primary's
+     wash. Dark re-points it to the neutral step. */
+  --color-action-secondary-hover: var(--color-bg-subtle);
+  --color-action-secondary-pressed: var(--color-action-secondary-hover);
+  /* The tertiary button's hover is the subtle surface; its word and edge are with the
+     components below. */
+  --color-action-tertiary-hover: var(--color-bg-subtle);
+  --color-action-tertiary-pressed: var(--color-action-tertiary-hover);
+  /* On a theme fill: the inverse button is white with the primary's word, and lets a little of
+     the primary through under the pointer; its outlined form is white on white, lit by white and
+     pressed by black at a low alpha. The same in dark: the fill under it stays the primary. */
+  --color-action-inverse: var(--ink-white);
+  --color-action-inverse-text: var(--primary);
+  --color-action-inverse-hover: color-mix(in srgb, var(--ink-white), var(--primary) 10%);
+  --color-action-inverse-pressed: color-mix(in srgb, var(--ink-white), var(--primary) 20%);
+  --color-action-inverse-secondary-hover: var(--alpha-white-16);
+  --color-action-inverse-secondary-pressed: var(--alpha-black-14);
   /* The destructive fill: the error red, white text on it (5.01:1). Hover is darker in light,
      lighter in dark. In dark the border is a tint, because #D52B1E is 2.94:1 on #282828. */
   --color-action-danger: var(--status-error);
   --color-action-danger-hover: color-mix(in srgb, var(--status-error), black 30%);
+  --color-action-danger-pressed: var(--color-action-danger-hover);
   --color-action-danger-border: var(--status-error);
   /* The word of the outlined danger button; dark re-points it (the red is 2.94:1 on #282828). */
   --color-action-danger-text: var(--status-error);
@@ -484,7 +536,10 @@
   --color-accent-line: var(--primary);
   --color-accent-text: var(--primary);
 
+  /* The focus ring: the deep orange, with no line inside it. Its own tokens: they follow neither
+     the accent nor a status. The new style draws the dark line with the white line inside. */
   --color-focus: var(--focus-orange-deep);
+  --color-focus-inner: transparent;
 
   /* --- Semantic: status -------------------------------------------------- */
   --color-attention: var(--status-attention);
@@ -501,6 +556,10 @@
 
   /* A status mark on its own tint: the status colour, nudged to 3:1 where it falls short. */
   --color-attention-line: color-mix(in srgb, var(--status-attention), black 10%);
+  /* A warning block (alert, toast): the attention status; the new style takes donkergeel, as the
+     house style draws a warning. Its bar decorates, the icon and the words carry the meaning. */
+  --color-alert-warning-bg: var(--color-attention-bg);
+  --color-alert-warning-line: var(--color-attention-line);
   --color-error-line: var(--status-error);
   --color-info-line: var(--status-info);
   --color-success-line: var(--status-success);
@@ -514,6 +573,8 @@
   --color-nav-text: var(--ink-white);
   --color-nav-text-sub: var(--alpha-white-82);
   --color-nav-hover: var(--primary-hover);
+  /* The word of a row under the pointer; the light tone fills that row in the primary. */
+  --color-nav-hover-text: var(--ink-white);
   --color-nav-active: var(--primary-hover);
   --color-nav-active-edge: var(--ink-white);
   --color-nav-active-text: var(--ink-white);
@@ -525,8 +586,9 @@
   --color-nav-avatar-bg: var(--ink-white);
   --color-nav-avatar-text: var(--ink-black);
   /* Orange fails on the theme fill (1.89:1 on #01689B, 1:1 on #E17000); white reaches 3:1 on
-     all six primaries. Dark re-points it to the orange. */
+     all six primaries. Dark re-points both to the standard ring. */
   --color-focus-on-theme: var(--ink-white);
+  --color-focus-on-theme-inner: var(--color-focus-inner);
   /* The theme's ACCENT, not the attention status: on `defensie` the menu is `#E17000` and the
      status colour made the band disappear. `--accent` is document level only. */
   --color-nav-environment-bg: var(--accent);
@@ -539,7 +601,8 @@
   --color-logobar-text: var(--color-text-primary);
   /* The ribbon in the emblem; only the logo re-points it in dark, never lintblauw elsewhere. */
   --color-logo-ribbon: var(--ribbon-blue);
-  /* The name beside it, in lintblauw as rijksoverheid.nl writes it. */
+  /* The name beside it in lintblauw, as the logo's specification draws the wordmark, in both
+     house styles; dark writes it in the text colour, a lighter wordmark on the dark bar. */
   --color-logo-name: var(--ribbon-blue);
   /* What marks an entry in that bar. They name the primitives, never `--color-nav-*`: the bar
      points those at these, and the two would refer to each other. */
@@ -547,14 +610,95 @@
   --color-navbar-active: var(--primary-hover);
   --color-navbar-active-edge: var(--ink-white);
   --color-navbar-open-text: var(--color-accent-text);
+  /* --- Navigation, light tone --------------------------------------------
+     `nav-tone="light"` on the shell: the house style's white navigation bar and side navigation.
+     The shell points the `--color-nav-*` and `--color-navbar-*` names at these under its menu, its
+     bar and the mobile chrome; a menu that stays filled never reads them. The surface, with the
+     words in the accent's text tint; a row under the pointer fills in the primary with white on
+     it, the reader's page takes the wash with the accent's line at its edge. In dark every name
+     here follows its semantic token, so the tone stays neutral there as the menu does. */
+  --color-nav-light-bg: var(--color-bg-surface);
+  --color-nav-light-text: var(--color-accent-text);
+  --color-nav-light-text-sub: var(--color-text-muted);
+  --color-nav-light-hover: var(--primary);
+  --color-nav-light-hover-text: var(--ink-white);
+  --color-nav-light-active: var(--primary-wash);
+  --color-nav-light-active-edge: var(--color-accent-line);
+  --color-nav-light-active-text: var(--color-accent-text);
+  --color-nav-light-line: var(--color-border-default);
+  --color-nav-light-disabled: var(--color-text-disabled);
+  /* The avatar on the white rail is the page's grey circle: a white one would vanish. */
+  --color-nav-light-avatar-bg: var(--color-avatar-bg);
+  --color-nav-light-avatar-text: var(--color-avatar-text);
+  /* The bar's entries: a quiet hover, no fill under the active entry, its edge the underline. */
+  --color-navbar-light-hover: var(--color-bg-subtle);
+  --color-navbar-light-active: var(--color-bg-surface);
+  --color-navbar-light-active-edge: var(--color-accent-line);
+
+  /* --- Components that the two house styles draw differently ------------
+     The earlier style's values; the new style's block below sets its own. An element reads
+     these and never the style itself, so its CSS is the same in both. */
+  /* The status bar at the left of a message, a toast, a form's summary and a field in error,
+     and the room a field keeps beside it. */
+  --tone-bar-width: 0px;
+  --field-error-inset: 0px;
+  /* A field in error: its red edge, and the bar beside the whole field; no bar in the earlier style. */
+  --field-error-border: 2px;
+  --field-error-bar: 0px;
+  /* The edge of a checkbox and a radio. */
+  --border-choice-width: 2px;
+  /* The tertiary button: outlined in the strong border with the text colour, or a word in the
+     primary without a box; disabled, it greys as every button, or keeps no box. */
+  --color-action-tertiary-text: var(--color-text-primary);
+  --color-action-tertiary-border: var(--color-border-strong);
+  --color-action-tertiary-disabled-bg: var(--color-bg-subtle);
+  --color-action-tertiary-disabled-border: var(--color-border-default);
+  /* The expander: an outlined card, or the accordion row with a line above and under it. */
+  --expander-bg: var(--color-bg-surface);
+  --expander-border-block: 1px solid var(--color-border-default);
+  --expander-border-inline: 1px solid var(--color-border-default);
+  --expander-radius: var(--radius);
+  --expander-pad: var(--tile-pad-y) var(--tile-pad-x);
+  --color-expander-title: var(--color-text-primary);
+  --color-expander-content: var(--color-text-secondary);
+  /* The current page in the pagination: the filled square, or the light tint with a dark digit. */
+  --color-pagination-current-bg: var(--color-action-primary);
+  --color-pagination-current-border: var(--color-action-primary-border);
+  --color-pagination-current-text: var(--color-action-primary-text);
+  /* The sub-navigation: typographic, or the row filled under the pointer with the reader's page
+     on the wash; the inset is how far a row reaches past the text column. */
+  --sub-nav-inset: var(--space-2);
+  --sub-nav-hover-decoration: underline;
+  --color-sub-nav-hover-bg: transparent;
+  --color-sub-nav-hover-text: var(--color-link-hover);
+  --color-sub-nav-current-bg: transparent;
+  /* The window: a line between its head, body and foot, or none. */
+  --modal-divider: 1px solid var(--color-border-default);
+  --modal-head-pad-bottom: var(--space-5);
+  --modal-foot-pad: var(--space-3) var(--space-6);
+  --color-modal-title: var(--color-text-primary);
+
   /* The start page's band is the primary's wash, so it never reads as the menu. */
   --color-hero-bg: var(--primary-wash);
   --color-hero-text: var(--color-text-primary);
+  /* The band as the page's head (`tone="primary"`): the primary itself, with the one corner of
+     the house style. Its word is white, or ink where white falls under 4.5:1 on a light primary
+     (Defensie's orange), as the environment label decides: ink above lightness 0.6. The ring is
+     the inverse one: white, which reaches 3:1 on every primary, with the dark line inside. */
+  --color-hero-primary-bg: var(--primary);
+  --color-hero-primary-text: oklch(from var(--primary) clamp(0.208, (0.6 - l) * 1000, 1) clamp(0, (l - 0.6) * 1000, 0.04) 265.8);
+  --color-hero-primary-focus: var(--ink-white);
+  --color-hero-primary-focus-inner: var(--ink-black);
   /* The site's foot stands on the menu's own fill, as on rijksoverheid.nl; in dark it follows the menu. */
   --color-footer-bg: var(--color-nav-bg);
   --color-footer-text: var(--color-nav-text);
   --color-footer-line: var(--color-nav-line);
   --color-footer-focus: var(--color-focus-on-theme);
+  --color-footer-focus-inner: var(--color-focus-on-theme-inner);
+  /* The compact foot of a form or a task page: the subtle surface, the page's own text and links. */
+  --color-footer-compact-bg: var(--color-bg-subtle);
+  --color-footer-compact-text: var(--color-text-primary);
+  --color-footer-compact-link: var(--color-link);
 
   /* The box behind a recognised term: the primary's wash; dark re-points it. */
   --color-term-bg: var(--primary-wash);
@@ -737,13 +881,105 @@
 }
 
 /* ============================================================================
+   The new house style — `data-style-version="new"` on `<html>`, mirrored onto every element's host
+
+   What the house style draws differently online since 2025: the larger page title, the content
+   at 1280 px with a ribbon as the page's margin, the small corners on controls and fields, the
+   ring as a dark line with a white line inside, the choice edge in the accent, the cool veil
+   and the tinted hover of the outlined button. The large corner of a drawer and a narrow band
+   comes with `data-style-new-corner` (round unless `square`). Everything else the two styles share.
+   ========================================================================= */
+[data-style-version='new'] {
+  /* The house style's scale: the page's h1 at 32 px. */
+  --text-h1: 700 2rem/1.2 var(--font-ui);
+  /* The widest the page's content gets, the house style's 1280 px. */
+  --w-content: 1280px;
+  /* The page's side margin: one ribbon on a desktop, half a ribbon on a tablet, 20 px on a
+     phone, as the house style lays the page out. */
+  --page-pad-x: 48px;
+  /* The small corners of the house style online: on a button and a field, never larger. A framed
+     block (a card, a tile, a dialog, an alert) keeps `--radius` at 0, as the house style draws it. */
+  --radius-control: 4px;
+  /* The veil under a dialog, a modal and a drawer: the house style's cool grey at 80 %; the
+     window's surface and border stand on it alike (1.3:1 edge). Dark takes black. */
+  --color-overlay-page: var(--alpha-slate-80);
+  /* The house style's ring: a 2 px line at 2 px from the box, the gap filled by a line in the
+     opposite ink, so the ring reads on every surface; inside a box both lines stay inside. */
+  --focus-width: 2px;
+  --focus-inset: calc(-1 * (var(--focus-width) + var(--focus-offset)));
+  --color-focus: var(--ink-black);
+  --color-focus-inner: var(--ink-white);
+  --color-focus-on-theme-inner: var(--ink-black);
+  /* The 1 px edge of a checkbox and a radio: the accent's line, as the house style draws it in
+     lintblauw; 3:1 on the surface in both modes by the line tint's construction. */
+  --color-border-choice: var(--color-accent-line);
+  /* The 1 px edge of a field in the same line, as the house style draws a field in lintblauw. */
+  --color-border-field: var(--color-accent-line);
+  /* A field in error stands on the error tint, under its red edge. */
+  --color-bg-field-error: var(--color-error-bg);
+  /* The outlined button's hover is the primary's wash, as the house style tints it; pressed a
+     step deeper into the wash. */
+  --color-action-secondary-hover: var(--primary-wash);
+  --color-action-secondary-pressed: oklch(from var(--primary) 0.9 min(c, 0.04) h);
+  /* Pressed is a step past hover on every filled or tinted button: darker in light, lighter in
+     dark, as the hover goes. In light the house style's shade 2 of the fill, as hover (30 %) is
+     its shade 4: 55 % black lands on it within a unit per channel for lintblauw and donkerblauw. */
+  --color-action-primary-pressed: color-mix(in srgb, var(--primary), black 55%);
+  --color-action-tertiary-pressed: var(--color-border-default);
+  --color-action-danger-pressed: color-mix(in srgb, var(--status-error), black 55%);
+  /* The house style's one rounded corner, a ribbon wide, on a drawer (its corner free) and on a
+     narrow band inside the margins. A band or foot that runs edge to edge stays square. */
+  --radius-corner: 48px;
+  /* The components that draw differently: the status bar, the 1 px choice edge, the boxless
+     tertiary, the accordion row, the tinted current page, the filled sub-navigation and the
+     window without lines. */
+  --tone-bar-width: var(--space-1);
+  --field-error-inset: var(--space-4);
+  /* The house style's field in error: a 1 px red edge and a 2 px bar, finer than a status block's. */
+  --field-error-border: 1px;
+  --field-error-bar: 2px;
+  --border-choice-width: 1px;
+  --color-action-tertiary-text: var(--color-accent-text);
+  --color-action-tertiary-border: transparent;
+  --color-action-tertiary-disabled-bg: transparent;
+  --color-action-tertiary-disabled-border: transparent;
+  --expander-bg: transparent;
+  --expander-border-inline: 0 solid transparent;
+  --expander-radius: 0px;
+  --expander-pad: var(--space-1) 0;
+  --color-expander-title: var(--color-accent-text);
+  --color-alert-warning-bg: var(--color-warning-bg);
+  /* The compact foot on the primary's wash, as the house style tints it. */
+  --color-footer-compact-bg: var(--primary-wash);
+  --color-alert-warning-line: var(--status-warning);
+  --color-expander-content: var(--color-text-primary);
+  --color-pagination-current-bg: var(--color-choice-active-bg);
+  --color-pagination-current-border: transparent;
+  --color-pagination-current-text: var(--color-text-primary);
+  --sub-nav-inset: var(--space-4);
+  --sub-nav-hover-decoration: none;
+  --color-sub-nav-hover-bg: var(--color-action-primary);
+  --color-sub-nav-hover-text: var(--color-action-primary-text);
+  --color-sub-nav-current-bg: var(--color-choice-active-bg);
+  --modal-divider: 0 solid transparent;
+  --modal-head-pad-bottom: 0px;
+  --modal-foot-pad: 0 var(--space-6) var(--space-4);
+  --color-modal-title: var(--color-accent-text);
+}
+/* `data-style-new-corner="square"` leaves the large corner out; without it the corner is round. */
+[data-style-version='new'][data-style-new-corner='square'] {
+  --radius-corner: 0px;
+}
+
+/* ============================================================================
    Dark mode — the Logius range, no inversion
 
    Redefines the seven `--neutral-*` primitives, re-declares `--primary-hover` lighter and
    re-points the layer-2/3 names whose meaning changes; everything that merely follows a
    neutral is absent on purpose. Page and tiles are both #282828, the border separates them: the
-   step below is the menu's, so it stays a band beside the page and under the logo bar.
-   Screen only: paper is always light, whatever the reader chose.
+   step below is the menu's, so it stays a band beside the page and under the logo bar. The new
+   style mirrors light instead, in its own block under this one. Screen only: paper is always
+   light, whatever the reader chose.
    ========================================================================= */
 @media screen {
   [data-mode='dark'] {
@@ -757,6 +993,7 @@
 
     /* The hover goes UP in dark: the light mix would put a near-black fill on the near-black page. */
     --primary-hover: color-mix(in srgb, var(--primary), white 12%);
+    --color-action-secondary-hover: var(--neutral-2);
 
     /* The order of light holds: menu under page under surface. The series has no step between
        the menu (neutral-1, L 0.231) and the surface (L 0.277), so the page is their midpoint
@@ -766,6 +1003,11 @@
     /* The hero's wash sits halfway between the menu and the page, under the page as in light:
        a panel or tab on it is lighter than its ground. */
     --primary-wash: oklch(from var(--primary) 0.241 min(c, 0.02) h);
+    /* The band in the primary colour is damped, as the house style damps a communication colour
+       in dark: on the wash's lightness, a step above the page, with more of the theme's hue in it
+       than the wash has and white on it in every theme. */
+    --color-hero-primary-bg: oklch(from var(--primary) 0.3 min(c, 0.05) h);
+    --color-hero-primary-text: var(--neutral-6);
 
     /* The filter zone must read as a band, so in dark it steps UP to neutral-2 (neutral-1 turned
        the fields in it into light boxes). `--color-bg-inset` is "sunken": neutral-1, under the
@@ -811,6 +1053,17 @@
     --color-nav-text: var(--neutral-6);
     --color-nav-text-sub: var(--neutral-5);
     --color-nav-hover: var(--neutral-2);
+    --color-nav-hover-text: var(--neutral-6);
+    /* The light tone's active row steps up to the subtle surface: the wash lies under the surface
+       in dark and the row would sink into the rail. Its edge takes the text tint, as the line
+       tint reaches 3:1 on the surface only. */
+    --color-nav-light-hover: var(--neutral-2);
+    --color-nav-light-hover-text: var(--neutral-6);
+    /* The rail and the bar already differ from the page in dark: the line that tells a white rail
+       from a white page stays as quiet as it is in light, one step up from the rail. */
+    --color-nav-light-line: var(--neutral-2);
+    --color-nav-light-active: var(--neutral-2);
+    --color-nav-light-active-edge: var(--primary-tint-text);
     --color-nav-active: var(--neutral-2);
     --color-nav-active-edge: var(--primary-tint-text);
     --color-navbar-hover: var(--neutral-2);
@@ -827,8 +1080,9 @@
     /* The deep orange falls under 3:1 on the dark warning tint; the house orange reaches 3.3:1 on
        every dark surface. */
     --color-focus: var(--focus-orange);
-    /* The menu is neutral here, so its ring is the orange of every other surface. */
+    /* The menu is neutral here, so its ring is that of every other surface. */
     --color-focus-on-theme: var(--color-focus);
+    --color-focus-on-theme-inner: var(--color-focus-inner);
     /* The choice edge keeps neutral-4 in dark: it already reaches 3:1 there (3.43:1 on #282828). */
     --color-border-choice: var(--neutral-4);
 
@@ -865,6 +1119,55 @@
     --shadow-scroll-end: inset -12px 0 10px -10px var(--alpha-black-60);
     --color-overlay-nav: var(--alpha-black-40);
   }
+
+  /* The new style in dark is the mirror of light: the surface (a tile, the logo bar, a light
+     menu) is the darkest, the page a step lighter, the subtle fill lighter still; the filled
+     menu steps below the surface, so it stays a band beside the page and under the logo bar, as
+     its primary fill does in light. Both selectors weigh the same as one, so what the new style
+     sets in light and dark re-points here is said again. */
+  [data-mode='dark'][data-style-version='new'] {
+    /* Pressed a step past the lighter hover; the outlined button's pressed on the neutral step. */
+    --color-action-primary-pressed: color-mix(in srgb, var(--primary), white 24%);
+    --color-action-secondary-pressed: var(--neutral-3);
+    --color-action-danger-pressed: color-mix(in srgb, var(--status-error), white 16%);
+    --neutral-0: #1D1D1D;
+    --neutral-1: #282828;
+    --color-bg-page: var(--neutral-1);
+    --color-bg-title: var(--neutral-1);
+    --color-text-inverse: var(--neutral-0);
+    /* The hero's wash is a step above the page, as it is a step below it in light: a panel or
+       tab on it is darker than its ground, as a white one is lighter there. */
+    --primary-wash: oklch(from var(--primary) 0.3 min(c, 0.02) h);
+    /* A status mark at 3:1 on its own tint and on the page. The info blue and the green reach it
+       by themselves: the floor lies under them. */
+    --color-error-line: oklch(from var(--status-error) max(l, 0.58) c h);
+    --color-info-line: oklch(from var(--status-info) max(l, 0.5) c h);
+    --color-success-line: oklch(from var(--status-success) max(l, 0.5) c h);
+    /* The filled menu a step below the surface; the line tint is 3:1 on the page only. */
+    --color-nav-bg: color-mix(in srgb, var(--neutral-0), #000000 25%);
+    --color-map-water: var(--neutral-0);
+    /* The inverse ring of the house style: white with the dark line inside, on every surface. */
+    --color-focus: var(--ink-white);
+    --color-focus-inner: var(--ink-black);
+    --color-focus-on-theme: var(--color-focus);
+    --color-focus-on-theme-inner: var(--color-focus-inner);
+    --color-border-choice: var(--color-accent-line);
+    /* A field's edge stands on the filter band (#333333) too, where the line tint falls under 3:1:
+       the text tint, light as the house style draws a dark field's edge. */
+    --color-border-field: var(--color-accent-text);
+    /* A field a step above the page, as the house style draws it in dark: the surface lies under
+       the page here, and a field on it would read as a hole. */
+    --color-bg-field: var(--neutral-2);
+    /* The cool grey of the light veil tints a dark page blue: black here. */
+    --color-overlay-page: var(--alpha-black-60);
+  }
+}
+
+/* A tablet keeps the gutter as its margin, half a ribbon. */
+@media screen and (max-width: 1023px) {
+  [data-style-version='new'] {
+    --page-pad-x: 24px;
+  }
 }
 
 /* ============================================================================
@@ -879,6 +1182,12 @@
     --chart-h-expanded: 320px;
     --w-ribbon: 2.5rem;
   }
+  /* The house style's phone margin and its narrow gutter: 10 px, and 12 is the step of the
+     scale nearest to it. */
+  [data-style-version='new'] {
+    --page-pad-x: 20px;
+    --grid-gutter: 12px;
+  }
 }
 
 /* ============================================================================
@@ -887,7 +1196,10 @@
    say nothing.
    ========================================================================= */
 @media print {
-  :root {
+  /* Both selectors: in a shadow root the new style's block weighs more than `:host` alone, so
+     `:root` by itself would lose its print margin there. */
+  :root,
+  [data-style-version='new'] {
     /* The paper's margin is the page's edge: bars and content start at it, aligned. */
     --page-pad-x: 0px;
     --color-bg-page: var(--neutral-0);

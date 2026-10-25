@@ -63,6 +63,7 @@
   align-items: center;
   justify-content: center;
   color: var(--color-text-primary);
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-treemap__toggle:hover { background: var(--color-bg-subtle); }
 /* Swatch, name, amount and share on a line, the bar under the name, so every bar starts at the
@@ -78,6 +79,7 @@
   font: var(--text-small);
   color: var(--color-text-primary);
   text-align: left;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-treemap__part--button:hover { background: var(--color-bg-subtle); }
 .lintje-treemap__swatch { width: 12px; height: 12px; align-self: center; }

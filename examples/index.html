@@ -15,6 +15,7 @@
       menu's entries are real links that carry those along, so the page a reader opens looks
       the way this one does.
     -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="stylesheet" href="../src/tokens/fonts.css" />
     <link rel="stylesheet" href="../dist-elements/tokens.css" />
     <style>
@@ -129,6 +130,7 @@
       function render() {
         root.dataset.mode = settings.modeOf(location.search)
         root.dataset.theme = theme()
+        settings.applyStyle()
 
         // Real addresses: the browser follows an entry by itself, with the settings behind it.
         const page = ({ label, icon, href }) => ({ label, icon, href: carry(href) })

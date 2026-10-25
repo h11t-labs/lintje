@@ -98,3 +98,44 @@ describe('lintje-tile loading', () => {
     expect(first.querySelector('.visually-hidden')?.textContent).toBe('Gegevens laden…')
   })
 })
+
+describe('lintje-tile collapsed-mobile', () => {
+  const viewport = (width: number): void =>
+    (
+      window as unknown as { happyDOM: { setViewport(size: { width: number }): void } }
+    ).happyDOM.setViewport({ width })
+
+  afterEach(() => viewport(1024))
+
+  it('changes nothing on a wide screen', async () => {
+    viewport(1024)
+    const tile = await mount({ heading: 'Aanvragen per regio', collapsedMobile: true })
+    expect(tile.shadowRoot!.querySelector('.lintje-tile__fold-toggle')).toBeNull()
+    expect(tile.shadowRoot!.querySelector('.lintje-tile__fold')!.hasAttribute('hidden')).toBe(false)
+  })
+
+  it('folds the content on a phone and unfolds it on the button, saying so', async () => {
+    viewport(390)
+    const tile = await mount({ heading: 'Aanvragen per regio', collapsedMobile: true })
+    const root = tile.shadowRoot!
+    const fold = root.querySelector('.lintje-tile__fold')!
+    const toggle = root.querySelector<HTMLButtonElement>('.lintje-tile__fold-toggle')!
+    expect(fold.hasAttribute('hidden')).toBe(true)
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    expect(toggle.getAttribute('aria-controls')).toBe(fold.id)
+    expect(toggle.textContent!.trim()).toBe('Tonen')
+    // The button names the title it is about.
+    expect(root.getElementById(toggle.getAttribute('aria-describedby')!)!.textContent).toBe(
+      'Aanvragen per regio',
+    )
+
+    const toggled: boolean[] = []
+    tile.addEventListener('lintje-toggle', (event) => toggled.push((event as CustomEvent).detail))
+    toggle.click()
+    await tile.updateComplete
+    expect(fold.hasAttribute('hidden')).toBe(false)
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+    expect(toggle.textContent!.trim()).toBe('Verbergen')
+    expect(toggled).toEqual([true])
+  })
+})

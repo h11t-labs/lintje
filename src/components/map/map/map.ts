@@ -153,6 +153,7 @@ export class LintjeMap extends LintjeContentTileElement {
       id=${this.id ? `${this.id}-tile` : nothing}
       span=${data.span ?? nothing}
       heading=${data.title ?? nothing}
+      ?collapsed-mobile=${Boolean(data.collapsedMobile)}
       icon=${data.icon ?? nothing}
       subtitle=${subtitle ?? nothing}
       intro=${data.intro ?? nothing}

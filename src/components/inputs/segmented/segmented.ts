@@ -106,6 +106,7 @@ export class LintjeSegmented extends LintjeInputElement {
       .join(' ')
     return html`<div class="lintje-field">
       ${this.renderLabel()}
+      ${this.renderMessages()}
       <div
         class=${classMap({
           'lintje-segmented': true,
