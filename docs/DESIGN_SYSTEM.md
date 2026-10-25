@@ -693,7 +693,9 @@ De besluiten hieronder gelden voor alle elementen.
   `components/shared/key.css`. Een host tekent hem met `<lintje-key>`, één element per toets; een
   combinatie is twee toetsen naast elkaar.
 - **Escape sluit wat open is**, en in een popover alleen de popover. Een toast sluit met Escape
-  alleen vanuit zichzelf: een Escape elders is niet de zijne. Of er een dialoog boven een open
+  alleen vanuit zichzelf: een Escape elders is niet de zijne. Escape is eerst van het kleinste:
+  wat een Escape al beantwoordde (`preventDefault`), zoals een tooltip, een uitleg of een
+  bewerking ter plekke, sluit geen venster eromheen. Of er een dialoog boven een open
   popup staat, volgt uit de focus: Escape blijft ongemoeid zolang de focus in een
   `aria-modal="true"` staat waar de popup niet in zit. Een dialoog zet dus `aria-modal` en
   neemt de focus bij het openen; één die dat niet doet, telt niet mee.
@@ -997,6 +999,11 @@ de stijlgids. Past geen soort, dan is het een tabel.
   kaart of een diagram. De tooltip en de CSV geven de cijfers; een tabel die de lezer nodig heeft,
   staat apart.
 - **Hover verandert nooit de lengte die de waarde draagt.**
+- **De tooltip staat vast bij zijn teken**, op de plek die het toetsenbord gebruikt, nooit bij de
+  aanwijzer en nooit over zijn eigen teken, en hij verandert pas als de aanwijzer een ander teken
+  aanwijst. Hij vangt de aanwijzer: hij blijft staan zolang die op het teken of op de tooltip
+  staat, en op weg erheen mag de aanwijzer over een buur gaan. Escape haalt hem weg zonder de
+  focus te verplaatsen. Op een aanraakscherm laat hij een tik door naar het teken eronder.
 - **Een taart rangschikt en vouwt zelf.** Haar delen zijn de onderverdelingen van één variabele:
   de kleur van de spec, of hemelblauw. Het grootste deel is het donkerste, in welke volgorde de
   host ze ook stuurt, en de tinten spreiden over de ladder met het aantal delen. Meer dan vijf

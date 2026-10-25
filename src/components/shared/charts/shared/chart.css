@@ -365,11 +365,12 @@
 }
 
 /* --- Tooltip ------------------------------------------------------------- */
+/* The tooltip stands at its mark and takes the pointer, so it can be read and enlarged without it
+   moving; on a touch screen it lets a tap through to the mark under it. */
 .lintje-chart-tooltip {
   --lintje-chart-tooltip-swatch: 14px;
   position: absolute;
   z-index: 55;
-  pointer-events: none;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-popover);
   box-shadow: var(--shadow-popover);
@@ -383,6 +384,9 @@
   animation: lintje-chart-tooltip-in var(--dur-hover) var(--ease-in-motion);
 }
 @keyframes lintje-chart-tooltip-in { from { opacity: 0; } }
+@media (hover: none) {
+  .lintje-chart-tooltip { pointer-events: none; }
+}
 .lintje-chart-tooltip__title { font-weight: 700; margin-bottom: 4px; }
 .lintje-chart-tooltip__kicker { color: var(--color-text-muted); }
 .lintje-chart-tooltip__title-note { font-weight: 400; color: var(--color-text-muted); }

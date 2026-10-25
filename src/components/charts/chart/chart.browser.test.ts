@@ -10,6 +10,7 @@ import { chartImage } from '../../shared/download'
 import { TAB } from '../../../core/test-keys'
 import './chart'
 import type { LintjeChart } from './chart'
+import type { ChartSpec } from '../../shared/charts/shared/types'
 
 async function mount(): Promise<LintjeChart> {
   const tile = document.createElement('lintje-chart')
@@ -96,6 +97,9 @@ describe('a scatter point under the pointer', () => {
       [breda, 'Breda'],
       [zwolle, 'Zwolle'],
     ] as const) {
+      // The tooltip of the last point takes the pointer: it goes once the pointer has left both.
+      await userEvent.unhover(mark)
+      await expect.poll(() => tile.shadowRoot!.querySelector('.lintje-chart-tooltip')).toBeNull()
       const { x, y } = centre(mark)
       expect(tile.shadowRoot!.elementFromPoint(x, y)).toBe(mark)
       await userEvent.hover(mark)
@@ -321,6 +325,120 @@ describe('a thin part of a treemap', () => {
     const box = svg.getBoundingClientRect()
     await userEvent.click(svg, { position: { x: x - box.left, y: y - box.top } })
     expect(picked).toEqual(['klein'])
+  })
+})
+
+// The tooltip stands at its mark and takes the pointer (WCAG 1.4.13): from the mark onto it, it
+// stays with the same value; off both, it goes.
+describe.each([
+  {
+    kind: 'line',
+    mark: '.lintje-chart__svg rect[fill="transparent"]',
+    title: 'di',
+    chart: {
+      kind: 'line',
+      labels: ['ma', 'di', 'wo'],
+      series: [{ label: 'Aanvragen', values: [3, 5, 4] }],
+    },
+  },
+  {
+    kind: 'pie',
+    mark: '.lintje-pie-chart__segment',
+    title: 'Online',
+    chart: {
+      kind: 'pie',
+      legendTable: false,
+      segments: [
+        { label: 'Online', value: 12 },
+        { label: 'Balie', value: 8 },
+      ],
+    },
+  },
+  {
+    kind: 'heatmap',
+    mark: '.lintje-heatmap__cell',
+    title: 'ma · ochtend',
+    chart: {
+      kind: 'heatmap',
+      columnLabels: ['ochtend', 'middag'],
+      rowLabels: ['ma', 'di'],
+      values: [
+        [12, 8],
+        [5, 3],
+      ],
+    },
+  },
+] satisfies { kind: string; mark: string; title: string; chart: ChartSpec }[])(
+  'the tooltip of a $kind',
+  ({ mark, title, chart, kind }) => {
+    it('stays with the pointer on it, and goes once the pointer left both', async () => {
+      const tile = document.createElement('lintje-chart')
+      tile.style.display = 'block'
+      tile.style.width = '600px'
+      tile.data = { title: 'Aanvragen', description: `Een ${kind}.`, chart }
+      document.body.append(tile)
+      await tile.updateComplete
+      const target = (): HTMLElement | SVGElement =>
+        tile.shadowRoot!.querySelectorAll<HTMLElement | SVGElement>(mark)[kind === 'line' ? 1 : 0]!
+      await expect.poll(() => target()?.getClientRects().length ?? 0).toBeGreaterThan(0)
+      const tooltip = (): HTMLElement | null =>
+        tile.shadowRoot!.querySelector<HTMLElement>('.lintje-chart-tooltip')
+      const titleOf = (): string | undefined =>
+        tooltip()?.querySelector('.lintje-chart-tooltip__title')?.textContent?.trim()
+      await userEvent.hover(target())
+      await expect.poll(titleOf).toBe(title)
+      const before = tooltip()!.getBoundingClientRect()
+      await userEvent.hover(tooltip()!)
+      await new Promise((resolve) => setTimeout(resolve, 400))
+      expect(titleOf()).toBe(title)
+      // It stood still: at its mark, not at the pointer.
+      expect(tooltip()!.getBoundingClientRect().left).toBe(before.left)
+      await userEvent.unhover(tooltip()!)
+      await expect.poll(tooltip).toBeNull()
+    })
+  },
+)
+
+describe('a heatmap in its modal', () => {
+  it('takes the first Escape for its tooltip, and the modal stays open', async () => {
+    const tile = document.createElement('lintje-chart')
+    tile.data = {
+      title: 'Drukte',
+      description: 'Maandagochtend is het drukst.',
+      expandable: true,
+      chart: {
+        kind: 'heatmap',
+        columnLabels: ['ochtend', 'middag'],
+        rowLabels: ['ma', 'di'],
+        values: [
+          [12, 8],
+          [5, 3],
+        ],
+      },
+    }
+    document.body.append(tile)
+    await tile.updateComplete
+    const tileEl = tile.shadowRoot!.querySelector('lintje-tile')!
+    await expect
+      .poll(() => tileEl.shadowRoot?.querySelector('lintje-icon-button[label="Vergroot"]'))
+      .toBeTruthy()
+    tileEl.shadowRoot!.querySelector<HTMLElement>('lintje-icon-button[label="Vergroot"]')!.click()
+    const modal = (): Element | null => tile.shadowRoot!.querySelector('lintje-modal')
+    const cell = (): HTMLElement | null =>
+      modal()?.querySelector<HTMLElement>('.lintje-heatmap__cell') ?? null
+    await expect.poll(() => cell()?.getClientRects().length ?? 0).toBeGreaterThan(0)
+    await userEvent.hover(cell()!)
+    const tooltip = (): Element | null => modal()!.querySelector('.lintje-chart-tooltip')
+    await expect.poll(tooltip).not.toBeNull()
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(tooltip).toBeNull()
+    expect(modal()!.hasAttribute('open') || (modal() as unknown as { open: boolean }).open).toBe(
+      true,
+    )
+    await userEvent.keyboard('{Escape}')
+    await expect
+      .poll(() => (modal() as unknown as { open: boolean } | null)?.open ?? false)
+      .toBe(false)
   })
 })
 

@@ -209,6 +209,11 @@ export class LintjeShell extends LintjeElement {
       }
       return
     }
+    // The rail expanded under the pointer folds from anywhere on the page, the focus staying put.
+    if (this.railExpanded && ownsEscape(this)) {
+      this.railExpanded = false
+      return
+    }
     if (!this.menuOpen || !this.#menuTrap.isTopmost()) return
     this.menuOpen = false
   }

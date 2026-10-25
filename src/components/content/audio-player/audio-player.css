@@ -60,6 +60,8 @@
   font: var(--text-small);
 }
 .lintje-audio-player--compact .lintje-audio-player__legend { flex-basis: 100%; }
+/* The time label above the position stands in room of its own, never over the speakers' names. */
+.lintje-audio-player__legend { margin-bottom: var(--space-8); }
 .lintje-audio-player__speaker { display: flex; align-items: center; gap: var(--space-2); }
 .lintje-audio-player__speaker.is-current { font-weight: 700; }
 .lintje-audio-player__swatch { width: var(--space-3); height: var(--space-3); flex: none; }

@@ -376,26 +376,8 @@ function drawMap(context: Context, interactive: boolean): TemplateResult {
     }
     keys.keydown(event)
   }
-  const hover = (event: MouseEvent, i: number) => {
-    if (controller.hoverIndex === i && controller.tooltip) return
-    const drawing = (event.currentTarget as SVGElement).ownerSVGElement
-    if (!drawing) return
-    const point = at(i)
-    const anchor = drawing.closest('[data-tooltip-anchor]')
-    const box = drawing.getBoundingClientRect()
-    const origin = anchor?.getBoundingClientRect() ?? box
-    controller.hoverIndex = i
-    controller.showTooltipAt(
-      box.left - origin.left + point.x,
-      box.top - origin.top + point.y,
-      point.content,
-      point.side,
-    )
-  }
-  const leave = () => {
-    if (controller.hoverIndex == null) return
-    controller.hoverAt(null)
-  }
+  const hover = (event: MouseEvent, i: number) => keys.point(event, i)
+  const leave = keys.leave
   // Heard before the part under the pointer: a thin part beside it may take the click.
   const clickable = model.groups.map((_, g) => marks[g].clickable)
   const thin = (event: MouseEvent) => {

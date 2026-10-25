@@ -404,15 +404,14 @@ export class LintjeTranscript extends LintjeElement {
 
   private renderEditor(segment: TranscriptSegment): TemplateResult {
     const busy = this.busyId === segment.id
-    return html`<div
-      class="lintje-transcript__editor"
-      @keydown=${(event: KeyboardEvent) => this.onEditorKeydown(segment, event)}
-    >
+    // The keys are the field's: on Opslaan and Annuleren Enter and Escape keep their own meaning.
+    return html`<div class="lintje-transcript__editor">
       <lintje-textarea
         label="Tekst van dit fragment"
         hide-label
         rows="1"
         hint="Ctrl+Enter bewaart, Esc annuleert"
+        @keydown=${(event: KeyboardEvent) => this.onEditorKeydown(segment, event)}
         .value=${segment.text}
         ?disabled=${busy}
         error=${this.errors?.[segment.id] || nothing}
