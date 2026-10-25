@@ -6,6 +6,13 @@ const BAR = 'display: inline-flex; align-items: center; height: 48px; padding: 0
 
 const USER = { name: 'J. de Vries', role: 'Teamleider · Dienst Vergunningen', initials: 'JV' }
 
+/** A name and a role longer than the side menu is wide. */
+const LONG_USER = {
+  name: 'Johannes Hendrikus van der Vlugt-de Vries',
+  role: 'Teamleider vergunningen en handhaving, Dienst Vergunningen',
+  initials: 'JV',
+}
+
 /** The same user with a photo: the gallery's grey stand-in, never a face. */
 const USER_PHOTO = { ...USER, photo: 'media/afbeelding.svg' }
 
@@ -548,6 +555,29 @@ export default {
             stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
           },
         })),
+        {
+          label: 'Voet met een lange naam en functie',
+          note:
+            'Naam en functie staan elk op één regel met een beletselteken en geven de hele tekst bij de aanwijzer. ' +
+            'Onder de focus van het toetsenbord lopen ze door.',
+          html: `<lintje-shell>
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>De gebruiker staat onderaan het menu.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.data = {
+              name: 'Transcriptie',
+              layout: 'side',
+              menu: 'pinned',
+              emblem: emblem(),
+              navigation: NAVIGATION,
+              user: LONG_USER,
+              logout: { href: '#el-shell', token: 'demo-token' },
+            }
+            stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+          },
+        },
       ],
     },
 {
