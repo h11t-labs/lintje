@@ -8,7 +8,7 @@
   padding: var(--space-1) var(--space-2);
   border: 1px solid var(--color-border-field);
   border-radius: var(--radius-control);
-  background: var(--color-bg-surface);
+  background: var(--color-bg-field);
   text-align: left;
   overflow: hidden;
 }
@@ -83,7 +83,7 @@
 .lintje-multiselect__search-input {
   width: 100%; height: var(--h-control); padding: 0 var(--space-2);
   border: 1px solid var(--color-border-field);
-  background: var(--color-bg-surface); color: var(--color-text-primary); font-size: 1rem;
+  background: var(--color-bg-field); color: var(--color-text-primary); font-size: 1rem;
 }
 .lintje-multiselect__search-input::placeholder { color: var(--color-text-placeholder); opacity: 1; }
 .lintje-multiselect__search-input:disabled::placeholder { color: var(--color-text-disabled); }

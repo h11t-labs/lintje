@@ -467,6 +467,8 @@
   --color-border-field: var(--neutral-5);
   /* The toggle's off track: the field's grey in both house styles, so off never reads as chosen. */
   --color-choice-off: var(--neutral-5);
+  /* The fill of a field at rest: the surface; dark in the new style lifts it above the page. */
+  --color-bg-field: var(--color-bg-surface);
   /* The fill of a field in error: the surface; the new style tints it. */
   --color-bg-field-error: var(--color-bg-surface);
   /* The edge of a checkbox and a radio: 3:1 on the surface; dark re-points it. */
@@ -1137,6 +1139,9 @@
     /* A field's edge stands on the filter band (#333333) too, where the line tint falls under 3:1:
        the text tint, light as the house style draws a dark field's edge. */
     --color-border-field: var(--color-accent-text);
+    /* A field a step above the page, as the house style draws it in dark: the surface lies under
+       the page here, and a field on it would read as a hole. */
+    --color-bg-field: var(--neutral-2);
     /* The cool grey of the light veil tints a dark page blue: black here. */
     --color-overlay-page: var(--alpha-black-60);
   }

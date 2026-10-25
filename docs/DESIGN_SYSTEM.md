@@ -169,7 +169,13 @@ Vijf gevolgen:
   ligt halverwege het menu en het oppervlak, zodat een tegel, een band en de logobalk erop staan
   en niet alleen hun rand ze scheidt.
 - **Elke primaire vulling tekent een rand in `--color-action-primary-border`.** Onzichtbaar in
-  licht; in donker het enige dat het vak een rand geeft.
+  licht; in donker het enige dat het vak een rand geeft. De huisstijl zet een donkere primaire
+  knop in donker om naar een lichte variant; Lintje houdt de vulling, met die lichtere rand die
+  3:1 haalt, ook in het pijlvak van de select, zodat de primaire kleur in beide modi dezelfde
+  blijft. Een bewust besluit.
+- **Een veld staat in de nieuwe huisstijl in donker een stap boven de pagina** (`--color-bg-field`),
+  zoals de huisstijl een donker veld tekent: het oppervlak ligt daar onder de pagina, en een veld
+  erop zou als een gat lezen. In licht en in de eerdere huisstijl is het veld het oppervlak.
 - **Een woord op een statusoppervlak of een getint vlak (de sprekertint van een fragment) neemt
   `--color-link-on-status`**: geen tint van de primaire kleur haalt daar 4.5:1.
 - **Een ondergrond die een veld, een knop of een paneel draagt, is `--color-bg-inset`**: een stap

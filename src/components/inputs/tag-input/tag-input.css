@@ -8,7 +8,7 @@
   padding: calc((var(--h-control) - var(--h-chip-field)) / 2 - var(--lintje-field-border)) var(--space-2);
   border: var(--lintje-field-border) solid var(--color-border-field);
   border-radius: var(--radius-control);
-  background: var(--color-bg-surface);
+  background: var(--color-bg-field);
   color: var(--color-text-primary);
 }
 /* The ring is around the whole field; a chip draws it around itself when its cross has the focus. */

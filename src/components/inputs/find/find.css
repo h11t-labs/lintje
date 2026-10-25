@@ -18,7 +18,7 @@
   height: var(--h-control);
   border: 1px solid var(--color-border-field);
   border-radius: var(--radius-control);
-  background: var(--color-bg-surface);
+  background: var(--color-bg-field);
 }
 /* The ring goes round the whole box, not round the input inside it. */
 .lintje-find:has(.lintje-find__control:focus-visible) {
