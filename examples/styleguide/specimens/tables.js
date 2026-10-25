@@ -598,50 +598,82 @@ function assigning(stage) {
   })
 }
 
-const ACTIVITY = [
-  {
-    who: 'J. de Vries',
-    what: 'wijzigde de omschrijving',
-    when: 'vandaag om 10:42',
-    at: '2026-10-04T10:42:00+02:00',
-  },
-  {
-    who: 'Systeem',
-    what: 'rondde het transcriberen af',
-    when: 'vandaag om 09:31',
-    at: '2026-10-04T09:31:00+02:00',
-  },
-  {
-    who: 'M. Jansen',
-    what: 'voegde 2 bijlagen toe',
-    when: 'gisteren om 16:05',
-    at: '2026-10-03T16:05:00+02:00',
-  },
-  {
-    who: 'M. Jansen',
-    what: 'maakte de melding aan',
-    when: 'gisteren om 15:48',
-    at: '2026-10-03T15:48:00+02:00',
-  },
+/** What happened to an application, the newest first: who did what, a person with a circle. */
+const HISTORY = [
+  { who: { ...PEOPLE.jv, role: undefined, href: '#el-timeline' }, title: 'wees de aanvraag toe aan A. Bakker', when: 'vandaag om 10:42', at: '2026-10-04T10:42:00+02:00' },
+  { who: 'Systeem', title: 'stuurde de ontvangstbevestiging', when: 'vandaag om 09:31', at: '2026-10-04T09:31:00+02:00' },
+  { who: PEOPLE.sy, title: 'voegde een advies toe', when: 'gisteren om 16:05', at: '2026-10-03T16:05:00+02:00' },
+  { who: PEOPLE.ld, title: 'maakte de aanvraag aan', when: 'gisteren om 15:48', at: '2026-10-03T15:48:00+02:00' },
 ]
 
-/** The same history, with people: their circle before the name, "Systeem" on the same line. */
-const PEOPLE_ACTIVITY = [
-  { who: { ...PEOPLE.jv, role: undefined, href: '#el-activity-log' }, what: 'wees de aanvraag toe aan A. Bakker', when: 'vandaag om 10:42', at: '2026-10-04T10:42:00+02:00' },
-  { who: 'Systeem', what: 'stuurde de ontvangstbevestiging', when: 'vandaag om 09:31', at: '2026-10-04T09:31:00+02:00' },
-  { who: PEOPLE.sy, what: 'voegde een advies toe', when: 'gisteren om 16:05', at: '2026-10-03T16:05:00+02:00' },
-  { who: PEOPLE.ld, what: 'maakte de aanvraag aan', when: 'gisteren om 15:48', at: '2026-10-03T15:48:00+02:00' },
-]
-
-/** Twelve older entries, so "Toon eerdere" has something to show. */
-const LONG_ACTIVITY = [
-  ...ACTIVITY,
-  ...Array.from({ length: 12 }, (_, index) => ({
-    who: index % 2 ? 'A. Bakker' : 'Systeem',
-    what: index % 2 ? 'bekeek de melding' : 'stuurde een herinnering',
-    when: `${30 - index} september 2026, 16:05`,
-    at: `2026-09-${String(30 - index).padStart(2, '0')}T16:05:00+02:00`,
+/** A report over three weeks, the days on the rail and only the time beside each moment. */
+const LONG_HISTORY = [
+  { group: 'Vandaag', when: '10:42', at: '2026-10-04T10:42:00+02:00', who: PEOPLE.ab, title: 'sloot de melding' },
+  { group: 'Vandaag', when: '09:31', at: '2026-10-04T09:31:00+02:00', who: 'Systeem', title: 'stuurde de bevestiging aan de melder' },
+  { group: 'Gisteren', when: '16:05', at: '2026-10-03T16:05:00+02:00', who: PEOPLE.sy, title: 'voegde een advies toe' },
+  ...Array.from({ length: 13 }, (_, index) => ({
+    group: `${30 - Math.floor(index / 2) * 2} september`,
+    when: index % 2 ? '11:20' : '15:48',
+    at: `2026-09-${String(30 - Math.floor(index / 2) * 2).padStart(2, '0')}T${index % 2 ? '11:20' : '15:48'}:00+02:00`,
+    who: index % 2 ? 'Systeem' : PEOPLE.ab,
+    title: index % 2 ? 'stuurde een herinnering' : 'vroeg om een aanvulling',
   })),
+]
+
+/** How a renovation went, one moment every two years, the latest with a link. */
+const TIMELINE_PROJECT = [
+  { when: '2019', at: '2019', title: 'Verkenning', text: 'We onderzochten of het gebouw nog dertig jaar mee kan.' },
+  { when: '2021', at: '2021', title: 'Besluit', text: 'De minister koos voor verbouwen in plaats van nieuwbouw.', link: { label: 'Lees het besluit', href: '#el-timeline' } },
+  { when: '2023', at: '2023', title: 'Start van de verbouwing', text: 'De medewerkers verhuisden tijdelijk naar een ander pand.' },
+  { when: '2025', at: '2025', title: 'Oplevering', text: 'Het gebouw ging weer open, met de helft minder energieverbruik.' },
+]
+
+/** An application: what the applicant did on one side, the organisation on the other. */
+const TIMELINE_APPLICATION = [
+  { when: '3 augustus 2026', at: '2026-08-03', title: 'Aanvraag ingediend', text: 'U ontving een ontvangstbevestiging per e-mail.', side: 'start' },
+  { when: '20 augustus 2026', at: '2026-08-20', title: 'Aanvulling gevraagd', text: 'We vroegen om de begroting van het project.', side: 'end' },
+  { when: '9 september 2026', at: '2026-09-09', title: 'Aanvulling gestuurd', text: 'Uw aanvraag is compleet en wordt beoordeeld.', side: 'start' },
+  { when: 'Verwacht vóór 1 december 2026', title: 'Besluit', text: 'U krijgt het besluit per post en in Mijn omgeving.', planned: true, side: 'end' },
+  { when: 'Nog niet bekend', title: 'Uitbetaling', text: 'Zes weken na een positief besluit.', planned: true, side: 'end' },
+]
+
+/** The same kind of application over most of a year, spread enough to lie along a rail. */
+const TIMELINE_YEAR = [
+  { when: '3 februari 2026', at: '2026-02-03', title: 'Aanvraag ingediend', text: 'U ontving een ontvangstbevestiging.', side: 'start' },
+  { when: '2 april 2026', at: '2026-04-02', title: 'Aanvulling gevraagd', text: 'We vroegen om de begroting.', side: 'end' },
+  { when: '28 mei 2026', at: '2026-05-28', title: 'Aanvulling gestuurd', side: 'start' },
+  { when: '31 juli 2026', at: '2026-07-31', title: 'Besluit', text: 'De subsidie is toegekend.', side: 'end' },
+  { when: 'Verwacht 1 december 2026', at: '2026-12-01', title: 'Uitbetaling', planned: true, side: 'end' },
+]
+
+/** One morning of an outage, by the minute. */
+const TIMELINE_OUTAGE = [
+  { when: '08:12', at: '2026-10-21T08:12', title: 'Storing gemeld', text: 'Inloggen lukt niet voor een deel van de gebruikers.' },
+  { when: '08:30', at: '2026-10-21T08:30', title: 'Oorzaak gevonden', text: 'Een verlopen certificaat.' },
+  { when: '09:05', at: '2026-10-21T09:05', title: 'Herstel gestart' },
+  { when: '10:40', at: '2026-10-21T10:40', title: 'Opgelost', text: 'Iedereen kan weer inloggen.' },
+]
+
+/** The same outage with who acted above each title, and a badge in the slot of two moments. */
+const TIMELINE_OUTAGE_LABELLED = [
+  { when: '08:12', at: '2026-10-21T08:12', label: 'Systeem', title: 'Storing gemeld', text: 'Inloggen lukt niet voor een deel van de gebruikers.', value: 'ernst' },
+  { when: '08:30', at: '2026-10-21T08:30', label: 'Storingsdienst', title: 'Oorzaak gevonden', text: 'Een verlopen certificaat.', link: { label: 'Bekijk het incident', href: '#el-timeline' } },
+  { when: '09:05', at: '2026-10-21T09:05', label: 'Storingsdienst', title: 'Herstel gestart' },
+  { when: '10:40', at: '2026-10-21T10:40', label: 'Storingsdienst', title: 'Opgelost', text: 'Iedereen kan weer inloggen.', value: 'opgelost' },
+]
+
+/** A bill from its first exploration to the day it applies: years on the rail, one still to come. */
+const TIMELINE_BILL = [
+  { when: '11 maart', at: '2024-03-11', group: '2024', title: 'Verkenning gestart', text: 'Het ministerie vroeg uitvoerders wat er aan de oude regeling schortte.' },
+  { when: '8 juli', at: '2024-07-08', group: '2024', title: 'Rondetafelgesprekken' },
+  { when: '30 september', at: '2024-09-30', group: '2024', title: 'Eerste versie van het voorstel' },
+  { when: '2 december', at: '2024-12-02', group: '2024', title: 'Uitvoeringstoetsen aangevraagd' },
+  { when: '14 januari', at: '2025-01-14', group: '2025', title: 'Internetconsultatie geopend', text: 'Iedereen kon tot 1 maart reageren op het voorstel.' },
+  { when: '2 april', at: '2025-04-02', group: '2025', title: 'Reacties verwerkt', text: 'De belangrijkste reacties staan in de toelichting bij het voorstel.', link: { label: 'Lees de toelichting', href: '#el-timeline' } },
+  { when: '23 september', at: '2025-09-23', group: '2025', title: 'Advies van de Raad van State' },
+  { when: '10 februari', at: '2026-02-10', group: '2026', title: 'Aangenomen door de Tweede Kamer' },
+  { when: '16 juni', at: '2026-06-16', group: '2026', title: 'Aangenomen door de Eerste Kamer', text: 'Het voorstel is nu wet en wacht op publicatie.' },
+  { when: 'Verwacht 1 januari', group: '2027', title: 'Inwerkingtreding', text: 'De regeling geldt voor aanvragen vanaf die dag.', planned: true },
 ]
 
 /** Products of a catalogue: every kind of card, with fictional owners and grey stand-in pictures. */
@@ -1133,7 +1165,7 @@ export default {
         },
         {
           label: 'Sprekers',
-          note: 'Elke rij heeft een kleurbalk, zoals in de speler en het transcript, en een menu.',
+          note: 'Elke spreker heeft zijn cirkel in de kleur die hij in de speler en het transcript heeft, en een menu.',
           html: '<lintje-list label="Sprekers"></lintje-list>',
           setup(stage) {
             const actions = [
@@ -1142,9 +1174,9 @@ export default {
               { value: 'alleen', label: 'Alleen deze spreker tonen', checked: false },
             ]
             stage.querySelector('lintje-list').items = [
-              { id: 'p1', swatch: 'sky-blue', title: 'Ploegleider', sub: '5 fragmenten · 2:12', actions, clickable: false },
-              { id: 'p2', swatch: 'dark-yellow', title: 'Spreker 2', sub: '3 fragmenten · 1:05', actions, clickable: false },
-              { id: 'p3', swatch: 'pink', title: 'Spreker 3', sub: '3 fragmenten · 0:52', actions, clickable: false },
+              { id: 'p1', avatar: { name: 'Ploegleider' }, swatch: 'sky-blue', title: 'Ploegleider', sub: '5 fragmenten · 2:12', actions, clickable: false },
+              { id: 'p2', avatar: { name: 'Spreker 2' }, swatch: 'dark-yellow', title: 'Spreker 2', sub: '3 fragmenten · 1:05', actions, clickable: false },
+              { id: 'p3', avatar: { name: 'Spreker 3' }, swatch: 'pink', title: 'Spreker 3', sub: '3 fragmenten · 0:52', actions, clickable: false },
             ]
           },
         },
@@ -1473,35 +1505,137 @@ export default {
       ],
     },
     {
-      tag: 'lintje-activity-log',
-      title: 'Een tijdlijn van wat er met een item is gebeurd',
+      tag: 'lintje-timeline',
+      title: 'Momenten langs een rail: hoe iets in de tijd verliep',
       specimens: [
         {
-          label: 'Rust',
-          note: 'Bij elke regel staat de tijd.',
-          html: '<lintje-activity-log heading="Geschiedenis"></lintje-activity-log>',
+          label: 'Aan één kant',
+          note: 'De tijden staan vóór de rail, in een kolom zo breed als de langste.',
+          html: '<lintje-timeline heading="Storing inlogdienst, 21 oktober 2026"></lintje-timeline>',
           setup(stage) {
-            stage.querySelector('lintje-activity-log').entries = ACTIVITY
+            stage.querySelector('lintje-timeline').moments = TIMELINE_OUTAGE
           },
         },
         {
-          label: 'Lange geschiedenis',
-          note: 'Toon eerdere laat de oudere regels zien.',
-          html: '<lintje-activity-log heading="Geschiedenis"></lintje-activity-log>',
-          setup(stage) {
-            stage.querySelector('lintje-activity-log').entries = LONG_ACTIVITY
-          },
-        },
-        {
-          label: 'Met personen',
+          label: 'Een label en eigen inhoud',
           note:
-            'Een persoon heeft het rondje vóór de naam. "Systeem" is geen persoon: geen rondje, ' +
-            'wel dezelfde lijn.',
-          html: '<lintje-activity-log heading="Geschiedenis"></lintje-activity-log>',
+            'Boven de kop de tijd en een label, onder de zin de link en een badge die de host ' +
+            'per moment in een slot zet.',
+          html:
+            '<lintje-timeline heading="Storing inlogdienst, 21 oktober 2026" placement="alternate">' +
+            '<lintje-badge slot="ernst" tone="error">Ernst hoog</lintje-badge>' +
+            '<lintje-badge slot="opgelost" tone="success">Opgelost</lintje-badge>' +
+            '</lintje-timeline>',
           setup(stage) {
-            stage.querySelector('lintje-activity-log').entries = PEOPLE_ACTIVITY
+            stage.querySelector('lintje-timeline').moments = TIMELINE_OUTAGE_LABELLED
             listen(stage)
           },
+        },
+        {
+          label: 'Een lange reeks',
+          note:
+            'De jaren staan op de rail. Eerst de laatste momenten; "Toon eerdere" toont de rest. ' +
+            'Vandaag staat tussen wat geweest is en wat nog komt.',
+          html:
+            '<lintje-timeline heading="Zo komt de nieuwe regeling tot stand" limit="6" ' +
+            'today="Vandaag, 21 oktober"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = TIMELINE_BILL
+            listen(stage)
+          },
+        },
+        {
+          label: 'Om en om',
+          note: 'De momenten schuiven in elkaar: een moment begint naast het vorige, nooit ervoor.',
+          html:
+            '<lintje-timeline heading="Zo verliep de verbouwing van het kantoor" ' +
+            'placement="alternate"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = TIMELINE_PROJECT
+            listen(stage)
+          },
+        },
+        {
+          label: 'Per kant',
+          note:
+            'Wat u deed links, wat wij deden rechts. Op een telefoon staat alles aan één kant en ' +
+            'gaat de naam voor de datum.',
+          html:
+            '<lintje-timeline heading="Uw aanvraag voor een subsidie" placement="sides" ' +
+            'today="Vandaag, 21 oktober"></lintje-timeline>',
+          setup(stage) {
+            const timeline = stage.querySelector('lintje-timeline')
+            timeline.sides = ['U', 'Wij']
+            timeline.moments = TIMELINE_APPLICATION
+          },
+        },
+        {
+          label: 'Liggend aan één kant',
+          wide: true,
+          note:
+            'Elk moment op zijn plek in de tijd, de jaren onder de rail. Past de rij niet, of op ' +
+            'een telefoon, dan staat de tijdlijn.',
+          html:
+            '<lintje-timeline heading="Zo verliep de verbouwing van het kantoor" ' +
+            'orientation="horizontal"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = TIMELINE_PROJECT
+            listen(stage)
+          },
+        },
+        {
+          label: 'Liggend om en om',
+          wide: true,
+          note: 'Momenten die dicht op elkaar vallen, staan aan weerskanten van de rail.',
+          html:
+            '<lintje-timeline heading="Storing inlogdienst, 21 oktober 2026" ' +
+            'orientation="horizontal" placement="alternate"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = TIMELINE_OUTAGE
+          },
+        },
+        {
+          label: 'Liggend per kant',
+          wide: true,
+          note:
+            'U boven, wij onder, met vandaag op de rail. Wat nog geen datum heeft, staat los ' +
+            'achter het eind van de rail.',
+          html:
+            '<lintje-timeline heading="Uw aanvraag voor een subsidie" orientation="horizontal" ' +
+            'placement="sides" today="Vandaag" today-at="2026-10-21"></lintje-timeline>',
+          setup(stage) {
+            const timeline = stage.querySelector('lintje-timeline')
+            timeline.sides = ['U', 'Wij']
+            timeline.moments = TIMELINE_YEAR
+          },
+        },
+        {
+          label: 'Een geschiedenis',
+          note:
+            'Wie deed wat, het nieuwste boven: de host geeft die volgorde. Een persoon heeft het ' +
+            'rondje vóór de naam; "Systeem" is geen persoon en krijgt een rondje met een icoon.',
+          html: '<lintje-timeline heading="Geschiedenis"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = HISTORY
+            listen(stage)
+          },
+        },
+        {
+          label: 'Een lange geschiedenis',
+          note:
+            'De dagen staan op de rail, naast elk moment alleen de tijd. "Toon eerdere" onder de ' +
+            'lijst laat er telkens tien meer zien.',
+          html: '<lintje-timeline heading="Geschiedenis" limit="5" step="10"></lintje-timeline>',
+          setup(stage) {
+            stage.querySelector('lintje-timeline').moments = LONG_HISTORY
+          },
+        },
+        {
+          label: 'Zonder momenten',
+          note: 'Geen lege rail: één zin, die de host meegeeft.',
+          html:
+            '<lintje-timeline heading="Uw aanvraag voor een subsidie" ' +
+            'empty="Er is nog niets gebeurd met deze aanvraag."></lintje-timeline>',
         },
       ],
     },

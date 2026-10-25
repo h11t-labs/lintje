@@ -324,6 +324,7 @@ export class LintjeDateRange extends LintjeInputElement {
 
     return html`<div class="lintje-date-range-picker" @focusout=${this.onFocusOut}>
       ${this.label ? this.renderLabel() : nothing}
+      ${this.renderMessages()}
       <button
         type="button"
         aria-label=${fieldName ? `${fieldName}, ${chosen ? rangeLabel : 'geen periode gekozen'}` : nothing}

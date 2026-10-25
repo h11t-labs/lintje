@@ -49,7 +49,7 @@ src/
                (alleen op de pagina)
   icons/       renderIcon(), het gegenereerde register, de iconenlader
   components/  één map per categorie (frame/, layout/, overlays/, actions/, content/,
-               feedback/, inputs/, forms/, filters/, charts/, map/, tables/, chat/), met
+               feedback/, inputs/, forms/, filters/, charts/, map/, graph/, tables/, chat/), met
                daarin één map per tag; components/shared/ voor wat categorieën delen, zoals
                charts/ (de renderfuncties van de grafieken; leaflet.ts: de basiskaart), de
                focus-trap en place.ts (waar een zwevend vak staat)
@@ -369,7 +369,7 @@ lagen:
 | Laag | Bestand | Wat | Voor wie |
 |---|---|---|---|
 | Unit | `*.test.ts`, in happy-dom | rekenwerk, toestand, events, markup | elk component |
-| Styleguide | `bundle/styleguide.browser.test.ts` | elk specimen getekend, in licht en donker, op 1440 en 390 px, met axe | elk specimen, vanzelf |
+| Styleguide | `bundle/styleguide/suite.ts`, in vier delen naast elkaar | elk specimen getekend, in licht en donker, op 1440 en 390 px, met axe | elk specimen, vanzelf |
 | Browser | `*.browser.test.ts` | wat layout, echte focus of een aanwijzer nodig heeft | per mechanisme, zie hieronder |
 
 De unittestbestanden die een worker draait, delen één venster (`isolate: false`): het opzetten

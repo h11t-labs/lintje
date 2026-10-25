@@ -18,10 +18,13 @@
   min-width: var(--h-touch); height: var(--lintje-tool-height, var(--h-touch));
   padding: 0 var(--space-3);
   color: var(--color-nav-text);
-  transition: background var(--dur-hover) var(--ease-in-motion);
+  transition: background var(--dur-hover) var(--ease-in-motion),
+              color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-user-menu__trigger:hover,
-.lintje-user-menu__trigger.is-open { background: var(--color-nav-hover); }
+.lintje-user-menu__trigger.is-open { background: var(--color-nav-hover); color: var(--color-nav-hover-text); }
+/* On the hover fill the role takes the words' colour: in the light tone the fill is the primary. */
+.lintje-user-menu__trigger:is(:hover, .is-open) .lintje-user-menu__trigger-role { color: inherit; }
 
 /* The foot of the side menu: the whole row is the button. The left padding keeps the avatar
    centred in the 72 px rail. */
@@ -70,12 +73,15 @@
   color: var(--color-text-primary);
 }
 
+/* Right as wide as top and bottom: "Afmelden" stands in an even margin. */
 .lintje-user-menu__who {
   display: flex; align-items: center; gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-border-default);
 }
-.lintje-user-menu__names { min-width: 0; }
+/* Without rows under it the line would double the panel's own edge. */
+.lintje-user-menu__who:has(+ .lintje-user-menu__menu.is-empty) { border-bottom: 0; }
+.lintje-user-menu__names { flex: 1; min-width: 0; }
 .lintje-user-menu__name { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
 .lintje-user-menu__role { margin: 0; font-size: 0.875rem; color: var(--color-text-muted); }
 
@@ -84,6 +90,16 @@
 .lintje-user-menu__group:first-child.lintje-user-menu__group--logout { border-top: 0; }
 .lintje-user-menu__logout { display: flex; flex-direction: column; margin: 0; }
 .lintje-user-menu__logout-row { font-weight: 700; }
+/* Beside the name: the glyph alone on a square touch target, filled only under the pointer as a
+   row is. */
+.lintje-user-menu__who .lintje-user-menu__logout { flex: none; }
+.lintje-user-menu__logout-button {
+  display: flex; align-items: center; justify-content: center;
+  width: var(--h-touch); height: var(--h-touch);
+  color: inherit;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-user-menu__logout-button:hover { background: var(--color-bg-subtle); }
 
 .lintje-user-menu__version {
   margin: 0;
@@ -97,25 +113,32 @@
 .lintje-user-menu__panel.is-inline .lintje-user-menu__who,
 .lintje-user-menu__panel.is-inline .lintje-user-menu__group--logout,
 .lintje-user-menu__panel.is-inline .lintje-user-menu__version { border-color: var(--color-nav-line); }
-.lintje-user-menu__panel.is-inline .lintje-user-menu__who { padding: var(--space-4) var(--space-5); }
+.lintje-user-menu__panel.is-inline .lintje-user-menu__who {
+  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5);
+}
 /* Small text on the theme fill takes the menu's own ink: the sub tint is 3.82:1 on #01689B. */
 .lintje-user-menu__panel.is-inline .lintje-user-menu__role,
 .lintje-user-menu__panel.is-inline .lintje-user-menu__version,
 .lintje-user-menu__panel.is-inline .lintje-menu__hint { color: var(--color-nav-text); }
 .lintje-user-menu__panel.is-inline .lintje-user-menu__version { padding: var(--space-2) var(--space-5); }
+/* The row's height through its variable: its padding centres the first line. */
 .lintje-user-menu__panel.is-inline .lintje-menu__row {
-  height: var(--h-touch);
-  padding: 0 var(--space-5);
+  --lintje-menu-row: var(--h-touch);
+  padding-inline: var(--space-5);
   color: var(--color-nav-text);
 }
-.lintje-user-menu__panel.is-inline .lintje-menu__row:hover { background: var(--color-nav-hover); }
+.lintje-user-menu__panel.is-inline .lintje-menu__row:hover,
+.lintje-user-menu__panel.is-inline .lintje-user-menu__logout-button:hover { background: var(--color-nav-hover); }
 .lintje-user-menu__panel.is-inline .lintje-menu__row.is-disabled,
 .lintje-user-menu__panel.is-inline .lintje-menu__row.is-disabled .lintje-menu__hint { color: var(--color-nav-disabled); }
 .lintje-user-menu__panel.is-inline .lintje-menu__separator { background: var(--color-nav-line); }
 
-/* On the theme fill the orange ring disappears: the on-theme ring, as the side menu. */
-.lintje-user-menu__trigger:focus-visible,
-.lintje-user-menu__panel.is-inline :focus-visible { outline-color: var(--color-focus-on-theme); }
+/* On the theme fill the ring is the inverse one, as the side menu, by the inherited hooks. */
+.lintje-user-menu__trigger,
+.lintje-user-menu__panel.is-inline {
+  --lintje-focus: var(--color-focus-on-theme);
+  --lintje-focus-inner: var(--color-focus-on-theme-inner);
+}
 
 /* Forced colours: the open button keeps a Highlight edge. */
 @media (forced-colors: active) {
@@ -126,6 +149,8 @@
 
 /* In the foot, the menu is as wide as the side menu, inset by the viewport's own edge on both
    sides: it hangs from this strip, not from the avatar. */
-.lintje-user-menu__anchor { position: absolute; inset: 0 var(--space-2); pointer-events: none; }
+/* The panel stands on the foot of the rail as wide as the rail, without a margin that would read
+   as a card floating on it. */
+.lintje-user-menu__anchor { position: absolute; inset: 0; pointer-events: none; }
 /* At least the width of a row's words, also from a folded rail. */
 :host([variant="side"]) .lintje-user-menu__panel { width: auto; min-width: 15rem; }

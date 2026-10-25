@@ -58,7 +58,7 @@ const OPTIONS = [
 ]
 
 /** The widths that a host sets itself. */
-const FIXED = [120, 180]
+const FIXED = [120, 180, 480]
 
 /** Shrinks to 0 in a row, fills a block, narrower than a row. */
 const FIELD: Seen = { minWidth: '0px', block: 'fill', row: 'content', control: 48 }
@@ -280,6 +280,26 @@ describe('the hosts at 1440 and 390 px', () => {
     expect({ wide, phone: look() }).toEqual({ wide: host.wide, phone: host.phone })
   })
 
+  // In the new style a select fills its column, up to a field's widest: 480 in a wide block, the
+  // phone's width there.
+  it('lintje-select in the new style', async () => {
+    document.documentElement.dataset.styleVersion = 'new'
+    try {
+      const host = HOSTS.find((entry) => entry.tag === 'lintje-select')!
+      const block = await mount(host.tag, host.props)
+      const row = await mount(host.tag, host.props, 'row')
+      const look = (): Pick<Seen, 'block' | 'row'> => ({ block: widthIn(block), row: widthIn(row) })
+      const wide = look()
+      await viewport(390, 844)
+      expect({ wide, phone: look() }).toEqual({
+        wide: { block: 480, row: 480 },
+        phone: { block: 'fill', row: 'fill' },
+      })
+    } finally {
+      delete document.documentElement.dataset.styleVersion
+    }
+  })
+
   // The table adopts input.css for its rows' boxes: no host rule of a field reaches it.
   it('lintje-data-table', async () => {
     const block = await mount('lintje-data-table', { data: TABLE })
@@ -397,7 +417,13 @@ function drawn(look: Look): Record<string, string> {
     edge: colourOf(
       look === 'error' ? '--color-error' : quiet ? '--color-border-strong' : '--color-border-field',
     ),
-    fill: colourOf(quiet ? '--color-bg-subtle' : '--color-bg-surface'),
+    fill: colourOf(
+      quiet
+        ? '--color-bg-subtle'
+        : look === 'error'
+          ? '--color-bg-field-error'
+          : '--color-bg-surface',
+    ),
     text: colourOf(look === 'disabled' ? '--color-text-disabled' : '--color-text-primary'),
     radius: '0px',
     start: '16px',
