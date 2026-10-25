@@ -48,7 +48,7 @@ de typografische schaal van de paginatitel, de marges en de inhoudsbreedte, de v
 een telefoon, de foutmelding boven het veld met de balk en de fouttint, de balk en de gekleurde
 iconen op een statusblok, de kaderloze tertiaire knop, de uitklapper als accordeonrij, de koppen
 en het citaat in lopende tekst, het pijlvak van de select, de regel en de chevrons van de voet,
-de getinte paginering, de dialoogknoppen links zonder lijnen, het gevulde submenu, de paginakop
+de getinte paginering, het kruimelpad zonder de pagina zelf, de dialoogknoppen links zonder lijnen, het gevulde submenu, de paginakop
 boven de filterbalk, en in donker het gespiegelde grijs. Wat beide delen, staat niet onder de
 schakelaar: de overgang op elke hover, de hooks van een band, en
 elke correctie. De grote hoek heeft zijn eigen schakelaar, alleen van betekenis in de nieuwe

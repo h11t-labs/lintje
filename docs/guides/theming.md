@@ -83,6 +83,8 @@ Wat de nieuwe huisstijl anders tekent:
   en op een band met `narrow`, die binnen de marges staat; `data-style-new-corner="square"` laat
   hem weg.
 - **De focusring** is een donkere lijn met een witte lijn erin, in plaats van oranje.
+- **Het kruimelpad** toont alleen de niveaus boven de pagina, elk een link: het laatste item zonder
+  `href`, de pagina zelf, laat het weg. Je geeft hetzelfde pad door als in de oude huisstijl.
 - **Een formulierveld** heeft een rand van 1 px in de primaire kleur, zoals de huisstijl een veld in
   lintblauw tekent, en toont zijn toelichting en zijn fout boven het veld, met een rode balk
   ernaast en het veld in de fouttint; de select heeft het pijlvak in de primaire kleur.
