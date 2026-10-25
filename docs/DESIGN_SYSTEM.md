@@ -33,7 +33,7 @@ AA het oneens zijn, wint AA met de kleinste correctie (zie [Toegankelijkheid](#t
 ### Twee huisstijlen, één schakelaar
 
 De Rijkshuisstijl tekent online sinds 2025 anders dan eerst: een wit menu, kleine afgeronde
-hoeken op knoppen en kaders, één grote afgeronde hoek op de kop van de pagina, een donkere
+hoeken op knoppen en velden, de kop van de pagina als band in de primaire kleur, een donkere
 focusring met een witte lijn erin, de foutmelding boven het veld. Lintje tekent beide, en de
 host kiest met één attribuut op de pagina: `data-style-version="new"` op `<html>` tekent de nieuwe
 huisstijl, zonder dat attribuut (of `data-style-version="classic"`) de eerdere. Elk element spiegelt de
@@ -42,8 +42,8 @@ eerdere huisstijl de standaard**, zodat een host die bijwerkt niets ziet verande
 wisselt de standaard naar de nieuwe.
 
 Onder de schakelaar staat alles wat de nieuwe huisstijl anders tekent: het lichte menu en de
-band in de primaire kleur als paginakop, de kleine hoeken (`--radius`, `--radius-control`), de
-grote hoek (`--radius-corner`), de focusring, de keuzerand in het accent, de koelgrijze sluier,
+band in de primaire kleur als paginakop, de kleine hoek (`--radius-control`), de grote hoek van
+een lade en een smalle band (`--radius-corner`), de focusring, de keuzerand in het accent, de koelgrijze sluier,
 de typografische schaal van de paginatitel, de marges en de inhoudsbreedte, de vier kolommen op
 een telefoon, de foutmelding boven het veld met de balk en de fouttint, de balk en de gekleurde
 iconen op een statusblok, de kaderloze tertiaire knop, de uitklapper als accordeonrij, de koppen
@@ -309,12 +309,14 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
   een kerncijfer, een dialoog, een melding (`--radius`). In de eerdere huisstijl staan beide op
   0. Nooit groter dan de kleine hoek. Rond is alleen wat een cirkel ís: een stip, een radio, een
   schakelaar, een avatar, een teller, de laadring.
-- **De ene afgeronde hoek is van de pagina.** De vormtaal van de huisstijl is een rechthoek met
-  één afgeronde hoek: minstens één en hoogstens drie per beeld, spaarzaam, en nooit een vlak met
-  een hoek in een vlak met een hoek. In de nieuwe huisstijl is hij een lint groot
-  (`--radius-corner`, 48 px) en laat `data-style-new-corner="square"` op de pagina hem weg; alleen de band
-  aan de kop van de pagina (de hero, de paginakop bij een licht menu) tekent hem rechtsboven en
-  de voet linksonder, als zijn spiegelbeeld; geen enkele bouwsteen. De ene uitzondering is het
+- **De ene afgeronde hoek loopt nooit van de pagina af.** De vormtaal van de huisstijl is een
+  rechthoek met één afgeronde hoek: hoogstens drie per beeld, spaarzaam, nooit een vlak met een
+  hoek in een vlak met een hoek, en nooit op een vlak dat van de pagina afloopt. De band aan de kop
+  van de pagina (de hero, de paginakop bij een licht menu) en de voet lopen van rand tot rand, en
+  zijn dus recht: dat ze de volle breedte nemen, weegt zwaarder dan de hoek. In de nieuwe
+  huisstijl draagt een lade de hoek, een lint groot (`--radius-corner`, 48 px), aan de vrije kant
+  bovenaan, en een band die met `narrow` binnen de marges staat, rechtsboven;
+  `data-style-new-corner="square"` laat hem weg. De andere uitzondering is het
   citaat in lopende tekst: als citaat-element heeft het zijn eigen hoek van 24 px
   (`--radius-quote`), de hoek van de huisstijl als aanhalingsteken.
 - **Schaduwen geven diepte aan en verder niets**: een vastgeplakte balk, een popover, het menu
@@ -348,7 +350,7 @@ Besluiten die voor beide gelden:
   het spiegelbeeld van licht: de balk en de rail op het oppervlak, zoals de logobalk, een stap
   onder de pagina. Bij een licht menu verhuist de kleur naar de paginakop:
   `lintje-page-header` en `lintje-hero` in de shell worden dan vanzelf de band in de primaire
-  kleur, met de grote hoek, en elke knop erop tekent zichzelf in zijn omgekeerde vorm; een
+  kleur, recht van rand tot rand, en elke knop erop tekent zichzelf in zijn omgekeerde vorm; een
   host kiest daar niets voor, en een hero die de waas wil houden, zegt `tone="wash"`.
 - **De navigatiebalk is één rij.** Als de items niet passen, gemeten en niet per breakpoint,
   maken ze plaats voor één item, "Menu", waarvan het paneel het hele menu bevat. Een groep opent
@@ -412,10 +414,11 @@ Besluiten die voor beide gelden:
   zegt nooit iets wat nergens anders staat.
 - **De paginakop mag een band in de primaire kleur zijn** (`lintje-hero tone="primary"`), zoals
   de huisstijl hem op de sites van de Marechaussee en het RIVM tekent: kruimelpad, titel en
-  inleiding in wit op de primaire kleur, in de nieuwe huisstijl met de ene hoek rechtsboven
-  (`--radius-corner`). Waar wit op een lichte primaire kleur geen 4,5:1 haalt (het oranje van
-  Defensie), is de tekst bijna-zwart, zoals het omgevingslabel beslist. Op een telefoon staat de
-  hoek linksboven en is hij hoogstens een halve lint, zoals de huisstijl vraagt. Dan is dat de ene band
+  inleiding in wit op de primaire kleur, van rand tot rand en recht. Met `narrow` staat de band
+  binnen de marges, in de kolom van de inhoud, en draagt hij in de nieuwe huisstijl de ene hoek
+  rechtsboven (`--radius-corner`, op een telefoon een halve lint); dat kan alleen een band die
+  minstens drie keer zo hoog is als de hoek. Waar wit op een lichte primaire kleur geen 4,5:1 haalt
+  (het oranje van Defensie), is de tekst bijna-zwart, zoals het omgevingslabel beslist. Dan is dat de ene band
   van de pagina: niet naast een hero in de waas, en klein naast een gevulde rail, anders vechten
   twee vlakken om de kleur.
 - **Tabs komen in twee vormen.** Een rij boven de inhoud, de gekozen tab onderstreept; en grote

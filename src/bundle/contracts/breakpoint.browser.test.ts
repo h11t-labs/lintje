@@ -119,6 +119,22 @@ const KNOWN: RegExp[] = []
 
 /* Helpers ----------------------------------------------------------------- */
 
+/** Half the ribbon's width, in px: the ribbon is in rem. */
+function halfRibbon(element: HTMLElement): number {
+  const ribbon = getComputedStyle(element).getPropertyValue('--w-ribbon')
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+  return (parseFloat(ribbon) * (ribbon.trim().endsWith('rem') ? rem : 1)) / 2
+}
+
+/** The band's one corner, top right; -1 without a band or with a corner elsewhere. */
+function cornerOf(element: HTMLElement): number {
+  const band = find(element, '.lintje-page-header--band')
+  if (!band) return -1
+  const style = getComputedStyle(band)
+  if (parseFloat(style.borderTopLeftRadius) !== 0) return -1
+  return parseFloat(style.borderTopRightRadius)
+}
+
 /** Every match under a root, through each open shadow root. */
 function all(root: ParentNode, selector: string, found: Element[] = []): Element[] {
   for (const element of root.querySelectorAll('*')) {
@@ -886,7 +902,7 @@ const ROWS: Row[] = [
   },
   ...(['content', 'header'] as const).map((slot): Row => ({
     tag: 'lintje-page-header',
-    marker: `in the new style the band${slot === 'header' ? ' in the shell’s header' : ''} rounds only its top left, half a ribbon at most`,
+    marker: `in the new style a narrow band${slot === 'header' ? ' in the shell’s header' : ''} keeps its one corner top right, half a ribbon at most`,
     mount: async () => {
       const page = document.createElement('div')
       page.dataset.styleVersion = 'new'
@@ -896,6 +912,7 @@ const ROWS: Row[] = [
       shell.setAttribute('nav-tone', 'light')
       const header = create('lintje-page-header', { data: { title: 'Aanvragen' } })
       if (slot === 'header') header.slot = 'header'
+      header.setAttribute('narrow', '')
       shell.append(header)
       page.append(shell)
       await append(page)
@@ -903,24 +920,10 @@ const ROWS: Row[] = [
       await header.updateComplete
       return header
     },
-    wide: (element) => {
-      const band = find(element, '.lintje-page-header--band')
-      if (!band) return false
-      const style = getComputedStyle(band)
-      return (
-        parseFloat(style.borderTopRightRadius) > 0 && parseFloat(style.borderTopLeftRadius) === 0
-      )
-    },
+    wide: (element) => cornerOf(element) > halfRibbon(element),
     phone: (element) => {
-      const band = find(element, '.lintje-page-header--band')
-      if (!band) return false
-      const style = getComputedStyle(band)
-      // The ribbon's width is in rem.
-      const ribbon = getComputedStyle(element).getPropertyValue('--w-ribbon')
-      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
-      const half = (parseFloat(ribbon) * (ribbon.trim().endsWith('rem') ? rem : 1)) / 2
-      const left = parseFloat(style.borderTopLeftRadius)
-      return left > 0 && left <= half && parseFloat(style.borderTopRightRadius) === 0
+      const corner = cornerOf(element)
+      return corner > 0 && corner <= halfRibbon(element)
     },
   })),
   {

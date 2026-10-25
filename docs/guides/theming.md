@@ -67,19 +67,21 @@ wie dan de oude wil houden, zet `data-style-version="classic"`.
 
 | Oud (`classic`) | Nieuw (`new`) |
 |---|---|
-| ![De catalogus in de oude huisstijl: een gevuld menu in de primaire kleur, rechte hoeken.](../images/huisstijl-oud.png) | ![De catalogus in de nieuwe huisstijl: een wit menu, de paginakop als band in de primaire kleur met een grote ronde hoek, kleine ronde hoeken op knoppen en kaarten.](../images/huisstijl-nieuw.png) |
-| **Nieuw zonder grote hoek** (`data-style-new-corner="square"`) | **Nieuw in donker** (`data-mode="dark"`) |
-| ![De nieuwe huisstijl met een rechte paginakop.](../images/huisstijl-nieuw-recht.png) | ![De nieuwe huisstijl in donker: het oppervlak het donkerst, de band gedempt.](../images/huisstijl-nieuw-donker.png) |
+| ![De catalogus in de oude huisstijl: een gevuld menu in de primaire kleur, rechte hoeken.](../images/huisstijl-oud.png) | ![De catalogus in de nieuwe huisstijl: een wit menu, de paginakop als rechte band in de primaire kleur van rand tot rand, kleine ronde hoeken op knoppen en velden.](../images/huisstijl-nieuw.png) |
+| **Oud in donker** (`data-mode="dark"`) | **Nieuw in donker** (`data-mode="dark"`) |
+| ![De oude huisstijl in donker.](../images/huisstijl-oud-donker.png) | ![De nieuwe huisstijl in donker: het oppervlak het donkerst, de band gedempt.](../images/huisstijl-nieuw-donker.png) |
 
 Wat de nieuwe huisstijl anders tekent:
 
 - **Het menu is wit**, met de woorden in de primaire kleur, en de kop van de pagina wordt de band
-  in de primaire kleur, met de grote hoek rechtsboven en de voet als spiegelbeeld linksonder. Een
-  filterbalk staat onder die kop. Wil je het menu toch gevuld, of in de oude huisstijl licht, zet
+  in de primaire kleur, van rand tot rand en recht: de huisstijl rondt nooit een vlak dat van de
+  pagina afloopt. Een filterbalk staat onder die kop. Wil je het menu toch gevuld, of in de oude huisstijl licht, zet
   dan zelf `nav-tone="filled"` of `nav-tone="light"` op `lintje-shell`.
-- **Kleine ronde hoeken** (4 px) op knoppen, velden, het vinkje en de chips, en op elk omkaderd
-  blok: een kaart, een tegel, een dialoog, een melding. De grote hoek (een lint, 48 px) staat
-  alleen op de kop en de voet van de pagina, en `data-style-new-corner="square"` laat hem weg.
+- **Kleine ronde hoeken** (4 px) op knoppen, velden, het vinkje en de chips. Een omkaderd blok
+  (een kaart, een tegel, een dialoog, een melding) en de voet zijn recht, zoals de huisstijl ze
+  tekent. De grote hoek (een lint, 48 px) staat op een lade, die van de rand van het venster komt,
+  en op een band met `narrow`, die binnen de marges staat; `data-style-new-corner="square"` laat
+  hem weg.
 - **De focusring** is een donkere lijn met een witte lijn erin, in plaats van oranje.
 - **Een formulierveld** toont zijn toelichting en zijn fout boven het veld, met een rode balk
   ernaast en het veld in de fouttint; de select heeft het pijlvak in de primaire kleur.

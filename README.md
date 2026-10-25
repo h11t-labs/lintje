@@ -107,8 +107,8 @@ emblemen en een paar eigen bedieningselementen erbij ([`assets/`](assets/README.
 
 ### Oud of nieuw
 
-De Rijkshuisstijl tekent online sinds 2025 anders dan eerst: een wit menu, kleine ronde hoeken en
-één grote hoek op de kop van de pagina. Lintje tekent beide. Tot 1.0.0 is de oude huisstijl de
+De Rijkshuisstijl tekent online sinds 2025 anders dan eerst: een wit menu, kleine ronde hoeken op
+knoppen en velden, en de kop van de pagina als band in de primaire kleur. Lintje tekent beide. Tot 1.0.0 is de oude huisstijl de
 standaard, zodat een pagina die bijwerkt niet verandert; de nieuwe kies je met één attribuut:
 
 ```html

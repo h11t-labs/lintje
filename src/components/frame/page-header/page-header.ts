@@ -6,7 +6,7 @@
  * so the host's own listener sees the click. In the page's content it is a band that tells the
  * shell when the title scrolls under the top bar. In a shell whose menu is light (the new house
  * style, or `nav-tone="light"`), in either slot, it is the page's band in the primary colour,
- * with the one corner of the new style, and every button in `actions` turns to its reverse by
+ * square from edge to edge (with `narrow` inside the margins, with the one corner), and every button in `actions` turns to its reverse by
  * itself. `meta` takes a
  * line of facts under the title, `tabs` a `lintje-tabs` row on the head's lower edge: the parts
  * of the page, in the band's ink on the band.
@@ -43,6 +43,7 @@ export class LintjePageHeader extends LintjeElement {
     hasActions: { state: true },
     hasTabs: { type: Boolean, attribute: 'has-tabs', reflect: true },
     editable: { type: Boolean, reflect: true },
+    narrow: { type: Boolean, reflect: true },
   }
 
   declare data?: PageHeaderData | null
@@ -60,6 +61,9 @@ export class LintjePageHeader extends LintjeElement {
   hasTabs: boolean = false
   /** A pencil beside the title, shown while it is pointed at or focused, asks to rename it. */
   editable: boolean = false
+  /** As a band: inside the page's margins, in the content column, with the one corner top right;
+   * without it the band runs edge to edge and is square. */
+  narrow: boolean = false
 
   protected override get dataSettings(): FrameSettings | undefined {
     return this.data ?? undefined

@@ -113,14 +113,14 @@
 }
 
 /* With a light menu the page's head is the band in the primary colour, as the house style heads
-   a page beside a white side navigation: the host's corner top right, the words in the band's
-   ink, and the trail, the ring and the buttons in their reverse by the inherited hooks. */
+   a page beside a white side navigation: the words in the band's ink, and the trail, the ring and
+   the buttons in their reverse by the inherited hooks. Square: it runs edge to edge, and the house
+   style never rounds a plane that runs off the page. */
 .lintje-page-header--band,
 .lintje-page-header--shell.lintje-page-header--band {
   padding: var(--space-6) var(--space-6) var(--space-8);
   background: var(--color-hero-primary-bg);
   color: var(--color-hero-primary-text);
-  border-top-right-radius: var(--radius-corner);
   --lintje-focus: var(--color-hero-primary-focus);
   --lintje-focus-inner: var(--color-hero-primary-focus-inner);
   --lintje-breadcrumbs-ink: var(--color-hero-primary-text);
@@ -162,16 +162,30 @@
 }
 @media screen and (max-width: 767px) {
   .lintje-page-header--band { padding: var(--space-5) var(--page-pad-x) var(--space-6); }
-  /* On a phone the house style allows half a ribbon at most, top left; as heavy as the band's
-     own rule, the shell's included. */
-  .lintje-page-header--band,
-  .lintje-page-header--shell.lintje-page-header--band {
-    border-top-right-radius: 0;
-    border-top-left-radius: min(var(--radius-corner), calc(var(--w-ribbon) / 2));
-  }
 }
 
 /* On paper the title stands at the paper's edge, in line with the content under it. */
 @media print {
   .lintje-page-header { padding-inline: 0; }
+}
+
+/* `narrow`: the band inside the page's margins, in the content column, with the one corner top
+   right. Only a band that stays inside the margins carries it; one that runs off the page never.
+   As heavy as the band's own rules, the shell's included. */
+@media screen and (min-width: 768px) {
+  :host([narrow]) .lintje-page-header--band,
+  :host([narrow]) .lintje-page-header--shell.lintje-page-header--band {
+    margin: var(--space-6) calc(var(--page-pad-x) + var(--page-gutter)) 0;
+    padding-inline: var(--space-8);
+    border-top-right-radius: var(--radius-corner);
+  }
+}
+/* On a phone half a ribbon at most, as the house style asks. */
+@media screen and (max-width: 767px) {
+  :host([narrow]) .lintje-page-header--band,
+  :host([narrow]) .lintje-page-header--shell.lintje-page-header--band {
+    margin: var(--space-4) calc(var(--page-pad-x) + var(--page-gutter)) 0;
+    padding-inline: var(--space-5);
+    border-top-right-radius: min(var(--radius-corner), calc(var(--w-ribbon) / 2));
+  }
 }

@@ -23,7 +23,7 @@ een link die zonder `?mode=` gedeeld wordt, volgt het systeem van de lezer en ni
 | `layout` | `top` | het menu naast de pagina |
 | `theme` | een thema | `rijksoverheid` |
 | `style` | `classic` · `new` | de huisstijl die je pagina kiest ([thema's](theming.md#de-huisstijl-oud-en-nieuw)) |
-| `corner` | `square` | de grote hoek van de nieuwe huisstijl, rond |
+| `corner` | `square` | de grote hoek van de nieuwe huisstijl (lade, smalle band), rond |
 | `filters` | of de filterbalk openstaat (`data.open`) | ingeklapt |
 
 De sleutel van een filter is degene die je declareert. Spiegel modus en thema naar `data-mode` en

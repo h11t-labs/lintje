@@ -1,6 +1,6 @@
 ### Gewijzigd
 
-- In de nieuwe huisstijl (`data-style-version="new"`) volgt de voet de huisstijl: de regel cursief in het gewone gewicht, de kolomkoppen vet zonder kleine kapitalen en elke link met een chevron ervoor, en de ene hoek linksonder (`--radius-corner`), het spiegelbeeld van de band aan de kop. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) volgt de voet de huisstijl: de regel cursief in het gewone gewicht, de kolomkoppen vet zonder kleine kapitalen en elke link met een chevron ervoor. (#317)
 
 ### Toegevoegd
 

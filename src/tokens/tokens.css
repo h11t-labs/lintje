@@ -376,8 +376,8 @@
   --h-sticky: calc(var(--h-topbar) + var(--h-contextbar));
 
   /* The corners: of a framed block (a card, a tile, a dialog), of a button and a field, and the
-     one large corner of the page's head and foot. All square in the earlier house style; the new
-     style (`data-style-version="new"`) sets the small ones below, the large one with `data-style-new-corner`. */
+     one large corner of a drawer and a narrow band. All square in the earlier house style; the new style
+     (`data-style-version="new"`) sets them below, the large one with `data-style-new-corner`. */
   --radius: 0px;
   --radius-control: 0px;
   --radius-corner: 0px;
@@ -873,7 +873,7 @@
    What the house style draws differently online since 2025: the larger page title, the content
    at 1280 px with a ribbon as the page's margin, the small corners on controls and blocks, the
    ring as a dark line with a white line inside, the choice edge in the accent, the cool veil
-   and the tinted hover of the outlined button. The large corner of the page's head and foot
+   and the tinted hover of the outlined button. The large corner of a drawer and a narrow band
    comes with `data-style-new-corner` (round unless `square`). Everything else the two styles share.
    ========================================================================= */
 [data-style-version='new'] {
@@ -912,8 +912,8 @@
   --color-action-primary-pressed: color-mix(in srgb, var(--primary), black 40%);
   --color-action-tertiary-pressed: var(--color-border-default);
   --color-action-danger-pressed: color-mix(in srgb, var(--status-error), black 40%);
-  /* The house style's one rounded corner, a ribbon wide, on the band at the page's head and on
-     the foot. No building block reads it. */
+  /* The house style's one rounded corner, a ribbon wide, on a drawer (its corner free) and on a
+     narrow band inside the margins. A band or foot that runs edge to edge stays square. */
   --radius-corner: 48px;
   /* The components that draw differently: the status bar, the 1 px choice edge, the boxless
      tertiary, the accordion row, the tinted current page, the filled sub-navigation and the

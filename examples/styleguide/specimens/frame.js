@@ -347,6 +347,30 @@ export default {
           },
         },
         {
+          label: 'Smalle paginakop',
+          note:
+            'Met `narrow` staat de band van de paginakop binnen de marges, in de kolom van de inhoud, ' +
+            'met in de nieuwe huisstijl de ene afgeronde hoek rechtsboven. Zonder loopt hij van rand ' +
+            'tot rand en is hij recht.',
+          html: `<lintje-shell nav-tone="light">
+            <lintje-page-header slot="header" narrow>
+              <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
+              <lintje-button slot="actions" variant="primary">Nieuwe opname</lintje-button>
+            </lintje-page-header>
+            <p>De band staat in de kolom van de inhoud, gelijk met deze tekst.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.style.minHeight = '0'
+            shell.data = { name: 'Transcriptie', emblem: emblem(), navigation: NAVIGATION, user: USER }
+            stage.querySelector('lintje-page-header').data = {
+              title: 'Opnames',
+              description: 'Alle opnames van het team, de nieuwste bovenaan.',
+            }
+            stage.querySelector('lintje-breadcrumbs').items = [{ label: 'Start', href: '#start' }]
+          },
+        },
+        {
           label: 'Header onderaan op een telefoon',
           note:
             'Met `mobile-bar="bottom"` plakt de header onder 768 px aan de onderrand van het ' +
@@ -684,8 +708,8 @@ export default {
           label: 'Als paginakop',
           note:
             'Met `tone="primary"` is de hero de kop van een werkpagina: kruimelpad, titel en ' +
-            'inleiding in wit op de primaire kleur. In de nieuwe huisstijl draagt de band de ene ' +
-            'afgeronde hoek rechtsboven (`--radius-corner`); `data-style-new-corner="square"` laat hem weg.',
+            'inleiding in wit op de primaire kleur. De band loopt van rand tot rand en is daarom recht: ' +
+            'de huisstijl rondt nooit een vlak dat van de pagina afloopt.',
           html: `<div data-style-version="new" data-style-new-corner="round">
             <lintje-hero tone="primary" heading="Aanvragen en wachttijden" description="Alle cijfers over de loketten, per regio en per soort loket, bijgewerkt tot vanochtend.">
               <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
@@ -693,6 +717,22 @@ export default {
           </div>`,
           setup(stage) {
             crumbs(stage, [{ label: 'Home', href: '#home' }, { label: 'Cijfers', href: '#cijfers' }, { label: 'Aanvragen en wachttijden' }])
+          },
+        },
+        {
+          label: 'Smal, binnen de marges',
+          note:
+            'Met `narrow` staat de band binnen de marges van de pagina, in de kolom van de inhoud, ' +
+            'en draagt hij in de nieuwe huisstijl de ene afgeronde hoek rechtsboven (`--radius-corner`, ' +
+            'op een telefoon een halve lint). Kies hem alleen als de band minstens drie keer zo hoog is ' +
+            'als de hoek.',
+          html: `<div data-style-version="new" data-style-new-corner="round">
+            <lintje-hero tone="primary" narrow heading="Aanvragen en wachttijden" description="Alle cijfers over de loketten, per regio en per soort loket, bijgewerkt tot vanochtend.">
+              <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
+            </lintje-hero>
+          </div>`,
+          setup(stage) {
+            crumbs(stage, [{ label: 'Home', href: '#home' }, { label: 'Cijfers', href: '#cijfers' }])
           },
         },
         {

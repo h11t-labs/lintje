@@ -7,8 +7,6 @@
   background: var(--color-footer-bg);
   color: var(--color-footer-text);
   font: var(--text-ui);
-  /* The host's one corner, bottom left: the mirror of the band's corner at the page's head. */
-  border-bottom-left-radius: var(--radius-corner);
 }
 .lintje-footer {
   --lintje-focus: var(--color-footer-focus);
@@ -72,7 +70,6 @@
 .lintje-footer--compact {
   background: var(--color-footer-compact-bg);
   color: var(--color-footer-compact-text);
-  border-bottom-left-radius: 0;
 }
 .lintje-footer--compact {
   --lintje-focus: var(--color-focus);
@@ -95,8 +92,6 @@
 }
 
 @media screen and (max-width: 767px) {
-  /* On a phone the house style allows half a ribbon at most. */
-  .lintje-footer { border-bottom-left-radius: min(var(--radius-corner), calc(var(--w-ribbon) / 2)); }
   .lintje-footer__inner { padding-top: var(--space-8); }
   .lintje-footer__columns { grid-template-columns: minmax(0, 1fr); }
   .lintje-footer--compact .lintje-footer__inner { flex-direction: column; align-items: flex-start; padding-top: var(--space-5); }

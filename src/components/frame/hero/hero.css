@@ -77,11 +77,11 @@
 }
 .lintje-hero__action:hover { text-decoration-thickness: 2px; }
 
-/* The page's head: the primary itself, with the host's one corner top right, and no line. */
+/* The page's head: the primary itself, and no line. Square: it runs edge to edge, and the house
+   style never rounds a plane that runs off the page. */
 .lintje-hero--primary .lintje-hero__band {
   background: var(--color-hero-primary-bg);
   color: var(--color-hero-primary-text);
-  border-top-right-radius: var(--radius-corner);
 }
 /* The band's inverse ring, the trail's ink and the buttons' reverse reach what stands on the
    band by inheritance: a token set on a slotted element loses to the dark re-declaration in that
@@ -125,9 +125,22 @@
   }
   .lintje-hero__title { font: var(--text-h1); }
   .lintje-hero__description { font: var(--text-body); }
-  /* On a phone the house style allows half a ribbon at most, top left. */
-  .lintje-hero--primary .lintje-hero__band {
-    border-top-right-radius: 0;
-    border-top-left-radius: min(var(--radius-corner), calc(var(--w-ribbon) / 2));
+}
+
+/* `narrow`: the band inside the page's margins, in the content column, with the one corner top
+   right. Only a band that stays inside the margins carries it; one that runs off the page never. */
+@media screen and (min-width: 768px) {
+  :host([narrow]) .lintje-hero__band {
+    margin: var(--space-6) calc(var(--page-pad-x) + var(--page-gutter)) 0;
+    padding-inline: var(--space-10);
+    border-top-right-radius: var(--radius-corner);
+  }
+}
+/* On a phone half a ribbon at most, as the house style asks. */
+@media screen and (max-width: 767px) {
+  :host([narrow]) .lintje-hero__band {
+    margin: var(--space-4) calc(var(--page-pad-x) + var(--page-gutter)) 0;
+    padding-inline: var(--space-5);
+    border-top-right-radius: min(var(--radius-corner), calc(var(--w-ribbon) / 2));
   }
 }

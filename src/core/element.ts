@@ -21,11 +21,11 @@ export type Mode = 'light' | 'dark'
 /**
  * `classic`: the earlier house style online, the menu filled in the theme's colour and square
  * corners, the default until 1.0.0. `new`: the house style as it is drawn now, the light menu,
- * the small corners on controls and blocks and the one large corner on the page's head.
+ * the small corners on controls and fields and the one large corner on a drawer and a narrow band.
  */
 export type Style = 'classic' | 'new'
 
-/** The large corner of the page's head in the new style: `round` draws it, `square` does not. */
+/** The large corner of a drawer and a narrow band in the new style: `round` draws it, `square` does not. */
 export type Corner = 'round' | 'square'
 
 export interface FrameSettings {
