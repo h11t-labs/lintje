@@ -12,6 +12,16 @@
   :host([span='4']) { grid-column: span 6; }
   :host([span='8']) { grid-column: span 12; }
 }
+/* A phone stacks; in the new style it has four columns: all four, or `span-mobile` of them. The
+   host's choices of place and showing hold in both styles. */
 @media screen and (max-width: 767px) {
   :host([span]) { grid-column: span 1; }
+  :host([data-style-version='new'][span]) { grid-column: span 4; }
+  :host([data-style-version='new'][span-mobile]) { grid-column: span var(--lintje-span-mobile, 4); }
+  :host([order-mobile]) { order: var(--lintje-order-mobile, 0); }
+  :host([hide-mobile]) { display: none; }
+}
+/* `hide-desktop` is the other side of the same line, paper included. */
+@media not screen and (max-width: 767px) {
+  :host([hide-desktop]) { display: none; }
 }

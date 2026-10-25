@@ -135,11 +135,12 @@ describe('a row in the side menu', () => {
 const navigationCss = readFileSync(resolvePath('src/components/frame/shell/navigation.css'), 'utf8')
 
 describe('the badge in the rail', () => {
-  it("stands at the icon's top right, --space-1 from the rail's edge", () => {
+  it("stands at the icon's top right corner, measured from the rail's width", () => {
     const rule =
       /\.lintje-nav--rail:not\(\.is-expanded\) \.lintje-nav__badge\s*\{([^}]*)\}/.exec(
         navigationCss,
       )?.[1] ?? ''
-    expect(rule).toMatch(/right:\s*var\(--space-1\)/)
+    expect(rule).toMatch(/top:\s*var\(--space-1\)/)
+    expect(rule).toMatch(/right:\s*calc\(\(var\(--w-rail\) - 20px\) \/ 2 - var\(--space-3\)\)/)
   })
 })

@@ -82,6 +82,7 @@ export class LintjeCheckboxGroup extends LintjeChoiceGroupElement {
       aria-invalid=${this.error || (this.otherOpen && this.otherError) ? 'true' : nothing}
     >
       ${this.renderLabel()}
+      ${this.renderMessages()}
       <div class="lintje-checkbox-group">
         ${(this.options ?? []).map(
           (option) => html`<lintje-checkbox

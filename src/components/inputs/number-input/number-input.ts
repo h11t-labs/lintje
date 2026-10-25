@@ -107,6 +107,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     const addon = { readonly: this.readonly, disabled: this.isDisabled }
     return html`<div class="lintje-field">
       ${this.renderLabel(this.controlId)}
+      ${this.renderMessages()}
       <div
         class=${classMap({
           'lintje-number-input': true,

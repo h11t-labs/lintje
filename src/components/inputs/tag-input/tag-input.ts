@@ -313,6 +313,7 @@ export class LintjeTagInput extends LintjeInputElement {
     const combo = Boolean(this.options)
     return html`<div class="lintje-field">
       ${this.renderLabel(this.controlId)}
+      ${this.renderMessages()}
       <div
         class=${classMap({
           'lintje-tag-input': true,

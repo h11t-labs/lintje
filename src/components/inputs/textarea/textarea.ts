@@ -184,13 +184,19 @@ export class LintjeTextarea extends LintjeFormInputElement {
     return Boolean(this.maxlength) && !this.isDisabled
   }
 
-  protected override renderFoot(): TemplateResult | typeof nothing {
-    const foot = renderFieldFoot(
+  protected override renderFieldLine(): TemplateResult | typeof nothing {
+    return renderFieldFoot(
       this.hint,
       this.footMessage,
       { hintId: this.hintId, errorId: this.errorId },
       !this.#over || this.#alertLimit,
     )
+  }
+
+  // The counter stands under the field, at its right. In the new style the message is above the
+  // field, as in every field; in the earlier one it shares the counter's line, at the left.
+  protected override renderFoot(): TemplateResult | typeof nothing {
+    const foot = this.messagesAbove ? nothing : this.renderFieldLine()
     if (!this.counterShown) return html`${foot}${this.renderReset()}`
     const limit = this.maxlength!
     const length = this.value.length
@@ -211,6 +217,7 @@ export class LintjeTextarea extends LintjeFormInputElement {
     const message = this.message
     return html`<div class="lintje-field">
       ${this.renderLabel(this.controlId)}
+      ${this.renderMessages()}
       <textarea
         id=${this.controlId}
         class=${classMap({

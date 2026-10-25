@@ -240,6 +240,7 @@ export class LintjeDateInput extends LintjeInputElement {
     const message = this.message
     return html`<div class="lintje-field" @focusout=${this.onFocusOut}>
       ${this.renderLabel(this.controlId)}
+      ${this.renderMessages()}
       <div class="lintje-date-input">
         <input
           type="text"

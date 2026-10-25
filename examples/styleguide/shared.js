@@ -152,7 +152,9 @@ function frameDocument(html, page = false) {
   const root = document.documentElement
   const { styles, bundle, icons } = frameSources
   return `<!doctype html><html lang="nl" data-mode="${root.dataset.mode ?? 'light'}"
-    data-theme="${root.dataset.theme ?? ''}"><head><meta charset="utf-8">
+    data-theme="${root.dataset.theme ?? ''}"
+    data-style-version="${root.dataset.styleVersion ?? 'classic'}"
+    data-style-new-corner="${root.dataset.styleNewCorner ?? 'round'}"><head><meta charset="utf-8">
     <base href="${frameSources.base()}">
     ${styles.map((href) => `<link rel="stylesheet" href="${href}">`).join('')}
     <style>${FRAME_STYLE}</style></head>
