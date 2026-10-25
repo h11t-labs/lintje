@@ -195,6 +195,18 @@ describe('lintje-document-viewer', () => {
     expect(status.textContent).toBe('Zoom passend')
   })
 
+  it('says that a page cannot be shown, in the region that said the page', async () => {
+    const element = await mount()
+    const status = root(element).querySelector('[role="status"]')!
+    button(element, 'Volgende pagina').click()
+    await element.updateComplete
+    expect(status.textContent).toBe('Pagina 2 van 5')
+    root(element).querySelector('img')!.dispatchEvent(new Event('error'))
+    await element.updateComplete
+    expect(root(element).querySelector('[role="status"]')).toBe(status)
+    expect(status.textContent).toBe('Het document kan niet worden getoond')
+  })
+
   it('reads the text of the page shown after its image', async () => {
     const element = await mount({ texts: ['Geachte heer, mevrouw,', 'Met vriendelijke groet,'] })
     const text = (): string | undefined =>

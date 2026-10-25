@@ -239,7 +239,56 @@ describe('the status region', () => {
     expect(full.label).toBe('Paginering Loketten met aanvragen')
     await full.updateComplete
     full.shadowRoot!.querySelector<HTMLButtonElement>('[aria-label="Ga naar pagina 2"]')!.click()
-    expect(await said(element)).toBe('Pagina 2 van 3')
+    // The pager says the page, once: the table's own region keeps its last sentence.
+    expect(await said(element)).toBe('Gesorteerd op aanvragen, aflopend.')
+    await full.updateComplete
+    expect(full.shadowRoot!.querySelector('[role="status"]')!.textContent?.trim()).toBe(
+      'Pagina 2 van 3',
+    )
+  })
+
+  it('says it loads on its own from a region that stays, the skeleton only drawn', async () => {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.setAttribute('plain', '')
+    element.data = structuredClone(data)
+    document.body.append(element)
+    await element.updateComplete
+    const region = (): Element => element.shadowRoot!.querySelector('[role="status"]')!
+    const before = region()
+    element.data = { ...element.data!, state: 'loading' }
+    await element.updateComplete
+    await frame()
+    await element.updateComplete
+    expect(region()).toBe(before)
+    expect(region().textContent?.trim()).toBe('Gegevens laden…')
+    expect(element.shadowRoot!.querySelectorAll('[role="status"]')).toHaveLength(1)
+    expect(
+      element.shadowRoot!.querySelector('.lintje-chart-skeleton')!.getAttribute('aria-hidden'),
+    ).toBe('true')
+  })
+
+  it('says the count after a filter only once the host has loaded it', async () => {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = {
+      ...structuredClone(data),
+      totalRows: 2,
+      columns: [
+        { key: 'name', header: 'Loket', filter: { kind: 'text' } },
+        { key: 'requests', header: 'Aanvragen' },
+      ],
+      filters: { name: 'Utr' },
+      rows: [data.rows[0]!],
+    }
+    document.body.append(element)
+    await element.updateComplete
+    // The host loads first, then sends the rows the filter leaves.
+    element.addEventListener('lintje-filter-change', () => {
+      element.data = { ...element.data, filters: {}, state: 'loading' }
+    })
+    element.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-data-table__chip-clear')!.click()
+    expect(await said(element)).toBe('')
+    element.data = { ...element.data, state: 'ready', rows: structuredClone(data.rows) }
+    expect(await said(element)).toBe('2 van 2 rijen')
   })
 
   it('starts silent in the tile after the expanded copy closes, and speaks again after', async () => {

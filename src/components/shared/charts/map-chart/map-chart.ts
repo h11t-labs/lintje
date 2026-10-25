@@ -127,6 +127,11 @@ export interface MapOptions extends Omit<ChartOptions, 'description' | 'onSelect
   onArea?: (area: MapArea | null, ids: string[]) => void
 }
 
+/** How many marks an area chose, as its panel says it. */
+function chosenWords(count: number): string {
+  return count === 0 ? 'Niets' : `${formatNumber(count)} op de kaart`
+}
+
 /** What a drawn area is called in its panel. */
 function areaWords(area: MapArea): string {
   if (area.kind === 'circle')
@@ -238,7 +243,10 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
   const drawn = (next: MapArea) => {
     controller.mapAreaAside = null
     controller.mapArea = next
-    onArea?.(next, idsInArea(next, drawings, data.geo))
+    const ids = idsInArea(next, drawings, data.geo)
+    onArea?.(next, ids)
+    // The panel is no live region: what the area chose is said beside it.
+    controller.sayOnMap(`${chosenWords(ids.length)} gekozen, ${areaWords(next)}`)
     controller.requestUpdate()
   }
   // A new area begins: the one that stands goes from sight, its outline and panel, without
@@ -511,7 +519,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
           <button type="button" class="lintje-map-chart__selection-close"
                   aria-label="Selectie opheffen"
                   @click=${() => clearArea()}>${renderIcon('functioneel-kruis', { size: 14 })}</button>
-          <b>${chosen.length === 0 ? 'Niets' : chosen.length === 1 ? '1 op de kaart' : `${formatNumber(chosen.length)} op de kaart`}</b>
+          <b>${chosenWords(chosen.length)}</b>
           <span class="lintje-map-chart__selection-value">${areaWords(area)}</span>
         </div>
       `
@@ -649,6 +657,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
         ${mobile ? nothing : renderPanel()}
       </div>
       ${mobile ? renderPanel() : nothing}
+      <p class="visually-hidden" role="status" aria-atomic="false">${controller.mapSaid}</p>
     </div>
   `
 }

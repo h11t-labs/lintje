@@ -69,6 +69,21 @@ const described = (element: LintjeChatComposer): string =>
     .map((id) => element.renderRoot.querySelector(`#${id}`)?.textContent ?? '')
     .join(' ')
 
+const region = (element: HTMLElement & { renderRoot: ParentNode }): string =>
+  element.renderRoot
+    .querySelector('.lintje-chat-composer > [role="status"]')
+    ?.textContent?.trim() ?? 'geen regio'
+
+/** What the composer's region says once its news has had its frame. */
+async function news(
+  element: HTMLElement & { renderRoot: ParentNode; updateComplete: Promise<unknown> },
+) {
+  await element.updateComplete
+  await new Promise((resolve) => requestAnimationFrame(resolve))
+  await element.updateComplete
+  return region(element)
+}
+
 describe('lintje-chat-composer', () => {
   it('is a labelled, multi-line text box with a placeholder', async () => {
     const element = await composer()
@@ -442,9 +457,9 @@ describe('lintje-chat-composer with attachments', () => {
     const refused = chips(element)
     await Promise.all(refused.map((chip) => chip.updateComplete))
     expect(refused.map((chip) => chip.refused)).toEqual([true, true])
-    expect(
-      element.renderRoot.querySelector('.lintje-chat-composer > [role="status"]')?.textContent,
-    ).toBe('foto.heic geweigerd: Dit bestandstype kan niet. scan.pdf geweigerd: Groter dan 20 MB')
+    expect(await news(element)).toBe(
+      'foto.heic geweigerd: Dit bestandstype kan niet. scan.pdf geweigerd: Groter dan 20 MB',
+    )
     refused[0].shadowRoot!.querySelector<HTMLElement>('.lintje-attachment__remove')!.click()
     await element.updateComplete
     expect(removed).toEqual([])
@@ -463,10 +478,22 @@ describe('lintje-chat-composer with attachments', () => {
   it('says what changes in the files', async () => {
     const element = await composer({ files: [BUSY] })
     element.files = [{ ...BUSY, state: 'done' }]
+    expect(await news(element)).toBe('aanvragen-q3.xlsx klaar')
+  })
+
+  it('says a second failure as it said the first, from a region that empties first', async () => {
+    const element = await composer({ files: [BUSY] })
+    const failed = { ...BUSY, state: 'error' as const, message: 'Verbinding verbroken' }
+    element.files = [failed]
+    const first = await news(element)
+    expect(first).toContain('mislukt')
+    // "Opnieuw": busy again, then the same failure.
+    element.files = [BUSY]
+    await news(element)
+    element.files = [failed]
     await element.updateComplete
-    expect(
-      element.renderRoot.querySelector('.lintje-chat-composer > [role="status"]')?.textContent,
-    ).toBe('aanvragen-q3.xlsx klaar')
+    expect(region(element)).toBe('')
+    expect(await news(element)).toBe(first)
   })
 
   it('pastes files only when the clipboard carries no text', async () => {

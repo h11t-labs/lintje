@@ -274,3 +274,61 @@ describe('lintje-kpi gauge', () => {
     expect((query(element, '.lintje-gauge__bar-fill') as HTMLElement).style.width).toBe('100%')
   })
 })
+
+describe('what a KPI says of its state', () => {
+  const frame = (): Promise<void> =>
+    new Promise((resolve) => requestAnimationFrame(() => resolve()))
+  const region = (element: Element): string =>
+    element.shadowRoot!.querySelector('[role="status"]')?.textContent?.trim() ?? 'geen regio'
+  async function said(element: HTMLElement & { updateComplete: Promise<unknown> }) {
+    await element.updateComplete
+    await frame()
+    await element.updateComplete
+    return region(element)
+  }
+
+  it('says loading, empty and failed once they come, silent on the first drawing', async () => {
+    const element = Object.assign(document.createElement('lintje-kpi'), {
+      label: 'Aanvragen',
+      value: '1.204',
+    })
+    element.state = 'loading'
+    document.body.append(element)
+    await element.updateComplete
+    expect(region(element)).toBe('')
+    element.state = 'error'
+    expect(await said(element)).toBe('Niet geladen')
+    element.state = 'loading'
+    expect(await said(element)).toBe('Laden')
+    element.message = 'Geen aanvragen deze week'
+    element.state = 'empty'
+    expect(await said(element)).toBe('Geen aanvragen deze week')
+    // The same state twice is said twice: the region empties first.
+    element.state = 'loading'
+    expect(await said(element)).toBe('Laden')
+    element.state = 'ready'
+    await element.updateComplete
+    element.state = 'loading'
+    expect(await said(element)).toBe('Laden')
+  })
+
+  it('leaves the speaking to its row, which says "Laden" once for all', async () => {
+    const row = document.createElement('lintje-kpi-row')
+    const kpi = (label: string, state?: 'loading' | 'error') => ({ label, value: '12', state })
+    row.data = { kpis: [kpi('Aanvragen'), kpi('Bezwaren'), kpi('Wachttijd')] }
+    document.body.append(row)
+    await row.updateComplete
+    const kpis = [...row.shadowRoot!.querySelectorAll('lintje-kpi')]
+    await Promise.all(kpis.map((each) => each.updateComplete))
+    expect(kpis.every((each) => !each.shadowRoot!.querySelector('[role="status"]'))).toBe(true)
+    expect(row.shadowRoot!.querySelectorAll('[role="status"]')).toHaveLength(1)
+    row.data = {
+      kpis: [kpi('Aanvragen', 'loading'), kpi('Bezwaren', 'loading'), kpi('Wachttijd', 'loading')],
+    }
+    expect(await said(row)).toBe('Laden')
+    row.data = {
+      kpis: [kpi('Aanvragen'), kpi('Bezwaren', 'error'), kpi('Wachttijd')],
+    }
+    expect(await said(row)).toBe('Bezwaren: Niet geladen')
+  })
+})
