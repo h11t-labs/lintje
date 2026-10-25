@@ -642,7 +642,7 @@ const TIMELINE_YEAR = [
   { when: '3 februari 2026', at: '2026-02-03', title: 'Aanvraag ingediend', text: 'U ontving een ontvangstbevestiging.', side: 'start' },
   { when: '2 april 2026', at: '2026-04-02', title: 'Aanvulling gevraagd', text: 'We vroegen om de begroting.', side: 'end' },
   { when: '28 mei 2026', at: '2026-05-28', title: 'Aanvulling gestuurd', side: 'start' },
-  { when: '14 augustus 2026', at: '2026-08-14', title: 'Besluit', text: 'De subsidie is toegekend.', side: 'end' },
+  { when: '31 juli 2026', at: '2026-07-31', title: 'Besluit', text: 'De subsidie is toegekend.', side: 'end' },
   { when: 'Verwacht 1 december 2026', at: '2026-12-01', title: 'Uitbetaling', planned: true, side: 'end' },
 ]
 
