@@ -161,9 +161,11 @@
   --lintje-tabs-hover: var(--color-action-inverse-secondary-hover);
 }
 @media screen and (max-width: 767px) {
-  /* On a phone the house style allows half a ribbon at most, top left. */
-  .lintje-page-header--band {
-    padding: var(--space-5) var(--page-pad-x) var(--space-6);
+  .lintje-page-header--band { padding: var(--space-5) var(--page-pad-x) var(--space-6); }
+  /* On a phone the house style allows half a ribbon at most, top left; as heavy as the band's
+     own rule, the shell's included. */
+  .lintje-page-header--band,
+  .lintje-page-header--shell.lintje-page-header--band {
     border-top-right-radius: 0;
     border-top-left-radius: min(var(--radius-corner), calc(var(--w-ribbon) / 2));
   }

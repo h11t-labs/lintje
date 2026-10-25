@@ -884,6 +884,45 @@ const ROWS: Row[] = [
       )
     },
   },
+  ...(['content', 'header'] as const).map((slot): Row => ({
+    tag: 'lintje-page-header',
+    marker: `in the new style the band${slot === 'header' ? ' in the shell’s header' : ''} rounds only its top left, half a ribbon at most`,
+    mount: async () => {
+      const page = document.createElement('div')
+      page.dataset.styleVersion = 'new'
+      const shell = create('lintje-shell', {
+        data: { name: 'Vergunningen', navigation: NAVIGATION },
+      })
+      shell.setAttribute('nav-tone', 'light')
+      const header = create('lintje-page-header', { data: { title: 'Aanvragen' } })
+      if (slot === 'header') header.slot = 'header'
+      shell.append(header)
+      page.append(shell)
+      await append(page)
+      await shell.updateComplete
+      await header.updateComplete
+      return header
+    },
+    wide: (element) => {
+      const band = find(element, '.lintje-page-header--band')
+      if (!band) return false
+      const style = getComputedStyle(band)
+      return (
+        parseFloat(style.borderTopRightRadius) > 0 && parseFloat(style.borderTopLeftRadius) === 0
+      )
+    },
+    phone: (element) => {
+      const band = find(element, '.lintje-page-header--band')
+      if (!band) return false
+      const style = getComputedStyle(band)
+      // The ribbon's width is in rem.
+      const ribbon = getComputedStyle(element).getPropertyValue('--w-ribbon')
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+      const half = (parseFloat(ribbon) * (ribbon.trim().endsWith('rem') ? rem : 1)) / 2
+      const left = parseFloat(style.borderTopLeftRadius)
+      return left > 0 && left <= half && parseFloat(style.borderTopRightRadius) === 0
+    },
+  })),
   {
     tag: 'lintje-breadcrumbs',
     marker: 'one link back to the level above replaces the trail',
