@@ -433,7 +433,8 @@ Besluiten die voor beide gelden:
 - **Tabs komen in twee vormen.** Een rij boven de inhoud, de gekozen tab onderstreept; en grote
   tabs boven een omrand paneel, voor de paar modi waartussen een hele pagina wisselt: elk met een
   icoon en een hint, waarbij het eigen oppervlak van het paneel doorloopt in de gekozen, zonder
-  lijn. Op een telefoon zet de grote tab zijn icoon boven zijn label en laat hij de hint weg.
+  lijn. Op een telefoon zet de grote tab zijn icoon boven zijn label; de hint blijft eronder
+  staan, op elke breedte, en breekt af waar de ruimte op is.
 - **Een submenu is de side navigation van de huisstijl** (`lintje-sub-nav`): links in de
   linkkleur zonder rand, de pagina van de lezer vet op de waas van de primaire kleur, een rij
   onder de aanwijzer gevuld in de primaire kleur met wit erop, groepen gescheiden door ruimte,
@@ -1192,7 +1193,11 @@ een balk, en halen hun aanwijsdoel via het klikgebied in de richting waar ze rui
 
 ## Responsief gedrag
 
-Vier breedtes zijn ontworpen en getest: desktop (vanaf 1440), 1024, 768 en 390 px.
+Vier breedtes zijn ontworpen en getest: desktop (vanaf 1440), 1024, 768 en 390 px. Daaronder
+herschikt alles tot 320 px breed, en tot 320 × 256 (400 % zoom, een telefoon dwars), zonder iets
+te verliezen en zonder zijwaarts te scrollen (1.4.10): een lange titel breekt af, een rij knoppen
+of een telling loopt door naar een volgende regel, en een element dat zijn eigen plek meet (de
+tabel, het zoekveld, de segmenten) neemt daar een smallere vorm.
 
 **Onder 768 px wisselt een onderdeel van vorm; het stapelt niet alleen.** Dat geldt voor de
 navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de tabel
@@ -1212,7 +1217,9 @@ van de shell, de lijst van de meldingen — en geeft de focus aan zijn knop als 
 zoals de bel.
 
 **Bij weinig hoogte plakt de actiebalk van een formulier niet**: onder een viewporthoogte van
-30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10).
+30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10). Onder dezelfde
+grens plakken de vragen en het vraagvak van een gesprek niet, en scrolt een klein venster als
+geheel, met zijn kop en alle knoppen.
 
 **Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame nadat die veranderde.**
 Zo verandert zijn maat nooit in de ronde van zijn waarnemer, die de browser anders als fout van de
@@ -1374,7 +1381,8 @@ kleinste correctie, en leg die hier vast.
   beschrijvingslijst; "Sorteren" sorteert op elke kolom. Een cel bewerken blijft voor de bredere
   tabel. Die vorm is nooit breder dan haar tegel: de naam neemt wat de meetwaarde en de knoppen
   overlaten en breekt ook midden in een woord af; passen zelfs de hele woorden van de meetwaarde
-  niet (320 px), dan breekt elk woord en delen de kolommen de ruimte.
+  niet (320 px), dan breekt elk woord, delen de kolommen de ruimte en nemen het uitklapknopje en
+  het rijmenu de ondergrens van 24 px.
 - **Een vastgeplakte balk bedekt nooit de focus** (2.4.11): de actiebalk van het formulier
   reserveert zijn hoogte als `scroll-padding-bottom` van de scroller, en de foutsamenvatting
   scrolt een veld naar het midden. Een element waar de focus toch onder belandt, scrollen de

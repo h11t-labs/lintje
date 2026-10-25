@@ -30,7 +30,8 @@
   overflow-wrap: anywhere;
   font-weight: 700;
 }
-.lintje-document-viewer__group { display: flex; align-items: center; gap: var(--space-1); }
+/* On a narrow screen the group breaks too: "Passend" and "Downloaden" may take a line of their own. */
+.lintje-document-viewer__group { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
 .lintje-document-viewer__button { height: var(--h-button); min-width: var(--h-button); }
 .lintje-document-viewer__figure { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .lintje-document-viewer__zoom { min-width: 7ch; text-align: center; }

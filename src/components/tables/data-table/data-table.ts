@@ -344,8 +344,6 @@ export class LintjeDataTable extends LintjeContentTileElement {
   mobilePage: number = 0
 
   readonly #mobile = new MediaController(this)
-  /** Per phone table, how wide it is with whole words: it keeps them again once that fits. */
-  readonly #wholeWidths = new WeakMap<Element, number>()
   readonly #words = new FrameResizeObserver(() => this.#fitWords())
   readonly #edges = new ScrollEdges(() => this.requestUpdate())
   readonly #modalEdges = new ScrollEdges(() => this.requestUpdate())
@@ -476,22 +474,24 @@ export class LintjeDataTable extends LintjeContentTileElement {
     super.updated(changed)
     this.#editing.restoreFocus(this.renderRoot)
     this.#keepFocus()
-    this.#fitWords(true)
+    this.#fitWords()
   }
 
-  // Wider than its tile with whole words, the phone's table lets every word break (`is-narrow`).
-  // Its whole width is kept, so it takes them back once that fits; new rows are measured again.
-  // A pixel of slack, as in lintje-segmented: WebKit rounds the two widths apart when zoomed.
-  #fitWords(again = false): void {
+  // The phone's table takes the first form that fits its tile, measured each time from whole
+  // words: then the words of the rows break (`is-narrow`), then those of the head as well
+  // (`is-narrowest`). A pixel of slack, as in lintje-segmented: WebKit rounds the widths apart.
+  #fitWords(): void {
     const tables = this.renderRoot.querySelectorAll<HTMLElement>(
       '.lintje-data-table.is-phone > .lintje-data-table__mobile',
     )
     for (const table of tables) {
       const room = table.parentElement?.clientWidth ?? 0
       if (!room) continue
-      if (again) table.classList.remove('is-narrow')
-      if (!table.classList.contains('is-narrow')) this.#wholeWidths.set(table, table.offsetWidth)
-      table.classList.toggle('is-narrow', (this.#wholeWidths.get(table) ?? 0) > room + 1)
+      table.classList.remove('is-narrow', 'is-narrowest')
+      for (const form of ['is-narrow', 'is-narrowest']) {
+        if (table.offsetWidth <= room + 1) break
+        table.classList.add(form)
+      }
     }
   }
 
