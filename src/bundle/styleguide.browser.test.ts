@@ -82,7 +82,10 @@ const NO_FILE_ON_PURPOSE = 'bestaat-niet'
  * below. A finding that matches none fails its element; an entry that matches nothing in a
  * whole run fails too, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = []
+const KNOWN: RegExp[] = [
+  // #258
+  /^color-contrast @ lintje-chart >> .*\.lintje-sankey__piece--ink/,
+]
 const seen = new Set<RegExp>()
 let drawn = 0
 

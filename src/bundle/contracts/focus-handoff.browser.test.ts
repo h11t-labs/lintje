@@ -61,7 +61,12 @@ interface Row {
  * Rows that fail today: each entry has its GitHub issue above it and matches a row's name.
  * An entry whose row passes fails the last test, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = []
+const KNOWN: RegExp[] = [
+  // #249
+  /^lintje-chart :: a sankey’s row on a phone, cleared/,
+  // #249
+  /^lintje-chart :: a treemap’s part chosen on a phone, cleared/,
+]
 const seen = new Set<RegExp>()
 let ran = 0
 
@@ -1674,6 +1679,77 @@ async function chosenSlice(
   return tile
 }
 
+/** A tile whose host keeps the choice as a page does: it answers a choice and a clear itself. */
+async function hostedChart(
+  chart: Record<string, unknown>,
+  selectedId: string | null,
+  onPhone = false,
+): Promise<ChartElement> {
+  const tile = await mount<ChartElement>('lintje-chart', {
+    data: { title: 'Aanvragen', description: 'Een grafiek.', chart, selectedId, clearHref: '/p' },
+  })
+  if (onPhone) await phone()
+  tile.addEventListener('lintje-mark-select', (event) => {
+    event.preventDefault()
+    tile.data = {
+      ...tile.data,
+      selectedId: (event as CustomEvent<{ id: string | null }>).detail.id,
+    }
+  })
+  return tile
+}
+
+const chartPart = (tile: ChartElement, selector: string, index = 0): HTMLElement | null =>
+  tile.shadowRoot!.querySelectorAll<HTMLElement>(selector)[index] ?? null
+
+/** "Afgewezen" is a row under both sources on a phone; every node opens its page. */
+const SANKEY = {
+  kind: 'sankey',
+  steps: [
+    { label: 'Ingediend', nodes: [{ id: 'in', label: 'Aanvragen', href: '/p?k=in' }] },
+    {
+      label: 'Volledigheid',
+      nodes: [
+        { id: 'compleet', label: 'Compleet', href: '/p?k=compleet' },
+        { id: 'onvolledig', label: 'Onvolledig', href: '/p?k=onvolledig' },
+      ],
+    },
+    {
+      label: 'Uitkomst',
+      nodes: [
+        { id: 'toegekend', label: 'Toegekend', href: '/p?k=toegekend' },
+        { id: 'afgewezen', label: 'Afgewezen', href: '/p?k=afgewezen' },
+      ],
+    },
+  ],
+  flows: [
+    { from: 'in', to: 'compleet', value: 70 },
+    { from: 'in', to: 'onvolledig', value: 30 },
+    { from: 'compleet', to: 'toegekend', value: 50 },
+    { from: 'compleet', to: 'afgewezen', value: 20 },
+    { from: 'onvolledig', to: 'toegekend', value: 5 },
+    { from: 'onvolledig', to: 'afgewezen', value: 25 },
+  ],
+}
+
+const TREEMAP = {
+  kind: 'treemap',
+  parts: [
+    { label: 'Noord', value: 12, id: 'noord', href: '/p?r=noord' },
+    { label: 'Zuid', value: 8, id: 'zuid', href: '/p?r=zuid' },
+  ],
+}
+
+const DUMBBELL = {
+  kind: 'dumbbell',
+  fromLabel: '2024',
+  toLabel: '2026',
+  rows: [
+    { label: 'Noord', from: 6.8, to: 7.3, id: 'noord', href: '/p?r=noord' },
+    { label: 'Zuid', from: 7.4, to: 7.1, id: 'zuid', href: '/p?r=zuid' },
+  ],
+}
+
 const POINTS = [
   { id: 'utr', label: 'Loket Utrecht', value: 12, lon: 5.12, lat: 52.09, href: '/m?loket=utr' },
   { id: 'zwo', label: 'Loket Zwolle', value: 8, lon: 6.09, lat: 52.51, href: '/m?loket=zwo' },
@@ -1750,6 +1826,55 @@ const REDRAWN_ROWS: Row[] = [
         },
       }))
       return () => tile.shadowRoot!.querySelector('.lintje-pie-chart__svg')
+    },
+  },
+  {
+    name: 'lintje-chart :: a sankey’s row on a phone, cleared with Escape, keeps the focus on that row',
+    run: async () => {
+      const tile = await hostedChart(SANKEY, 'afgewezen', true)
+      // The second "Afgewezen": the row under "Onvolledig".
+      const row = () => chartPart(tile, '.lintje-sankey__row-mark[data-mark-id="afgewezen"]', 1)
+      await drawn(row)
+      row()!.focus()
+      await userEvent.keyboard('{Escape}')
+      return row
+    },
+  },
+  {
+    name: 'lintje-chart :: a treemap’s part chosen on the drawing, cleared with Enter, keeps the focus on the drawing',
+    run: async () => {
+      const tile = await hostedChart(TREEMAP, null)
+      const drawing = () => chartPart(tile, '.lintje-treemap__svg')
+      await drawn(drawing)
+      drawing()!.focus()
+      // Home puts the keys on the largest part, Enter chooses it, Enter again clears it.
+      await userEvent.keyboard('{Home}{Enter}')
+      await expect.poll(() => tile.data.selectedId).toBe('noord')
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(() => tile.data.selectedId).toBe(null)
+      return drawing
+    },
+  },
+  {
+    name: 'lintje-chart :: a treemap’s part chosen on a phone, cleared, keeps the focus on its row',
+    run: async () => {
+      const tile = await hostedChart(TREEMAP, 'noord', true)
+      const part = () => chartPart(tile, '.lintje-treemap__part--button')
+      await drawn(part)
+      part()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return part
+    },
+  },
+  {
+    name: 'lintje-chart :: a dumbbell’s chosen row, cleared, keeps the focus on that row',
+    run: async () => {
+      const tile = await hostedChart(DUMBBELL, 'zuid')
+      const row = () => chartPart(tile, '[data-mark-id="zuid"]')
+      await drawn(row)
+      row()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return row
     },
   },
   {
