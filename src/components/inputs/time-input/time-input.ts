@@ -239,6 +239,7 @@ export class LintjeTimeInput extends LintjeInputElement {
     const message = this.message
     return html`<div class="lintje-field" @focusout=${this.onFocusOut}>
       ${this.renderLabel(this.controlId)}
+      ${this.renderMessages()}
       <div class="lintje-time-input">
         <input
           type="text"

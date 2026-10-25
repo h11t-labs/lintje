@@ -282,6 +282,7 @@ export class LintjeRange extends LintjeInputElement {
     const high = this.single ? this.index : this.pair[1]
     return html`<div class="lintje-field">
       ${this.renderLabel(undefined, html`<span class="lintje-field__value">${this.valueText}</span>`)}
+      ${this.renderMessages()}
       ${
         this.hideLabel ? html`<span class="lintje-range__values">${this.valueText}</span>` : nothing
       }

@@ -117,7 +117,8 @@ describe('where the foot stays at the edge', () => {
       const group = await draw('lintje-checkbox-group', { options: OPTIONS, ...props })
       const root = group.renderRoot
       const foot = 'hint' in props ? '.lintje-field__hint' : '.lintje-field__error'
-      expect(left(root, foot)).toBeCloseTo(left(root, '.lintje-field'), 0)
+      // At the label's edge: a field in error stands behind its bar, label and line alike.
+      expect(left(root, foot)).toBeCloseTo(left(root, '.lintje-label'), 0)
       group.remove()
     }
   })

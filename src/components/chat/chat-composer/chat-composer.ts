@@ -32,6 +32,7 @@ import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
 import '../../actions/icon-button/icon-button'
+import '../../actions/menu-button/menu-button'
 import '../../content/attachment/attachment'
 import '../../inputs/multiselect/multiselect'
 import '../../inputs/radio-group/radio-group'
@@ -174,7 +175,6 @@ export class LintjeChatComposer extends LintjeElement {
     sources: { attribute: false },
     vocabulary: { attribute: false },
     draftTerms: { attribute: false },
-    optionsOpen: { type: Boolean, attribute: 'options-open', reflect: true },
     plain: { type: Boolean, reflect: true },
     accept: { type: String },
     maxSize: { type: Number, attribute: 'max-size' },
@@ -211,7 +211,6 @@ export class LintjeChatComposer extends LintjeElement {
   declare vocabulary?: ChatTermData[]
   /** The host's own reading of the text; it wins while the text is unchanged. */
   declare draftTerms?: ChatDraftTerms
-  optionsOpen: boolean = false
   /** Only "Versturen": no choice of the answer's form, no send key. For a question that is not a
    * conversation with data, such as the one on a start page that searches a catalogue. */
   plain: boolean = false
@@ -655,16 +654,6 @@ export class LintjeChatComposer extends LintjeElement {
     }
   }
 
-  private async toggleOptions(open: boolean): Promise<void> {
-    this.optionsOpen = open
-    await this.updateComplete
-    const target = this.renderRoot.querySelector<HTMLElement>(
-      open ? '.lintje-chat-composer__options' : '.lintje-chat-composer__options-toggle',
-    )
-    // The inner `<button>` takes focus, not its host element.
-    ;(target?.shadowRoot?.querySelector<HTMLElement>('button') ?? target)?.focus()
-  }
-
   protected override render(): TemplateResult {
     const collapsed = this.collapsed && this.variant === 'ask'
     const list = collapsed ? [] : this.suggestions
@@ -893,58 +882,51 @@ export class LintjeChatComposer extends LintjeElement {
             @click=${() => this.emit('lintje-answer-stop', {})}
             >Stoppen</lintje-button
           >`
-          : html`<div class="lintje-chat-composer__send">
-            ${
-              this.#mobile.matches
-                ? html`<lintje-icon-button
-                  class="lintje-chat-composer__send-half"
-                  icon="functioneel-verzenden"
-                  label="Versturen"
-                  active
-                  ?disabled=${off}
-                  @click=${() => this.send()}
-                ></lintje-icon-button>`
-                : html`<lintje-button
-                  variant="primary"
-                  icon="functioneel-verzenden"
-                  ?disabled=${off}
-                  @click=${() => this.send()}
-                  >Versturen</lintje-button
-                >`
-            }
-            ${
-              this.plain
-                ? nothing
-                : html`<lintje-icon-button
-                    class="lintje-chat-composer__send-half lintje-chat-composer__options-toggle"
-                    icon="functioneel-delta-omlaag"
-                    label="Opties bij versturen"
-                    ?active=${!off}
-                    .expanded=${this.optionsOpen}
-                    @click=${() => this.toggleOptions(!this.optionsOpen)}
-                  ></lintje-icon-button>
-                  ${this.optionsOpen ? this.renderSendOptions() : nothing}`
-            }
-          </div>`
+          : this.plain
+            ? this.renderPlainSend(off)
+            : html`<lintje-menu-button
+                class="lintje-chat-composer__send"
+                split
+                variant="primary"
+                label="Versturen"
+                leading-icon="functioneel-verzenden"
+                accessible-label="Opties bij versturen"
+                placement="top-end"
+                ?icon-only=${this.#mobile.matches}
+                ?action-disabled=${off}
+                @lintje-action=${(event: Event) => {
+                  event.stopPropagation()
+                  this.send()
+                }}
+                >${this.renderSendOptions()}</lintje-menu-button
+              >`
       }`
   }
 
+  /** Only "Versturen", without the arrow: a phone's is the icon alone. */
+  private renderPlainSend(off: boolean): TemplateResult {
+    return this.#mobile.matches
+      ? html`<lintje-icon-button
+          class="lintje-chat-composer__send"
+          icon="functioneel-verzenden"
+          label="Versturen"
+          active
+          ?disabled=${off}
+          @click=${() => this.send()}
+        ></lintje-icon-button>`
+      : html`<lintje-button
+          class="lintje-chat-composer__send"
+          variant="primary"
+          icon="functioneel-verzenden"
+          ?disabled=${off}
+          @click=${() => this.send()}
+          >Versturen</lintje-button
+        >`
+  }
+
+  /** The send button's panel: it takes the focus itself when it opens. */
   private renderSendOptions(): TemplateResult {
-    return html`<span
-        class="lintje-chat-composer__scrim"
-        @click=${() => this.toggleOptions(false)}
-      ></span>
-      <div
-        class="lintje-chat-composer__options"
-        role="dialog"
-        aria-label="Opties bij versturen"
-        tabindex="-1"
-        @keydown=${(event: KeyboardEvent) => {
-          if (event.key !== 'Escape') return
-          event.stopPropagation()
-          void this.toggleOptions(false)
-        }}
-      >
+    return html`<div class="lintje-chat-composer__options" tabindex="-1">
         <lintje-radio-group
           label="Antwoord als"
           .options=${FORMS}

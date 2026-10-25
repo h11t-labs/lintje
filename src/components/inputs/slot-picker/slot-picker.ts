@@ -62,6 +62,7 @@ export class LintjeSlotPicker extends LintjeInputElement {
       aria-required=${this.required ? 'true' : nothing}
     >
       ${this.renderLabel()}
+      ${this.renderMessages()}
       ${
         days.length
           ? html`<div class="lintje-slot-picker">${days.map((day) => this.renderDay(day))}</div>`

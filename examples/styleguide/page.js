@@ -353,9 +353,9 @@ const TABS = [
 ]
 
 /**
- * An element's page: a band above the content with its name, what it is, its facts and its parts
- * as tabs, and under it the open part, with "Op deze pagina" beside it. `band` is the shell's
- * edge-to-edge slot. `group` and `tab` are what the URL chose; `addressOf(item, group)` writes an
+ * An element's page: its facts and its parts as tabs in the page header (`head`), and under it
+ * the open part, with "Op deze pagina" beside it. `group` and `tab` are what the URL chose;
+ * `addressOf(item, group)` writes an
  * address, `tabAddress(tab)` one of its tabs, `go(address)` follows it and `remember(tab)` writes
  * the open tab into the URL.
  */
@@ -372,7 +372,8 @@ export function renderElementPage(host, item, context) {
 
   // Under the title, which says what it is, its facts in one quiet line.
   const kind = item.tag ? context.layer : 'Sectie'
-  const facts = element('p', 'guide__meta guide__summary')
+  const facts = element('p', 'guide__summary')
+  facts.slot = 'meta'
   const writeFacts = (apps) => {
     facts.textContent = [
       kind,
@@ -389,19 +390,9 @@ export function renderElementPage(host, item, context) {
 
   // The parts are pages of the element: a row of links, each an address with its `&tab=`.
   const tabs = document.createElement('lintje-tabs')
-  tabs.className = 'guide__tabs'
+  tabs.slot = 'tabs'
   tabs.label = `Over ${item.tag ?? nameOf(item)}`
-  const crumbs = document.createElement('lintje-breadcrumbs')
-  crumbs.items = context.crumbs
-  const title = element('h2', 'guide__title', item.tag ?? item.title)
-  context.band.append(crumbs, title)
-  if (item.tag) context.band.append(element('p', 'guide__lead', item.title))
-  context.band.append(facts, tabs)
-  // The band sticks with only its tabs in view: it rises by what stands above them.
-  new ResizeObserver(() => {
-    const lift = tabs.getBoundingClientRect().top - context.band.getBoundingClientRect().top
-    context.band.style.setProperty('--guide-band-lift', `${lift}px`)
-  }).observe(context.band)
+  context.head.append(facts, tabs)
 
   const page = element('div', 'guide__page')
   const main = element('div', 'guide__main')
