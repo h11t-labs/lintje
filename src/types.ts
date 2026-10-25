@@ -1086,7 +1086,13 @@ export type {
   DescriptionItem,
   DescriptionAction,
 } from './components/tables/description-list/description-list'
-export type { ActivityEntry } from './components/tables/activity-log/activity-log'
+export type {
+  TimelineActor,
+  TimelineLink,
+  TimelineMoment,
+  TimelinePlacement,
+  TimelineSide,
+} from './components/tables/timeline/timeline'
 export type { Job, JobState } from './components/feedback/job-list/job-list'
 export type {
   ConflictChange,
