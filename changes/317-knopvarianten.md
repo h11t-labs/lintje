@@ -1,6 +1,6 @@
 ### Gewijzigd
 
-- **Brekend:** de knop `tertiary` is het derde gewicht van de huisstijl: alleen het woord in de primaire kleur, zonder rand of vulling; een pagina die een omlijnde knop bedoelde, kiest `secondary`. De secundaire knop kleurt onder de aanwijzer in de waas van de primaire kleur, en elke knop is ingedrukt een stap donkerder dan onder de aanwijzer. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) is de knop `tertiary` het derde gewicht van de huisstijl: alleen het woord in de primaire kleur, zonder rand of vulling; een pagina die daar een omlijnde knop bedoelt, kiest `secondary`. De secundaire knop kleurt er onder de aanwijzer in de waas van de primaire kleur, en elke knop is ingedrukt een stap donkerder dan onder de aanwijzer. In de eerdere huisstijl blijven de knoppen zoals ze waren. (#317)
 
 ### Toegevoegd
 
