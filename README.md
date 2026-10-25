@@ -62,7 +62,7 @@ De elementen staan in groepen, dezelfde als in de stijlgids:
 | Kerncijfers en grafieken | de cijfers bovenaan een pagina, de grafieken en de tekst die ze uitlegt |
 | Kaart | een kaart met stromen, punten of gebieden in kleur |
 | Netwerk | een diagram van dingen en hun relaties, dat zichzelf indeelt |
-| Tabellen en lijsten | de tabel als overzicht en als werkblad, lijsten, kaarten, een boom, een logboek en personen |
+| Tabellen en lijsten | de tabel als overzicht en als werkblad, lijsten, kaarten, een boom, een tijdlijn of logboek en personen |
 | Chat met data | een gesprek over de gegevens: de vraag, en het antwoord met cijfers en grafieken |
 
 ## Gebruiken
@@ -105,9 +105,29 @@ waar ze staan ([iconen laden](docs/guides/loading.md#iconen)). Het lettertype en
 uit de set van RVO ([`@nl-rvo/assets`](https://www.npmjs.com/package/@nl-rvo/assets)), met de
 emblemen en een paar eigen bedieningselementen erbij ([`assets/`](assets/README.md)).
 
+### Oud of nieuw
+
+De Rijkshuisstijl tekent online sinds 2025 anders dan eerst: een wit menu, kleine ronde hoeken op
+knoppen en velden, en de kop van de pagina als band in de primaire kleur. Lintje tekent beide. Tot 1.0.0 is de oude huisstijl de
+standaard, zodat een pagina die bijwerkt niet verandert; de nieuwe kies je met één attribuut:
+
+```html
+<html lang="nl" data-style-version="new">
+```
+
+`data-style-new-corner="square"` laat in de nieuwe huisstijl de grote hoek weg. Wat er verder
+verandert en hoe je de lezer laat kiezen, staat in [thema's](docs/guides/theming.md#de-huisstijl-oud-en-nieuw).
+
+| Oud (standaard) | Nieuw (`data-style-version="new"`) |
+|---|---|
+| ![De catalogus in de oude huisstijl: een gevuld menu in de primaire kleur en rechte hoeken.](https://raw.githubusercontent.com/h11t-labs/lintje/main/docs/images/huisstijl-oud.png) | ![De catalogus in de nieuwe huisstijl: een wit menu, de paginakop als rechte band in de primaire kleur van rand tot rand, kleine ronde hoeken op knoppen en velden.](https://raw.githubusercontent.com/h11t-labs/lintje/main/docs/images/huisstijl-nieuw.png) |
+
 Verder lezen:
 
-- [Thema's](docs/guides/theming.md): het thema van je organisatie, en licht of donker.
+- [Thema's](docs/guides/theming.md): het thema van je organisatie, licht of donker, en oud of
+  nieuw.
+- [De indeling van een pagina](docs/guides/start.md#de-indeling-van-een-pagina): het grid van 12
+  kolommen, `span` en `span-mobile`, en wat er op een telefoon verandert.
 - [Eigen iconen](docs/guides/icons.md), [een dashboard](docs/guides/dashboard.md) en
   [een inhoudsopgave op de pagina](docs/guides/page-contents.md).
 - De [stijlgids](https://h11t-labs.github.io/lintje/) (in deze repository

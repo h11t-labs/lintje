@@ -81,7 +81,13 @@
     </style>
   </head>
   <body>
+    <!-- In the new house style the navigation bar is white with the words in the primary colour,
+         as the house style draws it. "Nieuwe melding" opens under a band in the primary colour;
+         the overview keeps the page header with its actions. -->
     <lintje-shell id="shell">
+      <lintje-hero slot="full" id="band" tone="primary" hidden>
+        <lintje-breadcrumbs slot="breadcrumbs" id="band-crumbs"></lintje-breadcrumbs>
+      </lintje-hero>
       <lintje-page-header slot="header" id="page-header">
         <lintje-breadcrumbs slot="breadcrumbs" id="crumbs"></lintje-breadcrumbs>
         <lintje-menu-button slot="actions" id="export" label="Exporteren" variant="secondary" placement="bottom-end"></lintje-menu-button>

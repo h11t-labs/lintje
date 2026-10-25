@@ -228,6 +228,7 @@ export class LintjeCombobox extends LintjeInputElement {
     const count = open && !this.loading ? resultsText(this.visible.length) : ''
     return html`<div class="lintje-field">
       ${this.renderLabel(this.controlId)}
+      ${this.renderMessages()}
       <div class="lintje-combobox">
         <input
           type="text"

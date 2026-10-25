@@ -369,7 +369,7 @@ lagen:
 | Laag | Bestand | Wat | Voor wie |
 |---|---|---|---|
 | Unit | `*.test.ts`, in happy-dom | rekenwerk, toestand, events, markup | elk component |
-| Styleguide | `bundle/styleguide.browser.test.ts` | elk specimen getekend, in licht en donker, op 1440 en 390 px, met axe | elk specimen, vanzelf |
+| Styleguide | `bundle/styleguide/suite.ts`, in vier delen naast elkaar | elk specimen getekend, in licht en donker, op 1440 en 390 px, met axe | elk specimen, vanzelf |
 | Browser | `*.browser.test.ts` | wat layout, echte focus of een aanwijzer nodig heeft | per mechanisme, zie hieronder |
 
 De unittestbestanden die een worker draait, delen één venster (`isolate: false`): het opzetten

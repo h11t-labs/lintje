@@ -1,6 +1,7 @@
 /** The hero: its title and introduction, the one action, and the room it keeps for what overlaps. */
 import { afterEach, describe, expect, it } from 'vitest'
 import './hero'
+import '../shell/shell'
 import type { LintjeHero } from './hero'
 
 async function mount(props: Partial<LintjeHero>, inner = ''): Promise<LintjeHero> {
@@ -12,6 +13,33 @@ async function mount(props: Partial<LintjeHero>, inner = ''): Promise<LintjeHero
 }
 
 afterEach(() => document.body.replaceChildren())
+
+describe('lintje-hero in a shell with a light menu', () => {
+  const primary = (hero: LintjeHero): boolean =>
+    hero.shadowRoot!.querySelector('.lintje-hero')!.classList.contains('lintje-hero--primary')
+
+  it("is primary by itself, follows the menu's tone, and leaves a chosen tone alone", async () => {
+    const shell = document.createElement('div')
+    // The shell mirrors its effective tone as `data-tone`; its rendering plays no part here.
+    const host = document.createElement('lintje-shell')
+    host.setAttribute('nav-tone', 'light')
+    document.body.append(shell)
+    shell.append(host)
+    const hero = Object.assign(document.createElement('lintje-hero'), { heading: 'Start' })
+    const washed = Object.assign(document.createElement('lintje-hero'), { heading: 'Start' })
+    washed.setAttribute('tone', 'wash')
+    host.append(hero, washed)
+    await hero.updateComplete
+    await washed.updateComplete
+    expect(primary(hero)).toBe(true)
+    expect(primary(washed)).toBe(false)
+
+    host.setAttribute('nav-tone', 'filled')
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    await hero.updateComplete
+    expect(primary(hero)).toBe(false)
+  })
+})
 
 describe('lintje-hero', () => {
   it('draws the title as an h2 with the introduction under it', async () => {
@@ -63,7 +91,10 @@ describe('lintje-hero', () => {
     )
     const root = element.shadowRoot!
     const body = root.querySelector('.lintje-hero__body')!
-    expect(body.firstElementChild!.getAttribute('name')).toBe('status')
+    const slots = [...body.querySelectorAll(':scope > slot')].map((slot) =>
+      slot.getAttribute('name'),
+    )
+    expect(slots.slice(0, 2)).toEqual(['breadcrumbs', 'status'])
     expect(root.querySelector('.lintje-hero.has-panel')).toBeNull()
     root.querySelector('slot[name="panel"]')!.dispatchEvent(new Event('slotchange'))
     await element.updateComplete
@@ -78,5 +109,24 @@ describe('lintje-hero', () => {
     element.shadowRoot!.querySelector('slot[name="aside"]')!.dispatchEvent(new Event('slotchange'))
     await element.updateComplete
     expect(element.shadowRoot!.querySelector('.lintje-hero.has-aside')).not.toBeNull()
+  })
+})
+
+describe('lintje-hero as the page’s head', () => {
+  it('draws the primary band with the trail before the title', async () => {
+    const element = await mount(
+      { heading: 'Resultaten', tone: 'primary' },
+      '<nav slot="breadcrumbs">Home</nav>',
+    )
+    const root = element.shadowRoot!
+    expect(root.querySelector('.lintje-hero')!.classList.contains('lintje-hero--primary')).toBe(
+      true,
+    )
+    const body = root.querySelector('.lintje-hero__body')!
+    const order = [...body.children].map((child) =>
+      child.localName === 'slot' ? `slot:${child.getAttribute('name') ?? ''}` : child.className,
+    )
+    expect(order.indexOf('slot:breadcrumbs')).toBeLessThan(order.indexOf('lintje-hero__heading'))
+    expect(element.getAttribute('tone')).toBe('primary')
   })
 })
