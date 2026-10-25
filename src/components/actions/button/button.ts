@@ -14,10 +14,16 @@ import buttonCss from './button.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
 import { titleWhenCut } from '../../shared/cut-text'
 
+/**
+ * `tertiary` is a word in the primary without a box, the house style's third weight; `inverse`
+ * and `inverse-secondary` stand on a theme fill, such as the primary band of a hero.
+ */
 export type ButtonVariant =
   | 'primary'
   | 'secondary'
   | 'tertiary'
+  | 'inverse'
+  | 'inverse-secondary'
   | 'link'
   | 'danger'
   | 'danger-secondary'

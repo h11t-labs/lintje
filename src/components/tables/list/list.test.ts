@@ -275,6 +275,18 @@ describe('lintje-list as a work list', () => {
 describe('a person on a row of lintje-list', () => {
   const JV = { name: 'J. de Vries', initials: 'JV', href: '/mensen/jv' }
 
+  it('draws a speaker as their circle in the speaker colour before the title, without the bar', async () => {
+    const element = await mount({
+      items: [{ id: 'a', title: 'Spreker 1', avatar: { name: 'Spreker 1' }, swatch: 'sky-blue' }],
+    })
+    const row = rows(element)[0]!
+    const circle = row.querySelector('.lintje-list__avatar')!
+    expect(circle.classList.contains('lintje-avatar--sky-blue')).toBe(true)
+    expect(circle.getAttribute('aria-hidden')).toBe('true')
+    expect(row.classList.contains('has-icon')).toBe(true)
+    expect(row.classList.contains('has-swatch')).toBe(false)
+  })
+
   it('stands at the facts before the status, at 24 px and without a link', async () => {
     const element = await mount({
       items: [{ id: 'a', title: 'Aanvraag', person: JV, status: { label: 'Bezig' }, meta: 'nu' }],

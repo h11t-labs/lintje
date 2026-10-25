@@ -1,6 +1,6 @@
 /**
  * `<lintje-user-menu>` — the user's avatar in the navigation bar and the menu it opens: name and
- * role, the host's rows (`MenuEntry`), "Afmelden" and the version. With `variant="side"` it is
+ * role with "Afmelden" beside them, the host's rows (`MenuEntry`) and the version. With `variant="side"` it is
  * the foot of the side menu: the avatar with the name and role beside it, the menu above it.
  *
  * A menu, not a dialog: it traps no focus, and an Escape in a dialog opened over it is the
@@ -89,8 +89,11 @@ export class LintjeUserMenu extends LintjeElement {
     return this.renderRoot.querySelector<HTMLButtonElement>('.lintje-user-menu__trigger')
   }
 
+  /** "Afmelden" beside the name comes last: the first arrow down never lands on it. */
   private rowElements(): HTMLElement[] {
-    return [...this.renderRoot.querySelectorAll<HTMLElement>('.lintje-menu__row')]
+    const logout = this.renderRoot.querySelector<HTMLElement>('.lintje-user-menu__logout-button')
+    const rows = [...this.renderRoot.querySelectorAll<HTMLElement>('.lintje-menu__row')]
+    return logout ? [...rows, logout] : rows
   }
 
   /** The rows as `nextRow()` reads them: only whether each one is disabled counts. */
@@ -264,32 +267,41 @@ export class LintjeUserMenu extends LintjeElement {
     return row
   }
 
-  private renderLogout(): TemplateResult {
-    const role = this.inline ? nothing : 'menuitem'
+  /**
+   * `compact`: the glyph alone beside the name, its word its accessible name. A button, not a
+   * menu item: it stands outside the menu, but the arrows reach it after the rows.
+   */
+  private renderLogout(compact = false): TemplateResult {
+    const role = this.inline || compact ? nothing : 'menuitem'
     const tabindex = this.inline ? nothing : '-1'
-    const glyph = renderIcon('functioneel-uitloggen', { size: 16, className: 'lintje-menu__icon' })
-    const label = html`${glyph}<span class="lintje-menu__label" @pointerenter=${titleWhenCut}>Afmelden</span>`
+    const classes = compact
+      ? 'lintje-user-menu__logout-button focus-inset'
+      : 'lintje-menu__row lintje-user-menu__logout-row focus-inset'
+    const content = compact
+      ? renderIcon('functioneel-uitloggen', { size: 20 })
+      : html`${renderIcon('functioneel-uitloggen', { size: 16, className: 'lintje-menu__icon' })}<span
+            class="lintje-menu__label"
+            @pointerenter=${titleWhenCut}
+            >Afmelden</span
+          >`
+    const label = compact ? 'Afmelden' : nothing
     if (this.logoutAction) {
       return html`<form class="lintje-user-menu__logout" method="post" action=${this.logoutAction}>
         <input type="hidden" name="csrf_token" .value=${this.csrf} />
-        <button
-          type="submit"
-          class="lintje-menu__row lintje-user-menu__logout-row focus-inset"
-          role=${role}
-          tabindex=${tabindex}
-        >
-          ${label}
+        <button type="submit" class=${classes} role=${role} tabindex=${tabindex} aria-label=${label}>
+          ${content}
         </button>
       </form>`
     }
     return html`<button
       type="button"
-      class="lintje-menu__row lintje-user-menu__logout-row focus-inset"
+      class=${classes}
       role=${role}
       tabindex=${tabindex}
+      aria-label=${label}
       @click=${() => this.logout()}
     >
-      ${label}
+      ${content}
     </button>`
   }
 
@@ -307,11 +319,12 @@ export class LintjeUserMenu extends LintjeElement {
               <p class="lintje-user-menu__name">${user.name}</p>
               ${user.role ? html`<p class="lintje-user-menu__role">${user.role}</p>` : nothing}
             </div>
+            ${this.renderLogout(true)}
           </div>`
           : nothing
       }
       <div
-        class="lintje-user-menu__menu"
+        class=${classMap({ 'lintje-user-menu__menu': true, 'is-empty': !this.items.length && Boolean(user) })}
         role=${this.inline ? 'group' : 'menu'}
         aria-label=${user ? `Menu van ${user.name}` : 'Gebruikersmenu'}
       >
@@ -322,7 +335,13 @@ export class LintjeUserMenu extends LintjeElement {
             </div>`
             : nothing
         }
-        <div class="lintje-user-menu__group lintje-user-menu__group--logout">${this.renderLogout()}</div>
+        ${
+          user
+            ? nothing
+            : html`<div class="lintje-user-menu__group lintje-user-menu__group--logout">
+              ${this.renderLogout()}
+            </div>`
+        }
       </div>
       ${this.version ? html`<p class="lintje-user-menu__version">Versie ${this.version}</p>` : nothing}
     </div>`
@@ -387,6 +406,7 @@ export class LintjeUserMenu extends LintjeElement {
         id=${this.#menuId}
         placement=${side ? 'top-start' : 'bottom-end'}
         ?match-width=${side}
+        gap=${side ? 0 : nothing}
         .anchor=${side ? this.renderRoot?.querySelector('.lintje-user-menu__anchor') : undefined}
         .opener=${side ? this.trigger : undefined}
         ?open=${this.open}

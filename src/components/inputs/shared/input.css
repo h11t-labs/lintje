@@ -23,7 +23,7 @@
   min-width: 0;
   /* A field's edge and its error edge: what sits inside the box steps in by them, not by space. */
   --lintje-field-border: 1px;
-  --lintje-field-error-border: 2px;
+  --lintje-field-error-border: var(--field-error-border);
 }
 /* `min-width: auto`: the segmented control never shrinks below its options, and the select and
    the date range stop at their content's width in a narrow row. */
@@ -33,10 +33,14 @@
   display: block;
 }
 :host(lintje-multiselect),
-:host(lintje-range),
-:host(lintje-select) {
+:host(lintje-range) {
   width: 180px;
 }
+:host(lintje-select) { width: 180px; }
+/* In the new style a select fills the column it stands in, as a text field does, up to a field's
+   widest; stacked it is the full width, as every field. */
+:host(lintje-select[data-style-version='new']) { width: 100%; max-width: var(--w-field); }
+:host(lintje-select[data-style-version='new'][stacked]) { max-width: none; }
 :host(lintje-time-input) { width: 120px; }
 :host([hidden]) { display: none; }
 /* Below 768 px: the full width, as `stacked`, and the touch height. The text and number fields
@@ -69,11 +73,19 @@
    equal specificity. A disabled control cannot be in error, so its rule sets the whole border. */
 
 .lintje-field { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+/* A field in error carries the house style's bar at its left, from the label down to the
+   control; 0 wide in the earlier style. */
+.lintje-field:has(> .lintje-field__error) {
+  border-left: var(--field-error-bar) solid var(--color-error-line);
+  padding-left: var(--field-error-inset);
+}
 .lintje-label {
   display: flex; align-items: baseline; gap: var(--space-2);
   font-size: 0.875rem; font-weight: 700; color: var(--color-text-primary);
   padding: 0;
 }
+/* The new style's label is on the body size, bold, as the house style's form field has it. */
+[data-style-version='new'] .lintje-label { font: var(--text-ui); font-weight: 700; }
 .lintje-label.is-modified { color: var(--color-accent-text); }
 .lintje-label__dot {
   width: 6px; height: 6px; border-radius: var(--radius-round);
@@ -116,10 +128,10 @@
 .lintje-field__box {
   height: var(--h-control);
   border: 1px solid var(--color-border-field);
-  background: var(--color-bg-surface);
-  border-radius: var(--radius);
+  background: var(--color-bg-field);
+  border-radius: var(--radius-control);
 }
-.lintje-field__box.is-error { border: 2px solid var(--color-error); }
+.lintje-field__box.is-error { border: var(--field-error-border) solid var(--color-error); background: var(--color-bg-field-error); }
 /* Read-only as disabled: the subtle surface, the strong border; its text stays primary. */
 .lintje-field__box.is-readonly,
 .lintje-field__box.is-disabled,
@@ -206,6 +218,7 @@
   font-weight: 700;
   text-decoration: underline;
   cursor: pointer;
+  transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-field__reset:hover { color: var(--color-link-hover); }
 
@@ -234,10 +247,13 @@
   .lintje-choice__other { --h-control: var(--h-touch); }
 }
 
+/* The box and the circle: 2 px, or in the new style 1 px in the accent's line, as the house style
+   draws them (`--border-choice-width`). */
 .lintje-choice__box {
   width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
   display: flex; align-items: center; justify-content: center;
-  border: 2px solid var(--color-border-choice);
+  border: var(--border-choice-width) solid var(--color-border-choice);
+  border-radius: var(--radius-control);
   background: var(--color-bg-surface);
   color: var(--color-action-primary-text); font-size: 0.875rem; font-weight: 700; line-height: 1;
   transition: background-color var(--dur-hover) var(--ease-in-motion),
@@ -267,11 +283,12 @@
 
 .lintje-choice__radio {
   width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
-  border: 2px solid var(--color-border-choice);
+  border: var(--border-choice-width) solid var(--color-border-choice);
   border-radius: 50%;
   background: var(--color-bg-surface);
   display: flex; align-items: center; justify-content: center;
 }
+
 /* Ring and dot take the line accent: the dot stands on the surface by itself, so the primary
    fill would sink into the dark surface. */
 .lintje-choice__input:checked ~ .lintje-choice__radio { border-color: var(--color-accent-line); }
@@ -288,7 +305,7 @@
   width: var(--lintje-choice-control); height: 22px; flex: none;
   border-radius: 11px;
   /* Off is a filled track, not a pale one with a ring: the fill alone reaches 3:1. */
-  background: var(--color-border-field);
+  background: var(--color-choice-off);
   display: flex; align-items: center;
   padding: var(--lintje-choice-switch-inset);
   transition: background var(--dur-hover) var(--ease-in-motion);

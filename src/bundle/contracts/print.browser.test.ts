@@ -136,6 +136,28 @@ describe('a tile stays on one sheet where it fits', () => {
       expect(paper).toBe(value)
     })
   }
+
+  it('lintje-tile (breakable) keeps the space between its parts as a block', async () => {
+    const tile = await mount('lintje-tile', (element) => {
+      Object.assign(element, {
+        heading: 'Aanvragen',
+        intro: 'Per maand.',
+        footnote: 'Bron: fictief',
+      })
+      element.setAttribute('breakable', '')
+    })
+    const gaps = (): number[] => {
+      const [head, intro, body, note] = [
+        '.lintje-tile__head',
+        '.lintje-tile__intro',
+        '.lintje-tile__body',
+        '.lintje-tile__footnote',
+      ].map((selector) => shadow(tile, selector).getBoundingClientRect())
+      return [intro!.top - head!.bottom, body!.top - intro!.bottom, note!.top - body!.bottom]
+    }
+    const { screen, paper } = await onPaper(gaps)
+    expect(paper).toEqual(screen)
+  })
 })
 
 describe('no motion on paper', () => {
