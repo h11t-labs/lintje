@@ -272,8 +272,9 @@
      transcript in its large size. */
   --text-translation: 400 1.25rem/1.5 var(--font-ui);
   --text-ui: 400 1rem/1.4 var(--font-ui);
-  /* The footer's tagline: the house style's payoff, italic in the regular weight. */
-  --text-tagline: italic 400 1.5rem/1.3 var(--font-ui);
+  /* The footer's tagline: the house style's payoff, italic in the regular weight, a step under
+     its 36–40 px, as an application's foot asks less room than a site's. */
+  --text-tagline: italic 400 2rem/1.25 var(--font-ui);
   /* Secondary text is one token: a hint, a sub-line, a meta line, a date. */
   --text-small: 400 0.875rem/1.45 var(--font-ui);
   /* Former names of the same token; they go with the next breaking release. */
@@ -947,6 +948,8 @@
   --expander-pad: var(--space-1) 0;
   --color-expander-title: var(--color-accent-text);
   --color-alert-warning-bg: var(--color-warning-bg);
+  /* The compact foot on the primary's wash, as the house style tints it. */
+  --color-footer-compact-bg: var(--primary-wash);
   --color-alert-warning-line: var(--status-warning);
   --color-expander-content: var(--color-text-primary);
   --color-pagination-current-bg: var(--color-choice-active-bg);

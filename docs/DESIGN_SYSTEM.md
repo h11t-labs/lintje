@@ -404,8 +404,10 @@ Besluiten die voor beide gelden:
 - **De voet is die van de huisstijl**: op de vulling van het menu, de regel die zegt wat de site
   is cursief in het gewone gewicht, kolommen met een vette kop en links met een chevron ervoor,
   en onder een lijn de vaste links. Een formulier of een taakpagina krijgt de compacte voet
-  (`variant="compact"`): de regel en de vaste links op één rij op het subtiele oppervlak, zonder
-  kolommen.
+  (`variant="compact"`): de regel en de vaste links op één rij, zonder kolommen, op het subtiele
+  oppervlak (in de nieuwe huisstijl op de waas van de primaire kleur). De regel is 32 px en de
+  koppen 20 px, een stap onder de maten van de huisstijl: de voet van een applicatie vraagt
+  minder ruimte dan die van een site.
 - **De taalkeuze staat aan het eind van de balk** (`lintje-language-nav`, in het slot `end`):
   een knop met de huidige taal en een pijltje, de talen in een lijst eronder met de taal van de
   pagina gevuld in de primaire kleur, elke taal in haar eigen `lang`. Een taal met een `href` is

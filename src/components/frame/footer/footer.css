@@ -35,7 +35,7 @@
   font-size: var(--label-size); font-weight: var(--label-weight);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
 }
-[data-style-version='new'] .lintje-footer__heading { font: var(--text-tile-title); letter-spacing: 0; text-transform: none; }
+[data-style-version='new'] .lintje-footer__heading { font: var(--text-h2); letter-spacing: 0; text-transform: none; }
 .lintje-footer__list,
 .lintje-footer__meta { list-style: none; margin: 0; padding: 0; }
 .lintje-footer__list { display: flex; flex-direction: column; gap: var(--space-3); }
