@@ -209,6 +209,24 @@ const SUB_NAV_PAGE = [
   },
 ]
 
+const LANGUAGES = [
+  { code: 'nl', label: 'Nederlands', href: '#nl' },
+  { code: 'en', label: 'English', href: '#en' },
+  { code: 'fy', label: 'Frysk', href: '#fy' },
+]
+
+/** The host holds the page's language: a choice makes it the current one. */
+function languages(stage, current = 'nl') {
+  const element = stage.querySelector('lintje-language-nav')
+  element.languages = LANGUAGES
+  element.current = current
+  element.addEventListener('lintje-navigate', (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+  })
+  element.addEventListener('lintje-language-change', (event) => (element.current = event.detail.code))
+}
+
 /** The host holds the reader's page: a click makes the chosen entry the active one. */
 function subNav(stage, groups, action, label = 'Instellingen') {
   const element = stage.querySelector('lintje-sub-nav')
@@ -257,7 +275,7 @@ export default {
               <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
               <lintje-button slot="actions" variant="primary">Opslaan</lintje-button>
             </lintje-page-header>
-            <p>Hier staat de inhoud van de app, hoogstens 1360 px breed.</p>
+            <p>Hier staat de inhoud van de app, hoogstens 1280 px breed.</p>
           </lintje-shell>`,
           setup(stage) {
             const shell = stage.querySelector('lintje-shell')
@@ -288,6 +306,111 @@ export default {
                 navigation: NAVIGATION.map((link) => ({ ...link, active: link.href === event.detail.href })),
               }
             })
+          },
+        },
+        {
+          label: 'Lichte navigatiebalk',
+          note:
+            'Met `nav-tone="light"` is de balk wit met de tekst in de primaire kleur en de ' +
+            'actieve pagina onderstreept, zoals de huisstijl de navigatiebalk tekent. ' +
+            'De logobalk en de rest van de pagina veranderen niet. De paginakop is dan de band ' +
+            'in de primaire kleur, met de knoppen in hun omgekeerde kleuren.',
+          html: `<lintje-shell nav-tone="light">
+            <lintje-language-nav slot="end"></lintje-language-nav>
+            <lintje-page-header slot="header">
+              <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
+              <lintje-menu-button slot="actions" split variant="primary" label="Downloaden" action="docx" leading-icon="functioneel-downloaden" accessible-label="Andere manieren om te downloaden" placement="bottom-end"></lintje-menu-button>
+            </lintje-page-header>
+            <p>Dezelfde schil, met de balk op het oppervlak en de taalkeuze in het slot <code>end</code>.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.style.minHeight = '0'
+            languages(stage)
+            shell.data = {
+              name: 'Transcriptie',
+              emblem: emblem(),
+              navigation: NAVIGATION,
+              user: USER,
+              userMenu: USER_MENU,
+              search: true,
+              notifications: NOTIFICATIONS,
+            }
+            stage.querySelector('lintje-page-header').data = { title: 'Teamoverleg 2 oktober' }
+            stage.querySelector('lintje-breadcrumbs').items = [{ label: 'Opnames', href: '#opnames' }, { label: 'Teamoverleg 2 oktober' }]
+            const download = stage.querySelector('lintje-menu-button')
+            download.items = [
+              { value: 'pdf', label: 'PDF', hint: '.pdf' },
+              { value: 'audio', label: 'Audio', hint: '.m4a' },
+            ]
+            download.addEventListener('lintje-action', (event) => event.stopPropagation())
+          },
+        },
+        {
+          label: 'Smalle paginakop',
+          note:
+            'Met `narrow` staat de band van de paginakop binnen de marges, in de kolom van de inhoud, ' +
+            'met in de nieuwe huisstijl de ene afgeronde hoek rechtsboven. Zonder loopt hij van rand ' +
+            'tot rand en is hij recht.',
+          html: `<lintje-shell nav-tone="light">
+            <lintje-page-header slot="header" narrow>
+              <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
+              <lintje-button slot="actions" variant="primary">Nieuwe opname</lintje-button>
+            </lintje-page-header>
+            <p>De band staat in de kolom van de inhoud, gelijk met deze tekst.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.style.minHeight = '0'
+            shell.data = { name: 'Transcriptie', emblem: emblem(), navigation: NAVIGATION, user: USER }
+            stage.querySelector('lintje-page-header').data = {
+              title: 'Opnames',
+              description: 'Alle opnames van het team, de nieuwste bovenaan.',
+            }
+            stage.querySelector('lintje-breadcrumbs').items = [{ label: 'Start', href: '#start' }]
+          },
+        },
+        {
+          label: 'Header onderaan op een telefoon',
+          note:
+            'Met `mobile-bar="bottom"` plakt de header onder 768 px aan de onderrand van het ' +
+            'scherm, onder de duim, en opent het menu erboven; breder staat hij gewoon bovenaan. ' +
+            'Bekijk het op 390 px.',
+          // In a page of its own: the bar is `position: fixed`, which a nested shell does not contain.
+          frame: true,
+          html: `<lintje-shell mobile-bar="bottom">
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>Op een telefoon staat de balk met Menu onderaan.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.style.minHeight = '0'
+            shell.data = { name: 'Transcriptie', emblem: emblem(), navigation: NAVIGATION, user: USER, userMenu: USER_MENU, search: true }
+            stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+          },
+        },
+        {
+          label: 'Lichte rail',
+          note:
+            'Naast de pagina is het lichte menu de side navigation van de huisstijl: wit met een ' +
+            'lijn ernaast, de pagina van de lezer vet in de waas met de accentlijn als rand, een ' +
+            'rij onder de aanwijzer gevuld in de primaire kleur. De kop met het lint verandert niet.',
+          html: `<lintje-shell nav-tone="light">
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>Wijs een rij in het menu aan.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.data = {
+              name: 'Transcriptie',
+              layout: 'side',
+              emblem: emblem(),
+              navigation: GROUPED.flatMap((entry) => (entry.links ? [entry] : [{ ...entry, icon: entry.label === 'Opnames' ? 'beeld-en-geluid-microfoon' : 'functioneel-klok' }])),
+              user: USER,
+              userMenu: USER_MENU,
+              version: '2.4.1',
+            }
+            stage.querySelector('lintje-page-header').data = { title: 'Woordenlijst' }
           },
         },
         {
@@ -377,7 +500,7 @@ export default {
           note: 'De hero in het slot `full` loopt van rand tot rand; de inhoud blijft in de kolom.',
           html: `<lintje-shell>
             <lintje-hero slot="full" heading="Wat wil je vertalen?" description="Typ een tekst, upload een document of voer een live gesprek."></lintje-hero>
-            <p>De inhoud staat onder de hero, in de kolom van hoogstens 1360 px.</p>
+            <p>De inhoud staat onder de hero, in de kolom van hoogstens 1280 px.</p>
           </lintje-shell>`,
           setup(stage) {
             const shell = stage.querySelector('lintje-shell')
@@ -582,6 +705,37 @@ export default {
           },
         },
         {
+          label: 'Als paginakop',
+          note:
+            'Met `tone="primary"` is de hero de kop van een werkpagina: kruimelpad, titel en ' +
+            'inleiding in wit op de primaire kleur. De band loopt van rand tot rand en is daarom recht: ' +
+            'de huisstijl rondt nooit een vlak dat van de pagina afloopt.',
+          html: `<div data-style-version="new" data-style-new-corner="round">
+            <lintje-hero tone="primary" heading="Aanvragen en wachttijden" description="Alle cijfers over de loketten, per regio en per soort loket, bijgewerkt tot vanochtend.">
+              <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
+            </lintje-hero>
+          </div>`,
+          setup(stage) {
+            crumbs(stage, [{ label: 'Home', href: '#home' }, { label: 'Cijfers', href: '#cijfers' }, { label: 'Aanvragen en wachttijden' }])
+          },
+        },
+        {
+          label: 'Smal binnen de marges',
+          note:
+            'Met `narrow` staat de band binnen de marges van de pagina, in de kolom van de inhoud, ' +
+            'en draagt hij in de nieuwe huisstijl de ene afgeronde hoek rechtsboven (`--radius-corner`, ' +
+            'op een telefoon een halve lint). Kies hem alleen als de band minstens drie keer zo hoog is ' +
+            'als de hoek.',
+          html: `<div data-style-version="new" data-style-new-corner="round">
+            <lintje-hero tone="primary" narrow heading="Aanvragen en wachttijden" description="Alle cijfers over de loketten, per regio en per soort loket, bijgewerkt tot vanochtend.">
+              <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
+            </lintje-hero>
+          </div>`,
+          setup(stage) {
+            crumbs(stage, [{ label: 'Home', href: '#home' }, { label: 'Cijfers', href: '#cijfers' }])
+          },
+        },
+        {
           label: 'Met tabs over de onderrand',
           note: 'Het slot `overlap` legt grote tabs half over de onderrand.',
           html: `<lintje-hero heading="Wat wil je vertalen?" description="Je ziet de vertaling meteen.">
@@ -621,6 +775,22 @@ export default {
                 { heading: 'Over het platform', links: [{ label: 'Wat is het dataplatform?', href: '#el-footer' }, { label: 'Een product aanmelden', href: '#el-footer' }] },
                 { heading: 'Hulp', links: [{ label: 'Contact', href: '#el-footer' }, { label: 'Storingen', href: '#el-footer' }] },
               ],
+              links: [{ label: 'Privacy', href: '#el-footer' }, { label: 'Toegankelijkheid', href: '#el-footer' }, { label: 'Cookies', href: '#el-footer' }],
+              note: 'Versie 1.0.0',
+            }
+            footer.addEventListener('lintje-navigate', (event) => event.preventDefault())
+          },
+        },
+        {
+          label: 'Compact',
+          note:
+            'Met `variant="compact"` is de voet die van een formulier of een taakpagina: de ' +
+            'regel en de vaste links op één rij, op het lichte vlak; kolommen tekent hij niet.',
+          html: '<lintje-footer variant="compact"></lintje-footer>',
+          setup(stage) {
+            const footer = stage.querySelector('lintje-footer')
+            footer.data = {
+              tagline: 'Datacatalogus — het dataplatform van de organisatie',
               links: [{ label: 'Privacy', href: '#el-footer' }, { label: 'Toegankelijkheid', href: '#el-footer' }, { label: 'Cookies', href: '#el-footer' }],
               note: 'Versie 1.0.0',
             }
@@ -717,6 +887,26 @@ export default {
             menu.user = USER_PHOTO
             menu.items = USER_MENU
           },
+        },
+      ],
+    },
+    {
+      tag: 'lintje-language-nav',
+      title: 'De taalkeuze: de huidige taal op een knop, de talen in een lijst eronder',
+      specimens: [
+        {
+          label: 'Rust',
+          note:
+            'De knop noemt de taal van de pagina; elke taal heeft haar eigen `lang`. Een keuze ' +
+            'stuurt `lintje-language-change`, en een taal met een `href` wordt gevolgd als link.',
+          html: '<lintje-language-nav></lintje-language-nav>',
+          setup: (stage) => languages(stage),
+        },
+        {
+          label: 'Open',
+          note: 'De taal van de pagina is gevuld in de primaire kleur.',
+          html: '<lintje-language-nav open></lintje-language-nav>',
+          setup: (stage) => languages(stage, 'en'),
         },
       ],
     },

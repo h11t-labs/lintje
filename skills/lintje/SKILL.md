@@ -71,7 +71,9 @@ niet heeft.
   en `--accent` (`<naslag>/guides/theming.md`). Een element zelf krijgt geen eigen CSS; een
   variant is een attribuut.
 - **Schrijf Nederlands**: elke tekst die een lezer ziet, en `lang="nl"` op `<html>`. Thema en modus
-  zijn `data-theme` en `data-mode` op `<html>`.
+  zijn `data-theme` en `data-mode` op `<html>`; de huisstijl is `data-style-version` (`classic`,
+  de standaard tot 1.0.0, of `new`), en `data-style-new-corner="square"` laat in de nieuwe de
+  grote hoek weg (`<naslag>/guides/theming.md`).
 - **Toon ontbrekende cijfers als `null`**, nooit als `0`. Een grafiek krijgt zijn `description`,
   een tabel zijn `caption`: ze worden de tekst voor een schermlezer.
 

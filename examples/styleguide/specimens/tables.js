@@ -1165,7 +1165,7 @@ export default {
         },
         {
           label: 'Sprekers',
-          note: 'Elke rij heeft een kleurbalk, zoals in de speler en het transcript, en een menu.',
+          note: 'Elke spreker heeft zijn cirkel in de kleur die hij in de speler en het transcript heeft, en een menu.',
           html: '<lintje-list label="Sprekers"></lintje-list>',
           setup(stage) {
             const actions = [
@@ -1174,9 +1174,9 @@ export default {
               { value: 'alleen', label: 'Alleen deze spreker tonen', checked: false },
             ]
             stage.querySelector('lintje-list').items = [
-              { id: 'p1', swatch: 'sky-blue', title: 'Ploegleider', sub: '5 fragmenten · 2:12', actions, clickable: false },
-              { id: 'p2', swatch: 'dark-yellow', title: 'Spreker 2', sub: '3 fragmenten · 1:05', actions, clickable: false },
-              { id: 'p3', swatch: 'pink', title: 'Spreker 3', sub: '3 fragmenten · 0:52', actions, clickable: false },
+              { id: 'p1', avatar: { name: 'Ploegleider' }, swatch: 'sky-blue', title: 'Ploegleider', sub: '5 fragmenten · 2:12', actions, clickable: false },
+              { id: 'p2', avatar: { name: 'Spreker 2' }, swatch: 'dark-yellow', title: 'Spreker 2', sub: '3 fragmenten · 1:05', actions, clickable: false },
+              { id: 'p3', avatar: { name: 'Spreker 3' }, swatch: 'pink', title: 'Spreker 3', sub: '3 fragmenten · 0:52', actions, clickable: false },
             ]
           },
         },

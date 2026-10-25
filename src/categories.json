@@ -4,7 +4,7 @@
     "heading": "Pagina",
     "label": "Paginakader",
     "icon": "computer-en-internet-website",
-    "intro": "Wat om elke pagina heen staat: de schil met zijn menu, naast of boven de pagina, de paginakop met het kruimelpad, het submenu naast de inhoud, de hero van een startpagina, de voet, en wat rechtsboven in de balk hoort.",
+    "intro": "Wat om elke pagina heen staat: de schil met zijn menu, naast of boven de pagina, de paginakop met het kruimelpad, het submenu naast de inhoud, de hero van een startpagina, de voet, en wat rechtsboven in de balk hoort: de gebruiker, de taal, zoeken en meldingen.",
     "elements": [
       "shell",
       "page-header",
@@ -13,6 +13,7 @@
       "hero",
       "footer",
       "user-menu",
+      "language-nav",
       "app-search",
       "notifications"
     ],

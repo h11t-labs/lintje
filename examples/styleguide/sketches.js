@@ -39,6 +39,7 @@ export const SKETCHES = {
   hero: { frame: 'band', rows: 'T70 / l90 / l70 / u35 chev' },
   footer: { frame: 'band', rows: 't70 / s20 s20 s20 / l20 l20 l20 / l15 l15 l15 / rule / s12 s12' },
   'user-menu': { frame: 'band', center: true, rows: 'av chevd' },
+  'language-nav': { frame: 'band', center: true, rows: 'u30 chevd' },
   'app-search': { frame: 'page', rows: 'l90 / l70 / l50', over: 'search', layer: 'in / l70 / l50 / l60' },
   notifications: { frame: 'band', center: true, rows: 'i dot' },
   // Layout

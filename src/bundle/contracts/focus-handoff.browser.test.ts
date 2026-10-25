@@ -1444,7 +1444,7 @@ const CONVERSATION_ROWS: Row[] = [
     run: async () => {
       const element = await chatComposer()
       const send = (): HTMLElement | null =>
-        button(inside(element, '.lintje-chat-composer__send lintje-button'))
+        inside(element, '.lintje-chat-composer__send', '.lintje-menu-button__main')
       await expect.poll(send).toBeTruthy()
       send()!.focus()
       element.busy = true
@@ -1494,11 +1494,11 @@ const CONVERSATION_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-chat-composer :: the send options, closed with Escape, hand their focus to their toggle',
+    name: 'lintje-chat-composer :: the send options, closed with Escape, hand their focus to their arrow',
     run: async () => {
       const element = await chatComposer()
       const toggle = (): HTMLElement | null =>
-        button(inside(element, '.lintje-chat-composer__options-toggle'))
+        inside(element, '.lintje-chat-composer__send', '.lintje-menu-button__trigger')
       await drawn(toggle)
       toggle()!.focus()
       await userEvent.keyboard('{Enter}')

@@ -1,0 +1,3 @@
+### Toegevoegd
+
+- Bij een licht menu (`nav-tone="light"`) zijn `lintje-page-header` en `lintje-hero` (zonder `tone`) in de shell vanzelf de band in de primaire kleur, van rand tot rand; elke knop op een themavulling (deze band, de hero) tekent zichzelf omgekeerd via de `--lintje-button-*`-hooks. De kop neemt in `meta` een regel feiten en in `tabs` een rij `lintje-tabs` op zijn onderrand, op de band in zijn inkt (`--lintje-tabs-ink`); met tabbladen plakt de kop onder de balk met alleen die rij in beeld. In de nieuwe huisstijl staat de kop in de shell boven wat van rand tot rand loopt (`full`): een filterbalk staat onder de kop en plakt vandaar onder de balk. (#317)

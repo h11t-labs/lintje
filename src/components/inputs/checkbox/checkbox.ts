@@ -57,7 +57,7 @@ export class LintjeCheckbox extends LintjeInputElement {
             : nothing
         }
       </label>
-      ${this.renderFoot()}
+      ${this.renderMessages()}${this.renderFoot()}
     </div>`
   }
 }
