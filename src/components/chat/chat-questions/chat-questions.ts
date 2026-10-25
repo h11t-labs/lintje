@@ -464,16 +464,18 @@ export class LintjeChatQuestions extends LintjeElement {
           }
         </p>
         ${hint ? html`<p class="lintje-chat-questions__hint" aria-hidden="true">${hint}</p>` : nothing}
-        ${
-          error
-            ? html`<p class="lintje-chat-questions__error" role="alert">
-              ${renderIcon('functioneel-waarschuwing', { size: 14 })}${error}
-            </p>`
-            : nothing
-        }
-        <!-- Firefox makes a scroller a tab stop of its own; the choices in it are the stops. -->
-        <div class="lintje-chat-questions__choices" tabindex="-1">
-          ${keyed(question.id, this.renderControl(question, [error, hint].filter(Boolean).join(' ')))}
+        <div class="lintje-chat-questions__answer">
+          ${
+            error
+              ? html`<p class="lintje-chat-questions__error" role="alert">
+                ${renderIcon('functioneel-waarschuwing', { size: 14 })}${error}
+              </p>`
+              : nothing
+          }
+          <!-- Firefox makes a scroller a tab stop of its own; the choices in it are the stops. -->
+          <div class="lintje-chat-questions__choices" tabindex="-1">
+            ${keyed(question.id, this.renderControl(question, [error, hint].filter(Boolean).join(' ')))}
+          </div>
         </div>
       </div>
       <div class="lintje-chat-questions__actions">
