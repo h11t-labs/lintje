@@ -1,6 +1,6 @@
 {
   "name": "lintje",
-  "version": "0.8.3",
+  "version": "0.10.0",
   "type": "module",
   "description": "Lintje: the Rijkshuisstijl design system as Lit web components",
   "license": "EUPL-1.2",

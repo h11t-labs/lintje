@@ -26,6 +26,8 @@ import { styleProps } from '../../../core/style-props'
 import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
+import { avatarStyles, renderAvatar } from '../../shared/avatar'
+import type { SpeakerColour } from '../../content/shared/playback'
 import '../../feedback/empty-state/empty-state'
 import '../../actions/menu-button/menu-button'
 import '../../inputs/text-input/text-input'
@@ -62,6 +64,12 @@ export interface ListItem {
   action?: { label: string; value: string; href?: string }
   /** The kind of work, as an icon file name, before the title. */
   icon?: string
+  /**
+   * The row is a person, a speaker: their circle before the title, as `lintje-person` draws it,
+   * with the host's initials or photo, else the person icon. With `swatch` the circle takes that
+   * colour instead of the bar along the row, where the people are the variable.
+   */
+  avatar?: Person
   /** A data colour as a bar along the row (`sky-blue`): a speaker, as in the player and transcript. */
   swatch?: string
   /**
@@ -102,7 +110,7 @@ interface HeldFocus {
 }
 
 export class LintjeList extends LintjeElement {
-  static override styles = [iconStyles, shadowCss(listCss)]
+  static override styles = [iconStyles, avatarStyles, shadowCss(listCss)]
   /** Below 768 px the title wraps; read in script, as WebKit does not re-apply a shadow root's
       media query when the viewport narrows. */
   readonly #mobile = new MediaController(this)
@@ -358,15 +366,24 @@ export class LintjeList extends LintjeElement {
         'lintje-list__row': true,
         'is-selected': selected,
         'is-static': !clickable,
-        'has-icon': Boolean(item.icon),
+        'has-icon': Boolean(item.icon || item.avatar),
         'has-actions': actions,
-        'has-swatch': Boolean(item.swatch),
+        'has-swatch': Boolean(item.swatch && !item.avatar),
         'is-narrow': this.#mobile.matches,
       })}
       ${styleProps({ '--lintje-swatch': item.swatch ? `var(--color-chart-${item.swatch})` : null })}
       @click=${clickable ? (event: MouseEvent) => this.onRowClick(event, item) : nothing}
     >
-      ${item.icon ? renderIcon(item.icon, { size: 24, className: 'lintje-list__icon' }) : nothing}
+      ${
+        item.avatar
+          ? renderAvatar(item.avatar, {
+              color: item.swatch as SpeakerColour | undefined,
+              className: 'lintje-list__avatar',
+            })
+          : item.icon
+            ? renderIcon(item.icon, { size: 24, className: 'lintje-list__icon' })
+            : nothing
+      }
       <div class="lintje-list__main">
         ${this.renderTitle(item)}
         ${item.sub ? html`<span class="lintje-list__sub">${item.sub}</span>` : nothing}

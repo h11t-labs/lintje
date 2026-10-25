@@ -11,7 +11,7 @@
 .lintje-tree__item:focus-visible { outline: none; }
 .lintje-tree__item:focus-visible > .lintje-tree__row {
   outline: var(--focus-width) solid var(--color-focus);
-  outline-offset: calc(var(--focus-width) * -1);
+  outline-offset: var(--focus-inset); box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner));
 }
 
 /* A minimum height: a wrapped label grows the row. The padding centres one line as before, and

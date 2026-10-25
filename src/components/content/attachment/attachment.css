@@ -19,6 +19,7 @@
   background: var(--color-bg-surface);
   font: var(--text-small);
   color: var(--color-text-primary);
+  transition: border-color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-attachment.is-error { max-width: 360px; }
 .lintje-attachment--end { padding-right: var(--space-1); }
@@ -68,6 +69,7 @@
   display: inline-flex; align-items: center; justify-content: center;
   width: var(--space-6); height: var(--space-6);
   color: var(--color-text-muted);
+  transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-attachment__action {
   padding: 0; border: 0; background: none;

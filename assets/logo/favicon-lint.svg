@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Rijksoverheid">
+  <!-- The house style's favicon: the ribbon alone, hanging from the top on white, a quarter of the
+       height free under it. Never the coat of arms: that stays in the emblem files. -->
+  <rect width="32" height="32" fill="#FFFFFF"/>
+  <rect x="8" y="0" width="16" height="24" fill="#154273"/>
+</svg>
