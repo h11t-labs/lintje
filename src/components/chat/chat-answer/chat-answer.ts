@@ -369,7 +369,7 @@ export class LintjeChatAnswer extends LintjeElement {
             <span id="reasons" class="lintje-chat-answer__reasons-label">Wat was er mis?</span>
             ${REASONS.map(
               (reason) => html`<lintje-button
-                variant="tertiary"
+                variant="secondary"
                 size="compact"
                 @click=${() => this.giveReason(reason)}
                 >${reason}</lintje-button

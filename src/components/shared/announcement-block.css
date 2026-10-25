@@ -3,6 +3,9 @@
   container-type: inline-size;
   border-radius: var(--radius);
 }
+/* The house style's bar at the left of every status block, in the status's line colour; 0 wide
+   in the earlier style. */
+.lintje-announcement { border-left: var(--tone-bar-width) solid; }
 .lintje-announcement__inner {
   display: flex;
   align-items: flex-start;
@@ -45,6 +48,7 @@
   background: transparent;
   color: var(--color-text-primary);
   cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-announcement__close:hover { background: var(--color-bg-subtle); }
 .lintje-announcement__close::after {
@@ -53,15 +57,15 @@
   inset: min(0px, calc((100% - var(--h-target)) / 2));
 }
 
-.lintje-announcement--warning { background: var(--color-attention-bg); }
-.lintje-announcement--warning .lintje-announcement__icon { color: var(--color-attention-line); }
-.lintje-announcement--error { background: var(--color-error-bg); }
+.lintje-announcement--warning { background: var(--color-alert-warning-bg); border-color: var(--color-alert-warning-line); }
+.lintje-announcement--warning .lintje-announcement__icon { color: var(--color-alert-warning-line); }
+.lintje-announcement--error { background: var(--color-error-bg); border-color: var(--color-error-line); }
 .lintje-announcement--error .lintje-announcement__icon { color: var(--color-error-line); }
-.lintje-announcement--outage { background: var(--color-error-bg); }
+.lintje-announcement--outage { background: var(--color-error-bg); border-color: var(--color-error-line); }
 .lintje-announcement--outage .lintje-announcement__icon { color: var(--color-error-line); }
-.lintje-announcement--info { background: var(--color-info-bg); }
+.lintje-announcement--info { background: var(--color-info-bg); border-color: var(--color-info-line); }
 .lintje-announcement--info .lintje-announcement__icon { color: var(--color-info-line); }
-.lintje-announcement--ok { background: var(--color-success-bg); }
+.lintje-announcement--ok { background: var(--color-success-bg); border-color: var(--color-success-line); }
 .lintje-announcement--ok .lintje-announcement__icon { color: var(--color-success-line); }
 
 @media screen and (max-width: 767px) {
