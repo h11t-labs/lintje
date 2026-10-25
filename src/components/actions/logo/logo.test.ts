@@ -60,6 +60,8 @@ describe('lintje-logo: the name beside the ribbon', () => {
     expect(logo.shadowRoot!.querySelector('svg')!.getAttribute('aria-label')).toBe('Rijksoverheid')
     // It starts where the ribbon ends: the whole file is the ribbon.
     expect(px(name.style.left)).toBe(48)
+    // Its size, gap and top are steps of the ribbon.
+    expect(px(name.style.getPropertyValue('--lintje-ribbon'))).toBe(48)
   })
 
   it('writes it in the open menu too', async () => {
@@ -103,7 +105,8 @@ describe('lintje-logo: the name beside the ribbon', () => {
       ['lintje-logo__name-line', 'Dienst Vergunningen'],
       ['lintje-logo__byline', 'Ministerie van Binnenlandse Zaken en Koninkrijksrelaties'],
     ])
-    expect(css).toMatch(/\.lintje-logo__byline\s*\{[^}]*font-style:\s*italic/)
+    // Upright and regular, as rijksoverheid.nl writes the second line.
+    expect(css).toMatch(/\.lintje-logo__byline\s*\{\s*font-weight:\s*400;\s*\}/)
   })
 
   it('writes nothing without a name to write', async () => {
@@ -114,8 +117,8 @@ describe('lintje-logo: the name beside the ribbon', () => {
     expect(nameOf(logo)).toBeNull()
   })
 
-  it('takes the text colour of where it stands and hangs outside the drawing', () => {
-    expect(css).toMatch(/\.lintje-logo__name\s*\{[^}]*color:\s*inherit/)
+  it('takes the logo’s name colour and hangs outside the drawing', () => {
+    expect(css).toMatch(/\.lintje-logo__name\s*\{[^}]*color:\s*var\(--color-logo-name\)/)
     expect(css).toMatch(/\.lintje-logo__name\s*\{[^}]*position:\s*absolute/)
     expect(css).not.toMatch(/font-size:\s*\d+px/)
   })

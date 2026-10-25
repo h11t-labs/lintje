@@ -27,7 +27,8 @@
   position: relative;
   flex: 1 1 140px;
   min-width: 0;
-  height: 6px;
+  --lintje-player-bar: 6px;
+  height: var(--lintje-player-bar);
   background: var(--color-border-default);
   cursor: pointer;
   touch-action: none;

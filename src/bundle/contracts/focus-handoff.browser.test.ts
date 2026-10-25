@@ -1,7 +1,6 @@
 /** Focus handoff: when the control with the focus goes, the focus lands on a stated neighbour, never on `body`. */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
-import '../../components/tables/activity-log/activity-log'
 import '../../components/feedback/announcement/announcement'
 import '../../components/content/audio-player/audio-player'
 import '../../components/charts/chart/chart'
@@ -28,10 +27,12 @@ import '../../components/inputs/toggle/toggle'
 import '../../components/feedback/job-list/job-list'
 import '../../components/tables/list/list'
 import '../../components/map/map/map'
+import '../../components/graph/graph/graph'
 import '../../components/frame/notifications/notifications'
 import '../../components/tables/pagination/pagination'
 import '../../components/forms/repeater/repeater'
 import '../../components/tables/sortable-list/sortable-list'
+import '../../components/tables/timeline/timeline'
 import '../../components/feedback/streaming-text/streaming-text'
 import '../../components/frame/sub-nav/sub-nav'
 import '../../components/feedback/toast/toast'
@@ -48,7 +49,7 @@ import type {
   LintjeTranscript,
   TranscriptSegment,
 } from '../../components/content/transcript/transcript'
-import type { DataTableData } from '../../types'
+import type { DataTableData, GraphData } from '../../types'
 
 /** One element's case: it builds, puts the focus on a control and makes it go; then says where the focus belongs. */
 interface Row {
@@ -989,10 +990,12 @@ async function repeater(count: number): Promise<HTMLElement> {
 const repeaterRemove = (row: Element | null | undefined): HTMLElement | null =>
   inside(row, 'lintje-icon-button', 'button')
 
-const ENTRIES = Array.from({ length: 14 }, (_, index) => ({
+/** A history, the newest first: what the activity log was. */
+const HISTORY = Array.from({ length: 14 }, (_, index) => ({
   who: index % 2 ? 'A. de Vries' : 'M. Jansen',
-  what: `Stap ${14 - index} afgerond`,
-  when: `${index + 1} maart`,
+  title: `rondde stap ${14 - index} af`,
+  when: `${28 - index} maart`,
+  at: `2026-03-${String(28 - index).padStart(2, '0')}`,
 }))
 
 /** A job list with one failed job, the focus on its "Opnieuw". */
@@ -1036,33 +1039,60 @@ const COLLECTION_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-activity-log :: "Toon eerdere", gone with the last entries, hands its focus to the first new entry',
+    name: 'lintje-timeline :: a history\'s "Toon eerdere", gone with the last moments, hands its focus to the first new moment',
     run: async () => {
-      const log = await mount<HTMLElement>('lintje-activity-log', { entries: ENTRIES })
+      const timeline = await mount<HTMLElement>('lintje-timeline', {
+        moments: HISTORY,
+        limit: 10,
+        step: 10,
+      })
       const more = (): HTMLElement | null =>
-        button(log.shadowRoot!.querySelector('.lintje-activity-log__more'))
+        button(timeline.shadowRoot!.querySelector('.lintje-timeline__more'))
       await expect.poll(more).toBeTruthy()
       more()!.focus()
       await userEvent.keyboard('{Enter}')
-      return () => log.shadowRoot!.querySelectorAll('.lintje-activity-log__entry')[10] ?? null
+      return () => timeline.shadowRoot!.querySelector('[data-index="10"]')
     },
   },
   {
-    name: 'lintje-activity-log :: "Toon eerdere" that stays keeps its focus',
+    name: 'lintje-timeline :: a history\'s "Toon eerdere" that stays keeps its focus',
     run: async () => {
-      const log = await mount<HTMLElement>('lintje-activity-log', {
-        entries: [...ENTRIES, ...ENTRIES],
+      const timeline = await mount<HTMLElement>('lintje-timeline', {
+        moments: [
+          ...HISTORY,
+          ...HISTORY.map((moment) => ({ ...moment, at: moment.at.replace('03', '02') })),
+        ],
+        limit: 10,
+        step: 10,
       })
       const more = (): HTMLElement | null =>
-        button(log.shadowRoot!.querySelector('.lintje-activity-log__more'))
+        button(timeline.shadowRoot!.querySelector('.lintje-timeline__more'))
       await expect.poll(more).toBeTruthy()
       const kept = more()!
       kept.focus()
       await userEvent.keyboard('{Enter}')
       await expect
-        .poll(() => log.shadowRoot!.querySelectorAll('.lintje-activity-log__entry').length)
+        .poll(() => timeline.shadowRoot!.querySelectorAll('.lintje-timeline__row--moment').length)
         .toBe(20)
       return () => kept
+    },
+  },
+  {
+    name: 'lintje-timeline :: "Toon eerdere", gone with the earlier moments, hands its focus to the first moment',
+    run: async () => {
+      const timeline = await mount<HTMLElement>('lintje-timeline', {
+        limit: 2,
+        moments: ['2019', '2021', '2023', '2025'].map((year) => ({
+          when: year,
+          title: `In ${year}`,
+        })),
+      })
+      const more = (): HTMLElement | null =>
+        button(timeline.shadowRoot!.querySelector('.lintje-timeline__more'))
+      await expect.poll(more).toBeTruthy()
+      more()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => timeline.shadowRoot!.querySelector('.lintje-timeline__row--moment')
     },
   },
   {
@@ -1414,7 +1444,7 @@ const CONVERSATION_ROWS: Row[] = [
     run: async () => {
       const element = await chatComposer()
       const send = (): HTMLElement | null =>
-        button(inside(element, '.lintje-chat-composer__send lintje-button'))
+        inside(element, '.lintje-chat-composer__send', '.lintje-menu-button__main')
       await expect.poll(send).toBeTruthy()
       send()!.focus()
       element.busy = true
@@ -1464,11 +1494,11 @@ const CONVERSATION_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-chat-composer :: the send options, closed with Escape, hand their focus to their toggle',
+    name: 'lintje-chat-composer :: the send options, closed with Escape, hand their focus to their arrow',
     run: async () => {
       const element = await chatComposer()
       const toggle = (): HTMLElement | null =>
-        button(inside(element, '.lintje-chat-composer__options-toggle'))
+        inside(element, '.lintje-chat-composer__send', '.lintje-menu-button__trigger')
       await drawn(toggle)
       toggle()!.focus()
       await userEvent.keyboard('{Enter}')
@@ -2196,6 +2226,79 @@ const SHELL_ROWS: Row[] = [
   },
 ]
 
+/* --- lintje-graph ---------------------------------------------------------- */
+
+type GraphTile = HTMLElement & { data: GraphData; updateComplete: Promise<unknown> }
+
+/** A ministry with two services, a municipality behind one, and six people behind the other. */
+function graphData(extra: Partial<GraphData> = {}): GraphData {
+  const people = Array.from({ length: 6 }, (_, i) => ({
+    id: `p${i}`,
+    label: `Persoon ${i + 1}`,
+    type: 'person',
+  }))
+  return {
+    description: 'Een ministerie met twee diensten.',
+    types: [
+      { key: 'org', label: 'Organisatie', icon: 'gebouwen-basis-kantoorgebouw' },
+      { key: 'person', label: 'Persoon', plural: 'Personen', icon: 'personen-genderneutraal' },
+    ],
+    nodes: [
+      { id: 'min', label: 'Ministerie van Wonen', type: 'org' },
+      { id: 'a', label: 'Dienst Subsidies', type: 'org' },
+      { id: 'b', label: 'Rijksdienst Gegevens', type: 'org' },
+      { id: 'c', label: 'Gemeente Deventer', type: 'org' },
+      ...people,
+    ],
+    edges: [
+      { from: 'min', to: 'a' },
+      { from: 'min', to: 'b' },
+      { from: 'b', to: 'c' },
+      ...people.map((person) => ({ from: person.id, to: 'a' })),
+    ],
+    ...extra,
+  }
+}
+
+const graphNode = (tile: GraphTile, id: string): HTMLElement | null =>
+  tile.shadowRoot!.querySelector<HTMLElement>(`[data-node="${id}"]`)
+
+const GRAPH_ROWS: Row[] = [
+  {
+    name: 'lintje-graph :: a node folded away by the host hands its focus to the node that folds it',
+    run: async () => {
+      const tile = await mount<GraphTile>('lintje-graph', { data: graphData() })
+      await drawn(() => graphNode(tile, 'c'))
+      graphNode(tile, 'c')!.focus()
+      tile.data = graphData({ collapsed: ['b'] })
+      return () => graphNode(tile, 'b')
+    },
+  },
+  {
+    name: 'lintje-graph :: a group opened from its counter hands its focus to its first member',
+    run: async () => {
+      const tile = await mount<GraphTile>('lintje-graph', { data: graphData() })
+      const counter = () =>
+        graphNode(tile, 'groep:a:person')?.nextElementSibling as HTMLElement | null
+      await drawn(counter)
+      counter()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => graphNode(tile, 'p0')
+    },
+  },
+  {
+    name: 'lintje-graph :: a node the host takes away hands its focus to the centre',
+    run: async () => {
+      const tile = await mount<GraphTile>('lintje-graph', { data: graphData() })
+      await drawn(() => graphNode(tile, 'c'))
+      graphNode(tile, 'c')!.focus()
+      const data = graphData()
+      tile.data = { ...data, nodes: data.nodes.filter((item) => item.id !== 'c') }
+      return () => graphNode(tile, 'min')
+    },
+  },
+]
+
 /* --- The contract ---------------------------------------------------------- */
 
 const ROWS: Row[] = [
@@ -2216,6 +2319,7 @@ const ROWS: Row[] = [
   ...SUB_NAV_ROWS,
   ...PERSON_GROUP_ROWS,
   ...SHELL_ROWS,
+  ...GRAPH_ROWS,
 ]
 
 afterEach(async () => {

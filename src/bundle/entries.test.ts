@@ -22,6 +22,10 @@ const moduleOf = (tag: string) => modules.get(tag)!
 const tagsIn = (files: Set<string>) =>
   [...modules].filter(([, file]) => files.has(file)).map(([tag]) => tag)
 
+/** The graph's layout libraries, which only the graph tile carries. */
+const isLayout = (file: string) =>
+  file === '@dagrejs/dagre' || file === 'd3-force' || file.startsWith('d3-force/')
+
 const isMap = (file: string) =>
   file === 'leaflet' ||
   file.startsWith('leaflet/') ||
@@ -40,7 +44,9 @@ describe('the entries per tag', () => {
   it('reads an import that spans lines and skips a type-only one', () => {
     const imports = [...importsOf(moduleOf('lintje-chart'))]
     expect(imports).toContain('lit')
-    expect(imports).toContain(resolve(SRC, 'components/tables/data-table/data-table.ts'))
+    expect(imports).toContain(
+      resolve(SRC, 'components/shared/charts/dumbbell-chart/dumbbell-chart.ts'),
+    )
     expect(imports).not.toContain(resolve(SRC, 'types.ts'))
   })
 })
@@ -131,6 +137,14 @@ describe('what stays out', () => {
 
   it('reaches the map from the map category', () => {
     expect([...importClosure(entry('map'))].some(isMap)).toBe(true)
+  })
+
+  it('keeps the layout libraries out of everything but the graph tile', () => {
+    const withLayout = [...modules]
+      .filter(([, file]) => [...importClosure(file)].some(isLayout))
+      .map(([tag]) => tag)
+    expect(withLayout).toEqual(['lintje-graph'])
+    expect([...importClosure(entry('graph'))].some(isLayout)).toBe(true)
   })
 
   it('keeps charts, tables and the chat out of the frame, the inputs, the forms and the filters', () => {

@@ -16,21 +16,18 @@ import {
   type TemplateResult,
 } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
-import { styleProps, type StyleProps } from '../../../core/style-props'
 import { define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { LintjeInputElement } from '../shared/input'
 import { ownsEscape } from '../../shared/focus-trap'
 import { holdsFocus, standsIn } from '../../../core/focus'
-import { place, samePlace, viewport, type Place } from '../../shared/place'
+import { place, samePlace, stand, viewport, type Place } from '../../shared/place'
+import { resultsText } from '../../shared/search-text'
 import '../checkbox/checkbox'
 import inputCss from '../shared/input.css?inline'
 import multiselectCss from './multiselect.css?inline'
 import type { FilterOption } from '../../../types'
-
-/** Where the popover stands, and its width: the field's, at least `MIN_WIDTH`. */
-type PopoverAnchor = Place & { width: number }
 
 /** The popover's distance from the field. */
 const GAP = 4
@@ -38,23 +35,9 @@ const MIN_WIDTH = 260
 const VALUE_ID = 'lintje-multiselect-value'
 const SHOWN_ID = 'lintje-multiselect-shown'
 
-/** Through the CSSOM: `style-src 'self'` drops a `style` attribute (`core/style-props.ts`). */
-function anchorStyle(anchor: PopoverAnchor | null): StyleProps {
-  if (!anchor) return {}
-  return {
-    top: anchor.top === null ? null : `${anchor.top}px`,
-    bottom: anchor.bottom === null ? null : `${anchor.bottom}px`,
-    left: `${anchor.left}px`,
-    width: `${anchor.width}px`,
-    '--lintje-multiselect-space': `${anchor.space}px`,
-  }
-}
-
 function optionLabel(option: FilterOption): string {
   return option.label ?? String(option.value)
 }
-
-const resultsText = (count: number): string => (count === 1 ? '1 resultaat' : `${count} resultaten`)
 
 export class LintjeMultiselect extends LintjeInputElement {
   static override styles = [iconStyles, shadowCss(inputCss), shadowCss(multiselectCss)]
@@ -67,7 +50,6 @@ export class LintjeMultiselect extends LintjeInputElement {
     options: { attribute: false },
     selected: { attribute: false },
     query: { state: true },
-    anchor: { state: true },
     news: { state: true },
   }
 
@@ -79,11 +61,12 @@ export class LintjeMultiselect extends LintjeInputElement {
   declare options?: FilterOption[]
   declare selected?: string[]
   query: string = ''
-  protected anchor: PopoverAnchor | null = null
   /** What the status region says: the result count of a search, the count after a choice. */
   protected news: string = ''
 
   private reflowFrame: number = 0
+  #spot: Place | null = null
+  #width: number | null = null
 
   private readonly onOutsideClick = (event: MouseEvent): void => {
     if (!this.open) return
@@ -147,30 +130,35 @@ export class LintjeMultiselect extends LintjeInputElement {
     super.disconnectedCallback()
   }
 
-  // Measured before the popover is drawn: its height is unknown, so `place()` flips on its
-  // smallest room, and the list scrolls within the room there is.
+  // Placed as if without height, so `place()` flips on its smallest room and the list scrolls
+  // within the room there is. Its width is the field's, at least `MIN_WIDTH`.
   private measure(): void {
     const field = this.renderRoot.querySelector<HTMLElement>('.lintje-multiselect__field')
-    if (!field) return
+    const popover = this.renderRoot.querySelector<HTMLElement>('.lintje-multiselect__popover')
+    if (!field || !popover) return
     const rect = field.getBoundingClientRect()
     const width = Math.max(rect.width, MIN_WIDTH)
-    const next = { ...place(rect, { width, height: 0 }, viewport(), 'bottom-start', GAP), width }
-    if (samePlace(this.anchor, next) && this.anchor?.width === next.width) return
-    this.anchor = next
+    const next = place(rect, { width, height: 0 }, viewport(), 'bottom-start', GAP)
+    if (samePlace(this.#spot, next) && width === this.#width) return
+    stand(popover, next)
+    popover.style.setProperty('width', `${width}px`)
+    popover.style.setProperty('--lintje-multiselect-space', `${next.space}px`)
+    this.#spot = next
+    this.#width = width
   }
 
-  // Measured before the popover is drawn, so the first paint is in place; also for `open` set by script.
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
-    if (!changed.has('open')) return
-    if (this.open) this.measure()
-    else this.anchor = null
-    this.news = ''
+    if (changed.has('open')) this.news = ''
   }
 
-  // Focus moves to the search field only when the popover opens.
+  // Placed after the render, before the paint: the popover exists only while open, so a new
+  // one is unplaced. Focus moves to the search field only when the popover opens.
   protected override updated(changed: PropertyValues<this>): void {
-    if (!changed.has('open') || !this.open) return
+    if (!changed.has('open')) return
+    this.#spot = null
+    if (!this.open) return
+    this.measure()
     const input = this.renderRoot.querySelector<HTMLInputElement>(
       '.lintje-multiselect__search-input',
     )
@@ -236,6 +224,7 @@ export class LintjeMultiselect extends LintjeInputElement {
 
     return html`<div class="lintje-field lintje-multiselect" @focusout=${this.onFocusOut}>
       ${this.renderLabel()}
+      ${this.renderMessages()}
       <button
         type="button"
         class=${classMap({
@@ -306,7 +295,6 @@ export class LintjeMultiselect extends LintjeInputElement {
               class="lintje-multiselect__popover"
               role="dialog"
               aria-label=${this.label || this.placeholder}
-              ${styleProps(anchorStyle(this.anchor))}
             >
               <div class="lintje-multiselect__search">
                 <input

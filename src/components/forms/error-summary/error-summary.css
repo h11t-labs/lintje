@@ -14,9 +14,11 @@
   color: var(--color-text-primary);
   border-radius: var(--radius);
 }
+/* The house style's bar at the left, in the status's line colour, as every status block. */
+.lintje-error-summary { border-left: var(--tone-bar-width) solid var(--color-error-line); }
+/* Without a margin the 20 px glyph is centred on the heading's first line. */
 .lintje-error-summary__icon {
   flex: none;
-  margin-top: 2px;
   color: var(--color-error-line);
 }
 .lintje-error-summary__body { min-width: 0; }

@@ -3,7 +3,7 @@
 /* --- */
 
 /* A 1 px gap keeps two chosen days apart; a period's tint spans it within a week. */
-.lintje-month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; }
+.lintje-month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); --lintje-month-grid-line: 1px; gap: var(--lintje-month-grid-line); }
 /* A row is there for the grid's ARIA only. */
 .lintje-month-grid__row { display: contents; }
 .lintje-month-grid__weekday {

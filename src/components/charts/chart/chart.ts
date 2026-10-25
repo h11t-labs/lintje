@@ -1,8 +1,7 @@
 /**
  * `<lintje-chart>` — a chart in its tile, with loading, empty and error states.
  *
- * Expand and download are handled here. The table view is the element's own state, built from the
- * CSV rows; it never reaches the URL. A mark with an `href` goes there after its
+ * Expand and download are handled here. A mark with an `href` goes there after its
  * `lintje-mark-select`, and undoing goes to `data.clearHref`: the event is cancelable, and a host
  * that routes itself cancels it. A modifier or middle click on a mark opens its `href` in a new
  * tab, without that event.
@@ -43,22 +42,12 @@ import { chartImage, downloadCsv, downloadPng, type CsvCell } from '../../shared
 import { MediaController } from '../../../core/media'
 import skeletonCss from '../../feedback/skeleton/skeleton.css?inline'
 import tileHostCss from '../../shared/view-tile.css?inline'
-import chartCss from './chart.css?inline'
 import '../../feedback/announcement/announcement'
-import '../../tables/data-table/data-table'
-import '../../inputs/segmented/segmented'
 import '../../layout/tile/tile'
-import type { CellValue, ChartData, DataTableData, FilterOption } from '../../../types'
-
-type ChartView = 'chart' | 'table'
+import type { CellValue, ChartData } from '../../../types'
 
 /** The chart's own drawing; a legend marker or an icon is an `<svg>` too. */
 const DRAWING = '.lintje-chart__svg, .lintje-pie-chart__svg'
-
-const VIEW_OPTIONS: FilterOption[] = [
-  { value: 'chart', label: 'Grafiek' },
-  { value: 'table', label: 'Tabel' },
-]
 
 /** A file name from the title ("Aanvragen per uur" → "aanvragen-per-uur"). */
 function fileNameOf(title: string | undefined): string {
@@ -132,7 +121,7 @@ function forecastColumns(chart: Extract<ChartSpec, { kind: 'line' | 'bar' }>) {
   }
 }
 
-/** The rows of the CSV download, header first; the table view shows the same rows. */
+/** The rows of the CSV download, header first. */
 function csvRows(chart: ChartSpec): CsvCell[][] {
   switch (chart.kind) {
     case 'line': {
@@ -343,37 +332,6 @@ function uncolouredSeries(chart: ChartSpec): string[] {
   return variables.length > 1 ? variables.filter((row) => !row.color).map((row) => row.label) : []
 }
 
-/** The CSV rows as a table. A missing value stays `null` (rule 15); rows keep the chart's order. */
-function chartTable(chart: ChartSpec, caption: string): DataTableData {
-  const [header = [], ...body] = csvRows(chart)
-  const columns = header.map((cell, index) => {
-    const values = body.map((row) => (row[index] ?? null) as CellValue)
-    // A column of names is text, wherever it stands (a scatter plot has two); an empty cell
-    // (a histogram's open class) leaves a column of numbers a column of numbers.
-    return index === 0 || values.some((value) => typeof value === 'string' && value !== '')
-      ? { key: `c${index}`, header: String(cell ?? ''), format: 'text' as const, sortable: false }
-      : {
-          key: `c${index}`,
-          header: String(cell ?? ''),
-          format: 'decimal' as const,
-          decimals: decimalsOf(values),
-          align: 'right' as const,
-          sortable: false,
-        }
-  })
-  return {
-    caption,
-    columns,
-    rows: body.map((row, i) => ({
-      row: String(i),
-      ...Object.fromEntries(columns.map((column, index) => [column.key, row[index] ?? null])),
-    })),
-    rowKey: 'row',
-    defaultSort: { key: 'row', direction: 'asc' },
-    pageSize: Math.max(body.length, 1),
-  }
-}
-
 export class LintjeChart extends LintjeContentTileElement {
   // The chart-state skeleton is `.lintje-skeleton` markup; a shadow root needs the sheet.
   static override styles = [
@@ -381,17 +339,13 @@ export class LintjeChart extends LintjeContentTileElement {
     shadowCss(tileHostCss),
     shadowCss(skeletonCss),
     ...chartStyles,
-    shadowCss(chartCss),
   ]
 
   static override properties: PropertyDeclarations = {
     data: { attribute: false },
-    view: { state: true },
   }
 
   declare data?: ChartData | null
-
-  view: ChartView = 'chart'
 
   readonly #chart = new ChartController(() => this.requestUpdate())
   // The modal draws the same chart with its own controller: the two never share hover or width.
@@ -429,10 +383,6 @@ export class LintjeChart extends LintjeContentTileElement {
 
   private get ready(): boolean {
     return (this.data?.state ?? 'ready') === 'ready'
-  }
-
-  private get showsTable(): boolean {
-    return Boolean(this.data?.tableSwitch) && this.ready && this.view === 'table'
   }
 
   private get expandable(): boolean {
@@ -483,13 +433,12 @@ export class LintjeChart extends LintjeContentTileElement {
     const subtitle =
       this.#mobile.matches && data.mobileSubtitle ? data.mobileSubtitle : data.subtitle
     const titleId = this.id ? `${this.id}-tile` : undefined
-    const viewSwitch = data.tableSwitch && ready ? this.viewSwitch() : nothing
-    const table = this.showsTable
 
     return html`<lintje-tile
         id=${titleId ?? nothing}
         span=${data.span ?? nothing}
         heading=${data.title ?? nothing}
+      ?collapsed-mobile=${Boolean(data.collapsedMobile)}
         icon=${data.icon ?? nothing}
         subtitle=${subtitle ?? nothing}
         intro=${data.intro ?? nothing}
@@ -510,7 +459,6 @@ export class LintjeChart extends LintjeContentTileElement {
           this.csv()
         }}
       >
-        ${viewSwitch}
         ${
           data.notice
             ? html`<lintje-announcement
@@ -524,23 +472,15 @@ export class LintjeChart extends LintjeContentTileElement {
       </lintje-tile>
 
       ${this.renderExpandModal(
-        !this.expanded
-          ? nothing
-          : table
-            ? this.table()
-            : this.#modalChart
-              ? renderChart(data.chart, {
-                  ...this.chartOptions(this.#modalChart),
-                  expanded: true,
-                })
-              : nothing,
+        this.expanded && this.#modalChart
+          ? renderChart(data.chart, { ...this.chartOptions(this.#modalChart), expanded: true })
+          : nothing,
         {
           heading: data.title,
           subtitle,
           footnote: data.footnote,
           csv: () => this.csv(),
-          // A table is no drawing: no PNG.
-          png: table ? undefined : () => this.png(),
+          png: () => this.png(),
         },
       )}`
   }
@@ -561,38 +501,8 @@ export class LintjeChart extends LintjeContentTileElement {
       case 'error':
         return nothing
       default:
-        return this.showsTable
-          ? this.table()
-          : renderChart(data.chart, this.chartOptions(this.#chart))
+        return renderChart(data.chart, this.chartOptions(this.#chart))
     }
-  }
-
-  /** Header actions from 768 px; below that a row of its own in the `notice` slot. */
-  private viewSwitch(): TemplateResult {
-    const mobile = this.#mobile.matches
-    return html`<lintje-segmented
-      class="lintje-chart__view"
-      slot=${mobile ? 'notice' : 'actions'}
-      label="Weergave"
-      hide-label
-      ?stacked=${mobile}
-      .value=${this.view}
-      .options=${VIEW_OPTIONS}
-      @lintje-change=${(event: CustomEvent<string>) => {
-        event.stopPropagation()
-        this.view = event.detail === 'table' ? 'table' : 'chart'
-      }}
-    ></lintje-segmented>`
-  }
-
-  private table(): TemplateResult {
-    const data = this.data as ChartData
-    const caption = data.title ? `${data.title}, als tabel` : 'Grafiek als tabel'
-    return html`<lintje-data-table
-      class="lintje-chart__table"
-      bare
-      .data=${chartTable(data.chart, caption)}
-    ></lintje-data-table>`
   }
 
   /**

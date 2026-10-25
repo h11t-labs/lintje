@@ -7,7 +7,10 @@
 
 .lintje-mobile-header {
   display: none;
-  height: var(--h-mobile-header);
+  box-sizing: border-box;
+  /* Under a phone's status bar: the header grows by the inset and keeps its content under it. */
+  height: calc(var(--h-mobile-header) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
   flex: none;
   background: var(--color-nav-bg);
   align-items: flex-start;
@@ -18,12 +21,35 @@
   overflow-x: clip;
 }
 :where(.lintje-shell.is-phone) .lintje-mobile-header { display: flex; }
-/* On the theme fill the ring is the on-theme one, as in the desktop menu. */
-.lintje-mobile-header :focus-visible,
-.lintje-mobile-menu :focus-visible { outline-color: var(--color-focus-on-theme); }
+/* `mobile-bar="bottom"`: the header is stuck to the bottom of the screen, under the thumb, as the
+   house style's variant, with the status bar's lower inset under it; the menu opens above it and
+   slides up as a sheet. */
+:host([mobile-bar='bottom']) .lintje-mobile-chrome {
+  position: fixed;
+  top: auto; bottom: 0; left: 0; right: 0;
+}
+:host([mobile-bar='bottom']) .lintje-mobile-header {
+  height: calc(var(--h-mobile-header) + env(safe-area-inset-bottom, 0px));
+  padding-top: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: inset 0 1px 0 var(--color-border-default);
+}
+:host([mobile-bar='bottom']) .lintje-mobile-menu {
+  inset: 0 0 calc(var(--h-mobile-header) + env(safe-area-inset-bottom, 0px)) 0;
+  animation-name: lintje-sheet-in;
+}
+/* On the theme fill the ring is the inverse one, as in the desktop menu, by the inherited hooks. */
+.lintje-mobile-header,
+.lintje-mobile-menu {
+  --lintje-focus: var(--color-focus-on-theme);
+  --lintje-focus-inner: var(--color-focus-on-theme-inner);
+}
 /* "Weergave" and "Delen" open from this header as sheets on the page's surface: standard ring. */
-.lintje-mobile-header .lintje-view__popover :focus-visible,
-.lintje-mobile-header .lintje-share__popover :focus-visible { outline-color: var(--color-focus); }
+.lintje-mobile-header .lintje-view__popover,
+.lintje-mobile-header .lintje-share__popover {
+  --lintje-focus: var(--color-focus);
+  --lintje-focus-inner: var(--color-focus-inner);
+}
 
 .lintje-mobile-header__actions { margin-top: var(--space-3); display: flex; gap: var(--space-2); }
 .lintje-mobile-header__button {
@@ -32,13 +58,14 @@
   background: var(--color-nav-active);
   color: var(--color-nav-text);
   border: 1px solid var(--color-nav-line);
+  border-radius: var(--radius-control);
   font-size: 0.875rem;
   font-weight: 700;
   display: flex; align-items: center; justify-content: center; gap: var(--space-2);
   /* Square when only the glyph shows (`headerCompact`). */
   min-width: var(--h-touch);
 }
-/* Without room the words are read, not shown: the glyph and the badge stay. */
+/* Without room the words are read, not shown: the glyph stays. */
 .lintje-mobile-header.is-compact .lintje-mobile-header__word {
   position: absolute;
   width: 1px; height: 1px;
@@ -47,12 +74,9 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
-/* The modified-filters count is the badge's `attention` tone: near-black on the
-   orange, because white on #E17000 is 3.2:1. */
-
 .lintje-mobile-menu {
   position: fixed;
-  inset: var(--h-mobile-header) 0 0 0;
+  inset: calc(var(--h-mobile-header) + env(safe-area-inset-top, 0px)) 0 0 0;
   z-index: 24;
   background: var(--color-nav-bg);
   color: var(--color-nav-text);
@@ -70,7 +94,7 @@
   font-size: var(--label-size); font-weight: var(--label-weight);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
   color: var(--color-nav-text-sub);
-  padding: 22px var(--space-5) 6px;
+  padding: var(--space-6) var(--space-5) var(--space-2);
 }
 /* A minimum height: a long label wraps and grows the row, a second line off the edge. */
 .lintje-mobile-menu__item {

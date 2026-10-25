@@ -36,8 +36,9 @@
   position: absolute;
   top: calc((var(--h-target) + var(--h-chip-field)) / 2);
   bottom: calc((var(--h-chip-field) - var(--h-target)) / 2);
-  left: calc(var(--h-chip-field) / 2 - 1px);
-  border-left-width: 2px;
+  --lintje-stepper-line: 2px;
+  left: calc(var(--h-chip-field) / 2 - var(--lintje-stepper-line) / 2);
+  border-left-width: var(--lintje-stepper-line);
 }
 
 .lintje-stepper__body { display: flex; flex-direction: column; }
@@ -81,9 +82,12 @@
 .lintje-stepper__marker--done { border-color: var(--color-accent-line); color: var(--color-accent-text); }
 .lintje-stepper__marker--done.is-error { border-color: var(--color-error-line); color: var(--color-error-text); }
 
+/* Thinner than the rail and clear below it, so the name does not read as threaded on the line. */
 .lintje-stepper__name--link {
   position: relative;
   color: var(--color-link);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
   transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-stepper__name--link::after {
@@ -91,7 +95,7 @@
   position: absolute;
   inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
 }
-.lintje-stepper__name--link:hover { color: var(--color-link-hover); }
+.lintje-stepper__name--link:hover { color: var(--color-link-hover); text-decoration-thickness: 2px; }
 
 .lintje-stepper__errors { font: var(--text-small); font-weight: 700; color: var(--color-error-text); }
 

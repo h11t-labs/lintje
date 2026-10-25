@@ -38,6 +38,7 @@ import {
   carry,
   emblem,
   modeOf,
+  applyStyle,
   searchWith,
   shellSettingsOf,
   themeOf,
@@ -225,6 +226,8 @@ function element(name, attributes = {}, text = '') {
 const shell = document.getElementById('shell')
 const crumbs = document.getElementById('crumbs')
 const pageHeader = document.getElementById('page-header')
+const band = document.getElementById('band')
+const bandCrumbs = document.getElementById('band-crumbs')
 const exportMenu = document.getElementById('export')
 const newButton = document.getElementById('new')
 const overview = document.getElementById('overview')
@@ -255,6 +258,7 @@ function renderShell() {
   const root = document.documentElement
   root.dataset.mode = modeOf(location.search)
   root.dataset.theme = theme()
+  applyStyle()
   shell.data = {
     name: 'Meldingen',
     emblem: emblem(theme()),
@@ -275,6 +279,7 @@ function renderShell() {
     page() === 'nieuw'
       ? [start, { label: 'Meldingen', href: link() }, { label: 'Nieuwe melding' }]
       : [start, { label: 'Meldingen' }]
+  bandCrumbs.items = crumbs.items
 }
 
 shell.addEventListener('lintje-action', (event) => {
@@ -677,7 +682,7 @@ function personRow(id, person = {}) {
     name: `betrokkene-${id}-naam`,
     'hide-label': true,
     commit: 'input',
-    placeholder: 'Voorletters en achternaam',
+    placeholder: 'Voorletters en naam',
   })
   const role = element('lintje-select', { name: `betrokkene-${id}-rol`, 'hide-label': true })
   role.options = ROLES
@@ -1092,10 +1097,12 @@ function render() {
   const current = page()
   overview.hidden = exportMenu.hidden = newButton.hidden = current !== 'overzicht'
   newPage.hidden = current !== 'nieuw'
-  pageHeader.data =
-    current === 'nieuw'
-      ? { title: 'Nieuwe melding', description: 'Registreer een melding in drie stappen. Je concept blijft bewaard tot je het verstuurt.' }
-      : { title: 'Overzicht', description: 'Alle meldingen van het rijkskantoor. Open een melding via de titel, of pas een cel direct aan.' }
+  // "Nieuwe melding" is headed by the band in the primary colour; the overview by the page header.
+  band.hidden = current !== 'nieuw'
+  pageHeader.hidden = current === 'nieuw'
+  band.heading = 'Nieuwe melding'
+  band.description = 'Registreer een melding in drie stappen. Je concept blijft bewaard tot je het verstuurt.'
+  pageHeader.data = { title: 'Overzicht', description: 'Alle meldingen van het rijkskantoor. Open een melding via de titel, of pas een cel direct aan.' }
   if (current === 'overzicht') {
     if (shown === 'nieuw') {
       form = null

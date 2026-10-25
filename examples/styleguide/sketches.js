@@ -18,7 +18,8 @@
  *   meter levels     slider slider      step steps        grip handle      ind indent
  *   chev / chevl / chevd chevron right, left, down  rule rule          sp space    bubble question
  *   dash suggestion
- *   tbl table        map map            log timeline      split two panes  card small card
+ *   tbl table        map map            graph network     log timeline     split two panes
+ *   card small card
  *   cell filled box  tags field with chips                mark marked term
  *   c<kind> a chart: cline carea cdual cbars chbars cgroup cstack cpie chist cheat cscatter ctarget
  *
@@ -38,6 +39,7 @@ export const SKETCHES = {
   hero: { frame: 'band', rows: 'T70 / l90 / l70 / u35 chev' },
   footer: { frame: 'band', rows: 't70 / s20 s20 s20 / l20 l20 l20 / l15 l15 l15 / rule / s12 s12' },
   'user-menu': { frame: 'band', center: true, rows: 'av chevd' },
+  'language-nav': { frame: 'band', center: true, rows: 'u30 chevd' },
   'app-search': { frame: 'page', rows: 'l90 / l70 / l50', over: 'search', layer: 'in / l70 / l50 / l60' },
   notifications: { frame: 'band', center: true, rows: 'i dot' },
   // Layout
@@ -135,6 +137,7 @@ export const SKETCHES = {
   explainer: { frame: 'tile', rows: 't50 sp chevd / t15 l60 / t15 l50' },
   // Map
   map: { frame: 'tile', rows: 't40 / map' },
+  graph: { frame: 'tile', rows: 't40 / s15 s15 s15 / graph' },
   // Tables and lists
   'data-table': { frame: 'tile', rows: 't40 / s30 / rule / t30 sp t15 t15 / l40 sp l15 chip / l35 sp l15 chip' },
   pagination: { center: true, rows: 'chevl s12 play s3 s3 u15 chev' },
@@ -145,7 +148,7 @@ export const SKETCHES = {
   cells: { rows: 's15 sp s15 sp s15 / t25 sp t25 sp t25' },
   'tree-view': { rows: 'chevd l30 / ind chevd l35 / ind ind ind l30 / # ind ind ind t30 / ind ind ind l30 / ind chev l25' },
   'sortable-list': { rows: '[grip l30] / [grip l40] / [grip l25]' },
-  'activity-log': { rows: 't30 / log' },
+  timeline: { rows: 't40 / | s15 l45 / | s15 l35 / | s15 l50' },
   person: { center: true, rows: 'av t40' },
   'person-group': { center: true, rows: 'av av av av' },
   // Chat
@@ -214,6 +217,8 @@ const CHARTS = {
   ctarget:
     '<g class="w"><rect x="0" y="4" width="100" height="9"/><rect x="0" y="20" width="100" height="9"/><rect x="0" y="36" width="100" height="9"/></g><g class="i"><rect x="0" y="4" width="80" height="9"/><rect x="0" y="20" width="56" height="9"/><rect x="0" y="36" width="34" height="9"/></g><line class="i" x1="74" y1="0" x2="74" y2="50"/>',
   map: '<path class="w" d="M38 2 L62 4 L72 14 L66 24 L74 34 L62 48 L44 46 L34 36 L24 32 L30 18 Z"/><g class="i"><circle cx="46" cy="22" r="3"/><circle cx="58" cy="30" r="4"/><circle cx="40" cy="36" r="2.5"/></g>',
+  graph:
+    '<g class="w"><line x1="50" y1="25" x2="16" y2="8"/><line x1="50" y1="25" x2="84" y2="8"/><line x1="50" y1="25" x2="16" y2="42"/><line x1="50" y1="25" x2="84" y2="42"/><line x1="84" y1="8" x2="84" y2="42"/></g><g class="i"><rect x="38" y="20" width="24" height="10"/><rect x="4" y="3" width="24" height="10"/><rect x="72" y="3" width="24" height="10"/><rect x="4" y="37" width="24" height="10"/><rect x="72" y="37" width="24" height="10"/></g>',
 }
 
 function part(token) {

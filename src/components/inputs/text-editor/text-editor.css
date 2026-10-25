@@ -1,24 +1,18 @@
 /* The text editor: a frame with the toolbar on top and the editing surface under it. */
-:host {
-  display: block;
-  min-width: 0;
-}
-:host([hidden]) { display: none; }
-
-/* --- */
 
 /* 1 px field border; with the focus in the surface the ring goes round the whole frame. */
 .lintje-text-editor {
   display: flex; flex-direction: column;
   min-width: 0;
   border: 1px solid var(--color-border-field);
-  background: var(--color-bg-surface);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-field);
 }
 .lintje-text-editor:has(.lintje-text-editor__surface:focus-visible) {
   outline: var(--focus-width) solid var(--color-focus);
   outline-offset: var(--focus-offset);
 }
-.lintje-text-editor.is-error { border: 2px solid var(--color-error); }
+.lintje-text-editor.is-error { border: var(--field-error-border) solid var(--color-error); background: var(--color-bg-field-error); }
 /* Disabled wins over error: after it, the whole border back to 1 px strong. */
 .lintje-text-editor.is-disabled { border: 1px solid var(--color-border-strong); }
 

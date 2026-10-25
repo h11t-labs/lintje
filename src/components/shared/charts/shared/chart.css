@@ -230,6 +230,12 @@
     animation: lintje-grow-x calc(var(--dur-draw) * 0.6) var(--ease-in-motion)
       calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0)) backwards;
   }
+  /* A pie or a donut is swept in once from twelve o'clock, clockwise, as its slices run: the
+     dash of the ring in its mask opens over the draw. */
+  .lintje-pie-chart__sweep {
+    stroke-dasharray: 1 1;
+    animation: lintje-sweep var(--dur-draw) var(--ease-in-motion) backwards;
+  }
   /* A radar's layers grow from the centre once, with the bars' timing; the norm comes after. */
   .lintje-radar__layer {
     animation: lintje-point-grow calc(var(--dur-draw) * 0.6) var(--ease-in-motion)
@@ -251,6 +257,7 @@
   .lintje-chart__reference,
   .lintje-chart__point,
   .lintje-radar__layer,
+  .lintje-pie-chart__sweep,
   .lintje-dumbbell__dot,
   .lintje-dumbbell__link { animation-play-state: paused; }
   [data-in-view] .lintje-chart__reveal,
@@ -260,6 +267,7 @@
   [data-in-view] .lintje-chart__reference,
   [data-in-view] .lintje-chart__point,
   [data-in-view] .lintje-radar__layer,
+  [data-in-view] .lintje-pie-chart__sweep,
   [data-in-view] .lintje-dumbbell__dot,
   [data-in-view] .lintje-dumbbell__link { animation-play-state: running; }
 }
@@ -268,6 +276,7 @@
   to   { clip-path: inset(-8px); }
 }
 @keyframes lintje-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes lintje-sweep { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes lintje-lift { from { transform: none; filter: none; } }
 @keyframes lintje-grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes lintje-dumbbell-slide { from { transform: translateX(var(--lintje-dumbbell-shift, 0)); } }
@@ -308,6 +317,9 @@
 .lintje-legend__item.is-hidden .lintje-legend__label { text-decoration: line-through; }
 
 .lintje-legend__marker { flex: none; display: block; }
+/* A kind of node: its icon in its colour, and how many of it the drawing holds. */
+.lintje-legend__marker--icon { display: flex; }
+.lintje-legend__count { color: var(--color-text-secondary); }
 .lintje-legend__marker--symbol { width: 14px; height: 14px; }
 .lintje-legend__marker--square    { width: 12px; height: 12px; background: currentColor; }
 .lintje-legend__marker--line  { width: 14px; height: 3px;  background: currentColor; }
@@ -354,29 +366,33 @@
 
 /* --- Tooltip ------------------------------------------------------------- */
 .lintje-chart-tooltip {
+  --lintje-chart-tooltip-swatch: 14px;
   position: absolute;
   z-index: 55;
   pointer-events: none;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-popover);
   box-shadow: var(--shadow-popover);
-  padding: var(--space-2) 10px;
+  padding: var(--space-2) var(--space-3);
   font: var(--text-small);
   min-width: 160px;
   /* Its own width, whatever its position: shrink-to-fit narrowed it near the right edge. */
   width: max-content;
   max-width: 320px;
+  /* Comes in on the hover duration, as every hover does; a fade, so reduced motion keeps it. */
+  animation: lintje-chart-tooltip-in var(--dur-hover) var(--ease-in-motion);
 }
+@keyframes lintje-chart-tooltip-in { from { opacity: 0; } }
 .lintje-chart-tooltip__title { font-weight: 700; margin-bottom: 4px; }
 .lintje-chart-tooltip__kicker { color: var(--color-text-muted); }
 .lintje-chart-tooltip__title-note { font-weight: 400; color: var(--color-text-muted); }
 .lintje-chart-tooltip__row { display: flex; align-items: center; gap: var(--space-2); justify-content: space-between; }
 .lintje-chart-tooltip__label { display: flex; align-items: center; gap: var(--space-2); }
 .lintje-chart-tooltip__marker { width: 10px; height: 10px; flex: none; }
-.lintje-chart-tooltip__marker--symbol { width: 14px; height: 14px; }
-.lintje-chart-tooltip__marker--line { width: 14px; height: 3px; background: currentColor; }
-.lintje-chart-tooltip__marker--dashed { width: 14px; height: 0; border-top: 2px dashed currentColor; }
-.lintje-chart-tooltip__marker--dotted { width: 14px; height: 0; border-top: 3px dotted currentColor; }
+.lintje-chart-tooltip__marker--symbol { width: var(--lintje-chart-tooltip-swatch); height: var(--lintje-chart-tooltip-swatch); }
+.lintje-chart-tooltip__marker--line { width: var(--lintje-chart-tooltip-swatch); height: 3px; background: currentColor; }
+.lintje-chart-tooltip__marker--dashed { width: var(--lintje-chart-tooltip-swatch); height: 0; border-top: 2px dashed currentColor; }
+.lintje-chart-tooltip__marker--dotted { width: var(--lintje-chart-tooltip-swatch); height: 0; border-top: 3px dotted currentColor; }
 .lintje-chart-tooltip__marker--open { position: relative; border: 1.5px solid currentColor; }
 .lintje-chart-tooltip__marker--open::before {
   content: '';
@@ -387,7 +403,7 @@
 }
 /* A forecast's margin under its value: no swatch, in line with the series' name, quieter. */
 .lintje-chart-tooltip__row--note .lintje-chart-tooltip__label {
-  padding-left: calc(14px + var(--space-2));
+  padding-left: calc(var(--lintje-chart-tooltip-swatch) + var(--space-2));
   color: var(--color-text-muted);
 }
 .lintje-chart-tooltip__row--note .lintje-chart-tooltip__value { font-weight: 400; }
@@ -487,12 +503,12 @@
 .lintje-chart-skeleton__fill { position: absolute; inset: 0; }
 .lintje-chart-skeleton__y-labels {
   position: absolute;
-  top: 11px; bottom: 23px; left: 0; width: 44px;
+  top: var(--space-3); bottom: var(--space-6); left: 0; width: 44px;
   display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end;
 }
 .lintje-chart-skeleton__x-labels {
   position: absolute;
-  right: 8px; bottom: 7px; left: 52px;
+  right: var(--space-2); bottom: var(--space-2); left: 52px;
   display: flex; justify-content: space-between;
 }
 /* Pie and donut: "ring + drie legendaregels", a disc for the pie and a ring
@@ -528,7 +544,7 @@
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   grid-template-rows: repeat(5, minmax(0, 1fr));
-  gap: 3px;
+  gap: var(--space-1);
 }
 /* Map: "kaartvlak glanst, overlays echt" — the map area shimmers; the zoom buttons are drawn
    as on the map (48 px, top right). */
@@ -543,8 +559,9 @@
   display: flex; align-items: center; justify-content: center;
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border-strong);
-  margin-top: -1px;
+  --lintje-chart-skeleton-line: 1px;
+  border: var(--lintje-chart-skeleton-line) solid var(--color-border-strong);
+  margin-top: calc(var(--lintje-chart-skeleton-line) * -1);
 }
 .lintje-chart-skeleton__zoom-button:first-child { margin-top: 0; }
 /* Table: "5 rijen" — five rows at the table's row height. */

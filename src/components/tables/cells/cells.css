@@ -1,12 +1,13 @@
 /* A size container has no width of its own: in a column that shrinks to its content it would
    be none, so the row takes the room it stands in. */
-:host { display: block; min-width: 0; width: 100%; container-type: inline-size; }
+:host { display: block; min-width: 0; width: 100%; container-type: inline-size; --lintje-cells-line: 1px; }
 :host([hidden]) { display: none; }
 /* On a surface that is not the page's own (a hero's wash) the row is one panel: the surface, framed. */
 :host([surface]) {
   padding: var(--space-4) var(--space-5);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
 }
 
 /* ------------------------------------------------------------------------ */
@@ -31,7 +32,7 @@
 .lintje-cells--grid {
   display: grid;
   grid-template-columns: repeat(var(--lintje-columns, 4), minmax(0, 1fr));
-  margin-left: calc(-1 * (var(--space-3) + 1px));
+  margin-left: calc(-1 * (var(--space-3) + var(--lintje-cells-line)));
 }
 
 /* The rows stand 24 px apart: a padding on each side of the line between them, as wide as the
@@ -46,14 +47,14 @@
 }
 /* A line between columns only where columns align: in a free row the facts keep their own
    widths, and a line that shifts from row to row would read as a column that is not there. */
-.lintje-cells--grid .lintje-cells__cell { border-left: 1px solid var(--color-border-default); }
+.lintje-cells--grid .lintje-cells__cell { border-left: var(--lintje-cells-line) solid var(--color-border-default); }
 .lintje-cells__cell::before {
   content: '';
   position: absolute;
-  top: -1px;
+  top: calc(-1 * var(--lintje-cells-line));
   right: -100vw;
   left: -100vw;
-  height: 1px;
+  height: var(--lintje-cells-line);
   background: var(--color-border-default);
   pointer-events: none;
 }

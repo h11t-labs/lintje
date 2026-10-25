@@ -59,10 +59,16 @@ const COMPONENT_ICONS = [
   'functioneel-vinkje', // selected
   'functioneel-delta-omlaag', // select, accordion, table sort, filter toggle
   'functioneel-delta-rechts', // drilldown, pagination
+  'gereedschap-tandwielen', // timeline: who did it, when that is no person ("Systeem")
   'functioneel-waarschuwing', // the warning announcement's mark, error state, input error
   'functioneel-foutmelding', // the outage announcement's and the error toast's mark
   'functioneel-info', // the info announcement's mark; inline alert
   'functioneel-cirkel-vinkje', // the ok announcement's and the ok toast's mark
+  // The coloured marks of the house style: the shape in the status colour, the glyph white.
+  'functioneel-waarschuwing-gekleurd',
+  'functioneel-foutmelding-gekleurd',
+  'functioneel-info-gekleurd',
+  'functioneel-cirkel-vinkje-gekleurd',
   'functioneel-zoek', // search field
   'functioneel-kalender', // date range
   'lichaam-oog', // the "Je ziet" sentence
@@ -74,9 +80,10 @@ const COMPONENT_ICONS = [
   'functioneel-rechthoekselectie', // map: choose with a rectangle
   'functioneel-selectie', // map: the select button, no shape in hand yet
   'functioneel-locatiemarker', // map: set as scope
-  'functioneel-minus', // the number field's stepper (also the map's zoom out)
-  'functioneel-plus', // the number field's stepper (also the map's zoom in)
-  'functioneel-filters', // the filter bar and the mobile Filters button
+  'functioneel-minus', // the number field's stepper (also the map's zoom out, the graph's counter)
+  'functioneel-plus', // the number field's stepper (also the map's zoom in, the graph's counter)
+  'functioneel-vergrootglas-plus', // graph: zoom to the chosen node
+  'functioneel-filters', // the filter bar
   'functioneel-trechter', // the funnel in a filterable table column's head
   'functioneel-kolommen', // the table's column chooser
   'gebruiksvoorwerpen-hangslot-dicht', // a menu entry without access

@@ -6,7 +6,7 @@
 import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import './combobox'
-import { filterOptions, resultsText, splitMatch, type LintjeCombobox } from './combobox'
+import { filterOptions, type LintjeCombobox } from './combobox'
 import type { FilterOption } from '../../../types'
 
 const LOCATIES: FilterOption[] = [
@@ -62,17 +62,6 @@ describe('the arithmetic', () => {
   it('keeps the options whose label contains the text, case-insensitive', () => {
     expect(filterOptions(LOCATIES, 'AL 1').map((option) => option.value)).toEqual(['v1', 'a1'])
     expect(filterOptions(LOCATIES, '  ')).toBe(LOCATIES)
-  })
-
-  it('cuts a label around its match', () => {
-    expect(splitMatch('Vergaderzaal 2', 'vergader')).toEqual(['', 'Vergader', 'zaal 2'])
-    expect(splitMatch('Ontvangsthal 1', 'hal')).toEqual(['Ontvangst', 'hal', ' 1'])
-    expect(splitMatch('Perron', 'hal')).toEqual(['Perron', '', ''])
-  })
-
-  it('counts the results in Dutch', () => {
-    expect(resultsText(1)).toBe('1 resultaat')
-    expect(resultsText(3)).toBe('3 resultaten')
   })
 })
 
@@ -171,6 +160,22 @@ describe('lintje-combobox', () => {
     expect(rows(element)).toEqual(['Iets anders'])
   })
 
+  it('draws a label without the term whole and unmarked, beside one that has it', async () => {
+    vi.useFakeTimers()
+    const element = await mount({ remote: true, options: [] })
+    await type(element, 'hal')
+    vi.advanceTimersByTime(300)
+    element.options = [
+      { value: 'p', label: 'Perron' },
+      { value: 'a1', label: 'Ontvangsthal 1' },
+    ]
+    await element.updateComplete
+    expect(rows(element)).toEqual(['Perron', 'Ontvangsthal 1'])
+    const [perron, hal] = element.renderRoot.querySelectorAll('[role="option"]')
+    expect(perron!.querySelector('strong')).toBeNull()
+    expect(hal!.querySelector('strong')?.textContent).toBe('hal')
+  })
+
   it('draws the error with its glyph and points at it', async () => {
     const element = await mount({ error: 'Kies een locatie', hint: 'Waar het gebeurde' })
     const message = element.renderRoot.querySelector('.lintje-field__error')!
@@ -206,7 +211,7 @@ describe('the option the keys stand on', () => {
     // Read from disk: vitest does not run the CSS pipeline, so an `?inline` import is empty.
     const css = readFileSync('src/components/inputs/combobox/combobox.css', 'utf8')
     expect(css).toMatch(
-      /__option\.is-active \{\s*outline: var\(--focus-width\) solid var\(--color-focus\);\s*outline-offset: calc\(var\(--focus-width\) \* -1\);/,
+      /__option\.is-active \{\s*outline: var\(--focus-width\) solid var\(--color-focus\);\s*outline-offset: var\(--focus-inset\);/,
     )
   })
 })

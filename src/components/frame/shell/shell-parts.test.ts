@@ -146,10 +146,10 @@ async function open(shell: LintjeShell): Promise<void> {
 }
 
 describe('the closed mobile header', () => {
-  it('carries Filters and Menu', async () => {
+  it('carries Menu, and no Filters: the sentence under it opens the filters', async () => {
     setFrameState({ hasFilters: true }) // a filter zone stands on this page
     const shell = await mount()
-    expect(buttons(shell).map((button) => button.textContent?.trim())).toEqual(['Filters', 'Menu'])
+    expect(buttons(shell).map((button) => button.textContent?.trim())).toEqual(['Menu'])
     expect(panel(shell)).toBeNull()
   })
 
@@ -177,8 +177,7 @@ describe('the closed mobile header', () => {
     viewport(1024)
   })
 
-  it('keeps the words of Filters and Menu for the reader when only their glyphs fit', async () => {
-    setFrameState({ hasFilters: true })
+  it('keeps the word of Menu for the reader when only its glyph fits', async () => {
     const shell = await mount()
     const header = root(shell).querySelector<HTMLElement>('.lintje-mobile-header')!
     // happy-dom has no layout: the words are told to be wider than the header.
@@ -187,14 +186,7 @@ describe('the closed mobile header', () => {
     shell.requestUpdate()
     await shell.updateComplete
     expect(header.classList.contains('is-compact')).toBe(true)
-    expect(buttons(shell).map((button) => button.textContent?.trim())).toEqual(['Filters', 'Menu'])
-  })
-
-  it('has no Filters button on a page without a filter zone', async () => {
-    clearFilterZone()
-    const shell = await mount()
     expect(buttons(shell).map((button) => button.textContent?.trim())).toEqual(['Menu'])
-    setFrameState({ hasFilters: true })
   })
 
   it('carries search and the bell when the data asks for them, and gives their place up when open', async () => {
@@ -213,23 +205,6 @@ describe('the closed mobile header', () => {
   it('draws the menu glyph before its word', async () => {
     const shell = await mount()
     expect(contentOrder(menuButton(shell))).toEqual(['icon', 'text'])
-  })
-
-  it('counts the modified filters in the header badge', async () => {
-    setFrameState({ hasFilters: true, modifiedCount: 3 })
-    const shell = await mount()
-    const filters = buttons(shell)[0]!
-    const badge = filters.querySelector('.lintje-mobile-header__badge')!
-    // The figure is seen, the sentence heard.
-    expect(badge.querySelector('[aria-hidden="true"]')?.textContent).toBe('3')
-    expect(badge.querySelector('.visually-hidden')?.textContent).toBe('3 aangepast')
-    // It opens the filter sheet, a modal dialog, and says whether it is open.
-    expect(filters.getAttribute('aria-haspopup')).toBe('dialog')
-    expect(filters.getAttribute('aria-expanded')).toBe('false')
-    setFrameState({ sheetOpen: true })
-    await shell.updateComplete
-    expect(filters.getAttribute('aria-expanded')).toBe('true')
-    setFrameState({ modifiedCount: 0, sheetOpen: false })
   })
 })
 
@@ -531,6 +506,31 @@ describe('what "Weergave" offers when the host lets the reader choose', () => {
     expect(option(top, 'Boven').getAttribute('aria-pressed')).toBe('true')
     expect(await changesAfter(top, () => option(top, 'Zijbalk').click())).toEqual([
       { layout: 'side' },
+    ])
+  })
+
+  it('presses the house style the host draws, and sends the other one', async () => {
+    const fresh = await view(await mount({ view: { ...VIEW, style: 'new' } }))
+    expect(groups(fresh)).toEqual(['Licht of donker', 'Huisstijl'])
+    expect(option(fresh, 'Nieuw').getAttribute('aria-pressed')).toBe('true')
+    expect(option(fresh, 'Oud').getAttribute('aria-pressed')).toBe('false')
+    expect(await changesAfter(fresh, () => option(fresh, 'Oud').click())).toEqual([
+      { style: 'classic' },
+    ])
+
+    const classic = await view(await mount({ view: { ...VIEW, style: 'classic' } }))
+    expect(option(classic, 'Oud').getAttribute('aria-pressed')).toBe('true')
+    expect(await changesAfter(classic, () => option(classic, 'Nieuw').click())).toEqual([
+      { style: 'new' },
+    ])
+  })
+
+  it('presses the corner the host draws, and sends the other one', async () => {
+    const round = await view(await mount({ view: { ...VIEW, corner: 'round' } }))
+    expect(groups(round)).toEqual(['Licht of donker', 'Hoek'])
+    expect(option(round, 'Rond').getAttribute('aria-pressed')).toBe('true')
+    expect(await changesAfter(round, () => option(round, 'Recht').click())).toEqual([
+      { corner: 'square' },
     ])
   })
 
@@ -1275,7 +1275,7 @@ describe('the content box', () => {
     mounted.push(shell)
     await shell.updateComplete
     // happy-dom fires no `slotchange` for a slot's first assignment; a browser does.
-    for (const slot of root(shell).querySelectorAll('.lintje-shell__content slot')) {
+    for (const slot of root(shell).querySelectorAll('main slot')) {
       slot.dispatchEvent(new Event('slotchange'))
     }
     await shell.updateComplete
@@ -1442,7 +1442,9 @@ describe('the foot of the side menu', () => {
     const rows = [...menu.shadowRoot!.querySelectorAll('.lintje-menu__row')].map((row) =>
       row.textContent!.trim(),
     )
-    expect(rows).toEqual(['Mijn profiel', 'Instellingen', 'Afmelden'])
+    expect(rows).toEqual(['Mijn profiel', 'Instellingen'])
+    const logout = menu.shadowRoot!.querySelector('.lintje-user-menu__logout-button')!
+    expect(logout.getAttribute('aria-label')).toBe('Afmelden')
   })
 
   it('is named by the user, with the role as its description', async () => {

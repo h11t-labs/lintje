@@ -34,7 +34,7 @@
 /* Positioned, so an absolute visually hidden label is clipped with its cell. Only sideways: a
    hidden label below the last row would otherwise give the table a vertical scrollbar. */
 .lintje-data-table__scroller { position: relative; overflow-x: auto; overflow-y: hidden; }
-.lintje-data-table__scroller:focus-visible { outline-offset: -3px; }
+.lintje-data-table__scroller:focus-visible { outline-offset: var(--focus-inset); box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)); }
 /* A styled scrollbar is a classic one: it doesn't hide between scrolls like an overlay one. */
 .lintje-data-table__scroller::-webkit-scrollbar { height: 8px; }
 .lintje-data-table__scroller::-webkit-scrollbar-track { background: var(--color-bg-subtle); }
@@ -55,7 +55,7 @@
   text-transform: uppercase;
   color: var(--color-text-muted);
   background: var(--color-bg-surface);
-  padding: 10px var(--space-3);
+  padding: var(--space-3);
   border-bottom: 2px solid var(--color-border-heavy);
 }
 /* The sorted column: its label is text (4.5:1), the rule under it a line (3:1). */
@@ -73,6 +73,7 @@
   font: inherit; color: inherit; text-align: inherit;
   /* A button resets these; the header's label style must reach the label. */
   text-transform: inherit; letter-spacing: inherit;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-data-table__header-cell--align-right .lintje-data-table__sort-button { justify-content: flex-end; }
 /* Tracking also follows the last letter; it widened the table 1 px past its tile at 1024 px.
@@ -80,7 +81,7 @@
 .lintje-data-table__sort-label { margin-inline-end: calc(var(--label-tracking) * -1); }
 .lintje-data-table__sort-button:hover { background: var(--color-bg-subtle); }
 /* The scroller clips the ring, so it sits inside the cell. */
-.lintje-data-table__sort-button:focus-visible { outline-offset: -3px; }
+.lintje-data-table__sort-button:focus-visible { outline-offset: var(--focus-inset); box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)); }
 /* The arrows are a glyph, outside the type scale, one above the other in a box that never changes
    width. A head says only what holds now: the sorted column shows its one arrow, and another
    column both under the pointer or the focus. A hidden arrow keeps its place. */
@@ -96,7 +97,9 @@
 .lintje-data-table__sort-icon > .is-off { visibility: hidden; }
 .lintje-data-table__sort-icon > .is-on { color: var(--color-accent-text); }
 
-.lintje-data-table__row { border-bottom: 1px solid var(--color-border-default); }
+.lintje-data-table__row { border-bottom: 1px solid var(--color-border-default); 
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
 /* Filler rows keep a short last page as tall as a full one. */
 .lintje-data-table__row--filler { border-bottom-color: transparent; }
 /* A row is one line: no cell wraps, not even at a hyphen ("04-10-2026"). */
@@ -137,12 +140,18 @@
 
 .lintje-data-table__row.is-clickable { cursor: pointer; }
 .lintje-data-table__row.is-clickable:hover,
+.lintje-data-table__mobile-row { transition: background var(--dur-hover) var(--ease-in-motion); }
 .lintje-data-table__mobile-row.is-clickable:hover { background: var(--color-bg-subtle); }
 /* Selected and hover share a surface; the 4 px edge is the only carrier, so it must stay visible. */
 .lintje-data-table__row.is-selected,
 .lintje-data-table__mobile-row.is-selected {
   background: var(--color-bg-selected);
   box-shadow: inset 4px 0 0 var(--color-selected-edge);
+}
+/* Under the ring the edge stays: it is the only carrier of the selection. */
+.lintje-data-table__row.is-selected:focus-visible,
+.lintje-data-table__mobile-row.is-selected:focus-visible {
+  box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)), inset 4px 0 0 var(--color-selected-edge);
 }
 /* A checked row takes the selected background without the bar: the bar means drilldown. */
 .lintje-data-table__check-cell { width: 24px; padding-right: var(--space-3); }
@@ -154,7 +163,7 @@
 .lintje-data-table__row.is-checked,
 .lintje-data-table__mobile-row.is-checked { background: var(--color-bg-selected); }
 .lintje-data-table__row:focus-visible,
-.lintje-data-table__mobile-row:focus-visible { outline-offset: -3px; }
+.lintje-data-table__mobile-row:focus-visible { outline-offset: var(--focus-inset); box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)); }
 
 .lintje-threshold-cell {
   display: inline-flex; align-items: center; justify-content: center;
@@ -196,7 +205,9 @@
 
 /* --- Editing a cell (editing.ts) ------------------------------------------ */
 /* The pencil sits at the end of the text, at the start for a number. */
-.lintje-data-table__cell--editable { position: relative; }
+.lintje-data-table__cell--editable { position: relative; 
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
 .lintje-data-table__cell--editable:hover { background: var(--color-bg-subtle); }
 .lintje-data-table__edit-icon {
   position: absolute;
@@ -207,14 +218,15 @@
 }
 .lintje-data-table__cell--align-right .lintje-data-table__edit-icon { right: auto; left: var(--space-1); }
 .lintje-data-table__cell--editable:hover .lintje-data-table__edit-icon { visibility: visible; }
-.lintje-data-table__cell--editable.is-editing { padding: 2px; vertical-align: top; }
+/* No room above or below: the field is as tall as the row. */
+.lintje-data-table__cell--editable.is-editing { padding: 0 var(--space-1); vertical-align: top; }
 .lintje-data-table__cell--editable.is-editing:hover { background: transparent; }
 .lintje-data-table__editor {
   display: block;
   width: 100%; height: var(--h-control);
   padding: 0 var(--space-2);
   border: 1px solid var(--color-border-field);
-  background: var(--color-bg-surface);
+  background: var(--color-bg-field);
   color: var(--color-text-primary);
   font: var(--text-table);
   font-weight: 400;
@@ -222,10 +234,10 @@
 }
 .lintje-data-table__cell--align-right .lintje-data-table__editor { font-variant-numeric: tabular-nums; }
 .lintje-data-table__editor::placeholder { color: var(--color-text-placeholder); opacity: 1; }
-.lintje-data-table__editor.is-error { border: 2px solid var(--color-error); }
+.lintje-data-table__editor.is-error { border: var(--field-error-border) solid var(--color-error); }
 .lintje-data-table__edit-error {
   display: block;
-  padding: 2px var(--space-2) var(--space-1);
+  padding: var(--space-1) var(--space-2);
   font-size: 0.875rem; font-weight: 700;
   color: var(--color-error-text);
   text-align: left;
@@ -274,6 +286,7 @@
   padding: 0 var(--space-1) 0 var(--space-2);
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-control);
   color: var(--color-text-primary);
 }
 .lintje-data-table__chip-text { min-width: 0; padding-block: var(--space-1); overflow-wrap: anywhere; }
@@ -284,6 +297,7 @@
   width: var(--h-chip-field); height: var(--h-chip-field);
   display: flex; align-items: center; justify-content: center;
   color: var(--color-text-muted);
+  transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-data-table__chip-clear::after {
   content: '';
@@ -312,6 +326,7 @@
   margin-left: auto;
   border: 1px solid transparent;
   color: var(--color-text-muted);
+  transition: background var(--dur-hover) var(--ease-in-motion), color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-data-table__funnel::after {
   content: '';
@@ -328,6 +343,7 @@
   margin-left: auto;
   border: 1px solid transparent;
   color: var(--color-text-muted);
+  transition: background var(--dur-hover) var(--ease-in-motion), color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-data-table__chooser-button:hover,
 .lintje-data-table__chooser-button[aria-expanded='true'],
@@ -354,7 +370,7 @@
   width: 100%; height: var(--h-control);
   padding: 0 var(--space-3);
   border: 1px solid var(--color-border-field);
-  background: var(--color-bg-surface);
+  background: var(--color-bg-field);
   color: var(--color-text-primary);
   font-size: 1rem;
 }
@@ -391,9 +407,10 @@
   min-height: var(--h-table-row);
   padding: 0 var(--space-3);
   font: inherit; font-weight: 700; color: var(--color-text-primary); text-align: left;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-data-table__group-toggle:hover { background: var(--color-bg-subtle); }
-.lintje-data-table__group-toggle:focus-visible { outline-offset: -3px; }
+.lintje-data-table__group-toggle:focus-visible { outline-offset: var(--focus-inset); box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)); }
 .lintje-data-table__group-count { font-weight: 400; font-size: 0.875rem; color: var(--color-text-muted); }
 .lintje-data-table__group-row .lintje-data-table__cell { font-weight: 700; }
 /* Rows in a group stand in from its heading, by the chevron's width and gap. */
@@ -420,7 +437,7 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__frame { display: none; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile { display: table; }
 .lintje-data-table:where(.is-phone) { margin: 0 calc(var(--tile-pad-x) * -1); }
-:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile { padding: 10px var(--tile-pad-x); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile { padding: var(--space-3) var(--tile-pad-x); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__header-cell--sortable { padding: 0; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile .lintje-data-table__sort-button { padding: 0 var(--tile-pad-x); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-row { border-bottom: 1px solid var(--color-border-default); }
@@ -439,9 +456,9 @@
   font-weight: 400;
 }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-name { display: block; font-size: 0.875rem; font-weight: 700; }
-:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-sub { display: block; font-size: 0.875rem; color: var(--color-text-muted); margin-top: 2px; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-sub { display: block; font-size: 0.875rem; color: var(--color-text-muted); margin-top: var(--space-1); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-measure { display: block; font-size: 0.875rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-status { display: block; font-size: 0.875rem; margin-top: 2px; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-status { display: block; font-size: 0.875rem; margin-top: var(--space-1); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-status--within { color: var(--color-text-muted); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-status--outside { color: var(--color-error-text); font-weight: 700; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__pagination--full { display: none; }

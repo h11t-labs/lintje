@@ -239,13 +239,19 @@ export class LintjeTimeInput extends LintjeInputElement {
     const message = this.message
     return html`<div class="lintje-field" @focusout=${this.onFocusOut}>
       ${this.renderLabel(this.controlId)}
+      ${this.renderMessages()}
       <div class="lintje-time-input">
         <input
           type="text"
           id=${this.controlId}
           inputmode="numeric"
           autocomplete="off"
-          class=${classMap({ 'lintje-time-input__control': true, 'is-error': Boolean(message) })}
+          class=${classMap({
+            'lintje-time-input__control': true,
+            'lintje-field__box': true,
+            'lintje-field__control': true,
+            'is-error': Boolean(message),
+          })}
           .value=${live(this.text)}
           placeholder=${this.placeholder || nothing}
           aria-labelledby=${this.labelId}
@@ -258,7 +264,7 @@ export class LintjeTimeInput extends LintjeInputElement {
         />
         <button
           type="button"
-          class="lintje-time-input__toggle"
+          class="lintje-time-input__toggle lintje-field__toggle"
           aria-label="Tijden openen"
           aria-haspopup="listbox"
           aria-expanded=${this.open ? 'true' : 'false'}

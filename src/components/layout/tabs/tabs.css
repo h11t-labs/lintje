@@ -6,17 +6,21 @@
 /* `position: relative` makes the row the tabs' offset parent, for scrolling the chosen tab into sight. */
 .lintje-tabs__list {
   position: relative;
+  --lintje-tabs-line: 1px;
   display: flex; flex-wrap: wrap;
-  border-bottom: 1px solid var(--color-border-heavy);
+  border-bottom: var(--lintje-tabs-line) solid var(--lintje-tabs-ink-line, var(--color-border-heavy));
 }
 
-/* A transparent bottom edge in reserve, so the chosen tab's line takes no space of its own. */
+/* A transparent bottom edge in reserve, so the chosen tab's line takes no space of its own; it
+   lies over the row's line, so the row ends on the chosen tab's line, not a line under it. */
 .lintje-tabs__tab {
   display: inline-flex; align-items: center; gap: var(--space-2);
   height: var(--h-touch);
+  margin-bottom: calc(var(--lintje-tabs-line) * -1);
   padding: 0 var(--space-4);
   background: transparent;
-  color: var(--color-text-primary);
+  /* On a filled band (the page's head) the row takes the band's ink by the inherited hooks. */
+  color: var(--lintje-tabs-ink, var(--color-text-primary));
   border-bottom: 3px solid transparent;
   font: var(--text-ui);
   text-decoration: none;
@@ -25,14 +29,14 @@
               border-color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-tabs__tab:hover:not(.is-active):not(.is-disabled) {
-  background: var(--color-bg-subtle);
-  border-bottom-color: var(--color-border-heavy);
+  background: var(--lintje-tabs-hover, var(--color-bg-subtle));
+  border-bottom-color: var(--lintje-tabs-ink-line, var(--color-border-heavy));
 }
 
 /* The chosen tab: the line is a line (3:1) and the word is text (4.5:1), hence two tokens. */
 .lintje-tabs__tab.is-active {
-  border-bottom-color: var(--color-accent-line);
-  color: var(--color-accent-text);
+  border-bottom-color: var(--lintje-tabs-ink, var(--color-accent-line));
+  color: var(--lintje-tabs-ink, var(--color-accent-text));
   font-weight: 700;
 }
 
@@ -68,6 +72,8 @@
 .lintje-tabs--panel {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
+  overflow: clip;
 }
 .lintje-tabs--panel .lintje-tabs__list {
   flex-wrap: nowrap;
@@ -79,12 +85,12 @@
   min-width: 0;
   height: auto;
   min-height: var(--h-touch);
-  margin-bottom: -1px;
+  margin-bottom: calc(var(--lintje-tabs-line) * -1);
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
   border-right: 1px solid var(--color-border-default);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: var(--lintje-tabs-line) solid var(--color-border-default);
   white-space: normal;
   text-align: left;
 }
@@ -103,7 +109,7 @@
   color: var(--color-accent-text);
 }
 .lintje-tabs__icon { flex: none; }
-.lintje-tabs__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.lintje-tabs__text { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
 .lintje-tabs__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); }
 .lintje-tabs__hint { font: var(--text-small); color: var(--color-text-muted); }
 .lintje-tabs--panel .lintje-tabs__panel { padding: var(--space-6); }

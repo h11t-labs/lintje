@@ -31,13 +31,22 @@ a { color: var(--color-link); }
 
 input, select, textarea { font: inherit; color: inherit; }
 
-/* Focus: always orange 3 px, never animated. */
+/* Focus: the house style's ring, a dark line with a white line inside it, never animated. The
+   gap under the outline holds the inner line (a shadow as wide as the offset). A surface that
+   carries the inverse ring (the theme's fill, the primary band of a hero) sets `--lintje-focus`
+   and `--lintje-focus-inner`, which inherit into everything on it, through the shadow roots
+   that declare the tokens again. */
 :focus-visible {
-  outline: var(--focus-width) solid var(--color-focus);
+  outline: var(--focus-width) solid var(--lintje-focus, var(--color-focus));
   outline-offset: var(--focus-offset);
+  box-shadow: 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner));
 }
-/* Where the outside would be clipped (tiles in a grid, table rows) the ring sits inside. */
-.focus-inset:focus-visible { outline-offset: calc(var(--focus-width) * -1); }
+/* Where the outside would be clipped (tiles in a grid, table rows) the ring sits inside: in the
+   new style the light line at the edge, the dark line within it. */
+.focus-inset:focus-visible {
+  outline-offset: var(--focus-inset);
+  box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner));
+}
 
 [hidden] { display: none !important; }
 
@@ -84,7 +93,7 @@ input, select, textarea { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   :host {
     --dur-base: 0ms; --dur-hover: 0ms; --dur-popover: 0ms; --dur-submenu: 0ms; --dur-toast: 0ms; --dur-scrim: 0ms; --dur-rail: 0ms; --dur-collapse: 0ms;
-    --dur-modal: 0ms; --dur-sheet: 0ms; --dur-kpi: 0ms; --dur-badge: 0ms; --dur-draw: 0ms;
+    --dur-modal: 0ms; --dur-sheet: 0ms; --dur-kpi: 0ms; --dur-badge: 0ms; --dur-draw: 0ms; --dur-graph: 0ms;
   }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

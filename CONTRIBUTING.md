@@ -49,7 +49,7 @@ src/
                (alleen op de pagina)
   icons/       renderIcon(), het gegenereerde register, de iconenlader
   components/  één map per categorie (frame/, layout/, overlays/, actions/, content/,
-               feedback/, inputs/, forms/, filters/, charts/, map/, tables/, chat/), met
+               feedback/, inputs/, forms/, filters/, charts/, map/, graph/, tables/, chat/), met
                daarin één map per tag; components/shared/ voor wat categorieën delen, zoals
                charts/ (de renderfuncties van de grafieken; leaflet.ts: de basiskaart), de
                focus-trap en place.ts (waar een zwevend vak staat)
@@ -80,6 +80,9 @@ Een component heeft een eigen map in zijn categorie (regel 20); `components/shar
 - `components/shared/month-grid.ts` — het ene maandraster, van de datuminvoer en de datumreeks.
 - `components/inputs/shared/field-foot.ts` — de ene voet van elk veld: de hint, of de
   melding die die vervangt.
+- `components/inputs/shared/input.css` — wat de invoeren delen: hun hostregels, de box van
+  tekstveld, datum en tijd, en het vinkje, de radio en de schakelaar. Een regel die de host van
+  een veld opmaakt, noemt zijn tag: `lintje-data-table` adopteert het blad ook.
 - `renderBadge()` (`components/feedback/badge/badge.ts`) — de ene tekening van een badge, ook voor een root
   die een badge tekent zonder het element.
 - `types.ts` — het datacontract, met de vormen van de grafieken en de applicatie-elementen

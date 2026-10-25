@@ -21,7 +21,8 @@ import { define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../overlays/popover/popover'
-import { filterOptions, splitMatch } from '../combobox/combobox'
+import { filterOptions } from '../combobox/combobox'
+import { splitMatch } from '../../shared/search-text'
 import { LiveMessage } from '../../shared/live-message'
 import { LintjeInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
@@ -293,7 +294,7 @@ export class LintjeTagInput extends LintjeInputElement {
       aria-labelledby=${this.labelId}
     >
       ${this.suggestions.map((option, index) => {
-        const [before, match, after] = splitMatch(option.label, this.text)
+        const parts = splitMatch(option.label, this.text)
         return html`<li
           id=${optionId(index)}
           class=${classMap({ 'lintje-tag-input__option': true, 'is-active': index === this.active })}
@@ -301,7 +302,7 @@ export class LintjeTagInput extends LintjeInputElement {
           aria-selected="false"
           @click=${() => this.add([option.label])}
         >
-          ${before}${match ? html`<strong>${match}</strong>` : nothing}${after}
+          ${parts ? html`${parts[0]}<strong>${parts[1]}</strong>${parts[2]}` : option.label}
         </li>`
       })}
     </ul>`
@@ -312,6 +313,7 @@ export class LintjeTagInput extends LintjeInputElement {
     const combo = Boolean(this.options)
     return html`<div class="lintje-field">
       ${this.renderLabel(this.controlId)}
+      ${this.renderMessages()}
       <div
         class=${classMap({
           'lintje-tag-input': true,

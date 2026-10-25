@@ -1,0 +1,295 @@
+/* ------------------------------------------------------------------------ */
+
+/* The legend above the drawing, as in every chart; the drawing takes the rest. A kind in it is a
+   switch, at least 24 px tall. */
+.lintje-graph {
+  --lintje-graph-control: var(--h-button-chrome);
+  /* The thin line of a card, a button and the zoom stack; the space that makes up for it counts
+     with it. */
+  --lintje-graph-line: 1px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.lintje-graph.is-phone { --lintje-graph-control: var(--h-touch); }
+.lintje-graph .lintje-legend__button { min-height: 24px; }
+.lintje-graph--expanded { height: var(--chart-h-main); }
+.lintje-graph--expanded .lintje-graph__area { flex: 1; min-height: 0; }
+
+/* One finger moves the page, as on the map; two zoom the drawing. */
+.lintje-graph__area {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
+  cursor: grab;
+  touch-action: pan-x pan-y;
+  user-select: none;
+}
+
+/* --- Lines and their words ------------------------------------------------ */
+.lintje-graph__lines { position: absolute; inset: 0; pointer-events: none; }
+.lintje-graph__line { fill: none; stroke: var(--color-chart-zero); }
+.lintje-graph__arrow { fill: var(--color-chart-zero); }
+/* A wider, unseen line under the pointer, so a thin one is easy to point at. */
+.lintje-graph__hit { fill: none; stroke: transparent; stroke-width: 12px; pointer-events: stroke; cursor: default; }
+.lintje-graph__edge.is-lit .lintje-graph__line { stroke: var(--color-text-secondary); }
+.lintje-graph__edge.is-lit .lintje-graph__arrow { fill: var(--color-text-secondary); }
+/* The word on its line, with a halo of the surface so the line does not cross it. */
+.lintje-graph__word {
+  font: var(--text-axis);
+  fill: var(--color-text-secondary);
+  text-anchor: middle;
+  dominant-baseline: central;
+  paint-order: stroke;
+  stroke: var(--color-bg-surface);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.lintje-graph__word.is-lit { fill: var(--color-text-primary); }
+
+/* --- Nodes ---------------------------------------------------------------- */
+.lintje-graph__nodes { position: absolute; inset: 0; pointer-events: none; font: var(--text-small); }
+.lintje-graph__node,
+.lintje-graph__counter {
+  position: absolute;
+  left: 0; top: 0;
+  pointer-events: auto;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+/* What appears fades in, what leaves fades out where it stood. What comes while something leaves
+   waits until it has gone. */
+.lintje-graph__node,
+.lintje-graph__counter,
+.lintje-graph__edge,
+.lintje-graph__word { animation: lintje-fade-in var(--dur-graph) var(--ease-fade); }
+.lintje-graph__node.is-late,
+.lintje-graph__counter.is-late,
+.lintje-graph__edge.is-late,
+.lintje-graph__word.is-late { animation-delay: var(--dur-graph); animation-fill-mode: backwards; }
+/* Out of the light a node steps back: its icon and its lines fade to 45 %, its name keeps
+   4.5:1 in the secondary text colour. */
+.lintje-graph__edge,
+.lintje-graph__glyph { transition: opacity var(--dur-hover) var(--ease-fade); }
+.lintje-graph__edge.is-dim,
+.lintje-graph__node.is-dim .lintje-graph__glyph { opacity: 0.45; }
+.lintje-graph__node.is-dim { color: var(--color-text-secondary); }
+.lintje-graph__node.is-leaving,
+.lintje-graph__edge.is-leaving {
+  pointer-events: none;
+  animation: lintje-graph-fade-out var(--dur-graph) var(--ease-fade) forwards;
+}
+.lintje-graph__edge.is-leaving .lintje-graph__hit { pointer-events: none; }
+@keyframes lintje-graph-fade-out { to { opacity: 0; } }
+
+/* A card grows and shrinks with the zoom (`--lintje-graph-k`); its width, its height and the room
+   for its counter are measured by the element, at a 14 px text. */
+.lintje-graph__card {
+  display: flex;
+  align-items: center;
+  gap: calc(8em / 14);
+  box-sizing: border-box;
+  width: var(--lintje-graph-w);
+  height: var(--lintje-graph-h);
+  padding: 0 calc(12em / 14 + var(--lintje-graph-room, 0em)) 0 calc(12em / 14);
+  font-size: calc(var(--lintje-graph-k, 1) * 1em);
+  line-height: calc(18 / 14);
+  text-align: left;
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  border: var(--lintje-graph-line) solid var(--color-border-default);
+  cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-graph__card:hover,
+.lintje-graph__card.is-hover { background: var(--color-bg-subtle); }
+.lintje-graph__card.is-selected {
+  padding: 0 calc(12em / 14 - var(--lintje-graph-line) + var(--lintje-graph-room, 0em)) 0
+    calc(12em / 14 - var(--lintje-graph-line));
+  background: var(--color-bg-subtle);
+  border: calc(2 * var(--lintje-graph-line)) solid var(--color-selected-edge);
+}
+/* A group stands as a small stack of cards. */
+.lintje-graph__card--group { box-shadow: var(--shadow-stack); }
+
+.lintje-graph__glyph { flex: none; display: flex; color: var(--lintje-graph-type, var(--color-text-primary)); }
+.lintje-graph__card .lintje-graph__icon { width: calc(20em / 14); height: calc(20em / 14); }
+.lintje-graph__card .lintje-graph__avatar { width: calc(24em / 14); height: calc(24em / 14); font-size: calc(12em / 14); }
+.lintje-graph__text { display: flex; flex-direction: column; min-width: 0; }
+.lintje-graph__card .lintje-graph__name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+/* The status takes the card's own text, which follows the zoom. */
+.lintje-graph__status { font: inherit; gap: calc(6em / 14); }
+.lintje-graph__sub {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin-top: calc(2em / 14);
+  color: var(--color-text-secondary);
+}
+
+/* Zoomed out a node is a mark: a circle with the icon, its name beside it where it fits. */
+.lintje-graph__mark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 28px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+.lintje-graph__mark .lintje-graph__glyph {
+  align-items: center; justify-content: center;
+  box-sizing: border-box;
+  width: 28px; height: 28px;
+  border-radius: var(--radius-round);
+  border: 1px solid var(--color-chart-zero);
+  background: color-mix(in srgb, var(--lintje-graph-type, var(--color-bg-surface)) var(--tint-graph-mark), var(--color-bg-surface));
+}
+.lintje-graph__mark.is-hover .lintje-graph__glyph { border-color: var(--color-text-secondary); }
+.lintje-graph__mark.is-selected .lintje-graph__glyph { border: 2px solid var(--color-selected-edge); }
+/* A halo of the surface, so a line under the name does not cross it. */
+.lintje-graph__mark .lintje-graph__name {
+  padding: 0 var(--space-1);
+  white-space: nowrap;
+  font-weight: 400;
+  paint-order: stroke fill;
+  -webkit-text-stroke: 4px var(--color-bg-surface);
+}
+.lintje-graph__mark.is-selected .lintje-graph__name { font-weight: 700; }
+/* The counter stands on the rim, top right: the name keeps clear of it. */
+.lintje-graph__mark--counted .lintje-graph__name { margin-left: var(--space-4); }
+
+/* The counter, drawn as the avatar is: round, the light fill, the plain edge. Open, its "−"
+   waits for the pointer, the focus or the choice. */
+.lintje-graph__counter {
+  display: inline-flex; align-items: center; justify-content: center;
+  box-sizing: border-box;
+  height: 24px; min-width: 24px;
+  padding: 0 var(--space-1);
+  border-radius: 12px;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-primary);
+  font: var(--text-axis);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.lintje-graph__counter:hover { background: var(--color-border-default); }
+.lintje-graph__counter.is-open { width: 24px; padding: 0; }
+.lintje-graph__counter.is-quiet:not(:focus-visible) { visibility: hidden; }
+/* On a mark it draws at 20 px inside a target of 24. */
+.lintje-graph__counter--small {
+  padding: 0 var(--space-2);
+  background: none;
+  border-color: transparent;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-graph__counter--small::before {
+  content: '';
+  position: absolute;
+  inset: calc((24px - 20px) / 2);
+  z-index: -1;
+  border-radius: 10px;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-default);
+}
+.lintje-graph__counter--small:hover { background: none; }
+.lintje-graph__counter--small:hover::before { background: var(--color-border-default); }
+
+/* --- Tooltip, zoom and overview --------------------------------------------- */
+.lintje-graph__tip { width: max-content; pointer-events: none; }
+.lintje-graph__tip-title { margin: 0; font-weight: 700; }
+.lintje-graph__tip-note { margin: 0; color: var(--color-text-secondary); }
+.lintje-graph__tip-list { margin: var(--space-1) 0 0; padding-left: var(--space-4); list-style: disc; }
+
+/* The zoom buttons stand as the map's, top right, at the touch size on a phone. */
+.lintje-graph__zoom {
+  position: absolute; z-index: 2;
+  top: var(--space-2); right: var(--space-2);
+  display: flex; flex-direction: column;
+}
+.lintje-graph__zoom-tip { display: flex; margin-top: calc(var(--lintje-graph-line) * -1); }
+.lintje-graph__zoom-tip:first-child { margin-top: 0; }
+.lintje-graph__zoom-button {
+  position: relative;
+  width: var(--lintje-graph-control); height: var(--lintje-graph-control);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: var(--lintje-graph-line) solid var(--color-border-strong);
+  cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-graph__zoom-button::after {
+  content: '';
+  position: absolute;
+  inset: 0 min(0px, calc((100% - var(--h-target)) / 2));
+}
+.lintje-graph__zoom-button:hover { background: var(--color-bg-subtle); }
+
+.lintje-graph__hint {
+  position: absolute; z-index: 2;
+  left: 50%; bottom: var(--space-2);
+  transform: translateX(-50%);
+  max-width: calc(100% - 2 * var(--space-4));
+  width: max-content;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  font: var(--text-small);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong);
+  text-align: center;
+}
+
+/* The whole drawing small, bottom right, once it no longer fits; a click goes there. */
+.lintje-graph__overview {
+  position: absolute; z-index: 2;
+  right: var(--space-2); bottom: var(--space-2);
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.lintje-graph__overview-dot {
+  position: absolute;
+  width: 4px; height: 4px;
+  translate: -50% -50%;
+  border-radius: var(--radius-round);
+  background: var(--color-chart-zero);
+}
+.lintje-graph__overview-view { position: absolute; box-sizing: border-box; border: 1px solid var(--color-accent-line); }
+
+.lintje-graph__busy {
+  position: absolute; inset: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+}
+
+@media print {
+  .lintje-graph__zoom,
+  .lintje-graph__overview,
+  .lintje-graph__hint { display: none; }
+}
+
+@media (forced-colors: active) {
+  .lintje-graph__card,
+  .lintje-graph__mark .lintje-graph__glyph,
+  .lintje-graph__counter,
+  .lintje-graph__counter--small::before { border-color: CanvasText; }
+  .lintje-graph__card.is-selected,
+  .lintje-graph__mark.is-selected .lintje-graph__glyph { border-color: Highlight; }
+  .lintje-graph__line { stroke: CanvasText; }
+  .lintje-graph__arrow { fill: CanvasText; }
+}

@@ -29,6 +29,7 @@ import { LiveMessage } from '../../shared/live-message'
 import notificationsCss from './notifications.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import { isPlainClick } from '../../../core/links'
+import { uniqueId } from '../../../core/id'
 
 export interface NotificationItem {
   id: string
@@ -40,8 +41,6 @@ export interface NotificationItem {
   href?: string
   unread?: boolean
 }
-
-let instances = 0
 
 export function countLabel(count: number, max = 9): string {
   return count > max ? `${max}+` : String(count)
@@ -80,7 +79,7 @@ export class LintjeNotifications extends LintjeElement {
 
   readonly #mobile = new MediaController(this, MOBILE)
   #wasMobile: boolean | null = null
-  readonly #panelId = `lintje-notifications-${++instances}`
+  readonly #panelId = uniqueId('lintje-notifications')
 
   private get bell(): HTMLButtonElement | null {
     return this.renderRoot.querySelector<HTMLButtonElement>('.lintje-notifications__bell')

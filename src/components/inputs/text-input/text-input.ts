@@ -151,18 +151,17 @@ export class LintjeTextInput extends LintjeFormInputElement {
   }
 
   // A search keeps its hint in the tree: a live region that appears with its text is not read out.
-  protected override renderFoot(): TemplateResult | typeof nothing {
+  protected override renderFieldLine(): TemplateResult | typeof nothing {
     const message = this.error ?? ''
     const ids = { hintId: this.hintId, errorId: this.errorId }
-    if (this.type !== 'search')
-      return html`${renderFieldFoot(this.hint, message, ids)}${this.renderReset()}`
+    if (this.type !== 'search') return renderFieldFoot(this.hint, message, ids)
     return html`${message ? renderFieldFoot(undefined, message, ids) : nothing}<span
         id=${this.hintId}
         class="lintje-field__hint"
         aria-live="polite"
         ?hidden=${!this.hint || Boolean(message)}
         >${this.hint ?? ''}</span
-      >${this.renderReset()}`
+      >`
   }
 
   private get inputType(): string {
@@ -183,6 +182,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
     const addon = { readonly: this.readonly, disabled: this.isDisabled }
     return html`<div class="lintje-field">
       ${this.renderLabel(this.controlId)}
+      ${this.renderMessages()}
       <div
         class=${classMap({
           'lintje-text-input': true,
@@ -195,6 +195,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
         <div
           class=${classMap({
             'lintje-text-input__box': true,
+            'lintje-field__box': true,
             'is-error': Boolean(this.error),
             'is-readonly': this.readonly,
             'is-disabled': this.isDisabled,
@@ -213,7 +214,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
             <input
               type=${this.inputType}
               id=${this.controlId}
-              class="lintje-text-input__control focus-inset"
+              class="lintje-text-input__control lintje-field__control focus-inset"
               .value=${this.value}
               placeholder=${this.placeholder}
               role=${search ? 'searchbox' : nothing}

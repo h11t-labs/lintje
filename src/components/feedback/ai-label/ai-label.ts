@@ -33,7 +33,7 @@ export class LintjeAiLabel extends LintjeElement {
       >${renderIcon(checked ? 'functioneel-vinkje' : 'gereedschap-half-tandwiel-half-brein', {
         size: 14,
         className: 'lintje-ai-label__icon',
-      })}<span>${checked ? `Gecontroleerd door ${this.checkedBy}` : 'Gemaakt door AI'}</span></span
+      })}<span class="lintje-ai-label__words">${checked ? `Gecontroleerd door ${this.checkedBy}` : 'Gemaakt door AI'}</span></span
     >`
     return html`<span class="lintje-ai-label">
       ${renderBadge({ value: words, tone: 'neutral', className: 'lintje-ai-label__box' })}${

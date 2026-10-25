@@ -164,6 +164,11 @@ export interface TileData {
   span?: number
   /** The subtitle below 768 px, where it says something else (e.g. "tik op een cel"). */
   mobileSubtitle?: string
+  /**
+   * On a phone, below 768 px, the tile shows only its head with a button that unfolds the rest
+   * (`collapsed-mobile` on `lintje-tile`): for a view that matters less there than its neighbours.
+   */
+  collapsedMobile?: boolean
 }
 
 /* Chart tile --------------------------------------------------------------- */
@@ -181,8 +186,6 @@ export interface ChartData extends FrameSettings, TileData, ContentState {
   selectedId?: string | null
   /** The URL that undoes the selection; clicking the chosen mark again and Escape follow it. */
   clearHref?: string
-  /** Offers "Grafiek" / "Tabel" in the header while `ready`; the table shows the CSV's rows. */
-  tableSwitch?: boolean
 }
 
 /* Map tile ----------------------------------------------------------------- */
@@ -195,6 +198,92 @@ export interface ChartData extends FrameSettings, TileData, ContentState {
  * `href`.
  */
 export interface MapData extends FrameSettings, TileData, ContentState, MapSpec {}
+
+/* Graph tile --------------------------------------------------------------- */
+
+/** A kind of node: its words, its icon and its data colour. */
+export interface GraphNodeType {
+  /** What a node's `type` names. */
+  key: string
+  /** The kind in words, singular: "Persoon". */
+  label: string
+  /** The kind in words, plural, which names a group of them: "Personen". Without it `label`. */
+  plural?: string
+  /** An icon file name (`dist-icons/`, without `.svg`). */
+  icon: string
+  /** The kind's data colour; without it the colour of its place in `types`. */
+  color?: DataColor
+}
+
+/** A state of a node in words, with the tone its dot takes: "geldend", "vervallen". */
+export interface GraphNodeStatus {
+  label: string
+  /** Default `neutral`. */
+  tone?: Tone
+}
+
+export interface GraphNode {
+  id: string
+  label: string
+  /** The `key` of its type. */
+  type: string
+  status?: GraphNodeStatus
+  /** Drawn in a circle instead of the type's icon, for a person. */
+  initials?: string
+  /** How many relations the host has not loaded yet; its counter asks for them. */
+  more?: number
+}
+
+/** `to`: an arrowhead at `to`; `both`: at both ends; `none`: a relation without direction. */
+export type GraphDirection = 'to' | 'both' | 'none'
+
+export interface GraphEdge {
+  from: string
+  to: string
+  /** The relation's word, on the line: "aanvrager", "werkt bij". */
+  label?: string
+  /** Default `to`. */
+  direction?: GraphDirection
+  /** A number the line's thickness shows, from 1.5 to 4 px over the largest of the graph. */
+  value?: number
+  /** The number's unit, after it in the tooltip: "records per dag". */
+  unit?: string
+}
+
+/** Layered to the right or downwards, by force, or in rings round the centre. */
+export type GraphLayout = 'layered-right' | 'layered-down' | 'force' | 'radial'
+
+/** `orthogonal` draws a layered graph in right angles; elsewhere it is straight. */
+export type GraphLines = 'straight' | 'curved' | 'orthogonal'
+
+/**
+ * Events: `lintje-node-select` `{id, label}` for a chosen node, `{id: null, label: null}` when
+ * undone; `lintje-node-toggle` `{id, open}` when a branch or a group is opened or folded, one per
+ * node when the reset button sets it all back; `lintje-node-expand` `{id}` when a node with `more`
+ * is opened. With `download` the tile offers the drawing as a PNG.
+ */
+export interface GraphData extends FrameSettings, TileData, ContentState {
+  /** The kinds in the order the legend and the colours take them. */
+  types: GraphNodeType[]
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+  /** The drawing's `<desc>`: what the graph shows, the accessible alternative. Required. */
+  description: string
+  /** Without it the element chooses by the graph's shape. */
+  layout?: GraphLayout
+  /** Without it straight, and curved round the centre in `radial`. */
+  lines?: GraphLines
+  /** The chosen node: outlined, its relations and neighbours lit, the rest stepped back. */
+  selected?: string | null
+  /** Nodes whose branch is folded. */
+  collapsed?: string[]
+  /** Groups the reader opened, by the id `lintje-node-toggle` gave them. */
+  opened?: string[]
+  /** Draws each kind's icon and mark in its data colour; default true. */
+  typeColors?: boolean
+  /** The drawing's height in px; without it 480, and 360 on a phone. */
+  height?: number
+}
 
 /* Data table --------------------------------------------------------------- */
 
@@ -564,7 +653,7 @@ export interface FilterBarData extends FrameSettings {
   filters: FilterDefinition[]
   /** The URL's `filters` param: false when the user collapsed the bar. */
   open?: boolean
-  /** A bar in the page's content: draws its own sentence, never writes the shell's state. */
+  /** A bar in the page's content: its own sentence and sheet, never the shell's state. */
   standalone?: boolean
 }
 
@@ -626,6 +715,14 @@ export interface ShellView {
   themes?: { value: string; label: string }[]
   /** The theme that stands now: one of `themes`. Without it the first is marked. */
   theme?: string
+  /** The house style the page follows, when the host lets the reader choose: `classic` is the
+   * menu filled in the theme's colour with square corners, `new` the light menu with the
+   * rounded corners. The host draws it: `data-style-version` on `<html>`. */
+  style?: 'classic' | 'new'
+  /** The corner of the band at the page's head in the new style, when the host lets the reader
+   * choose: `round` is the house style's one rounded corner, `square` none. The host draws it:
+   * `data-style-new-corner` on `<html>`. */
+  corner?: 'square' | 'round'
 }
 
 /** What the reader changed in "Weergave" or with the pin: one key per `lintje-view-change`. */
@@ -633,6 +730,8 @@ export interface ShellViewChange {
   mode?: ModeSetting
   layout?: 'side' | 'top'
   theme?: string
+  style?: 'classic' | 'new'
+  corner?: 'square' | 'round'
   menu?: 'pinned' | 'unpinned'
 }
 
@@ -984,7 +1083,13 @@ export type {
   DescriptionItem,
   DescriptionAction,
 } from './components/tables/description-list/description-list'
-export type { ActivityEntry } from './components/tables/activity-log/activity-log'
+export type {
+  TimelineActor,
+  TimelineLink,
+  TimelineMoment,
+  TimelinePlacement,
+  TimelineSide,
+} from './components/tables/timeline/timeline'
 export type { Job, JobState } from './components/feedback/job-list/job-list'
 export type {
   ConflictChange,

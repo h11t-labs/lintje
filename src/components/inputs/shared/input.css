@@ -1,31 +1,70 @@
 /*
- * The fields' own boxes and the `.lintje-choice` rules of the checkbox, radio and toggle.
- * `lintje-data-table` adopts this sheet too for its selectable rows' checkbox; the
- * `:host(lintje-multiselect)` blocks do not match there.
+ * What the inputs share: their hosts, the box of the text, date and time fields, and the
+ * `.lintje-choice` of the checkbox, radio and toggle. `lintje-data-table` adopts this sheet too,
+ * for its selectable rows' checkbox: the rules that lay out a field's host name its tag.
  */
-:host(lintje-multiselect) {
-  display: block;
-  min-width: 0;
-  width: 180px;
-}
-:host(lintje-range) {
-  display: block;
-  min-width: 0;
-  width: 180px;
-}
-:host(lintje-text-input),
-:host(lintje-number-input),
 :host(lintje-checkbox),
 :host(lintje-checkbox-group),
-:host(lintje-toggle),
-:host(lintje-radio-group) {
+:host(lintje-combobox),
+:host(lintje-date-input),
+:host(lintje-file-upload),
+:host(lintje-multiselect),
+:host(lintje-number-input),
+:host(lintje-radio-group),
+:host(lintje-range),
+:host(lintje-slot-picker),
+:host(lintje-tag-input),
+:host(lintje-text-editor),
+:host(lintje-text-input),
+:host(lintje-textarea),
+:host(lintje-time-input),
+:host(lintje-toggle) {
   display: block;
   min-width: 0;
+  /* A field's edge and its error edge: what sits inside the box steps in by them, not by space. */
+  --lintje-field-border: 1px;
+  --lintje-field-error-border: var(--field-error-border);
 }
+/* `min-width: auto`: the segmented control never shrinks below its options, and the select and
+   the date range stop at their content's width in a narrow row. */
+:host(lintje-date-range),
+:host(lintje-segmented),
+:host(lintje-select) {
+  display: block;
+}
+:host(lintje-multiselect),
+:host(lintje-range) {
+  width: 180px;
+}
+:host(lintje-select) { width: 180px; }
+/* In the new style a select fills the column it stands in, as a text field does, up to a field's
+   widest; stacked it is the full width, as every field. */
+:host(lintje-select[data-style-version='new']) { width: 100%; max-width: var(--w-field); }
+:host(lintje-select[data-style-version='new'][stacked]) { max-width: none; }
+:host(lintje-time-input) { width: 120px; }
 :host([hidden]) { display: none; }
+/* Below 768 px: the full width, as `stacked`, and the touch height. The text and number fields
+   keep their own width: in a row they would grow. */
+@media screen and (max-width: 767px) {
+  :host(lintje-combobox),
+  :host(lintje-date-input),
+  :host(lintje-tag-input),
+  :host(lintje-textarea),
+  :host(lintje-time-input) {
+    width: 100%;
+  }
+  :host(lintje-combobox),
+  :host(lintje-date-input),
+  :host(lintje-number-input),
+  :host(lintje-tag-input),
+  :host(lintje-text-input),
+  :host(lintje-time-input) {
+    --h-control: var(--h-touch);
+  }
+}
 /* A choice's control and its gap to the label text: the hint and error under a lone choice
    indent by both, so they start where the label text does. */
-:host { --lintje-choice-control: 24px; --lintje-choice-gap: 10px; }
+:host { --lintje-choice-control: 24px; --lintje-choice-gap: var(--space-3); }
 :host(lintje-toggle) { --lintje-choice-control: 40px; }
 
 /* --- */
@@ -34,11 +73,19 @@
    equal specificity. A disabled control cannot be in error, so its rule sets the whole border. */
 
 .lintje-field { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+/* A field in error carries the house style's bar at its left, from the label down to the
+   control; 0 wide in the earlier style. */
+.lintje-field:has(> .lintje-field__error) {
+  border-left: var(--field-error-bar) solid var(--color-error-line);
+  padding-left: var(--field-error-inset);
+}
 .lintje-label {
   display: flex; align-items: baseline; gap: var(--space-2);
   font-size: 0.875rem; font-weight: 700; color: var(--color-text-primary);
   padding: 0;
 }
+/* The new style's label is on the body size, bold, as the house style's form field has it. */
+[data-style-version='new'] .lintje-label { font: var(--text-ui); font-weight: 700; }
 .lintje-label.is-modified { color: var(--color-accent-text); }
 .lintje-label__dot {
   width: 6px; height: 6px; border-radius: var(--radius-round);
@@ -75,6 +122,59 @@
 }
 .lintje-field__addon.is-readonly { color: var(--color-text-primary); }
 .lintje-field__addon.is-disabled { color: var(--color-text-disabled); }
+
+/* --- The box of the text, date and time fields ----------------------------- */
+/* The frame and the typing part in it; in the date and time fields the input is both. */
+.lintje-field__box {
+  height: var(--h-control);
+  border: 1px solid var(--color-border-field);
+  background: var(--color-bg-field);
+  border-radius: var(--radius-control);
+}
+.lintje-field__box.is-error { border: var(--field-error-border) solid var(--color-error); background: var(--color-bg-field-error); }
+/* Read-only as disabled: the subtle surface, the strong border; its text stays primary. */
+.lintje-field__box.is-readonly,
+.lintje-field__box.is-disabled,
+.lintje-field__box:disabled {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-subtle);
+}
+.lintje-field__control {
+  padding: 0 var(--space-4);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+}
+.lintje-field__control::placeholder { color: var(--color-text-placeholder); opacity: 1; }
+/* Off, the hint in an empty field is as faint as a value would be: else the field looks on. */
+.lintje-field__control:disabled::placeholder { color: var(--color-text-disabled); }
+.lintje-field__control:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
+
+/* The button inside the box at its end: the date's calendar, the time's list. */
+.lintje-field__toggle {
+  position: absolute; top: var(--lintje-field-border); right: var(--lintje-field-border);
+  width: calc(var(--h-control) - 2 * var(--lintje-field-border));
+  height: calc(var(--h-control) - 2 * var(--lintje-field-border));
+  display: flex; align-items: center; justify-content: center;
+  border-left: 1px solid var(--color-border-default);
+  background: transparent;
+  color: var(--color-accent-text);
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+/* A transparent hit area reaches the target height, never to the left where the typing part is. */
+.lintje-field__toggle::after {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - var(--h-target)) / 2)) min(0px, calc(100% - var(--h-target)))
+    min(0px, calc((100% - var(--h-target)) / 2)) 0;
+}
+/* The button steps in past the 2 px error border; a disabled field has 1 px again. */
+.lintje-field__box.is-error:not(:disabled) + .lintje-field__toggle {
+  top: var(--lintje-field-error-border); right: var(--lintje-field-error-border);
+  width: calc(var(--h-control) - 2 * var(--lintje-field-error-border));
+  height: calc(var(--h-control) - 2 * var(--lintje-field-error-border));
+}
+.lintje-field__toggle:hover:not(:disabled) { background: var(--color-bg-subtle); }
+.lintje-field__toggle:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
 
 /* --- A setting's row: name and hint on the left, the control on the right ----- */
 /* A row reads its own width, not the screen's: in a drawer it stays a column. */
@@ -118,6 +218,7 @@
   font-weight: 700;
   text-decoration: underline;
   cursor: pointer;
+  transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-field__reset:hover { color: var(--color-link-hover); }
 
@@ -139,17 +240,20 @@
 /* The field of a group's "Anders": indented to the labels' line (the box or radio plus the row's
    gap), so it reads as the rest of its choice. */
 .lintje-choice__other {
-  margin: var(--space-1) 0 var(--space-1) calc(24px + 10px);
+  margin: var(--space-1) 0 var(--space-1) calc(var(--lintje-choice-control) + var(--lintje-choice-gap));
   animation: lintje-fade-in var(--dur-base) var(--ease-in-motion) both;
 }
 @media screen and (max-width: 767px) {
   .lintje-choice__other { --h-control: var(--h-touch); }
 }
 
+/* The box and the circle: 2 px, or in the new style 1 px in the accent's line, as the house style
+   draws them (`--border-choice-width`). */
 .lintje-choice__box {
   width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
   display: flex; align-items: center; justify-content: center;
-  border: 2px solid var(--color-border-choice);
+  border: var(--border-choice-width) solid var(--color-border-choice);
+  border-radius: var(--radius-control);
   background: var(--color-bg-surface);
   color: var(--color-action-primary-text); font-size: 0.875rem; font-weight: 700; line-height: 1;
   transition: background-color var(--dur-hover) var(--ease-in-motion),
@@ -179,11 +283,12 @@
 
 .lintje-choice__radio {
   width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
-  border: 2px solid var(--color-border-choice);
+  border: var(--border-choice-width) solid var(--color-border-choice);
   border-radius: 50%;
   background: var(--color-bg-surface);
   display: flex; align-items: center; justify-content: center;
 }
+
 /* Ring and dot take the line accent: the dot stands on the surface by itself, so the primary
    fill would sink into the dark surface. */
 .lintje-choice__input:checked ~ .lintje-choice__radio { border-color: var(--color-accent-line); }
@@ -194,12 +299,15 @@
 /* Off: edged with the field's edge (3:1, WCAG 1.4.11) as an inset ring, keeping the box size. */
 .lintje-choice__switch {
   box-sizing: border-box;
+  /* The knob stands this far inside the track; forced colours give the ring a pixel of it. */
+  --lintje-choice-switch-inset: 2px;
+  --lintje-choice-switch-ring: 1px;
   width: var(--lintje-choice-control); height: 22px; flex: none;
   border-radius: 11px;
   /* Off is a filled track, not a pale one with a ring: the fill alone reaches 3:1. */
-  background: var(--color-border-field);
+  background: var(--color-choice-off);
   display: flex; align-items: center;
-  padding: 2px;
+  padding: var(--lintje-choice-switch-inset);
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-choice__knob {
@@ -253,7 +361,10 @@
   .lintje-choice__radio::after { forced-color-adjust: none; }
   .lintje-choice__input:checked ~ .lintje-choice__radio::after { background: Highlight; }
 
-  .lintje-choice__switch { border: 1px solid CanvasText; padding: 1px; }
+  .lintje-choice__switch {
+    border: var(--lintje-choice-switch-ring) solid CanvasText;
+    padding: calc(var(--lintje-choice-switch-inset) - var(--lintje-choice-switch-ring));
+  }
   .lintje-choice__input:checked ~ .lintje-choice__switch { border-color: Highlight; }
   .lintje-choice__knob { forced-color-adjust: none; background: CanvasText; }
   .lintje-choice__input:checked ~ .lintje-choice__switch .lintje-choice__knob { background: Highlight; }
