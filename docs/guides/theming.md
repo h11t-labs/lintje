@@ -83,7 +83,8 @@ Wat de nieuwe huisstijl anders tekent:
   en op een band met `narrow`, die binnen de marges staat; `data-style-new-corner="square"` laat
   hem weg.
 - **De focusring** is een donkere lijn met een witte lijn erin, in plaats van oranje.
-- **Een formulierveld** toont zijn toelichting en zijn fout boven het veld, met een rode balk
+- **Een formulierveld** heeft een rand van 1 px in de primaire kleur, zoals de huisstijl een veld in
+  lintblauw tekent, en toont zijn toelichting en zijn fout boven het veld, met een rode balk
   ernaast en het veld in de fouttint; de select heeft het pijlvak in de primaire kleur.
 - **Een melding, toast of foutsamenvatting** heeft een balk links en een gekleurd icoon.
 - **De tertiaire knop** is een woord in de primaire kleur zonder kader; de uitklapper is een

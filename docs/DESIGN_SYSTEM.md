@@ -43,7 +43,7 @@ wisselt de standaard naar de nieuwe.
 
 Onder de schakelaar staat alles wat de nieuwe huisstijl anders tekent: het lichte menu en de
 band in de primaire kleur als paginakop, de kleine hoek op knoppen en velden (`--radius-control`), de grote hoek van
-een lade en een smalle band (`--radius-corner`), de focusring, de keuzerand in het accent, de koelgrijze sluier,
+een lade en een smalle band (`--radius-corner`), de focusring, de keuzerand en de veldrand in het accent, de koelgrijze sluier,
 de typografische schaal van de paginatitel, de marges en de inhoudsbreedte, de vier kolommen op
 een telefoon, de foutmelding boven het veld met de balk en de fouttint, de balk en de gekleurde
 iconen op een statusblok, de kaderloze tertiaire knop, de uitklapper als accordeonrij, de koppen

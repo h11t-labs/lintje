@@ -846,12 +846,12 @@ describe('the stylesheets', () => {
     )
   })
 
-  it("fills the toggle's off track with the field edge, inside its 40 × 22 box", () => {
+  it("fills the toggle's off track with the field's grey, inside its 40 × 22 box", () => {
     const shared = css('shared/input.css')
     const track = shared.match(/^\.lintje-choice__switch\s*\{([^}]*)\}/m)?.[1] ?? ''
     expect(shared).toContain(':host(lintje-toggle) { --lintje-choice-control: 40px; }')
     expect(track).toContain('width: var(--lintje-choice-control); height: 22px;')
-    expect(track).toContain('background: var(--color-border-field);')
+    expect(track).toContain('background: var(--color-choice-off);')
     expect(track).not.toContain('box-shadow')
     expect(track).not.toMatch(/(^|[^-])border:/)
   })

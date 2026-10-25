@@ -465,6 +465,8 @@
   --color-border-heavy: var(--neutral-4);
   /* The resting edge of a field box: 3:1 (WCAG 1.4.11) on the surface and the filter band. */
   --color-border-field: var(--neutral-5);
+  /* The toggle's off track: the field's grey in both house styles, so off never reads as chosen. */
+  --color-choice-off: var(--neutral-5);
   /* The fill of a field in error: the surface; the new style tints it. */
   --color-bg-field-error: var(--color-bg-surface);
   /* The edge of a checkbox and a radio: 3:1 on the surface; dark re-points it. */
@@ -901,6 +903,8 @@
   /* The 1 px edge of a checkbox and a radio: the accent's line, as the house style draws it in
      lintblauw; 3:1 on the surface in both modes by the line tint's construction. */
   --color-border-choice: var(--color-accent-line);
+  /* The 1 px edge of a field in the same line, as the house style draws a field in lintblauw. */
+  --color-border-field: var(--color-accent-line);
   /* A field in error stands on the error tint, under its red edge. */
   --color-bg-field-error: var(--color-error-bg);
   /* The outlined button's hover is the primary's wash, as the house style tints it; pressed a
@@ -1130,6 +1134,9 @@
     --color-focus-on-theme: var(--color-focus);
     --color-focus-on-theme-inner: var(--color-focus-inner);
     --color-border-choice: var(--color-accent-line);
+    /* A field's edge stands on the filter band (#333333) too, where the line tint falls under 3:1:
+       the text tint, light as the house style draws a dark field's edge. */
+    --color-border-field: var(--color-accent-text);
     /* The cool grey of the light veil tints a dark page blue: black here. */
     --color-overlay-page: var(--alpha-black-60);
   }
