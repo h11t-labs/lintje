@@ -720,7 +720,7 @@ export default {
           },
         },
         {
-          label: 'Smal, binnen de marges',
+          label: 'Smal binnen de marges',
           note:
             'Met `narrow` staat de band binnen de marges van de pagina, in de kolom van de inhoud, ' +
             'en draagt hij in de nieuwe huisstijl de ene afgeronde hoek rechtsboven (`--radius-corner`, ' +
