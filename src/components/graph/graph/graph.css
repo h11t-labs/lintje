@@ -23,6 +23,7 @@
   overflow: hidden;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
   cursor: grab;
   touch-action: pan-x pan-y;
   user-select: none;
@@ -56,6 +57,7 @@
   position: absolute;
   left: 0; top: 0;
   pointer-events: auto;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 /* What appears fades in, what leaves fades out where it stood. What comes while something leaves
    waits until it has gone. */
@@ -99,6 +101,7 @@
   background: var(--color-bg-surface);
   border: var(--lintje-graph-line) solid var(--color-border-default);
   cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-graph__card:hover,
 .lintje-graph__card.is-hover { background: var(--color-bg-subtle); }
@@ -189,6 +192,7 @@
   padding: 0 var(--space-2);
   background: none;
   border-color: transparent;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-graph__counter--small::before {
   content: '';
@@ -224,6 +228,7 @@
   color: var(--color-text-primary);
   border: var(--lintje-graph-line) solid var(--color-border-strong);
   cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-graph__zoom-button::after {
   content: '';
@@ -255,6 +260,7 @@
   overflow: hidden;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
   cursor: pointer;
 }
 .lintje-graph__overview-dot {

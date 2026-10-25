@@ -51,10 +51,11 @@ afterEach(() => {
 })
 
 describe('lintje-sortable-list with a mouse', () => {
-  it('moves the first row below the last and keeps the focus on its grip', async () => {
+  it('moves the first row below the last and gives its grip no focus it did not have', async () => {
     const element = await mount()
     const local = collect(element, 'lintje-change')
     const values = collect(element, 'lintje-values-change')
+    const before = deepActiveElement()
     const last = rows(element)[3]!
     await userEvent.dragAndDrop(grip(element, 'naam'), last, {
       targetPosition: { x: 40, y: last.offsetHeight - 2 },
@@ -63,6 +64,18 @@ describe('lintje-sortable-list with a mouse', () => {
     expect(labels(element)).toEqual(['Datum', 'Status', 'Eigenaar', 'Naam'])
     expect(local).toEqual([['datum', 'status', 'eigenaar', 'naam']])
     expect(values).toEqual([{ kolommen: ['datum', 'status', 'eigenaar', 'naam'] }])
+    expect(deepActiveElement()).toBe(before)
+  })
+
+  it('keeps the focus on a grip that had it before the drag', async () => {
+    const element = await mount()
+    grip(element, 'naam').focus()
+    const last = rows(element)[3]!
+    await userEvent.dragAndDrop(grip(element, 'naam'), last, {
+      targetPosition: { x: 40, y: last.offsetHeight - 2 },
+    })
+    await settle(element)
+    expect(labels(element)).toEqual(['Datum', 'Status', 'Eigenaar', 'Naam'])
     expect(deepActiveElement()).toBe(grip(element, 'naam'))
   })
 
@@ -114,10 +127,11 @@ describe.skipIf(server.browser !== 'chromium')('lintje-sortable-list with a fing
     await cdp().send('Input.dispatchTouchEvent', { type, touchPoints })
   }
 
-  it('moves a row by its grip without the page taking the gesture for a scroll', async () => {
+  it('moves a row by its grip, the others making room, without the page taking the gesture for a scroll', async () => {
     const element = await mount()
     const local = collect(element, 'lintje-change')
     const kinds: string[] = []
+    const before = deepActiveElement()
     const start = grip(element, 'naam')
     start.addEventListener('pointerdown', (event) => kinds.push(event.pointerType))
     start.addEventListener('pointercancel', () => kinds.push('cancel'))
@@ -129,11 +143,20 @@ describe.skipIf(server.browser !== 'chromium')('lintje-sortable-list with a fing
       const y = from.top + (to.bottom - 2 - from.top) * step
       await touch('touchMove', x, y)
     }
+    await settle(element)
+    // The rows it passed have moved up into its place; the one below stays.
+    const step = rows(element)[1]!.offsetTop - rows(element)[0]!.offsetTop
+    expect(rows(element).map((row) => row.style.transform)).toEqual([
+      expect.stringMatching(/^translateY/),
+      `translateY(${-step}px)`,
+      `translateY(${-step}px)`,
+      '',
+    ])
     await touch('touchEnd', x, to.bottom - 2)
     await settle(element)
     expect(kinds).toEqual(['touch'])
     expect(labels(element)).toEqual(['Datum', 'Status', 'Naam', 'Eigenaar'])
     expect(local).toEqual([['datum', 'status', 'naam', 'eigenaar']])
-    expect(deepActiveElement()).toBe(grip(element, 'naam'))
+    expect(deepActiveElement()).toBe(before)
   })
 })

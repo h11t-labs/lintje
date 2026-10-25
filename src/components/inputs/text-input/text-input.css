@@ -28,6 +28,7 @@
   width: var(--h-icon-button); height: var(--h-icon-button);
   display: flex; align-items: center; justify-content: center;
   color: var(--color-text-muted);
+  transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-text-input__clear:hover { color: var(--color-text-primary); }
 .lintje-text-input__clear::after {
