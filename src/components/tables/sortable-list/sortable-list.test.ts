@@ -61,11 +61,16 @@ describe('moveItem() and dropIndex()', () => {
     expect(moveItem(['a', 'b'], 1, 9)).toEqual(['a', 'b'])
   })
 
-  it('lands below every row whose middle is above the pointer', () => {
-    const middles = [22, 70, 118]
-    expect(dropIndex(middles, 0)).toBe(0)
-    expect(dropIndex(middles, 50)).toBe(1)
-    expect(dropIndex(middles, 500)).toBe(3)
+  it('passes a row once the dragged row covers half of it, up and down alike', () => {
+    // Rows 44 high, 4 apart; the second (top 48, bottom 92) is dragged past the others.
+    const middles = [22, 118, 166]
+    const at = (dy: number): number => dropIndex(middles, 1, 48 + dy, 92 + dy)
+    expect(at(0)).toBe(1)
+    expect(at(25)).toBe(1)
+    expect(at(27)).toBe(2)
+    expect(at(-25)).toBe(1)
+    expect(at(-27)).toBe(0)
+    expect(at(500)).toBe(3)
   })
 })
 

@@ -45,6 +45,7 @@ import '../../components/tables/pagination/pagination'
 import '../../components/forms/repeater/repeater'
 import '../../components/layout/split-pane/split-pane'
 import '../../components/forms/stepper/stepper'
+import '../../components/tables/timeline/timeline'
 import '../../components/frame/sub-nav/sub-nav'
 import '../../components/layout/tabs/tabs'
 import '../../components/feedback/toast/toast'
@@ -54,6 +55,7 @@ import '../../components/frame/page-header/page-header'
 import '../../components/frame/shell/shell'
 import '../../components/actions/button/button'
 import '../../components/layout/grid/grid'
+import '../../components/layout/grid-item/grid-item'
 import '../../components/layout/tile/tile'
 import type { LintjeFilterZone } from '../../components/filters/filter-zone/filter-zone'
 import type { LintjeNotifications } from '../../components/frame/notifications/notifications'
@@ -121,6 +123,22 @@ const KNOWN: RegExp[] = [
 ]
 
 /* Helpers ----------------------------------------------------------------- */
+
+/** Half the ribbon's width, in px: the ribbon is in rem. */
+function halfRibbon(element: HTMLElement): number {
+  const ribbon = getComputedStyle(element).getPropertyValue('--w-ribbon')
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+  return (parseFloat(ribbon) * (ribbon.trim().endsWith('rem') ? rem : 1)) / 2
+}
+
+/** The band's one corner, top right; -1 without a band or with a corner elsewhere. */
+function cornerOf(element: HTMLElement): number {
+  const band = find(element, '.lintje-page-header--band')
+  if (!band) return -1
+  const style = getComputedStyle(band)
+  if (parseFloat(style.borderTopLeftRadius) !== 0) return -1
+  return parseFloat(style.borderTopRightRadius)
+}
 
 /** Every match under a root, through each open shadow root. */
 function all(root: ParentNode, selector: string, found: Element[] = []): Element[] {
@@ -751,6 +769,59 @@ const ROWS: Row[] = [
       below(find(element, '.lintje-tabs__icon'), find(element, '.lintje-tabs__label')),
   },
   {
+    tag: 'lintje-timeline',
+    marker: 'every moment on one side, the date above the title',
+    mount: () =>
+      append(
+        create('lintje-timeline', {
+          placement: 'alternate',
+          moments: ['2019', '2021', '2023'].map((year) => ({
+            when: year,
+            title: `Fase ${year}`,
+            text: 'Een zin over wat er in dat jaar gebeurde, lang genoeg voor een paar regels.',
+          })),
+        }),
+      ),
+    wide: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-timeline__row--moment')
+      return beside(second ?? null, first ?? null)
+    },
+    phone: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-timeline__row--moment')
+      return (
+        below(first ?? null, second ?? null) &&
+        below(find(element, '.lintje-timeline__date'), find(element, '.lintje-timeline__title'))
+      )
+    },
+  },
+  {
+    tag: 'lintje-timeline',
+    marker: 'a lying timeline stands, every moment on one side',
+    mount: () =>
+      append(
+        create('lintje-timeline', {
+          orientation: 'horizontal',
+          placement: 'alternate',
+          moments: ['2019', '2021', '2023'].map((year) => ({
+            when: year,
+            at: year,
+            title: `Fase ${year}`,
+          })),
+        }),
+      ),
+    wide: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-timeline__row--moment')
+      return (
+        shown(element, '.lintje-timeline__axis') &&
+        box(second ?? null).left > box(first ?? null).left + 1
+      )
+    },
+    phone: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-timeline__row--moment')
+      return !shown(element, '.lintje-timeline__axis') && below(first ?? null, second ?? null)
+    },
+  },
+  {
     tag: 'lintje-stepper',
     marker: 'one line "Stap 3 van 5" with a bar',
     mount: () =>
@@ -887,6 +958,32 @@ const ROWS: Row[] = [
       )
     },
   },
+  ...(['content', 'header'] as const).map((slot): Row => ({
+    tag: 'lintje-page-header',
+    marker: `in the new style a narrow band${slot === 'header' ? ' in the shell’s header' : ''} keeps its one corner top right, half a ribbon at most`,
+    mount: async () => {
+      const page = document.createElement('div')
+      page.dataset.styleVersion = 'new'
+      const shell = create('lintje-shell', {
+        data: { name: 'Vergunningen', navigation: NAVIGATION },
+      })
+      shell.setAttribute('nav-tone', 'light')
+      const header = create('lintje-page-header', { data: { title: 'Aanvragen' } })
+      if (slot === 'header') header.slot = 'header'
+      header.setAttribute('narrow', '')
+      shell.append(header)
+      page.append(shell)
+      await append(page)
+      await shell.updateComplete
+      await header.updateComplete
+      return header
+    },
+    wide: (element) => cornerOf(element) > halfRibbon(element),
+    phone: (element) => {
+      const corner = cornerOf(element)
+      return corner > 0 && corner <= halfRibbon(element)
+    },
+  })),
   {
     tag: 'lintje-breadcrumbs',
     marker: 'one link back to the level above replaces the trail',
@@ -1008,6 +1105,7 @@ const ROWS: Row[] = [
         <lintje-button slot="actions" variant="danger">Verwijderen</lintje-button>`
       return append(element)
     },
+    // Wide, the row stands at the right with the answer last; the new style turns it round.
     wide: (element) => {
       const answer = find(element, '[variant="danger"]')
       const cancel = find(element, '[variant="secondary"]')
@@ -1154,14 +1252,14 @@ const ROWS: Row[] = [
   },
   {
     tag: 'lintje-chat-composer',
-    marker: 'an icon button sends in place of "Versturen" in words',
+    marker: 'the send button is its icon alone in place of "Versturen" in words',
     mount: () => append(create('lintje-chat-composer', { text: 'Hoeveel aanvragen?' })),
     wide: (element) =>
-      shown(element, '.lintje-chat-composer__send lintje-button') &&
-      !shown(element, 'lintje-icon-button[label="Versturen"]'),
+      shown(element, '.lintje-chat-composer__send:not([icon-only])') &&
+      !shown(element, '.lintje-chat-composer__send[icon-only]'),
     phone: (element) =>
-      shown(element, 'lintje-icon-button[label="Versturen"]') &&
-      !shown(element, '.lintje-chat-composer__send lintje-button'),
+      shown(element, '.lintje-chat-composer__send[icon-only]') &&
+      !shown(element, '.lintje-chat-composer__send:not([icon-only])'),
   },
   {
     tag: 'lintje-chat-questions',
@@ -1321,6 +1419,165 @@ const ROWS: Row[] = [
     },
     wide: (element) => level(element.children[0]!, element.children[1]!),
     phone: (element) => below(element.children[0]!, element.children[1]!),
+  },
+  {
+    tag: 'lintje-grid',
+    marker:
+      'in the new style two items with span-mobile 2 share the row, a third stands under them',
+    mount: async () => {
+      // The style comes from the nearest ancestor, so the wrapper keeps it to this row.
+      const page = document.createElement('div')
+      page.dataset.styleVersion = 'new'
+      const element = create('lintje-grid')
+      element.innerHTML = `<lintje-grid-item span="4" span-mobile="2">Aanvragen</lintje-grid-item>
+        <lintje-grid-item span="4" span-mobile="2">Besluiten</lintje-grid-item>
+        <div span="4">Bezwaren</div>`
+      page.append(element)
+      await append(page)
+      await Promise.all(
+        [...element.children].map(
+          (child) => (child as { updateComplete?: Promise<unknown> }).updateComplete,
+        ),
+      )
+      return element
+    },
+    wide: (element) => {
+      const [first, second, third] = [...element.children]
+      return level(first!, second!) && level(second!, third!)
+    },
+    phone: (element) => {
+      const [first, second, third] = [...element.children]
+      return beside(first!, second!) && below(first!, third!)
+    },
+  },
+  ...(['new', 'classic'] as const).map((style): Row => ({
+    tag: 'lintje-grid',
+    marker:
+      style === 'new'
+        ? 'in the new style an item without span takes the four columns, span-mobile 2 half'
+        : 'in the earlier style every item takes the one column, span-mobile changes nothing',
+    mount: async () => {
+      const page = document.createElement('div')
+      page.dataset.styleVersion = style
+      const element = create('lintje-grid')
+      element.innerHTML = `<lintje-tile heading="Aanvragen"></lintje-tile>
+          <div>Besluiten</div>
+          <lintje-grid-item>Bezwaren</lintje-grid-item>
+          <lintje-grid-item span="4">Beroepen</lintje-grid-item>
+          <div span="2" span-mobile="2">Klachten</div>
+          <lintje-grid-item span-mobile="2">Meldingen</lintje-grid-item>`
+      page.append(element)
+      await append(page)
+      await Promise.all(
+        [...element.children].map(
+          (child) => (child as { updateComplete?: Promise<unknown> }).updateComplete,
+        ),
+      )
+      return element
+    },
+    wide: (element) => [...element.children].every((child) => level(element.children[0]!, child)),
+    phone: (element) => {
+      const items = [...element.children]
+      const whole = (item: Element): boolean => Math.abs(box(item).width - box(element).width) < 2
+      if (style === 'classic') return items.every(whole)
+      const [first, second] = items.slice(-2)
+      return items.slice(0, -2).every(whole) && beside(first!, second!)
+    },
+  })),
+  ...(['new', 'classic'] as const).map((style): Row => ({
+    tag: 'lintje-grid',
+    marker:
+      style === 'new'
+        ? 'in the new style a KPI row has two columns, one per item, span-mobile 2 both'
+        : 'in the earlier style a KPI row keeps the width a host element gives itself',
+    mount: async () => {
+      // A host's own KPI that takes its width from its own root, without `span`.
+      if (!customElements.get('test-kpi')) {
+        customElements.define(
+          'test-kpi',
+          class extends HTMLElement {
+            constructor() {
+              super()
+              this.attachShadow({ mode: 'open' }).innerHTML =
+                '<style>:host { display: block; grid-column: span var(--lintje-span, 1); }</style><slot></slot>'
+            }
+          },
+        )
+      }
+      const page = document.createElement('div')
+      page.dataset.styleVersion = style
+      const element = create('lintje-grid', { variant: 'kpi-row' })
+      element.innerHTML = `<test-kpi style="--lintje-span: 2">Aanvragen</test-kpi>
+          <lintje-tile heading="Besluiten"></lintje-tile>
+          <lintje-grid-item span-mobile="2">Bezwaren</lintje-grid-item>`
+      page.append(element)
+      await append(page)
+      await Promise.all(
+        [...element.children].map(
+          (child) => (child as { updateComplete?: Promise<unknown> }).updateComplete,
+        ),
+      )
+      return element
+    },
+    wide: (element) => {
+      const [first, second, third] = [...element.children]
+      return level(first!, second!) && level(second!, third!)
+    },
+    phone: (element) => {
+      const [first, second, third] = [...element.children]
+      const whole = (item: Element): boolean => Math.abs(box(item).width - box(element).width) < 2
+      return style === 'new'
+        ? beside(first!, second!) && below(first!, third!) && whole(third!)
+        : whole(first!) && beside(second!, third!) && below(first!, second!)
+    },
+  })),
+  {
+    tag: 'lintje-grid',
+    marker: 'a phone moves an item with order-mobile to the end and leaves out hide-mobile',
+    mount: async () => {
+      const element = create('lintje-grid')
+      element.innerHTML = `<lintje-grid-item span="4" order-mobile="1">Kaart</lintje-grid-item>
+        <lintje-grid-item span="4">Kerncijfers</lintje-grid-item>
+        <lintje-grid-item span="4" hide-mobile>Toelichting</lintje-grid-item>
+        <lintje-grid-item span="4" hide-desktop>Alleen op een telefoon</lintje-grid-item>`
+      await append(element)
+      await Promise.all(
+        [...element.children].map(
+          (child) => (child as { updateComplete?: Promise<unknown> }).updateComplete,
+        ),
+      )
+      return element
+    },
+    wide: (element) => {
+      const [map, figures, note, phoneOnly] = [...element.children]
+      return level(map!, figures!) && seen(note) && !seen(phoneOnly)
+    },
+    phone: (element) => {
+      const [map, figures, note, phoneOnly] = [...element.children]
+      return below(figures!, map!) && !seen(note) && seen(phoneOnly)
+    },
+  },
+  {
+    tag: 'lintje-tile',
+    marker: 'with collapsed-mobile a phone shows the head and a button, the content one tap away',
+    mount: async () => {
+      const element = create('lintje-tile', {
+        heading: 'Aanvragen per regio',
+        collapsedMobile: true,
+      })
+      element.innerHTML = '<p>De kaart met de aanvragen per regio.</p>'
+      return append(element)
+    },
+    wide: (element) =>
+      seen(element.querySelector('p')) && !shown(element, '.lintje-tile__fold-toggle'),
+    phone: (element) => {
+      const toggle = find(element, '.lintje-tile__fold-toggle')
+      return (
+        seen(toggle) &&
+        toggle!.getAttribute('aria-expanded') === 'false' &&
+        !seen(element.querySelector('p'))
+      )
+    },
   },
   {
     tag: 'lintje-tile',

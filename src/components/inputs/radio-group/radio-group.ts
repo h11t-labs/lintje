@@ -113,6 +113,7 @@ export class LintjeRadioGroup extends LintjeChoiceGroupElement {
       aria-required=${this.required ? 'true' : nothing}
     >
       ${this.renderLabel()}
+      ${this.renderMessages()}
       <div
         class=${classMap({ 'lintje-radio-group': true, 'lintje-radio-group--cards': this.variant === 'cards' })}
         @keydown=${(event: KeyboardEvent) => (this.#byArrow = event.key.startsWith('Arrow'))}

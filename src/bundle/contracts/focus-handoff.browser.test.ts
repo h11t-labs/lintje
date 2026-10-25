@@ -1,7 +1,6 @@
 /** Focus handoff: when the control with the focus goes, the focus lands on a stated neighbour, never on `body`. */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
-import '../../components/tables/activity-log/activity-log'
 import '../../components/feedback/announcement/announcement'
 import '../../components/content/audio-player/audio-player'
 import '../../components/charts/chart/chart'
@@ -34,6 +33,7 @@ import '../../components/frame/notifications/notifications'
 import '../../components/tables/pagination/pagination'
 import '../../components/forms/repeater/repeater'
 import '../../components/tables/sortable-list/sortable-list'
+import '../../components/tables/timeline/timeline'
 import '../../components/feedback/streaming-text/streaming-text'
 import '../../components/frame/sub-nav/sub-nav'
 import '../../components/feedback/toast/toast'
@@ -1022,10 +1022,12 @@ async function repeater(count: number): Promise<HTMLElement> {
 const repeaterRemove = (row: Element | null | undefined): HTMLElement | null =>
   inside(row, 'lintje-icon-button', 'button')
 
-const ENTRIES = Array.from({ length: 14 }, (_, index) => ({
+/** A history, the newest first: what the activity log was. */
+const HISTORY = Array.from({ length: 14 }, (_, index) => ({
   who: index % 2 ? 'A. de Vries' : 'M. Jansen',
-  what: `Stap ${14 - index} afgerond`,
-  when: `${index + 1} maart`,
+  title: `rondde stap ${14 - index} af`,
+  when: `${28 - index} maart`,
+  at: `2026-03-${String(28 - index).padStart(2, '0')}`,
 }))
 
 /** A job list with one failed job, the focus on its "Opnieuw". */
@@ -1069,33 +1071,60 @@ const COLLECTION_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-activity-log :: "Toon eerdere", gone with the last entries, hands its focus to the first new entry',
+    name: 'lintje-timeline :: a history\'s "Toon eerdere", gone with the last moments, hands its focus to the first new moment',
     run: async () => {
-      const log = await mount<HTMLElement>('lintje-activity-log', { entries: ENTRIES })
+      const timeline = await mount<HTMLElement>('lintje-timeline', {
+        moments: HISTORY,
+        limit: 10,
+        step: 10,
+      })
       const more = (): HTMLElement | null =>
-        button(log.shadowRoot!.querySelector('.lintje-activity-log__more'))
+        button(timeline.shadowRoot!.querySelector('.lintje-timeline__more'))
       await expect.poll(more).toBeTruthy()
       more()!.focus()
       await userEvent.keyboard('{Enter}')
-      return () => log.shadowRoot!.querySelectorAll('.lintje-activity-log__entry')[10] ?? null
+      return () => timeline.shadowRoot!.querySelector('[data-index="10"]')
     },
   },
   {
-    name: 'lintje-activity-log :: "Toon eerdere" that stays keeps its focus',
+    name: 'lintje-timeline :: a history\'s "Toon eerdere" that stays keeps its focus',
     run: async () => {
-      const log = await mount<HTMLElement>('lintje-activity-log', {
-        entries: [...ENTRIES, ...ENTRIES],
+      const timeline = await mount<HTMLElement>('lintje-timeline', {
+        moments: [
+          ...HISTORY,
+          ...HISTORY.map((moment) => ({ ...moment, at: moment.at.replace('03', '02') })),
+        ],
+        limit: 10,
+        step: 10,
       })
       const more = (): HTMLElement | null =>
-        button(log.shadowRoot!.querySelector('.lintje-activity-log__more'))
+        button(timeline.shadowRoot!.querySelector('.lintje-timeline__more'))
       await expect.poll(more).toBeTruthy()
       const kept = more()!
       kept.focus()
       await userEvent.keyboard('{Enter}')
       await expect
-        .poll(() => log.shadowRoot!.querySelectorAll('.lintje-activity-log__entry').length)
+        .poll(() => timeline.shadowRoot!.querySelectorAll('.lintje-timeline__row--moment').length)
         .toBe(20)
       return () => kept
+    },
+  },
+  {
+    name: 'lintje-timeline :: "Toon eerdere", gone with the earlier moments, hands its focus to the first moment',
+    run: async () => {
+      const timeline = await mount<HTMLElement>('lintje-timeline', {
+        limit: 2,
+        moments: ['2019', '2021', '2023', '2025'].map((year) => ({
+          when: year,
+          title: `In ${year}`,
+        })),
+      })
+      const more = (): HTMLElement | null =>
+        button(timeline.shadowRoot!.querySelector('.lintje-timeline__more'))
+      await expect.poll(more).toBeTruthy()
+      more()!.focus()
+      await userEvent.keyboard('{Enter}')
+      return () => timeline.shadowRoot!.querySelector('.lintje-timeline__row--moment')
     },
   },
   {
@@ -1537,7 +1566,7 @@ const CONVERSATION_ROWS: Row[] = [
     run: async () => {
       const element = await chatComposer()
       const send = (): HTMLElement | null =>
-        button(inside(element, '.lintje-chat-composer__send lintje-button'))
+        inside(element, '.lintje-chat-composer__send', '.lintje-menu-button__main')
       await expect.poll(send).toBeTruthy()
       send()!.focus()
       element.busy = true
@@ -1587,11 +1616,11 @@ const CONVERSATION_ROWS: Row[] = [
     },
   },
   {
-    name: 'lintje-chat-composer :: the send options, closed with Escape, hand their focus to their toggle',
+    name: 'lintje-chat-composer :: the send options, closed with Escape, hand their focus to their arrow',
     run: async () => {
       const element = await chatComposer()
       const toggle = (): HTMLElement | null =>
-        button(inside(element, '.lintje-chat-composer__options-toggle'))
+        inside(element, '.lintje-chat-composer__send', '.lintje-menu-button__trigger')
       await drawn(toggle)
       toggle()!.focus()
       await userEvent.keyboard('{Enter}')
