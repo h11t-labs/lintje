@@ -4,4 +4,4 @@
 
 ### Opgelost
 
-- Een grafiek zonder maat, zoals in een tegel die is ingeklapt, telde als in beeld en tekende zich onzichtbaar in; nu wacht de intro tot hij een maat heeft. (#317)
+- In beide huisstijlen: een grafiek zonder maat, zoals in een tegel die is ingeklapt, telde als in beeld en tekende zich onzichtbaar in; nu wacht de intro tot hij een maat heeft. (#317)

@@ -5,4 +5,4 @@
 
 ### Toegevoegd
 
-- `lintje-footer` met `variant="compact"`: de regel en de vaste links op één rij op het lichte vlak, voor een formulier of een taakpagina. (#317)
+- In beide huisstijlen: `lintje-footer` met `variant="compact"`: de regel en de vaste links op één rij op het lichte vlak, voor een formulier of een taakpagina. (#317)
