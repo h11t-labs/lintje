@@ -57,8 +57,8 @@
   inset: min(0px, calc((100% - var(--h-target)) / 2));
 }
 
-.lintje-announcement--warning { background: var(--color-attention-bg); border-color: var(--color-attention-line); }
-.lintje-announcement--warning .lintje-announcement__icon { color: var(--color-attention-line); }
+.lintje-announcement--warning { background: var(--color-alert-warning-bg); border-color: var(--color-alert-warning-line); }
+.lintje-announcement--warning .lintje-announcement__icon { color: var(--color-alert-warning-line); }
 .lintje-announcement--error { background: var(--color-error-bg); border-color: var(--color-error-line); }
 .lintje-announcement--error .lintje-announcement__icon { color: var(--color-error-line); }
 .lintje-announcement--outage { background: var(--color-error-bg); border-color: var(--color-error-line); }

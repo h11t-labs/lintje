@@ -103,8 +103,8 @@ const PAGES = {
       {
         id: 'house-style',
         label: 'Per huisstijl',
-        note: 'Wat een element in de oude en de nieuwe huisstijl anders kleurt: de kop en de tekst van een uitklapper, de huidige pagina, het submenu en de titel van een venster. De oude waarde staat in de tokens, de nieuwe onder data-style-version="new".',
-        claims: by(/^--color-(expander|pagination|sub-nav|modal)-/),
+        note: 'Wat een element in de oude en de nieuwe huisstijl anders kleurt: de kop en de tekst van een uitklapper, de huidige pagina, het submenu, de titel van een venster en een waarschuwing. De oude waarde staat in de tokens, de nieuwe onder data-style-version="new".',
+        claims: by(/^--color-(expander|pagination|sub-nav|modal|alert)-/),
       },
     ],
   },

@@ -46,7 +46,7 @@ band in de primaire kleur als paginakop, de kleine hoek op knoppen en velden (`-
 een lade en een smalle band (`--radius-corner`), de focusring, de keuzerand en de veldrand in het accent, de koelgrijze sluier,
 de typografische schaal van de paginatitel, de marges en de inhoudsbreedte, de vier kolommen op
 een telefoon, de foutmelding boven het veld met de balk en de fouttint, de balk en de gekleurde
-iconen op een statusblok, de kaderloze tertiaire knop, de uitklapper als accordeonrij, de koppen
+iconen op een statusblok, een waarschuwing in donkergeel, de kaderloze tertiaire knop, de uitklapper als accordeonrij, de koppen
 en het citaat in lopende tekst, het pijlvak van de select, de regel en de chevrons van de voet,
 de getinte paginering, het kruimelpad zonder de pagina zelf, de dialoogknoppen links zonder lijnen, het gevulde submenu, de paginakop
 boven de filterbalk, en in donker het gespiegelde grijs. Wat beide delen, staat niet onder de

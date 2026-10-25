@@ -555,6 +555,10 @@
 
   /* A status mark on its own tint: the status colour, nudged to 3:1 where it falls short. */
   --color-attention-line: color-mix(in srgb, var(--status-attention), black 10%);
+  /* A warning block (alert, toast): the attention status; the new style takes donkergeel, as the
+     house style draws a warning. Its bar decorates, the icon and the words carry the meaning. */
+  --color-alert-warning-bg: var(--color-attention-bg);
+  --color-alert-warning-line: var(--color-attention-line);
   --color-error-line: var(--status-error);
   --color-info-line: var(--status-info);
   --color-success-line: var(--status-success);
@@ -936,6 +940,8 @@
   --expander-radius: 0px;
   --expander-pad: var(--space-1) 0;
   --color-expander-title: var(--color-accent-text);
+  --color-alert-warning-bg: var(--color-warning-bg);
+  --color-alert-warning-line: var(--status-warning);
   --color-expander-content: var(--color-text-primary);
   --color-pagination-current-bg: var(--color-choice-active-bg);
   --color-pagination-current-border: transparent;

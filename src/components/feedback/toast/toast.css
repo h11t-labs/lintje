@@ -30,8 +30,8 @@
 
 .lintje-toast--info { background: var(--color-info-bg); border-color: var(--color-info-line); color: var(--color-text-primary); }
 .lintje-toast--info .lintje-toast__icon { color: var(--color-info-line); }
-.lintje-toast--warning { background: var(--color-attention-bg); border-color: var(--color-attention-line); color: var(--color-text-primary); }
-.lintje-toast--warning .lintje-toast__icon { color: var(--color-attention-line); }
+.lintje-toast--warning { background: var(--color-alert-warning-bg); border-color: var(--color-alert-warning-line); color: var(--color-text-primary); }
+.lintje-toast--warning .lintje-toast__icon { color: var(--color-alert-warning-line); }
 
 .lintje-toast__text { flex: 1; }
 .lintje-toast__action { position: relative; font-weight: 700; text-decoration: underline; color: var(--color-link-on-status); flex: none; }
