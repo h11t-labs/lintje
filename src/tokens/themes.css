@@ -19,10 +19,18 @@
   --accent: #E17000;
 }
 
-/* Rijksoverheid — donkerblauw. Not lintblauw (`#154273`): the ribbon's own colour would vanish. */
+/* Rijksoverheid — donkerblauw. Not lintblauw (`#154273`): the ribbon's own colour would vanish
+   in the menu filled with it. */
 [data-theme='rijksoverheid'] {
   --primary: #01689B;
   --accent: #E17000;
+}
+
+/* In the new house style the menu is white and the ribbon stands on white, so Rijksoverheid takes
+   the house style's own primary, lintblauw. */
+:root[data-style-version='new']:not([data-theme]),
+:root[data-style-version='new'][data-theme='rijksoverheid'] {
+  --primary: #154273;
 }
 
 /* Koninklijke Marechaussee — Nassau blue. */

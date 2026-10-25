@@ -1,7 +1,9 @@
 /*
  * Prose: a block of text the server wrote. The one sheet with type selectors inside a block
  * (rule 24): the content is sanitised HTML from markdown with no hook but its tag name, so the
- * selectors are scoped to `.lintje-prose`. A block starts at `h3`; `h1` and `h2` get the same look.
+ * selectors are scoped to `.lintje-prose`. A block starts at `h3`; `h1` and `h2` get the same
+ * look. In the new style the six heading levels step down the house style's scale instead: 40,
+ * 32, 24, 20, 16, 16; the tokens are named after the page's hierarchy, not the tag.
  */
 :host {
   display: block;
@@ -37,6 +39,16 @@
 .lintje-prose h4 { font: var(--text-tile-title); }
 .lintje-prose h5,
 .lintje-prose h6 { font: var(--text-body); font-weight: 700; }
+/* The new style: headings in the primary colour, as the house style sets them (a word, so the
+   text tint), down the scale; the two largest also hold their room, so a long title wraps on its
+   own lines. */
+[data-style-version='new'] .lintje-prose :is(h1, h2, h3, h4, h5, h6) { color: var(--color-accent-text); }
+[data-style-version='new'] .lintje-prose h1 { font: var(--text-h1-display); }
+[data-style-version='new'] .lintje-prose h2 { font: var(--text-h1); }
+[data-style-version='new'] .lintje-prose h3 { font: var(--text-section); }
+[data-style-version='new'] .lintje-prose h4 { font: var(--text-h2); }
+[data-style-version='new'] .lintje-prose :is(h5, h6) { font: var(--text-tile-title); }
+[data-style-version='new'] .lintje-prose :is(h1, h2) { text-wrap: balance; }
 
 .lintje-prose p { font: var(--text-body); }
 .lintje-prose strong { font-weight: 700; }
@@ -44,7 +56,7 @@
 .lintje-prose small { font: var(--text-small); color: var(--color-text-muted); }
 .lintje-prose figcaption { font: var(--text-small); color: var(--color-text-muted); }
 
-.lintje-prose a { color: var(--color-link); text-decoration: underline; }
+.lintje-prose a { color: var(--color-link); text-decoration: underline; transition: color var(--dur-hover) var(--ease-in-motion); }
 .lintje-prose a:hover { color: var(--color-link-hover); }
 
 /* `base.css` takes the markers off every `ul`/`ol`; prose needs them back. */
@@ -61,6 +73,7 @@
   padding: 0 var(--space-1);
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
 }
 .lintje-prose pre {
   margin: 0;
@@ -74,7 +87,7 @@
 }
 .lintje-prose pre code { padding: 0; background: none; border: none; }
 /* A block is a scroller with a Tab stop (prose.ts): its ring stands inside it. */
-.lintje-prose pre:focus-visible { outline-offset: calc(var(--focus-width) * -1); }
+.lintje-prose pre:focus-visible { outline-offset: var(--focus-inset); box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)); }
 
 .lintje-prose blockquote {
   margin: 0;
@@ -82,6 +95,25 @@
   border-left: 4px solid var(--color-border-strong);
   color: var(--color-text-secondary);
 }
+/* The new style's quotation, as the house style draws it: a frame of two lines in the primary,
+   above and at the left, with the one corner where they meet; the source line under it, after a
+   dash. */
+[data-style-version='new'] .lintje-prose blockquote {
+  padding: var(--space-6) var(--space-8);
+  border-top: 2px solid var(--color-accent-line);
+  border-left: 2px solid var(--color-accent-line);
+  border-top-left-radius: var(--radius-quote);
+  color: var(--color-accent-text);
+  font: var(--text-translation);
+}
+[data-style-version='new'] .lintje-prose blockquote p { font: inherit; }
+[data-style-version='new'] .lintje-prose blockquote :is(cite, footer) {
+  display: block;
+  margin-top: var(--space-3);
+  font: var(--text-body);
+  font-style: normal;
+}
+[data-style-version='new'] .lintje-prose blockquote :is(cite, footer)::before { content: '— '; }
 
 .lintje-prose hr {
   border: none;

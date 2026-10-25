@@ -49,7 +49,7 @@ src/
                (alleen op de pagina)
   icons/       renderIcon(), het gegenereerde register, de iconenlader
   components/  één map per categorie (frame/, layout/, overlays/, actions/, content/,
-               feedback/, inputs/, forms/, filters/, charts/, map/, tables/, chat/), met
+               feedback/, inputs/, forms/, filters/, charts/, map/, graph/, tables/, chat/), met
                daarin één map per tag; components/shared/ voor wat categorieën delen, zoals
                charts/ (de renderfuncties van de grafieken; leaflet.ts: de basiskaart), de
                focus-trap en place.ts (waar een zwevend vak staat)

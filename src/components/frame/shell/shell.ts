@@ -3,9 +3,14 @@
  * beside it, the mobile header and menu below 768 px, and a `<main>` with the host's content.
  *
  * It never fetches and never reads the URL: the active page and the reader's settings are the
- * host's, and a change goes out as `lintje-view-change` and comes back as data. `full` runs edge
- * to edge above the content, `header` holds the `lintje-page-header` and `footer` the
- * `lintje-footer`. The events of its parts (`lintje-action`, `lintje-logout`,
+ * host's, and a change goes out as `lintje-view-change` and comes back as data. `nav-tone`
+ * chooses the menu's colours: filled in the theme's colour, or light as the house style's bar
+ * and side navigation; unset, the new house style takes light and the earlier one filled.
+ * `mobile-bar` says where the phone's header stands. `end` takes what a host
+ * puts at the end of the bar, such as
+ * `lintje-language-nav`, before the search and the user. `header` holds the `lintje-page-header`,
+ * the page's head; `full` runs edge to edge above the content (a filter bar, a hero), under the
+ * head in the new style and above it in the earlier one; `footer` holds the `lintje-footer`. The events of its parts (`lintje-action`, `lintje-logout`,
  * `lintje-notification-open`, `lintje-notifications-read`) reach the host as they are.
  *
  * Events: `lintje-navigate` `{ href }`, `lintje-view-change` `ShellViewChange`,
@@ -101,6 +106,8 @@ export class LintjeShell extends LintjeElement {
   static override properties: PropertyDeclarations = {
     data: { attribute: false },
     layout: { type: String, reflect: true },
+    navTone: { type: String, attribute: 'nav-tone', reflect: true },
+    mobileBar: { type: String, attribute: 'mobile-bar', reflect: true },
     openGroup: { state: true },
     railExpanded: { state: true },
     menuOpen: { state: true },
@@ -122,6 +129,20 @@ export class LintjeShell extends LintjeElement {
 
   /** `data.layout`, mirrored on the element so its stylesheet can tell the two apart. */
   layout: 'side' | 'top' = 'top'
+  /**
+   * `filled`: the menu in the theme's colour, beside or above the page. `light`: the house
+   * style's white bar and side navigation, with the words in the primary colour, a row under the
+   * pointer filled in it and the reader's page in its wash. Unset, the style decides: light in
+   * the new house style, filled in the earlier one. The effective tone stands on the host as
+   * `data-tone`, where the stylesheet, the page head and the hero read it.
+   */
+  declare navTone?: 'filled' | 'light'
+  /**
+   * Where the header stands below 768 px: at the top of the page (`top`), or stuck to the bottom
+   * of the screen under the thumb (`bottom`), the house style's variant; the menu then opens
+   * above it. The host's choice.
+   */
+  mobileBar: 'top' | 'bottom' = 'top'
   /** Top layout: index of the open group; `WHOLE_MENU`; or `null`. */
   openGroup: number | null = null
   /** Top layout: the logo bar has scrolled away and the bar under it is pinned (`is-stuck`). */
@@ -246,6 +267,12 @@ export class LintjeShell extends LintjeElement {
     this.#sheetTrap.deactivate(restore)
   }
 
+  override resolveSettings(): void {
+    super.resolveSettings()
+    const tone = this.navTone ?? (this.isNewStyle ? 'light' : 'filled')
+    if (this.dataset.tone !== tone) this.dataset.tone = tone
+  }
+
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
     // A viewport of 768 px or wider closes the open menu, or its fixed panel and trap would stay.
@@ -286,9 +313,13 @@ export class LintjeShell extends LintjeElement {
     if (changed.has('menuOpen')) {
       if (this.menuOpen) {
         this.#menuReleased ??= lockScroll()
-        this.#placeMenu()
         const region = this.renderRoot.querySelector<HTMLElement>('.lintje-mobile-chrome')
-        if (region) this.#menuTrap.activate(region, { focus: false })
+        if (region) {
+          // Under a logo bar still in view the panel is shorter by it; the page cannot scroll now.
+          const bar = region.querySelector('.lintje-mobile-header')?.getBoundingClientRect()
+          if (bar) region.style.setProperty('--lintje-mobile-menu-top', `${bar.bottom}px`)
+          this.#menuTrap.activate(region, { focus: false })
+        }
       } else if (changed.get('menuOpen') === true) {
         this.#releaseMenu()
         this.#menuTrap.deactivate(false)
@@ -304,20 +335,6 @@ export class LintjeShell extends LintjeElement {
     if (this.#nested || this.layout !== 'top') return
     if (changed.has('data') || changed.has('layout')) this.measureScroll()
     else this.#markStuck()
-  }
-
-  /**
-   * Under the top layout's logo bar the open menu starts where its header ends, which depends on
-   * how far the page was scrolled, and ends at the bottom of the screen: the page holds still
-   * while it is open, so one measurement holds.
-   */
-  #placeMenu(): void {
-    if (this.layout !== 'top') return
-    const pin = this.renderRoot.querySelector('.lintje-shell__mobile-pin')
-    const menu = this.renderRoot.querySelector<HTMLElement>('.lintje-mobile-menu')
-    if (!pin || !menu) return
-    const top = Math.max(0, Math.round(pin.getBoundingClientRect().bottom))
-    menu.style.setProperty('--lintje-mobile-menu-top', `${top}px`)
   }
 
   /**
@@ -486,7 +503,9 @@ export class LintjeShell extends LintjeElement {
   }
 
   #onSlotChange(): void {
-    const slots = this.renderRoot.querySelectorAll<HTMLSlotElement>('.lintje-shell__content slot')
+    const slots = this.renderRoot.querySelectorAll<HTMLSlotElement>(
+      '.lintje-shell__main slot:not([name="full"])',
+    )
     this.hasContent = Array.from(slots).some((slot) =>
       slot.assignedNodes({ flatten: true }).some(isContent),
     )
@@ -589,7 +608,7 @@ export class LintjeShell extends LintjeElement {
   }
 
   private renderNavEnd(data: ShellData): TemplateResult {
-    return html`${this.renderSearch()}${this.renderNotifications()}${renderBarTools(this)}${
+    return html`<slot name="end"></slot>${this.renderSearch()}${this.renderNotifications()}${renderBarTools(this)}${
       data.feedback ? this.renderFeedbackTool(data.feedback) : nothing
     }${this.renderUserMenu('bar')}`
   }
@@ -640,14 +659,19 @@ export class LintjeShell extends LintjeElement {
 
   private renderMain(): TemplateResult {
     const onSlotChange = (): void => this.#onSlotChange()
+    // The new style stands the page's head above what runs edge to edge (a filter bar under it
+    // stays sticky); the earlier one keeps the head in the content column under it.
+    const fresh = this.isNewStyle
+    const header = html`<slot name="header" @slotchange=${onSlotChange}></slot>`
     return html`<main
       id=${MAIN_ID}
       class=${classMap({ 'lintje-shell__main': true, 'is-bare': !this.hasContent })}
       tabindex="-1"
     >
+      ${fresh ? header : nothing}
       <slot name="full" @slotchange=${onSlotChange}></slot>
       <div class="lintje-shell__content" ?hidden=${!this.hasContent}>
-        <slot name="header" @slotchange=${onSlotChange}></slot>
+        ${fresh ? nothing : header}
         <slot @slotchange=${onSlotChange}></slot>
       </div>
     </main>`

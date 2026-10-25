@@ -55,20 +55,21 @@
   font-variant-numeric: tabular-nums;
   text-decoration: none;
   cursor: pointer;
-  transition: background var(--dur-hover) var(--ease-in-motion);
+  transition: background var(--dur-hover) var(--ease-in-motion),
+              color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-pagination__page:hover { background: var(--color-bg-subtle); color: var(--color-link-hover); }
 
-/* The one filled square; its edge is the primary button's, the tint that carries it in dark. */
-.lintje-pagination__page.is-current {
-  background: var(--color-action-primary);
-  border-color: var(--color-action-primary-border);
-  color: var(--color-action-primary-text);
+/* The one square, filled or tinted (`--color-pagination-current-*`); in dark a filled square's
+   edge is the primary button's tint. Choosing it does nothing, so it does not answer the pointer. */
+.lintje-pagination__page.is-current,
+.lintje-pagination__page.is-current:hover {
+  background: var(--color-pagination-current-bg);
+  border-color: var(--color-pagination-current-border);
+  color: var(--color-pagination-current-text);
   font-weight: 700;
   cursor: default;
 }
-/* Choosing the current page does nothing, so it does not answer the pointer. */
-.lintje-pagination__page.is-current:hover { background: var(--color-action-primary); }
 
 /* As wide as a number, so the seven slots keep one length. */
 .lintje-pagination__gap {

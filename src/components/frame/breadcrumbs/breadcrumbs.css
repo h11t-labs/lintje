@@ -3,7 +3,11 @@
 
 /* ------------------------------------------------------------------------ */
 
-.lintje-breadcrumbs { font: var(--text-small); color: var(--color-text-muted); }
+/* On a fill (the primary band of a hero) the surface sets `--lintje-breadcrumbs-ink`, which
+   inherits in: one ink for the whole trail. */
+.lintje-breadcrumbs { font: var(--text-small); color: var(--lintje-breadcrumbs-ink, var(--color-text-muted)); }
+/* On the body size, as the house style sets the trail in the new style. */
+[data-style-version='new'] .lintje-breadcrumbs { font: var(--text-ui); }
 .lintje-breadcrumbs__list {
   display: flex; flex-wrap: wrap; align-items: center;
   gap: var(--space-2);
@@ -13,7 +17,7 @@
 /* A transparent hit area reaches the target height up and down; sideways stands other content. */
 .lintje-breadcrumbs__link {
   position: relative;
-  color: var(--color-link);
+  color: var(--lintje-breadcrumbs-ink, var(--color-link));
   text-decoration: underline;
   transition: color var(--dur-hover) var(--ease-in-motion);
 }
@@ -22,8 +26,8 @@
   position: absolute;
   inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
 }
-.lintje-breadcrumbs__link:hover { color: var(--color-link-hover); }
-.lintje-breadcrumbs__current { color: var(--color-text-primary); }
+.lintje-breadcrumbs__link:hover { color: var(--lintje-breadcrumbs-ink, var(--color-link-hover)); }
+.lintje-breadcrumbs__current { color: var(--lintje-breadcrumbs-ink, var(--color-text-primary)); }
 
 /* Below 768 px only the way back stays. */
 .lintje-breadcrumbs__back {
@@ -31,7 +35,8 @@
   min-height: var(--h-touch);
   font: var(--text-ui);
   font-weight: 700;
-  color: var(--color-link);
+  color: var(--lintje-breadcrumbs-ink, var(--color-link));
   text-decoration: none;
+  transition: color var(--dur-hover) var(--ease-in-motion);
 }
-.lintje-breadcrumbs__back:hover { color: var(--color-link-hover); }
+.lintje-breadcrumbs__back:hover { color: var(--lintje-breadcrumbs-ink, var(--color-link-hover)); }

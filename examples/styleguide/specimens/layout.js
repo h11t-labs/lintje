@@ -76,6 +76,31 @@ export default {
             <lintje-grid-item span="6"><div class="guide__placeholder">lintje-grid-item span 6</div></lintje-grid-item>
           </lintje-grid>`,
         },
+        {
+          label: 'Op een telefoon',
+          note:
+            'In de nieuwe huisstijl heeft een telefoon vier kolommen. Een item neemt ze alle vier, ' +
+            'tenzij `span-mobile` er minder noemt: hier staan de eerste twee op een telefoon naast ' +
+            'elkaar en de derde eronder. In de oude huisstijl stapelen ze.',
+          html: `<lintje-grid>
+            <lintje-grid-item span="4" span-mobile="2"><div class="guide__placeholder">span 4 · span-mobile 2</div></lintje-grid-item>
+            <lintje-grid-item span="4" span-mobile="2"><div class="guide__placeholder">span 4 · span-mobile 2</div></lintje-grid-item>
+            <lintje-grid-item span="4"><div class="guide__placeholder">span 4</div></lintje-grid-item>
+          </lintje-grid>`,
+        },
+        {
+          label: 'Plaats en zichtbaarheid',
+          note:
+            'Op een telefoon schuift een item met `order-mobile="1"` achter de rest, valt een item ' +
+            'met `hide-mobile` weg en verschijnt een item met `hide-desktop`. Verberg alleen wat de ' +
+            'pagina ook op een andere manier zegt.',
+          html: `<lintje-grid>
+            <lintje-grid-item span="4" order-mobile="1"><div class="guide__placeholder">order-mobile 1 · op een telefoon als laatste</div></lintje-grid-item>
+            <lintje-grid-item span="4"><div class="guide__placeholder">zonder attribuut</div></lintje-grid-item>
+            <lintje-grid-item span="4" hide-mobile><div class="guide__placeholder">hide-mobile · niet op een telefoon</div></lintje-grid-item>
+            <lintje-grid-item span="12" hide-desktop><div class="guide__placeholder">hide-desktop · alleen op een telefoon</div></lintje-grid-item>
+          </lintje-grid>`,
+        },
       ],
     },
     {
@@ -102,6 +127,15 @@ export default {
           label: 'Klaar',
           html: `<lintje-tile heading="Afwijzingen naar grond" subtitle="Vandaag · 37 afwijzingen" footnote="${FOOTNOTE}" expandable download>
             <div class="guide__placeholder"><lintje-icon name="functioneel-info" size="18"></lintje-icon> Inhoud van een tegel</div>
+          </lintje-tile>`,
+        },
+        {
+          label: 'Ingeklapt op een telefoon',
+          note:
+            'Met `collapsed-mobile` toont een telefoon alleen de kop en een knop Tonen; de inhoud ' +
+            'staat één tik verder. Op een breder scherm verandert er niets.',
+          html: `<lintje-tile heading="Aanvragen per regio" subtitle="Vandaag" collapsed-mobile>
+            <div class="guide__placeholder">De kaart, op een telefoon ingeklapt</div>
           </lintje-tile>`,
         },
         {
@@ -205,6 +239,9 @@ export default {
       specimens: [
         {
           label: 'Dicht',
+          note:
+            'De accordeonrij van de huisstijl: een lijn erboven en eronder, de pijl vooraan en de ' +
+            'kop in de primaire kleur.',
           html: `<lintje-expander heading="Toelichting op de meting">
             <lintje-prose text="De wachttijd is de mediaan per kwartier, gemeten vanaf het betreden van de rij."></lintje-prose>
           </lintje-expander>`,
@@ -216,18 +253,23 @@ export default {
           </lintje-expander>`,
         },
         {
+          label: 'Als kaart',
+          note: 'Met `card` is een losse uitklapper een omlijnd vlak op het oppervlak.',
+          html: `<lintje-expander heading="Toelichting op de meting" card>
+            <lintje-prose text="De wachttijd is de mediaan per kwartier, gemeten vanaf het betreden van de rij."></lintje-prose>
+          </lintje-expander>`,
+        },
+        {
           label: 'Zonder eigen vlak',
-          note: 'Met `flat` is een uitklapper in een tegel geen tweede kaart.',
+          note: 'Met `flat` is een uitklapper in een tegel geen tweede kaart en heeft hij geen lijnen.',
           html: `<lintje-expander heading="Zonder eigen vlak (flat)" flat>
             <lintje-prose text="In een tegel is een uitklapper geen tweede kaart."></lintje-prose>
           </lintje-expander>`,
         },
         {
-          label: 'Pijl vooraan met acties',
-          note:
-            'Met `leading` staat de pijl vooraan en de inhoud in lijn met de titel. ' +
-            'Het slot `actions` zet knoppen naast de titel.',
-          html: `<lintje-expander heading="Samenvatting" subtitle="AI-bewerking · 09:31" leading open>
+          label: 'Met acties',
+          note: 'Het slot `actions` zet knoppen naast de titel, buiten de knop van de kop.',
+          html: `<lintje-expander heading="Samenvatting" subtitle="AI-bewerking · 09:31" open>
             <lintje-icon-button slot="actions" icon="functioneel-refresh" label="Samenvatting opnieuw maken" variant="flat"></lintje-icon-button>
             <lintje-icon-button slot="actions" icon="functioneel-kruis" label="Samenvatting verbergen" variant="flat"></lintje-icon-button>
             <lintje-prose text="De ochtenddienst begint maandag om zes uur; de roostermaker is nog niet ingelicht."></lintje-prose>

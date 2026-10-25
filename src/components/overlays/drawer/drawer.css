@@ -9,6 +9,7 @@
   animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
 }
 
+/* From the right, with the host's one corner at its top towards the page; `side="left"` mirrors it. */
 .lintje-drawer {
   position: fixed; top: 0; right: 0; bottom: 0; z-index: 81;
   width: min(480px, 100vw);
@@ -16,8 +17,17 @@
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
   border-left: 1px solid var(--color-border-strong);
+  border-top-left-radius: var(--radius-corner);
   box-shadow: var(--shadow-popover);
   animation: lintje-drawer-in var(--dur-sheet) var(--ease-in-motion);
+}
+:host([side='left']) .lintje-drawer {
+  right: auto; left: 0;
+  border-left: 0;
+  border-right: 1px solid var(--color-border-strong);
+  border-top-left-radius: 0;
+  border-top-right-radius: var(--radius-corner);
+  animation-name: lintje-drawer-in-left;
 }
 .lintje-drawer:focus { outline: none; }
 
@@ -53,12 +63,18 @@
   from { transform: translateX(100%); }
   to   { transform: none; }
 }
+@keyframes lintje-drawer-in-left {
+  from { transform: translateX(-100%); }
+  to   { transform: none; }
+}
 
 @media screen and (max-width: 767px) {
-  .lintje-drawer {
+  .lintje-drawer,
+  :host([side='left']) .lintje-drawer {
     inset: 0;
     width: 100%;
-    border-left: 0;
+    border: 0;
+    border-radius: 0;
     animation-name: lintje-sheet-in;
   }
   .lintje-drawer__header,

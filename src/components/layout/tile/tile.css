@@ -74,6 +74,30 @@
   .lintje-tile:not(:hover):not(:focus-within) lintje-icon-button[variant='tile'] { opacity: 1; }
 }
 
+/* `collapsed-mobile`: what stands under the head sits in one box that the phone folds away; it
+   takes no box of its own, so the tile's gap still spaces its parts. Unfolded by the reader, the
+   parts fade in. */
+.lintje-tile__fold { display: contents; }
+.lintje-tile__fold.is-unfolded > :is(.lintje-tile__intro, .lintje-tile__body, .lintje-tile__footnote) {
+  animation: lintje-fade-in var(--dur-collapse) var(--ease-in-motion);
+}
+/* A word in the accent with the chevron before it, a touch target high, as a tertiary button. */
+.lintje-tile__fold-toggle {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  min-height: var(--h-target);
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  font: var(--text-ui); font-weight: 700;
+  color: var(--color-accent-text);
+  cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-tile__fold-toggle:hover { background: var(--color-bg-subtle); }
+.lintje-tile__fold-icon { transition: transform var(--dur-collapse) var(--ease-in-motion); }
+.lintje-tile__fold-toggle.is-open .lintje-tile__fold-icon { transform: rotate(180deg); }
+
 .lintje-tile__intro { font: var(--text-small); color: var(--color-text-secondary); }
 
 /* Body and content are flex columns, so slotted content can place itself in a taller tile. */
@@ -82,7 +106,7 @@
 /* A tile with a height of its own scrolls what does not fit (`content-scroll`). */
 :host([content-scroll]) .lintje-tile__content { overflow: auto; }
 /* It is a Tab stop (tile.ts): the ring stands inside it, as in any scroller. */
-:host([content-scroll]) .lintje-tile__content:focus-visible { outline-offset: calc(var(--focus-width) * -1); }
+:host([content-scroll]) .lintje-tile__content:focus-visible { outline-offset: var(--focus-inset); box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)); }
 .lintje-tile__body--aside { flex-direction: row; gap: var(--space-5); align-items: stretch; }
 .lintje-tile__body--aside .lintje-tile__content { flex: 1; min-width: 0; }
 .lintje-tile__aside { flex: none; display: flex; flex-direction: column; justify-content: center; }
@@ -108,7 +132,7 @@
 .lintje-tile--flush .lintje-tile__footnote { border-top: 0; padding-top: 0; }
 /* Without a footnote the last row's line is the frame's: no empty strip under it. A pager under
    the rows gives the strip back through --lintje-inset-end. */
-.lintje-tile--flush:has(> .lintje-tile__footnote[hidden]) > .lintje-tile__body {
+.lintje-tile--flush:has(.lintje-tile__footnote[hidden]) .lintje-tile__body {
   margin-bottom: calc(var(--tile-pad-y) * -1 - var(--lintje-tile-border));
   --lintje-inset-end: calc(var(--tile-pad-y) + var(--lintje-tile-border));
 }
@@ -118,5 +142,7 @@
 @media print {
   .lintje-tile__actions { display: none; }
   :host([breakable]) .lintje-tile { display: block; }
-  :host([breakable]) .lintje-tile > :not(:first-child) { margin-top: var(--space-4); }
+  /* The fold draws no box, so its parts take the margin: all but a first part without a head. */
+  :host([breakable]) .lintje-tile__head + .lintje-tile__fold > :first-child,
+  :host([breakable]) .lintje-tile__fold > :not(:first-child) { margin-top: var(--space-4); }
 }

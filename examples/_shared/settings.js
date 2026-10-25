@@ -31,15 +31,38 @@ export function modeOf(search) {
     above the page, else beside it. */
 export const layoutOf = (search) => (new URLSearchParams(search).get('layout') === 'top' ? 'top' : 'side')
 
+/** The house style the examples open in. The library itself draws the earlier one until 1.0.0;
+    the examples show the new one, and `?style=classic` the earlier. */
+export const DEFAULT_STYLE = 'new'
+
+/** `?style=classic`: the earlier house style, the menu filled in the theme's colour and square
+    corners; `?style=new` the light menu and the rounded corners; without it the default. */
+export const styleOf = (search) => {
+  const name = new URLSearchParams(search).get('style')
+  return name === 'classic' || name === 'new' ? name : DEFAULT_STYLE
+}
+
+/** `?corner=square`: the band at the page's head without the house style's rounded corner. */
+export const cornerOf = (search) =>
+  new URLSearchParams(search).get('corner') === 'square' ? 'square' : 'round'
+
+/** Draws the chosen house style: `data-style-version` and `data-style-new-corner` on the page, which every element
+    mirrors onto its host; the shell's tone and every corner follow from there. */
+export function applyStyle(search = location.search) {
+  const root = document.documentElement
+  root.dataset.styleVersion = styleOf(search)
+  root.dataset.styleNewCorner = cornerOf(search)
+}
+
 /** A theme's emblem: the ribbon by file name and the organisation's name as text. */
 export const emblem = (theme) => ({ name: `embleem-${theme}`, label: LABELS[theme] })
 
 /** The keys that travel along; `menu` and `layout` only mean something to a page whose reader
     chooses where the menu stands. */
-export const CARRIED = ['theme', 'mode', 'menu', 'layout']
+export const CARRIED = ['theme', 'mode', 'style', 'corner', 'menu', 'layout']
 
 /** The keys that travel to an application: its menu always stands above the page. */
-export const CARRIED_TO_APPS = ['theme', 'mode']
+export const CARRIED_TO_APPS = ['theme', 'mode', 'style', 'corner']
 
 /** The shell's `view`, `menu` and `layout` as the query holds them; `themes` lists them all. */
 export function shellSettingsOf(search, { layoutChoice = false } = {}) {
@@ -51,6 +74,9 @@ export function shellSettingsOf(search, { layoutChoice = false } = {}) {
       layoutChoice,
       themes: THEMES.map((name) => ({ value: name, label: LABELS[name] })),
       theme: themeOf(search),
+      style: styleOf(search),
+      // The corner is the new house style's: the earlier one offers no choice.
+      corner: styleOf(search) === 'new' ? cornerOf(search) : undefined,
     },
     menu: params.get('menu') === 'unpinned' ? 'unpinned' : 'pinned',
     layout: layoutOf(search),
@@ -66,6 +92,8 @@ export function searchWith(search, change) {
   if ('menu' in change) write('menu', change.menu, 'pinned')
   if ('layout' in change) write('layout', change.layout, 'side')
   if ('theme' in change) write('theme', change.theme, THEMES[0])
+  if ('style' in change) write('style', change.style, DEFAULT_STYLE)
+  if ('corner' in change) write('corner', change.corner, 'round')
   const query = params.toString()
   return query ? `?${query}` : ''
 }

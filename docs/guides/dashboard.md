@@ -1,14 +1,14 @@
 # Een dashboard
 
 Een pagina met cijfers die filters versmallen, in `lintje-shell`: `lintje-page-header`,
-`lintje-filter-bar`, en daaronder KPI's, grafieken, een kaart en tabellen. De regels erachter staan in
+`lintje-filter-bar`, en daaronder kerncijfers, grafieken, een kaart en tabellen. De regels erachter staan in
 [`../DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md), "Pagina's met cijfers".
 [`../../examples/dashboard/`](../../examples/dashboard/index.html) is de complete pagina.
 
 ## De URL is de toestand
 
 **Een link delen deelt de weergave.** Alles wat de cijfers verandert, en de instellingen van de lezer,
-horen in de querystring: de toestand van je pagina, die jij bewaart. De elementen lezen geen
+horen in de query van de URL: de toestand van je pagina, die jij bewaart. De elementen lezen geen
 URL: ze krijgen de toestand in hun `data` en sturen een wijziging als event ([events](events.md);
 `lintje-view-change` draagt de ene sleutel uit de tabel hieronder die veranderde).
 
@@ -22,17 +22,20 @@ een link die zonder `?mode=` gedeeld wordt, volgt het systeem van de lezer en ni
 | `menu` | `unpinned` | vastgezet |
 | `layout` | `top` | het menu naast de pagina |
 | `theme` | een thema | `rijksoverheid` |
+| `style` | `classic` · `new` | de huisstijl die je pagina kiest ([thema's](theming.md#de-huisstijl-oud-en-nieuw)) |
+| `corner` | `square` | de grote hoek van de nieuwe huisstijl (lade, smalle band), rond |
 | `filters` | of de filterbalk openstaat (`data.open`) | ingeklapt |
 
 De sleutel van een filter is degene die je declareert. Spiegel modus en thema naar `data-mode` en
-`data-theme` op `<html>`, want de elementen lezen ze daar: `applySettings` in de
-[minimale pagina](#een-minimale-dashboardpagina) doet het.
+`data-theme` op `<html>`, en de huisstijl naar `data-style-version` en `data-style-new-corner`,
+want de elementen lezen ze daar: `applySettings` in de
+[minimale pagina](#een-minimale-dashboardpagina) doet het voor modus en thema.
 
 ## Filters
 
 Jij declareert de filters (`FilterDefinition` in `src/types.ts`) en `lintje-filter-bar` tekent
 ze, met de "Je ziet"-zin opgebouwd uit hun waarden. `lintje-values-change` draagt
-`{ key: value, … }` wanneer filters vastleggen: zet elke waarde in zijn filter, render opnieuw en bewaar haar
+`{ key: value, … }` wanneer filters vastleggen: zet elke waarde in zijn filter, teken opnieuw en bewaar haar
 in de URL. `lintje-filters-open-change` meldt dat de lezer de balk in- of uitklapte: bewaar het en zet
 het terug als `data.open`.
 
@@ -41,20 +44,27 @@ filters onder 768 px.
 
 ## De shell draagt de pagina
 
-`lintje-shell` met `layout: 'side'` zet het menu naast de pagina: vastgezet vanaf 1440 px, een rail
-daaronder, een header met "Menu" onder 768 px. Boven de pagina staat een balk met de naam van het dashboard,
-"Weergave" en "Delen". Met `layout: 'top'` is het de header boven de pagina — de logobalk,
+`lintje-shell` met `layout: 'side'` zet het menu naast de pagina: vastgezet vanaf 1440 px, een smalle strook
+daaronder, een kop met "Menu" onder 768 px. Boven de pagina staat een balk met de naam van het dashboard,
+"Weergave" en "Delen". Met `layout: 'top'` is het de kop boven de pagina — de logobalk,
 en de navigatiebalk met de naam, de items en dezelfde hulpmiddelen. De shell deelt de
-ruimte in; je pagina zet zelf geen padding.
+ruimte in; je pagina zet zelf geen `padding`.
 
 "Delen" (`share: true`) biedt "Open op mijn telefoon": een QR-code van de huidige link, gemaakt door
-de shell. Waar telefoons links openen in een beheerde browser, zet `qrScheme` de link onder zijn
-scheme — `mibrowsers` voor Ivanti Web@Work — terwijl kopiëren en e-mail `https` houden.
+de shell. Waar telefoons links openen in een beheerde browser, zet `qrScheme` de link in het
+schema van die browser (`mibrowsers` voor Ivanti Web@Work), terwijl kopiëren en e-mail `https` houden.
 
 Zet de inhoud in de shell. De filterbalk gaat in de `full`-slot, die van rand tot rand loopt
 boven de inhoud; al het andere in de standaardslot, die zich houdt aan de breedte en
-padding van de pagina (`--w-content`; een andere breedte is `--lintje-content-width` op `<html>`). De
-filterbalk zet zichzelf vast onder de balk.
+binnenruimte van de pagina (`--w-content`; een andere breedte is `--lintje-content-width` op `<html>`). De
+filterbalk zet zichzelf vast onder de balk. Een dashboard is breder dan een leespagina: zet de
+inhoud op 1600 px, zodat tegels en tabellen naast elkaar passen.
+
+```css
+:root {
+  --lintje-content-width: 1600px;
+}
+```
 
 ```html
 <lintje-shell id="shell">
@@ -64,11 +74,11 @@ filterbalk zet zichzelf vast onder de balk.
 </lintje-shell>
 ```
 
-Alles van jezelf wat je onder de balk vastzet, gebruikt `top: var(--h-topbar)`, in beide layouts.
-Iets wat je vastzet aan de
-viewport begint bij `left: var(--lintje-shell-left)`, de breedte van het menu, binnen de shell.
+Alles van jezelf wat je onder de balk vastzet, gebruikt `top: var(--h-topbar)`, in beide indelingen.
+Iets wat je vastzet aan het
+venster begint bij `left: var(--lintje-shell-left)`, de breedte van het menu, binnen de shell.
 
-De skiplink, de eerste tabstop in beide layouts, brengt de focus naar de `<main>` van de shell.
+De link "Naar de inhoud", de eerste tabstop in beide indelingen, brengt de focus naar de `<main>` van de shell.
 
 **Een pagina die een gesprek is** zet één `lintje-chat` in de `full`-slot en verder niets:
 de chat houdt een eigen regelbreedte aan, en de lijn boven zijn vraagvak loopt over de hele ruimte
@@ -78,7 +88,7 @@ de chat in plaats daarvan met dat vak mee: geef het vak een hoogte, `overflow-y:
 `display: grid`.
 
 **Koppen** gaan zoals in [een eerste pagina](start.md); de `name` van de shell is hier de naam van het
-dashboard. In de standaardslot is de paginaheader een band; in de `header`-slot is hij de titelrij van een
+dashboard. In de standaardslot is de paginakop een band; in de `header`-slot is hij de titelrij van een
 applicatie.
 
 ## Doorklikken en selectie
@@ -93,7 +103,7 @@ id null, en gaat zo naar de `href` die je als `clearHref` gaf.
 De tabel rekent niets uit. Een totaalrij geef je zelf mee als `totals`, per kolom een waarde of
 `{ value, how }`, waarbij `how` het woordje is dat zegt hoe ("gem."); met `groupBy` op een kolom
 staan de rijen per waarde onder een kop, en `groupTotals` geeft per groep haar subtotalen. Een
-kolom met `format: 'label'` tekent een waarde als badge: in `labels` noem je per waarde het woord,
+kolom met `format: 'label'` tekent een waarde als label: in `labels` noem je per waarde het woord,
 de toon van `lintje-badge` en eventueel een icoon. Wat de kolommen niet tonen, zet je in
 `detailFields`: elke rij krijgt dan een knop die de verborgen kolommen en die velden onder de rij
 toont. Open rijen en ingeklapte groepen zijn beeld, geen toestand: ze komen niet in de URL.

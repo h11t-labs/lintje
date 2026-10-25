@@ -42,8 +42,13 @@
   gap: var(--space-4);
 }
 .lintje-dialog__heading { font: var(--text-h2); }
+/* In the new style the title is in the primary colour, as the house style heads a dialog; a word,
+   so the text tint. */
+[data-style-version='new'] .lintje-dialog__heading { color: var(--color-accent-text); }
 /* The close button reaches into the padding, so it does not make the heading's line taller. */
-.lintje-dialog__close { margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0; }
+.lintje-dialog__close { margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0; 
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
 .lintje-dialog__close:hover { color: var(--color-text-primary); }
 
 /* A long form scrolls here. The padding is a field's whole focus ring, its offset and its width,
@@ -77,6 +82,12 @@
   gap: var(--space-2);
   margin-left: auto;
 }
+/* In the new style the buttons stand at the left, the answer first, as the house style orders a
+   dialog's row. The host writes the answer last, so the row is reversed: the markup and the
+   phone's stack stay. */
+[data-style-version='new'] .lintje-dialog__actions { flex-direction: row-reverse; margin-left: 0; margin-right: auto; }
+[data-style-version='new'] .lintje-dialog__footer { justify-content: flex-start; }
+[data-style-version='new'] .lintje-dialog__note { order: 1; }
 
 /* Little height (a phone held sideways, 400 % zoom), the same bound as the form's action bar:
    the whole window scrolls, so the heading, the text and every button can be reached. */
@@ -90,5 +101,6 @@
   .lintje-dialog__scrim { padding: var(--space-4); }
   .lintje-dialog { width: 100%; }
   .lintje-dialog__footer { flex-direction: column; align-items: stretch; }
-  .lintje-dialog__actions { flex-direction: column-reverse; margin-left: 0; }
+  .lintje-dialog__actions,
+  [data-style-version='new'] .lintje-dialog__actions { flex-direction: column-reverse; margin: 0; }
 }
