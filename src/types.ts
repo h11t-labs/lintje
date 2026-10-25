@@ -164,6 +164,11 @@ export interface TileData {
   span?: number
   /** The subtitle below 768 px, where it says something else (e.g. "tik op een cel"). */
   mobileSubtitle?: string
+  /**
+   * On a phone, below 768 px, the tile shows only its head with a button that unfolds the rest
+   * (`collapsed-mobile` on `lintje-tile`): for a view that matters less there than its neighbours.
+   */
+  collapsedMobile?: boolean
 }
 
 /* Chart tile --------------------------------------------------------------- */
@@ -710,6 +715,14 @@ export interface ShellView {
   themes?: { value: string; label: string }[]
   /** The theme that stands now: one of `themes`. Without it the first is marked. */
   theme?: string
+  /** The house style the page follows, when the host lets the reader choose: `classic` is the
+   * menu filled in the theme's colour with square corners, `new` the light menu with the
+   * rounded corners. The host draws it: `data-style-version` on `<html>`. */
+  style?: 'classic' | 'new'
+  /** The corner of the band at the page's head in the new style, when the host lets the reader
+   * choose: `round` is the house style's one rounded corner, `square` none. The host draws it:
+   * `data-style-new-corner` on `<html>`. */
+  corner?: 'square' | 'round'
 }
 
 /** What the reader changed in "Weergave" or with the pin: one key per `lintje-view-change`. */
@@ -717,6 +730,8 @@ export interface ShellViewChange {
   mode?: ModeSetting
   layout?: 'side' | 'top'
   theme?: string
+  style?: 'classic' | 'new'
+  corner?: 'square' | 'round'
   menu?: 'pinned' | 'unpinned'
 }
 
@@ -1068,7 +1083,13 @@ export type {
   DescriptionItem,
   DescriptionAction,
 } from './components/tables/description-list/description-list'
-export type { ActivityEntry } from './components/tables/activity-log/activity-log'
+export type {
+  TimelineActor,
+  TimelineLink,
+  TimelineMoment,
+  TimelinePlacement,
+  TimelineSide,
+} from './components/tables/timeline/timeline'
 export type { Job, JobState } from './components/feedback/job-list/job-list'
 export type {
   ConflictChange,

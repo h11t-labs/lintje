@@ -8,7 +8,10 @@
   color: var(--color-footer-text);
   font: var(--text-ui);
 }
-.lintje-footer :focus-visible { outline-color: var(--color-footer-focus); }
+.lintje-footer {
+  --lintje-focus: var(--color-footer-focus);
+  --lintje-focus-inner: var(--color-footer-focus-inner);
+}
 
 /* The text keeps to the content column, as the bars above the page do. */
 .lintje-footer__inner {
@@ -18,6 +21,8 @@
 }
 
 .lintje-footer__tagline { margin: 0; font: var(--text-h2); }
+/* In the new style the house style's payoff: italic, in the regular weight. */
+[data-style-version='new'] .lintje-footer__tagline { font: var(--text-tagline); }
 
 .lintje-footer__columns {
   display: grid;
@@ -30,6 +35,7 @@
   font-size: var(--label-size); font-weight: var(--label-weight);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
 }
+[data-style-version='new'] .lintje-footer__heading { font: var(--text-h2); letter-spacing: 0; text-transform: none; }
 .lintje-footer__list,
 .lintje-footer__meta { list-style: none; margin: 0; padding: 0; }
 .lintje-footer__list { display: flex; flex-direction: column; gap: var(--space-3); }
@@ -41,8 +47,9 @@
   color: inherit;
   text-decoration: none;
 }
-/* A list of text links keeps the house style's rhythm: a line high, 12 px apart. */
-.lintje-footer__link { min-height: var(--h-target-text); }
+/* A list of text links keeps the house style's rhythm: a line high, 12 px apart; in the new style
+   a chevron first. */
+.lintje-footer__link { min-height: var(--h-target-text); gap: var(--space-1); }
 .lintje-footer__link:hover,
 .lintje-footer__meta-link:hover { text-decoration: underline; text-underline-offset: 0.2em; }
 
@@ -58,7 +65,34 @@
 /* The full text colour: a muted one would fall under 4.5:1 on the theme's fill. */
 .lintje-footer__note { margin: 0; font: var(--text-small); }
 
+/* Compact: the foot of a form or a task page, the tagline and the fixed links on one row on the
+   subtle surface, in the page's own text and link colours and with the standard ring. */
+.lintje-footer--compact {
+  background: var(--color-footer-compact-bg);
+  color: var(--color-footer-compact-text);
+}
+.lintje-footer--compact {
+  --lintje-focus: var(--color-focus);
+  --lintje-focus-inner: var(--color-focus-inner);
+}
+.lintje-footer--compact .lintje-footer__inner {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+  padding-top: var(--space-5);
+  padding-bottom: var(--space-5);
+}
+.lintje-footer--compact .lintje-footer__tagline { font: var(--text-translation); font-style: italic; }
+.lintje-footer--compact .lintje-footer__bottom { padding-top: 0; border-top: 0; }
+.lintje-footer--compact .lintje-footer__meta-link {
+  color: var(--color-footer-compact-link);
+  text-decoration: underline;
+}
+
 @media screen and (max-width: 767px) {
   .lintje-footer__inner { padding-top: var(--space-8); }
   .lintje-footer__columns { grid-template-columns: minmax(0, 1fr); }
+  .lintje-footer--compact .lintje-footer__inner { flex-direction: column; align-items: flex-start; padding-top: var(--space-5); }
 }

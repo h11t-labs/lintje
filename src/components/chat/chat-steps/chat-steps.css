@@ -26,6 +26,7 @@
   border: 0;
   background: none;
   cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-chat-steps__toggle::after {
   content: '';

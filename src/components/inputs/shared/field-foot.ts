@@ -1,6 +1,7 @@
 /**
- * The foot of every field: the hint, or the message that replaces it. One line, so a field in
- * error does not grow taller than one with a hint, and `aria-describedby` names what is shown.
+ * The line of every field between its label and its control: the hint, or the message that
+ * replaces it. One line, so a field in error does not grow taller than one with a hint, and
+ * `aria-describedby` names what is shown. A lone choice draws the same line under its label.
  */
 import { html, nothing, type TemplateResult } from 'lit'
 import { renderIcon } from '../../../icons/render'

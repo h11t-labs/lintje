@@ -30,6 +30,7 @@ export class LintjePopover extends LintjeElement {
     label: { type: String },
     panelRole: { type: String, attribute: 'panel-role' },
     matchWidth: { type: Boolean, attribute: 'match-width' },
+    gap: { type: Number },
     anchor: { attribute: false },
     opener: { attribute: false },
   }
@@ -41,6 +42,8 @@ export class LintjePopover extends LintjeElement {
   /** `dialog`, `menu` or `listbox`, when the slotted content has no role itself. */
   declare panelRole?: string
   matchWidth: boolean = false
+  /** The room between the anchor and the panel, in px; 0 sets the panel against it. */
+  gap: number = 6
   /** What the panel hangs under; default the previous sibling. */
   declare anchor?: Element | null
   /**
@@ -150,10 +153,14 @@ export class LintjePopover extends LintjeElement {
     const width = this.matchWidth ? Math.round(rect.width) : null
     // A new panel first stands at its anchor, so it takes the size it will have there.
     if (!this.#spot)
-      this.#stand(panel, place(rect, { width: 0, height: 0 }, viewport(), this.placement), width)
+      this.#stand(
+        panel,
+        place(rect, { width: 0, height: 0 }, viewport(), this.placement, this.gap),
+        width,
+      )
     const box = { width: panel.offsetWidth, height: panel.offsetHeight }
     if (this.matchWidth) box.width = Math.max(box.width, rect.width)
-    const next = place(rect, box, viewport(), this.placement)
+    const next = place(rect, box, viewport(), this.placement, this.gap)
     if (samePlace(this.#spot, next) && width === this.anchorWidth) return
     this.#stand(panel, next, width)
   }

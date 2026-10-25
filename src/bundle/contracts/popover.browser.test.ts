@@ -19,6 +19,7 @@ import '../../components/frame/notifications/notifications'
 import '../../components/tables/data-table/data-table'
 import '../../components/content/log-viewer/log-viewer'
 import '../../components/frame/user-menu/user-menu'
+import '../../components/frame/language-nav/language-nav'
 import '../../components/tables/person-group/person-group'
 import '../../components/frame/shell/shell'
 import type { DataTableData, FilterOption, LogViewerData, ShellData } from '../../types'
@@ -448,6 +449,38 @@ const ROWS: Row[] = [
     },
   },
   {
+    name: 'lintje-menu-button (split, with a panel)',
+    onScroll: 'follows',
+    // The panel's own first element takes the focus; Shift+Tab reaches the arrow beside it,
+    // which still toggles it.
+    opens: 'in panel',
+    shiftTab: 'stays',
+    async open(stage) {
+      const send = create<Lit & { label: string; split: boolean; items: unknown[] }>(
+        'lintje-menu-button',
+        { label: 'Versturen', split: true, items: [] },
+      )
+      const panel = create<HTMLDivElement>('div', { tabIndex: -1 })
+      panel.style.cssText = 'padding: 16px; width: 240px'
+      panel.append(
+        create('p', { textContent: 'Antwoord als' }),
+        create<HTMLButtonElement>('button', { type: 'button', textContent: 'Tabel' }),
+        create<HTMLButtonElement>('button', { type: 'button', textContent: 'Tekst' }),
+      )
+      send.append(panel)
+      stage.append(send)
+      await send.updateComplete
+      const arrow = part(send, '.lintje-menu-button__trigger')
+      await press(arrow, '{Enter}')
+      return {
+        anchor: part(send, '.lintje-menu-button__split'),
+        surface: () => popoverSurface(send),
+        returnsTo: arrow,
+        opener: arrow,
+      }
+    },
+  },
+  {
     name: 'lintje-combobox',
     onScroll: 'follows',
     // A listbox: the focus stays in the field all along, and Tab goes on from it.
@@ -668,6 +701,30 @@ const ROWS: Row[] = [
     },
   },
   {
+    name: 'lintje-language-nav',
+    onScroll: 'follows',
+    opens: 'in panel',
+    shiftTab: 'closes',
+    async open(stage) {
+      const nav = create<Lit & { languages: unknown[]; current: string }>('lintje-language-nav')
+      nav.languages = [
+        { code: 'nl', label: 'Nederlands', href: '#nl' },
+        { code: 'en', label: 'English', href: '#en' },
+      ]
+      nav.current = 'nl'
+      stage.append(nav)
+      await nav.updateComplete
+      const trigger = part(nav, '.lintje-language-nav__button')
+      await press(trigger, '{Enter}')
+      return {
+        anchor: trigger,
+        surface: () => popoverSurface(nav),
+        returnsTo: trigger,
+        opener: trigger,
+      }
+    },
+  },
+  {
     name: 'lintje-person-group',
     onScroll: 'follows',
     // A disclosure: the focus stays on its button, and Tab goes on through the names that link.
@@ -853,8 +910,13 @@ describe.each(CONTEXTS)('a placed panel, in the $name', (context) => {
     const rect = (): DOMRect => panel.getBoundingClientRect()
 
     if (box) {
-      // Without these the scroller proves nothing.
+      // An anchor under a label and a hint (a date field) stands lower than the box's edge: the
+      // box scrolls on until it holds the anchor, as a reader would.
       const edges = box.getBoundingClientRect()
+      // Whole pixels: WebKit rounds `scrollTop` down and would leave the anchor a fraction out.
+      const low = Math.ceil(anchor.getBoundingClientRect().bottom - edges.bottom)
+      if (low > 0) box.scrollTop += low
+      // Without these the scroller proves nothing.
       const at = anchor.getBoundingClientRect()
       expect(box.scrollTop, 'the box is scrolled').toBeGreaterThan(0)
       expect(at.top >= edges.top && at.bottom <= edges.bottom, 'the anchor is in the box').toBe(

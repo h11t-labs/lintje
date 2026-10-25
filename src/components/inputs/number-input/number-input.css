@@ -5,10 +5,10 @@
   display: flex; align-items: stretch;
   height: var(--h-control);
   border: 1px solid var(--color-border-field);
-  background: var(--color-bg-surface);
-  border-radius: var(--radius);
+  background: var(--color-bg-field);
+  border-radius: var(--radius-control);
 }
-.lintje-number-input.is-error { border: 2px solid var(--color-error-line); }
+.lintje-number-input.is-error { border: var(--field-error-border) solid var(--color-error-line); background: var(--color-bg-field-error); }
 .lintje-number-input.is-readonly { border: 1px solid var(--color-border-strong); background: var(--color-bg-subtle); }
 .lintje-number-input.is-readonly .lintje-number-input__step {
   border-color: var(--color-border-strong);
@@ -27,6 +27,7 @@
 .lintje-number-input__step--down { border-right: 1px solid var(--color-border-field); }
 .lintje-number-input__step--up { border-left: 1px solid var(--color-border-field); }
 .lintje-number-input.is-disabled .lintje-number-input__step { border-color: var(--color-border-strong); }
+.lintje-number-input__step { transition: background var(--dur-hover) var(--ease-in-motion); }
 .lintje-number-input__step:hover:not(:disabled):not(.is-limit) { background: var(--color-bg-subtle); }
 /* At `min` or `max` the step keeps the focus (`aria-disabled`) and looks disabled. */
 .lintje-number-input__step:disabled,

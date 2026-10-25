@@ -53,6 +53,7 @@
   color: var(--color-link);
   font-size: 0.875rem; font-weight: 700;
   text-decoration: underline;
+  transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-notifications__read::after {
   content: '';
@@ -84,6 +85,7 @@
   font-size: 1rem; font-weight: 400;
   text-align: left;
   text-decoration: underline;
+  transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-notifications__title:hover { color: var(--color-link-hover); }
 .lintje-notifications__item.is-unread .lintje-notifications__title { font-weight: 700; }
@@ -108,7 +110,9 @@
 }
 .lintje-notifications__sheet:focus { outline: none; }
 .lintje-notifications__panel.is-sheet { width: 100%; max-height: none; }
-.lintje-notifications__close { margin-right: calc(var(--space-2) * -1); }
+.lintje-notifications__close { margin-right: calc(var(--space-2) * -1); 
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
 .lintje-notifications__close:hover { color: var(--color-text-primary); }
 .lintje-notifications__panel.is-sheet .lintje-notifications__head { padding-top: 0; padding-bottom: 0; min-height: var(--h-mobile-header); }
 

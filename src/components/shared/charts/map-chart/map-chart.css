@@ -12,6 +12,7 @@
   position: relative;
   background: var(--color-map-water);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
   overflow: hidden;
 }
 
@@ -120,6 +121,7 @@
   stroke: var(--color-map-border);
   stroke-width: 0.5;
   vector-effect: non-scaling-stroke;
+  transition: stroke var(--dur-hover) var(--ease-in-motion);
 }
 /* An area with a figure is outlined at 3:1 against the land and the lightest class, which are
    1.1:1 apart: the lightest class would otherwise read as no data at all. */
@@ -313,6 +315,7 @@
   border: var(--map-overlay-line) solid var(--color-border-strong);
   margin-top: calc(var(--map-overlay-line) * -1);
   cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-map-chart__zoom-button::after {
   content: '';
@@ -433,7 +436,7 @@
 .lintje-map-legend__box {
   width: 16px; height: 16px; flex: none;
   display: flex; align-items: center; justify-content: center;
-  border: 2px solid var(--color-border-choice);
+  border: var(--border-choice-width) solid var(--color-border-choice);
   background: var(--color-accent);
   color: var(--color-action-primary-text);
   border-color: var(--color-action-primary-border);
@@ -525,6 +528,7 @@
   background: none; border: 0; padding: 0;
   color: var(--color-text-secondary);
   cursor: pointer;
+  transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-map-chart__selection-close:hover { color: var(--color-text-primary); }
 .lintje-map-chart__selection-close::after {

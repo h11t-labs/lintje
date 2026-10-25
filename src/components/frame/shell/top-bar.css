@@ -32,6 +32,9 @@
 .lintje-top-bar__page.is-visible { opacity: 1; }
 
 .lintje-top-bar__actions { display: flex; flex: none; align-items: center; gap: var(--space-3); }
+/* In the new style the tools stand close, as at the end of the navigation bar: each has its own
+   padding. */
+[data-style-version='new'] .lintje-top-bar__actions { gap: var(--space-1); }
 .lintje-top-bar__key { margin-left: var(--space-1); }
 /* The tools of the navigation bar stand here on the page's surface; an element with a shadow
    root declares the tokens again on its own host, so they are set on each one too. */
@@ -39,7 +42,9 @@
 .lintje-top-bar__actions > * {
   --color-nav-text: var(--color-text-primary);
   --color-nav-hover: var(--color-bg-subtle);
+  --color-nav-hover-text: var(--color-text-primary);
   --color-focus-on-theme: var(--color-focus);
+  --color-focus-on-theme-inner: var(--color-focus-inner);
   --lintje-tool-height: var(--h-button-chrome);
 }
 
@@ -47,7 +52,10 @@
   display: flex;
   height: var(--h-button-chrome);
   border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
 }
+.lintje-toggle-group__option:first-child { border-radius: calc(var(--radius-control) - 1px) 0 0 calc(var(--radius-control) - 1px); }
+.lintje-toggle-group__option:last-child { border-radius: 0 calc(var(--radius-control) - 1px) calc(var(--radius-control) - 1px) 0; }
 .lintje-toggle-group__option {
   position: relative;
   width: var(--h-button-chrome);
@@ -80,6 +88,9 @@
   background: var(--color-action-primary);
   color: var(--color-action-primary-text);
   box-shadow: inset 0 0 0 1px var(--color-action-primary-border);
+}
+.lintje-toggle-group__option.is-active:focus-visible {
+  box-shadow: 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)), inset 0 0 0 1px var(--color-action-primary-border);
 }
 
 /* The panels' side inset, the same as the filter sheet's. */
@@ -132,6 +143,7 @@
   font-size: 1rem;
   text-align: left;
   color: var(--color-text-primary);
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-share__item:hover { background: var(--color-bg-subtle); }
 /* Where an icon is still missing: the label keeps the column's text edge. */

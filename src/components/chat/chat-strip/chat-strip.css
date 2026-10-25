@@ -38,6 +38,7 @@
   min-height: var(--h-chip-field);
   font: var(--text-ui);
   color: var(--color-text-primary);
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 
 .lintje-chat-strip__term,

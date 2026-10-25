@@ -6,12 +6,13 @@
   min-width: 210px; height: var(--h-control);
   padding: 0 var(--space-3) 0 var(--space-4);
   border: 1px solid var(--color-border-field);
-  background: var(--color-bg-surface);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-field);
   color: var(--color-text-placeholder);
   font-size: 1rem;
 }
 .lintje-date-range-picker__field.is-filled { color: var(--color-text-primary); font-weight: 700; }
-.lintje-date-range-picker__field.is-error { border: 2px solid var(--color-error-line); }
+.lintje-date-range-picker__field.is-error { border: var(--field-error-border) solid var(--color-error-line); background: var(--color-bg-field-error); }
 .lintje-date-range-picker__field:disabled {
   border: 1px solid var(--color-border-strong);
   background: var(--color-bg-subtle);
@@ -45,6 +46,7 @@
   width: var(--h-icon-button); height: var(--h-icon-button);
   display: flex; align-items: center; justify-content: center;
   color: var(--color-text-primary);
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-date-range-picker__nav:hover { background: var(--color-bg-subtle); }
 .lintje-date-range-picker__nav::after {
@@ -70,6 +72,7 @@
   border: 1px solid var(--color-border-default);
   background: var(--color-bg-subtle);
   font-size: 0.875rem; color: var(--color-text-primary);
+  transition: border-color var(--dur-hover) var(--ease-in-motion);
 }
 /* A transparent hit area, above and below only, reaches the height of an option. */
 .lintje-date-range-picker__preset::after {

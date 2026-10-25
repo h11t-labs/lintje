@@ -15,7 +15,9 @@
 .lintje-chat-suggestions__label {
   font-size: var(--label-size); font-weight: var(--label-weight);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
-  color: var(--color-text-muted);
+  /* On a filled band (the hero as the page's head) the sentences take the band's ink by the
+     inherited hooks. */
+  color: var(--lintje-suggestions-ink-muted, var(--color-text-muted));
 }
 .lintje-chat-suggestions__list {
   display: flex; flex-direction: column; align-items: flex-end;
@@ -26,12 +28,13 @@
   min-height: var(--h-touch);
   padding: var(--space-2) var(--space-4);
   font: var(--text-body);
-  color: var(--color-text-primary);
+  color: var(--lintje-suggestions-ink, var(--color-text-primary));
   text-align: left;
-  border: 1px dashed var(--color-border-suggestion);
+  border: 1px dashed var(--lintje-suggestions-line, var(--color-border-suggestion));
+  border-radius: var(--radius-control);
   transition: background var(--dur-hover);
 }
-.lintje-chat-suggestions__item:hover { background: var(--color-bg-subtle); }
+.lintje-chat-suggestions__item:hover { background: var(--lintje-suggestions-hover, var(--color-bg-subtle)); }
 
 /* Outside a conversation: left, the sentences side by side, the full width of the column. */
 .lintje-chat-suggestions--start { align-items: flex-start; max-width: none; margin-left: 0; }

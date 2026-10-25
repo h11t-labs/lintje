@@ -56,7 +56,13 @@ niet.
     bestand tekent niets en het bedieningselement toont zijn Nederlandse label. Een icoon dat een
     component *zelf* tekent, komt in `COMPONENT_ICONS` (`scripts/build-icons.mjs`) +
     `npm run build:icons` — houd die lijst kort; elke andere naam wordt per bestand opgehaald.
-12. **Geen afgeronde SaaS-kaarten.** `--radius` is 0. Geen verlopen, geen glassmorphism, geen
+12. **Geen afgeronde SaaS-kaarten.** Een omkaderd blok is recht (`--radius`, 0 in beide huisstijlen);
+    alleen knoppen en velden hebben de kleine hoek (`--radius-control`, 4 px onder
+    `data-style-version="new"`, 0 in de eerdere huisstijl, die tot 1.0.0 de standaard is); nooit groter.
+    Alles wat de nieuwe huisstijl anders tekent, staat onder `[data-style-version='new']`, nooit als
+    nieuwe standaard: verschilt alleen een waarde, dan als componenttoken in `tokens.css` en leest het
+    element die token; alleen een verschil in opbouw staat in de eigen CSS of, met `isNewStyle`, in
+    de template. Geen verlopen, geen glassmorphism, geen
     zwevende widgets, geen schaduwen buiten de gedefinieerde.
 13. **Kleur is nooit de enige drager van betekenis.** Voeg een glyph, getal of tekst toe.
 14. **Filterstatus blijft deelbaar.** Alles wat de cijfers verandert, is de status van de host,
@@ -147,5 +153,6 @@ niet.
 
 WCAG AA is de ondergrens, ook waar het ontwerp iets anders suggereert: houd de identiteit, maak
 de kleinste correctie en leg die vast in `DESIGN_SYSTEM.md` onder Toegankelijkheid. Focus is
-altijd `--color-focus`, 3 px, nooit geanimeerd. Elke grafiek krijgt een `<desc>`, elke tabel een
+altijd de ring van de huisstijl: `--color-focus`, 2 px, met de binnenlijn `--color-focus-inner`,
+nooit geanimeerd. Elke grafiek krijgt een `<desc>`, elke tabel een
 `<caption>`.
