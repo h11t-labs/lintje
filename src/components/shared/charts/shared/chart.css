@@ -231,6 +231,12 @@
     animation: lintje-grow-x calc(var(--dur-draw) * 0.6) var(--ease-in-motion)
       calc(var(--dur-draw) * 0.4 * var(--lintje-stagger, 0)) backwards;
   }
+  /* A pie or a donut is swept in once from twelve o'clock, clockwise, as its slices run: the
+     dash of the ring in its mask opens over the draw. */
+  .lintje-pie-chart__sweep {
+    stroke-dasharray: 1 1;
+    animation: lintje-sweep var(--dur-draw) var(--ease-in-motion) backwards;
+  }
   /* A radar's layers grow from the centre once, with the bars' timing; the norm comes after. */
   .lintje-radar__layer {
     animation: lintje-point-grow calc(var(--dur-draw) * 0.6) var(--ease-in-motion)
@@ -252,6 +258,7 @@
   .lintje-chart__reference,
   .lintje-chart__point,
   .lintje-radar__layer,
+  .lintje-pie-chart__sweep,
   .lintje-dumbbell__dot,
   .lintje-dumbbell__link { animation-play-state: paused; }
   [data-in-view] .lintje-chart__reveal,
@@ -261,6 +268,7 @@
   [data-in-view] .lintje-chart__reference,
   [data-in-view] .lintje-chart__point,
   [data-in-view] .lintje-radar__layer,
+  [data-in-view] .lintje-pie-chart__sweep,
   [data-in-view] .lintje-dumbbell__dot,
   [data-in-view] .lintje-dumbbell__link { animation-play-state: running; }
 }
@@ -269,6 +277,7 @@
   to   { clip-path: inset(-8px); }
 }
 @keyframes lintje-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes lintje-sweep { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes lintje-lift { from { transform: none; filter: none; } }
 @keyframes lintje-grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes lintje-dumbbell-slide { from { transform: translateX(var(--lintje-dumbbell-shift, 0)); } }
@@ -372,7 +381,10 @@
   /* Its own width, whatever its position: shrink-to-fit narrowed it near the right edge. */
   width: max-content;
   max-width: 320px;
+  /* Comes in on the hover duration, as every hover does; a fade, so reduced motion keeps it. */
+  animation: lintje-chart-tooltip-in var(--dur-hover) var(--ease-in-motion);
 }
+@keyframes lintje-chart-tooltip-in { from { opacity: 0; } }
 .lintje-chart-tooltip__title { font-weight: 700; margin-bottom: 4px; }
 .lintje-chart-tooltip__kicker { color: var(--color-text-muted); }
 .lintje-chart-tooltip__title-note { font-weight: 400; color: var(--color-text-muted); }

@@ -66,7 +66,9 @@ export function place(
   let left = anchor.left
   if (placement.endsWith('-end')) left = anchor.right - box.width
   if (placement.endsWith('-center')) left = anchor.left + anchor.width / 2 - box.width / 2
-  left = Math.max(EDGE, Math.min(left, view.width - box.width - EDGE))
+  // Kept off the viewport's edge, but never further from it than the anchor itself stands: a
+  // panel on the foot of a rail at the edge is flush with the rail.
+  left = Math.max(Math.min(EDGE, anchor.left), Math.min(left, view.width - box.width - EDGE))
 
   return {
     top: onTop ? null : anchor.bottom + gap,

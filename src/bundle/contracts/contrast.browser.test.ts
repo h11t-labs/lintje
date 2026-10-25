@@ -1,7 +1,7 @@
 /**
- * Text that has to be read reaches 4.5:1 on what it stands on, in light and in dark, with every
- * opacity of its ancestors counted in: the line numbers of a code block, the word above the
- * answers an edit replaces, the figures of a map layer switched off. A search match is told by a
+ * Text that has to be read reaches 4.5:1 on what it stands on, in light and in dark and in both
+ * house styles, with every opacity of its ancestors counted in: the line numbers of a code block,
+ * the word above the answers an edit replaces, the figures of a map layer switched off. A search match is told by a
  * line under it, not by its yellow fill alone.
  */
 import { afterEach, describe, expect, it } from 'vitest'
@@ -161,12 +161,23 @@ const ROWS: Row[] = [
 
 afterEach(() => {
   document.documentElement.dataset.mode = 'light'
+  delete document.documentElement.dataset.styleVersion
   document.body.replaceChildren()
 })
 
+/** Both house styles in both modes; the earlier style is the page without the attribute. */
+const LOOKS = (['classic', 'new'] as const).flatMap((style) =>
+  (['light', 'dark'] as const).map((mode) => [style, mode] as const),
+)
+
+function look(style: 'classic' | 'new', mode: 'light' | 'dark'): void {
+  document.documentElement.dataset.mode = mode
+  if (style === 'new') document.documentElement.dataset.styleVersion = 'new'
+}
+
 describe.each(ROWS)('$name', (row) => {
-  it.each(['light', 'dark'])('reaches 4.5:1 in %s', async (mode) => {
-    document.documentElement.dataset.mode = mode
+  it.each(LOOKS)('reaches 4.5:1 in the %s style, %s', async (style, mode) => {
+    look(style, mode)
     const { element, colour } = await row.text()
     // What fades, fades over a duration: read its end state.
     const root = element.getRootNode() as ShadowRoot | Document
@@ -178,23 +189,26 @@ describe.each(ROWS)('$name', (row) => {
 })
 
 describe('a search match in lintje-highlight', () => {
-  it.each(['light', 'dark'])('has a line under it in %s, not only its fill', async (mode) => {
-    document.documentElement.dataset.mode = mode
-    const element = await mount<Lit & { kind: string }>('lintje-highlight', (highlight) => {
-      highlight.setAttribute('kind', 'match')
-      highlight.textContent = 'vergunning'
-    })
-    const mark = shadow(element, '.lintje-highlight--match')
-    const style = getComputedStyle(mark)
-    expect(style.borderBottomStyle).toBe('solid')
-    expect(Number.parseFloat(style.borderBottomWidth)).toBeGreaterThanOrEqual(2)
-    // The line reaches 3:1 on the fill it underlines.
-    expect(
-      contrastOf(
-        style.borderBottomColor,
-        1,
-        rgba(style.backgroundColor).slice(0, 3) as [number, number, number],
-      ),
-    ).toBeGreaterThanOrEqual(3)
-  })
+  it.each(LOOKS)(
+    'has a line under it in the %s style, %s, not only its fill',
+    async (style, mode) => {
+      look(style, mode)
+      const element = await mount<Lit & { kind: string }>('lintje-highlight', (highlight) => {
+        highlight.setAttribute('kind', 'match')
+        highlight.textContent = 'vergunning'
+      })
+      const mark = shadow(element, '.lintje-highlight--match')
+      const drawn = getComputedStyle(mark)
+      expect(drawn.borderBottomStyle).toBe('solid')
+      expect(Number.parseFloat(drawn.borderBottomWidth)).toBeGreaterThanOrEqual(2)
+      // The line reaches 3:1 on the fill it underlines.
+      expect(
+        contrastOf(
+          drawn.borderBottomColor,
+          1,
+          rgba(drawn.backgroundColor).slice(0, 3) as [number, number, number],
+        ),
+      ).toBeGreaterThanOrEqual(3)
+    },
+  )
 })

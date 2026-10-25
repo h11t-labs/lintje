@@ -9,6 +9,8 @@
   align-items: flex-start;
   justify-content: center;
   min-height: var(--h-logobar);
+  /* Under a phone's status bar the ribbon starts below it, as the house style asks. */
+  padding-top: env(safe-area-inset-top, 0px);
   overflow: hidden;
   /* The ribbon is the bar's unit, so the logo grows with the reader's text size as the bar does. */
   --lintje-logo-ribbon: var(--w-ribbon);
@@ -94,11 +96,17 @@
 }
 .lintje-navbar__group { display: flex; }
 .lintje-navbar__end { display: flex; flex: none; align-items: center; gap: var(--space-1); }
-/* The orange ring disappears on the theme's fill, so the bar takes `--color-focus-on-theme`. The
-   open entry and the submenu stand on the page's surface and keep the standard ring. */
-.lintje-navbar :focus-visible { outline-color: var(--color-focus-on-theme); }
-.lintje-navbar .lintje-navbar__entry.is-open:focus-visible,
-.lintje-navbar .lintje-navbar__submenu :focus-visible { outline-color: var(--color-focus); }
+/* On the theme's fill the bar takes the inverse ring, by the inherited hooks. The open entry and
+   the submenu stand on the page's surface and keep the standard ring. */
+.lintje-navbar {
+  --lintje-focus: var(--color-focus-on-theme);
+  --lintje-focus-inner: var(--color-focus-on-theme-inner);
+}
+.lintje-navbar__entry.is-open,
+.lintje-navbar__submenu {
+  --lintje-focus: var(--color-focus);
+  --lintje-focus-inner: var(--color-focus-inner);
+}
 
 /* The edge is always there on both sides so the word stays centred; transparent until active. */
 .lintje-navbar__entry {
@@ -114,7 +122,8 @@
   font: var(--text-body);
   white-space: nowrap;
   text-decoration: none;
-  transition: background var(--dur-hover) var(--ease-in-motion);
+  transition: background var(--dur-hover) var(--ease-in-motion),
+              color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-navbar__entry:hover:not(.is-unavailable) { background: var(--color-navbar-hover); }
 .lintje-navbar__entry:hover:not(.is-unavailable) .lintje-navbar__label { text-decoration: underline; }
@@ -205,6 +214,9 @@
 .lintje-navbar__page.is-active {
   box-shadow: inset var(--nav-edge) 0 0 var(--color-accent-line);
   color: var(--color-accent-text);
+}
+.lintje-navbar__page.is-active:focus-visible {
+  box-shadow: 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)), inset var(--nav-edge) 0 0 var(--color-accent-line);
 }
 .lintje-navbar__page.is-unavailable,
 .lintje-navbar__page.is-unavailable .lintje-navbar__metric-value { color: var(--color-text-muted); cursor: default; }

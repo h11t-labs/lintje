@@ -15,7 +15,7 @@
   align-items: center;
   justify-content: center;
   flex: none;
-  border-radius: var(--radius);
+  border-radius: var(--radius-control);
   transition: opacity var(--dur-hover) var(--ease-in-motion),
               background var(--dur-hover) var(--ease-in-motion);
 }
@@ -35,14 +35,19 @@
   border: 1px solid var(--color-accent-line);
   background: var(--color-bg-surface);
   color: var(--color-accent-text);
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-icon-button--outlined:not(.is-disabled):hover { background: var(--color-bg-subtle); }
 
-.lintje-icon-button--flat { background: transparent; color: var(--color-text-primary); }
+.lintje-icon-button--flat { background: transparent; color: var(--color-text-primary); 
+  transition: background var(--dur-hover) var(--ease-in-motion);
+}
 .lintje-icon-button--flat:not(.is-disabled):hover { background: var(--color-bg-subtle); }
 
 /* Tile actions stand back in the muted text colour, never below 3:1; hover and focus darken them. */
-.lintje-icon-button--tile { background: transparent; color: var(--color-text-muted); }
+.lintje-icon-button--tile { background: transparent; color: var(--color-text-muted); 
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
 .lintje-icon-button--tile:not(.is-disabled):hover, .lintje-icon-button--tile:focus-visible { color: var(--color-text-primary); }
 
 /* The active button takes the primary-fill border, so the square keeps an edge in dark; a

@@ -145,6 +145,7 @@ export class LintjeAnnouncement extends LintjeGridItemElement {
       link: data.link,
       live,
       filled: this.filled === this.identity,
+      coloured: this.isNewStyle,
       action: html`<slot name="action" class="lintje-announcement__action"></slot>`,
       media: html`<slot name="media" class="lintje-announcement__media"></slot>`,
       onClose: dismissible ? () => void this.close() : undefined,

@@ -248,6 +248,73 @@ describe('lintje-menu-button', () => {
     expect(halves().map((half) => half.hasAttribute('aria-disabled'))).toEqual([false, false])
   })
 
+  it("turns off only a split button's own half with action-disabled", async () => {
+    const element = await mount({
+      split: true,
+      variant: 'primary',
+      label: 'Versturen',
+      action: 'send',
+      actionDisabled: true,
+    })
+    const sent: string[] = []
+    element.addEventListener('lintje-action', (event) =>
+      sent.push((event as CustomEvent<string>).detail),
+    )
+    const main = element.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-menu-button__main')!
+    main.click()
+    expect(sent).toEqual([])
+    expect(main.getAttribute('aria-disabled')).toBe('true')
+    const arrow = trigger(element)
+    expect(arrow.hasAttribute('aria-disabled')).toBe(false)
+    // Beside the grey half the arrow is no longer the strongest fill.
+    expect(arrow.classList.contains('lintje-button--secondary')).toBe(true)
+    arrow.click()
+    await element.updateComplete
+    expect(element.open).toBe(true)
+  })
+
+  it("draws a split button's own half as its icon alone with icon-only, named by the label", async () => {
+    const element = await mount({
+      split: true,
+      label: 'Versturen',
+      action: 'send',
+      leadingIcon: 'functioneel-verzenden',
+      iconOnly: true,
+    })
+    const main = element.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-menu-button__main')!
+    expect(main.classList.contains('lintje-menu-button__main--square')).toBe(true)
+    expect(main.getAttribute('aria-label')).toBe('Versturen')
+    expect(main.querySelector('.lintje-button__label')).toBeNull()
+    expect(trigger(element).getAttribute('aria-label')).toBe('Meer bij Versturen')
+  })
+
+  it('opens its own content as a panel without items, and gives it the focus', async () => {
+    const element = await mount({
+      split: true,
+      label: 'Versturen',
+      action: 'send',
+      accessibleLabel: 'Opties bij versturen',
+      items: [],
+    })
+    const panel = Object.assign(document.createElement('div'), { tabIndex: -1 })
+    element.append(panel)
+    const arrow = trigger(element)
+    expect(arrow.getAttribute('aria-haspopup')).toBe('dialog')
+    // The arrow keys belong to a menu: on a panel's button they open nothing.
+    arrow.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }))
+    await element.updateComplete
+    expect(element.open).toBe(false)
+    arrow.click()
+    await element.updateComplete
+    const popover = element.shadowRoot!.querySelector('lintje-popover')!
+    await popover.updateComplete
+    await element.updateComplete
+    expect(popover.getAttribute('panel-role')).toBe('dialog')
+    expect(element.shadowRoot!.querySelector('.lintje-menu')).toBeNull()
+    expect(element.shadowRoot!.querySelector('lintje-popover > slot')).not.toBeNull()
+    expect(document.activeElement).toBe(panel)
+  })
+
   it('shows the spinner and the sentence in a status beside a disabled trigger while busy', async () => {
     const element = await mount({ open: true })
     const status = element.shadowRoot!.querySelector('[role="status"]')!

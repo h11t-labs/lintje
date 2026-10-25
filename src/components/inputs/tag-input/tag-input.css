@@ -7,8 +7,8 @@
   min-height: var(--h-control);
   padding: calc((var(--h-control) - var(--h-chip-field)) / 2 - var(--lintje-field-border)) var(--space-2);
   border: var(--lintje-field-border) solid var(--color-border-field);
-  border-radius: var(--radius);
-  background: var(--color-bg-surface);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-field);
   color: var(--color-text-primary);
 }
 /* The ring is around the whole field; a chip draws it around itself when its cross has the focus. */
@@ -22,6 +22,7 @@
 /* The padding gives back the pixel the 2 px error border takes. */
 .lintje-tag-input.is-error {
   border: var(--lintje-field-error-border) solid var(--color-error-line);
+  background: var(--color-bg-field-error);
   padding: calc((var(--h-control) - var(--h-chip-field)) / 2 - var(--lintje-field-error-border))
     calc(var(--space-2) - var(--lintje-field-error-border) + var(--lintje-field-border));
 }
@@ -42,6 +43,7 @@
   padding: 0 0 0 var(--space-2);
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-control);
   font-size: 0.875rem; white-space: nowrap;
 }
 .lintje-tag-input.is-disabled .lintje-tag-input__chip { padding-right: var(--space-2); }
@@ -56,6 +58,7 @@
   width: var(--space-6); align-self: stretch;
   display: inline-flex; align-items: center; justify-content: center;
   color: var(--color-text-muted);
+  transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-tag-input__remove:hover { color: var(--color-text-primary); }
 .lintje-tag-input__remove::after {
@@ -88,13 +91,14 @@
   min-height: var(--h-option);
   padding: 0 var(--space-4);
   cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-tag-input__option:hover,
 .lintje-tag-input__option.is-active { background: var(--color-bg-subtle); }
 /* The option the keys stand on: the fill alone is about 1.1:1, so the focus ring inside the row. */
 .lintje-tag-input__option.is-active {
   outline: var(--focus-width) solid var(--color-focus);
-  outline-offset: calc(var(--focus-width) * -1);
+  outline-offset: var(--focus-inset); box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner));
 }
 
 /* Forced colours drop the fill: the row takes an edge inside, keeping its size. */

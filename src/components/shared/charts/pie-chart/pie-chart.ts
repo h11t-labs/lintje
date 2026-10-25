@@ -182,7 +182,17 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
            class="lintje-pie-chart__svg" aria-labelledby="${id}-desc" ${styleProps(focusRingStyle(id))}
            tabindex="0" @keydown=${keys.keydown} @focus=${keys.focus} @blur=${keys.blur}>
         <desc id="${id}-desc">${description}</desc>
-        <defs>${renderFocusRing(id)}</defs>
+        <defs>
+          ${renderFocusRing(id)}
+          <!-- The draw-in: a ring as wide as the pie, its dash swept from twelve o'clock clockwise,
+               as the slices run. Past the edge, so a lifted slice is never cut off. -->
+          <mask id="${id}-sweep" maskUnits="userSpaceOnUse" x=${-radius} y=${-radius} width=${size * 2} height=${size * 2}>
+            <circle class="lintje-pie-chart__sweep" cx=${radius} cy=${radius} r=${radius * 0.55}
+                    fill="none" stroke="white" stroke-width=${radius * 1.1} pathLength="1"
+                    transform="rotate(-90 ${radius} ${radius})" />
+          </mask>
+        </defs>
+        <g mask="url(#${id}-sweep)">
         ${arcs.map(({ segment, i, d, color }) => {
           const mark = selection.of(links[i], segment.label, `${segment.label}: ${share(segment)}`)
           return svg`
@@ -203,6 +213,7 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
                 }} />
         `
         })}
+        </g>
         <!-- The hovered segment once more on top, lifted with a light shadow: in place, the
              next segment would cover that shadow on one side (user test 13 Sep). -->
         ${

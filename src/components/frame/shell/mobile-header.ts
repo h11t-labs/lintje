@@ -78,7 +78,7 @@ export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): Temp
         ${
           open
             ? nothing
-            : html`${shell.renderSearch()}${shell.renderNotifications()}${
+            : html`${shell.mobile.matches ? html`<slot name="end"></slot>` : nothing}${shell.renderSearch()}${shell.renderNotifications()}${
                 // Only where this header shows, so an open panel is never drawn twice.
                 shell.mobile.matches ? renderBarTools(shell) : nothing
               }`

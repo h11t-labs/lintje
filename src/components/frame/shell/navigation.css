@@ -29,8 +29,11 @@
     width var(--dur-rail) var(--ease-in-motion),
     margin-right var(--dur-rail) var(--ease-in-motion);
 }
-/* The orange ring disappears into the theme fill: the menu takes the on-theme ring. */
-.lintje-nav :focus-visible { outline-color: var(--color-focus-on-theme); }
+/* On the theme fill the menu takes the inverse ring, by the inherited hooks. */
+.lintje-nav {
+  --lintje-focus: var(--color-focus-on-theme);
+  --lintje-focus-inner: var(--color-focus-on-theme-inner);
+}
 .lintje-nav--rail { width: var(--w-rail); margin-right: 0; }
 /* Expanding lies on top of the content: 288 px drawn, 72 px taken. A negative right margin does
    that; `fixed` or `absolute` would make the page jump. */
@@ -57,7 +60,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 0 var(--space-4) 0 var(--space-3);
+  /* The 44 px logo stands in the middle of the rail, the icons under its middle. */
+  padding: 0 var(--space-4) 0 calc((var(--w-rail) - 44px) / 2);
 }
 
 .lintje-nav__pin {
@@ -68,6 +72,7 @@
   color: var(--color-nav-text);
   background: transparent;
   flex: none;
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-nav__pin--text {
   width: auto;
@@ -146,8 +151,9 @@
   transition: transform var(--lintje-rail-fade) var(--ease-in-motion) var(--lintje-rail-quick);
 }
 
-/* One row in every mode. The 4 px border and the padding put the 20 px icon under the middle of
-   the logo in the 72 px rail. Expanding animates only the width, so the icon stays in place. */
+/* One row in every mode. The padding, less the 4 px border, puts the 20 px icon in the middle of
+   the 72 px rail, under the middle of the logo. Expanding animates only the width, so the icon
+   stays in place. */
 .lintje-nav__item {
   position: relative;
   min-height: var(--h-nav-row);
@@ -155,24 +161,27 @@
   align-items: center;
   justify-content: flex-start;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-5);
+  padding: var(--space-2) var(--space-5) var(--space-2) calc((var(--w-rail) - 20px) / 2 - var(--nav-edge));
   border-left: var(--nav-edge) solid transparent;
   font-size: 1rem;
   color: var(--color-nav-text);
   text-decoration: none;
   white-space: nowrap;
-  transition: background var(--dur-hover) var(--ease-in-motion);
+  transition: background var(--dur-hover) var(--ease-in-motion),
+              color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-nav__item:hover:not(.is-no-page):not(.is-no-access) {
   background: var(--color-nav-hover);
+  color: var(--color-nav-hover-text);
 }
+.lintje-nav__item:hover:not(.is-no-page):not(.is-no-access) .lintje-nav__metric { color: var(--color-nav-hover-text); }
 .lintje-nav__item.is-active {
   background: var(--color-nav-active);
   border-left-color: var(--color-nav-active-edge);
   color: var(--color-nav-active-text);
   /* Not bold: the bold cut sets narrower and reads as another font size beside its neighbours. */
 }
-.lintje-nav__item:focus-visible { outline-offset: -3px; }
+.lintje-nav__item:focus-visible { outline-offset: var(--focus-inset); box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)); }
 
 .lintje-nav__item.is-no-page { color: var(--color-nav-disabled); cursor: default; }
 .lintje-nav__item.is-no-access { color: var(--color-nav-disabled); text-decoration: line-through; cursor: not-allowed; }
@@ -189,16 +198,19 @@
   animation: lintje-nav-text-in var(--dur-base) var(--ease-in-motion) 80ms backwards;
 }
 @keyframes lintje-nav-text-in { from { opacity: 0; transform: translateX(-8px); } }
-.lintje-nav__metric { font-size: 0.875rem; color: var(--color-nav-text-sub); flex: none; }
+.lintje-nav__metric { font-size: 0.875rem; color: var(--color-nav-text-sub); flex: none; 
+  transition: color var(--dur-hover) var(--ease-in-motion);
+}
 /* Why an entry cannot be opened: a small line under its label, not only its lighter colour. */
 .lintje-nav__note { display: block; font: var(--text-small); }
 .lintje-nav__item.is-no-access .lintje-nav__metric { text-decoration: none; }
 .lintje-nav__item.is-no-page .lintje-nav__metric { color: var(--color-nav-disabled); }
 
 /* The badge is `badge.css`, adopted by the shell. In the rail a word ("NIEUW")
-   does not fit: it becomes a dot, so the rail does not overflow. */
+   does not fit: it becomes a dot, so the rail does not overflow; it sits on the icon's top right
+   corner, not in the row's. */
 .lintje-nav--rail:not(.is-expanded) .lintje-nav__badge {
-  position: absolute; top: var(--space-1); right: var(--space-1);
+  position: absolute; top: var(--space-1); right: calc((var(--w-rail) - 20px) / 2 - var(--space-3));
 }
 .lintje-nav--rail:not(.is-expanded) .lintje-nav__badge--new {
   min-width: 8px; width: 8px; height: 8px; padding: 0;

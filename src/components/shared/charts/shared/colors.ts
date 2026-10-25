@@ -85,16 +85,16 @@ const T = 'text'
 
 /**
  * Which text reaches 4.5:1 on each step of each ladder once it is dimmed (`fill-opacity: .45` over
- * the surface), in light and in dark alike, as no component draws by mode: the text colour
- * (near-black in light, white in dark), the near-black ink of a light fill, or neither (`null`),
- * where the dimmed area carries no label and its tooltip names it. `colour-scheme.test.ts` checks
+ * the surface), in light and dark and in both house styles alike, as no component draws by mode
+ * or style: the text colour (near-black in light, white in dark), the near-black ink of a light
+ * fill, or neither (`null`), where the dimmed area carries no label and its tooltip names it. `colour-scheme.test.ts` checks
  * every cell.
  */
 export const DIMMED_INK: Readonly<
   Record<DataColor, readonly [DimmedInk, DimmedInk, DimmedInk, DimmedInk, DimmedInk]>
 > = {
   'sky-blue': [T, T, T, T, T],
-  'dark-yellow': [T, T, null, null, K],
+  'dark-yellow': [T, T, null, null, null],
   red: [T, T, T, T, T],
   green: [T, T, T, T, T],
   'mint-green': [T, T, null, null, null],
@@ -104,11 +104,11 @@ export const DIMMED_INK: Readonly<
   'dark-green': [T, T, T, T, T],
   purple: [T, T, T, T, T],
   'ruby-red': [T, T, T, T, T],
-  yellow: [null, null, null, K, K],
+  yellow: [null, null, null, null, null],
   'dark-brown': [T, T, T, T, T],
   brown: [T, T, T, T, T],
   'dark-blue': [T, T, T, T, T],
-  'light-blue': [T, T, null, null, K],
+  'light-blue': [T, T, null, null, null],
   'moss-green': [T, T, T, T, T],
 }
 

@@ -41,10 +41,19 @@ export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
   return next
 }
 
-/** Where a dragged row lands: how many of the other rows (`middles`, top to bottom) are above. */
-export function dropIndex(middles: readonly number[], pointerY: number): number {
+/**
+ * Where a dragged row lands: how many of the other rows (`middles`, top to bottom) are above it.
+ * A row gives way once the dragged row covers half of it, the same going up as going down: the
+ * rows above are passed by its `top` edge, the rows below by its `bottom`.
+ */
+export function dropIndex(
+  middles: readonly number[],
+  from: number,
+  top: number,
+  bottom: number,
+): number {
   let index = 0
-  while (index < middles.length && middles[index]! < pointerY) index++
+  while (index < middles.length && middles[index]! < (index < from ? top : bottom)) index++
   return index
 }
 
@@ -57,7 +66,14 @@ interface Drag {
   to: number
   startY: number
   dy: number
+  /** The dragged row's edges where it was picked up. */
+  top: number
+  bottom: number
   middles: number[]
+  /** How far a row moves to make room: its height and the gap. */
+  step: number
+  /** Whether the grip had the focus before the press, which cancels the browser's own focus. */
+  focused: boolean
   pointerId: number
 }
 
@@ -207,13 +223,14 @@ export class LintjeSortableList extends LintjeElement {
     }
     const rows = [...this.renderRoot.querySelectorAll<HTMLElement>('.lintje-sortable-list__row')]
     const from = this.indexOf(item.id)
-    const middles = rows
+    const boxes = rows.map((row) => row.getBoundingClientRect())
+    const middles = boxes
       .filter((_, index) => index !== from)
-      .map((row) => {
-        const box = row.getBoundingClientRect()
-        return box.top + box.height / 2
-      })
-    ;(event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId)
+      .map((box) => box.top + box.height / 2)
+    const step = boxes.length > 1 ? boxes[1]!.top - boxes[0]!.top : 0
+    const target = event.currentTarget as HTMLElement
+    const focused = target.matches(':focus')
+    target.setPointerCapture?.(event.pointerId)
     event.preventDefault()
     this.drag = {
       id: item.id,
@@ -221,7 +238,11 @@ export class LintjeSortableList extends LintjeElement {
       to: from,
       startY: event.clientY,
       dy: 0,
+      top: boxes[from]!.top,
+      bottom: boxes[from]!.bottom,
       middles,
+      step,
+      focused,
       pointerId: event.pointerId,
     }
     this.#message.say(`${item.label} opgepakt. ${this.place(from)}`)
@@ -230,9 +251,10 @@ export class LintjeSortableList extends LintjeElement {
   private onPointerMove(event: PointerEvent): void {
     const drag = this.drag
     if (!drag || event.pointerId !== drag.pointerId) return
-    const to = dropIndex(drag.middles, event.clientY)
+    const dy = event.clientY - drag.startY
+    const to = dropIndex(drag.middles, drag.from, drag.top + dy, drag.bottom + dy)
     if (to !== drag.to) this.#message.say(this.place(to))
-    this.drag = { ...drag, dy: event.clientY - drag.startY, to }
+    this.drag = { ...drag, dy, to }
   }
 
   private onPointerUp(event: PointerEvent, item: SortableItem): void {
@@ -248,8 +270,8 @@ export class LintjeSortableList extends LintjeElement {
     this.#message.say(`${item.label} neergelegd op plaats ${drag.to + 1}.`)
     this.drag = null
     this.commit(drag.to !== drag.from)
-    // The press is cancelled, so no browser focuses the grip on its own.
-    void this.focusGrip(item.id)
+    // A grip that had the focus keeps it through the move; one that had none gets none.
+    if (drag.focused) void this.focusGrip(item.id)
   }
 
   private onPointerCancel(): void {
@@ -274,27 +296,27 @@ export class LintjeSortableList extends LintjeElement {
 
   /* --- Drawing ------------------------------------------------------------- */
 
-  private dropLine(index: number): 'before' | 'after' | null {
+  /** How far a row stands from its place while another is dragged: it makes room for the drop. */
+  private offset(index: number): number | null {
     const drag = this.drag
-    if (!drag || drag.to === drag.from || index === drag.from) return null
-    const others = this.order.map((_, at) => at).filter((at) => at !== drag.from)
-    if (drag.to < others.length) return others[drag.to] === index ? 'before' : null
-    return others[others.length - 1] === index ? 'after' : null
+    if (!drag) return null
+    if (index === drag.from) return drag.dy
+    if (drag.from < index && index <= drag.to) return -drag.step
+    if (drag.to <= index && index < drag.from) return drag.step
+    return 0
   }
 
   private row(item: SortableItem, index: number): TemplateResult {
     const dragging = this.drag?.id === item.id
     const lifted = dragging || this.grabbed?.id === item.id
-    const line = this.dropLine(index)
+    const offset = this.offset(index)
     return html`<li
       class=${classMap({
         'lintje-sortable-list__row': true,
         'is-lifted': lifted,
         'is-dragging': dragging,
-        'is-drop-before': line === 'before',
-        'is-drop-after': line === 'after',
       })}
-      ${styleProps({ transform: dragging ? `translateY(${this.drag!.dy}px)` : null })}
+      ${styleProps({ transform: offset ? `translateY(${offset}px)` : null })}
     >
       <button
         type="button"
@@ -326,7 +348,9 @@ export class LintjeSortableList extends LintjeElement {
   }
 
   protected override render(): TemplateResult {
-    return html`<div class="lintje-sortable-list">
+    return html`<div
+      class=${classMap({ 'lintje-sortable-list': true, 'is-sorting': this.drag !== null })}
+    >
       <ul class="lintje-sortable-list__rows" aria-label=${this.label ?? nothing}>
         ${repeat(
           this.order,
@@ -339,7 +363,7 @@ export class LintjeSortableList extends LintjeElement {
         Escape zet terug. Of tik op de greep en daarna op de greep van de plaats waar de rij
         heen moet.
       </p>
-      <p class="lintje-sortable-list__status" role="status">${this.#message.text}</p>
+      <p class="visually-hidden" role="status">${this.#message.text}</p>
     </div>`
   }
 }
