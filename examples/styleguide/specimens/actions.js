@@ -59,17 +59,32 @@ export default {
   elements: [
 {
       tag: 'lintje-button',
-      title: 'De knop, in zes varianten, drie maten en elke toestand',
+      title: 'De knop, in acht varianten, drie maten en elke toestand',
       specimens: [
         {
           label: 'Vier varianten',
-          note: 'Het attribuut `variant` kiest primair, secundair, tertiair of link.',
+          note:
+            'Het attribuut `variant` kiest primair, secundair, tertiair of link. Tertiair is ' +
+            'het woord in de primaire kleur zonder kader, de derde knop in een rij; ' +
+            'ingedrukt is elke knop een stap donkerder dan onder de aanwijzer.',
           html: `<div class="guide__row">
             <lintje-button variant="primary">Toepassen</lintje-button>
             <lintje-button variant="secondary">Annuleren</lintje-button>
             <lintje-button variant="tertiary">Meer</lintje-button>
             <lintje-button variant="link">Uitleg</lintje-button>
           </div>`,
+        },
+        {
+          label: 'Op een themavulling',
+          note:
+            'Op de band van een hero als paginakop staan `inverse` (wit, het woord in de ' +
+            'primaire kleur) en `inverse-secondary` (wit omlijnd); de band zet de witte ring.',
+          html: `<lintje-hero tone="primary" heading="Aanvraag ingediend" description="U krijgt binnen twee weken bericht.">
+            <div class="guide__row">
+              <lintje-button variant="inverse">Naar mijn aanvragen</lintje-button>
+              <lintje-button variant="inverse-secondary">Aanvraag downloaden</lintje-button>
+            </div>
+          </lintje-hero>`,
         },
         {
           label: 'Onomkeerbare actie',
@@ -253,6 +268,46 @@ export default {
               { value: 'pdf', label: 'PDF', hint: '.pdf' },
               { value: 'audio', label: 'Audio', hint: '.m4a' },
             ]),
+        },
+        {
+          label: 'Gesplitst met een paneel',
+          note:
+            'Zonder `items` opent het pijltje de eigen inhoud als paneel: keuzes die geen actie ' +
+            'zijn. Het eerste element krijgt de focus, Escape zet hem terug op het pijltje.',
+          html: `<lintje-menu-button split variant="primary" label="Versturen" action="send" leading-icon="functioneel-verzenden" accessible-label="Opties bij versturen" placement="bottom-end">
+            <lintje-radio-group class="guide__popover-body" tabindex="-1" label="Antwoord als"></lintje-radio-group>
+          </lintje-menu-button>`,
+          setup(stage) {
+            menu(stage, [])
+            stage.querySelector('lintje-radio-group').options = [
+              { value: 'auto', label: 'Wat het beste past' },
+              { value: 'tekst', label: 'Tekst' },
+              { value: 'tabel', label: 'Tabel' },
+            ]
+            stage.querySelector('lintje-radio-group').value = 'auto'
+          },
+        },
+        {
+          label: 'Gesplitst met de actie uit',
+          note:
+            'Met `action-disabled` is alleen de eigen helft uit en opent het pijltje nog: een ' +
+            'bericht dat nog niet weg kan, houdt zijn opties. Het pijltje wordt secundair.',
+          html: '<lintje-menu-button split action-disabled variant="primary" label="Versturen" action="send" leading-icon="functioneel-verzenden" accessible-label="Opties bij versturen"></lintje-menu-button>',
+          setup: (stage) => menu(stage, [{ value: 'later', label: 'Later versturen' }]),
+        },
+        {
+          label: 'Gesplitst als alleen een icoon',
+          note:
+            'Met `icon-only` is de eigen helft alleen zijn icoon, in een vierkant; het label is ' +
+            'zijn naam. Voor een telefoon, waar het label een eigen regel zou nemen.',
+          html: '<lintje-menu-button split icon-only variant="primary" label="Versturen" action="send" leading-icon="functioneel-verzenden" accessible-label="Opties bij versturen" placement="bottom-end"></lintje-menu-button>',
+          setup: (stage) => menu(stage, [{ value: 'later', label: 'Later versturen' }]),
+        },
+        {
+          label: 'Gesplitst en secundair',
+          note: 'De lijn tussen de helften is de inkt van het pijltje, op elk oppervlak.',
+          html: '<lintje-menu-button split label="Exporteren" action="csv" accessible-label="Andere formaten"></lintje-menu-button>',
+          setup: (stage) => menu(stage, EXPORTS),
         },
         {
           label: 'Gesplitst en bezig',

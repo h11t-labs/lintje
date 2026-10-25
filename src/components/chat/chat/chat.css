@@ -112,6 +112,7 @@
   padding: var(--space-4) var(--space-5);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
 }
 .lintje-chat__sources-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
 .lintje-chat__sources-title { font: var(--text-tile-title); }

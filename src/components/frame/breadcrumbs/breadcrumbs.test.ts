@@ -38,6 +38,23 @@ describe('lintje-breadcrumbs', () => {
     expect(separators[0]!.getAttribute('aria-hidden')).toBe('true')
   })
 
+  it('shows only the levels above the page in the new house style, each a link', async () => {
+    const page = document.createElement('div')
+    page.dataset.styleVersion = 'new'
+    document.body.append(page)
+    const element = Object.assign(document.createElement('lintje-breadcrumbs'), { items: SHORT })
+    page.append(element)
+    await element.updateComplete
+    const root = element.shadowRoot!
+    expect(root.querySelectorAll('ol > li')).toHaveLength(2)
+    expect([...root.querySelectorAll('a')].map((link) => link.textContent)).toEqual([
+      'Opnames',
+      'Oktober 2026',
+    ])
+    expect(root.querySelector('[aria-current]')).toBeNull()
+    page.remove()
+  })
+
   it('folds the middle into a menu beyond four levels', async () => {
     const element = await mount(LONG)
     const root = element.shadowRoot!

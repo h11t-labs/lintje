@@ -43,6 +43,12 @@ describe('the categories', () => {
       ]),
     )
   })
+  it('stand in the README as the list has them', () => {
+    const readme = readFileSync('README.md', 'utf8')
+    const section = readme.split('\n## ').find((part) => part.startsWith('Wat erin zit')) ?? ''
+    const labels = [...section.matchAll(/^\| ([^|]+?) \| .+ \|$/gm)].map((row) => row[1])
+    expect(labels.slice(1)).toEqual(CATEGORIES.map((category) => category.label))
+  })
   it('each have an export in the package', () => {
     const { exports } = JSON.parse(readFileSync('package.json', 'utf8'))
     for (const { name } of CATEGORIES) {
