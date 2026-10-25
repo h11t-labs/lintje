@@ -26,4 +26,4 @@ niet:
 | [d3-force](https://d3js.org/d3-force), met d3-dispatch, d3-quadtree en d3-timer — de indeling door kracht van het entiteitendiagram, in de bundel | ISC, Copyright 2010-2021 Mike Bostock |
 | [QR Code generator](https://www.nayuki.io/page/qr-code-generator-library) — `src/components/actions/qr-code/qrcodegen.ts`, in de bundel | MIT, Copyright (c) Project Nayuki |
 | Natural Earth — `assets/geo/world*.json` | publiek domein |
-| CBS / PDOK *Gebiedsindelingen* — `assets/geo/netherlands*.json` | CC0-1.0 |
+| CBS / PDOK *Gebiedsindelingen* — `assets/geo/netherlands*.json` en `assets/geo/provinces*.json` | CC0-1.0 |
