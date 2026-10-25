@@ -50,7 +50,7 @@ iconen op een statusblok, de kaderloze tertiaire knop, de uitklapper als accorde
 en het citaat in lopende tekst, het pijlvak van de select, de regel en de chevrons van de voet,
 de getinte paginering, de dialoogknoppen links zonder lijnen, het gevulde submenu, de paginakop
 boven de filterbalk, en in donker het gespiegelde grijs. Wat beide delen, staat niet onder de
-schakelaar: de zwarte naam naast het lint, de overgang op elke hover, de hooks van een band, en
+schakelaar: de overgang op elke hover, de hooks van een band, en
 elke correctie. De grote hoek heeft zijn eigen schakelaar, alleen van betekenis in de nieuwe
 huisstijl: `data-style-new-corner="square"` laat hem weg, zonder attribuut is hij rond.
 

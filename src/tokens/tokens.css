@@ -592,8 +592,9 @@
   --color-logobar-text: var(--color-text-primary);
   /* The ribbon in the emblem; only the logo re-points it in dark, never lintblauw elsewhere. */
   --color-logo-ribbon: var(--ribbon-blue);
-  /* The name beside it, in the text colour: the wordmark is black, in both house styles. */
-  --color-logo-name: var(--color-text-primary);
+  /* The name beside it in lintblauw, as the logo's specification draws the wordmark, in both
+     house styles; dark writes it in the text colour, a lighter wordmark on the dark bar. */
+  --color-logo-name: var(--ribbon-blue);
   /* What marks an entry in that bar. They name the primitives, never `--color-nav-*`: the bar
      points those at these, and the two would refer to each other. */
   --color-navbar-hover: var(--primary-hover);
