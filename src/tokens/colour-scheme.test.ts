@@ -1925,3 +1925,33 @@ describe('the earlier house style (without data-style-version)', () => {
     })
   }
 })
+
+describe('lintblauw as the primary of the new house style', () => {
+  const block = set(
+    THEMES,
+    (s) => s.includes("[data-style-version='new']") && s.includes("[data-theme='rijksoverheid']"),
+  )
+  const values = (mode: 'light' | 'dark'): Record<string, string> =>
+    resolveTokens({ ...THEME_BLOCKS['rijksoverheid'], ...block, ...layered(mode, 'new') })
+
+  it('draws Rijksoverheid in lintblauw, without a theme as well', () => {
+    expect(block['--primary']).toBe('#154273')
+    expect(read('themes.css')).toMatch(/:root\[data-style-version='new'\]:not\(\[data-theme\]\)/)
+  })
+
+  it('keeps white on the fill, the word on the surface and the tints over their floors', () => {
+    const light = values('light')
+    expect(
+      contrast(light['--color-action-primary-text'], light['--color-action-primary']),
+    ).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(light['--color-accent-text'], light['--neutral-0'])).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(light['--color-link'], light['--color-bg-page'])).toBeGreaterThanOrEqual(4.5)
+    const dark = values('dark')
+    for (const [token, floor, ground] of TINT_FLOORS) {
+      expect(contrast(dark[token], ground), token).toBeGreaterThanOrEqual(floor)
+    }
+    expect(
+      contrast(dark['--color-hero-primary-text'], dark['--color-hero-primary-bg']),
+    ).toBeGreaterThanOrEqual(4.5)
+  })
+})

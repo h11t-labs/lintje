@@ -82,6 +82,7 @@ Wat de nieuwe huisstijl anders tekent:
   tekent. De grote hoek (een lint, 48 px) staat op een lade, die van de rand van het venster komt,
   en op een band met `narrow`, die binnen de marges staat; `data-style-new-corner="square"` laat
   hem weg.
+- **De standaardkleur is lintblauw** in plaats van donkerblauw, zonder thema en bij `rijksoverheid`.
 - **De focusring** is een donkere lijn met een witte lijn erin, in plaats van oranje.
 - **Het kruimelpad** toont alleen de niveaus boven de pagina, elk een link: het laatste item zonder
   `href`, de pagina zelf, laat het weg. Je geeft hetzelfde pad door als in de oude huisstijl.

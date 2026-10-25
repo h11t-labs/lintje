@@ -100,12 +100,12 @@ OKLCH.
   element adopteert `tokens.css` op zijn eigen host, dus een token dat daar gedeclareerd is, zou
   het geërfde thema verslaan. De properties van het thema staan daarom alleen in `themes.css` en
   erven naar binnen.
-- **De standaard primaire kleur is donkerblauw, niet lintblauw.** Dat is een besluit voor de oude
-  huisstijl, met het menu gevuld in de primaire kleur: het lint is lintblauw en verdwijnt op een
-  menu van hetzelfde blauw. De navigatiebalk is het menu, een kwartslag gedraaid: dezelfde
-  kleuren. In de nieuwe huisstijl (`data-style-version="new"`) is het menu wit (zie
-  [Navigatie en shell](#navigatie-en-shell)) en speelt dit niet: de primaire kleur kleurt daar de
-  band, de knoppen en de woorden in het menu.
+- **De standaard primaire kleur is lintblauw in de nieuwe huisstijl, donkerblauw in de eerdere.**
+  In de eerdere huisstijl is het menu gevuld in de primaire kleur, en het lint, dat lintblauw is,
+  zou op een menu van hetzelfde blauw verdwijnen. In de nieuwe huisstijl (`data-style-version="new"`)
+  is het menu wit (zie [Navigatie en shell](#navigatie-en-shell)) en staat het lint op wit; daar is
+  de standaard de eigen kleur van de huisstijl, lintblauw (`themes.css`, zonder thema en bij
+  `rijksoverheid`). De primaire kleur kleurt daar de band, de knoppen en de woorden in het menu.
 
 ### Donker
 
