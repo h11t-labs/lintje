@@ -33,7 +33,7 @@
 /* The fill alone is about 1.1:1, so the focus ring stands inside the row. */
 .lintje-time-input__option:focus-visible {
   outline: var(--focus-width) solid var(--color-focus);
-  outline-offset: calc(var(--focus-width) * -1);
+  outline-offset: var(--focus-inset); box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner));
 }
 
 /* Forced colours drop fills: the chosen row takes an edge inside the row, so none changes size. */

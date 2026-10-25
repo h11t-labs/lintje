@@ -6,7 +6,10 @@
  * `full` slot. The title is an h2: the page's h1 is the shell's `name`. The default slot takes a
  * search field or a short form under the introduction, `aside` one picture beside the text (left
  * out below 1024 px), `panel` content beside the text, and `overlap` what stands half over the
- * band's lower edge, such as a panel of tabs.
+ * band's lower edge, such as a panel of tabs. With `tone="primary"` it is the page's head: the
+ * `breadcrumbs` slot takes the trail above the title. In a shell whose menu is light a hero
+ * without a `tone` is primary by itself; `tone="wash"` keeps the wash. `narrow` sets the band
+ * inside the page's margins, with the one corner of the new house style (`--radius-corner`).
  *
  * Events: `lintje-navigate` `{ href }` (the action).
  */
@@ -23,6 +26,9 @@ export class LintjeHero extends LintjeElement {
 
   static override properties: PropertyDeclarations = {
     heading: { type: String },
+    tone: { type: String, reflect: true },
+    narrow: { type: Boolean, reflect: true },
+    band: { state: true },
     description: { type: String },
     action: { type: String },
     href: { type: String },
@@ -32,6 +38,37 @@ export class LintjeHero extends LintjeElement {
   }
 
   heading: string = ''
+  /**
+   * `wash`: the start page's band in the primary's wash. `primary`: the page's head in the
+   * primary colour itself, with white text.
+   */
+  /** Unset, the hero is on the wash, or primary under a light menu: only a chosen tone reflects. */
+  declare tone?: 'wash' | 'primary'
+  /** The band inside the page's margins, in the content column, with the one corner top right;
+   * without it the band runs edge to edge and is square. */
+  narrow: boolean = false
+  /** In a shell with a light menu: primary unless the host chose a tone, read from the shell's `data-tone`. */
+  band: boolean = false
+  /** Watches the shell's effective tone (`data-tone`), so the band follows a change of it. */
+  #tone: MutationObserver | null = null
+
+  override connectedCallback(): void {
+    super.connectedCallback()
+    const shell = this.closest('lintje-shell')
+    if (!shell) return
+    const read = (): void => {
+      this.band = shell.dataset.tone === 'light'
+    }
+    read()
+    this.#tone = new MutationObserver(read)
+    this.#tone.observe(shell, { attributes: true, attributeFilter: ['data-tone'] })
+  }
+
+  override disconnectedCallback(): void {
+    this.#tone?.disconnect()
+    this.#tone = null
+    super.disconnectedCallback()
+  }
   declare description?: string
   /** The one link onward under the introduction; drawn only with `href`. */
   declare action?: string
@@ -60,6 +97,7 @@ export class LintjeHero extends LintjeElement {
     return html`<div
       class=${classMap({
         'lintje-hero': true,
+        'lintje-hero--primary': this.tone === 'primary' || (this.band && !this.tone),
         'has-overlap': this.hasOverlap,
         'has-aside': this.hasAside,
         'has-panel': this.hasPanel,
@@ -67,6 +105,7 @@ export class LintjeHero extends LintjeElement {
     >
       <div class="lintje-hero__band">
         <div class="lintje-hero__body">
+          <slot name="breadcrumbs"></slot>
           <slot name="status"></slot>
           <div class="lintje-hero__heading">
             <h2 class="lintje-hero__title">${this.heading}</h2>

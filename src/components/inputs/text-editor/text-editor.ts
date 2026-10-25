@@ -340,6 +340,7 @@ export class LintjeTextEditor extends LintjeInputElement {
   protected override render(): TemplateResult {
     return html`<div class="lintje-field" @focusout=${this.onFocusOut}>
       ${this.renderLabel()}
+      ${this.renderMessages()}
       <div
         class=${classMap({
           'lintje-text-editor': true,
