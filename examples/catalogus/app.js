@@ -5,7 +5,7 @@
  * fictional. The reader's favourites stand in localStorage, where a real application would ask
  * its server.
  */
-import { THEMES, answerLogout, carry, emblem, modeOf, searchWith, shellSettingsOf, themeOf } from '../_shared/settings.js'
+import { THEMES, answerLogout, applyStyle, carry, emblem, modeOf, searchWith, shellSettingsOf, themeOf } from '../_shared/settings.js'
 
 let params = new URLSearchParams(location.search)
 const root = document.documentElement
@@ -15,6 +15,7 @@ const organisation = () => (params.has('theme') ? themeOf(location.search) : 'ri
 function applySettings() {
   root.dataset.mode = modeOf(location.search)
   root.dataset.theme = params.has('theme') ? themeOf(location.search) : 'catalogus'
+  applyStyle()
 }
 applySettings()
 
@@ -172,6 +173,7 @@ function renderShell() {
     },
     search: true,
     user: { name: 'J. de Vries', role: 'Analist', initials: 'JV' },
+    userMenu: [{ value: 'start', label: 'Lintje-startpagina' }],
   }
 }
 renderShell()
@@ -214,6 +216,11 @@ function searchFor(text) {
   search.groups = scored.length ? [{ label: 'Producten', items: scored.slice(0, 6).map(([item]) => result(item)) }] : []
 }
 search.groups = RECENT()
+// The start page opens the way this one looks.
+shell.addEventListener('lintje-action', (event) => {
+  if (event.target !== shell && event.target.localName !== 'lintje-user-menu') return
+  if (event.detail === 'start') location.href = carry('../')
+})
 shell.addEventListener('lintje-search-open', () => (search.open = true))
 search.addEventListener('lintje-open', () => (search.open = true))
 search.addEventListener('lintje-close', () => (search.open = false))

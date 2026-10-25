@@ -151,11 +151,10 @@ export class LintjeTextInput extends LintjeFormInputElement {
   }
 
   // A search keeps its hint in the tree: a live region that appears with its text is not read out.
-  protected override renderFoot(): TemplateResult | typeof nothing {
+  protected override renderFieldLine(): TemplateResult | typeof nothing {
     const message = this.error ?? ''
     const ids = { hintId: this.hintId, errorId: this.errorId }
-    if (this.type !== 'search')
-      return html`${renderFieldFoot(this.hint, message, ids)}${this.renderReset()}`
+    if (this.type !== 'search') return renderFieldFoot(this.hint, message, ids)
     // Empty it is only out of sight: in the tree, so its first count is read out too.
     return html`${message ? renderFieldFoot(undefined, message, ids) : nothing}<span
         id=${this.hintId}
@@ -163,7 +162,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
         aria-live="polite"
         ?hidden=${Boolean(message)}
         >${this.hint ?? ''}</span
-      >${this.renderReset()}`
+      >`
   }
 
   private get inputType(): string {
@@ -184,6 +183,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
     const addon = { readonly: this.readonly, disabled: this.isDisabled }
     return html`<div class="lintje-field">
       ${this.renderLabel(this.controlId)}
+      ${this.renderMessages()}
       <div
         class=${classMap({
           'lintje-text-input': true,

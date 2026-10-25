@@ -33,6 +33,10 @@
   padding-top: var(--space-5);
 }
 
+/* In the new style the hint stands above the field: fields in a row then line up on their
+   controls, so a hint lifts its label, not the others' boxes. */
+[data-style-version='new'] .lintje-form-section__fields ::slotted(lintje-grid) { align-items: end; }
+
 /* Setting rows read as a list: a line between two of them. */
 .lintje-form-section__fields ::slotted([layout='row']:not(:first-child)) {
   padding-top: var(--space-5);

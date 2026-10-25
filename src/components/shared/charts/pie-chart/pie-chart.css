@@ -65,6 +65,7 @@
   animation: lintje-pie-lift var(--dur-hover) var(--ease-in-motion) backwards;
 }
 @keyframes lintje-pie-lift { from { transform: none; filter: none; } }
+.lintje-pie-chart__row { transition: background var(--dur-hover) var(--ease-in-motion); }
 .lintje-pie-chart__row.is-hovered { background: var(--color-bg-subtle); }
 /* The chosen row carries the outline the chosen slice has (rule 13). */
 .lintje-pie-chart__row.is-muted .lintje-pie-chart__marker { opacity: .45; }

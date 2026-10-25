@@ -521,6 +521,10 @@ export class ChartController {
     }
     this.intersectionObserver = new IntersectionObserver(
       ([entry]) => {
+        // A chart without a size is not seen, though the observer counts a box of no area as
+        // wholly inside: one folded away in a tile on a phone would draw in unseen.
+        const { width, height } = entry.boundingClientRect
+        if (!entry.isIntersecting || width === 0 || height === 0) return
         const viewport = entry.rootBounds?.height ?? window.innerHeight
         if (
           entry.intersectionRatio >= VISIBLE_SHARE ||

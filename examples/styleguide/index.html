@@ -47,26 +47,7 @@
       .guide__page { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-8) var(--space-10); }
       .guide__main { flex: 999 1 560px; display: flex; flex-direction: column; gap: var(--space-10); min-width: 0; }
       .guide__toc { flex: 1 1 240px; max-width: var(--w-nav); }
-      /* An element's head: a band from edge to edge, its text in line with the content under it
-         (the shell's own padding), its parts as tabs on its lower edge. */
-      .guide__band {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-2);
-        padding: var(--page-pad-y) calc(var(--page-pad-x) + var(--page-gutter)) 0;
-        background: var(--color-bg-surface);
-        border-bottom: 1px solid var(--color-border-default);
-        position: sticky;
-        top: calc(var(--h-topbar) - var(--guide-band-lift, 0px));
-        z-index: 19;
-      }
-      .guide__band[hidden] { display: none; }
-      .guide__title { margin: var(--space-2) 0 0; font: var(--text-h1); font-family: var(--font-mono); overflow-wrap: anywhere; }
-      .guide__lead { margin: 0; max-width: var(--w-text); }
-      .guide__summary { margin: 0; }
       .guide__summary a { color: var(--color-link); }
-      /* The row's line lies on the band's edge; its empty panel hangs over the content's padding. */
-      .guide__tabs { margin: var(--space-4) 0 calc(-1 * var(--space-4) - 1px); }
       /* The reference: a row per entry — its name and how HTML writes it, its type or values,
          its default, its source comment quoted as a comment, where a specimen shows it. */
       .guide__reference { display: flex; flex-direction: column; gap: var(--space-10); }
@@ -509,7 +490,6 @@
       @media screen and (max-width: 767.98px) {
         .guide__stage { padding: var(--space-4); }
         .guide__advice { grid-template-columns: minmax(0, 1fr); padding: var(--space-4); }
-        .guide__band { padding: var(--space-4) var(--space-4) 0; top: calc(var(--h-mobile-header) - var(--guide-band-lift, 0px)); }
         .guide__way { grid-template-columns: minmax(0, 1fr) auto; }
         .guide__way > :first-child { grid-column: 1 / -1; }
         .guide__pair { grid-template-columns: minmax(0, 1fr); }
@@ -523,8 +503,6 @@
       <lintje-page-header slot="header" id="page-header">
         <lintje-breadcrumbs slot="breadcrumbs" id="crumbs"></lintje-breadcrumbs>
       </lintje-page-header>
-      <!-- An element's page: its head in a band from edge to edge, above the content. -->
-      <div slot="full" class="guide__band" id="band" hidden></div>
       <div class="guide__elements" id="elements"></div>
     </lintje-shell>
     <lintje-app-search id="search" label="Zoeken in de stijlgids"></lintje-app-search>

@@ -152,7 +152,9 @@ const FRAME_STYLE = `
 function frameDocument(html) {
   const root = document.documentElement
   return `<!doctype html><html lang="nl" data-mode="${root.dataset.mode ?? 'light'}"
-    data-theme="${root.dataset.theme ?? ''}"><head><meta charset="utf-8">
+    data-theme="${root.dataset.theme ?? ''}"
+    data-style-version="${root.dataset.styleVersion ?? 'classic'}"
+    data-style-new-corner="${root.dataset.styleNewCorner ?? 'round'}"><head><meta charset="utf-8">
     <base href="${new URL('.', location.href)}">
     <link rel="stylesheet" href="../../src/tokens/fonts.css">
     <link rel="stylesheet" href="../../dist-elements/tokens.css">
