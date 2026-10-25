@@ -78,6 +78,8 @@ export function renderTopBar(shell: LintjeShell): TemplateResult {
     </div>
 
     <div class="lintje-top-bar__actions">
+      <!-- The host's end of the bar; below 768 px the mobile header carries the slot. -->
+      ${shell.mobile.matches ? nothing : html`<slot name="end"></slot>`}
       ${
         shell.toolsCompact
           ? html`${shell.renderSearch()}${shell.renderNotifications()}${renderBarTools(shell)}`
@@ -252,6 +254,34 @@ export function renderView(shell: LintjeShell, view: ShellView): TemplateResult 
                   )}
                   ${toggle('Boven', shell.layout === 'top', () =>
                     shell.changeView({ layout: 'top' }),
+                  )}
+                </div>
+              </div>`
+          : nothing
+      }
+      ${
+        view.style
+          ? html`<p class="lintje-share__heading">Huisstijl</p>
+              <div class="lintje-view__row">
+                <div class="lintje-toggle-group" role="group" aria-label="Oude of nieuwe huisstijl">
+                  ${toggle('Oud', view.style === 'classic', () =>
+                    shell.changeView({ style: 'classic' }),
+                  )}
+                  ${toggle('Nieuw', view.style === 'new', () => shell.changeView({ style: 'new' }))}
+                </div>
+              </div>`
+          : nothing
+      }
+      ${
+        view.corner
+          ? html`<p class="lintje-share__heading">Hoek</p>
+              <div class="lintje-view__row">
+                <div class="lintje-toggle-group" role="group" aria-label="Hoek van de band">
+                  ${toggle('Recht', view.corner === 'square', () =>
+                    shell.changeView({ corner: 'square' }),
+                  )}
+                  ${toggle('Rond', view.corner === 'round', () =>
+                    shell.changeView({ corner: 'round' }),
                   )}
                 </div>
               </div>`

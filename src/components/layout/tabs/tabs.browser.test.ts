@@ -84,3 +84,25 @@ describe('lintje-tabs scroll shadows', () => {
     await expect.poll(() => edges(element)).toBe('is-scroll-start')
   })
 })
+
+describe('lintje-tabs of links only', () => {
+  const PAGES: TabItem[] = [
+    { value: 'transcript', label: 'Transcript', href: '?tab=transcript' },
+    { value: 'samenvatting', label: 'Samenvatting', href: '?tab=samenvatting' },
+  ]
+
+  it('takes no room under the row without content, and shows content the host adds later', async () => {
+    const element = await mount(PAGES)
+    await expect
+      .poll(() => element.getBoundingClientRect().height)
+      .toBe(list(element).getBoundingClientRect().height)
+
+    await new Promise((resolve) => setTimeout(resolve))
+    element.insertAdjacentHTML('beforeend', '<p slot="transcript">Het transcript.</p>')
+    const content = element.querySelector('p')!
+    await expect.poll(() => content.getBoundingClientRect().height).toBeGreaterThan(0)
+    expect(element.getBoundingClientRect().bottom).toBeGreaterThanOrEqual(
+      content.getBoundingClientRect().bottom,
+    )
+  })
+})

@@ -130,7 +130,7 @@ describe('lintje-chat-composer', () => {
     // A reader who chose Ctrl+Enter in a chat still sends this box with Enter.
     localStorage.setItem('lintje-chat-send-key', 'ctrl-enter')
     const element = await composer({ plain: true })
-    expect(element.renderRoot.querySelector('.lintje-chat-composer__options-toggle')).toBeNull()
+    expect(element.renderRoot.querySelector('lintje-menu-button')).toBeNull()
     const sent = heard(element, 'lintje-message-send')
     await type(element, 'Kan ik audio naar tekst omzetten?')
     await press(element, { key: 'Enter' })
@@ -143,7 +143,11 @@ describe('lintje-chat-composer', () => {
     await type(element, '   ')
     await press(element, { key: 'Enter' })
     expect(sent).toEqual([])
-    expect(element.renderRoot.querySelector('lintje-button')?.hasAttribute('disabled')).toBe(true)
+    expect(
+      element.renderRoot
+        .querySelector('.lintje-chat-composer__send')
+        ?.hasAttribute('action-disabled'),
+    ).toBe(true)
   })
 
   it('says so when no source is chosen, and does not send', async () => {
@@ -241,19 +245,20 @@ describe('lintje-chat-composer', () => {
     expect(element.renderRoot.querySelector('[aria-live]')?.textContent).toBe('')
   })
 
-  it('opens the send options from a button that says so, and remembers the send key', async () => {
+  it("opens the send options from the split button's arrow, and remembers the send key", async () => {
     const element = await composer()
-    const toggle = element.renderRoot.querySelector<HTMLElement>(
-      '.lintje-chat-composer__options-toggle',
-    )
-    expect(toggle?.getAttribute('label')).toBe('Opties bij versturen')
-    // One half of the joined send button: it takes the button's 48 px as its box, and
-    // sets no size of its own.
-    expect(toggle?.classList.contains('lintje-chat-composer__send-half')).toBe(true)
-    expect(toggle?.hasAttribute('size')).toBe(false)
-    toggle?.click()
-    await element.updateComplete
-    const options = element.renderRoot.querySelector('[role="dialog"]')
+    // The split button of the design system, with a panel instead of a menu.
+    const send = element.renderRoot.querySelector<HTMLElement & { open: boolean }>(
+      'lintje-menu-button.lintje-chat-composer__send',
+    )!
+    expect(send.hasAttribute('split')).toBe(true)
+    const arrow = send.shadowRoot!.querySelector<HTMLElement>('.lintje-menu-button__trigger')!
+    expect(arrow.getAttribute('aria-label')).toBe('Opties bij versturen')
+    expect(arrow.getAttribute('aria-haspopup')).toBe('dialog')
+    arrow.click()
+    await (send as unknown as { updateComplete: Promise<unknown> }).updateComplete
+    expect(send.open).toBe(true)
+    const options = element.renderRoot.querySelector('.lintje-chat-composer__options')
     const groups = [...(options?.querySelectorAll('lintje-radio-group') ?? [])]
     expect(groups.map((group) => group.getAttribute('label'))).toEqual([
       'Antwoord als',
@@ -265,6 +270,17 @@ describe('lintje-chat-composer', () => {
     expect(element.sendKey).toBe('ctrl-enter')
     expect(localStorage.getItem('lintje-chat-send-key')).toBe('ctrl-enter')
     expect((await composer()).sendKey).toBe('ctrl-enter')
+  })
+
+  it("sends from the split button's own half, and keeps its `lintje-action` inside", async () => {
+    const element = await composer()
+    const sent = heard(element, 'lintje-message-send')
+    const actions = heard(element, 'lintje-action')
+    await type(element, 'Hoeveel aanvragen?')
+    const send = element.renderRoot.querySelector('.lintje-chat-composer__send')!
+    send.shadowRoot!.querySelector<HTMLElement>('.lintje-menu-button__main')!.click()
+    expect(sent).toHaveLength(1)
+    expect(actions).toEqual([])
   })
 
   it('edit: no picker and no split send; submit and cancel stay with the message', async () => {
@@ -329,8 +345,9 @@ describe('lintje-chat-composer with attachments', () => {
     return made
   }
 
-  const sendButton = (element: LintjeChatComposer): HTMLElement & { disabled: boolean } =>
-    element.renderRoot.querySelector('.lintje-chat-composer__send lintje-button')!
+  /** Whether the split send button's own half is off. */
+  const sendOff = (element: LintjeChatComposer): boolean =>
+    element.renderRoot.querySelector('.lintje-chat-composer__send')!.hasAttribute('action-disabled')
 
   const chips = (element: LintjeChatComposer): LintjeAttachment[] => [
     ...element.renderRoot.querySelectorAll<LintjeAttachment>('lintje-attachment'),
@@ -362,7 +379,7 @@ describe('lintje-chat-composer with attachments', () => {
     const element = await composer({ files: [] })
     const sent = heard(element, 'lintje-message-send')
     await type(element, 'Hoeveel?')
-    expect(sendButton(element).disabled).toBe(false)
+    expect(sendOff(element)).toBe(false)
     await press(element, { key: 'Enter' })
     expect(sent).toEqual([
       { text: 'Hoeveel?', terms: [], sources: [], form: 'auto', attachments: [] },
@@ -372,7 +389,7 @@ describe('lintje-chat-composer with attachments', () => {
   it('sends with only a done attachment: no text, the ids in `attachments`', async () => {
     const element = await composer({ files: [DONE, FAILED] })
     const sent = heard(element, 'lintje-message-send')
-    expect(sendButton(element).disabled).toBe(false)
+    expect(sendOff(element)).toBe(false)
     await press(element, { key: 'Enter' })
     expect(sent).toEqual([{ text: '', terms: [], sources: [], form: 'auto', attachments: ['d'] }])
   })
@@ -380,11 +397,11 @@ describe('lintje-chat-composer with attachments', () => {
   it('does not send with only files that are busy or failed', async () => {
     const element = await composer({ files: [FAILED] })
     const sent = heard(element, 'lintje-message-send')
-    expect(sendButton(element).disabled).toBe(true)
+    expect(sendOff(element)).toBe(true)
     await press(element, { key: 'Enter' })
     element.files = [BUSY]
     await element.updateComplete
-    expect(sendButton(element).disabled).toBe(true)
+    expect(sendOff(element)).toBe(true)
     await press(element, { key: 'Enter' })
     expect(sent).toEqual([])
   })
@@ -393,7 +410,7 @@ describe('lintje-chat-composer with attachments', () => {
     const element = await composer({ files: [DONE, BUSY] })
     const sent = heard(element, 'lintje-message-send')
     await type(element, 'Toets hieraan')
-    expect(sendButton(element).disabled).toBe(true)
+    expect(sendOff(element)).toBe(true)
     expect(hint(element)).toBe('Wacht op de upload')
     await press(element, { key: 'Enter' })
     expect(sent).toEqual([])

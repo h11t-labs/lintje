@@ -612,6 +612,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
         class="lintje-log-viewer__tile"
         span=${data.span ?? nothing}
         heading=${data.title ?? nothing}
+      ?collapsed-mobile=${Boolean(data.collapsedMobile)}
         icon=${data.icon ?? nothing}
         subtitle=${data.subtitle ?? nothing}
         intro=${data.intro ?? nothing}

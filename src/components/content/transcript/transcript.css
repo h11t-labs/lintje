@@ -83,6 +83,8 @@
 /* The name is a flat menu trigger, as low as a line of text beside the fragment. */
 .lintje-transcript__speaker {
   --h-button: var(--h-chip);
+  /* On the speaker's tint the accent's word falls short of 4.5:1 in dark: the text colour. */
+  --color-action-tertiary-text: var(--color-text-primary);
   position: relative;
   /* The name lines up with the time under it; a shift, not a margin, so its column keeps the
      whole name. */
