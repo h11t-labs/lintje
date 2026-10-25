@@ -234,7 +234,7 @@
 }
 .lintje-data-table__cell--align-right .lintje-data-table__editor { font-variant-numeric: tabular-nums; }
 .lintje-data-table__editor::placeholder { color: var(--color-text-placeholder); opacity: 1; }
-.lintje-data-table__editor.is-error { border: 2px solid var(--color-error); }
+.lintje-data-table__editor.is-error { border: var(--field-error-border) solid var(--color-error); }
 .lintje-data-table__edit-error {
   display: block;
   padding: var(--space-1) var(--space-2);

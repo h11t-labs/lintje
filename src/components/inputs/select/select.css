@@ -1,5 +1,5 @@
 /* The select. Its width is the host's, set from outside by tag. */
-:host { --lintje-field-border: 1px; --lintje-field-error-border: 2px; }
+:host { --lintje-field-border: 1px; --lintje-field-error-border: var(--field-error-border); }
 
 /* --- */
 
@@ -16,7 +16,7 @@
   border-radius: var(--radius-control);
 }
 .lintje-select__control.is-bold { font-weight: 700; }
-.lintje-select__control.is-error { border: 2px solid var(--color-error); background: var(--color-bg-field-error); }
+.lintje-select__control.is-error { border: var(--field-error-border) solid var(--color-error); background: var(--color-bg-field-error); }
 .lintje-select__control:disabled {
   background: var(--color-bg-subtle);
   color: var(--color-text-disabled);

@@ -23,7 +23,7 @@
   min-width: 0;
   /* A field's edge and its error edge: what sits inside the box steps in by them, not by space. */
   --lintje-field-border: 1px;
-  --lintje-field-error-border: 2px;
+  --lintje-field-error-border: var(--field-error-border);
 }
 /* `min-width: auto`: the segmented control never shrinks below its options, and the select and
    the date range stop at their content's width in a narrow row. */
@@ -76,7 +76,7 @@
 /* A field in error carries the house style's bar at its left, from the label down to the
    control; 0 wide in the earlier style. */
 .lintje-field:has(> .lintje-field__error) {
-  border-left: var(--tone-bar-width) solid var(--color-error-line);
+  border-left: var(--field-error-bar) solid var(--color-error-line);
   padding-left: var(--field-error-inset);
 }
 .lintje-label {
@@ -131,7 +131,7 @@
   background: var(--color-bg-field);
   border-radius: var(--radius-control);
 }
-.lintje-field__box.is-error { border: 2px solid var(--color-error); background: var(--color-bg-field-error); }
+.lintje-field__box.is-error { border: var(--field-error-border) solid var(--color-error); background: var(--color-bg-field-error); }
 /* Read-only as disabled: the subtle surface, the strong border; its text stays primary. */
 .lintje-field__box.is-readonly,
 .lintje-field__box.is-disabled,

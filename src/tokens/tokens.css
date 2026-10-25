@@ -641,6 +641,9 @@
      and the room a field keeps beside it. */
   --tone-bar-width: 0px;
   --field-error-inset: 0px;
+  /* A field in error: its red edge, and the bar beside the whole field; no bar in the earlier style. */
+  --field-error-border: 2px;
+  --field-error-bar: 0px;
   /* The edge of a checkbox and a radio. */
   --border-choice-width: 2px;
   /* The tertiary button: outlined in the strong border with the text colour, or a word in the
@@ -930,6 +933,9 @@
      window without lines. */
   --tone-bar-width: var(--space-1);
   --field-error-inset: var(--space-4);
+  /* The house style's field in error: a 1 px red edge and a 2 px bar, finer than a status block's. */
+  --field-error-border: 1px;
+  --field-error-bar: 2px;
   --border-choice-width: 1px;
   --color-action-tertiary-text: var(--color-accent-text);
   --color-action-tertiary-border: transparent;

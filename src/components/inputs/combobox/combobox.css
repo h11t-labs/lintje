@@ -12,7 +12,7 @@
 }
 .lintje-combobox__control::placeholder { color: var(--color-text-placeholder); opacity: 1; }
 .lintje-combobox__control:disabled::placeholder { color: var(--color-text-disabled); }
-.lintje-combobox__control.is-error { border: 2px solid var(--color-error); background: var(--color-bg-field-error); }
+.lintje-combobox__control.is-error { border: var(--field-error-border) solid var(--color-error); background: var(--color-bg-field-error); }
 /* Disabled wins over error: after it, the whole border back to 1 px strong. */
 .lintje-combobox__control:disabled {
   border: 1px solid var(--color-border-strong);
