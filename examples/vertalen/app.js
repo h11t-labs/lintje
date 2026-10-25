@@ -5,7 +5,7 @@
  * knows one sample text only.
  */
 import { dropRemovedFiles, toast } from '../_shared/page.js'
-import { answerLogout, carry, emblem, modeOf, searchWith, shellSettingsOf, themeOf } from '../_shared/settings.js'
+import { answerLogout, applyStyle, carry, emblem, modeOf, searchWith, shellSettingsOf, themeOf } from '../_shared/settings.js'
 
 /* The URL: languages, the open document, mode, theme and the demo state ------------------- */
 
@@ -49,6 +49,7 @@ const root = document.documentElement
 function applySettings() {
   root.dataset.mode = modeOf(location.search)
   root.dataset.theme = themeOf(location.search)
+  applyStyle()
 }
 applySettings()
 

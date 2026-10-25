@@ -30,6 +30,30 @@ thema's van organisaties, beide navigatie-indelingen, de bedieningselementen en 
 tabellen, grafieken, feedback, en hoe alles verandert op een telefoon. Waar de huisstijl en WCAG
 AA het oneens zijn, wint AA met de kleinste correctie (zie [Toegankelijkheid](#toegankelijkheid)).
 
+### Twee huisstijlen, één schakelaar
+
+De Rijkshuisstijl tekent online sinds 2025 anders dan eerst: een wit menu, kleine afgeronde
+hoeken op knoppen en velden, de kop van de pagina als band in de primaire kleur, een donkere
+focusring met een witte lijn erin, de foutmelding boven het veld. Lintje tekent beide, en de
+host kiest met één attribuut op de pagina: `data-style-version="new"` op `<html>` tekent de nieuwe
+huisstijl, zonder dat attribuut (of `data-style-version="classic"`) de eerdere. Elk element spiegelt de
+waarde op zijn eigen host, zoals `data-mode`, zodat zijn stylesheet hem leest. **Tot 1.0.0 is de
+eerdere huisstijl de standaard**, zodat een host die bijwerkt niets ziet veranderen; bij 1.0.0
+wisselt de standaard naar de nieuwe.
+
+Onder de schakelaar staat alles wat de nieuwe huisstijl anders tekent: het lichte menu en de
+band in de primaire kleur als paginakop, de kleine hoek op knoppen en velden (`--radius-control`), de grote hoek van
+een lade en een smalle band (`--radius-corner`), de focusring, de keuzerand en de veldrand in het accent, de koelgrijze sluier,
+de typografische schaal van de paginatitel, de marges en de inhoudsbreedte, de vier kolommen op
+een telefoon, de foutmelding boven het veld met de balk en de fouttint, de balk en de gekleurde
+iconen op een statusblok, een waarschuwing in donkergeel, de kaderloze tertiaire knop, de uitklapper als accordeonrij, de koppen
+en het citaat in lopende tekst, het pijlvak van de select, de regel en de chevrons van de voet,
+de getinte paginering, het kruimelpad zonder de pagina zelf, de dialoogknoppen links zonder lijnen, het gevulde submenu, de paginakop
+boven de filterbalk, en in donker het gespiegelde grijs. Wat beide delen, staat niet onder de
+schakelaar: de overgang op elke hover, de hooks van een band, en
+elke correctie. De grote hoek heeft zijn eigen schakelaar, alleen van betekenis in de nieuwe
+huisstijl: `data-style-new-corner="square"` laat hem weg, zonder attribuut is hij rond.
+
 ## Principes
 
 1. **Functioneel, niet decoratief.** Vierkante vormen, ingetogen randen, vlakke oppervlakken.
@@ -76,9 +100,12 @@ OKLCH.
   element adopteert `tokens.css` op zijn eigen host, dus een token dat daar gedeclareerd is, zou
   het geërfde thema verslaan. De properties van het thema staan daarom alleen in `themes.css` en
   erven naar binnen.
-- **De standaard primaire kleur is donkerblauw, niet lintblauw.** Het lint is lintblauw; op een
-  menu van hetzelfde blauw verdwijnt het. De navigatiebalk is het menu, een kwartslag gedraaid:
-  dezelfde kleuren.
+- **De standaard primaire kleur is lintblauw in de nieuwe huisstijl, donkerblauw in de eerdere.**
+  In de eerdere huisstijl is het menu gevuld in de primaire kleur, en het lint, dat lintblauw is,
+  zou op een menu van hetzelfde blauw verdwijnen. In de nieuwe huisstijl (`data-style-version="new"`)
+  is het menu wit (zie [Navigatie en shell](#navigatie-en-shell)) en staat het lint op wit; daar is
+  de standaard de eigen kleur van de huisstijl, lintblauw (`themes.css`, zonder thema en bij
+  `rijksoverheid`). De primaire kleur kleurt daar de band, de knoppen en de woorden in het menu.
 
 ### Donker
 
@@ -91,11 +118,19 @@ leest en niet bij elk thema past.
 een donkerdere vulling die tekst in elk thema op AA; in donker zou een donkerdere vulling
 wegzakken in de pagina.
 
-**Donker is geen inversie.** Het is de reeks van Logius: dezelfde voor elk thema behalve de
-primaire kleur. Donker herdefinieert de zeven `--neutral-*` en laat de paar namen waarvan de
-betekenis verandert ergens anders naar wijzen. Een losse donkere kleur wordt nooit geschreven.
-De reeks mist een stap tussen het menu en het oppervlak; de pagina is daar het midden van die
-twee.
+**Donker is het spiegelbeeld van licht, in neutraal grijs.** De volgorde keert om: in licht is
+het oppervlak (een tegel, de logobalk, een licht menu) het lichtst en ligt de pagina een stap
+eronder; in donker is het oppervlak het donkerst en ligt de pagina een stap erboven, de subtiele
+vulling weer een stap hoger. Het gevulde menu van de oude huisstijl staat een stap onder het
+oppervlak, zoals zijn blauw in licht een eigen band is. De tinten zelf zijn niet de omgekeerde
+koelgrijsreeks van de huisstijl: die is blauwgrijs, leest op donkere waarden als marineblauw en
+concurreert met de blauwe datakleuren van een dashboard, dus Lintje neemt de neutrale reeks van
+Logius, dezelfde voor elk thema behalve de primaire kleur. Donker herdefinieert de zeven
+`--neutral-*` en laat de paar namen waarvan de betekenis verandert ergens anders naar wijzen. Een
+losse donkere kleur wordt nooit geschreven. De band in de primaire kleur (de hero, de paginakop
+bij een licht menu) is in donker gedempt: op de lichtheid van de waas, een stap boven de pagina,
+met meer van de tint van het thema erin dan de waas heeft (OKLCH houdt de tint, de verzadiging
+is begrensd) en wit erop; op volle sterkte zou hij het enige felle vlak van de pagina zijn.
 
 Wit en bijna-zwart die in beide modi gelijk moeten blijven (tekst op een primaire knop, op het
 menu, een QR-code, het beeld van een video), zijn `--ink-white` en `--ink-black`, geen neutralen.
@@ -134,7 +169,13 @@ Vijf gevolgen:
   ligt halverwege het menu en het oppervlak, zodat een tegel, een band en de logobalk erop staan
   en niet alleen hun rand ze scheidt.
 - **Elke primaire vulling tekent een rand in `--color-action-primary-border`.** Onzichtbaar in
-  licht; in donker het enige dat het vak een rand geeft.
+  licht; in donker het enige dat het vak een rand geeft. De huisstijl zet een donkere primaire
+  knop in donker om naar een lichte variant; Lintje houdt de vulling, met die lichtere rand die
+  3:1 haalt, ook in het pijlvak van de select, zodat de primaire kleur in beide modi dezelfde
+  blijft. Een bewust besluit.
+- **Een veld staat in de nieuwe huisstijl in donker een stap boven de pagina** (`--color-bg-field`),
+  zoals de huisstijl een donker veld tekent: het oppervlak ligt daar onder de pagina, en een veld
+  erop zou als een gat lezen. In licht en in de eerdere huisstijl is het veld het oppervlak.
 - **Een woord op een statusoppervlak of een getint vlak (de sprekertint van een fragment) neemt
   `--color-link-on-status`**: geen tint van de primaire kleur haalt daar 4.5:1.
 - **Een ondergrond die een veld, een knop of een paneel draagt, is `--color-bg-inset`**: een stap
@@ -200,7 +241,8 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
 - Categorische kleuren alleen als de variabelen echt verschillende dingen zijn.
 - **De sprekers van een opname zijn categorisch**: ze nemen hemelblauw, donkergeel, roze,
   mintgroen, violet en groen in volgorde van eerste optreden, daarna het grijs van "overig".
-  Oranje valt af: dat is de focusring. Een spreker wordt altijd naast de kleur genoemd.
+  Oranje valt af: dat is het accent en de aandachtsstatus. Een spreker wordt altijd naast de
+  kleur genoemd.
   Het rondje van een spreker deelt zijn kleur met de golfvorm en het transcript.
 
 ### Status en destructieve actie
@@ -211,7 +253,7 @@ in beide modi 3:1 haalt. Een actie die niet ongedaan kan worden, neemt de **fout
 primaire kleur**. De kleur is de waarschuwing, niet de instemming: de actie vraagt nog steeds om
 bevestiging in een dialoog.
 
-De focusring heeft een eigen token en volgt noch het accent noch een status.
+De focusring heeft eigen tokens en volgt noch het accent noch een status.
 
 ## Typografie
 
@@ -225,13 +267,19 @@ bestanden serveert, staat in
   schaalverdeling — mag een stap kleiner (`--text-axis`). Secundaire tekst — een hint, een
   onderregel, een metaregel — is dat ene token, met één regelhoogte, zodat twee hints onder
   elkaar nooit verschillend lezen.
-- Eén schaal, als `--text-*`-tokens. Cijfers zijn tabulair waar ze in een kolom staan of ter
-  plekke veranderen.
+- **Eén schaal, die van de huisstijl**: 12, 14, 16, 20, 24, 32, 40, 48 en 64 px, als
+  `--text-*`-tokens in rem; 28 en 18 staan er niet in. De namen volgen de hiërarchie van de
+  pagina (de `h1` van de pagina, de `h2` van een titel, de titel van een tegel), niet een tag.
+  Cijfers zijn tabulair waar ze in een kolom staan of ter plekke veranderen.
 
 Tekst die een host niet zelf schreef — gerenderde markdown, een notitie — gaat door
 `lintje-prose`, dat de schaal op gewone tags legt, zodat een pagina nooit een kop opnieuw opmaakt
-in haar eigen stylesheet. In prose begint een blok bij `h3`; `h1` en `h2` lezen hetzelfde, want de
-pagina heeft de `h1` en de titel de `h2`.
+in haar eigen stylesheet. De zes kopniveaus lopen af over de schaal, zoals de huisstijl ze tekent:
+40, 32, 24, 20, 16 en 16 px; een blok dat onder de titel van een pagina staat, begint bij `h3`,
+want de pagina heeft de `h1` en de titel de `h2`. De koppen staan in de primaire kleur, zoals de
+huisstijl ze zet (de teksttint, want een kop is een woord). Een citaat is het kader van de
+huisstijl: twee lijnen in de accentlijn, boven en links, met de ene afgeronde hoek waar ze elkaar
+raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<blockquote>`).
 
 ## Ruimte, maat en vorm
 
@@ -246,13 +294,38 @@ pagina heeft de `h1` en de titel de `h2`.
   `--h-option`; en een strook tussen twee panelen, waarvan het klikgebied over de randen van de
   panelen valt: een vinger krijgt daar de AA-ondergrens, een muis alleen de strook, omdat een
   breder gebied de inhoud en de scrollbalk van de panelen afdekt.
-- **Een grid van 12 kolommen.** De tussenruimte is gelijk aan de zijpadding van de pagina en de
-  tekstinspringing van de balken erboven, zodat tegels uitlijnen met de tekst erboven.
+- **Een grid van 12 kolommen, met de maten van de huisstijl.** Op een desktop een buitenmarge
+  van één lint en een goot van een halve lint; op een tablet beide een halve lint; op een
+  telefoon een marge van 20 px, vier kolommen en een goot van 12 px (de stap van de schaal het
+  dichtst bij de 10 px van de huisstijl). Een item neemt op een telefoon alle vier de kolommen,
+  tenzij `span-mobile` er minder noemt, zoals een postcode en een huisnummer naast elkaar; de
+  kerncijfers staan er vanzelf twee naast elkaar. In de oude huisstijl stapelt een telefoon in
+  één kolom. De balken boven de pagina springen even ver
+  in als de inhoud, zodat tegels uitlijnen met de tekst erboven.
 - **De inhoud heeft een maximale breedte**, midden in de ruimte die het menu overlaat. Wat de
   pagina indeelt — de kleur van een balk, de lijn boven het vraagvak van het gesprek — loopt tot
   de randen; alleen wat erin staat, houdt zich aan die breedte.
-- **Radius is 0.** Rond is alleen wat een cirkel ís: een stip, een radio, een schakelaar, een
-  avatar, een teller, de laadring.
+- **De inhoud is hoogstens 1280 px breed**, zoals de huisstijl, behalve op een pagina met cijfers
+  (1600 px, zie [Pagina's met cijfers](#paginas-met-cijfers)); een host die anders wil, zet
+  `--lintje-content-width`.
+- **De hoeken zijn klein, in de nieuwe huisstijl, en alleen op wat je bedient.** De huisstijl
+  tekent online knoppen en velden met vier kleine afgeronde hoeken, en zo tekent Lintje onder
+  `data-style-version="new"` elke knop (ook de icoonknop, de segmenten en de schakelgroep in de
+  balk), elk invoervak, het vinkje en de chips (`--radius-control`, 4 px). Een omkaderd blok (een
+  kaart, een tegel, een kerncijfer, een dialoog, een melding) blijft recht (`--radius`, 0), zoals
+  de huisstijl een melding en een venster tekent. In de eerdere huisstijl staan beide op 0.
+  Nooit groter dan de kleine hoek. Rond is alleen wat een cirkel ís: een stip, een radio, een
+  schakelaar, een avatar, een teller, de laadring.
+- **De ene afgeronde hoek loopt nooit van de pagina af.** De vormtaal van de huisstijl is een
+  rechthoek met één afgeronde hoek: hoogstens drie per beeld, spaarzaam, nooit een vlak met een
+  hoek in een vlak met een hoek, en nooit op een vlak dat van de pagina afloopt. De band aan de kop
+  van de pagina (de hero, de paginakop bij een licht menu) en de voet lopen van rand tot rand, en
+  zijn dus recht: dat ze de volle breedte nemen, weegt zwaarder dan de hoek. In de nieuwe
+  huisstijl draagt een lade de hoek, een lint groot (`--radius-corner`, 48 px), aan de vrije kant
+  bovenaan, en een band die met `narrow` binnen de marges staat, rechtsboven;
+  `data-style-new-corner="square"` laat hem weg. De andere uitzondering is het
+  citaat in lopende tekst: als citaat-element heeft het zijn eigen hoek van 24 px
+  (`--radius-quote`), de hoek van de huisstijl als aanhalingsteken.
 - **Schaduwen geven diepte aan en verder niets**: een vastgeplakte balk, een popover, het menu
   over de pagina. Alleen de gedefinieerde `--shadow-*`.
 
@@ -272,6 +345,20 @@ indelingen, naar keuze van de host:
 
 Besluiten die voor beide gelden:
 
+- **Het menu is gevuld in de themakleur, of licht; de huisstijl kiest, of de host.** Gevuld is
+  de eerdere huisstijl: de rail en de navigatiebalk in de primaire kleur, met witte tekst. Licht
+  is de nieuwe, en een host kiest zelf met `nav-tone` op de shell. Licht is
+  de navigatiebalk zoals de huisstijl hem tekent en de side navigation van Mijn Omgeving: het
+  oppervlak met een lijn eronder of ernaast, de woorden in de tekstkleur van het accent, een
+  rij onder de aanwijzer gevuld in de primaire kleur met wit erop, de pagina van de lezer in de
+  waas met de accentlijn als rand en vet, en in de balk onderstreept. Het is een tweede set
+  waarden voor dezelfde menutokens, dus de rail, de balk en de mobiele header veranderen verder
+  niet; de kop van de rail met het lint verandert in geen van beide. In donker is de lichte toon
+  het spiegelbeeld van licht: de balk en de rail op het oppervlak, zoals de logobalk, een stap
+  onder de pagina. Bij een licht menu verhuist de kleur naar de paginakop:
+  `lintje-page-header` en `lintje-hero` in de shell worden dan vanzelf de band in de primaire
+  kleur, recht van rand tot rand, en elke knop erop tekent zichzelf in zijn omgekeerde vorm; een
+  host kiest daar niets voor, en een hero die de waas wil houden, zegt `tone="wash"`.
 - **De navigatiebalk is één rij.** Als de items niet passen, gemeten en niet per breakpoint,
   maken ze plaats voor één item, "Menu", waarvan het paneel het hele menu bevat. Een groep opent
   bij hover; op een aanraakscherm opent een tik een groep en sluit een tweede tik hem. Een groep
@@ -303,15 +390,30 @@ Besluiten die voor beide gelden:
   in de lijst staat. Een schermlezer hoort hem niet: toetsen en het wiel scrollen de lijst zoals
   altijd.
 - **Onder 768 px is er geen rail**: een header met een Menu-knop, en het menu opent
-  schermvullend. In de indeling Boven is die header een balk onder de logobalk, met de naam.
-- **De gebruiker heeft in elke indeling hetzelfde menu**: naam en rol, de rijen van de host,
-  "Afmelden" en de versie. De avatar in de balk opent het naar beneden, de voet van het zijmenu
-  naar boven, en op een telefoon staat het onderaan het menu. Zolang het open is, blijft de rail
-  uitgeklapt.
+  schermvullend. In de indeling Boven is die header een balk onder de logobalk, met de naam. De
+  host mag de header onderaan het scherm zetten (`mobile-bar="bottom"`), de variant van de
+  huisstijl onder de duim; het menu opent er dan boven, als een sheet.
+- **De gebruiker heeft in elke indeling hetzelfde menu**: naam en rol met "Afmelden" als icoon
+  ernaast, de rijen van de host en de versie. De avatar in de balk opent het naar beneden, de voet
+  van het zijmenu naar boven, en op een telefoon staat het onderaan het menu. Met de pijltjes komt
+  "Afmelden" na de rijen. Zolang het open is, blijft de rail uitgeklapt.
 - **De shell bevat de pagina.** Zijn inhoud houdt zich aan de breedte en padding van de pagina;
   wat van rand tot rand loopt — een hero, de filterbalk, een gesprek — staat erboven.
 - **De instellingen van de lezer zijn van de host**: modus, thema, waar het menu staat. De shell
   toont ze en vraagt om een wijziging; hij bewaart er geen en leest geen URL.
+- **De voet is die van de huisstijl**: op de vulling van het menu, de regel die zegt wat de site
+  is cursief in het gewone gewicht, kolommen met een vette kop en links met een chevron ervoor,
+  en onder een lijn de vaste links. Een formulier of een taakpagina krijgt de compacte voet
+  (`variant="compact"`): de regel en de vaste links op één rij, zonder kolommen, op het subtiele
+  oppervlak (in de nieuwe huisstijl op de waas van de primaire kleur). De regel is 32 px en de
+  koppen 20 px, een stap onder de maten van de huisstijl: de voet van een applicatie vraagt
+  minder ruimte dan die van een site.
+- **De taalkeuze staat aan het eind van de balk** (`lintje-language-nav`, in het slot `end`):
+  een knop met de huidige taal en een pijltje, de talen in een lijst eronder met de taal van de
+  pagina gevuld in de primaire kleur, elke taal in haar eigen `lang`. Een taal met een `href` is
+  een link, zodat een pagina per taal zonder script werkt.
+- **De logobalk en de mobiele header blijven onder de statusbalk van een telefoon**
+  (`env(safe-area-inset-top)`): het lint begint onder de notch, zoals de huisstijl vraagt.
 - **Een skiplink naar de inhoud is de eerste tabstop.**
 - **De naam van de shell staat in een balk op één regel**, afgekapt met een beletselteken voordat
   hij de items eruit duwt.
@@ -319,13 +421,23 @@ Besluiten die voor beide gelden:
   primaire kleur, zodat band en menu nooit samenvloeien. Eén per pagina, en nooit op een
   werkpagina dieper in. Zijn afbeelding ondersteunt de titel; ze is nooit een tweede weg verder en
   zegt nooit iets wat nergens anders staat.
+- **De paginakop mag een band in de primaire kleur zijn** (`lintje-hero tone="primary"`), zoals
+  de huisstijl hem op de sites van de Marechaussee en het RIVM tekent: kruimelpad, titel en
+  inleiding in wit op de primaire kleur, van rand tot rand en recht. Met `narrow` staat de band
+  binnen de marges, in de kolom van de inhoud, en draagt hij in de nieuwe huisstijl de ene hoek
+  rechtsboven (`--radius-corner`, op een telefoon een halve lint); dat kan alleen een band die
+  minstens drie keer zo hoog is als de hoek. Waar wit op een lichte primaire kleur geen 4,5:1 haalt
+  (het oranje van Defensie), is de tekst bijna-zwart, zoals het omgevingslabel beslist. Dan is dat de ene band
+  van de pagina: niet naast een hero in de waas, en klein naast een gevulde rail, anders vechten
+  twee vlakken om de kleur.
 - **Tabs komen in twee vormen.** Een rij boven de inhoud, de gekozen tab onderstreept; en grote
   tabs boven een omrand paneel, voor de paar modi waartussen een hele pagina wisselt: elk met een
   icoon en een hint, waarbij het eigen oppervlak van het paneel doorloopt in de gekozen, zonder
   lijn. Op een telefoon zet de grote tab zijn icoon boven zijn label en laat hij de hint weg.
-- **Een submenu is typografisch** (`lintje-sub-nav`), naar de side-nav van de Rijkshuisstijl
-  Community: links zonder vulling en zonder rand, de pagina van de lezer vet in de tekstkleur,
-  groepen gescheiden door ruimte, nooit door een lijn.
+- **Een submenu is de side navigation van de huisstijl** (`lintje-sub-nav`): links in de
+  linkkleur zonder rand, de pagina van de lezer vet op de waas van de primaire kleur, een rij
+  onder de aanwijzer gevuld in de primaire kleur met wit erop, groepen gescheiden door ruimte,
+  nooit door een lijn.
 - **"Op deze pagina" is het submenu, geen eigen element**: dezelfde rijen, met ankers naar de
   koppen van een lange pagina, en met `expanded`, zodat elk niveau er staat en de lijst niet
   verspringt terwijl ze gelezen wordt. De host vult de ankers, volgt het scrollen en zet de
@@ -370,16 +482,26 @@ De besluiten hieronder gelden voor alle elementen.
 
 ### Bedieningselementen en formulieren
 
-- **Elk bedieningselement kent dezelfde toestanden, op dezelfde manier getekend.** Een fout is een
-  zwaardere rand in de foutkleur met een melding die aan het bedieningselement gekoppeld is;
-  uitgeschakeld is het subtiele oppervlak. Een uitgeschakelde knop blijft focusbaar
+- **Elk bedieningselement kent dezelfde toestanden, op dezelfde manier getekend.** Een fout is
+  de melding boven het bedieningselement, gekoppeld aan dat element, zoals de huisstijl het veld
+  opbouwt: label, toelichting, foutregel, dan het veld. In een rij staan de vakken van de velden
+  op één lijn: een toelichting boven het ene veld tilt zijn label, niet de vakken ernaast. Een
+  keuzelijst vult haar kolom zoals een tekstveld, tot `--w-field`. Het hele veld krijgt een balk links in de
+  foutkleur (2 px, fijner dan de balk van een statusblok), en een invoervak een rand van 1 px in
+  de foutkleur met de fouttint als vulling, zoals de huisstijl het tekent; in de eerdere huisstijl
+  een zwaardere rand van 2 px zonder balk. Uitgeschakeld is het subtiele oppervlak. Een uitgeschakelde knop blijft focusbaar
   (`aria-disabled`); een uitgeschakeld veld valt uit de tabvolgorde.
 - **De toelichting en de foutregel van een keuze springen in tot de tekst van haar label**, bij
   een vinkje, een schakelaar en een optie in een groep, zodat ze niet lijken op de kop van de
-  optie eronder. Onder een veld met zijn label erboven staan ze tegen de rand, net als in een rij
-  van een instelling, waar de labeltekst zelf links staat.
+  optie eronder; bij een losse keuze staan ze onder haar label, want die heeft geen label erboven.
+  Onder het label van een veld staan ze tegen de rand, net als in een rij van een instelling,
+  waar de labeltekst zelf links staat.
 - **Een waarde die afwijkt van haar standaard** draagt op elk bedieningselement twee markeringen:
   het label in de accentkleur en een oranje stip. Geen extra rand, geen gekleurd oppervlak.
+- **Het vinkje en de radio hebben een rand van 1 px in de accentlijn**, zoals de huisstijl ze in
+  lintblauw tekent; het label van een veld staat vet op de bodygrootte, en het kruimelpad ook.
+- **Een keuzelijst draagt het pijlvak van de huisstijl**: aan het eind van het veld, binnen zijn
+  rand, een vak in de primaire kleur met het witte teken; uitgeschakeld grijs, zoals het veld.
 - **Een veld legt vast als de lezer het verlaat of op Enter drukt.**
 - **Een vaste toevoeging aan een veld staat in een eigen vak** (een valutateken, een domein, een
   eenheid, een vast voorvoegsel): het gedempte oppervlak met een lichte lijn naar de invoer, zodat
@@ -404,6 +526,24 @@ De besluiten hieronder gelden voor alle elementen.
 - **Wat op het punt staat te gebeuren, is een samenvatting in cellen** (`layout="grid"`): één cel
   per instelling, wat gewijzigd is in het rustige oppervlak van de gekozen optie met "Aangepast",
   een probleem in zijn statustoon met zijn glyph, zijn woorden en de actie die het oplost.
+- **Een knop heeft de drie gewichten van de huisstijl.** Primair is gevuld, voor de ene
+  hoofdactie; secundair is omlijnd in de primaire kleur, met onder de aanwijzer de waas; tertiair
+  is alleen het woord in de primaire kleur, zonder kader, voor de derde actie in een rij (annuleren,
+  wissen, de weg terug) en het gereedschap in een balk. Ingedrukt is elke knop een stap voorbij
+  zijn hover. Op een themavulling (de band van een hero of van een paginakop) tekent elke knop
+  zichzelf vanzelf omgekeerd, via de overervende `--lintje-button-*`-hooks die het vlak zet:
+  primair wit met het woord in de primaire kleur, secundair wit omlijnd, tertiair een wit woord.
+  Buiten zo'n vlak kiest een host die vorm zelf met `inverse` en `inverse-secondary`.
+- **Een gesplitste knop is één knop: de menuknop met `split`**, nooit een eigen samenstelling van
+  twee knoppen. De eigen helft doet de gewone actie, het pijltje opent de andere wegen ernaartoe:
+  een menu met `items`, of zonder `items` de eigen inhoud als paneel, voor keuzes die geen actie
+  zijn (hoe een bericht verstuurd wordt). Zo draagt hetzelfde element de export van de transcriptie
+  en de verzendknop van het gesprek, met één bezige toestand en één manier van focus; een eigen
+  tag zou de menuknop als tweede gesplitste knop laten staan. Alleen de buitenhoeken zijn rond, en
+  tussen de helften staat een lijn in de inkt van het pijltje, niet een kier: een kier toont wat
+  erachter ligt en leest alleen op een band als lijn. Met `action-disabled` is alleen de eigen
+  helft uit, zodat een bericht dat nog niet weg kan zijn opties houdt; met `icon-only` is ze op
+  een telefoon alleen haar icoon.
 - **Een uitgeschakelde knop zegt waarom**: `reason` wordt met de knop voorgelezen; de host zegt
   het ook op de pagina.
 - **Acties die niet op één regel passen, klappen in** naar één menu "Meer", vóór de acties die
@@ -441,8 +581,16 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
   elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
   beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").
-- **Een dialoog met een formulier is smal** en zo hoog als zijn inhoud; een zin over het resultaat
-  staat links in de voet, de knoppen rechts.
+- **Een lade schuift van rechts in, of van links** (`side="left"`), in de nieuwe huisstijl met
+  de ene hoek (`--radius-corner`) bovenaan aan de kant van de pagina, zoals de huisstijl een lade
+  tekent; op een telefoon is ze schermvullend en zonder hoek.
+- **De sluier onder een dialoog, een venster en een lade is het koelgrijs van de huisstijl op
+  80 %** (Cool Gray 900); in donker is hij zwart op 60 %, omdat het koelgrijs een donkere pagina
+  blauw kleurt. Het venster staat erop met zijn eigen oppervlak en rand.
+- **Een dialoog met een formulier is smal** en zo hoog als zijn inhoud; de knoppen staan links in
+  de voet, het antwoord eerst, zoals de huisstijl een dialoog tekent, en een zin over het
+  resultaat erachter. De titel staat in de primaire kleur; het grote venster heeft geen lijnen
+  tussen kop, inhoud en voet.
 - **Een bezige knop houdt zijn breedte en zijn kleuren**; alleen de inhoud maakt plaats voor de
   ring.
 - **Een limiet waarschuwt en blokkeert nooit**: een geplakte tekst komt er heel in.
@@ -451,12 +599,26 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een menurij kan een schakelaar zijn of één uit een keuze**: een schakelaar wordt gemarkeerd
   met een vinkje, één uit een keuze met het rondje van een radio, zoals in een formulier; een kop
   boven rijen noemt hun groep en staat aan de rand van het menu.
-- **Een reeks hangt aan een rail**: vierkante tekens verbonden door een lijn, in de stepper, het
-  activiteitenlog en de stappen van de assistent evengoed. In de stepper is de lijn doorgetrokken
+- **Een reeks hangt aan een rail**: vierkante tekens verbonden door een lijn, in de stepper, de
+  tijdlijn en de stappen van de assistent evengoed. In de stepper is de lijn doorgetrokken
   tot de huidige stap en gestreept daarna, zodat de weg die nog te gaan is nooit op kleur alleen
   rust. Een stap kan eigen inhoud dragen, zonder vlak eromheen en zonder eigen kleur: in de kolom
   onder zijn kop, waar de rail langs doorloopt; in de rij en op een telefoon alleen die van de
   huidige stap, onder de rij of de balk.
+- **Een tijdlijn is dezelfde rail, met de tijd erlangs**, en een logboek is een tijdlijn: wie
+  deed wat, met het rondje van een persoon vóór de naam. De host bepaalt de volgorde, het oudste
+  of het nieuwste boven; waar nu is, leest de tijdlijn uit wat gepland is of uit de tijden. Een
+  moment staat aan één kant met de datum ervoor, om en om, of per kant met een naam erboven. Een
+  moment heeft drie regels: boven de kop klein de datum en een label, dan de kop, en eronder de
+  zin, een link en eigen inhoud van de host, zoals een badge. De datum staat altijd boven, of aan
+  één kant in een kolom vóór de rail. Om en om schuiven de momenten
+  in elkaar, maar een moment begint nooit vóór het vorige. Vandaag is een streep op de rail die de
+  host noemt; daarna is de rail gestreept en is een teken hol. Het laatste moment dat geweest is,
+  staat in de accentlijn. De rail van de tijdlijn weegt zwaar, met donkere tekens: wie een reeks
+  leest, volgt de lijn. Een lange reeks krijgt koppen op de rail en toont eerst de momenten het
+  dichtst bij nu; "Toon eerdere" staat waar de rest zit. Liggend staat elk moment op zijn plek in de tijd, met zijn
+  label aan een steel boven of onder de rail; past een label niet tot het volgende, dan staat de
+  tijdlijn. Op een telefoon staat alles aan één kant, de datum boven de kop.
 - **Een kalender is één maandraster**, in de datuminvoer en de datumreeks evengoed: zoveel weken
   als de maand heeft, de dagen ernaast leeg, 1 px tussen de cellen, zodat twee gekozen dagen los
   van elkaar blijven. Vandaag is een ring in de accentlijn, nooit een statuskleur; een gekozen
@@ -477,9 +639,11 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een melding kiest haar marge naar haar eigen breedte**, op dezelfde grens als haar actie:
   smal is ze krap, breed ruim. De host kiest geen compacte vorm.
 - **Wat vanzelf verdwijnt, is een toast; wat bij een veld hoort, is de foutregel van het veld.**
-- **Een statusbericht draagt het eigen teken van de set voor zijn soort**, los op de tint in de
-  lijnkleur van de status: een driehoek voor een waarschuwing, een cirkel met een kruis voor een
-  storing of mislukking, het vierkant met *i* voor info en de cirkel met een vinkje voor ok. Een
+- **Een statusbericht draagt het gekleurde teken van de huisstijl voor zijn soort**: de vorm
+  gevuld in de lijnkleur van de status met het teken erin wit, op de tint, met in diezelfde
+  kleur de balk links: een driehoek voor een waarschuwing, een cirkel met een kruis voor een
+  storing of mislukking, het vierkant met *i* voor info en de cirkel met een vinkje voor ok.
+  Elders (een badge, een kaart, een regel) blijft het teken in één kleur. Een
   titel staat op een eigen regel naast het teken, de tekst eronder. Alleen de foutregel van een
   veld houdt de driehoek; de foutsamenvatting van een formulier en een geweigerd bestand nemen het
   teken en de tint van de toon fout, zoals elk statusblok.
@@ -543,11 +707,14 @@ De besluiten hieronder gelden voor alle elementen.
 
 ### Uitklappers
 
+- **De uitklapper is de accordeonrij van de huisstijl**: een lijn erboven en eronder, de pijl
+  vooraan, de kop vet in de tekstkleur van het accent, de inhoud ingesprongen in lijn met de
+  titel. Open of dicht, de kop houdt dezelfde kleur. Een losse uitklapper die een eigen vlak
+  nodig heeft, is de variant `card`: omlijnd op het oppervlak; in een tegel is hij `flat`, zonder
+  lijnen en zonder vlak.
 - **Een accordeon is de gestapelde uitklapper** (`lintje-accordion`), geen tweede element: de rijen
   zijn uitklappers, getekend met de lijnen van de lijst, één boven de stapel en één onder elke
-  rij, zonder vlak of kaart per rij. Een open kop krijgt geen accentkleur.
-- **De pijl staat vooraan in een accordeon**, zodat de kop als knop leest en de inhoud in lijn met
-  de titel valt; een losse uitklapper houdt hem achteraan.
+  rij, zonder vlak of kaart per rij.
 - **Meer rijen tegelijk open is de standaard.** Eén tegelijk laat de inhoud onder de lezer vandaan
   schuiven en is er alleen op verzoek, net als "Alles openen". Wat elke lezer nodig heeft, staat
   niet achter een kop.
@@ -612,8 +779,9 @@ De besluiten hieronder gelden voor alle elementen.
   data ernaast.
 - **Op een applicatiepagina staat een tabel op de pagina**, zonder tegel: de kop of tab van de
   pagina noemt hem. In een dashboard blijft hij een tegel tussen tegels.
-- **Pagineren is plat, zoals op rijksoverheid.nl**, gecentreerd onder wat het pagineert: de
-  nummers in de linkkleur zonder vak, de huidige pagina het ene gevulde vierkant, "Vorige" en
+- **Pagineren is plat, zoals de huisstijl het tekent**, gecentreerd onder wat het pagineert: de
+  nummers in de linkkleur zonder vak, de huidige pagina het ene licht getinte vierkant met het
+  cijfer donker en vet, "Vorige" en
   "Volgende" woorden met een chevron. Waar de woorden niet passen, blijven alleen de chevrons; het
   woord blijft de naam. Aan beide uiteinden blijft de stap staan, uitgeschakeld, zodat de rij niet
   verschuift.
@@ -639,8 +807,9 @@ De besluiten hieronder gelden voor alle elementen.
 
 - **Een persoon is neutraal.** Het rondje heeft één vulling voor iedereen; alleen waar de
   personen zelf de variabele zijn — de sprekers van een opname — neemt het hun datakleur. De naam
-  staat er altijd naast. Een tekst als "Systeem" is geen persoon en krijgt geen rondje. Een
-  persoon in een tabel, rij of kaart die zelf opent, is geen link.
+  staat er altijd naast. Wat geen persoon is, zoals "Systeem", krijgt een rondje met een icoon in
+  plaats van initialen, zodat de namen in een tijdlijn op één lijn blijven. Een persoon in een
+  tabel, rij of kaart die zelf opent, is geen link.
 
 ### Afbeeldingen en kaarten
 
@@ -767,6 +936,9 @@ Deze gelden waar een pagina getallen toont die filters vernauwen: een dashboard,
    alleen waarden die afwijken van hun standaard. Een standaard staat nooit in de URL.
 6. **Ontbrekende data is nooit nul.** Een ontbrekende waarde is `null` en wordt overgeslagen,
    gearceerd of afgekapt.
+7. **Breder dan een leespagina.** De 1280 px van de huisstijl is een leesbreedte, voor lopende
+   tekst; een pagina met cijfers vergelijkt tegels, tabellen en grafieken naast elkaar en zet de
+   inhoud tot 1600 px (`--lintje-content-width` op de pagina), in beide huisstijlen.
 
 **De filterbalk is in rust dicht**: wat tijdens het lezen op de pagina staat, is de zin; de
 bedieningselementen zijn er zolang de lezer kiest, en verder scrollen sluit ze. Op een telefoon
@@ -1027,6 +1199,14 @@ navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de
 (identiteit en één meetwaarde) en de heatmap. Tussen de breedtes lopen bedieningselementen door
 naar een volgende regel; ze overlappen nooit.
 
+**Wat op een telefoon minder telt, schuift achteraan of klapt in; weglaten is het laatste.** Een
+host kiest per item `order-mobile` (alleen de tekening schuift, de lees- en focusvolgorde niet),
+`collapsed-mobile` op een tegel (de kop met een knop, de inhoud één tik verder), of `hide-mobile`
+en `hide-desktop`. Weglaten is er voor wat de pagina ook anders zegt: een desktop die tot 400 %
+inzoomt, krijgt de telefoonweergave, en mag niets missen (1.4.10). Op papier telt de
+desktopweergave. Een grafiek tekent zich pas in als hij een maat heeft en in beeld is, ook in een
+tegel die openklapt.
+
 **Een sheet die bij een telefoon hoort, sluit als het scherm 768 px of breder wordt** — het menu
 van de shell, de lijst van de meldingen — en geeft de focus aan zijn knop als die blijft staan,
 zoals de bel.
@@ -1044,7 +1224,12 @@ pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
   terug gaat, is de uitzondering: die gaat recht.
 - **Eén duur voor interfacebeweging** (`--dur-base`). Elk onderdeel heeft een eigen token dat
   ernaar wijst, zodat er één kan veranderen zonder een component aan te raken. Hoverfeedback is
-  korter; databeweging (een grafiek intekenen, een waarde optellen) is langer.
+  korter, en alles wat onder de aanwijzer van kleur, vulling of rand verandert, doet dat met die
+  overgang; databeweging (een grafiek intekenen, een waarde optellen) is langer.
+- **Een grafiek tekent zich één keer in, als hij in beeld komt**, per soort teken: een lijn van
+  links naar rechts, een staaf vanaf de nullijn, een punt vanuit zijn midden, een taart en een
+  donut met de klok mee vanaf twaalf uur, in de richting waarin hun punten lopen. Met minder
+  beweging staat hij er meteen.
 - **Een vak dat openklapt, knipt zijn inhoud af zolang het groeit en niet langer**: daarna hangt
   een popover of focusring eruit. Het wacht alleen op een hoogte die echt beweegt; staat die
   meteen, dan laat het meteen los.
@@ -1103,10 +1288,14 @@ WCAG AA is de ondergrens, ook waar de huisstijl anders suggereert: houd de ident
 kleinste correctie, en leg die hier vast.
 
 - Eerst semantische HTML: `nav`, `main`, `table` met `th` en `scope`, `dl` voor definities.
-- **Focus is `--color-focus`, `--focus-width` breed, buiten de rand** — binnen (`focus-inset`)
-  alleen waar buiten zou worden afgesneden. In licht is de ring een donkerder oranje, dat op elke
-  lichte ondergrond 3:1 haalt; in donker is hij het oranje van de huisstijl. Op de eigen vulling
-  van het thema (het menu in licht) is de ring wit.
+- **Focus is de ring van de huisstijl**: een lijn van `--focus-width` in `--color-focus` op
+  `--focus-offset` buiten de rand, met in die tussenruimte een lijn in de tegengestelde inkt
+  (`--color-focus-inner`), zodat de ring op elke ondergrond leest; binnen (`focus-inset`) alleen
+  waar buiten zou worden afgesneden, de lichte lijn dan aan de rand. In licht is de ring
+  bijna-zwart met wit erin, in donker wit met bijna-zwart erin. Op de eigen vulling van het thema
+  (het menu, de band van een hero) is het de inverse ring: wit met de donkere lijn erin. Een vlak
+  dat een andere ring draagt, zet `--lintje-focus` en `--lintje-focus-inner`, die overerven in
+  alles wat erop staat.
 - **Een veld is verplicht tenzij het anders zegt**: de optionele zijn gemarkeerd, "(niet
   verplicht)", binnen het label. Geen sterretje.
 - **Eén `h1` per pagina**: de naam van de shell, ook onder 768 px. Een paginatitel is een `h2`,
@@ -1248,8 +1437,7 @@ de statuskleur bijgesteld naar 3:1 op haar eigen tint; de tekstkleur van een sta
 (`--color-error-text`, `--color-success-text`), bijgesteld naar 4.5:1 — lichter in donker, het
 groen ook donkerder in licht; de eigen tekstkleur van donkergeel; de donkere rand van een lichte
 datakleur als lijn of teken; tekst op de sequentiële reeks
-vast op bijna-zwart of wit in beide modi; het oranje van de focusring is in licht donkerder, zodat
-het op elke lichte ondergrond 3:1 haalt; de tekst van het omgevingslabel is bijna-zwart waar wit
+vast op bijna-zwart of wit in beide modi; de tekst van het omgevingslabel is bijna-zwart waar wit
 op het accent geen 4.5:1 haalt; geel is nooit een lijn of tekst: een los teken in de
 toon "let op" neemt de lijnkleur van "aandacht", en een gele vulling staat alleen naast een woord.
 
@@ -1258,13 +1446,12 @@ glyph, een getal of een woord.
 
 - De datakleuren rood, violet, donkergroen, paars, robijnrood, donkerbruin en donkerblauw halen
   geen 3:1 op het donkere oppervlak, paars daar nagenoeg niet zichtbaar.
-- In het thema `defensie` haalt de lijn onder een herkende term geen 3:1 in licht, en is ze in
-  donker hetzelfde oranje als de focusring.
+- In het thema `defensie` haalt de lijn onder een herkende term geen 3:1 in licht.
 - De omlijning van een zwevende sheet in donker haalt geen 3:1.
 - In het thema `defensie` haalt alles wat in `--primary` tekent geen AA: witte tekst op het
   oranje van het menu en de footer is 3.2:1, onder de 4.5:1 die WCAG voor gewone tekst vraagt, en
-  de tweede regel van het menu (82 % wit) 2.6:1; wit op de oranje vulling van de primaire knop, de
-  huidige pagina van de paginering, de kopieerknop en de badge `busy` is 3.22:1 (de hover in
+  de tweede regel van het menu (82 % wit) 2.6:1; wit op de oranje vulling van de primaire knop,
+  de kopieerknop en de badge `busy` is 3.22:1 (de hover in
   donker 2.80:1); een link en accenttekst op wit zijn 3.22:1, en de gekozen optie van
   `lintje-segmented` 2.81:1. Het wacht op een donkerdere vulling voor dat thema.
 

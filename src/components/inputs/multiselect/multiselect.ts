@@ -224,6 +224,7 @@ export class LintjeMultiselect extends LintjeInputElement {
 
     return html`<div class="lintje-field lintje-multiselect" @focusout=${this.onFocusOut}>
       ${this.renderLabel()}
+      ${this.renderMessages()}
       <button
         type="button"
         class=${classMap({

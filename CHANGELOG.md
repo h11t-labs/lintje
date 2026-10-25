@@ -11,6 +11,106 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-25
+
+### Toegevoegd
+
+- In beide huisstijlen: `assets/logo/favicon-lint.svg`: de favicon van de huisstijl, alleen het lint op wit; de handleiding zegt hoe een host hem linkt. (#317)
+- In beide huisstijlen: `lintje-footer` met `variant="compact"`: de regel en de vaste links op één rij op het lichte vlak, voor een formulier of een taakpagina. (#317)
+- In beide huisstijlen: `lintje-hero` met `tone="primary"`: de paginakop als band in de primaire kleur, met het kruimelpad in het slot `breadcrumbs`, de titel en de inleiding in wit (bijna-zwart waar wit op een lichte primaire kleur geen 4,5:1 haalt, zoals bij Defensie); de voorbeeldvragen van een gesprek (`lintje-chat-suggestions`) nemen op de band zijn inkt. (#317)
+- `style` in de `view` van `lintje-shell`: met een waarde biedt "Weergave" de keuze tussen de eerdere huisstijl (het menu gevuld in de themakleur, rechte hoeken) en de nieuwe (het lichte menu, de ronde hoeken), en stuurt een keuze als `lintje-view-change` `{ style }`; `corner` biedt zo de keuze tussen de ronde hoek van de band en een rechte. De host tekent hem met `data-style-version` en `data-style-new-corner` op de pagina; de voorbeelden openen in de nieuwe en tonen de eerdere op `?style=classic`. (#317)
+- Eén schakelaar voor de huisstijl: `data-style-version="new"` op `<html>` tekent de nieuwe huisstijl, en elk element spiegelt de waarde op zijn host, zoals `data-mode`. Wat onder "Gewijzigd" van #317 alleen in de nieuwe huisstijl geldt (het lichte menu en de band als paginakop, de kleine en de grote hoek, de focusring, de foutmelding boven het veld, de balk en de gekleurde iconen op een statusblok, de kaderloze tertiaire knop, de accordeonrij, de koppen en het citaat, het pijlvak, de voet, de paginering, de dialoogknoppen, het submenu, de schaal, de marges, het gespiegelde donker) staat daaronder; zonder het attribuut tekent de bibliotheek de eerdere huisstijl, die tot 1.0.0 de standaard blijft, zodat een host die bijwerkt alleen de correcties ziet die onder "Gewijzigd" voor beide huisstijlen staan. `data-style-new-corner="square"` laat in de nieuwe huisstijl de grote hoek weg. (#317)
+- In beide huisstijlen: de knopvarianten `inverse` (wit met het woord in de primaire kleur) en `inverse-secondary` (wit omlijnd) voor op een themavulling, zoals de band van een hero als paginakop. (#317)
+- In beide huisstijlen: een geopende `lintje-menu-button` volgt op een gevulde band de hover van die band, zoals elke knop daar; de pijl van een gesplitste knop werd er blauw op blauw. (#317)
+- `lintje-drawer` met `side="left"` schuift van links in; een lade draagt in de nieuwe huisstijl de ene hoek (`--radius-corner`) bovenaan aan de kant van de pagina. (#317)
+- Het lichte menu van `lintje-shell`: de navigatiebalk en de rail op het oppervlak, zoals de huisstijl de navigatiebalk en de side navigation tekent, met de tekst in de primaire kleur, een rij onder de aanwijzer gevuld in de primaire kleur en de pagina van de lezer in de waas. Het is het menu van de nieuwe huisstijl; gevuld blijft dat van de eerdere, en `nav-tone` op de shell kiest het zelf. In het ingeklapte rail staan het logo, de iconen en hun badges in het midden; dat stond 2 px links van het midden, wat op een wit rail opviel. (#317)
+- In beide huisstijlen: `mobile-bar="bottom"` op `lintje-shell`: onder 768 px plakt de header met de Menu-knop aan de onderrand van het scherm, de variant van de huisstijl onder de duim; het menu opent erboven. (#317)
+- Bij een licht menu (`nav-tone="light"`) zijn `lintje-page-header` en `lintje-hero` (zonder `tone`) in de shell vanzelf de band in de primaire kleur, van rand tot rand; elke knop op een themavulling (deze band, de hero) tekent zichzelf omgekeerd via de `--lintje-button-*`-hooks. De kop neemt in `meta` een regel feiten en in `tabs` een rij `lintje-tabs` op zijn onderrand, op de band in zijn inkt (`--lintje-tabs-ink`); met tabbladen plakt de kop onder de balk met alleen die rij in beeld. In de nieuwe huisstijl staat de kop in de shell boven wat van rand tot rand loopt (`full`): een filterbalk staat onder de kop en plakt vandaar onder de balk. (#317)
+- Het token `--radius-corner` voor de ene afgeronde hoek van de huisstijl op paginaniveau: een lint groot in de nieuwe huisstijl, weg met `data-style-new-corner="square"` op de pagina, 0 in de eerdere; een lade en een band met `narrow` lezen hem; de band zonder `narrow` en de voet lopen van rand tot rand en zijn recht. `DESIGN_SYSTEM.md` legt vast dat de marge, de inhoudsbreedte en de kolommen op een telefoon bewust van de huisstijl afwijken. (#317)
+- `narrow` op `lintje-hero` en `lintje-page-header`: de band staat binnen de marges van de pagina, in de kolom van de inhoud, en draagt in de nieuwe huisstijl de ene afgeronde hoek rechtsboven (`--radius-corner`, op een telefoon een halve lint). Zonder `narrow` loopt de band van rand tot rand en is hij recht. (#317)
+- `span-mobile` op elk item van `lintje-grid` (een tegel, een veld, `lintje-grid-item`): het aantal van de vier kolommen dat het op een telefoon neemt in de nieuwe huisstijl, zodat bijvoorbeeld een postcode en een huisnummer daar naast elkaar staan. Zonder het attribuut neemt een item alle vier; in de oude huisstijl stapelt een telefoon zoals eerst. (#317)
+- In beide huisstijlen: `avatar` op een rij van `lintje-list`: de rij is een persoon, met de cirkel van `lintje-person` voor de titel, de initialen of de foto van de host en anders het persoonsicoon; met `swatch` krijgt de cirkel die sprekerkleur in plaats van de balk langs de rij. De sprekers in het transcriptievoorbeeld en de stijlgids gebruiken het. (#317)
+- In beide huisstijlen: `lintje-language-nav`: de taalkeuze van de huisstijl, een knop met de huidige taal en de talen in een lijst eronder, de taal van de pagina gevuld in de primaire kleur; een keuze stuurt `lintje-language-change`. In `lintje-shell` staat hij in het nieuwe slot `end`, aan het eind van de balk. (#317)
+- In beide huisstijlen: een taart en een donut tekenen zich in zoals de andere grafieken: met de klok mee vanaf twaalf uur, in de duur van de andere grafieken en pas als ze in beeld komen; met minder beweging staan ze er meteen. Het stond in de beschrijving van de intekenbeweging, maar was nooit gebouwd. (#317)
+- Op een telefoon kiest een host per item van `lintje-grid` zijn plaats met `order-mobile`, laat een tegel inklappen tot zijn kop en een knop Tonen met `collapsed-mobile` op `lintje-tile` (of `collapsedMobile` in de `data` van een grafiek, kaart, tabel, graaf of logboek; event `lintje-toggle`), of laat een item weg met `hide-mobile`, of juist alleen daar zien met `hide-desktop`. In beide huisstijlen. (#317)
+
+### Gewijzigd
+
+- In de nieuwe huisstijl (`data-style-version="new"`) dragen een melding, een toast en de foutsamenvatting de balk links van de huisstijl, in de lijnkleur van hun status, naast de tint. (#317)
+- In beide huisstijlen: een pagina met cijfers is breder dan een leespagina: het dashboardvoorbeeld en de dashboardgids zetten de inhoud op 1600 px (`--lintje-content-width`), en `DESIGN_SYSTEM.md` legt het vast. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) volgen de dialoog en het venster de huisstijl: de titel in de primaire kleur, de knoppen links met het antwoord eerst, en het grote venster zonder lijnen tussen kop, inhoud en voet. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) is donker het spiegelbeeld van licht: het oppervlak (een tegel, de logobalk, een licht menu) is er het donkerst (#1D1D1D), de pagina ligt een stap erboven (#282828) en de subtiele vulling weer een stap hoger; het gevulde menu staat een stap onder het oppervlak, en de band in de primaire kleur is gedempt tot een diepe, stille tint met wit erop. De statustinten, de verzonken vulling en de lijnen van de statustekens zijn daarop opnieuw doorgerekend. (#317)
+- In de nieuwe huisstijl in donker staat elk veld een stap boven de pagina (`--color-bg-field`), zoals de huisstijl een donker veld tekent. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) is de focusring die van de huisstijl: een donkere lijn van 2 px met een witte lijn erin (in donker andersom), en op een themavulling de inverse ring; het oranje is er weg. De eerdere huisstijl houdt de oranje ring. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) volgt de voet de huisstijl: de regel cursief in het gewone gewicht, de kolomkoppen vet zonder kleine kapitalen en elke link met een chevron ervoor. (#317)
+- In de nieuwe huisstijl is de regel van de voet groter (32 px) en zijn de kolomkoppen 20 px, een stap onder de maten van de huisstijl; de compacte voet staat op de waas van de primaire kleur. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) staan de toelichting en de foutmelding van een veld boven het bedieningselement, onder het label, zoals de huisstijl het veld opbouwt; een veld in fout krijgt een balk links in de foutkleur en het invoervak naast zijn rode rand de fouttint als vulling. Bij een los vinkje of een schakelaar blijven ze onder het label. In een rij staan de vakken van de velden op één lijn, ook als één veld een toelichting heeft; een keuzelijst vult haar kolom tot `--w-field`. (#317)
+- In beide huisstijlen: het gebruikersmenu op de voet van de rail opent als paneel vlak op die voet, zo breed als de rail, en op de vulling onder de aanwijzer nemen naam en rol de tekstkleur van die vulling; zonder rijen staat er geen lijn onder de naam. `lintje-popover` kent daarvoor `gap`, de ruimte tussen anker en paneel. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) dragen een melding, een toast en de foutsamenvatting het gekleurde statusteken van de huisstijl: de vorm in de statuskleur met het teken erin wit (`TONE_ICON_COLOURED`). (#317)
+- **Brekend**, in beide huisstijlen: `options-open` op `lintje-chat-composer` vervalt: de opties bij versturen staan in het paneel van zijn gesplitste verzendknop, die zelf bijhoudt of het open is. (#317)
+- In beide huisstijlen: `lintje-menu-button` met `split` is de enige gesplitste knop: zonder `items` opent het pijltje de eigen inhoud als paneel, `action-disabled` zet alleen de eigen helft uit en `icon-only` toont die als alleen haar icoon. Tussen de helften staat een lijn in de inkt van het pijltje in plaats van een kier. `lintje-chat-composer` gebruikt hem voor zijn verzendknop. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) zijn de band aan de kop van de pagina (de hero als paginakop en de paginakop bij een licht menu) en de voet recht: ze lopen van rand tot rand, en de huisstijl rondt nooit een vlak dat van de pagina afloopt. De grote hoek (`--radius-corner`) staat op een lade en op een band met `narrow`. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) hebben het vinkje en de radio een rand van 1 px in de accentkleur; staan het label van een veld en het kruimelpad op de bodygrootte; is de sluier onder een dialoog, een venster en een lade het koelgrijs van de huisstijl op 80 % en in donker zwart op 60 %; en staan "Weergave" en "Delen" in de bovenbalk even dicht bij elkaar als aan het eind van de navigatiebalk. (#317)
+- In beide huisstijlen blijven de logobalk en de mobiele header onder de statusbalk van een telefoon; tekent een balk in `full` onder de balk van de shell geen eigen bovenlijn meer, die er een dubbele van maakte; en komen de tooltip van een grafiek en de rij van een cirkeldiagram in op de hoverduur, en verandert alles wat onder de aanwijzer van kleur, vulling of rand verandert, dat met de hoverovergang. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) is de knop `tertiary` het derde gewicht van de huisstijl: alleen het woord in de primaire kleur, zonder rand of vulling; een pagina die daar een omlijnde knop bedoelt, kiest `secondary`. De secundaire knop kleurt er onder de aanwijzer in de waas van de primaire kleur, en elke knop is ingedrukt een stap donkerder dan onder de aanwijzer. In de eerdere huisstijl blijven de knoppen zoals ze waren. (#317)
+- In de nieuwe huisstijl is een ingedrukte primaire of gevaarlijke knop de schaduwtint 2 van de huisstijl (55 % zwart in de vulling), zoals hover schaduwtint 4 is. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) toont `lintje-breadcrumbs` alleen de niveaus boven de pagina, elk een link, zoals de huisstijl het kruimelpad tekent: het laatste item zonder `href` is de pagina zelf en blijft weg. Een host geeft hetzelfde pad door als in de eerdere huisstijl. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) is lintblauw (#154273) de standaard primaire kleur, zonder thema en bij `data-theme="rijksoverheid"`: het menu is daar wit en het lint verdwijnt niet meer. De eerdere huisstijl houdt donkerblauw. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) volgt de pagina de maten van de huisstijl: een buitenmarge van één lint op een desktop en een halve lint op een tablet, een inhoud van hoogstens 1280 px (was 1360), en op een telefoon een marge van 20 px met vier kolommen en een goot van 12 px. (#317)
+- In beide huisstijlen heeft `lintje-page-header` geen eigen zijpadding meer: de titel staat in lijn met de inhoudskolom eronder. Een host die die padding compenseerde, bijvoorbeeld met een negatieve marge op de paginakop, haalt dat weg. (#317)
+- In beide huisstijlen tekent `lintje-tabs` onder een rij links geen leeg paneel meer: alleen wat de host eronder zet, krijgt er een. De tabrij eindigt daardoor ±17 px lager dan een host die het lege paneel compenseerde verwacht; zo'n host haalt de negatieve marge onder de rij weg, anders zakt de rij uit zijn band. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) is in de paginering de huidige pagina het licht getinte vierkant van de huisstijl met het cijfer donker en vet, in plaats van gevuld in de primaire kleur. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) staan in `lintje-prose` de koppen in de primaire kleur, en is een citaat het kader van de huisstijl: twee lijnen in de accentkleur, boven en links, met een afgeronde hoek linksboven en de bron (`<cite>` of `<footer>`) eronder achter een streepje. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) hebben knoppen (ook de icoonknop, de segmenten, de schakelgroep en de filterknop), invoervakken, het vinkje en de chips de vier kleine afgeronde hoeken van de huisstijl (`--radius-control`, 4 px); een gesplitste knop rondt alleen zijn buitenhoeken, en een voorbeeldvraag van een gesprek heeft als knop de kleine hoek. Een omkaderd blok, van kaart tot dialoog en melding, blijft recht (`--radius` 0), zoals de huisstijl het tekent. In de eerdere huisstijl staan beide tokens op 0. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) rondt ook de gesplitste `lintje-menu-button` (`split`) alleen zijn buitenhoeken: de twee helften lezen als één knop. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) heeft `lintje-select` rechts het pijlvak van de huisstijl: een vak in de primaire kleur met het witte teken, binnen de rand van het veld; ook in de filterbalk. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) is het submenu (`lintje-sub-nav`) de side navigation van de huisstijl: de pagina van de lezer vet op de lichte tint, een rij onder de aanwijzer gevuld in de primaire kleur met witte tekst. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) is de tekstschaal die van de huisstijl: `--text-h1` is er 32 px (was 28), en in `lintje-prose` lopen de zes kopniveaus af over de schaal (40, 32, 24, 20, 16, 16) in plaats van h1–h3 even groot. In beide huisstijlen komen `--text-section` (24), `--text-display` (48) en `--text-display-large` (64) erbij. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) is `lintje-expander` standaard de accordeonrij van de huisstijl: een lijn erboven en eronder, de pijl vooraan, de kop in de primaire kleur en de inhoud in lijn met de titel; de omrande kaart van voorheen is daar de variant `card`, en `leading` verandert er niets meer. In de eerdere huisstijl blijft de kaart de standaard en doet `leading` wat het deed. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) heeft een veld met een fout een rode rand van 1 px en een balk van 2 px langs het hele veld, zoals de huisstijl het tekent (`--field-error-border`, `--field-error-bar`); de eerdere huisstijl houdt de rand van 2 px zonder balk. (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) heeft elk invoervak, de select en de segmenten een rand van 1 px in de accentlijn (`--color-border-field`), zoals de huisstijl een veld in lintblauw tekent; in donker de teksttint, die ook op de filterband 3:1 haalt. De uit-stand van een schakelaar houdt het grijs (`--color-choice-off`). (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) heeft een waarschuwing (`lintje-announcement`, `lintje-toast`) de balk in donkergeel en het vlak in donkergeel 15 %, zoals de huisstijl een waarschuwing tekent (`--color-alert-warning-*`). (#317)
+- In de nieuwe huisstijl (`data-style-version="new"`) staan de kapitalen van de naam naast het lint op 0,55 van de linthoogte, zoals de logospecificatie ze zet: op een desktop 3,5 px hoger dan op rijksoverheid.nl. (#317)
+
+### Opgelost
+
+- In beide huisstijlen: een grafiek zonder maat, zoals in een tegel die is ingeklapt, telde als in beeld en tekende zich onzichtbaar in; nu wacht de intro tot hij een maat heeft. (#317)
+
+## [0.9.3] - 2026-10-21
+
+### Gewijzigd
+
+- De onderstreping van een gedane stap in de stepper is dun en staat los van de lijn ernaast, zodat de naam niet meer op die lijn geregen lijkt; onder de aanwijzer wordt ze dikker. (#314)
+
+### Opgelost
+
+- De iconen in het zijmenu staan op het midden van de tekstregel in plaats van 2 px eronder; het oogje in de filterzin op een telefoon ook. (#311)
+
+## [0.9.2] - 2026-10-21
+
+### Opgelost
+
+- De pagina verspringt niet meer opzij als de zoekbox of een ander venster opent: de ruimte van de scrollbalk blijft vrij. (#310)
+
+## [0.9.1] - 2026-10-20
+
+### Gewijzigd
+
+- Tijdens het slepen in `lintje-sortable-list` schuiven de andere rijen opzij naar hun nieuwe plek, omhoog en omlaag op hetzelfde moment; de lijn en de zichtbare statusregel vervallen (een schermlezer hoort de melding nog). Na het loslaten krijgt de greep alleen focus als hij die al had. (#307)
+- "Afmelden" staat in het gebruikersmenu als icoon naast de naam, in de balk, in de zijbalk en op een telefoon; met de pijltjes komt het na de rijen. Op een telefoon staan de rijen van het gebruikersmenu verticaal gecentreerd, en in de indeling Boven vallen "Afmelden" en de versie niet meer onder de rand van het scherm. (#306)
+
+## [0.9.0] - 2026-10-20
+
+### Toegevoegd
+
+- De voorbeelden en de stijlgids hebben een favicon: het beeldmerk van Lintje in wit op lintblauw. (#301)
+
+### Gewijzigd
+
+- De README begint met wat je met Lintje maakt, legt de naam en de verhouding tot de Rijksoverheid uit in een eigen kader, toont welke groepen elementen er zijn, en zegt daarna in gewoon Nederlands hoe je Lintje gebruikt en hoe je bijdraagt; de buildscripts, het uitbrengen en de bestanden van de build staan in `assets/README.md`, `CONTRIBUTING.md` en de handleiding *Laden*. De handleidingen gebruiken dezelfde woorden: stijlgids, eigenschap, pakket, venster en paneel in plaats van styleguide, property, package, modal en drawer. (#304)
+- Onder 768 px opent de "Je ziet"-zin onder de header de filtersheet, met het aantal aangepaste filters en een pijl; de knop "Filters" in de header vervalt. Een losse filterbalk (`standalone`) opent voortaan ook zijn eigen sheet. (#303)
+- De naam naast het lint staat zoals op rijksoverheid.nl: gewicht 625, 15 px naast een lint van 48 px en 12 px naast een lint van 40 px, met dezelfde tussenruimte, hoogte en breedte, in lintblauw (in donker in de tekstkleur); de tweede regel is rechtop. (#302)
+
 ## [0.8.3] - 2026-10-19
 
 ### Gewijzigd
@@ -598,7 +698,12 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.8.3...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/h11t-labs/lintje/compare/v0.9.3...v0.10.0
+[0.9.3]: https://github.com/h11t-labs/lintje/compare/v0.9.2...v0.9.3
+[0.9.2]: https://github.com/h11t-labs/lintje/compare/v0.9.1...v0.9.2
+[0.9.1]: https://github.com/h11t-labs/lintje/compare/v0.9.0...v0.9.1
+[0.9.0]: https://github.com/h11t-labs/lintje/compare/v0.8.3...v0.9.0
 [0.8.3]: https://github.com/h11t-labs/lintje/compare/v0.8.2...v0.8.3
 [0.8.2]: https://github.com/h11t-labs/lintje/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/h11t-labs/lintje/compare/v0.8.0...v0.8.1

@@ -56,7 +56,7 @@ setIconSource({ base: './icons/' })
 
 | categorie | tags |
 |---|---|
-| `frame.js` — Paginakader | `shell`, `page-header`, `breadcrumbs`, `sub-nav`, `hero`, `footer`, `user-menu`, `app-search`, `notifications` |
+| `frame.js` — Paginakader | `shell`, `page-header`, `breadcrumbs`, `sub-nav`, `hero`, `footer`, `user-menu`, `language-nav`, `app-search`, `notifications` |
 | `layout.js` — Indeling | `grid`, `grid-item`, `tile`, `tabs`, `expander`, `accordion`, `split-pane` |
 | `overlays.js` — Vensters en panelen | `modal`, `dialog`, `drawer`, `popover`, `tooltip`, `toggletip` |
 | `actions.js` — Knoppen en iconen | `button`, `icon-button`, `menu-button`, `copy-button`, `qr-code`, `icon`, `logo` |
@@ -68,7 +68,7 @@ setIconSource({ base: './icons/' })
 | `charts.js` — Kerncijfers en grafieken | `kpi-row`, `kpi`, `chart`, `note`, `explainer` |
 | `map.js` — Kaart | `map` |
 | `graph.js` — Netwerk | `graph` |
-| `tables.js` — Tabellen en lijsten | `data-table`, `pagination`, `list`, `card`, `card-list`, `description-list`, `tree-view`, `sortable-list`, `activity-log`, `person`, `person-group` |
+| `tables.js` — Tabellen en lijsten | `data-table`, `pagination`, `list`, `card`, `card-list`, `description-list`, `tree-view`, `sortable-list`, `timeline`, `person`, `person-group` |
 | `chat.js` — Chat met data | `chat`, `chat-message`, `chat-answer`, `chat-steps`, `chat-composer`, `chat-questions`, `chat-strip`, `chat-suggestions` |
 
 De tabel volgt `src/categories.json`. `forms.js` laadt `inputs.js` mee: een formulier is niets
