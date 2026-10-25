@@ -44,6 +44,7 @@ import '../../components/tables/pagination/pagination'
 import '../../components/forms/repeater/repeater'
 import '../../components/layout/split-pane/split-pane'
 import '../../components/forms/stepper/stepper'
+import '../../components/tables/timeline/timeline'
 import '../../components/frame/sub-nav/sub-nav'
 import '../../components/layout/tabs/tabs'
 import '../../components/feedback/toast/toast'
@@ -762,6 +763,59 @@ const ROWS: Row[] = [
     phone: (element) =>
       !shown(element, '.lintje-tabs__hint') &&
       below(find(element, '.lintje-tabs__icon'), find(element, '.lintje-tabs__label')),
+  },
+  {
+    tag: 'lintje-timeline',
+    marker: 'every moment on one side, the date above the title',
+    mount: () =>
+      append(
+        create('lintje-timeline', {
+          placement: 'alternate',
+          moments: ['2019', '2021', '2023'].map((year) => ({
+            when: year,
+            title: `Fase ${year}`,
+            text: 'Een zin over wat er in dat jaar gebeurde, lang genoeg voor een paar regels.',
+          })),
+        }),
+      ),
+    wide: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-timeline__row--moment')
+      return beside(second ?? null, first ?? null)
+    },
+    phone: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-timeline__row--moment')
+      return (
+        below(first ?? null, second ?? null) &&
+        below(find(element, '.lintje-timeline__date'), find(element, '.lintje-timeline__title'))
+      )
+    },
+  },
+  {
+    tag: 'lintje-timeline',
+    marker: 'a lying timeline stands, every moment on one side',
+    mount: () =>
+      append(
+        create('lintje-timeline', {
+          orientation: 'horizontal',
+          placement: 'alternate',
+          moments: ['2019', '2021', '2023'].map((year) => ({
+            when: year,
+            at: year,
+            title: `Fase ${year}`,
+          })),
+        }),
+      ),
+    wide: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-timeline__row--moment')
+      return (
+        shown(element, '.lintje-timeline__axis') &&
+        box(second ?? null).left > box(first ?? null).left + 1
+      )
+    },
+    phone: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-timeline__row--moment')
+      return !shown(element, '.lintje-timeline__axis') && below(first ?? null, second ?? null)
+    },
   },
   {
     tag: 'lintje-stepper',
