@@ -42,6 +42,34 @@ async function mount(data: ShellData | null = DATA): Promise<LintjeShell> {
 }
 
 describe('lintje-shell', () => {
+  it('mirrors the menu’s tone on the element: filled, light in the new style, or as the host says', async () => {
+    const element = await mount()
+    expect(element.navTone).toBeUndefined()
+    expect(element.dataset.tone).toBe('filled')
+    element.setAttribute('nav-tone', 'light')
+    await element.updateComplete
+    expect(element.dataset.tone).toBe('light')
+    expect(element.shadowRoot!.querySelector('.lintje-navbar')).not.toBeNull()
+    element.removeAttribute('nav-tone')
+    document.documentElement.dataset.styleVersion = 'new'
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      await element.updateComplete
+      expect(element.dataset.tone).toBe('light')
+      element.setAttribute('nav-tone', 'filled')
+      await element.updateComplete
+      expect(element.dataset.tone).toBe('filled')
+    } finally {
+      delete document.documentElement.dataset.styleVersion
+    }
+  })
+
+  it('keeps a slot at the end of the bar for the host, before the search', async () => {
+    const element = await mount()
+    const end = element.shadowRoot!.querySelector('.lintje-navbar__end')!
+    expect(end.firstElementChild!.getAttribute('name')).toBe('end')
+  })
+
   it('draws nothing without data', async () => {
     const element = await mount(null)
     expect(element.shadowRoot!.querySelector('.lintje-shell')).toBeNull()

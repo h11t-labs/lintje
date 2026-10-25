@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-8 -11 80 80" width="80" height="80" role="img">
+  <title>Lintje</title>
+  <rect x="-8" y="-11" width="80" height="80" fill="#154273"/>
+  <path fill="#FFFFFF" d="M9 0H27V40H9Z"/>
+  <path fill="#FFFFFF" fill-opacity=".5" d="M9 40H27V58Z"/>
+  <path fill="#FFFFFF" d="M27 40H55V58H27Z"/>
+</svg>
