@@ -120,7 +120,7 @@ verandert en hoe je de lezer laat kiezen, staat in [thema's](docs/guides/theming
 
 | Oud (standaard) | Nieuw (`data-style-version="new"`) |
 |---|---|
-| ![De catalogus in de oude huisstijl: een gevuld menu in de primaire kleur en rechte hoeken.](https://raw.githubusercontent.com/h11t-labs/lintje/main/docs/images/huisstijl-oud.png) | ![De catalogus in de nieuwe huisstijl: een wit menu, de paginakop als band in de primaire kleur met een grote ronde hoek, kleine ronde hoeken op knoppen en kaarten.](https://raw.githubusercontent.com/h11t-labs/lintje/main/docs/images/huisstijl-nieuw.png) |
+| ![De catalogus in de oude huisstijl: een gevuld menu in de primaire kleur en rechte hoeken.](https://raw.githubusercontent.com/h11t-labs/lintje/main/docs/images/huisstijl-oud.png) | ![De catalogus in de nieuwe huisstijl: een wit menu, de paginakop als rechte band in de primaire kleur van rand tot rand, kleine ronde hoeken op knoppen en velden.](https://raw.githubusercontent.com/h11t-labs/lintje/main/docs/images/huisstijl-nieuw.png) |
 
 Verder lezen:
 

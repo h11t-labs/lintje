@@ -42,7 +42,7 @@ eerdere huisstijl de standaard**, zodat een host die bijwerkt niets ziet verande
 wisselt de standaard naar de nieuwe.
 
 Onder de schakelaar staat alles wat de nieuwe huisstijl anders tekent: het lichte menu en de
-band in de primaire kleur als paginakop, de kleine hoek (`--radius-control`), de grote hoek van
+band in de primaire kleur als paginakop, de kleine hoek op knoppen en velden (`--radius-control`), de grote hoek van
 een lade en een smalle band (`--radius-corner`), de focusring, de keuzerand in het accent, de koelgrijze sluier,
 de typografische schaal van de paginatitel, de marges en de inhoudsbreedte, de vier kolommen op
 een telefoon, de foutmelding boven het veld met de balk en de fouttint, de balk en de gekleurde
@@ -302,12 +302,13 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
 - **De inhoud is hoogstens 1280 px breed**, zoals de huisstijl, behalve op een pagina met cijfers
   (1600 px, zie [Pagina's met cijfers](#paginas-met-cijfers)); een host die anders wil, zet
   `--lintje-content-width`.
-- **De hoeken zijn klein, in de nieuwe huisstijl.** De huisstijl tekent online knoppen en velden
-  met vier kleine afgeronde hoeken, en zo tekent Lintje onder `data-style-version="new"` elke knop (ook
-  de icoonknop, de segmenten en de schakelgroep in de balk), elk invoervak, het vinkje en de
-  chips (`--radius-control`, 4 px), en met dezelfde hoek elk omkaderd blok: een kaart, een tegel,
-  een kerncijfer, een dialoog, een melding (`--radius`). In de eerdere huisstijl staan beide op
-  0. Nooit groter dan de kleine hoek. Rond is alleen wat een cirkel ís: een stip, een radio, een
+- **De hoeken zijn klein, in de nieuwe huisstijl, en alleen op wat je bedient.** De huisstijl
+  tekent online knoppen en velden met vier kleine afgeronde hoeken, en zo tekent Lintje onder
+  `data-style-version="new"` elke knop (ook de icoonknop, de segmenten en de schakelgroep in de
+  balk), elk invoervak, het vinkje en de chips (`--radius-control`, 4 px). Een omkaderd blok (een
+  kaart, een tegel, een kerncijfer, een dialoog, een melding) blijft recht (`--radius`, 0), zoals
+  de huisstijl een melding en een venster tekent. In de eerdere huisstijl staan beide op 0.
+  Nooit groter dan de kleine hoek. Rond is alleen wat een cirkel ís: een stip, een radio, een
   schakelaar, een avatar, een teller, de laadring.
 - **De ene afgeronde hoek loopt nooit van de pagina af.** De vormtaal van de huisstijl is een
   rechthoek met één afgeronde hoek: hoogstens drie per beeld, spaarzaam, nooit een vlak met een

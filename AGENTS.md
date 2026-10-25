@@ -56,7 +56,8 @@ niet.
     bestand tekent niets en het bedieningselement toont zijn Nederlandse label. Een icoon dat een
     component *zelf* tekent, komt in `COMPONENT_ICONS` (`scripts/build-icons.mjs`) +
     `npm run build:icons` — houd die lijst kort; elke andere naam wordt per bestand opgehaald.
-12. **Geen afgeronde SaaS-kaarten.** `--radius` is de kleine hoek van de huisstijl (4 px onder
+12. **Geen afgeronde SaaS-kaarten.** Een omkaderd blok is recht (`--radius`, 0 in beide huisstijlen);
+    alleen knoppen en velden hebben de kleine hoek (`--radius-control`, 4 px onder
     `data-style-version="new"`, 0 in de eerdere huisstijl, die tot 1.0.0 de standaard is); nooit groter.
     Alles wat de nieuwe huisstijl anders tekent, staat onder `[data-style-version='new']`, nooit als
     nieuwe standaard: verschilt alleen een waarde, dan als componenttoken in `tokens.css` en leest het
