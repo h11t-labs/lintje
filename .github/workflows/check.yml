@@ -27,9 +27,15 @@ jobs:
       - run: npm run test:unit
       - run: npm run build:elements
 
+  # Playwright's image carries the browsers and their system packages, so the job never waits on the
+  # Ubuntu mirror, which sometimes serves the WebKit packages at a crawl. The tag moves together with
+  # `playwright` in package-lock.json.
   browser:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --user 1001 --ipc=host
     strategy:
       fail-fast: false
       matrix:
@@ -41,7 +47,6 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npm run test:browser
         env:
           LINTJE_BROWSERS: ${{ matrix.browser }}
