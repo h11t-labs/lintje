@@ -11,7 +11,7 @@ import type { LintjeChart } from '../../../charts/chart/chart'
 import { ChartController, type ChartOptions } from '../shared/controller'
 import type { ChartSelection } from '../shared/mark-select'
 import type { ChartSpec, TreemapPart } from '../shared/types'
-import { renderTreemapChart } from './treemap-chart'
+import { renderTreemapChart, thinPartAt } from './treemap-chart'
 import { fitLabel, type Measure } from './treemap-labels'
 import { treemapModel, treemapRows } from './treemap-parts'
 
@@ -214,8 +214,8 @@ describe('the treemap', () => {
   it('chooses the part with a click in a sub-part, its "Overig" too', () => {
     const { host, chosen } = draw(spec(NESTED))
     const [zorg] = groups(host)
-    expect(zorg.getAttribute('role')).toBe('button')
-    expect(zorg.getAttribute('aria-pressed')).toBe('false')
+    expect(zorg.getAttribute('role')).toBe('link')
+    expect(zorg.hasAttribute('aria-pressed')).toBe(false)
     for (const area of areas(zorg)) area.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(chosen.map((mark) => mark?.id)).toEqual(['zorg', 'zorg', 'zorg'])
   })
@@ -301,7 +301,7 @@ describe('the treemap below 768 px', () => {
     const { host, chosen } = draw(spec(NESTED), { mobile: true })
     host.querySelector<HTMLButtonElement>('.lintje-treemap__toggle')!.click()
     const choice = host.querySelector<HTMLButtonElement>('.lintje-treemap__part--button')!
-    expect(choice.getAttribute('aria-pressed')).toBe('false')
+    expect(choice.getAttribute('role')).toBe('link')
     choice.click()
     expect(chosen.map((mark) => mark?.id)).toEqual(['zorg'])
     expect(host.querySelector('.lintje-treemap__sub button')).toBeNull()
@@ -453,5 +453,27 @@ describe('the treemap in its tile', () => {
     expect(element.renderRoot.querySelector('.lintje-treemap__total')?.textContent).toContain(
       'totaal',
     )
+  })
+})
+
+describe('a thin part that drills', () => {
+  // A wide part, a strip of 10 px beside it, and a part that does not drill.
+  const boxes = [
+    { x: 0, y: 0, width: 200, height: 100 },
+    { x: 200, y: 0, width: 10, height: 100 },
+    { x: 210, y: 0, width: 90, height: 100 },
+  ]
+
+  it('takes 24 px across its thin side, over its neighbours', () => {
+    expect(thinPartAt(boxes, [true, true, true], 195, 50, 24)).toBe(1)
+    expect(thinPartAt(boxes, [true, true, true], 216, 50, 24)).toBe(1)
+    // Past 12 px from its middle the neighbour keeps its own click.
+    expect(thinPartAt(boxes, [true, true, true], 190, 50, 24)).toBeNull()
+    expect(thinPartAt(boxes, [true, true, true], 220, 50, 24)).toBeNull()
+  })
+
+  it('takes nothing when it does not drill, and leaves a wide part to itself', () => {
+    expect(thinPartAt(boxes, [true, false, true], 195, 50, 24)).toBeNull()
+    expect(thinPartAt(boxes, [true, true, true], 100, 50, 24)).toBeNull()
   })
 })

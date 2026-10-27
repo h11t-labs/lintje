@@ -13,9 +13,9 @@ export interface Box {
 /** How far a revealed mark stands off the overlay or edge it passed, in px. */
 export const REVEAL_MARGIN = 8
 
-/** What stands over the drawing: the tile's own overlays and Leaflet's credit. */
+/** What stands over the drawing: the tile's own overlays, the drawing hint and Leaflet's credit. */
 export const OVERLAYS =
-  '.lintje-map-chart__layers, .lintje-map-chart__zoom, .lintje-map-chart__selection, .lintje-map-chart__scale-bar, .leaflet-control'
+  '.lintje-map-chart__layers, .lintje-map-chart__zoom, .lintje-map-chart__selection, .lintje-map-chart__scale-bar, .lintje-map-chart__hint, .leaflet-control'
 
 /** The overlays in `area`, as boxes in client pixels; one that is not drawn has no size. */
 export function overlayBoxes(area: Element): Box[] {

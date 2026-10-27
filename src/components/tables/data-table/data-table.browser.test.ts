@@ -1,11 +1,12 @@
 /**
  * The table in a browser: Escape first for a lifted grip in its column chooser, the height of a
- * filterable head, the width a truncated column takes, and a keyboard's way into a table that
- * scrolls sideways.
+ * filterable head, the width a truncated column takes, a keyboard's way into a table that
+ * scrolls sideways, and the Tab stops of a row: its name, a cut value, its controls' rings.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { deepActiveElement } from '../../../core/focus'
+import { TAB } from '../../../core/test-keys'
 import './data-table'
 import type { DataTableData, TableColumnData } from '../../../types'
 
@@ -182,6 +183,111 @@ describe('a truncated column', () => {
   })
 })
 
+describe('a truncated value in a row without controls', () => {
+  it('runs on whole under the focus, from a Tab stop of its row', async () => {
+    const element = await mount({
+      caption: 'Loketten met een toelichting',
+      rowKey: 'name',
+      columns: [
+        { key: 'name', header: 'Loket' },
+        { key: 'note', header: 'Toelichting', truncate: true },
+      ],
+      rows: [{ name: 'Utrecht', note: 'Twee balies dicht wegens scholing '.repeat(12) }],
+    })
+    const text = inShadow<HTMLElement>(
+      element,
+      '.lintje-data-table__full .lintje-data-table__cell-text',
+    )
+    await expect.poll(() => text.scrollWidth > text.clientWidth).toBe(true)
+    const row = text.closest('tr')!
+    for (let i = 0; i < 4 && !row.matches(':focus-visible'); i++) await userEvent.keyboard(TAB)
+    expect(row.matches(':focus-visible')).toBe(true)
+    expect(getComputedStyle(text).whiteSpace).toBe('normal')
+    expect(text.scrollWidth).toBeLessThanOrEqual(text.clientWidth)
+  })
+})
+
+describe('a clickable row', () => {
+  it('is no Tab stop itself: its name is, a link to its href, current when chosen', async () => {
+    const element = await mount({
+      caption: 'Loketten',
+      rowKey: 'name',
+      clickable: true,
+      selectedId: 'Utrecht',
+      columns: [
+        { key: 'name', header: 'Loket' },
+        { key: 'requests', header: 'Aanvragen' },
+      ],
+      rows: [{ name: 'Utrecht', requests: 12, href: '?loket=utrecht' }],
+    })
+    const row = inShadow<HTMLElement>(element, '.lintje-data-table__full .lintje-data-table__row')
+    expect(row.hasAttribute('tabindex')).toBe(false)
+    expect(row.hasAttribute('aria-selected')).toBe(false)
+    // Past the sort buttons of the head, Tab comes to the row's name.
+    for (let i = 0; i < 4 && !row.contains(deepActiveElement()); i++) await userEvent.keyboard(TAB)
+    const name = deepActiveElement()!
+    expect(name.tagName).toBe('A')
+    expect(name.getAttribute('href')).toBe('?loket=utrecht')
+    expect(name.getAttribute('aria-current')).toBe('true')
+    expect(row.contains(name)).toBe(true)
+  })
+})
+
+describe('the controls in a row', () => {
+  const probe = (element: Element, token: string): string => {
+    const span = document.createElement('span')
+    span.style.color = `var(${token})`
+    element.shadowRoot!.append(span)
+    const colour = getComputedStyle(span).color
+    span.remove()
+    return colour
+  }
+
+  it('ring the detail toggle inside it, whole beside the scroller’s edge', async () => {
+    const element = await mount({
+      caption: 'Loketten',
+      rowKey: 'name',
+      columns: [
+        { key: 'name', header: 'Loket' },
+        { key: 'requests', header: 'Aanvragen' },
+      ],
+      detailFields: [{ key: 'note', label: 'Toelichting' }],
+      rows: [{ name: 'Utrecht', requests: 12, note: 'Open' }],
+    })
+    const toggle = inShadow<HTMLElement>(element, '.lintje-data-table__detail-toggle')
+    for (let i = 0; i < 4 && deepActiveElement() !== toggle; i++) await userEvent.keyboard(TAB)
+    expect(deepActiveElement()).toBe(toggle)
+    const style = getComputedStyle(toggle)
+    expect(style.outlineColor).toBe(probe(element, '--color-focus'))
+    expect(parseFloat(style.outlineOffset)).toBeLessThanOrEqual(-parseFloat(style.outlineWidth))
+    const scroller = inShadow<HTMLElement>(element, '.lintje-data-table__scroller')
+    expect(toggle.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+      scroller.getBoundingClientRect().left,
+    )
+  })
+
+  it('show the pencil of an editable cell under the focus', async () => {
+    const element = await mount({
+      caption: 'Loketten',
+      rowKey: 'name',
+      columns: [
+        { key: 'name', header: 'Loket' },
+        { key: 'requests', header: 'Aanvragen', editor: { kind: 'number' } },
+      ],
+      rows: [{ name: 'Utrecht', requests: 12 }],
+    })
+    const cell = inShadow<HTMLElement>(
+      element,
+      '.lintje-data-table__full td.lintje-data-table__cell--editable',
+    )
+    const pencil = cell.querySelector<HTMLElement>('.lintje-data-table__edit-icon')!
+    expect(getComputedStyle(pencil).visibility).toBe('hidden')
+    for (let i = 0; i < 4 && deepActiveElement() !== cell; i++) await userEvent.keyboard(TAB)
+    expect(deepActiveElement()).toBe(cell)
+    expect(getComputedStyle(pencil).visibility).toBe('visible')
+  })
+})
+
 describe('a compact change column', () => {
   it.each([true, false])('shows its words through Tab with clickable=%s', async (clickable) => {
     const element = document.createElement('lintje-data-table') as TableElement
@@ -212,9 +318,11 @@ describe('a compact change column', () => {
     )
     expect(getComputedStyle(glyph).display).not.toBe('none')
     expect(getComputedStyle(words).display).toBe('none')
+    // A clickable row's stop is its name; a static row is a stop of its own.
     const row = glyph.closest('tr')!
-    await userEvent.keyboard('{Tab}{Tab}{Tab}')
-    await expect.poll(() => row.matches(':focus-visible')).toBe(true)
+    for (let i = 0; i < 4 && !row.matches(':focus-visible, :has(:focus-visible)'); i++)
+      await userEvent.keyboard(TAB)
+    expect(row.matches(':focus-visible, :has(:focus-visible)')).toBe(true)
     expect(getComputedStyle(glyph).display).toBe('none')
     expect(getComputedStyle(words).display).not.toBe('none')
     expect(words.textContent).toBe('▲ +4% tegenover vorige week')

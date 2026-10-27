@@ -49,6 +49,7 @@
 .lintje-map-chart__data .lintje-map-chart__polygon-shape,
 .lintje-map-chart__data .lintje-map-chart__flow-line,
 .lintje-map-chart__data .lintje-map-chart__point-shape { pointer-events: visiblePainted; }
+.lintje-map-chart__data .lintje-map-chart__flow-hit { pointer-events: stroke; }
 .lintje-map-chart__destination { pointer-events: none; }
 /* A tool on: the map is a sheet to draw on, also for a finger. */
 .lintje-map-chart .leaflet-container.is-drawing { cursor: crosshair; touch-action: none; }
@@ -156,6 +157,14 @@
 .lintje-map-chart__flow-line { stroke: var(--color-chart-default); stroke-width: var(--lintje-flow-width); }
 .lintje-map-chart__flow-ring,
 .lintje-map-chart__flow-gap { stroke: none; pointer-events: none; }
+/* However thin the flow, the pointer finds it within 12 px of its line (WCAG 2.5.8). */
+.lintje-map-chart__flow-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: var(--h-target-text);
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
 .lintje-map-chart__flow:hover,
 .lintje-map-chart__flow.is-selected { opacity: 1; }
 /* Something is chosen, a mark or an area: the flows not chosen step back, further than a point. */
@@ -299,6 +308,9 @@
   inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
 }
 .lintje-map-chart__layer:first-child { margin-left: 0; }
+/* The buttons overlap by their line: the focused one lies over its neighbour, ring and all. */
+.lintje-map-chart__layer:focus-visible,
+.lintje-map-chart__zoom-button:focus-visible { z-index: 1; }
 .lintje-map-chart__layer.is-active {
   background: var(--color-action-primary);
   color: var(--color-action-primary-text);
@@ -380,6 +392,27 @@
   width: max-content;
   max-width: calc(100% - 2 * var(--space-4));
 }
+
+/* With a tool on, Enter sets a point at the middle of the view: a cross marks it while the map
+   has the keyboard's focus, and the arrow keys move the map under it. */
+.lintje-map-chart__crosshair {
+  position: absolute; z-index: 1;
+  top: 50%; left: 50%;
+  width: var(--space-6); height: var(--space-6);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  display: none;
+}
+.lintje-map-chart__leaflet:focus-visible ~ .lintje-map-chart__crosshair { display: block; }
+.lintje-map-chart__crosshair::before,
+.lintje-map-chart__crosshair::after {
+  content: '';
+  position: absolute;
+  background: var(--color-text-primary);
+  outline: 1px solid var(--color-bg-surface);
+}
+.lintje-map-chart__crosshair::before { top: 0; bottom: 0; left: 50%; width: 2px; transform: translateX(-50%); }
+.lintje-map-chart__crosshair::after { left: 0; right: 0; top: 50%; height: 2px; transform: translateY(-50%); }
 
 /* The scale bottom right, as on a road map: the distance, then a bracket as long as it on the
    map; without a frame, on a basemap on the surface over the credit. */

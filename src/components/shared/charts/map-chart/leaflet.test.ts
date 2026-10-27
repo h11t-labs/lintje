@@ -56,6 +56,8 @@ function surface(options: Partial<LeafletSyncOptions> = {}, data: unknown = DATA
     chosen: [],
     tool: null,
     drawn: () => {},
+    drawStart: () => {},
+    drawCancel: () => {},
     stopTool: () => {},
     drag: true,
     zoom: true,
