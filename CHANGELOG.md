@@ -11,6 +11,26 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-10-27
+
+### Toegevoegd
+
+- Een tijdlijn: momenten langs een rail, staand of liggend, aan één kant, om en om of per kant, met vandaag op de rail en eerst de momenten het dichtst bij nu. Een moment heeft drie regels: de datum en een label boven de kop, de kop, en eronder een zin, een link en een eigen slot. Een moment kan zeggen wie het deed: een persoon met zijn rondje, of wat geen persoon is ("Systeem") met een icoon in het rondje. (#316)
+- Een kaart krijgt naast `basemap` optioneel `basemapDark`: een tweede WMS-ondergrond, van hetzelfde type, voor donker. De kaart kiest op de modus van het element en vervangt bij een wissel alleen de tegellaag; zonder `basemapDark` tekent donker `basemap`. (#280)
+
+### Gewijzigd
+
+- De stijlgidstest draait in vier delen naast elkaar, zodat de browsertests lokaal in ongeveer 37 s klaar zijn in plaats van 1:46. (#320)
+
+### Verwijderd
+
+- **Brekend:** `lintje-activity-log` vervalt; een logboek is nu een `lintje-timeline`. Geef `entries` als `moments`, elk `{ who, title: what, when, at }`, het nieuwste eerst zoals voorheen en `limit="10" step="10"` voor tien per keer. De tijd staat boven de regel, of aan één kant in een kolom vóór de rail. Een naam als tekst is nu geen persoon meer en krijgt het rondje met tandwielen: geef een persoon als `Person`. Het type `ActivityEntry` vervalt met het element. (#316)
+
+### Opgelost
+
+- De browsertests in CI draaien in het image van Playwright, zodat de WebKit-job niet meer op een trage Ubuntu-mirror wacht en binnen zijn limiet blijft. (#321)
+- De browsertest van de focusring van `lintje-segmented` slaagt ook in WebKit: hij tabt nu zoals de andere browsertests, vanuit een veld ervoor. (#308)
+
 ## [0.10.0] - 2026-10-25
 
 ### Toegevoegd
@@ -698,7 +718,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.10.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/h11t-labs/lintje/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/h11t-labs/lintje/compare/v0.9.3...v0.10.0
 [0.9.3]: https://github.com/h11t-labs/lintje/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/h11t-labs/lintje/compare/v0.9.1...v0.9.2
