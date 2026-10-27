@@ -1166,8 +1166,10 @@ gekozen.
 **Leaflet draagt de kaart, het design system tekent de data.** Projectie, verslepen, zoomen en
 de tegels van een ondergrond zijn van Leaflet; land, vlakken, punten en stromen tekent het design
 system zelf in Leaflets svg, met dezelfde klassen, toestanden en animaties als elke grafiek. Zo is
-er één kaart, met of zonder ondergrond. De projectie is Web Mercator, zoals elke webkaart, ook
-voor Nederland: op tegelformaat is het verschil met de landsprojectie niet te zien.
+er één kaart, met of zonder ondergrond. Een ondergrond kan een donkere tegenhanger hebben, een
+tweede WMS-kaart als andere laag of op een ander adres; de kaart kiest hem op de modus, in de
+browser, en wisselt bij een omslag alleen de tegels. De projectie is Web Mercator, zoals elke
+webkaart, ook voor Nederland: op tegelformaat is het verschil met de landsprojectie niet te zien.
 
 **Een kaart is met de muis te verslepen en zoomt rond de aanwijzer: met een dubbelklik, en op
 het wiel alleen met Ctrl of ⌘ ingedrukt.** Zonder die toets scrolt het wiel de pagina door en
