@@ -278,7 +278,7 @@ describe('the basemap in dark', () => {
     return found
   }
 
-  it('keeps the light basemap in dark without a dark style, and the same tile layer', () => {
+  it('keeps the light basemap in dark without a dark one, and the same tile layer', () => {
     const data = { ...DATA, basemap: BASEMAP }
     const { instance, options } = surface({}, data)
     const [light] = tiles(instance)
@@ -289,10 +289,11 @@ describe('the basemap in dark', () => {
     expect(after[0]).toMatchObject({ url: 'https://x/wms', layers: 'l' })
   })
 
-  it('draws the dark style in dark and the light one in light, on the same map', () => {
+  it('draws the dark basemap in dark and the light one in light, on the same map', () => {
     const data = {
       ...DATA,
-      basemap: { ...BASEMAP, dark: { url: 'https://x/dark', layers: 'd' } },
+      basemap: BASEMAP,
+      basemapDark: { ...BASEMAP, url: 'https://x/dark', layers: 'd', attribution: 'y' },
     }
     const { instance, container, options } = surface({}, data)
     expect(tiles(instance)).toMatchObject([{ url: 'https://x/wms', layers: 'l' }])
@@ -307,14 +308,10 @@ describe('the basemap in dark', () => {
     expect(map!.getZoom()).toBe(zoom)
     expect(container.querySelector('.lintje-map-chart__data')).toBe(drawing)
     expect(mark(container, 'ein')).not.toBeNull()
-    expect(container.querySelector('.leaflet-control-attribution')?.textContent).toContain('x')
+    // The credit is the dark basemap's own.
+    expect(container.querySelector('.leaflet-control-attribution')?.textContent).toContain('y')
     instance.sync(data as never, { ...options, mode: 'light' })
     expect(tiles(instance)).toMatchObject([{ url: 'https://x/wms', layers: 'l' }])
-  })
-
-  it('takes the light address for a dark style that names its layers only', () => {
-    const data = { ...DATA, basemap: { ...BASEMAP, dark: { layers: 'd' } } }
-    const { instance } = surface({ mode: 'dark' }, data)
-    expect(tiles(instance)).toMatchObject([{ url: 'https://x/wms', layers: 'd' }])
+    expect(container.querySelector('.leaflet-control-attribution')?.textContent).toContain('x')
   })
 })

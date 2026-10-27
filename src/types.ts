@@ -36,7 +36,6 @@ export type {
   ScatterSeriesData,
   DumbbellRow,
   WmsBasemap,
-  WmsBasemapDark,
   MapArea,
   MapControls,
   RadarSeriesData,

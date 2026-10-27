@@ -1,3 +1,3 @@
 ### Toegevoegd
 
-- Een WMS-ondergrond van de kaart krijgt optioneel een donkere stijl (`basemap.dark`, met een eigen `url` en/of `layers`; wat ontbreekt, neemt de lichte waarde over). De kaart kiest op de modus van het element en vervangt bij een wissel alleen de tegellaag; zonder `dark` blijft de lichte ondergrond in beide modi. (#280)
+- Een kaart krijgt naast `basemap` optioneel `basemapDark`: een tweede WMS-ondergrond, van hetzelfde type, voor donker. De kaart kiest op de modus van het element en vervangt bij een wissel alleen de tegellaag; zonder `basemapDark` tekent donker `basemap`. (#280)

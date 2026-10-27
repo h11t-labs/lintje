@@ -515,16 +515,6 @@ export interface MapControls {
   legend?: boolean
 }
 
-/**
- * The basemap in dark mode: the address and/or the layers of a dark style. A field left out takes
- * the light one.
- */
-export interface WmsBasemapDark {
-  url?: string
-  /** Comma separated. */
-  layers?: string
-}
-
 /** The basemap the map draws on, a WMS service the host configures. */
 export interface WmsBasemap {
   kind: 'wms'
@@ -539,12 +529,6 @@ export interface WmsBasemap {
   transparent?: boolean
   /** Shown bottom right; the service's terms usually require it. Required. */
   attribution: string
-  /**
-   * The basemap in dark mode, for a service that offers a dark style at another address or as
-   * another layer. A field left out takes the light one; `format`, `version`, `transparent` and
-   * `attribution` are shared. Without it both modes draw the light basemap.
-   */
-  dark?: WmsBasemapDark
 }
 
 /**
@@ -628,6 +612,12 @@ export interface MapSpec {
   clearHref?: string
   /** Tiles under the map: Leaflet draws the basemap, the map draws its data over it. */
   basemap?: WmsBasemap
+  /**
+   * The basemap in dark mode, a second one for a service with a dark style at another address or
+   * as another layer. Only the browser knows the mode, so both travel and the map chooses.
+   * Without it dark draws `basemap`.
+   */
+  basemapDark?: WmsBasemap
   /** Which parts of the map show and answer; each left out keeps its default. */
   controls?: MapControls
   /** The area the host keeps, from its URL: adopted when it changes, as `selectedId` is. */

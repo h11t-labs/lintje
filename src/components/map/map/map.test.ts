@@ -1246,16 +1246,16 @@ describe('lintje-map basemap', () => {
     url: 'https://wms.invalid/light',
     layers: 'licht',
     attribution: 'x',
-    dark: { url: 'https://wms.invalid/dark', layers: 'donker' },
   }
+  const BASEMAP_DARK = { ...BASEMAP, url: 'https://wms.invalid/dark', layers: 'donker' }
   const sources = (element: MapTile) =>
     [...element.renderRoot.querySelectorAll<HTMLImageElement>('img.leaflet-tile')].map(
       (tile) => tile.getAttribute('src') ?? '',
     )
 
-  it('follows the mode of the page: the dark style in dark, the light one back in light', async () => {
+  it('follows the mode of the page: the dark basemap in dark, the light one back in light', async () => {
     document.documentElement.dataset.mode = 'dark'
-    const element = await mapTile(tileData({ basemap: BASEMAP }))
+    const element = await mapTile(tileData({ basemap: BASEMAP, basemapDark: BASEMAP_DARK }))
     expect(sources(element).length).toBeGreaterThan(0)
     expect(sources(element).every((src) => src.startsWith('https://wms.invalid/dark?'))).toBe(true)
     expect(sources(element).every((src) => /LAYERS=donker/i.test(src))).toBe(true)
