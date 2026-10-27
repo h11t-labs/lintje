@@ -1,4 +1,5 @@
-:host { display: inline-flex; min-width: 0; }
+/* Centred on the line: the first bar's height would set the baseline, and move the line with it. */
+:host { display: inline-flex; min-width: 0; vertical-align: middle; }
 :host([hidden]) { display: none; }
 
 /* ------------------------------------------------------------------------ */
