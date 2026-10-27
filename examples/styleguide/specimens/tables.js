@@ -1490,6 +1490,18 @@ export default {
             stage.querySelector('lintje-sortable-list').items = COLUMNS
           },
         },
+        {
+          label: 'Met een lange naam',
+          note: 'Een naam die niet op één regel past, loopt door en de rij groeit mee.',
+          html: '<div style="max-width: 320px"><lintje-sortable-list label="Kolommen" checkable></lintje-sortable-list></div>',
+          setup(stage) {
+            stage.querySelector('lintje-sortable-list').items = [
+              COLUMNS[0],
+              { id: 'wijziging', label: 'Datum van de laatste wijziging door de behandelaar', checked: true },
+              COLUMNS[2],
+            ]
+          },
+        },
       ],
     },
     {

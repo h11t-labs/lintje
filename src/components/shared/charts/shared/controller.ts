@@ -2,6 +2,7 @@
  * The state a chart needs between renders; the charts themselves are render functions.
  * The host (a Lit element) creates one controller per chart and passes it in `ChartOptions`.
  */
+import type { TextFont } from '../../../../core/format'
 import { lengthPx } from '../../../../core/length'
 import { FrameResizeObserver } from '../../frame-resize-observer'
 import { DEFAULT_PLOT_AREA, type PlotArea } from './scale'
@@ -173,9 +174,33 @@ export class ChartController {
     this.notify()
   }
 
-  // The tokens sit on the element's `:host`, not the document, so they are read from the element.
-  get fontFamily(): string {
-    return this.element ? getComputedStyle(this.element).getPropertyValue('--font-ui') : ''
+  /**
+   * An axis label as this chart draws it, read from one (or from a hidden one before the first):
+   * the reader's default font and letter and word spacing reach every measurement. The tokens
+   * sit on the element's `:host`, not the document, so the family is read from the element.
+   */
+  get font(): TextFont {
+    const element = this.element
+    const family = element ? getComputedStyle(element).getPropertyValue('--font-ui') : ''
+    // Without the tokens the chart's own styles are not there either: nothing is drawn as designed.
+    if (!element || !family) return { family }
+    const drawn = element.querySelector('.lintje-chart__axis-label')
+    const probe = drawn ? null : document.createElement('span')
+    if (probe) {
+      probe.className = 'lintje-chart__axis-label'
+      probe.hidden = true
+      element.append(probe)
+    }
+    const style = getComputedStyle(drawn ?? probe!)
+    const size = parseFloat(style.fontSize) || 12
+    const font = {
+      family,
+      scale: size / 12,
+      letterSpacing: (parseFloat(style.letterSpacing) || 0) / size,
+      wordSpacing: (parseFloat(style.wordSpacing) || 0) / size,
+    }
+    probe?.remove()
+    return font
   }
 
   /**

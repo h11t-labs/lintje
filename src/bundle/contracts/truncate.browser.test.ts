@@ -1,7 +1,7 @@
 /**
  * Text cut with an ellipsis: with a pointer it stands on one line and its whole words in the
- * `title`; under the keyboard's focus and on a phone it wraps whole and stays inside its parent.
- * Text that never has a pointer to show a `title` is never cut.
+ * `title`; under the keyboard's focus, on a phone and without hover it wraps whole and stays
+ * inside its parent. Text that never has a pointer to show a `title` is never cut.
  */
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
@@ -10,7 +10,11 @@ import { TAB } from '../../core/test-keys'
 import '../../components/actions/button/button'
 import '../../components/actions/menu-button/menu-button'
 import '../../components/charts/chart/chart'
+import '../../components/chat/chat-composer/chat-composer'
+import '../../components/chat/chat-steps/chat-steps'
+import '../../components/content/attachment/attachment'
 import '../../components/content/document-viewer/document-viewer'
+import '../../components/content/log-viewer/log-viewer'
 import '../../components/content/transcript/transcript'
 import '../../components/filters/filter-zone/filter-zone'
 import '../../components/forms/stepper/stepper'
@@ -18,6 +22,7 @@ import '../../components/frame/app-search/app-search'
 import '../../components/frame/shell/shell'
 import '../../components/frame/user-menu/user-menu'
 import '../../components/inputs/multiselect/multiselect'
+import '../../components/map/map/map'
 import '../../components/tables/data-table/data-table'
 import '../../components/tables/list/list'
 import '../../components/tables/tree-view/tree-view'
@@ -25,9 +30,10 @@ import type { ChartData, DataTableData } from '../../types'
 
 /**
  * How the whole text reaches a pointer: `measured` sets the `title` when the pointer finds the
- * text cut and none when it fits; `always` has it whatever the width; `never` is never cut.
+ * text cut and none when it fits; `always` has it whatever the width; `never` is never cut;
+ * `focus` has none, and the text stands whole, on its line, where the focus is.
  */
-type Title = 'measured' | 'always' | 'never'
+type Title = 'measured' | 'always' | 'never' | 'focus'
 
 interface Row {
   name: string
@@ -47,8 +53,10 @@ interface Row {
   phone?: (element: HTMLElement) => Promise<unknown>
   /** The text exists only below 768 px. */
   phoneOnly?: boolean
-  /** A text longer than `LONG`, for an element only the screen's width cuts. */
+  /** A text longer than `LONG`, for an element only the screen's width cuts; or a short one. */
   long?: string
+  /** Without hover, on a tablet, the text wraps as on a phone: its `(hover: none)` rule. */
+  touch?: boolean
   /** What the text stays inside at 390 and 320 px. */
   room: (element: HTMLElement) => HTMLElement
 }
@@ -108,7 +116,9 @@ function shown(element: Element, selector: string): HTMLElement {
   return matches.find(drawn) ?? matches[0]!
 }
 
-const cut = (text: HTMLElement): boolean => text.scrollWidth > text.clientWidth
+/** Overflow does not apply to an inline box, whose `scrollWidth` Firefox still reports. */
+const cut = (text: HTMLElement): boolean =>
+  getComputedStyle(text).display !== 'inline' && text.scrollWidth > text.clientWidth
 
 function lines(text: HTMLElement): number {
   const height = parseFloat(getComputedStyle(text).lineHeight)
@@ -169,6 +179,30 @@ const PICTURE =
   encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90"><rect width="160" height="90" fill="#ccc"/></svg>',
   )
+
+/**
+ * The element's rules for a screen without hover, switched on in this frame: emulating the
+ * media feature is page-wide and Chromium's alone.
+ */
+function withoutHover(element: HTMLElement): () => void {
+  const rules = element
+    .shadowRoot!.adoptedStyleSheets.flatMap((sheet) => [...sheet.cssRules])
+    .filter(
+      (rule): rule is CSSMediaRule =>
+        rule instanceof CSSMediaRule && rule.conditionText.includes('(hover: none)'),
+    )
+  expect(rules.length, 'a rule for a screen without hover').toBeGreaterThan(0)
+  const texts = rules.map((rule) => rule.media.mediaText)
+  for (const rule of rules) rule.media.mediaText = 'all'
+  return () => rules.forEach((rule, i) => (rule.media.mediaText = texts[i]!))
+}
+
+/** Puts the caret at the start of the question box, in its first word. */
+async function caretInFirstWord(element: HTMLElement): Promise<void> {
+  inShadow(element, '.lintje-chat-composer__input').focus()
+  await userEvent.keyboard('{Home}')
+  await (element as HTMLElement & { updateComplete: Promise<unknown> }).updateComplete
+}
 
 /** Opens a menu with the pointer, unless it is open: a resize may close it. */
 async function reopen(element: HTMLElement, trigger: string): Promise<void> {
@@ -523,6 +557,107 @@ const ROWS: Row[] = [
     focus: tabInto,
     room: (element) => inShadow(element, '.lintje-multiselect__field'),
   },
+  {
+    name: 'lintje-log-viewer :: source of a line',
+    title: 'never',
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-log-viewer'), {
+          data: {
+            title: 'Importlog',
+            entries: [
+              { id: 'a', time: '14:03:27.118', level: 'info', source: words, message: 'Gestart' },
+            ],
+          },
+        }),
+        room(900),
+      ),
+    text: (element) => inShadow(element, '.lintje-log-viewer__source'),
+    room: (element) => inShadow(element, '.lintje-log-viewer__row'),
+  },
+  {
+    // The hint is the map's own words: the map is narrower than they are.
+    name: 'lintje-map :: how to draw',
+    title: 'never',
+    mount: async () => {
+      const map = await append(
+        Object.assign(document.createElement('lintje-map'), {
+          data: {
+            variant: 'points',
+            geo: 'netherlands',
+            values: [{ id: 'utr', label: 'Utrecht', value: 12, lon: 5.12, lat: 52.09 }],
+            unit: 'aantal',
+            description: 'Loketten in Nederland.',
+            controls: { circle: true },
+          },
+        }),
+        room(320),
+      )
+      await expect.poll(() => map.shadowRoot!.querySelector('.lintje-map-chart__tool')).toBeTruthy()
+      inShadow(map, '.lintje-map-chart__tool').click()
+      await expect.poll(() => map.shadowRoot!.querySelector('.lintje-map-chart__hint')).toBeTruthy()
+      return map
+    },
+    text: (element) => inShadow(element, '.lintje-map-chart__hint'),
+    room: (element) => inShadow(element, '.lintje-map-chart__area'),
+  },
+  {
+    // A screen reader hears the kind in the field's live region; the eye reads it over the word.
+    name: 'lintje-chat-composer :: caption over a recognised word',
+    title: 'focus',
+    long: 'Regio of loket?',
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-chat-composer'), {
+          vocabulary: [
+            { label: 'Zuid', kind: words },
+            { label: 'Utrecht', kind: 'Loket' },
+          ],
+          text: 'Zuid Utrecht',
+        }),
+        room(480),
+      ),
+    text: (element) => inShadow(element, '.lintje-chat-composer__caption'),
+    focus: caretInFirstWord,
+    phone: caretInFirstWord,
+    room: (element) => inShadow(element, '.lintje-chat-composer__field'),
+  },
+  {
+    name: 'lintje-chat-steps :: step in the open list',
+    title: 'always',
+    touch: true,
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-chat-steps'), {
+          open: true,
+          items: [
+            { label: 'Vraag gelezen', state: 'done' },
+            { label: words, state: 'done' },
+          ],
+        }),
+        room(480),
+      ),
+    text: (element) => all(element.shadowRoot!, '.lintje-chat-steps__text')[1]!,
+    focus: (element) => inShadow(element, '.lintje-chat-steps__toggle').focus(),
+    room: (element) => all(element.shadowRoot!, '.lintje-chat-steps__step')[1]!,
+  },
+  {
+    name: 'lintje-attachment :: name',
+    title: 'always',
+    touch: true,
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-attachment'), {
+          removable: true,
+          data: { id: 'a', name: words, size: 860 * 1024, state: 'done' },
+        }),
+        room(480),
+      ),
+    text: (element) => inShadow(element, '.lintje-attachment__stem'),
+    titleOn: (element) => inShadow(element, '.lintje-attachment__name'),
+    focus: (element) => inShadow(element, '.lintje-attachment__action').focus(),
+    room: (element) => element.parentElement!,
+  },
 ]
 
 /* The contract ------------------------------------------------------------ */
@@ -574,9 +709,31 @@ async function check(row: Row): Promise<void> {
     const element = await row.mount(LONG)
     if (!row.phoneOnly) {
       expect(cut(row.text(element)), 'not cut at 1440 px').toBe(false)
-      await userEvent.hover(row.text(element))
+      expect(inside(row.text(element), row.room(element)), 'inside its parent at 1440 px').toBe(
+        true,
+      )
+      // A text the pointer passes through cannot be hovered: it has no title either way.
+      if (getComputedStyle(row.text(element)).pointerEvents !== 'none') {
+        await userEvent.hover(row.text(element))
+      }
       expect(row.text(element).hasAttribute('title'), 'no title').toBe(false)
     }
+    await onPhones(row, element)
+    return
+  }
+
+  if (row.title === 'focus') {
+    const element = await row.mount(row.long ?? LONG)
+    await expect.poll(() => cut(row.text(element)), { message: 'cut at rest' }).toBe(true)
+    expect(row.text(element).hasAttribute('title'), 'no title').toBe(false)
+    await keyboardFocus(row, element)
+    await expect
+      .poll(() => cut(row.text(element)), { message: 'whole under the focus' })
+      .toBe(false)
+    expect(inside(row.text(element), row.room(element)), 'inside its parent').toBe(true)
+    ;(deepActiveElement() as HTMLElement | null)?.blur()
+    for (const start of document.querySelectorAll('input[aria-label="Zoeken"]')) start.remove()
+    await expect.poll(() => cut(row.text(element)), { message: 'cut again' }).toBe(true)
     await onPhones(row, element)
     return
   }
@@ -597,6 +754,17 @@ async function check(row: Row): Promise<void> {
     expect(lines(text), 'more than one line under the focus').toBeGreaterThan(1)
     ;(deepActiveElement() as HTMLElement | null)?.blur()
     for (const start of document.querySelectorAll('input[aria-label="Zoeken"]')) start.remove()
+  }
+
+  if (row.touch) {
+    await expect.poll(() => cut(text), { message: 'cut again' }).toBe(true)
+    const restore = withoutHover(element)
+    try {
+      await expect.poll(() => cut(text), { message: 'not cut without hover' }).toBe(false)
+      expect(lines(text), 'more than one line without hover').toBeGreaterThan(1)
+    } finally {
+      restore()
+    }
   }
 
   await onPhones(row, element)

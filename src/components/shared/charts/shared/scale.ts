@@ -5,6 +5,7 @@ import {
   formatNumber,
   textWidth,
   truncateToWidth,
+  type TextFont,
 } from '../../../../core/format'
 
 export interface PlotArea {
@@ -51,15 +52,15 @@ export interface RowLabelColumn {
 export function rowLabelColumn(
   labels: string[],
   chartWidth: number,
-  { fontFamily = '' }: { fontFamily?: string } = {},
+  { font = '' }: { font?: TextFont | string } = {},
 ): RowLabelColumn {
   const cap = Math.min(ROW_LABEL_MAX, Math.round(chartWidth * ROW_LABEL_SHARE))
-  const widest = Math.ceil(Math.max(0, ...labels.map((label) => textWidth(label, fontFamily))))
+  const widest = Math.ceil(Math.max(0, ...labels.map((label) => textWidth(label, font))))
   const labelEnd = Math.min(cap, widest)
   return {
     labelEnd,
     barStart: labelEnd + ROW_LABEL_GAP,
-    fit: (label) => truncateToWidth(label, labelEnd, fontFamily),
+    fit: (label) => truncateToWidth(label, labelEnd, font),
   }
 }
 
@@ -76,11 +77,11 @@ export interface AxisColumn {
 export function axisColumn(
   ticks: number[],
   chartWidth: number,
-  { minimum = AXIS_COLUMN_MIN, fontFamily = '' }: { minimum?: number; fontFamily?: string } = {},
+  { minimum = AXIS_COLUMN_MIN, font = '' }: { minimum?: number; font?: TextFont | string } = {},
 ): AxisColumn {
   const cap = Math.min(AXIS_COLUMN_MAX, Math.round(chartWidth * AXIS_COLUMN_SHARE))
   const needed = (format: (tick: number) => string) =>
-    Math.ceil(Math.max(0, ...ticks.map((tick) => textWidth(format(tick), fontFamily))) + AXIS_GAP)
+    Math.ceil(Math.max(0, ...ticks.map((tick) => textWidth(format(tick), font))) + AXIS_GAP)
   let format = formatNumber
   let width = needed(format)
   if (width > cap) {

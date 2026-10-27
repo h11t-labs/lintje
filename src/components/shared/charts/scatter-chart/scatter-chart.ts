@@ -9,7 +9,7 @@ import { styleProps } from '../../../../core/style-props'
 import { staggerStyle } from '../shared/stagger'
 import { axisColumn, axisScale, plotWidth, yPosition, type PlotArea } from '../shared/scale'
 import { lengthPx } from '../../../../core/length'
-import { formatNumber, textWidth } from '../../../../core/format'
+import { formatNumber, textWidth, type TextFont } from '../../../../core/format'
 import { chartColor, lineCasing } from '../shared/colors'
 import { markPath, SERIES_KEYS, isSeriesKey, type SeriesKey } from '../shared/series-shapes'
 import {
@@ -59,13 +59,13 @@ export function placeDataLabels(
   points: { label: string; x: number; y: number }[],
   names: string[],
   area: PlotArea,
-  fontFamily: string,
+  font: TextFont | string,
 ): DataLabel[] {
   const reach = RADIUS + 1
   const placed: (DataLabel & Box)[] = []
   for (const [i, point] of points.entries()) {
     if (!names.includes(point.label)) continue
-    const width = textWidth(point.label, fontFamily, 700)
+    const width = textWidth(point.label, font, 700)
     const baseline = point.y - 9
     const top = baseline - 12
     const bottom = baseline + 3
@@ -151,7 +151,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
 
   const x = axisScale(Math.max(...drawable.map(({ point }) => point.x), 1), options.mobile ? 3 : 6)
   const y = axisScale(Math.max(...drawable.map(({ point }) => point.y), threshold ?? 0, 1))
-  const axis = axisColumn(y.ticks, controller.width, { fontFamily: controller.fontFamily })
+  const axis = axisColumn(y.ticks, controller.width, { font: controller.font })
   const area = chartArea(options, { left: axis.width, bottom: BOTTOM })
   const xPosition = (value: number) => area.left + (plotWidth(area) * value) / x.max
 
@@ -216,7 +216,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
     points.map((entry, i) => ({ label: entry.point.label, ...at(i) })),
     spec.dataLabels ?? [],
     area,
-    controller.fontFamily,
+    controller.font,
   )
 
   const thresholdY = threshold != null ? yPosition(threshold, y.max, area) : 0
@@ -337,7 +337,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
       ${renderLegend({ items: legend, onToggle: (key) => controller.toggleSeries(key) })}
       ${renderChartFrame(
         {
-          fontFamily: controller.fontFamily,
+          font: controller.font,
           id,
           ticks: y.ticks,
           max: y.max,

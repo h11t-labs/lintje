@@ -41,7 +41,8 @@
    widest; stacked it is the full width, as every field. */
 :host(lintje-select[data-style-version='new']) { width: 100%; max-width: var(--w-field); }
 :host(lintje-select[data-style-version='new'][stacked]) { max-width: none; }
-:host(lintje-time-input) { width: 120px; }
+/* In rem, as its button and padding are: a larger default font leaves the time its room. */
+:host(lintje-time-input) { width: 7.5rem; }
 :host([hidden]) { display: none; }
 /* Below 768 px: the full width, as `stacked`, and the touch height. The text and number fields
    keep their own width: in a row they would grow. */
@@ -223,12 +224,18 @@
 .lintje-field__reset:hover { color: var(--color-link-hover); }
 
 /* --- Checkbox, radio, toggle ---------------------------------------------- */
+/* The control stands on the first line of its label: each control takes one line's height,
+   centred on it, at the top of the row's one flex line, which is centred in the target. A label
+   that wraps grows the row as tall as its text, no more. */
 .lintje-choice {
-  display: flex; align-items: center; gap: var(--lintje-choice-gap);
+  display: flex; flex-wrap: wrap; align-content: center; align-items: flex-start;
+  gap: var(--lintje-choice-gap);
   min-height: var(--h-target);
   font-size: 1rem;
   cursor: pointer;
 }
+/* Beside its control, never on a line of its own: the room that is left, up to its text. */
+.lintje-choice__label { flex: 1 1 0; min-width: 0; max-width: max-content; }
 /* Under its label, and drawn up into the row's own air, so it reads with its option and not with
    the next one in a group. */
 .lintje-choice ~ .lintje-field__hint,
@@ -251,16 +258,19 @@
    draws them (`--border-choice-width`). */
 .lintje-choice__box {
   width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
+  margin-block: calc((1lh - var(--lintje-choice-control)) / 2);
   display: flex; align-items: center; justify-content: center;
   border: var(--border-choice-width) solid var(--color-border-choice);
   border-radius: var(--radius-control);
   background: var(--color-bg-surface);
-  color: var(--color-action-primary-text); font-size: 0.875rem; font-weight: 700; line-height: 1;
+  color: var(--color-action-primary-text); font-weight: 700;
   transition: background-color var(--dur-hover) var(--ease-in-motion),
     border-color var(--dur-hover) var(--ease-in-motion);
 }
-/* The mark is always drawn and grows in when the box is checked, so checking and unchecking both move. */
+/* The mark is always drawn and grows in when the box is checked, so checking and unchecking both
+   move. Its own size and line: the box keeps the label's, by which it stands on the first line. */
 .lintje-choice__mark {
+  font-size: 0.875rem; line-height: 1;
   opacity: 0; transform: scale(0.4);
   transition: opacity var(--dur-hover) var(--ease-in-motion),
     transform var(--dur-hover) var(--ease-in-motion);
@@ -283,6 +293,7 @@
 
 .lintje-choice__radio {
   width: var(--lintje-choice-control); height: var(--lintje-choice-control); flex: none;
+  margin-block: calc((1lh - var(--lintje-choice-control)) / 2);
   border: var(--border-choice-width) solid var(--color-border-choice);
   border-radius: 50%;
   background: var(--color-bg-surface);
@@ -302,7 +313,9 @@
   /* The knob stands this far inside the track; forced colours give the ring a pixel of it. */
   --lintje-choice-switch-inset: 2px;
   --lintje-choice-switch-ring: 1px;
-  width: var(--lintje-choice-control); height: 22px; flex: none;
+  --lintje-choice-switch-height: 22px;
+  width: var(--lintje-choice-control); height: var(--lintje-choice-switch-height); flex: none;
+  margin-block: calc((1lh - var(--lintje-choice-switch-height)) / 2);
   border-radius: 11px;
   /* Off is a filled track, not a pale one with a ring: the fill alone reaches 3:1. */
   background: var(--color-choice-off);

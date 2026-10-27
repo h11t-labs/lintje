@@ -101,7 +101,9 @@ export class LintjeStepper extends LintjeElement {
   protected layout: StepperLayout = 'row'
 
   #mobile = new MediaController(this, MOBILE)
+  // The steps too: wider letter or word spacing widens a label, not the element.
   #resize = new FrameResizeObserver(() => this.fit())
+  #watched = new WeakSet<Element>()
   #rowWidth = 0
 
   override connectedCallback(): void {
@@ -111,6 +113,7 @@ export class LintjeStepper extends LintjeElement {
 
   override disconnectedCallback(): void {
     this.#resize.disconnect()
+    this.#watched = new WeakSet()
     super.disconnectedCallback()
   }
 
@@ -121,7 +124,16 @@ export class LintjeStepper extends LintjeElement {
 
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
+    this.watchSteps()
     this.fit()
+  }
+
+  private watchSteps(): void {
+    for (const step of this.renderRoot.querySelectorAll('.lintje-stepper__step')) {
+      if (this.#watched.has(step)) continue
+      this.#watched.add(step)
+      this.#resize.observe(step)
+    }
   }
 
   private get vertical(): boolean {
