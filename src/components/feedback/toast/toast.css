@@ -7,7 +7,8 @@
 .lintje-toast {
   position: fixed;
   right: var(--space-6);
-  bottom: var(--space-6);
+  /* Above what else sticks at the bottom, measured by `LintjeToast`. */
+  bottom: calc(var(--space-6) + var(--lintje-toast-lift, 0px));
   z-index: 70;
   display: flex;
   align-items: center;
@@ -55,7 +56,7 @@
 }
 
 @media screen and (max-width: 767px) {
-  .lintje-toast { left: var(--space-4); right: var(--space-4); bottom: var(--space-4); min-width: 0; max-width: none; }
+  .lintje-toast { left: var(--space-4); right: var(--space-4); bottom: calc(var(--space-4) + var(--lintje-toast-lift, 0px)); min-width: 0; max-width: none; }
 }
 
 /* Forced colours: the fill and shadow are dropped, so the toast takes a CanvasText line. */

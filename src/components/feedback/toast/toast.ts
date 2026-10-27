@@ -3,7 +3,9 @@
  *
  * The host owns whether it exists. A toast that closes by itself is held while the pointer is on
  * it or the focus in it, and its six seconds start again when both have left. Closing with the
- * focus inside, it gives the focus back first.
+ * focus inside, it gives the focus back first. It stands above what else sticks at the bottom of
+ * the page (a form's action bar); one that stays keeps its height free as the scroller's
+ * `scroll-padding-bottom` and scrolls a focused element that still ends up under it clear.
  *
  * Events: `lintje-close` (timed out or closed), `lintje-action` (its action was pressed).
  */
@@ -11,6 +13,14 @@ import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'l
 import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { holdsFocus } from '../../../core/focus'
+import { scrollRoot } from '../../../core/host-config'
+import {
+  keepRoom,
+  releaseRoom,
+  roomBeside,
+  scrollFocusClear,
+  watchRoom,
+} from '../../../core/scroll-room'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { deepActiveElement } from '../../shared/focus-trap'
 import { statusIcon, type Tone } from '../../shared/tone'
@@ -60,6 +70,9 @@ export class LintjeToast extends LintjeElement {
   #fillFrame = 0
   /** The last element outside the toast that had the focus: where it goes back to. */
   #before: HTMLElement | null = null
+  #unwatchRoom: (() => void) | null = null
+  #boxSize: ResizeObserver | null = null
+  #clearFrame = 0
 
   /** An Escape elsewhere is not the toast's; its own goes no further, so a window around stays. */
   readonly #onKeyDown = (event: KeyboardEvent): void => {
@@ -72,6 +85,7 @@ export class LintjeToast extends LintjeElement {
     const inside = holdsFocus(this)
     if (!inside) this.#before = deepActiveElement()
     this.#hold('focus', inside)
+    this.#clearOfFocus()
   }
 
   readonly #onFocusOut = (event: FocusEvent): void => {
@@ -89,6 +103,9 @@ export class LintjeToast extends LintjeElement {
   override connectedCallback(): void {
     super.connectedCallback()
     document.addEventListener('focusin', this.#onFocusIn)
+    const root = scrollRoot()
+    if (root) this.#unwatchRoom = watchRoom(root, () => this.#place())
+    if (this.hasUpdated) this.#place()
     this.#before = deepActiveElement()
     this.#start()
     if (!this.filled && !this.#fillFrame) {
@@ -101,6 +118,13 @@ export class LintjeToast extends LintjeElement {
 
   override disconnectedCallback(): void {
     document.removeEventListener('focusin', this.#onFocusIn)
+    this.#unwatchRoom?.()
+    this.#unwatchRoom = null
+    this.#boxSize?.disconnect()
+    this.#boxSize = null
+    if (this.#clearFrame) cancelAnimationFrame(this.#clearFrame)
+    this.#clearFrame = 0
+    releaseRoom(this)
     clearTimeout(this.#timer)
     if (this.#fillFrame) cancelAnimationFrame(this.#fillFrame)
     this.#fillFrame = 0
@@ -109,19 +133,50 @@ export class LintjeToast extends LintjeElement {
 
   protected override updated(changed: Map<string, unknown>): void {
     if (changed.has('kind') || changed.has('action')) this.#start()
+    this.#place()
+    // Filled, it may have come over the control that has the focus.
+    if (changed.has('filled') && this.filled) this.#clearOfFocus()
+  }
+
+  get #box(): HTMLElement | null {
+    return this.renderRoot.querySelector<HTMLElement>('.lintje-toast')
+  }
+
+  /** An error, a warning or an action stays until the reader closes it. */
+  get #stays(): boolean {
+    return this.kind === 'error' || this.kind === 'warning' || Boolean(this.action)
+  }
+
+  /** Above what the others keep free at the bottom; a toast that stays keeps its own reach. */
+  #place(): void {
+    const box = this.#box
+    const root = scrollRoot()
+    if (!box || !root || !this.isConnected) return
+    if (!this.#boxSize && typeof ResizeObserver !== 'undefined') {
+      this.#boxSize = new ResizeObserver(() => this.#place())
+      this.#boxSize.observe(box)
+    }
+    box.style.setProperty('--lintje-toast-lift', `${roomBeside(this, root, 'bottom')}px`)
+    const reach = this.#stays
+      ? (parseFloat(getComputedStyle(box).bottom) || 0) + box.offsetHeight
+      : 0
+    keepRoom(this, root, 'bottom', reach)
+  }
+
+  #clearOfFocus(): void {
+    if (!this.#stays || typeof requestAnimationFrame === 'undefined') return
+    cancelAnimationFrame(this.#clearFrame)
+    this.#clearFrame = requestAnimationFrame(() => {
+      this.#clearFrame = 0
+      const box = this.#box
+      if (box && this.isConnected) scrollFocusClear(this, box, 'bottom')
+    })
   }
 
   /** The six seconds, from the start; never for an error, a warning, an action or a held toast. */
   #start(): void {
     clearTimeout(this.#timer)
-    if (
-      this.kind === 'error' ||
-      this.kind === 'warning' ||
-      this.action ||
-      this.#hovered ||
-      this.#focused
-    )
-      return
+    if (this.#stays || this.#hovered || this.#focused) return
     this.#timer = window.setTimeout(() => this.#close(), LIFETIME)
   }
 

@@ -26,6 +26,7 @@ import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import { scrollRoot } from '../../../core/host-config'
 import { MediaController } from '../../../core/media'
 import { prefersReducedMotion } from '../../../core/motion'
+import { keepRoom, releaseRoom } from '../../../core/scroll-room'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
@@ -91,42 +92,6 @@ function scrollerOf(element: Element): HTMLElement | null {
   }
 }
 
-type PaddingSide = 'scrollPaddingTop' | 'scrollPaddingBottom'
-
-/**
- * One side of a scroller's `scroll-padding`, raised to what the chat needs and never below what
- * another element (the shell's bar, a form's action bar) set there; given back on release.
- */
-class ScrollRoom {
-  #element: HTMLElement | null = null
-  /** What stood there before, or what another element wrote since. */
-  #base = ''
-  #wrote = ''
-
-  constructor(readonly side: PaddingSide) {}
-
-  reserve(element: HTMLElement | null, room: number): void {
-    if (element !== this.#element) {
-      this.release()
-      this.#element = element
-      this.#base = element?.style[this.side] ?? ''
-    }
-    if (!element) return
-    const now = element.style[this.side]
-    if (now !== this.#wrote) this.#base = now
-    const base = parseFloat(this.#base) || 0
-    this.#wrote = room > base ? `${Math.ceil(room)}px` : this.#base
-    element.style[this.side] = this.#wrote
-  }
-
-  release(): void {
-    const element = this.#element
-    if (element && element.style[this.side] === this.#wrote) element.style[this.side] = this.#base
-    this.#element = null
-    this.#wrote = ''
-  }
-}
-
 export class LintjeChat extends LintjeElement {
   static override styles = [iconStyles, shadowCss(chatCss)]
 
@@ -161,8 +126,6 @@ export class LintjeChat extends LintjeElement {
   readonly #mobile = new MediaController(this)
   /** The ids of the questions in the box, to see a new set arrive. */
   #asked = ''
-  readonly #roomAbove = new ScrollRoom('scrollPaddingTop')
-  readonly #roomBelow = new ScrollRoom('scrollPaddingBottom')
 
   override connectedCallback(): void {
     super.connectedCallback()
@@ -183,8 +146,7 @@ export class LintjeChat extends LintjeElement {
     this.#growth = null
     this.#footerSize?.disconnect()
     this.#footerSize = null
-    this.#roomAbove.release()
-    this.#roomBelow.release()
+    releaseRoom(this)
     super.disconnectedCallback()
   }
 
@@ -203,8 +165,8 @@ export class LintjeChat extends LintjeElement {
       if (style.position !== 'sticky') continue
       above = Math.max(above, (parseFloat(style.top) || 0) + message.offsetHeight)
     }
-    this.#roomAbove.reserve(scroller, above)
-    this.#roomBelow.reserve(scroller, footer.offsetHeight)
+    keepRoom(this, scroller, 'top', above)
+    keepRoom(this, scroller, 'bottom', footer.offsetHeight)
   }
 
   /** How far the conversation's end lies below what its scroller shows. */
