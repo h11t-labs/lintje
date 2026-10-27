@@ -515,6 +515,16 @@ export interface MapControls {
   legend?: boolean
 }
 
+/**
+ * The basemap in dark mode: the address and/or the layers of a dark style. A field left out takes
+ * the light one.
+ */
+export interface WmsBasemapDark {
+  url?: string
+  /** Comma separated. */
+  layers?: string
+}
+
 /** The basemap the map draws on, a WMS service the host configures. */
 export interface WmsBasemap {
   kind: 'wms'
@@ -534,7 +544,7 @@ export interface WmsBasemap {
    * another layer. A field left out takes the light one; `format`, `version`, `transparent` and
    * `attribution` are shared. Without it both modes draw the light basemap.
    */
-  dark?: { url?: string; layers?: string }
+  dark?: WmsBasemapDark
 }
 
 /**
