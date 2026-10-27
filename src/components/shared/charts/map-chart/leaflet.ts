@@ -507,9 +507,10 @@ export class LeafletSurface {
     return [point.x, point.y]
   }
 
-  /** The basemap the mode asks for: in dark `basemapDark`, when there is one. */
+  /** The basemap the mode asks for: in dark `basemapDark`, when there is one beside `basemap`. */
   #basemapFor(data: MapSpec): WmsBasemap | undefined {
-    return (this.#options.mode === 'dark' && data.basemapDark) || data.basemap
+    if (!data.basemap) return undefined
+    return this.#options.mode === 'dark' ? (data.basemapDark ?? data.basemap) : data.basemap
   }
 
   #ensureTiles(map: L.Map, basemap: WmsBasemap): void {

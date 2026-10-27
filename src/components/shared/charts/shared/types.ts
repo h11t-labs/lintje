@@ -615,7 +615,7 @@ export interface MapSpec {
   /**
    * The basemap in dark mode, a second one for a service with a dark style at another address or
    * as another layer. Only the browser knows the mode, so both travel and the map chooses.
-   * Without it dark draws `basemap`.
+   * Without it dark draws `basemap`; without `basemap` it is ignored.
    */
   basemapDark?: WmsBasemap
   /** Which parts of the map show and answer; each left out keeps its default. */
