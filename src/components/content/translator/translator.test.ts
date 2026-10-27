@@ -56,6 +56,18 @@ describe('lintje-translator', () => {
     expect(source.rows).toBe(10)
   })
 
+  it('puts the source language on the native source field, and keeps its label Dutch', async () => {
+    const element = await mount({ sourceLang: 'en' })
+    const source = field(element)
+    await source.updateComplete
+    expect(source.shadowRoot!.querySelector('textarea')!.getAttribute('lang')).toBe('en')
+    expect(element.shadowRoot!.querySelector('[lang]')).toBeNull()
+    element.sourceLang = 'pl'
+    await element.updateComplete
+    await source.updateComplete
+    expect(source.shadowRoot!.querySelector('textarea')!.getAttribute('lang')).toBe('pl')
+  })
+
   it('sends a typed text as lintje-text-change and keeps the field’s own change inside', async () => {
     const element = await mount()
     const heard: string[] = []

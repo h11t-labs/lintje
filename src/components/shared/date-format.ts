@@ -1,7 +1,7 @@
 /**
- * The date input's arithmetic. Typed `3-10-26` / `03.10.2026` (day, month, year), shown
- * `03-10-2026`, sent as ISO `2026-10-03`. `Date` objects are made at noon UTC so no time zone
- * or daylight-saving shift can move a day.
+ * The date input's arithmetic. Typed `3-10-26` / `03.10.2026` / `03102026` (day, month, year),
+ * shown `03-10-2026`, sent as ISO `2026-10-03`. `Date` objects are made at noon UTC so no time
+ * zone or daylight-saving shift can move a day.
  */
 
 export type ParsedDate =
@@ -12,6 +12,8 @@ export type ParsedDate =
 
 const ISO = /^(\d{4})-(\d{2})-(\d{2})$/
 const TYPED = /^(\d{1,2})[-./](\d{1,2})[-./](\d{2}|\d{4})$/
+// A phone's number pad has no dash: eight or six digits in a row are day, month and year.
+const DIGITS = /^(\d{2})(\d{2})(\d{4}|\d{2})$/
 
 const pad = (value: number, length: number = 2): string => String(value).padStart(length, '0')
 
@@ -54,7 +56,7 @@ export function parseDate(
   const trimmed = text.trim()
   if (trimmed === '') return { kind: 'empty' }
   if (isIso(trimmed)) return { kind: 'ok', iso: trimmed }
-  const match = TYPED.exec(trimmed)
+  const match = TYPED.exec(trimmed) ?? DIGITS.exec(trimmed)
   if (!match) return { kind: 'invalid', reason: 'format' }
   const day = Number(match[1])
   const month = Number(match[2])

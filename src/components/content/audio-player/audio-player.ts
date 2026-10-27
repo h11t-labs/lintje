@@ -353,7 +353,7 @@ export class LintjeAudioPlayer extends LintjePlayerElement {
     const colours = this.colours
     if (colours.size === 0 || this.noLegend) return nothing
     const current = speakerAt(this.segments ?? [], this.position)
-    return html`<ul class="lintje-audio-player__legend" aria-label="Sprekers">
+    return html`<ul class="lintje-audio-player__legend" role="list" aria-label="Sprekers">
       ${[...colours].map(
         ([speaker, colour]) =>
           html`<li

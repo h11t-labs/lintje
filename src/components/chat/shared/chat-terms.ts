@@ -23,6 +23,11 @@ export function termParts(text: string, terms: ChatTermRange[] = []): ChatTextPa
   return parts
 }
 
+/** What a recognised term is, in words: its kind and, when it is a guess, "niet zeker". */
+export function termWords(term: ChatTermRange): string {
+  return [term.kind, term.certain === false ? 'niet zeker' : ''].filter(Boolean).join(', ')
+}
+
 const WORD = /[\p{L}\p{N}]/u
 
 /**

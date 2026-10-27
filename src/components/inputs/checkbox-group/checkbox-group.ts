@@ -5,7 +5,8 @@
  * Only the group tells the host: its rows carry no `name`. `required` draws nothing and sets no
  * ARIA, since a group cannot carry `aria-required`: the browser's message in a native form and
  * the host's message say what is missing. With `other` the last row is "Anders", value `other`,
- * with a text field under it while it is checked; the host sets `other-error` for an empty one.
+ * with a text field under it while it is checked: the focus stays on the row, and the field is
+ * the next Tab stop. The host sets `other-error` for an empty one.
  *
  * Events: `lintje-change` `string[]` (the checked values), `lintje-other-change` `string` (the
  * field's text, on leaving it or Enter), `lintje-values-change`
@@ -106,7 +107,6 @@ export class LintjeCheckboxGroup extends LintjeChoiceGroupElement {
               @lintje-change=${(event: CustomEvent<boolean>) => {
                 event.stopPropagation()
                 this.toggle(OTHER_VALUE, event.detail)
-                if (event.detail) void this.focusOther()
               }}
             ></lintje-checkbox>`
             : nothing

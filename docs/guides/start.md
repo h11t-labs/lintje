@@ -61,7 +61,7 @@ stylesheet en één module nodig; al het andere is HTML uit je eigen sjablonen:
 
       <form method="post" action="/meldingen">
         <input type="hidden" name="csrf_token" value="…" />
-        <lintje-text-input name="naam" label="Naam" value="…" error="…"></lintje-text-input>
+        <lintje-text-input name="naam" label="Naam" autocomplete="name" value="…" error="…"></lintje-text-input>
         <lintje-textarea name="omschrijving" label="Omschrijving"></lintje-textarea>
         <lintje-checkbox name="spoed" label="Spoed"></lintje-checkbox>
         <lintje-button type="submit" variant="primary">Versturen</lintje-button>
@@ -104,13 +104,17 @@ bedieningselement onder zijn `name` post:
 Toon een geweigerde waarde door het veld met zijn `error`-attribuut in de pagina te zetten. Een `error` houdt het
 versturen niet tegen: het is het antwoord van de server op een eerdere verzending.
 
+Een veld dat naar de lezer zelf vraagt, zegt met `autocomplete` wat het vraagt (`name`, `email`,
+`street-address`, `bday`), zodat de browser en hulpsoftware het kunnen invullen; het tekstveld, de
+textarea, het getalveld en de datum geven het door aan hun native veld.
+
 ## Een pagina met script
 
 Script is voor wat een pagina doet zonder weg te gaan: een event beantwoorden met nieuwe data.
 
 ```html
 <lintje-form id="form">
-  <lintje-text-input name="naam" label="Naam"></lintje-text-input>
+  <lintje-text-input name="naam" label="Naam" autocomplete="name"></lintje-text-input>
   <lintje-textarea name="omschrijving" label="Omschrijving"></lintje-textarea>
   <lintje-form-actions>
     <lintje-button variant="primary" type="submit">Versturen</lintje-button>

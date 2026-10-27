@@ -28,6 +28,14 @@ const KIND_TONE: Record<ToastKind, Tone> = {
   warning: 'attention',
 }
 
+/** The word a screen reader hears before the text: the glyph and the tint say nothing to it. */
+export const TOAST_PREFIX: Record<ToastKind, string> = {
+  ok: 'Gelukt',
+  error: 'Fout',
+  info: 'Informatie',
+  warning: 'Let op',
+}
+
 /** The nearest `<main>` from the toast outwards, through the shadow roots around it. */
 function mainRegion(from: Node): HTMLElement | null {
   for (let root = from.getRootNode(); ;) {
@@ -163,7 +171,9 @@ export class LintjeToast extends LintjeElement {
           size: 16,
         })}</span
       >
-      <span class="lintje-toast__text"><slot></slot></span>
+      <span class="lintje-toast__text"
+        ><span class="visually-hidden">${TOAST_PREFIX[this.kind]}: </span><slot></slot
+      ></span>
       ${
         this.action
           ? html`<button

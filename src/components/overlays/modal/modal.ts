@@ -132,7 +132,11 @@ export class LintjeModal extends LintjeElement {
       >
         <header class="lintje-modal__header">
           <div class="lintje-modal__heading">
-            <h2 class="lintje-modal__title">${this.heading}</h2>
+            ${
+              this.heading.trim()
+                ? html`<h2 class="lintje-modal__title">${this.heading}</h2>`
+                : nothing
+            }
             ${
               this.subtitle ? html`<p class="lintje-modal__subtitle">${this.subtitle}</p>` : nothing
             }
@@ -165,6 +169,7 @@ export class LintjeModal extends LintjeElement {
                       variant="tertiary"
                       size="compact"
                       icon="functioneel-downloaden"
+                      accessible-name="CSV downloaden"
                       @click=${() => this.emit('lintje-download-csv')}
                       >CSV</lintje-button
                     >`
@@ -176,6 +181,7 @@ export class LintjeModal extends LintjeElement {
                       variant="tertiary"
                       size="compact"
                       icon="functioneel-downloaden"
+                      accessible-name="PNG downloaden"
                       @click=${() => this.emit('lintje-download-png')}
                       >PNG</lintje-button
                     >`

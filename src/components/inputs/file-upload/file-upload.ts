@@ -320,6 +320,7 @@ export class LintjeFileUpload extends LintjeInputElement {
         rows.length
           ? html`<ul
             class="lintje-file-upload__list"
+            role="list"
             aria-label="Bestanden"
             @lintje-file-remove=${this.onChipEvent}
             @lintje-file-cancel=${this.onChipEvent}
