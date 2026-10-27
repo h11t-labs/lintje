@@ -95,7 +95,6 @@ export const SKETCHES = {
   'streaming-text': { rows: '[spin l40]' },
   'ai-label': { rows: 'chip l50' },
   'level-meter': { center: true, rows: 'meter t20' },
-  'recording-status': { rows: 'kpi kpi kpi' },
   // Fields
   field: { rows: 's20 dot / se50' },
   'text-input': { rows: 's20 / in / s20' },
@@ -146,6 +145,7 @@ export const SKETCHES = {
   card: { frame: 'tile', rows: 'img / s20 / t50 / l70 / bo' },
   'card-list': { rows: 'card card card' },
   'description-list': { rows: 's20 / l40 / s20 / l50 / s20 / l35 sp u15' },
+  cells: { rows: 's15 sp s15 sp s15 / t25 sp t25 sp t25' },
   'tree-view': { rows: 'chevd l30 / ind chevd l35 / ind ind ind l30 / # ind ind ind t30 / ind ind ind l30 / ind chev l25' },
   'sortable-list': { rows: '[grip l30] / [grip l40] / [grip l25]' },
   timeline: { rows: 't40 / | s15 l45 / | s15 l35 / | s15 l50' },

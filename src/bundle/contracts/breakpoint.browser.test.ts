@@ -19,6 +19,7 @@ import '../../components/overlays/dialog/dialog'
 import '../../components/feedback/conflict-alert/conflict-alert'
 import '../../components/tables/data-table/data-table'
 import '../../components/tables/description-list/description-list'
+import '../../components/tables/cells/cells'
 import '../../components/content/document-viewer/document-viewer'
 import '../../components/overlays/drawer/drawer'
 import '../../components/feedback/empty-state/empty-state'
@@ -1609,6 +1610,30 @@ const ROWS: Row[] = [
         find(element, '.lintje-description-list__label'),
         find(element, '.lintje-description-list__value'),
       ),
+  },
+  {
+    tag: 'lintje-cells',
+    marker: 'the cells stand two by two',
+    mount: () =>
+      append(
+        create('lintje-cells', {
+          columns: 4,
+          items: [
+            { label: 'Looptijd', value: '12:04' },
+            { label: 'Geluid', value: 'Goed' },
+            { label: 'Verbinding', value: 'Zwak' },
+            { label: 'Transcript', value: 'Loopt mee' },
+          ],
+        }),
+      ),
+    wide: (element) => {
+      const cells = all(element.shadowRoot!, '.lintje-cells__cell')
+      return level(cells[0]!, cells[3]!)
+    },
+    phone: (element) => {
+      const cells = all(element.shadowRoot!, '.lintje-cells__cell')
+      return level(cells[0]!, cells[1]!) && below(cells[0]!, cells[2]!)
+    },
   },
   {
     tag: 'lintje-explainer',
