@@ -44,7 +44,7 @@
 :host(:not([single]):not(:disabled)) .lintje-range { cursor: pointer; }
 :host([single]) .lintje-range__input { pointer-events: auto; cursor: pointer; }
 /* Error marks the handle, not the track: a red track would fight the chosen stretch. */
-.lintje-range.is-error .lintje-range__input { --lintje-range-edge: var(--color-error); }
+.lintje-range.is-error .lintje-range__input { --lintje-range-edge: var(--color-error-line); }
 :host(:disabled) .lintje-range__fill { background: var(--color-border-strong); }
 :host(:disabled) .lintje-range__input { --lintje-range-edge: var(--color-border-strong); }
 :host(:disabled) .lintje-range__input::-webkit-slider-thumb { cursor: not-allowed; }

@@ -330,16 +330,18 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
            aria-pressed=${mark.pressed} aria-label=${mark.label}
            @click=${mark.click} @keydown=${mark.keydown}>
           ${
-            from == null || to == null
-              ? svg`<rect class="lintje-dumbbell__gap" x=${axisLeft} y=${cy - 5} width=${axisRight - axisLeft}
-                          height="10" fill="url(#hatch-${id})" />`
-              : nothing
-          }
-          ${
             mobile
               ? svg`<text x="0" y=${top + 14} class="lintje-dumbbell__name lintje-dumbbell__name--above">${truncateToWidth(item.label, (width * 12) / 14, fontFamily)}</text>`
               : svg`<text x=${column.labelEnd} y=${cy + 4} text-anchor="end"
                           class="lintje-chart__axis-label lintje-dumbbell__name">${column.fit(item.label)}</text>`
+          }
+          <!-- What a chosen row dims in the others: the marks, one group, never the words or the ring. -->
+          <g class="lintje-dumbbell__marks">
+          ${
+            from == null || to == null
+              ? svg`<rect class="lintje-dumbbell__gap" x=${axisLeft} y=${cy - 5} width=${axisRight - axisLeft}
+                          height="10" fill="url(#hatch-${id})" />`
+              : nothing
           }
           ${
             from != null && to != null && !together
@@ -383,6 +385,7 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
                 </g>`
               : nothing
           }
+          </g>
           ${focus ? svg`<circle class="lintje-dumbbell__focus" cx=${focus.x} cy=${cy} r=${FOCUS} />` : nothing}
           <g class="lintje-chart__series ${fromOn && toOn ? '' : 'is-off'}">
             <text x=${width} y=${cy + 4} text-anchor="end"

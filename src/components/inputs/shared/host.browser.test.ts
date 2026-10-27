@@ -415,7 +415,11 @@ function drawn(look: Look): Record<string, string> {
   return {
     border: look === 'error' ? '2px' : '1px',
     edge: colourOf(
-      look === 'error' ? '--color-error' : quiet ? '--color-border-strong' : '--color-border-field',
+      look === 'error'
+        ? '--color-error-line'
+        : quiet
+          ? '--color-border-strong'
+          : '--color-border-field',
     ),
     fill: colourOf(
       quiet

@@ -36,7 +36,8 @@
 .lintje-split-pane__handle {
   flex: none;
   width: 7px; height: var(--h-touch);
-  background: var(--color-border-heavy);
+  /* At rest the field's edge, 3:1 on the strip; pointed at or dragged, the accent's line. */
+  background: var(--color-border-field);
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-split-pane__strip:hover .lintje-split-pane__handle,

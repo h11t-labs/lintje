@@ -17,7 +17,7 @@
 .lintje-filter-field__label.is-modified { color: var(--color-accent-text); }
 .lintje-filter-field__dot {
   width: 6px; height: 6px; border-radius: 50%;
-  background: var(--color-attention);
+  background: var(--color-attention-line);
   flex: none;
 }
 

@@ -439,6 +439,11 @@ export class LintjeAudioPlayer extends LintjePlayerElement {
         @pointermove=${this.onVolumePointerMove}
       >
         <div class="lintje-audio-player__level-fill" ${styleProps({ width: `${percent}%` })}></div>
+        <span
+          class="lintje-audio-player__head lintje-audio-player__level-head"
+          aria-hidden="true"
+          ${styleProps({ left: `${percent}%` })}
+        ></span>
       </div>
     </div>`
   }
