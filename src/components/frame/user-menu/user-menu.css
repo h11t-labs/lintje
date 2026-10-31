@@ -8,6 +8,9 @@
 :host([variant="side"]) { display: block; }
 :host([variant="side"]) { position: relative; }
 :host([hidden]) { display: none; }
+/* As a tab it takes its share of the tab bar. */
+:host([variant="tab"]) { display: flex; flex: 1 1 0; min-width: 0; }
+:host([variant="tab"]) .lintje-tab-bar__tab { flex: 1; }
 
 /* ------------------------------------------------------------------------ */
 
@@ -23,6 +26,10 @@
 }
 .lintje-user-menu__trigger:hover,
 .lintje-user-menu__trigger.is-open { background: var(--color-nav-hover); color: var(--color-nav-hover-text); }
+/* Below 768 px the menu opens from below as a sheet: the bare avatar, as the bar's other tools. */
+.lintje-user-menu__trigger.is-bare,
+.lintje-user-menu__trigger.is-bare:hover,
+.lintje-user-menu__trigger.is-bare.is-open { padding: 0; background: transparent; color: var(--color-nav-text); }
 /* On the hover fill the role takes the words' colour: in the light tone the fill is the primary. */
 .lintje-user-menu__trigger:is(:hover, .is-open) .lintje-user-menu__trigger-role { color: inherit; }
 
@@ -154,3 +161,8 @@
 .lintje-user-menu__anchor { position: absolute; inset: 0; pointer-events: none; }
 /* At least the width of a row's words, also from a folded rail. */
 :host([variant="side"]) .lintje-user-menu__panel { width: auto; min-width: 15rem; }
+
+/* Below 768 px the menu opens from below as a sheet (`sheet.css`), over the page and the tabs. */
+.lintje-user-menu__scrim { z-index: 60; }
+.lintje-user-menu__sheet { z-index: 61; }
+.lintje-user-menu__sheet .lintje-user-menu__panel { width: 100%; }

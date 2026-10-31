@@ -163,46 +163,20 @@
 
 :where(.lintje-shell.is-phone) .lintje-top-bar { display: none; }
 
-/* Below 768 px "Weergave" and "Delen" open from below, as the filter sheet does. A phone has its
-   own way to a phone, so the QR code is not offered there. */
-:where(.lintje-shell.is-phone) .lintje-share__scrim {
-  z-index: 60;
-  background: var(--color-overlay-page);
-  animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
-}
-:where(.lintje-shell.is-phone) .lintje-view__popover,
-:where(.lintje-shell.is-phone) .lintje-share__popover,
-:where(.lintje-shell.is-phone) .lintje-navbar .lintje-view__popover,
-:where(.lintje-shell.is-phone) .lintje-navbar .lintje-share__popover {
-  position: fixed;
-  inset: auto 0 0 0;
+/* Below 768 px "Weergave" and "Delen" are sheets (`sheet.css`). A phone has its own way to a
+   phone, so the QR code is not offered there. */
+:where(.lintje-shell.is-phone) .lintje-share__scrim { z-index: 60; }
+.lintje-sheet.lintje-view__popover,
+.lintje-sheet.lintje-share__popover {
   z-index: 61;
   width: auto;
-  max-height: 88vh;
-  overflow-y: auto;
-  padding-bottom: var(--space-4);
-  border: 0;
-  border-top: 1px solid var(--color-border-popover);
+  padding-top: 0;
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  border-right: 0; border-bottom: 0; border-left: 0;
   box-shadow: none;
-  animation: lintje-sheet-in var(--dur-sheet) var(--ease-in-motion);
 }
-:where(.lintje-shell.is-phone) .lintje-view__popover,
-:where(.lintje-shell.is-phone) .lintje-share__popover { padding-top: 0; }
-:where(.lintje-shell.is-phone) .lintje-view__popover:focus,
-:where(.lintje-shell.is-phone) .lintje-share__popover:focus { outline: none; }
 :where(.lintje-shell.is-phone) .lintje-share__phone { display: none; }
-/* The filter sheet's head; it stays while the sheet scrolls. */
-.lintje-share__header {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  display: flex; align-items: center; gap: var(--space-2);
-  margin-bottom: var(--space-2);
-  padding: var(--space-4);
-  background: var(--color-bg-surface);
-  border-bottom: 1px solid var(--color-border-popover);
-}
-.lintje-share__title { flex: 1; margin: 0; font: var(--text-h2); }
+.lintje-share__header { margin-bottom: var(--space-2); }
 
 
 /* On paper the chrome is not part of the page. */

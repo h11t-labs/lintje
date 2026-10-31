@@ -91,6 +91,8 @@ export default defineConfig({
           name: 'browser',
           include: ['src/**/*.browser.test.ts'],
           setupFiles: ['src/bundle/browser-setup.ts'],
+          // A page mostly waits for a frame, so more pages than cores: CI has four.
+          maxWorkers: 6,
           browser: {
             enabled: true,
             provider: playwright({
