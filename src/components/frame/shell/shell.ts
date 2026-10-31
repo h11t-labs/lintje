@@ -463,11 +463,11 @@ export class LintjeShell extends LintjeElement {
       if (this.menuOpen) {
         this.#menuReleased ??= lockScroll()
         const region = this.renderRoot.querySelector<HTMLElement>('.lintje-mobile-chrome')
+        // The focus goes to the sheet's close button, as in every sheet.
         if (region) {
-          // Under a logo bar still in view the panel is shorter by it; the page cannot scroll now.
-          const bar = region.querySelector('.lintje-mobile-header')?.getBoundingClientRect()
-          if (bar) region.style.setProperty('--lintje-mobile-menu-top', `${bar.bottom}px`)
-          this.#menuTrap.activate(region, { focus: false })
+          this.#menuTrap.activate(region, {
+            focus: region.querySelector<HTMLElement>('.lintje-mobile-menu__close') ?? true,
+          })
         }
       } else if (changed.get('menuOpen') === true) {
         this.#releaseMenu()

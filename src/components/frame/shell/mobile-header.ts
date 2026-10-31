@@ -144,7 +144,8 @@ export function renderMobileHeader(
     aria-modal=${open ? 'true' : nothing}
     aria-label=${open ? 'Menu' : nothing}
   >
-    <header class="lintje-mobile-header">
+    <!-- Under the open sheet's veil the bar cannot be reached; Tab skips it too. -->
+    <header class="lintje-mobile-header" ?inert=${open}>
       ${renderBack(shell)} ${renderTitles(shell)}
       <div class="lintje-mobile-header__actions">
         <!-- Open, the menu is a dialog of its own: only its close button stays. -->
@@ -155,10 +156,8 @@ export function renderMobileHeader(
                 tabbed.has('notifications') ? nothing : shell.renderNotifications()
               }${tabbed.has('user') ? nothing : shell.renderUserMenu('bar')}`
         }
-        <!-- One button in both states, so opening the menu leaves the focus
-             where it is: only the label and the glyph change places. Its word says
-             the state, so it has no aria-expanded to say it again, and it names its
-             panel only while there is one. -->
+        <!-- It opens the menu only: the sheet from below closes with its own button,
+             since this one lies under the veil. It names its panel while there is one. -->
         ${
           tabbed.has('menu')
             ? nothing
@@ -167,14 +166,10 @@ export function renderMobileHeader(
               class="lintje-mobile-header__button lintje-mobile-header__button--menu"
               aria-controls=${open ? 'lintje-mobile-menu-panel' : nothing}
               @click=${() => {
-                shell.menuOpen = !shell.menuOpen
+                shell.menuOpen = true
               }}
             >
-              ${
-                open
-                  ? html`<span class=${word}>Sluiten</span>${renderIcon('functioneel-kruis', { size: 16 })}`
-                  : html`${renderIcon('functioneel-menu', { size: 16 })}<span class=${word}>Menu</span>`
-              }
+              ${renderIcon('functioneel-menu', { size: 16 })}<span class=${word}>Menu</span>
             </button>`
         }
       </div>

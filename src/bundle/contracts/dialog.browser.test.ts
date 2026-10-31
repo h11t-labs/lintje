@@ -272,8 +272,8 @@ const ROWS: Row[] = [
         trigger: () => shadow(element, '.lintje-mobile-header__button--menu'),
       }
     },
-    // Opening leaves the focus on the button, which then reads "Sluiten".
-    first: (element) => shadow(element, '.lintje-mobile-header__button--menu'),
+    // The sheet's own close button, as in every sheet: the bar lies under the veil.
+    first: (element) => shadow(element, '.lintje-mobile-menu__close'),
     // The sheet from below has its own close button; the bar's button lies under its veil.
     closers: [['de sluitknop', (element) => shadow(element, '.lintje-mobile-menu__close')]],
   },

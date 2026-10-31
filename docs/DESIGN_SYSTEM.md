@@ -363,15 +363,14 @@ Besluiten die voor beide gelden:
   maken ze plaats voor één item, "Menu", waarvan het paneel het hele menu bevat. Een groep opent
   bij hover; op een aanraakscherm opent een tik een groep en sluit een tweede tik hem. Een groep
   die een tik opende, sluit niet doordat de muis de balk verlaat; een groep die onder de muis
-  openging wel. "Menu" opent en sluit met een klik en leest "Sluiten" zolang het open is, zoals in
-  de mobiele header. "Menu" draagt geen actief-markering: de pagina van de lezer zit er bijna
-  altijd in.
+  openging wel. "Menu" opent en sluit met een klik en leest "Sluiten" zolang het open is. "Menu"
+  draagt geen actief-markering: de pagina van de lezer zit er bijna altijd in.
 - **De bovenbalk van de indeling Links houdt zijn gereedschap ook op één rij.** Zoeken,
   "Weergave" en "Delen" zijn knoppen met hun woord — zoeken met zijn toets, `/` — totdat zij en
   de naam niet passen, gemeten; dan zijn het de kale iconen van de navigatiebalk.
 - **Onder 768 px draagt de header dezelfde iconen**, en zoeken, "Weergave" en "Delen" openen van
   onderen als sheets met de kop van de filtersheet — hun naam en een sluitknop — en zijn modaal
-  zoals die. Het open menu draagt dan alleen zijn sluitknop. Als het gereedschap van de header
+  zoals die. Als het gereedschap van de header
   niet past, gemeten, toont "Menu" alleen zijn glyph; zijn woord blijft zijn naam.
 - **Het lint is de eenheid.** De logobalk en het logo zijn afgeleid van `--w-ribbon`, en groeien
   dus samen mee met de tekstgrootte van de lezer. Het logo in het menu en in de mobiele header
@@ -394,8 +393,11 @@ Besluiten die voor beide gelden:
   en zodra de paginakop uit beeld is de titel van de pagina met de naam klein eronder; een
   pagina dieper (`back`) draagt Terug ervoor. Rechts zoeken, de bel, de avatar en de knop Menu.
   Het menu opent als blad van onderen, zoals elk blad op een telefoon: zo hoog als wat het
-  draagt, met de naam en een sluitknop bovenin en een sluier erboven, van kort naar lang: de omgeving als band, Weergave, Delen en het
-  `end`-slot, dan de pagina's en de groepen, onderaan feedback en de versie. De balk is er altijd.
+  draagt, met de naam en een sluitknop bovenin en een sluier erboven. Is het langer dan het
+  scherm, dan reikt het tot bovenaan en scrolt het onder zijn vaste kop. Van kort naar lang: de
+  omgeving als band, Weergave, Delen en het `end`-slot, dan de pagina's en de groepen, onderaan
+  feedback en de versie. De balk is er altijd; onder de sluier is hij inert, de knop Menu blijft
+  Menu en de focus gaat naar de sluitknop van het blad.
 - **Tabs onderaan zijn een keuze van de host** (`mobile-tabs`): onder 768 px staan de losse
   pagina's dan als tabs onder de duim, ten hoogste vijf, met Menu als laatste. Het zijn dezelfde
   ingangen als de rail en de navigatiebalk, met dezelfde markering (de vulling en de lijn eronder,

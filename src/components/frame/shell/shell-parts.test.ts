@@ -140,6 +140,9 @@ async function hostSets(shell: LintjeShell, change: Partial<ShellView>): Promise
   await shell.updateComplete
 }
 
+const close = (shell: LintjeShell): HTMLButtonElement =>
+  root(shell).querySelector('.lintje-mobile-menu__close') as HTMLButtonElement
+
 async function open(shell: LintjeShell): Promise<void> {
   menuButton(shell).click()
   await shell.updateComplete
@@ -220,36 +223,24 @@ describe('the open mobile header', () => {
   // The bar, the panel and the tabs are drawn below 768 px only.
   beforeEach(() => viewport(390))
   afterEach(() => viewport(1024))
-  it('carries only "Sluiten": "Weergave" is a tool of the closed header', async () => {
+  it('lies under the veil: the bar is inert and the sheet closes with its own button', async () => {
     const shell = await mount()
     await open(shell)
-    const actions = root(shell).querySelector('.lintje-mobile-header__actions')!
-    expect(buttons(shell).map((button) => button.textContent?.trim())).toEqual(['Sluiten'])
-    expect(actions.querySelectorAll('button')).toHaveLength(1)
+    const bar = root(shell).querySelector('.lintje-mobile-header')!
+    expect(bar.hasAttribute('inert')).toBe(true)
     expect(panel(shell)).not.toBeNull()
+    expect(root(shell).querySelector('.lintje-mobile-menu__close')).not.toBeNull()
   })
 
-  it('puts the cross after the word, and keeps one and the same button', async () => {
-    const shell = await mount()
-    const before = menuButton(shell)
-    await open(shell)
-    expect(menuButton(shell)).toBe(before)
-    expect(contentOrder(menuButton(shell))).toEqual(['text', 'icon'])
-  })
-
-  it('is named by the word it shows, which says the state: no aria-expanded', async () => {
+  it('keeps reading Menu, one and the same button, and names its panel while there is one', async () => {
     const shell = await mount()
     const button = menuButton(shell)
-    const said = (): unknown[] => [
-      button.getAttribute('aria-label'),
-      button.textContent?.trim(),
-      button.hasAttribute('aria-expanded'),
-    ]
-    expect(said()).toEqual([null, 'Menu', false])
-    // It names its panel only while there is one.
+    expect(button.textContent?.trim()).toBe('Menu')
     expect(button.hasAttribute('aria-controls')).toBe(false)
     await open(shell)
-    expect(said()).toEqual([null, 'Sluiten', false])
+    expect(menuButton(shell)).toBe(button)
+    expect(button.textContent?.trim()).toBe('Menu')
+    expect(contentOrder(button)).toEqual(['icon', 'text'])
     expect(button.getAttribute('aria-controls')).toBe('lintje-mobile-menu-panel')
   })
 })
@@ -833,17 +824,18 @@ describe('the open mobile menu keeps the focus', () => {
     expect(region(shell).contains(panel(shell))).toBe(true)
   })
 
-  it('leaves the focus on the Menu button when it opens', async () => {
+  it("puts the focus on the sheet's close button when it opens", async () => {
     const shell = await mount()
     await openWithFocus(shell)
-    expect(deepActiveElement()).toBe(menuButton(shell))
+    expect(deepActiveElement()).toBe(close(shell))
   })
 
   it('wraps Tab from the last control to the first, and Shift+Tab back', async () => {
     const shell = await mount()
     await openWithFocus(shell)
     const list = tabbables(region(shell))
-    expect(list).toContain(menuButton(shell))
+    // The bar lies under the veil: inert, so no stop.
+    expect(list).not.toContain(menuButton(shell))
     const first = list[0] as HTMLElement
     const last = list[list.length - 1] as HTMLElement
     // The last stop is in the panel's foot, the user menu's own shadow root.
@@ -917,7 +909,7 @@ describe('the open mobile menu keeps the focus', () => {
   it('lets the focus go once it is closed', async () => {
     const shell = await mount()
     await openWithFocus(shell)
-    menuButton(shell).click()
+    close(shell).click()
     await shell.updateComplete
     const outside = document.createElement('button')
     document.body.append(outside)
@@ -1024,10 +1016,11 @@ describe('the open mobile menu locks the page', () => {
       await shell.updateComplete
       expect(document.body.style.overflow).toBe('')
 
-      // The button.
+      // The sheet's close button.
       await open(shell)
       expect(document.body.style.overflow).toBe('hidden')
-      await open(shell)
+      close(shell).click()
+      await shell.updateComplete
       expect(shell.menuOpen).toBe(false)
       expect(document.body.style.overflow).toBe('')
 
