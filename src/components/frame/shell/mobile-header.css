@@ -120,7 +120,8 @@
   border-bottom: 1px solid var(--color-nav-line);
 }
 .lintje-mobile-menu__title { flex: 1; margin: 0; font: var(--text-h2); color: var(--color-nav-text); }
-.lintje-mobile-menu__close { color: var(--color-nav-text); }
+/* On the menu's own fill: its ink, not the page's muted grey. */
+.lintje-mobile-menu__head .lintje-mobile-menu__close { color: var(--color-nav-text); }
 .lintje-mobile-menu.is-leaving {
   animation: lintje-menu-out var(--dur-sheet) var(--ease-out-motion) forwards;
   pointer-events: none;
