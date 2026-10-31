@@ -513,12 +513,20 @@ export default {
         phoneSheet(
           'Meldingen op een telefoon',
           'De bel in de balk opent hetzelfde blad van onderen, over de pagina.',
-          (shell) => (shell.renderRoot.querySelector('.lintje-mobile-header lintje-notifications').open = true),
+          (shell) => {
+            // Wider than a phone, as the style guide's tests draw it too, the bar is another.
+            const part = shell.renderRoot.querySelector('.lintje-mobile-header lintje-notifications, lintje-notifications')
+            if (part) part.open = true
+          },
         ),
         phoneSheet(
           'Jij op een telefoon',
           'De avatar in de balk opent jouw menu als blad van onderen.',
-          (shell) => (shell.renderRoot.querySelector('.lintje-mobile-header lintje-user-menu').open = true),
+          (shell) => {
+            // Wider than a phone, as the style guide's tests draw it too, the bar is another.
+            const part = shell.renderRoot.querySelector('.lintje-mobile-header lintje-user-menu, lintje-user-menu')
+            if (part) part.open = true
+          },
         ),
         phoneSheet(
           'Weergave op een telefoon',
