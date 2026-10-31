@@ -263,7 +263,9 @@ export function renderMobileItem(shell: LintjeShell, item: ShellLink): TemplateR
     ${renderIcon(item.icon, { size: 20, src: item.iconSrc })}
     <span class="lintje-mobile-menu__label"
       >${item.label}${
-        hasPage(item) || isAction(item) || item.noAccess ? nothing : unavailableNote('lintje-mobile-menu__note')
+        hasPage(item) || isAction(item) || item.noAccess
+          ? nothing
+          : unavailableNote('lintje-mobile-menu__note')
       }</span
     >
     ${item.noAccess ? noAccessMark('lintje-mobile-menu__meta') : nothing}
