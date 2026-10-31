@@ -606,6 +606,23 @@ const ROWS: Row[] = [
   },
   {
     tag: 'lintje-shell',
+    marker: 'with mobile-tabs the pages stand as tabs at the bottom, Menu last',
+    mount: () =>
+      append(
+        create('lintje-shell', {
+          mobileTabs: true,
+          data: { name: 'Vergunningen', layout: 'side', navigation: NAVIGATION },
+        }),
+      ),
+    wide: (element) =>
+      shown(element, '.lintje-nav a[href="#aanvragen"]') && !shown(element, '.lintje-tab-bar'),
+    phone: (element) =>
+      shown(element, '.lintje-tab-bar a[href="#aanvragen"]') &&
+      shown(element, '.lintje-tab-bar__tab--menu') &&
+      !shown(element, '.lintje-mobile-header__button--menu'),
+  },
+  {
+    tag: 'lintje-shell',
     marker: 'the environment reads its first three letters',
     mount: () =>
       append(
