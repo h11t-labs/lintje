@@ -615,6 +615,12 @@ export interface MapSpec {
   clearHref?: string
   /** Tiles under the map: Leaflet draws the basemap, the map draws its data over it. */
   basemap?: WmsBasemap
+  /**
+   * The basemap in dark mode, a second one for a service with a dark style at another address or
+   * as another layer. Only the browser knows the mode, so both travel and the map chooses.
+   * Without it dark draws `basemap`; without `basemap` it is ignored.
+   */
+  basemapDark?: WmsBasemap
   /** Which parts of the map show and answer; each left out keeps its default. */
   controls?: MapControls
   /** The area the host keeps, from its URL: adopted when it changes, as `selectedId` is. */

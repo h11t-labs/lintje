@@ -11,6 +11,41 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-10-31
+
+### Toegevoegd
+
+- Tabs onderaan op een telefoon: met `mobile-tabs` op `lintje-shell` staan onder 768 px de losse pagina's als tabs onder de duim, ten hoogste vijf, met Menu als laatste en het paneel van Menu als blad erboven, met alle pagina's. Met `tab-parts` kiest de host welke delen van de shell (Zoeken, Meldingen, Jij, Menu) een tab zijn; elk deel staat op één plek. Een ingang met `action` opent iets van de host in plaats van een pagina en stuurt `lintje-action` met die naam, ook in de rail en de navigatiebalk. Wat onderaan plakt, leest de hoogte van de tabs uit `--lintje-shell-bottom`, zoals het vraagvak van het gesprek. Wat uit een tab komt (Menu, Meldingen, Jij), laat de tabs zichtbaar en stopt erop; een tik op een andere tab sluit het. Een toast staat boven de tabs en zakt naar de onderrand zolang een blad van elders ze bedekt (`--lintje-toast-bottom`). Op een tab is de teller 16 px. (#325)
+
+### Gewijzigd
+
+- De balk op een telefoon is in beide indelingen dezelfde: de logobalk scrolt weg en een balk van 56 px blijft plakken, met de naam (en zodra de paginakop uit beeld is de titel van de pagina), zoeken, de bel, de avatar en Menu. De header van 72 px in de indeling met het menu naast de pagina vervalt. Een pagina dieper draagt Terug voor de titel (`back` in de data van de shell). Jouw menu opent op een telefoon als blad van onderen; het paneel van Menu draagt geen gebruiker meer en loopt van kort naar lang: de omgeving, Weergave, Delen en het `end`-slot, de pagina's, dan feedback en de versie. (#325)
+- Elk blad op een telefoon is hetzelfde blad: Menu, Meldingen, Jij, Weergave, Delen, Zoeken en Filters komen van onderen, zo hoog als hun inhoud en ten hoogste `--h-sheet` (88vh), met een sluier erboven, hun naam en een sluitknop bovenin, en ze zakken weer weg bij sluiten. Het paneel van Menu is ook zonder tabs zo'n blad; de knop Menu in de balk blijft Menu en de balk ligt onder de sluier. De bel in de balk opende schermvullend en opent nu ook als blad. (#325)
+
+### Verwijderd
+
+- **Brekend:** `mobile-bar` op `lintje-shell`, met `top` en `bottom`. De balk bovenaan is er op een telefoon altijd; wie Menu onder de duim wil, zet `mobile-tabs`. (#325)
+
+## [0.11.0] - 2026-10-27
+
+### Toegevoegd
+
+- Een tijdlijn: momenten langs een rail, staand of liggend, aan één kant, om en om of per kant, met vandaag op de rail en eerst de momenten het dichtst bij nu. Een moment heeft drie regels: de datum en een label boven de kop, de kop, en eronder een zin, een link en een eigen slot. Een moment kan zeggen wie het deed: een persoon met zijn rondje, of wat geen persoon is ("Systeem") met een icoon in het rondje. (#316)
+- Een kaart krijgt naast `basemap` optioneel `basemapDark`: een tweede WMS-ondergrond, van hetzelfde type, voor donker. De kaart kiest op de modus van het element en vervangt bij een wissel alleen de tegellaag; zonder `basemapDark` tekent donker `basemap`. (#280)
+
+### Gewijzigd
+
+- De stijlgidstest draait in vier delen naast elkaar, zodat de browsertests lokaal in ongeveer 37 s klaar zijn in plaats van 1:46. (#320)
+
+### Verwijderd
+
+- **Brekend:** `lintje-activity-log` vervalt; een logboek is nu een `lintje-timeline`. Geef `entries` als `moments`, elk `{ who, title: what, when, at }`, het nieuwste eerst zoals voorheen en `limit="10" step="10"` voor tien per keer. De tijd staat boven de regel, of aan één kant in een kolom vóór de rail. Een naam als tekst is nu geen persoon meer en krijgt het rondje met tandwielen: geef een persoon als `Person`. Het type `ActivityEntry` vervalt met het element. (#316)
+
+### Opgelost
+
+- De browsertests in CI draaien in het image van Playwright, zodat de WebKit-job niet meer op een trage Ubuntu-mirror wacht en binnen zijn limiet blijft. (#321)
+- De browsertest van de focusring van `lintje-segmented` slaagt ook in WebKit: hij tabt nu zoals de andere browsertests, vanuit een veld ervoor. (#308)
+
 ## [0.10.0] - 2026-10-25
 
 ### Toegevoegd
@@ -698,7 +733,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.10.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/h11t-labs/lintje/compare/v0.11.0...v0.12.0
+[0.11.0]: https://github.com/h11t-labs/lintje/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/h11t-labs/lintje/compare/v0.9.3...v0.10.0
 [0.9.3]: https://github.com/h11t-labs/lintje/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/h11t-labs/lintje/compare/v0.9.1...v0.9.2
