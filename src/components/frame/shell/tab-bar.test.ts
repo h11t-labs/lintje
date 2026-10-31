@@ -137,7 +137,7 @@ describe('the tab bar in the shell', () => {
     expect(heard).toHaveBeenCalledWith('lagen')
   })
 
-  it('opens the panel from the tab Menu, which then reads Sluiten; the panel holds what is no tab', async () => {
+  it('opens the panel from the tab Menu, which then reads Sluiten; the panel holds every page', async () => {
     viewport(390)
     const shell = await mount({ 'mobile-tabs': '' })
     expect(root(shell).querySelector('.lintje-mobile-header__button--menu')).toBeNull()
@@ -150,8 +150,8 @@ describe('the tab bar in the shell', () => {
     const entries = Array.from(panel.querySelectorAll('.lintje-mobile-menu__label'), (n) =>
       n.textContent?.trim(),
     )
-    expect(entries).toEqual(['Correspondentie', 'Gebruikers'])
-    expect(panel.querySelector('nav')?.getAttribute('aria-label')).toBe('Overige pagina’s')
+    expect(entries).toEqual(['Zaken', 'Taken', 'Lagen', 'Agenda', 'Correspondentie', 'Gebruikers'])
+    expect(panel.querySelector('nav')?.getAttribute('aria-label')).toBe('Alle pagina’s')
     menu().click()
     await shell.updateComplete
     expect(shell.menuOpen).toBe(false)

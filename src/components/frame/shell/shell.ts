@@ -771,7 +771,8 @@ export class LintjeShell extends LintjeElement {
 
   /** Below 768 px, in both layouts: the logo bar, and the bar under it that pins once it scrolls away. */
   private renderPhone(plan: TabPlan): TemplateResult {
-    const panel = toGroups(plan.rest)
+    // The panel holds every page, the tabs' too, so it is never empty; the tabs are the short way.
+    const panel = toGroups(this.data?.navigation ?? [])
     return html`${this.renderLogo()}
       <div class="lintje-shell__sentinel" aria-hidden="true"></div>
       <div class="lintje-shell__mobile-bar">

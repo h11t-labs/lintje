@@ -23,7 +23,7 @@ export interface TabPlan {
   pages: ShellLink[]
   /** The parts that are tabs, after the pages, Menu last. */
   parts: TabPart[]
-  /** What is not a tab: the menu's panel holds it. */
+  /** What is not a tab. The menu's panel holds every page, these and the tabs'. */
   rest: (ShellLink | ShellGroup)[]
 }
 

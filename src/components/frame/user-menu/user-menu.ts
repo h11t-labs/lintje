@@ -33,6 +33,7 @@ import '../../overlays/popover/popover'
 import '../../overlays/tooltip/tooltip'
 import { MediaController, MOBILE } from '../../../core/media'
 import tabCss from '../shared/tab.css?inline'
+import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import menuCss from '../../shared/menu.css?inline'
 import menuButtonCss from '../../actions/menu-button/menu-button.css?inline'
 import userMenuCss from './user-menu.css?inline'
@@ -50,6 +51,7 @@ export class LintjeUserMenu extends LintjeElement {
     shadowCss(menuButtonCss),
     shadowCss(userMenuCss),
     shadowCss(tabCss),
+    shadowCss(dialogCloseCss),
   ]
 
   static override properties: PropertyDeclarations = {
@@ -460,7 +462,21 @@ export class LintjeUserMenu extends LintjeElement {
   private renderSheet(): TemplateResult | typeof nothing {
     if (!this.open) return nothing
     return html`<div class="lintje-user-menu__scrim" @click=${() => this.hide(false)}></div>
-      <div class="lintje-user-menu__sheet" id=${this.#menuId}>${this.renderContent()}</div>`
+      <div class="lintje-user-menu__sheet" id=${this.#menuId}>
+        <!-- The head of every sheet: its name and a close button, as "Weergave" and "Delen". -->
+        <div class="lintje-user-menu__sheet-head">
+          <h2 class="lintje-user-menu__sheet-title">Jij</h2>
+          <button
+            type="button"
+            class="lintje-dialog-close lintje-user-menu__close"
+            aria-label="Jouw menu sluiten"
+            @click=${() => this.hide(true)}
+          >
+            ${renderIcon('functioneel-kruis', { size: 16 })}
+          </button>
+        </div>
+        ${this.renderContent()}
+      </div>`
   }
 
   private renderPopover(side: boolean): TemplateResult {

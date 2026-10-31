@@ -121,7 +121,7 @@ function renderBack(shell: LintjeShell): TemplateResult | typeof nothing {
  * The bar, the panel and the tabs stand in one region, `.lintje-mobile-chrome`: while the menu is
  * open it is the modal dialog and the focus trap keeps Tab inside, so the dialog's own close
  * button (Menu in the bar, or the tab Menu) is not hidden from a screen reader. `groups` is what
- * the panel holds: with tabs, what is not a tab. A part that is a tab is not in the bar.
+ * the panel holds: every page, with tabs too. A part that is a tab is not in the bar.
  */
 export function renderMobileHeader(
   shell: LintjeShell,
@@ -191,10 +191,10 @@ export function renderMobileHeader(
               : nothing
           }
           ${renderPanelTools(shell)}
-          <!-- With tabs the tab bar is the main navigation; the panel holds the other pages. -->
+          <!-- With tabs the tab bar is the main navigation; the panel holds every page. -->
           <nav
             class="lintje-mobile-menu__list"
-            aria-label=${shell.tabsShown ? 'Overige pagina’s' : 'Hoofdnavigatie'}
+            aria-label=${shell.tabsShown ? 'Alle pagina’s' : 'Hoofdnavigatie'}
           >
             ${groups.map(
               (group, index) => html`<div

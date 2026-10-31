@@ -183,3 +183,14 @@
   animation: lintje-sheet-in var(--dur-sheet) var(--ease-in-motion);
 }
 .lintje-user-menu__sheet .lintje-user-menu__panel { width: 100%; }
+/* The sheet's head, as the filter sheet's: its name and a close button, staying while it scrolls. */
+.lintje-user-menu__sheet-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border-popover);
+}
+.lintje-user-menu__sheet-title { flex: 1; margin: 0; font: var(--text-h2); color: var(--color-text-primary); }

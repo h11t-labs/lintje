@@ -109,6 +109,8 @@
   animation: lintje-fade-in var(--dur-popover) var(--ease-in-motion);
 }
 .lintje-notifications__sheet:focus { outline: none; }
+/* From a tab it comes up from below, as the menu's panel and the user's menu above the tabs. */
+:host([variant='tab']) .lintje-notifications__sheet { animation: lintje-sheet-in var(--dur-sheet) var(--ease-in-motion); }
 .lintje-notifications__panel.is-sheet { width: 100%; max-height: none; }
 .lintje-notifications__close { margin-right: calc(var(--space-2) * -1); 
   transition: color var(--dur-hover) var(--ease-in-motion);

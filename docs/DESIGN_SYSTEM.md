@@ -399,9 +399,9 @@ Besluiten die voor beide gelden:
   pagina's dan als tabs onder de duim, ten hoogste vijf, met Menu als laatste. Het zijn dezelfde
   ingangen als de rail en de navigatiebalk, met dezelfde markering (de vulling en de lijn eronder,
   niet vet) en dezelfde badge, op de hoek van de glyph. Elk deel van de shell staat op één plek:
-  wat `tab-parts` naar de tabs stuurt (standaard alleen Menu), staat niet ook in de balk. Wat
-  geen tab is, zit in het paneel van Menu, dat boven de tabs opent; Menu is een knop en draagt
-  nooit de markering. Een blad van de host bedekt de tabs, en zolang het toetsenbord open is,
+  wat `tab-parts` naar de tabs stuurt (standaard alleen Menu), staat niet ook in de balk. Het
+  paneel van Menu opent boven de tabs en draagt alle pagina's, ook die een tab zijn, zodat het
+  nooit leeg is; Menu is een knop en draagt nooit de markering. Een blad van de host bedekt de tabs, en zolang het toetsenbord open is,
   wijken ze. Een ingang met `action` opent iets van de host in plaats van een pagina.
 - **De gebruiker heeft in elke indeling hetzelfde menu**: naam en rol met "Afmelden" als icoon
   ernaast, de rijen van de host en de versie. De avatar in de balk opent het naar beneden, de voet
