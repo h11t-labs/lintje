@@ -1,6 +1,7 @@
 /** The contract of every modal dialog on the `FocusTrap`: focus in, Tab stays in, the page holds still, it closes, focus back, its name resolves. */
 import { afterEach, describe, expect, it } from 'vitest'
 import { cdp, page, server, userEvent } from 'vitest/browser'
+import type { LintjeShell } from '../../components/frame/shell/shell'
 import { deepActiveElement, holdsFocus } from '../../core/focus'
 import { scrollRoot } from '../../core/host-config'
 import { focusTarget, tabbables } from '../../components/shared/focus-trap'
@@ -271,9 +272,10 @@ const ROWS: Row[] = [
         trigger: () => shadow(element, '.lintje-mobile-header__button--menu'),
       }
     },
-    // Opening leaves the focus on the button, which then reads "Sluiten".
-    first: (element) => shadow(element, '.lintje-mobile-header__button--menu'),
-    closers: [['sluiten', (element) => shadow(element, '.lintje-mobile-header__button--menu')]],
+    // The sheet's own close button, as in every sheet: the bar lies under the veil.
+    first: (element) => shadow(element, '.lintje-mobile-menu__close'),
+    // The sheet from below has its own close button; the bar's button lies under its veil.
+    closers: [['de sluitknop', (element) => shadow(element, '.lintje-mobile-menu__close')]],
   },
   {
     name: 'lintje-shell Delen op 390 px',
@@ -282,7 +284,11 @@ const ROWS: Row[] = [
       const { element } = shell()
       return {
         element,
-        trigger: () => shadow(element, '.lintje-mobile-header .lintje-share__button'),
+        // "Delen" is a row at the top of the menu's panel: the menu opens first.
+        trigger: () => {
+          if (!(element as LintjeShell).menuOpen) (element as LintjeShell).menuOpen = true
+          return shadow(element, '.lintje-mobile-menu__tools .lintje-share__button')
+        },
       }
     },
     first: (element) => shadow(element, '.lintje-share__close'),
@@ -359,6 +365,8 @@ interface Opened {
   element: HTMLElement
   trigger: HTMLElement
   dialog: HTMLElement
+  /** The dialogs already open under it, which stay: the shell's menu under "Delen". */
+  under: number
 }
 
 /** Mounts the row, opens it from its focused trigger and waits for the first focus. */
@@ -383,9 +391,10 @@ async function open(row: Row): Promise<Opened> {
   const trigger = find(element)!
   trigger.focus()
   expect(deepActiveElement()).toBe(trigger)
+  const under = dialogs().length
   trigger.click()
-  await expect.poll(() => dialogs().length).toBe(1)
-  return { element, trigger, dialog: dialogs()[0]! }
+  await expect.poll(() => dialogs().length).toBe(under + 1)
+  return { element, trigger, dialog: dialogs()[under]!, under }
 }
 
 /** After a close: no dialog left, the focus on the trigger. */
@@ -397,7 +406,7 @@ async function closes(
 ): Promise<void> {
   await act()
   const closed = await check(row, `${path} sluit`, async () => {
-    await expect.poll(() => dialogs().length).toBe(0)
+    await expect.poll(() => dialogs().length).toBe(view.under)
   })
   if (!closed) return
   await check(row, `de focus keert terug na ${path}`, async () => {
@@ -476,7 +485,7 @@ describe.each(ROWS)('$name', (row) => {
       await expect.poll(() => holdsFocus(view.dialog)).toBe(true)
       await check(row, 'Escape laat hem open', async () => {
         await userEvent.keyboard('{Escape}')
-        expect(dialogs()).toEqual([view.dialog])
+        expect(dialogs().slice(view.under)).toEqual([view.dialog])
         expect(holdsFocus(view.dialog)).toBe(true)
       })
     })
@@ -508,8 +517,9 @@ describe.each(ROWS)('$name', (row) => {
       const position = path === 'de achtergrond' ? { position: { x: 4, y: 4 } } : {}
       await expect.poll(() => control(view.element)).toBeTruthy()
       await userEvent.click(control(view.element)!, position)
-      await expect.poll(() => dialogs().length).toBe(0)
-      expect(locked()).toBe(false)
+      await expect.poll(() => dialogs().length).toBe(view.under)
+      // A dialog under it keeps the page still.
+      expect(locked()).toBe(view.under > 0)
     })
   })
 
