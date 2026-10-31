@@ -1377,3 +1377,37 @@ describe('lintje-map plots', () => {
     expect(rows[1]).toEqual(['Loket Utrecht', 12])
   })
 })
+
+describe('lintje-map basemap', () => {
+  beforeEach(() => {
+    document.body.innerHTML = ''
+  })
+  afterEach(() => {
+    delete document.documentElement.dataset.mode
+  })
+
+  const BASEMAP = {
+    kind: 'wms' as const,
+    url: 'https://wms.invalid/light',
+    layers: 'licht',
+    attribution: 'x',
+  }
+  const BASEMAP_DARK = { ...BASEMAP, url: 'https://wms.invalid/dark', layers: 'donker' }
+  const sources = (element: MapTile) =>
+    [...element.renderRoot.querySelectorAll<HTMLImageElement>('img.leaflet-tile')].map(
+      (tile) => tile.getAttribute('src') ?? '',
+    )
+
+  it('follows the mode of the page: the dark basemap in dark, the light one back in light', async () => {
+    document.documentElement.dataset.mode = 'dark'
+    const element = await mapTile(tileData({ basemap: BASEMAP, basemapDark: BASEMAP_DARK }))
+    expect(sources(element).length).toBeGreaterThan(0)
+    expect(sources(element).every((src) => src.startsWith('https://wms.invalid/dark?'))).toBe(true)
+    expect(sources(element).every((src) => /LAYERS=donker/i.test(src))).toBe(true)
+    document.documentElement.dataset.mode = 'light'
+    await new Promise((resolve) => setTimeout(resolve))
+    await element.updateComplete
+    expect(sources(element).length).toBeGreaterThan(0)
+    expect(sources(element).every((src) => src.startsWith('https://wms.invalid/light?'))).toBe(true)
+  })
+})
