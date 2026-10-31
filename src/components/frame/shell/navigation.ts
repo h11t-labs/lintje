@@ -9,7 +9,7 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
 import { renderBadge } from '../../feedback/badge/badge'
-import { HOME_LABEL, hasPage, unavailableWord, type NavGroup } from './header'
+import { HOME_LABEL, hasPage, isAction, unavailableWord, type NavGroup } from './header'
 import type { ShellData, ShellLink } from '../../../types'
 import type { LintjeShell } from './shell'
 import type { LintjeUserMenu } from '../user-menu/user-menu'
@@ -235,7 +235,8 @@ export function homeLink(
 
 export function navRow(shell: LintjeShell, item: ShellLink, open: boolean): TemplateResult {
   const page = hasPage(item)
-  const muted = !page
+  const action = isAction(item)
+  const muted = !page && !action
   const content = html`
     ${renderIcon(item.icon, { size: 20, src: item.iconSrc })}
     ${
@@ -250,7 +251,7 @@ export function navRow(shell: LintjeShell, item: ShellLink, open: boolean): Temp
         : nothing
     }
     ${item.noAccess && open ? noAccessMark('lintje-nav__metric') : nothing}
-    ${!page && !(item.noAccess && open) ? unavailableWord(item) : nothing}
+    ${!page && !action && !(item.noAccess && open) ? unavailableWord(item) : nothing}
     ${
       // A bare "3" means nothing read aloud: with a label the figure is only seen and the
       // label only heard. `action` is the unread counter, `count` the menu's counter, `new` the word.
@@ -266,6 +267,16 @@ export function navRow(shell: LintjeShell, item: ShellLink, open: boolean): Temp
         : nothing
     }
   `
+  if (action) {
+    return html`<button
+      type="button"
+      class="lintje-nav__item lintje-nav__item--action"
+      title=${open ? nothing : item.label}
+      @click=${() => shell.act(item)}
+    >
+      ${content}
+    </button>`
+  }
   if (page) {
     return html`<a
       href=${item.href as string}

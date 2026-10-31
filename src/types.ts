@@ -679,6 +679,12 @@ export interface ShellLink {
   badge?: { value: string | number; tone: 'action' | 'count' | 'new'; label?: string }
   /** The page exists but the reader may not open it: struck through, with a lock. */
   noAccess?: boolean
+  /**
+   * An entry that opens something of the host's instead of a page, such as a sheet: a button
+   * instead of a link, never marked as the reader's page. A click sends `lintje-action` with this
+   * name. Takes the place of `href`.
+   */
+  action?: string
 }
 
 /** Pages under one heading: a submenu in the navigation bar, a section in the side menu. */
@@ -765,8 +771,17 @@ export interface ShellData extends FrameSettings {
   /** The scheme of the QR code's link in place of `https`, so a phone opens it in that app:
    *  `mibrowsers` for Ivanti Web@Work. Copying the link and e-mail keep `https`. */
   qrScheme?: string
-  /** The page's name, beside `name` in the side layout's top bar once the title has scrolled away. */
+  /**
+   * The page's name, beside `name` in the side layout's top bar once the title has scrolled away;
+   * below 768 px it takes the place of `name` in the bar then.
+   */
   pageName?: string
+  /**
+   * A page deeper than the menu reaches: below 768 px the bar draws Terug before the title, to
+   * `href`. `label` is what a screen reader hears: "Terug naar Zaken". Above 768 px the
+   * breadcrumbs do this.
+   */
+  back?: { href: string; label?: string }
   /** The environment outside production ("Acceptatie"). Leave it out in production. */
   environment?: string
   /** Who is signed in: the avatar and the user menu. Without it there is no user menu. */
@@ -1083,7 +1098,13 @@ export type {
   DescriptionItem,
   DescriptionAction,
 } from './components/tables/description-list/description-list'
-export type { ActivityEntry } from './components/tables/activity-log/activity-log'
+export type {
+  TimelineActor,
+  TimelineLink,
+  TimelineMoment,
+  TimelinePlacement,
+  TimelineSide,
+} from './components/tables/timeline/timeline'
 export type { Job, JobState } from './components/feedback/job-list/job-list'
 export type {
   ConflictChange,

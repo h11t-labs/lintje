@@ -125,7 +125,7 @@ export interface LeafletSyncOptions {
   clear: () => void
   /** Below 768 px, where a one-finger drag belongs to the page (rule 9). */
   mobile: boolean
-  /** The element's mode: a basemap with a `dark` style draws it in dark. */
+  /** The element's mode: in dark the map draws `basemapDark` when there is one. */
   mode: Mode
 }
 
@@ -375,7 +375,8 @@ export class LeafletSurface {
     if (drawing) document.addEventListener('keydown', this.#onEscape, true)
     else document.removeEventListener('keydown', this.#onEscape, true)
     this.#ensureGeo(map, data.geo ?? 'world')
-    if (data.basemap) this.#ensureTiles(map, data.basemap)
+    const basemap = this.#basemapFor(data)
+    if (basemap) this.#ensureTiles(map, basemap)
     else this.#dropTiles(map)
     this.#draw(map, data)
   }
@@ -520,14 +521,17 @@ export class LeafletSurface {
     return [point.x, point.y]
   }
 
+  /** The basemap the mode asks for: in dark `basemapDark`, when there is one beside `basemap`. */
+  #basemapFor(data: MapSpec): WmsBasemap | undefined {
+    if (!data.basemap) return undefined
+    return this.#options.mode === 'dark' ? (data.basemapDark ?? data.basemap) : data.basemap
+  }
+
   #ensureTiles(map: L.Map, basemap: WmsBasemap): void {
-    // The key holds what the mode chose, so without a dark style a switch keeps the same tiles.
-    const dark = this.#options.mode === 'dark' ? basemap.dark : undefined
-    const url = dark?.url ?? basemap.url
-    const layers = dark?.layers ?? basemap.layers
+    // The key is the whole basemap, so a switch of mode without a dark one keeps the same tiles.
     const key = [
-      url,
-      layers,
+      basemap.url,
+      basemap.layers,
       basemap.format,
       basemap.version,
       basemap.transparent,
@@ -537,8 +541,8 @@ export class LeafletSurface {
     if (this.#tiles) map.removeLayer(this.#tiles)
     this.#basemapKey = key
     this.#attribution ??= L.control.attribution({ prefix: LEAFLET_PREFIX }).addTo(map)
-    this.#tiles = L.tileLayer.wms(url, {
-      layers,
+    this.#tiles = L.tileLayer.wms(basemap.url, {
+      layers: basemap.layers,
       format: basemap.format ?? 'image/png',
       // 1.3.0 asks for `CRS=EPSG:3857`, not the 1.1.1 `SRS=`.
       version: basemap.version ?? '1.3.0',
@@ -579,7 +583,7 @@ export class LeafletSurface {
           controller: this.#controller,
           select: this.#options.select,
           project: this.#project,
-          tiled: Boolean(data.basemap),
+          tiled: Boolean(this.#basemapFor(data)),
           hidden: new Set(this.#options.hidden),
           hiddenLayers: new Set(this.#options.hiddenLayers),
           chosen: new Set(this.#options.chosen),

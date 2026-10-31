@@ -52,12 +52,15 @@ afterEach(async () => {
 })
 
 describe('"Weergave" below 768 px', () => {
-  it('rings its controls in --color-focus: the sheet is the page surface, not the header', async () => {
+  it('rings its controls in --color-focus: the sheet is the page surface, not the menu', async () => {
     await page.viewport(390, 800)
     await expect.poll(() => window.innerWidth).toBe(390)
     const shell = await mount()
+    // "Weergave" is a row at the top of the menu's panel.
+    shell.menuOpen = true
+    await shell.updateComplete
     const tool = shell.shadowRoot!.querySelector<HTMLButtonElement>(
-      '.lintje-mobile-header button.lintje-view__button',
+      '.lintje-mobile-menu__tools button.lintje-view__button',
     )!
     // By the keyboard: a click goes through a locator by name, and the desktop tool has it too.
     tool.focus()
@@ -185,7 +188,7 @@ describe('the ribbon in the logo bar', () => {
     }
   })
 
-  it('leaves the side menu’s logo at 44 px and the mobile header’s at 32 px', async () => {
+  it('leaves the side menu’s logo at 44 px; on a phone the side layout has the logo bar too', async () => {
     document.documentElement.style.fontSize = '20px'
     const side = await mount({ ...DATA, emblem })
     await expect
@@ -194,9 +197,8 @@ describe('the ribbon in the logo bar', () => {
     side.remove()
     const phone = await mount({ ...DATA, emblem })
     await viewport(390)
-    await expect
-      .poll(() => drawing(phone, '.lintje-mobile-header__home lintje-logo').ribbon)
-      .toBeCloseTo(32, 0)
+    // The same logo bar as the top layout's: 40 px at 16 px, so 50 px at 20 px.
+    await expect.poll(() => drawing(phone, '.lintje-logobar lintje-logo').ribbon).toBeCloseTo(50, 0)
   })
 })
 

@@ -108,7 +108,7 @@ export function scaleLabel(metres: number): string {
  */
 export interface MapOptions extends Omit<ChartOptions, 'description' | 'onSelect' | 'selectedId'> {
   description?: string
-  /** The element's mode, which only the browser knows: it chooses a basemap's dark style. */
+  /** The element's mode, which only the browser knows: in dark the map draws `basemapDark`. */
   mode?: Mode
   /**
    * An area or point was clicked; the whole mark travels, as the panel needs its figure. `newTab`

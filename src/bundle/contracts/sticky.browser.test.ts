@@ -241,7 +241,7 @@ const SHELL_BAR: Record<string, string> = {
   'top 1440': '.lintje-navbar',
   'top 390': '.lintje-shell__mobile-pin',
   'side 1440': '.lintje-top-bar',
-  'side 390': '.lintje-mobile-header',
+  'side 390': '.lintje-shell__mobile-pin',
 }
 
 async function shell(layout: 'top' | 'side', content: HTMLElement[]): Promise<HTMLElement> {

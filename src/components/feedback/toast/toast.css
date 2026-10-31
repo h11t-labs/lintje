@@ -55,7 +55,8 @@
 }
 
 @media screen and (max-width: 767px) {
-  .lintje-toast { left: var(--space-4); right: var(--space-4); bottom: var(--space-4); min-width: 0; max-width: none; }
+  /* Above the shell's tabs, which pass their height on; at the edge while a sheet covers them. */
+  .lintje-toast { left: var(--space-4); right: var(--space-4); bottom: calc(var(--space-4) + var(--lintje-toast-bottom, 0px)); min-width: 0; max-width: none; }
 }
 
 /* Forced colours: the fill and shadow are dropped, so the toast takes a CanvasText line. */
