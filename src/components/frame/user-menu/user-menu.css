@@ -26,6 +26,10 @@
 }
 .lintje-user-menu__trigger:hover,
 .lintje-user-menu__trigger.is-open { background: var(--color-nav-hover); color: var(--color-nav-hover-text); }
+/* Below 768 px the menu opens from below as a sheet: the bare avatar, as the bar's other tools. */
+.lintje-user-menu__trigger.is-bare,
+.lintje-user-menu__trigger.is-bare:hover,
+.lintje-user-menu__trigger.is-bare.is-open { padding: 0; background: transparent; color: var(--color-nav-text); }
 /* On the hover fill the role takes the words' colour: in the light tone the fill is the primary. */
 .lintje-user-menu__trigger:is(:hover, .is-open) .lintje-user-menu__trigger-role { color: inherit; }
 

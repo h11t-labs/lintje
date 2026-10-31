@@ -404,6 +404,8 @@ export class LintjeUserMenu extends LintjeElement {
           'focus-inset': side,
           'is-open': this.open,
           'is-folded': side && this.folded,
+          // Below 768 px the menu comes from below: only the avatar, no chevron, no fill.
+          'is-bare': this.sheet,
         })}
         aria-label=${label}
         aria-describedby=${side && user?.role ? this.#roleId : nothing}
@@ -416,11 +418,15 @@ export class LintjeUserMenu extends LintjeElement {
       >
         ${renderAvatar(user ?? null, { onNav: true, size: side ? 'large' : 'medium' })}
         ${side && user ? this.renderNames(user) : nothing}
-        ${renderIcon('functioneel-delta-omlaag', {
-          size: 16,
-          rotate: chevronUp ? 180 : undefined,
-          className: 'lintje-user-menu__chevron',
-        })}
+        ${
+          this.sheet
+            ? nothing
+            : renderIcon('functioneel-delta-omlaag', {
+                size: 16,
+                rotate: chevronUp ? 180 : undefined,
+                className: 'lintje-user-menu__chevron',
+              })
+        }
       </button>
       ${side ? html`<span class="lintje-user-menu__anchor" aria-hidden="true"></span>` : nothing}
       ${this.sheet ? this.renderSheet() : this.renderPopover(side)}`
