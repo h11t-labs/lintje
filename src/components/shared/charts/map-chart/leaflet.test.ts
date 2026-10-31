@@ -4,6 +4,7 @@
  * runs as in a browser; what has no layout — where a mark stands — is stubbed per test.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import * as L from 'leaflet'
 import { LeafletSurface, type LeafletSyncOptions } from './leaflet'
 import { ChartController } from '../shared/controller'
 
@@ -63,6 +64,7 @@ function surface(options: Partial<LeafletSyncOptions> = {}, data: unknown = DATA
     select: () => {},
     clear: () => {},
     mobile: false,
+    mode: 'light',
     ...options,
   }
   instance.attach(container)
@@ -254,5 +256,62 @@ describe('the edge of a map point', () => {
         .style.getPropertyValue('--lintje-series-edge')
     expect(edge('ein')).toBe('var(--color-chart-mint-green-edge)')
     expect(edge('rtm')).toBe('')
+  })
+})
+
+describe('the basemap in dark', () => {
+  beforeEach(() => {
+    document.body.innerHTML = ''
+  })
+
+  /** The map's WMS layers, with the address and the layers they ask for. */
+  function tiles(
+    instance: LeafletSurface,
+  ): { layer: L.TileLayer.WMS; url: string; layers: string }[] {
+    const found: { layer: L.TileLayer.WMS; url: string; layers: string }[] = []
+    instance.map!.eachLayer((layer) => {
+      if (layer instanceof L.TileLayer.WMS) {
+        const url = (layer as unknown as { _url: string })._url
+        found.push({ layer, url, layers: layer.wmsParams.layers })
+      }
+    })
+    return found
+  }
+
+  it('keeps the light basemap in dark without a dark one, and the same tile layer', () => {
+    const data = { ...DATA, basemap: BASEMAP }
+    const { instance, options } = surface({}, data)
+    const [light] = tiles(instance)
+    instance.sync(data as never, { ...options, mode: 'dark' })
+    const after = tiles(instance)
+    expect(after).toHaveLength(1)
+    expect(after[0]!.layer).toBe(light!.layer)
+    expect(after[0]).toMatchObject({ url: 'https://x/wms', layers: 'l' })
+  })
+
+  it('draws the dark basemap in dark and the light one in light, on the same map', () => {
+    const data = {
+      ...DATA,
+      basemap: BASEMAP,
+      basemapDark: { ...BASEMAP, url: 'https://x/dark', layers: 'd', attribution: 'y' },
+    }
+    const { instance, container, options } = surface({}, data)
+    expect(tiles(instance)).toMatchObject([{ url: 'https://x/wms', layers: 'l' }])
+    instance.zoomIn()
+    const map = instance.map
+    const zoom = map!.getZoom()
+    const drawing = container.querySelector('.lintje-map-chart__data')
+    instance.sync(data as never, { ...options, mode: 'dark' })
+    expect(tiles(instance)).toMatchObject([{ url: 'https://x/dark', layers: 'd' }])
+    // Only the tiles changed: the map, its view and its drawing stand.
+    expect(instance.map).toBe(map)
+    expect(map!.getZoom()).toBe(zoom)
+    expect(container.querySelector('.lintje-map-chart__data')).toBe(drawing)
+    expect(mark(container, 'ein')).not.toBeNull()
+    // The credit is the dark basemap's own.
+    expect(container.querySelector('.leaflet-control-attribution')?.textContent).toContain('y')
+    instance.sync(data as never, { ...options, mode: 'light' })
+    expect(tiles(instance)).toMatchObject([{ url: 'https://x/wms', layers: 'l' }])
+    expect(container.querySelector('.leaflet-control-attribution')?.textContent).toContain('x')
   })
 })
