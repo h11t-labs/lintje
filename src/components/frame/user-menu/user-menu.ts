@@ -1,7 +1,9 @@
 /**
  * `<lintje-user-menu>` — the user's avatar in the navigation bar and the menu it opens: name and
  * role with "Afmelden" beside them, the host's rows (`MenuEntry`) and the version. With `variant="side"` it is
- * the foot of the side menu: the avatar with the name and role beside it, the menu above it.
+ * the foot of the side menu: the avatar with the name and role beside it, the menu above it. With
+ * `variant="tab"` it is a tab of the shell's tab bar, the word Jij under the avatar. Below 768 px
+ * the menu opens from below as a sheet, over the tabs.
  *
  * A menu, not a dialog: it traps no focus, and an Escape in a dialog opened over it is the
  * dialog's.
@@ -29,6 +31,10 @@ import {
 } from '../../actions/menu-button/menu-button'
 import '../../overlays/popover/popover'
 import '../../overlays/tooltip/tooltip'
+import { MediaController, MOBILE } from '../../../core/media'
+import { lockScroll } from '../../../core/host-config'
+import tabCss from '../shared/tab.css?inline'
+import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import menuCss from '../../shared/menu.css?inline'
 import menuButtonCss from '../../actions/menu-button/menu-button.css?inline'
 import userMenuCss from './user-menu.css?inline'
@@ -45,6 +51,8 @@ export class LintjeUserMenu extends LintjeElement {
     shadowCss(menuCss),
     shadowCss(menuButtonCss),
     shadowCss(userMenuCss),
+    shadowCss(tabCss),
+    shadowCss(dialogCloseCss),
   ]
 
   static override properties: PropertyDeclarations = {
@@ -57,6 +65,7 @@ export class LintjeUserMenu extends LintjeElement {
     variant: { type: String, reflect: true },
     folded: { type: Boolean, reflect: true },
     open: { type: Boolean, reflect: true },
+    leaving: { state: true },
   }
 
   declare user?: Person | null
@@ -74,19 +83,28 @@ export class LintjeUserMenu extends LintjeElement {
   inline: boolean = false
   /**
    * `bar`: the avatar in the navigation bar, the menu below it. `side`: the foot of the side
-   * menu, named by the user's name with the role beside it, the menu above it.
+   * menu, named by the user's name with the role beside it, the menu above it. `tab`: a tab of
+   * the shell's tab bar below 768 px.
    */
-  variant: 'bar' | 'side' = 'bar'
+  variant: 'bar' | 'side' | 'tab' = 'bar'
   /** `side` in the folded rail: only the avatar shows; name and role stay for a screen reader. */
   folded: boolean = false
   open: boolean = false
 
+  readonly #mobile = new MediaController(this, MOBILE)
   readonly #menuId = uniqueId('lintje-user-menu')
   readonly #roleId = uniqueId('lintje-user-menu-role')
   #pendingFocus: 'first' | 'last' | null = null
 
   private get trigger(): HTMLButtonElement | null {
-    return this.renderRoot.querySelector<HTMLButtonElement>('.lintje-user-menu__trigger')
+    return this.renderRoot.querySelector<HTMLButtonElement>(
+      '.lintje-user-menu__trigger, .lintje-tab-bar__tab',
+    )
+  }
+
+  /** Below 768 px the menu of the bar and of a tab is a sheet from below. */
+  private get sheet(): boolean {
+    return this.variant !== 'side' && this.#mobile.matches
   }
 
   /** "Afmelden" beside the name comes last: the first arrow down never lands on it. */
@@ -159,6 +177,12 @@ export class LintjeUserMenu extends LintjeElement {
 
   private readonly onMenuKeydown = (event: KeyboardEvent): void => {
     if (this.inline) return
+    // The sheet has no popover to answer Escape.
+    if (event.key === 'Escape' && this.sheet) {
+      event.preventDefault()
+      this.hide(true)
+      return
+    }
     const rows = this.rowElements()
     const current = rows.findIndex((row) => row === this.shadowRoot?.activeElement)
     switch (event.key) {
@@ -214,8 +238,38 @@ export class LintjeUserMenu extends LintjeElement {
     this.emit('lintje-logout')
   }
 
+  /** The sheet is going down: still drawn, no longer open. */
+  leaving: boolean = false
+  #leaveTimer: ReturnType<typeof setTimeout> | null = null
+
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
+    // A sheet goes down before it leaves; the timer covers a missing `animationend`.
+    if (changed.has('open')) {
+      if (this.#leaveTimer) clearTimeout(this.#leaveTimer)
+      this.#leaveTimer = null
+      this.leaving = !this.open && changed.get('open') === true && this.sheet
+      if (this.leaving) this.#leaveTimer = setTimeout(() => (this.leaving = false), 600)
+    }
+  }
+
+  /** Undoes the page's lock while the sheet is open, as every sheet holds the page still. */
+  #released: (() => void) | null = null
+
+  override disconnectedCallback(): void {
+    this.#released?.()
+    this.#released = null
+    super.disconnectedCallback()
+  }
+
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
+    const held = this.open && this.sheet
+    if (held && !this.#released) this.#released = lockScroll()
+    else if (!held && this.#released) {
+      this.#released()
+      this.#released = null
+    }
     if (this.open && this.#pendingFocus) {
       const focus = this.#pendingFocus
       this.#pendingFocus = null
@@ -375,6 +429,7 @@ export class LintjeUserMenu extends LintjeElement {
           : `Menu van ${user.name}`
     // The menu opens away from the trigger: down from the bar, up from the foot.
     const chevronUp = side ? !this.open : this.open
+    if (this.variant === 'tab') return this.renderTab()
     return html`<button
         type="button"
         class=${classMap({
@@ -383,6 +438,8 @@ export class LintjeUserMenu extends LintjeElement {
           'focus-inset': side,
           'is-open': this.open,
           'is-folded': side && this.folded,
+          // Below 768 px the menu comes from below: only the avatar, no chevron, no fill.
+          'is-bare': this.sheet,
         })}
         aria-label=${label}
         aria-describedby=${side && user?.role ? this.#roleId : nothing}
@@ -395,14 +452,78 @@ export class LintjeUserMenu extends LintjeElement {
       >
         ${renderAvatar(user ?? null, { onNav: true, size: side ? 'large' : 'medium' })}
         ${side && user ? this.renderNames(user) : nothing}
-        ${renderIcon('functioneel-delta-omlaag', {
-          size: 16,
-          rotate: chevronUp ? 180 : undefined,
-          className: 'lintje-user-menu__chevron',
-        })}
+        ${
+          this.sheet
+            ? nothing
+            : renderIcon('functioneel-delta-omlaag', {
+                size: 16,
+                rotate: chevronUp ? 180 : undefined,
+                className: 'lintje-user-menu__chevron',
+              })
+        }
       </button>
       ${side ? html`<span class="lintje-user-menu__anchor" aria-hidden="true"></span>` : nothing}
-      <lintje-popover
+      ${this.sheet ? this.renderSheet() : this.renderPopover(side)}`
+  }
+
+  /** As a tab: the avatar as the glyph, the word Jij under it. */
+  private renderTab(): TemplateResult {
+    // The visible word is the name, so a voice command can use it (WCAG 2.5.3); whose menu it is
+    // follows, heard only.
+    return html`<button
+        type="button"
+        class=${classMap({ 'lintje-tab-bar__tab': true, 'focus-inset': true, 'is-open': this.open })}
+        aria-haspopup="menu"
+        aria-expanded=${String(this.open)}
+        aria-controls=${this.#menuId}
+        @click=${() => (this.open ? this.hide(false) : this.show('first'))}
+        @keydown=${this.onTriggerKeydown}
+      >
+        <span class="lintje-tab-bar__glyph" aria-hidden="true"
+          >${renderAvatar(this.user ?? null, { onNav: true, size: 'small' })}</span
+        ><span class="lintje-tab-bar__label">Jij</span>${
+          this.user
+            ? html`<span class="visually-hidden">, menu van ${this.user.name}</span>`
+            : nothing
+        }
+      </button>
+      ${this.sheet ? this.renderSheet() : this.renderPopover(false)}`
+  }
+
+  /** Below 768 px: a sheet from below over the page and the tabs, with a veil that closes it. */
+  private renderSheet(): TemplateResult | typeof nothing {
+    if (!this.open && !this.leaving) return nothing
+    const leaving = this.leaving
+    return html`<div
+        class=${classMap({ 'lintje-user-menu__scrim': true, 'is-leaving': leaving })}
+        @click=${() => this.hide(false)}
+      ></div>
+      <div
+        class=${classMap({ 'lintje-user-menu__sheet': true, 'is-leaving': leaving })}
+        id=${this.#menuId}
+        ?inert=${leaving}
+        @animationend=${(event: AnimationEvent) => {
+          if (event.target === event.currentTarget && this.leaving) this.leaving = false
+        }}
+      >
+        <!-- The head of every sheet: its name and a close button, as "Weergave" and "Delen". -->
+        <div class="lintje-user-menu__sheet-head">
+          <h2 class="lintje-user-menu__sheet-title">Jij</h2>
+          <button
+            type="button"
+            class="lintje-dialog-close lintje-user-menu__close"
+            aria-label="Jouw menu sluiten"
+            @click=${() => this.hide(true)}
+          >
+            ${renderIcon('functioneel-kruis', { size: 16 })}
+          </button>
+        </div>
+        ${this.renderContent()}
+      </div>`
+  }
+
+  private renderPopover(side: boolean): TemplateResult {
+    return html`<lintje-popover
         id=${this.#menuId}
         placement=${side ? 'top-start' : 'bottom-end'}
         ?match-width=${side}

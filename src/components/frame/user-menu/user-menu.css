@@ -8,6 +8,9 @@
 :host([variant="side"]) { display: block; }
 :host([variant="side"]) { position: relative; }
 :host([hidden]) { display: none; }
+/* As a tab it takes its share of the tab bar. */
+:host([variant="tab"]) { display: flex; flex: 1 1 0; min-width: 0; }
+:host([variant="tab"]) .lintje-tab-bar__tab { flex: 1; }
 
 /* ------------------------------------------------------------------------ */
 
@@ -23,6 +26,10 @@
 }
 .lintje-user-menu__trigger:hover,
 .lintje-user-menu__trigger.is-open { background: var(--color-nav-hover); color: var(--color-nav-hover-text); }
+/* Below 768 px the menu opens from below as a sheet: the bare avatar, as the bar's other tools. */
+.lintje-user-menu__trigger.is-bare,
+.lintje-user-menu__trigger.is-bare:hover,
+.lintje-user-menu__trigger.is-bare.is-open { padding: 0; background: transparent; color: var(--color-nav-text); }
 /* On the hover fill the role takes the words' colour: in the light tone the fill is the primary. */
 .lintje-user-menu__trigger:is(:hover, .is-open) .lintje-user-menu__trigger-role { color: inherit; }
 
@@ -154,3 +161,52 @@
 .lintje-user-menu__anchor { position: absolute; inset: 0; pointer-events: none; }
 /* At least the width of a row's words, also from a folded rail. */
 :host([variant="side"]) .lintje-user-menu__panel { width: auto; min-width: 15rem; }
+
+/* Below 768 px the menu opens from below as a sheet, over the page and the tabs, as "Weergave"
+   and "Delen" do. */
+.lintje-user-menu__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--color-overlay-page);
+  animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
+}
+.lintje-user-menu__sheet {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 61;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--color-bg-surface);
+  border-top: 1px solid var(--color-border-popover);
+  animation: lintje-sheet-in var(--dur-sheet) var(--ease-in-motion);
+}
+.lintje-user-menu__sheet .lintje-user-menu__panel { width: 100%; }
+/* What opens from a tab leaves the tabs in view: the sheet and its veil stop on them. */
+:host([variant="tab"]) .lintje-user-menu__scrim { bottom: var(--lintje-shell-bottom, 0px); }
+:host([variant="tab"]) .lintje-user-menu__sheet {
+  bottom: var(--lintje-shell-bottom, 0px);
+  padding-bottom: 0;
+  animation-name: lintje-sheet-in;
+}
+/* The sheet's head, as the filter sheet's: its name and a close button, staying while it scrolls. */
+.lintje-user-menu__sheet-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border-popover);
+}
+.lintje-user-menu__sheet-title { flex: 1; margin: 0; font: var(--text-h2); color: var(--color-text-primary); }
+/* Closed, the sheet goes down again (behind the tabs, from a tab) and its veil fades. */
+.lintje-user-menu__sheet.is-leaving {
+  animation: lintje-sheet-out var(--dur-sheet) var(--ease-out-motion) forwards;
+  pointer-events: none;
+}
+.lintje-user-menu__scrim.is-leaving {
+  animation: lintje-fade-out var(--dur-scrim) var(--ease-out-motion) forwards;
+  pointer-events: none;
+}

@@ -389,13 +389,29 @@ Besluiten die voor beide gelden:
   en is te slepen; hij verschijnt zacht als de aanwijzer op het menu staat, en meteen als de focus
   in de lijst staat. Een schermlezer hoort hem niet: toetsen en het wiel scrollen de lijst zoals
   altijd.
-- **Onder 768 px is er geen rail**: een header met een Menu-knop, en het menu opent
-  schermvullend. In de indeling Boven is die header een balk onder de logobalk, met de naam. De
-  host mag de header onderaan het scherm zetten (`mobile-bar="bottom"`), de variant van de
-  huisstijl onder de duim; het menu opent er dan boven, als een sheet.
+- **Onder 768 px is er geen rail**, in beide indelingen hetzelfde: de logobalk scrolt met de
+  pagina weg, en eronder blijft een balk van de hoogte van de bovenbalk plakken. Links de naam,
+  en zodra de paginakop uit beeld is de titel van de pagina met de naam klein eronder; een
+  pagina dieper (`back`) draagt Terug ervoor. Rechts zoeken, de bel, de avatar en de knop Menu.
+  Het menu opent schermvullend, van kort naar lang: de omgeving als band, Weergave, Delen en het
+  `end`-slot, dan de pagina's en de groepen, onderaan feedback en de versie. De balk is er altijd.
+- **Tabs onderaan zijn een keuze van de host** (`mobile-tabs`): onder 768 px staan de losse
+  pagina's dan als tabs onder de duim, ten hoogste vijf, met Menu als laatste. Het zijn dezelfde
+  ingangen als de rail en de navigatiebalk, met dezelfde markering (de vulling en de lijn eronder,
+  niet vet) en dezelfde badge, op de hoek van de glyph. Elk deel van de shell staat op één plek:
+  wat `tab-parts` naar de tabs stuurt (standaard alleen Menu), staat niet ook in de balk. Het
+  paneel van Menu opent boven de tabs en draagt alle pagina's, ook die een tab zijn, zodat het
+  nooit leeg is; Menu is een knop en draagt nooit de markering. Wat uit een tab komt, laat de
+  tabs zichtbaar: het blad komt van onderen, schuift achter de tabs door en stopt erop, zo hoog
+  als zijn inhoud, met zijn naam en een sluitknop bovenin en een sluier over de pagina erboven.
+  Een tik op een andere tab sluit het. Wat van elders
+  komt (de bel of de avatar bovenaan, een filterblad, een dialoog), bedekt ze. Een blad van de
+  host dat uit een tab komt (`action`), zet zijn onderkant op `--lintje-shell-bottom`. Zolang het
+  toetsenbord open is, wijken de tabs. Een ingang met `action` opent iets van de host in plaats van een pagina.
 - **De gebruiker heeft in elke indeling hetzelfde menu**: naam en rol met "Afmelden" als icoon
   ernaast, de rijen van de host en de versie. De avatar in de balk opent het naar beneden, de voet
-  van het zijmenu naar boven, en op een telefoon staat het onderaan het menu. Met de pijltjes komt
+  van het zijmenu naar boven, en op een telefoon opent het als blad van onderen, over de tabs
+  heen. Met de pijltjes komt
   "Afmelden" na de rijen. Zolang het open is, blijft de rail uitgeklapt.
 - **De shell bevat de pagina.** Zijn inhoud houdt zich aan de breedte en padding van de pagina;
   wat van rand tot rand loopt — een hero, de filterbalk, een gesprek — staat erboven.
@@ -1318,7 +1334,10 @@ kleinste correctie, en leg die hier vast.
 - **Tekst die met een beletselteken is afgekapt, staat nooit alleen in een tooltip**: waar geen
   aanwijzer hem toont — onder 768 px, zonder hover, onder de focus van het toetsenbord — loopt hij
   door op een volgende regel. Tekst die geen focus kan krijgen en geen tooltip heeft, kapt nooit
-  af: hij loopt altijd door.
+  af: hij loopt altijd door. De uitzondering is het label van een tab onderaan (`mobile-tabs`):
+  één regel van 12 px, afgekapt, want een tweede regel past niet in de balk; het hele woord is de
+  naam van de tab, en de ontwikkelbuild waarschuwt, zodat een host een label op één kort woord
+  houdt.
 - **Wat verdwijnt terwijl de focus erop staat, geeft de focus eerst door**: een toast terug naar
   waar hij vandaan kwam (anders `<main>`), een gesloten mededeling naar de volgende stop op de
   pagina, "Alles gelezen" naar de eerste melding. Een element dat leeg raakt en zelf niets

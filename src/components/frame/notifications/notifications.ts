@@ -22,10 +22,11 @@ import { holdsFocus, standsIn } from '../../../core/focus'
 import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import '../../feedback/badge/badge'
+import { badgeStyles } from '../../feedback/badge/badge'
 import '../../overlays/popover/popover'
 import { DialogHold } from '../../shared/dialog'
 import { LiveMessage } from '../../shared/live-message'
+import tabCss from '../shared/tab.css?inline'
 import notificationsCss from './notifications.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import { isPlainClick } from '../../../core/links'
@@ -56,12 +57,20 @@ export function newsMessage(added: number): string {
 }
 
 export class LintjeNotifications extends LintjeElement {
-  static override styles = [iconStyles, shadowCss(dialogCloseCss), shadowCss(notificationsCss)]
+  static override styles = [
+    iconStyles,
+    shadowCss(dialogCloseCss),
+    shadowCss(notificationsCss),
+    badgeStyles,
+    shadowCss(tabCss),
+  ]
 
   static override properties: PropertyDeclarations = {
     items: { attribute: false },
     open: { type: Boolean, reflect: true },
     max: { type: Number },
+    variant: { type: String, reflect: true },
+    leaving: { state: true },
   }
 
   items: NotificationItem[] = []
@@ -71,6 +80,11 @@ export class LintjeNotifications extends LintjeElement {
    */
   max: number = 9
   open: boolean = false
+  /** `tab`: the bell is a tab of the shell's tab bar below 768 px, with the word Meldingen. */
+  declare variant?: 'tab'
+  /** The sheet from a tab is going down: still drawn, no longer open. */
+  leaving: boolean = false
+  #leaveTimer: ReturnType<typeof setTimeout> | null = null
 
   #shown = 0
   #replaced = false
@@ -82,7 +96,9 @@ export class LintjeNotifications extends LintjeElement {
   readonly #panelId = uniqueId('lintje-notifications')
 
   private get bell(): HTMLButtonElement | null {
-    return this.renderRoot.querySelector<HTMLButtonElement>('.lintje-notifications__bell')
+    return this.renderRoot.querySelector<HTMLButtonElement>(
+      '.lintje-notifications__bell, .lintje-tab-bar__tab',
+    )
   }
 
   private get unread(): number {
@@ -125,6 +141,15 @@ export class LintjeNotifications extends LintjeElement {
       this.hide(true)
     }
     this.#wasMobile = this.#mobile.matches
+    // From a tab the sheet goes down behind the tabs before it leaves; the timer covers a missing
+    // `animationend`.
+    if (changed.has('open')) {
+      if (this.#leaveTimer) clearTimeout(this.#leaveTimer)
+      this.#leaveTimer = null
+      const closed = !this.open && changed.get('open') === true
+      this.leaving = closed && this.variant === 'tab' && this.#mobile.matches
+      if (this.leaving) this.#leaveTimer = setTimeout(() => (this.leaving = false), 600)
+    }
     if (!changed.has('items')) return
     const count = this.unread
     const before = this.#shown
@@ -241,45 +266,79 @@ export class LintjeNotifications extends LintjeElement {
     </div>`
   }
 
+  /** The unread counter: the figure changes with a short movement when new ones arrive. */
+  private renderCount(count: number, className: string): TemplateResult | typeof nothing {
+    if (count <= 0) return nothing
+    return html`<lintje-badge class=${className} variant="unread" aria-hidden="true"
+      >${keyed(
+        countLabel(count, this.max),
+        html`<span
+          class=${classMap({ 'lintje-notifications__figure': true, 'is-replaced': this.#replaced })}
+          >${countLabel(count, this.max)}</span
+        >`,
+      )}</lintje-badge
+    >`
+  }
+
+  /** As a tab: the bell's glyph with the counter on its corner, and the word under it. The counter
+   * is drawn here, not as `<lintje-badge>`, so the tab's smaller size reaches it. */
+  private renderTab(count: number): TemplateResult {
+    return html`<span class="lintje-tab-bar__glyph" aria-hidden="true"
+        >${renderIcon('functioneel-bel', { size: 24 })}${
+          count > 0
+            ? html`<span class="lintje-badge lintje-badge--unread lintje-tab-bar__badge"
+                ><span class="lintje-badge__value">${countLabel(count, this.max)}</span></span
+              >`
+            : nothing
+        }</span
+      ><span class="lintje-tab-bar__label">Meldingen</span>${
+        // The tab is named by its word; the count follows it, heard only.
+        count > 0
+          ? html`<span class="visually-hidden">, ${countLabel(count, this.max)} ongelezen</span>`
+          : nothing
+      }`
+  }
+
   protected override render(): TemplateResult {
     const count = this.unread
     const mobile = this.#mobile.matches
+    const tab = this.variant === 'tab'
     // The popover stands right after the bell: its previous sibling is what it is placed by.
     return html`<button
         type="button"
-        class=${classMap({ 'lintje-notifications__bell': true, 'is-open': this.open })}
-        aria-label=${bellLabel(count, this.max)}
+        class=${classMap({
+          'lintje-notifications__bell': !tab,
+          'lintje-tab-bar__tab': tab,
+          'focus-inset': tab,
+          'is-open': this.open,
+        })}
+        aria-label=${tab ? nothing : bellLabel(count, this.max)}
         aria-haspopup="dialog"
         aria-expanded=${String(this.open)}
         aria-controls=${this.#panelId}
         @click=${() => (this.open ? this.hide(false) : (this.open = true))}
       >
-        ${renderIcon('functioneel-bel', { size: 20 })}
-        ${
-          count > 0
-            ? html`<lintje-badge class="lintje-notifications__count" variant="unread" aria-hidden="true"
-              >${keyed(
-                countLabel(count, this.max),
-                html`<span
-                  class=${classMap({
-                    'lintje-notifications__figure': true,
-                    'is-replaced': this.#replaced,
-                  })}
-                  >${countLabel(count, this.max)}</span
-                >`,
-              )}</lintje-badge
-            >`
-            : nothing
-        }
+        ${tab ? this.renderTab(count) : html`${renderIcon('functioneel-bel', { size: 20 })}${this.renderCount(count, 'lintje-notifications__count')}`}
       </button>
       ${
         mobile
-          ? this.open
-            ? html`<div
+          ? this.open || this.leaving
+            ? html`${
+                tab
+                  ? html`<div
+                      class=${classMap({ 'lintje-notifications__scrim': true, 'is-leaving': this.leaving })}
+                      @click=${() => this.hide(true)}
+                    ></div>`
+                  : nothing
+              }<div
               id=${this.#panelId}
-              class="lintje-notifications__sheet"
-              role="dialog"
-              aria-modal="true"
+              class=${classMap({ 'lintje-notifications__sheet': true, 'is-leaving': this.leaving })}
+              ?inert=${this.leaving}
+              @animationend=${(event: AnimationEvent) => {
+                if (event.target === event.currentTarget && this.leaving) this.leaving = false
+              }}
+              role=${this.leaving ? nothing : 'dialog'}
+              aria-modal=${this.leaving ? nothing : 'true'}
               aria-label="Meldingen"
               tabindex="-1"
             >
