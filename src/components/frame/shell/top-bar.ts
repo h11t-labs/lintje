@@ -9,6 +9,7 @@ import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
 import '../../inputs/radio-group/radio-group'
 import type { ModeSetting, ShellData, ShellView } from '../../../types'
+import { renderSheetHead } from '../../shared/sheet'
 import type { LintjeShell } from './shell'
 
 /** The three light/dark settings in display order, each shown and named as its word. */
@@ -28,17 +29,31 @@ function sheetHead(
   close: () => void,
 ): TemplateResult | typeof nothing {
   if (!shell.mobile.matches) return nothing
-  return html`<div class="lintje-share__header">
-    <h2 class="lintje-share__title" id="lintje-sheet-title">${title}</h2>
-    <button
-      type="button"
-      class="lintje-dialog-close lintje-share__close"
-      aria-label="${title} sluiten"
-      @click=${close}
-    >
-      ${renderIcon('functioneel-kruis', { size: 16 })}
-    </button>
-  </div>`
+  return renderSheetHead({
+    title,
+    titleId: 'lintje-sheet-title',
+    className: 'lintje-share__header',
+    closeClass: 'lintje-share__close',
+    onClose: close,
+  })
+}
+
+/** The veil and the panel's classes: below 768 px they are a sheet's, going down once closed. */
+function sheetClasses(
+  shell: LintjeShell,
+  block: string,
+  leaving: boolean,
+): ReturnType<typeof classMap> {
+  const sheet = shell.mobile.matches
+  return classMap({ [block]: true, 'lintje-sheet': sheet, 'is-leaving': sheet && leaving })
+}
+function scrimClasses(shell: LintjeShell, leaving: boolean): ReturnType<typeof classMap> {
+  const sheet = shell.mobile.matches
+  return classMap({
+    'lintje-share__scrim': true,
+    'lintje-sheet__scrim': sheet,
+    'is-leaving': sheet && leaving,
+  })
 }
 
 /** The e-mail's subject: the page and the application, as the top bar names them. */
@@ -224,14 +239,17 @@ export function renderView(shell: LintjeShell, view: ShellView): TemplateResult 
     shell.viewOpen = false
   }
   const sheet = shell.mobile.matches
+  const leaving = shell.viewLeave.leaving
   return html`
-    <div class="lintje-share__scrim" @click=${close}></div>
+    <div class=${scrimClasses(shell, leaving)} @click=${close}></div>
     <div
-      class="lintje-view__popover"
-      role=${sheet ? 'dialog' : 'group'}
-      aria-modal=${sheet ? 'true' : nothing}
+      class=${sheetClasses(shell, 'lintje-view__popover', leaving)}
+      role=${sheet && !leaving ? 'dialog' : 'group'}
+      aria-modal=${sheet && !leaving ? 'true' : nothing}
       aria-label="Weergave"
       tabindex="-1"
+      ?inert=${leaving}
+      @animationend=${shell.viewLeave.end}
     >
       ${sheetHead(shell, 'Weergave', close)}
       <p class="lintje-share__heading">Licht of donker</p>
@@ -387,14 +405,17 @@ export function renderShare(shell: LintjeShell): TemplateResult {
   if (shell.sharePhone) return renderSharePhone(shell, close)
   // As a sheet the panel is a dialog: its head names it, so the heading "Delen" goes.
   const sheet = shell.mobile.matches
+  const leaving = shell.shareLeave.leaving
   return html`
-    <div class="lintje-share__scrim" @click=${close}></div>
+    <div class=${scrimClasses(shell, leaving)} @click=${close}></div>
     <div
-      class="lintje-share__popover"
-      role=${sheet ? 'dialog' : 'group'}
-      aria-modal=${sheet ? 'true' : nothing}
+      class=${sheetClasses(shell, 'lintje-share__popover', leaving)}
+      role=${sheet && !leaving ? 'dialog' : 'group'}
+      aria-modal=${sheet && !leaving ? 'true' : nothing}
       aria-label="Delen"
       tabindex="-1"
+      ?inert=${leaving}
+      @animationend=${shell.shareLeave.end}
     >
       ${sheet ? sheetHead(shell, 'Delen', close) : html`<p class="lintje-share__heading">Delen</p>`}
       <button

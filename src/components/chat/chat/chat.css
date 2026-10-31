@@ -85,10 +85,11 @@
   pointer-events: auto;
 }
 
-/* Stays in view at the bottom of what scrolls; the conversation passes under it. */
+/* Stays in view at the bottom of what scrolls, above the shell's tabs; the conversation passes
+   under it. */
 .lintje-chat__footer {
   flex: none;
-  position: sticky; bottom: 0; z-index: 4;
+  position: sticky; bottom: var(--lintje-shell-bottom, 0px); z-index: 4;
   padding: var(--space-4) var(--space-6) var(--space-5);
   background: var(--color-bg-surface);
   border-top: 1px solid var(--color-border-default);
