@@ -112,7 +112,7 @@
 /* What opens from a tab leaves the tabs in view: the sheet comes up from below and stops on them. */
 :host([variant='tab']) .lintje-notifications__sheet {
   bottom: var(--lintje-shell-bottom, 0px);
-  animation: lintje-sheet-in var(--dur-sheet) var(--ease-in-motion);
+  animation: lintje-sheet-from-tabs var(--dur-sheet) var(--ease-in-motion);
 }
 .lintje-notifications__panel.is-sheet { width: 100%; max-height: none; }
 .lintje-notifications__close { margin-right: calc(var(--space-2) * -1); 

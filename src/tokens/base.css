@@ -72,6 +72,12 @@ input, select, textarea { font: inherit; color: inherit; }
   from { transform: translateY(100%); }
   to   { transform: none; }
 }
+/* A sheet that comes from a tab rises from behind the tabs: the clip keeps the part that has not
+   yet passed their edge unseen, so it never slides over them. */
+@keyframes lintje-sheet-from-tabs {
+  from { transform: translateY(100%); clip-path: inset(0 0 100% 0); }
+  to   { transform: none; clip-path: inset(0); }
+}
 @keyframes lintje-menu-in {
   from { transform: translateY(-100%); }
   to   { transform: none; }
