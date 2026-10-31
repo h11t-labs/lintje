@@ -166,6 +166,19 @@ export default {
             }
           },
         },
+        {
+          label: 'Open op een telefoon',
+          note: 'Een blad van onderen zoals elk blad op een telefoon, op de kleur van de filters.',
+          frame: true,
+          phone: true,
+          html: `<lintje-filter-sheet>${CONTROLS(true)}</lintje-filter-sheet>`,
+          setup(stage) {
+            const sheet = stage.querySelector('lintje-filter-sheet')
+            sheet.sentence = sentence(ALL.value)
+            fillControls(stage)
+            sheet.open = true
+          },
+        },
       ],
     },
   ],
