@@ -1219,7 +1219,7 @@ een balk, en halen hun aanwijsdoel via het klikgebied in de richting waar ze rui
 Vier breedtes zijn ontworpen en getest: desktop (vanaf 1440), 1024, 768 en 390 px.
 
 **Onder 768 px wisselt een onderdeel van vorm; het stapelt niet alleen.** Dat geldt voor de
-navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de tabel
+navigatie (een balk bovenaan, het menu als blad van onderen), de filters (een blad), de KPI-rij, de tabel
 (identiteit en één meetwaarde) en de heatmap. Tussen de breedtes lopen bedieningselementen door
 naar een volgende regel; ze overlappen nooit.
 

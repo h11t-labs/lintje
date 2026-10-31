@@ -23,7 +23,8 @@ Wisselt een lezer op een telefoon steeds tussen drie tot vijf pagina's, zet dan 
 als laatste. Met `tab-parts` stuur je ook Zoeken, Meldingen of jouw menu naar de tabs (`tab-parts="notifications user menu"`); wat een tab is, staat niet ook in de balk bovenaan. Een pagina dieper krijgt `back` in de data van de shell. Een ingang die geen pagina
 opent maar een blad van jou, krijgt `action` in plaats van `href`; de shell stuurt dan
 `lintje-action` met die naam. Wat onderaan plakt, staat boven de tabs met
-`bottom: var(--lintje-shell-bottom, 0px)`.
+`bottom: var(--lintje-shell-bottom, 0px)`; een blad van jou dat uit een tab komt, stopt daar ook
+en is ten hoogste `var(--h-sheet)` hoog, zoals de bladen van Lintje.
 
 Al het andere lever jij:
 
@@ -184,8 +185,9 @@ recht op dezelfde inhoud (WCAG 1.4.10). Kies daarom van boven naar beneden:
 2. **Ingeklapt**: `collapsed-mobile` op `lintje-tile` (en `collapsedMobile` in de `data` van een
    grafiek, kaart, tabel, graaf of logboek) toont op een telefoon alleen de kop met een knop
    Tonen; de inhoud staat één tik verder.
-3. **Van vorm gewisseld**: dat doet een element zelf. Het menu wordt een header met een
-   schermvullend menu, de filters een sheet, een tabel toont per rij de identiteit en één
+3. **Van vorm gewisseld**: dat doet een element zelf. Het menu wordt een balk bovenaan, waaruit
+   Menu, Meldingen, jouw menu, Weergave, Delen en Zoeken als blad van onderen openen, net als de
+   filters; een tabel toont per rij de identiteit en één
    meetwaarde, het kruimelpad alleen de weg terug, en de afbeelding naast een hero valt onder
    1024 px weg.
 4. **Weggelaten**: `hide-mobile` laat een item op een telefoon weg, `hide-desktop` vanaf 768 px.

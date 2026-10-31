@@ -5,6 +5,7 @@
 ### Gewijzigd
 
 - De balk op een telefoon is in beide indelingen dezelfde: de logobalk scrolt weg en een balk van 56 px blijft plakken, met de naam (en zodra de paginakop uit beeld is de titel van de pagina), zoeken, de bel, de avatar en Menu. De header van 72 px in de indeling met het menu naast de pagina vervalt. Een pagina dieper draagt Terug voor de titel (`back` in de data van de shell). Jouw menu opent op een telefoon als blad van onderen; het paneel van Menu draagt geen gebruiker meer en loopt van kort naar lang: de omgeving, Weergave, Delen en het `end`-slot, de pagina's, dan feedback en de versie. (#325)
+- Elk blad op een telefoon is hetzelfde blad: Menu, Meldingen, Jij, Weergave, Delen, Zoeken en Filters komen van onderen, zo hoog als hun inhoud en ten hoogste `--h-sheet` (88vh), met een sluier erboven, hun naam en een sluitknop bovenin, en ze zakken weer weg bij sluiten. Het paneel van Menu is ook zonder tabs zo'n blad; de knop Menu in de balk blijft Menu en de balk ligt onder de sluier. De bel in de balk opende schermvullend en opent nu ook als blad. (#325)
 
 ### Verwijderd
 

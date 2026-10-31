@@ -84,6 +84,41 @@ function followTabs(shell) {
   })
 }
 
+/**
+ * A sheet on a phone without tabs, opened in the frame: every sheet is the same sheet from below
+ * (`shared/sheet.css`).
+ */
+function phoneSheet(label, note, open) {
+  return {
+    label,
+    note,
+    frame: true,
+    phone: true,
+    html: `<lintje-shell>
+      <lintje-page-header slot="header"></lintje-page-header>
+      <p>Inhoud van de pagina.</p>
+    </lintje-shell>`,
+    setup(stage) {
+      const shell = stage.querySelector('lintje-shell')
+      shell.style.minHeight = '0'
+      shell.data = {
+        name: 'Transcriptie',
+        emblem: emblem(),
+        navigation: GROUPED,
+        user: USER,
+        userMenu: USER_MENU,
+        search: true,
+        notifications: NOTIFICATIONS,
+        view: { mode: 'system' },
+        share: true,
+      }
+      stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+      followTabs(shell)
+      shell.updateComplete.then(() => open(shell))
+    },
+  }
+}
+
 /** The emblem of the page's theme, with the organisation's name beside it as text. */
 const EMBLEM_LABELS = {
   marechaussee: 'Koninklijke Marechaussee',
@@ -423,8 +458,8 @@ export default {
         {
           label: 'Tabbalk met Menu open',
           note:
-            'Het paneel van Menu opent als blad boven de tabs en draagt wat geen tab is; de tab ' +
-            'leest Sluiten. Een blad van de host bedekt de tabs wel.',
+            'Het paneel van Menu opent als blad van onderen, achter de tabs door, en draagt alle ' +
+            'pagina’s, ook die een tab zijn; de tab leest Sluiten. Wat van elders komt, bedekt de tabs.',
           frame: true,
           phone: true,
           html: `<lintje-shell mobile-tabs>
@@ -469,6 +504,38 @@ export default {
             followTabs(shell)
           },
         },
+        phoneSheet(
+          'Menu op een telefoon',
+          'Zonder tabs opent Menu in de balk een blad van onderen, zo hoog als wat erin staat, met ' +
+            'een sluier erboven. De balk ligt onder de sluier; het blad sluit met zijn eigen knop.',
+          (shell) => (shell.menuOpen = true),
+        ),
+        phoneSheet(
+          'Meldingen op een telefoon',
+          'De bel in de balk opent hetzelfde blad van onderen, over de pagina.',
+          (shell) => (shell.renderRoot.querySelector('.lintje-mobile-header lintje-notifications').open = true),
+        ),
+        phoneSheet(
+          'Jij op een telefoon',
+          'De avatar in de balk opent jouw menu als blad van onderen.',
+          (shell) => (shell.renderRoot.querySelector('.lintje-mobile-header lintje-user-menu').open = true),
+        ),
+        phoneSheet(
+          'Weergave op een telefoon',
+          'Weergave opent uit het paneel van Menu als blad van onderen, over het menu.',
+          (shell) => {
+            shell.menuOpen = true
+            shell.viewOpen = true
+          },
+        ),
+        phoneSheet(
+          'Delen op een telefoon',
+          'Delen opent uit het paneel van Menu als blad van onderen; de QR-code staat er niet in.',
+          (shell) => {
+            shell.menuOpen = true
+            shell.shareOpen = true
+          },
+        ),
         {
           label: 'Lichte rail',
           note:
@@ -1002,6 +1069,18 @@ export default {
             const search = stage.querySelector('lintje-app-search')
             wireSearch(search)
             stage.querySelector('[data-open]').addEventListener('click', () => (search.open = true))
+          },
+        },
+        {
+          label: 'Op een telefoon',
+          note: 'Onder 768 px is zoeken een blad van onderen, met zijn naam en een sluitknop bovenin.',
+          frame: true,
+          phone: true,
+          html: '<lintje-app-search label="Zoeken in Transcriptie"></lintje-app-search>',
+          setup(stage) {
+            const search = stage.querySelector('lintje-app-search')
+            wireSearch(search)
+            search.open = true
           },
         },
         {
