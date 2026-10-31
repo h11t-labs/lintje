@@ -95,6 +95,8 @@ export interface NavBarOptions {
   collapsed?: boolean
   /** A plain click on an entry with a page. */
   onNavigate: (item: ShellLink, event: MouseEvent) => void
+  /** A click on an entry with `action`. */
+  onAction?: (item: ShellLink) => void
   /** Opens the submenu of this group, or closes whichever is open (`null`). */
   onOpen: (index: number | null) => void
   start?: TemplateResult | typeof nothing
@@ -103,6 +105,10 @@ export interface NavBarOptions {
 
 /** An entry the reader can open: it has a page and nothing withholds it. */
 export const hasPage = (item: ShellLink): boolean => Boolean(item.href) && !item.noAccess
+
+/** An entry that opens something of the host's (`action`) instead of a page. */
+export const isAction = (item: ShellLink): boolean =>
+  Boolean(item.action) && !item.href && !item.noAccess
 
 /** Why an entry cannot be opened, in words: `aria-disabled` means nothing on a plain span, and
  * the muted colour alone is no reason (rule 13). */
@@ -134,7 +140,34 @@ function pageBadge(item: ShellLink): TemplateResult | typeof nothing {
   })
 }
 
+/** An entry with `action`: a button with the entry's look, never marked as the reader's page. */
+function actionButton(
+  options: NavBarOptions,
+  item: ShellLink,
+  className: string,
+  content: TemplateResult,
+): TemplateResult {
+  return html`<button
+    type="button"
+    class=${`${className} ${className}--action focus-inset`}
+    @click=${() => {
+      options.onOpen(null)
+      options.onAction?.(item)
+    }}
+  >
+    ${content}
+  </button>`
+}
+
 function barLink(options: NavBarOptions, item: ShellLink): TemplateResult {
+  if (isAction(item)) {
+    return actionButton(
+      options,
+      item,
+      'lintje-navbar__entry',
+      html`<span class="lintje-navbar__label">${item.label}</span>`,
+    )
+  }
   if (!hasPage(item)) {
     return html`<span class="lintje-navbar__entry is-unavailable" aria-disabled="true"
       >${item.label}${unavailableWord(item)}</span
@@ -167,11 +200,12 @@ function pageLink(options: NavBarOptions, item: ShellLink): TemplateResult {
     ${
       item.noAccess
         ? renderIcon('gebruiksvoorwerpen-hangslot-dicht', { size: 16, label: 'Geen toegang' })
-        : hasPage(item)
+        : hasPage(item) || isAction(item)
           ? nothing
           : unavailableWord(item)
     }
     ${pageBadge(item)}`
+  if (isAction(item)) return actionButton(options, item, 'lintje-navbar__page', content)
   if (!hasPage(item)) {
     return html`<span
       class=${classMap({
