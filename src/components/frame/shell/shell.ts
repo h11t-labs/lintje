@@ -60,6 +60,7 @@ import shellCss from './shell.css?inline'
 import navigationCss from './navigation.css?inline'
 import mobileHeaderCss from './mobile-header.css?inline'
 import topBarCss from './top-bar.css?inline'
+import tabCss from '../shared/tab.css?inline'
 import tabBarCss from './tab-bar.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import keyCss from '../../shared/key.css?inline'
@@ -107,6 +108,7 @@ export class LintjeShell extends LintjeElement {
     shadowCss(dialogCloseCss),
     shadowCss(keyCss),
     shadowCss(topBarCss),
+    shadowCss(tabCss),
     shadowCss(tabBarCss),
   ]
 
@@ -154,8 +156,8 @@ export class LintjeShell extends LintjeElement {
   mobileTabs: boolean = false
   /**
    * With `mobile-tabs`: the shell's parts that stand as a tab instead of in the bar at the top,
-   * apart by spaces: `menu` and `search`. Unset, Menu alone; empty, none. Each part stands in one
-   * place.
+   * apart by spaces: `search`, `notifications`, `user` and `menu`. Unset, Menu alone; empty,
+   * none. Each part stands in one place.
    */
   declare tabParts?: string | null
   /** A keyboard on the screen has taken the room of the tabs (`visualViewport`). */
@@ -278,8 +280,14 @@ export class LintjeShell extends LintjeElement {
   tabPlan(): TabPlan {
     const navigation = this.data?.navigation ?? []
     if (!this.tabsShown) return { pages: [], parts: [], rest: navigation }
+    // A part the shell does not have takes no place.
+    const has = {
+      search: this.data?.search,
+      notifications: this.data?.notifications,
+      user: this.data?.user,
+    }
     const parts = parseTabParts(this.tabParts).filter(
-      (part) => part !== 'search' || Boolean(this.data?.search),
+      (part) => part === 'menu' || Boolean(has[part]),
     )
     return planTabs(navigation, parts)
   }
@@ -324,7 +332,7 @@ export class LintjeShell extends LintjeElement {
     const sheet =
       this.mobile.matches && (this.viewOpen || this.shareOpen)
         ? this.renderRoot.querySelector<HTMLElement>(
-            '.lintje-mobile-header .lintje-view__popover, .lintje-mobile-header .lintje-share__popover',
+            '.lintje-mobile-chrome .lintje-view__popover, .lintje-mobile-chrome .lintje-share__popover',
           )
         : null
     if (sheet && !this.#sheetReleased) {
@@ -414,7 +422,7 @@ export class LintjeShell extends LintjeElement {
     this.#observeFit(changed.has('data') || changed.has('layout'))
     this.#fitHeader()
     this.#padScroll()
-    if (this.#nested || this.layout !== 'top') return
+    if (this.#nested || !this.#pins) return
     if (changed.has('data') || changed.has('layout')) this.measureScroll()
     else this.#markStuck()
   }
@@ -431,10 +439,7 @@ export class LintjeShell extends LintjeElement {
       this.#padded.style.scrollPaddingBottom = ''
     }
     this.#padded = root
-    const bar =
-      this.mobile.matches && this.layout === 'side'
-        ? lengthPx(this, '--h-mobile-header', 72)
-        : lengthPx(this, '--h-topbar', 56)
+    const bar = lengthPx(this, '--h-topbar', 56)
     const { hasFilters, sentenceHeight } = this.store.state
     // Below 768 px the sentence wraps, so the filter bar measures it.
     const filters = !hasFilters
@@ -503,8 +508,13 @@ export class LintjeShell extends LintjeElement {
     this.#fitObserved = boxes
   }
 
+  /** A bar pins to the top: the navigation bar of the top layout, and the bar on a phone. */
+  get #pins(): boolean {
+    return this.layout === 'top' || this.mobile.matches
+  }
+
   readonly #onScroll = (): void => {
-    if (this.#scrollFrame || this.layout !== 'top') return
+    if (this.#scrollFrame || !this.#pins) return
     this.#scrollFrame = requestAnimationFrame(() => {
       this.#scrollFrame = 0
       this.measureScroll()
@@ -626,28 +636,32 @@ export class LintjeShell extends LintjeElement {
     </button>`
   }
 
-  renderNotifications(): TemplateResult | typeof nothing {
+  /** `tab`: as a tab of the tab bar below 768 px. */
+  renderNotifications(tab = false): TemplateResult | typeof nothing {
     const items = this.data?.notifications
     if (!items) return nothing
-    return html`<lintje-notifications .items=${items}></lintje-notifications>`
+    return html`<lintje-notifications
+      .items=${items}
+      variant=${tab ? 'tab' : nothing}
+    ></lintje-notifications>`
   }
 
   /**
-   * `bar`: the avatar in the bar opens it. `sheet`: inline, the foot of the mobile menu. `side`:
-   * the foot of the side menu opens it, folded to the avatar in the folded rail.
+   * `bar`: the avatar in the bar opens it, below 768 px as a sheet from below. `tab`: a tab of the
+   * tab bar opens it. `side`: the foot of the side menu opens it, folded to the avatar in the
+   * folded rail.
    */
-  renderUserMenu(place: 'bar' | 'sheet' | 'side', folded = false): TemplateResult | typeof nothing {
+  renderUserMenu(place: 'bar' | 'tab' | 'side', folded = false): TemplateResult | typeof nothing {
     const data = this.data
     if (!data?.user) return nothing
     const className = {
       bar: 'lintje-shell__user',
-      sheet: 'lintje-shell__sheet-user',
+      tab: 'lintje-shell__tab-user',
       side: 'lintje-nav__user-menu',
     }[place]
     return html`<lintje-user-menu
       class=${className}
-      ?inline=${place === 'sheet'}
-      variant=${place === 'side' ? 'side' : nothing}
+      variant=${place === 'bar' ? nothing : place}
       ?folded=${folded}
       .user=${data.user}
       .items=${data.userMenu ?? []}
@@ -737,7 +751,8 @@ export class LintjeShell extends LintjeElement {
       ${renderHeaderScrim(this.openGroup !== null)}`
   }
 
-  private renderTopPhone(plan: TabPlan): TemplateResult {
+  /** Below 768 px, in both layouts: the logo bar, and the bar under it that pins once it scrolls away. */
+  private renderPhone(plan: TabPlan): TemplateResult {
     const panel = toGroups(plan.rest)
     return html`${this.renderLogo()}
       <div class="lintje-shell__sentinel" aria-hidden="true"></div>
@@ -805,7 +820,7 @@ export class LintjeShell extends LintjeElement {
         })}
       >
         ${this.renderSkipLink()} ${this.renderPrintHead(data)}
-        ${this.mobile.matches ? this.renderTopPhone(plan) : this.renderTop(data, groups)}
+        ${this.mobile.matches ? this.renderPhone(plan) : this.renderTop(data, groups)}
         ${this.renderMain()} <slot name="footer"></slot> ${this.renderToast()}
       </div>`
     }
@@ -822,7 +837,7 @@ export class LintjeShell extends LintjeElement {
     >
       ${this.renderSkipLink()} ${renderNavigation(this, groups)}
       <div class="lintje-shell__column">
-        ${this.renderPrintHead(data)} ${renderMobileHeader(this, toGroups(plan.rest), plan)} ${renderTopBar(this)} ${this.renderMain()}
+        ${this.renderPrintHead(data)} ${this.mobile.matches ? this.renderPhone(plan) : nothing} ${renderTopBar(this)} ${this.renderMain()}
         <slot name="footer"></slot>
       </div>
       ${this.renderToast()}

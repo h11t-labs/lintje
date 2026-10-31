@@ -9,7 +9,7 @@
    the host's parent is the page. The shell names the height of its bar. */
 :host(:state(phone)) {
   position: sticky;
-  top: var(--lintje-shell-top, var(--h-mobile-header));
+  top: var(--lintje-shell-top, var(--h-topbar));
   z-index: 19;
 }
 

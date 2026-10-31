@@ -20,7 +20,7 @@ uitleg of uitklapper is een `h3`. Zonder `name` levert de pagina de `h1` zelf. E
 
 Wisselt een lezer op een telefoon steeds tussen drie tot vijf pagina's, zet dan `mobile-tabs` op
 `lintje-shell`: onder 768 px staan de losse pagina's van `navigation` als tabs onderaan, met Menu
-als laatste. Met `tab-parts="search menu"` staat ook Zoeken als tab. Een ingang die geen pagina
+als laatste. Met `tab-parts` stuur je ook Zoeken, Meldingen of jouw menu naar de tabs (`tab-parts="notifications user menu"`); wat een tab is, staat niet ook in de balk bovenaan. Een pagina dieper krijgt `back` in de data van de shell. Een ingang die geen pagina
 opent maar een blad van jou, krijgt `action` in plaats van `href`; de shell stuurt dan
 `lintje-action` met die naam. Wat onderaan plakt, staat boven de tabs met
 `bottom: var(--lintje-shell-bottom, 0px)`.

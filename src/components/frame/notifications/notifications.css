@@ -1,6 +1,9 @@
 /* The host is the bell's box; the panel is fixed and takes no space. */
 :host { display: inline-flex; flex: none; vertical-align: middle; }
 :host([hidden]) { display: none; }
+/* As a tab it takes its share of the tab bar. */
+:host([variant='tab']) { display: flex; flex: 1 1 0; min-width: 0; }
+:host([variant='tab']) .lintje-tab-bar__tab { flex: 1; }
 
 /* ------------------------------------------------------------------------ */
 

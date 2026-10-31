@@ -389,9 +389,12 @@ Besluiten die voor beide gelden:
   en is te slepen; hij verschijnt zacht als de aanwijzer op het menu staat, en meteen als de focus
   in de lijst staat. Een schermlezer hoort hem niet: toetsen en het wiel scrollen de lijst zoals
   altijd.
-- **Onder 768 px is er geen rail**: een header met een Menu-knop, en het menu opent
-  schermvullend. In de indeling Boven is die header een balk onder de logobalk, met de naam. De
-  balk bovenaan is er altijd.
+- **Onder 768 px is er geen rail**, in beide indelingen hetzelfde: de logobalk scrolt met de
+  pagina weg, en eronder blijft een balk van de hoogte van de bovenbalk plakken. Links de naam,
+  en zodra de paginakop uit beeld is de titel van de pagina met de naam klein eronder; een
+  pagina dieper (`back`) draagt Terug ervoor. Rechts zoeken, de bel, de avatar en de knop Menu.
+  Het menu opent schermvullend, van kort naar lang: de omgeving als band, Weergave, Delen en het
+  `end`-slot, dan de pagina's en de groepen, onderaan feedback en de versie. De balk is er altijd.
 - **Tabs onderaan zijn een keuze van de host** (`mobile-tabs`): onder 768 px staan de losse
   pagina's dan als tabs onder de duim, ten hoogste vijf, met Menu als laatste. Het zijn dezelfde
   ingangen als de rail en de navigatiebalk, met dezelfde markering (de vulling en de lijn eronder,
@@ -402,7 +405,8 @@ Besluiten die voor beide gelden:
   wijken ze. Een ingang met `action` opent iets van de host in plaats van een pagina.
 - **De gebruiker heeft in elke indeling hetzelfde menu**: naam en rol met "Afmelden" als icoon
   ernaast, de rijen van de host en de versie. De avatar in de balk opent het naar beneden, de voet
-  van het zijmenu naar boven, en op een telefoon staat het onderaan het menu. Met de pijltjes komt
+  van het zijmenu naar boven, en op een telefoon opent het als blad van onderen, over de tabs
+  heen. Met de pijltjes komt
   "Afmelden" na de rijen. Zolang het open is, blijft de rail uitgeklapt.
 - **De shell bevat de pagina.** Zijn inhoud houdt zich aan de breedte en padding van de pagina;
   wat van rand tot rand loopt — een hero, de filterbalk, een gesprek — staat erboven.

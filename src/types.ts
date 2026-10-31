@@ -771,8 +771,17 @@ export interface ShellData extends FrameSettings {
   /** The scheme of the QR code's link in place of `https`, so a phone opens it in that app:
    *  `mibrowsers` for Ivanti Web@Work. Copying the link and e-mail keep `https`. */
   qrScheme?: string
-  /** The page's name, beside `name` in the side layout's top bar once the title has scrolled away. */
+  /**
+   * The page's name, beside `name` in the side layout's top bar once the title has scrolled away;
+   * below 768 px it takes the place of `name` in the bar then.
+   */
   pageName?: string
+  /**
+   * A page deeper than the menu reaches: below 768 px the bar draws Terug before the title, to
+   * `href`. `label` is what a screen reader hears: "Terug naar Zaken". Above 768 px the
+   * breadcrumbs do this.
+   */
+  back?: { href: string; label?: string }
   /** The environment outside production ("Acceptatie"). Leave it out in production. */
   environment?: string
   /** Who is signed in: the avatar and the user menu. Without it there is no user menu. */

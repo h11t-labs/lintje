@@ -425,6 +425,34 @@ export default {
           },
         },
         {
+          label: 'Tabbalk met Meldingen en Jij',
+          note:
+            'Met `tab-parts="notifications user menu"` staan de bel en jouw menu als tab onderaan ' +
+            'en niet in de balk bovenaan; jouw menu opent als blad van onderen. Een pagina dieper ' +
+            '(`back`) draagt de balk Terug voor de titel.',
+          frame: true,
+          phone: true,
+          html: `<lintje-shell mobile-tabs tab-parts="notifications user menu">
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>De bel en jij staan onderaan.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.style.minHeight = '0'
+            shell.data = {
+              name: 'Transcriptie',
+              emblem: emblem(),
+              navigation: TABBED,
+              user: USER,
+              userMenu: USER_MENU,
+              search: true,
+              notifications: NOTIFICATIONS,
+              back: { href: '#opnames', label: 'Terug naar Opnames' },
+            }
+            stage.querySelector('lintje-page-header').data = { title: 'Teamoverleg 2 oktober' }
+          },
+        },
+        {
           label: 'Lichte rail',
           note:
             'Naast de pagina is het lichte menu de side navigation van de huisstijl: wit met een ' +

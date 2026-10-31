@@ -7,6 +7,7 @@ import './shell'
 import type { LintjeShell } from './shell'
 import type { ShellData, ShellGroup, ShellLink } from '../../../types'
 import { parseTabParts, planTabs } from './tab-bar'
+import { setFrameState } from '../../../core/frame-state'
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -173,5 +174,81 @@ describe('the tab bar in the shell', () => {
     shell.requestUpdate()
     await shell.updateComplete
     expect(warn.mock.calls.filter(([text]) => String(text).includes('tab-parts'))).toHaveLength(1)
+  })
+})
+
+describe('the parts of the shell as tabs, and the bar at the top', () => {
+  const NOTICES = [{ id: 'n1', title: 'Rapport klaar', when: 'zojuist', unread: true }]
+  const USER = { initials: 'MV', name: 'M. Visser', role: 'Analist' }
+
+  it('draws the bell and the user as tabs when tab-parts names them, and not in the bar', async () => {
+    viewport(390)
+    const shell = await mount(
+      { 'mobile-tabs': '', 'tab-parts': 'notifications user menu' },
+      { notifications: NOTICES, user: USER },
+    )
+    const bar = root(shell).querySelector('.lintje-tab-bar')!
+    expect(bar.querySelector('lintje-notifications')?.getAttribute('variant')).toBe('tab')
+    expect(bar.querySelector('lintje-user-menu')?.getAttribute('variant')).toBe('tab')
+    const header = root(shell).querySelector('.lintje-mobile-header')!
+    expect(header.querySelector('lintje-notifications, lintje-user-menu')).toBeNull()
+    // Two loose pages, then the bell, the user and Menu: five in all.
+    expect(labels(shell)).toEqual(['Zaken', 'Taken', 'Menu'])
+    expect(bar.children.length).toBe(5)
+  })
+
+  it('leaves out a part the shell does not have', async () => {
+    viewport(390)
+    const shell = await mount({ 'mobile-tabs': '', 'tab-parts': 'notifications user menu' })
+    expect(root(shell).querySelector('.lintje-tab-bar lintje-notifications')).toBeNull()
+    expect(labels(shell)).toEqual(['Zaken', 'Taken', 'Lagen', 'Agenda', 'Menu'])
+  })
+
+  it('starts the user tab’s name with its word, and opens the menu as a sheet from below', async () => {
+    viewport(390)
+    const shell = await mount({ 'mobile-tabs': '', 'tab-parts': 'user menu' }, { user: USER })
+    const user = root(shell).querySelector('.lintje-tab-bar lintje-user-menu') as HTMLElement & {
+      updateComplete: Promise<unknown>
+    }
+    await user.updateComplete
+    const tab = user.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-tab-bar__tab')!
+    expect(tab.hasAttribute('aria-label')).toBe(false)
+    // The avatar is only seen; the word and whose menu it is are the name.
+    expect(tab.querySelector('.lintje-tab-bar__glyph')?.getAttribute('aria-hidden')).toBe('true')
+    const heard = [...tab.children].filter((node) => !node.hasAttribute('aria-hidden'))
+    expect(heard.map((node) => node.textContent).join('')).toBe('Jij, menu van M. Visser')
+    tab.click()
+    await user.updateComplete
+    expect(user.shadowRoot!.querySelector('.lintje-user-menu__sheet')).not.toBeNull()
+    expect(user.shadowRoot!.querySelector('lintje-popover')).toBeNull()
+  })
+
+  it('draws Terug before the title on a page deeper', async () => {
+    viewport(390)
+    const shell = await mount({}, { back: { href: '/zaken', label: 'Terug naar Zaken' } })
+    const back = root(shell).querySelector<HTMLAnchorElement>('.lintje-mobile-header__back')!
+    expect(back.getAttribute('href')).toBe('/zaken')
+    expect(back.getAttribute('aria-label')).toBe('Terug naar Zaken')
+    const heard = vi.fn()
+    shell.addEventListener('lintje-navigate', (event) => {
+      event.preventDefault()
+      heard((event as CustomEvent).detail)
+    })
+    back.click()
+    expect(heard).toHaveBeenCalledWith({ href: '/zaken' })
+  })
+
+  it('shows the page’s name above the small name once the page’s head has scrolled away', async () => {
+    viewport(390)
+    const shell = await mount({}, { pageName: 'Zaken' })
+    const titles = () => root(shell).querySelector('.lintje-mobile-header__titles')!
+    expect(titles().querySelector('.lintje-mobile-header__page')).toBeNull()
+    setFrameState({ titleHidden: true })
+    await shell.updateComplete
+    expect(titles().querySelector('.lintje-mobile-header__page')?.textContent).toBe('Zaken')
+    const h1 = titles().querySelector('h1')!
+    expect(h1.textContent).toBe('Zaaksysteem')
+    expect(h1.classList.contains('is-small')).toBe(true)
+    setFrameState({ titleHidden: false })
   })
 })

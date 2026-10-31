@@ -12,8 +12,8 @@ import { hasPage, isAction, unavailableWord } from './header'
 import type { LintjeShell } from './shell'
 
 /** The shell's parts that can stand as a tab instead of in the bar at the top. */
-export type TabPart = 'menu' | 'search'
-const TAB_PARTS: readonly TabPart[] = ['search', 'menu']
+export type TabPart = 'search' | 'notifications' | 'user' | 'menu'
+const TAB_PARTS: readonly TabPart[] = ['search', 'notifications', 'user', 'menu']
 
 /** More tabs leave each too narrow for its word. */
 export const MAX_TABS = 5
@@ -120,6 +120,8 @@ function partTab(shell: LintjeShell, part: TabPart): TemplateResult | typeof not
       ${glyph('functioneel-zoek')} ${label('Zoeken')}
     </button>`
   }
+  if (part === 'notifications') return shell.renderNotifications(true)
+  if (part === 'user') return shell.renderUserMenu('tab')
   const open = shell.menuOpen
   return html`<button
     type="button"
