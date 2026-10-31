@@ -56,7 +56,11 @@
   --color-focus-on-theme-inner: var(--color-focus-inner);
 }
 :host([data-tone='light']) .lintje-navbar,
-:host([data-tone='light']) .lintje-navbar * {
+:host([data-tone='light']) .lintje-navbar *,
+:host([data-tone='light']) .lintje-tab-bar,
+:host([data-tone='light']) .lintje-tab-bar *,
+:host([data-tone='light']) .lintje-mobile-header,
+:host([data-tone='light']) .lintje-mobile-header * {
   --color-navbar-hover: var(--color-navbar-light-hover);
   --color-navbar-active: var(--color-navbar-light-active);
   --color-navbar-active-edge: var(--color-navbar-light-active-edge);
@@ -87,10 +91,7 @@
 @media (min-width: 1440px) {
   .lintje-shell--side:not(.is-unpinned) { --lintje-shell-left: var(--w-nav); }
 }
-.lintje-shell--side:where(.is-phone) {
-  --lintje-shell-left: 0px;
-  --lintje-shell-top: var(--h-mobile-header);
-}
+.lintje-shell--side:where(.is-phone) { --lintje-shell-left: 0px; }
 .lintje-shell__column {
   flex: 1;
   min-width: 0;
@@ -188,62 +189,21 @@
   right: 0;
 }
 /* Under the logo bar, which carries the status bar's inset; pinned to the top it takes it itself. */
-.lintje-shell--top .lintje-mobile-header {
-  position: static;
-  height: var(--h-topbar);
-  padding-top: 0;
-  align-items: center;
-  gap: var(--space-3);
-}
-.lintje-shell--top .lintje-shell__mobile-bar.is-stuck .lintje-mobile-header {
+.lintje-shell__mobile-bar.is-stuck .lintje-mobile-header {
   height: calc(var(--h-topbar) + env(safe-area-inset-top, 0px));
   padding-top: env(safe-area-inset-top, 0px);
 }
-.lintje-shell--top .lintje-mobile-header__actions { margin-top: 0; flex: none; }
-.lintje-shell--top .lintje-mobile-menu {
-  position: absolute;
-  inset: 100% 0 auto 0;
-  height: calc(100dvh - var(--lintje-mobile-menu-top, var(--h-topbar)));
+/* With tabs (`mobile-tabs`) the page keeps room for them at the bottom, and passes their height
+   on to what sticks to the bottom (a question box, a toast), as `--lintje-shell-top` passes the
+   bar's. A keyboard on the screen takes their room. The menu's panel stops on them. */
+.lintje-shell { --lintje-shell-bottom: 0px; }
+.lintje-shell.has-tabs:not(.is-keyboard) {
+  --lintje-shell-bottom: calc(var(--h-tab-bar) + env(safe-area-inset-bottom, 0px));
 }
-/* `mobile-bar="bottom"`: nothing pins at the top, the page keeps room for the bar at the bottom,
-   and in the top layout the bar is fixed there in both scroll states, the menu above it. */
-:host([mobile-bar='bottom']) .lintje-shell.is-phone { --lintje-shell-top: 0px; }
-:host([mobile-bar='bottom']) .lintje-shell.is-phone .lintje-shell__main {
-  padding-bottom: calc(var(--h-mobile-header) + env(safe-area-inset-bottom, 0px));
-}
-:host([mobile-bar='bottom']) .lintje-shell__mobile-bar { height: 0; }
-:host([mobile-bar='bottom']) .lintje-shell__mobile-pin,
-:host([mobile-bar='bottom']) .lintje-shell__mobile-bar.is-stuck .lintje-shell__mobile-pin {
-  position: fixed;
-  top: auto; bottom: 0; left: 0; right: 0;
-}
-:host([mobile-bar='bottom']) .lintje-shell--top .lintje-mobile-header,
-:host([mobile-bar='bottom']) .lintje-shell--top .lintje-shell__mobile-bar.is-stuck .lintje-mobile-header {
-  height: calc(var(--h-topbar) + env(safe-area-inset-bottom, 0px));
-  padding-top: 0;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-:host([mobile-bar='bottom']) .lintje-shell--top .lintje-mobile-menu {
-  position: fixed;
-  inset: 0 0 var(--h-topbar) 0;
-  height: auto;
-  animation-name: lintje-sheet-in;
-}
+.lintje-shell.has-tabs .lintje-shell__main { padding-bottom: var(--lintje-shell-bottom); }
+/* The bar's region holds the menu's sheet and its veil: above the logo bar, which they cover. */
+.lintje-shell.is-phone .lintje-shell__mobile-pin { z-index: 32; }
 
-/* 16 px so two lines fit inside the 56 px bar; longer is cut with an ellipsis. */
-.lintje-mobile-header__title {
-  display: -webkit-box;
-  min-width: 0;
-  overflow: hidden;
-  color: var(--color-nav-text);
-  font: var(--text-dashboard);
-  font-size: 1rem;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-}
-/* The logo bar already shows the environment. */
-.lintje-shell--top .lintje-mobile-menu__environment { display: none; }
 
 /* The page's one h1; cut before it can push the entries out. */
 .lintje-shell__name {
@@ -272,6 +232,9 @@
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-shell__tool:hover { background: var(--color-nav-hover); }
+/* In the bar on a phone the tools are buttons on the surface: the house style's small corner. */
+.lintje-mobile-header__actions { --lintje-tool-radius: var(--radius-control); }
+.lintje-mobile-header .lintje-shell__tool { border-radius: var(--lintje-tool-radius); }
 .lintje-shell__tool--text {
   width: auto;
   padding: 0 var(--space-3);
@@ -283,7 +246,7 @@
    takes its ring, by inheritance from the slot; in the side layout's top bar it stands on the
    page's surface as it is. */
 .lintje-navbar__end > slot[name='end'],
-.lintje-mobile-header__actions > slot[name='end'] {
+.lintje-mobile-menu__tools > slot[name='end'] {
   --lintje-language-nav-ink: var(--color-nav-text);
   --lintje-focus: var(--color-focus-on-theme);
   --lintje-focus-inner: var(--color-focus-on-theme-inner);
@@ -303,7 +266,7 @@
   --lintje-focus-inner: var(--color-focus-inner);
 }
 
-.lintje-shell__sheet-user { border-top: 1px solid var(--color-nav-line); }
+
 
 /* On paper the bars give way to the logo and the application's name; the screen never shows it. */
 .lintje-shell__print-head { display: none; }

@@ -236,10 +236,10 @@ function changeRecording(id, change) {
 
 const shell = $('shell')
 const NAVIGATION = [
-  { label: 'Start', href: './', page: null },
-  { label: 'Opnames', href: '?pagina=opnames', page: 'opnames' },
-  { label: 'Woordenlijsten', href: '?pagina=woordenlijsten', page: 'woordenlijsten' },
-  { label: 'Instellingen', href: '?pagina=instellingen', page: 'instellingen' },
+  { label: 'Start', href: './', page: null, icon: 'functioneel-home' },
+  { label: 'Opnames', href: '?pagina=opnames', page: 'opnames', icon: 'beeld-en-geluid-microfoon' },
+  { label: 'Woordenlijsten', href: '?pagina=woordenlijsten', page: 'woordenlijsten', icon: 'op-kantoor-boek' },
+  { label: 'Instellingen', href: '?pagina=instellingen', page: 'instellingen', icon: 'functioneel-instellingen' },
 ]
 const PAGES = ['opnames', 'woordenlijsten', 'instellingen']
 const pageOf = () => (PAGES.includes(params.get('pagina')) ? params.get('pagina') : null)
@@ -253,7 +253,11 @@ function renderShell() {
   shell.data = {
     name: 'Transcriptie',
     emblem: emblem(themeOf(location.search)),
-    navigation: NAVIGATION.map(({ page, ...link }) => ({ ...link, active: page === pageOf() })),
+    // An open recording belongs to Opnames, as its breadcrumbs say.
+    navigation: NAVIGATION.map(({ page, ...link }) => ({
+      ...link,
+      active: openId ? page === 'opnames' : page === pageOf(),
+    })),
     user: USER,
     userMenu: [
       { value: 'modus', label: dark ? 'Lichte modus' : 'Donkere modus', icon: dark ? 'natuur-en-milieu-zon' : 'functioneel-darkmode' },
@@ -262,6 +266,8 @@ function renderShell() {
     ],
     version: '1.0.0',
     notifications,
+    // On a phone an open recording has Terug in the bar; above 768 px the breadcrumbs.
+    back: openId ? { href: '?pagina=opnames', label: 'Terug naar Opnames' } : undefined,
   }
 }
 
@@ -974,6 +980,8 @@ let loadedId = null
 /** One of the app's own pages, or the recordings (null). */
 function openPage(page) {
   openId = null
+  // The player belongs to the recording that was open.
+  $('dock').hidden = true
   for (const key of ['opname', 'q', 'lijst', 'soort-instelling']) params.delete(key)
   setParam('pagina', page, true)
   renderShell()
@@ -989,6 +997,7 @@ function openRecording(id) {
   // A search belongs to the recording it was made in.
   params.delete('q')
   setParam('opname', id, true)
+  renderShell()
   render()
   shell.focusContent()
 }

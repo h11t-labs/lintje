@@ -1,0 +1,75 @@
+/* One tab of the shell's tab bar below 768 px. The shell draws its pages and Menu with it; the
+   bell (`lintje-notifications`) and the user menu (`lintje-user-menu`) draw their trigger with it
+   as `variant="tab"`, so a part of the shell looks the same as a tab. */
+/* The edges are always there, so the glyph and the word stay centred; transparent until active. */
+.lintje-tab-bar__tab {
+  /* Above the bar's layer and every sheet that comes from a tab (`tab-bar.css`). */
+  position: relative;
+  z-index: 90;
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+  height: var(--h-tab-bar);
+  margin: 0;
+  padding: 0 var(--space-1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  background: transparent;
+  border: 0;
+  border-top: var(--nav-edge) solid transparent;
+  border-bottom: var(--nav-edge) solid transparent;
+  color: var(--color-nav-text);
+  font: var(--text-axis);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--dur-hover) var(--ease-in-motion),
+              color var(--dur-hover) var(--ease-in-motion);
+}
+.lintje-tab-bar__glyph { position: relative; display: flex; flex: none; }
+/* One line, cut: the whole word stays the tab's name for a screen reader. */
+.lintje-tab-bar__label {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* The navigation bar's hover and mark, in its tokens; not bold. */
+.lintje-tab-bar__tab:hover:not(.is-muted) { background: var(--color-navbar-hover); }
+.lintje-tab-bar__tab:hover:not(.is-muted) .lintje-tab-bar__label { text-decoration: underline; }
+.lintje-tab-bar__tab.is-active {
+  background: var(--color-navbar-active);
+  border-bottom-color: var(--color-navbar-active-edge);
+  color: var(--color-nav-active-text);
+}
+.lintje-tab-bar__tab.is-muted { color: var(--color-nav-disabled); cursor: default; }
+
+/* The menu's badge on the glyph's top right corner; the word "Nieuw" becomes a dot, as in the
+   folded rail. */
+.lintje-tab-bar__badge {
+  position: absolute;
+  top: calc(-1 * var(--space-1));
+  left: var(--space-4);
+}
+/* 16 px, not the menu's 20: on a glyph of 24 px the counter must not cover it. */
+.lintje-tab-bar__badge.lintje-badge--unread {
+  height: 1rem;
+  min-width: 1rem;
+  padding: 0 calc(var(--space-1) / 2);
+}
+.lintje-tab-bar__badge--new {
+  top: calc(-1 * var(--space-1));
+  left: var(--space-5);
+  min-width: 8px; width: 8px; height: 8px; padding: 0;
+  border-radius: 999px;
+  font-size: 0; overflow: hidden;
+}
+
+@media (forced-colors: active) {
+  .lintje-tab-bar__tab.is-active { border-bottom-color: Highlight; }
+  .lintje-tab-bar__tab.is-muted { color: GrayText; }
+}
