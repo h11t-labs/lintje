@@ -222,16 +222,23 @@ function fitted(iframe, width) {
  * `frame` draws it in a page of its own, open: an overlay is `position: fixed` and traps the
  * focus, so on the guide's page it would cover the guide and hold its keyboard. Its `[data-open]`
  * button opens it; without one, `true` opens the element's own tags, a selector the ones it names. The frame is inert while the overlay opens,
- * so its focus does not pull the guide's page along. `'page'` opens nothing: a shell, whose
- * `main`, `h1` and skip link would be the guide page's second. Its frame is as wide as the window,
- * or `frameWidth`, so the shell takes the breakpoints of that width, scaled down to the row.
+ * so its focus does not pull the guide's page along. `phone` makes the page 390 px wide, for what
+ * draws only below 768 px. `'page'` opens nothing: a shell, whose `main`, `h1` and skip link would
+ * be the guide page's second. Its frame is as wide as the window, or `frameWidth`, so the shell
+ * takes the breakpoints of that width, scaled down to the row.
  */
-export function renderSpecimen({ label, html, setup, frame: own, frameWidth }, { item, state } = {}) {
+export function renderSpecimen(
+  { label, html, setup, frame: own, phone, frameWidth },
+  { item, state } = {},
+) {
   const figure = element('figure', 'guide__specimen')
   const frame = own ?? item?.frame
   if (frame) {
     const page = frame === 'page'
-    const iframe = element('iframe', page ? 'guide__frame guide__frame--page' : 'guide__frame')
+    const iframe = element(
+      'iframe',
+      page ? 'guide__frame guide__frame--page' : phone ? 'guide__frame guide__frame--phone' : 'guide__frame',
+    )
     iframe.title = label ?? item?.tag ?? 'Voorbeeld'
     iframe.inert = true
     iframe.srcdoc = frameDocument(html, page)
