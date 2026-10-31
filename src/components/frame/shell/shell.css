@@ -210,6 +210,7 @@
 /* Menu as a tab: its panel is a sheet from the top of the screen down to the tabs, over the logo
    bar too. */
 .lintje-shell.has-menu-tab .lintje-mobile-menu { position: fixed; height: auto; }
+.lintje-shell.has-menu-tab .lintje-mobile-menu__list { flex: none; }
 .lintje-shell.has-tabs .lintje-shell__mobile-pin { z-index: 32; }
 
 

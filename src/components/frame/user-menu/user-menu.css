@@ -188,7 +188,7 @@
 :host([variant="tab"]) .lintje-user-menu__sheet {
   bottom: var(--lintje-shell-bottom, 0px);
   padding-bottom: 0;
-  animation-name: lintje-sheet-from-tabs;
+  animation-name: lintje-sheet-in;
 }
 /* The sheet's head, as the filter sheet's: its name and a close button, staying while it scrolls. */
 .lintje-user-menu__sheet-head {

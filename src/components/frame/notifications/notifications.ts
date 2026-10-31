@@ -310,7 +310,11 @@ export class LintjeNotifications extends LintjeElement {
       ${
         mobile
           ? this.open
-            ? html`<div
+            ? html`${
+                tab
+                  ? html`<div class="lintje-notifications__scrim" @click=${() => this.hide(true)}></div>`
+                  : nothing
+              }<div
               id=${this.#panelId}
               class="lintje-notifications__sheet"
               role="dialog"

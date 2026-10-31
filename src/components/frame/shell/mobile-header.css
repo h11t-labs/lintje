@@ -93,14 +93,34 @@
   overflow-y: auto;
   animation: lintje-menu-in var(--dur-sheet) var(--ease-in-motion);
 }
-/* With tabs the panel stops on them; with Menu as a tab it covers the header too and comes up
-   from the tabs as a sheet. */
+/* With tabs the panel stops on them. With Menu as a tab it is a sheet from the tabs, as high as
+   what it holds and at most the screen: little stands low, in reach of the thumb. A veil lies
+   over the page above it; a tap on it closes. */
 .lintje-shell.has-tabs .lintje-mobile-menu { bottom: var(--lintje-shell-bottom); }
 .lintje-shell.has-menu-tab .lintje-mobile-menu {
-  top: 0;
-  padding-top: env(safe-area-inset-top, 0px);
-  animation-name: lintje-sheet-from-tabs;
+  top: auto;
+  max-height: calc(100dvh - var(--lintje-shell-bottom) - env(safe-area-inset-top, 0px));
+  animation-name: lintje-sheet-in;
 }
+.lintje-mobile-menu__scrim {
+  position: fixed;
+  inset: 0 0 var(--lintje-shell-bottom) 0;
+  z-index: 23;
+  background: var(--color-overlay-page);
+  animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
+}
+/* The head of every sheet: its name and a close button, staying while the list scrolls. */
+.lintje-mobile-menu__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5);
+  background: var(--color-nav-bg);
+  border-bottom: 1px solid var(--color-nav-line);
+}
+.lintje-mobile-menu__title { flex: 1; margin: 0; font: var(--text-h2); color: var(--color-nav-text); }
+.lintje-mobile-menu__close { color: var(--color-nav-text); }
 .lintje-mobile-menu.is-leaving {
   animation: lintje-menu-out var(--dur-sheet) var(--ease-out-motion) forwards;
   pointer-events: none;

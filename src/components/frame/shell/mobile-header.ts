@@ -131,6 +131,11 @@ export function renderMobileHeader(
   const data = shell.data
   const open = shell.menuOpen
   const tabbed = new Set(plan.parts)
+  // Menu as a tab: the panel is a sheet from the tabs with a head and a veil.
+  const sheet = shell.tabsShown && tabbed.has('menu')
+  const close = (): void => {
+    shell.menuOpen = false
+  }
   const word = 'lintje-mobile-header__word'
   return html`<div
     class="lintje-mobile-chrome"
@@ -175,6 +180,7 @@ export function renderMobileHeader(
       </div>
     </header>
 
+    ${sheet && open ? html`<div class="lintje-mobile-menu__scrim" @click=${close}></div>` : nothing}
     ${
       open || shell.menuLeaving
         ? html`<div
@@ -185,6 +191,21 @@ export function renderMobileHeader(
             if (event.target === event.currentTarget && shell.menuLeaving) shell.menuLeft()
           }}
         >
+          ${
+            sheet
+              ? html`<div class="lintje-mobile-menu__head">
+                <h2 class="lintje-mobile-menu__title">Menu</h2>
+                <button
+                  type="button"
+                  class="lintje-dialog-close lintje-mobile-menu__close"
+                  aria-label="Menu sluiten"
+                  @click=${close}
+                >
+                  ${renderIcon('functioneel-kruis', { size: 16 })}
+                </button>
+              </div>`
+              : nothing
+          }
           ${
             data?.environment
               ? html`<p class="lintje-mobile-menu__environment">${data.environment}</p>`

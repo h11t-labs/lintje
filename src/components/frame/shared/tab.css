@@ -3,6 +3,9 @@
    as `variant="tab"`, so a part of the shell looks the same as a tab. */
 /* The edges are always there, so the glyph and the word stay centred; transparent until active. */
 .lintje-tab-bar__tab {
+  /* Above the bar's layer and every sheet that comes from a tab (`tab-bar.css`). */
+  position: relative;
+  z-index: 90;
   flex: 1 1 0;
   min-width: 0;
   box-sizing: border-box;
