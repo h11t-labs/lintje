@@ -27,6 +27,8 @@ import { Debounce } from '../../shared/debounce'
 import '../../feedback/spinner/spinner'
 import appSearchCss from './app-search.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
+import sheetCss from '../../shared/sheet.css?inline'
+import { SheetLeave, renderSheetHead } from '../../shared/sheet'
 import keyCss from '../../shared/key.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { titleWhenCut } from '../../shared/cut-text'
@@ -70,6 +72,7 @@ export class LintjeAppSearch extends LintjeElement {
     shadowCss(dialogCloseCss),
     shadowCss(keyCss),
     shadowCss(appSearchCss),
+    shadowCss(sheetCss),
   ]
 
   static override properties: PropertyDeclarations = {
@@ -93,6 +96,11 @@ export class LintjeAppSearch extends LintjeElement {
   protected active: number = -1
 
   readonly #mobile = new MediaController(this, MOBILE)
+  readonly #leave = new SheetLeave(
+    this,
+    () => this.open,
+    () => this.#mobile.matches,
+  )
   readonly #debounce = new Debounce(this, SEARCH_DELAY)
   // The field is a native `<input>` in this root: `aria-controls` and `aria-activedescendant`
   // cannot cross a root.
@@ -274,32 +282,30 @@ export class LintjeAppSearch extends LintjeElement {
   }
 
   protected override render(): TemplateResult | typeof nothing {
-    if (!this.open) return nothing
+    const leaving = this.#leave.leaving
+    if (!this.open && !leaving) return nothing
+    const sheet = this.#mobile.matches
     const listId = `${this.#id}-list`
     const count = this.results.length
     const expanded = !this.loading && count > 0
-    return html`<div class="lintje-app-search__scrim" @click=${() => this.close('scrim')}>
-      <div
-        class="lintje-app-search"
-        role="dialog"
-        aria-modal="true"
+    const dialog = html`<div
+        class=${classMap({ 'lintje-app-search': true, 'lintje-sheet': sheet, 'is-leaving': leaving })}
+        role=${leaving ? nothing : 'dialog'}
+        aria-modal=${leaving ? nothing : 'true'}
         aria-label="Zoeken"
         tabindex="-1"
+        ?inert=${leaving}
+        @animationend=${this.#leave.end}
         @click=${(event: Event) => event.stopPropagation()}
       >
         ${
-          this.#mobile.matches
-            ? html`<div class="lintje-app-search__header">
-                <h2 class="lintje-app-search__title">Zoeken</h2>
-                <button
-                  type="button"
-                  class="lintje-dialog-close lintje-app-search__close"
-                  aria-label="Zoeken sluiten"
-                  @click=${() => this.close('button')}
-                >
-                  ${renderIcon('functioneel-kruis', { size: 16 })}
-                </button>
-              </div>`
+          sheet
+            ? renderSheetHead({
+                title: 'Zoeken',
+                className: 'lintje-app-search__header',
+                closeClass: 'lintje-app-search__close',
+                onClose: () => this.close('button'),
+              })
             : nothing
         }
         <div class="lintje-app-search__field">
@@ -342,7 +348,17 @@ export class LintjeAppSearch extends LintjeElement {
                 <span class="lintje-app-search__hint"><kbd class="lintje-key">Esc</kbd> sluiten</span>
               </p>`
         }
-      </div>
+      </div>`
+    // On a phone the veil is a sibling: fading it must not fade the sheet.
+    if (sheet) {
+      return html`<div
+          class=${classMap({ 'lintje-sheet__scrim': true, 'lintje-app-search__veil': true, 'is-leaving': leaving })}
+          @click=${() => this.close('scrim')}
+        ></div>
+        ${dialog}`
+    }
+    return html`<div class="lintje-app-search__scrim" @click=${() => this.close('scrim')}>
+      ${dialog}
     </div>`
   }
 }

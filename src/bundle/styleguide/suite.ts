@@ -4,12 +4,15 @@
  * element switches on the first specimen of every group. An element passes when its tags are defined,
  * nothing reaches `console.error`, every icon it names has a file and axe finds no WCAG A or AA
  * violation. It does not look at the page and it does not listen to a screen reader.
+ *
+ * One file would be the whole browser run, so `part-<n>.browser.test.ts` each draw every
+ * `PARTS`th element, beside each other: an element keeps all its modes and widths in one part.
  */
 import axe from 'axe-core'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
-import { iconIsMissing } from '../icons/loader'
-import './index'
+import { iconIsMissing } from '../../icons/loader'
+import '../index'
 
 interface State {
   value: string
@@ -37,7 +40,7 @@ interface GuideElement {
 }
 
 const modules = import.meta.glob<{ default: { elements: GuideElement[] } }>(
-  '../../examples/styleguide/specimens/*.js',
+  '../../../examples/styleguide/specimens/*.js',
 )
 const nameOf = (item: GuideElement): string => item.tag ?? item.id ?? item.title ?? '?'
 /** An element with every specimen of its groups, and one more per state it switches. */
@@ -77,12 +80,14 @@ const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 /** The name a specimen uses to show an icon that has no file. */
 const NO_FILE_ON_PURPOSE = 'bestaat-niet'
 
+export const PARTS = 4
+
 /**
- * What axe finds today: each entry has its GitHub issue above it and matches the finding's line
- * below. A finding that matches none fails its element; an entry that matches nothing in a
- * whole run fails too, so the fix takes its entry out.
+ * What axe finds today, per element: each entry has its GitHub issue above it and matches the
+ * finding's line below. A finding that matches none fails its element; an entry that matches
+ * nothing in a whole run fails too, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = []
+const KNOWN: Record<string, RegExp[]> = {}
 const seen = new Set<RegExp>()
 let drawn = 0
 
@@ -212,102 +217,114 @@ async function audit(name: string): Promise<string[]> {
         }),
     )
     .filter((line) => {
-      const known = KNOWN.find((entry) => entry.test(line))
+      const known = KNOWN[name]?.find((entry) => entry.test(line))
       if (known) seen.add(known)
       return !known
     })
 }
 
-beforeAll(() => {
-  document.documentElement.lang = 'nl'
-  Object.assign(document.body.style, {
-    margin: '0',
-    background: 'var(--color-bg-page)',
-    color: 'var(--color-text-primary)',
-    font: 'var(--text-ui)',
-    fontFamily: 'var(--font-ui)',
+/** Draws part `part` (1 … `PARTS`) of the style guide; the first also reads every label. */
+export function styleguide(part: number): void {
+  const own = ELEMENTS.filter((_, index) => index % PARTS === part - 1)
+
+  beforeAll(() => {
+    document.documentElement.lang = 'nl'
+    Object.assign(document.body.style, {
+      margin: '0',
+      background: 'var(--color-bg-page)',
+      color: 'var(--color-text-primary)',
+      font: 'var(--text-ui)',
+      fontFamily: 'var(--font-ui)',
+    })
+    // As the style guide's page does: the stage hosts slotted markup, so its links take its colour.
+    const style = document.createElement('style')
+    style.textContent = '.guide__stage a { color: var(--color-link); }'
+    document.head.append(style)
   })
-  // As the style guide's page does: the stage hosts slotted markup, so its links take its colour.
-  const style = document.createElement('style')
-  style.textContent = '.guide__stage a { color: var(--color-link); }'
-  document.head.append(style)
-})
 
-afterEach(() => {
-  document.body.replaceChildren()
-  requested.clear()
-  vi.restoreAllMocks()
-})
+  afterEach(() => {
+    document.body.replaceChildren()
+    requested.clear()
+    vi.restoreAllMocks()
+  })
 
-describe.each(STYLES)('the style guide in the %s house style', (style) => {
-  describe.each(MODES)('in %s', (mode) => {
-    describe.each(VIEWPORTS)('at $name', ({ width, height }) => {
-      beforeAll(async () => {
-        document.documentElement.dataset.mode = mode
-        document.documentElement.dataset.styleVersion = style
-        document.documentElement.dataset.theme = 'rijksoverheid'
-        await page.viewport(width, height)
-      })
+  describe.each(STYLES)('the style guide in the %s house style', (style) => {
+    describe.each(MODES)('in %s', (mode) => {
+      describe.each(VIEWPORTS)('at $name', ({ width, height }) => {
+        beforeAll(async () => {
+          document.documentElement.dataset.mode = mode
+          document.documentElement.dataset.styleVersion = style
+          document.documentElement.dataset.theme = 'rijksoverheid'
+          await page.viewport(width, height)
+        })
 
-      it.each(ELEMENTS.map((item) => [nameOf(item), item] as const))('%s', async (name, item) => {
-        const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
-        draw(item)
-        await settle()
-        drawn++
-
-        const undefinedTags = deep(document.body)
-          .filter(
-            (element) => element.localName.startsWith('lintje-') && !element.matches(':defined'),
-          )
-          .map((element) => element.localName)
-        expect.soft(undefinedTags, `tags without a definition: ${undefinedTags}`).toHaveLength(0)
-        const logged = errors.mock.calls.map((call) => call.map(String).join(' '))
-        expect.soft(logged, `console.error: ${logged.join(' | ')}`).toHaveLength(0)
-        const missing = [...requested].filter(
-          (icon) => icon !== NO_FILE_ON_PURPOSE && iconIsMissing(icon),
-        )
-        expect.soft(missing, `icons without a file: ${missing}`).toHaveLength(0)
-        let found = await audit(name)
-        // Halfway a transition is no state of the element: look again once it has landed.
-        if (found.length) {
+        it.each(own.map((item) => [nameOf(item), item] as const))('%s', async (name, item) => {
+          const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+          draw(item)
           await settle()
-          found = await audit(name)
-        }
-        expect.soft(found, `axe:\n${found.join('\n')}`).toHaveLength(0)
+          drawn++
+
+          const undefinedTags = deep(document.body)
+            .filter(
+              (element) => element.localName.startsWith('lintje-') && !element.matches(':defined'),
+            )
+            .map((element) => element.localName)
+          expect.soft(undefinedTags, `tags without a definition: ${undefinedTags}`).toHaveLength(0)
+          const logged = errors.mock.calls.map((call) => call.map(String).join(' '))
+          expect.soft(logged, `console.error: ${logged.join(' | ')}`).toHaveLength(0)
+          const missing = [...requested].filter(
+            (icon) => icon !== NO_FILE_ON_PURPOSE && iconIsMissing(icon),
+          )
+          expect.soft(missing, `icons without a file: ${missing}`).toHaveLength(0)
+          let found = await audit(name)
+          // Halfway a transition is no state of the element: look again once it has landed.
+          if (found.length) {
+            await settle()
+            found = await audit(name)
+          }
+          expect.soft(found, `axe:\n${found.join('\n')}`).toHaveLength(0)
+        })
       })
     })
   })
-})
+
+  if (part === 1) labels()
+
+  describe('the known findings', () => {
+    it('are all still found', ({ skip }) => {
+      // A run of part of the style guide cannot say what is fixed.
+      if (drawn < own.length * STYLES.length * MODES.length * VIEWPORTS.length) skip()
+      const fixed = own
+        .flatMap((item) => KNOWN[nameOf(item)] ?? [])
+        .filter((entry) => !seen.has(entry))
+        .map(String)
+      expect(fixed, `fixed, so take out of KNOWN:\n${fixed.join('\n')}`).toHaveLength(0)
+    })
+  })
+}
 
 // A label is a specimen's title, beside its stage and in "Op deze pagina": short, naming what it
 // shows. A colon, a bracket or a comma starts the explanation that belongs in `note`.
 const TITLE = /^[^:;(),·]{1,40}$/
 
-describe('the specimen labels', () => {
-  const specimens = ELEMENTS.filter((item) => !item.owner).flatMap((item) =>
-    item.specimens.map((specimen) => ({ where: nameOf(item), ...specimen })),
-  )
+function labels(): void {
+  describe('the specimen labels', () => {
+    const specimens = ELEMENTS.filter((item) => !item.owner).flatMap((item) =>
+      item.specimens.map((specimen) => ({ where: nameOf(item), ...specimen })),
+    )
 
-  it('are short titles', () => {
-    const long = specimens
-      .filter((specimen) => specimen.label && !TITLE.test(specimen.label))
-      .map((specimen) => `${specimen.where}: ${specimen.label}`)
-    expect(long, long.join('\n')).toHaveLength(0)
-  })
+    it('are short titles', () => {
+      const long = specimens
+        .filter((specimen) => specimen.label && !TITLE.test(specimen.label))
+        .map((specimen) => `${specimen.where}: ${specimen.label}`)
+      expect(long, long.join('\n')).toHaveLength(0)
+    })
 
-  it('leave the explaining to a note in whole sentences', () => {
-    const loose = specimens
-      .filter((specimen) => specimen.note && !/^[A-Z0-9`'"“].*[.!?]$/su.test(specimen.note))
-      .map((specimen) => `${specimen.where}: ${specimen.note}`)
-    expect(loose, loose.join('\n')).toHaveLength(0)
+    it('leave the explaining to a note in whole sentences', () => {
+      const loose = specimens
+        .filter((specimen) => specimen.note && !/^[A-Z0-9`'"“].*[.!?]$/su.test(specimen.note))
+        .map((specimen) => `${specimen.where}: ${specimen.note}`)
+      expect(loose, loose.join('\n')).toHaveLength(0)
+    })
   })
-})
-
-describe('the known findings', () => {
-  it('are all still found', ({ skip }) => {
-    // A run of part of the style guide cannot say what is fixed.
-    if (drawn < ELEMENTS.length * STYLES.length * MODES.length * VIEWPORTS.length) skip()
-    const fixed = KNOWN.filter((entry) => !seen.has(entry)).map(String)
-    expect(fixed, `fixed, so take out of KNOWN:\n${fixed.join('\n')}`).toHaveLength(0)
-  })
-})
+}
