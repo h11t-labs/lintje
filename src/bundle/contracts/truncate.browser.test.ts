@@ -428,10 +428,19 @@ const ROWS: Row[] = [
       ),
     text: (element) => shown(element, '.lintje-user-menu__trigger-name, .lintje-user-menu__name'),
     focus: tabUntil((element) => shown(element, '.lintje-user-menu__trigger--side')),
+    // On a phone the user menu stands in the menu panel as an avatar; its name is in its sheet.
     phone: async (element) => {
       const shell = element as HTMLElement & { menuOpen: boolean; updateComplete: Promise<unknown> }
       shell.menuOpen = true
       await shell.updateComplete
+      const menus = shell.shadowRoot?.querySelectorAll<
+        HTMLElement & { open: boolean; updateComplete: Promise<unknown> }
+      >('lintje-user-menu')
+      for (const menu of menus ?? []) {
+        if (!menu.getClientRects().length) continue
+        menu.open = true
+        await menu.updateComplete
+      }
     },
     room: (element) => element,
   },
