@@ -32,6 +32,7 @@ import {
 import '../../overlays/popover/popover'
 import '../../overlays/tooltip/tooltip'
 import { MediaController, MOBILE } from '../../../core/media'
+import { lockScroll } from '../../../core/host-config'
 import tabCss from '../shared/tab.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import menuCss from '../../shared/menu.css?inline'
@@ -236,8 +237,23 @@ export class LintjeUserMenu extends LintjeElement {
     this.emit('lintje-logout')
   }
 
+  /** Undoes the page's lock while the sheet is open, as every sheet holds the page still. */
+  #released: (() => void) | null = null
+
+  override disconnectedCallback(): void {
+    this.#released?.()
+    this.#released = null
+    super.disconnectedCallback()
+  }
+
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
+    const held = this.open && this.sheet
+    if (held && !this.#released) this.#released = lockScroll()
+    else if (!held && this.#released) {
+      this.#released()
+      this.#released = null
+    }
     if (this.open && this.#pendingFocus) {
       const focus = this.#pendingFocus
       this.#pendingFocus = null

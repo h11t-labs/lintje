@@ -38,7 +38,7 @@ import '../../actions/qr-code/qr-code'
 import '../notifications/notifications'
 import '../user-menu/user-menu'
 import { MOBILE, WIDE, MediaController } from '../../../core/media'
-import { lockScroll, scrollRoot } from '../../../core/host-config'
+import { lockScroll, onScrollLocks, scrollRoot } from '../../../core/host-config'
 import { lengthPx } from '../../../core/length'
 import { FocusTrap, ownsEscape } from '../../shared/focus-trap'
 import { holdsFocus } from '../../../core/focus'
@@ -238,6 +238,10 @@ export class LintjeShell extends LintjeElement {
     this.#nested = this.parentElement?.closest(this.localName) != null
     if (!this.#nested) window.addEventListener('scroll', this.#onScroll, { passive: true })
     globalThis.visualViewport?.addEventListener('resize', this.#onViewport)
+    this.#stopLocks = onScrollLocks((count) => {
+      this.#locks = count
+      this.#passBottom()
+    })
   }
 
   override disconnectedCallback(): void {
@@ -247,12 +251,17 @@ export class LintjeShell extends LintjeElement {
     this.#releaseSheet(false)
     window.removeEventListener('scroll', this.#onScroll)
     globalThis.visualViewport?.removeEventListener('resize', this.#onViewport)
+    this.#stopLocks?.()
+    this.#stopLocks = null
     this.#fitObserver?.disconnect()
     this.#fitObserver = null
     this.#fitObserved = []
     if (this.#scrollFrame) cancelAnimationFrame(this.#scrollFrame)
     this.#scrollFrame = 0
-    if (!this.#nested) document.documentElement.style.removeProperty('--lintje-shell-bottom')
+    if (!this.#nested) {
+      document.documentElement.style.removeProperty('--lintje-shell-bottom')
+      document.documentElement.style.removeProperty('--lintje-toast-bottom')
+    }
     if (this.#padded) {
       this.#padded.style.scrollPaddingTop = ''
       this.#padded.style.scrollPaddingBottom = ''
@@ -299,19 +308,26 @@ export class LintjeShell extends LintjeElement {
     this.emit('lintje-action', item.action)
   }
 
+  /** How many overlays hold the page still; the menu's own panel is one of them while open. */
+  #locks = 0
+  #stopLocks: (() => void) | null = null
+
   /**
    * What a host puts on the page outside the shell (a toast on `body`) reads the tabs' height too:
-   * it stands on the document, as long as the tabs do.
+   * it stands on the document, as long as the tabs do. A toast reads `--lintje-toast-bottom`: the
+   * tabs' height, or nothing while a sheet covers them (any overlay that holds the page, other
+   * than the menu's panel, which stops on the tabs), so it never hangs in the middle of a sheet.
    */
   #passBottom(): void {
     if (this.#nested) return
     const style = document.documentElement.style
-    if (this.tabsShown && !this.keyboardOpen)
-      style.setProperty(
-        '--lintje-shell-bottom',
-        'calc(var(--h-tab-bar) + env(safe-area-inset-bottom, 0px))',
-      )
+    const tabs = 'calc(var(--h-tab-bar) + env(safe-area-inset-bottom, 0px))'
+    const shown = this.tabsShown && !this.keyboardOpen
+    const covered = this.#locks > (this.menuOpen ? 1 : 0)
+    if (shown) style.setProperty('--lintje-shell-bottom', tabs)
     else style.removeProperty('--lintje-shell-bottom')
+    if (shown && !covered) style.setProperty('--lintje-toast-bottom', tabs)
+    else style.removeProperty('--lintje-toast-bottom')
   }
 
   /* A mistake that shows nothing is said once in the console, as the development build's warning. */

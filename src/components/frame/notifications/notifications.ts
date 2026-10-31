@@ -22,7 +22,7 @@ import { holdsFocus, standsIn } from '../../../core/focus'
 import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import '../../feedback/badge/badge'
+import { badgeStyles } from '../../feedback/badge/badge'
 import '../../overlays/popover/popover'
 import { DialogHold } from '../../shared/dialog'
 import { LiveMessage } from '../../shared/live-message'
@@ -61,6 +61,7 @@ export class LintjeNotifications extends LintjeElement {
     iconStyles,
     shadowCss(dialogCloseCss),
     shadowCss(notificationsCss),
+    badgeStyles,
     shadowCss(tabCss),
   ]
 
@@ -266,13 +267,17 @@ export class LintjeNotifications extends LintjeElement {
     >`
   }
 
-  /** As a tab: the bell's glyph with the counter on its corner, and the word under it. */
+  /** As a tab: the bell's glyph with the counter on its corner, and the word under it. The counter
+   * is drawn here, not as `<lintje-badge>`, so the tab's smaller size reaches it. */
   private renderTab(count: number): TemplateResult {
     return html`<span class="lintje-tab-bar__glyph" aria-hidden="true"
-        >${renderIcon('functioneel-bel', { size: 24 })}${this.renderCount(
-          count,
-          'lintje-tab-bar__badge',
-        )}</span
+        >${renderIcon('functioneel-bel', { size: 24 })}${
+          count > 0
+            ? html`<span class="lintje-badge lintje-badge--unread lintje-tab-bar__badge"
+                ><span class="lintje-badge__value">${countLabel(count, this.max)}</span></span
+              >`
+            : nothing
+        }</span
       ><span class="lintje-tab-bar__label">Meldingen</span>${
         // The tab is named by its word; the count follows it, heard only.
         count > 0

@@ -49,8 +49,14 @@
    folded rail. */
 .lintje-tab-bar__badge {
   position: absolute;
-  top: calc(-1 * var(--space-2));
+  top: calc(-1 * var(--space-1));
   left: var(--space-4);
+}
+/* 16 px, not the menu's 20: on a glyph of 24 px the counter must not cover it. */
+.lintje-tab-bar__badge.lintje-badge--unread {
+  height: 1rem;
+  min-width: 1rem;
+  padding: 0 calc(var(--space-1) / 2);
 }
 .lintje-tab-bar__badge--new {
   top: calc(-1 * var(--space-1));

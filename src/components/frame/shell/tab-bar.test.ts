@@ -8,6 +8,7 @@ import type { LintjeShell } from './shell'
 import type { ShellData, ShellGroup, ShellLink } from '../../../types'
 import { parseTabParts, planTabs } from './tab-bar'
 import { setFrameState } from '../../../core/frame-state'
+import { lockScroll } from '../../../core/host-config'
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -250,5 +251,27 @@ describe('the parts of the shell as tabs, and the bar at the top', () => {
     expect(h1.textContent).toBe('Zaaksysteem')
     expect(h1.classList.contains('is-small')).toBe(true)
     setFrameState({ titleHidden: false })
+  })
+})
+
+describe('a toast with the tabs', () => {
+  it('stands above the tabs, and at the edge while a sheet covers them', async () => {
+    viewport(390)
+    const shell = await mount({ 'mobile-tabs': '' })
+    const toast = () => document.documentElement.style.getPropertyValue('--lintje-toast-bottom')
+    expect(toast()).toContain('--h-tab-bar')
+    // The menu's panel stops on the tabs: the toast stays above them.
+    shell.menuOpen = true
+    await shell.updateComplete
+    expect(toast()).toContain('--h-tab-bar')
+    shell.menuOpen = false
+    await shell.updateComplete
+    // Any other overlay that holds the page covers the tabs.
+    const release = lockScroll()
+    expect(toast()).toBe('')
+    release()
+    expect(toast()).toContain('--h-tab-bar')
+    shell.remove()
+    expect(toast()).toBe('')
   })
 })
