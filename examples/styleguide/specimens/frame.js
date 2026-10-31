@@ -70,6 +70,20 @@ const TABBED = [
   },
 ]
 
+/** As a host does: a tab marks its page, and nothing leaves the frame. */
+function followTabs(shell) {
+  shell.addEventListener('lintje-navigate', (event) => {
+    event.preventDefault()
+    const mark = (link) => ({ ...link, active: link.href === event.detail.href })
+    shell.data = {
+      ...shell.data,
+      navigation: shell.data.navigation.map((entry) =>
+        entry.links ? { ...entry, links: entry.links.map(mark) } : mark(entry),
+      ),
+    }
+  })
+}
+
 /** The emblem of the page's theme, with the organisation's name beside it as text. */
 const EMBLEM_LABELS = {
   marechaussee: 'Koninklijke Marechaussee',
@@ -403,6 +417,7 @@ export default {
             shell.style.minHeight = '0'
             shell.data = { name: 'Transcriptie', emblem: emblem(), navigation: TABBED, user: USER, userMenu: USER_MENU, search: true }
             stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+            followTabs(shell)
           },
         },
         {
@@ -421,6 +436,7 @@ export default {
             shell.style.minHeight = '0'
             shell.data = { name: 'Transcriptie', emblem: emblem(), navigation: TABBED, user: USER, userMenu: USER_MENU, search: true }
             stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+            followTabs(shell)
             shell.updateComplete.then(() => (shell.menuOpen = true))
           },
         },
@@ -450,6 +466,7 @@ export default {
               back: { href: '#opnames', label: 'Terug naar Opnames' },
             }
             stage.querySelector('lintje-page-header').data = { title: 'Teamoverleg 2 oktober' }
+            followTabs(shell)
           },
         },
         {

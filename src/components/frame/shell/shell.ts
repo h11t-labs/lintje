@@ -252,6 +252,7 @@ export class LintjeShell extends LintjeElement {
     this.#fitObserved = []
     if (this.#scrollFrame) cancelAnimationFrame(this.#scrollFrame)
     this.#scrollFrame = 0
+    if (!this.#nested) document.documentElement.style.removeProperty('--lintje-shell-bottom')
     if (this.#padded) {
       this.#padded.style.scrollPaddingTop = ''
       this.#padded.style.scrollPaddingBottom = ''
@@ -296,6 +297,21 @@ export class LintjeShell extends LintjeElement {
   act(item: ShellLink): void {
     this.openGroup = null
     this.emit('lintje-action', item.action)
+  }
+
+  /**
+   * What a host puts on the page outside the shell (a toast on `body`) reads the tabs' height too:
+   * it stands on the document, as long as the tabs do.
+   */
+  #passBottom(): void {
+    if (this.#nested) return
+    const style = document.documentElement.style
+    if (this.tabsShown && !this.keyboardOpen)
+      style.setProperty(
+        '--lintje-shell-bottom',
+        'calc(var(--h-tab-bar) + env(safe-area-inset-bottom, 0px))',
+      )
+    else style.removeProperty('--lintje-shell-bottom')
   }
 
   /* A mistake that shows nothing is said once in the console, as the development build's warning. */
@@ -368,7 +384,8 @@ export class LintjeShell extends LintjeElement {
     if (changed.has('menuOpen')) {
       if (this.#leaveTimer) clearTimeout(this.#leaveTimer)
       this.#leaveTimer = null
-      if (!this.menuOpen && changed.get('menuOpen') === true) {
+      // Above the tabs the panel goes at once: a tab tapped while it slides would wait for it.
+      if (!this.menuOpen && changed.get('menuOpen') === true && !this.tabsShown) {
         this.menuLeaving = true
         this.#leaveTimer = setTimeout(() => this.menuLeft(), 600)
       } else {
@@ -419,6 +436,7 @@ export class LintjeShell extends LintjeElement {
     }
     this.#holdSheet()
     this.#checkTabs()
+    this.#passBottom()
     this.#observeFit(changed.has('data') || changed.has('layout'))
     this.#fitHeader()
     this.#padScroll()
