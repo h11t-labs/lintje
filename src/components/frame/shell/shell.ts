@@ -553,7 +553,10 @@ export class LintjeShell extends LintjeElement {
     if (!header?.clientWidth) return
     // The words shown for one reading, before anything paints.
     header.classList.remove('is-compact')
-    header.classList.toggle('is-compact', header.scrollWidth > header.clientWidth + 0.5)
+    // The name gives way by cutting itself: a cut name counts as no room, so Menu keeps its glyph.
+    const title = header.querySelector<HTMLElement>('.lintje-mobile-header__title')
+    const cut = Boolean(title && title.scrollWidth > title.clientWidth + 0.5)
+    header.classList.toggle('is-compact', cut || header.scrollWidth > header.clientWidth + 0.5)
   }
 
   /** Observes the bars; a bar observed anew is reported once more, with new data in it. */

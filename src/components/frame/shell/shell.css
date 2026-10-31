@@ -58,7 +58,9 @@
 :host([data-tone='light']) .lintje-navbar,
 :host([data-tone='light']) .lintje-navbar *,
 :host([data-tone='light']) .lintje-tab-bar,
-:host([data-tone='light']) .lintje-tab-bar * {
+:host([data-tone='light']) .lintje-tab-bar *,
+:host([data-tone='light']) .lintje-mobile-header,
+:host([data-tone='light']) .lintje-mobile-header * {
   --color-navbar-hover: var(--color-navbar-light-hover);
   --color-navbar-active: var(--color-navbar-light-active);
   --color-navbar-active-edge: var(--color-navbar-light-active-edge);
@@ -241,6 +243,9 @@
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-shell__tool:hover { background: var(--color-nav-hover); }
+/* In the bar on a phone the tools are buttons on the surface: the house style's small corner. */
+.lintje-mobile-header__actions { --lintje-tool-radius: var(--radius-control); }
+.lintje-mobile-header .lintje-shell__tool { border-radius: var(--lintje-tool-radius); }
 .lintje-shell__tool--text {
   width: auto;
   padding: 0 var(--space-3);

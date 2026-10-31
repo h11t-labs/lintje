@@ -21,6 +21,9 @@
   overflow-x: clip;
 }
 :where(.lintje-shell.is-phone) .lintje-mobile-header { display: flex; }
+/* Without Menu as a tab the panel drops from the bar: the bar lies above it, so the panel comes
+   out from under it and goes back under it, never over it. */
+.lintje-shell:not(.has-menu-tab) .lintje-mobile-header { position: relative; z-index: 25; }
 /* On the theme fill the ring is the inverse one, as in the desktop menu, by the inherited hooks. */
 .lintje-mobile-header,
 .lintje-mobile-menu {
@@ -47,6 +50,7 @@
   margin-left: calc(-1 * var(--space-3));
   color: var(--color-nav-text);
 }
+.lintje-mobile-header__back { border-radius: var(--radius-control); }
 .lintje-mobile-header__back:hover { background: var(--color-nav-hover); }
 .lintje-mobile-header__titles { display: flex; flex-direction: column; min-width: 0; }
 /* The name, 20 px as the top bar's; once the page's head has scrolled away the page's name

@@ -12,6 +12,8 @@
   display: flex; align-items: center; justify-content: center;
   width: var(--h-touch); height: var(--lintje-tool-height, var(--h-touch));
   color: var(--color-nav-text);
+  /* The bar that holds it says its corner (the phone's bar: the small one); none by default. */
+  border-radius: var(--lintje-tool-radius, 0);
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-notifications__bell:hover,
