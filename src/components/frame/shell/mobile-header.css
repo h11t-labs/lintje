@@ -126,6 +126,12 @@
   animation: lintje-menu-out var(--dur-sheet) var(--ease-out-motion) forwards;
   pointer-events: none;
 }
+/* From a tab it goes down again, behind the tabs, and its veil fades. */
+.lintje-shell.has-menu-tab .lintje-mobile-menu.is-leaving { animation-name: lintje-sheet-out; }
+.lintje-mobile-menu__scrim.is-leaving {
+  animation: lintje-fade-out var(--dur-scrim) var(--ease-out-motion) forwards;
+  pointer-events: none;
+}
 .lintje-mobile-menu__tools { padding-top: var(--space-2); }
 .lintje-mobile-menu__list { flex: 1; padding-bottom: var(--space-4); }
 .lintje-mobile-menu__about { padding-bottom: var(--space-4); }

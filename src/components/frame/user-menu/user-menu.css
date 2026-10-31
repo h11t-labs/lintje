@@ -201,3 +201,12 @@
   border-bottom: 1px solid var(--color-border-popover);
 }
 .lintje-user-menu__sheet-title { flex: 1; margin: 0; font: var(--text-h2); color: var(--color-text-primary); }
+/* Closed, the sheet goes down again (behind the tabs, from a tab) and its veil fades. */
+.lintje-user-menu__sheet.is-leaving {
+  animation: lintje-sheet-out var(--dur-sheet) var(--ease-out-motion) forwards;
+  pointer-events: none;
+}
+.lintje-user-menu__scrim.is-leaving {
+  animation: lintje-fade-out var(--dur-scrim) var(--ease-out-motion) forwards;
+  pointer-events: none;
+}

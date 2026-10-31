@@ -70,6 +70,7 @@ export class LintjeNotifications extends LintjeElement {
     open: { type: Boolean, reflect: true },
     max: { type: Number },
     variant: { type: String, reflect: true },
+    leaving: { state: true },
   }
 
   items: NotificationItem[] = []
@@ -81,6 +82,9 @@ export class LintjeNotifications extends LintjeElement {
   open: boolean = false
   /** `tab`: the bell is a tab of the shell's tab bar below 768 px, with the word Meldingen. */
   declare variant?: 'tab'
+  /** The sheet from a tab is going down: still drawn, no longer open. */
+  leaving: boolean = false
+  #leaveTimer: ReturnType<typeof setTimeout> | null = null
 
   #shown = 0
   #replaced = false
@@ -137,6 +141,15 @@ export class LintjeNotifications extends LintjeElement {
       this.hide(true)
     }
     this.#wasMobile = this.#mobile.matches
+    // From a tab the sheet goes down behind the tabs before it leaves; the timer covers a missing
+    // `animationend`.
+    if (changed.has('open')) {
+      if (this.#leaveTimer) clearTimeout(this.#leaveTimer)
+      this.#leaveTimer = null
+      const closed = !this.open && changed.get('open') === true
+      this.leaving = closed && this.variant === 'tab' && this.#mobile.matches
+      if (this.leaving) this.#leaveTimer = setTimeout(() => (this.leaving = false), 600)
+    }
     if (!changed.has('items')) return
     const count = this.unread
     const before = this.#shown
@@ -309,16 +322,23 @@ export class LintjeNotifications extends LintjeElement {
       </button>
       ${
         mobile
-          ? this.open
+          ? this.open || this.leaving
             ? html`${
                 tab
-                  ? html`<div class="lintje-notifications__scrim" @click=${() => this.hide(true)}></div>`
+                  ? html`<div
+                      class=${classMap({ 'lintje-notifications__scrim': true, 'is-leaving': this.leaving })}
+                      @click=${() => this.hide(true)}
+                    ></div>`
                   : nothing
               }<div
               id=${this.#panelId}
-              class="lintje-notifications__sheet"
-              role="dialog"
-              aria-modal="true"
+              class=${classMap({ 'lintje-notifications__sheet': true, 'is-leaving': this.leaving })}
+              ?inert=${this.leaving}
+              @animationend=${(event: AnimationEvent) => {
+                if (event.target === event.currentTarget && this.leaving) this.leaving = false
+              }}
+              role=${this.leaving ? nothing : 'dialog'}
+              aria-modal=${this.leaving ? nothing : 'true'}
               aria-label="Meldingen"
               tabindex="-1"
             >

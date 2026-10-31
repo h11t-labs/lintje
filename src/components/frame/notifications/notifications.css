@@ -137,3 +137,12 @@
   background: var(--color-overlay-page);
   animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
 }
+/* Closed from a tab it goes down behind the tabs again, and its veil fades. */
+:host([variant='tab']) .lintje-notifications__sheet.is-leaving {
+  animation: lintje-sheet-out var(--dur-sheet) var(--ease-out-motion) forwards;
+  pointer-events: none;
+}
+.lintje-notifications__scrim.is-leaving {
+  animation: lintje-fade-out var(--dur-scrim) var(--ease-out-motion) forwards;
+  pointer-events: none;
+}

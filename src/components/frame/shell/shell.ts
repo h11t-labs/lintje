@@ -431,8 +431,7 @@ export class LintjeShell extends LintjeElement {
     if (changed.has('menuOpen')) {
       if (this.#leaveTimer) clearTimeout(this.#leaveTimer)
       this.#leaveTimer = null
-      // Above the tabs the panel goes at once: a tab tapped while it slides would wait for it.
-      if (!this.menuOpen && changed.get('menuOpen') === true && !this.tabsShown) {
+      if (!this.menuOpen && changed.get('menuOpen') === true) {
         this.menuLeaving = true
         this.#leaveTimer = setTimeout(() => this.menuLeft(), 600)
       } else {

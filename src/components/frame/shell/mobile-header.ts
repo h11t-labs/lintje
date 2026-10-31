@@ -180,7 +180,14 @@ export function renderMobileHeader(
       </div>
     </header>
 
-    ${sheet && open ? html`<div class="lintje-mobile-menu__scrim" @click=${close}></div>` : nothing}
+    ${
+      sheet && (open || shell.menuLeaving)
+        ? html`<div
+            class=${classMap({ 'lintje-mobile-menu__scrim': true, 'is-leaving': !open })}
+            @click=${close}
+          ></div>`
+        : nothing
+    }
     ${
       open || shell.menuLeaving
         ? html`<div

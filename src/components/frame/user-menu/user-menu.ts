@@ -65,6 +65,7 @@ export class LintjeUserMenu extends LintjeElement {
     variant: { type: String, reflect: true },
     folded: { type: Boolean, reflect: true },
     open: { type: Boolean, reflect: true },
+    leaving: { state: true },
   }
 
   declare user?: Person | null
@@ -235,6 +236,21 @@ export class LintjeUserMenu extends LintjeElement {
   private logout(): void {
     this.hide(!this.inline)
     this.emit('lintje-logout')
+  }
+
+  /** The sheet is going down: still drawn, no longer open. */
+  leaving: boolean = false
+  #leaveTimer: ReturnType<typeof setTimeout> | null = null
+
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
+    // A sheet goes down before it leaves; the timer covers a missing `animationend`.
+    if (changed.has('open')) {
+      if (this.#leaveTimer) clearTimeout(this.#leaveTimer)
+      this.#leaveTimer = null
+      this.leaving = !this.open && changed.get('open') === true && this.sheet
+      if (this.leaving) this.#leaveTimer = setTimeout(() => (this.leaving = false), 600)
+    }
   }
 
   /** Undoes the page's lock while the sheet is open, as every sheet holds the page still. */
@@ -476,9 +492,20 @@ export class LintjeUserMenu extends LintjeElement {
 
   /** Below 768 px: a sheet from below over the page and the tabs, with a veil that closes it. */
   private renderSheet(): TemplateResult | typeof nothing {
-    if (!this.open) return nothing
-    return html`<div class="lintje-user-menu__scrim" @click=${() => this.hide(false)}></div>
-      <div class="lintje-user-menu__sheet" id=${this.#menuId}>
+    if (!this.open && !this.leaving) return nothing
+    const leaving = this.leaving
+    return html`<div
+        class=${classMap({ 'lintje-user-menu__scrim': true, 'is-leaving': leaving })}
+        @click=${() => this.hide(false)}
+      ></div>
+      <div
+        class=${classMap({ 'lintje-user-menu__sheet': true, 'is-leaving': leaving })}
+        id=${this.#menuId}
+        ?inert=${leaving}
+        @animationend=${(event: AnimationEvent) => {
+          if (event.target === event.currentTarget && this.leaving) this.leaving = false
+        }}
+      >
         <!-- The head of every sheet: its name and a close button, as "Weergave" and "Delen". -->
         <div class="lintje-user-menu__sheet-head">
           <h2 class="lintje-user-menu__sheet-title">Jij</h2>
