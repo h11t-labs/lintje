@@ -76,7 +76,7 @@ function pageTab(shell: LintjeShell, item: ShellLink): TemplateResult {
       type="button"
       class="lintje-tab-bar__tab focus-inset"
       @click=${() => {
-        shell.menuOpen = false
+        shell.closeTabSheets()
         shell.act(item)
       }}
     >
@@ -96,7 +96,7 @@ function pageTab(shell: LintjeShell, item: ShellLink): TemplateResult {
     aria-current=${active ? 'page' : nothing}
     @click=${(event: MouseEvent) => {
       if (!isPlainClick(event)) return
-      shell.menuOpen = false
+      shell.closeTabSheets()
       shell.follow(item.href as string, event)
     }}
   >
@@ -113,13 +113,14 @@ function partTab(shell: LintjeShell, part: TabPart): TemplateResult | typeof not
       class="lintje-tab-bar__tab focus-inset"
       aria-keyshortcuts="/"
       @click=${() => {
-        shell.menuOpen = false
+        shell.closeTabSheets()
         shell.askSearch()
       }}
     >
       ${glyph('functioneel-zoek')} ${label('Zoeken')}
     </button>`
   }
+  // Their own trigger is the tab; a tap on another tab closes them (`closeTabSheets`).
   if (part === 'notifications') return shell.renderNotifications(true)
   if (part === 'user') return shell.renderUserMenu('tab')
   const open = shell.menuOpen
@@ -128,7 +129,9 @@ function partTab(shell: LintjeShell, part: TabPart): TemplateResult | typeof not
     class="lintje-tab-bar__tab lintje-tab-bar__tab--menu focus-inset"
     aria-controls=${open ? 'lintje-mobile-menu-panel' : nothing}
     @click=${() => {
-      shell.menuOpen = !shell.menuOpen
+      const open = !shell.menuOpen
+      shell.closeTabSheets()
+      shell.menuOpen = open
     }}
   >
     ${glyph(open ? 'functioneel-kruis' : 'functioneel-menu')} ${label(open ? 'Sluiten' : 'Menu')}
@@ -136,7 +139,11 @@ function partTab(shell: LintjeShell, part: TabPart): TemplateResult | typeof not
 }
 
 export function renderTabBar(shell: LintjeShell, plan: TabPlan): TemplateResult {
-  return html`<nav class="lintje-tab-bar" aria-label="Hoofdnavigatie">
+  return html`<nav
+    class="lintje-tab-bar"
+    aria-label="Hoofdnavigatie"
+    @click=${(event: Event) => shell.tabPartTapped(event)}
+  >
     ${plan.pages.map((item) => pageTab(shell, item))}
     ${plan.parts.map((part) => partTab(shell, part))}
   </nav>`

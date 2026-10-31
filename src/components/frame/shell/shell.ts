@@ -302,6 +302,35 @@ export class LintjeShell extends LintjeElement {
     return planTabs(navigation, parts)
   }
 
+  /** The sheets open from a tab: the menu's panel, and the bell and the user as tabs. */
+  #tabSheets(): (HTMLElement & { open: boolean })[] {
+    return Array.from(
+      this.renderRoot.querySelectorAll<HTMLElement & { open: boolean }>(
+        '.lintje-tab-bar lintje-notifications, .lintje-tab-bar lintje-user-menu',
+      ),
+    ).filter((part) => part.open)
+  }
+
+  /** A tap on a tab closes what another tab opened: one sheet from the tabs at a time. */
+  closeTabSheets(): void {
+    this.menuOpen = false
+    for (const part of this.#tabSheets()) part.open = false
+  }
+
+  /** The bell or the user as a tab toggled itself: whatever another tab opened closes. */
+  tabPartTapped(event: Event): void {
+    const part = event
+      .composedPath()
+      .find(
+        (node): node is HTMLElement =>
+          node instanceof HTMLElement &&
+          (node.localName === 'lintje-notifications' || node.localName === 'lintje-user-menu'),
+      )
+    if (!part) return
+    this.menuOpen = false
+    for (const other of this.#tabSheets()) if (other !== part) other.open = false
+  }
+
   /** An entry with `action`: the host opens what it names. */
   act(item: ShellLink): void {
     this.openGroup = null
@@ -323,7 +352,9 @@ export class LintjeShell extends LintjeElement {
     const style = document.documentElement.style
     const tabs = 'calc(var(--h-tab-bar) + env(safe-area-inset-bottom, 0px))'
     const shown = this.tabsShown && !this.keyboardOpen
-    const covered = this.#locks > (this.menuOpen ? 1 : 0)
+    // What opens from a tab leaves the tabs in view: only another overlay covers them.
+    const fromTabs = (this.menuOpen ? 1 : 0) + this.#tabSheets().length
+    const covered = this.#locks > fromTabs
     if (shown) style.setProperty('--lintje-shell-bottom', tabs)
     else style.removeProperty('--lintje-shell-bottom')
     if (shown && !covered) style.setProperty('--lintje-toast-bottom', tabs)

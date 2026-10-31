@@ -401,8 +401,11 @@ Besluiten die voor beide gelden:
   niet vet) en dezelfde badge, op de hoek van de glyph. Elk deel van de shell staat op één plek:
   wat `tab-parts` naar de tabs stuurt (standaard alleen Menu), staat niet ook in de balk. Het
   paneel van Menu opent boven de tabs en draagt alle pagina's, ook die een tab zijn, zodat het
-  nooit leeg is; Menu is een knop en draagt nooit de markering. Een blad van de host bedekt de tabs, en zolang het toetsenbord open is,
-  wijken ze. Een ingang met `action` opent iets van de host in plaats van een pagina.
+  nooit leeg is; Menu is een knop en draagt nooit de markering. Wat uit een tab komt, laat de
+  tabs zichtbaar: het blad stopt erop, en een tik op een andere tab sluit het. Wat van elders
+  komt (de bel of de avatar bovenaan, een filterblad, een dialoog), bedekt ze. Een blad van de
+  host dat uit een tab komt (`action`), zet zijn onderkant op `--lintje-shell-bottom`. Zolang het
+  toetsenbord open is, wijken de tabs. Een ingang met `action` opent iets van de host in plaats van een pagina.
 - **De gebruiker heeft in elke indeling hetzelfde menu**: naam en rol met "Afmelden" als icoon
   ernaast, de rijen van de host en de versie. De avatar in de balk opent het naar beneden, de voet
   van het zijmenu naar boven, en op een telefoon opent het als blad van onderen, over de tabs

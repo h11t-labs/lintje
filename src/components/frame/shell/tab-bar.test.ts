@@ -275,3 +275,48 @@ describe('a toast with the tabs', () => {
     expect(toast()).toBe('')
   })
 })
+
+describe('what opens from a tab', () => {
+  const NOTICES = [{ id: 'n1', title: 'Rapport klaar', when: 'zojuist', unread: true }]
+
+  it('closes when another tab is tapped, and leaves the toast above the tabs', async () => {
+    viewport(390)
+    const shell = await mount(
+      { 'mobile-tabs': '', 'tab-parts': 'notifications menu' },
+      { notifications: NOTICES },
+    )
+    const bell = root(shell).querySelector(
+      '.lintje-tab-bar lintje-notifications',
+    ) as HTMLElement & {
+      open: boolean
+      updateComplete: Promise<unknown>
+    }
+    await bell.updateComplete
+    bell.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-tab-bar__tab')!.click()
+    await bell.updateComplete
+    expect(bell.open).toBe(true)
+    // The bell's sheet is opened from a tab: the tabs stay, so the toast stays above them.
+    await shell.updateComplete
+    expect(document.documentElement.style.getPropertyValue('--lintje-toast-bottom')).toContain(
+      '--h-tab-bar',
+    )
+
+    // Menu takes over: the bell's sheet closes.
+    tabs(shell).at(-1)!.click()
+    await shell.updateComplete
+    expect(shell.menuOpen).toBe(true)
+    expect(bell.open).toBe(false)
+
+    // The bell takes over from Menu.
+    bell.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-tab-bar__tab')!.click()
+    await shell.updateComplete
+    expect(bell.open).toBe(true)
+    expect(shell.menuOpen).toBe(false)
+
+    // A page closes it and goes.
+    shell.addEventListener('lintje-navigate', (event) => event.preventDefault())
+    tabs(shell)[1]!.click()
+    await shell.updateComplete
+    expect(bell.open).toBe(false)
+  })
+})
