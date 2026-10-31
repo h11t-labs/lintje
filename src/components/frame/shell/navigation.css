@@ -171,6 +171,8 @@
   transition: background var(--dur-hover) var(--ease-in-motion),
               color var(--dur-hover) var(--ease-in-motion);
 }
+/* An entry with `action` is a button with the row's look. */
+.lintje-nav__item--action { width: 100%; background: transparent; border-top: 0; border-right: 0; border-bottom: 0; font-family: inherit; text-align: start; cursor: pointer; }
 .lintje-nav__item:hover:not(.is-no-page):not(.is-no-access) {
   background: var(--color-nav-hover);
   color: var(--color-nav-hover-text);

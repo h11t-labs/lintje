@@ -83,6 +83,7 @@ describe('the heading outline', () => {
   })
 
   it('runs h1 → h2 → h3 below 768 px', async () => {
+    viewport(390)
     const page = await mountPage()
     expect(outline(page, '.lintje-top-bar')).toEqual([
       'H1:Dashboard Vergunningen',

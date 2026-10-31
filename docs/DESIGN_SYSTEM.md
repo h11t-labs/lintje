@@ -363,15 +363,14 @@ Besluiten die voor beide gelden:
   maken ze plaats voor één item, "Menu", waarvan het paneel het hele menu bevat. Een groep opent
   bij hover; op een aanraakscherm opent een tik een groep en sluit een tweede tik hem. Een groep
   die een tik opende, sluit niet doordat de muis de balk verlaat; een groep die onder de muis
-  openging wel. "Menu" opent en sluit met een klik en leest "Sluiten" zolang het open is, zoals in
-  de mobiele header. "Menu" draagt geen actief-markering: de pagina van de lezer zit er bijna
-  altijd in.
+  openging wel. "Menu" opent en sluit met een klik en leest "Sluiten" zolang het open is. "Menu"
+  draagt geen actief-markering: de pagina van de lezer zit er bijna altijd in.
 - **De bovenbalk van de indeling Links houdt zijn gereedschap ook op één rij.** Zoeken,
   "Weergave" en "Delen" zijn knoppen met hun woord — zoeken met zijn toets, `/` — totdat zij en
   de naam niet passen, gemeten; dan zijn het de kale iconen van de navigatiebalk.
 - **Onder 768 px draagt de header dezelfde iconen**, en zoeken, "Weergave" en "Delen" openen van
   onderen als sheets met de kop van de filtersheet — hun naam en een sluitknop — en zijn modaal
-  zoals die. Het open menu draagt dan alleen zijn sluitknop. Als het gereedschap van de header
+  zoals die. Als het gereedschap van de header
   niet past, gemeten, toont "Menu" alleen zijn glyph; zijn woord blijft zijn naam.
 - **Het lint is de eenheid.** De logobalk en het logo zijn afgeleid van `--w-ribbon`, en groeien
   dus samen mee met de tekstgrootte van de lezer. Het logo in het menu en in de mobiele header
@@ -389,13 +388,36 @@ Besluiten die voor beide gelden:
   en is te slepen; hij verschijnt zacht als de aanwijzer op het menu staat, en meteen als de focus
   in de lijst staat. Een schermlezer hoort hem niet: toetsen en het wiel scrollen de lijst zoals
   altijd.
-- **Onder 768 px is er geen rail**: een header met een Menu-knop, en het menu opent
-  schermvullend. In de indeling Boven is die header een balk onder de logobalk, met de naam. De
-  host mag de header onderaan het scherm zetten (`mobile-bar="bottom"`), de variant van de
-  huisstijl onder de duim; het menu opent er dan boven, als een sheet.
+- **Onder 768 px is er geen rail**, in beide indelingen hetzelfde: de logobalk scrolt met de
+  pagina weg, en eronder blijft een balk van de hoogte van de bovenbalk plakken. Links de naam,
+  en zodra de paginakop uit beeld is de titel van de pagina met de naam klein eronder; een
+  pagina dieper (`back`) draagt Terug ervoor. Rechts zoeken, de bel, de avatar en de knop Menu.
+  Het menu opent als blad van onderen, zoals elk blad op een telefoon: zo hoog als wat het
+  draagt, met de naam en een sluitknop bovenin en een sluier erboven. Is het langer dan het
+  scherm, dan reikt het tot bovenaan en scrolt het onder zijn vaste kop. Van kort naar lang: de
+  omgeving als band, Weergave, Delen en het `end`-slot, dan de pagina's en de groepen, onderaan
+  feedback en de versie. De balk is er altijd; onder de sluier is hij inert, de knop Menu blijft
+  Menu en de focus gaat naar de sluitknop van het blad.
+- **Tabs onderaan zijn een keuze van de host** (`mobile-tabs`): onder 768 px staan de losse
+  pagina's dan als tabs onder de duim, ten hoogste vijf, met Menu als laatste. Het zijn dezelfde
+  ingangen als de rail en de navigatiebalk, met dezelfde markering (de vulling en de lijn eronder,
+  niet vet) en dezelfde badge, op de hoek van de glyph. Elk deel van de shell staat op één plek:
+  wat `tab-parts` naar de tabs stuurt (standaard alleen Menu), staat niet ook in de balk. Het
+  paneel van Menu opent boven de tabs en draagt alle pagina's, ook die een tab zijn, zodat het
+  nooit leeg is; Menu is een knop en draagt nooit de markering. Wat uit een tab komt, laat de
+  tabs zichtbaar: het blad komt van onderen, schuift achter de tabs door en stopt erop, zo hoog
+  als zijn inhoud, met zijn naam en een sluitknop bovenin en een sluier over de pagina erboven.
+  Een tik op een andere tab sluit het. Wat van elders komt (de bel of de avatar bovenaan, een
+  filterblad, een dialoog), bedekt ze. Verder is elk blad op een telefoon hetzelfde: van onderen,
+  zo hoog als zijn inhoud en nooit hoger dan `--h-sheet`, met een strook sluier erboven, zijn naam
+  en een sluitknop bovenin, en bij sluiten zakt het weer weg. Die vorm staat op één plek
+  (`components/shared/sheet.css`); een nieuw blad gebruikt hem en tekent geen eigen. Een blad van de
+  host dat uit een tab komt (`action`), zet zijn onderkant op `--lintje-shell-bottom`. Zolang het
+  toetsenbord open is, wijken de tabs. Een ingang met `action` opent iets van de host in plaats van een pagina.
 - **De gebruiker heeft in elke indeling hetzelfde menu**: naam en rol met "Afmelden" als icoon
   ernaast, de rijen van de host en de versie. De avatar in de balk opent het naar beneden, de voet
-  van het zijmenu naar boven, en op een telefoon staat het onderaan het menu. Met de pijltjes komt
+  van het zijmenu naar boven, en op een telefoon opent het als blad van onderen, over de tabs
+  heen. Met de pijltjes komt
   "Afmelden" na de rijen. Zolang het open is, blijft de rail uitgeklapt.
 - **De shell bevat de pagina.** Zijn inhoud houdt zich aan de breedte en padding van de pagina;
   wat van rand tot rand loopt — een hero, de filterbalk, een gesprek — staat erboven.
@@ -1166,8 +1188,10 @@ gekozen.
 **Leaflet draagt de kaart, het design system tekent de data.** Projectie, verslepen, zoomen en
 de tegels van een ondergrond zijn van Leaflet; land, vlakken, punten en stromen tekent het design
 system zelf in Leaflets svg, met dezelfde klassen, toestanden en animaties als elke grafiek. Zo is
-er één kaart, met of zonder ondergrond. De projectie is Web Mercator, zoals elke webkaart, ook
-voor Nederland: op tegelformaat is het verschil met de landsprojectie niet te zien.
+er één kaart, met of zonder ondergrond. Een ondergrond kan een donkere tegenhanger hebben, een
+tweede WMS-kaart als andere laag of op een ander adres; de kaart kiest hem op de modus, in de
+browser, en wisselt bij een omslag alleen de tegels. De projectie is Web Mercator, zoals elke
+webkaart, ook voor Nederland: op tegelformaat is het verschil met de landsprojectie niet te zien.
 
 **Een kaart is met de muis te verslepen en zoomt rond de aanwijzer: met een dubbelklik, en op
 het wiel alleen met Ctrl of ⌘ ingedrukt.** Zonder die toets scrolt het wiel de pagina door en
@@ -1195,7 +1219,7 @@ een balk, en halen hun aanwijsdoel via het klikgebied in de richting waar ze rui
 Vier breedtes zijn ontworpen en getest: desktop (vanaf 1440), 1024, 768 en 390 px.
 
 **Onder 768 px wisselt een onderdeel van vorm; het stapelt niet alleen.** Dat geldt voor de
-navigatie (header en schermvullend menu), de filters (een sheet), de KPI-rij, de tabel
+navigatie (een balk bovenaan, het menu als blad van onderen), de filters (een blad), de KPI-rij, de tabel
 (identiteit en één meetwaarde) en de heatmap. Tussen de breedtes lopen bedieningselementen door
 naar een volgende regel; ze overlappen nooit.
 
@@ -1316,7 +1340,10 @@ kleinste correctie, en leg die hier vast.
 - **Tekst die met een beletselteken is afgekapt, staat nooit alleen in een tooltip**: waar geen
   aanwijzer hem toont — onder 768 px, zonder hover, onder de focus van het toetsenbord — loopt hij
   door op een volgende regel. Tekst die geen focus kan krijgen en geen tooltip heeft, kapt nooit
-  af: hij loopt altijd door.
+  af: hij loopt altijd door. De uitzondering is het label van een tab onderaan (`mobile-tabs`):
+  één regel van 12 px, afgekapt, want een tweede regel past niet in de balk; het hele woord is de
+  naam van de tab, en de ontwikkelbuild waarschuwt, zodat een host een label op één kort woord
+  houdt.
 - **De tekstafstand en de lettergrootte van de lezer krijgen ruimte** (1.4.12, 1.4.4): een rij
   waarin tekst afbreekt, wordt zo hoog als die tekst, met haar vinkje, icoon of greep op de eerste
   regel, en wat een element zelf meet — de assen en labels van een grafiek, of een rij stappen
