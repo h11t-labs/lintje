@@ -2362,7 +2362,7 @@ async function viewing(data: Record<string, unknown>): Promise<ShellElement> {
   })
   // On a phone "Weergave" stands in the menu panel: open it first, as a reader does.
   if (window.innerWidth < 768) {
-    const phoneShell = element as HTMLElement & {
+    const phoneShell = element as unknown as HTMLElement & {
       menuOpen: boolean
       updateComplete: Promise<unknown>
     }
