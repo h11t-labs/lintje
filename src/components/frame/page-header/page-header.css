@@ -9,9 +9,6 @@
   top: calc(var(--h-topbar) - var(--lintje-page-header-lift, 0px));
   z-index: 19;
 }
-@media screen and (max-width: 767px) {
-  :host([has-tabs]) { top: calc(var(--h-mobile-header) - var(--lintje-page-header-lift, 0px)); }
-}
 
 /* --- */
 
