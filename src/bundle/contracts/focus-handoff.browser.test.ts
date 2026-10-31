@@ -2360,6 +2360,15 @@ async function viewing(data: Record<string, unknown>): Promise<ShellElement> {
       ],
     }
   })
+  // On a phone "Weergave" stands in the menu panel: open it first, as a reader does.
+  if (window.innerWidth < 768) {
+    const phoneShell = element as HTMLElement & {
+      menuOpen: boolean
+      updateComplete: Promise<unknown>
+    }
+    phoneShell.menuOpen = true
+    await phoneShell.updateComplete
+  }
   const tool = (): HTMLElement | null => {
     const found = shown(element, '.lintje-view__button')
     return button(found) ?? found
