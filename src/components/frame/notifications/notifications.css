@@ -101,48 +101,13 @@
   text-align: center;
 }
 
-/* Phone: a sheet from below as every sheet, as high as what it holds, with a veil above it. It
-   takes focus only when the trap pulls back stray focus, and draws no ring. */
-.lintje-notifications__sheet {
-  position: fixed;
-  z-index: 85;
-  inset: auto 0 0 0;
-  max-height: var(--h-sheet);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  overflow-y: auto;
-  background: var(--color-bg-surface);
-  animation: lintje-sheet-in var(--dur-sheet) var(--ease-in-motion);
-}
-.lintje-notifications__sheet:focus { outline: none; }
-/* What opens from a tab leaves the tabs in view: the sheet and its veil stop on them. */
-:host([variant='tab']) .lintje-notifications__sheet { bottom: var(--lintje-shell-bottom, 0px); padding-bottom: 0; }
-:host([variant='tab']) .lintje-notifications__scrim { bottom: var(--lintje-shell-bottom, 0px); }
+/* Phone: a sheet from below (`sheet.css`); from a tab it passes under the tabs. */
+.lintje-notifications__scrim { z-index: 84; }
+.lintje-notifications__sheet { z-index: 85; }
 .lintje-notifications__panel.is-sheet { width: 100%; max-height: none; }
-.lintje-notifications__close { margin-right: calc(var(--space-2) * -1); 
-  transition: color var(--dur-hover) var(--ease-in-motion);
-}
-.lintje-notifications__close:hover { color: var(--color-text-primary); }
-.lintje-notifications__panel.is-sheet .lintje-notifications__head { padding-top: 0; padding-bottom: 0; min-height: var(--h-mobile-header); }
 
 /* Forced colours: the unread surface is dropped, so the dot keeps a system-colour fill. */
 @media (forced-colors: active) {
   .lintje-notifications__dot { forced-color-adjust: none; background: CanvasText; }
   .lintje-notifications__bell.is-open { outline: 1px solid Highlight; outline-offset: -1px; }
-}
-/* A tap on the veil closes. */
-.lintje-notifications__scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 84;
-  background: var(--color-overlay-page);
-  animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
-}
-/* Closed, it goes down again (from a tab behind the tabs), and its veil fades. */
-.lintje-notifications__sheet.is-leaving {
-  animation: lintje-sheet-out var(--dur-sheet) var(--ease-out-motion) forwards;
-  pointer-events: none;
-}
-.lintje-notifications__scrim.is-leaving {
-  animation: lintje-fade-out var(--dur-scrim) var(--ease-out-motion) forwards;
-  pointer-events: none;
 }

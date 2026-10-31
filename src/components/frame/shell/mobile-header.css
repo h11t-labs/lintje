@@ -85,51 +85,19 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
-/* On a phone every sheet comes from below: the menu's panel too, from the bar at the top or from
-   a tab. It is as high as what it holds, at most a sheet's height, so little stands low, in reach
-   of the thumb; it stops on the tabs. A veil lies over the page above it; a tap on it closes. */
+/* On a phone the menu's panel is a sheet (`sheet.css`) on the menu's own fill, from the bar at the
+   top or from a tab. */
 .lintje-mobile-menu {
-  position: fixed;
-  left: 0; right: 0; bottom: var(--lintje-shell-bottom, 0px);
-  max-height: var(--h-sheet);
   z-index: 24;
-  background: var(--color-nav-bg);
-  color: var(--color-nav-text);
+  --lintje-sheet-bg: var(--color-nav-bg);
+  --lintje-sheet-text: var(--color-nav-text);
+  --lintje-sheet-line: var(--color-nav-line);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  animation: lintje-sheet-in var(--dur-sheet) var(--ease-in-motion);
 }
-/* Without tabs the sheet reaches the screen's edge: the phone's lower inset stays under it. */
-.lintje-shell:not(.has-tabs) .lintje-mobile-menu { padding-bottom: env(safe-area-inset-bottom, 0px); }
-.lintje-mobile-menu__scrim {
-  position: fixed;
-  inset: 0 0 var(--lintje-shell-bottom) 0;
-  z-index: 23;
-  background: var(--color-overlay-page);
-  animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
-}
-/* The head of every sheet: its name and a close button, staying while the list scrolls. */
-.lintje-mobile-menu__head {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  display: flex; align-items: center; gap: var(--space-2);
-  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5);
-  background: var(--color-nav-bg);
-  border-bottom: 1px solid var(--color-nav-line);
-}
-.lintje-mobile-menu__title { flex: 1; margin: 0; font: var(--text-h2); color: var(--color-nav-text); }
+.lintje-mobile-menu__scrim { z-index: 23; }
 /* On the menu's own fill: its ink, not the page's muted grey. */
 .lintje-mobile-menu__head .lintje-mobile-menu__close { color: var(--color-nav-text); }
-.lintje-mobile-menu.is-leaving {
-  animation: lintje-sheet-out var(--dur-sheet) var(--ease-out-motion) forwards;
-  pointer-events: none;
-}
-.lintje-mobile-menu__scrim.is-leaving {
-  animation: lintje-fade-out var(--dur-scrim) var(--ease-out-motion) forwards;
-  pointer-events: none;
-}
 .lintje-mobile-menu__tools { padding-top: var(--space-2); }
 .lintje-mobile-menu__list { padding-bottom: var(--space-4); }
 .lintje-mobile-menu__about { padding-bottom: var(--space-4); }

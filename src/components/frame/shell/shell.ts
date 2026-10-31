@@ -61,6 +61,8 @@ import navigationCss from './navigation.css?inline'
 import mobileHeaderCss from './mobile-header.css?inline'
 import topBarCss from './top-bar.css?inline'
 import tabCss from '../shared/tab.css?inline'
+import sheetCss from '../../shared/sheet.css?inline'
+import { SheetLeave } from '../../shared/sheet'
 import tabBarCss from './tab-bar.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import keyCss from '../../shared/key.css?inline'
@@ -110,6 +112,7 @@ export class LintjeShell extends LintjeElement {
     shadowCss(topBarCss),
     shadowCss(tabCss),
     shadowCss(tabBarCss),
+    shadowCss(sheetCss),
   ]
 
   static override properties: PropertyDeclarations = {
@@ -185,6 +188,17 @@ export class LintjeShell extends LintjeElement {
 
   readonly wide = new MediaController(this, WIDE)
   readonly mobile = new MediaController(this, MOBILE)
+  /** "Weergave" and "Delen" as sheets go down before they leave. */
+  readonly viewLeave = new SheetLeave(
+    this,
+    () => this.viewOpen,
+    () => this.mobile.matches,
+  )
+  readonly shareLeave = new SheetLeave(
+    this,
+    () => this.shareOpen,
+    () => this.mobile.matches,
+  )
   readonly submenu = new SubmenuController(this)
   readonly navScrollbar = new NavScrollbar(this)
   readonly store = new FrameStateController(this)

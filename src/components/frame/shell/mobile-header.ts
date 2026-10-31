@@ -7,6 +7,7 @@ import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
 import { hasPage, isAction, unavailableWord, type NavGroup } from './header'
 import type { ShellLink } from '../../../types'
+import { renderSheetHead } from '../../shared/sheet'
 import type { LintjeShell } from './shell'
 import { feedbackLabel, noAccessMark, versionText } from './navigation'
 import { renderShare, renderView } from './top-bar'
@@ -173,7 +174,12 @@ export function renderMobileHeader(
     ${
       sheet && (open || shell.menuLeaving)
         ? html`<div
-            class=${classMap({ 'lintje-mobile-menu__scrim': true, 'is-leaving': !open })}
+            class=${classMap({
+              'lintje-sheet__scrim': true,
+              'lintje-sheet__scrim--tab': shell.tabsShown,
+              'lintje-mobile-menu__scrim': true,
+              'is-leaving': !open,
+            })}
             @click=${close}
           ></div>`
         : nothing
@@ -181,7 +187,12 @@ export function renderMobileHeader(
     ${
       open || shell.menuLeaving
         ? html`<div
-          class=${classMap({ 'lintje-mobile-menu': true, 'is-leaving': shell.menuLeaving })}
+          class=${classMap({
+            'lintje-sheet': sheet,
+            'lintje-sheet--tab': sheet && shell.tabsShown,
+            'lintje-mobile-menu': true,
+            'is-leaving': shell.menuLeaving,
+          })}
           id="lintje-mobile-menu-panel"
           ?inert=${shell.menuLeaving}
           @animationend=${(event: AnimationEvent) => {
@@ -190,17 +201,12 @@ export function renderMobileHeader(
         >
           ${
             sheet
-              ? html`<div class="lintje-mobile-menu__head">
-                <h2 class="lintje-mobile-menu__title">Menu</h2>
-                <button
-                  type="button"
-                  class="lintje-dialog-close lintje-mobile-menu__close"
-                  aria-label="Menu sluiten"
-                  @click=${close}
-                >
-                  ${renderIcon('functioneel-kruis', { size: 16 })}
-                </button>
-              </div>`
+              ? renderSheetHead({
+                  title: 'Menu',
+                  className: 'lintje-mobile-menu__head',
+                  closeClass: 'lintje-mobile-menu__close',
+                  onClose: close,
+                })
               : nothing
           }
           ${
@@ -240,12 +246,12 @@ export function renderMobileHeader(
     ${shell.tabsShown ? renderTabBar(shell, plan) : nothing}
     <!-- "Weergave" and "Delen" open from the panel as sheets over everything, the tabs too. -->
     ${
-      shell.viewOpen && data?.view
+      (shell.viewOpen || shell.viewLeave.leaving) && data?.view
         ? html`<div class="lintje-view">${renderView(shell, data.view)}</div>`
         : nothing
     }
     ${
-      shell.shareOpen && data?.share
+      (shell.shareOpen || shell.shareLeave.leaving) && data?.share
         ? html`<div class="lintje-share">${renderShare(shell)}</div>`
         : nothing
     }

@@ -5,30 +5,15 @@
 
 /* --- */
 
-.lintje-filter-sheet__scrim {
-  position: fixed; inset: 0; z-index: 60;
-  background: var(--color-overlay-page);
-  animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
-}
+/* A sheet (`sheet.css`) on the filters' fill, whose body scrolls between its head and its foot. */
+.lintje-filter-sheet__scrim { z-index: 60; }
 .lintje-filter-sheet {
-  position: fixed;
-  inset: auto 0 0 0;
   z-index: 61;
-  max-height: var(--h-sheet);
-  display: flex;
-  flex-direction: column;
-  background: var(--color-bg-filter);
-  border-top: 1px solid var(--color-border-filter);
-  animation: lintje-sheet-in var(--dur-sheet) var(--ease-in-motion);
+  --lintje-sheet-bg: var(--color-bg-filter);
+  --lintje-sheet-line: var(--color-border-filter);
 }
-.lintje-filter-sheet:focus { outline: none; }
-
-.lintje-filter-sheet__header {
-  display: flex; align-items: center; gap: var(--space-2);
-  padding: var(--space-4);
-  border-bottom: 1px solid var(--color-border-filter);
-}
-.lintje-filter-sheet__title { font: var(--text-h2); }
+.lintje-sheet.lintje-filter-sheet { display: flex; flex-direction: column; overflow: hidden; }
+.lintje-filter-sheet__header .lintje-sheet__title { flex: none; }
 .lintje-filter-sheet__hint { font: var(--text-small); color: var(--color-text-muted); flex: 1; }
 
 .lintje-filter-sheet__body {

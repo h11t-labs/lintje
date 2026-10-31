@@ -38,6 +38,8 @@ import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import menuCss from '../../shared/menu.css?inline'
 import menuButtonCss from '../../actions/menu-button/menu-button.css?inline'
 import userMenuCss from './user-menu.css?inline'
+import sheetCss from '../../shared/sheet.css?inline'
+import { SheetLeave, renderSheetHead } from '../../shared/sheet'
 import { isPlainClick } from '../../../core/links'
 import { standsIn } from '../../../core/focus'
 import { titleWhenCut } from '../../shared/cut-text'
@@ -53,6 +55,7 @@ export class LintjeUserMenu extends LintjeElement {
     shadowCss(userMenuCss),
     shadowCss(tabCss),
     shadowCss(dialogCloseCss),
+    shadowCss(sheetCss),
   ]
 
   static override properties: PropertyDeclarations = {
@@ -65,7 +68,6 @@ export class LintjeUserMenu extends LintjeElement {
     variant: { type: String, reflect: true },
     folded: { type: Boolean, reflect: true },
     open: { type: Boolean, reflect: true },
-    leaving: { state: true },
   }
 
   declare user?: Person | null
@@ -238,20 +240,11 @@ export class LintjeUserMenu extends LintjeElement {
     this.emit('lintje-logout')
   }
 
-  /** The sheet is going down: still drawn, no longer open. */
-  leaving: boolean = false
-  #leaveTimer: ReturnType<typeof setTimeout> | null = null
-
-  protected override willUpdate(changed: PropertyValues<this>): void {
-    super.willUpdate(changed)
-    // A sheet goes down before it leaves; the timer covers a missing `animationend`.
-    if (changed.has('open')) {
-      if (this.#leaveTimer) clearTimeout(this.#leaveTimer)
-      this.#leaveTimer = null
-      this.leaving = !this.open && changed.get('open') === true && this.sheet
-      if (this.leaving) this.#leaveTimer = setTimeout(() => (this.leaving = false), 600)
-    }
-  }
+  readonly #leave = new SheetLeave(
+    this,
+    () => this.open,
+    () => this.sheet,
+  )
 
   /** Undoes the page's lock while the sheet is open, as every sheet holds the page still. */
   #released: (() => void) | null = null
@@ -492,32 +485,35 @@ export class LintjeUserMenu extends LintjeElement {
 
   /** Below 768 px: a sheet from below over the page and the tabs, with a veil that closes it. */
   private renderSheet(): TemplateResult | typeof nothing {
-    if (!this.open && !this.leaving) return nothing
-    const leaving = this.leaving
+    const leaving = this.#leave.leaving
+    if (!this.open && !leaving) return nothing
+    const tab = this.variant === 'tab'
     return html`<div
-        class=${classMap({ 'lintje-user-menu__scrim': true, 'is-leaving': leaving })}
+        class=${classMap({
+          'lintje-sheet__scrim': true,
+          'lintje-sheet__scrim--tab': tab,
+          'lintje-user-menu__scrim': true,
+          'is-leaving': leaving,
+        })}
         @click=${() => this.hide(false)}
       ></div>
       <div
-        class=${classMap({ 'lintje-user-menu__sheet': true, 'is-leaving': leaving })}
+        class=${classMap({
+          'lintje-sheet': true,
+          'lintje-sheet--tab': tab,
+          'lintje-user-menu__sheet': true,
+          'is-leaving': leaving,
+        })}
         id=${this.#menuId}
         ?inert=${leaving}
-        @animationend=${(event: AnimationEvent) => {
-          if (event.target === event.currentTarget && this.leaving) this.leaving = false
-        }}
+        @animationend=${this.#leave.end}
       >
-        <!-- The head of every sheet: its name and a close button, as "Weergave" and "Delen". -->
-        <div class="lintje-user-menu__sheet-head">
-          <h2 class="lintje-user-menu__sheet-title">Jij</h2>
-          <button
-            type="button"
-            class="lintje-dialog-close lintje-user-menu__close"
-            aria-label="Jouw menu sluiten"
-            @click=${() => this.hide(true)}
-          >
-            ${renderIcon('functioneel-kruis', { size: 16 })}
-          </button>
-        </div>
+        ${renderSheetHead({
+          title: 'Jij',
+          closeLabel: 'Jouw menu sluiten',
+          closeClass: 'lintje-user-menu__close',
+          onClose: () => this.hide(true),
+        })}
         ${this.renderContent()}
       </div>`
   }

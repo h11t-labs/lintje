@@ -190,7 +190,7 @@ describe('the closed mobile header', () => {
       '.lintje-mobile-chrome > .lintje-share .lintje-share__popover',
     )!
     expect(sheet.getAttribute('role')).toBe('dialog')
-    expect(sheet.querySelector('.lintje-share__title')!.textContent).toBe('Delen')
+    expect(sheet.querySelector('.lintje-sheet__title')!.textContent).toBe('Delen')
     sheet.querySelector<HTMLButtonElement>('.lintje-share__close')!.click()
     await shell.updateComplete
     expect(shell.shareOpen).toBe(false)
@@ -198,7 +198,7 @@ describe('the closed mobile header', () => {
     rows[0]!.click()
     await shell.updateComplete
     expect(
-      root(shell).querySelector('.lintje-view__popover .lintje-share__title')!.textContent,
+      root(shell).querySelector('.lintje-view__popover .lintje-sheet__title')!.textContent,
     ).toBe('Weergave')
   })
 

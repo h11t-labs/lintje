@@ -126,25 +126,19 @@
 .lintje-app-search__close { transition: color var(--dur-hover) var(--ease-in-motion); }
 .lintje-app-search__close:hover { color: var(--color-text-primary); }
 
-/* Phone: a sheet from below, as "Weergave", "Delen" and the filters open, with their head. Its
-   height stays as the results change, and the field stands high, above the keyboard. */
-.lintje-app-search__header {
-  display: flex; align-items: center; gap: var(--space-2);
-  flex: none;
-  padding: var(--space-4);
-  border-bottom: 1px solid var(--color-border-default);
-}
-.lintje-app-search__title { flex: 1; margin: 0; font: var(--text-h2); }
+/* Phone: a sheet from below (`sheet.css`). Its height stays as the results change, so the field
+   stands high, above the keyboard. */
+.lintje-app-search__header { flex: none; }
+.lintje-app-search__veil { z-index: 80; }
 
 @media screen and (max-width: 767px) {
-  .lintje-app-search__scrim { align-items: flex-end; padding: 0; }
-  .lintje-app-search {
-    width: 100%;
+  .lintje-sheet.lintje-app-search {
+    z-index: 81;
+    width: auto;
     height: var(--h-sheet);
-    border: 0;
-    border-top: 1px solid var(--color-border-strong);
+    overflow: hidden;
+    border-right: 0; border-bottom: 0; border-left: 0;
     box-shadow: none;
-    animation: lintje-sheet-in var(--dur-sheet) var(--ease-in-motion);
   }
   .lintje-app-search__input { height: var(--h-touch); }
   .lintje-app-search__option { min-height: var(--h-touch); }

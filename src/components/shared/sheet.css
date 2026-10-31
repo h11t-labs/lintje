@@ -1,0 +1,51 @@
+/* A sheet on a phone, one look for all: from below, as high as what it holds and at most
+   `--h-sheet`, with a veil above it, its name and a close button on top, and it goes down again
+   when closed. From a tab the sheet and its veil stop on the tabs. Each element sets its own
+   `z-index`; `--lintje-sheet-bg`, `-text` and `-line` give the menu its own fill. */
+.lintje-sheet__scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay-page);
+  animation: lintje-fade-in var(--dur-scrim) var(--ease-in-motion);
+}
+.lintje-sheet {
+  position: fixed;
+  inset: auto 0 0 0;
+  box-sizing: border-box;
+  max-height: var(--h-sheet);
+  overflow-y: auto;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--lintje-sheet-bg, var(--color-bg-surface));
+  color: var(--lintje-sheet-text, var(--color-text-primary));
+  border-top: 1px solid var(--lintje-sheet-line, var(--color-border-popover));
+  animation: lintje-sheet-in var(--dur-sheet) var(--ease-in-motion);
+}
+.lintje-sheet:focus { outline: none; }
+.lintje-sheet--tab,
+.lintje-sheet__scrim--tab { bottom: var(--lintje-shell-bottom, 0px); }
+.lintje-sheet--tab { padding-bottom: 0; }
+.lintje-sheet.is-leaving {
+  animation: lintje-sheet-out var(--dur-sheet) var(--ease-out-motion) forwards;
+  pointer-events: none;
+}
+.lintje-sheet__scrim.is-leaving {
+  animation: lintje-fade-out var(--dur-scrim) var(--ease-out-motion) forwards;
+  pointer-events: none;
+}
+/* The head stays while the sheet scrolls. */
+.lintje-sheet__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--lintje-sheet-bg, var(--color-bg-surface));
+  border-bottom: 1px solid var(--lintje-sheet-line, var(--color-border-popover));
+}
+.lintje-sheet__title { flex: 1; min-width: 0; margin: 0; font: var(--text-h2); color: inherit; }
+.lintje-sheet__close:hover { color: var(--lintje-sheet-text, var(--color-text-primary)); }
+
+@media print { .lintje-sheet, .lintje-sheet__scrim { display: none; } }
+@media (forced-colors: active) {
+  .lintje-sheet { border-top-color: CanvasText; }
+}

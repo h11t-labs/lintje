@@ -29,6 +29,8 @@ import { LiveMessage } from '../../shared/live-message'
 import tabCss from '../shared/tab.css?inline'
 import notificationsCss from './notifications.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
+import sheetCss from '../../shared/sheet.css?inline'
+import { SheetLeave, renderSheetHead } from '../../shared/sheet'
 import { isPlainClick } from '../../../core/links'
 import { uniqueId } from '../../../core/id'
 
@@ -63,6 +65,7 @@ export class LintjeNotifications extends LintjeElement {
     shadowCss(notificationsCss),
     badgeStyles,
     shadowCss(tabCss),
+    shadowCss(sheetCss),
   ]
 
   static override properties: PropertyDeclarations = {
@@ -70,7 +73,6 @@ export class LintjeNotifications extends LintjeElement {
     open: { type: Boolean, reflect: true },
     max: { type: Number },
     variant: { type: String, reflect: true },
-    leaving: { state: true },
   }
 
   items: NotificationItem[] = []
@@ -82,9 +84,6 @@ export class LintjeNotifications extends LintjeElement {
   open: boolean = false
   /** `tab`: the bell is a tab of the shell's tab bar below 768 px, with the word Meldingen. */
   declare variant?: 'tab'
-  /** The sheet from a tab is going down: still drawn, no longer open. */
-  leaving: boolean = false
-  #leaveTimer: ReturnType<typeof setTimeout> | null = null
 
   #shown = 0
   #replaced = false
@@ -92,6 +91,11 @@ export class LintjeNotifications extends LintjeElement {
   #refocus = false
 
   readonly #mobile = new MediaController(this, MOBILE)
+  readonly #leave = new SheetLeave(
+    this,
+    () => this.open,
+    () => this.#mobile.matches,
+  )
   #wasMobile: boolean | null = null
   readonly #panelId = uniqueId('lintje-notifications')
 
@@ -141,14 +145,6 @@ export class LintjeNotifications extends LintjeElement {
       this.hide(true)
     }
     this.#wasMobile = this.#mobile.matches
-    // The sheet goes down before it leaves; the timer covers a missing `animationend`.
-    if (changed.has('open')) {
-      if (this.#leaveTimer) clearTimeout(this.#leaveTimer)
-      this.#leaveTimer = null
-      const closed = !this.open && changed.get('open') === true
-      this.leaving = closed && this.#mobile.matches
-      if (this.leaving) this.#leaveTimer = setTimeout(() => (this.leaving = false), 600)
-    }
     if (!changed.has('items')) return
     const count = this.unread
     const before = this.#shown
@@ -225,34 +221,32 @@ export class LintjeNotifications extends LintjeElement {
     </li>`
   }
 
+  private renderRead(): TemplateResult | typeof nothing {
+    if (this.unread <= 0) return nothing
+    return html`<button
+      type="button"
+      class="lintje-notifications__read"
+      @click=${() => this.emit('lintje-notifications-read')}
+    >
+      Alles gelezen
+    </button>`
+  }
+
   private renderPanel(mobile: boolean): TemplateResult {
     return html`<div class=${classMap({ 'lintje-notifications__panel': true, 'is-sheet': mobile })}>
-      <div class="lintje-notifications__head">
-        <h2 class="lintje-notifications__heading">Meldingen</h2>
-        ${
-          this.unread > 0
-            ? html`<button
-              type="button"
-              class="lintje-notifications__read"
-              @click=${() => this.emit('lintje-notifications-read')}
-            >
-              Alles gelezen
-            </button>`
-            : nothing
-        }
-        ${
-          mobile
-            ? html`<button
-              type="button"
-              class="lintje-dialog-close lintje-notifications__close"
-              aria-label="Meldingen sluiten"
-              @click=${() => this.hide(true)}
-            >
-              ${renderIcon('functioneel-kruis', { size: 16 })}
-            </button>`
-            : nothing
-        }
-      </div>
+      ${
+        mobile
+          ? renderSheetHead({
+              title: 'Meldingen',
+              closeClass: 'lintje-notifications__close',
+              extra: this.renderRead(),
+              onClose: () => this.hide(true),
+            })
+          : html`<div class="lintje-notifications__head">
+              <h2 class="lintje-notifications__heading">Meldingen</h2>
+              ${this.renderRead()}
+            </div>`
+      }
       ${
         this.items.length
           ? html`<ul class="lintje-notifications__list">
@@ -302,6 +296,7 @@ export class LintjeNotifications extends LintjeElement {
     const count = this.unread
     const mobile = this.#mobile.matches
     const tab = this.variant === 'tab'
+    const leaving = this.#leave.leaving
     // The popover stands right after the bell: its previous sibling is what it is placed by.
     return html`<button
         type="button"
@@ -321,19 +316,27 @@ export class LintjeNotifications extends LintjeElement {
       </button>
       ${
         mobile
-          ? this.open || this.leaving
+          ? this.open || leaving
             ? html`<div
-                class=${classMap({ 'lintje-notifications__scrim': true, 'is-leaving': this.leaving })}
+                class=${classMap({
+                  'lintje-sheet__scrim': true,
+                  'lintje-sheet__scrim--tab': tab,
+                  'lintje-notifications__scrim': true,
+                  'is-leaving': leaving,
+                })}
                 @click=${() => this.hide(true)}
               ></div><div
               id=${this.#panelId}
-              class=${classMap({ 'lintje-notifications__sheet': true, 'is-leaving': this.leaving })}
-              ?inert=${this.leaving}
-              @animationend=${(event: AnimationEvent) => {
-                if (event.target === event.currentTarget && this.leaving) this.leaving = false
-              }}
-              role=${this.leaving ? nothing : 'dialog'}
-              aria-modal=${this.leaving ? nothing : 'true'}
+              class=${classMap({
+                'lintje-sheet': true,
+                'lintje-sheet--tab': tab,
+                'lintje-notifications__sheet': true,
+                'is-leaving': leaving,
+              })}
+              ?inert=${leaving}
+              @animationend=${this.#leave.end}
+              role=${leaving ? nothing : 'dialog'}
+              aria-modal=${leaving ? nothing : 'true'}
               aria-label="Meldingen"
               tabindex="-1"
             >
