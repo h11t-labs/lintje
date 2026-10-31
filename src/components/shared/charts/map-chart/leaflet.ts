@@ -8,6 +8,7 @@
 import * as L from 'leaflet'
 import { nothing as nothingTemplate, render } from 'lit'
 import type { ChartController } from '../shared/controller'
+import type { Mode } from '../../../../core/element'
 import { prefersReducedMotion } from '../../../../core/motion'
 import { ownsEscape, standsIn } from '../../../../core/focus'
 import { clearance, hidden, keyboardFocus, overlayBoxes, REVEAL_MARGIN, type Box } from './reveal'
@@ -141,6 +142,8 @@ export interface LeafletSyncOptions {
   clear: () => void
   /** Below 768 px, where a one-finger drag belongs to the page (rule 9). */
   mobile: boolean
+  /** The element's mode: in dark the map draws `basemapDark` when there is one. */
+  mode: Mode
 }
 
 /** The part of Leaflet 1.9's private zoom animation that `destroy()` ends. */
@@ -226,6 +229,7 @@ export class LeafletSurface {
     select: () => {},
     clear: () => {},
     mobile: false,
+    mode: 'light',
   }
   #data: MapSpec | null = null
 
@@ -388,7 +392,8 @@ export class LeafletSurface {
     if (drawing) document.addEventListener('keydown', this.#onEscape, true)
     else document.removeEventListener('keydown', this.#onEscape, true)
     this.#ensureGeo(map, data.geo ?? 'world')
-    if (data.basemap) this.#ensureTiles(map, data.basemap)
+    const basemap = this.#basemapFor(data)
+    if (basemap) this.#ensureTiles(map, basemap)
     else this.#dropTiles(map)
     this.#draw(map, data)
   }
@@ -573,7 +578,14 @@ export class LeafletSurface {
     return [point.x, point.y]
   }
 
+  /** The basemap the mode asks for: in dark `basemapDark`, when there is one beside `basemap`. */
+  #basemapFor(data: MapSpec): WmsBasemap | undefined {
+    if (!data.basemap) return undefined
+    return this.#options.mode === 'dark' ? (data.basemapDark ?? data.basemap) : data.basemap
+  }
+
   #ensureTiles(map: L.Map, basemap: WmsBasemap): void {
+    // The key is the whole basemap, so a switch of mode without a dark one keeps the same tiles.
     const key = [
       basemap.url,
       basemap.layers,
@@ -628,7 +640,7 @@ export class LeafletSurface {
           controller: this.#controller,
           select: this.#options.select,
           project: this.#project,
-          tiled: Boolean(data.basemap),
+          tiled: Boolean(this.#basemapFor(data)),
           hidden: new Set(this.#options.hidden),
           hiddenLayers: new Set(this.#options.hiddenLayers),
           chosen: new Set(this.#options.chosen),

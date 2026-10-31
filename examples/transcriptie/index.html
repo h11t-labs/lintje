@@ -189,7 +189,8 @@
     </style>
   </head>
   <body>
-    <lintje-shell id="shell">
+    <!-- On a phone the pages are tabs at the bottom, with the bell and Menu. -->
+    <lintje-shell id="shell" mobile-tabs tab-parts="notifications menu">
       <lintje-page-header slot="header" id="page-header">
         <script type="application/json">{ "title": "Opnames" }</script>
         <lintje-breadcrumbs slot="breadcrumbs" id="crumbs" hidden></lintje-breadcrumbs>
