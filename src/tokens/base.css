@@ -72,6 +72,11 @@ input, select, textarea { font: inherit; color: inherit; }
   from { transform: translateY(100%); }
   to   { transform: none; }
 }
+/* A sheet from a tab goes down again, behind the tabs. */
+@keyframes lintje-sheet-out {
+  from { transform: none; }
+  to   { transform: translateY(100%); }
+}
 @keyframes lintje-menu-in {
   from { transform: translateY(-100%); }
   to   { transform: none; }
@@ -81,6 +86,7 @@ input, select, textarea { font: inherit; color: inherit; }
   to   { transform: translateY(-100%); }
 }
 @keyframes lintje-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lintje-fade-out { from { opacity: 1; } to { opacity: 0; } }
 /* A point, on a map or in a scatter plot, grows from its middle. */
 @keyframes lintje-point-grow { from { transform: scale(0); } }
 @keyframes lintje-drop-in { from { transform: translateY(-10px); } to { transform: none; } }
