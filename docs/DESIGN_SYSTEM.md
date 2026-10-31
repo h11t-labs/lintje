@@ -393,7 +393,8 @@ Besluiten die voor beide gelden:
   pagina weg, en eronder blijft een balk van de hoogte van de bovenbalk plakken. Links de naam,
   en zodra de paginakop uit beeld is de titel van de pagina met de naam klein eronder; een
   pagina dieper (`back`) draagt Terug ervoor. Rechts zoeken, de bel, de avatar en de knop Menu.
-  Het menu opent schermvullend, van kort naar lang: de omgeving als band, Weergave, Delen en het
+  Het menu opent als blad van onderen, zoals elk blad op een telefoon: zo hoog als wat het
+  draagt, met de naam en een sluitknop bovenin en een sluier erboven, van kort naar lang: de omgeving als band, Weergave, Delen en het
   `end`-slot, dan de pagina's en de groepen, onderaan feedback en de versie. De balk is er altijd.
 - **Tabs onderaan zijn een keuze van de host** (`mobile-tabs`): onder 768 px staan de losse
   pagina's dan als tabs onder de duim, ten hoogste vijf, met Menu als laatste. Het zijn dezelfde

@@ -273,7 +273,7 @@ describe('the mobile menu panel', () => {
   const blocks = (shell: LintjeShell): string[] =>
     Array.from(panel(shell)?.children ?? []).map(
       (child) =>
-        ['environment', 'tools', 'list', 'about'].find((name) =>
+        ['head', 'environment', 'tools', 'list', 'about'].find((name) =>
           child.classList.contains(`lintje-mobile-menu__${name}`),
         ) ?? child.className,
     )
@@ -281,7 +281,7 @@ describe('the mobile menu panel', () => {
   it('runs short to long: the band, Weergave and Delen, the pages, then feedback', async () => {
     const shell = await mount(META)
     await open(shell)
-    expect(blocks(shell)).toEqual(['environment', 'tools', 'list', 'about'])
+    expect(blocks(shell)).toEqual(['head', 'environment', 'tools', 'list', 'about'])
     const band = root(shell).querySelector('.lintje-mobile-menu__environment')
     expect(band?.textContent?.trim()).toBe('ONTWIKKELING')
     const row = root(shell).querySelector('.lintje-mobile-menu__feedback') as HTMLAnchorElement
@@ -298,7 +298,7 @@ describe('the mobile menu panel', () => {
   it('puts the version under feedback without a user', async () => {
     const shell = await mount({ ...META, user: undefined })
     await open(shell)
-    expect(blocks(shell)).toEqual(['environment', 'tools', 'list', 'about'])
+    expect(blocks(shell)).toEqual(['head', 'environment', 'tools', 'list', 'about'])
     expect(
       panel(shell)!.querySelector('.lintje-mobile-menu__about .lintje-mobile-menu__version')
         ?.textContent,
@@ -315,13 +315,13 @@ describe('the mobile menu panel', () => {
   it('draws no foot with a user and without a contact', async () => {
     const shell = await mount({ ...META, feedback: undefined })
     await open(shell)
-    expect(blocks(shell)).toEqual(['environment', 'tools', 'list'])
+    expect(blocks(shell)).toEqual(['head', 'environment', 'tools', 'list'])
   })
 
   it('leaves the band out when there is no environment', async () => {
     const shell = await mount({ ...META, environment: undefined })
     await open(shell)
-    expect(blocks(shell)).toEqual(['tools', 'list', 'about'])
+    expect(blocks(shell)).toEqual(['head', 'tools', 'list', 'about'])
   })
 })
 

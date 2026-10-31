@@ -131,8 +131,8 @@ export function renderMobileHeader(
   const data = shell.data
   const open = shell.menuOpen
   const tabbed = new Set(plan.parts)
-  // Menu as a tab: the panel is a sheet from the tabs with a head and a veil.
-  const sheet = shell.tabsShown && tabbed.has('menu')
+  // On a phone the panel is a sheet from below, with a head and a veil.
+  const sheet = shell.mobile.matches
   const close = (): void => {
     shell.menuOpen = false
   }

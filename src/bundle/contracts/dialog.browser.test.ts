@@ -274,7 +274,8 @@ const ROWS: Row[] = [
     },
     // Opening leaves the focus on the button, which then reads "Sluiten".
     first: (element) => shadow(element, '.lintje-mobile-header__button--menu'),
-    closers: [['sluiten', (element) => shadow(element, '.lintje-mobile-header__button--menu')]],
+    // The sheet from below has its own close button; the bar's button lies under its veil.
+    closers: [['de sluitknop', (element) => shadow(element, '.lintje-mobile-menu__close')]],
   },
   {
     name: 'lintje-shell Delen op 390 px',

@@ -21,9 +21,6 @@
   overflow-x: clip;
 }
 :where(.lintje-shell.is-phone) .lintje-mobile-header { display: flex; }
-/* Without Menu as a tab the panel drops from the bar: the bar lies above it, so the panel comes
-   out from under it and goes back under it, never over it. */
-.lintje-shell:not(.has-menu-tab) .lintje-mobile-header { position: relative; z-index: 25; }
 /* On the theme fill the ring is the inverse one, as in the desktop menu, by the inherited hooks. */
 .lintje-mobile-header,
 .lintje-mobile-menu {
@@ -88,24 +85,23 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+/* On a phone every sheet comes from below: the menu's panel too, from the bar at the top or from
+   a tab. It is as high as what it holds and at most the screen, so little stands low, in reach of
+   the thumb; it stops on the tabs. A veil lies over the page above it; a tap on it closes. */
 .lintje-mobile-menu {
+  position: fixed;
+  left: 0; right: 0; bottom: var(--lintje-shell-bottom, 0px);
+  max-height: calc(100dvh - var(--lintje-shell-bottom, 0px) - env(safe-area-inset-top, 0px));
   z-index: 24;
   background: var(--color-nav-bg);
   color: var(--color-nav-text);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  animation: lintje-menu-in var(--dur-sheet) var(--ease-in-motion);
+  animation: lintje-sheet-in var(--dur-sheet) var(--ease-in-motion);
 }
-/* With tabs the panel stops on them. With Menu as a tab it is a sheet from the tabs, as high as
-   what it holds and at most the screen: little stands low, in reach of the thumb. A veil lies
-   over the page above it; a tap on it closes. */
-.lintje-shell.has-tabs .lintje-mobile-menu { bottom: var(--lintje-shell-bottom); }
-.lintje-shell.has-menu-tab .lintje-mobile-menu {
-  top: auto;
-  max-height: calc(100dvh - var(--lintje-shell-bottom) - env(safe-area-inset-top, 0px));
-  animation-name: lintje-sheet-in;
-}
+/* Without tabs the sheet reaches the screen's edge: the phone's lower inset stays under it. */
+.lintje-shell:not(.has-tabs) .lintje-mobile-menu { padding-bottom: env(safe-area-inset-bottom, 0px); }
 .lintje-mobile-menu__scrim {
   position: fixed;
   inset: 0 0 var(--lintje-shell-bottom) 0;
@@ -127,17 +123,15 @@
 /* On the menu's own fill: its ink, not the page's muted grey. */
 .lintje-mobile-menu__head .lintje-mobile-menu__close { color: var(--color-nav-text); }
 .lintje-mobile-menu.is-leaving {
-  animation: lintje-menu-out var(--dur-sheet) var(--ease-out-motion) forwards;
+  animation: lintje-sheet-out var(--dur-sheet) var(--ease-out-motion) forwards;
   pointer-events: none;
 }
-/* From a tab it goes down again, behind the tabs, and its veil fades. */
-.lintje-shell.has-menu-tab .lintje-mobile-menu.is-leaving { animation-name: lintje-sheet-out; }
 .lintje-mobile-menu__scrim.is-leaving {
   animation: lintje-fade-out var(--dur-scrim) var(--ease-out-motion) forwards;
   pointer-events: none;
 }
 .lintje-mobile-menu__tools { padding-top: var(--space-2); }
-.lintje-mobile-menu__list { flex: 1; padding-bottom: var(--space-4); }
+.lintje-mobile-menu__list { padding-bottom: var(--space-4); }
 .lintje-mobile-menu__about { padding-bottom: var(--space-4); }
 .lintje-mobile-menu__heading {
   font-size: var(--label-size); font-weight: var(--label-weight);
