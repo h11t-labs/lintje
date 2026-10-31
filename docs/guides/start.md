@@ -18,6 +18,13 @@ de ene `h1` van de pagina, en de paginatitel is een `lintje-page-header` in de `
 uitleg of uitklapper is een `h3`. Zonder `name` levert de pagina de `h1` zelf. Een dashboard staat in dezelfde shell, met het menu naast de pagina
 ([dashboards](dashboard.md)).
 
+Wisselt een lezer op een telefoon steeds tussen drie tot vijf pagina's, zet dan `mobile-tabs` op
+`lintje-shell`: onder 768 px staan de losse pagina's van `navigation` als tabs onderaan, met Menu
+als laatste. Met `tab-parts="search menu"` staat ook Zoeken als tab. Een ingang die geen pagina
+opent maar een blad van jou, krijgt `action` in plaats van `href`; de shell stuurt dan
+`lintje-action` met die naam. Wat onderaan plakt, staat boven de tabs met
+`bottom: var(--lintje-shell-bottom, 0px)`.
+
 Al het andere lever jij:
 
 - **Geen datalaag.** Wat een element tekent, komt uit zijn eigenschappen, als platte JSON.

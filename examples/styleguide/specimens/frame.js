@@ -55,6 +55,21 @@ const GROUPED = [
   },
 ]
 
+/** The same application with tabs on a phone: four pages, one of them an action, and a group. */
+const TABBED = [
+  { label: 'Opnames', href: '#opnames', icon: 'beeld-en-geluid-microfoon', active: true, badge: { value: 12, tone: 'count', label: '12 opnames' } },
+  { label: 'Wachtrij', href: '#wachtrij', icon: 'functioneel-klok', badge: { value: 3, tone: 'action', label: '3 nieuwe in de wachtrij' } },
+  { label: 'Uploaden', action: 'upload', icon: 'functioneel-upload' },
+  { label: 'Woordenlijsten', href: '#woordenlijst', icon: 'op-kantoor-boek', badge: { value: 'Nieuw', tone: 'new' } },
+  {
+    label: 'Beheer',
+    links: [
+      { label: 'Sjablonen', href: '#sjablonen', icon: 'op-kantoor-document-blanco' },
+      { label: 'Instellingen', href: '#instellingen', icon: 'functioneel-instellingen' },
+    ],
+  },
+]
+
 /** The emblem of the page's theme, with the organisation's name beside it as text. */
 const EMBLEM_LABELS = {
   marechaussee: 'Koninklijke Marechaussee',
@@ -371,22 +386,42 @@ export default {
           },
         },
         {
-          label: 'Header onderaan op een telefoon',
+          label: 'Tabbalk op een telefoon',
           note:
-            'Met `mobile-bar="bottom"` plakt de header onder 768 px aan de onderrand van het ' +
-            'scherm, onder de duim, en opent het menu erboven; breder staat hij gewoon bovenaan. ' +
-            'Bekijk het op 390 px.',
-          // In a page of its own: the bar is `position: fixed`, which a nested shell does not contain.
+            'Met `mobile-tabs` staan onder 768 px de losse pagina’s als tabs onderaan, Menu als ' +
+            'laatste; de groep Beheer zit in het paneel van Menu. Uploaden heeft `action`: een ' +
+            'knop die `lintje-action` stuurt. Breder staan dezelfde ingangen in de balk bovenaan.',
+          // In a page of its own, 390 px wide: the tabs are `position: fixed` and only below 768 px.
           frame: true,
-          html: `<lintje-shell mobile-bar="bottom">
+          phone: true,
+          html: `<lintje-shell mobile-tabs>
             <lintje-page-header slot="header"></lintje-page-header>
-            <p>Op een telefoon staat de balk met Menu onderaan.</p>
+            <p>De tabs staan onderaan het scherm, onder de duim.</p>
           </lintje-shell>`,
           setup(stage) {
             const shell = stage.querySelector('lintje-shell')
             shell.style.minHeight = '0'
-            shell.data = { name: 'Transcriptie', emblem: emblem(), navigation: NAVIGATION, user: USER, userMenu: USER_MENU, search: true }
+            shell.data = { name: 'Transcriptie', emblem: emblem(), navigation: TABBED, user: USER, userMenu: USER_MENU, search: true }
             stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+          },
+        },
+        {
+          label: 'Tabbalk met Menu open',
+          note:
+            'Het paneel van Menu opent als blad boven de tabs en draagt wat geen tab is; de tab ' +
+            'leest Sluiten. Een blad van de host bedekt de tabs wel.',
+          frame: true,
+          phone: true,
+          html: `<lintje-shell mobile-tabs>
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>Het paneel staat open.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.style.minHeight = '0'
+            shell.data = { name: 'Transcriptie', emblem: emblem(), navigation: TABBED, user: USER, userMenu: USER_MENU, search: true }
+            stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+            shell.updateComplete.then(() => (shell.menuOpen = true))
           },
         },
         {

@@ -2,11 +2,12 @@
 import { html, nothing, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
-import { hasPage, unavailableWord, type NavGroup } from './header'
+import { hasPage, isAction, unavailableWord, type NavGroup } from './header'
 import type { ShellLink } from '../../../types'
 import type { LintjeShell } from './shell'
 import { feedbackLabel, homeLink, noAccessMark, versionText } from './navigation'
 import { renderBarTools } from './top-bar'
+import { renderTabBar, type TabPlan } from './tab-bar'
 import { isPlainClick } from '../../../core/links'
 
 /**
@@ -40,13 +41,20 @@ export function renderMobileMeta(shell: LintjeShell): TemplateResult {
 }
 
 /**
- * Mobile header. The header and the panel stand in one region, `.lintje-mobile-chrome`: while the
- * menu is open it is the modal dialog and the focus trap keeps Tab inside, so the dialog's own
- * close button is not hidden from a screen reader.
+ * Mobile header. The header, the panel and the tabs stand in one region, `.lintje-mobile-chrome`:
+ * while the menu is open it is the modal dialog and the focus trap keeps Tab inside, so the
+ * dialog's own close button (in the header, or the tab Menu) is not hidden from a screen reader.
+ * `groups` is what the panel holds: with tabs, what is not a tab. A part that is a tab is not in
+ * the header.
  */
-export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): TemplateResult {
+export function renderMobileHeader(
+  shell: LintjeShell,
+  groups: NavGroup[],
+  plan: TabPlan,
+): TemplateResult {
   const data = shell.data
   const open = shell.menuOpen
+  const tabbed = new Set(plan.parts)
   const word = 'lintje-mobile-header__word'
   const close = (): void => {
     shell.menuOpen = false
@@ -78,7 +86,9 @@ export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): Temp
         ${
           open
             ? nothing
-            : html`${shell.mobile.matches ? html`<slot name="end"></slot>` : nothing}${shell.renderSearch()}${shell.renderNotifications()}${
+            : html`${shell.mobile.matches ? html`<slot name="end"></slot>` : nothing}${
+                tabbed.has('search') ? nothing : shell.renderSearch()
+              }${shell.renderNotifications()}${
                 // Only where this header shows, so an open panel is never drawn twice.
                 shell.mobile.matches ? renderBarTools(shell) : nothing
               }`
@@ -87,20 +97,24 @@ export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): Temp
              where it is: only the label and the glyph change places. Its word says
              the state, so it has no aria-expanded to say it again, and it names its
              panel only while there is one. -->
-        <button
-          type="button"
-          class="lintje-mobile-header__button lintje-mobile-header__button--menu"
-          aria-controls=${open ? 'lintje-mobile-menu-panel' : nothing}
-          @click=${() => {
-            shell.menuOpen = !shell.menuOpen
-          }}
-        >
-          ${
-            open
-              ? html`<span class=${word}>Sluiten</span>${renderIcon('functioneel-kruis', { size: 16 })}`
-              : html`${renderIcon('functioneel-menu', { size: 16 })}<span class=${word}>Menu</span>`
-          }
-        </button>
+        ${
+          tabbed.has('menu')
+            ? nothing
+            : html`<button
+              type="button"
+              class="lintje-mobile-header__button lintje-mobile-header__button--menu"
+              aria-controls=${open ? 'lintje-mobile-menu-panel' : nothing}
+              @click=${() => {
+                shell.menuOpen = !shell.menuOpen
+              }}
+            >
+              ${
+                open
+                  ? html`<span class=${word}>Sluiten</span>${renderIcon('functioneel-kruis', { size: 16 })}`
+                  : html`${renderIcon('functioneel-menu', { size: 16 })}<span class=${word}>Menu</span>`
+              }
+            </button>`
+        }
       </div>
     </header>
 
@@ -114,7 +128,11 @@ export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): Temp
             if (event.target === event.currentTarget && shell.menuLeaving) shell.menuLeft()
           }}
         >
-          <nav class="lintje-mobile-menu__list" aria-label="Hoofdnavigatie">
+          <!-- With tabs the tab bar is the main navigation; the panel holds the other pages. -->
+          <nav
+            class="lintje-mobile-menu__list"
+            aria-label=${shell.tabsShown ? 'Overige pagina’s' : 'Hoofdnavigatie'}
+          >
             ${groups.map(
               (group, index) => html`<div
                 role=${group.heading ? 'group' : nothing}
@@ -138,6 +156,7 @@ export function renderMobileHeader(shell: LintjeShell, groups: NavGroup[]): Temp
         </div>`
         : nothing
     }
+    ${shell.tabsShown ? renderTabBar(shell, plan) : nothing}
   </div>`
 }
 
@@ -146,8 +165,20 @@ export function renderMobileItem(shell: LintjeShell, item: ShellLink): TemplateR
     ${renderIcon(item.icon, { size: 20, src: item.iconSrc })}
     <span class="lintje-mobile-menu__label">${item.label}</span>
     ${item.noAccess ? noAccessMark('lintje-mobile-menu__meta') : nothing}
-    ${hasPage(item) || item.noAccess ? nothing : unavailableWord(item)}
+    ${hasPage(item) || isAction(item) || item.noAccess ? nothing : unavailableWord(item)}
   `
+  if (isAction(item)) {
+    return html`<button
+      type="button"
+      class="lintje-mobile-menu__item lintje-mobile-menu__item--action"
+      @click=${() => {
+        shell.menuOpen = false
+        shell.act(item)
+      }}
+    >
+      ${content}
+    </button>`
+  }
   if (!hasPage(item)) {
     return html`<span class="lintje-mobile-menu__item is-muted" aria-disabled="true"
       >${content}</span

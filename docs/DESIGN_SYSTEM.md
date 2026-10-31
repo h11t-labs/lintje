@@ -391,8 +391,15 @@ Besluiten die voor beide gelden:
   altijd.
 - **Onder 768 px is er geen rail**: een header met een Menu-knop, en het menu opent
   schermvullend. In de indeling Boven is die header een balk onder de logobalk, met de naam. De
-  host mag de header onderaan het scherm zetten (`mobile-bar="bottom"`), de variant van de
-  huisstijl onder de duim; het menu opent er dan boven, als een sheet.
+  balk bovenaan is er altijd.
+- **Tabs onderaan zijn een keuze van de host** (`mobile-tabs`): onder 768 px staan de losse
+  pagina's dan als tabs onder de duim, ten hoogste vijf, met Menu als laatste. Het zijn dezelfde
+  ingangen als de rail en de navigatiebalk, met dezelfde markering (de vulling en de lijn eronder,
+  niet vet) en dezelfde badge, op de hoek van de glyph. Elk deel van de shell staat op één plek:
+  wat `tab-parts` naar de tabs stuurt (standaard alleen Menu), staat niet ook in de balk. Wat
+  geen tab is, zit in het paneel van Menu, dat boven de tabs opent; Menu is een knop en draagt
+  nooit de markering. Een blad van de host bedekt de tabs, en zolang het toetsenbord open is,
+  wijken ze. Een ingang met `action` opent iets van de host in plaats van een pagina.
 - **De gebruiker heeft in elke indeling hetzelfde menu**: naam en rol met "Afmelden" als icoon
   ernaast, de rijen van de host en de versie. De avatar in de balk opent het naar beneden, de voet
   van het zijmenu naar boven, en op een telefoon staat het onderaan het menu. Met de pijltjes komt
@@ -1318,7 +1325,10 @@ kleinste correctie, en leg die hier vast.
 - **Tekst die met een beletselteken is afgekapt, staat nooit alleen in een tooltip**: waar geen
   aanwijzer hem toont — onder 768 px, zonder hover, onder de focus van het toetsenbord — loopt hij
   door op een volgende regel. Tekst die geen focus kan krijgen en geen tooltip heeft, kapt nooit
-  af: hij loopt altijd door.
+  af: hij loopt altijd door. De uitzondering is het label van een tab onderaan (`mobile-tabs`):
+  één regel van 12 px, afgekapt, want een tweede regel past niet in de balk; het hele woord is de
+  naam van de tab, en de ontwikkelbuild waarschuwt, zodat een host een label op één kort woord
+  houdt.
 - **Wat verdwijnt terwijl de focus erop staat, geeft de focus eerst door**: een toast terug naar
   waar hij vandaan kwam (anders `<main>`), een gesloten mededeling naar de volgende stop op de
   pagina, "Alles gelezen" naar de eerste melding. Een element dat leeg raakt en zelf niets

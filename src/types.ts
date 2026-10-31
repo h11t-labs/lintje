@@ -679,6 +679,12 @@ export interface ShellLink {
   badge?: { value: string | number; tone: 'action' | 'count' | 'new'; label?: string }
   /** The page exists but the reader may not open it: struck through, with a lock. */
   noAccess?: boolean
+  /**
+   * An entry that opens something of the host's instead of a page, such as a sheet: a button
+   * instead of a link, never marked as the reader's page. A click sends `lintje-action` with this
+   * name. Takes the place of `href`.
+   */
+  action?: string
 }
 
 /** Pages under one heading: a submenu in the navigation bar, a section in the side menu. */

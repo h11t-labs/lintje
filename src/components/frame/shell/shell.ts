@@ -6,7 +6,9 @@
  * host's, and a change goes out as `lintje-view-change` and comes back as data. `nav-tone`
  * chooses the menu's colours: filled in the theme's colour, or light as the house style's bar
  * and side navigation; unset, the new house style takes light and the earlier one filled.
- * `mobile-bar` says where the phone's header stands. `end` takes what a host
+ * `mobile-tabs` puts the loose pages below 768 px as tabs at the bottom of the screen, and
+ * `tab-parts` says which of the shell's parts stand there as a tab instead of in the bar at the
+ * top. An entry with `action` sends `lintje-action` with its name. `end` takes what a host
  * puts at the end of the bar, such as
  * `lintje-language-nav`, before the search and the user. `header` holds the `lintje-page-header`,
  * the page's head; `full` runs edge to edge above the content (a filter bar, a hero), under the
@@ -14,7 +16,7 @@
  * `lintje-notification-open`, `lintje-notifications-read`) reach the host as they are.
  *
  * Events: `lintje-navigate` `{ href }`, `lintje-view-change` `ShellViewChange`,
- * `lintje-search-open`.
+ * `lintje-search-open`, `lintje-action` with the entry's `action`.
  */
 import {
   html,
@@ -45,6 +47,7 @@ import type { ShellData, ShellGroup, ShellLink, ShellViewChange } from '../../..
 import { NavScrollbar, feedbackLabel, renderNavigation } from './navigation'
 import { renderMobileHeader } from './mobile-header'
 import { renderBarTools, renderTopBar } from './top-bar'
+import { parseTabParts, planTabs, type TabPlan } from './tab-bar'
 import {
   SubmenuController,
   renderHeaderScrim,
@@ -57,10 +60,13 @@ import shellCss from './shell.css?inline'
 import navigationCss from './navigation.css?inline'
 import mobileHeaderCss from './mobile-header.css?inline'
 import topBarCss from './top-bar.css?inline'
+import tabBarCss from './tab-bar.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import keyCss from '../../shared/key.css?inline'
 
 const MAIN_ID = 'lintje-shell-main'
+/** How much the visual viewport loses before it is a keyboard and not a browser's own bar. */
+const KEYBOARD_MIN = 150
 
 const isGroup = (entry: ShellLink | ShellGroup): entry is ShellGroup => 'links' in entry
 
@@ -101,13 +107,16 @@ export class LintjeShell extends LintjeElement {
     shadowCss(dialogCloseCss),
     shadowCss(keyCss),
     shadowCss(topBarCss),
+    shadowCss(tabBarCss),
   ]
 
   static override properties: PropertyDeclarations = {
     data: { attribute: false },
     layout: { type: String, reflect: true },
     navTone: { type: String, attribute: 'nav-tone', reflect: true },
-    mobileBar: { type: String, attribute: 'mobile-bar', reflect: true },
+    mobileTabs: { type: Boolean, attribute: 'mobile-tabs', reflect: true },
+    tabParts: { type: String, attribute: 'tab-parts' },
+    keyboardOpen: { state: true },
     openGroup: { state: true },
     railExpanded: { state: true },
     menuOpen: { state: true },
@@ -138,11 +147,19 @@ export class LintjeShell extends LintjeElement {
    */
   declare navTone?: 'filled' | 'light'
   /**
-   * Where the header stands below 768 px: at the top of the page (`top`), or stuck to the bottom
-   * of the screen under the thumb (`bottom`), the house style's variant; the menu then opens
-   * above it. The host's choice.
+   * Below 768 px the loose pages of `navigation` stand as tabs at the bottom of the screen, at
+   * most five with the parts of `tab-parts`; the rest and every group are in the menu's panel,
+   * which opens above the tabs. The bar at the top stays. Above 768 px it changes nothing.
    */
-  mobileBar: 'top' | 'bottom' = 'top'
+  mobileTabs: boolean = false
+  /**
+   * With `mobile-tabs`: the shell's parts that stand as a tab instead of in the bar at the top,
+   * apart by spaces: `menu` and `search`. Unset, Menu alone; empty, none. Each part stands in one
+   * place.
+   */
+  declare tabParts?: string | null
+  /** A keyboard on the screen has taken the room of the tabs (`visualViewport`). */
+  keyboardOpen: boolean = false
   /** Top layout: index of the open group; `WHOLE_MENU`; or `null`. */
   openGroup: number | null = null
   /** Top layout: the logo bar has scrolled away and the bar under it is pinned (`is-stuck`). */
@@ -218,6 +235,7 @@ export class LintjeShell extends LintjeElement {
     document.addEventListener('keydown', this.#onEscape)
     this.#nested = this.parentElement?.closest(this.localName) != null
     if (!this.#nested) window.addEventListener('scroll', this.#onScroll, { passive: true })
+    globalThis.visualViewport?.addEventListener('resize', this.#onViewport)
   }
 
   override disconnectedCallback(): void {
@@ -226,14 +244,74 @@ export class LintjeShell extends LintjeElement {
     this.#menuTrap.deactivate(false)
     this.#releaseSheet(false)
     window.removeEventListener('scroll', this.#onScroll)
+    globalThis.visualViewport?.removeEventListener('resize', this.#onViewport)
     this.#fitObserver?.disconnect()
     this.#fitObserver = null
     this.#fitObserved = []
     if (this.#scrollFrame) cancelAnimationFrame(this.#scrollFrame)
     this.#scrollFrame = 0
-    if (this.#padded) this.#padded.style.scrollPaddingTop = ''
+    if (this.#padded) {
+      this.#padded.style.scrollPaddingTop = ''
+      this.#padded.style.scrollPaddingBottom = ''
+    }
     this.#padded = null
     super.disconnectedCallback()
+  }
+
+  /**
+   * A keyboard on the screen shrinks the visual viewport, not the layout one; zooming in shrinks
+   * it too, so the zoom is taken out. While it is open the tabs give way, as on iOS.
+   */
+  readonly #onViewport = (): void => {
+    const viewport = globalThis.visualViewport
+    if (!viewport) return
+    const open = window.innerHeight - viewport.height * viewport.scale > KEYBOARD_MIN
+    if (open !== this.keyboardOpen) this.keyboardOpen = open
+  }
+
+  /** Whether the tabs stand below 768 px. */
+  get tabsShown(): boolean {
+    return this.mobileTabs && this.mobile.matches
+  }
+
+  /** Which entries are tabs and what the menu's panel holds; without tabs, the panel holds all. */
+  tabPlan(): TabPlan {
+    const navigation = this.data?.navigation ?? []
+    if (!this.tabsShown) return { pages: [], parts: [], rest: navigation }
+    const parts = parseTabParts(this.tabParts).filter(
+      (part) => part !== 'search' || Boolean(this.data?.search),
+    )
+    return planTabs(navigation, parts)
+  }
+
+  /** An entry with `action`: the host opens what it names. */
+  act(item: ShellLink): void {
+    this.openGroup = null
+    this.emit('lintje-action', item.action)
+  }
+
+  /* A mistake that shows nothing is said once in the console, as the development build's warning. */
+  #warned = new Set<string>()
+  #warnOnce(key: string, message: string): void {
+    if (this.#warned.has(key)) return
+    this.#warned.add(key)
+    console.warn(`<${this.localName}>: ${message}`)
+  }
+
+  #checkTabs(): void {
+    if (this.tabParts != null && !this.mobileTabs)
+      this.#warnOnce('parts', '`tab-parts` does nothing without `mobile-tabs`.')
+    if (!this.tabsShown || !this.data) return
+    const plan = this.tabPlan()
+    if (plan.pages.length + plan.parts.length < 2)
+      this.#warnOnce('few', '`mobile-tabs` with fewer than two tabs: leave it off.')
+    for (const label of this.renderRoot.querySelectorAll<HTMLElement>('.lintje-tab-bar__label')) {
+      if (label.scrollWidth > label.clientWidth + 0.5)
+        this.#warnOnce(
+          `cut:${label.textContent}`,
+          `the tab "${label.textContent}" is cut: keep a tab's label to one short word.`,
+        )
+    }
   }
 
   #releaseMenu(): void {
@@ -323,12 +401,16 @@ export class LintjeShell extends LintjeElement {
       } else if (changed.get('menuOpen') === true) {
         this.#releaseMenu()
         this.#menuTrap.deactivate(false)
+        // The button that opened it: the tab Menu, or Menu in the header.
         this.renderRoot
-          .querySelector<HTMLButtonElement>('.lintje-mobile-header__button--menu')
+          .querySelector<HTMLButtonElement>(
+            '.lintje-tab-bar__tab--menu, .lintje-mobile-header__button--menu',
+          )
           ?.focus()
       }
     }
     this.#holdSheet()
+    this.#checkTabs()
     this.#observeFit(changed.has('data') || changed.has('layout'))
     this.#fitHeader()
     this.#padScroll()
@@ -344,7 +426,10 @@ export class LintjeShell extends LintjeElement {
   #padScroll(): void {
     if (this.#nested) return
     const root = scrollRoot() ?? document.documentElement
-    if (this.#padded && this.#padded !== root) this.#padded.style.scrollPaddingTop = ''
+    if (this.#padded && this.#padded !== root) {
+      this.#padded.style.scrollPaddingTop = ''
+      this.#padded.style.scrollPaddingBottom = ''
+    }
     this.#padded = root
     const bar =
       this.mobile.matches && this.layout === 'side'
@@ -358,6 +443,8 @@ export class LintjeShell extends LintjeElement {
         ? sentenceHeight
         : lengthPx(this, '--h-contextbar', 48)
     root.style.scrollPaddingTop = `${Math.round(bar + filters)}px`
+    root.style.scrollPaddingBottom =
+      this.tabsShown && !this.keyboardOpen ? `${lengthPx(this, '--h-tab-bar', 64)}px` : ''
   }
 
   menuLeft(): void {
@@ -638,6 +725,7 @@ export class LintjeShell extends LintjeElement {
           open: this.openGroup,
           collapsed: this.submenu.collapsed,
           onNavigate: (item, event) => this.follow(item.href as string, event),
+          onAction: (item) => this.act(item),
           onOpen: (index) => (this.openGroup = index),
           // Cut with an ellipsis where it does not fit: the title keeps the whole name.
           start: data.name
@@ -649,12 +737,24 @@ export class LintjeShell extends LintjeElement {
       ${renderHeaderScrim(this.openGroup !== null)}`
   }
 
-  private renderTopPhone(groups: NavGroup[]): TemplateResult {
+  private renderTopPhone(plan: TabPlan): TemplateResult {
+    const panel = toGroups(plan.rest)
     return html`${this.renderLogo()}
       <div class="lintje-shell__sentinel" aria-hidden="true"></div>
       <div class="lintje-shell__mobile-bar">
-        <div class="lintje-shell__mobile-pin">${renderMobileHeader(this, groups)}</div>
+        <div class="lintje-shell__mobile-pin">${renderMobileHeader(this, panel, plan)}</div>
       </div>`
+  }
+
+  /** The shell's own state below 768 px, for its stylesheet. */
+  private phoneClasses(plan: TabPlan): Record<string, boolean> {
+    const tabs = this.tabsShown
+    return {
+      'is-phone': this.mobile.matches,
+      'has-tabs': tabs,
+      'has-menu-tab': tabs && plan.parts.includes('menu'),
+      'is-keyboard': tabs && this.keyboardOpen,
+    }
   }
 
   private renderMain(): TemplateResult {
@@ -694,17 +794,18 @@ export class LintjeShell extends LintjeElement {
     const data = this.data
     if (!data) return nothing
     const groups = toGroups(data.navigation ?? [])
+    const plan = this.tabPlan()
     if (this.layout === 'top') {
       return html`<div
         class=${classMap({
           'lintje-shell': true,
           'lintje-shell--top': true,
           'is-nested': this.#nested,
-          'is-phone': this.mobile.matches,
+          ...this.phoneClasses(plan),
         })}
       >
         ${this.renderSkipLink()} ${this.renderPrintHead(data)}
-        ${this.mobile.matches ? this.renderTopPhone(groups) : this.renderTop(data, groups)}
+        ${this.mobile.matches ? this.renderTopPhone(plan) : this.renderTop(data, groups)}
         ${this.renderMain()} <slot name="footer"></slot> ${this.renderToast()}
       </div>`
     }
@@ -716,12 +817,12 @@ export class LintjeShell extends LintjeElement {
         'is-nested': this.#nested,
         // Below 768 px the CSS follows this, not a media query: WebKit does not re-apply a shadow
         // root's media query after a resize, while the template already switches by MOBILE.
-        'is-phone': this.mobile.matches,
+        ...this.phoneClasses(plan),
       })}
     >
       ${this.renderSkipLink()} ${renderNavigation(this, groups)}
       <div class="lintje-shell__column">
-        ${this.renderPrintHead(data)} ${renderMobileHeader(this, groups)} ${renderTopBar(this)} ${this.renderMain()}
+        ${this.renderPrintHead(data)} ${renderMobileHeader(this, toGroups(plan.rest), plan)} ${renderTopBar(this)} ${this.renderMain()}
         <slot name="footer"></slot>
       </div>
       ${this.renderToast()}
