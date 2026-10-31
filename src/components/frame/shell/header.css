@@ -144,6 +144,8 @@
 .lintje-navbar__entry.is-no-access .lintje-navbar__label { text-decoration: line-through; }
 /* Why an entry cannot be opened, in words behind the label in the bar, under it in a submenu. */
 .lintje-navbar__note { font: var(--text-small); }
+/* An entry with `action` is a button: it keeps the entry's look and edges. */
+.lintje-navbar__entry--action { background: transparent; border-left: 0; border-right: 0; cursor: pointer; }
 
 /* The shadow falls down only: `clip-path` cuts what would fall on the bar, so the open entry and
    the panel stay one shape. `--lintje-navbar-room` is measured. */
@@ -205,6 +207,7 @@
   text-decoration: none;
   transition: border-color var(--dur-hover) var(--ease-in-motion);
 }
+.lintje-navbar__page--action { width: 100%; text-align: start; cursor: pointer; }
 .lintje-navbar__page-text { display: flex; flex: 1; flex-direction: column; min-width: 0; }
 .lintje-navbar__page .lintje-navbar__label { font-weight: 700; }
 .lintje-navbar__metric { color: var(--color-text-muted); font: var(--text-small); }

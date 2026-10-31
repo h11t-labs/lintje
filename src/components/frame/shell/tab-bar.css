@@ -1,0 +1,33 @@
+/* The tab bar below 768 px (`mobile-tabs`): fixed to the bottom of the screen, with the lower
+   inset of a phone under it in its own fill. On the theme fill the ring is the inverse one. */
+.lintje-tab-bar { display: none; }
+:where(.lintje-shell.has-tabs) .lintje-tab-bar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 26;
+  display: flex;
+  align-items: stretch;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* The room of the line, which the layer below draws. */
+  border-top: 1px solid transparent;
+  --lintje-focus: var(--color-focus-on-theme);
+  --lintje-focus-inner: var(--color-focus-on-theme-inner);
+}
+/* The bar's fill and its line, as a layer of its own above every sheet that comes from a tab: such
+   a sheet rises from the bottom of the screen and passes under the tabs, never over them. The tabs
+   stand above this layer (`tab.css`). */
+:where(.lintje-shell.has-tabs) .lintje-tab-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 89;
+  background: var(--color-nav-bg);
+  /* The line, over the bar's own transparent edge. */
+  box-shadow: 0 -1px 0 var(--color-nav-line);
+}
+/* A keyboard on the screen takes the room of the tabs. */
+:where(.lintje-shell.has-tabs.is-keyboard) .lintje-tab-bar { display: none; }
+
+@media (forced-colors: active) {
+  .lintje-tab-bar::before { box-shadow: 0 -1px 0 CanvasText; }
+}

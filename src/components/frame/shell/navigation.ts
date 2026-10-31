@@ -12,6 +12,7 @@ import { renderBadge } from '../../feedback/badge/badge'
 import {
   HOME_LABEL,
   hasPage,
+  isAction,
   noAccessMark,
   unavailableNote,
   unavailableWord,
@@ -236,7 +237,8 @@ export function homeLink(
 
 export function navRow(shell: LintjeShell, item: ShellLink, open: boolean): TemplateResult {
   const page = hasPage(item)
-  const muted = !page
+  const action = isAction(item)
+  const muted = !page && !action
   const content = html`
     ${renderIcon(item.icon, { size: 20, src: item.iconSrc })}
     ${
@@ -244,7 +246,7 @@ export function navRow(shell: LintjeShell, item: ShellLink, open: boolean): Temp
       open
         ? html`<span class="lintje-nav__label" @pointerenter=${titleWhenCut}
             >${item.label}${
-              page || item.noAccess ? nothing : unavailableNote('lintje-nav__note')
+              page || action || item.noAccess ? nothing : unavailableNote('lintje-nav__note')
             }</span
           >`
         : html`<span class="visually-hidden">${item.label}</span>`
@@ -257,8 +259,8 @@ export function navRow(shell: LintjeShell, item: ShellLink, open: boolean): Temp
     ${item.noAccess && open ? noAccessMark('lintje-nav__metric') : nothing}
     ${
       // Open, the words stand under the label or the lock beside it; in the rail the label is
-      // only heard, and so are they.
-      page || open ? nothing : unavailableWord(item)
+      // only heard, and so are they. An action is a button: nothing to say.
+      page || action || open ? nothing : unavailableWord(item)
     }
     ${
       // A bare "3" means nothing read aloud: with a label the figure is only seen and the
@@ -275,6 +277,16 @@ export function navRow(shell: LintjeShell, item: ShellLink, open: boolean): Temp
         : nothing
     }
   `
+  if (action) {
+    return html`<button
+      type="button"
+      class="lintje-nav__item lintje-nav__item--action"
+      title=${open ? nothing : item.label}
+      @click=${() => shell.act(item)}
+    >
+      ${content}
+    </button>`
+  }
   if (page) {
     return html`<a
       href=${item.href as string}

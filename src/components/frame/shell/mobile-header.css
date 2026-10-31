@@ -5,53 +5,64 @@
 .lintje-mobile-chrome { flex: none; position: sticky; top: 0; z-index: 25; }
 .lintje-mobile-chrome:focus { outline: none; }
 
+/* The bar under the logo bar, as the side layout's top bar on a desktop: the back link, the
+   name or the page's title, and the parts of the shell that are no tab. */
 .lintje-mobile-header {
   display: none;
   box-sizing: border-box;
-  /* Under a phone's status bar: the header grows by the inset and keeps its content under it. */
-  height: calc(var(--h-mobile-header) + env(safe-area-inset-top, 0px));
-  padding-top: env(safe-area-inset-top, 0px);
+  height: var(--h-topbar);
   flex: none;
   background: var(--color-nav-bg);
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 0 var(--space-4);
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2) 0 var(--space-4);
   /* Tools that do not fit must not widen the page, or a phone zooms out and they seem to fit
      (`headerCompact`). Sideways only: the focus ring stays inside the padding. */
   overflow-x: clip;
 }
 :where(.lintje-shell.is-phone) .lintje-mobile-header { display: flex; }
-/* `mobile-bar="bottom"`: the header is stuck to the bottom of the screen, under the thumb, as the
-   house style's variant, with the status bar's lower inset under it; the menu opens above it and
-   slides up as a sheet. */
-:host([mobile-bar='bottom']) .lintje-mobile-chrome {
-  position: fixed;
-  top: auto; bottom: 0; left: 0; right: 0;
-}
-:host([mobile-bar='bottom']) .lintje-mobile-header {
-  height: calc(var(--h-mobile-header) + env(safe-area-inset-bottom, 0px));
-  padding-top: 0;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  box-shadow: inset 0 1px 0 var(--color-border-default);
-}
-:host([mobile-bar='bottom']) .lintje-mobile-menu {
-  inset: 0 0 calc(var(--h-mobile-header) + env(safe-area-inset-bottom, 0px)) 0;
-  animation-name: lintje-sheet-in;
-}
 /* On the theme fill the ring is the inverse one, as in the desktop menu, by the inherited hooks. */
 .lintje-mobile-header,
 .lintje-mobile-menu {
   --lintje-focus: var(--color-focus-on-theme);
   --lintje-focus-inner: var(--color-focus-on-theme-inner);
 }
-/* "Weergave" and "Delen" open from this header as sheets on the page's surface: standard ring. */
-.lintje-mobile-header .lintje-view__popover,
-.lintje-mobile-header .lintje-share__popover {
+/* "Weergave" and "Delen" open from the panel as sheets on the page's surface: standard ring. */
+.lintje-mobile-chrome .lintje-view__popover,
+.lintje-mobile-chrome .lintje-share__popover {
   --lintje-focus: var(--color-focus);
   --lintje-focus-inner: var(--color-focus-inner);
 }
 
-.lintje-mobile-header__actions { margin-top: var(--space-3); display: flex; gap: var(--space-2); }
+.lintje-mobile-header__actions {
+  display: flex; align-items: center; gap: var(--space-1);
+  flex: none;
+  margin-left: auto;
+  --lintje-tool-height: var(--h-touch);
+}
+.lintje-mobile-header__back {
+  display: flex; align-items: center; justify-content: center;
+  flex: none;
+  width: var(--h-touch); height: var(--h-touch);
+  margin-left: calc(-1 * var(--space-3));
+  color: var(--color-nav-text);
+}
+.lintje-mobile-header__back { border-radius: var(--radius-control); }
+.lintje-mobile-header__back:hover { background: var(--color-nav-hover); }
+.lintje-mobile-header__titles { display: flex; flex-direction: column; min-width: 0; }
+/* The name, 20 px as the top bar's; once the page's head has scrolled away the page's name
+   stands above it and the name is the small line under it. One line each, cut. */
+.lintje-mobile-header__title,
+.lintje-mobile-header__page {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--color-nav-text);
+  font: var(--text-dashboard);
+}
+.lintje-mobile-header__title.is-small { font: var(--text-small); color: var(--color-nav-text-sub); }
 .lintje-mobile-header__button {
   height: var(--h-touch);
   padding: 0 var(--space-3);
@@ -74,22 +85,22 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+/* On a phone the menu's panel is a sheet (`sheet.css`) on the menu's own fill, from the bar at the
+   top or from a tab. */
 .lintje-mobile-menu {
-  position: fixed;
-  inset: calc(var(--h-mobile-header) + env(safe-area-inset-top, 0px)) 0 0 0;
   z-index: 24;
-  background: var(--color-nav-bg);
-  color: var(--color-nav-text);
+  --lintje-sheet-bg: var(--color-nav-bg);
+  --lintje-sheet-text: var(--color-nav-text);
+  --lintje-sheet-line: var(--color-nav-line);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  animation: lintje-menu-in var(--dur-sheet) var(--ease-in-motion);
 }
-.lintje-mobile-menu.is-leaving {
-  animation: lintje-menu-out var(--dur-sheet) var(--ease-out-motion) forwards;
-  pointer-events: none;
-}
-.lintje-mobile-menu__list { flex: 1; padding-bottom: var(--space-4); }
+.lintje-mobile-menu__scrim { z-index: 23; }
+/* On the menu's own fill: its ink, not the page's muted grey. */
+.lintje-mobile-menu__head .lintje-mobile-menu__close { color: var(--color-nav-text); }
+.lintje-mobile-menu__tools { padding-top: var(--space-2); }
+.lintje-mobile-menu__list { padding-bottom: var(--space-4); }
+.lintje-mobile-menu__about { padding-bottom: var(--space-4); }
 .lintje-mobile-menu__heading {
   font-size: var(--label-size); font-weight: var(--label-weight);
   letter-spacing: var(--label-tracking); text-transform: uppercase;
@@ -106,6 +117,15 @@
   font-size: 1rem;
   text-decoration: none;
 }
+/* An entry with `action` is a button with the row's look. */
+.lintje-mobile-menu__item--action {
+  width: 100%;
+  background: transparent;
+  border-top: 0; border-right: 0; border-bottom: 0;
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+}
 .lintje-mobile-menu__item.is-active {
   background: var(--color-nav-active);
   border-left-color: var(--color-nav-active-edge);
@@ -117,8 +137,8 @@
 /* Why an entry cannot be opened: a small line under its label. */
 .lintje-mobile-menu__note { display: block; font: var(--text-small); }
 .lintje-mobile-menu__meta { font-size: 0.875rem; color: var(--color-nav-disabled); flex: none; }
-/* The environment band and the feedback row with the version: below 768 px there is no rail,
-   and a page's own footer is the host's, so this is the only place they can stand. */
+/* The environment band on top of the panel, feedback and the version at its foot: below 768 px
+   there is no rail, and a page's own footer is the host's. */
 .lintje-mobile-menu__environment {
   flex: none;
   height: 2rem;
@@ -136,13 +156,12 @@
 }
 .lintje-mobile-menu__feedback { flex: none; margin: 0; }
 .lintje-mobile-menu__version {
-  flex: none;
-  margin-left: auto;
+  margin: 0;
+  padding: var(--space-2) var(--space-5);
   font-family: var(--font-mono); font-size: 0.875rem; letter-spacing: .02em;
   color: var(--color-nav-text-sub);
 }
 
-.lintje-mobile-header__home { display: block; flex: none; color: var(--color-nav-text); }
 
 
 @media print { .lintje-mobile-header, .lintje-mobile-menu { display: none; } }
@@ -151,8 +170,8 @@
 @media (forced-colors: active) {
   .lintje-mobile-header :focus-visible,
   .lintje-mobile-menu :focus-visible { outline-color: Highlight; }
-  .lintje-mobile-header .lintje-view__popover :focus-visible,
-  .lintje-mobile-header .lintje-share__popover :focus-visible { outline-color: Highlight; }
+  .lintje-mobile-chrome .lintje-view__popover :focus-visible,
+  .lintje-mobile-chrome .lintje-share__popover :focus-visible { outline-color: Highlight; }
   .lintje-mobile-menu__item { border-left-color: Canvas; }
   .lintje-mobile-menu__item.is-active { border-left-color: Highlight; }
   .lintje-mobile-menu__item.is-muted { color: GrayText; }

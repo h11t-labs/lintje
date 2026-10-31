@@ -140,12 +140,18 @@ async function hostSets(shell: LintjeShell, change: Partial<ShellView>): Promise
   await shell.updateComplete
 }
 
+const close = (shell: LintjeShell): HTMLButtonElement =>
+  root(shell).querySelector('.lintje-mobile-menu__close') as HTMLButtonElement
+
 async function open(shell: LintjeShell): Promise<void> {
   menuButton(shell).click()
   await shell.updateComplete
 }
 
 describe('the closed mobile header', () => {
+  // The bar, the panel and the tabs are drawn below 768 px only.
+  beforeEach(() => viewport(390))
+  afterEach(() => viewport(1024))
   it('carries Menu, and no Filters: the sentence under it opens the filters', async () => {
     setFrameState({ hasFilters: true }) // a filter zone stands on this page
     const shell = await mount()
@@ -153,28 +159,47 @@ describe('the closed mobile header', () => {
     expect(panel(shell)).toBeNull()
   })
 
-  it('carries "Weergave" and "Delen" as icons that open their panel', async () => {
-    viewport(390)
-    const shell = await mount()
+  it('carries search, the bell and the avatar, and leaves Weergave and Delen to the panel', async () => {
+    const shell = await mount({
+      search: true,
+      notifications: [{ id: 'n1', title: 'Rapport klaar', when: 'zojuist', unread: true }],
+    })
     const actions = root(shell).querySelector('.lintje-mobile-header__actions')!
-    const tools = [...actions.querySelectorAll<HTMLButtonElement>('.lintje-shell__tool')]
-    expect(tools.map((tool) => tool.getAttribute('aria-label'))).toEqual(['Weergave', 'Delen'])
-    tools[1]!.click()
+    expect(actions.querySelector('button[aria-label="Zoeken"]')).not.toBeNull()
+    expect(actions.querySelector('lintje-notifications')).not.toBeNull()
+    expect(actions.querySelector('lintje-user-menu')).not.toBeNull()
+    expect(actions.querySelector('.lintje-view__button, .lintje-share__button')).toBeNull()
+    // Open, the menu leaves them standing under its veil.
+    await open(shell)
+    expect(actions.querySelector('button[aria-label="Zoeken"]')).not.toBeNull()
+    expect(actions.querySelector('lintje-notifications')).not.toBeNull()
+    expect(actions.querySelector('lintje-user-menu')).not.toBeNull()
+  })
+
+  it('opens Weergave and Delen from the panel as sheets over it', async () => {
+    const shell = await mount()
+    await open(shell)
+    const rows = Array.from(
+      panel(shell)!.querySelectorAll<HTMLButtonElement>('.lintje-mobile-menu__tools button'),
+    )
+    expect(rows.map((row) => row.textContent?.trim())).toEqual(['Weergave', 'Delen'])
+    rows[1]!.click()
     await shell.updateComplete
     // A sheet with the filter sheet's head: its name and a close button.
-    const sheet = actions.querySelector('.lintje-share__popover')!
+    const sheet = root(shell).querySelector(
+      '.lintje-mobile-chrome > .lintje-share .lintje-share__popover',
+    )!
     expect(sheet.getAttribute('role')).toBe('dialog')
-    expect(sheet.querySelector('.lintje-share__title')!.textContent).toBe('Delen')
-    expect(sheet.querySelector('[role="menuitem"]')).toBeNull()
+    expect(sheet.querySelector('.lintje-sheet__title')!.textContent).toBe('Delen')
     sheet.querySelector<HTMLButtonElement>('.lintje-share__close')!.click()
     await shell.updateComplete
     expect(shell.shareOpen).toBe(false)
-    tools[0]!.click()
+    expect(shell.menuOpen).toBe(true)
+    rows[0]!.click()
     await shell.updateComplete
-    expect(actions.querySelector('.lintje-view__popover .lintje-share__title')!.textContent).toBe(
-      'Weergave',
-    )
-    viewport(1024)
+    expect(
+      root(shell).querySelector('.lintje-view__popover .lintje-sheet__title')!.textContent,
+    ).toBe('Weergave')
   })
 
   it('keeps the word of Menu for the reader when only its glyph fits', async () => {
@@ -189,19 +214,6 @@ describe('the closed mobile header', () => {
     expect(buttons(shell).map((button) => button.textContent?.trim())).toEqual(['Menu'])
   })
 
-  it('carries search and the bell when the data asks for them, and gives their place up when open', async () => {
-    const shell = await mount({
-      search: true,
-      notifications: [{ id: 'n1', title: 'Rapport klaar', when: 'zojuist', unread: true }],
-    })
-    const actions = root(shell).querySelector('.lintje-mobile-header__actions')!
-    expect(actions.querySelector('button[aria-label="Zoeken"]')).not.toBeNull()
-    expect(actions.querySelector('lintje-notifications')).not.toBeNull()
-    await open(shell)
-    expect(actions.querySelector('button[aria-label="Zoeken"]')).toBeNull()
-    expect(actions.querySelector('lintje-notifications')).toBeNull()
-  })
-
   it('draws the menu glyph before its word', async () => {
     const shell = await mount()
     expect(contentOrder(menuButton(shell))).toEqual(['icon', 'text'])
@@ -209,36 +221,27 @@ describe('the closed mobile header', () => {
 })
 
 describe('the open mobile header', () => {
-  it('carries only "Sluiten": "Weergave" is a tool of the closed header', async () => {
+  // The bar, the panel and the tabs are drawn below 768 px only.
+  beforeEach(() => viewport(390))
+  afterEach(() => viewport(1024))
+  it('lies under the veil: the bar is inert and the sheet closes with its own button', async () => {
     const shell = await mount()
     await open(shell)
-    const actions = root(shell).querySelector('.lintje-mobile-header__actions')!
-    expect(buttons(shell).map((button) => button.textContent?.trim())).toEqual(['Sluiten'])
-    expect(actions.querySelectorAll('button')).toHaveLength(1)
+    const bar = root(shell).querySelector('.lintje-mobile-header')!
+    expect(bar.hasAttribute('inert')).toBe(true)
     expect(panel(shell)).not.toBeNull()
+    expect(root(shell).querySelector('.lintje-mobile-menu__close')).not.toBeNull()
   })
 
-  it('puts the cross after the word, and keeps one and the same button', async () => {
-    const shell = await mount()
-    const before = menuButton(shell)
-    await open(shell)
-    expect(menuButton(shell)).toBe(before)
-    expect(contentOrder(menuButton(shell))).toEqual(['text', 'icon'])
-  })
-
-  it('is named by the word it shows, which says the state: no aria-expanded', async () => {
+  it('keeps reading Menu, one and the same button, and names its panel while there is one', async () => {
     const shell = await mount()
     const button = menuButton(shell)
-    const said = (): unknown[] => [
-      button.getAttribute('aria-label'),
-      button.textContent?.trim(),
-      button.hasAttribute('aria-expanded'),
-    ]
-    expect(said()).toEqual([null, 'Menu', false])
-    // It names its panel only while there is one.
+    expect(button.textContent?.trim()).toBe('Menu')
     expect(button.hasAttribute('aria-controls')).toBe(false)
     await open(shell)
-    expect(said()).toEqual([null, 'Sluiten', false])
+    expect(menuButton(shell)).toBe(button)
+    expect(button.textContent?.trim()).toBe('Menu')
+    expect(contentOrder(button)).toEqual(['icon', 'text'])
     expect(button.getAttribute('aria-controls')).toBe('lintje-mobile-menu-panel')
   })
 })
@@ -249,6 +252,9 @@ describe('the open mobile header', () => {
  * drawn inline. The version stands in that user menu, or in the panel without a user.
  */
 describe('the mobile menu panel', () => {
+  // The bar, the panel and the tabs are drawn below 768 px only.
+  beforeEach(() => viewport(390))
+  afterEach(() => viewport(1024))
   const META: Partial<ShellData> = {
     environment: 'ONTWIKKELING',
     feedback: { href: 'mailto:contact@voorbeeld.local' },
@@ -257,19 +263,17 @@ describe('the mobile menu panel', () => {
 
   /** The panel's direct children, by the block each one is. */
   const blocks = (shell: LintjeShell): string[] =>
-    Array.from(panel(shell)?.children ?? []).map((child) =>
-      child.classList.contains('lintje-shell__sheet-user')
-        ? 'user'
-        : (['list', 'environment', 'feedback'].find((name) =>
-            child.classList.contains(`lintje-mobile-menu__${name}`),
-          ) ?? child.className),
+    Array.from(panel(shell)?.children ?? []).map(
+      (child) =>
+        ['head', 'environment', 'tools', 'list', 'about'].find((name) =>
+          child.classList.contains(`lintje-mobile-menu__${name}`),
+        ) ?? child.className,
     )
 
-  it('puts the band and the feedback row between the pages and the user menu, which has the version', async () => {
+  it('runs short to long: the band, Weergave and Delen, the pages, then feedback', async () => {
     const shell = await mount(META)
     await open(shell)
-    expect(blocks(shell)).toEqual(['list', 'environment', 'feedback', 'user'])
-
+    expect(blocks(shell)).toEqual(['head', 'environment', 'tools', 'list', 'about'])
     const band = root(shell).querySelector('.lintje-mobile-menu__environment')
     expect(band?.textContent?.trim()).toBe('ONTWIKKELING')
     const row = root(shell).querySelector('.lintje-mobile-menu__feedback') as HTMLAnchorElement
@@ -278,43 +282,38 @@ describe('the mobile menu panel', () => {
     expect(row.querySelector('.lintje-mobile-menu__label')?.textContent?.trim()).toBe(
       'Vragen of feedback',
     )
-    expect(row.querySelector('.lintje-mobile-menu__version')).toBeNull()
-
-    const user = root(shell).querySelector<LintjeUserMenu>('.lintje-shell__sheet-user')!
-    expect(user.inline).toBe(true)
-    expect(user.user?.initials).toBe('MV')
-    expect(user.getAttribute('version')).toBe('1.2.3')
+    // The user is in the bar, with the version in the user menu: not in the panel.
+    expect(panel(shell)!.querySelector('lintje-user-menu')).toBeNull()
+    expect(panel(shell)!.querySelector('.lintje-mobile-menu__version')).toBeNull()
   })
 
-  it('keeps the version in the feedback row without a user', async () => {
+  it('puts the version under feedback without a user', async () => {
     const shell = await mount({ ...META, user: undefined })
     await open(shell)
-    expect(blocks(shell)).toEqual(['list', 'environment', 'feedback'])
-    const row = root(shell).querySelector('.lintje-mobile-menu__feedback') as HTMLElement
-    expect(row.querySelector('.lintje-mobile-menu__version')?.textContent?.trim()).toBe('v1.2.3')
+    expect(blocks(shell)).toEqual(['head', 'environment', 'tools', 'list', 'about'])
+    expect(
+      panel(shell)!.querySelector('.lintje-mobile-menu__about .lintje-mobile-menu__version')
+        ?.textContent,
+    ).toBe('v1.2.3')
   })
 
-  it('shows the version alone, and unclickable, without a user or a contact', async () => {
+  it('shows the version alone without a user or a contact', async () => {
     const shell = await mount({ ...META, user: undefined, feedback: undefined })
     await open(shell)
-    expect(blocks(shell)).toEqual(['list', 'environment', 'feedback'])
-
-    const row = root(shell).querySelector('.lintje-mobile-menu__feedback') as HTMLElement
-    expect(row.tagName).toBe('P')
-    expect(row.querySelector('.lintje-mobile-menu__label')).toBeNull()
-    expect(row.textContent?.trim()).toBe('v1.2.3')
+    expect(panel(shell)!.querySelector('.lintje-mobile-menu__feedback')).toBeNull()
+    expect(panel(shell)!.querySelector('.lintje-mobile-menu__version')?.textContent).toBe('v1.2.3')
   })
 
-  it('draws no feedback row with a user and without a contact', async () => {
+  it('draws no foot with a user and without a contact', async () => {
     const shell = await mount({ ...META, feedback: undefined })
     await open(shell)
-    expect(blocks(shell)).toEqual(['list', 'environment', 'user'])
+    expect(blocks(shell)).toEqual(['head', 'environment', 'tools', 'list'])
   })
 
   it('leaves the band out when there is no environment', async () => {
     const shell = await mount({ ...META, environment: undefined })
     await open(shell)
-    expect(blocks(shell)).toEqual(['list', 'feedback', 'user'])
+    expect(blocks(shell)).toEqual(['head', 'tools', 'list', 'about'])
   })
 })
 
@@ -791,6 +790,9 @@ describe('the skip link', () => {
  * the trap wraps, it prevents the default and moves the focus itself.
  */
 describe('the open mobile menu keeps the focus', () => {
+  // The bar, the panel and the tabs are drawn below 768 px only.
+  beforeEach(() => viewport(390))
+  afterEach(() => viewport(1024))
   const region = (shell: LintjeShell): HTMLElement =>
     root(shell).querySelector('.lintje-mobile-chrome') as HTMLElement
 
@@ -823,17 +825,18 @@ describe('the open mobile menu keeps the focus', () => {
     expect(region(shell).contains(panel(shell))).toBe(true)
   })
 
-  it('leaves the focus on the Menu button when it opens', async () => {
+  it("puts the focus on the sheet's close button when it opens", async () => {
     const shell = await mount()
     await openWithFocus(shell)
-    expect(deepActiveElement()).toBe(menuButton(shell))
+    expect(deepActiveElement()).toBe(close(shell))
   })
 
   it('wraps Tab from the last control to the first, and Shift+Tab back', async () => {
     const shell = await mount()
     await openWithFocus(shell)
     const list = tabbables(region(shell))
-    expect(list).toContain(menuButton(shell))
+    // The bar lies under the veil: inert, so no stop.
+    expect(list).not.toContain(menuButton(shell))
     const first = list[0] as HTMLElement
     const last = list[list.length - 1] as HTMLElement
     // The last stop is in the panel's foot, the user menu's own shadow root.
@@ -883,6 +886,7 @@ describe('the open mobile menu keeps the focus', () => {
     try {
       // happy-dom announces a media change only after a first resize across the
       // breakpoint, so the shell starts wide and goes narrow before the menu opens.
+      viewport(1024)
       const shell = await mount()
       viewport(390)
       await shell.updateComplete
@@ -891,7 +895,8 @@ describe('the open mobile menu keeps the focus', () => {
       viewport(1024)
       await shell.updateComplete
       expect(shell.menuOpen).toBe(false)
-      expect(region(shell).hasAttribute('role')).toBe(false)
+      // From 768 px up there is no phone bar at all, so no dialog either.
+      expect(root(shell).querySelector('.lintje-mobile-chrome[role]')).toBeNull()
       const outside = document.createElement('button')
       document.body.append(outside)
       outside.focus()
@@ -905,7 +910,7 @@ describe('the open mobile menu keeps the focus', () => {
   it('lets the focus go once it is closed', async () => {
     const shell = await mount()
     await openWithFocus(shell)
-    menuButton(shell).click()
+    close(shell).click()
     await shell.updateComplete
     const outside = document.createElement('button')
     document.body.append(outside)
@@ -916,23 +921,22 @@ describe('the open mobile menu keeps the focus', () => {
 })
 
 describe('the name is the page h1 in the side layout', () => {
-  // Both bars are in the tree here; on a page `.lintje-top-bar` is `display: none`
-  // below 768 px and `.lintje-mobile-header` from 768 px up, so each width shows
-  // exactly one of the two h1s below.
-  it('stands once in the top bar and once in the mobile header, nowhere else', async () => {
-    const shell = await mount()
-    const headings = Array.from(root(shell).querySelectorAll('h1'))
-    expect(headings).toHaveLength(2)
-    const topBar = root(shell).querySelectorAll('.lintje-top-bar h1')
-    const mobile = root(shell).querySelectorAll('.lintje-mobile-header h1')
-    expect(topBar).toHaveLength(1)
-    expect(mobile).toHaveLength(1)
-    for (const heading of [topBar[0], mobile[0]]) {
-      expect(heading.textContent).toBe('Dashboard Vergunningen')
+  // On a page `.lintje-top-bar` is `display: none` below 768 px, so each width shows one h1.
+  it('stands in the top bar, and below 768 px in the bar under the logo bar too', async () => {
+    const wide = await mount()
+    expect(Array.from(root(wide).querySelectorAll('h1'), (h) => h.className)).toEqual([
+      'lintje-top-bar__dashboard',
+    ])
+    try {
+      viewport(390)
+      const shell = await mount()
+      const mobile = root(shell).querySelectorAll('.lintje-mobile-header h1')
+      expect(mobile).toHaveLength(1)
+      expect(mobile[0].textContent?.trim()).toBe('Dashboard Vergunningen')
+      expect(mobile[0].classList.contains('lintje-mobile-header__title')).toBe(true)
+    } finally {
+      viewport(1024)
     }
-    // The top bar's keeps its look; the mobile header draws no name, so its h1 is for the outline only.
-    expect(topBar[0].classList.contains('lintje-top-bar__dashboard')).toBe(true)
-    expect(mobile[0].classList.contains('visually-hidden')).toBe(true)
   })
 })
 
@@ -1013,10 +1017,11 @@ describe('the open mobile menu locks the page', () => {
       await shell.updateComplete
       expect(document.body.style.overflow).toBe('')
 
-      // The button.
+      // The sheet's close button.
       await open(shell)
       expect(document.body.style.overflow).toBe('hidden')
-      await open(shell)
+      close(shell).click()
+      await shell.updateComplete
       expect(shell.menuOpen).toBe(false)
       expect(document.body.style.overflow).toBe('')
 
@@ -1312,20 +1317,17 @@ describe('the content box', () => {
 })
 
 // Read from disk, not imported: vitest does not run the CSS pipeline.
-describe('the name in the top layout’s phone bar', () => {
-  it('is 1rem/700 at 1.2, at most two lines, then cut', async () => {
+describe('the name in the phone bar', () => {
+  it('is the top bar’s title, on one line, then cut', async () => {
     const { readFileSync } = await import('node:fs')
-    const css = readFileSync('src/components/frame/shell/shell.css', 'utf8').replace(
+    const css = readFileSync('src/components/frame/shell/mobile-header.css', 'utf8').replace(
       /\/\*[\s\S]*?\*\//g,
       '',
     )
-    const rule = /\.lintje-mobile-header__title\s*\{([^}]*)\}/.exec(css)?.[1] ?? ''
+    const rule = /\.lintje-mobile-header__page\s*\{([^}]*)\}/.exec(css)?.[1] ?? ''
     expect(rule).toContain('font: var(--text-dashboard);')
-    expect(rule).toContain('font-size: 1rem;')
-    // The shorthand resets the size, so the size comes after it.
-    expect(rule.indexOf('font:')).toBeLessThan(rule.indexOf('font-size:'))
-    expect(rule).toContain('-webkit-line-clamp: 2;')
-    expect(rule).toContain('line-clamp: 2;')
+    expect(rule).toContain('white-space: nowrap;')
+    expect(rule).toContain('text-overflow: ellipsis;')
     expect(rule).toContain('overflow: hidden;')
   })
 })
@@ -1484,6 +1486,9 @@ describe('the foot of the side menu', () => {
 })
 
 describe('the mobile menu’s groups', () => {
+  beforeEach(() => viewport(390))
+  afterEach(() => viewport(1024))
+
   it('ties a heading to its rows, and says why a row without a page cannot be opened', async () => {
     const shell = await mount({
       navigation: [
@@ -1669,19 +1674,24 @@ describe('the user’s circle in the shell', () => {
     expect(avatar!.querySelector('img')!.getAttribute('src')).toBe(PHOTO)
   })
 
-  it('draws 2rem in the button of the top bar and inline in the phone’s menu', async () => {
+  it('draws 2rem in the button of the top bar, and of the phone’s bar', async () => {
     const shell = await mount({ layout: 'top' })
     const bar = root(shell).querySelector<LintjeUserMenu>('.lintje-navbar__end lintje-user-menu')!
     await bar.updateComplete
     expect(sized(circle(bar.shadowRoot), 'medium')).toBe(true)
 
-    const side = await mount()
-    await open(side)
-    const sheet = [...root(side).querySelectorAll('lintje-user-menu')].find((menu) => menu.inline)!
-    await sheet.updateComplete
-    const who = sheet.shadowRoot!.querySelector('.lintje-user-menu__who')
-    expect(sized(circle(who), 'medium')).toBe(true)
-    expect(circle(who)!.textContent!.trim()).toBe('MV')
+    try {
+      viewport(390)
+      const side = await mount()
+      const phone = root(side).querySelector<LintjeUserMenu>(
+        '.lintje-mobile-header lintje-user-menu',
+      )!
+      await phone.updateComplete
+      expect(sized(circle(phone.shadowRoot), 'medium')).toBe(true)
+      expect(circle(phone.shadowRoot)!.textContent!.trim()).toBe('MV')
+    } finally {
+      viewport(1024)
+    }
   })
 })
 
