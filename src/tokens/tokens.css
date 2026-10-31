@@ -305,6 +305,8 @@
   --h-mobile-header: 4.5rem;
   /* One tab of the tab bar below 768 px: the glyph, the label and the line under them. */
   --h-tab-bar: 4rem;
+  /* A sheet on a phone at most: a strip of veil stays above it, so it reads as a sheet. */
+  --h-sheet: 88vh;
   --h-control: 3rem;
   --h-button: 3rem;
   --h-button-compact: 2.5rem;

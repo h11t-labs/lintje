@@ -176,7 +176,7 @@
   inset: auto 0 0 0;
   z-index: 61;
   width: auto;
-  max-height: 88vh;
+  max-height: var(--h-sheet);
   overflow-y: auto;
   padding-bottom: var(--space-4);
   border: 0;

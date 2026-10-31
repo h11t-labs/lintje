@@ -169,10 +169,11 @@ describe('the closed mobile header', () => {
     expect(actions.querySelector('lintje-notifications')).not.toBeNull()
     expect(actions.querySelector('lintje-user-menu')).not.toBeNull()
     expect(actions.querySelector('.lintje-view__button, .lintje-share__button')).toBeNull()
+    // Open, the menu leaves them standing under its veil.
     await open(shell)
-    expect(actions.querySelector('button[aria-label="Zoeken"]')).toBeNull()
-    expect(actions.querySelector('lintje-notifications')).toBeNull()
-    expect(actions.querySelector('lintje-user-menu')).toBeNull()
+    expect(actions.querySelector('button[aria-label="Zoeken"]')).not.toBeNull()
+    expect(actions.querySelector('lintje-notifications')).not.toBeNull()
+    expect(actions.querySelector('lintje-user-menu')).not.toBeNull()
   })
 
   it('opens Weergave and Delen from the panel as sheets over it', async () => {

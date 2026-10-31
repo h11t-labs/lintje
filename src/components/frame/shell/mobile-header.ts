@@ -148,14 +148,9 @@ export function renderMobileHeader(
     <header class="lintje-mobile-header" ?inert=${open}>
       ${renderBack(shell)} ${renderTitles(shell)}
       <div class="lintje-mobile-header__actions">
-        <!-- Open, the menu is a dialog of its own: only its close button stays. -->
-        ${
-          open
-            ? nothing
-            : html`${tabbed.has('search') ? nothing : shell.renderSearch()}${
-                tabbed.has('notifications') ? nothing : shell.renderNotifications()
-              }${tabbed.has('user') ? nothing : shell.renderUserMenu('bar')}`
-        }
+        ${tabbed.has('search') ? nothing : shell.renderSearch()}${
+          tabbed.has('notifications') ? nothing : shell.renderNotifications()
+        }${tabbed.has('user') ? nothing : shell.renderUserMenu('bar')}
         <!-- It opens the menu only: the sheet from below closes with its own button,
              since this one lies under the veil. It names its panel while there is one. -->
         ${

@@ -141,13 +141,12 @@ export class LintjeNotifications extends LintjeElement {
       this.hide(true)
     }
     this.#wasMobile = this.#mobile.matches
-    // From a tab the sheet goes down behind the tabs before it leaves; the timer covers a missing
-    // `animationend`.
+    // The sheet goes down before it leaves; the timer covers a missing `animationend`.
     if (changed.has('open')) {
       if (this.#leaveTimer) clearTimeout(this.#leaveTimer)
       this.#leaveTimer = null
       const closed = !this.open && changed.get('open') === true
-      this.leaving = closed && this.variant === 'tab' && this.#mobile.matches
+      this.leaving = closed && this.#mobile.matches
       if (this.leaving) this.#leaveTimer = setTimeout(() => (this.leaving = false), 600)
     }
     if (!changed.has('items')) return
@@ -323,14 +322,10 @@ export class LintjeNotifications extends LintjeElement {
       ${
         mobile
           ? this.open || this.leaving
-            ? html`${
-                tab
-                  ? html`<div
-                      class=${classMap({ 'lintje-notifications__scrim': true, 'is-leaving': this.leaving })}
-                      @click=${() => this.hide(true)}
-                    ></div>`
-                  : nothing
-              }<div
+            ? html`<div
+                class=${classMap({ 'lintje-notifications__scrim': true, 'is-leaving': this.leaving })}
+                @click=${() => this.hide(true)}
+              ></div><div
               id=${this.#panelId}
               class=${classMap({ 'lintje-notifications__sheet': true, 'is-leaving': this.leaving })}
               ?inert=${this.leaving}

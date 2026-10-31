@@ -86,12 +86,12 @@
   white-space: nowrap;
 }
 /* On a phone every sheet comes from below: the menu's panel too, from the bar at the top or from
-   a tab. It is as high as what it holds and at most the screen, so little stands low, in reach of
-   the thumb; it stops on the tabs. A veil lies over the page above it; a tap on it closes. */
+   a tab. It is as high as what it holds, at most a sheet's height, so little stands low, in reach
+   of the thumb; it stops on the tabs. A veil lies over the page above it; a tap on it closes. */
 .lintje-mobile-menu {
   position: fixed;
   left: 0; right: 0; bottom: var(--lintje-shell-bottom, 0px);
-  max-height: calc(100dvh - var(--lintje-shell-bottom, 0px) - env(safe-area-inset-top, 0px));
+  max-height: var(--h-sheet);
   z-index: 24;
   background: var(--color-nav-bg);
   color: var(--color-nav-text);
