@@ -169,23 +169,24 @@ export class LintjeSplitPane extends LintjeElement {
     this.commit(this.value, this.#dragFrom)
   }
 
-  /** The click after the lifting one places the split where it lands. */
+  /** The press after the lifting click places the split where it is let go, in the block. */
   private readonly onPlace = (event: PointerEvent): void => {
     if (!this.#lifted || event.button !== 0) return
     event.preventDefault()
+    document.addEventListener('pointerup', this.onPlacingEnd, true)
+    document.addEventListener('pointercancel', this.onPlacingEnd, true)
+  }
+
+  /** Cancelled or let go outside the block, the press changes nothing: the split stays lifted. */
+  private readonly onPlacingEnd = (event: PointerEvent): void => {
+    this.#unplace()
+    const block = this.block
+    if (event.type !== 'pointerup' || !this.#lifted || !block) return
+    if (!event.composedPath().includes(block)) return
     const next = this.splitAt(event.clientX)
     this.#drop()
     this.#placed = true
-    document.addEventListener('pointerup', this.onPlacingEnd, true)
-    document.addEventListener('pointercancel', this.onPlacingEnd, true)
     this.commit(next ?? this.value, this.#dragFrom)
-  }
-
-  /** A placing press that is cancelled or released outside brings no click: the next one counts. */
-  private readonly onPlacingEnd = (event: PointerEvent): void => {
-    const block = this.block
-    if (event.type === 'pointerup' && block && event.composedPath().includes(block)) return
-    this.#unplace()
   }
 
   #unplace(): void {
