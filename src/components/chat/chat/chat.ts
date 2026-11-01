@@ -467,7 +467,7 @@ export class LintjeChat extends LintjeElement {
       </div>
       ${
         chosen.length
-          ? html`<ul class="lintje-chat__source-list">
+          ? html`<ul class="lintje-chat__source-list" role="list">
             ${chosen.map(
               (source) => html`<li class="lintje-chat__source">
                 <span>${source.label}</span>

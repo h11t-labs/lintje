@@ -316,6 +316,7 @@ function translator(stage, text) {
   to.options = LANGUAGES
   from.value = 'nl'
   to.value = 'en'
+  element.sourceLang = from.value
   const show = (value) => {
     const translation = TRANSLATIONS[value.trim()] ?? ''
     out.text = translation
@@ -328,7 +329,9 @@ function translator(stage, text) {
   element.addEventListener('lintje-text-change', (event) => show(event.detail))
   element.addEventListener('lintje-languages-swap', () => {
     ;[from.value, to.value] = [to.value, from.value]
+    element.sourceLang = from.value
   })
+  from.addEventListener('lintje-change', (event) => (element.sourceLang = event.detail ?? from.value))
 }
 
 export default {

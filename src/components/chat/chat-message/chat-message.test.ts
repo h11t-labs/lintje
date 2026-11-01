@@ -30,6 +30,7 @@ describe('lintje-chat-message', () => {
     })
     const list = element.renderRoot.querySelector('ul')!
     expect(list.getAttribute('aria-label')).toBe('Bijlagen')
+    expect(list.getAttribute('role')).toBe('list')
     expect(list.querySelectorAll('li > lintje-attachment')).toHaveLength(1)
     expect(element.renderRoot.querySelector('.lintje-chat-message__text')).not.toBeNull()
   })
@@ -61,6 +62,25 @@ describe('lintje-chat-message', () => {
     expect(terms.map((term) => term.textContent)).toEqual(['wachttijd', 'Zuid'])
     expect(terms.map((term) => term.classList.contains('is-uncertain'))).toEqual([false, true])
     expect(terms[0].getAttribute('title')).toBe('Definitie')
+  })
+
+  it('says in hidden words after each term what its line shows, as the question box does', async () => {
+    const element = await message({
+      terms: [
+        { start: 16, end: 25, kind: 'Definitie' },
+        { start: 29, end: 33, kind: 'Regio of loket?', certain: false },
+        { start: 0, end: 3 },
+      ],
+    })
+    const text = element.renderRoot.querySelector('.lintje-chat-message__text')!
+    expect(text.textContent).toBe(
+      'Jij: Hoe lang was de wachttijd (Definitie) in Zuid (Regio of loket?, niet zeker)?',
+    )
+    const said = [...text.querySelectorAll('.lintje-chat-message__term + .visually-hidden')]
+    expect(said.map((node) => node.textContent)).toEqual([
+      ' (Definitie)',
+      ' (Regio of loket?, niet zeker)',
+    ])
   })
 
   it('shows the edit button only when editable', async () => {

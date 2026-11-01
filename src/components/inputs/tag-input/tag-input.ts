@@ -323,7 +323,7 @@ export class LintjeTagInput extends LintjeInputElement {
         role="group"
         aria-labelledby=${this.labelId}
       >
-        <ul class="lintje-tag-input__chips">
+        <ul class="lintje-tag-input__chips" role="list">
           ${this.value.map((word, index) => this.renderChip(word, index))}
         </ul>
         <input

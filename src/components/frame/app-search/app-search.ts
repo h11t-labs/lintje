@@ -39,6 +39,8 @@ export interface SearchResult {
   /** What `lintje-action` carries. */
   id: string
   label: string
+  /** The language of the label when it is not the page's (`pl`), as `lang` on it. */
+  lang?: string
   /** A fact on the right in the muted colour: a duration, a date. */
   meta?: string
   /** The result is a page: a choice sends `lintje-navigate`. */
@@ -221,9 +223,12 @@ export class LintjeAppSearch extends LintjeElement {
   private renderOption(item: SearchResult, index: number): TemplateResult {
     const active = index === this.active
     const classes = classMap({ 'lintje-app-search__option': true, 'is-active': active })
-    const content = html`<span class="lintje-app-search__label" @pointerenter=${titleWhenCut}>${this.renderLabel(item.label)}</span>${
-      item.meta ? html`<span class="lintje-app-search__meta">${item.meta}</span>` : nothing
-    }`
+    const content = html`<span
+        class="lintje-app-search__label"
+        lang=${item.lang || nothing}
+        @pointerenter=${titleWhenCut}
+        >${this.renderLabel(item.label)}</span
+      >${item.meta ? html`<span class="lintje-app-search__meta">${item.meta}</span>` : nothing}`
     const onClick = (event: MouseEvent): void => this.choose(item, event)
     return item.href
       ? html`<a

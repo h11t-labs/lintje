@@ -27,6 +27,7 @@ import '../../feedback/skeleton/skeleton'
 import skeletonCss from '../../feedback/skeleton/skeleton.css?inline'
 import kpiCss from './kpi.css?inline'
 import { renderGauge } from './gauge'
+import { renderHeading, type HeadingLevel } from '../../shared/heading'
 import { DATA_COLORS, chartToken, type DataColor } from '../../../tokens/colors'
 import type {
   KpiGauge,
@@ -130,6 +131,7 @@ export class LintjeKpi extends LintjeGridItemElement {
 
   static override properties: PropertyDeclarations = {
     label: { type: String },
+    level: { type: Number },
     icon: { type: String },
     value: { type: String },
     suffix: { type: String },
@@ -153,6 +155,8 @@ export class LintjeKpi extends LintjeGridItemElement {
   }
 
   label: string = ''
+  /** The label's heading level, 2 to 6; `h3` when unset, as a tile's title. */
+  declare level?: HeadingLevel
   /** An icon file name, drawn before the label. Decorative; it stays in every state. */
   declare icon?: string
   /** A string or number with one number in it counts up when the tile comes into view. */
@@ -331,7 +335,7 @@ export class LintjeKpi extends LintjeGridItemElement {
           ? html`<span class="lintje-kpi__icon">${renderIcon(this.icon, { size: 20 })}</span>`
           : nothing
       }
-      <p class="lintje-kpi__label">${this.label}</p>
+      ${renderHeading(this.level, 'lintje-kpi__label', this.label)}
       ${this.body(figures, primary)}
     </div>`
   }

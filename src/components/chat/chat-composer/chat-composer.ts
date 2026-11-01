@@ -37,7 +37,7 @@ import '../../content/attachment/attachment'
 import '../../inputs/multiselect/multiselect'
 import '../../inputs/radio-group/radio-group'
 import type { LintjeMultiselect } from '../../inputs/multiselect/multiselect'
-import { completions, recogniseTerms, wordBefore } from '../shared/chat-terms'
+import { completions, recogniseTerms, termWords, wordBefore } from '../shared/chat-terms'
 import {
   carriesFiles,
   dropText,
@@ -662,8 +662,8 @@ export class LintjeChatComposer extends LintjeElement {
     const heard = terms
       .map((term) => {
         const word = this.draft.slice(term.start, term.end)
-        const kind = [term.kind, term.certain === false ? 'niet zeker' : ''].filter(Boolean)
-        return kind.length ? `${word} (${kind.join(', ')})` : word
+        const words = termWords(term)
+        return words ? `${word} (${words})` : word
       })
       .join(', ')
     return html`<div class="lintje-chat-composer lintje-chat-composer--${this.variant}">
@@ -785,6 +785,7 @@ export class LintjeChatComposer extends LintjeElement {
     if (!this.takesFiles || !all.length) return nothing
     return html`<ul
       class="lintje-chat-composer__attachments"
+      role="list"
       aria-label="Bijlagen bij je vraag"
       @lintje-file-remove=${this.onChipEvent}
       @lintje-file-cancel=${this.onChipEvent}

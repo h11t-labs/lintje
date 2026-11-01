@@ -188,6 +188,7 @@ const copy = $('copy')
 const label = $('label')
 const nothing = $('nothing')
 translator.value = SAMPLE
+translator.sourceLang = from.value
 
 let timer = 0
 let wanted = ''
@@ -272,6 +273,7 @@ $('sample').addEventListener('click', () => {
 function setLanguages(source, target) {
   from.value = docFrom.value = source
   to.value = docTo.value = target
+  translator.sourceLang = source
   setParam('van', source === 'en' ? null : source)
   setParam('naar', target === 'nl' ? null : target)
 }
@@ -475,6 +477,7 @@ const textRow = (item) => ({
   id: item.id,
   icon: 'communicatie-tekstballon-met-potlood',
   title: item.text,
+  lang: item.source,
   sub: `${languageName(item.source)} → ${languageName(item.target)} · ${item.text.length} tekens`,
   meta: item.when,
   group: item.group,
@@ -557,6 +560,7 @@ const search = $('search')
 const textResult = (item) => ({
   id: item.id,
   label: item.text,
+  lang: item.source,
   meta: `Tekst · ${languageName(item.source)} → ${languageName(item.target)} · ${item.when}`,
   href: hrefWith('view', null, { tab: null, tekst: item.id }),
 })

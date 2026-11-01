@@ -341,6 +341,7 @@ export default {
           note:
             'De actieve pagina is gemarkeerd en rechts in de balk staan zoeken, ' +
             'meldingen en de gebruiker. Een klik op een pagina maakt die actief.',
+          frame: 'page',
           html: `<lintje-shell>
             <lintje-page-header slot="header">
               <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
@@ -580,6 +581,7 @@ export default {
           note:
             'Naast de pagina is de voet van het menu de knop van het gebruikersmenu. ' +
             'Het menu opent erboven: de naam met “Afmelden” ernaast, de rijen van de host en de versie.',
+          frame: 'page',
           html: `<lintje-shell>
             <lintje-page-header slot="header"></lintje-page-header>
             <p>Klik op de naam onderaan het menu.</p>
@@ -603,6 +605,7 @@ export default {
           note:
             'Klik op “Beheer” of wijs het aan. Buiten productie toont de balk de ' +
             'omgeving, hier Acceptatie.',
+          frame: 'page',
           html: `<lintje-shell>
             <lintje-page-header slot="header"></lintje-page-header>
             <p>Het submenu ligt over de pagina; Escape of een klik hierbuiten sluit het.</p>
@@ -634,6 +637,7 @@ export default {
         {
           label: 'Weergave en delen',
           note: '“Weergave” en “Delen” zijn de instellingen van de lezer; de host bewaart ze.',
+          frame: 'page',
           html: `<lintje-shell>
             <lintje-page-header slot="header"></lintje-page-header>
             <p>Een keuze in “Weergave” stuurt <code>lintje-view-change</code>; de host bewaart hem en geeft hem terug in <code>view</code>.</p>
@@ -660,6 +664,7 @@ export default {
         {
           label: 'Met een hero',
           note: 'De hero in het slot `full` loopt van rand tot rand; de inhoud blijft in de kolom.',
+          frame: 'page',
           html: `<lintje-shell>
             <lintje-hero slot="full" heading="Wat wil je vertalen?" description="Typ een tekst, upload een document of voer een live gesprek."></lintje-hero>
             <p>De inhoud staat onder de hero, in de kolom van hoogstens 1280 px.</p>
@@ -673,6 +678,7 @@ export default {
         {
           label: 'Zonder de onderdelen rechts',
           note: 'De balk heeft geen zoeken, meldingen of gebruiker. Een lange naam wordt afgekapt.',
+          frame: 'page',
           html: '<lintje-shell><p>Een app zonder de onderdelen rechts in de balk.</p></lintje-shell>',
           setup(stage) {
             const shell = stage.querySelector('lintje-shell')
@@ -687,11 +693,14 @@ export default {
           { label: 'Voet in de rail met een foto', menu: 'unpinned', user: USER_PHOTO },
         ].map(({ label, menu, user }) => ({
           label,
+          // The foot of the menu beside the page as from 1440 px, at any window.
+          frameWidth: 1440,
           note:
-            menu === 'pinned'
+            (menu === 'pinned'
               ? 'Vanaf 1440 px: het rondje zo hoog als naam en functie samen. Smaller is het de rail.'
               : 'Alleen het rondje, midden in de rail. Wijs de rail aan: hij klapt uit en naam en ' +
-                'functie vervagen in.',
+                'functie vervagen in.') + ' Het kader tekent de schil op 1440 px, verkleind tot de kolom.',
+          frame: 'page',
           html: `<lintje-shell>
             <lintje-page-header slot="header"></lintje-page-header>
             <p>De gebruiker staat onderaan het menu.</p>
@@ -1071,6 +1080,41 @@ export default {
             const menu = stage.querySelector('lintje-user-menu')
             menu.user = USER_PHOTO
             menu.items = USER_MENU
+          },
+        },
+        {
+          label: 'Met een vinkje en een keuze',
+          note:
+            'Een rij met `checked` toont het vinkje en zegt of ze aan staat; met `radio` is ze één ' +
+            'keuze uit haar groep, met het rondje.',
+          html: `<span style="${BAR}"><lintje-user-menu version="2.4.1" open></lintje-user-menu></span>`,
+          setup(stage) {
+            const menu = stage.querySelector('lintje-user-menu')
+            // Room under the open menu, so it does not lie over the next specimen.
+            stage.style.minHeight = '440px'
+            menu.user = USER
+            menu.items = [
+              { value: 'compact', label: 'Compacte weergave', checked: true },
+              { value: 'hulp', label: 'Hulpteksten tonen', checked: false },
+              { heading: 'Taal' },
+              { value: 'nl', label: 'Nederlands', checked: true, radio: true },
+              { value: 'en', label: 'Engels', checked: false, radio: true },
+            ]
+          },
+        },
+        {
+          label: 'Vinkje en keuze op een telefoon',
+          note: 'Met `inline` is het menu geen menu: een vinkje is dan een selectievakje en een keuze een keuzerondje.',
+          html: `<div style="background: var(--color-nav-bg); max-width: 360px"><lintje-user-menu inline version="2.4.1"></lintje-user-menu></div>`,
+          setup(stage) {
+            const menu = stage.querySelector('lintje-user-menu')
+            menu.user = USER
+            menu.items = [
+              { value: 'compact', label: 'Compacte weergave', checked: true },
+              { value: 'hulp', label: 'Hulpteksten tonen', checked: false },
+              { value: 'nl', label: 'Nederlands', checked: true, radio: true },
+              { value: 'en', label: 'Engels', checked: false, radio: true },
+            ]
           },
         },
       ],

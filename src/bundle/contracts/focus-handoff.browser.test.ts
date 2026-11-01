@@ -828,6 +828,8 @@ const INPUT_ROWS: Row[] = [
       await (group as unknown as Updating).updateComplete
       inside(group, '.lintje-checkbox-group__other', 'input')!.click()
       const field = (): HTMLElement | null => inside(group, '[data-other]', 'input')
+      await expect.poll(field).toBeTruthy()
+      field()!.focus()
       await expect.poll(() => active() === field()).toBe(true)
       form.reset()
       return () => inside(group, '.lintje-checkbox-group__other', 'input')

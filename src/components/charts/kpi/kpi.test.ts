@@ -26,6 +26,7 @@ interface Kpi extends HTMLElement {
   state: KpiState
   emphasis: 'equal' | 'primary'
   items?: { value: string; period?: string }[]
+  level?: number
   updateComplete: Promise<unknown>
 }
 
@@ -43,6 +44,38 @@ function details(element: Kpi): string[] {
     (node) => node.textContent?.trim() ?? '',
   )
 }
+
+describe('lintje-kpi label', () => {
+  it('is a heading, h3 as a tile title, at the level the host asks', async () => {
+    const plain = await kpi({ value: '12 min' })
+    const heading = plain.renderRoot.querySelector('.lintje-kpi__label')!
+    expect(heading.localName).toBe('h3')
+    expect(heading.textContent).toBe('Gemiddelde wachttijd')
+    const deeper = await kpi({ value: '12 min', level: 4 })
+    expect(deeper.renderRoot.querySelector('.lintje-kpi__label')!.localName).toBe('h4')
+  })
+
+  it('takes the level of its row, for a row that stands deeper', async () => {
+    const row = document.createElement('lintje-kpi-row')
+    row.data = {
+      kpis: [
+        { label: 'Aanvragen', value: '148' },
+        { label: 'Bezwaren', value: '12' },
+      ],
+    }
+    document.body.append(row)
+    await row.updateComplete
+    const levels = async () => {
+      const kpis = [...row.shadowRoot!.querySelectorAll('lintje-kpi')]
+      await Promise.all(kpis.map((child) => child.updateComplete))
+      return kpis.map((child) => child.shadowRoot!.querySelector('.lintje-kpi__label')!.localName)
+    }
+    expect(await levels()).toEqual(['h3', 'h3'])
+    row.level = 4
+    await row.updateComplete
+    expect(await levels()).toEqual(['h4', 'h4'])
+  })
+})
 
 describe('lintje-kpi detail', () => {
   it('receives message and lastKnown through a KPI row', async () => {

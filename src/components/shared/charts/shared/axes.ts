@@ -154,7 +154,7 @@ export function renderLegend({
     ${item.count === undefined ? nothing : html`<span class="lintje-legend__count">${item.count}</span>`}
   `
   return html`
-    <ul class="lintje-legend lintje-legend--${position}">
+    <ul class="lintje-legend lintje-legend--${position}" role="list">
       ${items.map(
         (item) => html`
         <li class="lintje-legend__item ${item.hidden ? 'is-hidden' : ''}"

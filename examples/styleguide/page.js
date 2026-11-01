@@ -546,6 +546,7 @@ export function renderElementPage(host, item, context) {
       let about
       if (declaration.description) {
         about = document.createElement('lintje-code')
+        about.lang = 'en'
         about.language = 'js'
         about.label = 'Kopcommentaar'
         about.text = `/**\n${declaration.description
