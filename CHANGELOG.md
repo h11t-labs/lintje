@@ -11,6 +11,23 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.12.1] - 2026-11-01
+
+### Toegevoegd
+
+- Specimens voor de open lijst van het rijtje personen, een accordeon met alle rijen open, een accordeonrij met acties en de voet van het zijmenu met een lange naam, en rijen in het afdruk- en het afkapcontract voor de accordeon en de voet. (#278)
+
+### Gewijzigd
+
+- De ontwikkelafhankelijkheden zijn bij: happy-dom 21 (laadt standaard geen CSS-bestanden en iframes meer), oxfmt 0.75, oxlint 1.90, Vitest 5.0.5, Vite 8.3.5, Playwright 1.64.1 (het CI-image gaat mee) en dagre 3.1.3. Vervangt #322. (#327)
+- `lintje-sortable-list`: een rij die met een tik op een andere greep of met een pijltoets verhuist, schuift kort naar haar nieuwe plaats en blijft opgetild tot ze ligt; onder verminderde beweging staat ze er meteen. Escape tijdens het slepen zet alle rijen terug en meldt niets. (#281)
+
+### Opgelost
+
+- Een druk op de balk van `lintje-range`, de druk die een opgetilde verdeling van `lintje-split-pane` neerzet, een tik op een greep van `lintje-sortable-list` terwijl een rij in de hand is en een aanvulling in `lintje-chat-composer` handelen pas bij het loslaten op hetzelfde doel; loslaten ernaast of een `pointercancel` laat alles staan zoals het was. (#281)
+- Een accordeon waarvan alle rijen bij het laden openstaan, tekent zich één keer in plaats van twee, en de link zegt meteen "Alles sluiten". (#278)
+- Een tabel waarvan `data` nog geen `columns` heeft, tekent zijn laad-, lege of foutstaat en gooit geen `TypeError` meer; ook de CSV-download zonder `columns` gooit niet. (#276)
+
 ## [0.12.0] - 2026-10-31
 
 ### Toegevoegd
@@ -733,7 +750,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.12.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.12.1...HEAD
+[0.12.1]: https://github.com/h11t-labs/lintje/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/h11t-labs/lintje/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/h11t-labs/lintje/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/h11t-labs/lintje/compare/v0.9.3...v0.10.0
