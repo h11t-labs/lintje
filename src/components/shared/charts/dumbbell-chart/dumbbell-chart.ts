@@ -268,21 +268,7 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
     }
   }
   const keys = plotKeys(controller, rows.length, at)
-  const showRow = (event: MouseEvent, i: number) => {
-    const drawing = (event.currentTarget as SVGElement).ownerSVGElement
-    const anchor = drawing?.closest('[data-tooltip-anchor]')
-    if (!drawing || !anchor) return
-    const box = drawing.getBoundingClientRect()
-    const left = box.left - anchor.getBoundingClientRect().left
-    const point = at(i)
-    controller.hoverIndex = i
-    controller.showTooltipAt(
-      left + point.x,
-      box.top - anchor.getBoundingClientRect().top + point.y,
-      point.content,
-      left + point.flip!,
-    )
-  }
+  const showRow = (event: MouseEvent, i: number) => keys.point(event, i)
 
   const norm =
     threshold != null && threshold >= min && threshold <= max
@@ -314,7 +300,7 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
     ),
     svg`<text x=${width} y=${HEAD - 9} text-anchor="end" class="lintje-chart__axis-label">Verschil</text>`,
     norm,
-    svg`<g @mouseleave=${() => controller.hoverAt(null)}>${rows.map((item, i) => {
+    svg`<g @mouseleave=${keys.leave}>${rows.map((item, i) => {
       const { from, to } = points[i]
       const top = HEAD + i * row
       const cy = centreOf(i)

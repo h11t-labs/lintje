@@ -605,25 +605,9 @@ function renderDrawing(
   }
   const keys = plotKeys(controller, stops.length, at)
 
-  // The pointer stands the tooltip where the keyboard would, beside the mark, not the pointer;
-  // so does the focus on a mark.
-  const point = (event: Event, i: number) => {
-    if (controller.hoverIndex === i && controller.tooltip && !controller.status) return
-    const drawing = (event.currentTarget as Element).closest('svg')
-    const anchor = drawing?.closest('[data-tooltip-anchor]')
-    if (!drawing || !anchor) return
-    const box = drawing.getBoundingClientRect()
-    const origin = anchor.getBoundingClientRect()
-    const place = at(i)
-    controller.hoverIndex = i
-    controller.status = ''
-    controller.showTooltipAt(
-      box.left - origin.left + place.x,
-      box.top - origin.top + place.y,
-      place.content,
-      place.side,
-    )
-  }
+  // The pointer and the focus on a mark stand the tooltip where the keyboard would.
+  const point = (event: Event, i: number) => keys.point(event, i)
+  const focusOn = (event: Event, i: number) => keys.point(event, i, true)
 
   /* States */
 
@@ -669,7 +653,7 @@ function renderDrawing(
               data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
               aria-pressed=${mark.pressed} aria-label=${mark.label}
               @click=${mark.click} @keydown=${mark.keydown}
-              @focus=${mark.clickable ? (event: FocusEvent) => i != null && point(event, i) : nothing}
+              @focus=${mark.clickable ? (event: FocusEvent) => i != null && focusOn(event, i) : nothing}
               @blur=${mark.clickable ? () => controller.hoverAt(null) : nothing} />
         ${
           band.thickness < MIN_HIT
@@ -711,7 +695,7 @@ function renderDrawing(
                         data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
                         aria-pressed=${mark.pressed} aria-label=${mark.label}
                         @click=${mark.click} @keydown=${mark.keydown}
-                        @focus=${mark.clickable ? (event: FocusEvent) => i != null && point(event, i) : nothing}
+                        @focus=${mark.clickable ? (event: FocusEvent) => i != null && focusOn(event, i) : nothing}
                         @blur=${mark.clickable ? () => controller.hoverAt(null) : nothing} />`
             : nothing
         }
@@ -754,7 +738,7 @@ function renderDrawing(
             aria-pressed=${mark.pressed} aria-label=${spoken}
             @click=${mark.click} @keydown=${mark.keydown}
             @mousemove=${(event: MouseEvent) => i != null && point(event, i)}
-            @focus=${(event: FocusEvent) => i != null && point(event, i)}
+            @focus=${(event: FocusEvent) => i != null && focusOn(event, i)}
             @blur=${() => controller.hoverAt(null)}>
           <rect class="lintje-sankey__label-box" x=${first ? x + LABEL_GAP - boxWidth : x - LABEL_GAP}
                 y=${middle - Math.max(boxHeight, NODE_TARGET) / 2} width=${boxWidth}
@@ -783,7 +767,7 @@ function renderDrawing(
 
   const body: SvgSlot = [
     stepNames,
-    svg`<g @mouseleave=${() => controller.hoverAt(null)}>${transitions}${nodes}</g>`,
+    svg`<g @mouseleave=${keys.leave}>${transitions}${nodes}</g>`,
     labels,
   ]
 

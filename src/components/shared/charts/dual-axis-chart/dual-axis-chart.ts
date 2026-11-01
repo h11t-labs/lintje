@@ -252,8 +252,8 @@ export function renderDualAxisChart(spec: DualAxisSpec, options: ChartOptions): 
             return svg`
               <rect x=${slot.x} y=${area.top} width=${slot.bandWidth} height=${baseline - area.top}
                     fill="transparent"
-                    @mousemove=${(event: MouseEvent) => controller.hoverAt(i, event, contentAt(i))}
-                    @mouseleave=${() => controller.hoverAt(null)} />
+                    @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+                    @mouseleave=${keys.leave} />
             `
           })}
         </svg>

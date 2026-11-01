@@ -126,8 +126,8 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
     return svg`
       <g class="lintje-chart__bar-group ${controller.hoverIndex === i ? 'is-hovered' : ''}"
          ${styleProps(staggerStyle(i, labels.length))}
-         @mousemove=${(event: MouseEvent) => controller.showTooltip(event, contentAt(i))}
-         @mouseleave=${() => controller.hideTooltip()}>
+         @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+         @mouseleave=${keys.leave}>
         <!-- The hit area under the whole column, so the tooltip also follows the empty
              space above the stack. It lies *under* the segments: on top it swallowed
              every click on a segment that drills. -->

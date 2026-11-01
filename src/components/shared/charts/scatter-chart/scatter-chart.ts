@@ -250,8 +250,8 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
   }
   const pointer = (event: MouseEvent) => {
     const i = pick(event)
-    if (i != null) controller.hoverAt(i, event, contentAt(i))
-    else if (controller.hoverIndex != null || controller.tooltip) controller.hoverAt(null)
+    if (i != null) keys.point(event, i)
+    else if (controller.hoverIndex != null || controller.tooltip) keys.leave()
   }
   const click = (event: MouseEvent) => {
     const i = pick(event)
@@ -277,7 +277,7 @@ export function renderScatterChart(spec: ScatterSpec, options: ChartOptions): Te
       `
       : nothing,
 
-    svg`<g @mousemove=${pointer} @mouseleave=${() => controller.hoverAt(null)} @click=${click} @auxclick=${click}>
+    svg`<g @mousemove=${pointer} @mouseleave=${keys.leave} @click=${click} @auxclick=${click}>
       <rect class="lintje-chart__hit ${pointing ? 'is-clickable' : ''}"
             x="0" y="0" width=${area.width} height=${area.height} />
       <g>

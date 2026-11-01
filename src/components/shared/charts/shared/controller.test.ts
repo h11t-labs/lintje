@@ -1,5 +1,5 @@
 /**
- * The height a chart measures for itself (`npm test`).
+ * The height a chart measures for itself (`npm test`), and how the pointer's tooltip waits.
  *
  * The arithmetic only: a chart element that reports a height and a token, and
  * what the controller makes of it. `fit` is the difference between the two
@@ -11,7 +11,7 @@
  * the controller reads, not a rendering, that is under test.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ChartController } from './controller'
+import { ChartController, POINTER_GRACE } from './controller'
 
 /** An element that is `height` px tall and carries `--chart-h-main`. */
 function chartElement(height: number, token: string): HTMLElement {
@@ -83,5 +83,54 @@ describe('ChartController height', () => {
     controller.height = 100
     controller.attach(element)
     expect(controller.height).toBe(120)
+  })
+})
+
+describe('ChartController and the pointer', () => {
+  const content = (title: string) => ({ title, rows: [] })
+  const shown = (controller: ChartController) => controller.tooltip?.content.title
+
+  function pointer() {
+    const controller = new ChartController(() => {})
+    const show = (title: string) => () => controller.showTooltipAt(0, 0, content(title))
+    return { controller, show }
+  }
+
+  it('shows the first mark at once, and keeps it while the pointer crosses a neighbour', () => {
+    vi.useFakeTimers()
+    const { controller, show } = pointer()
+    controller.pointTo(1, show('di'))
+    expect(shown(controller)).toBe('di')
+    // On its way to the tooltip the pointer crosses Wednesday, then reaches the tooltip.
+    controller.pointTo(2, show('wo'))
+    expect(shown(controller)).toBe('di')
+    controller.enterTooltip()
+    vi.advanceTimersByTime(POINTER_GRACE * 2)
+    expect(shown(controller)).toBe('di')
+    vi.useRealTimers()
+  })
+
+  it('follows a pointer that rests on another mark', () => {
+    vi.useFakeTimers()
+    const { controller, show } = pointer()
+    controller.pointTo(1, show('di'))
+    controller.pointTo(2, show('wo'))
+    vi.advanceTimersByTime(POINTER_GRACE)
+    expect(shown(controller)).toBe('wo')
+    vi.useRealTimers()
+  })
+
+  it('goes once the pointer has left the marks and the tooltip', () => {
+    vi.useFakeTimers()
+    const { controller, show } = pointer()
+    controller.pointTo(1, show('di'))
+    controller.pointerLeft()
+    controller.enterTooltip()
+    vi.advanceTimersByTime(POINTER_GRACE * 2)
+    expect(shown(controller)).toBe('di')
+    controller.leaveTooltip()
+    vi.advanceTimersByTime(POINTER_GRACE)
+    expect(shown(controller)).toBeUndefined()
+    vi.useRealTimers()
   })
 })

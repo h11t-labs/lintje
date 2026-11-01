@@ -214,15 +214,8 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
                 data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
                 aria-pressed=${mark.pressed} aria-label=${mark.label}
                 @click=${mark.click} @auxclick=${mark.click} @keydown=${mark.keydown}
-                @mousemove=${(event: MouseEvent) => {
-                  controller.hoverIndex = i
-                  controller.showTooltip(event, contentAt(i))
-                }}
-                @mouseleave=${() => {
-                  controller.hoverIndex = null
-                  controller.hideTooltip()
-                  controller.requestUpdate()
-                }} />
+                @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+                @mouseleave=${keys.leave} />
         `
         })}
         </g>
