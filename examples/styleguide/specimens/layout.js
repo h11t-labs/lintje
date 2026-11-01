@@ -330,6 +330,26 @@ export default {
           note: 'Met `toggle-all` staat er een tekstlink boven de rijen; die wordt “Alles sluiten” zodra alles open staat.',
           html: `<lintje-accordion toggle-all>${FAQ}</lintje-accordion>`,
         },
+        {
+          label: 'Alles open',
+          note: 'Staat elke rij open, dan zegt de tekstlink “Alles sluiten”.',
+          html: `<lintje-accordion toggle-all>${FAQ.replaceAll('<lintje-expander heading=', '<lintje-expander open heading=')}</lintje-accordion>`,
+        },
+        {
+          label: 'Rij met acties',
+          note: 'Het slot `actions` van een rij zet knoppen naast de titel, buiten de knop van de titel.',
+          html: `<lintje-accordion>
+            <lintje-expander heading="Samenvatting" subtitle="AI-bewerking · 09:31" open>
+              <lintje-icon-button slot="actions" icon="functioneel-refresh" label="Samenvatting opnieuw maken" variant="flat"></lintje-icon-button>
+              <lintje-icon-button slot="actions" icon="functioneel-kruis" label="Samenvatting verbergen" variant="flat"></lintje-icon-button>
+              <lintje-prose text="De ochtenddienst begint maandag om zes uur; de roostermaker is nog niet ingelicht."></lintje-prose>
+            </lintje-expander>
+            <lintje-expander heading="Actiepunten">
+              <lintje-icon-button slot="actions" icon="functioneel-refresh" label="Actiepunten opnieuw maken" variant="flat"></lintje-icon-button>
+              <lintje-prose text="Drie acties zijn verdeeld; de planning van oktober staat bovenaan."></lintje-prose>
+            </lintje-expander>
+          </lintje-accordion>`,
+        },
       ],
     },
     {
