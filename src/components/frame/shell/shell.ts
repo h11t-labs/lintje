@@ -660,9 +660,18 @@ export class LintjeShell extends LintjeElement {
 
   /* --- Skip link -------------------------------------------------------- */
 
-  /** The main region lies under the bars that stay; the page scrolls it up to just below them. */
+  /** The skip link's click: the browser does not follow its hash into the shadow root. */
   skipToContent(event: Event): void {
     event.preventDefault()
+    this.focusContent()
+  }
+
+  /**
+   * Puts the focus on the shell's `<main>` and scrolls it up to just below the bars that stay, as
+   * the skip link does. For a host that routes itself: call it once the new page is drawn, so the
+   * keyboard and a screen reader start at its content instead of at `body`.
+   */
+  focusContent(): void {
     const target = this.renderRoot.querySelector<HTMLElement>(`#${MAIN_ID}`)
     if (!target) return
     target.focus({ preventScroll: true })
