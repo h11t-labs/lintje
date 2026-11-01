@@ -1,5 +1,6 @@
 /**
- * Keeps the keyboard inside an open dialog and gives the focus back to its opener.
+ * Keeps the keyboard inside an open dialog and gives the focus back to its opener; when the opener
+ * is gone, to the page's content.
  *
  * Focusables are counted at key time, through the composed tree (slots and shadow roots), and
  * skip anything not rendered or `visibility: hidden`. Traps stack: only the topmost acts, so
@@ -7,21 +8,10 @@
  * `ownsEscape(this)` (`core/focus.ts`, re-exported here).
  */
 
-import { deepActiveElement, standsIn } from '../../core/focus'
+import { deepActiveElement, focusTarget, standsIn, tabbables } from '../../core/focus'
 
 export { deepActiveElement, modalAround, ownsEscape } from '../../core/focus'
-
-const FOCUSABLE = [
-  'a[href]',
-  'area[href]',
-  'button:not([disabled])',
-  'input:not([disabled]):not([type="hidden"])',
-  'select:not([disabled])',
-  'textarea:not([disabled])',
-  'iframe',
-  '[contenteditable]:not([contenteditable="false"])',
-  '[tabindex]',
-].join(',')
+export { focusTarget, stopAfter, tabbables } from '../../core/focus'
 
 /** Whether `node` stands inside `container` in the composed tree, slotted content included. */
 function composedContains(container: Element, node: Node | null): boolean {
@@ -35,42 +25,66 @@ function composedContains(container: Element, node: Node | null): boolean {
   return false
 }
 
-function isTabbable(element: HTMLElement): boolean {
-  if (!element.matches(FOCUSABLE) || element.tabIndex < 0) return false
-  // `visibilityProperty`: a closed disclosure is rendered but `visibility: hidden`.
-  return typeof element.checkVisibility === 'function'
-    ? element.checkVisibility({ visibilityProperty: true })
-    : true
+/**
+ * The stops Tab really makes: a group of radio buttons is one, its checked button or else its
+ * first, as the browser steps.
+ */
+function radioStops(list: HTMLElement[]): HTMLElement[] {
+  const isRadio = (element: HTMLElement): element is HTMLInputElement =>
+    element instanceof HTMLInputElement && element.type === 'radio' && element.name !== ''
+  return list.filter((element) => {
+    if (!isRadio(element)) return true
+    const group = list
+      .filter(isRadio)
+      .filter(
+        (other) =>
+          other.name === element.name &&
+          other.form === element.form &&
+          other.getRootNode() === element.getRootNode(),
+      )
+    return (group.find((radio) => radio.checked) ?? group[0]) === element
+  })
 }
 
-/** Every element under `root` that Tab stops on, in composed-tree order. */
-export function tabbables(root: ParentNode): HTMLElement[] {
-  const found: HTMLElement[] = []
-  const visit = (element: Element): void => {
-    if (element.hasAttribute('inert') || element.hasAttribute('hidden')) return
-    if (element instanceof HTMLElement && isTabbable(element)) found.push(element)
-    const children =
-      element instanceof HTMLSlotElement
-        ? element.assignedElements({ flatten: true })
-        : Array.from((element.shadowRoot ?? element).children)
-    for (const child of children) visit(child)
+/** A box that scrolls with nothing to focus in it: Chromium and Firefox stop Tab on it too. */
+function scrollStop(element: HTMLElement): boolean {
+  if (element.hasAttribute('tabindex')) return false
+  const tall = element.scrollHeight > element.clientHeight
+  const wide = element.scrollWidth > element.clientWidth
+  if (!tall && !wide) return false
+  const style = getComputedStyle(element)
+  const scrolls = (value: string): boolean => value === 'auto' || value === 'scroll'
+  if (!(tall && scrolls(style.overflowY)) && !(wide && scrolls(style.overflowX))) return false
+  return tabbables(element.shadowRoot ?? element).length === 0
+}
+
+/** The stops of the window in Tab's order: its controls, a scroller, a radio group as one. */
+const stops = (container: HTMLElement): HTMLElement[] =>
+  radioStops(tabbables(container, scrollStop))
+
+/** Focuses the first of `list` that takes it: a scroller does not in WebKit. */
+function focusOneOf(list: HTMLElement[]): void {
+  for (const stop of list) {
+    stop.focus()
+    if (deepActiveElement() === stop) return
   }
-  for (const child of Array.from(root.children)) visit(child)
-  return found
 }
 
-/** The first stop after `element` in the document that is not inside `skip`. */
-export function stopAfter(element: HTMLElement, skip: Node): HTMLElement | null {
-  const order = tabbables(document.body)
-  const at = order.indexOf(element)
-  if (at < 0) return null
-  return order.slice(at + 1).find((stop) => !standsIn(stop, skip)) ?? null
-}
-
-/** The element itself when Tab stops on it, else its first stop (through its shadow root). */
-export function focusTarget(element: HTMLElement): HTMLElement {
-  if (isTabbable(element)) return element
-  return tabbables(element.shadowRoot ?? element)[0] ?? element
+/**
+ * The page's content, where the focus goes when the opener has left: the shell's `focusContent()`,
+ * as its skip link, else the nearest `<main>` from `from` outwards.
+ */
+function focusContent(from: Node): void {
+  const shell = document.querySelector('lintje-shell') as
+    | (HTMLElement & { focusContent?: () => void })
+    | null
+  if (typeof shell?.focusContent === 'function') return shell.focusContent()
+  for (let root = from.getRootNode(); ;) {
+    const main = (root as ParentNode).querySelector?.<HTMLElement>('main')
+    if (main) return main.focus()
+    if (!(root instanceof ShadowRoot)) return
+    root = root.host.getRootNode()
+  }
 }
 
 /** The active traps, oldest first. */
@@ -79,37 +93,48 @@ const stack: FocusTrap[] = []
 export class FocusTrap {
   #container: HTMLElement | null = null
   #opener: HTMLElement | null = null
+  /** A Tab the browser takes, left to it: a step out of the window wraps around instead. */
+  #stepping: 'forward' | 'back' | null = null
 
   isTopmost(): boolean {
     return this.#container !== null && stack[stack.length - 1] === this
   }
 
+  // Only the real first and last stops wrap: from anything else inside, the browser takes the
+  // step, as from a radio button or a scroller it made a stop.
   readonly #onKeyDown = (event: KeyboardEvent): void => {
     const container = this.#container
     if (event.key !== 'Tab' || !container?.isConnected || !this.isTopmost()) return
-    const list = tabbables(container)
+    const list = stops(container)
     if (list.length === 0) {
       event.preventDefault()
       container.focus()
       return
     }
-    const index = list.indexOf(deepActiveElement() as HTMLElement)
-    const first = list[0] as HTMLElement
-    const last = list[list.length - 1] as HTMLElement
-    if (event.shiftKey && index <= 0) {
+    const active = deepActiveElement()
+    const inside = active !== null && standsIn(active, container)
+    if (event.shiftKey && (!inside || active === container || active === list[0])) {
       event.preventDefault()
-      last.focus()
-    } else if (!event.shiftKey && (index === -1 || index === list.length - 1)) {
+      focusOneOf([...list].reverse())
+    } else if (!event.shiftKey && (!inside || active === list[list.length - 1])) {
       event.preventDefault()
-      first.focus()
+      focusOneOf(list)
+    } else {
+      this.#stepping = event.shiftKey ? 'back' : 'forward'
+      requestAnimationFrame(() => (this.#stepping = null))
     }
   }
 
   readonly #onFocusIn = (): void => {
     const container = this.#container
     if (!container?.isConnected || !this.isTopmost()) return
+    const stepping = this.#stepping
+    this.#stepping = null
     if (composedContains(container, deepActiveElement())) return
-    container.focus()
+    // A stop the trap does not know made the browser step out: around, as from the end.
+    if (stepping)
+      focusOneOf(stepping === 'back' ? [...stops(container)].reverse() : stops(container))
+    else container.focus()
   }
 
   /**
@@ -128,9 +153,13 @@ export class FocusTrap {
     else if (focus) container.focus()
   }
 
-  /** Stops and, unless `restore` is false, refocuses the opener. May leave from mid-stack. */
+  /**
+   * Stops and, unless `restore` is false, refocuses the opener; when that does not take the focus
+   * (removed, hidden, disabled), the page's content does. May leave from mid-stack.
+   */
   deactivate(restore: boolean = true): void {
-    if (!this.#container) return
+    const container = this.#container
+    if (!container) return
     document.removeEventListener('keydown', this.#onKeyDown)
     document.removeEventListener('focusin', this.#onFocusIn)
     const at = stack.indexOf(this)
@@ -138,6 +167,9 @@ export class FocusTrap {
     this.#container = null
     const opener = this.#opener
     this.#opener = null
-    if (restore && opener?.isConnected) opener.focus()
+    // Opened with nothing focused (`/` on the page), there is nothing to give back.
+    if (!restore || !opener || opener === document.body) return
+    if (opener.isConnected) opener.focus()
+    if (deepActiveElement() !== opener) focusContent(container)
   }
 }
