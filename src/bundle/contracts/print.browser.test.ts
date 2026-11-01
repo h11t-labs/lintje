@@ -7,6 +7,8 @@ import { commands, page } from 'vitest/browser'
 import { MOBILE } from '../../core/media'
 import '../../components/actions/button/button'
 import '../../components/actions/icon-button/icon-button'
+import '../../components/layout/accordion/accordion'
+import '../../components/layout/expander/expander'
 import '../../components/layout/tile/tile'
 import '../../components/actions/copy-button/copy-button'
 import '../../components/actions/menu-button/menu-button'
@@ -264,6 +266,29 @@ describe('what folds shut is printed open', () => {
     const { screen, paper } = await onPaper(() => getComputedStyle(body).visibility)
     expect(screen).toBe('hidden')
     expect(paper).toBe('visible')
+  })
+})
+
+describe('an accordion on paper', () => {
+  it('prints its closed rows open, without the link that opens them', async () => {
+    const accordion = await mount('lintje-accordion', (element) => {
+      element.setAttribute('toggle-all', '')
+      element.innerHTML =
+        '<lintje-expander heading="Wie kan het aanvragen?">Organisaties in Nederland.</lintje-expander>' +
+        '<lintje-expander heading="Hoe lang duurt het?">Binnen acht weken.</lintje-expander>'
+    })
+    const link = shadow(accordion, '.lintje-accordion__bar')
+    const bodies = [...accordion.children].map((row) =>
+      shadow(row, '.lintje-disclosure__body-inner'),
+    )
+    const { screen, paper } = await onPaper(() => ({
+      link: getComputedStyle(link).display,
+      bodies: bodies.map((body) => getComputedStyle(body).visibility),
+    }))
+    expect(screen.link).not.toBe('none')
+    expect(paper.link).toBe('none')
+    expect(screen.bodies).toEqual(['hidden', 'hidden'])
+    expect(paper.bodies).toEqual(['visible', 'visible'])
   })
 })
 

@@ -685,10 +685,8 @@ export class LintjeChatComposer extends LintjeElement {
                 })}
                 role="option"
                 aria-selected=${String(index === active)}
-                @mousedown=${(event: Event) => {
-                  event.preventDefault()
-                  this.complete(term)
-                }}
+                @mousedown=${(event: Event) => event.preventDefault()}
+                @click=${() => this.complete(term)}
               >
                 <span>${term.label}</span>
                 <span class="lintje-chat-composer__completion-kind">${term.kind}</span>
