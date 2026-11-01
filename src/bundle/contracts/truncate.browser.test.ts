@@ -164,6 +164,21 @@ async function tabInto(element: HTMLElement): Promise<void> {
   await userEvent.keyboard(TAB)
 }
 
+/**
+ * Tab from a field before the element until the focus stands on `target`: an element that is not
+ * the first stop in its page, as the foot of the shell's side menu.
+ */
+function tabUntil(target: (element: HTMLElement) => HTMLElement) {
+  return async (element: HTMLElement): Promise<void> => {
+    const start = Object.assign(document.createElement('input'), { ariaLabel: 'Zoeken' })
+    element.before(start)
+    start.focus()
+    for (let step = 0; step < 20 && deepActiveElement() !== target(element); step++) {
+      await userEvent.keyboard(TAB)
+    }
+  }
+}
+
 /** The arrow keys onto the second row of an open menu: the first takes the focus as it opens. */
 async function arrowToSecond(element: HTMLElement): Promise<void> {
   const target = all(element.shadowRoot!, '.lintje-menu__row')[1]!
@@ -428,6 +443,40 @@ const ROWS: Row[] = [
     focus: arrowToSecond,
     phone: (element) => reopen(element, '.lintje-user-menu__trigger'),
     room: (element) => all(element.shadowRoot!, '.lintje-menu__row')[1]!,
+  },
+  {
+    // The shell draws the foot from 768 px; below it the name stands in the open menu panel.
+    name: 'lintje-shell :: name in the side foot',
+    title: 'measured',
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-shell'), {
+          data: {
+            name: 'Vergunningen',
+            layout: 'side',
+            menu: 'pinned',
+            navigation: [{ label: 'Overzicht', href: '#overzicht', icon: 'functioneel-home' }],
+            user: { name: words, role: 'Beleidsmedewerker', initials: 'SV' },
+          },
+        }),
+      ),
+    text: (element) => shown(element, '.lintje-user-menu__trigger-name, .lintje-user-menu__name'),
+    focus: tabUntil((element) => shown(element, '.lintje-user-menu__trigger--side')),
+    // On a phone the user menu stands in the menu panel as an avatar; its name is in its sheet.
+    phone: async (element) => {
+      const shell = element as HTMLElement & { menuOpen: boolean; updateComplete: Promise<unknown> }
+      shell.menuOpen = true
+      await shell.updateComplete
+      const menus = shell.shadowRoot?.querySelectorAll<
+        HTMLElement & { open: boolean; updateComplete: Promise<unknown> }
+      >('lintje-user-menu')
+      for (const menu of menus ?? []) {
+        if (!menu.getClientRects().length) continue
+        menu.open = true
+        await menu.updateComplete
+      }
+    },
+    room: (element) => element,
   },
   {
     name: 'lintje-tree-view :: label',

@@ -854,3 +854,50 @@ describe('a compact change column', () => {
     expect(measures).toContain('▲ +4,2%')
   })
 })
+
+describe('data without columns yet', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  // A host that draws the table before the columns are known sends only what it has.
+  const early = (extra: Partial<DataTableData> = {}): DataTableData =>
+    ({ rows: [], state: 'loading', ...extra }) as unknown as DataTableData
+
+  async function mountEarly(extra: Partial<DataTableData> = {}): Promise<TableElement> {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = early(extra)
+    document.body.append(element)
+    await element.updateComplete
+    return element
+  }
+
+  it('draws the loading state and does not throw', async () => {
+    const element = await mountEarly()
+    const root = element.shadowRoot!
+    expect(root.querySelector('lintje-tile')?.getAttribute('state')).toBe('loading')
+    expect(root.querySelector('[slot="loading"]')).not.toBeNull()
+    expect(root.querySelector('.lintje-data-table__full')).toBeNull()
+  })
+
+  it('draws the table when the columns and rows come', async () => {
+    const element = await mountEarly()
+    element.data = structuredClone(data)
+    await element.updateComplete
+    expect(headerCells(element)).toHaveLength(3)
+    expect(element.shadowRoot!.querySelectorAll('.lintje-data-table__full tbody th')).toHaveLength(
+      2,
+    )
+  })
+
+  it('downloads without throwing', async () => {
+    const element = await mountEarly({ download: { filename: 'loketten' } })
+    let file: Blob | undefined
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => {
+      file = blob as Blob
+      return 'blob:loketten'
+    })
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    expect(() => (element as unknown as { csv(): void }).csv()).not.toThrow()
+    expect(file).toBeDefined()
+  })
+})
