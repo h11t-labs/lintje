@@ -1270,6 +1270,11 @@ pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.
   een curve blijft bij het uitgaan een schim staan. Het tekent nooit opnieuw in.
 - **Een keuze beweegt mee**: het vinkje van een checkbox groeit in bij aanvinken en krimpt weg bij
   uitvinken, op de duur van hoverfeedback.
+- **Een sorteerbare lijst toont zelf de nieuwe volgorde**, zonder lijn of zin erbij: bij slepen
+  schuiven de andere rijen opzij zodra de gesleepte rij er de helft van bedekt, omhoog en omlaag
+  gelijk, en bij het loslaten staat de volgorde er meteen. Met een tik of een pijltoets schuift de
+  rij kort naar haar nieuwe plaats, zodat het oog volgt, en houdt ze haar opgetilde vorm tot ze
+  ligt. Een schermlezer hoort wat er gebeurt uit een verborgen live-regio.
 - **De focusring is nooit geanimeerd.**
 - **Verminderde beweging laat niets weg, alleen de beweging.** Alleen een vervaging blijft, kort;
   al het andere, ook de focusring en een kleur, staat meteen.
@@ -1358,6 +1363,11 @@ kleinste correctie, en leg die hier vast.
 - **Een sneltoets van één teken kan uit** (`/`, `?`) met `setCharacterKeys(false)`,
   onthouden per browser, met de schakelaar in het overzicht van de sneltoetsen. Een combinatie met
   Ctrl, Alt of Cmd werkt altijd.
+- **Een klik of tik handelt bij het loslaten op hetzelfde doel** (2.5.2): bij het indrukken
+  onthoudt een element alleen waar gedrukt is, en houdt het zo nodig de focus vast. Loslaten
+  naast het doel of een `pointercancel` (een vinger die gaat scrollen) breekt af en laat alles
+  staan zoals het was; een opgetilde verdeling of een rij in de hand blijft opgetild. Een sleep
+  telt bij het loslaten.
 - **De popup van een veld sluit als de focus het veld verlaat**, zodat hij nooit het volgende veld
   bedekt; gesloten met Escape of met zijn eigen actie, geeft hij de focus terug aan het veld.
 - De optie waarop de toetsen van een lijst staan (`aria-activedescendant`), draagt de focusring
