@@ -51,6 +51,27 @@ const clock = () => new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', mi
 const today = () => new Date().toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }).replace('.', '')
 const mmss = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`
 
+/* How a recording is doing, as the facts of a `lintje-cells`: the time, the sound and, on a
+   phone, the connection. The app keeps the measures and draws them again on every change; only
+   a change of connection is said. */
+const soundWord = (level) => (level < 0.05 ? 'Stil' : level < 0.2 ? 'Zacht' : 'Goed')
+const CONNECTION = { good: ['Goed', 1, 'success'], weak: ['Zwak', 0.5, 'warning'], lost: ['Verbroken', 0, 'error'] }
+const statusOf = { 'running-status': {}, 'live-status': {} }
+function setStatus(id, patch) {
+  const status = Object.assign(statusOf[id], patch)
+  const { elapsed, level, connection, delay } = status
+  const items = [
+    { label: 'Looptijd', icon: 'functioneel-klok', large: true, value: elapsed == null ? null : mmss(elapsed) },
+    { label: 'Geluid', icon: 'beeld-en-geluid-microfoon', value: level == null ? null : soundWord(level), meter: { level: level ?? null } },
+  ]
+  if (connection) {
+    const [word, share, tone] = CONNECTION[connection]
+    const behind = connection === 'lost' ? 'Wacht op verbinding' : delay == null ? undefined : `${delay} ${delay === 1 ? 'seconde' : 'seconden'} achter`
+    items.push({ label: 'Verbinding', icon: 'functioneel-smartphone', value: word, detail: behind, meter: { level: share, steps: 4, tone }, live: true })
+  }
+  $(id).items = items
+}
+
 // Named here, after the source is set, so the first draw already reads the right folder.
 // Prose draws its own `html` on the type scale; a heading in its slot would keep the browser's size.
 for (const prose of document.querySelectorAll('lintje-prose[data-heading]')) prose.html = `<h3>${prose.dataset.heading}</h3>`
@@ -588,7 +609,7 @@ setInterval(
     const level = micState === 'ok' ? (DEMO ? 0.6 : 0.3 + Math.random() * 0.6) : micState === 'stil' ? 0 : null
     $('mic-level').level = $('drawer-level').level = level
     const live = recordings.find((item) => item.state === 'live')
-    if (live) $('live-status').level = live.paused ? 0 : DEMO ? 0.6 : 0.3 + Math.random() * 0.6
+    if (live) setStatus('live-status', { level: live.paused ? 0 : DEMO ? 0.6 : 0.3 + Math.random() * 0.6 })
   },
   DEMO ? 1000 : 180,
 )
@@ -624,8 +645,12 @@ function renderStart() {
   hero.action = running ? undefined : 'Of bekijk al je opnames'
   $('running-badge').hidden = $('running').hidden = !running
   if (running) {
-    $('running-status').elapsed = running.duration
-    $('running-status').level = running.paused ? 0 : 0.35 + ((running.duration * 7) % 10) / 20
+    setStatus('running-status', {
+      elapsed: running.duration,
+      level: running.paused ? 0 : 0.35 + ((running.duration * 7) % 10) / 20,
+      connection: 'good',
+      delay: 1,
+    })
     preview.querySelector('lintje-transcript').segments = running.segments.slice(-3)
     if (!preview.isConnected) hero.append(preview)
   } else preview.remove()
@@ -1076,10 +1101,11 @@ function renderOpen() {
     $('live-where').text = item.phone
       ? 'Op je telefoon. Je leest hier mee; pauzeren en stoppen kan op beide.'
       : 'Op deze computer'
-    const status = $('live-status')
-    status.elapsed = item.duration
-    status.connection = item.phone ? 'good' : null
-    status.delay = item.phone ? 2 : null
+    setStatus('live-status', {
+      elapsed: item.duration,
+      connection: item.phone ? 'good' : null,
+      delay: item.phone ? 2 : null,
+    })
     $('live-named').hidden = !item.wasName
     $('live-name-note').text = `Naam voorgesteld uit het gesprek (was “${item.wasName}”).`
   }
