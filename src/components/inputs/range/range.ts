@@ -2,8 +2,8 @@
  * `<lintje-range>` — one track, one or two handles, over labeled steps.
  *
  * With two handles `from` and `to` are indexes into `steps`, and a change is `[from, to]`; with
- * `single`, `value` is the step itself, and a change is that step. A drag commits when the pointer
- * is let go, a key press at once.
+ * `single`, `value` is the step itself, and a change is that step. A drag or a press on the track
+ * commits when the pointer is let go, a key press at once.
  *
  * Events: `lintje-change` `[number, number] | number | string`, `lintje-values-change`
  * `{ [name]: value }` (with a `name`), `lintje-reset` (the reset link was pressed).
@@ -60,6 +60,8 @@ export class LintjeRange extends LintjeInputElement {
   trackWidth: number = 0
 
   private observer?: ResizeObserver
+  /** The step a press on the track landed on, until its click. */
+  #pressed: number | null = null
 
   override connectedCallback(): void {
     super.connectedCallback()
@@ -173,18 +175,33 @@ export class LintjeRange extends LintjeInputElement {
     return step === undefined ? '' : `${step}${this.unit ? ` ${this.unit}` : ''}`
   }
 
+  /** Whether the lower handle is the nearer one to `index`; between them, the closer one. */
+  private lowerNearer(index: number): boolean {
+    const [from, to] = this.pair
+    return index <= from || (index < to && index - from <= to - index)
+  }
+
+  // A press only remembers its step and focuses the nearer handle: a release beside the track or
+  // a finger that scrolls brings no click, and changes nothing.
   private onTrackPress(event: PointerEvent): void {
+    this.#pressed = null
     if (this.single || this.isDisabled || event.target instanceof HTMLInputElement) return
     const box = (event.currentTarget as HTMLElement).getBoundingClientRect()
     if (!box.width || this.lastIndex < 1) return
     const ratio = Math.min(1, Math.max(0, (event.clientX - box.left) / box.width))
     const index = Math.round(ratio * this.lastIndex)
-    const [from, to] = this.pair
-    const lower = index <= from || (index < to && index - from <= to - index)
-    const next: [number, number] = lower ? [index, to] : [from, index]
     event.preventDefault()
     const inputs = this.renderRoot.querySelectorAll<HTMLInputElement>('.lintje-range__input')
-    inputs[lower ? 0 : 1]?.focus()
+    inputs[this.lowerNearer(index) ? 0 : 1]?.focus()
+    this.#pressed = index
+  }
+
+  private onTrackClick(): void {
+    const index = this.#pressed
+    this.#pressed = null
+    if (index === null) return
+    const [from, to] = this.pair
+    const next: [number, number] = this.lowerNearer(index) ? [index, to] : [from, index]
     if (next[0] === from && next[1] === to) return
     this.draftPair = next
     this.commitRange(...next)
@@ -272,6 +289,8 @@ export class LintjeRange extends LintjeInputElement {
       <div
         class=${classMap({ 'lintje-range': true, 'is-error': Boolean(this.error) })}
         @pointerdown=${this.onTrackPress}
+        @pointercancel=${() => (this.#pressed = null)}
+        @click=${this.onTrackClick}
       >
         <span class="lintje-range__track"></span>
         <span
