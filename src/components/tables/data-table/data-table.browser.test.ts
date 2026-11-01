@@ -305,7 +305,7 @@ describe('the phone’s table', () => {
     rows: [{ name: 'Klantcontactcentrum Amsterdam-Zuidoost', requests: 25090, wait: 15.7 }],
   }
 
-  // A check box, a status in words and two buttons: whole words do not fit at 320 px.
+  // A check box, a status with a long word and two buttons: whole words do not fit at 320 px.
   const crowded: DataTableData = {
     caption: 'Meldingen',
     rowKey: 'title',
@@ -317,7 +317,11 @@ describe('the phone’s table', () => {
       { key: 'date', header: 'Datum' },
     ],
     rows: [
-      { title: 'Drone boven parkeerterrein P3', status: 'In behandeling', date: '01-10-2026' },
+      {
+        title: 'Drone boven parkeerterrein P3',
+        status: 'Doorgestuurd naar gemeentebelastingen',
+        date: '01-10-2026',
+      },
     ],
   }
 
