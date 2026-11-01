@@ -11,7 +11,7 @@ import type { ChartSpec } from '../shared/types'
 type BarSpec = Extract<ChartSpec, { kind: 'bar' }>
 
 /** Drawn at a width of its own: happy-dom measures every element as 0 wide. */
-function draw(spec: BarSpec, more: Partial<ChartOptions> = {}): HTMLElement {
+function draw(spec: BarSpec, more: Partial<ChartOptions> = {}, width = 600): HTMLElement {
   const host = document.createElement('div')
   document.body.append(host)
   const options: ChartOptions = {
@@ -19,7 +19,7 @@ function draw(spec: BarSpec, more: Partial<ChartOptions> = {}): HTMLElement {
     description: 'Staven.',
     ...more,
   }
-  options.controller.width = 600
+  options.controller.width = width
   render(renderBarChart(spec, options), host)
   return host
 }
@@ -183,6 +183,36 @@ describe('a forecast on the bar chart', () => {
     const bar = host.querySelectorAll('.lintje-chart__bar')[5]
     expect(bar.getAttribute('role')).toBe('button')
     expect(bar.getAttribute('aria-label')).toBe('2026 raming: 20')
+  })
+
+  it('names where measuring stops in the description of the drawing', () => {
+    expect(draw(spec).querySelector('desc')?.textContent).toBe(
+      'Staven. Gemeten tot en met 2024, daarna raming.',
+    )
+    expect(draw({ ...spec, forecastFrom: undefined }).querySelector('desc')?.textContent).toBe(
+      'Staven.',
+    )
+  })
+
+  it('gives the forecast’s word a row of its own when it does not fit right of the line', () => {
+    const eleven = Array.from({ length: 11 }, (_, i) => String(2020 + i))
+    const last: BarSpec = {
+      kind: 'bar',
+      labels: eleven,
+      values: eleven.map((_, i) => 10 + i),
+      forecastFrom: 10,
+    }
+    const host = draw(last, {}, 320)
+    const [gemeten, raming] = [...host.querySelectorAll('.lintje-chart__boundary text')]
+    const y = (text: Element) => Number(text.getAttribute('y'))
+    expect(raming.getAttribute('text-anchor')).toBe('end')
+    expect(Number(raming.getAttribute('x'))).toBe(320 - 8)
+    expect(y(raming)).toBe(y(gemeten) - 16)
+    const line = host.querySelector('.lintje-chart__boundary line')!
+    expect(y(raming)).toBeLessThan(Number(line.getAttribute('y1')))
+    // With room beside the line both words share a row, as before.
+    const [left, right] = [...draw(spec).querySelectorAll('.lintje-chart__boundary text')]
+    expect(y(right)).toBe(y(left))
   })
 
   it('keeps data labels on a forecast bar, above its margin', () => {

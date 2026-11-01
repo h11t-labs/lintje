@@ -6,7 +6,14 @@
 import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
 import { styleProps } from '../../../../core/style-props'
-import { DEFAULT_PLOT_AREA, axisColumn, axisScale, band, yPosition } from '../shared/scale'
+import {
+  DEFAULT_PLOT_AREA,
+  axisColumn,
+  axisScale,
+  band,
+  yPosition,
+  type PlotArea,
+} from '../shared/scale'
 import { formatNumber, formatDataLabel, dataLabelFits } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
 import { DEFAULT_SERIES_COLOR, chartColor, lineCasing } from '../shared/colors'
@@ -18,10 +25,12 @@ import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { LONE_POINT_RADIUS, knownRuns } from '../shared/runs'
 import {
   FORECAST_LABEL,
-  FORECAST_ROOM,
   INTERVAL_LABEL,
   boundsAt,
+  forecastDescription,
+  forecastRoom,
   forecastStart,
+  forecastWordFits,
   hasInterval,
   intervalRow,
   intervalValues,
@@ -67,9 +76,19 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
   )
   const { max, ticks } = axisScale(Math.max(...actualValues, 1))
   const axis = axisColumn(ticks, controller.width, { fontFamily: controller.fontFamily })
+  // Between the band of the last measured bar and that of the first forecast one; it does not
+  // depend on the top, which leaves the forecast's word a row of its own when it needs one.
+  const boundaryAt = (plot: PlotArea) => {
+    const first = band(from!, labels.length, plot)
+    return first.center - first.bandWidth / 2
+  }
+  const across = chartArea(options, { left: axis.width })
+  const fits =
+    from == null ||
+    forecastWordFits(boundaryAt(across), across, forecastLabel, controller.fontFamily)
   const area = chartArea(options, {
     left: axis.width,
-    ...(from != null ? { top: DEFAULT_PLOT_AREA.top + FORECAST_ROOM } : {}),
+    ...(from != null ? { top: DEFAULT_PLOT_AREA.top + forecastRoom(fits) } : {}),
   })
   // The margin of a forecast bar, clamped to the plot; none without both bounds.
   const intervalAt = (i: number) => {
@@ -109,9 +128,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
         : Math.min(yPosition(values[i]!, max, area), intervalAt(i)?.top ?? Infinity),
     content: contentAt(i),
   }))
-  // Between the band of the last measured bar and that of the first forecast one.
-  const boundary = from != null ? band(from, labels.length, area) : null
-  const boundaryX = boundary ? boundary.center - boundary.bandWidth / 2 : 0
+  const boundaryX = from != null ? boundaryAt(area) : 0
 
   // A missing value breaks the trend, as it breaks a line (rule 15).
   const trendRuns = knownRuns(trend ?? [], (value, i) => ({
@@ -224,14 +241,19 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
           max,
           area,
           axisTitle,
-          description,
+          // The drawing names where measuring stops, as the line chart does.
+          description:
+            from != null
+              ? `${description} ${forecastDescription(labels, from, forecastLabel)}`
+              : description,
           formatTick: axis.format,
           xLabels: labels.map((label, i) => ({ label, x: band(i, labels.length, area).center })),
-          underlay: boundary
-            ? svg`<rect class="lintje-chart__forecast-ground" x=${boundaryX} y=${area.top}
+          underlay:
+            from != null
+              ? svg`<rect class="lintje-chart__forecast-ground" x=${boundaryX} y=${area.top}
                         width=${Math.max(0, area.width - area.right - boundaryX)}
                         height=${Math.max(0, baseline - area.top)} />`
-            : nothing,
+              : nothing,
           interactive: selection.interactive,
           keys,
         },

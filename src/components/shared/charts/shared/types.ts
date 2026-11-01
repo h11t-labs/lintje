@@ -100,6 +100,8 @@ export type ChartSpec =
        * The index in `labels` of the first forecast point: before it everything is measured.
        * Dotted from the last measured point on, with its margin. With it `asOfIndex`, `asOfLabel`
        * and `pendingHours` do not apply. At 0 or less, or past the labels, there is no forecast.
+       * The drawing's description ends with where measuring stops: "Gemeten tot en met 2025,
+       * daarna raming."
        */
       forecastFrom?: number
       /** The word in the legend and above the forecast. Default "Raming". */
@@ -121,7 +123,8 @@ export type ChartSpec =
       links?: (ChartLink | null)[]
       /**
        * The index in `labels` of the first forecast bar: it and those after it are open. At 0 or
-       * less, or past the labels, there is no forecast.
+       * less, or past the labels, there is no forecast. The drawing's description ends with where
+       * measuring stops, as on a line.
        */
       forecastFrom?: number
       /** The margin of the forecast bars, `null` before `forecastFrom`. */

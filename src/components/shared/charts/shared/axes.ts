@@ -6,7 +6,7 @@ import { formatNumber, textWidth } from '../../../../core/format'
 import type { PlotKeys } from './plot-keys'
 import { markPath, type SeriesKey, seriesShapePath, type SeriesShape } from './series-shapes'
 import { DEFAULT_SERIES_COLOR, lineCasing } from './colors'
-import { FORECAST_ROOM } from './forecast'
+import { BOUNDARY_GAP, FORECAST_ROOM, forecastWordFits } from './forecast'
 import { renderIcon } from '../../../../icons/render'
 
 /** Anything that may go inside the `<svg>`; built with lit's `svg`, since `html` draws nothing. */
@@ -365,7 +365,10 @@ export function renderChartFrame(
   `
 }
 
-/** The boundary of a forecast: one line at `x`, "Gemeten" left of it and the forecast's word right. */
+/**
+ * The boundary of a forecast: one line at `x`, "Gemeten" left of it and the forecast's word right,
+ * or on a row of its own above when it does not fit there (`forecastWordFits`).
+ */
 export interface ForecastBoundary {
   mode: 'forecast'
   area?: PlotArea
@@ -426,8 +429,6 @@ export function renderAsOfMarker(
   `
 }
 
-const BOUNDARY_GAP = 6
-
 function renderForecastBoundary({
   area = DEFAULT_PLOT_AREA,
   x,
@@ -435,16 +436,17 @@ function renderForecastBoundary({
   fontFamily,
 }: ForecastBoundary): SVGTemplateResult {
   const y = area.top - 8
-  // A word that would run past the plot ends at its edge.
+  // A word that does not fit right of the line ends at the plot's edge, a row higher: above the
+  // line's end and clear of "Gemeten", which the chart's room above the plot leaves it.
   const right = area.width - area.right
-  const fits = x + BOUNDARY_GAP + textWidth(label, fontFamily, 700) <= right
+  const fits = forecastWordFits(x, area, label, fontFamily)
   return svg`
     <g class="lintje-chart__boundary">
       <line x1=${x} x2=${x} y1=${area.top - FORECAST_ROOM} y2=${area.height - area.bottom}
             stroke="var(--color-text-primary)" stroke-width="1.5" stroke-dasharray="4 3" />
       <text x=${x - BOUNDARY_GAP} y=${y} text-anchor="end" class="lintje-chart__axis-label">Gemeten</text>
-      <text x=${fits ? x + BOUNDARY_GAP : right} y=${y} text-anchor=${fits ? 'start' : 'end'}
-            class="lintje-chart__as-of-label">${label}</text>
+      <text x=${fits ? x + BOUNDARY_GAP : right} y=${fits ? y : y - FORECAST_ROOM}
+            text-anchor=${fits ? 'start' : 'end'} class="lintje-chart__as-of-label">${label}</text>
     </g>
   `
 }
