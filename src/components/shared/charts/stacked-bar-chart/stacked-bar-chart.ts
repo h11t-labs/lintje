@@ -1,4 +1,7 @@
-/** Stacked bars, sequential and normalized to 100 %: tints of one color, darkest at the bottom. */
+/**
+ * Stacked bars, sequential and normalized to 100 %: tints of one color, darkest at the bottom.
+ * Past five parts in the ladder the smallest fold into "Overig" (`foldStack`).
+ */
 import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
 import { styleProps } from '../../../../core/style-props'
@@ -18,6 +21,7 @@ import { layerMotion, layerWeights } from '../shared/layer-motion'
 import { markSelection } from '../shared/mark-select'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { tintSteps, tintsFor } from '../shared/tints'
+import { drawsAsOther, foldStack, isOtherPart, namesOther } from '../shared/fold'
 import type { ChartSpec } from '../shared/types'
 
 type StackedBarSpec = Extract<ChartSpec, { kind: 'stacked-bar' }>
@@ -34,12 +38,27 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
     fit: Boolean(options.expanded) && !options.mobile,
   })
 
-  const series = spec.series.map((row, j) => ({
-    ...row,
-    j,
-    color: chartColor(row.color),
-    hidden: controller.hiddenSeries.includes(row.label),
-  }))
+  // A part without a colour of its own takes the next rung of the ladder. "Overig" joins the
+  // ladder as its last rung; where every part has a colour of its own there is none, and it is
+  // gray.
+  const parts = foldStack(spec.series, (row) => row.color == null)
+  const ladder = parts.filter((row) => row.color == null && !namesOther(row)).length
+  const joins = ladder > 0 && parts.some(drawsAsOther)
+  const rungCount = ladder + (joins ? 1 : 0)
+  let rungs = 0
+  const series = parts.map((row, j) => {
+    const other = drawsAsOther(row)
+    return {
+      ...row,
+      values: row.values as number[],
+      links: isOtherPart(row) ? undefined : row.links,
+      folded: isOtherPart(row) ? row.folded : [],
+      j,
+      rung: other ? (joins ? rungCount - 1 : -1) : row.color == null ? rungs++ : -1,
+      color: other ? (joins ? undefined : chartColor('other')) : chartColor(row.color),
+      hidden: controller.hiddenSeries.includes(row.label),
+    }
+  })
   const visible = series.filter((row) => !row.hidden)
   const selection = markSelection(
     options,
@@ -70,29 +89,36 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
     hasTotals &&
     shown.every((total) => dataLabelFits(formatDataLabel(total, bandWidth), bandWidth - 4))
 
-  // The ladder spreads with the number of series, as the pie spreads its parts. The stacking
-  // order carries meaning, so the series are neither sorted nor folded: past five they keep
-  // the lightest tint.
-  const tints = tintsFor(series.length)
-  const colorFor = (row: { color?: string }, i: number) =>
-    row.color ?? tints[Math.min(i, tints.length - 1)]
+  // The ladder spreads with the number of parts in it, as the pie spreads its parts; the
+  // stacking order carries meaning, so the parts keep it.
+  const tints = tintsFor(rungCount)
+  const colorFor = (row: { color?: string; rung: number }) => row.color ?? tints[row.rung]
 
   // Without a colour of its own a series is a rung of the ladder, which names its ink.
-  const steps = tintSteps(series.length)
+  const steps = tintSteps(rungCount)
   const insideLabel = (j: number): string | null => {
-    const named = spec.series[j].color
+    const named = parts[j].color
     if (named === 'remainder') return 'lintje-chart__data-label--inside-text'
-    const ink = labelInk(named, named == null ? steps[Math.min(j, steps.length - 1)] : 1)
+    const { rung } = series[j]
+    const ink = rung >= 0 ? labelInk(undefined, steps[rung]) : labelInk(named, 1)
     return ink ? insideLabelClass(ink) : null
   }
 
   const contentAt = (i: number): TooltipContent => ({
     title: labels[i],
-    rows: visible.map((row) => ({
-      label: row.label,
-      value: normalized ? formatPercent(share(row.values[i], i)) : formatNumber(row.values[i]),
-      color: colorFor(row, row.j),
-    })),
+    rows: visible.flatMap((row) => [
+      {
+        label: row.label,
+        value: normalized ? formatPercent(share(row.values[i], i)) : formatNumber(row.values[i]),
+        color: colorFor(row),
+      },
+      // The parts "Overig" holds, each named, indented under it.
+      ...row.folded.map((part) => ({
+        label: part.label,
+        value: normalized ? formatPercent(share(part.values[i], i)) : formatNumber(part.values[i]),
+        part: true,
+      })),
+    ]),
   })
   const keys = plotKeys(controller, labels.length, (i) => ({
     x: band(i, labels.length, area).center,
@@ -102,7 +128,7 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
 
   const legend: LegendItem[] = series.map((row) => ({
     label: row.label,
-    color: colorFor(row, row.j),
+    color: colorFor(row),
     shape: 'square',
     hidden: row.hidden,
     fixed: series.length < 2,
@@ -144,7 +170,7 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
             return svg`
             <rect class="lintje-chart__mark lintje-chart__segment ${mark?.state ?? ''}"
                   x=${group.x} y=${segment.y1} width=${group.width} height=${segment.height}
-                  fill=${colorFor(segment.row, segment.j)}
+                  fill=${colorFor(segment.row)}
                   data-mark-id=${mark?.markId ?? nothing} role=${mark?.role ?? nothing}
                   tabindex=${mark?.tabIndex ?? nothing} aria-pressed=${mark?.pressed ?? nothing}
                   aria-label=${mark?.label ?? nothing} aria-hidden=${mark ? nothing : 'true'}

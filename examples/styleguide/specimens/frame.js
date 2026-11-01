@@ -62,6 +62,21 @@ const GROUPED = [
   },
 ]
 
+/** Entries that cannot be opened: a page that is not there yet, and one without access. */
+const UNAVAILABLE = [
+  { label: 'Opnames', href: '#opnames', active: true },
+  { label: 'Rapporten' },
+  { label: 'Archief', href: '#archief', noAccess: true },
+  {
+    label: 'Beheer',
+    links: [
+      { label: 'Woordenlijst', href: '#woordenlijst', icon: 'op-kantoor-boek' },
+      { label: 'Sjablonen', icon: 'op-kantoor-document-blanco' },
+      { label: 'Instellingen', href: '#instellingen', icon: 'functioneel-instellingen', noAccess: true },
+    ],
+  },
+]
+
 /** The same application with tabs on a phone: four pages, one of them an action, and a group. */
 const TABBED = [
   { label: 'Opnames', href: '#opnames', icon: 'beeld-en-geluid-microfoon', active: true, badge: { value: 12, tone: 'count', label: '12 opnames' } },
@@ -629,6 +644,30 @@ export default {
               event.preventDefault()
               shell.data = { ...data, navigation: GROUPED.map((entry) => mark(entry, event.detail.href)) }
             })
+          },
+        },
+        {
+          label: 'Items zonder pagina of toegang',
+          note:
+            'Een item zonder pagina zegt “niet beschikbaar” achter zijn label in de balk en eronder ' +
+            'in het submenu; een item zonder toegang heeft het slotje. Open “Beheer” voor het submenu.',
+          html: `<lintje-shell>
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>Rapporten en Sjablonen hebben nog geen pagina; Archief en Instellingen zijn niet toegankelijk.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.style.minHeight = '496px'
+            shell.data = {
+              name: 'Transcriptie',
+              emblem: emblem(),
+              navigation: UNAVAILABLE,
+              user: USER,
+              userMenu: USER_MENU,
+              version: '2.4.1',
+            }
+            stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+            shell.addEventListener('lintje-navigate', (event) => event.preventDefault())
           },
         },
         {

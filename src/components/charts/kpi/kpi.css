@@ -135,6 +135,8 @@
 .lintje-trend__glyph--good     { color: var(--color-success-line); }
 .lintje-trend__glyph--bad   { color: var(--color-error-line); }
 .lintje-trend__glyph--neutral { color: var(--color-text-muted); }
+.lintje-trend__verdict { font-weight: 700; }
+.lintje-trend__verdict::after { content: ' · ' / ''; font-weight: 400; }
 .lintje-trend__detail { font: var(--text-small); color: var(--color-text-muted); }
 
 /* --- The gauge ------------------------------------------------------------ */

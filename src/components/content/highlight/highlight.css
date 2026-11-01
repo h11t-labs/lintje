@@ -27,9 +27,12 @@
 /* The hover thickens the line: in dark the term already stands on the hover's surface. */
 .lintje-highlight--control:hover { border-bottom-width: 3px; }
 
+/* The yellow fill is 1.8:1 on white: a line under the word carries the match, as each kind has
+   its own line. */
 .lintje-highlight--match {
   background: var(--color-warning);
   color: var(--color-text-on-light-fill);
+  border-bottom: 2px solid var(--color-text-on-light-fill);
 }
 .lintje-highlight--match.is-current { outline: 2px solid var(--color-text-primary); }
 
@@ -44,6 +47,6 @@
 
 /* Forced colours: a match is only a fill, so it takes the system's marking colours. */
 @media (forced-colors: active) {
-  .lintje-highlight--match { forced-color-adjust: none; background: Mark; color: MarkText; }
+  .lintje-highlight--match { forced-color-adjust: none; background: Mark; color: MarkText; border-bottom-color: MarkText; }
   .lintje-highlight--match.is-current { outline-color: CanvasText; }
 }

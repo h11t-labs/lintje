@@ -222,9 +222,9 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
   de rol van een reeks die in kleur niets draagt, zoals gelijkwaardige bronnen op een kaart: ze
   tekent datzelfde grijs en is nooit een nieuwe datakleur.
 - Vast is de kleur van een variabele. De grijzen (`--data-comparison`, `--data-other`), het
-  raster en de nadrukkleur volgen de modus. **Geel is nooit tekst.** "Overig" is in donker zo
-  licht dat bijna-zwart erop 4.5:1 haalt, en een label op de rest van een geheel (`remainder`)
-  neemt de tekstkleur.
+  raster en de nadrukkleur volgen de modus. **Geel is nooit tekst.** Het grijs van "Overig"
+  (`--data-other`, in een treemap en bij de sprekers) is in donker zo licht dat bijna-zwart erop
+  4.5:1 haalt, en een label op de rest van een geheel (`remainder`) neemt de tekstkleur.
 - **Een lichte kleur krijgt als lijn of teken een rand in haar eigen donkere kleur**
   (`--color-chart-<kleur>-edge`; die van donkergeel is een eigen donker goud), zodat ze in licht
   3:1 haalt op het oppervlak en op het land van de kaart; in donker smelt de rand weg in de kleur
@@ -240,6 +240,16 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
 - **De onderverdelingen spreiden over de ladder met hun aantal** (`tintsFor`): twee buren op de
   ladder lezen naast elkaar als één kleur, dus twee delen nemen de eerste en de vierde sport, vijf
   de hele ladder. Nooit lichter dan het aantal vraagt.
+- **Geen twee delen van één variabele krijgen dezelfde tint.** Zijn er meer dan vijf, dan houden
+  een taart, een stapel en de staaf van een sankey op een telefoon de vier grootste en vouwen ze de
+  rest tot één "Overig"; een stapel houdt daarbij haar volgorde, met "Overig" bovenop. De tooltip
+  noemt de gevouwen delen, ingesprongen onder "Overig" en zonder vakje, de CSV elk deel.
+- **"Overig" is het laatste lid van de set van de variabele.** De delen en "Overig" spreiden samen
+  over de ladder, en "Overig" neemt de laatste, lichtste sport: vier delen en "Overig" de hele
+  ladder, twee delen en "Overig" de eerste, tweede en vierde. Dat geldt voor wat vouwt, voor het
+  eigen "Overig" van de host en voor `color: 'other'`; een andere kleur die de host een deel geeft,
+  wint. Heeft elk deel een eigen kleur, dan is er geen ladder en blijft "Overig" grijs, zoals in
+  een treemap, waar "Overig" delen in verschillende kleuren verzamelt.
 - Categorische kleuren alleen als de variabelen echt verschillende dingen zijn.
 - **De sprekers van een opname zijn categorisch**: ze nemen hemelblauw, donkergeel, roze,
   mintgroen, violet en groen in volgorde van eerste optreden, daarna het grijs van "overig".
@@ -923,6 +933,9 @@ De besluiten hieronder gelden voor alle elementen.
 - **Het antwoord van de lezer is altijd zijn bericht.** Wat hij in de vragenlijst koos, staat in
   het gesprek als een gewoon bericht van hem, één regel per vraag, zodat het gesprek leest zoals
   het ging en hij het kan bewerken zoals elke vraag.
+- **Wat een bewerking vervangt, zegt dat in een woord en vervaagt niet**: boven het eerste
+  antwoord dat vervangen wordt staat "Wordt vervangen", en de antwoorden staan op volle sterkte,
+  zodat de lezer nagaat wat hij vervangt; hun bediening werkt niet (`inert`).
 - **"Iets anders" staat altijd in een vraag van de assistent**: de lezer zit nooit vast aan de
   opties die de assistent bedacht. Het is de `other` van de keuzegroepen, ook in de korte vorm.
 - **Een bestand in het gesprek is een bijlage** (`lintje-attachment`), in het vraagvak, het
@@ -972,8 +985,9 @@ balk is de knop, met het aantal aangepaste filters en een pijl, dus de header he
 knop "Filters". Op elke breedte plakt de zin bij het scrollen direct onder de balk van de shell,
 en de shell houdt zijn hoogte vrij boven de focus.
 
-**De pijl van een KPI draagt de richting; de kleur bevestigt die alleen.** Waar stijgen slecht is,
-draait de kleur om en de pijl niet.
+**De pijl van een KPI draagt de richting, het woord het oordeel; de kleur bevestigt ze alleen.**
+Naast de pijl staat "Gunstig" of "Ongunstig" in de tekstkleur, één keer gezegd. Waar stijgen slecht
+is, draaien woord en kleur om en de pijl niet.
 
 **Het verloop in een KPI is een lijn met haar vlak, zonder assen** (`sparkline`): de eigen
 waarden van de variabele, dus in haar kleur, met het vlak eronder zoals de lijngrafiek het tekent,
@@ -1017,10 +1031,10 @@ de stijlgids. Past geen soort, dan is het een tabel.
 - **Hover verandert nooit de lengte die de waarde draagt.**
 - **Een taart rangschikt en vouwt zelf.** Haar delen zijn de onderverdelingen van één variabele:
   de kleur van de spec, of hemelblauw. Het grootste deel is het donkerste, in welke volgorde de
-  host ze ook stuurt, en de tinten spreiden over de ladder met het aantal delen. Meer dan vijf
-  delen worden vier en één grijs "Overig" dat niet klikbaar is: een samengevoegd stuk heeft geen
-  plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) zijn geen delen; ze
-  staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde; zonder
+  host ze ook stuurt, en de tinten spreiden over de ladder met het aantal delen en "Overig". Meer
+  dan vijf delen worden vier en één "Overig" dat niet klikbaar is: een samengevoegd stuk heeft geen
+  plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) staan achteraan:
+  "Overig" in de laatste sport, de rest in haar eigen lichtgrijs. De legendatabel volgt de getekende volgorde; zonder
   legendatabel staat de gewone legenda boven de tekening, een item per deel en geen schakelaar.
 - **Een treemap vouwt op aandeel, niet op aantal.** Ze toont veel delen en hun onderdelen in één
   vlak, dus een deel blijft staan zolang het telt: wat onder 1 % van het geheel blijft, wordt
@@ -1391,9 +1405,11 @@ kleinste correctie, en leg die hier vast.
   melding (de foutsamenvatting is een groep met haar kop als naam); een tweede kopie van een
   tegel begint met een lege regio; een naam bevat niet de waarde die het element ook als waarde
   zegt.
-- **Wat niet geopend kan worden, zegt dat in woorden**: een menurij zonder pagina of toegang
-  draagt een verborgen "niet beschikbaar" of "geen toegang"; `aria-disabled` op een gewoon element
-  zegt niets.
+- **Wat niet geopend kan worden, zegt dat in woorden die je ziet**: een menurij zonder pagina
+  zegt "niet beschikbaar" in kleine tekst, onder het label in het zijmenu, het telefoonmenu en een
+  submenu en erachter in de navigatiebalk; een rij zonder toegang heeft overal het slotje. Een
+  schermlezer hoort het één keer, en alleen in de ingeklapte rail, waar ook het label alleen
+  klinkt, is het verborgen tekst. `aria-disabled` op een gewoon element zegt niets.
 - **De naam van een bedieningselement is wat je ziet, en het zegt zijn staat één keer** (2.5.3):
   zijn woord, of de naam in zijn logo, zonder `aria-label` dat het vervangt en zonder tooltip die
   het herhaalt. Alleen wat geen woord toont, een icoon of een logo zonder naam, krijgt een naam in
@@ -1444,10 +1460,11 @@ kleinste correctie, en leg die hier vast.
   dat zou haar naam onder de ondergrens brengen.
 - **Een label op een vulling neemt de inkt die op die sport van de ladder 4.5:1 haalt**, wit of
   bijna-zwart, uit één tabel per kleur en per sport. Een sport waar geen van beide dat haalt,
-  draagt geen label: de tooltip en de CSV noemen het.
-  Waar een label op een band ligt (de rechte strook na een middelste stap van een sankey), wordt
-  gedempte tekst de gewone tekstkleur zodra die band nadruk krijgt: op de sterkere tint haalt
-  gedempt geen 4.5:1.
+  draagt geen label: de tooltip en de CSV noemen het. Een gedimde sport heeft een tweede tabel,
+  één inkt voor beide modi: de tekstkleur, anders bijna-zwart, anders geen label.
+  Waar een label op een band ligt (de rechte strook na een middelste stap van een sankey), neemt
+  het aandeel altijd de gewone tekstkleur: op de tint van een lichte band haalt gedempt geen
+  4.5:1.
 - **Een bewerking ter plekke houdt haar toetsen**: Enter en Escape tellen alleen in haar veld,
   niet op haar knoppen, en haar Escape beëindigt de bewerking en verder niets. Beëindigd, geeft
   ze de focus aan haar rij of cel.
