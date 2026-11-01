@@ -344,6 +344,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
   mobilePage: number = 0
 
   readonly #mobile = new MediaController(this)
+  /** Per phone table, how wide it is with whole words: it keeps them again once that fits. */
+  readonly #wholeWidths = new WeakMap<Element, number>()
+  readonly #words = new FrameResizeObserver(() => this.#fitWords())
   readonly #edges = new ScrollEdges(() => this.requestUpdate())
   readonly #modalEdges = new ScrollEdges(() => this.requestUpdate())
   #sortSeen = JSON.stringify(null)
@@ -392,7 +395,13 @@ export class LintjeDataTable extends LintjeContentTileElement {
     return this.data ?? undefined
   }
 
+  override connectedCallback(): void {
+    super.connectedCallback()
+    this.#words.observe(this)
+  }
+
   override disconnectedCallback(): void {
+    this.#words.disconnect()
     cancelAnimationFrame(this.#barFrame)
     this.#barFrame = 0
     this.#edges.disconnect()
@@ -467,6 +476,23 @@ export class LintjeDataTable extends LintjeContentTileElement {
     super.updated(changed)
     this.#editing.restoreFocus(this.renderRoot)
     this.#keepFocus()
+    this.#fitWords(true)
+  }
+
+  // Wider than its tile with whole words, the phone's table lets every word break (`is-narrow`).
+  // Its whole width is kept, so it takes them back once that fits; new rows are measured again.
+  // A pixel of slack, as in lintje-segmented: WebKit rounds the two widths apart when zoomed.
+  #fitWords(again = false): void {
+    const tables = this.renderRoot.querySelectorAll<HTMLElement>(
+      '.lintje-data-table.is-phone > .lintje-data-table__mobile',
+    )
+    for (const table of tables) {
+      const room = table.parentElement?.clientWidth ?? 0
+      if (!room) continue
+      if (again) table.classList.remove('is-narrow')
+      if (!table.classList.contains('is-narrow')) this.#wholeWidths.set(table, table.offsetWidth)
+      table.classList.toggle('is-narrow', (this.#wholeWidths.get(table) ?? 0) > room + 1)
+    }
   }
 
   /** Before the host's answer redraws the table: where the focus stands, if in a bar or a row. */
@@ -1851,7 +1877,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         <tr>
           <th
             scope="col"
-            class="lintje-data-table__header-cell lintje-data-table__header-cell--mobile"
+            class="lintje-data-table__header-cell lintje-data-table__header-cell--mobile lintje-data-table__mobile-cell--name"
           >
             ${
               selectable
@@ -1942,7 +1968,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
                         class="lintje-data-table__mobile-row lintje-data-table__mobile-row--filler"
                         aria-hidden="true"
                       >
-                        <td class="lintje-data-table__mobile-cell">
+                        <td class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--name">
                           <span class="lintje-data-table__mobile-name">&nbsp;</span>
                           ${
                             this.hasSubline
@@ -2024,7 +2050,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         @auxclick=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
         @keydown=${clickable ? (event: KeyboardEvent) => this.rowKeydown(event, row) : nothing}
       >
-        <th scope="row" class="lintje-data-table__mobile-cell">
+        <th scope="row" class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--name">
           ${
             selectable
               ? html`<span class="lintje-data-table__mobile-check">
@@ -2104,7 +2130,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     </button>`
     const check = this.groupCheck(group)
     return html`<tr class="lintje-data-table__group-row">
-      <th scope="rowgroup" class="lintje-data-table__mobile-cell lintje-data-table__group-head">
+      <th
+        scope="rowgroup"
+        class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--name lintje-data-table__group-head"
+      >
         ${
           check === nothing
             ? toggle
@@ -2130,7 +2159,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     span: number,
   ): TemplateResult {
     return html`<tr class=${className}>
-      <th scope="row" class="lintje-data-table__mobile-cell lintje-data-table__sum-label">${label}</th>
+      <th
+        scope="row"
+        class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--name lintje-data-table__sum-label"
+      >${label}</th>
       <td class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--align-right">
         ${
           total === undefined

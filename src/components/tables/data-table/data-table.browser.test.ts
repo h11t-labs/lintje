@@ -1,10 +1,10 @@
 /**
  * The table in a browser: Escape first for a lifted grip in its column chooser, the height of a
- * filterable head, the width a truncated column takes, and a keyboard's way into a table that
- * scrolls sideways.
+ * filterable head, the width a truncated column takes, a keyboard's way into a table that
+ * scrolls sideways, and the phone's table within its tile.
  */
 import { afterEach, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import { deepActiveElement } from '../../../core/focus'
 import './data-table'
 import type { DataTableData, TableColumnData } from '../../../types'
@@ -258,5 +258,96 @@ describe('a table wider than its room', () => {
     const scroller = inShadow<HTMLElement>(element, '.lintje-data-table__scroller')
     await element.updateComplete
     expect(scroller.hasAttribute('tabindex')).toBe(false)
+  })
+})
+
+describe('the phone’s table', () => {
+  async function viewport(width: number): Promise<void> {
+    await page.viewport(width, 844)
+    // WebKit resizes the frame after `viewport()` resolves.
+    await expect.poll(() => window.innerWidth).toBe(width)
+  }
+
+  afterEach(() => viewport(1440))
+
+  /** In a tile on a page with the phone's 16 px margin. */
+  async function mountOnPhone(data: DataTableData): Promise<TableElement> {
+    const box = document.createElement('div')
+    box.style.width = 'calc(100vw - 32px)'
+    box.style.marginInline = '16px'
+    document.body.append(box)
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = data
+    box.append(element)
+    await element.updateComplete
+    return element
+  }
+
+  const width = (element: Element): number => element.getBoundingClientRect().width
+  const narrow = (element: TableElement): boolean =>
+    part(element, '.lintje-data-table__mobile').classList.contains('is-narrow')
+
+  // A long name with its line, a measure with its tone, and the toggle for the other columns.
+  const toned: DataTableData = {
+    caption: 'Loketten met hun wachttijd',
+    rowKey: 'name',
+    mobileSublineTemplate: '{requests} aanvragen',
+    columns: [
+      { key: 'name', header: 'Loket' },
+      { key: 'requests', header: 'Aanvragen' },
+      {
+        key: 'wait',
+        header: 'Wachttijd (min)',
+        mobileMeasure: true,
+        threshold: { value: 15, caution: 12 },
+      },
+    ],
+    rows: [{ name: 'Klantcontactcentrum Amsterdam-Zuidoost', requests: 25090, wait: 15.7 }],
+  }
+
+  // A check box, a status with a long word and two buttons: whole words do not fit at 320 px.
+  const crowded: DataTableData = {
+    caption: 'Meldingen',
+    rowKey: 'title',
+    selectable: true,
+    rowActions: [{ value: 'toewijzen', label: 'Toewijzen' }],
+    columns: [
+      { key: 'title', header: 'Titel' },
+      { key: 'status', header: 'Status', mobileMeasure: true },
+      { key: 'date', header: 'Datum' },
+    ],
+    rows: [
+      {
+        title: 'Drone boven parkeerterrein P3',
+        status: 'Doorgestuurd naar gemeentebelastingen',
+        date: '01-10-2026',
+      },
+    ],
+  }
+
+  it.each([390, 320])('lets the name break, not the measure, at %i px', async (screen) => {
+    await viewport(screen)
+    const element = await mountOnPhone(toned)
+    const mobile = part(element, '.lintje-data-table__mobile')
+    await expect.poll(() => width(mobile)).toBeGreaterThan(0)
+    expect(width(mobile)).toBeLessThanOrEqual(width(element))
+    expect(narrow(element)).toBe(false)
+  })
+
+  it('breaks every word once whole words do not fit, and keeps them again when they do', async () => {
+    await viewport(390)
+    const element = await mountOnPhone(crowded)
+    const mobile = part(element, '.lintje-data-table__mobile')
+    await expect.poll(() => width(mobile)).toBeGreaterThan(0)
+    expect(narrow(element)).toBe(false)
+    expect(width(mobile)).toBeLessThanOrEqual(width(element))
+
+    await viewport(320)
+    await expect.poll(() => narrow(element)).toBe(true)
+    expect(width(mobile)).toBeLessThanOrEqual(width(element))
+
+    await viewport(390)
+    await expect.poll(() => narrow(element)).toBe(false)
+    expect(width(mobile)).toBeLessThanOrEqual(width(element))
   })
 })
