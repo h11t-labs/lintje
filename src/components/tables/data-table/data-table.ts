@@ -430,7 +430,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       this.filterValues = { ...this.data?.filters }
     }
     const columns = JSON.stringify([
-      this.data?.columns.map((column) => column.key) ?? [],
+      this.columns.map((column) => column.key),
       this.data?.hiddenColumns ?? [],
     ])
     if (columns !== this.#columnsSeen) {
@@ -958,12 +958,13 @@ export class LintjeDataTable extends LintjeContentTileElement {
         ? formatText(column, cell)
         : cell
     const totals = data.totals
+    const columns = this.columns
     downloadCsv(data.download.filename, [
-      data.columns.map((column) => column.header),
-      ...data.rows.map((row) => data.columns.map((column) => value(column, row[column.key]))),
+      columns.map((column) => column.header),
+      ...this.rows.map((row) => columns.map((column) => value(column, row[column.key]))),
       ...(totals
         ? [
-            data.columns.map((column, index) =>
+            columns.map((column, index) =>
               index === 0
                 ? (data.totalsLabel ?? 'Totaal')
                 : value(column, totalParts(totals[column.key]).value),
