@@ -28,6 +28,22 @@ const ZONES = [
   detail: value == null ? undefined : `${Math.round(value / 7)} per dag`,
 }))
 
+// Fictional figures per province, by its ISO 3166-2 code; one has no figure.
+const PROVINCES = [
+  ['NL-GR', 'Groningen', 412],
+  ['NL-FR', 'Fryslân', 365],
+  ['NL-DR', 'Drenthe', 248],
+  ['NL-OV', 'Overijssel', 690],
+  ['NL-FL', 'Flevoland', 231],
+  ['NL-GE', 'Gelderland', 1204],
+  ['NL-UT', 'Utrecht', 958],
+  ['NL-NH', 'Noord-Holland', 1873],
+  ['NL-ZH', 'Zuid-Holland', 2116],
+  ['NL-ZE', 'Zeeland', null],
+  ['NL-NB', 'Noord-Brabant', 1342],
+  ['NL-LI', 'Limburg', 587],
+].map(([id, label, value]) => ({ id, label, value }))
+
 const KIND_SERIES = { counter: 'dark-green', service: 'purple' }
 const LIGHT_SERIES = [
   ['mint-green', 'Mintgroen'],
@@ -91,6 +107,15 @@ const MAPS = [
       variant: 'choropleth', geo: 'world', unit: 'aanvragen', height: 320,
       values: originCountries,
       description: 'Aanvragen uit het buitenland per land waar de aanvrager woont, in vijf klassen; landen zonder cijfer staan gearceerd.',
+    },
+  },
+  {
+    id: 'map-provinces', label: 'Provincies', title: 'Kaart · choropleet per provincie',
+    note: 'De variant `choropleth` met `geo: provinces` kleurt de twaalf provincies in klassen, elk met haar ISO-code als id.',
+    data: {
+      variant: 'choropleth', geo: 'provinces', unit: 'aanvragen', height: 320,
+      values: PROVINCES,
+      description: 'Aanvragen per provincie in vijf klassen; Zeeland heeft geen cijfer en staat gearceerd.',
     },
   },
   {
@@ -203,6 +228,7 @@ const DEMO_BASEMAP = {
   url: 'https://ows.terrestris.de/osm/service',
   layers: 'OSM-WMS',
   attribution: '© OpenStreetMap contributors, via terrestris',
+  dark: { layers: 'Dark' },
 }
 const DEMO_BASEMAP_DARK = { ...DEMO_BASEMAP, layers: 'Dark' }
 

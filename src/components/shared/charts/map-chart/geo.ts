@@ -1,6 +1,7 @@
 /** The map's own geometry, unprojected: the surface projects it, an area tests against it. */
 import worldGeo from '../../../../../assets/geo/world.lonlat.json'
 import netherlandsGeo from '../../../../../assets/geo/netherlands.lonlat.json'
+import provincesGeo from '../../../../../assets/geo/provinces.lonlat.json'
 
 export type FeatureCollection = GeoJSON.FeatureCollection<
   GeoJSON.MultiPolygon,
@@ -10,6 +11,7 @@ export type FeatureCollection = GeoJSON.FeatureCollection<
 export const GEOS: Record<string, FeatureCollection> = {
   world: worldGeo as unknown as FeatureCollection,
   netherlands: netherlandsGeo as unknown as FeatureCollection,
+  provinces: provincesGeo as unknown as FeatureCollection,
 }
 
 export function geoOf(name: string | undefined): FeatureCollection {

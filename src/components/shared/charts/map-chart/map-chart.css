@@ -71,10 +71,14 @@
 .lintje-map-chart__point.is-preview .lintje-map-chart__point-shape { stroke: var(--color-text-primary); stroke-width: 2; }
 .lintje-map-chart__flow.is-preview { opacity: 1; }
 /* The focused mark is copied into a layer over the drawing, so its ring lies over every mark
-   drawn after it; the mark itself keeps its place, its focus and the Tab order. The copy does
-   not draw in again. */
+   drawn after it; the mark itself keeps its place, its focus and the Tab order. A chosen area and
+   the one under the pointer are copied there as their outline alone, so a neighbour drawn after
+   them covers none of it and their fill stays the drawing's own. A copy does not draw in again. */
 .lintje-map-chart__focus { pointer-events: none; }
 .lintje-map-chart .lintje-map-chart__focus * { animation: none; }
+.lintje-map-chart__focus .lintje-map-chart__polygon:not(.is-focused) :is(.lintje-map-chart__polygon-ring, .lintje-map-chart__polygon-hatch) { display: none; }
+.lintje-map-chart__focus .lintje-map-chart__polygon:not(.is-focused) .lintje-map-chart__polygon-shape { fill: none; }
+.lintje-map-chart__focus.is-previewing .lintje-map-chart__polygon:not(.is-focused) { display: none; }
 /* A circle shows its middle, which is what the reader measures from. */
 .lintje-map-chart__region-centre {
   fill: var(--color-text-primary);
@@ -128,15 +132,15 @@
 .lintje-map-chart__polygon-shape--data { stroke: var(--color-map-border-data); stroke-width: 1; }
 .lintje-map-chart__polygon-shape--empty { fill: var(--color-bg-surface); }
 .lintje-map-chart__polygon-hatch { pointer-events: none; }
-.lintje-map-chart__polygon:hover .lintje-map-chart__polygon-shape { stroke: var(--color-text-primary); stroke-width: 1.5; }
+.lintje-map-chart__polygon:is(:hover, .is-hovered) .lintje-map-chart__polygon-shape { stroke: var(--color-text-primary); stroke-width: 1.5; }
 .lintje-map-chart__polygon.is-selected .lintje-map-chart__polygon-shape { stroke: var(--color-text-primary); stroke-width: 2; }
 .lintje-map-chart__polygon-ring { fill: none; stroke: none; vector-effect: non-scaling-stroke; }
 .lintje-map-chart__polygon:focus-visible { outline: none; }
-:is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon) .lintje-map-chart__polygon-ring {
+:is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon.is-focused) .lintje-map-chart__polygon-ring {
   stroke: var(--color-focus);
   stroke-width: calc(var(--focus-width) * 2 + 2px);
 }
-:is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon) .lintje-map-chart__polygon-shape {
+:is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon.is-focused) .lintje-map-chart__polygon-shape {
   stroke: var(--color-bg-surface);
   stroke-width: 2;
 }
@@ -563,10 +567,10 @@
   .lintje-map-chart__point.is-selected .lintje-map-chart__point-shape { stroke: CanvasText; }
   .lintje-map-chart__focus { forced-color-adjust: none; }
   :is(.lintje-map-chart__point:focus-visible, .lintje-map-chart__focus .lintje-map-chart__point) .lintje-map-chart__point-ring,
-  :is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon) .lintje-map-chart__polygon-ring,
+  :is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon.is-focused) .lintje-map-chart__polygon-ring,
   :is(.lintje-map-chart__flow:focus-visible, .lintje-map-chart__focus .lintje-map-chart__flow) .lintje-map-chart__flow-ring { stroke: Highlight; }
   :is(.lintje-map-chart__point:focus-visible, .lintje-map-chart__focus .lintje-map-chart__point) .lintje-map-chart__point-shape,
-  :is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon) .lintje-map-chart__polygon-shape,
+  :is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon.is-focused) .lintje-map-chart__polygon-shape,
   :is(.lintje-map-chart__flow:focus-visible, .lintje-map-chart__focus .lintje-map-chart__flow) .lintje-map-chart__flow-gap { stroke: Canvas; }
   .lintje-map-chart__layer.is-active { border-color: Highlight; }
   .lintje-map-legend__box { forced-color-adjust: none; background: Highlight; border-color: Highlight; color: HighlightText; }
