@@ -102,12 +102,23 @@ export function linkLog(stage, element, events) {
 
 export function log(stage, text = 'Nog niets gebeurd.') {
   const line = logBlock(text)
+  // What the block shows changes out of the focus's sight: a region beside it says each line,
+  // emptied first and filled a frame later, so the same line twice is heard twice.
+  const heard = element('p', 'guide__heard')
+  heard.setAttribute('role', 'status')
+  heard.setAttribute('aria-atomic', 'false')
   // A stage in a frame of its own logs under that frame, on the page.
   const figure =
     stage.closest('.guide__specimen') ??
     stage.ownerDocument.defaultView.frameElement?.closest('.guide__specimen')
-  figure.append(line)
-  return (next) => (line.text = next)
+  figure.append(line, heard)
+  let frame = 0
+  return (next) => {
+    line.text = next
+    heard.textContent = ''
+    cancelAnimationFrame(frame)
+    frame = requestAnimationFrame(() => (heard.textContent = next))
+  }
 }
 
 /** A block of plain text in `lintje-code`: what the host heard, or what went wrong. */

@@ -93,6 +93,9 @@ const LEVEL_TONE: Record<LogLevel, { tone: BadgeTone; icon?: string }> = {
   debug: { tone: 'subtle' },
 }
 
+const lineCount = (count: number): string =>
+  count === 1 ? '1 regel' : `${formatNumber(count)} regels`
+
 /** New lines are read out at most this often. */
 const SPEAK_EVERY = 5000
 
@@ -456,8 +459,11 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   private onMoreAction(event: CustomEvent<string>): void {
     event.stopPropagation()
     if (event.detail === 'log:clear') {
+      const hidden = this.entries.length
       this.clearedAfter = this.entries.at(-1)?.id ?? null
       this.toLatest()
+      // The note in the log is out of the focus's way: the region says it.
+      this.#live.say(`Venster leeggemaakt, ${lineCount(hidden)} verborgen`)
       return
     }
     this.emit('lintje-log-action', event.detail)
@@ -834,10 +840,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
               Venster leeggemaakt${
                 this.clearedTime ? ` om ${this.clearedTime}` : ''
               }. ${formatNumber(hidden)} regels verborgen.
-              <lintje-button
-                variant="link"
-                size="compact"
-                @click=${() => (this.clearedAfter = null)}
+              <lintje-button variant="link" size="compact" @click=${() => this.showCleared()}
                 >Weer tonen</lintje-button
               >
             </p>`
@@ -869,6 +872,12 @@ export class LintjeLogViewer extends LintjeContentTileElement {
         ? nothing
         : html`<p class="visually-hidden" role="status" aria-atomic="false">${this.#modalLive.text}</p>`
     }`
+  }
+
+  private showCleared(): void {
+    const hidden = this.entries.length - this.shown.length
+    this.clearedAfter = null
+    this.#live.say(`${lineCount(hidden)} weer getoond`)
   }
 
   private get clearedTime(): string | undefined {

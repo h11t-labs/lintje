@@ -437,7 +437,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
       this.hiddenKeys = this.data?.hiddenColumns ?? []
     }
     this.#editing.sync(this.data)
-    if (this.#filterAsked) {
+    const state = this.data?.state ?? 'ready'
+    // On its own the table says it loads; in a tile the tile does.
+    if (this.plain && state === 'loading' && changed.get('data')?.state !== 'loading')
+      this.#live.say('Gegevens laden…')
+    // The count is of the rows the filter left: it waits while the host still loads them.
+    if (this.#filterAsked && state !== 'loading') {
       this.#filterAsked = false
       const total = this.data?.totalRows
       this.#live.say(
@@ -897,7 +902,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const data = this.data
     if (!data) return nothing
     if (this.bare) return this.table(this.#edges)
-    if (this.plain) return this.content()
+    // The region stands outside the switch of states, as the tile's does: one that comes in with
+    // its words is not read out.
+    if (this.plain)
+      return html`${this.content()}<span class="visually-hidden" role="status"
+          >${this.#live.text}</span
+        >`
     const ready = (data.state ?? 'ready') === 'ready'
     const subtitle =
       this.#mobile.matches && data.mobileSubtitle ? data.mobileSubtitle : data.subtitle
@@ -982,7 +992,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       case 'loading':
         return inTile
           ? html`<div slot="loading">${renderChartSkeleton({ kind: 'table', status: false })}</div>`
-          : renderChartSkeleton({ kind: 'table' })
+          : renderChartSkeleton({ kind: 'table', status: false })
       case 'empty':
         return inTile
           ? nothing
@@ -1081,7 +1091,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
       }
       ${mobile ? this.selectionBar(true) : nothing} ${this.panels(edges)}
       ${active && this.columns.some((column) => column.editor) ? this.#editing.renderStatus() : nothing}
-      <span class="visually-hidden" role="status">${active ? this.#live.text : ''}</span>
+      ${
+        this.plain
+          ? nothing
+          : html`<span class="visually-hidden" role="status">${active ? this.#live.text : ''}</span>`
+      }
     </div>`
   }
 
@@ -2204,8 +2218,8 @@ export class LintjeDataTable extends LintjeContentTileElement {
       unit-one=${unit.one}
       @lintje-page-change=${(event: CustomEvent<{ page: number }>) => {
         event.stopPropagation()
+        // The pager says "Pagina 3 van 7" itself: once is enough.
         go(event.detail.page - 1)
-        this.#live.say(`Pagina ${event.detail.page} van ${pageCount}`)
       }}
     ></lintje-pagination>`
   }

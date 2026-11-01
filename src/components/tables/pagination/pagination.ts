@@ -26,6 +26,7 @@ import buttonCss from '../../actions/button/button.css?inline'
 import paginationCss from './pagination.css?inline'
 import { isPlainClick } from '../../../core/links'
 import { FrameResizeObserver } from '../../shared/frame-resize-observer'
+import { LiveMessage } from '../../shared/live-message'
 import '../../actions/menu-button/menu-button'
 
 export type PageSlot = number | 'gap'
@@ -120,6 +121,7 @@ export class LintjePagination extends LintjeElement {
   declare unitOne?: string
   /** `?pagina={page}`: every page becomes a link with that href. */
   declare hrefTemplate?: string
+  readonly #live = new LiveMessage(this)
   label: string = 'Paginering'
 
   /** Only the chevrons: "Vorige" and "Volgende" do not fit beside the numbers. */
@@ -208,7 +210,13 @@ export class LintjePagination extends LintjeElement {
     this.page = page
     this.emit('lintje-page-change', { page })
     if (href) this.followLink(href, event)
+    // A link loads a page that says where it is; a button changes only the count and the mark.
+    else this.sayPage(page, this.count)
     void this.updateComplete.then(() => this.keepFocus(control))
+  }
+
+  private sayPage(page: number, count: number): void {
+    this.#live.say(`Pagina ${page} van ${count}`)
   }
 
   private get countUnit(): CountUnit {
@@ -223,6 +231,8 @@ export class LintjePagination extends LintjeElement {
     this.pageSize = size
     this.page = page
     this.emit('lintje-page-size-change', { pageSize: size, page })
+    const count = this.total ? Math.max(1, Math.ceil(this.total / size)) : this.count
+    if (!this.hrefTemplate) this.sayPage(page, count)
   }
 
   private sizes(): TemplateResult | typeof nothing {
@@ -363,6 +373,7 @@ export class LintjePagination extends LintjeElement {
         ${this.step('next', current + 1, current >= count)}
       </nav>
       ${this.sizes()}
+      <span class="visually-hidden" role="status" aria-atomic="false">${this.#live.text}</span>
     </div>`
   }
 }

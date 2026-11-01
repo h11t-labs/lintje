@@ -292,6 +292,22 @@ describe('lintje-log-viewer menus', () => {
     expect(rows(element)).toHaveLength(5)
   })
 
+  it('says the cleared view and the lines shown again, each time', async () => {
+    const element = await mount()
+    choose(menus(element)[2]!, 'log:clear')
+    expect(await spoken(element)).toBe('Venster leeggemaakt, 4 regels verborgen')
+    const again = (): HTMLElement =>
+      [...root(element).querySelectorAll<HTMLElement>('lintje-button')].find((b) =>
+        b.textContent?.includes('Weer tonen'),
+      )!
+    again().click()
+    expect(await spoken(element)).toBe('4 regels weer getoond')
+    choose(menus(element)[2]!, 'log:clear')
+    await element.updateComplete
+    expect(status(element)).toBe('')
+    expect(await spoken(element)).toBe('Venster leeggemaakt, 4 regels verborgen')
+  })
+
   it('passes the host its own actions', async () => {
     const element = await mount({
       actions: [{ value: 'retry-import', label: 'Import opnieuw starten' }],
