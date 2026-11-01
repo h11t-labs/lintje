@@ -43,7 +43,8 @@
   visibility: hidden;
   pointer-events: none;
 }
-.lintje-page-header__title { font: var(--text-h1); color: var(--color-text-primary); }
+/* A long compound breaks rather than run off a 320 px screen, in the shell or outside it. */
+.lintje-page-header__title { font: var(--text-h1); color: var(--color-text-primary); overflow-wrap: anywhere; }
 /* The pencil shows while the title is pointed at or the pencil has the focus; a touch screen
    always shows it. */
 .lintje-page-header__title-row { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
@@ -101,7 +102,6 @@
 /* In the shell: flush in the content column, the trail and the title row closer together. */
 .lintje-page-header--shell { padding: 0; gap: var(--space-2); }
 .lintje-page-header--shell .lintje-page-header__heading { gap: var(--space-1); }
-.lintje-page-header--shell .lintje-page-header__title { overflow-wrap: anywhere; }
 .lintje-page-header--shell .lintje-page-header__description { margin-top: 0; }
 
 /* An announcement above a band keeps to the column the band runs out of. */

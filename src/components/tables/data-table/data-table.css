@@ -450,11 +450,17 @@
 /* The name takes what the measure and the actions leave, and breaks inside a word rather than
    widen the table past its tile; the measure keeps its words whole. */
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell--name { width: 100%; overflow-wrap: anywhere; }
-/* Even the measure's whole words do not fit (320 px, 400 % zoom): every word may break, and the
-   columns share the room. `is-narrow` comes from the measurement in data-table.ts. */
+/* Even the measure's whole words do not fit (320 px, 400 % zoom): every word in the rows may
+   break, and the columns share the room; the head keeps its words until that does not fit either
+   (`is-narrowest`). Both come from the measurement in data-table.ts. */
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile.is-narrow { overflow-wrap: anywhere; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile.is-narrow .lintje-data-table__header-cell--mobile { overflow-wrap: normal; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile.is-narrowest .lintje-data-table__header-cell--mobile { overflow-wrap: anywhere; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile.is-narrow .lintje-data-table__mobile-cell--name { width: auto; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile.is-narrow .lintje-threshold-cell { overflow-wrap: normal; }
+/* There the toggle and the row menu take the WCAG floor of 24 px, their hit area still the target.
+   On the menu's host: its own shadow root sets the token again. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile.is-narrow :is(.lintje-data-table__mobile-toggle, .lintje-data-table__row-menu) { --h-icon-button: var(--h-target-text); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-actions { display: flex; align-items: center; justify-content: flex-end; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell {
   padding: var(--space-2) var(--tile-pad-x);

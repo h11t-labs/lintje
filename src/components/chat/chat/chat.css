@@ -94,6 +94,11 @@
   background: var(--color-bg-surface);
   border-top: 1px solid var(--color-border-default);
 }
+/* Little height (a phone held sideways, 400 % zoom): questions and box would cover the whole
+   screen, so they stand after the conversation and scroll with it, as the form's action bar. */
+@media (height < 30rem) {
+  .lintje-chat__footer { position: relative; }
+}
 /* The assistant's questions above the question box, the same width, in the same frame. */
 .lintje-chat__ask {
   display: flex; flex-direction: column;
