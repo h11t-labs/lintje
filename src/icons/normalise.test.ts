@@ -63,6 +63,37 @@ describe('what the normalisation does', () => {
     expect(glyph?.body).toContain('fill="#fff"')
   })
 
+  it('turns a drawing in one near-black or one white into an icon that follows the text colour', () => {
+    // RVO draws some icons in #1d1d1b or in white, in a group around every shape, without
+    // `fill="none"` on the root: dark in dark, or white on white in light.
+    for (const ink of ['#1d1d1b', '#fff']) {
+      const glyph = normaliseSvg(
+        'one-ink',
+        `<svg viewBox="0 0 64 64"><path d="m0 0h64v64h-64z" fill="none"/><g fill="${ink}"><path d="M8 8h48v48H8z"/><path d="M20 20h24v24H20z"/></g></svg>`,
+      )
+      expect(glyph.body, ink).toContain('<g fill="currentColor">')
+      expect(glyph.body, ink).not.toContain(ink)
+    }
+    for (const name of [
+      'gezondheid-en-zorg-verboden-te-roken',
+      'infrastructuur-en-transport-weg-met-halfopen-slagboom',
+      'voedsel-aren',
+      'natuur-en-milieu-regenboog-boven-wolk',
+    ]) {
+      const body = glyphs.get(name)?.body ?? ''
+      expect(body, name).toContain('fill="currentColor"')
+      expect(body, name).not.toMatch(/="#(1d1d1b|fff)"/i)
+    }
+  })
+
+  it('keeps a white mark on a shape in another colour', () => {
+    const glyph = normaliseSvg(
+      'knocked-out-white',
+      '<svg viewBox="0 0 24 24"><path d="M12 2 1 22h22z"/><path fill="#fff" d="M11 9h2v6h-2z"/></svg>',
+    )
+    expect(glyph.body).toContain('fill="#fff"')
+  })
+
   it('keeps a black that is a decision of the drawing', () => {
     // A currentColor triangle with a black exclamation mark knocked into it.
     const glyph = normaliseSvg(

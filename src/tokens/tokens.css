@@ -81,10 +81,10 @@
   --data-sky-blue-15: #D9EBF7;
   --data-comparison: var(--neutral-5);
   --data-other: var(--neutral-4);
-  /* Yellow as TEXT fails contrast on white: light writes a wait time in this dark gold. */
-  --data-dark-yellow-text: #B07A00;
   /* A light colour as a line or a mark reaches 3:1 by an edge: the colour halfway to black,
-     written out so it never follows a mix. Dark yellow takes its text colour. */
+     written out so it never follows a mix. Dark yellow's is a dark gold of its own; yellow is
+     never text. */
+  --data-dark-yellow-edge: #B07A00;
   --data-mint-green-edge: #3B695B;
   --data-orange-edge: #703800;
   --data-pink-edge: #784966;
@@ -717,6 +717,9 @@
   --color-chosen-day-edge: oklch(from var(--primary) 0.8 min(c, 0.1) h);
   /* The 2 px line under a term; dark takes the text tint, as the line tint falls short on it. */
   --color-term-line: var(--color-accent-line);
+  /* The ring of today inside a chosen period; dark takes the text tint, as the line tint falls
+     short on the period's tint. */
+  --color-today-in-range: var(--color-accent-line);
   /* The 4 px edge of a chosen row; dark takes the text tint, as the line tint falls short on the
      selected surface. */
   --color-selected-edge: var(--color-accent-line);
@@ -728,7 +731,7 @@
   /* One colour per variable, named after the Rijkshuisstijl colour. */
   --color-chart-sky-blue: var(--data-sky-blue);
   --color-chart-dark-yellow: var(--data-dark-yellow);
-  --color-chart-dark-yellow-text: var(--data-dark-yellow-text);
+  --color-chart-dark-yellow-edge: var(--data-dark-yellow-edge);
   --color-chart-red: var(--data-red);
   --color-chart-green: var(--data-green);
   --color-chart-mint-green: var(--data-mint-green);
@@ -756,9 +759,13 @@
   --color-chart-grid: var(--data-grid);
   --color-chart-axis: var(--neutral-5);
   /* The zero line (darker than the grid) and the hatch of missing data carry meaning, so they
-     reach 3:1 on the surface: a fifth of the way from neutral-4 to neutral-5 (3.1:1; 4.0:1 dark). */
-  --color-chart-zero: color-mix(in srgb, var(--neutral-5) 20%, var(--neutral-4));
-  --color-chart-hatch: color-mix(in srgb, var(--neutral-5) 20%, var(--neutral-4));
+     reach 3:1 on the surface and on a forecast's ground: the smallest share of neutral-5 over
+     neutral-4 that does (3.0:1 on the light ground; 4.2:1 dark). */
+  --color-chart-zero: color-mix(in srgb, var(--neutral-5) 26%, var(--neutral-4));
+  --color-chart-hatch: color-mix(in srgb, var(--neutral-5) 26%, var(--neutral-4));
+  /* The forecast's part of a drawing. Dark sinks it under the surface: on the subtle grey the
+     sky blue of a dotted line fell to 2.8:1. */
+  --color-chart-forecast-ground: var(--color-bg-subtle);
   /* A speaker's colour under a whole fragment: this share of it over the surface, so text keeps
      its contrast in light and in dark. */
   --tint-speaker: 12%;
@@ -1030,9 +1037,10 @@
     --color-action-danger-hover: color-mix(in srgb, var(--status-error), white 8%);
     --color-action-danger-border: oklch(from var(--status-error) max(l, 0.58) c h);
     --color-action-danger-text: oklch(from var(--status-error) max(l, 0.71) min(c, 0.18) h);
-    /* A status mark at 3:1 on its own tint. */
+    /* A status mark at 3:1 on its own tint; the error's also on the filter band, where the edge
+       of a field in error is its only outline. */
     --color-attention-line: var(--status-attention);
-    --color-error-line: oklch(from var(--status-error) max(l, 0.6) c h);
+    --color-error-line: oklch(from var(--status-error) max(l, 0.61) c h);
     --color-info-line: oklch(from var(--status-info) max(l, 0.58) c h);
     --color-success-line: oklch(from var(--status-success) max(l, 0.57) c h);
     /* A status word at 4.5:1 on #333333, lifted as the danger word is. */
@@ -1087,8 +1095,9 @@
     /* The menu is neutral here, so its ring is that of every other surface. */
     --color-focus-on-theme: var(--color-focus);
     --color-focus-on-theme-inner: var(--color-focus-inner);
-    /* The choice edge keeps neutral-4 in dark: it already reaches 3:1 there (3.43:1 on #282828). */
-    --color-border-choice: var(--neutral-4);
+    /* Neutral-4 is 3.43:1 on #282828 but 2.94:1 on #333333, a chosen or opened table row: the
+       edge takes the smallest share of neutral-5 that reaches 3:1 there too. */
+    --color-border-choice: color-mix(in srgb, var(--neutral-5) 3%, var(--neutral-4));
 
     /* A term's box is the subtle surface: behind a word on #282828 the dark wash would be a hole. */
     --color-term-bg: var(--neutral-2);
@@ -1098,12 +1107,12 @@
     /* The primary tint, and always a step above the fill: an orange primary is its own tint. */
     --color-chosen-day-edge: oklch(from var(--primary) max(l + 0.1, 0.55) min(c, 0.15) h);
     --color-term-line: var(--primary-tint-text);
+    --color-today-in-range: var(--primary-tint-text);
     --color-selected-edge: var(--primary-tint-text);
     --color-progress-track: var(--color-bg-inset);
 
-    /* Yellow as text works on the dark surface, so the dark gold is not needed. */
-    --color-chart-dark-yellow-text: var(--data-dark-yellow);
     /* The edges melt into their line: on the dark surface a light colour reaches 3:1 itself. */
+    --color-chart-dark-yellow-edge: var(--data-dark-yellow);
     --color-chart-mint-green-edge: var(--data-mint-green);
     --color-chart-orange-edge: var(--data-orange);
     --color-chart-pink-edge: var(--data-pink);
@@ -1113,6 +1122,10 @@
        share of neutral-5 that reaches 4.5:1. */
     --data-other: color-mix(in srgb, var(--neutral-5) 11%, var(--neutral-4));
     --color-map-water: var(--neutral-1);
+    /* The land is the surface, so a colour that reaches 3:1 on a tile does on the map too: on
+       the subtle grey the sky blue of a flow or a point fell to 2.8:1. */
+    --color-map-land: var(--neutral-0);
+    --color-chart-forecast-ground: var(--neutral-1);
 
     --shadow-sticky: 0 2px 6px var(--alpha-black-40);
     --shadow-sticky-up: 0 -2px 6px var(--alpha-black-40);
@@ -1143,19 +1156,24 @@
        tab on it is darker than its ground, as a white one is lighter there. */
     --primary-wash: oklch(from var(--primary) 0.3 min(c, 0.02) h);
     /* A status mark at 3:1 on its own tint and on the page. The info blue and the green reach it
-       by themselves: the floor lies under them. */
-    --color-error-line: oklch(from var(--status-error) max(l, 0.58) c h);
+       by themselves: the floor lies under them. The error's keeps the lift of dark, as the filter
+       band is #333333 here too. */
     --color-info-line: oklch(from var(--status-info) max(l, 0.5) c h);
     --color-success-line: oklch(from var(--status-success) max(l, 0.5) c h);
     /* The filled menu a step below the surface; the line tint is 3:1 on the page only. */
     --color-nav-bg: color-mix(in srgb, var(--neutral-0), #000000 25%);
     --color-map-water: var(--neutral-0);
+    /* The land a step above the water: the grey of a tile in the earlier dark, on which every
+       colour reaches 3:1. */
+    --color-map-land: var(--neutral-1);
     /* The inverse ring of the house style: white with the dark line inside, on every surface. */
     --color-focus: var(--ink-white);
     --color-focus-inner: var(--ink-black);
     --color-focus-on-theme: var(--color-focus);
     --color-focus-on-theme-inner: var(--color-focus-inner);
-    --color-border-choice: var(--color-accent-line);
+    /* A checkbox stands on a chosen or opened table row (#333333) too, where the line tint falls
+       under 3:1: the text tint, as the field's edge. */
+    --color-border-choice: var(--color-accent-text);
     /* A field's edge stands on the filter band (#333333) too, where the line tint falls under 3:1:
        the text tint, light as the house style draws a dark field's edge. */
     --color-border-field: var(--color-accent-text);

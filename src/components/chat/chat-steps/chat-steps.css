@@ -53,11 +53,11 @@
 .lintje-chat-steps__square {
   box-sizing: border-box;
   width: 10px; height: 10px;
-  background: var(--color-border-heavy);
+  background: var(--color-border-field);
 }
 .lintje-chat-steps__square--open {
   background: none;
-  border: 2px solid var(--color-border-heavy);
+  border: 2px solid var(--color-border-field);
 }
 .lintje-chat-steps__cross { color: var(--color-error-line); }
 .lintje-chat-steps__spinner { display: flex; }
