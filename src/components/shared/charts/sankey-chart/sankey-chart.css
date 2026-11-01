@@ -20,6 +20,16 @@
 .lintje-sankey__hit--line { fill: none; stroke: transparent; stroke-width: 8px; pointer-events: stroke; }
 /* A label never takes the pointer from the mark beside it or the band under it. */
 .lintje-sankey__label { pointer-events: none; }
+/* A node without height that drills: its label is the button, its box the target and the ring. */
+.lintje-sankey__label--control { pointer-events: auto; cursor: pointer; }
+.lintje-sankey__label--control:focus { outline: none; }
+.lintje-sankey__label-box { fill: transparent; }
+.lintje-sankey:focus-visible .lintje-sankey__label--control.is-current { filter: none; }
+.lintje-sankey__label--control:focus-visible .lintje-sankey__label-box,
+.lintje-sankey:focus-visible .lintje-sankey__label--control.is-current .lintje-sankey__label-box {
+  stroke: var(--color-focus);
+  stroke-width: var(--focus-width);
+}
 .lintje-sankey__name { font: var(--text-small); fill: var(--color-text-primary); }
 .lintje-sankey__share { font-weight: 400; fill: var(--color-text-muted); }
 /* On a middle step's straight run, under emphasised bands the muted share drops below 4.5:1. */
@@ -87,6 +97,12 @@
 .lintje-sankey__row-mark.is-clickable { cursor: pointer; }
 .lintje-sankey__source-head.is-selected,
 .lintje-sankey__row-mark.is-selected { outline: 2px solid var(--color-text-primary); outline-offset: 2px; }
+/* The focus ring comes after the choice's line: whether the focus stands on a chosen row shows. */
+.lintje-sankey__source-head.is-selected:focus-visible,
+.lintje-sankey__row-mark.is-selected:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
 
 /* The bands grow in once from left to right, step after step, with the bars' timing; the
    labels come after. Paused until the chart is in view (`data-in-view`). */

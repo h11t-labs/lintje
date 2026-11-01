@@ -15,7 +15,7 @@ import { staggerStyle } from '../shared/stagger'
 import { DEFAULT_SERIES_COLOR, lineCasing } from '../shared/colors'
 import { seriesShapePath } from '../shared/series-shapes'
 import { seriesStyle } from './series-style'
-import type { ChartController } from '../shared/controller'
+import type { ChartController, TooltipContent } from '../shared/controller'
 import { withUnit, type MapDrawing } from './drawings'
 import { isRect } from './area'
 import type { MapArea, MapPointSize, MapSeriesKey, MapValue } from '../shared/types'
@@ -122,6 +122,61 @@ function onChoose(select: (value: MapValue) => void, value: MapValue) {
   }
 }
 
+/** What a mark's tooltip says: the same under the pointer and on the keyboard's focus. */
+export function markTip(drawing: MapDrawing, value: MapValue): TooltipContent {
+  if (drawing.variant === 'flows') {
+    const route = `${value.label} → ${drawing.destination?.label ?? ''}`
+    return {
+      title: `${route}${value.detail ? ` · ${value.detail}` : ''}`,
+      rows: [
+        {
+          label: drawing.unit,
+          value: value.value == null ? 'geen gegevens' : formatNumber(value.value),
+          color: DEFAULT_SERIES_COLOR,
+        },
+      ],
+    }
+  }
+  if (drawing.variant === 'polygons' || drawing.variant === 'choropleth') {
+    const missing = value.value == null
+    return {
+      title: `${value.label}${value.detail ? ` · ${value.detail}` : ''}`,
+      rows: [
+        {
+          label: drawing.unit,
+          value: missing ? 'geen gegevens' : formatNumber(value.value!),
+          color: missing
+            ? 'var(--color-chart-hatch)'
+            : CLASSES[classFor(value.value!, drawing.max)],
+        },
+      ],
+    }
+  }
+  const { color } = seriesStyle(drawing, value.series)
+  const seriesName = (value.series && drawing.seriesLabels?.[value.series]) || undefined
+  return {
+    title: seriesName ? `${value.label} · ${seriesName}` : value.label,
+    rows: [
+      {
+        label: drawing.unit,
+        value: value.value == null ? 'geen gegevens' : formatNumber(value.value),
+        color: color ?? DEFAULT_SERIES_COLOR,
+      },
+    ],
+  }
+}
+
+/** The pointer's tooltip on a mark; none while a tool is on, as the map is then a sheet to draw on. */
+function tipUnder(
+  controller: ChartController,
+  event: MouseEvent,
+  drawing: MapDrawing,
+  value: MapValue,
+): void {
+  if (controller.mapTool) return
+  controller.showTooltip(event, markTip(drawing, value))
+}
+
 /** Draw-in stagger in x-order, west to east. */
 function westToEast(marks: MapValue[]) {
   const order = new Map([...marks].sort((a, b) => a.lon! - b.lon!).map((mark, n) => [mark.id, n]))
@@ -191,17 +246,7 @@ function renderAreas(drawing: MapDrawing, context: MarksContext, land: LandShape
          @click=${onPick(select, value)}
          @auxclick=${onPick(select, value)}
          @dblclick=${stop}
-         @mousemove=${(event: MouseEvent) =>
-           controller.showTooltip(event, {
-             title: `${value.label}${value.detail ? ` · ${value.detail}` : ''}`,
-             rows: [
-               {
-                 label: drawing.unit,
-                 value: missing ? 'geen gegevens' : formatNumber(value.value!),
-                 color: fill,
-               },
-             ],
-           })}
+         @mousemove=${(event: MouseEvent) => tipUnder(controller, event, drawing, value)}
          @mouseleave=${() => controller.hideTooltip()}
          @keydown=${onChoose(select, value)}>
         <path d=${d} class="lintje-map-chart__polygon-ring" />
@@ -239,7 +284,8 @@ function renderFlows(
           const thickness = 1 + (value.value! / drawing.max) * 7
           const route = `${value.label} → ${destination.label}`
           const d = `M${at(ax, ay)}Q${at(mx, my)} ${at(bx, by)}`
-          // Built like a point: a ring and a gap in the surface under the line, for the focus.
+          // Built like a point: a ring and a gap in the surface under the line, for the focus,
+          // and a wide transparent line over it that takes the pointer.
           return svg`
         <g ${styleProps({ ...stagger(value), '--lintje-flow-width': `${thickness}px` })}
           class="lintje-map-chart__flow is-clickable ${markState(context, value.id, off)}"
@@ -251,21 +297,13 @@ function renderFlows(
           @click=${onPick(select, value)}
           @auxclick=${onPick(select, value)}
           @dblclick=${stop}
-          @mousemove=${(event: MouseEvent) =>
-            controller.showTooltip(event, {
-              title: `${route}${value.detail ? ` · ${value.detail}` : ''}`,
-              rows: [
-                {
-                  label: drawing.unit,
-                  value: formatNumber(value.value!),
-                  color: DEFAULT_SERIES_COLOR,
-                },
-              ],
-            })}
+          @mousemove=${(event: MouseEvent) => tipUnder(controller, event, drawing, value)}
           @mouseleave=${() => controller.hideTooltip()}>
           <path d=${d} class="lintje-map-chart__flow-ring" />
           <path d=${d} class="lintje-map-chart__flow-gap" />
           <path d=${d} pathLength="1" class="lintje-map-chart__flow-line" />
+          <!-- A thin flow is a target of the 24 px of a finger along its line; nothing is drawn. -->
+          <path d=${d} class="lintje-map-chart__flow-hit" />
         </g>
       `
         },
@@ -315,17 +353,7 @@ function renderPoints(drawing: MapDrawing, context: MarksContext, off: boolean) 
          @click=${onPick(select, value)}
          @auxclick=${onPick(select, value)}
          @dblclick=${stop}
-         @mousemove=${(event: MouseEvent) =>
-           controller.showTooltip(event, {
-             title: seriesName ? `${value.label} · ${seriesName}` : value.label,
-             rows: [
-               {
-                 label: drawing.unit,
-                 value: value.value == null ? 'geen gegevens' : formatNumber(value.value),
-                 color: colour ?? DEFAULT_SERIES_COLOR,
-               },
-             ],
-           })}
+         @mousemove=${(event: MouseEvent) => tipUnder(controller, event, drawing, value)}
          @mouseleave=${() => controller.hideTooltip()}
          @keydown=${onChoose(select, value)}>
         <!-- The figure grows in: its own group, as the animation's transform would replace the

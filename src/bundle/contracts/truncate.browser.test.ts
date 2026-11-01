@@ -256,7 +256,12 @@ const ROWS: Row[] = [
     // Below 768 px the identity stands whole in the phone form's first cell.
     text: (element) =>
       shown(element, '.lintje-data-table__cell-text, .lintje-data-table__mobile-cell'),
-    focus: (element) => shown(element, '.lintje-data-table__cell-text').closest('tr')!.focus(),
+    // The clickable row's Tab stop is its name.
+    focus: (element) =>
+      shown(element, '.lintje-data-table__cell-text')
+        .closest('tr')!
+        .querySelector<HTMLElement>('.lintje-data-table__open')!
+        .focus(),
     room: (element) => element,
   },
   {

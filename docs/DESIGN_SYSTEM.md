@@ -704,6 +704,9 @@ De besluiten hieronder gelden voor alle elementen.
   de lijst. Het element gaat via `lintje-navigate`, zodat een router het overneemt; een selectie
   ongedaan maken gaat zo naar de `clearHref`. Een klik met een modificatietoets of de middelste
   knop opent de `href` in een nieuw tabblad, zoals een link, via `lintje-navigate` met `newTab`.
+  Zo'n teken in een grafiek heet daarom een link, ook bij een host die het event annuleert om zelf
+  te routeren; alleen waar de host de keuze bijhoudt (`selectedId`, ook `null`) kiest het, en is
+  het een wisselknop met `aria-pressed`.
 - **Toetsen lopen via één register** (`src/core/shortcuts.ts`). Een toets is nooit de enige manier
   om iets te doen, en een toets zonder modificatietoets gaat nooit af zolang de focus in een veld
   staat. De eigen toetsen van een speler (spatie, de pijlen, F, C) werken alleen zolang de focus
@@ -797,6 +800,9 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een rij is klikbaar of selecteerbaar**, nooit allebei. Een naam die zijn rij opent, maakt de
   rij niet klikbaar: de naam is de link, dus een selecteerbare tabel kan zijn rijen nog steeds
   openen. Een naam die opent, wordt niet in zijn cel bewerkt.
+- **De naam van een klikbare rij is haar Tab-stop**, zoals de titel in de werklijst: een link met
+  de `href` van de rij, anders een knop, met `aria-current` op de gekozen rij. De rij zelf houdt
+  haar klik voor de aanwijzer, op een telefoon ook.
 - **Rijacties zijn een rustige ⋮**: plat, zonder vak. Een vak in elke rij weegt zwaarder dan de
   data ernaast.
 - **Op een applicatiepagina staat een tabel op de pagina**, zonder tegel: de kop of tab van de
@@ -811,7 +817,8 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een kolom kan haar waarden afkappen** (`truncate`): één regel met een beletselteken, zo breed
   als haar langste waarde tot een grens, zodat één lange toelichting de tabel niet breder maakt.
   Zoals elke afgekapte tekst staat de hele waarde in de tooltip en loopt ze door onder de focus
-  van het toetsenbord en zonder hover; onder 768 px kapt niets af.
+  van het toetsenbord en zonder hover; een rij zonder bediening krijgt daarvoor zelf
+  toetsenbordfocus. Onder 768 px kapt niets af.
 - **Een verandering kan alleen haar pijltje tonen** (`change-compact`): ▲ ▼ ● in de kleur van de
   verandering, voor een smalle kolom. Wat het oog ziet en wat een schermlezer hoort, zijn dan twee
   kopieën: de getekende is verborgen voor de schermlezer, een visueel verborgen kopie draagt de
@@ -1165,8 +1172,9 @@ blijft hij in de hand, een nieuw gebied vervangt het vorige, en hij gaat pas nee
 de knop, Escape of de reset. Eén vorm is een knop die hem opneemt en neerlegt; bij twee of meer
 is het een selectieknop met een hoekje rechtsonder, en opent een klik het menu van de vormen — de
 laatst gebruikte aangevinkt en gefocust, zodat Enter meteen verder gaat. Met een vorm in de hand
-toont de knop die vorm, primair gekleurd zoals een icoonknop die aanstaat, en heet hij "Stop met
-selecteren". De knoppen staan rechtsboven,
+toont de knop die vorm, primair gekleurd zoals een icoonknop die aanstaat. De selectieknop heet dan
+"Stop met selecteren" en is een gewone knop, nooit tegelijk wisselknop en menuknop; één vorm is
+een wisselknop die zijn naam houdt. De knoppen staan rechtsboven,
 ook op een telefoon alle, op de aanraakmaat op een hogere kaart: knijpen is een gebaar met twee
 vingers en uitzoomen moet ook met één. De schaalbalk staat rechtsonder, zonder kader, op een
 ondergrond op het oppervlak boven de bronvermelding: een ronde afstand en daarnaast een beugel
@@ -1181,8 +1189,16 @@ beide uiteinden en zijn boog. Wat de rand raakt, telt niet mee, en tijdens het t
 wat erin zou vallen. De kaart stuurt het gebied en de ids — een rechthoek als lasso van vier
 hoeken, want in Mercator is een rechthoek op het scherm er een in graden —, en de host bewaart
 het gebied in de URL zoals elk filter. Het gebied blijft staan tot de lezer het wegklikt, ook
-naast een gekozen mark. Wie niet sleept, tekent met klikken; onderaan staat hoe, per vorm, zolang
-de vorm in de hand is; Escape legt haar neer. De resetknop zet de kaart terug: het hele gebied in beeld en niets
+naast een gekozen mark. Begint de lezer een nieuw gebied, dan valt het oude met zijn paneel
+meteen weg, zonder dat de host het hoort; Escape of een druk die de browser terugneemt, zet het
+terug zoals het was, en de host hoort alleen het nieuwe gebied. Wie niet sleept, tekent met klikken. Met het toetsenbord zet Enter of spatie op de kaart een
+punt in het midden van het zicht, onder een kruisje, en schuiven de pijltoetsen de kaart eronder:
+een rechthoek is twee punten, een cirkel een midden en een rand, en een lasso sluit met Enter op
+zijn eerste punt. Onderaan staat hoe, per vorm, zolang de vorm in de hand is, in de manier waarop
+de lezer werkt: met de aanwijzer, of met de toetsen zolang de focus van het toetsenbord in de kaart
+staat. Escape is eerst van het kleinste: het breekt een tekening af, en anders legt het de vorm
+neer, met de focus op haar knop. Die Escape is van de kaart zolang de focus in de kaart of nergens
+staat. De resetknop zet de kaart terug: het hele gebied in beeld en niets
 gekozen.
 
 **Leaflet draagt de kaart, het design system tekent de data.** Projectie, verslepen, zoomen en
@@ -1421,11 +1437,16 @@ kleinste correctie, en leg die hier vast.
   verbergt een tooltip. De tekening is een afbeelding, of een groep met haar beschrijving als naam
   zodra een teken een knop is. Een teken met focus krijgt zijn ring buiten een opening van 1 px in
   het oppervlak, zodat een oranje teken zijn ring houdt; op een kaart, waar tekens elkaar raken,
-  ligt het met die ring boven alle andere. De nullijn, de arcering en de rand van
+  ligt het met die ring boven alle andere en toont het de tooltip van de aanwijzer, bij het teken. De nullijn, de arcering en de rand van
   een kaartgebied met een cijfer halen 3:1; aangrenzende tinten worden gescheiden door een lijn in
   het oppervlak; een donkergele lijn krijgt een rand in zijn tekstkleur; een label op een vulling
   neemt de tekstkleur van die vulling; een gedimd teken of een uitgeschakelde reeks vervaagt zijn
   kleur, nooit zijn woorden.
+- **Een teken dat doorklikt, is een vol aanwijsdoel** (2.5.8), zonder dat de tekening verandert:
+  een tik naast een smal teken kiest het dichtstbijzijnde binnen een halve `--h-target`, in het
+  spreidingsdiagram en tussen de staven; een stroom op de kaart vangt de aanwijzer op een
+  onzichtbare lijn van `--h-target-text`; de rij in de legendatabel van een taart opent wat haar
+  punt opent. Een gekozen cel tekent haar keuze binnen de cel, zodat de focusring erover blijft.
 - **Een entiteitendiagram is één Tab-stop met zijn teller erna**: de gekozen knoop, anders het
   middelpunt. De pijlen gaan naar de buur die het meest in hun richting ligt, Home naar het
   middelpunt, Enter kiest en Escape maakt het ongedaan. Elke knoop is een knop met haar naam en

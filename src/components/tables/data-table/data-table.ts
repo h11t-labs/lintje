@@ -1503,19 +1503,21 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const detailColumns = this.detailColumns
     const id = this.rowKey(row)
     const hasControls =
+      clickable ||
       (selectable && !this.uncheckable.has(id)) ||
       data.openable ||
       rowActions ||
       detailColumns.length > 0 ||
       columns.some((column) => column.editor)
-    // A static row needs a keyboard stop to reveal the compact change's words.
-    const revealsChange =
+    // A static row needs a keyboard stop to reveal the compact change's words or a cut value.
+    const reveals =
       !hasControls &&
       columns.some(
         (column) =>
-          column.format === 'change-compact' &&
-          typeof row[column.key] === 'number' &&
-          !(row[column.key] === 0 && column.zeroText != null),
+          (column.format === 'change-compact' &&
+            typeof row[column.key] === 'number' &&
+            !(row[column.key] === 0 && column.zeroText != null)) ||
+          (column.truncate === true && cellText(column, row[column.key]) != null),
       )
     const selected = id === data.selectedId
     const isChecked = this.checkedIds.includes(id)
@@ -1535,11 +1537,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
           'is-checked': isChecked,
           'is-open': isOpen,
         })}
-        tabindex=${clickable || revealsChange ? 0 : nothing}
-        aria-selected=${clickable ? selected : nothing}
+        tabindex=${reveals ? 0 : nothing}
         @click=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
         @auxclick=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
-        @keydown=${clickable ? (event: KeyboardEvent) => this.rowKeydown(event, row) : nothing}
       >
         ${
           selectable
@@ -1576,7 +1576,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
                   'lintje-data-table__cell--truncate': truncate,
                 })}
               >
-                ${this.opener(row, content)}
+                ${this.opener(row, content, selected)}
               </th>`
             : html`<td
                 class=${classMap({
@@ -2005,10 +2005,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const status = this.mobileStatus(measureColumn, row)
     const isOpen = others.length > 0 && this.openRows.includes(id)
     const detailId = `lintje-data-table-${copy}-detail-${id}`
-    const identity = html`<span class="lintje-data-table__mobile-name"
-        >${this.opener(row, this.cell(nameColumn, row[nameColumn.key]))}</span
-      >${this.subline(row)}`
     const selected = id === data.selectedId
+    const identity = html`<span class="lintje-data-table__mobile-name"
+        >${this.opener(row, this.cell(nameColumn, row[nameColumn.key]), selected)}</span
+      >${this.subline(row)}`
     const isChecked = this.checkedIds.includes(id)
     return html`<tr
         class=${classMap({
@@ -2018,11 +2018,8 @@ export class LintjeDataTable extends LintjeContentTileElement {
           'is-checked': isChecked,
           'is-open': isOpen,
         })}
-        tabindex=${clickable ? 0 : nothing}
-        aria-selected=${clickable ? selected : nothing}
         @click=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
         @auxclick=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
-        @keydown=${clickable ? (event: KeyboardEvent) => this.rowKeydown(event, row) : nothing}
       >
         <th scope="row" class="lintje-data-table__mobile-cell">
           ${
@@ -2153,16 +2150,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   /** Enter or Space on the row itself; a key meant for a control inside it stays that control's. */
-  private rowKeydown(event: KeyboardEvent, row: Row): void {
-    if (event.target !== event.currentTarget) return
-    if (event.key !== 'Enter' && event.key !== ' ') return
-    event.preventDefault()
-    this.activate('lintje-row-click', row)
-  }
-
   /**
    * The host may take the row over by cancelling the event; else the page goes to its `href`. A
-   * modifier or middle click opens the `href` in a new tab, as on a link, without the event.
+   * modifier or middle click opens the `href` in a new tab, as on a link, without the event. On
+   * the name's own link the browser follows it, unless the host cancels.
    */
   private activate(
     name: 'lintje-row-click' | 'lintje-row-open',
@@ -2176,7 +2167,16 @@ export class LintjeDataTable extends LintjeContentTileElement {
     }
     // Without an href the middle button does nothing; a modifier click is still a click.
     if (event?.type === 'auxclick') return
-    if (this.emit(name, detail) && detail.href) this.followLink(detail.href)
+    const onLink = Boolean(
+      event &&
+      detail.href &&
+      event.composedPath().some((node) => node instanceof HTMLAnchorElement),
+    )
+    if (!this.emit(name, detail)) {
+      if (onLink) event!.preventDefault()
+      return
+    }
+    if (detail.href) this.followLink(detail.href, onLink ? event : undefined)
   }
 
   /** The page is view state, not a number: it stays out of the URL. The table counts from 0. */
@@ -2212,12 +2212,27 @@ export class LintjeDataTable extends LintjeContentTileElement {
 
   /* Cells ------------------------------------------------------------------ */
 
-  /** The name of an `openable` row: a button in the shape of a link, since it opens, not goes. */
-  private opener(row: Row, content: unknown): unknown {
-    if (!this.data?.openable) return content
+  /**
+   * The name of an `openable` row: a button in the shape of a link, since it opens, not goes. In
+   * a clickable table the name is the row's one Tab stop: a link to its `href`, else a button,
+   * and the row's click hears it (WCAG 4.1.2).
+   */
+  private opener(row: Row, content: unknown, selected = false): unknown {
+    const data = this.data
+    const current = selected ? 'true' : nothing
+    if (!data?.openable) {
+      if (!data?.clickable || data.selectable) return content
+      const href = this.rowDetail(row).href
+      return href
+        ? html`<a class="lintje-data-table__open" href=${href} aria-current=${current}>${content}</a>`
+        : html`<button type="button" class="lintje-data-table__open" aria-current=${current}>
+            ${content}
+          </button>`
+    }
     return html`<button
       type="button"
       class="lintje-data-table__open"
+      aria-current=${current}
       @click=${(event: MouseEvent) => {
         event.stopPropagation()
         this.activate('lintje-row-open', row, event)

@@ -16,6 +16,7 @@ import { renderTooltip } from '../shared/tooltip'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { layerMotion, layerWeights } from '../shared/layer-motion'
 import { markSelection } from '../shared/mark-select'
+import { nearestHit, type MarkBox } from '../shared/nearest-mark'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { tintSteps, tintsFor } from '../shared/tints'
 import type { ChartSpec } from '../shared/types'
@@ -108,6 +109,7 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
     fixed: series.length < 2,
   }))
 
+  const boxes: MarkBox[] = []
   const marks: SvgSlot = labels.map((label, i) => {
     const group = band(i, labels.length, area)
     let cumulative = 0
@@ -141,6 +143,13 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
                   `${label} · ${segment.row.label}`,
                   `${label}, ${segment.row.label}: ${formatNumber(segment.row.values[i])}`,
                 )
+            boxes.push({
+              x: group.x,
+              y: segment.y1,
+              width: group.width,
+              height: segment.height,
+              mark,
+            })
             return svg`
             <rect class="lintje-chart__mark lintje-chart__segment ${mark?.state ?? ''}"
                   x=${group.x} y=${segment.y1} width=${group.width} height=${segment.height}
@@ -203,7 +212,7 @@ export function renderStackedBarChart(spec: StackedBarSpec, options: ChartOption
           interactive: selection.interactive,
           keys,
         },
-        svg`<g ${ref(motion.attach)}>${marks}</g>`,
+        nearestHit(area, boxes, svg`<g ${ref(motion.attach)}>${marks}</g>`),
       )}
       ${renderTooltip(controller)}
       ${renderPlotStatus(controller)}

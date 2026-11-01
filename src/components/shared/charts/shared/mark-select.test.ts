@@ -138,13 +138,20 @@ const KINDS: { name: string; chart: ChartSpec; id: string; inert: string }[] = [
 ]
 
 describe.each(KINDS)('cross-drill · $name', ({ chart, id, inert }) => {
-  it('makes the mark that carries a href a button', async () => {
+  it('makes the mark that carries a href a link to it', async () => {
     const element = await mountChart(chart)
+    const node = mark(element, id)
+    expect(node.getAttribute('role')).toBe('link')
+    expect(node.hasAttribute('aria-pressed')).toBe(false)
+    expect(node.getAttribute('aria-label')).toContain('Noord')
+  })
+
+  it('makes it a toggle while the host keeps a selection', async () => {
+    const element = await mountChart(chart, { selectedId: null })
     const node = mark(element, id)
     // The heatmap's cell is a button already; the svg marks say so themselves.
     expect(node.getAttribute('role') ?? node.tagName.toLowerCase()).toBe('button')
     expect(node.getAttribute('aria-pressed')).toBe('false')
-    expect(node.getAttribute('aria-label')).toContain('Noord')
   })
 
   it('makes the drawing around its buttons a group named by the description, not an image', async () => {
@@ -166,7 +173,7 @@ describe.each(KINDS)('cross-drill · $name', ({ chart, id, inert }) => {
   it('leaves a mark without a href alone', async () => {
     const element = await mountChart(chart)
     expect(element.renderRoot.querySelector(`[data-mark-id="${inert}"]`)).toBeNull()
-    const nodes = [...element.renderRoot.querySelectorAll('[role="button"]')]
+    const nodes = [...element.renderRoot.querySelectorAll('[role="button"], [role="link"]')]
     expect(nodes.every((node) => node.getAttribute('data-mark-id') === id)).toBe(true)
   })
 
@@ -228,14 +235,23 @@ describe('cross-drill · a chart that drills nowhere', () => {
 })
 
 describe('cross-drill · the keyboard', () => {
-  it('activates a mark with Enter and with Space', async () => {
-    const element = await mountChart(KINDS[0].chart)
-    for (const key of ['Enter', ' ']) {
-      mark(element, 'noord').dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
-      await element.updateComplete
-    }
+  const press = async (element: ChartElement, key: string): Promise<void> => {
+    mark(element, 'noord').dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
+    await element.updateComplete
+  }
+
+  it('activates a toggle with Enter and with Space', async () => {
+    const element = await mountChart(KINDS[0].chart, { selectedId: null })
+    for (const key of ['Enter', ' ']) await press(element, key)
     expect(selects).toHaveLength(2)
     expect(selects.at(-1)?.detail).toMatchObject({ id: 'noord' })
+  })
+
+  it('follows a link with Enter only, as a link does', async () => {
+    const element = await mountChart(KINDS[0].chart)
+    element.addEventListener('lintje-mark-select', (event) => event.preventDefault())
+    for (const key of [' ', 'Enter']) await press(element, key)
+    expect(selects).toHaveLength(1)
   })
 })
 

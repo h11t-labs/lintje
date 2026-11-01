@@ -14,6 +14,7 @@ import { renderAsOfMarker, renderChartFrame, renderLegend, type SvgSlot } from '
 import { renderTooltip } from '../shared/tooltip'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { markSelection } from '../shared/mark-select'
+import { nearestHit, type MarkBox } from '../shared/nearest-mark'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { LONE_POINT_RADIUS, knownRuns } from '../shared/runs'
 import {
@@ -119,6 +120,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
     y: yPosition(value, max, area),
   }))
 
+  const boxes: MarkBox[] = []
   const marks: SvgSlot = [
     values.map((value, i) => {
       const slot = band(i, labels.length, area)
@@ -139,6 +141,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
       )
       // An open bar keeps its edge inside its band.
       const inset = ahead ? 0.75 : 0
+      boxes.push({ x: slot.x, y, width: slot.width, height: Math.max(0, baseline - y), mark })
       return svg`
         <g class="lintje-chart__bar-group ${controller.hoverIndex === i ? 'is-hovered' : ''}"
            ${styleProps(staggerStyle(i, labels.length))}
@@ -235,7 +238,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
           interactive: selection.interactive,
           keys,
         },
-        marks,
+        nearestHit(area, boxes, marks),
       )}
       ${renderTooltip(controller)}
       ${renderPlotStatus(controller)}
