@@ -304,6 +304,28 @@ describe('the dumbbell below 768 px', () => {
       String(dumbbellHeight(3, true)),
     )
   })
+
+  it('runs a long name on over a second line, and its row grows with it', () => {
+    const label = 'Gemeentelijk loket Utrecht-Overvecht'
+    const { host } = draw(
+      { ...SPEC, rows: [{ ...SPEC.rows[0]!, label }, SPEC.rows[1]!] },
+      {
+        mobile: true,
+      },
+    )
+    const lines = [...host.querySelectorAll('.lintje-dumbbell__name--above')].map((name) =>
+      [...name.querySelectorAll('tspan')].map((line) => line.textContent),
+    )
+    expect(lines[0]!.length).toBe(2)
+    expect(lines[0]!.join(' ')).toBe(label)
+    expect(lines[1]).toEqual(['Zwolle'])
+    const [first, second] = [...host.querySelectorAll('.lintje-dumbbell__row .lintje-chart__hit')]
+    expect(Number(first!.getAttribute('height'))).toBe(44 + 20)
+    expect(Number(second!.getAttribute('y'))).toBe(Number(first!.getAttribute('y')) + 64)
+    expect(host.querySelector('svg.lintje-dumbbell')!.getAttribute('height')).toBe(
+      String(dumbbellHeight(2, true) + 20),
+    )
+  })
 })
 
 describe('a dumbbell row that drills', () => {

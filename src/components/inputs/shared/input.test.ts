@@ -850,7 +850,10 @@ describe('the stylesheets', () => {
     const shared = css('shared/input.css')
     const track = shared.match(/^\.lintje-choice__switch\s*\{([^}]*)\}/m)?.[1] ?? ''
     expect(shared).toContain(':host(lintje-toggle) { --lintje-choice-control: 40px; }')
-    expect(track).toContain('width: var(--lintje-choice-control); height: 22px;')
+    expect(track).toContain('--lintje-choice-switch-height: 22px;')
+    expect(track).toContain(
+      'width: var(--lintje-choice-control); height: var(--lintje-choice-switch-height);',
+    )
     expect(track).toContain('background: var(--color-choice-off);')
     expect(track).not.toContain('box-shadow')
     expect(track).not.toMatch(/(^|[^-])border:/)

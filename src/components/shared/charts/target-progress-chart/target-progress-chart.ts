@@ -29,7 +29,7 @@ export function renderTargetProgressChart(
   const column = rowLabelColumn(
     rows.map((row) => row.label),
     width,
-    { fontFamily: controller.fontFamily },
+    { font: controller.font },
   )
   const { labelEnd, barStart } = column
   const axisMax = 110

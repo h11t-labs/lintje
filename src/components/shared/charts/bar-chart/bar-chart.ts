@@ -66,7 +66,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
     (value): value is number => value != null,
   )
   const { max, ticks } = axisScale(Math.max(...actualValues, 1))
-  const axis = axisColumn(ticks, controller.width, { fontFamily: controller.fontFamily })
+  const axis = axisColumn(ticks, controller.width, { font: controller.font })
   const area = chartArea(options, {
     left: axis.width,
     ...(from != null ? { top: DEFAULT_PLOT_AREA.top + FORECAST_ROOM } : {}),
@@ -186,7 +186,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
           area,
           x: boundaryX,
           label: forecastLabel,
-          fontFamily: controller.fontFamily,
+          font: controller.font,
         })
       : nothing,
   ]
@@ -218,7 +218,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
       }
       ${renderChartFrame(
         {
-          fontFamily: controller.fontFamily,
+          font: controller.font,
           id,
           ticks,
           max,
