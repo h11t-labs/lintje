@@ -1,4 +1,6 @@
 /** The attachment: the icon of its kind, the name cut in the middle, what it opens and its states. */
+import { readFileSync } from 'node:fs'
+import { resolve as resolvePath } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import './attachment'
 import { fileIcon, splitName, type LintjeAttachment } from './attachment'
@@ -138,13 +140,15 @@ describe('lintje-attachment', () => {
     expect(part(element, 'remove')!.getAttribute('aria-label')).toBe(
       'Verwijderen beleidsregel-2026.pdf',
     )
+    // A done file needs no word of its state on the cross.
+    expect(part(element, 'remove')!.hasAttribute('aria-description')).toBe(false)
     element.disabled = true
     await element.updateComplete
     expect(part(element, 'main')!.localName).toBe('span')
     expect(part(element, 'remove')).toBeNull()
   })
 
-  it('busy: the line with its percentage, and the cross cancels', async () => {
+  it('busy: the line with its percentage, said once, and the cross cancels', async () => {
     const element = await mount({
       data: { id: 'v', name: 'verklaring.pdf', state: 'busy', progress: 64 },
       removable: true,
@@ -153,9 +157,11 @@ describe('lintje-attachment', () => {
     expect(line.getAttribute('aria-valuenow')).toBe('64')
     expect(line.getAttribute('aria-label')).toBe('verklaring.pdf uploaden')
     expect(part(element, 'detail')!.textContent).toBe('64%')
-    expect(said(element)).toBe('verklaring.pdf, bezig, 64%')
+    // The percentage is the progress bar's value; the sentence leaves it out.
+    expect(said(element)).toBe('verklaring.pdf, bezig')
     const cancelled = listen(element, 'lintje-file-cancel')
     expect(part(element, 'remove')!.getAttribute('aria-label')).toBe('Annuleren verklaring.pdf')
+    expect(part(element, 'remove')!.getAttribute('aria-description')).toBe('bezig')
     part(element, 'remove')!.click()
     expect(cancelled).toEqual([{ id: 'v' }])
   })
@@ -182,6 +188,34 @@ describe('lintje-attachment', () => {
     element.refused = true
     await element.updateComplete
     expect(said(element)).toBe('verklaring.pdf, geweigerd: Uploaden mislukt')
+  })
+
+  it('keeps the click area of a button off the button beside it', () => {
+    // Read from disk, not imported: vitest does not run the CSS pipeline.
+    const css = readFileSync(
+      resolvePath('src/components/content/attachment/attachment.css'),
+      'utf8',
+    )
+    const area = css.slice(css.indexOf('.lintje-attachment__action::after'))
+    expect(area).toMatch(/^[^}]*inset-inline: calc\(var\(--space-2\) \/ -2\)/)
+    expect(area).toMatch(
+      /^[^}]*inset-block: min\(0px, calc\(\(var\(--space-6\) - var\(--h-target\)\) \/ 2\)\)/,
+    )
+  })
+
+  it('a failed file’s cross says what went wrong, for a reader who Tabs to it', async () => {
+    const element = await mount({
+      data: { id: 's', name: 'scan.heic', state: 'error', message: 'Dit bestandstype kan niet' },
+      removable: true,
+      refused: true,
+    })
+    const cross = part(element, 'remove')!
+    expect(cross.getAttribute('aria-label')).toBe('Verwijderen scan.heic')
+    expect(cross.getAttribute('aria-description')).toBe('geweigerd: Dit bestandstype kan niet')
+    element.data = { id: 's', name: 'scan.heic', state: 'error' }
+    element.refused = false
+    await element.updateComplete
+    expect(cross.getAttribute('aria-description')).toBe('mislukt')
   })
 
   it('"Opnieuw" with `retry`, and the focus goes to the cross once the file is busy again', async () => {

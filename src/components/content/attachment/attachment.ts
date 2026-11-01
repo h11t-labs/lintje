@@ -143,15 +143,23 @@ export class LintjeAttachment extends LintjeElement {
     return typeof file.size === 'number' ? formatSize(file.size) : ''
   }
 
-  /** The chip in words: the name, its state where it is not done, and what stands beside it. */
+  /**
+   * The state where the file is not done: the word and the reason ("geweigerd: Dit bestandstype
+   * kan niet"). A busy file's percentage is the progress bar's, so it is said once.
+   */
+  private get stateWords(): string {
+    const file = this.data!
+    if (file.state === 'busy') return STATE_TEXT.busy
+    if (file.state !== 'error') return ''
+    const word = this.refused ? STATE_TEXT.refused : STATE_TEXT.error
+    return file.message ? `${word}: ${file.message}` : word
+  }
+
+  /** The chip in words: the name, its state where it is not done, else what stands beside it. */
   private get spoken(): string {
     const file = this.data!
-    const detail = this.detail
-    if (file.state === 'error') {
-      const word = this.refused ? STATE_TEXT.refused : STATE_TEXT.error
-      return detail ? `${file.name}, ${word}: ${detail}` : `${file.name}, ${word}`
-    }
-    const parts = [file.name, file.state === 'busy' ? STATE_TEXT.busy : '', detail]
+    if (file.state !== 'done') return `${file.name}, ${this.stateWords}`
+    const parts = [file.name, this.detail]
     if (this.opens && file.href && file.download) parts.push('downloaden')
     return parts.filter(Boolean).join(', ')
   }
@@ -235,6 +243,7 @@ export class LintjeAttachment extends LintjeElement {
           class="lintje-attachment__action lintje-attachment__remove"
           type="button"
           aria-label=${`${busy ? 'Annuleren' : 'Verwijderen'} ${file.name}`}
+          aria-description=${this.stateWords || nothing}
           @click=${() => this.send(busy ? 'lintje-file-cancel' : 'lintje-file-remove')}
         >
           ${renderIcon('functioneel-kruis', { size: 12 })}

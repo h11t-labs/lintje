@@ -10,6 +10,8 @@ import { TAB } from '../../core/test-keys'
 import '../../components/actions/button/button'
 import '../../components/actions/menu-button/menu-button'
 import '../../components/charts/chart/chart'
+import '../../components/chat/chat-steps/chat-steps'
+import '../../components/content/attachment/attachment'
 import '../../components/content/document-viewer/document-viewer'
 import '../../components/content/transcript/transcript'
 import '../../components/filters/filter-zone/filter-zone'
@@ -57,7 +59,10 @@ interface Row {
  * The rows that fail today, by name; each has its GitHub issue above it. A row that passes while
  * it matches an entry fails, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = []
+const KNOWN: RegExp[] = [
+  // #252
+  /^lintje-attachment :: name$/,
+]
 
 const LONG = 'Wijzigingen in de aanvraag opslaan en doorsturen naar de behandelaar van het loket'
 const SHORT = 'Opslaan'
@@ -551,6 +556,39 @@ const ROWS: Row[] = [
     text: (element) => shown(element, '.lintje-heatmap__row-label-text'),
     titleOn: (element) => shown(element, '.lintje-heatmap__row-label'),
     room: (element) => element,
+  },
+  {
+    name: 'lintje-chat-steps :: a step in the open list',
+    title: 'measured',
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-chat-steps'), {
+          open: true,
+          items: [{ label: words }, { label: 'Grafiek getekend' }],
+        }),
+        room(320),
+      ),
+    text: (element) => inShadow(element, '.lintje-chat-steps__text'),
+    // The steps' button: with the focus anywhere in the group, a step runs on.
+    focus: tabInto,
+    room: (element) => element.parentElement!,
+  },
+  {
+    name: 'lintje-attachment :: name',
+    title: 'always',
+    mount: (words) =>
+      append(
+        Object.assign(document.createElement('lintje-attachment'), {
+          data: { id: 'b', name: words, size: 860_000, state: 'done' },
+          removable: true,
+        }),
+        room(240),
+      ),
+    // The name is cut in its middle: the stem takes the ellipsis, the tail stays.
+    text: (element) => inShadow(element, '.lintje-attachment__stem'),
+    titleOn: (element) => inShadow(element, '.lintje-attachment__name'),
+    focus: tabInto,
+    room: (element) => element.parentElement!,
   },
   {
     name: 'lintje-multiselect :: chip',

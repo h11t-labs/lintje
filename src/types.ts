@@ -906,6 +906,8 @@ export type ChatBlock =
  *  with its outcome: "3 bronnen doorzoeken" while busy, "3 bronnen doorzocht" when done,
  *  "Tabel ophalen mislukt" or "Tabel ophalen gestopt". */
 export interface ChatStep {
+  /** What the step does or did. A screen reader hears its state after it ("bezig", "mislukt",
+   *  "gestopt") unless the label already holds that word. */
   label: string
   /** `done` without it. */
   state?: Extract<WorkState, 'busy' | 'done' | 'error' | 'cancelled'>

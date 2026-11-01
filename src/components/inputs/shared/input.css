@@ -224,6 +224,7 @@
 
 /* --- Checkbox, radio, toggle ---------------------------------------------- */
 .lintje-choice {
+  position: relative;
   display: flex; align-items: center; gap: var(--lintje-choice-gap);
   min-height: var(--h-target);
   font-size: 1rem;
@@ -236,6 +237,9 @@
   margin: calc(var(--space-2) * -1) 0 var(--space-2) calc(var(--lintje-choice-control) + var(--lintje-choice-gap));
 }
 .lintje-choice__input { position: absolute; opacity: 0; width: 0; height: 0; }
+/* Hidden in its row and as tall as it, at no width: the focus scrolls the whole row into view,
+   also in a list that scrolls, and the row takes the clicks as before. */
+.lintje-choice > .lintje-choice__input { inset-block: 0; inset-inline-start: 0; height: auto; margin: 0; }
 .lintje-choice__label.is-modified { color: var(--color-accent-text); font-weight: 700; }
 /* The field of a group's "Anders": indented to the labels' line (the box or radio plus the row's
    gap), so it reads as the rest of its choice. */

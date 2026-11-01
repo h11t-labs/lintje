@@ -9,6 +9,7 @@ import '../../components/chat/chat-answer/chat-answer'
 import '../../components/chat/chat-composer/chat-composer'
 import '../../components/chat/chat-message/chat-message'
 import '../../components/chat/chat-questions/chat-questions'
+import '../../components/content/attachment/attachment'
 import '../../components/feedback/conflict-alert/conflict-alert'
 import '../../components/tables/data-table/data-table'
 import '../../components/filters/filter-zone/filter-zone'
@@ -61,7 +62,10 @@ interface Row {
  * Rows that fail today: each entry has its GitHub issue above it and matches a row's name.
  * An entry whose row passes fails the last test, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = []
+const KNOWN: RegExp[] = [
+  // #249
+  /^lintje-attachment :: "Opnieuw" in a chip without a cross/,
+]
 const seen = new Set<RegExp>()
 let ran = 0
 
@@ -539,6 +543,34 @@ async function composerWith(files: UploadFile[]): Promise<HTMLElement & { files:
 
 const composerCross = (box: Element, index: number): HTMLElement | null =>
   chipCross(box.shadowRoot!, index)
+
+const ATTACHMENT_ROWS: Row[] = [
+  {
+    name: 'lintje-attachment :: "Opnieuw" in a chip without a cross hands its focus to the chip',
+    run: async () => {
+      const failed: UploadFile = {
+        id: 'f',
+        name: 'verklaring.pdf',
+        state: 'error',
+        message: 'Uploaden mislukt',
+        retry: true,
+      }
+      // In a message or an answer: the host tries again, and the file is busy.
+      const chip = await mount<HTMLElement & { data: UploadFile }>('lintje-attachment', {
+        data: failed,
+      })
+      chip.addEventListener('lintje-file-retry', () => {
+        chip.data = { ...failed, state: 'busy', progress: 0 }
+      })
+      const retry = (): HTMLElement | null => inside(chip, '.lintje-attachment__retry')
+      await expect.poll(retry).toBeTruthy()
+      retry()!.focus()
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(retry).toBeNull()
+      return () => inside(chip, '.lintje-attachment__main')
+    },
+  },
+]
 
 const COMPOSER_ROWS: Row[] = [
   {
@@ -1327,8 +1359,30 @@ const firstChoice = (box: Element | null): HTMLElement | null =>
 const nextButton = (box: Element | null): HTMLElement | null =>
   button(inside(box, '.lintje-chat-questions__next'))
 
-/** A conversation whose last answer asks, with the focus in its question box. */
-async function askingChat(): Promise<HTMLElement & { data: unknown }> {
+/** One `one` question without descriptions: the short form, whose tap sends. */
+const ASKED_SHORT = {
+  questions: [
+    {
+      id: 'periode',
+      label: 'Periode',
+      text: 'Welke periode bedoel je?',
+      kind: 'one' as const,
+      options: [
+        { value: '12m', label: 'Afgelopen 12 maanden' },
+        { value: '2025', label: 'Heel 2025' },
+      ],
+    },
+  ],
+}
+
+/**
+ * A conversation whose last answer asks, with the focus in its question box; the reader typed
+ * `draft` there while the answer came.
+ */
+async function askingChat(
+  questions: object = ASKED,
+  draft = '',
+): Promise<HTMLElement & { data: unknown }> {
   const chat = await mount<HTMLElement & { data: unknown }>('lintje-chat', {
     data: {
       turns: [
@@ -1339,17 +1393,34 @@ async function askingChat(): Promise<HTMLElement & { data: unknown }> {
   const composer = inside(chat, 'lintje-chat-composer')
   await expect.poll(() => composerField(composer)).toBeTruthy()
   composerField(composer)!.focus()
+  if (draft) await userEvent.keyboard(draft)
   chat.data = {
     turns: [
       {
         id: 't1',
         message: { text: 'Hoeveel aanvragen?' },
-        answer: { state: 'needs-clarification', text: 'Welke periode?', questions: ASKED },
+        answer: { state: 'needs-clarification', text: 'Welke periode?', questions },
       },
     ],
   }
   return chat
 }
+
+/** A host as a page has it: the reader's answer is a new turn, which ends the questions. */
+function answers(chat: HTMLElement & { data: unknown }): void {
+  chat.addEventListener('lintje-questions-answer', (event) => {
+    chat.data = {
+      turns: [
+        ...((chat.data as { turns: unknown[] }).turns ?? []),
+        { id: 't2', message: { text: (event as CustomEvent<{ text: string }>).detail.text } },
+      ],
+    }
+  })
+}
+
+const chip = (box: Element | null, index = 0): HTMLElement | null =>
+  (box?.shadowRoot?.querySelectorAll<HTMLElement>('.lintje-chat-questions__chip') ?? [])[index] ??
+  null
 
 const QUESTIONS_ROWS: Row[] = [
   {
@@ -1357,6 +1428,64 @@ const QUESTIONS_ROWS: Row[] = [
     run: async () => {
       const chat = await askingChat()
       return () => firstChoice(inside(chat, 'lintje-chat-questions'))
+    },
+  },
+  {
+    name: 'lintje-chat :: the questions, arriving while the question box holds a draft, leave the focus there',
+    run: async () => {
+      const chat = await askingChat(ASKED, 'En per regio')
+      const box = (): Element | null => inside(chat, 'lintje-chat-questions')
+      await expect.poll(() => firstChoice(box())).toBeTruthy()
+      // The status region says it instead: the words come a frame after the box.
+      await expect
+        .poll(() => box()?.shadowRoot?.querySelector('[role="status"]')?.textContent)
+        .toBe('Assistent vraagt, vraag 1 van 2')
+      await new Promise(requestAnimationFrame)
+      return () => composerField(inside(chat, 'lintje-chat-composer'))
+    },
+  },
+  {
+    name: 'lintje-chat :: on a phone, the questions arriving while the question box holds a draft leave it open, with the focus',
+    run: async () => {
+      await phone()
+      const chat = await askingChat(ASKED, 'En per regio')
+      const box = (): Element | null => inside(chat, 'lintje-chat-questions')
+      await expect.poll(() => firstChoice(box())).toBeTruthy()
+      await new Promise(requestAnimationFrame)
+      await new Promise(requestAnimationFrame)
+      expect(inside(chat, '.lintje-chat-composer__expand')).toBeNull()
+      return () => composerField(inside(chat, 'lintje-chat-composer'))
+    },
+  },
+  {
+    name: 'lintje-chat :: a choice in the short form hands the focus to the question box',
+    run: async () => {
+      const chat = await askingChat(ASKED_SHORT)
+      const box = (): Element | null => inside(chat, 'lintje-chat-questions')
+      await expect.poll(() => active() === chip(box())).toBe(true)
+      answers(chat)
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(box).toBeNull()
+      return () => composerField(inside(chat, 'lintje-chat-composer'))
+    },
+  },
+  {
+    name: 'lintje-chat :: Versturen beside the short form’s own field hands the focus to the question box',
+    run: async () => {
+      const chat = await askingChat(ASKED_SHORT)
+      const box = (): Element | null => inside(chat, 'lintje-chat-questions')
+      await expect.poll(() => active() === chip(box())).toBe(true)
+      answers(chat)
+      chip(box(), 2)!.focus()
+      await userEvent.keyboard('{Enter}')
+      const field = (): HTMLElement | null =>
+        inside(box(), '.lintje-chat-questions__own-field', 'input')
+      await expect.poll(() => active() === field()).toBe(true)
+      await userEvent.keyboard('Het eerste halfjaar')
+      button(inside(box(), '.lintje-chat-questions__own-send'))!.focus()
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(box).toBeNull()
+      return () => composerField(inside(chat, 'lintje-chat-composer'))
     },
   },
   {
@@ -1393,14 +1522,7 @@ const QUESTIONS_ROWS: Row[] = [
       const chat = await askingChat()
       const box = (): Element | null => inside(chat, 'lintje-chat-questions')
       await expect.poll(() => active() === firstChoice(box())).toBe(true)
-      chat.addEventListener('lintje-questions-answer', (event) => {
-        chat.data = {
-          turns: [
-            ...((chat.data as { turns: unknown[] }).turns ?? []),
-            { id: 't2', message: { text: (event as CustomEvent<{ text: string }>).detail.text } },
-          ],
-        }
-      })
+      answers(chat)
       firstChoice(box())!.click()
       nextButton(box())!.click()
       await expect.poll(() => inside(box(), 'lintje-checkbox-group')).toBeTruthy()
@@ -2306,6 +2428,7 @@ const ROWS: Row[] = [
   ...DATA_TABLE_ROWS,
   ...PAGINATION_ROWS,
   ...FILE_UPLOAD_ROWS,
+  ...ATTACHMENT_ROWS,
   ...COMPOSER_ROWS,
   ...TRANSCRIPT_ROWS,
   ...INPUT_ROWS,

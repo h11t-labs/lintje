@@ -10,7 +10,8 @@
  * `lintje-message-edit` by asking again without that turn and all after it, and
  * `lintje-strip-change` by answering again with the new assumption. A turn's `divider` stands as a
  * centred line above its question. The `questions` of the last answer stand in a box above the
- * question box until the next turn; on a phone the question box folds to one line meanwhile.
+ * question box until the next turn; on a phone the question box folds to one line meanwhile,
+ * unless the reader is typing in it.
  */
 import {
   html,
@@ -259,9 +260,13 @@ export class LintjeChat extends LintjeElement {
     const asked = (this.asking?.questions?.questions ?? []).map((question) => question.id).join(' ')
     if (asked === this.#asked) return
     this.#asked = asked
-    this.composerOpen = false
-    // A new box takes the focus from where the reader stood in the conversation.
-    if (asked && holdsFocus(this)) void this.focusQuestions()
+    // A new box takes the focus from where the reader stood in the conversation, unless they are
+    // typing a next question: a space would then pick a choice. The box's status region says it,
+    // and on a phone the question box stays open around the field they type in.
+    const composer = this.composer
+    const draft = Boolean(composer?.draft)
+    this.composerOpen = Boolean(asked) && draft && holdsFocus(composer!)
+    if (asked && holdsFocus(this) && !draft) void this.focusQuestions()
   }
 
   private async focusQuestions(): Promise<void> {
