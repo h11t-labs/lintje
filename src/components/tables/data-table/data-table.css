@@ -445,10 +445,8 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-row.is-open { border-bottom-color: transparent; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-detail { border-bottom: 1px solid var(--color-border-default); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-detail > .lintje-data-table__mobile-cell { padding-top: 0; }
-/* The toggle and the row menu sit at the row's end, on the name's first line. Two classes, so the
-   cell padding below does not give the column its start back. */
-:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell.lintje-data-table__mobile-cell--actions,
-:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__mobile-cell--actions { width: 1%; padding-inline-start: 0; }
+/* The toggle and the row menu sit at the row's end, on the name's first line. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell--actions { width: 1%; }
 /* The name takes what the measure and the actions leave, and breaks inside a word rather than
    widen the table past its tile; the measure keeps its words whole. */
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell--name { width: 100%; overflow-wrap: anywhere; }
@@ -463,6 +461,17 @@
   vertical-align: top;
   font-weight: 400;
 }
+/* Only the tile's edges keep --tile-pad-x; between two columns stands one --space-3, or at 320 px
+   the name keeps 30 px and breaks after every few letters. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell,
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile:not(.lintje-data-table__header-cell--sortable),
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile .lintje-data-table__sort-button { padding-inline: var(--space-3) 0; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell:first-child,
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile:first-child:not(.lintje-data-table__header-cell--sortable),
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile:first-child .lintje-data-table__sort-button { padding-inline-start: var(--tile-pad-x); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell:last-child,
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile:last-child:not(.lintje-data-table__header-cell--sortable),
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile:last-child .lintje-data-table__sort-button { padding-inline-end: var(--tile-pad-x); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-name { display: block; font-size: 0.875rem; font-weight: 700; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-sub { display: block; font-size: 0.875rem; color: var(--color-text-muted); margin-top: var(--space-1); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-measure { display: block; font-size: 0.875rem; font-weight: 700; font-variant-numeric: tabular-nums; }
