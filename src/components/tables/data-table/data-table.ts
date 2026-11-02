@@ -344,9 +344,6 @@ export class LintjeDataTable extends LintjeContentTileElement {
   mobilePage: number = 0
 
   readonly #mobile = new MediaController(this)
-  /** Per phone table, how wide it is with whole words: it keeps them again once that fits. */
-  readonly #wholeWidths = new WeakMap<Element, number>()
-  readonly #words = new FrameResizeObserver(() => this.#fitWords())
   readonly #edges = new ScrollEdges(() => this.requestUpdate())
   readonly #modalEdges = new ScrollEdges(() => this.requestUpdate())
   #sortSeen = JSON.stringify(null)
@@ -395,13 +392,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     return this.data ?? undefined
   }
 
-  override connectedCallback(): void {
-    super.connectedCallback()
-    this.#words.observe(this)
-  }
-
   override disconnectedCallback(): void {
-    this.#words.disconnect()
     cancelAnimationFrame(this.#barFrame)
     this.#barFrame = 0
     this.#edges.disconnect()
@@ -476,23 +467,6 @@ export class LintjeDataTable extends LintjeContentTileElement {
     super.updated(changed)
     this.#editing.restoreFocus(this.renderRoot)
     this.#keepFocus()
-    this.#fitWords(true)
-  }
-
-  // Wider than its tile with whole words, the phone's table lets every word break (`is-narrow`).
-  // Its whole width is kept, so it takes them back once that fits; new rows are measured again.
-  // A pixel of slack, as in lintje-segmented: WebKit rounds the two widths apart when zoomed.
-  #fitWords(again = false): void {
-    const tables = this.renderRoot.querySelectorAll<HTMLElement>(
-      '.lintje-data-table.is-phone > .lintje-data-table__mobile',
-    )
-    for (const table of tables) {
-      const room = table.parentElement?.clientWidth ?? 0
-      if (!room) continue
-      if (again) table.classList.remove('is-narrow')
-      if (!table.classList.contains('is-narrow')) this.#wholeWidths.set(table, table.offsetWidth)
-      table.classList.toggle('is-narrow', (this.#wholeWidths.get(table) ?? 0) > room + 1)
-    }
   }
 
   /** Before the host's answer redraws the table: where the focus stands, if in a bar or a row. */
@@ -1058,11 +1032,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const active = (edges === this.#modalEdges) === this.expanded
     const copy = edges === this.#modalEdges ? 'modal' : 'tile'
     // A table wider than its tile scrolls; a keyboard reaches that scroll only when the scroller
-    // takes focus, as lintje-code's block does (WCAG 2.1.1).
+    // takes focus, as lintje-code's block does (WCAG 2.1.1). The phone's table scrolls in the same
+    // box: its name keeps a readable width rather than break after every few letters.
     const scrolls = edges.start || edges.end
     return html`<div class=${classMap({ 'lintje-data-table': true, 'is-phone': mobile })}>
       ${this.toolbar(edges, paged)} ${mobile ? nothing : this.selectionBar(false)}
-      <!-- Desktop table: scrolls sideways when it is wider than the tile -->
+      <!-- Scrolls sideways when the table is wider than the tile -->
       <div
         class=${classMap({
           'lintje-data-table__frame': true,
@@ -1077,12 +1052,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
           role=${scrolls ? 'region' : nothing}
           aria-label=${scrolls ? (this.data?.caption ?? nothing) : nothing}
         >
+          <!-- Mobile representation: two columns (C8). First, so the scroller watches its width. -->
+          ${this.mobileTable(mobileRows, mobilePageCount, copy, grouped ? mobileGroups : null)}
           ${this.fullTable(visible, pageCount, pageSize, edges, grouped ? pageGroups : null)}
         </div>
       </div>
-
-      <!-- Mobile representation: two columns (C8) -->
-      ${this.mobileTable(mobileRows, mobilePageCount, copy, grouped ? mobileGroups : null)}
       ${
         pageCount > 1
           ? this.pager('full', this.page, pageCount, pageSize, units, unit, (page) => {

@@ -284,8 +284,6 @@ describe('the phone’s table', () => {
   }
 
   const width = (element: Element): number => element.getBoundingClientRect().width
-  const narrow = (element: TableElement): boolean =>
-    part(element, '.lintje-data-table__mobile').classList.contains('is-narrow')
 
   // A long name with its line, a measure with its tone, and the toggle for the other columns.
   const toned: DataTableData = {
@@ -305,49 +303,33 @@ describe('the phone’s table', () => {
     rows: [{ name: 'Klantcontactcentrum Amsterdam-Zuidoost', requests: 25090, wait: 15.7 }],
   }
 
-  // A check box, a status with a long word and two buttons: whole words do not fit at 320 px.
-  const crowded: DataTableData = {
-    caption: 'Meldingen',
-    rowKey: 'title',
-    selectable: true,
-    rowActions: [{ value: 'toewijzen', label: 'Toewijzen' }],
-    columns: [
-      { key: 'title', header: 'Titel' },
-      { key: 'status', header: 'Status', mobileMeasure: true },
-      { key: 'date', header: 'Datum' },
-    ],
-    rows: [
-      {
-        title: 'Drone boven parkeerterrein P3',
-        status: 'Doorgestuurd naar gemeentebelastingen',
-        date: '01-10-2026',
-      },
-    ],
-  }
-
-  it.each([390, 320])('lets the name break, not the measure, at %i px', async (screen) => {
-    await viewport(screen)
-    const element = await mountOnPhone(toned)
+  // At 320 px it depends on the house font, which the tests do not load.
+  it('fits its tile with an ordinary name at 390 px', async () => {
+    await viewport(390)
+    const element = await mountOnPhone({
+      ...toned,
+      rows: [{ name: 'Loket Amsterdam Centrum', requests: 25090, wait: 15.7 }],
+    })
     const mobile = part(element, '.lintje-data-table__mobile')
     await expect.poll(() => width(mobile)).toBeGreaterThan(0)
+    const scroller = part(element, '.lintje-data-table__scroller')
     expect(width(mobile)).toBeLessThanOrEqual(width(element))
-    expect(narrow(element)).toBe(false)
+    expect(scroller.hasAttribute('tabindex')).toBe(false)
   })
 
-  it('breaks every word once whole words do not fit, and keeps them again when they do', async () => {
-    await viewport(390)
-    const element = await mountOnPhone(crowded)
-    const mobile = part(element, '.lintje-data-table__mobile')
-    await expect.poll(() => width(mobile)).toBeGreaterThan(0)
-    expect(narrow(element)).toBe(false)
-    expect(width(mobile)).toBeLessThanOrEqual(width(element))
-
+  it('keeps its words whole and scrolls in its tile once they do not fit', async () => {
     await viewport(320)
-    await expect.poll(() => narrow(element)).toBe(true)
-    expect(width(mobile)).toBeLessThanOrEqual(width(element))
-
-    await viewport(390)
-    await expect.poll(() => narrow(element)).toBe(false)
-    expect(width(mobile)).toBeLessThanOrEqual(width(element))
+    const element = await mountOnPhone(toned)
+    const scroller = part(element, '.lintje-data-table__scroller')
+    const name = part(element, '.lintje-data-table__mobile-name')
+    await expect.poll(() => scroller.getAttribute('tabindex')).toBe('0')
+    expect(scroller.scrollWidth).toBeGreaterThan(scroller.clientWidth)
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth)
+    // "Klantcontactcentrum" stands on one line: the name is as wide as that word.
+    const word = document.createElement('span')
+    word.textContent = 'Klantcontactcentrum'
+    word.style.whiteSpace = 'nowrap'
+    name.append(word)
+    expect(name.clientWidth).toBeGreaterThanOrEqual(word.offsetWidth)
   })
 })
