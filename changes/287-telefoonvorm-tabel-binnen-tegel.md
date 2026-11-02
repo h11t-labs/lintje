@@ -1,3 +1,3 @@
 ### Opgelost
 
-- De telefoonvorm van `lintje-data-table` is nooit meer breder dan haar tegel: de naam breekt af, en past zelfs een heel woord van de meetwaarde niet (320 px), dan breekt elk woord. (#287)
+- De telefoonvorm van `lintje-data-table` steekt niet meer buiten haar tegel: de naam houdt minstens ongeveer tien tekens en hele woorden, en past de tabel dan niet, dan scrolt hij zijwaarts in de tegel. (#287)
