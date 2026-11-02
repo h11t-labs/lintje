@@ -780,6 +780,35 @@ describe('the skip link', () => {
   })
 })
 
+/** A host that routes itself asks for what the skip link does, once its new page is drawn. */
+describe('focusContent()', () => {
+  it.each(['side', 'top'] as const)(
+    "puts the focus on the shell's own main, in the %s layout",
+    async (layout) => {
+      const shell = await mount({ layout })
+      document.body.focus()
+      shell.focusContent()
+      expect(root(shell).activeElement).toBe(root(shell).querySelector('main'))
+      expect(deepActiveElement()).toBe(root(shell).querySelector('main'))
+    },
+  )
+
+  it.each(['side', 'top'] as const)(
+    "puts the focus on the shell's own main at 390 px, in the %s layout",
+    async (layout) => {
+      try {
+        viewport(390)
+        const shell = await mount({ layout })
+        expect(shell.mobile.matches).toBe(true)
+        shell.focusContent()
+        expect(deepActiveElement()).toBe(root(shell).querySelector('main'))
+      } finally {
+        viewport(1024)
+      }
+    },
+  )
+})
+
 /**
  * The open mobile menu is a modal dialog: the header and its panel together,
  * because Sluiten and the mode stand in the header. Tab stays inside that

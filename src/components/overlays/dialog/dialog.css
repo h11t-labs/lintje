@@ -51,13 +51,17 @@
 }
 .lintje-dialog__close:hover { color: var(--color-text-primary); }
 
-/* A long form scrolls here; the padding keeps a field's focus ring inside the scroll box. */
+/* A long form scrolls here. The padding is a field's whole focus ring, its offset and its width,
+   so the ring stays whole in the scroll box; the margin gives the room back. */
 .lintje-dialog__body {
+  --lintje-dialog-ring: calc(var(--focus-width) + var(--focus-offset));
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-  margin: calc(var(--focus-width) * -1) calc(var(--space-6) * -1);
-  padding: var(--focus-width) var(--space-6);
+  margin: calc(var(--lintje-dialog-ring) * -1) calc(var(--space-6) * -1);
+  padding: var(--lintje-dialog-ring) var(--space-6);
+  /* A field the focus scrolls to keeps its ring in view too. */
+  scroll-padding-block: var(--lintje-dialog-ring);
   font: var(--text-body);
 }
 
@@ -84,6 +88,13 @@
 [data-style-version='new'] .lintje-dialog__actions { flex-direction: row-reverse; margin-left: 0; margin-right: auto; }
 [data-style-version='new'] .lintje-dialog__footer { justify-content: flex-start; }
 [data-style-version='new'] .lintje-dialog__note { order: 1; }
+
+/* Little height (a phone held sideways, 400 % zoom), the same bound as the form's action bar:
+   the whole window scrolls, so the heading, the text and every button can be reached. */
+@media (height < 30rem) {
+  .lintje-dialog { overflow: auto; }
+  .lintje-dialog__body { flex: none; overflow: visible; }
+}
 
 /* Phone: the buttons stack, the last (the answer) on top and the safe one at the bottom. */
 @media screen and (max-width: 767px) {

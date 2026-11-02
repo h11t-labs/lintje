@@ -489,7 +489,7 @@ function drawRows(context: Context): TemplateResult {
         ${
           mark.clickable
             ? html`<button type="button" class="lintje-treemap__part lintje-treemap__part--button" aria-pressed=${mark.pressed}
-                    @click=${mark.click}>${body}</button>`
+                    data-mark-id=${mark.markId} @click=${mark.click}>${body}</button>`
             : html`<div class="lintje-treemap__part">${body}</div>`
         }
         ${
