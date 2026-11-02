@@ -159,9 +159,13 @@ export class LintjeNotifications extends LintjeElement {
     super.updated(changed)
     if (this.#refocus) {
       this.#refocus = false
+      // The first item, else the line that says the list is empty: the panel stays open.
       const root = this.renderRoot
-      const first = root.querySelector<HTMLElement>('.lintje-notifications__title')
-      ;(first ?? root.querySelector<HTMLElement>('.lintje-notifications__close'))?.focus()
+      ;(
+        root.querySelector<HTMLElement>('.lintje-notifications__title') ??
+        root.querySelector<HTMLElement>('.lintje-notifications__empty') ??
+        root.querySelector<HTMLElement>('.lintje-notifications__close')
+      )?.focus()
     }
     // Only the phone's sheet is modal.
     const sheet = this.open && this.#mobile.matches
@@ -252,7 +256,7 @@ export class LintjeNotifications extends LintjeElement {
           ? html`<ul class="lintje-notifications__list">
             ${this.items.map((item) => this.renderItem(item))}
           </ul>`
-          : html`<p class="lintje-notifications__empty">
+          : html`<p class="lintje-notifications__empty" tabindex="-1">
             Geen meldingen. Wat klaar is of mislukt, verschijnt hier.
           </p>`
       }

@@ -1,0 +1,3 @@
+### Opgelost
+
+- Wat verdwijnt terwijl het de focus heeft, geeft de focus eerst door: "Weergave" blijft open bij een keuze en een andere indeling, de punaise houdt het menu als uitgeklapte rail, een venster waarvan de opener weg is geeft de focus aan de inhoud, en de meldingen, het log, het formulier, het foutenoverzicht, de upload, de bijlagen, de filterbalk, de kaart, "Meer", de sankey en de treemap laten de focus niet meer naar `body` vallen. De focusval springt alleen bij de echte eerste en laatste stop, en de kaartknoppen en het zoekveld van het smalle log staan in de Tab-volgorde waar je ze ziet. (#292)
