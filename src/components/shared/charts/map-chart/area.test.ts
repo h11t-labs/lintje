@@ -76,6 +76,16 @@ describe('an area on the map', () => {
     expect(ids).toEqual(['ams', 'zone'])
   })
 
+  it('chooses a province of the built-in geometry by its whole outline', () => {
+    const area = { kind: 'circle' as const, centre: UTRECHT, radiusKm: 60 }
+    const provinces = drawing('choropleth', [
+      { id: 'NL-UT', label: 'Utrecht', value: 1 },
+      { id: 'NL-GE', label: 'Gelderland', value: 1 },
+      { id: 'NL-NH', label: 'Noord-Holland', value: 1 },
+    ])
+    expect(idsInArea(area, [provinces], 'provinces')).toEqual(['NL-UT'])
+  })
+
   it('leaves out an outline a lasso cuts, though its corners are all inside', () => {
     // A U-shaped lasso: the square's corners lie in its arms, its middle in the gap.
     const lasso = {

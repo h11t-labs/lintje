@@ -1,10 +1,10 @@
 /**
  * Builds the map geography (`npm run build:geo`, `--refresh` skips the cache) from Natural Earth
- * Admin-0 1:10m and CBS's `landsdeel` regions on PDOK, cached in `.cache/geo/`. Kadaster's
- * `landgebied` is not used: it fills the Wadden Sea and the IJsselmeer. Overridable for a closed
- * network: `LINTJE_GEO_NATURAL_EARTH_URL`, `LINTJE_GEO_PDOK_URL` (or `--natural-earth=`, `--pdok=`).
- * Output: `world.lonlat.json` and `netherlands.lonlat.json`, unprojected; the map projects them
- * itself (Web Mercator, as every web map).
+ * Admin-0 1:10m and CBS's `landsdeel` and `provincie` regions on PDOK, cached in `.cache/geo/`.
+ * Kadaster's `landgebied` is not used: it fills the Wadden Sea and the IJsselmeer. Overridable for
+ * a closed network: `LINTJE_GEO_NATURAL_EARTH_URL`, `LINTJE_GEO_PDOK_URL` (or `--natural-earth=`,
+ * `--pdok=`). Output: `world.lonlat.json`, `netherlands.lonlat.json` and `provinces.lonlat.json`,
+ * unprojected; the map projects them itself (Web Mercator, as every web map).
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
@@ -85,24 +85,83 @@ function area(ring) {
   return Math.abs(s / 2)
 }
 
+/**
+ * Douglas-Peucker over shapes that share their borders vertex for vertex, as CBS's do: a ring is
+ * cut wherever the shape on its other side changes, and each stretch is simplified once, in one
+ * direction, so two neighbours keep one border and no sliver opens between them.
+ */
+function simplifyShared(shapes, tolerance) {
+  const key = ([x, y]) => `${x.toFixed(7)},${y.toFixed(7)}`
+  const edge = (a, b) => (a < b ? `${a}|${b}` : `${b}|${a}`)
+  const add = (map, k, n) => (map.get(k) ?? map.set(k, new Set()).get(k)).add(n)
+  const sides = new Map()
+  const meets = new Map()
+  shapes.forEach((kept, n) => {
+    for (const ring of kept) {
+      for (let i = 0; i + 1 < ring.length; i++) {
+        add(sides, edge(key(ring[i]), key(ring[i + 1])), n)
+        add(meets, key(ring[i]), n)
+      }
+    }
+  })
+  const owners = (a, b) => [...sides.get(edge(a, b))].sort().join()
+  const done = new Map()
+  const stretch = (points) => {
+    const forward = points.map(key).join(' ')
+    const backward = points.map(key).reverse().join(' ')
+    const reversed = backward < forward
+    const id = reversed ? backward : forward
+    if (!done.has(id)) done.set(id, simplify(reversed ? points.toReversed() : points, tolerance))
+    return reversed ? done.get(id).toReversed() : done.get(id)
+  }
+  return shapes.map((kept) =>
+    kept.map((ring) => {
+      const open = ring.slice(0, -1)
+      const keys = open.map(key)
+      const n = open.length
+      const cut = keys.map(
+        (k, i) =>
+          meets.get(k).size > 2 ||
+          owners(keys[(i + n - 1) % n], k) !== owners(k, keys[(i + 1) % n]),
+      )
+      // A ring along one neighbour or none starts where that neighbour's ring starts too.
+      if (!cut.includes(true)) cut[keys.indexOf(keys.toSorted()[0])] = true
+      const first = cut.indexOf(true)
+      const out = [open[first]]
+      let points = [open[first]]
+      for (let step = 1; step <= n; step++) {
+        const i = (first + step) % n
+        points.push(open[i])
+        if (cut[i]) {
+          out.push(...stretch(points).slice(1))
+          points = [open[i]]
+        }
+      }
+      return out
+    }),
+  )
+}
+
 /* --- Conversion ----------------------------------------------------------- */
 
 function rings(geometry) {
   return geometry.type === 'Polygon' ? geometry.coordinates : geometry.coordinates.flat()
 }
 
-/** Selects and simplifies the surviving rings in lon/lat, once, so both outputs share shapes. */
-function shapesOf(features, { tolerance, minArea, ringFilter }) {
+/**
+ * Selects and simplifies the surviving rings in lon/lat, once, so both outputs share shapes.
+ * `shared` simplifies a border two shapes share once, for both.
+ */
+function shapesOf(features, { tolerance, minArea, ringFilter, shared = false }) {
+  const kept = features.map((f) =>
+    rings(f.geometry).filter((ring) => (!ringFilter || ringFilter(ring)) && area(ring) >= minArea),
+  )
+  const simplified = shared
+    ? simplifyShared(kept, tolerance)
+    : kept.map((pieces) => pieces.map((ring) => simplify(ring, tolerance)))
   const shapes = []
-  for (const f of features) {
-    const pieces = []
-    for (const ring of rings(f.geometry)) {
-      if (ringFilter && !ringFilter(ring)) continue
-      if (area(ring) < minArea) continue
-      const simplified = simplify(ring, tolerance)
-      if (simplified.length < 4) continue
-      pieces.push(simplified)
-    }
+  features.forEach((f, n) => {
+    const pieces = simplified[n].filter((ring) => ring.length >= 4)
     if (pieces.length) {
       shapes.push({
         id: f.properties.ISO_A2,
@@ -110,15 +169,15 @@ function shapesOf(features, { tolerance, minArea, ringFilter }) {
         pieces,
       })
     }
-  }
+  })
   return shapes
 }
 
 /** The shapes as GeoJSON. Coordinates are rounded below the tolerance. */
-function geojson(features, { tolerance, minArea, ringFilter, precision = 3 }) {
+function geojson(features, { tolerance, minArea, ringFilter, shared, precision = 3 }) {
   const factor = 10 ** precision
   const round = (n) => Math.round(n * factor) / factor
-  const shapes = shapesOf(features, { tolerance, minArea, ringFilter })
+  const shapes = shapesOf(features, { tolerance, minArea, ringFilter, shared })
   const all = shapes.flatMap((v) => v.pieces.flat())
   const lons = all.map((p) => p[0])
   const lats = all.map((p) => p[1])
@@ -188,8 +247,17 @@ const regions = await fetched(
   'cbs-landsdeel.geojson',
   `${PDOK}/collections/landsdeel_gegeneraliseerd/items?f=json&limit=1000`,
 )
-const year = Math.max(...regions.features.map((f) => f.properties.jaarcode))
-const newest = regions.features.filter((f) => f.properties.jaarcode === year)
+const newestOf = (collection) => {
+  const year = Math.max(...collection.features.map((f) => f.properties.jaarcode))
+  return collection.features.filter((f) => f.properties.jaarcode === year)
+}
+const newest = newestOf(regions)
+const provinceRegions = newestOf(
+  await fetched(
+    'cbs-provincie.geojson',
+    `${PDOK}/collections/provincie_gegeneraliseerd/items?f=json&limit=1000`,
+  ),
+)
 mkdirSync(OUT, { recursive: true })
 
 // Antarctica is left out: it fills the bottom of the frame without meaning anything.
@@ -217,9 +285,41 @@ const NETHERLANDS = {
     ringFilter: (ring) => ring.every(([lon]) => lon > 0),
   },
 }
+// CBS's province codes and the ISO 3166-2 codes a choropleth's ids name the provinces by.
+const PROVINCE_ISO = {
+  PV20: 'NL-GR',
+  PV21: 'NL-FR',
+  PV22: 'NL-DR',
+  PV23: 'NL-OV',
+  PV24: 'NL-FL',
+  PV25: 'NL-GE',
+  PV26: 'NL-UT',
+  PV27: 'NL-NH',
+  PV28: 'NL-ZH',
+  PV29: 'NL-ZE',
+  PV30: 'NL-NB',
+  PV31: 'NL-LI',
+}
+// The twelve provinces, simplified as the Netherlands is, each border once for both sides.
+const PROVINCES = {
+  features: provinceRegions
+    .map((f) => ({
+      type: 'Feature',
+      properties: { ISO_A2: PROVINCE_ISO[f.properties.statcode], NAME_NL: f.properties.statnaam },
+      geometry: f.geometry,
+    }))
+    .toSorted((a, b) => a.properties.ISO_A2.localeCompare(b.properties.ISO_A2)),
+  options: { ...NETHERLANDS.options, shared: true },
+}
+const found = PROVINCES.features.map((f) => f.properties.ISO_A2)
+if (found.join() !== Object.values(PROVINCE_ISO).toSorted().join()) {
+  throw new Error(`expected the twelve provinces, got ${found.join(' ')}`)
+}
+
 for (const [name, source] of [
   ['world', WORLD],
   ['netherlands', NETHERLANDS],
+  ['provinces', PROVINCES],
 ]) {
   const collection = geojson(source.features, source.options)
   const json = JSON.stringify(collection)

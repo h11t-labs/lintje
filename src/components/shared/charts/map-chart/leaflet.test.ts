@@ -259,6 +259,38 @@ describe('the edge of a map point', () => {
   })
 })
 
+describe('the provinces', () => {
+  beforeEach(() => {
+    document.body.innerHTML = ''
+  })
+
+  it('draws the twelve provinces, and a figure for NL-UT colours Utrecht', () => {
+    const { container } = surface(
+      {},
+      {
+        variant: 'choropleth',
+        geo: 'provinces',
+        description: 'Aanvragen per provincie.',
+        values: [
+          { id: 'NL-UT', label: 'Utrecht', value: 8 },
+          { id: 'NL-GR', label: 'Groningen', value: null },
+        ],
+      },
+    )
+    expect(container.querySelectorAll('.lintje-map-chart__land')).toHaveLength(12)
+    const utrecht = mark(container, 'NL-UT')
+    expect(utrecht.getAttribute('aria-label')).toBe('Utrecht: 8 min')
+    expect(utrecht.querySelector('.lintje-map-chart__polygon-shape')?.getAttribute('fill')).toBe(
+      'var(--color-chart-seq-5)',
+    )
+    // Without a figure hatched, never coloured as zero; without a row plain land.
+    expect(
+      mark(container, 'NL-GR').querySelector('.lintje-map-chart__polygon-hatch'),
+    ).not.toBeNull()
+    expect(mark(container, 'NL-NH')).toBeNull()
+  })
+})
+
 describe('the basemap in dark', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
