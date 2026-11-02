@@ -85,6 +85,13 @@
 [data-style-version='new'] .lintje-dialog__footer { justify-content: flex-start; }
 [data-style-version='new'] .lintje-dialog__note { order: 1; }
 
+/* Little height (a phone held sideways, 400 % zoom), the same bound as the form's action bar:
+   the whole window scrolls, so the heading, the text and every button can be reached. */
+@media (height < 30rem) {
+  .lintje-dialog { overflow: auto; }
+  .lintje-dialog__body { flex: none; overflow: visible; }
+}
+
 /* Phone: the buttons stack, the last (the answer) on top and the safe one at the bottom. */
 @media screen and (max-width: 767px) {
   .lintje-dialog__scrim { padding: var(--space-4); }

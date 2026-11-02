@@ -125,8 +125,9 @@ const HOSTS: Host[] = [
     tag: 'lintje-segmented',
     control: '.lintje-segmented',
     props: { options: OPTIONS, value: 'noord' },
-    wide: AUTO,
-    phone: AUTO,
+    // It shrinks with its room and stands as a column there.
+    wide: FIELD,
+    phone: FIELD,
   },
   {
     tag: 'lintje-range',
