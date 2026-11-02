@@ -89,8 +89,10 @@ export class LintjeBreadcrumbs extends LintjeElement {
     return this.isNewStyle && !this.items.at(-1)?.href ? this.items.slice(0, -1) : this.items
   }
 
+  // The nearest level up that is a page: a group without one ("Beheer") is skipped.
   private renderPhone(): TemplateResult | typeof nothing {
-    const back = this.isNewStyle ? this.shown.at(-1) : this.items.at(-2)
+    const levels = this.isNewStyle ? this.shown : this.items.slice(0, -1)
+    const back = [...levels].reverse().find((item) => item.href)
     if (!back?.href) return nothing
     const href = back.href
     return html`<nav class="lintje-breadcrumbs lintje-breadcrumbs--back" aria-label=${this.label}>

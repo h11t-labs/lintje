@@ -36,6 +36,7 @@ export function renderRowActions(
 ): TemplateResult {
   // Flat: a box in every row would weigh more than the data beside it.
   return html`<lintje-menu-button
+    class="lintje-data-table__row-menu"
     icon
     variant="tertiary"
     placement="bottom-end"

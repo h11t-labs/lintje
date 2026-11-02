@@ -5,7 +5,7 @@
  * written into the shadow root as it stands. `text` is one paragraph. The slot is for plain text
  * only, in the block's font and colour: a heading, list or paragraph in it gets no styling.
  */
-import { html, type PropertyDeclarations, type TemplateResult } from 'lit'
+import { html, type PropertyDeclarations, type PropertyValues, type TemplateResult } from 'lit'
 import { unsafeHTML } from 'lit/directives/unsafe-html.js'
 import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
@@ -30,6 +30,17 @@ export class LintjeProse extends LintjeGridItemElement {
   declare text?: string
   /** `muted` suits a caption or a source line. */
   tone: ProseTone = 'default'
+
+  // A block of the host's code scrolls sideways, and Safari gives a scroller no Tab stop of its
+  // own: each takes one, named as lintje-code names its block (WCAG 2.1.1).
+  protected override updated(changed: PropertyValues<this>): void {
+    super.updated(changed)
+    for (const block of this.renderRoot.querySelectorAll('pre')) {
+      block.tabIndex = 0
+      block.setAttribute('role', 'region')
+      block.setAttribute('aria-label', 'Codeblok')
+    }
+  }
 
   protected override render(): TemplateResult {
     const classes = classMap({
