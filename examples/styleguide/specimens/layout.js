@@ -173,6 +173,26 @@ export default {
           },
         },
         {
+          label: 'Met een eigen scrollvak',
+          note:
+            'Met `content-scroll` en een eigen hoogte scrolt de inhoud binnen de tegel. Het ' +
+            'scrollvak is een Tab-stop met de titel van de tegel als naam, en de pijltoetsen scrollen.',
+          html: `<lintje-tile heading="Toelichting per loket" content-scroll style="height: calc(6 * var(--space-10))">
+            <lintje-prose data-html></lintje-prose>
+          </lintje-tile>`,
+          setup(stage) {
+            stage.querySelector('lintje-prose').html = [
+              'Amsterdam Centrum: twee balies dicht wegens scholing van nieuwe medewerkers.',
+              'Rotterdam: de wachttijd liep op door een storing in het afsprakensysteem.',
+              'Den Haag: extra balie open op dinsdag en donderdag tot 20.00 uur.',
+              'Utrecht: de bezetting is volledig; de wachttijd ligt binnen de norm.',
+              'Amsterdam Zuidoost: het servicepunt is verhuisd naar de begane grond.',
+            ]
+              .map((line) => `<p>${line}</p>`)
+              .join('')
+          },
+        },
+        {
           label: 'Zonder kerncijfer',
           html: `<lintje-tile heading="Zonder kerncijfer" subtitle="Dezelfde tegel zonder aside">
             <div class="guide__placeholder">geen aside</div>
