@@ -12,7 +12,7 @@ import './shell'
 import type { LintjeShell } from './shell'
 import type { LintjeUserMenu } from '../user-menu/user-menu'
 import type { ShellData } from '../../../types'
-import { TAB } from '../../../core/test-keys'
+import { SHIFT_TAB, TAB } from '../../../core/test-keys'
 
 const DATA: ShellData = {
   name: 'Dashboard Vergunningen',
@@ -31,14 +31,29 @@ async function mount(data: ShellData = DATA): Promise<LintjeShell> {
   return element
 }
 
-/** The colour `--color-focus` resolves to on the page. */
-function focusColour(): string {
+/** The colour a focus token resolves to on the page. */
+function focusColour(token = '--color-focus'): string {
   const probe = document.createElement('div')
-  probe.style.outline = '3px solid var(--color-focus)'
+  probe.style.outline = `3px solid var(${token})`
   document.body.append(probe)
   const colour = getComputedStyle(probe).outlineColor
   probe.remove()
   return colour
+}
+
+/** The bell's button, reached by the keyboard so its ring is the keyboard's. */
+async function tabToBell(shell: LintjeShell): Promise<HTMLElement> {
+  const bell = [...shell.shadowRoot!.querySelectorAll('lintje-notifications')]
+    .map((element) =>
+      element.shadowRoot!.querySelector<HTMLElement>('.lintje-notifications__bell')!,
+    )
+    .find((button) => button.checkVisibility())!
+  bell.focus()
+  await userEvent.keyboard(SHIFT_TAB)
+  await userEvent.keyboard(TAB)
+  await expect.poll(() => deepActiveElement()).toBe(bell)
+  expect(bell.matches(':focus-visible')).toBe(true)
+  return bell
 }
 
 // The viewport goes back with the elements in place: WebKit keeps the media queries of a sheet
@@ -74,6 +89,27 @@ describe('"Weergave" below 768 px', () => {
     expect(option.classList.contains('lintje-toggle-group__option')).toBe(true)
     expect(option.matches(':focus-visible')).toBe(true)
     await expect.poll(() => getComputedStyle(option).outlineColor).toBe(focusColour())
+  })
+})
+
+describe('the bell’s ring', () => {
+  const NOTIFICATIONS: ShellData['notifications'] = [
+    { id: 'n1', title: 'Rapport klaar', when: 'zojuist', unread: true },
+  ]
+
+  it('is the on-theme ring in the bar of the top layout: orange disappears on the theme fill', async () => {
+    const shell = await mount({ ...DATA, layout: 'top', notifications: NOTIFICATIONS })
+    const bell = await tabToBell(shell)
+    expect(focusColour('--color-focus-on-theme')).not.toBe(focusColour())
+    await expect
+      .poll(() => getComputedStyle(bell).outlineColor)
+      .toBe(focusColour('--color-focus-on-theme'))
+  })
+
+  it('is the plain ring in the top bar of the side layout, on the page’s surface', async () => {
+    const shell = await mount({ ...DATA, notifications: NOTIFICATIONS })
+    const bell = await tabToBell(shell)
+    await expect.poll(() => getComputedStyle(bell).outlineColor).toBe(focusColour())
   })
 })
 

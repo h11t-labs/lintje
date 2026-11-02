@@ -287,7 +287,7 @@ describe('a value beyond the axis', () => {
     expect(marks).toHaveLength(1)
     // The dot's colour, with dark yellow's edge.
     expect(marks[0].getAttribute('fill')).toBe('var(--color-chart-dark-yellow)')
-    expect(marks[0].getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-text)')
+    expect(marks[0].getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-edge)')
     expect(difference(row)).toBe('+0,4')
   })
 })

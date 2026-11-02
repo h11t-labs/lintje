@@ -18,6 +18,9 @@
 }
 .lintje-notifications__bell:hover,
 .lintje-notifications__bell.is-open { background: var(--color-nav-hover); }
+/* On the theme fill the orange ring disappears: the on-theme ring, as the user menu. The shell's
+   rules for its bar do not reach into this root. */
+.lintje-notifications__bell:focus-visible { outline-color: var(--color-focus-on-theme); }
 
 /* The counter is placed from the bell's middle, so a bell as high as the bar does not carry it
    up to the bar's edge. */
@@ -106,8 +109,10 @@
 .lintje-notifications__sheet { z-index: 85; }
 .lintje-notifications__panel.is-sheet { width: 100%; max-height: none; }
 
-/* Forced colours: the unread surface is dropped, so the dot keeps a system-colour fill. */
+/* Forced colours: the unread surface is dropped, so the dot keeps a system-colour fill; the ring
+   is the system's highlight. */
 @media (forced-colors: active) {
   .lintje-notifications__dot { forced-color-adjust: none; background: CanvasText; }
   .lintje-notifications__bell.is-open { outline: 1px solid Highlight; outline-offset: -1px; }
+  .lintje-notifications__bell:focus-visible { outline-color: Highlight; }
 }

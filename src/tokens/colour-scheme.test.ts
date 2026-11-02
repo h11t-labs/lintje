@@ -355,6 +355,7 @@ function resolveTokens(values: Record<string, string>): Record<string, string> {
  * does with `themes.css` on `<html>` and `tokens.css` everywhere below it.
  */
 type Style = 'classic' | 'new'
+const STYLES: Style[] = ['classic', 'new']
 
 /** The blocks in the order the sheet writes them: `:root`, the new style, dark, dark and new. */
 function layered(mode: 'light' | 'dark', style: Style): Record<string, string> {
@@ -973,9 +974,13 @@ describe('contrast', () => {
           `field border on ${surface}`,
         ).toBeGreaterThanOrEqual(3.0)
       }
-      expect(
-        contrast(values['--color-border-choice'], values['--neutral-0']),
-      ).toBeGreaterThanOrEqual(3.0)
+      // A checkbox stands on a chosen or opened table row, and on the subtle surface, too.
+      for (const surface of ['--neutral-0', '--color-bg-selected', '--color-bg-subtle']) {
+        expect(
+          contrast(values['--color-border-choice'], values[surface]),
+          `choice edge on ${surface}`,
+        ).toBeGreaterThanOrEqual(3.0)
+      }
       expect(
         contrast(values['--color-text-placeholder'], values['--neutral-0']),
       ).toBeGreaterThanOrEqual(4.5)
@@ -997,7 +1002,7 @@ describe('the dark lifts', () => {
 
   it('lifts each status mark to 3:1 on the lighter of the page and its own tint', () => {
     const dark = tokensFor('dark')
-    for (const status of ['error', 'info', 'success']) {
+    for (const status of ['info', 'success']) {
       const token = `--color-${status}-line`
       const colour = dark[`--status-${status}`]
       const tint = dark[`--color-${status}-bg`]
@@ -1010,6 +1015,22 @@ describe('the dark lifts', () => {
         expect(liftOf(token, 'dark')).toBeLessThan(oklch(colour)[0])
       else expectSmallestLift(token, [colour], () => ground, 3.0)
     }
+  })
+
+  it('lifts the error mark to 3:1 on its own tint and on the filter band, where a field in error stands', () => {
+    const token = '--color-error-line'
+    for (const style of STYLES) {
+      const dark = tokensFor('dark', 'rijksoverheid', style)
+      const colour = dark['--status-error']
+      expect(dark[token], style).toBe(lift(colour, liftOf(token, 'dark', style)))
+      // The band is the lighter of the two, so it is the floor.
+      expect(luminance(dark['--color-bg-filter'])).toBeGreaterThan(
+        luminance(dark['--color-error-bg']),
+      )
+      expect(contrast(dark[token], dark['--color-error-bg']), style).toBeGreaterThanOrEqual(3.0)
+    }
+    const dark = tokensFor('dark', 'rijksoverheid', 'classic')
+    expectSmallestLift(token, [dark['--status-error']], () => dark['--color-bg-filter'], 3.0)
   })
 })
 
@@ -1400,10 +1421,135 @@ describe('a mark on a surface other than the plain one', () => {
         '--color-link',
         '--color-link-on-status',
       ],
+      [
+        `${C}/inputs/file-upload/file-upload.css`,
+        '.lintje-file-upload.is-error',
+        'border-color',
+        '--color-error-line',
+      ],
+      [
+        `${C}/inputs/range/range.css`,
+        '.lintje-range.is-error .lintje-range__input',
+        '--lintje-range-edge',
+        '--color-error-line',
+      ],
+      [`${C}/charts/kpi/kpi.css`, '.lintje-kpi__dot', 'background', '--color-error-line'],
+      [
+        `${C}/feedback/status-dot/status-dot.css`,
+        '.lintje-status__dot--error',
+        'background',
+        '--color-error-line',
+      ],
+      [
+        `${C}/feedback/status-dot/status-dot.css`,
+        '.lintje-status__dot--live',
+        'background',
+        '--color-error-line',
+      ],
+      [
+        `${C}/content/log-viewer/log-viewer.css`,
+        '.lintje-log-viewer__dot',
+        'background',
+        '--color-error-line',
+      ],
+      [`${C}/charts/kpi/kpi.css`, '.lintje-trend__glyph--bad', 'color', '--color-error-line'],
+      [`${C}/charts/kpi/kpi.css`, '.lintje-trend__glyph--good', 'color', '--color-success-line'],
+      [
+        `${C}/inputs/shared/input.css`,
+        '.lintje-label__dot',
+        'background',
+        '--color-attention-line',
+      ],
+      [
+        `${C}/inputs/field/field.css`,
+        '.lintje-filter-field__dot',
+        'background',
+        '--color-attention-line',
+      ],
+      [
+        `${C}/filters/filter-zone/filter-zone.css`,
+        '.lintje-filter-bar__dot',
+        'background',
+        '--color-attention-line',
+      ],
+      [
+        `${C}/filters/filter-zone/filter-zone.css`,
+        '.lintje-summary-bar__dot',
+        'background',
+        '--color-attention-line',
+      ],
+      [
+        `${C}/content/log-viewer/log-viewer.css`,
+        '.lintje-log-viewer__row.is-selected',
+        'box-shadow',
+        '--color-selected-edge',
+      ],
+      [
+        `${C}/chat/chat-steps/chat-steps.css`,
+        '.lintje-chat-steps__square',
+        'background',
+        '--color-border-field',
+      ],
+      [
+        `${C}/chat/chat-steps/chat-steps.css`,
+        '.lintje-chat-steps__square--open',
+        'border',
+        '--color-border-field',
+      ],
+      [
+        `${C}/content/audio-player/audio-player.css`,
+        '.lintje-audio-player__level',
+        'background',
+        '--color-border-field',
+      ],
+      [
+        `${C}/shared/month-grid.css`,
+        '.lintje-month-grid__day.is-in-range.is-today',
+        'box-shadow',
+        '--color-today-in-range',
+      ],
+      [
+        `${C}/shared/charts/shared/chart.css`,
+        '.lintje-chart__forecast-ground',
+        'fill',
+        '--color-chart-forecast-ground',
+      ],
     ]
     for (const [file, selector, property, token] of MARKS) {
       expect(inkOf(file, selector, property), `${selector} ${property}`).toBe(token)
     }
+    // A field in error: the edge's width is the house style's token, its colour the line.
+    const FIELDS: [string, string, string][] = [
+      ...(
+        [
+          ['inputs/shared/input.css', '.lintje-field__box.is-error'],
+          ['inputs/segmented/segmented.css', '.lintje-segmented.is-error'],
+          ['inputs/number-input/number-input.css', '.lintje-number-input.is-error'],
+          ['inputs/date-range/date-range.css', '.lintje-date-range-picker__field.is-error'],
+          ['inputs/text-editor/text-editor.css', '.lintje-text-editor.is-error'],
+          ['inputs/combobox/combobox.css', '.lintje-combobox__control.is-error'],
+          ['inputs/textarea/textarea.css', '.lintje-textarea__control.is-error'],
+          ['inputs/multiselect/multiselect.css', '.lintje-multiselect__field.is-error'],
+          ['inputs/select/select.css', '.lintje-select__control.is-error'],
+          ['tables/data-table/data-table.css', '.lintje-data-table__editor.is-error'],
+        ] as const
+      ).map(([file, selector]): [string, string, string] => [`${C}/${file}`, selector, 'border']),
+      [
+        `${C}/inputs/textarea/textarea.css`,
+        '.lintje-textarea__control--plain.is-error',
+        'border-bottom',
+      ],
+    ]
+    for (const [file, selector, property] of FIELDS) {
+      expect(inksOf(file, selector, property), `${selector} ${property}`).toEqual([
+        '--field-error-border',
+        '--color-error-line',
+      ])
+    }
+    // Its width is a token too: the colour is the second.
+    expect(
+      inksOf(`${C}/inputs/tag-input/tag-input.css`, '.lintje-tag-input.is-error', 'border'),
+    ).toEqual(['--lintje-field-error-border', '--color-error-line'])
     // The timecode reads the link token, so the tinted fragment's re-pointing reaches it.
     expect(readFileSync(`${C}/content/transcript/transcript.css`, 'utf8')).toMatch(
       /\n\.lintje-transcript__time \{[^}]*\bcolor: var\(--color-link\);/,
@@ -1538,15 +1684,13 @@ describe('data and status colour', () => {
     'light-blue',
     'moss-green',
   ]
-  // The light colours that reach 3:1 as a line or a mark only by an edge; dark yellow's is its
-  // text colour.
+  // The light colours that reach 3:1 as a line or a mark only by an edge halfway to black; dark
+  // yellow's edge is a dark gold of its own.
   const EDGED = ['mint-green', 'orange', 'pink', 'yellow', 'light-blue']
-  const edgeOf = (name: string) =>
-    name === 'dark-yellow' ? '--color-chart-dark-yellow-text' : `--color-chart-${name}-edge`
+  const edgeOf = (name: string) => `--color-chart-${name}-edge`
   const FIXED = [
     ...DATA.map((name) => `--data-${name}`),
-    '--data-dark-yellow-text',
-    ...EDGED.map((name) => `--data-${name}-edge`),
+    ...['dark-yellow', ...EDGED].map((name) => `--data-${name}-edge`),
     ...['success', 'warning', 'attention', 'error', 'info'].map((name) => `--status-${name}`),
     ...DATA.flatMap((name) => [75, 60, 45, 30, 15].map((step) => `--data-${name}-${step}`)),
     ...DATA.map((name) => `--color-chart-${name}`),
@@ -1566,7 +1710,7 @@ describe('data and status colour', () => {
 
   it('is the one list of names, in its order, and the stylesheet has no colour beside it', () => {
     expect([...DATA_COLORS]).toEqual(DATA)
-    const ROLES = ['comparison', 'other', 'dark-yellow-text', 'grid', 'emphasis']
+    const ROLES = ['comparison', 'other', 'grid', 'emphasis']
     const primitives = Object.keys(LIGHT)
       .filter((token) => /^--data-[a-z-]+$/.test(token) && !/-(\d+|edge)$/.test(token))
       .map((token) => token.slice('--data-'.length))
@@ -1644,6 +1788,12 @@ describe('data and status colour', () => {
       }
     })
   }
+
+  it('names no data colour as text: yellow is never a word', () => {
+    expect(
+      Object.keys(LIGHT).filter((token) => /^--(?:data|color-chart)-.*-text$/.test(token)),
+    ).toEqual([])
+  })
 
   it('edges every colour under 3:1 on the surface or the land, halfway to black', () => {
     const light = tokensFor('light')
@@ -1798,6 +1948,183 @@ describe('the lines a chart reads by', () => {
   }
 })
 
+/**
+ * The tokens `property` names, in order, in the one rule whose whole selector is `selector`: the
+ * resting state, not a hover or a drag that also ends in it.
+ */
+function inksOf(file: string, selector: string, property: string): string[] {
+  const css = bare(readFileSync(file, 'utf8'))
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const rule = new RegExp(`(?:^|\\})\\s*${escaped}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? ''
+  const value = new RegExp(`(?:^|[;\\s])${property}:([^;]*)`).exec(rule)?.[1] ?? ''
+  const inks = [...value.matchAll(/var\((--[\w-]+)\)/g)].map((match) => match[1])
+  if (inks.length === 0) throw new Error(`${file}: no ${property} token for ${selector}`)
+  return inks
+}
+
+describe('the edges, marks and rings that say what a control is (WCAG 1.4.11)', () => {
+  const C = 'src/components'
+  const knob = '.lintje-choice__input:checked ~ .lintje-choice__switch .lintje-choice__knob'
+  const track = '.lintje-choice__input:checked ~ .lintje-choice__switch'
+  const input = `${C}/inputs/shared/input.css`
+  const pane = `${C}/layout/split-pane/split-pane.css`
+  const table = `${C}/tables/data-table/data-table.css`
+  const [grip] = inksOf(pane, '.lintje-split-pane__handle', 'background')
+  const [strip] = inksOf(pane, '.lintje-split-pane__strip', 'background')
+  const [thumb] = inksOf(
+    table,
+    '.lintje-data-table__scroller::-webkit-scrollbar-thumb',
+    'background',
+  )
+  const [lane] = inksOf(
+    table,
+    '.lintje-data-table__scroller::-webkit-scrollbar-track',
+    'background',
+  )
+  const [, today] = inksOf(
+    `${C}/shared/month-grid.css`,
+    '.lintje-month-grid__day.is-selected.is-today',
+    'box-shadow',
+  )
+
+  for (const style of STYLES) {
+    for (const theme of THEME_NAMES) {
+      for (const mode of ['light', 'dark'] as const) {
+        it(`reaches 3:1 where each stands in the ${style} style, ${mode}, for ${theme}`, () => {
+          const values = tokensFor(mode, theme, style)
+          const pairs: [string, string][] = [
+            // A field in error: its edge is its only outline, on a tile and in the filter band.
+            ['--color-error-line', '--color-bg-surface'],
+            ['--color-error-line', '--color-bg-filter'],
+            // Inside, on the field's own ground: the error tint in the new style.
+            ['--color-error-line', '--color-bg-field-error'],
+            // The empty box of a checkbox on a chosen or opened table row.
+            ['--color-border-choice', '--color-bg-selected'],
+            // The knob of a switch that is on, on the primary fill of its track.
+            [inksOf(input, knob, 'background')[0], inksOf(input, track, 'background')[0]],
+            // Today's ring inside the edge of a chosen day, on the primary fill.
+            [today, '--color-action-primary'],
+            // The dot of a filter that differs from its default, on the filter band.
+            ['--color-attention-line', '--color-bg-filter'],
+            // The split pane's grip on its strip, the table's scrollbar on its lane.
+            [grip, strip],
+            [thumb, lane],
+            // A flow, a point and its edge on the map's land.
+            ['--color-chart-sky-blue', '--color-map-land'],
+            // A step's square in the chat, on the page and on a tile.
+            ['--color-border-field', '--color-bg-page'],
+            ['--color-border-field', '--color-bg-surface'],
+            // A forecast's line and the zero line and hatch over its ground.
+            ['--color-chart-sky-blue', '--color-chart-forecast-ground'],
+            ['--color-chart-zero', '--color-chart-forecast-ground'],
+            ['--color-chart-hatch', '--color-chart-forecast-ground'],
+          ]
+          // Today's ring inside a chosen period, on the period's tint.
+          if (!primaryFallsShort(theme, mode))
+            pairs.push(['--color-today-in-range', '--color-range-bg'])
+          // The new style draws the field and choice edges in the accent: defensie's light
+          // primary falls short there, an accepted shortcoming.
+          const accent =
+            style === 'new' && primaryFallsShort(theme, mode) ? values['--color-accent-line'] : null
+          for (const [mark, ground] of pairs) {
+            if (values[mark] === accent) continue
+            expect(
+              contrast(values[mark], values[ground]),
+              `${mark} on ${ground}`,
+            ).toBeGreaterThanOrEqual(3.0)
+          }
+        })
+      }
+    }
+  }
+
+  it('draws today inside a chosen period in the accent line in light and in the text tint in dark', () => {
+    for (const style of STYLES) {
+      for (const theme of THEME_NAMES) {
+        const light = tokensFor('light', theme, style)
+        const dark = tokensFor('dark', theme, style)
+        expect(light['--color-today-in-range']).toBe(light['--color-accent-line'])
+        expect(dark['--color-today-in-range']).toBe(dark['--primary-tint-text'])
+      }
+    }
+  })
+
+  it('takes the smallest share of neutral-5 for the earlier dark choice edge that reaches 3:1 on a chosen row', () => {
+    const dark = tokensFor('dark', 'rijksoverheid', 'classic')
+    const edge = (n: number) => mix(dark['--neutral-5'], n / 100, dark['--neutral-4'])
+    const share = [...Array(101).keys()].find(
+      (n) => contrast(edge(n), dark['--color-bg-selected']) >= 3.0,
+    )
+    expect(dark['--color-border-choice']).toBe(edge(share!))
+    expect(share).toBeGreaterThan(0)
+  })
+
+  it('takes the smallest share of neutral-5 for the zero line and the hatch that reaches 3:1 on the surface and a forecast', () => {
+    const modes = [
+      tokensFor('light', 'rijksoverheid', 'classic'),
+      tokensFor('dark', 'rijksoverheid', 'classic'),
+    ]
+    const line = (values: Record<string, string>, n: number) =>
+      mix(values['--neutral-5'], n / 100, values['--neutral-4'])
+    const share = [...Array(101).keys()].find((n) =>
+      modes.every((values) =>
+        ['--color-bg-surface', '--color-chart-forecast-ground'].every(
+          (ground) => contrast(line(values, n), values[ground]) >= 3.0,
+        ),
+      ),
+    )
+    for (const values of modes) {
+      expect(values['--color-chart-zero']).toBe(line(values, share!))
+      expect(values['--color-chart-hatch']).toBe(line(values, share!))
+    }
+  })
+
+  it('sets a forecast’s ground apart from the surface: under it in dark, the subtle grey in light', () => {
+    const light = tokensFor('light', 'rijksoverheid', 'classic')
+    const dark = tokensFor('dark', 'rijksoverheid', 'classic')
+    expect(light['--color-chart-forecast-ground']).toBe(light['--color-bg-subtle'])
+    expect(dark['--color-chart-forecast-ground']).toBe(dark['--neutral-1'])
+    for (const style of STYLES) {
+      for (const mode of ['light', 'dark'] as const) {
+        const values = tokensFor(mode, 'rijksoverheid', style)
+        expect(values['--color-chart-forecast-ground'], `${style} ${mode}`).not.toBe(
+          values['--color-bg-surface'],
+        )
+      }
+    }
+  })
+
+  it('lays the map’s land on the surface in dark, so a colour reads there as on a tile', () => {
+    const dark = tokensFor('dark', 'rijksoverheid', 'classic')
+    expect(dark['--color-map-land']).toBe(dark['--color-bg-surface'])
+    for (const style of STYLES) {
+      const values = tokensFor('dark', 'rijksoverheid', style)
+      expect(values['--color-map-land'], style).not.toBe(values['--color-map-water'])
+    }
+  })
+
+  it('draws no edge or mark in the error fill, which only carries white content', () => {
+    // `--color-error` is 2.94:1 on the dark surface; an edge or a mark takes `--color-error-line`.
+    // A fill stays only where its own rule writes content on it.
+    const FILLS = [
+      'tables/data-table/data-table.css .lintje-threshold-cell--above-threshold',
+      'feedback/badge/badge.css .lintje-badge--error',
+      'feedback/badge/badge.css .lintje-badge--live',
+      'content/video-player/video-player.css .lintje-video-player__failed-mark',
+    ]
+    const root = resolvePath(C)
+    const found: string[] = []
+    for (const path of readdirSync(root, { recursive: true, encoding: 'utf8' })) {
+      if (!path.endsWith('.css')) continue
+      const css = bare(readFileSync(resolvePath(root, path), 'utf8'))
+      for (const [, selector, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+        if (/var\(--color-error\)/.test(body)) found.push(`${path} ${selector.trim()}`)
+      }
+    }
+    expect(found.sort()).toEqual([...FILLS].sort())
+  })
+})
+
 /* --- the earlier house style: the library's default until 1.0.0 ------------- */
 
 describe('the earlier house style (without data-style-version)', () => {
@@ -1836,7 +2163,9 @@ describe('the earlier house style (without data-style-version)', () => {
       expect(values['--color-action-secondary-hover'], mode).toBe(values['--color-bg-subtle'])
     }
     expect(classic('light')['--color-border-choice']).toBe(classic('light')['--neutral-5'])
-    expect(classic('dark')['--color-border-choice']).toBe(classic('dark')['--neutral-4'])
+    expect(classic('dark')['--color-border-choice']).toBe(
+      mix(classic('dark')['--neutral-5'], 0.03, classic('dark')['--neutral-4']),
+    )
   })
 
   it("prints both styles at the paper's edge: the print block names the new style too", () => {

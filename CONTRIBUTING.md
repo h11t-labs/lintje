@@ -409,6 +409,9 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
   kapt nooit af.
 - `reduced-motion.browser.test.ts` — verminderde beweging, waarmee elke browsertest draait: een
   vak dat openklapt, laat zijn inhoud los zodra zijn hoogte staat.
+- `forced-colors.browser.test.ts` — geforceerde kleuren (`forced-colors: active` geëmuleerd): wat
+  een vulling droeg, staat er opnieuw in systeemkleuren, zoals de rand in `Highlight` van een knop
+  die aan staat.
 - `scroller.browser.test.ts` — een scrollvak dat het toetsenbord moet bereiken: het is een
   Tab-stop met een rol en een naam, en de pijltoetsen scrollen het.
 - `focus-ring.browser.test.ts` — de focusring is heel en staat op wat de focus heeft: geen

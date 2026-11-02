@@ -45,15 +45,14 @@ export function chartColor(color: ChartColor | undefined): string | undefined {
 }
 
 /**
- * The light colours that reach 3:1 as a line or a mark only by a dark edge. Dark yellow keeps
- * its text colour as its edge. In dark each token is the colour itself and the edge melts away.
+ * The light colours that reach 3:1 as a line or a mark only by a dark edge. In dark each token is
+ * the colour itself and the edge melts away.
  */
-const EDGES = new Map<string, string>([
-  [TOKENS['dark-yellow'], 'var(--color-chart-dark-yellow-text)'],
-  ...(['mint-green', 'orange', 'pink', 'yellow', 'light-blue'] as const).map(
+const EDGES = new Map<string, string>(
+  (['dark-yellow', 'mint-green', 'orange', 'pink', 'yellow', 'light-blue'] as const).map(
     (color): [string, string] => [TOKENS[color], `var(--color-chart-${color}-edge)`],
   ),
-])
+)
 
 /** The edge under a line, a point or a legend shape in `color`, if that colour needs one. */
 export function lineCasing(color: string | undefined): string | undefined {

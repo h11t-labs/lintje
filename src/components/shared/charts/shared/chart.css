@@ -64,7 +64,7 @@
    A casing under it is dotted too, so each dot keeps its edge. */
 .lintje-chart__line--forecast { stroke-dasharray: 0 5; stroke-linecap: round; }
 /* The forecast's part of the drawing, under the grid. */
-.lintje-chart__forecast-ground { fill: var(--color-bg-subtle); }
+.lintje-chart__forecast-ground { fill: var(--color-chart-forecast-ground); }
 /* The margin of a forecast fills as a line chart's area does, but only alone or with emphasis:
    overlapping margins mix into a colour no variable has. Every band is drawn, so the emphasis
    only fills one. */
@@ -162,8 +162,9 @@
 .lintje-dumbbell__row.is-hovered .lintje-dumbbell__link { stroke: var(--color-chart-axis); stroke-width: 3; }
 .lintje-dumbbell__row.is-hovered .lintje-dumbbell__name,
 .lintje-dumbbell__row.is-selected .lintje-dumbbell__name { fill: var(--color-text-primary); font-weight: 700; }
-/* A chosen row: the others step back, as a muted mark does. */
-.lintje-dumbbell__row.is-muted { opacity: .45; }
+/* A chosen row: the marks of the others step back, as a muted mark does; their words and the
+   keyboard's ring keep full strength. */
+.lintje-dumbbell__row.is-muted .lintje-dumbbell__marks { opacity: .45; }
 .lintje-dumbbell__row.is-clickable { cursor: pointer; }
 .lintje-dumbbell__row:focus { outline: none; }
 /* The ring of the row the keyboard is on, or of a clickable row with focus: around the dot,
