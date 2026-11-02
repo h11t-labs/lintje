@@ -18,7 +18,7 @@ import { renderIcon } from '../../../icons/render'
 import { isPlainClick } from '../../../core/links'
 import { MOBILE, MediaController } from '../../../core/media'
 import { ownsEscape } from '../../shared/focus-trap'
-import { holdsFocus } from '../../../core/focus'
+import { holdsFocus, passFocus } from '../../../core/focus'
 import '../../actions/logo/logo'
 import { renderBadge } from '../../feedback/badge/badge'
 import type { ShellLink } from '../../../types'
@@ -120,6 +120,11 @@ export function unavailableWord(item: ShellLink): TemplateResult {
 
 function follow(options: NavBarOptions, item: ShellLink, event: MouseEvent): void {
   if (!isPlainClick(event)) return
+  // A page chosen in a group closes the group with the link in it: the focus goes to the group's
+  // button, as Escape puts it there, and the host takes it on to its new page.
+  const link = event.currentTarget as Element
+  const group = link.closest('.lintje-navbar__submenu')?.parentElement
+  passFocus(link, [group?.querySelector<HTMLElement>(':scope > .lintje-navbar__entry')])
   options.onOpen(null)
   options.onNavigate(item, event)
 }

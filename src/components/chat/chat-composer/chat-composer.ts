@@ -24,6 +24,7 @@ import {
   type TemplateResult,
 } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
+import { repeat } from 'lit/directives/repeat.js'
 import { LintjeElement, define } from '../../../core/element'
 import { holdsFocus } from '../../../core/focus'
 import { MediaController } from '../../../core/media'
@@ -790,7 +791,10 @@ export class LintjeChatComposer extends LintjeElement {
       @lintje-file-cancel=${this.onChipEvent}
       @lintje-file-retry=${this.onChipEvent}
     >
-      ${all.map(
+      ${repeat(
+        all,
+        // Keyed, a chip keeps its place and its focus when one above it goes.
+        (file, index) => `${index >= files.length ? 'refused' : 'file'}:${file.id}`,
         (file, index) => html`<li class="lintje-chat-composer__attachment-item">
           <lintje-attachment
             class="lintje-chat-composer__attachment"
