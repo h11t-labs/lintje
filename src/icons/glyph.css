@@ -7,6 +7,11 @@
 .lintje-icon--file {
   background-color: currentColor;
 }
+/* Forced colours drop the fill to Canvas under the mask; kept, `currentColor` is the forced text
+   colour of its parent. */
+@media (forced-colors: active) {
+  .lintje-icon--file { forced-color-adjust: none; }
+}
 
 /* --- An icon that leads a line of text ----------------------------------- */
 /* One line high (`1lh`), so it stays on the first line of a wrapping title; centred on the line

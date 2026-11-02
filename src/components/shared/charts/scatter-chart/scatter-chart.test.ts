@@ -1,6 +1,6 @@
 /**
  * The scatter plot: a series is a colour and its shape (rule 13), a point has an edge in the
- * surface (dark yellow its text colour), a point without both values is not drawn (rule 15), the
+ * surface (dark yellow its dark edge), a point without both values is not drawn (rule 15), the
  * named points' labels show all or none, the norm is dashed, and a point with a href is a button.
  */
 import { render } from 'lit'
@@ -78,12 +78,12 @@ describe('the scatter plot', () => {
     expect(symbols.map((symbol) => symbol.getAttribute('d'))).toHaveLength(2)
   })
 
-  it('edges a point in the surface, and a dark-yellow one in its text colour', () => {
+  it('edges a point in the surface, and a dark-yellow one in its dark edge', () => {
     const { host } = draw(SPEC)
     const [yellow, blue] = points(host)
     expect(blue.classList.contains('lintje-chart__segment')).toBe(true)
     expect(yellow.classList.contains('lintje-chart__segment')).toBe(false)
-    expect(yellow.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-text)')
+    expect(yellow.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-edge)')
   })
 
   it('edges a mint-green point, and its legend shape, in its dark edge', () => {
@@ -322,6 +322,6 @@ describe('the scatter plot', () => {
     const drawing = host.querySelector('svg[tabindex="0"]') as SVGSVGElement
     drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }))
     const casing = host.querySelector('.lintje-chart__hover-casing')
-    expect(casing?.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-text)')
+    expect(casing?.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-edge)')
   })
 })

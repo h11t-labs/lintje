@@ -1,7 +1,7 @@
 /**
  * The pie's order and folding: the host sends parts in any order and any number; the pie sorts
  * them by value, spreads the tints over the ladder with their number and folds more than five
- * into four and one gray "Overig" that is not a button. The legend table follows the slices
+ * into four and one "Overig" in the ladder's last step that is not a button. The legend table follows the slices
  * row for row; without the table the shared legend above does. The keyboard walks the slices in
  * the drawn order. happy-dom has no layout, so what is checked is the markup.
  */
@@ -85,7 +85,7 @@ describe('the pie', () => {
     ])
   })
 
-  it('folds eight parts into four and one gray "Overig" that is not a button', async () => {
+  it('folds eight parts into four and one "Overig" in the last step that is not a button', async () => {
     const element = await pie({
       segments: Array.from({ length: 8 }, (_, i) => ({
         label: `Post ${i + 1}`,
@@ -93,7 +93,7 @@ describe('the pie', () => {
         href: `/p/${i + 1}`,
       })),
     })
-    expect(fills(element)).toEqual([TINT(1), TINT(2), TINT(3), TINT(4), OTHER])
+    expect(fills(element)).toEqual([TINT(1), TINT(2), TINT(3), TINT(4), TINT(5)])
     const [folded] = slices(element).slice(4)
     expect(folded.hasAttribute('data-mark-id')).toBe(false)
     expect(folded.hasAttribute('role')).toBe(false)
@@ -122,8 +122,39 @@ describe('the pie', () => {
     })
     // 7 + 6 + 5 + 4 stay; 3 + 2 + 1 join the host's "Overig" of 1.
     expect(slices(element)).toHaveLength(5)
-    expect(fills(element).filter((fill) => fill === OTHER)).toHaveLength(1)
+    expect(fills(element)).toEqual([TINT(1), TINT(2), TINT(3), TINT(4), TINT(5)])
     expect(rows(element).find((row) => row.label === 'Overig')?.value).toBe('7')
+  })
+
+  it('spreads "Overig" over the ladder with the parts, and keeps a colour the host gives', async () => {
+    // Two parts and "Overig": steps 1, 2 and 4; `other` says "this is Overig".
+    const three = await pie({
+      segments: [
+        { label: 'A', value: 8 },
+        { label: 'B', value: 3 },
+        { label: 'Rest van de aanvragen', value: 1, color: 'other' },
+      ],
+    })
+    expect(fills(three)).toEqual([TINT(1), TINT(2), TINT(4)])
+    document.body.innerHTML = ''
+    // A host's "Overig" and five parts are six rungs: four parts stay.
+    const six = await pie({
+      segments: [
+        ...Array.from({ length: 5 }, (_, i) => ({ label: `Post ${i + 1}`, value: 9 - i })),
+        { label: 'Overig', value: 1 },
+      ],
+    })
+    expect(new Set(fills(six)).size).toBe(5)
+    document.body.innerHTML = ''
+    // Every part a colour of its own: no ladder, so "Overig" is gray; a named colour wins.
+    const named = await pie({
+      segments: [
+        { label: 'Ja', value: 8, color: 'green' },
+        { label: 'Nee', value: 3, color: 'red' },
+        { label: 'Overig', value: 1 },
+      ],
+    })
+    expect(fills(named)).toEqual(['var(--color-chart-green)', 'var(--color-chart-red)', OTHER])
   })
 
   it('does not count a remainder as a part and keeps it last', async () => {

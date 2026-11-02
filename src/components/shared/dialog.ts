@@ -41,11 +41,12 @@ export class DialogHold {
     this.#trap.activate(container, { focus })
   }
 
-  release(): void {
+  /** Lets go; unless `restore` is false, the focus goes back to the opener. */
+  release(restore: boolean = true): void {
     if (!this.#released) return
     document.removeEventListener('keydown', this.#onKeyDown)
     this.#released()
     this.#released = null
-    this.#trap.deactivate()
+    this.#trap.deactivate(restore)
   }
 }

@@ -567,6 +567,30 @@ describe('the sankey', () => {
     band.dispatchEvent(new FocusEvent('blur'))
     expect(controller.tooltip).toBeNull()
   })
+
+  it('hides the labels and step names once the drawing is a group: the buttons say them', () => {
+    const hidden = (element: Element) => element.closest('[aria-hidden="true"]') != null
+    const words = (host: Element) => [
+      ...host.querySelectorAll('.lintje-sankey__name, .lintje-sankey__value'),
+      ...host.querySelectorAll('svg > g > .lintje-chart__axis-label'),
+    ]
+    const spec: SankeySpec = {
+      ...THREE,
+      steps: THREE.steps.map((step) => ({
+        ...step,
+        nodes: step.nodes.map((node) => ({ ...node, href: `?knoop=${node.id}` })),
+      })),
+    }
+    const group = draw(spec, { onSelect: () => {} }).host
+    expect(group.querySelector('svg')!.getAttribute('role')).toBe('group')
+    expect(words(group)).toHaveLength(6 + 6 + 3)
+    expect(words(group).every(hidden)).toBe(true)
+    document.body.replaceChildren()
+    // As an image the drawing is its description alone; nothing in it is hidden apart.
+    const image = draw(THREE).host
+    expect(image.querySelector('svg')!.getAttribute('role')).toBe('img')
+    expect(words(image).some(hidden)).toBe(false)
+  })
 })
 
 describe('the sankey below 768 px', () => {
@@ -591,6 +615,92 @@ describe('the sankey below 768 px', () => {
     expect(first.querySelectorAll('.lintje-sankey__piece')).toHaveLength(4)
     expect(first.querySelectorAll('.lintje-sankey__piece--rest')).toHaveLength(1)
     expect(host.querySelector('.lintje-legend')).toBeNull()
+  })
+
+  it('never gives two of six targets one tint: the smallest two fold into "Overig", the last step', () => {
+    const outcomes = [
+      'Toegekend',
+      'Afgewezen',
+      'Ingetrokken',
+      'Doorgestuurd',
+      'Vervallen',
+      'Elders',
+    ]
+    const spec: SankeySpec = {
+      kind: 'sankey',
+      label: 'Aanvragen',
+      steps: [
+        { label: 'Ingediend', nodes: [{ id: 'in', label: 'Aanvragen' }] },
+        {
+          label: 'Uitkomst',
+          nodes: outcomes.map((label) => ({ id: label.toLowerCase(), label })),
+        },
+      ],
+      flows: outcomes.map((label, i) => ({
+        from: 'in',
+        to: label.toLowerCase(),
+        value: [500, 400, 300, 200, 100, 60][i],
+      })),
+    }
+    const { host } = draw(spec, { mobile: true })
+    const fills = [...host.querySelectorAll<HTMLElement>('.lintje-sankey__piece')].map(
+      (piece) => piece.style.background,
+    )
+    expect(fills).toEqual([1, 2, 3, 4, 5].map((n) => `var(--color-chart-tint-${n})`))
+    // Every target keeps its row: the two folded ones indented under a row "Overig" in its
+    // colour, without a swatch of their own.
+    const rows = [...host.querySelectorAll('.lintje-sankey__row')]
+    expect(rows.map((row) => row.textContent!.replace(/\s+/g, ' ').trim())).toEqual([
+      'Toegekend 500 32%',
+      'Afgewezen 400 26%',
+      'Ingetrokken 300 19%',
+      'Doorgestuurd 200 13%',
+      'Overig 160 10%',
+      'Vervallen 100 6%',
+      'Elders 60 4%',
+    ])
+    expect(rows.map((row) => row.classList.contains('lintje-sankey__row--part'))).toEqual([
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+    ])
+    const swatches = [...host.querySelectorAll<HTMLElement>('.lintje-sankey__swatch')].map(
+      (swatch) => swatch.style.background,
+    )
+    expect(swatches).toEqual(fills)
+  })
+
+  it('writes a share on a piece only in the ink that reaches 4.5:1 on its rung', () => {
+    // Dark green's second rung carries neither white nor ink at 4.5:1.
+    const { host } = draw({ ...THREE, color: 'dark-green' }, { mobile: true })
+    const pieces = [
+      ...[...host.querySelectorAll('.lintje-sankey__source')][1].querySelectorAll(
+        '.lintje-sankey__piece',
+      ),
+    ]
+    expect(pieces.map((piece) => piece.className.replace('lintje-sankey__piece ', ''))).toEqual([
+      'lintje-sankey__piece--white',
+      'lintje-sankey__piece--unlabelled',
+      'lintje-sankey__piece--ink',
+      'lintje-sankey__piece--rest',
+    ])
+    expect(pieces[1].textContent!.trim()).toBe('')
+  })
+
+  it('makes every transition a group named by its heading', () => {
+    const { host } = draw(THREE, { mobile: true })
+    const names = [...host.querySelectorAll('.lintje-sankey__transition')].map((section) => {
+      expect(section.getAttribute('role')).toBe('group')
+      const heading = host.querySelector(`[id="${section.getAttribute('aria-labelledby')}"]`)
+      expect(heading?.classList.contains('lintje-sankey__heading')).toBe(true)
+      expect(section.contains(heading)).toBe(true)
+      return heading!.textContent!.trim()
+    })
+    expect(names).toEqual(['Ingediend → volledigheid', 'Volledigheid → uitkomst'])
   })
 
   it('gives each missing flow its own row, and their piece one hatch', () => {

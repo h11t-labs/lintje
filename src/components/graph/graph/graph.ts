@@ -972,8 +972,8 @@ export class LintjeGraph extends LintjeContentTileElement {
     const index = data.types.findIndex((type) => type.key === key)
     if (index < 0) return undefined
     const color = data.types[index]!.color ?? DATA_COLORS[index % DATA_COLORS.length]!
-    // An icon stands for a word, so dark yellow takes its colour for text.
-    return color === 'dark-yellow' ? 'var(--color-chart-dark-yellow-text)' : chartToken(color)
+    // An icon is a mark, 3:1 on the surface: dark yellow reaches it only in its edge.
+    return color === 'dark-yellow' ? 'var(--color-chart-dark-yellow-edge)' : chartToken(color)
   }
 
   private legend(): TemplateResult | typeof nothing {

@@ -241,7 +241,7 @@ describe('the legend of a radar', () => {
     )
     expect(new Set(markers).size).toBe(3)
     expect(host.querySelector('.lintje-chart__line--casing')?.getAttribute('stroke')).toBe(
-      'var(--color-chart-dark-yellow-text)',
+      'var(--color-chart-dark-yellow-edge)',
     )
   })
 })
