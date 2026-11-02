@@ -228,7 +228,6 @@ const DEMO_BASEMAP = {
   url: 'https://ows.terrestris.de/osm/service',
   layers: 'OSM-WMS',
   attribution: '© OpenStreetMap contributors, via terrestris',
-  dark: { layers: 'Dark' },
 }
 const DEMO_BASEMAP_DARK = { ...DEMO_BASEMAP, layers: 'Dark' }
 
