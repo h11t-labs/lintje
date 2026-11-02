@@ -1,10 +1,10 @@
 /**
  * The table in a browser: Escape first for a lifted grip in its column chooser, the height of a
- * filterable head, the width a truncated column takes, and a keyboard's way into a table that
- * scrolls sideways.
+ * filterable head, the width a truncated column takes, a keyboard's way into a table that
+ * scrolls sideways, and the phone's table within its tile.
  */
 import { afterEach, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import { deepActiveElement } from '../../../core/focus'
 import './data-table'
 import type { DataTableData, TableColumnData } from '../../../types'
@@ -258,5 +258,78 @@ describe('a table wider than its room', () => {
     const scroller = inShadow<HTMLElement>(element, '.lintje-data-table__scroller')
     await element.updateComplete
     expect(scroller.hasAttribute('tabindex')).toBe(false)
+  })
+})
+
+describe('the phone’s table', () => {
+  async function viewport(width: number): Promise<void> {
+    await page.viewport(width, 844)
+    // WebKit resizes the frame after `viewport()` resolves.
+    await expect.poll(() => window.innerWidth).toBe(width)
+  }
+
+  afterEach(() => viewport(1440))
+
+  /** In a tile on a page with the phone's 16 px margin. */
+  async function mountOnPhone(data: DataTableData): Promise<TableElement> {
+    const box = document.createElement('div')
+    box.style.width = 'calc(100vw - 32px)'
+    box.style.marginInline = '16px'
+    document.body.append(box)
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = data
+    box.append(element)
+    await element.updateComplete
+    return element
+  }
+
+  const width = (element: Element): number => element.getBoundingClientRect().width
+
+  // A long name with its line, a measure with its tone, and the toggle for the other columns.
+  const toned: DataTableData = {
+    caption: 'Loketten met hun wachttijd',
+    rowKey: 'name',
+    mobileSublineTemplate: '{requests} aanvragen',
+    columns: [
+      { key: 'name', header: 'Loket' },
+      { key: 'requests', header: 'Aanvragen' },
+      {
+        key: 'wait',
+        header: 'Wachttijd (min)',
+        mobileMeasure: true,
+        threshold: { value: 15, caution: 12 },
+      },
+    ],
+    rows: [{ name: 'Klantcontactcentrum Amsterdam-Zuidoost', requests: 25090, wait: 15.7 }],
+  }
+
+  // At 320 px it depends on the house font, which the tests do not load.
+  it('fits its tile with an ordinary name at 390 px', async () => {
+    await viewport(390)
+    const element = await mountOnPhone({
+      ...toned,
+      rows: [{ name: 'Loket Amsterdam Centrum', requests: 25090, wait: 15.7 }],
+    })
+    const mobile = part(element, '.lintje-data-table__mobile')
+    await expect.poll(() => width(mobile)).toBeGreaterThan(0)
+    const scroller = part(element, '.lintje-data-table__scroller')
+    expect(width(mobile)).toBeLessThanOrEqual(width(element))
+    expect(scroller.hasAttribute('tabindex')).toBe(false)
+  })
+
+  it('keeps its words whole and scrolls in its tile once they do not fit', async () => {
+    await viewport(320)
+    const element = await mountOnPhone(toned)
+    const scroller = part(element, '.lintje-data-table__scroller')
+    const name = part(element, '.lintje-data-table__mobile-name')
+    await expect.poll(() => scroller.getAttribute('tabindex')).toBe('0')
+    expect(scroller.scrollWidth).toBeGreaterThan(scroller.clientWidth)
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth)
+    // "Klantcontactcentrum" stands on one line: the name is as wide as that word.
+    const word = document.createElement('span')
+    word.textContent = 'Klantcontactcentrum'
+    word.style.whiteSpace = 'nowrap'
+    name.append(word)
+    expect(name.clientWidth).toBeGreaterThanOrEqual(word.offsetWidth)
   })
 })
