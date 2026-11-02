@@ -11,6 +11,40 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-02
+
+### Toegevoegd
+
+- De kaart heeft de twaalf provincies als ingebouwde geometrie (`geo: 'provinces'`), elk met haar ISO 3166-2-code als id (`NL-UT`) en haar Nederlandse naam, uit CBS/PDOK *Gebiedsindelingen*; een choropleet per provincie heeft geen eigen vlakken van de host meer nodig. De bundel groeit met 33 kB (5,5 kB gzip). (#283)
+- `lintje-shell` heeft `focusContent()`: een host die zelf routeert, zet daarmee na de wissel de focus op de inhoud, zoals de skiplink. De handleidingen zeggen wat een host na een wissel doet (paginatitel, focus, een buur vóór het verbergen), hun sjablonen hebben een `<title>` en de viewport-regel, en de voorbeelden en de stijlgids doen het. (#277)
+
+### Opgelost
+
+- Focus, toetsenbord en klikdoel op zeven plekken: een codeblok in `lintje-prose` en een tegel met `content-scroll` zijn Tab-stops met een rol en een naam, de gekozen aanvulling in het vraagvak en het handvat van `lintje-range` met de focus dragen de focusring, de ring blijft heel in het scrollvak van `lintje-dialog` en op een gesplitste knop, de links van `lintje-error-summary` zijn 24 px hoog, en een klik op een dag die niet gekozen mag worden, maakt die dag de Tab-stop van het maandraster. (#295)
+- Transcriptie opent een geüpload bestand niet meer vanzelf: het verschijnt bovenaan in "Recente opnames" en de focus blijft waar hij was. Een opname verwijderen en een live opname annuleren vragen eerst bevestiging. (#293)
+- Wat verdwijnt terwijl het de focus heeft, geeft de focus eerst door: "Weergave" blijft open bij een keuze en een andere indeling, de punaise houdt het menu als uitgeklapte rail, een venster waarvan de opener weg is geeft de focus aan de inhoud, en de meldingen, het log, het formulier, het foutenoverzicht, de upload, de bijlagen, de filterbalk, de kaart, "Meer", de sankey en de treemap laten de focus niet meer naar `body` vallen. De focusval springt alleen bij de echte eerste en laatste stop, en de kaartknoppen en het zoekveld van het smalle log staan in de Tab-volgorde waar je ze ziet. (#292)
+- Elk element herschikt op 320 px en bij 320 × 256 zonder iets te verliezen: een klein venster en de vragen van een gesprek scrollen mee bij weinig hoogte, het telefoonmenu eindigt aan de onderkant van het scherm, de uitleg onder een grote tab blijft staan, en titels, tellingen, knoppenrijen, het zoekveld en een geweigerde bijlage breken af in plaats van de pagina breder te maken. (#291)
+- De telefoonvorm van `lintje-data-table` steekt niet meer buiten haar tegel: de naam houdt minstens ongeveer tien tekens en hele woorden, en past de tabel dan niet, dan scrolt hij zijwaarts in de tegel. (#287)
+- De rand van een vlak op de kaart onder de aanwijzer of gekozen loopt aan elke kant heel door: een buurvlak dat later getekend is, bedekt hem niet meer half, ook op de wereldkaart en in donker. (#283)
+- Sankey, raming, treemap en halterdiagram: een schermlezer hoort de namen in een sankey met links één keer en elke overgang op een telefoon als groep, een geraamde grafiek noemt waar het meten ophoudt en zegt "raming" bij de geraamde waarde, het woord "Raming" valt niet meer over "Gemeten", een onderpost van de treemap op een telefoon noemt zijn aandeel in het geheel en een klikbare halterrij begint haar naam met wat ze toont; met nieuwe specimens voor elke toestand. (#282)
+
+## [0.12.1] - 2026-11-01
+
+### Toegevoegd
+
+- Specimens voor de open lijst van het rijtje personen, een accordeon met alle rijen open, een accordeonrij met acties en de voet van het zijmenu met een lange naam, en rijen in het afdruk- en het afkapcontract voor de accordeon en de voet. (#278)
+
+### Gewijzigd
+
+- De ontwikkelafhankelijkheden zijn bij: happy-dom 21 (laadt standaard geen CSS-bestanden en iframes meer), oxfmt 0.75, oxlint 1.90, Vitest 5.0.5, Vite 8.3.5, Playwright 1.64.1 (het CI-image gaat mee) en dagre 3.1.3. Vervangt #322. (#327)
+- `lintje-sortable-list`: een rij die met een tik op een andere greep of met een pijltoets verhuist, schuift kort naar haar nieuwe plaats en blijft opgetild tot ze ligt; onder verminderde beweging staat ze er meteen. Escape tijdens het slepen zet alle rijen terug en meldt niets. (#281)
+
+### Opgelost
+
+- Een druk op de balk van `lintje-range`, de druk die een opgetilde verdeling van `lintje-split-pane` neerzet, een tik op een greep van `lintje-sortable-list` terwijl een rij in de hand is en een aanvulling in `lintje-chat-composer` handelen pas bij het loslaten op hetzelfde doel; loslaten ernaast of een `pointercancel` laat alles staan zoals het was. (#281)
+- Een accordeon waarvan alle rijen bij het laden openstaan, tekent zich één keer in plaats van twee, en de link zegt meteen "Alles sluiten". (#278)
+- Een tabel waarvan `data` nog geen `columns` heeft, tekent zijn laad-, lege of foutstaat en gooit geen `TypeError` meer; ook de CSV-download zonder `columns` gooit niet. (#276)
+
 ## [0.12.0] - 2026-10-31
 
 ### Toegevoegd
@@ -733,7 +767,9 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.12.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/h11t-labs/lintje/compare/v0.12.1...v0.13.0
+[0.12.1]: https://github.com/h11t-labs/lintje/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/h11t-labs/lintje/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/h11t-labs/lintje/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/h11t-labs/lintje/compare/v0.9.3...v0.10.0

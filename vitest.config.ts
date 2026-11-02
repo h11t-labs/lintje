@@ -27,7 +27,7 @@ const emulatePrint: BrowserCommand<[on: boolean]> = async ({ page }, on) => {
   await page.emulateMedia({ media: on ? 'print' : 'screen' })
 }
 
-/** Draws the page in the system's palette, as a contrast theme does (`forced-colors.browser.test.ts`). */
+/** Forced colours, as a contrast theme of Windows sets them, or back. */
 const emulateForcedColors: BrowserCommand<[on: boolean]> = async ({ page }, on) => {
   await page.emulateMedia({ forcedColors: on ? 'active' : 'none' })
 }

@@ -501,6 +501,30 @@ describe('the sankey', () => {
     })
     expect(host.querySelector('svg')!.getAttribute('role')).toBe('group')
   })
+
+  it('hides the labels and step names once the drawing is a group: the buttons say them', () => {
+    const hidden = (element: Element) => element.closest('[aria-hidden="true"]') != null
+    const words = (host: Element) => [
+      ...host.querySelectorAll('.lintje-sankey__name, .lintje-sankey__value'),
+      ...host.querySelectorAll('svg > g > .lintje-chart__axis-label'),
+    ]
+    const spec: SankeySpec = {
+      ...THREE,
+      steps: THREE.steps.map((step) => ({
+        ...step,
+        nodes: step.nodes.map((node) => ({ ...node, href: `?knoop=${node.id}` })),
+      })),
+    }
+    const group = draw(spec, { onSelect: () => {} }).host
+    expect(group.querySelector('svg')!.getAttribute('role')).toBe('group')
+    expect(words(group)).toHaveLength(6 + 6 + 3)
+    expect(words(group).every(hidden)).toBe(true)
+    document.body.replaceChildren()
+    // As an image the drawing is its description alone; nothing in it is hidden apart.
+    const image = draw(THREE).host
+    expect(image.querySelector('svg')!.getAttribute('role')).toBe('img')
+    expect(words(image).some(hidden)).toBe(false)
+  })
 })
 
 describe('the sankey below 768 px', () => {
@@ -525,6 +549,18 @@ describe('the sankey below 768 px', () => {
     expect(first.querySelectorAll('.lintje-sankey__piece')).toHaveLength(4)
     expect(first.querySelectorAll('.lintje-sankey__piece--rest')).toHaveLength(1)
     expect(host.querySelector('.lintje-legend')).toBeNull()
+  })
+
+  it('makes every transition a group named by its heading', () => {
+    const { host } = draw(THREE, { mobile: true })
+    const names = [...host.querySelectorAll('.lintje-sankey__transition')].map((section) => {
+      expect(section.getAttribute('role')).toBe('group')
+      const heading = host.querySelector(`[id="${section.getAttribute('aria-labelledby')}"]`)
+      expect(heading?.classList.contains('lintje-sankey__heading')).toBe(true)
+      expect(section.contains(heading)).toBe(true)
+      return heading!.textContent!.trim()
+    })
+    expect(names).toEqual(['Ingediend → volledigheid', 'Volledigheid → uitkomst'])
   })
 
   it('gives each missing flow its own row, and their piece one hatch', () => {

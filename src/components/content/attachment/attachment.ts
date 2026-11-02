@@ -94,13 +94,17 @@ export class LintjeAttachment extends LintjeElement {
   /** "Opnieuw" held the focus, and leaves once the host sets the file busy again. */
   #retried = false
 
-  /** The chip's first control: the cross, "Opnieuw", or the chip itself when it opens. */
+  /**
+   * The cross first, then "Opnieuw", then the chip itself: a list whose file went hands the focus
+   * to the next one's cross, so the next Enter removes and never retries.
+   */
   override focus(options?: FocusOptions): void {
-    this.renderRoot
-      .querySelector<HTMLElement>(
-        '.lintje-attachment__remove, .lintje-attachment__retry, a.lintje-attachment__main, button.lintje-attachment__main',
-      )
-      ?.focus(options)
+    const root = this.renderRoot
+    ;(
+      root.querySelector<HTMLElement>('.lintje-attachment__remove') ??
+      root.querySelector<HTMLElement>('.lintje-attachment__retry') ??
+      root.querySelector<HTMLElement>('.lintje-attachment__main')
+    )?.focus(options)
   }
 
   private get opens(): boolean {
@@ -117,7 +121,12 @@ export class LintjeAttachment extends LintjeElement {
     super.updated(changed)
     if (!this.#retried || this.renderRoot.querySelector('.lintje-attachment__retry')) return
     this.#retried = false
-    this.renderRoot.querySelector<HTMLElement>('.lintje-attachment__remove')?.focus()
+    // Without a cross the chip itself takes it: its main part can take the focus.
+    const root = this.renderRoot
+    ;(
+      root.querySelector<HTMLElement>('.lintje-attachment__remove') ??
+      root.querySelector<HTMLElement>('.lintje-attachment__main')
+    )?.focus()
   }
 
   private send(name: string): void {
@@ -194,7 +203,10 @@ export class LintjeAttachment extends LintjeElement {
 
   private renderMain(file: UploadFile): TemplateResult {
     const content = this.renderContent(file)
-    if (!this.opens) return html`<span class="lintje-attachment__main">${content}</span>`
+    // Not a link or a button, it still takes the focus "Opnieuw" leaves when it goes.
+    if (!this.opens) {
+      return html`<span class="lintje-attachment__main" tabindex="-1">${content}</span>`
+    }
     if (file.href) {
       return html`<a
         class="lintje-attachment__main"

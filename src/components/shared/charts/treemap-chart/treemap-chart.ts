@@ -489,7 +489,7 @@ function drawRows(context: Context): TemplateResult {
         ${
           mark.clickable
             ? html`<button type="button" class="lintje-treemap__part lintje-treemap__part--button" aria-pressed=${mark.pressed}
-                    @click=${mark.click}>${body}</button>`
+                    data-mark-id=${mark.markId} @click=${mark.click}>${body}</button>`
             : html`<div class="lintje-treemap__part">${body}</div>`
         }
         ${
@@ -505,7 +505,8 @@ function drawRows(context: Context): TemplateResult {
                         : nothing
                     }</span>
                     <span class="lintje-treemap__amount">${format(area.value)}</span>
-                    <span class="lintje-treemap__share">${share(area.value, group.value)}</span>
+                    <!-- In the total, as in the part's row and the CSV: one column, one share. -->
+                    <span class="lintje-treemap__share">${share(area.value)}</span>
                     ${bar(area.value, area.other ? 'var(--color-chart-other)' : variable, true)}
                   </li>`,
                 )}

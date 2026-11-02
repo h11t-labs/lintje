@@ -18,7 +18,7 @@ import {
   type TemplateResult,
 } from 'lit'
 import { LintjeElement, define } from '../../../core/element'
-import { deepActiveElement, holdsFocus } from '../../../core/focus'
+import { deepActiveElement, holdsFocus, passFocus } from '../../../core/focus'
 import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
 import type { ErrorSummaryItem, LintjeErrorSummary } from '../error-summary/error-summary'
@@ -414,6 +414,15 @@ export class LintjeForm extends LintjeElement {
   }
 
   #commitSave(): void {
+    // The summary goes with its errors: the focus on its "Opnieuw proberen" goes to the action
+    // bar's primary button, else to the first field.
+    const summary = this.hasUpdated ? this.renderRoot.querySelector('lintje-error-summary') : null
+    if (summary) {
+      const primary = this.querySelector<HTMLElement>(
+        'lintje-form-actions lintje-button[variant="primary"]',
+      )
+      passFocus(summary, [primary, namedControls(this)[0]])
+    }
     // Before the first render the fields do not hold `values` yet: what is saved is what was given.
     this.values = this.hasUpdated ? this.collect() : { ...this.values, ...this.#draft }
     this.#draft = {}
