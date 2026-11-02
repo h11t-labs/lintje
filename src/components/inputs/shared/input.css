@@ -25,13 +25,14 @@
   --lintje-field-border: 1px;
   --lintje-field-error-border: var(--field-error-border);
 }
-/* `min-width: auto`: the segmented control never shrinks below its options, and the select and
-   the date range stop at their content's width in a narrow row. */
+/* `min-width: auto`: the select and the date range stop at their content's width in a narrow
+   row. The segmented control shrinks with its room, also as a flex or grid item, so it measures
+   that room and stands as a column where its row does not fit. */
 :host(lintje-date-range),
-:host(lintje-segmented),
 :host(lintje-select) {
   display: block;
 }
+:host(lintje-segmented) { display: block; min-width: 0; }
 :host(lintje-multiselect),
 :host(lintje-range) {
   width: 180px;

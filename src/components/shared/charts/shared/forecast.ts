@@ -2,15 +2,41 @@
  * The forecast of a line or bar chart: where it starts and how its margin reads. The chart
  * element's table reads the same start, so drawing and table agree on what is a forecast.
  */
-import { formatNumber } from '../../../../core/format'
+import { formatNumber, textWidth } from '../../../../core/format'
 import type { TooltipRow } from './controller'
+import type { PlotArea } from './scale'
 import type { ChartForecast } from './types'
 
 export const FORECAST_LABEL = 'Raming'
 export const INTERVAL_LABEL = 'Marge'
 
-/** The room above the plot for "Gemeten" and the forecast's word, over the boundary. */
+/** A row above the plot for "Gemeten" and the forecast's word, over the boundary. */
 export const FORECAST_ROOM = 16
+/** Between the boundary and each of its words. */
+export const BOUNDARY_GAP = 6
+
+/**
+ * Whether the forecast's word fits right of the boundary at `x`, within the plot. When it does
+ * not, it takes a row of its own above "Gemeten", so it never stands over the line or that word.
+ */
+export function forecastWordFits(
+  x: number,
+  area: Pick<PlotArea, 'width' | 'right'>,
+  label: string,
+  fontFamily?: string,
+): boolean {
+  return x + BOUNDARY_GAP + textWidth(label, fontFamily, 700) <= area.width - area.right
+}
+
+/** The room above the plot for the boundary's words: one row, or two for a word of its own. */
+export function forecastRoom(fits: boolean): number {
+  return fits ? FORECAST_ROOM : 2 * FORECAST_ROOM
+}
+
+/** What the drawing's description adds, as it names its events: where measuring stops. */
+export function forecastDescription(labels: string[], from: number, label: string): string {
+  return `Gemeten tot en met ${labels[from - 1]}, daarna ${label.toLowerCase()}.`
+}
 
 /** The first forecast index, or `null` when `forecastFrom` names no point after the first. */
 export function forecastStart(from: number | undefined, count: number): number | null {

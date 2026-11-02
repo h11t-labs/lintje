@@ -109,8 +109,9 @@ describe('the boundary of a forecast', () => {
     expect(measured.y).toBeLessThan(area.top)
   })
 
-  it('ends the forecast word at the edge of the plot where it would run past it', () => {
-    const [, forecast] = draw(580)
+  it('puts the forecast word a row higher, ending at the plot’s edge, where it would run past it', () => {
+    const [measured, forecast] = draw(580)
     expect(forecast).toMatchObject({ anchor: 'end', x: area.width - area.right })
+    expect(forecast.y).toBe(measured.y - 16)
   })
 })

@@ -252,6 +252,18 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
     return { title: item.label, rows: lines }
   }
 
+  // A row that drills is named first by what it shows, its name and difference (2.5.3), then
+  // by what only the tooltip says; the keyboard's sentence stays the tooltip's.
+  const nameOf = (i: number): string => {
+    const { title, rows: lines } = contentAt(i)
+    const difference = differences[i]
+    const drawn = fromOn && toOn ? (difference == null ? NO_DATA : signed(difference)) : null
+    return tooltipSentence({
+      title: drawn ? `${title} ${drawn}` : title,
+      rows: lines.filter((line) => line.label !== 'Verschil'),
+    })
+  }
+
   // The tooltip stands right of the row's right point, else left of its left one; on a phone
   // under the row, centred when it fits beside neither.
   const at = (i: number): PlotPoint => {
@@ -322,7 +334,7 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
       // Both beyond one edge lie on each other, as an unchanged row does, under one mark.
       const together =
         fromOn && toOn && from != null && to != null && from.side !== 0 && from.side === to.side
-      const mark = selection.of(links[i], item.label, tooltipSentence(contentAt(i)))
+      const mark = selection.of(links[i], item.label, nameOf(i))
       const focus = toOn && to ? to : fromOn && from ? from : null
       return svg`
         <g class="lintje-dumbbell__row ${controller.hoverIndex === i ? 'is-hovered' : ''} ${mark.state}"

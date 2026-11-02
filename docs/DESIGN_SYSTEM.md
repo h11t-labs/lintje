@@ -467,7 +467,8 @@ Besluiten die voor beide gelden:
 - **Tabs komen in twee vormen.** Een rij boven de inhoud, de gekozen tab onderstreept; en grote
   tabs boven een omrand paneel, voor de paar modi waartussen een hele pagina wisselt: elk met een
   icoon en een hint, waarbij het eigen oppervlak van het paneel doorloopt in de gekozen, zonder
-  lijn. Op een telefoon zet de grote tab zijn icoon boven zijn label en laat hij de hint weg.
+  lijn. Op een telefoon zet de grote tab zijn icoon boven zijn label; de hint blijft eronder
+  staan, op elke breedte, en breekt af waar de ruimte op is.
 - **Een submenu is de side navigation van de huisstijl** (`lintje-sub-nav`): links in de
   linkkleur zonder rand, de pagina van de lezer vet op de waas van de primaire kleur, een rij
   onder de aanwijzer gevuld in de primaire kleur met wit erop, groepen gescheiden door ruimte,
@@ -1039,7 +1040,9 @@ de stijlgids. Past geen soort, dan is het een tabel.
 - **Een treemap vouwt op aandeel, niet op aantal.** Ze toont veel delen en hun onderdelen in één
   vlak, dus een deel blijft staan zolang het telt: wat onder 1 % van het geheel blijft, wordt
   samen één grijs "Overig" dat niet klikbaar is, ook binnen een deel, en één klein deel blijft
-  zichzelf. De CSV noemt elk samengevoegd deel apart. Het geheel is het kader: de legenda draagt
+  zichzelf. De CSV noemt elk samengevoegd deel apart. Een aandeel is er een in het geheel, ook bij
+  een onderdeel in de rijen op een telefoon; alleen de tooltip noemt daarnaast dat in zijn deel.
+  Het geheel is het kader: de legenda draagt
   alleen de sleutels en schakelt niets uit, en de grafiek noemt zelf het totaal van wat getekend
   is en wat daarin ontbreekt.
 - **Onderdelen van een deel delen zijn tint.** Een eigen tint zou een tweede variabele
@@ -1114,9 +1117,12 @@ hoverpunt ook, en de tooltip en de CSV noemen elk geraamd punt zo. De marge rond
 alleen bij één reeks, of bij de reeks die de lezer in de legenda aanwijst, om dezelfde reden als
 bij het spinnendiagram. Met een raming heeft de grafiek één grens: de lijn tussen gemeten en
 geraamd, met beide woorden erboven en het geraamde deel op een eigen ondergrond, in donker onder
-het oppervlak, zodat de stippels er 3:1 houden. Een lopende
-periode wordt dan niet gearceerd of afgekapt; de host laat haar weg of rekent haar tot de raming.
-Een vergelijking heeft geen raming: haar waarden zijn gemeten.
+het oppervlak, zodat de stippels er 3:1 houden. Past het woord van de raming niet rechts van de
+lijn, dan staat het een regel hoger, nooit over de lijn of over "Gemeten". Een lopende periode
+wordt dan niet gearceerd of afgekapt; de host laat haar weg of rekent haar tot de raming. Een
+vergelijking heeft geen raming: haar waarden zijn gemeten. Een schermlezer hoort dat ook: de naam
+van de tekening zegt waar het meten ophoudt, zoals ze haar gebeurtenissen noemt, en "raming"
+staat bij elke geraamde waarde, niet bij de categorie.
 
 **Gebeurtenissen.** Wat er op een moment gebeurde, is een genummerd vierkantje boven zijn
 categorie met een doorgetrokken lijn tot de nullijn, apart van de gestreepte peilmomentlijn; de
@@ -1234,7 +1240,11 @@ een balk, en halen hun aanwijsdoel via het klikgebied in de richting waar ze rui
 
 ## Responsief gedrag
 
-Vier breedtes zijn ontworpen en getest: desktop (vanaf 1440), 1024, 768 en 390 px.
+Vier breedtes zijn ontworpen en getest: desktop (vanaf 1440), 1024, 768 en 390 px. Daaronder
+herschikt alles tot 320 px breed, en tot 320 × 256 (400 % zoom, een telefoon dwars), zonder iets
+te verliezen en zonder zijwaarts te scrollen (1.4.10): een lange titel breekt af, een rij knoppen
+of een telling loopt door naar een volgende regel, en een element dat zijn eigen plek meet (de
+tabel, het zoekveld, de segmenten) neemt daar een smallere vorm.
 
 **Onder 768 px wisselt een onderdeel van vorm; het stapelt niet alleen.** Dat geldt voor de
 navigatie (een balk bovenaan, het menu als blad van onderen), de filters (een blad), de KPI-rij, de tabel
@@ -1254,7 +1264,9 @@ van de shell, de lijst van de meldingen — en geeft de focus aan zijn knop als 
 zoals de bel.
 
 **Bij weinig hoogte plakt de actiebalk van een formulier niet**: onder een viewporthoogte van
-30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10).
+30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10). Onder dezelfde
+grens plakken de vragen en het vraagvak van een gesprek niet, en scrolt een klein venster als
+geheel, met zijn kop en alle knoppen.
 
 **Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame nadat die veranderde.**
 Zo verandert zijn maat nooit in de ronde van zijn waarnemer, die de browser anders als fout van de
@@ -1375,7 +1387,10 @@ kleinste correctie, en leg die hier vast.
   waar hij vandaan kwam (anders `<main>`), een gesloten mededeling naar de volgende stop op de
   pagina, "Alles gelezen" naar de eerste melding. Een element dat leeg raakt en zelf niets
   zichtbaars overhoudt, vraagt eerst de host met een event dat hij annuleert om de focus op zijn
-  eigen doel te zetten; anders gaat de focus naar de statusregel die zegt dat het leeg is.
+  eigen doel te zetten; anders gaat de focus naar de statusregel die zegt dat het leeg is. Een
+  venster waarvan de opener weg is, geeft de focus bij het sluiten aan `<main>` van de shell,
+  zoals de skiplink (`focusContent()`). Zonder genoemde buur gaat de focus naar de volgende stop na
+  wat verdwijnt, nooit naar `body` (`passFocus()`).
 - **Een sessie die verloopt, waarschuwt minstens 20 seconden vooraf** en wordt met één knop
   verlengd (WCAG 2.2.1): in een `lintje-dialog alert persistent`, waarin Escape en de achtergrond
   niets doen omdat de sessie hoe dan ook afloopt.
@@ -1390,7 +1405,19 @@ kleinste correctie, en leg die hier vast.
 - **De popup van een veld sluit als de focus het veld verlaat**, zodat hij nooit het volgende veld
   bedekt; gesloten met Escape of met zijn eigen actie, geeft hij de focus terug aan het veld.
 - De optie waarop de toetsen van een lijst staan (`aria-activedescendant`), draagt de focusring
-  binnen haar rij: haar vulling alleen haalt ongeveer 1.1:1.
+  binnen haar rij: haar vulling alleen haalt ongeveer 1.1:1. Ook een aanvulling in het vraagvak;
+  een rij onder de aanwijzer houdt alleen de vulling.
+- **Een scrollvak dat het toetsenbord moet bereiken, is een Tab-stop met een rol en een naam**
+  (2.1.1): Safari geeft een scroller er zelf geen. Een codeblok heet "Codeblok", ook een `pre` in
+  de html van `lintje-prose`; een tegel die zelf scrolt, draagt haar titel. De ring staat erbinnen.
+- **De focusring is aan alle vier de kanten heel**: een scrollvak houdt de ring van wat erin staat
+  vrij, en een deel dat tegen zijn buur ligt (een segment, een helft van een gesplitste knop) ligt
+  met de focus boven die buur. Bij twee handvatten op één balk staat de ring om het handvat met de
+  focus, niet om de balk.
+- **Een lijst losse tekstlinks heeft doelen van minstens 24 px** (2.5.8), in de voet en in de
+  foutsamenvatting: zo'n link staat niet in een zin.
+- **Een dag die niet gekozen mag worden, kiest na een klik niets, maar wordt de Tab-stop**: de
+  pijltoetsen rekenen vanaf de dag met de focus (2.4.3).
 - **Een mark van een grafiek of kaart tekent na een klik geen kader.** Chromium geeft een
   SVG-element met `tabindex` zijn eigen outline, ook zonder `:focus-visible`; `:focus` zet die af,
   en de ring blijft die van het toetsenbord.
@@ -1433,7 +1460,9 @@ kleinste correctie, en leg die hier vast.
 - **Onder 768 px houdt de tabel elke kolom binnen bereik** (1.4.10): een rij toont haar identiteit
   en één meetwaarde, haar rijmenu, en een knop die de andere kolommen eronder opent als
   beschrijvingslijst; "Sorteren" sorteert op elke kolom. Een cel bewerken blijft voor de bredere
-  tabel.
+  tabel. De naam neemt wat de meetwaarde en de knoppen overlaten, maar nooit minder dan ongeveer
+  tien tekens of zijn langste woord: een woord breekt niet af. Past de tabel dan niet in zijn
+  tegel, dan scrolt hij daarin zijwaarts, zoals de brede tabel.
 - **Een vastgeplakte balk bedekt nooit de focus** (2.4.11): de actiebalk van het formulier
   reserveert zijn hoogte als `scroll-padding-bottom` van de scroller, en de foutsamenvatting
   scrolt een veld naar het midden. Een element waar de focus toch onder belandt, scrollen de
@@ -1443,7 +1472,8 @@ kleinste correctie, en leg die hier vast.
 - **Een grafiek is ook met het toetsenbord te lezen.** Haar tekening neemt de focus en de
   pijltoetsen lopen langs de categorieën met de tooltip, die een live-regio uitspreekt; Escape
   verbergt een tooltip. De tekening is een afbeelding, of een groep met haar beschrijving als naam
-  zodra een teken een knop is. Een teken met focus krijgt zijn ring buiten een opening van 1 px in
+  zodra een teken een knop is; in een groep zijn de getekende namen en getallen verborgen voor
+  een schermlezer, want de knoppen zeggen ze al. Een teken met focus krijgt zijn ring buiten een opening van 1 px in
   het oppervlak, zodat een oranje teken zijn ring houdt; op een kaart, waar tekens elkaar raken,
   ligt het met die ring boven alle andere. De nullijn, de arcering en de rand van
   een kaartgebied met een cijfer halen 3:1; aangrenzende tinten worden gescheiden door een lijn in
