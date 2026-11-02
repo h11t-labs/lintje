@@ -505,7 +505,8 @@ function drawRows(context: Context): TemplateResult {
                         : nothing
                     }</span>
                     <span class="lintje-treemap__amount">${format(area.value)}</span>
-                    <span class="lintje-treemap__share">${share(area.value, group.value)}</span>
+                    <!-- In the total, as in the part's row and the CSV: one column, one share. -->
+                    <span class="lintje-treemap__share">${share(area.value)}</span>
                     ${bar(area.value, area.other ? 'var(--color-chart-other)' : variable, true)}
                   </li>`,
                 )}

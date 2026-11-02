@@ -297,6 +297,18 @@ describe('the treemap below 768 px', () => {
     expect(subs).toEqual(['Ziekenhuiszorg', 'Langdurige zorg', 'Overig · 2 posten'])
   })
 
+  it('gives a sub-part its share of the whole, as its part and the CSV have theirs', () => {
+    const { host } = draw(spec(NESTED), { mobile: true })
+    host.querySelector<HTMLButtonElement>('.lintje-treemap__toggle')!.click()
+    const sub = [...host.querySelectorAll('.lintje-treemap__sub')].find(
+      (row) => row.querySelector('.lintje-treemap__name')?.textContent?.trim() === 'Ziekenhuiszorg',
+    )!
+    // 31,2 of 126,5 in the whole, not 50,2 % of Zorg.
+    expect(sub.querySelector('.lintje-treemap__share')?.textContent?.trim()).toBe('24,7%')
+    const csv = treemapRows(spec(NESTED)).find((row) => row[1] === 'Ziekenhuiszorg')
+    expect(csv?.at(-1)).toBe(24.7)
+  })
+
   it('chooses a part from its row, never from a sub-part', () => {
     const { host, chosen } = draw(spec(NESTED), { mobile: true })
     host.querySelector<HTMLButtonElement>('.lintje-treemap__toggle')!.click()

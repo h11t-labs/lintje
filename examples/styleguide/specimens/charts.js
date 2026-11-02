@@ -198,6 +198,11 @@ const quality = (missing = false) => ({
 // The satisfaction per desk in 2024 and 2026 on a scale of 1 to 10, against a norm of 7.
 const SATISFACTION = satisfaction.map((row) => ({ label: row.desk, from: row.from, to: row.to }))
 const SATISFACTION_NORM = 7
+/** Each desk opens its own page. */
+const LINKED_SATISFACTION = SATISFACTION.map((row) => {
+  const id = row.label.toLowerCase().replace(/\s+/g, '-')
+  return { ...row, id, href: `?loket=${id}` }
+})
 const satisfactionSpec = (rows = SATISFACTION, axis = {}) => ({
   kind: 'dumbbell', fromLabel: '2024', toLabel: '2026', threshold: SATISFACTION_NORM, rows, ...axis,
 })
@@ -249,9 +254,17 @@ const yearly = (key) => ({
 })
 const lastMeasured = forecast[FORECAST_FROM - 1]
 const lastYear = forecast.at(-1)
-/** Where measuring stops, its last value, and where the forecast ends with its margin. */
+/**
+ * The first and last measured value, and where the forecast ends with its margin. Where measuring
+ * stops the chart adds to its description itself.
+ */
 const forecastSentence = (key, name) =>
-  `${name}: gemeten tot en met ${lastMeasured.year}, ${number(forecast[0][key])} in ${forecast[0].year} en ${number(lastMeasured[key])} in ${lastMeasured.year}. De raming loopt tot ${number(lastYear[key])} in ${lastYear.year}, met een marge van ${number(lastYear[`${key}_low`])} tot ${number(lastYear[`${key}_high`])}.`
+  `${name}: ${number(forecast[0][key])} in ${forecast[0].year} en ${number(lastMeasured[key])} in ${lastMeasured.year}. De raming loopt tot ${number(lastYear[key])} in ${lastYear.year}, met een marge van ${number(lastYear[`${key}_low`])} tot ${number(lastYear[`${key}_high`])}.`
+// Requests per month of this year, measured up to August, against last year: a comparison is
+// measured to the end. Fictional figures.
+const MONTHS = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+const THIS_YEAR_MONTHS = [612, 640, 701, 688, 720, 695, 590, 610, 735, 760, 742, 705]
+const LAST_YEAR_MONTHS = [580, 601, 655, 662, 690, 671, 560, 575, 702, 731, 720, 690]
 const lateDesks = desks.filter((desk) => desk.data_status === 'delayed').map((desk) => desk.map_label)
 
 // A fictional budget in mld euro: twelve policy areas, three with their sub-posts. `missing`
@@ -292,6 +305,14 @@ const process = (name, changes = {}) => ({
   }),
 })
 const sankeySpec = (data, extra = {}) => ({ kind: 'sankey', label: 'Aanvragen', ...data, ...extra })
+/** Every node and every flow opens its own page, as a drilldown does. */
+const linked = (data) => ({
+  steps: data.steps.map((step) => ({
+    ...step,
+    nodes: step.nodes.map((node) => ({ ...node, href: `?knoop=${node.id}` })),
+  })),
+  flows: data.flows.map((flow) => ({ ...flow, href: `?stroom=${flow.from}-${flow.to}` })),
+})
 
 /**
  * What a host writes as the sankey's description: the whole, every node of every step with its
@@ -307,11 +328,13 @@ function sankeyDescription({ steps, flows }) {
     return Math.max(known(into), known(out))
   }
   const partial = (node) => node.value == null && flows.some((flow) => flow.to === node.id && flow.value == null)
+  const unknown = (node) => node.value == null && flows.every((flow) => (flow.to !== node.id && flow.from !== node.id) || flow.value == null)
   const total = steps[0].nodes.reduce((sum, node) => sum + size(nodes.get(node.id)), 0)
   const share = (part) => `${Math.round((part / total) * 100)}%`
   const perStep = steps.map((step) => `${step.label}: ${step.nodes
     .map((node) => {
       const item = nodes.get(node.id)
+      if (unknown(item)) return `${node.label} geen gegevens`
       return partial(item)
         ? `${node.label} minstens ${number(size(item))}`
         : `${node.label} ${number(size(item))} (${share(size(item))})`
@@ -345,8 +368,21 @@ const SANKEYS = [
   { id: 'sankey-six', title: 'Zes uitkomsten', data: process('six') },
   { id: 'sankey-no-share', title: 'Alleen aantallen', data: process('three'), extra: { share: false } },
   { id: 'sankey-phone', title: 'Op een telefoon', data: process('three') },
-].map(({ id, title, data, extra }) => ({
-  id, title,
+  { id: 'sankey-links', title: 'Aanvragen van indiening tot uitkomst', data: linked(process('three')) },
+  {
+    id: 'sankey-chosen', title: 'Aanvragen van indiening tot uitkomst',
+    data: linked(process('three')), selectedId: 'compleet',
+  },
+  {
+    id: 'sankey-zero', title: 'Aanvragen van indiening tot uitkomst',
+    data: process('three', {
+      'compleet>in-behandeling': 0, 'onvolledig>in-behandeling': 0,
+      'compleet>ingetrokken': null, 'onvolledig>ingetrokken': null,
+    }),
+  },
+  { id: 'sankey-color', title: 'Aanvragen van indiening tot uitkomst', data: process('three'), extra: { color: 'violet' } },
+].map(({ id, title, data, extra, selectedId }) => ({
+  id, title, selectedId,
   description: sankeyDescription(data),
   spec: sankeySpec(data, extra),
 }))
@@ -409,7 +445,7 @@ const CHARTS = [
   {
     id: 'line-forecast-plain', title: 'Aanvragen per jaar',
     subtitle: '× 1.000, gemeten tot en met 2025, daarna raming',
-    description: `Lijn, aanvragen per jaar, × 1.000. Gemeten tot en met ${lastMeasured.year}: van ${number(forecast[0].requests)} naar ${number(lastMeasured.requests)}. De raming loopt op tot ${number(lastYear.requests)} in ${lastYear.year}, zonder marge.`,
+    description: `Lijn, aanvragen per jaar, × 1.000. Van ${number(forecast[0].requests)} in ${forecast[0].year} naar ${number(lastMeasured.requests)} in ${lastMeasured.year}. De raming loopt op tot ${number(lastYear.requests)} in ${lastYear.year}, zonder marge.`,
     spec: {
       kind: 'line', labels: YEARS, axisTitle: 'aanvragen × 1.000',
       forecastFrom: FORECAST_FROM,
@@ -432,6 +468,33 @@ const CHARTS = [
           forecast: { low: without(margin.low), high: without(margin.high) },
         }
       })()],
+    },
+  },
+  {
+    id: 'line-forecast-comparison', title: 'Aanvragen per maand',
+    subtitle: '2026 gemeten tot en met augustus, daarna raming, tegen 2025',
+    description: `Lijn, aanvragen per maand in 2026 tegen 2025. 2026 loopt van ${number(THIS_YEAR_MONTHS[0])} in januari tot ${number(THIS_YEAR_MONTHS[7])} in augustus; de raming gaat tot ${number(THIS_YEAR_MONTHS[11])} in december. 2025 is helemaal gemeten, van ${number(LAST_YEAR_MONTHS[0])} tot ${number(LAST_YEAR_MONTHS[11])}.`,
+    spec: {
+      kind: 'line', labels: MONTHS, axisTitle: 'aanvragen', forecastFrom: 8, intervalLabel: 'Marge 80 %',
+      series: [
+        {
+          label: '2026', color: 'sky-blue', values: THIS_YEAR_MONTHS,
+          forecast: {
+            low: THIS_YEAR_MONTHS.map((value, i) => (i < 8 ? null : value - 20 - (i - 8) * 10)),
+            high: THIS_YEAR_MONTHS.map((value, i) => (i < 8 ? null : value + 20 + (i - 8) * 10)),
+          },
+        },
+        { label: '2025', values: LAST_YEAR_MONTHS, comparison: true },
+      ],
+    },
+  },
+  {
+    id: 'line-forecast-last', title: 'Aanvragen per jaar',
+    subtitle: '× 1.000, gemeten tot en met 2029, daarna raming',
+    description: `Lijn, aanvragen per jaar, × 1.000. Van ${number(forecast[0].requests)} in ${forecast[0].year} naar ${number(forecast.at(-2).requests)} in ${forecast.at(-2).year}, en ${number(lastYear.requests)} geraamd voor ${lastYear.year}.`,
+    spec: {
+      kind: 'line', labels: YEARS, axisTitle: 'aanvragen × 1.000', forecastFrom: YEARS.length - 1,
+      series: [{ label: 'Aanvragen', color: 'sky-blue', values: yearly('requests').values }],
     },
   },
   {
@@ -462,6 +525,33 @@ const CHARTS = [
       forecastFrom: FORECAST_FROM, intervalLabel: 'Marge 80 %',
       ...yearly('requests'),
     },
+  },
+  {
+    id: 'bar-forecast-chosen', title: 'Aanvragen per jaar',
+    subtitle: '× 1.000, gemeten tot en met 2025, daarna raming',
+    description: `Staven, aanvragen per jaar, × 1.000. ${forecastSentence('requests', 'Aanvragen')} Elk jaar opent zijn eigen pagina.`,
+    spec: {
+      kind: 'bar', labels: YEARS, axisTitle: 'Aanvragen × 1.000', color: 'sky-blue',
+      forecastFrom: FORECAST_FROM, intervalLabel: 'Marge 80 %',
+      ...yearly('requests'),
+      links: YEARS.map((year) => ({ id: year, href: `?jaar=${year}` })),
+    },
+    selectedId: '2027',
+  },
+  {
+    id: 'bar-forecast-gap', title: 'Aanvragen per jaar',
+    subtitle: '× 1.000, gemeten tot en met 2025, daarna raming',
+    description: `Staven, aanvragen per jaar, × 1.000. ${forecastSentence('requests', 'Aanvragen')} Voor 2028 is er geen raming.`,
+    spec: (() => {
+      const { values, forecast: margin } = yearly('requests')
+      const gap = YEARS.indexOf('2028')
+      const without = (list) => list.map((value, i) => (i === gap ? null : value))
+      return {
+        kind: 'bar', labels: YEARS, axisTitle: 'Aanvragen × 1.000', color: 'sky-blue',
+        forecastFrom: FORECAST_FROM, intervalLabel: 'Marge 80 %',
+        values: without(values), forecast: { low: without(margin.low), high: without(margin.high) },
+      }
+    })(),
   },
   {
     id: 'horizontal-bar', title: 'Horizontale staven met norm',
@@ -668,9 +758,63 @@ const CHARTS = [
     },
   },
   {
+    id: 'treemap-yellow-chosen', title: 'Uitgaven per beleidsterrein',
+    subtitle: 'Begroting, fictief',
+    description: budgetDescription(),
+    spec: budgetSpec({ links: true, color: 'yellow' }),
+    selectedId: 'zorg',
+  },
+  {
+    id: 'treemap-small-links', title: 'Uitgaven per beleidsterrein',
+    subtitle: 'Begroting, fictief',
+    description: budgetDescription(),
+    spec: budgetSpec({ links: true, small: true }),
+  },
+  {
+    id: 'treemap-phone-chosen', title: 'Uitgaven per beleidsterrein en post',
+    subtitle: 'Begroting, fictief',
+    description: budgetDescription(),
+    spec: budgetSpec({ nested: true, links: true }),
+    selectedId: 'zorg',
+    // On a phone the chosen part stands open too.
+    setup: async (element) => {
+      await element.updateComplete
+      element.renderRoot.querySelector('.lintje-treemap__toggle[aria-label="Onderdelen van Zorg"]')?.click()
+    },
+  },
+  {
     id: 'dumbbell', title: 'Tevredenheid per loket',
     subtitle: 'Gemiddeld rapportcijfer, 2024 en 2026',
     spec: satisfactionSpec(),
+  },
+  {
+    id: 'dumbbell-links', title: 'Tevredenheid per loket',
+    subtitle: 'Gemiddeld rapportcijfer, 2024 en 2026',
+    spec: satisfactionSpec(LINKED_SATISFACTION),
+  },
+  {
+    id: 'dumbbell-chosen', title: 'Tevredenheid per loket',
+    subtitle: 'Gemiddeld rapportcijfer, 2024 en 2026',
+    spec: satisfactionSpec(LINKED_SATISFACTION),
+    selectedId: 'utrecht',
+  },
+  {
+    id: 'dumbbell-both-hidden', title: 'Tevredenheid per loket',
+    subtitle: 'Gemiddeld rapportcijfer, 2024 en 2026',
+    spec: satisfactionSpec(),
+    // Both moments switched off in the legend, one after the other.
+    toggle: [0, 1],
+  },
+  {
+    id: 'dumbbell-phone-long', title: 'Tevredenheid per loket',
+    subtitle: 'Gemiddeld rapportcijfer, 2024 en 2026',
+    spec: satisfactionSpec(
+      [
+        ...SATISFACTION.slice(0, 3),
+        { label: 'Servicepunt in het gemeentehuis van de oostelijke wijken', from: 6.4, to: 7.1 },
+      ],
+      { min: 5, max: 9 },
+    ),
   },
   {
     id: 'dumbbell-unchanged', title: 'Tevredenheid per loket',
@@ -760,8 +904,12 @@ const VARIANT_NAMES = {
   'line-forecast-two': 'Twee reeksen met raming',
   'line-forecast-plain': 'Raming zonder marge',
   'line-forecast-gap': 'Raming met een ontbrekend jaar',
+  'line-forecast-comparison': 'Raming met een vergelijking',
+  'line-forecast-last': 'Raming van alleen het laatste jaar',
   bar: 'Met trendlijn',
   'bar-forecast': 'Met raming en marge',
+  'bar-forecast-chosen': 'Geraamde staaf met link en keuze',
+  'bar-forecast-gap': 'Een ontbrekende geraamde staaf',
   'bar-trend-gap': 'Trendlijn met ontbrekende dagen',
   'horizontal-bar': 'Met norm',
   'target-progress': 'Tegen een doel van 100 %',
@@ -787,6 +935,10 @@ const VARIANT_NAMES = {
   'dumbbell-off-axis': 'Waarde buiten de as',
   'dumbbell-hidden': 'Eén moment uitgezet',
   'dumbbell-phone': 'Op een telefoon',
+  'dumbbell-links': 'Rijen met een link',
+  'dumbbell-chosen': 'Een gekozen rij',
+  'dumbbell-both-hidden': 'Beide momenten uitgezet',
+  'dumbbell-phone-long': 'Een lange naam op een telefoon',
   'heatmap-labels': 'Met lange rijlabels',
   histogram: 'Met mediaan en termijn',
   treemap: 'Eén niveau',
@@ -795,6 +947,9 @@ const VARIANT_NAMES = {
   'treemap-nested-chosen': 'Gekozen hoofdpost met onderposten',
   'treemap-no-labels': 'Zonder datalabels',
   'treemap-phone': 'Op een telefoon met een open hoofdpost',
+  'treemap-yellow-chosen': 'In geel met een gekozen vlak',
+  'treemap-small-links': 'Klein formaat met links',
+  'treemap-phone-chosen': 'Gekozen hoofdpost op een telefoon',
   sankey: 'Drie stappen',
   'sankey-four': 'Vier stappen met een eindigende stroom',
   'sankey-small': 'Een kleine stroom',
@@ -803,6 +958,10 @@ const VARIANT_NAMES = {
   'sankey-six': 'Zes knopen in één stap',
   'sankey-no-share': 'Zonder aandeel',
   'sankey-phone': 'Op een telefoon',
+  'sankey-links': 'Links op knopen en stromen',
+  'sankey-chosen': 'Een gekozen knoop',
+  'sankey-zero': 'Een knoop met 0 en een zonder gegevens',
+  'sankey-color': 'In de kleur van haar variabele',
   'line-light-colours': 'In lichte kleuren met hun rand',
 }
 
@@ -838,6 +997,21 @@ const VARIANT_NOTES = {
   'sankey-no-share': 'Met `share: false` staat alleen het aantal naast de naam.',
   'sankey-phone': 'Smaller dan 768 px wordt elke overgang een staaf per bron, met een rij per doel eronder.',
   'line-light-colours': 'Mintgroen, roze en lichtblauw halen als lijn geen 3:1 op wit; in licht ligt er een rand in hun eigen donkere kleur onder.',
+  'line-forecast-comparison': 'De vergelijking is tot het eind gemeten. Met de pijltoetsen staat “raming” bij de waarde van 2026, niet bij de maand.',
+  'line-forecast-last': 'Alleen 2030 is geraamd. Op een telefoon past “Raming” niet rechts van de grens en staat het een regel hoger, nooit over de lijn of over “Gemeten”.',
+  'bar-forecast-chosen': 'Elk jaar heeft een `href`. De gekozen staaf 2027 is geraamd en dus open; de andere stappen terug.',
+  'bar-forecast-gap': 'Voor 2028 is er geen raming: de plek is gearceerd, zonder marge.',
+  'treemap-yellow-chosen': 'In de tinten van geel, met Zorg gekozen: de omlijning staat erom en de andere vlakken stappen terug.',
+  'treemap-small-links': 'Met `small: true` op de lage hoogte, elk vlak met zijn eigen `href`.',
+  'treemap-phone-chosen': 'Onder 768 px is de rij van Zorg gekozen en opengeklapt. Elk aandeel is een aandeel in het geheel, ook bij een onderpost.',
+  'dumbbell-links': 'Elke rij heeft een `href`. Een klik of Enter op de halter gaat erheen als de host het event niet annuleert.',
+  'dumbbell-chosen': 'Utrecht is gekozen; de andere rijen stappen terug.',
+  'dumbbell-both-hidden': '2024 en 2026 staan allebei uit in de legenda: de as, de norm en de namen blijven.',
+  'dumbbell-phone-long': 'Een lange naam loopt onder 768 px door over meer regels, boven zijn halter.',
+  'sankey-links': 'Elke knoop en elke stroom heeft een `href`. In de tekening zegt elke knop zijn naam en aantal; de labels ernaast hoort een schermlezer niet nog eens.',
+  'sankey-chosen': 'Compleet is gekozen: wat erdoor stroomt staat vol, de rest stapt terug.',
+  'sankey-zero': 'In behandeling telt 0 en heeft geen knoop, alleen zijn label. Van Ingetrokken zijn geen gegevens: twee gearceerde stompen en “geen gegevens”.',
+  'sankey-color': 'In violet: de knopen en banden in die kleur, op een telefoon de tinten ervan.',
 }
 
 // The states a chart tile can be in, put on each specimen of a kind: the tile keeps its size
@@ -869,9 +1043,12 @@ const chartSpecimen = (chart) => ({
   setup(stage) {
     const element = stage.querySelector('lintje-chart')
     if (chart.toggle != null) {
-      void element.updateComplete.then(() =>
-        element.renderRoot.querySelectorAll('.lintje-legend__button')[chart.toggle]?.click(),
-      )
+      void element.updateComplete.then(async () => {
+        for (const index of [chart.toggle].flat()) {
+          element.renderRoot.querySelectorAll('.lintje-legend__button')[index]?.click()
+          await element.updateComplete
+        }
+      })
     }
     element.data = {
       chart: chart.spec,
