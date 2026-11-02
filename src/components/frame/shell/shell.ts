@@ -451,7 +451,8 @@ export class LintjeShell extends LintjeElement {
     this.#heldSheet = null
     const tool = restore ? this.#shownTool(this.#heldTool) : undefined
     this.#sheetTrap.deactivate(restore && !tool)
-    tool?.focus()
+    // After this update: the focus it moves may close a panel, which is another update.
+    if (tool) void this.updateComplete.then(() => tool.focus())
   }
 
   /** The tool of that class in the bar that shows: each bar has one, and one is hidden. */
