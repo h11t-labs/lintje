@@ -5,11 +5,11 @@
 import { html, nothing, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
-import { hasPage, isAction, unavailableWord, type NavGroup } from './header'
+import { hasPage, isAction, noAccessMark, unavailableNote, type NavGroup } from './header'
 import type { ShellLink } from '../../../types'
 import { renderSheetHead } from '../../shared/sheet'
 import type { LintjeShell } from './shell'
-import { feedbackLabel, noAccessMark, versionText } from './navigation'
+import { feedbackLabel, versionText } from './navigation'
 import { renderShare, renderView } from './top-bar'
 import { renderTabBar, type TabPlan } from './tab-bar'
 import { isPlainClick } from '../../../core/links'
@@ -261,9 +261,14 @@ export function renderMobileHeader(
 export function renderMobileItem(shell: LintjeShell, item: ShellLink): TemplateResult {
   const content = html`
     ${renderIcon(item.icon, { size: 20, src: item.iconSrc })}
-    <span class="lintje-mobile-menu__label">${item.label}</span>
+    <span class="lintje-mobile-menu__label"
+      >${item.label}${
+        hasPage(item) || isAction(item) || item.noAccess
+          ? nothing
+          : unavailableNote('lintje-mobile-menu__note')
+      }</span
+    >
     ${item.noAccess ? noAccessMark('lintje-mobile-menu__meta') : nothing}
-    ${hasPage(item) || isAction(item) || item.noAccess ? nothing : unavailableWord(item)}
   `
   if (isAction(item)) {
     return html`<button

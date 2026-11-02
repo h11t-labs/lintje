@@ -34,7 +34,10 @@
   font: var(--text-ui);
 }
 /* On the tint the ordinary link colour falls under 4.5:1; this token holds there. */
+/* A list of links, not a link in a sentence: each a target of at least 24 px, as in the footer. */
 .lintje-error-summary__link {
+  display: inline-flex; align-items: center;
+  min-height: var(--h-target-text);
   color: var(--color-link-on-status);
   text-decoration: underline;
   transition: color var(--dur-hover) var(--ease-in-motion);

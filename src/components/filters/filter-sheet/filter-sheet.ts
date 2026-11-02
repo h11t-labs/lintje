@@ -34,6 +34,7 @@ export class LintjeFilterSheet extends LintjeElement {
     applyDisabled: { type: Boolean, attribute: 'apply-disabled' },
     sentence: { attribute: false },
     scrollLock: { attribute: false },
+    restoreFocus: { attribute: false },
   }
 
   open: boolean = false
@@ -43,6 +44,8 @@ export class LintjeFilterSheet extends LintjeElement {
   sentence: SentencePart[] = []
   /** The element that scrolls the page; without it the sheet uses `lockScroll`. */
   declare scrollLock?: HTMLElement | null
+  /** Closing gives the focus back to the button that opened it; `false` leaves it to the owner. */
+  restoreFocus: boolean = true
 
   // Our own popups stop Escape themselves; this is the net for a host's control. The slotted
   // controls are asked, since a query cannot see into their shadow roots; the event's path
@@ -76,7 +79,7 @@ export class LintjeFilterSheet extends LintjeElement {
       // Shares the overlay counter, so a modal over the sheet shares the lock.
       if (sheet) this.#hold.hold(sheet, { focus: true, scroller: this.scrollLock })
     } else if (!this.open && this.#hold.held) {
-      this.#hold.release()
+      this.#hold.release(this.restoreFocus)
     }
   }
 

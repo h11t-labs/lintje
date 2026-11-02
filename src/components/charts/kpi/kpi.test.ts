@@ -129,18 +129,26 @@ describe('lintje-kpi detail', () => {
 
 describe('lintje-kpi trend', () => {
   const judged = (element: Kpi): string[] =>
-    [...element.renderRoot.querySelectorAll('.lintje-trend .visually-hidden')].map(
+    [...element.renderRoot.querySelectorAll('.lintje-trend__verdict')].map(
       (node) => node.textContent?.trim() ?? '',
     )
+  const line = (element: Kpi): string =>
+    element.renderRoot.querySelector('.lintje-trend')!.textContent!.replace(/\s+/g, ' ').trim()
 
-  it('says in words whether the direction is good, not only in colour', async () => {
+  it('writes beside the arrow whether the direction is good, seen and heard once', async () => {
     const up = await kpi({ value: '96 %', trend: { direction: 'up', sentence: '2 punten hoger' } })
-    expect(judged(up)).toEqual(['gunstig:'])
+    expect(judged(up)).toEqual(['Gunstig'])
+    // Not hidden: the word is seen, and the line holds it once.
+    expect(
+      up.renderRoot.querySelector('.lintje-trend__verdict')!.closest('.visually-hidden'),
+    ).toBeNull()
+    expect(line(up).match(/gunstig/gi)).toHaveLength(1)
     const worse = await kpi({
       value: '11 min',
       trend: { direction: 'up', sentence: '2 min langer', inverted: true },
     })
-    expect(judged(worse)).toEqual(['ongunstig:'])
+    expect(judged(worse)).toEqual(['Ongunstig'])
+    expect(line(worse)).toContain('Ongunstig: 2 min langer')
     const flat = await kpi({ value: '11 min', trend: { direction: 'flat', sentence: 'Gelijk' } })
     expect(judged(flat)).toEqual([])
   })

@@ -9,7 +9,15 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { renderIcon } from '../../../icons/render'
 import { renderBadge } from '../../feedback/badge/badge'
-import { HOME_LABEL, hasPage, isAction, unavailableWord, type NavGroup } from './header'
+import {
+  HOME_LABEL,
+  hasPage,
+  isAction,
+  noAccessMark,
+  unavailableNote,
+  unavailableWord,
+  type NavGroup,
+} from './header'
 import type { ShellData, ShellLink } from '../../../types'
 import type { LintjeShell } from './shell'
 import type { LintjeUserMenu } from '../user-menu/user-menu'
@@ -192,12 +200,6 @@ export class NavScrollbar implements ReactiveController {
   }
 }
 
-/** The lock, or the words "geen toegang": the strikethrough alone is not a reason (rule 13). */
-export function noAccessMark(className: string): TemplateResult {
-  const glyph = renderIcon('gebruiksvoorwerpen-hangslot-dicht', { size: 16, label: 'Geen toegang' })
-  return glyph === nothing ? html`<span class=${className}>geen toegang</span>` : glyph
-}
-
 export const versionText = (version: string): string => `v${version.replace(/^v/, '')}`
 
 export const feedbackLabel = (feedback: NonNullable<ShellData['feedback']>): string =>
@@ -242,7 +244,11 @@ export function navRow(shell: LintjeShell, item: ShellLink, open: boolean): Temp
     ${
       // In the rail the label is only heard; expanding on hover and focus shows it.
       open
-        ? html`<span class="lintje-nav__label" @pointerenter=${titleWhenCut}>${item.label}</span>`
+        ? html`<span class="lintje-nav__label" @pointerenter=${titleWhenCut}
+            >${item.label}${
+              page || action || item.noAccess ? nothing : unavailableNote('lintje-nav__note')
+            }</span
+          >`
         : html`<span class="visually-hidden">${item.label}</span>`
     }
     ${
@@ -251,7 +257,11 @@ export function navRow(shell: LintjeShell, item: ShellLink, open: boolean): Temp
         : nothing
     }
     ${item.noAccess && open ? noAccessMark('lintje-nav__metric') : nothing}
-    ${!page && !action && !(item.noAccess && open) ? unavailableWord(item) : nothing}
+    ${
+      // Open, the words stand under the label or the lock beside it; in the rail the label is
+      // only heard, and so are they. An action is a button: nothing to say.
+      page || action || open ? nothing : unavailableWord(item)
+    }
     ${
       // A bare "3" means nothing read aloud: with a label the figure is only seen and the
       // label only heard. `action` is the unread counter, `count` the menu's counter, `new` the word.
@@ -337,9 +347,10 @@ export function renderNavigation(shell: LintjeShell, groups: NavGroup[]): Templa
               title=${PIN_LABEL}
               @click=${(event: MouseEvent) => {
                 shell.changeView({ menu: menu === 'pinned' ? 'unpinned' : 'pinned' })
-                // From the keyboard the rail stays open, so the focused pin stays drawn.
+                // From the keyboard the menu stays an expanded rail around the focus, either way,
+                // so the focused pin stays drawn; it folds as any rail once the focus leaves.
                 const nav = (event.currentTarget as Element).closest('.lintje-nav')
-                if (!nav || !keyboardInside(nav)) shell.railExpanded = false
+                shell.railExpanded = Boolean(nav && keyboardInside(nav))
               }}
             >
               ${pin.content}

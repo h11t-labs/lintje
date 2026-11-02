@@ -43,6 +43,15 @@ en tekst een lichtere tint van de primaire kleur, afgestemd op de zes thema's di
 eigen thema is niet getoetst aan de ondergrenzen van Lintje.
 [`../DESIGN_SYSTEM.md`](../DESIGN_SYSTEM.md) zegt waarom.
 
+**Toets `--primary` dus zelf.** In licht staat witte tekst op de primaire kleur — het menu, de
+primaire knop — en is ze de kleur van een link en van een woord op een vlak. Ze haalt daarom
+minstens 4,5:1 tegen wit en tegen `--color-bg-subtle`, het lichtgrijze vlak onder een rij, kaart
+of knop waar de muis op staat. Meet het met een contrastmeter, zoals de Colour Contrast Analyser of die
+in de ontwikkelhulpmiddelen van je browser: je eigen `--primary` tegen `#ffffff`, en tegen de waarde
+die de pagina voor het vlak geeft,
+`getComputedStyle(document.documentElement).getPropertyValue('--color-bg-subtle')` in de console.
+Haalt ze het niet, kies dan een donkerdere tint.
+
 De afgeleide kleuren gebruiken `color-mix()` en relatieve kleur (`oklch(from …)`): Chrome/Edge 122+,
 Firefox 128+, Safari 18+.
 

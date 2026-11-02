@@ -1,6 +1,6 @@
 /**
- * Two y-axes, each in the color of its series. Yellow text on white is too light, so axis
- * text takes dark-yellow-80 % (#B07A00).
+ * Two y-axes, each a line in the color of its series; their labels are in the axis grey of every
+ * chart, since yellow is never text.
  */
 import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
@@ -33,7 +33,6 @@ export function renderDualAxisChart(spec: DualAxisSpec, options: ChartOptions): 
 
   const leftColor = left.color ?? DEFAULT_SERIES_COLOR
   const rightColor = right.color ?? 'var(--color-chart-dark-yellow)'
-  const rightTextColor = 'var(--color-chart-dark-yellow-text)'
 
   const l = axisScale(Math.max(...left.values.filter((value): value is number => value != null), 1))
   const r = axisScale(
@@ -161,7 +160,7 @@ export function renderDualAxisChart(spec: DualAxisSpec, options: ChartOptions): 
           ${r.ticks.map(
             (tick) => svg`
             <text x=${area.width - area.right + AXIS_GAP} y=${yPosition(tick, r.max, area) + 4}
-                  class="lintje-chart__axis-label" fill=${rightTextColor}>${rightAxis.format(tick)}</text>
+                  class="lintje-chart__axis-label">${rightAxis.format(tick)}</text>
           `,
           )}
 

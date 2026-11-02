@@ -13,7 +13,7 @@ export interface GridDay {
   selected?: boolean
   /** Between the start and the end of a period. */
   inRange?: boolean
-  /** Outside what may be chosen: it keeps its tab stop, a press does nothing. */
+  /** Outside what may be chosen: a press picks nothing, a click makes it the tab stop. */
   blocked?: boolean
   /** What the day's name adds, after a comma. */
   note?: string
@@ -29,7 +29,10 @@ export interface MonthGrid {
   day: (iso: string) => GridDay
   /** A click, Enter or Space on a day that is not blocked. */
   onPick: (iso: string) => void
-  /** An arrow, Home, End or PageUp/PageDown: the day the tab stop goes to, in any month. */
+  /**
+   * An arrow, Home, End or PageUp/PageDown, or a click on a blocked day: the day the tab stop
+   * goes to, in any month.
+   */
   onMove: (iso: string) => void
 }
 
@@ -79,11 +82,13 @@ export function renderMonthGrid(grid: MonthGrid): TemplateResult {
             aria-current=${today ? 'date' : nothing}
             aria-disabled=${day.blocked ? 'true' : nothing}
             @click=${() => {
-              if (!day.blocked) grid.onPick(iso)
+              // A blocked day the click focused picks nothing, but holds the tab stop: the
+              // arrows go on from the day that has the focus (WCAG 2.4.3).
+              if (day.blocked) grid.onMove(iso)
+              else grid.onPick(iso)
             }}
             @keydown=${(event: KeyboardEvent) => {
-              // What a button did itself. The cell, not the tab stop: a click on a blocked day
-              // focuses it without moving the tab stop.
+              // What a button did itself.
               if (event.key !== 'Enter' && event.key !== ' ') return
               event.preventDefault()
               if (!day.blocked) grid.onPick(iso)

@@ -4,6 +4,7 @@
   min-width: 0;
   width: calc(10 * var(--space-10));
   max-width: 100%;
+  container-type: inline-size;
 }
 :host([hidden]) { display: none; }
 @media screen and (max-width: 767px) {
@@ -16,7 +17,8 @@
   position: relative;
   display: flex; align-items: center;
   height: var(--h-control);
-  border: 1px solid var(--color-border-field);
+  --lintje-find-border: 1px;
+  border: var(--lintje-find-border) solid var(--color-border-field);
   border-radius: var(--radius-control);
   background: var(--color-bg-field);
 }
@@ -75,3 +77,13 @@
 .lintje-find__button:hover:not([aria-disabled='true']) { background: var(--color-bg-subtle); }
 .lintje-find__button:focus-visible { outline-offset: var(--focus-inset); box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)); }
 .lintje-find__button[aria-disabled='true'] { color: var(--color-text-disabled); cursor: not-allowed; }
+
+/* A narrow box (a phone of 320 px, a tile): the count and the buttons take a line under the term,
+   so the term keeps a width to read. The term's line is the box's height less its two borders;
+   the icon stays on it. */
+@container (width < 22rem) {
+  .lintje-find { flex-wrap: wrap; height: auto; --lintje-find-line: calc(var(--h-control) - 2 * var(--lintje-find-border)); }
+  .lintje-find__control { flex: 1 0 100%; height: var(--lintje-find-line); }
+  .lintje-find__icon { top: calc(var(--lintje-find-line) / 2); transform: translateY(-50%); }
+  .lintje-find__count { margin-inline-end: auto; }
+}
