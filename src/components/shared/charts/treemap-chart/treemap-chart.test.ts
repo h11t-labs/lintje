@@ -248,6 +248,16 @@ describe('the treemap', () => {
     expect(host.querySelector('.lintje-treemap__outline.is-selected')).not.toBeNull()
   })
 
+  it('labels a dimmed area in the ink that reaches 4.5:1 on it in both modes, or not at all', () => {
+    // Sky blue dimmed carries the text colour; dimmed yellow carries neither ink in dark.
+    const blue = draw(spec(FLAT), { selectedId: 'zorg' }).host
+    expect(label(blue, 'Sociale')?.classList.contains('lintje-treemap__label--muted')).toBe(true)
+    document.body.replaceChildren()
+    const yellow = draw(spec(FLAT, { color: 'yellow' }), { selectedId: 'zorg' }).host
+    expect(label(yellow, 'Sociale')).toBeFalsy()
+    expect(label(yellow, 'Zorg')).toBeTruthy()
+  })
+
   it('draws no label at all with dataLabels off', () => {
     const { host } = draw(spec(FLAT, { dataLabels: false }))
     expect(host.querySelector('.lintje-treemap__label')).toBeNull()

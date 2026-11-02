@@ -62,7 +62,7 @@ export function renderTooltip(controller: ChartController): TemplateResult | typ
       }</p>
       ${content.rows.map(
         (row) => html`
-        <p class="lintje-chart-tooltip__row ${row.divider ? 'lintje-chart-tooltip__row--divider' : ''} ${row.note ? 'lintje-chart-tooltip__row--note' : ''}">
+        <p class="lintje-chart-tooltip__row ${row.divider ? 'lintje-chart-tooltip__row--divider' : ''} ${row.note ? 'lintje-chart-tooltip__row--note' : ''} ${row.part ? 'lintje-chart-tooltip__row--part' : ''}">
           <span class="lintje-chart-tooltip__label">
             ${
               row.symbol

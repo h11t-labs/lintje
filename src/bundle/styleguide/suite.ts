@@ -87,10 +87,7 @@ export const PARTS = 4
  * finding's line below. A finding that matches none fails its element; an entry that matches
  * nothing in a whole run fails too, so the fix takes its entry out.
  */
-const KNOWN: Record<string, RegExp[]> = {
-  // #258
-  'lintje-chart': [/^color-contrast @ lintje-chart >> .*\.lintje-sankey__piece--ink/],
-}
+const KNOWN: Record<string, RegExp[]> = {}
 const seen = new Set<RegExp>()
 let drawn = 0
 

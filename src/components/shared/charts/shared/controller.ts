@@ -65,6 +65,8 @@ export interface TooltipRow {
   marker?: 'line' | 'dashed' | 'dotted' | 'open' | KeyMark
   /** A quieter line under the row before it, such as a forecast's margin. */
   note?: boolean
+  /** One of what the row above holds, such as a part "Overig" folded: indented under it. */
+  part?: boolean
   /** A muted word after the value, such as "buiten de as". */
   aside?: string
 }

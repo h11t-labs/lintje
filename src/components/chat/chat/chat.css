@@ -68,8 +68,14 @@
 .lintje-chat__divider-text { display: inline-flex; align-items: center; gap: var(--space-1); }
 .lintje-chat__divider-icon { flex: none; }
 
-.lintje-chat__answer { transition: opacity var(--dur-base) var(--ease-in-motion); }
-.lintje-chat__answer.is-replaced { opacity: 0.45; }
+/* What an edit replaces says so in a word above it, not by fading: faded text fell under 4.5:1. */
+.lintje-chat__replaced-note {
+  /* Close to the answer it names, not the turn's gap away. */
+  margin: 0 0 calc(var(--space-2) - var(--space-6));
+  font: var(--text-small);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
 
 /* Floats over the conversation, above the question box; only the button takes the pointer. */
 .lintje-chat__latest {

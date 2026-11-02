@@ -2,9 +2,10 @@
  * Pie and donut: at most five parts, largest first and darkest first, whatever order the host
  * sends. The parts take the tints of one variable (the spec's `color`, or the default) spread
  * over the ladder with their number. "Overig" and a `remainder` segment (the open part of an
- * occupancy donut) are not parts: they draw last, gray and light gray, unless the data colours
- * them; a segment's own `color` always wins. More than five parts fold into four and one gray
- * "Overig" that is not clickable: a merged slice has no single place to drill into. The legend
+ * occupancy donut) are not parts: they draw last. "Overig" is the last, lightest member of the
+ * set, the remainder light gray; a segment's own `color` wins, except `other`, which says "this
+ * is Overig". More than five parts fold into four and one "Overig" that is not clickable: a
+ * merged slice has no single place to drill into. The legend
  * is a table, in the drawn order; without it the shared legend stands above the pie, one item per
  * slice and none a switch. The drawing takes the focus and the arrow keys walk its slices.
  */
@@ -29,7 +30,7 @@ type PieSegment = PieSpec['segments'][number]
 
 const isOther = (segment: PieSegment): boolean => {
   const label = segment.label.toLowerCase()
-  return label.startsWith('overig') || label === 'rest'
+  return segment.color === 'other' || label.startsWith('overig') || label === 'rest'
 }
 
 /** A segment that takes a tint: neither "Overig" nor a remainder. */
@@ -40,10 +41,11 @@ function prepare(segments: PieSegment[]): PieSegment[] {
   const parts = segments.filter(isPart).sort((a, b) => b.value - a.value)
   const other = segments.filter((segment) => !segment.remainder && isOther(segment))
   const remainders = segments.filter((segment) => segment.remainder)
-  if (parts.length > MAX_PARTS) {
+  // "Overig" takes a rung of the ladder too, so with one of the host's there is room for four.
+  if (parts.length > (other.length > 0 ? MAX_PARTS - 1 : MAX_PARTS)) {
     const sum = parts.splice(MAX_PARTS - 1).reduce((total, segment) => total + segment.value, 0)
-    // Into the host's own "Overig" if it sent one, so the gray slice is drawn once; the merged
-    // slice keeps no link.
+    // Into the host's own "Overig" if it sent one, so "Overig" is drawn once; the merged slice
+    // keeps no link.
     if (other.length > 0) {
       const [first] = other
       other[0] = { label: first.label, value: first.value + sum, color: first.color }
@@ -64,7 +66,8 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
     labelHeader = 'Categorie',
   } = spec
   const id = controller.id
-  const segments = prepare(spec.segments).map((segment) => ({
+  const prepared = prepare(spec.segments)
+  const segments = prepared.map((segment) => ({
     ...segment,
     color: chartColor(segment.color),
   }))
@@ -94,17 +97,25 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
   const radius = size / 2
   const innerRadius = donut ? radius * 0.62 : 0
   // A part takes the tint of its rank; a colour of its own replaces that tint and does not
-  // hand it on. Slice and legend row read the same array.
-  const tints = tintsFor(segments.filter(isPart).length, spec.color)
+  // hand it on. "Overig" spreads over the ladder with the parts and takes its last step, unless
+  // every part has a colour of its own: then there is no ladder, and it is gray. Slice and
+  // legend row read the same array.
+  const parts = prepared.filter(isPart)
+  const ladder = parts.some((segment) => segment.color == null)
+  const others = prepared.some((segment) => !segment.remainder && isOther(segment))
+  const tints = tintsFor(parts.length + (ladder && others ? 1 : 0), spec.color)
   let rank = -1
-  const colors = segments.map((segment) => {
+  const colors = prepared.map((segment, i) => {
     if (isPart(segment)) rank += 1
+    const own = segment.color === 'other' ? undefined : segments[i].color
     return (
-      segment.color ??
+      own ??
       (segment.remainder
         ? 'var(--color-chart-remainder)'
         : isOther(segment)
-          ? 'var(--color-chart-other)'
+          ? ladder
+            ? tints[tints.length - 1]
+            : 'var(--color-chart-other)'
           : tints[Math.min(rank, tints.length - 1)])
     )
   })
