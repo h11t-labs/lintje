@@ -4,7 +4,7 @@
  * transcriptions, the live session (here or on the phone), the suggested name, the AI work.
  * Everything is fictional.
  */
-import { dropRemovedFiles, plural, toast } from '../_shared/page.js'
+import { dropRemovedFiles, focusOn, handOff, plural, toast } from '../_shared/page.js'
 import { applyStyle, carry, emblem, modeOf, styleOf, themeOf } from '../_shared/settings.js'
 
 /* The URL: the opened recording, the kind of conversation, the tab ------------------------ */
@@ -472,6 +472,8 @@ $('mic').addEventListener('lintje-change', () => {
 $('mic-action').addEventListener('click', () => {
   if (micState === 'stil') adjust.open = true
   else {
+    // The button goes once the microphone answers; the focus waits on the start.
+    handOff($('mic-action'), $('record'))
     micState = 'ok'
     renderStart()
   }
@@ -644,7 +646,10 @@ function renderStart() {
     { value: 'bestand', label: 'Bestand transcriberen', icon: 'functioneel-upload', hint: 'Een opname die al gemaakt is' },
   ]
 }
-$('phone-stop').addEventListener('click', () => endLive(true))
+$('phone-stop').addEventListener('click', () => {
+  handOff($('running'), () => shell.focusContent())
+  endLive(true)
+})
 $('phone-follow').addEventListener('click', () => {
   const running = recordings.find((item) => item.state === 'live' && item.phone)
   if (running) openRecording(running.id)
@@ -760,7 +765,11 @@ pause.addEventListener('click', () => {
   const item = find(openId)
   if (item) changeRecording(item.id, { paused: !item.paused })
 })
-$('stop').addEventListener('click', () => endLive(true))
+// The live tools leave the page header with the recording; the focus stays on the header.
+$('stop').addEventListener('click', () => {
+  handOff($('stop'), () => shell.focusContent())
+  endLive(true)
+})
 
 /* The list of recordings --------------------------------------------------------------------- */
 
@@ -977,6 +986,8 @@ function openPage(page) {
   setParam('pagina', page, true)
   renderShell()
   render()
+  // A new view, without a new page: the keyboard and a screen reader start at its content.
+  shell.focusContent()
 }
 
 function openRecording(id) {
@@ -988,6 +999,7 @@ function openRecording(id) {
   setParam('opname', id, true)
   renderShell()
   render()
+  shell.focusContent()
 }
 
 window.addEventListener('popstate', () => {
@@ -996,6 +1008,7 @@ window.addEventListener('popstate', () => {
   applySettings()
   renderShell()
   render()
+  shell.focusContent()
 })
 crumbs.addEventListener('lintje-navigate', (event) => {
   event.preventDefault()
@@ -1003,7 +1016,9 @@ crumbs.addEventListener('lintje-navigate', (event) => {
   openPage('opnames')
 })
 // To every recording, from the hero and from the latest ones; the page stays, and so does its state.
+// Only the hero's own link: a recording in the list inside it opens that recording.
 $('hero').addEventListener('lintje-navigate', (event) => {
+  if (event.target !== event.currentTarget) return
   event.preventDefault()
   openPage('opnames')
 })
@@ -1056,6 +1071,8 @@ function renderOpen() {
     : item
       ? { title: item.name, description: describe(item) }
       : { title: 'Opnames' }
+  // The tab reads the view, also after a new name: "Teamoverleg 2 oktober — Transcriptie".
+  document.title = `${page || item ? heading.title : 'Start'} — Transcriptie`
   if (JSON.stringify(heading) !== JSON.stringify(pageHeader.data)) {
     pageHeader.data = heading
     crumbs.hidden = !item
@@ -1135,10 +1152,19 @@ player.addEventListener('lintje-seek', (event) => {
   transcript.currentTime = event.detail
   transcript.reveal()
 })
+// "Speel af vanaf 0:18": the player goes there and plays.
 transcript.addEventListener('lintje-seek', (event) => {
   player.currentTime = event.detail
   transcript.currentTime = event.detail
+  player.play()
 })
+
+/** The transcript's way in: the timecode of the fragment that sounds, or of the last one. */
+function focusTranscript({ last = false } = {}) {
+  const times = [...(transcript.shadowRoot?.querySelectorAll('.lintje-transcript__time') ?? [])]
+  const current = transcript.shadowRoot?.querySelector('.is-current .lintje-transcript__time')
+  ;(last ? times.at(-1) : (current ?? times[0]))?.focus()
+}
 
 /* Search: the transcript marks the hits, the field says how far; the term is kept in the URL. */
 const search = $('search')
@@ -1258,11 +1284,18 @@ function follow(on) {
   renderTranscript()
 }
 $('follow').addEventListener('lintje-change', (event) => follow(Boolean(event.detail)))
-$('catch-up-now').addEventListener('click', () => follow(true))
+$('catch-up-now').addEventListener('click', () => {
+  // Back to now: the focus goes along, to the fragment said last.
+  handOff($('catch-up'), () => focusTranscript({ last: true }))
+  follow(true)
+})
 
 /* The recording's own name, live or afterwards. */
 const renameModal = $('rename-modal')
-function openRename() {
+/** What opened the dialog: "Wijzigen" under a suggested name goes with that name. */
+let renameFrom = null
+function openRename(event) {
+  renameFrom = event?.currentTarget ?? null
   $('rename-input').value = find(openId)?.name ?? ''
   renameModal.open = true
 }
@@ -1279,6 +1312,8 @@ $('rename-save').addEventListener('click', () => {
   $('rename-input').error = ''
   changeRecording(openId, { name, named: true, wasName: null })
   renameModal.open = false
+  // Its opener is gone, so the dialog cannot give the focus back: it goes to the page header.
+  if (renameFrom === $('live-rename')) renameModal.updateComplete.then(() => shell.focusContent())
 })
 
 /* Replacing: one hit or all of them, with a way back. */
@@ -1316,6 +1351,8 @@ function replaceHits(onlyCurrent) {
 $('replace-one').addEventListener('click', () => replaceHits(true))
 $('replace-all').addEventListener('click', () => replaceHits(false))
 $('replace-undo').addEventListener('click', () => {
+  // The note goes with what it undid; the focus goes to the search that made it.
+  handOff($('replaced'), search)
   if (undoReplace) changeRecording(undoReplace.id, { segments: undoReplace.segments })
   undoReplace = null
   $('replaced').hidden = true
@@ -1323,6 +1360,7 @@ $('replace-undo').addEventListener('click', () => {
 })
 
 $('clear-search').addEventListener('click', () => {
+  handOff(noMatch, search)
   query = ''
   search.value = ''
   setParam('q', null)
@@ -1572,6 +1610,8 @@ function aiRow(kind) {
   })
   hide.addEventListener('click', () => {
     const item = find(openId)
+    // It comes back through "AI-bewerkingen": the focus goes there before the row goes.
+    handOff(row, () => focusOn(aiMenu))
     changeRecording(item.id, { aiHidden: [...hiddenAi(item), kind.id] })
     renderTranscript()
     toast(`${kind.label} is verborgen; terug te halen via AI-bewerkingen.`)
@@ -1626,9 +1666,14 @@ $('re-cancel').addEventListener('click', () => (drawer.open = false))
 $('re-start').addEventListener('click', () => {
   drawer.open = false
   changeRecording(openId, { state: 'queued', progress: null })
+  // "Opnieuw verwerken" left with the done recording: the focus goes to the page header.
+  drawer.updateComplete.then(() => shell.focusContent())
   toast('De opname wordt opnieuw verwerkt.')
 })
-$('retry').addEventListener('click', () => changeRecording(openId, { state: 'queued', progress: null }))
+$('retry').addEventListener('click', () => {
+  handOff($('failed'), () => shell.focusContent())
+  changeRecording(openId, { state: 'queued', progress: null })
+})
 
 /* Woordenlijsten: what recognition listens for, and the words to find ------------------- */
 

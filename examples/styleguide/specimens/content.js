@@ -239,8 +239,10 @@ function wireTranscript(transcript, segments = SEGMENTS) {
 /** A player and a transcript that follow each other, the way a host wires them. */
 function wirePair(player, transcript) {
   player.addEventListener('lintje-time-change', (event) => (transcript.currentTime = event.detail))
+  // "Speel af vanaf 0:18" plays from there.
   transcript.addEventListener('lintje-seek', (event) => {
     player.currentTime = event.detail
+    player.play()
   })
 }
 
@@ -316,6 +318,8 @@ function translator(stage, text) {
   to.options = LANGUAGES
   from.value = 'nl'
   to.value = 'en'
+  // The translation reads in its own language, also after a swap.
+  out.lang = to.value
   const show = (value) => {
     const translation = TRANSLATIONS[value.trim()] ?? ''
     out.text = translation
@@ -328,6 +332,7 @@ function translator(stage, text) {
   element.addEventListener('lintje-text-change', (event) => show(event.detail))
   element.addEventListener('lintje-languages-swap', () => {
     ;[from.value, to.value] = [to.value, from.value]
+    out.lang = to.value
   })
 }
 
