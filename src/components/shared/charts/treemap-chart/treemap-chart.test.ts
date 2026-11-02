@@ -270,6 +270,16 @@ describe('the treemap', () => {
     expect(host.querySelector('.lintje-treemap__outline.is-selected')).not.toBeNull()
   })
 
+  it('labels a dimmed area in the ink that reaches 4.5:1 on it in both modes, or not at all', () => {
+    // Sky blue dimmed carries the text colour; dimmed yellow carries neither ink in dark.
+    const blue = draw(spec(FLAT), { selectedId: 'zorg' }).host
+    expect(label(blue, 'Sociale')?.classList.contains('lintje-treemap__label--muted')).toBe(true)
+    document.body.replaceChildren()
+    const yellow = draw(spec(FLAT, { color: 'yellow' }), { selectedId: 'zorg' }).host
+    expect(label(yellow, 'Sociale')).toBeFalsy()
+    expect(label(yellow, 'Zorg')).toBeTruthy()
+  })
+
   it('draws no label at all with dataLabels off', () => {
     const { host } = draw(spec(FLAT, { dataLabels: false }))
     expect(host.querySelector('.lintje-treemap__label')).toBeNull()
@@ -317,6 +327,18 @@ describe('the treemap below 768 px', () => {
       sub.querySelector('.lintje-treemap__name')?.textContent?.trim(),
     )
     expect(subs).toEqual(['Ziekenhuiszorg', 'Langdurige zorg', 'Overig · 2 posten'])
+  })
+
+  it('gives a sub-part its share of the whole, as its part and the CSV have theirs', () => {
+    const { host } = draw(spec(NESTED), { mobile: true })
+    host.querySelector<HTMLButtonElement>('.lintje-treemap__toggle')!.click()
+    const sub = [...host.querySelectorAll('.lintje-treemap__sub')].find(
+      (row) => row.querySelector('.lintje-treemap__name')?.textContent?.trim() === 'Ziekenhuiszorg',
+    )!
+    // 31,2 of 126,5 in the whole, not 50,2 % of Zorg.
+    expect(sub.querySelector('.lintje-treemap__share')?.textContent?.trim()).toBe('24,7%')
+    const csv = treemapRows(spec(NESTED)).find((row) => row[1] === 'Ziekenhuiszorg')
+    expect(csv?.at(-1)).toBe(24.7)
   })
 
   it('chooses a part from its row, never from a sub-part', () => {

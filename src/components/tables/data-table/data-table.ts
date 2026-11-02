@@ -1042,11 +1042,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const active = (edges === this.#modalEdges) === this.expanded
     const copy = edges === this.#modalEdges ? 'modal' : 'tile'
     // A table wider than its tile scrolls; a keyboard reaches that scroll only when the scroller
-    // takes focus, as lintje-code's block does (WCAG 2.1.1).
+    // takes focus, as lintje-code's block does (WCAG 2.1.1). The phone's table scrolls in the same
+    // box: its name keeps a readable width rather than break after every few letters.
     const scrolls = edges.start || edges.end
     return html`<div class=${classMap({ 'lintje-data-table': true, 'is-phone': mobile })}>
       ${this.toolbar(edges, paged)} ${mobile ? nothing : this.selectionBar(false)}
-      <!-- Desktop table: scrolls sideways when it is wider than the tile -->
+      <!-- Scrolls sideways when the table is wider than the tile -->
       <div
         class=${classMap({
           'lintje-data-table__frame': true,
@@ -1061,12 +1062,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
           role=${scrolls ? 'region' : nothing}
           aria-label=${scrolls ? (this.data?.caption ?? nothing) : nothing}
         >
+          <!-- Mobile representation: two columns (C8). First, so the scroller watches its width. -->
+          ${this.mobileTable(mobileRows, mobilePageCount, copy, grouped ? mobileGroups : null)}
           ${this.fullTable(visible, pageCount, pageSize, edges, grouped ? pageGroups : null)}
         </div>
       </div>
-
-      <!-- Mobile representation: two columns (C8) -->
-      ${this.mobileTable(mobileRows, mobilePageCount, copy, grouped ? mobileGroups : null)}
       ${
         pageCount > 1
           ? this.pager('full', this.page, pageCount, pageSize, units, unit, (page) => {
@@ -1865,7 +1865,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         <tr>
           <th
             scope="col"
-            class="lintje-data-table__header-cell lintje-data-table__header-cell--mobile"
+            class="lintje-data-table__header-cell lintje-data-table__header-cell--mobile lintje-data-table__mobile-cell--name"
           >
             ${
               selectable
@@ -1956,7 +1956,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
                         class="lintje-data-table__mobile-row lintje-data-table__mobile-row--filler"
                         aria-hidden="true"
                       >
-                        <td class="lintje-data-table__mobile-cell">
+                        <td class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--name">
                           <span class="lintje-data-table__mobile-name">&nbsp;</span>
                           ${
                             this.hasSubline
@@ -2035,7 +2035,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         @click=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
         @auxclick=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
       >
-        <th scope="row" class="lintje-data-table__mobile-cell">
+        <th scope="row" class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--name">
           ${
             selectable
               ? html`<span class="lintje-data-table__mobile-check">
@@ -2115,7 +2115,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     </button>`
     const check = this.groupCheck(group)
     return html`<tr class="lintje-data-table__group-row">
-      <th scope="rowgroup" class="lintje-data-table__mobile-cell lintje-data-table__group-head">
+      <th
+        scope="rowgroup"
+        class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--name lintje-data-table__group-head"
+      >
         ${
           check === nothing
             ? toggle
@@ -2141,7 +2144,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     span: number,
   ): TemplateResult {
     return html`<tr class=${className}>
-      <th scope="row" class="lintje-data-table__mobile-cell lintje-data-table__sum-label">${label}</th>
+      <th
+        scope="row"
+        class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--name lintje-data-table__sum-label"
+      >${label}</th>
       <td class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--align-right">
         ${
           total === undefined

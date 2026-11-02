@@ -252,6 +252,18 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
     return { title: item.label, rows: lines }
   }
 
+  // A row that drills is named first by what it shows, its name and difference (2.5.3), then
+  // by what only the tooltip says; the keyboard's sentence stays the tooltip's.
+  const nameOf = (i: number): string => {
+    const { title, rows: lines } = contentAt(i)
+    const difference = differences[i]
+    const drawn = fromOn && toOn ? (difference == null ? NO_DATA : signed(difference)) : null
+    return tooltipSentence({
+      title: drawn ? `${title} ${drawn}` : title,
+      rows: lines.filter((line) => line.label !== 'Verschil'),
+    })
+  }
+
   // The tooltip stands right of the row's right point, else left of its left one; on a phone
   // under the row, centred when it fits beside neither.
   const at = (i: number): PlotPoint => {
@@ -308,7 +320,7 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
       // Both beyond one edge lie on each other, as an unchanged row does, under one mark.
       const together =
         fromOn && toOn && from != null && to != null && from.side !== 0 && from.side === to.side
-      const mark = selection.of(links[i], item.label, tooltipSentence(contentAt(i)))
+      const mark = selection.of(links[i], item.label, nameOf(i))
       const focus = toOn && to ? to : fromOn && from ? from : null
       return svg`
         <g class="lintje-dumbbell__row ${controller.hoverIndex === i ? 'is-hovered' : ''} ${mark.state}"
@@ -316,16 +328,18 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
            aria-pressed=${mark.pressed} aria-label=${mark.label}
            @click=${mark.click} @keydown=${mark.keydown}>
           ${
-            from == null || to == null
-              ? svg`<rect class="lintje-dumbbell__gap" x=${axisLeft} y=${cy - 5} width=${axisRight - axisLeft}
-                          height="10" fill="url(#hatch-${id})" />`
-              : nothing
-          }
-          ${
             mobile
               ? svg`<text x="0" y=${top + 14} class="lintje-dumbbell__name lintje-dumbbell__name--above">${truncateToWidth(item.label, (width * 12) / 14, fontFamily)}</text>`
               : svg`<text x=${column.labelEnd} y=${cy + 4} text-anchor="end"
                           class="lintje-chart__axis-label lintje-dumbbell__name">${column.fit(item.label)}</text>`
+          }
+          <!-- What a chosen row dims in the others: the marks, one group, never the words or the ring. -->
+          <g class="lintje-dumbbell__marks">
+          ${
+            from == null || to == null
+              ? svg`<rect class="lintje-dumbbell__gap" x=${axisLeft} y=${cy - 5} width=${axisRight - axisLeft}
+                          height="10" fill="url(#hatch-${id})" />`
+              : nothing
           }
           ${
             from != null && to != null && !together
@@ -369,6 +383,7 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
                 </g>`
               : nothing
           }
+          </g>
           ${
             // Without a drawn point the ring goes round the whole row, inside its edge.
             focus

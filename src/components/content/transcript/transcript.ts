@@ -4,7 +4,9 @@
  * Editing and the speakers are the host's state: the element asks, and the host changes
  * `segments`, `editingId`, `busyId` and `errors`. It plays, saves and renames nothing itself. A
  * speaker has the colour it has in the player's waveform. Above the fragments, the `note-label` and
- * `note` slots say that a model made the text, and `lead` holds the AI work.
+ * `note` slots say that a model made the text, and `lead` holds the AI work. A timecode reads
+ * "Speel af vanaf 0:18": the host answers its `lintje-seek` by moving the player there and calling
+ * the player's `play()`.
  *
  * Events: `lintje-seek` `number` (seconds), `lintje-segment-edit` `string` (the id),
  * `lintje-segment-save` `{ id, text }`, `lintje-segment-cancel` `string` (the id),

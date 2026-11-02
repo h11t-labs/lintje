@@ -125,8 +125,9 @@ const HOSTS: Host[] = [
     tag: 'lintje-segmented',
     control: '.lintje-segmented',
     props: { options: OPTIONS, value: 'noord' },
-    wide: AUTO,
-    phone: AUTO,
+    // It shrinks with its room and stands as a column there.
+    wide: FIELD,
+    phone: FIELD,
   },
   {
     tag: 'lintje-range',
@@ -415,7 +416,11 @@ function drawn(look: Look): Record<string, string> {
   return {
     border: look === 'error' ? '2px' : '1px',
     edge: colourOf(
-      look === 'error' ? '--color-error' : quiet ? '--color-border-strong' : '--color-border-field',
+      look === 'error'
+        ? '--color-error-line'
+        : quiet
+          ? '--color-border-strong'
+          : '--color-border-field',
     ),
     fill: colourOf(
       quiet

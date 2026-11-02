@@ -14,7 +14,13 @@ import { lengthPx } from '../../../../core/length'
 import { formatNumber, formatPercent, textWidth } from '../../../../core/format'
 import { renderIcon } from '../../../../icons/render'
 import { isDataColor } from '../../../../tokens/colors'
-import { chartColor, DEFAULT_SERIES_COLOR, insideLabelClass, labelInk } from '../shared/colors'
+import {
+  chartColor,
+  DEFAULT_SERIES_COLOR,
+  dimmedLabelInk,
+  insideLabelClass,
+  labelInk,
+} from '../shared/colors'
 import { drawingRole, focusRingStyle, renderFocusRing, renderLegend } from '../shared/axes'
 import type { LegendItem, SvgSlot } from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
@@ -59,6 +65,8 @@ interface Context {
   options: ChartOptions
   colors: string[]
   inks: (string | null)[]
+  /** The class of a label on a dimmed area, or null where it carries none. */
+  dimmedInks: (string | null)[]
   marks: MarkAttributes[]
   format: (value: number) => string
   withUnit: (value: number) => string
@@ -83,6 +91,12 @@ export function renderTreemapChart(spec: TreemapSpec, options: ChartOptions): Te
     if (group.other || spec.dataLabels === false) return null
     const ink = labelInk(named, steps[Math.min(group.rank, steps.length - 1)])
     return ink ? insideLabelClass(ink) : null
+  })
+  // Dimmed, the area is lighter in light and darker in dark: its own table, the same in both.
+  const dimmedInks = groups.map((group) => {
+    if (group.other) return null
+    const ink = dimmedLabelInk(named, steps[Math.min(group.rank, steps.length - 1)])
+    return ink === 'text' ? 'lintje-treemap__label--muted' : ink ? insideLabelClass(ink) : null
   })
   const links = groups.map((group) =>
     group.href && !group.other ? { id: group.id, href: group.href } : null,
@@ -130,6 +144,7 @@ export function renderTreemapChart(spec: TreemapSpec, options: ChartOptions): Te
     options,
     colors,
     inks,
+    dimmedInks,
     marks,
     format,
     withUnit,
@@ -294,14 +309,23 @@ function cellsOf(context: Context, width: number, height: number, fontFamily: st
   })
 }
 
-/** The label of a cell: white or ink as its step says, the text colour once dimmed. */
-function renderLabel(cell: Cell, ink: string | null, muted: boolean): SvgSlot {
-  if (!ink || !cell.lines.length) return nothing
+/**
+ * The label of a cell: white or ink as its step says; dimmed, the ink that reaches 4.5:1 on the
+ * dimmed step, or none.
+ */
+function renderLabel(
+  cell: Cell,
+  ink: string | null,
+  dimmed: string | null,
+  muted: boolean,
+): SvgSlot {
+  const drawn = muted ? dimmed : ink
+  if (!ink || !drawn || !cell.lines.length) return nothing
   return cell.lines.map(
     ({ text, x, y, line }) => svg`<text x=${x} y=${y}
       class="lintje-chart__data-label lintje-treemap__label lintje-treemap__label--${line.size} ${
         line.bold ? 'lintje-treemap__label--bold' : ''
-      } ${muted ? 'lintje-treemap__label--muted' : ink}">${text}</text>`,
+      } ${drawn}">${text}</text>`,
   )
 }
 
@@ -341,7 +365,7 @@ export function thinPartAt(
 }
 
 function drawMap(context: Context, interactive: boolean): TemplateResult {
-  const { spec, model, options, inks, marks } = context
+  const { spec, model, options, inks, dimmedInks, marks } = context
   const { controller, description } = options
   const id = controller.id
   controller.measure({
@@ -421,7 +445,7 @@ function drawMap(context: Context, interactive: boolean): TemplateResult {
     <g class="${className} ${muted(cell.group) ? 'is-muted' : ''}" aria-hidden="true">
       <rect class="lintje-treemap__ground" x=${cell.rect.x} y=${cell.rect.y}
             width=${cell.rect.width} height=${cell.rect.height} />
-      ${area(cell)}${renderLabel(cell, inks[cell.group], muted(cell.group))}
+      ${area(cell)}${renderLabel(cell, inks[cell.group], dimmedInks[cell.group], muted(cell.group))}
     </g>`
   const chosen = model.groups.findIndex((_, g) => marks[g].state.includes('is-selected'))
   // A new data set draws in again; a hover keeps the nodes.
@@ -456,7 +480,7 @@ function drawMap(context: Context, interactive: boolean): TemplateResult {
           })}
           <!-- The labels apart from the parts: a part's name as a button is its own sentence. -->
           <g class="lintje-treemap__labels" aria-hidden="true">
-            ${cells.map((cell) => renderLabel(cell, inks[cell.group], muted(cell.group)))}
+            ${cells.map((cell) => renderLabel(cell, inks[cell.group], dimmedInks[cell.group], muted(cell.group)))}
           </g>`,
         )}
         <!-- The line between parts, on their border, over the areas on both sides of it. -->
@@ -543,7 +567,7 @@ function drawRows(context: Context): TemplateResult {
           mark.clickable
             ? html`<button type="button" class="lintje-treemap__part lintje-treemap__part--button"
                     role=${mark.role === 'link' ? 'link' : nothing} aria-pressed=${mark.pressed}
-                    @click=${mark.click}>${body}</button>`
+                    data-mark-id=${mark.markId} @click=${mark.click}>${body}</button>`
             : html`<div class="lintje-treemap__part">${body}</div>`
         }
         ${
@@ -559,7 +583,8 @@ function drawRows(context: Context): TemplateResult {
                         : nothing
                     }</span>
                     <span class="lintje-treemap__amount">${format(area.value)}</span>
-                    <span class="lintje-treemap__share">${share(area.value, group.value)}</span>
+                    <!-- In the total, as in the part's row and the CSV: one column, one share. -->
+                    <span class="lintje-treemap__share">${share(area.value)}</span>
                     ${bar(area.value, area.other ? 'var(--color-chart-other)' : variable, true)}
                   </li>`,
                 )}
