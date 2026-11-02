@@ -1409,7 +1409,9 @@ kleinste correctie, en leg die hier vast.
 - **Onder 768 px houdt de tabel elke kolom binnen bereik** (1.4.10): een rij toont haar identiteit
   en één meetwaarde, haar rijmenu, en een knop die de andere kolommen eronder opent als
   beschrijvingslijst; "Sorteren" sorteert op elke kolom. Een cel bewerken blijft voor de bredere
-  tabel.
+  tabel. De naam neemt wat de meetwaarde en de knoppen overlaten, maar nooit minder dan ongeveer
+  tien tekens of zijn langste woord: een woord breekt niet af. Past de tabel dan niet in zijn
+  tegel, dan scrolt hij daarin zijwaarts, zoals de brede tabel.
 - **Een vastgeplakte balk bedekt nooit de focus** (2.4.11): de actiebalk van het formulier
   reserveert zijn hoogte als `scroll-padding-bottom` van de scroller, en de foutsamenvatting
   scrolt een veld naar het midden. Een element waar de focus toch onder belandt, scrollen de
