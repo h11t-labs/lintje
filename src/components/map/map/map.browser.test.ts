@@ -8,7 +8,7 @@ import { commands, server, userEvent } from 'vitest/browser'
 import './map'
 import '../../overlays/modal/modal'
 import { TOOL_HINTS } from '../../shared/charts/map-chart/map-chart'
-import { SHIFT_TAB } from '../../../core/test-keys'
+import { TAB } from '../../../core/test-keys'
 import type { MapData } from '../../../types'
 
 declare module 'vitest/browser' {
@@ -493,10 +493,10 @@ describe('the map and the keyboard', () => {
 
     // The keys: the map's keyboard focus says how, Enter sets the middle, Escape twice.
     await pick('Cirkel')
-    // Back from the tool button to the map with the keyboard, as a reader does: a pointer's last
-    // click would keep a scripted focus from its ring in WebKit.
+    // On from the tool button to the map with the keyboard, as a reader does: the buttons stand
+    // before the map. A pointer's last click would keep a scripted focus from its ring in WebKit.
     for (let i = 0; i < 40 && root(element).activeElement !== surface(element); i++)
-      await userEvent.keyboard(SHIFT_TAB)
+      await userEvent.keyboard(TAB)
     expect(root(element).activeElement).toBe(surface(element))
     await expect.poll(hint).toBe(TOOL_HINTS.circle.keys)
     await userEvent.keyboard('{Enter}')
