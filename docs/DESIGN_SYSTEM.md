@@ -1433,10 +1433,11 @@ kleinste correctie, en leg die hier vast.
   tegel begint met een lege regio; een naam bevat niet de waarde die het element ook als waarde
   zegt.
 - **Wat niet geopend kan worden, zegt dat in woorden die je ziet**: een menurij zonder pagina
-  zegt "niet beschikbaar" in kleine tekst, onder het label in het zijmenu, het telefoonmenu en een
-  submenu en erachter in de navigatiebalk; een rij zonder toegang heeft overal het slotje. Een
-  schermlezer hoort het één keer, en alleen in de ingeklapte rail, waar ook het label alleen
-  klinkt, is het verborgen tekst. `aria-disabled` op een gewoon element zegt niets.
+  zegt "niet beschikbaar" in kleine tekst onder het label, in het zijmenu, het telefoonmenu en een
+  submenu; een rij zonder toegang heeft overal het slotje. Alleen in de navigatiebalk is een item
+  zonder pagina enkel gedempt: woorden ernaast maakten de balk onrustig. Een schermlezer hoort het
+  één keer; in de balk en in de ingeklapte rail is het verborgen tekst. `aria-disabled` op een
+  gewoon element zegt niets.
 - **De naam van een bedieningselement is wat je ziet, en het zegt zijn staat één keer** (2.5.3):
   zijn woord, of de naam in zijn logo, zonder `aria-label` dat het vervangt en zonder tooltip die
   het herhaalt. Alleen wat geen woord toont, een icoon of een logo zonder naam, krijgt een naam in

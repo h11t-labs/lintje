@@ -111,7 +111,7 @@ export const isAction = (item: ShellLink): boolean =>
   Boolean(item.action) && !item.href && !item.noAccess
 
 /** Why an entry cannot be opened, in words: `aria-disabled` means nothing on a plain span, and
- * the muted colour alone is no reason (rule 13). Only heard: where the label is not shown. */
+ * the muted colour alone is no reason (rule 13). Only heard: in the bar and the shut rail. */
 export function unavailableWord(item: ShellLink): TemplateResult {
   return html`<span class="visually-hidden"
     >${item.noAccess ? ', geen toegang' : ', niet beschikbaar'}</span
@@ -180,7 +180,8 @@ function barLink(options: NavBarOptions, item: ShellLink): TemplateResult {
     )
   }
   if (!hasPage(item)) {
-    // Behind the label: the lock of an entry without access, else the words.
+    // Behind the label: the lock of an entry without access. An entry without a page is only
+    // muted in the bar, where small words beside it crowded the row; it says so to a screen reader.
     return html`<span
       class=${classMap({
         'lintje-navbar__entry': true,
@@ -189,7 +190,7 @@ function barLink(options: NavBarOptions, item: ShellLink): TemplateResult {
       })}
       aria-disabled="true"
       ><span class="lintje-navbar__label">${item.label}</span>${
-        item.noAccess ? noAccessMark('lintje-navbar__note') : unavailableNote('lintje-navbar__note')
+        item.noAccess ? noAccessMark('lintje-navbar__note') : unavailableWord(item)
       }</span
     >`
   }

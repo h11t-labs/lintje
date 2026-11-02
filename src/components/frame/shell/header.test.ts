@@ -58,7 +58,9 @@ describe('renderNavBar', () => {
     })
     const [, none, locked] = [...root.querySelectorAll('.lintje-navbar__entry')]
     expect(none.classList.contains('is-unavailable')).toBe(true)
-    expect(none.querySelector('.lintje-navbar__note')!.textContent).toBe(', niet beschikbaar')
+    // In the bar the words are only heard: the entry is muted, without a note beside it.
+    expect(none.querySelector('.lintje-navbar__note')).toBeNull()
+    expect(none.querySelector('.visually-hidden')!.textContent).toBe(', niet beschikbaar')
     expect(none.textContent!.match(/niet beschikbaar/g)).toHaveLength(1)
     expect(locked.classList.contains('is-no-access')).toBe(true)
     expect(locked.querySelector('[aria-label="Geen toegang"], .lintje-navbar__note')).not.toBeNull()
