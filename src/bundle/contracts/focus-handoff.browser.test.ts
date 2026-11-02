@@ -1743,7 +1743,7 @@ const chartPart = (tile: ChartElement, selector: string, index = 0): HTMLElement
   tile.shadowRoot!.querySelectorAll<HTMLElement>(selector)[index] ?? null
 
 /** "Afgewezen" is a row under both sources on a phone; every node opens its page. */
-const SANKEY = {
+const HOSTED_SANKEY = {
   kind: 'sankey',
   steps: [
     { label: 'Ingediend', nodes: [{ id: 'in', label: 'Aanvragen', href: '/p?k=in' }] },
@@ -1772,7 +1772,7 @@ const SANKEY = {
   ],
 }
 
-const TREEMAP = {
+const HOSTED_TREEMAP = {
   kind: 'treemap',
   parts: [
     { label: 'Noord', value: 12, id: 'noord', href: '/p?r=noord' },
@@ -1871,7 +1871,7 @@ const REDRAWN_ROWS: Row[] = [
   {
     name: 'lintje-chart :: a sankey’s row on a phone, cleared with Escape, keeps the focus on that row',
     run: async () => {
-      const tile = await hostedChart(SANKEY, 'afgewezen', true)
+      const tile = await hostedChart(HOSTED_SANKEY, 'afgewezen', true)
       // The second "Afgewezen": the row under "Onvolledig".
       const row = () => chartPart(tile, '.lintje-sankey__row-mark[data-mark-id="afgewezen"]', 1)
       await drawn(row)
@@ -1883,7 +1883,7 @@ const REDRAWN_ROWS: Row[] = [
   {
     name: 'lintje-chart :: a treemap’s part chosen on the drawing, cleared with Enter, keeps the focus on the drawing',
     run: async () => {
-      const tile = await hostedChart(TREEMAP, null)
+      const tile = await hostedChart(HOSTED_TREEMAP, null)
       const drawing = () => chartPart(tile, '.lintje-treemap__svg')
       await drawn(drawing)
       drawing()!.focus()
@@ -1898,7 +1898,7 @@ const REDRAWN_ROWS: Row[] = [
   {
     name: 'lintje-chart :: a treemap’s part chosen on a phone, cleared, keeps the focus on its row',
     run: async () => {
-      const tile = await hostedChart(TREEMAP, 'noord', true)
+      const tile = await hostedChart(HOSTED_TREEMAP, 'noord', true)
       const part = () => chartPart(tile, '.lintje-treemap__part--button')
       await drawn(part)
       part()!.focus()
