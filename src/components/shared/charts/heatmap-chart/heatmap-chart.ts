@@ -73,7 +73,8 @@ export function renderHeatmap(spec: HeatmapSpec, options: ChartOptions): Templat
 
   return html`
     <div class="lintje-heatmap" ${ref(controller.attach)} ?data-in-view=${controller.inView}
-         data-tooltip-anchor @keydown=${selection.escape}>
+         data-tooltip-anchor
+         @keydown=${(event: KeyboardEvent) => controller.dismiss(event) || selection.escape(event)}>
       ${renderLegend({
         items: classes.map((klass) => ({
           key: classKey(klass.ramp),
@@ -162,7 +163,7 @@ export function renderHeatmap(spec: HeatmapSpec, options: ChartOptions): Templat
                                 ],
                               })
                       }
-                      @mouseleave=${compact ? undefined : () => controller.hideTooltip()}
+                      @mouseleave=${compact ? undefined : () => controller.pointerLeft()}
                       aria-pressed=${mark.clickable ? mark.pressed : isSelected}
                       aria-label="${rowLabel} ${columnLabels[column]}: ${formatWithUnit(value, unit)}, klasse ${classes[klass].label}"
                     >${formatNumber(value)}</button>

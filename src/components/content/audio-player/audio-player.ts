@@ -119,11 +119,27 @@ export class LintjeAudioPlayer extends LintjePlayerElement {
     return speakerColours(this.segments ?? [])
   }
 
+  override connectedCallback(): void {
+    super.connectedCallback()
+    document.addEventListener('keydown', this.onEscape, true)
+  }
+
   override disconnectedCallback(): void {
+    document.removeEventListener('keydown', this.onEscape, true)
     this.observer?.disconnect()
     this.observer = null
     this.observed = null
     super.disconnectedCallback()
+  }
+
+  /**
+   * The time label under a resting pointer goes with Escape wherever the focus is (WCAG 1.4.13),
+   * and that Escape is its own: a window around the player stays open.
+   */
+  private readonly onEscape = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape' || this.hoverTime === null) return
+    event.preventDefault()
+    this.hoverTime = null
   }
 
   protected override updated(changed: PropertyValues<this>): void {

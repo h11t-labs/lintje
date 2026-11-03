@@ -5,7 +5,7 @@
  */
 import { render } from 'lit'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ChartController, type ChartOptions } from '../shared/controller'
+import { ChartController, POINTER_GRACE, type ChartOptions } from '../shared/controller'
 import { renderScatterChart } from './scatter-chart'
 import type { ChartSpec } from '../shared/types'
 
@@ -248,16 +248,23 @@ describe('the scatter plot', () => {
     breda.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(onSelect).toHaveBeenLastCalledWith(expect.objectContaining({ label: 'Breda' }))
 
-    // Between and around them, the nearest.
+    // Between and around them, the nearest; the tooltip follows once the pointer rests.
     hit(host, 'mousemove', bx - 10, by)
     expect(title()).toBe('Breda')
+    vi.useFakeTimers()
     hit(host, 'mousemove', zx + 10, by)
+    expect(title()).toBe('Breda')
+    vi.advanceTimersByTime(POINTER_GRACE)
+    vi.useRealTimers()
     expect(title()).toBe('Zwolle')
     hit(host, 'click', zx + 10, by)
     expect(onSelect).toHaveBeenLastCalledWith(expect.objectContaining({ label: 'Zwolle' }))
 
-    // Beyond half of --h-target, nothing.
+    // Beyond half of --h-target, nothing, once the pointer could not be on its way to it.
+    vi.useFakeTimers()
     hit(host, 'mousemove', bx, by + 40)
+    vi.advanceTimersByTime(POINTER_GRACE)
+    vi.useRealTimers()
     expect(title()).toBeUndefined()
   })
 
