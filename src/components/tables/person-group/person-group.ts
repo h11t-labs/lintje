@@ -135,7 +135,7 @@ export class LintjePersonGroup extends LintjeElement {
             <span class="lintje-person-group__label">${label}</span>
             <span class="lintje-person-group__count">${count(people.length)}</span>
           </p>
-          <ul class="lintje-person-group__list" aria-labelledby=${headingId}>
+          <ul class="lintje-person-group__list" role="list" aria-labelledby=${headingId}>
             ${people.map(
               (person) =>
                 html`<li class="lintje-person-group__item">

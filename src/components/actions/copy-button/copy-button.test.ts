@@ -108,6 +108,23 @@ describe('lintje-copy-button', () => {
     expect(button.icon).toBe('functioneel-vinkje')
   })
 
+  it('keeps the name "Kopiëren" and reads its description after it', async () => {
+    const labelled = await mount({ text: 'Z-2026-0815', description: 'zaaknummer' })
+    const button = labelled.shadowRoot!.querySelector('lintje-button')!
+    await button.updateComplete
+    expect(button.shadowRoot!.querySelector('button')!.getAttribute('aria-description')).toBe(
+      'zaaknummer',
+    )
+    expect(button.querySelector('.lintje-copy-button__label')?.textContent).toBe('Kopiëren')
+    const icon = await mount({ text: 'Z-2026-0815', description: 'zaaknummer', iconOnly: true })
+    const iconButton = icon.shadowRoot!.querySelector('lintje-icon-button')!
+    await iconButton.updateComplete
+    expect(iconButton.label).toBe('Kopiëren')
+    expect(iconButton.shadowRoot!.querySelector('button')!.getAttribute('aria-description')).toBe(
+      'zaaknummer',
+    )
+  })
+
   it('draws the labelled form primary and compact where copying is the goal', async () => {
     const element = await mount({ text: 'abc', variant: 'primary', size: 'compact' })
     const button = element.shadowRoot!.querySelector('lintje-button')!

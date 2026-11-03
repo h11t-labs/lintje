@@ -91,7 +91,7 @@ describe('lintje-list', () => {
 
   it('draws a ul with one row per item and marks the chosen one', async () => {
     const element = await mount({ items: ITEMS, selectedId: 'b' })
-    expect(element.shadowRoot!.querySelector('ul')).not.toBeNull()
+    expect(element.shadowRoot!.querySelector('ul')?.getAttribute('role')).toBe('list')
     const [first, second] = rows(element)
     expect(rows(element)).toHaveLength(3)
     // Said on the title, where the focus lands, not on the row.
@@ -102,6 +102,20 @@ describe('lintje-list', () => {
     // The title is the tab stop: a link with href, a button without.
     expect(first!.querySelector('.lintje-list__title')!.tagName).toBe('A')
     expect(second!.querySelector('.lintje-list__title')!.tagName).toBe('BUTTON')
+  })
+
+  it('puts the language of a row on its title, a link, a button or plain text', async () => {
+    const element = await mount({
+      items: [
+        { id: 'a', title: 'The applicant writes', lang: 'en', href: '/a' },
+        { id: 'b', title: 'Wnioskodawca pisze', lang: 'pl' },
+        { id: 'c', title: 'Wordt vertaald', lang: 'uk', clickable: false },
+        { id: 'd', title: 'De aanvrager schrijft' },
+      ],
+    })
+    const titles = rows(element).map((row) => row.querySelector('.lintje-list__title')!)
+    expect(titles.map((title) => title.getAttribute('lang'))).toEqual(['en', 'pl', 'uk', null])
+    expect(rows(element)[0].hasAttribute('lang')).toBe(false)
   })
 
   it('sends lintje-row-click for a click anywhere on the row and leaves the link to the browser', async () => {

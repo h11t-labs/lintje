@@ -47,6 +47,12 @@ describe('lintje-number-input', () => {
     expect(control(element).getAttribute('aria-describedby')).toBe(`${unit.id} ${hint.id}`)
   })
 
+  it('passes autocomplete to the native field, and none without it', async () => {
+    expect(control(await mount()).hasAttribute('autocomplete')).toBe(false)
+    const year = await mount({ label: 'Geboortejaar', autocomplete: 'bday-year' })
+    expect(control(year).getAttribute('autocomplete')).toBe('bday-year')
+  })
+
   it('describes the field by its prefix, then its unit', async () => {
     const element = await mount({ prefix: '€', unit: 'per uur', stepper: false })
     const prefix = element.shadowRoot!.querySelector('.lintje-field__addon--prefix')!

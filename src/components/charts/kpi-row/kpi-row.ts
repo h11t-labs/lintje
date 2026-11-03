@@ -14,6 +14,7 @@ import { define, type FrameSettings } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { LintjeGridItemElement, spanStyles } from '../../shared/grid-item-element'
 import '../kpi/kpi'
+import type { HeadingLevel } from '../../shared/heading'
 import { kpiStateWords } from '../kpi/kpi'
 import { LiveMessage } from '../../shared/live-message'
 import kpiRowCss from './kpi-row.css?inline'
@@ -25,9 +26,12 @@ export class LintjeKpiRow extends LintjeGridItemElement {
 
   static override properties: PropertyDeclarations = {
     data: { attribute: false },
+    level: { type: Number },
   }
 
   declare data?: KpiRowData | null
+  /** The heading level of every label, 2 to 6; `h3` when unset, for a row that stands deeper. */
+  declare level?: HeadingLevel
   readonly #live = new LiveMessage(this)
   #states: (string | undefined)[] | null = null
 
@@ -63,6 +67,7 @@ export class LintjeKpiRow extends LintjeGridItemElement {
         (kpi, index) => html`<lintje-kpi
           index=${index}
           label=${kpi.label}
+          level=${this.level ?? nothing}
           icon=${kpi.icon ?? nothing}
           .value=${kpi.value}
           .suffix=${kpi.suffix}

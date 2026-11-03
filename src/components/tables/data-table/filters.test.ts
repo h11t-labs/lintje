@@ -202,6 +202,21 @@ describe('the phone button "Filters"', () => {
     expect(root(element).querySelector('lintje-drawer')).not.toBeNull()
     expect(button().getAttribute('aria-expanded')).toBe('true')
   })
+
+  it("puts a column's options in a group named by its header", async () => {
+    const element = await mount()
+    const host = root(element).querySelector('.lintje-data-table__sheet-button') as HTMLElement
+    host.click()
+    await element.updateComplete
+    const groups = [
+      ...root(element).querySelectorAll('lintje-drawer .lintje-data-table__filter-options'),
+    ]
+    expect(groups).toHaveLength(1)
+    expect(groups[0].getAttribute('role')).toBe('group')
+    const name = root(element).getElementById(groups[0].getAttribute('aria-labelledby')!)
+    expect(name?.textContent?.trim()).toBe('Categorie')
+    expect(groups[0].querySelectorAll('input[type="checkbox"]')).toHaveLength(3)
+  })
 })
 
 describe('the column chooser', () => {

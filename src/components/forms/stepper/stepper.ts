@@ -221,7 +221,7 @@ export class LintjeStepper extends LintjeElement {
   protected override render(): TemplateResult {
     if (this.#mobile.matches && !this.vertical) return this.renderPhone()
     return html`<nav class="lintje-stepper" aria-label=${this.label}>
-      <ol class="lintje-stepper__list lintje-stepper__list--${this.layout}">
+      <ol class="lintje-stepper__list lintje-stepper__list--${this.layout}" role="list">
         ${this.steps.map(
           (step, index) => html`<li
             class=${classMap({

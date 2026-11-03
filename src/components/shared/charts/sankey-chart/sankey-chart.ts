@@ -951,7 +951,7 @@ function renderRows(
                   >${fits ? piece.share : nothing}</span>`
             })}
           </div>
-          <ul class="lintje-sankey__rows">
+          <ul class="lintje-sankey__rows" role="list">
             ${[
               ...node.outflow.filter((flow) => kept.has(flow.to)).map((flow) => flowRow(flow)),
               ...(folded.length
