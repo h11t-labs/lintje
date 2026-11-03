@@ -65,8 +65,7 @@ interface Row {
  * The rows that fail today, by name; each has its GitHub issue above it. A row that passes while
  * it matches an entry fails, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = [
-]
+const KNOWN: RegExp[] = []
 
 const LONG = 'Wijzigingen in de aanvraag opslaan en doorsturen naar de behandelaar van het loket'
 const SHORT = 'Opslaan'
