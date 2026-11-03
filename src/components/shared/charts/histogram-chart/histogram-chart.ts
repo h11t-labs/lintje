@@ -299,8 +299,8 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
       (slot, i) => svg`
         <rect x=${slot.x} y=${area.top} width=${slot.width} height=${Math.max(0, baseline - area.top)}
               fill="transparent"
-              @mousemove=${(event: MouseEvent) => controller.hoverAt(i, event, contentAt(i))}
-              @mouseleave=${() => controller.hoverAt(null)} />
+              @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+              @mouseleave=${keys.leave} />
       `,
     ),
   ]

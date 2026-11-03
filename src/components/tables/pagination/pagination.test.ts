@@ -298,3 +298,32 @@ describe('lintje-pagination', () => {
     expect(css).not.toMatch(/font-size:\s*\d+px/)
   })
 })
+
+describe('lintje-pagination says where it went', () => {
+  const frame = (): Promise<void> =>
+    new Promise((resolve) => requestAnimationFrame(() => resolve()))
+  const said = async (element: LintjePagination): Promise<string> => {
+    await element.updateComplete
+    await frame()
+    await element.updateComplete
+    return element.shadowRoot!.querySelector('[role="status"]')!.textContent!.trim()
+  }
+
+  it('says the page a button chose, every time, from a region that was there already', async () => {
+    const element = await mount({ page: 1, pageCount: 7 })
+    expect(element.shadowRoot!.querySelector('[role="status"]')!.textContent!.trim()).toBe('')
+    named(element, 'Ga naar pagina 3').click()
+    expect(await said(element)).toBe('Pagina 3 van 7')
+    step(element, 'previous').click()
+    expect(await said(element)).toBe('Pagina 2 van 7')
+    step(element, 'next').click()
+    expect(await said(element)).toBe('Pagina 3 van 7')
+  })
+
+  it('says nothing for a link: the page it loads says where it is', async () => {
+    const element = await mount({ page: 1, pageCount: 7, hrefTemplate: '?pagina={page}' })
+    element.addEventListener('lintje-navigate', (event) => event.preventDefault())
+    element.shadowRoot!.querySelector<HTMLElement>('a[aria-label="Ga naar pagina 3"]')?.click()
+    expect(await said(element)).toBe('')
+  })
+})

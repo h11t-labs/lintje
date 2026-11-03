@@ -4,8 +4,10 @@
  *
  * The source is a `lintje-textarea` whose `value` the host keeps. The translation, the language
  * choices and the actions are the host's, in slots: `target` takes a plain
- * `lintje-streaming-text`, `target-note` the AI label under it. After a swap a status region says
- * so, with the languages the host's choices then show.
+ * `lintje-streaming-text`, `target-note` the AI label under it. The host sets the target
+ * language's `lang` on that translation, again after every change or swap of the languages, so a
+ * screen reader reads it in its own language. After a swap a status region says so, with the
+ * languages the host's choices then show.
  *
  * Events: `lintje-text-change` `string` (the source text), `lintje-languages-swap`.
  */

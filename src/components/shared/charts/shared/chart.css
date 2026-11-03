@@ -64,7 +64,7 @@
    A casing under it is dotted too, so each dot keeps its edge. */
 .lintje-chart__line--forecast { stroke-dasharray: 0 5; stroke-linecap: round; }
 /* The forecast's part of the drawing, under the grid. */
-.lintje-chart__forecast-ground { fill: var(--color-bg-subtle); }
+.lintje-chart__forecast-ground { fill: var(--color-chart-forecast-ground); }
 /* The margin of a forecast fills as a line chart's area does, but only alone or with emphasis:
    overlapping margins mix into a colour no variable has. Every band is drawn, so the emphasis
    only fills one. */
@@ -162,8 +162,9 @@
 .lintje-dumbbell__row.is-hovered .lintje-dumbbell__link { stroke: var(--color-chart-axis); stroke-width: 3; }
 .lintje-dumbbell__row.is-hovered .lintje-dumbbell__name,
 .lintje-dumbbell__row.is-selected .lintje-dumbbell__name { fill: var(--color-text-primary); font-weight: 700; }
-/* A chosen row: the others step back, as a muted mark does. */
-.lintje-dumbbell__row.is-muted { opacity: .45; }
+/* A chosen row: the marks of the others step back, as a muted mark does; their words and the
+   keyboard's ring keep full strength. */
+.lintje-dumbbell__row.is-muted .lintje-dumbbell__marks { opacity: .45; }
 .lintje-dumbbell__row.is-clickable { cursor: pointer; }
 .lintje-dumbbell__row:focus { outline: none; }
 /* The ring of the row the keyboard is on, or of a clickable row with focus: around the dot,
@@ -365,11 +366,13 @@
 }
 
 /* --- Tooltip ------------------------------------------------------------- */
+/* The tooltip stands at its mark and takes the pointer, so it can be read and enlarged without it
+   moving; on a touch screen it lets a tap through to the mark under it. */
 .lintje-chart-tooltip {
   --lintje-chart-tooltip-swatch: 14px;
+  --lintje-chart-tooltip-marker: 10px;
   position: absolute;
   z-index: 55;
-  pointer-events: none;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-popover);
   box-shadow: var(--shadow-popover);
@@ -378,17 +381,21 @@
   min-width: 160px;
   /* Its own width, whatever its position: shrink-to-fit narrowed it near the right edge. */
   width: max-content;
-  max-width: 320px;
+  /* Never wider than the chart: on a 320 px screen its text wraps inside it. */
+  max-width: min(320px, 100%);
   /* Comes in on the hover duration, as every hover does; a fade, so reduced motion keeps it. */
   animation: lintje-chart-tooltip-in var(--dur-hover) var(--ease-in-motion);
 }
 @keyframes lintje-chart-tooltip-in { from { opacity: 0; } }
+@media (hover: none) {
+  .lintje-chart-tooltip { pointer-events: none; }
+}
 .lintje-chart-tooltip__title { font-weight: 700; margin-bottom: 4px; }
 .lintje-chart-tooltip__kicker { color: var(--color-text-muted); }
 .lintje-chart-tooltip__title-note { font-weight: 400; color: var(--color-text-muted); }
 .lintje-chart-tooltip__row { display: flex; align-items: center; gap: var(--space-2); justify-content: space-between; }
 .lintje-chart-tooltip__label { display: flex; align-items: center; gap: var(--space-2); }
-.lintje-chart-tooltip__marker { width: 10px; height: 10px; flex: none; }
+.lintje-chart-tooltip__marker { width: var(--lintje-chart-tooltip-marker); height: var(--lintje-chart-tooltip-marker); flex: none; }
 .lintje-chart-tooltip__marker--symbol { width: var(--lintje-chart-tooltip-swatch); height: var(--lintje-chart-tooltip-swatch); }
 .lintje-chart-tooltip__marker--line { width: var(--lintje-chart-tooltip-swatch); height: 3px; background: currentColor; }
 .lintje-chart-tooltip__marker--dashed { width: var(--lintje-chart-tooltip-swatch); height: 0; border-top: 2px dashed currentColor; }
@@ -407,6 +414,13 @@
   color: var(--color-text-muted);
 }
 .lintje-chart-tooltip__row--note .lintje-chart-tooltip__value { font-weight: 400; }
+/* A part of the row above ("Overig"): its name a step in from where the row's own name starts,
+   so it reads as one of that row's, not as a series of its own. */
+.lintje-chart-tooltip__row--part .lintje-chart-tooltip__label {
+  padding-left: calc(var(--lintje-chart-tooltip-marker) + var(--space-2) + var(--space-4));
+  color: var(--color-text-muted);
+}
+.lintje-chart-tooltip__row--part .lintje-chart-tooltip__value { font-weight: 400; color: var(--color-text-muted); }
 .lintje-chart-tooltip__row--divider {
   border-top: 1px solid var(--color-border-popover);
   margin-top: var(--space-1);

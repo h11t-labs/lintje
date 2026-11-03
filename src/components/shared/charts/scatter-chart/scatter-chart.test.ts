@@ -1,11 +1,11 @@
 /**
  * The scatter plot: a series is a colour and its shape (rule 13), a point has an edge in the
- * surface (dark yellow its text colour), a point without both values is not drawn (rule 15), the
+ * surface (dark yellow its dark edge), a point without both values is not drawn (rule 15), the
  * named points' labels show all or none, the norm is dashed, and a point with a href is a button.
  */
 import { render } from 'lit'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ChartController, type ChartOptions } from '../shared/controller'
+import { ChartController, POINTER_GRACE, type ChartOptions } from '../shared/controller'
 import { renderScatterChart } from './scatter-chart'
 import type { ChartSpec } from '../shared/types'
 
@@ -78,12 +78,12 @@ describe('the scatter plot', () => {
     expect(symbols.map((symbol) => symbol.getAttribute('d'))).toHaveLength(2)
   })
 
-  it('edges a point in the surface, and a dark-yellow one in its text colour', () => {
+  it('edges a point in the surface, and a dark-yellow one in its dark edge', () => {
     const { host } = draw(SPEC)
     const [yellow, blue] = points(host)
     expect(blue.classList.contains('lintje-chart__segment')).toBe(true)
     expect(yellow.classList.contains('lintje-chart__segment')).toBe(false)
-    expect(yellow.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-text)')
+    expect(yellow.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-edge)')
   })
 
   it('edges a mint-green point, and its legend shape, in its dark edge', () => {
@@ -193,7 +193,7 @@ describe('the scatter plot', () => {
     expect(host.querySelector('.lintje-chart__hover-point')).not.toBeNull()
   })
 
-  it('makes a point with a href a button that selects it', () => {
+  it('makes a point with a href a link that selects it', () => {
     const onSelect = vi.fn()
     const { host } = draw(
       {
@@ -208,7 +208,7 @@ describe('the scatter plot', () => {
       { onSelect },
     )
     expect(host.querySelector('svg.lintje-chart__svg')?.getAttribute('role')).toBe('group')
-    const button = host.querySelector('[role="button"]') as SVGElement
+    const button = host.querySelector('[role="link"]') as SVGElement
     expect(button.getAttribute('aria-label')).toBe('Utrecht: Loket, Aanvragen 1, Wachttijd 2 min')
     button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(onSelect).toHaveBeenCalledWith({ id: 'utr', label: 'Utrecht', href: '?loket=utr' })
@@ -248,16 +248,23 @@ describe('the scatter plot', () => {
     breda.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(onSelect).toHaveBeenLastCalledWith(expect.objectContaining({ label: 'Breda' }))
 
-    // Between and around them, the nearest.
+    // Between and around them, the nearest; the tooltip follows once the pointer rests.
     hit(host, 'mousemove', bx - 10, by)
     expect(title()).toBe('Breda')
+    vi.useFakeTimers()
     hit(host, 'mousemove', zx + 10, by)
+    expect(title()).toBe('Breda')
+    vi.advanceTimersByTime(POINTER_GRACE)
+    vi.useRealTimers()
     expect(title()).toBe('Zwolle')
     hit(host, 'click', zx + 10, by)
     expect(onSelect).toHaveBeenLastCalledWith(expect.objectContaining({ label: 'Zwolle' }))
 
-    // Beyond half of --h-target, nothing.
+    // Beyond half of --h-target, nothing, once the pointer could not be on its way to it.
+    vi.useFakeTimers()
     hit(host, 'mousemove', bx, by + 40)
+    vi.advanceTimersByTime(POINTER_GRACE)
+    vi.useRealTimers()
     expect(title()).toBeUndefined()
   })
 
@@ -322,6 +329,6 @@ describe('the scatter plot', () => {
     const drawing = host.querySelector('svg[tabindex="0"]') as SVGSVGElement
     drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }))
     const casing = host.querySelector('.lintje-chart__hover-casing')
-    expect(casing?.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-text)')
+    expect(casing?.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-edge)')
   })
 })

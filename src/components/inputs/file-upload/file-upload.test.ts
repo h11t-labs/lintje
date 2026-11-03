@@ -257,7 +257,7 @@ describe('lintje-file-upload', () => {
         chip.shadowRoot!.querySelector('.lintje-attachment__main .visually-hidden')?.textContent,
     )
     expect(states).toEqual([
-      'verklaring.pdf, bezig, 45%',
+      'verklaring.pdf, bezig',
       'foto.jpg, 2,4 MB',
       'beeld.mov, mislukt: De server weigerde het',
     ])

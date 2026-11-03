@@ -49,6 +49,7 @@
 .lintje-map-chart__data .lintje-map-chart__polygon-shape,
 .lintje-map-chart__data .lintje-map-chart__flow-line,
 .lintje-map-chart__data .lintje-map-chart__point-shape { pointer-events: visiblePainted; }
+.lintje-map-chart__data .lintje-map-chart__flow-hit { pointer-events: stroke; }
 .lintje-map-chart__destination { pointer-events: none; }
 /* A tool on: the map is a sheet to draw on, also for a finger. */
 .lintje-map-chart .leaflet-container.is-drawing { cursor: crosshair; touch-action: none; }
@@ -71,10 +72,14 @@
 .lintje-map-chart__point.is-preview .lintje-map-chart__point-shape { stroke: var(--color-text-primary); stroke-width: 2; }
 .lintje-map-chart__flow.is-preview { opacity: 1; }
 /* The focused mark is copied into a layer over the drawing, so its ring lies over every mark
-   drawn after it; the mark itself keeps its place, its focus and the Tab order. The copy does
-   not draw in again. */
+   drawn after it; the mark itself keeps its place, its focus and the Tab order. A chosen area and
+   the one under the pointer are copied there as their outline alone, so a neighbour drawn after
+   them covers none of it and their fill stays the drawing's own. A copy does not draw in again. */
 .lintje-map-chart__focus { pointer-events: none; }
 .lintje-map-chart .lintje-map-chart__focus * { animation: none; }
+.lintje-map-chart__focus .lintje-map-chart__polygon:not(.is-focused) :is(.lintje-map-chart__polygon-ring, .lintje-map-chart__polygon-hatch) { display: none; }
+.lintje-map-chart__focus .lintje-map-chart__polygon:not(.is-focused) .lintje-map-chart__polygon-shape { fill: none; }
+.lintje-map-chart__focus.is-previewing .lintje-map-chart__polygon:not(.is-focused) { display: none; }
 /* A circle shows its middle, which is what the reader measures from. */
 .lintje-map-chart__region-centre {
   fill: var(--color-text-primary);
@@ -128,21 +133,20 @@
 .lintje-map-chart__polygon-shape--data { stroke: var(--color-map-border-data); stroke-width: 1; }
 .lintje-map-chart__polygon-shape--empty { fill: var(--color-bg-surface); }
 .lintje-map-chart__polygon-hatch { pointer-events: none; }
-.lintje-map-chart__polygon:hover .lintje-map-chart__polygon-shape { stroke: var(--color-text-primary); stroke-width: 1.5; }
+.lintje-map-chart__polygon:is(:hover, .is-hovered) .lintje-map-chart__polygon-shape { stroke: var(--color-text-primary); stroke-width: 1.5; }
 .lintje-map-chart__polygon.is-selected .lintje-map-chart__polygon-shape { stroke: var(--color-text-primary); stroke-width: 2; }
 .lintje-map-chart__polygon-ring { fill: none; stroke: none; vector-effect: non-scaling-stroke; }
 .lintje-map-chart__polygon:focus-visible { outline: none; }
-:is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon) .lintje-map-chart__polygon-ring {
+:is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon.is-focused) .lintje-map-chart__polygon-ring {
   stroke: var(--color-focus);
   stroke-width: calc(var(--focus-width) * 2 + 2px);
 }
-:is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon) .lintje-map-chart__polygon-shape {
+:is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon.is-focused) .lintje-map-chart__polygon-shape {
   stroke: var(--color-bg-surface);
   stroke-width: 2;
 }
 
 .lintje-map-chart__flow {
-  opacity: .75;
   cursor: pointer;
   transition: opacity var(--dur-hover) var(--ease-in-motion);
 }
@@ -156,6 +160,14 @@
 .lintje-map-chart__flow-line { stroke: var(--color-chart-default); stroke-width: var(--lintje-flow-width); }
 .lintje-map-chart__flow-ring,
 .lintje-map-chart__flow-gap { stroke: none; pointer-events: none; }
+/* However thin the flow, the pointer finds it within 12 px of its line (WCAG 2.5.8). */
+.lintje-map-chart__flow-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: var(--h-target-text);
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
 .lintje-map-chart__flow:hover,
 .lintje-map-chart__flow.is-selected { opacity: 1; }
 /* Something is chosen, a mark or an area: the flows not chosen step back, further than a point. */
@@ -299,6 +311,9 @@
   inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
 }
 .lintje-map-chart__layer:first-child { margin-left: 0; }
+/* The buttons overlap by their line: the focused one lies over its neighbour, ring and all. */
+.lintje-map-chart__layer:focus-visible,
+.lintje-map-chart__zoom-button:focus-visible { z-index: 1; }
 .lintje-map-chart__layer.is-active {
   background: var(--color-action-primary);
   color: var(--color-action-primary-text);
@@ -380,6 +395,27 @@
   width: max-content;
   max-width: calc(100% - 2 * var(--space-4));
 }
+
+/* With a tool on, Enter sets a point at the middle of the view: a cross marks it while the map
+   has the keyboard's focus, and the arrow keys move the map under it. */
+.lintje-map-chart__crosshair {
+  position: absolute; z-index: 1;
+  top: 50%; left: 50%;
+  width: var(--space-6); height: var(--space-6);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  display: none;
+}
+.lintje-map-chart__leaflet:focus-visible ~ .lintje-map-chart__crosshair { display: block; }
+.lintje-map-chart__crosshair::before,
+.lintje-map-chart__crosshair::after {
+  content: '';
+  position: absolute;
+  background: var(--color-text-primary);
+  outline: 1px solid var(--color-bg-surface);
+}
+.lintje-map-chart__crosshair::before { top: 0; bottom: 0; left: 50%; width: 2px; transform: translateX(-50%); }
+.lintje-map-chart__crosshair::after { left: 0; right: 0; top: 50%; height: 2px; transform: translateY(-50%); }
 
 /* The scale bottom right, as on a road map: the distance, then a bracket as long as it on the
    map; without a frame, on a basemap on the surface over the credit. */
@@ -464,7 +500,14 @@
   gap: var(--space-2) var(--space-4);
   min-height: var(--h-target-text);
 }
-.lintje-map-legend__keys.is-off > .lintje-map-legend__key { opacity: .45; }
+/* A layer switched off fades the drawing of its key, never its figures: they keep 4.5:1. */
+.lintje-map-legend__keys.is-off > .lintje-map-legend__key :is(
+  .lintje-map-legend__ramp,
+  .lintje-map-legend__wedge,
+  .lintje-map-legend__sizes circle,
+  .lintje-map-legend__sizes line,
+  .lintje-legend__marker
+) { opacity: .45; }
 .lintje-map-legend__key { display: flex; align-items: center; gap: var(--space-2); }
 .lintje-map-legend__figure { font: var(--text-axis); color: var(--color-text-secondary); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .lintje-map-legend__rule { width: 1px; align-self: stretch; min-height: 16px; background: var(--color-border-default); }
@@ -563,12 +606,13 @@
   .lintje-map-chart__point.is-selected .lintje-map-chart__point-shape { stroke: CanvasText; }
   .lintje-map-chart__focus { forced-color-adjust: none; }
   :is(.lintje-map-chart__point:focus-visible, .lintje-map-chart__focus .lintje-map-chart__point) .lintje-map-chart__point-ring,
-  :is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon) .lintje-map-chart__polygon-ring,
+  :is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon.is-focused) .lintje-map-chart__polygon-ring,
   :is(.lintje-map-chart__flow:focus-visible, .lintje-map-chart__focus .lintje-map-chart__flow) .lintje-map-chart__flow-ring { stroke: Highlight; }
   :is(.lintje-map-chart__point:focus-visible, .lintje-map-chart__focus .lintje-map-chart__point) .lintje-map-chart__point-shape,
-  :is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon) .lintje-map-chart__polygon-shape,
+  :is(.lintje-map-chart__polygon:focus-visible, .lintje-map-chart__focus .lintje-map-chart__polygon.is-focused) .lintje-map-chart__polygon-shape,
   :is(.lintje-map-chart__flow:focus-visible, .lintje-map-chart__focus .lintje-map-chart__flow) .lintje-map-chart__flow-gap { stroke: Canvas; }
-  .lintje-map-chart__layer.is-active { border-color: Highlight; }
+  .lintje-map-chart__layer.is-active,
+  .lintje-map-chart__tool.is-active { border-color: Highlight; }
   .lintje-map-legend__box { forced-color-adjust: none; background: Highlight; border-color: Highlight; color: HighlightText; }
   .lintje-map-legend__layer.is-off .lintje-map-legend__box { background: Canvas; border-color: CanvasText; }
   .lintje-map-chart .leaflet-container:focus-visible::after { border-color: Highlight; }

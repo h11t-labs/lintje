@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import './tooltip'
 import '../../actions/button/button'
 import '../../actions/icon-button/icon-button'
+import '../../actions/menu-button/menu-button'
+import type { LintjeMenuButton } from '../../actions/menu-button/menu-button'
 import { TOOLTIP_DELAY, TOOLTIP_LINGER, type LintjeTooltip } from './tooltip'
 
 async function mount(props: Record<string, unknown> = {}): Promise<LintjeTooltip> {
@@ -113,5 +115,56 @@ describe('lintje-tooltip', () => {
       expect(control.hasAttribute('aria-description')).toBe(false)
       element.remove()
     }
+  })
+})
+
+describe('lintje-tooltip in an open menu', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('takes the Escape that hides its words, and leaves the menu open', async () => {
+    const menu = Object.assign(document.createElement('lintje-menu-button'), {
+      label: 'Acties',
+      items: [
+        { value: 'bewaren', label: 'Bewaren' },
+        {
+          value: 'delen',
+          label: 'Delen',
+          disabled: true,
+          reason: 'Je hebt geen recht om te delen',
+        },
+      ],
+    }) as LintjeMenuButton
+    document.body.append(menu)
+    await menu.updateComplete
+    const closes: unknown[] = []
+    menu.addEventListener('lintje-close', (event) => closes.push(event))
+    menu.renderRoot.querySelector<HTMLElement>('.lintje-menu-button__trigger')!.click()
+    await menu.updateComplete
+    const tip = menu.renderRoot.querySelector<LintjeTooltip>('lintje-tooltip')!
+    tip.dispatchEvent(new MouseEvent('mouseenter'))
+    vi.advanceTimersByTime(TOOLTIP_DELAY)
+    await tip.updateComplete
+    expect(bubble(tip)).not.toBeNull()
+    const popover = menu.renderRoot.querySelector('lintje-popover')!
+    const open = (): boolean => popover.hasAttribute('open')
+    expect(open()).toBe(true)
+    const row = menu.renderRoot.querySelector<HTMLElement>('.lintje-menu__row')!
+    const first = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      bubbles: true,
+      composed: true,
+      cancelable: true,
+    })
+    row.dispatchEvent(first)
+    await menu.updateComplete
+    await tip.updateComplete
+    expect(first.defaultPrevented).toBe(true)
+    expect(bubble(tip)).toBeNull()
+    expect(open()).toBe(true)
   })
 })

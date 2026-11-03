@@ -8,9 +8,11 @@
  * It sends no events of its own: those of its question box, messages and answers reach the host,
  * with the `turnId` where a turn sent them. The host answers `lintje-message-send` with a new turn,
  * `lintje-message-edit` by asking again without that turn and all after it, and
- * `lintje-strip-change` by answering again with the new assumption. A turn's `divider` stands as a
- * centred line above its question. The `questions` of the last answer stand in a box above the
- * question box until the next turn; on a phone the question box folds to one line meanwhile.
+ * `lintje-strip-change` with the answer under the new assumption, in place and in the state
+ * `ready`: a streaming answer drops the strip, and the focus with it, while the reader chooses in
+ * it. A turn's `divider` stands as a centred line above its question. The `questions` of the last
+ * answer stand in a box above the question box until the next turn; on a phone the question box
+ * folds to one line meanwhile, unless the reader is typing in it.
  */
 import {
   html,
@@ -51,6 +53,9 @@ const TRIMMED = 'De assistent neemt de vragen hierboven niet meer mee.'
 
 /** The two states in which the assistant waits on the reader; only then do its questions count. */
 const ASKING = new Set<ChatAnswerData['state']>(['needs-clarification', 'out-of-scope'])
+
+/** Below this height the footer does not stick (`chat.css`). */
+const LOW = '(height < 30rem)'
 
 /**
  * A line between turns, centred: line, label, line. A plain paragraph in the reading order; the
@@ -159,6 +164,8 @@ export class LintjeChat extends LintjeElement {
   #growth: ResizeObserver | null = null
   #footerSize: ResizeObserver | null = null
   readonly #mobile = new MediaController(this)
+  readonly #low = new MediaController(this, LOW)
+  #wasLow = false
   /** The ids of the questions in the box, to see a new set arrive. */
   #asked = ''
   readonly #roomAbove = new ScrollRoom('scrollPaddingTop')
@@ -204,7 +211,9 @@ export class LintjeChat extends LintjeElement {
       above = Math.max(above, (parseFloat(style.top) || 0) + message.offsetHeight)
     }
     this.#roomAbove.reserve(scroller, above)
-    this.#roomBelow.reserve(scroller, footer.offsetHeight)
+    // A footer that stands after the conversation (little height) covers nothing.
+    const sticks = getComputedStyle(footer).position === 'sticky'
+    this.#roomBelow.reserve(scroller, sticks ? footer.offsetHeight : 0)
   }
 
   /** How far the conversation's end lies below what its scroller shows. */
@@ -259,9 +268,13 @@ export class LintjeChat extends LintjeElement {
     const asked = (this.asking?.questions?.questions ?? []).map((question) => question.id).join(' ')
     if (asked === this.#asked) return
     this.#asked = asked
-    this.composerOpen = false
-    // A new box takes the focus from where the reader stood in the conversation.
-    if (asked && holdsFocus(this)) void this.focusQuestions()
+    // A new box takes the focus from where the reader stood in the conversation, unless they are
+    // typing a next question: a space would then pick a choice. The box's status region says it,
+    // and on a phone the question box stays open around the field they type in.
+    const composer = this.composer
+    const draft = Boolean(composer?.draft)
+    this.composerOpen = Boolean(asked) && draft && holdsFocus(composer!)
+    if (asked && holdsFocus(this) && !draft) void this.focusQuestions()
   }
 
   private async focusQuestions(): Promise<void> {
@@ -292,8 +305,10 @@ export class LintjeChat extends LintjeElement {
     const footer = this.renderRoot.querySelector<HTMLElement>('.lintje-chat__footer')
     if (footer) this.#footerSize?.observe(footer)
     const turns = this.data?.turns?.length ?? 0
-    // A question that starts or stops sticking need not change a size the observers see.
-    if (turns !== this.#turns || changed.has('editingId') || changed.has('paged')) {
+    // A question or the footer that starts or stops sticking may leave every size as it was.
+    const low = this.#low.matches !== this.#wasLow
+    this.#wasLow = this.#low.matches
+    if (turns !== this.#turns || changed.has('editingId') || changed.has('paged') || low) {
       this.reserveRoom()
     }
     if (!changed.has('data')) return
@@ -381,6 +396,10 @@ export class LintjeChat extends LintjeElement {
     const editingIndex = turns.findIndex((turn) => turn.id === this.editingId)
     const editing = editingIndex !== -1
     const busy = turns.some((turn) => turn.answer?.state === 'streaming')
+    // The first answer the edit replaces carries the word; the rest follow it.
+    const firstReplaced = editing
+      ? turns.findIndex((turn, index) => index >= editingIndex && turn.answer)
+      : -1
     return html`<div class="lintje-chat__list">
       ${repeat(
         turns,
@@ -402,6 +421,11 @@ export class LintjeChat extends LintjeElement {
               ?editable=${!busy && (!editing || index === editingIndex)}
               @lintje-editing-change=${this.onEditingChange}
             ></lintje-chat-message>
+            ${
+              index === firstReplaced
+                ? html`<p class="lintje-chat__replaced-note">Wordt vervangen</p>`
+                : nothing
+            }
             ${
               answer
                 ? html`<lintje-chat-answer

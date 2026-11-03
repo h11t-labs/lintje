@@ -13,11 +13,33 @@ pagina per adres heeft geen script nodig. Een gewone klik wordt ook gemeld als `
 met een eigen router annuleert dat event en gaat er zelf heen:
 
 ```js
-document.addEventListener('lintje-navigate', (event) => {
+const shell = document.querySelector('lintje-shell')
+
+document.addEventListener('lintje-navigate', async (event) => {
   event.preventDefault() // the click is now yours
-  router.push(event.detail.href)
+  const view = await router.push(event.detail.href) // draws the new view
+  document.title = `${view.title} — Meldingen`
+  shell.focusContent()
 })
 ```
+
+Een router wisselt de inhoud zonder een nieuwe pagina te laden, dus de browser doet niet wat hij
+bij een nieuwe pagina doet: de focus blijft op een link die weg is en valt naar `body`, en het
+tabblad houdt de titel van de vorige weergave. Staat de nieuwe weergave er, dan doet de router drie
+dingen:
+
+1. **De paginatitel.** `document.title` wordt "Paginatitel — Naam van de applicatie", met de titel
+   van de paginakop, het product of de stap: "Nieuwe melding, stap 2 van 3: Opvolging — Meldingen".
+2. **De focus.** Bij een nieuwe pagina `shell.focusContent()`: de focus gaat naar de inhoud van
+   `lintje-shell`, onder de balken, zoals met de skiplink. Bij een wissel binnen een pagina, zoals
+   de volgende stap van een formulier, gaat de focus naar het begin van wat nieuw is, zoals het
+   eerste veld van de stap.
+3. **Wat weggaat.** Verbergt de host iets dat de focus had, zonder dat er een nieuwe weergave komt —
+   een knop die zijn werk deed, een melding die oplost — dan zet hij de focus vóór het verbergen op
+   een buur die blijft: het veld ernaast, de lijst, de paginakop.
+
+Zet de focus ook bij Terug en Vooruit in de browser (`popstate`): ook dan tekent de router een
+nieuwe weergave.
 
 Een klik met een toets als Ctrl of Cmd ingedrukt, of met een andere muisknop, is altijd van de browser: een nieuw tabblad, een
 download. Waar geen klik te volgen is — een resultaat dat je met Enter kiest in de zoekfunctie, een
@@ -122,6 +144,22 @@ gekozen actie; `lintje-row-click` en `lintje-row-open` dragen `{ id, label, href
 element stuurt het verzoek en wacht op de eigenschap die het beantwoordt (`.options`, `.jobs`,
 `busy`, `.errors`, `busyCells`). Het toont de wijziging van de lezer meteen en verwacht dat je volgende
 waarde die bevestigt.
+
+**Een keuze in de strook van de chat.** Een `lintje-strip-change` beantwoord je ter plekke: hetzelfde
+antwoord met de nieuwe aanname, meteen in de toestand `ready`. Een streamend antwoord laat de strook
+verdwijnen terwijl de lezer erin kiest, en de focus valt naar het vraagvak; in een keuzelijst gebeurt
+dat op Windows al bij een pijltoets.
+
+**Afspelen vanaf een tijdcode.** De tijdcode van `lintje-transcript` heet "Speel af vanaf 0:18" en
+stuurt `lintje-seek`. Zet de speler op die tijd en roep daarna zijn `play()` aan; zonder dat zet de
+knop alleen de positie.
+
+```js
+transcript.addEventListener('lintje-seek', (event) => {
+  player.currentTime = event.detail
+  player.play()
+})
+```
 
 **Events die niet van jou zijn.** Een event met `composed` dat niet in de tabel staat, hoort bij wie het
 onderdeel heeft geopend: `lintje-close` van een venster, een dialoog, een paneel opzij of een zwevend paneel, en `lintje-invalid` van het formulier (een echo van je eigen `.errors`). Een view

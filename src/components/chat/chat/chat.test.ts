@@ -168,7 +168,7 @@ describe('lintje-chat', () => {
     )
   })
 
-  it('dims and disables what an edit is about to replace', async () => {
+  it('says above what an edit is about to replace that it will be replaced, and disables it', async () => {
     const element = await chat({ turns: TURNS })
     const [first] = messages(element)
     await first.updateComplete
@@ -180,6 +180,10 @@ describe('lintje-chat', () => {
     expect(replaced.map((answer) => answer.classList.contains('is-replaced'))).toEqual([true, true])
     expect(replaced.map((answer) => answer.hasAttribute('inert'))).toEqual([true, true])
     expect(replaced.map((answer) => answer.current)).toEqual([false, false])
+    // One word above the first of them, at full strength; nothing is dimmed.
+    const notes = [...element.renderRoot.querySelectorAll('.lintje-chat__replaced-note')]
+    expect(notes.map((note) => note.textContent)).toEqual(['Wordt vervangen'])
+    expect(notes[0].nextElementSibling).toBe(replaced[0])
     // Only the message in its frame can still be edited.
     expect(messages(element).map((message) => message.editable)).toEqual([true, false])
   })
@@ -398,6 +402,65 @@ describe('lintje-chat and the assistant’s questions', () => {
     const input = composer(element).shadowRoot!.querySelector('.lintje-chat-composer__input')!
     expect(input.getAttribute('data-placeholder')).toBe('Stel een vraag over de gegevens')
     expect(composer(element).hint ?? '').toBe('')
+  })
+
+  it('takes the focus from an empty question box, and leaves it in one with a draft', async () => {
+    type Field = HTMLElement & { text: string; updateComplete: Promise<unknown> }
+    const settle = async (element: LintjeChat): Promise<void> => {
+      await element.updateComplete
+      await new Promise((settled) => requestAnimationFrame(settled))
+      await new Promise((settled) => setTimeout(settled))
+    }
+    for (const draft of ['', 'En per regio']) {
+      const waiting = asking('needs-clarification')
+      const element = await chat({
+        turns: [TURNS[0], { ...waiting.turns[1], answer: { state: 'streaming' } }],
+      })
+      const field = composer(element) as unknown as Field
+      field.text = draft
+      await field.updateComplete
+      const input = field.shadowRoot!.querySelector<HTMLElement>('.lintje-chat-composer__input')!
+      input.focus()
+      element.data = waiting
+      await settle(element)
+      const questions = box(element)!
+      if (draft) {
+        // A space would pick a choice: the reader types on, and the status region says it.
+        expect(deepActiveElement()).toBe(input)
+        expect(questions.shadowRoot!.querySelector('[role="status"]')?.textContent).toBe(
+          'Assistent vraagt',
+        )
+      } else {
+        expect(deepActiveElement()?.classList.contains('lintje-chat-questions__chip')).toBe(true)
+      }
+      element.remove()
+    }
+  })
+
+  it('on a phone leaves the question box open while the reader types in it', async () => {
+    const happy = (window as unknown as { happyDOM?: { setViewport(size: object): void } }).happyDOM
+    happy?.setViewport({ width: 390, height: 844 })
+    try {
+      const waiting = asking('needs-clarification')
+      const element = await chat({
+        turns: [TURNS[0], { ...waiting.turns[1], answer: { state: 'streaming' } }],
+      })
+      const field = composer(element) as unknown as HTMLElement & {
+        text: string
+        updateComplete: Promise<unknown>
+      }
+      field.text = 'En per regio'
+      await field.updateComplete
+      const input = field.shadowRoot!.querySelector<HTMLElement>('.lintje-chat-composer__input')!
+      input.focus()
+      element.data = waiting
+      await element.updateComplete
+      expect(composer(element).collapsed).toBe(false)
+      expect(composer(element).collapsible).toBe(true)
+      expect(deepActiveElement()).toBe(input)
+    } finally {
+      happy?.setViewport({ width: 1024, height: 768 })
+    }
   })
 
   it('lets the answers through with the turn', async () => {

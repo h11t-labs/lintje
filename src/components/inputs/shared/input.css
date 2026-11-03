@@ -25,13 +25,14 @@
   --lintje-field-border: 1px;
   --lintje-field-error-border: var(--field-error-border);
 }
-/* `min-width: auto`: the segmented control never shrinks below its options, and the select and
-   the date range stop at their content's width in a narrow row. */
+/* `min-width: auto`: the select and the date range stop at their content's width in a narrow
+   row. The segmented control shrinks with its room, also as a flex or grid item, so it measures
+   that room and stands as a column where its row does not fit. */
 :host(lintje-date-range),
-:host(lintje-segmented),
 :host(lintje-select) {
   display: block;
 }
+:host(lintje-segmented) { display: block; min-width: 0; }
 :host(lintje-multiselect),
 :host(lintje-range) {
   width: 180px;
@@ -89,7 +90,7 @@
 .lintje-label.is-modified { color: var(--color-accent-text); }
 .lintje-label__dot {
   width: 6px; height: 6px; border-radius: var(--radius-round);
-  background: var(--color-attention);
+  background: var(--color-attention-line);
   flex: none; align-self: center;
 }
 :host(:disabled) .lintje-label { color: var(--color-text-disabled); }
@@ -131,7 +132,7 @@
   background: var(--color-bg-field);
   border-radius: var(--radius-control);
 }
-.lintje-field__box.is-error { border: var(--field-error-border) solid var(--color-error); background: var(--color-bg-field-error); }
+.lintje-field__box.is-error { border: var(--field-error-border) solid var(--color-error-line); background: var(--color-bg-field-error); }
 /* Read-only as disabled: the subtle surface, the strong border; its text stays primary. */
 .lintje-field__box.is-readonly,
 .lintje-field__box.is-disabled,
@@ -224,6 +225,7 @@
 
 /* --- Checkbox, radio, toggle ---------------------------------------------- */
 .lintje-choice {
+  position: relative;
   display: flex; align-items: center; gap: var(--lintje-choice-gap);
   min-height: var(--h-target);
   font-size: 1rem;
@@ -236,6 +238,9 @@
   margin: calc(var(--space-2) * -1) 0 var(--space-2) calc(var(--lintje-choice-control) + var(--lintje-choice-gap));
 }
 .lintje-choice__input { position: absolute; opacity: 0; width: 0; height: 0; }
+/* Hidden in its row and as tall as it, at no width: the focus scrolls the whole row into view,
+   also in a list that scrolls, and the row takes the clicks as before. */
+.lintje-choice > .lintje-choice__input { inset-block: 0; inset-inline-start: 0; height: auto; margin: 0; }
 .lintje-choice__label.is-modified { color: var(--color-accent-text); font-weight: 700; }
 /* The field of a group's "Anders": indented to the labels' line (the box or radio plus the row's
    gap), so it reads as the rest of its choice. */
@@ -321,7 +326,11 @@
   background: var(--color-accent);
   box-shadow: inset 0 0 0 1px var(--color-action-primary-border);
 }
-.lintje-choice__input:checked ~ .lintje-choice__switch .lintje-choice__knob { transform: translateX(18px); }
+/* On, the knob is content on the primary fill: in dark the surface fell to 1.3:1 on it. */
+.lintje-choice__input:checked ~ .lintje-choice__switch .lintje-choice__knob {
+  transform: translateX(18px);
+  background: var(--color-action-primary-text);
+}
 
 .lintje-choice.is-disabled { color: var(--color-text-disabled); cursor: not-allowed; }
 .lintje-choice__input:disabled ~ .lintje-choice__box,

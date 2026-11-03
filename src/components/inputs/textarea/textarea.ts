@@ -23,7 +23,12 @@ import { formatNumber } from '../../../core/format'
 import { shadowCss } from '../../../core/styles'
 import { styleProps } from '../../../core/style-props'
 import { iconStyles } from '../../../icons/render'
-import { footDescribedBy, renderFieldFoot } from '../shared/field-foot'
+import {
+  describedWith,
+  footDescribedBy,
+  renderDescription,
+  renderFieldFoot,
+} from '../shared/field-foot'
 import { LintjeFormInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
 import { Debounce } from '../../shared/debounce'
@@ -63,10 +68,16 @@ export class LintjeTextarea extends LintjeFormInputElement {
     rows: { type: Number },
     variant: { type: String, reflect: true },
     textLang: { type: String, attribute: 'text-lang' },
+    description: { type: String },
   }
 
   value: string = ''
   placeholder: string = ''
+  /**
+   * Read after the label and never drawn: what the host shows about the field itself, such as
+   * the hint above a field whose label it hides.
+   */
+  declare description?: string
   /** The limit the counter counts to; the counter is read out from 90 % of it on. */
   declare maxlength?: number
   /** The attribute `commit`; `commit()` is the method every input commits through. */
@@ -176,8 +187,7 @@ export class LintjeTextarea extends LintjeFormInputElement {
       errorId: this.errorId,
     })
     const ids = [own === nothing ? '' : own, this.counterShown ? this.counterId : '']
-    const joined = ids.filter(Boolean).join(' ')
-    return joined || nothing
+    return describedWith(this.description, ids.filter(Boolean).join(' ') || nothing)
   }
 
   private get counterShown(): boolean {
@@ -193,9 +203,13 @@ export class LintjeTextarea extends LintjeFormInputElement {
     )
   }
 
+  protected override renderFoot(): TemplateResult | typeof nothing {
+    return html`${renderDescription(this.description)}${this.renderOwnFoot()}`
+  }
+
   // The counter stands under the field, at its right. In the new style the message is above the
   // field, as in every field; in the earlier one it shares the counter's line, at the left.
-  protected override renderFoot(): TemplateResult | typeof nothing {
+  private renderOwnFoot(): TemplateResult | typeof nothing {
     const foot = this.messagesAbove ? nothing : this.renderFieldLine()
     if (!this.counterShown) return html`${foot}${this.renderReset()}`
     const limit = this.maxlength!

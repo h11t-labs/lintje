@@ -4,7 +4,9 @@
  * Editing and the speakers are the host's state: the element asks, and the host changes
  * `segments`, `editingId`, `busyId` and `errors`. It plays, saves and renames nothing itself. A
  * speaker has the colour it has in the player's waveform. Above the fragments, the `note-label` and
- * `note` slots say that a model made the text, and `lead` holds the AI work.
+ * `note` slots say that a model made the text, and `lead` holds the AI work. A timecode reads
+ * "Speel af vanaf 0:18": the host answers its `lintje-seek` by moving the player there and calling
+ * the player's `play()`.
  *
  * Events: `lintje-seek` `number` (seconds), `lintje-segment-edit` `string` (the id),
  * `lintje-segment-save` `{ id, text }`, `lintje-segment-cancel` `string` (the id),
@@ -404,15 +406,14 @@ export class LintjeTranscript extends LintjeElement {
 
   private renderEditor(segment: TranscriptSegment): TemplateResult {
     const busy = this.busyId === segment.id
-    return html`<div
-      class="lintje-transcript__editor"
-      @keydown=${(event: KeyboardEvent) => this.onEditorKeydown(segment, event)}
-    >
+    // The keys are the field's: on Opslaan and Annuleren Enter and Escape keep their own meaning.
+    return html`<div class="lintje-transcript__editor">
       <lintje-textarea
         label="Tekst van dit fragment"
         hide-label
         rows="1"
         hint="Ctrl+Enter bewaart, Esc annuleert"
+        @keydown=${(event: KeyboardEvent) => this.onEditorKeydown(segment, event)}
         .value=${segment.text}
         ?disabled=${busy}
         error=${this.errors?.[segment.id] || nothing}
