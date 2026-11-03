@@ -211,6 +211,28 @@ describe('the treemap', () => {
     expect(controller.hoverIndex).toBe(1)
   })
 
+  it('says the part chosen with Enter on the drawing, and the choice undone with Escape', async () => {
+    const frame = (): Promise<void> =>
+      new Promise((resolve) => requestAnimationFrame(() => resolve()))
+    const { host, controller } = draw(spec(NESTED))
+    const region = (): string => host.querySelector('[role="status"]')!.textContent!.trim()
+    key(host, 'ArrowRight')
+    key(host, 'ArrowRight')
+    key(host, 'Enter')
+    expect(region()).toBe('')
+    await frame()
+    expect(region()).toBe('Zorg gekozen')
+    // The host keeps the choice; Escape on the drawing undoes it, and says so.
+    const chosen = draw(spec(NESTED), { selectedId: 'zorg' })
+    const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })
+    chosen.host.querySelector('svg[tabindex="0"]')!.dispatchEvent(escape)
+    await frame()
+    expect(chosen.host.querySelector('[role="status"]')!.textContent!.trim()).toBe(
+      'Keuze opgeheven',
+    )
+    expect(controller.status).toBe('Zorg gekozen')
+  })
+
   it('chooses the part with a click in a sub-part, its "Overig" too', () => {
     const { host, chosen } = draw(spec(NESTED))
     const [zorg] = groups(host)

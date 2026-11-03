@@ -37,6 +37,7 @@ import {
   setScrolled,
 } from '../../../core/frame-state'
 import { sentenceText, type SentencePart } from '../shared/sentence'
+import { LiveMessage } from '../../shared/live-message'
 import type { DateRange } from '../../inputs/date-range/date-range'
 import type { FilterBarData, FilterDefinition, FilterValue } from '../../../types'
 import layoutCss from '../shared/filter-layout.css?inline'
@@ -135,6 +136,9 @@ export class LintjeFilterBar extends LintjeElement {
   #toZone = false
   private committed = ''
   private declaredOpen: boolean | undefined = undefined
+  readonly #live = new LiveMessage(this)
+  /** The bar committed a change: the host's answer is read out as the new sentence. */
+  #asked = false
 
   private get filters(): FilterDefinition[] {
     return this.data?.filters ?? []
@@ -173,6 +177,11 @@ export class LintjeFilterBar extends LintjeElement {
       if (signature !== this.committed) {
         this.committed = signature
         this.values = committed
+      }
+      // The figures under the bar change out of the focus's sight: the sentence says to what.
+      if (this.#asked) {
+        this.#asked = false
+        this.#live.say(sentenceText(sentence(this.visible, this.values)))
       }
       // Watched on the value, so a rerun that repeats it does not re-expand a collapsed bar.
       const declaredOpen = this.data.open ?? false
@@ -266,6 +275,7 @@ export class LintjeFilterBar extends LintjeElement {
 
   private commit(next: Values): void {
     this.values = next
+    this.#asked = true
     this.emit('lintje-values-change', next)
   }
 
@@ -436,6 +446,7 @@ export class LintjeFilterBar extends LintjeElement {
           this.draft = next
         })}
       </lintje-filter-sheet>
+      <p class="visually-hidden" role="status" aria-atomic="false">${this.#live.text}</p>
     `
   }
 }

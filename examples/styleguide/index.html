@@ -450,6 +450,11 @@
       }
       /* What the host heard, under a specimen: a code block that scrolls when it grows. */
       .guide__log { margin: 0 var(--space-4) var(--space-4); max-height: 260px; overflow: auto; }
+      /* What a screen reader hears of the log: a region beside it, out of sight. */
+      .guide__heard {
+        position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+        overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+      }
       .guide__placeholder {
         display: flex;
         align-items: center;
