@@ -102,7 +102,7 @@ describe('the pie', () => {
       slices(element)
         .slice(0, 4)
         .map((path) => path.getAttribute('role')),
-    ).toEqual(['button', 'button', 'button', 'button'])
+    ).toEqual(['link', 'link', 'link', 'link'])
     // The largest four keep their own identity; the fifth is 1 + 2 + 3 + 4.
     expect(
       slices(element)

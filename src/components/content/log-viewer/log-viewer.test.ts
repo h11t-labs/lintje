@@ -352,6 +352,42 @@ describe('lintje-log-viewer choosing a line', () => {
     expect(foot(element)).toContain('Volgt de nieuwste regel')
   })
 
+  it('is a grid of rows that say whether they are chosen', async () => {
+    const element = await mount({ selected: 'r2' })
+    const grid = root(element).querySelector('[role="grid"]')!
+    expect(grid.getAttribute('aria-label')).toBe('Importlog')
+    expect(rows(element).every((row) => row.getAttribute('role') === 'row')).toBe(true)
+    expect(rows(element).map((row) => row.getAttribute('aria-selected'))).toEqual([
+      'false',
+      'true',
+      'false',
+      'false',
+    ])
+    expect(rows(element)[0]!.querySelector('.lintje-log-viewer__time')?.getAttribute('role')).toBe(
+      'gridcell',
+    )
+  })
+
+  it('says the line the reader chose, and that the choice went', async () => {
+    const element = await mount()
+    element.addEventListener('lintje-log-select', (event) => {
+      element.data = { ...element.data!, selected: (event as CustomEvent<string | null>).detail }
+    })
+    press(rows(element).at(-1)!, 'Enter')
+    await element.updateComplete
+    expect(await spoken(element)).toBe('Regel van 14:03:24.000 gekozen')
+    root(element).querySelector<HTMLElement>('.lintje-log-viewer__foot lintje-icon-button')!.click()
+    await element.updateComplete
+    expect(await spoken(element)).toBe('Keuze opgeheven')
+  })
+
+  it('keeps quiet about a line the host chose', async () => {
+    const element = await mount()
+    element.data = { ...element.data!, selected: 'r2' }
+    await element.updateComplete
+    expect(await spoken(element)).toBe('')
+  })
+
   it('shows the chosen line in the bar, and lets it go', async () => {
     const element = await mount({ selected: 'r2' })
     const seen = listen(element, 'lintje-log-select')

@@ -305,6 +305,14 @@ const process = (name, changes = {}) => ({
   }),
 })
 const sankeySpec = (data, extra = {}) => ({ kind: 'sankey', label: 'Aanvragen', ...data, ...extra })
+// Every node a link to its outcome, as a host that drills from a sankey writes it.
+const linkedNodes = (data) => ({
+  ...data,
+  steps: data.steps.map((step) => ({
+    ...step,
+    nodes: step.nodes.map((node) => ({ ...node, href: `?stap=${node.id}` })),
+  })),
+})
 /** Every node and every flow opens its own page, as a drilldown does. */
 const linked = (data) => ({
   steps: data.steps.map((step) => ({
@@ -381,6 +389,10 @@ const SANKEYS = [
     }),
   },
   { id: 'sankey-color', title: 'Aanvragen van indiening tot uitkomst', data: process('three'), extra: { color: 'violet' } },
+  {
+    id: 'sankey-zero-link', title: 'Met een uitkomst zonder aanvragen',
+    data: linkedNodes(process('three', { 'compleet>ingetrokken': 0, 'onvolledig>ingetrokken': 0 })),
+  },
 ].map(({ id, title, data, extra, selectedId }) => ({
   id, title, selectedId,
   description: sankeyDescription(data),
@@ -980,6 +992,7 @@ const VARIANT_NAMES = {
   'sankey-chosen': 'Een gekozen knoop',
   'sankey-zero': 'Een knoop met 0 en een zonder gegevens',
   'sankey-color': 'In de kleur van haar variabele',
+  'sankey-zero-link': 'Een knoop zonder aantal die doorklikt',
   'line-light-colours': 'In lichte kleuren met hun rand',
 }
 
@@ -1014,6 +1027,7 @@ const VARIANT_NOTES = {
   'sankey-first-missing': 'Van de balie is alleen het totaal bekend (`value`), niet hoe het zich verdeelt: één stomp voor beide stromen.',
   'sankey-six': 'De tekening wordt hoger met de stap met de meeste knopen, zodat elke naam zijn ruimte houdt.',
   'sankey-no-share': 'Met `share: false` staat alleen het aantal naast de naam.',
+  'sankey-zero-link': 'Geen aanvraag is ingetrokken: die knoop heeft geen balk, dus zijn naam is de link, met de focusring om de naam.',
   'sankey-phone': 'Smaller dan 768 px wordt elke overgang een staaf per bron, met een rij per doel eronder.',
   'line-light-colours': 'Mintgroen, roze en lichtblauw halen als lijn geen 3:1 op wit; in licht ligt er een rand in hun eigen donkere kleur onder.',
   'line-forecast-comparison': 'De vergelijking is tot het eind gemeten. Met de pijltoetsen staat “raming” bij de waarde van 2026, niet bij de maand.',
@@ -1080,11 +1094,13 @@ const chartSpecimen = (chart) => ({
       selectedId: chart.selectedId,
     }
     // A chart with links says under the tile where a click would go, and stays on this page. As a
-    // host would, it keeps the chosen mark and hands it back: the chart holds no selection itself.
+    // host would, it keeps the chosen mark and hands it back: the chart holds no selection itself,
+    // and a mark that chooses is a toggle, `null` while nothing is chosen.
     if (JSON.stringify(chart.spec).includes('"href"')) {
+      element.data = { ...element.data, selectedId: chart.selectedId ?? null }
       linkLog(stage, element, ['lintje-mark-select'])
       element.addEventListener('lintje-mark-select', (event) => {
-        element.data = { ...element.data, selectedId: event.detail.id ?? undefined }
+        element.data = { ...element.data, selectedId: event.detail.id ?? null }
       })
     }
     chart.setup?.(element)

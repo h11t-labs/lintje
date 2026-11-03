@@ -319,6 +319,23 @@ describe('a dumbbell row that drills', () => {
     expect(rows[1].classList).toContain('is-selected')
   })
 
+  it('rings a row without a drawn point round the whole row', () => {
+    const { host } = draw(
+      {
+        ...SPEC,
+        rows: [
+          { label: 'Utrecht', from: null, to: null, href: '?loket=Utrecht' },
+          ...SPEC.rows.slice(1),
+        ],
+      },
+      { onSelect: () => {} },
+    )
+    const [bare, drawn] = rowsOf(host)
+    expect(bare!.getAttribute('tabindex')).toBe('0')
+    expect(bare!.querySelector('rect.lintje-dumbbell__focus')).not.toBeNull()
+    expect(drawn!.querySelector('circle.lintje-dumbbell__focus')).not.toBeNull()
+  })
+
   it('is named first by what the row shows, its name and difference, then by the tooltip', () => {
     const { host, key, controller } = draw(
       { ...SPEC, rows: SPEC.rows.map((row) => ({ ...row, href: `?loket=${row.label}` })) },

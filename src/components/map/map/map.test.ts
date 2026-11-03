@@ -12,6 +12,7 @@
  */
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import './map'
+import { TOOL_HINTS } from '../../shared/charts/map-chart/map-chart'
 import { downloadCsv } from '../../shared/download'
 import { seriesColor } from '../../shared/charts/shared/colors'
 import { seriesShape, seriesShapePath } from '../../shared/charts/shared/series-shapes'
@@ -685,13 +686,22 @@ describe('lintje-map area', () => {
     ])
     expect(tools(one)[0].classList).not.toContain('lintje-map-chart__tool--menu')
     expect(tools(one)[0].hasAttribute('aria-haspopup')).toBe(false)
+    expect(tools(one)[0].getAttribute('aria-pressed')).toBe('false')
     expect(one.renderRoot.querySelector('lintje-popover')).toBeNull()
+    // One shape is a toggle that keeps its name, on and off.
+    tools(one)[0].click()
+    await one.updateComplete
+    expect(tools(one)[0].getAttribute('aria-pressed')).toBe('true')
+    expect(tools(one)[0].getAttribute('aria-label')).toBe('Selecteer met een cirkel')
+    tools(one)[0].click()
+    await one.updateComplete
 
     const element = await mapTile(tileData({ controls: { lasso: true, circle: true, rect: true } }))
     const [button] = tools(element)
     // No tool in hand: a select button, which opens the menu.
     expect(button.getAttribute('aria-label')).toBe('Selecteren')
-    expect(button.getAttribute('aria-pressed')).toBe('false')
+    // A menu button, never a toggle at once.
+    expect(button.hasAttribute('aria-pressed')).toBe(false)
     expect(button.classList).toContain('lintje-map-chart__tool--menu')
     expect(button.getAttribute('aria-haspopup')).toBe('menu')
     expect(button.getAttribute('aria-expanded')).toBe('false')
@@ -717,7 +727,7 @@ describe('lintje-map area', () => {
     // The menu closes; the circle is in hand: the button shows it, stops it, and the map draws.
     expect(rows(element)).toHaveLength(0)
     expect(tools(element)[0].getAttribute('aria-label')).toBe('Stop met selecteren')
-    expect(tools(element)[0].getAttribute('aria-pressed')).toBe('true')
+    expect(tools(element)[0].hasAttribute('aria-pressed')).toBe(false)
     expect(tools(element)[0].hasAttribute('aria-haspopup')).toBe(false)
     expect(tools(element)[0].classList).toContain('is-active')
     // The circle's own path, from `functioneel-cirkelselectie`.
@@ -882,6 +892,141 @@ describe('lintje-map area', () => {
     // The tool stays in hand after drawing; only the draft is gone.
     expect(tools(element)[0].getAttribute('aria-pressed')).toBe('true')
     expect(element.renderRoot.querySelector('.lintje-map-chart__region--draft')).toBeNull()
+  })
+
+  it('says how to draw in the way the reader works: with a pointer, or with the keys', async () => {
+    const element = await mapTile(tileData({ controls: { circle: true, rect: true } }))
+    const hint = () => element.renderRoot.querySelector('.lintje-map-chart__hint')?.textContent
+    await pickTool(element, 'Cirkel')
+    expect(hint()).toBe(TOOL_HINTS.circle.pointer)
+    expect(hint()).toBe(
+      'Sleep van het midden naar de rand, of klik het midden en dan de rand · Escape stopt',
+    )
+    // The keyboard's focus comes into the map: the keys' sentence.
+    const surface = element.renderRoot.querySelector<HTMLElement>('.leaflet-container')!
+    const matches = surface.matches.bind(surface)
+    surface.matches = ((selector: string) =>
+      selector === ':focus-visible' || matches(selector)) as typeof surface.matches
+    surface.dispatchEvent(new FocusEvent('focusin', { bubbles: true, composed: true }))
+    await element.updateComplete
+    expect(hint()).toBe(
+      'Pijltoetsen schuiven de kaart · Enter zet het midden, daarna de rand · Escape stopt',
+    )
+    surface.dispatchEvent(
+      new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: document.body }),
+    )
+    await element.updateComplete
+    expect(hint()).toBe(TOOL_HINTS.circle.pointer)
+    expect(TOOL_HINTS.rect).toEqual({
+      pointer: 'Sleep van hoek naar hoek, of klik twee hoeken · Escape stopt',
+      short: 'Sleep van hoek naar hoek',
+      keys: 'Pijltoetsen schuiven de kaart · Enter zet een hoek, daarna de andere · Escape stopt',
+    })
+  })
+
+  it('takes Escape smallest first: the drawing, then the tool, the focus to its button', async () => {
+    const element = await mapTile(tileData({ controls: { circle: true, rect: true } }))
+    await pickTool(element, 'Cirkel')
+    const press = presser(element)
+    press('pointerdown', 400, 200)
+    press('pointerup', 400, 200)
+    press('pointermove', 500, 260)
+    const draft = () => element.renderRoot.querySelector('.lintje-map-chart__region--draft')
+    expect(draft()).not.toBeNull()
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    const escape = () =>
+      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    escape()
+    await element.updateComplete
+    expect(draft()).toBeNull()
+    expect(tools(element)[0].classList).toContain('is-active')
+    escape()
+    await element.updateComplete
+    expect(tools(element)[0].classList).not.toContain('is-active')
+    expect(element.shadowRoot!.activeElement).toBe(tools(element)[0])
+  })
+
+  describe('a new area over one that stands', () => {
+    async function withArea() {
+      const element = await mapTile(tileData({ controls: { rect: true } }))
+      const areas: CustomEvent[] = []
+      element.addEventListener('lintje-area-select', (event) => areas.push(event as CustomEvent))
+      tools(element)[0].click()
+      await element.updateComplete
+      const press = presser(element)
+      press('pointerdown', 300, 100)
+      press('pointermove', 500, 300)
+      press('pointerup', 500, 300)
+      await element.updateComplete
+      const shown = panel(element)?.textContent?.replace(/\s+/g, ' ').trim()
+      return { element, areas, press, shown }
+    }
+    const outline = (element: MapTile) =>
+      element.renderRoot.querySelector(
+        'path.lintje-map-chart__region:not(.lintje-map-chart__region--draft)',
+      )
+    const draft = (element: MapTile) =>
+      element.renderRoot.querySelector('.lintje-map-chart__region--draft')
+    const escape = () =>
+      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+
+    it('lets the old one go the moment the new one begins, telling the host nothing', async () => {
+      const { element, areas, press, shown } = await withArea()
+      expect(areas).toHaveLength(1)
+      expect(shown).toContain('binnen de rechthoek')
+      expect(outline(element)).not.toBeNull()
+      press('pointerdown', 350, 150)
+      await element.updateComplete
+      expect(panel(element)).toBeNull()
+      expect(outline(element)).toBeNull()
+      press('pointermove', 450, 250)
+      expect(draft(element)).not.toBeNull()
+      expect(areas).toHaveLength(1)
+    })
+
+    it('sends one event, with the new area, once it is done', async () => {
+      const { element, areas, press } = await withArea()
+      const first = areas[0]!.detail.area
+      press('pointerdown', 350, 150)
+      press('pointermove', 450, 250)
+      press('pointerup', 450, 250)
+      await element.updateComplete
+      expect(areas).toHaveLength(2)
+      expect(areas[1]!.detail.area).not.toEqual(first)
+      expect(panel(element)).not.toBeNull()
+      expect(outline(element)).not.toBeNull()
+    })
+
+    it('brings the old one back as it was on Escape or a press taken back, and sends nothing', async () => {
+      const { element, areas, press, shown } = await withArea()
+      press('pointerdown', 350, 150)
+      press('pointermove', 450, 250)
+      escape()
+      await element.updateComplete
+      expect(draft(element)).toBeNull()
+      expect(panel(element)?.textContent?.replace(/\s+/g, ' ').trim()).toBe(shown)
+      expect(outline(element)).not.toBeNull()
+      press('pointerdown', 350, 150)
+      press('pointermove', 450, 250)
+      press('pointercancel', 450, 250)
+      await element.updateComplete
+      expect(draft(element)).toBeNull()
+      expect(panel(element)?.textContent?.replace(/\s+/g, ' ').trim()).toBe(shown)
+      expect(areas).toHaveLength(1)
+    })
+
+    it('does the same from the keyboard: Enter begins, Escape brings the old one back', async () => {
+      const { element, areas, shown } = await withArea()
+      const surface = element.renderRoot.querySelector<HTMLElement>('.leaflet-container')!
+      surface.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+      await element.updateComplete
+      expect(panel(element)).toBeNull()
+      expect(outline(element)).toBeNull()
+      escape()
+      await element.updateComplete
+      expect(panel(element)?.textContent?.replace(/\s+/g, ' ').trim()).toBe(shown)
+      expect(areas).toHaveLength(1)
+    })
   })
 
   it('draws a rectangle from corner to corner, as a lasso of four, and names it in the panel', async () => {

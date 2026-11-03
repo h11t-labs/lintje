@@ -179,9 +179,9 @@ describe('a forecast on the bar chart', () => {
         { label: 'laag – hoog', value: '15 – 21', note: true },
       ],
     })
-    // A forecast bar with a link is clickable like any bar.
+    // A forecast bar with a link is clickable like any bar: a link to its page.
     const bar = host.querySelectorAll('.lintje-chart__bar')[5]
-    expect(bar.getAttribute('role')).toBe('button')
+    expect(bar.getAttribute('role')).toBe('link')
     expect(bar.getAttribute('aria-label')).toBe('2026 raming: 20')
   })
 

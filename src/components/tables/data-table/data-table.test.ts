@@ -321,6 +321,42 @@ describe('a threshold cell', () => {
 })
 
 describe('a clickable row', () => {
+  it('has its name as its one Tab stop: a button without href, the chosen one current', async () => {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = { ...structuredClone(data), clickable: true, selectedId: 'Rotterdam' }
+    document.body.append(element)
+    await element.updateComplete
+    const clicks: unknown[] = []
+    element.addEventListener('lintje-row-click', (event) => clicks.push(event))
+    const rows = [
+      ...element.shadowRoot!.querySelectorAll<HTMLElement>(
+        '.lintje-data-table__full .lintje-data-table__row',
+      ),
+    ]
+    expect(rows).toHaveLength(2)
+    expect(rows.every((row) => !row.hasAttribute('tabindex'))).toBe(true)
+    expect(rows.every((row) => !row.hasAttribute('aria-selected'))).toBe(true)
+    // Utrecht, then the chosen Rotterdam.
+    const names = ['Utrecht', 'Rotterdam'].map((name) =>
+      rows
+        .find((row) => row.textContent?.includes(name))!
+        .querySelector<HTMLElement>('.lintje-data-table__open')!,
+    )
+    expect(names[0]!.tagName).toBe('BUTTON')
+    expect(names[0]!.hasAttribute('aria-current')).toBe(false)
+    expect(names[1]!.getAttribute('aria-current')).toBe('true')
+    // The button's click (Enter, space or a pointer) is the row's.
+    ;(names[0] as HTMLElement).click()
+    expect(clicks).toHaveLength(1)
+    const phone = [...element.shadowRoot!.querySelectorAll('.lintje-data-table__mobile-row')].find(
+      (row) => row.textContent?.includes('Rotterdam'),
+    )!
+    expect(phone.hasAttribute('tabindex')).toBe(false)
+    expect(phone.querySelector('.lintje-data-table__open')!.getAttribute('aria-current')).toBe(
+      'true',
+    )
+  })
+
   it('leaves Enter on the name button to that button', async () => {
     const element = document.createElement('lintje-data-table') as TableElement
     element.data = { ...structuredClone(data), clickable: true, openable: true }
@@ -335,11 +371,11 @@ describe('a clickable row', () => {
     open.dispatchEvent(enter)
     expect(enter.defaultPrevented).toBe(false)
     expect(clicks).toEqual([])
+    // The opener is the Tab stop; the row's own click is the pointer's.
     const row = element.shadowRoot!.querySelector<HTMLElement>('.lintje-data-table__full tbody tr')!
-    row.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
-    expect(clicks).toHaveLength(1)
+    expect(row.hasAttribute('tabindex')).toBe(false)
     const mobileRow = element.shadowRoot!.querySelector('.lintje-data-table__mobile-row')!
-    expect(mobileRow.getAttribute('aria-selected')).toBe('false')
+    expect(mobileRow.hasAttribute('aria-selected')).toBe(false)
   })
 })
 
@@ -369,15 +405,23 @@ describe('a row with an href', () => {
     return details
   }
 
-  it('goes there after lintje-row-click when nobody cancels it, by click and by Enter', async () => {
+  it('goes there after lintje-row-click when nobody cancels it, from the row and its name', async () => {
     const assign = stub()
     const element = await linked()
     const clicks = heard(element, 'lintje-row-click')
+    const navigations = heard(element, 'lintje-navigate')
     row(element, 'Utrecht').click()
     expect(clicks).toEqual([{ id: 'Utrecht', label: 'Utrecht', href: '?loket=utrecht' }])
     expect(assign).toHaveBeenCalledWith('?loket=utrecht')
-    row(element, 'Utrecht').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
-    expect(assign).toHaveBeenCalledTimes(2)
+    // The name is the row's link, the Tab stop: on it the browser follows the href itself.
+    const link = row(element, 'Utrecht').querySelector('a.lintje-data-table__open')!
+    expect(link.getAttribute('href')).toBe('?loket=utrecht')
+    const click = new MouseEvent('click', { bubbles: true, composed: true, cancelable: true })
+    link.dispatchEvent(click)
+    expect(clicks).toHaveLength(2)
+    expect(navigations).toHaveLength(2)
+    expect(click.defaultPrevented).toBe(false)
+    expect(assign).toHaveBeenCalledTimes(1)
   })
 
   it('stays when the host cancels the event', async () => {
@@ -386,6 +430,9 @@ describe('a row with an href', () => {
     element.addEventListener('lintje-row-click', (event) => event.preventDefault())
     row(element, 'Utrecht').click()
     expect(assign).not.toHaveBeenCalled()
+    const click = new MouseEvent('click', { bubbles: true, composed: true, cancelable: true })
+    row(element, 'Utrecht').querySelector('a')!.dispatchEvent(click)
+    expect(click.defaultPrevented).toBe(true)
   })
 
   it('opens it in a new tab on a modifier or middle click, without lintje-row-click', async () => {

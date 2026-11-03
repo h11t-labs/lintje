@@ -133,6 +133,7 @@ export function renderHeatmap(spec: HeatmapSpec, options: ChartOptions): Templat
                       type="button"
                       class="lintje-heatmap__cell lintje-heatmap__cell--class-${classes[klass].ramp} ${isSelected ? 'is-selected' : ''} ${isOff(klass) ? 'is-dimmed' : ''} ${mark.state}"
                       data-mark-id=${mark.markId}
+                      role=${mark.role === 'link' ? 'link' : nothing}
                       ${styleProps({
                         '--lintje-cell': classes[klass].color,
                         ...gridStaggerStyle(column, row, columnLabels.length, rowLabels.length),
