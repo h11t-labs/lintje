@@ -64,6 +64,11 @@
 @media (hover: none), screen and (max-width: 767px) {
   .lintje-attachment__name { display: block; white-space: normal; overflow-wrap: anywhere; }
 }
+/* On a phone a reason that does not fit beside the whole name goes under it, so the name never
+   breaks in a word for it. */
+@media screen and (max-width: 767px) {
+  .lintje-attachment__main { flex-wrap: wrap; }
+}
 /* A reason that does not fit beside the name wraps inside the chip (320 px), which grows. */
 .lintje-attachment__detail { flex: 0 1 auto; min-width: 0; color: var(--color-text-muted); }
 .lintje-attachment.is-error .lintje-attachment__detail { color: var(--color-error-text); }

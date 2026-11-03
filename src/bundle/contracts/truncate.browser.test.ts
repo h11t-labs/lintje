@@ -66,8 +66,6 @@ interface Row {
  * it matches an entry fails, so the fix takes its entry out.
  */
 const KNOWN: RegExp[] = [
-  // #252
-  /^lintje-attachment :: name$/,
 ]
 
 const LONG = 'Wijzigingen in de aanvraag opslaan en doorsturen naar de behandelaar van het loket'
