@@ -11,6 +11,22 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-11-03
+
+### Gewijzigd
+
+- Een stapel met meer dan vijf delen in één kleur vouwt de kleinste tot één "Overig" bovenop, zoals de taart; de tooltip noemt de gevouwen delen ingesprongen eronder, de CSV elk deel. (#290)
+- "Overig" van een taart, een stapel en de staaf van een sankey op een telefoon is de laatste, lichtste sport van de ladder van de variabele in plaats van grijs; heeft elk deel een eigen kleur, dan blijft het grijs. (#290)
+- `--color-chart-dark-yellow-text` heet `--color-chart-dark-yellow-edge`, zoals de andere randen; geel is nooit tekst. Een host die het oude token noemt, noemt het nieuwe. (#286)
+
+### Opgelost
+
+- Wat een handeling oplevert, klinkt ook zonder dat de focus verschuift: het eerste aantal van het zoekveld, de telling van een tabel na laden, "Pagina 3 van 7" van de paginering, een getekend gebied op de kaart, laden en fouten van een kerncijfer (één keer per rij), een document dat niet laadt, het leegmaken van het logvenster, de nieuwe zin van de filterbalk, een keuze in de treemap en een tweede mislukte bijlage in het gesprek. (#296)
+- Wat onder de muis verschijnt, blijft staan en gaat met Escape weg: de tooltip van een grafiek staat bij zijn teken en vangt de aanwijzer; een Escape die een tooltip, een uitleg of het tijdlabel van de speler wegdoet, sluit geen venster eromheen; de heatmap, het uitgeklapte zijmenu en een fragment in het transcript houden Escape bij het kleinste. (#294)
+- Kleur is nooit de enige drager, en tekst haalt 4,5:1: een kerncijfer zegt "Gunstig" of "Ongunstig" naast de pijl, een menu-item zonder pagina zegt zichtbaar "niet beschikbaar", een dubbel trefwoord staat in de voet van het veld, een zoekresultaat heeft een lijn eronder, een stapel en de sankey op een telefoon geven nooit twee delen dezelfde tint, en de regelnummers van een codeblok, een vervangen antwoord, de getallen van een uitgezette kaartlaag, het aandeel naast een sankeyknoop en een gedimd vlak van een treemap zijn leesbaar. (#290)
+- Randen, tekens en focusringen halen 3:1, ook in donker en in geforceerde kleuren: de foutrand van een veld, de ring van de bel, de gekozen logregel, de volumeschuif, de greep van een split pane, de schuifbalk van een tabel, het bolletje van een schakelaar, de stip van een afwijkend filter, vandaag in het maandraster, het lege vinkje, stromen en punten op de kaart, de raming, het halterdiagram, de stappen in het gesprek en drie RVO-iconen in donker. (#286)
+- Kaart, grafieken, tabel en logvenster werken met het toetsenbord, met de juiste rol en een klikdoel van 24 px: het logvenster is een raster met hetzelfde toetsenmodel in de vergroting; de naam van een klikbare tabelrij is haar Tab-stop; een kaartteken met focus toont zijn tooltip, met een vorm aan zet Enter een punt, zegt de aanwijzing hoe je tekent met de aanwijzer of met de toetsen, breekt Escape eerst een tekening af en legt daarna de vorm neer, en een nieuw gebied laat het oude meteen wegvallen (Escape zet het terug); een grafiekteken dat naar zijn pagina gaat, is een link; een smalle staaf, een dunne stroom, een taartpunt, een knoop van de sankey en een smal deel van de treemap zijn een vol doel; een gekozen cel of rij houdt de focusring. (#279)
+
 ## [0.13.0] - 2026-11-02
 
 ### Toegevoegd
@@ -767,7 +783,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.13.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.13.1...HEAD
+[0.13.1]: https://github.com/h11t-labs/lintje/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/h11t-labs/lintje/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/h11t-labs/lintje/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/h11t-labs/lintje/compare/v0.11.0...v0.12.0
