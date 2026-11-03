@@ -103,6 +103,9 @@ export class LintjeRadioGroup extends LintjeChoiceGroupElement {
     const other = this.drawsOther
     return html`<div
       class="lintje-field"
+      @pointerdown=${this.revealRow}
+      @keydown=${this.revealRow}
+      @focusin=${this.revealRow}
       role="radiogroup"
       aria-labelledby=${this.labelId}
       aria-describedby=${this.describedBy}

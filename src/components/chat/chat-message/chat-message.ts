@@ -70,10 +70,11 @@ export class LintjeChatMessage extends LintjeElement {
   private renderSent(): TemplateResult {
     const files = this.attachments ?? []
     const text = this.text !== ''
-    // The text comes first in the document and last on the line, so a screen reader reads it first.
+    // "Jij: " leads, before the files too. The text comes first in the document and last on the
+    // line, so a screen reader reads it before the edit button and the time.
     return html`${
       files.length
-        ? html`${text ? nothing : html`<span class="visually-hidden">Jij: </span>`}
+        ? html`<span class="visually-hidden">Jij: </span>
             <ul class="lintje-chat-message__attachments" aria-label="Bijlagen">
               ${files.map(
                 (file) => html`<li class="lintje-chat-message__attachment">
@@ -83,7 +84,11 @@ export class LintjeChatMessage extends LintjeElement {
             </ul>`
         : nothing
     }<div class="lintje-chat-message">
-      ${text ? html`<p class="lintje-chat-message__text">${this.renderText()}</p>` : nothing}
+      ${
+        text
+          ? html`<p class="lintje-chat-message__text">${this.renderText(files.length === 0)}</p>`
+          : nothing
+      }
       <div class="lintje-chat-message__meta">
         ${
           this.editable
@@ -102,7 +107,7 @@ export class LintjeChatMessage extends LintjeElement {
   }
 
   // No white space of the template's own: the bar keeps the reader's.
-  private renderText(): TemplateResult {
+  private renderText(speaker: boolean): TemplateResult {
     const parts = termParts(this.text, this.terms).map((part) =>
       part.term
         ? html`<span
@@ -115,7 +120,7 @@ export class LintjeChatMessage extends LintjeElement {
           >`
         : part.text,
     )
-    return html`<span class="visually-hidden">Jij: </span>${parts}`
+    return html`${speaker ? html`<span class="visually-hidden">Jij: </span>` : nothing}${parts}`
   }
 
   private renderEditing(): TemplateResult {

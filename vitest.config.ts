@@ -46,7 +46,11 @@ const unit = {
  * The files that need a window of their own: one looks at the registry of a page that loaded
  * nothing else, one mocks a module (`vi.mock`), which a module the cache already holds skips.
  */
-const FRESH_WINDOW = ['src/bundle/forms.test.ts', 'src/components/map/map/map.test.ts']
+const FRESH_WINDOW = [
+  'src/bundle/forms.test.ts',
+  'src/components/charts/chart/chart.test.ts',
+  'src/components/map/map/map.test.ts',
+]
 
 export default defineConfig({
   test: {

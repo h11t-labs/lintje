@@ -3,6 +3,8 @@
  * every choice question, its own checks at Volgende and Versturen, and one event with the answers
  * and the reader's message.
  */
+import { readFileSync } from 'node:fs'
+import { resolve as resolvePath } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { deepActiveElement } from '../../../core/focus'
 import { otherField } from '../../shared/controls'
@@ -124,6 +126,15 @@ describe('lintje-chat-questions, the short form', () => {
     expect(
       root(element).querySelector(`#${group.getAttribute('aria-labelledby')}`)?.textContent,
     ).toBe('Welke periode bedoel je?')
+    expect(group.hasAttribute('aria-describedby')).toBe(false)
+  })
+
+  it('describes its group with the hint', async () => {
+    const element = await mount({ questions: [{ ...SHORT, hint: 'Zonder keuze tel ik alles.' }] })
+    const group = root(element).querySelector('[role="group"]')!
+    expect(
+      root(element).querySelector(`#${group.getAttribute('aria-describedby')}`)?.textContent,
+    ).toBe('Zonder keuze tel ik alles.')
   })
 
   it('sends with one tap: the choice is the message', async () => {
@@ -232,13 +243,47 @@ describe('lintje-chat-questions, the steps', () => {
     const element = await mount({ questions: [PERIOD, PROVINCES] })
     button(element, 'next').click()
     await settle(element)
-    expect(control<LintjeRadioGroup>(element).error).toBe(
-      'Kies een periode. Zonder periode kan ik niet tellen.',
+    // Above the choices that scroll, so it stays in view with the focus on the first one.
+    const error = root(element).querySelector('.lintje-chat-questions__error')!
+    expect(error.textContent?.trim()).toBe('Kies een periode. Zonder periode kan ik niet tellen.')
+    expect(error.getAttribute('role')).toBe('alert')
+    expect(error.nextElementSibling?.classList.contains('lintje-chat-questions__choices')).toBe(
+      true,
     )
+    // The group says it with the focus, and draws no second one under its choices.
+    const group = control<LintjeRadioGroup>(element)
+    expect(group.error).toBeUndefined()
+    expect(group.description).toBe('Kies een periode. Zonder periode kan ik niet tellen.')
     expect(deepActiveElement()?.localName).toBe('input')
     choose(element, '2025')
     await settle(element)
-    expect(control<LintjeRadioGroup>(element).error).toBeUndefined()
+    expect(root(element).querySelector('.lintje-chat-questions__error')).toBeNull()
+    expect(control<LintjeRadioGroup>(element).description).toBeUndefined()
+  })
+
+  it('leaves the choices that scroll room for the focus ring, on their line', () => {
+    // Read from disk, not imported: vitest does not run the CSS pipeline.
+    const css = readFileSync(
+      resolvePath('src/components/chat/chat-questions/chat-questions.css'),
+      'utf8',
+    )
+    const choices = css.slice(css.indexOf('.lintje-chat-questions__choices {'))
+    expect(choices).toMatch(/^[^}]*padding: var\(--space-2\)/)
+    // Kept when the focus scrolls a choice or a field into view.
+    expect(choices).toMatch(/^[^}]*scroll-padding: var\(--space-2\)/)
+    expect(choices).toMatch(
+      /^[^}]*margin: calc\(var\(--space-2\) \* -1\) calc\(var\(--space-2\) \* -1\) 0/,
+    )
+  })
+
+  it('describes the group with the hint, which a reader hears with the focus', async () => {
+    const hint = 'Zonder keuze tel ik alle provincies.'
+    const element = await mount({ questions: [{ ...PROVINCES, hint }, PERIOD] })
+    const shown = root(element).querySelector('.lintje-chat-questions__hint')!
+    expect(shown.textContent).toBe(hint)
+    // Said once: by the group, not again by the line above it.
+    expect(shown.getAttribute('aria-hidden')).toBe('true')
+    expect(control<LintjeCheckboxGroup>(element).description).toBe(hint)
   })
 
   it('"Iets anders…" chosen and empty: OTHER_MISSING_TEXT under its field', async () => {
@@ -359,7 +404,12 @@ describe('lintje-chat-questions, the steps', () => {
     const element = await mount({ questions: [NOTE, PERIOD] })
     button(element, 'next').click()
     await settle(element)
-    expect(control<LintjeTextarea>(element).error).toBe('Vul een antwoord in.')
+    expect(root(element).querySelector('.lintje-chat-questions__error')?.textContent?.trim()).toBe(
+      'Vul een antwoord in.',
+    )
+    expect(control<LintjeTextarea>(element).description).toBe(
+      'Vul een antwoord in. Ctrl+Enter: volgende vraag.',
+    )
   })
 
   it('keeps the reader’s choices for new data with the same questions, and starts over for others', async () => {

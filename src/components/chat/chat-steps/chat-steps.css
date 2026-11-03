@@ -108,7 +108,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.lintje-chat-steps:focus-within .lintje-chat-steps__text { white-space: normal; overflow-wrap: anywhere; }
+/* Where it runs on, it is no longer cut, so it no longer clips a link's focus ring either. */
+.lintje-chat-steps:focus-within .lintje-chat-steps__text {
+  white-space: normal; overflow-wrap: anywhere;
+  overflow: visible;
+}
 .lintje-chat-steps__step.is-error .lintje-chat-steps__label { color: var(--color-error-text); }
 .lintje-chat-steps__detail { color: var(--color-text-muted); }
 .lintje-chat-steps__link { color: var(--color-link); text-decoration: underline; }
@@ -123,7 +127,7 @@
   .lintje-chat-steps__toggle { display: flex; width: 100%; min-height: var(--h-touch); }
   .lintje-chat-steps__toggle::after { inset: 0; }
   .lintje-chat-steps__toggle .lintje-chat-steps__chevron { margin-left: auto; }
-  .lintje-chat-steps__text { white-space: normal; overflow-wrap: anywhere; }
+  .lintje-chat-steps__text { white-space: normal; overflow-wrap: anywhere; overflow: visible; }
 }
 
 /* Forced colours drop fills, so the rail is drawn in the text colour. */

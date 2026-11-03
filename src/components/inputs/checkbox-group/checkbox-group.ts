@@ -75,6 +75,9 @@ export class LintjeCheckboxGroup extends LintjeChoiceGroupElement {
     const selected = this.selected ?? []
     return html`<div
       class="lintje-field"
+      @pointerdown=${this.revealRow}
+      @keydown=${this.revealRow}
+      @focusin=${this.revealRow}
       role="group"
       aria-labelledby=${this.labelId}
       aria-describedby=${this.describedBy}
