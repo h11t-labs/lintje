@@ -121,10 +121,7 @@ interface Row {
  * The rows that fail today, by `<tag> :: <marker>`; each has its GitHub issue above it. A
  * row that passes while it matches an entry fails, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = [
-  // #251
-  /^lintje-attachment :: a refused file keeps its reason and its cross inside the chip at 320 px$/,
-]
+const KNOWN: RegExp[] = []
 
 /* Helpers ----------------------------------------------------------------- */
 

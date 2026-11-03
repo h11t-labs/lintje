@@ -73,10 +73,7 @@ interface Row {
  * Rows that fail today: each entry has its GitHub issue above it and matches a row's name.
  * An entry whose row passes fails the last test, so the fix takes its entry out.
  */
-const KNOWN: RegExp[] = [
-  // #249
-  /^lintje-attachment :: "Opnieuw" in a chip without a cross/,
-]
+const KNOWN: RegExp[] = []
 const seen = new Set<RegExp>()
 let ran = 0
 
