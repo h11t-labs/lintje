@@ -292,6 +292,22 @@ describe('lintje-log-viewer menus', () => {
     expect(rows(element)).toHaveLength(5)
   })
 
+  it('says the cleared view and the lines shown again, each time', async () => {
+    const element = await mount()
+    choose(menus(element)[2]!, 'log:clear')
+    expect(await spoken(element)).toBe('Venster leeggemaakt, 4 regels verborgen')
+    const again = (): HTMLElement =>
+      [...root(element).querySelectorAll<HTMLElement>('lintje-button')].find((b) =>
+        b.textContent?.includes('Weer tonen'),
+      )!
+    again().click()
+    expect(await spoken(element)).toBe('4 regels weer getoond')
+    choose(menus(element)[2]!, 'log:clear')
+    await element.updateComplete
+    expect(status(element)).toBe('')
+    expect(await spoken(element)).toBe('Venster leeggemaakt, 4 regels verborgen')
+  })
+
   it('passes the host its own actions', async () => {
     const element = await mount({
       actions: [{ value: 'retry-import', label: 'Import opnieuw starten' }],
@@ -350,6 +366,42 @@ describe('lintje-log-viewer choosing a line', () => {
     await element.updateComplete
     expect(rows(element).at(-1)!.tabIndex).toBe(0)
     expect(foot(element)).toContain('Volgt de nieuwste regel')
+  })
+
+  it('is a grid of rows that say whether they are chosen', async () => {
+    const element = await mount({ selected: 'r2' })
+    const grid = root(element).querySelector('[role="grid"]')!
+    expect(grid.getAttribute('aria-label')).toBe('Importlog')
+    expect(rows(element).every((row) => row.getAttribute('role') === 'row')).toBe(true)
+    expect(rows(element).map((row) => row.getAttribute('aria-selected'))).toEqual([
+      'false',
+      'true',
+      'false',
+      'false',
+    ])
+    expect(rows(element)[0]!.querySelector('.lintje-log-viewer__time')?.getAttribute('role')).toBe(
+      'gridcell',
+    )
+  })
+
+  it('says the line the reader chose, and that the choice went', async () => {
+    const element = await mount()
+    element.addEventListener('lintje-log-select', (event) => {
+      element.data = { ...element.data!, selected: (event as CustomEvent<string | null>).detail }
+    })
+    press(rows(element).at(-1)!, 'Enter')
+    await element.updateComplete
+    expect(await spoken(element)).toBe('Regel van 14:03:24.000 gekozen')
+    root(element).querySelector<HTMLElement>('.lintje-log-viewer__foot lintje-icon-button')!.click()
+    await element.updateComplete
+    expect(await spoken(element)).toBe('Keuze opgeheven')
+  })
+
+  it('keeps quiet about a line the host chose', async () => {
+    const element = await mount()
+    element.data = { ...element.data!, selected: 'r2' }
+    await element.updateComplete
+    expect(await spoken(element)).toBe('')
   })
 
   it('shows the chosen line in the bar, and lets it go', async () => {

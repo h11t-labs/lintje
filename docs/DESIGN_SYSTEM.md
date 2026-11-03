@@ -150,9 +150,10 @@ contrastondergrenzen verschillen:
 
 In licht zijn alle drie de primaire kleur. De lijntint is per constructie 3:1, dus **een woord
 wordt nooit getekend in `--color-accent-line`**. Een lijn op een vlak dat lichter is dan het
-oppervlak (een gekozen rij, een actief menu-item, een term) neemt in donker de teksttint: de
-lijntint haalt alleen op het oppervlak 3:1. Daarvoor zijn er `--color-selected-edge`,
-`--color-nav-active-edge` en `--color-term-line`.
+oppervlak (een gekozen rij, een actief menu-item, een term, vandaag in een gekozen periode) neemt
+in donker de teksttint: de lijntint haalt alleen op het oppervlak 3:1. Daarvoor zijn er
+`--color-selected-edge`, `--color-nav-active-edge`, `--color-term-line` en
+`--color-today-in-range`.
 
 **Een tint voor de donkere modus tilt alleen de waargenomen lichtheid op** (OKLCH): hij houdt de
 eigen kleurtoon en chroma van de kleur, zodat hij leest als de primaire kleur, niet als
@@ -221,13 +222,14 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
   de rol van een reeks die in kleur niets draagt, zoals gelijkwaardige bronnen op een kaart: ze
   tekent datzelfde grijs en is nooit een nieuwe datakleur.
 - Vast is de kleur van een variabele. De grijzen (`--data-comparison`, `--data-other`), het
-  raster en de nadrukkleur volgen de modus; geel als tekst heeft een eigen token
-  (`--color-chart-dark-yellow-text`), omdat geel geen tekstkleur is. "Overig" is in donker zo
-  licht dat bijna-zwart erop 4.5:1 haalt, en een label op de rest van een geheel (`remainder`)
-  neemt de tekstkleur.
-- **Een lichte kleur krijgt als lijn of teken een rand in haar eigen donkere kleur**, zodat ze in
-  licht 3:1 haalt op het oppervlak en op het land van de kaart; in donker smelt de rand weg in de
-  kleur. Een vlak krijgt geen rand.
+  raster en de nadrukkleur volgen de modus. **Geel is nooit tekst.** Het grijs van "Overig"
+  (`--data-other`, in een treemap en bij de sprekers) is in donker zo licht dat bijna-zwart erop
+  4.5:1 haalt, en een label op de rest van een geheel (`remainder`) neemt de tekstkleur.
+- **Een lichte kleur krijgt als lijn of teken een rand in haar eigen donkere kleur**
+  (`--color-chart-<kleur>-edge`; die van donkergeel is een eigen donker goud), zodat ze in licht
+  3:1 haalt op het oppervlak en op het land van de kaart; in donker smelt de rand weg in de kleur
+  en ligt het land op het oppervlak, zodat een kleur daar leest als op een tegel. Een vlak krijgt
+  geen rand.
 - Elke datakleur heeft de tintladder van de Rijkshuisstijl. Een component leest er een van twee
   benoemde reeksen uit — *onderverdelingen van één variabele* (donkerste eerst) en *ordinale
   klassen* (lichtste eerst) — nooit direct een sport. Een kleur waar een animatie naartoe loopt,
@@ -238,6 +240,16 @@ letter of naar domein: welke variabele hemelblauw is, beslist de pagina.
 - **De onderverdelingen spreiden over de ladder met hun aantal** (`tintsFor`): twee buren op de
   ladder lezen naast elkaar als één kleur, dus twee delen nemen de eerste en de vierde sport, vijf
   de hele ladder. Nooit lichter dan het aantal vraagt.
+- **Geen twee delen van één variabele krijgen dezelfde tint.** Zijn er meer dan vijf, dan houden
+  een taart, een stapel en de staaf van een sankey op een telefoon de vier grootste en vouwen ze de
+  rest tot één "Overig"; een stapel houdt daarbij haar volgorde, met "Overig" bovenop. De tooltip
+  noemt de gevouwen delen, ingesprongen onder "Overig" en zonder vakje, de CSV elk deel.
+- **"Overig" is het laatste lid van de set van de variabele.** De delen en "Overig" spreiden samen
+  over de ladder, en "Overig" neemt de laatste, lichtste sport: vier delen en "Overig" de hele
+  ladder, twee delen en "Overig" de eerste, tweede en vierde. Dat geldt voor wat vouwt, voor het
+  eigen "Overig" van de host en voor `color: 'other'`; een andere kleur die de host een deel geeft,
+  wint. Heeft elk deel een eigen kleur, dan is er geen ladder en blijft "Overig" grijs, zoals in
+  een treemap, waar "Overig" delen in verschillende kleuren verzamelt.
 - Categorische kleuren alleen als de variabelen echt verschillende dingen zijn.
 - **De sprekers van een opname zijn categorisch**: ze nemen hemelblauw, donkergeel, roze,
   mintgroen, violet en groen in volgorde van eerste optreden, daarna het grijs van "overig".
@@ -455,7 +467,8 @@ Besluiten die voor beide gelden:
 - **Tabs komen in twee vormen.** Een rij boven de inhoud, de gekozen tab onderstreept; en grote
   tabs boven een omrand paneel, voor de paar modi waartussen een hele pagina wisselt: elk met een
   icoon en een hint, waarbij het eigen oppervlak van het paneel doorloopt in de gekozen, zonder
-  lijn. Op een telefoon zet de grote tab zijn icoon boven zijn label en laat hij de hint weg.
+  lijn. Op een telefoon zet de grote tab zijn icoon boven zijn label; de hint blijft eronder
+  staan, op elke breedte, en breekt af waar de ruimte op is.
 - **Een submenu is de side navigation van de huisstijl** (`lintje-sub-nav`): links in de
   linkkleur zonder rand, de pagina van de lezer vet op de waas van de primaire kleur, een rij
   onder de aanwijzer gevuld in de primaire kleur met wit erop, groepen gescheiden door ruimte,
@@ -531,7 +544,8 @@ De besluiten hieronder gelden voor alle elementen.
   veld voor een schermlezer. Eén knop in een veld is een secundaire knop aan het eind, zoals
   Tonen bij een wachtwoord; hij legt eerst vast wat getypt is, zoals Enter.
 - **Een schakelaar is alleen voor direct effect**, nooit in een formulier. Uit is zijn baan
-  gevuld in het grijs van de veldrand, niet bleek met een ring: de vulling alleen haalt 3:1.
+  gevuld in het grijs van de veldrand, niet bleek met een ring: de vulling alleen haalt 3:1. Aan
+  is het bolletje de inhoud op de primaire vulling, zodat zijn plaats ook in donker 3:1 haalt.
 - **Een instelling is een rij**: de naam in normaal gewicht en de uitleg eronder links, het
   bedieningselement rechts (`layout="row"`); de kop van de sectie erboven is de vette. De rij
   leest haar eigen breedte, dus ze stapelt op een telefoon en in een lade evengoed. Een instelling
@@ -598,8 +612,9 @@ De besluiten hieronder gelden voor alle elementen.
   namelijk" staat als laatste, en gekozen staat er een tekstveld onder, ingesprongen tot de lijn
   van de labels, zodat het leest als het vervolg van de keuze. Nooit een los veld van de host onder
   de groep. De tekst is een waarde naast de keuze (`<name>-other`) die blijft staan als de keuze
-  weggaat, en de host controleert hem zoals elk veld. Een filter, een rij knoppen en kaarten hebben
-  geen eigen antwoord.
+  weggaat, en de host controleert hem zoals elk veld. Gekozen houdt de optie de focus en is het veld
+  de volgende Tab-stop; het veld zegt alleen met `aria-required` dat het ingevuld moet worden, zodat
+  het geen formulier tegenhoudt. Een filter, een rij knoppen en kaarten hebben geen eigen antwoord.
 - **Een tijd voor een afspraak is een optie in een dag** (`lintje-slot-picker`): de dagen naast
   elkaar, elke tijd een optie, de gekozen rustig zoals in een rij opties. Een optie die niet
   beschikbaar is, verdwijnt niet: ze blijft staan, uitgeschakeld, met het woord erbij ("Vol").
@@ -704,6 +719,9 @@ De besluiten hieronder gelden voor alle elementen.
   de lijst. Het element gaat via `lintje-navigate`, zodat een router het overneemt; een selectie
   ongedaan maken gaat zo naar de `clearHref`. Een klik met een modificatietoets of de middelste
   knop opent de `href` in een nieuw tabblad, zoals een link, via `lintje-navigate` met `newTab`.
+  Zo'n teken in een grafiek heet daarom een link, ook bij een host die het event annuleert om zelf
+  te routeren; alleen waar de host de keuze bijhoudt (`selectedId`, ook `null`) kiest het, en is
+  het een wisselknop met `aria-pressed`.
 - **Toetsen lopen via één register** (`src/core/shortcuts.ts`). Een toets is nooit de enige manier
   om iets te doen, en een toets zonder modificatietoets gaat nooit af zolang de focus in een veld
   staat. De eigen toetsen van een speler (spatie, de pijlen, F, C) werken alleen zolang de focus
@@ -712,7 +730,9 @@ De besluiten hieronder gelden voor alle elementen.
   `components/shared/key.css`. Een host tekent hem met `<lintje-key>`, één element per toets; een
   combinatie is twee toetsen naast elkaar.
 - **Escape sluit wat open is**, en in een popover alleen de popover. Een toast sluit met Escape
-  alleen vanuit zichzelf: een Escape elders is niet de zijne. Of er een dialoog boven een open
+  alleen vanuit zichzelf: een Escape elders is niet de zijne. Escape is eerst van het kleinste:
+  wat een Escape al beantwoordde (`preventDefault`), zoals een tooltip, een uitleg of een
+  bewerking ter plekke, sluit geen venster eromheen. Of er een dialoog boven een open
   popup staat, volgt uit de focus: Escape blijft ongemoeid zolang de focus in een
   `aria-modal="true"` staat waar de popup niet in zit. Een dialoog zet dus `aria-modal` en
   neemt de focus bij het openen; één die dat niet doet, telt niet mee.
@@ -797,6 +817,9 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een rij is klikbaar of selecteerbaar**, nooit allebei. Een naam die zijn rij opent, maakt de
   rij niet klikbaar: de naam is de link, dus een selecteerbare tabel kan zijn rijen nog steeds
   openen. Een naam die opent, wordt niet in zijn cel bewerkt.
+- **De naam van een klikbare rij is haar Tab-stop**, zoals de titel in de werklijst: een link met
+  de `href` van de rij, anders een knop, met `aria-current` op de gekozen rij. De rij zelf houdt
+  haar klik voor de aanwijzer, op een telefoon ook.
 - **Rijacties zijn een rustige ⋮**: plat, zonder vak. Een vak in elke rij weegt zwaarder dan de
   data ernaast.
 - **Op een applicatiepagina staat een tabel op de pagina**, zonder tegel: de kop of tab van de
@@ -811,7 +834,8 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een kolom kan haar waarden afkappen** (`truncate`): één regel met een beletselteken, zo breed
   als haar langste waarde tot een grens, zodat één lange toelichting de tabel niet breder maakt.
   Zoals elke afgekapte tekst staat de hele waarde in de tooltip en loopt ze door onder de focus
-  van het toetsenbord en zonder hover; onder 768 px kapt niets af.
+  van het toetsenbord en zonder hover; een rij zonder bediening krijgt daarvoor zelf
+  toetsenbordfocus. Onder 768 px kapt niets af.
 - **Een verandering kan alleen haar pijltje tonen** (`change-compact`): ▲ ▼ ● in de kleur van de
   verandering, voor een smalle kolom. Wat het oog ziet en wat een schermlezer hoort, zijn dan twee
   kopieën: de getekende is verborgen voor de schermlezer, een visueel verborgen kopie draagt de
@@ -916,10 +940,16 @@ De besluiten hieronder gelden voor alle elementen.
   suggestie is gestreept: iets wat de lezer zou kunnen vragen. Een vraag van de assistent wacht
   op antwoord en staat in de vragenlijst, waar de lezer antwoordt (`lintje-chat-questions`), in
   hetzelfde kader als het tikveld. Het tikveld blijft eronder werken: een nieuwe vraag slaat de
-  open vragen over, en pas versturen doet dat, nooit het openklappen ervan.
+  open vragen over, en pas versturen doet dat, nooit het openklappen ervan. Komen de vragen
+  terwijl de lezer al een volgende vraag typt, dan blijft de focus in het tikveld, dat ook op een
+  telefoon open blijft, en zegt alleen de statusregel dat de assistent iets vraagt: een spatie zou
+  anders een keuze versturen.
 - **Het antwoord van de lezer is altijd zijn bericht.** Wat hij in de vragenlijst koos, staat in
   het gesprek als een gewoon bericht van hem, één regel per vraag, zodat het gesprek leest zoals
   het ging en hij het kan bewerken zoals elke vraag.
+- **Wat een bewerking vervangt, zegt dat in een woord en vervaagt niet**: boven het eerste
+  antwoord dat vervangen wordt staat "Wordt vervangen", en de antwoorden staan op volle sterkte,
+  zodat de lezer nagaat wat hij vervangt; hun bediening werkt niet (`inert`).
 - **"Iets anders" staat altijd in een vraag van de assistent**: de lezer zit nooit vast aan de
   opties die de assistent bedacht. Het is de `other` van de keuzegroepen, ook in de korte vorm.
 - **Een bestand in het gesprek is een bijlage** (`lintje-attachment`), in het vraagvak, het
@@ -969,8 +999,9 @@ balk is de knop, met het aantal aangepaste filters en een pijl, dus de header he
 knop "Filters". Op elke breedte plakt de zin bij het scrollen direct onder de balk van de shell,
 en de shell houdt zijn hoogte vrij boven de focus.
 
-**De pijl van een KPI draagt de richting; de kleur bevestigt die alleen.** Waar stijgen slecht is,
-draait de kleur om en de pijl niet.
+**De pijl van een KPI draagt de richting, het woord het oordeel; de kleur bevestigt ze alleen.**
+Naast de pijl staat "Gunstig" of "Ongunstig" in de tekstkleur, één keer gezegd. Waar stijgen slecht
+is, draaien woord en kleur om en de pijl niet.
 
 **Het verloop in een KPI is een lijn met haar vlak, zonder assen** (`sparkline`): de eigen
 waarden van de variabele, dus in haar kleur, met het vlak eronder zoals de lijngrafiek het tekent,
@@ -1012,17 +1043,24 @@ de stijlgids. Past geen soort, dan is het een tabel.
   kaart of een diagram. De tooltip en de CSV geven de cijfers; een tabel die de lezer nodig heeft,
   staat apart.
 - **Hover verandert nooit de lengte die de waarde draagt.**
+- **De tooltip staat vast bij zijn teken**, op de plek die het toetsenbord gebruikt, nooit bij de
+  aanwijzer en nooit over zijn eigen teken, en hij verandert pas als de aanwijzer een ander teken
+  aanwijst. Hij vangt de aanwijzer: hij blijft staan zolang die op het teken of op de tooltip
+  staat, en op weg erheen mag de aanwijzer over een buur gaan. Escape haalt hem weg zonder de
+  focus te verplaatsen. Op een aanraakscherm laat hij een tik door naar het teken eronder.
 - **Een taart rangschikt en vouwt zelf.** Haar delen zijn de onderverdelingen van één variabele:
   de kleur van de spec, of hemelblauw. Het grootste deel is het donkerste, in welke volgorde de
-  host ze ook stuurt, en de tinten spreiden over de ladder met het aantal delen. Meer dan vijf
-  delen worden vier en één grijs "Overig" dat niet klikbaar is: een samengevoegd stuk heeft geen
-  plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) zijn geen delen; ze
-  staan achteraan, de rest het lichtst. De legendatabel volgt de getekende volgorde; zonder
+  host ze ook stuurt, en de tinten spreiden over de ladder met het aantal delen en "Overig". Meer
+  dan vijf delen worden vier en één "Overig" dat niet klikbaar is: een samengevoegd stuk heeft geen
+  plek om naartoe te gaan. "Overig" en de rest van een geheel (`remainder`) staan achteraan:
+  "Overig" in de laatste sport, de rest in haar eigen lichtgrijs. De legendatabel volgt de getekende volgorde; zonder
   legendatabel staat de gewone legenda boven de tekening, een item per deel en geen schakelaar.
 - **Een treemap vouwt op aandeel, niet op aantal.** Ze toont veel delen en hun onderdelen in één
   vlak, dus een deel blijft staan zolang het telt: wat onder 1 % van het geheel blijft, wordt
   samen één grijs "Overig" dat niet klikbaar is, ook binnen een deel, en één klein deel blijft
-  zichzelf. De CSV noemt elk samengevoegd deel apart. Het geheel is het kader: de legenda draagt
+  zichzelf. De CSV noemt elk samengevoegd deel apart. Een aandeel is er een in het geheel, ook bij
+  een onderdeel in de rijen op een telefoon; alleen de tooltip noemt daarnaast dat in zijn deel.
+  Het geheel is het kader: de legenda draagt
   alleen de sleutels en schakelt niets uit, en de grafiek noemt zelf het totaal van wat getekend
   is en wat daarin ontbreekt.
 - **Onderdelen van een deel delen zijn tint.** Een eigen tint zou een tweede variabele
@@ -1096,9 +1134,13 @@ dat: gestreept blijft van vergelijking en drempel. Een geraamde staaf is open, e
 hoverpunt ook, en de tooltip en de CSV noemen elk geraamd punt zo. De marge rond een raming vult
 alleen bij één reeks, of bij de reeks die de lezer in de legenda aanwijst, om dezelfde reden als
 bij het spinnendiagram. Met een raming heeft de grafiek één grens: de lijn tussen gemeten en
-geraamd, met beide woorden erboven en het geraamde deel op een eigen ondergrond. Een lopende
-periode wordt dan niet gearceerd of afgekapt; de host laat haar weg of rekent haar tot de raming.
-Een vergelijking heeft geen raming: haar waarden zijn gemeten.
+geraamd, met beide woorden erboven en het geraamde deel op een eigen ondergrond, in donker onder
+het oppervlak, zodat de stippels er 3:1 houden. Past het woord van de raming niet rechts van de
+lijn, dan staat het een regel hoger, nooit over de lijn of over "Gemeten". Een lopende periode
+wordt dan niet gearceerd of afgekapt; de host laat haar weg of rekent haar tot de raming. Een
+vergelijking heeft geen raming: haar waarden zijn gemeten. Een schermlezer hoort dat ook: de naam
+van de tekening zegt waar het meten ophoudt, zoals ze haar gebeurtenissen noemt, en "raming"
+staat bij elke geraamde waarde, niet bij de categorie.
 
 **Gebeurtenissen.** Wat er op een moment gebeurde, is een genummerd vierkantje boven zijn
 categorie met een doorgetrokken lijn tot de nullijn, apart van de gestreepte peilmomentlijn; de
@@ -1165,8 +1207,9 @@ blijft hij in de hand, een nieuw gebied vervangt het vorige, en hij gaat pas nee
 de knop, Escape of de reset. Eén vorm is een knop die hem opneemt en neerlegt; bij twee of meer
 is het een selectieknop met een hoekje rechtsonder, en opent een klik het menu van de vormen — de
 laatst gebruikte aangevinkt en gefocust, zodat Enter meteen verder gaat. Met een vorm in de hand
-toont de knop die vorm, primair gekleurd zoals een icoonknop die aanstaat, en heet hij "Stop met
-selecteren". De knoppen staan rechtsboven,
+toont de knop die vorm, primair gekleurd zoals een icoonknop die aanstaat. De selectieknop heet dan
+"Stop met selecteren" en is een gewone knop, nooit tegelijk wisselknop en menuknop; één vorm is
+een wisselknop die zijn naam houdt. De knoppen staan rechtsboven,
 ook op een telefoon alle, op de aanraakmaat op een hogere kaart: knijpen is een gebaar met twee
 vingers en uitzoomen moet ook met één. De schaalbalk staat rechtsonder, zonder kader, op een
 ondergrond op het oppervlak boven de bronvermelding: een ronde afstand en daarnaast een beugel
@@ -1181,8 +1224,16 @@ beide uiteinden en zijn boog. Wat de rand raakt, telt niet mee, en tijdens het t
 wat erin zou vallen. De kaart stuurt het gebied en de ids — een rechthoek als lasso van vier
 hoeken, want in Mercator is een rechthoek op het scherm er een in graden —, en de host bewaart
 het gebied in de URL zoals elk filter. Het gebied blijft staan tot de lezer het wegklikt, ook
-naast een gekozen mark. Wie niet sleept, tekent met klikken; onderaan staat hoe, per vorm, zolang
-de vorm in de hand is; Escape legt haar neer. De resetknop zet de kaart terug: het hele gebied in beeld en niets
+naast een gekozen mark. Begint de lezer een nieuw gebied, dan valt het oude met zijn paneel
+meteen weg, zonder dat de host het hoort; Escape of een druk die de browser terugneemt, zet het
+terug zoals het was, en de host hoort alleen het nieuwe gebied. Wie niet sleept, tekent met klikken. Met het toetsenbord zet Enter of spatie op de kaart een
+punt in het midden van het zicht, onder een kruisje, en schuiven de pijltoetsen de kaart eronder:
+een rechthoek is twee punten, een cirkel een midden en een rand, en een lasso sluit met Enter op
+zijn eerste punt. Onderaan staat hoe, per vorm, zolang de vorm in de hand is, in de manier waarop
+de lezer werkt: met de aanwijzer, of met de toetsen zolang de focus van het toetsenbord in de kaart
+staat. Escape is eerst van het kleinste: het breekt een tekening af, en anders legt het de vorm
+neer, met de focus op haar knop. Die Escape is van de kaart zolang de focus in de kaart of nergens
+staat. De resetknop zet de kaart terug: het hele gebied in beeld en niets
 gekozen.
 
 **Leaflet draagt de kaart, het design system tekent de data.** Projectie, verslepen, zoomen en
@@ -1216,7 +1267,11 @@ een balk, en halen hun aanwijsdoel via het klikgebied in de richting waar ze rui
 
 ## Responsief gedrag
 
-Vier breedtes zijn ontworpen en getest: desktop (vanaf 1440), 1024, 768 en 390 px.
+Vier breedtes zijn ontworpen en getest: desktop (vanaf 1440), 1024, 768 en 390 px. Daaronder
+herschikt alles tot 320 px breed, en tot 320 × 256 (400 % zoom, een telefoon dwars), zonder iets
+te verliezen en zonder zijwaarts te scrollen (1.4.10): een lange titel breekt af, een rij knoppen
+of een telling loopt door naar een volgende regel, en een element dat zijn eigen plek meet (de
+tabel, het zoekveld, de segmenten) neemt daar een smallere vorm.
 
 **Onder 768 px wisselt een onderdeel van vorm; het stapelt niet alleen.** Dat geldt voor de
 navigatie (een balk bovenaan, het menu als blad van onderen), de filters (een blad), de KPI-rij, de tabel
@@ -1236,7 +1291,9 @@ van de shell, de lijst van de meldingen — en geeft de focus aan zijn knop als 
 zoals de bel.
 
 **Bij weinig hoogte plakt de actiebalk van een formulier niet**: onder een viewporthoogte van
-30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10).
+30 rem — een telefoon dwars, 400 % zoom — staat hij na het laatste veld (1.4.10). Onder dezelfde
+grens plakken de vragen en het vraagvak van een gesprek niet, en scrolt een klein venster als
+geheel, met zijn kop en alle knoppen.
 
 **Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame nadat die veranderde.**
 Zo verandert zijn maat nooit in de ronde van zijn waarnemer, die de browser anders als fout van de
@@ -1328,9 +1385,13 @@ kleinste correctie, en leg die hier vast.
 - **Een veld is verplicht tenzij het anders zegt**: de optionele zijn gemarkeerd, "(niet
   verplicht)", binnen het label. Geen sterretje.
 - **Eén `h1` per pagina**: de naam van de shell, ook onder 768 px. Een paginatitel is een `h2`,
-  die van een tegel een `h3` ([Een eerste pagina](guides/start.md)).
+  die van een tegel en het label van een kerncijfer een `h3` ([Een eerste pagina](guides/start.md)).
 - **Geforceerde kleuren zijn het palet van de lezer, geen thema**: een component tekent alleen
-  opnieuw wat een vulling of een schaduw droeg, in systeemkleuren.
+  opnieuw wat een vulling of een schaduw droeg, in systeemkleuren: een knop die aan staat een
+  rand in `Highlight`, een icoon uit een bestand de tekstkleur van zijn ouder.
+- **De foutrand van een veld neemt `--color-error-line`**, net als een ander foutteken: in de
+  foutstaat is die rand de enige omtrek van het veld, en `--color-error` haalt in donker geen 3:1.
+  Die rode vulling blijft voor wat er witte inhoud op zet, zoals een badge.
 - Elke grafiek heeft een `<desc>`, elke tabel een `<caption>`.
 - **Wat vaak verandert, wordt niet uit de lijst zelf voorgelezen.** Streamende tekst, een
   takenlijst en een waarde die optelt, worden uitgesproken vanuit een live-regio ernaast, in hele
@@ -1342,6 +1403,8 @@ kleinste correctie, en leg die hier vast.
 - Tekst die met CSS `content` getekend wordt (een regelnummer, een placeholder), heeft een leeg
   alternatief, `content: … / ''`; wat een lezer ervan moet horen, staat in de markup
   (`aria-placeholder`).
+- **Een lijst zonder opsommingsteken zegt `role="list"`**, tenzij ze in een `nav` staat:
+  `base.css` haalt de tekens van elke lijst, en WebKit noemt haar dan geen lijst meer.
 - **Tekst die met een beletselteken is afgekapt, staat nooit alleen in een tooltip**: waar geen
   aanwijzer hem toont — onder 768 px, zonder hover, onder de focus van het toetsenbord — loopt hij
   door op een volgende regel. Tekst die geen focus kan krijgen en geen tooltip heeft, kapt nooit
@@ -1357,7 +1420,10 @@ kleinste correctie, en leg die hier vast.
   waar hij vandaan kwam (anders `<main>`), een gesloten mededeling naar de volgende stop op de
   pagina, "Alles gelezen" naar de eerste melding. Een element dat leeg raakt en zelf niets
   zichtbaars overhoudt, vraagt eerst de host met een event dat hij annuleert om de focus op zijn
-  eigen doel te zetten; anders gaat de focus naar de statusregel die zegt dat het leeg is.
+  eigen doel te zetten; anders gaat de focus naar de statusregel die zegt dat het leeg is. Een
+  venster waarvan de opener weg is, geeft de focus bij het sluiten aan `<main>` van de shell,
+  zoals de skiplink (`focusContent()`). Zonder genoemde buur gaat de focus naar de volgende stop na
+  wat verdwijnt, nooit naar `body` (`passFocus()`).
 - **Een sessie die verloopt, waarschuwt minstens 20 seconden vooraf** en wordt met één knop
   verlengd (WCAG 2.2.1): in een `lintje-dialog alert persistent`, waarin Escape en de achtergrond
   niets doen omdat de sessie hoe dan ook afloopt.
@@ -1372,7 +1438,19 @@ kleinste correctie, en leg die hier vast.
 - **De popup van een veld sluit als de focus het veld verlaat**, zodat hij nooit het volgende veld
   bedekt; gesloten met Escape of met zijn eigen actie, geeft hij de focus terug aan het veld.
 - De optie waarop de toetsen van een lijst staan (`aria-activedescendant`), draagt de focusring
-  binnen haar rij: haar vulling alleen haalt ongeveer 1.1:1.
+  binnen haar rij: haar vulling alleen haalt ongeveer 1.1:1. Ook een aanvulling in het vraagvak;
+  een rij onder de aanwijzer houdt alleen de vulling.
+- **Een scrollvak dat het toetsenbord moet bereiken, is een Tab-stop met een rol en een naam**
+  (2.1.1): Safari geeft een scroller er zelf geen. Een codeblok heet "Codeblok", ook een `pre` in
+  de html van `lintje-prose`; een tegel die zelf scrolt, draagt haar titel. De ring staat erbinnen.
+- **De focusring is aan alle vier de kanten heel**: een scrollvak houdt de ring van wat erin staat
+  vrij, en een deel dat tegen zijn buur ligt (een segment, een helft van een gesplitste knop) ligt
+  met de focus boven die buur. Bij twee handvatten op één balk staat de ring om het handvat met de
+  focus, niet om de balk.
+- **Een lijst losse tekstlinks heeft doelen van minstens 24 px** (2.5.8), in de voet en in de
+  foutsamenvatting: zo'n link staat niet in een zin.
+- **Een dag die niet gekozen mag worden, kiest na een klik niets, maar wordt de Tab-stop**: de
+  pijltoetsen rekenen vanaf de dag met de focus (2.4.3).
 - **Een mark van een grafiek of kaart tekent na een klik geen kader.** Chromium geeft een
   SVG-element met `tabindex` zijn eigen outline, ook zonder `:focus-visible`; `:focus` zet die af,
   en de ring blijft die van het toetsenbord.
@@ -1387,9 +1465,12 @@ kleinste correctie, en leg die hier vast.
   melding (de foutsamenvatting is een groep met haar kop als naam); een tweede kopie van een
   tegel begint met een lege regio; een naam bevat niet de waarde die het element ook als waarde
   zegt.
-- **Wat niet geopend kan worden, zegt dat in woorden**: een menurij zonder pagina of toegang
-  draagt een verborgen "niet beschikbaar" of "geen toegang"; `aria-disabled` op een gewoon element
-  zegt niets.
+- **Wat niet geopend kan worden, zegt dat in woorden die je ziet**: een menurij zonder pagina
+  zegt "niet beschikbaar" in kleine tekst onder het label, in het zijmenu, het telefoonmenu en een
+  submenu; een rij zonder toegang heeft overal het slotje. Alleen in de navigatiebalk is een item
+  zonder pagina enkel gedempt: woorden ernaast maakten de balk onrustig. Een schermlezer hoort het
+  één keer; in de balk en in de ingeklapte rail is het verborgen tekst. `aria-disabled` op een
+  gewoon element zegt niets.
 - **De naam van een bedieningselement is wat je ziet, en het zegt zijn staat één keer** (2.5.3):
   zijn woord, of de naam in zijn logo, zonder `aria-label` dat het vervangt en zonder tooltip die
   het herhaalt. Alleen wat geen woord toont, een icoon of een logo zonder naam, krijgt een naam in
@@ -1413,7 +1494,9 @@ kleinste correctie, en leg die hier vast.
 - **Onder 768 px houdt de tabel elke kolom binnen bereik** (1.4.10): een rij toont haar identiteit
   en één meetwaarde, haar rijmenu, en een knop die de andere kolommen eronder opent als
   beschrijvingslijst; "Sorteren" sorteert op elke kolom. Een cel bewerken blijft voor de bredere
-  tabel.
+  tabel. De naam neemt wat de meetwaarde en de knoppen overlaten, maar nooit minder dan ongeveer
+  tien tekens of zijn langste woord: een woord breekt niet af. Past de tabel dan niet in zijn
+  tegel, dan scrolt hij daarin zijwaarts, zoals de brede tabel.
 - **Een vastgeplakte balk bedekt nooit de focus** (2.4.11): de actiebalk van het formulier
   reserveert zijn hoogte als `scroll-padding-bottom` van de scroller, en de foutsamenvatting
   scrolt een veld naar het midden. Een element waar de focus toch onder belandt, scrollen de
@@ -1423,13 +1506,19 @@ kleinste correctie, en leg die hier vast.
 - **Een grafiek is ook met het toetsenbord te lezen.** Haar tekening neemt de focus en de
   pijltoetsen lopen langs de categorieën met de tooltip, die een live-regio uitspreekt; Escape
   verbergt een tooltip. De tekening is een afbeelding, of een groep met haar beschrijving als naam
-  zodra een teken een knop is. Een teken met focus krijgt zijn ring buiten een opening van 1 px in
+  zodra een teken een knop is; in een groep zijn de getekende namen en getallen verborgen voor
+  een schermlezer, want de knoppen zeggen ze al. Een teken met focus krijgt zijn ring buiten een opening van 1 px in
   het oppervlak, zodat een oranje teken zijn ring houdt; op een kaart, waar tekens elkaar raken,
-  ligt het met die ring boven alle andere. De nullijn, de arcering en de rand van
+  ligt het met die ring boven alle andere en toont het de tooltip van de aanwijzer, bij het teken. De nullijn, de arcering en de rand van
   een kaartgebied met een cijfer halen 3:1; aangrenzende tinten worden gescheiden door een lijn in
-  het oppervlak; een donkergele lijn krijgt een rand in zijn tekstkleur; een label op een vulling
+  het oppervlak; een donkergele lijn krijgt een rand in haar donkere goud; een label op een vulling
   neemt de tekstkleur van die vulling; een gedimd teken of een uitgeschakelde reeks vervaagt zijn
-  kleur, nooit zijn woorden.
+  kleur, nooit zijn woorden of de ring van de focus.
+- **Een teken dat doorklikt, is een vol aanwijsdoel** (2.5.8), zonder dat de tekening verandert:
+  een tik naast een smal teken kiest het dichtstbijzijnde binnen een halve `--h-target`, in het
+  spreidingsdiagram en tussen de staven; een stroom op de kaart vangt de aanwijzer op een
+  onzichtbare lijn van `--h-target-text`; de rij in de legendatabel van een taart opent wat haar
+  punt opent. Een gekozen cel tekent haar keuze binnen de cel, zodat de focusring erover blijft.
 - **Een entiteitendiagram is één Tab-stop met zijn teller erna**: de gekozen knoop, anders het
   middelpunt. De pijlen gaan naar de buur die het meest in hun richting ligt, Home naar het
   middelpunt, Enter kiest en Escape maakt het ongedaan. Elke knoop is een knop met haar naam en
@@ -1440,10 +1529,11 @@ kleinste correctie, en leg die hier vast.
   dat zou haar naam onder de ondergrens brengen.
 - **Een label op een vulling neemt de inkt die op die sport van de ladder 4.5:1 haalt**, wit of
   bijna-zwart, uit één tabel per kleur en per sport. Een sport waar geen van beide dat haalt,
-  draagt geen label: de tooltip en de CSV noemen het.
-  Waar een label op een band ligt (de rechte strook na een middelste stap van een sankey), wordt
-  gedempte tekst de gewone tekstkleur zodra die band nadruk krijgt: op de sterkere tint haalt
-  gedempt geen 4.5:1.
+  draagt geen label: de tooltip en de CSV noemen het. Een gedimde sport heeft een tweede tabel,
+  één inkt voor beide modi: de tekstkleur, anders bijna-zwart, anders geen label.
+  Waar een label op een band ligt (de rechte strook na een middelste stap van een sankey), neemt
+  het aandeel altijd de gewone tekstkleur: op de tint van een lichte band haalt gedempt geen
+  4.5:1.
 - **Een bewerking ter plekke houdt haar toetsen**: Enter en Escape tellen alleen in haar veld,
   niet op haar knoppen, en haar Escape beëindigt de bewerking en verder niets. Beëindigd, geeft
   ze de focus aan haar rij of cel.
@@ -1476,11 +1566,11 @@ kleinste correctie, en leg die hier vast.
 [Donker](#donker)); `--color-link-on-status`; de lijnkleur van een statusteken (`--color-*-line`),
 de statuskleur bijgesteld naar 3:1 op haar eigen tint; de tekstkleur van een statuswoord
 (`--color-error-text`, `--color-success-text`), bijgesteld naar 4.5:1 — lichter in donker, het
-groen ook donkerder in licht; de eigen tekstkleur van donkergeel; de donkere rand van een lichte
-datakleur als lijn of teken; tekst op de sequentiële reeks
-vast op bijna-zwart of wit in beide modi; de tekst van het omgevingslabel is bijna-zwart waar wit
-op het accent geen 4.5:1 haalt; geel is nooit een lijn of tekst: een los teken in de
-toon "let op" neemt de lijnkleur van "aandacht", en een gele vulling staat alleen naast een woord.
+groen ook donkerder in licht; de donkere rand van een lichte datakleur als lijn of teken; tekst
+op de sequentiële reeks vast op bijna-zwart of wit in beide modi; de tekst van het omgevingslabel
+is bijna-zwart waar wit op het accent geen 4.5:1 haalt; geel is nooit een lijn of tekst: een los
+teken in de toon "let op" neemt de lijnkleur van "aandacht", en een gele vulling staat alleen
+naast een woord.
 
 **Geaccepteerde tekortkomingen.** Geen ervan draagt op zichzelf betekenis; elk gaat samen met een
 glyph, een getal of een woord.

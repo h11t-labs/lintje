@@ -10,10 +10,17 @@ import { html, svg, nothing, type TemplateResult } from 'lit'
 import { keyed } from 'lit/directives/keyed.js'
 import { ref } from 'lit/directives/ref.js'
 import { styleProps } from '../../../../core/style-props'
+import { lengthPx } from '../../../../core/length'
 import { formatNumber, formatPercent, textWidth, type TextFont } from '../../../../core/format'
 import { renderIcon } from '../../../../icons/render'
 import { isDataColor } from '../../../../tokens/colors'
-import { chartColor, DEFAULT_SERIES_COLOR, insideLabelClass, labelInk } from '../shared/colors'
+import {
+  chartColor,
+  DEFAULT_SERIES_COLOR,
+  dimmedLabelInk,
+  insideLabelClass,
+  labelInk,
+} from '../shared/colors'
 import { drawingRole, focusRingStyle, renderFocusRing, renderLegend } from '../shared/axes'
 import type { LegendItem, SvgSlot } from '../shared/axes'
 import { renderTooltip } from '../shared/tooltip'
@@ -58,6 +65,8 @@ interface Context {
   options: ChartOptions
   colors: string[]
   inks: (string | null)[]
+  /** The class of a label on a dimmed area, or null where it carries none. */
+  dimmedInks: (string | null)[]
   marks: MarkAttributes[]
   format: (value: number) => string
   withUnit: (value: number) => string
@@ -82,6 +91,12 @@ export function renderTreemapChart(spec: TreemapSpec, options: ChartOptions): Te
     if (group.other || spec.dataLabels === false) return null
     const ink = labelInk(named, steps[Math.min(group.rank, steps.length - 1)])
     return ink ? insideLabelClass(ink) : null
+  })
+  // Dimmed, the area is lighter in light and darker in dark: its own table, the same in both.
+  const dimmedInks = groups.map((group) => {
+    if (group.other) return null
+    const ink = dimmedLabelInk(named, steps[Math.min(group.rank, steps.length - 1)])
+    return ink === 'text' ? 'lintje-treemap__label--muted' : ink ? insideLabelClass(ink) : null
   })
   const links = groups.map((group) =>
     group.href && !group.other ? { id: group.id, href: group.href } : null,
@@ -129,6 +144,7 @@ export function renderTreemapChart(spec: TreemapSpec, options: ChartOptions): Te
     options,
     colors,
     inks,
+    dimmedInks,
     marks,
     format,
     withUnit,
@@ -140,7 +156,12 @@ export function renderTreemapChart(spec: TreemapSpec, options: ChartOptions): Te
   return html`
     <div class="lintje-chart-wrap lintje-treemap ${spec.small ? 'lintje-chart--small' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
-         @keydown=${(event: KeyboardEvent) => controller.dismiss(event) || selection.escape(event)}>
+         @keydown=${(event: KeyboardEvent) => {
+           if (controller.dismiss(event)) return
+           const clearing = event.key === 'Escape' && selection.active != null
+           selection.escape(event)
+           if (clearing) controller.sayStatus('Keuze opgeheven')
+         }}>
       ${legend.length ? renderLegend({ items: legend }) : nothing}
       <p class="lintje-treemap__total">${totalLine}</p>
       ${options.mobile ? drawRows(context) : drawMap(context, selection.interactive)}
@@ -292,19 +313,63 @@ function cellsOf(context: Context, width: number, height: number, font: TextFont
   })
 }
 
-/** The label of a cell: white or ink as its step says, the text colour once dimmed. */
-function renderLabel(cell: Cell, ink: string | null, muted: boolean): SvgSlot {
-  if (!ink || !cell.lines.length) return nothing
+/**
+ * The label of a cell: white or ink as its step says; dimmed, the ink that reaches 4.5:1 on the
+ * dimmed step, or none.
+ */
+function renderLabel(
+  cell: Cell,
+  ink: string | null,
+  dimmed: string | null,
+  muted: boolean,
+): SvgSlot {
+  const drawn = muted ? dimmed : ink
+  if (!ink || !drawn || !cell.lines.length) return nothing
   return cell.lines.map(
     ({ text, x, y, line }) => svg`<text x=${x} y=${y}
       class="lintje-chart__data-label lintje-treemap__label lintje-treemap__label--${line.size} ${
         line.bold ? 'lintje-treemap__label--bold' : ''
-      } ${muted ? 'lintje-treemap__label--muted' : ink}">${text}</text>`,
+      } ${drawn}">${text}</text>`,
   )
 }
 
+/**
+ * The part a click at a point chooses over the one under it: a clickable part thinner than `size`
+ * takes `size` across its thin side, centred on it, over its neighbours (WCAG 2.5.8), and the
+ * nearest of two such wins. `null` leaves the click to the part under the pointer.
+ */
+export function thinPartAt(
+  boxes: TreemapRect[],
+  clickable: boolean[],
+  x: number,
+  y: number,
+  size: number,
+): number | null {
+  const grown = (start: number, length: number): [number, number] =>
+    length >= size
+      ? [start, start + length]
+      : [start + length / 2 - size / 2, start + length / 2 + size / 2]
+  let best: number | null = null
+  let distance = Infinity
+  boxes.forEach((box, g) => {
+    if (!clickable[g] || (box.width >= size && box.height >= size)) return
+    const [x0, x1] = grown(box.x, box.width)
+    const [y0, y1] = grown(box.y, box.height)
+    if (x < x0 || x > x1 || y < y0 || y > y1) return
+    const d = Math.hypot(
+      Math.max(box.x - x, 0, x - box.x - box.width),
+      Math.max(box.y - y, 0, y - box.y - box.height),
+    )
+    if (d < distance) {
+      best = g
+      distance = d
+    }
+  })
+  return best
+}
+
 function drawMap(context: Context, interactive: boolean): TemplateResult {
-  const { spec, model, options, inks, marks } = context
+  const { spec, model, options, inks, dimmedInks, marks } = context
   const { controller, description } = options
   const id = controller.id
   controller.measure({
@@ -339,30 +404,41 @@ function drawMap(context: Context, interactive: boolean): TemplateResult {
     if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget) {
       const cell = index == null ? undefined : cells[index]
       const choose = cell ? marks[cell.group].keydown : undefined
-      if (typeof choose === 'function') choose(event)
+      if (typeof choose !== 'function') return
+      choose(event)
+      // The outline is seen; the choice is said, as the focus stays on the drawing.
+      const chosen = marks[cell!.group].state.includes('is-selected')
+      controller.sayStatus(
+        chosen ? 'Keuze opgeheven' : `${model.groups[cell!.group]!.label} gekozen`,
+      )
       return
     }
     keys.keydown(event)
   }
-  const hover = (event: MouseEvent, i: number) => {
-    if (controller.hoverIndex === i && controller.tooltip) return
-    const drawing = (event.currentTarget as SVGElement).ownerSVGElement
-    if (!drawing) return
-    const point = at(i)
-    const anchor = drawing.closest('[data-tooltip-anchor]')
+  const hover = (event: MouseEvent, i: number) => keys.point(event, i)
+  const leave = keys.leave
+  // Heard before the part under the pointer: a thin part beside it may take the click.
+  const clickable = model.groups.map((_, g) => marks[g].clickable)
+  const thin = (event: MouseEvent) => {
+    const drawing = event.currentTarget as SVGSVGElement
+    const matrix = drawing.getScreenCTM?.()
     const box = drawing.getBoundingClientRect()
-    const origin = anchor?.getBoundingClientRect() ?? box
-    controller.hoverIndex = i
-    controller.showTooltipAt(
-      box.left - origin.left + point.x,
-      box.top - origin.top + point.y,
-      point.content,
-      point.side,
+    const point = matrix
+      ? new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse())
+      : { x: event.clientX - box.left, y: event.clientY - box.top }
+    const g = thinPartAt(
+      boxes,
+      clickable,
+      point.x,
+      point.y,
+      lengthPx(drawing, '--h-target-text', 24),
     )
-  }
-  const leave = () => {
-    if (controller.hoverIndex == null) return
-    controller.hoverAt(null)
+    const under = (event.target as Element).closest?.('[data-part-id]')
+    if (g == null || under?.getAttribute('data-part-id') === model.groups[g]!.id) return
+    const click = marks[g]!.click
+    if (click === nothing) return
+    event.stopPropagation()
+    click(event)
   }
 
   const active = controller.hoverIndex != null ? cells[controller.hoverIndex] : undefined
@@ -373,7 +449,7 @@ function drawMap(context: Context, interactive: boolean): TemplateResult {
     <g class="${className} ${muted(cell.group) ? 'is-muted' : ''}" aria-hidden="true">
       <rect class="lintje-treemap__ground" x=${cell.rect.x} y=${cell.rect.y}
             width=${cell.rect.width} height=${cell.rect.height} />
-      ${area(cell)}${renderLabel(cell, inks[cell.group], muted(cell.group))}
+      ${area(cell)}${renderLabel(cell, inks[cell.group], dimmedInks[cell.group], muted(cell.group))}
     </g>`
   const chosen = model.groups.findIndex((_, g) => marks[g].state.includes('is-selected'))
   // A new data set draws in again; a hover keeps the nodes.
@@ -384,7 +460,8 @@ function drawMap(context: Context, interactive: boolean): TemplateResult {
       <svg viewBox="0 0 ${width} ${height}" width=${width} height=${height}
            class="lintje-chart__svg lintje-treemap__svg" ${styleProps({ height: `${height}px`, ...focusRingStyle(id) })}
            role=${drawingRole(interactive)} aria-labelledby="${id}-desc" tabindex="0"
-           @keydown=${keydown} @focus=${keys.focus} @blur=${keys.blur} @mouseleave=${leave}>
+           @keydown=${keydown} @focus=${keys.focus} @blur=${keys.blur} @mouseleave=${leave}
+           @click=${{ handleEvent: thin, capture: true }} @auxclick=${{ handleEvent: thin, capture: true }}>
         <desc id="${id}-desc">${description}</desc>
         <defs>${renderFocusRing(id)}</defs>
         ${keyed(
@@ -407,7 +484,7 @@ function drawMap(context: Context, interactive: boolean): TemplateResult {
           })}
           <!-- The labels apart from the parts: a part's name as a button is its own sentence. -->
           <g class="lintje-treemap__labels" aria-hidden="true">
-            ${cells.map((cell) => renderLabel(cell, inks[cell.group], muted(cell.group)))}
+            ${cells.map((cell) => renderLabel(cell, inks[cell.group], dimmedInks[cell.group], muted(cell.group)))}
           </g>`,
         )}
         <!-- The line between parts, on their border, over the areas on both sides of it. -->
@@ -492,13 +569,14 @@ function drawRows(context: Context): TemplateResult {
         }
         ${
           mark.clickable
-            ? html`<button type="button" class="lintje-treemap__part lintje-treemap__part--button" aria-pressed=${mark.pressed}
-                    @click=${mark.click}>${body}</button>`
+            ? html`<button type="button" class="lintje-treemap__part lintje-treemap__part--button"
+                    role=${mark.role === 'link' ? 'link' : nothing} aria-pressed=${mark.pressed}
+                    data-mark-id=${mark.markId} @click=${mark.click}>${body}</button>`
             : html`<div class="lintje-treemap__part">${body}</div>`
         }
         ${
           nested && open
-            ? html`<ul class="lintje-treemap__subs" id=${subsId}>
+            ? html`<ul class="lintje-treemap__subs" role="list" id=${subsId}>
                 ${group.areas.map(
                   (
                     area,
@@ -509,7 +587,8 @@ function drawRows(context: Context): TemplateResult {
                         : nothing
                     }</span>
                     <span class="lintje-treemap__amount">${format(area.value)}</span>
-                    <span class="lintje-treemap__share">${share(area.value, group.value)}</span>
+                    <!-- In the total, as in the part's row and the CSV: one column, one share. -->
+                    <span class="lintje-treemap__share">${share(area.value)}</span>
                     ${bar(area.value, area.other ? 'var(--color-chart-other)' : variable, true)}
                   </li>`,
                 )}
@@ -544,6 +623,6 @@ function drawRows(context: Context): TemplateResult {
       <desc id="${id}-desc">${description}</desc>
       ${keyed(JSON.stringify(spec.parts), svg`${pieces}`)}
     </svg>
-    <ul class="lintje-treemap__rows ${model.nested ? '' : 'lintje-treemap__rows--flat'}">${rows}${missing}</ul>
+    <ul class="lintje-treemap__rows ${model.nested ? '' : 'lintje-treemap__rows--flat'}" role="list">${rows}${missing}</ul>
   `
 }

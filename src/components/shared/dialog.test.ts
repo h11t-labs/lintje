@@ -98,3 +98,19 @@ describe('DialogHold Escape', () => {
     expect(onEscape).not.toHaveBeenCalled()
   })
 })
+
+describe('DialogHold and an Escape already answered', () => {
+  it('stays open on an Escape something inside prevented', () => {
+    const onEscape = vi.fn()
+    const container = box('field')
+    hold(onEscape).hold(container, { focus: true })
+    const field = container.querySelector<HTMLElement>('#field')!
+    field.addEventListener('keydown', (event) => event.preventDefault())
+    field.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+    )
+    expect(onEscape).not.toHaveBeenCalled()
+    escape()
+    expect(onEscape).toHaveBeenCalledTimes(1)
+  })
+})

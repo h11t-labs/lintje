@@ -134,6 +134,8 @@
   padding-inline: var(--space-5);
   color: var(--color-nav-text);
 }
+/* The check takes the menu's ink: the accent it has in a menu is the theme fill it stands on here. */
+.lintje-user-menu__panel.is-inline .lintje-menu__check { color: var(--color-nav-text); }
 .lintje-user-menu__panel.is-inline .lintje-menu__row:hover,
 .lintje-user-menu__panel.is-inline .lintje-user-menu__logout-button:hover { background: var(--color-nav-hover); }
 .lintje-user-menu__panel.is-inline .lintje-menu__row.is-disabled,

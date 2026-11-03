@@ -36,7 +36,9 @@ want de elementen lezen ze daar: `applySettings` in de
 Jij declareert de filters (`FilterDefinition` in `src/types.ts`) en `lintje-filter-bar` tekent
 ze, met de "Je ziet"-zin opgebouwd uit hun waarden. `lintje-values-change` draagt
 `{ key: value, … }` wanneer filters vastleggen: zet elke waarde in zijn filter, teken opnieuw en bewaar haar
-in de URL. `lintje-filters-open-change` meldt dat de lezer de balk in- of uitklapte: bewaar het en zet
+in de URL. Komt je nieuwe `data` binnen, dan zegt de balk de nieuwe zin in een live-regio ("Je ziet:
+Periode Deze week · Regio Noord."), zodat een lezer die niet kijkt hoort dat de cijfers veranderd
+zijn; een tabel of kaartenlijst zegt daarna zelf hoeveel rijen er over zijn. `lintje-filters-open-change` meldt dat de lezer de balk in- of uitklapte: bewaar het en zet
 het terug als `data.open`.
 
 Zet **één** filterbalk op een pagina: twee zouden allebei eigenaar zijn van het aantal filters, de paginanaam en de
@@ -117,6 +119,8 @@ en de `<caption>` van de tabel. Schrijf ze alsof de figuur er niet was.
 <!doctype html>
 <html lang="nl" data-mode="light" data-theme="rijksoverheid">
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Overzicht — Dashboard Vergunningen</title>
   <link rel="stylesheet" href="./dist-elements/fonts.css" /> <!-- with fonts/ beside it -->
   <link rel="stylesheet" href="./dist-elements/tokens.css" />
   <!-- the body block of theming.md -->

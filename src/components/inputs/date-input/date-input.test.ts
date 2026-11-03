@@ -71,6 +71,27 @@ describe('lintje-date-input', () => {
     expect(looseSeen.values).toEqual([])
   })
 
+  it.each(['03102026', '031026'])(
+    'reads %s, typed on a number pad without a dash, as the day',
+    async (text) => {
+      const element = await mount()
+      const seen = listen(element)
+      await type(element, text)
+      expect(control(element).value).toBe('03-10-2026')
+      expect(seen.local).toEqual(['2026-10-03'])
+      expect(element.shadowRoot!.querySelector('.lintje-field__hint')!.textContent).toBe(
+        'dd-mm-jjjj',
+      )
+    },
+  )
+
+  it('says off to autocomplete, unless the host names what the day is', async () => {
+    const plain = await mount()
+    expect(control(plain).getAttribute('autocomplete')).toBe('off')
+    const birthday = await mount({ autocomplete: 'bday' })
+    expect(control(birthday).getAttribute('autocomplete')).toBe('bday')
+  })
+
   it('sends null for an emptied field', async () => {
     const element = await mount({ value: '2026-10-03' })
     const seen = listen(element)
@@ -268,22 +289,18 @@ describe('the calendar', () => {
         await element.updateComplete
         return event
       }
-      // A click focuses a blocked day without moving the tab stop: the key acts on that day.
+      // A click on a blocked day (past `max`) picks nothing, but makes it the tab stop.
       cell(element, 24).click()
-      const onBlocked = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true })
-      cell(element, 24).dispatchEvent(onBlocked)
       await element.updateComplete
-      expect(onBlocked.defaultPrevented).toBe(true)
-      expect(seen.local).toEqual([])
-      expect(element.open).toBe(true)
-      await press('ArrowDown')
-      await press('ArrowDown')
-      // The 24th is past `max`: the key reaches it, and picks nothing.
-      await press('ArrowDown')
       expect(cell(element, 24).getAttribute('aria-disabled')).toBe('true')
+      expect(cell(element, 24).getAttribute('tabindex')).toBe('0')
       expect((await press(key)).defaultPrevented).toBe(true)
       expect(seen.local).toEqual([])
       expect(element.open).toBe(true)
+      // The arrows go on from there.
+      await press('ArrowRight')
+      expect(cell(element, 25).getAttribute('tabindex')).toBe('0')
+      await press('ArrowLeft')
       await press('ArrowUp')
       await press(key)
       expect(seen.local).toEqual(['2026-10-17'])

@@ -11,6 +11,7 @@ import { renderTooltip } from '../shared/tooltip'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { layerMotion, layerWeights } from '../shared/layer-motion'
 import { markSelection } from '../shared/mark-select'
+import { nearestHit, type MarkBox } from '../shared/nearest-mark'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import type { ChartSpec } from '../shared/types'
 
@@ -87,13 +88,14 @@ export function renderGroupedBarChart(spec: GroupedBarSpec, options: ChartOption
     content: contentAt(i),
   }))
 
+  const boxes: MarkBox[] = []
   const marks: SvgSlot = labels.map((label, i) => {
     const group = band(i, labels.length, area)
     return svg`
       <g class="lintje-chart__bar-group ${controller.hoverIndex === i ? 'is-hovered' : ''}"
          ${styleProps(staggerStyle(i, labels.length))}
-         @mousemove=${(event: MouseEvent) => controller.showTooltip(event, contentAt(i))}
-         @mouseleave=${() => controller.hideTooltip()}>
+         @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+         @mouseleave=${keys.leave}>
         ${series.map((row, j) => {
           const value = row.values[i]
           const y = yPosition(value, max, area)
@@ -107,6 +109,7 @@ export function renderGroupedBarChart(spec: GroupedBarSpec, options: ChartOption
                 `${label} · ${row.label}`,
                 `${label}, ${row.label}: ${formatNumber(value)}`,
               )
+          boxes.push({ x, y, width, height: Math.max(0, baseline - y), mark })
           return svg`
             <g>
               <rect class="lintje-chart__bar lintje-chart__mark ${mark?.state ?? ''}"
@@ -148,7 +151,7 @@ export function renderGroupedBarChart(spec: GroupedBarSpec, options: ChartOption
           interactive: selection.interactive,
           keys,
         },
-        svg`<g ${ref(motion.attach)}>${marks}</g>`,
+        nearestHit(area, boxes, svg`<g ${ref(motion.attach)}>${marks}</g>`),
       )}
       ${renderTooltip(controller)}
       ${renderPlotStatus(controller)}

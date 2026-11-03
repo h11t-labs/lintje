@@ -136,10 +136,12 @@ export function renderFunnel(
     </button>`
 }
 
+/** `nameId` is the column name above the field: the group of its options takes it as its name. */
 export function renderFilterField(
   column: TableColumnData,
   value: FilterValue | undefined,
   onChange: (value: FilterValue) => void,
+  nameId?: string,
 ): TemplateResult {
   if (column.filter?.kind === 'text') {
     return html`<input
@@ -151,7 +153,11 @@ export function renderFilterField(
     />`
   }
   const checked = new Set(Array.isArray(value) ? value : [])
-  return html`<div class="lintje-data-table__filter-options">
+  return html`<div
+    class="lintje-data-table__filter-options"
+    role=${nameId ? 'group' : nothing}
+    aria-labelledby=${nameId ?? nothing}
+  >
     ${(column.filter?.options ?? []).map(
       (option) => html`<label class="lintje-choice lintje-data-table__filter-option">
         <input
@@ -204,8 +210,8 @@ export function renderFilterPopover(options: {
     }}
   >
     <div class="lintje-data-table__filter-panel">
-      <div class="lintje-data-table__filter-name">${column.header}</div>
-      ${renderFilterField(column, options.draft, options.onDraft)}
+      <div id="lintje-data-table-filter-name" class="lintje-data-table__filter-name">${column.header}</div>
+      ${renderFilterField(column, options.draft, options.onDraft, 'lintje-data-table-filter-name')}
       <div class="lintje-data-table__filter-actions">
         <lintje-button variant="tertiary" size="compact" @click=${options.onClear}>Wissen</lintje-button>
         <lintje-button variant="primary" size="compact" @click=${options.onApply}>Toepassen</lintje-button>
@@ -232,10 +238,15 @@ export function renderFiltersSheet(options: {
     }}
   >
     ${options.columns.map(
-      (column) => html`<section class="lintje-data-table__filter-section">
-        <div class="lintje-data-table__filter-name">${column.header}</div>
-        ${renderFilterField(column, options.draft[column.key], (value) =>
-          options.onDraft(column.key, value),
+      (column, index) => html`<section class="lintje-data-table__filter-section">
+        <div id="lintje-data-table-filter-${index}" class="lintje-data-table__filter-name">
+          ${column.header}
+        </div>
+        ${renderFilterField(
+          column,
+          options.draft[column.key],
+          (value) => options.onDraft(column.key, value),
+          `lintje-data-table-filter-${index}`,
         )}
       </section>`,
     )}

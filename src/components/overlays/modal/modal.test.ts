@@ -78,6 +78,19 @@ describe('lintje-modal', () => {
     expect(modal.shadowRoot!.querySelector('[role="dialog"]')!.getAttribute('aria-label')).toBe(
       'Venster',
     )
+    // Without a title there is no empty heading.
+    expect(modal.shadowRoot!.querySelector('h2')).toBeNull()
+  })
+
+  it('draws its title as a heading, and names each download by its word first', async () => {
+    await open()
+    expect(modal.shadowRoot!.querySelector('h2')?.textContent).toBe('Aanvragen per uur')
+    const buttons = [...modal.shadowRoot!.querySelectorAll('lintje-button')]
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual(['CSV', 'PNG'])
+    const names = buttons.map((button) =>
+      button.shadowRoot!.querySelector('button')!.getAttribute('aria-label'),
+    )
+    expect(names).toEqual(['CSV downloaden', 'PNG downloaden'])
   })
 })
 

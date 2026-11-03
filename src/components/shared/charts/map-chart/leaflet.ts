@@ -10,10 +10,12 @@ import { nothing as nothingTemplate, render } from 'lit'
 import type { ChartController } from '../shared/controller'
 import type { Mode } from '../../../../core/element'
 import { prefersReducedMotion } from '../../../../core/motion'
+import { ownsEscape, standsIn } from '../../../../core/focus'
 import { clearance, hidden, keyboardFocus, overlayBoxes, REVEAL_MARGIN, type Box } from './reveal'
 import { mapDrawings, type MapDrawing } from './drawings'
 import {
   FIXED_RADIUS,
+  markTip,
   renderData,
   renderRegion,
   type LandShape,
@@ -48,6 +50,17 @@ const DRAG_SLACK = 4
 
 /** A lasso point closer than this to the first closes the ring, in px. */
 const CLOSE_PX = 10
+
+/** The element with the focus, through every shadow root; an svg mark too. */
+function focusedElement(): Element | null {
+  let element: Element | null = document.activeElement
+  try {
+    while (element?.shadowRoot?.activeElement) element = element.shadowRoot.activeElement
+  } catch {
+    // happy-dom's `ShadowRoot.activeElement` throws while a focus event is being dispatched.
+  }
+  return element
+}
 
 /**
  * A symbol's place in the group, as CSS: a transform property, not the attribute, so that a zoom
@@ -114,6 +127,10 @@ export interface LeafletSyncOptions {
   /** The drawing tool that is on, and what a finished area goes to. */
   tool: MapTool | null
   drawn: (area: MapArea) => void
+  /** A new area begins: the one standing steps aside, until the new one is done or undone. */
+  drawStart: () => void
+  /** The new area was undone or chose nothing: the one that stood comes back. */
+  drawCancel: () => void
   /** Escape with no area being drawn: the tool goes off. */
   stopTool: () => void
   /** Panning with the mouse, and zooming by double click and pinch; the host may switch them off. */
@@ -168,8 +185,13 @@ export class LeafletSurface {
   #attribution: L.Control.Attribution | null = null
   /** The design system's own group in Leaflet's svg, holding the whole drawing. */
   #group: SVGGElement | null = null
-  /** A copy of the focused mark over the drawing, so nothing drawn after it covers its ring. */
+  /**
+   * Copies of the marks that stand out, over the drawing: the chosen areas, the one under the
+   * pointer and the focused mark, so nothing drawn after them covers their outline or ring.
+   */
   #focusGroup: SVGGElement | null = null
+  /** The area under the pointer. */
+  #hovered: Element | null = null
   /** The area being drawn, over the drawing, placed as it is. */
   #draftGroup: SVGGElement | null = null
   #draft: {
@@ -179,7 +201,11 @@ export class LeafletSurface {
     /** Where the press began, in client pixels, while the pointer is down. */
     press: { x: number; y: number } | null
     dragged: boolean
+    /** Begun with Enter: the area runs on to the middle of the view as the map moves. */
+    keyboard: boolean
   } | null = null
+  /** The tooltip stands for the keyboard's focus on a mark, and goes when the focus does. */
+  #focusTip = false
   #resize: ResizeObserver | null = null
   /** The view on screen while the page is on paper, to return to afterwards. */
   #screenView: { centre: L.LatLng; zoom: number } | null = null
@@ -199,6 +225,8 @@ export class LeafletSurface {
     chosen: [],
     tool: null,
     drawn: () => {},
+    drawStart: () => {},
+    drawCancel: () => {},
     stopTool: () => {},
     drag: true,
     zoom: true,
@@ -341,6 +369,7 @@ export class LeafletSurface {
     this.#attribution = null
     this.#group = null
     this.#focusGroup = null
+    this.#hovered = null
     this.#draftGroup = null
     this.#draft = null
     this.#basemapKey = ''
@@ -397,6 +426,9 @@ export class LeafletSurface {
       if (this.#options.scale) this.#controller.requestUpdate()
     })
     map.on('zoomend', () => this.#bound())
+    map.on('move', () => {
+      if (this.#draft?.keyboard) this.#follow(this.#centre())
+    })
     map.on('zoomanim', (event) => this.#glide((event as L.ZoomAnimEvent).zoom))
     // A click on a mark stops at the mark (`marks.ts`), or one gesture would select and clear.
     map.on('click', () => this.#options.clear())
@@ -406,6 +438,15 @@ export class LeafletSurface {
     container.addEventListener('pointerup', (event) => this.#release(event), true)
     container.addEventListener('click', (event) => this.#swallow(event), true)
     container.addEventListener('dblclick', (event) => this.#closeLasso(event), true)
+    container.addEventListener('keydown', (event) => this.#key(event))
+    // A press the browser takes back (a scroll, a second finger) undoes what it began (2.5.2).
+    container.addEventListener(
+      'pointercancel',
+      () => {
+        if (this.#draft?.press) this.#cancelDraft()
+      },
+      true,
+    )
     // The renderer's svg holds the drawing; Leaflet positions it in layer points and scales it
     // along with a zoom animation. It exists once the map has a view.
     L.svg({ padding: 0.5 }).addTo(map)
@@ -421,10 +462,26 @@ export class LeafletSurface {
     const group = document.createElementNS(SVG_NS, 'g')
     group.setAttribute('class', 'lintje-map-chart__data')
     group.addEventListener('focusin', (event) => {
-      this.#reveal(event.target as Element)
-      this.#copyFocus()
+      const mark = event.target as Element
+      const moving = this.#reveal(mark)
+      this.#lift()
+      if (moving) this.#map?.once('moveend', () => this.#tipAt(mark))
+      else this.#tipAt(mark)
     })
-    group.addEventListener('focusout', () => this.#focusGroup?.replaceChildren())
+    group.addEventListener('focusout', () => {
+      this.#lift(false)
+      if (!this.#focusTip) return
+      this.#focusTip = false
+      this.#controller.hideTooltip()
+    })
+    group.addEventListener('pointerover', (event) => {
+      this.#hovered = (event.target as Element).closest('.lintje-map-chart__polygon')
+      this.#lift()
+    })
+    group.addEventListener('pointerout', () => {
+      this.#hovered = null
+      this.#lift()
+    })
     group.addEventListener('keydown', (event) => {
       // A choice opens the selection panel, which may stand over the chosen mark.
       if (event.key !== 'Enter' && event.key !== ' ') return
@@ -443,6 +500,34 @@ export class LeafletSurface {
     svg.append(draft)
     this.#draftGroup = draft
     return group
+  }
+
+  /**
+   * The keyboard's mark shows the tooltip a pointer would, at the middle of what shows of it,
+   * once a reveal has panned it into view.
+   */
+  #tipAt(mark: Element): void {
+    const data = this.#data
+    const id = mark.getAttribute('data-mark-id')
+    const anchor = this.#container?.closest('[data-tooltip-anchor]')
+    if (!data || !id || !anchor || focusedElement() !== mark || !keyboardFocus(mark)) return
+    const drawing = mapDrawings(data, this.#options.unit).find((each) =>
+      each.values.some((value) => value.id === id),
+    )
+    const value = drawing?.values.find((each) => each.id === id)
+    if (!drawing || !value) return
+    const area = anchor.getBoundingClientRect()
+    const rect = mark.getBoundingClientRect()
+    const left = Math.max(rect.left, area.left)
+    const right = Math.min(rect.right, area.right)
+    const top = Math.max(rect.top, area.top)
+    const bottom = Math.min(rect.bottom, area.bottom)
+    this.#focusTip = true
+    this.#controller.showTooltipAt(
+      (left + right) / 2 - area.left,
+      (top + bottom) / 2 - area.top,
+      markTip(drawing, value),
+    )
   }
 
   /** The geometry: its home, the bounds the view keeps to, and a fresh projection of its land. */
@@ -585,22 +670,24 @@ export class LeafletSurface {
       'has-selection',
       this.#options.area != null || this.#options.active != null,
     )
-    this.#copyFocus()
+    this.#lift()
     this.#place(map)
   }
 
   /**
-   * The focused mark, copied over the whole drawing: svg paints in document order, and moving
-   * the mark itself would lose its focus and its place in the Tab order. Only for the keyboard's
-   * focus: after a click there is no ring to lift.
+   * The marks that stand out, copied over the whole drawing: svg paints in document order, and
+   * moving a mark itself would lose its focus and its place in the Tab order. The chosen areas
+   * and the one under the pointer are copied as their outline, so a neighbour drawn after them
+   * does not cover half of it; the mark the keyboard focused whole, for its ring, on top. After a
+   * click there is no ring to lift. `focus` false: the focus is leaving the drawing.
    */
-  #copyFocus(): void {
+  #lift(focus = true): void {
     const group = this.#group
     const layer = this.#focusGroup
     if (!group || !layer) return
     let focused: Element | null = null
     try {
-      focused = (group.getRootNode() as Document | ShadowRoot).activeElement
+      focused = focus ? (group.getRootNode() as Document | ShadowRoot).activeElement : null
     } catch {
       // happy-dom's `ShadowRoot.activeElement` throws while a focus event is being dispatched.
     }
@@ -609,11 +696,27 @@ export class LeafletSurface {
       !group.contains(focused) ||
       !focused.hasAttribute('data-mark-id') ||
       !keyboardFocus(focused)
-    ) {
-      layer.replaceChildren()
-      return
-    }
-    const copy = focused.cloneNode(true) as Element
+    )
+      focused = null
+    const chosen = [
+      ...group.querySelectorAll('.lintje-map-chart__polygon.is-selected:not(.is-off)'),
+    ].filter((area) => area !== focused)
+    // Beside a chosen area the rest steps back, and the pointer lifts nothing out of it.
+    const hovered = group.classList.contains('has-area') ? null : this.#hovered
+    const pointed =
+      hovered && group.contains(hovered) && hovered !== focused && !chosen.includes(hovered)
+        ? [hovered]
+        : []
+    layer.replaceChildren(
+      ...chosen.map((area) => this.#copyOf(area)),
+      ...pointed.map((area) => this.#copyOf(area, 'is-hovered')),
+      ...(focused ? [this.#copyOf(focused, 'is-focused')] : []),
+    )
+  }
+
+  /** A mark as a drawing only: no button, no stop, nothing a reader hears; `state` says why. */
+  #copyOf(mark: Element, state?: string): Element {
+    const copy = mark.cloneNode(true) as Element
     for (const name of [
       'data-mark-id',
       'role',
@@ -623,13 +726,14 @@ export class LeafletSurface {
       'aria-hidden',
     ])
       copy.removeAttribute(name)
+    if (state) copy.classList.add(state)
     // A strict Content-Security-Policy drops a cloned style attribute; the CSSOM carries it over.
     const targets = [copy, ...copy.querySelectorAll('*')]
-    ;[focused, ...focused.querySelectorAll('*')].forEach((source, n) => {
+    ;[mark, ...mark.querySelectorAll('*')].forEach((source, n) => {
       if (source instanceof SVGElement && source.style.length)
         (targets[n] as SVGElement).style.cssText = source.style.cssText
     })
-    layer.replaceChildren(copy)
+    return copy
   }
 
   /**
@@ -701,7 +805,9 @@ export class LeafletSurface {
         corner: tool === 'rect' ? point : null,
         press: { x: event.clientX, y: event.clientY },
         dragged: false,
+        keyboard: false,
       }
+      this.#options.drawStart()
     } else {
       draft.press = { x: event.clientX, y: event.clientY }
       draft.dragged = false
@@ -749,7 +855,8 @@ export class LeafletSurface {
       }
       return
     }
-    if (area.ring.length > 2 && this.#nearFirst(event)) return this.#finish()
+    if (area.ring.length > 2 && this.#nearFirst(this.#map!.mouseEventToContainerPoint(event)))
+      return this.#finish()
     if (area.ring.length > 1 || this.#notSame(area.ring[0], point)) area.ring.push(point)
     this.#renderDraft()
   }
@@ -758,13 +865,77 @@ export class LeafletSurface {
     return a[0] !== b[0] || a[1] !== b[1]
   }
 
-  #nearFirst(event: MouseEvent): boolean {
+  /** Whether a point on the container is close enough to a lasso's first corner to close it. */
+  #nearFirst(at: L.Point): boolean {
     const map = this.#map as L.Map
     const area = this.#draft?.area
     if (area?.kind !== 'lasso') return false
     const [lon, lat] = area.ring[0]
-    const first = map.latLngToContainerPoint([lat, lon])
-    return first.distanceTo(map.mouseEventToContainerPoint(event)) <= CLOSE_PX
+    return map.latLngToContainerPoint([lat, lon]).distanceTo(at) <= CLOSE_PX
+  }
+
+  /** The middle of the view, where the keyboard sets its points. */
+  #centre(): [number, number] {
+    const centre = (this.#map as L.Map).getCenter()
+    return [centre.lng, centre.lat]
+  }
+
+  /**
+   * Enter or space on the map with a tool on sets a point at the middle of the view, as a click
+   * there would; the arrow keys pan the map under it (WCAG 2.1.1). A lasso closes with Enter on
+   * its first corner.
+   */
+  #key(event: KeyboardEvent): void {
+    const tool = this.#options.tool
+    const map = this.#map
+    if (!tool || !map || event.target !== this.#container) return
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    event.preventDefault()
+    event.stopPropagation()
+    const point = this.#centre()
+    const draft = this.#draft
+    if (!draft) {
+      this.#draft = {
+        area:
+          tool === 'circle'
+            ? { kind: 'circle', centre: point, radiusKm: 0 }
+            : { kind: 'lasso', ring: [point] },
+        corner: tool === 'rect' ? point : null,
+        press: null,
+        dragged: false,
+        keyboard: true,
+      }
+      this.#options.drawStart()
+      this.#renderDraft()
+      return
+    }
+    const { area } = draft
+    if (area.kind === 'circle') {
+      this.#follow(point)
+      if (area.radiusKm > 0) this.#finish()
+      return
+    }
+    if (draft.corner) {
+      if (!this.#notSame(draft.corner, point)) return
+      area.ring = rectRing(draft.corner, point)
+      return this.#finish()
+    }
+    if (area.ring.length > 2 && this.#nearFirst(map.latLngToContainerPoint(map.getCenter())))
+      return this.#finish()
+    if (this.#notSame(area.ring.at(-1)!, point)) area.ring.push(point)
+    this.#renderDraft()
+  }
+
+  /** The area being drawn runs on to a point the pointer or the view's middle has not set yet. */
+  #follow(point: [number, number]): void {
+    const draft = this.#draft
+    if (!draft) return
+    const { area } = draft
+    if (area.kind === 'circle')
+      area.radiusKm = Math.min(distanceKm(area.centre, point), poleReach(area.centre))
+    else if (draft.corner) area.ring = rectRing(draft.corner, point)
+    else return this.#renderDraft(point)
+    this.#renderDraft()
   }
 
   /** With a tool on, the click that ends a press is the drawing's, not a mark's or the map's. */
@@ -782,25 +953,41 @@ export class LeafletSurface {
 
   #finish(): void {
     const area = this.#draft?.area
-    this.#cancelDraft()
+    this.#clearDraft()
     if (!area) return
     // A ring of fewer than three corners, a flat rectangle or a circle without a radius chooses
-    // nothing.
+    // nothing: the area that stood comes back.
     const drawn =
       area.kind === 'lasso' ? area.ring.length > 2 && !flatRing(area.ring) : area.radiusKm > 0
     if (drawn) this.#options.drawn(area)
+    else this.#options.drawCancel()
   }
 
-  /** Escape stops what is being drawn, and otherwise the tool. */
+  /**
+   * Escape stops what is being drawn, and otherwise the tool: heard on the document, as drawing
+   * leaves the focus where it was, but only while the focus is in the map or nowhere and no
+   * dialog stands over it. An Escape elsewhere is not the map's.
+   */
   readonly #onEscape = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || !this.#options.tool) return
+    const map = this.#controller.element ?? this.#container
+    if (event.key !== 'Escape' || !this.#options.tool || !map) return
+    const focused = focusedElement()
+    const nowhere = !focused || focused === document.body || focused === document.documentElement
+    if (!(nowhere || standsIn(focused, map)) || !ownsEscape(map)) return
     event.stopPropagation()
     event.preventDefault()
     if (this.#draft) this.#cancelDraft()
     else this.#options.stopTool()
   }
 
+  /** What is being drawn is undone: the area that stood before it comes back, and nothing is sent. */
   #cancelDraft(): void {
+    const drawing = this.#draft != null
+    this.#clearDraft()
+    if (drawing) this.#options.drawCancel()
+  }
+
+  #clearDraft(): void {
     this.#draft = null
     if (this.#draftGroup) render(nothingTemplate, this.#draftGroup)
     cancelAnimationFrame(this.#previewFrame)
@@ -847,16 +1034,18 @@ export class LeafletSurface {
     for (const mark of group.querySelectorAll('[data-mark-id]'))
       mark.classList.toggle('is-preview', ids.has(mark.getAttribute('data-mark-id')!))
     group.classList.toggle('is-previewing', usable === true)
+    // The lifted outlines step back with the rest while an area is drawn.
+    this.#focusGroup?.classList.toggle('is-previewing', usable === true)
   }
 
   /**
    * Pans the keyboard's mark into the view, clear of the overlays (WCAG 2.4.11): a mark off the
-   * view would still be a Tab stop.
+   * view would still be a Tab stop. Whether the view now glides, so what stands at the mark waits.
    */
-  #reveal(element: Element): void {
+  #reveal(element: Element): boolean {
     const map = this.#map
     const container = this.#container
-    if (!map || !container || !keyboardFocus(element)) return
+    if (!map || !container || !keyboardFocus(element)) return false
     const origin = container.getBoundingClientRect()
     const rect = element.getBoundingClientRect()
     const box: Box = {
@@ -878,13 +1067,15 @@ export class LeafletSurface {
     const animate = !prefersReducedMotion()
     const shift = clearance(box, view, overlays, REVEAL_MARGIN)
     if (shift) {
-      if (shift[0] || shift[1]) map.panBy([-shift[0], -shift[1]], { animate })
-      return
+      if (!shift[0] && !shift[1]) return false
+      map.panBy([-shift[0], -shift[1]], { animate })
+      return animate
     }
     // Larger than the room between the overlays: only a mark nothing of shows moves, to the middle.
-    if (!hidden(box, view, overlays)) return
+    if (!hidden(box, view, overlays)) return false
     map.panBy([(box.left + box.right) / 2 - size.x / 2, (box.top + box.bottom) / 2 - size.y / 2], {
       animate,
     })
+    return animate
   }
 }

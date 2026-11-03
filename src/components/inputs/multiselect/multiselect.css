@@ -13,7 +13,7 @@
   overflow: hidden;
 }
 .lintje-multiselect__shown { display: contents; }
-.lintje-multiselect__field.is-error { border: var(--field-error-border) solid var(--color-error); background: var(--color-bg-field-error); }
+.lintje-multiselect__field.is-error { border: var(--field-error-border) solid var(--color-error-line); background: var(--color-bg-field-error); }
 .lintje-multiselect__field:disabled {
   border: 1px solid var(--color-border-strong);
   background: var(--color-bg-subtle);

@@ -165,6 +165,8 @@ $('dictate').icon = 'beeld-en-geluid-microfoon'
 for (const field of [from, to, docFrom, docTo]) field.options = LANGUAGES
 from.value = docFrom.value = known(params.get('van'), 'en')
 to.value = docTo.value = known(params.get('naar'), 'nl')
+// The translation reads in its own language: a screen reader takes its voice from `lang`.
+$('translation').lang = to.value
 
 /* The example server: one sample text, from English to Dutch and back. */
 const SAMPLE =
@@ -188,6 +190,7 @@ const copy = $('copy')
 const label = $('label')
 const nothing = $('nothing')
 translator.value = SAMPLE
+translator.sourceLang = from.value
 
 let timer = 0
 let wanted = ''
@@ -272,6 +275,8 @@ $('sample').addEventListener('click', () => {
 function setLanguages(source, target) {
   from.value = docFrom.value = source
   to.value = docTo.value = target
+  translator.sourceLang = source
+  $('translation').lang = target
   setParam('van', source === 'en' ? null : source)
   setParam('naar', target === 'nl' ? null : target)
 }
@@ -475,6 +480,7 @@ const textRow = (item) => ({
   id: item.id,
   icon: 'communicatie-tekstballon-met-potlood',
   title: item.text,
+  lang: item.source,
   sub: `${languageName(item.source)} → ${languageName(item.target)} · ${item.text.length} tekens`,
   meta: item.when,
   group: item.group,
@@ -557,6 +563,7 @@ const search = $('search')
 const textResult = (item) => ({
   id: item.id,
   label: item.text,
+  lang: item.source,
   meta: `Tekst · ${languageName(item.source)} → ${languageName(item.target)} · ${item.when}`,
   href: hrefWith('view', null, { tab: null, tekst: item.id }),
 })

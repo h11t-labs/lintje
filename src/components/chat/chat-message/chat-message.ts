@@ -17,7 +17,7 @@ import '../../actions/icon-button/icon-button'
 import '../../content/attachment/attachment'
 import '../chat-composer/chat-composer'
 import type { LintjeChatComposer } from '../chat-composer/chat-composer'
-import { termParts } from '../shared/chat-terms'
+import { termParts, termWords } from '../shared/chat-terms'
 import chatMessageCss from './chat-message.css?inline'
 import type { ChatSourceData, ChatTermData, ChatTermRange, UploadFile } from '../../../types'
 
@@ -70,11 +70,12 @@ export class LintjeChatMessage extends LintjeElement {
   private renderSent(): TemplateResult {
     const files = this.attachments ?? []
     const text = this.text !== ''
-    // The text comes first in the document and last on the line, so a screen reader reads it first.
+    // "Jij: " leads, before the files too. The text comes first in the document and last on the
+    // line, so a screen reader reads it before the edit button and the time.
     return html`${
       files.length
-        ? html`${text ? nothing : html`<span class="visually-hidden">Jij: </span>`}
-            <ul class="lintje-chat-message__attachments" aria-label="Bijlagen">
+        ? html`<span class="visually-hidden">Jij: </span>
+            <ul class="lintje-chat-message__attachments" role="list" aria-label="Bijlagen">
               ${files.map(
                 (file) => html`<li class="lintje-chat-message__attachment">
                   <lintje-attachment .data=${file}></lintje-attachment>
@@ -83,7 +84,11 @@ export class LintjeChatMessage extends LintjeElement {
             </ul>`
         : nothing
     }<div class="lintje-chat-message">
-      ${text ? html`<p class="lintje-chat-message__text">${this.renderText()}</p>` : nothing}
+      ${
+        text
+          ? html`<p class="lintje-chat-message__text">${this.renderText(files.length === 0)}</p>`
+          : nothing
+      }
       <div class="lintje-chat-message__meta">
         ${
           this.editable
@@ -101,21 +106,22 @@ export class LintjeChatMessage extends LintjeElement {
     </div>`
   }
 
-  // No white space of the template's own: the bar keeps the reader's.
-  private renderText(): TemplateResult {
-    const parts = termParts(this.text, this.terms).map((part) =>
-      part.term
-        ? html`<span
-            class=${classMap({
-              'lintje-chat-message__term': true,
-              'is-uncertain': part.term.certain === false,
-            })}
-            title=${part.term.kind ?? nothing}
-            >${part.text}</span
-          >`
-        : part.text,
-    )
-    return html`<span class="visually-hidden">Jij: </span>${parts}`
+  // No white space of the template's own: the bar keeps the reader's. The hidden words say what
+  // the line under a term shows, as the question box does.
+  private renderText(speaker: boolean): TemplateResult {
+    const parts = termParts(this.text, this.terms).map((part) => {
+      if (!part.term) return part.text
+      const words = termWords(part.term)
+      return html`<span
+          class=${classMap({
+            'lintje-chat-message__term': true,
+            'is-uncertain': part.term.certain === false,
+          })}
+          title=${part.term.kind ?? nothing}
+          >${part.text}</span
+        >${words ? html`<span class="visually-hidden"> (${words})</span>` : nothing}`
+    })
+    return html`${speaker ? html`<span class="visually-hidden">Jij: </span>` : nothing}${parts}`
   }
 
   private renderEditing(): TemplateResult {

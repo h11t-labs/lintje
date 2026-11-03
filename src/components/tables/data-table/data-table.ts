@@ -437,7 +437,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
       this.hiddenKeys = this.data?.hiddenColumns ?? []
     }
     this.#editing.sync(this.data)
-    if (this.#filterAsked) {
+    const state = this.data?.state ?? 'ready'
+    // On its own the table says it loads; in a tile the tile does.
+    if (this.plain && state === 'loading' && changed.get('data')?.state !== 'loading')
+      this.#live.say('Gegevens laden…')
+    // The count is of the rows the filter left: it waits while the host still loads them.
+    if (this.#filterAsked && state !== 'loading') {
       this.#filterAsked = false
       const total = this.data?.totalRows
       this.#live.say(
@@ -897,7 +902,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const data = this.data
     if (!data) return nothing
     if (this.bare) return this.table(this.#edges)
-    if (this.plain) return this.content()
+    // The region stands outside the switch of states, as the tile's does: one that comes in with
+    // its words is not read out.
+    if (this.plain)
+      return html`${this.content()}<span class="visually-hidden" role="status"
+          >${this.#live.text}</span
+        >`
     const ready = (data.state ?? 'ready') === 'ready'
     const subtitle =
       this.#mobile.matches && data.mobileSubtitle ? data.mobileSubtitle : data.subtitle
@@ -982,7 +992,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       case 'loading':
         return inTile
           ? html`<div slot="loading">${renderChartSkeleton({ kind: 'table', status: false })}</div>`
-          : renderChartSkeleton({ kind: 'table' })
+          : renderChartSkeleton({ kind: 'table', status: false })
       case 'empty':
         return inTile
           ? nothing
@@ -1032,11 +1042,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const active = (edges === this.#modalEdges) === this.expanded
     const copy = edges === this.#modalEdges ? 'modal' : 'tile'
     // A table wider than its tile scrolls; a keyboard reaches that scroll only when the scroller
-    // takes focus, as lintje-code's block does (WCAG 2.1.1).
+    // takes focus, as lintje-code's block does (WCAG 2.1.1). The phone's table scrolls in the same
+    // box: its name keeps a readable width rather than break after every few letters.
     const scrolls = edges.start || edges.end
     return html`<div class=${classMap({ 'lintje-data-table': true, 'is-phone': mobile })}>
       ${this.toolbar(edges, paged)} ${mobile ? nothing : this.selectionBar(false)}
-      <!-- Desktop table: scrolls sideways when it is wider than the tile -->
+      <!-- Scrolls sideways when the table is wider than the tile -->
       <div
         class=${classMap({
           'lintje-data-table__frame': true,
@@ -1051,12 +1062,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
           role=${scrolls ? 'region' : nothing}
           aria-label=${scrolls ? (this.data?.caption ?? nothing) : nothing}
         >
+          <!-- Mobile representation: two columns (C8). First, so the scroller watches its width. -->
+          ${this.mobileTable(mobileRows, mobilePageCount, copy, grouped ? mobileGroups : null)}
           ${this.fullTable(visible, pageCount, pageSize, edges, grouped ? pageGroups : null)}
         </div>
       </div>
-
-      <!-- Mobile representation: two columns (C8) -->
-      ${this.mobileTable(mobileRows, mobilePageCount, copy, grouped ? mobileGroups : null)}
       ${
         pageCount > 1
           ? this.pager('full', this.page, pageCount, pageSize, units, unit, (page) => {
@@ -1081,7 +1091,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
       }
       ${mobile ? this.selectionBar(true) : nothing} ${this.panels(edges)}
       ${active && this.columns.some((column) => column.editor) ? this.#editing.renderStatus() : nothing}
-      <span class="visually-hidden" role="status">${active ? this.#live.text : ''}</span>
+      ${
+        this.plain
+          ? nothing
+          : html`<span class="visually-hidden" role="status">${active ? this.#live.text : ''}</span>`
+      }
     </div>`
   }
 
@@ -1503,19 +1517,21 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const detailColumns = this.detailColumns
     const id = this.rowKey(row)
     const hasControls =
+      clickable ||
       (selectable && !this.uncheckable.has(id)) ||
       data.openable ||
       rowActions ||
       detailColumns.length > 0 ||
       columns.some((column) => column.editor)
-    // A static row needs a keyboard stop to reveal the compact change's words.
-    const revealsChange =
+    // A static row needs a keyboard stop to reveal the compact change's words or a cut value.
+    const reveals =
       !hasControls &&
       columns.some(
         (column) =>
-          column.format === 'change-compact' &&
-          typeof row[column.key] === 'number' &&
-          !(row[column.key] === 0 && column.zeroText != null),
+          (column.format === 'change-compact' &&
+            typeof row[column.key] === 'number' &&
+            !(row[column.key] === 0 && column.zeroText != null)) ||
+          (column.truncate === true && cellText(column, row[column.key]) != null),
       )
     const selected = id === data.selectedId
     const isChecked = this.checkedIds.includes(id)
@@ -1535,11 +1551,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
           'is-checked': isChecked,
           'is-open': isOpen,
         })}
-        tabindex=${clickable || revealsChange ? 0 : nothing}
-        aria-selected=${clickable ? selected : nothing}
+        tabindex=${reveals ? 0 : nothing}
         @click=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
         @auxclick=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
-        @keydown=${clickable ? (event: KeyboardEvent) => this.rowKeydown(event, row) : nothing}
       >
         ${
           selectable
@@ -1576,7 +1590,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
                   'lintje-data-table__cell--truncate': truncate,
                 })}
               >
-                ${this.opener(row, content)}
+                ${this.opener(row, content, selected)}
               </th>`
             : html`<td
                 class=${classMap({
@@ -1851,7 +1865,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         <tr>
           <th
             scope="col"
-            class="lintje-data-table__header-cell lintje-data-table__header-cell--mobile"
+            class="lintje-data-table__header-cell lintje-data-table__header-cell--mobile lintje-data-table__mobile-cell--name"
           >
             ${
               selectable
@@ -1942,7 +1956,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
                         class="lintje-data-table__mobile-row lintje-data-table__mobile-row--filler"
                         aria-hidden="true"
                       >
-                        <td class="lintje-data-table__mobile-cell">
+                        <td class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--name">
                           <span class="lintje-data-table__mobile-name">&nbsp;</span>
                           ${
                             this.hasSubline
@@ -2005,10 +2019,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const status = this.mobileStatus(measureColumn, row)
     const isOpen = others.length > 0 && this.openRows.includes(id)
     const detailId = `lintje-data-table-${copy}-detail-${id}`
-    const identity = html`<span class="lintje-data-table__mobile-name"
-        >${this.opener(row, this.cell(nameColumn, row[nameColumn.key]))}</span
-      >${this.subline(row)}`
     const selected = id === data.selectedId
+    const identity = html`<span class="lintje-data-table__mobile-name"
+        >${this.opener(row, this.cell(nameColumn, row[nameColumn.key]), selected)}</span
+      >${this.subline(row)}`
     const isChecked = this.checkedIds.includes(id)
     return html`<tr
         class=${classMap({
@@ -2018,13 +2032,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
           'is-checked': isChecked,
           'is-open': isOpen,
         })}
-        tabindex=${clickable ? 0 : nothing}
-        aria-selected=${clickable ? selected : nothing}
         @click=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
         @auxclick=${clickable ? (event: MouseEvent) => this.activate('lintje-row-click', row, event) : nothing}
-        @keydown=${clickable ? (event: KeyboardEvent) => this.rowKeydown(event, row) : nothing}
       >
-        <th scope="row" class="lintje-data-table__mobile-cell">
+        <th scope="row" class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--name">
           ${
             selectable
               ? html`<span class="lintje-data-table__mobile-check">
@@ -2104,7 +2115,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     </button>`
     const check = this.groupCheck(group)
     return html`<tr class="lintje-data-table__group-row">
-      <th scope="rowgroup" class="lintje-data-table__mobile-cell lintje-data-table__group-head">
+      <th
+        scope="rowgroup"
+        class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--name lintje-data-table__group-head"
+      >
         ${
           check === nothing
             ? toggle
@@ -2130,7 +2144,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     span: number,
   ): TemplateResult {
     return html`<tr class=${className}>
-      <th scope="row" class="lintje-data-table__mobile-cell lintje-data-table__sum-label">${label}</th>
+      <th
+        scope="row"
+        class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--name lintje-data-table__sum-label"
+      >${label}</th>
       <td class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--align-right">
         ${
           total === undefined
@@ -2153,16 +2170,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   /** Enter or Space on the row itself; a key meant for a control inside it stays that control's. */
-  private rowKeydown(event: KeyboardEvent, row: Row): void {
-    if (event.target !== event.currentTarget) return
-    if (event.key !== 'Enter' && event.key !== ' ') return
-    event.preventDefault()
-    this.activate('lintje-row-click', row)
-  }
-
   /**
    * The host may take the row over by cancelling the event; else the page goes to its `href`. A
-   * modifier or middle click opens the `href` in a new tab, as on a link, without the event.
+   * modifier or middle click opens the `href` in a new tab, as on a link, without the event. On
+   * the name's own link the browser follows it, unless the host cancels.
    */
   private activate(
     name: 'lintje-row-click' | 'lintje-row-open',
@@ -2176,7 +2187,16 @@ export class LintjeDataTable extends LintjeContentTileElement {
     }
     // Without an href the middle button does nothing; a modifier click is still a click.
     if (event?.type === 'auxclick') return
-    if (this.emit(name, detail) && detail.href) this.followLink(detail.href)
+    const onLink = Boolean(
+      event &&
+      detail.href &&
+      event.composedPath().some((node) => node instanceof HTMLAnchorElement),
+    )
+    if (!this.emit(name, detail)) {
+      if (onLink) event!.preventDefault()
+      return
+    }
+    if (detail.href) this.followLink(detail.href, onLink ? event : undefined)
   }
 
   /** The page is view state, not a number: it stays out of the URL. The table counts from 0. */
@@ -2204,20 +2224,35 @@ export class LintjeDataTable extends LintjeContentTileElement {
       unit-one=${unit.one}
       @lintje-page-change=${(event: CustomEvent<{ page: number }>) => {
         event.stopPropagation()
+        // The pager says "Pagina 3 van 7" itself: once is enough.
         go(event.detail.page - 1)
-        this.#live.say(`Pagina ${event.detail.page} van ${pageCount}`)
       }}
     ></lintje-pagination>`
   }
 
   /* Cells ------------------------------------------------------------------ */
 
-  /** The name of an `openable` row: a button in the shape of a link, since it opens, not goes. */
-  private opener(row: Row, content: unknown): unknown {
-    if (!this.data?.openable) return content
+  /**
+   * The name of an `openable` row: a button in the shape of a link, since it opens, not goes. In
+   * a clickable table the name is the row's one Tab stop: a link to its `href`, else a button,
+   * and the row's click hears it (WCAG 4.1.2).
+   */
+  private opener(row: Row, content: unknown, selected = false): unknown {
+    const data = this.data
+    const current = selected ? 'true' : nothing
+    if (!data?.openable) {
+      if (!data?.clickable || data.selectable) return content
+      const href = this.rowDetail(row).href
+      return href
+        ? html`<a class="lintje-data-table__open" href=${href} aria-current=${current}>${content}</a>`
+        : html`<button type="button" class="lintje-data-table__open" aria-current=${current}>
+            ${content}
+          </button>`
+    }
     return html`<button
       type="button"
       class="lintje-data-table__open"
+      aria-current=${current}
       @click=${(event: MouseEvent) => {
         event.stopPropagation()
         this.activate('lintje-row-open', row, event)

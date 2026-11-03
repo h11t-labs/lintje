@@ -97,8 +97,8 @@ const PAGES = {
       {
         id: 'elements',
         label: 'Voor één element',
-        note: 'Wat één element zelf noemt: de QR-code, het beeld van een video, de lijn onder een term, de rand van een gekozen rij, het spoor van een voortgangsbalk, een gekozen optie, de dagen van een gekozen periode, de rand van een gekozen dag, de tint onder een spreker en het rondje van een persoon.',
-        claims: by(/^--(color-(qr|media|term|choice|selected|progress|range|chosen-day|avatar)-|tint-)/),
+        note: 'Wat één element zelf noemt: de QR-code, het beeld van een video, de lijn onder een term, de rand van een gekozen rij, het spoor van een voortgangsbalk, een gekozen optie, de dagen van een gekozen periode, de rand van een gekozen dag, de ring van vandaag in een periode, de tint onder een spreker en het rondje van een persoon.',
+        claims: by(/^--(color-(qr|media|term|choice|selected|progress|range|chosen-day|today|avatar)-|tint-)/),
       },
       {
         id: 'house-style',
@@ -230,6 +230,13 @@ function element(name, className, text) {
   return node
 }
 
+/** A comment from the source: English, as the source is, on a Dutch page. */
+function sourceComment(text) {
+  const node = element('p', 'guide__comment', text)
+  node.lang = 'en'
+  return node
+}
+
 /** A token's value; `plain` where the colour already stands beside it, larger. */
 const valueOf = (name, plain = false) => {
   const value = document.createElement('lintje-token-value')
@@ -302,42 +309,48 @@ function row({ name, comment }, show) {
   const body = element('div', 'guide__token-body')
   const drawn = sample(show, name)
   if (drawn) body.append(drawn)
-  if (comment) body.append(element('p', 'guide__comment', comment))
+  if (comment) body.append(sourceComment(comment))
   const plain = drawn?.classList.contains('guide__token-shape--colour')
   node.append(element('code', 'guide__token-name', name), valueOf(name, plain), body)
   return node
 }
 
-/** A data colour's ladder: the colour and its tints as tiles side by side, a row per colour. */
+/** The data colours' ladders as a table: a row per colour, a column per step of its ladder. */
 function ladder(tokens) {
-  const list = element('div', 'guide__ladders')
   const bases = tokens.filter((token) => !TINT.test(token.name))
   const stepsOf = (base) =>
     tokens.filter(
       (entry) => entry.name === base.name || entry.name.startsWith(`${base.name}-tint-`),
     )
-  // The steps' names once, above the tiles: `kleur`, then the suffix of each tint.
-  const head = element('div', 'guide__ladder guide__ladder--head')
-  const names = element('div', 'guide__ladder-steps')
+  const table = element('table', 'guide__status guide__ladders')
+  table.append(element('caption', 'guide__meta', 'Elke datakleur met de tinten van haar ladder'))
+  // The steps' names once, as the columns: `kleur`, then the suffix of each tint.
+  const head = table.createTHead().insertRow()
+  const colour = element('th', '')
+  colour.scope = 'col'
+  colour.append('Kleur ', element('code', 'guide__key', '--color-chart-…'))
+  head.append(colour)
   for (const step of stepsOf(bases[0] ?? { name: '' })) {
     const label = TINT.test(step.name) ? step.name.match(TINT)[0].slice(1) : 'kleur'
-    names.append(element('span', 'guide__key', label))
+    const cell = element('th', '')
+    cell.scope = 'col'
+    cell.append(element('code', 'guide__key', label))
+    head.append(cell)
   }
-  head.append(element('span', 'guide__key', '--color-chart-…'), names)
-  list.append(head)
+  const body = table.createTBody()
   for (const base of bases) {
-    const line = element('div', 'guide__ladder')
-    line.append(element('code', 'guide__token-name', base.name.replace('--color-chart-', '')))
-    const steps = element('div', 'guide__ladder-steps')
+    const line = body.insertRow()
+    const name = element('th', '')
+    name.scope = 'row'
+    name.append(element('code', 'guide__token-name', base.name.replace('--color-chart-', '')))
+    line.append(name)
     for (const token of stepsOf(base)) {
-      const step = element('div', 'guide__ladder-step')
-      step.append(shape('tile', { background: `var(${token.name})` }), valueOf(token.name, true))
-      steps.append(step)
+      line.insertCell().append(shape('cell', { background: `var(${token.name})` }), valueOf(token.name, true))
     }
-    line.append(steps)
-    list.append(line)
   }
-  return list
+  const wrap = element('div', 'guide__status-wrap')
+  wrap.append(table)
+  return wrap
 }
 
 /** The statuses against their roles; a role a status does not have is a dash. */
@@ -370,7 +383,7 @@ function statusTable(tokens) {
   wrap.append(table)
   const notes = tokens
     .filter((token) => token.comment)
-    .map((token) => element('p', 'guide__comment', `${token.name}: ${token.comment}`))
+    .map((token) => sourceComment(`${token.name}: ${token.comment}`))
   if (!notes.length) return [wrap]
   const below = element('div', 'guide__token-notes')
   below.append(...notes)
@@ -414,7 +427,8 @@ export function renderFoundationPage(host, page, tokens) {
   nav.expanded = true
   nav.label = 'Op deze pagina'
   const layout = element('div', 'guide__page')
-  layout.append(main, nav)
+  // First in the source, so Tab and a screen reader reach it where it shows below 1024 px.
+  layout.append(nav, main)
   host.append(layout)
   follow(nav, toc)
 }

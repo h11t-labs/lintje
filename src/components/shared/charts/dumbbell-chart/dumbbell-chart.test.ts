@@ -287,7 +287,7 @@ describe('a value beyond the axis', () => {
     expect(marks).toHaveLength(1)
     // The dot's colour, with dark yellow's edge.
     expect(marks[0].getAttribute('fill')).toBe('var(--color-chart-dark-yellow)')
-    expect(marks[0].getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-text)')
+    expect(marks[0].getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-edge)')
     expect(difference(row)).toBe('+0,4')
   })
 })
@@ -339,5 +339,41 @@ describe('a dumbbell row that drills', () => {
     expect(rows[1].getAttribute('aria-pressed')).toBe('true')
     expect(rows[0].classList).toContain('is-muted')
     expect(rows[1].classList).toContain('is-selected')
+  })
+
+  it('rings a row without a drawn point round the whole row', () => {
+    const { host } = draw(
+      {
+        ...SPEC,
+        rows: [
+          { label: 'Utrecht', from: null, to: null, href: '?loket=Utrecht' },
+          ...SPEC.rows.slice(1),
+        ],
+      },
+      { onSelect: () => {} },
+    )
+    const [bare, drawn] = rowsOf(host)
+    expect(bare!.getAttribute('tabindex')).toBe('0')
+    expect(bare!.querySelector('rect.lintje-dumbbell__focus')).not.toBeNull()
+    expect(drawn!.querySelector('circle.lintje-dumbbell__focus')).not.toBeNull()
+  })
+
+  it('is named first by what the row shows, its name and difference, then by the tooltip', () => {
+    const { host, key, controller } = draw(
+      { ...SPEC, rows: SPEC.rows.map((row) => ({ ...row, href: `?loket=${row.label}` })) },
+      { onSelect: () => {} },
+    )
+    const rows = rowsOf(host)
+    expect(difference(rows[1])).toBe('−0,5')
+    expect(rows[1].getAttribute('aria-label')).toBe(
+      'Zwolle −0,5: 2024 7,6, 2026 7,1, t.o.v. norm +0,1',
+    )
+    // The keys still read the tooltip as it stands.
+    key('Home')
+    key('ArrowDown')
+    expect(controller.status).toBe('Zwolle: 2024 7,6, 2026 7,1, Verschil −0,5, t.o.v. norm +0,1')
+    // Without a link a row is no button and has no name of its own.
+    document.body.replaceChildren()
+    expect(rowsOf(draw(SPEC).host)[1].hasAttribute('aria-label')).toBe(false)
   })
 })
