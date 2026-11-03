@@ -17,8 +17,10 @@ export class DialogHold {
   readonly #onEscape: () => void
   #released: (() => void) | null = null
 
+  // An Escape something inside already answered (`preventDefault`) is not the window's.
   readonly #onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape' && this.#trap.isTopmost()) this.#onEscape()
+    if (event.key === 'Escape' && !event.defaultPrevented && this.#trap.isTopmost())
+      this.#onEscape()
   }
 
   /** `onEscape` runs only for the window on top; a window with its own condition checks it there. */
@@ -41,11 +43,12 @@ export class DialogHold {
     this.#trap.activate(container, { focus })
   }
 
-  release(): void {
+  /** Lets go; unless `restore` is false, the focus goes back to the opener. */
+  release(restore: boolean = true): void {
     if (!this.#released) return
     document.removeEventListener('keydown', this.#onKeyDown)
     this.#released()
     this.#released = null
-    this.#trap.deactivate()
+    this.#trap.deactivate(restore)
   }
 }

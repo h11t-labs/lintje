@@ -68,6 +68,7 @@ export function pageLabel(page: number, count: number): string {
   return `Pagina ${page} van ${Math.max(count, 1)}`
 }
 
+const FAILED = 'Het document kan niet worden getoond'
 export class LintjeDocumentViewer extends LintjeElement {
   static override styles = [iconStyles, shadowCss(iconButtonCss), shadowCss(documentViewerCss)]
 
@@ -189,9 +190,11 @@ export class LintjeDocumentViewer extends LintjeElement {
     this.measureFit()
   }
 
+  // The failure takes the page's place without the focus: the region says it, after the page.
   private onError(): void {
     this.failed = true
     this.loaded = false
+    this.said = FAILED
   }
 
   private onKeydown(event: KeyboardEvent): void {
@@ -402,7 +405,7 @@ export class LintjeDocumentViewer extends LintjeElement {
       return html`<lintje-empty-state
         class="lintje-document-viewer__failed"
         icon="op-kantoor-document-blanco"
-        heading="Het document kan niet worden getoond"
+        heading=${FAILED}
         text="Download het bestand om het te bekijken."
       >
         <lintje-button

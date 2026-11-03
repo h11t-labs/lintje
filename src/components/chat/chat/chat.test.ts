@@ -168,7 +168,7 @@ describe('lintje-chat', () => {
     )
   })
 
-  it('dims and disables what an edit is about to replace', async () => {
+  it('says above what an edit is about to replace that it will be replaced, and disables it', async () => {
     const element = await chat({ turns: TURNS })
     const [first] = messages(element)
     await first.updateComplete
@@ -180,6 +180,10 @@ describe('lintje-chat', () => {
     expect(replaced.map((answer) => answer.classList.contains('is-replaced'))).toEqual([true, true])
     expect(replaced.map((answer) => answer.hasAttribute('inert'))).toEqual([true, true])
     expect(replaced.map((answer) => answer.current)).toEqual([false, false])
+    // One word above the first of them, at full strength; nothing is dimmed.
+    const notes = [...element.renderRoot.querySelectorAll('.lintje-chat__replaced-note')]
+    expect(notes.map((note) => note.textContent)).toEqual(['Wordt vervangen'])
+    expect(notes[0].nextElementSibling).toBe(replaced[0])
     // Only the message in its frame can still be edited.
     expect(messages(element).map((message) => message.editable)).toEqual([true, false])
   })

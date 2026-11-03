@@ -165,6 +165,8 @@ $('dictate').icon = 'beeld-en-geluid-microfoon'
 for (const field of [from, to, docFrom, docTo]) field.options = LANGUAGES
 from.value = docFrom.value = known(params.get('van'), 'en')
 to.value = docTo.value = known(params.get('naar'), 'nl')
+// The translation reads in its own language: a screen reader takes its voice from `lang`.
+$('translation').lang = to.value
 
 /* The example server: one sample text, from English to Dutch and back. */
 const SAMPLE =
@@ -272,6 +274,7 @@ $('sample').addEventListener('click', () => {
 function setLanguages(source, target) {
   from.value = docFrom.value = source
   to.value = docTo.value = target
+  $('translation').lang = target
   setParam('van', source === 'en' ? null : source)
   setParam('naar', target === 'nl' ? null : target)
 }

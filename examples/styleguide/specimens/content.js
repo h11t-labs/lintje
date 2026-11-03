@@ -239,8 +239,10 @@ function wireTranscript(transcript, segments = SEGMENTS) {
 /** A player and a transcript that follow each other, the way a host wires them. */
 function wirePair(player, transcript) {
   player.addEventListener('lintje-time-change', (event) => (transcript.currentTime = event.detail))
+  // "Speel af vanaf 0:18" plays from there.
   transcript.addEventListener('lintje-seek', (event) => {
     player.currentTime = event.detail
+    player.play()
   })
 }
 
@@ -316,6 +318,8 @@ function translator(stage, text) {
   to.options = LANGUAGES
   from.value = 'nl'
   to.value = 'en'
+  // The translation reads in its own language, also after a swap.
+  out.lang = to.value
   const show = (value) => {
     const translation = TRANSLATIONS[value.trim()] ?? ''
     out.text = translation
@@ -328,6 +332,7 @@ function translator(stage, text) {
   element.addEventListener('lintje-text-change', (event) => show(event.detail))
   element.addEventListener('lintje-languages-swap', () => {
     ;[from.value, to.value] = [to.value, from.value]
+    out.lang = to.value
   })
 }
 
@@ -353,6 +358,18 @@ export default {
           label: 'Uit de slot',
           note: 'Zonder `html` of `text` toont het element gewone tekst uit de slot. Een kop, lijst of alinea krijgt daar geen opmaak; opgemaakte inhoud gaat via `html`.',
           html: '<lintje-prose>Het rooster van volgende week staat vanaf vrijdag in het overzicht.</lintje-prose>',
+        },
+        {
+          label: 'Een breed codeblok',
+          note:
+            'Een `pre` met een lange regel scrolt opzij. Elk blok is een Tab-stop met de naam ' +
+            '"Codeblok", zodat ook in Safari het toetsenbord bij het eind van de regel komt.',
+          html: '<lintje-prose data-html></lintje-prose>',
+          setup(stage) {
+            stage.querySelector('[data-html]').html = `
+              <p>Zo vraag je de wachttijd van één loket op:</p>
+              <pre><code>GET /api/loketten/amsterdam-centrum/wachttijd?van=2026-10-01&amp;tot=2026-10-07&amp;per=kwartier&amp;mediaan=true</code></pre>`
+          },
         },
       ],
     },

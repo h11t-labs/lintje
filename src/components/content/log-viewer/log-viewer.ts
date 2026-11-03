@@ -21,6 +21,7 @@ import {
 import { classMap } from 'lit/directives/class-map.js'
 import { repeat } from 'lit/directives/repeat.js'
 import { define, type FrameSettings } from '../../../core/element'
+import { deepActiveElement, passFocus } from '../../../core/focus'
 import { formatNumber } from '../../../core/format'
 import { lengthPx } from '../../../core/length'
 import { MediaController } from '../../../core/media'
@@ -64,6 +65,9 @@ import logViewerCss from './log-viewer.css?inline'
 
 type TimeShown = 'clock' | 'since'
 
+/** The log in its tile, or again in the expand modal. */
+type Place = 'tile' | 'modal'
+
 /** How the filter row fits its own width: all on one line, the level folded to a select, or stacked. */
 type Fit = 'wide' | 'compact' | 'narrow'
 
@@ -89,6 +93,9 @@ const LEVEL_TONE: Record<LogLevel, { tone: BadgeTone; icon?: string }> = {
   info: { tone: 'neutral', icon: 'functioneel-info' },
   debug: { tone: 'subtle' },
 }
+
+const lineCount = (count: number): string =>
+  count === 1 ? '1 regel' : `${formatNumber(count)} regels`
 
 /** New lines are read out at most this often. */
 const SPEAK_EVERY = 5000
@@ -140,10 +147,17 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   #jump = false
   /** A filter went to the host: its answer's line count is read out. */
   #asked = false
+  /** "Filter wissen" was pressed: its answer's lines take the focus the button leaves. */
+  #toActive = false
   #pending = { lines: 0, errors: 0 }
   #speakTimer: ReturnType<typeof setTimeout> | null = null
   #copiedTimer: ReturnType<typeof setTimeout> | null = null
   readonly #live = new LiveMessage(this)
+  /** The expanded log's own region: the tile's stands behind the modal. */
+  readonly #modalLive = new LiveMessage(this)
+  /** The reader chose or let go of a line here: the host's answer is read out in this place. */
+  #choosing: Place | null = null
+  #lastSelected: string | null | undefined = undefined
   #fitObserver = new FrameResizeObserver(() => this.refit())
   #observed: Element | null = null
   #growth: ResizeObserver | null = null
@@ -263,6 +277,39 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       const count = this.shown.length
       this.#live.say(count === 1 ? '1 regel' : `${formatNumber(count)} regels`)
     }
+    if (changed.has('data')) this.speakChoice()
+    const row = this.#toActive ? this.activeRow : null
+    if (row) {
+      this.#toActive = false
+      const active = deepActiveElement()
+      // After the update: the line's focus makes it the active one, a change of its own.
+      const lost = !active || active === document.body || !active.isConnected
+      if (lost) void this.updateComplete.then(() => row.focus({ preventScroll: true }))
+    }
+  }
+
+  /** The foot shows the chosen line; a reader who chose it hears it, also in the modal without one. */
+  private speakChoice(): void {
+    const selected = this.data?.selected ?? null
+    const place = this.#choosing
+    const before = this.#lastSelected
+    this.#lastSelected = selected
+    if (!place || before === undefined || selected === before) return
+    this.#choosing = null
+    const chosen = selected ? this.entries.find((entry) => entry.id === selected) : undefined
+    const live = place === 'modal' ? this.#modalLive : this.#live
+    live.say(chosen ? `Regel van ${chosen.time ?? chosen.line ?? ''} gekozen` : 'Keuze opgeheven')
+  }
+
+  /** The tile's lines, oldest first. */
+  private get rows(): HTMLElement[] {
+    return [...(this.log?.querySelectorAll<HTMLElement>('.lintje-log-viewer__row') ?? [])]
+  }
+
+  /** The log's one tab stop: the active line, else the newest. */
+  private get activeRow(): HTMLElement | null {
+    const rows = this.rows
+    return rows.find((row) => row.dataset.id === this.activeId) ?? rows.at(-1) ?? null
   }
 
   // The row reads its own width, not the screen's: a tile beside another is narrow on a wide screen.
@@ -349,7 +396,9 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     this.emit('lintje-log-filter-change', next)
   }
 
-  private select(id: string | null): void {
+  private select(id: string | null, place: Place = 'tile'): void {
+    this.#lastSelected ??= this.data?.selected ?? null
+    this.#choosing = place
     this.emit('lintje-log-select', id)
   }
 
@@ -432,8 +481,11 @@ export class LintjeLogViewer extends LintjeContentTileElement {
   private onMoreAction(event: CustomEvent<string>): void {
     event.stopPropagation()
     if (event.detail === 'log:clear') {
+      const hidden = this.entries.length
       this.clearedAfter = this.entries.at(-1)?.id ?? null
       this.toLatest()
+      // The note in the log is out of the focus's way: the region says it.
+      this.#live.say(`Venster leeggemaakt, ${lineCount(hidden)} verborgen`)
       return
     }
     this.emit('lintje-log-action', event.detail)
@@ -520,8 +572,13 @@ export class LintjeLogViewer extends LintjeContentTileElement {
 
   /* Keys -------------------------------------------------------------------- */
 
+  /** The same keys in the tile and the modal; each walks the rows of its own log. */
   private readonly onRowsKeydown = (event: KeyboardEvent): void => {
-    const rows = [...this.renderRoot.querySelectorAll<HTMLElement>('.lintje-log-viewer__row')]
+    const log = event.currentTarget as HTMLElement
+    const place: Place = log.classList.contains('lintje-log-viewer__log--expanded')
+      ? 'modal'
+      : 'tile'
+    const rows = [...log.querySelectorAll<HTMLElement>('.lintje-log-viewer__row')]
     if (!rows.length) return
     // Without a line of its own the keys start at the newest, the one with the tab stop.
     const found = rows.findIndex((row) => row.dataset.id === this.activeId)
@@ -540,11 +597,13 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       case 'End':
         next = rows.length - 1
         break
-      case 'Enter':
+      case 'Enter': {
         if (event.target !== rows[index]) return
         event.preventDefault()
-        this.select(this.data?.selected === this.activeId ? null : this.activeId)
+        const id = rows[index]!.dataset.id ?? null
+        this.select(this.data?.selected === id ? null : id, place)
         return
+      }
       default:
         return
     }
@@ -552,11 +611,11 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     const row = rows[next]!
     this.activeId = row.dataset.id ?? null
     row.focus({ preventScroll: true })
-    if (event.key === 'End') this.toLatest()
+    // Following is the tile's: the modal only brings the row into its own view.
+    if (place === 'tile' && event.key === 'End') this.toLatest()
     else {
-      this.following = false
-      const log = this.log
-      if (log) this.reveal(row, log)
+      if (place === 'tile') this.following = false
+      this.reveal(row, log)
     }
   }
 
@@ -726,6 +785,20 @@ export class LintjeLogViewer extends LintjeContentTileElement {
               this.askFilter({ level: event.detail as LogLevel | 'all' })
             }}
           ></lintje-segmented>`
+    const find = html`<lintje-find
+      class="lintje-log-viewer__find"
+      label="Zoeken in log"
+      .value=${search}
+      .total=${this.term ? total : null}
+      .current=${total ? Math.min(this.hit, total) : 0}
+      @lintje-change=${(event: CustomEvent<string>) => {
+        event.stopPropagation()
+        this.askFilter({ search: event.detail })
+      }}
+      @lintje-find-step=${this.onStep}
+    ></lintje-find>`
+    // Narrow, the search stands above the level: first in the source too, so Tab goes as it shows.
+    const narrow = this.fit === 'narrow'
     return html`<div
       class=${classMap({
         'lintje-log-viewer__filters': true,
@@ -733,20 +806,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
         'is-raw': raw,
       })}
     >
-      ${levels}
-      <lintje-find
-        class="lintje-log-viewer__find"
-        label="Zoeken in log"
-        .value=${search}
-        .total=${this.term ? total : null}
-        .current=${total ? Math.min(this.hit, total) : 0}
-        @lintje-change=${(event: CustomEvent<string>) => {
-          event.stopPropagation()
-          this.askFilter({ search: event.detail })
-        }}
-        @lintje-find-step=${this.onStep}
-      ></lintje-find>
-      ${this.renderTools(raw)}
+      ${narrow ? find : nothing}${levels}${narrow ? nothing : find} ${this.renderTools(raw)}
     </div>`
   }
 
@@ -757,7 +817,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       <p class="visually-hidden" role="status" aria-atomic="false">${this.#live.text}</p>`
   }
 
-  private renderLines(raw: boolean, mobile: boolean, place: 'tile' | 'modal'): TemplateResult {
+  private renderLines(raw: boolean, mobile: boolean, place: Place): TemplateResult {
     const data = this.data
     const shown = this.shown
     const counts = this.hitCounts
@@ -769,30 +829,26 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     const total = counts.reduce((sum, count) => sum + count, 0)
     const hit = total ? Math.min(this.hit, total) : 0
     const inTile = place === 'tile'
-    const activeId =
-      inTile && shown.some((entry) => entry.id === this.activeId)
-        ? this.activeId
-        : (shown.at(-1)?.id ?? null)
+    const activeId = shown.some((entry) => entry.id === this.activeId)
+      ? this.activeId
+      : (shown.at(-1)?.id ?? null)
     const hidden = this.clearedAfter ? this.entries.length - shown.length : 0
     const unread = !this.following && this.unreadFrom
     const newCount = unread ? shown.length - shown.findIndex((e) => e.id === this.unreadFrom) : 0
 
-    // In the tile the active row is the one tab stop; -1 keeps Firefox from making the
-    // scroller a second one. Keys on that row still scroll it.
+    // The active row is the one tab stop, in the tile and the modal alike; -1 keeps Firefox from
+    // making the scroller a second one. Keys on that row still scroll it.
     return html`<div
-      class=${classMap({
-        'lintje-log-viewer__log': true,
-        'lintje-log-viewer__log--expanded': !inTile,
-        'is-nowrap': !this.view.wrap && !mobile,
-        'is-mobile': mobile,
-      })}
-      role="log"
-      aria-live="off"
-      aria-label=${data?.title ?? 'Log'}
-      tabindex=${inTile ? '-1' : '0'}
-      @scroll=${inTile ? this.onScroll : nothing}
-      @keydown=${inTile ? this.onRowsKeydown : nothing}
-    >
+        class=${classMap({
+          'lintje-log-viewer__log': true,
+          'lintje-log-viewer__log--expanded': !inTile,
+          'is-nowrap': !this.view.wrap && !mobile,
+          'is-mobile': mobile,
+        })}
+        tabindex="-1"
+        @scroll=${inTile ? this.onScroll : nothing}
+        @keydown=${this.onRowsKeydown}
+      >
       <div class="lintje-log-viewer__rows">
         ${
           data?.truncated
@@ -810,29 +866,48 @@ export class LintjeLogViewer extends LintjeContentTileElement {
               <lintje-button
                 variant="link"
                 size="compact"
-                @click=${() => (this.clearedAfter = null)}
+                @click=${(event: Event) => {
+                  // The note goes with what it hid: the focus goes to the active line.
+                  passFocus(event.currentTarget as Element, [this.activeRow])
+                  this.showCleared()
+                }}
                 >Weer tonen</lintje-button
               >
             </p>`
             : nothing
         }
-        ${repeat(
-          shown,
-          (entry) => entry.id,
-          (entry, index) =>
-            this.renderRow(entry, {
-              raw,
-              first: firsts[index]!,
-              hits: counts[index]!,
-              hit,
-              active: inTile && entry.id === activeId,
-              place,
-              divider: unread && entry.id === this.unreadFrom ? newCount : 0,
-            }),
-        )}
-        ${shown.length ? nothing : this.renderEmpty()}
+        ${
+          shown.length
+            ? html`<div class="lintje-log-viewer__grid" role="grid" aria-label=${data?.title ?? 'Log'}>
+              ${repeat(
+                shown,
+                (entry) => entry.id,
+                (entry, index) =>
+                  this.renderRow(entry, {
+                    raw,
+                    first: firsts[index]!,
+                    hits: counts[index]!,
+                    hit,
+                    active: entry.id === activeId,
+                    place,
+                    divider: unread && entry.id === this.unreadFrom ? newCount : 0,
+                  }),
+              )}
+            </div>`
+            : this.renderEmpty()
+        }
       </div>
-    </div>`
+    </div>${
+      inTile
+        ? nothing
+        : html`<p class="visually-hidden" role="status" aria-atomic="false">${this.#modalLive.text}</p>`
+    }`
+  }
+
+  private showCleared(): void {
+    const hidden = this.entries.length - this.shown.length
+    this.clearedAfter = null
+    this.#live.say(`${lineCount(hidden)} weer getoond`)
   }
 
   private get clearedTime(): string | undefined {
@@ -849,6 +924,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
           size="compact"
           @click=${() => {
             this.#asked = true
+            this.#toActive = true
             this.emit('lintje-log-filter-change', { level: 'all', search: '', onlyHits: false })
           }}
           >Filter wissen</lintje-button
@@ -868,7 +944,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       hits: number
       hit: number
       active: boolean
-      place: 'tile' | 'modal'
+      place: Place
       divider: number
     },
   ): TemplateResult {
@@ -903,9 +979,12 @@ export class LintjeLogViewer extends LintjeContentTileElement {
           : nothing
       }`
     const details = this.opened.has(entry.id)
+    // The divider is a row of the grid too: a grid holds only rows.
     return html`${
       o.divider
-        ? html`<div class="lintje-log-viewer__divider">${formatNumber(o.divider)} nieuw</div>`
+        ? html`<div class="lintje-log-viewer__divider" role="row">
+            <span role="gridcell">${formatNumber(o.divider)} nieuw</span>
+          </div>`
         : nothing
     }<div
       class=${classMap({
@@ -914,24 +993,23 @@ export class LintjeLogViewer extends LintjeContentTileElement {
         'lintje-log-viewer__row--raw': o.raw,
         'is-selected': selected,
       })}
+      role="row"
       data-id=${entry.id}
-      tabindex=${o.place === 'tile' ? tab : nothing}
-      aria-current=${selected ? 'true' : nothing}
-      @focus=${o.place === 'tile' ? () => (this.activeId = entry.id) : nothing}
+      tabindex=${tab}
+      aria-selected=${String(selected)}
+      @focus=${() => (this.activeId = entry.id)}
     >
       ${
         o.raw
-          ? html`<span class="lintje-log-viewer__number">${entry.line ?? ''}</span
-              ><span class="lintje-log-viewer__message">${message}</span>`
-          : this.renderCells(entry, message, tab, details)
+          ? html`<span class="lintje-log-viewer__number" role="gridcell">${entry.line ?? ''}</span
+              ><span class="lintje-log-viewer__message" role="gridcell">${message}</span>`
+          : this.renderCells(entry, message, tab, details, o.place)
       }
       ${
         details && entry.details
-          ? html`<lintje-code
-              class="lintje-log-viewer__details"
-              .text=${entry.details}
-              label="Details van de regel"
-            ></lintje-code>`
+          ? html`<div class="lintje-log-viewer__details" role="gridcell">
+              <lintje-code .text=${entry.details} label="Details van de regel"></lintje-code>
+            </div>`
           : nothing
       }
     </div>`
@@ -942,12 +1020,13 @@ export class LintjeLogViewer extends LintjeContentTileElement {
     message: TemplateResult,
     tab: string,
     details: boolean,
+    place: Place,
   ): TemplateResult {
     const { columns, time } = this.view
     const first = this.entries.find((line) => line.at)
     const moment = time === 'since' ? (since(entry.at, first?.at) ?? entry.time) : entry.time
     const level = entry.level ? LEVEL_TONE[entry.level] : null
-    return html`<span class="lintje-log-viewer__toggle">
+    return html`<span class="lintje-log-viewer__toggle" role="gridcell">
         ${
           entry.details
             ? html`<button
@@ -965,7 +1044,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       </span>
       ${
         columns.time
-          ? html`<span class="lintje-log-viewer__time"
+          ? html`<span class="lintje-log-viewer__time" role="gridcell"
               >${
                 moment
                   ? html`<button
@@ -974,7 +1053,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
                       tabindex="-1"
                       title="Deze regel kiezen"
                       @click=${() =>
-                        this.select(this.data?.selected === entry.id ? null : entry.id)}
+                        this.select(this.data?.selected === entry.id ? null : entry.id, place)}
                     >
                       <time datetime=${entry.at ?? nothing}>${moment}</time>
                     </button>`
@@ -985,7 +1064,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       }
       ${
         columns.level
-          ? html`<span class="lintje-log-viewer__level-cell"
+          ? html`<span class="lintje-log-viewer__level-cell" role="gridcell"
               >${
                 level && entry.level
                   ? renderBadge({
@@ -1000,10 +1079,10 @@ export class LintjeLogViewer extends LintjeContentTileElement {
       }
       ${
         columns.source
-          ? html`<span class="lintje-log-viewer__source">${entry.source ?? ''}</span>`
+          ? html`<span class="lintje-log-viewer__source" role="gridcell">${entry.source ?? ''}</span>`
           : nothing
       }
-      <span class="lintje-log-viewer__message">${message}</span>`
+      <span class="lintje-log-viewer__message" role="gridcell">${message}</span>`
   }
 
   private toggle(set: 'unfolded' | 'opened', id: string): void {
@@ -1045,7 +1124,12 @@ export class LintjeLogViewer extends LintjeContentTileElement {
             icon="functioneel-kruis"
             label="Keuze opheffen"
             variant="flat"
-            @click=${() => this.select(null)}
+            @click=${(event: Event) => {
+              // The foot goes with the choice: the focus goes to the line that was chosen.
+              const row = this.rows.find((line) => line.dataset.id === chosen.id)
+              passFocus(event.currentTarget as Element, [row])
+              this.select(null)
+            }}
           ></lintje-icon-button>
         </span>
       </div>`
@@ -1070,7 +1154,12 @@ export class LintjeLogViewer extends LintjeContentTileElement {
               variant="tertiary"
               size="chrome"
               icon="functioneel-pijl-omlaag"
-              @click=${() => this.toLatest()}
+              @click=${(event: Event) => {
+                // The button goes once the log follows again: the focus goes to the newest line,
+                // as End takes it there.
+                passFocus(event.currentTarget as Element, [this.rows.at(-1)])
+                this.toLatest()
+              }}
               >Naar nieuwste</lintje-button
             >
           </span>

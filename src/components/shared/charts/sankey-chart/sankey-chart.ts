@@ -10,7 +10,8 @@ import { ref } from 'lit/directives/ref.js'
 import { styleProps } from '../../../../core/style-props'
 import { formatNumber, formatPercent, textWidth } from '../../../../core/format'
 import { isDataColor } from '../../../../tokens/colors'
-import { chartColor, DEFAULT_SERIES_COLOR, whiteOnRung } from '../shared/colors'
+import { chartColor, DEFAULT_SERIES_COLOR, labelInk } from '../shared/colors'
+import { LADDER_PARTS } from '../shared/fold'
 import {
   drawingRole,
   focusRingStyle,
@@ -24,7 +25,7 @@ import type { ChartOptions, TooltipContent, TooltipRow } from '../shared/control
 import { markSelection, type MarkAttributes, type MarkSelection } from '../shared/mark-select'
 import { plotKeys, renderPlotStatus, type PlotPoint } from '../shared/plot-keys'
 import { staggerStyle } from '../shared/stagger'
-import { tintsFor } from '../shared/tints'
+import { tintSteps, tintsFor } from '../shared/tints'
 import type { ChartSpec } from '../shared/types'
 
 type SankeySpec = Extract<ChartSpec, { kind: 'sankey' }>
@@ -45,8 +46,11 @@ const STEP_ROW = 24
 /** A band of 1 px at its tint cannot be seen. */
 const MIN_BAND = 2
 const STUB_WIDTH = 28
-/** A node's target reaches this far past it on either side; a thin band's is this tall. */
-const NODE_REACH = 4
+/**
+ * A node's target is this wide and, where its slot has the room, this tall, over the bands at it
+ * (WCAG 2.5.8); a thin band's is `MIN_HIT` tall.
+ */
+const NODE_TARGET = 24
 const MIN_HIT = 8
 
 /* --- The model: what each node and flow counts, without any geometry ------------------ */
@@ -505,15 +509,12 @@ function renderDrawing(
     const share = showShare ? nodeShare(node) : null
     return { count: count(node), share: share == null ? '' : ` · ${share}` }
   }
-  const layout = sankeyLayout(model, {
-    width,
-    height,
-    nameWidth: (node) => (textWidth(node.label, fontFamily) * 14) / 12,
-    valueWidth: (node) => {
-      const line = valueLine(node)
-      return textWidth(line.count, fontFamily, 700) + textWidth(line.share, fontFamily)
-    },
-  })
+  const nameWidth = (node: SankeyNodeModel) => (textWidth(node.label, fontFamily) * 14) / 12
+  const valueWidth = (node: SankeyNodeModel) => {
+    const line = valueLine(node)
+    return textWidth(line.count, fontFamily, 700) + textWidth(line.share, fontFamily)
+  }
+  const layout = sankeyLayout(model, { width, height, nameWidth, valueWidth })
   const stops = sankeyStops(model)
   const last = model.steps.length - 1
 
@@ -605,24 +606,9 @@ function renderDrawing(
   }
   const keys = plotKeys(controller, stops.length, at)
 
-  // The pointer stands the tooltip where the keyboard would, beside the mark, not the pointer.
-  const point = (event: MouseEvent, i: number) => {
-    if (controller.hoverIndex === i && controller.tooltip && !controller.status) return
-    const drawing = (event.currentTarget as Element).closest('svg')
-    const anchor = drawing?.closest('[data-tooltip-anchor]')
-    if (!drawing || !anchor) return
-    const box = drawing.getBoundingClientRect()
-    const origin = anchor.getBoundingClientRect()
-    const place = at(i)
-    controller.hoverIndex = i
-    controller.status = ''
-    controller.showTooltipAt(
-      box.left - origin.left + place.x,
-      box.top - origin.top + place.y,
-      place.content,
-      place.side,
-    )
-  }
+  // The pointer and the focus on a mark stand the tooltip where the keyboard would.
+  const point = (event: Event, i: number) => keys.point(event, i)
+  const focusOn = (event: Event, i: number) => keys.point(event, i, true)
 
   /* States */
 
@@ -667,7 +653,9 @@ function renderDrawing(
               class="lintje-chart__mark lintje-sankey__band ${own(mark)} ${active ? 'is-active' : ''} ${dimmed(active)} ${current(i)}"
               data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
               aria-pressed=${mark.pressed} aria-label=${mark.label}
-              @click=${mark.click} @keydown=${mark.keydown} />
+              @click=${mark.click} @keydown=${mark.keydown}
+              @focus=${mark.clickable ? (event: FocusEvent) => i != null && focusOn(event, i) : nothing}
+              @blur=${mark.clickable ? () => controller.hoverAt(null) : nothing} />
         ${
           band.thickness < MIN_HIT
             ? svg`<path class="lintje-sankey__hit lintje-sankey__hit--line ${mark.clickable ? 'is-clickable' : ''}"
@@ -694,18 +682,22 @@ function renderDrawing(
       const box = layout.node.get(node)!
       const i = stopIndex.get(node)
       const mark = markOf(selection, node, node.label, sentenceOf({ kind: 'node', node }))
-      const hit = Math.max(box.h, MIN_HIT)
+      const hit = Math.max(box.h, Math.min(NODE_TARGET, box.slot))
+      // A node without height that drills has its label as its button, there to see and reach.
+      if (box.h === 0 && mark.clickable) return nothing
       return svg`<g @mousemove=${(event: MouseEvent) => i != null && point(event, i)}>
         <rect class="lintje-sankey__hit ${mark.clickable ? 'is-clickable' : ''}"
-              x=${box.x - NODE_REACH} y=${box.y + box.h / 2 - hit / 2}
-              width=${NODE_WIDTH + 2 * NODE_REACH} height=${hit} @click=${mark.click} />
+              x=${box.x + NODE_WIDTH / 2 - NODE_TARGET / 2} y=${box.y + box.h / 2 - hit / 2}
+              width=${NODE_TARGET} height=${hit} @click=${mark.click} />
         ${
           box.h > 0
             ? svg`<rect class="lintje-chart__mark lintje-sankey__node ${own(mark)} ${dimmed(related?.nodes.has(node) ?? false)} ${current(i)}"
                         x=${box.x} y=${box.y} width=${NODE_WIDTH} height=${box.h} fill=${color}
                         data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
                         aria-pressed=${mark.pressed} aria-label=${mark.label}
-                        @click=${mark.click} @keydown=${mark.keydown} />`
+                        @click=${mark.click} @keydown=${mark.keydown}
+                        @focus=${mark.clickable ? (event: FocusEvent) => i != null && focusOn(event, i) : nothing}
+                        @blur=${mark.clickable ? () => controller.hoverAt(null) : nothing} />`
             : nothing
         }
       </g>`
@@ -720,11 +712,10 @@ function renderDrawing(
       const anchor = first ? 'end' : 'start'
       const middle = box.slotTop + box.slot / 2
       const line = valueLine(node)
-      // On the straight run the share takes the text colour while the bands under it are
-      // emphasised: the muted text does not reach 4.5:1 on the stronger tint.
-      const emphasised = s > 0 && s < last && node.outflow.some((flow) => related?.flows.has(flow))
-      return svg`<g class="lintje-sankey__label ${emphasised ? 'is-emphasised' : ''}">
-        <text x=${x} y=${layout.values ? middle - 3 : middle + 5} text-anchor=${anchor}
+      // On the straight run after a middle step the share takes the text colour: on a light
+      // band's tint the muted text does not reach 4.5:1, in dark not even at rest.
+      const onBand = s > 0 && s < last
+      const words = svg`<text x=${x} y=${layout.values ? middle - 3 : middle + 5} text-anchor=${anchor}
               class="lintje-sankey__name">${node.label}</text>
         ${
           layout.values
@@ -732,7 +723,34 @@ function renderDrawing(
                         class="lintje-chart__data-label lintje-sankey__value">${line.count}<tspan
                         class="lintje-sankey__share">${line.share}</tspan></text>`
             : nothing
-        }
+        }`
+      const i = stopIndex.get(node)
+      const mark =
+        box.h === 0 ? markOf(selection, node, node.label, sentenceOf({ kind: 'node', node })) : null
+      if (mark?.clickable) {
+        // The label is the button of a node without height: its ring and target are its box.
+        const boxWidth =
+          Math.max(nameWidth(node), layout.values ? valueWidth(node) : 0) + 2 * LABEL_GAP
+        const boxHeight = layout.values ? LABEL_ROOM : NAME_LINE
+        // Its name is what it shows, in that order (WCAG 2.5.3).
+        const spoken = layout.values ? `${node.label} ${line.count}${line.share}` : node.label
+        return svg`<g class="lintje-sankey__label lintje-sankey__label--control ${own(mark)} ${onBand ? 'is-on-band' : ''} ${current(i)}"
+            data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
+            aria-pressed=${mark.pressed} aria-label=${spoken}
+            @click=${mark.click} @keydown=${mark.keydown}
+            @mousemove=${(event: MouseEvent) => i != null && point(event, i)}
+            @focus=${(event: FocusEvent) => i != null && focusOn(event, i)}
+            @blur=${() => controller.hoverAt(null)}>
+          <rect class="lintje-sankey__label-box" x=${first ? x + LABEL_GAP - boxWidth : x - LABEL_GAP}
+                y=${middle - Math.max(boxHeight, NODE_TARGET) / 2} width=${boxWidth}
+                height=${Math.max(boxHeight, NODE_TARGET)} />
+          ${words}
+        </g>`
+      }
+      // In a group the buttons say every name and count already; this label would say them again.
+      return svg`<g class="lintje-sankey__label ${onBand ? 'is-on-band' : ''}"
+                    aria-hidden=${selection.interactive ? 'true' : nothing}>
+        ${words}
       </g>`
     }),
   )
@@ -750,10 +768,12 @@ function renderDrawing(
     ...(missing ? [{ label: 'Geen gegevens', shape: 'hatch' as const, fixed: true }] : []),
   ]
 
+  // In a group the buttons say every step and count already; the step names would say them again.
+  // A label hides itself, unless it is the button of a node without height.
   const body: SvgSlot = [
-    stepNames,
-    svg`<g @mouseleave=${() => controller.hoverAt(null)}>${transitions}${nodes}</g>`,
-    labels,
+    svg`<g aria-hidden=${selection.interactive ? 'true' : nothing}>${stepNames}</g>`,
+    svg`<g @mouseleave=${keys.leave}>${transitions}${nodes}</g>`,
+    svg`<g>${labels}</g>`,
   ]
 
   return html`
@@ -811,30 +831,53 @@ function renderRows(
   const lower = (label: string) => label.charAt(0).toLowerCase() + label.slice(1)
   const sections = model.steps.slice(0, -1).map((step, t) => {
     const next = model.steps[t + 1]
-    // The same target takes the same tint at every source; a sixth keeps the lightest.
-    const tints = tintsFor(next.nodes.length, named)
-    const rung = (node: SankeyNodeModel) => Math.min(node.index, tints.length - 1)
+    // The same target takes the same tint at every source. Past five the smallest fold into one
+    // "Overig" piece, as a stack folds, so no two pieces share a tint: the ladder's last rung.
+    const kept =
+      next.nodes.length > LADDER_PARTS
+        ? new Set([...next.nodes].sort((a, b) => b.size - a.size).slice(0, LADDER_PARTS - 1))
+        : new Set(next.nodes)
+    const ladder = next.nodes.filter((node) => kept.has(node))
+    const rungs = ladder.length + (kept.size < next.nodes.length ? 1 : 0)
+    const tints = tintsFor(rungs, named)
+    const steps = tintSteps(rungs)
+    const rungOf = (node: SankeyNodeModel) => (kept.has(node) ? ladder.indexOf(node) : rungs - 1)
+    const fillOf = (node: SankeyNodeModel) => tints[rungOf(node)]
+    // The ink that reaches 4.5:1 on the piece's rung; none where neither does.
+    const inkOf = (node: SankeyNodeModel) => labelInk(named, steps[rungOf(node)])
+    const otherInk = labelInk(named, steps[rungs - 1])
     const sources = step.nodes.filter((node) => node.outflow.length > 0 || node.size > 0)
-    return html`<section class="lintje-sankey__transition">
-      <p class="lintje-sankey__heading">${step.label} → ${lower(next.label)}</p>
+    const heading = `${id}-transition-${t}`
+    return html`<section class="lintje-sankey__transition" role="group" aria-labelledby=${heading}>
+      <p class="lintje-sankey__heading" id=${heading}>${step.label} → ${lower(next.label)}</p>
       ${sources.map((node) => {
         const pieces: { weight: number; fill: string; kind: string; share?: string }[] = []
         let stubbed = false
+        let other = 0
         for (const flow of node.outflow) {
           if (flow.value == null) {
             if (!stubbed && node.stub > 0)
               pieces.push({ weight: node.stub, fill: '', kind: 'missing' })
             stubbed = true
+          } else if (flow.value > 0 && !kept.has(flow.to)) {
+            other += flow.value
           } else if (flow.value > 0) {
-            const r = rung(flow.to)
+            const ink = inkOf(flow.to)
             pieces.push({
               weight: flow.value,
-              fill: tints[r],
-              kind: whiteOnRung(named, r) ? 'white' : 'ink',
-              share: pct(flow.value, node.size),
+              fill: fillOf(flow.to),
+              kind: ink ?? 'unlabelled',
+              share: ink ? pct(flow.value, node.size) : undefined,
             })
           }
         }
+        if (other > 0)
+          pieces.push({
+            weight: other,
+            fill: tints[rungs - 1],
+            kind: otherInk ?? 'unlabelled',
+            share: otherInk ? pct(other, node.size) : undefined,
+          })
         if (node.rest > 0)
           pieces.push({
             weight: node.rest,
@@ -845,11 +888,58 @@ function renderRows(
         const room = Math.max(0, width - 2 * Math.max(0, pieces.length - 1))
         const all = pieces.reduce((sum, piece) => sum + piece.weight, 0) || 1
         const head = markOf(selection, node, node.label, `${node.label}: ${count(node)}`)
+        // The targets "Overig" holds, in their order: a row of its own, theirs indented under it.
+        const folded = node.outflow.filter((flow) => !kept.has(flow.to))
+        const flowRow = (flow: SankeyFlowModel, part = false): TemplateResult => {
+          const link = flow.href ? flow : flow.to
+          const sentence =
+            flow.value == null
+              ? `${flow.to.label}: geen gegevens`
+              : `${flow.to.label}: ${formatNumber(flow.value)}, ${pct(flow.value, node.size)} van ${node.label}`
+          const mark = markOf(selection, link, flow.to.label, sentence)
+          return html`<li class="lintje-sankey__row ${part ? 'lintje-sankey__row--part' : ''}">
+            <span class="lintje-sankey__row-mark ${mark.state}" data-mark-id=${mark.markId}
+                  role=${mark.role} tabindex=${mark.tabIndex} aria-pressed=${mark.pressed}
+                  aria-label=${mark.label} @click=${mark.click} @keydown=${mark.keydown}>
+              ${
+                part
+                  ? nothing
+                  : html`<span class="lintje-sankey__swatch ${flow.value == null ? 'lintje-sankey__swatch--missing' : ''}"
+                        ${styleProps({ background: flow.value == null ? undefined : fillOf(flow.to) })}></span>`
+              }
+              <span class="lintje-sankey__row-name">${flow.to.label}</span>
+              ${
+                flow.value == null
+                  ? html`<span class="lintje-sankey__row-share">geen gegevens</span>`
+                  : html`<span class="lintje-sankey__row-count">${formatNumber(flow.value)}</span>
+                      <span class="lintje-sankey__row-share">${pct(flow.value, node.size)}</span>`
+              }
+            </span>
+          </li>`
+        }
+        // A missing part leaves "Overig" missing too, never the sum of the rest (rule 15).
+        const otherRow = (flows: SankeyFlowModel[]): TemplateResult => {
+          const known = flows.every((flow) => flow.value != null)
+          const sum = flows.reduce((total, flow) => total + (flow.value ?? 0), 0)
+          return html`<li class="lintje-sankey__row">
+            <span class="lintje-sankey__row-mark">
+              <span class="lintje-sankey__swatch" ${styleProps({ background: tints[rungs - 1] })}></span>
+              <span class="lintje-sankey__row-name">Overig</span>
+              ${
+                known
+                  ? html`<span class="lintje-sankey__row-count">${formatNumber(sum)}</span>
+                      <span class="lintje-sankey__row-share">${pct(sum, node.size)}</span>`
+                  : html`<span class="lintje-sankey__row-share">geen gegevens</span>`
+              }
+            </span>
+          </li>`
+        }
         return html`<div class="lintje-sankey__source">
           <p class="lintje-sankey__source-head ${head.state}" data-mark-id=${head.markId}
              role=${head.role} tabindex=${head.tabIndex} aria-pressed=${head.pressed}
              aria-label=${head.label} @click=${head.click} @keydown=${head.keydown}>
-            <span>${node.label}</span><span>${count(node)}</span>
+            <!-- The space keeps name and count two words, as the button's name says them (2.5.3). -->
+            <span>${node.label}</span> <span>${count(node)}</span>
           </p>
           <div class="lintje-sankey__bar" aria-hidden="true">
             ${pieces.map((piece) => {
@@ -862,29 +952,12 @@ function renderRows(
             })}
           </div>
           <ul class="lintje-sankey__rows">
-            ${node.outflow.map((flow) => {
-              const link = flow.href ? flow : flow.to
-              const sentence =
-                flow.value == null
-                  ? `${flow.to.label}: geen gegevens`
-                  : `${flow.to.label}: ${formatNumber(flow.value)}, ${pct(flow.value, node.size)} van ${node.label}`
-              const mark = markOf(selection, link, flow.to.label, sentence)
-              return html`<li class="lintje-sankey__row">
-                <span class="lintje-sankey__row-mark ${mark.state}" data-mark-id=${mark.markId}
-                      role=${mark.role} tabindex=${mark.tabIndex} aria-pressed=${mark.pressed}
-                      aria-label=${mark.label} @click=${mark.click} @keydown=${mark.keydown}>
-                  <span class="lintje-sankey__swatch ${flow.value == null ? 'lintje-sankey__swatch--missing' : ''}"
-                        ${styleProps({ background: flow.value == null ? undefined : tints[rung(flow.to)] })}></span>
-                  <span class="lintje-sankey__row-name">${flow.to.label}</span>
-                  ${
-                    flow.value == null
-                      ? html`<span class="lintje-sankey__row-share">geen gegevens</span>`
-                      : html`<span class="lintje-sankey__row-count">${formatNumber(flow.value)}</span>
-                          <span class="lintje-sankey__row-share">${pct(flow.value, node.size)}</span>`
-                  }
-                </span>
-              </li>`
-            })}
+            ${[
+              ...node.outflow.filter((flow) => kept.has(flow.to)).map((flow) => flowRow(flow)),
+              ...(folded.length
+                ? [otherRow(folded), ...folded.map((flow) => flowRow(flow, true))]
+                : []),
+            ]}
             ${
               node.rest > 0
                 ? html`<li class="lintje-sankey__row">

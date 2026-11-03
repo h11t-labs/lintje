@@ -401,3 +401,26 @@ describe('lintje-audio-player', () => {
     )
   })
 })
+
+describe('the time label of lintje-audio-player', () => {
+  it('goes with Escape, the focus staying where it is', async () => {
+    const element = await mount({ peaks: [0.2, 0.8, 0.5, 0.4] })
+    await loaded(element)
+    const wave = slider(element)
+    Object.defineProperty(wave, 'getBoundingClientRect', {
+      configurable: true,
+      value: () => ({ left: 0, width: 400, top: 0, height: 48, right: 400, bottom: 48 }),
+    })
+    wave.dispatchEvent(new PointerEvent('pointermove', { clientX: 200, bubbles: true }))
+    await element.updateComplete
+    expect(root(element).querySelector('.lintje-audio-player__cursor-time')).not.toBeNull()
+    const elsewhere = document.body.appendChild(document.createElement('button'))
+    elsewhere.focus()
+    const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+    elsewhere.dispatchEvent(escape)
+    await element.updateComplete
+    expect(root(element).querySelector('.lintje-audio-player__cursor-time')).toBeNull()
+    expect(escape.defaultPrevented).toBe(true)
+    expect(document.activeElement).toBe(elsewhere)
+  })
+})

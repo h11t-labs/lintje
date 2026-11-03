@@ -1,6 +1,7 @@
 /**
- * A chart mark that drills. A mark is clickable only when its data point carries a `href`
- * (a `role="button"` with `aria-pressed`); without one it is inert.
+ * A chart mark that drills. A mark is clickable only when its data point carries a `href`;
+ * without one it is inert. It goes to that page, so it is a link, unless the host keeps a
+ * selection (`options.choosing`): then it chooses, a toggle with `aria-pressed`.
  *
  * The selection is not kept here: the chosen mark is whatever `options.selectedId` says, so
  * the URL is the only state. Clearing (the chosen mark again, or Escape) emits
@@ -24,7 +25,7 @@ export interface MarkAttributes {
   /** The `is-*` states, to chain onto the mark's own BEM class. */
   state: string
   markId: string | typeof nothing
-  role: 'button' | typeof nothing
+  role: 'button' | 'link' | typeof nothing
   tabIndex: 0 | typeof nothing
   pressed: 'true' | 'false' | typeof nothing
   label: string | typeof nothing
@@ -83,13 +84,14 @@ export function markSelection(
         return active != null ? { ...INERT, state: 'is-muted' } : INERT
       }
       const selected = link.id === active
+      const choosing = options.choosing ?? options.selectedId !== undefined
       return {
         clickable: true,
         state: `is-clickable ${selected ? 'is-selected' : active != null ? 'is-muted' : ''}`,
         markId: link.id,
-        role: 'button',
+        role: choosing ? 'button' : 'link',
         tabIndex: 0,
-        pressed: selected ? 'true' : 'false',
+        pressed: choosing ? (selected ? 'true' : 'false') : nothing,
         label: sentence ?? label,
         // A modifier or middle click opens the href in a new tab, as on a link.
         click: (event: MouseEvent) => {
@@ -98,8 +100,9 @@ export function markSelection(
             options.onSelect?.({ id: link.id, label, href: link.href }, true)
           } else if (event.type === 'click') select(link, label)
         },
+        // A link answers Enter; a toggle Enter and space, as a button does.
         keydown: (event: KeyboardEvent) => {
-          if (event.key !== 'Enter' && event.key !== ' ') return
+          if (event.key !== 'Enter' && (event.key !== ' ' || !choosing)) return
           event.preventDefault()
           select(link, label)
         },

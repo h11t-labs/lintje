@@ -1,10 +1,21 @@
-/** `<lintje-kpi-row>` — the KPI row: one grid, the KPIs staggered in from left to right. */
-import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
+/**
+ * `<lintje-kpi-row>` — the KPI row: one grid, the KPIs staggered in from left to right. One live
+ * region speaks for the row: five KPIs that load say "Laden" once.
+ */
+import {
+  html,
+  nothing,
+  type PropertyDeclarations,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit'
 import { styleProps } from '../../../core/style-props'
 import { define, type FrameSettings } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { LintjeGridItemElement, spanStyles } from '../../shared/grid-item-element'
 import '../kpi/kpi'
+import { kpiStateWords } from '../kpi/kpi'
+import { LiveMessage } from '../../shared/live-message'
 import kpiRowCss from './kpi-row.css?inline'
 import type { KpiRowData } from '../../../types'
 
@@ -17,9 +28,28 @@ export class LintjeKpiRow extends LintjeGridItemElement {
   }
 
   declare data?: KpiRowData | null
+  readonly #live = new LiveMessage(this)
+  #states: (string | undefined)[] | null = null
 
   protected override get dataSettings(): FrameSettings | undefined {
     return this.data ?? undefined
+  }
+
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
+    if (!changed.has('data')) return
+    const kpis = this.data?.kpis ?? []
+    const before = this.#states
+    this.#states = kpis.map((kpi) => kpi.state ?? 'ready')
+    // The first drawing is silent; after it, what changed is said in one sentence.
+    if (!before) return
+    const changedKpis = kpis.filter((kpi, i) => (kpi.state ?? 'ready') !== before[i])
+    const loading = changedKpis.some((kpi) => kpi.state === 'loading')
+    const lines = changedKpis
+      .filter((kpi) => kpi.state === 'empty' || kpi.state === 'error')
+      .map((kpi) => `${kpi.label}: ${kpiStateWords(kpi.state!, kpi.message)}`)
+    const words = [...(loading ? ['Laden'] : []), ...lines].join('. ')
+    if (words) this.#live.say(words)
   }
 
   protected override render(): TemplateResult {
@@ -49,8 +79,10 @@ export class LintjeKpiRow extends LintjeGridItemElement {
           state=${kpi.state ?? 'ready'}
           .message=${kpi.message}
           .lastKnown=${kpi.lastKnown}
+          quiet
         ></lintje-kpi>`,
       )}
+      <p class="visually-hidden" role="status" aria-atomic="false">${this.#live.text}</p>
     </div>`
   }
 }

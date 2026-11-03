@@ -24,6 +24,7 @@ import {
   type TemplateResult,
 } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
+import { repeat } from 'lit/directives/repeat.js'
 import { LintjeElement, define } from '../../../core/element'
 import { holdsFocus } from '../../../core/focus'
 import { MediaController } from '../../../core/media'
@@ -48,6 +49,7 @@ import {
   rowNews,
   type UploadFile,
 } from '../../shared/files'
+import { LiveMessage } from '../../shared/live-message'
 import keyCss from '../../shared/key.css?inline'
 import chatComposerCss from './chat-composer.css?inline'
 import frameCss from '../shared/frame.css?inline'
@@ -185,7 +187,6 @@ export class LintjeChatComposer extends LintjeElement {
     refused: { state: true },
     dragging: { state: true },
     dragCount: { state: true },
-    news: { state: true },
     draft: { state: true },
     caret: { state: true },
     completionIndex: { state: true },
@@ -235,8 +236,6 @@ export class LintjeChatComposer extends LintjeElement {
   dragging: boolean = false
   /** How many are dragged: 0 when the browser does not say. */
   dragCount: number = 0
-  /** What changed in the attachments, for the status region. */
-  news: string = ''
   draft: string = ''
   /** The caret as an offset into the draft. */
   caret: number = 0
@@ -253,6 +252,8 @@ export class LintjeChatComposer extends LintjeElement {
   #ranges: { name: string; range: Range }[] = []
   #resize: ResizeObserver | null = null
   #announce: ReturnType<typeof setTimeout> | undefined
+  /** What changed in the attachments: the same news twice, a second failure, is heard twice. */
+  readonly #news = new LiveMessage(this)
   /** "Stoppen" and the send button stand in for each other; one leaving with the focus. */
   #refocus = false
   #depth = 0
@@ -361,7 +362,7 @@ export class LintjeChatComposer extends LintjeElement {
     if (changed.has('files') || changed.has('refused')) this.#rowFocus.hold(this.chips)
     if (changed.has('files') && changed.get('files') !== undefined) {
       const news = rowNews(changed.get('files') ?? [], this.files ?? [])
-      if (news) this.news = news
+      if (news) this.#news.say(news)
     }
     // The host's text becomes the draft before the render; the field takes it after.
     if (changed.has('text') && this.text !== this.draft) {
@@ -431,7 +432,7 @@ export class LintjeChatComposer extends LintjeElement {
     }
     if (refused.length) {
       this.refused = [...this.refused, ...refused]
-      this.news = rowNews([], refused, true)
+      this.#news.say(rowNews([], refused, true))
     }
     if (passed.length) this.emit('lintje-files-add', passed)
   }
@@ -741,7 +742,7 @@ export class LintjeChatComposer extends LintjeElement {
       </div>
       ${
         this.takesFiles
-          ? html`<span class="visually-hidden" role="status">${this.news}</span>`
+          ? html`<span class="visually-hidden" role="status">${this.#news.text}</span>`
           : nothing
       }
     </div>`
@@ -790,7 +791,10 @@ export class LintjeChatComposer extends LintjeElement {
       @lintje-file-cancel=${this.onChipEvent}
       @lintje-file-retry=${this.onChipEvent}
     >
-      ${all.map(
+      ${repeat(
+        all,
+        // Keyed, a chip keeps its place and its focus when one above it goes.
+        (file, index) => `${index >= files.length ? 'refused' : 'file'}:${file.id}`,
         (file, index) => html`<li class="lintje-chat-composer__attachment-item">
           <lintje-attachment
             class="lintje-chat-composer__attachment"

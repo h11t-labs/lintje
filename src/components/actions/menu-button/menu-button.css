@@ -30,6 +30,8 @@
 /* The two halves read as one button: only the outer corners are rounded. */
 .lintje-menu-button__split .lintje-menu-button__main.lintje-button { border-radius: var(--radius-control) 0 0 var(--radius-control); }
 .lintje-menu-button__split .lintje-menu-button__trigger--split.lintje-button { border-radius: 0 var(--radius-control) var(--radius-control) 0; }
+/* The half with the focus lies over its neighbour, so its ring is whole, as with the segments. */
+.lintje-menu-button__split > .lintje-button:focus-visible { position: relative; z-index: 1; }
 /* Busy, a split button's ring takes its icon's square: the label stays and nothing moves. */
 .lintje-menu-button__busy {
   flex: none;

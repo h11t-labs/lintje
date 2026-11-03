@@ -51,6 +51,7 @@
   width: var(--space-6);
   padding-right: var(--space-3);
   text-align: right;
-  color: var(--color-text-disabled);
+  /* Text that points a line out: muted, 4.5:1 on the block, never the disabled grey. */
+  color: var(--color-text-muted);
   user-select: none;
 }
