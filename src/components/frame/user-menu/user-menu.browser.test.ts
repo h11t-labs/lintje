@@ -76,4 +76,11 @@ describe('lintje-user-menu inline', () => {
     expect(box.height).toBeGreaterThan(48)
     expect(text.top - box.top).toBeCloseTo(box.bottom - text.bottom, 0)
   })
+
+  it('draws the check in the ink of the navigation, never in the theme fill it stands on', async () => {
+    const element = await mount()
+    const check = element.shadowRoot!.querySelector('.lintje-menu__check')!
+    const row = check.closest('.lintje-menu__row')!
+    expect(getComputedStyle(check).color).toBe(getComputedStyle(row).color)
+  })
 })
