@@ -337,7 +337,7 @@ export function renderDumbbellChart(spec: DumbbellSpec, options: ChartOptions): 
            @click=${mark.click} @keydown=${mark.keydown}>
           ${
             mobile
-              ? svg`<text x="0" y=${top + 14} class="lintje-dumbbell__name lintje-dumbbell__name--above">${names[
+              ? svg`${names[i]!.map((line, n) => svg`<rect class="lintje-dumbbell__knockout" x="-2" y=${top + n * NAME_LINE - 1} width=${textWidth(line, font, 400, 14) + 4} height=${NAME_LINE} />`)}<text x="0" y=${top + 14} class="lintje-dumbbell__name lintje-dumbbell__name--above">${names[
                   i
                 ]!.map(
                   (line, n) => svg`<tspan x="0" dy=${n ? NAME_LINE : 0}>${line}</tspan>`,

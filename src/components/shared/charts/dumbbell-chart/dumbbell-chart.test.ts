@@ -326,6 +326,18 @@ describe('the dumbbell below 768 px', () => {
       String(dumbbellHeight(2, true) + 20),
     )
   })
+
+  it('lets the grid and the norm give way under each line of a name, drawn after them', () => {
+    const label = 'Gemeentelijk loket Utrecht-Overvecht'
+    const { host } = draw({ ...SPEC, rows: [{ ...SPEC.rows[0]!, label }] }, { mobile: true })
+    const knockouts = [...host.querySelectorAll('.lintje-dumbbell__knockout')]
+    expect(knockouts).toHaveLength(2)
+    for (const line of host.querySelectorAll('.lintje-dumbbell__grid, .lintje-dumbbell__norm')) {
+      expect(
+        line.compareDocumentPosition(knockouts[0]!) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+    }
+  })
 })
 
 describe('a dumbbell row that drills', () => {
