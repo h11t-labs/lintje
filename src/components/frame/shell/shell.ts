@@ -15,6 +15,11 @@
  * head in the new style and above it in the earlier one; `footer` holds the `lintje-footer`. The events of its parts (`lintje-action`, `lintje-logout`,
  * `lintje-notification-open`, `lintje-notifications-read`) reach the host as they are.
  *
+ * A bar of the host's own that sticks in the page carries `data-sticky="top"` or
+ * `data-sticky="bottom"`: the scroller keeps the room it covers free as `scroll-padding`, with the
+ * shell's own bar, so a control the keyboard scrolls to does not end up under it. The shell
+ * follows the bar as it grows, stops sticking or goes.
+ *
  * Events: `lintje-navigate` `{ href }`, `lintje-view-change` `ShellViewChange`,
  * `lintje-search-open`, `lintje-action` with the entry's `action`.
  */
@@ -40,6 +45,7 @@ import '../user-menu/user-menu'
 import { MOBILE, WIDE, MediaController } from '../../../core/media'
 import { lockScroll, onScrollLocks, scrollRoot } from '../../../core/host-config'
 import { lengthPx } from '../../../core/length'
+import { keepRoom, releaseRoom, type RoomSide } from '../../../core/scroll-room'
 import { FocusTrap, ownsEscape } from '../../shared/focus-trap'
 import { holdsFocus } from '../../../core/focus'
 import { FrameStateController } from '../../../core/frame-state'
@@ -228,8 +234,11 @@ export class LintjeShell extends LintjeElement {
   /** Below 768 px "Weergave" and "Delen" are sheets: modal, as the filter sheet is. */
   readonly #sheetTrap = new FocusTrap()
   #sheetReleased: (() => void) | null = null
-  /** The scroller that carries the shell's `scroll-padding-top`. */
-  #padded: HTMLElement | null = null
+  /** The host's own bars that stick (`data-sticky`), which the scroller keeps room for too. */
+  #hostBars: HTMLElement[] = []
+  #hostBarSize: ResizeObserver | null = null
+  #hostBarChange: MutationObserver | null = null
+  #padFrame = 0
   /** The sheet the trap holds, and the tool it belongs to: another layout draws both anew. */
   #heldSheet: HTMLElement | null = null
   #heldTool = ''
@@ -270,12 +279,15 @@ export class LintjeShell extends LintjeElement {
     super.connectedCallback()
     document.addEventListener('keydown', this.#onEscape)
     this.#nested = this.parentElement?.closest(this.localName) != null
-    if (!this.#nested) window.addEventListener('scroll', this.#onScroll, { passive: true })
+    if (this.#nested) return
+    window.addEventListener('scroll', this.#onScroll, { passive: true })
+    window.addEventListener('resize', this.#onHostBars)
     globalThis.visualViewport?.addEventListener('resize', this.#onViewport)
     this.#stopLocks = onScrollLocks((count) => {
       this.#locks = count
       this.#passBottom()
     })
+    this.#watchHostBars()
   }
 
   override disconnectedCallback(): void {
@@ -292,15 +304,16 @@ export class LintjeShell extends LintjeElement {
     this.#fitObserved = []
     if (this.#scrollFrame) cancelAnimationFrame(this.#scrollFrame)
     this.#scrollFrame = 0
-    if (!this.#nested) {
-      document.documentElement.style.removeProperty('--lintje-shell-bottom')
-      document.documentElement.style.removeProperty('--lintje-toast-bottom')
-    }
-    if (this.#padded) {
-      this.#padded.style.scrollPaddingTop = ''
-      this.#padded.style.scrollPaddingBottom = ''
-    }
-    this.#padded = null
+    window.removeEventListener('resize', this.#onHostBars)
+    this.#hostBarChange?.disconnect()
+    this.#hostBarChange = null
+    this.#hostBarSize?.disconnect()
+    this.#hostBarSize = null
+    this.#hostBars = []
+    if (this.#padFrame) cancelAnimationFrame(this.#padFrame)
+    this.#padFrame = 0
+    releaseRoom(this)
+    if (!this.#nested) document.documentElement.style.removeProperty('--lintje-shell-bottom')
     super.disconnectedCallback()
   }
 
@@ -376,23 +389,31 @@ export class LintjeShell extends LintjeElement {
   #stopLocks: (() => void) | null = null
 
   /**
-   * What a host puts on the page outside the shell (a toast on `body`) reads the tabs' height too:
-   * it stands on the document, as long as the tabs do. A toast reads `--lintje-toast-bottom`: the
-   * tabs' height, or nothing while a sheet covers them (any overlay that holds the page, other
-   * than the menu's panel, which stops on the tabs), so it never hangs in the middle of a sheet.
+   * What a host puts on the page outside the shell reads the tabs' height too:
+   * `--lintje-shell-bottom` while they show. The scroller keeps their height free, and a toast
+   * stands above it, unless a sheet covers them (any overlay that holds the page, other than the
+   * menu's panel, which stops on the tabs), so it never hangs in the middle of a sheet.
    */
   #passBottom(): void {
     if (this.#nested) return
     const style = document.documentElement.style
-    const tabs = 'calc(var(--h-tab-bar) + env(safe-area-inset-bottom, 0px))'
-    const shown = this.tabsShown && !this.keyboardOpen
+    if (this.tabsShown && !this.keyboardOpen)
+      style.setProperty(
+        '--lintje-shell-bottom',
+        'calc(var(--h-tab-bar) + env(safe-area-inset-bottom, 0px))',
+      )
+    else style.removeProperty('--lintje-shell-bottom')
+    this.#padScroll()
+  }
+
+  /** The tabs' height while they show and no other overlay covers them. */
+  #tabsRoom(): number {
+    if (!this.tabsShown || this.keyboardOpen) return 0
     // What opens from a tab leaves the tabs in view: only another overlay covers them.
     const fromTabs = (this.menuOpen ? 1 : 0) + this.#tabSheets().length
-    const covered = this.#locks > fromTabs
-    if (shown) style.setProperty('--lintje-shell-bottom', tabs)
-    else style.removeProperty('--lintje-shell-bottom')
-    if (shown && !covered) style.setProperty('--lintje-toast-bottom', tabs)
-    else style.removeProperty('--lintje-toast-bottom')
+    if (this.#locks > fromTabs) return 0
+    const bar = this.renderRoot.querySelector<HTMLElement>('.lintje-tab-bar')
+    return bar?.getBoundingClientRect().height || lengthPx(this, '--h-tab-bar', 64)
   }
 
   /* A mistake that shows nothing is said once in the console, as the development build's warning. */
@@ -555,16 +576,13 @@ export class LintjeShell extends LintjeElement {
 
   /**
    * The bars that stay at the top (and the filter bar stuck under them) would cover a control
-   * the keyboard scrolls into view: the scroller keeps their height free above it.
+   * the keyboard scrolls into view: the scroller keeps their height free above it. A bar of the
+   * host's own that sticks counts from its edge to where it ends.
    */
   #padScroll(): void {
-    if (this.#nested) return
+    // An update that was due when the shell left claims nothing.
+    if (this.#nested || !this.isConnected) return
     const root = scrollRoot() ?? document.documentElement
-    if (this.#padded && this.#padded !== root) {
-      this.#padded.style.scrollPaddingTop = ''
-      this.#padded.style.scrollPaddingBottom = ''
-    }
-    this.#padded = root
     const bar = lengthPx(this, '--h-topbar', 56)
     const { hasFilters, sentenceHeight } = this.store.state
     // Below 768 px the sentence wraps, so the filter bar measures it.
@@ -573,9 +591,55 @@ export class LintjeShell extends LintjeElement {
       : this.mobile.matches && sentenceHeight > 0
         ? sentenceHeight
         : lengthPx(this, '--h-contextbar', 48)
-    root.style.scrollPaddingTop = `${Math.round(bar + filters)}px`
-    root.style.scrollPaddingBottom =
-      this.tabsShown && !this.keyboardOpen ? `${lengthPx(this, '--h-tab-bar', 64)}px` : ''
+    keepRoom(this, root, 'top', Math.max(Math.round(bar + filters), this.#hostRoom('top')))
+    keepRoom(this, root, 'bottom', Math.max(this.#tabsRoom(), this.#hostRoom('bottom')))
+  }
+
+  /** How far the host's bars of one edge reach into the scroller while they stick. */
+  #hostRoom(side: RoomSide): number {
+    let room = 0
+    for (const bar of this.#hostBars) {
+      if (bar.dataset.sticky !== side || !bar.isConnected) continue
+      const style = getComputedStyle(bar)
+      // Only what sticks covers anything: a bar the host lets scroll along (a phone) keeps none.
+      if (style.position !== 'sticky' && style.position !== 'fixed') continue
+      const edge = parseFloat(style[side])
+      if (Number.isNaN(edge)) continue
+      room = Math.max(room, edge + bar.getBoundingClientRect().height)
+    }
+    return room
+  }
+
+  /** Measured once a frame at most: a bar that comes, goes, grows or stops sticking. */
+  readonly #onHostBars = (): void => {
+    if (this.#padFrame) return
+    this.#padFrame = requestAnimationFrame(() => {
+      this.#padFrame = 0
+      this.#collectHostBars()
+      this.#padScroll()
+    })
+  }
+
+  #watchHostBars(): void {
+    if (typeof MutationObserver === 'undefined' || typeof ResizeObserver === 'undefined') return
+    this.#hostBarSize = new ResizeObserver(this.#onHostBars)
+    this.#hostBarChange = new MutationObserver(this.#onHostBars)
+    this.#hostBarChange.observe(this, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['data-sticky', 'hidden', 'class', 'style'],
+    })
+    this.#collectHostBars()
+  }
+
+  #collectHostBars(): void {
+    const bars = Array.from(this.querySelectorAll<HTMLElement>('[data-sticky]'))
+    if (bars.length === this.#hostBars.length && bars.every((bar, i) => bar === this.#hostBars[i]))
+      return
+    this.#hostBarSize?.disconnect()
+    for (const bar of bars) this.#hostBarSize?.observe(bar)
+    this.#hostBars = bars
   }
 
   menuLeft(): void {

@@ -29,7 +29,8 @@ Staan de koppen in `lintje-prose`, zoek ze dan in zijn `shadowRoot` in plaats va
 ## De sectie in beeld volgen
 
 De huidige sectie is de laatste kop die boven de balk van de shell is geschoven. Die balk houdt
-zijn hoogte vrij als `scroll-padding-top`, dus die waarde is de lijn. Onderaan de pagina haalt een
+zijn hoogte vrij als `scroll-padding-top`, dus die waarde is de lijn. Plakt er een eigen balk van
+de pagina onder, zet er dan `data-sticky="top"` op: de shell telt hem mee in die lijn. Onderaan de pagina haalt een
 korte laatste sectie die lijn nooit; daar is de laatste kop in beeld de huidige. Zet de sectie als
 `active`; het submenu markeert haar en haar kop erboven.
 
