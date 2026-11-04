@@ -1047,18 +1047,18 @@ export default {
         },
         {
           label: 'Lange naam',
-          note: 'De naam kapt in het midden af; de extensie en de laatste letters blijven staan.',
+          note: 'De naam kapt in het midden af; de extensie en de laatste letters blijven staan. Met de focus, zonder muis en op een telefoon loopt de hele naam door.',
           ...attachments([
             { id: 'l', name: 'beleidsregel-subsidie-duurzame-energie-definitief.pdf', size: 860 * KB, state: 'done' },
           ]),
         },
         {
-          label: 'Lange namen te verwijderen',
-          note: 'Twee namen die alleen in het midden verschillen, in een vraagvak.',
+          label: 'Twee lange namen',
+          note: 'Ze verschillen in het midden. Op een telefoon loopt de naam door, en met de focus op het kruis ook: zo zie je welke je weghaalt.',
           ...attachments(
             [
-              { id: 'b1', name: 'begroting-2026-versie-1-concept.pdf', size: 860 * KB, state: 'done' },
-              { id: 'b2', name: 'begroting-2026-versie-2-concept.pdf', size: 864 * KB, state: 'done' },
+              { id: 'v1', name: 'begroting-2026-versie-1-concept.pdf', size: 640 * KB, state: 'done' },
+              { id: 'v2', name: 'begroting-2026-versie-2-concept.pdf', size: 652 * KB, state: 'done' },
             ],
             'removable',
           ),

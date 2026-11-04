@@ -503,16 +503,16 @@ function renderDrawing(
   })
   const width = controller.width
   const height = options.height ?? Math.max(controller.height, sankeyHeight(spec))
-  const fontFamily = controller.fontFamily
+  const font = controller.font
 
   const valueLine = (node: SankeyNodeModel) => {
     const share = showShare ? nodeShare(node) : null
     return { count: count(node), share: share == null ? '' : ` · ${share}` }
   }
-  const nameWidth = (node: SankeyNodeModel) => (textWidth(node.label, fontFamily) * 14) / 12
+  const nameWidth = (node: SankeyNodeModel) => textWidth(node.label, font, 400, 14)
   const valueWidth = (node: SankeyNodeModel) => {
     const line = valueLine(node)
-    return textWidth(line.count, fontFamily, 700) + textWidth(line.share, fontFamily)
+    return textWidth(line.count, font, 700) + textWidth(line.share, font)
   }
   const layout = sankeyLayout(model, { width, height, nameWidth, valueWidth })
   const stops = sankeyStops(model)
@@ -824,7 +824,7 @@ function renderRows(
   const { count, pct } = text
   controller.measure({ width: true })
   const width = controller.width
-  const fontFamily = controller.fontFamily
+  const font = controller.font
   const named = isDataColor(spec.color) ? spec.color : undefined
   const id = controller.id
 
@@ -945,7 +945,7 @@ function renderRows(
             ${pieces.map((piece) => {
               const fits =
                 piece.share != null &&
-                textWidth(piece.share, fontFamily, 700) + 8 <= (room * piece.weight) / all
+                textWidth(piece.share, font, 700) + 8 <= (room * piece.weight) / all
               return html`<span class="lintje-sankey__piece lintje-sankey__piece--${piece.kind}"
                   ${styleProps({ '--lintje-weight': String(piece.weight), background: piece.fill || undefined })}
                   >${fits ? piece.share : nothing}</span>`

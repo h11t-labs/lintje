@@ -157,6 +157,8 @@
 .lintje-dumbbell__norm { stroke: var(--color-chart-emphasis); stroke-width: 1.5; stroke-dasharray: 4 3; }
 .lintje-dumbbell__link { stroke: var(--color-chart-zero); stroke-width: 2; }
 .lintje-dumbbell__ring { fill: var(--color-bg-surface); stroke: var(--color-chart-secondary); stroke-width: 2; }
+/* On a phone the name stands over the plot: the grid and the norm give way where it is written. */
+.lintje-dumbbell__knockout { fill: var(--color-bg-surface); }
 .lintje-dumbbell__name--above { font: var(--text-small); fill: var(--color-text-primary); }
 .lintje-dumbbell__no-value { font-weight: 400; fill: var(--color-text-muted); }
 .lintje-dumbbell__row.is-hovered .lintje-dumbbell__link { stroke: var(--color-chart-axis); stroke-width: 3; }
@@ -632,6 +634,7 @@
   .lintje-chart__x-title,
   .lintje-radar__name,
   .lintje-dumbbell__name { fill: CanvasText; }
+  .lintje-dumbbell__knockout { fill: Canvas; }
   .lintje-radar__ring,
   .lintje-radar__spoke,
   .lintje-radar__zero,

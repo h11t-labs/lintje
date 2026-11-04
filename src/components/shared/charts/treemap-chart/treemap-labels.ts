@@ -57,25 +57,27 @@ function truncate(name: string, width: number, bold: boolean, measure: Measure) 
   return null
 }
 
-const height = (lines: LabelLine[]): number =>
-  lines.reduce((sum, line) => sum + LINE_HEIGHT[line.size], 0)
+const height = (lines: LabelLine[], scale: number): number =>
+  lines.reduce((sum, line) => sum + LINE_HEIGHT[line.size] * scale, 0)
 
 /**
  * The label of an area of `width` by `height`: for a part (`share` given) its name in 14 px bold
  * with amount and share under it, then the same in 12 px, then without the share, then the name
  * alone; for a sub-part its name in 12 px and the amount in bold, then the name alone. Last, the
- * name cut short with the amount if that fits. Empty where four letters do not fit.
+ * name cut short with the amount if that fits. Empty where four letters do not fit. `scale` is
+ * how much larger than designed the reader's text is drawn: the lines are as much taller.
  */
 export function fitLabel(
   label: LabelText,
   box: { width: number; height: number },
   measure: Measure,
+  scale = 1,
 ): LabelLine[] {
   const width = box.width - 2 * LABEL_PAD
   const room = box.height - 2 * LABEL_PAD
   const fits = (lines: LabelLine[] | null): lines is LabelLine[] =>
     lines != null &&
-    height(lines) <= room &&
+    height(lines, scale) <= room &&
     lines.every((line) => measure(line.text, line.size, line.bold) <= width)
   const part = label.share != null
   const amount: LabelLine = { text: label.amount, size: 12, bold: !part }

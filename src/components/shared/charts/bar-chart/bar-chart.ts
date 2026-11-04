@@ -76,7 +76,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
     (value): value is number => value != null,
   )
   const { max, ticks } = axisScale(Math.max(...actualValues, 1))
-  const axis = axisColumn(ticks, controller.width, { fontFamily: controller.fontFamily })
+  const axis = axisColumn(ticks, controller.width, { font: controller.font })
   // Between the band of the last measured bar and that of the first forecast one; it does not
   // depend on the top, which leaves the forecast's word a row of its own when it needs one.
   const boundaryAt = (plot: PlotArea) => {
@@ -85,8 +85,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
   }
   const across = chartArea(options, { left: axis.width })
   const fits =
-    from == null ||
-    forecastWordFits(boundaryAt(across), across, forecastLabel, controller.fontFamily)
+    from == null || forecastWordFits(boundaryAt(across), across, forecastLabel, controller.font)
   const area = chartArea(options, {
     left: axis.width,
     ...(from != null ? { top: DEFAULT_PLOT_AREA.top + forecastRoom(fits) } : {}),
@@ -206,7 +205,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
           area,
           x: boundaryX,
           label: forecastLabel,
-          fontFamily: controller.fontFamily,
+          font: controller.font,
         })
       : nothing,
   ]
@@ -238,7 +237,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
       }
       ${renderChartFrame(
         {
-          fontFamily: controller.fontFamily,
+          font: controller.font,
           id,
           ticks,
           max,

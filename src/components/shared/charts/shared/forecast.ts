@@ -2,7 +2,7 @@
  * The forecast of a line or bar chart: where it starts and how its margin reads. The chart
  * element's table reads the same start, so drawing and table agree on what is a forecast.
  */
-import { formatNumber, textWidth } from '../../../../core/format'
+import { formatNumber, textWidth, type TextFont } from '../../../../core/format'
 import type { TooltipRow } from './controller'
 import type { PlotArea } from './scale'
 import type { ChartForecast } from './types'
@@ -23,9 +23,9 @@ export function forecastWordFits(
   x: number,
   area: Pick<PlotArea, 'width' | 'right'>,
   label: string,
-  fontFamily?: string,
+  font?: TextFont | string,
 ): boolean {
-  return x + BOUNDARY_GAP + textWidth(label, fontFamily, 700) <= area.width - area.right
+  return x + BOUNDARY_GAP + textWidth(label, font, 700) <= area.width - area.right
 }
 
 /** The room above the plot for the boundary's words: one row, or two for a word of its own. */

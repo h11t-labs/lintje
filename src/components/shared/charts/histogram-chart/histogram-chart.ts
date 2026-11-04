@@ -6,7 +6,7 @@ import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
 import { styleProps } from '../../../../core/style-props'
 import { axisColumn, axisScale, yPosition, type PlotArea } from '../shared/scale'
-import { formatNumber, formatPercent, textWidth } from '../../../../core/format'
+import { formatNumber, formatPercent, textWidth, type TextFont } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
 import { DEFAULT_SERIES_COLOR, chartColor } from '../shared/colors'
 import {
@@ -60,12 +60,12 @@ export interface LineLabel {
 export function placeLineLabels(
   labels: LineLabel[],
   area: PlotArea,
-  fontFamily = '',
+  font: TextFont | string = '',
 ): { x: number; y: number; anchor: 'start' | 'end' }[] {
   // The svg overflows, so a label may run into the right margin, as the last x label does.
   const end = area.width
   const boxes = labels.map((label) => {
-    const width = textWidth(label.text, fontFamily, label.bold ? 700 : 400)
+    const width = textWidth(label.text, font, label.bold ? 700 : 400)
     const right = label.x + 6 + width <= end
     return {
       x: right ? label.x + 6 : label.x - 6,
@@ -105,7 +105,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
   // With a class missing the total is unknown, and so is every share of it.
   const total = counts.length === bins.length ? counts.reduce((sum, count) => sum + count, 0) : null
   const { max, ticks } = axisScale(Math.max(...counts, 1))
-  const axis = axisColumn(ticks, controller.width, { fontFamily: controller.fontFamily })
+  const axis = axisColumn(ticks, controller.width, { font: controller.font })
   const defaults = chartArea(options)
   const area = chartArea(options, {
     left: axis.width,
@@ -165,12 +165,11 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
   const stride = Math.max(1, Math.ceil(MIN_LABEL_SPACING / pitch))
   let shown = thinLabels(
     bounds.filter((_, i) => i % stride === 0),
-    controller.fontFamily,
+    controller.font,
   )
   const touches = (a: { label: string; x: number }, b: { label: string; x: number }) =>
     Math.abs(b.x - a.x) <
-    (textWidth(a.label, controller.fontFamily) + textWidth(b.label, controller.fontFamily)) / 2 +
-      LINE_LABEL_GAP
+    (textWidth(a.label, controller.font) + textWidth(b.label, controller.font)) / 2 + LINE_LABEL_GAP
   // The end of the scale is always named: the closing bound, or the open class.
   const closing = open ? openLabel : bounds[bounds.length - 1]
   if (closing && !shown.includes(closing)) {
@@ -206,7 +205,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
         ]
       : []),
   ]
-  const lineLabels = placeLineLabels(lines, area, controller.fontFamily)
+  const lineLabels = placeLineLabels(lines, area, controller.font)
 
   const capitalised = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
   // The counts are the one series: a switch only while a line would stay.
@@ -312,7 +311,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
       ${renderLegend({ items: legend, onToggle: (key) => controller.toggleSeries(key) })}
       ${renderChartFrame(
         {
-          fontFamily: controller.fontFamily,
+          font: controller.font,
           id,
           ticks,
           max,
