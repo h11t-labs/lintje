@@ -167,7 +167,7 @@ export class LintjeCells extends LintjeGridItemElement {
     }
     if (item.tags) {
       return item.tags.length
-        ? html`<ul class="lintje-cells__tags">
+        ? html`<ul class="lintje-cells__tags" role="list">
             ${item.tags.map((tag) => html`<li class="lintje-cells__tag">${tag}</li>`)}
           </ul>`
         : html`<span class="lintje-cells__missing">Geen</span>`
