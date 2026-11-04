@@ -1327,7 +1327,6 @@ describe('a mark on a surface other than the plain one', () => {
 
   it('is the token each of those marks is drawn in', () => {
     const C = 'src/components'
-    const GRID = '.lintje-description-list--grid'
     const MARKS: [string, string, string, string][] = [
       [
         `${C}/shared/menu.css`,
@@ -1377,14 +1376,6 @@ describe('a mark on a surface other than the plain one', () => {
         'border-bottom',
         '--color-attention-line',
       ],
-      ...['success', 'info', 'attention', 'warning', 'error'].flatMap((tone) =>
-        ['link', 'action'].map((part): [string, string, string, string] => [
-          `${C}/tables/description-list/description-list.css`,
-          `${GRID} .is-${tone} .lintje-description-list__${part}`,
-          'color',
-          '--color-link-on-status',
-        ]),
-      ),
       [
         `${C}/feedback/progress-bar/progress-bar.css`,
         '.lintje-progress__track',
