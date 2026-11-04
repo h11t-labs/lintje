@@ -30,6 +30,22 @@ const holds = new Map<
   { count: number; overflow: string; gutter: HTMLElement | null; scrollbarGutter: string }
 >()
 
+/** How many overlays hold the page now, and who hears when that changes. */
+let locks = 0
+const lockListeners = new Set<(count: number) => void>()
+const tellLocks = (): void => {
+  for (const listener of lockListeners) listener(locks)
+}
+
+/**
+ * Hears how many overlays hold the page still, each time that changes; returns the undo. The
+ * shell uses it to know when a sheet covers its tabs.
+ */
+export function onScrollLocks(listener: (count: number) => void): () => void {
+  lockListeners.add(listener)
+  return () => lockListeners.delete(listener)
+}
+
 /** Whether `element` shows a scrollbar that takes room; an overlay scrollbar takes none. */
 function takesRoom(element: HTMLElement): boolean {
   if (element === document.documentElement) return window.innerWidth > element.clientWidth
@@ -45,6 +61,8 @@ function takesRoom(element: HTMLElement): boolean {
  * stable` keeps the room, so the content does not widen and jump sideways.
  */
 export function holdOverflow(element: HTMLElement, gutter: HTMLElement = element): () => void {
+  locks += 1
+  tellLocks()
   const hold = holds.get(element)
   if (hold) hold.count += 1
   else {
@@ -62,6 +80,8 @@ export function holdOverflow(element: HTMLElement, gutter: HTMLElement = element
   return () => {
     if (released) return
     released = true
+    locks -= 1
+    tellLocks()
     const current = holds.get(element)
     if (!current) return
     current.count -= 1

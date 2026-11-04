@@ -6,6 +6,13 @@ const BAR = 'display: inline-flex; align-items: center; height: 48px; padding: 0
 
 const USER = { name: 'J. de Vries', role: 'Teamleider · Dienst Vergunningen', initials: 'JV' }
 
+/** A name and a role longer than the side menu is wide. */
+const LONG_USER = {
+  name: 'Johannes Hendrikus van der Vlugt-de Vries',
+  role: 'Teamleider vergunningen en handhaving, Dienst Vergunningen',
+  initials: 'JV',
+}
+
 /** The same user with a photo: the gallery's grey stand-in, never a face. */
 const USER_PHOTO = { ...USER, photo: 'media/afbeelding.svg' }
 
@@ -54,6 +61,85 @@ const GROUPED = [
     ],
   },
 ]
+
+/** Entries that cannot be opened: a page that is not there yet, and one without access. */
+const UNAVAILABLE = [
+  { label: 'Opnames', href: '#opnames', active: true },
+  { label: 'Rapporten' },
+  { label: 'Archief', href: '#archief', noAccess: true },
+  {
+    label: 'Beheer',
+    links: [
+      { label: 'Woordenlijst', href: '#woordenlijst', icon: 'op-kantoor-boek' },
+      { label: 'Sjablonen', icon: 'op-kantoor-document-blanco' },
+      { label: 'Instellingen', href: '#instellingen', icon: 'functioneel-instellingen', noAccess: true },
+    ],
+  },
+]
+
+/** The same application with tabs on a phone: four pages, one of them an action, and a group. */
+const TABBED = [
+  { label: 'Opnames', href: '#opnames', icon: 'beeld-en-geluid-microfoon', active: true, badge: { value: 12, tone: 'count', label: '12 opnames' } },
+  { label: 'Wachtrij', href: '#wachtrij', icon: 'functioneel-klok', badge: { value: 3, tone: 'action', label: '3 nieuwe in de wachtrij' } },
+  { label: 'Uploaden', action: 'upload', icon: 'functioneel-upload' },
+  { label: 'Woordenlijsten', href: '#woordenlijst', icon: 'op-kantoor-boek', badge: { value: 'Nieuw', tone: 'new' } },
+  {
+    label: 'Beheer',
+    links: [
+      { label: 'Sjablonen', href: '#sjablonen', icon: 'op-kantoor-document-blanco' },
+      { label: 'Instellingen', href: '#instellingen', icon: 'functioneel-instellingen' },
+    ],
+  },
+]
+
+/** As a host does: a tab marks its page, and nothing leaves the frame. */
+function followTabs(shell) {
+  shell.addEventListener('lintje-navigate', (event) => {
+    event.preventDefault()
+    const mark = (link) => ({ ...link, active: link.href === event.detail.href })
+    shell.data = {
+      ...shell.data,
+      navigation: shell.data.navigation.map((entry) =>
+        entry.links ? { ...entry, links: entry.links.map(mark) } : mark(entry),
+      ),
+    }
+  })
+}
+
+/**
+ * A sheet on a phone without tabs, opened in the frame: every sheet is the same sheet from below
+ * (`shared/sheet.css`).
+ */
+function phoneSheet(label, note, open) {
+  return {
+    label,
+    note,
+    frame: true,
+    phone: true,
+    html: `<lintje-shell>
+      <lintje-page-header slot="header"></lintje-page-header>
+      <p>Inhoud van de pagina.</p>
+    </lintje-shell>`,
+    setup(stage) {
+      const shell = stage.querySelector('lintje-shell')
+      shell.style.minHeight = '0'
+      shell.data = {
+        name: 'Transcriptie',
+        emblem: emblem(),
+        navigation: GROUPED,
+        user: USER,
+        userMenu: USER_MENU,
+        search: true,
+        notifications: NOTIFICATIONS,
+        view: { mode: 'system' },
+        share: true,
+      }
+      stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+      followTabs(shell)
+      shell.updateComplete.then(() => open(shell))
+    },
+  }
+}
 
 /** The emblem of the page's theme, with the organisation's name beside it as text. */
 const EMBLEM_LABELS = {
@@ -270,6 +356,7 @@ export default {
           note:
             'De actieve pagina is gemarkeerd en rechts in de balk staan zoeken, ' +
             'meldingen en de gebruiker. Een klik op een pagina maakt die actief.',
+          frame: 'page',
           html: `<lintje-shell>
             <lintje-page-header slot="header">
               <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
@@ -371,24 +458,115 @@ export default {
           },
         },
         {
-          label: 'Header onderaan op een telefoon',
+          label: 'Tabbalk op een telefoon',
           note:
-            'Met `mobile-bar="bottom"` plakt de header onder 768 px aan de onderrand van het ' +
-            'scherm, onder de duim, en opent het menu erboven; breder staat hij gewoon bovenaan. ' +
-            'Bekijk het op 390 px.',
-          // In a page of its own: the bar is `position: fixed`, which a nested shell does not contain.
+            'Met `mobile-tabs` staan onder 768 px de losse pagina’s als tabs onderaan, Menu als ' +
+            'laatste; de groep Beheer zit in het paneel van Menu. Uploaden heeft `action`: een ' +
+            'knop die `lintje-action` stuurt. Breder staan dezelfde ingangen in de balk bovenaan.',
+          // In a page of its own, 390 px wide: the tabs are `position: fixed` and only below 768 px.
           frame: true,
-          html: `<lintje-shell mobile-bar="bottom">
+          phone: true,
+          html: `<lintje-shell mobile-tabs>
             <lintje-page-header slot="header"></lintje-page-header>
-            <p>Op een telefoon staat de balk met Menu onderaan.</p>
+            <p>De tabs staan onderaan het scherm, onder de duim.</p>
           </lintje-shell>`,
           setup(stage) {
             const shell = stage.querySelector('lintje-shell')
             shell.style.minHeight = '0'
-            shell.data = { name: 'Transcriptie', emblem: emblem(), navigation: NAVIGATION, user: USER, userMenu: USER_MENU, search: true }
+            shell.data = { name: 'Transcriptie', emblem: emblem(), navigation: TABBED, user: USER, userMenu: USER_MENU, search: true }
             stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+            followTabs(shell)
           },
         },
+        {
+          label: 'Tabbalk met Menu open',
+          note:
+            'Het paneel van Menu opent als blad van onderen, achter de tabs door, en draagt alle ' +
+            'pagina’s, ook die een tab zijn; de tab leest Sluiten. Wat van elders komt, bedekt de tabs.',
+          frame: true,
+          phone: true,
+          html: `<lintje-shell mobile-tabs>
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>Het paneel staat open.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.style.minHeight = '0'
+            shell.data = { name: 'Transcriptie', emblem: emblem(), navigation: TABBED, user: USER, userMenu: USER_MENU, search: true }
+            stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+            followTabs(shell)
+            shell.updateComplete.then(() => (shell.menuOpen = true))
+          },
+        },
+        {
+          label: 'Tabbalk met Meldingen en Jij',
+          note:
+            'Met `tab-parts="notifications user menu"` staan de bel en jouw menu als tab onderaan ' +
+            'en niet in de balk bovenaan; jouw menu opent als blad van onderen. Een pagina dieper ' +
+            '(`back`) draagt de balk Terug voor de titel.',
+          frame: true,
+          phone: true,
+          html: `<lintje-shell mobile-tabs tab-parts="notifications user menu">
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>De bel en jij staan onderaan.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.style.minHeight = '0'
+            shell.data = {
+              name: 'Transcriptie',
+              emblem: emblem(),
+              navigation: TABBED,
+              user: USER,
+              userMenu: USER_MENU,
+              search: true,
+              notifications: NOTIFICATIONS,
+              back: { href: '#opnames', label: 'Terug naar Opnames' },
+            }
+            stage.querySelector('lintje-page-header').data = { title: 'Teamoverleg 2 oktober' }
+            followTabs(shell)
+          },
+        },
+        phoneSheet(
+          'Menu op een telefoon',
+          'Zonder tabs opent Menu in de balk een blad van onderen, zo hoog als wat erin staat, met ' +
+            'een sluier erboven. De balk ligt onder de sluier; het blad sluit met zijn eigen knop.',
+          (shell) => (shell.menuOpen = true),
+        ),
+        phoneSheet(
+          'Meldingen op een telefoon',
+          'De bel in de balk opent hetzelfde blad van onderen, over de pagina.',
+          (shell) => {
+            // Wider than a phone, as the style guide's tests draw it too, the bar is another.
+            const part = shell.renderRoot.querySelector('.lintje-mobile-header lintje-notifications, lintje-notifications')
+            if (part) part.open = true
+          },
+        ),
+        phoneSheet(
+          'Jij op een telefoon',
+          'De avatar in de balk opent jouw menu als blad van onderen.',
+          (shell) => {
+            // Wider than a phone, as the style guide's tests draw it too, the bar is another.
+            const part = shell.renderRoot.querySelector('.lintje-mobile-header lintje-user-menu, lintje-user-menu')
+            if (part) part.open = true
+          },
+        ),
+        phoneSheet(
+          'Weergave op een telefoon',
+          'Weergave opent uit het paneel van Menu als blad van onderen, over het menu.',
+          (shell) => {
+            shell.menuOpen = true
+            shell.viewOpen = true
+          },
+        ),
+        phoneSheet(
+          'Delen op een telefoon',
+          'Delen opent uit het paneel van Menu als blad van onderen; de QR-code staat er niet in.',
+          (shell) => {
+            shell.menuOpen = true
+            shell.shareOpen = true
+          },
+        ),
         {
           label: 'Lichte rail',
           note:
@@ -418,6 +596,7 @@ export default {
           note:
             'Naast de pagina is de voet van het menu de knop van het gebruikersmenu. ' +
             'Het menu opent erboven: de naam met “Afmelden” ernaast, de rijen van de host en de versie.',
+          frame: 'page',
           html: `<lintje-shell>
             <lintje-page-header slot="header"></lintje-page-header>
             <p>Klik op de naam onderaan het menu.</p>
@@ -441,6 +620,7 @@ export default {
           note:
             'Klik op “Beheer” of wijs het aan. Buiten productie toont de balk de ' +
             'omgeving, hier Acceptatie.',
+          frame: 'page',
           html: `<lintje-shell>
             <lintje-page-header slot="header"></lintje-page-header>
             <p>Het submenu ligt over de pagina; Escape of een klik hierbuiten sluit het.</p>
@@ -470,8 +650,33 @@ export default {
           },
         },
         {
+          label: 'Items zonder pagina of toegang',
+          note:
+            'Een item zonder pagina zegt “niet beschikbaar” achter zijn label in de balk en eronder ' +
+            'in het submenu; een item zonder toegang heeft het slotje. Open “Beheer” voor het submenu.',
+          html: `<lintje-shell>
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>Rapporten en Sjablonen hebben nog geen pagina; Archief en Instellingen zijn niet toegankelijk.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.style.minHeight = '496px'
+            shell.data = {
+              name: 'Transcriptie',
+              emblem: emblem(),
+              navigation: UNAVAILABLE,
+              user: USER,
+              userMenu: USER_MENU,
+              version: '2.4.1',
+            }
+            stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+            shell.addEventListener('lintje-navigate', (event) => event.preventDefault())
+          },
+        },
+        {
           label: 'Weergave en delen',
           note: '“Weergave” en “Delen” zijn de instellingen van de lezer; de host bewaart ze.',
+          frame: 'page',
           html: `<lintje-shell>
             <lintje-page-header slot="header"></lintje-page-header>
             <p>Een keuze in “Weergave” stuurt <code>lintje-view-change</code>; de host bewaart hem en geeft hem terug in <code>view</code>.</p>
@@ -498,6 +703,7 @@ export default {
         {
           label: 'Met een hero',
           note: 'De hero in het slot `full` loopt van rand tot rand; de inhoud blijft in de kolom.',
+          frame: 'page',
           html: `<lintje-shell>
             <lintje-hero slot="full" heading="Wat wil je vertalen?" description="Typ een tekst, upload een document of voer een live gesprek."></lintje-hero>
             <p>De inhoud staat onder de hero, in de kolom van hoogstens 1280 px.</p>
@@ -511,6 +717,7 @@ export default {
         {
           label: 'Zonder de onderdelen rechts',
           note: 'De balk heeft geen zoeken, meldingen of gebruiker. Een lange naam wordt afgekapt.',
+          frame: 'page',
           html: '<lintje-shell><p>Een app zonder de onderdelen rechts in de balk.</p></lintje-shell>',
           setup(stage) {
             const shell = stage.querySelector('lintje-shell')
@@ -525,11 +732,14 @@ export default {
           { label: 'Voet in de rail met een foto', menu: 'unpinned', user: USER_PHOTO },
         ].map(({ label, menu, user }) => ({
           label,
+          // The foot of the menu beside the page as from 1440 px, at any window.
+          frameWidth: 1440,
           note:
-            menu === 'pinned'
+            (menu === 'pinned'
               ? 'Vanaf 1440 px: het rondje zo hoog als naam en functie samen. Smaller is het de rail.'
               : 'Alleen het rondje, midden in de rail. Wijs de rail aan: hij klapt uit en naam en ' +
-                'functie vervagen in.',
+                'functie vervagen in.') + ' Het kader tekent de schil op 1440 px, verkleind tot de kolom.',
+          frame: 'page',
           html: `<lintje-shell>
             <lintje-page-header slot="header"></lintje-page-header>
             <p>De gebruiker staat onderaan het menu.</p>
@@ -548,6 +758,29 @@ export default {
             stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
           },
         })),
+        {
+          label: 'Voet met een lange naam en functie',
+          note:
+            'Naam en functie staan elk op één regel met een beletselteken en geven de hele tekst bij de aanwijzer. ' +
+            'Onder de focus van het toetsenbord lopen ze door.',
+          html: `<lintje-shell>
+            <lintje-page-header slot="header"></lintje-page-header>
+            <p>De gebruiker staat onderaan het menu.</p>
+          </lintje-shell>`,
+          setup(stage) {
+            const shell = stage.querySelector('lintje-shell')
+            shell.data = {
+              name: 'Transcriptie',
+              layout: 'side',
+              menu: 'pinned',
+              emblem: emblem(),
+              navigation: NAVIGATION,
+              user: LONG_USER,
+              logout: { href: '#el-shell', token: 'demo-token' },
+            }
+            stage.querySelector('lintje-page-header').data = { title: 'Opnames' }
+          },
+        },
       ],
     },
 {
@@ -888,6 +1121,41 @@ export default {
             menu.items = USER_MENU
           },
         },
+        {
+          label: 'Met een vinkje en een keuze',
+          note:
+            'Een rij met `checked` toont het vinkje en zegt of ze aan staat; met `radio` is ze één ' +
+            'keuze uit haar groep, met het rondje.',
+          html: `<span style="${BAR}"><lintje-user-menu version="2.4.1" open></lintje-user-menu></span>`,
+          setup(stage) {
+            const menu = stage.querySelector('lintje-user-menu')
+            // Room under the open menu, so it does not lie over the next specimen.
+            stage.style.minHeight = '440px'
+            menu.user = USER
+            menu.items = [
+              { value: 'compact', label: 'Compacte weergave', checked: true },
+              { value: 'hulp', label: 'Hulpteksten tonen', checked: false },
+              { heading: 'Taal' },
+              { value: 'nl', label: 'Nederlands', checked: true, radio: true },
+              { value: 'en', label: 'Engels', checked: false, radio: true },
+            ]
+          },
+        },
+        {
+          label: 'Vinkje en keuze op een telefoon',
+          note: 'Met `inline` is het menu geen menu: een vinkje is dan een selectievakje en een keuze een keuzerondje.',
+          html: `<div style="background: var(--color-nav-bg); max-width: 360px"><lintje-user-menu inline version="2.4.1"></lintje-user-menu></div>`,
+          setup(stage) {
+            const menu = stage.querySelector('lintje-user-menu')
+            menu.user = USER
+            menu.items = [
+              { value: 'compact', label: 'Compacte weergave', checked: true },
+              { value: 'hulp', label: 'Hulpteksten tonen', checked: false },
+              { value: 'nl', label: 'Nederlands', checked: true, radio: true },
+              { value: 'en', label: 'Engels', checked: false, radio: true },
+            ]
+          },
+        },
       ],
     },
     {
@@ -922,6 +1190,18 @@ export default {
             const search = stage.querySelector('lintje-app-search')
             wireSearch(search)
             stage.querySelector('[data-open]').addEventListener('click', () => (search.open = true))
+          },
+        },
+        {
+          label: 'Op een telefoon',
+          note: 'Onder 768 px is zoeken een blad van onderen, met zijn naam en een sluitknop bovenin.',
+          frame: true,
+          phone: true,
+          html: '<lintje-app-search label="Zoeken in Transcriptie"></lintje-app-search>',
+          setup(stage) {
+            const search = stage.querySelector('lintje-app-search')
+            wireSearch(search)
+            search.open = true
           },
         },
         {

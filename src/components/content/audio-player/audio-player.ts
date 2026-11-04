@@ -119,11 +119,27 @@ export class LintjeAudioPlayer extends LintjePlayerElement {
     return speakerColours(this.segments ?? [])
   }
 
+  override connectedCallback(): void {
+    super.connectedCallback()
+    document.addEventListener('keydown', this.onEscape, true)
+  }
+
   override disconnectedCallback(): void {
+    document.removeEventListener('keydown', this.onEscape, true)
     this.observer?.disconnect()
     this.observer = null
     this.observed = null
     super.disconnectedCallback()
+  }
+
+  /**
+   * The time label under a resting pointer goes with Escape wherever the focus is (WCAG 1.4.13),
+   * and that Escape is its own: a window around the player stays open.
+   */
+  private readonly onEscape = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape' || this.hoverTime === null) return
+    event.preventDefault()
+    this.hoverTime = null
   }
 
   protected override updated(changed: PropertyValues<this>): void {
@@ -353,7 +369,7 @@ export class LintjeAudioPlayer extends LintjePlayerElement {
     const colours = this.colours
     if (colours.size === 0 || this.noLegend) return nothing
     const current = speakerAt(this.segments ?? [], this.position)
-    return html`<ul class="lintje-audio-player__legend" aria-label="Sprekers">
+    return html`<ul class="lintje-audio-player__legend" role="list" aria-label="Sprekers">
       ${[...colours].map(
         ([speaker, colour]) =>
           html`<li
@@ -439,6 +455,11 @@ export class LintjeAudioPlayer extends LintjePlayerElement {
         @pointermove=${this.onVolumePointerMove}
       >
         <div class="lintje-audio-player__level-fill" ${styleProps({ width: `${percent}%` })}></div>
+        <span
+          class="lintje-audio-player__head lintje-audio-player__level-head"
+          aria-hidden="true"
+          ${styleProps({ left: `${percent}%` })}
+        ></span>
       </div>
     </div>`
   }

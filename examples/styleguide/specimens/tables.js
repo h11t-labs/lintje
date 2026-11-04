@@ -1490,6 +1490,18 @@ export default {
             stage.querySelector('lintje-sortable-list').items = COLUMNS
           },
         },
+        {
+          label: 'Met een lange naam',
+          note: 'Een naam die niet op één regel past, loopt door en de rij groeit mee.',
+          html: '<div style="max-width: 320px"><lintje-sortable-list label="Kolommen" checkable></lintje-sortable-list></div>',
+          setup(stage) {
+            stage.querySelector('lintje-sortable-list').items = [
+              COLUMNS[0],
+              { id: 'wijziging', label: 'Datum van de laatste wijziging door de behandelaar', checked: true },
+              COLUMNS[2],
+            ]
+          },
+        },
       ],
     },
     {
@@ -1699,6 +1711,19 @@ export default {
           note: 'Drie rondjes en "+3"; een klik opent de lijst met naam en functie.',
           html: '<lintje-person-group label="Meelezers"></lintje-person-group>',
           setup(stage) {
+            stage.querySelector('lintje-person-group').people = READERS.map((person, index) =>
+              index === 0 ? { ...person, href: '#el-person-group' } : person,
+            )
+            listen(stage)
+          },
+        },
+        {
+          label: 'Lijst open',
+          note: 'Met `open` staat de lijst met naam en functie van iedereen open, de eerste naam als link.',
+          html: '<lintje-person-group label="Meelezers" open></lintje-person-group>',
+          setup(stage) {
+            // The list hangs below the row: room for it, so it does not cover the log.
+            stage.style.minHeight = 'calc(10 * var(--space-10))'
             stage.querySelector('lintje-person-group').people = READERS.map((person, index) =>
               index === 0 ? { ...person, href: '#el-person-group' } : person,
             )

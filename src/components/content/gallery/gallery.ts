@@ -66,7 +66,7 @@ export class LintjeGallery extends LintjeElement {
       </figure>
       ${
         items.length > 1
-          ? html`<ul class="lintje-gallery__thumbs" aria-label=${this.label}>
+          ? html`<ul class="lintje-gallery__thumbs" role="list" aria-label=${this.label}>
               ${items.map(
                 (item, position) => html`<li>
                   <button

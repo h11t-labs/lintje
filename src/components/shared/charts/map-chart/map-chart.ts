@@ -6,6 +6,7 @@
 import { html, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
 import { keyed } from 'lit/directives/keyed.js'
+import { passFocus } from '../../../../core/focus'
 import { styleProps } from '../../../../core/style-props'
 import { formatNumber } from '../../../../core/format'
 import { isNewTabClick } from '../../../../core/links'
@@ -20,11 +21,14 @@ import { DEFAULT_SERIES_COLOR, lineCasing } from '../shared/colors'
 import { seriesStyle } from './series-style'
 import { nextRow, type MenuItem } from '../../../actions/menu-button/menu-button'
 import type { ChartController, ChartOptions } from '../shared/controller'
+import type { Mode } from '../../../../core/element'
 import { mapDrawings, withUnit, type MapDrawing } from './drawings'
 import { seriesKey } from './marks'
 import { renderMapLegend } from './map-legend'
 import type { MapArea, MapControls, MapSpec, MapTool, MapValue } from '../shared/types'
 import { idsInArea, isRect } from './area'
+import { keyboardFocus } from './reveal'
+import { standsIn } from '../../../../core/focus'
 import { titleWhenCut } from '../../cut-text'
 import '../../../overlays/popover/popover'
 
@@ -60,19 +64,25 @@ const AREA_TOOLS: { tool: MapTool; name: string; text: string; label: string }[]
   },
 ]
 
-/** How to draw with a tool, under the map; a phone gets the short form, for a finger. */
-const TOOL_HINTS: Record<MapTool, { full: string; short: string }> = {
+/**
+ * How to draw with a tool, under the map, in the way the reader works: with a pointer (on a phone
+ * the short form, for a finger), or with the keyboard while its focus is in the map.
+ */
+export const TOOL_HINTS: Record<MapTool, { pointer: string; short: string; keys: string }> = {
   lasso: {
-    full: 'Sleep om te kiezen, of klik de hoeken · Escape stopt',
+    pointer: 'Sleep om te kiezen, of klik de hoeken · Escape stopt',
     short: 'Sleep om te kiezen',
+    keys: 'Pijltoetsen schuiven de kaart · Enter zet een hoek, Enter op de eerste sluit · Escape stopt',
   },
   circle: {
-    full: 'Sleep vanuit het midden, of klik het midden en dan de rand · Escape stopt',
-    short: 'Sleep vanuit het midden',
+    pointer: 'Sleep van het midden naar de rand, of klik het midden en dan de rand · Escape stopt',
+    short: 'Sleep van het midden naar de rand',
+    keys: 'Pijltoetsen schuiven de kaart · Enter zet het midden, daarna de rand · Escape stopt',
   },
   rect: {
-    full: 'Sleep van hoek naar hoek, of klik twee hoeken · Escape stopt',
+    pointer: 'Sleep van hoek naar hoek, of klik twee hoeken · Escape stopt',
     short: 'Sleep van hoek naar hoek',
+    keys: 'Pijltoetsen schuiven de kaart · Enter zet een hoek, daarna de andere · Escape stopt',
   },
 }
 
@@ -107,6 +117,8 @@ export function scaleLabel(metres: number): string {
  */
 export interface MapOptions extends Omit<ChartOptions, 'description' | 'onSelect' | 'selectedId'> {
   description?: string
+  /** The element's mode, which only the browser knows: in dark the map draws `basemapDark`. */
+  mode?: Mode
   /**
    * An area or point was clicked; the whole mark travels, as the panel needs its figure. `newTab`
    * for a modifier or middle click on a mark with an `href`, which leaves the selection be.
@@ -117,6 +129,11 @@ export interface MapOptions extends Omit<ChartOptions, 'description' | 'onSelect
   onLayerChange?: (value: string) => void
   /** An area was drawn, or undone (`null`); travels the ids of every mark in it. */
   onArea?: (area: MapArea | null, ids: string[]) => void
+}
+
+/** How many marks an area chose, as its panel says it. */
+function chosenWords(count: number): string {
+  return count === 0 ? 'Niets' : `${formatNumber(count)} op de kaart`
 }
 
 /** What a drawn area is called in its panel. */
@@ -131,6 +148,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     controller,
     description = data.description,
     mobile = false,
+    mode = 'light',
     onSelect,
     onClear,
     onLayerChange,
@@ -173,6 +191,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
   if (controller.hostArea !== hostArea) {
     controller.hostArea = hostArea
     controller.mapArea = selectedArea
+    controller.mapAreaAside = null
   }
   const area = tools.length > 0 ? controller.mapArea : null
   const chosen = area ? idsInArea(area, drawings, data.geo) : []
@@ -202,10 +221,18 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     onClear?.(previous)
     controller.requestUpdate()
   }
-  // A drawn area stays until it is dismissed: its panel's close, Escape or the reset.
+  // A drawn area stays until it is dismissed: its panel's close, Escape or the reset. The panel
+  // goes with it, and its focus to the map itself, as a cleared mark's goes back to the mark.
   const clearArea = () => {
-    if (!controller.mapArea) return
+    if (!controller.mapArea && !controller.mapAreaAside) return
+    const panel = controller.element?.querySelector('.lintje-map-chart__selection')
+    const map = controller.element?.querySelector<HTMLElement>('.leaflet-container')
+    if (panel && map) {
+      if (!map.hasAttribute('tabindex')) map.tabIndex = -1
+      passFocus(panel, [map])
+    }
     controller.mapArea = null
+    controller.mapAreaAside = null
     onArea?.(null, [])
     controller.requestUpdate()
   }
@@ -225,8 +252,27 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
   }
   // A shape is a tool: it stays in hand after drawing, and a new area replaces the last.
   const drawn = (next: MapArea) => {
+    controller.mapAreaAside = null
     controller.mapArea = next
-    onArea?.(next, idsInArea(next, drawings, data.geo))
+    const ids = idsInArea(next, drawings, data.geo)
+    onArea?.(next, ids)
+    // The panel is no live region: what the area chose is said beside it.
+    controller.sayOnMap(`${chosenWords(ids.length)} gekozen, ${areaWords(next)}`)
+    controller.requestUpdate()
+  }
+  // A new area begins: the one that stands goes from sight, its outline and panel, without
+  // telling the host; the host hears once, of the new area (rule 14).
+  const drawStart = () => {
+    if (!controller.mapArea) return
+    controller.mapAreaAside = controller.mapArea
+    controller.mapArea = null
+    controller.requestUpdate()
+  }
+  // Undone (Escape, a press taken back) or choosing nothing: the old area is back as it was.
+  const drawCancel = () => {
+    if (!controller.mapAreaAside) return
+    controller.mapArea = controller.mapAreaAside
+    controller.mapAreaAside = null
     controller.requestUpdate()
   }
   const setTool = (tool: MapTool | null) => {
@@ -260,10 +306,17 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     zoom: controls.zoom,
     scale: controls.scale,
     drawn,
-    stopTool: () => setTool(null),
+    drawStart,
+    drawCancel,
+    // Escape with no area being drawn puts the tool down, and the focus on its button.
+    stopTool: () => {
+      setTool(null)
+      trigger()?.focus()
+    },
     select,
     clear,
     mobile,
+    mode,
   })
 
   const buttons = ZOOM_CONTROLS.filter((control) =>
@@ -371,10 +424,11 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
     const on = controller.mapTool === shown.tool
     const menu = tools.length > 1
     const open = controller.mapMenuOpen
-    // One shape: a button that switches it on and off. More: a select button whose corner says a
-    // menu stands behind it; a click opens the menu, the shape used last checked and focused.
-    // With a shape in hand the button shows it, and a click puts it down.
-    const label = on ? 'Stop met selecteren' : menu ? 'Selecteren' : shown.label
+    // One shape: a toggle that switches it on and off, under one name. More: a select button whose
+    // corner says a menu stands behind it; a click opens the menu, the shape used last checked
+    // and focused. With a shape in hand that button shows it, and a click puts it down: then it
+    // is a plain button, never a toggle and a menu button at once.
+    const label = !menu ? shown.label : on ? 'Stop met selecteren' : 'Selecteren'
     // Keyed by its name: the icon is drawn anew when the shape changes, and grows in.
     const name = on || !menu ? shown.name : 'functioneel-selectie'
     const icon = keyed(
@@ -385,7 +439,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
       <lintje-tooltip class="lintje-map-chart__tip ${first}" text=${label} placement="left" no-describe>
         <button type="button"
                 class="lintje-map-chart__zoom-button lintje-map-chart__tool ${menu ? 'lintje-map-chart__tool--menu' : ''} ${on ? 'is-active' : ''}"
-                aria-label=${label} aria-pressed=${on}
+                aria-label=${label} aria-pressed=${menu ? nothing : String(on)}
                 aria-haspopup=${menu && !on ? 'menu' : nothing} aria-expanded=${menu && !on ? String(open) : nothing}
                 aria-controls=${menu && !on ? menuId : nothing}
                 @click=${() => {
@@ -477,7 +531,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
           <button type="button" class="lintje-map-chart__selection-close"
                   aria-label="Selectie opheffen"
                   @click=${() => clearArea()}>${renderIcon('functioneel-kruis', { size: 14 })}</button>
-          <b>${chosen.length === 0 ? 'Niets' : chosen.length === 1 ? '1 op de kaart' : `${formatNumber(chosen.length)} op de kaart`}</b>
+          <b>${chosenWords(chosen.length)}</b>
           <span class="lintje-map-chart__selection-value">${areaWords(area)}</span>
         </div>
       `
@@ -487,15 +541,59 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
   const hint = controller.mapHint
     ? controller.mapHint
     : controller.mapTool
-      ? TOOL_HINTS[controller.mapTool][mobile ? 'short' : 'full']
+      ? TOOL_HINTS[controller.mapTool][
+          controller.mapKeyboard ? 'keys' : mobile ? 'short' : 'pointer'
+        ]
       : null
+  // The hint follows the way the reader works: the keyboard's while its focus is in the map.
+  // Read a frame on: WebKit settles `:focus-visible` after the focus event.
+  const onFocusIn = (event: FocusEvent) => {
+    const target = event.composedPath()[0] as Element
+    const read = () => {
+      const keyboard = target.isConnected && keyboardFocus(target)
+      if (keyboard === controller.mapKeyboard) return
+      controller.mapKeyboard = keyboard
+      controller.requestUpdate()
+    }
+    read()
+    requestAnimationFrame(read)
+  }
+  const onFocusOut = (event: FocusEvent) => {
+    const next = event.relatedTarget
+    if (next instanceof Node && controller.element && standsIn(next, controller.element)) return
+    if (!controller.mapKeyboard) return
+    controller.mapKeyboard = false
+    controller.requestUpdate()
+  }
+
+  // The panel of a chosen mark stands after the map in the source, its tab order is the mark's:
+  // Tab from the mark goes into it, Shift+Tab from its first button back to the mark.
+  const tabPanel = (event: KeyboardEvent) => {
+    const root = controller.element
+    const first = root?.querySelector<HTMLElement>('.lintje-map-chart__selection button')
+    const mark =
+      active && root
+        ? [...root.querySelectorAll<SVGElement>('[data-mark-id]')].find(
+            (node) => node.getAttribute('data-mark-id') === active,
+          )
+        : undefined
+    if (!first || !mark) return
+    const from = event.composedPath()[0]
+    if (!event.shiftKey && from === mark) first.focus()
+    else if (event.shiftKey && from === first) mark.focus()
+    else return
+    event.preventDefault()
+  }
 
   return html`
     <div class="lintje-map-chart ${mobile ? 'lintje-map-chart--mobile' : ''} ${basemap ? 'lintje-map-chart--basemap' : ''}"
          ${ref(controller.attach)} ?data-in-view=${controller.inView}
+         @focusin=${onFocusIn} @focusout=${onFocusOut}
          @keydown=${(event: KeyboardEvent) => {
+           if (event.key === 'Tab') return tabPanel(event)
            if (event.key !== 'Escape') return
-           // Escape undoes one thing: the tool, then the chosen mark, then the area.
+           // Escape undoes one thing: the tooltip, the tool, then the chosen mark, then the area.
+           if (controller.dismiss(event)) return
            if (controller.mapTool) controller.mapTool = null
            else if (active) clear()
            else if (area) clearArea()
@@ -532,12 +630,9 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
              passive: false,
            }}>
         <p id="${controller.id}-desc" class="visually-hidden">${description}</p>
-        <!-- Leaflet makes the surface a Tab stop; every mark on it is a button. -->
-        <div class="lintje-map-chart__leaflet" role=${drawingRole(true)}
-             aria-labelledby="${controller.id}-desc" ${ref(leaflet.attach)}></div>
-        ${renderTooltip(controller)}
 
-        <!-- Layer switcher top left. -->
+        <!-- The chrome stands before the map in the source, so Tab reaches it before every mark;
+             it stands over the map where it shows. Layer switcher top left. -->
         ${
           layers && layers.length > 1
             ? html`
@@ -554,8 +649,6 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
         `
             : nothing
         }
-
-        ${hint ? html`<p class="lintje-map-chart__hint" role="status">${hint}</p>` : nothing}
 
         <!-- Zoom, reset and the drawing tools top right, those the host keeps. -->
         ${
@@ -576,6 +669,14 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
             : nothing
         }
 
+        <!-- Leaflet makes the surface a Tab stop; every mark on it is a button. -->
+        <div class="lintje-map-chart__leaflet" role=${drawingRole(true)}
+             aria-labelledby="${controller.id}-desc" ${ref(leaflet.attach)}></div>
+        ${controller.mapTool ? html`<span class="lintje-map-chart__crosshair" aria-hidden="true"></span>` : nothing}
+        ${renderTooltip(controller)}
+
+        ${hint ? html`<p class="lintje-map-chart__hint" role="status">${hint}</p>` : nothing}
+
         <!-- The scale bottom right: a round distance, and a bracket as long as it on the map. -->
         ${
           scale
@@ -590,6 +691,7 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
         ${mobile ? nothing : renderPanel()}
       </div>
       ${mobile ? renderPanel() : nothing}
+      <p class="visually-hidden" role="status" aria-atomic="false">${controller.mapSaid}</p>
     </div>
   `
 }

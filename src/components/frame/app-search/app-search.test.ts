@@ -179,6 +179,26 @@ describe('lintje-app-search', () => {
     )
   })
 
+  it('puts the language of a result on its label, and none without one', async () => {
+    const element = await mount({
+      open: true,
+      groups: [
+        {
+          label: 'Eerder vertaald',
+          items: [
+            { id: 'h1', label: 'The applicant writes that she moved', lang: 'en' },
+            { id: 'h2', label: 'De aanvrager schrijft dat zij is verhuisd' },
+          ],
+        },
+      ],
+    })
+    const labels = options(element).map((option) =>
+      option.querySelector('.lintje-app-search__label')!.getAttribute('lang'),
+    )
+    expect(labels).toEqual(['en', null])
+    expect(options(element)[0].hasAttribute('lang')).toBe(false)
+  })
+
   it('asks to be closed on Escape and on the scrim', async () => {
     const element = await mount({ open: true })
     const reasons: string[] = []

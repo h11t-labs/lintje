@@ -266,7 +266,9 @@ describe('lintje-video-player', () => {
     Object.defineProperty(video, 'currentTime', {
       configurable: true,
       get: () => at,
-      set: (value: number) => (at = value),
+      set: (value: number) => {
+        at = value
+      },
     })
     const media = await loaded(element)
     expect(at).toBe(42)

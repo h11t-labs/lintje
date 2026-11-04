@@ -11,6 +11,91 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-11-03
+
+### Gewijzigd
+
+- Een stapel met meer dan vijf delen in één kleur vouwt de kleinste tot één "Overig" bovenop, zoals de taart; de tooltip noemt de gevouwen delen ingesprongen eronder, de CSV elk deel. (#290)
+- "Overig" van een taart, een stapel en de staaf van een sankey op een telefoon is de laatste, lichtste sport van de ladder van de variabele in plaats van grijs; heeft elk deel een eigen kleur, dan blijft het grijs. (#290)
+- `--color-chart-dark-yellow-text` heet `--color-chart-dark-yellow-edge`, zoals de andere randen; geel is nooit tekst. Een host die het oude token noemt, noemt het nieuwe. (#286)
+
+### Opgelost
+
+- Wat een handeling oplevert, klinkt ook zonder dat de focus verschuift: het eerste aantal van het zoekveld, de telling van een tabel na laden, "Pagina 3 van 7" van de paginering, een getekend gebied op de kaart, laden en fouten van een kerncijfer (één keer per rij), een document dat niet laadt, het leegmaken van het logvenster, de nieuwe zin van de filterbalk, een keuze in de treemap en een tweede mislukte bijlage in het gesprek. (#296)
+- Wat onder de muis verschijnt, blijft staan en gaat met Escape weg: de tooltip van een grafiek staat bij zijn teken en vangt de aanwijzer; een Escape die een tooltip, een uitleg of het tijdlabel van de speler wegdoet, sluit geen venster eromheen; de heatmap, het uitgeklapte zijmenu en een fragment in het transcript houden Escape bij het kleinste. (#294)
+- Kleur is nooit de enige drager, en tekst haalt 4,5:1: een kerncijfer zegt "Gunstig" of "Ongunstig" naast de pijl, een menu-item zonder pagina zegt zichtbaar "niet beschikbaar", een dubbel trefwoord staat in de voet van het veld, een zoekresultaat heeft een lijn eronder, een stapel en de sankey op een telefoon geven nooit twee delen dezelfde tint, en de regelnummers van een codeblok, een vervangen antwoord, de getallen van een uitgezette kaartlaag, het aandeel naast een sankeyknoop en een gedimd vlak van een treemap zijn leesbaar. (#290)
+- Randen, tekens en focusringen halen 3:1, ook in donker en in geforceerde kleuren: de foutrand van een veld, de ring van de bel, de gekozen logregel, de volumeschuif, de greep van een split pane, de schuifbalk van een tabel, het bolletje van een schakelaar, de stip van een afwijkend filter, vandaag in het maandraster, het lege vinkje, stromen en punten op de kaart, de raming, het halterdiagram, de stappen in het gesprek en drie RVO-iconen in donker. (#286)
+- Kaart, grafieken, tabel en logvenster werken met het toetsenbord, met de juiste rol en een klikdoel van 24 px: het logvenster is een raster met hetzelfde toetsenmodel in de vergroting; de naam van een klikbare tabelrij is haar Tab-stop; een kaartteken met focus toont zijn tooltip, met een vorm aan zet Enter een punt, zegt de aanwijzing hoe je tekent met de aanwijzer of met de toetsen, breekt Escape eerst een tekening af en legt daarna de vorm neer, en een nieuw gebied laat het oude meteen wegvallen (Escape zet het terug); een grafiekteken dat naar zijn pagina gaat, is een link; een smalle staaf, een dunne stroom, een taartpunt, een knoop van de sankey en een smal deel van de treemap zijn een vol doel; een gekozen cel of rij houdt de focusring. (#279)
+
+## [0.13.0] - 2026-11-02
+
+### Toegevoegd
+
+- De kaart heeft de twaalf provincies als ingebouwde geometrie (`geo: 'provinces'`), elk met haar ISO 3166-2-code als id (`NL-UT`) en haar Nederlandse naam, uit CBS/PDOK *Gebiedsindelingen*; een choropleet per provincie heeft geen eigen vlakken van de host meer nodig. De bundel groeit met 33 kB (5,5 kB gzip). (#283)
+- `lintje-shell` heeft `focusContent()`: een host die zelf routeert, zet daarmee na de wissel de focus op de inhoud, zoals de skiplink. De handleidingen zeggen wat een host na een wissel doet (paginatitel, focus, een buur vóór het verbergen), hun sjablonen hebben een `<title>` en de viewport-regel, en de voorbeelden en de stijlgids doen het. (#277)
+
+### Opgelost
+
+- Focus, toetsenbord en klikdoel op zeven plekken: een codeblok in `lintje-prose` en een tegel met `content-scroll` zijn Tab-stops met een rol en een naam, de gekozen aanvulling in het vraagvak en het handvat van `lintje-range` met de focus dragen de focusring, de ring blijft heel in het scrollvak van `lintje-dialog` en op een gesplitste knop, de links van `lintje-error-summary` zijn 24 px hoog, en een klik op een dag die niet gekozen mag worden, maakt die dag de Tab-stop van het maandraster. (#295)
+- Transcriptie opent een geüpload bestand niet meer vanzelf: het verschijnt bovenaan in "Recente opnames" en de focus blijft waar hij was. Een opname verwijderen en een live opname annuleren vragen eerst bevestiging. (#293)
+- Wat verdwijnt terwijl het de focus heeft, geeft de focus eerst door: "Weergave" blijft open bij een keuze en een andere indeling, de punaise houdt het menu als uitgeklapte rail, een venster waarvan de opener weg is geeft de focus aan de inhoud, en de meldingen, het log, het formulier, het foutenoverzicht, de upload, de bijlagen, de filterbalk, de kaart, "Meer", de sankey en de treemap laten de focus niet meer naar `body` vallen. De focusval springt alleen bij de echte eerste en laatste stop, en de kaartknoppen en het zoekveld van het smalle log staan in de Tab-volgorde waar je ze ziet. (#292)
+- Elk element herschikt op 320 px en bij 320 × 256 zonder iets te verliezen: een klein venster en de vragen van een gesprek scrollen mee bij weinig hoogte, het telefoonmenu eindigt aan de onderkant van het scherm, de uitleg onder een grote tab blijft staan, en titels, tellingen, knoppenrijen, het zoekveld en een geweigerde bijlage breken af in plaats van de pagina breder te maken. (#291)
+- De telefoonvorm van `lintje-data-table` steekt niet meer buiten haar tegel: de naam houdt minstens ongeveer tien tekens en hele woorden, en past de tabel dan niet, dan scrolt hij zijwaarts in de tegel. (#287)
+- De rand van een vlak op de kaart onder de aanwijzer of gekozen loopt aan elke kant heel door: een buurvlak dat later getekend is, bedekt hem niet meer half, ook op de wereldkaart en in donker. (#283)
+- Sankey, raming, treemap en halterdiagram: een schermlezer hoort de namen in een sankey met links één keer en elke overgang op een telefoon als groep, een geraamde grafiek noemt waar het meten ophoudt en zegt "raming" bij de geraamde waarde, het woord "Raming" valt niet meer over "Gemeten", een onderpost van de treemap op een telefoon noemt zijn aandeel in het geheel en een klikbare halterrij begint haar naam met wat ze toont; met nieuwe specimens voor elke toestand. (#282)
+
+## [0.12.1] - 2026-11-01
+
+### Toegevoegd
+
+- Specimens voor de open lijst van het rijtje personen, een accordeon met alle rijen open, een accordeonrij met acties en de voet van het zijmenu met een lange naam, en rijen in het afdruk- en het afkapcontract voor de accordeon en de voet. (#278)
+
+### Gewijzigd
+
+- De ontwikkelafhankelijkheden zijn bij: happy-dom 21 (laadt standaard geen CSS-bestanden en iframes meer), oxfmt 0.75, oxlint 1.90, Vitest 5.0.5, Vite 8.3.5, Playwright 1.64.1 (het CI-image gaat mee) en dagre 3.1.3. Vervangt #322. (#327)
+- `lintje-sortable-list`: een rij die met een tik op een andere greep of met een pijltoets verhuist, schuift kort naar haar nieuwe plaats en blijft opgetild tot ze ligt; onder verminderde beweging staat ze er meteen. Escape tijdens het slepen zet alle rijen terug en meldt niets. (#281)
+
+### Opgelost
+
+- Een druk op de balk van `lintje-range`, de druk die een opgetilde verdeling van `lintje-split-pane` neerzet, een tik op een greep van `lintje-sortable-list` terwijl een rij in de hand is en een aanvulling in `lintje-chat-composer` handelen pas bij het loslaten op hetzelfde doel; loslaten ernaast of een `pointercancel` laat alles staan zoals het was. (#281)
+- Een accordeon waarvan alle rijen bij het laden openstaan, tekent zich één keer in plaats van twee, en de link zegt meteen "Alles sluiten". (#278)
+- Een tabel waarvan `data` nog geen `columns` heeft, tekent zijn laad-, lege of foutstaat en gooit geen `TypeError` meer; ook de CSV-download zonder `columns` gooit niet. (#276)
+
+## [0.12.0] - 2026-10-31
+
+### Toegevoegd
+
+- Tabs onderaan op een telefoon: met `mobile-tabs` op `lintje-shell` staan onder 768 px de losse pagina's als tabs onder de duim, ten hoogste vijf, met Menu als laatste en het paneel van Menu als blad erboven, met alle pagina's. Met `tab-parts` kiest de host welke delen van de shell (Zoeken, Meldingen, Jij, Menu) een tab zijn; elk deel staat op één plek. Een ingang met `action` opent iets van de host in plaats van een pagina en stuurt `lintje-action` met die naam, ook in de rail en de navigatiebalk. Wat onderaan plakt, leest de hoogte van de tabs uit `--lintje-shell-bottom`, zoals het vraagvak van het gesprek. Wat uit een tab komt (Menu, Meldingen, Jij), laat de tabs zichtbaar en stopt erop; een tik op een andere tab sluit het. Een toast staat boven de tabs en zakt naar de onderrand zolang een blad van elders ze bedekt (`--lintje-toast-bottom`). Op een tab is de teller 16 px. (#325)
+
+### Gewijzigd
+
+- De balk op een telefoon is in beide indelingen dezelfde: de logobalk scrolt weg en een balk van 56 px blijft plakken, met de naam (en zodra de paginakop uit beeld is de titel van de pagina), zoeken, de bel, de avatar en Menu. De header van 72 px in de indeling met het menu naast de pagina vervalt. Een pagina dieper draagt Terug voor de titel (`back` in de data van de shell). Jouw menu opent op een telefoon als blad van onderen; het paneel van Menu draagt geen gebruiker meer en loopt van kort naar lang: de omgeving, Weergave, Delen en het `end`-slot, de pagina's, dan feedback en de versie. (#325)
+- Elk blad op een telefoon is hetzelfde blad: Menu, Meldingen, Jij, Weergave, Delen, Zoeken en Filters komen van onderen, zo hoog als hun inhoud en ten hoogste `--h-sheet` (88vh), met een sluier erboven, hun naam en een sluitknop bovenin, en ze zakken weer weg bij sluiten. Het paneel van Menu is ook zonder tabs zo'n blad; de knop Menu in de balk blijft Menu en de balk ligt onder de sluier. De bel in de balk opende schermvullend en opent nu ook als blad. (#325)
+
+### Verwijderd
+
+- **Brekend:** `mobile-bar` op `lintje-shell`, met `top` en `bottom`. De balk bovenaan is er op een telefoon altijd; wie Menu onder de duim wil, zet `mobile-tabs`. (#325)
+
+## [0.11.0] - 2026-10-27
+
+### Toegevoegd
+
+- Een tijdlijn: momenten langs een rail, staand of liggend, aan één kant, om en om of per kant, met vandaag op de rail en eerst de momenten het dichtst bij nu. Een moment heeft drie regels: de datum en een label boven de kop, de kop, en eronder een zin, een link en een eigen slot. Een moment kan zeggen wie het deed: een persoon met zijn rondje, of wat geen persoon is ("Systeem") met een icoon in het rondje. (#316)
+- Een kaart krijgt naast `basemap` optioneel `basemapDark`: een tweede WMS-ondergrond, van hetzelfde type, voor donker. De kaart kiest op de modus van het element en vervangt bij een wissel alleen de tegellaag; zonder `basemapDark` tekent donker `basemap`. (#280)
+
+### Gewijzigd
+
+- De stijlgidstest draait in vier delen naast elkaar, zodat de browsertests lokaal in ongeveer 37 s klaar zijn in plaats van 1:46. (#320)
+
+### Verwijderd
+
+- **Brekend:** `lintje-activity-log` vervalt; een logboek is nu een `lintje-timeline`. Geef `entries` als `moments`, elk `{ who, title: what, when, at }`, het nieuwste eerst zoals voorheen en `limit="10" step="10"` voor tien per keer. De tijd staat boven de regel, of aan één kant in een kolom vóór de rail. Een naam als tekst is nu geen persoon meer en krijgt het rondje met tandwielen: geef een persoon als `Person`. Het type `ActivityEntry` vervalt met het element. (#316)
+
+### Opgelost
+
+- De browsertests in CI draaien in het image van Playwright, zodat de WebKit-job niet meer op een trage Ubuntu-mirror wacht en binnen zijn limiet blijft. (#321)
+- De browsertest van de focusring van `lintje-segmented` slaagt ook in WebKit: hij tabt nu zoals de andere browsertests, vanuit een veld ervoor. (#308)
+
 ## [0.10.0] - 2026-10-25
 
 ### Toegevoegd
@@ -698,7 +783,12 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.10.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.13.1...HEAD
+[0.13.1]: https://github.com/h11t-labs/lintje/compare/v0.13.0...v0.13.1
+[0.13.0]: https://github.com/h11t-labs/lintje/compare/v0.12.1...v0.13.0
+[0.12.1]: https://github.com/h11t-labs/lintje/compare/v0.12.0...v0.12.1
+[0.12.0]: https://github.com/h11t-labs/lintje/compare/v0.11.0...v0.12.0
+[0.11.0]: https://github.com/h11t-labs/lintje/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/h11t-labs/lintje/compare/v0.9.3...v0.10.0
 [0.9.3]: https://github.com/h11t-labs/lintje/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/h11t-labs/lintje/compare/v0.9.1...v0.9.2

@@ -287,7 +287,7 @@ describe('a value beyond the axis', () => {
     expect(marks).toHaveLength(1)
     // The dot's colour, with dark yellow's edge.
     expect(marks[0].getAttribute('fill')).toBe('var(--color-chart-dark-yellow)')
-    expect(marks[0].getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-text)')
+    expect(marks[0].getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-edge)')
     expect(difference(row)).toBe('+0,4')
   })
 })
@@ -304,6 +304,40 @@ describe('the dumbbell below 768 px', () => {
       String(dumbbellHeight(3, true)),
     )
   })
+
+  it('runs a long name on over a second line, and its row grows with it', () => {
+    const label = 'Gemeentelijk loket Utrecht-Overvecht'
+    const { host } = draw(
+      { ...SPEC, rows: [{ ...SPEC.rows[0]!, label }, SPEC.rows[1]!] },
+      {
+        mobile: true,
+      },
+    )
+    const lines = [...host.querySelectorAll('.lintje-dumbbell__name--above')].map((name) =>
+      [...name.querySelectorAll('tspan')].map((line) => line.textContent),
+    )
+    expect(lines[0]!.length).toBe(2)
+    expect(lines[0]!.join(' ')).toBe(label)
+    expect(lines[1]).toEqual(['Zwolle'])
+    const [first, second] = [...host.querySelectorAll('.lintje-dumbbell__row .lintje-chart__hit')]
+    expect(Number(first!.getAttribute('height'))).toBe(44 + 20)
+    expect(Number(second!.getAttribute('y'))).toBe(Number(first!.getAttribute('y')) + 64)
+    expect(host.querySelector('svg.lintje-dumbbell')!.getAttribute('height')).toBe(
+      String(dumbbellHeight(2, true) + 20),
+    )
+  })
+
+  it('lets the grid and the norm give way under each line of a name, drawn after them', () => {
+    const label = 'Gemeentelijk loket Utrecht-Overvecht'
+    const { host } = draw({ ...SPEC, rows: [{ ...SPEC.rows[0]!, label }] }, { mobile: true })
+    const knockouts = [...host.querySelectorAll('.lintje-dumbbell__knockout')]
+    expect(knockouts).toHaveLength(2)
+    for (const line of host.querySelectorAll('.lintje-dumbbell__grid, .lintje-dumbbell__norm')) {
+      expect(
+        line.compareDocumentPosition(knockouts[0]!) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+    }
+  })
 })
 
 describe('a dumbbell row that drills', () => {
@@ -317,5 +351,41 @@ describe('a dumbbell row that drills', () => {
     expect(rows[1].getAttribute('aria-pressed')).toBe('true')
     expect(rows[0].classList).toContain('is-muted')
     expect(rows[1].classList).toContain('is-selected')
+  })
+
+  it('rings a row without a drawn point round the whole row', () => {
+    const { host } = draw(
+      {
+        ...SPEC,
+        rows: [
+          { label: 'Utrecht', from: null, to: null, href: '?loket=Utrecht' },
+          ...SPEC.rows.slice(1),
+        ],
+      },
+      { onSelect: () => {} },
+    )
+    const [bare, drawn] = rowsOf(host)
+    expect(bare!.getAttribute('tabindex')).toBe('0')
+    expect(bare!.querySelector('rect.lintje-dumbbell__focus')).not.toBeNull()
+    expect(drawn!.querySelector('circle.lintje-dumbbell__focus')).not.toBeNull()
+  })
+
+  it('is named first by what the row shows, its name and difference, then by the tooltip', () => {
+    const { host, key, controller } = draw(
+      { ...SPEC, rows: SPEC.rows.map((row) => ({ ...row, href: `?loket=${row.label}` })) },
+      { onSelect: () => {} },
+    )
+    const rows = rowsOf(host)
+    expect(difference(rows[1])).toBe('−0,5')
+    expect(rows[1].getAttribute('aria-label')).toBe(
+      'Zwolle −0,5: 2024 7,6, 2026 7,1, t.o.v. norm +0,1',
+    )
+    // The keys still read the tooltip as it stands.
+    key('Home')
+    key('ArrowDown')
+    expect(controller.status).toBe('Zwolle: 2024 7,6, 2026 7,1, Verschil −0,5, t.o.v. norm +0,1')
+    // Without a link a row is no button and has no name of its own.
+    document.body.replaceChildren()
+    expect(rowsOf(draw(SPEC).host)[1].hasAttribute('aria-label')).toBe(false)
   })
 })

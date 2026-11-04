@@ -12,8 +12,8 @@
   display: flex; align-items: center;
   gap: var(--space-2);
   max-width: 280px;
-  height: var(--h-chip);
-  padding: 0 var(--space-3) 0 var(--space-2);
+  min-height: var(--h-chip);
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
   --lintje-attachment-border: 1px;
   border: var(--lintje-attachment-border) solid var(--color-border-default);
   background: var(--color-bg-surface);
@@ -58,10 +58,26 @@
 .lintje-attachment__name { display: flex; min-width: 0; white-space: nowrap; }
 .lintje-attachment__stem { min-width: 3ch; overflow: hidden; text-overflow: ellipsis; }
 .lintje-attachment__tail { flex: none; }
-.lintje-attachment__detail { flex: none; white-space: nowrap; color: var(--color-text-muted); }
+/* Where no pointer shows the title, the whole name runs on: under the focus, without hover and
+   on a phone. Two names that differ in the middle stay apart. */
+.lintje-attachment:focus-within .lintje-attachment__name { display: block; white-space: normal; overflow-wrap: anywhere; }
+@media (hover: none), screen and (max-width: 767px) {
+  .lintje-attachment__name { display: block; white-space: normal; overflow-wrap: anywhere; }
+}
+/* On a phone the detail stands under the whole name, in its column beside the icon, so the name
+   never breaks in a word for it. */
+@media screen and (max-width: 767px) {
+  .lintje-attachment__main { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; row-gap: 0; }
+  .lintje-attachment__name { grid-area: 1 / 2; }
+  .lintje-attachment__detail { grid-area: 2 / 2; }
+  .lintje-attachment__sign { grid-area: 1 / 3 / span 2; align-self: center; }
+}
+/* A reason that does not fit beside the name wraps inside the chip (320 px), which grows. */
+.lintje-attachment__detail { flex: 0 1 auto; min-width: 0; color: var(--color-text-muted); }
 .lintje-attachment.is-error .lintje-attachment__detail { color: var(--color-error-text); }
 
-/* A quiet button: 24 px drawn, the target height reached by a transparent area around it. */
+/* A quiet button: 24 px drawn, the target height reached by a transparent area above and below
+   it; beside it the area reaches half the gap, so it never lies over the button next to it. */
 .lintje-attachment__action,
 .lintje-attachment__sign {
   position: relative;
@@ -79,7 +95,8 @@
 .lintje-attachment__action::after {
   content: '';
   position: absolute;
-  inset: min(0px, calc((var(--space-6) - var(--h-target)) / 2));
+  inset-block: min(0px, calc((var(--space-6) - var(--h-target)) / 2));
+  inset-inline: calc(var(--space-2) / -2);
 }
 .lintje-attachment__action:focus-visible {
   outline: var(--focus-width) solid var(--color-focus);

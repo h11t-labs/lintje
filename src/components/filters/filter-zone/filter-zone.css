@@ -9,7 +9,7 @@
    the host's parent is the page. The shell names the height of its bar. */
 :host(:state(phone)) {
   position: sticky;
-  top: var(--lintje-shell-top, var(--h-mobile-header));
+  top: var(--lintje-shell-top, var(--h-topbar));
   z-index: 19;
 }
 
@@ -41,7 +41,7 @@
 }
 .lintje-filter-bar__dot {
   width: 8px; height: 8px; border-radius: 50%;
-  background: var(--color-attention); flex: none;
+  background: var(--color-attention-line); flex: none;
 }
 .lintje-filter-bar__reset {
   display: flex; align-items: center;
@@ -137,7 +137,7 @@
 }
 .lintje-summary-bar__dot {
   width: 6px; height: 6px; border-radius: 50%;
-  background: var(--color-attention); flex: none;
+  background: var(--color-attention-line); flex: none;
 }
 .lintje-summary-bar__reset {
   display: flex; align-items: center;

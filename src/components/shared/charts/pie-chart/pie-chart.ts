@@ -2,9 +2,10 @@
  * Pie and donut: at most five parts, largest first and darkest first, whatever order the host
  * sends. The parts take the tints of one variable (the spec's `color`, or the default) spread
  * over the ladder with their number. "Overig" and a `remainder` segment (the open part of an
- * occupancy donut) are not parts: they draw last, gray and light gray, unless the data colours
- * them; a segment's own `color` always wins. More than five parts fold into four and one gray
- * "Overig" that is not clickable: a merged slice has no single place to drill into. The legend
+ * occupancy donut) are not parts: they draw last. "Overig" is the last, lightest member of the
+ * set, the remainder light gray; a segment's own `color` wins, except `other`, which says "this
+ * is Overig". More than five parts fold into four and one "Overig" that is not clickable: a
+ * merged slice has no single place to drill into. The legend
  * is a table, in the drawn order; without it the shared legend stands above the pie, one item per
  * slice and none a switch. The drawing takes the focus and the arrow keys walk its slices.
  */
@@ -15,7 +16,7 @@ import { formatNumber, formatPercent } from '../../../../core/format'
 import { chartColor } from '../shared/colors'
 import { renderTooltip } from '../shared/tooltip'
 import type { ChartOptions, TooltipContent } from '../shared/controller'
-import { markSelection } from '../shared/mark-select'
+import { markSelection, type MarkAttributes } from '../shared/mark-select'
 import { drawingRole, focusRingStyle, renderFocusRing, renderLegend } from '../shared/axes'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { tintsFor } from '../shared/tints'
@@ -29,7 +30,7 @@ type PieSegment = PieSpec['segments'][number]
 
 const isOther = (segment: PieSegment): boolean => {
   const label = segment.label.toLowerCase()
-  return label.startsWith('overig') || label === 'rest'
+  return segment.color === 'other' || label.startsWith('overig') || label === 'rest'
 }
 
 /** A segment that takes a tint: neither "Overig" nor a remainder. */
@@ -40,10 +41,11 @@ function prepare(segments: PieSegment[]): PieSegment[] {
   const parts = segments.filter(isPart).sort((a, b) => b.value - a.value)
   const other = segments.filter((segment) => !segment.remainder && isOther(segment))
   const remainders = segments.filter((segment) => segment.remainder)
-  if (parts.length > MAX_PARTS) {
+  // "Overig" takes a rung of the ladder too, so with one of the host's there is room for four.
+  if (parts.length > (other.length > 0 ? MAX_PARTS - 1 : MAX_PARTS)) {
     const sum = parts.splice(MAX_PARTS - 1).reduce((total, segment) => total + segment.value, 0)
-    // Into the host's own "Overig" if it sent one, so the gray slice is drawn once; the merged
-    // slice keeps no link.
+    // Into the host's own "Overig" if it sent one, so "Overig" is drawn once; the merged slice
+    // keeps no link.
     if (other.length > 0) {
       const [first] = other
       other[0] = { label: first.label, value: first.value + sum, color: first.color }
@@ -64,7 +66,8 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
     labelHeader = 'Categorie',
   } = spec
   const id = controller.id
-  const segments = prepare(spec.segments).map((segment) => ({
+  const prepared = prepare(spec.segments)
+  const segments = prepared.map((segment) => ({
     ...segment,
     color: chartColor(segment.color),
   }))
@@ -94,17 +97,25 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
   const radius = size / 2
   const innerRadius = donut ? radius * 0.62 : 0
   // A part takes the tint of its rank; a colour of its own replaces that tint and does not
-  // hand it on. Slice and legend row read the same array.
-  const tints = tintsFor(segments.filter(isPart).length, spec.color)
+  // hand it on. "Overig" spreads over the ladder with the parts and takes its last step, unless
+  // every part has a colour of its own: then there is no ladder, and it is gray. Slice and
+  // legend row read the same array.
+  const parts = prepared.filter(isPart)
+  const ladder = parts.some((segment) => segment.color == null)
+  const others = prepared.some((segment) => !segment.remainder && isOther(segment))
+  const tints = tintsFor(parts.length + (ladder && others ? 1 : 0), spec.color)
   let rank = -1
-  const colors = segments.map((segment) => {
+  const colors = prepared.map((segment, i) => {
     if (isPart(segment)) rank += 1
+    const own = segment.color === 'other' ? undefined : segments[i].color
     return (
-      segment.color ??
+      own ??
       (segment.remainder
         ? 'var(--color-chart-remainder)'
         : isOther(segment)
-          ? 'var(--color-chart-other)'
+          ? ladder
+            ? tints[tints.length - 1]
+            : 'var(--color-chart-other)'
           : tints[Math.min(rank, tints.length - 1)])
     )
   })
@@ -133,6 +144,29 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
   })
   const hover = controller.hoverIndex
   const lifted = hover != null ? arcs[hover] : undefined
+
+  // A slice that drills is a small target; its legend row does the same, the name its link or
+  // button (WCAG 2.5.8).
+  const rowLabel = (segment: PieSegment, i: number) => {
+    const name = html`<span class="lintje-pie-chart__label-inner">
+      <span class="lintje-pie-chart__marker" ${styleProps({ background: colors[i] })}></span>${segment.label}
+    </span>`
+    const mark: MarkAttributes = selection.of(links[i], segment.label, segment.label)
+    const click = mark.click
+    if (!mark.clickable || click === nothing) return name
+    if (mark.role === 'link')
+      return html`<a class="lintje-pie-chart__action" href=${links[i]!.href!}
+          @click=${(event: MouseEvent) => {
+            event.preventDefault()
+            click(event)
+          }}
+          @auxclick=${(event: MouseEvent) => {
+            event.preventDefault()
+            click(event)
+          }}>${name}</a>`
+    return html`<button type="button" class="lintje-pie-chart__action" aria-pressed=${mark.pressed}
+        @click=${click}>${name}</button>`
+  }
 
   const setHover = (index: number | null) => {
     controller.hoverIndex = index
@@ -191,15 +225,8 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
                 data-mark-id=${mark.markId} role=${mark.role} tabindex=${mark.tabIndex}
                 aria-pressed=${mark.pressed} aria-label=${mark.label}
                 @click=${mark.click} @auxclick=${mark.click} @keydown=${mark.keydown}
-                @mousemove=${(event: MouseEvent) => {
-                  controller.hoverIndex = i
-                  controller.showTooltip(event, contentAt(i))
-                }}
-                @mouseleave=${() => {
-                  controller.hoverIndex = null
-                  controller.hideTooltip()
-                  controller.requestUpdate()
-                }} />
+                @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+                @mouseleave=${keys.leave} />
         `
         })}
         </g>
@@ -242,11 +269,7 @@ export function renderPieChart(spec: PieSpec, options: ChartOptions): TemplateRe
               (segment, i) => html`
               <tr class="lintje-pie-chart__row ${hover === i ? 'is-hovered' : ''} ${rowState(i)}"
                   @mouseenter=${() => setHover(i)} @mouseleave=${() => setHover(null)}>
-                <th scope="row" class="lintje-pie-chart__label">
-                  <span class="lintje-pie-chart__label-inner">
-                    <span class="lintje-pie-chart__marker" ${styleProps({ background: colors[i] })}></span>${segment.label}
-                  </span>
-                </th>
+                <th scope="row" class="lintje-pie-chart__label">${rowLabel(segment, i)}</th>
                 <td class="lintje-pie-chart__value">${formatNumber(segment.value)}</td>
                 <td class="lintje-pie-chart__value">${formatPercent((segment.value / total) * 100)}</td>
               </tr>

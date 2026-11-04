@@ -18,6 +18,14 @@ de ene `h1` van de pagina, en de paginatitel is een `lintje-page-header` in de `
 uitleg of uitklapper is een `h3`. Zonder `name` levert de pagina de `h1` zelf. Een dashboard staat in dezelfde shell, met het menu naast de pagina
 ([dashboards](dashboard.md)).
 
+Wisselt een lezer op een telefoon steeds tussen drie tot vijf pagina's, zet dan `mobile-tabs` op
+`lintje-shell`: onder 768 px staan de losse pagina's van `navigation` als tabs onderaan, met Menu
+als laatste. Met `tab-parts` stuur je ook Zoeken, Meldingen of jouw menu naar de tabs (`tab-parts="notifications user menu"`); wat een tab is, staat niet ook in de balk bovenaan. Een pagina dieper krijgt `back` in de data van de shell. Een ingang die geen pagina
+opent maar een blad van jou, krijgt `action` in plaats van `href`; de shell stuurt dan
+`lintje-action` met die naam. Wat onderaan plakt, staat boven de tabs met
+`bottom: var(--lintje-shell-bottom, 0px)`; een blad van jou dat uit een tab komt, stopt daar ook
+en is ten hoogste `var(--h-sheet)` hoog, zoals de bladen van Lintje.
+
 Al het andere lever jij:
 
 - **Geen datalaag.** Wat een element tekent, komt uit zijn eigenschappen, als platte JSON.
@@ -37,6 +45,8 @@ stylesheet en één module nodig; al het andere is HTML uit je eigen sjablonen:
 <html lang="nl" data-mode="light"> <!-- data-style-version="new" draws the new house style; see theming.md -->
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nieuwe melding — Meldingen</title>
     <link rel="stylesheet" href="/static/lintje/fonts.css" /> <!-- with fonts/ beside it; optional -->
     <link rel="stylesheet" href="/static/lintje/tokens.css" />
     <link rel="icon" type="image/svg+xml" href="/static/lintje/favicon-lint.svg" /> <!-- assets/logo/favicon-lint.svg: the ribbon alone, as the house style's favicon -->
@@ -61,7 +71,7 @@ stylesheet en één module nodig; al het andere is HTML uit je eigen sjablonen:
 
       <form method="post" action="/meldingen">
         <input type="hidden" name="csrf_token" value="…" />
-        <lintje-text-input name="naam" label="Naam" value="…" error="…"></lintje-text-input>
+        <lintje-text-input name="naam" label="Naam" autocomplete="name" value="…" error="…"></lintje-text-input>
         <lintje-textarea name="omschrijving" label="Omschrijving"></lintje-textarea>
         <lintje-checkbox name="spoed" label="Spoed"></lintje-checkbox>
         <lintje-button type="submit" variant="primary">Versturen</lintje-button>
@@ -70,6 +80,10 @@ stylesheet en één module nodig; al het andere is HTML uit je eigen sjablonen:
   </body>
 </html>
 ```
+
+De `<title>` noemt de pagina vóór de applicatie: zo heet ze in het tabblad, de geschiedenis en
+een bladwijzer. Zonder de viewport-regel rekent een telefoon met een venster van ongeveer 980 px en
+toont hij de desktopvorm verkleind: geen menuknop, geen filtersheet, geen telefoonvorm van de tabel.
 
 Drie dingen laten dit werken zonder eigen script.
 
@@ -104,13 +118,44 @@ bedieningselement onder zijn `name` post:
 Toon een geweigerde waarde door het veld met zijn `error`-attribuut in de pagina te zetten. Een `error` houdt het
 versturen niet tegen: het is het antwoord van de server op een eerdere verzending.
 
+Een veld dat naar de lezer zelf vraagt, zegt met `autocomplete` wat het vraagt (`name`, `email`,
+`street-address`, `bday`), zodat de browser en hulpsoftware het kunnen invullen; het tekstveld, de
+textarea, het getalveld en de datum geven het door aan hun native veld.
+
+Zet bij een geweigerde verzending ook de fouten bij elkaar, boven het formulier: `lintje-error-summary`,
+met per fout een link naar zijn veld. `field` is de `name` van het veld; de link zet de focus erin.
+Het overzicht werkt ook buiten `lintje-form`, maar neemt de focus niet zelf: de pagina zet hem er
+één keer op als ze geladen is, zodat de lezer eerst hoort wat er mis is en niet bovenaan begint.
+
+```html
+<lintje-error-summary id="fouten">
+  <script type="application/json" data-prop="items">
+    [
+      { "field": "naam", "label": "Naam", "message": "Vul je naam in" },
+      { "field": "omschrijving", "label": "Omschrijving", "message": "Vul een omschrijving in" }
+    ]
+  </script>
+</lintje-error-summary>
+<form method="post" action="/meldingen">
+  <lintje-text-input name="naam" label="Naam" error="Vul je naam in"></lintje-text-input>
+  <lintje-textarea name="omschrijving" label="Omschrijving" error="Vul een omschrijving in"></lintje-textarea>
+  …
+</form>
+<script type="module">
+  const summary = document.getElementById('fouten')
+  await customElements.whenDefined('lintje-error-summary')
+  await summary.updateComplete // drawn, with its frame to focus
+  summary.focus()
+</script>
+```
+
 ## Een pagina met script
 
 Script is voor wat een pagina doet zonder weg te gaan: een event beantwoorden met nieuwe data.
 
 ```html
 <lintje-form id="form">
-  <lintje-text-input name="naam" label="Naam"></lintje-text-input>
+  <lintje-text-input name="naam" label="Naam" autocomplete="name"></lintje-text-input>
   <lintje-textarea name="omschrijving" label="Omschrijving"></lintje-textarea>
   <lintje-form-actions>
     <lintje-button variant="primary" type="submit">Versturen</lintje-button>
@@ -177,8 +222,9 @@ recht op dezelfde inhoud (WCAG 1.4.10). Kies daarom van boven naar beneden:
 2. **Ingeklapt**: `collapsed-mobile` op `lintje-tile` (en `collapsedMobile` in de `data` van een
    grafiek, kaart, tabel, graaf of logboek) toont op een telefoon alleen de kop met een knop
    Tonen; de inhoud staat één tik verder.
-3. **Van vorm gewisseld**: dat doet een element zelf. Het menu wordt een header met een
-   schermvullend menu, de filters een sheet, een tabel toont per rij de identiteit en één
+3. **Van vorm gewisseld**: dat doet een element zelf. Het menu wordt een balk bovenaan, waaruit
+   Menu, Meldingen, jouw menu, Weergave, Delen en Zoeken als blad van onderen openen, net als de
+   filters; een tabel toont per rij de identiteit en één
    meetwaarde, het kruimelpad alleen de weg terug, en de afbeelding naast een hero valt onder
    1024 px weg.
 4. **Weggelaten**: `hide-mobile` laat een item op een telefoon weg, `hide-desktop` vanaf 768 px.

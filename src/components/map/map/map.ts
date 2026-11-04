@@ -242,6 +242,7 @@ export class LintjeMap extends LintjeContentTileElement {
       controller,
       description: this.data?.description,
       mobile: this.#mobile.matches,
+      mode: this.resolvedMode,
       expanded,
       onSelect: ({ id, label, href }, newTab) => this.select({ id, label, href }, newTab),
       onClear: (previousId) => {

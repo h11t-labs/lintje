@@ -770,7 +770,7 @@ export default {
         },
         {
           label: 'Anders niet gekozen',
-          note: 'Met `other` is de laatste optie "Anders, namelijk". Vink haar aan: het veld verschijnt eronder, met de focus erin.',
+          note: 'Met `other` is de laatste optie "Anders, namelijk". Vink haar aan: het veld verschijnt eronder, als de volgende Tab-stop.',
           html: '<lintje-checkbox-group name="kanalen" label="Hoe hoorde u van de regeling?" hint="Kies alles wat van toepassing is." other other-placeholder="Bijvoorbeeld: op een informatieavond"></lintje-checkbox-group>',
           setup(stage) {
             channels(stage, 'website')
@@ -835,7 +835,7 @@ export default {
         },
         {
           label: 'Anders niet gekozen',
-          note: 'Met `other` is de laatste optie "Anders, namelijk". Kies haar met een klik of spatie en de focus gaat in het veld; met een pijltoets blijft ze in de groep.',
+          note: 'Met `other` is de laatste optie "Anders, namelijk". Gekozen blijft de focus op de optie; het veld eronder is de volgende Tab-stop.',
           html: '<lintje-radio-group name="kanaal" label="Hoe hoorde u van de regeling?" other other-placeholder="Bijvoorbeeld: op een informatieavond"></lintje-radio-group>',
           setup(stage) {
             channels(stage, 'gemeente')
@@ -1165,6 +1165,18 @@ export default {
           async setup(stage) {
             setRange(stage)
             const element = stage.querySelector('lintje-date-range')
+            await element.updateComplete
+            element.shadowRoot.querySelector('.lintje-date-range-picker__field').click()
+          },
+        },
+        {
+          label: 'Vandaag binnen de periode',
+          note: 'Ligt vandaag tussen begin en eind, dan houdt zijn ring ook op de tint van de periode 3:1.',
+          html: '<lintje-date-range label="Periode"></lintje-date-range>',
+          async setup(stage) {
+            setRange(stage)
+            const element = stage.querySelector('lintje-date-range')
+            element.today = new Date(2026, 8, 4)
             await element.updateComplete
             element.shadowRoot.querySelector('.lintje-date-range-picker__field').click()
           },

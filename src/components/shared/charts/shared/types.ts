@@ -100,6 +100,8 @@ export type ChartSpec =
        * The index in `labels` of the first forecast point: before it everything is measured.
        * Dotted from the last measured point on, with its margin. With it `asOfIndex`, `asOfLabel`
        * and `pendingHours` do not apply. At 0 or less, or past the labels, there is no forecast.
+       * The drawing's description ends with where measuring stops: "Gemeten tot en met 2025,
+       * daarna raming."
        */
       forecastFrom?: number
       /** The word in the legend and above the forecast. Default "Raming". */
@@ -121,7 +123,8 @@ export type ChartSpec =
       links?: (ChartLink | null)[]
       /**
        * The index in `labels` of the first forecast bar: it and those after it are open. At 0 or
-       * less, or past the labels, there is no forecast.
+       * less, or past the labels, there is no forecast. The drawing's description ends with where
+       * measuring stops, as on a line.
        */
       forecastFrom?: number
       /** The margin of the forecast bars, `null` before `forecastFrom`. */
@@ -584,7 +587,11 @@ export interface MapPlotData {
 /** The map's data, as `MapData` in `src/types.ts` carries it, without the tile fields. */
 export interface MapSpec {
   variant: MapVariant
-  geo?: 'world' | 'netherlands'
+  /**
+   * The built-in geometry, without fetching: the countries of the world (default), the
+   * Netherlands as one area, or its twelve provinces, each named by its ISO 3166-2 code (`NL-UT`).
+   */
+  geo?: 'world' | 'netherlands' | 'provinces'
   /** The marks of a one-variant map; empty with `variant: 'plots'`. */
   values: MapValue[]
   /** With `variant: 'plots'`: the layers, bottom first. */
@@ -612,6 +619,12 @@ export interface MapSpec {
   clearHref?: string
   /** Tiles under the map: Leaflet draws the basemap, the map draws its data over it. */
   basemap?: WmsBasemap
+  /**
+   * The basemap in dark mode, a second one for a service with a dark style at another address or
+   * as another layer. Only the browser knows the mode, so both travel and the map chooses.
+   * Without it dark draws `basemap`; without `basemap` it is ignored.
+   */
+  basemapDark?: WmsBasemap
   /** Which parts of the map show and answer; each left out keeps its default. */
   controls?: MapControls
   /** The area the host keeps, from its URL: adopted when it changes, as `selectedId` is. */

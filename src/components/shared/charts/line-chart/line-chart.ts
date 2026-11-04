@@ -26,14 +26,16 @@ import {
 import { renderTooltip } from '../shared/tooltip'
 import { styleProps } from '../../../../core/style-props'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
-import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
+import { plotKeys, renderPlotStatus, tooltipSentence } from '../shared/plot-keys'
 import { LONE_POINT_RADIUS, knownRuns } from '../shared/runs'
 import {
   FORECAST_LABEL,
-  FORECAST_ROOM,
   INTERVAL_LABEL,
   boundsAt,
+  forecastDescription,
+  forecastRoom,
   forecastStart,
+  forecastWordFits,
   hasInterval,
   intervalRow,
   intervalValues,
@@ -156,8 +158,8 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
   const { max, ticks } = axisScale(fixedMax ?? Math.max(...allValues, 1))
   // The first x label is centered on the plot's left edge; the column keeps room for half of it.
   const axis = axisColumn(ticks, controller.width, {
-    fontFamily: controller.fontFamily,
-    minimum: Math.ceil(textWidth(labels[0] ?? '', controller.fontFamily) / 2),
+    font: controller.font,
+    minimum: Math.ceil(textWidth(labels[0] ?? '', controller.font) / 2),
   })
   // The squares stay inside the drawing at its ends; x does not depend on the top.
   const across = chartArea(options, { left: axis.width })
@@ -172,9 +174,17 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
   const eventsTop = rowCount
     ? rowCount * (EVENT_CHIP + EVENT_ROW_GAP) + EVENT_GAP
     : DEFAULT_PLOT_AREA.top
+  const fits =
+    from == null ||
+    forecastWordFits(
+      xPosition(from - 1, labels.length, across),
+      across,
+      forecastLabel,
+      controller.font,
+    )
   const area = chartArea(options, {
     left: axis.width,
-    top: eventsTop + (from != null ? FORECAST_ROOM : 0),
+    top: eventsTop + (from != null ? forecastRoom(fits) : 0),
   })
   const chipTop = (i: number) => EVENT_ROW_GAP + rows[i] * (EVENT_CHIP + EVENT_ROW_GAP)
 
@@ -261,12 +271,28 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
       .filter((value): value is number => value != null)
     return known.length ? Math.max(...known) : null
   }
+  // A screen reader hears "raming" at each forecast value, not at the category: a comparison
+  // there is measured, which the tooltip shows by its dashed swatch.
+  const sentenceAt = (i: number, content: TooltipContent): string | undefined =>
+    from != null && i >= from
+      ? tooltipSentence({
+          ...content,
+          note: undefined,
+          rows: content.rows.map((row) =>
+            row.marker === 'dotted'
+              ? { ...row, label: `${row.label} ${forecastLabel.toLowerCase()}` }
+              : row,
+          ),
+        })
+      : undefined
   const keys = plotKeys(controller, labels.length, (i) => {
     const top = topAt(i)
+    const content = contentAt(i)
     return {
       x: xPosition(i, labels.length, area),
       y: top == null ? area.top : yPosition(top, max, area),
-      content: contentAt(i),
+      content,
+      sentence: sentenceAt(i, content),
     }
   })
   const focusPoint = (i: number) => {
@@ -418,7 +444,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
           area,
           x: xPosition(from - 1, labels.length, area),
           label: forecastLabel,
-          fontFamily: controller.fontFamily,
+          font: controller.font,
         })
       : nothing,
 
@@ -468,8 +494,8 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
         <rect x=${x - bandWidth / 2} y=${area.top} width=${bandWidth}
               height=${area.height - area.top - area.bottom}
               fill="transparent"
-              @mousemove=${(event: MouseEvent) => controller.hoverAt(i, event, contentAt(i))}
-              @mouseleave=${() => controller.hoverAt(null)} />
+              @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+              @mouseleave=${keys.leave} />
       `
     }),
   ]
@@ -487,7 +513,7 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
       })}
       ${renderChartFrame(
         {
-          fontFamily: controller.fontFamily,
+          font: controller.font,
           id,
           ticks,
           max,
@@ -497,21 +523,24 @@ export function renderLineChart(spec: LineSpec, options: ChartOptions): Template
           xLabels,
           underlay:
             from != null ? forecastGround(xPosition(from - 1, labels.length, area)) : nothing,
-          // The drawing names its events too; the list below says them again.
-          description: events.length
-            ? `${description} ${events
-                .map(
-                  (event) => `Gebeurtenis ${event.number}, ${labels[event.index]}: ${event.label}.`,
-                )
-                .join(' ')}`
-            : description,
+          // The drawing names where measuring stops and its events too; the list below says
+          // the events again.
+          description: [
+            description,
+            from != null ? forecastDescription(labels, from, forecastLabel) : '',
+            ...events.map(
+              (event) => `Gebeurtenis ${event.number}, ${labels[event.index]}: ${event.label}.`,
+            ),
+          ]
+            .filter(Boolean)
+            .join(' '),
           keys,
         },
         marks,
       )}
       ${
         events.length
-          ? html`<ol class="lintje-chart-events" aria-label="Gebeurtenissen">
+          ? html`<ol class="lintje-chart-events" role="list" aria-label="Gebeurtenissen">
               ${events.map(
                 (event) => html`<li class="lintje-chart-events__item">
                   <span class="lintje-event-chip"><span class="lintje-event-chip__number">${event.number}</span></span>

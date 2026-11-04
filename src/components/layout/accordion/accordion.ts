@@ -74,6 +74,13 @@ export class LintjeAccordion extends LintjeElement {
     super.disconnectedCallback()
   }
 
+  // The first render already reads the rows' `open`: the link is drawn once, not again when
+  // `updated()` finds every row open.
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
+    if (!this.hasUpdated) this.#count()
+  }
+
   // Also after the first render, whether or not the slot reports the rows it starts with.
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)

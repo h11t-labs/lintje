@@ -134,16 +134,30 @@ describe.each([RADIO, CHECKBOX])('$tag with other', (kind) => {
     expect(kind.labels(plain)).toEqual(['Via de gemeente', 'Op de website'])
   })
 
-  it('chosen, shows its field under the option, labelled by the option, with the focus in it', async () => {
+  it('chosen, shows its field under the option, labelled by the option, with the focus kept on the option', async () => {
     const element = await mount(kind.tag, { otherPlaceholder: 'Bijvoorbeeld: via de buren' })
     const changes = listen(element, 'lintje-change')
+    const option = await kind.otherInput(element)
+    option.focus()
     await choose(kind, element)
+    await field(element)!.updateComplete
     const input = field(element)!.renderRoot.querySelector('input')!
     expect(changes).toEqual([kind.chosen])
     expect(field(element)!.label).toBe('Anders, namelijk')
     expect(field(element)!.hideLabel).toBe(true)
     expect(input.placeholder).toBe('Bijvoorbeeld: via de buren')
-    expect(active()).toBe(input)
+    // The reader hears that the choice is on; the field is the next Tab stop.
+    expect(active()).toBe(option)
+  })
+
+  it('says its field must be filled with aria-required alone, holding back no form', async () => {
+    const element = await mount(kind.tag)
+    await choose(kind, element)
+    await field(element)!.updateComplete
+    const input = field(element)!.renderRoot.querySelector('input')!
+    expect(input.getAttribute('aria-required')).toBe('true')
+    expect(input.hasAttribute('required')).toBe(false)
+    expect(field(element)!.required).toBe(false)
   })
 
   it('commits its text on leaving and on Enter, once each, and not while typing', async () => {

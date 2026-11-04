@@ -4,6 +4,7 @@
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
+import { TAB } from '../../../core/test-keys'
 import './segmented'
 import type { LintjeSegmented } from './segmented'
 
@@ -67,9 +68,15 @@ describe('lintje-segmented and the focus ring', () => {
   ]
   const layer = (option: HTMLElement): number => Number(getComputedStyle(option).zIndex) || 0
 
-  /** Tabs onto "Week", beside the chosen "Maand": the ring is the keyboard's. */
+  /**
+   * Tabs onto "Week", beside the chosen "Maand": the ring is the keyboard's. From a field before
+   * it: WebKit takes a key only in a document that holds the focus.
+   */
   async function focusBesideChosen(element: LintjeSegmented): Promise<void> {
-    await userEvent.tab()
+    const start = Object.assign(document.createElement('input'), { ariaLabel: 'Zoeken' })
+    element.before(start)
+    start.focus()
+    await userEvent.keyboard(TAB)
     expect(element.shadowRoot!.activeElement).toBe(options(element)[0])
     expect(options(element)[0].matches(':focus-visible')).toBe(true)
   }

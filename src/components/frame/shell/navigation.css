@@ -112,7 +112,8 @@
 .lintje-nav__list:focus-within + .lintje-nav__thumb { transition: none; }
 .lintje-nav__group { display: flex; flex-direction: column; }
 
-/* The same height in both modes, so every row below stays in place when the rail expands. */
+/* In the open menu a long heading wraps. In the rail it is one line, expanded or not, so every
+   row below stays in place when the rail expands. */
 .lintje-nav__section-heading {
   position: relative;
   font-size: var(--label-size);
@@ -121,9 +122,9 @@
   text-transform: uppercase;
   color: var(--color-nav-text-sub);
   padding: var(--space-6) var(--space-5) var(--space-2);
-  white-space: nowrap;
   margin: 0;
 }
+.lintje-nav--rail .lintje-nav__section-heading { white-space: nowrap; }
 /* A line in the rail, text once it expands: the text fades in after the width starts. */
 .lintje-nav__section-label {
   display: block;
@@ -170,6 +171,8 @@
   transition: background var(--dur-hover) var(--ease-in-motion),
               color var(--dur-hover) var(--ease-in-motion);
 }
+/* An entry with `action` is a button with the row's look. */
+.lintje-nav__item--action { width: 100%; background: transparent; border-top: 0; border-right: 0; border-bottom: 0; font-family: inherit; text-align: start; cursor: pointer; }
 .lintje-nav__item:hover:not(.is-no-page):not(.is-no-access) {
   background: var(--color-nav-hover);
   color: var(--color-nav-hover-text);
@@ -201,6 +204,8 @@
 .lintje-nav__metric { font-size: 0.875rem; color: var(--color-nav-text-sub); flex: none; 
   transition: color var(--dur-hover) var(--ease-in-motion);
 }
+/* Why an entry cannot be opened: a small line under its label, not only its lighter colour. */
+.lintje-nav__note { display: block; font: var(--text-small); }
 .lintje-nav__item.is-no-access .lintje-nav__metric { text-decoration: none; }
 .lintje-nav__item.is-no-page .lintje-nav__metric { color: var(--color-nav-disabled); }
 

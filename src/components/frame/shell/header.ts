@@ -18,7 +18,7 @@ import { renderIcon } from '../../../icons/render'
 import { isPlainClick } from '../../../core/links'
 import { MOBILE, MediaController } from '../../../core/media'
 import { ownsEscape } from '../../shared/focus-trap'
-import { holdsFocus } from '../../../core/focus'
+import { holdsFocus, passFocus } from '../../../core/focus'
 import '../../actions/logo/logo'
 import { renderBadge } from '../../feedback/badge/badge'
 import type { ShellLink } from '../../../types'
@@ -95,6 +95,8 @@ export interface NavBarOptions {
   collapsed?: boolean
   /** A plain click on an entry with a page. */
   onNavigate: (item: ShellLink, event: MouseEvent) => void
+  /** A click on an entry with `action`. */
+  onAction?: (item: ShellLink) => void
   /** Opens the submenu of this group, or closes whichever is open (`null`). */
   onOpen: (index: number | null) => void
   start?: TemplateResult | typeof nothing
@@ -104,16 +106,36 @@ export interface NavBarOptions {
 /** An entry the reader can open: it has a page and nothing withholds it. */
 export const hasPage = (item: ShellLink): boolean => Boolean(item.href) && !item.noAccess
 
+/** An entry that opens something of the host's (`action`) instead of a page. */
+export const isAction = (item: ShellLink): boolean =>
+  Boolean(item.action) && !item.href && !item.noAccess
+
 /** Why an entry cannot be opened, in words: `aria-disabled` means nothing on a plain span, and
- * the muted colour alone is no reason (rule 13). */
+ * the muted colour alone is no reason (rule 13). Only heard: in the bar and the shut rail. */
 export function unavailableWord(item: ShellLink): TemplateResult {
   return html`<span class="visually-hidden"
     >${item.noAccess ? ', geen toegang' : ', niet beschikbaar'}</span
   >`
 }
 
+/** The lock, or the words "geen toegang": the strikethrough alone is not a reason (rule 13). */
+export function noAccessMark(className: string): TemplateResult {
+  const glyph = renderIcon('gebruiksvoorwerpen-hangslot-dicht', { size: 16, label: 'Geen toegang' })
+  return glyph === nothing ? html`<span class=${className}>geen toegang</span>` : glyph
+}
+
+/** An entry without a page says so where it is seen, in small text; heard once, after a pause. */
+export function unavailableNote(className: string): TemplateResult {
+  return html`<span class=${className}><span class="visually-hidden">, </span>niet beschikbaar</span>`
+}
+
 function follow(options: NavBarOptions, item: ShellLink, event: MouseEvent): void {
   if (!isPlainClick(event)) return
+  // A page chosen in a group closes the group with the link in it: the focus goes to the group's
+  // button, as Escape puts it there, and the host takes it on to its new page.
+  const link = event.currentTarget as Element
+  const group = link.closest('.lintje-navbar__submenu')?.parentElement
+  passFocus(link, [group?.querySelector<HTMLElement>(':scope > .lintje-navbar__entry')])
   options.onOpen(null)
   options.onNavigate(item, event)
 }
@@ -129,10 +151,47 @@ function pageBadge(item: ShellLink): TemplateResult | typeof nothing {
   })
 }
 
+/** An entry with `action`: a button with the entry's look, never marked as the reader's page. */
+function actionButton(
+  options: NavBarOptions,
+  item: ShellLink,
+  className: string,
+  content: TemplateResult,
+): TemplateResult {
+  return html`<button
+    type="button"
+    class=${`${className} ${className}--action focus-inset`}
+    @click=${() => {
+      options.onOpen(null)
+      options.onAction?.(item)
+    }}
+  >
+    ${content}
+  </button>`
+}
+
 function barLink(options: NavBarOptions, item: ShellLink): TemplateResult {
+  if (isAction(item)) {
+    return actionButton(
+      options,
+      item,
+      'lintje-navbar__entry',
+      html`<span class="lintje-navbar__label">${item.label}</span>`,
+    )
+  }
   if (!hasPage(item)) {
-    return html`<span class="lintje-navbar__entry is-unavailable" aria-disabled="true"
-      >${item.label}${unavailableWord(item)}</span
+    // Behind the label: the lock of an entry without access. An entry without a page is only
+    // muted in the bar, where small words beside it crowded the row; it says so to a screen reader.
+    return html`<span
+      class=${classMap({
+        'lintje-navbar__entry': true,
+        'is-unavailable': true,
+        'is-no-access': Boolean(item.noAccess),
+      })}
+      aria-disabled="true"
+      ><span class="lintje-navbar__label">${item.label}</span>${
+        item.noAccess ? noAccessMark('lintje-navbar__note') : unavailableWord(item)
+      }</span
     >`
   }
   const active = Boolean(item.active)
@@ -149,6 +208,7 @@ function pageLink(options: NavBarOptions, item: ShellLink): TemplateResult {
   const content = html`${renderIcon(item.icon, { size: 20, src: item.iconSrc })}
     <span class="lintje-navbar__page-text">
       <span class="lintje-navbar__label">${item.label}</span>
+      ${hasPage(item) || isAction(item) || item.noAccess ? nothing : unavailableNote('lintje-navbar__note')}
       ${
         item.metric
           ? html`<span class="lintje-navbar__metric"
@@ -159,14 +219,9 @@ function pageLink(options: NavBarOptions, item: ShellLink): TemplateResult {
           : nothing
       }
     </span>
-    ${
-      item.noAccess
-        ? renderIcon('gebruiksvoorwerpen-hangslot-dicht', { size: 16, label: 'Geen toegang' })
-        : hasPage(item)
-          ? nothing
-          : unavailableWord(item)
-    }
+    ${item.noAccess ? noAccessMark('lintje-navbar__note') : nothing}
     ${pageBadge(item)}`
+  if (isAction(item)) return actionButton(options, item, 'lintje-navbar__page', content)
   if (!hasPage(item)) {
     return html`<span
       class=${classMap({

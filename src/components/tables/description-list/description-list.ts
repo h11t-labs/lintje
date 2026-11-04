@@ -99,7 +99,7 @@ export class LintjeDescriptionList extends LintjeGridItemElement {
     }
     if (item.tags) {
       return item.tags.length
-        ? html`<ul class="lintje-description-list__tags">
+        ? html`<ul class="lintje-description-list__tags" role="list">
             ${item.tags.map((tag) => html`<li class="lintje-description-list__tag">${tag}</li>`)}
           </ul>`
         : html`<span class="lintje-description-list__missing">Geen</span>`

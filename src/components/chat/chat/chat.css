@@ -68,8 +68,14 @@
 .lintje-chat__divider-text { display: inline-flex; align-items: center; gap: var(--space-1); }
 .lintje-chat__divider-icon { flex: none; }
 
-.lintje-chat__answer { transition: opacity var(--dur-base) var(--ease-in-motion); }
-.lintje-chat__answer.is-replaced { opacity: 0.45; }
+/* What an edit replaces says so in a word above it, not by fading: faded text fell under 4.5:1. */
+.lintje-chat__replaced-note {
+  /* Close to the answer it names, not the turn's gap away. */
+  margin: 0 0 calc(var(--space-2) - var(--space-6));
+  font: var(--text-small);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
 
 /* Floats over the conversation, above the question box; only the button takes the pointer. */
 .lintje-chat__latest {
@@ -85,13 +91,19 @@
   pointer-events: auto;
 }
 
-/* Stays in view at the bottom of what scrolls; the conversation passes under it. */
+/* Stays in view at the bottom of what scrolls, above the shell's tabs; the conversation passes
+   under it. */
 .lintje-chat__footer {
   flex: none;
-  position: sticky; bottom: 0; z-index: 4;
+  position: sticky; bottom: var(--lintje-shell-bottom, 0px); z-index: 4;
   padding: var(--space-4) var(--space-6) var(--space-5);
   background: var(--color-bg-surface);
   border-top: 1px solid var(--color-border-default);
+}
+/* Little height (a phone held sideways, 400 % zoom): questions and box would cover the whole
+   screen, so they stand after the conversation and scroll with it, as the form's action bar. */
+@media (height < 30rem) {
+  .lintje-chat__footer { position: relative; }
 }
 /* The assistant's questions above the question box, the same width, in the same frame. */
 .lintje-chat__ask {

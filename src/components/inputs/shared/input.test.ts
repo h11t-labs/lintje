@@ -208,6 +208,37 @@ describe.each([...CONTROLS, ...FURTHER])('%s, its label and its foot', (tag, fil
   })
 })
 
+describe.each([
+  ['lintje-radio-group', '[role="radiogroup"]'],
+  ['lintje-checkbox-group', '[role="group"]'],
+  ['lintje-textarea', 'textarea'],
+] as const)('%s, a description the host draws itself', (tag, selector) => {
+  const fill = (element: LintjeInputElement): void => {
+    if (tag !== 'lintje-textarea') Object.assign(element, { options: OPTIONS })
+  }
+
+  it('is read first, from hidden text, with the message after it', async () => {
+    const element = await mount(tag, fill, {
+      hideLabel: true,
+      description: 'Zonder keuze tel ik alles.',
+      error: 'Fout.',
+    })
+    const ids = element.renderRoot.querySelector(selector)!.getAttribute('aria-describedby')!
+    expect(ids.split(' ')[0]).toBe('lintje-input-description')
+    expect(ids.split(' ')).toContain(element.renderRoot.querySelector('.lintje-field__error')!.id)
+    const description = element.renderRoot.querySelector('#lintje-input-description')!
+    expect(description.textContent).toBe('Zonder keuze tel ik alles.')
+    expect(description.classList.contains('visually-hidden')).toBe(true)
+  })
+
+  it('draws and names nothing without one', async () => {
+    const element = await mount(tag, fill)
+    expect(element.renderRoot.querySelector('#lintje-input-description')).toBeNull()
+    const ids = element.renderRoot.querySelector(selector)!.getAttribute('aria-describedby') ?? ''
+    expect(ids).not.toContain('lintje-input-description')
+  })
+})
+
 describe("required on an input's control", () => {
   it.each([
     ['lintje-text-input', 'input'],
@@ -850,7 +881,10 @@ describe('the stylesheets', () => {
     const shared = css('shared/input.css')
     const track = shared.match(/^\.lintje-choice__switch\s*\{([^}]*)\}/m)?.[1] ?? ''
     expect(shared).toContain(':host(lintje-toggle) { --lintje-choice-control: 40px; }')
-    expect(track).toContain('width: var(--lintje-choice-control); height: 22px;')
+    expect(track).toContain('--lintje-choice-switch-height: 22px;')
+    expect(track).toContain(
+      'width: var(--lintje-choice-control); height: var(--lintje-choice-switch-height);',
+    )
     expect(track).toContain('background: var(--color-choice-off);')
     expect(track).not.toContain('box-shadow')
     expect(track).not.toMatch(/(^|[^-])border:/)

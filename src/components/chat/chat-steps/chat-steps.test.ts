@@ -112,7 +112,7 @@ describe('lintje-chat-steps', () => {
       items: [...DONE.slice(0, 4), { label: 'Grafiek tekenen', state: 'busy' }],
       duration: '12 s',
     })
-    expect(head(element)).toBe('Grafiek tekenen · stap 5')
+    expect(head(element)).toBe('Grafiek tekenen, bezig · stap 5')
     toggle(element)!.click()
     await element.updateComplete
     expect(element.open).toBe(true)
@@ -123,7 +123,38 @@ describe('lintje-chat-steps', () => {
     expect(step.textContent?.replace(/\s+/g, ' ').trim()).toBe(
       '3 bronnen doorzocht · Bezwaren, Besluiten, Termijnen',
     )
+    // The title is measured as the pointer arrives: a line that fits has none.
+    step.dispatchEvent(new Event('pointerenter'))
+    expect(step.hasAttribute('title')).toBe(false)
+    Object.defineProperty(step, 'scrollWidth', { value: 400, configurable: true })
+    Object.defineProperty(step, 'clientWidth', { value: 200, configurable: true })
+    step.dispatchEvent(new Event('pointerenter'))
     expect(step.getAttribute('title')).toBe('3 bronnen doorzocht · Bezwaren, Besluiten, Termijnen')
+  })
+
+  it('says a state in hidden words after the label, unless the label says it already', async () => {
+    const element = await mount({
+      open: true,
+      items: [
+        { label: 'Vraag gelezen' },
+        { label: 'Tabel ophalen', state: 'error' },
+        { label: 'Grafiek tekenen gestopt', state: 'cancelled' },
+        { label: 'Bezwaren per maand optellen', state: 'busy' },
+      ],
+    })
+    const labels = [...element.shadowRoot!.querySelectorAll('.lintje-chat-steps__label')]
+    expect(labels.map((label) => label.textContent)).toEqual([
+      'Vraag gelezen',
+      'Tabel ophalen, mislukt',
+      'Grafiek tekenen gestopt',
+      'Bezwaren per maand optellen, bezig',
+    ])
+    expect(labels[1].querySelector('.visually-hidden')?.textContent).toBe(', mislukt')
+    // Closed, the line names the failed step the same way.
+    const closed = await mount({
+      items: [{ label: 'Vraag gelezen' }, { label: 'Tabel ophalen', state: 'error' }],
+    })
+    expect(head(closed)).toBe('Tabel ophalen, mislukt · 2 stappen')
   })
 
   it('lets a cut detail run on while the focus is in the group, and on a phone', () => {
@@ -132,6 +163,11 @@ describe('lintje-chat-steps', () => {
     )
     const phone = stepsCss.slice(stepsCss.indexOf('@media screen and (max-width: 767px)'))
     expect(phone).toMatch(/\.lintje-chat-steps__text \{[^}]*white-space: normal/)
+    // Where it runs on, it clips nothing: a link's focus ring stays whole.
+    expect(stepsCss).toMatch(
+      /\.lintje-chat-steps:focus-within \.lintje-chat-steps__text \{[^}]*overflow: visible/,
+    )
+    expect(phone).toMatch(/\.lintje-chat-steps__text \{[^}]*overflow: visible/)
   })
 
   it('has no button for one step without detail, and shows its label with the duration', async () => {

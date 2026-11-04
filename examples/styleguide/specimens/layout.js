@@ -173,6 +173,26 @@ export default {
           },
         },
         {
+          label: 'Met een eigen scrollvak',
+          note:
+            'Met `content-scroll` en een eigen hoogte scrolt de inhoud binnen de tegel. Het ' +
+            'scrollvak is een Tab-stop met de titel van de tegel als naam, en de pijltoetsen scrollen.',
+          html: `<lintje-tile heading="Toelichting per loket" content-scroll style="height: calc(6 * var(--space-10))">
+            <lintje-prose data-html></lintje-prose>
+          </lintje-tile>`,
+          setup(stage) {
+            stage.querySelector('lintje-prose').html = [
+              'Amsterdam Centrum: twee balies dicht wegens scholing van nieuwe medewerkers.',
+              'Rotterdam: de wachttijd liep op door een storing in het afsprakensysteem.',
+              'Den Haag: extra balie open op dinsdag en donderdag tot 20.00 uur.',
+              'Utrecht: de bezetting is volledig; de wachttijd ligt binnen de norm.',
+              'Amsterdam Zuidoost: het servicepunt is verhuisd naar de begane grond.',
+            ]
+              .map((line) => `<p>${line}</p>`)
+              .join('')
+          },
+        },
+        {
           label: 'Zonder kerncijfer',
           html: `<lintje-tile heading="Zonder kerncijfer" subtitle="Dezelfde tegel zonder aside">
             <div class="guide__placeholder">geen aside</div>
@@ -207,7 +227,7 @@ export default {
           label: 'Groot boven een paneel',
           note:
             'Met `variant="panel"` heeft elke tab een icoon, een uitleg en een label. ' +
-            'Op een telefoon staat het icoon boven de naam.',
+            'Op een telefoon staat het icoon boven de naam en de uitleg eronder.',
           html: `<lintje-tabs variant="panel" label="Wat wil je vertalen?">${LARGE_PANELS}</lintje-tabs>`,
           setup: (stage) => tabs(stage, undefined, LARGE),
         },
@@ -309,6 +329,26 @@ export default {
           label: 'Alles openen',
           note: 'Met `toggle-all` staat er een tekstlink boven de rijen; die wordt “Alles sluiten” zodra alles open staat.',
           html: `<lintje-accordion toggle-all>${FAQ}</lintje-accordion>`,
+        },
+        {
+          label: 'Alles open',
+          note: 'Staat elke rij open, dan zegt de tekstlink “Alles sluiten”.',
+          html: `<lintje-accordion toggle-all>${FAQ.replaceAll('<lintje-expander heading=', '<lintje-expander open heading=')}</lintje-accordion>`,
+        },
+        {
+          label: 'Rij met acties',
+          note: 'Het slot `actions` van een rij zet knoppen naast de titel, buiten de knop van de titel.',
+          html: `<lintje-accordion>
+            <lintje-expander heading="Samenvatting" subtitle="AI-bewerking · 09:31" open>
+              <lintje-icon-button slot="actions" icon="functioneel-refresh" label="Samenvatting opnieuw maken" variant="flat"></lintje-icon-button>
+              <lintje-icon-button slot="actions" icon="functioneel-kruis" label="Samenvatting verbergen" variant="flat"></lintje-icon-button>
+              <lintje-prose text="De ochtenddienst begint maandag om zes uur; de roostermaker is nog niet ingelicht."></lintje-prose>
+            </lintje-expander>
+            <lintje-expander heading="Actiepunten">
+              <lintje-icon-button slot="actions" icon="functioneel-refresh" label="Actiepunten opnieuw maken" variant="flat"></lintje-icon-button>
+              <lintje-prose text="Drie acties zijn verdeeld; de planning van oktober staat bovenaan."></lintje-prose>
+            </lintje-expander>
+          </lintje-accordion>`,
         },
       ],
     },
