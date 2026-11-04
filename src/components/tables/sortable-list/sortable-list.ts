@@ -447,7 +447,7 @@ export class LintjeSortableList extends LintjeElement {
     return html`<div
       class=${classMap({ 'lintje-sortable-list': true, 'is-sorting': this.drag !== null })}
     >
-      <ul class="lintje-sortable-list__rows" aria-label=${this.label ?? nothing}>
+      <ul class="lintje-sortable-list__rows" role="list" aria-label=${this.label ?? nothing}>
         ${repeat(
           this.order,
           (item) => item.id,

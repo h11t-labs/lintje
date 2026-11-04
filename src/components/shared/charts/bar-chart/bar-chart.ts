@@ -6,7 +6,14 @@
 import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
 import { styleProps } from '../../../../core/style-props'
-import { DEFAULT_PLOT_AREA, axisColumn, axisScale, band, yPosition } from '../shared/scale'
+import {
+  DEFAULT_PLOT_AREA,
+  axisColumn,
+  axisScale,
+  band,
+  yPosition,
+  type PlotArea,
+} from '../shared/scale'
 import { formatNumber, formatDataLabel, dataLabelFits } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
 import { DEFAULT_SERIES_COLOR, chartColor, lineCasing } from '../shared/colors'
@@ -14,14 +21,17 @@ import { renderAsOfMarker, renderChartFrame, renderLegend, type SvgSlot } from '
 import { renderTooltip } from '../shared/tooltip'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { markSelection } from '../shared/mark-select'
+import { nearestHit, type MarkBox } from '../shared/nearest-mark'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { LONE_POINT_RADIUS, knownRuns } from '../shared/runs'
 import {
   FORECAST_LABEL,
-  FORECAST_ROOM,
   INTERVAL_LABEL,
   boundsAt,
+  forecastDescription,
+  forecastRoom,
   forecastStart,
+  forecastWordFits,
   hasInterval,
   intervalRow,
   intervalValues,
@@ -66,10 +76,19 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
     (value): value is number => value != null,
   )
   const { max, ticks } = axisScale(Math.max(...actualValues, 1))
-  const axis = axisColumn(ticks, controller.width, { fontFamily: controller.fontFamily })
+  const axis = axisColumn(ticks, controller.width, { font: controller.font })
+  // Between the band of the last measured bar and that of the first forecast one; it does not
+  // depend on the top, which leaves the forecast's word a row of its own when it needs one.
+  const boundaryAt = (plot: PlotArea) => {
+    const first = band(from!, labels.length, plot)
+    return first.center - first.bandWidth / 2
+  }
+  const across = chartArea(options, { left: axis.width })
+  const fits =
+    from == null || forecastWordFits(boundaryAt(across), across, forecastLabel, controller.font)
   const area = chartArea(options, {
     left: axis.width,
-    ...(from != null ? { top: DEFAULT_PLOT_AREA.top + FORECAST_ROOM } : {}),
+    ...(from != null ? { top: DEFAULT_PLOT_AREA.top + forecastRoom(fits) } : {}),
   })
   // The margin of a forecast bar, clamped to the plot; none without both bounds.
   const intervalAt = (i: number) => {
@@ -109,9 +128,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
         : Math.min(yPosition(values[i]!, max, area), intervalAt(i)?.top ?? Infinity),
     content: contentAt(i),
   }))
-  // Between the band of the last measured bar and that of the first forecast one.
-  const boundary = from != null ? band(from, labels.length, area) : null
-  const boundaryX = boundary ? boundary.center - boundary.bandWidth / 2 : 0
+  const boundaryX = from != null ? boundaryAt(area) : 0
 
   // A missing value breaks the trend, as it breaks a line (rule 15).
   const trendRuns = knownRuns(trend ?? [], (value, i) => ({
@@ -119,6 +136,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
     y: yPosition(value, max, area),
   }))
 
+  const boxes: MarkBox[] = []
   const marks: SvgSlot = [
     values.map((value, i) => {
       const slot = band(i, labels.length, area)
@@ -126,8 +144,8 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
       if (value == null) {
         return svg`<rect class="lintje-chart__missing" x=${slot.x} y=${area.top} width=${slot.width}
                          height=${Math.max(0, baseline - area.top)} fill="url(#hatch-${id})"
-                         @mousemove=${(event: MouseEvent) => controller.showTooltip(event, contentAt(i))}
-                         @mouseleave=${() => controller.hideTooltip()} />`
+                         @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+                         @mouseleave=${keys.leave} />`
       }
       const y = yPosition(value, max, area)
       const ahead = isForecast(i)
@@ -139,11 +157,12 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
       )
       // An open bar keeps its edge inside its band.
       const inset = ahead ? 0.75 : 0
+      boxes.push({ x: slot.x, y, width: slot.width, height: Math.max(0, baseline - y), mark })
       return svg`
         <g class="lintje-chart__bar-group ${controller.hoverIndex === i ? 'is-hovered' : ''}"
            ${styleProps(staggerStyle(i, labels.length))}
-           @mousemove=${(event: MouseEvent) => controller.showTooltip(event, contentAt(i))}
-           @mouseleave=${() => controller.hideTooltip()}>
+           @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+           @mouseleave=${keys.leave}>
           <rect class="lintje-chart__bar lintje-chart__mark ${ahead ? 'lintje-chart__bar--forecast' : ''} ${mark.state}"
                 x=${slot.x + inset} y=${y + inset} width=${Math.max(0, slot.width - 2 * inset)}
                 height=${Math.max(0, baseline - y - inset)} fill=${color}
@@ -186,7 +205,7 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
           area,
           x: boundaryX,
           label: forecastLabel,
-          fontFamily: controller.fontFamily,
+          font: controller.font,
         })
       : nothing,
   ]
@@ -218,24 +237,29 @@ export function renderBarChart(spec: BarSpec, options: ChartOptions): TemplateRe
       }
       ${renderChartFrame(
         {
-          fontFamily: controller.fontFamily,
+          font: controller.font,
           id,
           ticks,
           max,
           area,
           axisTitle,
-          description,
+          // The drawing names where measuring stops, as the line chart does.
+          description:
+            from != null
+              ? `${description} ${forecastDescription(labels, from, forecastLabel)}`
+              : description,
           formatTick: axis.format,
           xLabels: labels.map((label, i) => ({ label, x: band(i, labels.length, area).center })),
-          underlay: boundary
-            ? svg`<rect class="lintje-chart__forecast-ground" x=${boundaryX} y=${area.top}
+          underlay:
+            from != null
+              ? svg`<rect class="lintje-chart__forecast-ground" x=${boundaryX} y=${area.top}
                         width=${Math.max(0, area.width - area.right - boundaryX)}
                         height=${Math.max(0, baseline - area.top)} />`
-            : nothing,
+              : nothing,
           interactive: selection.interactive,
           keys,
         },
-        marks,
+        nearestHit(area, boxes, marks),
       )}
       ${renderTooltip(controller)}
       ${renderPlotStatus(controller)}

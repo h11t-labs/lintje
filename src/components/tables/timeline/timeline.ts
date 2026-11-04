@@ -615,6 +615,7 @@ export class LintjeTimeline extends LintjeElement {
         'lintje-timeline__list--stack': stack,
         'has-people': people,
       })}
+      role="list"
       aria-labelledby=${this.heading ? 'lintje-timeline-heading' : nothing}
     >
       ${rows.map((row, at) => {
@@ -664,6 +665,7 @@ export class LintjeTimeline extends LintjeElement {
             'lintje-timeline__list--sides': true,
             'has-people': people,
           })}
+          role="list"
           aria-labelledby=${this.heading ? 'lintje-timeline-heading' : nothing}
         >
           ${rows.map((row, at) => {
@@ -732,6 +734,7 @@ export class LintjeTimeline extends LintjeElement {
             'lintje-timeline__list--row': true,
             'has-people': people,
           })}
+          role="list"
           aria-labelledby=${this.heading ? 'lintje-timeline-heading' : nothing}
         >
           ${rows.map((row) => {

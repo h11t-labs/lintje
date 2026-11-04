@@ -110,7 +110,18 @@ describe('a row in the side menu', () => {
   })
 
   it('says in words why a row cannot be opened, not by its colour alone', () => {
-    expect(row({ label: 'Herkomst' }).querySelector('.visually-hidden')?.textContent).toBe(
+    // Expanded, under the label where it is seen, heard once.
+    const none = row({ label: 'Herkomst' })
+    expect(none.querySelector('.lintje-nav__label .lintje-nav__note')?.textContent).toBe(
+      ', niet beschikbaar',
+    )
+    expect(none.textContent!.match(/niet beschikbaar/g)).toHaveLength(1)
+    // In the rail only heard, as the label is.
+    const rail = document.createElement('div')
+    document.body.append(rail)
+    render(navRow(shell, { label: 'Herkomst', icon: 'functioneel-home' }, false), rail)
+    expect(rail.querySelector('.lintje-nav__note')).toBeNull()
+    expect(rail.querySelector('.visually-hidden:last-of-type')?.textContent).toBe(
       ', niet beschikbaar',
     )
     // Expanded, the lock says it; in the rail the words do.

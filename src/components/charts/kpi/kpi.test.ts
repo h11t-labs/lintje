@@ -26,6 +26,7 @@ interface Kpi extends HTMLElement {
   state: KpiState
   emphasis: 'equal' | 'primary'
   items?: { value: string; period?: string }[]
+  level?: number
   updateComplete: Promise<unknown>
 }
 
@@ -43,6 +44,38 @@ function details(element: Kpi): string[] {
     (node) => node.textContent?.trim() ?? '',
   )
 }
+
+describe('lintje-kpi label', () => {
+  it('is a heading, h3 as a tile title, at the level the host asks', async () => {
+    const plain = await kpi({ value: '12 min' })
+    const heading = plain.renderRoot.querySelector('.lintje-kpi__label')!
+    expect(heading.localName).toBe('h3')
+    expect(heading.textContent).toBe('Gemiddelde wachttijd')
+    const deeper = await kpi({ value: '12 min', level: 4 })
+    expect(deeper.renderRoot.querySelector('.lintje-kpi__label')!.localName).toBe('h4')
+  })
+
+  it('takes the level of its row, for a row that stands deeper', async () => {
+    const row = document.createElement('lintje-kpi-row')
+    row.data = {
+      kpis: [
+        { label: 'Aanvragen', value: '148' },
+        { label: 'Bezwaren', value: '12' },
+      ],
+    }
+    document.body.append(row)
+    await row.updateComplete
+    const levels = async () => {
+      const kpis = [...row.shadowRoot!.querySelectorAll('lintje-kpi')]
+      await Promise.all(kpis.map((child) => child.updateComplete))
+      return kpis.map((child) => child.shadowRoot!.querySelector('.lintje-kpi__label')!.localName)
+    }
+    expect(await levels()).toEqual(['h3', 'h3'])
+    row.level = 4
+    await row.updateComplete
+    expect(await levels()).toEqual(['h4', 'h4'])
+  })
+})
 
 describe('lintje-kpi detail', () => {
   it('receives message and lastKnown through a KPI row', async () => {
@@ -129,18 +162,26 @@ describe('lintje-kpi detail', () => {
 
 describe('lintje-kpi trend', () => {
   const judged = (element: Kpi): string[] =>
-    [...element.renderRoot.querySelectorAll('.lintje-trend .visually-hidden')].map(
+    [...element.renderRoot.querySelectorAll('.lintje-trend__verdict')].map(
       (node) => node.textContent?.trim() ?? '',
     )
+  const line = (element: Kpi): string =>
+    element.renderRoot.querySelector('.lintje-trend')!.textContent!.replace(/\s+/g, ' ').trim()
 
-  it('says in words whether the direction is good, not only in colour', async () => {
+  it('writes beside the arrow whether the direction is good, seen and heard once', async () => {
     const up = await kpi({ value: '96 %', trend: { direction: 'up', sentence: '2 punten hoger' } })
-    expect(judged(up)).toEqual(['gunstig:'])
+    expect(judged(up)).toEqual(['Gunstig'])
+    // Not hidden: the word is seen, and the line holds it once.
+    expect(
+      up.renderRoot.querySelector('.lintje-trend__verdict')!.closest('.visually-hidden'),
+    ).toBeNull()
+    expect(line(up).match(/gunstig/gi)).toHaveLength(1)
     const worse = await kpi({
       value: '11 min',
       trend: { direction: 'up', sentence: '2 min langer', inverted: true },
     })
-    expect(judged(worse)).toEqual(['ongunstig:'])
+    expect(judged(worse)).toEqual(['Ongunstig'])
+    expect(line(worse)).toContain('Ongunstig: 2 min langer')
     const flat = await kpi({ value: '11 min', trend: { direction: 'flat', sentence: 'Gelijk' } })
     expect(judged(flat)).toEqual([])
   })
@@ -272,5 +313,63 @@ describe('lintje-kpi gauge', () => {
   it('clamps a figure past the end of the scale', async () => {
     const element = await kpi({ value: 140, gauge: { shape: 'linear', max: 120 } })
     expect((query(element, '.lintje-gauge__bar-fill') as HTMLElement).style.width).toBe('100%')
+  })
+})
+
+describe('what a KPI says of its state', () => {
+  const frame = (): Promise<void> =>
+    new Promise((resolve) => requestAnimationFrame(() => resolve()))
+  const region = (element: Element): string =>
+    element.shadowRoot!.querySelector('[role="status"]')?.textContent?.trim() ?? 'geen regio'
+  async function said(element: HTMLElement & { updateComplete: Promise<unknown> }) {
+    await element.updateComplete
+    await frame()
+    await element.updateComplete
+    return region(element)
+  }
+
+  it('says loading, empty and failed once they come, silent on the first drawing', async () => {
+    const element = Object.assign(document.createElement('lintje-kpi'), {
+      label: 'Aanvragen',
+      value: '1.204',
+    })
+    element.state = 'loading'
+    document.body.append(element)
+    await element.updateComplete
+    expect(region(element)).toBe('')
+    element.state = 'error'
+    expect(await said(element)).toBe('Niet geladen')
+    element.state = 'loading'
+    expect(await said(element)).toBe('Laden')
+    element.message = 'Geen aanvragen deze week'
+    element.state = 'empty'
+    expect(await said(element)).toBe('Geen aanvragen deze week')
+    // The same state twice is said twice: the region empties first.
+    element.state = 'loading'
+    expect(await said(element)).toBe('Laden')
+    element.state = 'ready'
+    await element.updateComplete
+    element.state = 'loading'
+    expect(await said(element)).toBe('Laden')
+  })
+
+  it('leaves the speaking to its row, which says "Laden" once for all', async () => {
+    const row = document.createElement('lintje-kpi-row')
+    const kpi = (label: string, state?: 'loading' | 'error') => ({ label, value: '12', state })
+    row.data = { kpis: [kpi('Aanvragen'), kpi('Bezwaren'), kpi('Wachttijd')] }
+    document.body.append(row)
+    await row.updateComplete
+    const kpis = [...row.shadowRoot!.querySelectorAll('lintje-kpi')]
+    await Promise.all(kpis.map((each) => each.updateComplete))
+    expect(kpis.every((each) => !each.shadowRoot!.querySelector('[role="status"]'))).toBe(true)
+    expect(row.shadowRoot!.querySelectorAll('[role="status"]')).toHaveLength(1)
+    row.data = {
+      kpis: [kpi('Aanvragen', 'loading'), kpi('Bezwaren', 'loading'), kpi('Wachttijd', 'loading')],
+    }
+    expect(await said(row)).toBe('Laden')
+    row.data = {
+      kpis: [kpi('Aanvragen'), kpi('Bezwaren', 'error'), kpi('Wachttijd')],
+    }
+    expect(await said(row)).toBe('Bezwaren: Niet geladen')
   })
 })

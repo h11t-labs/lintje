@@ -2,6 +2,7 @@
  * The state a chart needs between renders; the charts themselves are render functions.
  * The host (a Lit element) creates one controller per chart and passes it in `ChartOptions`.
  */
+import type { TextFont } from '../../../../core/format'
 import { lengthPx } from '../../../../core/length'
 import { FrameResizeObserver } from '../../frame-resize-observer'
 import { DEFAULT_PLOT_AREA, type PlotArea } from './scale'
@@ -29,6 +30,12 @@ export interface ChartOptions {
   expanded?: boolean
   /** Cross-drill: the chosen mark's id. The chart keeps no selection of its own. */
   selectedId?: string | null
+  /**
+   * The host keeps a selection (cross-drill): a mark with a `href` chooses, a toggle. Without it
+   * the mark goes to its `href`, a link, also when the host cancels the event to route itself.
+   * Default: whether `selectedId` is given.
+   */
+  choosing?: boolean
   /**
    * A mark that carries a `href` was activated; `newTab` for a modifier or middle click. Without
    * this the marks stay inert.
@@ -65,6 +72,8 @@ export interface TooltipRow {
   marker?: 'line' | 'dashed' | 'dotted' | 'open' | KeyMark
   /** A quieter line under the row before it, such as a forecast's margin. */
   note?: boolean
+  /** One of what the row above holds, such as a part "Overig" folded: indented under it. */
+  part?: boolean
   /** A muted word after the value, such as "buiten de as". */
   aside?: string
 }
@@ -97,6 +106,12 @@ export interface MeasureSpec {
   /** The token is the height of the whole chart: legend, axis title and border come off it. */
   fit?: boolean
 }
+
+/**
+ * How long the pointer's tooltip waits before it follows the pointer to another mark or goes:
+ * on its way to the tooltip the pointer may cross a neighbour (WCAG 1.4.13).
+ */
+export const POINTER_GRACE = 200
 
 /** Share of the element — or of the viewport, for an element taller than that — that must show. */
 const VISIBLE_SHARE = 0.35
@@ -139,6 +154,8 @@ export class ChartController {
   mapTool: MapTool | null = null
   /** The tool the map's one select button shows: the last one used, until a shape is chosen. */
   mapLastTool: MapTool | null = null
+  /** The keyboard's focus is in the map: the drawing hint speaks of the keys. */
+  mapKeyboard = false
   /** The menu of tools stands open, and which row takes the focus once it has drawn. */
   mapMenuOpen = false
   mapMenuFocus: 'first' | 'last' | 'checked' | null = null
@@ -146,15 +163,23 @@ export class ChartController {
   mapLegendOpen = false
   /** The area that chose marks, and the last one the host sent, compared as JSON. */
   mapArea: MapArea | null = null
+  /** The area that steps aside while a new one is drawn, to come back if that one is undone. */
+  mapAreaAside: MapArea | null = null
   hostArea: string | undefined = undefined
   // The last `selectedId` the host sent: the map adopts a new one but owns its selection in
   // between, or the host's value would win every render and a click could never clear it.
   hostSelection: string | null | undefined = undefined
+  /** What the map's live region says about a drawn area: emptied, and filled a frame later. */
+  mapSaid = ''
+  private mapSayFrame = 0
   /** The map's surface, created on the first render; `detach()` destroys it. */
   leaflet: LeafletSurface | null = null
   /** Centre and zoom of the Leaflet map. `detach()` keeps it so a re-attach does not reset. */
   leafletView: { lat: number; lon: number; zoom: number } | null = null
 
+  /** What the pointer's tooltip stands for (a category, a mark); `undefined` for the keyboard's. */
+  private pointerKey: unknown = undefined
+  private pointerTimer: ReturnType<typeof setTimeout> | null = null
   private readonly notify: () => void
   /** The data last drawn, and as JSON once its reference changed. */
   private drawn: unknown = undefined
@@ -173,9 +198,33 @@ export class ChartController {
     this.notify()
   }
 
-  // The tokens sit on the element's `:host`, not the document, so they are read from the element.
-  get fontFamily(): string {
-    return this.element ? getComputedStyle(this.element).getPropertyValue('--font-ui') : ''
+  /**
+   * An axis label as this chart draws it, read from one (or from a hidden one before the first):
+   * the reader's default font and letter and word spacing reach every measurement. The tokens
+   * sit on the element's `:host`, not the document, so the family is read from the element.
+   */
+  get font(): TextFont {
+    const element = this.element
+    const family = element ? getComputedStyle(element).getPropertyValue('--font-ui') : ''
+    // Without the tokens the chart's own styles are not there either: nothing is drawn as designed.
+    if (!element || !family) return { family }
+    const drawn = element.querySelector('.lintje-chart__axis-label')
+    const probe = drawn ? null : document.createElement('span')
+    if (probe) {
+      probe.className = 'lintje-chart__axis-label'
+      probe.hidden = true
+      element.append(probe)
+    }
+    const style = getComputedStyle(drawn ?? probe!)
+    const size = parseFloat(style.fontSize) || 12
+    const font = {
+      family,
+      scale: size / 12,
+      letterSpacing: (parseFloat(style.letterSpacing) || 0) / size,
+      wordSpacing: (parseFloat(style.wordSpacing) || 0) / size,
+    }
+    probe?.remove()
+    return font
   }
 
   /**
@@ -230,6 +279,8 @@ export class ChartController {
   /** Stop observing; the host calls it when the chart leaves the DOM for good. */
   detach(): void {
     this.unwatch()
+    this.clearPointerTimer()
+    if (typeof cancelAnimationFrame !== 'undefined') cancelAnimationFrame(this.mapSayFrame)
     if (this.mapHintTimer) clearTimeout(this.mapHintTimer)
     this.mapHintTimer = null
     this.leaflet?.destroy()
@@ -263,28 +314,80 @@ export class ChartController {
     this.hoverIndex = null
     this.status = ''
     this.tooltip = null
+    this.clearPointerTimer()
+    this.pointerKey = undefined
     this.unwatchEscape()
   }
 
   /* Tooltip --------------------------------------------------------------- */
 
   /**
-   * Coordinates are relative to the `data-tooltip-anchor` element, not the svg's parent.
-   * `from` starts the anchor search; Leaflet passes its container because its events
-   * do not have the drawn shape as `currentTarget`.
+   * The pointer on a mark without a keyboard place of its own (a map's mark, a heatmap's cell):
+   * the tooltip stands at the middle of what shows of the mark, not at the pointer, relative to
+   * the `data-tooltip-anchor`. `from` is the mark when it is not the event's `currentTarget`.
    */
   showTooltip(event: MouseEvent, content: TooltipContent, from?: Element): void {
     const target = from ?? event.currentTarget
     if (!(target instanceof Element)) return
     const anchor = target.closest('[data-tooltip-anchor]')
     if (!anchor) return
-    const box = anchor.getBoundingClientRect()
-    this.showTooltipAt(event.clientX - box.left, event.clientY - box.top, content)
+    this.pointTo(target, () => {
+      const area = anchor.getBoundingClientRect()
+      const box = target.getBoundingClientRect()
+      this.showTooltipAt(
+        (Math.max(box.left, area.left) + Math.min(box.right, area.right)) / 2 - area.left,
+        (Math.max(box.top, area.top) + Math.min(box.bottom, area.bottom)) / 2 - area.top,
+        content,
+      )
+    })
+  }
+
+  /**
+   * The pointer is on the mark or category `key`, and `show` stands its tooltip. The same key
+   * changes nothing; another waits `POINTER_GRACE`, so the pointer can cross a neighbour on its
+   * way to the tooltip, and the tooltip under the pointer keeps it.
+   */
+  pointTo(key: unknown, show: () => void): void {
+    this.clearPointerTimer()
+    if (this.tooltip && key === this.pointerKey) return
+    const go = () => {
+      this.pointerTimer = null
+      show()
+      this.pointerKey = key
+    }
+    if (this.tooltip && this.pointerKey !== undefined) {
+      this.pointerTimer = setTimeout(go, POINTER_GRACE)
+    } else go()
+  }
+
+  /** The pointer left the marks: the tooltip goes after `POINTER_GRACE`, unless it reaches it. */
+  pointerLeft(): void {
+    this.clearPointerTimer()
+    if (!this.tooltip || this.pointerKey === undefined) return
+    this.pointerTimer = setTimeout(() => {
+      this.pointerTimer = null
+      this.hoverAt(null)
+    }, POINTER_GRACE)
+  }
+
+  /** The pointer is on the tooltip: it stays, and goes once the pointer leaves it too. */
+  enterTooltip(): void {
+    this.clearPointerTimer()
+  }
+
+  leaveTooltip(): void {
+    this.pointerLeft()
+  }
+
+  private clearPointerTimer(): void {
+    if (this.pointerTimer) clearTimeout(this.pointerTimer)
+    this.pointerTimer = null
   }
 
   /** The tooltip at a place relative to the `data-tooltip-anchor`: the keyboard's way in. */
   /** `place`: `left` stands it left of `x`; a number is where it ends when it does not fit right. */
   showTooltipAt(x: number, y: number, content: TooltipContent, place?: 'left' | number): void {
+    this.pointerKey = undefined
     this.tooltip = {
       x,
       y,
@@ -297,20 +400,22 @@ export class ChartController {
   }
 
   hideTooltip(): void {
+    this.clearPointerTimer()
+    this.pointerKey = undefined
     if (!this.tooltip) return
     this.tooltip = null
     this.unwatchEscape()
     this.requestUpdate()
   }
 
-  hoverAt(index: number | null, event?: MouseEvent, content?: TooltipContent): void {
+  /** No category under the pointer or the keyboard: the tooltip goes at once. */
+  hoverAt(index: number | null): void {
     this.hoverIndex = index
-    if (event && content) this.showTooltip(event, content)
-    else {
-      this.tooltip = null
-      this.unwatchEscape()
-      this.requestUpdate()
-    }
+    this.clearPointerTimer()
+    this.pointerKey = undefined
+    this.tooltip = null
+    this.unwatchEscape()
+    this.requestUpdate()
   }
 
   /**
@@ -320,16 +425,22 @@ export class ChartController {
   dismiss(event: KeyboardEvent): boolean {
     if (event.key !== 'Escape' || !this.tooltip) return false
     event.stopPropagation()
+    event.preventDefault()
     this.hideTooltip()
     return true
   }
 
   /*
    * A tooltip under a resting pointer is dismissed with Escape wherever the focus is (WCAG
-   * 1.4.13), so the window is listened to while one shows. It does not stop the key.
+   * 1.4.13), so the window is listened to while one shows, before anything else hears the key.
+   * That Escape is the tooltip's: a window around it sees it prevented and stays open. One from
+   * inside the chart is left to the chart's own `dismiss`.
    */
   private readonly onWindowKey = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape') this.hideTooltip()
+    if (event.key !== 'Escape' || !this.tooltip) return
+    if (this.element && event.composedPath().includes(this.element)) return
+    event.preventDefault()
+    this.hideTooltip()
   }
 
   private watching = false
@@ -337,13 +448,38 @@ export class ChartController {
   private watchEscape(): void {
     if (this.watching || typeof window === 'undefined') return
     this.watching = true
-    window.addEventListener('keydown', this.onWindowKey)
+    window.addEventListener('keydown', this.onWindowKey, true)
   }
 
   private unwatchEscape(): void {
     if (!this.watching) return
     this.watching = false
-    window.removeEventListener('keydown', this.onWindowKey)
+    window.removeEventListener('keydown', this.onWindowKey, true)
+  }
+
+  /**
+   * The chart's status region says what a choice on the drawing did, emptied first and filled a
+   * frame later, so the same sentence twice is heard twice (`LiveMessage`).
+   */
+  sayStatus(text: string): void {
+    cancelAnimationFrame(this.mapSayFrame)
+    this.status = ''
+    this.requestUpdate()
+    this.mapSayFrame = requestAnimationFrame(() => {
+      this.status = text
+      this.requestUpdate()
+    })
+  }
+
+  /** The map says a sentence in its live region, also the same one twice (`LiveMessage`). */
+  sayOnMap(text: string): void {
+    cancelAnimationFrame(this.mapSayFrame)
+    this.mapSaid = ''
+    this.requestUpdate()
+    this.mapSayFrame = requestAnimationFrame(() => {
+      this.mapSaid = text
+      this.requestUpdate()
+    })
   }
 
   toggleLayer(index: number): void {

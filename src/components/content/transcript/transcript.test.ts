@@ -241,16 +241,23 @@ describe('lintje-transcript', () => {
     expect(cancels).toEqual(['s3'])
   })
 
-  it('saves on Ctrl+Enter and cancels on Escape', async () => {
+  it('saves on Ctrl+Enter and cancels on Escape in its field, and leaves its buttons their keys', async () => {
     const element = await mount({ editingId: 's1' })
     const editor = items(element)[0]!.querySelector('.lintje-transcript__editor')!
+    const field = editor.querySelector('lintje-textarea')!
     const saves = collect(element, 'lintje-segment-save')
     const cancels = collect(element, 'lintje-segment-cancel')
-    editor.dispatchEvent(
+    field.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true }),
     )
-    editor.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+    field.dispatchEvent(escape)
     expect(saves).toHaveLength(1)
+    expect(cancels).toEqual(['s1'])
+    expect(escape.defaultPrevented).toBe(true)
+    // On Opslaan, Escape is not the edit's: a window around the transcript hears it.
+    const save = editor.querySelector('lintje-button')!
+    save.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
     expect(cancels).toEqual(['s1'])
   })
 

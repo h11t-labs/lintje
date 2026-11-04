@@ -57,6 +57,8 @@ function surface(options: Partial<LeafletSyncOptions> = {}, data: unknown = DATA
     chosen: [],
     tool: null,
     drawn: () => {},
+    drawStart: () => {},
+    drawCancel: () => {},
     stopTool: () => {},
     drag: true,
     zoom: true,
@@ -256,6 +258,38 @@ describe('the edge of a map point', () => {
         .style.getPropertyValue('--lintje-series-edge')
     expect(edge('ein')).toBe('var(--color-chart-mint-green-edge)')
     expect(edge('rtm')).toBe('')
+  })
+})
+
+describe('the provinces', () => {
+  beforeEach(() => {
+    document.body.innerHTML = ''
+  })
+
+  it('draws the twelve provinces, and a figure for NL-UT colours Utrecht', () => {
+    const { container } = surface(
+      {},
+      {
+        variant: 'choropleth',
+        geo: 'provinces',
+        description: 'Aanvragen per provincie.',
+        values: [
+          { id: 'NL-UT', label: 'Utrecht', value: 8 },
+          { id: 'NL-GR', label: 'Groningen', value: null },
+        ],
+      },
+    )
+    expect(container.querySelectorAll('.lintje-map-chart__land')).toHaveLength(12)
+    const utrecht = mark(container, 'NL-UT')
+    expect(utrecht.getAttribute('aria-label')).toBe('Utrecht: 8 min')
+    expect(utrecht.querySelector('.lintje-map-chart__polygon-shape')?.getAttribute('fill')).toBe(
+      'var(--color-chart-seq-5)',
+    )
+    // Without a figure hatched, never coloured as zero; without a row plain land.
+    expect(
+      mark(container, 'NL-GR').querySelector('.lintje-map-chart__polygon-hatch'),
+    ).not.toBeNull()
+    expect(mark(container, 'NL-NH')).toBeNull()
   })
 })
 

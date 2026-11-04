@@ -13,6 +13,7 @@ import { chartArea, type ChartOptions, type TooltipContent } from '../shared/con
 import { layerMotion, layerWeights } from '../shared/layer-motion'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
 import { tintsFor } from '../shared/tints'
+import { drawsAsOther, foldStack, isOtherPart } from '../shared/fold'
 import type { ChartSpec } from '../shared/types'
 
 type StackedAreaSpec = Extract<ChartSpec, { kind: 'stacked-area' }>
@@ -36,11 +37,16 @@ export function renderStackedAreaChart(
   })
 
   // The colours belong to the parts, not to what is shown: switching one off moves no colour.
-  // Past five parts the order still carries meaning, so they keep the lightest tint.
-  const tints = tintsFor(spec.series.length, spec.color)
-  const series = spec.series.map((row, j) => ({
+  // Past five parts the smallest fold into "Overig" on top, so no two share a tint; "Overig"
+  // spreads over the ladder with the parts and takes its last rung.
+  const parts = foldStack(spec.series, () => true)
+  const others = parts.filter(drawsAsOther).length
+  const tints = tintsFor(parts.length - others + (others ? 1 : 0), spec.color)
+  let rung = 0
+  const series = parts.map((row) => ({
     ...row,
-    color: tints[Math.min(j, tints.length - 1)],
+    folded: isOtherPart(row) ? row.folded : [],
+    color: drawsAsOther(row) ? tints[tints.length - 1] : tints[rung++],
     hidden: controller.hiddenSeries.includes(row.label),
   }))
   const visible = series.filter((row) => !row.hidden)
@@ -88,8 +94,8 @@ export function renderStackedAreaChart(
   const { max, ticks } = axisScale(Math.max(...reach, 1))
   // The first x label is centered on the plot's left edge; the column keeps room for half of it.
   const axis = axisColumn(ticks, controller.width, {
-    fontFamily: controller.fontFamily,
-    minimum: Math.ceil(textWidth(labels[0] ?? '', controller.fontFamily) / 2),
+    font: controller.font,
+    minimum: Math.ceil(textWidth(labels[0] ?? '', controller.font) / 2),
   })
   const area = chartArea(options, { left: axis.width })
   const floor = area.height - area.bottom
@@ -139,11 +145,19 @@ export function renderStackedAreaChart(
     return {
       title: labels[i],
       rows: [
-        ...[...visible].reverse().map((row) => ({
-          label: row.label,
-          value: row.values[i] == null ? NO_DATA : formatNumber(row.values[i]!),
-          color: row.color,
-        })),
+        ...[...visible].reverse().flatMap((row) => [
+          {
+            label: row.label,
+            value: row.values[i] == null ? NO_DATA : formatNumber(row.values[i]!),
+            color: row.color,
+          },
+          // The parts "Overig" holds, each named, indented under it.
+          ...row.folded.map((part) => ({
+            label: part.label,
+            value: part.values[i] == null ? NO_DATA : formatNumber(part.values[i]!),
+            part: true,
+          })),
+        ]),
         ...(visible.length > 0
           ? [
               {
@@ -181,7 +195,7 @@ export function renderStackedAreaChart(
     const from = x(first)
     const width = x(last) - from
     const ceiling = Math.min(floor, ...segments.flatMap((s) => [s.left, s.right]))
-    const fits = textWidth(NO_DATA, controller.fontFamily) + 8 <= width && ceiling - area.top >= 20
+    const fits = textWidth(NO_DATA, controller.font) + 8 <= width && ceiling - area.top >= 20
     return { segments, from, width, ceiling, fits }
   })
 
@@ -245,8 +259,8 @@ export function renderStackedAreaChart(
         <rect x=${x(i) - bandWidth / 2} y=${area.top} width=${bandWidth}
               height=${floor - area.top}
               fill="transparent"
-              @mousemove=${(event: MouseEvent) => controller.hoverAt(i, event, contentAt(i))}
-              @mouseleave=${() => controller.hoverAt(null)} />
+              @mousemove=${(event: MouseEvent) => keys.point(event, i)}
+              @mouseleave=${keys.leave} />
       `
     }),
   ]
@@ -258,7 +272,7 @@ export function renderStackedAreaChart(
       ${renderLegend({ items: legend, onToggle: (key) => controller.toggleSeries(key) })}
       ${renderChartFrame(
         {
-          fontFamily: controller.fontFamily,
+          font: controller.font,
           id,
           ticks,
           max,

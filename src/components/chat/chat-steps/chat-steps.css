@@ -53,11 +53,11 @@
 .lintje-chat-steps__square {
   box-sizing: border-box;
   width: 10px; height: 10px;
-  background: var(--color-border-heavy);
+  background: var(--color-border-field);
 }
 .lintje-chat-steps__square--open {
   background: none;
-  border: 2px solid var(--color-border-heavy);
+  border: 2px solid var(--color-border-field);
 }
 .lintje-chat-steps__cross { color: var(--color-error-line); }
 .lintje-chat-steps__spinner { display: flex; }
@@ -101,14 +101,19 @@
 .lintje-chat-steps__step.is-last .lintje-chat-steps__line { visibility: hidden; }
 
 /* A detail that does not fit is cut; the whole of it stays in the DOM and in `title`, and runs
-   on to the next line wherever no pointer shows that: with the focus in the group, on a phone. */
+   on to the next line wherever no pointer shows that: with the focus in the group, on a phone,
+   on a screen without hover. */
 .lintje-chat-steps__text {
   flex: 1 1 auto; min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.lintje-chat-steps:focus-within .lintje-chat-steps__text { white-space: normal; overflow-wrap: anywhere; }
+/* Where it runs on, it is no longer cut, so it no longer clips a link's focus ring either. */
+.lintje-chat-steps:focus-within .lintje-chat-steps__text {
+  white-space: normal; overflow-wrap: anywhere;
+  overflow: visible;
+}
 .lintje-chat-steps__step.is-error .lintje-chat-steps__label { color: var(--color-error-text); }
 .lintje-chat-steps__detail { color: var(--color-text-muted); }
 .lintje-chat-steps__link { color: var(--color-link); text-decoration: underline; }
@@ -123,7 +128,9 @@
   .lintje-chat-steps__toggle { display: flex; width: 100%; min-height: var(--h-touch); }
   .lintje-chat-steps__toggle::after { inset: 0; }
   .lintje-chat-steps__toggle .lintje-chat-steps__chevron { margin-left: auto; }
-  .lintje-chat-steps__text { white-space: normal; overflow-wrap: anywhere; }
+}
+@media (hover: none), screen and (max-width: 767px) {
+  .lintje-chat-steps__text { white-space: normal; overflow-wrap: anywhere; overflow: visible; }
 }
 
 /* Forced colours drop fills, so the rail is drawn in the text colour. */

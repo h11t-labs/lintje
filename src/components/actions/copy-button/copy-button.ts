@@ -37,6 +37,7 @@ export class LintjeCopyButton extends LintjeElement {
     iconOnly: { type: Boolean, attribute: 'icon-only', reflect: true },
     variant: { type: String },
     size: { type: String },
+    description: { type: String },
     disabled: { type: Boolean, reflect: true },
     copied: { state: true },
     failed: { state: true },
@@ -54,6 +55,11 @@ export class LintjeCopyButton extends LintjeElement {
   declare variant?: 'primary' | 'flat'
   /** `compact` stands level with 40 px icon buttons. */
   size: 'regular' | 'compact' = 'regular'
+  /**
+   * What it copies, read after its name ("zaaknummer"): the name stays "Kopiëren", as the
+   * button shows.
+   */
+  declare description?: string
   disabled: boolean = false
   copied: boolean = false
   failed: boolean = false
@@ -145,6 +151,7 @@ export class LintjeCopyButton extends LintjeElement {
         variant=${this.variant === 'flat' ? 'flat' : 'outlined'}
         icon=${icon}
         label=${this.copied ? COPIED : LABEL}
+        description=${this.description || nothing}
         ?disabled=${this.unavailable}
         @click=${this.copy}
       ></lintje-icon-button>`
@@ -154,6 +161,7 @@ export class LintjeCopyButton extends LintjeElement {
       variant=${this.variant === 'primary' ? 'primary' : 'secondary'}
       size=${this.size === 'compact' ? 'compact' : 'regular'}
       icon=${icon}
+      description=${this.description || nothing}
       ?disabled=${this.unavailable}
       @click=${this.copy}
       ><span class="lintje-copy-button__labels"

@@ -182,7 +182,10 @@ export interface ChartData extends FrameSettings, TileData, ContentState {
   chart: ChartSpec
   /** The chart's `<desc>`: a readable summary, the accessible alternative. Required. */
   description: string
-  /** The chosen mark, by the id its link carries: it is outlined, the rest step back. */
+  /**
+   * The chosen mark, by the id its link carries: it is outlined, the rest step back. Given, also
+   * as `null`, a mark with a `href` chooses (a toggle); left out, it is a link to its `href`.
+   */
   selectedId?: string | null
   /** The URL that undoes the selection; clicking the chosen mark again and Escape follow it. */
   clearHref?: string
@@ -906,6 +909,8 @@ export type ChatBlock =
  *  with its outcome: "3 bronnen doorzoeken" while busy, "3 bronnen doorzocht" when done,
  *  "Tabel ophalen mislukt" or "Tabel ophalen gestopt". */
 export interface ChatStep {
+  /** What the step does or did. A screen reader hears its state after it ("bezig", "mislukt",
+   *  "gestopt") unless the label already holds that word. */
   label: string
   /** `done` without it. */
   state?: Extract<WorkState, 'busy' | 'done' | 'error' | 'cancelled'>

@@ -50,7 +50,7 @@ describe('lintje-text-editor', () => {
     expect(surface(element).getAttribute('contenteditable')).toBe('true')
   })
 
-  it('has a toolbar of five named toggle buttons, B, I and H as letters, and one tab stop', async () => {
+  it('has a toolbar of five named buttons, B, I and H as letters, and one tab stop', async () => {
     const element = await mount()
     const toolbar = element.shadowRoot!.querySelector('[role="toolbar"]')!
     expect(toolbar.getAttribute('aria-label')).toBe('Opmaak')
@@ -66,7 +66,13 @@ describe('lintje-text-editor', () => {
         .map((tool) => tool.textContent!.trim())
         .slice(0, 3),
     ).toEqual(['B', 'I', 'H'])
-    expect(tools(element).every((tool) => tool.getAttribute('aria-pressed') === 'false')).toBe(true)
+    expect(tools(element).map((tool) => tool.getAttribute('aria-pressed'))).toEqual([
+      'false',
+      'false',
+      'false',
+      'false',
+      null,
+    ])
     expect(tools(element).map((tool) => tool.getAttribute('tabindex'))).toEqual([
       '0',
       '-1',
@@ -87,7 +93,6 @@ describe('lintje-text-editor', () => {
     expect(list!.getAttribute('aria-label')).toBe('Opsomming')
     expect(list!.getAttribute('aria-pressed')).toBe('false')
     expect(link!.getAttribute('aria-label')).toBe('Link')
-    expect(link!.getAttribute('aria-pressed')).toBe('false')
     expect(link!.getAttribute('aria-disabled')).toBe('true')
     expect(link!.classList.contains('is-idle')).toBe(true)
   })
@@ -120,6 +125,25 @@ describe('lintje-text-editor', () => {
     expect(stop()).toBe(0)
     await press('End')
     expect(stop()).toBe(4)
+  })
+
+  it('says Link opens a dialog, and that it is a toggle that is on in a link', async () => {
+    const element = await mount()
+    const link = () => tools(element)[4]
+    const state = element as unknown as { linkOpen: boolean; active: ReadonlySet<string> }
+    expect(link().getAttribute('aria-haspopup')).toBe('dialog')
+    expect(link().getAttribute('aria-expanded')).toBe('false')
+    expect(link().hasAttribute('aria-pressed')).toBe(false)
+    state.linkOpen = true
+    await element.updateComplete
+    expect(link().getAttribute('aria-expanded')).toBe('true')
+    state.linkOpen = false
+    // In a link a press takes it away: no dialog, only the toggle that is on.
+    state.active = new Set(['link'])
+    await element.updateComplete
+    expect(link().getAttribute('aria-pressed')).toBe('true')
+    expect(link().hasAttribute('aria-haspopup')).toBe(false)
+    expect(link().hasAttribute('aria-expanded')).toBe(false)
   })
 
   it('has Link unavailable without a selection', async () => {

@@ -4,8 +4,10 @@
  *
  * The source is a `lintje-textarea` whose `value` the host keeps. The translation, the language
  * choices and the actions are the host's, in slots: `target` takes a plain
- * `lintje-streaming-text`, `target-note` the AI label under it. After a swap a status region says
- * so, with the languages the host's choices then show.
+ * `lintje-streaming-text`, `target-note` the AI label under it. The host sets the target
+ * language's `lang` on that translation, again after every change or swap of the languages, so a
+ * screen reader reads it in its own language. After a swap a status region says so, with the
+ * languages the host's choices then show.
  *
  * Events: `lintje-text-change` `string` (the source text), `lintje-languages-swap`.
  */
@@ -40,6 +42,7 @@ export class LintjeTranslator extends LintjeElement {
     placeholder: { type: String },
     sourceLabel: { type: String, attribute: 'source-label' },
     targetLabel: { type: String, attribute: 'target-label' },
+    sourceLang: { type: String, attribute: 'source-lang' },
     variant: { type: String, reflect: true },
     spoken: { state: true },
   }
@@ -52,6 +55,11 @@ export class LintjeTranslator extends LintjeElement {
   sourceLabel: string = 'Tekst om te vertalen'
   /** The translation half's accessible name. */
   targetLabel: string = 'Vertaling'
+  /**
+   * The source text's language (`en`), as `lang` on its native field; the label and the counter
+   * stay Dutch. The host sets it again on each choice and swap.
+   */
+  declare sourceLang?: string
   /**
    * `text` (default): the source and its translation. `documents`: the language bar and the swap
    * over the default slot at full width, for documents to translate: the upload and the queue.
@@ -145,6 +153,7 @@ export class LintjeTranslator extends LintjeElement {
             .value=${this.value}
             .maxlength=${this.maxlength}
             .placeholder=${this.placeholder}
+            text-lang=${this.sourceLang || nothing}
             @lintje-change=${this.onText}
           ></lintje-textarea>
           ${

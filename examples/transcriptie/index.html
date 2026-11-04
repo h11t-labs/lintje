@@ -41,6 +41,11 @@
         -webkit-font-smoothing: antialiased;
       }
       .view { display: flex; flex-direction: column; gap: var(--grid-gutter); }
+      /* A region a screen reader hears and the eye does not see. */
+      .status-line {
+        position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+        overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+      }
       .view[hidden],
       .view [hidden],
       .panel[hidden],
@@ -307,7 +312,7 @@
         <lintje-tile id="rec-panel" flush>
           <div class="reading">
             <div class="reading__main">
-              <div class="tools">
+              <div class="tools" data-sticky="top">
                 <div class="tools__search">
                   <lintje-find id="search" class="tools__field" label="Zoek in het transcript"></lintje-find>
                   <lintje-button id="replace-toggle" variant="link" size="compact" hidden>Vervangen…</lintje-button>
@@ -342,7 +347,7 @@
               <lintje-empty-state id="no-match" compact hidden text="">
                 <lintje-button id="clear-search" variant="link">Zoekopdracht wissen</lintje-button>
               </lintje-empty-state>
-              <lintje-announcement id="catch-up" class="catch-up" hidden>
+              <lintje-announcement id="catch-up" class="catch-up" data-sticky="bottom" hidden>
                 <lintje-button id="catch-up-now" slot="action" variant="link" size="compact">Naar de live tekst</lintje-button>
               </lintje-announcement>
             </div>
@@ -384,6 +389,7 @@
 
       <!-- ?pagina=instellingen: what holds for every recording, and the kinds of conversation. -->
       <div class="view" id="settings-view" hidden>
+        <p id="settings-saved" class="status-line" role="status"></p>
         <div class="split split--nav">
           <div class="split__side">
             <lintje-sub-nav id="settings-nav" label="Instellingen"></lintje-sub-nav>
@@ -425,7 +431,7 @@
           </div>
         </div>
       </div>
-      <div slot="footer" class="dock" id="dock" hidden>
+      <div slot="footer" class="dock" id="dock" data-sticky="bottom" hidden>
         <div class="dock__inner">
           <lintje-audio-player id="player" flush no-legend></lintje-audio-player>
         </div>
@@ -438,6 +444,20 @@
       <lintje-button slot="actions" id="rename-save" variant="primary">Opslaan</lintje-button>
     </lintje-dialog>
 
+
+    <!-- Removing a recording and stopping a live one without keeping it cannot be undone: both ask
+         first, with the safe answer first. -->
+    <lintje-dialog id="delete-modal" alert heading="Opname verwijderen?">
+      <span id="delete-text"></span>
+      <lintje-button slot="actions" variant="secondary" autofocus data-close>Annuleren</lintje-button>
+      <lintje-button slot="actions" variant="danger" data-answer>Verwijderen</lintje-button>
+    </lintje-dialog>
+
+    <lintje-dialog id="discard-modal" alert heading="Opname stoppen zonder te bewaren?">
+      <span id="discard-text"></span>
+      <lintje-button slot="actions" variant="secondary" autofocus data-close>Doorgaan met opnemen</lintje-button>
+      <lintje-button slot="actions" variant="danger" data-answer>Stoppen zonder bewaren</lintje-button>
+    </lintje-dialog>
 
     <lintje-dialog id="merge-modal" wide heading="Sprekers samenvoegen">
       <lintje-select id="merge-into" class="adjust-grid__field" label="Samenvoegen met"></lintje-select>

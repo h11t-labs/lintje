@@ -7,9 +7,9 @@ const FOOTNOTE = 'Bron: Zaaksysteem · waarde van 08:15'
 const KB = 1024
 const MB = 1024 * KB
 
-/** A row of attachments, one per file, each with the same attributes. */
-const attachments = (files, attributes = '') => ({
-  html: `<div class="guide__row">${files.map(() => `<lintje-attachment ${attributes}></lintje-attachment>`).join('')}</div>`,
+/** A row of attachments, one per file, each with the same attributes; `width` narrows the row. */
+const attachments = (files, attributes = '', width) => ({
+  html: `<div class="guide__row"${width ? ` style="max-width: ${width}px"` : ''}>${files.map(() => `<lintje-attachment ${attributes}></lintje-attachment>`).join('')}</div>`,
   setup(stage) {
     stage.querySelectorAll('lintje-attachment').forEach((chip, index) => (chip.data = files[index]))
   },
@@ -239,8 +239,10 @@ function wireTranscript(transcript, segments = SEGMENTS) {
 /** A player and a transcript that follow each other, the way a host wires them. */
 function wirePair(player, transcript) {
   player.addEventListener('lintje-time-change', (event) => (transcript.currentTime = event.detail))
+  // "Speel af vanaf 0:18" plays from there.
   transcript.addEventListener('lintje-seek', (event) => {
     player.currentTime = event.detail
+    player.play()
   })
 }
 
@@ -316,6 +318,9 @@ function translator(stage, text) {
   to.options = LANGUAGES
   from.value = 'nl'
   to.value = 'en'
+  element.sourceLang = from.value
+  // The translation reads in its own language, also after a swap.
+  out.lang = to.value
   const show = (value) => {
     const translation = TRANSLATIONS[value.trim()] ?? ''
     out.text = translation
@@ -328,7 +333,10 @@ function translator(stage, text) {
   element.addEventListener('lintje-text-change', (event) => show(event.detail))
   element.addEventListener('lintje-languages-swap', () => {
     ;[from.value, to.value] = [to.value, from.value]
+    element.sourceLang = from.value
+    out.lang = to.value
   })
+  from.addEventListener('lintje-change', (event) => (element.sourceLang = event.detail ?? from.value))
 }
 
 export default {
@@ -353,6 +361,18 @@ export default {
           label: 'Uit de slot',
           note: 'Zonder `html` of `text` toont het element gewone tekst uit de slot. Een kop, lijst of alinea krijgt daar geen opmaak; opgemaakte inhoud gaat via `html`.',
           html: '<lintje-prose>Het rooster van volgende week staat vanaf vrijdag in het overzicht.</lintje-prose>',
+        },
+        {
+          label: 'Een breed codeblok',
+          note:
+            'Een `pre` met een lange regel scrolt opzij. Elk blok is een Tab-stop met de naam ' +
+            '"Codeblok", zodat ook in Safari het toetsenbord bij het eind van de regel komt.',
+          html: '<lintje-prose data-html></lintje-prose>',
+          setup(stage) {
+            stage.querySelector('[data-html]').html = `
+              <p>Zo vraag je de wachttijd van één loket op:</p>
+              <pre><code>GET /api/loketten/amsterdam-centrum/wachttijd?van=2026-10-01&amp;tot=2026-10-07&amp;per=kwartier&amp;mediaan=true</code></pre>`
+          },
         },
       ],
     },
@@ -1002,6 +1022,15 @@ export default {
           ),
         },
         {
+          label: 'Geweigerd op 320 px',
+          note: 'Zo breed als het vraagvak zijn bijlagen laat op een scherm van 320 px.',
+          ...attachments(
+            [{ id: 't', name: 'scan.heic', size: 1.8 * MB, state: 'error', message: 'Dit bestandstype kan niet' }],
+            'removable refused',
+            262,
+          ),
+        },
+        {
           label: 'Mislukt',
           note: 'Een fout van de host, met Opnieuw omdat hij `retry` zet.',
           ...attachments(
@@ -1010,11 +1039,29 @@ export default {
           ),
         },
         {
+          label: 'Mislukt zonder kruisje',
+          note: 'In een bericht of een antwoord: alleen Opnieuw.',
+          ...attachments([
+            { id: 'n', name: 'verklaring.pdf', size: 482 * KB, state: 'error', message: 'Uploaden mislukt', retry: true },
+          ]),
+        },
+        {
           label: 'Lange naam',
-          note: 'De naam kapt in het midden af; de extensie en de laatste letters blijven staan.',
+          note: 'De naam kapt in het midden af; de extensie en de laatste letters blijven staan. Met de focus, zonder muis en op een telefoon loopt de hele naam door.',
           ...attachments([
             { id: 'l', name: 'beleidsregel-subsidie-duurzame-energie-definitief.pdf', size: 860 * KB, state: 'done' },
           ]),
+        },
+        {
+          label: 'Twee lange namen',
+          note: 'Ze verschillen in het midden. Op een telefoon loopt de naam door, en met de focus op het kruis ook: zo zie je welke je weghaalt.',
+          ...attachments(
+            [
+              { id: 'v1', name: 'begroting-2026-versie-1-concept.pdf', size: 640 * KB, state: 'done' },
+              { id: 'v2', name: 'begroting-2026-versie-2-concept.pdf', size: 652 * KB, state: 'done' },
+            ],
+            'removable',
+          ),
         },
         {
           label: 'Te verwijderen',

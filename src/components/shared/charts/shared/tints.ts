@@ -8,7 +8,7 @@
  *
  * A figure that brings a variable's colour brings its ladder; without one, or with a colour
  * that is not a variable, the default ladder applies. Beyond five parts the steps clamp to the
- * five-step spread: the pie folds before that, the stacked bar keeps its last tint.
+ * five-step spread: the pie and the stacks fold before that (`foldStack`).
  */
 import { isDataColor } from '../../../../tokens/colors'
 

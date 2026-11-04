@@ -136,8 +136,10 @@ describe('lintje-text-editor adds a link in a popover', () => {
   it('opens on the selection with the focus in the field, and places the link on Enter', async () => {
     const element = await mount('Lees meer op de website.')
     await select(element, 'de website')
+    expect(tool(element, 'Link').getAttribute('aria-expanded')).toBe('false')
     await press(element, 'Link')
     expect(popover(element).open).toBe(true)
+    expect(tool(element, 'Link').getAttribute('aria-expanded')).toBe('true')
     await expect.poll(() => deepActiveElement()).toBe(linkInput(element))
     await userEvent.keyboard('https://www.rijksoverheid.nl{Enter}')
     await turn()

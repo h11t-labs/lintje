@@ -38,9 +38,9 @@
 /* A styled scrollbar is a classic one: it doesn't hide between scrolls like an overlay one. */
 .lintje-data-table__scroller::-webkit-scrollbar { height: 8px; }
 .lintje-data-table__scroller::-webkit-scrollbar-track { background: var(--color-bg-subtle); }
-.lintje-data-table__scroller::-webkit-scrollbar-thumb { background: var(--color-border-heavy); }
+.lintje-data-table__scroller::-webkit-scrollbar-thumb { background: var(--color-border-field); }
 @supports not selector(::-webkit-scrollbar) {
-  .lintje-data-table__scroller { scrollbar-width: thin; scrollbar-color: var(--color-border-heavy) var(--color-bg-subtle); }
+  .lintje-data-table__scroller { scrollbar-width: thin; scrollbar-color: var(--color-border-field) var(--color-bg-subtle); }
 }
 
 .lintje-data-table__header-cell,
@@ -217,7 +217,8 @@
   visibility: hidden;
 }
 .lintje-data-table__cell--align-right .lintje-data-table__edit-icon { right: auto; left: var(--space-1); }
-.lintje-data-table__cell--editable:hover .lintje-data-table__edit-icon { visibility: visible; }
+.lintje-data-table__cell--editable:hover .lintje-data-table__edit-icon,
+.lintje-data-table__cell--editable:focus-visible .lintje-data-table__edit-icon { visibility: visible; }
 /* No room above or below: the field is as tall as the row. */
 .lintje-data-table__cell--editable.is-editing { padding: 0 var(--space-1); vertical-align: top; }
 .lintje-data-table__cell--editable.is-editing:hover { background: transparent; }
@@ -234,7 +235,7 @@
 }
 .lintje-data-table__cell--align-right .lintje-data-table__editor { font-variant-numeric: tabular-nums; }
 .lintje-data-table__editor::placeholder { color: var(--color-text-placeholder); opacity: 1; }
-.lintje-data-table__editor.is-error { border: var(--field-error-border) solid var(--color-error); }
+.lintje-data-table__editor.is-error { border: var(--field-error-border) solid var(--color-error-line); }
 .lintje-data-table__edit-error {
   display: block;
   padding: var(--space-1) var(--space-2);
@@ -349,6 +350,8 @@
 .lintje-data-table__chooser-button[aria-expanded='true'],
 .lintje-data-table__detail-toggle:hover,
 .lintje-data-table__mobile-toggle:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
+/* The detail toggle touches the scroller's left edge, which clips: its ring sits inside. */
+.lintje-data-table__detail-toggle:focus-visible { outline-offset: -3px; }
 .lintje-data-table__funnel.is-filtered {
   background: var(--color-action-primary);
   border-color: var(--color-action-primary-border);
@@ -434,7 +437,7 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__sheet-button,
 :where(.lintje-data-table.is-phone) .lintje-data-table__sort-menu { display: inline-flex; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__selection--mobile { top: auto; bottom: 0; margin-top: var(--space-3); }
-:where(.lintje-data-table.is-phone) .lintje-data-table__frame { display: none; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__full { display: none; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile { display: table; }
 .lintje-data-table:where(.is-phone) { margin: 0 calc(var(--tile-pad-x) * -1); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile { padding: var(--space-3) var(--tile-pad-x); }
@@ -445,16 +448,30 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-row.is-open { border-bottom-color: transparent; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-detail { border-bottom: 1px solid var(--color-border-default); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-detail > .lintje-data-table__mobile-cell { padding-top: 0; }
-/* The toggle and the row menu sit at the row's end, on the name's first line. Two classes, so the
-   cell padding below does not give the column its start back. */
-:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell.lintje-data-table__mobile-cell--actions,
-:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__mobile-cell--actions { width: 1%; padding-inline-start: 0; }
+/* The toggle and the row menu sit at the row's end, on the name's first line. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell--actions { width: 1%; }
+/* The name takes what the measure and the actions leave, never less than about ten characters
+   or its longest word: no word breaks. Too wide for its tile, the table scrolls sideways. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell--name { width: 100%; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-name,
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-sub { min-width: 10ch; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-actions { display: flex; align-items: center; justify-content: flex-end; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell {
   padding: var(--space-2) var(--tile-pad-x);
   vertical-align: top;
   font-weight: 400;
 }
+/* Only the tile's edges keep --tile-pad-x; between two columns stands one --space-3, or at 320 px
+   the name keeps 30 px and breaks after every few letters. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell,
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile:not(.lintje-data-table__header-cell--sortable),
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile .lintje-data-table__sort-button { padding-inline: var(--space-3) 0; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell:first-child,
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile:first-child:not(.lintje-data-table__header-cell--sortable),
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile:first-child .lintje-data-table__sort-button { padding-inline-start: var(--tile-pad-x); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell:last-child,
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile:last-child:not(.lintje-data-table__header-cell--sortable),
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile:last-child .lintje-data-table__sort-button { padding-inline-end: var(--tile-pad-x); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-name { display: block; font-size: 0.875rem; font-weight: 700; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-sub { display: block; font-size: 0.875rem; color: var(--color-text-muted); margin-top: var(--space-1); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-measure { display: block; font-size: 0.875rem; font-weight: 700; font-variant-numeric: tabular-nums; }

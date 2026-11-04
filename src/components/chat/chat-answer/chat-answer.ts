@@ -310,7 +310,7 @@ export class LintjeChatAnswer extends LintjeElement {
               .data=${block.data}
             ></lintje-data-table>`
           case 'attachments':
-            return html`<ul class="lintje-chat-answer__attachments" aria-label="Bijlagen">
+            return html`<ul class="lintje-chat-answer__attachments" role="list" aria-label="Bijlagen">
               ${block.items.map(
                 (file) => html`<li class="lintje-chat-answer__attachment">
                   <lintje-attachment .data=${file}></lintje-attachment>

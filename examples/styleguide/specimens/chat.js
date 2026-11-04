@@ -49,6 +49,25 @@ const questions = (change = () => ({})) => ({
   },
 })
 
+/** The short form: one question with short choices; `change` puts the box in a state. */
+const PERIOD = {
+  id: 'periode', label: 'Periode', text: 'Welke periode bedoel je?', kind: 'one',
+  options: [
+    { value: '12m', label: 'Afgelopen 12 maanden' },
+    { value: '2025', label: 'Heel 2025' },
+    { value: 'q3', label: 'Derde kwartaal 2026' },
+  ],
+}
+const short = (change = () => ({})) => ({
+  html: '<lintje-chat-questions turn-id="demo-short"></lintje-chat-questions>',
+  setup(stage) {
+    const box = stage.querySelector('lintje-chat-questions')
+    const data = { questions: [PERIOD] }
+    box.data = data
+    void box.updateComplete.then(() => Object.assign(box, change(data)))
+  },
+})
+
 const AMSTERDAM = {
   id: 'loket', label: 'Loket', text: 'Welk loket bedoel je?', kind: 'one',
   options: [{ label: 'Amsterdam als geheel', value: 'amsterdam' }, ...amsterdam.map((desk) => ({ label: desk.name, value: desk.id }))],
@@ -325,6 +344,11 @@ export default {
           ...steps([...STEPS.slice(0, 2), { label: 'Bezwaren per maand optellen', state: 'busy' }]),
         },
         {
+          label: 'Latere stap bezig en open',
+          note: 'De lopende stap zegt in verborgen woorden dat hij bezig is.',
+          ...steps([...STEPS.slice(0, 2), { label: 'Bezwaren per maand optellen', state: 'busy' }], { open: true }),
+        },
+        {
           label: 'Klaar',
           ...steps(STEPS, { duration: '12 s' }),
         },
@@ -347,6 +371,18 @@ export default {
               ...STEPS.slice(3),
             ],
             { duration: '41 s' },
+          ),
+        },
+        {
+          label: 'Een stap mislukt en open',
+          note: 'Een label zonder het woord krijgt een verborgen "mislukt".',
+          ...steps(
+            [
+              ...STEPS.slice(0, 2),
+              { label: 'Tabel behandeltermijnen ophalen', state: 'error', detail: 'De bron Termijnen gaf binnen 30 s geen antwoord.' },
+              ...STEPS.slice(3),
+            ],
+            { duration: '41 s', open: true },
           ),
         },
         {
@@ -452,21 +488,29 @@ export default {
         {
           label: 'Korte vorm',
           note: 'Eén vraag met korte keuzes: een tik verstuurt. "Iets anders…" opent een eigen veld.',
-          html: '<lintje-chat-questions turn-id="demo-short"></lintje-chat-questions>',
-          setup(stage) {
-            stage.querySelector('lintje-chat-questions').data = {
-              questions: [
-                {
-                  id: 'periode', label: 'Periode', text: 'Welke periode bedoel je?', kind: 'one',
-                  options: [
-                    { value: '12m', label: 'Afgelopen 12 maanden' },
-                    { value: '2025', label: 'Heel 2025' },
-                    { value: 'q3', label: 'Derde kwartaal 2026' },
-                  ],
-                },
-              ],
-            }
-          },
+          ...short(),
+        },
+        {
+          label: 'Korte vorm met Iets anders open',
+          note: 'Het eigen veld staat onder de keuzes, met Versturen ernaast.',
+          ...short(() => ({ otherOpen: true, drafts: { periode: { values: ['other'], other: '', text: '' } } })),
+        },
+        {
+          label: 'Korte vorm met fout bij Iets anders',
+          note: 'Versturen zonder tekst: de melding staat onder het eigen veld.',
+          ...short(() => ({
+            otherOpen: true,
+            drafts: { periode: { values: ['other'], other: '', text: '' } },
+            problems: { periode: { otherError: 'Vul in wat je bedoelt.' } },
+          })),
+        },
+        {
+          label: 'Korte vorm bezig met versturen',
+          ...short((data) => ({
+            data: { ...data, state: 'sending' },
+            otherOpen: true,
+            drafts: { periode: { values: ['other'], other: 'Het eerste halfjaar van 2026', text: '' } },
+          })),
         },
         {
           label: 'Buiten de bronnen',
@@ -508,6 +552,19 @@ export default {
           label: 'Fout',
           note: 'Volgende bij een verplichte vraag zonder antwoord.',
           ...questions((data) => ({ problems: { periode: { error: data.questions[0].error } } })),
+        },
+        {
+          label: 'Verplichte lange lijst met fout',
+          note: 'De fout staat boven de lijst die scrolt, zodat hij in beeld blijft met de focus op de eerste keuze.',
+          ...questions((data) => ({
+            data: {
+              ...data,
+              questions: data.questions.map((question) =>
+                question.id === 'provincies' ? { ...question, optional: false, hint: 'Je kunt er meer kiezen.' } : question),
+            },
+            step: 1,
+            problems: { provincies: { error: 'Kies minstens één provincie.' } },
+          })),
         },
         {
           label: 'Fout bij Iets anders',

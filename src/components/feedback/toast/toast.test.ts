@@ -120,6 +120,25 @@ describe('lintje-toast', () => {
     expect(toast.shadowRoot!.querySelector('[role="status"] slot')).not.toBeNull()
   })
 
+  it.each([
+    ['ok', 'Gelukt: '],
+    ['error', 'Fout: '],
+    ['info', 'Informatie: '],
+    ['warning', 'Let op: '],
+  ] as const)(
+    'says the kind of a %s toast before its text, in the region',
+    async (kind, prefix) => {
+      const { toast } = await mount(undefined, kind)
+      const region = statusOf(toast)
+      expect(region.querySelector('.visually-hidden')).toBeNull()
+      await nextFrame()
+      await toast.updateComplete
+      const hidden = region.querySelector('.lintje-toast__text > .visually-hidden')
+      expect(hidden?.textContent).toBe(prefix)
+      expect(hidden?.nextElementSibling?.localName).toBe('slot')
+    },
+  )
+
   it.each(['ok', 'info'] as const)('closes a %s toast after six seconds', async (kind) => {
     vi.useFakeTimers()
     const { closed } = await mount(undefined, kind)

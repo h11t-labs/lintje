@@ -8,7 +8,8 @@ import type { LintjeShell } from './shell'
 import type { ShellData, ShellGroup, ShellLink } from '../../../types'
 import { parseTabParts, planTabs } from './tab-bar'
 import { setFrameState } from '../../../core/frame-state'
-import { lockScroll } from '../../../core/host-config'
+import { lockScroll, scrollRoot } from '../../../core/host-config'
+import { roomBeside } from '../../../core/scroll-room'
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -258,21 +259,22 @@ describe('a toast with the tabs', () => {
   it('stands above the tabs, and at the edge while a sheet covers them', async () => {
     viewport(390)
     const shell = await mount({ 'mobile-tabs': '' })
-    const toast = () => document.documentElement.style.getPropertyValue('--lintje-toast-bottom')
-    expect(toast()).toContain('--h-tab-bar')
+    // What a toast stands on: the room the others keep free at the bottom.
+    const toast = () => roomBeside({}, scrollRoot() ?? document.documentElement, 'bottom')
+    expect(toast()).toBeGreaterThan(0)
     // The menu's panel stops on the tabs: the toast stays above them.
     shell.menuOpen = true
     await shell.updateComplete
-    expect(toast()).toContain('--h-tab-bar')
+    expect(toast()).toBeGreaterThan(0)
     shell.menuOpen = false
     await shell.updateComplete
     // Any other overlay that holds the page covers the tabs.
     const release = lockScroll()
-    expect(toast()).toBe('')
+    expect(toast()).toBe(0)
     release()
-    expect(toast()).toContain('--h-tab-bar')
+    expect(toast()).toBeGreaterThan(0)
     shell.remove()
-    expect(toast()).toBe('')
+    expect(toast()).toBe(0)
   })
 })
 
@@ -297,9 +299,7 @@ describe('what opens from a tab', () => {
     expect(bell.open).toBe(true)
     // The bell's sheet is opened from a tab: the tabs stay, so the toast stays above them.
     await shell.updateComplete
-    expect(document.documentElement.style.getPropertyValue('--lintje-toast-bottom')).toContain(
-      '--h-tab-bar',
-    )
+    expect(roomBeside({}, scrollRoot() ?? document.documentElement, 'bottom')).toBeGreaterThan(0)
 
     // Menu takes over: the bell's sheet closes.
     tabs(shell).at(-1)!.click()

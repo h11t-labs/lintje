@@ -239,7 +239,56 @@ describe('the status region', () => {
     expect(full.label).toBe('Paginering Loketten met aanvragen')
     await full.updateComplete
     full.shadowRoot!.querySelector<HTMLButtonElement>('[aria-label="Ga naar pagina 2"]')!.click()
-    expect(await said(element)).toBe('Pagina 2 van 3')
+    // The pager says the page, once: the table's own region keeps its last sentence.
+    expect(await said(element)).toBe('Gesorteerd op aanvragen, aflopend.')
+    await full.updateComplete
+    expect(full.shadowRoot!.querySelector('[role="status"]')!.textContent?.trim()).toBe(
+      'Pagina 2 van 3',
+    )
+  })
+
+  it('says it loads on its own from a region that stays, the skeleton only drawn', async () => {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.setAttribute('plain', '')
+    element.data = structuredClone(data)
+    document.body.append(element)
+    await element.updateComplete
+    const region = (): Element => element.shadowRoot!.querySelector('[role="status"]')!
+    const before = region()
+    element.data = { ...element.data!, state: 'loading' }
+    await element.updateComplete
+    await frame()
+    await element.updateComplete
+    expect(region()).toBe(before)
+    expect(region().textContent?.trim()).toBe('Gegevens laden…')
+    expect(element.shadowRoot!.querySelectorAll('[role="status"]')).toHaveLength(1)
+    expect(
+      element.shadowRoot!.querySelector('.lintje-chart-skeleton')!.getAttribute('aria-hidden'),
+    ).toBe('true')
+  })
+
+  it('says the count after a filter only once the host has loaded it', async () => {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = {
+      ...structuredClone(data),
+      totalRows: 2,
+      columns: [
+        { key: 'name', header: 'Loket', filter: { kind: 'text' } },
+        { key: 'requests', header: 'Aanvragen' },
+      ],
+      filters: { name: 'Utr' },
+      rows: [data.rows[0]!],
+    }
+    document.body.append(element)
+    await element.updateComplete
+    // The host loads first, then sends the rows the filter leaves.
+    element.addEventListener('lintje-filter-change', () => {
+      element.data = { ...element.data, filters: {}, state: 'loading' }
+    })
+    element.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-data-table__chip-clear')!.click()
+    expect(await said(element)).toBe('')
+    element.data = { ...element.data, state: 'ready', rows: structuredClone(data.rows) }
+    expect(await said(element)).toBe('2 van 2 rijen')
   })
 
   it('starts silent in the tile after the expanded copy closes, and speaks again after', async () => {
@@ -321,6 +370,42 @@ describe('a threshold cell', () => {
 })
 
 describe('a clickable row', () => {
+  it('has its name as its one Tab stop: a button without href, the chosen one current', async () => {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = { ...structuredClone(data), clickable: true, selectedId: 'Rotterdam' }
+    document.body.append(element)
+    await element.updateComplete
+    const clicks: unknown[] = []
+    element.addEventListener('lintje-row-click', (event) => clicks.push(event))
+    const rows = [
+      ...element.shadowRoot!.querySelectorAll<HTMLElement>(
+        '.lintje-data-table__full .lintje-data-table__row',
+      ),
+    ]
+    expect(rows).toHaveLength(2)
+    expect(rows.every((row) => !row.hasAttribute('tabindex'))).toBe(true)
+    expect(rows.every((row) => !row.hasAttribute('aria-selected'))).toBe(true)
+    // Utrecht, then the chosen Rotterdam.
+    const names = ['Utrecht', 'Rotterdam'].map((name) =>
+      rows
+        .find((row) => row.textContent?.includes(name))!
+        .querySelector<HTMLElement>('.lintje-data-table__open')!,
+    )
+    expect(names[0]!.tagName).toBe('BUTTON')
+    expect(names[0]!.hasAttribute('aria-current')).toBe(false)
+    expect(names[1]!.getAttribute('aria-current')).toBe('true')
+    // The button's click (Enter, space or a pointer) is the row's.
+    ;(names[0] as HTMLElement).click()
+    expect(clicks).toHaveLength(1)
+    const phone = [...element.shadowRoot!.querySelectorAll('.lintje-data-table__mobile-row')].find(
+      (row) => row.textContent?.includes('Rotterdam'),
+    )!
+    expect(phone.hasAttribute('tabindex')).toBe(false)
+    expect(phone.querySelector('.lintje-data-table__open')!.getAttribute('aria-current')).toBe(
+      'true',
+    )
+  })
+
   it('leaves Enter on the name button to that button', async () => {
     const element = document.createElement('lintje-data-table') as TableElement
     element.data = { ...structuredClone(data), clickable: true, openable: true }
@@ -335,11 +420,11 @@ describe('a clickable row', () => {
     open.dispatchEvent(enter)
     expect(enter.defaultPrevented).toBe(false)
     expect(clicks).toEqual([])
+    // The opener is the Tab stop; the row's own click is the pointer's.
     const row = element.shadowRoot!.querySelector<HTMLElement>('.lintje-data-table__full tbody tr')!
-    row.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
-    expect(clicks).toHaveLength(1)
+    expect(row.hasAttribute('tabindex')).toBe(false)
     const mobileRow = element.shadowRoot!.querySelector('.lintje-data-table__mobile-row')!
-    expect(mobileRow.getAttribute('aria-selected')).toBe('false')
+    expect(mobileRow.hasAttribute('aria-selected')).toBe(false)
   })
 })
 
@@ -369,15 +454,23 @@ describe('a row with an href', () => {
     return details
   }
 
-  it('goes there after lintje-row-click when nobody cancels it, by click and by Enter', async () => {
+  it('goes there after lintje-row-click when nobody cancels it, from the row and its name', async () => {
     const assign = stub()
     const element = await linked()
     const clicks = heard(element, 'lintje-row-click')
+    const navigations = heard(element, 'lintje-navigate')
     row(element, 'Utrecht').click()
     expect(clicks).toEqual([{ id: 'Utrecht', label: 'Utrecht', href: '?loket=utrecht' }])
     expect(assign).toHaveBeenCalledWith('?loket=utrecht')
-    row(element, 'Utrecht').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
-    expect(assign).toHaveBeenCalledTimes(2)
+    // The name is the row's link, the Tab stop: on it the browser follows the href itself.
+    const link = row(element, 'Utrecht').querySelector('a.lintje-data-table__open')!
+    expect(link.getAttribute('href')).toBe('?loket=utrecht')
+    const click = new MouseEvent('click', { bubbles: true, composed: true, cancelable: true })
+    link.dispatchEvent(click)
+    expect(clicks).toHaveLength(2)
+    expect(navigations).toHaveLength(2)
+    expect(click.defaultPrevented).toBe(false)
+    expect(assign).toHaveBeenCalledTimes(1)
   })
 
   it('stays when the host cancels the event', async () => {
@@ -386,6 +479,9 @@ describe('a row with an href', () => {
     element.addEventListener('lintje-row-click', (event) => event.preventDefault())
     row(element, 'Utrecht').click()
     expect(assign).not.toHaveBeenCalled()
+    const click = new MouseEvent('click', { bubbles: true, composed: true, cancelable: true })
+    row(element, 'Utrecht').querySelector('a')!.dispatchEvent(click)
+    expect(click.defaultPrevented).toBe(true)
   })
 
   it('opens it in a new tab on a modifier or middle click, without lintje-row-click', async () => {

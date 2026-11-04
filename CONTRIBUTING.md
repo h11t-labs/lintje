@@ -393,7 +393,8 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
 - `focus-handoff.browser.test.ts` — wanneer het bedieningselement met de focus verdwijnt, landt
   de focus op een benoemde buur, nooit op `body`.
 - `breakpoint.browser.test.ts` — wat onder 768 px van weergave wisselt (regel 9): per element de
-  markering van de andere weergave, niet alleen een andere hoogte.
+  markering van de andere weergave, niet alleen een andere hoogte; en dat op 320 × 640 en
+  320 × 256 de specimens van een element de pagina niet breder maken dan het scherm (1.4.10).
 - `sticky.browser.test.ts` — wat plakt: het houdt zijn hoogte vrij als scroll-padding, en een
   bedieningselement dat de focus krijgt, staat er niet onder.
 - `choice-foot.browser.test.ts` — de hint en de foutmelding onder een vinkje of schakelaar, ook
@@ -403,11 +404,25 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
   het versturen tegen, gevuld of uitgeschakeld niet, en de melding van de browser landt op het
   bedieningselement dat ook de focus krijgt.
 - `truncate.browser.test.ts` — tekst met een beletselteken: met een aanwijzer staat hij op één
-  regel en, als hij is afgekapt, heel in de `title`; onder de focus van het toetsenbord en op 390
-  en 320 px loopt hij door en blijft hij binnen zijn ouder. Tekst die niets een `title` laat tonen,
-  kapt nooit af.
+  regel en, als hij is afgekapt, heel in de `title`; onder de focus van het toetsenbord, zonder
+  hover en op 390 en 320 px loopt hij door en blijft hij binnen zijn ouder. Tekst die niets een
+  `title` laat tonen, kapt nooit af.
+- `text-spacing.browser.test.ts` — de tekstafstand van de lezer (1.4.12) in elke shadow root en
+  een grotere standaardletter (1.4.4): geen tekst wordt afgesneden of ligt over andere tekst, ook
+  niet wat een element zelf meet, zoals de assen van een grafiek.
 - `reduced-motion.browser.test.ts` — verminderde beweging, waarmee elke browsertest draait: een
   vak dat openklapt, laat zijn inhoud los zodra zijn hoogte staat.
+- `forced-colors.browser.test.ts` — geforceerde kleuren (`forced-colors: active` geëmuleerd): wat
+  een vulling droeg, staat er opnieuw in systeemkleuren, zoals de rand in `Highlight` van een knop
+  die aan staat.
+- `scroller.browser.test.ts` — een scrollvak dat het toetsenbord moet bereiken: het is een
+  Tab-stop met een rol en een naam, en de pijltoetsen scrollen het.
+- `focus-ring.browser.test.ts` — de focusring is heel en staat op wat de focus heeft: geen
+  scrollvak snijdt hem af en geen buur bedekt hem; en de links van een lijst houden elk een doel
+  van 24 px.
+- `contrast.browser.test.ts` — tekst die gelezen moet worden, haalt 4.5:1 op wat eronder ligt, in
+  licht en donker, met de dekking van elke voorouder meegerekend; wat alleen een vulling had,
+  heeft ook een lijn.
 
 Een nieuw element dat een mechanisme gebruikt, krijgt een rij in diens tabel, geen eigen bestand.
 Een component krijgt alleen een eigen `*.browser.test.ts` voor een mechanisme dat het zelf heeft:

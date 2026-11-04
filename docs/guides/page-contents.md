@@ -13,6 +13,7 @@ terwijl de lezer scrolt.
 
 ```html
 <div class="artikel">
+  <lintje-sub-nav expanded label="Op deze pagina"></lintje-sub-nav>
   <article>
     <h2 id="wie">Wie kan een vergunning aanvragen</h2>
     …
@@ -20,7 +21,6 @@ terwijl de lezer scrolt.
     <h3 id="online">Online aanvragen</h3>
     …
   </article>
-  <lintje-sub-nav expanded label="Op deze pagina"></lintje-sub-nav>
 </div>
 ```
 
@@ -29,7 +29,8 @@ Staan de koppen in `lintje-prose`, zoek ze dan in zijn `shadowRoot` in plaats va
 ## De sectie in beeld volgen
 
 De huidige sectie is de laatste kop die boven de balk van de shell is geschoven. Die balk houdt
-zijn hoogte vrij als `scroll-padding-top`, dus die waarde is de lijn. Onderaan de pagina haalt een
+zijn hoogte vrij als `scroll-padding-top`, dus die waarde is de lijn. Plakt er een eigen balk van
+de pagina onder, zet er dan `data-sticky="top"` op: de shell telt hem mee in die lijn. Onderaan de pagina haalt een
 korte laatste sectie die lijn nooit; daar is de laatste kop in beeld de huidige. Zet de sectie als
 `active`; het submenu markeert haar en haar kop erboven.
 
@@ -88,6 +89,10 @@ Het bijwerken na `load` en `resize` vangt een pagina die pas na het script haar 
 Vanaf 1024 px staat de lijst naast de tekst en plakt ze onder de balk van de shell. Smaller staat ze
 boven de tekst, en onder 768 px is ze de knop van het submenu, die de lijst openklapt.
 
+In de broncode staat de lijst vóór de tekst. Smaller dan 1024 px bereiken Tab en een schermlezer
+haar dan waar je haar ziet, en niet pas na de hele tekst; vanaf 1024 px zet `order` haar rechts
+ernaast.
+
 ```css
 .artikel {
   display: flex;
@@ -99,10 +104,10 @@ boven de tekst, en onder 768 px is ze de knop van het submenu, die de lijst open
 .artikel > lintje-sub-nav { flex: 1 1 240px; max-width: var(--w-nav); }
 
 @media screen and (max-width: 1023px) {
-  .artikel > lintje-sub-nav { order: -1; flex-basis: 100%; max-width: none; }
+  .artikel > lintje-sub-nav { flex-basis: 100%; max-width: none; }
 }
 @media screen and (min-width: 1024px) {
-  .artikel > lintje-sub-nav { position: sticky; top: calc(var(--h-topbar) + var(--space-6)); }
+  .artikel > lintje-sub-nav { order: 1; position: sticky; top: calc(var(--h-topbar) + var(--space-6)); }
 }
 ```
 

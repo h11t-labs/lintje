@@ -780,6 +780,35 @@ describe('the skip link', () => {
   })
 })
 
+/** A host that routes itself asks for what the skip link does, once its new page is drawn. */
+describe('focusContent()', () => {
+  it.each(['side', 'top'] as const)(
+    "puts the focus on the shell's own main, in the %s layout",
+    async (layout) => {
+      const shell = await mount({ layout })
+      document.body.focus()
+      shell.focusContent()
+      expect(root(shell).activeElement).toBe(root(shell).querySelector('main'))
+      expect(deepActiveElement()).toBe(root(shell).querySelector('main'))
+    },
+  )
+
+  it.each(['side', 'top'] as const)(
+    "puts the focus on the shell's own main at 390 px, in the %s layout",
+    async (layout) => {
+      try {
+        viewport(390)
+        const shell = await mount({ layout })
+        expect(shell.mobile.matches).toBe(true)
+        shell.focusContent()
+        expect(deepActiveElement()).toBe(root(shell).querySelector('main'))
+      } finally {
+        viewport(1024)
+      }
+    },
+  )
+})
+
 /**
  * The open mobile menu is a modal dialog: the header and its panel together,
  * because Sluiten and the mode stand in the header. Tab stays inside that
@@ -1395,6 +1424,19 @@ describe('the rail and the keyboard', () => {
     expect(shell.railExpanded).toBe(false)
   })
 
+  it('folds the rail expanded under the pointer on an Escape in the page, the focus staying', async () => {
+    const shell = await mount()
+    const page = document.body.appendChild(document.createElement('button'))
+    page.focus()
+    nav(shell).dispatchEvent(new MouseEvent('mouseenter'))
+    await shell.updateComplete
+    expect(shell.railExpanded).toBe(true)
+    page.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    await shell.updateComplete
+    expect(shell.railExpanded).toBe(false)
+    expect(document.activeElement).toBe(page)
+  })
+
   it('keeps the foot in the folded rail, where Escape leaves the focus on it', async () => {
     const shell = await mount({ logout: { href: '/auth/logout', token: 't' } })
     const foot = nav(shell).querySelector<LintjeUserMenu>('.lintje-nav__user-menu')!
@@ -1503,7 +1545,11 @@ describe('the mobile menu’s groups', () => {
     const heading = root(shell).getElementById(group.getAttribute('aria-labelledby')!)!
     expect(heading.textContent!.trim()).toBe('Aanvragen')
     const muted = group.querySelector('.lintje-mobile-menu__item.is-muted')!
-    expect(muted.querySelector('.visually-hidden')!.textContent).toBe(', niet beschikbaar')
+    // Seen under the label, heard once.
+    expect(
+      muted.querySelector('.lintje-mobile-menu__label .lintje-mobile-menu__note')!.textContent,
+    ).toBe(', niet beschikbaar')
+    expect(muted.textContent!.match(/niet beschikbaar/g)).toHaveLength(1)
   })
 })
 

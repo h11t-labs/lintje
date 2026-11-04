@@ -11,6 +11,9 @@ export interface FootIds {
   errorId: string
 }
 
+/** Where a control's `description` stands: hidden text, read after its label. */
+export const DESCRIPTION_ID = 'lintje-input-description'
+
 export function footDescribedBy(
   hint: string | undefined,
   message: string,
@@ -33,4 +36,22 @@ export function renderFieldFoot(
     >`
   }
   return hint ? html`<span id=${ids.hintId} class="lintje-field__hint">${hint}</span>` : nothing
+}
+
+/** A control's `description`, never drawn: the host shows those words itself. */
+export function renderDescription(
+  description: string | undefined,
+): TemplateResult | typeof nothing {
+  return description
+    ? html`<span id=${DESCRIPTION_ID} class="visually-hidden">${description}</span>`
+    : nothing
+}
+
+/** `aria-describedby` with the description in front of the ids of the foot. */
+export function describedWith(
+  description: string | undefined,
+  ids: string | typeof nothing,
+): string | typeof nothing {
+  const all = [description ? DESCRIPTION_ID : '', ids === nothing ? '' : ids]
+  return all.filter(Boolean).join(' ') || nothing
 }

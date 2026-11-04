@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Datacatalogus — Lintje</title>
+    <title>Start — Datacatalogus</title>
     <!--
       Datacatalogus: every product of a data platform in one place — data products, AI services
       and dashboards — whether the reader has access or not, with the owner and the way in. A
@@ -34,6 +34,11 @@
       }
       [data-theme='catalogus'][data-mode='dark'] {
         --primary: #865FC1;
+      }
+      /* A region a screen reader hears and the eye does not see. */
+      .status-line {
+        position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+        overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
       }
       body {
         margin: 0;
@@ -106,7 +111,8 @@
           <lintje-card-list id="favourites" heading-level="3"></lintje-card-list>
         </section>
         <section class="section" aria-labelledby="kinds-title">
-          <h2 class="section__title" id="kinds-title">Bladeren per soort</h2>
+          <!-- `tabindex`: the focus comes here when the last favourite goes. -->
+          <h2 class="section__title" id="kinds-title" tabindex="-1">Bladeren per soort</h2>
           <lintje-card-list id="kinds" heading-level="3"></lintje-card-list>
         </section>
         <section class="section" aria-labelledby="popular-title">
@@ -117,6 +123,7 @@
 
       <!-- The catalogue: every product, across, filtered by the bar above. -->
       <div class="view" id="catalogue-view" hidden>
+        <p id="catalogue-status" class="status-line" role="status"></p>
         <lintje-card-list id="catalogue" layout="horizontal" label="Producten" heading-level="2"
           empty-text="Geen product past bij je zoekterm en filters.">
           <lintje-button slot="empty" id="reset" variant="link">Alle filters wissen</lintje-button>

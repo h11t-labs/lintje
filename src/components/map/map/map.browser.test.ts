@@ -1,11 +1,21 @@
 /**
- * The map's focus in a browser: a ring the map area would clip, and a mark the overlays would
- * hide (WCAG 2.4.7, 2.4.11). happy-dom lays nothing out, and Leaflet pans with an animation.
+ * The map's focus in a browser: a ring the map area would clip, a mark the overlays would hide
+ * (WCAG 2.4.7, 2.4.11), the tooltip of the keyboard's mark, drawing with the keyboard and a thin
+ * flow's target (2.1.1, 2.5.8). happy-dom lays nothing out, and Leaflet pans with an animation.
  */
 import { afterEach, describe, expect, it } from 'vitest'
-import { server, userEvent } from 'vitest/browser'
+import { commands, server, userEvent } from 'vitest/browser'
 import './map'
+import '../../overlays/modal/modal'
+import { TOOL_HINTS } from '../../shared/charts/map-chart/map-chart'
+import { TAB } from '../../../core/test-keys'
 import type { MapData } from '../../../types'
+
+declare module 'vitest/browser' {
+  interface BrowserCommands {
+    emulateForcedColors: (on: boolean) => Promise<void>
+  }
+}
 
 type MapElement = HTMLElement & { data: MapData; updateComplete: Promise<unknown> }
 
@@ -16,10 +26,10 @@ const SOUTH = { id: 'maa', label: 'Maastricht', value: 8, lon: 5.69, lat: 50.85 
 
 const BASEMAP = { kind: 'wms' as const, url: 'https://wms.invalid/', layers: 'x', attribution: 'x' }
 
-async function mount(extra: Partial<MapData> = {}): Promise<MapElement> {
+async function mount(extra: Partial<MapData> = {}, width = 320): Promise<MapElement> {
   // Narrow, so the country fills the width and its corner reaches the overlays.
   const frame = document.createElement('div')
-  frame.style.width = '320px'
+  frame.style.width = `${width}px`
   const element = document.createElement('lintje-map') as MapElement
   element.data = {
     variant: 'points',
@@ -52,7 +62,8 @@ const zoomButtons = (element: MapElement): DOMRect =>
 /** The focus layer over the drawing, and the copy of the focused mark in it. */
 const focusLayer = (element: MapElement): Element =>
   root(element).querySelector('.lintje-map-chart__focus')!
-const copy = (element: MapElement): Element | null => focusLayer(element).firstElementChild
+const copy = (element: MapElement): Element | null =>
+  focusLayer(element).querySelector('.is-focused')
 
 /** A colour token as the browser resolves it, through a probe in the map's own root. */
 function resolved(element: MapElement, token: string): string {
@@ -367,4 +378,311 @@ describe('the map on a basemap', () => {
       .poll(() => inside(maastricht.getBoundingClientRect(), container.getBoundingClientRect()))
       .toBe(true)
   })
+})
+
+describe('the map and the keyboard', () => {
+  const tooltip = (element: MapElement): HTMLElement | null =>
+    root(element).querySelector<HTMLElement>('.lintje-chart-tooltip')
+  const tool = (element: MapElement): HTMLButtonElement =>
+    root(element).querySelector<HTMLButtonElement>('.lintje-map-chart__tool')!
+  const surface = (element: MapElement): HTMLElement =>
+    root(element).querySelector<HTMLElement>('.leaflet-container')!
+
+  it('shows the tooltip of the mark the keyboard reaches, at the mark, and hides it after', async () => {
+    const element = await mount()
+    const utrecht = mark(element, 'utr') as SVGElement
+    await keyboardFocus(utrecht)
+    await expect.poll(() => tooltip(element)?.textContent).toContain('Utrecht')
+    expect(tooltip(element)!.textContent).toContain('12')
+    const at = utrecht.getBoundingClientRect()
+    const box = tooltip(element)!.getBoundingClientRect()
+    expect(Math.abs(box.top - (at.top + at.height / 2))).toBeLessThan(24)
+    utrecht.blur()
+    await expect.poll(() => tooltip(element)).toBeNull()
+  })
+
+  it('sets the two corners of a rectangle with Enter at the middle of the view', async () => {
+    // An area stands already: it goes at the first Enter, and the host hears once, at the end.
+    const element = await mount({
+      controls: { rect: true },
+      selectedArea: {
+        kind: 'lasso',
+        ring: [
+          [5.0, 52.0],
+          [5.4, 52.0],
+          [5.4, 52.3],
+          [5.0, 52.3],
+        ],
+      },
+    })
+    const panel = (): Element | null => root(element).querySelector('.lintje-map-chart__selection')
+    expect(panel()).not.toBeNull()
+    const areas: { area: { kind: string; ring: unknown[] } }[] = []
+    element.addEventListener('lintje-area-select', (event) =>
+      areas.push((event as CustomEvent).detail),
+    )
+    tool(element).click()
+    await element.updateComplete
+    await keyboardFocus(surface(element))
+    const cross = root(element).querySelector('.lintje-map-chart__crosshair')!
+    await expect.poll(() => getComputedStyle(cross).display).toBe('block')
+    await userEvent.keyboard('{Enter}')
+    await expect.poll(panel).toBeNull()
+    // The arrows move the map 80 px under the cross; the rectangle runs on to it. Leaflet takes
+    // no arrow while it still pans from the last one.
+    const draft = (): DOMRect | undefined =>
+      root(element).querySelector('.lintje-map-chart__region--draft')?.getBoundingClientRect()
+    /** The size of the draft, once it has stood still for two polls: the pan has ended. */
+    const still = (side: 'width' | 'height') => {
+      const seen: number[] = []
+      return () => {
+        seen.push(Math.round(draft()?.[side] ?? 0))
+        const [a, b, c] = seen.slice(-3)
+        return a === b && b === c ? (c ?? 0) : 0
+      }
+    }
+    await userEvent.keyboard('{ArrowRight}')
+    await expect.poll(still('width')).toBeGreaterThan(40)
+    await userEvent.keyboard('{ArrowDown}')
+    await expect.poll(still('height')).toBeGreaterThan(40)
+    await userEvent.keyboard('{Enter}')
+    await expect.poll(() => areas.length).toBe(1)
+    expect(areas[0]!.area.kind).toBe('lasso')
+    expect(areas[0]!.area.ring).toHaveLength(4)
+    await expect.poll(panel).not.toBeNull()
+  })
+
+  it('takes Escape smallest first, with the pointer and the keys, and gives the tool button the focus', async () => {
+    const element = await mount({ controls: { circle: true, rect: true } })
+    const on = (): boolean => tool(element).classList.contains('is-active')
+    const hint = (): string | undefined =>
+      root(element).querySelector('.lintje-map-chart__hint')?.textContent?.trim()
+    const draft = (): Element | null => root(element).querySelector('.lintje-map-chart__draft > *')
+    const pick = async (name: string): Promise<void> => {
+      await userEvent.click(tool(element))
+      const row = await expect
+        .poll(() =>
+          [...root(element).querySelectorAll<HTMLElement>('.lintje-menu__row')].find((each) =>
+            each.textContent?.includes(name),
+          ),
+        )
+        .toBeTruthy()
+      void row
+      await userEvent.click(
+        [...root(element).querySelectorAll<HTMLElement>('.lintje-menu__row')].find((each) =>
+          each.textContent?.includes(name),
+        )!,
+      )
+      await expect.poll(on).toBe(true)
+    }
+
+    // The pointer: the circle's middle with a click, then Escape twice.
+    await pick('Cirkel')
+    expect(hint()).toBe(TOOL_HINTS.circle.pointer)
+    const box = surface(element).getBoundingClientRect()
+    await userEvent.click(surface(element), {
+      position: { x: box.width / 2, y: box.height / 2 },
+    })
+    await expect.poll(draft).not.toBeNull()
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(draft).toBeNull()
+    expect(on()).toBe(true)
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(on).toBe(false)
+    expect(root(element).activeElement).toBe(tool(element))
+
+    // The keys: the map's keyboard focus says how, Enter sets the middle, Escape twice.
+    await pick('Cirkel')
+    // On from the tool button to the map with the keyboard, as a reader does: the buttons stand
+    // before the map. A pointer's last click would keep a scripted focus from its ring in WebKit.
+    for (let i = 0; i < 40 && root(element).activeElement !== surface(element); i++)
+      await userEvent.keyboard(TAB)
+    expect(root(element).activeElement).toBe(surface(element))
+    await expect.poll(hint).toBe(TOOL_HINTS.circle.keys)
+    await userEvent.keyboard('{Enter}')
+    await expect.poll(draft).not.toBeNull()
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(draft).toBeNull()
+    expect(on()).toBe(true)
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(on).toBe(false)
+    expect(root(element).activeElement).toBe(tool(element))
+  })
+
+  it('leaves an Escape in a dialog over it to the dialog, with a tool in hand', async () => {
+    const element = await mount({ controls: { rect: true } })
+    tool(element).click()
+    await element.updateComplete
+    const modal = document.createElement('lintje-modal') as HTMLElement & {
+      open: boolean
+      heading: string
+      updateComplete: Promise<unknown>
+    }
+    modal.heading = 'Venster'
+    modal.innerHTML = '<button type="button">Verder</button>'
+    let closed = 0
+    modal.addEventListener('lintje-close', () => closed++)
+    document.body.append(modal)
+    modal.open = true
+    await modal.updateComplete
+    modal.querySelector('button')!.focus()
+    await userEvent.keyboard('{Escape}')
+    expect(closed).toBe(1)
+    expect(tool(element).classList).toContain('is-active')
+  })
+
+  it('takes a click 10 px beside a flow of 1 px', async () => {
+    const element = await mount({
+      basemap: BASEMAP,
+      variant: 'flows',
+      destination: { lon: 4.9, lat: 52.37, label: 'Amsterdam' },
+      values: [MIDDLE, CORNER, { ...SOUTH, value: 0 }],
+    })
+    await expect.poll(() => root(element).querySelectorAll('[data-mark-id]').length).toBe(3)
+    const flow = mark(element, 'maa')
+    const line = flow.querySelector<SVGPathElement>('.lintje-map-chart__flow-line')!
+    expect(getComputedStyle(line).strokeWidth).toBe('1px')
+    // The middle of the line on screen, and the direction across it there.
+    const length = line.getTotalLength()
+    const matrix = line.getScreenCTM()!
+    const onScreen = (at: number): DOMPoint => line.getPointAtLength(at).matrixTransform(matrix)
+    const middle = onScreen(length / 2)
+    const ahead = onScreen(length / 2 + 1)
+    const along = Math.hypot(ahead.x - middle.x, ahead.y - middle.y)
+    const [nx, ny] = [-(ahead.y - middle.y) / along, (ahead.x - middle.x) / along]
+    const beside = root(element).elementFromPoint(middle.x + nx * 10, middle.y + ny * 10)
+    expect(beside?.closest('[data-mark-id]')).toBe(flow)
+    const chosen: unknown[] = []
+    element.addEventListener('lintje-mark-select', (event) => chosen.push(event))
+    beside!.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }))
+    expect(chosen).toHaveLength(1)
+  })
+})
+
+describe('an emphasised area of the geometry', () => {
+  // Gelderland and Utrecht first: their neighbours are drawn after them, over their edge.
+  const PROVINCES: MapData['values'] = [
+    { id: 'NL-GE', label: 'Gelderland', value: 9 },
+    { id: 'NL-UT', label: 'Utrecht', value: 4 },
+    { id: 'NL-NB', label: 'Noord-Brabant', value: 6 },
+    { id: 'NL-ZH', label: 'Zuid-Holland', value: 7 },
+    { id: 'NL-NH', label: 'Noord-Holland', value: 8 },
+    { id: 'NL-FL', label: 'Flevoland', value: 2 },
+    { id: 'NL-OV', label: 'Overijssel', value: 5 },
+    { id: 'NL-LI', label: 'Limburg', value: 3 },
+  ]
+  const provinces = (extra: Partial<MapData> = {}): Promise<MapElement> =>
+    mount({ variant: 'choropleth', geo: 'provinces', values: PROVINCES, ...extra }, 640)
+  const shape = (element: MapElement, id: string): SVGPathElement =>
+    mark(element, id).querySelector('.lintje-map-chart__polygon-shape')!
+
+  /** The lifted outline of an area: a copy of its shape over every mark of the drawing. */
+  function outlineOver(element: MapElement, id: string, state: string): SVGPathElement {
+    const lifted = focusLayer(element).querySelector(`.lintje-map-chart__polygon.${state}`)!
+    const outline = lifted.querySelector<SVGPathElement>('.lintje-map-chart__polygon-shape')!
+    expect(outline.getAttribute('d')).toBe(shape(element, id).getAttribute('d'))
+    for (const other of root(element).querySelectorAll('.lintje-map-chart__data [data-mark-id]'))
+      expect(paintsOver(outline, other), other.getAttribute('data-mark-id')!).toBe(true)
+    // The outline alone: the fill stays the drawing's, and no ring or hatch is drawn again.
+    expect(getComputedStyle(outline).fill).toBe('none')
+    expect(getComputedStyle(lifted.querySelector('.lintje-map-chart__polygon-ring')!).display).toBe(
+      'none',
+    )
+    expect(lifted.hasAttribute('data-mark-id')).toBe(false)
+    return outline
+  }
+
+  /** A point inside an area where the pointer reaches it, not a neighbour or a gap. */
+  function pointIn(element: MapElement, id: string): { x: number; y: number } {
+    const target = shape(element, id)
+    const box = target.getBoundingClientRect()
+    for (let step = 0; step < 400; step++) {
+      // Out from the middle of the box, in a widening square.
+      const ring = Math.floor(Math.sqrt(step))
+      const x = box.left + box.width / 2 + ((step % 7) - 3) * ring * 3
+      const y = box.top + box.height / 2 + ((Math.floor(step / 7) % 7) - 3) * ring * 3
+      if (root(element).elementFromPoint(x, y) === target)
+        return { x: x - box.left, y: y - box.top }
+    }
+    throw new Error(`no point inside ${id}`)
+  }
+
+  afterEach(async () => {
+    delete document.documentElement.dataset.mode
+    await userEvent.unhover(document.body)
+  })
+
+  it.each(['light', 'dark'])(
+    'lays the outline of the area under the pointer over its neighbours, in %s',
+    async (mode) => {
+      document.documentElement.dataset.mode = mode
+      const element = await provinces()
+      // Without the lift, Utrecht and Brabant would cover half of Gelderland's edge.
+      expect(paintsOver(mark(element, 'NL-UT'), mark(element, 'NL-GE'))).toBe(true)
+      expect(paintsOver(mark(element, 'NL-NB'), mark(element, 'NL-GE'))).toBe(true)
+      await userEvent.hover(shape(element, 'NL-GE'), { position: pointIn(element, 'NL-GE') })
+      await expect
+        .poll(() => focusLayer(element).querySelector('.lintje-map-chart__polygon.is-hovered'))
+        .not.toBeNull()
+      const outline = outlineOver(element, 'NL-GE', 'is-hovered')
+      expect(getComputedStyle(outline).stroke).toBe(resolved(element, '--color-text-primary'))
+      expect(getComputedStyle(outline).strokeWidth).toBe('1.5px')
+      // The pointer moves on: the outline goes with it.
+      await userEvent.hover(shape(element, 'NL-OV'), { position: pointIn(element, 'NL-OV') })
+      await expect
+        .poll(() =>
+          focusLayer(element)
+            .querySelector('.is-hovered .lintje-map-chart__polygon-shape')
+            ?.getAttribute('d'),
+        )
+        .toBe(shape(element, 'NL-OV').getAttribute('d'))
+      expect(focusLayer(element).querySelectorAll('.is-hovered')).toHaveLength(1)
+    },
+  )
+
+  it.each(['light', 'dark'])(
+    'lays the outline of a chosen area over its neighbours, in %s',
+    async (mode) => {
+      document.documentElement.dataset.mode = mode
+      const element = await provinces({ selectedId: 'NL-UT' })
+      await expect.poll(() => mark(element, 'NL-UT').classList.contains('is-selected')).toBe(true)
+      const outline = outlineOver(element, 'NL-UT', 'is-selected')
+      expect(getComputedStyle(outline).stroke).toBe(resolved(element, '--color-text-primary'))
+      expect(getComputedStyle(outline).strokeWidth).toBe('2px')
+      // Only what stands out is lifted: the neighbours stay in the drawing alone.
+      expect(focusLayer(element).children).toHaveLength(1)
+    },
+  )
+
+  it('lays the ring of a focused chosen area on top, once', async () => {
+    const element = await provinces({ selectedId: 'NL-UT' })
+    await keyboardFocus(mark(element, 'NL-UT'))
+    await expect.poll(() => copy(element)).not.toBeNull()
+    // Its focus copy is the whole mark and stands in for the chosen one.
+    expect(focusLayer(element).children).toHaveLength(1)
+    const ring = copy(element)!.querySelector('.lintje-map-chart__polygon-ring')!
+    expect(getComputedStyle(ring).stroke).toBe(resolved(element, '--color-focus'))
+    ;(mark(element, 'NL-UT') as SVGElement).blur()
+    await expect.poll(() => copy(element)).toBeNull()
+    outlineOver(element, 'NL-UT', 'is-selected')
+  })
+
+  // Playwright emulates forced colours in Chromium.
+  it.runIf(server.browser === 'chromium')(
+    'outlines a chosen area in CanvasText over its neighbours with forced colours',
+    async () => {
+      await commands.emulateForcedColors(true)
+      try {
+        const element = await provinces({ selectedId: 'NL-UT' })
+        await expect.poll(() => focusLayer(element).children.length).toBe(1)
+        const outline = outlineOver(element, 'NL-UT', 'is-selected')
+        const probe = document.createElement('i')
+        probe.style.color = 'CanvasText'
+        document.body.append(probe)
+        expect(getComputedStyle(outline).stroke).toBe(getComputedStyle(probe).color)
+      } finally {
+        await commands.emulateForcedColors(false)
+      }
+    },
+  )
 })

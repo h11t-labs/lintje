@@ -73,6 +73,29 @@ const isItem = (entry: MenuEntry): entry is MenuItem =>
 export type MenuButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'flat' | 'ellipsis'
 
 /**
+ * What stands before a row's label: a switch's check, one of a choice's circle, else its icon.
+ * Shared with the user menu, which draws its own rows.
+ */
+export function renderMenuMark(item: MenuItem): TemplateResult | typeof nothing {
+  if (item.checked !== undefined && item.radio) {
+    // One of a choice is a radio's circle, as in a form; a switch is a check.
+    return html`<span
+      class=${classMap({ 'lintje-menu__icon': true, 'lintje-menu__radio': true, 'is-checked': Boolean(item.checked) })}
+    ></span>`
+  }
+  if (item.checked !== undefined) {
+    // An unchecked row keeps the empty slot, so the labels of a group stay in line.
+    return item.checked
+      ? renderIcon('functioneel-vinkje', {
+          size: 16,
+          className: 'lintje-menu__icon lintje-menu__check',
+        })
+      : html`<span class="lintje-menu__icon lintje-menu__slot"></span>`
+  }
+  return item.icon ? renderIcon(item.icon, { size: 16, className: 'lintje-menu__icon' }) : nothing
+}
+
+/**
  * The entries of a menu: a heading and the rows under it form a `group` named by it, since a menu
  * takes no loose text. Shared with the user menu, which draws its own rows.
  */
@@ -533,24 +556,7 @@ export class LintjeMenuButton extends LintjeElement {
     })
     const switched = item.checked !== undefined
     const role = switched ? (item.radio ? 'menuitemradio' : 'menuitemcheckbox') : 'menuitem'
-    let icon: TemplateResult | typeof nothing = nothing
-    if (switched && item.radio) {
-      // One of a choice is a radio's circle, as in a form; a switch is a check.
-      icon = html`<span
-        class=${classMap({ 'lintje-menu__icon': true, 'lintje-menu__radio': true, 'is-checked': Boolean(item.checked) })}
-      ></span>`
-    } else if (switched) {
-      // An unchecked row keeps the empty slot, so the labels of a group stay in line.
-      icon = item.checked
-        ? renderIcon('functioneel-vinkje', {
-            size: 16,
-            className: 'lintje-menu__icon lintje-menu__check',
-          })
-        : html`<span class="lintje-menu__icon lintje-menu__slot"></span>`
-    } else if (item.icon) {
-      icon = renderIcon(item.icon, { size: 16, className: 'lintje-menu__icon' })
-    }
-    const content = html`${icon}<span class="lintje-menu__label" @pointerenter=${titleWhenCut}>${item.label}</span>${
+    const content = html`${renderMenuMark(item)}<span class="lintje-menu__label" @pointerenter=${titleWhenCut}>${item.label}</span>${
       item.hint ? html`<span class="lintje-menu__hint">${item.hint}</span>` : nothing
     }`
     const row =
