@@ -1,0 +1,18 @@
+[
+  {"from": 0, "to": 2, "this_year": 40, "last_year": 20},
+  {"from": 2, "to": 4, "this_year": 120, "last_year": 70},
+  {"from": 4, "to": 6, "this_year": 260, "last_year": 150},
+  {"from": 6, "to": 8, "this_year": 310, "last_year": 220},
+  {"from": 8, "to": 10, "this_year": 280, "last_year": 260},
+  {"from": 10, "to": 12, "this_year": 220, "last_year": 270},
+  {"from": 12, "to": 14, "this_year": 170, "last_year": 230},
+  {"from": 14, "to": 16, "this_year": 130, "last_year": 180},
+  {"from": 16, "to": 18, "this_year": 95, "last_year": 130},
+  {"from": 18, "to": 20, "this_year": 70, "last_year": 95},
+  {"from": 20, "to": 22, "this_year": 52, "last_year": 70},
+  {"from": 22, "to": 24, "this_year": 40, "last_year": 55},
+  {"from": 24, "to": 26, "this_year": 30, "last_year": 42},
+  {"from": 26, "to": 28, "this_year": 22, "last_year": 30},
+  {"from": 28, "to": 30, "this_year": 16, "last_year": 22},
+  {"from": 30, "to": null, "this_year": 45, "last_year": 56}
+]
