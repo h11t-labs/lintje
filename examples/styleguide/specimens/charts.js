@@ -922,6 +922,17 @@ const CHARTS = [
     },
   },
   {
+    id: 'histogram-two-colour', title: 'Doorlooptijd van aanvragen in Noord en Zuid',
+    description: 'Doorlooptijd van afgehandelde aanvragen dit jaar in klassen van twee dagen: 1.019 in Noord en 881 in Zuid. Noord piekt bij 6 tot 8 dagen, Zuid bij 6 tot 10 dagen; 55 aanvragen in Noord en 98 in Zuid duurden 22 dagen of langer.',
+    spec: {
+      kind: 'histogram', label: 'Noord', unit: 'dagen',
+      bins: processing.map((row) => ({ from: row.from, to: row.to, count: row.north })),
+      comparison: { label: 'Zuid', counts: processing.map((row) => row.south), color: 'dark-yellow' },
+      axisTitle: 'aanvragen per twee dagen', xTitle: 'doorlooptijd in dagen',
+      threshold: 21, thresholdLabel: 'termijn 21 dagen',
+    },
+  },
+  {
     id: 'line-light-colours', title: 'Afspraken per regio',
     description: 'Gemaakte afspraken per maand in drie regio’s, januari tot en met juni. Noord loopt op van 410 naar 520, Midden van 380 naar 455, Zuid daalt van 300 naar 260.',
     spec: {
@@ -982,6 +993,7 @@ const VARIANT_NAMES = {
   'heatmap-labels': 'Met lange rijlabels',
   histogram: 'Met mediaan en termijn',
   'histogram-two': 'Twee sets',
+  'histogram-two-colour': 'Twee variabelen',
   treemap: 'Eén niveau',
   'treemap-nested': 'Twee niveaus',
   'treemap-chosen': 'Een gekozen vlak',
@@ -1009,6 +1021,7 @@ const VARIANT_NAMES = {
 
 // What a label cannot say, for the note under it.
 const VARIANT_NOTES = {
+  'histogram-two-colour': 'Zuid is een tweede variabele: een doorgetrokken trap in donkergeel, met haar donkere rand. Zonder kleur zou ze een vergelijking zijn.',
   'histogram-two': 'De gestreepte traplijn is vorig jaar, langs de bovenkant van elke klasse. Zet in de legenda een set uit: de as blijft staan.',
   'heatmap-labels': 'Met een aanwijzer staat een lange naam heel in de tooltip; zonder hover en op een telefoon loopt hij door.',
   line: 'De laatste twee uren zijn nog niet compleet en staan gearceerd.',

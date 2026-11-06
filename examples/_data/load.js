@@ -20,5 +20,5 @@ export const number = (value) => value.toLocaleString('nl-NL')
 /** A fictional budget in mld euro: policy areas, some with their sub-posts. */
 export const budget = await load('budget')
 
-/** The processing time of the requests in classes of two days, this year and last year. */
+/** The processing time of the requests in classes of two days: this year, last year, and this year in two regions. */
 export const processing = await load('processing')

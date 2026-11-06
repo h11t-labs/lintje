@@ -342,6 +342,44 @@ describe('the histogram with a comparison', () => {
   })
 })
 
+describe('the histogram with a second variable', () => {
+  const second = { label: 'Zuid', counts: [12, 40, 95, 120], color: 'dark-yellow' }
+  const bins = BINS.slice(0, 4)
+  const line = (host: Element) =>
+    host.querySelector('polyline.lintje-chart__line:not(.lintje-chart__line--casing)')
+
+  it('draws a solid step in its colour, on the dark edge of a light colour', () => {
+    const { host } = draw({ bins, label: 'Noord', comparison: second })
+    expect(line(host)?.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow)')
+    expect(line(host)?.hasAttribute('stroke-dasharray')).toBe(false)
+    expect(host.querySelector('.lintje-chart__line--casing')?.getAttribute('stroke')).toBe(
+      'var(--color-chart-dark-yellow-edge)',
+    )
+  })
+
+  it('keeps the surface as the casing of a colour that needs no edge', () => {
+    const { host } = draw({ bins, comparison: { ...second, color: 'red' } })
+    expect(host.querySelector('.lintje-chart__line--casing')?.getAttribute('stroke')).toBe(
+      'var(--color-bg-surface)',
+    )
+  })
+
+  it('keys it as a line in the legend and the tooltip, and names it in the description', () => {
+    const { host, controller } = draw({ bins, label: 'Noord', comparison: second })
+    const marker = host.querySelectorAll('.lintje-legend__marker')[1]
+    expect(marker?.classList).toContain('lintje-legend__marker--line')
+    expect(marker?.classList).not.toContain('lintje-legend__marker--dashed')
+    const drawing = host.querySelector('svg[tabindex="0"]')!
+    drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }))
+    expect(controller.status).toBe('0 tot 2 dagen: Noord 40, Aandeel 5,5%, Zuid 12, Aandeel 4,5%')
+    expect(host.querySelector('.lintje-chart-tooltip__marker--line')).not.toBeNull()
+    expect(host.querySelector('.lintje-chart-tooltip__marker--dashed')).toBeNull()
+    expect(host.querySelector('desc')?.textContent).toBe(
+      'Een figuur. De doorgetrokken traplijn is Zuid.',
+    )
+  })
+})
+
 describe('the labels of the median and the threshold', () => {
   const area = { width: 310, height: 260, left: 32, right: 8, top: 16, bottom: 44 }
 

@@ -1,7 +1,8 @@
 /**
  * A histogram: counts in classes that touch, on an x-axis that runs on, so the labels stand on
- * the class bounds. A median is a solid emphasis line, a threshold a dashed one. A comparison is a
- * grey dashed step along the top of each class, over the bars, so the classes keep touching.
+ * the class bounds. A median is a solid emphasis line, a threshold a dashed one. A second set is
+ * a step along the top of each class, over the bars, so the classes keep touching: grey and dashed
+ * as a comparison, solid in its colour as a second variable.
  */
 import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
@@ -9,7 +10,7 @@ import { styleProps } from '../../../../core/style-props'
 import { axisColumn, axisScale, yPosition, type PlotArea } from '../shared/scale'
 import { formatNumber, formatPercent, textWidth, type TextFont } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
-import { DEFAULT_SERIES_COLOR, chartColor } from '../shared/colors'
+import { DEFAULT_SERIES_COLOR, chartColor, lineCasing } from '../shared/colors'
 import {
   renderChartFrame,
   renderLegend,
@@ -106,6 +107,9 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
   })
 
   const comparison = spec.comparison
+  // Without a colour the second set is a comparison; with one, a second variable.
+  const stepColor = chartColor(comparison?.color) ?? COMPARISON_COLOR
+  const stepDashed = comparison?.color == null
   const compared = bins.map((_, i) => comparison?.counts[i] ?? null)
   const known = (values: (number | null)[]) =>
     values.filter((count): count is number => count != null)
@@ -150,7 +154,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     name: string,
     count: number | null,
     setTotal: number | null,
-    swatch: { color: string; marker?: 'dashed' },
+    swatch: { color: string; marker?: 'dashed' | 'line' },
   ) => [
     { label: name, value: count == null ? 'geen gegevens' : formatNumber(count), ...swatch },
     ...(count != null && setTotal != null && setTotal > 0
@@ -163,8 +167,8 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
       ...(countsOff ? [] : setRows(label, bins[i].count, total, { color })),
       ...(comparison && !comparisonOff
         ? setRows(comparison.label, compared[i], comparisonTotal, {
-            color: COMPARISON_COLOR,
-            marker: 'dashed',
+            color: stepColor,
+            marker: stepDashed ? 'dashed' : 'line',
           })
         : []),
     ],
@@ -250,8 +254,8 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
       ? [
           {
             label: comparison.label,
-            color: COMPARISON_COLOR,
-            shape: 'dashed' as const,
+            color: stepColor,
+            shape: stepDashed ? ('dashed' as const) : ('line' as const),
             key: COMPARISON_KEY,
             hidden: comparisonOff,
           },
@@ -326,16 +330,17 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
                   x=${slots[hovered].x} y=${yPosition(lifted, max, area)} width=${slots[hovered].width}
                   height=${Math.max(0, baseline - yPosition(lifted, max, area))} fill=${color} />`
       : nothing,
-    // Over the bars and their lift, with a casing in the surface so it reads on a bar too.
+    // Over the bars and their lift, with a casing so it reads on a bar too: a light colour's
+    // dark edge, or else the surface.
     comparison
       ? svg`<g class="lintje-chart__series ${comparisonOff ? 'is-off' : ''}">
           <g class="lintje-chart__reveal">
             ${steps.map(
               (points) => svg`
                 <polyline class="lintje-chart__line lintje-chart__line--casing" points=${points}
-                          stroke="var(--color-bg-surface)" />
-                <polyline class="lintje-chart__line" points=${points}
-                          stroke=${COMPARISON_COLOR} stroke-dasharray="5 4" />`,
+                          stroke=${lineCasing(stepColor) ?? 'var(--color-bg-surface)'} />
+                <polyline class="lintje-chart__line" points=${points} stroke=${stepColor}
+                          stroke-dasharray=${stepDashed ? '5 4' : nothing} />`,
             )}
           </g>
         </g>`
@@ -395,7 +400,11 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
           axisTitle,
           xTitle,
           description: comparison
-            ? `${description} De gestreepte traplijn is de vergelijking: ${comparison.label}.`.trim()
+            ? `${description} ${
+                stepDashed
+                  ? `De gestreepte traplijn is de vergelijking: ${comparison.label}.`
+                  : `De doorgetrokken traplijn is ${comparison.label}.`
+              }`.trim()
             : description,
           formatTick: axis.format,
           keys,
