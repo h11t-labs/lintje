@@ -1,6 +1,8 @@
 /**
  * A histogram: counts in classes that touch, on an x-axis that runs on, so the labels stand on
- * the class bounds. A median is a solid emphasis line, a threshold a dashed one.
+ * the class bounds. A median is a solid emphasis line, a threshold a dashed one. A second set is
+ * a step along the top of each class, over the bars, so the classes keep touching: grey and dashed
+ * as a comparison, solid in its colour as a second variable.
  */
 import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
@@ -8,7 +10,7 @@ import { styleProps } from '../../../../core/style-props'
 import { axisColumn, axisScale, yPosition, type PlotArea } from '../shared/scale'
 import { formatNumber, formatPercent, textWidth, type TextFont } from '../../../../core/format'
 import { staggerStyle } from '../shared/stagger'
-import { DEFAULT_SERIES_COLOR, chartColor } from '../shared/colors'
+import { DEFAULT_SERIES_COLOR, chartColor, lineCasing } from '../shared/colors'
 import {
   renderChartFrame,
   renderLegend,
@@ -32,6 +34,9 @@ const MIN_LABEL_SPACING = 56
 const LINE_LABEL_GAP = 8
 /** A second line label that would touch the first drops one line. */
 const LINE_LABEL_ROW = 18
+/** The comparison's legend key: its label could equal the counts' label. */
+const COMPARISON_KEY = 'histogram:comparison'
+const COMPARISON_COLOR = 'var(--color-chart-secondary)'
 
 /** A bound as written: whole numbers whole, anything else with one decimal. */
 function bound(value: number): string {
@@ -101,10 +106,23 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     fit: Boolean(options.expanded) && !options.mobile,
   })
 
-  const counts = bins.map((bin) => bin.count).filter((count): count is number => count != null)
+  const comparison = spec.comparison
+  // Without a colour the second set is a comparison; with one, a second variable.
+  const stepColor = chartColor(comparison?.color) ?? COMPARISON_COLOR
+  const stepDashed = comparison?.color == null
+  const compared = bins.map((_, i) => comparison?.counts[i] ?? null)
+  const known = (values: (number | null)[]) =>
+    values.filter((count): count is number => count != null)
   // With a class missing the total is unknown, and so is every share of it.
-  const total = counts.length === bins.length ? counts.reduce((sum, count) => sum + count, 0) : null
-  const { max, ticks } = axisScale(Math.max(...counts, 1))
+  const totalOf = (values: (number | null)[]) =>
+    known(values).length === values.length
+      ? values.reduce<number>((sum, count) => sum + count!, 0)
+      : null
+  const counts = bins.map((bin) => bin.count)
+  const total = totalOf(counts)
+  const comparisonTotal = comparison ? totalOf(compared) : null
+  // Both sets share the axis, which stays when either is switched off.
+  const { max, ticks } = axisScale(Math.max(...known(counts), ...known(compared), 1))
   const axis = axisColumn(ticks, controller.width, { font: controller.font })
   const defaults = chartArea(options)
   const area = chartArea(options, {
@@ -130,25 +148,40 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
 
   const off = (key: string) => controller.hiddenSeries.includes(key)
   const countsOff = off(label)
-  const contentAt = (i: number): TooltipContent => {
-    const count = bins[i].count
+  const comparisonOff = off(COMPARISON_KEY)
+  // A set's rows: its count and its share of its own total, with the set's swatch on both.
+  const setRows = (
+    name: string,
+    count: number | null,
+    setTotal: number | null,
+    swatch: { color: string; marker?: 'dashed' | 'line' },
+  ) => [
+    { label: name, value: count == null ? 'geen gegevens' : formatNumber(count), ...swatch },
+    ...(count != null && setTotal != null && setTotal > 0
+      ? [{ label: 'Aandeel', value: formatPercent((count / setTotal) * 100, 1), ...swatch }]
+      : []),
+  ]
+  const contentAt = (i: number): TooltipContent => ({
+    title: binLabel(bins[i], unit),
+    rows: [
+      ...(countsOff ? [] : setRows(label, bins[i].count, total, { color })),
+      ...(comparison && !comparisonOff
+        ? setRows(comparison.label, compared[i], comparisonTotal, {
+            color: stepColor,
+            marker: stepDashed ? 'dashed' : 'line',
+          })
+        : []),
+    ],
+  })
+  // The keyboard's point stands on the higher of the sets that are shown.
+  const keys = plotKeys(controller, bins.length, (i) => {
+    const tops = known([countsOff ? null : bins[i].count, comparisonOff ? null : compared[i]])
     return {
-      title: binLabel(bins[i], unit),
-      rows: countsOff
-        ? []
-        : [
-            { label, value: count == null ? 'geen gegevens' : formatNumber(count), color },
-            ...(count != null && total != null && total > 0
-              ? [{ label: 'Aandeel', value: formatPercent((count / total) * 100, 1), color }]
-              : []),
-          ],
+      x: slots[i].center,
+      y: tops.length ? yPosition(Math.max(...tops), max, area) : area.top,
+      content: contentAt(i),
     }
-  }
-  const keys = plotKeys(controller, bins.length, (i) => ({
-    x: slots[i].center,
-    y: bins[i].count == null ? area.top : yPosition(bins[i].count!, max, area),
-    content: contentAt(i),
-  }))
+  })
 
   // The labels stand on the bounds, thinned to what fits; an open class is named under its
   // middle, and the bound it starts on stays unlabelled.
@@ -208,9 +241,26 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
   const lineLabels = placeLineLabels(lines, area, controller.font)
 
   const capitalised = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
-  // The counts are the one series: a switch only while a line would stay.
+  // The counts are a switch only while something else would stay.
   const legend: LegendItem[] = [
-    { label, color, shape: 'square', fixed: lines.length === 0, hidden: countsOff },
+    {
+      label,
+      color,
+      shape: 'square',
+      fixed: lines.length === 0 && !comparison,
+      hidden: countsOff,
+    },
+    ...(comparison
+      ? [
+          {
+            label: comparison.label,
+            color: stepColor,
+            shape: stepDashed ? ('dashed' as const) : ('line' as const),
+            key: COMPARISON_KEY,
+            hidden: comparisonOff,
+          },
+        ]
+      : []),
     ...(onScale(median)
       ? [
           {
@@ -257,12 +307,43 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
   const hovered = controller.hoverIndex
   const lifted = hovered != null ? bins[hovered]?.count : null
 
+  // The comparison's step: the top of each class it has, with a riser to the next one. A
+  // missing class breaks the step (rule 15).
+  const steps: string[] = []
+  let run = ''
+  compared.forEach((count, i) => {
+    if (count == null) {
+      if (run) steps.push(run)
+      run = ''
+      return
+    }
+    const y = yPosition(count, max, area)
+    const end = slots[i].x + slots[i].width
+    run += `${run ? ' ' : ''}${slots[i].x},${y} ${end},${y}`
+  })
+  if (run) steps.push(run)
+
   const marks: SvgSlot = [
     svg`<g class="lintje-chart__series ${countsOff ? 'is-off' : ''}">${bins.map((_, i) => bar(i))}</g>`,
     hovered != null && lifted != null && !countsOff
       ? svg`<rect class="lintje-chart__bar lintje-chart__bar--lifted lintje-chart__segment"
                   x=${slots[hovered].x} y=${yPosition(lifted, max, area)} width=${slots[hovered].width}
                   height=${Math.max(0, baseline - yPosition(lifted, max, area))} fill=${color} />`
+      : nothing,
+    // Over the bars and their lift, with a casing so it reads on a bar too: a light colour's
+    // dark edge, or else the surface.
+    comparison
+      ? svg`<g class="lintje-chart__series ${comparisonOff ? 'is-off' : ''}">
+          <g class="lintje-chart__reveal">
+            ${steps.map(
+              (points) => svg`
+                <polyline class="lintje-chart__line lintje-chart__line--casing" points=${points}
+                          stroke=${lineCasing(stepColor) ?? 'var(--color-bg-surface)'} />
+                <polyline class="lintje-chart__line" points=${points} stroke=${stepColor}
+                          stroke-dasharray=${stepDashed ? '5 4' : nothing} />`,
+            )}
+          </g>
+        </g>`
       : nothing,
     shown.map(
       (tick) => svg`
@@ -318,7 +399,13 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
           area,
           axisTitle,
           xTitle,
-          description,
+          description: comparison
+            ? `${description} ${
+                stepDashed
+                  ? `De gestreepte traplijn is de vergelijking: ${comparison.label}.`
+                  : `De doorgetrokken traplijn is ${comparison.label}.`
+              }`.trim()
+            : description,
           formatTick: axis.format,
           keys,
         },

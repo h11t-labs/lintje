@@ -254,6 +254,13 @@ export type ChartSpec =
       /** What the classes count, in the legend and the tooltip. Default "Aantal". */
       label?: string
       color?: ChartColor
+      /**
+       * A second distribution over the same classes: a step along the top of each class. Without
+       * `color` a comparison, such as last year, grey and dashed; with a `color` a second
+       * variable, such as another region, solid in that colour, which differs from the bars'.
+       * One count per bin; `null` is no data, never 0 (rule 15).
+       */
+      comparison?: { label: string; counts: (number | null)[]; color?: ChartColor }
       /** Above the y-axis, e.g. "aanvragen per twee dagen". */
       axisTitle?: string
       /** Under the x labels, right-aligned, e.g. "doorlooptijd in dagen". */

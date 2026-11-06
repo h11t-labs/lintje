@@ -157,6 +157,27 @@ describe('lintje-chart CSV of a histogram', () => {
       ['5 dagen of meer', 5, '', 7],
     ])
   })
+
+  it('writes a column per set with a comparison, a missing count missing', async () => {
+    const element = await tile({
+      title: 'Doorlooptijd',
+      description: 'Doorlooptijd in klassen, dit jaar en vorig jaar.',
+      chart: {
+        kind: 'histogram',
+        label: 'Dit jaar',
+        bins: [
+          { from: 0, to: 2, count: 4 },
+          { from: 2, to: null, count: 7 },
+        ],
+        comparison: { label: 'Vorig jaar', counts: [null, 9] },
+      },
+    })
+    expect(csv(element)).toEqual([
+      ['Klasse', 'Van', 'Tot', 'Dit jaar', 'Vorig jaar'],
+      ['0 tot 2', 0, 2, 4, null],
+      ['2 of meer', 2, '', 7, 9],
+    ])
+  })
 })
 
 describe('lintje-chart error state', () => {
