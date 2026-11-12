@@ -11,6 +11,31 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.13.2] - 2026-11-12
+
+### Toegevoegd
+
+- `autocomplete` op `lintje-textarea`, `lintje-number-input` en `lintje-date-input`;
+  `description` op `lintje-copy-button`; `level` op `lintje-kpi` en `lintje-kpi-row`;
+  `source-lang` op `lintje-translator`; `lang` op een rij van `lintje-list` en een resultaat van
+  `lintje-app-search`. (#288)
+
+### Opgelost
+
+- De nadruk in een grafiek volgt de muis weer meteen: de staaf of klasse onder de muis komt direct naar boven, ook terwijl de muis beweegt, en springt van staaf naar staaf zonder animatie, terwijl de tooltip kort meeglijdt naar zijn nieuwe plek. Alleen de tooltip wacht nog even als de muis in zijn richting beweegt, zodat je hem over een buur kunt bereiken; daar aangekomen gaat de nadruk terug naar zijn staaf. (#336)
+- Een balk die blijft staan of een paneel dat over de pagina ligt, bedekt de focus niet meer: een toast staat boven de actiebalk en houdt, als hij blijft staan, zijn hoogte vrij; de vastgezette, opengeklapte filterzone en de opties van het vraagvak sluiten zodra de focus ze verlaat; een eigen balk van de host telt in de shell mee met `data-sticky="top"` of `"bottom"`; en op een telefoon loopt de vastgeplakte actiebalk van rand tot rand. (#289)
+- Een schermlezer hoort de soort van een toast, wat een herkend woord in een verstuurde vraag is,
+  dat de knoppen van een modal downloaden, het label van een kerncijfer als kop, bij welke kolom
+  een filtergroep hoort, elke lijst als lijst, de staat van een vinkje in het gebruikersmenu, dat
+  Link een venstertje opent, en de taal van een brontekst, een lijstrij en een zoekresultaat. Bij
+  "Anders, namelijk" blijft de focus op de keuze en zegt het veld dat het ingevuld moet worden;
+  een datum is ook als "03102026" te typen. (#288)
+- In de stijlgids staat elk voorbeeld van de schil in een eigen kader, zodat de pagina één `main`
+  en één `h1` heeft. Het kader tekent op de breedte van het venster, de voet van het zijmenu op
+  1440 px, en verkleint tot de kolom. (#288)
+- Tekst blijft heel bij een grotere regel-, letter- of woordafstand en een grotere standaardletter: een rij van `lintje-sortable-list` groeit mee, een vinkje, keuzerondje of schakelaar staat op de eerste regel van een label dat afbreekt, even hoog als voorheen, de groepskop in het open zijmenu, de bron van een logregel, de tekenaanwijzing van de kaart, een stap in `lintje-chat-steps`, de naam van een bijlage en een naam in het halterdiagram op een telefoon lopen door, het bijschrift in het vraagvak staat heel met de cursor in zijn woord, de assen, de sankey en de treemap meten met de afstand en de letter van de lezer, `lintje-stepper` meet opnieuw als zijn labels breder worden, en `lintje-time-input` is in rem. (#285)
+- In het gesprek nemen nieuwe vragen de focus niet meer uit een vraagvak waarin je typt, en op een telefoon blijft dat vraagvak dan open; de fout en de hint van een vraag staan boven de keuzes en klinken met de focus (`description` op de keuzegroepen en `lintje-textarea`), een keuze die met het toetsenbord de focus krijgt, scrolt helemaal in beeld in een lijst die scrolt, en de focusring in de keuzelijst en bij een bronlink in een stap is heel; een stap zegt in woorden of hij bezig, mislukt of gestopt is; het kruisje van een bijlage die niet klaar is zegt hoe ze ervoor staat, een bijlage die uploadt zegt haar voortgang één keer en het klikvlak van het kruisje ligt niet meer over "Opnieuw"; bij een vraag met bijlagen klinkt "Jij:" vóór de bestanden. (#284)
+
 ## [0.13.1] - 2026-11-03
 
 ### Gewijzigd
@@ -783,7 +808,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.13.1...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.13.2...HEAD
+[0.13.2]: https://github.com/h11t-labs/lintje/compare/v0.13.1...v0.13.2
 [0.13.1]: https://github.com/h11t-labs/lintje/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/h11t-labs/lintje/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/h11t-labs/lintje/compare/v0.12.0...v0.12.1

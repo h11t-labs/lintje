@@ -113,6 +113,51 @@ export interface MeasureSpec {
  * on its way to the tooltip the pointer may cross a neighbour (WCAG 1.4.13).
  */
 export const POINTER_GRACE = 200
+/** How far past the tooltip's near edge a move still counts as heading for it: a hand wobbles. */
+const HEADING_SLACK = 16
+
+export interface ClientPoint {
+  x: number
+  y: number
+}
+
+/**
+ * Whether a move from `from` to `to` heads for `box`: `to` lies in the triangle between `from`
+ * and the side of the box that faces it, or in the box itself.
+ */
+export function headingFor(
+  from: ClientPoint,
+  to: ClientPoint,
+  box: { left: number; top: number; right: number; bottom: number },
+): boolean {
+  const inside = (p: ClientPoint) =>
+    p.x >= box.left && p.x <= box.right && p.y >= box.top && p.y <= box.bottom
+  if (inside(to) || inside(from)) return true
+  const s = HEADING_SLACK
+  let a: ClientPoint
+  let b: ClientPoint
+  if (from.x < box.left) {
+    a = { x: box.left, y: box.top - s }
+    b = { x: box.left, y: box.bottom + s }
+  } else if (from.x > box.right) {
+    a = { x: box.right, y: box.top - s }
+    b = { x: box.right, y: box.bottom + s }
+  } else if (from.y < box.top) {
+    a = { x: box.left - s, y: box.top }
+    b = { x: box.right + s, y: box.top }
+  } else {
+    a = { x: box.left - s, y: box.bottom }
+    b = { x: box.right + s, y: box.bottom }
+  }
+  const side = (p: ClientPoint, q: ClientPoint, r: ClientPoint) =>
+    (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x)
+  const d1 = side(from, a, to)
+  const d2 = side(a, b, to)
+  const d3 = side(b, from, to)
+  const negative = d1 < 0 || d2 < 0 || d3 < 0
+  const positive = d1 > 0 || d2 > 0 || d3 > 0
+  return !(negative && positive)
+}
 
 /** Share of the element — or of the viewport, for an element taller than that — that must show. */
 const VISIBLE_SHARE = 0.35
@@ -181,6 +226,12 @@ export class ChartController {
   /** What the pointer's tooltip stands for (a category, a mark); `undefined` for the keyboard's. */
   private pointerKey: unknown = undefined
   private pointerTimer: ReturnType<typeof setTimeout> | null = null
+  /** The key `pointerTimer` waits to show; `undefined` while it waits for nothing or to hide. */
+  private pendingKey: unknown = undefined
+  /** Where the pointer was at its last move over a mark, in client coordinates. */
+  private pointerAt: ClientPoint | null = null
+  /** Lifts the mark the tooltip stands for, to bring the lift back from a neighbour. */
+  private pointerLift: (() => void) | null = null
   private readonly notify: () => void
   /** The data last drawn, and as JSON once its reference changed. */
   private drawn: unknown = undefined
@@ -332,37 +383,67 @@ export class ChartController {
     if (!(target instanceof Element)) return
     const anchor = target.closest('[data-tooltip-anchor]')
     if (!anchor) return
-    this.pointTo(target, () => {
-      const area = anchor.getBoundingClientRect()
-      const box = target.getBoundingClientRect()
-      this.showTooltipAt(
-        (Math.max(box.left, area.left) + Math.min(box.right, area.right)) / 2 - area.left,
-        (Math.max(box.top, area.top) + Math.min(box.bottom, area.bottom)) / 2 - area.top,
-        content,
-      )
-    })
+    this.pointTo(
+      target,
+      () => {
+        const area = anchor.getBoundingClientRect()
+        const box = target.getBoundingClientRect()
+        this.showTooltipAt(
+          (Math.max(box.left, area.left) + Math.min(box.right, area.right)) / 2 - area.left,
+          (Math.max(box.top, area.top) + Math.min(box.bottom, area.bottom)) / 2 - area.top,
+          content,
+        )
+      },
+      { x: event.clientX, y: event.clientY },
+    )
   }
 
   /**
-   * The pointer is on the mark or category `key`, and `show` stands its tooltip. The same key
-   * changes nothing; another waits `POINTER_GRACE`, so the pointer can cross a neighbour on its
-   * way to the tooltip, and the tooltip under the pointer keeps it.
+   * The pointer is on the mark or category `key`, at `at`; `show` stands its tooltip and `lift`
+   * only lifts it. The same key changes nothing; another shows at once, unless the pointer heads
+   * for the tooltip: then only the lift follows, and the tooltip waits `POINTER_GRACE`, so the
+   * pointer can cross a neighbour on its way there and the tooltip under the pointer keeps it.
+   * Without `at` it always waits.
    */
-  pointTo(key: unknown, show: () => void): void {
+  pointTo(key: unknown, show: () => void, at?: ClientPoint, lift?: () => void): void {
+    const from = this.pointerAt
+    this.pointerAt = at ?? null
+    if (this.tooltip && key === this.pointerKey) {
+      if (this.pendingKey !== undefined) lift?.()
+      this.clearPointerTimer()
+      return
+    }
+    const waits =
+      this.tooltip !== null && this.pointerKey !== undefined && this.headingForTooltip(from, at)
+    // Every move over the mark calls again: restarting the wait would never let it run out.
+    if (waits && this.pointerTimer && key === this.pendingKey) return
     this.clearPointerTimer()
-    if (this.tooltip && key === this.pointerKey) return
     const go = () => {
       this.pointerTimer = null
+      this.pendingKey = undefined
       show()
       this.pointerKey = key
+      this.pointerLift = lift ?? null
     }
-    if (this.tooltip && this.pointerKey !== undefined) {
+    if (waits) {
+      this.pendingKey = key
       this.pointerTimer = setTimeout(go, POINTER_GRACE)
+      lift?.()
     } else go()
+  }
+
+  private headingForTooltip(from: ClientPoint | null, to: ClientPoint | undefined): boolean {
+    const tooltip = this.element?.querySelector('.lintje-chart-tooltip')
+    if (!from || !to || !tooltip) return true
+    const box = tooltip.getBoundingClientRect()
+    // Not laid out: where it stands is unknown, so it waits.
+    if (box.width === 0 || box.height === 0) return true
+    return headingFor(from, to, box)
   }
 
   /** The pointer left the marks: the tooltip goes after `POINTER_GRACE`, unless it reaches it. */
   pointerLeft(): void {
+    this.liftBack()
     this.clearPointerTimer()
     if (!this.tooltip || this.pointerKey === undefined) return
     this.pointerTimer = setTimeout(() => {
@@ -373,7 +454,24 @@ export class ChartController {
 
   /** The pointer is on the tooltip: it stays, and goes once the pointer leaves it too. */
   enterTooltip(): void {
+    this.liftBack()
     this.clearPointerTimer()
+  }
+
+  /** A neighbour lifted on the way to the tooltip hands the lift back to the tooltip's mark. */
+  private liftBack(): void {
+    if (this.pendingKey !== undefined) this.pointerLift?.()
+  }
+
+  /**
+   * The category the pointer or the keyboard lifts. From one category to the next the lift
+   * jumps: its motion would trail the pointer. Only lifting from none moves.
+   */
+  liftAt(index: number | null): void {
+    if (index === this.hoverIndex) return
+    const jumps = index != null && this.hoverIndex != null
+    this.element?.toggleAttribute('data-lift-jumps', jumps)
+    this.hoverIndex = index
   }
 
   leaveTooltip(): void {
@@ -383,6 +481,7 @@ export class ChartController {
   private clearPointerTimer(): void {
     if (this.pointerTimer) clearTimeout(this.pointerTimer)
     this.pointerTimer = null
+    this.pendingKey = undefined
   }
 
   /** The tooltip at a place relative to the `data-tooltip-anchor`: the keyboard's way in. */
@@ -411,7 +510,7 @@ export class ChartController {
 
   /** No category under the pointer or the keyboard: the tooltip goes at once. */
   hoverAt(index: number | null): void {
-    this.hoverIndex = index
+    this.liftAt(index)
     this.clearPointerTimer()
     this.pointerKey = undefined
     this.tooltip = null
