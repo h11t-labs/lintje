@@ -254,13 +254,20 @@ export type ChartSpec =
       /** What the classes count, in the legend and the tooltip. Default "Aantal". */
       label?: string
       color?: ChartColor
+      /** How the classes fill. Default `solid`. */
+      fill?: HistogramFill
       /**
-       * A second distribution over the same classes: a step along the top of each class. Without
-       * `color` a comparison, such as last year, grey and dashed; with a `color` a second
-       * variable, such as another region, solid in that colour, which differs from the bars'.
-       * One count per bin; `null` is no data, never 0 (rule 15).
+       * A step along the top of the classes that drops to the axis at both ends. Default `none`;
+       * with `fill: 'none'` too it is `solid`, as there is nothing else to draw.
        */
-      comparison?: { label: string; counts: (number | null)[]; color?: ChartColor }
+      line?: HistogramLine
+      /**
+       * A second distribution over the same classes, drawn over the first. Without `color` a
+       * comparison, such as last year, grey; with a `color` a second variable, such as another
+       * region, in that colour, which differs from the bars'. One count per bin; `null` is no
+       * data, never 0 (rule 15).
+       */
+      comparison?: HistogramComparison
       /** Above the y-axis, e.g. "aanvragen per twee dagen". */
       axisTitle?: string
       /** Under the x labels, right-aligned, e.g. "doorlooptijd in dagen". */
@@ -399,6 +406,27 @@ export interface DumbbellRow {
   to: number | null
   id?: string
   href?: string
+}
+
+/**
+ * How a set of a histogram fills its classes. `translucent` always has a line, `solid` unless
+ * the host chose `none`: a translucent area alone does not reach 3:1, the line carries it.
+ */
+export type HistogramFill = 'solid' | 'translucent' | 'none'
+/** A set's step along the top of its classes. */
+export type HistogramLine = 'solid' | 'dashed' | 'none'
+
+export interface HistogramComparison {
+  label: string
+  counts: (number | null)[]
+  color?: ChartColor
+  /** Default `none`: the step alone. */
+  fill?: HistogramFill
+  /**
+   * Default `dashed` without `color`, `solid` with one. With `fill: 'none'` it is never `none`:
+   * then it is that default.
+   */
+  line?: HistogramLine
 }
 
 /**

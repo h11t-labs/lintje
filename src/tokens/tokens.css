@@ -376,6 +376,8 @@
   --chart-h-main: 260px;
   --chart-h-small: 180px;
   --chart-h-expanded: 560px;
+  /* A translucent fill of a data colour, the same in both modes: its line carries the 3:1. */
+  --chart-translucent: 0.14;
 
   /* Sticky context = top bar + summary bar. */
   --h-sticky: calc(var(--h-topbar) + var(--h-contextbar));

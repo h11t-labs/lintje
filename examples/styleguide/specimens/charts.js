@@ -933,6 +933,27 @@ const CHARTS = [
     },
   },
   {
+    id: 'histogram-translucent', title: 'Doorlooptijd van aanvragen in Noord en Zuid, doorzichtig',
+    description: 'Doorlooptijd van afgehandelde aanvragen dit jaar in klassen van twee dagen: 1.019 in Noord en 881 in Zuid, beide als doorzichtig vlak met een lijn. Noord piekt bij 6 tot 8 dagen, Zuid bij 6 tot 10 dagen.',
+    spec: {
+      kind: 'histogram', label: 'Noord', unit: 'dagen', fill: 'translucent',
+      bins: processing.map((row) => ({ from: row.from, to: row.to, count: row.north })),
+      comparison: {
+        label: 'Zuid', counts: processing.map((row) => row.south), color: 'dark-yellow', fill: 'translucent',
+      },
+      axisTitle: 'aanvragen per twee dagen', xTitle: 'doorlooptijd in dagen',
+    },
+  },
+  {
+    id: 'histogram-lines', title: 'Doorlooptijd van aanvragen in lijnen',
+    description: 'Doorlooptijd van 1.900 afgehandelde aanvragen in klassen van twee dagen, dit jaar als doorgetrokken lijn en vorig jaar als gestreepte lijn. Dit jaar ligt de piek bij 6 tot 8 dagen, vorig jaar bij 10 tot 12 dagen.',
+    spec: {
+      ...processingTime(processingDays),
+      label: 'Dit jaar', fill: 'none', line: 'solid',
+      comparison: { label: 'Vorig jaar', counts: processing.map((row) => row.last_year), line: 'dashed' },
+    },
+  },
+  {
     id: 'line-light-colours', title: 'Afspraken per regio',
     description: 'Gemaakte afspraken per maand in drie regio’s, januari tot en met juni. Noord loopt op van 410 naar 520, Midden van 380 naar 455, Zuid daalt van 300 naar 260.',
     spec: {
@@ -994,6 +1015,8 @@ const VARIANT_NAMES = {
   histogram: 'Met mediaan en termijn',
   'histogram-two': 'Twee sets',
   'histogram-two-colour': 'Twee variabelen',
+  'histogram-translucent': 'Twee doorzichtige sets',
+  'histogram-lines': 'Alleen lijnen',
   treemap: 'Eén niveau',
   'treemap-nested': 'Twee niveaus',
   'treemap-chosen': 'Een gekozen vlak',
@@ -1021,6 +1044,8 @@ const VARIANT_NAMES = {
 
 // What a label cannot say, for the note under it.
 const VARIANT_NOTES = {
+  'histogram-translucent': 'Beide sets zijn een doorzichtig vlak, elk met een doorgetrokken lijn: de lijn draagt het contrast, het vlak alleen haalt dat niet.',
+  'histogram-lines': 'Zonder vulling zijn de staven een trap die aan beide uiteinden naar de as zakt; de vergelijking is gestreept.',
   'histogram-two-colour': 'Zuid is een tweede variabele: een doorgetrokken trap in donkergeel, met haar donkere rand. Zonder kleur zou ze een vergelijking zijn.',
   'histogram-two': 'De gestreepte traplijn is vorig jaar, langs de bovenkant van elke klasse. Zet in de legenda een set uit: de as blijft staan.',
   'heatmap-labels': 'Met een aanwijzer staat een lange naam heel in de tooltip; zonder hover en op een telefoon loopt hij door.',

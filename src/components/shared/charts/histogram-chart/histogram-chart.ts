@@ -1,8 +1,8 @@
 /**
  * A histogram: counts in classes that touch, on an x-axis that runs on, so the labels stand on
  * the class bounds. A median is a solid emphasis line, a threshold a dashed one. A second set is
- * a step along the top of each class, over the bars, so the classes keep touching: grey and dashed
- * as a comparison, solid in its colour as a second variable.
+ * drawn over the first, so the classes keep touching: grey as a comparison, in its colour as a
+ * second variable. Each set fills and outlines its classes as the host chose.
  */
 import { html, svg, nothing, type TemplateResult } from 'lit'
 import { ref } from 'lit/directives/ref.js'
@@ -23,7 +23,7 @@ import {
 import { renderTooltip } from '../shared/tooltip'
 import { chartArea, type ChartOptions, type TooltipContent } from '../shared/controller'
 import { plotKeys, renderPlotStatus } from '../shared/plot-keys'
-import type { ChartSpec } from '../shared/types'
+import type { ChartSpec, HistogramFill, HistogramLine } from '../shared/types'
 
 type HistogramSpec = Extract<ChartSpec, { kind: 'histogram' }>
 
@@ -37,6 +37,53 @@ const LINE_LABEL_ROW = 18
 /** The comparison's legend key: its label could equal the counts' label. */
 const COMPARISON_KEY = 'histogram:comparison'
 const COMPARISON_COLOR = 'var(--color-chart-secondary)'
+
+const DASHES = '5 4'
+
+export interface SetForm {
+  fill: HistogramFill
+  line: HistogramLine
+}
+
+/**
+ * How a set draws: `line` or else `defaultLine`. A translucent fill always has a solid line, as
+ * the area alone does not reach 3:1; a set without fill nor line takes `lineless`.
+ */
+export function setForm(
+  fill: HistogramFill,
+  line: HistogramLine | undefined,
+  defaultLine: HistogramLine,
+  lineless: Exclude<HistogramLine, 'none'>,
+): SetForm {
+  const chosen = line ?? defaultLine
+  if (chosen !== 'none' || fill === 'solid') return { fill, line: chosen }
+  return { fill, line: fill === 'translucent' ? 'solid' : lineless }
+}
+
+/** The legend's shape and the tooltip's marker of a set: its fill, or else its line. */
+function keyOf(form: SetForm): {
+  shape: 'square' | 'open' | 'line' | 'dashed'
+  marker?: 'open' | 'line' | 'dashed'
+} {
+  if (form.fill === 'solid') return { shape: 'square' }
+  const marker = form.fill === 'translucent' ? 'open' : form.line === 'dashed' ? 'dashed' : 'line'
+  return { shape: marker, marker }
+}
+
+/** How the description names a set's form. */
+function formWords(form: SetForm): string {
+  if (form.fill === 'solid') return 'staven'
+  if (form.fill === 'translucent') return 'doorzichtig vlak'
+  return form.line === 'dashed' ? 'gestreepte traplijn' : 'doorgetrokken traplijn'
+}
+
+/** The sentence that names the second set and its form: "De gestreepte traplijn is …". */
+function stepDescription(form: SetForm, set: { label: string; color?: string }): string {
+  const what = `${set.color == null ? 'de vergelijking: ' : ''}${set.label}`
+  if (form.fill === 'solid') return `De staven ervoor zijn ${what}.`
+  if (form.fill === 'translucent') return `Het doorzichtige vlak is ${what}.`
+  return `De ${formWords(form)} is ${what}.`
+}
 
 /** A bound as written: whole numbers whole, anything else with one decimal. */
 function bound(value: number): string {
@@ -109,7 +156,11 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
   const comparison = spec.comparison
   // Without a colour the second set is a comparison; with one, a second variable.
   const stepColor = chartColor(comparison?.color) ?? COMPARISON_COLOR
-  const stepDashed = comparison?.color == null
+  const stepLine = comparison?.color == null ? 'dashed' : 'solid'
+  const barForm = setForm(spec.fill ?? 'solid', spec.line, 'none', 'solid')
+  const stepForm = setForm(comparison?.fill ?? 'none', comparison?.line, stepLine, stepLine)
+  const barKey = keyOf(barForm)
+  const stepKey = keyOf(stepForm)
   const compared = bins.map((_, i) => comparison?.counts[i] ?? null)
   const known = (values: (number | null)[]) =>
     values.filter((count): count is number => count != null)
@@ -154,7 +205,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     name: string,
     count: number | null,
     setTotal: number | null,
-    swatch: { color: string; marker?: 'dashed' | 'line' },
+    swatch: { color: string; marker?: 'open' | 'dashed' | 'line' },
   ) => [
     { label: name, value: count == null ? 'geen gegevens' : formatNumber(count), ...swatch },
     ...(count != null && setTotal != null && setTotal > 0
@@ -164,11 +215,11 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
   const contentAt = (i: number): TooltipContent => ({
     title: binLabel(bins[i], unit),
     rows: [
-      ...(countsOff ? [] : setRows(label, bins[i].count, total, { color })),
+      ...(countsOff ? [] : setRows(label, bins[i].count, total, { color, marker: barKey.marker })),
       ...(comparison && !comparisonOff
         ? setRows(comparison.label, compared[i], comparisonTotal, {
             color: stepColor,
-            marker: stepDashed ? 'dashed' : 'line',
+            marker: stepKey.marker,
           })
         : []),
     ],
@@ -246,7 +297,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     {
       label,
       color,
-      shape: 'square',
+      shape: barKey.shape,
       fixed: lines.length === 0 && !comparison,
       hidden: countsOff,
     },
@@ -255,7 +306,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
           {
             label: comparison.label,
             color: stepColor,
-            shape: stepDashed ? ('dashed' as const) : ('line' as const),
+            shape: stepKey.shape,
             key: COMPARISON_KEY,
             hidden: comparisonOff,
           },
@@ -285,6 +336,21 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
       : []),
   ]
 
+  // A class of a set: its fill, translucent or solid; solid classes are parted by the line in
+  // the surface. A lift is the same copy over its neighbours.
+  const classRect = (
+    i: number,
+    count: number,
+    fill: HistogramFill,
+    fillColor: string,
+    lift = '',
+  ): SvgSlot => {
+    const y = yPosition(count, max, area)
+    const kind = fill === 'solid' ? 'lintje-chart__segment' : 'lintje-chart__bar--translucent'
+    return svg`<rect class="lintje-chart__bar ${kind} ${lift}"
+                     x=${slots[i].x} y=${y} width=${slots[i].width}
+                     height=${Math.max(0, baseline - y)} fill=${fillColor} />`
+  }
   const bar = (i: number): SvgSlot => {
     const slot = slots[i]
     const count = bins[i].count
@@ -293,56 +359,98 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
       return svg`<rect class="lintje-chart__missing" x=${slot.x} y=${area.top} width=${slot.width}
                        height=${Math.max(0, baseline - area.top)} fill="url(#hatch-${id})" />`
     }
-    const y = yPosition(count, max, area)
+    if (barForm.fill === 'none') return nothing
     return svg`
       <g class="lintje-chart__bar-group" ${styleProps(staggerStyle(i, bins.length))}>
-        <rect class="lintje-chart__bar lintje-chart__segment" x=${slot.x} y=${y} width=${slot.width}
-              height=${Math.max(0, baseline - y)} fill=${color} />
+        ${classRect(i, count, barForm.fill, color)}
       </g>
     `
   }
+  const stepFill = (i: number): SvgSlot => {
+    const count = compared[i]
+    if (count == null || stepForm.fill === 'none') return nothing
+    return svg`<g class="lintje-chart__bar-group" ${styleProps(staggerStyle(i, bins.length))}>
+      ${classRect(i, count, stepForm.fill, stepColor)}
+    </g>`
+  }
+
+  // A set's step: the top of each class it has, with a riser to the next one. A missing class
+  // breaks it (rule 15); the bars' step drops to the axis at the ends of each run, so it
+  // closes around them.
+  const stepRuns = (values: (number | null)[], closed: boolean): string[] => {
+    const runs: { x: number; y: number }[][] = []
+    let run: { x: number; y: number }[] = []
+    values.forEach((count, i) => {
+      if (count == null) {
+        if (run.length) runs.push(run)
+        run = []
+        return
+      }
+      const y = yPosition(count, max, area)
+      run.push({ x: slots[i].x, y }, { x: slots[i].x + slots[i].width, y })
+    })
+    if (run.length) runs.push(run)
+    return runs.map((points) =>
+      (closed
+        ? [
+            { x: points[0].x, y: baseline },
+            ...points,
+            { x: points[points.length - 1].x, y: baseline },
+          ]
+        : points
+      )
+        .map((point) => `${point.x},${point.y}`)
+        .join(' '),
+    )
+  }
+  // A step reads on a fill too: on a light colour's dark edge, or else on the surface. A dashed
+  // casing is dashed too: in dark an edge is the colour itself and would close the gaps.
+  const step = (runs: string[], lineColor: string, line: HistogramLine): SvgSlot => {
+    if (line === 'none') return nothing
+    const dashes = line === 'dashed' ? DASHES : nothing
+    return svg`<g class="lintje-chart__reveal">
+      ${runs.map(
+        (points) => svg`
+          <polyline class="lintje-chart__line lintje-chart__line--casing" points=${points}
+                    stroke=${lineCasing(lineColor) ?? 'var(--color-bg-surface)'} stroke-dasharray=${dashes} />
+          <polyline class="lintje-chart__line" points=${points} stroke=${lineColor}
+                    stroke-dasharray=${dashes} />`,
+      )}
+    </g>`
+  }
+
   // The classes touch, so a neighbour drawn later would cover a lifted class. The lift is a
-  // copy on top of them all; the classes keep their order and their nodes, since moving a node
-  // replays its draw-in.
+  // copy on top of them all in the bars' form, without fill their outline as wide as the line.
+  // The classes keep their order and their nodes, since moving a node replays its draw-in.
   const hovered = controller.hoverIndex
   const lifted = hovered != null ? bins[hovered]?.count : null
-
-  // The comparison's step: the top of each class it has, with a riser to the next one. A
-  // missing class breaks the step (rule 15).
-  const steps: string[] = []
-  let run = ''
-  compared.forEach((count, i) => {
-    if (count == null) {
-      if (run) steps.push(run)
-      run = ''
-      return
+  const lift = (): SvgSlot => {
+    if (hovered == null || lifted == null || countsOff) return nothing
+    if (barForm.fill !== 'none') {
+      return classRect(hovered, lifted, barForm.fill, color, 'lintje-chart__bar--lifted')
     }
-    const y = yPosition(count, max, area)
-    const end = slots[i].x + slots[i].width
-    run += `${run ? ' ' : ''}${slots[i].x},${y} ${end},${y}`
-  })
-  if (run) steps.push(run)
+    const y = yPosition(lifted, max, area)
+    return svg`<rect class="lintje-chart__bar lintje-chart__bar--lifted lintje-chart__line"
+                     x=${slots[hovered].x} y=${y} width=${slots[hovered].width}
+                     height=${Math.max(0, baseline - y)} stroke=${color}
+                     stroke-dasharray=${barForm.line === 'dashed' ? DASHES : nothing} />`
+  }
 
+  // The fills first, the second set's over the bars, then the lines, so no fill hides a step.
   const marks: SvgSlot = [
     svg`<g class="lintje-chart__series ${countsOff ? 'is-off' : ''}">${bins.map((_, i) => bar(i))}</g>`,
-    hovered != null && lifted != null && !countsOff
-      ? svg`<rect class="lintje-chart__bar lintje-chart__bar--lifted lintje-chart__segment"
-                  x=${slots[hovered].x} y=${yPosition(lifted, max, area)} width=${slots[hovered].width}
-                  height=${Math.max(0, baseline - yPosition(lifted, max, area))} fill=${color} />`
+    comparison && stepForm.fill !== 'none'
+      ? svg`<g class="lintje-chart__series ${comparisonOff ? 'is-off' : ''}">${bins.map((_, i) => stepFill(i))}</g>`
       : nothing,
-    // Over the bars and their lift, with a casing so it reads on a bar too: a light colour's
-    // dark edge, or else the surface.
+    barForm.line !== 'none'
+      ? svg`<g class="lintje-chart__series ${countsOff ? 'is-off' : ''}">
+          ${step(stepRuns(counts, true), color, barForm.line)}
+        </g>`
+      : nothing,
+    lift(),
     comparison
       ? svg`<g class="lintje-chart__series ${comparisonOff ? 'is-off' : ''}">
-          <g class="lintje-chart__reveal">
-            ${steps.map(
-              (points) => svg`
-                <polyline class="lintje-chart__line lintje-chart__line--casing" points=${points}
-                          stroke=${lineCasing(stepColor) ?? 'var(--color-bg-surface)'} />
-                <polyline class="lintje-chart__line" points=${points} stroke=${stepColor}
-                          stroke-dasharray=${stepDashed ? '5 4' : nothing} />`,
-            )}
-          </g>
+          ${step(stepRuns(compared, false), stepColor, stepForm.line)}
         </g>`
       : nothing,
     shown.map(
@@ -399,13 +507,13 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
           area,
           axisTitle,
           xTitle,
-          description: comparison
-            ? `${description} ${
-                stepDashed
-                  ? `De gestreepte traplijn is de vergelijking: ${comparison.label}.`
-                  : `De doorgetrokken traplijn is ${comparison.label}.`
-              }`.trim()
-            : description,
+          description: [
+            description,
+            barForm.fill !== 'solid' ? `${label} staat als ${formWords(barForm)}.` : '',
+            comparison ? stepDescription(stepForm, comparison) : '',
+          ]
+            .filter(Boolean)
+            .join(' '),
           formatTick: axis.format,
           keys,
         },

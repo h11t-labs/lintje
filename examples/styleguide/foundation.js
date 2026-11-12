@@ -173,8 +173,8 @@ const PAGES = {
       {
         id: 'page',
         label: 'Pagina, tegel en grafiek',
-        note: 'De marges van de pagina en de tegel, en de hoogtes van een grafiek.',
-        claims: by(/^--(page|tile|chart-h|grid|hero|lintje)-/),
+        note: 'De marges van de pagina en de tegel, de hoogtes van een grafiek en de dekking van een doorzichtig vlak erin.',
+        claims: by(/^--(page|tile|chart|grid|hero|lintje)-/),
       },
       {
         id: 'corner',

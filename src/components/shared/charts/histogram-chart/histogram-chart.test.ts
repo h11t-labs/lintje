@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { ChartController, type ChartOptions } from '../shared/controller'
 import { renderChart } from '../shared/render-chart'
 import type { ChartSpec } from '../shared/types'
-import { placeLineLabels } from './histogram-chart'
+import { placeLineLabels, setForm } from './histogram-chart'
 
 type HistogramSpec = Extract<ChartSpec, { kind: 'histogram' }>
 
@@ -409,5 +409,201 @@ describe('the labels of the median and the threshold', () => {
     const [place] = placeLineLabels([{ x: 290, text: 'norm 40 dagen' }], area)
     expect(place.anchor).toBe('end')
     expect(place.x).toBe(284)
+  })
+})
+
+describe('the form of a set', () => {
+  it('keeps its line, or else its default', () => {
+    expect(setForm('solid', undefined, 'none', 'solid')).toEqual({ fill: 'solid', line: 'none' })
+    expect(setForm('solid', 'dashed', 'none', 'solid')).toEqual({ fill: 'solid', line: 'dashed' })
+    expect(setForm('none', undefined, 'dashed', 'dashed')).toEqual({ fill: 'none', line: 'dashed' })
+  })
+
+  it('gives a translucent fill a solid line, and a set without either its default line', () => {
+    expect(setForm('translucent', 'none', 'none', 'solid')).toEqual({
+      fill: 'translucent',
+      line: 'solid',
+    })
+    expect(setForm('translucent', undefined, 'none', 'solid').line).toBe('solid')
+    expect(setForm('none', 'none', 'none', 'solid').line).toBe('solid')
+    expect(setForm('none', 'none', 'dashed', 'dashed').line).toBe('dashed')
+  })
+})
+
+describe('the histogram with a fill and a line per set', () => {
+  const north = BINS.slice(0, 4)
+  const lines = (host: Element) => [
+    ...host.querySelectorAll('polyline.lintje-chart__line:not(.lintje-chart__line--casing)'),
+  ]
+  const markers = (host: Element) =>
+    [...host.querySelectorAll('.lintje-legend__marker')].map((marker) =>
+      [...marker.classList].find((name) => name.startsWith('lintje-legend__marker--')),
+    )
+  const corners = (line: Element) =>
+    line
+      .getAttribute('points')!
+      .split(' ')
+      .map((pair) => pair.split(',').map(Number))
+  const baseline = 260 - 44
+
+  it('draws solid bars and no step of its own by default', () => {
+    const { host } = draw({ bins: north })
+    expect(bars(host)).toHaveLength(4)
+    expect(host.querySelector('.lintje-chart__bar--translucent')).toBeNull()
+    expect(lines(host)).toHaveLength(0)
+    expect(markers(host)).toEqual(['lintje-legend__marker--square'])
+  })
+
+  it('outlines the bars without fill: a step that drops to the axis at both ends', () => {
+    const { host } = draw({ bins: north, fill: 'none', line: 'solid', median: 3 })
+    expect(bars(host)).toHaveLength(0)
+    const [line] = lines(host)
+    expect(line.getAttribute('stroke')).toBe('var(--color-chart-default)')
+    expect(line.hasAttribute('stroke-dasharray')).toBe(false)
+    const points = corners(line)
+    expect(points[0][1]).toBe(baseline)
+    expect(points.at(-1)![1]).toBe(baseline)
+    expect(points).toHaveLength(north.length * 2 + 2)
+    expect(markers(host)[0]).toBe('lintje-legend__marker--line')
+  })
+
+  it('dashes the bars’ line when asked, and breaks it at a missing class', () => {
+    const { host } = draw({
+      bins: north.map((bin, i) => (i === 2 ? { ...bin, count: null } : bin)),
+      fill: 'none',
+      line: 'dashed',
+    })
+    const runs = lines(host)
+    expect(runs.map((line) => corners(line).length)).toEqual([6, 4])
+    expect(runs[0].getAttribute('stroke-dasharray')).toBe('5 4')
+    // The missing class stays hatched.
+    expect(host.querySelector('.lintje-chart__missing')).not.toBeNull()
+  })
+
+  it('outlines the bars without fill nor line too, as they would draw nothing', () => {
+    const { host } = draw({ bins: north, fill: 'none', line: 'none' })
+    expect(lines(host)).toHaveLength(1)
+  })
+
+  it('gives translucent bars a line, also when the host chose none', () => {
+    const { host, controller } = draw({
+      bins: north,
+      label: 'Noord',
+      fill: 'translucent',
+      line: 'none',
+    })
+    expect(
+      bars(host).every((bar) => bar.classList.contains('lintje-chart__bar--translucent')),
+    ).toBe(true)
+    expect(bars(host)[0].classList).not.toContain('lintje-chart__segment')
+    expect(lines(host)).toHaveLength(1)
+    expect(markers(host)[0]).toBe('lintje-legend__marker--open')
+    const drawing = host.querySelector('svg[tabindex="0"]')!
+    drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }))
+    expect(host.querySelector('.lintje-chart-tooltip__marker--open')).not.toBeNull()
+    expect(controller.status).toMatch(/^0 tot 2 dagen: Noord 40/)
+  })
+
+  it('fills the second set over the bars, solid in its colour or translucent', () => {
+    const solid = draw({
+      bins: north,
+      comparison: { label: 'Zuid', counts: [12, 40, 95, 120], color: 'dark-yellow', fill: 'solid' },
+    }).host
+    const fills = [...solid.querySelectorAll('rect.lintje-chart__bar')].filter(
+      (rect) => rect.getAttribute('fill') === 'var(--color-chart-dark-yellow)',
+    )
+    expect(fills).toHaveLength(4)
+    expect(fills[0].classList).toContain('lintje-chart__segment')
+    // Over the bars: after the last of them.
+    expect(
+      bars(solid)[3].compareDocumentPosition(fills[0]) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    expect(markers(solid)).toEqual([
+      'lintje-legend__marker--square',
+      'lintje-legend__marker--square',
+    ])
+    // Its line is still its default: solid with a colour.
+    expect(lines(solid)[0].hasAttribute('stroke-dasharray')).toBe(false)
+    document.body.innerHTML = ''
+
+    const translucent = draw({
+      bins: north,
+      comparison: {
+        label: 'Vorig jaar',
+        counts: [30, null, 200, 260],
+        fill: 'translucent',
+        line: 'none',
+      },
+    }).host
+    const faint = [...translucent.querySelectorAll('.lintje-chart__bar--translucent')]
+    expect(faint).toHaveLength(3)
+    expect(faint[0].getAttribute('fill')).toBe('var(--color-chart-secondary)')
+    // Translucent always has a line: solid, as the host chose none.
+    expect(lines(translucent).map((line) => line.hasAttribute('stroke-dasharray'))).toEqual([
+      false,
+      false,
+    ])
+    expect(markers(translucent)[1]).toBe('lintje-legend__marker--open')
+  })
+
+  it('falls back on the comparison’s dashes without fill nor line', () => {
+    const { host } = draw({
+      bins: north,
+      comparison: { label: 'Vorig jaar', counts: [30, 100, 200, 260], fill: 'none', line: 'none' },
+    })
+    expect(lines(host)[0].getAttribute('stroke-dasharray')).toBe('5 4')
+    expect(markers(host)[1]).toBe('lintje-legend__marker--dashed')
+  })
+
+  it('dashes the casing of a dashed line, so a dark edge leaves the gaps open', () => {
+    const { host } = draw({
+      bins: north,
+      comparison: {
+        label: 'Zuid',
+        counts: [12, 40, 95, 120],
+        color: 'dark-yellow',
+        line: 'dashed',
+      },
+    })
+    const casing = host.querySelector('.lintje-chart__line--casing')
+    expect(casing?.getAttribute('stroke')).toBe('var(--color-chart-dark-yellow-edge)')
+    expect(casing?.getAttribute('stroke-dasharray')).toBe('5 4')
+  })
+
+  it('switches each set’s fill and line together', () => {
+    const { host } = draw({
+      bins: north,
+      fill: 'translucent',
+      comparison: { label: 'Zuid', counts: [12, 40, 95, 120], color: 'red', fill: 'translucent' },
+    })
+    const series = () =>
+      [...host.querySelectorAll('.lintje-chart__series')].map((group) =>
+        group.classList.contains('is-off'),
+      )
+    expect(series()).toEqual([false, false, false, false])
+    host.querySelectorAll<HTMLButtonElement>('.lintje-legend__button')[1].click()
+    // The bars' fill, the second set's fill, the bars' line, the second set's line.
+    expect(series()).toEqual([false, true, false, true])
+  })
+
+  it('lifts the outline of a class without fill', () => {
+    const { host } = draw({ bins: north, fill: 'none', line: 'solid' })
+    const drawing = host.querySelector('svg[tabindex="0"]')!
+    drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }))
+    const lifted = host.querySelector('.lintje-chart__bar--lifted')
+    expect(lifted?.classList).toContain('lintje-chart__line')
+    expect(lifted?.getAttribute('stroke')).toBe('var(--color-chart-default)')
+  })
+
+  it('names the form of each set in its description', () => {
+    const { host } = draw({
+      bins: north,
+      label: 'Noord',
+      fill: 'translucent',
+      comparison: { label: 'Zuid', counts: [12, 40, 95, 120], color: 'red', fill: 'translucent' },
+    })
+    expect(host.querySelector('desc')?.textContent).toBe(
+      'Een figuur. Noord staat als doorzichtig vlak. Het doorzichtige vlak is Zuid.',
+    )
   })
 })

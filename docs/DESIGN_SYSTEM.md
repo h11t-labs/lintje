@@ -1084,11 +1084,12 @@ de stijlgids. Past geen soort, dan is het een tabel.
   staven, alleen de scheidingslijn in de oppervlaktekleur, en de labels staan op de grenzen van de
   klassen, niet onder hun midden. Een open laatste klasse ("30+") heeft geen grens om op te staan
   en wordt onder haar midden genoemd.
-- **De tweede set in een histogram is een trap**: één lijn langs de bovenkant van elke klasse,
-  over de staven, zodat de klassen elkaar blijven raken en de kleuren niet mengen. Zonder kleur is
-  ze de vergelijking, grijs en gestreept; met een kleur een tweede variabele, doorgetrokken in die
-  kleur. Nooit halfdoorzichtige staven over elkaar, want de overlap wordt een derde kleur, en nooit
-  arcering, want arcering is "geen gegevens"; een ontbrekende klasse breekt de trap af.
+- **Een histogram kan een tweede set dragen, over de eerste.** Zonder kleur is ze de vergelijking,
+  in grijs; met een kleur een tweede variabele. De host kiest per set de vulling en de lijn langs
+  de bovenkant van de klassen; de standaard is gevulde staven met de tweede set als trap erover,
+  zodat de klassen elkaar blijven raken. Een doorzichtige vulling heeft altijd een lijn, want die
+  draagt het contrast. Nooit arcering, want arcering is "geen gegevens"; een ontbrekende klasse
+  breekt de lijn af.
 - **Een mediaan is een doorgetrokken nadruklijn**, naast de gestreepte van een drempel, elk met
   zijn label naast de lijn. Raken de labels elkaar, dan zakt het rechter een regel.
 - **Een staaf begint bij 0, want haar lengte draagt de waarde.** Een grafiek die een positie

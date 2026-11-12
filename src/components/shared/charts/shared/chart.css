@@ -96,6 +96,8 @@
   transform: scaleX(1.06);
   filter: drop-shadow(var(--shadow-chart-hover));
 }
+/* A histogram's set may fill translucent; its line then carries the contrast. */
+.lintje-chart__bar--translucent { fill-opacity: var(--chart-translucent); }
 /* A histogram's classes touch: its lift is a copy drawn over its neighbours. */
 .lintje-chart__bar--lifted {
   transform: scaleX(1.06);
@@ -359,7 +361,7 @@
   position: absolute;
   inset: 0;
   background: currentColor;
-  opacity: .14;
+  opacity: var(--chart-translucent);
 }
 .lintje-legend__marker--interval {
   width: 9px; height: 12px;
@@ -408,7 +410,7 @@
   position: absolute;
   inset: 0;
   background: currentColor;
-  opacity: .14;
+  opacity: var(--chart-translucent);
 }
 /* A forecast's margin under its value: no swatch, in line with the series' name, quieter. */
 .lintje-chart-tooltip__row--note .lintje-chart-tooltip__label {
