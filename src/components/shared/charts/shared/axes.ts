@@ -29,6 +29,7 @@ export interface LegendItem {
    * `point`: the series' symbol alone, as a scatter plot or a map draws it; `hatch` is "no data".
    * A forecast's keys: `dotted` its line, `open` its bar, `band` and `interval` its margin. `flow`
    * is a sankey's flow, in its colour at the band's tint. A dumbbell's keys are its `KeyMark`s.
+   * `translucent` is a histogram's translucent set, at the opacity of its fill.
    */
   shape?:
     | 'square'
@@ -38,6 +39,7 @@ export interface LegendItem {
     | 'hatch'
     | 'dotted'
     | 'open'
+    | 'translucent'
     | 'band'
     | 'interval'
     | 'flow'

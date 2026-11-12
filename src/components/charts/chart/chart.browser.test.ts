@@ -697,3 +697,40 @@ describe('a pie without a legend table', () => {
       .toBe('Online')
   })
 })
+
+// A key fills as faintly as its own drawing: the forecast's open bar and a histogram's
+// translucent set each keep their opacity.
+describe('the fill of a key', () => {
+  const keyOpacity = async (chart: ChartSpec, shape: string): Promise<string> => {
+    const tile = document.createElement('lintje-chart')
+    tile.data = { title: 'Aanvragen', description: 'Aanvragen per jaar.', chart }
+    document.body.append(tile)
+    await tile.updateComplete
+    const marker = () => tile.shadowRoot!.querySelector(`.lintje-legend__marker--${shape}`)
+    await expect.poll(marker).not.toBeNull()
+    return getComputedStyle(marker()!, '::before').opacity
+  }
+
+  it('keeps a forecast bar’s open key at the opacity of its bar', async () => {
+    const opacity = await keyOpacity(
+      { kind: 'bar', labels: ['2024', '2025', '2026'], values: [10, 12, 14], forecastFrom: 2 },
+      'open',
+    )
+    expect(opacity).toBe('0.14')
+  })
+
+  it('gives a histogram’s translucent set the opacity of its fill', async () => {
+    const opacity = await keyOpacity(
+      {
+        kind: 'histogram',
+        fill: 'translucent',
+        bins: [
+          { from: 0, to: 2, count: 4 },
+          { from: 2, to: 4, count: 7 },
+        ],
+      },
+      'translucent',
+    )
+    expect(opacity).toBe('0.25')
+  })
+})

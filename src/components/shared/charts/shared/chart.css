@@ -96,6 +96,8 @@
   transform: scaleX(1.06);
   filter: drop-shadow(var(--shadow-chart-hover));
 }
+/* A histogram's set may fill translucent; its line then carries the contrast. */
+.lintje-chart__bar--translucent { fill-opacity: var(--chart-translucent); }
 /* A histogram's classes touch: its lift is a copy drawn over its neighbours. */
 .lintje-chart__bar--lifted {
   transform: scaleX(1.06);
@@ -350,20 +352,24 @@
   border-top: 3px dotted currentColor;
 }
 .lintje-legend__marker--open,
-.lintje-legend__marker--band {
+.lintje-legend__marker--band,
+.lintje-legend__marker--translucent {
   position: relative;
   width: 12px; height: 12px;
   border: 1.5px solid currentColor;
 }
 .lintje-legend__marker--band { border-width: 1px; }
 .lintje-legend__marker--open::before,
-.lintje-legend__marker--band::before {
+.lintje-legend__marker--band::before,
+.lintje-legend__marker--translucent::before {
   content: '';
   position: absolute;
   inset: 0;
   background: currentColor;
   opacity: .14;
 }
+/* A histogram's translucent set: the key at the fill's own opacity. */
+.lintje-legend__marker--translucent::before { opacity: var(--chart-translucent); }
 .lintje-legend__marker--interval {
   width: 9px; height: 12px;
   border-block: 1.5px solid currentColor;
@@ -411,14 +417,17 @@
 .lintje-chart-tooltip__marker--line { width: var(--lintje-chart-tooltip-swatch); height: 3px; background: currentColor; }
 .lintje-chart-tooltip__marker--dashed { width: var(--lintje-chart-tooltip-swatch); height: 0; border-top: 2px dashed currentColor; }
 .lintje-chart-tooltip__marker--dotted { width: var(--lintje-chart-tooltip-swatch); height: 0; border-top: 3px dotted currentColor; }
-.lintje-chart-tooltip__marker--open { position: relative; border: 1.5px solid currentColor; }
-.lintje-chart-tooltip__marker--open::before {
+.lintje-chart-tooltip__marker--open,
+.lintje-chart-tooltip__marker--translucent { position: relative; border: 1.5px solid currentColor; }
+.lintje-chart-tooltip__marker--open::before,
+.lintje-chart-tooltip__marker--translucent::before {
   content: '';
   position: absolute;
   inset: 0;
   background: currentColor;
   opacity: .14;
 }
+.lintje-chart-tooltip__marker--translucent::before { opacity: var(--chart-translucent); }
 /* A forecast's margin under its value: no swatch, in line with the series' name, quieter. */
 .lintje-chart-tooltip__row--note .lintje-chart-tooltip__label {
   padding-left: calc(var(--lintje-chart-tooltip-swatch) + var(--space-2));
