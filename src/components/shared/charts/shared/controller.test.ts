@@ -201,6 +201,22 @@ describe('ChartController and the pointer', () => {
     vi.useRealTimers()
   })
 
+  it('lifts the neighbour at once while the tooltip waits, and lifts its own mark back on it', () => {
+    vi.useFakeTimers()
+    const { controller, show } = withTooltip()
+    const lifted: number[] = []
+    const lift = (index: number) => () => lifted.push(index)
+    controller.pointTo(1, show('di'), { x: 80, y: 140 }, lift(1))
+    controller.pointTo(2, show('wo'), { x: 90, y: 140 }, lift(2))
+    expect(shown(controller)).toBe('di')
+    expect(lifted).toEqual([2])
+    controller.enterTooltip()
+    expect(lifted).toEqual([2, 1])
+    vi.advanceTimersByTime(POINTER_GRACE * 2)
+    expect(shown(controller)).toBe('di')
+    vi.useRealTimers()
+  })
+
   it('goes once the pointer has left the marks and the tooltip', () => {
     vi.useFakeTimers()
     const { controller, show } = pointer()
@@ -233,5 +249,20 @@ describe('headingFor', () => {
     expect(headingFor({ x: 80, y: 140 }, { x: 80, y: 220 }, box)).toBe(false)
     expect(headingFor({ x: 80, y: 140 }, { x: 60, y: 140 }, box)).toBe(false)
     expect(headingFor({ x: 80, y: 220 }, { x: 95, y: 230 }, box)).toBe(false)
+  })
+})
+
+describe('ChartController.liftAt', () => {
+  it('moves the lift only from none, and jumps from one category to the next', () => {
+    const controller = new ChartController(() => {})
+    controller.element = document.createElement('div')
+    const jumps = () => controller.element!.hasAttribute('data-lift-jumps')
+    controller.liftAt(1)
+    expect(jumps()).toBe(false)
+    controller.liftAt(2)
+    expect(jumps()).toBe(true)
+    expect(controller.hoverIndex).toBe(2)
+    controller.liftAt(null)
+    expect(jumps()).toBe(false)
   })
 })

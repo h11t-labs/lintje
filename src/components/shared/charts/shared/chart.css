@@ -102,6 +102,9 @@
   filter: drop-shadow(var(--shadow-chart-hover));
   pointer-events: none;
 }
+/* From one bar to the next the lift jumps: its motion would trail the pointer. */
+[data-lift-jumps] .lintje-chart__bar { transition: none; }
+[data-lift-jumps] .lintje-chart__bar--lifted { animation: none; }
 .lintje-chart__bar-row:hover .lintje-chart__bar--horizontal,
 .lintje-chart__bar-row.is-hovered .lintje-chart__bar--horizontal {
   transform: scaleY(1.12);

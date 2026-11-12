@@ -1,3 +1,3 @@
 ### Opgelost
 
-- De nadruk in een grafiek volgt de muis weer meteen: een andere staaf, klasse of punt komt direct naar boven, ook terwijl de muis beweegt. Alleen een beweging in de richting van de tooltip wacht nog even, zodat je over een buur naar de tooltip kunt gaan. (#336)
+- De nadruk in een grafiek volgt de muis weer meteen: de staaf of klasse onder de muis komt direct naar boven, ook terwijl de muis beweegt, en springt van staaf naar staaf zonder animatie. Alleen de tooltip wacht nog even als de muis in zijn richting beweegt, zodat je hem over een buur kunt bereiken; daar aangekomen gaat de nadruk terug naar zijn staaf. (#336)

@@ -229,6 +229,8 @@ export class ChartController {
   private pendingKey: unknown = undefined
   /** Where the pointer was at its last move over a mark, in client coordinates. */
   private pointerAt: ClientPoint | null = null
+  /** Lifts the mark the tooltip stands for, to bring the lift back from a neighbour. */
+  private pointerLift: (() => void) | null = null
   private readonly notify: () => void
   /** The data last drawn, and as JSON once its reference changed. */
   private drawn: unknown = undefined
@@ -396,15 +398,17 @@ export class ChartController {
   }
 
   /**
-   * The pointer is on the mark or category `key`, at `at`, and `show` stands its tooltip. The
-   * same key changes nothing; another shows at once, unless the pointer heads for the tooltip:
-   * then it waits `POINTER_GRACE`, so the pointer can cross a neighbour on its way there, and the
-   * tooltip under the pointer keeps it. Without `at` it always waits.
+   * The pointer is on the mark or category `key`, at `at`; `show` stands its tooltip and `lift`
+   * only lifts it. The same key changes nothing; another shows at once, unless the pointer heads
+   * for the tooltip: then only the lift follows, and the tooltip waits `POINTER_GRACE`, so the
+   * pointer can cross a neighbour on its way there and the tooltip under the pointer keeps it.
+   * Without `at` it always waits.
    */
-  pointTo(key: unknown, show: () => void, at?: ClientPoint): void {
+  pointTo(key: unknown, show: () => void, at?: ClientPoint, lift?: () => void): void {
     const from = this.pointerAt
     this.pointerAt = at ?? null
     if (this.tooltip && key === this.pointerKey) {
+      if (this.pendingKey !== undefined) lift?.()
       this.clearPointerTimer()
       return
     }
@@ -418,10 +422,12 @@ export class ChartController {
       this.pendingKey = undefined
       show()
       this.pointerKey = key
+      this.pointerLift = lift ?? null
     }
     if (waits) {
       this.pendingKey = key
       this.pointerTimer = setTimeout(go, POINTER_GRACE)
+      lift?.()
     } else go()
   }
 
@@ -436,6 +442,7 @@ export class ChartController {
 
   /** The pointer left the marks: the tooltip goes after `POINTER_GRACE`, unless it reaches it. */
   pointerLeft(): void {
+    this.liftBack()
     this.clearPointerTimer()
     if (!this.tooltip || this.pointerKey === undefined) return
     this.pointerTimer = setTimeout(() => {
@@ -446,7 +453,24 @@ export class ChartController {
 
   /** The pointer is on the tooltip: it stays, and goes once the pointer leaves it too. */
   enterTooltip(): void {
+    this.liftBack()
     this.clearPointerTimer()
+  }
+
+  /** A neighbour lifted on the way to the tooltip hands the lift back to the tooltip's mark. */
+  private liftBack(): void {
+    if (this.pendingKey !== undefined) this.pointerLift?.()
+  }
+
+  /**
+   * The category the pointer or the keyboard lifts. From one category to the next the lift
+   * jumps: its motion would trail the pointer. Only lifting from none moves.
+   */
+  liftAt(index: number | null): void {
+    if (index === this.hoverIndex) return
+    const jumps = index != null && this.hoverIndex != null
+    this.element?.toggleAttribute('data-lift-jumps', jumps)
+    this.hoverIndex = index
   }
 
   leaveTooltip(): void {
@@ -485,7 +509,7 @@ export class ChartController {
 
   /** No category under the pointer or the keyboard: the tooltip goes at once. */
   hoverAt(index: number | null): void {
-    this.hoverIndex = index
+    this.liftAt(index)
     this.clearPointerTimer()
     this.pointerKey = undefined
     this.tooltip = null
