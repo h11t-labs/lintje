@@ -180,6 +180,8 @@ export class ChartController {
   /** What the pointer's tooltip stands for (a category, a mark); `undefined` for the keyboard's. */
   private pointerKey: unknown = undefined
   private pointerTimer: ReturnType<typeof setTimeout> | null = null
+  /** The key `pointerTimer` waits to show; `undefined` while it waits for nothing or to hide. */
+  private pendingKey: unknown = undefined
   private readonly notify: () => void
   /** The data last drawn, and as JSON once its reference changed. */
   private drawn: unknown = undefined
@@ -348,14 +350,18 @@ export class ChartController {
    * way to the tooltip, and the tooltip under the pointer keeps it.
    */
   pointTo(key: unknown, show: () => void): void {
+    // Every move over the mark calls again: restarting the wait would never let it run out.
+    if (this.pointerTimer && key === this.pendingKey) return
     this.clearPointerTimer()
     if (this.tooltip && key === this.pointerKey) return
     const go = () => {
       this.pointerTimer = null
+      this.pendingKey = undefined
       show()
       this.pointerKey = key
     }
     if (this.tooltip && this.pointerKey !== undefined) {
+      this.pendingKey = key
       this.pointerTimer = setTimeout(go, POINTER_GRACE)
     } else go()
   }
@@ -382,6 +388,7 @@ export class ChartController {
   private clearPointerTimer(): void {
     if (this.pointerTimer) clearTimeout(this.pointerTimer)
     this.pointerTimer = null
+    this.pendingKey = undefined
   }
 
   /** The tooltip at a place relative to the `data-tooltip-anchor`: the keyboard's way in. */

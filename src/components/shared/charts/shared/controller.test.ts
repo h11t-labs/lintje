@@ -120,6 +120,53 @@ describe('ChartController and the pointer', () => {
     vi.useRealTimers()
   })
 
+  it('lets the wait run out while the pointer keeps moving over the same mark', () => {
+    vi.useFakeTimers()
+    const { controller } = pointer()
+    const shows: string[] = []
+    const show = (title: string) => () => {
+      shows.push(title)
+      controller.showTooltipAt(0, 0, content(title))
+    }
+    controller.pointTo(1, show('di'))
+    // A mousemove every frame over Wednesday.
+    for (let time = 0; time < POINTER_GRACE - 16; time += 16) {
+      controller.pointTo(2, show('wo'))
+      vi.advanceTimersByTime(16)
+    }
+    expect(shown(controller)).toBe('di')
+    vi.advanceTimersByTime(16)
+    expect(shown(controller)).toBe('wo')
+    expect(shows).toEqual(['di', 'wo'])
+    vi.useRealTimers()
+  })
+
+  it('starts the wait again for yet another mark', () => {
+    vi.useFakeTimers()
+    const { controller, show } = pointer()
+    controller.pointTo(1, show('di'))
+    controller.pointTo(2, show('wo'))
+    vi.advanceTimersByTime(POINTER_GRACE - 50)
+    controller.pointTo(3, show('do'))
+    vi.advanceTimersByTime(50)
+    expect(shown(controller)).toBe('di')
+    vi.advanceTimersByTime(POINTER_GRACE - 50)
+    expect(shown(controller)).toBe('do')
+    vi.useRealTimers()
+  })
+
+  it('waits afresh for a mark after the pointer left in between', () => {
+    vi.useFakeTimers()
+    const { controller, show } = pointer()
+    controller.pointTo(1, show('di'))
+    controller.pointTo(2, show('wo'))
+    controller.pointerLeft()
+    controller.pointTo(2, show('wo'))
+    vi.advanceTimersByTime(POINTER_GRACE)
+    expect(shown(controller)).toBe('wo')
+    vi.useRealTimers()
+  })
+
   it('goes once the pointer has left the marks and the tooltip', () => {
     vi.useFakeTimers()
     const { controller, show } = pointer()
