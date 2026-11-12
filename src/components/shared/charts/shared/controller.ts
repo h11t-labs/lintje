@@ -67,9 +67,10 @@ export interface TooltipRow {
   symbol?: SeriesKey
   /**
    * Instead of a square swatch, as its legend draws it: a line, plain or dashed (a norm), or
-   * dotted (a forecast); an open square for a forecast bar; a dumbbell's ring or dot.
+   * dotted (a forecast); an open square for a forecast bar, a translucent one for a histogram's
+   * translucent set; a dumbbell's ring or dot.
    */
-  marker?: 'line' | 'dashed' | 'dotted' | 'open' | KeyMark
+  marker?: 'line' | 'dashed' | 'dotted' | 'open' | 'translucent' | KeyMark
   /** A quieter line under the row before it, such as a forecast's margin. */
   note?: boolean
   /** One of what the row above holds, such as a part "Overig" folded: indented under it. */

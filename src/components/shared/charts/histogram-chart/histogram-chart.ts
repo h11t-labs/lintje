@@ -62,11 +62,12 @@ export function setForm(
 
 /** The legend's shape and the tooltip's marker of a set: its fill, or else its line. */
 function keyOf(form: SetForm): {
-  shape: 'square' | 'open' | 'line' | 'dashed'
-  marker?: 'open' | 'line' | 'dashed'
+  shape: 'square' | 'translucent' | 'line' | 'dashed'
+  marker?: 'translucent' | 'line' | 'dashed'
 } {
   if (form.fill === 'solid') return { shape: 'square' }
-  const marker = form.fill === 'translucent' ? 'open' : form.line === 'dashed' ? 'dashed' : 'line'
+  const marker =
+    form.fill === 'translucent' ? 'translucent' : form.line === 'dashed' ? 'dashed' : 'line'
   return { shape: marker, marker }
 }
 
@@ -205,7 +206,7 @@ export function renderHistogramChart(spec: HistogramSpec, options: ChartOptions)
     name: string,
     count: number | null,
     setTotal: number | null,
-    swatch: { color: string; marker?: 'open' | 'dashed' | 'line' },
+    swatch: { color: string; marker?: 'translucent' | 'dashed' | 'line' },
   ) => [
     { label: name, value: count == null ? 'geen gegevens' : formatNumber(count), ...swatch },
     ...(count != null && setTotal != null && setTotal > 0

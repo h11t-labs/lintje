@@ -497,10 +497,10 @@ describe('the histogram with a fill and a line per set', () => {
     ).toBe(true)
     expect(bars(host)[0].classList).not.toContain('lintje-chart__segment')
     expect(lines(host)).toHaveLength(1)
-    expect(markers(host)[0]).toBe('lintje-legend__marker--open')
+    expect(markers(host)[0]).toBe('lintje-legend__marker--translucent')
     const drawing = host.querySelector('svg[tabindex="0"]')!
     drawing.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }))
-    expect(host.querySelector('.lintje-chart-tooltip__marker--open')).not.toBeNull()
+    expect(host.querySelector('.lintje-chart-tooltip__marker--translucent')).not.toBeNull()
     expect(controller.status).toMatch(/^0 tot 2 dagen: Noord 40/)
   })
 
@@ -543,7 +543,7 @@ describe('the histogram with a fill and a line per set', () => {
       false,
       false,
     ])
-    expect(markers(translucent)[1]).toBe('lintje-legend__marker--open')
+    expect(markers(translucent)[1]).toBe('lintje-legend__marker--translucent')
   })
 
   it('falls back on the comparison’s dashes without fill nor line', () => {
