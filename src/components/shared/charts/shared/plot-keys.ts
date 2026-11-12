@@ -70,7 +70,7 @@ export function plotKeys(
     const anchor = drawing.closest('[data-tooltip-anchor]')
     const box = drawing.getBoundingClientRect()
     const origin = anchor?.getBoundingClientRect() ?? box
-    controller.hoverIndex = index
+    controller.liftAt(index)
     controller.status = spoken ? (point.sentence ?? tooltipSentence(point.content)) : ''
     const left = box.left - origin.left
     controller.showTooltipAt(
@@ -110,7 +110,13 @@ export function plotKeys(
       const drawing = target.closest('svg') ?? target
       const go = () => place(drawing, index, false)
       if (now) go()
-      else controller.pointTo(index, go)
+      else {
+        const at = event instanceof MouseEvent ? { x: event.clientX, y: event.clientY } : undefined
+        controller.pointTo(index, go, at, () => {
+          controller.liftAt(index)
+          controller.requestUpdate()
+        })
+      }
     },
     leave() {
       controller.pointerLeft()
@@ -118,7 +124,7 @@ export function plotKeys(
     blur() {
       controller.keyFrom = null
       if (controller.hoverIndex == null && !controller.status) return
-      controller.hoverIndex = null
+      controller.liftAt(null)
       controller.status = ''
       controller.hideTooltip()
       controller.requestUpdate()

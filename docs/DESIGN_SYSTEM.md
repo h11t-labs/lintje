@@ -1043,11 +1043,14 @@ de stijlgids. Past geen soort, dan is het een tabel.
   kaart of een diagram. De tooltip en de CSV geven de cijfers; een tabel die de lezer nodig heeft,
   staat apart.
 - **Hover verandert nooit de lengte die de waarde draagt.**
+- **De nadruk volgt de aanwijzer meteen**, ook waar de tooltip nog wacht. Van teken naar teken
+  springt hij; alleen het eerste teken tilt hij met beweging op. De tooltip glijdt mee naar zijn
+  nieuwe plek, zodat het oog hem houdt.
 - **De tooltip staat vast bij zijn teken**, op de plek die het toetsenbord gebruikt, nooit bij de
   aanwijzer en nooit over zijn eigen teken, en hij verandert pas als de aanwijzer een ander teken
   aanwijst. Hij vangt de aanwijzer: hij blijft staan zolang die op het teken of op de tooltip
-  staat, en op weg erheen mag de aanwijzer over een buur gaan. Escape haalt hem weg zonder de
-  focus te verplaatsen. Op een aanraakscherm laat hij een tik door naar het teken eronder.
+  staat, en op weg erheen mag de aanwijzer over een buur gaan; elke andere beweging volgt hij
+  meteen. Bereikt de aanwijzer hem, dan gaat de nadruk terug naar zijn teken. Escape haalt hem weg zonder de focus te verplaatsen. Op een aanraakscherm laat hij een tik door naar het teken eronder.
 - **Een taart rangschikt en vouwt zelf.** Haar delen zijn de onderverdelingen van één variabele:
   de kleur van de spec, of hemelblauw. Het grootste deel is het donkerste, in welke volgorde de
   host ze ook stuurt, en de tinten spreiden over de ladder met het aantal delen en "Overig". Meer

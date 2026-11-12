@@ -102,6 +102,9 @@
   filter: drop-shadow(var(--shadow-chart-hover));
   pointer-events: none;
 }
+/* From one bar to the next the lift jumps: its motion would trail the pointer. */
+[data-lift-jumps] .lintje-chart__bar { transition: none; }
+[data-lift-jumps] .lintje-chart__bar--lifted { animation: none; }
 .lintje-chart__bar-row:hover .lintje-chart__bar--horizontal,
 .lintje-chart__bar-row.is-hovered .lintje-chart__bar--horizontal {
   transform: scaleY(1.12);
@@ -389,6 +392,12 @@
   animation: lintje-chart-tooltip-in var(--dur-hover) var(--ease-in-motion);
 }
 @keyframes lintje-chart-tooltip-in { from { opacity: 0; } }
+/* From one mark to the next it glides, so the eye goes along with it instead of losing it. */
+@media (prefers-reduced-motion: no-preference) {
+  .lintje-chart-tooltip {
+    transition: left var(--dur-hover) var(--ease-in-motion), top var(--dur-hover) var(--ease-in-motion);
+  }
+}
 @media (hover: none) {
   .lintje-chart-tooltip { pointer-events: none; }
 }
