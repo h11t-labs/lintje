@@ -1044,7 +1044,8 @@ de stijlgids. Past geen soort, dan is het een tabel.
   staat apart.
 - **Hover verandert nooit de lengte die de waarde draagt.**
 - **De nadruk volgt de aanwijzer meteen**, ook waar de tooltip nog wacht. Van teken naar teken
-  springt hij; alleen het eerste teken tilt hij met beweging op.
+  springt hij; alleen het eerste teken tilt hij met beweging op. De tooltip glijdt mee naar zijn
+  nieuwe plek, zodat het oog hem houdt.
 - **De tooltip staat vast bij zijn teken**, op de plek die het toetsenbord gebruikt, nooit bij de
   aanwijzer en nooit over zijn eigen teken, en hij verandert pas als de aanwijzer een ander teken
   aanwijst. Hij vangt de aanwijzer: hij blijft staan zolang die op het teken of op de tooltip
