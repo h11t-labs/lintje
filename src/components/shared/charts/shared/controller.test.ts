@@ -11,7 +11,7 @@
  * the controller reads, not a rendering, that is under test.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ChartController, POINTER_GRACE } from './controller'
+import { ChartController, headingFor, POINTER_GRACE } from './controller'
 
 /** An element that is `height` px tall and carries `--chart-h-main`. */
 function chartElement(height: number, token: string): HTMLElement {
@@ -167,6 +167,40 @@ describe('ChartController and the pointer', () => {
     vi.useRealTimers()
   })
 
+  // A tooltip right of the pointer, as a bar's stands.
+  function withTooltip() {
+    const { controller, show } = pointer()
+    const element = document.createElement('div')
+    const tooltip = document.createElement('div')
+    tooltip.className = 'lintje-chart-tooltip'
+    tooltip.getBoundingClientRect = () => new DOMRect(100, 100, 150, 80)
+    element.append(tooltip)
+    controller.element = element
+    return { controller, show }
+  }
+
+  it('follows a pointer that sweeps away from the tooltip at once', () => {
+    vi.useFakeTimers()
+    const { controller, show } = withTooltip()
+    controller.pointTo(1, show('di'), { x: 80, y: 140 })
+    controller.pointTo(2, show('wo'), { x: 80, y: 200 })
+    expect(shown(controller)).toBe('wo')
+    controller.pointTo(3, show('do'), { x: 60, y: 200 })
+    expect(shown(controller)).toBe('do')
+    vi.useRealTimers()
+  })
+
+  it('waits for a pointer that heads for the tooltip, and shows at once once it turns away', () => {
+    vi.useFakeTimers()
+    const { controller, show } = withTooltip()
+    controller.pointTo(1, show('di'), { x: 80, y: 140 })
+    controller.pointTo(2, show('wo'), { x: 90, y: 140 })
+    expect(shown(controller)).toBe('di')
+    controller.pointTo(2, show('wo'), { x: 90, y: 230 })
+    expect(shown(controller)).toBe('wo')
+    vi.useRealTimers()
+  })
+
   it('goes once the pointer has left the marks and the tooltip', () => {
     vi.useFakeTimers()
     const { controller, show } = pointer()
@@ -179,5 +213,25 @@ describe('ChartController and the pointer', () => {
     vi.advanceTimersByTime(POINTER_GRACE)
     expect(shown(controller)).toBeUndefined()
     vi.useRealTimers()
+  })
+})
+
+describe('headingFor', () => {
+  const box = { left: 100, top: 100, right: 250, bottom: 180 }
+
+  it('is true for a move towards the side that faces the pointer', () => {
+    expect(headingFor({ x: 80, y: 140 }, { x: 90, y: 135 }, box)).toBe(true)
+    expect(headingFor({ x: 300, y: 140 }, { x: 290, y: 150 }, box)).toBe(true)
+    expect(headingFor({ x: 150, y: 60 }, { x: 155, y: 80 }, box)).toBe(true)
+  })
+
+  it('is true inside the box', () => {
+    expect(headingFor({ x: 80, y: 140 }, { x: 120, y: 140 }, box)).toBe(true)
+  })
+
+  it('is false for a move along or away from it', () => {
+    expect(headingFor({ x: 80, y: 140 }, { x: 80, y: 220 }, box)).toBe(false)
+    expect(headingFor({ x: 80, y: 140 }, { x: 60, y: 140 }, box)).toBe(false)
+    expect(headingFor({ x: 80, y: 220 }, { x: 95, y: 230 }, box)).toBe(false)
   })
 })

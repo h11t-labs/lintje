@@ -110,7 +110,10 @@ export function plotKeys(
       const drawing = target.closest('svg') ?? target
       const go = () => place(drawing, index, false)
       if (now) go()
-      else controller.pointTo(index, go)
+      else {
+        const at = event instanceof MouseEvent ? { x: event.clientX, y: event.clientY } : undefined
+        controller.pointTo(index, go, at)
+      }
     },
     leave() {
       controller.pointerLeft()

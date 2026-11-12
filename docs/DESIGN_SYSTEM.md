@@ -1046,8 +1046,8 @@ de stijlgids. Past geen soort, dan is het een tabel.
 - **De tooltip staat vast bij zijn teken**, op de plek die het toetsenbord gebruikt, nooit bij de
   aanwijzer en nooit over zijn eigen teken, en hij verandert pas als de aanwijzer een ander teken
   aanwijst. Hij vangt de aanwijzer: hij blijft staan zolang die op het teken of op de tooltip
-  staat, en op weg erheen mag de aanwijzer over een buur gaan. Escape haalt hem weg zonder de
-  focus te verplaatsen. Op een aanraakscherm laat hij een tik door naar het teken eronder.
+  staat, en op weg erheen mag de aanwijzer over een buur gaan; elke andere beweging volgt hij
+  meteen. Escape haalt hem weg zonder de focus te verplaatsen. Op een aanraakscherm laat hij een tik door naar het teken eronder.
 - **Een taart rangschikt en vouwt zelf.** Haar delen zijn de onderverdelingen van één variabele:
   de kleur van de spec, of hemelblauw. Het grootste deel is het donkerste, in welke volgorde de
   host ze ook stuurt, en de tinten spreiden over de ladder met het aantal delen en "Overig". Meer
