@@ -88,7 +88,7 @@
     "heading": "Basis",
     "label": "Meldingen en status",
     "icon": "functioneel-bel",
-    "intro": "Wat de app de gebruiker laat weten, en hoe iets ervoor staat: een mededeling, een korte bevestiging, een conflict, een lege toestand, een foutpagina, een status als woord of stip, laden, voortgang en tekst die binnenkomt.",
+    "intro": "Wat de app de gebruiker laat weten, en hoe iets ervoor staat: een mededeling, een korte bevestiging, een conflict, een lege toestand, een foutpagina, een status als woord of stip, laden, voortgang, tekst die binnenkomt en een maat als meter.",
     "elements": [
       "announcement",
       "toast",
@@ -103,8 +103,7 @@
       "job-list",
       "streaming-text",
       "ai-label",
-      "level-meter",
-      "recording-status"
+      "level-meter"
     ],
     "composite": ["error-page", "job-list"]
   },
@@ -196,7 +195,7 @@
     "heading": "Gegevens",
     "label": "Tabellen en lijsten",
     "icon": "symbolen-en-abstract-opsomming",
-    "intro": "De tabel als overzicht en als werkblad, met het bladeren eronder, en gegevens die geen tabel zijn: een lijst, kaarten voor een verzameling, eigenschappen met hun waarde, een boom, een volgorde, een tijdlijn of logboek, een persoon en een rijtje personen.",
+    "intro": "De tabel als overzicht en als werkblad, met het bladeren eronder, en gegevens die geen tabel zijn: een lijst, kaarten voor een verzameling, eigenschappen met hun waarde, de feiten van één ding naast elkaar, een boom, een volgorde, een tijdlijn of logboek, een persoon en een rijtje personen.",
     "elements": [
       "data-table",
       "pagination",
@@ -204,6 +203,7 @@
       "card",
       "card-list",
       "description-list",
+      "cells",
       "tree-view",
       "sortable-list",
       "timeline",

@@ -119,7 +119,7 @@ describe('a row’s detail', () => {
     expect(toggle?.getAttribute('aria-expanded')).toBe('true')
     const detail = shadow(element).getElementById(toggle?.getAttribute('aria-controls') ?? '')
     expect(detail?.hidden).toBe(false)
-    const list = detail?.querySelector('lintje-description-list') as HTMLElement & {
+    const list = detail?.querySelector('lintje-cells') as HTMLElement & {
       items: { label: string; value: unknown }[]
     }
     expect(list.items).toEqual([

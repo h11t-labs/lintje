@@ -1,4 +1,5 @@
-:host { display: inline-flex; min-width: 0; }
+/* Centred on the line: the first bar's height would set the baseline, and move the line with it. */
+:host { display: inline-flex; min-width: 0; vertical-align: middle; }
 :host([hidden]) { display: none; }
 
 /* ------------------------------------------------------------------------ */
@@ -25,10 +26,25 @@
 }
 .lintje-level-meter.is-quiet .lintje-level-meter__bar { background: var(--color-border-strong); }
 
+/* In steps the bars rise from the base, as many lit as the measure reaches. */
+.lintje-level-meter__bars--steps { align-items: flex-end; }
+.lintje-level-meter__step {
+  width: 5px;
+  background: var(--color-border-default);
+}
+.lintje-level-meter__step.is-lit { background: var(--color-accent-line); }
+.is-success .lintje-level-meter__step.is-lit { background: var(--color-success-line); }
+.is-warning .lintje-level-meter__step.is-lit,
+.is-attention .lintje-level-meter__step.is-lit { background: var(--color-attention-line); }
+.is-error .lintje-level-meter__step.is-lit { background: var(--color-error-line); }
+
 @media (prefers-reduced-motion: reduce) {
   .lintje-level-meter__bar { transition: none; }
 }
 
+/* Forced colours drop the fills: a lit step is solid, an unlit one keeps its outline. */
 @media (forced-colors: active) {
   .lintje-level-meter__bar { background: CanvasText; }
+  .lintje-level-meter__step { border: 1px solid CanvasText; }
+  .lintje-level-meter__step.is-lit { background: CanvasText; }
 }
