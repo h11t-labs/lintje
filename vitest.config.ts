@@ -97,6 +97,8 @@ export default defineConfig({
           setupFiles: ['src/bundle/browser-setup.ts'],
           // A page mostly waits for a frame, so more pages than cores: CI has four.
           maxWorkers: 6,
+          // The worker count is set per group, so a project that takes its own count runs alone.
+          sequence: { groupOrder: 1 },
           browser: {
             enabled: true,
             provider: playwright({
