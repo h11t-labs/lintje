@@ -70,6 +70,8 @@ jobs:
       # The shards write their log at the same time: read them for the file a failure names, not
       # for their order. One failed shard fails the job.
       - name: The style guide and the browser tests
+        # The container's shell is `sh`, which has no arrays.
+        shell: bash
         run: |
           pids=()
           for shard in $(seq 1 "$SHARDS"); do
