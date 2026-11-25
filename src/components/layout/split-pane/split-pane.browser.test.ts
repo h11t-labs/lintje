@@ -1,6 +1,6 @@
 /**
  * The split pane in a browser: the split dragged within its bounds, by a finger beside the strip,
- * and one panel at a time on a phone.
+ * one panel at a time on a phone, and one above the other, dragged up and down and split on a phone.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { cdp, page, server, userEvent } from 'vitest/browser'
@@ -191,5 +191,39 @@ describe('lintje-split-pane on a phone', () => {
     await element.updateComplete
     expect(start(element).offsetWidth).toBe(0)
     expect(end(element).offsetWidth).toBeGreaterThan(0)
+  })
+})
+
+describe('lintje-split-pane one above the other', () => {
+  async function mountVertical(): Promise<LintjeSplitPane> {
+    const element = await mount()
+    Object.assign(element, { orientation: 'vertical', height: 400 })
+    await element.updateComplete
+    return element
+  }
+
+  it('moves the split to where the strip is let go, up and down', async () => {
+    const element = await mountVertical()
+    const box = block(element)
+    const height = box.offsetHeight
+    await userEvent.dragAndDrop(strip(element), box, {
+      targetPosition: { x: box.offsetWidth / 2, y: height * 0.3 },
+    })
+    await element.updateComplete
+    expect(element.value).toBe(30)
+    await expect
+      .poll(() => start(element).getBoundingClientRect().height)
+      .toBeCloseTo((height - 2 - 9) * 0.3, 0)
+  })
+
+  it('stays split on a phone, without the choice', async () => {
+    const element = await mountVertical()
+    await page.viewport(390, 844)
+    await expect.poll(() => window.innerWidth).toBe(390)
+    await element.updateComplete
+    expect(element.shadowRoot!.querySelector('lintje-segmented')).toBeNull()
+    expect(start(element).hidden).toBe(false)
+    expect(end(element).hidden).toBe(false)
+    expect(strip(element).hidden).toBe(false)
   })
 })

@@ -51,6 +51,23 @@
 .lintje-split-pane--phone { display: block; border: 0; }
 .lintje-split-pane--phone .lintje-split-pane__pane { padding: 0; }
 
+/* One above the other: the same strip turned a quarter, in the height the host gives. */
+.lintje-split-pane--vertical { flex-direction: column; height: var(--lintje-split-height); }
+.lintje-split-pane--vertical .lintje-split-pane__pane { min-height: 0; }
+.lintje-split-pane--vertical .lintje-split-pane__strip {
+  border: 0;
+  border-top: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--color-border-default);
+  cursor: row-resize;
+}
+.lintje-split-pane--vertical .lintje-split-pane__handle { width: var(--h-touch); height: 7px; }
+.lintje-split-pane--vertical.is-dragging { cursor: row-resize; }
+@media (pointer: coarse) {
+  .lintje-split-pane--vertical .lintje-split-pane__strip::after {
+    inset: calc((100% - var(--h-target-text)) / 2) 0;
+  }
+}
+
 /* Forced colours: the grip is a fill, which the mode drops; it is drawn in the text colour. */
 @media (forced-colors: active) {
   .lintje-split-pane__handle { forced-color-adjust: none; background: CanvasText; }
