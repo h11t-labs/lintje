@@ -11,6 +11,22 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-11-25
+
+### Toegevoegd
+
+- De split pane zet twee panelen ook boven elkaar (`orientation="vertical"`), in de hoogte van `height`; de pijlen omhoog en omlaag verschuiven de verdeling, en op een telefoon blijft het een verdeling. (#340)
+- Een tabel, lijst en sorteerbare lijst nemen eigen inhoud van de host in een slot dat de data noemt: in de sorteerbare lijst op de plaats van het label (bijvoorbeeld een afbeelding), in de lijst op de plaats van titel, regel en feiten, en in de tabel per cel met een kolom met `slot: true` (`<kolom>-<rij>`), met de waarde als terugval. Een klik in die inhoud klikt nooit op de rij. (#339)
+- Een histogram tekent een tweede set waarden over dezelfde klassen over de eerste: zonder kleur als vergelijking (grijs), met een kleur als tweede variabele. Per set kiest de host de vulling (`fill`: gevuld, doorzichtig of geen) en de lijn langs de bovenkant (`line`: doorgetrokken, gestreept of geen); standaard zijn het gevulde staven met de tweede set als trap erover, en een doorzichtige vulling heeft altijd een lijn. Elke set heeft een eigen knop in de legenda, beide aantallen staan in de tooltip en elke set krijgt een kolom in de CSV (`comparison` op het histogram). (#335)
+
+### Gewijzigd
+
+- De ontwikkelafhankelijkheden zijn bij: Vitest en `@vitest/browser-playwright` 5.1.2 (zet het aantal workers per groep, dus de unittests en de browsertests draaien na elkaar), oxfmt 0.80, oxlint 1.95, Vite 8.3.8, Playwright 1.65.1 (het CI-image gaat mee), dagre 3.1.4 en axe-core 4.14.1, plus d3-force 3.0.1 met de patch van d3-dispatch, d3-quadtree en d3-timer. Aan wat een host ziet verandert niets. (#338)
+
+### Opgelost
+
+- Een rij met een afbrekend label in `lintje-sortable-list` staat gelijk met de andere rijen: de eerste regel houdt dezelfde lucht boven zich. (#341)
+
 ## [0.13.2] - 2026-11-12
 
 ### Toegevoegd
@@ -808,7 +824,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.13.2...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/h11t-labs/lintje/compare/v0.13.2...v0.14.0
 [0.13.2]: https://github.com/h11t-labs/lintje/compare/v0.13.1...v0.13.2
 [0.13.1]: https://github.com/h11t-labs/lintje/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/h11t-labs/lintje/compare/v0.12.1...v0.13.0
