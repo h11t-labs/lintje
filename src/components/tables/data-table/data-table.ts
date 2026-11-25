@@ -1520,7 +1520,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
     phone: boolean,
   ): unknown {
     if (!column.slot || column === this.shown[0] || !this.drawsSlots(copy, phone)) return content
-    return html`<slot name=${`${column.key}-${this.rowKey(row)}`}>${content}</slot>`
+    return html`<slot class="lintje-data-table__slot" name=${`${column.key}-${this.rowKey(row)}`}
+      >${content}</slot
+    >`
   }
 
   /** One body row and, while it is open, its detail under it. */
