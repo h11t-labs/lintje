@@ -10,9 +10,15 @@
  */
 import axe from 'axe-core'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import { page } from 'vitest/browser'
+import { commands, page } from 'vitest/browser'
 import { iconIsMissing } from '../../icons/loader'
 import '../index'
+
+declare module 'vitest/browser' {
+  interface BrowserCommands {
+    parkPointer: () => Promise<void>
+  }
+}
 
 interface State {
   value: string
@@ -195,6 +201,10 @@ function colourOf(token: string): string {
 /** What axe finds and `KNOWN` does not hold, one line per node: the rule, where, and what is wrong. */
 async function audit(name: string): Promise<string[]> {
   const disabled = colourOf('--color-text-disabled')
+  // With the pointer out of the page: white on `inverse-secondary` over the band is 6:1 at rest and
+  // 4.39:1 under the pointer, and a pointer the browser left on a specimen made that a failure now
+  // and then — axe reads the hover state it finds.
+  await commands.parkPointer()
   const { violations } = await axe.run(document.body, {
     runOnly: { type: 'tag', values: WCAG },
     resultTypes: ['violations'],

@@ -27,6 +27,11 @@ const emulatePrint: BrowserCommand<[on: boolean]> = async ({ page }, on) => {
   await page.emulateMedia({ media: on ? 'print' : 'screen' })
 }
 
+/** Parks the pointer outside the page, so nothing under it looks hovered (`styleguide/suite.ts`). */
+const parkPointer: BrowserCommand<[]> = async ({ page }) => {
+  await page.mouse.move(-1, -1)
+}
+
 /** Forced colours, as a contrast theme of Windows sets them, or back. */
 const emulateForcedColors: BrowserCommand<[on: boolean]> = async ({ page }, on) => {
   await page.emulateMedia({ forcedColors: on ? 'active' : 'none' })
@@ -111,7 +116,7 @@ export default defineConfig({
             // A failed test writes no picture into `src/`.
             screenshotFailures: false,
             viewport: { width: 1440, height: 900 },
-            commands: { emulatePrint, emulateForcedColors },
+            commands: { emulatePrint, emulateForcedColors, parkPointer },
             // WebKit on the Linux runner of the CI misses a one-second poll now and then (a viewport
             // that has not flipped yet, a toast's close button not drawn yet); on macOS it never
             // does. One more try separates that from a real failure.
