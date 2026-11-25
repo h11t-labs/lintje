@@ -1,9 +1,11 @@
 /**
- * `<lintje-split-pane>` — two panels side by side with a split the reader moves.
+ * `<lintje-split-pane>` — two panels side by side, or one above the other, with a split the reader
+ * moves.
  *
  * It moves without dragging too: a click on the strip lifts the split and the next click places
  * it; Escape or a click outside puts it back, a double click returns to 50/50. Below 768 px there
- * are never two panels: a segmented control chooses which one shows.
+ * are never two panels side by side: a segmented control chooses which one shows. One above the
+ * other fits a phone, and stays split.
  *
  * Events: `lintje-split-change` `number` (the percentage), `lintje-pane-change`
  * `'start' | 'end'`.
@@ -24,6 +26,7 @@ import '../../inputs/segmented/segmented'
 import splitPaneCss from './split-pane.css?inline'
 
 export type SplitPaneSide = 'start' | 'end'
+export type SplitPaneOrientation = 'horizontal' | 'vertical'
 
 export const SPLIT_STEP = 5
 export const SPLIT_RESET = 50
@@ -34,20 +37,29 @@ export function clampSplit(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
 
+/** The split at a pointer along the block's axis: `start` and `size` are its left and width, or its top and height. */
 export function splitFromPointer(
-  clientX: number,
-  left: number,
-  width: number,
+  position: number,
+  start: number,
+  size: number,
   min: number,
   max: number,
 ): number {
-  if (width <= 0) return clampSplit(SPLIT_RESET, min, max)
-  return clampSplit(Math.round(((clientX - left) / width) * 100), min, max)
+  if (size <= 0) return clampSplit(SPLIT_RESET, min, max)
+  return clampSplit(Math.round(((position - start) / size) * 100), min, max)
 }
 
-export function splitFromKey(key: string, value: number, min: number, max: number): number | null {
-  if (key === 'ArrowLeft') return clampSplit(value - SPLIT_STEP, min, max)
-  if (key === 'ArrowRight') return clampSplit(value + SPLIT_STEP, min, max)
+export function splitFromKey(
+  key: string,
+  value: number,
+  min: number,
+  max: number,
+  orientation: SplitPaneOrientation = 'horizontal',
+): number | null {
+  const [less, more] =
+    orientation === 'vertical' ? ['ArrowUp', 'ArrowDown'] : ['ArrowLeft', 'ArrowRight']
+  if (key === less) return clampSplit(value - SPLIT_STEP, min, max)
+  if (key === more) return clampSplit(value + SPLIT_STEP, min, max)
   if (key === 'Home') return min
   if (key === 'End') return max
   if (key === 'Enter') return clampSplit(SPLIT_RESET, min, max)
@@ -84,6 +96,8 @@ export class LintjeSplitPane extends LintjeElement {
     startLabel: { type: String, attribute: 'start-label' },
     endLabel: { type: String, attribute: 'end-label' },
     pane: { type: String, reflect: true },
+    orientation: { type: String, reflect: true },
+    height: { type: Number },
     dragging: { state: true },
   }
 
@@ -98,6 +112,10 @@ export class LintjeSplitPane extends LintjeElement {
   endLabel: string = 'Rechts'
   /** The panel shown below 768 px; a host that keeps it in the URL sets it back. */
   pane: SplitPaneSide = 'start'
+  /** `horizontal`: the panels side by side; `vertical`: one above the other. */
+  orientation: SplitPaneOrientation = 'horizontal'
+  /** `vertical`: the height in px the two panels share. */
+  height: number = 480
   protected dragging: boolean = false
 
   #mobile = new MediaController(this, MOBILE)
@@ -114,7 +132,8 @@ export class LintjeSplitPane extends LintjeElement {
 
   /** The split when the drag began: a release where it began is no change. */
   #dragFrom: number = SPLIT_RESET
-  #pressX = 0
+  /** Where the press began, along the axis. */
+  #press = 0
   /** Lifted by a click: the split follows the pointer until the next click places it. */
   #lifted = false
   /** The click that placed the split, swallowed so it does not also press what it landed on. */
@@ -140,19 +159,29 @@ export class LintjeSplitPane extends LintjeElement {
     strip.setPointerCapture?.(event.pointerId)
     this.renderRoot.querySelector<HTMLElement>('.lintje-split-pane__handle')?.focus()
     this.#dragFrom = this.value
-    this.#pressX = event.clientX
+    this.#press = this.along(event)
     this.dragging = true
   }
 
-  private splitAt(clientX: number): number | null {
+  private get vertical(): boolean {
+    return this.orientation === 'vertical'
+  }
+
+  private along(event: PointerEvent): number {
+    return this.vertical ? event.clientY : event.clientX
+  }
+
+  private splitAt(event: PointerEvent): number | null {
     const rect = this.block?.getBoundingClientRect()
     if (!rect) return null
-    return splitFromPointer(clientX, rect.left, rect.width, this.min, this.max)
+    return this.vertical
+      ? splitFromPointer(event.clientY, rect.top, rect.height, this.min, this.max)
+      : splitFromPointer(event.clientX, rect.left, rect.width, this.min, this.max)
   }
 
   private readonly onPointerMove = (event: PointerEvent): void => {
     if (!this.dragging) return
-    const next = this.splitAt(event.clientX)
+    const next = this.splitAt(event)
     if (next !== null) this.value = next
   }
 
@@ -160,7 +189,7 @@ export class LintjeSplitPane extends LintjeElement {
     if (!this.dragging || this.#lifted) return
     const strip = event.currentTarget as HTMLElement
     if (strip.hasPointerCapture?.(event.pointerId)) strip.releasePointerCapture(event.pointerId)
-    if (Math.abs(event.clientX - this.#pressX) <= CLICK_SLOP) {
+    if (Math.abs(this.along(event) - this.#press) <= CLICK_SLOP) {
       this.#lifted = true
       document.addEventListener('pointerdown', this.onOutside, true)
       return
@@ -183,7 +212,7 @@ export class LintjeSplitPane extends LintjeElement {
     const block = this.block
     if (event.type !== 'pointerup' || !this.#lifted || !block) return
     if (!event.composedPath().includes(block)) return
-    const next = this.splitAt(event.clientX)
+    const next = this.splitAt(event)
     this.#drop()
     this.#placed = true
     this.commit(next ?? this.value, this.#dragFrom)
@@ -235,7 +264,7 @@ export class LintjeSplitPane extends LintjeElement {
     }
     // A key ends a lift: the split moves from where it was.
     this.cancelLift()
-    const next = splitFromKey(event.key, this.value, this.min, this.max)
+    const next = splitFromKey(event.key, this.value, this.min, this.max, this.orientation)
     if (next === null) return
     event.preventDefault()
     this.commit(next)
@@ -250,7 +279,9 @@ export class LintjeSplitPane extends LintjeElement {
   }
 
   protected override render(): TemplateResult {
-    const phone = this.#mobile.matches
+    const vertical = this.vertical
+    // One above the other fits a phone: only panels side by side give way to the choice.
+    const phone = this.#mobile.matches && !vertical
     const value = Math.round(this.value)
     return html`${
       phone
@@ -270,9 +301,13 @@ export class LintjeSplitPane extends LintjeElement {
       class=${classMap({
         'lintje-split-pane': true,
         'lintje-split-pane--phone': phone,
+        'lintje-split-pane--vertical': vertical,
         'is-dragging': this.dragging,
       })}
-      ${styleProps({ '--lintje-split': String(this.value) })}
+      ${styleProps({
+        '--lintje-split': String(this.value),
+        '--lintje-split-height': vertical ? `${this.height}px` : null,
+      })}
       @pointerdown=${this.onPlace}
       @pointermove=${this.onPointerMove}
       @click=${{ handleEvent: this.onPlacedClick, capture: true }}
@@ -299,7 +334,10 @@ export class LintjeSplitPane extends LintjeElement {
           class="lintje-split-pane__handle"
           role="separator"
           tabindex="0"
-          aria-orientation="vertical"
+          aria-orientation=${
+            // The separator's own line: between panels one above the other it lies flat.
+            vertical ? 'horizontal' : 'vertical'
+          }
           aria-label="Verdeling aanpassen"
           aria-valuenow=${value}
           aria-valuemin=${this.min}
