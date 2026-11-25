@@ -108,7 +108,8 @@ function hugging(row: Element, text: Element): number {
   const style = getComputedStyle(row)
   const edges = ['paddingTop', 'paddingBottom', 'borderTopWidth', 'borderBottomWidth'] as const
   const around = edges.reduce((sum, edge) => sum + parseFloat(style[edge]), 0)
-  return Math.max(parseFloat(style.minHeight), box(text).height + around)
+  // `auto` reads as no minimum.
+  return Math.max(parseFloat(style.minHeight) || 0, box(text).height + around)
 }
 
 /** Texts side by side that touch or cross, by the text of the first. */
