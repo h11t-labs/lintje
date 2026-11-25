@@ -185,3 +185,14 @@
   .lintje-list__row { border-left: 4px solid Canvas; }
   .lintje-list__row.is-selected { border-left-color: Highlight; }
 }
+
+/* The host's content takes the main column and the facts' room, at every width. */
+.lintje-list__row.has-slot,
+.lintje-list__row.has-slot.is-narrow {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'main actions';
+}
+.lintje-list__row.has-slot.has-icon {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'icon main actions';
+}

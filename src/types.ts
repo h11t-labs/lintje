@@ -363,6 +363,12 @@ export interface TableColumnData {
   editor?: TableCellEditor
   /** A filter in the column's header; its value comes back in `DataTableData.filters`. */
   filter?: TableColumnFilter
+  /**
+   * Each cell takes the host's element through a slot named `<key>-<row key>` (`aantal-r1`), for
+   * what a value cannot say (a field, a switch); without one the value stands. The value still
+   * sorts, filters and goes into the CSV. A click in it never clicks the row; no `editor`.
+   */
+  slot?: boolean
 }
 
 export interface TableOption {

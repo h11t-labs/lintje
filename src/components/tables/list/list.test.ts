@@ -331,3 +331,28 @@ describe('a person on a row of lintje-list', () => {
     expect(second!.querySelector('.lintje-list__facts')).toBeNull()
   })
 })
+
+describe('lintje-list with a slot', () => {
+  it("draws the host's content in place of the title, muted line and facts", async () => {
+    const element = await mount({
+      items: [{ id: 'a', title: 'Foto', sub: 'weg', meta: 'weg', slot: 'foto-a' }],
+    })
+    const [row] = rows(element)
+    expect(row!.querySelector('slot[name="foto-a"]')).not.toBeNull()
+    expect(row!.querySelector('.lintje-list__title')).toBeNull()
+    expect(row!.querySelector('.lintje-list__sub, .lintje-list__facts')).toBeNull()
+    // The title stays the row's name for a screen reader.
+    expect(row!.querySelector('.visually-hidden')?.textContent).toBe('Foto')
+    element.remove()
+  })
+
+  it('opens nothing: the row is static', async () => {
+    const element = await mount({ items: [{ id: 'a', title: 'Foto', slot: 'foto-a' }] })
+    const clicks = collect(element, 'lintje-row-click')
+    const [row] = rows(element)
+    expect(row!.classList.contains('is-static')).toBe(true)
+    row!.click()
+    expect(clicks).toEqual([])
+    element.remove()
+  })
+})

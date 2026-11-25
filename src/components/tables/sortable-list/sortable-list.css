@@ -78,6 +78,10 @@
   flex: 1 1 0; min-width: 0;
   --h-target: 1lh;
 }
+/* The host's own content takes the label's room, centred on the row. */
+.lintje-sortable-list__slot { flex: 1 1 0; min-width: 0; align-self: center; }
+/* Beside content taller than a line the grip stands in the middle, where the eye looks for it. */
+.lintje-sortable-list__row:has(.lintje-sortable-list__slot) .lintje-sortable-list__grip { align-self: center; }
 
 @media screen and (max-width: 767px) {
   .lintje-sortable-list__row { padding-left: 0; }
