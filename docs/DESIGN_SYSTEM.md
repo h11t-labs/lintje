@@ -787,6 +787,13 @@ De besluiten hieronder gelden voor alle elementen.
 
 ### Tabellen
 
+- **Eigen inhoud komt in een slot dat de data noemt.** Een item of kolom krijgt `slot`, de host
+  zet zijn eigen element met die naam erin; zo blijft het element van de host in zijn eigen DOM,
+  met zijn eigen stijl en events, en blijft de data JSON. Het slot neemt de plaats van de inhoud
+  in, niet van wat het element nodig heeft: de greep van een sorteerbare rij, het menu van een
+  lijstrij en de naam van de rij voor een schermlezer blijven. Een cel heet `<kolom>-<rij>`, met de
+  waarde als terugval; een klik in eigen inhoud bedient nooit de rij. Een veld in een cel is
+  eerst een `editor`; het slot is voor wat die niet kan.
 - **Een kop heeft geen vulling**, ook gefilterd niet: een vulling is hoe een geselecteerde rij
   eruitziet.
 - **De kop zegt alleen wat nu geldt.** Alleen de gesorteerde kolom draagt haar pijl; een andere
