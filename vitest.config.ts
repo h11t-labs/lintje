@@ -118,7 +118,8 @@ export default defineConfig({
             // that has not flipped yet, a toast's close button not drawn yet); on macOS it never
             // does. One more try separates that from a real failure.
             // Firefox holds one pointer capture for the mouse across all its pages: a click in a
-            // file running beside a drag lands on the dragged grip. Its files run one at a time.
+            // file running beside a drag lands on the dragged grip. Its files run one at a time;
+            // the CI job runs four of those runs beside each other, one browser each (check.yml).
             instances: engines.map((browser) => ({
               browser,
               retry: browser === 'webkit' ? 1 : 0,
