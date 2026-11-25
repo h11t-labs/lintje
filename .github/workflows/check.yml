@@ -1,6 +1,7 @@
 # What a change has to pass: the checks from AGENTS.md, the style guide in three browsers, and the
 # build the examples load. Each browser has its own job, beside the one for the rest, so they run
-# side by side and a failure names its engine.
+# side by side and a failure names its engine; a browser that cannot run its files side by side
+# splits them into shards of its own (`shards` below), each in its own browser.
 name: Check
 
 # Once per pull request: main only takes merged pull requests, and a tag runs release.yml, which
@@ -9,6 +10,12 @@ on:
   pull_request:
   workflow_dispatch:
   workflow_call:
+
+# A push to a pull request cancels the run it supersedes: the run before it draws the whole style
+# guide for a commit nobody will merge, and its result is stale anyway. A release keeps its run.
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
@@ -30,7 +37,14 @@ jobs:
   # Playwright's image carries the browsers and their system packages, so the job never waits on the
   # Ubuntu mirror, which sometimes serves the WebKit packages at a crawl. The tag moves together with
   # `playwright` in package-lock.json.
+  #
+  # Chromium and WebKit run their test files side by side in one browser (six at a time); Firefox
+  # cannot, because it holds one pointer capture for the mouse across all its pages
+  # (`vitest.config.ts`). Its files therefore run in four shards beside each other, each shard its
+  # own `vitest` and so its own browser — the only parallelism Firefox has, and the reason its job
+  # was twice as long as the others.
   browser:
+    name: browser (${{ matrix.browser }})
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     container:
@@ -39,7 +53,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, webkit, firefox]
+        include:
+          - browser: chromium
+            shards: 1
+          - browser: webkit
+            shards: 1
+          - browser: firefox
+            shards: 4
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -47,6 +67,18 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run test:browser
+      # The shards write their log at the same time: read them for the file a failure names, not
+      # for their order. One failed shard fails the job.
+      - name: The style guide and the browser tests
+        run: |
+          pids=()
+          for shard in $(seq 1 "$SHARDS"); do
+            npm run test:browser -- --shard="$shard/$SHARDS" &
+            pids+=($!)
+          done
+          failed=0
+          for pid in "${pids[@]}"; do wait "$pid" || failed=1; done
+          exit "$failed"
         env:
+          SHARDS: ${{ matrix.shards }}
           LINTJE_BROWSERS: ${{ matrix.browser }}
