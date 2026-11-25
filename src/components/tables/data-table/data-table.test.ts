@@ -997,3 +997,43 @@ describe('data without columns yet', () => {
     expect(file).toBeDefined()
   })
 })
+
+describe('a slot column', () => {
+  const slotData: DataTableData = {
+    caption: 'Bestellingen',
+    columns: [
+      { key: 'name', header: 'Artikel', slot: true },
+      { key: 'count', header: 'Aantal', slot: true },
+    ],
+    rows: [
+      { name: 'Pennen', count: 12 },
+      { name: 'Mappen', count: 4 },
+    ],
+    rowKey: 'name',
+    clickable: true,
+  }
+
+  async function mountSlots(): Promise<TableElement> {
+    const element = document.createElement('lintje-data-table') as TableElement
+    element.data = structuredClone(slotData)
+    document.body.append(element)
+    await element.updateComplete
+    return element
+  }
+
+  afterEach(() => document.body.replaceChildren())
+
+  it('names a slot per cell, with the value as its fallback', async () => {
+    const element = await mountSlots()
+    const full = element.shadowRoot!.querySelector('.lintje-data-table__full')!
+    const slot = full.querySelector<HTMLSlotElement>('slot[name="count-Pennen"]')
+    expect(slot).not.toBeNull()
+    expect(slot!.textContent?.trim()).toBe('12')
+  })
+
+  it('draws each slot once, and never in the name column', async () => {
+    const element = await mountSlots()
+    expect(element.shadowRoot!.querySelectorAll('slot[name="count-Pennen"]')).toHaveLength(1)
+    expect(element.shadowRoot!.querySelector('slot[name="name-Pennen"]')).toBeNull()
+  })
+})

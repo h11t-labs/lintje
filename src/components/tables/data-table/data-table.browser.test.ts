@@ -2,7 +2,7 @@
  * The table in a browser: Escape first for a lifted grip in its column chooser, the height of a
  * filterable head, the width a truncated column takes, a keyboard's way into a table that
  * scrolls sideways, the Tab stops of a row (its name, a cut value, its controls' rings), and the
- * phone's table within its tile.
+ * phone's table within its tile, and the host's element in a slot column.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
@@ -440,5 +440,40 @@ describe('the phone’s table', () => {
     word.style.whiteSpace = 'nowrap'
     name.append(word)
     expect(name.clientWidth).toBeGreaterThanOrEqual(word.offsetWidth)
+  })
+})
+
+describe('a slot column', () => {
+  const ordered: DataTableData = {
+    caption: 'Bestellingen',
+    rowKey: 'name',
+    clickable: true,
+    columns: [
+      { key: 'name', header: 'Artikel' },
+      { key: 'count', header: 'Aantal', slot: true },
+    ],
+    rows: [
+      { name: 'Pennen', count: 12 },
+      { name: 'Mappen', count: 4 },
+    ],
+  }
+
+  it("shows the host's element in its cell, and a click in it never clicks the row", async () => {
+    const element = await mount(structuredClone(ordered))
+    const field = Object.assign(document.createElement('input'), {
+      slot: 'count-Pennen',
+      value: '12',
+      ariaLabel: 'Aantal pennen',
+    })
+    element.append(field)
+    const clicks: unknown[] = []
+    element.addEventListener('lintje-row-click', (event) => clicks.push(event))
+    await expect.element(page.getByRole('textbox', { name: 'Aantal pennen' })).toBeVisible()
+    await userEvent.click(field)
+    expect(clicks).toHaveLength(0)
+    // The other row has no element: its value stands, and the row still clicks.
+    const mappen = page.getByRole('button', { name: 'Mappen' })
+    await userEvent.click(mappen)
+    expect(clicks).toHaveLength(1)
   })
 })

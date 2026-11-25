@@ -31,6 +31,11 @@ export interface SortableItem {
   label: string
   /** With `checkable`: whether the box is ticked. */
   checked?: boolean
+  /**
+   * The name of a slot that takes the label's place: the host's own content (a picture). The
+   * label still names the grip. With `checkable` the box keeps its label and the slot follows it.
+   */
+  slot?: string
 }
 
 export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
@@ -438,7 +443,14 @@ export class LintjeSortableList extends LintjeElement {
               ?checked=${Boolean(item.checked)}
               @lintje-change=${(event: CustomEvent<boolean>) => this.onCheck(event, item)}
             ></lintje-checkbox>`
-          : html`<span class="lintje-sortable-list__label">${item.label}</span>`
+          : item.slot
+            ? nothing
+            : html`<span class="lintje-sortable-list__label">${item.label}</span>`
+      }
+      ${
+        item.slot
+          ? html`<span class="lintje-sortable-list__slot"><slot name=${item.slot}></slot></span>`
+          : nothing
       }
     </li>`
   }

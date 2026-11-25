@@ -24,6 +24,7 @@ import { classMap } from 'lit/directives/class-map.js'
 import { ref } from 'lit/directives/ref.js'
 import { define, type FrameSettings } from '../../../core/element'
 import { isNewTabClick } from '../../../core/links'
+import { fromSlotted } from '../../../core/slots'
 import { shadowCss } from '../../../core/styles'
 import { spanStyles } from '../../shared/grid-item-element'
 import { LintjeContentTileElement } from '../../shared/content-tile'
@@ -1501,6 +1502,29 @@ export class LintjeDataTable extends LintjeContentTileElement {
     return (column.align ?? (isNumeric(column, this.rows) ? 'right' : 'left')) === 'right'
   }
 
+  /**
+   * Whether this copy draws the slots: only the one the reader sees (the modal while it is open,
+   * the phone's table below 768 px), since the first slot of a name in the shadow root takes the
+   * host's element.
+   */
+  private drawsSlots(copy: string, phone: boolean): boolean {
+    return (copy === 'modal') === this.expanded && phone === this.#mobile.matches
+  }
+
+  /** A `slot` column's cell: the host's element, else the value. Never the name column. */
+  private slotted(
+    column: TableColumnData,
+    row: Row,
+    content: unknown,
+    copy: string,
+    phone: boolean,
+  ): unknown {
+    if (!column.slot || column === this.shown[0] || !this.drawsSlots(copy, phone)) return content
+    return html`<slot class="lintje-data-table__slot" name=${`${column.key}-${this.rowKey(row)}`}
+      >${content}</slot
+    >`
+  }
+
   /** One body row and, while it is open, its detail under it. */
   private fullRow(
     row: Row,
@@ -1522,7 +1546,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       data.openable ||
       rowActions ||
       detailColumns.length > 0 ||
-      columns.some((column) => column.editor)
+      columns.some((column) => column.editor || column.slot)
     // A static row needs a keyboard stop to reveal the compact change's words or a cut value.
     const reveals =
       !hasControls &&
@@ -1575,11 +1599,17 @@ export class LintjeDataTable extends LintjeContentTileElement {
         }
         ${columns.map((column, index) => {
           const truncate = column.truncate === true
-          const content = truncate
-            ? this.truncatedCell(column, row[column.key])
-            : this.cell(column, row[column.key], row)
+          const content = this.slotted(
+            column,
+            row,
+            truncate
+              ? this.truncatedCell(column, row[column.key])
+              : this.cell(column, row[column.key], row),
+            copy,
+            false,
+          )
           const alignRight = this.alignsRight(column)
-          if (column.editor)
+          if (column.editor && !column.slot)
             return this.editableCell(row, rowIndex, column, index === 0, alignRight, content, grid)
           return index === 0
             ? html`<th
@@ -1622,7 +1652,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         detailColumns.length > 0
           ? html`<tr class="lintje-data-table__detail" id=${detailId} ?hidden=${!isOpen}>
               <td class="lintje-data-table__detail-body" colspan=${span}>
-                ${isOpen ? this.detailList(row, detailColumns, 'grid') : nothing}
+                ${isOpen ? this.detailList(row, detailColumns, 'grid', copy, false) : nothing}
               </td>
             </tr>`
           : nothing
@@ -1650,25 +1680,36 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   /** What a row's columns leave out, as label and value. */
-  private detailList(row: Row, columns: TableColumnData[], layout: 'row' | 'grid'): TemplateResult {
+  private detailList(
+    row: Row,
+    columns: TableColumnData[],
+    layout: 'row' | 'grid',
+    copy: string,
+    phone: boolean,
+  ): TemplateResult {
     // As many cells to a line as fill the lines evenly: a gap at the end reads as a missing value.
     const lines = Math.ceil(columns.length / 4)
-    // A person keeps the circle here: it stands in the item's slot.
-    const slot = (column: TableColumnData): string => `person-${column.key}`
+    // A person keeps the circle here, and a slot column the host's element: each stands in the
+    // item's slot, passed on from this element's own.
+    const slotted = (column: TableColumnData): boolean =>
+      column.format === 'person' || (Boolean(column.slot) && this.drawsSlots(copy, phone))
+    const slot = (column: TableColumnData): string =>
+      column.slot ? `${column.key}-${this.rowKey(row)}` : `person-${column.key}`
     return html`<lintje-description-list
       layout=${layout}
       .columns=${Math.ceil(columns.length / lines)}
       .items=${columns.map((column): DescriptionItem =>
-        column.format === 'person'
+        slotted(column)
           ? { label: column.header, slot: slot(column) }
           : { label: column.header, value: cellText(column, row[column.key]) },
       )}
-      >${columns
-        .filter((column) => column.format === 'person')
-        .map(
-          (column) =>
-            html`<span slot=${slot(column)}>${personCell(column, row[column.key])}</span>`,
-        )}</lintje-description-list
+      >${columns.filter(slotted).map((column) =>
+        column.slot
+          ? html`<slot name=${slot(column)} slot=${slot(column)}
+              >${this.cell(column, row[column.key], row)}</slot
+            >`
+          : html`<span slot=${slot(column)}>${personCell(column, row[column.key])}</span>`,
+      )}</lintje-description-list
     >`
   }
 
@@ -2047,7 +2088,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         </th>
         <td class="lintje-data-table__mobile-cell lintje-data-table__mobile-cell--align-right">
           <span class="lintje-data-table__mobile-measure"
-            >${this.cell(measureDrawn, row[measureColumn.key])}</span
+            >${this.slotted(measureColumn, row, this.cell(measureDrawn, row[measureColumn.key]), copy, true)}</span
           >
           ${
             status
@@ -2087,7 +2128,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         others.length > 0
           ? html`<tr class="lintje-data-table__mobile-detail" id=${detailId} ?hidden=${!isOpen}>
               <td class="lintje-data-table__mobile-cell" colspan=${span}>
-                ${isOpen ? this.detailList(row, others, 'row') : nothing}
+                ${isOpen ? this.detailList(row, others, 'row', copy, true) : nothing}
               </td>
             </tr>`
           : nothing
@@ -2180,6 +2221,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     row: Row,
     event?: MouseEvent,
   ): void {
+    if (event && fromSlotted(event, this.renderRoot)) return
     const detail = this.rowDetail(row)
     if (event && detail.href && isNewTabClick(event)) {
       event.preventDefault()
