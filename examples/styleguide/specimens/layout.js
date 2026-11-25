@@ -367,6 +367,13 @@ export default {
           note: 'Met `storage-key` onthoudt de verdeling haar grenzen onder een sleutel.',
           html: `<lintje-split-pane start-label="Brontekst" end-label="Vertaling" storage-key="lintje-demo-vertalen" value="35">${SPLIT}</lintje-split-pane>`,
         },
+        {
+          label: 'Boven elkaar',
+          note:
+            'Met `orientation="vertical"` staan de panelen boven elkaar in de hoogte van ' +
+            '`height`; de pijlen omhoog en omlaag verschuiven de verdeling. Ook op een telefoon.',
+          html: `<lintje-split-pane orientation="vertical" height="360" value="60">${SPLIT}</lintje-split-pane>`,
+        },
       ],
     },
   ],

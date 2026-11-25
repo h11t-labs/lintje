@@ -12,15 +12,14 @@
   font: var(--text-ui);
 }
 
-/* A label that wraps makes its row as tall as its text; one line keeps the touch height. Grip,
-   checkbox and the label's first line stand on one line, as in a choice: each a line high, at the
-   top of the row's one flex line, which is centred in the row. */
+/* Grip, checkbox and the label's first line stand on one line, as in a choice: each a line high,
+   at the top of the row. The first line keeps the air it has in a one-line row of touch height,
+   also when the label wraps, so every row's first line sits at the same depth. */
 .lintje-sortable-list__row {
   position: relative;
-  display: flex; flex-wrap: wrap; align-content: center; align-items: flex-start;
+  display: flex; flex-wrap: wrap; align-items: flex-start;
   gap: var(--space-2);
-  min-height: var(--h-touch);
-  padding: var(--space-1) var(--space-2);
+  padding: calc((var(--h-touch) - 1lh) / 2 - var(--lintje-sortable-list-border)) var(--space-2);
   background: var(--color-bg-surface);
   --lintje-sortable-list-border: 1px;
   border: var(--lintje-sortable-list-border) solid var(--color-border-default);
@@ -79,6 +78,10 @@
   flex: 1 1 0; min-width: 0;
   --h-target: 1lh;
 }
+/* The host's own content takes the label's room, centred on the row. */
+.lintje-sortable-list__slot { flex: 1 1 0; min-width: 0; align-self: center; }
+/* Beside content taller than a line the grip stands in the middle, where the eye looks for it. */
+.lintje-sortable-list__row:has(.lintje-sortable-list__slot) .lintje-sortable-list__grip { align-self: center; }
 
 @media screen and (max-width: 767px) {
   .lintje-sortable-list__row { padding-left: 0; }

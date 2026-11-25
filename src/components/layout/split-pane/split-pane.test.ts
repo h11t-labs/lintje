@@ -340,3 +340,30 @@ describe('split arithmetic', () => {
     expect(splitFromKey('ArrowUp', 50, 20, 80)).toBeNull()
   })
 })
+
+describe('lintje-split-pane one above the other', () => {
+  afterEach(() => document.body.replaceChildren())
+
+  it('moves with the up and down arrows, and not with left and right', () => {
+    expect(splitFromKey('ArrowUp', 50, 20, 80, 'vertical')).toBe(45)
+    expect(splitFromKey('ArrowDown', 50, 20, 80, 'vertical')).toBe(55)
+    expect(splitFromKey('ArrowLeft', 50, 20, 80, 'vertical')).toBeNull()
+    expect(splitFromKey('ArrowUp', 50, 20, 80)).toBeNull()
+  })
+
+  it('says its separator lies flat, and takes the height it is given', async () => {
+    const element = await mount({ orientation: 'vertical', height: 360 })
+    expect(handle(element).getAttribute('aria-orientation')).toBe('horizontal')
+    const block = element.shadowRoot!.querySelector<HTMLElement>('.lintje-split-pane')!
+    expect(block.classList.contains('lintje-split-pane--vertical')).toBe(true)
+    expect(block.style.getPropertyValue('--lintje-split-height')).toBe('360px')
+    press(element, 'ArrowDown')
+    await element.updateComplete
+    expect(element.value).toBe(55)
+  })
+
+  it('keeps the separator vertical between panels side by side', async () => {
+    const element = await mount()
+    expect(handle(element).getAttribute('aria-orientation')).toBe('vertical')
+  })
+})

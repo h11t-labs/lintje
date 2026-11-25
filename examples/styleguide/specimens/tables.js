@@ -819,6 +819,32 @@ export default {
           setup: assigning,
         },
         {
+          label: 'Eigen inhoud in een cel',
+          note:
+            'Een kolom met `slot: true` geeft elke cel een slot, `<kolom>-<rij>`. Zonder ' +
+            'element van de host staat de waarde, zoals bij Nietjes.',
+          html:
+            '<lintje-data-table>' +
+            '<lintje-number-input slot="count-pennen" label="Aantal pennen" hide-label value="12"></lintje-number-input>' +
+            '<lintje-number-input slot="count-mappen" label="Aantal mappen" hide-label value="4"></lintje-number-input>' +
+            '</lintje-data-table>',
+          setup: (stage) =>
+            table(stage, {
+              title: 'Bestelling',
+              caption: 'Bestelling',
+              rowKey: 'id',
+              columns: [
+                { key: 'name', header: 'Artikel' },
+                { key: 'count', header: 'Aantal', slot: true },
+              ],
+              rows: [
+                { id: 'pennen', name: 'Pennen', count: 12 },
+                { id: 'mappen', name: 'Mappen', count: 4 },
+                { id: 'nietjes', name: 'Nietjes', count: 2 },
+              ],
+            }),
+        },
+        {
           label: 'Compact zonder rijactie',
           note: 'Tab bereikt elke rij om de trend met zijn uitleg te lezen; Enter opent niets.',
           html: '<lintje-data-table></lintje-data-table>',
@@ -1193,6 +1219,24 @@ export default {
           },
         },
         {
+          label: 'Eigen inhoud',
+          note:
+            'Met `slot` staat het element van de host op de plaats van titel, regel en feiten; ' +
+            'de titel blijft de naam van de rij. Het menu blijft.',
+          html:
+            '<lintje-list label="Plattegronden">' +
+            '<img slot="plattegrond-0" src="media/afbeelding.svg" alt="Plattegrond begane grond" width="160">' +
+            '<img slot="plattegrond-1" src="media/afbeelding.svg" alt="Plattegrond eerste verdieping" width="160">' +
+            '</lintje-list>',
+          setup(stage) {
+            const menu = [{ value: 'verwijderen', label: 'Verwijderen' }]
+            stage.querySelector('lintje-list').items = [
+              { id: 'p0', title: 'Begane grond', slot: 'plattegrond-0', actions: menu },
+              { id: 'p1', title: 'Eerste verdieping', slot: 'plattegrond-1', actions: menu },
+            ]
+          },
+        },
+        {
           label: 'Leeg',
           html: '<lintje-list empty-text="Nog geen opnames."><lintje-button slot="empty" variant="link">Opname uploaden</lintje-button></lintje-list>',
         },
@@ -1488,6 +1532,25 @@ export default {
           html: '<lintje-sortable-list label="Kolommen" checkable></lintje-sortable-list>',
           setup(stage) {
             stage.querySelector('lintje-sortable-list').items = COLUMNS
+          },
+        },
+        {
+          label: 'Eigen inhoud',
+          note:
+            'Met `slot` staat het element van de host op de plaats van het label, zoals een ' +
+            'afbeelding. Het label noemt de greep.',
+          html:
+            '<lintje-sortable-list label="Volgorde van de foto\'s">' +
+            '<img slot="foto-1" src="media/afbeelding.svg" alt="Voorgevel" width="120">' +
+            '<img slot="foto-2" src="media/afbeelding.svg" alt="Achtertuin" width="120">' +
+            '<img slot="foto-3" src="media/afbeelding.svg" alt="Keuken" width="120">' +
+            '</lintje-sortable-list>',
+          setup(stage) {
+            stage.querySelector('lintje-sortable-list').items = [
+              { id: 'foto-1', label: 'Voorgevel', slot: 'foto-1' },
+              { id: 'foto-2', label: 'Achtertuin', slot: 'foto-2' },
+              { id: 'foto-3', label: 'Keuken', slot: 'foto-3' },
+            ]
           },
         },
         {
