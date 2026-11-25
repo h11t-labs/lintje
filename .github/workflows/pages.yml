@@ -42,7 +42,7 @@ jobs:
           cp src/tokens/fonts.css _site/src/tokens/
           cp -r node_modules/@nl-rvo/assets/fonts _site/node_modules/@nl-rvo/assets/
           printf '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=examples/"><title>Lintje</title><a href="examples/">Lintje</a>\n' > _site/index.html
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
@@ -54,4 +54,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
