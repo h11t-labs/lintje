@@ -5,7 +5,7 @@
  * Every other icon is fetched by name when a name needs it
  * (`src/icons/loader.ts`); the name is always the file name.
  *
- * 78 icons, of 1206 in `dist-icons/`.
+ * 78 icons, of 1208 in `dist-icons/`.
  */
 
 export interface IconGlyph {
