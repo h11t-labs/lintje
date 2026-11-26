@@ -1,9 +1,5 @@
 /** `paging: 'host'`: the host sorts and pages, the table shows its page and waits for the next. */
 import { afterEach, describe, expect, it, vi } from 'vitest'
-
-vi.mock('../../shared/download', () => ({ downloadCsv: vi.fn() }))
-
-import { downloadCsv } from '../../shared/download'
 import './data-table'
 import type { LintjePagination } from '../pagination/pagination'
 import type { DataTableData, SortState } from '../../../types'
@@ -214,11 +210,24 @@ describe('the host’s selection', () => {
   })
 })
 
+/** Files the table writes itself; the unit window is shared, so the module cannot be mocked. */
+function savedFiles(): Blob[] {
+  const files: Blob[] = []
+  vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => {
+    files.push(blob as Blob)
+    return 'blob:loketten'
+  })
+  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+  return files
+}
+
 describe('the host’s download', () => {
   it('lets the tile’s download through to the host, also from the enlarged view', async () => {
     const element = await mount(
       hostData(1, { title: 'Loketten', download: { filename: 'loketten' }, expandable: true }),
     )
+    const files = savedFiles()
     const downloads: Event[] = []
     element.addEventListener('lintje-tile-download', (event) => downloads.push(event))
     const tile = root(element).querySelector('lintje-tile')!
@@ -228,18 +237,19 @@ describe('the host’s download', () => {
       .querySelector('lintje-modal')!
       .dispatchEvent(new CustomEvent('lintje-download-csv', { bubbles: true, composed: true }))
     expect(downloads).toHaveLength(2)
-    expect(downloadCsv).not.toHaveBeenCalled()
+    expect(files).toHaveLength(0)
   })
 
   it('still writes the CSV itself without paging', async () => {
     const element = await mount({ ...hostData(), paging: undefined, download: { filename: 'x' } })
+    const files = savedFiles()
     const downloads: Event[] = []
     element.addEventListener('lintje-tile-download', (event) => downloads.push(event))
     root(element)
       .querySelector('lintje-tile')!
       .dispatchEvent(new CustomEvent('lintje-tile-download', { bubbles: true, composed: true }))
     expect(downloads).toHaveLength(0)
-    expect(downloadCsv).toHaveBeenCalledOnce()
+    expect(files).toHaveLength(1)
   })
 })
 
