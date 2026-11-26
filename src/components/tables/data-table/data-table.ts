@@ -1487,7 +1487,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
 
   /**
    * A head's label: the sort button, or the plain header when the column does not sort. The
-   * button carries the hint as its description; a plain head leaves that to its cell.
+   * button carries the hint as its description; for a plain head the `<th>` itself does.
    */
   private headLabel(column: TableColumnData, sort: SortState, hintId: string | null): unknown {
     if (column.sortable === false) return column.header

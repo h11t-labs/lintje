@@ -1106,19 +1106,6 @@ export default {
           setup: (stage) => dashboard(stage, hintedData),
         },
         {
-          label: 'Toelichting in Kolommen kiezen',
-          note: 'De toelichting staat als gedempte regel onder de naam van de kolom.',
-          html: '<lintje-data-table></lintje-data-table>',
-          async setup(stage) {
-            dashboard(stage, { ...hintedData, title: 'Loketten, kolommen kiezen' })
-            const element = stage.querySelector('lintje-data-table')
-            await element.updateComplete
-            // Below 768 px there is nothing to choose: the button is hidden, the chooser stays shut.
-            const button = element.shadowRoot.querySelector('.lintje-data-table__full .lintje-data-table__chooser-button')
-            if (button?.offsetParent) button.click()
-          },
-        },
-        {
           label: 'Labels en totalen',
           note: 'Een waarde staat als badge in de cel. De totaalrij komt van de host.',
           html: '<lintje-data-table></lintje-data-table>',
@@ -1628,6 +1615,21 @@ export default {
           html: '<lintje-sortable-list label="Kolommen" checkable></lintje-sortable-list>',
           setup(stage) {
             stage.querySelector('lintje-sortable-list').items = COLUMNS
+          },
+        },
+        {
+          label: 'Met een toelichting',
+          note:
+            'Een `hint` staat als gedempte regel onder de naam, zoals in Kolommen kiezen bij een ' +
+            'kolom met een toelichting.',
+          html: '<lintje-sortable-list label="Kolommen" checkable></lintje-sortable-list>',
+          setup(stage) {
+            stage.querySelector('lintje-sortable-list').items = [
+              COLUMNS[0],
+              { ...COLUMNS[1], hint: 'Het onderwerp dat de melder koos.' },
+              { ...COLUMNS[2], hint: 'Van 1, laag, tot 4, spoed.' },
+              COLUMNS[3],
+            ]
           },
         },
         {
