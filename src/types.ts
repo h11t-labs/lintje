@@ -286,11 +286,15 @@ export interface GraphData extends FrameSettings, TileData, ContentState {
   layout?: GraphLayout
   /** Without it straight, and curved round the centre in `radial`. */
   lines?: GraphLines
-  /** The chosen node: outlined, its relations and neighbours lit, the rest stepped back. */
+  /**
+   * The chosen node: outlined, its relations and neighbours lit, the rest stepped back. A node
+   * and a line are never chosen together: set with `selectedEdge`, the one set last wins.
+   */
   selected?: string | null
   /**
    * The chosen line, by its `id`: drawn thicker in the accent, its two nodes lit and the rest
-   * stepped back. Choosing a line undoes the chosen node, and the other way round.
+   * stepped back. Choosing a line undoes the chosen node, and the other way round. Set with
+   * `selected`, the one set last wins; set in the same `data`, the line.
    */
   selectedEdge?: string | null
   /** Nodes whose branch is folded. */

@@ -390,7 +390,7 @@ describe('lintje-graph', () => {
       expect(root(element).querySelector('.lintje-graph__edge.is-selected')).toBeNull()
     })
 
-    it('opens with a double click when chosen, and a double click on a line never zooms', async () => {
+    it('opens with a double click when chosen, and a double click on a choosable line never zooms', async () => {
       const element = await mount(withIds({ selectedEdge: 'c-p1' }))
       const heard = listen(element, 'lintje-edge-open')
       const before = nodeOf(element, 'min')!.style.transform
@@ -483,6 +483,91 @@ describe('lintje-graph', () => {
       await element.updateComplete
       expect(chosen).toEqual([{ id: 'min-b', from: 'min', to: 'b', label: 'stuurt' }])
       expect(opened).toEqual([{ id: 'min-b' }])
+    })
+
+    it('takes the focus when chosen by pointer, so Escape undoes it, without a ring', async () => {
+      const element = await mount(withIds())
+      const heard = listen(element, 'lintje-edge-select')
+      // The pointer rests on the line first, as a mouse does: its tooltip waits to come.
+      const point = at(wordOf(element, 'werkt met'))
+      area(element).dispatchEvent(
+        new PointerEvent('pointermove', { clientX: point.x, clientY: point.y, bubbles: true }),
+      )
+      tap(element, point)
+      await new Promise((done) => setTimeout(done, 400))
+      await element.updateComplete
+      const active = root(element).activeElement as HTMLElement
+      expect(active.dataset.edge).toBeDefined()
+      expect(root(element).querySelector('.lintje-graph__ring')).toBeNull()
+      key(active, 'Escape')
+      await element.updateComplete
+      expect(heard).toEqual([
+        { id: 'c-p1', from: 'c', to: 'p1', label: 'werkt met' },
+        { id: null, from: null, to: null, label: null },
+      ])
+    })
+
+    it('goes round the clock by where they end when right-angled lines leave alike', async () => {
+      const element = await mount(
+        withIds({
+          lines: 'orthogonal',
+          nodes: [...graphData().nodes, node('p3', 'Partner 3', 'partner')],
+          edges: [...withIds().edges, { from: 'c', to: 'p3', label: 'werkt met', id: 'c-p3' }],
+        }),
+      )
+      const order = stops(element).map((stop) => stop.getAttribute('aria-label'))
+      const x = (id: string) =>
+        Number(/translate\(([\d.-]+)px/.exec(nodeOf(element, id)!.style.transform)![1])
+      const below = ['p1', 'p2', 'p3'].sort((a, b) => x(b) - x(a))
+      expect(order).toEqual([
+        'stuurt: Ministerie van Wonen → Dienst C',
+        ...below.map((id) => `werkt met: Dienst C → Partner ${id.slice(1)}`),
+      ])
+    })
+
+    it('never shows a node and a line chosen together: what the host set last wins', async () => {
+      const element = await mount(withIds({ selected: 'c', selectedEdge: 'c-p1' }))
+      // Set at once, the line wins.
+      expect(nodeOf(element, 'c')!.getAttribute('aria-pressed')).toBe('false')
+      expect(root(element).querySelector('.lintje-graph__edge.is-selected')).not.toBeNull()
+      element.data = withIds({ selected: 'b', selectedEdge: 'c-p1' })
+      await element.updateComplete
+      expect(nodeOf(element, 'b')!.getAttribute('aria-pressed')).toBe('true')
+      expect(root(element).querySelector('.lintje-graph__edge.is-selected')).toBeNull()
+      element.data = withIds({ selected: 'b', selectedEdge: 'c-p2' })
+      await element.updateComplete
+      expect(nodeOf(element, 'b')!.getAttribute('aria-pressed')).toBe('false')
+      // Escape undoes the line and brings no node back.
+      const heard = listen(element, 'lintje-node-select')
+      key(nodeOf(element, 'c')!, 'Escape')
+      await element.updateComplete
+      expect(nodeOf(element, 'b')!.getAttribute('aria-pressed')).toBe('false')
+      expect(heard).toEqual([])
+    })
+
+    it('keeps the focused line at full strength under a pointer elsewhere', async () => {
+      const element = await mount(withIds())
+      stops(element)[0]!.focus()
+      await element.updateComplete
+      nodeOf(element, 'p2')!.dispatchEvent(new PointerEvent('pointerenter'))
+      await element.updateComplete
+      const ring = root(element).querySelector('.lintje-graph__ring')!
+      expect(ring.closest('.lintje-graph__edge')!.classList.contains('is-dim')).toBe(false)
+    })
+
+    it('opens nothing on a held Enter', async () => {
+      const element = await mount(withIds())
+      const opened = listen(element, 'lintje-edge-open')
+      const line = stops(element)[0]!
+      line.focus()
+      key(line, 'Enter')
+      await element.updateComplete
+      line.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', repeat: true, bubbles: true, composed: true }),
+      )
+      await element.updateComplete
+      expect(line.getAttribute('aria-pressed')).toBe('true')
+      expect(opened).toEqual([])
     })
 
     it('keeps the word of the chosen line, in its frame, when zoomed out', async () => {
