@@ -190,6 +190,59 @@ describe('a right-aligned head with a hint and a funnel', () => {
   })
 })
 
+describe('a sorting head with a hint', () => {
+  const labelEnd = (th: Element): number => {
+    const label = th.querySelector('.lintje-data-table__sort-label')
+    if (label) return label.getBoundingClientRect().right
+    const text = [...th.querySelector('.lintje-data-table__header-inner')!.childNodes].find(
+      (node) => node.nodeType === Node.TEXT_NODE && node.textContent!.trim(),
+    )!
+    const range = document.createRange()
+    range.selectNodeContents(text)
+    return range.getBoundingClientRect().right
+  }
+  const glyph = (th: Element): DOMRect =>
+    th.querySelector('lintje-toggletip')!.shadowRoot!.querySelector('svg')!.getBoundingClientRect()
+
+  it('keeps its "i" near its label and in place, sorted or not', async () => {
+    const element = await mount({
+      caption: 'Loketten',
+      rowKey: 'name',
+      columns: [
+        COLUMNS[0]!,
+        { key: 'region', header: 'Regio', hint: 'Waar het loket staat.' },
+        { key: 'requests', header: 'Aanvragen', align: 'right', hint: 'Vandaag.' },
+        { key: 'open', header: 'Open', align: 'right', sortable: false, hint: 'Nog niet klaar.' },
+      ],
+      rows: officeRows(3),
+    })
+    const [left, right, plain] = [
+      ...element.shadowRoot!.querySelectorAll<HTMLElement>(
+        '.lintje-data-table__full .lintje-data-table__header-cell--hinted',
+      ),
+    ]
+    const place = () =>
+      [left!, right!].map((th) => ({
+        gap: glyph(th).left - labelEnd(th),
+        left: glyph(th).left,
+        width: th.getBoundingClientRect().width,
+      }))
+    const resting = place()
+    // The sort glyph keeps its room, but nothing more than that stands between label and "i".
+    const arrow = left!
+      .querySelector('.lintje-data-table__sort-icon')!
+      .getBoundingClientRect().width
+    const plainGap = glyph(plain!).left - labelEnd(plain!)
+    for (const { gap } of resting) expect(gap - plainGap).toBeLessThanOrEqual(arrow)
+    for (const th of [left!, right!]) {
+      th.querySelector<HTMLElement>('.lintje-data-table__sort-button')!.click()
+      await element.updateComplete
+      expect(th.classList.contains('is-active')).toBe(true)
+      expect(place()).toEqual(resting)
+    }
+  })
+})
+
 describe('a truncated column', () => {
   const note =
     'Twee balies dicht wegens scholing van nieuwe medewerkers tot en met vrijdag '.repeat(3)
