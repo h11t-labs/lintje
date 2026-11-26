@@ -493,6 +493,10 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell:last-child,
 :where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile:last-child:not(.lintje-data-table__header-cell--sortable),
 :where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile:last-child .lintje-data-table__sort-button { padding-inline-end: var(--tile-pad-x); }
+/* A hinted head ends in its "i", not in the button: the edge's room moves past the "i", whose
+   glyph then lines up with the values under it. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__header-cell--hinted .lintje-data-table__sort-button { padding-inline-end: 0; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__header-cell--hinted:last-child .lintje-data-table__header-inner { padding-inline-end: calc(var(--tile-pad-x) - var(--space-2)); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-name { display: block; font-size: 0.875rem; font-weight: 700; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-sub { display: block; font-size: 0.875rem; color: var(--color-text-muted); margin-top: var(--space-1); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-measure { display: block; font-size: 0.875rem; font-weight: 700; font-variant-numeric: tabular-nums; }
