@@ -74,6 +74,28 @@ export function formatDate(iso: string | null | undefined): string {
   return `${pad(day)}-${pad(month)}-${pad(year, 4)}`
 }
 
+// Seconds, a fraction and the offset are optional; without an offset the time is the reader's own.
+const ISO_INSTANT =
+  /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:\d{2})?$/
+
+/** An ISO date-time → its instant in ms; anything else → `null`. */
+export function instantOf(iso: string | null | undefined): number | null {
+  const match = iso ? ISO_INSTANT.exec(iso) : null
+  if (!match || !isIso(match[1])) return null
+  if (Number(match[2]) > 23 || Number(match[3]) > 59 || Number(match[4] ?? 0) > 59) return null
+  const time = Date.parse(iso!)
+  return Number.isNaN(time) ? null : time
+}
+
+/** ISO date-time → `dd-mm-jjjj uu:mm` in the reader's time zone; anything else → `''`. */
+export function formatDateTime(iso: string | null | undefined): string {
+  const time = instantOf(iso)
+  if (time == null) return ''
+  const date = new Date(time)
+  const day = `${pad(date.getDate())}-${pad(date.getMonth() + 1)}-${pad(date.getFullYear(), 4)}`
+  return `${day} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 const noon = (iso: string): Date => {
   const [year, month, day] = partsOf(iso)!
   return new Date(Date.UTC(year, month - 1, day, 12))

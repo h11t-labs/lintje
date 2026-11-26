@@ -313,6 +313,13 @@ export interface TableColumnData {
    * `status`: a `StatusTone` (or mapped through `status.tones`) as the status dot with its label.
    * `label`: the value as a badge with the word, tone and icon from `labels`.
    * `person`: the value is an id in `people`, drawn as `lintje-person`.
+   * `date`: an ISO day (`2026-01-05`), shown `05-01-2026` and sorted by day.
+   * `datetime`: an ISO date-time (`2026-01-05T14:30:00+01:00`, with `Z`, or without an offset
+   * for the reader's own time), shown
+   * `05-01-2026 14:30` in the reader's time zone and sorted by the moment. Both sort newest
+   * first on the first click, put a missing or non-ISO value lowest, and show a non-ISO value as
+   * given; the CSV keeps the ISO value. A host that filters such a column on text matches the
+   * shown text.
    */
   format?:
     | 'text'
@@ -324,6 +331,8 @@ export interface TableColumnData {
     | 'status'
     | 'label'
     | 'person'
+    | 'date'
+    | 'datetime'
   /**
    * `change-compact`: the words the glyph stands for, as a template with `{key}` placeholders
    * filled from the row, each value read the way its column reads it (`{change}` gives
