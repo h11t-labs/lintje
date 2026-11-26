@@ -329,6 +329,25 @@
 }
 .lintje-data-table__header-cell--sortable .lintje-data-table__header-inner { padding-right: var(--space-2); }
 .lintje-data-table__header-inner .lintje-data-table__sort-button { flex: 1; min-width: 0; }
+/* A hinted head: the "i" follows the label, so on the left the button keeps its own width; a
+   funnel still stands at the far end. The "i" is as small as the funnel, above the 24 px target. */
+.lintje-data-table__header-cell--hinted { padding-block: 0; }
+.lintje-data-table__header-cell--hinted:not(.lintje-data-table__header-cell--align-right) .lintje-data-table__sort-button { flex: 0 1 auto; width: auto; }
+.lintje-data-table__header-cell--align-right .lintje-data-table__header-inner { justify-content: flex-end; }
+/* A sorting head keeps its glyph's room, so the "i" takes the button's end padding and the gap
+   instead, and its box reaches under the glyph: it stays near the label whether the glyph shows
+   or not. The glyph lies above the "i", so its hover fill never covers it and a click on it sorts. */
+.lintje-data-table__header-cell--sortable.lintje-data-table__header-cell--hinted .lintje-data-table__sort-button { padding-inline-end: 0; }
+.lintje-data-table__header-cell--sortable.lintje-data-table__header-cell--hinted .lintje-data-table__sort-icon { position: relative; z-index: 1; }
+.lintje-data-table__header-cell--sortable.lintje-data-table__header-cell--hinted .lintje-data-table__hint { margin-inline-start: calc(var(--space-3) * -1); }
+/* On the right the label, its glyph and the "i" keep together: the funnel takes no free room. */
+.lintje-data-table__header-cell--align-right .lintje-data-table__funnel { margin-left: 0; }
+.lintje-data-table__hint {
+  --h-icon-button: var(--h-chip);
+  flex: none;
+  /* Its explanation is a sentence, not a column label: it does not take the head's capitals. */
+  text-transform: none; letter-spacing: normal; font-weight: 400;
+}
 /* A filtered column carries one mark, its filled funnel; the chips above say it in words. */
 /* A transparent hit area reaches the target height up and down; on its left stands the sort button. */
 .lintje-data-table__funnel {
@@ -454,6 +473,7 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile { padding: var(--space-3) var(--tile-pad-x); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__header-cell--sortable { padding: 0; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile .lintje-data-table__sort-button { padding: 0 var(--tile-pad-x); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__header-cell--hinted { padding-block: 0; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-row { border-bottom: 1px solid var(--color-border-default); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-row--filler,
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-row.is-open { border-bottom-color: transparent; }
@@ -483,6 +503,11 @@
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-cell:last-child,
 :where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile:last-child:not(.lintje-data-table__header-cell--sortable),
 :where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile:last-child .lintje-data-table__sort-button { padding-inline-end: var(--tile-pad-x); }
+/* A hinted head ends in its "i", not in the button: the edge's room moves past the "i", whose
+   glyph then lines up with the values under it. */
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__header-cell--hinted .lintje-data-table__sort-button { padding-inline-end: 0; }
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__header-cell--hinted.lintje-data-table__header-cell--sortable:last-child .lintje-data-table__header-inner,
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__header-cell--hinted:last-child:not(.lintje-data-table__header-cell--sortable) { padding-inline-end: calc(var(--tile-pad-x) - var(--space-2)); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-name { display: block; font-size: 0.875rem; font-weight: 700; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-sub { display: block; font-size: 0.875rem; color: var(--color-text-muted); margin-top: var(--space-1); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-measure { display: block; font-size: 0.875rem; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -523,6 +548,7 @@
   .lintje-data-table__action-cell,
   .lintje-data-table__sort-icon,
   .lintje-data-table__funnel,
+  .lintje-data-table__hint,
   .lintje-data-table__tools,
   .lintje-data-table__clear-all,
   .lintje-data-table__detail-cell,

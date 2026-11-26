@@ -869,6 +869,11 @@ De besluiten hieronder gelden voor alle elementen.
   zonder hover staan ze voluit op de plaats van het pijltje. Een rij zonder bediening krijgt
   daarvoor zelf toetsenbordfocus; die focus maakt de rij niet klikbaar. Als enige meetwaarde van een rij
   onder 768 px staat de verandering er heel.
+- **Een korte kolomkop krijgt zijn uitleg achter een i** (`hint`), de toggletip, naast de
+  sorteerknop en nooit erin: een tooltip op de kop zou de enige plek van die uitleg zijn, en de
+  kop sorteert al bij een klik. De uitleg is ook de beschrijving van de kop voor een schermlezer;
+  de cellen herhalen hem niet. Onder 768 px staat de i bij de koppen die er staan, niet bij elk
+  label onder een rij, en in "Kolommen kiezen" staat de uitleg als toelichting onder de naam.
 - **Onder 768 px wisselt een tabel van vorm**: de identiteit van de rij en één meetwaarde, met de
   andere kolommen op verzoek onder de rij (zie [Toegankelijkheid](#toegankelijkheid)). Geen
   rijkaarten, geen zijwaarts scrollen.

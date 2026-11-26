@@ -297,6 +297,32 @@ const compactData = {
   download: { filename: 'loketten-toelichting' },
 }
 
+const hintedData = {
+  caption: 'Loketten met soort, aanvragen, wachttijd en bezetting',
+  title: 'Loketten',
+  subtitle: 'Een korte kop met een toelichting achter de i',
+  columns: [
+    { key: 'name', header: 'Loket' },
+    {
+      key: 'kind', header: 'Soort', format: 'label', labels: KIND_LABELS,
+      hint: 'Een balie helpt op afspraak; een servicepunt helpt wie binnenloopt.',
+    },
+    { key: 'requests', header: 'Aanvragen', align: 'right' },
+    {
+      key: 'waitTime', header: 'Wacht', align: 'right', unit: 'min', mobileMeasure: true,
+      hint: 'De gemiddelde wachttijd van vandaag tot nu, in minuten.',
+    },
+    {
+      key: 'staffing', header: 'Bez.', align: 'right', format: 'percent', sortable: false,
+      hint: 'Bezetting: het deel van de loketplaatsen waar nu iemand zit.',
+    },
+  ],
+  rows: deskRows.slice(0, 5),
+  rowKey: 'id',
+  defaultSort: { key: 'waitTime', direction: 'desc' },
+  columnChooser: true,
+}
+
 function dashboard(stage, data = tableData) {
   const element = table(stage, data)
   const say = log(stage)
@@ -1071,6 +1097,14 @@ export default {
           setup: (stage) => filters(stage, { columnChooser: true, hiddenColumns: ['severity'] }),
         },
         {
+          label: 'Toelichting bij een kolom',
+          note:
+            'Een kolom met `hint` krijgt een i achter zijn kop, links en rechts uitgelijnd; een ' +
+            'klik op de i sorteert niet. Onder 768 px staat hij bij de kop van de maatkolom.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => dashboard(stage, hintedData),
+        },
+        {
           label: 'Labels en totalen',
           note: 'Een waarde staat als badge in de cel. De totaalrij komt van de host.',
           html: '<lintje-data-table></lintje-data-table>',
@@ -1580,6 +1614,21 @@ export default {
           html: '<lintje-sortable-list label="Kolommen" checkable></lintje-sortable-list>',
           setup(stage) {
             stage.querySelector('lintje-sortable-list').items = COLUMNS
+          },
+        },
+        {
+          label: 'Met een toelichting',
+          note:
+            'Een `hint` staat als gedempte regel onder de naam, zoals in Kolommen kiezen bij een ' +
+            'kolom met een toelichting.',
+          html: '<lintje-sortable-list label="Kolommen" checkable></lintje-sortable-list>',
+          setup(stage) {
+            stage.querySelector('lintje-sortable-list').items = [
+              COLUMNS[0],
+              { ...COLUMNS[1], hint: 'Het onderwerp dat de melder koos.' },
+              { ...COLUMNS[2], hint: 'Van 1, laag, tot 4, spoed.' },
+              COLUMNS[3],
+            ]
           },
         },
         {
