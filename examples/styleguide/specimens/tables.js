@@ -297,6 +297,32 @@ const compactData = {
   download: { filename: 'loketten-toelichting' },
 }
 
+const hintedData = {
+  caption: 'Loketten met soort, aanvragen, wachttijd en bezetting',
+  title: 'Loketten',
+  subtitle: 'Een korte kop met een toelichting achter de i',
+  columns: [
+    { key: 'name', header: 'Loket' },
+    {
+      key: 'kind', header: 'Soort', format: 'label', labels: KIND_LABELS,
+      hint: 'Een balie helpt op afspraak; een servicepunt helpt wie binnenloopt.',
+    },
+    { key: 'requests', header: 'Aanvragen', align: 'right' },
+    {
+      key: 'waitTime', header: 'Wacht', align: 'right', unit: 'min', mobileMeasure: true,
+      hint: 'De gemiddelde wachttijd van vandaag tot nu, in minuten.',
+    },
+    {
+      key: 'staffing', header: 'Bez.', align: 'right', format: 'percent', sortable: false,
+      hint: 'Bezetting: het deel van de loketplaatsen waar nu iemand zit.',
+    },
+  ],
+  rows: deskRows.slice(0, 5),
+  rowKey: 'id',
+  defaultSort: { key: 'waitTime', direction: 'desc' },
+  columnChooser: true,
+}
+
 function dashboard(stage, data = tableData) {
   const element = table(stage, data)
   const say = log(stage)
@@ -1021,6 +1047,27 @@ export default {
             'staat onder de rij.',
           html: '<lintje-data-table></lintje-data-table>',
           setup: (stage) => filters(stage, { columnChooser: true, hiddenColumns: ['severity'] }),
+        },
+        {
+          label: 'Toelichting bij een kolom',
+          note:
+            'Een kolom met `hint` krijgt een i achter zijn kop, links en rechts uitgelijnd; een ' +
+            'klik op de i sorteert niet. Onder 768 px staat hij bij de kop van de maatkolom.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => dashboard(stage, hintedData),
+        },
+        {
+          label: 'Toelichting in Kolommen kiezen',
+          note: 'De toelichting staat als gedempte regel onder de naam van de kolom.',
+          html: '<lintje-data-table></lintje-data-table>',
+          async setup(stage) {
+            dashboard(stage, { ...hintedData, title: 'Loketten, kolommen kiezen' })
+            const element = stage.querySelector('lintje-data-table')
+            await element.updateComplete
+            // Below 768 px there is nothing to choose: the button is hidden, the chooser stays shut.
+            const button = element.shadowRoot.querySelector('.lintje-data-table__full .lintje-data-table__chooser-button')
+            if (button?.offsetParent) button.click()
+          },
         },
         {
           label: 'Labels en totalen',

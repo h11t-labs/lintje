@@ -298,6 +298,12 @@ export type CellValue = string | number | null
 export interface TableColumnData {
   key: string
   header: string
+  /**
+   * What the column holds, in a sentence or two: an "i" after the head opens it, it describes the
+   * head to a screen reader, and "Kolommen kiezen" shows it under the column's name. For a short
+   * head ("Prio") that needs a word of explanation; the cells do not repeat it.
+   */
+  hint?: string
   align?: 'left' | 'right'
   sortable?: boolean
   /**
