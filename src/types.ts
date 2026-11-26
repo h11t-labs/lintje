@@ -1105,6 +1105,7 @@ export type {
   CardStatusTone,
 } from './components/tables/card/card'
 export type { GalleryItem } from './components/content/gallery/gallery'
+export type { PhotoWallItem } from './components/content/photo-wall/photo-wall'
 export type { FooterColumn, FooterData, FooterLink } from './components/frame/footer/footer'
 export type { TreeNode } from './components/tables/tree-view/tree-view'
 export type { SortableItem } from './components/tables/sortable-list/sortable-list'

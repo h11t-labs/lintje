@@ -58,7 +58,7 @@
     "heading": "Basis",
     "label": "Tekst en media",
     "icon": "op-kantoor-document-met-lijnen",
-    "intro": "Lopende tekst, code, een toets, een gemarkeerde zoekterm en de waarde van een token; een tekst en zijn vertaling; audio, video, het transcript dat meeloopt, logregels die live binnenkomen, een document op het scherm, afbeeldingen om door te bladeren en een bestand als bijlage.",
+    "intro": "Lopende tekst, code, een toets, een gemarkeerde zoekterm en de waarde van een token; een tekst en zijn vertaling; audio, video, het transcript dat meeloopt, logregels die live binnenkomen, een document op het scherm, afbeeldingen om door te bladeren, een wand van foto's van een plek en een bestand als bijlage.",
     "elements": [
       "prose",
       "code",
@@ -72,6 +72,7 @@
       "log-viewer",
       "document-viewer",
       "gallery",
+      "photo-wall",
       "attachment"
     ],
     "composite": [

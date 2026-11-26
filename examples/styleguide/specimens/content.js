@@ -15,6 +15,18 @@ const attachments = (files, attributes = '', width) => ({
   },
 })
 
+/** A photo wall, one photo per `[caption, alt]`; the photo is the grey stand-in. */
+const photoWall = (photos) => ({
+  html: '<lintje-photo-wall></lintje-photo-wall>',
+  setup(stage) {
+    stage.querySelector('lintje-photo-wall').items = photos.map(([caption, alt]) => ({
+      src: 'media/afbeelding.svg',
+      alt,
+      caption,
+    }))
+  },
+})
+
 const PROSE = `
   <h2>Hoe deze cijfers tot stand komen</h2>
   <p>De <strong>wachttijd</strong> is de mediaan per kwartier, gemeten vanaf het
@@ -970,6 +982,53 @@ export default {
               { src: 'media/afbeelding.svg', alt: 'Het overzicht van het dashboard', caption: 'Het overzicht.' },
             ]
           },
+        },
+      ],
+    },
+    {
+      tag: 'lintje-photo-wall',
+      wide: true,
+      title: "Foto's van een plek of werkveld, alle tegelijk, met een label op elke foto",
+      specimens: [
+        {
+          label: "Vier foto's",
+          note: 'Twee naast elkaar; de tweede draagt de hoek van de huisstijl. Op een telefoon onder elkaar, de hoek op de eerste.',
+          ...photoWall([
+            ['Het loket', 'Een balie met twee medewerkers'],
+            ['Het archief', 'Een kast vol dossiermappen'],
+            ['De werkplaats', 'Een werkbank met gereedschap'],
+            ['Op locatie', 'Een medewerker met een tablet bij een gebouw'],
+          ]),
+        },
+        {
+          label: "Drie foto's",
+          note: 'Bij een oneven aantal staat de eerste twee rijen hoog, zodat de tweede rechtsboven blijft.',
+          ...photoWall([
+            ['De balie', 'Een lange balie in een lichte hal'],
+            ['De wachtruimte', 'Een rij stoelen bij het raam'],
+            ['De spreekkamer', 'Twee stoelen aan een kleine tafel'],
+          ]),
+        },
+        {
+          label: "Twee foto's",
+          note: 'Een server geeft de foto’s als JSON-kind; het element leest ze bij het verbinden.',
+          html: `<lintje-photo-wall><script type="application/json" data-prop="items">${JSON.stringify(
+            [
+              { src: 'media/afbeelding.svg', alt: 'Een kantoortuin met bureaus bij de ramen', caption: 'De kantoortuin' },
+              { src: 'media/afbeelding.svg', alt: 'Een overleg aan een ronde tafel', caption: 'Het overleg' },
+            ],
+          )}</script></lintje-photo-wall>`,
+        },
+        {
+          label: 'Een lang bijschrift',
+          note: 'Het label breekt af en kapt nooit af; de foto groeit mee als het label hoger is dan zij.',
+          ...photoWall([
+            [
+              'De werkplaats van de technische dienst, waar apparatuur van alle locaties wordt nagekeken en hersteld',
+              'Een werkplaats met apparatuur op lange tafels',
+            ],
+            ['Het magazijn', 'Stellingen met dozen'],
+          ]),
         },
       ],
     },

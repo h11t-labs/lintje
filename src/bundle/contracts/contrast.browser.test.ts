@@ -1,15 +1,16 @@
 /**
  * Text that has to be read reaches 4.5:1 on what it stands on, in light and in dark and in both
  * house styles, with every opacity of its ancestors counted in: the line numbers of a code block,
- * the word above the answers an edit replaces, the figures of a map layer switched off. A search match is told by a
- * line under it, not by its yellow fill alone.
+ * the word above the answers an edit replaces, the figures of a map layer switched off, the label
+ * on a photo. A search match is told by a line under it, not by its yellow fill alone.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import '../../components/chat/chat/chat'
 import '../../components/content/code/code'
 import '../../components/content/highlight/highlight'
 import '../../components/map/map/map'
-import type { ChatData, MapData } from '../../types'
+import '../../components/content/photo-wall/photo-wall'
+import type { ChatData, MapData, PhotoWallItem } from '../../types'
 
 type Lit = HTMLElement & { updateComplete: Promise<unknown> }
 
@@ -155,6 +156,16 @@ const ROWS: Row[] = [
         .not.toBeNull()
       const figure = shadow(element, '.lintje-map-legend__keys.is-off .lintje-map-legend__figure')
       return { element: figure, colour: getComputedStyle(figure).color }
+    },
+  },
+  {
+    name: 'het label op een foto van lintje-photo-wall',
+    text: async () => {
+      const element = await mount<Lit & { items: PhotoWallItem[] }>('lintje-photo-wall', (wall) => {
+        wall.items = [{ src: 'data:,', alt: 'Een balie', caption: 'Het loket' }]
+      })
+      const caption = shadow(element, '.lintje-photo-wall__caption')
+      return { element: caption, colour: getComputedStyle(caption).color }
     },
   },
 ]
