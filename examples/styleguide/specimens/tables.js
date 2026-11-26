@@ -809,8 +809,8 @@ const REPORTS = [
   { id: 'r2', title: 'Lekkage kelder', day: '2026-01-05', at: '2026-01-05T14:30:00+01:00' },
   { id: 'r3', title: 'Defecte deur', day: '2025-12-31', at: '2025-12-31T16:45:00Z' },
   { id: 'r4', title: 'Verlichting hal', day: null, at: null },
-  { id: 'r5', title: 'Item 10 uit de inventaris', day: '2026-01-02', at: '2026-01-02T08:00:00+01:00' },
-  { id: 'r6', title: 'Item 9 uit de inventaris', day: '2025-06-30', at: '2025-06-30T11:20:00+02:00' },
+  { id: 'r5', title: 'Kapotte lift', day: '2026-01-02', at: '2026-01-02T08:00:00+01:00' },
+  { id: 'r6', title: 'Storing ventilatie', day: '2025-06-30', at: '2025-06-30T11:20:00+02:00' },
 ]
 
 // The host filters on the words the reader sees: `dd-mm-jjjj`, not the ISO value.
@@ -888,8 +888,7 @@ export default {
           note:
             'Een kolom met `format: \'date\'` of `\'datetime\'` krijgt een ISO-waarde en ' +
             'toont 05-01-2026 of 05-01-2026 14:30 in de tijdzone van de lezer. Ze sorteert op ' +
-            'het moment, over de jaargrens heen; een lege waarde sorteert het laagst. Op Melding ' +
-            'gesorteerd komt "Item 9" vóór "Item 10". Het filter zoekt in de getoonde datum.',
+            'het moment, over de jaargrens heen; een lege waarde sorteert het laagst. Het filter zoekt in de getoonde datum.',
           html: '<lintje-data-table></lintje-data-table>',
           setup: dates,
         },

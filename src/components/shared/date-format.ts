@@ -1,7 +1,8 @@
 /**
- * The date input's arithmetic. Typed `3-10-26` / `03.10.2026` / `03102026` (day, month, year),
- * shown `03-10-2026`, sent as ISO `2026-10-03`. `Date` objects are made at noon UTC so no time
- * zone or daylight-saving shift can move a day.
+ * Dates for the date input and the table. A day is typed `3-10-26` / `03.10.2026` / `03102026`
+ * (day, month, year), shown `03-10-2026`, sent as ISO `2026-10-03`; its `Date` objects are made
+ * at noon UTC so no time zone or daylight-saving shift can move it. A date-time is a moment,
+ * shown in the reader's time zone.
  */
 
 export type ParsedDate =
