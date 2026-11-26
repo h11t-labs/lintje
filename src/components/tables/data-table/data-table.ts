@@ -64,7 +64,7 @@ import type {
   TableTotal,
 } from '../../../types'
 import { CellEditing, cellKey, type EditGrid } from './editing'
-import { parseDate } from '../../shared/date-format'
+import { formatDate, formatDateTime, instantOf, parseDate, partsOf } from '../../shared/date-format'
 import { focusTarget, tabbables } from '../../shared/focus-trap'
 import { LiveMessage } from '../../shared/live-message'
 import { deepActiveElement, holdsFocus } from '../../../core/focus'
@@ -129,6 +129,37 @@ function isNumeric(column: TableColumnData, rows: Row[]): boolean {
   return typeof rows.find((row) => row[column.key] != null)?.[column.key] === 'number'
 }
 
+const warnedDates = new Set<string>()
+
+/**
+ * A `date` or `datetime` value: its shown text and its moment in ms, or `null` when it is no
+ * ISO value; the dev build says so once per value.
+ */
+function readDate(
+  column: TableColumnData,
+  value: string | number,
+): { text: string; time: number } | null {
+  const iso = String(value)
+  if (column.format === 'date') {
+    const parts = partsOf(iso)
+    if (parts) return { text: formatDate(iso), time: Date.UTC(parts[0], parts[1] - 1, parts[2]) }
+  } else {
+    const time = instantOf(iso)
+    if (time != null) return { text: formatDateTime(iso), time }
+  }
+  const seen = `${column.format} ${iso}`
+  if (import.meta.env?.DEV && !warnedDates.has(seen)) {
+    warnedDates.add(seen)
+    console.warn(
+      `<lintje-data-table>: "${iso}" in column "${column.key}" is no ISO ${column.format === 'date' ? 'date (2026-01-05)' : 'date-time (2026-01-05T14:30:00+01:00)'}; it shows as given and sorts lowest.`,
+    )
+  }
+  return null
+}
+
+const isDateFormat = (column: TableColumnData): boolean =>
+  column.format === 'date' || column.format === 'datetime'
+
 function formatText(column: TableColumnData, value: CellValue): string | null {
   // Not assigned is a value with its word, not a missing figure.
   if (column.format === 'person') {
@@ -138,6 +169,7 @@ function formatText(column: TableColumnData, value: CellValue): string | null {
   }
   if (value == null) return null
   if (column.format === 'label') return column.labels?.[String(value)]?.label ?? String(value)
+  if (isDateFormat(column)) return readDate(column, value)?.text ?? String(value)
   let text: string
   if (typeof value === 'string' || column.format === 'text') text = String(value)
   else if (column.format === 'change' || column.format === 'change-compact') {
@@ -660,6 +692,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     // A label and a person sort by the word a reader sees, not by the host's code; nobody lowest.
     if ((column.format === 'label' || column.format === 'person') && value != null)
       return formatText(column, value) ?? ''
+    // A date or a moment sorts by its time, not by its text: `+01:00` and `+02:00` differ.
+    if (isDateFormat(column)) {
+      return (value == null ? null : readDate(column, value)?.time) ?? Number.NEGATIVE_INFINITY
+    }
     // A date column holds `dd-mm-jjjj`, which sorts by day as text; its ISO form sorts by date.
     if (column.editor?.kind === 'date') {
       const parsed = parseDate(String(value ?? ''))
@@ -679,7 +715,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       const order =
         typeof valueA === 'number' && typeof valueB === 'number'
           ? valueA - valueB
-          : String(valueA).localeCompare(String(valueB), 'nl')
+          : String(valueA).localeCompare(String(valueB), 'nl', { numeric: true })
       return sort.direction === 'asc' ? order : -order
     })
     return copy
@@ -2393,6 +2429,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
     }
     const text = formatText(column, value)
     if (text == null) return missing
+    if (isDateFormat(column) && value != null && readDate(column, value)) {
+      return html`<time datetime=${String(value)}>${text}</time>`
+    }
     if (
       (column.format === 'change' || column.format === 'change-compact') &&
       typeof value === 'number'
@@ -2514,7 +2553,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
 
   private rowCheck(row: Row, id: string, isChecked: boolean): TemplateResult {
     const nameColumn = this.columns[0]
-    const name = nameColumn ? this.sortValue(nameColumn, row) : id
+    const name = (nameColumn && formatText(nameColumn, row[nameColumn.key])) ?? id
     return this.checkbox(
       html`<span class="visually-hidden">${`${name} selecteren`}</span>`,
       isChecked,

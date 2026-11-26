@@ -803,6 +803,45 @@ function follow(stage) {
   }
 }
 
+// Reports around the turn of the year: a date and a moment, each with its own offset.
+const REPORTS = [
+  { id: 'r1', title: 'Storing betaalautomaat', day: '2025-12-28', at: '2025-12-28T10:15:00+01:00' },
+  { id: 'r2', title: 'Lekkage kelder', day: '2026-01-05', at: '2026-01-05T14:30:00+01:00' },
+  { id: 'r3', title: 'Defecte deur', day: '2025-12-31', at: '2025-12-31T16:45:00Z' },
+  { id: 'r4', title: 'Verlichting hal', day: null, at: null },
+  { id: 'r5', title: 'Item 10 uit de inventaris', day: '2026-01-02', at: '2026-01-02T08:00:00+01:00' },
+  { id: 'r6', title: 'Item 9 uit de inventaris', day: '2025-06-30', at: '2025-06-30T11:20:00+02:00' },
+]
+
+// The host filters on the words the reader sees: `dd-mm-jjjj`, not the ISO value.
+const shownDay = (iso) => (iso ? iso.split('-').reverse().join('-') : '')
+
+function dates(stage) {
+  const columns = [
+    { key: 'title', header: 'Melding' },
+    { key: 'day', header: 'Datum', format: 'date', filter: { kind: 'text' } },
+    { key: 'at', header: 'Gemeld om', format: 'datetime' },
+  ]
+  const element = table(stage, {
+    title: 'Meldingen rond de jaarwisseling',
+    caption: 'Meldingen rond de jaarwisseling',
+    rowKey: 'id',
+    columns,
+    rows: REPORTS,
+    sort: { key: 'day', direction: 'asc' },
+    clickable: false,
+    expandable: false,
+    filters: {},
+    download: { filename: 'meldingen' },
+  })
+  element.addEventListener('lintje-filter-change', (event) => {
+    const value = event.detail.value
+    const filters = value == null ? {} : { day: value }
+    const rows = REPORTS.filter((row) => value == null || shownDay(row.day).includes(value))
+    element.data = { ...element.data, filters, rows }
+  })
+}
+
 export default {
   elements: [
 {
@@ -843,6 +882,16 @@ export default {
           note: 'In het werkblad biedt de keuzelijst "Niet toegewezen" en de personen.',
           html: '<lintje-data-table></lintje-data-table>',
           setup: assigning,
+        },
+        {
+          label: 'Datum en tijdstip',
+          note:
+            'Een kolom met `format: \'date\'` of `\'datetime\'` krijgt een ISO-waarde en ' +
+            'toont 05-01-2026 of 05-01-2026 14:30 in de tijdzone van de lezer. Ze sorteert op ' +
+            'het moment, over de jaargrens heen; een lege waarde sorteert het laagst. Op Melding ' +
+            'gesorteerd komt "Item 9" vóór "Item 10". Het filter zoekt in de getoonde datum.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: dates,
         },
         {
           label: 'Eigen inhoud in een cel',
