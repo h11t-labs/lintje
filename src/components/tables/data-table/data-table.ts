@@ -2386,7 +2386,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const text = formatText(column, value)
     if (text == null) return missing
     if (isDateFormat(column) && value != null && readDate(column, value)) {
-      return html`<time datetime=${String(value)}>${text}</time>`
+      // A date never breaks at its hyphens; a moment breaks only between its day and its time.
+      const [day, time] = text.split(' ')
+      const part = (words: string) =>
+        html`<span class="lintje-data-table__date-part">${words}</span>`
+      return html`<time datetime=${String(value)}>${part(day!)}${time ? html` ${part(time)}` : nothing}</time>`
     }
     if (
       (column.format === 'change' || column.format === 'change-compact') &&
