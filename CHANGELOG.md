@@ -11,6 +11,43 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-26
+
+### Toegevoegd
+
+- `lintje-graph`: de lezer kiest een lijn met een `id` (`GraphEdge.id`), met muis, vinger of Tab
+  vanaf haar knoop. Het woord van een kiesbare lijn staat in een kader; een gekozen lijn wordt
+  dikker in de rand van een gekozen knoop met haar woord vet. De dichtstbijzijnde lijn binnen
+  12 px wint de aanwijzer, op een knoop wint de knoop. De host houdt de keuze in
+  `GraphData.selectedEdge` en hoort `lintje-edge-select` en `lintje-edge-open`. (#356)
+- Een kolom van de tabel krijgt een toelichting (`hint`): een i achter de kop opent hem, een schermlezer hoort hem als beschrijving van de kop, en "Kolommen kiezen" toont hem onder de naam. (#353)
+- Een tabelkolom en een veld in het detail van een rij kunnen `format: 'date'` of
+  `format: 'datetime'` krijgen. De host geeft ISO 8601; de tabel toont `05-01-2026` of
+  `05-01-2026 14:30` in de tijdzone van de lezer, in een `<time>`, en sorteert op de dag of het
+  moment. Een ontbrekende of ongeldige waarde sorteert het laagst, en de CSV houdt de ISO-waarde.
+  (#352)
+- Tabel (`lintje-data-table`): met `paging: 'host'` sorteert en pagineert de host. De tabel toont zijn pagina in zijn volgorde (`page`, `rowCount`), stuurt `lintje-page-change` en `lintje-sort-change`, wacht met `aria-busy` op de nieuwe rijen en laat downloaden over aan de host. De pager krijgt `quiet`. (#351)
+- Fotowand (`lintje-photo-wall`): twee tot zes foto's van een plek of werkveld tegelijk, bijgesneden tot hun vak, elk met een kort label linksonder op de foto; op een telefoon onder elkaar. (#346)
+- De hero kan een foto achter de tekst hebben (slot `backdrop`): de foto vult de band en de tekst
+  staat in een blok linksonder erop, wit of in de primaire kleur. Op een telefoon staat de foto
+  boven het blok. (#345)
+
+### Gewijzigd
+
+- De Firefox-job van de CI draait zijn testbestanden in vier shards naast elkaar, elk in een eigen
+  browser, en een nieuwe push op een pull request stopt de run die hij opvolgt: de traagste job was
+  Firefox met ruim 6 minuten, omdat Firefox zijn bestanden niet naast elkaar kan draaien. Hij doet
+  er nu 3:08 over en de hele check zakt van ongeveer 6:40 naar 3:13. (#342)
+
+### Opgelost
+
+- `lintje-graph`: de initialen van een persoon in een knoop die terugstapt, vervagen niet meer tot
+  onder 4,5:1 contrast; ze houden de secundaire tekstkleur, zoals de naam. (#356)
+- De stijlgidstest keurt een specimen niet meer in zijn hover-stand: vóór elke controle gaat de
+  aanwijzer buiten de pagina, zodat een knop onder de muis niet als contrastfout geldt. Wit op
+  `inverse-secondary` over de band is 4,39:1 onder de muis en 6:1 in rust; een aanwijzer die de
+  browser op een specimen liet staan, maakte dat zo nu en dan een rode run. (#344)
+
 ## [0.14.0] - 2026-11-25
 
 ### Toegevoegd
@@ -824,7 +861,8 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.14.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/h11t-labs/lintje/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/h11t-labs/lintje/compare/v0.13.2...v0.14.0
 [0.13.2]: https://github.com/h11t-labs/lintje/compare/v0.13.1...v0.13.2
 [0.13.1]: https://github.com/h11t-labs/lintje/compare/v0.13.0...v0.13.1
