@@ -100,6 +100,9 @@ describe('formatDateTime()', () => {
   it('reads an offset as the moment it names', () => {
     expect(instantOf('2026-01-05T14:30:00+01:00')).toBe(Date.UTC(2026, 0, 5, 13, 30))
     expect(instantOf('2026-01-05T13:30:00.000Z')).toBe(Date.UTC(2026, 0, 5, 13, 30))
+    expect(instantOf('2026-01-05T13:30:00.123456Z')).toBe(Date.UTC(2026, 0, 5, 13, 30, 0, 123))
+    expect(instantOf('2026-01-05T08:00:00-05:30')).toBe(Date.UTC(2026, 0, 5, 13, 30))
+    expect(instantOf('2026-01-05T14:30')).toBe(new Date(2026, 0, 5, 14, 30).getTime())
   })
 
   it('writes nothing for what is not an ISO date-time', () => {

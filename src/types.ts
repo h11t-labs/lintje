@@ -315,11 +315,10 @@ export interface TableColumnData {
    * `person`: the value is an id in `people`, drawn as `lintje-person`.
    * `date`: an ISO day (`2026-01-05`), shown `05-01-2026` and sorted by day.
    * `datetime`: an ISO date-time (`2026-01-05T14:30:00+01:00`, with `Z`, or without an offset
-   * for the reader's own time), shown
-   * `05-01-2026 14:30` in the reader's time zone and sorted by the moment. Both sort newest
-   * first on the first click, put a missing or non-ISO value lowest, and show a non-ISO value as
-   * given; the CSV keeps the ISO value. A host that filters such a column on text matches the
-   * shown text.
+   * for the reader's own time), shown `05-01-2026 14:30` in the reader's time zone and sorted by
+   * the moment. Both sort newest first on the first click, put a missing or non-ISO value
+   * lowest, and show a non-ISO value as given; the CSV keeps the ISO value. A host that filters
+   * such a column on text matches the shown text.
    */
   format?:
     | 'text'

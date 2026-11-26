@@ -162,13 +162,26 @@ describe('the same words everywhere', () => {
     )!
     toggle.click()
     await element.updateComplete
-    const lists = [...shadow(element).querySelectorAll('lintje-description-list')] as (Element & {
-      items: { label: string; value?: string }[]
-    })[]
-    expect(lists.length).toBeGreaterThan(0)
-    for (const list of lists) {
+    // An open row is open on the phone too.
+    type List = Element & { items: { label: string; value?: string }[] }
+    for (const table of ['full', 'mobile']) {
+      const list = shadow(element).querySelector<List>(
+        `.lintje-data-table__${table} lintje-description-list`,
+      )!
       expect(list.items.map((item) => item.value)).toEqual(['05-01-2026', '05-01-2026 14:30'])
     }
+  })
+
+  it('as the phone’s measure, in a <time>', async () => {
+    const element = await mount({
+      columns: [data.columns[0]!, { ...data.columns[1]!, mobileMeasure: true }],
+    })
+    const times = [
+      ...shadow(element).querySelectorAll(
+        '.lintje-data-table__mobile .lintje-data-table__mobile-measure time',
+      ),
+    ].map((time) => [time.getAttribute('datetime'), time.textContent])
+    expect(times).toContainEqual(['2026-01-05', '05-01-2026'])
   })
 
   it('in the phone’s subline', async () => {
