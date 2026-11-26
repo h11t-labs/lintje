@@ -115,12 +115,19 @@ describe('a column with a hint', () => {
     ).toBe(false)
   })
 
-  it('gives every copy of the head its own description id', async () => {
-    const element = await mount()
+  it('gives every copy of the head its own description id, the modal’s too', async () => {
+    const element = await mount({ expandable: true })
+    ;(element as unknown as { expand(open: boolean): void }).expand(true)
+    await element.updateComplete
     const ids = [...element.shadowRoot!.querySelectorAll('[aria-describedby]')]
       .map((node) => node.getAttribute('aria-describedby')!)
       .filter((id) => id.startsWith('lintje-data-table-hint-'))
+    // Tile and modal, each with its desktop and its phone table.
+    for (const copy of ['tile-full', 'tile-phone', 'modal-full', 'modal-phone']) {
+      expect(ids.some((id) => id.startsWith(`lintje-data-table-hint-${copy}-`))).toBe(true)
+    }
     expect(new Set(ids).size).toBe(ids.length)
+    for (const id of ids) expect(element.shadowRoot!.getElementById(id)).not.toBeNull()
   })
 })
 

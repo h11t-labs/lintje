@@ -162,8 +162,20 @@ function readDate(
   return null
 }
 
-const isDateFormat = (column: TableColumnData): boolean =>
-  column.format === 'date' || column.format === 'datetime'
+const warnedEditors = new Set<string>()
+
+/** A `date` or `datetime` column; a date editor writes `dd-mm-jjjj`, so its column reads as before. */
+function isDateFormat(column: TableColumnData): boolean {
+  if (column.format !== 'date' && column.format !== 'datetime') return false
+  if (column.editor?.kind !== 'date') return true
+  if (import.meta.env?.DEV && !warnedEditors.has(column.key)) {
+    warnedEditors.add(column.key)
+    console.warn(
+      `<lintje-data-table>: column "${column.key}" has format "${column.format}" and a date editor; the editor's dd-mm-jjjj wins and the format is ignored.`,
+    )
+  }
+  return false
+}
 
 function formatText(column: TableColumnData, value: CellValue): string | null {
   // Not assigned is a value with its word, not a missing figure.
@@ -794,7 +806,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       const order =
         typeof valueA === 'number' && typeof valueB === 'number'
           ? valueA - valueB
-          : String(valueA).localeCompare(String(valueB), 'nl', { numeric: true })
+          : String(valueA).localeCompare(String(valueB), 'nl')
       return sort.direction === 'asc' ? order : -order
     })
     return copy
@@ -805,7 +817,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const sort = this.activeSort
     let next: SortState
     if (sort.key !== column.key) {
-      // First click: descending for numbers, ascending for text.
+      // First click: descending for a number, so a date opens newest first; ascending for text.
       const first = this.rows[0]
       const numeric = first != null && typeof this.sortValue(column, first) === 'number'
       next = { key: column.key, direction: numeric ? 'desc' : 'asc' }
@@ -1608,7 +1620,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
 
   /**
    * A head's label: the sort button, or the plain header when the column does not sort. The
-   * button carries the hint as its description; a plain head leaves that to its cell.
+   * button carries the hint as its description; for a plain head the `<th>` itself does.
    */
   private headLabel(column: TableColumnData, sort: SortState, hintId: string | null): unknown {
     if (column.sortable === false) return column.header

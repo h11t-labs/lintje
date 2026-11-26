@@ -328,10 +328,12 @@
 .lintje-data-table__header-cell--sortable .lintje-data-table__header-inner { padding-right: var(--space-2); }
 .lintje-data-table__header-inner .lintje-data-table__sort-button { flex: 1; min-width: 0; }
 /* A hinted head: the "i" follows the label, so on the left the button keeps its own width; a
-   funnel still stands at the far end. As small as the funnel, its target as tall as a row. */
+   funnel still stands at the far end. The "i" is as small as the funnel, above the 24 px target. */
 .lintje-data-table__header-cell--hinted { padding-block: 0; }
 .lintje-data-table__header-cell--hinted:not(.lintje-data-table__header-cell--align-right) .lintje-data-table__sort-button { flex: 0 1 auto; width: auto; }
 .lintje-data-table__header-cell--align-right .lintje-data-table__header-inner { justify-content: flex-end; }
+/* On the right the label, its glyph and the "i" keep together: the funnel takes no free room. */
+.lintje-data-table__header-cell--align-right .lintje-data-table__funnel { margin-left: 0; }
 .lintje-data-table__hint {
   --h-icon-button: var(--h-chip);
   flex: none;
@@ -496,7 +498,8 @@
 /* A hinted head ends in its "i", not in the button: the edge's room moves past the "i", whose
    glyph then lines up with the values under it. */
 :where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__header-cell--hinted .lintje-data-table__sort-button { padding-inline-end: 0; }
-:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__header-cell--hinted:last-child .lintje-data-table__header-inner { padding-inline-end: calc(var(--tile-pad-x) - var(--space-2)); }
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__header-cell--hinted.lintje-data-table__header-cell--sortable:last-child .lintje-data-table__header-inner,
+:where(.lintje-data-table.is-phone) .lintje-data-table__header-cell--mobile.lintje-data-table__header-cell--hinted:last-child:not(.lintje-data-table__header-cell--sortable) { padding-inline-end: calc(var(--tile-pad-x) - var(--space-2)); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-name { display: block; font-size: 0.875rem; font-weight: 700; }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-sub { display: block; font-size: 0.875rem; color: var(--color-text-muted); margin-top: var(--space-1); }
 :where(.lintje-data-table.is-phone) .lintje-data-table__mobile-measure { display: block; font-size: 0.875rem; font-weight: 700; font-variant-numeric: tabular-nums; }

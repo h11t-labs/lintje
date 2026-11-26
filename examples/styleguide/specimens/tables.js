@@ -889,8 +889,8 @@ const REPORTS = [
   { id: 'r2', title: 'Lekkage kelder', day: '2026-01-05', at: '2026-01-05T14:30:00+01:00' },
   { id: 'r3', title: 'Defecte deur', day: '2025-12-31', at: '2025-12-31T16:45:00Z' },
   { id: 'r4', title: 'Verlichting hal', day: null, at: null },
-  { id: 'r5', title: 'Item 10 uit de inventaris', day: '2026-01-02', at: '2026-01-02T08:00:00+01:00' },
-  { id: 'r6', title: 'Item 9 uit de inventaris', day: '2025-06-30', at: '2025-06-30T11:20:00+02:00' },
+  { id: 'r5', title: 'Kapotte lift', day: '2026-01-02', at: '2026-01-02T08:00:00+01:00' },
+  { id: 'r6', title: 'Storing ventilatie', day: '2025-06-30', at: '2025-06-30T11:20:00+02:00' },
 ]
 
 // The host filters on the words the reader sees: `dd-mm-jjjj`, not the ISO value.
@@ -968,8 +968,7 @@ export default {
           note:
             'Een kolom met `format: \'date\'` of `\'datetime\'` krijgt een ISO-waarde en ' +
             'toont 05-01-2026 of 05-01-2026 14:30 in de tijdzone van de lezer. Ze sorteert op ' +
-            'het moment, over de jaargrens heen; een lege waarde sorteert het laagst. Op Melding ' +
-            'gesorteerd komt "Item 9" vóór "Item 10". Het filter zoekt in de getoonde datum.',
+            'het moment, over de jaargrens heen; een lege waarde sorteert het laagst. Het filter zoekt in de getoonde datum.',
           html: '<lintje-data-table></lintje-data-table>',
           setup: dates,
         },
@@ -1184,19 +1183,6 @@ export default {
             'klik op de i sorteert niet. Onder 768 px staat hij bij de kop van de maatkolom.',
           html: '<lintje-data-table></lintje-data-table>',
           setup: (stage) => dashboard(stage, hintedData),
-        },
-        {
-          label: 'Toelichting in Kolommen kiezen',
-          note: 'De toelichting staat als gedempte regel onder de naam van de kolom.',
-          html: '<lintje-data-table></lintje-data-table>',
-          async setup(stage) {
-            dashboard(stage, { ...hintedData, title: 'Loketten, kolommen kiezen' })
-            const element = stage.querySelector('lintje-data-table')
-            await element.updateComplete
-            // Below 768 px there is nothing to choose: the button is hidden, the chooser stays shut.
-            const button = element.shadowRoot.querySelector('.lintje-data-table__full .lintje-data-table__chooser-button')
-            if (button?.offsetParent) button.click()
-          },
         },
         {
           label: 'Labels en totalen',
@@ -1725,6 +1711,21 @@ export default {
           html: '<lintje-sortable-list label="Kolommen" checkable></lintje-sortable-list>',
           setup(stage) {
             stage.querySelector('lintje-sortable-list').items = COLUMNS
+          },
+        },
+        {
+          label: 'Met een toelichting',
+          note:
+            'Een `hint` staat als gedempte regel onder de naam, zoals in Kolommen kiezen bij een ' +
+            'kolom met een toelichting.',
+          html: '<lintje-sortable-list label="Kolommen" checkable></lintje-sortable-list>',
+          setup(stage) {
+            stage.querySelector('lintje-sortable-list').items = [
+              COLUMNS[0],
+              { ...COLUMNS[1], hint: 'Het onderwerp dat de melder koos.' },
+              { ...COLUMNS[2], hint: 'Van 1, laag, tot 4, spoed.' },
+              COLUMNS[3],
+            ]
           },
         },
         {
