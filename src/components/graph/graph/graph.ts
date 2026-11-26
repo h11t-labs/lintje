@@ -1225,10 +1225,11 @@ export class LintjeGraph extends LintjeContentTileElement {
            @dblclick=${(event: MouseEvent) => {
              if (!LintjeGraph.onDrawing(event)) return
              const at = this.pointIn(surface, event)
-             // A double click on a line opens it if it is the chosen one, and never zooms.
+             // A double click on a choosable line opens it if it is the chosen one, and never
+             // zooms; on a line without an id it zooms as before.
              const hit = this.lineAt(surface, at)
-             if (hit) {
-               if (hit.edge.id && hit.edge.id === this.#selectedEdge) this.openEdge(hit.edge)
+             if (hit?.edge.id) {
+               if (hit.edge.id === this.#selectedEdge) this.openEdge(hit.edge)
                return
              }
              this.zoom(surface, event.shiftKey ? 1 / 2 : 2, at)

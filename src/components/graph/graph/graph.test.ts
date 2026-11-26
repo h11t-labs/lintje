@@ -296,6 +296,15 @@ describe('lintje-graph', () => {
       tap(element, at(wordOf(element, 'werkt met')))
       await element.updateComplete
       expect(heard).toEqual([])
+      expect(root(element).querySelectorAll('.lintje-graph__hit')).toHaveLength(0)
+      // A double click on a line zooms, as before.
+      const before = nodeOf(element, 'min')!.style.transform
+      const point = at(wordOf(element, 'werkt met'))
+      area(element).dispatchEvent(
+        new MouseEvent('dblclick', { clientX: point.x, clientY: point.y, bubbles: true }),
+      )
+      await element.updateComplete
+      expect(nodeOf(element, 'min')!.style.transform).not.toBe(before)
     })
 
     it('frames the word of a choosable line only', async () => {
@@ -305,6 +314,8 @@ describe('lintje-graph', () => {
       )
       expect(framed.length).toBe(4)
       expect(root(element).querySelectorAll('.lintje-graph__frame')).toHaveLength(4)
+      // Each choosable line has a target of its own, for the browser's touch adjustment.
+      expect(root(element).querySelectorAll('.lintje-graph__hit')).toHaveLength(4)
     })
 
     it('is chosen with a click on its word, which a second click keeps', async () => {
