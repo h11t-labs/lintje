@@ -256,6 +256,13 @@
   display: inline-flex; align-items: center; gap: var(--space-2);
   color: var(--color-text-muted);
 }
+/* While the host fetches, its old rows stand muted, as a cell being saved does; they stay
+   readable and focusable, and a hovered or focused name still shows its line. */
+.lintje-data-table__full.is-waiting .lintje-data-table__cell,
+.lintje-data-table__mobile.is-waiting .lintje-data-table__mobile-cell,
+:is(.lintje-data-table__full, .lintje-data-table__mobile).is-waiting .lintje-data-table__open:not(:hover, :focus-visible) {
+  color: var(--color-text-muted);
+}
 
 /* --- Row actions and the selection bar (actions.ts) ------------------------ */
 .lintje-data-table__action-cell { width: var(--h-icon-button); text-align: right; }

@@ -1476,7 +1476,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const rowsOf = (list: Row[], first: number, inGroup: boolean): unknown =>
       list.map((row, index) => this.fullRow(row, first + index, grid, copy, inGroup))
 
-    return html`<table class="lintje-data-table__full" aria-busy=${this.busy ? 'true' : nothing}>
+    return html`<table
+      class="lintje-data-table__full ${this.busy ? 'is-waiting' : ''}"
+      aria-busy=${this.busy ? 'true' : nothing}
+    >
       <caption class="visually-hidden">${data.caption}</caption>
       <thead>
         <tr>
@@ -2115,7 +2118,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const nameHintId = this.hintId(nameColumn, copy, true)
     const measureHintId = this.hintId(measureColumn, copy, true)
 
-    return html`<table class="lintje-data-table__mobile" aria-busy=${this.busy ? 'true' : nothing}>
+    return html`<table
+      class="lintje-data-table__mobile ${this.busy ? 'is-waiting' : ''}"
+      aria-busy=${this.busy ? 'true' : nothing}
+    >
       <caption class="visually-hidden">${data.caption}</caption>
       <thead>
         <tr>
