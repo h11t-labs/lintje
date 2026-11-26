@@ -83,52 +83,67 @@ async function goTo(element: TableElement, page: number): Promise<void> {
   await element.updateComplete
 }
 
+/** What a host does at once on a choice: write it and fetch, with the old rows standing. */
+const loading = (element: TableElement, extra: Partial<DataTableData> = {}): void => {
+  element.data = { ...element.data, ...extra, state: 'loading' }
+}
+
 describe('the host’s order', () => {
-  it('stands as given, also for equal values, and a header only asks', async () => {
+  it('stands as given, also against the table’s own default order', async () => {
+    const shuffled = [3, 1, 5, 2, 4].map((number) => pageOf(1)[number - 1]!)
+    const element = await mount({ ...hostData(), rows: shuffled, sort: null })
+    expect(names(element)).toEqual(['Loket 03', 'Loket 01', 'Loket 05', 'Loket 02', 'Loket 04'])
+  })
+
+  it('a header only asks: the arrow shows the choice, busy, over the old rows', async () => {
     const element = await mount()
     const sorts: (SortState | null)[] = []
     element.addEventListener('lintje-sort-change', (event) =>
       sorts.push((event as CustomEvent<SortState | null>).detail),
     )
     const before = names(element)
-    expect(before[0]).toBe('Loket 01')
     sortButton(element, 1).click()
     await element.updateComplete
     expect(sorts).toEqual([{ key: 'requests', direction: 'desc' }])
     expect(names(element)).toEqual(before)
-    // The arrow shows the choice while the old rows stand.
     const header = root(element).querySelectorAll('.lintje-data-table__full thead th')[1]!
     expect(header.getAttribute('aria-sort')).toBe('descending')
     expect(busy(element)).toEqual(['true', 'true'])
     expect(await said(element)).toBe('')
   })
 
-  it('ends the wait with the host’s rows, its sort and its page, and says the sort once', async () => {
+  it('waits while the host loads, then takes its answer and says the sort once', async () => {
     const element = await mount(hostData(2))
     sortButton(element, 1).click()
     await element.updateComplete
-    // The specimen-like echo of a checked change is no answer: the rows are the same.
-    element.data = { ...element.data, checkedIds: [] }
-    expect(busy(element)).toEqual(['true', 'true'])
     const sort: SortState = { key: 'requests', direction: 'desc' }
+    loading(element, { sort, page: 1 })
+    // An echo of a checked change, with rows rebuilt by `.map()`, is no answer while it loads.
+    loading(element, { rows: element.data.rows.map((row) => ({ ...row })), checkedIds: [] })
+    await element.updateComplete
+    expect(busy(element)).toEqual(['true', 'true'])
+    expect(names(element)).toEqual(pageOf(2).map((row) => row.name))
     element.data = { ...hostData(1), sort, rows: [...pageOf(1)].reverse() }
     expect(await said(element)).toBe('Gesorteerd op aanvragen, aflopend.')
     expect(busy(element)).toEqual([null, null])
     expect(names(element)[0]).toBe('Loket 05')
     expect(pager(element).page).toBe(1)
-    element.data = { ...element.data, rows: pageOf(1) }
-    // A later answer that was not asked for says nothing new.
+    element.data = { ...element.data, rows: element.data.rows.map((row) => ({ ...row })) }
+    // A later `data` that was not asked for says nothing new and moves nothing.
     expect(await said(element)).toBe('Gesorteerd op aanvragen, aflopend.')
+    expect(pager(element).page).toBe(1)
   })
 
-  it('takes the host’s sort back when it refuses the choice', async () => {
+  it('takes the host’s sort back when it refuses the choice, and says nothing', async () => {
     const element = await mount()
     sortButton(element, 1).click()
     await element.updateComplete
-    element.data = { ...element.data, rows: pageOf(1) }
+    element.data = { ...element.data }
     await element.updateComplete
     const header = root(element).querySelectorAll('.lintje-data-table__full thead th')[1]!
     expect(header.getAttribute('aria-sort')).toBe('none')
+    expect(busy(element)).toEqual([null, null])
+    expect(await said(element)).toBe('')
   })
 })
 
@@ -152,6 +167,9 @@ describe('the host’s pager', () => {
     )
     await goTo(element, 3)
     expect(pages).toEqual([{ page: 3 }])
+    // A host that loads without writing the page still shows the choice.
+    loading(element)
+    await element.updateComplete
     expect(pager(element).page).toBe(3)
     expect(names(element)[0]).toBe('Loket 01')
     expect(busy(element)).toEqual(['true', 'true'])
@@ -164,6 +182,67 @@ describe('the host’s pager', () => {
     element.data = hostData(3)
     expect(await said(element)).toBe('Pagina 3 van 3')
     expect(busy(element)).toEqual([null, null])
+  })
+
+  it('ends the wait on a cached page, the same array as before', async () => {
+    const first = pageOf(1)
+    const element = await mount({ ...hostData(), rows: first })
+    await goTo(element, 2)
+    element.data = hostData(2)
+    await said(element)
+    await goTo(element, 1)
+    element.data = { ...hostData(1), rows: first }
+    expect(await said(element)).toBe('Pagina 1 van 3')
+    expect(busy(element)).toEqual([null, null])
+  })
+
+  it('ends the wait when the fetch fails', async () => {
+    const element = await mount()
+    await goTo(element, 2)
+    loading(element, { page: 2 })
+    element.data = { ...element.data, state: 'error', message: 'Niet geladen' }
+    await element.updateComplete
+    expect(busy(element)).toEqual([])
+    element.data = hostData(1)
+    await element.updateComplete
+    expect(busy(element)).toEqual([null, null])
+  })
+
+  it('ends the wait when the table stops being paged by the host', async () => {
+    const element = await mount()
+    await goTo(element, 2)
+    element.data = { ...element.data, paging: 'client' }
+    await element.updateComplete
+    expect(busy(element)).toEqual([null, null])
+    element.data = { ...element.data, paging: 'host' }
+    await element.updateComplete
+    expect(busy(element)).toEqual([null, null])
+  })
+
+  it('draws the skeleton on a first load, without rows to keep', async () => {
+    const element = await mount({ ...hostData(), rows: [], state: 'loading' })
+    expect(root(element).querySelector('table')).toBeNull()
+  })
+
+  it('keeps the enlarged table while the host loads', async () => {
+    const element = await mount(hostData(1, { title: 'Loketten', expandable: true }))
+    root(element)
+      .querySelector('lintje-tile')!
+      .dispatchEvent(new CustomEvent('lintje-tile-expand', { bubbles: true, composed: true }))
+    await element.updateComplete
+    loading(element, { page: 2 })
+    await element.updateComplete
+    expect(root(element).querySelectorAll('.lintje-data-table__full')).toHaveLength(2)
+  })
+
+  it('shows the last page for a page past it, with a warning', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const element = await mount(
+      hostData(9, { rows: pageOf(1).slice(0, 5), rowCount: 30, pageSize: 25 }),
+    )
+    await pager(element).updateComplete
+    expect([pager(element).page, pager(element).pageCount]).toEqual([2, 2])
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('page 9'))
   })
 
   it('keeps a short last page as tall as a full one', async () => {

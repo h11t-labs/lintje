@@ -475,14 +475,18 @@ export interface DataTableData extends FrameSettings, TileData, ContentState {
   pageSize?: number
   /**
    * Who sorts and pages. `client` (default): the table, over all `rows`. `host`: `rows` is one
-   * page in the host's order, never sorted again; a header or a page sends its event, and the
-   * arrow and the pager show the choice while the old rows stand, `aria-busy`, until a new
-   * `rows` array. Then `sort` and `page` are the host's again (`sort: null` is `defaultSort`); a host
-   * answers a new sort or filter with page 1. "Alles selecteren" checks this page; `groupBy` does
-   * not apply.
+   * page in the host's order, never sorted again; a header or a page sends its event and the
+   * arrow and the pager show the choice at once. The host answers every such event with `data`:
+   * first, if it fetches, `state: 'loading'` with the old `rows`, which then stand with
+   * `aria-busy`; then the first `data` that is not loading is the answer, whose `sort` and `page`
+   * the table takes whole, also when they refuse the choice (`sort: null` is `defaultSort`). Any
+   * other `data` changes the sort or page only where it names a new one. A host answers a new
+   * sort or filter with page 1 and drops an answer to a choice it no longer holds. On the phone
+   * the page shows `pageSize` rows too. "Alles selecteren" checks this page; `groupBy` does not
+   * apply.
    */
   paging?: 'client' | 'host'
-  /** With `paging: 'host'`: the page `rows` is, from 1. */
+  /** With `paging: 'host'`: the page `rows` is, from 1; past the last it counts as the last. */
   page?: number
   /** With `paging: 'host'`: the rows over all pages after the filters; the pages follow from it. */
   rowCount?: number

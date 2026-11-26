@@ -298,15 +298,18 @@ function hostPaging(stage, { hold = false } = {}) {
   const say = log(stage)
   let held = hold
   let timer = 0
+  // The choice goes into the host's state at once, with the old rows loading; a later answer
+  // replaces an earlier one, so a slow page never lands after a newer choice.
   const ask = (next) => {
     query = next
     clearTimeout(timer)
+    element.data = { ...element.data, ...query, state: 'loading' }
     if (held) {
       held = false
       return
     }
     timer = setTimeout(() => {
-      element.data = { ...element.data, ...query, ...serverPage(query) }
+      element.data = { ...element.data, ...query, ...serverPage(query), state: 'ready' }
     }, 1200)
   }
   element.addEventListener('lintje-sort-change', (event) => {

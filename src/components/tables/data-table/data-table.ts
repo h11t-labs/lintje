@@ -15,8 +15,8 @@
  * `lintje-page-change` `{ page }` and `lintje-tile-download`.
  *
  * With `paging: 'host'` the host sorts and pages: `rows` is one page, drawn in the given order. A
- * header or a page shows the choice at once and sends its event; the old rows stand, with
- * `aria-busy`, until the host's next `rows` bring its `sort` and `page`.
+ * header or a page shows the choice at once and sends its event. The table is busy until the
+ * host's first `data` that is not `loading`; while it loads, the old rows stand.
  */
 import {
   html,
@@ -387,11 +387,13 @@ export class LintjeDataTable extends LintjeContentTileElement {
   readonly #modalEdges = new ScrollEdges(() => this.requestUpdate())
   #sortSeen = JSON.stringify(null)
   #checkedSeen = JSON.stringify([])
-  /** With `paging: 'host'`: the rows of the last answer; new ones bring the host's sort and page. */
-  #rowsSeen: Row[] | undefined
-  /** With `paging: 'host'`: a sort or page went to the host; its answer's rows end the wait. */
-  #asked: { say: () => string } | null = null
+  #pageSeen: number | undefined
+  /** With `paging: 'host'`: a sort or page went to the host; its first `data` not loading answers. */
+  #asked = false
+  /** With `paging: 'host'`: the sort and page of the last answer, to say what the next one changed. */
+  #settled: { sort: string; page: number } | null = null
   #groupWarned = false
+  #pageWarned = false
 
   filterValues: Record<string, FilterValue> = {}
   /** What the open filter holds before "Toepassen". */
@@ -455,23 +457,29 @@ export class LintjeDataTable extends LintjeContentTileElement {
     if (changed.has('data') || changed.has('checkedIds')) this.#noteFocus()
     if (!changed.has('data')) return
     const state = this.data?.state ?? 'ready'
-    // The host's answer to a sort or a page is its next rows: they bring its sort and page, also
-    // when it refused the choice.
-    const rows = this.data?.rows
-    const answered = this.host && state !== 'loading' && rows !== this.#rowsSeen
-    if (answered) this.#rowsSeen = rows
-    // The host wins only where it says something new: a `data` that changed for another reason
-    // must not wipe the reader's sort, so compare values, not objects.
+    if (!this.host) {
+      this.#asked = false
+      this.#settled = null
+      this.#pageSeen = undefined
+    }
+    // The answer to a choice is taken whole, also when it refuses it. Any other `data` wins only
+    // where it says something new: an echo of `checkedIds` must not wipe the reader's choice.
+    const answered = this.#asked && state !== 'loading'
     const sort = JSON.stringify(this.data?.sort ?? null)
     if (sort !== this.#sortSeen || answered) {
       this.#sortSeen = sort
       this.sort = this.data?.sort ?? null
     }
-    if (answered) {
-      this.page = Math.max(0, Math.floor(this.data?.page ?? 1) - 1)
+    if (this.host) this.takeHostPage(answered)
+    if (this.host && state !== 'loading') {
       const asked = this.#asked
-      this.#asked = null
-      if (asked) this.#live.say(asked.say())
+      this.#asked = false
+      const settled = this.#settled
+      this.#settled = { sort, page: this.page }
+      if (asked && settled && state === 'ready') {
+        const words = this.answerWords(settled, sort)
+        if (words) this.#live.say(words)
+      }
     }
     if (import.meta.env?.DEV && this.host && this.data?.groupBy && !this.#groupWarned) {
       this.#groupWarned = true
@@ -500,7 +508,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     }
     this.#editing.sync(this.data)
     // On its own the table says it loads; in a tile the tile does.
-    if (this.plain && state === 'loading' && changed.get('data')?.state !== 'loading')
+    if (this.plain && this.shownState === 'loading' && changed.get('data')?.state !== 'loading')
       this.#live.say('Gegevens laden…')
     // The count is of the rows the filter left: it waits while the host still loads them.
     if (this.#filterAsked && state !== 'loading') {
@@ -509,7 +517,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       const left = this.rowTotal
       this.#live.say(total == null ? rowCount(left) : `${left} van ${rowCount(total)}`)
     }
-    // Fewer rows than before: a page past the last would show nothing. The host's page is its own.
+    // Fewer rows than before: a page past the last would show nothing. The host's page is taken above.
     if (this.host) return this.closeLeftRows()
     const grouped = this.grouped
     const count = grouped ? this.groupsOf(this.rows).length : this.rows.length
@@ -523,6 +531,33 @@ export class LintjeDataTable extends LintjeContentTileElement {
       last(grouped ? this.groupsPerPage : MOBILE_PAGE_SIZE),
     )
     this.closeLeftRows()
+  }
+
+  /** The host's page, from 1 in `data`, from 0 here; past the last it is the last. */
+  private takeHostPage(answered: boolean): void {
+    const asked = this.data?.page ?? 1
+    if (asked === this.#pageSeen && !answered) return
+    this.#pageSeen = asked
+    const count = this.hostPageCount
+    const page = Math.min(Math.max(1, Math.floor(asked)), count)
+    if (import.meta.env?.DEV && page !== asked && !this.#pageWarned) {
+      this.#pageWarned = true
+      console.warn(
+        `<${this.localName}>: page ${asked} is not one of ${count} pages; showing ${page}.`,
+      )
+    }
+    this.page = page - 1
+  }
+
+  private get hostPageCount(): number {
+    return Math.max(1, Math.ceil(this.rowTotal / (this.data?.pageSize ?? 25)))
+  }
+
+  /** What the host's answer changed against the last one; a refusal changed nothing. */
+  private answerWords(settled: { sort: string; page: number }, sort: string): string {
+    if (sort !== settled.sort) return this.sortWords(this.activeSort)
+    if (this.page !== settled.page) return `Pagina ${this.page + 1} van ${this.hostPageCount}`
+    return ''
   }
 
   /** A row that left the data is no longer open. */
@@ -788,29 +823,43 @@ export class LintjeDataTable extends LintjeContentTileElement {
     this.page = 0
     this.mobilePage = 0
     this.emit('lintje-sort-change', this.sort)
-    const column = this.columns.find((candidate) => candidate.key === next.key)
-    if (column) {
-      const order = next.direction === 'asc' ? 'oplopend' : 'aflopend'
-      const words = `Gesorteerd op ${column.header.toLocaleLowerCase('nl')}, ${order}.`
-      if (this.host) this.ask(() => words)
-      else this.#live.say(words)
-    }
+    if (this.host) return this.ask()
+    const words = this.sortWords(next)
+    if (words) this.#live.say(words)
+  }
+
+  private sortWords(sort: SortState): string {
+    const column = this.columns.find((candidate) => candidate.key === sort.key)
+    if (!column) return ''
+    const order = sort.direction === 'asc' ? 'oplopend' : 'aflopend'
+    return `Gesorteerd op ${column.header.toLocaleLowerCase('nl')}, ${order}.`
   }
 
   /** With `paging: 'host'`: the page shows at once; its rows and its words come with the answer. */
   private choosePage(page: number): void {
     this.page = page
     this.emit('lintje-page-change', { page: page + 1 })
-    this.ask(() => {
-      const count = Math.max(1, Math.ceil(this.rowTotal / (this.data?.pageSize ?? 25)))
-      return `Pagina ${this.page + 1} van ${count}`
-    })
+    this.ask()
   }
 
-  /** The table waits, `aria-busy`, for the host's rows; then it says `say()`. */
-  private ask(say: () => string): void {
-    this.#asked = { say }
+  /** The table waits, `aria-busy`, for the host's answer, which says what it changed. */
+  private ask(): void {
+    this.#asked = true
     this.requestUpdate()
+  }
+
+  /** With `paging: 'host'`: the host fetches with the old rows standing. */
+  private get refreshing(): boolean {
+    return this.host && this.data?.state === 'loading' && this.rows.length > 0
+  }
+
+  /** The state drawn: a host's fetch keeps its last page standing, busy. */
+  private get shownState(): NonNullable<DataTableData['state']> {
+    return this.refreshing ? 'ready' : (this.data?.state ?? 'ready')
+  }
+
+  private get busy(): boolean {
+    return this.host && (this.#asked || this.refreshing)
   }
 
   private setChecked(ids: string[]): void {
@@ -1009,7 +1058,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       return html`${this.content()}<span class="visually-hidden" role="status"
           >${this.#live.text}</span
         >`
-    const ready = (data.state ?? 'ready') === 'ready'
+    const ready = this.shownState === 'ready'
     const subtitle =
       this.#mobile.matches && data.mobileSubtitle ? data.mobileSubtitle : data.subtitle
 
@@ -1026,7 +1075,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       footnote=${data.footnote ?? nothing}
       ?expandable=${Boolean(data.expandable) && ready}
       ?download=${Boolean(data.download) && ready}
-      state=${data.state ?? 'ready'}
+      state=${this.shownState}
       message=${data.message ?? nothing}
       last-known=${data.lastKnown ?? nothing}
       @lintje-tile-expand=${(event: Event) => {
@@ -1096,7 +1145,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
    */
   private content(inTile = false): TemplateResult | typeof nothing {
     const data = this.data as DataTableData
-    switch (data.state ?? 'ready') {
+    switch (this.shownState) {
       case 'loading':
         return inTile
           ? html`<div slot="loading">${renderChartSkeleton({ kind: 'table', status: false })}</div>`
@@ -1415,7 +1464,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const rowsOf = (list: Row[], first: number, inGroup: boolean): unknown =>
       list.map((row, index) => this.fullRow(row, first + index, grid, copy, inGroup))
 
-    return html`<table class="lintje-data-table__full" aria-busy=${this.#asked ? 'true' : nothing}>
+    return html`<table class="lintje-data-table__full" aria-busy=${this.busy ? 'true' : nothing}>
       <caption class="visually-hidden">${data.caption}</caption>
       <thead>
         <tr>
@@ -2054,7 +2103,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const nameHintId = this.hintId(nameColumn, copy, true)
     const measureHintId = this.hintId(measureColumn, copy, true)
 
-    return html`<table class="lintje-data-table__mobile" aria-busy=${this.#asked ? 'true' : nothing}>
+    return html`<table class="lintje-data-table__mobile" aria-busy=${this.busy ? 'true' : nothing}>
       <caption class="visually-hidden">${data.caption}</caption>
       <thead>
         <tr>
@@ -2407,8 +2456,8 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   /**
-   * The page is view state, not a number: it stays out of the URL. The table counts from 0. The
-   * host's page is the host's: its pager says the page once the rows have come.
+   * The table's own page is view state: it stays out of the URL. With `paging: 'host'` the page is
+   * the host's, and the table says it once the answer has come. The table counts from 0.
    */
   private pager(
     variant: 'full' | 'mobile',
@@ -2435,7 +2484,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       ?quiet=${this.host}
       @lintje-page-change=${(event: CustomEvent<{ page: number }>) => {
         event.stopPropagation()
-        // The pager says "Pagina 3 van 7" itself: once is enough.
+        // The pager says "Pagina 3 van 7" itself, or with `quiet` the table does: once is enough.
         go(event.detail.page - 1)
       }}
     ></lintje-pagination>`
