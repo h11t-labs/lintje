@@ -216,11 +216,11 @@ export default {
           label: 'Lijn met focus',
           note: 'Tab gaat vanaf de knoop met de focus door haar kiesbare lijnen, met de klok mee vanaf boven. De focusring loopt langs de lijn; Spatie of Enter kiest haar.',
           html: GRAPH_TILE,
-          setup: relationSetup({ title: 'Lijn met focus' }, (tile) => {
-            // Only where nothing else holds the focus: a reader on the page keeps theirs.
-            if (document.activeElement !== document.body) return
-            tile.shadowRoot.querySelector('.lintje-graph__line-stop')?.focus({ preventScroll: true })
-          }),
+          setup: relationSetup({ title: 'Lijn met focus' }, (tile) =>
+            // The state the focus brings, as "Onder de aanwijzer" brings the pointer's: the reader
+            // keeps the page's own focus, wherever the specimen draws.
+            tile.shadowRoot.querySelector('.lintje-graph__line-stop')?.dispatchEvent(new FocusEvent('focus')),
+          ),
         },
         {
           label: 'Uitgezoomd',

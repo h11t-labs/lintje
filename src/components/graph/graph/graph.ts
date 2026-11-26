@@ -1948,9 +1948,10 @@ export class LintjeGraph extends LintjeContentTileElement {
     this.placeTips()
     this.handFocus()
     // A line's stop taken away while it had the focus hears no blur; its ring is already gone.
-    const active = this.shadowRoot?.activeElement as HTMLElement | null
     for (const surface of this.surfaces()) {
-      if (active?.dataset.edge !== surface.focusedEdge) surface.focusedEdge = null
+      const stops = surface.area?.querySelectorAll<HTMLElement>('[data-edge]') ?? []
+      if (![...stops].some((stop) => stop.dataset.edge === surface.focusedEdge))
+        surface.focusedEdge = null
     }
   }
 

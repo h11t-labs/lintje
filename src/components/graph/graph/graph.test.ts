@@ -581,6 +581,21 @@ describe('lintje-graph', () => {
       expect(root(element).querySelectorAll('.lintje-graph__frame')).toHaveLength(1)
     })
 
+    it('keeps the ring of a line through a render, until its stop is gone', async () => {
+      const element = await mount(withIds())
+      // The style guide shows the state as "Onder de aanwijzer" does, without moving the focus.
+      stops(element)[0]!.dispatchEvent(new FocusEvent('focus'))
+      await element.updateComplete
+      element.requestUpdate()
+      await element.updateComplete
+      expect(root(element).querySelectorAll('.lintje-graph__ring')).toHaveLength(1)
+      element.data = graphData({ layout: 'layered-down' })
+      await element.updateComplete
+      element.data = withIds()
+      await element.updateComplete
+      expect(root(element).querySelector('.lintje-graph__ring')).toBeNull()
+    })
+
     it('draws the focus ring along the line that has the focus', async () => {
       const element = await mount(withIds())
       expect(root(element).querySelector('.lintje-graph__ring')).toBeNull()
