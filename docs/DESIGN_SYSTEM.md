@@ -926,6 +926,11 @@ De besluiten hieronder gelden voor alle elementen.
 - **Onder de aanwijzer of gekozen blijven de knoop, haar buren en haar lijnen in het licht**, de
   lijnen in de donkere lijnkleur; de rest stapt terug. Een gekozen knoop draagt de accentrand en de
   lichte vulling, zonder tooltip: de host toont haar relaties.
+- **Een lijn met een id is te kiezen, zoals een knoop; een lijn in een groep niet.** Haar woord
+  staat in een kader, zodat de lezer ziet welke lijnen dat zijn. Gekozen wordt ze dikker in de rand
+  van een gekozen knoop met haar woord vet, en laat een tweede klik haar gekozen; een dubbelklik of
+  Enter opent haar. De dichtstbijzijnde lijn wint de aanwijzer, een knoop altijd. Tab gaat vanaf de
+  knoop door haar lijnen, met de klok mee vanaf boven.
 - **De tooltip is die van Lintje**: de naam, een grijze regel met wat bijzonder is (wat verborgen
   is, wie in een groep zit, anders soort en status), dan een paar relaties als zin en hoeveel er
   nog zijn. Hij staat onder de knoop, erboven als de ruimte op is. Een lijn onder de aanwijzer
@@ -1421,7 +1426,9 @@ kleinste correctie, en leg die hier vast.
   bijna-zwart met wit erin, in donker wit met bijna-zwart erin. Op de eigen vulling van het thema
   (het menu, de band van een hero) is het de inverse ring: wit met de donkere lijn erin. Een vlak
   dat een andere ring draagt, zet `--lintje-focus` en `--lintje-focus-inner`, die overerven in
-  alles wat erop staat.
+  alles wat erop staat. Een lijn in een graaf draagt dezelfde ring langs de lijn.
+- **Wat in een graaf terugstapt, blijft leesbaar**: het icoon en de lijnen vervagen, maar de naam en
+  de initialen van een persoon houden 4,5:1 in de secundaire tekstkleur.
 - **Een veld is verplicht tenzij het anders zegt**: de optionele zijn gemarkeerd, "(niet
   verplicht)", binnen het label. Geen sterretje.
 - **Eén `h1` per pagina**: de naam van de shell, ook onder 768 px. Een paginatitel is een `h2`,

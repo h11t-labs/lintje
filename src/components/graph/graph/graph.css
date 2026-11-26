@@ -28,15 +28,32 @@
   touch-action: pan-x pan-y;
   user-select: none;
 }
+/* A choosable line under the pointer: the hand that points. */
+.lintje-graph__area.is-pointing { cursor: pointer; }
 
 /* --- Lines and their words ------------------------------------------------ */
 .lintje-graph__lines { position: absolute; inset: 0; pointer-events: none; }
 .lintje-graph__line { fill: none; stroke: var(--color-chart-zero); }
 .lintje-graph__arrow { fill: var(--color-chart-zero); }
-/* A wider, unseen line under the pointer, so a thin one is easy to point at. */
-.lintje-graph__hit { fill: none; stroke: transparent; stroke-width: 12px; pointer-events: stroke; cursor: default; }
+/* The 24 px target of a choosable line, unseen, for a finger. */
+.lintje-graph__hit { fill: none; stroke: transparent; stroke-width: 24px; pointer-events: stroke; }
 .lintje-graph__edge.is-lit .lintje-graph__line { stroke: var(--color-text-secondary); }
 .lintje-graph__edge.is-lit .lintje-graph__arrow { fill: var(--color-text-secondary); }
+/* The chosen line takes the edge of a chosen node; its width is the element's. */
+.lintje-graph__edge.is-selected .lintje-graph__line { stroke: var(--color-selected-edge); }
+.lintje-graph__edge.is-selected .lintje-graph__arrow { fill: var(--color-selected-edge); }
+/* The house style's focus ring, drawn along the line: the ring, its gap and its inner line. */
+.lintje-graph__ring,
+.lintje-graph__ring-gap,
+.lintje-graph__ring-inner { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.lintje-graph__ring {
+  stroke: var(--lintje-focus, var(--color-focus));
+  stroke-width: calc(var(--lintje-graph-edge-w) + 2 * (var(--focus-offset) + var(--focus-width)));
+}
+.lintje-graph__ring-gap,
+.lintje-graph__ring-inner { stroke-width: calc(var(--lintje-graph-edge-w) + 2 * var(--focus-offset)); }
+.lintje-graph__ring-gap { stroke: var(--color-bg-surface); }
+.lintje-graph__ring-inner { stroke: var(--lintje-focus-inner, var(--color-focus-inner)); }
 /* The word on its line, with a halo of the surface so the line does not cross it. */
 .lintje-graph__word {
   font: var(--text-axis);
@@ -48,7 +65,27 @@
   stroke-width: 4px;
   stroke-linejoin: round;
 }
-.lintje-graph__word.is-lit { fill: var(--color-text-primary); }
+.lintje-graph__word.is-lit,
+.lintje-graph__word--framed { fill: var(--color-text-primary); }
+.lintje-graph__word.is-selected { font-weight: 700; }
+/* The word of a choosable line stands in a frame, with the small corner of a control. */
+.lintje-graph__frame {
+  fill: var(--color-bg-surface);
+  stroke: var(--color-border-strong);
+  stroke-width: 1px;
+  rx: var(--radius-control);
+}
+/* The keyboard's stop for a line: no box of its own; its ring is drawn along the line. */
+.lintje-graph__line-stop {
+  position: absolute;
+  left: calc(var(--h-target-text) / -2); top: calc(var(--h-target-text) / -2);
+  width: var(--h-target-text); height: var(--h-target-text);
+  padding: 0;
+  border: 0;
+  background: none;
+  pointer-events: none;
+}
+.lintje-graph__line-stop:focus-visible { outline: none; box-shadow: none; }
 
 /* --- Nodes ---------------------------------------------------------------- */
 .lintje-graph__nodes { position: absolute; inset: 0; pointer-events: none; font: var(--text-small); }
@@ -64,10 +101,12 @@
 .lintje-graph__node,
 .lintje-graph__counter,
 .lintje-graph__edge,
+.lintje-graph__frame,
 .lintje-graph__word { animation: lintje-fade-in var(--dur-graph) var(--ease-fade); }
 .lintje-graph__node.is-late,
 .lintje-graph__counter.is-late,
 .lintje-graph__edge.is-late,
+.lintje-graph__frame.is-late,
 .lintje-graph__word.is-late { animation-delay: var(--dur-graph); animation-fill-mode: backwards; }
 /* Out of the light a node steps back: its icon and its lines fade to 45 %, its name keeps
    4.5:1 in the secondary text colour. */
@@ -76,12 +115,14 @@
 .lintje-graph__edge.is-dim,
 .lintje-graph__node.is-dim .lintje-graph__glyph { opacity: 0.45; }
 .lintje-graph__node.is-dim { color: var(--color-text-secondary); }
+/* A person's initials are text: they keep 4.5:1 in the secondary colour rather than fade. */
+.lintje-graph__node.is-dim .lintje-graph__glyph:has(.lintje-graph__avatar) { opacity: 1; }
+.lintje-graph__node.is-dim .lintje-graph__avatar { color: var(--color-text-secondary); }
 .lintje-graph__node.is-leaving,
 .lintje-graph__edge.is-leaving {
   pointer-events: none;
   animation: lintje-graph-fade-out var(--dur-graph) var(--ease-fade) forwards;
 }
-.lintje-graph__edge.is-leaving .lintje-graph__hit { pointer-events: none; }
 @keyframes lintje-graph-fade-out { to { opacity: 0; } }
 
 /* A card grows and shrinks with the zoom (`--lintje-graph-k`); its width, its height and the room
@@ -292,4 +333,11 @@
   .lintje-graph__mark.is-selected .lintje-graph__glyph { border-color: Highlight; }
   .lintje-graph__line { stroke: CanvasText; }
   .lintje-graph__arrow { fill: CanvasText; }
+  .lintje-graph__frame { fill: Canvas; stroke: CanvasText; }
+  .lintje-graph__word { fill: CanvasText; stroke: Canvas; }
+  .lintje-graph__edge.is-selected .lintje-graph__line { stroke: Highlight; }
+  .lintje-graph__edge.is-selected .lintje-graph__arrow { fill: Highlight; }
+  .lintje-graph__ring { stroke: Highlight; }
+  .lintje-graph__ring-gap,
+  .lintje-graph__ring-inner { stroke: Canvas; }
 }

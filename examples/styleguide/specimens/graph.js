@@ -7,13 +7,20 @@ import {
   partnerGraph,
   personGraph,
   personGraphWith,
+  relationGraph,
   ruleGraph,
   sourceGraph,
   stateGraph,
 } from '../../_data/graph.js'
 
 const GRAPH_TILE = '<lintje-graph></lintje-graph>'
-const EVENTS = ['lintje-node-select', 'lintje-node-toggle', 'lintje-node-expand']
+const EVENTS = [
+  'lintje-node-select',
+  'lintje-node-toggle',
+  'lintje-node-expand',
+  'lintje-edge-select',
+  'lintje-edge-open',
+]
 
 /**
  * A host that keeps what the reader chose, folded and opened, as it would in its URL, and loads
@@ -22,6 +29,9 @@ const EVENTS = ['lintje-node-select', 'lintje-node-toggle', 'lintje-node-expand'
 function host(tile) {
   tile.addEventListener('lintje-node-select', (event) => {
     tile.data = { ...tile.data, selected: event.detail.id }
+  })
+  tile.addEventListener('lintje-edge-select', (event) => {
+    tile.data = { ...tile.data, selectedEdge: event.detail.id }
   })
   tile.addEventListener('lintje-node-toggle', (event) => {
     const { id, open } = event.detail
@@ -84,6 +94,15 @@ function stateSetup(data, extra = {}, after) {
 
 /** The node by its id, in the tile's drawing. */
 const nodeIn = (tile, id) => tile.shadowRoot.querySelector(`[data-node="${id}"]`)
+
+/** A small tile of the relation register, with the log of what the host hears. */
+function relationSetup(extra = {}, after) {
+  return (stage) => {
+    graphSetup(relationGraph, { layout: 'force', height: 360, expandable: false, download: undefined, ...extra })(stage)
+    const tile = stage.querySelector('lintje-graph')
+    if (after) void tile.updateComplete.then(() => requestAnimationFrame(() => after(tile)))
+  }
+}
 
 export default {
   elements: [
@@ -180,6 +199,28 @@ export default {
           note: 'Een andere knoop is gekozen: wat er niet aan hangt, stapt terug. Het icoon, de rand en de lijn vervagen tot 45 %, de naam blijft leesbaar.',
           html: GRAPH_TILE,
           setup: stateSetup({ title: 'Buiten het licht', selected: 'dienst' }),
+        },
+        {
+          label: 'Kiesbare lijnen',
+          note: 'Een lijn met een `id` is te kiezen: haar woord staat in een kader. De eigenaar van het adres is afgeleid, zonder id, en houdt haar woord zonder kader. Een klik of tik op een lijn kiest haar en stuurt `lintje-edge-select`.',
+          html: GRAPH_TILE,
+          setup: relationSetup({ title: 'Kiesbare lijnen' }),
+        },
+        {
+          label: 'Gekozen lijn',
+          note: 'Dikker in de rand van een gekozen knoop, het woord vet en zonder tooltip; haar twee knopen blijven in het licht. Een tweede klik laat haar gekozen; Escape of een klik op de achtergrond maakt de keuze ongedaan, een dubbelklik of Enter stuurt `lintje-edge-open`.',
+          html: GRAPH_TILE,
+          setup: relationSetup({ title: 'Gekozen lijn', selectedEdge: 'relatie-6' }),
+        },
+        {
+          label: 'Lijn met focus',
+          note: 'Tab gaat vanaf de knoop met de focus door haar kiesbare lijnen, met de klok mee vanaf boven. De focusring loopt langs de lijn; Spatie of Enter kiest haar.',
+          html: GRAPH_TILE,
+          setup: relationSetup({ title: 'Lijn met focus' }, (tile) => {
+            // Only where nothing else holds the focus: a reader on the page keeps theirs.
+            if (document.activeElement !== document.body) return
+            tile.shadowRoot.querySelector('.lintje-graph__line-stop')?.focus({ preventScroll: true })
+          }),
         },
         {
           label: 'Uitgezoomd',

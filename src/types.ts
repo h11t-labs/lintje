@@ -244,6 +244,11 @@ export interface GraphNode {
 export type GraphDirection = 'to' | 'both' | 'none'
 
 export interface GraphEdge {
+  /**
+   * The relation's own id. Only a line with an id can be chosen; it then comes back in
+   * `lintje-edge-select` and `lintje-edge-open`.
+   */
+  id?: string
   from: string
   to: string
   /** The relation's word, on the line: "aanvrager", "werkt bij". */
@@ -266,7 +271,9 @@ export type GraphLines = 'straight' | 'curved' | 'orthogonal'
  * Events: `lintje-node-select` `{id, label}` for a chosen node, `{id: null, label: null}` when
  * undone; `lintje-node-toggle` `{id, open}` when a branch or a group is opened or folded, one per
  * node when the reset button sets it all back; `lintje-node-expand` `{id}` when a node with `more`
- * is opened. With `download` the tile offers the drawing as a PNG.
+ * is opened; `lintje-edge-select` `{id, from, to, label}` for a chosen line, `{id: null, from: null,
+ * to: null, label: null}` when undone; `lintje-edge-open` `{id}` for a double click or Enter on the
+ * chosen line. With `download` the tile offers the drawing as a PNG.
  */
 export interface GraphData extends FrameSettings, TileData, ContentState {
   /** The kinds in the order the legend and the colours take them. */
@@ -281,6 +288,11 @@ export interface GraphData extends FrameSettings, TileData, ContentState {
   lines?: GraphLines
   /** The chosen node: outlined, its relations and neighbours lit, the rest stepped back. */
   selected?: string | null
+  /**
+   * The chosen line, by its `id`: drawn thicker in the accent, its two nodes lit and the rest
+   * stepped back. Choosing a line undoes the chosen node, and the other way round.
+   */
+  selectedEdge?: string | null
   /** Nodes whose branch is folded. */
   collapsed?: string[]
   /** Groups the reader opened, by the id `lintje-node-toggle` gave them. */
