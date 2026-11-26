@@ -824,6 +824,10 @@ De besluiten hieronder gelden voor alle elementen.
 - **Hoogstens één vulling per rij.** Alleen een overschreden drempel vult zijn cel; dicht bij de
   drempel is een teken en vet. Een waarde als label is een badge, in de tonen van `lintje-badge`,
   met haar woord.
+- **Een datum staat zoals een Nederlandse lezer hem leest en sorteert op het moment.** De host
+  geeft ISO; de tabel toont dag-maand-jaar, een tijdstip in de tijdzone van de lezer, overal
+  dezelfde woorden, en sorteert op de dag of het moment, niet op de tekst. De CSV houdt ISO, dat
+  elk rekenblad als datum leest.
 - **Een totaal is van de host.** De tabel rekent nooit: een som, een gemiddelde en een gewogen
   cijfer komen binnen als waarde, met het woord dat zegt hoe ("gem."). De totaalrij staat onder de
   rijen, vet, boven een zware lijn, en plakt niet.
