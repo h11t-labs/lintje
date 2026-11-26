@@ -9,6 +9,8 @@ import {
   endOfWeek,
   expandYear,
   formatDate,
+  formatDateTime,
+  instantOf,
   isIso,
   monthLabel,
   monthWeeks,
@@ -82,6 +84,40 @@ describe('formatDate()', () => {
     expect(formatDate('2026-02-31')).toBe('')
     expect(isIso('2026-10-03')).toBe(true)
     expect(isIso('03-10-2026')).toBe(false)
+  })
+})
+
+describe('formatDateTime()', () => {
+  it('writes dd-mm-jjjj uu:mm in the reader’s time zone', () => {
+    expect(formatDateTime('2026-01-05T14:30')).toBe('05-01-2026 14:30')
+    expect(formatDateTime('2026-01-05T09:05:59.250')).toBe('05-01-2026 09:05')
+    // A moment in UTC shows in the zone the test runs in, whatever that is.
+    const local = new Date(Date.UTC(2026, 0, 5, 13, 30))
+    const time = [local.getHours(), local.getMinutes()].map((part) => String(part).padStart(2, '0'))
+    expect(formatDateTime('2026-01-05T13:30:00Z')).toMatch(new RegExp(` ${time.join(':')}$`))
+  })
+
+  it('reads an offset as the moment it names', () => {
+    expect(instantOf('2026-01-05T14:30:00+01:00')).toBe(Date.UTC(2026, 0, 5, 13, 30))
+    expect(instantOf('2026-01-05T13:30:00.000Z')).toBe(Date.UTC(2026, 0, 5, 13, 30))
+    expect(instantOf('2026-01-05T13:30:00.123456Z')).toBe(Date.UTC(2026, 0, 5, 13, 30, 0, 123))
+    expect(instantOf('2026-01-05T08:00:00-05:30')).toBe(Date.UTC(2026, 0, 5, 13, 30))
+    expect(instantOf('2026-01-05T14:30')).toBe(new Date(2026, 0, 5, 14, 30).getTime())
+  })
+
+  it('writes nothing for what is not an ISO date-time', () => {
+    for (const value of [
+      null,
+      '',
+      '2026-01-05',
+      '05-01-2026 14:30',
+      '5 Jan 2026 14:30',
+      '2026-02-31T10:00',
+      '2026-01-05T24:00',
+    ]) {
+      expect(formatDateTime(value)).toBe('')
+      expect(instantOf(value)).toBeNull()
+    }
   })
 })
 

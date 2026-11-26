@@ -11,7 +11,12 @@
  * `{ id, label, href? }`, `lintje-row-open` `{ id, label, href? }`, `lintje-checked-change`
  * `string[]`, `lintje-cell-edit` `{ id, column, value }`, `lintje-row-action`
  * `{ id, label, action }`, `lintje-bulk-action` `{ ids, action }`, `lintje-filter-change`
- * `{ column, value }`, `lintje-columns-change` `{ order, hidden }`.
+ * `{ column, value }`, `lintje-columns-change` `{ order, hidden }`; with `paging: 'host'` also
+ * `lintje-page-change` `{ page }` and `lintje-tile-download`.
+ *
+ * With `paging: 'host'` the host sorts and pages: `rows` is one page, drawn in the given order. A
+ * header or a page shows the choice at once and sends its event. The table is busy until the
+ * host's first `data` that is not `loading`; while it loads, the old rows stand.
  */
 import {
   html,
@@ -50,6 +55,7 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../feedback/status-dot/status-dot'
 import '../../feedback/skeleton/skeleton'
 import '../../layout/tile/tile'
+import '../../overlays/toggletip/toggletip'
 import type { SortableItem } from '../sortable-list/sortable-list'
 import type {
   CellValue,
@@ -63,7 +69,7 @@ import type {
   TableTotal,
 } from '../../../types'
 import { CellEditing, cellKey, type EditGrid } from './editing'
-import { parseDate } from '../../shared/date-format'
+import { formatDate, formatDateTime, instantOf, parseDate, partsOf } from '../../shared/date-format'
 import { focusTarget, tabbables } from '../../shared/focus-trap'
 import { LiveMessage } from '../../shared/live-message'
 import { deepActiveElement, holdsFocus } from '../../../core/focus'
@@ -128,6 +134,49 @@ function isNumeric(column: TableColumnData, rows: Row[]): boolean {
   return typeof rows.find((row) => row[column.key] != null)?.[column.key] === 'number'
 }
 
+const warnedDates = new Set<string>()
+
+/**
+ * A `date` or `datetime` value: its shown text and its moment in ms, or `null` when it is no
+ * ISO value; the dev build says so once per value.
+ */
+function readDate(
+  column: TableColumnData,
+  value: string | number,
+): { text: string; time: number } | null {
+  const iso = String(value)
+  if (column.format === 'date') {
+    const parts = partsOf(iso)
+    if (parts) return { text: formatDate(iso), time: Date.UTC(parts[0], parts[1] - 1, parts[2]) }
+  } else {
+    const time = instantOf(iso)
+    if (time != null) return { text: formatDateTime(iso), time }
+  }
+  const seen = `${column.format} ${iso}`
+  if (import.meta.env?.DEV && !warnedDates.has(seen)) {
+    warnedDates.add(seen)
+    console.warn(
+      `<lintje-data-table>: "${iso}" in column "${column.key}" is no ISO ${column.format === 'date' ? 'date (2026-01-05)' : 'date-time (2026-01-05T14:30:00+01:00)'}; it shows as given and sorts lowest.`,
+    )
+  }
+  return null
+}
+
+const warnedEditors = new Set<string>()
+
+/** A `date` or `datetime` column; a date editor writes `dd-mm-jjjj`, so its column reads as before. */
+function isDateFormat(column: TableColumnData): boolean {
+  if (column.format !== 'date' && column.format !== 'datetime') return false
+  if (column.editor?.kind !== 'date') return true
+  if (import.meta.env?.DEV && !warnedEditors.has(column.key)) {
+    warnedEditors.add(column.key)
+    console.warn(
+      `<lintje-data-table>: column "${column.key}" has format "${column.format}" and a date editor; the editor's dd-mm-jjjj wins and the format is ignored.`,
+    )
+  }
+  return false
+}
+
 function formatText(column: TableColumnData, value: CellValue): string | null {
   // Not assigned is a value with its word, not a missing figure.
   if (column.format === 'person') {
@@ -137,6 +186,7 @@ function formatText(column: TableColumnData, value: CellValue): string | null {
   }
   if (value == null) return null
   if (column.format === 'label') return column.labels?.[String(value)]?.label ?? String(value)
+  if (isDateFormat(column)) return readDate(column, value)?.text ?? String(value)
   let text: string
   if (typeof value === 'string' || column.format === 'text') text = String(value)
   else if (column.format === 'change' || column.format === 'change-compact') {
@@ -349,6 +399,13 @@ export class LintjeDataTable extends LintjeContentTileElement {
   readonly #modalEdges = new ScrollEdges(() => this.requestUpdate())
   #sortSeen = JSON.stringify(null)
   #checkedSeen = JSON.stringify([])
+  #pageSeen: number | undefined
+  /** With `paging: 'host'`: a sort or page went to the host; its first `data` not loading answers. */
+  #asked = false
+  /** With `paging: 'host'`: the sort and page of the last answer, to say what the next one changed. */
+  #settled: { sort: string; page: number } | null = null
+  #groupWarned = false
+  #pageWarned = false
 
   filterValues: Record<string, FilterValue> = {}
   /** What the open filter holds before "Toepassen". */
@@ -411,12 +468,36 @@ export class LintjeDataTable extends LintjeContentTileElement {
     super.willUpdate(changed)
     if (changed.has('data') || changed.has('checkedIds')) this.#noteFocus()
     if (!changed.has('data')) return
-    // The host wins only where it says something new: a `data` that changed for another reason
-    // must not wipe the reader's sort, so compare values, not objects.
+    const state = this.data?.state ?? 'ready'
+    if (!this.host) {
+      this.#asked = false
+      this.#settled = null
+      this.#pageSeen = undefined
+    }
+    // The answer to a choice is taken whole, also when it refuses it. Any other `data` wins only
+    // where it says something new: an echo of `checkedIds` must not wipe the reader's choice.
+    const answered = this.#asked && state !== 'loading'
     const sort = JSON.stringify(this.data?.sort ?? null)
-    if (sort !== this.#sortSeen) {
+    if (sort !== this.#sortSeen || answered) {
       this.#sortSeen = sort
       this.sort = this.data?.sort ?? null
+    }
+    if (this.host) this.takeHostPage(answered)
+    if (this.host && state !== 'loading') {
+      const asked = this.#asked
+      this.#asked = false
+      const settled = this.#settled
+      this.#settled = { sort, page: this.page }
+      if (asked && settled && state === 'ready') {
+        const words = this.answerWords(settled, sort)
+        if (words) this.#live.say(words)
+      }
+    }
+    if (import.meta.env?.DEV && this.host && this.data?.groupBy && !this.#groupWarned) {
+      this.#groupWarned = true
+      console.warn(
+        `<${this.localName}>: groupBy does not apply with paging 'host'; no groups drawn.`,
+      )
     }
     const checked = JSON.stringify(this.data?.checkedIds ?? [])
     if (checked !== this.#checkedSeen) {
@@ -438,19 +519,18 @@ export class LintjeDataTable extends LintjeContentTileElement {
       this.hiddenKeys = this.data?.hiddenColumns ?? []
     }
     this.#editing.sync(this.data)
-    const state = this.data?.state ?? 'ready'
     // On its own the table says it loads; in a tile the tile does.
-    if (this.plain && state === 'loading' && changed.get('data')?.state !== 'loading')
+    if (this.plain && this.shownState === 'loading' && changed.get('data')?.state !== 'loading')
       this.#live.say('Gegevens laden…')
     // The count is of the rows the filter left: it waits while the host still loads them.
     if (this.#filterAsked && state !== 'loading') {
       this.#filterAsked = false
       const total = this.data?.totalRows
-      this.#live.say(
-        total == null ? rowCount(this.rows.length) : `${this.rows.length} van ${rowCount(total)}`,
-      )
+      const left = this.rowTotal
+      this.#live.say(total == null ? rowCount(left) : `${left} van ${rowCount(total)}`)
     }
-    // Fewer rows than before: a page past the last would show nothing.
+    // Fewer rows than before: a page past the last would show nothing. The host's page is taken above.
+    if (this.host) return this.closeLeftRows()
     const grouped = this.grouped
     const count = grouped ? this.groupsOf(this.rows).length : this.rows.length
     const last = (size: number): number => Math.max(0, Math.ceil(count / size) - 1)
@@ -462,7 +542,38 @@ export class LintjeDataTable extends LintjeContentTileElement {
       this.mobilePage,
       last(grouped ? this.groupsPerPage : MOBILE_PAGE_SIZE),
     )
-    // A row that left the data is no longer open.
+    this.closeLeftRows()
+  }
+
+  /** The host's page, from 1 in `data`, from 0 here; past the last it is the last. */
+  private takeHostPage(answered: boolean): void {
+    const asked = this.data?.page ?? 1
+    if (asked === this.#pageSeen && !answered) return
+    this.#pageSeen = asked
+    const count = this.hostPageCount
+    const page = Math.min(Math.max(1, Math.floor(asked)), count)
+    if (import.meta.env?.DEV && page !== asked && !this.#pageWarned) {
+      this.#pageWarned = true
+      console.warn(
+        `<${this.localName}>: page ${asked} is not one of ${count} pages; showing ${page}.`,
+      )
+    }
+    this.page = page - 1
+  }
+
+  private get hostPageCount(): number {
+    return Math.max(1, Math.ceil(this.rowTotal / (this.data?.pageSize ?? 25)))
+  }
+
+  /** What the host's answer changed against the last one; a refusal changed nothing. */
+  private answerWords(settled: { sort: string; page: number }, sort: string): string {
+    if (sort !== settled.sort) return this.sortWords(this.activeSort)
+    if (this.page !== settled.page) return `Pagina ${this.page + 1} van ${this.hostPageCount}`
+    return ''
+  }
+
+  /** A row that left the data is no longer open. */
+  private closeLeftRows(): void {
     const keys = new Set(this.rows.map((row) => this.rowKey(row)))
     if (this.openRows.some((id) => !keys.has(id))) {
       this.openRows = this.openRows.filter((id) => keys.has(id))
@@ -565,11 +676,23 @@ export class LintjeDataTable extends LintjeContentTileElement {
     return this.data?.rows ?? []
   }
 
+  /** The host sorts and pages: `rows` is one page. */
+  private get host(): boolean {
+    return this.data?.paging === 'host'
+  }
+
+  /** The rows over all pages after the filters. */
+  private get rowTotal(): number {
+    return this.host ? (this.data?.rowCount ?? this.rows.length) : this.rows.length
+  }
+
   /* Groups ------------------------------------------------------------------ */
 
   /** The column `groupBy` names; it heads its groups and is not a column of its own. */
   private get groupColumn(): TableColumnData | undefined {
     const key = this.data?.groupBy
+    // A group would run over the host's pages.
+    if (this.host) return undefined
     return key ? this.columns.find((column) => column.key === key) : undefined
   }
 
@@ -659,6 +782,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     // A label and a person sort by the word a reader sees, not by the host's code; nobody lowest.
     if ((column.format === 'label' || column.format === 'person') && value != null)
       return formatText(column, value) ?? ''
+    // A date or a moment sorts by its time, not by its text: `+01:00` and `+02:00` differ.
+    if (isDateFormat(column)) {
+      return (value == null ? null : readDate(column, value)?.time) ?? Number.NEGATIVE_INFINITY
+    }
     // A date column holds `dd-mm-jjjj`, which sorts by day as text; its ISO form sorts by date.
     if (column.editor?.kind === 'date') {
       const parsed = parseDate(String(value ?? ''))
@@ -668,6 +795,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   private get sortedRows(): Row[] {
+    if (this.host) return this.rows
     const sort = this.activeSort
     const column = this.columns.find((candidate) => candidate.key === sort.key)
     if (!column) return this.rows
@@ -689,7 +817,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const sort = this.activeSort
     let next: SortState
     if (sort.key !== column.key) {
-      // First click: descending for numbers, ascending for text.
+      // First click: descending for a number, so a date opens newest first; ascending for text.
       const first = this.rows[0]
       const numeric = first != null && typeof this.sortValue(column, first) === 'number'
       next = { key: column.key, direction: numeric ? 'desc' : 'asc' }
@@ -707,11 +835,43 @@ export class LintjeDataTable extends LintjeContentTileElement {
     this.page = 0
     this.mobilePage = 0
     this.emit('lintje-sort-change', this.sort)
-    const column = this.columns.find((candidate) => candidate.key === next.key)
-    if (column) {
-      const order = next.direction === 'asc' ? 'oplopend' : 'aflopend'
-      this.#live.say(`Gesorteerd op ${column.header.toLocaleLowerCase('nl')}, ${order}.`)
-    }
+    if (this.host) return this.ask()
+    const words = this.sortWords(next)
+    if (words) this.#live.say(words)
+  }
+
+  private sortWords(sort: SortState): string {
+    const column = this.columns.find((candidate) => candidate.key === sort.key)
+    if (!column) return ''
+    const order = sort.direction === 'asc' ? 'oplopend' : 'aflopend'
+    return `Gesorteerd op ${column.header.toLocaleLowerCase('nl')}, ${order}.`
+  }
+
+  /** With `paging: 'host'`: the page shows at once; its rows and its words come with the answer. */
+  private choosePage(page: number): void {
+    this.page = page
+    this.emit('lintje-page-change', { page: page + 1 })
+    this.ask()
+  }
+
+  /** The table waits, `aria-busy`, for the host's answer, which says what it changed. */
+  private ask(): void {
+    this.#asked = true
+    this.requestUpdate()
+  }
+
+  /** With `paging: 'host'`: the host fetches with the old rows standing. */
+  private get refreshing(): boolean {
+    return this.host && this.data?.state === 'loading' && this.rows.length > 0
+  }
+
+  /** The state drawn: a host's fetch keeps its last page standing, busy. */
+  private get shownState(): NonNullable<DataTableData['state']> {
+    return this.refreshing ? 'ready' : (this.data?.state ?? 'ready')
+  }
+
+  private get busy(): boolean {
+    return this.host && (this.#asked || this.refreshing)
   }
 
   private setChecked(ids: string[]): void {
@@ -837,7 +997,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const [, ...rest] = shownColumns(this.columns, this.columnOrder, []).filter(
       (column) => column !== group,
     )
-    const seen = JSON.stringify([rest.map((column) => column.key), this.hiddenKeys])
+    const seen = JSON.stringify([rest.map((column) => [column.key, column.hint]), this.hiddenKeys])
     if (seen !== this.#chooserItems.seen) {
       const hidden = new Set(this.hiddenKeys)
       this.#chooserItems = {
@@ -845,6 +1005,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         items: rest.map((column) => ({
           id: column.key,
           label: column.header,
+          hint: column.hint,
           checked: !hidden.has(column.key),
         })),
       }
@@ -909,7 +1070,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       return html`${this.content()}<span class="visually-hidden" role="status"
           >${this.#live.text}</span
         >`
-    const ready = (data.state ?? 'ready') === 'ready'
+    const ready = this.shownState === 'ready'
     const subtitle =
       this.#mobile.matches && data.mobileSubtitle ? data.mobileSubtitle : data.subtitle
 
@@ -926,7 +1087,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       footnote=${data.footnote ?? nothing}
       ?expandable=${Boolean(data.expandable) && ready}
       ?download=${Boolean(data.download) && ready}
-      state=${data.state ?? 'ready'}
+      state=${this.shownState}
       message=${data.message ?? nothing}
       last-known=${data.lastKnown ?? nothing}
       @lintje-tile-expand=${(event: Event) => {
@@ -934,6 +1095,8 @@ export class LintjeDataTable extends LintjeContentTileElement {
         this.expand(true)
       }}
       @lintje-tile-download=${(event: Event) => {
+        // The host's table holds one page: the host makes the file.
+        if (this.host) return
         event.stopPropagation()
         this.csv()
       }}
@@ -953,7 +1116,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
         heading: data.title,
         subtitle,
         footnote: data.footnote,
-        csv: data.download ? () => this.csv() : undefined,
+        csv: data.download
+          ? () => {
+              if (this.host) this.emit('lintje-tile-download')
+              else this.csv()
+            }
+          : undefined,
       },
     )}`
   }
@@ -989,7 +1157,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
    */
   private content(inTile = false): TemplateResult | typeof nothing {
     const data = this.data as DataTableData
-    switch (data.state ?? 'ready') {
+    switch (this.shownState) {
       case 'loading':
         return inTile
           ? html`<div slot="loading">${renderChartSkeleton({ kind: 'table', status: false })}</div>`
@@ -1017,9 +1185,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const grouped = this.grouped
     const groups = grouped ? this.groupsOf(rows) : []
     // With groups a page holds whole groups: the pager counts groups, not rows.
-    const units = grouped ? groups.length : rows.length
+    const host = this.host
+    const units = grouped ? groups.length : this.rowTotal
     const pageSize = grouped ? this.groupsPerPage : (data.pageSize ?? 25)
-    const mobileSize = grouped ? this.groupsPerPage : MOBILE_PAGE_SIZE
+    // The host's page is one page in both representations.
+    const mobileSize = grouped ? this.groupsPerPage : host ? pageSize : MOBILE_PAGE_SIZE
+    const mobilePage = host ? this.page : this.mobilePage
     const pageCount = Math.ceil(units / pageSize)
     const mobilePageCount = Math.ceil(units / mobileSize)
     const pageGroups = groups.slice(this.page * pageSize, (this.page + 1) * pageSize)
@@ -1031,9 +1202,15 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const collapsed = new Set(this.collapsedGroups)
     const visible = grouped
       ? pageGroups.filter((group) => !collapsed.has(group.key)).flatMap((group) => group.rows)
-      : rows.slice(this.page * pageSize, (this.page + 1) * pageSize)
+      : host
+        ? rows
+        : rows.slice(this.page * pageSize, (this.page + 1) * pageSize)
     const mobileStart = this.mobilePage * MOBILE_PAGE_SIZE
-    const mobileRows = grouped ? [] : rows.slice(mobileStart, mobileStart + MOBILE_PAGE_SIZE)
+    const mobileRows = grouped
+      ? []
+      : host
+        ? rows
+        : rows.slice(mobileStart, mobileStart + MOBILE_PAGE_SIZE)
     // The count stands once: in a pager of rows when there is one, else in the toolbar.
     const paged = !grouped && (mobile ? mobilePageCount : pageCount) > 1
     const unit = grouped ? { many: 'groepen', one: 'groep' } : { many: 'rijen', one: 'rij' }
@@ -1064,30 +1241,24 @@ export class LintjeDataTable extends LintjeContentTileElement {
           aria-label=${scrolls ? (this.data?.caption ?? nothing) : nothing}
         >
           <!-- Mobile representation: two columns (C8). First, so the scroller watches its width. -->
-          ${this.mobileTable(mobileRows, mobilePageCount, copy, grouped ? mobileGroups : null)}
+          ${this.mobileTable(mobileRows, mobilePageCount, mobileSize, copy, grouped ? mobileGroups : null)}
           ${this.fullTable(visible, pageCount, pageSize, edges, grouped ? pageGroups : null)}
         </div>
       </div>
       ${
         pageCount > 1
           ? this.pager('full', this.page, pageCount, pageSize, units, unit, (page) => {
-              this.page = page
+              if (host) this.choosePage(page)
+              else this.page = page
             })
           : nothing
       }
       ${
         mobilePageCount > 1
-          ? this.pager(
-              'mobile',
-              this.mobilePage,
-              mobilePageCount,
-              mobileSize,
-              units,
-              unit,
-              (page) => {
-                this.mobilePage = page
-              },
-            )
+          ? this.pager('mobile', mobilePage, mobilePageCount, mobileSize, units, unit, (page) => {
+              if (host) this.choosePage(page)
+              else this.mobilePage = page
+            })
           : nothing
       }
       ${mobile ? this.selectionBar(true) : nothing} ${this.panels(edges)}
@@ -1108,7 +1279,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const active = this.filterColumns.some((column) =>
       isFilterActive(this.filterValues[column.key]),
     )
-    return active && total != null ? `${this.rows.length} van ${rowCount(total)}` : ''
+    return active && total != null ? `${this.rowTotal} van ${rowCount(total)}` : ''
   }
 
   private toolbar(edges: ScrollEdges, paged: boolean): TemplateResult | typeof nothing {
@@ -1305,7 +1476,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const rowsOf = (list: Row[], first: number, inGroup: boolean): unknown =>
       list.map((row, index) => this.fullRow(row, first + index, grid, copy, inGroup))
 
-    return html`<table class="lintje-data-table__full">
+    return html`<table class="lintje-data-table__full" aria-busy=${this.busy ? 'true' : nothing}>
       <caption class="visually-hidden">${data.caption}</caption>
       <thead>
         <tr>
@@ -1447,22 +1618,56 @@ export class LintjeDataTable extends LintjeContentTileElement {
     return row
   }
 
-  /** A column's head: the sort button and, for a filterable column, its funnel. */
+  /**
+   * A head's label: the sort button, or the plain header when the column does not sort. The
+   * button carries the hint as its description; for a plain head the `<th>` itself does.
+   */
+  private headLabel(column: TableColumnData, sort: SortState, hintId: string | null): unknown {
+    if (column.sortable === false) return column.header
+    return html`<button
+      type="button"
+      class="lintje-data-table__sort-button"
+      aria-describedby=${hintId ?? nothing}
+      @click=${() => this.toggleSort(column)}
+    >
+      <span class="lintje-data-table__sort-label">${column.header}</span>
+      ${sortIcon(sort.key === column.key ? sort.direction : null)}
+    </button>`
+  }
+
+  /** Unique per copy of the table (tile or modal, desktop or phone), which share one root. */
+  private hintId(column: TableColumnData, copy: string, phone: boolean): string | null {
+    return column.hint
+      ? `lintje-data-table-hint-${copy}-${phone ? 'phone' : 'full'}-${column.key}`
+      : null
+  }
+
+  /**
+   * The "i" after a head, beside the sort button and never in it, so a click on it never sorts;
+   * and the hint again, hidden, as the head's description.
+   */
+  private headHint(
+    column: TableColumnData,
+    alignRight: boolean,
+    hintId: string | null,
+  ): TemplateResult | typeof nothing {
+    if (!hintId) return nothing
+    return html`<lintje-toggletip
+        class="lintje-data-table__hint"
+        label=${`Toelichting bij ${column.header}`}
+        placement=${alignRight ? 'bottom-end' : 'bottom-start'}
+        >${column.hint}</lintje-toggletip
+      ><span id=${hintId} hidden>${column.hint}</span>`
+  }
+
+  /** A column's head: the sort button, its hint and, for a filterable column, its funnel. */
   private headerCell(column: TableColumnData, sort: SortState, edges: ScrollEdges): TemplateResult {
     const active = sort.key === column.key
     const alignRight = this.alignsRight(column)
     const filtered = Boolean(column.filter) && isFilterActive(this.filterValues[column.key])
-    const label =
-      column.sortable === false
-        ? column.header
-        : html`<button
-            type="button"
-            class="lintje-data-table__sort-button"
-            @click=${() => this.toggleSort(column)}
-          >
-            <span class="lintje-data-table__sort-label">${column.header}</span>
-            ${sortIcon(active ? sort.direction : null)}
-          </button>`
+    const hintId = this.hintId(column, edges === this.#modalEdges ? 'modal' : 'tile', false)
+    const label = this.headLabel(column, sort, hintId)
+    const hint = this.headHint(column, alignRight, hintId)
     return html`<th
       scope="col"
       class=${classMap({
@@ -1470,23 +1675,29 @@ export class LintjeDataTable extends LintjeContentTileElement {
         'lintje-data-table__header-cell--align-right': alignRight,
         'lintje-data-table__header-cell--sortable': column.sortable !== false,
         'lintje-data-table__header-cell--filterable': Boolean(column.filter),
+        'lintje-data-table__header-cell--hinted': Boolean(hintId),
         'is-active': active,
         'is-filtered': filtered,
       })}
       aria-sort=${active ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+      aria-describedby=${column.sortable === false && hintId ? hintId : nothing}
     >
       ${
-        column.filter
+        column.filter || hintId
           ? html`<span class="lintje-data-table__header-inner"
-              >${label}${renderFunnel(
-                column,
-                this.filterValues[column.key],
-                this.panel?.kind === 'filter' && this.panel.column === column.key,
-                (anchor) =>
-                  this.panel?.kind === 'filter' && this.panel.column === column.key
-                    ? this.closePanel()
-                    : this.openPanel({ kind: 'filter', column: column.key, edges }, anchor),
-              )}</span
+              >${label}${hint}${
+                column.filter
+                  ? renderFunnel(
+                      column,
+                      this.filterValues[column.key],
+                      this.panel?.kind === 'filter' && this.panel.column === column.key,
+                      (anchor) =>
+                        this.panel?.kind === 'filter' && this.panel.column === column.key
+                          ? this.closePanel()
+                          : this.openPanel({ kind: 'filter', column: column.key, edges }, anchor),
+                    )
+                  : nothing
+              }</span
             >`
           : label
       }
@@ -1878,6 +2089,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
   private mobileTable(
     rows: Row[],
     pageCount: number,
+    pageSize: number,
     copy: 'tile' | 'modal',
     groups: Group[] | null,
   ): TemplateResult {
@@ -1899,21 +2111,34 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const actionColumn = Boolean(rowActions) || others.length > 0
     const span = actionColumn ? 3 : 2
     const active = sort.key === measureColumn.key
+    // In a row's detail the labels carry no "i": the heads above already do.
+    const nameHintId = this.hintId(nameColumn, copy, true)
+    const measureHintId = this.hintId(measureColumn, copy, true)
 
-    return html`<table class="lintje-data-table__mobile">
+    return html`<table class="lintje-data-table__mobile" aria-busy=${this.busy ? 'true' : nothing}>
       <caption class="visually-hidden">${data.caption}</caption>
       <thead>
         <tr>
           <th
             scope="col"
-            class="lintje-data-table__header-cell lintje-data-table__header-cell--mobile lintje-data-table__mobile-cell--name"
+            class=${classMap({
+              'lintje-data-table__header-cell': true,
+              'lintje-data-table__header-cell--mobile': true,
+              'lintje-data-table__header-cell--hinted': Boolean(nameHintId),
+              'lintje-data-table__mobile-cell--name': true,
+            })}
+            aria-describedby=${nameHintId ?? nothing}
           >
             ${
               selectable
                 ? html`<span class="lintje-data-table__mobile-check"
-                  >${this.headerCheck()}${nameColumn.header}</span
+                  >${this.headerCheck()}${nameColumn.header}${this.headHint(nameColumn, false, nameHintId)}</span
                 >`
-                : nameColumn.header
+                : nameHintId
+                  ? html`<span class="lintje-data-table__header-inner"
+                      >${nameColumn.header}${this.headHint(nameColumn, false, nameHintId)}</span
+                    >`
+                  : nameColumn.header
             }
           </th>
           <th
@@ -1923,6 +2148,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
               'lintje-data-table__header-cell--mobile': true,
               'lintje-data-table__header-cell--align-right': true,
               'lintje-data-table__header-cell--sortable': measureColumn.sortable !== false,
+              'lintje-data-table__header-cell--hinted': Boolean(measureHintId),
               'is-active': active,
             })}
             aria-sort=${
@@ -1934,18 +2160,18 @@ export class LintjeDataTable extends LintjeContentTileElement {
                     : 'descending'
                   : 'none'
             }
+            aria-describedby=${measureColumn.sortable === false && measureHintId ? measureHintId : nothing}
           >
             ${
-              measureColumn.sortable === false
-                ? measureColumn.header
-                : html`<button
-                  type="button"
-                  class="lintje-data-table__sort-button"
-                  @click=${() => this.toggleSort(measureColumn)}
-                >
-                  <span class="lintje-data-table__sort-label">${measureColumn.header}</span>
-                  ${sortIcon(active ? sort.direction : null)}
-                </button>`
+              measureHintId
+                ? html`<span class="lintje-data-table__header-inner"
+                    >${this.headLabel(measureColumn, sort, measureHintId)}${this.headHint(
+                      measureColumn,
+                      true,
+                      measureHintId,
+                    )}</span
+                  >`
+                : this.headLabel(measureColumn, sort, null)
             }
           </th>
           ${
@@ -1992,7 +2218,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
               ${
                 pageCount > 1
                   ? Array.from(
-                      { length: MOBILE_PAGE_SIZE - rows.length },
+                      { length: pageSize - rows.length },
                       () => html`<tr
                         class="lintje-data-table__mobile-row lintje-data-table__mobile-row--filler"
                         aria-hidden="true"
@@ -2241,7 +2467,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     if (detail.href) this.followLink(detail.href, onLink ? event : undefined)
   }
 
-  /** The page is view state, not a number: it stays out of the URL. The table counts from 0. */
+  /**
+   * The table's own page is view state: it stays out of the URL. With `paging: 'host'` the page is
+   * the host's, and the table says it once the answer has come. The table counts from 0.
+   */
   private pager(
     variant: 'full' | 'mobile',
     page: number,
@@ -2264,9 +2493,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
       .filteredFrom=${this.grouped ? undefined : from}
       unit=${unit.many}
       unit-one=${unit.one}
+      ?quiet=${this.host}
       @lintje-page-change=${(event: CustomEvent<{ page: number }>) => {
         event.stopPropagation()
-        // The pager says "Pagina 3 van 7" itself: once is enough.
+        // The pager says "Pagina 3 van 7" itself, or with `quiet` the table does: once is enough.
         go(event.detail.page - 1)
       }}
     ></lintje-pagination>`
@@ -2337,6 +2567,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
     }
     const text = formatText(column, value)
     if (text == null) return missing
+    if (isDateFormat(column) && value != null && readDate(column, value)) {
+      return html`<time datetime=${String(value)}>${text}</time>`
+    }
     if (
       (column.format === 'change' || column.format === 'change-compact') &&
       typeof value === 'number'
@@ -2417,7 +2650,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
 
   /* The check column ------------------------------------------------------- */
 
-  /** The header box covers all rows, not only this page. */
+  /** The header box covers all rows, not only this page; the host's rows are only this page. */
   private headerCheck(): TemplateResult {
     const uncheckable = this.uncheckable
     const rows = this.rows.filter((row) => !uncheckable.has(this.rowKey(row)))
@@ -2427,7 +2660,15 @@ export class LintjeDataTable extends LintjeContentTileElement {
       html`<span class="visually-hidden">Alles selecteren</span>`,
       rows.length > 0 && count === rows.length,
       count > 0,
-      (on) => this.setChecked(on ? rows.map((row) => this.rowKey(row)) : []),
+      (on) => {
+        const ids = rows.map((row) => this.rowKey(row))
+        if (!this.host) return this.setChecked(on ? ids : [])
+        // The rows checked on the host's other pages stay checked.
+        const page = new Set(ids)
+        this.setChecked(
+          on ? withRange(this.checkedIds, ids) : this.checkedIds.filter((id) => !page.has(id)),
+        )
+      },
     )
   }
 
@@ -2458,7 +2699,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
 
   private rowCheck(row: Row, id: string, isChecked: boolean): TemplateResult {
     const nameColumn = this.columns[0]
-    const name = nameColumn ? this.sortValue(nameColumn, row) : id
+    const name = (nameColumn && formatText(nameColumn, row[nameColumn.key])) ?? id
     return this.checkbox(
       html`<span class="visually-hidden">${`${name} selecteren`}</span>`,
       isChecked,

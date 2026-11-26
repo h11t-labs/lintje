@@ -114,7 +114,7 @@ Een *toestand* is iets wat je bewaart en terugzet op het element (en in de URL m
 | `lintje-open` | `lintje-app-search` | actie |
 | `lintje-row-add`, `lintje-row-remove` | `lintje-repeater`, `lintje-repeater-row` | actie |
 | `lintje-tab-change` | `lintje-tabs` | toestand |
-| `lintje-page-change` | `lintje-pagination`, `lintje-document-viewer` | toestand |
+| `lintje-page-change` | `lintje-pagination`, `lintje-document-viewer`, `lintje-data-table` (met `paging: 'host'`) | toestand |
 | `lintje-page-size-change` | `lintje-pagination` | toestand |
 | `lintje-zoom-change`, `lintje-download` | `lintje-document-viewer` | toestand, actie |
 | `lintje-gallery-change` | `lintje-gallery` | toestand |

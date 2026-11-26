@@ -258,6 +258,86 @@ const groupTotals = Object.fromEntries(
   ]),
 )
 
+/* --- The host sorts and pages ------------------------------------------------- */
+
+// The host's server: it sorts and pages its own copy and answers after a while, so the table's
+// wait shows. Equal values keep the server's order, by id, and the table never reorders them.
+const SERVER_PAGE_SIZE = 4
+
+function serverPage({ sort, page }) {
+  const order = sort ?? { key: 'name', direction: 'asc' }
+  const sorted = [...deskRows].sort((a, b) => {
+    const [left, right] = [a[order.key], b[order.key]]
+    const compared =
+      typeof left === 'number' ? left - right : String(left).localeCompare(String(right), 'nl')
+    return (order.direction === 'asc' ? compared : -compared) || a.id.localeCompare(b.id)
+  })
+  const start = (page - 1) * SERVER_PAGE_SIZE
+  return { rows: sorted.slice(start, start + SERVER_PAGE_SIZE), rowCount: sorted.length }
+}
+
+/** With `hold`, the server leaves its first question unanswered: the table keeps waiting. */
+function hostPaging(stage, { hold = false } = {}) {
+  let query = { sort: null, page: 1 }
+  const element = table(stage, {
+    caption: 'Loketten met regio, aanvragen en wachttijd, per pagina van de server',
+    title: 'Loketten van de server',
+    subtitle: 'De server sorteert en pagineert, en antwoordt na een tel',
+    columns: [sheetColumns[0], sheetColumns[1], sheetColumns[3], sheetColumns[4]],
+    rowKey: 'id',
+    pageSize: SERVER_PAGE_SIZE,
+    paging: 'host',
+    selectable: true,
+    bulkActions: [{ value: 'exporteren', label: 'Exporteren' }],
+    checkedIds: [],
+    expandable: true,
+    download: { filename: 'loketten-server' },
+    ...query,
+    ...serverPage(query),
+  })
+  const say = log(stage)
+  let held = hold
+  let timer = 0
+  // The choice goes into the host's state at once, with the old rows loading; a later answer
+  // replaces an earlier one, so a slow page never lands after a newer choice.
+  const ask = (next) => {
+    query = next
+    clearTimeout(timer)
+    element.data = { ...element.data, ...query, state: 'loading' }
+    if (held) {
+      held = false
+      return
+    }
+    timer = setTimeout(() => {
+      element.data = { ...element.data, ...query, ...serverPage(query), state: 'ready' }
+    }, 1200)
+  }
+  element.addEventListener('lintje-sort-change', (event) => {
+    say(`lintje-sort-change ${JSON.stringify(event.detail)}`)
+    ask({ sort: event.detail, page: 1 })
+  })
+  element.addEventListener('lintje-page-change', (event) => {
+    say(`lintje-page-change ${JSON.stringify(event.detail)}`)
+    ask({ ...query, page: event.detail.page })
+  })
+  element.addEventListener('lintje-checked-change', (event) => {
+    element.data = { ...element.data, checkedIds: event.detail }
+  })
+  for (const name of ['lintje-bulk-action', 'lintje-tile-download']) {
+    element.addEventListener(name, (event) => say(`${name} ${JSON.stringify(event.detail ?? null)}`))
+  }
+  return element
+}
+
+/** The reader chose page 2; the server has not answered. */
+async function waiting(stage) {
+  const element = hostPaging(stage, { hold: true })
+  await element.updateComplete
+  const pager = element.shadowRoot.querySelector('.lintje-data-table__pagination--full')
+  await pager.updateComplete
+  pager.shadowRoot.querySelector('[aria-label="Ga naar pagina 2"]').click()
+}
+
 /* --- Truncated and compact ---------------------------------------------------- */
 
 // A note per desk, some longer than the column may grow; fictional.
@@ -295,6 +375,32 @@ const compactData = {
   clickable: true,
   expandable: true,
   download: { filename: 'loketten-toelichting' },
+}
+
+const hintedData = {
+  caption: 'Loketten met soort, aanvragen, wachttijd en bezetting',
+  title: 'Loketten',
+  subtitle: 'Een korte kop met een toelichting achter de i',
+  columns: [
+    { key: 'name', header: 'Loket' },
+    {
+      key: 'kind', header: 'Soort', format: 'label', labels: KIND_LABELS,
+      hint: 'Een balie helpt op afspraak; een servicepunt helpt wie binnenloopt.',
+    },
+    { key: 'requests', header: 'Aanvragen', align: 'right' },
+    {
+      key: 'waitTime', header: 'Wacht', align: 'right', unit: 'min', mobileMeasure: true,
+      hint: 'De gemiddelde wachttijd van vandaag tot nu, in minuten.',
+    },
+    {
+      key: 'staffing', header: 'Bez.', align: 'right', format: 'percent', sortable: false,
+      hint: 'Bezetting: het deel van de loketplaatsen waar nu iemand zit.',
+    },
+  ],
+  rows: deskRows.slice(0, 5),
+  rowKey: 'id',
+  defaultSort: { key: 'waitTime', direction: 'desc' },
+  columnChooser: true,
 }
 
 function dashboard(stage, data = tableData) {
@@ -777,6 +883,45 @@ function follow(stage) {
   }
 }
 
+// Reports around the turn of the year: a date and a moment, each with its own offset.
+const REPORTS = [
+  { id: 'r1', title: 'Storing betaalautomaat', day: '2025-12-28', at: '2025-12-28T10:15:00+01:00' },
+  { id: 'r2', title: 'Lekkage kelder', day: '2026-01-05', at: '2026-01-05T14:30:00+01:00' },
+  { id: 'r3', title: 'Defecte deur', day: '2025-12-31', at: '2025-12-31T16:45:00Z' },
+  { id: 'r4', title: 'Verlichting hal', day: null, at: null },
+  { id: 'r5', title: 'Kapotte lift', day: '2026-01-02', at: '2026-01-02T08:00:00+01:00' },
+  { id: 'r6', title: 'Storing ventilatie', day: '2025-06-30', at: '2025-06-30T11:20:00+02:00' },
+]
+
+// The host filters on the words the reader sees: `dd-mm-jjjj`, not the ISO value.
+const shownDay = (iso) => (iso ? iso.split('-').reverse().join('-') : '')
+
+function dates(stage) {
+  const columns = [
+    { key: 'title', header: 'Melding' },
+    { key: 'day', header: 'Datum', format: 'date', filter: { kind: 'text' } },
+    { key: 'at', header: 'Gemeld om', format: 'datetime' },
+  ]
+  const element = table(stage, {
+    title: 'Meldingen rond de jaarwisseling',
+    caption: 'Meldingen rond de jaarwisseling',
+    rowKey: 'id',
+    columns,
+    rows: REPORTS,
+    sort: { key: 'day', direction: 'asc' },
+    clickable: false,
+    expandable: false,
+    filters: {},
+    download: { filename: 'meldingen' },
+  })
+  element.addEventListener('lintje-filter-change', (event) => {
+    const value = event.detail.value
+    const filters = value == null ? {} : { day: value }
+    const rows = REPORTS.filter((row) => value == null || shownDay(row.day).includes(value))
+    element.data = { ...element.data, filters, rows }
+  })
+}
+
 export default {
   elements: [
 {
@@ -817,6 +962,15 @@ export default {
           note: 'In het werkblad biedt de keuzelijst "Niet toegewezen" en de personen.',
           html: '<lintje-data-table></lintje-data-table>',
           setup: assigning,
+        },
+        {
+          label: 'Datum en tijdstip',
+          note:
+            'Een kolom met `format: \'date\'` of `\'datetime\'` krijgt een ISO-waarde en ' +
+            'toont 05-01-2026 of 05-01-2026 14:30 in de tijdzone van de lezer. Ze sorteert op ' +
+            'het moment, over de jaargrens heen; een lege waarde sorteert het laagst. Het filter zoekt in de getoonde datum.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: dates,
         },
         {
           label: 'Eigen inhoud in een cel',
@@ -1023,6 +1177,14 @@ export default {
           setup: (stage) => filters(stage, { columnChooser: true, hiddenColumns: ['severity'] }),
         },
         {
+          label: 'Toelichting bij een kolom',
+          note:
+            'Een kolom met `hint` krijgt een i achter zijn kop, links en rechts uitgelijnd; een ' +
+            'klik op de i sorteert niet. Onder 768 px staat hij bij de kop van de maatkolom.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => dashboard(stage, hintedData),
+        },
+        {
           label: 'Labels en totalen',
           note: 'Een waarde staat als badge in de cel. De totaalrij komt van de host.',
           html: '<lintje-data-table></lintje-data-table>',
@@ -1089,6 +1251,23 @@ export default {
               checkedIds: [...first.map((row) => row.id), second[0].id],
             })
           },
+        },
+        {
+          label: 'De host sorteert en pagineert',
+          note:
+            'Met `paging: \'host\'` geeft de host één pagina, in zijn eigen volgorde. Een kop of een ' +
+            'pagina stuurt zijn event; de keuze staat er meteen, de oude rijen tot de server antwoordt. ' +
+            'Downloaden maakt de host.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => hostPaging(stage),
+        },
+        {
+          label: 'Wachten op de host',
+          note:
+            'Pagina 2 is gekozen en de server heeft nog niet geantwoord: de rijen van pagina 1 staan ' +
+            'er nog, en de tabel is bezig. Een volgende keuze beantwoordt hij wel.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: waiting,
         },
       ],
     },
@@ -1532,6 +1711,21 @@ export default {
           html: '<lintje-sortable-list label="Kolommen" checkable></lintje-sortable-list>',
           setup(stage) {
             stage.querySelector('lintje-sortable-list').items = COLUMNS
+          },
+        },
+        {
+          label: 'Met een toelichting',
+          note:
+            'Een `hint` staat als gedempte regel onder de naam, zoals in Kolommen kiezen bij een ' +
+            'kolom met een toelichting.',
+          html: '<lintje-sortable-list label="Kolommen" checkable></lintje-sortable-list>',
+          setup(stage) {
+            stage.querySelector('lintje-sortable-list').items = [
+              COLUMNS[0],
+              { ...COLUMNS[1], hint: 'Het onderwerp dat de melder koos.' },
+              { ...COLUMNS[2], hint: 'Van 1, laag, tot 4, spoed.' },
+              COLUMNS[3],
+            ]
           },
         },
         {
