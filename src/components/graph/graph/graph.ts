@@ -9,8 +9,14 @@
  * Above a hundred nodes the layout is worked out in a worker. The zoom, the kinds switched off in
  * the legend and the pointer are the element's own.
  *
+ * A line with an `id` can be chosen too, by pointer, finger or Tab from its node; choosing a line
+ * undoes the chosen node, and the other way round. The pointer takes the nearest line within
+ * 12 px, never one under a node.
+ *
  * Events: `lintje-node-select` `{ id, label }` (undone, `{ id: null, label: null }`),
- * `lintje-node-toggle` `{ id, open }`, `lintje-node-expand` `{ id }`.
+ * `lintje-node-toggle` `{ id, open }`, `lintje-node-expand` `{ id }`, `lintje-edge-select`
+ * `{ id, from, to, label }` (undone, `{ id: null, from: null, to: null, label: null }`),
+ * `lintje-edge-open` `{ id }`.
  */
 import {
   html,
@@ -57,7 +63,15 @@ import {
   type DrawnNode,
   type GraphModel,
 } from './model'
-import { routeEdges, type RouteEdge, type Shape } from './routes'
+import {
+  along,
+  leaveAngle,
+  nearestRoute,
+  routeEdges,
+  type Route,
+  type RouteEdge,
+  type Shape,
+} from './routes'
 import {
   boundsOf,
   centreOn,
@@ -101,12 +115,23 @@ const MARK = { radius: 14, gap: 8 }
 const COUNTER = { size: 24, sign: 12, pad: 4, digit: 7, inset: 12, gap: 6 }
 /** The thinnest and the thickest line, by the number a relation carries. */
 const STROKE = { min: 1.5, max: 4 }
+/** A chosen line is this much thicker than its own width, and at least `min` thick. */
+const CHOSEN = { more: 1.5, min: 3 }
+/** Half the width of a line's target: 24 px wide for mouse and finger alike. */
+const LINE_REACH = 12
 /** A pointer that moves less than this is a click, not a drag. */
 const DRAG_FROM = 4
 /** The overview map's frame. */
 const OVERVIEW = { width: 180, height: 100 }
 
 type Hover = { node: string } | { edge: string; at: Point } | null
+
+/** A drawn line as the pointer finds it. */
+interface LineHit {
+  edge: DrawnEdge
+  points: Point[]
+  word: Route['word']
+}
 
 /** What one drawing keeps, the tile's and the modal's apart: its size, zoom and pointer. */
 class Surface {
@@ -123,7 +148,16 @@ class Surface {
   stop: string | null = null
   /** The node that holds the keyboard's focus. */
   focused: string | null = null
+  /** The line, by its key, that holds the keyboard's focus. */
+  focusedEdge: string | null = null
+  /** The focus moves to a line a pointer chose: no ring, no tooltip, no scroll. */
+  pointerFocus = false
+  /** The lines and the node outlines as last drawn, for what the pointer is on. */
+  hits: LineHit[] = []
+  shapes: Shape[] = []
   drag: { x: number; y: number; view: View; moved: boolean; id: number } | null = null
+  /** The last press dragged or pinched the drawing: its click chooses nothing. */
+  dragged = false
   /** The frame of the overview held by a pointer, and where in it the pointer took it. */
   overviewDrag: { offset: Point; id: number } | null = null
   /** Two fingers on a touch screen, for the pinch. */
@@ -254,6 +288,8 @@ export class LintjeGraph extends LintjeContentTileElement {
   /** The layout the graph's shape asked for when its centre was found. */
   #suggested: GraphLayout | null = null
   #selected: string | null = null
+  /** The chosen line, by its host id. */
+  #selectedEdge: string | null = null
   #collapsed = new Set<string>()
   #opened = new Set<string>()
   /** Nodes whose `more` was asked for, until the host answers. */
@@ -262,7 +298,12 @@ export class LintjeGraph extends LintjeContentTileElement {
   /** A branch or group the reader opened or folded: the model is built again before the render. */
   #stale = false
   /** What the host sent last, so a value is adopted only when the host changes it. */
-  #seen: { selected?: string | null; collapsed?: string; opened?: string } = {}
+  #seen: {
+    selected?: string | null
+    selectedEdge?: string | null
+    collapsed?: string
+    opened?: string
+  } = {}
 
   /** Each node's box in the graph's own units, at a 14 px text. */
   #sizes = new Map<string, { width: number; height: number }>()
@@ -334,9 +375,22 @@ export class LintjeGraph extends LintjeContentTileElement {
   /** Takes over what the host keeps, each only when the host changed it. */
   private adopt(data: GraphData): void {
     const selected = data.selected ?? null
-    if (selected !== this.#seen.selected) {
+    const nodeSet = selected !== this.#seen.selected
+    if (nodeSet) {
       this.#seen.selected = selected
       this.#selected = selected
+    }
+    const selectedEdge = data.selectedEdge ?? null
+    const edgeSet = selectedEdge !== this.#seen.selectedEdge
+    if (edgeSet) {
+      this.#seen.selectedEdge = selectedEdge
+      this.#selectedEdge = selectedEdge
+    }
+    // A node and a line are never chosen together: what the host set last wins, the line when
+    // it set both at once.
+    if (this.#selected && this.#selectedEdge) {
+      if (edgeSet) this.#selected = null
+      else if (nodeSet) this.#selectedEdge = null
     }
     const collapsed = JSON.stringify(data.collapsed ?? [])
     if (collapsed !== this.#seen.collapsed) {
@@ -424,8 +478,8 @@ export class LintjeGraph extends LintjeContentTileElement {
     return (px * this.#font.size) / 14
   }
 
-  private wordWidth(text: string): number {
-    return textWidth(text, this.#font.family) + 8
+  private wordWidth(text: string, bold = false): number {
+    return textWidth(text, this.#font.family, bold ? 700 : 400) + 8
   }
 
   /** The counter a node carries, if any: what it shows and what it does. */
@@ -616,6 +670,7 @@ export class LintjeGraph extends LintjeContentTileElement {
   private select(id: string | null): void {
     const model = this.#model
     const node = id ? model?.byId.get(id) : null
+    if (node && this.#selectedEdge) this.selectEdge(null)
     this.#selected = node ? node.id : null
     for (const surface of this.surfaces()) surface.tip = null
     this.emit(
@@ -623,6 +678,99 @@ export class LintjeGraph extends LintjeContentTileElement {
       node ? { id: node.id, label: node.label } : { id: null, label: null },
     )
     this.requestUpdate()
+  }
+
+  /** Chooses a line, or undoes the chosen one; a line already chosen stays so, unheard. */
+  private selectEdge(edge: DrawnEdge | null): void {
+    const id = edge?.id ?? null
+    if (id === this.#selectedEdge) return
+    if (edge && this.#selected) this.select(null)
+    this.#selectedEdge = id
+    for (const surface of this.surfaces()) surface.tip = null
+    this.emit(
+      'lintje-edge-select',
+      edge?.id
+        ? { id: edge.id, from: edge.from, to: edge.to, label: edge.label || null }
+        : { id: null, from: null, to: null, label: null },
+    )
+    this.requestUpdate()
+  }
+
+  /** Undoes whatever is chosen, a line or a node. */
+  private undoChoice(): boolean {
+    if (this.#selectedEdge) this.selectEdge(null)
+    else if (this.#selected) this.select(null)
+    else return false
+    return true
+  }
+
+  /** The chosen line, while it is drawn. */
+  private chosenEdge(): DrawnEdge | null {
+    const id = this.#selectedEdge
+    return id ? (this.#model?.edges.find((edge) => edge.id === id) ?? null) : null
+  }
+
+  /** A line's ends in words, as the tooltip and a screen reader say them. */
+  private edgeTitle(edge: DrawnEdge): string {
+    const model = this.#model
+    const from = model?.byId.get(edge.from)?.label ?? edge.from
+    const to = model?.byId.get(edge.to)?.label ?? edge.to
+    return edge.direction === 'none'
+      ? `${from} en ${to}`
+      : edge.direction === 'both'
+        ? `${from} ↔ ${to}`
+        : `${from} → ${to}`
+  }
+
+  /** The line a point on the drawing is on, if any; to choose, only lines that can be chosen. */
+  private lineAt(surface: Surface, at: Point, choosable = false): LineHit | null {
+    const hits = choosable ? surface.hits.filter((hit) => hit.edge.id) : surface.hits
+    return nearestRoute(at, hits, surface.shapes, LINE_REACH)
+  }
+
+  private pointIn(surface: Surface, event: MouseEvent): Point {
+    const box = surface.area!.getBoundingClientRect()
+    return { x: event.clientX - box.left, y: event.clientY - box.top }
+  }
+
+  /** What a press on the drawing's parts other than its buttons does. */
+  private static onDrawing(event: Event): boolean {
+    return !(event.target as Element).closest('button, .lintje-graph__overview')
+  }
+
+  /** A click or tap on the drawing: it chooses the line it is on, else undoes the choice. */
+  private onClick(surface: Surface, event: MouseEvent): void {
+    if (surface.dragged || !LintjeGraph.onDrawing(event)) return
+    const hit = this.lineAt(surface, this.pointIn(surface, event), true)
+    if (!hit) {
+      this.undoChoice()
+      return
+    }
+    this.selectEdge(hit.edge)
+    this.focusLine(surface, hit.edge)
+  }
+
+  /**
+   * Gives the focus to a line a pointer chose, as a node's button takes it on a click, so Escape
+   * reaches it. The keyboard goes on from one of its ends.
+   */
+  private focusLine(surface: Surface, edge: DrawnEdge): void {
+    if (surface.stop !== edge.from && surface.stop !== edge.to) surface.stop = edge.from
+    this.requestUpdate()
+    void this.updateComplete.then(() => {
+      // A key holds U+0000, which `CSS.escape` turns into another character: compare instead.
+      const stop = [...(surface.area?.querySelectorAll<HTMLElement>('[data-edge]') ?? [])].find(
+        (item) => item.dataset.edge === edge.key,
+      )
+      if (!stop) return
+      surface.pointerFocus = true
+      stop.focus({ preventScroll: true })
+      surface.pointerFocus = false
+    })
+  }
+
+  private openEdge(edge: DrawnEdge): void {
+    if (edge.id) this.emit('lintje-edge-open', { id: edge.id })
   }
 
   private toggle(node: DrawnNode): void {
@@ -658,7 +806,7 @@ export class LintjeGraph extends LintjeContentTileElement {
     if (this.#collapsed.size || this.#opened.size) this.#stale = true
     this.#collapsed = new Set()
     this.#opened = new Set()
-    if (this.#selected) this.select(null)
+    this.undoChoice()
     this.requestUpdate()
   }
 
@@ -679,12 +827,12 @@ export class LintjeGraph extends LintjeContentTileElement {
 
   private hover(surface: Surface, hover: Hover, delay = TOOLTIP_DELAY): void {
     clearTimeout(surface.leaveTimer)
+    const was = surface.hover
     const same =
       hover &&
-      surface.hover &&
-      'node' in hover &&
-      'node' in surface.hover &&
-      hover.node === surface.hover.node
+      was &&
+      (('node' in hover && 'node' in was && hover.node === was.node) ||
+        ('edge' in hover && 'edge' in was && hover.edge === was.edge))
     if (same && delay) return
     surface.hover = hover
     clearTimeout(surface.tipTimer)
@@ -737,10 +885,10 @@ export class LintjeGraph extends LintjeContentTileElement {
     this.requestUpdate()
   }
 
-  /** Brings a node into view when the keyboard reaches it outside. */
-  private reveal(surface: Surface, id: string): void {
+  /** Brings a node, or a point of the graph, into view when the keyboard reaches it outside. */
+  private reveal(surface: Surface, target: string | Point): void {
     const view = this.viewOf(surface)
-    const at = this.#layout?.positions[id]
+    const at = typeof target === 'string' ? this.#layout?.positions[target] : target
     if (!view || !at) return
     const x = at.x * view.k + view.x
     const y = at.y * view.k + view.y
@@ -785,12 +933,23 @@ export class LintjeGraph extends LintjeContentTileElement {
     const target = (event.target as HTMLElement).closest<HTMLElement>('[data-node]')
     const id = target?.dataset.node
     if (event.key === 'Escape') {
-      if (surface.tip) {
+      // Only a tooltip that shows takes the first Escape: the chosen line and node have none.
+      if (surface.tip && surface.area?.querySelector('.lintje-graph__tip')) {
         this.hover(surface, null)
         event.stopPropagation()
-      } else if (this.#selected) {
-        this.select(null)
-        event.stopPropagation()
+      } else if (this.undoChoice()) event.stopPropagation()
+      return
+    }
+    const line = (event.target as HTMLElement).closest<HTMLElement>('[data-edge]')
+    if (line) {
+      const edge = this.#model?.edges.find((item) => item.key === line.dataset.edge)
+      // Enter opens the chosen line, and is no click: Space chooses it, as a click does.
+      if (edge && event.key === 'Enter') {
+        event.preventDefault()
+        // A held Enter chooses once and never goes on to open.
+        if (event.repeat) return
+        if (edge.id && edge.id === this.#selectedEdge) this.openEdge(edge)
+        else this.selectEdge(edge)
       }
       return
     }
@@ -834,14 +993,14 @@ export class LintjeGraph extends LintjeContentTileElement {
 
   /** What a pointer on the drawing itself does: drag it, or pinch it with two fingers. */
   private onPointerDown(surface: Surface, event: PointerEvent): void {
-    const target = event.target as Element
-    if (target.closest('button, .lintje-graph__overview')) return
-    const box = surface.area!.getBoundingClientRect()
-    const at = { x: event.clientX - box.left, y: event.clientY - box.top }
+    if (!LintjeGraph.onDrawing(event)) return
+    const at = this.pointIn(surface, event)
     if (event.pointerType === 'touch') {
       // One finger moves the page; two zoom the drawing.
+      if (!surface.touches.size) surface.dragged = false
       surface.touches.set(event.pointerId, at)
       if (surface.touches.size === 2) {
+        surface.dragged = true
         const [a, b] = [...surface.touches.values()]
         const view = this.viewOf(surface)
         if (view) surface.pinch = { distance: Math.hypot(a!.x - b!.x, a!.y - b!.y), view }
@@ -851,6 +1010,7 @@ export class LintjeGraph extends LintjeContentTileElement {
     const view = this.viewOf(surface)
     if (!view || event.button !== 0) return
     surface.area!.setPointerCapture?.(event.pointerId)
+    surface.dragged = false
     surface.drag = { x: event.clientX, y: event.clientY, view, moved: false, id: event.pointerId }
   }
 
@@ -871,11 +1031,15 @@ export class LintjeGraph extends LintjeContentTileElement {
       return
     }
     const drag = surface.drag
-    if (!drag || drag.id !== event.pointerId) return
+    if (!drag || drag.id !== event.pointerId) {
+      if (event.pointerType !== 'touch') this.pointAt(surface, event)
+      return
+    }
     const dx = event.clientX - drag.x
     const dy = event.clientY - drag.y
     if (!drag.moved && Math.hypot(dx, dy) < DRAG_FROM) return
     drag.moved = true
+    surface.dragged = true
     surface.view = { k: drag.view.k, x: drag.view.x + dx, y: drag.view.y + dy }
     this.requestUpdate()
   }
@@ -889,9 +1053,17 @@ export class LintjeGraph extends LintjeContentTileElement {
     const drag = surface.drag
     if (!drag || drag.id !== event.pointerId) return
     surface.drag = null
-    // A click on the drawing, not on a node, undoes the choice.
-    if (!drag.moved && event.type === 'pointerup' && this.#selected) this.select(null)
     this.requestUpdate()
+  }
+
+  /** A mouse over the drawing points at the nearest line, or at none. */
+  private pointAt(surface: Surface, event: PointerEvent): void {
+    const hover = surface.hover
+    const hit = LintjeGraph.onDrawing(event)
+      ? this.lineAt(surface, this.pointIn(surface, event))
+      : null
+    if (hit) this.hover(surface, { edge: hit.edge.key, at: this.pointIn(surface, event) })
+    else if (hover && 'edge' in hover && surface.focusedEdge !== hover.edge) this.leave(surface)
   }
 
   /** A point of the overview as a point of the graph. */
@@ -957,7 +1129,7 @@ export class LintjeGraph extends LintjeContentTileElement {
       root,
       { title: data.title, subtitle: data.subtitle, footnote: data.footnote },
       {
-        skip: '.lintje-graph__zoom, .lintje-graph__overview, .lintje-graph__hint, .lintje-graph__busy, .lintje-graph__tip',
+        skip: '.lintje-graph__zoom, .lintje-graph__overview, .lintje-graph__hint, .lintje-graph__busy, .lintje-graph__tip, .lintje-graph__line-stop',
         buttons: '.lintje-graph__card, .lintje-graph__counter',
       },
     )
@@ -1068,22 +1240,36 @@ export class LintjeGraph extends LintjeContentTileElement {
   private drawing(surface: Surface, height: number | null): TemplateResult {
     const data = this.data as GraphData
     const mobile = this.#mobile.matches
+    const hover = surface.hover
+    const pointing = Boolean(
+      hover && 'edge' in hover && this.#model?.edges.some((e) => e.key === hover.edge && e.id),
+    )
     return html`<div class="lintje-graph ${mobile ? 'is-phone' : ''} ${height === null ? 'lintje-graph--expanded' : ''}">
       ${this.legend()}
-      <div class="lintje-graph__area" ${ref(surface.attach)}
+      <div class="lintje-graph__area ${pointing ? 'is-pointing' : ''}" ${ref(surface.attach)}
            ${styleProps({ height: height === null ? null : `${height}px` })}
            @wheel=${{ handleEvent: (event: WheelEvent) => this.onWheel(surface, event), passive: false }}
            @pointerdown=${(event: PointerEvent) => this.onPointerDown(surface, event)}
            @pointermove=${(event: PointerEvent) => this.onPointerMove(surface, event)}
            @pointerup=${(event: PointerEvent) => this.onPointerUp(surface, event)}
            @pointercancel=${(event: PointerEvent) => this.onPointerUp(surface, event)}
+           @pointerleave=${(event: PointerEvent) => {
+             const was = surface.hover
+             if (event.pointerType !== 'touch' && was && 'edge' in was && !surface.focusedEdge)
+               this.leave(surface)
+           }}
+           @click=${(event: MouseEvent) => this.onClick(surface, event)}
            @dblclick=${(event: MouseEvent) => {
              if ((event.target as Element).closest('button')) return
-             const box = surface.area!.getBoundingClientRect()
-             this.zoom(surface, event.shiftKey ? 1 / 2 : 2, {
-               x: event.clientX - box.left,
-               y: event.clientY - box.top,
-             })
+             const at = this.pointIn(surface, event)
+             // A double click on a choosable line opens it if it is the chosen one, and never
+             // zooms; on a line without an id or on the overview it zooms as before.
+             const hit = LintjeGraph.onDrawing(event) ? this.lineAt(surface, at, true) : null
+             if (hit) {
+               if (hit.edge.id === this.#selectedEdge) this.openEdge(hit.edge)
+               return
+             }
+             this.zoom(surface, event.shiftKey ? 1 / 2 : 2, at)
            }}
            @keydown=${(event: KeyboardEvent) => this.onKey(surface, event)}>
         ${this.picture(surface, data)}
@@ -1111,19 +1297,22 @@ export class LintjeGraph extends LintjeContentTileElement {
     const shown = model.nodes.filter((node) => !this.#hiddenTypes.has(node.type) && now[node.id])
     const shownIds = new Set(shown.map((node) => node.id))
 
-    // What stands in the light: the node under the pointer, else the chosen one, with its
-    // neighbours and its lines; a line under the pointer with its two ends.
+    const edges = model.edges.filter((edge) => shownIds.has(edge.from) && shownIds.has(edge.to))
+    const chosen = this.chosenEdge()
+    const chosenKey = chosen && edges.includes(chosen) ? chosen.key : null
+
+    // What stands in the light: a line or node under the pointer, else the chosen line or node;
+    // a node with its neighbours and its lines, a line with its two ends.
     const hover = surface.hover
+    const hoverNode = hover && 'node' in hover && shownIds.has(hover.node) ? hover.node : null
+    const lineLit = hover && 'edge' in hover ? hover.edge : hoverNode ? null : chosenKey
     const focus =
-      hover && 'node' in hover && shownIds.has(hover.node)
-        ? hover.node
-        : this.#selected && shownIds.has(this.#selected)
-          ? this.#selected
-          : null
+      hoverNode ??
+      (!lineLit && this.#selected && shownIds.has(this.#selected) ? this.#selected : null)
     let litNodes: Set<string> | null = null
     let litEdges: Set<string> | null = null
-    if (hover && 'edge' in hover) {
-      const edge = model.edges.find((item) => item.key === hover.edge)
+    if (lineLit) {
+      const edge = model.edges.find((item) => item.key === lineLit)
       if (edge) {
         litNodes = new Set([edge.from, edge.to])
         litEdges = new Set([edge.key])
@@ -1157,12 +1346,14 @@ export class LintjeGraph extends LintjeContentTileElement {
       )
     }
 
-    const edges = model.edges.filter((edge) => shownIds.has(edge.from) && shownIds.has(edge.to))
     const most = Math.max(0, ...edges.map((edge) => edge.value ?? 0))
-    const widthOf = (edge: DrawnEdge) =>
+    const ownWidth = (edge: DrawnEdge) =>
       edge.value && most
         ? STROKE.min + (STROKE.max - STROKE.min) * Math.sqrt(edge.value / most)
         : STROKE.min
+    // The chosen line stays thick enough that the number it shows can still be read.
+    const widthOf = (edge: DrawnEdge) =>
+      edge.key === chosenKey ? Math.max(ownWidth(edge) + CHOSEN.more, CHOSEN.min) : ownWidth(edge)
     const routed = new Map<string, Point[]>()
     if (layout.routes && level === 'card' && !this.#motion) {
       for (const edge of edges) {
@@ -1171,8 +1362,10 @@ export class LintjeGraph extends LintjeContentTileElement {
       }
     }
     const isLit = (edge: DrawnEdge) => Boolean(litEdges?.has(edge.key))
-    // The lines in the light place their words first.
-    const ordered = [...edges].sort((a, b) => Number(isLit(b)) - Number(isLit(a)))
+    const isChosen = (edge: DrawnEdge) => edge.key === chosenKey
+    // The chosen line places its word first, then the lines in the light.
+    const rank = (edge: DrawnEdge) => 2 * Number(isChosen(edge)) + Number(isLit(edge))
+    const ordered = [...edges].sort((a, b) => rank(b) - rank(a))
     const routeInput: RouteEdge[] = ordered.map((edge) => ({
       key: edge.key,
       from: edge.from,
@@ -1180,8 +1373,10 @@ export class LintjeGraph extends LintjeContentTileElement {
       label: edge.label,
       direction: edge.direction,
       width: widthOf(edge),
-      labelled: level === 'card' || isLit(edge),
-      lit: isLit(edge),
+      labelled: level === 'card' || isLit(edge) || isChosen(edge),
+      lit: isLit(edge) || isChosen(edge),
+      framed: Boolean(edge.id),
+      bold: isChosen(edge),
     }))
     const routeOptions = {
       lines: this.lines,
@@ -1191,7 +1386,7 @@ export class LintjeGraph extends LintjeContentTileElement {
           : layout.kind === 'layered-down'
             ? ('down' as const)
             : null,
-      labelWidth: (text: string) => this.wordWidth(text),
+      labelWidth: (text: string, bold?: boolean) => this.wordWidth(text, bold),
     }
     const routes = new Map(
       routeEdges(routeInput, shapes, { ...routeOptions, routed }).map((route) => [
@@ -1234,8 +1429,24 @@ export class LintjeGraph extends LintjeContentTileElement {
       routeOptions,
     ))
       routes.set(route.key, route)
+    surface.shapes = [...shapes.values()]
+    surface.hits = edges.flatMap((edge) => {
+      const route = routes.get(edge.key)
+      return route ? [{ edge, points: route.points, word: route.word }] : []
+    })
     const leavingKeys = new Set(leavingEdges.map((edge) => edge.key))
     const late = (edge: DrawnEdge) => this.#late.has(edge.from) || this.#late.has(edge.to)
+
+    // The tab stop: the node the keyboard was on, else the chosen one, else the centre.
+    if (!surface.stop || !shownIds.has(surface.stop)) {
+      surface.stop =
+        (this.#selected && shownIds.has(this.#selected) ? this.#selected : null) ??
+        (model.centre && shownIds.has(model.centre) ? model.centre : (shown[0]?.id ?? null))
+    }
+    // Only a line the keyboard can reach carries the ring: one taken away while it had the focus
+    // hears no blur in every browser.
+    const stopLines = this.stopLinesOf(surface, edges, routes, shapes)
+    const reachable = new Set(stopLines.map(({ edge }) => edge.key))
 
     const lines = svg`<svg class="lintje-graph__lines" width=${surface.width} height=${surface.height}
         viewBox="0 0 ${surface.width} ${surface.height}" aria-hidden="true" focusable="false">
@@ -1247,20 +1458,30 @@ export class LintjeGraph extends LintjeContentTileElement {
           const route = routes.get(edge.key)
           if (!route) return nothing
           const lit = isLit(edge)
-          const hot = Boolean(hover && 'edge' in hover && hover.edge === edge.key)
+          const picked = isChosen(edge)
+          const hot = Boolean(hover && 'edge' in hover && hover.edge === edge.key) && !picked
+          const width = round(widthOf(edge) + (hot ? 1 : 0))
           const state = leavingKeys.has(edge.key) ? 'is-leaving' : late(edge) ? 'is-late' : ''
-          return svg`<g class="lintje-graph__edge ${lit ? 'is-lit' : ''} ${litEdges && !lit ? 'is-dim' : ''} ${hot ? 'is-hot' : ''} ${state}">
-            <path class="lintje-graph__line" d=${route.d} stroke-width=${round(widthOf(edge) + (hot ? 1 : 0))}></path>
+          // The focus ring runs along the line: the ring, the gap in the surface, the inner line.
+          const ring =
+            surface.focusedEdge === edge.key && reachable.has(edge.key)
+              ? svg`<path class="lintje-graph__ring" d=${route.d}></path>
+                  <path class="lintje-graph__ring-gap" d=${route.d}></path>
+                  <path class="lintje-graph__ring-inner" d=${route.d}></path>`
+              : nothing
+          return svg`<g class="lintje-graph__edge ${lit ? 'is-lit' : ''} ${litEdges && !lit && !picked && surface.focusedEdge !== edge.key ? 'is-dim' : ''} ${hot ? 'is-hot' : ''} ${picked ? 'is-selected' : ''} ${state}"
+              ${styleProps({ '--lintje-graph-edge-w': `${width}px` })}>
+            ${ring}
+            <path class="lintje-graph__line" d=${route.d} stroke-width=${width}></path>
             ${route.arrows.map((d) => svg`<path class="lintje-graph__arrow" d=${d}></path>`)}
-            <path class="lintje-graph__hit" d=${route.d}
-                  @pointerenter=${(event: PointerEvent) => {
-                    const box = surface.area!.getBoundingClientRect()
-                    this.hover(surface, {
-                      edge: edge.key,
-                      at: { x: event.clientX - box.left, y: event.clientY - box.top },
-                    })
-                  }}
-                  @pointerleave=${() => this.leave(surface)}></path>
+            ${
+              // A listener of its own makes a choosable line a target the browser's touch
+              // adjustment can pick, so a finger beside it does not snap to a node nearby. The
+              // area's click still decides which line by distance.
+              edge.id && !state
+                ? svg`<path class="lintje-graph__hit" d=${route.d} @click=${() => {}}></path>`
+                : nothing
+            }
           </g>`
         },
       )}
@@ -1268,20 +1489,22 @@ export class LintjeGraph extends LintjeContentTileElement {
         ordered.filter((edge) => routes.get(edge.key)?.label),
         (edge) => edge.key,
         (edge) => {
-          const at = routes.get(edge.key)!.label!
-          const lit = isLit(edge)
-          return svg`<text class="lintje-graph__word ${lit ? 'is-lit' : ''} ${late(edge) ? 'is-late' : ''}"
+          const route = routes.get(edge.key)!
+          const at = route.label!
+          const box = route.word
+          const states = `${isLit(edge) ? 'is-lit' : ''} ${isChosen(edge) ? 'is-selected' : ''} ${late(edge) ? 'is-late' : ''}`
+          // A choosable line has its word in a frame, so the reader sees which lines are.
+          const frame =
+            edge.id && box
+              ? svg`<rect class="lintje-graph__frame ${states}" x=${round(box.x + 0.5)} y=${round(box.y + 0.5)}
+                      width=${round(box.w - 1)} height=${round(box.h - 1)}></rect>`
+              : nothing
+          return svg`${frame}<text class="lintje-graph__word ${edge.id ? 'lintje-graph__word--framed' : ''} ${states}"
                            x=${at.x} y=${at.y}>${edge.label}</text>`
         },
       )}
     </svg>`
 
-    // The tab stop: the node the keyboard was on, else the chosen one, else the centre.
-    if (!surface.stop || !shownIds.has(surface.stop)) {
-      surface.stop =
-        (this.#selected && shownIds.has(this.#selected) ? this.#selected : null) ??
-        (model.centre && shownIds.has(model.centre) ? model.centre : (shown[0]?.id ?? null))
-    }
     const named =
       level === 'card' ? new Set<string>() : this.markNames(shown, shapes, level, hover, surface)
     const nodes = [
@@ -1327,6 +1550,7 @@ export class LintjeGraph extends LintjeContentTileElement {
             })
           },
         )}
+        ${this.lineStops(surface, stopLines)}
       </div>
       ${this.tooltip(surface, level)}
       ${busy}
@@ -1354,6 +1578,80 @@ export class LintjeGraph extends LintjeContentTileElement {
             </div>`
           : nothing
       }`
+  }
+
+  /**
+   * The keyboard's way to the lines: after the node it stands on and its counter, one stop per
+   * choosable line of that node, clockwise from straight up by where the line leaves it.
+   */
+  private stopLinesOf(
+    surface: Surface,
+    edges: DrawnEdge[],
+    routes: Map<string, { points: Point[]; label: Point | null }>,
+    shapes: Map<string, Shape>,
+  ): { edge: DrawnEdge; at: Point }[] {
+    const stop = surface.stop
+    const home = stop ? shapes.get(stop) : undefined
+    if (!stop || !home) return []
+    // Lines that leave at one angle, as right-angled ones from their ports do, go round the
+    // clock by where they end.
+    const towards = (id: string): number => {
+      const far = shapes.get(id)
+      return far
+        ? leaveAngle(
+            [
+              { x: home.cx, y: home.cy },
+              { x: far.cx, y: far.cy },
+            ],
+            'from',
+          )
+        : 0
+    }
+    return edges
+      .filter((edge) => edge.id && (edge.from === stop || edge.to === stop) && routes.has(edge.key))
+      .map((edge) => {
+        const route = routes.get(edge.key)!
+        const out = edge.from === stop
+        return {
+          edge,
+          angle: leaveAngle(route.points, out ? 'from' : 'to'),
+          far: towards(out ? edge.to : edge.from),
+          at: route.label ?? along(route.points, 0.5),
+        }
+      })
+      .sort((a, b) => (Math.abs(a.angle - b.angle) > 0.01 ? a.angle - b.angle : a.far - b.far))
+  }
+
+  private lineStops(
+    surface: Surface,
+    lines: { edge: DrawnEdge; at: Point }[],
+  ): TemplateResult | typeof nothing {
+    if (!lines.length) return nothing
+    return html`${repeat(
+      lines,
+      ({ edge }) => edge.key,
+      ({ edge, at }) => {
+        const chosen = edge.id === this.#selectedEdge
+        const title = this.edgeTitle(edge)
+        return html`<button type="button" class="lintje-graph__line-stop" data-edge=${edge.key}
+            aria-label=${edge.label ? `${edge.label}: ${title}` : title}
+            aria-pressed=${chosen ? 'true' : 'false'}
+            ${styleProps({ transform: `translate(${round(at.x)}px, ${round(at.y)}px)` })}
+            @click=${() => this.selectEdge(edge)}
+            @focus=${() => {
+              if (surface.pointerFocus) return
+              surface.focusedEdge = edge.key
+              const view = this.viewOf(surface)
+              if (view)
+                this.reveal(surface, { x: (at.x - view.x) / view.k, y: (at.y - view.y) / view.k })
+              this.hover(surface, { edge: edge.key, at }, 0)
+            }}
+            @blur=${() => {
+              surface.focusedEdge = null
+              this.leave(surface)
+            }}></button>`
+      },
+    )}`
   }
 
   /**
@@ -1585,15 +1883,9 @@ export class LintjeGraph extends LintjeContentTileElement {
       }
     } else {
       const edge = model.edges.find((item) => item.key === tip.edge)
-      if (!edge) return nothing
-      const from = model.byId.get(edge.from)?.label ?? edge.from
-      const to = model.byId.get(edge.to)?.label ?? edge.to
-      title =
-        edge.direction === 'none'
-          ? `${from} en ${to}`
-          : edge.direction === 'both'
-            ? `${from} ↔ ${to}`
-            : `${from} → ${to}`
+      // The chosen line has no tooltip: the host shows the relation.
+      if (!edge || (edge.id && edge.id === this.#selectedEdge)) return nothing
+      title = this.edgeTitle(edge)
       const figure =
         edge.value != null ? `${formatNumber(edge.value)}${edge.unit ? ` ${edge.unit}` : ''}` : ''
       note = [edge.label || 'verbonden', figure].filter(Boolean).join(', ')
@@ -1655,6 +1947,12 @@ export class LintjeGraph extends LintjeContentTileElement {
     super.updated(changed)
     this.placeTips()
     this.handFocus()
+    // A line's stop taken away while it had the focus hears no blur; its ring is already gone.
+    for (const surface of this.surfaces()) {
+      const stops = surface.area?.querySelectorAll<HTMLElement>('[data-edge]') ?? []
+      if (![...stops].some((stop) => stop.dataset.edge === surface.focusedEdge))
+        surface.focusedEdge = null
+    }
   }
 
   /** The node or counter in the drawing that holds the focus, with the node it belongs to. */
@@ -1664,7 +1962,8 @@ export class LintjeGraph extends LintjeContentTileElement {
     const owner = active?.dataset.node
       ? active
       : (active?.previousElementSibling as HTMLElement | null)
-    const node = owner?.dataset.node
+    // A line's stop belongs to the node the keyboard reached it from.
+    const node = active?.dataset.edge ? (surface?.stop ?? undefined) : owner?.dataset.node
     if (!active || !surface || !node) return null
     return { surface, element: active, node, group: this.#model?.byId.get(node)?.group }
   }

@@ -2539,6 +2539,22 @@ const GRAPH_ROWS: Row[] = [
     },
   },
   {
+    name: 'lintje-graph :: a line that can no longer be chosen hands its focus to its node',
+    run: async () => {
+      const data = graphData()
+      const withId = {
+        ...data,
+        edges: data.edges.map((item) => (item.to === 'b' ? { ...item, id: 'r' } : item)),
+      }
+      const tile = await mount<GraphTile>('lintje-graph', { data: withId })
+      const line = () => tile.shadowRoot!.querySelector<HTMLElement>('[data-edge]')
+      await drawn(line)
+      line()!.focus()
+      tile.data = data
+      return () => graphNode(tile, 'min')
+    },
+  },
+  {
     name: 'lintje-graph :: a node the host takes away hands its focus to the centre',
     run: async () => {
       const tile = await mount<GraphTile>('lintje-graph', { data: graphData() })

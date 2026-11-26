@@ -31,6 +31,8 @@ export interface DrawnNode extends GraphNode {
 export interface DrawnEdge {
   /** Stable while both ends stay: the ends and how many before it share them. */
   key: string
+  /** The host's id, which makes the line choosable; never on a group's line. */
+  id?: string
   from: string
   to: string
   label: string
@@ -68,6 +70,7 @@ function edgesOf(nodes: Map<string, GraphNode>, edges: GraphEdge[]): DrawnEdge[]
       seen.set(ends, count + 1)
       return {
         key: `${ends}\u0000${count}`,
+        id: edge.id,
         from: edge.from,
         to: edge.to,
         label: edge.label ?? '',
@@ -137,6 +140,8 @@ function gather(
       key: pair(outward ? parent : id, outward ? id : parent),
       from: outward ? parent : id,
       to: outward ? id : parent,
+      // A group's line sums up its members' relations: it is none of them, so not choosable.
+      id: undefined,
       value: undefined,
     })
   }
