@@ -163,6 +163,20 @@ export const personGraph = {
     'A. Jansen met partner, adres, twee kinderen en werkgever; achter Bakkerij Smit, Corporatie De Marken en de kinderen staan relaties die nog niet geladen zijn.',
 }
 
+/**
+ * The person graph as a relation register: each stored relation has an id and can be chosen.
+ * The owner of the address is derived, so it has none.
+ */
+export const relationGraph = {
+  ...personGraph,
+  nodes: personGraph.nodes.map((item) => ({ ...item, more: undefined })),
+  edges: personGraph.edges.map((item, i) =>
+    item.label === 'eigenaar' ? item : { ...item, id: `relatie-${i + 1}` },
+  ),
+  description:
+    'A. Jansen met partner, adres, twee kinderen en werkgever. Elke opgeslagen relatie is te kiezen; de eigenaar van het adres is afgeleid en niet.',
+}
+
 /** What the host loads for a node of the person graph when the reader asks. */
 export const personMore = {
   smit: {

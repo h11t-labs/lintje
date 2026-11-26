@@ -110,6 +110,25 @@ de toon van `lintje-badge` en eventueel een icoon. Wat de kolommen niet tonen, z
 `detailFields`: elke rij krijgt dan een knop die de verborgen kolommen en die velden onder de rij
 toont. Open rijen en ingeklapte groepen zijn beeld, geen toestand: ze komen niet in de URL.
 
+Levert de server de rijen per pagina, zet dan `paging: 'host'`. De tabel sorteert en pagineert dan
+niet zelf: `rows` is één pagina, in jouw volgorde, met `page` (vanaf 1) en `rowCount`, het aantal
+rijen over alle pagina's na de filters. Een kop stuurt `lintje-sort-change` en de pager
+`lintje-page-change` `{ page }`; beide horen in de URL. De pijl en de pager tonen de keuze meteen.
+Beantwoord elk van die events met `data`:
+
+1. Meteen, als je moet ophalen: de nieuwe `sort` of `page` met `state: 'loading'` en de oude `rows`
+   (`{ ...data, page, state: 'loading' }`). De oude rijen blijven staan en de tabel meldt dat ze
+   bezig is.
+2. Daarna de pagina zelf, niet meer `loading`. Die eerste `data` die niet laadt is je antwoord: de
+   tabel neemt er `sort` en `page` uit over, ook als je de keuze weigert, en zegt wat er veranderde.
+   Een fout (`state: 'error'`) beëindigt het wachten ook.
+
+Een andere `data`, zoals een echo van `checkedIds`, verandert de sortering of pagina alleen als hij
+een nieuwe noemt. Na een nieuwe sortering of filter geef je pagina 1. Komt een antwoord binnen voor
+een keuze die de lezer al heeft ingehaald, gooi het dan weg: de tabel neemt elk antwoord over. Een
+`page` voorbij de laatste toont de laatste. Downloaden (met `download: { filename }`) stuurt
+`lintje-tile-download`: het bestand maak jij, want de tabel kent maar één pagina.
+
 `ChartData.description` en `DataTableData.caption` zijn verplicht: ze worden de `<desc>` van de grafiek
 en de `<caption>` van de tabel. Schrijf ze alsof de figuur er niet was.
 

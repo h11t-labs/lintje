@@ -106,7 +106,7 @@ Een *toestand* is iets wat je bewaart en terugzet op het element (en in de URL m
 | `lintje-mark-select` | `lintje-map`, `lintje-chart` | actie |
 | `lintje-layer-change` | `lintje-map` | toestand |
 | `lintje-area-select` | `lintje-map` (met `controls.lasso`, `controls.circle` of `controls.rect`) | toestand |
-| `lintje-node-select`, `lintje-node-toggle`, `lintje-node-expand` | `lintje-graph` | toestand, toestand, actie |
+| `lintje-node-select`, `lintje-node-toggle`, `lintje-node-expand`, `lintje-edge-select`, `lintje-edge-open` | `lintje-graph` | toestand, toestand, actie, toestand, actie |
 | `lintje-filters-open-change` | `lintje-filter-bar` | toestand |
 | `lintje-retry` | `lintje-error-summary`, `lintje-streaming-text`, `lintje-audio-player`, `lintje-video-player` | actie |
 | `lintje-files-add`, `lintje-file-remove`, `lintje-file-cancel` | `lintje-file-upload` | actie |
@@ -114,7 +114,7 @@ Een *toestand* is iets wat je bewaart en terugzet op het element (en in de URL m
 | `lintje-open` | `lintje-app-search` | actie |
 | `lintje-row-add`, `lintje-row-remove` | `lintje-repeater`, `lintje-repeater-row` | actie |
 | `lintje-tab-change` | `lintje-tabs` | toestand |
-| `lintje-page-change` | `lintje-pagination`, `lintje-document-viewer` | toestand |
+| `lintje-page-change` | `lintje-pagination`, `lintje-document-viewer`, `lintje-data-table` (met `paging: 'host'`) | toestand |
 | `lintje-page-size-change` | `lintje-pagination` | toestand |
 | `lintje-zoom-change`, `lintje-download` | `lintje-document-viewer` | toestand, actie |
 | `lintje-gallery-change` | `lintje-gallery` | toestand |
