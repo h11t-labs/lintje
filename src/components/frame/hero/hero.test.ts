@@ -112,6 +112,27 @@ describe('lintje-hero', () => {
   })
 })
 
+describe('lintje-hero with a photo behind the text', () => {
+  it('takes the backdrop only when something is slotted there, and draws it before the text', async () => {
+    const plain = await mount({ heading: 'Werken bij het Rijk' })
+    expect(plain.shadowRoot!.querySelector('.lintje-hero.has-backdrop')).toBeNull()
+
+    const element = await mount(
+      { heading: 'Werken bij het Rijk', tone: 'primary' },
+      '<img slot="backdrop" src="foto.jpg" alt="Een kantoor aan het water">',
+    )
+    const root = element.shadowRoot!
+    const slot = root.querySelector<HTMLSlotElement>('slot[name="backdrop"]')!
+    slot.dispatchEvent(new Event('slotchange'))
+    await element.updateComplete
+    expect(root.querySelector('.lintje-hero.has-backdrop.lintje-hero--primary')).not.toBeNull()
+    expect(slot.assignedElements()).toEqual([element.querySelector('img')])
+    const band = root.querySelector('.lintje-hero__band')!
+    const order = [...band.children].map((child) => child.className)
+    expect(order.indexOf('lintje-hero__backdrop')).toBeLessThan(order.indexOf('lintje-hero__body'))
+  })
+})
+
 describe('lintje-hero as the page’s head', () => {
   it('draws the primary band with the trail before the title', async () => {
     const element = await mount(
