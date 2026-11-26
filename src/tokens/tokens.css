@@ -348,6 +348,8 @@
   --hero-overlap: var(--space-10);
   /* The widest the picture beside the hero's text gets: four of the twelve columns at 1440. */
   --w-hero-aside: 400px;
+  /* The least height of a hero with a photo behind its text, so the photo shows above the block. */
+  --h-hero-backdrop: 30rem;
   /* The narrowest a card gets in a card list before the list drops a column. */
   --w-card: 320px;
   /* The same for a horizontal card, whose picture takes a column of its own. */

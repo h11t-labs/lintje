@@ -334,7 +334,8 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
   van de pagina (de hero, de paginakop bij een licht menu) en de voet lopen van rand tot rand, en
   zijn dus recht: dat ze de volle breedte nemen, weegt zwaarder dan de hoek. In de nieuwe
   huisstijl draagt een lade de hoek, een lint groot (`--radius-corner`, 48 px), aan de vrije kant
-  bovenaan, en een band die met `narrow` binnen de marges staat, rechtsboven;
+  bovenaan, een band die met `narrow` binnen de marges staat, rechtsboven, en zo ook het blok in
+  de primaire kleur op de foto van een hero;
   `data-style-new-corner="square"` laat hem weg. De andere uitzondering is het
   citaat in lopende tekst: als citaat-element heeft het zijn eigen hoek van 24 px
   (`--radius-quote`), de hoek van de huisstijl als aanhalingsteken.
@@ -455,6 +456,11 @@ Besluiten die voor beide gelden:
   primaire kleur, zodat band en menu nooit samenvloeien. Eén per pagina, en nooit op een
   werkpagina dieper in. Zijn afbeelding ondersteunt de titel; ze is nooit een tweede weg verder en
   zegt nooit iets wat nergens anders staat.
+- **Een hero mag een foto achter de tekst hebben**, zoals de titeldia van een presentatie en de
+  startpagina van een rijkssite: de foto vult de band, en de tekst staat in een blok linksonder
+  erop — wit, of in de primaire kleur — nooit op de foto zelf. De ene hoek staat op één vlak: met
+  `narrow` op de foto, anders op het blok in de primaire kleur, dat binnen de marges staat. Op
+  een telefoon staat de foto boven het blok, allebei over de volle breedte en het blok recht.
 - **De paginakop mag een band in de primaire kleur zijn** (`lintje-hero tone="primary"`), zoals
   de huisstijl hem op de sites van de Marechaussee en het RIVM tekent: kruimelpad, titel en
   inleiding in wit op de primaire kleur, van rand tot rand en recht. Met `narrow` staat de band

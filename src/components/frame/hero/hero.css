@@ -145,3 +145,69 @@
     border-top-right-radius: min(var(--radius-corner), calc(var(--w-ribbon) / 2));
   }
 }
+
+/* `backdrop`: a photo fills the band and the text stands in a block on it, bottom left, never on
+   the photo itself. It wins over `aside` and `panel`. The one corner goes on one plane: the
+   photo's with `narrow`, otherwise the primary block's, which stands inside the margins. */
+.lintje-hero:not(.has-backdrop) .lintje-hero__backdrop,
+.lintje-hero.has-backdrop .lintje-hero__aside,
+.lintje-hero.has-backdrop .lintje-hero__panel { display: none; }
+/* The band's own fill would show as a seam along the photo's rounded corner. */
+.lintje-hero.has-backdrop .lintje-hero__band { background: none; }
+.lintje-hero__backdrop { overflow: hidden; border-radius: inherit; }
+.lintje-hero__backdrop ::slotted(img) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.lintje-hero.has-backdrop .lintje-hero__body {
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+}
+.lintje-hero--primary.has-backdrop .lintje-hero__body {
+  background: var(--color-hero-primary-bg);
+  color: var(--color-hero-primary-text);
+}
+
+/* The block stays in the flow, so a long title grows the band rather than run off the photo. */
+@media screen and (min-width: 768px) {
+  .lintje-hero.has-backdrop .lintje-hero__band {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    min-height: var(--h-hero-backdrop);
+    padding-bottom: 0;
+  }
+  .lintje-hero.has-backdrop.has-overlap .lintje-hero__band { padding-bottom: var(--hero-overlap); }
+  .lintje-hero__backdrop { position: absolute; inset: 0; }
+  /* At most two thirds of the band, eight of the twelve columns, so the photo keeps its room. */
+  .lintje-hero.has-backdrop .lintje-hero__body {
+    position: relative;
+    flex: none;
+    width: min(var(--w-text), 100% * 2 / 3);
+    padding: var(--space-10);
+  }
+  .lintje-hero--primary.has-backdrop .lintje-hero__body {
+    border-top-right-radius: var(--radius-corner);
+  }
+  :host([narrow]) .lintje-hero--primary.has-backdrop .lintje-hero__body {
+    border-top-right-radius: 0;
+  }
+}
+
+/* On a phone the photo stands above the block, both the band's full width: the block covers no
+   photo, and a block that runs off the page is square. */
+@media screen and (max-width: 767px) {
+  .lintje-hero.has-backdrop .lintje-hero__band { padding: 0; }
+  .lintje-hero__backdrop { aspect-ratio: 16 / 9; }
+  .lintje-hero.has-backdrop .lintje-hero__body {
+    padding: var(--space-8) calc(var(--page-pad-x) + var(--page-gutter));
+  }
+  .lintje-hero.has-backdrop.has-overlap .lintje-hero__body {
+    padding-bottom: calc(var(--space-8) + var(--hero-overlap));
+  }
+  :host([narrow]) .lintje-hero.has-backdrop .lintje-hero__body { padding-inline: var(--space-5); }
+}

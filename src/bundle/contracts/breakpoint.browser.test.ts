@@ -1004,6 +1004,34 @@ const ROWS: Row[] = [
     },
   })),
   {
+    tag: 'lintje-hero',
+    marker: 'the photo stands above the text’s block instead of behind it',
+    mount: () => {
+      const hero = create('lintje-hero', {
+        heading: 'Wat wil je vertalen?',
+        description: 'Typ of spreek een tekst in, of upload een document.',
+      })
+      hero.append(create('img', { slot: 'backdrop', alt: 'Het scherm Tekst vertalen' }))
+      return append(hero)
+    },
+    wide: (element) => {
+      const photo = box(find(element, '.lintje-hero__backdrop'))
+      const block = box(find(element, '.lintje-hero__body'))
+      return (
+        photo.height > block.height &&
+        block.top >= photo.top - 1 &&
+        block.bottom <= photo.bottom + 1 &&
+        block.left >= photo.left - 1 &&
+        block.right <= photo.right + 1
+      )
+    },
+    phone: (element) => {
+      const photo = find(element, '.lintje-hero__backdrop')
+      const block = find(element, '.lintje-hero__body')
+      return seen(photo) && below(photo, block) && box(block).width >= box(photo).width - 1
+    },
+  },
+  {
     tag: 'lintje-breadcrumbs',
     marker: 'one link back to the level above replaces the trail',
     mount: () =>
