@@ -110,6 +110,8 @@
   color: var(--color-text-primary);
   white-space: nowrap;
 }
+/* The phone's cells do wrap; a date still never breaks at its hyphens. */
+.lintje-data-table__date-part { white-space: nowrap; }
 /* The host's element in a cell is as wide as it is, aligned as the column's values, with room
    above and below so it never touches the row's lines. The host's own CSS still wins. */
 .lintje-data-table__slot::slotted(*) {

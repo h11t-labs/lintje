@@ -2,7 +2,7 @@
  * The table in a browser: Escape first for a lifted grip in its column chooser, the height of a
  * filterable head, the width a truncated column takes, a keyboard's way into a table that
  * scrolls sideways, the Tab stops of a row (its name, a cut value, its controls' rings), and the
- * phone's table within its tile, and the host's element in a slot column.
+ * phone's table within its tile with its dates whole, and the host's element in a slot column.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
@@ -527,6 +527,27 @@ describe('the phone’s table', () => {
     const scroller = part(element, '.lintje-data-table__scroller')
     expect(width(mobile)).toBeLessThanOrEqual(width(element))
     expect(scroller.hasAttribute('tabindex')).toBe(false)
+  })
+
+  it('keeps a date whole as its measure and wraps the name instead', async () => {
+    await viewport(390)
+    const element = await mountOnPhone({
+      caption: 'Meldingen',
+      rowKey: 'name',
+      columns: [
+        { key: 'name', header: 'Melding' },
+        { key: 'at', header: 'Gemeld om', format: 'datetime', mobileMeasure: true },
+      ],
+      rows: [{ name: 'Storing betaalautomaat in de centrale hal', at: '2025-06-30T11:20' }],
+    })
+    const time = part(element, '.lintje-data-table__mobile-measure time')
+    const name = part(element, '.lintje-data-table__mobile-name')
+    await expect.poll(() => width(time)).toBeGreaterThan(0)
+    // A moment may break between its day and its time, never inside either.
+    const [day, clock] = [...time.querySelectorAll('.lintje-data-table__date-part')]
+    expect(day!.getClientRects()).toHaveLength(1)
+    expect(clock!.getClientRects()).toHaveLength(1)
+    expect(name.getClientRects()[0]!.height).toBeGreaterThan(day!.getClientRects()[0]!.height)
   })
 
   it('keeps its words whole and scrolls in its tile once they do not fit', async () => {
