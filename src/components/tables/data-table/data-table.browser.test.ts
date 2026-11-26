@@ -2,7 +2,7 @@
  * The table in a browser: Escape first for a lifted grip in its column chooser, the height of a
  * filterable head, the width a truncated column takes, a keyboard's way into a table that
  * scrolls sideways, the Tab stops of a row (its name, a cut value, its controls' rings), and the
- * phone's table within its tile, and the host's element in a slot column.
+ * phone's table within its tile with its dates whole, and the host's element in a slot column.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
@@ -186,6 +186,59 @@ describe('a right-aligned head with a hint and a funnel', () => {
       expect(funnel.left - tip.right).toBeCloseTo(gap, 0)
       // The label ends just before the "i", not at the head's start.
       expect(tip.left - before.right).toBeLessThanOrEqual(gap + 1)
+    }
+  })
+})
+
+describe('a sorting head with a hint', () => {
+  const labelEnd = (th: Element): number => {
+    const label = th.querySelector('.lintje-data-table__sort-label')
+    if (label) return label.getBoundingClientRect().right
+    const text = [...th.querySelector('.lintje-data-table__header-inner')!.childNodes].find(
+      (node) => node.nodeType === Node.TEXT_NODE && node.textContent!.trim(),
+    )!
+    const range = document.createRange()
+    range.selectNodeContents(text)
+    return range.getBoundingClientRect().right
+  }
+  const glyph = (th: Element): DOMRect =>
+    th.querySelector('lintje-toggletip')!.shadowRoot!.querySelector('svg')!.getBoundingClientRect()
+
+  it('keeps its "i" near its label and in place, sorted or not', async () => {
+    const element = await mount({
+      caption: 'Loketten',
+      rowKey: 'name',
+      columns: [
+        COLUMNS[0]!,
+        { key: 'region', header: 'Regio', hint: 'Waar het loket staat.' },
+        { key: 'requests', header: 'Aanvragen', align: 'right', hint: 'Vandaag.' },
+        { key: 'open', header: 'Open', align: 'right', sortable: false, hint: 'Nog niet klaar.' },
+      ],
+      rows: officeRows(3),
+    })
+    const [left, right, plain] = [
+      ...element.shadowRoot!.querySelectorAll<HTMLElement>(
+        '.lintje-data-table__full .lintje-data-table__header-cell--hinted',
+      ),
+    ]
+    const place = () =>
+      [left!, right!].map((th) => ({
+        gap: glyph(th).left - labelEnd(th),
+        left: glyph(th).left,
+        width: th.getBoundingClientRect().width,
+      }))
+    const resting = place()
+    // The sort glyph keeps its room, but nothing more than that stands between label and "i".
+    const arrow = left!
+      .querySelector('.lintje-data-table__sort-icon')!
+      .getBoundingClientRect().width
+    const plainGap = glyph(plain!).left - labelEnd(plain!)
+    for (const { gap } of resting) expect(gap - plainGap).toBeLessThanOrEqual(arrow)
+    for (const th of [left!, right!]) {
+      th.querySelector<HTMLElement>('.lintje-data-table__sort-button')!.click()
+      await element.updateComplete
+      expect(th.classList.contains('is-active')).toBe(true)
+      expect(place()).toEqual(resting)
     }
   })
 })
@@ -474,6 +527,27 @@ describe('the phone’s table', () => {
     const scroller = part(element, '.lintje-data-table__scroller')
     expect(width(mobile)).toBeLessThanOrEqual(width(element))
     expect(scroller.hasAttribute('tabindex')).toBe(false)
+  })
+
+  it('keeps a date whole as its measure and wraps the name instead', async () => {
+    await viewport(390)
+    const element = await mountOnPhone({
+      caption: 'Meldingen',
+      rowKey: 'name',
+      columns: [
+        { key: 'name', header: 'Melding' },
+        { key: 'at', header: 'Gemeld om', format: 'datetime', mobileMeasure: true },
+      ],
+      rows: [{ name: 'Storing betaalautomaat in de centrale hal', at: '2025-06-30T11:20' }],
+    })
+    const time = part(element, '.lintje-data-table__mobile-measure time')
+    const name = part(element, '.lintje-data-table__mobile-name')
+    await expect.poll(() => width(time)).toBeGreaterThan(0)
+    // A moment may break between its day and its time, never inside either.
+    const [day, clock] = [...time.querySelectorAll('.lintje-data-table__date-part')]
+    expect(day!.getClientRects()).toHaveLength(1)
+    expect(clock!.getClientRects()).toHaveLength(1)
+    expect(name.getClientRects()[0]!.height).toBeGreaterThan(day!.getClientRects()[0]!.height)
   })
 
   it('keeps its words whole and scrolls in its tile once they do not fit', async () => {

@@ -1476,7 +1476,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const rowsOf = (list: Row[], first: number, inGroup: boolean): unknown =>
       list.map((row, index) => this.fullRow(row, first + index, grid, copy, inGroup))
 
-    return html`<table class="lintje-data-table__full" aria-busy=${this.busy ? 'true' : nothing}>
+    return html`<table
+      class="lintje-data-table__full ${this.busy ? 'is-waiting' : ''}"
+      aria-busy=${this.busy ? 'true' : nothing}
+    >
       <caption class="visually-hidden">${data.caption}</caption>
       <thead>
         <tr>
@@ -2115,7 +2118,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const nameHintId = this.hintId(nameColumn, copy, true)
     const measureHintId = this.hintId(measureColumn, copy, true)
 
-    return html`<table class="lintje-data-table__mobile" aria-busy=${this.busy ? 'true' : nothing}>
+    return html`<table
+      class="lintje-data-table__mobile ${this.busy ? 'is-waiting' : ''}"
+      aria-busy=${this.busy ? 'true' : nothing}
+    >
       <caption class="visually-hidden">${data.caption}</caption>
       <thead>
         <tr>
@@ -2568,7 +2574,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const text = formatText(column, value)
     if (text == null) return missing
     if (isDateFormat(column) && value != null && readDate(column, value)) {
-      return html`<time datetime=${String(value)}>${text}</time>`
+      // A date never breaks at its hyphens; a moment breaks only between its day and its time.
+      const [day, time] = text.split(' ')
+      const part = (words: string) =>
+        html`<span class="lintje-data-table__date-part">${words}</span>`
+      return html`<time datetime=${String(value)}>${part(day!)}${time ? html` ${part(time)}` : nothing}</time>`
     }
     if (
       (column.format === 'change' || column.format === 'change-compact') &&

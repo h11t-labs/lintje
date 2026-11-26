@@ -60,8 +60,13 @@ const pager = (element: TableElement, variant: 'full' | 'mobile' = 'full'): Lint
     `lintje-pagination.lintje-data-table__pagination--${variant}`,
   ) as LintjePagination
 
+/** `aria-busy` per table, and whether its old rows stand muted. */
 const busy = (element: TableElement): (string | null)[] =>
-  [...root(element).querySelectorAll('table')].map((table) => table.getAttribute('aria-busy'))
+  [...root(element).querySelectorAll('table')].map((table) => {
+    const busyNow = table.getAttribute('aria-busy')
+    expect(table.classList.contains('is-waiting')).toBe(busyNow === 'true')
+    return busyNow
+  })
 
 const frame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()))
 
