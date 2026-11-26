@@ -110,6 +110,8 @@
   color: var(--color-text-primary);
   white-space: nowrap;
 }
+/* The phone's cells do wrap; a date still never breaks at its hyphens. */
+.lintje-data-table__date-part { white-space: nowrap; }
 /* The host's element in a cell is as wide as it is, aligned as the column's values, with room
    above and below so it never touches the row's lines. The host's own CSS still wins. */
 .lintje-data-table__slot::slotted(*) {
@@ -339,6 +341,12 @@
 .lintje-data-table__header-cell--hinted { padding-block: 0; }
 .lintje-data-table__header-cell--hinted:not(.lintje-data-table__header-cell--align-right) .lintje-data-table__sort-button { flex: 0 1 auto; width: auto; }
 .lintje-data-table__header-cell--align-right .lintje-data-table__header-inner { justify-content: flex-end; }
+/* A sorting head keeps its glyph's room, so the "i" takes the button's end padding and the gap
+   instead, and its box reaches under the glyph: it stays near the label whether the glyph shows
+   or not. The glyph lies above the "i", so its hover fill never covers it and a click on it sorts. */
+.lintje-data-table__header-cell--sortable.lintje-data-table__header-cell--hinted .lintje-data-table__sort-button { padding-inline-end: 0; }
+.lintje-data-table__header-cell--sortable.lintje-data-table__header-cell--hinted .lintje-data-table__sort-icon { position: relative; z-index: 1; }
+.lintje-data-table__header-cell--sortable.lintje-data-table__header-cell--hinted .lintje-data-table__hint { margin-inline-start: calc(var(--space-3) * -1); }
 /* On the right the label, its glyph and the "i" keep together: the funnel takes no free room. */
 .lintje-data-table__header-cell--align-right .lintje-data-table__funnel { margin-left: 0; }
 .lintje-data-table__hint {
