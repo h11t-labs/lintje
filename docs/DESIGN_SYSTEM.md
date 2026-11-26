@@ -824,6 +824,10 @@ De besluiten hieronder gelden voor alle elementen.
 - **Hoogstens één vulling per rij.** Alleen een overschreden drempel vult zijn cel; dicht bij de
   drempel is een teken en vet. Een waarde als label is een badge, in de tonen van `lintje-badge`,
   met haar woord.
+- **Een datum staat zoals een Nederlandse lezer hem leest en sorteert op het moment.** De host
+  geeft ISO; de tabel toont dag-maand-jaar, een tijdstip in de tijdzone van de lezer, overal
+  dezelfde woorden, en sorteert op de dag of het moment, niet op de tekst. De CSV houdt ISO, dat
+  elk rekenblad als datum leest. Tekst met een getal erin sorteert op dat getal.
 - **Een totaal is van de host.** De tabel rekent nooit: een som, een gemiddelde en een gewogen
   cijfer komen binnen als waarde, met het woord dat zegt hoe ("gem."). De totaalrij staat onder de
   rijen, vet, boven een zware lijn, en plakt niet.
@@ -865,6 +869,11 @@ De besluiten hieronder gelden voor alle elementen.
   zonder hover staan ze voluit op de plaats van het pijltje. Een rij zonder bediening krijgt
   daarvoor zelf toetsenbordfocus; die focus maakt de rij niet klikbaar. Als enige meetwaarde van een rij
   onder 768 px staat de verandering er heel.
+- **Een korte kolomkop krijgt zijn uitleg achter een i** (`hint`), de toggletip, naast de
+  sorteerknop en nooit erin: een tooltip op de kop zou de enige plek van die uitleg zijn, en de
+  kop sorteert al bij een klik. De uitleg is ook de beschrijving van de kop voor een schermlezer;
+  de cellen herhalen hem niet. Onder 768 px staat de i bij de koppen die er staan, niet bij elk
+  label onder een rij, en in "Kolommen kiezen" staat de uitleg als toelichting onder de naam.
 - **Onder 768 px wisselt een tabel van vorm**: de identiteit van de rij en één meetwaarde, met de
   andere kolommen op verzoek onder de rij (zie [Toegankelijkheid](#toegankelijkheid)). Geen
   rijkaarten, geen zijwaarts scrollen.

@@ -374,6 +374,32 @@ const compactData = {
   download: { filename: 'loketten-toelichting' },
 }
 
+const hintedData = {
+  caption: 'Loketten met soort, aanvragen, wachttijd en bezetting',
+  title: 'Loketten',
+  subtitle: 'Een korte kop met een toelichting achter de i',
+  columns: [
+    { key: 'name', header: 'Loket' },
+    {
+      key: 'kind', header: 'Soort', format: 'label', labels: KIND_LABELS,
+      hint: 'Een balie helpt op afspraak; een servicepunt helpt wie binnenloopt.',
+    },
+    { key: 'requests', header: 'Aanvragen', align: 'right' },
+    {
+      key: 'waitTime', header: 'Wacht', align: 'right', unit: 'min', mobileMeasure: true,
+      hint: 'De gemiddelde wachttijd van vandaag tot nu, in minuten.',
+    },
+    {
+      key: 'staffing', header: 'Bez.', align: 'right', format: 'percent', sortable: false,
+      hint: 'Bezetting: het deel van de loketplaatsen waar nu iemand zit.',
+    },
+  ],
+  rows: deskRows.slice(0, 5),
+  rowKey: 'id',
+  defaultSort: { key: 'waitTime', direction: 'desc' },
+  columnChooser: true,
+}
+
 function dashboard(stage, data = tableData) {
   const element = table(stage, data)
   const say = log(stage)
@@ -854,6 +880,45 @@ function follow(stage) {
   }
 }
 
+// Reports around the turn of the year: a date and a moment, each with its own offset.
+const REPORTS = [
+  { id: 'r1', title: 'Storing betaalautomaat', day: '2025-12-28', at: '2025-12-28T10:15:00+01:00' },
+  { id: 'r2', title: 'Lekkage kelder', day: '2026-01-05', at: '2026-01-05T14:30:00+01:00' },
+  { id: 'r3', title: 'Defecte deur', day: '2025-12-31', at: '2025-12-31T16:45:00Z' },
+  { id: 'r4', title: 'Verlichting hal', day: null, at: null },
+  { id: 'r5', title: 'Item 10 uit de inventaris', day: '2026-01-02', at: '2026-01-02T08:00:00+01:00' },
+  { id: 'r6', title: 'Item 9 uit de inventaris', day: '2025-06-30', at: '2025-06-30T11:20:00+02:00' },
+]
+
+// The host filters on the words the reader sees: `dd-mm-jjjj`, not the ISO value.
+const shownDay = (iso) => (iso ? iso.split('-').reverse().join('-') : '')
+
+function dates(stage) {
+  const columns = [
+    { key: 'title', header: 'Melding' },
+    { key: 'day', header: 'Datum', format: 'date', filter: { kind: 'text' } },
+    { key: 'at', header: 'Gemeld om', format: 'datetime' },
+  ]
+  const element = table(stage, {
+    title: 'Meldingen rond de jaarwisseling',
+    caption: 'Meldingen rond de jaarwisseling',
+    rowKey: 'id',
+    columns,
+    rows: REPORTS,
+    sort: { key: 'day', direction: 'asc' },
+    clickable: false,
+    expandable: false,
+    filters: {},
+    download: { filename: 'meldingen' },
+  })
+  element.addEventListener('lintje-filter-change', (event) => {
+    const value = event.detail.value
+    const filters = value == null ? {} : { day: value }
+    const rows = REPORTS.filter((row) => value == null || shownDay(row.day).includes(value))
+    element.data = { ...element.data, filters, rows }
+  })
+}
+
 export default {
   elements: [
 {
@@ -894,6 +959,16 @@ export default {
           note: 'In het werkblad biedt de keuzelijst "Niet toegewezen" en de personen.',
           html: '<lintje-data-table></lintje-data-table>',
           setup: assigning,
+        },
+        {
+          label: 'Datum en tijdstip',
+          note:
+            'Een kolom met `format: \'date\'` of `\'datetime\'` krijgt een ISO-waarde en ' +
+            'toont 05-01-2026 of 05-01-2026 14:30 in de tijdzone van de lezer. Ze sorteert op ' +
+            'het moment, over de jaargrens heen; een lege waarde sorteert het laagst. Op Melding ' +
+            'gesorteerd komt "Item 9" vóór "Item 10". Het filter zoekt in de getoonde datum.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: dates,
         },
         {
           label: 'Eigen inhoud in een cel',
@@ -1098,6 +1173,27 @@ export default {
             'staat onder de rij.',
           html: '<lintje-data-table></lintje-data-table>',
           setup: (stage) => filters(stage, { columnChooser: true, hiddenColumns: ['severity'] }),
+        },
+        {
+          label: 'Toelichting bij een kolom',
+          note:
+            'Een kolom met `hint` krijgt een i achter zijn kop, links en rechts uitgelijnd; een ' +
+            'klik op de i sorteert niet. Onder 768 px staat hij bij de kop van de maatkolom.',
+          html: '<lintje-data-table></lintje-data-table>',
+          setup: (stage) => dashboard(stage, hintedData),
+        },
+        {
+          label: 'Toelichting in Kolommen kiezen',
+          note: 'De toelichting staat als gedempte regel onder de naam van de kolom.',
+          html: '<lintje-data-table></lintje-data-table>',
+          async setup(stage) {
+            dashboard(stage, { ...hintedData, title: 'Loketten, kolommen kiezen' })
+            const element = stage.querySelector('lintje-data-table')
+            await element.updateComplete
+            // Below 768 px there is nothing to choose: the button is hidden, the chooser stays shut.
+            const button = element.shadowRoot.querySelector('.lintje-data-table__full .lintje-data-table__chooser-button')
+            if (button?.offsetParent) button.click()
+          },
         },
         {
           label: 'Labels en totalen',

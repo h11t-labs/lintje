@@ -55,6 +55,7 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../feedback/status-dot/status-dot'
 import '../../feedback/skeleton/skeleton'
 import '../../layout/tile/tile'
+import '../../overlays/toggletip/toggletip'
 import type { SortableItem } from '../sortable-list/sortable-list'
 import type {
   CellValue,
@@ -68,7 +69,7 @@ import type {
   TableTotal,
 } from '../../../types'
 import { CellEditing, cellKey, type EditGrid } from './editing'
-import { parseDate } from '../../shared/date-format'
+import { formatDate, formatDateTime, instantOf, parseDate, partsOf } from '../../shared/date-format'
 import { focusTarget, tabbables } from '../../shared/focus-trap'
 import { LiveMessage } from '../../shared/live-message'
 import { deepActiveElement, holdsFocus } from '../../../core/focus'
@@ -133,6 +134,37 @@ function isNumeric(column: TableColumnData, rows: Row[]): boolean {
   return typeof rows.find((row) => row[column.key] != null)?.[column.key] === 'number'
 }
 
+const warnedDates = new Set<string>()
+
+/**
+ * A `date` or `datetime` value: its shown text and its moment in ms, or `null` when it is no
+ * ISO value; the dev build says so once per value.
+ */
+function readDate(
+  column: TableColumnData,
+  value: string | number,
+): { text: string; time: number } | null {
+  const iso = String(value)
+  if (column.format === 'date') {
+    const parts = partsOf(iso)
+    if (parts) return { text: formatDate(iso), time: Date.UTC(parts[0], parts[1] - 1, parts[2]) }
+  } else {
+    const time = instantOf(iso)
+    if (time != null) return { text: formatDateTime(iso), time }
+  }
+  const seen = `${column.format} ${iso}`
+  if (import.meta.env?.DEV && !warnedDates.has(seen)) {
+    warnedDates.add(seen)
+    console.warn(
+      `<lintje-data-table>: "${iso}" in column "${column.key}" is no ISO ${column.format === 'date' ? 'date (2026-01-05)' : 'date-time (2026-01-05T14:30:00+01:00)'}; it shows as given and sorts lowest.`,
+    )
+  }
+  return null
+}
+
+const isDateFormat = (column: TableColumnData): boolean =>
+  column.format === 'date' || column.format === 'datetime'
+
 function formatText(column: TableColumnData, value: CellValue): string | null {
   // Not assigned is a value with its word, not a missing figure.
   if (column.format === 'person') {
@@ -142,6 +174,7 @@ function formatText(column: TableColumnData, value: CellValue): string | null {
   }
   if (value == null) return null
   if (column.format === 'label') return column.labels?.[String(value)]?.label ?? String(value)
+  if (isDateFormat(column)) return readDate(column, value)?.text ?? String(value)
   let text: string
   if (typeof value === 'string' || column.format === 'text') text = String(value)
   else if (column.format === 'change' || column.format === 'change-compact') {
@@ -702,6 +735,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     // A label and a person sort by the word a reader sees, not by the host's code; nobody lowest.
     if ((column.format === 'label' || column.format === 'person') && value != null)
       return formatText(column, value) ?? ''
+    // A date or a moment sorts by its time, not by its text: `+01:00` and `+02:00` differ.
+    if (isDateFormat(column)) {
+      return (value == null ? null : readDate(column, value)?.time) ?? Number.NEGATIVE_INFINITY
+    }
     // A date column holds `dd-mm-jjjj`, which sorts by day as text; its ISO form sorts by date.
     if (column.editor?.kind === 'date') {
       const parsed = parseDate(String(value ?? ''))
@@ -722,7 +759,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       const order =
         typeof valueA === 'number' && typeof valueB === 'number'
           ? valueA - valueB
-          : String(valueA).localeCompare(String(valueB), 'nl')
+          : String(valueA).localeCompare(String(valueB), 'nl', { numeric: true })
       return sort.direction === 'asc' ? order : -order
     })
     return copy
@@ -899,7 +936,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const [, ...rest] = shownColumns(this.columns, this.columnOrder, []).filter(
       (column) => column !== group,
     )
-    const seen = JSON.stringify([rest.map((column) => column.key), this.hiddenKeys])
+    const seen = JSON.stringify([rest.map((column) => [column.key, column.hint]), this.hiddenKeys])
     if (seen !== this.#chooserItems.seen) {
       const hidden = new Set(this.hiddenKeys)
       this.#chooserItems = {
@@ -907,6 +944,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
         items: rest.map((column) => ({
           id: column.key,
           label: column.header,
+          hint: column.hint,
           checked: !hidden.has(column.key),
         })),
       }
@@ -1519,22 +1557,56 @@ export class LintjeDataTable extends LintjeContentTileElement {
     return row
   }
 
-  /** A column's head: the sort button and, for a filterable column, its funnel. */
+  /**
+   * A head's label: the sort button, or the plain header when the column does not sort. The
+   * button carries the hint as its description; a plain head leaves that to its cell.
+   */
+  private headLabel(column: TableColumnData, sort: SortState, hintId: string | null): unknown {
+    if (column.sortable === false) return column.header
+    return html`<button
+      type="button"
+      class="lintje-data-table__sort-button"
+      aria-describedby=${hintId ?? nothing}
+      @click=${() => this.toggleSort(column)}
+    >
+      <span class="lintje-data-table__sort-label">${column.header}</span>
+      ${sortIcon(sort.key === column.key ? sort.direction : null)}
+    </button>`
+  }
+
+  /** Unique per copy of the table (tile or modal, desktop or phone), which share one root. */
+  private hintId(column: TableColumnData, copy: string, phone: boolean): string | null {
+    return column.hint
+      ? `lintje-data-table-hint-${copy}-${phone ? 'phone' : 'full'}-${column.key}`
+      : null
+  }
+
+  /**
+   * The "i" after a head, beside the sort button and never in it, so a click on it never sorts;
+   * and the hint again, hidden, as the head's description.
+   */
+  private headHint(
+    column: TableColumnData,
+    alignRight: boolean,
+    hintId: string | null,
+  ): TemplateResult | typeof nothing {
+    if (!hintId) return nothing
+    return html`<lintje-toggletip
+        class="lintje-data-table__hint"
+        label=${`Toelichting bij ${column.header}`}
+        placement=${alignRight ? 'bottom-end' : 'bottom-start'}
+        >${column.hint}</lintje-toggletip
+      ><span id=${hintId} hidden>${column.hint}</span>`
+  }
+
+  /** A column's head: the sort button, its hint and, for a filterable column, its funnel. */
   private headerCell(column: TableColumnData, sort: SortState, edges: ScrollEdges): TemplateResult {
     const active = sort.key === column.key
     const alignRight = this.alignsRight(column)
     const filtered = Boolean(column.filter) && isFilterActive(this.filterValues[column.key])
-    const label =
-      column.sortable === false
-        ? column.header
-        : html`<button
-            type="button"
-            class="lintje-data-table__sort-button"
-            @click=${() => this.toggleSort(column)}
-          >
-            <span class="lintje-data-table__sort-label">${column.header}</span>
-            ${sortIcon(active ? sort.direction : null)}
-          </button>`
+    const hintId = this.hintId(column, edges === this.#modalEdges ? 'modal' : 'tile', false)
+    const label = this.headLabel(column, sort, hintId)
+    const hint = this.headHint(column, alignRight, hintId)
     return html`<th
       scope="col"
       class=${classMap({
@@ -1542,23 +1614,29 @@ export class LintjeDataTable extends LintjeContentTileElement {
         'lintje-data-table__header-cell--align-right': alignRight,
         'lintje-data-table__header-cell--sortable': column.sortable !== false,
         'lintje-data-table__header-cell--filterable': Boolean(column.filter),
+        'lintje-data-table__header-cell--hinted': Boolean(hintId),
         'is-active': active,
         'is-filtered': filtered,
       })}
       aria-sort=${active ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+      aria-describedby=${column.sortable === false && hintId ? hintId : nothing}
     >
       ${
-        column.filter
+        column.filter || hintId
           ? html`<span class="lintje-data-table__header-inner"
-              >${label}${renderFunnel(
-                column,
-                this.filterValues[column.key],
-                this.panel?.kind === 'filter' && this.panel.column === column.key,
-                (anchor) =>
-                  this.panel?.kind === 'filter' && this.panel.column === column.key
-                    ? this.closePanel()
-                    : this.openPanel({ kind: 'filter', column: column.key, edges }, anchor),
-              )}</span
+              >${label}${hint}${
+                column.filter
+                  ? renderFunnel(
+                      column,
+                      this.filterValues[column.key],
+                      this.panel?.kind === 'filter' && this.panel.column === column.key,
+                      (anchor) =>
+                        this.panel?.kind === 'filter' && this.panel.column === column.key
+                          ? this.closePanel()
+                          : this.openPanel({ kind: 'filter', column: column.key, edges }, anchor),
+                    )
+                  : nothing
+              }</span
             >`
           : label
       }
@@ -1972,6 +2050,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const actionColumn = Boolean(rowActions) || others.length > 0
     const span = actionColumn ? 3 : 2
     const active = sort.key === measureColumn.key
+    // In a row's detail the labels carry no "i": the heads above already do.
+    const nameHintId = this.hintId(nameColumn, copy, true)
+    const measureHintId = this.hintId(measureColumn, copy, true)
 
     return html`<table class="lintje-data-table__mobile" aria-busy=${this.#asked ? 'true' : nothing}>
       <caption class="visually-hidden">${data.caption}</caption>
@@ -1979,14 +2060,24 @@ export class LintjeDataTable extends LintjeContentTileElement {
         <tr>
           <th
             scope="col"
-            class="lintje-data-table__header-cell lintje-data-table__header-cell--mobile lintje-data-table__mobile-cell--name"
+            class=${classMap({
+              'lintje-data-table__header-cell': true,
+              'lintje-data-table__header-cell--mobile': true,
+              'lintje-data-table__header-cell--hinted': Boolean(nameHintId),
+              'lintje-data-table__mobile-cell--name': true,
+            })}
+            aria-describedby=${nameHintId ?? nothing}
           >
             ${
               selectable
                 ? html`<span class="lintje-data-table__mobile-check"
-                  >${this.headerCheck()}${nameColumn.header}</span
+                  >${this.headerCheck()}${nameColumn.header}${this.headHint(nameColumn, false, nameHintId)}</span
                 >`
-                : nameColumn.header
+                : nameHintId
+                  ? html`<span class="lintje-data-table__header-inner"
+                      >${nameColumn.header}${this.headHint(nameColumn, false, nameHintId)}</span
+                    >`
+                  : nameColumn.header
             }
           </th>
           <th
@@ -1996,6 +2087,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
               'lintje-data-table__header-cell--mobile': true,
               'lintje-data-table__header-cell--align-right': true,
               'lintje-data-table__header-cell--sortable': measureColumn.sortable !== false,
+              'lintje-data-table__header-cell--hinted': Boolean(measureHintId),
               'is-active': active,
             })}
             aria-sort=${
@@ -2007,18 +2099,18 @@ export class LintjeDataTable extends LintjeContentTileElement {
                     : 'descending'
                   : 'none'
             }
+            aria-describedby=${measureColumn.sortable === false && measureHintId ? measureHintId : nothing}
           >
             ${
-              measureColumn.sortable === false
-                ? measureColumn.header
-                : html`<button
-                  type="button"
-                  class="lintje-data-table__sort-button"
-                  @click=${() => this.toggleSort(measureColumn)}
-                >
-                  <span class="lintje-data-table__sort-label">${measureColumn.header}</span>
-                  ${sortIcon(active ? sort.direction : null)}
-                </button>`
+              measureHintId
+                ? html`<span class="lintje-data-table__header-inner"
+                    >${this.headLabel(measureColumn, sort, measureHintId)}${this.headHint(
+                      measureColumn,
+                      true,
+                      measureHintId,
+                    )}</span
+                  >`
+                : this.headLabel(measureColumn, sort, null)
             }
           </th>
           ${
@@ -2414,6 +2506,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
     }
     const text = formatText(column, value)
     if (text == null) return missing
+    if (isDateFormat(column) && value != null && readDate(column, value)) {
+      return html`<time datetime=${String(value)}>${text}</time>`
+    }
     if (
       (column.format === 'change' || column.format === 'change-compact') &&
       typeof value === 'number'
@@ -2543,7 +2638,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
 
   private rowCheck(row: Row, id: string, isChecked: boolean): TemplateResult {
     const nameColumn = this.columns[0]
-    const name = nameColumn ? this.sortValue(nameColumn, row) : id
+    const name = (nameColumn && formatText(nameColumn, row[nameColumn.key])) ?? id
     return this.checkbox(
       html`<span class="visually-hidden">${`${name} selecteren`}</span>`,
       isChecked,
