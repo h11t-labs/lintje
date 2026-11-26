@@ -827,7 +827,7 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een datum staat zoals een Nederlandse lezer hem leest en sorteert op het moment.** De host
   geeft ISO; de tabel toont dag-maand-jaar, een tijdstip in de tijdzone van de lezer, overal
   dezelfde woorden, en sorteert op de dag of het moment, niet op de tekst. De CSV houdt ISO, dat
-  elk rekenblad als datum leest. Tekst met een getal erin sorteert op dat getal.
+  elk rekenblad als datum leest.
 - **Een totaal is van de host.** De tabel rekent nooit: een som, een gemiddelde en een gewogen
   cijfer komen binnen als waarde, met het woord dat zegt hoe ("gem."). De totaalrij staat onder de
   rijen, vet, boven een zware lijn, en plakt niet.

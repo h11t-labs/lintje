@@ -318,7 +318,8 @@ export interface TableColumnData {
    * for the reader's own time), shown `05-01-2026 14:30` in the reader's time zone and sorted by
    * the moment. Both sort newest first on the first click, put a missing or non-ISO value
    * lowest, and show a non-ISO value as given; the CSV keeps the ISO value. A host that filters
-   * such a column on text matches the shown text.
+   * such a column on text matches the shown text. Not with `editor: { kind: 'date' }`, which
+   * writes `dd-mm-jjjj`: the editor wins and the dev build warns.
    */
   format?:
     | 'text'
@@ -387,7 +388,11 @@ export interface TableOption {
   count?: number
 }
 
-/** The field an editable cell becomes. `date` is a `dd-mm-jjjj` text field the host validates; its column sorts by date. */
+/**
+ * The field an editable cell becomes. `date` is a `dd-mm-jjjj` text field the host validates; its
+ * column sorts by date. Not with `format: 'date'` or `'datetime'`, which read ISO: the editor wins
+ * and the dev build warns.
+ */
 export interface TableCellEditor {
   kind: 'text' | 'number' | 'select' | 'date'
   options?: TableOption[]

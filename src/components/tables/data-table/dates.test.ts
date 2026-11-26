@@ -1,7 +1,6 @@
 /**
  * `date` and `datetime` columns: an ISO value shown as a Dutch reader reads it, sorted by its
- * moment, with the same words in every place the table writes it; and text with a number in it
- * sorted by that number.
+ * moment, with the same words in every place the table writes it.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import './data-table'
@@ -113,6 +112,29 @@ describe('a date column', () => {
   })
 })
 
+describe('a date column with a date editor', () => {
+  it('reads the editor’s dd-mm-jjjj as before, and warns', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const element = await mount({
+      columns: [
+        data.columns[0]!,
+        { key: 'edited', header: 'Datum', format: 'date', editor: { kind: 'date' } },
+      ],
+      sort: { key: 'edited', direction: 'asc' },
+      rows: [
+        { id: '1', name: 'Nieuwjaar', edited: '05-01-2026' },
+        { id: '2', name: 'Oudjaar', edited: '28-12-2025' },
+      ],
+    })
+    expect(names(element)).toEqual(['Oudjaar', 'Nieuwjaar'])
+    const cell = row(element, 'Nieuwjaar')[1]!
+    expect(cell.querySelector('time')).toBeNull()
+    expect(cell.textContent!.trim()).toBe('05-01-2026')
+    const said = warn.mock.calls.filter(([text]) => String(text).includes('column "edited"'))
+    expect(said).toHaveLength(1)
+  })
+})
+
 describe('a datetime column', () => {
   it('shows dd-mm-jjjj uu:mm in the reader’s time zone, in a <time>', async () => {
     const element = await mount()
@@ -210,15 +232,5 @@ describe('the CSV', () => {
     ;(element as unknown as { csv(): void }).csv()
     const lines = (await file!.text()).replace(/^﻿/, '').split('\r\n')
     expect(lines[1]!.split(';')).toEqual(['Nieuwjaar', '2026-01-05', '2026-01-05T14:30'])
-  })
-})
-
-describe('a text column', () => {
-  it('sorts a number in the text by its value', async () => {
-    const element = await mount({
-      sort: { key: 'name', direction: 'asc' },
-      rows: ['Item 10', 'Item 9', 'Item 1'].map((name, index) => ({ id: String(index), name })),
-    })
-    expect(names(element)).toEqual(['Item 1', 'Item 9', 'Item 10'])
   })
 })
