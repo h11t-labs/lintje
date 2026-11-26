@@ -35,9 +35,11 @@
 }
 .lintje-split-pane__handle {
   flex: none;
-  width: 7px; height: var(--h-touch);
-  /* At rest the field's edge, 3:1 on the strip; pointed at or dragged, the accent's line. */
-  background: var(--color-border-field);
+  /* A thin bar: it marks where to take hold; the strip and its hit area are the target. */
+  width: var(--space-1); height: var(--space-8);
+  /* At rest muted, as the sortable list's grip, in both house styles; pointed at or dragged, the
+     accent's line. */
+  background: var(--color-text-muted);
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-split-pane__strip:hover .lintje-split-pane__handle,
@@ -50,6 +52,23 @@
 .lintje-split-pane__choice { display: block; margin-bottom: var(--space-3); }
 .lintje-split-pane--phone { display: block; border: 0; }
 .lintje-split-pane--phone .lintje-split-pane__pane { padding: 0; }
+
+/* One above the other: the same strip turned a quarter, in the height the host gives. */
+.lintje-split-pane--vertical { flex-direction: column; height: var(--lintje-split-height); }
+.lintje-split-pane--vertical .lintje-split-pane__pane { min-height: 0; }
+.lintje-split-pane--vertical .lintje-split-pane__strip {
+  border: 0;
+  border-top: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--color-border-default);
+  cursor: row-resize;
+}
+.lintje-split-pane--vertical .lintje-split-pane__handle { width: var(--space-8); height: var(--space-1); }
+.lintje-split-pane--vertical.is-dragging { cursor: row-resize; }
+@media (pointer: coarse) {
+  .lintje-split-pane--vertical .lintje-split-pane__strip::after {
+    inset: calc((100% - var(--h-target-text)) / 2) 0;
+  }
+}
 
 /* Forced colours: the grip is a fill, which the mode drops; it is drawn in the text colour. */
 @media (forced-colors: active) {

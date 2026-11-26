@@ -663,6 +663,9 @@ De besluiten hieronder gelden voor alle elementen.
   en de dagen ertussen dragen een tint ervan die binnen een week doorloopt. Een dag is zelf een
   cel van het raster, geen knop: de cel neemt de focus, de pijlen lopen erlangs en Enter en
   spatie kiezen hem, zoals het datumraster van de WAI-ARIA Authoring Practices.
+- **Een greep is in rust grijs** (`--color-text-muted`), in beide huisstijlen; aangewezen, opgetild
+  of gesleept neemt hij de kleur van het accent. Zo valt hij niet op naast de inhoud en zegt de
+  kleur pas iets als je hem pakt: de greep van een sorteerbare rij en die van de split pane.
 
 ### Feedback
 
