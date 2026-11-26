@@ -79,6 +79,7 @@ export const SKETCHES = {
   'log-viewer': { frame: 'code', rows: 's15 chip l50 / s15 chip l70 / | s15 chip l40 / s15 chip l60' },
   'document-viewer': { frame: 'tile', rows: 't30 sp chevl s15 chev / i i s10 sp i / doc' },
   gallery: { rows: 'img / cell cell cell' },
+  'photo-wall': { rows: 'cell cell / cell cell' },
   attachment: { center: true, rows: 'chip chip / chip' },
   // Messages and status
   announcement: { frame: 'band', rows: 'i t60 / l60' },

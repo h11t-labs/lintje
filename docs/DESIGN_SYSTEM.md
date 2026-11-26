@@ -43,7 +43,7 @@ wisselt de standaard naar de nieuwe.
 
 Onder de schakelaar staat alles wat de nieuwe huisstijl anders tekent: het lichte menu en de
 band in de primaire kleur als paginakop, de kleine hoek op knoppen en velden (`--radius-control`), de grote hoek van
-een lade en een smalle band (`--radius-corner`), de focusring, de keuzerand en de veldrand in het accent, de koelgrijze sluier,
+een lade, een smalle band en een fotowand (`--radius-corner`), de focusring, de keuzerand en de veldrand in het accent, de koelgrijze sluier,
 de typografische schaal van de paginatitel, de marges en de inhoudsbreedte, de vier kolommen op
 een telefoon, de foutmelding boven het veld met de balk en de fouttint, de balk en de gekleurde
 iconen op een statusblok, een waarschuwing in donkergeel, de kaderloze tertiaire knop, de uitklapper als accordeonrij, de koppen
@@ -325,17 +325,21 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
   `data-style-version="new"` elke knop (ook de icoonknop, de segmenten en de schakelgroep in de
   balk), elk invoervak, het vinkje en de chips (`--radius-control`, 4 px). Een omkaderd blok (een
   kaart, een tegel, een kerncijfer, een dialoog, een melding) blijft recht (`--radius`, 0), zoals
-  de huisstijl een melding en een venster tekent. In de eerdere huisstijl staan beide op 0.
-  Nooit groter dan de kleine hoek. Rond is alleen wat een cirkel ís: een stip, een radio, een
-  schakelaar, een avatar, een teller, de laadring.
+  de huisstijl een melding en een venster tekent. In de eerdere huisstijl staan beide op 0. De
+  ene uitzondering is het label op een foto in een fotowand: het is geen bedieningselement, maar
+  een etiket zo klein als een chip, en draagt dezelfde kleine hoek. Nooit groter dan de kleine
+  hoek. Rond is alleen wat een cirkel ís: een stip, een radio, een schakelaar, een avatar, een
+  teller, de laadring.
 - **De ene afgeronde hoek loopt nooit van de pagina af.** De vormtaal van de huisstijl is een
   rechthoek met één afgeronde hoek: hoogstens drie per beeld, spaarzaam, nooit een vlak met een
   hoek in een vlak met een hoek, en nooit op een vlak dat van de pagina afloopt. De band aan de kop
   van de pagina (de hero, de paginakop bij een licht menu) en de voet lopen van rand tot rand, en
   zijn dus recht: dat ze de volle breedte nemen, weegt zwaarder dan de hoek. In de nieuwe
   huisstijl draagt een lade de hoek, een lint groot (`--radius-corner`, 48 px), aan de vrije kant
-  bovenaan, en een band die met `narrow` binnen de marges staat, rechtsboven;
-  `data-style-new-corner="square"` laat hem weg. De andere uitzondering is het
+  bovenaan, een band die met `narrow` binnen de marges staat, rechtsboven, en een fotowand op de
+  foto rechtsboven, op een telefoon op de eerste foto, hoogstens een halve lint;
+  `data-style-new-corner="square"` laat hem weg. Het label met de kleine hoek op die foto is
+  geen tweede vlak met een hoek: het is een etiket, geen vorm. De andere uitzondering is het
   citaat in lopende tekst: als citaat-element heeft het zijn eigen hoek van 24 px
   (`--radius-quote`), de hoek van de huisstijl als aanhalingsteken.
 - **Schaduwen geven diepte aan en verder niets**: een vastgeplakte balk, een popover, het menu
@@ -872,6 +876,13 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een schermafbeelding wordt heel getoond, nooit bijgesneden**; alleen een miniatuur in een
   galerij (`lintje-gallery`) toont haar linkerbovenhoek, en de miniatuur van een bijlage
   (`lintje-attachment`) haar midden: zo klein blijft alleen het midden herkenbaar.
+- **Een foto die een plek of werkveld laat zien, wordt bijgesneden tot haar vak**, en staat met
+  twee tot zes tegelijk in een fotowand (`lintje-photo-wall`), zonder keuze en zonder
+  interactie. Een schermafbeelding hoort daar niet in; die staat heel in een galerij.
+- **Een bijschrift staat onder de foto in lopende tekst, en op de foto in een fotowand.** Op de
+  foto is het een kort label linksonder, op het oppervlak van de pagina, nooit tekst direct op het
+  beeld: zo haalt het zijn contrast in licht en donker, wat de foto ook toont. Een lang label
+  breekt af en kapt nooit af.
 - **Een kaart is één item van een collectie** (`lintje-card`), vierkant en plat, zonder schaduw;
   een kaart die een link is, reageert op de aanwijzer zoals een lijstrij. Zonder afbeelding is ze
   korter, nooit een grijs vak.
