@@ -447,7 +447,9 @@ export interface SortState {
  * `lintje-row-action` `{id, label, action}` from `rowActions`;
  * `lintje-bulk-action` `{ids, action}` from `bulkActions`;
  * `lintje-filter-change` `{column, value}` (`string[] | string | null`) from a column `filter`;
- * `lintje-columns-change` `{order, hidden}` from the `columnChooser`.
+ * `lintje-columns-change` `{order, hidden}` from the `columnChooser`;
+ * with `paging: 'host'` also `lintje-page-change` `{page}` from the pager and
+ * `lintje-tile-download` from the download button, in the tile and in the enlarged view.
  */
 export interface DataTableData extends FrameSettings, TileData, ContentState {
   /** The table's `<caption>`. Required; visually hidden when the tile has a title. */
@@ -457,6 +459,19 @@ export interface DataTableData extends FrameSettings, TileData, ContentState {
   rows: Record<string, CellValue>[]
   rowKey: string
   pageSize?: number
+  /**
+   * Who sorts and pages. `client` (default): the table, over all `rows`. `host`: `rows` is one
+   * page in the host's order, never sorted again; a header or a page sends its event, and the
+   * arrow and the pager show the choice while the old rows stand, `aria-busy`, until the next
+   * `rows`. Then `sort` and `page` are the host's again (`sort: null` is `defaultSort`); a host
+   * answers a new sort or filter with page 1. "Alles selecteren" checks this page; `groupBy` does
+   * not apply.
+   */
+  paging?: 'client' | 'host'
+  /** With `paging: 'host'`: the page `rows` is, from 1. */
+  page?: number
+  /** With `paging: 'host'`: the rows over all pages after the filters; the pages follow from it. */
+  rowCount?: number
   sort?: SortState | null
   /** The order without a sort choice; choosing it again clears `sort`. Default: first column. */
   defaultSort?: SortState
@@ -508,7 +523,8 @@ export interface DataTableData extends FrameSettings, TileData, ContentState {
   detailFields?: TableDetailField[]
   /**
    * Groups the rows on this column's value, in the order the groups first occur in `rows`. Rows
-   * sort within their group, a page holds whole groups, and the column itself is not shown.
+   * sort within their group, a page holds whole groups, and the column itself is not shown. Not
+   * with `paging: 'host'`, where a group would run over pages.
    */
   groupBy?: string
   /** Per group value: its subtotal row, as the host computed it. */

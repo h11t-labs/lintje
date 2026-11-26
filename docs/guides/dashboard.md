@@ -110,6 +110,13 @@ de toon van `lintje-badge` en eventueel een icoon. Wat de kolommen niet tonen, z
 `detailFields`: elke rij krijgt dan een knop die de verborgen kolommen en die velden onder de rij
 toont. Open rijen en ingeklapte groepen zijn beeld, geen toestand: ze komen niet in de URL.
 
+Levert de server de rijen per pagina, zet dan `paging: 'host'`. De tabel sorteert en pagineert dan
+niet zelf: `rows` is één pagina, in jouw volgorde, met `page` (vanaf 1) en `rowCount`, het aantal
+rijen over alle pagina's na de filters. Een kop stuurt `lintje-sort-change` en de pager
+`lintje-page-change` `{ page }`; beide horen in de URL. Tot je nieuwe `rows` geeft, tonen de pijl en
+de pager de keuze en blijven de oude rijen staan. Na een nieuwe sortering of filter geef je pagina 1.
+Downloaden stuurt `lintje-tile-download`: het bestand maak jij, want de tabel kent maar één pagina.
+
 `ChartData.description` en `DataTableData.caption` zijn verplicht: ze worden de `<desc>` van de grafiek
 en de `<caption>` van de tabel. Schrijf ze alsof de figuur er niet was.
 

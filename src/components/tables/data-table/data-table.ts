@@ -11,7 +11,12 @@
  * `{ id, label, href? }`, `lintje-row-open` `{ id, label, href? }`, `lintje-checked-change`
  * `string[]`, `lintje-cell-edit` `{ id, column, value }`, `lintje-row-action`
  * `{ id, label, action }`, `lintje-bulk-action` `{ ids, action }`, `lintje-filter-change`
- * `{ column, value }`, `lintje-columns-change` `{ order, hidden }`.
+ * `{ column, value }`, `lintje-columns-change` `{ order, hidden }`; with `paging: 'host'` also
+ * `lintje-page-change` `{ page }` and `lintje-tile-download`.
+ *
+ * With `paging: 'host'` the host sorts and pages: `rows` is one page, drawn in the given order. A
+ * header or a page shows the choice at once and sends its event; the old rows stand, with
+ * `aria-busy`, until the host's next `rows` bring its `sort` and `page`.
  */
 import {
   html,
@@ -349,6 +354,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
   readonly #modalEdges = new ScrollEdges(() => this.requestUpdate())
   #sortSeen = JSON.stringify(null)
   #checkedSeen = JSON.stringify([])
+  /** With `paging: 'host'`: the rows of the last answer; new ones bring the host's sort and page. */
+  #rowsSeen: Row[] | undefined
+  /** With `paging: 'host'`: a sort or page went to the host; its answer's rows end the wait. */
+  #asked: { say: () => string } | null = null
+  #groupWarned = false
 
   filterValues: Record<string, FilterValue> = {}
   /** What the open filter holds before "Toepassen". */
@@ -411,12 +421,30 @@ export class LintjeDataTable extends LintjeContentTileElement {
     super.willUpdate(changed)
     if (changed.has('data') || changed.has('checkedIds')) this.#noteFocus()
     if (!changed.has('data')) return
+    const state = this.data?.state ?? 'ready'
+    // The host's answer to a sort or a page is its next rows: they bring its sort and page, also
+    // when it refused the choice.
+    const rows = this.data?.rows
+    const answered = this.host && state !== 'loading' && rows !== this.#rowsSeen
+    if (answered) this.#rowsSeen = rows
     // The host wins only where it says something new: a `data` that changed for another reason
     // must not wipe the reader's sort, so compare values, not objects.
     const sort = JSON.stringify(this.data?.sort ?? null)
-    if (sort !== this.#sortSeen) {
+    if (sort !== this.#sortSeen || answered) {
       this.#sortSeen = sort
       this.sort = this.data?.sort ?? null
+    }
+    if (answered) {
+      this.page = Math.max(0, Math.floor(this.data?.page ?? 1) - 1)
+      const asked = this.#asked
+      this.#asked = null
+      if (asked) this.#live.say(asked.say())
+    }
+    if (import.meta.env?.DEV && this.host && this.data?.groupBy && !this.#groupWarned) {
+      this.#groupWarned = true
+      console.warn(
+        `<${this.localName}>: groupBy does not apply with paging 'host'; no groups drawn.`,
+      )
     }
     const checked = JSON.stringify(this.data?.checkedIds ?? [])
     if (checked !== this.#checkedSeen) {
@@ -438,7 +466,6 @@ export class LintjeDataTable extends LintjeContentTileElement {
       this.hiddenKeys = this.data?.hiddenColumns ?? []
     }
     this.#editing.sync(this.data)
-    const state = this.data?.state ?? 'ready'
     // On its own the table says it loads; in a tile the tile does.
     if (this.plain && state === 'loading' && changed.get('data')?.state !== 'loading')
       this.#live.say('Gegevens laden…')
@@ -446,11 +473,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
     if (this.#filterAsked && state !== 'loading') {
       this.#filterAsked = false
       const total = this.data?.totalRows
-      this.#live.say(
-        total == null ? rowCount(this.rows.length) : `${this.rows.length} van ${rowCount(total)}`,
-      )
+      const left = this.rowTotal
+      this.#live.say(total == null ? rowCount(left) : `${left} van ${rowCount(total)}`)
     }
-    // Fewer rows than before: a page past the last would show nothing.
+    // Fewer rows than before: a page past the last would show nothing. The host's page is its own.
+    if (this.host) return this.closeLeftRows()
     const grouped = this.grouped
     const count = grouped ? this.groupsOf(this.rows).length : this.rows.length
     const last = (size: number): number => Math.max(0, Math.ceil(count / size) - 1)
@@ -462,7 +489,11 @@ export class LintjeDataTable extends LintjeContentTileElement {
       this.mobilePage,
       last(grouped ? this.groupsPerPage : MOBILE_PAGE_SIZE),
     )
-    // A row that left the data is no longer open.
+    this.closeLeftRows()
+  }
+
+  /** A row that left the data is no longer open. */
+  private closeLeftRows(): void {
     const keys = new Set(this.rows.map((row) => this.rowKey(row)))
     if (this.openRows.some((id) => !keys.has(id))) {
       this.openRows = this.openRows.filter((id) => keys.has(id))
@@ -565,11 +596,23 @@ export class LintjeDataTable extends LintjeContentTileElement {
     return this.data?.rows ?? []
   }
 
+  /** The host sorts and pages: `rows` is one page. */
+  private get host(): boolean {
+    return this.data?.paging === 'host'
+  }
+
+  /** The rows over all pages after the filters. */
+  private get rowTotal(): number {
+    return this.host ? (this.data?.rowCount ?? this.rows.length) : this.rows.length
+  }
+
   /* Groups ------------------------------------------------------------------ */
 
   /** The column `groupBy` names; it heads its groups and is not a column of its own. */
   private get groupColumn(): TableColumnData | undefined {
     const key = this.data?.groupBy
+    // A group would run over the host's pages.
+    if (this.host) return undefined
     return key ? this.columns.find((column) => column.key === key) : undefined
   }
 
@@ -668,6 +711,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
   }
 
   private get sortedRows(): Row[] {
+    if (this.host) return this.rows
     const sort = this.activeSort
     const column = this.columns.find((candidate) => candidate.key === sort.key)
     if (!column) return this.rows
@@ -710,8 +754,26 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const column = this.columns.find((candidate) => candidate.key === next.key)
     if (column) {
       const order = next.direction === 'asc' ? 'oplopend' : 'aflopend'
-      this.#live.say(`Gesorteerd op ${column.header.toLocaleLowerCase('nl')}, ${order}.`)
+      const words = `Gesorteerd op ${column.header.toLocaleLowerCase('nl')}, ${order}.`
+      if (this.host) this.ask(() => words)
+      else this.#live.say(words)
     }
+  }
+
+  /** With `paging: 'host'`: the page shows at once; its rows and its words come with the answer. */
+  private choosePage(page: number): void {
+    this.page = page
+    this.emit('lintje-page-change', { page: page + 1 })
+    this.ask(() => {
+      const count = Math.max(1, Math.ceil(this.rowTotal / (this.data?.pageSize ?? 25)))
+      return `Pagina ${this.page + 1} van ${count}`
+    })
+  }
+
+  /** The table waits, `aria-busy`, for the host's rows; then it says `say()`. */
+  private ask(say: () => string): void {
+    this.#asked = { say }
+    this.requestUpdate()
   }
 
   private setChecked(ids: string[]): void {
@@ -934,6 +996,8 @@ export class LintjeDataTable extends LintjeContentTileElement {
         this.expand(true)
       }}
       @lintje-tile-download=${(event: Event) => {
+        // The host's table holds one page: the host makes the file.
+        if (this.host) return
         event.stopPropagation()
         this.csv()
       }}
@@ -953,7 +1017,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
         heading: data.title,
         subtitle,
         footnote: data.footnote,
-        csv: data.download ? () => this.csv() : undefined,
+        csv: data.download
+          ? () => {
+              if (this.host) this.emit('lintje-tile-download')
+              else this.csv()
+            }
+          : undefined,
       },
     )}`
   }
@@ -1017,9 +1086,12 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const grouped = this.grouped
     const groups = grouped ? this.groupsOf(rows) : []
     // With groups a page holds whole groups: the pager counts groups, not rows.
-    const units = grouped ? groups.length : rows.length
+    const host = this.host
+    const units = grouped ? groups.length : this.rowTotal
     const pageSize = grouped ? this.groupsPerPage : (data.pageSize ?? 25)
-    const mobileSize = grouped ? this.groupsPerPage : MOBILE_PAGE_SIZE
+    // The host's page is one page in both representations.
+    const mobileSize = grouped ? this.groupsPerPage : host ? pageSize : MOBILE_PAGE_SIZE
+    const mobilePage = host ? this.page : this.mobilePage
     const pageCount = Math.ceil(units / pageSize)
     const mobilePageCount = Math.ceil(units / mobileSize)
     const pageGroups = groups.slice(this.page * pageSize, (this.page + 1) * pageSize)
@@ -1031,9 +1103,15 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const collapsed = new Set(this.collapsedGroups)
     const visible = grouped
       ? pageGroups.filter((group) => !collapsed.has(group.key)).flatMap((group) => group.rows)
-      : rows.slice(this.page * pageSize, (this.page + 1) * pageSize)
+      : host
+        ? rows
+        : rows.slice(this.page * pageSize, (this.page + 1) * pageSize)
     const mobileStart = this.mobilePage * MOBILE_PAGE_SIZE
-    const mobileRows = grouped ? [] : rows.slice(mobileStart, mobileStart + MOBILE_PAGE_SIZE)
+    const mobileRows = grouped
+      ? []
+      : host
+        ? rows
+        : rows.slice(mobileStart, mobileStart + MOBILE_PAGE_SIZE)
     // The count stands once: in a pager of rows when there is one, else in the toolbar.
     const paged = !grouped && (mobile ? mobilePageCount : pageCount) > 1
     const unit = grouped ? { many: 'groepen', one: 'groep' } : { many: 'rijen', one: 'rij' }
@@ -1064,30 +1142,24 @@ export class LintjeDataTable extends LintjeContentTileElement {
           aria-label=${scrolls ? (this.data?.caption ?? nothing) : nothing}
         >
           <!-- Mobile representation: two columns (C8). First, so the scroller watches its width. -->
-          ${this.mobileTable(mobileRows, mobilePageCount, copy, grouped ? mobileGroups : null)}
+          ${this.mobileTable(mobileRows, mobilePageCount, mobileSize, copy, grouped ? mobileGroups : null)}
           ${this.fullTable(visible, pageCount, pageSize, edges, grouped ? pageGroups : null)}
         </div>
       </div>
       ${
         pageCount > 1
           ? this.pager('full', this.page, pageCount, pageSize, units, unit, (page) => {
-              this.page = page
+              if (host) this.choosePage(page)
+              else this.page = page
             })
           : nothing
       }
       ${
         mobilePageCount > 1
-          ? this.pager(
-              'mobile',
-              this.mobilePage,
-              mobilePageCount,
-              mobileSize,
-              units,
-              unit,
-              (page) => {
-                this.mobilePage = page
-              },
-            )
+          ? this.pager('mobile', mobilePage, mobilePageCount, mobileSize, units, unit, (page) => {
+              if (host) this.choosePage(page)
+              else this.mobilePage = page
+            })
           : nothing
       }
       ${mobile ? this.selectionBar(true) : nothing} ${this.panels(edges)}
@@ -1108,7 +1180,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const active = this.filterColumns.some((column) =>
       isFilterActive(this.filterValues[column.key]),
     )
-    return active && total != null ? `${this.rows.length} van ${rowCount(total)}` : ''
+    return active && total != null ? `${this.rowTotal} van ${rowCount(total)}` : ''
   }
 
   private toolbar(edges: ScrollEdges, paged: boolean): TemplateResult | typeof nothing {
@@ -1305,7 +1377,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const rowsOf = (list: Row[], first: number, inGroup: boolean): unknown =>
       list.map((row, index) => this.fullRow(row, first + index, grid, copy, inGroup))
 
-    return html`<table class="lintje-data-table__full">
+    return html`<table class="lintje-data-table__full" aria-busy=${this.#asked ? 'true' : nothing}>
       <caption class="visually-hidden">${data.caption}</caption>
       <thead>
         <tr>
@@ -1878,6 +1950,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
   private mobileTable(
     rows: Row[],
     pageCount: number,
+    pageSize: number,
     copy: 'tile' | 'modal',
     groups: Group[] | null,
   ): TemplateResult {
@@ -1900,7 +1973,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
     const span = actionColumn ? 3 : 2
     const active = sort.key === measureColumn.key
 
-    return html`<table class="lintje-data-table__mobile">
+    return html`<table class="lintje-data-table__mobile" aria-busy=${this.#asked ? 'true' : nothing}>
       <caption class="visually-hidden">${data.caption}</caption>
       <thead>
         <tr>
@@ -1992,7 +2065,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
               ${
                 pageCount > 1
                   ? Array.from(
-                      { length: MOBILE_PAGE_SIZE - rows.length },
+                      { length: pageSize - rows.length },
                       () => html`<tr
                         class="lintje-data-table__mobile-row lintje-data-table__mobile-row--filler"
                         aria-hidden="true"
@@ -2241,7 +2314,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     if (detail.href) this.followLink(detail.href, onLink ? event : undefined)
   }
 
-  /** The page is view state, not a number: it stays out of the URL. The table counts from 0. */
+  /**
+   * The page is view state, not a number: it stays out of the URL. The table counts from 0. The
+   * host's page is the host's: its pager says the page once the rows have come.
+   */
   private pager(
     variant: 'full' | 'mobile',
     page: number,
@@ -2264,6 +2340,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
       .filteredFrom=${this.grouped ? undefined : from}
       unit=${unit.many}
       unit-one=${unit.one}
+      ?quiet=${this.host}
       @lintje-page-change=${(event: CustomEvent<{ page: number }>) => {
         event.stopPropagation()
         // The pager says "Pagina 3 van 7" itself: once is enough.
@@ -2417,7 +2494,7 @@ export class LintjeDataTable extends LintjeContentTileElement {
 
   /* The check column ------------------------------------------------------- */
 
-  /** The header box covers all rows, not only this page. */
+  /** The header box covers all rows, not only this page; the host's rows are only this page. */
   private headerCheck(): TemplateResult {
     const uncheckable = this.uncheckable
     const rows = this.rows.filter((row) => !uncheckable.has(this.rowKey(row)))
@@ -2427,7 +2504,15 @@ export class LintjeDataTable extends LintjeContentTileElement {
       html`<span class="visually-hidden">Alles selecteren</span>`,
       rows.length > 0 && count === rows.length,
       count > 0,
-      (on) => this.setChecked(on ? rows.map((row) => this.rowKey(row)) : []),
+      (on) => {
+        const ids = rows.map((row) => this.rowKey(row))
+        if (!this.host) return this.setChecked(on ? ids : [])
+        // The rows checked on the host's other pages stay checked.
+        const page = new Set(ids)
+        this.setChecked(
+          on ? withRange(this.checkedIds, ids) : this.checkedIds.filter((id) => !page.has(id)),
+        )
+      },
     )
   }
 

@@ -104,6 +104,7 @@ export class LintjePagination extends LintjeElement {
     unitOne: { type: String, attribute: 'unit-one' },
     hrefTemplate: { type: String, attribute: 'href-template' },
     label: { type: String },
+    quiet: { type: Boolean },
   }
 
   page: number = 1
@@ -121,6 +122,8 @@ export class LintjePagination extends LintjeElement {
   declare unitOne?: string
   /** `?pagina={page}`: every page becomes a link with that href. */
   declare hrefTemplate?: string
+  /** Says no page: the element around it says the page once the host's rows have come. */
+  quiet: boolean = false
   readonly #live = new LiveMessage(this)
   label: string = 'Paginering'
 
@@ -216,6 +219,7 @@ export class LintjePagination extends LintjeElement {
   }
 
   private sayPage(page: number, count: number): void {
+    if (this.quiet) return
     this.#live.say(`Pagina ${page} van ${count}`)
   }
 
