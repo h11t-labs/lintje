@@ -1400,6 +1400,17 @@ export class LintjeGraph extends LintjeContentTileElement {
     const leavingKeys = new Set(leavingEdges.map((edge) => edge.key))
     const late = (edge: DrawnEdge) => this.#late.has(edge.from) || this.#late.has(edge.to)
 
+    // The tab stop: the node the keyboard was on, else the chosen one, else the centre.
+    if (!surface.stop || !shownIds.has(surface.stop)) {
+      surface.stop =
+        (this.#selected && shownIds.has(this.#selected) ? this.#selected : null) ??
+        (model.centre && shownIds.has(model.centre) ? model.centre : (shown[0]?.id ?? null))
+    }
+    // Only a line the keyboard can reach carries the ring: one taken away while it had the focus
+    // hears no blur in every browser.
+    const stopLines = this.stopLinesOf(surface, edges, routes)
+    const reachable = new Set(stopLines.map(({ edge }) => edge.key))
+
     const lines = svg`<svg class="lintje-graph__lines" width=${surface.width} height=${surface.height}
         viewBox="0 0 ${surface.width} ${surface.height}" aria-hidden="true" focusable="false">
       <desc>${data.description}</desc>
@@ -1416,7 +1427,7 @@ export class LintjeGraph extends LintjeContentTileElement {
           const state = leavingKeys.has(edge.key) ? 'is-leaving' : late(edge) ? 'is-late' : ''
           // The focus ring runs along the line: the ring, the gap in the surface, the inner line.
           const ring =
-            surface.focusedEdge === edge.key
+            surface.focusedEdge === edge.key && reachable.has(edge.key)
               ? svg`<path class="lintje-graph__ring" d=${route.d}></path>
                   <path class="lintje-graph__ring-gap" d=${route.d}></path>
                   <path class="lintje-graph__ring-inner" d=${route.d}></path>`
@@ -1457,12 +1468,6 @@ export class LintjeGraph extends LintjeContentTileElement {
       )}
     </svg>`
 
-    // The tab stop: the node the keyboard was on, else the chosen one, else the centre.
-    if (!surface.stop || !shownIds.has(surface.stop)) {
-      surface.stop =
-        (this.#selected && shownIds.has(this.#selected) ? this.#selected : null) ??
-        (model.centre && shownIds.has(model.centre) ? model.centre : (shown[0]?.id ?? null))
-    }
     const named =
       level === 'card' ? new Set<string>() : this.markNames(shown, shapes, level, hover, surface)
     const nodes = [
@@ -1508,7 +1513,7 @@ export class LintjeGraph extends LintjeContentTileElement {
             })
           },
         )}
-        ${this.lineStops(surface, edges, routes)}
+        ${this.lineStops(surface, stopLines)}
       </div>
       ${this.tooltip(surface, level)}
       ${busy}
@@ -1542,14 +1547,14 @@ export class LintjeGraph extends LintjeContentTileElement {
    * The keyboard's way to the lines: after the node it stands on and its counter, one stop per
    * choosable line of that node, clockwise from straight up by where the line leaves it.
    */
-  private lineStops(
+  private stopLinesOf(
     surface: Surface,
     edges: DrawnEdge[],
     routes: Map<string, { points: Point[]; label: Point | null }>,
-  ): TemplateResult | typeof nothing {
+  ): { edge: DrawnEdge; at: Point }[] {
     const stop = surface.stop
-    if (!stop) return nothing
-    const lines = edges
+    if (!stop) return []
+    return edges
       .filter((edge) => edge.id && (edge.from === stop || edge.to === stop) && routes.has(edge.key))
       .map((edge) => {
         const route = routes.get(edge.key)!
@@ -1557,6 +1562,12 @@ export class LintjeGraph extends LintjeContentTileElement {
         return { edge, angle, at: route.label ?? along(route.points, 0.5) }
       })
       .sort((a, b) => a.angle - b.angle)
+  }
+
+  private lineStops(
+    surface: Surface,
+    lines: { edge: DrawnEdge; at: Point }[],
+  ): TemplateResult | typeof nothing {
     if (!lines.length) return nothing
     return html`${repeat(
       lines,
@@ -1877,13 +1888,10 @@ export class LintjeGraph extends LintjeContentTileElement {
     super.updated(changed)
     this.placeTips()
     this.handFocus()
-    // A line's stop taken away while it had the focus hears no blur: its ring goes with it.
+    // A line's stop taken away while it had the focus hears no blur; its ring is already gone.
     const active = this.shadowRoot?.activeElement as HTMLElement | null
     for (const surface of this.surfaces()) {
-      if (surface.focusedEdge && active?.dataset.edge !== surface.focusedEdge) {
-        surface.focusedEdge = null
-        this.requestUpdate()
-      }
+      if (active?.dataset.edge !== surface.focusedEdge) surface.focusedEdge = null
     }
   }
 
