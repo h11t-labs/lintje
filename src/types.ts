@@ -462,8 +462,8 @@ export interface DataTableData extends FrameSettings, TileData, ContentState {
   /**
    * Who sorts and pages. `client` (default): the table, over all `rows`. `host`: `rows` is one
    * page in the host's order, never sorted again; a header or a page sends its event, and the
-   * arrow and the pager show the choice while the old rows stand, `aria-busy`, until the next
-   * `rows`. Then `sort` and `page` are the host's again (`sort: null` is `defaultSort`); a host
+   * arrow and the pager show the choice while the old rows stand, `aria-busy`, until a new
+   * `rows` array. Then `sort` and `page` are the host's again (`sort: null` is `defaultSort`); a host
    * answers a new sort or filter with page 1. "Alles selecteren" checks this page; `groupBy` does
    * not apply.
    */

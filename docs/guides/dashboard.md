@@ -115,7 +115,9 @@ niet zelf: `rows` is één pagina, in jouw volgorde, met `page` (vanaf 1) en `ro
 rijen over alle pagina's na de filters. Een kop stuurt `lintje-sort-change` en de pager
 `lintje-page-change` `{ page }`; beide horen in de URL. Tot je nieuwe `rows` geeft, tonen de pijl en
 de pager de keuze en blijven de oude rijen staan. Na een nieuwe sortering of filter geef je pagina 1.
-Downloaden stuurt `lintje-tile-download`: het bestand maak jij, want de tabel kent maar één pagina.
+Het wachten duurt tot een nieuwe `rows`-array: geef bij een ander antwoord, zoals `checkedIds`, de
+oude array terug. Downloaden (met `download: { filename }`) stuurt `lintje-tile-download`: het
+bestand maak jij, want de tabel kent maar één pagina.
 
 `ChartData.description` en `DataTableData.caption` zijn verplicht: ze worden de `<desc>` van de grafiek
 en de `<caption>` van de tabel. Schrijf ze alsof de figuur er niet was.
