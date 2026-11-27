@@ -147,6 +147,27 @@ describe('lintje-accordion', () => {
     expect(toggles).toEqual(['lintje-toggletip', 'lintje-toggletip'])
   })
 
+  it('reads only its own rows, whatever the detail of a toggle from deeper inside says', async () => {
+    const element = await accordion('exclusive')
+    const [first, second] = rowsOf(element)
+    await press(first!)
+    await press(second!)
+    expect(first!.open).toBe(false)
+    const inside = document.createElement('span')
+    second!.append(inside)
+    const toggles: string[] = []
+    element.addEventListener('lintje-toggle', (event) =>
+      toggles.push((event.target as Element).localName),
+    )
+    // As a toggletip will send it once every detail is an object with the same meaning.
+    inside.dispatchEvent(
+      new CustomEvent('lintje-toggle', { detail: true, bubbles: true, composed: true }),
+    )
+    await settled(element)
+    expect(second!.open).toBe(true)
+    expect(toggles).toEqual(['span'])
+  })
+
   it('draws no link unless asked', async () => {
     expect(link(await accordion())).toBeNull()
     expect(link(await accordion('toggle-all exclusive'))).toBeNull()
