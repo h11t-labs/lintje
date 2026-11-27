@@ -381,7 +381,7 @@ export class LintjeList extends LintjeElement {
                 hide-label
                 label=${`Voortgang ${item.title}`}
                 .value=${item.progress}
-                state=${item.status?.tone === 'warning' ? 'paused' : 'busy'}
+                state=${item.status?.tone === 'warning' ? 'paused' : nothing}
               ></lintje-progress-bar>`
             : nothing
         }
