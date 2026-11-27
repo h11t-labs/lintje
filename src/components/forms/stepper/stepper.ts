@@ -57,8 +57,10 @@ export function errorText(errors: number): string {
 export function position(steps: Step[]): { place: number; total: number; percent: number } {
   const total = steps.length
   const current = steps.findIndex((step) => step.state === 'current')
-  const place = current < 0 ? steps.filter((step) => step.state === 'done').length : current + 1
-  return { place, total, percent: total ? Math.round((place / total) * 100) : 0 }
+  const done = steps.filter((step) => step.state === 'done').length
+  const place = current < 0 ? done : current + 1
+  // The bar counts the finished steps: the last step is not done while it is current.
+  return { place, total, percent: total ? Math.round((done / total) * 100) : 0 }
 }
 
 /**
