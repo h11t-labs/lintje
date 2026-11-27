@@ -1026,7 +1026,7 @@ export default {
         },
         {
           label: 'Rijen met een link',
-          note: 'Elke rij heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad.',
+          note: 'Elke rij heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad. Onder de aanwijzer licht een rij op; de gekozen rij houdt haar vlak en balk.',
           html: '<lintje-data-table></lintje-data-table>',
           setup: (stage) => {
             const element = table(stage, {
@@ -1034,6 +1034,7 @@ export default {
               title: 'Loketten',
               subtitle: 'Elke rij met een link',
               rows: tableData.rows.slice(0, 4).map((row) => ({ ...row, href: `?loket=${row.id}` })),
+              selectedId: tableData.rows[0].id,
               pageSize: undefined,
               expandable: false,
             })

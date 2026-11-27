@@ -10,13 +10,13 @@
  * the handle stands in pixels, whether the tick labels collide — is measured in
  * headless Chrome; this is the arithmetic and the events.
  */
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import './range'
 import type { LintjeRange } from './range'
 
 const STEPS = [5, 10, 15, 20, 25, 30]
 
-async function mount(value: number = 15): Promise<LintjeRange> {
+async function mount(value: number | null = 15): Promise<LintjeRange> {
   const element = document.createElement('lintje-range') as LintjeRange
   element.single = true
   element.name = 'p.drempel'
@@ -115,6 +115,32 @@ describe('the single-handle slider', () => {
     const seen = committed(element)
     press(element, 'ArrowRight')
     expect(seen).toEqual([20])
+  })
+
+  it('commits the first step without a value once the handle is touched and left there', async () => {
+    const element = await mount(null)
+    const seen = committed(element)
+    pointer(slider(element), 'pointerdown', 0)
+    pointer(slider(element), 'pointerup', 0)
+    await element.updateComplete
+    expect(seen).toEqual([5])
+    // Chosen once: a second touch where it stands is no change.
+    pointer(slider(element), 'pointerup', 0)
+    expect(seen).toEqual([5])
+  })
+
+  it('commits the first step without a value on Home, and nothing on Home with one', async () => {
+    const element = await mount(null)
+    const seen = committed(element)
+    press(element, 'Home')
+    await element.updateComplete
+    press(element, 'Home')
+    expect(seen).toEqual([5])
+    const chosen = await mount(5)
+    const more = committed(chosen)
+    press(chosen, 'Home')
+    pointer(slider(chosen), 'pointerup', 0)
+    expect(more).toEqual([])
   })
 
   it('moves one step on an arrow and a tenth of the scale on a page key', async () => {
@@ -415,5 +441,47 @@ describe('a value that differs from its default', () => {
     const element = await mountPair({ modified: true, hideLabel: true })
     expect(element.renderRoot.querySelector('.lintje-label__dot')).toBeNull()
     expect(element.renderRoot.querySelector('.lintje-range__values')?.textContent).toBe('10 – 20')
+  })
+})
+
+describe('in a native form', () => {
+  /** What each element last gave its form. */
+  const posted = new Map<Element, FormData | null>()
+  const prototype = HTMLElement.prototype as unknown as { attachInternals?: () => unknown }
+  const original = prototype.attachInternals
+
+  beforeEach(() => {
+    posted.clear()
+    prototype.attachInternals = function (this: Element) {
+      return {
+        form: null,
+        setFormValue: (value: FormData | null) => posted.set(this, value),
+        setValidity: () => {},
+      }
+    }
+  })
+  afterEach(() => {
+    prototype.attachInternals = original
+  })
+
+  const entries = (element: Element) => [...(posted.get(element)?.entries() ?? [])]
+
+  it('posts the step the single handle shows when it has no value, also a step as text', async () => {
+    const element = await mount(null)
+    expect(entries(element)).toEqual([['p.drempel', '5']])
+    element.steps = ['laag', 'midden', 'hoog']
+    await element.updateComplete
+    expect(entries(element)).toEqual([['p.drempel', 'laag']])
+    element.value = 'hoog'
+    await element.updateComplete
+    expect(entries(element)).toEqual([['p.drempel', 'hoog']])
+  })
+
+  it('posts both indexes of two handles, as before', async () => {
+    const element = await mountPair({ name: 'p.bereik' })
+    expect(entries(element)).toEqual([
+      ['p.bereik', '1'],
+      ['p.bereik', '3'],
+    ])
   })
 })
