@@ -68,10 +68,6 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     return this.error || this.problem
   }
 
-  override get refusal(): string {
-    return this.problem
-  }
-
   protected override get footMessage(): string {
     return this.message
   }
@@ -80,6 +76,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     super.willUpdate(changed)
     if (!changed.has('value')) return
     this.problem = ''
+    this.refuse('')
     // The binding writes only a value that differs from the last; a refused number stays typed.
     const control = this.nativeControl
     if (control) control.value = this.formValue
@@ -115,13 +112,19 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     this.#live.say(String(next))
   }
 
+  private problemOf(raw: string): string {
+    return raw === '' ? '' : this.outOfBounds(Number(raw))
+  }
+
   /** `false` when it refused the typed number. */
   private change(event: Event): boolean {
     if (this.readonly) return false
     const raw = (event.target as HTMLInputElement).value
+    const problem = this.problemOf(raw)
+    this.refuse(problem, () => (this.problem = problem))
+    if (problem) return false
+    this.problem = ''
     const next = raw === '' ? null : Number(raw)
-    this.problem = next === null ? '' : this.outOfBounds(next)
-    if (this.problem) return false
     if (next === this.value) return true
     this.value = next
     this.commit(this.value)
@@ -181,6 +184,9 @@ export class LintjeNumberInput extends LintjeFormInputElement {
           ?required=${this.required}
           ?readonly=${this.readonly}
           ?disabled=${this.isDisabled}
+          @input=${(event: Event) => {
+            if (!this.readonly) this.refuse(this.problemOf((event.target as HTMLInputElement).value))
+          }}
           @change=${this.change}
           @keydown=${(event: KeyboardEvent) => this.submitOnEnter(event, () => this.change(event))}
         />

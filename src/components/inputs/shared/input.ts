@@ -32,6 +32,37 @@ const OPTIONAL = '(niet verplicht)'
 const MODIFIED = 'afwijkend van standaard'
 const MISSING = 'Vul dit veld in.'
 
+const RELEASES = ['pointerup', 'pointercancel']
+let pressed = false
+let tracking = false
+
+/** Whether a pointer is down anywhere on the page, read when a press makes a field let go. */
+function trackPresses(): void {
+  if (tracking || typeof window === 'undefined') return
+  tracking = true
+  window.addEventListener('pointerdown', () => (pressed = true), true)
+  for (const type of RELEASES) window.addEventListener(type, () => (pressed = false), true)
+  window.addEventListener('blur', (event) => {
+    if (event.target === window) pressed = false
+  })
+}
+
+/** Runs `run` now, or once the pointer that is down is released: after the click it makes. */
+function afterPress(run: () => void): void {
+  if (!pressed) return run()
+  const done = new AbortController()
+  const release = (): void => {
+    done.abort()
+    setTimeout(run)
+  }
+  for (const type of RELEASES)
+    window.addEventListener(type, release, { capture: true, signal: done.signal })
+  // The window losing focus ends the press too; a field's own blur reaches it only in capture.
+  window.addEventListener('blur', (event) => event.target === window && release(), {
+    signal: done.signal,
+  })
+}
+
 /** What an input may commit. A host serialises it into the URL. */
 export type InputValue = string | number | boolean | null
 
@@ -97,6 +128,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
 
   constructor() {
     super()
+    trackPresses()
     this.addController({ hostUpdated: () => this.syncForm() })
   }
 
@@ -132,11 +164,30 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
   }
 
   /**
-   * The field's own message about typed text it could not commit, `''` when there is none. While
-   * it stands the field holds back a native `<form>` and `lintje-form`; a host's `error` does not.
+   * The field's own message about the text typed in it that it cannot commit, `''` when there is
+   * none. It follows the typing, before the field shows it. While it stands the field holds back a
+   * native `<form>` and `lintje-form`; a host's `error` does not.
    */
   get refusal(): string {
-    return ''
+    return this.#refusal
+  }
+
+  #refusal = ''
+
+  /**
+   * Sets what the typed text is refused for, so the form is held at once. `show` draws the
+   * message: after a pointer press that left the field, so what was pressed does not move away.
+   */
+  protected refuse(message: string, show?: () => void): void {
+    if (message !== this.#refusal) {
+      this.#refusal = message
+      this.syncValidity()
+    }
+    if (message && show) {
+      afterPress(() => {
+        if (this.#refusal === message) show()
+      })
+    }
   }
 
   /**

@@ -249,8 +249,6 @@ export class LintjeForm extends LintjeElement {
     const textarea = origin instanceof HTMLTextAreaElement && mod
     if (!oneLine && !textarea) return
     event.preventDefault()
-    // `lintje-textarea` commits on Ctrl+Enter itself: a flush would commit it a second time.
-    if (oneLine) this.#flush(origin)
     this.submit()
   }
 
@@ -362,6 +360,13 @@ export class LintjeForm extends LintjeElement {
    */
   submit(): void {
     if (this.busy) return
+    // A one-line field with the focus commits first: a press need not have left it. A textarea
+    // commits on Ctrl+Enter itself, and a flush would commit it a second time.
+    const active = deepActiveElement()
+    const owner = namedControls(this).some(
+      (control) => control === active || control.shadowRoot?.contains(active),
+    )
+    if (owner && active instanceof HTMLInputElement) this.#flush(active)
     this.#refused = this.#readRefused()
     this.requestUpdate()
     const first = this.#refused[0]

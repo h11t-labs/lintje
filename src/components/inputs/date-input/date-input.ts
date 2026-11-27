@@ -98,10 +98,6 @@ export class LintjeDateInput extends LintjeInputElement {
     return this.error || this.problem
   }
 
-  override get refusal(): string {
-    return this.problem
-  }
-
   protected override get footMessage(): string {
     return this.message
   }
@@ -121,6 +117,7 @@ export class LintjeDateInput extends LintjeInputElement {
     if (changed.has('value')) {
       this.text = formatDate(this.value)
       this.problem = ''
+      this.refuse('')
     }
   }
 
@@ -133,24 +130,30 @@ export class LintjeDateInput extends LintjeInputElement {
 
   private choose(day: string | null): void {
     this.problem = ''
+    this.refuse('')
     this.text = formatDate(day)
     if (day === this.value) return
     this.value = day
     this.commit(day)
   }
 
-  private read(text: string): void {
+  private problemOf(text: string): string {
     const parsed = parseDate(text, partsOf(this.todayDay)![0])
-    if (parsed.kind === 'empty') return this.choose(null)
-    this.text = text
-    if (parsed.kind === 'invalid') {
-      this.problem =
-        parsed.reason === 'day' ? 'Deze datum bestaat niet' : 'Vul een datum in als dd-mm-jjjj'
+    if (parsed.kind === 'empty') return ''
+    if (parsed.kind === 'invalid')
+      return parsed.reason === 'day' ? 'Deze datum bestaat niet' : 'Vul een datum in als dd-mm-jjjj'
+    return this.outOfBounds(parsed.iso)
+  }
+
+  private read(text: string): void {
+    const problem = this.problemOf(text)
+    if (problem) {
+      this.text = text
+      this.refuse(problem, () => (this.problem = problem))
       return
     }
-    const bound = this.outOfBounds(parsed.iso)
-    if (bound) this.problem = bound
-    else this.choose(parsed.iso)
+    const parsed = parseDate(text, partsOf(this.todayDay)![0])
+    this.choose(parsed.kind === 'ok' ? parsed.iso : null)
   }
 
   private onChange(event: Event): void {
@@ -162,7 +165,7 @@ export class LintjeDateInput extends LintjeInputElement {
     if (this.readonly) return
     this.submitOnEnter(event, () => {
       this.read((event.target as HTMLInputElement).value)
-      return !this.problem
+      return !this.refusal
     })
     if (event.altKey && event.key === 'ArrowDown') {
       event.preventDefault()
@@ -287,6 +290,9 @@ export class LintjeDateInput extends LintjeInputElement {
           aria-required=${this.required ? 'true' : nothing}
           ?readonly=${this.readonly}
           ?disabled=${this.isDisabled}
+          @input=${(event: Event) => {
+            if (!this.readonly) this.refuse(this.problemOf((event.target as HTMLInputElement).value))
+          }}
           @change=${this.onChange}
           @keydown=${this.onFieldKeydown}
         />

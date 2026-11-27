@@ -310,26 +310,25 @@ describe('the parts of a value', () => {
 
 /** Typed text a field refused holds the form back, as an empty required field does. */
 describe('refused typed text', () => {
+  // Without a hint, so the message adds a line where there was none and moves what is below.
   const REFUSING: { tag: string; props: object; refused: string; value: unknown; old: string }[] = [
     {
       tag: 'lintje-number-input',
-      // A hint keeps the message in its place: without one, the line it adds moves the button
-      // away between press and release.
-      props: { max: 10, hint: 'Hoogstens 10' },
+      props: { max: 10 },
       refused: '50',
       value: 3,
       old: '3',
     },
     {
       tag: 'lintje-date-input',
-      props: {},
+      props: { hint: '' },
       refused: '32-10-2026',
       value: '2026-10-04',
       old: '04-10-2026',
     },
     {
       tag: 'lintje-time-input',
-      props: { max: '18:00' },
+      props: { max: '18:00', hint: '' },
       refused: '19:30',
       value: '09:30',
       old: '09:30',
@@ -349,6 +348,87 @@ describe('refused typed text', () => {
       type: 'submit',
       textContent: 'Versturen',
     })
+  }
+
+  /** The element under a point, through every shadow root. */
+  function deepAt(x: number, y: number): Element | null {
+    let hit = document.elementFromPoint(x, y)
+    while (hit?.shadowRoot) {
+      const inner = hit.shadowRoot.elementFromPoint(x, y)
+      if (!inner || inner === hit) break
+      hit = inner
+    }
+    return hit
+  }
+
+  /**
+   * Presses `target` with the pointer and says whether the press and the click reached it. It
+   * waits until the point it presses resolves into the target: a press on a page that has not
+   * laid it out yet reaches nothing, and a field that refuses would hold the form all the same.
+   */
+  async function press(target: HTMLElement): Promise<{ landed: boolean; facts: string }> {
+    const centre = (): [number, number] => {
+      const box = target.getBoundingClientRect()
+      return [box.left + box.width / 2, box.top + box.height / 2]
+    }
+    const inside = (node: Node | null): boolean => {
+      for (let at = node; at; at = (at.parentNode ?? (at as ShadowRoot).host) as Node | null)
+        if (at === target) return true
+      return false
+    }
+    await expect.poll(() => inside(deepAt(...centre()))).toBe(true)
+    const got: string[] = []
+    let windowTarget = ''
+    const onWindow = (event: Event): void => {
+      windowTarget = (event.composedPath()[0] as Element).outerHTML?.slice(0, 80) ?? ''
+    }
+    window.addEventListener('pointerdown', onWindow, true)
+    const down = (): number => got.push('pointerdown')
+    const click = (): number => got.push('click')
+    target.addEventListener('pointerdown', down)
+    target.addEventListener('click', click)
+    await userEvent.click(target)
+    window.removeEventListener('pointerdown', onWindow, true)
+    const facts = JSON.stringify({
+      got,
+      at: deepAt(...centre())?.outerHTML.slice(0, 80),
+      windowTarget,
+      box: target.getBoundingClientRect(),
+    })
+    return { landed: got.includes('pointerdown') && got.includes('click'), facts }
+  }
+
+  /** A native form with the field and its submit button, both in it before it is mounted. */
+  async function nativeForm(
+    row: { tag: string; props: object },
+    props: object = {},
+  ): Promise<{
+    form: HTMLFormElement
+    element: Input
+    button: HTMLElement
+    invalid: () => number
+    submits: () => number
+  }> {
+    const form = document.createElement('form')
+    let submitted = 0
+    let invalid = 0
+    form.addEventListener('submit', (event) => {
+      event.preventDefault()
+      submitted += 1
+    })
+    form.addEventListener('invalid', () => (invalid += 1), true)
+    const element = Object.assign(document.createElement(row.tag), {
+      name: 'veld',
+      label: 'Veld',
+      ...row.props,
+      ...props,
+    }) as unknown as Input
+    const button = submitButton()
+    form.append(element, button)
+    document.body.append(form)
+    await settled(element)
+    await settled(button as unknown as Input)
+    return { form, element, button, invalid: () => invalid, submits: () => submitted }
   }
 
   describe.each(REFUSING)('$tag in a native form', (row) => {
@@ -371,43 +451,28 @@ describe('refused typed text', () => {
     })
 
     it('holds a press on the button straight after typing', async () => {
-      const fill = { tag: row.tag, fill: {}, posts: [] }
-      const { form, element, submits } = await inForm(fill, {
-        ...row.props,
-        value: row.value,
-        required: false,
-      })
-      const button = submitButton()
-      form.append(button)
-      await settled(button as unknown as Input)
-      const input = element.renderRoot.querySelector('input')!
-      const seen: unknown[] = []
-      const log = (what: string) => () =>
-        seen.push([what, element.refusal, input.value, active()?.localName])
-      for (const type of ['change', 'blur', 'focusout']) input.addEventListener(type, log(type))
-      for (const type of ['pointerdown', 'mousedown', 'mouseup', 'click', 'focusin'])
-        button.addEventListener(type, log('button:' + type))
-      form.addEventListener('submit', log('submit'))
-      form.addEventListener('invalid', log('invalid'), true)
-      await userEvent.fill(input, row.refused)
-      seen.push(['filled', input.value, active()?.localName])
-      await userEvent.click(button)
-      seen.push(['clicked', element.refusal, active()?.localName])
-      await new Promise((resolve) => setTimeout(resolve, 50))
-      seen.push([
-        'end',
-        element.refusal,
-        submits(),
-        active()?.localName,
-        element.matches(':invalid'),
-        form.checkValidity(),
-        JSON.stringify(button.getBoundingClientRect()),
-        navigator.userAgent,
-      ])
-      expect(element.refusal, JSON.stringify(seen)).not.toBe('')
+      const { element, button, invalid, submits } = await nativeForm(row, { value: row.value })
+      await userEvent.fill(element.renderRoot.querySelector('input')!, row.refused)
+      const { landed, facts } = await press(button)
+      await new Promise((resolve) => setTimeout(resolve, 20))
+      expect(landed, facts).toBe(true)
+      expect(invalid()).toBeGreaterThan(0)
       expect(submits()).toBe(0)
-      // Diagnostic only: shows the sequence in every browser.
-      expect(JSON.stringify(seen)).toBe('DIAG')
+      expect(element.refusal).not.toBe('')
+    })
+
+    it('draws its message once a press on the empty page is released', async () => {
+      const { element } = await nativeForm(row)
+      const empty = document.createElement('div')
+      empty.style.height = '48px'
+      document.body.append(empty)
+      await userEvent.fill(element.renderRoot.querySelector('input')!, row.refused)
+      await userEvent.click(empty)
+      await new Promise((resolve) => setTimeout(resolve, 20))
+      await settled(element)
+      expect(element.renderRoot.querySelector('.lintje-field__error')?.textContent).toContain(
+        element.refusal,
+      )
     })
 
     it('takes the focus at its control when the form reports', async () => {
@@ -484,10 +549,13 @@ describe('refused typed text', () => {
     it('holds a press on the button straight after typing', async () => {
       const { form, element, button, submits } = await inLintjeForm()
       await userEvent.fill(element.renderRoot.querySelector('input')!, row.refused)
-      await userEvent.click(button)
+      const { landed, facts } = await press(button)
       await (form as unknown as Input).updateComplete
+      expect(landed, facts).toBe(true)
       expect(submits()).toBe(0)
-      expect(summaryItems(form)).toHaveLength(1)
+      expect(summaryItems(form)).toEqual([
+        { field: 'veld', label: 'Veld', message: element.refusal },
+      ])
     })
 
     it('submits once the text is back at its value, and the line leaves the summary', async () => {
@@ -504,6 +572,46 @@ describe('refused typed text', () => {
       expect(summaryItems(form)).toEqual([])
       await userEvent.click(button)
       expect(submits()).toBe(1)
+    })
+  })
+
+  // A one-line hint becomes three lines of message: more than half the button moves away.
+  describe('a message that wraps in a narrow column', () => {
+    const row = { tag: 'lintje-date-input', props: { min: '2026-10-01' } }
+
+    it('holds a press on the button of a native form straight after typing', async () => {
+      const { form, element, button, invalid, submits } = await nativeForm(row)
+      form.style.width = '8rem'
+      await userEvent.fill(element.renderRoot.querySelector('input')!, '01-01-2026')
+      const { landed, facts } = await press(button)
+      await new Promise((resolve) => setTimeout(resolve, 20))
+      await settled(element)
+      const message = element.renderRoot.querySelector<HTMLElement>('.lintje-field__error')!
+      const line = parseFloat(getComputedStyle(message).lineHeight)
+      expect(message.getBoundingClientRect().height).toBeGreaterThan(1.5 * line)
+      expect(landed, facts).toBe(true)
+      expect(invalid()).toBeGreaterThan(0)
+      expect(submits()).toBe(0)
+    })
+
+    it('holds a press on the button of lintje-form straight after typing', async () => {
+      const form = document.createElement('lintje-form')
+      form.style.cssText = 'display: block; width: 8rem'
+      let submits = 0
+      form.addEventListener('lintje-submit', () => (submits += 1))
+      const element = Object.assign(document.createElement(row.tag), {
+        name: 'veld',
+        label: 'Veld',
+        ...row.props,
+      }) as unknown as Input
+      const button = submitButton()
+      form.append(element, button)
+      document.body.append(form)
+      await settled(element)
+      await userEvent.fill(element.renderRoot.querySelector('input')!, '01-01-2026')
+      const { landed, facts } = await press(button)
+      expect(landed, facts).toBe(true)
+      expect(submits).toBe(0)
     })
   })
 })
