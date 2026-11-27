@@ -2,7 +2,7 @@
  * `<lintje-progress-bar>` — how far a task is; without a `value` a block slides along the track.
  *
  * The default slot takes one action right of the label line. Done, error and paused are said in
- * the value text and marked by a glyph.
+ * the value text and marked by a glyph: before the label, or before the track without one.
  */
 import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
@@ -64,22 +64,28 @@ export class LintjeProgressBar extends LintjeElement {
               state === 'paused' ? 'multimedia-player-pauze' : TONE_ICON[WORK_STATE_TONE[state]],
           }
     const head = !this.hideLabel && (this.label || this.detail)
+    const glyph = mark
+      ? renderIcon(mark.icon, { size: 16, className: 'lintje-progress__mark' })
+      : nothing
+    // Without a head the glyph stands before the track, so the state is never colour alone.
+    const track = this.renderTrack(mark)
     return html`<div class=${classMap({ 'lintje-progress': true, [`lintje-progress--${state}`]: true })}>
       ${
         head
           ? html`<div class="lintje-progress__head">
-            <span class="lintje-progress__label"
-              >${
-                mark
-                  ? renderIcon(mark.icon, { size: 16, className: 'lintje-progress__mark' })
-                  : nothing
-              }${this.label}</span
-            >
-            <span class="lintje-progress__detail">${this.detail ?? nothing}<slot></slot></span>
-          </div>`
-          : nothing
+              <span class="lintje-progress__label">${glyph}${this.label}</span>
+              <span class="lintje-progress__detail">${this.detail ?? nothing}<slot></slot></span>
+            </div>
+            ${track}`
+          : mark
+            ? html`<div class="lintje-progress__row">${glyph}${track}</div>`
+            : track
       }
-      <div
+    </div>`
+  }
+
+  private renderTrack(mark: { word: string } | undefined): TemplateResult {
+    return html`<div
         class=${classMap({ 'lintje-progress__track': true, 'is-indeterminate': !this.known })}
         role="progressbar"
         aria-label=${this.label}
@@ -92,8 +98,7 @@ export class LintjeProgressBar extends LintjeElement {
           class="lintje-progress__fill"
           ${styleProps({ width: this.known ? `${this.percent}%` : null })}
         ></div>
-      </div>
-    </div>`
+      </div>`
   }
 }
 

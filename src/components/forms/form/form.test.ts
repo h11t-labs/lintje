@@ -370,6 +370,14 @@ describe('lintje-form', () => {
       expect(at<{ from: number; to: number }>(form, 'duur')).toMatchObject({ from: 2, to: 4 })
     })
 
+    it('reads a single range without a value as the step its handle shows', async () => {
+      const form = await mountAll()
+      const range = at<{ single: boolean; updateComplete: Promise<unknown> }>(form, 'duur')
+      range.single = true
+      await range.updateComplete
+      expect(form.collect()).toMatchObject({ duur: 1 })
+    })
+
     it('puts a stored draft back into every field that can take it', async () => {
       localStorage.setItem(
         `${DRAFT_PREFIX}alles`,

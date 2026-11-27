@@ -77,8 +77,8 @@ export class LintjeTooltip extends LintjeElement {
   private readonly onFocusIn = (): void => this.show(0)
   private readonly onFocusOut = (): void => this.hide()
   /**
-   * On the document: a tooltip opened by the pointer is dismissed wherever the focus is, and that
-   * Escape is its own: what stands around it (a menu) sees it prevented and stays open.
+   * On the window, in capture: a tooltip opened by the pointer is dismissed wherever the focus is,
+   * and it hears Escape before any other layer, which then sees it answered and stays open.
    */
   private readonly onKeydown = (event: KeyboardEvent): void => {
     if (event.key !== 'Escape' || !this.open) return
@@ -100,7 +100,7 @@ export class LintjeTooltip extends LintjeElement {
     this.addEventListener('mouseleave', this.onPointerLeave)
     this.addEventListener('focusin', this.onFocusIn)
     this.addEventListener('focusout', this.onFocusOut)
-    document.addEventListener('keydown', this.onKeydown, true)
+    window.addEventListener('keydown', this.onKeydown, true)
     window.addEventListener('scroll', this.onReflow, { capture: true, passive: true })
     window.addEventListener('resize', this.onReflow)
   }
@@ -110,7 +110,7 @@ export class LintjeTooltip extends LintjeElement {
     this.removeEventListener('mouseleave', this.onPointerLeave)
     this.removeEventListener('focusin', this.onFocusIn)
     this.removeEventListener('focusout', this.onFocusOut)
-    document.removeEventListener('keydown', this.onKeydown, true)
+    window.removeEventListener('keydown', this.onKeydown, true)
     window.removeEventListener('scroll', this.onReflow, { capture: true })
     window.removeEventListener('resize', this.onReflow)
     if (this.reflowFrame) cancelAnimationFrame(this.reflowFrame)

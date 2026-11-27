@@ -676,6 +676,22 @@ export default {
           setup: setSelected(SOURCES, []),
         },
         {
+          label: 'Zonder opties',
+          note:
+            'Open de lijst: zonder opties staat er geen "Alles selecteren", alleen dat er niets te ' +
+            'kiezen is.',
+          html: '<lintje-multiselect label="Bron van de aanvraag"></lintje-multiselect>',
+          setup: setSelected([], []),
+        },
+        {
+          label: 'Waarde buiten de opties',
+          note:
+            'Een gekozen waarde zonder optie staat als zichzelf in de chip; "Alles selecteren" ' +
+            'telt haar niet mee.',
+          html: '<lintje-multiselect label="Bron van de aanvraag"></lintje-multiselect>',
+          setup: setSelected(SOURCES, ['balie', 'archief']),
+        },
+        {
           label: 'Uitgeschakeld',
           html: '<lintje-multiselect label="Bron van de aanvraag" disabled></lintje-multiselect>',
           setup: setSelected(SOURCES, ['balie']),
