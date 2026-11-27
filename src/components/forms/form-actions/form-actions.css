@@ -1,4 +1,4 @@
-/* The host is the sticky box. z-index 20: above the form, below the shell's menu (30) and popovers (46). */
+/* The host is the sticky box. z-index 20: above the form, below the shell's menu (30) and popovers (85). */
 :host {
   display: block;
   min-width: 0;

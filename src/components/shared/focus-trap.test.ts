@@ -5,7 +5,7 @@
  * trap wraps, it prevents the default and moves the focus itself.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { FocusTrap, deepActiveElement, tabbables } from './focus-trap'
+import { FocusTrap, deepActiveElement, standBeside, tabbables } from './focus-trap'
 import { holdOverflow } from '../../core/host-config'
 import '../layout/expander/expander'
 import '../overlays/modal/modal'
@@ -149,6 +149,49 @@ describe('two traps', () => {
     expect(deepActiveElement()?.id).toBe('upper-a')
     above.deactivate(false)
     expect(above.isTopmost()).toBe(false)
+  })
+})
+
+describe('an element beside the window', () => {
+  it('takes the focus, and Tab goes from the window into it and back around', () => {
+    const opener = document.createElement('button')
+    document.body.append(opener)
+    opener.focus()
+    const dialog = box('a', 'b')
+    const toast = box('close')
+    const unbeside = standBeside(toast)
+    const trap = new FocusTrap()
+    trap.activate(dialog)
+    ;(dialog.querySelector('#b') as HTMLElement).focus()
+    expect(tab().defaultPrevented).toBe(true)
+    expect(deepActiveElement()?.id).toBe('close')
+    expect(tab().defaultPrevented).toBe(true)
+    expect(deepActiveElement()?.id).toBe('a')
+    expect(tab(true).defaultPrevented).toBe(true)
+    expect(deepActiveElement()?.id).toBe('close')
+    expect(tab(true).defaultPrevented).toBe(true)
+    expect(deepActiveElement()?.id).toBe('b')
+    // A pointer in it keeps the focus there: the trap pulls nothing back.
+    ;(toast.querySelector('#close') as HTMLElement).focus()
+    expect(deepActiveElement()?.id).toBe('close')
+    // The window closing from there still gives the focus to its opener.
+    trap.deactivate()
+    expect(deepActiveElement()).toBe(opener)
+    unbeside()
+  })
+
+  it('is passed over once it has left', () => {
+    const dialog = box('a', 'b')
+    const toast = box('close')
+    standBeside(toast)()
+    const trap = new FocusTrap()
+    trap.activate(dialog)
+    ;(dialog.querySelector('#b') as HTMLElement).focus()
+    expect(tab().defaultPrevented).toBe(true)
+    expect(deepActiveElement()?.id).toBe('a')
+    ;(toast.querySelector('#close') as HTMLElement).focus()
+    expect(deepActiveElement()).toBe(dialog)
+    trap.deactivate(false)
   })
 })
 

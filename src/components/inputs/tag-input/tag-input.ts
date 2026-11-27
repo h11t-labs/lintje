@@ -3,7 +3,7 @@
  *
  * Enter, a comma, a paste with commas or leaving the field makes chips; a duplicate is pointed out
  * instead of added. With `options` it also suggests, and still takes a word that is not among
- * them.
+ * them; Enter and Tab take the pointed suggestion.
  *
  * Events: `lintje-change` `string[]`, `lintje-values-change` `{ [name]: value }` (with a `name`),
  * `lintje-reset` (the reset link was pressed).
@@ -226,6 +226,21 @@ export class LintjeTagInput extends LintjeInputElement {
         event.preventDefault()
         this.active = Math.max(this.active - 1, 0)
         return
+      case 'Home':
+      case 'End':
+        if (!open || !this.suggestions.length) return
+        event.preventDefault()
+        this.active = event.key === 'Home' ? 0 : this.suggestions.length - 1
+        return
+      case 'Tab': {
+        // Like the combobox, Tab takes the pointed suggestion and still moves on; the blur that
+        // follows then finds the field empty, so the typed text does not become a second chip.
+        const chosen = open && this.active >= 0 ? this.suggestions[this.active] : null
+        if (!chosen) return
+        this.add([chosen.label])
+        input.value = ''
+        return
+      }
     }
   }
 

@@ -246,6 +246,54 @@ describe('lintje-tag-input', () => {
     expect(element.value).toEqual(['vz', 'afzetting'])
   })
 
+  it('adds the pointed suggestion on Tab, once, and the typed text without one', async () => {
+    const element = await mount({
+      options: [
+        { value: 'toe', label: 'Toegang' },
+        { value: 'vz', label: 'Vergaderzaal' },
+      ],
+    })
+    await type(element, 'ver')
+    await press(field(element), 'Tab')
+    field(element).dispatchEvent(new FocusEvent('blur', { relatedTarget: null }))
+    await element.updateComplete
+    expect(element.value).toEqual(['vz'])
+    expect(field(element).value).toBe('')
+
+    await type(element, 'afzet')
+    expect(field(element).getAttribute('aria-expanded')).toBe('false')
+    await press(field(element), 'Tab')
+    field(element).dispatchEvent(new FocusEvent('blur', { relatedTarget: null }))
+    await element.updateComplete
+    expect(element.value).toEqual(['vz', 'afzet'])
+  })
+
+  it('points at the first and the last suggestion with Home and End, only in an open list', async () => {
+    const element = await mount({
+      options: [
+        { value: 'a', label: 'Aanvraag' },
+        { value: 'b', label: 'Aanvraagformulier' },
+        { value: 'c', label: 'Aanvraagnummer' },
+      ],
+    })
+    await type(element, 'aanv')
+    const active = () => element.renderRoot.querySelector('.is-active')?.textContent?.trim()
+    const end = new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true })
+    field(element).dispatchEvent(end)
+    await element.updateComplete
+    expect(end.defaultPrevented).toBe(true)
+    expect(active()).toBe('Aanvraagnummer')
+    await press(field(element), 'Home')
+    await element.updateComplete
+    expect(active()).toBe('Aanvraag')
+
+    field(element).dispatchEvent(new FocusEvent('blur', { relatedTarget: null }))
+    await element.updateComplete
+    const home = new KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true })
+    field(element).dispatchEvent(home)
+    expect(home.defaultPrevented).toBe(false)
+  })
+
   it('draws a suggestion whole, with the typed text in bold', async () => {
     const element = await mount({ options: [{ value: 'vz', label: 'Vergaderzaal' }] })
     await type(element, 'zaal')
