@@ -193,7 +193,7 @@
 
 /* Stuck and expanded: the zone unfolds where it stands; the z-index stays under the menu's 30. */
 .lintje-filter-bar.is-stuck-open {
-  max-height: calc(100vh - var(--lintje-shell-top, var(--h-topbar)));
+  max-height: calc(100dvh - var(--lintje-shell-top, var(--h-topbar)));
 }
 /* Only when the panel does not fit (`LintjeFilterZone` measures it): scrolling clips popovers. */
 .lintje-filter-bar.is-stuck-open.is-scrollable { overflow-y: auto; }

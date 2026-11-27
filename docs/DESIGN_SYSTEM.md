@@ -1410,6 +1410,10 @@ geheel, met zijn kop en alle knoppen.
 knoppen op één lijn met de velden; op zijn eigen plek na het laatste veld is hij de laatste rij van
 het formulier.
 
+**Een hoogte naar het venster is die van het zichtbare venster** (`dvh`): de schil, het zijmenu,
+de opengeklapte filterzone en een blad. Op een telefoon met een meeschuivende adresbalk valt
+anders de onderkant weg.
+
 **Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame nadat die veranderde.**
 Zo verandert zijn maat nooit in de ronde van zijn waarnemer, die de browser anders als fout van de
 pagina meldt. Een rij die niet meer past, staat hooguit één frame te breed.

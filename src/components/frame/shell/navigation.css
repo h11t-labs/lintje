@@ -13,7 +13,7 @@
   position: sticky;
   top: 0;
   align-self: flex-start;
-  height: 100vh;
+  height: 100dvh;
   background: var(--color-nav-bg);
   color: var(--color-nav-text);
   display: flex;
