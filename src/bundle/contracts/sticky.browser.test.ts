@@ -180,6 +180,7 @@ async function bury(scene: Scene): Promise<HTMLElement> {
       scene.scroller,
       centre(box) - (cover && inSight ? centre(cover) : (sight.top + sight.bottom) / 2),
     )
+    REPORTS.push(`scrolled${round}@${Math.round(window.scrollY)}:t${Math.round(performance.now())}`)
     await settle()
     // What sticks says so an observer's turn later: on a slow machine that is past two frames.
     if (round > 0 && !scene.cover()) {
@@ -189,6 +190,7 @@ async function bury(scene: Scene): Promise<HTMLElement> {
         .catch(() => {})
     }
   }
+  REPORTS.push(`end@${Math.round(window.scrollY)}:t${Math.round(performance.now())}`)
   const cover = scene.cover()
   expect(
     cover && overlap(box, cover),
@@ -446,10 +448,28 @@ function filterUnderTabsRow(style: Style, width: number): Row {
       const { tabs } = await tabbedPage(style, [bar, content])
       // TEMPORARY: the zone's reports, for the CI flake of #390.
       REPORTS.length = 0
-      all(bar.shadowRoot!, 'lintje-filter-zone')[0]?.addEventListener(
-        'lintje-zone-scrolled-change',
-        (event) => REPORTS.push(`${(event as CustomEvent).detail}@${Math.round(window.scrollY)}`),
-      )
+      const zone = all(bar.shadowRoot!, 'lintje-filter-zone')[0] as HTMLElement & {
+        observer: object | null
+        canPin: () => boolean
+      }
+      const ids = new WeakMap<object, number>()
+      let next = 1
+      const idOf = (observer: object | null): number => {
+        if (!observer) return 0
+        if (!ids.has(observer)) ids.set(observer, next++)
+        return ids.get(observer)!
+      }
+      REPORTS.push(`mounted:io${idOf(zone.observer)}@${Math.round(window.scrollY)}`)
+      zone.addEventListener('lintje-zone-scrolled-change', (event) => {
+        const sentinel = zone.shadowRoot!.querySelector('.lintje-filter-bar__sentinel')!
+        const box = zone.shadowRoot!.querySelector<HTMLElement>('.lintje-filter-bar')!
+        REPORTS.push(
+          `${(event as CustomEvent).detail}@${Math.round(window.scrollY)}` +
+            `:io${idOf(zone.observer)}:s${Math.round(sentinel.getBoundingClientRect().top)}` +
+            `:h${document.documentElement.scrollHeight}:b${box.offsetHeight}:pin${zone.canPin()}` +
+            `:t${Math.round(performance.now())}`,
+        )
+      })
       return {
         scroller: document.documentElement,
         cover: () => find(bar, '.lintje-filter-bar.is-sticky, .lintje-filter-bar--mobile'),
