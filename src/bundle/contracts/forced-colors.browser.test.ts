@@ -1,14 +1,16 @@
 /**
  * Forced colours, as a contrast theme of Windows draws them: the reader's palette replaces every
  * colour and drops fills. What a fill said is drawn again in system colours: an edge in Highlight
- * for a button that is on, and the forced text colour for an icon from a file.
+ * for a button that is on, a left edge in Highlight for a chosen log line, and the forced text
+ * colour for an icon from a file.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { commands } from 'vitest/browser'
 import '../../components/actions/icon/icon'
 import '../../components/actions/icon-button/icon-button'
+import '../../components/content/log-viewer/log-viewer'
 import '../../components/map/map/map'
-import type { MapData } from '../../types'
+import type { LogViewerData, MapData } from '../../types'
 
 declare module 'vitest/browser' {
   interface BrowserCommands {
@@ -116,6 +118,31 @@ const ROWS: Row[] = [
       return tool
     },
     check: (part) => expect(getComputedStyle(part).borderTopColor).toBe(system('Highlight')),
+  },
+  {
+    name: 'lintje-log-viewer, gekozen foutregel',
+    part: async () => {
+      const element = await mount<Lit & { data: LogViewerData }>('lintje-log-viewer', (log) => {
+        log.data = {
+          title: 'Importlog',
+          entries: [
+            { id: 'a', time: '14:03:21', level: 'info', message: 'Batch 1 gelezen' },
+            { id: 'b', time: '14:03:24', level: 'error', message: 'Timeout bij dossier D-55120' },
+          ],
+          selected: 'b',
+        }
+      })
+      await expect
+        .poll(() => element.shadowRoot!.querySelector('.lintje-log-viewer__row.is-selected'))
+        .not.toBeNull()
+      return shadow(element, '.lintje-log-viewer__row.is-selected')
+    },
+    // The chosen edge is a real border on the left, as in the list and the table.
+    check: (part) => {
+      const style = getComputedStyle(part)
+      expect(style.borderLeftColor).toBe(system('Highlight'))
+      expect(style.borderLeftWidth).toBe('4px')
+    },
   },
   {
     name: 'lintje-icon met src',

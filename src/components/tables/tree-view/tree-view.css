@@ -51,6 +51,9 @@
   min-width: 0; align-self: baseline;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+/* The bold room as a block, so the label's own text keeps its ellipsis. */
+.lintje-tree__label.bold-room,
+.lintje-tree__label.bold-room::after { display: block; }
 /* The `title` of a cut label needs a pointer: under the keyboard's focus, without hover and below
    768 px the label wraps whole. */
 .lintje-tree__item:focus-visible > .lintje-tree__row .lintje-tree__label { white-space: normal; overflow-wrap: anywhere; }
