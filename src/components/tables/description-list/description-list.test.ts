@@ -91,26 +91,18 @@ describe('lintje-description-list', () => {
     expect(element.style.getPropertyValue('--lintje-span')).toBe('4')
   })
 
-  it('sets the pairs as cells with layout="grid": two columns wide, a tone, tags and a slot', async () => {
+  it('carries a tone as a glyph, what changed as "Aangepast", and a list as tags', async () => {
     const element = await mount([
       { label: 'Sprekers', value: '3, vast', tone: 'changed' },
-      { label: 'Microfoon', value: 'Vergaderset (USB)', tone: 'warning', span: 2, slot: 'mic' },
-      {
-        label: 'Woordenlijsten',
-        tags: ['Afkortingen Rijksoverheid', 'Namen team Planning'],
-        span: 2,
-      },
+      { label: 'Microfoon', value: 'Vergaderset (USB)', tone: 'warning' },
+      { label: 'Woordenlijsten', tags: ['Afkortingen Rijksoverheid', 'Namen team Planning'] },
     ])
-    element.layout = 'grid'
-    await element.updateComplete
     const root = element.shadowRoot!
-    expect(root.querySelector('dl')!.classList.contains('lintje-description-list--grid')).toBe(true)
     const [speakers, mic, lists] = [...root.querySelectorAll('.lintje-description-list__row')]
     expect(speakers!.classList.contains('is-changed')).toBe(true)
     expect(speakers!.textContent).toContain('Aangepast')
-    expect(mic!.classList.contains('is-wide')).toBe(true)
     expect(mic!.classList.contains('is-warning')).toBe(true)
-    expect(mic!.querySelector('slot[name="mic"]')).not.toBeNull()
+    expect(mic!.querySelector('.lintje-icon')).not.toBeNull()
     expect([...lists!.querySelectorAll('li')].map((tag) => tag.textContent)).toEqual([
       'Afkortingen Rijksoverheid',
       'Namen team Planning',

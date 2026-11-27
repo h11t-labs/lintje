@@ -644,26 +644,10 @@ export default {
           html: '<lintje-level-meter level="0"></lintje-level-meter>',
         },
         { label: 'Nog niet gemeten', html: '<lintje-level-meter></lintje-level-meter>' },
-      ],
-    },
-    {
-      tag: 'lintje-recording-status',
-      wide: true,
-      title: 'Hoe een opname die loopt ervoor staat',
-      specimens: [
         {
-          label: 'Op je telefoon',
-          note: 'De status toont de looptijd, het geluid en de verbinding.',
-          html: '<lintje-recording-status elapsed="724" level="0.6" connection="good" delay="1"></lintje-recording-status>',
-        },
-        {
-          label: 'Zwakke verbinding en zacht geluid',
-          html: '<lintje-recording-status elapsed="3729" level="0.12" connection="weak" delay="4"></lintje-recording-status>',
-        },
-        {
-          label: 'Op deze computer',
-          note: 'Op een computer toont de status geen verbinding. Wat ontbreekt, is een streep.',
-          html: '<lintje-recording-status elapsed="48"></lintje-recording-status>',
+          label: 'In stappen',
+          note: 'Met `steps` tekent hij oplopende stappen in de lijnkleur van zijn toon; het woord is van de host.',
+          html: '<div class="guide__row"><lintje-level-meter steps="4" level="1" tone="success" name="Verbinding" word="Goed"></lintje-level-meter><lintje-level-meter steps="4" level="0.5" tone="warning" name="Verbinding" word="Zwak"></lintje-level-meter><lintje-level-meter steps="4" level="0" tone="error" name="Verbinding" word="Verbroken"></lintje-level-meter></div>',
         },
       ],
     },
