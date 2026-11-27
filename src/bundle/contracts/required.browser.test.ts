@@ -442,7 +442,7 @@ describe('refused typed text', () => {
       expect(submits()).toBe(0)
       await typeAndLeave(element, row.old)
       // The line goes once the focus leaves the field, not when it moves between its parts.
-      ;(document.activeElement as HTMLElement | null)?.blur()
+      ;(active() as HTMLElement | null)?.blur()
       await (form as unknown as Input).updateComplete
       expect(summaryItems(form)).toEqual([])
       await userEvent.click(button)
