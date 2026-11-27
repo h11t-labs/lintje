@@ -2,7 +2,7 @@
  * The date input: what it shows, what it sends, what it refuses, and the calendar's keys.
  * The arithmetic itself is `date-format.test.ts`.
  */
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import './date-input'
 import type { LintjeDateInput } from './date-input'
 
@@ -159,6 +159,22 @@ describe('lintje-date-input', () => {
     await type(element, '03-10-2026')
     expect(seen.local).toEqual([])
   })
+
+  it('is read-only like the text field: focusable, unchanged by typing, keys or the calendar', async () => {
+    const element = await mount({ value: '2026-10-03', readonly: true })
+    const seen = listen(element)
+    expect(control(element).readOnly).toBe(true)
+    expect(control(element).disabled).toBe(false)
+    expect(control(element).classList.contains('is-readonly')).toBe(true)
+    expect(toggle(element).disabled).toBe(true)
+    await type(element, '05-10-2026')
+    control(element).dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp' }))
+    control(element).dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true }))
+    await element.updateComplete
+    expect(element.value).toBe('2026-10-03')
+    expect(element.open).toBe(false)
+    expect(seen.local).toEqual([])
+  })
 })
 
 describe('the calendar', () => {
@@ -308,4 +324,68 @@ describe('the calendar', () => {
       expect(control(element).value).toBe('17-10-2026')
     })
   }
+})
+
+describe('Enter in a native form', () => {
+  const prototype = HTMLElement.prototype as unknown as { attachInternals?: () => unknown }
+  const original = prototype.attachInternals
+  let submits = 0
+
+  beforeEach(() => {
+    submits = 0
+    // happy-dom has no `ElementInternals`: a stand-in whose form counts its submits.
+    prototype.attachInternals = () => ({
+      form: { requestSubmit: () => submits++ },
+      setFormValue: () => {},
+      setValidity: () => {},
+    })
+  })
+
+  afterEach(() => {
+    prototype.attachInternals = original
+  })
+
+  async function enter(element: LintjeDateInput, text: string): Promise<void> {
+    control(element).value = text
+    control(element).dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true }),
+    )
+    await element.updateComplete
+    await new Promise((resolve) => setTimeout(resolve))
+  }
+
+  it('reads the day, then submits the form around it, as the text field does', async () => {
+    const element = await mount({ name: 'p.datum' })
+    const seen = listen(element)
+    await enter(element, '03-10-2026')
+    expect(seen.local).toEqual(['2026-10-03'])
+    expect(submits).toBe(1)
+  })
+
+  it('submits nothing when it refused the text, while read-only or while disabled', async () => {
+    await enter(await mount(), '31-02-2026')
+    await enter(await mount({ min: '2026-10-05' }), '03-10-2026')
+    await enter(await mount({ readonly: true }), '03-10-2026')
+    await enter(await mount({ disabled: true }), '03-10-2026')
+    expect(submits).toBe(0)
+  })
+})
+
+describe('a refusal', () => {
+  it('goes on a form reset and on the same value from the host', async () => {
+    const element = await mount({ value: '2026-10-03' })
+    const error = (): Element | null => element.shadowRoot!.querySelector('.lintje-field__error')
+    await type(element, '31-02-2026')
+    expect(error()).not.toBeNull()
+    ;(element as unknown as { formResetCallback(): void }).formResetCallback()
+    await element.updateComplete
+    expect(error()).toBeNull()
+    expect(control(element).value).toBe('03-10-2026')
+
+    await type(element, '31-02-2026')
+    element.value = '2026-10-03'
+    await element.updateComplete
+    expect(error()).toBeNull()
+    expect(control(element).value).toBe('03-10-2026')
+  })
 })

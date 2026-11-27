@@ -4,6 +4,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import './repeater'
+import '../form-section/form-section'
 import { firstFocusable, type LintjeRepeater, type LintjeRepeaterRow } from './repeater'
 
 function row(name: string): LintjeRepeaterRow {
@@ -159,5 +160,54 @@ describe('firstFocusable()', () => {
     await empty.updateComplete
     await (removeButton(empty) as unknown as { updateComplete: Promise<unknown> }).updateComplete
     expect(firstFocusable(empty)!.tagName).toBe('BUTTON')
+  })
+})
+
+describe('a disabled repeater', () => {
+  const fields = (element: LintjeRepeater): (HTMLInputElement | HTMLSelectElement)[] => [
+    ...element.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input, select'),
+  ]
+
+  it('turns off the fields in its rows, as a form section does, and hands them back', async () => {
+    const element = await mount(['J. de Vries', 'A. Jansen'])
+    // One field was off on its own: it stays off.
+    const own = fields(element)[3]!
+    own.disabled = true
+    element.disabled = true
+    await settle(element)
+    expect(fields(element).map((field) => field.disabled)).toEqual([true, true, true, true])
+    expect(rows(element).map((item) => item.disabled)).toEqual([true, true])
+
+    element.disabled = false
+    await settle(element)
+    expect(fields(element).map((field) => field.disabled)).toEqual([false, false, false, true])
+    expect(rows(element).map((item) => item.disabled)).toEqual([false, false])
+  })
+
+  it('gives its fields back on inside a form section that turns off and on again', async () => {
+    const section = document.createElement('lintje-form-section')
+    document.body.append(section)
+    const element = await mount(['J. de Vries'])
+    section.append(element)
+    await settle(element)
+    section.disabled = true
+    await section.updateComplete
+    await settle(element)
+    expect(fields(element).every((field) => field.disabled)).toBe(true)
+    section.disabled = false
+    await section.updateComplete
+    await settle(element)
+    expect(element.disabled).toBe(false)
+    expect(fields(element).some((field) => field.disabled)).toBe(false)
+  })
+
+  it('turns off a row the host adds while it is off', async () => {
+    const element = await mount(['J. de Vries'], { disabled: true })
+    element.append(row('A. Jansen'))
+    await settle(element)
+    expect(fields(element).every((field) => field.disabled)).toBe(true)
+    element.disabled = false
+    await settle(element)
+    expect(fields(element).some((field) => field.disabled)).toBe(false)
   })
 })

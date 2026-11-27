@@ -444,6 +444,16 @@ export default {
           html: '<lintje-find value="aanvraag" total="7" current="2" disabled></lintje-find>',
         },
         {
+          label: 'Fout',
+          html: '<lintje-find name="zoekterm" required error="Vul een zoekwoord in."></lintje-find>',
+        },
+        {
+          label: 'Met label en hint',
+          note: 'Het label staat uit het zicht tot de host `hideLabel = false` zet.',
+          html: '<lintje-find label="Zoeken in de werkinstructie" hint="Ook in de bijlagen" value="aanvraag" total="7" current="2"></lintje-find>',
+          setup: (stage) => (stage.querySelector('lintje-find').hideLabel = false),
+        },
+        {
           label: 'Zoeken in een tekst',
           note: 'Enter is volgende, Shift+Enter vorige, Escape wist. Na de laatste treffer volgt de eerste.',
           html:
@@ -539,6 +549,18 @@ export default {
         {
           label: 'Fout',
           html: '<lintje-number-input name="p.drempel-fout" label="Drempel" value="25" min="0" max="20" error="Kies een getal van 0 tot en met 20."></lintje-number-input>',
+        },
+        {
+          label: 'Getypt buiten de grenzen',
+          note: 'In het veld staat 25 bij een `max` van 20. Het veld weigert het getal en stuurt niets.',
+          html: '<lintje-number-input name="p.drempel-getypt" label="Drempel" value="5" min="0" max="20"></lintje-number-input>',
+          async setup(stage) {
+            const element = stage.querySelector('lintje-number-input')
+            await element.updateComplete
+            const field = element.shadowRoot.querySelector('input')
+            field.value = '25'
+            field.dispatchEvent(new Event('change'))
+          },
         },
         {
           label: 'Niet verplicht',
@@ -769,6 +791,11 @@ export default {
         {
           label: 'Uitgeschakeld',
           html: '<lintje-checkbox name="p.uit" label="Uitgeschakeld" checked disabled></lintje-checkbox>',
+        },
+        {
+          label: 'Label verborgen',
+          note: 'Met `hide-label` staat alleen het vakje er; de naam blijft voor een schermlezer. Voor een vakje waarvan de rij of kolom al zegt wat het is.',
+          html: '<lintje-checkbox name="p.rij-3" label="Rij 3 selecteren" hide-label checked></lintje-checkbox>',
         },
       ],
     },
@@ -1112,6 +1139,11 @@ export default {
           html: '<lintje-date-input label="Datum" value="2026-10-03" disabled></lintje-date-input>',
         },
         {
+          label: 'Alleen-lezen',
+          note: 'Te lezen en te kopiëren, niet te wijzigen: de kalender gaat niet open.',
+          html: '<lintje-date-input name="melddatum" label="Datum van de melding" value="2026-10-03" readonly></lintje-date-input>',
+        },
+        {
           label: 'Fout',
           note: 'In het veld staat 31-02-2026, een dag die niet bestaat.',
           html: '<lintje-date-input label="Datum" value="2026-10-03"></lintje-date-input>',
@@ -1161,6 +1193,10 @@ export default {
           html: '<lintje-time-input label="Tijdstip" placeholder="uu:mm" disabled></lintje-time-input>',
         },
         {
+          label: 'Alleen-lezen',
+          html: '<lintje-time-input name="meldtijd" label="Tijdstip" value="14:35" readonly></lintje-time-input>',
+        },
+        {
           label: 'Fout',
           html: '<lintje-time-input label="Tijdstip" value="23:50" error="Dit tijdstip ligt in de toekomst"></lintje-time-input>',
         },
@@ -1204,7 +1240,8 @@ export default {
         },
         {
           label: 'Afwijkend van standaard',
-          html: '<lintje-date-range label="Periode" modified></lintje-date-range>',
+          note: 'Met `bold` staat een periode die van de standaard afwijkt vet, zoals bij de keuzelijst.',
+          html: '<lintje-date-range label="Periode" modified bold></lintje-date-range>',
           setup: setRange,
         },
         {
@@ -1215,6 +1252,12 @@ export default {
         {
           label: 'Uitgeschakeld',
           html: '<lintje-date-range label="Periode" disabled></lintje-date-range>',
+          setup: setRange,
+        },
+        {
+          label: 'Als instellingsrij',
+          note: 'Met `layout="row"` staan het label en de hint links en het veld rechts, zoals bij elk veld.',
+          html: '<lintje-date-range layout="row" label="Standaardperiode" hint="Waarmee een nieuw overzicht opent."></lintje-date-range>',
           setup: setRange,
         },
         {

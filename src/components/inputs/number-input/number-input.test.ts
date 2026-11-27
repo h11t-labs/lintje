@@ -2,7 +2,7 @@
  * The number field for a screen reader: the unit as part of what the field says, the stepper's
  * names, and a step at a bound that keeps the focus.
  */
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import './number-input'
 import type { LintjeNumberInput } from './number-input'
 
@@ -114,5 +114,107 @@ describe('lintje-number-input', () => {
     const element = await mount({ value: 0, min: 0 })
     steps(element)[0]!.click()
     expect(await said(element)).toBe('')
+  })
+})
+
+describe('a typed number outside the bounds', () => {
+  async function type(element: LintjeNumberInput, text: string): Promise<void> {
+    control(element).value = text
+    control(element).dispatchEvent(new Event('change'))
+    await element.updateComplete
+  }
+  const error = (element: LintjeNumberInput): Element | null =>
+    element.shadowRoot!.querySelector('.lintje-field__error')
+
+  it('is refused with a message in place of the hint, as the date field does', async () => {
+    const element = await mount({ value: 5, min: 2, max: 12, hint: 'Hele dagen', name: 'p.d' })
+    const seen: unknown[] = []
+    element.addEventListener('lintje-change', (event) => seen.push((event as CustomEvent).detail))
+    await type(element, '30')
+    expect(seen).toEqual([])
+    expect(element.value).toBe(5)
+    expect(error(element)?.textContent).toContain('Vul een getal in van 12 of minder')
+    expect(element.shadowRoot!.querySelector('.lintje-field__hint')).toBeNull()
+    expect(control(element).getAttribute('aria-invalid')).toBe('true')
+    expect(control(element).getAttribute('aria-describedby')).toBe(error(element)!.id)
+    await type(element, '1')
+    expect(error(element)?.textContent).toContain('Vul een getal in van 2 of meer')
+  })
+
+  it('writes a bound with a decimal comma', async () => {
+    const element = await mount({ min: 0.5, step: 0.5 })
+    await type(element, '0.25')
+    expect(error(element)?.textContent).toContain('0,5 of meer')
+  })
+
+  it('loses its message on a number inside, the old value too, and on a value of the host', async () => {
+    const element = await mount({ value: 5, max: 12 })
+    await type(element, '30')
+    await type(element, '5')
+    expect(error(element)).toBeNull()
+    await type(element, '30')
+    element.value = 7
+    await element.updateComplete
+    expect(error(element)).toBeNull()
+  })
+
+  it('loses its refusal on a form reset and on the same value from the host', async () => {
+    const element = await mount({ value: 5, max: 12 })
+    await type(element, '30')
+    ;(element as unknown as { formResetCallback(): void }).formResetCallback()
+    await element.updateComplete
+    expect(error(element)).toBeNull()
+    expect(control(element).hasAttribute('aria-invalid')).toBe(false)
+    expect(control(element).value).toBe('5')
+
+    await type(element, '30')
+    element.value = 5
+    await element.updateComplete
+    expect(error(element)).toBeNull()
+    expect(control(element).value).toBe('5')
+  })
+
+  it('keeps its message after a step that changes nothing at the bound', async () => {
+    const element = await mount({ value: 12, max: 12 })
+    await type(element, '30')
+    steps(element)[1]!.click()
+    await element.updateComplete
+    expect(element.value).toBe(12)
+    expect(error(element)?.textContent).toContain('12 of minder')
+  })
+
+  it('lets the host error win over its own message', async () => {
+    const element = await mount({ value: 5, max: 12, error: 'Te hoog voor dit loket' })
+    await type(element, '30')
+    expect(error(element)?.textContent).toContain('Te hoog voor dit loket')
+  })
+})
+
+describe('Enter on a refused number', () => {
+  const prototype = HTMLElement.prototype as unknown as { attachInternals?: () => unknown }
+  const original = prototype.attachInternals
+
+  afterEach(() => {
+    prototype.attachInternals = original
+  })
+
+  it('submits nothing: the form would post the old value under the message', async () => {
+    let submits = 0
+    prototype.attachInternals = () => ({
+      form: { requestSubmit: () => submits++ },
+      setFormValue: () => {},
+      setValidity: () => {},
+    })
+    const element = await mount({ value: 5, max: 12 })
+    const enter = async (text: string): Promise<void> => {
+      control(element).value = text
+      control(element).dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+      await element.updateComplete
+      await new Promise((resolve) => setTimeout(resolve))
+    }
+    await enter('30')
+    expect(submits).toBe(0)
+    await enter('8')
+    expect(submits).toBe(1)
   })
 })

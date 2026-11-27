@@ -2,7 +2,8 @@
  * `<lintje-time-input>` — a time of day, `HH:MM` on a 24-hour clock, typed or picked from a list.
  *
  * The element reads typed text on leaving the field or Enter, checks it and shows a message in
- * place of the hint; a host's `error` wins. A typed time between two in the list stays as typed.
+ * place of the hint; a host's `error` wins. Enter then submits the form around it, unless it
+ * refused the text. A typed time between two in the list stays as typed.
  * It knows no day or time zone. Tab out of the element closes the list.
  *
  * Events: `lintje-change` `string | null` (`HH:MM`), `lintje-values-change` `{ [name]: value }`
@@ -39,11 +40,13 @@ export class LintjeTimeInput extends LintjeInputElement {
   static override styles = [iconStyles, shadowCss(inputCss), shadowCss(timeInputCss)]
 
   static override properties: PropertyDeclarations = {
-    value: { type: String },
+    // Set again, even to the same time, a value drops a refusal: a reset, or the host's answer.
+    value: { type: String, hasChanged: () => true },
     min: { type: String },
     max: { type: String },
     step: { type: Number },
     placeholder: { type: String },
+    readonly: { type: Boolean, reflect: true },
     stacked: { type: Boolean, reflect: true },
     open: { type: Boolean, reflect: true },
     text: { state: true },
@@ -59,6 +62,8 @@ export class LintjeTimeInput extends LintjeInputElement {
   /** The minutes between the times in the list, and that PageUp and PageDown move in the field. */
   step: number = 15
   placeholder: string = ''
+  /** Shown, focusable and posted, but not to be changed: the list does not open. */
+  readonly: boolean = false
   stacked: boolean = false
   /** Whether the list is open. Reflected, so a sheet can leave Escape to it. */
   open: boolean = false
@@ -76,6 +81,16 @@ export class LintjeTimeInput extends LintjeInputElement {
 
   protected override get footMessage(): string {
     return this.message
+  }
+
+  // A read-only field cannot be filled, so it never holds the form back, as natively.
+  protected override get missing(): boolean {
+    return super.missing && !this.readonly
+  }
+
+  protected override announce(value: unknown, url: unknown = value): void {
+    if (this.readonly) return
+    super.announce(value, url)
   }
 
   private get times(): string[] {
@@ -105,7 +120,11 @@ export class LintjeTimeInput extends LintjeInputElement {
   }
 
   private onChange(event: Event): void {
-    const text = (event.target as HTMLInputElement).value
+    if (this.readonly) return
+    this.read((event.target as HTMLInputElement).value)
+  }
+
+  private read(text: string): void {
     const parsed = parseTime(text)
     if (parsed.kind === 'empty') return this.choose(null)
     this.text = text
@@ -119,6 +138,11 @@ export class LintjeTimeInput extends LintjeInputElement {
   }
 
   private onKeydown(event: KeyboardEvent): void {
+    if (this.readonly) return
+    this.submitOnEnter(event, () => {
+      this.read((event.target as HTMLInputElement).value)
+      return !this.problem
+    })
     if (event.altKey && event.key === 'ArrowDown') {
       event.preventDefault()
       this.openList()
@@ -143,7 +167,7 @@ export class LintjeTimeInput extends LintjeInputElement {
   /* --- The list ----------------------------------------------------------- */
 
   private openList(): void {
-    if (this.isDisabled) return
+    if (this.isDisabled || this.readonly) return
     const times = this.times
     if (!times.length) return
     this.focusTime = timeAtOrAfter(times, this.value ?? nowRounded(this.step))
@@ -251,6 +275,7 @@ export class LintjeTimeInput extends LintjeInputElement {
             'lintje-field__box': true,
             'lintje-field__control': true,
             'is-error': Boolean(message),
+            'is-readonly': this.readonly,
           })}
           .value=${live(this.text)}
           placeholder=${this.placeholder || nothing}
@@ -258,6 +283,7 @@ export class LintjeTimeInput extends LintjeInputElement {
           aria-describedby=${this.describedBy}
           aria-invalid=${message ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
+          ?readonly=${this.readonly}
           ?disabled=${this.isDisabled}
           @change=${this.onChange}
           @keydown=${this.onKeydown}
@@ -268,14 +294,14 @@ export class LintjeTimeInput extends LintjeInputElement {
           aria-label="Tijden openen"
           aria-haspopup="listbox"
           aria-expanded=${this.open ? 'true' : 'false'}
-          ?disabled=${this.isDisabled}
+          ?disabled=${this.isDisabled || this.readonly}
           @click=${this.toggle}
         >
           ${renderIcon('functioneel-klok', { size: 18 })}
         </button>
       </div>
       <lintje-popover
-        ?open=${this.open && !this.isDisabled}
+        ?open=${this.open && !this.isDisabled && !this.readonly}
         match-width
         @lintje-close=${this.onPopoverClose}
       >

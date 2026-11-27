@@ -311,6 +311,24 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     })
   }
 
+  /**
+   * Enter commits, then submits the host's form: the native control sits in a shadow root, so
+   * implicit submission cannot reach it. Waits a task so `lintje-form` can prevent it. A commit
+   * that returns `false` refused what was typed: the field keeps the key, so no form submits.
+   */
+  protected submitOnEnter(event: KeyboardEvent, commit: () => boolean | void): void {
+    if (event.key !== 'Enter' || event.isComposing || this.isDisabled) return
+    if (commit() === false) {
+      event.preventDefault()
+      return
+    }
+    const form = this.internals?.form
+    if (!form || typeof form.requestSubmit !== 'function') return
+    setTimeout(() => {
+      if (!event.defaultPrevented) form.requestSubmit()
+    })
+  }
+
   /** The new style puts a field's message above what it is about; the earlier one under it. */
   protected get messagesAbove(): boolean {
     return this.isNewStyle
@@ -355,7 +373,8 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
 /**
  * `LintjeFormInputElement` — the text input, number input and textarea, which also stand in a
  * host's form. Beyond the base it posts a string value, reports `required` as validity on the
- * native control, and submits the host's form on Enter. `readonly` refuses every commit.
+ * native control, and submits the host's form on Enter. `readonly` refuses every commit, and
+ * Enter in it submits nothing.
  */
 export abstract class LintjeFormInputElement extends LintjeInputElement {
   static override properties: PropertyDeclarations = {
@@ -413,18 +432,8 @@ export abstract class LintjeFormInputElement extends LintjeInputElement {
     this.syncValidity()
   }
 
-  /**
-   * Enter commits, then submits the host's form: the native control sits in a shadow root, so
-   * implicit submission cannot reach it. Waits a task so `lintje-form` can prevent it.
-   */
-  protected submitOnEnter(event: KeyboardEvent, commit: () => void): void {
-    if (event.key !== 'Enter' || event.isComposing || this.readonly || this.isDisabled) return
-    commit()
-    const form = this.internals?.form
-    if (!form || typeof form.requestSubmit !== 'function') return
-    setTimeout(() => {
-      if (!event.defaultPrevented) form.requestSubmit()
-    })
+  protected override submitOnEnter(event: KeyboardEvent, commit: () => boolean | void): void {
+    if (!this.readonly) super.submitOnEnter(event, commit)
   }
 
   // The native control is written too: uncommitted text left the property unchanged.

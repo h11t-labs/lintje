@@ -97,7 +97,8 @@ pagina stuurt, stuurt een nieuw element. Schrijf `</` in de JSON als `<\/`, zoda
 het JSON-filter van je sjabloontaal doet dat.
 
 **De invoer doet mee in een gewoon HTML-formulier.** Een `lintje-button` met `type="submit"` verstuurt het,
-Enter in een tekst- of getalveld ook (Ctrl+Enter in een tekstvak), en `type="reset"`, een
+Enter in een tekst-, getal-, datum- of tijdveld ook (Ctrl+Enter in een tekstvak) — niet als het veld
+weigert wat er getypt is; de verzendknop post dan de laatst vastgelegde waarde —, en `type="reset"`, een
 `disabled` veld en een `<fieldset disabled>` gedragen zich als bij de bedieningselementen van de browser. Elke
 invoer met `required` houdt het versturen tegen met de eigen melding van de browser zolang hij leeg is:
 hij post dan niets, of een van zijn waarden is leeg. De verzendknop post zijn eigen `name` en `value`

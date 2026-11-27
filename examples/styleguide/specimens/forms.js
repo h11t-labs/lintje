@@ -286,10 +286,16 @@ export default {
           setup: (stage) => repeaterHost(stage, PEOPLE),
         },
         {
-          label: 'Uitgeschakeld',
+          label: 'Op min en max',
           note: 'Bij `min` kan de enige rij niet weg, bij `max` kan er geen rij bij.',
           html: `<lintje-repeater legend="Contactpersoon" item-label="Contactpersoon" min="1" max="1"></lintje-repeater>`,
           setup: (stage) => repeaterHost(stage, [{ naam: 'A. Jansen', rol: 'eigenaar' }]),
+        },
+        {
+          label: 'Uitgeschakeld',
+          note: 'De knoppen en de velden in de rijen gaan uit, zoals in een uitgeschakelde formuliersectie.',
+          html: '<lintje-repeater legend="Betrokkenen" item-label="Betrokkene" min="1" max="10" disabled></lintje-repeater>',
+          setup: (stage) => repeaterHost(stage, PEOPLE),
         },
       ],
     },

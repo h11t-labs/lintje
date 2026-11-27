@@ -205,6 +205,15 @@ function ownProperties(file, cls) {
   })
 }
 
+/** The start values a class gives fields it does not declare in its own `static properties`. */
+function overriddenDefaults(file, cls) {
+  const own = new Set(ownProperties(file, cls).map((property) => property.name))
+  return cls.body.body
+    .filter((m) => m.type === 'PropertyDefinition' && !m.static && m.value && m.override)
+    .map((m) => [keyName(m), file.text.slice(m.value.start, m.value.end)])
+    .filter(([name, initial]) => !own.has(name) && initial.length <= 40 && !initial.includes('\n'))
+}
+
 export function buildManifest(srcDir) {
   const root = resolve(srcDir)
   const files = sourceFiles(root).map(readModule)
@@ -263,6 +272,10 @@ export function buildManifest(srcDir) {
           const inherited =
             entry.cls.id.name === className ? undefined : { name: entry.cls.id.name }
           members.set(property.name, { ...members.get(property.name), ...property, inherited })
+        }
+        // A subclass that only gives an inherited property another start value (`override x = …`).
+        for (const [name, initial] of overriddenDefaults(entry.file, entry.cls)) {
+          if (members.has(name)) members.set(name, { ...members.get(name), default: initial })
         }
       }
 

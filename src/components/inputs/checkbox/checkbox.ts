@@ -48,11 +48,17 @@ export class LintjeCheckbox extends LintjeInputElement {
         <span class="lintje-choice__box" aria-hidden="true"
           ><span class="lintje-choice__mark">${dash ? '–' : '✓'}</span></span
         >
-        <span class=${classMap({ 'lintje-choice__label': true, 'is-modified': this.modified })}
+        <span
+          class=${classMap({
+            'lintje-choice__label': true,
+            'is-modified': this.modified && !this.hideLabel,
+            // The screen reader still needs the name on the box itself.
+            'visually-hidden': this.hideLabel,
+          })}
           >${this.label} ${this.renderLabelSuffix()}</span
         >
         ${
-          this.modified
+          this.modified && !this.hideLabel
             ? html`<span class="lintje-label__dot"><span class="visually-hidden">afwijkend van standaard</span></span>`
             : nothing
         }

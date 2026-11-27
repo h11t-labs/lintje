@@ -3,7 +3,8 @@
  *
  * The field shows `dd-mm-jjjj`; what crosses is ISO, or `null` when empty. The element reads typed
  * text on leaving the field or Enter, checks it and shows a message in place of the hint; a host's
- * `error` wins. A calendar day knows no time zone. Tab out of the element closes the calendar.
+ * `error` wins. Enter then submits the form around it, unless it refused the text. A calendar day
+ * knows no time zone. Tab out of the element closes the calendar.
  *
  * Events: `lintje-change` `string | null` (the ISO day), `lintje-values-change`
  * `{ [name]: value }` (with a `name`), `lintje-reset` (the reset link was pressed).
@@ -48,12 +49,14 @@ export class LintjeDateInput extends LintjeInputElement {
   ]
 
   static override properties: PropertyDeclarations = {
-    value: { type: String },
+    // Set again, even to the same day, a value drops a refusal: a reset, or the host's answer.
+    value: { type: String, hasChanged: () => true },
     min: { type: String },
     max: { type: String },
     today: { type: String },
     placeholder: { type: String },
     autocomplete: { type: String },
+    readonly: { type: Boolean, reflect: true },
     stacked: { type: Boolean, reflect: true },
     open: { type: Boolean, reflect: true },
     text: { state: true },
@@ -75,6 +78,8 @@ export class LintjeDateInput extends LintjeInputElement {
    * software can fill it in; without it the field says `off`.
    */
   autocomplete: string = ''
+  /** Shown, focusable and posted, but not to be changed: the calendar does not open. */
+  readonly: boolean = false
   stacked: boolean = false
   /** Whether the calendar is open. Reflected, so a sheet can leave Escape to it. */
   open: boolean = false
@@ -95,6 +100,16 @@ export class LintjeDateInput extends LintjeInputElement {
 
   protected override get footMessage(): string {
     return this.message
+  }
+
+  // A read-only field cannot be filled, so it never holds the form back, as natively.
+  protected override get missing(): boolean {
+    return super.missing && !this.readonly
+  }
+
+  protected override announce(value: unknown, url: unknown = value): void {
+    if (this.readonly) return
+    super.announce(value, url)
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
@@ -135,10 +150,16 @@ export class LintjeDateInput extends LintjeInputElement {
   }
 
   private onChange(event: Event): void {
+    if (this.readonly) return
     this.read((event.target as HTMLInputElement).value)
   }
 
   private onFieldKeydown(event: KeyboardEvent): void {
+    if (this.readonly) return
+    this.submitOnEnter(event, () => {
+      this.read((event.target as HTMLInputElement).value)
+      return !this.problem
+    })
     if (event.altKey && event.key === 'ArrowDown') {
       event.preventDefault()
       this.openCalendar()
@@ -154,7 +175,7 @@ export class LintjeDateInput extends LintjeInputElement {
   }
 
   private openCalendar(): void {
-    if (this.isDisabled) return
+    if (this.isDisabled || this.readonly) return
     this.focusDay = clampDay(this.value ?? this.todayDay, this.min, this.max)
     this.open = true
     void this.focusCell()
@@ -252,6 +273,7 @@ export class LintjeDateInput extends LintjeInputElement {
             'lintje-field__box': true,
             'lintje-field__control': true,
             'is-error': Boolean(message),
+            'is-readonly': this.readonly,
           })}
           .value=${live(this.text)}
           placeholder=${this.placeholder || nothing}
@@ -259,6 +281,7 @@ export class LintjeDateInput extends LintjeInputElement {
           aria-describedby=${this.describedBy}
           aria-invalid=${message ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
+          ?readonly=${this.readonly}
           ?disabled=${this.isDisabled}
           @change=${this.onChange}
           @keydown=${this.onFieldKeydown}
@@ -269,14 +292,14 @@ export class LintjeDateInput extends LintjeInputElement {
           aria-label="Kalender openen"
           aria-haspopup="dialog"
           aria-expanded=${this.open ? 'true' : 'false'}
-          ?disabled=${this.isDisabled}
+          ?disabled=${this.isDisabled || this.readonly}
           @click=${this.toggle}
         >
           ${renderIcon('functioneel-kalender', { size: 18 })}
         </button>
       </div>
       <lintje-popover
-        ?open=${this.open && !this.isDisabled}
+        ?open=${this.open && !this.isDisabled && !this.readonly}
         panel-role="dialog"
         label="Kalender"
         @lintje-close=${this.onPopoverClose}

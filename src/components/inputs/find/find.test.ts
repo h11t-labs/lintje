@@ -264,3 +264,50 @@ describe('lintje-find status region', () => {
     expect(await spoken(element)).toBe('')
   })
 })
+
+describe('lintje-find as a field', () => {
+  it('keeps its label out of sight, as a field whose placeholder says what it is', async () => {
+    const element = await mount()
+    const label = part(element, 'label')!
+    expect(label.classList.contains('visually-hidden')).toBe(true)
+    expect(label.getAttribute('for')).toBe(control(element).id)
+    expect(control(element).placeholder).toBe('Zoeken in de tekst')
+  })
+
+  it('shows its label with the dot of modified when the host asks', async () => {
+    const element = await mount({
+      hideLabel: false,
+      label: 'Zoeken in de instructie',
+      modified: true,
+    })
+    expect(part(element, '.lintje-label.is-modified')?.textContent).toContain(
+      'Zoeken in de instructie',
+    )
+    expect(part(element, '.lintje-label__dot')).not.toBeNull()
+  })
+
+  it('draws the hint, tied to the field beside the count', async () => {
+    const element = await mount({ hint: 'Ook in de bijlagen', value: 'aanvraag', total: 3 })
+    const hint = part(element, '.lintje-field__hint')!
+    expect(hint.textContent).toBe('Ook in de bijlagen')
+    expect(control(element).getAttribute('aria-describedby')).toBe(`lintje-find-count ${hint.id}`)
+  })
+
+  it('draws the error in place of the hint and marks the box', async () => {
+    const element = await mount({ hint: 'Ook in de bijlagen', error: 'Vul een zoekwoord in.' })
+    const error = part(element, '.lintje-field__error')!
+    expect(error.textContent).toContain('Vul een zoekwoord in.')
+    expect(part(element, '.lintje-field__hint')).toBeNull()
+    expect(part(element, '.lintje-find')!.classList.contains('is-error')).toBe(true)
+    expect(control(element).getAttribute('aria-invalid')).toBe('true')
+    expect(control(element).getAttribute('aria-describedby')).toBe(error.id)
+  })
+
+  it('says it is required, and asks the host to reset from its reset link', async () => {
+    const element = await mount({ required: true, modified: true, resetLabel: 'Terugzetten' })
+    expect(control(element).getAttribute('aria-required')).toBe('true')
+    const seen = listen(element, 'lintje-reset')
+    part<HTMLButtonElement>(element, '.lintje-field__reset')!.click()
+    expect(seen).toHaveLength(1)
+  })
+})
