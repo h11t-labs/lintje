@@ -701,6 +701,11 @@ describe.each([1440, 390])('a toast while a window is open, at %i px', (width) =
       tabbables(dialog).at(-1)!.focus()
       await tab()
       expect(deepActiveElement()).toBe(close)
+      // Shift+Tab goes back into the window, and Tab again into the toast.
+      await shiftTab()
+      expect(deepActiveElement()).toBe(tabbables(dialog).at(-1))
+      await tab()
+      expect(deepActiveElement()).toBe(close)
       await userEvent.keyboard('{Enter}')
       expect(closed).toBe(1)
       expect(view.asked()).toBe(0)
@@ -717,6 +722,109 @@ describe.each([1440, 390])('a toast while a window is open, at %i px', (width) =
       expect(dialogs()).toEqual([dialog])
     },
   )
+})
+
+describe.each([1440, 390])('a lasting toast over a window, at %i px', (width) => {
+  it.each(['lintje-drawer', 'lintje-modal'] as const)(
+    'does not cover the focused footer button of a %s',
+    async (tag) => {
+      await atWidth(width)
+      const element = Object.assign(document.createElement(tag), { heading: 'Melding' }) as Window
+      // Tall content puts the footer at the bottom of the screen.
+      element.innerHTML = `<p style="height: 2000px">Ingediend op 3 maart.</p>
+        <lintje-button slot="${tag === 'lintje-drawer' ? 'footer' : 'actions'}" variant="tertiary">Annuleren</lintje-button>
+        <lintje-button slot="${tag === 'lintje-drawer' ? 'footer' : 'actions'}" variant="primary">Opslaan</lintje-button>`
+      document.body.append(element)
+      element.open = true
+      await settled(element)
+      const toast = Object.assign(document.createElement('lintje-toast'), {
+        kind: 'error' as const,
+        action: 'Opnieuw proberen',
+      })
+      toast.textContent = 'De melding is niet opgeslagen.'
+      document.body.append(toast)
+      await expect
+        .poll(() => shadow(toast, '.lintje-toast__close')?.checkVisibility() ?? false)
+        .toBe(true)
+      await Promise.all(toast.shadowRoot!.getAnimations().map((animation) => animation.finished))
+      const box = shadow(toast, '.lintje-toast')!
+      const dialog = dialogs()[0]!
+      for (const button of element.querySelectorAll('lintje-button')) {
+        const target = focusTarget(button as HTMLElement)
+        target.focus()
+        expect(deepActiveElement()).toBe(target)
+        await expect
+          .poll(
+            () => {
+              const a = box.getBoundingClientRect()
+              const b = target.getBoundingClientRect()
+              return (
+                a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right
+              )
+            },
+            { message: `${button.textContent} lies under the toast` },
+          )
+          .toBe(true)
+      }
+      expect(dialogs()).toEqual([dialog])
+    },
+  )
+})
+
+/** A window inside its scrim: only a press that starts and ends on the scrim asks to close. */
+const SCRIMS: { name: string; tag: string; frame: string; scrim: string }[] = [
+  {
+    name: 'lintje-modal',
+    tag: 'lintje-modal',
+    frame: '.lintje-modal',
+    scrim: '.lintje-modal__scrim',
+  },
+  {
+    name: 'lintje-dialog',
+    tag: 'lintje-dialog',
+    frame: '.lintje-dialog',
+    scrim: '.lintje-dialog__scrim',
+  },
+]
+
+describe.each(SCRIMS)('$name with a real pointer', ({ tag, frame, scrim }) => {
+  // The scrim's corner: the window covers its middle.
+  const corner = { x: 4, y: 4 }
+
+  async function opened(): Promise<{ element: HTMLElement; asked: () => number }> {
+    const element = Object.assign(document.createElement(tag) as HTMLElement & { open: boolean }, {
+      heading: 'Venster',
+    })
+    element.innerHTML = '<p>Inhoud van het venster</p>'
+    let asked = 0
+    element.addEventListener('lintje-close', () => asked++)
+    document.body.append(element)
+    element.open = true
+    await expect.poll(() => shadow(element, frame)?.checkVisibility() ?? false).toBe(true)
+    return { element, asked: () => asked }
+  }
+
+  it('closes nothing on a drag out of the window onto the scrim', async () => {
+    const { element, asked } = await opened()
+    await userEvent.dragAndDrop(shadow(element, frame)!, shadow(element, scrim)!, {
+      targetPosition: corner,
+    })
+    expect(asked()).toBe(0)
+  })
+
+  it('closes nothing on a drag from the scrim into the window', async () => {
+    const { element, asked } = await opened()
+    await userEvent.dragAndDrop(shadow(element, scrim)!, shadow(element, frame)!, {
+      sourcePosition: corner,
+    })
+    expect(asked()).toBe(0)
+  })
+
+  it('asks to close on a click on the scrim', async () => {
+    const { element, asked } = await opened()
+    await userEvent.click(shadow(element, scrim)!, { position: corner })
+    await expect.poll(asked).toBe(1)
+  })
 })
 
 describe('the known failures', () => {

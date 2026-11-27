@@ -142,6 +142,8 @@ export class LintjeFilterZone extends LintjeElement {
     // observer and, open, the page's scroll listener.
     if (this.hasUpdated) {
       this.wasExpanded = undefined
+      // Leaving cleared the timer of an opening; drawn anew, the body stands open at once.
+      this.settled = true
       this.requestUpdate()
     }
   }
@@ -248,10 +250,12 @@ export class LintjeFilterZone extends LintjeElement {
     const height = stickTop(sentinel)
     this.#observedTop = height
     this.observer = new IntersectionObserver(
-      ([entry]) => {
+      () => {
         // A line that moved since leaves this margin stale: the next update observes anew.
         if (stickTop(sentinel) !== this.#observedTop) this.requestUpdate()
-        else this.report(!entry.isIntersecting)
+        // Where the sentinel stands now, not the entry: an entry taken before the page jumped
+        // can arrive after the jump, and Chromium need not report again.
+        else this.report(sentinel.getBoundingClientRect().top < this.#observedTop)
       },
       {
         rootMargin: `-${height}px 0px 0px 0px`,
