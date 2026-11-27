@@ -33,8 +33,14 @@ import {
 } from './zone-state'
 import zoneCss from './filter-zone.css?inline'
 import { scrollRoot } from '../../../core/host-config'
+import { watchRoom } from '../../../core/scroll-room'
 import { holdsFocus, ownsEscape, standsIn } from '../../../core/focus'
 import { heightSettleMs } from '../../shared/transition'
+
+/** Where the zone sticks: under the top bar, or what the shell says sticks there with it. */
+function stickTop(element: Element): number {
+  return lengthPx(element, '--lintje-shell-top', lengthPx(element, '--h-topbar', 56))
+}
 
 export class LintjeFilterZone extends LintjeElement {
   static override styles = [iconStyles, badgeStyles, shadowCss(zoneCss)]
@@ -71,6 +77,15 @@ export class LintjeFilterZone extends LintjeElement {
   private observer: IntersectionObserver | null = null
   // `undefined` until the first update: `null === null` would skip the first report.
   private observed: HTMLElement | null | undefined = undefined
+  /** The stick height the observer's margin was made for. */
+  #observedTop = 0
+  #unsubscribe: (() => void) | null = null
+  /** The shell measures where its bars stick after this zone drew, and claims that room at the
+      top of the scroller: a new height observes anew. */
+  readonly #onRoom = (): void => {
+    const sentinel = this.observed
+    if (sentinel && stickTop(sentinel) !== this.#observedTop) this.requestUpdate()
+  }
   private wasExpanded: boolean | undefined = undefined
 
   /**
@@ -122,6 +137,7 @@ export class LintjeFilterZone extends LintjeElement {
   override connectedCallback(): void {
     super.connectedCallback()
     window.addEventListener('resize', this.onResize)
+    this.#unsubscribe = watchRoom(scrollRoot() ?? document.documentElement, this.#onRoom)
     // A move disconnects and reconnects without a render of its own: one brings back the
     // observer and, open, the page's scroll listener.
     if (this.hasUpdated) {
@@ -135,6 +151,8 @@ export class LintjeFilterZone extends LintjeElement {
     this.watchPageScroll(false)
     clearTimeout(this.settleTimer)
     window.removeEventListener('resize', this.onResize)
+    this.#unsubscribe?.()
+    this.#unsubscribe = null
     super.disconnectedCallback()
   }
 
@@ -149,7 +167,7 @@ export class LintjeFilterZone extends LintjeElement {
     )
     const bar = this.renderRoot.querySelector<HTMLElement>('.lintje-filter-bar')
     if (!bar) return
-    const topBar = inner ? lengthPx(inner, '--h-topbar', 56) : 0
+    const topBar = inner ? stickTop(inner) : 0
     const scrollable =
       inner !== null &&
       row !== null &&
@@ -218,7 +236,8 @@ export class LintjeFilterZone extends LintjeElement {
     this.measureOverflow()
     const sentinel =
       this.renderRoot.querySelector<HTMLElement>('.lintje-filter-bar__sentinel') ?? null
-    const remeasure = changed.has('open')
+    const remeasure =
+      changed.has('open') || (sentinel !== null && stickTop(sentinel) !== this.#observedTop)
     if (!remeasure && sentinel === this.observed) return
     this.stopObserving()
     this.observed = sentinel
@@ -226,7 +245,8 @@ export class LintjeFilterZone extends LintjeElement {
       this.report(false)
       return
     }
-    const height = lengthPx(sentinel, '--h-topbar', 56)
+    const height = stickTop(sentinel)
+    this.#observedTop = height
     this.observer = new IntersectionObserver(([entry]) => this.report(!entry.isIntersecting), {
       rootMargin: `-${height}px 0px 0px 0px`,
       threshold: 0,
@@ -250,7 +270,7 @@ export class LintjeFilterZone extends LintjeElement {
     const root = scrollRoot()
     const scroller = root && root !== document.scrollingElement ? root : document.scrollingElement
     if (!sentinel || !bar || !scroller) return true
-    const topBar = lengthPx(sentinel, '--h-topbar', 56)
+    const topBar = stickTop(sentinel)
     return canStayScrolled({
       scrollHeight: scroller.scrollHeight,
       viewportHeight: scroller.clientHeight,

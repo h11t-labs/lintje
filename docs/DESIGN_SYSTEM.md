@@ -1059,7 +1059,8 @@ bedieningselementen zijn er zolang de lezer kiest, en verder scrollen sluit ze. 
 zijn de filters een sheet, en wijzigingen gelden pas bij "Toepassen". De zin opent hem: de hele
 balk is de knop, met het aantal aangepaste filters en een pijl, dus de header heeft geen eigen
 knop "Filters". Op elke breedte plakt de zin bij het scrollen direct onder de balk van de shell,
-en de shell houdt zijn hoogte vrij boven de focus.
+en de shell houdt zijn hoogte vrij boven de focus. Heeft de paginakop tabs, dan plakt de zin
+direct onder hun rij, met één lijn ertussen: beide blijven in beeld en liggen nooit over elkaar.
 
 **De pijl van een KPI draagt de richting, het woord het oordeel; de kleur bevestigt ze alleen.**
 Naast de pijl staat "Gunstig" of "Ongunstig" in de tekstkleur, één keer gezegd. Waar stijgen slecht
@@ -1578,7 +1579,7 @@ kleinste correctie, en leg die hier vast.
 - **Een vastgeplakte balk bedekt nooit de focus** (2.4.11): wat aan een rand van de scroller plakt,
   houdt de ruimte die het bedekt vrij als `scroll-padding`, en de scroller houdt per rand de
   grootste vrij, nooit minder dan wat de host er zelf zette. Zo doen de balk van de shell met de
-  filterbalk eronder, de tabs onderaan, de actiebalk van het formulier, de vastgeplakte vraag en het
+  tabrij van de paginakop en de filterbalk eronder, de tabs onderaan, de actiebalk van het formulier, de vastgeplakte vraag en het
   vraagvak van het gesprek, een toast die blijft staan, en een eigen balk van de host met
   `data-sticky`, die de shell meet. De foutsamenvatting scrolt een veld naar het midden. Een element
   waar de focus toch onder belandt, scrollen de actiebalk, de toast en de selectiebalk van de tabel

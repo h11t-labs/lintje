@@ -458,6 +458,47 @@ export default {
           },
         },
         {
+          label: 'Tabs en filterbalk onder elkaar',
+          note:
+            'Een paginakop met tabs plakt met zijn tabrij onder de balk; een filterbalk plakt ' +
+            'daar weer direct onder, met één lijn ertussen. Scrol in de pagina.',
+          frame: 'page',
+          html: `<lintje-shell>
+            <lintje-page-header slot="header">
+              <lintje-tabs slot="tabs"></lintje-tabs>
+            </lintje-page-header>
+            <lintje-filter-bar slot="full"></lintje-filter-bar>
+            ${'<p>Een regel van de pagina, om te scrollen.</p>'.repeat(40)}
+          </lintje-shell>`,
+          setup(stage) {
+            stage.querySelector('lintje-shell').data = { name: 'Transcriptie', emblem: emblem(), navigation: NAVIGATION, user: USER }
+            stage.querySelector('lintje-page-header').data = {
+              title: 'Opnames',
+              description: 'Alle opnames van het team, de nieuwste bovenaan.',
+            }
+            stage.querySelector('lintje-tabs').tabs = [
+              { value: 'alle', label: 'Alle opnames', href: '#alle' },
+              { value: 'mijn', label: 'Mijn opnames', href: '#mijn' },
+            ]
+            stage.querySelector('lintje-filter-bar').data = {
+              open: false,
+              filters: [
+                {
+                  key: 'period',
+                  label: 'Periode',
+                  kind: 'select',
+                  value: 'week',
+                  default: 'week',
+                  options: [
+                    { value: 'week', label: 'Deze week' },
+                    { value: 'month', label: 'Deze maand' },
+                  ],
+                },
+              ],
+            }
+          },
+        },
+        {
           label: 'Tabbalk op een telefoon',
           note:
             'Met `mobile-tabs` staan onder 768 px de losse pagina’s als tabs onderaan, Menu als ' +
