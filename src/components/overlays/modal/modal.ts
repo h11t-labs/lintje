@@ -125,6 +125,7 @@ export class LintjeModal extends LintjeElement {
     return html`<div
       class="lintje-modal__scrim"
       @pointerdown=${this.#scrim.onPointerDown}
+      @pointerup=${this.#scrim.onPointerUp}
       @click=${(event: Event) => {
         if (this.#scrim.hits(event)) this.close()
       }}
