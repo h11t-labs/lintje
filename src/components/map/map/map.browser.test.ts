@@ -287,7 +287,7 @@ describe('the map on a basemap', () => {
   it.each([
     ['the classic style', null],
     ['the new style', 'new'],
-  ])('lifts the scale bar on a phone over a credit of two lines, in %s', async (_, style) => {
+  ])('lifts the scale bar, hint and selection over a two-line credit, in %s', async (_, style) => {
     await page.viewport(390, 844)
     await expect.poll(() => window.innerWidth).toBe(390)
     if (style) document.documentElement.dataset.styleVersion = style
@@ -298,15 +298,29 @@ describe('the map on a basemap', () => {
             ...BASEMAP,
             attribution: '© OpenStreetMap contributors, via terrestris, met de luchtfoto van PDOK',
           },
+          selectedId: 'utr',
+          controls: { rect: true },
         },
         390,
       )
       await ready(element)
       const scale = root(element).querySelector('.lintje-map-chart__scale-bar')!
       const credit = root(element).querySelector('.leaflet-control-attribution')!
+      const selection = root(element).querySelector('.lintje-map-chart__selection')!
       await expect.poll(() => credit.getBoundingClientRect().height).toBeGreaterThan(24)
       expect(overlaps(scale.getBoundingClientRect(), credit.getBoundingClientRect())).toBe(false)
       expect(overlaps(scale.getBoundingClientRect(), zoomButtons(element))).toBe(false)
+      expect(overlaps(selection.getBoundingClientRect(), credit.getBoundingClientRect())).toBe(
+        false,
+      )
+      // A tool in hand shows its hint, the short one for a finger, along the bottom.
+      root(element).querySelector<HTMLButtonElement>('.lintje-map-chart__tool')!.click()
+      const hint = (): Element | null => root(element).querySelector('.lintje-map-chart__hint')
+      await expect.poll(hint).not.toBeNull()
+      const box = hint()!.getBoundingClientRect()
+      expect(overlaps(box, credit.getBoundingClientRect())).toBe(false)
+      expect(overlaps(box, scale.getBoundingClientRect())).toBe(false)
+      expect(overlaps(box, zoomButtons(element))).toBe(false)
     } finally {
       delete document.documentElement.dataset.styleVersion
       await page.viewport(1440, 900)

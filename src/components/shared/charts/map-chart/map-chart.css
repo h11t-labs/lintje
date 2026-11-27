@@ -449,11 +449,14 @@
   border: 1px solid var(--color-border-default);
 }
 /* On a basemap what stands at the bottom lifts over the credit strip, which is a condition of
-   using the service's tiles; on a phone the credit needs two lines. */
+   using the service's tiles. On a phone the credit needs two lines and the map is too narrow for
+   the hint beside the scale, so the hint stands over it; the selection is a row under the map. */
 .lintje-map-chart--basemap .lintje-map-chart__selection,
 .lintje-map-chart--basemap .lintje-map-chart__scale-bar,
 .lintje-map-chart--basemap .lintje-map-chart__hint { bottom: calc(var(--space-2) + var(--space-5)); }
 .lintje-map-chart--basemap.lintje-map-chart--mobile .lintje-map-chart__scale-bar { bottom: calc(var(--space-2) + var(--space-10)); }
+.lintje-map-chart--basemap.lintje-map-chart--mobile .lintje-map-chart__hint { bottom: calc(var(--space-2) + var(--space-10) + var(--space-8)); }
+.lintje-map-chart--basemap .lintje-map-chart__selection--below { bottom: auto; }
 
 /* --- The legend ----------------------------------------------------------- */
 
