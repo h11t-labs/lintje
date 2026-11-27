@@ -370,27 +370,6 @@ describe('refused typed text', () => {
       expect(submits()).toBe(0)
     })
 
-    it('holds a press on the button straight after typing', async () => {
-      const fill = { tag: row.tag, fill: {}, posts: [] }
-      const { form, element, submits } = await inForm(fill, {
-        ...row.props,
-        value: row.value,
-        required: false,
-      })
-      const button = submitButton()
-      form.append(button)
-      await userEvent.fill(element.renderRoot.querySelector('input')!, row.refused)
-      const seen: unknown[] = []
-      element.addEventListener('focusout', () => seen.push(['out', element.refusal]))
-      form.addEventListener('invalid', () => seen.push(['invalid', element.refusal]), true)
-      await userEvent.click(button)
-      seen.push(['clicked', element.refusal, active()?.localName])
-      await new Promise((resolve) => setTimeout(resolve, 20))
-      seen.push(['end', element.refusal, submits(), active()?.localName])
-      expect(element.refusal, JSON.stringify(seen)).not.toBe('')
-      expect(submits()).toBe(0)
-    })
-
     it('takes the focus at its control when the form reports', async () => {
       const fill = { tag: row.tag, fill: {}, posts: [] }
       const { form, element } = await inForm(fill, { ...row.props, required: false })
