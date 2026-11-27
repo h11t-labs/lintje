@@ -216,6 +216,27 @@ describe('lintje-form', () => {
     })
   })
 
+  it('while busy turns off the fields in a repeater, and gives them back on after', async () => {
+    const form = document.createElement('lintje-form')
+    form.innerHTML = `<lintje-repeater legend="Betrokkenen"><lintje-repeater-row
+      ><lintje-text-input name="naam" label="Naam"></lintje-text-input></lintje-repeater-row
+    ></lintje-repeater>`
+    document.body.append(form)
+    await form.updateComplete
+    const repeater = form.querySelector('lintje-repeater')!
+    const naam = form.querySelector('lintje-text-input')!
+    await repeater.updateComplete
+    form.busy = true
+    await form.updateComplete
+    await repeater.updateComplete
+    expect(naam.disabled).toBe(true)
+    form.busy = false
+    await form.updateComplete
+    await repeater.updateComplete
+    expect(repeater.disabled).toBe(false)
+    expect(naam.disabled).toBe(false)
+  })
+
   it('while busy holds a read-only field disabled too, and hands back both', async () => {
     const form = await mount()
     const titel = field(form, 'titel')

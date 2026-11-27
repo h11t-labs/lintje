@@ -140,10 +140,13 @@ export class LintjeRepeater extends LintjeElement {
   }
 
   // As `lintje-form-section`: a `<fieldset disabled>` in a shadow root disables nothing slotted.
-  // The rows are left out: `sync` sets their `disabled`, and a hold would hand back a stale one.
+  // Only fields that are on: one already off, by itself or by a section that holds this repeater
+  // too, is not ours to hand back. The rows are left out: `sync` sets their `disabled`.
   #hold(): void {
     if (!this.disabled) return this.#disabled.release()
-    const fields = disableableControls(this).filter((node) => !(node instanceof LintjeRepeaterRow))
+    const fields = disableableControls(this).filter(
+      (node) => !(node instanceof LintjeRepeaterRow) && !(node as { disabled?: boolean }).disabled,
+    )
     this.#disabled.apply(fields, true)
   }
 

@@ -4,6 +4,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import './repeater'
+import '../form-section/form-section'
 import { firstFocusable, type LintjeRepeater, type LintjeRepeaterRow } from './repeater'
 
 function row(name: string): LintjeRepeaterRow {
@@ -181,6 +182,23 @@ describe('a disabled repeater', () => {
     await settle(element)
     expect(fields(element).map((field) => field.disabled)).toEqual([false, false, false, true])
     expect(rows(element).map((item) => item.disabled)).toEqual([false, false])
+  })
+
+  it('gives its fields back on inside a form section that turns off and on again', async () => {
+    const section = document.createElement('lintje-form-section')
+    document.body.append(section)
+    const element = await mount(['J. de Vries'])
+    section.append(element)
+    await settle(element)
+    section.disabled = true
+    await section.updateComplete
+    await settle(element)
+    expect(fields(element).every((field) => field.disabled)).toBe(true)
+    section.disabled = false
+    await section.updateComplete
+    await settle(element)
+    expect(element.disabled).toBe(false)
+    expect(fields(element).some((field) => field.disabled)).toBe(false)
   })
 
   it('turns off a row the host adds while it is off', async () => {
