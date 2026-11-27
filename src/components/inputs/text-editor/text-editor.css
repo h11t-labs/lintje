@@ -24,6 +24,8 @@
   padding: var(--space-1);
   background: var(--color-bg-page);
   border-bottom: 1px solid var(--color-border-default);
+  /* Its fill takes the frame's corner, or it squares the frame's round edge. */
+  border-radius: calc(var(--radius-control) - var(--lintje-field-border)) calc(var(--radius-control) - var(--lintje-field-border)) 0 0;
 }
 /* A transparent hit area, above and below only, reaches the target height. */
 .lintje-text-editor__tool {

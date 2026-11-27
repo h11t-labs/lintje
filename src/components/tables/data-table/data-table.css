@@ -239,6 +239,7 @@
   width: 100%; height: var(--h-control);
   padding: 0 var(--space-2);
   border: 1px solid var(--color-border-field);
+  border-radius: var(--radius-control);
   background: var(--color-bg-field);
   color: var(--color-text-primary);
   font: var(--text-table);
@@ -364,6 +365,7 @@
   display: flex; align-items: center; justify-content: center;
   margin-left: auto;
   border: 1px solid transparent;
+  border-radius: var(--radius-control);
   color: var(--color-text-muted);
   transition: background var(--dur-hover) var(--ease-in-motion), color var(--dur-hover) var(--ease-in-motion);
 }
@@ -381,6 +383,7 @@
   display: flex; align-items: center; justify-content: center;
   margin-left: auto;
   border: 1px solid transparent;
+  border-radius: var(--radius-control);
   color: var(--color-text-muted);
   transition: background var(--dur-hover) var(--ease-in-motion), color var(--dur-hover) var(--ease-in-motion);
 }

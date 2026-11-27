@@ -329,7 +329,12 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
   ene uitzondering is het label op een foto in een fotowand: het is geen bedieningselement, maar
   een etiket zo klein als een chip, en draagt dezelfde kleine hoek. Nooit groter dan de kleine
   hoek. Rond is alleen wat een cirkel ís: een stip, een radio, een schakelaar, een avatar, een
-  teller, de laadring.
+  teller, de laadring; een teller die je bedient, zoals die op een knoop van de graaf, is een knop
+  en draagt de kleine hoek. Knoppen die als één groep tegen elkaar staan (de segmenten, de
+  zoomknoppen, vorige en volgende) ronden alleen hun buitenhoeken af. Een gevuld deel tegen de rand
+  van een afgerond kader (de werkbalk van de teksteditor, de stapknoppen van het getalveld, de
+  toevoeging en de knop van een veld) volgt de hoek binnen die rand, anders tekent het de ronde
+  hoek recht.
 - **De ene afgeronde hoek loopt nooit van de pagina af.** De vormtaal van de huisstijl is een
   rechthoek met één afgeronde hoek: hoogstens drie per beeld, spaarzaam, nooit een vlak met een
   hoek in een vlak met een hoek, en nooit op een vlak dat van de pagina afloopt. De band aan de kop

@@ -209,14 +209,14 @@
 /* The counter stands on the rim, top right: the name keeps clear of it. */
 .lintje-graph__mark--counted .lintje-graph__name { margin-left: var(--space-4); }
 
-/* The counter, drawn as the avatar is: round, the light fill, the plain edge. Open, its "−"
+/* The counter: the small corner of a button, the light fill, the plain edge. Open, its "−"
    waits for the pointer, the focus or the choice. */
 .lintje-graph__counter {
   display: inline-flex; align-items: center; justify-content: center;
   box-sizing: border-box;
   height: 24px; min-width: 24px;
   padding: 0 var(--space-1);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border-default);
   color: var(--color-text-primary);
@@ -240,7 +240,8 @@
   position: absolute;
   inset: calc((24px - 20px) / 2);
   z-index: -1;
-  border-radius: 10px;
+  /* Concentric with the target round it: the corner less the inset. */
+  border-radius: max(0px, calc(var(--radius-control) - (24px - 20px) / 2));
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border-default);
 }
@@ -277,6 +278,13 @@
   inset: 0 min(0px, calc((100% - var(--h-target)) / 2));
 }
 .lintje-graph__zoom-button:hover { background: var(--color-bg-subtle); }
+/* As the map's: only the outer corners of the stack are round. */
+.lintje-graph__zoom-tip:first-child .lintje-graph__zoom-button {
+  border-top-left-radius: var(--radius-control); border-top-right-radius: var(--radius-control);
+}
+.lintje-graph__zoom-tip:last-child .lintje-graph__zoom-button {
+  border-bottom-left-radius: var(--radius-control); border-bottom-right-radius: var(--radius-control);
+}
 
 .lintje-graph__hint {
   position: absolute; z-index: 2;
