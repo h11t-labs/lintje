@@ -72,7 +72,8 @@
   color: var(--color-nav-text);
   background: transparent;
   flex: none;
-  transition: background var(--dur-hover) var(--ease-in-motion);
+  transition: background var(--dur-hover) var(--ease-in-motion),
+              color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-nav__pin--text {
   width: auto;
@@ -87,8 +88,7 @@
   position: absolute;
   inset: min(0px, calc((100% - var(--h-target)) / 2));
 }
-.lintje-nav__pin { transition: background var(--dur-hover) var(--ease-in-motion); }
-.lintje-nav__pin:hover { background: var(--color-nav-hover); }
+.lintje-nav__pin:hover { background: var(--color-nav-hover); color: var(--color-nav-hover-text); }
 
 /* No native bar: a styled one takes width in every browser and the rows' fill would stop short
    of the menu's edge. `NavScrollbar` sizes and places the thumb drawn instead. */
