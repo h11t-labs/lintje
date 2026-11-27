@@ -45,7 +45,7 @@ import '../user-menu/user-menu'
 import { MOBILE, WIDE, MediaController } from '../../../core/media'
 import { lockScroll, onScrollLocks, scrollRoot } from '../../../core/host-config'
 import { lengthPx } from '../../../core/length'
-import { keepRoom, releaseRoom, type RoomSide } from '../../../core/scroll-room'
+import { keepRoom, releaseRoom, tellRoom, type RoomSide } from '../../../core/scroll-room'
 import { FocusTrap, ownsEscape } from '../../shared/focus-trap'
 import { holdsFocus } from '../../../core/focus'
 import { FrameStateController } from '../../../core/frame-state'
@@ -594,8 +594,13 @@ export class LintjeShell extends LintjeElement {
     const tabs = this.#headerTabs()
     // What sticks under the bar (the filter bar) stands under the head's tabs, which stick there.
     const shell = this.renderRoot.querySelector<HTMLElement>('.lintje-shell')
-    if (tabs > 0) shell?.style.setProperty('--lintje-shell-top', `${bar + tabs}px`)
-    else shell?.style.removeProperty('--lintje-shell-top')
+    const line = tabs > 0 ? `${bar + tabs}px` : ''
+    if (shell && shell.style.getPropertyValue('--lintje-shell-top') !== line) {
+      if (line) shell.style.setProperty('--lintje-shell-top', line)
+      else shell.style.removeProperty('--lintje-shell-top')
+      // The filter bar measures its line from this, also where the room below stays the same.
+      tellRoom(root)
+    }
     keepRoom(this, root, 'top', Math.max(bar + tabs + filters, this.#hostRoom('top')))
     keepRoom(this, root, 'bottom', Math.max(this.#tabsRoom(), this.#hostRoom('bottom')))
   }
