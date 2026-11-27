@@ -322,7 +322,8 @@ export class LintjeFilterBar extends LintjeElement {
         return html`<lintje-date-range
           ?stacked=${stacked}
           hide-label
-          accessible-name=${filter.label}
+          label=${filter.label}
+          ?bold=${modified}
           .range=${{ from: isoToPicker(range?.from ?? null), to: isoToPicker(range?.to ?? null) }}
           .maxDate=${typeof filter.max === 'string' ? isoToDate(filter.max) : undefined}
           @lintje-change=${(event: CustomEvent<DateRange>) =>

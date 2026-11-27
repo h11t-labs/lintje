@@ -299,3 +299,28 @@ describe('lintje-date-range', () => {
     })
   }
 })
+
+describe('lintje-date-range as a field', () => {
+  it('is a field: the error bar and a setting row reach it', async () => {
+    const element = await mount({ error: 'Kies een periode.', layout: 'row' })
+    const root = element.shadowRoot!.querySelector('.lintje-date-range-picker')!
+    expect(root.classList.contains('lintje-field')).toBe(true)
+    expect(root.querySelector(':scope > .lintje-field__error')).not.toBeNull()
+    expect(element.getAttribute('layout')).toBe('row')
+  })
+
+  it('is bold only with bold, as the select, not because a range is chosen', async () => {
+    const element = await mount({ range: { from: '01-10-2026', to: '07-10-2026' } })
+    expect(field(element).classList.contains('is-filled')).toBe(true)
+    expect(field(element).classList.contains('is-bold')).toBe(false)
+    element.bold = true
+    await element.updateComplete
+    expect(field(element).classList.contains('is-bold')).toBe(true)
+  })
+
+  it('takes its name from a hidden label, as the other filters do', async () => {
+    const element = await mount({ label: 'Periode', hideLabel: true })
+    expect(element.shadowRoot!.querySelector('.visually-hidden')?.textContent).toContain('Periode')
+    expect(field(element).getAttribute('aria-label')).toBe('Periode, geen periode gekozen')
+  })
+})

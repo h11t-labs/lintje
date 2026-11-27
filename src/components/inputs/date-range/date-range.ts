@@ -128,6 +128,7 @@ export class LintjeDateRange extends LintjeInputElement {
 
   static override properties: PropertyDeclarations = {
     accessibleName: { type: String, attribute: 'accessible-name' },
+    bold: { type: Boolean },
     stacked: { type: Boolean, reflect: true },
     open: { type: Boolean, reflect: true },
     range: { attribute: false },
@@ -143,6 +144,8 @@ export class LintjeDateRange extends LintjeInputElement {
    * chosen range.
    */
   accessibleName: string = ''
+  /** Bold the range, as a modified filter does. */
+  bold: boolean = false
   stacked: boolean = false
   open: boolean = false
   /** The chosen days, as `dd-mm-yyyy`. */
@@ -322,7 +325,7 @@ export class LintjeDateRange extends LintjeInputElement {
     // "Wissen" empties the draft: over a chosen range that is a change to apply.
     const applicable = days > 0 || (chosen && !this.draft.from && !this.draft.to)
 
-    return html`<div class="lintje-date-range-picker" @focusout=${this.onFocusOut}>
+    return html`<div class="lintje-field lintje-date-range-picker" @focusout=${this.onFocusOut}>
       ${this.label ? this.renderLabel() : nothing}
       ${this.renderMessages()}
       <button
@@ -331,6 +334,7 @@ export class LintjeDateRange extends LintjeInputElement {
         class=${classMap({
           'lintje-date-range-picker__field': true,
           'is-filled': Boolean(this.range.from),
+          'is-bold': this.bold,
           'is-error': Boolean(this.error),
         })}
         aria-expanded=${this.open}

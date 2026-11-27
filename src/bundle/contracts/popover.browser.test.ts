@@ -796,6 +796,28 @@ const ROWS: Row[] = [
     },
   },
   {
+    name: 'lintje-date-range (setting row)',
+    onScroll: 'follows',
+    opens: 'opener',
+    shiftTab: 'stays',
+    // A row's host is a container, which would make it the box a fixed panel stands in.
+    async open(stage) {
+      const range = create<Lit & { label: string; layout: string }>('lintje-date-range')
+      range.label = 'Periode'
+      range.layout = 'row'
+      stage.append(range)
+      await range.updateComplete
+      const button = part(range, '.lintje-date-range-picker__field')
+      await press(button, '{Enter}')
+      return {
+        anchor: button,
+        surface: () => range.shadowRoot!.querySelector('.lintje-date-range-picker__popover'),
+        returnsTo: button,
+        opener: button,
+      }
+    },
+  },
+  {
     name: 'lintje-shell (user menu in the side menu’s foot)',
     onScroll: 'follows',
     pageOnly: true,

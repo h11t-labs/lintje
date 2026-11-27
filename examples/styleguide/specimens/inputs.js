@@ -1195,7 +1195,8 @@ export default {
         },
         {
           label: 'Afwijkend van standaard',
-          html: '<lintje-date-range label="Periode" modified></lintje-date-range>',
+          note: 'Met `bold` staat een periode die van de standaard afwijkt vet, zoals bij de keuzelijst.',
+          html: '<lintje-date-range label="Periode" modified bold></lintje-date-range>',
           setup: setRange,
         },
         {

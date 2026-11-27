@@ -67,3 +67,24 @@ describe('lintje-filter-bar', () => {
     expect(await said(element)).toBe('')
   })
 })
+
+describe('the date range in the filter bar', () => {
+  it('gets its label hidden and is bold once it differs from the default, as the select', async () => {
+    const element = document.createElement('lintje-filter-bar')
+    const period: FilterDefinition = {
+      key: 'periode',
+      label: 'Periode',
+      kind: 'date-range',
+      value: { from: '2026-10-01', to: '2026-10-07' },
+      default: null,
+    }
+    element.data = { filters: [period], standalone: true } satisfies FilterBarData
+    document.body.append(element)
+    await element.updateComplete
+    const range = element.shadowRoot!.querySelector('lintje-date-range')!
+    expect(range.label).toBe('Periode')
+    expect(range.hideLabel).toBe(true)
+    expect(range.hasAttribute('accessible-name')).toBe(false)
+    expect(range.bold).toBe(true)
+  })
+})
