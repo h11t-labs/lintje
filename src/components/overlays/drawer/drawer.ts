@@ -108,7 +108,8 @@ export class LintjeDrawer extends LintjeElement {
     }
     const panel = this.panel
     // Held first so the trap records the opener; focus moves once slotted fields have drawn.
-    if (panel) this.#hold.hold(panel)
+    const foot = this.renderRoot.querySelector<HTMLElement>('.lintje-drawer__footer')
+    if (panel) this.#hold.hold(panel, { foot })
     const drawn = Array.from(this.querySelectorAll('*'), (element) =>
       'updateComplete' in element ? (element.updateComplete as Promise<unknown>) : null,
     ).filter((promise) => promise !== null)
