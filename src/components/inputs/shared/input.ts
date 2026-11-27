@@ -23,6 +23,7 @@ import {
   otherField,
   postsEmpty,
   readControl,
+  shownControl,
   writeControl,
 } from '../../shared/controls'
 import type { FilterOption } from '../../../types'
@@ -101,7 +102,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
 
   /** The value as the form posts it; a control whose wire shape differs overrides this. */
   protected get postedValue(): unknown {
-    return readControl(this)
+    return shownControl(this)
   }
 
   /** Puts the value in the native form around the control, in the shape `formEntries` gives. */

@@ -380,7 +380,7 @@ export class LintjeTimeline extends LintjeElement {
 
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
-    if (changed.has('empty') && this.empty !== undefined) this.emptyText = this.empty
+    if (changed.has('empty') && this.empty != null) this.emptyText = this.empty
   }
 
   #mobile = new MediaController(this, MOBILE)

@@ -151,6 +151,16 @@
 .lintje-shell__main > slot[name='header']::slotted(lintje-page-header[has-tabs]) { padding-inline: 0; }
 :host([data-tone='light']) .lintje-shell__main > slot[name='header']::slotted(lintje-page-header) { padding: 0; }
 :where(.lintje-shell.is-phone) .lintje-shell__main > slot[name='header']::slotted(*) { padding-top: var(--space-4); }
+/* In the earlier style a head with tabs stands above a bar in `full` (`is-head-above`), still in
+   the content column, as far from the content as it stood in it. */
+.lintje-shell__main.is-head-above > slot[name='header']::slotted(lintje-page-header) {
+  padding: var(--page-pad-y) calc(var(--page-pad-x) + var(--page-gutter)) 0;
+}
+:where(.lintje-shell.is-phone) .lintje-shell__main.is-head-above > slot[name='header']::slotted(lintje-page-header) {
+  padding: var(--space-4) var(--space-4) 0;
+}
+.lintje-shell__main.is-head-above .lintje-shell__content { padding-top: var(--grid-gutter); }
+:where(.lintje-shell.is-phone) .lintje-shell__main.is-head-above .lintje-shell__content { padding-top: var(--space-3); }
 /* Under a head the content starts a row's gap lower, as it stood a row under the head before. */
 :host([data-style-version='new']:has(> [slot='header']:not([hidden]))) .lintje-shell__content { padding-top: var(--grid-gutter); }
 :host([data-style-version='new']:has(> [slot='header']:not([hidden]))) :where(.lintje-shell.is-phone) .lintje-shell__content { padding-top: var(--space-3); }

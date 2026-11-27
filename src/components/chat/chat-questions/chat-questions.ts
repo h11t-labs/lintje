@@ -326,6 +326,8 @@ export class LintjeChatQuestions extends LintjeElement {
   private pick(value: string): void {
     if (this.sending) return
     const id = this.questions[0].id
+    // The tapped option is the answer: the own field of "Iets anders…" closes with it.
+    this.otherOpen = false
     this.drafts = { ...this.drafts, [id]: { ...this.draft(id), values: [value] } }
     this.send()
   }

@@ -687,12 +687,11 @@
      the options, so only the chosen one carries the accent. */
   --color-segmented-border: var(--color-border-field);
   --segmented-divider: 0 solid transparent;
-  /* Every window (dialog, modal, drawer, sheet): a line between its head, body and foot, or
-     none, and the colour of its title. */
-  --window-divider: 1px solid var(--color-border-default);
-  --window-head-pad-bottom: var(--space-5);
-  --window-foot-pad: var(--space-3) var(--space-6);
-  --color-window-title: var(--color-text-primary);
+  /* The window: a line between its head, body and foot, or none. */
+  --modal-divider: 1px solid var(--color-border-default);
+  --modal-head-pad-bottom: var(--space-5);
+  --modal-foot-pad: var(--space-3) var(--space-6);
+  --color-modal-title: var(--color-text-primary);
 
   /* The start page's band is the primary's wash, so it never reads as the menu. */
   --color-hero-bg: var(--primary-wash);
@@ -988,10 +987,10 @@
   --color-sub-nav-current-bg: var(--color-choice-active-bg);
   --color-segmented-border: var(--color-border-strong);
   --segmented-divider: 1px solid var(--color-border-default);
-  --window-divider: 0 solid transparent;
-  --window-head-pad-bottom: 0px;
-  --window-foot-pad: 0 var(--space-6) var(--space-4);
-  --color-window-title: var(--color-accent-text);
+  --modal-divider: 0 solid transparent;
+  --modal-head-pad-bottom: 0px;
+  --modal-foot-pad: 0 var(--space-6) var(--space-4);
+  --color-modal-title: var(--color-accent-text);
 }
 /* `data-style-new-corner="square"` leaves the large corner out; without it the corner is round. */
 [data-style-version='new'][data-style-new-corner='square'] {

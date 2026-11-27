@@ -488,3 +488,55 @@ describe('the line a filter bar sticks to under the head’s tabs', () => {
       .not.toBeNull()
   })
 })
+
+describe('a head with tabs over a filter bar in the earlier style', () => {
+  const frame = (): Promise<void> =>
+    new Promise((resolve) => requestAnimationFrame(() => resolve()))
+
+  afterEach(() => {
+    window.scrollTo(0, 0)
+    document.body.style.margin = ''
+  })
+
+  it('stands above the bar in `full`, the bar right under its tabs at every scroll', async () => {
+    document.body.style.margin = '0'
+    const element = document.createElement('lintje-shell')
+    element.data = { name: 'Vergunningen', layout: 'top', navigation: DATA.navigation }
+    element.innerHTML = `<lintje-page-header slot="header"><lintje-tabs slot="tabs"></lintje-tabs></lintje-page-header>
+      <lintje-filter-bar slot="full"></lintje-filter-bar>
+      ${'<p>Regel</p>'.repeat(120)}`
+    element.querySelector('lintje-page-header')!.data = { title: 'Aanvragen' }
+    const tabs = element.querySelector('lintje-tabs')!
+    tabs.tabs = [{ value: 'a', label: 'Overzicht', href: '#a' }]
+    const bar = element.querySelector('lintje-filter-bar')!
+    bar.data = {
+      open: false,
+      filters: [
+        {
+          key: 'period',
+          label: 'Periode',
+          kind: 'select',
+          options: [{ value: 'week', label: 'Deze week' }],
+          value: 'week',
+          default: 'week',
+        },
+      ],
+    }
+    document.body.append(element)
+    for (let i = 0; i < 6; i++) await frame()
+    expect(element.isNewStyle).toBe(false)
+    const zone = (): Element =>
+      bar
+        .shadowRoot!.querySelector('lintje-filter-zone')!
+        .shadowRoot!.querySelector('.lintje-filter-bar')!
+    const gaps: number[] = []
+    for (let y = 0; y <= 400; y += 40) {
+      window.scrollTo(0, y)
+      for (let i = 0; i < 3; i++) await frame()
+      gaps.push(
+        Math.round(zone().getBoundingClientRect().top - tabs.getBoundingClientRect().bottom),
+      )
+    }
+    expect(gaps).toEqual(gaps.map(() => 0))
+  })
+})
