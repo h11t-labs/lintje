@@ -9,6 +9,9 @@ import { cdp, page, server, userEvent } from 'vitest/browser'
 import { deepActiveElement } from '../../../core/focus'
 import { putIcons } from '../../../icons/loader'
 import './shell'
+import '../page-header/page-header'
+import '../../layout/tabs/tabs'
+import '../../filters/filter-bar/filter-bar'
 import type { LintjeShell } from './shell'
 import type { LintjeUserMenu } from '../user-menu/user-menu'
 import type { ShellData } from '../../../types'
@@ -406,5 +409,82 @@ describe.skipIf(server.browser !== 'chromium')('a group in the bar under a finge
     await tap(group)
     await expect.poll(() => group.getAttribute('aria-expanded')).toBe('false')
     expect(kinds).toEqual(['touch', 'touch'])
+  })
+})
+
+describe('the line a filter bar sticks to under the head’s tabs', () => {
+  const frame = (): Promise<void> =>
+    new Promise((resolve) => requestAnimationFrame(() => resolve()))
+
+  /** Through every open shadow root. */
+  function deep(root: ParentNode, selector: string): HTMLElement | null {
+    const hit = root.querySelector<HTMLElement>(selector)
+    if (hit) return hit
+    for (const element of root.querySelectorAll('*')) {
+      const found = element.shadowRoot && deep(element.shadowRoot, selector)
+      if (found) return found
+    }
+    return null
+  }
+
+  afterEach(() => {
+    window.scrollTo(0, 0)
+    document.body.style.margin = ''
+  })
+
+  // A bar of the host's own claims more room than the tabs add, so the room stays as it was when
+  // the tabs come: the line moves without the scroll padding moving.
+  it('moves when the tabs come after the bar observes, while the room stays the same', async () => {
+    document.body.style.margin = '0'
+    const element = document.createElement('lintje-shell')
+    element.data = { name: 'Vergunningen', layout: 'top', navigation: DATA.navigation }
+    element.innerHTML = `<div data-sticky="top" style="position: sticky; top: 0; height: 400px"></div>
+      <lintje-page-header slot="header"></lintje-page-header>
+      <lintje-filter-bar slot="full"></lintje-filter-bar>
+      ${'<p>Regel</p>'.repeat(120)}`
+    const header = element.querySelector('lintje-page-header')!
+    header.data = { title: 'Aanvragen' }
+    element.querySelector('lintje-filter-bar')!.data = {
+      open: false,
+      filters: [
+        {
+          key: 'period',
+          label: 'Periode',
+          kind: 'select',
+          options: [{ value: 'week', label: 'Deze week' }],
+          value: 'week',
+          default: 'week',
+        },
+      ],
+    }
+    document.body.append(element)
+    for (let i = 0; i < 6; i++) await frame()
+    const room = document.documentElement.style.scrollPaddingTop
+    expect(room).toBe('400px')
+
+    const tabs = Object.assign(document.createElement('lintje-tabs'), {
+      slot: 'tabs',
+      tabs: [{ value: 'a', label: 'Overzicht', href: '#a' }],
+    })
+    header.append(tabs)
+    await expect.poll(() => tabs.getBoundingClientRect().height).toBeGreaterThan(0)
+    for (let i = 0; i < 6; i++) await frame()
+    expect(document.documentElement.style.scrollPaddingTop).toBe(room)
+
+    // The sentinel between the top bar and the tabs' lower edge: past the new line, not the old.
+    const zone = deep(
+      element.querySelector('lintje-filter-bar')!.shadowRoot!,
+      'lintje-filter-zone',
+    )!
+    const sentinel = zone.shadowRoot!.querySelector('.lintje-filter-bar__sentinel')!
+    const line = parseFloat(getComputedStyle(sentinel).getPropertyValue('--lintje-shell-top'))
+    expect(line).toBeGreaterThan(56)
+    window.scrollBy({
+      top: sentinel.getBoundingClientRect().top - (56 + line) / 2,
+      behavior: 'instant',
+    })
+    await expect
+      .poll(() => deep(zone.shadowRoot!, '.lintje-filter-bar.is-sticky'), { message: 'it sticks' })
+      .not.toBeNull()
   })
 })

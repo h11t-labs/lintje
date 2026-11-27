@@ -41,7 +41,15 @@ function write(scroller: HTMLElement, side: RoomSide): void {
   edge.wrote = value
   if (value === now) return
   scroller.style[property] = value
-  // Told after the claim that changed it, so an owner that answers does not claim inside a claim.
+  tellRoom(scroller)
+}
+
+/**
+ * Tells who watches `scroller` that what stands at its edges moved, also where the room stays as
+ * it was (a host's taller bar claims more). Told after the claim that changed it, so an owner that
+ * answers does not claim inside a claim.
+ */
+export function tellRoom(scroller: HTMLElement): void {
   if (pending.has(scroller) || !listeners.get(scroller)?.size) return
   pending.add(scroller)
   queueMicrotask(() => {
@@ -94,7 +102,7 @@ export function roomBeside(owner: object, scroller: HTMLElement | null, side: Ro
   return room
 }
 
-/** Calls `listener` after the room at an edge of `scroller` changed; returns the undo. */
+/** Calls `listener` after the room at an edge of `scroller` changed, or `tellRoom`; returns the undo. */
 export function watchRoom(scroller: HTMLElement, listener: () => void): () => void {
   const set = listeners.get(scroller) ?? new Set()
   set.add(listener)
