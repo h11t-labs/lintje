@@ -158,6 +158,17 @@ describe('a zone moved in the page', () => {
     await expect.poll(() => reports).toEqual([true, false])
   })
 
+  it('stands open, popovers unclipped, when it moves while still opening', async () => {
+    const element = await mount(true)
+    // Mid-opening, as the timer of a height transition leaves it; reduced motion has none.
+    ;(element as unknown as { settled: boolean }).settled = false
+    await element.updateComplete
+    const bar = (): Element => element.shadowRoot!.querySelector('.lintje-filter-bar')!
+    expect(bar().classList.contains('is-settled')).toBe(false)
+    await moveTwice(element)
+    await expect.poll(() => bar().classList.contains('is-settled')).toBe(true)
+  })
+
   it('closes its open controls once as the page scrolls on', async () => {
     document.body.style.height = '4000px'
     const element = await mount(true)
@@ -170,5 +181,38 @@ describe('a zone moved in the page', () => {
     await expect.poll(() => asked).toEqual([false])
     await settle()
     expect(asked).toEqual([false])
+  })
+})
+
+describe('a report that arrives late', () => {
+  // The observer's first entry is taken before the page jumps and delivered after it; Chromium
+  // then need not report again, so the zone reads where its sentinel stands when it hears.
+  it('pins after a jump past the line, though the entry says the sentinel was in sight', async () => {
+    const Original = window.IntersectionObserver
+    const heard: IntersectionObserverCallback[] = []
+    window.IntersectionObserver = class extends Original {
+      constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+        super(() => {}, options)
+        heard.push(callback)
+      }
+    }
+    try {
+      document.body.style.height = '4000px'
+      const above = document.createElement('div')
+      above.style.height = '300px'
+      document.body.append(above)
+      const element = await mount(false)
+      const reports: boolean[] = []
+      element.addEventListener('lintje-zone-scrolled-change', (event) =>
+        reports.push((event as CustomEvent<boolean>).detail),
+      )
+      expect(heard.length).toBeGreaterThan(0)
+      window.scrollTo(0, 1000)
+      const stale = { isIntersecting: true } as IntersectionObserverEntry
+      heard.at(-1)!([stale], {} as IntersectionObserver)
+      expect(reports).toEqual([true])
+    } finally {
+      window.IntersectionObserver = Original
+    }
   })
 })

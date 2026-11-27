@@ -119,26 +119,32 @@ export class FocusTrap {
     const container = this.#container
     if (event.key !== 'Tab' || !container?.isConnected || !this.isTopmost()) return
     const list = stops(container)
-    if (list.length === 0) {
+    // An element beside the window that stands inside it is already among its stops.
+    const groups = [
+      { root: container as Element, list },
+      ...Array.from(besides)
+        .filter((root) => !standsIn(root, container))
+        .map((root) => ({ root, list: stops(root.shadowRoot ?? root) })),
+    ].filter((group) => group.list.length > 0)
+    if (groups.length === 0) {
       event.preventDefault()
       container.focus()
       return
     }
-    const groups = [
-      { root: container as Element, list },
-      ...Array.from(besides, (root) => ({ root, list: stops(root.shadowRoot ?? root) })),
-    ].filter((group) => group.list.length > 0)
     const active = deepActiveElement()
     const at = active ? groups.findIndex((group) => standsIn(active, group.root)) : -1
     const group = groups[Math.max(at, 0)]!
     const next = (by: number): HTMLElement[] =>
       groups[(Math.max(at, 0) + by + groups.length) % groups.length]!.list
+    // From outside every group (or the window without stops), Shift+Tab ends on the window's
+    // last stop, else the last group's; Tab starts at the first group.
+    const last = list.length > 0 ? list : groups.at(-1)!.list
     if (event.shiftKey && (at < 0 || active === group.root || active === group.list[0])) {
       event.preventDefault()
-      focusOneOf([...(at < 0 ? list : next(-1))].reverse())
+      focusOneOf([...(at < 0 ? last : next(-1))].reverse())
     } else if (!event.shiftKey && (at < 0 || active === group.list.at(-1))) {
       event.preventDefault()
-      focusOneOf(at < 0 ? list : next(1))
+      focusOneOf(at < 0 ? groups[0]!.list : next(1))
     } else {
       this.#stepping = event.shiftKey ? 'back' : 'forward'
       requestAnimationFrame(() => (this.#stepping = null))

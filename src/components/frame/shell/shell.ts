@@ -635,9 +635,20 @@ export class LintjeShell extends LintjeElement {
     if (this.#padFrame) return
     this.#padFrame = requestAnimationFrame(() => {
       this.#padFrame = 0
+      if (!this.isNewStyle && this.#tabbedHeadOverFull() !== this.#headAbove) this.requestUpdate()
       this.#collectHostBars()
       this.#padScroll()
     })
+  }
+
+  /** The earlier style draws the head here: one with tabs above something in `full`. */
+  #headAbove = false
+
+  #tabbedHeadOverFull(): boolean {
+    return (
+      this.querySelector(':scope > lintje-page-header[slot="header"] > [slot="tabs"]') !== null &&
+      this.querySelector(':scope > [slot="full"]') !== null
+    )
   }
 
   #watchHostBars(): void {
@@ -648,7 +659,7 @@ export class LintjeShell extends LintjeElement {
       subtree: true,
       childList: true,
       attributes: true,
-      attributeFilter: ['data-sticky', 'hidden', 'class', 'style', 'has-tabs'],
+      attributeFilter: ['data-sticky', 'hidden', 'class', 'style', 'has-tabs', 'slot'],
     })
     this.#collectHostBars()
   }
@@ -1014,17 +1025,25 @@ export class LintjeShell extends LintjeElement {
     const onSlotChange = (): void => this.#onSlotChange()
     // The new style stands the page's head above what runs edge to edge (a filter bar under it
     // stays sticky); the earlier one keeps the head in the content column under it.
+    // A head with tabs stands above it in the earlier style too: its row sticks, and what sticks
+    // under it comes after it on the page.
     const fresh = this.isNewStyle
+    this.#headAbove = !fresh && this.#tabbedHeadOverFull()
+    const above = fresh || this.#headAbove
     const header = html`<slot name="header" @slotchange=${onSlotChange}></slot>`
     return html`<main
       id=${MAIN_ID}
-      class=${classMap({ 'lintje-shell__main': true, 'is-bare': !this.hasContent })}
+      class=${classMap({
+        'lintje-shell__main': true,
+        'is-bare': !this.hasContent,
+        'is-head-above': this.#headAbove,
+      })}
       tabindex="-1"
     >
-      ${fresh ? header : nothing}
+      ${above ? header : nothing}
       <slot name="full" @slotchange=${onSlotChange}></slot>
       <div class="lintje-shell__content" ?hidden=${!this.hasContent}>
-        ${fresh ? nothing : header}
+        ${above ? nothing : header}
         <slot @slotchange=${onSlotChange}></slot>
       </div>
     </main>`

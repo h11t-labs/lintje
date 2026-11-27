@@ -385,7 +385,8 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
 
 - `dialog.browser.test.ts` — elke gebruiker van `FocusTrap`: de focus gaat erin, Tab blijft
   erin, de pagina erachter scrolt niet, Escape sluit, de focus keert terug naar de trigger, en
-  `aria-labelledby` en `aria-describedby` vinden hun doel in de eigen root.
+  `aria-labelledby` en `aria-describedby` vinden hun doel in de eigen root; bij een venster in
+  een sluier vraagt alleen een klik die op de sluier begint en eindigt om te sluiten.
 - `popover.browser.test.ts` — elk zwevend paneel aan een anker: het staat aan zijn anker,
   binnen het venster, niet afgesneden door een scrollende voorouder; Escape geeft de focus terug
   aan het anker, Tab voorbij het laatste bedieningselement en een focus elders sluiten het, een
@@ -422,7 +423,7 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
   van 24 px.
 - `unavailable.browser.test.ts` — een ingang die niet te kiezen is, blijft onder de aanwijzer
   zoals hij is: geen vlak, geen onderstreping, geen andere kleur, in beide huisstijlen; een
-  ingang die wel te kiezen is, reageert.
+  ingang die wel te kiezen is, reageert. De sluitknop van een bezig venster is zo een ingang.
 - `contrast.browser.test.ts` — tekst die gelezen moet worden, haalt 4.5:1 op wat eronder ligt, in
   licht en donker, met de dekking van elke voorouder meegerekend; wat alleen een vulling had,
   heeft ook een lijn.
