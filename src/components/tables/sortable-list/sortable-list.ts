@@ -22,6 +22,7 @@ import { durationMs } from '../../../core/motion'
 import { styleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
+import '../../feedback/empty-state/empty-state'
 import '../../inputs/checkbox/checkbox'
 import { LiveMessage } from '../../shared/live-message'
 import sortableListCss from './sortable-list.css?inline'
@@ -93,6 +94,7 @@ export class LintjeSortableList extends LintjeElement {
     name: { type: String },
     label: { type: String },
     checkable: { type: Boolean, reflect: true },
+    emptyText: { type: String, attribute: 'empty-text' },
     order: { state: true },
     grabbed: { state: true },
     drag: { state: true },
@@ -103,6 +105,8 @@ export class LintjeSortableList extends LintjeElement {
   /** The filter key. Without it an order is only told to the component that drew the list. */
   name: string = ''
   declare label?: string
+  /** The line that stands without items. */
+  emptyText: string = 'Er is nog niets om te ordenen.'
   /** A checkbox in every row, labelled with the row's name. */
   checkable: boolean = false
   protected order: SortableItem[] = []
@@ -459,6 +463,9 @@ export class LintjeSortableList extends LintjeElement {
   }
 
   protected override render(): TemplateResult {
+    // Without items a line, not an empty list.
+    if (!this.order.length)
+      return html`<lintje-empty-state compact text=${this.emptyText}></lintje-empty-state>`
     return html`<div
       class=${classMap({ 'lintje-sortable-list': true, 'is-sorting': this.drag !== null })}
     >

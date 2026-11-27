@@ -1751,6 +1751,11 @@ export default {
             ]
           },
         },
+        {
+          label: 'Leeg',
+          note: 'Geen lege boom: één regel, die de host meegeeft met `empty-text`.',
+          html: '<lintje-tree-view label="Eenheden" empty-text="Er zijn nog geen eenheden."></lintje-tree-view>',
+        },
       ],
     },
     {
@@ -1821,6 +1826,11 @@ export default {
               COLUMNS[2],
             ]
           },
+        },
+        {
+          label: 'Leeg',
+          note: 'Geen lege lijst: één regel, die de host meegeeft met `empty-text`.',
+          html: '<lintje-sortable-list label="Kolommen" empty-text="Er zijn nog geen kolommen."></lintje-sortable-list>',
         },
       ],
     },
@@ -1951,11 +1961,11 @@ export default {
           },
         },
         {
-          label: 'Zonder momenten',
-          note: 'Geen lege rail: één zin, die de host meegeeft.',
+          label: 'Leeg',
+          note: 'Geen lege rail: één regel, die de host meegeeft met `empty-text`.',
           html:
             '<lintje-timeline heading="Uw aanvraag voor een subsidie" ' +
-            'empty="Er is nog niets gebeurd met deze aanvraag."></lintje-timeline>',
+            'empty-text="Er is nog niets gebeurd met deze aanvraag."></lintje-timeline>',
         },
       ],
     },

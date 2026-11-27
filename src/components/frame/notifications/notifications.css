@@ -97,12 +97,8 @@
 .lintje-notifications__text { margin: 0; font-size: 0.875rem; overflow-wrap: anywhere; }
 .lintje-notifications__when { margin: 0; font-size: 0.875rem; color: var(--color-text-muted); }
 
-.lintje-notifications__empty {
-  margin: 0;
-  padding: var(--space-6) var(--space-4);
-  color: var(--color-text-muted);
-  text-align: center;
-}
+/* The empty line's own padding plus this is the room the panel had for it. */
+.lintje-notifications__empty { padding-block: var(--space-2); }
 
 /* Phone: a sheet from below (`sheet.css`); from a tab it passes under the tabs. */
 .lintje-notifications__scrim { z-index: 84; }

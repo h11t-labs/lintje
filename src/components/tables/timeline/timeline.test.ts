@@ -238,12 +238,47 @@ describe('lintje-timeline', () => {
     expect(root.activeElement).toBe(first)
   })
 
-  it('says the empty sentence without moments, and draws no rail', async () => {
-    const element = await mount({ empty: 'Er is nog niets gebeurd met deze aanvraag.' })
+  it('says the empty text without moments, and draws no rail', async () => {
+    const element = await mount({ emptyText: 'Er is nog niets gebeurd met deze aanvraag.' })
     const root = element.shadowRoot!
     expect(root.querySelector('ol')).toBeNull()
-    expect(text(root.querySelector('.lintje-timeline__empty')!)).toBe(
-      'Er is nog niets gebeurd met deze aanvraag.',
+    const empty = root.querySelector('lintje-empty-state')!
+    expect(empty.hasAttribute('compact')).toBe(true)
+    expect(empty.getAttribute('text')).toBe('Er is nog niets gebeurd met deze aanvraag.')
+  })
+
+  it('says the default empty text, and none with moments', async () => {
+    const element = await mount({})
+    expect(element.shadowRoot!.querySelector('lintje-empty-state')!.getAttribute('text')).toBe(
+      'Er is nog niets gebeurd.',
+    )
+    element.moments = APPLICATION.slice(0, 2)
+    await element.updateComplete
+    expect(element.shadowRoot!.querySelector('lintje-empty-state')).toBeNull()
+  })
+
+  it('still reads the old `empty` as the empty text', async () => {
+    const element = await mount({ empty: 'Nog niets.' })
+    expect(element.emptyText).toBe('Nog niets.')
+    expect(element.shadowRoot!.querySelector('lintje-empty-state')!.getAttribute('text')).toBe(
+      'Nog niets.',
+    )
+    element.removeAttribute('empty')
+    element.setAttribute('empty', 'Nog steeds niets.')
+    await element.updateComplete
+    expect(element.shadowRoot!.querySelector('lintje-empty-state')!.getAttribute('text')).toBe(
+      'Nog steeds niets.',
+    )
+  })
+
+  it('keeps its empty text when the host removes the old `empty` attribute', async () => {
+    const element = await mount({})
+    element.setAttribute('empty', 'Nog niets.')
+    await element.updateComplete
+    element.removeAttribute('empty')
+    await element.updateComplete
+    expect(element.shadowRoot!.querySelector('lintje-empty-state')!.getAttribute('text')).toBe(
+      'Nog niets.',
     )
   })
 

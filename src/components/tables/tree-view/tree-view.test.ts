@@ -184,6 +184,25 @@ describe('lintje-tree-view', () => {
     )
   })
 
+  it('says its empty text without nodes, and draws no empty tree', async () => {
+    const element = await mount({ nodes: [], emptyText: 'Nog geen eenheden.' })
+    const empty = element.shadowRoot!.querySelector('lintje-empty-state')!
+    expect(empty.hasAttribute('compact')).toBe(true)
+    expect(empty.getAttribute('text')).toBe('Nog geen eenheden.')
+    expect(element.shadowRoot!.querySelector('[role="tree"]')).toBeNull()
+    element.nodes = NODES
+    await element.updateComplete
+    expect(element.shadowRoot!.querySelector('lintje-empty-state')).toBeNull()
+    expect(element.shadowRoot!.querySelector('[role="tree"]')).not.toBeNull()
+  })
+
+  it('has a Dutch empty text of its own', async () => {
+    const element = await mount({ nodes: [] })
+    expect(element.shadowRoot!.querySelector('lintje-empty-state')!.getAttribute('text')).toBe(
+      'Er is hier nog niets.',
+    )
+  })
+
   it('takes a new expanded list from the host', async () => {
     const element = await mount()
     element.expanded = []
