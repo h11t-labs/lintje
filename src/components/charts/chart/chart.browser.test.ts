@@ -806,13 +806,42 @@ describe('a chart in a scaled container', () => {
         tile.shadowRoot!.querySelector<HTMLElement>('.lintje-chart-tooltip')
       await expect.poll(tooltip).not.toBeNull()
       // Right of the middle of its category and 12 px above its tallest bar, in the slide's px.
-      await expect
-        .poll(() =>
-          Math.abs(
-            tooltip()!.getBoundingClientRect().left - (bars.left + bars.width / 2 + 12 * scale),
-          ),
+      try {
+        await expect
+          .poll(() =>
+            Math.abs(
+              tooltip()!.getBoundingClientRect().left - (bars.left + bars.width / 2 + 12 * scale),
+            ),
+          )
+          .toBeLessThan(2)
+      } catch (error) {
+        const r = (e: Element) => {
+          const b = e.getBoundingClientRect()
+          return [b.left, b.width, b.top, b.height].map((n) => Math.round(n * 100) / 100)
+        }
+        const anchor = tile.shadowRoot!.querySelector('[data-tooltip-anchor]') as HTMLElement
+        throw new Error(
+          'DIAG ' +
+            JSON.stringify({
+              barsBefore: [bars.left, bars.width],
+              groupNow: r(group),
+              rects: [...group.querySelectorAll('rect')].map(r),
+              texts: [...group.querySelectorAll('text')].map(r),
+              tip: r(tooltip()!),
+              tipStyle: [tooltip()!.style.left, tooltip()!.style.top, tooltip()!.offsetWidth],
+              tipParent: [
+                tooltip()!.parentElement?.className,
+                tooltip()!.parentElement?.clientWidth,
+              ],
+              anchor: [anchor?.tagName, anchor?.className, anchor?.offsetWidth, r(anchor)],
+              svg: drawing(tile) ? r(drawing(tile)!) : null,
+              view: [window.innerWidth, window.scrollX, document.documentElement.scrollWidth],
+              anims: tile.shadowRoot!.getAnimations().map((a) => a.playState),
+              tileW: [tile.offsetWidth, r(tile)],
+            }),
+          { cause: error },
         )
-        .toBeLessThan(2)
+      }
       const tallest = Math.min(
         ...[...group.querySelectorAll('rect')].map((bar) => bar.getBoundingClientRect().top),
       )
