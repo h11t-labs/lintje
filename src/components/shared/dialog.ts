@@ -1,18 +1,35 @@
 /**
  * What every modal window does while it is open: it locks the page's scroll, keeps the focus
- * inside, answers Escape only when it is the window on top, and claims the room its footer takes
- * at the bottom of the screen, so a toast stands above the footer's buttons.
+ * inside, answers Escape only when it is the window on top, and shows its footer to a toast,
+ * which stands above it where the two would meet.
  */
-import { holdOverflow, lockScroll, scrollRoot } from '../../core/host-config'
-import { keepRoom, releaseRoom } from '../../core/scroll-room'
+import { holdOverflow, lockScroll } from '../../core/host-config'
 import { FocusTrap } from './focus-trap'
+
+/** The footers of the open windows. */
+const feet = new Set<HTMLElement>()
+const footListeners = new Set<() => void>()
+const tellFeet = (): void => {
+  for (const listener of footListeners) listener()
+}
+
+/** The footers of the open windows that are drawn now. */
+export function openFeet(): HTMLElement[] {
+  return Array.from(feet).filter((foot) => foot.isConnected && foot.offsetHeight > 0)
+}
+
+/** Calls `listener` when a window's footer comes, goes or moves; returns the undo. */
+export function watchFeet(listener: () => void): () => void {
+  footListeners.add(listener)
+  return () => footListeners.delete(listener)
+}
 
 export interface HoldOptions {
   /** As `FocusTrap.activate`; `false` leaves it, for a window that moves it once its content has drawn. */
   focus?: boolean | HTMLElement
   /** The element that scrolls behind the window, when the host names one; else the page. */
   scroller?: HTMLElement | null
-  /** The window's footer: from its top down, the screen is the window's room. */
+  /** The window's footer, which a toast keeps clear of. */
   foot?: HTMLElement | null
 }
 
@@ -49,27 +66,26 @@ export class DialogHold {
     if (foot) this.#claim(container, foot)
   }
 
-  // Measured again when the footer or the window changes size, the screen turns, and once the
-  // window's entrance has played: a rising frame stands lower until then.
+  // Told again when the footer or the window changes size or scrolls, the screen turns, and once
+  // the window's entrance has played: a rising frame stands lower until then.
   #claim(container: HTMLElement, foot: HTMLElement): void {
-    const claim = (): void => {
-      if (!this.#released) return
-      const top = foot.getBoundingClientRect().top
-      const shown = foot.offsetHeight > 0
-      keepRoom(this, scrollRoot(), 'bottom', shown ? Math.ceil(window.innerHeight - top) : 0)
-    }
-    const sizes = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(claim)
+    feet.add(foot)
+    const sizes = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(tellFeet)
     sizes?.observe(foot)
     sizes?.observe(container)
-    window.addEventListener('resize', claim)
+    window.addEventListener('resize', tellFeet)
+    // A window taller than the screen scrolls its footer into view.
     const root = foot.getRootNode() as Document | ShadowRoot
+    root.addEventListener('scroll', tellFeet, true)
     const entrance = typeof root.getAnimations === 'function' ? root.getAnimations() : []
-    void Promise.allSettled(entrance.map((animation) => animation.finished)).then(claim)
-    claim()
+    void Promise.allSettled(entrance.map((animation) => animation.finished)).then(tellFeet)
+    tellFeet()
     this.#unclaim = () => {
       sizes?.disconnect()
-      window.removeEventListener('resize', claim)
-      releaseRoom(this)
+      window.removeEventListener('resize', tellFeet)
+      root.removeEventListener('scroll', tellFeet, true)
+      feet.delete(foot)
+      tellFeet()
     }
   }
 
