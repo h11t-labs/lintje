@@ -21,7 +21,11 @@ const inner = (element: Element): HTMLElement => element.shadowRoot!.querySelect
 /** The background under the pointer, once the hover's transition has landed. */
 async function hovered(element: Lit): Promise<string> {
   await userEvent.hover(inner(element))
-  await Promise.all(inner(element).getAnimations().map((animation) => animation.finished))
+  await Promise.all(
+    inner(element)
+      .getAnimations()
+      .map((animation) => animation.finished),
+  )
   return getComputedStyle(inner(element)).backgroundColor
 }
 
