@@ -596,7 +596,7 @@ export default {
         },
         {
           label: 'Uitgeschakeld met fout',
-          note: 'Uitgeschakeld wint van de fout: de melding blijft, de rand en de vulling niet.',
+          note: 'Uitgeschakeld wint van de rand en de vulling van de fout; de melding blijft staan.',
           html: besideText('<lintje-select label="Regio" error="Kies een regio." disabled></lintje-select>', 'Vul een naam in.'),
           setup: setOptions('lintje-select', REGIONS, 'alle'),
         },

@@ -535,10 +535,10 @@ De besluiten hieronder gelden voor alle elementen.
   foutkleur (2 px, fijner dan de balk van een statusblok), en een invoervak een rand van 1 px in
   de foutkleur met de fouttint als vulling, zoals de huisstijl het tekent; in de eerdere huisstijl
   een zwaardere rand van 2 px zonder balk. Uitgeschakeld is bij elk veld hetzelfde: het subtiele
-  oppervlak, gedempte tekst, de sterke smalle rand, een cursor die weigert en volle dekking;
-  het wint van een fout, die alleen zijn melding houdt. De link terug naar de standaard is dan
-  gedempte tekst zonder streep. Een keuze die na het antwoord vergrendeld is, houdt het gekozene
-  leesbaar en maakt de rest grijs. Een uitgeschakelde knop blijft focusbaar
+  oppervlak, gedempte tekst, de sterke smalle rand, een cursor die weigert en volle dekking; het
+  wint van de rand en de vulling van een fout, en de melding blijft staan. De link terug naar de
+  standaard is dan gedempte tekst zonder streep. Een keuze die na het antwoord vergrendeld is,
+  houdt het gekozene leesbaar en maakt de rest grijs. Een uitgeschakelde knop blijft focusbaar
   (`aria-disabled`); een uitgeschakeld veld valt uit de tabvolgorde.
 - **De toelichting en de foutregel van een keuze springen in tot de tekst van haar label**, bij
   een vinkje, een schakelaar en een optie in een groep, zodat ze niet lijken op de kop van de

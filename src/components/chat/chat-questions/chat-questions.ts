@@ -400,7 +400,8 @@ export class LintjeChatQuestions extends LintjeElement {
           class=${classMap({
             'lintje-chat-questions__chip': true,
             'lintje-chat-questions__chip--other': true,
-            'is-chosen': this.otherOpen,
+            // A tap on an option while the own field is open makes that option the answer.
+            'is-chosen': draft.values.includes(OTHER_VALUE),
           })}
           aria-expanded=${String(this.otherOpen)}
           aria-disabled=${this.sending ? 'true' : nothing}
