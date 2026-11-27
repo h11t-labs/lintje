@@ -27,7 +27,13 @@
   outline: var(--focus-width) solid var(--color-focus);
   outline-offset: var(--focus-offset);
 }
+.lintje-find.is-error {
+  --lintje-find-border: var(--field-error-border);
+  border-color: var(--color-error-line);
+  background: var(--color-bg-field-error);
+}
 .lintje-find.is-disabled {
+  --lintje-find-border: 1px;
   border-color: var(--color-border-strong);
   background: var(--color-bg-subtle);
 }

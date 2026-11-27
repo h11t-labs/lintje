@@ -435,6 +435,16 @@ export default {
           html: '<lintje-find value="aanvraag" total="7" current="2" disabled></lintje-find>',
         },
         {
+          label: 'Fout',
+          html: '<lintje-find name="zoekterm" required error="Vul een zoekwoord in."></lintje-find>',
+        },
+        {
+          label: 'Met label en hint',
+          note: 'Het label staat uit het zicht tot de host `hideLabel = false` zet.',
+          html: '<lintje-find label="Zoeken in de werkinstructie" hint="Ook in de bijlagen" value="aanvraag" total="7" current="2"></lintje-find>',
+          setup: (stage) => (stage.querySelector('lintje-find').hideLabel = false),
+        },
+        {
           label: 'Zoeken in een tekst',
           note: 'Enter is volgende, Shift+Enter vorige, Escape wist. Na de laatste treffer volgt de eerste.',
           html:

@@ -4,7 +4,9 @@
  * It searches nothing itself: the host, or the element around it, counts the hits, sets `total`
  * and `current`, and marks them in its content with `lintje-highlight`. Finding filters nothing.
  * The count and the buttons stand inside the field, so nothing around it moves while typing. A
- * host that counts asynchronously sets `busy` until it knows the total.
+ * host that counts asynchronously sets `busy` until it knows the total. Its label stays out of
+ * sight unless the host sets `.hideLabel=${false}`; a hint, an error and the reset stand round
+ * the box as in every field.
  *
  * Events: `lintje-change` `string` (the term, 300 ms after the last key; `''` when cleared),
  * `lintje-values-change` `{ [name]: term }` (with a `name`), `lintje-find-step` `1 | -1` (to the
@@ -26,12 +28,13 @@ import '../../feedback/spinner/spinner'
 import { Debounce } from '../../shared/debounce'
 import { LiveMessage } from '../../shared/live-message'
 import { LintjeInputElement } from '../shared/input'
+import inputCss from '../shared/input.css?inline'
 import findCss from './find.css?inline'
 
 const COUNT_ID = 'lintje-find-count'
 
 export class LintjeFind extends LintjeInputElement {
-  static override styles = [iconStyles, shadowCss(findCss)]
+  static override styles = [iconStyles, shadowCss(inputCss), shadowCss(findCss)]
 
   static override properties: PropertyDeclarations = {
     value: { type: String },
@@ -64,6 +67,8 @@ export class LintjeFind extends LintjeInputElement {
   constructor() {
     super()
     this.label = 'Zoeken in de tekst'
+    // The placeholder says what the field is; a Boolean that starts true is a property only.
+    this.hideLabel = true
   }
 
   private get navigable(): boolean {
@@ -187,11 +192,20 @@ export class LintjeFind extends LintjeInputElement {
   protected override render(): TemplateResult {
     const typed = this.value !== ''
     const navigable = this.navigable
-    return html`<div
-        class=${classMap({ 'lintje-find': true, 'is-disabled': this.isDisabled })}
+    const described = [typed ? COUNT_ID : '', this.describedBy === nothing ? '' : this.describedBy]
+      .filter(Boolean)
+      .join(' ')
+    return html`<div class="lintje-field">
+      ${this.renderLabel(this.controlId)}
+      ${this.renderMessages()}
+      <div
+        class=${classMap({
+          'lintje-find': true,
+          'is-error': Boolean(this.error),
+          'is-disabled': this.isDisabled,
+        })}
         role="search"
       >
-        <label id=${this.labelId} for=${this.controlId} class="visually-hidden">${this.label}</label>
         ${renderIcon('functioneel-zoek', { size: 18, className: 'lintje-find__icon' })}
         <input
           type="search"
@@ -201,7 +215,9 @@ export class LintjeFind extends LintjeInputElement {
           placeholder=${this.placeholder || this.label}
           enterkeyhint="search"
           autocomplete="off"
-          aria-describedby=${typed ? COUNT_ID : nothing}
+          aria-describedby=${described || nothing}
+          aria-invalid=${this.error ? 'true' : nothing}
+          aria-required=${this.required ? 'true' : nothing}
           ?disabled=${this.isDisabled}
           @input=${this.onInput}
           @keydown=${this.onKeydown}
@@ -236,7 +252,9 @@ export class LintjeFind extends LintjeInputElement {
             : nothing
         }
       </div>
-      <p class="visually-hidden" role="status">${this.#live.text}</p>`
+      ${this.renderFoot()}
+    </div>
+    <p class="visually-hidden" role="status">${this.#live.text}</p>`
   }
 }
 
