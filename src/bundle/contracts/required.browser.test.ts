@@ -410,6 +410,9 @@ describe('refused typed text', () => {
     submits: () => number
   }> {
     const form = document.createElement('form')
+    // Firefox opens its own list of earlier entries over a typed field in a form; a press then
+    // lands on that list, outside the page.
+    form.autocomplete = 'off'
     let submitted = 0
     let invalid = 0
     form.addEventListener('submit', (event) => {
