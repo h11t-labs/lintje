@@ -645,8 +645,9 @@ De besluiten hieronder gelden voor alle elementen.
   toggletip, een toast en een tooltip. Een vraag boven een open lade ligt er dus helemaal boven.
   Wat onder de sluier ligt, krijgt geen klik; een popover, toggletip of tooltip in een venster
   staat erboven. Een toast blijft bereikbaar terwijl een venster open is: de aanwijzer raakt hem
-  en Tab gaat van het venster naar de toast en terug. Hij staat boven de voet van het venster,
-  zodat hij de knoppen daar nooit bedekt.
+  en Tab gaat van het venster naar de toast en terug. Reikt de voet van het venster tot waar de
+  toast staat, dan staat de toast erboven en bedekt hij de knoppen nooit; anders blijft hij in
+  zijn hoek.
 - **Een dialoog met een formulier is smal** en zo hoog als zijn inhoud; de knoppen staan links in
   de voet, het antwoord eerst, zoals de huisstijl een dialoog tekent, en een zin over het
   resultaat erachter. De titel staat in de primaire kleur; het grote venster heeft geen lijnen
@@ -1605,7 +1606,7 @@ kleinste correctie, en leg die hier vast.
   waar de focus toch onder belandt, scrollen de actiebalk, de toast en de selectiebalk van de tabel
   van zich vrij, met rand en al. Een toast staat boven wat verder onderaan plakt, nooit eroverheen;
   boven de tabs ook, behalve als een blad ze bedekt. Over een open venster ligt hij wel heen,
-  boven zijn voet. Een paneel dat over de pagina ligt (de vastgezette, opengeklapte filterzone, de
+  maar nooit over zijn voet. Een paneel dat over de pagina ligt (de vastgezette, opengeklapte filterzone, de
   opties van het vraagvak) sluit zodra de focus het verlaat en laat de focus waar hij heen ging;
   Escape sluit het met de focus op zijn knop.
 - **Een grafiek is ook met het toetsenbord te lezen.** Haar tekening neemt de focus en de

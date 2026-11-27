@@ -34,7 +34,11 @@ export class LintjeProgressBar extends LintjeElement {
   hideLabel: boolean = false
   /** The figure on the right: "62% · nog ongeveer 3 min". */
   declare detail?: string
-  state: ProgressState = 'busy'
+  /**
+   * Left out, the bar is busy and turns done at 100. Set by the host, it wins: `busy` at 100 is a
+   * full bar that is not done yet, such as the last step of a form while it is still open.
+   */
+  declare state?: ProgressState | null
 
   private get known(): boolean {
     return typeof this.value === 'number' && !Number.isNaN(this.value)
@@ -45,7 +49,7 @@ export class LintjeProgressBar extends LintjeElement {
   }
 
   private get resolvedState(): ProgressState {
-    return this.state === 'busy' && this.known && this.percent >= 100 ? 'done' : this.state
+    return this.state ?? (this.known && this.percent >= 100 ? 'done' : 'busy')
   }
 
   private valueText(mark: { word: string } | undefined): string | undefined {
