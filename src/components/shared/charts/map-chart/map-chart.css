@@ -592,7 +592,7 @@
 .lintje-map-chart__selection-title { padding-right: var(--space-8); }
 .lintje-map-chart__set-scope {
   min-height: var(--h-target);
-  display: flex; align-items: center; gap: 4px;
+  display: flex; align-items: center; gap: var(--space-1);
   background: none; border: 0; padding: 0;
   font: 700 0.875rem/1.4 var(--font-ui);
   color: var(--color-link);

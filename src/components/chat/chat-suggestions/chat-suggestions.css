@@ -32,7 +32,7 @@
   text-align: left;
   border: 1px dashed var(--lintje-suggestions-line, var(--color-border-suggestion));
   border-radius: var(--radius-control);
-  transition: background var(--dur-hover);
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-chat-suggestions__item:hover { background: var(--lintje-suggestions-hover, var(--color-bg-subtle)); }
 

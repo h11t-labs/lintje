@@ -43,7 +43,7 @@ export class LintjePopover extends LintjeElement {
   declare panelRole?: string
   matchWidth: boolean = false
   /** The room between the anchor and the panel, in px; 0 sets the panel against it. */
-  gap: number = 6
+  gap: number = 4
   /** What the panel hangs under; default the previous sibling. */
   declare anchor?: Element | null
   /**

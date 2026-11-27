@@ -58,7 +58,7 @@
 .lintje-kpi__count-final { opacity: 0; }
 .lintje-kpi__note { font: var(--text-small); color: var(--color-text-primary); }
 .lintje-kpi__note--error { display: flex; align-items: center; gap: var(--space-2); }
-.lintje-kpi__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-error-line); flex: none; }
+.lintje-kpi__dot { width: 8px; height: 8px; border-radius: var(--radius-round); background: var(--color-error-line); flex: none; }
 .lintje-kpi__detail { font: var(--text-small); color: var(--color-text-muted); }
 
 /* The wrapper is the query container, so a row can stack in a narrow KPI without containing it. */

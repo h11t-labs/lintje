@@ -84,7 +84,7 @@
   color: var(--color-text-primary);
   text-align: left;
   cursor: pointer;
-  transition: background var(--dur-hover);
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-chat-questions__chip:hover { background: var(--color-bg-subtle); }
 .lintje-chat-questions__chip:focus-visible {

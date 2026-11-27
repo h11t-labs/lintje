@@ -407,7 +407,7 @@
 @media (hover: none) {
   .lintje-chart-tooltip { pointer-events: none; }
 }
-.lintje-chart-tooltip__title { font-weight: 700; margin-bottom: 4px; }
+.lintje-chart-tooltip__title { font-weight: 700; margin-bottom: var(--space-1); }
 .lintje-chart-tooltip__kicker { color: var(--color-text-muted); }
 .lintje-chart-tooltip__title-note { font-weight: 400; color: var(--color-text-muted); }
 .lintje-chart-tooltip__row { display: flex; align-items: center; gap: var(--space-2); justify-content: space-between; }

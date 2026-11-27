@@ -47,7 +47,7 @@
 .lintje-badge--live::before {
   content: '';
   width: 0.5rem; height: 0.5rem;
-  border-radius: 50%;
+  border-radius: var(--radius-round);
   background: currentColor;
 }
 
