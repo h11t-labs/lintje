@@ -209,4 +209,65 @@ describe('lintje-multiselect and the focus', () => {
     await element.updateComplete
     expect(element.open).toBe(false)
   })
+
+  it('offers no select-all without options, and says there is nothing to choose', async () => {
+    const element = await mount([])
+    expect(rows(element)).toEqual([])
+    expect(
+      element.renderRoot.querySelector('.lintje-multiselect__no-results')?.textContent?.trim(),
+    ).toBe('Geen waarden om te kiezen.')
+  })
+
+  it('ticks select-all only when every option is chosen, not a value outside them', async () => {
+    const element = await mount()
+    element.selected = ['laag', 'gemiddeld', 'elders']
+    await element.updateComplete
+    const all = element.renderRoot.querySelector('lintje-checkbox')!
+    expect(all.hasAttribute('checked')).toBe(false)
+    expect(all.hasAttribute('indeterminate')).toBe(true)
+  })
+
+  it('keeps a chosen value outside the options when select-all is ticked or unticked', async () => {
+    const element = await mount()
+    element.selected = ['laag', 'elders']
+    const seen: string[][] = []
+    element.addEventListener('lintje-change', (event) => {
+      element.selected = (event as CustomEvent<string[]>).detail
+      seen.push(element.selected)
+    })
+    await element.updateComplete
+    const all = (): HTMLElement => element.renderRoot.querySelector('lintje-checkbox')!
+    all().dispatchEvent(new CustomEvent('lintje-change', { detail: true }))
+    await element.updateComplete
+    all().dispatchEvent(new CustomEvent('lintje-change', { detail: false }))
+    expect(seen).toEqual([['laag', 'elders', 'gemiddeld', 'hoog'], ['elders']])
+  })
+
+  it('shows a chosen value outside the options as itself in its chip', async () => {
+    const element = await mount()
+    element.selected = ['laag', 'elders']
+    await element.updateComplete
+    const chips = [...element.renderRoot.querySelectorAll('.lintje-multiselect__chip-label')]
+    expect(chips.map((chip) => chip.textContent?.trim())).toEqual(['laag', 'elders'])
+    expect(trigger(element).title).toBe('laag, elders')
+  })
+
+  it('closes when it is turned off while open', async () => {
+    const element = await mount()
+    element.disabled = true
+    await element.updateComplete
+    expect(element.open).toBe(false)
+    expect(element.renderRoot.querySelector('.lintje-multiselect__popover')).toBeNull()
+  })
+
+  it('closes on a press outside without anything over the page, and forgets its search', async () => {
+    const element = await mount()
+    element.query = 'la'
+    await element.updateComplete
+    expect(element.renderRoot.querySelector('.lintje-multiselect__scrim')).toBeNull()
+    document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, composed: true }))
+    await element.updateComplete
+    expect(element.open).toBe(false)
+    expect(element.query).toBe('')
+  })
 })

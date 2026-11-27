@@ -241,6 +241,12 @@ export class LintjeDateRange extends LintjeInputElement {
     panel.style.setProperty('--lintje-date-range-space', `${next.space}px`)
   }
 
+  // A field turned off closes its popover, without giving the focus back to its button.
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
+    if (this.open && this.isDisabled) this.open = false
+  }
+
   // The panel exists only now, so its size is known; a closed one forgets its place.
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)

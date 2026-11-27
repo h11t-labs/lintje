@@ -55,6 +55,8 @@ interface Row {
   shiftTab: 'closes' | 'stays'
   /** A press inside closes it: a tooltip lives on its button's focus, which a press takes. */
   pressCloses?: true
+  /** A press on a button outside closes it and still reaches that button, which keeps the focus. */
+  pressOutside?: 'passes'
   /** Builds the element in `stage` and opens it from its trigger, as a reader would. */
   open: (stage: HTMLElement) => Promise<Opened>
 }
@@ -70,6 +72,7 @@ type Check =
   | 'shift tab'
   | 'focus away'
   | 'press inside'
+  | 'press outside'
 
 /**
  * What fails today: each entry has its GitHub issue above it and matches
@@ -755,6 +758,7 @@ const ROWS: Row[] = [
   {
     name: 'lintje-multiselect',
     onScroll: 'follows',
+    pressOutside: 'passes',
     // A dialog that takes the focus to its search; its field is part of the element.
     opens: 'first stop',
     shiftTab: 'stays',
@@ -777,6 +781,7 @@ const ROWS: Row[] = [
   {
     name: 'lintje-date-range',
     onScroll: 'follows',
+    pressOutside: 'passes',
     // The focus stays on the field; Tab walks into the calendar.
     opens: 'opener',
     shiftTab: 'stays',
@@ -1119,6 +1124,18 @@ describe('a popup and the focus', () => {
           'press inside',
           `${closed ? 'closed' : 'open'} after a press on ${describeNode(spot.target)}`,
         )
+    }
+
+    if (row.pressOutside) {
+      opened = await reopen()
+      let pressed = 0
+      const count = (): void => void pressed++
+      elsewhere.addEventListener('click', count)
+      // Forced: a layer over the page takes the press, as it would a reader's.
+      await userEvent.click(elsewhere, { force: true })
+      elsewhere.removeEventListener('click', count)
+      if (!pressed) note('press outside', 'the button outside got no click')
+      note('press outside', await lands(opened, true, elsewhere))
     }
 
     report(findings)
