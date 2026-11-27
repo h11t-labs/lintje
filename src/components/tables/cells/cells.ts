@@ -1,11 +1,11 @@
 /**
  * `<lintje-cells>` — the facts of one thing side by side, each a field with its label above its
- * value and a narrow seam between them: how a running recording is doing, the facts of a case under its
- * title, what is about to happen, a device in a list.
+ * value and a narrow seam between them: how a running recording is doing, the facts of a case
+ * under its title, what is about to happen, a device in a list.
  *
  * With `columns` the cells stand in an aligned grid, two below 30 rem; without, each takes its
  * own width, the row wraps and each line fills out. A tone fills its field and sets a glyph
- * before the value. On a wash (`surface`) the fields are white and the wash is the seam. A missing
+ * before the value. On a wash (`surface`) the fields take the surface and the wash is the seam. A missing
  * value is a muted dash, never 0. A cell marked `live` says a change of its value; the rest
  * change too often, or too little, to be said. A plain click on a link is cancelled and sent as
  * `lintje-navigate`.
@@ -28,7 +28,7 @@ import { styleProps } from '../../../core/style-props'
 import { TONE_ICON, TONE_WORD, type Tone } from '../../shared/tone'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { badgeStyles, renderBadge } from '../../feedback/badge/badge'
-import { litSteps } from '../../feedback/level-meter/level-meter'
+import { levelWord, litSteps } from '../../feedback/level-meter/level-meter'
 import '../../feedback/level-meter/level-meter'
 import '../../content/key/key'
 import { LiveMessage } from '../../shared/live-message'
@@ -205,8 +205,15 @@ export class LintjeCells extends LintjeGridItemElement {
     ></lintje-level-meter>`
   }
 
-  private count(meter: CellMeter | undefined): TemplateResult | typeof nothing {
-    if (!meter?.steps || meter.level == null) return nothing
+  // A voice meter without the host's word still says one, so the cell is never just its label.
+  private count(item: CellItem): TemplateResult | typeof nothing {
+    const meter = item.meter
+    if (!meter || meter.level == null) return nothing
+    if (!meter.steps) {
+      return isMissing(item.value)
+        ? html`<span class="visually-hidden">${levelWord(meter.level)}</span>`
+        : nothing
+    }
     return html`<span class="visually-hidden"
       >, ${litSteps(meter.level, meter.steps)} van ${meter.steps}</span
     >`
@@ -255,7 +262,7 @@ export class LintjeCells extends LintjeGridItemElement {
               >`
             : nothing
         }
-        ${item.meter ? this.meter(item.meter) : nothing} ${this.value(item)}${this.count(item.meter)}
+        ${item.meter ? this.meter(item.meter) : nothing} ${this.value(item)}${this.count(item)}
         ${item.detail ? html`<span class="lintje-cells__detail">${item.detail}</span>` : nothing}
         ${
           tone === 'changed'

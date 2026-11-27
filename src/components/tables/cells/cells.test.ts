@@ -88,6 +88,12 @@ describe('lintje-cells', () => {
     expect(dd.querySelector('.lintje-cells__detail')!.textContent).toBe('3 seconden achter')
   })
 
+  it('says the voice meter’s own word when the host gives none', async () => {
+    const element = await mount({ items: [{ label: 'Geluid', meter: { level: 0.6 } }] })
+    const dd = element.shadowRoot!.querySelector('dd')!
+    expect(dd.querySelector('.visually-hidden')!.textContent).toBe('Goed')
+  })
+
   it('carries a tone as a glyph, and what changed as "Aangepast" with its way back', async () => {
     const element = await mount({
       items: [

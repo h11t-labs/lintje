@@ -33,10 +33,10 @@
   background: var(--color-border-default);
 }
 .lintje-level-meter__step.is-lit { background: var(--color-accent-line); }
-.is-success .lintje-level-meter__step.is-lit { background: var(--color-success-line); }
-.is-warning .lintje-level-meter__step.is-lit,
-.is-attention .lintje-level-meter__step.is-lit { background: var(--color-attention-line); }
-.is-error .lintje-level-meter__step.is-lit { background: var(--color-error-line); }
+.lintje-level-meter.is-success .lintje-level-meter__step.is-lit { background: var(--color-success-line); }
+.lintje-level-meter.is-warning .lintje-level-meter__step.is-lit,
+.lintje-level-meter.is-attention .lintje-level-meter__step.is-lit { background: var(--color-attention-line); }
+.lintje-level-meter.is-error .lintje-level-meter__step.is-lit { background: var(--color-error-line); }
 
 @media (prefers-reduced-motion: reduce) {
   .lintje-level-meter__bar { transition: none; }
