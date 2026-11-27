@@ -760,6 +760,11 @@ export default {
           label: 'Uitgeschakeld',
           html: '<lintje-checkbox name="p.uit" label="Uitgeschakeld" checked disabled></lintje-checkbox>',
         },
+        {
+          label: 'Label verborgen',
+          note: 'Met `hide-label` staat alleen het vakje er; de naam blijft voor een schermlezer. Voor een vakje waarvan de rij of kolom al zegt wat het is.',
+          html: '<lintje-checkbox name="p.rij-3" label="Rij 3 selecteren" hide-label checked></lintje-checkbox>',
+        },
       ],
     },
     {

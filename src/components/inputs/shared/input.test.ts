@@ -293,6 +293,21 @@ describe('a setting row', () => {
   )
 })
 
+describe('hideLabel on a lone choice', () => {
+  it.each(['lintje-checkbox', 'lintje-toggle'])(
+    '%s keeps its name on the box for a reader, out of sight, with no dot',
+    async (tag) => {
+      const element = await mount(tag, () => {}, { hideLabel: true, modified: true })
+      const label = element.renderRoot.querySelector('.lintje-choice__label')!
+      expect(label.classList.contains('visually-hidden')).toBe(true)
+      expect(label.classList.contains('is-modified')).toBe(false)
+      expect(label.textContent).toContain('Wachttijd')
+      expect(element.renderRoot.querySelector('.lintje-label__dot')).toBeNull()
+      expect(label.closest('label')!.querySelector('input')).not.toBeNull()
+    },
+  )
+})
+
 describe('a name built as a string', () => {
   const marked = { optional: true, modified: true }
 
