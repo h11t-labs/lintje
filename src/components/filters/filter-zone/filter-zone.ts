@@ -247,10 +247,17 @@ export class LintjeFilterZone extends LintjeElement {
     }
     const height = stickTop(sentinel)
     this.#observedTop = height
-    this.observer = new IntersectionObserver(([entry]) => this.report(!entry.isIntersecting), {
-      rootMargin: `-${height}px 0px 0px 0px`,
-      threshold: 0,
-    })
+    this.observer = new IntersectionObserver(
+      ([entry]) => {
+        // A line that moved since leaves this margin stale: the next update observes anew.
+        if (stickTop(sentinel) !== this.#observedTop) this.requestUpdate()
+        else this.report(!entry.isIntersecting)
+      },
+      {
+        rootMargin: `-${height}px 0px 0px 0px`,
+        threshold: 0,
+      },
+    )
     this.observer.observe(sentinel)
   }
 
