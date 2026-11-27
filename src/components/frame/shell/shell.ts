@@ -1012,12 +1012,11 @@ export class LintjeShell extends LintjeElement {
   }
 
   /** The shell's own state below 768 px, for its stylesheet. */
-  private phoneClasses(plan: TabPlan): Record<string, boolean> {
+  private phoneClasses(): Record<string, boolean> {
     const tabs = this.tabsShown
     return {
       'is-phone': this.mobile.matches,
       'has-tabs': tabs,
-      'has-menu-tab': tabs && plan.parts.includes('menu'),
       'is-keyboard': tabs && this.keyboardOpen,
     }
   }
@@ -1074,7 +1073,7 @@ export class LintjeShell extends LintjeElement {
           'lintje-shell': true,
           'lintje-shell--top': true,
           'is-nested': this.#nested,
-          ...this.phoneClasses(plan),
+          ...this.phoneClasses(),
         })}
       >
         ${this.renderSkipLink()} ${this.renderPrintHead(data)}
@@ -1090,7 +1089,7 @@ export class LintjeShell extends LintjeElement {
         'is-nested': this.#nested,
         // Below 768 px the CSS follows this, not a media query: WebKit does not re-apply a shadow
         // root's media query after a resize, while the template already switches by MOBILE.
-        ...this.phoneClasses(plan),
+        ...this.phoneClasses(),
       })}
     >
       ${this.renderSkipLink()} ${renderNavigation(this, groups)}

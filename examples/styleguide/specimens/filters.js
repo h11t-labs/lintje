@@ -131,6 +131,35 @@ export default {
             })
           },
         },
+        {
+          label: 'Een afwijkend segmentenfilter',
+          note: 'Een filter dat afwijkt van zijn standaard staat vet, als lijst en als segmenten.',
+          html: '<lintje-filter-bar></lintje-filter-bar>',
+          setup(stage) {
+            stage.querySelector('lintje-filter-bar').data = {
+              standalone: true,
+              open: true,
+              filters: [
+                {
+                  key: 'region',
+                  label: 'Regio',
+                  kind: 'select',
+                  value: REGIONS[1].value,
+                  default: 'alle',
+                  options: REGIONS,
+                },
+                {
+                  key: 'kind',
+                  label: 'Soort loket',
+                  kind: 'segmented',
+                  value: 'mobile',
+                  default: 'alle',
+                  options: KINDS,
+                },
+              ],
+            }
+          },
+        },
       ],
     },
     {
