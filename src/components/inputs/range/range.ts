@@ -87,12 +87,6 @@ export class LintjeRange extends LintjeInputElement {
     return false
   }
 
-  // A single handle without a value stands on the first step, and the form gets that step.
-  protected override get postedValue(): unknown {
-    if (!this.single) return super.postedValue
-    return (this.steps ?? [])[this.index] ?? null
-  }
-
   /** Nothing chosen and nothing moved: a touch that leaves the handle where it is still chooses. */
   private get untouched(): boolean {
     return this.single && this.value === null && this.draft === null
