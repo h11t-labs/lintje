@@ -951,6 +951,12 @@ export default {
           },
         },
         {
+          label: 'Afwijkend',
+          note: 'Met `bold` staat de keuze van een filter dat afwijkt van zijn standaard vet.',
+          html: '<lintje-segmented label="Soort loket" bold></lintje-segmented>',
+          setup: setOptions('lintje-segmented', KINDS, 'mobile'),
+        },
+        {
           label: 'Met uitleg bij de keuze',
           html: '<lintje-segmented label="Soort gesprek"></lintje-segmented>',
           setup(stage) {

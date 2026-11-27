@@ -345,7 +345,6 @@ export class LintjeCard extends LintjeElement {
         'is-link': this.isLink,
         'is-compact': this.compact,
         'is-horizontal': horizontal,
-        'has-media': Boolean(column),
         'has-logo': logo,
       })}
       @click=${this.onCardClick}
