@@ -5,7 +5,8 @@
  * it or the focus in it, and its six seconds start again when both have left. Closing with the
  * focus inside, it gives the focus back first. It stands above what else sticks at the bottom of
  * the page (a form's action bar); one that stays keeps its height free as the scroller's
- * `scroll-padding-bottom` and scrolls a focused element that still ends up under it clear.
+ * `scroll-padding-bottom` and scrolls a focused element that still ends up under it clear. It
+ * stands above an open window and stays in its reach: Tab goes from the window into the toast.
  *
  * Events: `lintje-close` (timed out or closed), `lintje-action` (its action was pressed).
  */
@@ -22,7 +23,7 @@ import {
   watchRoom,
 } from '../../../core/scroll-room'
 import { iconStyles, renderIcon } from '../../../icons/render'
-import { deepActiveElement } from '../../shared/focus-trap'
+import { deepActiveElement, standBeside } from '../../shared/focus-trap'
 import { statusIcon, type Tone } from '../../shared/tone'
 import toastCss from './toast.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
@@ -43,7 +44,7 @@ export const TOAST_PREFIX: Record<ToastKind, string> = {
   ok: 'Gelukt',
   error: 'Fout',
   info: 'Informatie',
-  warning: 'Let op',
+  warning: 'Waarschuwing',
 }
 
 /** The nearest `<main>` from the toast outwards, through the shadow roots around it. */
@@ -81,6 +82,7 @@ export class LintjeToast extends LintjeElement {
   #unwatchRoom: (() => void) | null = null
   #boxSize: ResizeObserver | null = null
   #clearFrame = 0
+  #unbeside: (() => void) | null = null
 
   /** An Escape elsewhere is not the toast's; its own goes no further, so a window around stays. */
   readonly #onKeyDown = (event: KeyboardEvent): void => {
@@ -111,6 +113,7 @@ export class LintjeToast extends LintjeElement {
   override connectedCallback(): void {
     super.connectedCallback()
     document.addEventListener('focusin', this.#onFocusIn)
+    this.#unbeside = standBeside(this)
     const root = scrollRoot()
     if (root) this.#unwatchRoom = watchRoom(root, () => this.#place())
     if (this.hasUpdated) this.#place()
@@ -126,6 +129,8 @@ export class LintjeToast extends LintjeElement {
 
   override disconnectedCallback(): void {
     document.removeEventListener('focusin', this.#onFocusIn)
+    this.#unbeside?.()
+    this.#unbeside = null
     this.#unwatchRoom?.()
     this.#unwatchRoom = null
     this.#boxSize?.disconnect()
