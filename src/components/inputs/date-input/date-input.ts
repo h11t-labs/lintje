@@ -291,7 +291,8 @@ export class LintjeDateInput extends LintjeInputElement {
           ?readonly=${this.readonly}
           ?disabled=${this.isDisabled}
           @input=${(event: Event) => {
-            if (!this.readonly) this.refuse(this.problemOf((event.target as HTMLInputElement).value))
+            if (!this.readonly)
+              this.refuse(this.problemOf((event.target as HTMLInputElement).value))
           }}
           @change=${this.onChange}
           @keydown=${this.onFieldKeydown}

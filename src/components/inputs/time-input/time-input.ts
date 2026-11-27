@@ -144,7 +144,6 @@ export class LintjeTimeInput extends LintjeInputElement {
     this.choose(parsed.kind === 'ok' ? parsed.time : null)
   }
 
-
   private onKeydown(event: KeyboardEvent): void {
     if (this.readonly) return
     this.submitOnEnter(event, () => {
@@ -294,7 +293,8 @@ export class LintjeTimeInput extends LintjeInputElement {
           ?readonly=${this.readonly}
           ?disabled=${this.isDisabled}
           @input=${(event: Event) => {
-            if (!this.readonly) this.refuse(this.problemOf((event.target as HTMLInputElement).value))
+            if (!this.readonly)
+              this.refuse(this.problemOf((event.target as HTMLInputElement).value))
           }}
           @change=${this.onChange}
           @keydown=${this.onKeydown}

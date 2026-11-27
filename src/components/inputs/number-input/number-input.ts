@@ -185,7 +185,8 @@ export class LintjeNumberInput extends LintjeFormInputElement {
           ?readonly=${this.readonly}
           ?disabled=${this.isDisabled}
           @input=${(event: Event) => {
-            if (!this.readonly) this.refuse(this.problemOf((event.target as HTMLInputElement).value))
+            if (!this.readonly)
+              this.refuse(this.problemOf((event.target as HTMLInputElement).value))
           }}
           @change=${this.change}
           @keydown=${(event: KeyboardEvent) => this.submitOnEnter(event, () => this.change(event))}
