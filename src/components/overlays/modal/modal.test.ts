@@ -94,6 +94,35 @@ describe('lintje-modal', () => {
   })
 })
 
+describe('lintje-modal clicks', () => {
+  it('lets a click inside reach the host, and closes only on the scrim', async () => {
+    await open()
+    const closes: string[] = []
+    modal.addEventListener('lintje-close', () => closes.push('close'))
+    const heard: EventTarget[] = []
+    const listen = (event: Event): number => heard.push(event.target!)
+    document.addEventListener('click', listen)
+    try {
+      const inside = modal.querySelector<HTMLElement>('#inside')!
+      inside.click()
+      expect(heard).toEqual([inside])
+      expect(closes).toEqual([])
+      // Pressed in the window, let go on the scrim: the click lands on the scrim.
+      const scrim = modal.shadowRoot!.querySelector<HTMLElement>('.lintje-modal__scrim')!
+      modal
+        .shadowRoot!.querySelector('.lintje-modal')!
+        .dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }))
+      scrim.click()
+      expect(closes).toEqual([])
+      scrim.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }))
+      scrim.click()
+      expect(closes).toEqual(['close'])
+    } finally {
+      document.removeEventListener('click', listen)
+    }
+  })
+})
+
 describe('lintje-modal focus', () => {
   it('moves the focus in when it opens', async () => {
     await open()

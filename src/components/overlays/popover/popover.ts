@@ -90,12 +90,15 @@ export class LintjePopover extends LintjeElement {
   }
 
   /**
-   * Capture phase and stopped: Escape closes the popover, not the drawer it stands in. Unless
-   * the focus stands in a modal dialog opened over it: then the key is the dialog's. With the
-   * focus inside the panel, a control there answers first (a lifted grip puts its row back).
+   * Capture phase, answered and stopped: Escape closes the popover, not the drawer it stands in,
+   * and not when a layer above (a tooltip) answered it first. Unless the focus stands in a modal
+   * dialog opened over it: then the key is the dialog's. With the focus inside the panel, a
+   * control there answers first (a lifted grip puts its row back).
    */
   private readonly onKeydown = (event: KeyboardEvent): void => {
-    if (!this.open || event.key !== 'Escape' || !ownsEscape(this) || holdsFocus(this)) return
+    if (!this.open || event.key !== 'Escape' || event.defaultPrevented) return
+    if (!ownsEscape(this) || holdsFocus(this)) return
+    event.preventDefault()
     event.stopPropagation()
     this.emit('lintje-close', { reason: 'escape' })
   }
@@ -103,6 +106,7 @@ export class LintjePopover extends LintjeElement {
   /** What a control inside the panel left of an Escape, before the drawer around it hears it. */
   private readonly onOwnKeydown = (event: KeyboardEvent): void => {
     if (!this.open || event.key !== 'Escape' || event.defaultPrevented) return
+    event.preventDefault()
     event.stopPropagation()
     this.emit('lintje-close', { reason: 'escape' })
   }

@@ -70,4 +70,19 @@ describe('lintje-progress-bar', () => {
     expect(track(running).hasAttribute('aria-valuetext')).toBe(false)
     expect(running.querySelector('.lintje-progress__mark')).toBeNull()
   })
+
+  it('marks done, error and paused before the track when it has no head', async () => {
+    for (const props of [
+      { value: 100, hideLabel: true },
+      { value: 40, state: 'error', hideLabel: true },
+      { value: 40, state: 'paused' },
+    ]) {
+      const root = await mount({ label: '', ...props })
+      expect(root.querySelector('.lintje-progress__row > .lintje-progress__mark')).not.toBeNull()
+      expect(root.querySelector('.lintje-progress__row > [role="progressbar"]')).not.toBeNull()
+    }
+    const busy = await mount({ label: 'Bezig', value: 30, hideLabel: true })
+    expect(busy.querySelector('.lintje-progress__row')).toBeNull()
+    expect(busy.querySelector('.lintje-progress__mark')).toBeNull()
+  })
 })

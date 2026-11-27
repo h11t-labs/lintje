@@ -1,8 +1,8 @@
-/** The contract of every modal dialog on the `FocusTrap`: focus in, Tab stays in, the page holds still, it closes, focus back, its name resolves. */
+/** The contract of every modal dialog on the `FocusTrap`: focus in, Tab stays in, the page holds still, it closes, focus back, its name resolves; and how windows stack. */
 import { afterEach, describe, expect, it } from 'vitest'
 import { cdp, page, server, userEvent } from 'vitest/browser'
 import type { LintjeShell } from '../../components/frame/shell/shell'
-import { deepActiveElement, holdsFocus } from '../../core/focus'
+import { deepActiveElement, holdsFocus, standsIn } from '../../core/focus'
 import { scrollRoot } from '../../core/host-config'
 import { focusTarget, tabbables } from '../../components/shared/focus-trap'
 import '../../components/frame/app-search/app-search'
@@ -12,6 +12,8 @@ import '../../components/filters/filter-sheet/filter-sheet'
 import '../../components/filters/filter-bar/filter-bar'
 import '../../components/inputs/text-input/text-input'
 import '../../components/overlays/modal/modal'
+import '../../components/overlays/popover/popover'
+import '../../components/feedback/toast/toast'
 import '../../components/frame/notifications/notifications'
 import '../../components/actions/button/button'
 import '../../components/frame/shell/shell'
@@ -567,6 +569,154 @@ describe.each(ROWS)('$name', (row) => {
       })
     })
   }
+})
+
+// --- windows over windows ----------------------------------------------------------------
+
+type Window = HTMLElement & { open: boolean }
+
+/** An open window as a host puts it on the page, with how often it asked to close. */
+function openWindow(tag: 'lintje-drawer' | 'lintje-modal' | 'lintje-dialog'): {
+  element: Window
+  asked: () => number
+} {
+  const element = Object.assign(document.createElement(tag), { heading: 'Melding' }) as Window
+  element.innerHTML =
+    tag === 'lintje-dialog'
+      ? `Je hebt deze melding gewijzigd.
+        <lintje-button slot="actions" variant="secondary" autofocus>Verder bewerken</lintje-button>`
+      : '<p>Ingediend op 3 maart.</p><button type="button">Bewerken</button>'
+  let asked = 0
+  element.addEventListener('lintje-close', () => asked++)
+  document.body.append(element)
+  element.open = true
+  return { element, asked: () => asked }
+}
+
+/** The element a pointer meets at a point, through every shadow root. */
+function hitAt(x: number, y: number): Element | null {
+  let hit = document.elementFromPoint(x, y)
+  while (hit?.shadowRoot) {
+    const inner = hit.shadowRoot.elementFromPoint(x, y)
+    if (!inner || inner === hit) break
+    hit = inner
+  }
+  return hit
+}
+
+const middle = (element: Element): [number, number] => {
+  const box = element.getBoundingClientRect()
+  return [box.left + box.width / 2, box.top + box.height / 2]
+}
+
+/** Until the windows stand still: the drawer slides in, a frame rises. */
+async function settled(...elements: HTMLElement[]): Promise<void> {
+  for (const element of elements) {
+    await (element as HTMLElement & { updateComplete: Promise<unknown> }).updateComplete
+    await Promise.all(element.shadowRoot!.getAnimations().map((animation) => animation.finished))
+  }
+}
+
+async function atWidth(width: number): Promise<void> {
+  await page.viewport(width, width < 768 ? 844 : 900)
+  await expect.poll(() => window.innerWidth).toBe(width)
+  await new Promise(requestAnimationFrame)
+}
+
+describe.each([1440, 390])('a window over a drawer, at %i px', (width) => {
+  it.each(['lintje-modal', 'lintje-dialog'] as const)(
+    '%s lies above it, and the drawer takes no click',
+    async (tag) => {
+      await atWidth(width)
+      const drawer = openWindow('lintje-drawer')
+      await settled(drawer.element)
+      const over = openWindow(tag)
+      await settled(drawer.element, over.element)
+      const panel = shadow(drawer.element, '.lintje-drawer')!
+      const frame = shadow(
+        over.element,
+        tag === 'lintje-modal' ? '.lintje-modal' : '.lintje-dialog',
+      )!
+      // Over the panel lies the window's scrim; on a phone the frame itself.
+      const hit = hitAt(...middle(panel))
+      expect(standsIn(hit!, over.element)).toBe(true)
+      if (width < 768) expect(standsIn(hitAt(...middle(frame))!, frame)).toBe(true)
+      // A press on the drawer's close button lands on the window above it.
+      const close = shadow(drawer.element, '.lintje-drawer__close')!
+      expect(standsIn(hitAt(...middle(close))!, over.element)).toBe(true)
+      await userEvent.click(close, { force: true })
+      expect(drawer.asked()).toBe(0)
+    },
+  )
+})
+
+describe.each(['lintje-modal', 'lintje-drawer'] as const)('a popover in a %s', (tag) => {
+  it('stands above its window', async () => {
+    const window = openWindow(tag)
+    const button = Object.assign(document.createElement('button'), {
+      type: 'button',
+      textContent: 'Uitleg',
+    })
+    const popover = Object.assign(document.createElement('lintje-popover'), {
+      label: 'Uitleg',
+      anchor: button,
+    }) as HTMLElement & { open: boolean; label: string; anchor: HTMLElement }
+    popover.textContent = 'De aanvraag is op 3 maart ingediend.'
+    window.element.append(button, popover)
+    await settled(window.element)
+    popover.open = true
+    await expect
+      .poll(() => shadow(popover, '.lintje-popover')?.checkVisibility() ?? false)
+      .toBe(true)
+    const surface = shadow(popover, '.lintje-popover')!
+    expect(standsIn(hitAt(...middle(surface))!, popover)).toBe(true)
+  })
+})
+
+describe.each([1440, 390])('a toast while a window is open, at %i px', (width) => {
+  it.each(['lintje-modal', 'lintje-drawer'] as const)(
+    'over a %s: seen, in Tab’s reach, and its close works',
+    async (tag) => {
+      await atWidth(width)
+      const view = openWindow(tag)
+      await settled(view.element)
+      const toast = Object.assign(document.createElement('lintje-toast'), { kind: 'error' })
+      toast.textContent = 'De melding is niet opgeslagen.'
+      let closed = 0
+      toast.addEventListener('lintje-close', () => {
+        closed++
+        toast.remove()
+      })
+      document.body.append(toast)
+      await expect
+        .poll(() => shadow(toast, '.lintje-toast__close')?.checkVisibility() ?? false)
+        .toBe(true)
+      await Promise.all(toast.shadowRoot!.getAnimations().map((animation) => animation.finished))
+      const close = shadow(toast, '.lintje-toast__close')!
+      expect(standsIn(hitAt(...middle(close))!, toast)).toBe(true)
+
+      // The keyboard: from the window's last stop, Tab goes into the toast and Enter closes it.
+      const dialog = dialogs()[0]!
+      await expect.poll(() => holdsFocus(dialog)).toBe(true)
+      tabbables(dialog).at(-1)!.focus()
+      await tab()
+      expect(deepActiveElement()).toBe(close)
+      await userEvent.keyboard('{Enter}')
+      expect(closed).toBe(1)
+      expect(view.asked()).toBe(0)
+      expect(holdsFocus(dialog)).toBe(true)
+
+      // The pointer: shown again, it closes by a click, and the window stays.
+      document.body.append(toast)
+      await expect
+        .poll(() => shadow(toast, '.lintje-toast__close')?.checkVisibility() ?? false)
+        .toBe(true)
+      await userEvent.click(shadow(toast, '.lintje-toast__close')!)
+      expect(closed).toBe(2)
+      expect(view.asked()).toBe(0)
+      expect(dialogs()).toEqual([dialog])
+    },
+  )
 })
 
 describe('the known failures', () => {

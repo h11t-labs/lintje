@@ -3,7 +3,8 @@
  * checkbox list in the popover.
  *
  * The popover is fixed to the viewport, so a scrolling filter bar or sheet around it does not cut
- * it off. Escape and Tab out of the element close only the popover.
+ * it off. Escape and Tab out of the element close only the popover; a press outside closes it
+ * and still reaches what it pressed.
  *
  * Events: `lintje-change` `string[]`, `lintje-values-change` `{ [name]: value }` (with a `name`),
  * `lintje-reset` (the reset link was pressed).
@@ -68,13 +69,17 @@ export class LintjeMultiselect extends LintjeInputElement {
   #spot: Place | null = null
   #width: number | null = null
 
+  // On mousedown, with nothing over the page: the press closes the popover and its click still
+  // lands on what the reader pointed at, which keeps the focus.
   private readonly onOutsideClick = (event: MouseEvent): void => {
-    if (!this.open) return
-    if (!event.composedPath().includes(this)) this.open = false
+    if (!this.open || event.composedPath().includes(this)) return
+    this.open = false
+    this.query = ''
   }
 
   private readonly onEscape = (event: KeyboardEvent): void => {
-    if (!this.open || event.key !== 'Escape' || !ownsEscape(this)) return
+    if (!this.open || event.key !== 'Escape' || event.defaultPrevented || !ownsEscape(this)) return
+    event.preventDefault()
     event.stopPropagation()
     void this.close()
   }
@@ -149,6 +154,11 @@ export class LintjeMultiselect extends LintjeInputElement {
 
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
+    // A field turned off closes its popover, without giving the focus back to its button.
+    if (this.open && this.isDisabled) {
+      this.open = false
+      this.query = ''
+    }
     if (changed.has('open')) this.news = ''
   }
 
@@ -215,12 +225,18 @@ export class LintjeMultiselect extends LintjeInputElement {
     const selected = this.selected ?? []
     const query = this.query.trim().toLowerCase()
     const visible = options.filter((option) => optionLabel(option).toLowerCase().includes(query))
-    const allSelected = selected.length === options.length
-    const indeterminate = selected.length > 0 && !allSelected
+    // Counted over the options: a chosen value outside them ticks nothing.
+    const chosen = options.filter((option) => selected.includes(option.value)).length
+    const allSelected = options.length > 0 && chosen === options.length
+    const indeterminate = chosen > 0 && !allSelected
 
     const chips = selected.slice(0, 2)
     const rest = selected.length - chips.length
-    const labels = selected.map((value) => options.find((o) => o.value === value)?.label ?? value)
+    // A chosen value without its option shows as itself.
+    const labels = selected.map((value) => {
+      const option = options.find((item) => item.value === value)
+      return option ? optionLabel(option) : value
+    })
 
     return html`<div class="lintje-field lintje-multiselect" @focusout=${this.onFocusOut}>
       ${this.renderLabel()}
@@ -259,10 +275,8 @@ export class LintjeMultiselect extends LintjeInputElement {
             : nothing
         }
         ${(this.summary ? [] : chips).map(
-          (value) => html`<span class="lintje-multiselect__chip">
-            <span class="lintje-multiselect__chip-label"
-              >${options.find((option) => option.value === value)?.label}</span
-            >
+          (value, index) => html`<span class="lintje-multiselect__chip">
+            <span class="lintje-multiselect__chip-label">${labels[index]}</span>
             <!-- Mouse shortcut. No button and no role: chips sit inside the trigger button, and
                  a button inside a button is invalid HTML and not focusable. For keyboard and
                  screen reader users, removing goes through the options panel. -->
@@ -287,11 +301,7 @@ export class LintjeMultiselect extends LintjeInputElement {
 
       ${
         this.open
-          ? html`<span
-              class="lintje-multiselect__scrim"
-              @click=${() => void this.close()}
-            ></span>
-            <div
+          ? html`<div
               class="lintje-multiselect__popover"
               role="dialog"
               aria-label=${this.label || this.placeholder}
@@ -306,12 +316,17 @@ export class LintjeMultiselect extends LintjeInputElement {
                 />
               </div>
               <div class="lintje-multiselect__list">
-                ${this.checkbox(
-                  `Alles selecteren (${options.length})`,
-                  allSelected,
-                  indeterminate,
-                  (checked) => this.choose(checked ? options.map((option) => option.value) : []),
-                )}
+                ${
+                  options.length
+                    ? this.checkbox(
+                        `Alles selecteren (${options.length})`,
+                        allSelected,
+                        indeterminate,
+                        (checked) =>
+                          this.choose(checked ? options.map((option) => option.value) : []),
+                      )
+                    : nothing
+                }
                 ${visible.map((option) =>
                   this.checkbox(
                     optionLabel(option),
@@ -324,7 +339,7 @@ export class LintjeMultiselect extends LintjeInputElement {
                 ${
                   visible.length === 0
                     ? html`<p class="lintje-multiselect__no-results">
-                      Geen waarde met “${this.query}”.
+                      ${query ? html`Geen waarde met “${this.query}”.` : 'Geen waarden om te kiezen.'}
                     </p>`
                     : nothing
                 }
