@@ -292,8 +292,9 @@
 .lintje-choice__input:focus-visible ~ .lintje-choice__box,
 .lintje-choice__input:focus-visible ~ .lintje-choice__radio,
 .lintje-choice__input:focus-visible ~ .lintje-choice__switch {
-  outline: var(--focus-width) solid var(--color-focus);
+  outline: var(--focus-width) solid var(--lintje-focus, var(--color-focus));
   outline-offset: var(--focus-offset);
+  box-shadow: 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner));
 }
 
 .lintje-choice__radio {
@@ -338,6 +339,12 @@
 .lintje-choice__input:checked ~ .lintje-choice__switch {
   background: var(--color-accent);
   box-shadow: inset 0 0 0 1px var(--color-action-primary-border);
+}
+/* On and focused: the ring's inner line beside the track's edge. */
+.lintje-choice__input:checked:focus-visible ~ .lintje-choice__switch {
+  box-shadow:
+    0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)),
+    inset 0 0 0 1px var(--color-action-primary-border);
 }
 /* On, the knob is content on the primary fill: in dark the surface fell to 1.3:1 on it. */
 .lintje-choice__input:checked ~ .lintje-choice__switch .lintje-choice__knob {

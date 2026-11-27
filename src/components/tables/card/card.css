@@ -22,8 +22,9 @@
 .lintje-card.is-link:hover .lintje-card__link { text-decoration: underline; }
 /* A linked card takes the ring around itself: the title is its one tab stop. */
 .lintje-card.is-link:has(.lintje-card__link:focus-visible) {
-  outline: var(--focus-width) solid var(--color-focus);
+  outline: var(--focus-width) solid var(--lintje-focus, var(--color-focus));
   outline-offset: var(--focus-offset);
+  box-shadow: 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner));
 }
 .lintje-card.is-link .lintje-card__link:focus-visible { outline: none; }
 

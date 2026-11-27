@@ -24,8 +24,9 @@
 }
 /* The ring goes round the whole box, not round the input inside it. */
 .lintje-find:has(.lintje-find__control:focus-visible) {
-  outline: var(--focus-width) solid var(--color-focus);
+  outline: var(--focus-width) solid var(--lintje-focus, var(--color-focus));
   outline-offset: var(--focus-offset);
+  box-shadow: 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner));
 }
 .lintje-find.is-disabled {
   border-color: var(--color-border-strong);
