@@ -24,6 +24,7 @@ import {
 } from '../../../core/scroll-room'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { deepActiveElement, standBeside } from '../../shared/focus-trap'
+import { openFeet, watchFeet } from '../../shared/dialog'
 import { statusIcon, type Tone } from '../../shared/tone'
 import toastCss from './toast.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
@@ -83,6 +84,7 @@ export class LintjeToast extends LintjeElement {
   #boxSize: ResizeObserver | null = null
   #clearFrame = 0
   #unbeside: (() => void) | null = null
+  #unwatchFeet: (() => void) | null = null
 
   /** An Escape elsewhere is not the toast's; its own goes no further, so a window around stays. */
   readonly #onKeyDown = (event: KeyboardEvent): void => {
@@ -114,6 +116,7 @@ export class LintjeToast extends LintjeElement {
     super.connectedCallback()
     document.addEventListener('focusin', this.#onFocusIn)
     this.#unbeside = standBeside(this)
+    this.#unwatchFeet = watchFeet(() => this.#place())
     const root = scrollRoot()
     if (root) this.#unwatchRoom = watchRoom(root, () => this.#place())
     if (this.hasUpdated) this.#place()
@@ -131,6 +134,8 @@ export class LintjeToast extends LintjeElement {
     document.removeEventListener('focusin', this.#onFocusIn)
     this.#unbeside?.()
     this.#unbeside = null
+    this.#unwatchFeet?.()
+    this.#unwatchFeet = null
     this.#unwatchRoom?.()
     this.#unwatchRoom = null
     this.#boxSize?.disconnect()
@@ -160,7 +165,10 @@ export class LintjeToast extends LintjeElement {
     return this.kind === 'error' || this.kind === 'warning' || Boolean(this.action)
   }
 
-  /** Above what the others keep free at the bottom; a toast that stays keeps its own reach. */
+  /**
+   * Above what the others keep free at the bottom, and above the footer of an open window where
+   * that footer reaches into its place; a toast that stays keeps its own reach.
+   */
   #place(): void {
     const box = this.#box
     const root = scrollRoot()
@@ -169,11 +177,29 @@ export class LintjeToast extends LintjeElement {
       this.#boxSize = new ResizeObserver(() => this.#place())
       this.#boxSize.observe(box)
     }
-    box.style.setProperty('--lintje-toast-lift', `${roomBeside(this, root, 'bottom')}px`)
+    const page = roomBeside(this, root, 'bottom')
+    box.style.setProperty('--lintje-toast-lift', `${Math.max(page, this.#overFeet(box, page))}px`)
     const reach = this.#stays
       ? (parseFloat(getComputedStyle(box).bottom) || 0) + box.offsetHeight
       : 0
     keepRoom(this, root, 'bottom', reach)
+  }
+
+  /** The lift that sets the toast above every window footer it would otherwise cover. */
+  #overFeet(box: HTMLElement, page: number): number {
+    const feet = openFeet()
+    if (!feet.length) return 0
+    const lifted = parseFloat(box.style.getPropertyValue('--lintje-toast-lift')) || 0
+    const offset = (parseFloat(getComputedStyle(box).bottom) || 0) - lifted
+    const toast = box.getBoundingClientRect()
+    const top = window.innerHeight - offset - page - box.offsetHeight
+    let lift = 0
+    for (const foot of feet) {
+      const room = foot.getBoundingClientRect()
+      if (room.right <= toast.left || room.left >= toast.right || room.bottom <= top) continue
+      lift = Math.max(lift, Math.ceil(window.innerHeight - room.top))
+    }
+    return lift
   }
 
   #clearOfFocus(): void {
