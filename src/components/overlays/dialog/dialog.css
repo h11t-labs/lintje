@@ -41,7 +41,7 @@
   justify-content: space-between;
   gap: var(--space-4);
 }
-.lintje-dialog__heading { font: var(--text-h2); color: var(--color-window-title); }
+.lintje-dialog__heading { font: var(--text-h2); color: var(--color-modal-title); }
 /* The close button reaches into the padding, so it does not make the heading's line taller. */
 .lintje-dialog__close { margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0; }
 /* No hover while the close button is unavailable. */

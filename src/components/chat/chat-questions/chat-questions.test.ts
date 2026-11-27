@@ -169,6 +169,12 @@ describe('lintje-chat-questions, the short form', () => {
     await settle(element)
     const chips = [...root(element).querySelectorAll('.lintje-chat-questions__chip')]
     expect(chips.map((chip) => chip.classList.contains('is-chosen'))).toEqual([true, false, false])
+    expect(otherField(root(element))).toBeNull()
+    expect(
+      root(element)
+        .querySelector('.lintje-chat-questions__chip--other')!
+        .getAttribute('aria-expanded'),
+    ).toBe('false')
   })
 
   it('opens "Iets anders…" as its own field with the focus, says what is missing, and sends the text', async () => {

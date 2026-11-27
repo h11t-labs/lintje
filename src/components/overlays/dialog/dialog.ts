@@ -113,7 +113,9 @@ export class LintjeDialog extends LintjeElement {
   #open(): void {
     const frame = this.frame
     if (!frame) return
-    this.#hold.hold(frame)
+    this.#hold.hold(frame, {
+      foot: this.renderRoot.querySelector<HTMLElement>('.lintje-dialog__footer'),
+    })
     // The focus moves once the slotted buttons and fields have drawn their own roots.
     const drawn = Array.from(this.querySelectorAll('*'), (element) =>
       'updateComplete' in element ? (element.updateComplete as Promise<unknown>) : null,
@@ -174,6 +176,7 @@ export class LintjeDialog extends LintjeElement {
     return html`<div
       class="lintje-dialog__scrim"
       @pointerdown=${this.#scrim.onPointerDown}
+      @pointerup=${this.#scrim.onPointerUp}
       @click=${(event: Event) => {
         if (this.#scrim.hits(event)) this.ask('scrim')
       }}
