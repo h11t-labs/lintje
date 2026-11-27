@@ -25,7 +25,7 @@
 .lintje-prose h3,
 .lintje-prose h4,
 .lintje-prose h5,
-.lintje-prose h6 { color: var(--color-text-primary); }
+.lintje-prose h6 { color: var(--color-prose-heading); }
 .lintje-prose * + h1,
 .lintje-prose * + h2,
 .lintje-prose * + h3,
@@ -33,21 +33,14 @@
 .lintje-prose * + h5,
 .lintje-prose * + h6 { margin-top: var(--space-5); }
 
-.lintje-prose h1,
-.lintje-prose h2,
-.lintje-prose h3 { font: var(--text-h2); }
-.lintje-prose h4 { font: var(--text-tile-title); }
+.lintje-prose h1 { font: var(--prose-h1-font); }
+.lintje-prose h2 { font: var(--prose-h2-font); }
+.lintje-prose h3 { font: var(--prose-h3-font); }
+.lintje-prose h4 { font: var(--prose-h4-font); }
 .lintje-prose h5,
-.lintje-prose h6 { font: var(--text-body); font-weight: 700; }
-/* The new style: headings in the primary colour, as the house style sets them (a word, so the
-   text tint), down the scale; the two largest also hold their room, so a long title wraps on its
-   own lines. */
-[data-style-version='new'] .lintje-prose :is(h1, h2, h3, h4, h5, h6) { color: var(--color-accent-text); }
-[data-style-version='new'] .lintje-prose h1 { font: var(--text-h1-display); }
-[data-style-version='new'] .lintje-prose h2 { font: var(--text-h1); }
-[data-style-version='new'] .lintje-prose h3 { font: var(--text-section); }
-[data-style-version='new'] .lintje-prose h4 { font: var(--text-h2); }
-[data-style-version='new'] .lintje-prose :is(h5, h6) { font: var(--text-tile-title); }
+.lintje-prose h6 { font: var(--prose-h5-font); font-weight: 700; }
+/* In the new style the two largest headings hold their room, so a long title wraps on its own
+   lines. */
 [data-style-version='new'] .lintje-prose :is(h1, h2) { text-wrap: balance; }
 
 .lintje-prose p { font: var(--text-body); }

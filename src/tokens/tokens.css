@@ -692,6 +692,39 @@
   --modal-head-pad-bottom: var(--space-5);
   --modal-foot-pad: var(--space-3) var(--space-6);
   --color-modal-title: var(--color-text-primary);
+  /* The trail: on the small size, or on the body size, as the house style sets it. */
+  --breadcrumbs-font: var(--text-small);
+  /* The site's foot: its payoff on the h2, or the house style's italic in the regular weight;
+     a column's heading as a label in capitals, or as an h2. */
+  --footer-tagline-font: var(--text-h2);
+  --footer-compact-tagline-font: var(--text-translation);
+  --footer-heading-font: var(--label-weight) var(--label-size)/1.4 var(--font-ui);
+  --footer-heading-tracking: var(--label-tracking);
+  --footer-heading-case: uppercase;
+  /* The tools at the end of the top bar: apart, or close, as at the end of the navigation bar,
+     each with its own padding. */
+  --top-bar-actions-gap: var(--space-3);
+  /* The headings of prose: h1 to h3 alike, or down the house style's scale (40, 32, 24, 20, 16)
+     in the primary's word tint. */
+  --color-prose-heading: var(--color-text-primary);
+  --prose-h1-font: var(--text-h2);
+  --prose-h2-font: var(--text-h2);
+  --prose-h3-font: var(--text-h2);
+  --prose-h4-font: var(--text-tile-title);
+  --prose-h5-font: var(--text-body);
+  /* The page's head: inside the padded content, or above it, padding its words to the column
+     itself; with tabs, as the band, and the band below 768 px. */
+  --page-header-tabs-inset: 0px;
+  --page-header-band-inset: var(--space-6);
+  --page-header-band-inset-narrow: var(--page-pad-x);
+  /* A field's label: small, or on the body size, as the house style's form field has it. */
+  --field-label-size: 0.875rem;
+  /* The select: its own width, or the column's up to a field's widest, as a text field. */
+  --select-width: 180px;
+  --select-max-width: none;
+  /* A row of fields in a form section: stretched, or on the line of their controls, as the hint
+     stands above the field in the new style and lifts only its own label. */
+  --form-section-grid-align: stretch;
 
   /* The start page's band is the primary's wash, so it never reads as the menu. */
   --color-hero-bg: var(--primary-wash);
@@ -991,6 +1024,26 @@
   --modal-head-pad-bottom: 0px;
   --modal-foot-pad: 0 var(--space-6) var(--space-4);
   --color-modal-title: var(--color-accent-text);
+  --breadcrumbs-font: var(--text-ui);
+  --footer-tagline-font: var(--text-tagline);
+  --footer-compact-tagline-font: var(--text-tagline);
+  --footer-heading-font: var(--text-h2);
+  --footer-heading-tracking: 0;
+  --footer-heading-case: none;
+  --top-bar-actions-gap: var(--space-1);
+  --color-prose-heading: var(--color-accent-text);
+  --prose-h1-font: var(--text-h1-display);
+  --prose-h2-font: var(--text-h1);
+  --prose-h3-font: var(--text-section);
+  --prose-h4-font: var(--text-h2);
+  --prose-h5-font: var(--text-tile-title);
+  --page-header-tabs-inset: calc(var(--page-pad-x) + var(--page-gutter));
+  --page-header-band-inset: calc(var(--page-pad-x) + var(--page-gutter));
+  --page-header-band-inset-narrow: calc(var(--page-pad-x) + var(--page-gutter));
+  --field-label-size: 1rem;
+  --select-width: 100%;
+  --select-max-width: var(--w-field);
+  --form-section-grid-align: end;
 }
 /* `data-style-new-corner="square"` leaves the large corner out; without it the corner is round. */
 [data-style-version='new'][data-style-new-corner='square'] {
