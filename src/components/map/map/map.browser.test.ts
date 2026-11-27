@@ -321,6 +321,15 @@ describe('the map on a basemap', () => {
       expect(overlaps(box, credit.getBoundingClientRect())).toBe(false)
       expect(overlaps(box, scale.getBoundingClientRect())).toBe(false)
       expect(overlaps(box, zoomButtons(element))).toBe(false)
+      // The keyboard's hint is longer and wraps; it stays clear of the zoom buttons too.
+      await keyboardFocus(root(element).querySelector<HTMLElement>('.leaflet-container')!)
+      await expect.poll(() => hint()?.textContent?.trim()).toBe(TOOL_HINTS.rect.keys)
+      const keys = hint()!.getBoundingClientRect()
+      expect(overlaps(keys, credit.getBoundingClientRect())).toBe(false)
+      expect(overlaps(keys, scale.getBoundingClientRect())).toBe(false)
+      expect(overlaps(keys, zoomButtons(element))).toBe(false)
+      const layers = root(element).querySelector('.lintje-map-chart__layers')
+      if (layers) expect(overlaps(keys, layers.getBoundingClientRect())).toBe(false)
     } finally {
       delete document.documentElement.dataset.styleVersion
       await page.viewport(1440, 900)
