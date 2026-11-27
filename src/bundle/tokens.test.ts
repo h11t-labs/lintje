@@ -3,7 +3,7 @@
  * guide's Fundament pages (`examples/styleguide/foundation.js`): every token a component may
  * name, with its comment, on one page and in a group of its own.
  */
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { tokensOf } from '../../scripts/tokens.mjs'
 
@@ -18,6 +18,9 @@ interface Foundation {
 const [foundation] = Object.values(
   import.meta.glob<Foundation>('../../examples/styleguide/foundation.js', { eager: true }),
 ) as Foundation[]
+
+/** Layer 1: only `tokens.css` and `themes.css` name these (AGENTS.md rule 3). */
+const PRIMITIVE = /^--(neutral|data|status|ink|alpha|primary|accent)(-|$)/
 
 // Read from disk: vitest runs no CSS pipeline, so a `?raw` import comes back empty.
 const tokens = tokensOf(readFileSync('src/tokens/tokens.css', 'utf8'))
@@ -56,11 +59,22 @@ describe('the token reference', () => {
     expect(names).toContain('--color-bg-surface')
     expect(names).toContain('--space-4')
     expect(names).toContain('--text-h1')
-    expect(
-      names.filter((name) => /^--(neutral|data|status|ink|primary|accent)(-|$)/.test(name)),
-    ).toEqual([])
+    expect(names.filter((name) => PRIMITIVE.test(name))).toEqual([])
     expect(new Set(names).size).toBe(names.length)
     expect(comment('--color-text-placeholder')).toMatch(/4\.5:1/)
+  })
+
+  it('is what a component names, never a primitive', () => {
+    const root = 'src/components'
+    const found = readdirSync(root, { recursive: true, encoding: 'utf8' })
+      .filter((path) => /\.(css|ts)$/.test(path) && !path.includes('.test.'))
+      .flatMap((path) =>
+        [...readFileSync(`${root}/${path}`, 'utf8').matchAll(/var\(\s*(--[\w-]+)/g)]
+          .map((match) => match[1]!)
+          .filter((name) => PRIMITIVE.test(name))
+          .map((name) => `${path}  ${name}`),
+      )
+    expect(found).toEqual([])
   })
 })
 

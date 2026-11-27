@@ -737,6 +737,8 @@
   --color-hero-primary-text: oklch(from var(--primary) clamp(0.208, (0.6 - l) * 1000, 1) clamp(0, (l - 0.6) * 1000, 0.04) 265.8);
   --color-hero-primary-focus: var(--ink-white);
   --color-hero-primary-focus-inner: var(--ink-black);
+  /* A faint line in the band's ink: the lower edge of the tabs on the band. */
+  --color-hero-primary-line: var(--alpha-white-16);
   /* The site's foot stands on the menu's own fill, as on rijksoverheid.nl; in dark it follows the menu. */
   --color-footer-bg: var(--color-nav-bg);
   --color-footer-text: var(--color-nav-text);

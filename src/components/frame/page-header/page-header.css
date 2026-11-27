@@ -146,7 +146,7 @@
 .lintje-page-header--band ::slotted([slot='tabs']) {
   --lintje-tabs-ink: var(--color-hero-primary-text);
   /* The row's line in the ink, faint: the band's lower edge where it sticks over the page. */
-  --lintje-tabs-ink-line: var(--alpha-white-16);
+  --lintje-tabs-ink-line: var(--color-hero-primary-line);
   --lintje-tabs-hover: var(--color-action-inverse-secondary-hover);
 }
 @media screen and (max-width: 767px) {
