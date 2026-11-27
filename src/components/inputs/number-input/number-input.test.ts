@@ -116,3 +116,51 @@ describe('lintje-number-input', () => {
     expect(await said(element)).toBe('')
   })
 })
+
+describe('a typed number outside the bounds', () => {
+  async function type(element: LintjeNumberInput, text: string): Promise<void> {
+    control(element).value = text
+    control(element).dispatchEvent(new Event('change'))
+    await element.updateComplete
+  }
+  const error = (element: LintjeNumberInput): Element | null =>
+    element.shadowRoot!.querySelector('.lintje-field__error')
+
+  it('is refused with a message in place of the hint, as the date field does', async () => {
+    const element = await mount({ value: 5, min: 2, max: 12, hint: 'Hele dagen', name: 'p.d' })
+    const seen: unknown[] = []
+    element.addEventListener('lintje-change', (event) => seen.push((event as CustomEvent).detail))
+    await type(element, '30')
+    expect(seen).toEqual([])
+    expect(element.value).toBe(5)
+    expect(error(element)?.textContent).toContain('Vul een getal in van 12 of minder')
+    expect(element.shadowRoot!.querySelector('.lintje-field__hint')).toBeNull()
+    expect(control(element).getAttribute('aria-invalid')).toBe('true')
+    expect(control(element).getAttribute('aria-describedby')).toBe(error(element)!.id)
+    await type(element, '1')
+    expect(error(element)?.textContent).toContain('Vul een getal in van 2 of meer')
+  })
+
+  it('writes a bound with a decimal comma', async () => {
+    const element = await mount({ min: 0.5, step: 0.5 })
+    await type(element, '0.25')
+    expect(error(element)?.textContent).toContain('0,5 of meer')
+  })
+
+  it('loses its message on a number inside, the old value too, and on a value of the host', async () => {
+    const element = await mount({ value: 5, max: 12 })
+    await type(element, '30')
+    await type(element, '5')
+    expect(error(element)).toBeNull()
+    await type(element, '30')
+    element.value = 7
+    await element.updateComplete
+    expect(error(element)).toBeNull()
+  })
+
+  it('lets the host error win over its own message', async () => {
+    const element = await mount({ value: 5, max: 12, error: 'Te hoog voor dit loket' })
+    await type(element, '30')
+    expect(error(element)?.textContent).toContain('Te hoog voor dit loket')
+  })
+})

@@ -532,6 +532,18 @@ export default {
           html: '<lintje-number-input name="p.drempel-fout" label="Drempel" value="25" min="0" max="20" error="Kies een getal van 0 tot en met 20."></lintje-number-input>',
         },
         {
+          label: 'Getypt buiten de grenzen',
+          note: 'In het veld staat 25 bij een `max` van 20. Het veld weigert het getal en stuurt niets.',
+          html: '<lintje-number-input name="p.drempel-getypt" label="Drempel" value="5" min="0" max="20"></lintje-number-input>',
+          async setup(stage) {
+            const element = stage.querySelector('lintje-number-input')
+            await element.updateComplete
+            const field = element.shadowRoot.querySelector('input')
+            field.value = '25'
+            field.dispatchEvent(new Event('change'))
+          },
+        },
+        {
           label: 'Niet verplicht',
           html: '<lintje-number-input name="bezoekers" label="Aantal bezoekers" min="0" optional></lintje-number-input>',
         },

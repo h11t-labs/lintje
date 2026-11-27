@@ -3,14 +3,22 @@
  * text before the value (`prefix`) and a unit after it.
  *
  * It commits on `change`; a press on − or + commits at once and says the new value, since the
- * focus stays on the step. At `min` or `max` the step stays focusable but does nothing.
+ * focus stays on the step. At `min` or `max` the step stays focusable but does nothing. A typed
+ * number outside them is refused with a message in place of the hint; a host's `error` wins.
  *
  * Events: `lintje-change` `number | null`, `lintje-values-change` `{ [name]: value }` (with a
  * `name`), `lintje-reset` (the reset link was pressed).
  */
-import { html, nothing, type PropertyDeclarations, type TemplateResult } from 'lit'
+import {
+  html,
+  nothing,
+  type PropertyDeclarations,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit'
 import { classMap } from 'lit/directives/class-map.js'
 import { define } from '../../../core/element'
+import { formatNumber } from '../../../core/format'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { addonDescribedBy, renderAddon } from '../shared/addon'
@@ -31,6 +39,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     unit: { type: String },
     stepper: { type: Boolean },
     stacked: { type: Boolean, reflect: true },
+    problem: { state: true },
   }
 
   /** `null` is an empty field; a host writes no parameter for it. */
@@ -45,10 +54,33 @@ export class LintjeNumberInput extends LintjeFormInputElement {
   /** The −/+ buttons. Bind as `.stepper=${false}`, never `?stepper=`. */
   stepper: boolean = true
   stacked: boolean = false
+  /** The element's own message about a typed number it refused. */
+  protected problem: string = ''
   readonly #live = new LiveMessage(this)
 
   protected get formValue(): string {
     return this.value === null ? '' : String(this.value)
+  }
+
+  private get message(): string {
+    return this.error || this.problem
+  }
+
+  protected override get footMessage(): string {
+    return this.message
+  }
+
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
+    if (changed.has('value')) this.problem = ''
+  }
+
+  private outOfBounds(next: number): string {
+    if (this.min !== undefined && next < this.min)
+      return `Vul een getal in van ${decimal(this.min)} of meer`
+    if (this.max !== undefined && next > this.max)
+      return `Vul een getal in van ${decimal(this.max)} of minder`
+    return ''
   }
 
   private get atMin(): boolean {
@@ -67,6 +99,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     if (this.max !== undefined) next = Math.min(this.max, next)
     // Steps of .1 would otherwise commit 0.30000000000000004.
     next = Math.round(next * 1e6) / 1e6
+    this.problem = ''
     if (next === this.value) return
     this.value = next
     this.commit(next)
@@ -77,7 +110,8 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     if (this.readonly) return
     const raw = (event.target as HTMLInputElement).value
     const next = raw === '' ? null : Number(raw)
-    if (next === this.value) return
+    this.problem = next === null ? '' : this.outOfBounds(next)
+    if (this.problem || next === this.value) return
     this.value = next
     this.commit(this.value)
   }
@@ -112,7 +146,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
         class=${classMap({
           'lintje-number-input': true,
           'lintje-number-input--addon': Boolean(prefix || unit),
-          'is-error': Boolean(this.error),
+          'is-error': Boolean(this.message),
           'is-readonly': this.readonly,
           'is-disabled': this.isDisabled,
         })}
@@ -130,7 +164,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
           autocomplete=${this.autocomplete || nothing}
           aria-labelledby=${this.labelId}
           aria-describedby=${addonDescribedBy(Boolean(prefix), Boolean(unit), this.describedBy)}
-          aria-invalid=${this.error ? 'true' : nothing}
+          aria-invalid=${this.message ? 'true' : nothing}
           aria-required=${this.required ? 'true' : nothing}
           ?required=${this.required}
           ?readonly=${this.readonly}
@@ -145,6 +179,11 @@ export class LintjeNumberInput extends LintjeFormInputElement {
       <span class="visually-hidden" role="status">${this.#live.text}</span>
     </div>`
   }
+}
+
+/** A bound as a reader writes it: a decimal comma, and as many decimals as it has. */
+function decimal(value: number): string {
+  return formatNumber(value, String(value).split('.')[1]?.length ?? 0)
 }
 
 define('lintje-number-input', LintjeNumberInput)
