@@ -422,7 +422,7 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
   van 24 px.
 - `unavailable.browser.test.ts` — een ingang die niet te kiezen is, blijft onder de aanwijzer
   zoals hij is: geen vlak, geen onderstreping, geen andere kleur, in beide huisstijlen; een
-  ingang die wel te kiezen is, reageert.
+  ingang die wel te kiezen is, reageert. De sluitknop van een bezig venster is zo een ingang.
 - `contrast.browser.test.ts` — tekst die gelezen moet worden, haalt 4.5:1 op wat eronder ligt, in
   licht en donker, met de dekking van elke voorouder meegerekend; wat alleen een vulling had,
   heeft ook een lijn.
