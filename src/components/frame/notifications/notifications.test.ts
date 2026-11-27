@@ -121,10 +121,22 @@ describe('lintje-notifications', () => {
   it('shows one sentence and no counter when there is nothing', async () => {
     const element = await mount([], true)
     expect(element.shadowRoot!.querySelector('lintje-badge')).toBeNull()
-    expect(
-      element.shadowRoot!.querySelector('.lintje-notifications__empty')!.textContent,
-    ).toContain('Geen meldingen.')
+    const empty = element.shadowRoot!.querySelector('lintje-empty-state')!
+    expect(empty.hasAttribute('compact')).toBe(true)
+    expect(empty.getAttribute('text')).toContain('Geen meldingen.')
     expect(element.shadowRoot!.querySelector('.lintje-notifications__read')).toBeNull()
+  })
+
+  it('says the host’s empty text, and none with items', async () => {
+    const element = await mount([], true)
+    element.emptyText = 'Er zijn geen meldingen voor dit dossier.'
+    await element.updateComplete
+    expect(element.shadowRoot!.querySelector('lintje-empty-state')!.getAttribute('text')).toBe(
+      'Er zijn geen meldingen voor dit dossier.',
+    )
+    element.items = ITEMS
+    await element.updateComplete
+    expect(element.shadowRoot!.querySelector('lintje-empty-state')).toBeNull()
   })
 
   it('closes on the popover’s Escape and stops it there', async () => {

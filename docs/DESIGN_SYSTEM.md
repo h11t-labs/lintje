@@ -704,6 +704,10 @@ De besluiten hieronder gelden voor alle elementen.
   verversing waar niemand om vroeg, tekent geen skelet.
 - **Leeg zegt waarom**, en noemt de uitweg in woorden. Er is geen opnieuw-knop op een tegel: die
   herlaadt met de pagina.
+- **Een element met rijen zonder data is één regel**: de compacte lege toestand, met de tekst
+  van de host in `emptyText` (`empty-text`) en anders een eigen Nederlandse zin, in een lijst, een
+  boom, een sorteerlijst, een tijdlijn en het meldingenpaneel evengoed. Nooit een lege boom, lijst
+  of rail, die een lezer als gat hoort.
 - **Een pagina die er niet is, is een pagina, geen melding** (`lintje-error-page`): de code klein
   boven een titel die in woorden zegt wat er is, waarom, en de weg verder. Geen illustratie, geen
   groot getal, geen rood vlak; alleen geen toegang en een storing dragen een teken naast de code.

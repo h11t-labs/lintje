@@ -23,6 +23,7 @@ import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { badgeStyles } from '../../feedback/badge/badge'
+import '../../feedback/empty-state/empty-state'
 import '../../overlays/popover/popover'
 import { DialogHold } from '../../shared/dialog'
 import { LiveMessage } from '../../shared/live-message'
@@ -73,6 +74,7 @@ export class LintjeNotifications extends LintjeElement {
     open: { type: Boolean, reflect: true },
     max: { type: Number },
     variant: { type: String, reflect: true },
+    emptyText: { type: String, attribute: 'empty-text' },
   }
 
   items: NotificationItem[] = []
@@ -84,6 +86,8 @@ export class LintjeNotifications extends LintjeElement {
   open: boolean = false
   /** `tab`: the bell is a tab of the shell's tab bar below 768 px, with the word Meldingen. */
   declare variant?: 'tab'
+  /** The line that stands in the panel without items. */
+  emptyText: string = 'Geen meldingen. Wat klaar is of mislukt, verschijnt hier.'
 
   #shown = 0
   #replaced = false
@@ -256,9 +260,12 @@ export class LintjeNotifications extends LintjeElement {
           ? html`<ul class="lintje-notifications__list" role="list">
             ${this.items.map((item) => this.renderItem(item))}
           </ul>`
-          : html`<p class="lintje-notifications__empty" tabindex="-1">
-            Geen meldingen. Wat klaar is of mislukt, verschijnt hier.
-          </p>`
+          : html`<lintje-empty-state
+              class="lintje-notifications__empty"
+              tabindex="-1"
+              compact
+              text=${this.emptyText}
+            ></lintje-empty-state>`
       }
     </div>`
   }
