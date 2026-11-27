@@ -634,3 +634,59 @@ describe('a slot column', () => {
     expect(clicks).toHaveLength(1)
   })
 })
+
+describe('a clickable row under the pointer', () => {
+  /** A token's colour on this page, as the browser writes a background. */
+  const colourOf = (token: string): string => {
+    const probe = document.createElement('span')
+    probe.style.backgroundColor = `var(${token})`
+    document.body.append(probe)
+    const colour = getComputedStyle(probe).backgroundColor
+    probe.remove()
+    return colour
+  }
+  const clickable: DataTableData = {
+    caption: 'Loketten',
+    rowKey: 'name',
+    clickable: true,
+    selectedId: 'Utrecht 1',
+    columns: COLUMNS.slice(0, 3),
+    rows: officeRows(3),
+  }
+
+  for (const style of ['classic', 'new']) {
+    it(`lights up, and a selected row keeps its surface, in the ${style} house style`, async () => {
+      if (style === 'new') document.documentElement.dataset.styleVersion = 'new'
+      try {
+        const element = await mount(structuredClone(clickable))
+        const full = '.lintje-data-table__full .lintje-data-table__row'
+        const rows = [
+          part(element, `${full}.is-selected`),
+          part(element, `${full}:not(.is-selected)`),
+        ]
+        await userEvent.hover(rows[1]!)
+        await expect
+          .poll(() => getComputedStyle(rows[1]!).backgroundColor)
+          .toBe(colourOf('--color-bg-subtle'))
+        await userEvent.hover(rows[0]!)
+        await expect
+          .poll(() => getComputedStyle(rows[0]!).backgroundColor)
+          .toBe(colourOf('--color-bg-selected'))
+        // The selected surface may equal the hover's; the 4 px edge is what tells them apart.
+        expect(getComputedStyle(rows[0]!).boxShadow).toContain('4px 0px 0px 0px inset')
+        // The light goes with the pointer, after its transition.
+        await expect.poll(() => getComputedStyle(rows[1]!).backgroundColor).toBe('rgba(0, 0, 0, 0)')
+      } finally {
+        delete document.documentElement.dataset.styleVersion
+      }
+    })
+  }
+
+  it('stays as it is when the row does not click through', async () => {
+    const element = await mount({ ...structuredClone(clickable), clickable: false })
+    const row = part(element, '.lintje-data-table__full .lintje-data-table__row')
+    const before = getComputedStyle(row).backgroundColor
+    await userEvent.hover(row)
+    expect(getComputedStyle(row).backgroundColor).toBe(before)
+  })
+})
