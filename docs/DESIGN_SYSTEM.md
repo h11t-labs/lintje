@@ -750,12 +750,12 @@ De besluiten hieronder gelden voor alle elementen.
   combinatie is twee toetsen naast elkaar.
 - **Escape sluit wat open is**, en in een popover alleen de popover. Een toast sluit met Escape
   alleen vanuit zichzelf: een Escape elders is niet de zijne. Escape is eerst van het kleinste:
-  één Escape sluit één zwevende laag, de bovenste eerst — de tooltip, dan de toelichting, de
-  popover of de lijst van een veld, dan het venster eromheen. Wat een Escape al beantwoordde
-  (`preventDefault`), zoals een tooltip, een toelichting, een popover of een bewerking ter
-  plekke, sluit geen laag eronder: elk element dat op Escape sluit, slaat een beantwoorde Escape
-  over en beantwoordt hem zelf als het sluit. De tooltip hoort hem als eerste. Of er een dialoog boven een open
-  popup staat, volgt uit de focus: Escape blijft ongemoeid zolang de focus in een
+  één Escape sluit één zwevende laag, de bovenste eerst — de tooltip, dan de uitleg, de popover
+  of de lijst van een veld, dan het venster eromheen. Wat een Escape al beantwoordde
+  (`preventDefault`), zoals een tooltip, een uitleg, een popover of een bewerking ter plekke,
+  sluit geen laag eronder: elk element dat op Escape sluit, slaat een beantwoorde Escape over en
+  beantwoordt hem zelf als het sluit. De tooltip hoort hem als eerste. Of er een dialoog boven
+  een open popup staat, volgt uit de focus: Escape blijft ongemoeid zolang de focus in een
   `aria-modal="true"` staat waar de popup niet in zit. Een dialoog zet dus `aria-modal` en
   neemt de focus bij het openen; één die dat niet doet, telt niet mee.
 - **Twee vensters: een groot voor inhoud, een klein voor een vraag of een kort formulier.**
