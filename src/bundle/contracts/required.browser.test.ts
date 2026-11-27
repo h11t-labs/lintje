@@ -380,9 +380,14 @@ describe('refused typed text', () => {
       const button = submitButton()
       form.append(button)
       await userEvent.fill(element.renderRoot.querySelector('input')!, row.refused)
+      const seen: unknown[] = []
+      element.addEventListener('focusout', () => seen.push(['out', element.refusal]))
+      form.addEventListener('invalid', () => seen.push(['invalid', element.refusal]), true)
       await userEvent.click(button)
+      seen.push(['clicked', element.refusal, active()?.localName])
       await new Promise((resolve) => setTimeout(resolve, 20))
-      expect(element.refusal).not.toBe('')
+      seen.push(['end', element.refusal, submits(), active()?.localName])
+      expect(element.refusal, JSON.stringify(seen)).not.toBe('')
       expect(submits()).toBe(0)
     })
 
