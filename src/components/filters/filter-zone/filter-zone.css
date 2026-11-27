@@ -50,6 +50,7 @@
   color: var(--color-link); text-decoration: underline;
   margin: 0 var(--space-2);
 }
+.lintje-filter-bar__reset:hover { color: var(--color-link-hover); }
 
 /* --- Opening and closing -------------------------------------------------- */
 /* `0fr -> 1fr` transitions to the content height without measuring it in JS. The body stays
@@ -146,6 +147,7 @@
   color: var(--color-link); text-decoration: underline;
   margin: 0 var(--space-2);
 }
+.lintje-summary-bar__reset:hover { color: var(--color-link-hover); }
 /* --- The one filter toggle ----------------------------------------------- */
 /* Last in the row in both states, so the second click lands on the toggle again. */
 .lintje-filter-toggle {
