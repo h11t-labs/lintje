@@ -4,7 +4,8 @@
  * The host writes the rows and owns the list; the repeater asks, numbers and names the rows, and
  * bounds them by `min` and `max`. It keeps no values and draws no undo toast. After an add the
  * focus goes to the new row's first field, after a remove to the remove button of the row above,
- * else the add button.
+ * else the add button. `disabled` also turns off every field in the rows, and hands back what
+ * each had when it comes on again.
  *
  * Events: `lintje-row-add` `number` (the index the new row gets), `lintje-row-remove` `number`
  * (the row's index, from the row).
@@ -20,6 +21,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import '../../actions/button/button'
 import '../../actions/icon-button/icon-button'
+import { PropertyHold, disableableControls } from '../../shared/controls'
 import { LiveMessage } from '../../shared/live-message'
 import repeaterCss from './repeater.css?inline'
 import repeaterRowCss from './repeater-row.css?inline'
@@ -116,6 +118,7 @@ export class LintjeRepeater extends LintjeElement {
 
   protected count: number = 0
   readonly #spoken = new LiveMessage(this)
+  readonly #disabled = new PropertyHold('disabled')
 
   /** The reader's last request, so focus can follow once the host has answered. */
   private pending: { kind: 'add' } | { kind: 'remove'; index: number } | null = null
@@ -132,7 +135,16 @@ export class LintjeRepeater extends LintjeElement {
 
   override disconnectedCallback(): void {
     this.removeEventListener('lintje-row-remove', this.onRowRemove)
+    this.#disabled.release()
     super.disconnectedCallback()
+  }
+
+  // As `lintje-form-section`: a `<fieldset disabled>` in a shadow root disables nothing slotted.
+  // The rows are left out: `sync` sets their `disabled`, and a hold would hand back a stale one.
+  #hold(): void {
+    if (!this.disabled) return this.#disabled.release()
+    const fields = disableableControls(this).filter((node) => !(node instanceof LintjeRepeaterRow))
+    this.#disabled.apply(fields, true)
   }
 
   private name(index: number): string {
@@ -159,6 +171,7 @@ export class LintjeRepeater extends LintjeElement {
       row.removable = rows.length > this.min
       row.disabled = this.disabled
     })
+    if (this.disabled) this.#hold()
 
     const pending = this.pending
     if (pending?.kind === 'add' && rows.length > before) {
@@ -199,6 +212,11 @@ export class LintjeRepeater extends LintjeElement {
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
     if (changed.has('min') || changed.has('disabled') || changed.has('itemLabel')) this.sync()
+  }
+
+  protected override updated(changed: PropertyValues<this>): void {
+    super.updated(changed)
+    if (changed.has('disabled')) this.#hold()
   }
 
   protected override render(): TemplateResult {
