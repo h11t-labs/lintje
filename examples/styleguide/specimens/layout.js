@@ -346,6 +346,19 @@ export default {
           html: `<lintje-accordion toggle-all>${FAQ.replaceAll('<lintje-expander heading=', '<lintje-expander open heading=')}</lintje-accordion>`,
         },
         {
+          label: 'Met een toelichting in een rij',
+          note: 'Een toelichting openen of sluiten verandert niets aan de rijen, ook niet met `exclusive`.',
+          html: `<lintje-accordion exclusive>
+            <lintje-expander heading="Hoe is de wachttijd gemeten?" open>
+              <p>De mediaan per kwartier
+                <lintje-toggletip label="Toelichting op de mediaan">Het midden van alle gemeten wachttijden: de helft wachtte korter, de helft langer.</lintje-toggletip></p>
+            </lintje-expander>
+            <lintje-expander heading="Welke locaties tellen mee?">
+              <lintje-prose text="Alle loketten die in de meetperiode open waren."></lintje-prose>
+            </lintje-expander>
+          </lintje-accordion>`,
+        },
+        {
           label: 'Rij met acties',
           note: 'Het slot `actions` van een rij zet knoppen naast de titel, buiten de knop van de titel.',
           html: `<lintje-accordion>

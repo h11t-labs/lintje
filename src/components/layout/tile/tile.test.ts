@@ -6,6 +6,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import './tile'
 import type { LintjeTile } from './tile'
+import '../../overlays/toggletip/toggletip'
+import type { LintjeToggletip } from '../../overlays/toggletip/toggletip'
 
 const nextFrame = (): Promise<unknown> => new Promise((resolve) => requestAnimationFrame(resolve))
 
@@ -181,5 +183,27 @@ describe('lintje-tile collapsed-mobile', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('true')
     expect(toggle.textContent!.trim()).toBe('Verbergen')
     expect(toggled).toEqual([true])
+  })
+
+  it('stays unfolded when a toggletip in its content opens, and sends no toggle of its own', async () => {
+    viewport(390)
+    const tile = await mount({ heading: 'Aanvragen per regio', collapsedMobile: true })
+    const tip = document.createElement('lintje-toggletip') as LintjeToggletip
+    tip.textContent = 'Uitleg'
+    tile.append(tip)
+    await tip.updateComplete
+    const toggle = tile.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-tile__fold-toggle')!
+    toggle.click()
+    await tile.updateComplete
+    const toggles: string[] = []
+    tile.addEventListener('lintje-toggle', (event) =>
+      toggles.push((event.target as Element).localName),
+    )
+    tip.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-toggletip__trigger')!.click()
+    await tip.updateComplete
+    await tile.updateComplete
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+    expect(tile.shadowRoot!.querySelector('.lintje-tile__fold')!.hasAttribute('hidden')).toBe(false)
+    expect(toggles).toEqual(['lintje-toggletip'])
   })
 })
