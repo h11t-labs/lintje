@@ -122,6 +122,14 @@ export class LintjeFilterZone extends LintjeElement {
   override connectedCallback(): void {
     super.connectedCallback()
     window.addEventListener('resize', this.onResize)
+    // A move disconnects and reconnects without a render of its own: one brings back the
+    // observer and, open, the page's scroll listener.
+    if (this.hasUpdated) {
+      this.wasExpanded = undefined
+      // Leaving cleared the timer of an opening; drawn anew, the body stands open at once.
+      this.settled = true
+      this.requestUpdate()
+    }
   }
 
   override disconnectedCallback(): void {

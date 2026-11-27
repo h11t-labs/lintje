@@ -126,3 +126,60 @@ describe('pinning the zone', () => {
     expect(reports).toEqual([true])
   })
 })
+
+describe('a zone moved in the page', () => {
+  /** Moves the zone from one parent to another and back: each move disconnects and reconnects. */
+  async function moveTwice(element: LintjeFilterZone): Promise<void> {
+    const first = document.createElement('div')
+    const second = document.createElement('div')
+    element.before(first, second)
+    second.append(element)
+    first.append(element)
+    await element.updateComplete
+    await settle()
+  }
+
+  it('sticks again, reporting each crossing once', async () => {
+    document.body.style.height = '4000px'
+    const above = document.createElement('div')
+    above.style.height = '300px'
+    document.body.append(above)
+    const element = await mount(false)
+    const reports: boolean[] = []
+    element.addEventListener('lintje-zone-scrolled-change', (event) => {
+      reports.push((event as CustomEvent<boolean>).detail)
+      element.scrolled = (event as CustomEvent<boolean>).detail
+    })
+    await moveTwice(element)
+    reports.length = 0
+    window.scrollTo(0, 1000)
+    await expect.poll(() => reports).toEqual([true])
+    window.scrollTo(0, 0)
+    await expect.poll(() => reports).toEqual([true, false])
+  })
+
+  it('stands open, popovers unclipped, when it moves while still opening', async () => {
+    const element = await mount(true)
+    // Mid-opening, as the timer of a height transition leaves it; reduced motion has none.
+    ;(element as unknown as { settled: boolean }).settled = false
+    await element.updateComplete
+    const bar = (): Element => element.shadowRoot!.querySelector('.lintje-filter-bar')!
+    expect(bar().classList.contains('is-settled')).toBe(false)
+    await moveTwice(element)
+    await expect.poll(() => bar().classList.contains('is-settled')).toBe(true)
+  })
+
+  it('closes its open controls once as the page scrolls on', async () => {
+    document.body.style.height = '4000px'
+    const element = await mount(true)
+    await moveTwice(element)
+    const asked: boolean[] = []
+    element.addEventListener('lintje-zone-open-change', (event) =>
+      asked.push((event as CustomEvent<boolean>).detail),
+    )
+    window.scrollTo(0, 200)
+    await expect.poll(() => asked).toEqual([false])
+    await settle()
+    expect(asked).toEqual([false])
+  })
+})
