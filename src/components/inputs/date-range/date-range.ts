@@ -172,7 +172,8 @@ export class LintjeDateRange extends LintjeInputElement {
   }
 
   private readonly onEscape = (event: KeyboardEvent): void => {
-    if (!this.open || event.key !== 'Escape' || !ownsEscape(this)) return
+    if (!this.open || event.key !== 'Escape' || event.defaultPrevented || !ownsEscape(this)) return
+    event.preventDefault()
     event.stopPropagation()
     void this.close()
   }
