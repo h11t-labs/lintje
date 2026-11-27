@@ -370,6 +370,46 @@ describe('refused typed text', () => {
       expect(submits()).toBe(0)
     })
 
+    it('holds a press on the button straight after typing', async () => {
+      const fill = { tag: row.tag, fill: {}, posts: [] }
+      const { form, element, submits } = await inForm(fill, {
+        ...row.props,
+        value: row.value,
+        required: false,
+      })
+      const button = submitButton()
+      form.append(button)
+      await settled(button as unknown as Input)
+      const input = element.renderRoot.querySelector('input')!
+      const seen: unknown[] = []
+      const log = (what: string) => () =>
+        seen.push([what, element.refusal, input.value, active()?.localName])
+      for (const type of ['change', 'blur', 'focusout']) input.addEventListener(type, log(type))
+      for (const type of ['pointerdown', 'mousedown', 'mouseup', 'click', 'focusin'])
+        button.addEventListener(type, log('button:' + type))
+      form.addEventListener('submit', log('submit'))
+      form.addEventListener('invalid', log('invalid'), true)
+      await userEvent.fill(input, row.refused)
+      seen.push(['filled', input.value, active()?.localName])
+      await userEvent.click(button)
+      seen.push(['clicked', element.refusal, active()?.localName])
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      seen.push([
+        'end',
+        element.refusal,
+        submits(),
+        active()?.localName,
+        element.matches(':invalid'),
+        form.checkValidity(),
+        JSON.stringify(button.getBoundingClientRect()),
+        navigator.userAgent,
+      ])
+      expect(element.refusal, JSON.stringify(seen)).not.toBe('')
+      expect(submits()).toBe(0)
+      // Diagnostic only: shows the sequence in every browser.
+      expect(JSON.stringify(seen)).toBe('DIAG')
+    })
+
     it('takes the focus at its control when the form reports', async () => {
       const fill = { tag: row.tag, fill: {}, posts: [] }
       const { form, element } = await inForm(fill, { ...row.props, required: false })
