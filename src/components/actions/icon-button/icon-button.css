@@ -110,5 +110,7 @@
 @media (forced-colors: active) {
   .lintje-icon-button.is-active,
   .lintje-icon-button.is-live { border: 1px solid Highlight; }
-  .lintje-icon-button.is-disabled { color: GrayText; border-color: GrayText; }
+  .lintje-icon-button.is-disabled,
+  .lintje-icon-button.is-active.is-disabled,
+  .lintje-icon-button.is-live.is-disabled { color: GrayText; border-color: GrayText; }
 }
