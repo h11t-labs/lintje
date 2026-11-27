@@ -650,6 +650,105 @@ describe.each([1440, 390])('a window over a drawer, at %i px', (width) => {
   )
 })
 
+// --- windows over the search panel and the notifications sheet ---------------------------
+
+const NOTES = [
+  { id: 'm1', title: 'Export klaar', when: 'zojuist', unread: true },
+  { id: 'm2', title: 'Rapport gedeeld', when: 'gisteren' },
+]
+
+type Layer = HTMLElement & { open: boolean; updateComplete: Promise<unknown> }
+
+/** Each panel open as a host has it, with the surface a pointer meets and a control on it. */
+const UNDER: {
+  name: string
+  widths: number[]
+  openPanel(): Promise<{
+    element: Layer
+    surface: HTMLElement
+    control: HTMLElement
+    asked: () => number
+  }>
+}[] = [
+  {
+    name: 'an open search panel',
+    widths: [1440, 390],
+    openPanel: async () => {
+      const element = document.createElement('lintje-app-search') as Layer
+      let asked = 0
+      element.addEventListener('lintje-close', () => asked++)
+      document.body.append(element)
+      element.open = true
+      await settled(element)
+      return {
+        element,
+        surface: shadow(element, '.lintje-app-search')!,
+        control: shadow(element, '.lintje-app-search__input')!,
+        asked: () => asked,
+      }
+    },
+  },
+  {
+    name: 'the notifications sheet',
+    widths: [390],
+    openPanel: async () => {
+      const element = Object.assign(document.createElement('lintje-notifications'), {
+        items: NOTES,
+      }) as Layer
+      document.body.append(element)
+      element.open = true
+      await settled(element)
+      return {
+        element,
+        surface: shadow(element, '.lintje-notifications__sheet')!,
+        control: shadow(element, '.lintje-notifications__close')!,
+        asked: () => (element.open ? 0 : 1),
+      }
+    },
+  },
+  {
+    name: 'the notifications sheet of the shell',
+    widths: [390],
+    openPanel: async () => {
+      const host = Object.assign(document.createElement('lintje-shell'), {
+        data: { ...SHELL, notifications: NOTES },
+      }) as LintjeShell
+      host.innerHTML = '<p>Inhoud</p>'
+      document.body.append(host)
+      await host.updateComplete
+      const element = host.shadowRoot!.querySelector('lintje-notifications') as Layer
+      element.open = true
+      await settled(element)
+      return {
+        element,
+        surface: shadow(element, '.lintje-notifications__sheet')!,
+        control: shadow(element, '.lintje-notifications__close')!,
+        asked: () => (element.open ? 0 : 1),
+      }
+    },
+  },
+]
+
+describe.each(UNDER)('a window over $name', ({ widths, openPanel }) => {
+  it.each(
+    widths.flatMap((width) =>
+      (['lintje-modal', 'lintje-dialog'] as const).map((tag) => ({ width, tag })),
+    ),
+  )('$tag lies above it at $width px, and the panel takes no click', async ({ width, tag }) => {
+    await atWidth(width)
+    const under = await openPanel()
+    const over = openWindow(tag)
+    await settled(over.element)
+    const frame = shadow(over.element, tag === 'lintje-modal' ? '.lintje-modal' : '.lintje-dialog')!
+    expect(standsIn(hitAt(...middle(under.surface))!, over.element)).toBe(true)
+    expect(standsIn(hitAt(...middle(frame))!, frame)).toBe(true)
+    expect(standsIn(hitAt(...middle(under.control))!, over.element)).toBe(true)
+    await userEvent.click(under.control, { force: true })
+    expect(under.asked()).toBe(0)
+    expect(under.element.open).toBe(true)
+  })
+})
+
 describe.each(['lintje-modal', 'lintje-drawer'] as const)('a popover in a %s', (tag) => {
   it('stands above its window', async () => {
     const window = openWindow(tag)
