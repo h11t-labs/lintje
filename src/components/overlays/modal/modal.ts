@@ -13,7 +13,7 @@ import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
 import '../../actions/icon-button/icon-button'
-import { DialogHold } from '../../shared/dialog'
+import { DialogHold, ScrimClick } from '../../shared/dialog'
 import modalCss from './modal.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 
@@ -56,6 +56,7 @@ export class LintjeModal extends LintjeElement {
   }
 
   readonly #hold = new DialogHold(() => this.close())
+  readonly #scrim = new ScrimClick()
   #bodySize: ResizeObserver | null = null
 
   override disconnectedCallback(): void {
@@ -121,14 +122,20 @@ export class LintjeModal extends LintjeElement {
 
   protected override render(): TemplateResult | typeof nothing {
     if (!this.open) return nothing
-    return html`<div class="lintje-modal__scrim" @click=${() => this.close()}>
+    return html`<div
+      class="lintje-modal__scrim"
+      @pointerdown=${this.#scrim.onPointerDown}
+      @pointerup=${this.#scrim.onPointerUp}
+      @click=${(event: Event) => {
+        if (this.#scrim.hits(event)) this.close()
+      }}
+    >
       <div
         class="lintje-modal"
         role="dialog"
         aria-modal="true"
         aria-label=${this.heading.trim() || 'Venster'}
         tabindex="-1"
-        @click=${(event: Event) => event.stopPropagation()}
       >
         <header class="lintje-modal__header">
           <div class="lintje-modal__heading">

@@ -21,7 +21,7 @@ import { MediaController, MOBILE } from '../../../core/media'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { AttributeHold, PropertyHold } from '../../shared/controls'
-import { DialogHold } from '../../shared/dialog'
+import { DialogHold, ScrimClick } from '../../shared/dialog'
 import { focusTarget, tabbables } from '../../shared/focus-trap'
 import dialogCss from './dialog.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
@@ -71,6 +71,7 @@ export class LintjeDialog extends LintjeElement {
 
   readonly #mobile = new MediaController(this, MOBILE)
   readonly #hold = new DialogHold(() => this.ask('escape'))
+  readonly #scrim = new ScrimClick()
   readonly #busy = new PropertyHold('busy')
   readonly #disabled = new PropertyHold('disabled')
   readonly #block = new AttributeHold('block')
@@ -170,7 +171,14 @@ export class LintjeDialog extends LintjeElement {
 
   protected override render(): TemplateResult | typeof nothing {
     if (!this.open) return nothing
-    return html`<div class="lintje-dialog__scrim" @click=${() => this.ask('scrim')}>
+    return html`<div
+      class="lintje-dialog__scrim"
+      @pointerdown=${this.#scrim.onPointerDown}
+      @pointerup=${this.#scrim.onPointerUp}
+      @click=${(event: Event) => {
+        if (this.#scrim.hits(event)) this.ask('scrim')
+      }}
+    >
       <div
         class="lintje-dialog"
         role=${this.alert ? 'alertdialog' : 'dialog'}
@@ -179,7 +187,6 @@ export class LintjeDialog extends LintjeElement {
         aria-describedby=${this.alert ? 'lintje-dialog-text' : nothing}
         aria-busy=${this.busy ? 'true' : nothing}
         tabindex="-1"
-        @click=${(event: Event) => event.stopPropagation()}
       >
         <header class="lintje-dialog__header">
           <h2 id="lintje-dialog-heading" class="lintje-dialog__heading">${this.heading}</h2>
