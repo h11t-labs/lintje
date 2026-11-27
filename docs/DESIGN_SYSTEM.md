@@ -784,7 +784,8 @@ De besluiten hieronder gelden voor alle elementen.
   alleen vanuit zichzelf: een Escape elders is niet de zijne. Escape is eerst van het kleinste:
   één Escape doet één ding. Elk element dat op Escape iets sluit, wist of ongedaan maakt, slaat
   een Escape over die al beantwoord is (`preventDefault`) en beantwoordt hem zelf als het
-  handelt; de regel staat op één plek, `core/escape.ts`. De tooltip hoort hem als eerste, dan de
+  handelt (een venster, de onderste laag, slaat hem alleen over); de regel staat op één plek,
+  `core/escape.ts`. De tooltip hoort hem als eerste, dan de
   zwevende lagen — de uitleg, de popover, de lijst van een veld — van de laatst geopende naar de
   eerste, dan wat eromheen staat: een bewerking ter plekke, een keuze, een venster. Of er een
   dialoog boven een open popup staat, volgt uit de focus: Escape blijft ongemoeid zolang de focus

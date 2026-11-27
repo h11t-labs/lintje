@@ -577,7 +577,11 @@ const CHART_ROWS: Row[] = [
         tile.shadowRoot!.querySelector<HTMLElement>('.lintje-treemap__svg')
       await drawn(drawing)
       drawing()!.focus()
-      return () => tile.data.selectedId
+      // What it says counts too: a clear it only announces is no clear.
+      const status = (): string =>
+        tile.shadowRoot!.querySelector('.lintje-treemap [role="status"]')?.textContent?.trim() ?? ''
+      await settle()
+      return () => `${tile.data.selectedId} ${status()}`
     },
   },
   {
