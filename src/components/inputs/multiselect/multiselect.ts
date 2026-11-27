@@ -195,6 +195,17 @@ export class LintjeMultiselect extends LintjeInputElement {
       : 'niets geselecteerd'
   }
 
+  // Select-all ticks and unticks the options only: a chosen value outside them stays chosen.
+  private chooseAll(checked: boolean): void {
+    const selected = this.selected ?? []
+    const values = (this.options ?? []).map((option) => option.value)
+    this.choose(
+      checked
+        ? [...selected, ...values.filter((value) => !selected.includes(value))]
+        : selected.filter((value) => !values.includes(value)),
+    )
+  }
+
   private toggleOption(value: string): void {
     const selected = this.selected ?? []
     this.choose(
@@ -321,8 +332,7 @@ export class LintjeMultiselect extends LintjeInputElement {
                         `Alles selecteren (${options.length})`,
                         allSelected,
                         indeterminate,
-                        (checked) =>
-                          this.choose(checked ? options.map((option) => option.value) : []),
+                        (checked) => this.chooseAll(checked),
                       )
                     : nothing
                 }
