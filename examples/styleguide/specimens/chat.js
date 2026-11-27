@@ -505,7 +505,16 @@ export default {
           })),
         },
         {
-          label: 'Korte vorm bezig met versturen',
+          label: 'Korte vorm beantwoord',
+          note: 'Na een tik blijft de gekozen chip leesbaar en worden de andere grijs.',
+          ...short((data) => ({
+            data: { ...data, state: 'sending' },
+            drafts: { periode: { values: ['2025'], other: '', text: '' } },
+          })),
+        },
+        {
+          label: 'Korte vorm beantwoord met eigen tekst',
+          note: '"Iets anders…" met een eigen tekst telt als gekozen.',
           ...short((data) => ({
             data: { ...data, state: 'sending' },
             otherOpen: true,

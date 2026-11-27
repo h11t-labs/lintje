@@ -326,6 +326,8 @@ export class LintjeChatQuestions extends LintjeElement {
   private pick(value: string): void {
     if (this.sending) return
     const id = this.questions[0].id
+    // The tapped option is the answer: the own field of "Iets anders…" closes with it.
+    this.otherOpen = false
     this.drafts = { ...this.drafts, [id]: { ...this.draft(id), values: [value] } }
     this.send()
   }
@@ -385,7 +387,10 @@ export class LintjeChatQuestions extends LintjeElement {
         ${(question.options ?? []).map(
           (option) => html`<button
             type="button"
-            class="lintje-chat-questions__chip"
+            class=${classMap({
+              'lintje-chat-questions__chip': true,
+              'is-chosen': draft.values.includes(option.value),
+            })}
             aria-disabled=${this.sending ? 'true' : nothing}
             @click=${() => this.pick(option.value)}
           >
@@ -397,7 +402,8 @@ export class LintjeChatQuestions extends LintjeElement {
           class=${classMap({
             'lintje-chat-questions__chip': true,
             'lintje-chat-questions__chip--other': true,
-            'is-chosen': this.otherOpen,
+            // A tap on an option while the own field is open makes that option the answer.
+            'is-chosen': draft.values.includes(OTHER_VALUE),
           })}
           aria-expanded=${String(this.otherOpen)}
           aria-disabled=${this.sending ? 'true' : nothing}
