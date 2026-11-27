@@ -420,6 +420,9 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
 - `focus-ring.browser.test.ts` — de focusring is heel en staat op wat de focus heeft: geen
   scrollvak snijdt hem af en geen buur bedekt hem; en de links van een lijst houden elk een doel
   van 24 px.
+- `unavailable.browser.test.ts` — een ingang die niet te kiezen is, blijft onder de aanwijzer
+  zoals hij is: geen vlak, geen onderstreping, geen andere kleur, in beide huisstijlen; een
+  ingang die wel te kiezen is, reageert.
 - `contrast.browser.test.ts` — tekst die gelezen moet worden, haalt 4.5:1 op wat eronder ligt, in
   licht en donker, met de dekking van elke voorouder meegerekend; wat alleen een vulling had,
   heeft ook een lijn.
