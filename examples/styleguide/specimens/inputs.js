@@ -1210,6 +1210,12 @@ export default {
           setup: setRange,
         },
         {
+          label: 'Als instellingsrij',
+          note: 'Met `layout="row"` staan het label en de hint links en het veld rechts, zoals bij elk veld.',
+          html: '<lintje-date-range layout="row" label="Standaardperiode" hint="Waarmee een nieuw overzicht opent."></lintje-date-range>',
+          setup: setRange,
+        },
+        {
           label: 'Open met een gekozen periode',
           note: 'De dagen tussen begin en eind zijn getint, ook over het weekend heen.',
           html: '<lintje-date-range label="Periode"></lintje-date-range>',
