@@ -57,7 +57,7 @@
 }
 .lintje-cells__value .lintje-icon { flex: none; }
 /* The one figure a reader looks at: the key figure's size on a phone, never the dashboard's. */
-.is-large .lintje-cells__value {
+.lintje-cells__cell.is-large .lintje-cells__value {
   font: var(--text-kpi-mobile);
   letter-spacing: var(--kpi-tracking);
 }
@@ -97,17 +97,27 @@
 .lintje-cells__cell.is-attention { background: var(--color-attention-bg); }
 .lintje-cells__cell.is-warning { background: var(--color-warning-bg); }
 /* On a status fill a link takes the colour that holds 4.5:1 there, in dark too. */
-.lintje-cells__cell:is(.is-success, .is-info, .is-error, .is-live, .is-attention, .is-warning)
-  :is(.lintje-cells__link, .lintje-cells__action) { color: var(--color-link-on-status); }
-.is-success .lintje-cells__value .lintje-icon { color: var(--color-success-line); }
-.is-info .lintje-cells__value .lintje-icon { color: var(--color-info-line); }
-.is-error .lintje-cells__value .lintje-icon,
-.is-live .lintje-cells__value .lintje-icon { color: var(--color-error-line); }
-.is-attention .lintje-cells__value .lintje-icon,
-.is-warning .lintje-cells__value .lintje-icon { color: var(--color-attention-line); }
-.is-busy .lintje-cells__value .lintje-icon { color: var(--color-accent-text); }
-.is-neutral .lintje-cells__value .lintje-icon,
-.is-subtle .lintje-cells__value .lintje-icon { color: var(--color-text-muted); }
+.lintje-cells__cell.is-success .lintje-cells__link,
+.lintje-cells__cell.is-success .lintje-cells__action,
+.lintje-cells__cell.is-info .lintje-cells__link,
+.lintje-cells__cell.is-info .lintje-cells__action,
+.lintje-cells__cell.is-error .lintje-cells__link,
+.lintje-cells__cell.is-error .lintje-cells__action,
+.lintje-cells__cell.is-live .lintje-cells__link,
+.lintje-cells__cell.is-live .lintje-cells__action,
+.lintje-cells__cell.is-attention .lintje-cells__link,
+.lintje-cells__cell.is-attention .lintje-cells__action,
+.lintje-cells__cell.is-warning .lintje-cells__link,
+.lintje-cells__cell.is-warning .lintje-cells__action { color: var(--color-link-on-status); }
+.lintje-cells__cell.is-success .lintje-cells__value .lintje-icon { color: var(--color-success-line); }
+.lintje-cells__cell.is-info .lintje-cells__value .lintje-icon { color: var(--color-info-line); }
+.lintje-cells__cell.is-error .lintje-cells__value .lintje-icon,
+.lintje-cells__cell.is-live .lintje-cells__value .lintje-icon { color: var(--color-error-line); }
+.lintje-cells__cell.is-attention .lintje-cells__value .lintje-icon,
+.lintje-cells__cell.is-warning .lintje-cells__value .lintje-icon { color: var(--color-attention-line); }
+.lintje-cells__cell.is-busy .lintje-cells__value .lintje-icon { color: var(--color-accent-text); }
+.lintje-cells__cell.is-neutral .lintje-cells__value .lintje-icon,
+.lintje-cells__cell.is-subtle .lintje-cells__value .lintje-icon { color: var(--color-text-muted); }
 
 /* Below 30 rem the grid is two columns; a wide cell, and a last one alone on its row, take the
    whole row, so no empty cell stands beside it. */

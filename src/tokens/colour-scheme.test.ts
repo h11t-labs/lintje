@@ -1328,6 +1328,14 @@ describe('a mark on a surface other than the plain one', () => {
   it('is the token each of those marks is drawn in', () => {
     const C = 'src/components'
     const MARKS: [string, string, string, string][] = [
+      ...['success', 'info', 'attention', 'warning', 'error'].flatMap((tone) =>
+        ['link', 'action'].map((part): [string, string, string, string] => [
+          `${C}/tables/cells/cells.css`,
+          `.lintje-cells__cell.is-${tone} .lintje-cells__${part}`,
+          'color',
+          '--color-link-on-status',
+        ]),
+      ),
       [
         `${C}/shared/menu.css`,
         '.lintje-menu__radio.is-checked::after',

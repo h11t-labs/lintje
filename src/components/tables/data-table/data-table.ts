@@ -1928,8 +1928,9 @@ export class LintjeDataTable extends LintjeContentTileElement {
       return html`<lintje-description-list .items=${items}>${parts}</lintje-description-list>`
     }
     // As many cells to a line as fill the lines evenly: a gap at the end reads as a missing value.
+    // The open row is grey, so the fields take the surface.
     const lines = Math.ceil(columns.length / 4)
-    return html`<lintje-cells .columns=${Math.ceil(columns.length / lines)} .items=${items}
+    return html`<lintje-cells surface .columns=${Math.ceil(columns.length / lines)} .items=${items}
       >${parts}</lintje-cells
     >`
   }

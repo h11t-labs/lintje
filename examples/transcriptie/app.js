@@ -69,6 +69,8 @@ function setStatus(id, patch) {
     const behind = connection === 'lost' ? 'Wacht op verbinding' : delay == null ? undefined : `${delay} ${delay === 1 ? 'seconde' : 'seconden'} achter`
     items.push({ label: 'Verbinding', icon: 'functioneel-smartphone', value: word, detail: behind, meter: { level: share, steps: 4, tone }, live: true })
   }
+  // One field per measure: a computer has no connection, and an empty field would read as missing.
+  $(id).columns = items.length
   $(id).items = items
 }
 
