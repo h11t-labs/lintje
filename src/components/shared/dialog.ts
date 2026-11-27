@@ -1,8 +1,10 @@
 /**
  * What every modal window does while it is open: it locks the page's scroll, keeps the focus
- * inside and answers Escape only when it is the window on top.
+ * inside, answers Escape only when it is the window on top, and claims the room its footer takes
+ * at the bottom of the screen, so a toast stands above the footer's buttons.
  */
-import { holdOverflow, lockScroll } from '../../core/host-config'
+import { holdOverflow, lockScroll, scrollRoot } from '../../core/host-config'
+import { keepRoom, releaseRoom } from '../../core/scroll-room'
 import { FocusTrap } from './focus-trap'
 
 export interface HoldOptions {
@@ -10,12 +12,15 @@ export interface HoldOptions {
   focus?: boolean | HTMLElement
   /** The element that scrolls behind the window, when the host names one; else the page. */
   scroller?: HTMLElement | null
+  /** The window's footer: from its top down, the screen is the window's room. */
+  foot?: HTMLElement | null
 }
 
 export class DialogHold {
   readonly #trap = new FocusTrap()
   readonly #onEscape: () => void
   #released: (() => void) | null = null
+  #unclaim: (() => void) | null = null
 
   // An Escape something inside already answered (`preventDefault`) is not the window's.
   readonly #onKeyDown = (event: KeyboardEvent): void => {
@@ -36,17 +41,44 @@ export class DialogHold {
     return this.#trap.isTopmost()
   }
 
-  hold(container: HTMLElement, { focus = false, scroller }: HoldOptions = {}): void {
+  hold(container: HTMLElement, { focus = false, scroller, foot }: HoldOptions = {}): void {
     if (this.#released) return
     this.#released = scroller ? holdOverflow(scroller) : lockScroll()
     document.addEventListener('keydown', this.#onKeyDown)
     this.#trap.activate(container, { focus })
+    if (foot) this.#claim(container, foot)
+  }
+
+  // Measured again when the footer or the window changes size, the screen turns, and once the
+  // window's entrance has played: a rising frame stands lower until then.
+  #claim(container: HTMLElement, foot: HTMLElement): void {
+    const claim = (): void => {
+      if (!this.#released) return
+      const top = foot.getBoundingClientRect().top
+      const shown = foot.offsetHeight > 0
+      keepRoom(this, scrollRoot(), 'bottom', shown ? Math.ceil(window.innerHeight - top) : 0)
+    }
+    const sizes = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(claim)
+    sizes?.observe(foot)
+    sizes?.observe(container)
+    window.addEventListener('resize', claim)
+    const root = foot.getRootNode() as Document | ShadowRoot
+    const entrance = typeof root.getAnimations === 'function' ? root.getAnimations() : []
+    void Promise.allSettled(entrance.map((animation) => animation.finished)).then(claim)
+    claim()
+    this.#unclaim = () => {
+      sizes?.disconnect()
+      window.removeEventListener('resize', claim)
+      releaseRoom(this)
+    }
   }
 
   /** Lets go; unless `restore` is false, the focus goes back to the opener. */
   release(restore: boolean = true): void {
     if (!this.#released) return
     document.removeEventListener('keydown', this.#onKeyDown)
+    this.#unclaim?.()
+    this.#unclaim = null
     this.#released()
     this.#released = null
     this.#trap.deactivate(restore)

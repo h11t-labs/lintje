@@ -701,6 +701,11 @@ describe.each([1440, 390])('a toast while a window is open, at %i px', (width) =
       tabbables(dialog).at(-1)!.focus()
       await tab()
       expect(deepActiveElement()).toBe(close)
+      // Shift+Tab goes back into the window, and Tab again into the toast.
+      await shiftTab()
+      expect(deepActiveElement()).toBe(tabbables(dialog).at(-1))
+      await tab()
+      expect(deepActiveElement()).toBe(close)
       await userEvent.keyboard('{Enter}')
       expect(closed).toBe(1)
       expect(view.asked()).toBe(0)
@@ -714,6 +719,53 @@ describe.each([1440, 390])('a toast while a window is open, at %i px', (width) =
       await userEvent.click(shadow(toast, '.lintje-toast__close')!)
       expect(closed).toBe(2)
       expect(view.asked()).toBe(0)
+      expect(dialogs()).toEqual([dialog])
+    },
+  )
+})
+
+describe.each([1440, 390])('a lasting toast over a window, at %i px', (width) => {
+  it.each(['lintje-drawer', 'lintje-modal'] as const)(
+    'does not cover the focused footer button of a %s',
+    async (tag) => {
+      await atWidth(width)
+      const element = Object.assign(document.createElement(tag), { heading: 'Melding' }) as Window
+      // Tall content puts the footer at the bottom of the screen.
+      element.innerHTML = `<p style="height: 2000px">Ingediend op 3 maart.</p>
+        <lintje-button slot="${tag === 'lintje-drawer' ? 'footer' : 'actions'}" variant="tertiary">Annuleren</lintje-button>
+        <lintje-button slot="${tag === 'lintje-drawer' ? 'footer' : 'actions'}" variant="primary">Opslaan</lintje-button>`
+      document.body.append(element)
+      element.open = true
+      await settled(element)
+      const toast = Object.assign(document.createElement('lintje-toast'), {
+        kind: 'error' as const,
+        action: 'Opnieuw proberen',
+      })
+      toast.textContent = 'De melding is niet opgeslagen.'
+      document.body.append(toast)
+      await expect
+        .poll(() => shadow(toast, '.lintje-toast__close')?.checkVisibility() ?? false)
+        .toBe(true)
+      await Promise.all(toast.shadowRoot!.getAnimations().map((animation) => animation.finished))
+      const box = shadow(toast, '.lintje-toast')!
+      const dialog = dialogs()[0]!
+      for (const button of element.querySelectorAll('lintje-button')) {
+        const target = focusTarget(button as HTMLElement)
+        target.focus()
+        expect(deepActiveElement()).toBe(target)
+        await expect
+          .poll(
+            () => {
+              const a = box.getBoundingClientRect()
+              const b = target.getBoundingClientRect()
+              return (
+                a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right
+              )
+            },
+            { message: `${button.textContent} lies under the toast` },
+          )
+          .toBe(true)
+      }
       expect(dialogs()).toEqual([dialog])
     },
   )
