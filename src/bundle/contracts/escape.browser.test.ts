@@ -409,26 +409,19 @@ const CONTENT_ROWS: Row[] = [
       await element.updateComplete
       const strip = (): HTMLElement | null => inside(element, '.lintje-split-pane__strip')
       await drawn(strip)
-      // A click on the strip lifts the split; the pointer then carries it.
-      const pointer = (target: HTMLElement, type: string, x: number): void => {
-        target.dispatchEvent(
-          new PointerEvent(type, {
-            button: 0,
-            pointerId: 1,
-            clientX: x,
-            bubbles: true,
-            composed: true,
-          }),
-        )
-      }
-      const block = inside(element, '.lintje-split-pane')!.getBoundingClientRect()
-      const middle = block.left + block.width / 2
-      pointer(strip()!, 'pointerdown', middle)
-      pointer(strip()!, 'pointerup', middle)
-      pointer(
-        inside(element, '.lintje-split-pane__pane--end')!,
-        'pointermove',
-        block.left + block.width * 0.3,
+      // A real click on the strip lifts the split: the strip captures that pointer, and Firefox
+      // refuses to capture a made-up one. The lifted split then follows a move over the block,
+      // sent as an event, since the panes moving under the pointer never stand still for a hover.
+      await userEvent.click(strip()!)
+      const block = inside(element, '.lintje-split-pane')!
+      const box = block.getBoundingClientRect()
+      block.dispatchEvent(
+        new PointerEvent('pointermove', {
+          clientX: box.left + box.width * 0.3,
+          clientY: box.top + box.height / 2,
+          bubbles: true,
+          composed: true,
+        }),
       )
       await expect.poll(() => Math.round(element.value)).toBe(30)
       await expect.poll(() => active()?.classList.contains('lintje-split-pane__handle')).toBe(true)
