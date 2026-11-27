@@ -208,7 +208,7 @@ export class LintjeTabs extends LintjeElement {
       'is-active': selected,
       'is-disabled': Boolean(tab.disabled),
     })
-    const label = html`<span class="lintje-tabs__label">${tab.label}</span>${
+    const label = html`<span class="lintje-tabs__label" data-text=${tab.label}>${tab.label}</span>${
       tab.count === undefined
         ? nothing
         : html`<lintje-badge variant="count">${tab.count ?? ''}</lintje-badge>`

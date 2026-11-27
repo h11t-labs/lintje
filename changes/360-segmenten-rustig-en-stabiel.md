@@ -1,6 +1,6 @@
 ### Gewijzigd
 
-- In de nieuwe huisstijl heeft `lintje-segmented` een rustig grijs kader met een lijn tussen de opties, en alleen de gekozen optie draagt de accentlijn; de rij blijft bij elke keuze even breed (#360).
+- In de nieuwe huisstijl heeft `lintje-segmented` een rustig grijs kader met een lijn tussen de opties, en alleen de gekozen optie draagt de accentlijn. Een rij segmenten en een rij tabs blijven bij elke keuze even breed (#360).
 
 ### Toegevoegd
 

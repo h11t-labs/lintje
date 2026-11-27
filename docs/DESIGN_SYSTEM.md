@@ -563,9 +563,9 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een gekozen optie is rustig, niet gevuld.** In een rij opties neemt de gekozen de waas van de
   primaire kleur, een rand in de accentlijn en vette tekst; het gevulde oppervlak blijft voor de
   ene primaire actie, zodat een formulier nooit meerdere gevulde blokken boven zijn knop toont.
-  Het vet verschuift niets: elke optie houdt de breedte van haar vette label vrij, zodat de rij bij
-  elke keuze even breed blijft. Een rij die breder is dan haar ruimte, staat als kolom, elke optie een rij over de volle
-  breedte; ze loopt nooit uit beeld.
+  Het vet verschuift niets: elke optie, en elke tab, houdt de breedte van haar vette label vrij,
+  zodat de rij bij elke keuze even breed blijft. Een rij die breder is dan haar ruimte, staat als
+  kolom, elke optie een rij over de volle breedte; ze loopt nooit uit beeld.
 - **Een aantal bij een keuze is de tellerbadge achter het label**, in een tab en in een segment
   evengoed; nooit een getal in de tekst van het label. Een aantal dat nog laadt (`null`) houdt de
   badge leeg op haar plek, zodat herladen niets laat verspringen; zonder aantal is er geen badge.

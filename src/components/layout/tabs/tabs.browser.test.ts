@@ -106,3 +106,22 @@ describe('lintje-tabs of links only', () => {
     )
   })
 })
+
+describe('lintje-tabs and the chosen tab', () => {
+  for (const variant of ['line', 'panel'] as const) {
+    it(`keeps every ${variant} tab as wide, whichever tab is chosen`, async () => {
+      const element = await mount(MANY.slice(0, 3), variant)
+      const widths = (): number[] =>
+        [...element.shadowRoot!.querySelectorAll('.lintje-tabs__tab')].map(
+          (tab) => tab.getBoundingClientRect().width,
+        )
+      const first = widths()
+      for (const tab of MANY.slice(1, 3)) {
+        element.value = tab.value
+        await element.updateComplete
+        expect(widths()).toEqual(first)
+      }
+      element.remove()
+    })
+  }
+})
