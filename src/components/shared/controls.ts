@@ -132,7 +132,11 @@ const VALUE_ACCESS: Record<string, ValueAccess> = {
     },
   },
   'lintje-range': {
-    read: (control) => (control.single ? control.value : [control.from, control.to]),
+    // A single handle without a value stands on the first step: that is what it holds.
+    read: (control) =>
+      control.single
+        ? (control.value ?? (control.steps as unknown[] | undefined)?.[0] ?? null)
+        : [control.from, control.to],
     write: (control, value) => {
       if (control.single) control.value = value
       else if (Array.isArray(value)) [control.from, control.to] = value as number[]

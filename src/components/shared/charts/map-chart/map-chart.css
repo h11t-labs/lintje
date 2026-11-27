@@ -311,6 +311,9 @@
   inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
 }
 .lintje-map-chart__layer:first-child { margin-left: 0; }
+/* A row that touches rounds its outer corners only, as a segmented control. */
+.lintje-map-chart__layer:first-child { border-start-start-radius: var(--radius-control); border-end-start-radius: var(--radius-control); }
+.lintje-map-chart__layer:last-child { border-start-end-radius: var(--radius-control); border-end-end-radius: var(--radius-control); }
 /* The buttons overlap by their line: the focused one lies over its neighbour, ring and all. */
 .lintje-map-chart__layer:focus-visible,
 .lintje-map-chart__zoom-button:focus-visible { z-index: 1; }
@@ -348,6 +351,14 @@
 .lintje-map-chart__tip:first-child { margin-top: 0; }
 .lintje-map-chart__tip .lintje-map-chart__zoom-button { margin-top: 0; }
 .lintje-map-chart__tip--first { margin-top: var(--space-2); }
+/* The zoom stack rounds its outer corners only; the select button below it stands alone. */
+.lintje-map-chart__tip:first-child .lintje-map-chart__zoom-button {
+  border-top-left-radius: var(--radius-control); border-top-right-radius: var(--radius-control);
+}
+.lintje-map-chart__tip:not(:has(+ .lintje-map-chart__tip:not(.lintje-map-chart__tip--first))) .lintje-map-chart__zoom-button {
+  border-bottom-left-radius: var(--radius-control); border-bottom-right-radius: var(--radius-control);
+}
+.lintje-map-chart__zoom-button.lintje-map-chart__tool { border-radius: var(--radius-control); }
 /* A tool on: the button is primary, with the shape it draws. */
 .lintje-map-chart__tool.is-active {
   background: var(--color-action-primary);
@@ -442,7 +453,7 @@
 .lintje-map-chart--basemap .lintje-map-chart__selection,
 .lintje-map-chart--basemap .lintje-map-chart__scale-bar,
 .lintje-map-chart--basemap .lintje-map-chart__hint { bottom: calc(var(--space-2) + var(--space-5)); }
-.lintje-map-chart--basemap.lintje-map-chart--mobile .lintje-map-chart__scale-bar { bottom: calc(var(--space-2) + var(--space-9)); }
+.lintje-map-chart--basemap.lintje-map-chart--mobile .lintje-map-chart__scale-bar { bottom: calc(var(--space-2) + var(--space-10)); }
 
 /* --- The legend ----------------------------------------------------------- */
 

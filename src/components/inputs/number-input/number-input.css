@@ -24,8 +24,9 @@
   color: var(--color-text-primary);
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
-.lintje-number-input__step--down { border-right: 1px solid var(--color-border-field); }
-.lintje-number-input__step--up { border-left: 1px solid var(--color-border-field); }
+/* The hover fill against the frame's round ends takes the corner inside them. */
+.lintje-number-input__step--down { border-right: 1px solid var(--color-border-field); border-radius: calc(var(--radius-control) - var(--lintje-field-border)) 0 0 calc(var(--radius-control) - var(--lintje-field-border)); }
+.lintje-number-input__step--up { border-left: 1px solid var(--color-border-field); border-radius: 0 calc(var(--radius-control) - var(--lintje-field-border)) calc(var(--radius-control) - var(--lintje-field-border)) 0; }
 .lintje-number-input.is-disabled .lintje-number-input__step { border-color: var(--color-border-strong); }
 .lintje-number-input__step { transition: background var(--dur-hover) var(--ease-in-motion); }
 .lintje-number-input__step:hover:not(:disabled):not(.is-limit) { background: var(--color-bg-subtle); }

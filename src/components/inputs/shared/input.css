@@ -115,8 +115,9 @@
   font-size: 1rem;
   white-space: nowrap;
 }
-.lintje-field__addon--prefix { border-right: 1px solid var(--color-border-default); }
-.lintje-field__addon--suffix { border-left: 1px solid var(--color-border-default); }
+/* Its fill against the box's round edge takes the corner inside it, or it squares the edge. */
+.lintje-field__addon--prefix { border-right: 1px solid var(--color-border-default); border-radius: calc(var(--radius-control) - var(--lintje-field-border)) 0 0 calc(var(--radius-control) - var(--lintje-field-border)); }
+.lintje-field__addon--suffix { border-left: 1px solid var(--color-border-default); border-radius: 0 calc(var(--radius-control) - var(--lintje-field-border)) calc(var(--radius-control) - var(--lintje-field-border)) 0; }
 .lintje-field__addon.is-readonly,
 .lintje-field__addon.is-disabled {
   background: var(--color-border-strong);
@@ -158,6 +159,7 @@
   height: calc(var(--h-control) - 2 * var(--lintje-field-border));
   display: flex; align-items: center; justify-content: center;
   border-left: 1px solid var(--color-border-default);
+  border-radius: 0 calc(var(--radius-control) - var(--lintje-field-border)) calc(var(--radius-control) - var(--lintje-field-border)) 0;
   background: transparent;
   color: var(--color-accent-text);
   transition: background var(--dur-hover) var(--ease-in-motion);
@@ -174,6 +176,7 @@
   top: var(--lintje-field-error-border); right: var(--lintje-field-error-border);
   width: calc(var(--h-control) - 2 * var(--lintje-field-error-border));
   height: calc(var(--h-control) - 2 * var(--lintje-field-error-border));
+  border-radius: 0 calc(var(--radius-control) - var(--lintje-field-error-border)) calc(var(--radius-control) - var(--lintje-field-error-border)) 0;
 }
 .lintje-field__toggle:hover:not(:disabled) { background: var(--color-bg-subtle); }
 .lintje-field__toggle:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
@@ -223,6 +226,7 @@
   transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-field__reset:hover { color: var(--color-link-hover); }
+.lintje-field__reset:disabled { color: var(--color-text-disabled); text-decoration: none; cursor: not-allowed; }
 
 /* --- Checkbox, radio, toggle ---------------------------------------------- */
 /* The control stands on the first line of its label: each control takes one line's height,
@@ -292,8 +296,9 @@
 .lintje-choice__input:focus-visible ~ .lintje-choice__box,
 .lintje-choice__input:focus-visible ~ .lintje-choice__radio,
 .lintje-choice__input:focus-visible ~ .lintje-choice__switch {
-  outline: var(--focus-width) solid var(--color-focus);
+  outline: var(--focus-width) solid var(--lintje-focus, var(--color-focus));
   outline-offset: var(--focus-offset);
+  box-shadow: 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner));
 }
 
 .lintje-choice__radio {
@@ -338,6 +343,12 @@
 .lintje-choice__input:checked ~ .lintje-choice__switch {
   background: var(--color-accent);
   box-shadow: inset 0 0 0 1px var(--color-action-primary-border);
+}
+/* On and focused: the ring's inner line beside the track's edge. */
+.lintje-choice__input:checked:focus-visible ~ .lintje-choice__switch {
+  box-shadow:
+    0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)),
+    inset 0 0 0 1px var(--color-action-primary-border);
 }
 /* On, the knob is content on the primary fill: in dark the surface fell to 1.3:1 on it. */
 .lintje-choice__input:checked ~ .lintje-choice__switch .lintje-choice__knob {
@@ -397,4 +408,5 @@
   .lintje-choice__input:disabled:checked ~ .lintje-choice__radio::after,
   .lintje-choice__input:disabled ~ .lintje-choice__switch .lintje-choice__knob { background: GrayText; }
   .lintje-choice.is-disabled { color: GrayText; }
+  .lintje-field__reset:disabled { color: GrayText; }
 }

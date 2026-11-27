@@ -112,9 +112,10 @@ export class LintjeAccordion extends LintjeElement {
   }
 
   readonly #onToggle = (event: Event): void => {
+    // Only a row's own title counts: a toggletip or a deeper row in its content bubbles here too.
     const row = event.target
-    if (this.#own || !this.exclusive || (event as CustomEvent<boolean>).detail !== true) return
     if (!(row instanceof LintjeExpander) || row.parentElement !== this) return
+    if (this.#own || !this.exclusive || (event as CustomEvent<boolean>).detail !== true) return
     this.#set(
       this.rows.filter((other) => other !== row),
       false,

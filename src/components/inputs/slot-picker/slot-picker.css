@@ -26,6 +26,7 @@
   min-height: var(--h-option);
   padding: 0 var(--space-2);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-control);
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
   font-size: 1rem;
@@ -51,8 +52,14 @@
 }
 /* The input is hidden, so its focus ring goes on the chip. */
 .lintje-slot-picker__slot:has(.lintje-choice__input:focus-visible) {
-  outline: var(--focus-width) solid var(--color-focus);
+  outline: var(--focus-width) solid var(--lintje-focus, var(--color-focus));
   outline-offset: var(--focus-offset);
+  box-shadow: 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner));
+}
+.lintje-slot-picker__slot.is-chosen:has(.lintje-choice__input:focus-visible) {
+  box-shadow:
+    0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)),
+    inset 0 0 0 1px var(--color-accent-line);
 }
 .lintje-slot-picker__full { font: var(--text-small); }
 .lintje-slot-picker__none {
