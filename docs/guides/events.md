@@ -177,16 +177,19 @@ een slot. Vergelijk daarom `event.target` met het element waarop je luistert:
 ```js
 expander.addEventListener('lintje-toggle', (event) => {
   if (event.target !== expander) return // a toggletip or a menu in its content
-  state.open = event.detail.open
+  state.open = event.detail
 })
 ```
 
 Het sluiten van een zwevende laag — een popover, de lijst of kalender van een veld — bubbelt niet:
-wie de laag opende, luistert op de laag zelf. Zo hoort een venster eromheen zijn eigen
-`lintje-close`, en sluit het niet mee als alleen de popover erin dichtgaat:
+wie de laag opende, luistert op de laag zelf. Een venster eromheen hoort het sluiten van een
+popover erin dus niet, en sluit niet mee als alleen de popover dichtgaat. Een venster of een toast
+in zijn inhoud stuurt wel een `lintje-close` die bubbelt, dus ook hier vergelijk je `event.target`:
 
 ```js
 // A popover in a modal: each listens on its own element.
 popover.addEventListener('lintje-close', () => (popover.open = false))
-modal.addEventListener('lintje-close', () => (modal.open = false))
+modal.addEventListener('lintje-close', (event) => {
+  if (event.target === modal) modal.open = false // not a toast or a dialog in its content
+})
 ```
