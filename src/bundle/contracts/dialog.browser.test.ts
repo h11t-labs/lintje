@@ -569,6 +569,62 @@ describe.each(ROWS)('$name', (row) => {
   }
 })
 
+/** A window inside its scrim: only a press that starts and ends on the scrim asks to close. */
+const SCRIMS: { name: string; tag: string; frame: string; scrim: string }[] = [
+  {
+    name: 'lintje-modal',
+    tag: 'lintje-modal',
+    frame: '.lintje-modal',
+    scrim: '.lintje-modal__scrim',
+  },
+  {
+    name: 'lintje-dialog',
+    tag: 'lintje-dialog',
+    frame: '.lintje-dialog',
+    scrim: '.lintje-dialog__scrim',
+  },
+]
+
+describe.each(SCRIMS)('$name with a real pointer', ({ tag, frame, scrim }) => {
+  // The scrim's corner: the window covers its middle.
+  const corner = { x: 4, y: 4 }
+
+  async function opened(): Promise<{ element: HTMLElement; asked: () => number }> {
+    const element = Object.assign(document.createElement(tag) as HTMLElement & { open: boolean }, {
+      heading: 'Venster',
+    })
+    element.innerHTML = '<p>Inhoud van het venster</p>'
+    let asked = 0
+    element.addEventListener('lintje-close', () => asked++)
+    document.body.append(element)
+    element.open = true
+    await expect.poll(() => shadow(element, frame)?.checkVisibility() ?? false).toBe(true)
+    return { element, asked: () => asked }
+  }
+
+  it('closes nothing on a drag out of the window onto the scrim', async () => {
+    const { element, asked } = await opened()
+    await userEvent.dragAndDrop(shadow(element, frame)!, shadow(element, scrim)!, {
+      targetPosition: corner,
+    })
+    expect(asked()).toBe(0)
+  })
+
+  it('closes nothing on a drag from the scrim into the window', async () => {
+    const { element, asked } = await opened()
+    await userEvent.dragAndDrop(shadow(element, scrim)!, shadow(element, frame)!, {
+      sourcePosition: corner,
+    })
+    expect(asked()).toBe(0)
+  })
+
+  it('asks to close on a click on the scrim', async () => {
+    const { element, asked } = await opened()
+    await userEvent.click(shadow(element, scrim)!, { position: corner })
+    await expect.poll(asked).toBe(1)
+  })
+})
+
 describe('the known failures', () => {
   it('are all still failing', () => {
     const stale = KNOWN.filter(

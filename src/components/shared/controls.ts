@@ -93,6 +93,8 @@ type Fields = Record<string, unknown>
 interface ValueAccess {
   read(control: Fields): unknown
   write?(control: Fields, value: unknown): void
+  /** What a form takes, for a control that shows a value it does not hold; else `read`. */
+  shown?(control: Fields): unknown
 }
 
 const BY_VALUE: ValueAccess = {
@@ -132,8 +134,9 @@ const VALUE_ACCESS: Record<string, ValueAccess> = {
     },
   },
   'lintje-range': {
-    // A single handle without a value stands on the first step: that is what it holds.
-    read: (control) =>
+    read: (control) => (control.single ? control.value : [control.from, control.to]),
+    // A single handle without a value stands on the first step of the steps it has now.
+    shown: (control) =>
       control.single
         ? (control.value ?? (control.steps as unknown[] | undefined)?.[0] ?? null)
         : [control.from, control.to],
@@ -159,6 +162,15 @@ function accessFor(control: HTMLElement): ValueAccess {
 
 export function readControl(control: HTMLElement): unknown {
   return accessFor(control).read(control as unknown as Fields)
+}
+
+/**
+ * The value a form sends for a control: what it shows. Not for a reset or a compare, which need
+ * what the control itself holds (`readControl`).
+ */
+export function shownControl(control: HTMLElement): unknown {
+  const access = accessFor(control)
+  return (access.shown ?? access.read)(control as unknown as Fields)
 }
 
 /** Returns `false` for a control that cannot take a value back. */
