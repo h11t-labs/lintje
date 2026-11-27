@@ -109,7 +109,9 @@ export class LintjeModal extends LintjeElement {
   #open(): void {
     const dialog = this.renderRoot.querySelector<HTMLElement>('.lintje-modal')
     if (!dialog) return
-    this.#hold.hold(dialog)
+    this.#hold.hold(dialog, {
+      foot: this.renderRoot.querySelector<HTMLElement>('.lintje-modal__footer'),
+    })
     dialog.focus()
   }
 

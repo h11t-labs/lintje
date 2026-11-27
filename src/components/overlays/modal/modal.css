@@ -5,9 +5,9 @@
 
 /* ------------------------------------------------------------------------ */
 
-/* Covers the whole viewport, above the shell's menu (z-index 30). */
+/* Covers the whole viewport, above a drawer (80–81), under a dialog (83). */
 .lintje-modal__scrim {
-  position: fixed; z-index: 80;
+  position: fixed; z-index: 82;
   inset: 0;
   background: var(--color-overlay-page);
   display: flex; align-items: center; justify-content: center;

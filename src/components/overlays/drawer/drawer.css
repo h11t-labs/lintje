@@ -2,7 +2,7 @@
 
 /* ------------------------------------------------------------------------ */
 
-/* The modal's z-index: above the shell's menu. */
+/* The lowest window: above the shell's menu (30), under a modal (82) and a dialog (83). */
 .lintje-drawer__scrim {
   position: fixed; inset: 0; z-index: 80;
   background: var(--color-overlay-page);
