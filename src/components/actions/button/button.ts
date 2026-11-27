@@ -60,6 +60,7 @@ export class LintjeButton extends LintjeElement {
     accessibleName: { type: String, attribute: 'accessible-name' },
     description: { type: String },
     invalid: { type: Boolean },
+    block: { type: Boolean, reflect: true },
     slotted: { state: true },
   }
 
@@ -104,6 +105,8 @@ export class LintjeButton extends LintjeElement {
   declare description?: string
   /** `aria-invalid` on the inner control, for a button that stands for a field. */
   invalid: boolean = false
+  /** Fills the width of the line it stands on, as one action under a message or in a narrow column. */
+  block: boolean = false
 
   /** Whether the slot holds anything. The empty label span is hidden, not removed: removing the
    * `<slot>` could make `slotchange` fire again. */
