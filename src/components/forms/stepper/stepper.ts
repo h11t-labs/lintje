@@ -54,11 +54,19 @@ export function errorText(errors: number): string {
   return errors === 1 ? '1 fout' : `${errors} fouten`
 }
 
-export function position(steps: Step[]): { place: number; total: number; percent: number } {
+export function position(steps: Step[]): {
+  place: number
+  total: number
+  percent: number
+  state: 'busy' | 'done'
+} {
   const total = steps.length
   const current = steps.findIndex((step) => step.state === 'current')
-  const place = current < 0 ? steps.filter((step) => step.state === 'done').length : current + 1
-  return { place, total, percent: total ? Math.round((place / total) * 100) : 0 }
+  const done = steps.filter((step) => step.state === 'done').length
+  const place = current < 0 ? done : current + 1
+  // The bar shows the place; it reads as done only when every step is, not on the last one open.
+  const state = total > 0 && done === total ? 'done' : 'busy'
+  return { place, total, percent: total ? Math.round((place / total) * 100) : 0, state }
 }
 
 /**
@@ -217,7 +225,7 @@ export class LintjeStepper extends LintjeElement {
   }
 
   private renderPhone(): TemplateResult {
-    const { place, total, percent } = position(this.steps)
+    const { place, total, percent, state } = position(this.steps)
     const current = this.steps[place - 1]
     const text = `Stap ${place} van ${total}`
     return html`<nav class="lintje-stepper lintje-stepper--phone" aria-label=${this.label}>
@@ -225,7 +233,12 @@ export class LintjeStepper extends LintjeElement {
         <strong class="lintje-stepper__current">${current?.label ?? ''}</strong>
         <span class="lintje-stepper__count">${text}</span>
       </div>
-      <lintje-progress-bar hide-label label=${text} value=${percent}></lintje-progress-bar>
+      <lintje-progress-bar
+        hide-label
+        label=${text}
+        value=${percent}
+        state=${state}
+      ></lintje-progress-bar>
       ${this.renderContent(this.current)}
     </nav>`
   }

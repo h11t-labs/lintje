@@ -713,7 +713,9 @@ De besluiten hieronder gelden voor alle elementen.
   die tonen, en een element dat eigen woorden heeft (de leveringsstatus van een bron, de staat
   van een taak, de soort van een melding) vertaalt ze zelf naar een toon; een host vertaalt
   nooit. De woordenschat staat één keer, in `components/shared/tone.ts`, met de staat van werk
-  (wachtrij, bezig, onderbroken, klaar, mislukt, geannuleerd) ernaast.
+  (wachtrij, bezig, onderbroken, klaar, mislukt, geannuleerd) ernaast. Een staat heeft overal
+  dezelfde toon, in een badge en in een voortgangsbalk; een balk zonder label draagt het teken van
+  zijn staat vóór de balk.
 - **Inhoud kent vier toestanden**: klaar, laden, leeg en fout, met één `message` en één
   `lastKnown`, voor een tegel en een kerncijfer evengoed. Een bron die niet antwoordt, is een
   fout in de toon fout, zoals de losse melding, niet een waarschuwing: de laatst bekende waarde

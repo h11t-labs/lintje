@@ -13,12 +13,12 @@ const track = (root: ShadowRoot): HTMLElement => root.querySelector('[role="prog
 const fill = (root: ShadowRoot): HTMLElement => root.querySelector('.lintje-progress__fill')!
 
 describe('lintje-progress-bar', () => {
-  it('reads and reflects state and defaults to busy', async () => {
+  it('reads and reflects state, and is busy without one', async () => {
     const element = document.createElement('lintje-progress-bar')
     document.body.append(element)
     await element.updateComplete
-    expect(element.state).toBe('busy')
-    expect(element.getAttribute('state')).toBe('busy')
+    expect(element.state).toBeUndefined()
+    expect(element.shadowRoot!.querySelector('.lintje-progress--busy')).not.toBeNull()
     element.setAttribute('state', 'paused')
     await element.updateComplete
     expect(element.state).toBe('paused')
@@ -50,6 +50,14 @@ describe('lintje-progress-bar', () => {
     expect(failed.querySelector('.lintje-progress--error')).not.toBeNull()
   })
 
+  it('stays busy at 100 when the host says so: a full bar without the mark or the word', async () => {
+    const root = await mount({ label: 'Stap 3 van 3', value: 100, state: 'busy', hideLabel: true })
+    expect(root.querySelector('.lintje-progress--busy')).not.toBeNull()
+    expect(root.querySelector('.lintje-progress__mark')).toBeNull()
+    expect(track(root).getAttribute('aria-valuetext')).toBeNull()
+    expect(fill(root).style.width).toBe('100%')
+  })
+
   it('clamps a value outside 0–100', async () => {
     const root = await mount({ label: 'Te ver', value: 140 })
     expect(fill(root).style.width).toBe('100%')
@@ -69,5 +77,20 @@ describe('lintje-progress-bar', () => {
     const running = await mount({ label: 'Bezig', value: 30 })
     expect(track(running).hasAttribute('aria-valuetext')).toBe(false)
     expect(running.querySelector('.lintje-progress__mark')).toBeNull()
+  })
+
+  it('marks done, error and paused before the track when it has no head', async () => {
+    for (const props of [
+      { value: 100, hideLabel: true },
+      { value: 40, state: 'error', hideLabel: true },
+      { value: 40, state: 'paused' },
+    ]) {
+      const root = await mount({ label: '', ...props })
+      expect(root.querySelector('.lintje-progress__row > .lintje-progress__mark')).not.toBeNull()
+      expect(root.querySelector('.lintje-progress__row > [role="progressbar"]')).not.toBeNull()
+    }
+    const busy = await mount({ label: 'Bezig', value: 30, hideLabel: true })
+    expect(busy.querySelector('.lintje-progress__row')).toBeNull()
+    expect(busy.querySelector('.lintje-progress__mark')).toBeNull()
   })
 })
