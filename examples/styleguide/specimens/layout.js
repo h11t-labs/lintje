@@ -151,6 +151,16 @@ export default {
           html: `<lintje-tile heading="Wachttijd per uur" subtitle="Vandaag" footnote="${FOOTNOTE}" state="error" message="De bron reageerde niet. De cijfers van vandaag ontbreken." last-known="Laatst bekend: 11 min, gemeten om 07:45."></lintje-tile>`,
         },
         {
+          label: 'Leeg zonder tekst',
+          note: 'Zonder `message` zegt de tegel zelf “Geen gegevens.”.',
+          html: `<lintje-tile heading="Aanvragen per uur" subtitle="Vandaag" state="empty"></lintje-tile>`,
+        },
+        {
+          label: 'Fout zonder tekst',
+          note: 'Zonder `message` zegt de tegel zelf “Laden mislukt.”.',
+          html: `<lintje-tile heading="Wachttijd per uur" subtitle="Vandaag" state="error"></lintje-tile>`,
+        },
+        {
           label: 'Met een kerncijfer ernaast',
           note: 'Het slot `aside` zet het kerncijfer naast de inhoud.',
           html: `<lintje-tile heading="Bezetting loketten" subtitle="Vandaag · 184 van 200 posities" footnote="Bron: Dossierregistratie · waarde van 08:15">
