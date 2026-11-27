@@ -106,3 +106,21 @@ describe('lintje-tabs of links only', () => {
     )
   })
 })
+
+describe('lintje-tabs panel labels', () => {
+  it('stands every label at the same height, with a count or without', async () => {
+    const element = await mount(
+      [
+        { value: 'a', label: 'Overzicht' },
+        { value: 'b', label: 'Aanvragen', count: 12 },
+        { value: 'c', label: 'Documenten', count: null },
+      ],
+      'panel',
+    )
+    const tops = [...element.shadowRoot!.querySelectorAll('.lintje-tabs__label')].map(
+      (label) => label.getBoundingClientRect().top,
+    )
+    expect(new Set(tops).size).toBe(1)
+    element.remove()
+  })
+})

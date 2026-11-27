@@ -138,7 +138,7 @@ export class LintjeSubNav extends LintjeElement {
           className: 'lintje-sub-nav__count',
         })
       : nothing
-    const label = html`<span class="lintje-sub-nav__label">${item.label}</span>`
+    const label = html`<span class="lintje-sub-nav__label bold-room" data-text=${item.label}>${item.label}</span>`
     let entry: TemplateResult
     if (item.noAccess || !item.href) {
       // Without access the lock says why (rule 13); without the file, the words do. A span's

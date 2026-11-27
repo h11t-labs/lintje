@@ -683,6 +683,10 @@
   --color-sub-nav-hover-bg: transparent;
   --color-sub-nav-hover-text: var(--color-link-hover);
   --color-sub-nav-current-bg: transparent;
+  /* The segmented control: framed in the field's edge, or a quiet frame with a quiet line between
+     the options, so only the chosen one carries the accent. */
+  --color-segmented-border: var(--color-border-field);
+  --segmented-divider: 0 solid transparent;
   /* The window: a line between its head, body and foot, or none. */
   --modal-divider: 1px solid var(--color-border-default);
   --modal-head-pad-bottom: var(--space-5);
@@ -981,6 +985,8 @@
   --color-sub-nav-hover-bg: var(--color-action-primary);
   --color-sub-nav-hover-text: var(--color-action-primary-text);
   --color-sub-nav-current-bg: var(--color-choice-active-bg);
+  --color-segmented-border: var(--color-border-strong);
+  --segmented-divider: 1px solid var(--color-border-default);
   --modal-divider: 0 solid transparent;
   --modal-head-pad-bottom: 0px;
   --modal-foot-pad: 0 var(--space-6) var(--space-4);

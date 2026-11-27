@@ -28,7 +28,8 @@ export interface TabItem {
   value: string
   label: string
   href?: string
-  count?: number
+  /** A count badge after the label; `null` while it loads keeps the badge's place, empty. */
+  count?: number | null
   /** A word beside the label ("Nieuw"); two words at most. */
   badge?: string
   /** The panel variant's icon, by file name. */
@@ -207,10 +208,10 @@ export class LintjeTabs extends LintjeElement {
       'is-active': selected,
       'is-disabled': Boolean(tab.disabled),
     })
-    const label = html`<span class="lintje-tabs__label">${tab.label}</span>${
-      typeof tab.count === 'number'
-        ? html`<lintje-badge variant="count">${tab.count}</lintje-badge>`
-        : nothing
+    const label = html`<span class="lintje-tabs__label bold-room" data-text=${tab.label}>${tab.label}</span>${
+      tab.count === undefined
+        ? nothing
+        : html`<lintje-badge variant="count">${tab.count ?? ''}</lintje-badge>`
     }${tab.badge ? html`<lintje-badge tone="info">${tab.badge}</lintje-badge>` : nothing}`
     const content =
       this.variant === 'panel'

@@ -85,18 +85,19 @@ describe('lintje-segmented', () => {
     expect(frame(element).classList.contains('is-error')).toBe(false)
   })
 
-  it('draws a count as a badge after the label, nought included', async () => {
+  it('draws a count as a badge after the label, nought included, and an empty one while it loads', async () => {
     const element = await mount({
       options: [
         { value: 'week', label: 'Week', count: 4 },
         { value: 'maand', label: 'Maand', count: 0 },
+        { value: 'kwartaal', label: 'Kwartaal', count: null },
         { value: 'jaar', label: 'Jaar' },
       ],
     })
     const badges = [...frame(element).querySelectorAll('.lintje-segmented__option')].map(
       (option) => option.querySelector('lintje-badge[variant="count"]')?.textContent,
     )
-    expect(badges).toEqual(['4', '0', undefined])
+    expect(badges).toEqual(['4', '0', '', undefined])
   })
 
   it("says the description of the reader's own choice, and nothing for one without or for the host", async () => {

@@ -60,6 +60,19 @@ input, select, textarea { font: inherit; color: inherit; }
   border: 0;
 }
 
+/* A label that turns bold when chosen keeps its bold width free, so choosing moves nothing: a
+   hidden bold copy from `data-text` sets the width. No reader hears the copy. */
+.bold-room { display: inline-flex; flex-direction: column; }
+.bold-room::after {
+  content: attr(data-text) / '';
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  font-weight: 700;
+  pointer-events: none;
+  user-select: none;
+}
+
 @keyframes lintje-shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }

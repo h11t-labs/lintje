@@ -230,3 +230,22 @@ describe('scroll arithmetic', () => {
     expect(scrollToShow(120, 100, 0, 300)).toBe(0)
   })
 })
+
+describe('lintje-tabs counts', () => {
+  it('draws a count as a badge, an empty one while it loads, and none without', async () => {
+    const element = Object.assign(document.createElement('lintje-tabs'), {
+      tabs: [
+        { value: 'open', label: 'Open', count: 4 },
+        { value: 'later', label: 'Later', count: null },
+        { value: 'alle', label: 'Alle' },
+      ] satisfies TabItem[],
+    })
+    document.body.append(element)
+    await element.updateComplete
+    const badges = tabs(element).map(
+      (tab) => tab.querySelector('lintje-badge[variant="count"]')?.textContent,
+    )
+    expect(badges).toEqual(['4', '', undefined])
+    element.remove()
+  })
+})
