@@ -99,7 +99,6 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     if (this.max !== undefined) next = Math.min(this.max, next)
     // Steps of .1 would otherwise commit 0.30000000000000004.
     next = Math.round(next * 1e6) / 1e6
-    this.problem = ''
     if (next === this.value) return
     this.value = next
     this.commit(next)

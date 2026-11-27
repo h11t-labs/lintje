@@ -158,6 +158,15 @@ describe('a typed number outside the bounds', () => {
     expect(error(element)).toBeNull()
   })
 
+  it('keeps its message after a step that changes nothing at the bound', async () => {
+    const element = await mount({ value: 12, max: 12 })
+    await type(element, '30')
+    steps(element)[1]!.click()
+    await element.updateComplete
+    expect(element.value).toBe(12)
+    expect(error(element)?.textContent).toContain('12 of minder')
+  })
+
   it('lets the host error win over its own message', async () => {
     const element = await mount({ value: 5, max: 12, error: 'Te hoog voor dit loket' })
     await type(element, '30')
