@@ -313,11 +313,14 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
   /**
    * Enter commits, then submits the host's form: the native control sits in a shadow root, so
    * implicit submission cannot reach it. Waits a task so `lintje-form` can prevent it. A commit
-   * that returns `false` refused what was typed, and the form stays.
+   * that returns `false` refused what was typed: the field keeps the key, so no form submits.
    */
   protected submitOnEnter(event: KeyboardEvent, commit: () => boolean | void): void {
     if (event.key !== 'Enter' || event.isComposing || this.isDisabled) return
-    if (commit() === false) return
+    if (commit() === false) {
+      event.preventDefault()
+      return
+    }
     const form = this.internals?.form
     if (!form || typeof form.requestSubmit !== 'function') return
     setTimeout(() => {

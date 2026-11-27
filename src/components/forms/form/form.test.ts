@@ -213,6 +213,19 @@ describe('lintje-form', () => {
       expect(submits).toHaveLength(1)
       expect(submits[0].values.datum).toBe('2026-10-03')
       expect(hostSubmits).toBe(0)
+
+      // A day the field refuses keeps the key: the form does not submit the old value.
+      input.value = '31-02-2026'
+      input.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Enter',
+          bubbles: true,
+          composed: true,
+          cancelable: true,
+        }),
+      )
+      await tick()
+      expect(submits).toHaveLength(1)
     })
   })
 
