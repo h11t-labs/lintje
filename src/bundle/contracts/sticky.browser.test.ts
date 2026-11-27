@@ -190,8 +190,44 @@ async function bury(scene: Scene): Promise<HTMLElement> {
     }
   }
   const cover = scene.cover()
-  expect(cover && overlap(box, cover), 'the control stands under what sticks').toBe(true)
+  expect(
+    cover && overlap(box, cover),
+    `the control stands under what sticks ${diagnose(box)}`,
+  ).toBe(true)
   return cover!
+}
+
+// TEMPORARY: what the filter zone saw, for the CI flake of #390.
+const REPORTS: string[] = []
+function diagnose(box: Element): string {
+  const zone = all(document, 'lintje-filter-zone')[0] as
+    | (HTMLElement & { scrolled?: boolean; open?: boolean; stick?: string })
+    | undefined
+  const out: Record<string, unknown> = {
+    scrollY: window.scrollY,
+    innerHeight: window.innerHeight,
+    innerWidth: window.innerWidth,
+    scrollHeight: document.documentElement.scrollHeight,
+    padding: document.documentElement.style.scrollPaddingTop,
+    box: Math.round(box.getBoundingClientRect().top),
+    visibility: document.visibilityState,
+    hasFocus: document.hasFocus(),
+    reports: REPORTS.join(' '),
+  }
+  if (zone) {
+    const sentinel = zone.shadowRoot!.querySelector('.lintje-filter-bar__sentinel')
+    const bar = zone.shadowRoot!.querySelector('.lintje-filter-bar')
+    Object.assign(out, {
+      scrolled: zone.scrolled,
+      open: zone.open,
+      stick: zone.stick,
+      classes: bar?.className,
+      sentinel: sentinel ? Math.round(sentinel.getBoundingClientRect().top) : null,
+      line: sentinel ? getComputedStyle(sentinel).getPropertyValue('--lintje-shell-top') : null,
+      observedTop: (zone as unknown as Record<string, unknown>)['observedTop'],
+    })
+  }
+  return JSON.stringify(out)
 }
 
 /** Puts the element on the page, drawn. */
@@ -408,6 +444,12 @@ function filterUnderTabsRow(style: Style, width: number): Row {
       const bar = create('lintje-filter-bar', { data: FILTERS, slot: 'full' })
       const content = requests(60)
       const { tabs } = await tabbedPage(style, [bar, content])
+      // TEMPORARY: the zone's reports, for the CI flake of #390.
+      REPORTS.length = 0
+      all(bar.shadowRoot!, 'lintje-filter-zone')[0]?.addEventListener(
+        'lintje-zone-scrolled-change',
+        (event) => REPORTS.push(`${(event as CustomEvent).detail}@${Math.round(window.scrollY)}`),
+      )
       return {
         scroller: document.documentElement,
         cover: () => find(bar, '.lintje-filter-bar.is-sticky, .lintje-filter-bar--mobile'),
