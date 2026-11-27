@@ -1620,7 +1620,9 @@ kleinste correctie, en leg die hier vast.
   tabrij van de paginakop en de filterbalk eronder, de tabs onderaan, de actiebalk van het
   formulier, de vastgeplakte vraag en het vraagvak van het gesprek, een toast die blijft staan,
   en een eigen balk van de host met
-  `data-sticky`, die de shell meet. De foutsamenvatting scrolt een veld naar het midden. Een element
+  `data-sticky`, die de shell meet. Wat onder de balk van de shell plakt (de zin van de
+  filterbalk, de vraag van het gesprek), plakt onder de tabrij van een paginakop met tabs, en meet
+  zijn ruimte opnieuw zodra die lijn verschuift. De foutsamenvatting scrolt een veld naar het midden. Een element
   waar de focus toch onder belandt, scrollen de actiebalk, de toast en de selectiebalk van de tabel
   van zich vrij, met rand en al. Een toast staat boven wat verder onderaan plakt, nooit eroverheen;
   boven de tabs ook, behalve als een blad ze bedekt. Over een open venster ligt hij wel heen,
