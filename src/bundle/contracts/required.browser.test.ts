@@ -311,7 +311,15 @@ describe('the parts of a value', () => {
 /** Typed text a field refused holds the form back, as an empty required field does. */
 describe('refused typed text', () => {
   const REFUSING: { tag: string; props: object; refused: string; value: unknown; old: string }[] = [
-    { tag: 'lintje-number-input', props: { max: 10 }, refused: '50', value: 3, old: '3' },
+    {
+      tag: 'lintje-number-input',
+      // A hint keeps the message in its place: without one, the line it adds moves the button
+      // away between press and release.
+      props: { max: 10, hint: 'Hoogstens 10' },
+      refused: '50',
+      value: 3,
+      old: '3',
+    },
     {
       tag: 'lintje-date-input',
       props: {},
@@ -359,6 +367,22 @@ describe('refused typed text', () => {
       await userEvent.click(button)
       form.requestSubmit()
       await new Promise((resolve) => setTimeout(resolve, 20))
+      expect(submits()).toBe(0)
+    })
+
+    it('holds a press on the button straight after typing', async () => {
+      const fill = { tag: row.tag, fill: {}, posts: [] }
+      const { form, element, submits } = await inForm(fill, {
+        ...row.props,
+        value: row.value,
+        required: false,
+      })
+      const button = submitButton()
+      form.append(button)
+      await userEvent.fill(element.renderRoot.querySelector('input')!, row.refused)
+      await userEvent.click(button)
+      await new Promise((resolve) => setTimeout(resolve, 20))
+      expect(element.refusal).not.toBe('')
       expect(submits()).toBe(0)
     })
 
@@ -431,6 +455,15 @@ describe('refused typed text', () => {
         { field: 'veld', label: 'Veld', message: element.refusal },
       ])
       expect(active()?.getRootNode()).toBe(element.shadowRoot)
+    })
+
+    it('holds a press on the button straight after typing', async () => {
+      const { form, element, button, submits } = await inLintjeForm()
+      await userEvent.fill(element.renderRoot.querySelector('input')!, row.refused)
+      await userEvent.click(button)
+      await (form as unknown as Input).updateComplete
+      expect(submits()).toBe(0)
+      expect(summaryItems(form)).toHaveLength(1)
     })
 
     it('submits once the text is back at its value, and the line leaves the summary', async () => {
