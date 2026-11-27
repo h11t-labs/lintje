@@ -846,4 +846,33 @@ describe('a chart in a scaled container', () => {
       .poll(() => Math.abs(tooltip()!.getBoundingClientRect().left - (middle.clientX + 12 * 1.5)))
       .toBeLessThan(2)
   })
+
+  it('takes a click beside a bar for that bar, at scale 1.5', async () => {
+    const tile = await scaled(1.5, {
+      kind: 'grouped-bar',
+      labels: ['Noord', 'Oost'],
+      series: [
+        {
+          label: 'Dit jaar',
+          values: [1, 30],
+          links: [
+            { id: 'noord', href: '?regio=noord' },
+            { id: 'oost', href: '?regio=oost' },
+          ],
+        },
+      ],
+    })
+    const picked: string[] = []
+    tile.addEventListener('lintje-mark-select', (event) => {
+      event.preventDefault()
+      picked.push(String((event as CustomEvent<{ id: string | null }>).detail.id))
+    })
+    await settledWidth(tile)
+    const bar = tile.shadowRoot!.querySelector('[data-mark-id="noord"]')!.getBoundingClientRect()
+    const hit = tile.shadowRoot!.querySelector<SVGRectElement>('.lintje-chart__hit')!
+    // 10 px above the sliver of a bar on the slide, 15 on the screen: within half of --h-target.
+    const at = { clientX: bar.left + bar.width / 2, clientY: bar.top - 15 }
+    hit.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true, ...at }))
+    expect(picked).toEqual(['noord'])
+  })
 })

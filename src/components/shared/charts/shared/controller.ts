@@ -115,12 +115,14 @@ export interface MeasureSpec {
 export const POINTER_GRACE = 200
 /**
  * How much a transform on an ancestor scales `element` on the screen, 1 without one: what the
- * screen measures, divided by it, is in the element's own pixels.
+ * screen measures, divided by it, is in the element's own pixels. `offsetWidth` is rounded, so a
+ * ratio within a percent of 1 is a fractional width, not a scale.
  */
 export function screenScale(element: Element): number {
   const layout = element instanceof HTMLElement ? element.offsetWidth : 0
   const screen = element.getBoundingClientRect().width
-  return layout > 0 && screen > 0 ? screen / layout : 1
+  const scale = layout > 0 && screen > 0 ? screen / layout : 1
+  return Math.abs(scale - 1) < 0.01 ? 1 : scale
 }
 
 /** How far past the tooltip's near edge a move still counts as heading for it: a hand wobbles. */
@@ -629,7 +631,10 @@ export class ChartController {
     if (!element) return
     if (this.measuring.width) {
       // The layout's width, not the screen's: a transform on an ancestor scales the drawing too.
-      this.width = Math.max(160, element.offsetWidth)
+      this.width = Math.max(
+        160,
+        Math.round(element.getBoundingClientRect().width / screenScale(element)),
+      )
     }
     const height = this.measuring.height
     if (typeof height === 'number') this.height = height
@@ -649,7 +654,7 @@ export class ChartController {
   private extras(): number {
     const element = this.element
     if (!element) return 0
-    const around = element.offsetHeight - this.height
+    const around = element.getBoundingClientRect().height / screenScale(element) - this.height
     return around > 0 ? Math.ceil(around) : 0
   }
 

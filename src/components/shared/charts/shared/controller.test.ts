@@ -13,17 +13,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChartController, headingFor, POINTER_GRACE } from './controller'
 
-/** Stubs the box of `element`, on the screen and in the layout alike. */
-function stubBox(element: HTMLElement, width: number, height: number): void {
-  element.getBoundingClientRect = (() => ({ width, height })) as never
-  Object.defineProperty(element, 'offsetWidth', { configurable: true, get: () => width })
-  Object.defineProperty(element, 'offsetHeight', { configurable: true, get: () => height })
-}
-
 /** An element that is `height` px tall and carries `--chart-h-main`. */
 function chartElement(height: number, token: string): HTMLElement {
   const element = document.createElement('div')
-  stubBox(element, 800, height)
+  element.getBoundingClientRect = (() => ({ width: 800, height })) as never
   element.style.setProperty('--chart-h-main', token)
   document.body.append(element)
   return element
@@ -77,7 +70,7 @@ describe('ChartController height', () => {
     controller.attach(element)
     // The chart has been drawn at 560 and the element is now the whole 600: the
     // next read (the ResizeObserver's) finds the same 40 px around it.
-    stubBox(element, 800, 600)
+    element.getBoundingClientRect = (() => ({ width: 800, height: 600 })) as never
     controller.detach()
     controller.attach(element)
     expect(controller.height).toBe(560)
