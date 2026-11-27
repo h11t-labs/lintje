@@ -638,9 +638,11 @@ De besluiten hieronder gelden voor alle elementen.
   blauw kleurt. Het venster staat erop met zijn eigen oppervlak en rand.
 - **Wat over de pagina ligt, ligt in een vaste volgorde**, sluier en kader samen, van onder naar
   boven: het menu van de schil, een lade, een groot venster, een dialoog, een popover of
-  toggletip, een toast en een tooltip. Een vraag boven een open lade ligt er dus helemaal boven. Wat onder de sluier ligt, krijgt geen klik; een popover,
-  toggletip of tooltip in een venster staat erboven. Een toast blijft bereikbaar terwijl een
-  venster open is: de aanwijzer raakt hem en Tab gaat van het venster naar de toast en terug.
+  toggletip, een toast en een tooltip. Een vraag boven een open lade ligt er dus helemaal boven.
+  Wat onder de sluier ligt, krijgt geen klik; een popover, toggletip of tooltip in een venster
+  staat erboven. Een toast blijft bereikbaar terwijl een venster open is: de aanwijzer raakt hem
+  en Tab gaat van het venster naar de toast en terug. Hij staat boven de voet van het venster,
+  zodat hij de knoppen daar nooit bedekt.
 - **Een dialoog met een formulier is smal** en zo hoog als zijn inhoud; de knoppen staan links in
   de voet, het antwoord eerst, zoals de huisstijl een dialoog tekent, en een zin over het
   resultaat erachter. De titel staat in de primaire kleur; het grote venster heeft geen lijnen
@@ -1590,10 +1592,10 @@ kleinste correctie, en leg die hier vast.
   `data-sticky`, die de shell meet. De foutsamenvatting scrolt een veld naar het midden. Een element
   waar de focus toch onder belandt, scrollen de actiebalk, de toast en de selectiebalk van de tabel
   van zich vrij, met rand en al. Een toast staat boven wat verder onderaan plakt, nooit eroverheen;
-  boven de tabs ook, behalve als een blad ze bedekt. Over een open venster ligt hij wel heen. Een
-  paneel dat over de pagina ligt (de vastgezette, opengeklapte filterzone, de opties van het
-  vraagvak) sluit zodra de focus het verlaat en laat de focus waar hij heen ging; Escape sluit het
-  met de focus op zijn knop.
+  boven de tabs ook, behalve als een blad ze bedekt. Over een open venster ligt hij wel heen,
+  boven zijn voet. Een paneel dat over de pagina ligt (de vastgezette, opengeklapte filterzone, de
+  opties van het vraagvak) sluit zodra de focus het verlaat en laat de focus waar hij heen ging;
+  Escape sluit het met de focus op zijn knop.
 - **Een grafiek is ook met het toetsenbord te lezen.** Haar tekening neemt de focus en de
   pijltoetsen lopen langs de categorieën met de tooltip, die een live-regio uitspreekt; Escape
   verbergt een tooltip. De tekening is een afbeelding, of een groep met haar beschrijving als naam

@@ -180,6 +180,36 @@ describe('an element beside the window', () => {
     unbeside()
   })
 
+  it('inside the window counts once: Tab from the last stop goes back to the first', () => {
+    const dialog = box('a', 'b')
+    const toast = document.createElement('div')
+    toast.innerHTML = '<button id="close">close</button>'
+    dialog.append(toast)
+    const unbeside = standBeside(toast)
+    const trap = new FocusTrap()
+    trap.activate(dialog)
+    ;(dialog.querySelector('#close') as HTMLElement).focus()
+    expect(tab().defaultPrevented).toBe(true)
+    expect(deepActiveElement()?.id).toBe('a')
+    expect(tab(true).defaultPrevented).toBe(true)
+    expect(deepActiveElement()?.id).toBe('close')
+    trap.deactivate(false)
+    unbeside()
+  })
+
+  it('is reached from a window without stops of its own', () => {
+    const dialog = box()
+    const toast = box('close')
+    const unbeside = standBeside(toast)
+    const trap = new FocusTrap()
+    trap.activate(dialog)
+    expect(deepActiveElement()).toBe(dialog)
+    expect(tab().defaultPrevented).toBe(true)
+    expect(deepActiveElement()?.id).toBe('close')
+    trap.deactivate(false)
+    unbeside()
+  })
+
   it('is passed over once it has left', () => {
     const dialog = box('a', 'b')
     const toast = box('close')

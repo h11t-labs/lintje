@@ -87,6 +87,14 @@ export class LintjeRange extends LintjeInputElement {
     return false
   }
 
+  // A reset puts back the value the form found, and the handle with it: what it was dragged to
+  // goes, so a first touch chooses again.
+  override formResetCallback(): void {
+    this.draft = null
+    this.draftPair = null
+    super.formResetCallback()
+  }
+
   /** Nothing chosen and nothing moved: a touch that leaves the handle where it is still chooses. */
   private get untouched(): boolean {
     return this.single && this.value === null && this.draft === null
