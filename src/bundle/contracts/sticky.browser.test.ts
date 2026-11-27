@@ -181,13 +181,6 @@ async function bury(scene: Scene): Promise<HTMLElement> {
       centre(box) - (cover && inSight ? centre(cover) : (sight.top + sight.bottom) / 2),
     )
     await settle()
-    // What sticks says so an observer's turn later: on a slow machine that is past two frames.
-    if (round > 0 && !scene.cover()) {
-      await expect
-        .poll(() => scene.cover() !== null, { timeout: 500 })
-        .toBe(true)
-        .catch(() => {})
-    }
   }
   const cover = scene.cover()
   expect(cover && overlap(box, cover), 'the control stands under what sticks').toBe(true)
@@ -659,7 +652,7 @@ const ROWS: Row[] = [
   ...(['classic', 'new'] as const).flatMap((style) => [
     headerTabsRow(style, 1440),
     headerTabsRow(style, 390),
-    ...[1440, 1024, 768].map((width) => filterUnderTabsRow(style, width)),
+    ...[1440, 1024, 768, 390].map((width) => filterUnderTabsRow(style, width)),
   ]),
   {
     tag: 'lintje-chat',
