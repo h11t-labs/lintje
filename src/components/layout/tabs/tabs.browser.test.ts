@@ -85,6 +85,55 @@ describe('lintje-tabs scroll shadows', () => {
   })
 })
 
+describe('lintje-tabs moved in the page', () => {
+  /** Counts the observers that watch something, to see a move leaves one, not two. */
+  function countObservers(): { live: () => number; restore: () => void } {
+    const Original = window.ResizeObserver
+    let live = 0
+    window.ResizeObserver = class extends Original {
+      #watching = 0
+      override observe(target: Element, options?: ResizeObserverOptions): void {
+        this.#watching++
+        live++
+        super.observe(target, options)
+      }
+      override disconnect(): void {
+        live -= this.#watching
+        this.#watching = 0
+        super.disconnect()
+      }
+    }
+    return { live: () => live, restore: () => (window.ResizeObserver = Original) }
+  }
+
+  it('follows the width of its new parent, with one observer after two moves', async () => {
+    const observers = countObservers()
+    try {
+      const wide = document.createElement('div')
+      const narrow = document.createElement('div')
+      wide.style.width = narrow.style.width = '2000px'
+      document.body.append(wide, narrow)
+      const element = Object.assign(document.createElement('lintje-tabs'), {
+        tabs: MANY,
+        label: 'Onderdelen',
+      })
+      wide.append(element)
+      await element.updateComplete
+      await phone()
+      await expect.poll(() => edges(element)).toBe('')
+
+      narrow.append(element)
+      wide.append(element)
+      narrow.append(element)
+      expect(observers.live()).toBe(1)
+      narrow.style.width = '200px'
+      await expect.poll(() => edges(element)).toBe('is-scroll-end')
+    } finally {
+      observers.restore()
+    }
+  })
+})
+
 describe('lintje-tabs of links only', () => {
   const PAGES: TabItem[] = [
     { value: 'transcript', label: 'Transcript', href: '?tab=transcript' },

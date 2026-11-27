@@ -3,8 +3,8 @@
 
 /* ------------------------------------------------------------------------ */
 
-/* Fixed, not absolute: an `overflow` ancestor would cut it off. z-index 85: above the scrim (80),
-   below the tooltip (90). */
+/* Fixed, not absolute: an `overflow` ancestor would cut it off. z-index 85: above every window
+   (80–83), under a toast (87) and the tooltip (90). */
 .lintje-popover {
   position: fixed;
   z-index: 85;
