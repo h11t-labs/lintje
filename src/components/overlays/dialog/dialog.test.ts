@@ -101,6 +101,31 @@ describe('lintje-dialog', () => {
     expect(element.open).toBe(true)
   })
 
+  it('lets a click inside reach the host, and a drag out of it close nothing', async () => {
+    const element = await mount()
+    const reasons = closes(element)
+    const heard: EventTarget[] = []
+    const listen = (event: Event): number => heard.push(event.target!)
+    document.addEventListener('click', listen)
+    try {
+      const answer = button(element, 'Verwijderen')
+      answer.click()
+      expect(heard).toEqual([answer])
+      // Pressed in the window, let go on the scrim: the click lands on the scrim.
+      const scrim = part(element, '.lintje-dialog__scrim')
+      part(element, '.lintje-dialog').dispatchEvent(
+        new PointerEvent('pointerdown', { bubbles: true, composed: true }),
+      )
+      scrim.click()
+      expect(reasons).toEqual([])
+      scrim.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true }))
+      scrim.click()
+      expect(reasons).toEqual(['scrim'])
+    } finally {
+      document.removeEventListener('click', listen)
+    }
+  })
+
   it('persistent: Escape and the scrim ask nothing', async () => {
     const element = await mount({ alert: true, persistent: true })
     const reasons = closes(element)

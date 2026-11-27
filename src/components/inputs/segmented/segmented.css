@@ -33,9 +33,9 @@
 .lintje-segmented__option:last-child { border-radius: 0 calc(var(--radius-control) - 1px) calc(var(--radius-control) - 1px) 0; }
 .lintje-segmented.is-column .lintje-segmented__option:first-child { border-radius: calc(var(--radius-control) - 1px) calc(var(--radius-control) - 1px) 0 0; }
 .lintje-segmented.is-column .lintje-segmented__option:last-child { border-radius: 0 0 calc(var(--radius-control) - 1px) calc(var(--radius-control) - 1px); }
-.lintje-segmented.is-error { border: var(--field-error-border) solid var(--color-error-line); }
-/* Disabled keeps the quiet border, also over an error. */
-:host(:disabled) .lintje-segmented { border: 1px solid var(--color-border-strong); }
+.lintje-segmented.is-error { border: var(--field-error-border) solid var(--color-error-line); background: var(--color-bg-field-error); }
+/* Disabled wins over an error: the quiet border and the subtle surface. */
+:host(:disabled) .lintje-segmented { border: 1px solid var(--color-border-strong); background: var(--color-bg-subtle); }
 .lintje-segmented__option {
   position: relative;
   display: flex; align-items: center; gap: var(--space-2);
@@ -62,6 +62,8 @@
   box-shadow: 0 0 0 1px var(--color-accent-line), inset 0 0 0 1px var(--color-accent-line);
   font-weight: 700;
 }
+/* `bold`, a filter off its default: the chosen option keeps the weight, in its reserved width. */
+.lintje-segmented__option.is-bold { font-weight: 700; }
 /* A focused option lies over the chosen one, so its ring stays whole on all four sides. */
 .lintje-segmented__option:focus-visible { z-index: 2; }
 .lintje-segmented__option.is-active:focus-visible {

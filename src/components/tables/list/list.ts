@@ -400,7 +400,6 @@ export class LintjeList extends LintjeElement {
         'is-selected': selected,
         'is-static': !clickable,
         'has-icon': Boolean(item.icon || item.avatar),
-        'has-actions': actions,
         'has-swatch': Boolean(item.swatch && !item.avatar),
         'has-slot': Boolean(item.slot),
         'is-narrow': this.#mobile.matches,

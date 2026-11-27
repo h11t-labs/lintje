@@ -6,6 +6,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import './tile'
 import type { LintjeTile } from './tile'
+import '../../overlays/toggletip/toggletip'
+import type { LintjeToggletip } from '../../overlays/toggletip/toggletip'
 
 const nextFrame = (): Promise<unknown> => new Promise((resolve) => requestAnimationFrame(resolve))
 
@@ -87,6 +89,50 @@ describe('lintje-tile empty', () => {
   })
 })
 
+describe('lintje-tile without a message', () => {
+  /** The words a sighted reader sees in the region: everything but what only a screen reader hears. */
+  const visible = (element: HTMLElement): string => {
+    const copy = element.cloneNode(true) as HTMLElement
+    copy.querySelectorAll('.visually-hidden, [aria-hidden="true"]').forEach((node) => node.remove())
+    return copy.textContent!.replace(/\s+/g, ' ').trim()
+  }
+
+  it.each([
+    ['error', 'Laden mislukt.', 'Fout: Laden mislukt.'],
+    ['empty', 'Geen gegevens.', 'Geen gegevens.'],
+  ] as const)('in %s shows and says words of its own', async (state, shown, heard) => {
+    const tile = await mount({ state })
+    await nextFrame()
+    await tile.updateComplete
+    const live = region(tile)!
+    expect(visible(live)).toBe(shown)
+    expect(live.textContent!.replace(/\s+/g, ' ').trim()).toBe(heard)
+  })
+
+  it("takes the host's message over its own words", async () => {
+    const tile = await mount({ state: 'error', message: 'De bron reageerde niet.' })
+    await nextFrame()
+    await tile.updateComplete
+    expect(visible(region(tile)!)).toBe('De bron reageerde niet.')
+  })
+})
+
+describe('lintje-tile level', () => {
+  it('draws the title as an h3, or at the level the host asks', async () => {
+    const plain = await mount()
+    expect(plain.shadowRoot!.querySelector('.lintje-tile__title')!.tagName).toBe('H3')
+    const higher = await mount({ level: 2 })
+    expect(higher.shadowRoot!.querySelector('.lintje-tile__title')!.tagName).toBe('H2')
+  })
+
+  it('reads level from its attribute', async () => {
+    document.body.innerHTML = '<lintje-tile heading="Aanvragen" level="2"></lintje-tile>'
+    const tile = document.querySelector('lintje-tile')!
+    await tile.updateComplete
+    expect(tile.shadowRoot!.querySelector('h2.lintje-tile__title')).not.toBeNull()
+  })
+})
+
 describe('lintje-tile loading', () => {
   it('says the loading in words, in a region filled on the next frame', async () => {
     const tile = await mount({ state: 'loading' })
@@ -137,5 +183,27 @@ describe('lintje-tile collapsed-mobile', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('true')
     expect(toggle.textContent!.trim()).toBe('Verbergen')
     expect(toggled).toEqual([true])
+  })
+
+  it('stays unfolded when a toggletip in its content opens, and sends no toggle of its own', async () => {
+    viewport(390)
+    const tile = await mount({ heading: 'Aanvragen per regio', collapsedMobile: true })
+    const tip = document.createElement('lintje-toggletip') as LintjeToggletip
+    tip.textContent = 'Uitleg'
+    tile.append(tip)
+    await tip.updateComplete
+    const toggle = tile.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-tile__fold-toggle')!
+    toggle.click()
+    await tile.updateComplete
+    const toggles: string[] = []
+    tile.addEventListener('lintje-toggle', (event) =>
+      toggles.push((event.target as Element).localName),
+    )
+    tip.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-toggletip__trigger')!.click()
+    await tip.updateComplete
+    await tile.updateComplete
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+    expect(tile.shadowRoot!.querySelector('.lintje-tile__fold')!.hasAttribute('hidden')).toBe(false)
+    expect(toggles).toEqual(['lintje-toggletip'])
   })
 })

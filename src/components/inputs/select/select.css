@@ -17,12 +17,15 @@
 }
 .lintje-select__control.is-bold { font-weight: 700; }
 .lintje-select__control.is-error { border: var(--field-error-border) solid var(--color-error-line); background: var(--color-bg-field-error); }
+/* Disabled wins over error. The browser dims a disabled select; the other fields stay at full
+   strength, so it does too. */
 .lintje-select__control:disabled {
+  border: 1px solid var(--color-border-strong);
   background: var(--color-bg-subtle);
   color: var(--color-text-disabled);
   cursor: not-allowed;
+  opacity: 1;
 }
-.lintje-select__control:disabled { border: 1px solid var(--color-border-strong); }
 .lintje-select__box { position: absolute; right: var(--space-3); display: flex; pointer-events: none; color: var(--color-text-primary); }
 /* The new style's chevron box: the primary at the field's end with the glyph in white, inside
    the field's border (1 px at rest, 2 in error); in dark the primary-fill edge keeps it a box. */
@@ -39,7 +42,7 @@
   box-shadow: inset 0 0 0 1px var(--color-action-primary-border);
   border-radius: 0 calc(var(--radius-control) - var(--lintje-field-border)) calc(var(--radius-control) - var(--lintje-field-border)) 0;
 }
-[data-style-version='new'] .lintje-select__control.is-error ~ .lintje-select__box {
+[data-style-version='new'] .lintje-select__control.is-error:not(:disabled) ~ .lintje-select__box {
   top: var(--lintje-field-error-border);
   right: var(--lintje-field-error-border);
   bottom: var(--lintje-field-error-border);

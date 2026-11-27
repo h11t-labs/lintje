@@ -4,7 +4,7 @@
  * flow's target (2.1.1, 2.5.8). happy-dom lays nothing out, and Leaflet pans with an animation.
  */
 import { afterEach, describe, expect, it } from 'vitest'
-import { commands, server, userEvent } from 'vitest/browser'
+import { commands, page, server, userEvent } from 'vitest/browser'
 import './map'
 import '../../overlays/modal/modal'
 import { TOOL_HINTS } from '../../shared/charts/map-chart/map-chart'
@@ -283,6 +283,35 @@ describe('the map on a basemap', () => {
   const ready = async (element: MapElement): Promise<void> => {
     await expect.poll(() => root(element).querySelectorAll('[data-mark-id]').length).toBe(3)
   }
+
+  it.each([
+    ['the classic style', null],
+    ['the new style', 'new'],
+  ])('lifts the scale bar on a phone over a credit of two lines, in %s', async (_, style) => {
+    await page.viewport(390, 844)
+    await expect.poll(() => window.innerWidth).toBe(390)
+    if (style) document.documentElement.dataset.styleVersion = style
+    try {
+      const element = await mount(
+        {
+          basemap: {
+            ...BASEMAP,
+            attribution: '© OpenStreetMap contributors, via terrestris, met de luchtfoto van PDOK',
+          },
+        },
+        390,
+      )
+      await ready(element)
+      const scale = root(element).querySelector('.lintje-map-chart__scale-bar')!
+      const credit = root(element).querySelector('.leaflet-control-attribution')!
+      await expect.poll(() => credit.getBoundingClientRect().height).toBeGreaterThan(24)
+      expect(overlaps(scale.getBoundingClientRect(), credit.getBoundingClientRect())).toBe(false)
+      expect(overlaps(scale.getBoundingClientRect(), zoomButtons(element))).toBe(false)
+    } finally {
+      delete document.documentElement.dataset.styleVersion
+      await page.viewport(1440, 900)
+    }
+  })
 
   it('draws the ring of the focused map inside it', async () => {
     const element = await mount({ basemap: BASEMAP })

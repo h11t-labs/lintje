@@ -2,15 +2,17 @@
  * Text that has to be read reaches 4.5:1 on what it stands on, in light and in dark and in both
  * house styles, with every opacity of its ancestors counted in: the line numbers of a code block,
  * the word above the answers an edit replaces, the figures of a map layer switched off, the label
- * on a photo. A search match is told by a line under it, not by its yellow fill alone.
+ * on a photo, the chosen chip of an answered question. A search match is told by a line under it,
+ * not by its yellow fill alone.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import '../../components/chat/chat/chat'
+import '../../components/chat/chat-questions/chat-questions'
 import '../../components/content/code/code'
 import '../../components/content/highlight/highlight'
 import '../../components/map/map/map'
 import '../../components/content/photo-wall/photo-wall'
-import type { ChatData, MapData, PhotoWallItem } from '../../types'
+import type { ChatData, ChatQuestionsData, MapData, PhotoWallItem } from '../../types'
 
 type Lit = HTMLElement & { updateComplete: Promise<unknown> }
 
@@ -28,14 +30,25 @@ async function mount<T extends Lit>(tag: string, setup: (element: T) => void): P
 const parent = (node: Element): Element | null =>
   node.parentElement ?? ((node.getRootNode() as ShadowRoot).host as Element | undefined) ?? null
 
-/** The colour as `[r, g, b, a]`, from the browser's own serialisation. */
+const paint = document.createElement('canvas').getContext('2d', { willReadFrequently: true })!
+
+/** The colour as `[r, g, b, a]`, from the browser's own serialisation; a colour the browser keeps
+ *  in another space (a token in `oklch`) is painted to read it in sRGB. */
 function rgba(colour: string): [number, number, number, number] {
   const probe = document.createElement('i')
   probe.style.color = colour
   document.body.append(probe)
-  const [r, g, b, a = 1] = (getComputedStyle(probe).color.match(/[\d.]+/g) ?? []).map(Number)
+  const computed = getComputedStyle(probe).color
   probe.remove()
-  return [r, g, b, a]
+  if (computed.startsWith('rgb')) {
+    const [r, g, b, a = 1] = (computed.match(/[\d.]+/g) ?? []).map(Number)
+    return [r, g, b, a]
+  }
+  paint.clearRect(0, 0, 1, 1)
+  paint.fillStyle = computed
+  paint.fillRect(0, 0, 1, 1)
+  const [r, g, b, a] = paint.getImageData(0, 0, 1, 1).data
+  return [r, g, b, a / 255]
 }
 
 /** The opacity the element is drawn with: its own and every ancestor's, across shadow roots. */
@@ -156,6 +169,32 @@ const ROWS: Row[] = [
         .not.toBeNull()
       const figure = shadow(element, '.lintje-map-legend__keys.is-off .lintje-map-legend__figure')
       return { element: figure, colour: getComputedStyle(figure).color }
+    },
+  },
+  {
+    name: 'de gekozen chip van een beantwoorde vraag in lintje-chat-questions',
+    text: async () => {
+      const question = {
+        id: 'periode',
+        label: 'Periode',
+        text: 'Welke periode bedoel je?',
+        kind: 'one' as const,
+        options: [
+          { value: '12m', label: 'Afgelopen 12 maanden' },
+          { value: '2025', label: 'Heel 2025' },
+        ],
+      }
+      const element = await mount<Lit & { data: ChatQuestionsData }>(
+        'lintje-chat-questions',
+        (box) => {
+          box.data = { questions: [question] }
+        },
+      )
+      shadow(element, '.lintje-chat-questions__chip').dispatchEvent(new MouseEvent('click'))
+      element.data = { questions: [question], state: 'sending' }
+      await element.updateComplete
+      const chip = shadow(element, '.lintje-chat-questions__chip.is-chosen')
+      return { element: chip, colour: getComputedStyle(chip).color }
     },
   },
   {

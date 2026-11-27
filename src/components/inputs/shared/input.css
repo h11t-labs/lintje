@@ -223,6 +223,7 @@
   transition: color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-field__reset:hover { color: var(--color-link-hover); }
+.lintje-field__reset:disabled { color: var(--color-text-disabled); text-decoration: none; cursor: not-allowed; }
 
 /* --- Checkbox, radio, toggle ---------------------------------------------- */
 /* The control stands on the first line of its label: each control takes one line's height,
@@ -404,4 +405,5 @@
   .lintje-choice__input:disabled:checked ~ .lintje-choice__radio::after,
   .lintje-choice__input:disabled ~ .lintje-choice__switch .lintje-choice__knob { background: GrayText; }
   .lintje-choice.is-disabled { color: GrayText; }
+  .lintje-field__reset:disabled { color: GrayText; }
 }

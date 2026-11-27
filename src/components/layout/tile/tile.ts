@@ -26,6 +26,7 @@ import '../../feedback/status-dot/status-dot'
 import '../../feedback/skeleton/skeleton'
 import { announcementBlockStyles, renderAnnouncementBlock } from '../../shared/announcement-block'
 import { emptyStateBlockStyles, renderEmptyStateBlock } from '../../shared/empty-state-block'
+import { renderHeading, type HeadingLevel } from '../../shared/heading'
 import type { ContentStateKind } from '../../shared/tone'
 import surfaceCss from './tile.css?inline'
 
@@ -33,6 +34,9 @@ import surfaceCss from './tile.css?inline'
 export type ContentState = ContentStateKind
 
 const LOADING_TEXT = 'Gegevens laden…'
+// A glyph alone says nothing (rule 13): a state without a message has words of its own.
+const ERROR_TEXT = 'Laden mislukt.'
+const EMPTY_TEXT = 'Geen gegevens.'
 
 export class LintjeTile extends LintjeGridItemElement {
   // Empty and error are the shared blocks, so a tile reads like the elements on their own.
@@ -46,6 +50,7 @@ export class LintjeTile extends LintjeGridItemElement {
 
   static override properties = {
     heading: { type: String },
+    level: { type: Number },
     icon: { type: String },
     subtitle: { type: String },
     intro: { type: String },
@@ -68,6 +73,8 @@ export class LintjeTile extends LintjeGridItemElement {
   }
 
   declare heading?: string
+  /** The title's heading level, 2 to 6; `h3` when unset. It changes the element, not the look. */
+  declare level?: HeadingLevel
   /** An icon file name (`dist-icons/`), drawn before the title. Decorative. */
   declare icon?: string
   declare subtitle?: string
@@ -90,6 +97,7 @@ export class LintjeTile extends LintjeGridItemElement {
   download: boolean = false
   /** `loading`, `empty` and `error` stand in for the content; the tile keeps its size. */
   state: ContentState = 'ready'
+  /** The words of `empty` and `error`; without them "Geen gegevens." and "Laden mislukt.". */
   declare message?: string
   declare lastKnown?: string
   contentHeight: string = 'var(--chart-h-main)'
@@ -123,8 +131,13 @@ export class LintjeTile extends LintjeGridItemElement {
 
   /** What the state's live region says, or `null` for a state without one. */
   private get regionText(): string | null {
-    if (this.state === 'error' || this.state === 'empty') return this.message ?? ''
+    if (this.state === 'error' || this.state === 'empty') return this.stateText
     return this.state === 'loading' ? LOADING_TEXT : null
+  }
+
+  /** The words of an empty or error state: the host's, or the tile's own. */
+  private get stateText(): string {
+    return this.message || (this.state === 'error' ? ERROR_TEXT : EMPTY_TEXT)
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
@@ -210,10 +223,12 @@ export class LintjeTile extends LintjeGridItemElement {
               ${renderLeadingIcon(this.icon, 'lintje-tile__icon')}
               ${
                 this.heading
-                  ? html`<h3
-                      id=${titleId ?? (scroller ? headingId : nothing)}
-                      class="lintje-tile__title"
-                    >${this.heading}</h3>`
+                  ? renderHeading(
+                      this.level,
+                      'lintje-tile__title',
+                      this.heading,
+                      titleId ?? (scroller ? headingId : undefined),
+                    )
                   : nothing
               }
               ${this.subtitle ? html`<p class="lintje-tile__sub">${this.subtitle}</p>` : nothing}
@@ -293,7 +308,7 @@ export class LintjeTile extends LintjeGridItemElement {
       case 'empty':
         return html`<div class="lintje-chart-state lintje-chart-state--empty" ${styleProps({ height })}>
           ${renderEmptyStateBlock({
-            text: this.message,
+            text: this.stateText,
             compact: true,
             status: true,
             filled: this.filled === this.regionText,
@@ -306,7 +321,7 @@ export class LintjeTile extends LintjeGridItemElement {
         >
           ${renderAnnouncementBlock({
             kind: 'error',
-            text: this.message,
+            text: this.stateText,
             live: true,
             filled: this.filled === this.regionText,
             coloured: this.isNewStyle,
