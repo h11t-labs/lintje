@@ -843,15 +843,15 @@ describe('the chat’s question sticks right under the head’s tabs', () => {
         await viewport(1440, 900)
         const { chat, tabs } = await chatUnderTabs(style, late)
         const question = all(chat.shadowRoot!, '.lintje-chat__message')[1] as HTMLElement
-        // The second turn's top well above the tabs: its question sticks, free of its turn's end.
-        const turn = question.parentElement!
+        // The second turn's top well above the question's line: it sticks, free of its turn's end.
+        const line = parseFloat(getComputedStyle(question).top) || 0
         scrollBy(
           document.documentElement,
-          turn.getBoundingClientRect().top - tabs.getBoundingClientRect().bottom + 100,
+          question.parentElement!.getBoundingClientRect().top - line + 100,
         )
-        await settle()
-        const gap = question.getBoundingClientRect().top - tabs.getBoundingClientRect().bottom
-        expect(Math.abs(gap), 'it stands right under the tabs').toBeLessThan(1)
+        const gap = (): number =>
+          Math.abs(question.getBoundingClientRect().top - tabs.getBoundingClientRect().bottom)
+        await expect.poll(gap, { message: 'it stands right under the tabs' }).toBeLessThan(1)
       })
     }
   }
