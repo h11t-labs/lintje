@@ -172,3 +172,36 @@ describe('a zone moved in the page', () => {
     expect(asked).toEqual([false])
   })
 })
+
+describe('a report that arrives late', () => {
+  // The observer's first entry is taken before the page jumps and delivered after it; Chromium
+  // then need not report again, so the zone reads where its sentinel stands when it hears.
+  it('pins after a jump past the line, though the entry says the sentinel was in sight', async () => {
+    const Original = window.IntersectionObserver
+    const heard: IntersectionObserverCallback[] = []
+    window.IntersectionObserver = class extends Original {
+      constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+        super(() => {}, options)
+        heard.push(callback)
+      }
+    }
+    try {
+      document.body.style.height = '4000px'
+      const above = document.createElement('div')
+      above.style.height = '300px'
+      document.body.append(above)
+      const element = await mount(false)
+      const reports: boolean[] = []
+      element.addEventListener('lintje-zone-scrolled-change', (event) =>
+        reports.push((event as CustomEvent<boolean>).detail),
+      )
+      expect(heard.length).toBeGreaterThan(0)
+      window.scrollTo(0, 1000)
+      const stale = { isIntersecting: true } as IntersectionObserverEntry
+      heard.at(-1)!([stale], {} as IntersectionObserver)
+      expect(reports).toEqual([true])
+    } finally {
+      window.IntersectionObserver = Original
+    }
+  })
+})
