@@ -652,7 +652,7 @@ const ROWS: Row[] = [
   ...(['classic', 'new'] as const).flatMap((style) => [
     headerTabsRow(style, 1440),
     headerTabsRow(style, 390),
-    ...[1440, 1024, 768].map((width) => filterUnderTabsRow(style, width)),
+    ...[1440, 1024, 768, 390].map((width) => filterUnderTabsRow(style, width)),
   ]),
   {
     tag: 'lintje-chat',
