@@ -41,15 +41,11 @@
   justify-content: space-between;
   gap: var(--space-4);
 }
-.lintje-dialog__heading { font: var(--text-h2); }
-/* In the new style the title is in the primary colour, as the house style heads a dialog; a word,
-   so the text tint. */
-[data-style-version='new'] .lintje-dialog__heading { color: var(--color-accent-text); }
+.lintje-dialog__heading { font: var(--text-h2); color: var(--color-window-title); }
 /* The close button reaches into the padding, so it does not make the heading's line taller. */
-.lintje-dialog__close { margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0; 
-  transition: color var(--dur-hover) var(--ease-in-motion);
-}
-.lintje-dialog__close:hover { color: var(--color-text-primary); }
+.lintje-dialog__close { margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0; }
+/* No hover while the close button is unavailable. */
+.lintje-dialog__close:not([aria-disabled='true']):hover { color: var(--color-text-primary); }
 
 /* A long form scrolls here. The padding is a field's whole focus ring, its offset and its width,
    so the ring stays whole in the scroll box; the margin gives the room back. */

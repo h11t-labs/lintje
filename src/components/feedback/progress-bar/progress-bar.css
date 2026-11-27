@@ -14,7 +14,12 @@
 .lintje-progress__mark { margin-right: var(--space-1); vertical-align: -0.125em; }
 .lintje-progress--done .lintje-progress__mark { color: var(--color-success-line); }
 .lintje-progress--error .lintje-progress__mark { color: var(--color-error-line); }
-.lintje-progress--paused .lintje-progress__mark { color: var(--color-text-muted); }
+/* Paused is the warning tone, as its badge in a job list; the attention line keeps 3:1. */
+.lintje-progress--paused .lintje-progress__mark { color: var(--color-attention-line); }
+/* No head: the glyph before the track, on its line. */
+.lintje-progress__row { display: flex; align-items: center; min-width: 0; }
+.lintje-progress__row .lintje-progress__mark { flex: none; }
+.lintje-progress__row .lintje-progress__track { flex: 1 1 auto; min-width: 0; }
 
 /* Every fill is a line colour, not a fill colour: it keeps 3:1 on the track in dark. */
 .lintje-progress__track { height: 6px; background: var(--color-progress-track); overflow: hidden; }
@@ -27,7 +32,7 @@
 .lintje-progress--done .lintje-progress__fill { background: var(--color-success-line); }
 .lintje-progress--error .lintje-progress__fill { background: var(--color-error-line); }
 .lintje-progress--error .lintje-progress__label { color: var(--color-error-text); }
-.lintje-progress--paused .lintje-progress__fill { background: var(--color-text-muted); }
+.lintje-progress--paused .lintje-progress__fill { background: var(--color-attention-line); }
 
 .lintje-progress__track.is-indeterminate .lintje-progress__fill {
   width: 30%;
