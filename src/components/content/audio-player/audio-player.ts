@@ -49,6 +49,7 @@ import {
 import { LintjePlayerElement } from '../shared/player'
 import playerCss from '../shared/player.css?inline'
 import audioPlayerCss from './audio-player.css?inline'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 export type { SpeakerTurn } from '../shared/playback'
 
@@ -137,8 +138,8 @@ export class LintjeAudioPlayer extends LintjePlayerElement {
    * and that Escape is its own: a window around the player stays open.
    */
   private readonly onEscape = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || this.hoverTime === null) return
-    event.preventDefault()
+    if (!isFreshEscape(event) || this.hoverTime === null) return
+    answerEscape(event)
     this.hoverTime = null
   }
 

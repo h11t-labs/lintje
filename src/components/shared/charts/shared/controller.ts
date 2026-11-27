@@ -13,6 +13,7 @@ import type { SeriesKey } from './series-shapes'
 import type { KeyMark } from './axes'
 import type { MapArea, MapTool } from './types'
 import { uniqueId } from '../../../../core/id'
+import { answerEscape, isFreshEscape } from '../../../../core/escape'
 
 /** What every `render*` takes besides its data. */
 export interface ChartOptions {
@@ -523,9 +524,9 @@ export class ChartController {
    * goes on to a selection or an enclosing modal. Returns whether it hid one.
    */
   dismiss(event: KeyboardEvent): boolean {
-    if (event.key !== 'Escape' || !this.tooltip) return false
+    if (!isFreshEscape(event) || !this.tooltip) return false
     event.stopPropagation()
-    event.preventDefault()
+    answerEscape(event)
     this.hideTooltip()
     return true
   }
@@ -537,9 +538,10 @@ export class ChartController {
    * inside the chart is left to the chart's own `dismiss`.
    */
   private readonly onWindowKey = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || !this.tooltip) return
-    if (this.element && event.composedPath().includes(this.element)) return
-    event.preventDefault()
+    if (!isFreshEscape(event) || !this.tooltip) return
+    // A chart that left the page shows no tooltip, so the key is not its.
+    if (!this.element?.isConnected || event.composedPath().includes(this.element)) return
+    answerEscape(event)
     this.hideTooltip()
   }
 

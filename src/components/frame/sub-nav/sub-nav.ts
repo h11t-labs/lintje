@@ -18,6 +18,7 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import { badgeStyles, renderBadge } from '../../feedback/badge/badge'
 import subNavCss from './sub-nav.css?inline'
 import { uniqueId } from '../../../core/id'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 export interface SubNavItem {
   label: string
@@ -118,7 +119,8 @@ export class LintjeSubNav extends LintjeElement {
   }
 
   private onKeydown(event: KeyboardEvent): void {
-    if (event.key !== 'Escape' || !this.open) return
+    if (!isFreshEscape(event) || !this.open) return
+    answerEscape(event)
     event.stopPropagation()
     this.open = false
     this.renderRoot.querySelector<HTMLButtonElement>('.lintje-sub-nav__toggle')?.focus()

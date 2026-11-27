@@ -30,6 +30,7 @@ import { LintjeFormInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
 import { Debounce } from '../../shared/debounce'
 import textInputCss from './text-input.css?inline'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 export type TextInputType = 'text' | 'search' | 'password' | 'email'
 /** When a typed value is committed: on leaving the field, or 300 ms after the last key. */
@@ -125,9 +126,9 @@ export class LintjeTextInput extends LintjeFormInputElement {
       this.typing.flush()
     }
     this.submitOnEnter(event, () => this.change(event))
-    if (event.key === 'Escape' && this.type === 'search' && this.value !== '' && !this.readonly) {
+    if (isFreshEscape(event) && this.type === 'search' && this.value !== '' && !this.readonly) {
       // Ours, not the browser's: its own clear would race the commit.
-      event.preventDefault()
+      answerEscape(event)
       event.stopPropagation()
       this.clear()
     }

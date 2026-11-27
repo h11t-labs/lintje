@@ -26,6 +26,7 @@ import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import { focusTarget, tabbables } from '../../shared/focus-trap'
 import { lengthPx } from '../../../core/length'
 import { titleWhenCut } from '../../shared/cut-text'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 /** The pin's name stays the same; `aria-pressed` says whether the menu is pinned. */
 export const PIN_LABEL = 'Menu vastzetten'
@@ -89,7 +90,8 @@ function railEvents(shell: LintjeShell, rail: boolean) {
       if (!matches(nav, ':hover') && !keyboardInside(nav)) shell.railExpanded = false
     },
     keydown: async (event: KeyboardEvent): Promise<void> => {
-      if (event.key !== 'Escape' || !rail || !shell.railExpanded) return
+      if (!isFreshEscape(event) || !rail || !shell.railExpanded) return
+      answerEscape(event)
       const nav = event.currentTarget as HTMLElement
       const focused = deepActiveElement()
       const order = tabbables(nav)

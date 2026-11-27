@@ -23,6 +23,7 @@ import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { LintjeInputElement } from '../shared/input'
 import { ownsEscape } from '../../shared/focus-trap'
+import { answerEscape, isFreshEscape, isTopLayer, setLayerOpen } from '../../../core/escape'
 import { place, samePlace, stand, viewport, type Place } from '../../shared/place'
 import '../../actions/button/button'
 import '../../actions/icon-button/icon-button'
@@ -175,8 +176,8 @@ export class LintjeDateRange extends LintjeInputElement {
   }
 
   private readonly onEscape = (event: KeyboardEvent): void => {
-    if (!this.open || event.key !== 'Escape' || event.defaultPrevented || !ownsEscape(this)) return
-    event.preventDefault()
+    if (!this.open || !isFreshEscape(event) || !ownsEscape(this) || !isTopLayer(this)) return
+    answerEscape(event)
     event.stopPropagation()
     void this.close()
   }
@@ -210,6 +211,7 @@ export class LintjeDateRange extends LintjeInputElement {
 
   override connectedCallback(): void {
     super.connectedCallback()
+    if (this.open) setLayerOpen(this, true)
     document.addEventListener('mousedown', this.onOutsideClick)
     document.addEventListener('keydown', this.onEscape, true)
     window.addEventListener('scroll', this.onReflow, { capture: true, passive: true })
@@ -223,6 +225,7 @@ export class LintjeDateRange extends LintjeInputElement {
     window.removeEventListener('resize', this.onReflow)
     if (this.reflowFrame) cancelAnimationFrame(this.reflowFrame)
     this.reflowFrame = 0
+    setLayerOpen(this, false)
     super.disconnectedCallback()
   }
 
@@ -254,6 +257,7 @@ export class LintjeDateRange extends LintjeInputElement {
   // The panel exists only now, so its size is known; a closed one forgets its place.
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
+    if (changed.has('open')) setLayerOpen(this, this.open)
     this.measure()
   }
 

@@ -72,6 +72,7 @@ import { SheetLeave } from '../../shared/sheet'
 import tabBarCss from './tab-bar.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import keyCss from '../../shared/key.css?inline'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 const MAIN_ID = 'lintje-shell-main'
 /** How much the visual viewport loses before it is a keyboard and not a browser's own bar. */
@@ -246,9 +247,10 @@ export class LintjeShell extends LintjeElement {
   #layoutChosen = false
 
   readonly #onEscape = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape') return
+    if (!isFreshEscape(event)) return
     if (this.#sheetReleased) {
       if (!this.#sheetTrap.isTopmost()) return
+      answerEscape(event)
       this.viewOpen = false
       this.shareOpen = false
       return
@@ -256,6 +258,7 @@ export class LintjeShell extends LintjeElement {
     if (this.viewOpen || this.shareOpen) {
       // A dialog opened over the bar (the shortcuts overview) takes its own Escape.
       if (!ownsEscape(this)) return
+      answerEscape(event)
       // The focus goes back to the tool only from the panel or the tool itself, never from
       // elsewhere on the page.
       if (this.#panelHoldsFocus()) {
@@ -268,10 +271,12 @@ export class LintjeShell extends LintjeElement {
     }
     // The rail expanded under the pointer folds from anywhere on the page, the focus staying put.
     if (this.railExpanded && ownsEscape(this)) {
+      answerEscape(event)
       this.railExpanded = false
       return
     }
     if (!this.menuOpen || !this.#menuTrap.isTopmost()) return
+    answerEscape(event)
     this.menuOpen = false
   }
 

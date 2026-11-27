@@ -782,15 +782,14 @@ De besluiten hieronder gelden voor alle elementen.
   combinatie is twee toetsen naast elkaar.
 - **Escape sluit wat open is**, en in een popover alleen de popover. Een toast sluit met Escape
   alleen vanuit zichzelf: een Escape elders is niet de zijne. Escape is eerst van het kleinste:
-  één Escape sluit één zwevende laag, de bovenste eerst — de tooltip, dan de uitleg, de popover
-  of de lijst van een veld, dan het venster eromheen. Wat een Escape al beantwoordde
-  (`preventDefault`), zoals een tooltip, een uitleg, een popover of een bewerking ter plekke,
-  sluit geen laag eronder: de popover, de uitleg, de lijst van een veld en een venster slaan een
-  beantwoorde Escape over, en de eerste drie beantwoorden hem zelf als ze sluiten. De tooltip
-  hoort hem als eerste. Of er een dialoog boven een open popup staat, volgt uit de focus: Escape
-  blijft ongemoeid zolang de focus in een `aria-modal="true"` staat waar de popup niet in zit.
-  Een dialoog zet dus `aria-modal` en neemt de focus bij het openen; één die dat niet doet, telt
-  niet mee.
+  één Escape doet één ding. Elk element dat op Escape iets sluit, wist of ongedaan maakt, slaat
+  een Escape over die al beantwoord is (`preventDefault`) en beantwoordt hem zelf als het
+  handelt; de regel staat op één plek, `core/escape.ts`. De tooltip hoort hem als eerste, dan de
+  zwevende lagen — de uitleg, de popover, de lijst van een veld — van de laatst geopende naar de
+  eerste, dan wat eromheen staat: een bewerking ter plekke, een keuze, een venster. Of er een
+  dialoog boven een open popup staat, volgt uit de focus: Escape blijft ongemoeid zolang de focus
+  in een `aria-modal="true"` staat waar de popup niet in zit. Een dialoog zet dus `aria-modal` en
+  neemt de focus bij het openen; één die dat niet doet, telt niet mee.
 - **Twee vensters: een groot voor inhoud, een klein voor een vraag of een kort formulier.**
   `lintje-modal` toont inhoud, zoals een vergrote tegel of een tekst, en is zo hoog als die
   inhoud, ten hoogste het venster: een grafiek die de ruimte vult, maakt hem vol, een halter of

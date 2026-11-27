@@ -30,6 +30,7 @@ import { LiveMessage } from '../../shared/live-message'
 import { LintjeInputElement } from '../shared/input'
 import inputCss from '../shared/input.css?inline'
 import findCss from './find.css?inline'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 const COUNT_ID = 'lintje-find-count'
 
@@ -133,8 +134,8 @@ export class LintjeFind extends LintjeInputElement {
       if (this.typing.pending) this.typing.flush()
       else this.step(event.shiftKey ? -1 : 1)
     }
-    if (event.key === 'Escape' && this.value !== '') {
-      event.preventDefault()
+    if (isFreshEscape(event) && this.value !== '') {
+      answerEscape(event)
       event.stopPropagation()
       this.clear()
     }

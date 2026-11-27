@@ -43,6 +43,7 @@ import { isPlainClick } from '../../../core/links'
 import { focusTarget } from '../../shared/focus-trap'
 import { MediaController } from '../../../core/media'
 import type { Person, RowActionDetail, RowClickDetail } from '../../../types'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 export interface ListItem {
   id: string
@@ -256,9 +257,9 @@ export class LintjeList extends LintjeElement {
           if (event.key === 'Enter') {
             event.preventDefault()
             this.saveRename(item)
-          } else if (event.key === 'Escape') {
+          } else if (isFreshEscape(event)) {
             // The cancel is the Escape's answer: a dialog or drawer around the list stays open.
-            event.preventDefault()
+            answerEscape(event)
             event.stopPropagation()
             this.emit('lintje-row-rename-cancel', { id: item.id })
           }

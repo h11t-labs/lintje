@@ -46,6 +46,7 @@ import { standsIn } from '../../../core/focus'
 import { titleWhenCut } from '../../shared/cut-text'
 import type { Person } from '../../../types'
 import { uniqueId } from '../../../core/id'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 export class LintjeUserMenu extends LintjeElement {
   static override styles = [
@@ -181,8 +182,8 @@ export class LintjeUserMenu extends LintjeElement {
   private readonly onMenuKeydown = (event: KeyboardEvent): void => {
     if (this.inline) return
     // The sheet has no popover to answer Escape.
-    if (event.key === 'Escape' && this.sheet) {
-      event.preventDefault()
+    if (isFreshEscape(event) && this.sheet) {
+      answerEscape(event)
       this.hide(true)
       return
     }
