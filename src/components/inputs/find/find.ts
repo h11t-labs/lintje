@@ -53,6 +53,11 @@ export class LintjeFind extends LintjeInputElement {
   current: number = 0
   /** The host is still counting: the field says "Zoeken…" and cannot step. */
   busy: boolean = false
+  /**
+   * The placeholder says what the field is, so the label stays out of sight. Starting true, it
+   * turns off as a property only: `.hideLabel=${false}`.
+   */
+  override hideLabel: boolean = true
 
   private readonly typing = new Debounce(this)
 
@@ -67,8 +72,6 @@ export class LintjeFind extends LintjeInputElement {
   constructor() {
     super()
     this.label = 'Zoeken in de tekst'
-    // The placeholder says what the field is; a Boolean that starts true is a property only.
-    this.hideLabel = true
   }
 
   private get navigable(): boolean {

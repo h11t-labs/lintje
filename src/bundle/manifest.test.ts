@@ -31,6 +31,16 @@ describe('the tag reference', () => {
     })
   })
 
+  it('takes the start value a tag gives an inherited property', () => {
+    const hideLabel = of('lintje-find').members.find((member) => member.name === 'hideLabel')
+    expect(hideLabel).toMatchObject({
+      default: 'true',
+      inheritedFrom: { name: 'LintjeInputElement' },
+    })
+    const hint = of('lintje-date-input').attributes.find((attribute) => attribute.name === 'hint')
+    expect(hint?.default).toBe("'dd-mm-jjjj'")
+  })
+
   it('leaves a property without an attribute out of the attributes', () => {
     const list = of('lintje-job-list')
     expect(list.members.map((member) => member.name)).toContain('jobs')
