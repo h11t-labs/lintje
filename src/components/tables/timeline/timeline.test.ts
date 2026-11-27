@@ -271,6 +271,17 @@ describe('lintje-timeline', () => {
     )
   })
 
+  it('keeps its empty text when the host removes the old `empty` attribute', async () => {
+    const element = await mount({})
+    element.setAttribute('empty', 'Nog niets.')
+    await element.updateComplete
+    element.removeAttribute('empty')
+    await element.updateComplete
+    expect(element.shadowRoot!.querySelector('lintje-empty-state')!.getAttribute('text')).toBe(
+      'Nog niets.',
+    )
+  })
+
   it('lies along a rail when it fits, with labels above and under it and today across it', async () => {
     const element = await mount({
       moments: APPLICATION.slice(0, 3),

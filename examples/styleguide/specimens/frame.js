@@ -1416,6 +1416,14 @@ export default {
             stage.querySelector('lintje-notifications').items = []
           },
         },
+        {
+          label: 'Leeg en open',
+          note: 'Het open paneel zegt in één regel dat er niets is.',
+          html: `<span style="${BAR}"><lintje-notifications open></lintje-notifications></span>`,
+          setup(stage) {
+            stage.querySelector('lintje-notifications').items = []
+          },
+        },
       ],
     },
   ],
