@@ -150,6 +150,16 @@ describe('lintje-chat-questions, the short form', () => {
     ])
   })
 
+  it('keeps the tapped chip chosen while it sends, and locks every chip', async () => {
+    const element = await mount({ questions: [SHORT] })
+    root(element).querySelector<HTMLButtonElement>('.lintje-chat-questions__chip')!.click()
+    element.data = { questions: [SHORT], state: 'sending' }
+    await settle(element)
+    const chips = [...root(element).querySelectorAll('.lintje-chat-questions__chip')]
+    expect(chips.map((chip) => chip.classList.contains('is-chosen'))).toEqual([true, false, false])
+    expect(chips.every((chip) => chip.getAttribute('aria-disabled') === 'true')).toBe(true)
+  })
+
   it('opens "Iets anders…" as its own field with the focus, says what is missing, and sends the text', async () => {
     const element = await mount({
       questions: [{ ...SHORT, otherPlaceholder: 'Bijvoorbeeld: 2023' }],

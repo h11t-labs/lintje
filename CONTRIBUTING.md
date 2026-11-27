@@ -403,6 +403,9 @@ mechanisme gebruikt; `bundle/` mag elke laag importeren, dus ook de schil staat 
 - `required.browser.test.ts` — elke invoer met `required` in een natief `<form>`: leeg houdt hij
   het versturen tegen, gevuld of uitgeschakeld niet, en de melding van de browser landt op het
   bedieningselement dat ook de focus krijgt.
+- `disabled.browser.test.ts` — elk veld dat uitgeschakeld is, ook over een fout, ziet eruit als
+  het tekstveld: dezelfde kleuren van tekst, vlak en rand, de cursor die weigert en volle dekking;
+  de link terug naar de standaard is dan gedempte tekst zonder streep.
 - `truncate.browser.test.ts` — tekst met een beletselteken: met een aanwijzer staat hij op één
   regel en, als hij is afgekapt, heel in de `title`; onder de focus van het toetsenbord, zonder
   hover en op 390 en 320 px loopt hij door en blijft hij binnen zijn ouder. Tekst die niets een

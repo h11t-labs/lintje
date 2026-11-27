@@ -385,7 +385,10 @@ export class LintjeChatQuestions extends LintjeElement {
         ${(question.options ?? []).map(
           (option) => html`<button
             type="button"
-            class="lintje-chat-questions__chip"
+            class=${classMap({
+              'lintje-chat-questions__chip': true,
+              'is-chosen': draft.values.includes(option.value),
+            })}
             aria-disabled=${this.sending ? 'true' : nothing}
             @click=${() => this.pick(option.value)}
           >

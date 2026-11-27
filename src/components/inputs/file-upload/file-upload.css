@@ -39,7 +39,10 @@
 }
 .lintje-file-upload.is-over { background: var(--color-bg-selected); }
 .lintje-file-upload.is-error { border-style: solid; border-color: var(--color-error-line); background: var(--color-bg-field-error); }
+/* Disabled wins over error: the dashed edge in the strong border, as a disabled field's. */
 .lintje-file-upload.is-disabled {
+  border-style: dashed;
+  border-color: var(--color-border-strong);
   background: var(--color-bg-subtle);
   color: var(--color-text-disabled);
 }
