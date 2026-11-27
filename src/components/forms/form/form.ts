@@ -34,6 +34,7 @@ import {
   namedControlsIn,
   otherChosen,
   readControl,
+  shownControl,
   writeControl,
   type OtherHolder,
 } from '../../shared/controls'
@@ -302,7 +303,7 @@ export class LintjeForm extends LintjeElement {
     const values: FormValues = { ...this.values, ...this.#draft }
     for (const control of namedControls(this)) {
       const name = controlName(control)
-      if (!announces(control) || !(name in values)) values[name] = readControl(control)
+      if (!announces(control) || !(name in values)) values[name] = shownControl(control)
       if (!holdsOther(control)) continue
       const key = name + OTHER_SUFFIX
       const text = key in values ? values[key] : control.otherText

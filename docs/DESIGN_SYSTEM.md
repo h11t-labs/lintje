@@ -652,16 +652,15 @@ De besluiten hieronder gelden voor alle elementen.
   blauw kleurt. Het venster staat erop met zijn eigen oppervlak en rand.
 - **Wat over de pagina ligt, ligt in een vaste volgorde**, sluier en kader samen, van onder naar
   boven: het menu van de schil, een lade, een groot venster, een dialoog, een popover of
-  toggletip, een toast en een tooltip. Een vraag boven een open lade ligt er dus helemaal boven. Wat onder de sluier ligt, krijgt geen klik; een popover,
-  toggletip of tooltip in een venster staat erboven. Een toast blijft bereikbaar terwijl een
-  venster open is: de aanwijzer raakt hem en Tab gaat van het venster naar de toast en terug.
+  toggletip, een toast en een tooltip. Een vraag boven een open lade ligt er dus helemaal boven.
+  Wat onder de sluier ligt, krijgt geen klik; een popover, toggletip of tooltip in een venster
+  staat erboven. Een toast blijft bereikbaar terwijl een venster open is: de aanwijzer raakt hem
+  en Tab gaat van het venster naar de toast en terug. Hij staat boven de voet van het venster,
+  zodat hij de knoppen daar nooit bedekt.
 - **Een dialoog met een formulier is smal** en zo hoog als zijn inhoud; de knoppen staan links in
   de voet, het antwoord eerst, zoals de huisstijl een dialoog tekent, en een zin over het
-  resultaat erachter.
-- **Elk venster heeft dezelfde kop**: de dialoog, het grote venster, de lade en het blad op een
-  telefoon. In de nieuwe huisstijl staat de titel in de primaire kleur en zijn er geen lijnen
-  tussen kop, inhoud en voet; een blad met een eigen vulling, zoals het menu, houdt zijn eigen
-  tekstkleur.
+  resultaat erachter. De titel staat in de primaire kleur; het grote venster heeft geen lijnen
+  tussen kop, inhoud en voet.
 - **Een bezige knop houdt zijn breedte en zijn kleuren**; alleen de inhoud maakt plaats voor de
   ring.
 - **Een limiet waarschuwt en blokkeert nooit**: een geplakte tekst komt er heel in.
@@ -781,11 +780,12 @@ De besluiten hieronder gelden voor alle elementen.
   één Escape sluit één zwevende laag, de bovenste eerst — de tooltip, dan de uitleg, de popover
   of de lijst van een veld, dan het venster eromheen. Wat een Escape al beantwoordde
   (`preventDefault`), zoals een tooltip, een uitleg, een popover of een bewerking ter plekke,
-  sluit geen laag eronder: elk element dat op Escape sluit, slaat een beantwoorde Escape over en
-  beantwoordt hem zelf als het sluit. De tooltip hoort hem als eerste. Of er een dialoog boven
-  een open popup staat, volgt uit de focus: Escape blijft ongemoeid zolang de focus in een
-  `aria-modal="true"` staat waar de popup niet in zit. Een dialoog zet dus `aria-modal` en
-  neemt de focus bij het openen; één die dat niet doet, telt niet mee.
+  sluit geen laag eronder: de popover, de uitleg, de lijst van een veld en een venster slaan een
+  beantwoorde Escape over, en de eerste drie beantwoorden hem zelf als ze sluiten. De tooltip
+  hoort hem als eerste. Of er een dialoog boven een open popup staat, volgt uit de focus: Escape
+  blijft ongemoeid zolang de focus in een `aria-modal="true"` staat waar de popup niet in zit.
+  Een dialoog zet dus `aria-modal` en neemt de focus bij het openen; één die dat niet doet, telt
+  niet mee.
 - **Twee vensters: een groot voor inhoud, een klein voor een vraag of een kort formulier.**
   `lintje-modal` toont inhoud, zoals een vergrote tegel of een tekst, en is zo hoog als die
   inhoud, ten hoogste het venster: een grafiek die de ruimte vult, maakt hem vol, een halter of
@@ -1092,6 +1092,8 @@ balk is de knop, met het aantal aangepaste filters en een pijl, dus de header he
 knop "Filters". Op elke breedte plakt de zin bij het scrollen direct onder de balk van de shell,
 en de shell houdt zijn hoogte vrij boven de focus. Heeft de paginakop tabs, dan plakt de zin
 direct onder hun rij, met één lijn ertussen: beide blijven in beeld en liggen nooit over elkaar.
+Daarom staat zo'n paginakop in beide huisstijlen boven wat in `full` staat; in de eerdere
+huisstijl blijft hij in de kolom van de inhoud.
 
 **De pijl van een KPI draagt de richting, het woord het oordeel; de kleur bevestigt ze alleen.**
 Naast de pijl staat "Gunstig" of "Ongunstig" in de tekstkleur, één keer gezegd. Waar stijgen slecht
@@ -1610,15 +1612,16 @@ kleinste correctie, en leg die hier vast.
 - **Een vastgeplakte balk bedekt nooit de focus** (2.4.11): wat aan een rand van de scroller plakt,
   houdt de ruimte die het bedekt vrij als `scroll-padding`, en de scroller houdt per rand de
   grootste vrij, nooit minder dan wat de host er zelf zette. Zo doen de balk van de shell met de
-  tabrij van de paginakop en de filterbalk eronder, de tabs onderaan, de actiebalk van het formulier, de vastgeplakte vraag en het
-  vraagvak van het gesprek, een toast die blijft staan, en een eigen balk van de host met
+  tabrij van de paginakop en de filterbalk eronder, de tabs onderaan, de actiebalk van het
+  formulier, de vastgeplakte vraag en het vraagvak van het gesprek, een toast die blijft staan,
+  en een eigen balk van de host met
   `data-sticky`, die de shell meet. De foutsamenvatting scrolt een veld naar het midden. Een element
   waar de focus toch onder belandt, scrollen de actiebalk, de toast en de selectiebalk van de tabel
   van zich vrij, met rand en al. Een toast staat boven wat verder onderaan plakt, nooit eroverheen;
-  boven de tabs ook, behalve als een blad ze bedekt. Over een open venster ligt hij wel heen. Een
-  paneel dat over de pagina ligt (de vastgezette, opengeklapte filterzone, de opties van het
-  vraagvak) sluit zodra de focus het verlaat en laat de focus waar hij heen ging; Escape sluit het
-  met de focus op zijn knop.
+  boven de tabs ook, behalve als een blad ze bedekt. Over een open venster ligt hij wel heen,
+  boven zijn voet. Een paneel dat over de pagina ligt (de vastgezette, opengeklapte filterzone, de
+  opties van het vraagvak) sluit zodra de focus het verlaat en laat de focus waar hij heen ging;
+  Escape sluit het met de focus op zijn knop.
 - **Een grafiek is ook met het toetsenbord te lezen.** Haar tekening neemt de focus en de
   pijltoetsen lopen langs de categorieën met de tooltip, die een live-regio uitspreekt; Escape
   verbergt een tooltip. De tekening is een afbeelding, of een groep met haar beschrijving als naam

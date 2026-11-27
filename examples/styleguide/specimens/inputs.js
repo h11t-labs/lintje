@@ -702,8 +702,8 @@ export default {
         {
           label: 'Waarde buiten de opties',
           note:
-            'Een gekozen waarde zonder optie staat als zichzelf in de chip; "Alles selecteren" ' +
-            'telt haar niet mee.',
+            'Een gekozen waarde zonder optie staat als zichzelf in de chip. "Alles selecteren" ' +
+            'telt haar niet mee en laat haar staan, aan- en uitgevinkt.',
           html: '<lintje-multiselect label="Bron van de aanvraag"></lintje-multiselect>',
           setup: setSelected(SOURCES, ['balie', 'archief']),
         },

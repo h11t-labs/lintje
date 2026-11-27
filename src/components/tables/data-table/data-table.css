@@ -152,8 +152,8 @@
 .lintje-data-table__row.is-clickable { cursor: pointer; }
 .lintje-data-table__row.is-clickable,
 .lintje-data-table__mobile-row { transition: background var(--dur-hover) var(--ease-in-motion); }
-.lintje-data-table__row.is-clickable:not(.is-selected):hover,
-.lintje-data-table__mobile-row.is-clickable:not(.is-selected):hover { background: var(--color-bg-subtle); }
+.lintje-data-table__row.is-clickable:not(.is-selected, .is-checked):hover,
+.lintje-data-table__mobile-row.is-clickable:not(.is-selected, .is-checked):hover { background: var(--color-bg-subtle); }
 /* Selected and hover share a surface; the 4 px edge is the only carrier, so it must stay visible. */
 .lintje-data-table__row.is-selected,
 .lintje-data-table__mobile-row.is-selected {
