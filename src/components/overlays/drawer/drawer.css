@@ -2,7 +2,7 @@
 
 /* ------------------------------------------------------------------------ */
 
-/* The modal's z-index: above the shell's menu. */
+/* The lowest window: above the shell's menu (30), under a modal (82) and a dialog (83). */
 .lintje-drawer__scrim {
   position: fixed; inset: 0; z-index: 80;
   background: var(--color-overlay-page);
@@ -33,15 +33,15 @@
 
 .lintje-drawer__header {
   display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3);
-  padding: var(--space-5) var(--space-6);
-  border-bottom: 1px solid var(--color-border-default);
+  padding: var(--space-5) var(--space-6) var(--window-head-pad-bottom);
+  border-bottom: var(--window-divider);
 }
 /* As high as the close button at least, so a heading without a subtitle stands level with it. */
 .lintje-drawer__heading {
   min-width: 0; min-height: var(--h-icon-button);
   display: flex; flex-direction: column; justify-content: center;
 }
-.lintje-drawer__title { font: var(--text-h2); }
+.lintje-drawer__title { font: var(--text-h2); color: var(--color-window-title); }
 .lintje-drawer__subtitle { font: var(--text-small); color: var(--color-text-muted); margin-top: var(--space-1); }
 /* No hover while the close button is unavailable. */
 .lintje-drawer__close:not([aria-disabled='true']):hover { color: var(--color-text-primary); }
@@ -54,8 +54,8 @@
 
 .lintje-drawer__footer {
   display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-2);
-  padding: var(--space-3) var(--space-6);
-  border-top: 1px solid var(--color-border-default);
+  padding: var(--window-foot-pad);
+  border-top: var(--window-divider);
 }
 
 /* A keyframe only works in the root that uses it. */
