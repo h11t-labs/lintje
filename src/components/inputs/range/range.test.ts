@@ -477,6 +477,30 @@ describe('in a native form', () => {
     expect(entries(element)).toEqual([['p.drempel', 'hoog']])
   })
 
+  it('has no value again after a reset, and posts the first of the steps it has then', async () => {
+    const element = await mount(null)
+    const seen = committed(element)
+    element.steps = ['laag', 'midden', 'hoog']
+    await element.updateComplete
+    element.formResetCallback()
+    await element.updateComplete
+    // The host that keeps the value has null as well: nothing drifts, and nothing is told.
+    expect(element.value).toBeNull()
+    expect(seen).toEqual([])
+    expect(entries(element)).toEqual([['p.drempel', 'laag']])
+    expect(slider(element).value).toBe('0')
+  })
+
+  it('takes a first touch after a reset as the first time', async () => {
+    const element = await mount(null)
+    const seen = committed(element)
+    pointer(slider(element), 'pointerup', 0)
+    element.formResetCallback()
+    await element.updateComplete
+    pointer(slider(element), 'pointerup', 0)
+    expect(seen).toEqual([5, 5])
+  })
+
   it('posts both indexes of two handles, as before', async () => {
     const element = await mountPair({ name: 'p.bereik' })
     expect(entries(element)).toEqual([

@@ -88,19 +88,24 @@ export class DialogHold {
 /**
  * Tells a click on the scrim from one in the window it holds, without stopping the window's
  * clicks on their way to the host: only a press that starts and ends on the scrim itself counts,
- * so a drag out of the window closes nothing.
+ * so a drag out of the window or into it closes nothing.
  */
 export class ScrimClick {
-  #fromInside = false
+  #inside = false
 
   readonly onPointerDown = (event: PointerEvent): void => {
-    this.#fromInside = event.target !== event.currentTarget
+    this.#inside = event.target !== event.currentTarget
+  }
+
+  // A press that ends in the window clicks their common ancestor, the scrim.
+  readonly onPointerUp = (event: PointerEvent): void => {
+    if (event.target !== event.currentTarget) this.#inside = true
   }
 
   /** Whether this click is one on the scrim. */
   hits(event: Event): boolean {
-    const fromInside = this.#fromInside
-    this.#fromInside = false
-    return event.target === event.currentTarget && !fromInside
+    const inside = this.#inside
+    this.#inside = false
+    return event.target === event.currentTarget && !inside
   }
 }
