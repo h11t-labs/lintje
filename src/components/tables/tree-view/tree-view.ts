@@ -231,7 +231,9 @@ export class LintjeTreeView extends LintjeElement {
         }}
       >
         ${this.arrow(node)}
-        <span class="lintje-tree__label" @pointerenter=${titleWhenCut}>${node.label}</span>
+        <span class="lintje-tree__label bold-room" data-text=${node.label} @pointerenter=${titleWhenCut}
+          >${node.label}</span
+        >
         ${
           branch && !open && count
             ? html`<span class="lintje-tree__count">· ${count}</span>`

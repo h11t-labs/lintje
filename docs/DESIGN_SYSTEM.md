@@ -184,6 +184,11 @@ Vijf gevolgen:
   vulling onder alleen tekst of een icoon (een chip, een groepskop, code) is `--color-bg-subtle`
   en gaat in donker een stap omhoog. Een hover is `--color-bg-subtle`, nooit `--color-bg-selected`:
   dat is voor een gekozen of aangevinkte toestand.
+- **Een gekozen rij ziet er overal hetzelfde uit**: het vlak `--color-bg-selected` met een rand
+  links in `--color-selected-edge`, in een lijst, een tabel, een boom en een logvenster; een
+  gekozen miniatuur draagt diezelfde randkleur. Wat links al staat (de foutlijn van een logregel,
+  het kleurstaal van een lijstrij), staat naar binnen, zodat beide zichtbaar zijn. In forced
+  colors wordt de rand een echte rand in `Highlight`, op dezelfde plek.
 - **De filterzone onderscheidt zich in beide modi als band van de pagina**, en haar velden een
   stap onder de zone.
 
@@ -572,8 +577,8 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een gekozen optie is rustig, niet gevuld.** In een rij opties neemt de gekozen de waas van de
   primaire kleur, een rand in de accentlijn en vette tekst; het gevulde oppervlak blijft voor de
   ene primaire actie, zodat een formulier nooit meerdere gevulde blokken boven zijn knop toont.
-  Het vet verschuift niets: een optie, een tab, een paginanummer en een rij in het submenu
-  houden de breedte van hun vette label vrij, zodat de rij bij elke keuze even breed blijft. Een rij die breder is dan haar ruimte, staat als
+  Het vet verschuift niets: een optie, een tab, een paginanummer, een rij in het submenu en een
+  rij in een boom houden de breedte van hun vette label vrij, zodat de rij bij elke keuze even breed blijft. Een rij die breder is dan haar ruimte, staat als
   kolom, elke optie een rij over de volle breedte; ze loopt nooit uit beeld.
 - **Een aantal bij een keuze is de tellerbadge achter het label**, in een tab en in een segment
   evengoed; nooit een getal in de tekst van het label. Een aantal dat nog laadt (`null`) houdt de

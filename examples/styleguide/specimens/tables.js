@@ -1387,6 +1387,20 @@ export default {
           },
         },
         {
+          label: 'Spreker gekozen',
+          note: 'De gekozen rij heeft het vlak en de balk links; het kleurstaal staat ernaast, naar binnen.',
+          html: '<lintje-list label="Sprekers" selected-id="p2"></lintje-list>',
+          setup(stage) {
+            const list = stage.querySelector('lintje-list')
+            list.items = [
+              { id: 'p1', swatch: 'sky-blue', title: 'Ploegleider', sub: '5 fragmenten · 2:12' },
+              { id: 'p2', swatch: 'dark-yellow', title: 'Spreker 2', sub: '3 fragmenten · 1:05' },
+              { id: 'p3', swatch: 'pink', title: 'Spreker 3', sub: '3 fragmenten · 0:52' },
+            ]
+            list.addEventListener('lintje-row-click', (event) => (list.selectedId = event.detail.id))
+          },
+        },
+        {
           label: 'Hernoemen in de rij',
           note: 'Met `rename` staat in de rij een veld met opslaan en annuleren.',
           html: '<lintje-list label="Sprekers"></lintje-list>',
