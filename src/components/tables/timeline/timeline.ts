@@ -30,6 +30,7 @@ import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import { avatarStyles, renderAvatar } from '../../shared/avatar'
 import { iconStyles } from '../../../icons/render'
 import '../../actions/button/button'
+import '../../feedback/empty-state/empty-state'
 import '../person/person'
 import type { Person } from '../../../types'
 import timelineCss from './timeline.css?inline'
@@ -340,6 +341,7 @@ export class LintjeTimeline extends LintjeElement {
     todayAt: { type: String, attribute: 'today-at' },
     limit: { type: Number },
     step: { type: Number },
+    emptyText: { type: String, attribute: 'empty-text' },
     empty: { type: String },
     more: { state: true },
     width: { state: true },
@@ -367,12 +369,19 @@ export class LintjeTimeline extends LintjeElement {
   declare limit?: number
   /** How many more each "Toon eerdere" shows; all the rest without it. */
   declare step?: number
-  /** The sentence that stands without moments. */
-  empty: string = 'Er is nog niets gebeurd.'
+  /** The line that stands without moments. */
+  emptyText: string = 'Er is nog niets gebeurd.'
+  /** @deprecated The old name of `emptyText` (`empty-text`); it sets that until 1.0.0. */
+  declare empty?: string
   /** How many moments the reader asked to see beyond `limit`. */
   protected more = 0
   /** The element's width, measured: what a lying rail is laid out against. */
   protected width = 0
+
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
+    if (changed.has('empty') && this.empty !== undefined) this.emptyText = this.empty
+  }
 
   #mobile = new MediaController(this, MOBILE)
   #resize = new FrameResizeObserver(() => {
@@ -815,7 +824,7 @@ export class LintjeTimeline extends LintjeElement {
     if (!this.moments.length) {
       return html`<section class="lintje-timeline">
         ${heading}
-        <p class="lintje-timeline__empty">${this.empty}</p>
+        <lintje-empty-state compact text=${this.emptyText}></lintje-empty-state>
       </section>`
     }
     const newest = newestFirst(this.moments)

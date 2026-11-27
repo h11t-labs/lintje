@@ -47,7 +47,10 @@ export class LintjeRange extends LintjeInputElement {
 
   from: number = 0
   to: number = 0
-  /** `single`: the chosen STEP, not its index; `null` before there is one. */
+  /**
+   * `single`: the chosen STEP, not its index; `null` before there is one, when the handle stands
+   * on the first step and a form posts that step.
+   */
   value: number | string | null = null
   /** One handle instead of two. */
   single: boolean = false
@@ -82,6 +85,11 @@ export class LintjeRange extends LintjeInputElement {
   // A handle always stands on a step, so `required` never holds a form back.
   protected override get missing(): boolean {
     return false
+  }
+
+  /** Nothing chosen and nothing moved: a touch that leaves the handle where it is still chooses. */
+  private get untouched(): boolean {
+    return this.single && this.value === null && this.draft === null
   }
 
   // A value from outside ends the drag's draft.
@@ -156,7 +164,7 @@ export class LintjeRange extends LintjeInputElement {
       next = this.clamp(this.index + (move[event.key] as number))
     if (next === undefined) return
     event.preventDefault()
-    if (next !== this.index) this.commitStep(next)
+    if (next !== this.index || this.untouched) this.commitStep(next)
   }
 
   private percent(index: number): number {
@@ -227,6 +235,10 @@ export class LintjeRange extends LintjeInputElement {
           this.draft = Number((event.target as HTMLInputElement).value)
         }}
         @change=${(event: Event) => this.commitStep(Number((event.target as HTMLInputElement).value))}
+        @pointerup=${() => {
+          // A release on the handle where it stood brings no change event.
+          if (this.untouched && !this.isDisabled) this.commitStep(this.index)
+        }}
       />`
     }
     const [from, to] = this.pair

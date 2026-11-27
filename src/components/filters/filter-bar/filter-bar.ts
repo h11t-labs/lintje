@@ -296,6 +296,7 @@ export class LintjeFilterBar extends LintjeElement {
           label=${filter.label}
           value=${(value as string) ?? ''}
           .options=${options}
+          ?bold=${modified}
           @lintje-change=${(event: CustomEvent<string>) => onChange(event.detail)}
         ></lintje-segmented>`
       case 'select':

@@ -222,6 +222,15 @@ describe('lintje-date-range', () => {
     expect(element.open).toBe(false)
   })
 
+  it('closes when it is turned off while open', async () => {
+    const element = await openWith({ from: null, to: null })
+    expect(element.open).toBe(true)
+    element.disabled = true
+    await element.updateComplete
+    expect(element.open).toBe(false)
+    expect(element.shadowRoot!.querySelector('.lintje-date-range-picker__popover')).toBeNull()
+  })
+
   it('applies "Wissen" over a chosen range, and nothing over an empty one', async () => {
     const element = await openWith({ from: '05-10-2026', to: '07-10-2026' })
     const button = (name: string): LintjeButton =>

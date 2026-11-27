@@ -97,7 +97,7 @@ export class LintjePageHeader extends LintjeElement {
       const tabs = this.querySelector<HTMLElement>('[slot="tabs"]')
       if (!tabs) return
       const lift = tabs.getBoundingClientRect().top - this.getBoundingClientRect().top
-      this.style.setProperty('--lintje-page-header-lift', `${Math.round(lift)}px`)
+      this.style.setProperty('--lintje-page-header-lift', `${lift}px`)
     })
     this.#lift.observe(this)
   }

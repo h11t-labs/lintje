@@ -192,6 +192,16 @@ export default {
           html: '<lintje-icon-button icon="functioneel-kruis" label="Sluiten" disabled></lintje-icon-button>',
         },
         {
+          label: 'Actief en uitgeschakeld',
+          note: 'Uitgeschakeld wint: de knop verliest de vulling.',
+          html: '<lintje-icon-button icon="functioneel-filters" label="Filters" active disabled></lintje-icon-button>',
+        },
+        {
+          label: 'Live en uitgeschakeld',
+          note: 'Zonder vulling, en de golfjes staan stil.',
+          html: '<lintje-icon-button icon="beeld-en-geluid-microfoon" label="Inspreken" variant="flat" live disabled></lintje-icon-button>',
+        },
+        {
           label: 'Zonder icoonbestand',
           note: 'Een naam zonder bestand toont het label als tekst.',
           html: '<lintje-icon-button icon="bestaat-niet" label="Sluiten"></lintje-icon-button>',

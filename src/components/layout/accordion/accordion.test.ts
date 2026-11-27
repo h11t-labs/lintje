@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { LintjeAccordion } from './accordion'
 import type { LintjeExpander } from '../expander/expander'
+import '../../overlays/toggletip/toggletip'
+import type { LintjeToggletip } from '../../overlays/toggletip/toggletip'
 
 afterEach(() => {
   document.body.replaceChildren()
@@ -120,6 +122,29 @@ describe('lintje-accordion', () => {
     await settled(nested)
     await press(nested)
     expect(first!.open).toBe(true)
+  })
+
+  it('stays as it is when a toggletip in an open row opens and closes', async () => {
+    const element = await accordion('exclusive')
+    const [first, second] = rowsOf(element)
+    await press(first!)
+    const tip = document.createElement('lintje-toggletip') as LintjeToggletip
+    tip.textContent = 'Uitleg'
+    first!.append(tip)
+    await tip.updateComplete
+    const toggles: string[] = []
+    element.addEventListener('lintje-toggle', (event) =>
+      toggles.push((event.target as Element).localName),
+    )
+    const trigger = tip.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-toggletip__trigger')!
+    trigger.click()
+    await tip.updateComplete
+    trigger.click()
+    await tip.updateComplete
+    await settled(element)
+    expect(first!.open).toBe(true)
+    expect(second!.open).toBe(false)
+    expect(toggles).toEqual(['lintje-toggletip', 'lintje-toggletip'])
   })
 
   it('draws no link unless asked', async () => {

@@ -66,6 +66,15 @@ describe('lintje-filter-bar', () => {
     element.data = { ...element.data!, filters: [{ ...REGION, value: 'alle' }] }
     expect(await said(element)).toBe('')
   })
+
+  it('bolds a segmented filter off its default, as it does a select', async () => {
+    const element = await mount()
+    const segmented = () => element.shadowRoot!.querySelector('lintje-segmented')!
+    expect(segmented().bold).toBe(true)
+    element.data = { ...element.data!, filters: [{ ...REGION, value: 'alle' }] }
+    await element.updateComplete
+    expect(segmented().bold).toBe(false)
+  })
 })
 
 describe('the date range in the filter bar', () => {

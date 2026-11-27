@@ -1,6 +1,6 @@
 /**
  * A label that turns bold when chosen keeps its bold width free (`bold-room`): choosing another
- * option, tab, page or menu item leaves every label as wide as it was, so nothing beside it moves.
+ * option, tab, page, menu item or tree row leaves every label as wide as it was, so nothing beside it moves.
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
@@ -8,6 +8,7 @@ import '../../components/frame/sub-nav/sub-nav'
 import '../../components/inputs/segmented/segmented'
 import '../../components/layout/tabs/tabs'
 import '../../components/tables/pagination/pagination'
+import '../../components/tables/tree-view/tree-view'
 
 interface Row {
   name: string
@@ -67,6 +68,18 @@ const ROWS: Row[] = [
         ],
       }),
     boxes: (element) => all(element, '.lintje-sub-nav__label'),
+    count: OPTIONS.length,
+  },
+  {
+    name: 'lintje-tree-view',
+    mount: () =>
+      Object.assign(document.createElement('lintje-tree-view'), {
+        label: 'Mappen',
+        nodes: OPTIONS.map((label) => ({ id: label, label })),
+        selectedId: OPTIONS[0],
+      }),
+    choose: (element, index) => Object.assign(element, { selectedId: OPTIONS[index] }),
+    boxes: (element) => all(element, '.lintje-tree__label'),
     count: OPTIONS.length,
   },
   {

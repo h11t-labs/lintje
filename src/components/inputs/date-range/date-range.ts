@@ -175,7 +175,8 @@ export class LintjeDateRange extends LintjeInputElement {
   }
 
   private readonly onEscape = (event: KeyboardEvent): void => {
-    if (!this.open || event.key !== 'Escape' || !ownsEscape(this)) return
+    if (!this.open || event.key !== 'Escape' || event.defaultPrevented || !ownsEscape(this)) return
+    event.preventDefault()
     event.stopPropagation()
     void this.close()
   }
@@ -242,6 +243,12 @@ export class LintjeDateRange extends LintjeInputElement {
     this.spot = next
     stand(panel, next)
     panel.style.setProperty('--lintje-date-range-space', `${next.space}px`)
+  }
+
+  // A field turned off closes its popover, without giving the focus back to its button.
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    super.willUpdate(changed)
+    if (this.open && this.isDisabled) this.open = false
   }
 
   // The panel exists only now, so its size is known; a closed one forgets its place.

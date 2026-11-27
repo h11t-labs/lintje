@@ -7,6 +7,7 @@ import { focusTarget, tabbables } from '../../components/shared/focus-trap'
 import '../../components/overlays/popover/popover'
 import '../../components/overlays/tooltip/tooltip'
 import '../../components/overlays/toggletip/toggletip'
+import '../../components/overlays/modal/modal'
 import '../../components/actions/menu-button/menu-button'
 import '../../components/inputs/combobox/combobox'
 import '../../components/inputs/multiselect/multiselect'
@@ -55,6 +56,8 @@ interface Row {
   shiftTab: 'closes' | 'stays'
   /** A press inside closes it: a tooltip lives on its button's focus, which a press takes. */
   pressCloses?: true
+  /** A press on a button outside closes it and still reaches that button, which keeps the focus. */
+  pressOutside?: 'passes'
   /** Builds the element in `stage` and opens it from its trigger, as a reader would. */
   open: (stage: HTMLElement) => Promise<Opened>
 }
@@ -70,6 +73,7 @@ type Check =
   | 'shift tab'
   | 'focus away'
   | 'press inside'
+  | 'press outside'
 
 /**
  * What fails today: each entry has its GitHub issue above it and matches
@@ -755,6 +759,7 @@ const ROWS: Row[] = [
   {
     name: 'lintje-multiselect',
     onScroll: 'follows',
+    pressOutside: 'passes',
     // A dialog that takes the focus to its search; its field is part of the element.
     opens: 'first stop',
     shiftTab: 'stays',
@@ -777,6 +782,7 @@ const ROWS: Row[] = [
   {
     name: 'lintje-date-range',
     onScroll: 'follows',
+    pressOutside: 'passes',
     // The focus stays on the field; Tab walks into the calendar.
     opens: 'opener',
     shiftTab: 'stays',
@@ -1143,7 +1149,126 @@ describe('a popup and the focus', () => {
         )
     }
 
+    if (row.pressOutside) {
+      opened = await reopen()
+      let pressed = 0
+      const count = (): void => void pressed++
+      elsewhere.addEventListener('click', count)
+      // Forced: a layer over the page takes the press, as it would a reader's.
+      await userEvent.click(elsewhere, { force: true })
+      elsewhere.removeEventListener('click', count)
+      if (!pressed) note('press outside', 'the button outside got no click')
+      note('press outside', await lands(opened, true, elsewhere))
+    }
+
     report(findings)
+  })
+})
+
+interface Layers {
+  /** What each layer shows while it is open, from the top down. */
+  open: { name: string; surface: () => Element | null }[]
+}
+
+/** A button with a tooltip, its focus on the button and the tooltip shown. */
+function tipped(text: string): { tip: Lit; button: HTMLButtonElement } {
+  const tip = create<Lit & { text: string }>('lintje-tooltip', { text: 'Meer over dit cijfer' })
+  const button = create<HTMLButtonElement>('button', { type: 'button', textContent: text })
+  tip.append(button)
+  return { tip, button }
+}
+
+/** A popover opened from a button with a tooltip; `first` is the layer that connects first. */
+async function tippedPopover(stage: HTMLElement, first: 'tooltip' | 'popover'): Promise<Layers> {
+  const { tip, button } = tipped('Uitleg')
+  const popover = create<Lit & { open: boolean; label: string }>('lintje-popover')
+  popover.label = 'Uitleg'
+  popover.append(sentences())
+  button.addEventListener('click', () => (popover.open = !popover.open))
+  popover.addEventListener('lintje-close', (event) => {
+    popover.open = false
+    if ((event as CustomEvent<{ reason: string }>).detail.reason === 'escape') button.focus()
+  })
+  if (first === 'tooltip') stage.append(tip, popover)
+  else {
+    stage.append(popover)
+    stage.prepend(tip)
+  }
+  await tip.updateComplete
+  await press(button, '{Enter}')
+  return {
+    open: [
+      { name: 'tooltip', surface: () => tip.shadowRoot!.querySelector('.lintje-tooltip') },
+      { name: 'popover', surface: () => popoverSurface(popover) },
+    ],
+  }
+}
+
+const LAYERED: [string, (stage: HTMLElement) => Promise<Layers>][] = [
+  ['a popover under a tooltip, the tooltip connected first', (s) => tippedPopover(s, 'tooltip')],
+  ['a popover under a tooltip, the popover connected first', (s) => tippedPopover(s, 'popover')],
+  [
+    'a toggletip under a tooltip',
+    async (stage) => {
+      const tip = create<Lit & { text: string }>('lintje-tooltip', { text: 'Meer over dit cijfer' })
+      const toggletip = create<Lit>('lintje-toggletip')
+      toggletip.textContent = 'De doorlooptijd telt in werkdagen.'
+      tip.append(toggletip)
+      stage.append(tip)
+      await toggletip.updateComplete
+      await press(part(toggletip, '.lintje-toggletip__trigger'), '{Enter}')
+      return {
+        open: [
+          { name: 'tooltip', surface: () => tip.shadowRoot!.querySelector('.lintje-tooltip') },
+          {
+            name: 'toggletip',
+            surface: () =>
+              toggletip.shadowRoot!.querySelector('.lintje-toggletip__popover.is-open'),
+          },
+        ],
+      }
+    },
+  ],
+  [
+    'a popover under a tooltip in a modal',
+    async (stage) => {
+      const modal = create<Lit & { open: boolean; heading: string }>('lintje-modal')
+      modal.heading = 'Details'
+      // The popover's own close bubbles through the modal: only the modal's counts.
+      modal.addEventListener('lintje-close', (event) => {
+        if (event.target === modal) modal.open = false
+      })
+      stage.append(modal)
+      modal.open = true
+      await modal.updateComplete
+      const inner = await tippedPopover(modal, 'tooltip')
+      return {
+        open: [
+          ...inner.open,
+          { name: 'modal', surface: () => modal.shadowRoot!.querySelector('.lintje-modal') },
+        ],
+      }
+    },
+  ],
+]
+
+describe('one Escape closes one floating layer, the top one first', () => {
+  it.each(LAYERED)('%s', async (_, build) => {
+    const stage = create<HTMLDivElement>('div')
+    stage.style.cssText = 'margin: 84px 0 0 120px; width: 480px'
+    document.body.append(stage)
+    const { open: layers } = await build(stage)
+    const shown = (): string[] =>
+      layers.filter((layer) => layer.surface()).map((layer) => layer.name)
+    const all = layers.map((layer) => layer.name)
+    expect(await until(shown, (now) => now.length === all.length), 'every layer opens').toEqual(all)
+    for (let closed = 1; closed <= all.length; closed++) {
+      await userEvent.keyboard('{Escape}')
+      const want = all.slice(closed)
+      // Staying open is only known once a close has had its time.
+      await until(shown, (now) => now.length < want.length, 300)
+      expect(shown(), `after Escape ${closed}`).toEqual(want)
+    }
   })
 })
 

@@ -19,6 +19,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { styleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
+import '../../feedback/empty-state/empty-state'
 import '../../feedback/spinner/spinner'
 import treeViewCss from './tree-view.css?inline'
 import { titleWhenCut } from '../../shared/cut-text'
@@ -78,6 +79,7 @@ export class LintjeTreeView extends LintjeElement {
     selectedId: { type: String, attribute: 'selected-id' },
     name: { type: String },
     label: { type: String },
+    emptyText: { type: String, attribute: 'empty-text' },
     open: { state: true },
     focusId: { state: true },
   }
@@ -90,6 +92,8 @@ export class LintjeTreeView extends LintjeElement {
   name: string = ''
   /** The tree's accessible name; without it "Boomstructuur", which says little: give one. */
   declare label?: string
+  /** The line that stands without nodes. */
+  emptyText: string = 'Er is hier nog niets.'
   protected open: Set<string> = new Set()
   protected focusId: string | null = null
 
@@ -231,7 +235,9 @@ export class LintjeTreeView extends LintjeElement {
         }}
       >
         ${this.arrow(node)}
-        <span class="lintje-tree__label" @pointerenter=${titleWhenCut}>${node.label}</span>
+        <span class="lintje-tree__label bold-room" data-text=${node.label} @pointerenter=${titleWhenCut}
+          >${node.label}</span
+        >
         ${
           branch && !open && count
             ? html`<span class="lintje-tree__count">· ${count}</span>`
@@ -249,6 +255,9 @@ export class LintjeTreeView extends LintjeElement {
   }
 
   protected override render(): TemplateResult {
+    // Without nodes a line, not an empty tree: a tree without items is a hole to a reader.
+    if (!this.nodes.length)
+      return html`<lintje-empty-state compact text=${this.emptyText}></lintje-empty-state>`
     const tabStop = this.tabStop(this.rows)
     return html`<ul
       class="lintje-tree"

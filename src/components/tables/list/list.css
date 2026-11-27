@@ -32,17 +32,18 @@
 /* The field is as low as the buttons under it: a name in a row, not a form. */
 .lintje-list__rename lintje-text-input { --h-control: var(--h-button-compact); }
 .lintje-list__rename-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
-/* A data colour along the row says whose it is; the title beside it names it. */
+/* A data colour along the row says whose it is; the title beside it names it. It stands in from
+   the left, where a chosen row draws its edge, so both show. */
 .lintje-list__row.has-swatch {
   position: relative;
-  padding-left: calc(var(--lintje-inset, var(--space-3)) + var(--space-2));
+  padding-left: calc(var(--lintje-inset, var(--space-3)) + var(--space-3));
 }
 .lintje-list__row.has-swatch::before {
   content: '';
   position: absolute;
   top: var(--space-2);
   bottom: var(--space-2);
-  left: 0;
+  left: var(--space-1);
   width: var(--space-1);
   background: var(--lintje-swatch);
 }

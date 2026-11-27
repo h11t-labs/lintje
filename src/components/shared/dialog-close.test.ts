@@ -1,5 +1,5 @@
 /**
- * One close button for the dialogs: the modal, the drawer and the filter sheet draw
+ * One close button for the dialogs: the dialog, the modal, the drawer and the filter sheet draw
  * their ✕ with the shared block `lintje-dialog-close`, and none of them keeps a copy
  * of its box or its hit area. (The app search's and the notifications sheet's appear
  * only below 768 px; their own tests check the class.)
@@ -7,6 +7,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve as resolvePath } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import '../overlays/dialog/dialog'
 import '../overlays/modal/modal'
 import '../overlays/drawer/drawer'
 import '../filters/filter-sheet/filter-sheet'
@@ -17,6 +18,7 @@ const read = (path: string): string =>
   readFileSync(resolvePath(`src/components/${path}`), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
 
 const DIALOGS: [string, string, string][] = [
+  ['lintje-dialog', 'lintje-dialog__close', 'overlays/dialog/dialog.css'],
   ['lintje-modal', 'lintje-modal__close', 'overlays/modal/modal.css'],
   ['lintje-drawer', 'lintje-drawer__close', 'overlays/drawer/drawer.css'],
   ['lintje-filter-sheet', 'lintje-filter-sheet__close', 'filters/filter-sheet/filter-sheet.css'],
@@ -37,7 +39,8 @@ describe('the dialog close button', () => {
 
   it.each(DIALOGS)('%s draws it and keeps no copy of it', async (tag, element, file) => {
     const css = read(file)
-    expect(css).not.toContain(`.${element} {`)
+    // Its own rule may place it, never size it again.
+    expect(css).not.toMatch(new RegExp(`\\.${element}\\s*\\{[^}]*(width|height|transition):`))
     expect(css).not.toContain(`.${element}::after`)
     const dialog = document.createElement(tag) as HTMLElement & {
       open: boolean

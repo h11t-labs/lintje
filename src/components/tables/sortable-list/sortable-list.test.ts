@@ -331,4 +331,25 @@ describe('lintje-sortable-list with a slot', () => {
     expect(row.querySelector('slot[name="foto"]')).not.toBeNull()
     element.remove()
   })
+
+  it('says its empty text without items, and draws no empty list', async () => {
+    const element = await mount({ items: [], emptyText: 'Nog geen kolommen.' })
+    const empty = element.shadowRoot!.querySelector('lintje-empty-state')!
+    expect(empty.hasAttribute('compact')).toBe(true)
+    expect(empty.getAttribute('text')).toBe('Nog geen kolommen.')
+    expect(element.shadowRoot!.querySelector('[role="list"]')).toBeNull()
+    element.items = ITEMS
+    await element.updateComplete
+    expect(element.shadowRoot!.querySelector('lintje-empty-state')).toBeNull()
+    expect(element.shadowRoot!.querySelector('[role="list"]')).not.toBeNull()
+    element.remove()
+  })
+
+  it('has a Dutch empty text of its own', async () => {
+    const element = await mount({ items: [] })
+    expect(element.shadowRoot!.querySelector('lintje-empty-state')!.getAttribute('text')).toBe(
+      'Er is nog niets om te ordenen.',
+    )
+    element.remove()
+  })
 })

@@ -1026,7 +1026,7 @@ export default {
         },
         {
           label: 'Rijen met een link',
-          note: 'Elke rij heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad.',
+          note: 'Elke rij heeft een `href`. Een klik of Enter gaat erheen als de host het event niet annuleert; Cmd- of Ctrl-klik opent een nieuw tabblad. Onder de aanwijzer licht een rij op; de gekozen rij houdt haar vlak en balk.',
           html: '<lintje-data-table></lintje-data-table>',
           setup: (stage) => {
             const element = table(stage, {
@@ -1034,6 +1034,7 @@ export default {
               title: 'Loketten',
               subtitle: 'Elke rij met een link',
               rows: tableData.rows.slice(0, 4).map((row) => ({ ...row, href: `?loket=${row.id}` })),
+              selectedId: tableData.rows[0].id,
               pageSize: undefined,
               expandable: false,
             })
@@ -1383,6 +1384,20 @@ export default {
               { id: 'p2', avatar: { name: 'Spreker 2' }, swatch: 'dark-yellow', title: 'Spreker 2', sub: '3 fragmenten · 1:05', actions, clickable: false },
               { id: 'p3', avatar: { name: 'Spreker 3' }, swatch: 'pink', title: 'Spreker 3', sub: '3 fragmenten · 0:52', actions, clickable: false },
             ]
+          },
+        },
+        {
+          label: 'Spreker gekozen',
+          note: 'De gekozen rij heeft het vlak en de balk links; het kleurstaal staat ernaast, naar binnen.',
+          html: '<lintje-list label="Sprekers" selected-id="p2"></lintje-list>',
+          setup(stage) {
+            const list = stage.querySelector('lintje-list')
+            list.items = [
+              { id: 'p1', swatch: 'sky-blue', title: 'Ploegleider', sub: '5 fragmenten · 2:12' },
+              { id: 'p2', swatch: 'dark-yellow', title: 'Spreker 2', sub: '3 fragmenten · 1:05' },
+              { id: 'p3', swatch: 'pink', title: 'Spreker 3', sub: '3 fragmenten · 0:52' },
+            ]
+            list.addEventListener('lintje-row-click', (event) => (list.selectedId = event.detail.id))
           },
         },
         {
@@ -1736,6 +1751,11 @@ export default {
             ]
           },
         },
+        {
+          label: 'Leeg',
+          note: 'Geen lege boom: één regel, die de host meegeeft met `empty-text`.',
+          html: '<lintje-tree-view label="Eenheden" empty-text="Er zijn nog geen eenheden."></lintje-tree-view>',
+        },
       ],
     },
     {
@@ -1806,6 +1826,11 @@ export default {
               COLUMNS[2],
             ]
           },
+        },
+        {
+          label: 'Leeg',
+          note: 'Geen lege lijst: één regel, die de host meegeeft met `empty-text`.',
+          html: '<lintje-sortable-list label="Kolommen" empty-text="Er zijn nog geen kolommen."></lintje-sortable-list>',
         },
       ],
     },
@@ -1936,11 +1961,11 @@ export default {
           },
         },
         {
-          label: 'Zonder momenten',
-          note: 'Geen lege rail: één zin, die de host meegeeft.',
+          label: 'Leeg',
+          note: 'Geen lege rail: één regel, die de host meegeeft met `empty-text`.',
           html:
             '<lintje-timeline heading="Uw aanvraag voor een subsidie" ' +
-            'empty="Er is nog niets gebeurd met deze aanvraag."></lintje-timeline>',
+            'empty-text="Er is nog niets gebeurd met deze aanvraag."></lintje-timeline>',
         },
       ],
     },

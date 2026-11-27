@@ -14,8 +14,9 @@
 /* The ring is around the whole field; a chip draws it around itself when its cross has the focus. */
 .lintje-tag-input:has(.lintje-tag-input__input:focus-visible),
 .lintje-tag-input__chip:has(.lintje-tag-input__remove:focus-visible) {
-  outline: var(--focus-width) solid var(--color-focus);
+  outline: var(--focus-width) solid var(--lintje-focus, var(--color-focus));
   outline-offset: var(--focus-offset);
+  box-shadow: 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner));
 }
 .lintje-tag-input__input:focus-visible,
 .lintje-tag-input__remove:focus-visible { outline: none; }

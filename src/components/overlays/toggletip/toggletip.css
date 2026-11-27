@@ -11,7 +11,7 @@
    a region that appeared together with its text would not be announced. */
 
 /* Fixed to the viewport, so a scrolling tile or table cannot cut it off. It stands on the
-   popover's layer (85): above a modal's or a drawer's scrim, under the tooltip (90). */
+   popover's layer (85): above every window (80–83), under a toast (87) and the tooltip (90). */
 .lintje-toggletip__popover.is-open {
   position: fixed;
   z-index: 85;
