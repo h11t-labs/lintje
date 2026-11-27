@@ -10,7 +10,7 @@
 
 ### Opgelost
 
-- `lintje-number-input` weigert een getypt getal buiten `min` of `max` met een foutregel op de plek van de hint, en stuurt het niet door (#401)
+- `lintje-number-input` weigert een getypt getal buiten `min` of `max` met een foutregel op de plek van de hint, en stuurt het niet door; een reset of de host die de waarde opnieuw zet, haalt de weigering weg, ook in het datum- en het tijdveld (#401)
 - `lintje-checkbox` verbergt met `hide-label` zijn label, zoals de schakelaar; de naam blijft voor een schermlezer (#401)
 - Een uitgeschakelde `lintje-repeater` schakelt ook de velden in zijn rijen uit, zoals `lintje-form-section`, en geeft ze terug zoals ze waren (#401)
 - `lintje-date-range` is een veld als de andere: de foutbalk van de nieuwe huisstijl en `layout="row"` werken (#401)
