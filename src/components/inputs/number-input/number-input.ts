@@ -31,7 +31,8 @@ export class LintjeNumberInput extends LintjeFormInputElement {
   static override styles = [iconStyles, shadowCss(inputCss), shadowCss(numberInputCss)]
 
   static override properties: PropertyDeclarations = {
-    value: { type: Number },
+    // Set again, even to the same number, a value drops a refusal: a reset, or the host's answer.
+    value: { type: Number, hasChanged: () => true },
     min: { type: Number },
     max: { type: Number },
     step: { type: Number },
@@ -72,7 +73,11 @@ export class LintjeNumberInput extends LintjeFormInputElement {
 
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
-    if (changed.has('value')) this.problem = ''
+    if (!changed.has('value')) return
+    this.problem = ''
+    // The binding writes only a value that differs from the last; a refused number stays typed.
+    const control = this.nativeControl
+    if (control) control.value = this.formValue
   }
 
   private outOfBounds(next: number): string {

@@ -302,3 +302,22 @@ describe('Enter in a native form', () => {
     expect(submits).toBe(0)
   })
 })
+
+describe('a refusal', () => {
+  it('goes on a form reset and on the same value from the host', async () => {
+    const element = await mount({ value: '14:35' })
+    const error = (): Element | null => element.shadowRoot!.querySelector('.lintje-field__error')
+    await type(element, '25:00')
+    expect(error()).not.toBeNull()
+    ;(element as unknown as { formResetCallback(): void }).formResetCallback()
+    await element.updateComplete
+    expect(error()).toBeNull()
+    expect(control(element).value).toBe('14:35')
+
+    await type(element, '25:00')
+    element.value = '14:35'
+    await element.updateComplete
+    expect(error()).toBeNull()
+    expect(control(element).value).toBe('14:35')
+  })
+})

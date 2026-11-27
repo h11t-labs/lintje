@@ -158,6 +158,22 @@ describe('a typed number outside the bounds', () => {
     expect(error(element)).toBeNull()
   })
 
+  it('loses its refusal on a form reset and on the same value from the host', async () => {
+    const element = await mount({ value: 5, max: 12 })
+    await type(element, '30')
+    ;(element as unknown as { formResetCallback(): void }).formResetCallback()
+    await element.updateComplete
+    expect(error(element)).toBeNull()
+    expect(control(element).hasAttribute('aria-invalid')).toBe(false)
+    expect(control(element).value).toBe('5')
+
+    await type(element, '30')
+    element.value = 5
+    await element.updateComplete
+    expect(error(element)).toBeNull()
+    expect(control(element).value).toBe('5')
+  })
+
   it('keeps its message after a step that changes nothing at the bound', async () => {
     const element = await mount({ value: 12, max: 12 })
     await type(element, '30')

@@ -49,7 +49,8 @@ export class LintjeDateInput extends LintjeInputElement {
   ]
 
   static override properties: PropertyDeclarations = {
-    value: { type: String },
+    // Set again, even to the same day, a value drops a refusal: a reset, or the host's answer.
+    value: { type: String, hasChanged: () => true },
     min: { type: String },
     max: { type: String },
     today: { type: String },
