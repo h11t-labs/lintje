@@ -48,6 +48,7 @@ import { badgeStyles, renderBadge } from '../../feedback/badge/badge'
 import '../../feedback/announcement/announcement'
 import '../../feedback/empty-state/empty-state'
 import '../description-list/description-list'
+import '../cells/cells'
 import '../../actions/menu-button/menu-button'
 import '../pagination/pagination'
 import { NO_PERSON } from '../person/person'
@@ -74,6 +75,7 @@ import { focusTarget, tabbables } from '../../shared/focus-trap'
 import { LiveMessage } from '../../shared/live-message'
 import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import type { DescriptionItem } from '../description-list/description-list'
+import type { CellItem } from '../cells/cells'
 import type { MenuEntry } from '../../actions/menu-button/menu-button'
 import { titleWhenCut } from '../../shared/cut-text'
 import { rangeIds, renderRowActions, renderSelectionBar, withRange } from './actions'
@@ -1893,7 +1895,10 @@ export class LintjeDataTable extends LintjeContentTileElement {
     </button>`
   }
 
-  /** What a row's columns leave out, as label and value. */
+  /**
+   * What a row's columns leave out, as label and value: the facts side by side under a row of
+   * the table, a list under a row on the phone.
+   */
   private detailList(
     row: Row,
     columns: TableColumnData[],
@@ -1901,29 +1906,32 @@ export class LintjeDataTable extends LintjeContentTileElement {
     copy: string,
     phone: boolean,
   ): TemplateResult {
-    // As many cells to a line as fill the lines evenly: a gap at the end reads as a missing value.
-    const lines = Math.ceil(columns.length / 4)
     // A person keeps the circle here, and a slot column the host's element: each stands in the
     // item's slot, passed on from this element's own.
     const slotted = (column: TableColumnData): boolean =>
       column.format === 'person' || (Boolean(column.slot) && this.drawsSlots(copy, phone))
     const slot = (column: TableColumnData): string =>
       column.slot ? `${column.key}-${this.rowKey(row)}` : `person-${column.key}`
-    return html`<lintje-description-list
-      layout=${layout}
-      .columns=${Math.ceil(columns.length / lines)}
-      .items=${columns.map((column): DescriptionItem =>
-        slotted(column)
-          ? { label: column.header, slot: slot(column) }
-          : { label: column.header, value: cellText(column, row[column.key]) },
-      )}
-      >${columns.filter(slotted).map((column) =>
-        column.slot
-          ? html`<slot name=${slot(column)} slot=${slot(column)}
-              >${this.cell(column, row[column.key], row)}</slot
-            >`
-          : html`<span slot=${slot(column)}>${personCell(column, row[column.key])}</span>`,
-      )}</lintje-description-list
+    const items = columns.map((column): DescriptionItem & CellItem =>
+      slotted(column)
+        ? { label: column.header, slot: slot(column) }
+        : { label: column.header, value: cellText(column, row[column.key]) },
+    )
+    const parts = columns.filter(slotted).map((column) =>
+      column.slot
+        ? html`<slot name=${slot(column)} slot=${slot(column)}
+            >${this.cell(column, row[column.key], row)}</slot
+          >`
+        : html`<span slot=${slot(column)}>${personCell(column, row[column.key])}</span>`,
+    )
+    if (layout === 'row') {
+      return html`<lintje-description-list .items=${items}>${parts}</lintje-description-list>`
+    }
+    // As many cells to a line as fill the lines evenly: a gap at the end reads as a missing value.
+    // The open row is grey, so the fields take the surface.
+    const lines = Math.ceil(columns.length / 4)
+    return html`<lintje-cells surface .columns=${Math.ceil(columns.length / lines)} .items=${items}
+      >${parts}</lintje-cells
     >`
   }
 

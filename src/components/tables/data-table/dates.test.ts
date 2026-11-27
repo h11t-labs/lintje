@@ -186,10 +186,12 @@ describe('the same words everywhere', () => {
     await element.updateComplete
     // An open row is open on the phone too.
     type List = Element & { items: { label: string; value?: string }[] }
-    for (const table of ['full', 'mobile']) {
-      const list = shadow(element).querySelector<List>(
-        `.lintje-data-table__${table} lintje-description-list`,
-      )!
+    // The table's detail is a row of cells, the phone's a list.
+    for (const selector of [
+      '.lintje-data-table__full lintje-cells',
+      '.lintje-data-table__mobile lintje-description-list',
+    ]) {
+      const list = shadow(element).querySelector<List>(selector)!
       expect(list.items.map((item) => item.value)).toEqual(['05-01-2026', '05-01-2026 14:30'])
     }
   })
