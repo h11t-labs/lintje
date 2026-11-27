@@ -212,6 +212,14 @@ export class LintjeElement extends LitElement {
   protected emitLocal(name: string, detail?: unknown): void {
     this.dispatchEvent(new CustomEvent(name, { detail, bubbles: true }))
   }
+
+  /**
+   * Neither bubbling nor composed: only a listener on the element itself hears it, so the same
+   * event of an element around it stays apart.
+   */
+  protected emitOwn(name: string, detail?: unknown): void {
+    this.dispatchEvent(new CustomEvent(name, { detail }))
+  }
 }
 
 /** Asks every connected element to render again; called when a late icon arrives. */
