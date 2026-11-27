@@ -724,51 +724,91 @@ describe.each([1440, 390])('a toast while a window is open, at %i px', (width) =
   )
 })
 
+/** A toast that stays, with an action, as a host shows it; resolves once it stands still. */
+async function lastingToast(): Promise<HTMLElement> {
+  const toast = Object.assign(document.createElement('lintje-toast'), {
+    kind: 'error' as const,
+    action: 'Opnieuw proberen',
+  })
+  toast.textContent = 'De melding is niet opgeslagen.'
+  document.body.append(toast)
+  await expect
+    .poll(() => shadow(toast, '.lintje-toast__close')?.checkVisibility() ?? false)
+    .toBe(true)
+  await Promise.all(toast.shadowRoot!.getAnimations().map((animation) => animation.finished))
+  return shadow(toast, '.lintje-toast')!
+}
+
+/** Focuses each footer button in turn and finds it clear of the toast. */
+async function buttonsClear(element: HTMLElement, box: HTMLElement): Promise<void> {
+  for (const button of element.querySelectorAll('lintje-button')) {
+    const target = focusTarget(button as HTMLElement)
+    target.focus()
+    expect(deepActiveElement()).toBe(target)
+    await expect
+      .poll(
+        () => {
+          const a = box.getBoundingClientRect()
+          const b = target.getBoundingClientRect()
+          return a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right
+        },
+        { message: `${button.textContent} lies under the toast` },
+      )
+      .toBe(true)
+  }
+}
+
+/** A window with a footer of two buttons and content `height` px tall. */
+function footedWindow(
+  tag: 'lintje-drawer' | 'lintje-modal' | 'lintje-dialog',
+  height: number,
+): Window {
+  const element = Object.assign(document.createElement(tag), { heading: 'Melding' }) as Window
+  const slot = tag === 'lintje-drawer' ? 'footer' : 'actions'
+  element.innerHTML = `<p style="height: ${height}px">Ingediend op 3 maart.</p>
+    <lintje-button slot="${slot}" variant="tertiary">Annuleren</lintje-button>
+    <lintje-button slot="${slot}" variant="primary">Opslaan</lintje-button>`
+  document.body.append(element)
+  element.open = true
+  return element
+}
+
 describe.each([1440, 390])('a lasting toast over a window, at %i px', (width) => {
   it.each(['lintje-drawer', 'lintje-modal'] as const)(
     'does not cover the focused footer button of a %s',
     async (tag) => {
       await atWidth(width)
-      const element = Object.assign(document.createElement(tag), { heading: 'Melding' }) as Window
       // Tall content puts the footer at the bottom of the screen.
-      element.innerHTML = `<p style="height: 2000px">Ingediend op 3 maart.</p>
-        <lintje-button slot="${tag === 'lintje-drawer' ? 'footer' : 'actions'}" variant="tertiary">Annuleren</lintje-button>
-        <lintje-button slot="${tag === 'lintje-drawer' ? 'footer' : 'actions'}" variant="primary">Opslaan</lintje-button>`
-      document.body.append(element)
-      element.open = true
+      const element = footedWindow(tag, 2000)
       await settled(element)
-      const toast = Object.assign(document.createElement('lintje-toast'), {
-        kind: 'error' as const,
-        action: 'Opnieuw proberen',
-      })
-      toast.textContent = 'De melding is niet opgeslagen.'
-      document.body.append(toast)
-      await expect
-        .poll(() => shadow(toast, '.lintje-toast__close')?.checkVisibility() ?? false)
-        .toBe(true)
-      await Promise.all(toast.shadowRoot!.getAnimations().map((animation) => animation.finished))
-      const box = shadow(toast, '.lintje-toast')!
+      const box = await lastingToast()
       const dialog = dialogs()[0]!
-      for (const button of element.querySelectorAll('lintje-button')) {
-        const target = focusTarget(button as HTMLElement)
-        target.focus()
-        expect(deepActiveElement()).toBe(target)
-        await expect
-          .poll(
-            () => {
-              const a = box.getBoundingClientRect()
-              const b = target.getBoundingClientRect()
-              return (
-                a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right
-              )
-            },
-            { message: `${button.textContent} lies under the toast` },
-          )
-          .toBe(true)
-      }
+      await buttonsClear(element, box)
       expect(dialogs()).toEqual([dialog])
     },
   )
+})
+
+describe('a lasting toast beside a dialog', () => {
+  it('stays in its corner when the dialog stands in the middle, at 1440 px', async () => {
+    await atWidth(1440)
+    const box = await lastingToast()
+    const corner = box.getBoundingClientRect().bottom
+    const element = footedWindow('lintje-dialog', 40)
+    await settled(element)
+    await new Promise(requestAnimationFrame)
+    expect(box.getBoundingClientRect().bottom).toBe(corner)
+  })
+
+  it('keeps the buttons of a dialog on a low phone screen clear', async () => {
+    await page.viewport(390, 420)
+    await expect.poll(() => window.innerHeight).toBe(420)
+    // Content taller than the screen: the dialog's footer reaches the toast's place.
+    const element = footedWindow('lintje-dialog', 600)
+    await settled(element)
+    const box = await lastingToast()
+    await buttonsClear(element, box)
+  })
 })
 
 /** A window inside its scrim: only a press that starts and ends on the scrim asks to close. */
