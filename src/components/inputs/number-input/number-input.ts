@@ -106,14 +106,17 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     this.#live.say(String(next))
   }
 
-  private change(event: Event): void {
-    if (this.readonly) return
+  /** `false` when it refused the typed number. */
+  private change(event: Event): boolean {
+    if (this.readonly) return false
     const raw = (event.target as HTMLInputElement).value
     const next = raw === '' ? null : Number(raw)
     this.problem = next === null ? '' : this.outOfBounds(next)
-    if (this.problem || next === this.value) return
+    if (this.problem) return false
+    if (next === this.value) return true
     this.value = next
     this.commit(this.value)
+    return true
   }
 
   private stepButton(direction: -1 | 1): TemplateResult {

@@ -1,5 +1,6 @@
 /** Required: an empty input with `required` holds back the native `<form>` around it. */
 import { afterEach, describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import '../../components/inputs/checkbox/checkbox'
 import '../../components/inputs/checkbox-group/checkbox-group'
 import '../../components/inputs/combobox/combobox'
@@ -240,6 +241,22 @@ describe.each(ROWS)('$tag with required in a native form', (row) => {
     ;(document.activeElement as HTMLElement | null)?.blur()
     expect(form.reportValidity()).toBe(false)
     expect(active()).toBe(control)
+  })
+})
+
+describe('Enter in a one-line field', () => {
+  it.each([
+    ['lintje-text-input', 'Jansen'],
+    ['lintje-number-input', '3'],
+    ['lintje-date-input', '03-10-2026'],
+    ['lintje-time-input', '14:35'],
+  ])('%s submits the native form around it', async (tag, text) => {
+    const { element, submits } = await inForm({ tag, fill: {}, posts: [] }, { required: false })
+    element.focus()
+    await userEvent.keyboard(text)
+    await userEvent.keyboard('{Enter}')
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(submits()).toBe(1)
   })
 })
 

@@ -2,7 +2,8 @@
  * `<lintje-time-input>` — a time of day, `HH:MM` on a 24-hour clock, typed or picked from a list.
  *
  * The element reads typed text on leaving the field or Enter, checks it and shows a message in
- * place of the hint; a host's `error` wins. A typed time between two in the list stays as typed.
+ * place of the hint; a host's `error` wins. Enter then submits the form around it, unless it
+ * refused the text. A typed time between two in the list stays as typed.
  * It knows no day or time zone. Tab out of the element closes the list.
  *
  * Events: `lintje-change` `string | null` (`HH:MM`), `lintje-values-change` `{ [name]: value }`
@@ -119,7 +120,10 @@ export class LintjeTimeInput extends LintjeInputElement {
 
   private onChange(event: Event): void {
     if (this.readonly) return
-    const text = (event.target as HTMLInputElement).value
+    this.read((event.target as HTMLInputElement).value)
+  }
+
+  private read(text: string): void {
     const parsed = parseTime(text)
     if (parsed.kind === 'empty') return this.choose(null)
     this.text = text
@@ -134,6 +138,10 @@ export class LintjeTimeInput extends LintjeInputElement {
 
   private onKeydown(event: KeyboardEvent): void {
     if (this.readonly) return
+    this.submitOnEnter(event, () => {
+      this.read((event.target as HTMLInputElement).value)
+      return !this.problem
+    })
     if (event.altKey && event.key === 'ArrowDown') {
       event.preventDefault()
       this.openList()

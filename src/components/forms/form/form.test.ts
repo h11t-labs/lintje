@@ -10,6 +10,7 @@ import '../../inputs/textarea/textarea'
 import '../../inputs/checkbox/checkbox'
 import '../../inputs/toggle/toggle'
 import '../../inputs/multiselect/multiselect'
+import '../../inputs/date-input/date-input'
 import '../../inputs/date-range/date-range'
 import '../../inputs/range/range'
 import '../../inputs/file-upload/file-upload'
@@ -186,6 +187,31 @@ describe('lintje-form', () => {
       await tick()
 
       expect(submits).toHaveLength(2)
+      expect(hostSubmits).toBe(0)
+    })
+
+    it('submits once on Enter in a date field too, and leaves the host form alone', async () => {
+      document.body.append(host)
+      const form = document.createElement('lintje-form')
+      form.innerHTML = '<lintje-date-input name="datum" label="Datum"></lintje-date-input>'
+      host.append(form)
+      await form.updateComplete
+      const submits = listen<{ values: FormValues }>(form, 'lintje-submit')
+      const date = form.querySelector('lintje-date-input')!
+      await date.updateComplete
+      const input = date.shadowRoot!.querySelector('input')!
+      input.value = '03-10-2026'
+      input.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Enter',
+          bubbles: true,
+          composed: true,
+          cancelable: true,
+        }),
+      )
+      await tick()
+      expect(submits).toHaveLength(1)
+      expect(submits[0].values.datum).toBe('2026-10-03')
       expect(hostSubmits).toBe(0)
     })
   })

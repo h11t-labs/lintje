@@ -1,5 +1,5 @@
 /** The time input: what it shows, sends and refuses, and its keys. The arithmetic is `time-format.test.ts`. */
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import './time-input'
 import type { LintjeTimeInput } from './time-input'
 
@@ -258,5 +258,47 @@ describe('the list', () => {
     leave(outside)
     await element.updateComplete
     expect(element.open).toBe(false)
+  })
+})
+
+describe('Enter in a native form', () => {
+  const prototype = HTMLElement.prototype as unknown as { attachInternals?: () => unknown }
+  const original = prototype.attachInternals
+  let submits = 0
+
+  beforeEach(() => {
+    submits = 0
+    // happy-dom has no `ElementInternals`: a stand-in whose form counts its submits.
+    prototype.attachInternals = () => ({
+      form: { requestSubmit: () => submits++ },
+      setFormValue: () => {},
+      setValidity: () => {},
+    })
+  })
+
+  afterEach(() => {
+    prototype.attachInternals = original
+  })
+
+  async function enter(element: LintjeTimeInput, text: string): Promise<void> {
+    control(element).value = text
+    await press(element, 'Enter')
+    await new Promise((resolve) => setTimeout(resolve))
+  }
+
+  it('reads the time, then submits the form around it, as the text field does', async () => {
+    const element = await mount({ name: 'p.tijd' })
+    const seen = listen(element)
+    await enter(element, '1435')
+    expect(seen.local).toEqual(['14:35'])
+    expect(submits).toBe(1)
+  })
+
+  it('submits nothing when it refused the text, while read-only or while disabled', async () => {
+    await enter(await mount(), '25:00')
+    await enter(await mount({ max: '12:00' }), '14:35')
+    await enter(await mount({ readonly: true }), '14:35')
+    await enter(await mount({ disabled: true }), '14:35')
+    expect(submits).toBe(0)
   })
 })

@@ -2,7 +2,7 @@
  * The number field for a screen reader: the unit as part of what the field says, the stepper's
  * names, and a step at a bound that keeps the focus.
  */
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import './number-input'
 import type { LintjeNumberInput } from './number-input'
 
@@ -162,5 +162,34 @@ describe('a typed number outside the bounds', () => {
     const element = await mount({ value: 5, max: 12, error: 'Te hoog voor dit loket' })
     await type(element, '30')
     expect(error(element)?.textContent).toContain('Te hoog voor dit loket')
+  })
+})
+
+describe('Enter on a refused number', () => {
+  const prototype = HTMLElement.prototype as unknown as { attachInternals?: () => unknown }
+  const original = prototype.attachInternals
+
+  afterEach(() => {
+    prototype.attachInternals = original
+  })
+
+  it('submits nothing: the form would post the old value under the message', async () => {
+    let submits = 0
+    prototype.attachInternals = () => ({
+      form: { requestSubmit: () => submits++ },
+      setFormValue: () => {},
+      setValidity: () => {},
+    })
+    const element = await mount({ value: 5, max: 12 })
+    const enter = async (text: string): Promise<void> => {
+      control(element).value = text
+      control(element).dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+      await element.updateComplete
+      await new Promise((resolve) => setTimeout(resolve))
+    }
+    await enter('30')
+    expect(submits).toBe(0)
+    await enter('8')
+    expect(submits).toBe(1)
   })
 })

@@ -547,7 +547,10 @@ De besluiten hieronder gelden voor alle elementen.
   lintblauw tekent; het label van een veld staat vet op de bodygrootte, en het kruimelpad ook.
 - **Een keuzelijst draagt het pijlvak van de huisstijl**: aan het eind van het veld, binnen zijn
   rand, een vak in de primaire kleur met het witte teken; uitgeschakeld grijs, zoals het veld.
-- **Een veld legt vast als de lezer het verlaat of op Enter drukt.**
+- **Een veld legt vast als de lezer het verlaat of op Enter drukt.** Enter verstuurt daarna het
+  formulier eromheen, ook in een datum- of tijdveld. Weigert het veld wat getypt is — een dag die
+  niet bestaat, een getal, dag of tijd buiten `min` en `max` — dan zegt het waarom op de plek van
+  de hint, legt het niets vast en verstuurt Enter niets.
 - **Een vaste toevoeging aan een veld staat in een eigen vak** (een valutateken, een domein, een
   eenheid, een vast voorvoegsel): het gedempte oppervlak met een lichte lijn naar de invoer, zodat
   wat vaststaat apart staat van wat de lezer typt. Ze hoort nooit bij de waarde en beschrijft het

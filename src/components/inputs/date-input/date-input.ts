@@ -3,7 +3,8 @@
  *
  * The field shows `dd-mm-jjjj`; what crosses is ISO, or `null` when empty. The element reads typed
  * text on leaving the field or Enter, checks it and shows a message in place of the hint; a host's
- * `error` wins. A calendar day knows no time zone. Tab out of the element closes the calendar.
+ * `error` wins. Enter then submits the form around it, unless it refused the text. A calendar day
+ * knows no time zone. Tab out of the element closes the calendar.
  *
  * Events: `lintje-change` `string | null` (the ISO day), `lintje-values-change`
  * `{ [name]: value }` (with a `name`), `lintje-reset` (the reset link was pressed).
@@ -154,6 +155,10 @@ export class LintjeDateInput extends LintjeInputElement {
 
   private onFieldKeydown(event: KeyboardEvent): void {
     if (this.readonly) return
+    this.submitOnEnter(event, () => {
+      this.read((event.target as HTMLInputElement).value)
+      return !this.problem
+    })
     if (event.altKey && event.key === 'ArrowDown') {
       event.preventDefault()
       this.openCalendar()
