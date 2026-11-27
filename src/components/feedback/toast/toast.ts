@@ -43,7 +43,7 @@ export const TOAST_PREFIX: Record<ToastKind, string> = {
   ok: 'Gelukt',
   error: 'Fout',
   info: 'Informatie',
-  warning: 'Let op',
+  warning: 'Waarschuwing',
 }
 
 /** The nearest `<main>` from the toast outwards, through the shadow roots around it. */
