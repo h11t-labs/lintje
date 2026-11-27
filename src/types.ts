@@ -671,8 +671,12 @@ export interface FilterOption {
    * `lintje-segmented` the chosen option's, in a box under the options.
    */
   description?: string
-  /** The number of items with this value, as a count badge after the label where the control draws one (`lintje-segmented`). */
-  count?: number
+  /**
+   * The number of items with this value, as a count badge after the label where the control draws
+   * one (`lintje-segmented`). `null` while it loads: the badge keeps its place, empty, so nothing
+   * shifts and no zero shows; left out, there is no badge.
+   */
+  count?: number | null
 }
 
 /** The control a declaration draws in. `range` has two handles, `slider` one. */

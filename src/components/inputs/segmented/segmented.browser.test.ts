@@ -100,3 +100,24 @@ describe('lintje-segmented and the focus ring', () => {
     expect(layer(focused)).toBeGreaterThan(layer(chosen))
   })
 })
+
+describe('lintje-segmented and its choice', () => {
+  it('keeps the row and every option as wide, whichever option is chosen', async () => {
+    const options = [
+      { value: 'alle', label: 'Alle', count: 12 },
+      { value: 'balie', label: 'Balie', count: 9 },
+      { value: 'servicepunt', label: 'Servicepunt', count: 3 },
+    ]
+    const element = await mount({ options, value: 'alle' }, 800)
+    const widths = (): number[] =>
+      [frame(element), ...element.renderRoot.querySelectorAll('.lintje-segmented__option')].map(
+        (node) => node.getBoundingClientRect().width,
+      )
+    const first = widths()
+    for (const option of options.slice(1)) {
+      element.value = option.value
+      await element.updateComplete
+      expect(widths()).toEqual(first)
+    }
+  })
+})

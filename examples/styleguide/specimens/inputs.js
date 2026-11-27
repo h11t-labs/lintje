@@ -978,6 +978,20 @@ export default {
           },
         },
         {
+          label: 'Aantal laadt nog',
+          note: 'Met `count: null` houdt de badge leeg zijn plek, zodat herladen niets laat verspringen; zonder `count` is er geen badge.',
+          html: '<lintje-segmented label="Toon" hide-label></lintje-segmented>',
+          setup(stage) {
+            const element = stage.querySelector('lintje-segmented')
+            element.options = [
+              { value: '', label: 'Alles', count: null },
+              { value: 'open', label: 'Open', count: null },
+              { value: 'gesloten', label: 'Gesloten', count: null },
+            ]
+            element.value = ''
+          },
+        },
+        {
           label: 'Te smal voor een rij',
           note: 'Past de rij niet, dan staan de opties onder elkaar.',
           html: '<div style="max-width: 240px"><lintje-segmented label="Soort gesprek"></lintje-segmented></div>',
