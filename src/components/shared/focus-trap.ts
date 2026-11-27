@@ -60,8 +60,7 @@ function scrollStop(element: HTMLElement): boolean {
 }
 
 /** The stops of the window in Tab's order: its controls, a scroller, a radio group as one. */
-const stops = (container: ParentNode): HTMLElement[] =>
-  radioStops(tabbables(container, scrollStop))
+const stops = (container: ParentNode): HTMLElement[] => radioStops(tabbables(container, scrollStop))
 
 /** Focuses the first of `list` that takes it: a scroller does not in WebKit. */
 function focusOneOf(list: HTMLElement[]): void {
