@@ -29,6 +29,7 @@ import {
   announces,
   controlForKey,
   controlName,
+  focusInside,
   holdsOther,
   namedControls,
   namedControlsIn,
@@ -206,6 +207,7 @@ export class LintjeForm extends LintjeElement {
     if (!same(readControl(control), value)) writeControl(control, value)
     this.#keep(name, value)
     this.#clearError(name, control)
+    this.#recheckRefused()
     // The text of "Anders" no longer counts once it is not chosen, nor does its message.
     if (holdsOther(control) && !otherChosen(value)) this.#clearError(name + OTHER_SUFFIX)
     this.#settle('dirty')
@@ -267,6 +269,10 @@ export class LintjeForm extends LintjeElement {
     this.submit()
   }
 
+  // A field refuses on `change`, before the focus leaves the field; a move between its own
+  // parts does not reach the form.
+  readonly #onFocusOut = (): void => this.#recheckRefused()
+
   readonly #onBeforeUnload = (event: BeforeUnloadEvent): void => {
     event.preventDefault()
     event.returnValue = ''
@@ -279,6 +285,7 @@ export class LintjeForm extends LintjeElement {
     this.addEventListener('lintje-values-change', this.#onValuesChange)
     this.addEventListener('keydown', this.#onKeyDown)
     this.addEventListener('click', this.#onClick)
+    this.addEventListener('focusout', this.#onFocusOut)
     this.#fields.observe(this, { childList: true, subtree: true })
   }
 
@@ -289,6 +296,7 @@ export class LintjeForm extends LintjeElement {
     this.removeEventListener('lintje-values-change', this.#onValuesChange)
     this.removeEventListener('keydown', this.#onKeyDown)
     this.removeEventListener('click', this.#onClick)
+    this.removeEventListener('focusout', this.#onFocusOut)
     window.removeEventListener('beforeunload', this.#onBeforeUnload)
     this.#fieldsDisabled.release()
     this.#stacked.release()
@@ -348,9 +356,20 @@ export class LintjeForm extends LintjeElement {
     return this.#restored ? new Date(this.#restored.savedAt) : null
   }
 
-  /** Asks the host to save; does nothing while `busy`. */
+  /**
+   * Asks the host to save; does nothing while `busy`. A field that holds typed text it refused
+   * holds it back: the summary names it and the focus goes to the first one.
+   */
   submit(): void {
     if (this.busy) return
+    this.#refused = this.#readRefused()
+    this.requestUpdate()
+    const first = this.#refused[0]
+    if (first) {
+      const control = namedControls(this).find((field) => controlName(field) === first.field)
+      if (control) focusInside(control)
+      return
+    }
     this.#attempted = true
     this.emit('lintje-submit', { values: this.collect() })
   }
@@ -537,12 +556,41 @@ export class LintjeForm extends LintjeElement {
   }
 
   #items: ErrorSummaryItem[] = []
+  /** The fields that refused typed text at the last attempt; apart from the host's `errors`. */
+  #refused: ErrorSummaryItem[] = []
   #attempted = false
   /** The errors changed because a field lost its own, not because the host answered. */
   #clearing = false
 
   get #hasErrors(): boolean {
-    return this.#items.length > 0 || Boolean(this.errors?.form)
+    return this.#summaryItems.length > 0 || Boolean(this.errors?.form)
+  }
+
+  /** The host's lines, with a refusal first where the host says nothing about that field. */
+  get #summaryItems(): ErrorSummaryItem[] {
+    const named = new Set(this.#items.map((item) => item.field))
+    return [...this.#refused.filter((item) => !named.has(item.field)), ...this.#items]
+  }
+
+  #readRefused(): ErrorSummaryItem[] {
+    const items: ErrorSummaryItem[] = []
+    for (const control of namedControls(this)) {
+      const refusal = (control as { refusal?: unknown }).refusal
+      if (typeof refusal !== 'string' || !refusal || control.matches(':disabled')) continue
+      const label = (control as unknown as { label?: string }).label || undefined
+      items.push({ field: controlName(control), label, message: refusal })
+    }
+    return items
+  }
+
+  /** A refusal the reader fixed leaves the summary at once; a new one waits for an attempt. */
+  #recheckRefused(): void {
+    if (!this.#refused.length) return
+    const now = new Set(this.#readRefused().map((item) => item.field))
+    const kept = this.#refused.filter((item) => now.has(item.field))
+    if (kept.length === this.#refused.length) return
+    this.#refused = kept
+    this.requestUpdate()
   }
 
   protected override updated(changed: PropertyValues<this>): void {
@@ -620,7 +668,7 @@ export class LintjeForm extends LintjeElement {
         class="lintje-form__summary"
         retry="Opnieuw proberen"
         ?hidden=${!this.#hasErrors}
-        .items=${this.#items}
+        .items=${this.#summaryItems}
         .message=${this.errors?.form}
         @lintje-retry=${(event: Event) => {
           event.stopPropagation()

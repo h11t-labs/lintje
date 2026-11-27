@@ -131,17 +131,32 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     return this.required && !this.isDisabled && postsEmpty(this.postedValue)
   }
 
-  /** Reports `required` to the native form, the message anchored where the focus goes. */
+  /**
+   * The field's own message about typed text it could not commit, `''` when there is none. While
+   * it stands the field holds back a native `<form>` and `lintje-form`; a host's `error` does not.
+   */
+  get refusal(): string {
+    return ''
+  }
+
+  /**
+   * Reports `required`, and typed text the field refused, to the native form, the message
+   * anchored where the focus goes.
+   */
   protected syncValidity(): void {
     const internals = this.internals
     if (!internals) return
-    if (!this.missing) {
+    const refusal = this.isDisabled ? '' : this.refusal
+    if (!this.missing && !refusal) {
       internals.setValidity({})
       return
     }
     const anchor = this.focusTarget
-    const message = (anchor as HTMLInputElement | null)?.validationMessage || MISSING
-    internals.setValidity({ valueMissing: true }, message, anchor ?? undefined)
+    if (refusal) internals.setValidity({ customError: true }, refusal, anchor ?? undefined)
+    else {
+      const message = (anchor as HTMLInputElement | null)?.validationMessage || MISSING
+      internals.setValidity({ valueMissing: true }, message, anchor ?? undefined)
+    }
     // A part a child element draws appears after the child's own update; once is enough.
     if (anchor || this.#waiting) return
     this.#waiting = true

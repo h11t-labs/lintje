@@ -564,8 +564,11 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een veld legt vast als de lezer het verlaat of op Enter drukt.** Enter verstuurt daarna het
   formulier eromheen, ook in een datum- of tijdveld. Weigert het veld wat getypt is — een dag die
   niet bestaat, een getal, dag of tijd buiten `min` en `max` — dan zegt het waarom op de plek van
-  de hint en legt het niets vast. Enter in dat veld verstuurt dan niets; de verzendknop verstuurt
-  wel, met de laatst vastgelegde waarde, terwijl de foutregel staat.
+  de hint en legt het niets vast. Zolang die tekst er staat, houdt het veld het formulier tegen,
+  met Enter en met de verzendknop: een gewoon formulier zet de focus erop met die melding, zoals
+  bij een leeg verplicht veld, en `lintje-form` zet de focus erop en noemt het in de
+  foutsamenvatting. De tekst verbeteren of wissen geeft het formulier vrij; een `error` van de host
+  houdt niets tegen.
 - **Een vaste toevoeging aan een veld staat in een eigen vak** (een valutateken, een domein, een
   eenheid, een vast voorvoegsel): het gedempte oppervlak met een lichte lijn naar de invoer, zodat
   wat vaststaat apart staat van wat de lezer typt. Ze hoort nooit bij de waarde en beschrijft het

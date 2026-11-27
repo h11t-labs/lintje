@@ -2,8 +2,8 @@
  * `<lintje-time-input>` — a time of day, `HH:MM` on a 24-hour clock, typed or picked from a list.
  *
  * The element reads typed text on leaving the field or Enter, checks it and shows a message in
- * place of the hint; a host's `error` wins. Enter then submits the form around it, unless it
- * refused the text. A typed time between two in the list stays as typed.
+ * place of the hint; a host's `error` wins. Enter then submits the form around it; refused
+ * text holds the form back until it is fixed or erased. A typed time between two in the list stays as typed.
  * It knows no day or time zone. Tab out of the element closes the list.
  *
  * Events: `lintje-change` `string | null` (`HH:MM`), `lintje-values-change` `{ [name]: value }`
@@ -77,6 +77,10 @@ export class LintjeTimeInput extends LintjeInputElement {
 
   private get message(): string {
     return this.error || this.problem
+  }
+
+  override get refusal(): string {
+    return this.problem
   }
 
   protected override get footMessage(): string {

@@ -21,6 +21,8 @@ import '../../components/inputs/text-input/text-input'
 import '../../components/inputs/textarea/textarea'
 import '../../components/inputs/time-input/time-input'
 import '../../components/inputs/toggle/toggle'
+import '../../components/actions/button/button'
+import '../../components/forms/form/form'
 import type { LintjeInputElement } from '../../components/inputs/shared/input'
 
 type Input = LintjeInputElement & Record<string, unknown>
@@ -303,5 +305,148 @@ describe('the parts of a value', () => {
       ['veld', '0'],
       ['veld', '2'],
     ])
+  })
+})
+
+/** Typed text a field refused holds the form back, as an empty required field does. */
+describe('refused typed text', () => {
+  const REFUSING: { tag: string; props: object; refused: string; value: unknown; old: string }[] = [
+    { tag: 'lintje-number-input', props: { max: 10 }, refused: '50', value: 3, old: '3' },
+    {
+      tag: 'lintje-date-input',
+      props: {},
+      refused: '32-10-2026',
+      value: '2026-10-04',
+      old: '04-10-2026',
+    },
+    {
+      tag: 'lintje-time-input',
+      props: { max: '18:00' },
+      refused: '19:30',
+      value: '09:30',
+      old: '09:30',
+    },
+  ]
+
+  /** Replaces the field's text, then leaves it with Tab. */
+  async function typeAndLeave(element: Input, text: string): Promise<void> {
+    const control = element.renderRoot.querySelector('input')!
+    await userEvent.fill(control, text)
+    await userEvent.keyboard('{Tab}')
+    await settled(element)
+  }
+
+  function submitButton(): HTMLElement {
+    return Object.assign(document.createElement('lintje-button'), {
+      type: 'submit',
+      textContent: 'Versturen',
+    })
+  }
+
+  describe.each(REFUSING)('$tag in a native form', (row) => {
+    it('holds the submit while it shows text it refused, also by its button', async () => {
+      const fill = { tag: row.tag, fill: {}, posts: [] }
+      const { form, element, submits } = await inForm(fill, {
+        ...row.props,
+        value: row.value,
+        required: false,
+      })
+      const button = submitButton()
+      form.append(button)
+      await typeAndLeave(element, row.refused)
+      expect(element.refusal).not.toBe('')
+      expect(form.checkValidity()).toBe(false)
+      await userEvent.click(button)
+      form.requestSubmit()
+      await new Promise((resolve) => setTimeout(resolve, 20))
+      expect(submits()).toBe(0)
+    })
+
+    it('takes the focus at its control when the form reports', async () => {
+      const fill = { tag: row.tag, fill: {}, posts: [] }
+      const { form, element } = await inForm(fill, { ...row.props, required: false })
+      await typeAndLeave(element, row.refused)
+      element.focus()
+      const control = active()
+      ;(document.activeElement as HTMLElement | null)?.blur()
+      expect(form.reportValidity()).toBe(false)
+      expect(active()).toBe(control)
+    })
+
+    it('lets it through once the text is erased or back at its value', async () => {
+      const fill = { tag: row.tag, fill: {}, posts: [] }
+      const { form, element, submits } = await inForm(fill, {
+        ...row.props,
+        value: row.value,
+        required: false,
+      })
+      await typeAndLeave(element, row.refused)
+      await typeAndLeave(element, row.old)
+      expect(form.checkValidity()).toBe(true)
+      await typeAndLeave(element, row.refused)
+      await typeAndLeave(element, '')
+      expect(form.checkValidity()).toBe(true)
+      form.requestSubmit()
+      expect(submits()).toBe(1)
+    })
+  })
+
+  describe.each(REFUSING)('$tag in lintje-form', (row) => {
+    async function inLintjeForm(): Promise<{
+      form: HTMLElement & { errors?: unknown }
+      element: Input
+      button: HTMLElement
+      submits: () => number
+    }> {
+      const form = document.createElement('lintje-form') as HTMLElement & { errors?: unknown }
+      let count = 0
+      form.addEventListener('lintje-submit', () => (count += 1))
+      const element = Object.assign(document.createElement(row.tag), {
+        name: 'veld',
+        label: 'Veld',
+        ...row.props,
+      }) as unknown as Input
+      const button = submitButton()
+      form.append(element, button)
+      document.body.append(form)
+      await (form as unknown as Input).updateComplete
+      await settled(element)
+      return { form, element, button, submits: () => count }
+    }
+
+    function summaryItems(form: HTMLElement): { field?: string; message: string }[] {
+      const summary = form.shadowRoot!.querySelector('lintje-error-summary') as unknown as {
+        items: { field?: string; message: string }[]
+      }
+      return summary.items
+    }
+
+    it('holds the submit, names the field in the summary and focuses it', async () => {
+      const { form, element, button, submits } = await inLintjeForm()
+      await typeAndLeave(element, row.refused)
+      await userEvent.click(button)
+      await (form as unknown as Input).updateComplete
+      expect(submits()).toBe(0)
+      expect(summaryItems(form)).toEqual([
+        { field: 'veld', label: 'Veld', message: element.refusal },
+      ])
+      expect(active()?.getRootNode()).toBe(element.shadowRoot)
+    })
+
+    it('submits once the text is back at its value, and the line leaves the summary', async () => {
+      const { form, element, button, submits } = await inLintjeForm()
+      element.value = row.value
+      await settled(element)
+      await typeAndLeave(element, row.refused)
+      await userEvent.click(button)
+      expect(submits()).toBe(0)
+      await typeAndLeave(element, row.old)
+      // The line goes once the focus leaves the field, not when it moves between its parts.
+      ;(document.activeElement as HTMLElement | null)?.blur()
+      await (form as unknown as Input).updateComplete
+      expect(summaryItems(form)).toEqual([])
+      await userEvent.click(button)
+      expect(submits()).toBe(1)
+    })
   })
 })

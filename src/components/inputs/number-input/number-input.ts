@@ -4,7 +4,8 @@
  *
  * It commits on `change`; a press on − or + commits at once and says the new value, since the
  * focus stays on the step. At `min` or `max` the step stays focusable but does nothing. A typed
- * number outside them is refused with a message in place of the hint; a host's `error` wins.
+ * number outside them is refused with a message in place of the hint, and holds the form back
+ * until it is fixed or erased; a host's `error` wins.
  *
  * Events: `lintje-change` `number | null`, `lintje-values-change` `{ [name]: value }` (with a
  * `name`), `lintje-reset` (the reset link was pressed).
@@ -65,6 +66,10 @@ export class LintjeNumberInput extends LintjeFormInputElement {
 
   private get message(): string {
     return this.error || this.problem
+  }
+
+  override get refusal(): string {
+    return this.problem
   }
 
   protected override get footMessage(): string {
