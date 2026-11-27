@@ -26,6 +26,7 @@
   min-height: var(--h-option);
   padding: 0 var(--space-2);
   border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-control);
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
   font-size: 1rem;

@@ -597,7 +597,8 @@
   border: var(--lintje-chart-skeleton-line) solid var(--color-border-strong);
   margin-top: calc(var(--lintje-chart-skeleton-line) * -1);
 }
-.lintje-chart-skeleton__zoom-button:first-child { margin-top: 0; }
+.lintje-chart-skeleton__zoom-button:first-child { margin-top: 0; border-top-left-radius: var(--radius-control); border-top-right-radius: var(--radius-control); }
+.lintje-chart-skeleton__zoom-button:last-child { border-bottom-left-radius: var(--radius-control); border-bottom-right-radius: var(--radius-control); }
 /* Table: "5 rijen" — five rows at the table's row height. */
 .lintje-chart-skeleton--table { display: flex; flex-direction: column; }
 .lintje-chart-skeleton__row {

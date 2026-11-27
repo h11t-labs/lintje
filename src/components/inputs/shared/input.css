@@ -115,8 +115,9 @@
   font-size: 1rem;
   white-space: nowrap;
 }
-.lintje-field__addon--prefix { border-right: 1px solid var(--color-border-default); }
-.lintje-field__addon--suffix { border-left: 1px solid var(--color-border-default); }
+/* Its fill against the box's round edge takes the corner inside it, or it squares the edge. */
+.lintje-field__addon--prefix { border-right: 1px solid var(--color-border-default); border-radius: calc(var(--radius-control) - var(--lintje-field-border)) 0 0 calc(var(--radius-control) - var(--lintje-field-border)); }
+.lintje-field__addon--suffix { border-left: 1px solid var(--color-border-default); border-radius: 0 calc(var(--radius-control) - var(--lintje-field-border)) calc(var(--radius-control) - var(--lintje-field-border)) 0; }
 .lintje-field__addon.is-readonly,
 .lintje-field__addon.is-disabled {
   background: var(--color-border-strong);
@@ -158,6 +159,7 @@
   height: calc(var(--h-control) - 2 * var(--lintje-field-border));
   display: flex; align-items: center; justify-content: center;
   border-left: 1px solid var(--color-border-default);
+  border-radius: 0 calc(var(--radius-control) - var(--lintje-field-border)) calc(var(--radius-control) - var(--lintje-field-border)) 0;
   background: transparent;
   color: var(--color-accent-text);
   transition: background var(--dur-hover) var(--ease-in-motion);
@@ -174,6 +176,7 @@
   top: var(--lintje-field-error-border); right: var(--lintje-field-error-border);
   width: calc(var(--h-control) - 2 * var(--lintje-field-error-border));
   height: calc(var(--h-control) - 2 * var(--lintje-field-error-border));
+  border-radius: 0 calc(var(--radius-control) - var(--lintje-field-error-border)) calc(var(--radius-control) - var(--lintje-field-error-border)) 0;
 }
 .lintje-field__toggle:hover:not(:disabled) { background: var(--color-bg-subtle); }
 .lintje-field__toggle:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
