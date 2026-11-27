@@ -339,7 +339,8 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
   zoomknoppen, vorige en volgende) ronden alleen hun buitenhoeken af. Een gevuld deel tegen de rand
   van een afgerond kader (de werkbalk van de teksteditor, de stapknoppen van het getalveld, de
   toevoeging en de knop van een veld) volgt de hoek binnen die rand, anders tekent het de ronde
-  hoek recht.
+  hoek recht. Een veld met een knop aan zijn eind is één kader: recht waar veld en knop elkaar
+  raken, rond alleen aan de buitenkant.
 - **De ene afgeronde hoek loopt nooit van de pagina af.** De vormtaal van de huisstijl is een
   rechthoek met één afgeronde hoek: hoogstens drie per beeld, spaarzaam, nooit een vlak met een
   hoek in een vlak met een hoek, en nooit op een vlak dat van de pagina afloopt. De band aan de kop

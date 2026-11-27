@@ -36,7 +36,8 @@
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
-  border-radius: var(--radius-control);
+  /* A part that stands against another, as the button at the end of a field, squares its seam. */
+  border-radius: var(--lintje-button-radius, var(--radius-control));
   transition: background var(--dur-hover) var(--ease-in-motion),
               color var(--dur-hover) var(--ease-in-motion),
               border-color var(--dur-hover) var(--ease-in-motion);
