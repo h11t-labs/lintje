@@ -1625,7 +1625,7 @@ export default {
       specimens: [
         {
           label: 'Vrije rij',
-          note: 'Zonder `columns` neemt elk feit zijn eigen breedte en loopt de rij om, met alleen een lijn tussen de rijen: een zaak onder haar titel.',
+          note: 'Zonder `columns` neemt elk feit zijn eigen breedte, loopt de rij om en vult elke regel tot de rand: een zaak onder haar titel.',
           html: '<lintje-cells></lintje-cells>',
           setup(stage) {
             stage.querySelector('lintje-cells').items = [
@@ -1640,7 +1640,7 @@ export default {
         },
         {
           label: 'Raster',
-          note: 'Met `columns` staan de vakken uitgelijnd, met een lijn tussen de kolommen; een meter in stappen staat vóór zijn woord. Onder 30 rem worden het twee kolommen.',
+          note: 'Met `columns` staan de vakken uitgelijnd; een meter in stappen staat vóór zijn woord. Onder 30 rem worden het twee kolommen.',
           html: '<lintje-cells columns="4"></lintje-cells>',
           setup(stage) {
             stage.querySelector('lintje-cells').items = [
@@ -1653,8 +1653,8 @@ export default {
         },
         {
           label: 'Op een waas',
-          note: 'Met `surface` staat de rij in één paneel, zoals in een hero; het ene cijfer is groot.',
-          html: '<div style="background: var(--color-bg-subtle); padding: var(--space-6)"><lintje-cells columns="4" surface></lintje-cells></div>',
+          note: 'Met `surface` nemen de vlakken op een waas het oppervlak, zoals in een hero, en is de waas de voeg; het ene cijfer is groot.',
+          html: '<div style="background: var(--color-hero-bg); padding: var(--space-6)"><lintje-cells columns="4" surface></lintje-cells></div>',
           setup(stage) {
             stage.querySelector('lintje-cells').items = [
               { label: 'Looptijd', value: '12:04', large: true, icon: 'functioneel-klok' },
@@ -1683,7 +1683,7 @@ export default {
         },
         {
           label: 'Toestanden',
-          note: 'Wat ontbreekt is een streep, een meter zonder meting ligt plat, en een fout en een geslaagde stap dragen hun glyph.',
+          note: 'Wat ontbreekt is een streep, een meter zonder meting ligt plat, en een fout en een geslaagde stap vullen hun vlak en dragen hun glyph.',
           html: '<lintje-cells columns="4"></lintje-cells>',
           setup(stage) {
             stage.querySelector('lintje-cells').items = [

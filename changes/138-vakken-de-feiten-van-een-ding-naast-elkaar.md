@@ -1,6 +1,6 @@
 ### Toegevoegd
 
-- `lintje-cells`: de feiten van één ding naast elkaar, een label boven zijn waarde met een haarlijn ertussen, als raster of vrije rij, op een waas in één paneel; een vak draagt ook toetsen, een persoon in zijn slot en een verborgen woord bij het teken van een toon, en een vak met `live` zegt een wisseling van zijn waarde (#138)
+- `lintje-cells`: de feiten van één ding naast elkaar, elk een vlak met een label boven zijn waarde en een smalle voeg ertussen, zonder lijn, als raster of vrije rij, op een waas in de kleur van het oppervlak; een toon vult zijn vlak; een vak draagt ook toetsen, een persoon in zijn slot en een verborgen woord bij het teken van een toon, en een vak met `live` zegt een wisseling van zijn waarde (#138)
 - `lintje-level-meter` tekent met `steps` elke maat in stappen, in de lijnkleur van zijn toon, met de naam en het woord van de host (#138)
 
 ### Gewijzigd

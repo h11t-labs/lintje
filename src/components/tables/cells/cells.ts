@@ -1,10 +1,11 @@
 /**
- * `<lintje-cells>` — the facts of one thing side by side, each a label above its value with a
- * hairline between them: how a running recording is doing, the facts of a case under its
+ * `<lintje-cells>` — the facts of one thing side by side, each a field with its label above its
+ * value and a narrow seam between them: how a running recording is doing, the facts of a case under its
  * title, what is about to happen, a device in a list.
  *
  * With `columns` the cells stand in an aligned grid, two below 30 rem; without, each takes its
- * own width and the row wraps. On a wash (`surface`) the row stands in one panel. A missing
+ * own width, the row wraps and each line fills out. A tone fills its field and sets a glyph
+ * before the value. On a wash (`surface`) the fields are white and the wash is the seam. A missing
  * value is a muted dash, never 0. A cell marked `live` says a change of its value; the rest
  * change too often, or too little, to be said. A plain click on a link is cancelled and sent as
  * `lintje-navigate`.
@@ -134,7 +135,7 @@ export class LintjeCells extends LintjeGridItemElement {
   items: CellItem[] = []
   /** An aligned grid of this many cells side by side where there is room; without, a free row. */
   declare columns?: number
-  /** The row takes the surface and a frame, for a wash such as the hero's. */
+  /** The fields take the surface, for a wash such as the hero's. */
   surface: boolean = false
   readonly #live = new LiveMessage(this)
 
@@ -274,16 +275,13 @@ export class LintjeCells extends LintjeGridItemElement {
   protected override render(): TemplateResult {
     const columns = this.columns && this.columns > 0 ? this.columns : 0
     const fills = columns ? fillSpans(this.items, columns) : []
-    // The first column's line falls outside the clip; see cells.css.
-    return html`<div class="lintje-cells__clip">
-      <dl
+    return html`<dl
         class=${classMap({ 'lintje-cells': true, 'lintje-cells--grid': columns > 0 })}
         ${styleProps({ '--lintje-columns': columns ? String(columns) : null })}
       >
         ${this.items.map((item, i) => this.renderCell(item, fills[i]))}
       </dl>
-    </div>
-    <span class="visually-hidden" role="status">${this.#live.text}</span>`
+      <span class="visually-hidden" role="status">${this.#live.text}</span>`
   }
 }
 

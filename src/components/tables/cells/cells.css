@@ -1,71 +1,42 @@
 /* A size container has no width of its own: in a column that shrinks to its content it would
-   be none, so the row takes the room it stands in, the panel's padding and frame included. */
+   be none, so the row takes the room it stands in. */
 :host {
   display: block;
-  box-sizing: border-box;
   min-width: 0;
   width: 100%;
   container-type: inline-size;
-  --lintje-cells-line: 1px;
+  --lintje-cells-fill: var(--color-bg-subtle);
+  --lintje-cells-seam: 2px;
 }
 :host([hidden]) { display: none; }
-/* On a surface that is not the page's own (a hero's wash) the row is one panel: the surface, framed. */
-:host([surface]) {
-  padding: var(--space-4) var(--space-5);
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius);
-}
+/* On a wash the fields are the surface, and the wash is the seam between them. */
+:host([surface]) { --lintje-cells-fill: var(--color-bg-surface); }
 
 /* ------------------------------------------------------------------------ */
 
-/* In a grid every cell draws a line on its left, and in every row a line on its top, which puts
-   one before the first column and one above the first row too. The list starts a line and a padding further left and up than its
-   clip, so those lines fall outside it; the clip itself sits a focus ring, with its offset, out
-   from the content on every side, so a ring on a link in the first column or row stays whole.
-   `clip` leaves nothing scrolling. */
-.lintje-cells__clip {
-  overflow: clip;
-  margin: calc(-1 * var(--space-2)) 0 calc(-1 * var(--space-2)) calc(-1 * var(--space-2));
-  padding: var(--space-2) 0 var(--space-2) var(--space-2);
-}
+/* Every fact is a field one step off its ground, with a seam of that ground between: no line,
+   so the row never reads as a table or as a row of key-figure tiles. */
 .lintje-cells {
   display: flex;
   flex-wrap: wrap;
-  margin: calc(-1 * var(--space-3)) 0 calc(-1 * var(--space-3)) calc(-1 * var(--space-4));
+  gap: var(--lintje-cells-seam);
+  margin: 0;
   font: var(--text-ui);
   font-variant-numeric: tabular-nums;
 }
 .lintje-cells--grid {
   display: grid;
   grid-template-columns: repeat(var(--lintje-columns, 4), minmax(0, 1fr));
-  margin-left: calc(-1 * (var(--space-3) + var(--lintje-cells-line)));
 }
 
-/* The rows stand 24 px apart: a padding on each side of the line between them, as wide as the
-   one beside the vertical lines of a grid, so the line stands free of the words. The line above
-   a row is every cell's, drawn far past the cell on both sides and clipped to the row, so it runs
-   the whole width whether the row is full, a last row of a grid, or a row that wrapped. */
+/* In a free row a field grows into what its line leaves, so every line ends at the edge. */
 .lintje-cells__cell {
   display: flex; flex-direction: column; gap: var(--space-1);
+  flex: 1 1 auto;
   min-width: 0;
-  position: relative;
   padding: var(--space-3) var(--space-4);
+  background: var(--lintje-cells-fill);
 }
-/* A line between columns only where columns align: in a free row the facts keep their own
-   widths, and a line that shifts from row to row would read as a column that is not there. */
-.lintje-cells--grid .lintje-cells__cell { border-left: var(--lintje-cells-line) solid var(--color-border-default); }
-.lintje-cells__cell::before {
-  content: '';
-  position: absolute;
-  top: calc(-1 * var(--lintje-cells-line));
-  right: -100vw;
-  left: -100vw;
-  height: var(--lintje-cells-line);
-  background: var(--color-border-default);
-  pointer-events: none;
-}
-.lintje-cells--grid .lintje-cells__cell { padding: var(--space-3); }
 .lintje-cells--grid .lintje-cells__cell.is-wide { grid-column: span 2; }
 /* The rest of its row; the element counts it, at the grid's columns and at two. */
 .lintje-cells--grid .lintje-cells__cell.is-fill { grid-column: span var(--lintje-fill, 1); }
@@ -118,7 +89,16 @@
   font-weight: 700;
 }
 
-/* A tone is its glyph before the value; the words stay the host's and the label stays neutral. */
+/* A tone fills the field and sets its glyph before the value; the words stay the host's. */
+.lintje-cells__cell.is-success { background: var(--color-success-bg); }
+.lintje-cells__cell.is-info { background: var(--color-info-bg); }
+.lintje-cells__cell.is-error,
+.lintje-cells__cell.is-live { background: var(--color-error-bg); }
+.lintje-cells__cell.is-attention { background: var(--color-attention-bg); }
+.lintje-cells__cell.is-warning { background: var(--color-warning-bg); }
+/* On a status fill a link takes the colour that holds 4.5:1 there, in dark too. */
+.lintje-cells__cell:is(.is-success, .is-info, .is-error, .is-live, .is-attention, .is-warning)
+  :is(.lintje-cells__link, .lintje-cells__action) { color: var(--color-link-on-status); }
 .is-success .lintje-cells__value .lintje-icon { color: var(--color-success-line); }
 .is-info .lintje-cells__value .lintje-icon { color: var(--color-info-line); }
 .is-error .lintje-cells__value .lintje-icon,
@@ -142,8 +122,7 @@
   .lintje-cells__action { transition: none; }
 }
 
+/* Forced colours drop the fills, so every field takes a line instead, inside its own edge. */
 @media (forced-colors: active) {
-  .lintje-cells__cell { border-color: CanvasText; }
-  .lintje-cells__cell::before { background: CanvasText; }
-  :host([surface]) { border-color: CanvasText; }
+  .lintje-cells__cell { outline: 1px solid CanvasText; outline-offset: -1px; }
 }
