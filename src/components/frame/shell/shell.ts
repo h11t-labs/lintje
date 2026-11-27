@@ -591,8 +591,23 @@ export class LintjeShell extends LintjeElement {
       : this.mobile.matches && sentenceHeight > 0
         ? sentenceHeight
         : lengthPx(this, '--h-contextbar', 48)
-    keepRoom(this, root, 'top', Math.max(Math.round(bar + filters), this.#hostRoom('top')))
+    const tabs = this.#headerTabs()
+    // What sticks under the bar (the filter bar) stands under the head's tabs, which stick there.
+    const shell = this.renderRoot.querySelector<HTMLElement>('.lintje-shell')
+    if (tabs > 0) shell?.style.setProperty('--lintje-shell-top', `${bar + tabs}px`)
+    else shell?.style.removeProperty('--lintje-shell-top')
+    keepRoom(this, root, 'top', Math.max(bar + tabs + filters, this.#hostRoom('top')))
     keepRoom(this, root, 'bottom', Math.max(this.#tabsRoom(), this.#hostRoom('bottom')))
+  }
+
+  /** The height of the row of tabs the page's head keeps in view as it sticks; 0 without. */
+  #headerTabs(): number {
+    const header = this.querySelector<HTMLElement>(
+      ':scope > lintje-page-header[slot="header"][has-tabs]',
+    )
+    const tabs = header?.querySelector<HTMLElement>(':scope > [slot="tabs"]')
+    if (!header || !tabs || getComputedStyle(header).position !== 'sticky') return 0
+    return Math.max(0, header.getBoundingClientRect().bottom - tabs.getBoundingClientRect().top)
   }
 
   /** How far the host's bars of one edge reach into the scroller while they stick. */
@@ -628,13 +643,18 @@ export class LintjeShell extends LintjeElement {
       subtree: true,
       childList: true,
       attributes: true,
-      attributeFilter: ['data-sticky', 'hidden', 'class', 'style'],
+      attributeFilter: ['data-sticky', 'hidden', 'class', 'style', 'has-tabs'],
     })
     this.#collectHostBars()
   }
 
   #collectHostBars(): void {
-    const bars = Array.from(this.querySelectorAll<HTMLElement>('[data-sticky]'))
+    // The page's head too: its row of tabs sticks under the bar as it grows or shrinks.
+    const bars = Array.from(
+      this.querySelectorAll<HTMLElement>(
+        '[data-sticky], :scope > lintje-page-header[slot="header"]',
+      ),
+    )
     if (bars.length === this.#hostBars.length && bars.every((bar, i) => bar === this.#hostBars[i]))
       return
     this.#hostBarSize?.disconnect()
