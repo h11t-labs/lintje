@@ -57,7 +57,9 @@
   background: var(--color-sub-nav-hover-bg);
   color: var(--color-sub-nav-hover-text);
 }
-.lintje-sub-nav__link:hover .lintje-sub-nav__label { text-decoration: var(--sub-nav-hover-decoration); }
+.lintje-sub-nav__link:hover:not(.is-no-page):not(.is-no-access) .lintje-sub-nav__label {
+  text-decoration: var(--sub-nav-hover-decoration);
+}
 
 /* Bold carries the reader's page beside the colour (rule 13); on a fill, the side menu does not. */
 .lintje-sub-nav__link.is-current,

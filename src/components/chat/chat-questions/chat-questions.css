@@ -97,6 +97,13 @@
   border-color: var(--color-accent-line);
 }
 .lintje-chat-questions__chip[aria-disabled='true'] { cursor: not-allowed; }
+/* Locked after an answer: the chosen chips stay readable, the others go grey and stop answering
+   the pointer. */
+.lintje-chat-questions__chip[aria-disabled='true']:not(.is-chosen) {
+  border-color: var(--color-border-default);
+  background: var(--color-bg-surface);
+  color: var(--color-text-disabled);
+}
 .is-phone .lintje-chat-questions__chips { flex-direction: column; }
 
 .lintje-chat-questions__own {
@@ -112,4 +119,5 @@
 
 @media (forced-colors: active) {
   .lintje-chat-questions__chip.is-chosen { border-color: Highlight; }
+  .lintje-chat-questions__chip[aria-disabled='true']:not(.is-chosen) { border-color: GrayText; color: GrayText; }
 }

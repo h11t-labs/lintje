@@ -539,7 +539,11 @@ De besluiten hieronder gelden voor alle elementen.
   keuzelijst vult haar kolom zoals een tekstveld, tot `--w-field`. Het hele veld krijgt een balk links in de
   foutkleur (2 px, fijner dan de balk van een statusblok), en een invoervak een rand van 1 px in
   de foutkleur met de fouttint als vulling, zoals de huisstijl het tekent; in de eerdere huisstijl
-  een zwaardere rand van 2 px zonder balk. Uitgeschakeld is het subtiele oppervlak. Een uitgeschakelde knop blijft focusbaar
+  een zwaardere rand van 2 px zonder balk. Uitgeschakeld is bij elk veld hetzelfde: het subtiele
+  oppervlak, gedempte tekst, de sterke smalle rand, een cursor die weigert en volle dekking; het
+  wint van de rand en de vulling van een fout, en de melding blijft staan. De link terug naar de
+  standaard is dan gedempte tekst zonder streep. Een keuze die na het antwoord vergrendeld is,
+  houdt het gekozene leesbaar en maakt de rest grijs. Een uitgeschakelde knop blijft focusbaar
   (`aria-disabled`); een uitgeschakeld veld valt uit de tabvolgorde.
 - **De toelichting en de foutregel van een keuze springen in tot de tekst van haar label**, bij
   een vinkje, een schakelaar en een optie in een groep, zodat ze niet lijken op de kop van de
@@ -641,10 +645,18 @@ De besluiten hieronder gelden voor alle elementen.
 - **De sluier onder een dialoog, een venster en een lade is het koelgrijs van de huisstijl op
   80 %** (Cool Gray 900); in donker is hij zwart op 60 %, omdat het koelgrijs een donkere pagina
   blauw kleurt. Het venster staat erop met zijn eigen oppervlak en rand.
+- **Wat over de pagina ligt, ligt in een vaste volgorde**, sluier en kader samen, van onder naar
+  boven: het menu van de schil, een lade, een groot venster, een dialoog, een popover of
+  toggletip, een toast en een tooltip. Een vraag boven een open lade ligt er dus helemaal boven. Wat onder de sluier ligt, krijgt geen klik; een popover,
+  toggletip of tooltip in een venster staat erboven. Een toast blijft bereikbaar terwijl een
+  venster open is: de aanwijzer raakt hem en Tab gaat van het venster naar de toast en terug.
 - **Een dialoog met een formulier is smal** en zo hoog als zijn inhoud; de knoppen staan links in
   de voet, het antwoord eerst, zoals de huisstijl een dialoog tekent, en een zin over het
-  resultaat erachter. De titel staat in de primaire kleur; het grote venster heeft geen lijnen
-  tussen kop, inhoud en voet.
+  resultaat erachter.
+- **Elk venster heeft dezelfde kop**: de dialoog, het grote venster, de lade en het blad op een
+  telefoon. In de nieuwe huisstijl staat de titel in de primaire kleur en zijn er geen lijnen
+  tussen kop, inhoud en voet; een blad met een eigen vulling, zoals het menu, houdt zijn eigen
+  tekstkleur.
 - **Een bezige knop houdt zijn breedte en zijn kleuren**; alleen de inhoud maakt plaats voor de
   ring.
 - **Een limiet waarschuwt en blokkeert nooit**: een geplakte tekst komt er heel in.
@@ -718,7 +730,9 @@ De besluiten hieronder gelden voor alle elementen.
   die tonen, en een element dat eigen woorden heeft (de leveringsstatus van een bron, de staat
   van een taak, de soort van een melding) vertaalt ze zelf naar een toon; een host vertaalt
   nooit. De woordenschat staat één keer, in `components/shared/tone.ts`, met de staat van werk
-  (wachtrij, bezig, onderbroken, klaar, mislukt, geannuleerd) ernaast.
+  (wachtrij, bezig, onderbroken, klaar, mislukt, geannuleerd) ernaast. Een staat heeft overal
+  dezelfde toon, in een badge en in een voortgangsbalk; een balk zonder label draagt het teken van
+  zijn staat vóór de balk.
 - **Inhoud kent vier toestanden**: klaar, laden, leeg en fout, met één `message` en één
   `lastKnown`, voor een tegel en een kerncijfer evengoed. Een bron die niet antwoordt, is een
   fout in de toon fout, zoals de losse melding, niet een waarschuwing: de laatst bekende waarde
@@ -755,9 +769,12 @@ De besluiten hieronder gelden voor alle elementen.
   combinatie is twee toetsen naast elkaar.
 - **Escape sluit wat open is**, en in een popover alleen de popover. Een toast sluit met Escape
   alleen vanuit zichzelf: een Escape elders is niet de zijne. Escape is eerst van het kleinste:
-  wat een Escape al beantwoordde (`preventDefault`), zoals een tooltip, een uitleg of een
-  bewerking ter plekke, sluit geen venster eromheen. Of er een dialoog boven een open
-  popup staat, volgt uit de focus: Escape blijft ongemoeid zolang de focus in een
+  één Escape sluit één zwevende laag, de bovenste eerst — de tooltip, dan de uitleg, de popover
+  of de lijst van een veld, dan het venster eromheen. Wat een Escape al beantwoordde
+  (`preventDefault`), zoals een tooltip, een uitleg, een popover of een bewerking ter plekke,
+  sluit geen laag eronder: elk element dat op Escape sluit, slaat een beantwoorde Escape over en
+  beantwoordt hem zelf als het sluit. De tooltip hoort hem als eerste. Of er een dialoog boven
+  een open popup staat, volgt uit de focus: Escape blijft ongemoeid zolang de focus in een
   `aria-modal="true"` staat waar de popup niet in zit. Een dialoog zet dus `aria-modal` en
   neemt de focus bij het openen; één die dat niet doet, telt niet mee.
 - **Twee vensters: een groot voor inhoud, een klein voor een vraag of een kort formulier.**
@@ -1064,7 +1081,8 @@ bedieningselementen zijn er zolang de lezer kiest, en verder scrollen sluit ze. 
 zijn de filters een sheet, en wijzigingen gelden pas bij "Toepassen". De zin opent hem: de hele
 balk is de knop, met het aantal aangepaste filters en een pijl, dus de header heeft geen eigen
 knop "Filters". Op elke breedte plakt de zin bij het scrollen direct onder de balk van de shell,
-en de shell houdt zijn hoogte vrij boven de focus.
+en de shell houdt zijn hoogte vrij boven de focus. Heeft de paginakop tabs, dan plakt de zin
+direct onder hun rij, met één lijn ertussen: beide blijven in beeld en liggen nooit over elkaar.
 
 **De pijl van een KPI draagt de richting, het woord het oordeel; de kleur bevestigt ze alleen.**
 Naast de pijl staat "Gunstig" of "Ongunstig" in de tekstkleur, één keer gezegd. Waar stijgen slecht
@@ -1583,14 +1601,15 @@ kleinste correctie, en leg die hier vast.
 - **Een vastgeplakte balk bedekt nooit de focus** (2.4.11): wat aan een rand van de scroller plakt,
   houdt de ruimte die het bedekt vrij als `scroll-padding`, en de scroller houdt per rand de
   grootste vrij, nooit minder dan wat de host er zelf zette. Zo doen de balk van de shell met de
-  filterbalk eronder, de tabs onderaan, de actiebalk van het formulier, de vastgeplakte vraag en het
+  tabrij van de paginakop en de filterbalk eronder, de tabs onderaan, de actiebalk van het formulier, de vastgeplakte vraag en het
   vraagvak van het gesprek, een toast die blijft staan, en een eigen balk van de host met
   `data-sticky`, die de shell meet. De foutsamenvatting scrolt een veld naar het midden. Een element
   waar de focus toch onder belandt, scrollen de actiebalk, de toast en de selectiebalk van de tabel
   van zich vrij, met rand en al. Een toast staat boven wat verder onderaan plakt, nooit eroverheen;
-  boven de tabs ook, behalve als een blad ze bedekt. Een paneel dat over de pagina ligt (de
-  vastgezette, opengeklapte filterzone, de opties van het vraagvak) sluit zodra de focus het verlaat
-  en laat de focus waar hij heen ging; Escape sluit het met de focus op zijn knop.
+  boven de tabs ook, behalve als een blad ze bedekt. Over een open venster ligt hij wel heen. Een
+  paneel dat over de pagina ligt (de vastgezette, opengeklapte filterzone, de opties van het
+  vraagvak) sluit zodra de focus het verlaat en laat de focus waar hij heen ging; Escape sluit het
+  met de focus op zijn knop.
 - **Een grafiek is ook met het toetsenbord te lezen.** Haar tekening neemt de focus en de
   pijltoetsen lopen langs de categorieën met de tooltip, die een live-regio uitspreekt; Escape
   verbergt een tooltip. De tekening is een afbeelding, of een groep met haar beschrijving als naam
@@ -1641,7 +1660,9 @@ kleinste correctie, en leg die hier vast.
 - **Een zwevend paneel aan een knop sluit als de focus het verlaat** (een menu, de bel, de
   linkdialoog, Weergave en Delen, het kolomfilter en de kolomkiezer van een tabel): Tab voorbij
   zijn laatste stop sluit het en gaat verder vanaf zijn knop, een focus elders blijft daar, en een
-  klik op wat erin geen focus neemt, houdt het open. Een popup-dialoog (het kolomfilter, de
+  klik op wat erin geen focus neemt, houdt het open. Een druk naast een popover of naast de lijst
+  of het paneel van een veld sluit dat en komt aan op wat de lezer aanwees, dat de focus krijgt:
+  geen sluier vangt hem. Een veld dat uitgeschakeld wordt, sluit zijn lijst of paneel. Een popup-dialoog (het kolomfilter, de
   kolomkiezer) neemt bij het openen de focus naar zijn eerste veld, en Shift+Tab voorbij zijn
   eerste stop sluit hem ook. Escape in een popover is eerst van zijn element (een opgetilde greep
   zet zijn rij terug), dan van de popover.
