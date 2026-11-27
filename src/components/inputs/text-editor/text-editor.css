@@ -9,8 +9,9 @@
   background: var(--color-bg-field);
 }
 .lintje-text-editor:has(.lintje-text-editor__surface:focus-visible) {
-  outline: var(--focus-width) solid var(--color-focus);
+  outline: var(--focus-width) solid var(--lintje-focus, var(--color-focus));
   outline-offset: var(--focus-offset);
+  box-shadow: 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner));
 }
 .lintje-text-editor.is-error { border: var(--field-error-border) solid var(--color-error-line); background: var(--color-bg-field-error); }
 /* Disabled wins over error: after it, the whole border back to 1 px strong. */
@@ -23,6 +24,8 @@
   padding: var(--space-1);
   background: var(--color-bg-page);
   border-bottom: 1px solid var(--color-border-default);
+  /* Its fill takes the frame's corner, or it squares the frame's round edge. */
+  border-radius: calc(var(--radius-control) - var(--lintje-field-border)) calc(var(--radius-control) - var(--lintje-field-border)) 0 0;
 }
 /* A transparent hit area, above and below only, reaches the target height. */
 .lintje-text-editor__tool {

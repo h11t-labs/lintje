@@ -1469,7 +1469,7 @@ export class LintjeGraph extends LintjeContentTileElement {
                   <path class="lintje-graph__ring-gap" d=${route.d}></path>
                   <path class="lintje-graph__ring-inner" d=${route.d}></path>`
               : nothing
-          return svg`<g class="lintje-graph__edge ${lit ? 'is-lit' : ''} ${litEdges && !lit && !picked && surface.focusedEdge !== edge.key ? 'is-dim' : ''} ${hot ? 'is-hot' : ''} ${picked ? 'is-selected' : ''} ${state}"
+          return svg`<g class="lintje-graph__edge ${lit ? 'is-lit' : ''} ${litEdges && !lit && !picked && surface.focusedEdge !== edge.key ? 'is-dim' : ''} ${picked ? 'is-selected' : ''} ${state}"
               ${styleProps({ '--lintje-graph-edge-w': `${width}px` })}>
             ${ring}
             <path class="lintje-graph__line" d=${route.d} stroke-width=${width}></path>

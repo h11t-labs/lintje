@@ -839,6 +839,14 @@ export default {
           },
         },
         {
+          label: 'Foutregel gekozen',
+          note: 'De gekozen regel heeft het vlak en de balk links; de foutlijn staat ernaast, naar binnen.',
+          html: '<lintje-log-viewer></lintje-log-viewer>',
+          setup(stage) {
+            wireLog(stage, { live: false, selected: 'e8' })
+          },
+        },
+        {
           label: 'Half gestructureerd',
           note: 'Een regel zonder niveau krijgt geen badge; een stacktrace klapt in tot vier regels.',
           html: '<lintje-log-viewer></lintje-log-viewer>',

@@ -1,6 +1,7 @@
 /**
  * The ring of the focus is whole and stands on what has the focus (WCAG 2.4.7): no scroll box
- * cuts it and no neighbour covers it. And the links of a list each keep the 24 px target that a
+ * cuts it and no neighbour covers it, and it keeps its inner line where a box round the control
+ * draws it. And the links of a list each keep the 24 px target that a
  * finger aims at (2.5.8).
  */
 import { afterEach, describe, expect, it } from 'vitest'
@@ -8,6 +9,17 @@ import { page, userEvent } from 'vitest/browser'
 import { deepActiveElement, holdsFocus } from '../../core/focus'
 import { SHIFT_TAB, TAB } from '../../core/test-keys'
 import '../../components/actions/menu-button/menu-button'
+import '../../components/content/attachment/attachment'
+import '../../components/frame/hero/hero'
+import '../../components/inputs/checkbox/checkbox'
+import '../../components/inputs/find/find'
+import '../../components/inputs/radio-group/radio-group'
+import '../../components/inputs/slot-picker/slot-picker'
+import '../../components/inputs/tag-input/tag-input'
+import '../../components/inputs/text-editor/text-editor'
+import '../../components/inputs/toggle/toggle'
+import '../../components/tables/card/card'
+import '../../components/tables/data-table/data-table'
 import '../../components/chat/chat-composer/chat-composer'
 import '../../components/forms/error-summary/error-summary'
 import '../../components/inputs/range/range'
@@ -99,6 +111,8 @@ async function colouredHalves(element: HTMLElement, rgb: number[]): Promise<[num
 afterEach(async () => {
   await page.viewport(1440, 900)
   document.body.replaceChildren()
+  delete document.documentElement.dataset.mode
+  delete document.documentElement.dataset.styleVersion
 })
 
 describe('the ring of the focus', () => {
@@ -243,5 +257,224 @@ describe('the links of a list', () => {
     ]
     expect(links).toHaveLength(3)
     for (const link of links) expect(link.getBoundingClientRect().height).toBeGreaterThanOrEqual(24)
+  })
+})
+
+/** A colour as this browser writes it, alpha included, so `transparent` is a colour too. */
+function normalised(colour: string): string {
+  const probe = document.createElement('span')
+  probe.style.color = colour
+  document.body.append(probe)
+  const written = getComputedStyle(probe).color
+  probe.remove()
+  return written
+}
+
+/** The shadows of a computed `box-shadow`: colour, spread and whether it is inset. */
+function shadowsOf(value: string): { colour: string; spread: number; inset: boolean }[] {
+  if (value === 'none') return []
+  return value.split(/,(?![^(]*\))/).map((part) => {
+    const [, colour = '', rest = ''] =
+      /^\s*((?:rgba?|color|oklch|lab|hsla?)\([^)]*\)|\S+)\s+(.*)$/.exec(part) ?? []
+    const lengths = rest.split(/\s+/).filter((word) => word.endsWith('px'))
+    return {
+      colour: normalised(colour),
+      spread: parseFloat(lengths[3] ?? '0'),
+      inset: /inset/.test(rest),
+    }
+  })
+}
+
+interface RingRow {
+  name: string
+  /** Mounts the element; resolves to it. */
+  mount: () => Promise<HTMLElement>
+  /** What takes the focus from the keyboard. */
+  target: (element: HTMLElement) => HTMLElement
+  /** What draws the ring. */
+  ring: (element: HTMLElement) => HTMLElement
+}
+
+const lit = async <T extends HTMLElement>(tag: string, set: (element: T) => void): Promise<T> => {
+  const element = document.createElement(tag) as T
+  set(element)
+  return append(element)
+}
+
+const choice = (element: HTMLElement, part: string): HTMLElement => shadow(element, part)
+
+const RING_ROWS: RingRow[] = [
+  {
+    name: 'the box of lintje-checkbox',
+    mount: () => lit('lintje-checkbox', (box) => Object.assign(box, { label: 'Akkoord' })),
+    target: (element) => choice(element, '.lintje-choice__input'),
+    ring: (element) => choice(element, '.lintje-choice__box'),
+  },
+  {
+    name: 'the circle of lintje-radio-group',
+    mount: () =>
+      lit('lintje-radio-group', (group) =>
+        Object.assign(group, {
+          label: 'Soort',
+          options: [
+            { value: 'a', label: 'Eerste' },
+            { value: 'b', label: 'Tweede' },
+          ],
+        }),
+      ),
+    target: (element) => choice(element, '.lintje-choice__input'),
+    ring: (element) => choice(element, '.lintje-choice__radio'),
+  },
+  {
+    name: 'the track of lintje-toggle, on',
+    mount: () =>
+      lit('lintje-toggle', (toggle) =>
+        Object.assign(toggle, { label: 'Meldingen', checked: true }),
+      ),
+    target: (element) => choice(element, '.lintje-choice__input'),
+    ring: (element) => choice(element, '.lintje-choice__switch'),
+  },
+  {
+    name: 'the box of lintje-find',
+    mount: () => lit('lintje-find', (find) => Object.assign(find, { label: 'Zoeken in de tekst' })),
+    target: (element) => shadow(element, '.lintje-find__control'),
+    ring: (element) => shadow(element, '.lintje-find'),
+  },
+  {
+    name: 'the field of lintje-tag-input',
+    mount: () => lit('lintje-tag-input', (tags) => Object.assign(tags, { label: 'Trefwoorden' })),
+    target: (element) => shadow(element, '.lintje-tag-input__input'),
+    ring: (element) => shadow(element, '.lintje-tag-input'),
+  },
+  {
+    name: 'the frame of lintje-text-editor',
+    mount: () =>
+      lit('lintje-text-editor', (editor) => Object.assign(editor, { label: 'Toelichting' })),
+    target: (element) => shadow(element, '.lintje-text-editor__surface'),
+    ring: (element) => shadow(element, '.lintje-text-editor'),
+  },
+  {
+    name: 'the chosen time of lintje-slot-picker',
+    mount: () =>
+      lit('lintje-slot-picker', (picker) =>
+        Object.assign(picker, {
+          label: 'Tijd',
+          value: 'b',
+          days: [
+            {
+              date: '2026-10-12',
+              slots: [
+                { value: 'a', label: '09:00' },
+                { value: 'b', label: '09:30' },
+              ],
+            },
+          ],
+        }),
+      ),
+    target: (element) => shadow(element, '.lintje-choice__input:checked'),
+    ring: (element) => shadow(element, '.lintje-slot-picker__slot.is-chosen'),
+  },
+  {
+    name: 'the chip of lintje-attachment that is a link',
+    mount: () =>
+      lit('lintje-attachment', (chip) =>
+        Object.assign(chip, {
+          data: { id: '1', name: 'besluit.pdf', state: 'done', href: '#besluit' },
+        }),
+      ),
+    target: (element) => shadow(element, '.lintje-attachment__main'),
+    ring: (element) => shadow(element, '.lintje-attachment'),
+  },
+  {
+    name: 'the cross of lintje-attachment',
+    mount: () =>
+      lit('lintje-attachment', (chip) =>
+        Object.assign(chip, {
+          removable: true,
+          data: { id: '1', name: 'besluit.pdf', state: 'done' },
+        }),
+      ),
+    target: (element) => shadow(element, '.lintje-attachment__remove'),
+    ring: (element) => shadow(element, '.lintje-attachment__remove'),
+  },
+  {
+    name: 'lintje-card as a link',
+    mount: () =>
+      lit('lintje-card', (card) =>
+        Object.assign(card, { data: { id: '1', title: 'Aanvragen', href: '#aanvragen' } }),
+      ),
+    target: (element) => shadow(element, '.lintje-card__link'),
+    ring: (element) => shadow(element, '.lintje-card'),
+  },
+  {
+    name: 'the detail toggle of lintje-data-table',
+    mount: () =>
+      lit('lintje-data-table', (table) =>
+        Object.assign(table, {
+          data: {
+            caption: 'Loketten',
+            rowKey: 'name',
+            columns: [
+              { key: 'name', header: 'Loket' },
+              { key: 'requests', header: 'Aanvragen' },
+            ],
+            detailFields: [{ key: 'note', label: 'Toelichting' }],
+            rows: [{ name: 'Utrecht', requests: 12, note: 'Open' }],
+          },
+        }),
+      ),
+    target: (element) => shadow(element, '.lintje-data-table__detail-toggle'),
+    ring: (element) => shadow(element, '.lintje-data-table__detail-toggle'),
+  },
+  {
+    name: 'the box of lintje-checkbox on the primary band of lintje-hero',
+    mount: async () => {
+      const hero = await lit('lintje-hero', (band) =>
+        Object.assign(band, { heading: 'Welkom', tone: 'primary' }),
+      )
+      const box = Object.assign(document.createElement('lintje-checkbox'), { label: 'Akkoord' })
+      hero.append(box)
+      await (box as Updating).updateComplete
+      return box
+    },
+    target: (element) => choice(element, '.lintje-choice__input'),
+    ring: (element) => choice(element, '.lintje-choice__box'),
+  },
+]
+
+/** Both house styles in both modes; the earlier style is the page without the attribute. */
+const LOOKS = (['classic', 'new'] as const).flatMap((style) =>
+  (['light', 'dark'] as const).map((mode) => [style, mode] as const),
+)
+
+describe.each(RING_ROWS)('the ring of $name', (row) => {
+  it.each(LOOKS)('has its inner line in the %s style, %s', async (style, mode) => {
+    document.documentElement.dataset.mode = mode
+    if (style === 'new') document.documentElement.dataset.styleVersion = 'new'
+    await start()
+    const element = await row.mount()
+    await expect
+      .poll(() => (style === 'new') === (element.dataset.styleVersion === 'new'))
+      .toBe(true)
+    const target = row.target(element)
+    for (let step = 0; step < 6 && deepActiveElement() !== target; step++)
+      await userEvent.keyboard(TAB)
+    expect(deepActiveElement()).toBe(target)
+    const ring = row.ring(element)
+    const drawn = getComputedStyle(ring)
+    const token = (name: string): string => drawn.getPropertyValue(name).trim()
+    const inside = parseFloat(drawn.outlineOffset) < 0
+    expect(drawn.outlineStyle).toBe('solid')
+    expect(drawn.outlineWidth).toBe(token('--focus-width'))
+    expect(normalised(drawn.outlineColor)).toBe(
+      normalised(token('--lintje-focus') || token('--color-focus')),
+    )
+    const inner = normalised(token('--lintje-focus-inner') || token('--color-focus-inner'))
+    expect(shadowsOf(drawn.boxShadow)).toContainEqual({
+      colour: inner,
+      spread: parseFloat(token('--focus-offset')),
+      inset: inside,
+    })
+    if (row.name.includes('primary band')) expect(token('--lintje-focus-inner')).not.toBe('')
   })
 })

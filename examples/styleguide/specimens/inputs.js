@@ -78,6 +78,10 @@ function findInText(stage) {
 
 const LAST_DAY = new Date(2026, 8, 8)
 
+/** A field beside a disabled text input, so a disabled field reads as every other one. */
+const besideText = (field, error = '') =>
+  `<div class="guide__fields">${field}<lintje-text-input label="Naam" value="Jansen" disabled${error ? ` error="${error}"` : ''}></lintje-text-input></div>`
+
 /** Writes the `{ [name]: value }` the control sends the host into a line under it. */
 function hearValues(stage, tag) {
   const say = log(stage)
@@ -337,6 +341,11 @@ export default {
           },
         },
         {
+          label: 'Uitgeschakeld met terugzetten',
+          note: 'De link is dan gedempte tekst zonder streep eronder.',
+          html: '<lintje-text-input label="Naam" value="Overleg team" modified reset-label="Leegmaken" disabled></lintje-text-input>',
+        },
+        {
           label: 'Ongeldige tekens',
           html: '<lintje-text-input name="p.zoek-fout" label="Met foutmelding" value="!!" error="Gebruik alleen letters en cijfers."></lintje-text-input>',
         },
@@ -581,7 +590,14 @@ export default {
         },
         {
           label: 'Uitgeschakeld',
-          html: '<lintje-select label="Regio" disabled></lintje-select>',
+          note: 'Naast een uitgeschakeld tekstveld: dezelfde kleuren, op volle sterkte.',
+          html: besideText('<lintje-select label="Regio" disabled></lintje-select>'),
+          setup: setOptions('lintje-select', REGIONS, 'alle'),
+        },
+        {
+          label: 'Uitgeschakeld met fout',
+          note: 'Uitgeschakeld wint van de rand en de vulling van de fout; de melding blijft staan.',
+          html: besideText('<lintje-select label="Regio" error="Kies een regio." disabled></lintje-select>', 'Vul een naam in.'),
           setup: setOptions('lintje-select', REGIONS, 'alle'),
         },
       ],
@@ -674,6 +690,22 @@ export default {
           label: 'Fout',
           html: '<lintje-multiselect label="Bron van de aanvraag" error="Kies minstens één bron."></lintje-multiselect>',
           setup: setSelected(SOURCES, []),
+        },
+        {
+          label: 'Zonder opties',
+          note:
+            'Open de lijst: zonder opties staat er geen "Alles selecteren", alleen dat er niets te ' +
+            'kiezen is.',
+          html: '<lintje-multiselect label="Bron van de aanvraag"></lintje-multiselect>',
+          setup: setSelected([], []),
+        },
+        {
+          label: 'Waarde buiten de opties',
+          note:
+            'Een gekozen waarde zonder optie staat als zichzelf in de chip; "Alles selecteren" ' +
+            'telt haar niet mee.',
+          html: '<lintje-multiselect label="Bron van de aanvraag"></lintje-multiselect>',
+          setup: setSelected(SOURCES, ['balie', 'archief']),
         },
         {
           label: 'Uitgeschakeld',
@@ -951,6 +983,12 @@ export default {
           },
         },
         {
+          label: 'Afwijkend',
+          note: 'Met `bold` staat de keuze van een filter dat afwijkt van zijn standaard vet.',
+          html: '<lintje-segmented label="Soort loket" bold></lintje-segmented>',
+          setup: setOptions('lintje-segmented', KINDS, 'mobile'),
+        },
+        {
           label: 'Met uitleg bij de keuze',
           html: '<lintje-segmented label="Soort gesprek"></lintje-segmented>',
           setup(stage) {
@@ -1014,7 +1052,14 @@ export default {
         },
         {
           label: 'Uitgeschakeld',
-          html: '<lintje-segmented label="Soort loket" disabled></lintje-segmented>',
+          note: 'Naast een uitgeschakeld tekstveld: dezelfde kleuren.',
+          html: besideText('<lintje-segmented label="Soort loket" disabled></lintje-segmented>'),
+          setup: setOptions('lintje-segmented', KINDS, 'alle'),
+        },
+        {
+          label: 'Uitgeschakeld met fout',
+          note: 'Uitgeschakeld wint van de fout, net als bij het tekstveld.',
+          html: besideText('<lintje-segmented label="Soort loket" error="Kies een soort loket." disabled></lintje-segmented>', 'Vul een naam in.'),
           setup: setOptions('lintje-segmented', KINDS, 'alle'),
         },
       ],
@@ -1261,7 +1306,13 @@ export default {
         },
         {
           label: 'Uitgeschakeld',
-          html: '<lintje-file-upload accept=".pdf,.jpg,.png" max-size="10485760" disabled></lintje-file-upload>',
+          note: 'Naast een uitgeschakeld tekstveld: dezelfde kleuren, met de gestippelde rand van het vak.',
+          html: besideText('<lintje-file-upload label="Bijlagen" accept=".pdf,.jpg,.png" max-size="10485760" disabled></lintje-file-upload>'),
+        },
+        {
+          label: 'Uitgeschakeld met fout',
+          note: 'Uitgeschakeld wint van de fout: de rand blijft gestippeld en grijs.',
+          html: besideText('<lintje-file-upload label="Bijlagen" accept=".pdf,.jpg,.png" max-size="10485760" error="Voeg minstens één bestand toe" disabled></lintje-file-upload>', 'Vul een naam in.'),
         },
         {
           label: 'Fout',

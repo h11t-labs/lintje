@@ -40,8 +40,9 @@
 .lintje-attachment--opens:hover .lintje-attachment__sign { color: var(--color-text-primary); }
 .lintje-attachment__main:focus-visible { outline: none; }
 .lintje-attachment:has(.lintje-attachment__main:focus-visible) {
-  outline: var(--focus-width) solid var(--color-focus);
+  outline: var(--focus-width) solid var(--lintje-focus, var(--color-focus));
   outline-offset: var(--focus-offset);
+  box-shadow: 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner));
 }
 
 .lintje-attachment__icon { flex: none; color: var(--color-text-muted); }
@@ -99,8 +100,9 @@
   inset-inline: calc(var(--space-2) / -2);
 }
 .lintje-attachment__action:focus-visible {
-  outline: var(--focus-width) solid var(--color-focus);
+  outline: var(--focus-width) solid var(--lintje-focus, var(--color-focus));
   outline-offset: var(--focus-offset);
+  box-shadow: 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner));
 }
 
 .lintje-attachment.is-disabled { color: var(--color-text-disabled); }

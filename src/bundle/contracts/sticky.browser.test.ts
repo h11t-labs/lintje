@@ -9,8 +9,11 @@ import '../../components/forms/form-actions/form-actions'
 import { tabbables } from '../../components/shared/focus-trap'
 import '../../components/filters/filter-bar/filter-bar'
 import '../../components/frame/shell/shell'
+import '../../components/frame/page-header/page-header'
+import '../../components/layout/tabs/tabs'
 import '../../components/feedback/toast/toast'
 import type { ChatData, DataTableData, FilterBarData, ShellData } from '../../types'
+import type { TabItem } from '../../components/layout/tabs/tabs'
 
 interface Scene {
   /** The element that scrolls under it: the page's, or the box the host gave it. */
@@ -341,6 +344,74 @@ function filterRow(layout: 'top' | 'side', width: number): Row {
   }
 }
 
+type Style = 'classic' | 'new'
+
+const PARTS: TabItem[] = [
+  { value: 'overzicht', label: 'Overzicht', href: '#overzicht' },
+  { value: 'details', label: 'Details', href: '#details' },
+]
+
+/** A shell whose page head carries a row of tabs, in one house style, with `content` under it. */
+async function tabbedPage(
+  style: Style,
+  content: HTMLElement[],
+): Promise<{ element: HTMLElement; header: HTMLElement; tabs: HTMLElement }> {
+  if (style === 'new') document.documentElement.dataset.styleVersion = 'new'
+  const header = create('lintje-page-header', {
+    slot: 'header',
+    data: { title: 'Aanvragen', description: 'Alle aanvragen van het team.' },
+  })
+  const tabs = create('lintje-tabs', { slot: 'tabs', tabs: PARTS, label: 'Onderdelen' })
+  header.append(tabs)
+  const element = await shell('top', [header, ...content])
+  return { element, header, tabs }
+}
+
+function headerTabsRow(style: Style, width: number): Row {
+  return {
+    tag: 'lintje-page-header',
+    marker: `its tabs in the ${style} style at ${width} px`,
+    width,
+    side: 'top',
+    reserves: true,
+    flush: true,
+    mount: async () => {
+      const content = requests(60)
+      const { element, header, tabs } = await tabbedPage(style, [content])
+      return {
+        scroller: document.documentElement,
+        cover: () => tabs,
+        above: shellBar(element, 'top'),
+        target: content.querySelectorAll('a')[30]!,
+        remove: () => header.remove(),
+      }
+    },
+  }
+}
+
+function filterUnderTabsRow(style: Style, width: number): Row {
+  return {
+    tag: 'lintje-filter-bar',
+    marker: `stuck under the head’s tabs in the ${style} style at ${width} px`,
+    width,
+    side: 'top',
+    reserves: true,
+    flush: true,
+    mount: async () => {
+      const bar = create('lintje-filter-bar', { data: FILTERS, slot: 'full' })
+      const content = requests(60)
+      const { tabs } = await tabbedPage(style, [bar, content])
+      return {
+        scroller: document.documentElement,
+        cover: () => find(bar, '.lintje-filter-bar.is-sticky, .lintje-filter-bar--mobile'),
+        above: () => tabs,
+        target: content.querySelectorAll('a')[30]!,
+        remove: () => bar.remove(),
+      }
+    },
+  }
+}
+
 /** A last turn whose answer asks: its questions stand in the footer, above the question box. */
 const ASKING = {
   id: 't9',
@@ -578,6 +649,11 @@ const ROWS: Row[] = [
   filterRow('top', 390),
   filterRow('side', 1440),
   filterRow('side', 390),
+  ...(['classic', 'new'] as const).flatMap((style) => [
+    headerTabsRow(style, 1440),
+    headerTabsRow(style, 390),
+    ...[1440, 1024, 768].map((width) => filterUnderTabsRow(style, width)),
+  ]),
   {
     tag: 'lintje-chat',
     marker: 'the question box',
@@ -816,6 +892,7 @@ afterEach(async () => {
   document.documentElement.style.scrollPaddingTop = ''
   document.documentElement.style.scrollPaddingBottom = ''
   document.body.replaceChildren()
+  delete document.documentElement.dataset.styleVersion
 })
 
 describe('what sticks keeps the focus clear of itself', () => {

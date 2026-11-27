@@ -36,7 +36,7 @@
 }
 .lintje-gallery__thumb:hover { border-color: var(--color-border-heavy); }
 /* The chosen one carries the selected edge, and aria-current says it in words. */
-.lintje-gallery__thumb.is-selected { outline: 2px solid var(--color-accent-line); outline-offset: -2px; }
+.lintje-gallery__thumb.is-selected { outline: 2px solid var(--color-selected-edge); outline-offset: -2px; }
 .lintje-gallery__thumb:focus-visible { outline: var(--focus-width) solid var(--color-focus); outline-offset: var(--focus-offset); }
 .lintje-gallery__thumb-image {
   display: block;
