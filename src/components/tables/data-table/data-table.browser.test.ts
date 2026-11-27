@@ -682,6 +682,26 @@ describe('a clickable row under the pointer', () => {
     })
   }
 
+  it('leaves a selected and a checked row their own surface', async () => {
+    const element = await mount({ ...structuredClone(clickable), checkedIds: ['Zwolle 2'] })
+    // Hover and selected share a colour today: a hover in its own colour shows which one is drawn.
+    const own = new CSSStyleSheet()
+    own.replaceSync('.lintje-data-table__row { --color-bg-subtle: rgb(255, 0, 0); }')
+    element.shadowRoot!.adoptedStyleSheets = [...element.shadowRoot!.adoptedStyleSheets, own]
+    const full = '.lintje-data-table__full .lintje-data-table__row.is-clickable'
+    const selected = part(element, `${full}.is-selected`)
+    const checked = part(element, `${full}.is-checked`)
+    const plain = part(element, `${full}:not(.is-selected, .is-checked)`)
+    await userEvent.hover(plain)
+    await expect.poll(() => getComputedStyle(plain).backgroundColor).toBe('rgb(255, 0, 0)')
+    for (const row of [selected, checked]) {
+      await userEvent.hover(row)
+      await expect
+        .poll(() => getComputedStyle(row).backgroundColor)
+        .toBe(colourOf('--color-bg-selected'))
+    }
+  })
+
   it('stays as it is when the row does not click through', async () => {
     const element = await mount({ ...structuredClone(clickable), clickable: false })
     const row = part(element, '.lintje-data-table__full .lintje-data-table__row')

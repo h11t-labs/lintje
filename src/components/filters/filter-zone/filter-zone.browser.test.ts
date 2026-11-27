@@ -158,6 +158,17 @@ describe('a zone moved in the page', () => {
     await expect.poll(() => reports).toEqual([true, false])
   })
 
+  it('stands open, popovers unclipped, when it moves while still opening', async () => {
+    const element = await mount(true)
+    // Mid-opening, as the timer of a height transition leaves it; reduced motion has none.
+    ;(element as unknown as { settled: boolean }).settled = false
+    await element.updateComplete
+    const bar = (): Element => element.shadowRoot!.querySelector('.lintje-filter-bar')!
+    expect(bar().classList.contains('is-settled')).toBe(false)
+    await moveTwice(element)
+    await expect.poll(() => bar().classList.contains('is-settled')).toBe(true)
+  })
+
   it('closes its open controls once as the page scrolls on', async () => {
     document.body.style.height = '4000px'
     const element = await mount(true)

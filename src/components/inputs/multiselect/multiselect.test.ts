@@ -227,6 +227,22 @@ describe('lintje-multiselect and the focus', () => {
     expect(all.hasAttribute('indeterminate')).toBe(true)
   })
 
+  it('keeps a chosen value outside the options when select-all is ticked or unticked', async () => {
+    const element = await mount()
+    element.selected = ['laag', 'elders']
+    const seen: string[][] = []
+    element.addEventListener('lintje-change', (event) => {
+      element.selected = (event as CustomEvent<string[]>).detail
+      seen.push(element.selected)
+    })
+    await element.updateComplete
+    const all = (): HTMLElement => element.renderRoot.querySelector('lintje-checkbox')!
+    all().dispatchEvent(new CustomEvent('lintje-change', { detail: true }))
+    await element.updateComplete
+    all().dispatchEvent(new CustomEvent('lintje-change', { detail: false }))
+    expect(seen).toEqual([['laag', 'elders', 'gemiddeld', 'hoog'], ['elders']])
+  })
+
   it('shows a chosen value outside the options as itself in its chip', async () => {
     const element = await mount()
     element.selected = ['laag', 'elders']
