@@ -283,7 +283,7 @@ export class LintjeAudioPlayer extends LintjePlayerElement {
         ></span>`
       })}
       <span
-        class="lintje-audio-player__head"
+        class="lintje-player__bar-handle"
         aria-hidden="true"
         ${styleProps({ left: `${playedFraction(this.position, length) * 100}%` })}
       ></span>
@@ -340,7 +340,7 @@ export class LintjeAudioPlayer extends LintjePlayerElement {
             )
       }
       <span
-        class="lintje-audio-player__head"
+        class="lintje-player__bar-handle"
         aria-hidden="true"
         ${styleProps({ left: `${played * 100}%` })}
       ></span>
@@ -456,7 +456,7 @@ export class LintjeAudioPlayer extends LintjePlayerElement {
       >
         <div class="lintje-audio-player__level-fill" ${styleProps({ width: `${percent}%` })}></div>
         <span
-          class="lintje-audio-player__head lintje-audio-player__level-head"
+          class="lintje-player__bar-handle"
           aria-hidden="true"
           ${styleProps({ left: `${percent}%` })}
         ></span>

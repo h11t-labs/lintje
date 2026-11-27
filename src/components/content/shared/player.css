@@ -44,7 +44,7 @@
   background: var(--color-accent-line);
   pointer-events: none;
 }
-/* The head marks where the recording stands, drawn as the audio player's (`__head`). */
+/* The head marks where the recording stands, on every bar of both players. */
 .lintje-player__bar-handle {
   position: absolute;
   top: 50%;
