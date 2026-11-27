@@ -27,6 +27,7 @@ import { deepActiveElement, standBeside } from '../../shared/focus-trap'
 import { openFeet, watchFeet } from '../../shared/dialog'
 import { statusIcon, type Tone } from '../../shared/tone'
 import toastCss from './toast.css?inline'
+import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
 
 const LIFETIME = 6000
@@ -59,7 +60,12 @@ function mainRegion(from: Node): HTMLElement | null {
 }
 
 export class LintjeToast extends LintjeElement {
-  static override styles = [iconStyles, shadowCss(toastCss), shadowCss(screenOnlyCss)]
+  static override styles = [
+    iconStyles,
+    shadowCss(dialogCloseCss),
+    shadowCss(toastCss),
+    shadowCss(screenOnlyCss),
+  ]
 
   static override properties: PropertyDeclarations = {
     kind: { type: String, reflect: true },
@@ -273,7 +279,7 @@ export class LintjeToast extends LintjeElement {
       }
       <button
         type="button"
-        class="lintje-toast__close"
+        class="lintje-dialog-close lintje-toast__close"
         aria-label="Melding sluiten"
         @click=${() => this.#close()}
       >
