@@ -1636,7 +1636,9 @@ kleinste correctie, en leg die hier vast.
 - **Een zwevend paneel aan een knop sluit als de focus het verlaat** (een menu, de bel, de
   linkdialoog, Weergave en Delen, het kolomfilter en de kolomkiezer van een tabel): Tab voorbij
   zijn laatste stop sluit het en gaat verder vanaf zijn knop, een focus elders blijft daar, en een
-  klik op wat erin geen focus neemt, houdt het open. Een popup-dialoog (het kolomfilter, de
+  klik op wat erin geen focus neemt, houdt het open. Een druk ernaast sluit het en komt aan op
+  wat de lezer aanwees, dat de focus krijgt: geen sluier vangt hem. Een veld dat uitgeschakeld
+  wordt, sluit zijn lijst of paneel. Een popup-dialoog (het kolomfilter, de
   kolomkiezer) neemt bij het openen de focus naar zijn eerste veld, en Shift+Tab voorbij zijn
   eerste stop sluit hem ook. Escape in een popover is eerst van zijn element (een opgetilde greep
   zet zijn rij terug), dan van de popover.
