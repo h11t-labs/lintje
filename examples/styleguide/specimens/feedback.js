@@ -515,6 +515,19 @@ export default {
           label: 'Gepauzeerd',
           html: '<lintje-progress-bar label="Uploaden" detail="62% · gepauzeerd" value="62" state="paused"></lintje-progress-bar>',
         },
+        {
+          label: 'Zonder label klaar',
+          note: 'Met `hide-label` staat het teken vóór de balk, zodat de toestand niet alleen in kleur staat.',
+          html: '<lintje-progress-bar label="Uploaden" value="100" hide-label></lintje-progress-bar>',
+        },
+        {
+          label: 'Zonder label fout',
+          html: '<lintje-progress-bar label="Uploaden" value="40" state="error" hide-label></lintje-progress-bar>',
+        },
+        {
+          label: 'Zonder label onderbroken',
+          html: '<lintje-progress-bar label="Uploaden" value="62" state="paused" hide-label></lintje-progress-bar>',
+        },
       ],
     },
     {
