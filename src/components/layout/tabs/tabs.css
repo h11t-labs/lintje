@@ -31,18 +31,6 @@
   transition: background var(--dur-hover) var(--ease-in-motion),
               border-color var(--dur-hover) var(--ease-in-motion);
 }
-/* Every label keeps its bold width free, so choosing a tab moves nothing. The copy is hidden, so
-   no reader hears it. */
-.lintje-tabs__label { display: inline-flex; flex-direction: column; }
-.lintje-tabs__label::after {
-  content: attr(data-text) / '';
-  height: 0;
-  overflow: hidden;
-  visibility: hidden;
-  font-weight: 700;
-  pointer-events: none;
-  user-select: none;
-}
 .lintje-tabs__tab:hover:not(.is-active):not(.is-disabled) {
   background: var(--lintje-tabs-hover, var(--color-bg-subtle));
   border-bottom-color: var(--lintje-tabs-ink-line, var(--color-border-heavy));

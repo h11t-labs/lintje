@@ -337,7 +337,7 @@ export class LintjePagination extends LintjeElement {
         aria-label=${name}
         aria-current=${active ? 'page' : nothing}
         @click=${(event: MouseEvent) => this.choose(event, page, page)}
-        >${page}</a
+        ><span class="bold-room" data-text=${page}>${page}</span></a
       >`
     }
     return html`<button
@@ -348,7 +348,7 @@ export class LintjePagination extends LintjeElement {
       aria-current=${active ? 'page' : nothing}
       @click=${(event: MouseEvent) => this.choose(event, page, page)}
     >
-      ${page}
+      <span class="bold-room" data-text=${page}>${page}</span>
     </button>`
   }
 

@@ -129,7 +129,7 @@ export class LintjeSegmented extends LintjeInputElement {
             ?disabled=${this.isDisabled}
             @click=${() => this.choose(option.value)}
           >
-            <span class="lintje-segmented__label" data-text=${option.label}>${option.label}</span>${
+            <span class="lintje-segmented__label bold-room" data-text=${option.label}>${option.label}</span>${
               option.count === undefined
                 ? nothing
                 : html`<lintje-badge variant="count">${option.count ?? ''}</lintje-badge>`

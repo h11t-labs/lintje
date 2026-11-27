@@ -45,18 +45,6 @@
   white-space: nowrap;
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
-/* Every label keeps its bold width free, so choosing an option moves nothing. The copy is
-   hidden, so no reader hears it. */
-.lintje-segmented__label { display: inline-flex; flex-direction: column; }
-.lintje-segmented__label::after {
-  content: attr(data-text) / '';
-  height: 0;
-  overflow: hidden;
-  visibility: hidden;
-  font-weight: 700;
-  pointer-events: none;
-  user-select: none;
-}
 .lintje-segmented__option:hover:not(.is-active) { background: var(--color-bg-subtle); }
 .lintje-segmented__option:disabled {
   background: var(--color-bg-subtle);
