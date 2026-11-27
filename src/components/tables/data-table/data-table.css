@@ -389,7 +389,7 @@
 .lintje-data-table__detail-toggle:hover,
 .lintje-data-table__mobile-toggle:hover { background: var(--color-bg-subtle); color: var(--color-text-primary); }
 /* The detail toggle touches the scroller's left edge, which clips: its ring sits inside. */
-.lintje-data-table__detail-toggle:focus-visible { outline-offset: -3px; }
+.lintje-data-table__detail-toggle:focus-visible { outline-offset: var(--focus-inset); box-shadow: inset 0 0 0 var(--focus-offset) var(--lintje-focus-inner, var(--color-focus-inner)); }
 .lintje-data-table__funnel.is-filtered {
   background: var(--color-action-primary);
   border-color: var(--color-action-primary-border);
