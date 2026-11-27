@@ -734,3 +734,116 @@ describe('the fill of a key', () => {
     expect(opacity).toBe('0.25')
   })
 })
+
+// A chart on a slide that a host scales to the screen: the drawing keeps the layout's width,
+// and the tooltip stands at its mark on the screen.
+describe('a chart in a scaled container', () => {
+  const GROUPED: ChartSpec = {
+    kind: 'grouped-bar',
+    labels: ['Noord', 'Oost', 'Zuid'],
+    series: [
+      { label: 'Dit jaar', values: [30, 20, 10] },
+      { label: 'Vorig jaar', values: [25, 15, 12] },
+    ],
+  }
+
+  async function scaled(scale: number, chart: ChartSpec = GROUPED): Promise<LintjeChart> {
+    const frame = document.createElement('div')
+    frame.style.width = '1081px'
+    frame.style.transform = `scale(${scale})`
+    frame.style.transformOrigin = '0 0'
+    const tile = document.createElement('lintje-chart')
+    tile.data = {
+      title: 'Aanvragen per regio',
+      description: 'Noord, Oost en Zuid, dit jaar en vorig jaar.',
+      chart,
+    }
+    frame.append(tile)
+    document.body.append(frame)
+    await tile.updateComplete
+    return tile
+  }
+
+  const drawing = (tile: LintjeChart): SVGSVGElement | null =>
+    tile.shadowRoot!.querySelector<SVGSVGElement>('svg.lintje-chart__svg')
+  const width = (tile: LintjeChart): number => drawing(tile)?.viewBox.baseVal.width ?? 0
+
+  /** The width once it has stood still for three polls: the chart has measured itself. */
+  async function settledWidth(tile: LintjeChart): Promise<number> {
+    await expect.poll(() => drawing(tile)?.getClientRects().length ?? 0).toBeGreaterThan(0)
+    const seen: number[] = []
+    await expect
+      .poll(() => {
+        seen.push(width(tile))
+        const [a, b, c] = seen.slice(-3)
+        return c !== undefined && a === b && b === c
+      })
+      .toBe(true)
+    return seen.at(-1)!
+  }
+
+  it('draws at the width it has at scale 1', async () => {
+    const expected = await settledWidth(await scaled(1))
+    document.body.replaceChildren()
+    for (const scale of [0.625, 1.125, 1.5]) {
+      const tile = await scaled(scale)
+      expect(await settledWidth(tile), `at scale ${scale}`).toBe(expected)
+      document.body.replaceChildren()
+    }
+  })
+
+  it.each([1, 0.625, 1.5])(
+    'stands the tooltip at the mark under the pointer, at scale %s',
+    async (scale) => {
+      const tile = await scaled(scale)
+      await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)))
+      await settledWidth(tile)
+      const group = tile.shadowRoot!.querySelectorAll('.lintje-chart__bar-group')[0]!
+      const bars = group.getBoundingClientRect()
+      const at = { clientX: bars.left + bars.width / 2, clientY: bars.top + bars.height / 2 }
+      group.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, ...at }))
+      const tooltip = (): HTMLElement | null =>
+        tile.shadowRoot!.querySelector<HTMLElement>('.lintje-chart-tooltip')
+      await expect.poll(tooltip).not.toBeNull()
+      // Right of the middle of its category and 12 px above its tallest bar, in the slide's px.
+      await expect
+        .poll(() =>
+          Math.abs(
+            tooltip()!.getBoundingClientRect().left - (bars.left + bars.width / 2 + 12 * scale),
+          ),
+        )
+        .toBeLessThan(2)
+      const tallest = Math.min(
+        ...[...group.querySelectorAll('rect')].map((bar) => bar.getBoundingClientRect().top),
+      )
+      expect(
+        Math.abs(tooltip()!.getBoundingClientRect().top - (tallest - 12 * scale)),
+      ).toBeLessThan(2)
+    },
+  )
+
+  it('stands the tooltip of a heatmap cell at the cell, at scale 1.5', async () => {
+    const tile = await scaled(1.5, {
+      kind: 'heatmap',
+      columnLabels: ['ochtend', 'middag'],
+      rowLabels: ['ma', 'di'],
+      values: [
+        [12, 8],
+        [5, 3],
+      ],
+    })
+    const cell = (): HTMLElement =>
+      tile.shadowRoot!.querySelector<HTMLElement>('.lintje-heatmap__cell')!
+    await expect.poll(() => cell().getClientRects().length).toBeGreaterThan(0)
+    const box = cell().getBoundingClientRect()
+    const middle = { clientX: box.left + box.width / 2, clientY: box.top + box.height / 2 }
+    cell().dispatchEvent(new MouseEvent('mousemove', { bubbles: true, ...middle }))
+    const tooltip = (): HTMLElement | null =>
+      tile.shadowRoot!.querySelector<HTMLElement>('.lintje-chart-tooltip')
+    await expect.poll(tooltip).not.toBeNull()
+    // Right of the middle of the cell, in the slide's px.
+    await expect
+      .poll(() => Math.abs(tooltip()!.getBoundingClientRect().left - (middle.clientX + 12 * 1.5)))
+      .toBeLessThan(2)
+  })
+})

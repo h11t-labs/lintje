@@ -87,6 +87,8 @@ beforeEach(() => {
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(
     DOMRect.fromRect({ width: 800, height: 300 }),
   )
+  vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(800)
+  vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300)
 })
 
 afterEach(() => {
