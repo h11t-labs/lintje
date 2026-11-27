@@ -3,9 +3,12 @@
  * other colour, in both house styles. An entry that can be chosen does answer the pointer.
  */
 import { afterEach, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
+import '../../components/frame/shell/shell'
 import '../../components/frame/sub-nav/sub-nav'
+import type { LintjeShell } from '../../components/frame/shell/shell'
 import type { LintjeSubNav } from '../../components/frame/sub-nav/sub-nav'
+import type { ShellLink } from '../../types'
 
 interface Row {
   name: string
@@ -18,6 +21,8 @@ interface Row {
   available: boolean
   /** The line under the word, which a hover leaves as it is. */
   line?: string
+  /** Where the pointer rests before: the page, or what keeps the entry in view. */
+  rest?: (element: HTMLElement) => HTMLElement
 }
 
 const frame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()))
@@ -47,7 +52,94 @@ const subNavEntry =
 const subNavLabel = (entry: HTMLElement): HTMLElement =>
   entry.querySelector<HTMLElement>('.lintje-sub-nav__label')!
 
+const LINKS: ShellLink[] = [
+  { label: 'Overzicht', href: '#overzicht', active: true },
+  { label: 'Aanvragen', href: '#aanvragen' },
+  { label: 'Rapporten' },
+  { label: 'Beheer', href: '#beheer', noAccess: true },
+]
+
+async function shell(layout: 'top' | 'side', grouped = false): Promise<LintjeShell> {
+  await page.viewport(1440, 900)
+  const element = document.createElement('lintje-shell')
+  element.data = {
+    name: 'Dashboard Vergunningen',
+    layout,
+    navigation: grouped
+      ? [
+          { label: 'Start', href: '#start', active: true },
+          { label: 'Onderdelen', links: LINKS },
+        ]
+      : LINKS,
+  }
+  document.body.append(element)
+  await element.updateComplete
+  return element
+}
+
+const within =
+  (selector: string, index: number) =>
+  (element: HTMLElement): HTMLElement =>
+    element.shadowRoot!.querySelectorAll<HTMLElement>(selector)[index]
+const navbarLabel = (entry: HTMLElement): HTMLElement =>
+  entry.querySelector<HTMLElement>('.lintje-navbar__label')!
+// The side menu draws its lines on the row itself.
+const itself = (entry: HTMLElement): HTMLElement => entry
+const groupButton = within('button.lintje-navbar__entry', 0)
+
+const shellRows = (
+  name: string,
+  mount: () => Promise<HTMLElement>,
+  selector: string,
+  label: (entry: HTMLElement) => HTMLElement,
+  lines: [string, string],
+  rest?: (element: HTMLElement) => HTMLElement,
+): Row[] => [
+  {
+    name: `${name} :: met pagina`,
+    mount,
+    entry: within(selector, 1),
+    label,
+    available: true,
+    rest,
+  },
+  {
+    name: `${name} :: zonder pagina`,
+    mount,
+    entry: within(selector, 2),
+    label,
+    available: false,
+    line: lines[0],
+    rest,
+  },
+  {
+    name: `${name} :: zonder toegang`,
+    mount,
+    entry: within(selector, 3),
+    label,
+    available: false,
+    line: lines[1],
+    rest,
+  },
+]
+
 const ROWS: Row[] = [
+  ...shellRows('lintje-shell :: balk', () => shell('top'), '.lintje-navbar__entry', navbarLabel, [
+    'none',
+    'line-through',
+  ]),
+  ...shellRows(
+    'lintje-shell :: groep in de balk',
+    () => shell('top', true),
+    '.lintje-navbar__page',
+    navbarLabel,
+    ['none', 'line-through'],
+    groupButton,
+  ),
+  ...shellRows('lintje-shell :: zijmenu', () => shell('side'), '.lintje-nav__item', itself, [
+    'none',
+    'line-through',
+  ]),
   {
     name: 'lintje-sub-nav :: met pagina',
     mount: subNav,
@@ -88,10 +180,13 @@ describe.each(ROWS)('$name', (row) => {
   it.each(['classic', 'new'] as const)('under the pointer, in the %s style', async (style) => {
     if (style === 'new') document.documentElement.dataset.styleVersion = 'new'
     const element = await row.mount()
+    // A page in a group of the bar is drawn once the group opens.
+    if (row.rest) await userEvent.hover(row.rest(element))
+    else await userEvent.hover(document.body, { position: { x: 1, y: 1 } })
+    await (element as LintjeShell).updateComplete
+    await frame()
     const entry = row.entry(element)
     const label = row.label(entry)
-    await userEvent.hover(document.body, { position: { x: 1, y: 1 } })
-    await frame()
     const before = look(entry, label)
     // The word, not the link: a locator by the link's name misreads its bold room.
     await userEvent.hover(label)
