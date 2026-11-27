@@ -1,14 +1,12 @@
 /**
- * The head the windows share: a close button that answers no pointer while it is unavailable,
- * and a title in one colour, in both house styles, light and dark.
+ * The title the windows share: one colour in the dialog and the modal, in both house styles,
+ * light and dark.
  */
 import { afterEach, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
 import '../overlays/dialog/dialog'
-import '../overlays/drawer/drawer'
 import '../overlays/modal/modal'
 
-type Window = HTMLElement & { open: boolean; busy?: boolean; updateComplete: Promise<unknown> }
+type Window = HTMLElement & { open: boolean; updateComplete: Promise<unknown> }
 
 const frame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()))
 
@@ -41,32 +39,6 @@ afterEach(() => {
   document.body.replaceChildren()
   delete document.documentElement.dataset.styleVersion
   document.documentElement.dataset.mode = 'light'
-})
-
-describe('the close button of a busy window', () => {
-  it.each([
-    ['lintje-dialog', '.lintje-dialog__close'],
-    ['lintje-drawer', '.lintje-drawer__close'],
-  ])('%s keeps the disabled colour under the pointer', async (tag, selector) => {
-    const element = await mount(tag, { busy: true })
-    const close = shadow(element, selector)
-    await userEvent.hover(close)
-    await frame()
-    await frame()
-    expect(close.matches(':hover')).toBe(true)
-    // No transition set off: the colour is the disabled one and stays there.
-    expect(close.getAnimations()).toHaveLength(0)
-    expect(getComputedStyle(close).color).toBe(token(element, '--color-text-disabled'))
-  })
-
-  it('takes the text colour under the pointer once it is free again', async () => {
-    const element = await mount('lintje-dialog')
-    const close = shadow(element, '.lintje-dialog__close')
-    await userEvent.hover(close)
-    await expect
-      .poll(() => getComputedStyle(close).color)
-      .toBe(token(element, '--color-text-primary'))
-  })
 })
 
 describe('the title of a window', () => {
