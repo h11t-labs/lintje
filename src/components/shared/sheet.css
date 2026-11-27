@@ -40,14 +40,9 @@
   display: flex; align-items: center; gap: var(--space-2);
   padding: var(--space-4);
   background: var(--lintje-sheet-bg, var(--color-bg-surface));
-  /* As every window's head; the element's own line colour stays. */
-  border-bottom: var(--window-divider);
-  border-bottom-color: var(--lintje-sheet-line, var(--color-border-popover));
+  border-bottom: 1px solid var(--lintje-sheet-line, var(--color-border-popover));
 }
-.lintje-sheet__title {
-  flex: 1; min-width: 0; margin: 0; font: var(--text-h2);
-  color: var(--lintje-sheet-text, var(--color-window-title));
-}
+.lintje-sheet__title { flex: 1; min-width: 0; margin: 0; font: var(--text-h2); color: inherit; }
 .lintje-sheet__close:hover { color: var(--lintje-sheet-text, var(--color-text-primary)); }
 
 @media print { .lintje-sheet, .lintje-sheet__scrim { display: none; } }
