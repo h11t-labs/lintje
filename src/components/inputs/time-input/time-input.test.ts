@@ -122,6 +122,25 @@ describe('lintje-time-input', () => {
     await type(element, '1435')
     expect(seen.local).toEqual([])
   })
+
+  it('is read-only like the text field: focusable, unchanged by typing, keys or the list', async () => {
+    const element = await mount({ value: '14:35', readonly: true })
+    const seen = listen(element)
+    expect(control(element).readOnly).toBe(true)
+    expect(control(element).disabled).toBe(false)
+    expect(control(element).classList.contains('is-readonly')).toBe(true)
+    expect(
+      element.shadowRoot!.querySelector<HTMLButtonElement>('.lintje-time-input__toggle')!.disabled,
+    ).toBe(true)
+    await type(element, '1500')
+    await press(element, 'ArrowUp')
+    await press(element, 'PageDown')
+    control(element).dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true }))
+    await element.updateComplete
+    expect(element.value).toBe('14:35')
+    expect(element.open).toBe(false)
+    expect(seen.local).toEqual([])
+  })
 })
 
 const toggle = (element: LintjeTimeInput): HTMLButtonElement =>

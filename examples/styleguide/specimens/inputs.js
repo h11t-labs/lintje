@@ -1067,6 +1067,11 @@ export default {
           html: '<lintje-date-input label="Datum" value="2026-10-03" disabled></lintje-date-input>',
         },
         {
+          label: 'Alleen-lezen',
+          note: 'Te lezen en te kopiëren, niet te wijzigen: de kalender gaat niet open.',
+          html: '<lintje-date-input name="melddatum" label="Datum van de melding" value="2026-10-03" readonly></lintje-date-input>',
+        },
+        {
           label: 'Fout',
           note: 'In het veld staat 31-02-2026, een dag die niet bestaat.',
           html: '<lintje-date-input label="Datum" value="2026-10-03"></lintje-date-input>',
@@ -1114,6 +1119,10 @@ export default {
         {
           label: 'Uitgeschakeld',
           html: '<lintje-time-input label="Tijdstip" placeholder="uu:mm" disabled></lintje-time-input>',
+        },
+        {
+          label: 'Alleen-lezen',
+          html: '<lintje-time-input name="meldtijd" label="Tijdstip" value="14:35" readonly></lintje-time-input>',
         },
         {
           label: 'Fout',

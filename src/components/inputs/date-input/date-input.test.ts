@@ -159,6 +159,22 @@ describe('lintje-date-input', () => {
     await type(element, '03-10-2026')
     expect(seen.local).toEqual([])
   })
+
+  it('is read-only like the text field: focusable, unchanged by typing, keys or the calendar', async () => {
+    const element = await mount({ value: '2026-10-03', readonly: true })
+    const seen = listen(element)
+    expect(control(element).readOnly).toBe(true)
+    expect(control(element).disabled).toBe(false)
+    expect(control(element).classList.contains('is-readonly')).toBe(true)
+    expect(toggle(element).disabled).toBe(true)
+    await type(element, '05-10-2026')
+    control(element).dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp' }))
+    control(element).dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true }))
+    await element.updateComplete
+    expect(element.value).toBe('2026-10-03')
+    expect(element.open).toBe(false)
+    expect(seen.local).toEqual([])
+  })
 })
 
 describe('the calendar', () => {

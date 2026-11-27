@@ -243,6 +243,16 @@ describe.each(ROWS)('$tag with required in a native form', (row) => {
   })
 })
 
+describe('read-only', () => {
+  it.each(['lintje-text-input', 'lintje-date-input', 'lintje-time-input'])(
+    '%s cannot be filled, so it never holds the form back',
+    async (tag) => {
+      const { form } = await inForm({ tag, fill: {}, posts: [] }, { readonly: true })
+      expect(form.checkValidity()).toBe(true)
+    },
+  )
+})
+
 describe('the parts of a value', () => {
   it('a period with only a start is empty', async () => {
     const row = ROWS.find((item) => item.tag === 'lintje-date-range')!
