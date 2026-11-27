@@ -37,12 +37,15 @@
   color: var(--color-accent-text);
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
-.lintje-icon-button--outlined:not(.is-disabled):hover { background: var(--color-bg-subtle); }
+/* Hover and press follow the secondary button; the flat one follows the tertiary. */
+.lintje-icon-button--outlined:not(.is-disabled):hover { background: var(--color-action-secondary-hover); }
+.lintje-icon-button--outlined:not(.is-disabled):active { background: var(--color-action-secondary-pressed); }
 
 .lintje-icon-button--flat { background: transparent; color: var(--color-text-primary); 
   transition: background var(--dur-hover) var(--ease-in-motion);
 }
-.lintje-icon-button--flat:not(.is-disabled):hover { background: var(--color-bg-subtle); }
+.lintje-icon-button--flat:not(.is-disabled):hover { background: var(--color-action-tertiary-hover); }
+.lintje-icon-button--flat:not(.is-disabled):active { background: var(--color-action-tertiary-pressed); }
 
 /* Tile actions stand back in the muted text colour, never below 3:1; hover and focus darken them. */
 .lintje-icon-button--tile { background: transparent; color: var(--color-text-muted); 
@@ -57,7 +60,8 @@
   background: var(--color-action-primary);
   color: var(--color-action-primary-text);
 }
-.lintje-icon-button.is-active:not(.is-disabled):hover { background: var(--color-action-primary); }
+.lintje-icon-button.is-active:not(.is-disabled):hover,
+.lintje-icon-button.is-active:not(.is-disabled):active { background: var(--color-action-primary); }
 
 /* Live: it listens or speaks now. The primary fill with its border, and bars that move beside
    the icon, so the state is never colour alone; the box grows to hold them. */
@@ -70,34 +74,41 @@
   color: var(--color-action-primary-text);
 }
 .lintje-icon-button.is-live:not(.is-disabled):hover { background: var(--color-action-primary-hover); }
+.lintje-icon-button.is-live:not(.is-disabled):active { background: var(--color-action-primary-pressed); }
 .lintje-icon-button__waves { display: inline-flex; align-items: center; gap: var(--space-1); height: 16px; }
 .lintje-icon-button__wave {
   width: 2px;
   height: 100%;
   background: currentColor;
   animation: lintje-icon-button-wave var(--dur-wave) var(--ease-in-motion) infinite alternate;
+  /* The height a bar stands still at: without motion, or disabled. */
+  --lintje-icon-button-wave-rest: 0.5;
 }
-.lintje-icon-button__wave:nth-child(2) { animation-delay: calc(var(--dur-wave) * -0.5); }
+.lintje-icon-button__wave:nth-child(2) { animation-delay: calc(var(--dur-wave) * -0.5); --lintje-icon-button-wave-rest: 1; }
 .lintje-icon-button__wave:nth-child(3) { animation-delay: calc(var(--dur-wave) * -0.25); }
-.lintje-icon-button__wave:nth-child(4) { animation-delay: calc(var(--dur-wave) * -0.75); }
+.lintje-icon-button__wave:nth-child(4) { animation-delay: calc(var(--dur-wave) * -0.75); --lintje-icon-button-wave-rest: 0.75; }
 @keyframes lintje-icon-button-wave {
   from { transform: scaleY(0.25); }
   to { transform: scaleY(1); }
 }
 /* Without motion the bars stand still at different heights: still a wave, never a pulse. */
 @media (prefers-reduced-motion: reduce) {
-  .lintje-icon-button__wave { animation: none; transform: scaleY(0.5); }
-  .lintje-icon-button__wave:nth-child(2) { transform: scaleY(1); }
-  .lintje-icon-button__wave:nth-child(4) { transform: scaleY(0.75); }
+  .lintje-icon-button__wave { animation: none; transform: scaleY(var(--lintje-icon-button-wave-rest)); }
 }
 
-/* Disabled is `aria-disabled`: tab order and focus ring stay. After is-active, so it loses the fill. */
+/* Disabled is `aria-disabled`: tab order and focus ring stay. It wins over active and live: a box
+   takes the disabled button's surface and edge, a boxless button stays boxless, the bars stand still. */
 .lintje-icon-button.is-disabled { cursor: not-allowed; color: var(--color-text-disabled); }
-.lintje-icon-button--outlined.is-disabled { background: var(--color-bg-surface); border-color: var(--color-border-default); }
+.lintje-icon-button--outlined.is-disabled,
+.lintje-icon-button.is-active.is-disabled,
+.lintje-icon-button.is-live.is-disabled { background: var(--color-bg-subtle); border-color: var(--color-border-default); }
+.lintje-icon-button.is-disabled .lintje-icon-button__wave { animation: none; transform: scaleY(var(--lintje-icon-button-wave-rest)); }
 
 /* Forced colours: the active fill is dropped, so its border is drawn in Highlight. */
 @media (forced-colors: active) {
   .lintje-icon-button.is-active,
   .lintje-icon-button.is-live { border: 1px solid Highlight; }
-  .lintje-icon-button.is-disabled { color: GrayText; border-color: GrayText; }
+  .lintje-icon-button.is-disabled,
+  .lintje-icon-button.is-active.is-disabled,
+  .lintje-icon-button.is-live.is-disabled { color: GrayText; border-color: GrayText; }
 }
