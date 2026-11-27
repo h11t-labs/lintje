@@ -87,6 +87,12 @@ export interface ListItem {
   group?: string
   /** `false`: the row opens nothing — no row click, no hover; work that is still running. */
   clickable?: boolean
+  /**
+   * The name of a slot that takes the place of the title, the muted line and the facts: the host's
+   * own content. The title stays the row's name for a screen reader; the row opens nothing, as its
+   * content answers for itself. Icon, avatar and actions stay.
+   */
+  slot?: string
 }
 
 /** Consecutive items with the same `group` as one run; items without one form a run without a heading. */
@@ -364,10 +370,28 @@ export class LintjeList extends LintjeElement {
     >`
   }
 
+  private renderMain(item: ListItem, measured: boolean): TemplateResult {
+    return html`<div class="lintje-list__main">
+      ${this.renderTitle(item)}
+        ${item.sub ? html`<span class="lintje-list__sub">${item.sub}</span>` : nothing}
+        ${
+          measured
+            ? html`<lintje-progress-bar
+                class="lintje-list__progress"
+                hide-label
+                label=${`Voortgang ${item.title}`}
+                .value=${item.progress}
+                state=${item.status?.tone === 'warning' ? 'paused' : 'busy'}
+              ></lintje-progress-bar>`
+            : nothing
+        }
+    </div>`
+  }
+
   private row(item: ListItem): TemplateResult {
     if (item.rename) return this.renderRename(item)
     const selected = item.id === this.selectedId
-    const clickable = item.clickable !== false
+    const clickable = item.clickable !== false && !item.slot
     const actions = (item.actions?.length ?? 0) > 0
     const measured = typeof item.progress === 'number' && !Number.isNaN(item.progress)
     return html`<li
@@ -378,6 +402,7 @@ export class LintjeList extends LintjeElement {
         'has-icon': Boolean(item.icon || item.avatar),
         'has-actions': actions,
         'has-swatch': Boolean(item.swatch && !item.avatar),
+        'has-slot': Boolean(item.slot),
         'is-narrow': this.#mobile.matches,
       })}
       ${styleProps({ '--lintje-swatch': item.swatch ? `var(--color-chart-${item.swatch})` : null })}
@@ -393,23 +418,16 @@ export class LintjeList extends LintjeElement {
             ? renderIcon(item.icon, { size: 24, className: 'lintje-list__icon' })
             : nothing
       }
-      <div class="lintje-list__main">
-        ${this.renderTitle(item)}
-        ${item.sub ? html`<span class="lintje-list__sub">${item.sub}</span>` : nothing}
-        ${
-          measured
-            ? html`<lintje-progress-bar
-                class="lintje-list__progress"
-                hide-label
-                label=${`Voortgang ${item.title}`}
-                .value=${item.progress}
-                state=${item.status?.tone === 'warning' ? 'paused' : 'busy'}
-              ></lintje-progress-bar>`
-            : nothing
-        }
-      </div>
       ${
-        item.status || item.meta || item.person !== undefined
+        item.slot
+          ? html`<div class="lintje-list__main">
+              <span class="visually-hidden" lang=${item.lang || nothing}>${item.title}</span>
+              <slot name=${item.slot}></slot>
+            </div>`
+          : this.renderMain(item, measured)
+      }
+      ${
+        !item.slot && (item.status || item.meta || item.person !== undefined)
           ? html`<div class="lintje-list__facts">
               ${item.person !== undefined ? this.renderPerson(item.person) : nothing}
               ${

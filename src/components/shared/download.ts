@@ -49,6 +49,9 @@ const PAINT = [
   'stroke-linecap',
   'stroke-linejoin',
   'paint-order',
+  // A corner set in CSS, as the frame of a word on a line of a graph.
+  'rx',
+  'ry',
   'opacity',
   'visibility',
   'color',

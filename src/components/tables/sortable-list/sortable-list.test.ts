@@ -310,3 +310,25 @@ describe('lintje-sortable-list', () => {
     expect(local).toEqual([])
   })
 })
+
+describe('lintje-sortable-list with a slot', () => {
+  it('draws the slot in place of the label, and the label still names the grip', async () => {
+    const element = await mount({ items: [{ id: 'foto', label: 'Foto 1', slot: 'foto' }] })
+    const row = element.shadowRoot!.querySelector('.lintje-sortable-list__row')!
+    expect(row.querySelector('slot[name="foto"]')).not.toBeNull()
+    expect(row.querySelector('.lintje-sortable-list__label')).toBeNull()
+    expect(grip(element, 'foto').getAttribute('aria-label')).toBe('Foto 1 verplaatsen')
+    element.remove()
+  })
+
+  it('keeps the checkbox with its label and puts the slot after it', async () => {
+    const element = await mount({
+      checkable: true,
+      items: [{ id: 'foto', label: 'Foto 1', slot: 'foto' }],
+    })
+    const row = element.shadowRoot!.querySelector('.lintje-sortable-list__row')!
+    expect(row.querySelector('lintje-checkbox')?.getAttribute('label')).toBe('Foto 1')
+    expect(row.querySelector('slot[name="foto"]')).not.toBeNull()
+    element.remove()
+  })
+})

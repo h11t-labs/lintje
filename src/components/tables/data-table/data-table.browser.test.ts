@@ -2,7 +2,7 @@
  * The table in a browser: Escape first for a lifted grip in its column chooser, the height of a
  * filterable head, the width a truncated column takes, a keyboard's way into a table that
  * scrolls sideways, the Tab stops of a row (its name, a cut value, its controls' rings), and the
- * phone's table within its tile.
+ * phone's table within its tile with its dates whole, and the host's element in a slot column.
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
@@ -136,6 +136,109 @@ describe('the height of the table’s head', () => {
       const box = inner.getBoundingClientRect()
       expect(funnel.top).toBeGreaterThanOrEqual(box.top)
       expect(funnel.bottom).toBeLessThanOrEqual(box.bottom)
+    }
+  })
+})
+
+describe('a right-aligned head with a hint and a funnel', () => {
+  const FUNNEL = { kind: 'options' as const, options: [{ value: 'Noord' }, { value: 'Zuid' }] }
+
+  it('keeps its label and "i" on the right, the funnel at the end, sorting or not', async () => {
+    const element = await mount({
+      caption: 'Loketten',
+      rowKey: 'name',
+      columns: [
+        COLUMNS[0]!,
+        { key: 'requests', header: 'Aanvr.', align: 'right', hint: 'Vandaag.', filter: FUNNEL },
+        {
+          key: 'open',
+          header: 'Open',
+          align: 'right',
+          sortable: false,
+          hint: 'Nog niet afgehandeld.',
+          filter: FUNNEL,
+        },
+      ],
+      rows: officeRows(3),
+    })
+    const heads = [
+      ...element.shadowRoot!.querySelectorAll<HTMLElement>(
+        '.lintje-data-table__full .lintje-data-table__header-cell--hinted',
+      ),
+    ]
+    expect(heads).toHaveLength(2)
+    for (const th of heads) {
+      const inner = th.querySelector('.lintje-data-table__header-inner')!
+      // What stands before the "i": the sort button, or the plain label's text.
+      const button = inner.querySelector('.lintje-data-table__sort-button')
+      const range = document.createRange()
+      const text = [...inner.childNodes].find(
+        (node) => node.nodeType === Node.TEXT_NODE && node.textContent!.trim(),
+      )
+      if (text) range.selectNodeContents(text)
+      const before = button ? button.getBoundingClientRect() : [...range.getClientRects()][0]!
+      const tip = th.querySelector('lintje-toggletip')!.getBoundingClientRect()
+      const funnel = th.querySelector('.lintje-data-table__funnel')!.getBoundingClientRect()
+      const gap = parseFloat(getComputedStyle(inner).columnGap)
+      const end =
+        inner.getBoundingClientRect().right - parseFloat(getComputedStyle(inner).paddingRight)
+      expect(funnel.right).toBeCloseTo(end, 0)
+      expect(funnel.left - tip.right).toBeCloseTo(gap, 0)
+      // The label ends just before the "i", not at the head's start.
+      expect(tip.left - before.right).toBeLessThanOrEqual(gap + 1)
+    }
+  })
+})
+
+describe('a sorting head with a hint', () => {
+  const labelEnd = (th: Element): number => {
+    const label = th.querySelector('.lintje-data-table__sort-label')
+    if (label) return label.getBoundingClientRect().right
+    const text = [...th.querySelector('.lintje-data-table__header-inner')!.childNodes].find(
+      (node) => node.nodeType === Node.TEXT_NODE && node.textContent!.trim(),
+    )!
+    const range = document.createRange()
+    range.selectNodeContents(text)
+    return range.getBoundingClientRect().right
+  }
+  const glyph = (th: Element): DOMRect =>
+    th.querySelector('lintje-toggletip')!.shadowRoot!.querySelector('svg')!.getBoundingClientRect()
+
+  it('keeps its "i" near its label and in place, sorted or not', async () => {
+    const element = await mount({
+      caption: 'Loketten',
+      rowKey: 'name',
+      columns: [
+        COLUMNS[0]!,
+        { key: 'region', header: 'Regio', hint: 'Waar het loket staat.' },
+        { key: 'requests', header: 'Aanvragen', align: 'right', hint: 'Vandaag.' },
+        { key: 'open', header: 'Open', align: 'right', sortable: false, hint: 'Nog niet klaar.' },
+      ],
+      rows: officeRows(3),
+    })
+    const [left, right, plain] = [
+      ...element.shadowRoot!.querySelectorAll<HTMLElement>(
+        '.lintje-data-table__full .lintje-data-table__header-cell--hinted',
+      ),
+    ]
+    const place = () =>
+      [left!, right!].map((th) => ({
+        gap: glyph(th).left - labelEnd(th),
+        left: glyph(th).left,
+        width: th.getBoundingClientRect().width,
+      }))
+    const resting = place()
+    // The sort glyph keeps its room, but nothing more than that stands between label and "i".
+    const arrow = left!
+      .querySelector('.lintje-data-table__sort-icon')!
+      .getBoundingClientRect().width
+    const plainGap = glyph(plain!).left - labelEnd(plain!)
+    for (const { gap } of resting) expect(gap - plainGap).toBeLessThanOrEqual(arrow)
+    for (const th of [left!, right!]) {
+      th.querySelector<HTMLElement>('.lintje-data-table__sort-button')!.click()
+      await element.updateComplete
+      expect(th.classList.contains('is-active')).toBe(true)
+      expect(place()).toEqual(resting)
     }
   })
 })
@@ -426,6 +529,27 @@ describe('the phone’s table', () => {
     expect(scroller.hasAttribute('tabindex')).toBe(false)
   })
 
+  it('keeps a date whole as its measure and wraps the name instead', async () => {
+    await viewport(390)
+    const element = await mountOnPhone({
+      caption: 'Meldingen',
+      rowKey: 'name',
+      columns: [
+        { key: 'name', header: 'Melding' },
+        { key: 'at', header: 'Gemeld om', format: 'datetime', mobileMeasure: true },
+      ],
+      rows: [{ name: 'Storing betaalautomaat in de centrale hal', at: '2025-06-30T11:20' }],
+    })
+    const time = part(element, '.lintje-data-table__mobile-measure time')
+    const name = part(element, '.lintje-data-table__mobile-name')
+    await expect.poll(() => width(time)).toBeGreaterThan(0)
+    // A moment may break between its day and its time, never inside either.
+    const [day, clock] = [...time.querySelectorAll('.lintje-data-table__date-part')]
+    expect(day!.getClientRects()).toHaveLength(1)
+    expect(clock!.getClientRects()).toHaveLength(1)
+    expect(name.getClientRects()[0]!.height).toBeGreaterThan(day!.getClientRects()[0]!.height)
+  })
+
   it('keeps its words whole and scrolls in its tile once they do not fit', async () => {
     await viewport(320)
     const element = await mountOnPhone(toned)
@@ -440,5 +564,73 @@ describe('the phone’s table', () => {
     word.style.whiteSpace = 'nowrap'
     name.append(word)
     expect(name.clientWidth).toBeGreaterThanOrEqual(word.offsetWidth)
+  })
+
+  it('lines the "i" of a last head up with the values, sorting or not', async () => {
+    await viewport(390)
+    for (const sortable of [true, false]) {
+      // Two columns: nothing for a row's toggle to open, so the measure's head is the last.
+      const element = await mountOnPhone({
+        caption: 'Loketten met hun wachttijd',
+        rowKey: 'name',
+        columns: [
+          { key: 'name', header: 'Loket' },
+          { key: 'wait', header: 'Wacht', mobileMeasure: true, sortable, hint: 'In minuten.' },
+        ],
+        rows: [{ name: 'Loket Amsterdam Centrum', wait: 15.7 }],
+      })
+      const tip = element.shadowRoot!.querySelector<HTMLElement>(
+        '.lintje-data-table__mobile thead lintje-toggletip',
+      )!
+      await expect.poll(() => tip.getBoundingClientRect().width).toBeGreaterThan(0)
+      const glyph = tip.shadowRoot!.querySelector('.lintje-toggletip__trigger svg')!
+      // The value's own text, not the hidden words for its tone beside it.
+      const walker = document.createTreeWalker(
+        part(element, '.lintje-data-table__mobile-measure'),
+        NodeFilter.SHOW_TEXT,
+      )
+      const value = document.createRange()
+      value.selectNodeContents(walker.nextNode()!)
+      expect(glyph.getBoundingClientRect().right).toBeCloseTo(
+        value.getBoundingClientRect().right,
+        0,
+      )
+      element.parentElement!.remove()
+    }
+  })
+})
+
+describe('a slot column', () => {
+  const ordered: DataTableData = {
+    caption: 'Bestellingen',
+    rowKey: 'name',
+    clickable: true,
+    columns: [
+      { key: 'name', header: 'Artikel' },
+      { key: 'count', header: 'Aantal', slot: true },
+    ],
+    rows: [
+      { name: 'Pennen', count: 12 },
+      { name: 'Mappen', count: 4 },
+    ],
+  }
+
+  it("shows the host's element in its cell, and a click in it never clicks the row", async () => {
+    const element = await mount(structuredClone(ordered))
+    const field = Object.assign(document.createElement('input'), {
+      slot: 'count-Pennen',
+      value: '12',
+      ariaLabel: 'Aantal pennen',
+    })
+    element.append(field)
+    const clicks: unknown[] = []
+    element.addEventListener('lintje-row-click', (event) => clicks.push(event))
+    await expect.element(page.getByRole('textbox', { name: 'Aantal pennen' })).toBeVisible()
+    await userEvent.click(field)
+    expect(clicks).toHaveLength(0)
+    // The other row has no element: its value stands, and the row still clicks.
+    const mappen = page.getByRole('button', { name: 'Mappen' })
+    await userEvent.click(mappen)
+    expect(clicks).toHaveLength(1)
   })
 })

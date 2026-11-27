@@ -11,6 +11,84 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-26
+
+### Toegevoegd
+
+- `lintje-graph`: de lezer kiest een lijn met een `id` (`GraphEdge.id`), met muis, vinger of Tab
+  vanaf haar knoop. Het woord van een kiesbare lijn staat in een kader; een gekozen lijn wordt
+  dikker in de rand van een gekozen knoop met haar woord vet. De dichtstbijzijnde lijn binnen
+  12 px wint de aanwijzer, op een knoop wint de knoop. De host houdt de keuze in
+  `GraphData.selectedEdge` en hoort `lintje-edge-select` en `lintje-edge-open`. (#356)
+- Een kolom van de tabel krijgt een toelichting (`hint`): een i achter de kop opent hem, een schermlezer hoort hem als beschrijving van de kop, en "Kolommen kiezen" toont hem onder de naam. (#353)
+- Een tabelkolom en een veld in het detail van een rij kunnen `format: 'date'` of
+  `format: 'datetime'` krijgen. De host geeft ISO 8601; de tabel toont `05-01-2026` of
+  `05-01-2026 14:30` in de tijdzone van de lezer, in een `<time>`, en sorteert op de dag of het
+  moment. Een ontbrekende of ongeldige waarde sorteert het laagst, en de CSV houdt de ISO-waarde.
+  (#352)
+- Tabel (`lintje-data-table`): met `paging: 'host'` sorteert en pagineert de host. De tabel toont zijn pagina in zijn volgorde (`page`, `rowCount`), stuurt `lintje-page-change` en `lintje-sort-change`, wacht met `aria-busy` op de nieuwe rijen en laat downloaden over aan de host. De pager krijgt `quiet`. (#351)
+- Fotowand (`lintje-photo-wall`): twee tot zes foto's van een plek of werkveld tegelijk, bijgesneden tot hun vak, elk met een kort label linksonder op de foto; op een telefoon onder elkaar. (#346)
+- De hero kan een foto achter de tekst hebben (slot `backdrop`): de foto vult de band en de tekst
+  staat in een blok linksonder erop, wit of in de primaire kleur. Op een telefoon staat de foto
+  boven het blok. (#345)
+
+### Gewijzigd
+
+- De Firefox-job van de CI draait zijn testbestanden in vier shards naast elkaar, elk in een eigen
+  browser, en een nieuwe push op een pull request stopt de run die hij opvolgt: de traagste job was
+  Firefox met ruim 6 minuten, omdat Firefox zijn bestanden niet naast elkaar kan draaien. Hij doet
+  er nu 3:08 over en de hele check zakt van ongeveer 6:40 naar 3:13. (#342)
+
+### Opgelost
+
+- `lintje-graph`: de initialen van een persoon in een knoop die terugstapt, vervagen niet meer tot
+  onder 4,5:1 contrast; ze houden de secundaire tekstkleur, zoals de naam. (#356)
+- De stijlgidstest keurt een specimen niet meer in zijn hover-stand: vóór elke controle gaat de
+  aanwijzer buiten de pagina, zodat een knop onder de muis niet als contrastfout geldt. Wit op
+  `inverse-secondary` over de band is 4,39:1 onder de muis en 6:1 in rust; een aanwijzer die de
+  browser op een specimen liet staan, maakte dat zo nu en dan een rode run. (#344)
+
+## [0.14.0] - 2026-11-25
+
+### Toegevoegd
+
+- De split pane zet twee panelen ook boven elkaar (`orientation="vertical"`), in de hoogte van `height`; de pijlen omhoog en omlaag verschuiven de verdeling, en op een telefoon blijft het een verdeling. (#340)
+- Een tabel, lijst en sorteerbare lijst nemen eigen inhoud van de host in een slot dat de data noemt: in de sorteerbare lijst op de plaats van het label (bijvoorbeeld een afbeelding), in de lijst op de plaats van titel, regel en feiten, en in de tabel per cel met een kolom met `slot: true` (`<kolom>-<rij>`), met de waarde als terugval. Een klik in die inhoud klikt nooit op de rij. (#339)
+- Een histogram tekent een tweede set waarden over dezelfde klassen over de eerste: zonder kleur als vergelijking (grijs), met een kleur als tweede variabele. Per set kiest de host de vulling (`fill`: gevuld, doorzichtig of geen) en de lijn langs de bovenkant (`line`: doorgetrokken, gestreept of geen); standaard zijn het gevulde staven met de tweede set als trap erover, en een doorzichtige vulling heeft altijd een lijn. Elke set heeft een eigen knop in de legenda, beide aantallen staan in de tooltip en elke set krijgt een kolom in de CSV (`comparison` op het histogram). (#335)
+
+### Gewijzigd
+
+- De ontwikkelafhankelijkheden zijn bij: Vitest en `@vitest/browser-playwright` 5.1.2 (zet het aantal workers per groep, dus de unittests en de browsertests draaien na elkaar), oxfmt 0.80, oxlint 1.95, Vite 8.3.8, Playwright 1.65.1 (het CI-image gaat mee), dagre 3.1.4 en axe-core 4.14.1, plus d3-force 3.0.1 met de patch van d3-dispatch, d3-quadtree en d3-timer. Aan wat een host ziet verandert niets. (#338)
+
+### Opgelost
+
+- Een rij met een afbrekend label in `lintje-sortable-list` staat gelijk met de andere rijen: de eerste regel houdt dezelfde lucht boven zich. (#341)
+
+## [0.13.2] - 2026-11-12
+
+### Toegevoegd
+
+- `autocomplete` op `lintje-textarea`, `lintje-number-input` en `lintje-date-input`;
+  `description` op `lintje-copy-button`; `level` op `lintje-kpi` en `lintje-kpi-row`;
+  `source-lang` op `lintje-translator`; `lang` op een rij van `lintje-list` en een resultaat van
+  `lintje-app-search`. (#288)
+
+### Opgelost
+
+- De nadruk in een grafiek volgt de muis weer meteen: de staaf of klasse onder de muis komt direct naar boven, ook terwijl de muis beweegt, en springt van staaf naar staaf zonder animatie, terwijl de tooltip kort meeglijdt naar zijn nieuwe plek. Alleen de tooltip wacht nog even als de muis in zijn richting beweegt, zodat je hem over een buur kunt bereiken; daar aangekomen gaat de nadruk terug naar zijn staaf. (#336)
+- Een balk die blijft staan of een paneel dat over de pagina ligt, bedekt de focus niet meer: een toast staat boven de actiebalk en houdt, als hij blijft staan, zijn hoogte vrij; de vastgezette, opengeklapte filterzone en de opties van het vraagvak sluiten zodra de focus ze verlaat; een eigen balk van de host telt in de shell mee met `data-sticky="top"` of `"bottom"`; en op een telefoon loopt de vastgeplakte actiebalk van rand tot rand. (#289)
+- Een schermlezer hoort de soort van een toast, wat een herkend woord in een verstuurde vraag is,
+  dat de knoppen van een modal downloaden, het label van een kerncijfer als kop, bij welke kolom
+  een filtergroep hoort, elke lijst als lijst, de staat van een vinkje in het gebruikersmenu, dat
+  Link een venstertje opent, en de taal van een brontekst, een lijstrij en een zoekresultaat. Bij
+  "Anders, namelijk" blijft de focus op de keuze en zegt het veld dat het ingevuld moet worden;
+  een datum is ook als "03102026" te typen. (#288)
+- In de stijlgids staat elk voorbeeld van de schil in een eigen kader, zodat de pagina één `main`
+  en één `h1` heeft. Het kader tekent op de breedte van het venster, de voet van het zijmenu op
+  1440 px, en verkleint tot de kolom. (#288)
+- Tekst blijft heel bij een grotere regel-, letter- of woordafstand en een grotere standaardletter: een rij van `lintje-sortable-list` groeit mee, een vinkje, keuzerondje of schakelaar staat op de eerste regel van een label dat afbreekt, even hoog als voorheen, de groepskop in het open zijmenu, de bron van een logregel, de tekenaanwijzing van de kaart, een stap in `lintje-chat-steps`, de naam van een bijlage en een naam in het halterdiagram op een telefoon lopen door, het bijschrift in het vraagvak staat heel met de cursor in zijn woord, de assen, de sankey en de treemap meten met de afstand en de letter van de lezer, `lintje-stepper` meet opnieuw als zijn labels breder worden, en `lintje-time-input` is in rem. (#285)
+- In het gesprek nemen nieuwe vragen de focus niet meer uit een vraagvak waarin je typt, en op een telefoon blijft dat vraagvak dan open; de fout en de hint van een vraag staan boven de keuzes en klinken met de focus (`description` op de keuzegroepen en `lintje-textarea`), een keuze die met het toetsenbord de focus krijgt, scrolt helemaal in beeld in een lijst die scrolt, en de focusring in de keuzelijst en bij een bronlink in een stap is heel; een stap zegt in woorden of hij bezig, mislukt of gestopt is; het kruisje van een bijlage die niet klaar is zegt hoe ze ervoor staat, een bijlage die uploadt zegt haar voortgang één keer en het klikvlak van het kruisje ligt niet meer over "Opnieuw"; bij een vraag met bijlagen klinkt "Jij:" vóór de bestanden. (#284)
+
 ## [0.13.1] - 2026-11-03
 
 ### Gewijzigd
@@ -783,7 +861,10 @@ hernoemen of verwijderen is een brekende wijziging en begint hier met **Brekend:
   (`src/categories.json`), met zes thema's in licht en donker, de styleguide, de handleidingen in
   `docs/guides/` en de voorbeeldapplicaties met fictieve data.
 
-[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.13.1...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/h11t-labs/lintje/compare/v0.14.0...v0.15.0
+[0.14.0]: https://github.com/h11t-labs/lintje/compare/v0.13.2...v0.14.0
+[0.13.2]: https://github.com/h11t-labs/lintje/compare/v0.13.1...v0.13.2
 [0.13.1]: https://github.com/h11t-labs/lintje/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/h11t-labs/lintje/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/h11t-labs/lintje/compare/v0.12.0...v0.12.1

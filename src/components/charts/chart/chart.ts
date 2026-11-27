@@ -271,9 +271,22 @@ function csvRows(chart: ChartSpec): CsvCell[][] {
     case 'histogram': {
       const bound = (name: string) => (chart.unit ? `${name} (${chart.unit})` : name)
       // An open class has no upper bound: an empty cell, never a missing value (rule 15).
+      // With a comparison each set is a column under its own label.
+      const comparison = chart.comparison
       return [
-        ['Klasse', bound('Van'), bound('Tot'), 'Aantal'],
-        ...chart.bins.map((bin) => [binLabel(bin, chart.unit), bin.from, bin.to ?? '', bin.count]),
+        [
+          'Klasse',
+          bound('Van'),
+          bound('Tot'),
+          ...(comparison ? [chart.label ?? 'Aantal', comparison.label] : ['Aantal']),
+        ],
+        ...chart.bins.map((bin, i) => [
+          binLabel(bin, chart.unit),
+          bin.from,
+          bin.to ?? '',
+          bin.count,
+          ...(comparison ? [comparison.counts[i] ?? null] : []),
+        ]),
       ]
     }
     case 'treemap':

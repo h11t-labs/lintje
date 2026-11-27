@@ -28,6 +28,10 @@ export interface RouteEdge {
   labelled: boolean
   /** The line is in the light: its word shows even where it has no clear place. */
   lit: boolean
+  /** The word stands in a frame: the line can be chosen. */
+  framed?: boolean
+  /** The word is bold: the line is chosen. */
+  bold?: boolean
 }
 
 export interface RouteOptions {
@@ -37,7 +41,7 @@ export interface RouteOptions {
   /** dagre's route per edge key, on the screen; only while the cards are drawn. */
   routed?: Map<string, Point[]>
   /** The width a word takes, with its halo. */
-  labelWidth: (text: string) => number
+  labelWidth: (text: string, bold?: boolean) => number
 }
 
 export interface Route {
@@ -48,11 +52,17 @@ export interface Route {
   arrows: string[]
   /** The word's centre, if it shows. */
   label: Point | null
+  /** The box the word takes, with its frame if it has one. */
+  word: Rect | null
+  /** The line as a polyline, curves flattened, for what the pointer is nearest to. */
+  points: Point[]
 }
 
 /** The gap between a line's end and the node, and a word's height. */
 const END_GAP = 3
 const LABEL_HEIGHT = 16
+/** A framed word: the room beside its halo, and its height. */
+export const FRAME = { pad: 4, height: 20 }
 /** How far a curve bows from its chord in `curved`, as a share of the chord. */
 const BOW = 0.12
 /** The offsets tried to bend a line round a node in its way. */
@@ -296,6 +306,34 @@ function geometry(
     : { points: [start, end] }
 }
 
+/** The line as a polyline: a curve in short straight pieces, as `pathOf` draws it. */
+function flatten(points: Point[], control?: Point, smooth = false, right = true): Point[] {
+  const steps = 12
+  if (control && points.length > 1) {
+    const last = points[points.length - 1]!
+    return Array.from({ length: steps + 1 }, (_, i) =>
+      quadraticAt(points[0]!, control, last, i / steps),
+    )
+  }
+  if (!smooth || points.length < 3) return points
+  const flat: Point[] = [points[0]!]
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1]!
+    const b = points[i]!
+    const c1 = right ? { x: (a.x + b.x) / 2, y: a.y } : { x: a.x, y: (a.y + b.y) / 2 }
+    const c2 = right ? { x: (a.x + b.x) / 2, y: b.y } : { x: b.x, y: (a.y + b.y) / 2 }
+    for (let j = 1; j <= steps; j++) {
+      const t = j / steps
+      const u = 1 - t
+      flat.push({
+        x: u * u * u * a.x + 3 * u * u * t * c1.x + 3 * u * t * t * c2.x + t * t * t * b.x,
+        y: u * u * u * a.y + 3 * u * u * t * c1.y + 3 * u * t * t * c2.y + t * t * t * b.y,
+      })
+    }
+  }
+  return flat
+}
+
 function pathOf(points: Point[], control?: Point, smooth = false, right = true): string {
   const [first] = points
   if (!first) return ''
@@ -359,8 +397,10 @@ export function routeEdges(
       points[0] = pullBack(tip, afterStart, length * 0.8)
     }
     let label: Point | null = null
+    let word: Rect | null = null
     if (edge.label && edge.labelled) {
-      const width = options.labelWidth(edge.label)
+      const width = options.labelWidth(edge.label, edge.bold) + (edge.framed ? 2 * FRAME.pad : 0)
+      const height = edge.framed ? FRAME.height : LABEL_HEIGHT
       const candidates: Point[] = []
       if (control)
         candidates.push(
@@ -371,20 +411,21 @@ export function routeEdges(
       const clear = candidates.find((candidate) => {
         const box = {
           x: candidate.x - width / 2,
-          y: candidate.y - LABEL_HEIGHT / 2,
+          y: candidate.y - height / 2,
           w: width,
-          h: LABEL_HEIGHT,
+          h: height,
         }
         return (
           !nodeBoxes.some((node) => overlaps(box, node)) &&
-          !words.some((word) => overlaps(box, word))
+          !words.some((other) => overlaps(box, other))
         )
       })
       // A word with no clear place stays away, unless its line is in the light.
       const at = clear ?? (edge.lit ? candidates[0]! : null)
       if (at) {
-        words.push({ x: at.x - width / 2, y: at.y - LABEL_HEIGHT / 2, w: width, h: LABEL_HEIGHT })
         label = { x: round(at.x), y: round(at.y) }
+        word = { x: label.x - width / 2, y: label.y - height / 2, w: width, h: height }
+        words.push(word)
       }
     }
     routes.push({
@@ -392,7 +433,77 @@ export function routeEdges(
       d: pathOf(points, control, shape.smooth, options.layered !== 'down'),
       arrows,
       label,
+      word,
+      points: flatten(shape.points, control, shape.smooth, options.layered !== 'down'),
     })
   }
   return routes
+}
+
+function toSegment(p: Point, a: Point, b: Point): number {
+  const dx = b.x - a.x
+  const dy = b.y - a.y
+  const length = dx * dx + dy * dy
+  const t = length ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / length)) : 0
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy))
+}
+
+/** How far a point is from a line; a point on its word is on the line. */
+export function distanceTo(point: Point, route: Pick<Route, 'points' | 'word'>): number {
+  const word = route.word
+  if (
+    word &&
+    point.x >= word.x &&
+    point.x <= word.x + word.w &&
+    point.y >= word.y &&
+    point.y <= word.y + word.h
+  )
+    return 0
+  const points = route.points
+  if (points.length === 1) return Math.hypot(point.x - points[0]!.x, point.y - points[0]!.y)
+  let nearest = Infinity
+  for (let i = 1; i < points.length; i++)
+    nearest = Math.min(nearest, toSegment(point, points[i - 1]!, points[i]!))
+  return nearest
+}
+
+function inside(point: Point, shape: Shape): boolean {
+  if (shape.round) return Math.hypot(point.x - shape.cx, point.y - shape.cy) <= shape.hw
+  return Math.abs(point.x - shape.cx) <= shape.hw && Math.abs(point.y - shape.cy) <= shape.hh
+}
+
+/**
+ * The line a point is on: the nearest within `reach`, whichever is drawn on top. A point on a
+ * node is on the node, never on a line.
+ */
+export function nearestRoute<T extends Pick<Route, 'points' | 'word'>>(
+  point: Point,
+  routes: Iterable<T>,
+  shapes: Iterable<Shape>,
+  reach: number,
+): T | null {
+  for (const shape of shapes) if (inside(point, shape)) return null
+  let best: T | null = null
+  let nearest = reach
+  for (const route of routes) {
+    const distance = distanceTo(point, route)
+    if (distance <= nearest) {
+      best = route
+      nearest = distance
+    }
+  }
+  return best
+}
+
+/**
+ * The angle at which a line leaves the node at its `end`, clockwise from straight up, in
+ * radians from 0 to 2π.
+ */
+export function leaveAngle(points: Point[], end: 'from' | 'to'): number {
+  const list = end === 'from' ? points : [...points].reverse()
+  const start = list[0]
+  const next = list.find((point) => point.x !== start?.x || point.y !== start?.y)
+  if (!start || !next) return 0
+  const angle = Math.atan2(next.x - start.x, -(next.y - start.y))
+  return angle < 0 ? angle + 2 * Math.PI : angle
 }

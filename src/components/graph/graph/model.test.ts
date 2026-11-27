@@ -79,6 +79,16 @@ describe('the model', () => {
     })
   })
 
+  it('carries the id of a line, never onto the line of a group', () => {
+    const data = hub(6)
+    const model = buildModel({
+      ...data,
+      edges: data.edges.map((item, i) => ({ ...item, id: `r${i}` })),
+    })
+    expect(model.edges.find((item) => item.to === 'other')?.id).toBe('r0')
+    expect(model.edges.find((item) => item.from === groupId('hub', 'person'))?.id).toBeUndefined()
+  })
+
   it('leaves five leaves of one kind as they are', () => {
     expect(buildModel(hub(5)).nodes).toHaveLength(7)
   })

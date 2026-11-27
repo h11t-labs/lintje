@@ -43,7 +43,7 @@ wisselt de standaard naar de nieuwe.
 
 Onder de schakelaar staat alles wat de nieuwe huisstijl anders tekent: het lichte menu en de
 band in de primaire kleur als paginakop, de kleine hoek op knoppen en velden (`--radius-control`), de grote hoek van
-een lade en een smalle band (`--radius-corner`), de focusring, de keuzerand en de veldrand in het accent, de koelgrijze sluier,
+een lade, een smalle band en een fotowand (`--radius-corner`), de focusring, de keuzerand en de veldrand in het accent, de koelgrijze sluier,
 de typografische schaal van de paginatitel, de marges en de inhoudsbreedte, de vier kolommen op
 een telefoon, de foutmelding boven het veld met de balk en de fouttint, de balk en de gekleurde
 iconen op een statusblok, een waarschuwing in donkergeel, de kaderloze tertiaire knop, de uitklapper als accordeonrij, de koppen
@@ -325,17 +325,22 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
   `data-style-version="new"` elke knop (ook de icoonknop, de segmenten en de schakelgroep in de
   balk), elk invoervak, het vinkje en de chips (`--radius-control`, 4 px). Een omkaderd blok (een
   kaart, een tegel, een kerncijfer, een dialoog, een melding) blijft recht (`--radius`, 0), zoals
-  de huisstijl een melding en een venster tekent. In de eerdere huisstijl staan beide op 0.
-  Nooit groter dan de kleine hoek. Rond is alleen wat een cirkel ís: een stip, een radio, een
-  schakelaar, een avatar, een teller, de laadring.
+  de huisstijl een melding en een venster tekent. In de eerdere huisstijl staan beide op 0. De
+  ene uitzondering is het label op een foto in een fotowand: het is geen bedieningselement, maar
+  een etiket zo klein als een chip, en draagt dezelfde kleine hoek. Nooit groter dan de kleine
+  hoek. Rond is alleen wat een cirkel ís: een stip, een radio, een schakelaar, een avatar, een
+  teller, de laadring.
 - **De ene afgeronde hoek loopt nooit van de pagina af.** De vormtaal van de huisstijl is een
   rechthoek met één afgeronde hoek: hoogstens drie per beeld, spaarzaam, nooit een vlak met een
   hoek in een vlak met een hoek, en nooit op een vlak dat van de pagina afloopt. De band aan de kop
   van de pagina (de hero, de paginakop bij een licht menu) en de voet lopen van rand tot rand, en
   zijn dus recht: dat ze de volle breedte nemen, weegt zwaarder dan de hoek. In de nieuwe
   huisstijl draagt een lade de hoek, een lint groot (`--radius-corner`, 48 px), aan de vrije kant
-  bovenaan, en een band die met `narrow` binnen de marges staat, rechtsboven;
-  `data-style-new-corner="square"` laat hem weg. De andere uitzondering is het
+  bovenaan, een band die met `narrow` binnen de marges staat, rechtsboven, en zo ook het blok in
+  de primaire kleur op de foto van een hero, en een fotowand op de foto rechtsboven, op een
+  telefoon op de eerste foto, hoogstens een halve lint;
+  `data-style-new-corner="square"` laat hem weg. Het label met de kleine hoek op een foto van de wand is
+  geen tweede vlak met een hoek: het is een etiket, geen vorm. De andere uitzondering is het
   citaat in lopende tekst: als citaat-element heeft het zijn eigen hoek van 24 px
   (`--radius-quote`), de hoek van de huisstijl als aanhalingsteken.
 - **Schaduwen geven diepte aan en verder niets**: een vastgeplakte balk, een popover, het menu
@@ -455,6 +460,11 @@ Besluiten die voor beide gelden:
   primaire kleur, zodat band en menu nooit samenvloeien. Eén per pagina, en nooit op een
   werkpagina dieper in. Zijn afbeelding ondersteunt de titel; ze is nooit een tweede weg verder en
   zegt nooit iets wat nergens anders staat.
+- **Een hero mag een foto achter de tekst hebben**, zoals de titeldia van een presentatie en de
+  startpagina van een rijkssite: de foto vult de band, en de tekst staat in een blok linksonder
+  erop — wit, of in de primaire kleur — nooit op de foto zelf. De ene hoek staat op één vlak: met
+  `narrow` op de foto, anders op het blok in de primaire kleur, dat binnen de marges staat. Op
+  een telefoon staat de foto boven het blok, allebei over de volle breedte en het blok recht.
 - **De paginakop mag een band in de primaire kleur zijn** (`lintje-hero tone="primary"`), zoals
   de huisstijl hem op de sites van de Marechaussee en het RIVM tekent: kruimelpad, titel en
   inleiding in wit op de primaire kleur, van rand tot rand en recht. Met `narrow` staat de band
@@ -663,6 +673,9 @@ De besluiten hieronder gelden voor alle elementen.
   en de dagen ertussen dragen een tint ervan die binnen een week doorloopt. Een dag is zelf een
   cel van het raster, geen knop: de cel neemt de focus, de pijlen lopen erlangs en Enter en
   spatie kiezen hem, zoals het datumraster van de WAI-ARIA Authoring Practices.
+- **Een greep is in rust grijs** (`--color-text-muted`), in beide huisstijlen; aangewezen, opgetild
+  of gesleept neemt hij de kleur van het accent. Zo valt hij niet op naast de inhoud en zegt de
+  kleur pas iets als je hem pakt: de greep van een sorteerbare rij en die van de split pane.
 
 ### Feedback
 
@@ -788,6 +801,13 @@ De besluiten hieronder gelden voor alle elementen.
 
 ### Tabellen
 
+- **Eigen inhoud komt in een slot dat de data noemt.** Een item of kolom krijgt `slot`, de host
+  zet zijn eigen element met die naam erin; zo blijft het element van de host in zijn eigen DOM,
+  met zijn eigen stijl en events, en blijft de data JSON. Het slot neemt de plaats van de inhoud
+  in, niet van wat het element nodig heeft: de greep van een sorteerbare rij, het menu van een
+  lijstrij en de naam van de rij voor een schermlezer blijven. Een cel heet `<kolom>-<rij>`, met de
+  waarde als terugval; een klik in eigen inhoud bedient nooit de rij. Een veld in een cel is
+  eerst een `editor`; het slot is voor wat die niet kan.
 - **Een kop heeft geen vulling**, ook gefilterd niet: een vulling is hoe een geselecteerde rij
   eruitziet.
 - **De kop zegt alleen wat nu geldt.** Alleen de gesorteerde kolom draagt haar pijl; een andere
@@ -808,6 +828,10 @@ De besluiten hieronder gelden voor alle elementen.
 - **Hoogstens één vulling per rij.** Alleen een overschreden drempel vult zijn cel; dicht bij de
   drempel is een teken en vet. Een waarde als label is een badge, in de tonen van `lintje-badge`,
   met haar woord.
+- **Een datum staat zoals een Nederlandse lezer hem leest en sorteert op het moment.** De host
+  geeft ISO; de tabel toont dag-maand-jaar, een tijdstip in de tijdzone van de lezer, overal
+  dezelfde woorden, en sorteert op de dag of het moment, niet op de tekst. De CSV houdt ISO, dat
+  elk rekenblad als datum leest.
 - **Een totaal is van de host.** De tabel rekent nooit: een som, een gemiddelde en een gewogen
   cijfer komen binnen als waarde, met het woord dat zegt hoe ("gem."). De totaalrij staat onder de
   rijen, vet, boven een zware lijn, en plakt niet.
@@ -849,6 +873,11 @@ De besluiten hieronder gelden voor alle elementen.
   zonder hover staan ze voluit op de plaats van het pijltje. Een rij zonder bediening krijgt
   daarvoor zelf toetsenbordfocus; die focus maakt de rij niet klikbaar. Als enige meetwaarde van een rij
   onder 768 px staat de verandering er heel.
+- **Een korte kolomkop krijgt zijn uitleg achter een i** (`hint`), de toggletip, naast de
+  sorteerknop en nooit erin: een tooltip op de kop zou de enige plek van die uitleg zijn, en de
+  kop sorteert al bij een klik. De uitleg is ook de beschrijving van de kop voor een schermlezer;
+  de cellen herhalen hem niet. Onder 768 px staat de i bij de koppen die er staan, niet bij elk
+  label onder een rij, en in "Kolommen kiezen" staat de uitleg als toelichting onder de naam.
 - **Onder 768 px wisselt een tabel van vorm**: de identiteit van de rij en één meetwaarde, met de
   andere kolommen op verzoek onder de rij (zie [Toegankelijkheid](#toegankelijkheid)). Geen
   rijkaarten, geen zijwaarts scrollen.
@@ -879,6 +908,13 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een schermafbeelding wordt heel getoond, nooit bijgesneden**; alleen een miniatuur in een
   galerij (`lintje-gallery`) toont haar linkerbovenhoek, en de miniatuur van een bijlage
   (`lintje-attachment`) haar midden: zo klein blijft alleen het midden herkenbaar.
+- **Een foto die een plek of werkveld laat zien, wordt bijgesneden tot haar vak**, en staat met
+  twee tot zes tegelijk in een fotowand (`lintje-photo-wall`), zonder keuze en zonder
+  interactie. Een schermafbeelding hoort daar niet in; die staat heel in een galerij.
+- **Een bijschrift staat onder de foto in lopende tekst, en op de foto in een fotowand.** Op de
+  foto is het een kort label linksonder, op het oppervlak van de pagina, nooit tekst direct op het
+  beeld: zo haalt het zijn contrast in licht en donker, wat de foto ook toont. Een lang label
+  breekt af en kapt nooit af.
 - **Een kaart is één item van een collectie** (`lintje-card`), vierkant en plat, zonder schaduw;
   een kaart die een link is, reageert op de aanwijzer zoals een lijstrij. Zonder afbeelding is ze
   korter, nooit een grijs vak.
@@ -916,6 +952,11 @@ De besluiten hieronder gelden voor alle elementen.
 - **Onder de aanwijzer of gekozen blijven de knoop, haar buren en haar lijnen in het licht**, de
   lijnen in de donkere lijnkleur; de rest stapt terug. Een gekozen knoop draagt de accentrand en de
   lichte vulling, zonder tooltip: de host toont haar relaties.
+- **Een lijn met een id is te kiezen, zoals een knoop; een lijn in een groep niet.** Haar woord
+  staat in een kader, zodat de lezer ziet welke lijnen dat zijn. Gekozen wordt ze dikker in de rand
+  van een gekozen knoop met haar woord vet, en laat een tweede klik haar gekozen; een dubbelklik of
+  Enter opent haar. De dichtstbijzijnde lijn wint de aanwijzer, een knoop altijd. Tab gaat vanaf de
+  knoop door haar lijnen, met de klok mee vanaf boven.
 - **De tooltip is die van Lintje**: de naam, een grijze regel met wat bijzonder is (wat verborgen
   is, wie in een groep zit, anders soort en status), dan een paar relaties als zin en hoeveel er
   nog zijn. Hij staat onder de knoop, erboven als de ruimte op is. Een lijn onder de aanwijzer
@@ -1060,11 +1101,14 @@ de stijlgids. Past geen soort, dan is het een tabel.
   kaart of een diagram. De tooltip en de CSV geven de cijfers; een tabel die de lezer nodig heeft,
   staat apart.
 - **Hover verandert nooit de lengte die de waarde draagt.**
+- **De nadruk volgt de aanwijzer meteen**, ook waar de tooltip nog wacht. Van teken naar teken
+  springt hij; alleen het eerste teken tilt hij met beweging op. De tooltip glijdt mee naar zijn
+  nieuwe plek, zodat het oog hem houdt.
 - **De tooltip staat vast bij zijn teken**, op de plek die het toetsenbord gebruikt, nooit bij de
   aanwijzer en nooit over zijn eigen teken, en hij verandert pas als de aanwijzer een ander teken
   aanwijst. Hij vangt de aanwijzer: hij blijft staan zolang die op het teken of op de tooltip
-  staat, en op weg erheen mag de aanwijzer over een buur gaan. Escape haalt hem weg zonder de
-  focus te verplaatsen. Op een aanraakscherm laat hij een tik door naar het teken eronder.
+  staat, en op weg erheen mag de aanwijzer over een buur gaan; elke andere beweging volgt hij
+  meteen. Bereikt de aanwijzer hem, dan gaat de nadruk terug naar zijn teken. Escape haalt hem weg zonder de focus te verplaatsen. Op een aanraakscherm laat hij een tik door naar het teken eronder.
 - **Een taart rangschikt en vouwt zelf.** Haar delen zijn de onderverdelingen van één variabele:
   de kleur van de spec, of hemelblauw. Het grootste deel is het donkerste, in welke volgorde de
   host ze ook stuurt, en de tinten spreiden over de ladder met het aantal delen en "Overig". Meer
@@ -1101,6 +1145,12 @@ de stijlgids. Past geen soort, dan is het een tabel.
   staven, alleen de scheidingslijn in de oppervlaktekleur, en de labels staan op de grenzen van de
   klassen, niet onder hun midden. Een open laatste klasse ("30+") heeft geen grens om op te staan
   en wordt onder haar midden genoemd.
+- **Een histogram kan een tweede set dragen, over de eerste.** Zonder kleur is ze de vergelijking,
+  in grijs; met een kleur een tweede variabele. De host kiest per set de vulling en de lijn langs
+  de bovenkant van de klassen; de standaard is gevulde staven met de tweede set als trap erover,
+  zodat de klassen elkaar blijven raken. Een doorzichtige vulling heeft altijd een lijn, want die
+  draagt het contrast. Nooit arcering, want arcering is "geen gegevens"; een ontbrekende klasse
+  breekt de lijn af.
 - **Een mediaan is een doorgetrokken nadruklijn**, naast de gestreepte van een drempel, elk met
   zijn label naast de lijn. Raken de labels elkaar, dan zakt het rechter een regel.
 - **Een staaf begint bij 0, want haar lengte draagt de waarde.** Een grafiek die een positie
@@ -1403,7 +1453,9 @@ kleinste correctie, en leg die hier vast.
   bijna-zwart met wit erin, in donker wit met bijna-zwart erin. Op de eigen vulling van het thema
   (het menu, de band van een hero) is het de inverse ring: wit met de donkere lijn erin. Een vlak
   dat een andere ring draagt, zet `--lintje-focus` en `--lintje-focus-inner`, die overerven in
-  alles wat erop staat.
+  alles wat erop staat. Een lijn in een graaf draagt dezelfde ring langs de lijn.
+- **Wat in een graaf terugstapt, blijft leesbaar**: het icoon en de lijnen vervagen, maar de naam en
+  de initialen van een persoon houden 4,5:1 in de secundaire tekstkleur.
 - **Een veld is verplicht tenzij het anders zegt**: de optionele zijn gemarkeerd, "(niet
   verplicht)", binnen het label. Geen sterretje.
 - **Eén `h1` per pagina**: de naam van de shell, ook onder 768 px. Een paginatitel is een `h2`,

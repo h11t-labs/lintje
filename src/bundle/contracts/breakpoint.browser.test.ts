@@ -36,6 +36,7 @@ import '../../components/forms/form/form'
 import '../../components/inputs/file-upload/file-upload'
 import '../../components/inputs/find/find'
 import '../../components/content/log-viewer/log-viewer'
+import '../../components/content/photo-wall/photo-wall'
 import '../../components/inputs/select/select'
 import '../../components/inputs/slot-picker/slot-picker'
 import '../../components/inputs/text-editor/text-editor'
@@ -222,6 +223,10 @@ const NAVIGATION: ShellData['navigation'] = [
   { label: 'Aanvragen', href: '#aanvragen' },
   { label: 'Rapportages', href: '#rapportages' },
 ]
+
+/** A photo that needs no request: the grid does not wait for it. */
+const PHOTO =
+  'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 3 2%22/%3E'
 
 const OFFICES = ['Utrecht', 'Zwolle', 'Arnhem', 'Leeuwarden', 'Middelburg', 'Maastricht']
 
@@ -1005,6 +1010,34 @@ const ROWS: Row[] = [
     },
   })),
   {
+    tag: 'lintje-hero',
+    marker: 'the photo stands above the text’s block instead of behind it',
+    mount: () => {
+      const hero = create('lintje-hero', {
+        heading: 'Wat wil je vertalen?',
+        description: 'Typ of spreek een tekst in, of upload een document.',
+      })
+      hero.append(create('img', { slot: 'backdrop', alt: 'Het scherm Tekst vertalen' }))
+      return append(hero)
+    },
+    wide: (element) => {
+      const photo = box(find(element, '.lintje-hero__backdrop'))
+      const block = box(find(element, '.lintje-hero__body'))
+      return (
+        photo.height > block.height &&
+        block.top >= photo.top - 1 &&
+        block.bottom <= photo.bottom + 1 &&
+        block.left >= photo.left - 1 &&
+        block.right <= photo.right + 1
+      )
+    },
+    phone: (element) => {
+      const photo = find(element, '.lintje-hero__backdrop')
+      const block = find(element, '.lintje-hero__body')
+      return seen(photo) && below(photo, block) && box(block).width >= box(photo).width - 1
+    },
+  },
+  {
     tag: 'lintje-breadcrumbs',
     marker: 'one link back to the level above replaces the trail',
     mount: () =>
@@ -1630,6 +1663,28 @@ const ROWS: Row[] = [
     },
   },
   {
+    tag: 'lintje-photo-wall',
+    marker: 'the photos stand under each other',
+    mount: () =>
+      append(
+        create('lintje-photo-wall', {
+          items: ['Het loket', 'Het archief'].map((caption) => ({
+            src: PHOTO,
+            alt: caption,
+            caption,
+          })),
+        }),
+      ),
+    wide: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-photo-wall__item')
+      return seen(first) && beside(first!, second!)
+    },
+    phone: (element) => {
+      const [first, second] = all(element.shadowRoot!, '.lintje-photo-wall__item')
+      return below(first!, second!)
+    },
+  },
+  {
     tag: 'lintje-footer',
     marker: 'the link columns stand under each other',
     mount: () =>
@@ -2087,6 +2142,7 @@ const REFLOWING = [
   'lintje-modal',
   'lintje-page-header',
   'lintje-pagination',
+  'lintje-photo-wall',
   'lintje-segmented',
   'lintje-shell',
   'lintje-tabs',

@@ -350,6 +350,8 @@
   --hero-overlap: var(--space-10);
   /* The widest the picture beside the hero's text gets: four of the twelve columns at 1440. */
   --w-hero-aside: 400px;
+  /* The least height of a hero with a photo behind its text, so the photo shows above the block. */
+  --h-hero-backdrop: 30rem;
   /* The narrowest a card gets in a card list before the list drops a column. */
   --w-card: 320px;
   /* The same for a horizontal card, whose picture takes a column of its own. */
@@ -378,13 +380,16 @@
   --chart-h-main: 260px;
   --chart-h-small: 180px;
   --chart-h-expanded: 560px;
+  /* A translucent fill of a data colour, the same in both modes: its line carries the 3:1. */
+  --chart-translucent: 0.25;
 
   /* Sticky context = top bar + summary bar. */
   --h-sticky: calc(var(--h-topbar) + var(--h-contextbar));
 
-  /* The corners: of a framed block (a card, a tile, a dialog), of a button and a field, and the
-     one large corner of a drawer and a narrow band. All square in the earlier house style; the new style
-     (`data-style-version="new"`) sets them below, the large one with `data-style-new-corner`. */
+  /* The corners: of a framed block (a card, a tile, a dialog), of a button, a field and the label on
+     a photo, and the one large corner of a drawer, a narrow band and a photo wall. All square in
+     the earlier house style; the new style (`data-style-version="new"`) sets them below, the large
+     one with `data-style-new-corner`. */
   --radius: 0px;
   --radius-control: 0px;
   --radius-corner: 0px;
@@ -910,8 +915,9 @@
   /* The page's side margin: one ribbon on a desktop, half a ribbon on a tablet, 20 px on a
      phone, as the house style lays the page out. */
   --page-pad-x: 48px;
-  /* The small corners of the house style online: on a button and a field, never larger. A framed
-     block (a card, a tile, a dialog, an alert) keeps `--radius` at 0, as the house style draws it. */
+  /* The small corners of the house style online: on a button and a field, never larger, and on the
+     label on a photo, as small as a chip. A framed block (a card, a tile, a dialog, an alert) keeps
+     `--radius` at 0, as the house style draws it. */
   --radius-control: 4px;
   /* The veil under a dialog, a modal and a drawer: the house style's cool grey at 80 %; the
      window's surface and border stand on it alike (1.3:1 edge). Dark takes black. */
@@ -940,8 +946,9 @@
   --color-action-primary-pressed: color-mix(in srgb, var(--primary), black 55%);
   --color-action-tertiary-pressed: var(--color-border-default);
   --color-action-danger-pressed: color-mix(in srgb, var(--status-error), black 55%);
-  /* The house style's one rounded corner, a ribbon wide, on a drawer (its corner free) and on a
-     narrow band inside the margins. A band or foot that runs edge to edge stays square. */
+  /* The house style's one rounded corner, a ribbon wide, on a drawer (its corner free), on a narrow
+     band inside the margins and top right on a photo wall. A band or foot that runs edge to edge
+     stays square. */
   --radius-corner: 48px;
   /* The components that draw differently: the status bar, the 1 px choice edge, the boxless
      tertiary, the accordion row, the tinted current page, the filled sub-navigation and the

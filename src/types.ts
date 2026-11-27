@@ -35,6 +35,9 @@ export type {
   SankeyStep,
   ScatterSeriesData,
   DumbbellRow,
+  HistogramComparison,
+  HistogramFill,
+  HistogramLine,
   WmsBasemap,
   MapArea,
   MapControls,
@@ -241,6 +244,11 @@ export interface GraphNode {
 export type GraphDirection = 'to' | 'both' | 'none'
 
 export interface GraphEdge {
+  /**
+   * The relation's own id. Only a line with an id can be chosen; it then comes back in
+   * `lintje-edge-select` and `lintje-edge-open`.
+   */
+  id?: string
   from: string
   to: string
   /** The relation's word, on the line: "aanvrager", "werkt bij". */
@@ -263,7 +271,9 @@ export type GraphLines = 'straight' | 'curved' | 'orthogonal'
  * Events: `lintje-node-select` `{id, label}` for a chosen node, `{id: null, label: null}` when
  * undone; `lintje-node-toggle` `{id, open}` when a branch or a group is opened or folded, one per
  * node when the reset button sets it all back; `lintje-node-expand` `{id}` when a node with `more`
- * is opened. With `download` the tile offers the drawing as a PNG.
+ * is opened; `lintje-edge-select` `{id, from, to, label}` for a chosen line, `{id: null, from: null,
+ * to: null, label: null}` when undone; `lintje-edge-open` `{id}` for a double click or Enter on the
+ * chosen line. With `download` the tile offers the drawing as a PNG.
  */
 export interface GraphData extends FrameSettings, TileData, ContentState {
   /** The kinds in the order the legend and the colours take them. */
@@ -276,8 +286,17 @@ export interface GraphData extends FrameSettings, TileData, ContentState {
   layout?: GraphLayout
   /** Without it straight, and curved round the centre in `radial`. */
   lines?: GraphLines
-  /** The chosen node: outlined, its relations and neighbours lit, the rest stepped back. */
+  /**
+   * The chosen node: outlined, its relations and neighbours lit, the rest stepped back. A node
+   * and a line are never chosen together: set with `selectedEdge`, the one set last wins.
+   */
   selected?: string | null
+  /**
+   * The chosen line, by its `id`: drawn thicker in the accent, its two nodes lit and the rest
+   * stepped back. Choosing a line undoes the chosen node, and the other way round. Set with
+   * `selected`, the one set last wins; set in the same `data`, the line.
+   */
+  selectedEdge?: string | null
   /** Nodes whose branch is folded. */
   collapsed?: string[]
   /** Groups the reader opened, by the id `lintje-node-toggle` gave them. */
@@ -295,6 +314,12 @@ export type CellValue = string | number | null
 export interface TableColumnData {
   key: string
   header: string
+  /**
+   * What the column holds, in a sentence or two: an "i" after the head opens it, it describes the
+   * head to a screen reader, and "Kolommen kiezen" shows it under the column's name. For a short
+   * head ("Prio") that needs a word of explanation; the cells do not repeat it.
+   */
+  hint?: string
   align?: 'left' | 'right'
   sortable?: boolean
   /**
@@ -310,6 +335,13 @@ export interface TableColumnData {
    * `status`: a `StatusTone` (or mapped through `status.tones`) as the status dot with its label.
    * `label`: the value as a badge with the word, tone and icon from `labels`.
    * `person`: the value is an id in `people`, drawn as `lintje-person`.
+   * `date`: an ISO day (`2026-01-05`), shown `05-01-2026` and sorted by day.
+   * `datetime`: an ISO date-time (`2026-01-05T14:30:00+01:00`, with `Z`, or without an offset
+   * for the reader's own time), shown `05-01-2026 14:30` in the reader's time zone and sorted by
+   * the moment. Both sort newest first on the first click, put a missing or non-ISO value
+   * lowest, and show a non-ISO value as given; the CSV keeps the ISO value. A host that filters
+   * such a column on text matches the shown text. Not with `editor: { kind: 'date' }`, which
+   * writes `dd-mm-jjjj`: the editor wins and the dev build warns.
    */
   format?:
     | 'text'
@@ -321,6 +353,8 @@ export interface TableColumnData {
     | 'status'
     | 'label'
     | 'person'
+    | 'date'
+    | 'datetime'
   /**
    * `change-compact`: the words the glyph stands for, as a template with `{key}` placeholders
    * filled from the row, each value read the way its column reads it (`{change}` gives
@@ -360,6 +394,12 @@ export interface TableColumnData {
   editor?: TableCellEditor
   /** A filter in the column's header; its value comes back in `DataTableData.filters`. */
   filter?: TableColumnFilter
+  /**
+   * Each cell takes the host's element through a slot named `<key>-<row key>` (`aantal-r1`), for
+   * what a value cannot say (a field, a switch); without one the value stands. The value still
+   * sorts, filters and goes into the CSV. A click in it never clicks the row; no `editor`.
+   */
+  slot?: boolean
 }
 
 export interface TableOption {
@@ -370,7 +410,11 @@ export interface TableOption {
   count?: number
 }
 
-/** The field an editable cell becomes. `date` is a `dd-mm-jjjj` text field the host validates; its column sorts by date. */
+/**
+ * The field an editable cell becomes. `date` is a `dd-mm-jjjj` text field the host validates; its
+ * column sorts by date. Not with `format: 'date'` or `'datetime'`, which read ISO: the editor wins
+ * and the dev build warns.
+ */
 export interface TableCellEditor {
   kind: 'text' | 'number' | 'select' | 'date'
   options?: TableOption[]
@@ -438,7 +482,9 @@ export interface SortState {
  * `lintje-row-action` `{id, label, action}` from `rowActions`;
  * `lintje-bulk-action` `{ids, action}` from `bulkActions`;
  * `lintje-filter-change` `{column, value}` (`string[] | string | null`) from a column `filter`;
- * `lintje-columns-change` `{order, hidden}` from the `columnChooser`.
+ * `lintje-columns-change` `{order, hidden}` from the `columnChooser`;
+ * with `paging: 'host'` also `lintje-page-change` `{page}` from the pager and
+ * `lintje-tile-download` from the download button, in the tile and in the enlarged view.
  */
 export interface DataTableData extends FrameSettings, TileData, ContentState {
   /** The table's `<caption>`. Required; visually hidden when the tile has a title. */
@@ -448,6 +494,23 @@ export interface DataTableData extends FrameSettings, TileData, ContentState {
   rows: Record<string, CellValue>[]
   rowKey: string
   pageSize?: number
+  /**
+   * Who sorts and pages. `client` (default): the table, over all `rows`. `host`: `rows` is one
+   * page in the host's order, never sorted again; a header or a page sends its event and the
+   * arrow and the pager show the choice at once. The host answers every such event with `data`:
+   * first, if it fetches, `state: 'loading'` with the old `rows`, which then stand with
+   * `aria-busy`; then the first `data` that is not loading is the answer, whose `sort` and `page`
+   * the table takes whole, also when they refuse the choice (`sort: null` is `defaultSort`). Any
+   * other `data` changes the sort or page only where it names a new one. A host answers a new
+   * sort or filter with page 1 and drops an answer to a choice it no longer holds. On the phone
+   * the page shows `pageSize` rows too. "Alles selecteren" checks this page; `groupBy` does not
+   * apply.
+   */
+  paging?: 'client' | 'host'
+  /** With `paging: 'host'`: the page `rows` is, from 1; past the last it counts as the last. */
+  page?: number
+  /** With `paging: 'host'`: the rows over all pages after the filters; the pages follow from it. */
+  rowCount?: number
   sort?: SortState | null
   /** The order without a sort choice; choosing it again clears `sort`. Default: first column. */
   defaultSort?: SortState
@@ -499,7 +562,8 @@ export interface DataTableData extends FrameSettings, TileData, ContentState {
   detailFields?: TableDetailField[]
   /**
    * Groups the rows on this column's value, in the order the groups first occur in `rows`. Rows
-   * sort within their group, a page holds whole groups, and the column itself is not shown.
+   * sort within their group, a page holds whole groups, and the column itself is not shown. Not
+   * with `paging: 'host'`, where a group would run over pages.
    */
   groupBy?: string
   /** Per group value: its subtotal row, as the host computed it. */
@@ -1096,6 +1160,7 @@ export type {
   CardStatusTone,
 } from './components/tables/card/card'
 export type { GalleryItem } from './components/content/gallery/gallery'
+export type { PhotoWallItem } from './components/content/photo-wall/photo-wall'
 export type { FooterColumn, FooterData, FooterLink } from './components/frame/footer/footer'
 export type { TreeNode } from './components/tables/tree-view/tree-view'
 export type { SortableItem } from './components/tables/sortable-list/sortable-list'

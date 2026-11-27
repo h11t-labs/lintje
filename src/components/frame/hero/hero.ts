@@ -4,12 +4,11 @@
  *
  * It runs from edge to edge, its text in the content column; in `lintje-shell` it goes in the
  * `full` slot. The title is an h2: the page's h1 is the shell's `name`. The default slot takes a
- * search field or a short form under the introduction, `aside` one picture beside the text (left
- * out below 1024 px), `panel` content beside the text, and `overlap` what stands half over the
- * band's lower edge, such as a panel of tabs. With `tone="primary"` it is the page's head: the
- * `breadcrumbs` slot takes the trail above the title. In a shell whose menu is light a hero
- * without a `tone` is primary by itself; `tone="wash"` keeps the wash. `narrow` sets the band
- * inside the page's margins, with the one corner of the new house style (`--radius-corner`).
+ * search field or a short form, `aside` one picture beside the text (gone below 1024 px), `panel`
+ * content beside the text, `overlap` what stands over the band's lower edge, and `backdrop` one
+ * `<img>` with alt text that fills the band behind a block holding the text; it wins over `aside`
+ * and `panel`. `tone="primary"` makes it the page's head, with the trail in `breadcrumbs`; under a
+ * light menu it is primary unless `tone="wash"`. `narrow` sets it inside the page's margins.
  *
  * Events: `lintje-navigate` `{ href }` (the action).
  */
@@ -35,17 +34,20 @@ export class LintjeHero extends LintjeElement {
     hasOverlap: { state: true },
     hasAside: { state: true },
     hasPanel: { state: true },
+    hasBackdrop: { state: true },
   }
 
   heading: string = ''
   /**
    * `wash`: the start page's band in the primary's wash. `primary`: the page's head in the
-   * primary colour itself, with white text.
+   * primary colour itself, with white text. With a `backdrop` the tone is the text's block's:
+   * `primary` in the primary colour with the one corner top right, otherwise a plain surface.
    */
   /** Unset, the hero is on the wash, or primary under a light menu: only a chosen tone reflects. */
   declare tone?: 'wash' | 'primary'
   /** The band inside the page's margins, in the content column, with the one corner top right;
-   * without it the band runs edge to edge and is square. */
+   * without it the band runs edge to edge and is square. With a `backdrop` the photo carries
+   * that corner and the text's block is square. */
   narrow: boolean = false
   /** In a shell with a light menu: primary unless the host chose a tone, read from the shell's `data-tone`. */
   band: boolean = false
@@ -76,6 +78,7 @@ export class LintjeHero extends LintjeElement {
   protected hasOverlap: boolean = false
   protected hasAside: boolean = false
   protected hasPanel: boolean = false
+  protected hasBackdrop: boolean = false
 
   private onOverlapChange(event: Event): void {
     this.hasOverlap = (event.target as HTMLSlotElement).assignedElements().length > 0
@@ -87,6 +90,10 @@ export class LintjeHero extends LintjeElement {
 
   private onPanelChange(event: Event): void {
     this.hasPanel = (event.target as HTMLSlotElement).assignedElements().length > 0
+  }
+
+  private onBackdropChange(event: Event): void {
+    this.hasBackdrop = (event.target as HTMLSlotElement).assignedElements().length > 0
   }
 
   private onAction(event: MouseEvent): void {
@@ -101,9 +108,13 @@ export class LintjeHero extends LintjeElement {
         'has-overlap': this.hasOverlap,
         'has-aside': this.hasAside,
         'has-panel': this.hasPanel,
+        'has-backdrop': this.hasBackdrop,
       })}
     >
       <div class="lintje-hero__band">
+        <div class="lintje-hero__backdrop">
+          <slot name="backdrop" @slotchange=${this.onBackdropChange}></slot>
+        </div>
         <div class="lintje-hero__body">
           <slot name="breadcrumbs"></slot>
           <slot name="status"></slot>

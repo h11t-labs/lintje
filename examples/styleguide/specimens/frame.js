@@ -976,6 +976,42 @@ export default {
           },
         },
         {
+          label: 'Met een foto erachter',
+          note:
+            'Het slot `backdrop` neemt één foto met alt-tekst, die de band vult. De tekst staat nooit ' +
+            'op de foto, maar in een blok linksonder erop: wit, tenzij de hero primair is. Met ' +
+            '`object-position` op de eigen img kiest de host wat in beeld blijft. Op een telefoon ' +
+            'staat de foto boven het blok.',
+          html: `<lintje-hero tone="wash" heading="Cijfers over de dienstverlening" description="Aanvragen, wachttijden en afwijzingen bij de loketten, per regio en per soort loket." action="Naar het dashboard" href="#dashboard">
+            <img slot="backdrop" src="../catalogus/media/dashboard-3.jpg" alt="Het dashboard met de aanvragen uit het buitenland op een kaart">
+          </lintje-hero>`,
+          setup(stage) {
+            stage.querySelector('lintje-hero').addEventListener('lintje-navigate', (event) => event.preventDefault())
+          },
+        },
+        {
+          label: 'Foto met een blok in de primaire kleur',
+          note:
+            'Met `tone="primary"` is het blok op de foto de primaire kleur, met in de nieuwe huisstijl ' +
+            'de ene afgeronde hoek rechtsboven. De foto loopt van rand tot rand en is dus recht.',
+          html: `<lintje-hero tone="primary" heading="Aanvragen en wachttijden" description="Alle cijfers over de loketten, per regio en per soort loket, bijgewerkt tot vanochtend.">
+            <img slot="backdrop" src="../catalogus/media/dashboard.jpg" alt="Het overzicht van het dashboard met de kerncijfers">
+            <lintje-breadcrumbs slot="breadcrumbs"></lintje-breadcrumbs>
+          </lintje-hero>`,
+          setup(stage) {
+            crumbs(stage, [{ label: 'Home', href: '#home' }, { label: 'Cijfers', href: '#cijfers' }, { label: 'Aanvragen en wachttijden' }])
+          },
+        },
+        {
+          label: 'Foto smal binnen de marges',
+          note:
+            'Met `narrow` staat de foto binnen de marges en draagt hij de ene afgeronde hoek ' +
+            'rechtsboven. Het blok is dan recht: nooit een hoek in een vlak met een hoek.',
+          html: `<lintje-hero tone="primary" narrow heading="Aanvragen en wachttijden" description="Alle cijfers over de loketten, per regio en per soort loket, bijgewerkt tot vanochtend.">
+            <img slot="backdrop" src="../catalogus/media/dashboard.jpg" alt="Het overzicht van het dashboard met de kerncijfers">
+          </lintje-hero>`,
+        },
+        {
           label: 'Met tabs over de onderrand',
           note: 'Het slot `overlap` legt grote tabs half over de onderrand.',
           html: `<lintje-hero heading="Wat wil je vertalen?" description="Je ziet de vertaling meteen.">
