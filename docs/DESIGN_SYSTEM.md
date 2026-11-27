@@ -643,11 +643,8 @@ De besluiten hieronder gelden voor alle elementen.
   venster open is: de aanwijzer raakt hem en Tab gaat van het venster naar de toast en terug.
 - **Een dialoog met een formulier is smal** en zo hoog als zijn inhoud; de knoppen staan links in
   de voet, het antwoord eerst, zoals de huisstijl een dialoog tekent, en een zin over het
-  resultaat erachter.
-- **Elk venster heeft dezelfde kop**: de dialoog, het grote venster, de lade en het blad op een
-  telefoon. In de nieuwe huisstijl staat de titel in de primaire kleur en zijn er geen lijnen
-  tussen kop, inhoud en voet; een blad met een eigen vulling, zoals het menu, houdt zijn eigen
-  tekstkleur.
+  resultaat erachter. De titel staat in de primaire kleur; het grote venster heeft geen lijnen
+  tussen kop, inhoud en voet.
 - **Een bezige knop houdt zijn breedte en zijn kleuren**; alleen de inhoud maakt plaats voor de
   ring.
 - **Een limiet waarschuwt en blokkeert nooit**: een geplakte tekst komt er heel in.
