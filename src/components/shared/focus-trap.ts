@@ -5,7 +5,8 @@
  * Focusables are counted at key time, through the composed tree (slots and shadow roots), and
  * skip anything not rendered or `visibility: hidden`. Traps stack: only the topmost acts, so
  * one Escape closes one dialog (`isTopmost()`). A popup that is no dialog asks
- * `ownsEscape(this)` (`core/focus.ts`, re-exported here).
+ * `ownsEscape(this)` (`core/focus.ts`, re-exported here). An element that stands beside every
+ * window (`standBeside()`, a toast) takes the focus too: Tab passes through it after the window.
  */
 
 import { deepActiveElement, focusTarget, standsIn, tabbables } from '../../core/focus'
@@ -59,7 +60,7 @@ function scrollStop(element: HTMLElement): boolean {
 }
 
 /** The stops of the window in Tab's order: its controls, a scroller, a radio group as one. */
-const stops = (container: HTMLElement): HTMLElement[] =>
+const stops = (container: ParentNode): HTMLElement[] =>
   radioStops(tabbables(container, scrollStop))
 
 /** Focuses the first of `list` that takes it: a scroller does not in WebKit. */
@@ -90,6 +91,18 @@ function focusContent(from: Node): void {
 /** The active traps, oldest first. */
 const stack: FocusTrap[] = []
 
+/** What stands above every window and stays in reach while one is open, in arrival order. */
+const besides = new Set<HTMLElement>()
+
+/** Lets `element` take the focus while a window is open; the returned function ends that. */
+export function standBeside(element: HTMLElement): () => void {
+  besides.add(element)
+  return () => besides.delete(element)
+}
+
+const beside = (node: Node | null): boolean =>
+  node !== null && Array.from(besides).some((element) => standsIn(node, element))
+
 export class FocusTrap {
   #container: HTMLElement | null = null
   #opener: HTMLElement | null = null
@@ -102,6 +115,7 @@ export class FocusTrap {
 
   // Only the real first and last stops wrap: from anything else inside, the browser takes the
   // step, as from a radio button or a scroller it made a stop.
+  // The window and each element beside it are a group; Tab steps from group to group, around.
   readonly #onKeyDown = (event: KeyboardEvent): void => {
     const container = this.#container
     if (event.key !== 'Tab' || !container?.isConnected || !this.isTopmost()) return
@@ -111,14 +125,21 @@ export class FocusTrap {
       container.focus()
       return
     }
+    const groups = [
+      { root: container as Element, list },
+      ...Array.from(besides, (root) => ({ root, list: stops(root.shadowRoot ?? root) })),
+    ].filter((group) => group.list.length > 0)
     const active = deepActiveElement()
-    const inside = active !== null && standsIn(active, container)
-    if (event.shiftKey && (!inside || active === container || active === list[0])) {
+    const at = active ? groups.findIndex((group) => standsIn(active, group.root)) : -1
+    const group = groups[Math.max(at, 0)]!
+    const next = (by: number): HTMLElement[] =>
+      groups[(Math.max(at, 0) + by + groups.length) % groups.length]!.list
+    if (event.shiftKey && (at < 0 || active === group.root || active === group.list[0])) {
       event.preventDefault()
-      focusOneOf([...list].reverse())
-    } else if (!event.shiftKey && (!inside || active === list[list.length - 1])) {
+      focusOneOf([...(at < 0 ? list : next(-1))].reverse())
+    } else if (!event.shiftKey && (at < 0 || active === group.list.at(-1))) {
       event.preventDefault()
-      focusOneOf(list)
+      focusOneOf(at < 0 ? list : next(1))
     } else {
       this.#stepping = event.shiftKey ? 'back' : 'forward'
       requestAnimationFrame(() => (this.#stepping = null))
@@ -130,7 +151,8 @@ export class FocusTrap {
     if (!container?.isConnected || !this.isTopmost()) return
     const stepping = this.#stepping
     this.#stepping = null
-    if (composedContains(container, deepActiveElement())) return
+    const active = deepActiveElement()
+    if (composedContains(container, active) || beside(active)) return
     // A stop the trap does not know made the browser step out: around, as from the end.
     if (stepping)
       focusOneOf(stepping === 'back' ? [...stops(container)].reverse() : stops(container))

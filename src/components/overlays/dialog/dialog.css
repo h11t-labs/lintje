@@ -3,10 +3,10 @@
 
 /* ------------------------------------------------------------------------ */
 
-/* Covers the whole viewport, above the shell's menu (z-index 30). */
+/* Covers the whole viewport, above a drawer (80–81) and a modal (82). */
 .lintje-dialog__scrim {
   position: fixed;
-  z-index: 80;
+  z-index: 83;
   inset: 0;
   display: flex;
   align-items: center;

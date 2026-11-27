@@ -9,7 +9,8 @@
   right: var(--space-6);
   /* Above what else sticks at the bottom, measured by `LintjeToast`. */
   bottom: calc(var(--space-6) + var(--lintje-toast-lift, 0px));
-  z-index: 70;
+  /* Above every window (80–83) and popover (85), under the tooltip (90). */
+  z-index: 87;
   display: flex;
   align-items: center;
   gap: var(--space-3);
