@@ -843,7 +843,6 @@ export class LintjeLogViewer extends LintjeContentTileElement {
           'lintje-log-viewer__log': true,
           'lintje-log-viewer__log--expanded': !inTile,
           'is-nowrap': !this.view.wrap && !mobile,
-          'is-mobile': mobile,
         })}
         tabindex="-1"
         @scroll=${inTile ? this.onScroll : nothing}

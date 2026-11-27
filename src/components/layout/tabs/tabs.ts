@@ -127,6 +127,12 @@ export class LintjeTabs extends LintjeElement {
     return this.renderRoot.querySelector<HTMLElement>(`#tab-${index}`)
   }
 
+  // A move disconnects and reconnects without a new render: the observer comes back here.
+  override connectedCallback(): void {
+    super.connectedCallback()
+    if (this.hasUpdated) this.observeList()
+  }
+
   override disconnectedCallback(): void {
     this.#resize?.disconnect()
     this.#resize = null
@@ -177,12 +183,18 @@ export class LintjeTabs extends LintjeElement {
     list.classList.toggle('is-scroll-end', edges.end)
   }
 
-  protected override firstUpdated(): void {
+  private observeList(): void {
+    this.#resize?.disconnect()
+    this.#resize = null
     const list = this.list
     if (list && typeof ResizeObserver !== 'undefined') {
       this.#resize = new ResizeObserver(() => this.measureEdges())
       this.#resize.observe(list)
     }
+  }
+
+  protected override firstUpdated(): void {
+    this.observeList()
   }
 
   protected override updated(changed: PropertyValues<this>): void {

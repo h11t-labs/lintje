@@ -124,7 +124,7 @@ describe('lintje-toast', () => {
     ['ok', 'Gelukt: '],
     ['error', 'Fout: '],
     ['info', 'Informatie: '],
-    ['warning', 'Let op: '],
+    ['warning', 'Waarschuwing: '],
   ] as const)(
     'says the kind of a %s toast before its text, in the region',
     async (kind, prefix) => {

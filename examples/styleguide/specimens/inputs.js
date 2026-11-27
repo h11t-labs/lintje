@@ -692,6 +692,22 @@ export default {
           setup: setSelected(SOURCES, []),
         },
         {
+          label: 'Zonder opties',
+          note:
+            'Open de lijst: zonder opties staat er geen "Alles selecteren", alleen dat er niets te ' +
+            'kiezen is.',
+          html: '<lintje-multiselect label="Bron van de aanvraag"></lintje-multiselect>',
+          setup: setSelected([], []),
+        },
+        {
+          label: 'Waarde buiten de opties',
+          note:
+            'Een gekozen waarde zonder optie staat als zichzelf in de chip; "Alles selecteren" ' +
+            'telt haar niet mee.',
+          html: '<lintje-multiselect label="Bron van de aanvraag"></lintje-multiselect>',
+          setup: setSelected(SOURCES, ['balie', 'archief']),
+        },
+        {
           label: 'Uitgeschakeld',
           html: '<lintje-multiselect label="Bron van de aanvraag" disabled></lintje-multiselect>',
           setup: setSelected(SOURCES, ['balie']),
@@ -965,6 +981,12 @@ export default {
             setOptions('lintje-segmented', KINDS, 'alle')(stage)
             hearValues(stage, 'lintje-segmented')
           },
+        },
+        {
+          label: 'Afwijkend',
+          note: 'Met `bold` staat de keuze van een filter dat afwijkt van zijn standaard vet.',
+          html: '<lintje-segmented label="Soort loket" bold></lintje-segmented>',
+          setup: setOptions('lintje-segmented', KINDS, 'mobile'),
         },
         {
           label: 'Met uitleg bij de keuze',

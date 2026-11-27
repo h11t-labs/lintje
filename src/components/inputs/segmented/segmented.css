@@ -62,6 +62,8 @@
   box-shadow: 0 0 0 1px var(--color-accent-line), inset 0 0 0 1px var(--color-accent-line);
   font-weight: 700;
 }
+/* `bold`, a filter off its default: the chosen option keeps the weight, in its reserved width. */
+.lintje-segmented__option.is-bold { font-weight: 700; }
 /* A focused option lies over the chosen one, so its ring stays whole on all four sides. */
 .lintje-segmented__option:focus-visible { z-index: 2; }
 .lintje-segmented__option.is-active:focus-visible {
