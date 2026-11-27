@@ -135,7 +135,14 @@ describe('stepper arithmetic', () => {
   })
 
   it('places the current step for the phone line and the bar', () => {
-    expect(position(STEPS)).toEqual({ place: 2, total: 3, percent: 67 })
+    expect(position(STEPS)).toEqual({ place: 2, total: 3, percent: 33 })
+  })
+
+  it('fills the bar only when every step is done, not on the last current step', () => {
+    const last = STEPS.map((step, i) => ({ ...step, state: i < 2 ? 'done' : 'current' }) as Step)
+    expect(position(last)).toEqual({ place: 3, total: 3, percent: 67 })
+    const finished = STEPS.map((step) => ({ ...step, state: 'done' }) as Step)
+    expect(position(finished)).toEqual({ place: 3, total: 3, percent: 100 })
   })
 
   it('stands the steps up when the row overflows, and lays them down when it fits again', () => {
