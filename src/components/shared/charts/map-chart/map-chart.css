@@ -442,7 +442,7 @@
 .lintje-map-chart--basemap .lintje-map-chart__selection,
 .lintje-map-chart--basemap .lintje-map-chart__scale-bar,
 .lintje-map-chart--basemap .lintje-map-chart__hint { bottom: calc(var(--space-2) + var(--space-5)); }
-.lintje-map-chart--basemap.lintje-map-chart--mobile .lintje-map-chart__scale-bar { bottom: calc(var(--space-2) + var(--space-9)); }
+.lintje-map-chart--basemap.lintje-map-chart--mobile .lintje-map-chart__scale-bar { bottom: calc(var(--space-2) + var(--space-10)); }
 
 /* --- The legend ----------------------------------------------------------- */
 
