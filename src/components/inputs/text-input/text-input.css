@@ -59,3 +59,9 @@
 .lintje-text-input__action {
   flex: none; --h-button: var(--h-control);
 }
+/* In error the button takes the frame of the box, so the line does not step where they meet. */
+.lintje-text-input__box.is-error ~ .lintje-text-input__reveal,
+.lintje-text-input__box.is-error ~ .lintje-text-input__action {
+  --lintje-button-secondary-border: var(--color-error-line);
+  --field-button-border: var(--field-error-border);
+}

@@ -95,3 +95,18 @@ it('leaves a host no corner to set: a button is never rounder than the small cor
     document.body.style.removeProperty('--lintje-button-radius')
   }
 })
+
+describe.each(FIELDS)('a text field in error with %s', (_, own) => {
+  it.each(['new', 'classic'])(
+    'draws its button in the frame of the box, %s style',
+    async (style) => {
+      if (style === 'new') document.documentElement.dataset.styleVersion = 'new'
+      const { box, button } = await field({ ...own, error: 'Gebruik alleen cijfers.' })
+      const frame = getComputedStyle(box)
+      const edge = getComputedStyle(button)
+      expect(edge.borderTopColor).toBe(frame.borderTopColor)
+      expect(edge.borderTopWidth).toBe(frame.borderTopWidth)
+      expect(button.getBoundingClientRect().height).toBe(box.getBoundingClientRect().height)
+    },
+  )
+})
