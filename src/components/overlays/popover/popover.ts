@@ -2,7 +2,8 @@
  * `<lintje-popover>` — the floating panel: a surface fixed to the viewport under its anchor.
  *
  * Content and padding come through the slot. The host holds `open`: the popover only asks to be
- * closed. A component that draws a popover in its own root stops its `lintje-close`.
+ * closed. Its `lintje-close` does not bubble, so a window around it never hears it as its own:
+ * whoever opened the popover listens on the popover itself.
  *
  * Events: `lintje-close` `{ reason: 'escape' | 'outside' | 'focus' }`.
  */
@@ -74,7 +75,7 @@ export class LintjePopover extends LintjeElement {
   private readonly onOutsidePress = (event: MouseEvent): void => {
     if (!this.open) return
     if (this.fromOwn(event.composedPath())) return
-    this.emit('lintje-close', { reason: 'outside' })
+    this.emitOwn('lintje-close', { reason: 'outside' })
   }
 
   /**
@@ -87,7 +88,7 @@ export class LintjePopover extends LintjeElement {
     if (this.fromOwn(path)) return
     const next = path[0]
     if (next instanceof Node && standsIn(this, next)) return
-    this.emit('lintje-close', { reason: 'focus' })
+    this.emitOwn('lintje-close', { reason: 'focus' })
   }
 
   /**
@@ -101,7 +102,7 @@ export class LintjePopover extends LintjeElement {
     if (!ownsEscape(this) || !isTopLayer(this) || holdsFocus(this)) return
     answerEscape(event)
     event.stopPropagation()
-    this.emit('lintje-close', { reason: 'escape' })
+    this.emitOwn('lintje-close', { reason: 'escape' })
   }
 
   /** What a control inside the panel left of an Escape, before the drawer around it hears it. */
@@ -109,7 +110,7 @@ export class LintjePopover extends LintjeElement {
     if (!this.open || !isFreshEscape(event)) return
     answerEscape(event)
     event.stopPropagation()
-    this.emit('lintje-close', { reason: 'escape' })
+    this.emitOwn('lintje-close', { reason: 'escape' })
   }
 
   constructor() {

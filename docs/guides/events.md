@@ -4,7 +4,8 @@ Een element haalt nooit iets op en schrijft nooit de URL; het gaat alleen naar e
 en nooit als je zijn event annuleert ([links](#links)). Het stuurt een event en wacht tot jij een
 eigenschap zet. Elk event is een `CustomEvent` met `bubbles` en `composed`, dus één luisteraar
 op `document` hoort het vanaf elke diepte: de inhoud is `event.detail`, `event.target` het element
-dat het stuurde. Welke tag wat stuurt, staat in de stijlgids, onder elk element.
+dat het stuurde. De uitzondering is het sluiten van een zwevende laag: dat hoor je op de laag zelf
+([een event uit de inhoud](#een-event-uit-de-inhoud)). Welke tag wat stuurt, staat in de stijlgids, onder elk element.
 
 ## Links
 
@@ -164,6 +165,34 @@ transcript.addEventListener('lintje-seek', (event) => {
 ```
 
 **Events die niet van jou zijn.** Een event met `composed` dat niet in de tabel staat, hoort bij wie het
-onderdeel heeft geopend: `lintje-close` van een venster, een dialoog, een paneel opzij of een zwevend paneel, en `lintje-invalid` van het formulier (een echo van je eigen `.errors`). Een view
+onderdeel heeft geopend: `lintje-close` van een venster, een dialoog of een paneel opzij, en `lintje-invalid` van het formulier (een echo van je eigen `.errors`). Een view
 vangt de events van zijn eigen onderdelen af — het uitvouwen en downloaden van de tegel, het sluiten van het venster — zodat één
 actie voor jou één event is. Een pagina die zo'n onderdeel zelf opent, is die eigenaar, en hoort ze.
+
+### Een event uit de inhoud
+
+Een event bubbelt door elk element om zijn afzender heen. Wie op een omhullend element luistert,
+hoort dus ook hetzelfde event van iets in diens inhoud: de `lintje-toggle` van een toelichting in
+een uitklapper, de `lintje-change` van een veld in een tegel, de `lintje-action` van een menu in
+een slot. Vergelijk daarom `event.target` met het element waarop je luistert:
+
+```js
+expander.addEventListener('lintje-toggle', (event) => {
+  if (event.target !== expander) return // a toggletip or a menu in its content
+  state.open = event.detail
+})
+```
+
+De `lintje-close` van een popover bubbelt niet: wie de popover opende, luistert op de popover
+zelf. Een veld houdt het sluiten van zijn lijst of kalender voor zich en stuurt geen `lintje-close`.
+Een venster eromheen hoort het sluiten van een popover erin dus niet, en sluit niet mee als alleen
+de popover dichtgaat. Een venster of een toast in zijn inhoud stuurt wel een `lintje-close` die
+bubbelt, dus ook hier vergelijk je `event.target`:
+
+```js
+// A popover in a modal: each listens on its own element.
+popover.addEventListener('lintje-close', () => (popover.open = false))
+modal.addEventListener('lintje-close', (event) => {
+  if (event.target === modal) modal.open = false // not a toast or a dialog in its content
+})
+```

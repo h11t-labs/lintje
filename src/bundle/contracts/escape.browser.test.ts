@@ -7,6 +7,11 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import '../../components/overlays/tooltip/tooltip'
 import '../../components/overlays/popover/popover'
+import '../../components/overlays/toggletip/toggletip'
+import '../../components/overlays/modal/modal'
+import '../../components/actions/menu-button/menu-button'
+import '../../components/inputs/date-input/date-input'
+import '../../components/inputs/time-input/time-input'
 import '../../components/inputs/combobox/combobox'
 import '../../components/inputs/find/find'
 import '../../components/inputs/text-input/text-input'
@@ -706,6 +711,146 @@ describe('two floating layers open at once', () => {
       await userEvent.keyboard('{Escape}')
       await settle()
       expect(open(), 'after Escape 2').toEqual([])
+    },
+  )
+})
+
+/* --- A floating layer's close ------------------------------------------------ */
+
+interface Floating {
+  name: string
+  /** Builds the element in `stage` and opens its layer as a reader does; returns it. */
+  open: (stage: HTMLElement) => Promise<Layer>
+}
+
+/** Its button, inside its own root: the first that matches. */
+const part = (host: Element, selector: string): HTMLElement =>
+  host.shadowRoot!.querySelector<HTMLElement>(selector)!
+
+async function opened<T extends Layer>(
+  stage: HTMLElement,
+  tag: string,
+  props: object,
+  trigger: string,
+): Promise<T> {
+  const element = Object.assign(document.createElement(tag), props) as unknown as T
+  stage.append(element)
+  await element.updateComplete
+  await drawn(() => part(element, trigger))
+  part(element, trigger).click()
+  await expect.poll(() => element.open).toBe(true)
+  return element
+}
+
+const OPTIONS = [
+  { value: 'web', label: 'Website' },
+  { value: 'mail', label: 'E-mail' },
+]
+
+const FLOATING: Floating[] = [
+  {
+    name: 'lintje-popover, slotted in the modal',
+    open: async (stage) => {
+      const button = document.createElement('button')
+      button.textContent = 'Uitleg'
+      const popover = Object.assign(document.createElement('lintje-popover'), {
+        label: 'Uitleg',
+      }) as unknown as Layer
+      popover.textContent = 'De doorlooptijd telt in werkdagen.'
+      button.addEventListener('click', () => (popover.open = true))
+      popover.addEventListener('lintje-close', () => (popover.open = false))
+      stage.append(button, popover)
+      await popover.updateComplete
+      button.focus()
+      await userEvent.keyboard('{Enter}')
+      await expect.poll(() => popover.open).toBe(true)
+      return popover
+    },
+  },
+  {
+    name: 'lintje-toggletip',
+    open: async (stage) => {
+      const text = { textContent: 'De doorlooptijd telt in werkdagen.' }
+      return opened<Layer>(stage, 'lintje-toggletip', text, '.lintje-toggletip__trigger')
+    },
+  },
+  {
+    name: 'lintje-date-input',
+    open: (stage) =>
+      opened(stage, 'lintje-date-input', { label: 'Datum' }, '.lintje-date-input__toggle'),
+  },
+  {
+    name: 'lintje-time-input',
+    open: (stage) =>
+      opened(stage, 'lintje-time-input', { label: 'Tijdstip' }, '.lintje-time-input__toggle'),
+  },
+  {
+    name: 'lintje-multiselect',
+    open: (stage) =>
+      opened(
+        stage,
+        'lintje-multiselect',
+        { label: 'Bronnen', options: OPTIONS, selected: [] },
+        '.lintje-multiselect__field',
+      ),
+  },
+  {
+    name: 'lintje-date-range',
+    open: (stage) =>
+      opened(stage, 'lintje-date-range', { label: 'Periode' }, '.lintje-date-range-picker__field'),
+  },
+  {
+    name: 'lintje-menu-button',
+    open: (stage) =>
+      opened(
+        stage,
+        'lintje-menu-button',
+        { label: 'Acties', items: [{ value: 'weg', label: 'Verwijderen' }] },
+        '.lintje-menu-button__trigger',
+      ),
+  },
+  {
+    name: 'lintje-combobox',
+    open: async (stage) => {
+      const element = Object.assign(document.createElement('lintje-combobox'), {
+        label: 'Plaats',
+        options: OPTIONS,
+      }) as unknown as Layer
+      stage.append(element)
+      await element.updateComplete
+      ;(inside(element, 'input') as HTMLInputElement).focus()
+      await userEvent.keyboard('{ArrowDown}')
+      await expect.poll(() => element.open).toBe(true)
+      return element
+    },
+  },
+]
+
+describe('a floating layer’s close stays with it', () => {
+  it.each(FLOATING.map((row) => [row.name, row] as const))(
+    '%s: a modal around it hears no lintje-close',
+    async (_, row) => {
+      const modal = Object.assign(document.createElement('lintje-modal'), {
+        heading: 'Details',
+      }) as unknown as Layer
+      // A host that answers every lintje-close it hears on the modal, as a page does.
+      const heard: EventTarget[] = []
+      modal.addEventListener('lintje-close', (event) => {
+        heard.push(event.target!)
+        modal.open = false
+      })
+      document.body.append(modal)
+      modal.open = true
+      await modal.updateComplete
+      const layer = await row.open(modal)
+      await userEvent.keyboard('{Escape}')
+      await expect.poll(() => layer.open).toBe(false)
+      await settle()
+      expect(heard, 'what the modal heard').toEqual([])
+      expect(modal.open).toBe(true)
+      await userEvent.keyboard('{Escape}')
+      await expect.poll(() => modal.open).toBe(false)
+      expect(heard).toEqual([modal])
     },
   )
 })
