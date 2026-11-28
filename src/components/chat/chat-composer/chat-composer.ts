@@ -743,11 +743,7 @@ export class LintjeChatComposer extends LintjeElement {
           : nothing
       }
       <div
-        class=${classMap({
-          'lintje-chat-frame': true,
-          'lintje-chat-composer__frame': true,
-          'is-dragging': this.dragging && this.takesFiles,
-        })}
+        class="lintje-chat-frame lintje-chat-composer__frame"
         ?hidden=${collapsed}
         @dragover=${this.onDragOver}
         @drop=${this.onDrop}

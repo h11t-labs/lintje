@@ -655,8 +655,9 @@ De besluiten hieronder gelden voor alle elementen.
   80 %** (Cool Gray 900); in donker is hij zwart op 60 %, omdat het koelgrijs een donkere pagina
   blauw kleurt. Het venster staat erop met zijn eigen oppervlak en rand.
 - **Wat over de pagina ligt, ligt in een vaste volgorde**, sluier en kader samen, van onder naar
-  boven: het menu van de schil, een lade, een groot venster, een dialoog, een popover of
-  toggletip, een toast en een tooltip. Een vraag boven een open lade ligt er dus helemaal boven.
+  boven: het menu van de schil, een lade, het zoekpaneel of het meldingenblad, een groot venster,
+  een dialoog, een popover of toggletip, een toast en een tooltip. Een vraag boven een open lade,
+  zoekpaneel of meldingenblad ligt er dus helemaal boven.
   Wat onder de sluier ligt, krijgt geen klik; een popover, toggletip of tooltip in een venster
   staat erboven. Een toast blijft bereikbaar terwijl een venster open is: de aanwijzer raakt hem
   en Tab gaat van het venster naar de toast en terug. Reikt de voet van het venster tot waar de
