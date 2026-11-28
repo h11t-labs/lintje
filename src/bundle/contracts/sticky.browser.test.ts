@@ -764,6 +764,99 @@ const ROWS: Row[] = [
   },
 ]
 
+/* The chat's question under the head's tabs -------------------------------- */
+
+/** The question that crosses its line in the page, the lowest if several do. */
+function pageQuestion(chat: HTMLElement): HTMLElement | null {
+  let found: HTMLElement | null = null
+  for (const message of all(chat.shadowRoot!, '.lintje-chat__message') as HTMLElement[]) {
+    const style = getComputedStyle(message)
+    if (style.position !== 'sticky') continue
+    const line = parseFloat(style.top) || 0
+    const rect = message.getBoundingClientRect()
+    if (rect.top > line + 1 || rect.bottom <= line + 1) continue
+    if (!found || rect.bottom > found.getBoundingClientRect().bottom) found = message
+  }
+  return found
+}
+
+/**
+ * A page head with tabs over a chat in the shell. `late`: the head gets its tabs only after the
+ * chat measured the room it keeps.
+ */
+async function chatUnderTabs(
+  style: Style,
+  late: boolean,
+): Promise<{ chat: HTMLElement; tabs: HTMLElement; target: HTMLElement }> {
+  const chat = create('lintje-chat', { data: { turns: TURNS } })
+  // Room below, so the second answer's end can scroll up under the question.
+  const { header, tabs } = await tabbedPage(style, [chat, spacer(900)])
+  if (late) {
+    tabs.remove()
+    await settle()
+  }
+  await chat.updateComplete
+  await settle()
+  if (late) {
+    header.append(tabs)
+    await settle()
+  }
+  const answer = all(chat.shadowRoot!, 'lintje-chat-answer')[1]!
+  const copy = all(answer.shadowRoot!, '[label="Antwoord kopiëren"]')[0]!
+  return { chat, tabs, target: copy.shadowRoot!.querySelector('button')! }
+}
+
+const LATE = (late: boolean): string => (late ? ' added later' : '')
+
+// The question that leaves at the end of its turn passes under the tabs, so the row checks
+// the room and the focus; where it sticks is checked below.
+function chatUnderTabsRow(style: Style, late: boolean): Row {
+  return {
+    tag: 'lintje-chat',
+    marker: `the question under the head’s tabs${LATE(late)} in the ${style} style at 1440 px`,
+    width: 1440,
+    side: 'top',
+    reserves: true,
+    mount: async () => {
+      const { chat, target } = await chatUnderTabs(style, late)
+      return {
+        scroller: document.documentElement,
+        cover: () => pageQuestion(chat),
+        target,
+        remove: () => chat.remove(),
+      }
+    },
+  }
+}
+
+ROWS.push(
+  ...(['classic', 'new'] as const).flatMap((style) => [
+    chatUnderTabsRow(style, false),
+    chatUnderTabsRow(style, true),
+  ]),
+)
+
+describe('the chat’s question sticks right under the head’s tabs', () => {
+  for (const style of ['classic', 'new'] as const) {
+    for (const late of [false, true]) {
+      it(`with the tabs${LATE(late)} in the ${style} style at 1440 px`, async () => {
+        await viewport(1440, 900)
+        const { chat, tabs } = await chatUnderTabs(style, late)
+        const question = all(chat.shadowRoot!, '.lintje-chat__message')[1] as HTMLElement
+        // The second turn's top well above the question's line: it sticks, free of its turn's end.
+        const line = parseFloat(getComputedStyle(question).top) || 0
+        scrollBy(
+          document.documentElement,
+          question.parentElement!.getBoundingClientRect().top - line + 100,
+        )
+        const gap = (): number =>
+          Math.abs(question.getBoundingClientRect().top - tabs.getBoundingClientRect().bottom)
+        await expect.poll(gap, { message: 'it stands right under the tabs' }).toBeLessThan(1)
+      })
+    }
+  }
+})
+
 /* The contract ------------------------------------------------------------ */
 
 const RESERVES = 'keeps its height as scroll padding, and gives it back'

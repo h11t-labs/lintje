@@ -19,13 +19,15 @@ import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { DialogHold } from '../../shared/dialog'
-import { tabbables } from '../../shared/focus-trap'
+import { focusTarget, tabbables } from '../../shared/focus-trap'
 import drawerCss from './drawer.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 
 export type DrawerCloseReason = 'escape' | 'button' | 'scrim'
 
-const FIELD = 'input:not([type="hidden"]), select, textarea'
+// A field to type in, as the dialog's: a checkbox or a switch first would turn on a stray Space.
+const FIELD =
+  'input:not([type="hidden"], [type="checkbox"], [type="radio"]), select, textarea, [contenteditable]'
 /** The dialog's name when the host gave no heading. */
 const FALLBACK_NAME = 'Zijpaneel'
 
@@ -96,6 +98,8 @@ export class LintjeDrawer extends LintjeElement {
   private focusFirst(): void {
     const panel = this.panel
     if (!panel) return
+    const chosen = this.querySelector<HTMLElement>('[autofocus]')
+    if (chosen) return focusTarget(chosen).focus()
     const body = this.renderRoot.querySelector('.lintje-drawer__body')
     const field = body ? tabbables(body).find((element) => element.matches(FIELD)) : undefined
     const close = this.renderRoot.querySelector<HTMLElement>('.lintje-drawer__close')

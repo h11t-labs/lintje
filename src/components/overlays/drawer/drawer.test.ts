@@ -143,6 +143,24 @@ describe('focus', () => {
     expect(deepActiveElement()).toBe(opener)
   })
 
+  it('passes a checkbox and a radio for the first field, as the dialog does', async () => {
+    await mount(
+      { open: true },
+      '<input type="checkbox" id="vink"><input type="radio" id="keuze"><input id="naam">',
+    )
+    await settle()
+    expect(deepActiveElement()?.id).toBe('naam')
+  })
+
+  it('puts the focus on the element with autofocus, as the dialog does', async () => {
+    await mount(
+      { open: true },
+      '<input id="naam"><button slot="footer" id="opslaan" autofocus>Opslaan</button>',
+    )
+    await settle()
+    expect(deepActiveElement()?.id).toBe('opslaan')
+  })
+
   it('moves to the close button when the body holds no field', async () => {
     const element = await mount({ open: true }, '<p>Alleen tekst</p>')
     await settle()

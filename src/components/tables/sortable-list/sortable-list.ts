@@ -26,6 +26,7 @@ import '../../feedback/empty-state/empty-state'
 import '../../inputs/checkbox/checkbox'
 import { LiveMessage } from '../../shared/live-message'
 import sortableListCss from './sortable-list.css?inline'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 export interface SortableItem {
   id: string
@@ -220,7 +221,7 @@ export class LintjeSortableList extends LintjeElement {
         break
       }
       case 'Escape':
-        if (!holding) return
+        if (!holding || !isFreshEscape(event)) return
         this.putBack(item)
         break
       default:
@@ -324,9 +325,9 @@ export class LintjeSortableList extends LintjeElement {
   }
 
   private readonly onDragKey = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || !this.drag) return
+    if (!isFreshEscape(event) || !this.drag) return
     // Stopped: the Escape ends the drag and closes no window around it.
-    event.preventDefault()
+    answerEscape(event)
     event.stopPropagation()
     this.cancelDrag()
   }

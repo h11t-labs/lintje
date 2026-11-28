@@ -315,7 +315,8 @@
 .lintje-chart-wrap > .lintje-legend { margin-bottom: var(--space-3); }
 .lintje-legend--right { flex-direction: column; flex-wrap: nowrap; }
 .lintje-legend__item { display: flex; align-items: center; gap: var(--space-2); }
-.lintje-legend__button { display: flex; align-items: center; gap: var(--space-2); font: inherit; color: inherit; }
+/* A switch in the legend is at least the 24 px floor of WCAG 2.5.8, in every chart and the graph. */
+.lintje-legend__button { display: flex; align-items: center; gap: var(--space-2); min-height: var(--h-target-text); font: inherit; color: inherit; }
 /* A series switched off: the marker steps back and the name is struck through, at full
    contrast — the strike and `aria-pressed` carry the state, not a faded word. */
 .lintje-legend__item.is-hidden .lintje-legend__marker { opacity: 0.45; }

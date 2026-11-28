@@ -143,7 +143,7 @@ function readModule(path) {
         file.events.set('lintje-navigate', { composed: true, detail: payload })
       return
     }
-    if (method !== 'emit' && method !== 'emitLocal') return
+    if (method !== 'emit' && method !== 'emitLocal' && method !== 'emitOwn') return
     const [name, detail] = node.arguments
     if (name?.type !== 'Literal') {
       file.dynamicEvents = true
@@ -151,6 +151,7 @@ function readModule(path) {
     }
     const known = file.events.get(name.value) ?? { composed: false, detail: undefined }
     if (method === 'emit') known.composed = true
+    if (method === 'emitOwn') known.own = true
     if (!known.detail && detail) known.detail = detailText(text, unwrap(detail))
     file.events.set(name.value, known)
   })
@@ -343,7 +344,11 @@ export function buildManifest(srcDir) {
           .map(([name, event]) => ({
             name,
             type: { text: event.detail ? `CustomEvent<${event.detail}>` : 'CustomEvent' },
-            description: event.composed ? undefined : 'Not composed: it stops at the shadow root.',
+            description: event.own
+              ? 'Does not bubble: listen on the element itself.'
+              : event.composed
+                ? undefined
+                : 'Not composed: it stops at the shadow root.',
           })),
         slots: [...slots.values()].sort((a, b) => a.name.localeCompare(b.name)),
         // Not in the schema: the tags this one draws, for the style guide's "Bestaat uit".

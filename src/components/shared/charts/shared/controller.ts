@@ -13,6 +13,7 @@ import type { SeriesKey } from './series-shapes'
 import type { KeyMark } from './axes'
 import type { MapArea, MapTool } from './types'
 import { uniqueId } from '../../../../core/id'
+import { answerEscape, isFreshEscape } from '../../../../core/escape'
 
 /** What every `render*` takes besides its data. */
 export interface ChartOptions {
@@ -113,6 +114,18 @@ export interface MeasureSpec {
  * on its way to the tooltip the pointer may cross a neighbour (WCAG 1.4.13).
  */
 export const POINTER_GRACE = 200
+/**
+ * How much a transform on an ancestor scales `element` on the screen, 1 without one: what the
+ * screen measures, divided by it, is in the element's own pixels. `offsetWidth` is rounded, so a
+ * ratio within a percent of 1 is a fractional width, not a scale.
+ */
+export function screenScale(element: Element): number {
+  const layout = element instanceof HTMLElement ? element.offsetWidth : 0
+  const screen = element.getBoundingClientRect().width
+  const scale = layout > 0 && screen > 0 ? screen / layout : 1
+  return Math.abs(scale - 1) < 0.01 ? 1 : scale
+}
+
 /** How far past the tooltip's near edge a move still counts as heading for it: a hand wobbles. */
 const HEADING_SLACK = 16
 
@@ -388,9 +401,12 @@ export class ChartController {
       () => {
         const area = anchor.getBoundingClientRect()
         const box = target.getBoundingClientRect()
+        const scale = screenScale(anchor)
         this.showTooltipAt(
-          (Math.max(box.left, area.left) + Math.min(box.right, area.right)) / 2 - area.left,
-          (Math.max(box.top, area.top) + Math.min(box.bottom, area.bottom)) / 2 - area.top,
+          ((Math.max(box.left, area.left) + Math.min(box.right, area.right)) / 2 - area.left) /
+            scale,
+          ((Math.max(box.top, area.top) + Math.min(box.bottom, area.bottom)) / 2 - area.top) /
+            scale,
           content,
         )
       },
@@ -523,9 +539,9 @@ export class ChartController {
    * goes on to a selection or an enclosing modal. Returns whether it hid one.
    */
   dismiss(event: KeyboardEvent): boolean {
-    if (event.key !== 'Escape' || !this.tooltip) return false
+    if (!isFreshEscape(event) || !this.tooltip) return false
     event.stopPropagation()
-    event.preventDefault()
+    answerEscape(event)
     this.hideTooltip()
     return true
   }
@@ -537,9 +553,10 @@ export class ChartController {
    * inside the chart is left to the chart's own `dismiss`.
    */
   private readonly onWindowKey = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || !this.tooltip) return
-    if (this.element && event.composedPath().includes(this.element)) return
-    event.preventDefault()
+    if (!isFreshEscape(event) || !this.tooltip) return
+    // A chart that left the page shows no tooltip, so the key is not its.
+    if (!this.element?.isConnected || event.composedPath().includes(this.element)) return
+    answerEscape(event)
     this.hideTooltip()
   }
 
@@ -615,7 +632,11 @@ export class ChartController {
     const element = this.element
     if (!element) return
     if (this.measuring.width) {
-      this.width = Math.max(160, Math.round(element.getBoundingClientRect().width))
+      // The layout's width, not the screen's: a transform on an ancestor scales the drawing too.
+      this.width = Math.max(
+        160,
+        Math.round(element.getBoundingClientRect().width / screenScale(element)),
+      )
     }
     const height = this.measuring.height
     if (typeof height === 'number') this.height = height
@@ -635,7 +656,7 @@ export class ChartController {
   private extras(): number {
     const element = this.element
     if (!element) return 0
-    const around = element.getBoundingClientRect().height - this.height
+    const around = element.getBoundingClientRect().height / screenScale(element) - this.height
     return around > 0 ? Math.ceil(around) : 0
   }
 

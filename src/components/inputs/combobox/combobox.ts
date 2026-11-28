@@ -29,6 +29,7 @@ import { Debounce } from '../../shared/debounce'
 import { resultsText, splitMatch } from '../../shared/search-text'
 import type { FilterOption } from '../../../types'
 import comboboxCss from './combobox.css?inline'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 export function filterOptions(options: FilterOption[], query: string): FilterOption[] {
   const needle = query.trim().toLowerCase()
@@ -162,7 +163,9 @@ export class LintjeCombobox extends LintjeInputElement {
         this.choose(this.visible[this.active])
         return
       case 'Escape':
-        if (this.text !== null) this.restore()
+        if (this.text === null || !isFreshEscape(event)) return
+        answerEscape(event)
+        this.restore()
         return
     }
   }

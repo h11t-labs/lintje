@@ -46,7 +46,9 @@
 .lintje-sankey__source { display: flex; flex-direction: column; gap: var(--space-2); }
 .lintje-sankey__source-head {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  min-height: var(--h-target-text);
   gap: var(--space-3);
   font: var(--text-small);
   font-weight: 700;
@@ -78,6 +80,7 @@
 .lintje-sankey__row-mark {
   display: flex;
   align-items: center;
+  min-height: var(--h-target-text);
   gap: var(--space-2);
   font: var(--text-small);
   color: var(--color-text-primary);

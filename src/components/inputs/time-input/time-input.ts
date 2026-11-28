@@ -2,8 +2,8 @@
  * `<lintje-time-input>` — a time of day, `HH:MM` on a 24-hour clock, typed or picked from a list.
  *
  * The element reads typed text on leaving the field or Enter, checks it and shows a message in
- * place of the hint; a host's `error` wins. Enter then submits the form around it, unless it
- * refused the text. A typed time between two in the list stays as typed.
+ * place of the hint; a host's `error` wins. Enter then submits the form around it; refused
+ * text holds the form back until it is fixed or erased. A typed time between two in the list stays as typed.
  * It knows no day or time zone. Tab out of the element closes the list.
  *
  * Events: `lintje-change` `string | null` (`HH:MM`), `lintje-values-change` `{ [name]: value }`
@@ -102,6 +102,7 @@ export class LintjeTimeInput extends LintjeInputElement {
     if (changed.has('value')) {
       this.text = isTime(this.value) ? this.value : ''
       this.problem = ''
+      this.refuse('')
     }
   }
 
@@ -113,6 +114,7 @@ export class LintjeTimeInput extends LintjeInputElement {
 
   private choose(time: string | null): void {
     this.problem = ''
+    this.refuse('')
     this.text = time ?? ''
     if (time === this.value) return
     this.value = time
@@ -124,24 +126,29 @@ export class LintjeTimeInput extends LintjeInputElement {
     this.read((event.target as HTMLInputElement).value)
   }
 
-  private read(text: string): void {
+  private problemOf(text: string): string {
     const parsed = parseTime(text)
-    if (parsed.kind === 'empty') return this.choose(null)
-    this.text = text
-    if (parsed.kind === 'invalid') {
-      this.problem = 'Vul een tijd in als uu:mm'
+    if (parsed.kind === 'empty') return ''
+    if (parsed.kind === 'invalid') return 'Vul een tijd in als uu:mm'
+    return this.outOfBounds(parsed.time)
+  }
+
+  private read(text: string): void {
+    const problem = this.problemOf(text)
+    if (problem) {
+      this.text = text
+      this.refuse(problem, () => (this.problem = problem))
       return
     }
-    const bound = this.outOfBounds(parsed.time)
-    if (bound) this.problem = bound
-    else this.choose(parsed.time)
+    const parsed = parseTime(text)
+    this.choose(parsed.kind === 'ok' ? parsed.time : null)
   }
 
   private onKeydown(event: KeyboardEvent): void {
     if (this.readonly) return
     this.submitOnEnter(event, () => {
       this.read((event.target as HTMLInputElement).value)
-      return !this.problem
+      return !this.refusal
     })
     if (event.altKey && event.key === 'ArrowDown') {
       event.preventDefault()
@@ -285,6 +292,10 @@ export class LintjeTimeInput extends LintjeInputElement {
           aria-required=${this.required ? 'true' : nothing}
           ?readonly=${this.readonly}
           ?disabled=${this.isDisabled}
+          @input=${(event: Event) => {
+            if (!this.readonly)
+              this.refuse(this.problemOf((event.target as HTMLInputElement).value))
+          }}
           @change=${this.onChange}
           @keydown=${this.onKeydown}
         />

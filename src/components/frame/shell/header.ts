@@ -22,6 +22,7 @@ import { holdsFocus, passFocus } from '../../../core/focus'
 import '../../actions/logo/logo'
 import { renderBadge } from '../../feedback/badge/badge'
 import type { ShellLink } from '../../../types'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 /** Pages as the bars draw them: adjacent loose pages form one group without a heading. */
 export interface NavGroup {
@@ -432,9 +433,10 @@ export class SubmenuController implements ReactiveController {
   }
 
   readonly #onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || this.host.openGroup === null) return
+    if (!isFreshEscape(event) || this.host.openGroup === null) return
     const bar = this.#bar
     if (bar && !ownsEscape(bar)) return
+    answerEscape(event)
     const entry = this.host.renderRoot.querySelector<HTMLButtonElement>(
       '.lintje-navbar__entry[aria-expanded="true"]',
     )

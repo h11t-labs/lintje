@@ -13,7 +13,6 @@
   min-width: 0;
 }
 .lintje-graph.is-phone { --lintje-graph-control: var(--h-touch); }
-.lintje-graph .lintje-legend__button { min-height: 24px; }
 .lintje-graph--expanded { height: var(--chart-h-main); }
 .lintje-graph--expanded .lintje-graph__area { flex: 1; min-height: 0; }
 

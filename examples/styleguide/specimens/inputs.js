@@ -1011,8 +1011,8 @@ export default {
         },
         {
           label: 'Afwijkend',
-          note: 'Met `bold` staat de keuze van een filter dat afwijkt van zijn standaard vet.',
-          html: '<lintje-segmented label="Soort loket" bold></lintje-segmented>',
+          note: 'Met `modified` staat de stip van "wijkt af van de standaard" bij het label, met zijn tekst voor een schermlezer.',
+          html: '<lintje-segmented label="Soort loket" modified bold></lintje-segmented>',
           setup: setOptions('lintje-segmented', KINDS, 'mobile'),
         },
         {

@@ -90,6 +90,7 @@ import '../../feedback/spinner/spinner'
 import '../../layout/tile/tile'
 import '../../overlays/tooltip/tooltip'
 import type { GraphData, GraphLayout, GraphLines, GraphNodeType } from '../../../types'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 /** The drawing's height in px, in the tile and on a phone. */
 export const GRAPH_HEIGHT = { desktop: 480, mobile: 360 } as const
@@ -933,11 +934,13 @@ export class LintjeGraph extends LintjeContentTileElement {
     const target = (event.target as HTMLElement).closest<HTMLElement>('[data-node]')
     const id = target?.dataset.node
     if (event.key === 'Escape') {
+      if (!isFreshEscape(event)) return
       // Only a tooltip that shows takes the first Escape: the chosen line and node have none.
-      if (surface.tip && surface.area?.querySelector('.lintje-graph__tip')) {
+      if (surface.tip && surface.area?.querySelector('.lintje-graph__tip'))
         this.hover(surface, null)
-        event.stopPropagation()
-      } else if (this.undoChoice()) event.stopPropagation()
+      else if (!this.undoChoice()) return
+      answerEscape(event)
+      event.stopPropagation()
       return
     }
     const line = (event.target as HTMLElement).closest<HTMLElement>('[data-edge]')

@@ -5,6 +5,7 @@
  */
 import { holdOverflow, lockScroll } from '../../core/host-config'
 import { FocusTrap } from './focus-trap'
+import { isFreshEscape } from '../../core/escape'
 
 /** The footers of the open windows. */
 const feet = new Set<HTMLElement>()
@@ -41,8 +42,7 @@ export class DialogHold {
 
   // An Escape something inside already answered (`preventDefault`) is not the window's.
   readonly #onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape' && !event.defaultPrevented && this.#trap.isTopmost())
-      this.#onEscape()
+    if (isFreshEscape(event) && this.#trap.isTopmost()) this.#onEscape()
   }
 
   /** `onEscape` runs only for the window on top; a window with its own condition checks it there. */

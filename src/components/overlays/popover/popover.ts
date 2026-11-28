@@ -2,7 +2,8 @@
  * `<lintje-popover>` — the floating panel: a surface fixed to the viewport under its anchor.
  *
  * Content and padding come through the slot. The host holds `open`: the popover only asks to be
- * closed. A component that draws a popover in its own root stops its `lintje-close`.
+ * closed. Its `lintje-close` does not bubble, so a window around it never hears it as its own:
+ * whoever opened the popover listens on the popover itself.
  *
  * Events: `lintje-close` `{ reason: 'escape' | 'outside' | 'focus' }`.
  */
@@ -18,6 +19,7 @@ import { LintjeElement, define } from '../../../core/element'
 import { shadowCss } from '../../../core/styles'
 import { place, samePlace, stand, viewport, type Place, type Placement } from '../../shared/place'
 import { holdsFocus, ownsEscape, standsIn } from '../../../core/focus'
+import { answerEscape, isFreshEscape, isTopLayer, setLayerOpen } from '../../../core/escape'
 import { FrameResizeObserver } from '../../shared/frame-resize-observer'
 import popoverCss from './popover.css?inline'
 
@@ -73,7 +75,7 @@ export class LintjePopover extends LintjeElement {
   private readonly onOutsidePress = (event: MouseEvent): void => {
     if (!this.open) return
     if (this.fromOwn(event.composedPath())) return
-    this.emit('lintje-close', { reason: 'outside' })
+    this.emitOwn('lintje-close', { reason: 'outside' })
   }
 
   /**
@@ -86,29 +88,29 @@ export class LintjePopover extends LintjeElement {
     if (this.fromOwn(path)) return
     const next = path[0]
     if (next instanceof Node && standsIn(this, next)) return
-    this.emit('lintje-close', { reason: 'focus' })
+    this.emitOwn('lintje-close', { reason: 'focus' })
   }
 
   /**
    * Capture phase, answered and stopped: Escape closes the popover, not the drawer it stands in,
-   * and not when a layer above (a tooltip) answered it first. Unless the focus stands in a modal
-   * dialog opened over it: then the key is the dialog's. With the focus inside the panel, a
-   * control there answers first (a lifted grip puts its row back).
+   * and not when a layer above (a tooltip, a layer opened later) answers it. Unless the focus
+   * stands in a modal dialog opened over it: then the key is the dialog's. With the focus inside
+   * the panel, a control there answers first (a lifted grip puts its row back).
    */
   private readonly onKeydown = (event: KeyboardEvent): void => {
-    if (!this.open || event.key !== 'Escape' || event.defaultPrevented) return
-    if (!ownsEscape(this) || holdsFocus(this)) return
-    event.preventDefault()
+    if (!this.open || !isFreshEscape(event)) return
+    if (!ownsEscape(this) || !isTopLayer(this) || holdsFocus(this)) return
+    answerEscape(event)
     event.stopPropagation()
-    this.emit('lintje-close', { reason: 'escape' })
+    this.emitOwn('lintje-close', { reason: 'escape' })
   }
 
   /** What a control inside the panel left of an Escape, before the drawer around it hears it. */
   private readonly onOwnKeydown = (event: KeyboardEvent): void => {
-    if (!this.open || event.key !== 'Escape' || event.defaultPrevented) return
-    event.preventDefault()
+    if (!this.open || !isFreshEscape(event)) return
+    answerEscape(event)
     event.stopPropagation()
-    this.emit('lintje-close', { reason: 'escape' })
+    this.emitOwn('lintje-close', { reason: 'escape' })
   }
 
   constructor() {
@@ -126,6 +128,7 @@ export class LintjePopover extends LintjeElement {
 
   override connectedCallback(): void {
     super.connectedCallback()
+    if (this.open) setLayerOpen(this, true)
     document.addEventListener('mousedown', this.onOutsidePress)
     document.addEventListener('focusin', this.onFocusIn)
     document.addEventListener('keydown', this.onKeydown, true)
@@ -142,6 +145,7 @@ export class LintjePopover extends LintjeElement {
     if (this.reflowFrame) cancelAnimationFrame(this.reflowFrame)
     this.reflowFrame = 0
     this.#anchorSize.disconnect()
+    setLayerOpen(this, false)
     super.disconnectedCallback()
   }
 
@@ -182,6 +186,7 @@ export class LintjePopover extends LintjeElement {
   protected override updated(changed: PropertyValues<this>): void {
     super.updated(changed)
     if (changed.has('open')) {
+      setLayerOpen(this, this.open)
       this.#anchorSize.disconnect()
       const anchor = this.open ? this.anchorElement : null
       if (anchor) this.#anchorSize.observe(anchor)

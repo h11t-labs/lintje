@@ -37,6 +37,7 @@ import { styleProps } from '../../../core/style-props'
 import { badgeStyles, renderBadge, type BadgeTone } from '../../feedback/badge/badge'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import transcriptCss from './transcript.css?inline'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 export interface TranscriptSegment {
   id: string
@@ -245,8 +246,8 @@ export class LintjeTranscript extends LintjeElement {
   }
 
   private onEditorKeydown(segment: TranscriptSegment, event: KeyboardEvent): void {
-    if (event.key === 'Escape') {
-      event.preventDefault()
+    if (isFreshEscape(event)) {
+      answerEscape(event)
       this.cancel(segment)
     } else if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault()

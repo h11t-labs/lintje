@@ -93,15 +93,6 @@
 }
 .lintje-audio-player__bar:hover { height: var(--space-2); margin-block: calc((var(--lintje-player-bar) - var(--space-2)) / 2); }
 .lintje-audio-player__stretch { position: absolute; top: 0; bottom: 0; pointer-events: none; }
-.lintje-audio-player__head {
-  position: absolute;
-  top: 50%;
-  width: var(--space-1);
-  height: var(--space-4);
-  transform: translate(-50%, -50%);
-  background: var(--color-text-primary);
-  pointer-events: none;
-}
 
 /* One colour per speaker (`--lintje-speaker`, set per bar); what is still to come is a lighter
    colour of its own, not a see-through one, so no ground shows through. */
@@ -169,14 +160,12 @@
   .lintje-audio-player__peak,
   .lintje-audio-player__stretch,
   .lintje-audio-player__swatch,
-  .lintje-audio-player__head,
   .lintje-audio-player__cursor,
   .lintje-audio-player__level,
   .lintje-audio-player__level-fill { forced-color-adjust: none; background: CanvasText; }
   .lintje-audio-player__peak.is-played,
   .lintje-audio-player__stretch.is-played,
   .lintje-audio-player__level-fill { background: Highlight; }
-  .lintje-audio-player__level-head { background: Highlight; outline: 1px solid Canvas; }
 }
 
 /* A phone of 320 px still fits mute, the three buttons and the speed: each keeps its 48 px. */

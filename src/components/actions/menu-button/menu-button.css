@@ -71,7 +71,7 @@
   color: var(--color-accent-text);
   font: var(--text-small);
   font-weight: 700;
-  transition: background var(--dur-hover) var(--ease-in-motion);
+  transition: background var(--dur-hover) var(--ease-in-motion), color var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-menu-button__trigger--ellipsis::after {
   content: '';
@@ -79,6 +79,9 @@
   inset: min(0px, calc((100% - var(--h-target)) / 2)) 0;
 }
 .lintje-menu-button__trigger--ellipsis.is-open { background: var(--color-bg-selected); }
+/* It rests on the subtle surface, a hover's usual step: under the pointer its word darkens, as
+   the breadcrumbs' links do. */
+.lintje-menu-button__trigger--ellipsis:not(.is-disabled):hover { color: var(--color-link-hover); }
 .lintje-menu-button__trigger--ellipsis.is-disabled { color: var(--color-text-disabled); cursor: not-allowed; }
 
 /* Forced colours: the disabled "…" is `aria-disabled`, so the browser does not gray it. */
