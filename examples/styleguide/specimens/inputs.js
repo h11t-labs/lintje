@@ -1419,8 +1419,10 @@ export default {
         },
         {
           label: 'Uitgeschakeld',
+          note: 'Uitgeschakeld is alles grijs, ook een kop.',
           html: '<lintje-text-editor label="Toelichting" disabled></lintje-text-editor>',
-          setup: (stage) => (stage.querySelector('lintje-text-editor').value = NOTE),
+          setup: (stage) =>
+            (stage.querySelector('lintje-text-editor').value = `### Overdracht\n\n${NOTE}`),
         },
         {
           label: 'Fout',
