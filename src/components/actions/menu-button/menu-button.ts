@@ -35,6 +35,7 @@ import { isPlainClick } from '../../../core/links'
 import { standsIn } from '../../../core/focus'
 import { stopAfter } from '../../shared/focus-trap'
 import { titleWhenCut } from '../../shared/cut-text'
+import { BUTTON_ICON_SIZE } from '../shared/button-icon'
 import { uniqueId } from '../../../core/id'
 
 export interface MenuItem {
@@ -428,7 +429,7 @@ export class LintjeMenuButton extends LintjeElement {
           busy
             ? html`<span class="lintje-menu-button__busy" aria-hidden="true"></span>`
             : this.leadingIcon
-              ? renderIcon(this.leadingIcon, { size: 20, className: 'lintje-button__icon' })
+              ? renderIcon(this.leadingIcon, { size: BUTTON_ICON_SIZE, className: 'lintje-button__icon' })
               : nothing
         }
         ${
@@ -457,7 +458,7 @@ export class LintjeMenuButton extends LintjeElement {
         @keydown=${this.onTriggerKeydown}
       >
         ${renderIcon('functioneel-delta-omlaag', {
-          size: 20,
+          size: BUTTON_ICON_SIZE,
           rotate: this.open ? 180 : undefined,
           className: 'lintje-button__icon',
         })}
@@ -531,7 +532,7 @@ export class LintjeMenuButton extends LintjeElement {
     >
       ${
         this.leadingIcon
-          ? renderIcon(this.leadingIcon, { size: 16, className: 'lintje-button__icon' })
+          ? renderIcon(this.leadingIcon, { size: BUTTON_ICON_SIZE, className: 'lintje-button__icon' })
           : nothing
       }
       ${
@@ -539,7 +540,7 @@ export class LintjeMenuButton extends LintjeElement {
           ? nothing
           : html`<span class="lintje-button__label" @pointerenter=${titleWhenCut}>${this.label}</span>
               ${renderIcon('functioneel-delta-omlaag', {
-                size: 16,
+                size: BUTTON_ICON_SIZE,
                 rotate: this.open ? 180 : undefined,
                 className: 'lintje-button__icon',
               })}`

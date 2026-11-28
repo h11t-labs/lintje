@@ -37,7 +37,6 @@
   flex: none;
   --lintje-menu-button-ring: 16px;
   width: var(--lintje-menu-button-ring); height: var(--lintje-menu-button-ring);
-  margin: calc((20px - var(--lintje-menu-button-ring)) / 2);
   border: 2px solid currentColor;
   border-top-color: transparent;
   border-radius: var(--radius-round);
